@@ -236,7 +236,7 @@ QString composite_op_to_psd_blendmode(const QString &compositeop)
     if (compositeop == COMPOSITE_LUMINIZE)
         return "lum ";
 
-    dbgKrita << "Krita blending mode" << compositeop << "does not exist in Photoshop, returning Normal";
+    dbgKrita << "LibrePaint blending mode" << compositeop << "does not exist in Photoshop, returning Normal";
     return "norm";
 }
 

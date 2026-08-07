@@ -428,7 +428,7 @@ void StoryboardDockerDock::slotExport(ExportFormat format)
         QModelIndex lastIndex  = m_storyboardModel->index(m_storyboardModel->rowCount() - 1, 0);
 
         if (!firstIndex.isValid() || !lastIndex.isValid()) {
-            QMessageBox::warning((QWidget*)(&dlg), i18nc("@title:window", "Krita"), i18n("Please enter correct range. There are no panels in the range of frames provided."));
+            QMessageBox::warning((QWidget*)(&dlg), i18nc("@title:window", "LibrePaint"), i18n("Please enter correct range. There are no panels in the range of frames provided."));
             return;
         }
 
@@ -437,7 +437,7 @@ void StoryboardDockerDock::slotExport(ExportFormat format)
 
         int numBoards = lastItemRow - firstItemRow + 1;
         if (numBoards <= 0) {
-            QMessageBox::warning((QWidget*)(&dlg), i18nc("@title:window", "Krita"), i18n("Please enter correct range. There are no panels in the range of frames provided."));
+            QMessageBox::warning((QWidget*)(&dlg), i18nc("@title:window", "LibrePaint"), i18n("Please enter correct range. There are no panels in the range of frames provided."));
             return;
         }
 

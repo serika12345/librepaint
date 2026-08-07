@@ -276,7 +276,7 @@ class comics_project_page_viewer(QDialog):
         return image
 
 if __name__ == '__main__':
-    ''' Run the page viewer outside Krita '''
+    '''Run the page viewer outside LibrePaint.'''
     app = QApplication(sys.argv)
     if sys.argv:
         print(sys.argv)
@@ -290,9 +290,8 @@ if __name__ == '__main__':
         else:
             print('No comic found in {comic}'.format(comic=path_to_config))
     else:
-        print('Pass the path to a Krita comicConfig.json file to this script, to view the comic.')
+        print('Pass the path to a LibrePaint comicConfig.json file to this script to view the comic.')
 
     sys.exit(app.exec())
-
 
 

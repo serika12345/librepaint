@@ -235,7 +235,7 @@ Boolean GetMetadataForFile(void *thisInterface,
 
         if (xmlDoc) {
 #ifdef DEBUG
-          NSLog(@"Test... we've got a Krita document info metadata @ %@", URL);
+          NSLog(@"Test... we've got LibrePaint document info metadata @ %@", URL);
 #endif
           NSXMLElement *title =
               [xmlDoc nodesForXPath:@"//about/title[1]" error:nil].firstObject;

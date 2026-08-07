@@ -107,8 +107,8 @@ QString DlgBugInfo::basicSystemInformationReplacementText()
 {
     QString info;
 
-    // Krita version info
-    info.append("Krita");
+    // Application version info
+    info.append("LibrePaint");
     info.append("\n  Version: ").append(KritaVersionWrapper::versionString(true));
     info.append("\n\n");
 

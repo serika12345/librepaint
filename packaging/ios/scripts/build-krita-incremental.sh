@@ -8,7 +8,7 @@ usage: build-krita-incremental.sh <command> [arguments]
 commands:
   configure                  Configure the persistent Ninja build tree.
   plan                       Show the work Ninja would perform.
-  build [--allow-large]      Incrementally build Krita; refuse a large rebuild by default.
+  build [--allow-large]      Incrementally build LibrePaint; refuse a large rebuild by default.
   bootstrap                  Build a new baseline, allowing the initial full build.
   deploy [device-id]         Incrementally build, then package and install through AltStore.
   path                       Print the build tree selected by the pinned Nix configuration.
@@ -316,6 +316,10 @@ acquire_lock() {
     trap 'exit 130' INT
     trap 'exit 143' TERM
     validate_host
+    python3 "$repo_root/packaging/ios/scripts/replace-brand-art-with-white.py" \
+        --audit-ios-classification
+    python3 "$repo_root/packaging/ios/scripts/audit-default-resource-bundle.py"
+    python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py"
 }
 
 configure_tree() {
@@ -396,6 +400,9 @@ print_plan() {
 
 build_target() {
     cmake --build "$build_dir" --target "$target" --parallel
+    python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py" \
+        --binary "$build_dir/bin/krita.app/krita" \
+        --build-ninja "$build_dir/build.ninja"
 }
 
 case "$command_name" in

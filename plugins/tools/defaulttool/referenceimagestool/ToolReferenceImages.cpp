@@ -149,7 +149,7 @@ void ToolReferenceImages::pasteReferenceImage()
         canvas()->addCommand(KisReferenceImagesLayer::addReferenceImages(document(), {reference}));
     } else {
         if (canvas()->canvasWidget()) {
-            QMessageBox::critical(canvas()->canvasWidget(), i18nc("@title:window", "Krita"), i18n("Could not load reference image from clipboard"));
+            QMessageBox::critical(canvas()->canvasWidget(), i18nc("@title:window", "LibrePaint"), i18n("Could not load reference image from clipboard"));
         }
     }
 }
@@ -192,7 +192,7 @@ void ToolReferenceImages::loadReferenceImages()
 
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly)) {
-        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("Could not open '%1'.", filename));
+        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("Could not open '%1'.", filename));
         return;
     }
 
@@ -213,7 +213,7 @@ void ToolReferenceImages::loadReferenceImages()
 
         canvas()->addCommand(KisReferenceImagesLayer::addReferenceImages(document(), shapes));
     } else {
-        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("Could not load reference images from '%1'.", filename));
+        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("Could not load reference images from '%1'.", filename));
     }
     file.close();
 }
@@ -248,7 +248,7 @@ void ToolReferenceImages::saveReferenceImages()
 
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly)) {
-        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("Could not open '%1' for saving.", filename));
+        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("Could not open '%1' for saving.", filename));
         return;
     }
 
@@ -257,7 +257,7 @@ void ToolReferenceImages::saveReferenceImages()
     file.close();
 
     if (!ok) {
-        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("Failed to save reference images."));
+        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("Failed to save reference images."));
     }
 }
 

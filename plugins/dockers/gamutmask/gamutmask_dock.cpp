@@ -290,7 +290,7 @@ int GamutMaskDock::getUserFeedback(QString text, QString informativeText,
                                    QMessageBox::Icon severity)
 {
     QMessageBox msgBox;
-    msgBox.setWindowTitle(i18nc("@title:window", "Krita"));
+    msgBox.setWindowTitle(i18nc("@title:window", "LibrePaint"));
     msgBox.setText(QString("<p><b>%1</b></p>").arg(text));
     msgBox.setInformativeText(informativeText);
     msgBox.setStandardButtons(buttons);

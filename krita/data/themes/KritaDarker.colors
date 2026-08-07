@@ -103,8 +103,8 @@ ForegroundPositive=120,183,83
 ForegroundVisited=142,121,165
 
 [General]
-ColorScheme=Krita darker
-Name=Krita darker
+ColorScheme=LibrePaint darker
+Name=LibrePaint darker
 shadeSortColumn=true
 
 [KDE]

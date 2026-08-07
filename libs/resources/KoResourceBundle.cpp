@@ -41,7 +41,7 @@ KoResourceBundle::KoResourceBundle(QString const& fileName)
     : m_filename(fileName),
       m_bundleVersion("1")
 {
-    m_metadata[KisResourceStorage::s_meta_generator] = "Krita (" + KritaVersionWrapper::versionString(true) + ")";
+    m_metadata[KisResourceStorage::s_meta_generator] = "LibrePaint (" + KritaVersionWrapper::versionString(true) + ")";
 }
 
 KoResourceBundle::~KoResourceBundle()

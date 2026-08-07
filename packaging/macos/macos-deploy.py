@@ -10,14 +10,14 @@ import subprocess
 
 def main():
     parser = argparse.ArgumentParser(prog='macos deploy',
-                                     description='Utility to create the krita.app bundle',
+                                     description='Utility to create the LibrePaint.app bundle',
                                      epilog="osxdeploy does not sign the resulting bundle")
 
-    parser.add_argument('--buildroot', help="Directory where krita src and _install are located",
+    parser.add_argument('--buildroot', help="Directory where the source and _install are located",
                         default=os.getenv("BUILDROOT", False))
     parser.add_argument('--install-dir', dest='install_dir', help="Path of install directory to deploy")
     parser.add_argument('--output-dir', dest='output_dir', help="Destination path to place the app")
-    parser.add_argument('--krita-source', dest='source', help="source location of krita")
+    parser.add_argument('--source', '--krita-source', dest='source', help="source location of the free paint app")
     args = parser.parse_args()
 
     # --- Locations
@@ -25,7 +25,7 @@ def main():
         if args.install_dir:
             print("WARNING: --install_dir ignored as --buildroot or env BUILDROOT is present")
         if args.source:
-            print("WARNING: --krita_source ignored as --buildroot or env BUILDROOT is present")
+            print("WARNING: --source ignored as --buildroot or env BUILDROOT is present")
 
         krita_root =pathlib.Path(args.buildroot).resolve()
         krita_install_dir = pathlib.Path(os.path.join(krita_root, "_install"))
@@ -37,7 +37,7 @@ def main():
 
     else:
         if not args.install_dir or not args.output_dir or not args.source:
-            print("ERROR: if --builroot or env BUILDROOT is missing all --install_dir, --output_dir and --krita_source must be present")
+            print("ERROR: if --buildroot or env BUILDROOT is missing, --install-dir, --output-dir, and --source must all be present")
             exit(1)
 
         krita_install_dir = pathlib.Path(args.install_dir).resolve()
@@ -338,8 +338,8 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
     krita_source_dir = source
 
     krita_app = dict()
-    krita_app['root'] = pathlib.Path(os.path.join(krita_dmg, "krita.app"))
-    krita_app['contents'] = pathlib.Path(os.path.join(krita_dmg, "krita.app", "Contents"))
+    krita_app['root'] = pathlib.Path(os.path.join(krita_dmg, "LibrePaint.app"))
+    krita_app['contents'] = krita_app['root'].joinpath("Contents")
     krita_app['plugins'] = pathlib.Path(os.path.join(krita_app['contents'], 'PlugIns'))
     krita_app['frameworks'] = pathlib.Path(os.path.join(krita_app['contents'], 'Frameworks'))
     krita_app['macos'] = pathlib.Path(os.path.join(krita_app['contents'], 'MacOS'))
@@ -371,7 +371,7 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
 
 
     if krita_dmg.exists():
-        print(f"Deleting previous krita.app run in {krita_dmg}")
+        print(f"Deleting previous LibrePaint.app run in {krita_dmg}")
         shutil.rmtree(krita_dmg)
 
     print(f"Preparing {krita_install_dir} for deployment")
@@ -380,8 +380,8 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
     for key in krita_app:
         krita_app[key].mkdir(exist_ok=True, parents=True)
 
-    print("copying krita.app...")
-    copyDirSub(krita_install_dir.joinpath('bin', 'krita.app'), krita_dmg, only_contents=False)
+    print("copying LibrePaint.app...")
+    copyDirSub(krita_install_dir.joinpath('bin', 'krita.app'), krita_app['root'], only_contents=True)
     copyDirSub(krita_install_dir.joinpath('bin', 'kritarunner'), krita_app['macos'], only_contents=False)
     copyDirSub(krita_install_dir.joinpath('bin', 'krita_version'), krita_app['macos'], only_contents=False)
 
@@ -575,7 +575,7 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
     for f in krita_app['contents'].rglob('*.DS_Store'):
         f.unlink()
 
-    print("## Finished preparing krita.app bundle!")
+    print("## Finished preparing LibrePaint.app bundle!")
 
     return
 

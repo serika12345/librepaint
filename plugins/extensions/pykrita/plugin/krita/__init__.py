@@ -32,7 +32,7 @@ def importAvoidWrongPyQtHack(name, globals=None, locals=None, fromlist=(), level
         name_casefolded.startswith(pyqt_wrong_casefolded+"."):
 
         raise(ModuleNotFoundError(
-            f"This version of Krita is not compatible with {pyqt_wrong}!",
+            f"This version of LibrePaint is not compatible with {pyqt_wrong}!",
             name=name))
     else:
         return import_real(name, globals, locals, fromlist, level)

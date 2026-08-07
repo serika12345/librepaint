@@ -34,7 +34,7 @@ void beginBackgroundTask()
 
     UIApplication *application = UIApplication.sharedApplication;
     s_backgroundTask =
-        [application beginBackgroundTaskWithName:@"Krita autosave recovery"
+        [application beginBackgroundTaskWithName:@"LibrePaint autosave recovery"
                                expirationHandler:^{
         qWarning() << "iPadOS background time expired while saving recovery data";
         notifyLifecycleEvent(KisIOSLifecycleEvent::BackgroundTaskExpired);
@@ -81,7 +81,7 @@ void installKisIOSLifecycleHandler(KisIOSLifecycleHandler lifecycleHandler)
                     object:nil
                      queue:NSOperationQueue.mainQueue
                 usingBlock:^(NSNotification *) {
-                    qInfo() << "iPadOS is making Krita inactive";
+                    qInfo() << "iPadOS is making LibrePaint inactive";
                     notifyLifecycleEvent(KisIOSLifecycleEvent::WillResignActive);
                 }];
 
@@ -90,7 +90,7 @@ void installKisIOSLifecycleHandler(KisIOSLifecycleHandler lifecycleHandler)
                     object:nil
                      queue:NSOperationQueue.mainQueue
                 usingBlock:^(NSNotification *) {
-                    qInfo() << "iPadOS moved Krita to the background";
+                    qInfo() << "iPadOS moved LibrePaint to the background";
                     beginBackgroundTask();
                     notifyLifecycleEvent(KisIOSLifecycleEvent::DidEnterBackground);
                 }];
@@ -100,7 +100,7 @@ void installKisIOSLifecycleHandler(KisIOSLifecycleHandler lifecycleHandler)
                     object:nil
                      queue:NSOperationQueue.mainQueue
                 usingBlock:^(NSNotification *) {
-                    qInfo() << "iPadOS is returning Krita to the foreground";
+                    qInfo() << "iPadOS is returning LibrePaint to the foreground";
                     notifyLifecycleEvent(KisIOSLifecycleEvent::WillEnterForeground);
                 }];
 
@@ -109,7 +109,7 @@ void installKisIOSLifecycleHandler(KisIOSLifecycleHandler lifecycleHandler)
                     object:nil
                      queue:NSOperationQueue.mainQueue
                 usingBlock:^(NSNotification *) {
-                    qInfo() << "iPadOS returned Krita to the foreground";
+                    qInfo() << "iPadOS returned LibrePaint to the foreground";
                     notifyLifecycleEvent(KisIOSLifecycleEvent::DidBecomeActive);
                 }];
 }

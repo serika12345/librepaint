@@ -114,7 +114,7 @@ bool KisSupporterBundlesFetcher::handleCheckTxtPredefinedFailure(const QString &
     QString failureType = match.captured(1);
     QString errorMessage;
     if (failureType.compare(QStringLiteral("outdated"), Qt::CaseInsensitive) == 0) {
-        errorMessage = i18n("You have to update Krita to use this service.");
+        errorMessage = i18n("This upstream support service is not available in LibrePaint.");
     } else if (failureType.compare(QStringLiteral("region"), Qt::CaseInsensitive) == 0) {
         errorMessage = i18n("This service is not available in your region.");
     } else if (failureType.compare(QStringLiteral("unavailable"), Qt::CaseInsensitive) == 0) {

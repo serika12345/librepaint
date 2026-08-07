@@ -450,7 +450,7 @@ void KisKeyframeChannel::workaroundBrokenFrameTimeBug(int *time)
 {
     if (*time < 0) {
         qWarning() << "WARNING: Loading a file with negative animation frames!";
-        qWarning() << "         The file has been saved with a buggy version of Krita.";
+        qWarning() << "         The file has been saved with a buggy version of the free paint app.";
         qWarning() << "         All the frames with negative ids will be dropped!";
         qWarning() << "         " << ppVar(this->id()) << ppVar(*time);
 

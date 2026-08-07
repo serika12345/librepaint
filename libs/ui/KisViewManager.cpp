@@ -1481,8 +1481,8 @@ void KisViewManager::openResourcesDirectory()
         // Similar text is also used in kis_dlg_preferences.cc
 
         mbox.setText(i18nc("@info resource folder",
-            "<p>You are using the Microsoft Store package version of Krita. "
-            "Even though Krita can be configured to place resources under the "
+            "<p>You are using the Microsoft Store package version of LibrePaint. "
+            "Even though LibrePaint can be configured to place resources under the "
             "user AppData location, Windows may actually store the files "
             "inside a private app location.</p>\n"
             "<p>You should check both locations to determine where "

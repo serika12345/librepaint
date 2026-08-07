@@ -106,8 +106,8 @@ ForegroundPositive=0,212,163
 ForegroundVisited=195,195,195
 
 [General]
-ColorScheme=Krita blender
-Name=Krita blender
+ColorScheme=LibrePaint blender
+Name=LibrePaint blender
 shadeSortColumn=true
 
 [KDE]

@@ -349,7 +349,7 @@ class comics_project_manager_docker(DockWidget):
         self.path_to_config = selectedFile
         if os.path.exists(self.path_to_config) is True:
             if os.access(self.path_to_config, os.W_OK) is False:
-                QMessageBox.warning(None, i18n("Config cannot be used"), i18n("Krita doesn't have write access to this folder, so new files cannot be made. Please configure the folder access or move the project to a folder that can be written to."), QMessageBox.StandardButton.Ok)
+                QMessageBox.warning(None, i18n("Config cannot be used"), i18n("LibrePaint doesn't have write access to this folder, so new files cannot be made. Please configure folder access or move the project to a writable folder."), QMessageBox.StandardButton.Ok)
                 return
             configFile = open(self.path_to_config, "r", newline="", encoding="utf-16")
             self.setupDictionary = json.load(configFile)
@@ -536,7 +536,7 @@ class comics_project_manager_docker(DockWidget):
 
     def slot_add_page_from_url(self):
         # get the pages.
-        urlList = FileDialog.getOpenFileNames(caption=i18n("Which existing pages to add?"), directory=self.projecturl, filter=str(i18n("Krita files") + "(*.kra)"))
+        urlList = FileDialog.getOpenFileNames(caption=i18n("Which existing pages to add?"), directory=self.projecturl, filter=str(i18n("KRA files") + "(*.kra)"))
         if not urlList: return
 
         # get the existing pages list.
@@ -663,7 +663,7 @@ class comics_project_manager_docker(DockWidget):
         else:
             booltemplateExists = os.path.isfile(os.path.join(self.projecturl, templateUrl))
             if booltemplateExists is False:
-                path = FileDialog.getOpenFileName(caption=i18n("Which image should be the basis for the new page?"), directory=self.projecturl, filter=str(i18n("Krita files") + "(*.kra)"))
+                path = FileDialog.getOpenFileName(caption=i18n("Which image should be the basis for the new page?"), directory=self.projecturl, filter=str(i18n("KRA files") + "(*.kra)"))
                 if not path: return
                 templateUrl = os.path.relpath(path, self.projecturl)
             newPage = Application.openDocument(os.path.join(self.projecturl, templateUrl))

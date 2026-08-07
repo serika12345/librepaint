@@ -324,7 +324,7 @@ void KisStatusBar::updateMemoryStatus()
         QString suffix =
                 i18nc("tooltip on statusbar memory reporting button",
                       "\n\nWARNING:\tOut of memory! Swapping has been started.\n"
-                      "\t\tPlease configure more RAM for Krita in Settings dialog");
+                      "\t\tPlease configure more RAM for LibrePaint in Settings dialog");
         longStats += suffix;
 
 
@@ -473,4 +473,3 @@ void KisStatusBar::removeExtraWidget(QWidget *widget)
 {
     m_extraWidgetsLayout->removeWidget(widget);
 }
-

@@ -1,0 +1,106 @@
+{
+  "SPDX-License-Identifier": "CC0-1.0",
+  "schema": 1,
+  "archive": "krita/data/bundles/Krita_4_Default_Resources.bundle",
+  "classification_policy": {
+    "specific_notice_precedence": "The unmodified krita/data/README applies CC-BY-3.0 to every GBR and GIH brush and takes precedence over the bundle-wide declaration.",
+    "bundle_default": "All remaining original entries inherit the explicit CC-0 declaration in meta.xml. The Krita bundle editor reads and writes this field as the license of the resource bundle.",
+    "replacement_preview": "The root preview.png is same-size opaque-white replacement content dedicated under CC0-1.0; its bytes are validated by white-brand-assets.json.",
+    "individual_override_audit": "All 117 KPP preset XML records and all three SVG brush tips contain no individual legal override. Embedded PNG author fields are recorded below and remain applicable.",
+    "attribution": "Each sealed inventory record points to the unmodified README and meta.xml creator fields that apply, plus any more-specific embedded PNG Author value."
+  },
+  "expected_file_count": 281,
+  "expected_directory_entries": [
+    "brushes/",
+    "META-INF/",
+    "paintoppresets/",
+    "patterns/"
+  ],
+  "expected_top_level_counts": {
+    "brushes": 79,
+    "meta.xml": 1,
+    "META-INF": 1,
+    "mimetype": 1,
+    "paintoppresets": 117,
+    "patterns": 81,
+    "preview.png": 1
+  },
+  "expected_suffix_counts": {
+    ".png": 74,
+    ".gih": 31,
+    ".gbr": 6,
+    ".svg": 3,
+    ".xml": 2,
+    "<none>": 1,
+    ".kpp": 117,
+    ".pat": 47
+  },
+  "expected_license_counts": {
+    "CC0-1.0": 244,
+    "CC-BY-3.0": 37
+  },
+  "expected_preset_count": 117,
+  "resource_manifest_counts": {
+    "record_count": 329,
+    "unique_path_count": 277,
+    "duplicate_path_count": 52
+  },
+  "classified_inventory_sha256": "ac7f2554f47a99fc70edb537822efd63f55a99e1b30b501111bbf6295c7538a4",
+  "bundle_metadata": {
+    "sha256": "5660ffb6a636960847cb77ee75f0fbae38ba65c29d601bc577482fe6bc12e4f5",
+    "license": "CC-0",
+    "elements": {
+      "dc:author": "Deevad with derivations of the brushes of Ramon Miranda, Razvanc, Radian, Wolthera, Storm, Scottyp and other.",
+      "dc:description": "This is the Resource Bundle containing all the standard brushes and resource of Krita 4.",
+      "meta:initial-creator": "Deevad with derivations of the brushes of Ramon Miranda, Razvanc, Radian, Wolthera, Storm, Scottyp and other.",
+      "dc:creator": "Deevad with derivations of the brushes of Ramon Miranda, Razvanc, Radian, Wolthera, Storm, Scottyp and other."
+    }
+  },
+  "external_notices": [
+    {
+      "path": "krita/data/README",
+      "sha256": "b8b700267cd13a0dc8ce164f10d5992ce43057d518b3b33a89bbe7f5e90f02da",
+      "applies_to": "brushes/*.gbr and brushes/*.gih"
+    },
+    {
+      "path": "LICENSES/CC-BY-3.0.txt",
+      "sha256": "e6bc9e9c474700b708f568bac9e5a8a9bcb2b1dad53442f5ba449fcb848b8e76",
+      "applies_to": "37 GBR/GIH brush files"
+    },
+    {
+      "path": "LICENSES/CC0-1.0.txt",
+      "sha256": "6a573fb2f9082662978cf21fb153096df0a1981deaea7dbc10a11046fe005d9f",
+      "applies_to": "244 remaining files"
+    }
+  ],
+  "embedded_attribution": {
+    "brushes/rake_dotted.png": "David Revoy",
+    "brushes/rake_flat.png": "David Revoy",
+    "brushes/random_particles.png": "David Revoy",
+    "brushes/square_rough.png": "Scott Petrovic"
+  },
+  "individual_legal_overrides": {},
+  "required_self_contained_presets": {
+    "a)_Eraser_Circle.kpp": {
+      "name": "a)_Eraser_Circle",
+      "paintopid": "paintbrush",
+      "auto_brush": true,
+      "self_contained": true,
+      "purpose": "independent eraser preset slot"
+    },
+    "b)_Basic-5_Size_Opacity.kpp": {
+      "name": "b)_Basic-5_Size_Opacity",
+      "paintopid": "paintbrush",
+      "auto_brush": true,
+      "self_contained": true,
+      "purpose": "application startup drawing preset"
+    },
+    "i)_Wet_Circle.kpp": {
+      "name": "i)_Wet_Circle",
+      "paintopid": "colorsmudge",
+      "auto_brush": true,
+      "self_contained": true,
+      "purpose": "minimal color-smudge fallback"
+    }
+  }
+}

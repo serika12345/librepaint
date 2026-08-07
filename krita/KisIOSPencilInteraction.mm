@@ -76,7 +76,7 @@ void installKisIOSPencilInteraction(void *nativeView, KisIOSPencilTapHandler han
 
     UIView *view = reinterpret_cast<UIView *>(nativeView);
     if (!view) {
-        qWarning() << "Could not attach Apple Pencil interaction to the Krita window";
+        qWarning() << "Could not attach Apple Pencil interaction to the LibrePaint window";
         return;
     }
 

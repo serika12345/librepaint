@@ -44,9 +44,9 @@ basic_options.add_argument("--no-interactive", action='store_true',
                            help="Run without interactive prompts. When not specified, the script will prompt for some of the parameters.")
 path_options = parser.add_argument_group("Path options")
 path_options.add_argument("--krita-install-dir", action='store',
-                          help="Specify Krita install dir")
+                          help="Specify LibrePaint install dir")
 path_options.add_argument(
-    "--krita-build-dir", action="store", help="Specify Krita build dir")
+    "--krita-build-dir", action="store", help="Specify LibrePaint build dir")
 args = parser.parse_args()
 
 KRITA_BUILD_DIR = None
@@ -55,16 +55,16 @@ if args.krita_build_dir is not None:
     KRITA_BUILD_DIR = args.krita_build_dir
 if KRITA_BUILD_DIR is None:
     KRITA_BUILD_DIR = f"{os.getcwd()}\\b_msvc"
-    print(f"Using default Krita build dir: {KRITA_BUILD_DIR}")
+    print(f"Using default LibrePaint build dir: {KRITA_BUILD_DIR}")
     if not args.no_interactive:
         status = choice()
         if not status:
             KRITA_BUILD_DIR = prompt_for_dir(
-                "Provide path of Krita build dir")
+                "Provide path of LibrePaint build dir")
     if KRITA_BUILD_DIR is None:
-        warnings.warn("ERROR: Krita build dir not set!")
+        warnings.warn("ERROR: LibrePaint build dir not set!")
         exit(102)
-print(f"Krita build dir: {KRITA_BUILD_DIR}")
+print(f"LibrePaint build dir: {KRITA_BUILD_DIR}")
 
 KRITA_INSTALL_DIR = None
 
@@ -72,16 +72,16 @@ if args.krita_install_dir is not None:
     KRITA_INSTALL_DIR = args.krita_install_dir
 if KRITA_INSTALL_DIR is None:
     KRITA_INSTALL_DIR = f"{os.getcwd()}\\i_msvc"
-    print(f"Using default Krita install dir: {KRITA_INSTALL_DIR}")
+    print(f"Using default LibrePaint install dir: {KRITA_INSTALL_DIR}")
     if not args.no_interactive:
         status = choice()
         if not status:
             KRITA_INSTALL_DIR = prompt_for_dir(
-                "Provide path of Krita install dir")
+                "Provide path of LibrePaint install dir")
     if KRITA_INSTALL_DIR is None:
-        warnings.warn("ERROR: Krita install dir not set!")
+        warnings.warn("ERROR: LibrePaint install dir not set!")
         exit(102)
-print(f"Krita install dir: {KRITA_INSTALL_DIR}")
+print(f"LibrePaint install dir: {KRITA_INSTALL_DIR}")
 
 # Simple checking
 if not os.path.isdir(KRITA_INSTALL_DIR):
@@ -125,7 +125,7 @@ print("{} PDB files found in {}.".format(len(pdb), KRITA_BUILD_DIR))
 
 # Glob all binaries; we'll need to match pairs
 
-print("Listing all available Krita binaries...")
+print("Listing all available LibrePaint binaries...")
 
 bin_exe = glob.glob(
     f"{KRITA_INSTALL_DIR}\\bin\\*.exe", recursive=False)

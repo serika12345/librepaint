@@ -435,11 +435,11 @@ namespace GSL
     void warnNoGSL()
     {
         QMessageBox::warning(qApp->activeWindow(),
-                             i18nc("@title:window", "Krita"),
-                             i18n("Krita was built without the support "
+                             i18nc("@title:window", "LibrePaint"),
+                             i18n("The free paint app was built without the support "
                                   "of GNU Scientific Library, so you cannot scale "
                                   "the selection with handles. Please compile "
-                                  "Krita with GNU Scientific Library support, or use "
+                                  "LibrePaint with GNU Scientific Library support, or use "
                                   "options widget for editing scale values manually."));
     }
 

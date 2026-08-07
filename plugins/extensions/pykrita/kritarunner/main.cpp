@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
     // first create the application so we can create a pixmap
     KisApplication app("kritarunner", argc, argv);
-    app.setApplicationDisplayName("Krita Script Runner");
+    app.setApplicationDisplayName("LibrePaint Script Runner");
     app.setApplicationName("kritarunner");
     app.setOrganizationDomain("krita.org");
 
@@ -118,4 +118,3 @@ int main(int argc, char **argv)
     app.quit();
     return 0;
 }
-

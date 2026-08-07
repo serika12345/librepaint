@@ -177,7 +177,7 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
             dbgFile <<"profile name:" << profile->name() <<" product information:" << profile->info();
             //This is stadard for profiles like this
             if (!profile->isSuitableForWorkspace()) {
-              dbgFile << "the profile is not suitable for workspace and therefore cannot be used in krita, we need to convert the image to a standard profile";
+              dbgFile << "the profile is not suitable for workspace and therefore cannot be used in the free paint app, we need to convert the image to a standard profile";
             }
         }
 
@@ -731,5 +731,4 @@ void KisJPEGConverter::cancel()
 {
     m_d->stop = true;
 }
-
 

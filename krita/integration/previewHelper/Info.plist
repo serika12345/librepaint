@@ -8,7 +8,7 @@
 			<key>CFBundleTypeIconFile</key>
 			<string>krita-kra</string>
 			<key>CFBundleTypeName</key>
-			<string>Krita File</string>
+			<string>KRA Document</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>
@@ -24,7 +24,7 @@
 			<key>CFBundleTypeIconFile</key>
 			<string>krita-krz</string>
 			<key>CFBundleTypeName</key>
-			<string>Krita Archival File</string>
+			<string>KRZ Archive</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>
@@ -60,7 +60,7 @@
 				<string>public.image</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Krita Image File</string>
+			<string>KRA Document</string>
 			<key>UTTypeIcons</key>
 			<dict/>
 			<key>UTTypeIdentifier</key>
@@ -83,7 +83,7 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Krita Archival File</string>
+			<string>KRZ Archive</string>
 			<key>UTTypeIcons</key>
 			<dict/>
 			<key>UTTypeIdentifier</key>

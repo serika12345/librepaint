@@ -183,7 +183,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Krita version:</string>
+             <string>Application version:</string>
             </property>
            </widget>
           </item>

@@ -189,7 +189,7 @@ KisReferenceImage * KisReferenceImage::fromFile(const QString &filename, const K
         delete reference;
 
         if (parent) {
-            QMessageBox::critical(parent, i18nc("@title:window", "Krita"), i18n("Could not load %1.", filename));
+            QMessageBox::critical(parent, i18nc("@title:window", "LibrePaint"), i18n("Could not load %1.", filename));
         }
 
         return nullptr;

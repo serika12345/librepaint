@@ -59,7 +59,7 @@ class UITenBrushes(object):
                         "you want to use to select the preset.")))
         self.vbox.addWidget(
             QLabel(i18n("Shortcuts are configurable through the <i>Keyboard Shortcuts</i> "
-                        "interface in Krita's settings.")))
+                        "interface in LibrePaint's settings.")))
 
         self.vbox.addWidget(self.presetChooser)
 

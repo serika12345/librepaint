@@ -17,15 +17,15 @@ int main(int argc, char **argv)
 {
     QApplication application(argc, argv);
     KAboutData about(QStringLiteral("krita-ios-frameworks-probe"),
-                     QStringLiteral("Krita iOS Frameworks Probe"),
+                     QStringLiteral("LibrePaint iOS Frameworks Probe"),
                      QStringLiteral("1"));
     KAboutData::setApplicationData(about);
 
     ProbeSettings settings;
     KCompletion completion;
-    completion.setItems({QStringLiteral("Krita"), QStringLiteral("iPad")});
+    completion.setItems({QStringLiteral("LibrePaint"), QStringLiteral("iPad")});
     const QString completed = completion.makeCompletion(QStringLiteral("Kr"));
-    const QString translated = i18n("Krita iOS Frameworks Probe");
+    const QString translated = i18n("LibrePaint iOS Frameworks Probe");
     const QString codec = KCharsets::charsets()->encodingForName(QStringLiteral("UTF-8"));
     const KCountry country = KCountry::fromAlpha2("JP");
     const KGuiItem guiItem = KStandardGuiItem::ok();

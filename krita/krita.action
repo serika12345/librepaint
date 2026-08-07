@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ActionCollection version="2" name="Krita">
+<ActionCollection version="2" name="LibrePaint">
   <Actions category="General">
     <text>General</text>
     <Action name="open_resources_directory">
       <icon/>
       <text>Open Resources Folder</text>
-      <whatsThis>Opens a file browser at the location Krita saves resources such as brushes to.</whatsThis>
-      <toolTip>Opens a file browser at the location Krita saves resources such as brushes to.</toolTip>
+      <whatsThis>Opens a file browser at the location the free paint app saves resources such as brushes to.</whatsThis>
+      <toolTip>Opens a file browser at the location the free paint app saves resources such as brushes to.</toolTip>
       <iconText>Open Resources Folder</iconText>
       <activationFlags>0</activationFlags>
       <activationConditions>0</activationConditions>
@@ -164,10 +164,10 @@
     </Action>
     <Action name="buginfo">
       <icon>krita_log</icon>
-      <text>Show Krita log for bug reports.</text>
+      <text>Show the application log for bug reports.</text>
       <whatsThis/>
-      <toolTip>Show Krita log for bug reports.</toolTip>
-      <iconText>Show Krita log for bug reports.</iconText>
+      <toolTip>Show the application log for bug reports.</toolTip>
+      <iconText>Show the application log for bug reports.</iconText>
       <shortcut/>
       <isCheckable>false</isCheckable>
       <statusTip/>

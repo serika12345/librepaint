@@ -53,7 +53,7 @@ nix build .#krita-ios-ipa \
 ```
 
 Select
-`build-ios/nix-results/krita-ios-ipa/Krita-iPad-unsigned.ipa`. The archive is
+`build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`. The archive is
 deliberately unsigned; AltStore supplies the development signature required by
 iPadOS at installation time.
 
@@ -62,12 +62,12 @@ The script performs these operations in order:
 1. Reuse the recorded source-independent Nix environment and build only the affected Ninja targets.
 2. Reject a binary with the wrong architecture, Apple platform, or deployment target.
 3. Compare every static archive's Qt resource initializers with the final executable.
-4. Generate Krita's declared install-time data tree and copy it into the staged app.
+4. Generate LibrePaint's declared install-time data tree and copy it into the staged app.
 5. Compare every staged runtime file with the app and require bundles, brush presets, ICC profiles, and actions.
 6. Normalize the private app stage, generate a timestamp-versioned IPA under
    `build-ios/deploy/`, and test its structure and ZIP permission metadata.
 7. Open an AltStore install URL, wait for its download, and wait for the new bundle version on-device.
-8. Launch Krita and copy its startup log back to `build-ios/deploy/`.
+8. Launch LibrePaint and copy its startup log back to `build-ios/deploy/`.
 9. Root the Nix store inputs recorded by the active build graph without reevaluating the dirty flake, then run low-space maintenance if needed.
 
 Optional environment variables are `KRITA_IOS_DEVICE`,
@@ -77,10 +77,10 @@ Optional environment variables are `KRITA_IOS_DEVICE`,
 
 ## Runtime data handling
 
-On iOS, Krita resolves its installation prefix from the application bundle.
+On iOS, LibrePaint resolves its installation prefix from the application bundle.
 The deployment stage includes the exact CMake-installed `share` tree inside the
-signed app. Current validation covers 496 files, including four resource
-bundles, 32 ICC profiles, and seven action definitions. The action set includes
+signed app. Current validation covers 228 files, including one audited resource
+bundle, 31 ICC profiles, and 37 action definitions. The action set includes
 the core `krita.action` and `kritamenu.action` registries; packaging fails if
 either file or a representative core menu action is missing.
 
@@ -112,7 +112,7 @@ ones. Existing resources and user data are preserved.
 ## Validated result
 
 The physical-device run `20260802121956` completed the automated flow and
-reached Krita's main window without a fatal dialog. The existing data container
+reached LibrePaint's main window without a fatal dialog. The existing data container
 was migrated without deletion. Its resource database contained:
 
 - four bundle storages, three active by their defaults;
@@ -135,25 +135,25 @@ and restored every Edit-menu label that had been blank when the two core action
 registries were absent. Disabled entries remain visible in gray as expected.
 
 The physical-device run `20260802124350` disabled Qt's UIKit-native combo-box
-picker at the Krita application-style boundary. Qt 6.11 otherwise presents a
+picker at the LibrePaint application-style boundary. Qt 6.11 otherwise presents a
 `UIPickerView` whose Done/Cancel input toolbar is not visible in this window
 layout, leaving choices impossible to commit or dismiss. Combo boxes now use
-Qt's inline popup list on iPadOS. `Settings > Configure Krita > General > Tools`
+Qt's inline popup list on iPadOS. `Settings > Configure LibrePaint > General > Tools`
 was used to verify that `Touch Painting` opens all three choices, commits
 `Enabled` with one tap, and closes the list while keeping the dialog's OK and
 Cancel buttons reachable. The override is application-wide and is preserved
-when Krita's widget style changes.
+when LibrePaint's widget style changes.
 
 The physical-device run `20260802125200` fixed the startup splash position in
 landscape. UIKit can publish the initial portrait screen geometry before the
-application scene settles into its requested orientation. Krita now recenters
+application scene settles into its requested orientation. LibrePaint now recenters
 the splash after its native view is attached and whenever Qt reports updated
 screen geometry. The centered result was confirmed on the connected iPad.
 
 The physical-device run `20260802125811` changed the initial focus of
-`Settings > Configure Krita` on iPadOS. KDE's `KPageView` normally proxies
+`Settings > Configure LibrePaint` on iPadOS. KDE's `KPageView` normally proxies
 dialog focus to its search line, which immediately summons the iOS software
-keyboard. Krita now focuses the settings category list when the dialog opens;
+keyboard. LibrePaint now focuses the settings category list when the dialog opens;
 the search field remains available for explicit tap and keyboard navigation.
 QuickTime verification confirmed the complete dialog opens with no text cursor
 in Search and no software keyboard covering its controls. Explicitly tapping
@@ -164,7 +164,7 @@ for every non-canvas `QAbstractScrollArea`, including controls created by
 plugins. iPadOS uses the left-mouse flick-recognizer path on each viewport so
 Qt delays the initial press and discards it when a swipe becomes a scroll; this
 prevents item selections from moving under the finger. An ordinary tap still
-selects its item. The Configure Krita category list and brush selection were
+selects its item. The Configure LibrePaint category list and brush selection were
 verified with swipe scrolling, inertia, stable selection during a drag, and
 normal tap selection.
 
@@ -172,7 +172,7 @@ The physical-device run `20260802132451` stopped editable item selections from
 opening the iOS software keyboard. Qt marks a `QAbstractItemView` as an input
 method target whenever its current model item has `Qt::ItemIsEditable`; on
 iPadOS that presents the keyboard even when a brush or layer was only selected.
-Krita now disables that implicit item-view input method while leaving explicit
+LibrePaint now disables that implicit item-view input method while leaving explicit
 delegate editors and text fields unchanged. Brush selection was verified on
 the connected iPad. The post-event iOS widget hooks also retain receivers with
 `QPointer`, because event delivery may destroy transient widgets. This fixes

@@ -3,11 +3,11 @@
 #
 
 """
-BBD's Krita script starter
+BBD's LibrePaint script starter
 
-This script does the boring stuff involved in creating a script for Krita.
+This script does the routine setup involved in creating a script for LibrePaint.
 it creates
-* a directory for the script in the correct Krita resources subdirectory,
+* a directory for the script in the correct LibrePaint resources subdirectory,
 * populates that directory with:
 -- a __init__.py file,
 -- a skeleton file for the script proper
@@ -18,11 +18,11 @@ It also:
 * creates basic skeleton code depending on whether the script is intended
 to be an extension or a docker
 * creates skeleton code in the Manual.html file
-* (optionally) automatically enables the script in the Krita menu
+* (optionally) automatically enables the script in the LibrePaint menu
 
 Script can be run from the command line. This can be used to
-bootstrap the script into a Krita menu entry - create a new script
-called Krita Script Starter, then copy the script (and the .ui file)
+bootstrap the script into a LibrePaint menu entry - create a new script
+called LibrePaint Script Starter, then copy the script (and the .ui file)
 into the directory you have just created, overwriting the existing
 files.
 
@@ -53,7 +53,7 @@ except ImportError:
 TESTING = False
 
 MAIN_KRITA_ID = "Krita Script Starter"
-MAIN_KRITA_MENU_ENTRY = "Krita Script Starter"
+MAIN_KRITA_MENU_ENTRY = "LibrePaint Script Starter"
 
 SCRIPT_NAME = "script_name"
 SCRIPT_COMMENT = "script_comment"
@@ -205,7 +205,7 @@ class KritaScriptStarter(EXTENSION):
         self.target_directory = target_directory
 
     def createActions(self, window):
-        """ Called by Krita to create actions."""
+        """Called by the free paint app to create actions."""
         action = window.createAction(
             MAIN_KRITA_ID, MAIN_KRITA_MENU_ENTRY, "tools/scripts")
         # parameter 1 = the name that Krita uses to identify the action
@@ -297,7 +297,7 @@ class KritaScriptStarter(EXTENSION):
 
         # notify success
         # Assemble message
-        title = "Krita Script files created"
+        title = "LibrePaint script files created"
         message = []
         message.append("<h3>Directory</h3>")
         message.append("Project files were created in the directory<p>%s"

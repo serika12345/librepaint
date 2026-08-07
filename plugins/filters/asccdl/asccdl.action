@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ActionCollection version="2" name="Krita">
+<ActionCollection version="2" name="LibrePaint">
   <Actions category="Filters">
     <text context="Filter as an effect">Filters</text>
     <Action name="krita_filter_asc-cdl">

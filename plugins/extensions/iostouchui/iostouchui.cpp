@@ -449,7 +449,7 @@ private:
 
         addSecondaryAction(QStringLiteral("options_configure"),
                            QStringLiteral("configure"),
-                           i18n("Configure Krita"));
+                           i18n("Configure LibrePaint"));
         addSecondaryAction(QStringLiteral("adjust_filters"),
                            QStringLiteral("filter-color-curves"),
                            i18n("Adjustments"));

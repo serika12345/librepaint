@@ -84,7 +84,7 @@
       </font>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Warning: Krita uses a relative path to store the location of the file in the .kra. If you move the .kra but not the file, the file layer may be broken.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Warning: the free paint app uses a relative path to store the location of the file in the .kra. If you move the .kra but not the file, the file layer may be broken.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::AutoText</enum>

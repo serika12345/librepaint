@@ -11,7 +11,7 @@ tell application "Finder"
         set shows item info of theViewOptions to false
         set icon size of theViewOptions to 96
         set background picture of theViewOptions to file ".background:%s"
-        set position of item "krita.app" of container window to {344, 216}
+        set position of item "LibrePaint.app" of container window to {344, 216}
         set position of item "Applications" of container window to {590, 216}
         set position of item "Terms of Use" of container window to {163, 216}
         set position of item ".background" of container window to {1300, 64}

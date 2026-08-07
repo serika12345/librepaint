@@ -50,7 +50,7 @@ stdenvNoCC.mkDerivation {
         find Payload -type f -print
       } | LC_ALL=C sort > "$entry_list"
       ZIPOPT= ZIP= zip -nw -MM -X -9 -q \
-        "$out/Krita-iPad-unsigned.ipa" -@ < "$entry_list"
+        "$out/LibrePaint-iPad-unsigned.ipa" -@ < "$entry_list"
     )
 
     runHook postInstall
@@ -60,7 +60,7 @@ stdenvNoCC.mkDerivation {
   installCheckPhase = ''
         runHook preInstallCheck
 
-        ipa="$out/Krita-iPad-unsigned.ipa"
+        ipa="$out/LibrePaint-iPad-unsigned.ipa"
         unzip -tq "$ipa"
 
         ${python3}/bin/python3 ${./ipa-permissions.py} check-ipa "$ipa" \
@@ -80,6 +80,26 @@ stdenvNoCC.mkDerivation {
             "Payload/krita.app/krita",
             "Payload/krita.app/share/krita/actions/krita.action",
             "Payload/krita.app/share/krita/bundles/Krita_4_Default_Resources.bundle",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/CC-BY-3.0.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-3.0.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-4.0.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/CC0-1.0.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/GPL-2.0-or-later.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/GPL-3.0-only.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/GPL-3.0-or-later.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/LGPL-2.0-or-later.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-only.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-or-later.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/LicenseRef-ICC-License.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/default-resource-bundle-licenses.json",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/non-code-licenses.md",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/qtbase-icc-attribution.json",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/retained-functional-assets.md",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/static-dependency-resources.json",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/white-brand-assets.json",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/bundles/README",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt",
+            "Payload/krita.app/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt",
         }
         missing = sorted(required.difference(names))
         if missing:
@@ -103,7 +123,7 @@ stdenvNoCC.mkDerivation {
   };
 
   meta = {
-    description = "Deterministic unsigned Krita IPA for arm64 iPadOS";
+    description = "Deterministic unsigned LibrePaint IPA for arm64 iPadOS";
     license = lib.licenses.gpl3Plus;
     platforms = [ "aarch64-darwin" ];
   };

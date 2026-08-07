@@ -49,8 +49,7 @@
        <item>
         <widget class="QLabel" name="m_lblNoBenefits">
          <property name="text">
-          <string>No supporter benefits available on this version of Krita.
-You can still support Krita by donating.</string>
+          <string>Supporter benefits and upstream donation services are not available in LibrePaint.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -60,7 +59,7 @@ You can still support Krita by donating.</string>
        <item>
         <widget class="QPushButton" name="m_btnNoBenefitsSupport">
          <property name="text">
-          <string>Donate</string>
+          <string>Close</string>
          </property>
         </widget>
        </item>

@@ -1,11 +1,11 @@
-# Krita iPadOS Port
+# LibrePaint iPadOS Port
 
 [日本語版](README.ja.md)
 
-An unofficial, experimental iPadOS port of Krita for physical arm64 iPads. The goal is to provide a practical, locally installed drawing environment with functionality comparable to the Android build, using Apple Pencil, touch input, and the iPadOS Files app.
+LibrePaint is an unofficial, experimental iPadOS paint app for physical arm64 iPads, currently built from Krita-derived code. The goal is to provide a practical, locally installed drawing environment with functionality comparable to the Android build, using Apple Pencil, touch input, and the iPadOS Files app.
 
 > [!WARNING]
-> This repository is not an official iPad version from the Krita Foundation or KDE. It remains under development and does not guarantee data integrity, long-term stability, or compatibility with every file format and Krita feature. Keep separate backups of important artwork.
+> LibrePaint is not an official iPad version from the Krita Foundation or KDE. It remains under development and does not guarantee data integrity, long-term stability, or compatibility with every file format and upstream Krita feature. Keep separate backups of important artwork.
 
 ## Scope
 
@@ -24,7 +24,7 @@ Python/PyQt, G'MIC, printing, video and audio features, automatic updates, featu
 
 ## Project Direction and Long-Term Vision
 
-This project is intended primarily to give its author access to Krita-equivalent functionality on an iPad as part of a personal creative environment. Although the differences from upstream Krita are currently kept as small as practical, the project does not guarantee continued alignment with upstream or easy integration of future upstream changes. To prioritize the author's creative workflow and usability on iPad, the UI, features, and internal architecture may eventually diverge substantially from upstream Krita.
+LibrePaint is intended primarily to give its author access to Krita-equivalent functionality on an iPad as part of a personal creative environment. Although the differences from upstream Krita are currently kept as small as practical, the project does not guarantee continued alignment with upstream or easy integration of future upstream changes. To prioritize the author's creative workflow and usability on iPad, the UI, features, and internal architecture may eventually diverge substantially from upstream Krita.
 
 The long-term vision is to transition to an independent implementation that does not depend on GPL-licensed code derived from Krita, ultimately establishing a **standalone project released under the MIT License**. This is a future goal, not a declaration that the current Krita-derived code is being relicensed under the MIT License. See [License and upstream](#license-and-upstream) for the licenses that currently apply to this repository.
 
@@ -36,7 +36,7 @@ The following reflects the project status as of August 6, 2026. [`TODO.md`](TODO
 
 | Area | Verified coverage |
 |---|---|
-| Launch and basic UI | Installation and launch through AltStore, fresh IPA import and launch through LiveContainer, the main window, portrait and landscape splash layouts, and the Configure Krita dialog in the initial portrait orientation and after rotation |
+| Launch and basic UI | Installation and launch through AltStore, fresh IPA import and launch through LiveContainer, the main window, portrait and landscape splash layouts, and the Configure LibrePaint dialog in the initial portrait orientation and after rotation |
 | Touch UI | Swiping and kinetic scrolling outside the canvas, suppression of accidental selections while scrolling, tap confirmation in combo boxes, and suppression of the unwanted software keyboard in settings and brush-selection views |
 | Apple Pencil | Press, move, and release events; pressure and tilt; and drawing with the initially selected brush without first reselecting it |
 | Pencil double tap | Switching between independent pen and eraser brush presets through `eraser_preset_action` |
@@ -188,13 +188,13 @@ nix build .#krita-ios-ipa \
 The resulting artifacts are placed at:
 
 - `build-ios/nix-results/krita-ios-app/krita.app`
-- `build-ios/nix-results/krita-ios-ipa/Krita-iPad-unsigned.ipa`
+- `build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`
 
 If you need only the IPA, building `krita-ios-ipa` also builds the required app and dependencies automatically. The generated IPA is intentionally unsigned. Never store signing information, provisioning profiles, Apple IDs, or device credentials in the repository.
 
 ### Deploying to a Physical Device with AltStore
 
-After satisfying the prerequisites and starting AltServer, run the following command to perform the incremental build, validate the binary, plugins, and runtime data, generate the IPA, sign and install it through AltStore, launch Krita, and collect the startup log:
+After satisfying the prerequisites and starting AltServer, run the following command to perform the incremental build, validate the binary, plugins, and runtime data, generate the IPA, sign and install it through AltStore, launch LibrePaint, and collect the startup log:
 
 ```sh
 packaging/ios/scripts/build-krita-incremental.sh deploy [device-id]
@@ -212,7 +212,7 @@ This process uses development signing for the author's local use. It is not an A
 
 ### Installing with LiveContainer
 
-The reproducible unsigned IPA at `build-ios/nix-results/krita-ios-ipa/Krita-iPad-unsigned.ipa` can also be imported into LiveContainer. The packaging workflow normalizes the archive permissions required for LiveContainer to patch, launch, and clean up the app bundle. A fresh import and launch have been verified on a physical iPad using LiveContainer's iOS 26 JIT-Less mode.
+The reproducible unsigned IPA at `build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa` can also be imported into LiveContainer. The packaging workflow normalizes the archive permissions required for LiveContainer to patch, launch, and clean up the app bundle. A fresh import and launch have been verified on a physical iPad using LiveContainer's iOS 26 JIT-Less mode.
 
 A corrected IPA cannot remove a read-only temporary `Payload` left inside LiveContainer by an earlier failed import. If that stale-state error occurs, clean up or reset the affected LiveContainer state while preserving any required app data before importing again. The exact cleanup UI remains pending physical-device verification; see [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) for the current archive-permission and recovery notes.
 

@@ -332,8 +332,8 @@ void KisOpenGLCanvasRenderer::reportFailedShaderCompilation(const QString &conte
 
     qDebug() << "Shader Compilation Failure: " << context;
     // TODO: Should do something else when using QtQuick2
-    QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"),
-                          i18n("Krita could not initialize the OpenGL canvas:\n\n%1\n\n Krita will disable OpenGL and close now.", context),
+    QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"),
+                          i18n("The free paint app could not initialize the OpenGL canvas:\n\n%1\n\nLibrePaint will disable OpenGL and close now.", context),
                           QMessageBox::Close);
 
     cfg.disableOpenGL();

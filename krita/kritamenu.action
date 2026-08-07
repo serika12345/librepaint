@@ -1772,10 +1772,10 @@
     <text>Settings</text>
     <Action name="options_configure">
       <icon>configure</icon>
-      <text>&amp;Configure Krita...</text>
+      <text>&amp;Configure LibrePaint...</text>
       <whatsThis></whatsThis>
-      <toolTip>Configure Krita</toolTip>
-      <iconText>Configure Krita</iconText>
+      <toolTip>Configure LibrePaint</toolTip>
+      <iconText>Configure LibrePaint</iconText>
       <activationFlags>0</activationFlags>
       <activationConditions>0</activationConditions>
       <shortcut></shortcut>
@@ -1928,42 +1928,12 @@
 
   <Actions category="Help">
     <text>Help</text>
-    <Action name="help_contents">
-      <icon>help-contents</icon>
-      <text>Krita &amp;Handbook</text>
-      <whatsThis></whatsThis>
-      <toolTip>Krita Handbook</toolTip>
-      <iconText>Krita Handbook</iconText>
-      <shortcut>F1</shortcut>
-      <isCheckable>false</isCheckable>
-      <statusTip></statusTip>
-    </Action>
-    <Action name="help_report_bug">
-      <icon>tools-report-bug</icon>
-      <text>&amp;Report Bug...</text>
-      <whatsThis></whatsThis>
-      <toolTip>Report Bug</toolTip>
-      <iconText>Report Bug</iconText>
-      <shortcut></shortcut>
-      <isCheckable>false</isCheckable>
-      <statusTip></statusTip>
-    </Action>
     <Action name="help_about_app">
       <icon>krita</icon>
-      <text>&amp;About Krita</text>
+      <text>&amp;About LibrePaint</text>
       <whatsThis></whatsThis>
-      <toolTip>About Krita</toolTip>
-      <iconText>About Krita</iconText>
-      <shortcut></shortcut>
-      <isCheckable>false</isCheckable>
-      <statusTip></statusTip>
-    </Action>
-    <Action name="help_about_kde">
-      <icon>kde</icon>
-      <text>About &amp;KDE</text>
-      <whatsThis></whatsThis>
-      <toolTip>About KDE</toolTip>
-      <iconText>About KDE</iconText>
+      <toolTip>About LibrePaint</toolTip>
+      <iconText>About LibrePaint</iconText>
       <shortcut></shortcut>
       <isCheckable>false</isCheckable>
       <statusTip></statusTip>

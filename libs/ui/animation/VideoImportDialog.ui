@@ -311,8 +311,8 @@
                </property>
                <property name="toolTip">
                 <string>How sensitive should the duplicate frame filter be when determining
-which frames are added to Krita.
-The higher the sensitivity, the more frames are added to Krita.</string>
+which frames are added to the free paint app.
+The higher the sensitivity, the more frames are added to the free paint app.</string>
                </property>
               </widget>
              </item>

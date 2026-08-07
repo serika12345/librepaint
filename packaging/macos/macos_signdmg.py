@@ -13,9 +13,9 @@ from dataclasses import dataclass
 
 def main_signdmg():
     parser = argparse.ArgumentParser(prog='macos signdmg',
-                                     description='Utility that receives krita.dmg and signs it')
-    parser.add_argument('krita_dmg', metavar='krita.dmg', type=dmgpath,
-                        help='krita.dmg to sign')
+                                     description='Utility that receives LibrePaint.dmg and signs it')
+    parser.add_argument('krita_dmg', metavar='LibrePaint.dmg', type=dmgpath,
+                        help='LibrePaint.dmg to sign')
     parser.add_argument('-s','--sign-identity',dest='sign_identity', metavar='<identity>',
                         help='Apple certificate name to use for signing', required=True)
     parser.add_argument('--store', action='store_true', help="Sign app for store submission")
@@ -35,13 +35,13 @@ def main_signdmg():
     krita_dmg: pathlib.Path = args.krita_dmg
     print(f'{krita_dmg} - {args.sign_identity}')
 
-    #### Mount dmg to extract krita.app
-    krita_app = pathlib.Path.cwd().joinpath('krita.app')
+    #### Mount dmg to extract LibrePaint.app
+    krita_app = pathlib.Path.cwd().joinpath('LibrePaint.app')
     if krita_app.exists():
         shutil.rmtree(krita_app)
     cmd = f"hdiutil attach {krita_dmg} -mountpoint {krita_dmg.stem}".split()
     subprocess.run(cmd)
-    cmd = f"rsync -prult --delete {krita_dmg.stem + os.sep + krita_app.name + os.sep} krita.app".split()
+    cmd = f"rsync -prult --delete {krita_dmg.stem + os.sep + krita_app.name + os.sep} LibrePaint.app".split()
     subprocess.run(cmd)
     subprocess.run(f"hdiutil detach {krita_dmg.stem}".split())
 
@@ -198,7 +198,7 @@ def fix_bundle(bundle_root: pathlib.Path, bundle_version: str="", for_store: boo
 
     if for_store:
         print("## Modifying bundle for store distribution...")
-        # TODO: store move embedded.provisionprofile to krita.app/Contents/
+        # TODO: store move embedded.provisionprofile to LibrePaint.app/Contents/
 
         # get info from the packaged krita
         # krita_version_full = subprocess.run([bundle_root.joinpath('Contents', 'MacOS', 'krita_version'), 'v']
@@ -316,7 +316,7 @@ def sign_bundle(bundle_root: pathlib.Path, signer: Codesigner, entitlements_path
 
     signer.signtargets()
 
-    # Finally sign krita and krita.app
+    # Finally sign the executable and LibrePaint.app
     krita_targets = [
         bundle_macos_root.joinpath('krita')
         , bundle_root

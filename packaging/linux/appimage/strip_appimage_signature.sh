@@ -63,7 +63,7 @@ fi
 zsyncmake -u "${URL}/$(basename ${APPIMAGE_PATH})" -o $APPIMAGE_PATH.zsync.new $APPIMAGE_PATH
 ret=$?
 if [ $ret -eq 0 ]; then
-  mv $APPIMAGE_PATH.zsync.new Krita-${CHANNEL}-x86_64.AppImage.zsync
+  mv $APPIMAGE_PATH.zsync.new LibrePaint-${CHANNEL}-x86_64.AppImage.zsync
 fi
 
 # cleanup

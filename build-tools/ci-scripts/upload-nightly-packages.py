@@ -12,12 +12,12 @@ supportedPlatforms = ['linux', 'windows', 'macos-universal',
     'android-x86_64', 'android-arm64-v8a', 'android-armeabi-v7a']
 
 # Capture our command line parameters
-parser = argparse.ArgumentParser(description='A script for building Krita Windows package on CI')
+parser = argparse.ArgumentParser(description='A script for publishing LibrePaint nightly packages from CI')
 parser.add_argument('--platform', type=str, choices=supportedPlatforms, required=True, help='The platform package is built for')
 parser.add_argument('--folder', type=str, required=True, help='The folder where to search for packages')
 arguments = parser.parse_args()
 
-skipUploadingNightlyPackages = os.environ.get('KRITACI_SKIP_UPLOAD_NIGHTLY_PACKAGE', 'False')
+skipUploadingNightlyPackages = os.environ.get('KRITACI_SKIP_UPLOAD_NIGHTLY_PACKAGE', 'True')
 
 if skipUploadingNightlyPackages.lower() in ['true', '1', 't', 'y', 'yes']:
     print('## KRITACI_SKIP_UPLOAD_NIGHTLY_PACKAGE is set. Skipping uploading nightly packages...')
@@ -71,4 +71,3 @@ try:
 except Exception as e:
     print(f"## Failed to upload packages: {e}")
     sys.exit(1)
-

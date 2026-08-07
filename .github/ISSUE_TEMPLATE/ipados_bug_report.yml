@@ -1,5 +1,5 @@
 name: iPadOS bug report
-description: Report a reproducible problem with the Krita iPadOS port
+description: Report a reproducible problem with LibrePaint on iPadOS
 title: "[iPadOS Bug]: "
 labels:
   - bug
@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for helping improve the Krita iPadOS port.
+        Thank you for helping improve LibrePaint on iPadOS.
 
         This tracker is for problems specific to this iPadOS port. For bugs that
         also reproduce in an official desktop or Android build of Krita, please
@@ -49,9 +49,9 @@ body:
   - type: input
     id: release
     attributes:
-      label: Krita iPadOS release or build
+      label: LibrePaint iPadOS release or build
       description: Include the release tag or custom commit, the IPA filename, and where you obtained it. Do not report only "latest."
-      placeholder: "Example: v1.0.1, Krita.ipa, downloaded from this repository's Releases page"
+      placeholder: "Example: v1.0.1, LibrePaint-iPad-unsigned.ipa, built from this repository"
     validations:
       required: true
 
@@ -139,7 +139,7 @@ body:
       description: Start from installation or app launch and list each action in order.
       placeholder: |
         1. Install …
-        2. Launch Krita from …
+        2. Launch LibrePaint from …
         3. …
     validations:
       required: true
@@ -163,11 +163,11 @@ body:
     id: launch_details
     attributes:
       label: Launch details
-      description: Complete this when Krita exits, crashes, or hangs during launch. Other reports may leave it blank.
+      description: Complete this when LibrePaint exits, crashes, or hangs during launch. Other reports may leave it blank.
       placeholder: |
         - Did you launch from the Home Screen, AltStore, or LiveContainer?
-        - Did you see only the standard iOS launch screen, or the Krita splash screen?
-        - If the Krita splash appeared, what was its last message (for example, "Loading resources...")?
+        - Did you see only the standard iOS launch screen, or the LibrePaint splash screen?
+        - If the LibrePaint splash appeared, what was its last message (for example, "Loading resources...")?
         - Approximately how many seconds passed before the app exited or stopped responding?
         - What happens when you launch it again without reinstalling?
 

@@ -419,7 +419,7 @@ QString KoFileDialog::filename()
                 }
             }
             QMessageBox::warning(d->parent, d->caption,
-                i18n("The selected file name does not have a file extension that Krita understands.\n"
+                i18n("The selected file name does not have a file extension that the free paint app understands.\n"
                      "Make sure the file name ends in '.%1' for example.", extension));
             retryNeeded = true;
 

@@ -85,7 +85,7 @@ void DlgAndroidLogcatDumper::disableLogging()
     disconnect(&m_logcatProcess, SIGNAL(readyReadStandardOutput()), &m_updateWidgetCompressor, SLOT(start()));
 }
 
-QString DlgAndroidLogcatDumper::defaultNewFileName() { return "kritalogcatdump.txt"; }
+QString DlgAndroidLogcatDumper::defaultNewFileName() { return "LibrePaintLogcatDump.txt"; }
 
 QString DlgAndroidLogcatDumper::originalFileName()
 {
@@ -94,8 +94,8 @@ QString DlgAndroidLogcatDumper::originalFileName()
 
 QString DlgAndroidLogcatDumper::captionText()
 {
-    return i18nc("Caption of the dialog with Krita's Android system log for bug reports",
-                 "Krita Logcat Dump: please paste this information to the bug report");
+    return i18nc("Caption of the dialog with LibrePaint's Android system log for bug reports",
+                 "LibrePaint Logcat Dump: please paste this information to the bug report");
 }
 
 QString DlgAndroidLogcatDumper::replacementWarningText() { return QString(); }

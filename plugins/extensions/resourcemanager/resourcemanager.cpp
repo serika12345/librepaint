@@ -20,10 +20,6 @@
 #include "dlg_create_bundle.h"
 #include "DlgResourceManager.h"
 
-#ifdef Q_OS_ANDROID
-#include "KisSupporterBundlesDialog.h"
-#endif
-
 class ResourceManager::Private {
 public:
 
@@ -46,11 +42,7 @@ ResourceManager::ResourceManager(QObject *parent, const QVariantList &)
     addAction("manage_resources", action);
     connect(action, SIGNAL(triggered()), this, SLOT(slotManageResources()));
 
-#ifdef Q_OS_ANDROID
-    action = new KisAction(i18n("Get More Resources..."), this);
-    addAction("manage_supporter_bundles", action);
-    connect(action, &QAction::triggered, this, &ResourceManager::slotManageSupporterBundles);
-#endif
+    // LibrePaint does not expose the upstream supporter-bundle service.
 }
 
 ResourceManager::~ResourceManager()
@@ -69,16 +61,5 @@ void ResourceManager::slotManageResources()
     dlg.exec();
 }
 
-
-#ifdef Q_OS_ANDROID
-void ResourceManager::slotManageSupporterBundles()
-{
-    // Gotta summon it like this, doing it with exec() causes kinetic scrolling
-    // to not work properly, requiring two fingers instead of one. No clue why.
-    KisSupporterBundlesDialog *dlg = new KisSupporterBundlesDialog(qApp->activeWindow());
-    dlg->setAttribute(Qt::WA_DeleteOnClose);
-    dlg->show();
-}
-#endif
 
 #include "resourcemanager.moc"

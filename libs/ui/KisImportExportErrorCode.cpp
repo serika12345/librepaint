@@ -47,7 +47,7 @@ QString KisImportExportComplexError::qtErrorMessage() const
         case QFileDevice::FileError::ResizeError :
             return i18n("The file could not be resized.");
         case QFileDevice::FileError::PermissionsError :
-            return i18n("Permission denied. Krita is not allowed to read or write to the file.");
+            return i18n("Permission denied. The free paint app is not allowed to read or write to the file.");
         case QFileDevice::FileError::CopyError :
             return i18n("The file could not be copied.");
     }
@@ -154,7 +154,7 @@ QString KisImportExportErrorCode::errorMessage() const
             case ImportExportCodes::FileNotExist:
                 return i18n("The file doesn't exist.");
             case ImportExportCodes::NoAccessToRead:
-                return i18n("Permission denied: Krita is not allowed to read the file.");
+                return i18n("Permission denied: the free paint app is not allowed to read the file.");
             case ImportExportCodes::FileFormatIncorrect:
                 return i18n("The file format cannot be parsed.");
             case ImportExportCodes::FormatFeaturesUnsupported:
@@ -168,13 +168,13 @@ QString KisImportExportErrorCode::errorMessage() const
             case ImportExportCodes::CannotCreateFile:
                 return i18n("The file cannot be created.");
             case ImportExportCodes::NoAccessToWrite:
-                return i18n("Permission denied: Krita is not allowed to write to the file.");
+                return i18n("Permission denied: the free paint app is not allowed to write to the file.");
             case ImportExportCodes::InsufficientMemory:
                 return i18n("There is not enough disk space left to save the file.");
             case ImportExportCodes::ErrorWhileWriting:
                 return i18n("Error occurred while writing to the file.");
             case ImportExportCodes::FileFormatNotSupported:
-                return i18n("Krita does not support this file format.");
+                return i18n("The free paint app does not support this file format.");
 
             // Both
             case ImportExportCodes::Cancelled:

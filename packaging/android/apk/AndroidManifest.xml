@@ -5,14 +5,14 @@
 
     <application android:hardwareAccelerated="true"
                  android:name="org.qtproject.qt5.android.bindings.QtApplication"
-                 android:label="Krita"
+                 android:label="LibrePaint"
                  android:icon="@mipmap/ic_launcher"
                  android:roundIcon="@mipmap/ic_launcher_round"
                  android:hasFragileUserData="true" >
 
         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
                   android:name="org.krita.android.MainActivity"
-                  android:label="Krita"
+                  android:label="LibrePaint"
                   android:screenOrientation="unspecified"
                   android:resizeableActivity="true"
                   android:theme="@style/DefaultTheme"

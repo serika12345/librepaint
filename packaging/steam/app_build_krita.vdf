@@ -1,7 +1,7 @@
 "appbuild"
 {
-	"appid"	"KRITA_APP_ID" // Replace value with Krita's Steam AppID.
-	"desc" "Krita Desktop Steam Update"
+	"appid"	"KRITA_APP_ID" // Replace this compatibility placeholder with LibrePaint's Steam AppID.
+	"desc" "LibrePaint Desktop Steam Update"
 	"buildoutput" "..\output\" // build output folder for .log, .csm & .csd files, relative to location of this file
 	"contentroot" "..\content\" // root content folder, relative to location of this file
 	"setlive"	"" // branch to set live after successful build, non if empty
@@ -10,7 +10,7 @@
 	
 	"depots"
 	{
-		"COMMON_DEPOT_ID" "depot_build_common.vdf" // Replace keys with various Krita depot ID's, as found on Steamworks web interface.
+		"COMMON_DEPOT_ID" "depot_build_common.vdf" // Replace keys with LibrePaint depot IDs from the Steamworks interface.
 		"WINDOWS_DEPOT_ID" "depot_build_windows.vdf"
 		"LINUX_DEPOT_ID" "depot_build_linux.vdf"
 	}

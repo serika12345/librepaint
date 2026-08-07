@@ -32,7 +32,7 @@ public:
 KisAboutApplication::KisAboutApplication(QWidget *parent)
     : KoDialog(parent)
 {
-    setWindowTitle(i18n("About Krita"));
+    setWindowTitle(i18n("About LibrePaint"));
     setButtons(KoDialog::Close);
 
     WdgAboutApplication *wdgTab = new WdgAboutApplication(this);
@@ -89,18 +89,9 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
 
     wdgTab->lblTranslators->setText(translatorHtml);
 
-    QString sponsors = i18n(
-        "<html><head/><body>"
-        "<h1 align=\"center\">Development Fund</h1>"
-        "<p align=\"center\"> <a href=\"https://intel.com\"><img src=\":/intel.png\"></a> "
-        "<h2 align=\"center\">One Time Sponsors</h2>"
-        "<p align=\"center\"> <a href=\"https://www.unrealengine.com/en-US/megagrants\"><img src=\":/epic.png\"></a> "
-        "<p align=\"center\"> <a href=\"http://brokenrul.es/\"><img src=\":/broken_rules.png\"></a> "
-        "<p align=\"center\"> <a href=\"https://game-chuck.com/\"><img src=\":/gamechuck.png\"></a> "
-        "<p align=\"center\"> <a href=\"https://www.fosshub.com/Krita.html\"><img src=\":/fosshub.png\"></a> "
-        "<p align=\"center\"> <a href=\"http://www.asifa-hollywood.org/\"><img src=\":/asifa.png\"></a> "
-        "</body></html>");
-    wdgTab->lblKickstarter->setText(sponsors);
+    // Sponsor logos and promotional links belong to the upstream project and
+    // are intentionally not presented as LibrePaint endorsements.
+    wdgTab->tabWidget->removeTab(wdgTab->tabWidget->indexOf(wdgTab->kickstarterTab));
 
     QString credits = i18n("<html>"
                           "<head/>"
@@ -125,7 +116,7 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
         }
         credits.chop(2);
     }
-    credits.append(i18n(".</p><p><i>For supporting Krita development with advice, icons, brush sets and more.</i></p></body></html>"));
+    credits.append(i18n(".</p><p><i>For supporting development of the free paint app with advice, icons, brush sets and more.</i></p></body></html>"));
 
     wdgTab->lblCredits->setText(credits);
 
@@ -167,8 +158,8 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
         QString thirdPartyHtml = i18n("<html>"
                                       "<head/>"
                                       "<body>"
-                                      "<h1 align=\"center\"><b>Third-party Libraries used by Krita</b></h1>"
-                                      "<p>Krita is built on the following free software libraries:</p><p><ul>");
+                                      "<h1 align=\"center\"><b>Third-party Libraries used by LibrePaint</b></h1>"
+                                      "<p>LibrePaint is built on the following free software libraries:</p><p><ul>");
 
         Q_FOREACH (const QString &lib, thirdPartyText.readAll().split('\n', Qt::SkipEmptyParts)) {
 

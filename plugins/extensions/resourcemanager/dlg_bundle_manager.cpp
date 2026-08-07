@@ -37,10 +37,6 @@
 #include <KisMainWindow.h>
 #include <KisPart.h>
 
-#ifdef Q_OS_ANDROID
-#include <KisSupporterBundlesDialog.h>
-#endif
-
 DlgBundleManager::ItemDelegate::ItemDelegate(QObject *parent, KisStorageFilterProxyModel* proxy)
     : QStyledItemDelegate(parent)
     , m_bundleManagerProxyModel(proxy)
@@ -156,12 +152,6 @@ DlgBundleManager::DlgBundleManager(QWidget *parent)
     m_ui->bnEdit->setText(i18nc("In bundle manager; press button to edit existing bundle", "Edit Bundle"));
     connect(m_ui->bnEdit, SIGNAL(clicked(bool)), SLOT(editBundle()));
 
-#ifdef Q_OS_ANDROID
-    connect(m_ui->bnSupport, &QPushButton::clicked, this, &DlgBundleManager::slotShowSupporterBundlesDialog);
-#else
-    m_ui->bnSupport->hide();
-#endif
-
     setButtons(Close);
 
     m_proxyModel = new KisStorageFilterProxyModel(this);
@@ -203,12 +193,12 @@ void DlgBundleManager::done(int res)
 
         if (!mw->checkPaintOpAvailable()) {
             warning += i18n("\nThere are no brush presets available. Please enable a bundle that has presets before continuing.\nIf there are no bundles, please import a bundle before continuing.");
-            QMessageBox::critical(this, i18nc("@title:window", "Krita"), warning);
+            QMessageBox::critical(this, i18nc("@title:window", "LibrePaint"), warning);
             return;
         }
 
         if (!mw->checkActiveBundlesAvailable()) {
-            QMessageBox::warning(this, i18nc("@title:window", "Krita"), warning + i18n("\nOnly your local resources are available."));
+            QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"), warning + i18n("\nOnly your local resources are available."));
         }
     }
     KoDialog::done(res);
@@ -235,7 +225,7 @@ void DlgBundleManager::addBundle()
                     cursorLock.unlock();
                     qWarning() << "Attempted to import an invalid bundle!" << filename;
                     QMessageBox::warning(this,
-                                         i18nc("@title:window", "Krita"),
+                                         i18nc("@title:window", "LibrePaint"),
                                          i18n("Could not load bundle %1.", filename));
                     continue;
                 }
@@ -301,7 +291,7 @@ void DlgBundleManager::editBundle()
                     qApp->restoreOverrideCursor();
                     qWarning() << "Attempted to edit an invalid bundle!" << filename;
                     QMessageBox::warning(this,
-                                         i18nc("@title:window", "Krita"),
+                                         i18nc("@title:window", "LibrePaint"),
                                          i18n("Could not load bundle %1.", filename));
                     qApp->setOverrideCursor(Qt::BusyCursor);
                     continue;
@@ -327,14 +317,6 @@ void DlgBundleManager::editBundle()
         }
     }
 }
-
-#ifdef Q_OS_ANDROID
-void DlgBundleManager::slotShowSupporterBundlesDialog()
-{
-    QScopedPointer<KisSupporterBundlesDialog> dlg(new KisSupporterBundlesDialog(this));
-    dlg->exec();
-}
-#endif
 
 void DlgBundleManager::toggleBundle()
 {
@@ -369,12 +351,12 @@ void DlgBundleManager::toggleBundle()
             button(KoDialog::Close)->setEnabled(false);
 
             warning += i18n("\nThere are no brush presets available. Please enable a bundle that has presets before continuing.\nIf there are no bundles, please import a bundle before continuing.");
-            QMessageBox::critical(this, i18nc("@title:window", "Krita"), warning);
+            QMessageBox::critical(this, i18nc("@title:window", "LibrePaint"), warning);
             return;
         }
 
         if (!mw->checkActiveBundlesAvailable()) {
-            QMessageBox::warning(this, i18nc("@title:window", "Krita"), warning + i18n("\nOnly your local resources are available."));
+            QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"), warning + i18n("\nOnly your local resources are available."));
         }
     }
     button(KoDialog::Close)->setEnabled(true);
@@ -469,5 +451,4 @@ void DlgBundleManager::updateBundleInformation(QModelIndex idx)
     m_ui->lblPreview->setPixmap(QPixmap::fromImage(thumbnail));
     m_ui->lblType->setText(KisResourceStorage::storageTypeToString(storage->type()));
 }
-
 

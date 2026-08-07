@@ -1,11 +1,11 @@
-# Krita iPadOS Port
+# LibrePaint iPadOS Port
 
 [English](README.md)
 
-Kritaをarm64の実機iPadで動かすための、非公式かつ実験的なiPadOSポートです。Apple Pencil、タッチ操作、iPadOSのFilesを使い、Android版に近い実用的な描画環境をローカルで構築することを目標にしています。
+LibrePaintは、現在Krita由来のコードを基盤としてarm64の実機iPadで動作する、非公式かつ実験的なiPadOSペイントアプリです。Apple Pencil、タッチ操作、iPadOSのFilesを使い、Android版に近い実用的な描画環境をローカルで構築することを目標にしています。
 
 > [!WARNING]
-> このリポジトリはKrita FoundationまたはKDEによる公式iPad版ではありません。現在は開発途中であり、データ保全、長時間動作、すべてのファイル形式やKrita機能の互換性を保証しません。重要な作品は別の場所にもバックアップしてください。
+> LibrePaintはKrita FoundationまたはKDEによる公式iPad版ではありません。現在は開発途中であり、データ保全、長時間動作、すべてのファイル形式やupstream Krita機能との互換性を保証しません。重要な作品は別の場所にもバックアップしてください。
 
 ## 対象範囲
 
@@ -24,7 +24,7 @@ Python/PyQt、G'MIC、印刷、動画・音声機能、自動更新、外部プ�
 
 ## プロジェクトの位置づけと将来構想
 
-本プロジェクトは、作者個人の制作環境でKrita相当の機能をiPadから利用することを主な目的としています。現在はupstream Kritaとの差分を可能な限り限定していますが、将来もupstreamへの追従や変更の取り込みやすさを保証するものではありません。個人の制作フローとiPad上の操作性を優先し、UI、機能、内部構造にupstream Kritaから大きくかけ離れた改造を施す可能性があります。
+LibrePaintは、作者個人の制作環境でKrita相当の機能をiPadから利用することを主な目的としています。現在はupstream Kritaとの差分を可能な限り限定していますが、将来もupstreamへの追従や変更の取り込みやすさを保証するものではありません。個人の制作フローとiPad上の操作性を優先し、UI、機能、内部構造にupstream Kritaから大きくかけ離れた改造を施す可能性があります。
 
 長期的な最終像としては、Krita由来のGPLコードに依存しない独立実装へ移行し、**MIT Licenseで提供する独立プロジェクト**として成立させることを構想しています。これは将来構想であり、現在のKrita派生コードをMIT Licenseへ変更する宣言ではありません。現リポジトリに適用されるライセンスについては[ライセンスとupstream](#ライセンスとupstream)を参照してください。
 
@@ -36,7 +36,7 @@ Python/PyQt、G'MIC、印刷、動画・音声機能、自動更新、外部プ�
 
 | 分野 | 確認済みの範囲 |
 |---|---|
-| 起動と基本UI | AltStore経由のインストールと起動、LiveContainerへのIPA新規importと起動、main window、縦向き・横向きのsplash、初期縦向きと回転後のConfigure Krita dialog |
+| 起動と基本UI | AltStore経由のインストールと起動、LiveContainerへのIPA新規importと起動、main window、縦向き・横向きのsplash、初期縦向きと回転後のConfigure LibrePaint dialog |
 | タッチUI | 非canvas領域のスワイプと慣性scroll、scroll中の誤選択抑止、combo boxのタップ確定、設定画面やbrush一覧での不要なsoftware keyboard抑止 |
 | Apple Pencil | press・move・release、筆圧、傾き、初期brushを選び直さずに行う描画 |
 | Pencil double tap | `eraser_preset_action`による、独立したペン側／消しゴム側brush presetの切り替え |
@@ -188,13 +188,13 @@ nix build .#krita-ios-ipa \
 成果物は次の場所に生成されます。
 
 - `build-ios/nix-results/krita-ios-app/krita.app`
-- `build-ios/nix-results/krita-ios-ipa/Krita-iPad-unsigned.ipa`
+- `build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`
 
 IPAだけが必要な場合は`krita-ios-ipa`だけをbuildすれば、必要なappと依存も自動的に構築されます。生成されるIPAは意図的に未署名です。署名情報、provisioning profile、Apple ID、device credentialをリポジトリへ保存しないでください。
 
 ### AltStoreで実機へ配備
 
-前提環境を満たしてAltServerを起動した後、次のコマンドでincremental build、binary・plugin・runtime data検査、IPA生成、AltStoreによる署名とinstall、Kritaの起動、startup log回収まで行います。
+前提環境を満たしてAltServerを起動した後、次のコマンドでincremental build、binary・plugin・runtime data検査、IPA生成、AltStoreによる署名とinstall、LibrePaintの起動、startup log回収まで行います。
 
 ```sh
 packaging/ios/scripts/build-krita-incremental.sh deploy [device-id]
@@ -212,7 +212,7 @@ timestamp付きIPAと回収した`krita.log`は`build-ios/deploy/`に保存さ�
 
 ### LiveContainerで実機へインストール
 
-再現可能な未署名IPA `build-ios/nix-results/krita-ios-ipa/Krita-iPad-unsigned.ipa`は、LiveContainerへimportして利用することもできます。packaging workflowは、LiveContainerがapp bundleをpatch、起動、cleanupするために必要なarchive permissionを正規化します。LiveContainerのiOS 26 JIT-Less modeを使用した新規importと起動を実機で確認済みです。
+再現可能な未署名IPA `build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`は、LiveContainerへimportして利用することもできます。packaging workflowは、LiveContainerがapp bundleをpatch、起動、cleanupするために必要なarchive permissionを正規化します。LiveContainerのiOS 26 JIT-Less modeを使用した新規importと起動を実機で確認済みです。
 
 修正版IPAを使っても、以前の失敗したimportによってLiveContainer内に残ったread-onlyな一時`Payload`は削除できません。このstale state errorが発生する場合は、必要なapp dataを保護したうえで、影響を受けたLiveContainerのstateをcleanupまたはresetしてから再度importしてください。正確なcleanup UIは実機確認中です。現在のarchive permissionと復旧上の注意は[`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md)を参照してください。
 

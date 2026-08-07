@@ -59,10 +59,6 @@ private Q_SLOTS:
     void createBundle();
     void toggleBundle();
     void editBundle();
-#ifdef Q_OS_ANDROID
-    void slotShowSupporterBundlesDialog();
-#endif
-
     void slotModelAboutToBeReset();
     void slotModelReset();
     void slotRowsRemoved(const QModelIndex &parent, int first, int last);

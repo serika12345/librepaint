@@ -52,7 +52,7 @@
           <key>CFBundleTypeIconFile</key>
           <string>krita-kra</string>
           <key>CFBundleTypeName</key>
-          <string>Krita File</string>
+          <string>KRA Document</string>
           <key>CFBundleTypeRole</key>
           <string>Editor</string>
           <key>LSHandlerRank</key>
@@ -66,7 +66,7 @@
           <key>CFBundleTypeIconFile</key>
           <string>krita-krz</string>
           <key>CFBundleTypeName</key>
-          <string>Krita Archival File</string>
+          <string>KRZ Archive</string>
           <key>CFBundleTypeRole</key>
           <string>Editor</string>
           <key>LSHandlerRank</key>
@@ -78,7 +78,7 @@
         </dict>
         <dict>
           <key>CFBundleTypeName</key>
-          <string>Krita Presets File</string>
+          <string>KPP Preset</string>
           <key>CFBundleTypeRole</key>
           <string>Editor</string>
           <key>LSHandlerRank</key>
@@ -353,7 +353,7 @@
             <string>public.image</string>
           </array>
           <key>UTTypeDescription</key>
-          <string>Krita Image File</string>
+          <string>KRA Document</string>
           <key>UTTypeIdentifier</key>
           <string>org.krita.kra</string>
           <key>UTTypeTagSpecification</key>
@@ -376,7 +376,7 @@
             <string>public.image</string>
           </array>
           <key>UTTypeDescription</key>
-          <string>Krita Archival File</string>
+          <string>KRZ Archive</string>
           <key>UTTypeIdentifier</key>
           <string>org.krita.krz</string>
           <key>UTTypeTagSpecification</key>
@@ -398,7 +398,7 @@
             <string>public.image</string>
           </array>
           <key>UTTypeDescription</key>
-          <string>Krita Presets File</string>
+          <string>KPP Preset</string>
           <key>UTTypeIdentifier</key>
           <string>org.krita.kpp</string>
           <key>UTTypeTagSpecification</key>

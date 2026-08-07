@@ -77,10 +77,6 @@
 #include <KisWindowsPackageUtils.h>
 #endif
 
-#ifdef Q_OS_MACOS
-#include "libs/macosutils/KisMacosEntitlements.h"
-#endif
-
 #ifdef Q_OS_ANDROID
 #include "KisAndroidDonations.h"
 #include <QFontMetrics>
@@ -125,6 +121,20 @@ KisWelcomePageWidget::KisWelcomePageWidget(QWidget *parent)
 {
     setupUi(this);
 
+    kdeIcon->hide();
+    poweredByKDELink->hide();
+    userCommunityLink->hide();
+    userCommunityIcon->hide();
+    gettingStartedLink->hide();
+    gettingStartedIcon->hide();
+    manualLink->hide();
+    userManualIcon->hide();
+    supportKritaLink->hide();
+    supportKritaIcon->hide();
+    kritaWebsiteLink->hide();
+    kritaWebsiteIcon->hide();
+    labelSupportText->hide();
+
     // URLs that go to web browser...
     devBuildIcon->setIcon(KisIconUtils::loadIcon("warning"));
     devBuildLabel->setVisible(false);
@@ -161,7 +171,7 @@ KisWelcomePageWidget::KisWelcomePageWidget(QWidget *parent)
     newsOptionsMenu->setToolTipsVisible(true);
     ShowNewsAction *showNewsAction = new ShowNewsAction(i18n("Enable news and check for new releases"), newsOptionsMenu);
     newsOptionsMenu->addAction(showNewsAction);
-    showNewsAction->setToolTip(i18n("Show news about Krita: this needs internet to retrieve information from the krita.org website"));
+    showNewsAction->setToolTip(i18n("Upstream news is disabled in LibrePaint"));
     showNewsAction->setCheckable(true);
 
     newsOptionsMenu->addSection(i18n("Language"));
@@ -184,13 +194,13 @@ KisWelcomePageWidget::KisWelcomePageWidget(QWidget *parent)
 
     supporterBadge->hide();
     wdgAndroidSupportBanner->hide();
-#ifdef Q_OS_ANDROID
-    initDonations();
-#endif
-
-    // configure the News area
-    KisConfig cfg(true);
-    m_networkIsAllowed = cfg.readEntry<bool>("FetchNews", false);
+    // Do not present upstream news or fundraising as LibrePaint content.
+    // A future LibrePaint service can replace this deliberately.
+    m_networkIsAllowed = false;
+    newsTitleLabel->hide();
+    btnNewsOptions->hide();
+    newsFrame->hide();
+    stkSupport->hide();
 
 
 #ifdef ENABLE_UPDATERS
@@ -342,37 +352,32 @@ void KisWelcomePageWidget::slotUpdateThemeColors()
     btnNewsOptions->setIcon(KisIconUtils::loadIcon("view-choose"));
     btnNewsOptions->setFlat(true);
 
-    supportKritaIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("support-krita")));
     userManualIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("bookmarks")));
     gettingStartedIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("get_started")));
     userCommunityIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("comunity")));
-    kritaWebsiteIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("website")));
     sourceCodeIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("code")));
-    kdeIcon->setIcon(KisIconUtils::loadIcon(QStringLiteral("kde")));
 
     // HTML links seem to be a bit more stubborn with theme changes... setting inline styles to help with color change
-    userCommunityLink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://krita-artists.org\">")
-                               .append(i18n("User Community")).append("</a>"));
+    userCommunityLink->setText(QString());
+    userCommunityLink->hide();
+    userCommunityIcon->hide();
+    gettingStartedLink->setText(QString());
+    gettingStartedLink->hide();
+    gettingStartedIcon->hide();
+    manualLink->setText(QString());
+    manualLink->hide();
+    userManualIcon->hide();
 
-    gettingStartedLink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://docs.krita.org/user_manual/getting_started.html\">")
-                                .append(i18n("Getting Started")).append("</a>"));
-
-    manualLink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://docs.krita.org\">")
-                        .append(i18n("User Manual")).append("</a>"));
-
-    supportKritaLink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://krita.org/support-us/donations?" + analyticsString + "donations" + "\">")
-                              .append(i18n("Support Krita")).append("</a>"));
-
-    kritaWebsiteLink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://www.krita.org?" + analyticsString + "marketing-site" + "\">")
-                              .append(i18n("Krita Website")).append("</a>"));
+    supportKritaLink->hide();
+    supportKritaIcon->hide();
+    kritaWebsiteLink->hide();
+    kritaWebsiteIcon->hide();
+    labelSupportText->hide();
 
     sourceCodeLink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://invent.kde.org/graphics/krita\">")
                             .append(i18n("Source Code")).append("</a>"));
 
-    poweredByKDELink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://userbase.kde.org/What_is_KDE\">")
-                              .append(i18n("Powered by KDE")).append("</a>"));
-
-    QString translationNoFeed = i18n("You can <a href=\"ignored\" style=\"color: COLOR_PLACEHOLDER; text-decoration: underline;\">enable news</a> from krita.org in various languages with the menu above");
+    QString translationNoFeed = i18n("Upstream news is not shown in LibrePaint.");
     labelNoFeed->setText(translationNoFeed.replace("COLOR_PLACEHOLDER", blendedColor.name()));
 
     const QColor faintTextColor = KisPaintingTweaks::blendColors(textColor, backgroundColor, 0.4);
@@ -392,16 +397,6 @@ void KisWelcomePageWidget::slotUpdateThemeColors()
     updateVersionUpdaterFrame(); // updater frame
 #endif
 
-#ifdef Q_OS_MACOS
-    // macOS store version should not contain external links containing donation buttons or forms
-    if (KisMacosEntitlements().sandbox()) {
-        supportKritaLink->hide();
-        supportKritaIcon->hide();
-        labelSupportText->hide();
-        kritaWebsiteLink->hide();
-        kritaWebsiteIcon->hide();
-    }
-#endif
 }
 
 void KisWelcomePageWidget::dragEnterEvent(QDragEnterEvent *event)
@@ -595,13 +590,7 @@ void KisWelcomePageWidget::showDevVersionHighlight()
 {
     // always flag development version
     if (isDevelopmentBuild()) {
-        QString devBuildLabelText = QString("<a style=\"color: " +
-                                           blendedColor.name() +
-                                           " \" href=\"https://docs.krita.org/en/untranslatable_pages/triaging_bugs.html?"
-                                           + analyticsString + "dev-build" + "\">")
-                                  .append(i18n("DEV BUILD")).append("</a>");
-
-        devBuildLabel->setText(devBuildLabelText);
+        devBuildLabel->setText(i18n("DEV BUILD"));
         devBuildIcon->setVisible(true);
         devBuildLabel->setVisible(true);
     } else {
@@ -727,7 +716,7 @@ void KisWelcomePageWidget::slotSetUpdateStatus(KisUpdaterStatus updateStatus)
 
 void KisWelcomePageWidget::slotShowUpdaterErrorDetails()
 {
-    QMessageBox::warning(qApp->activeWindow(), i18nc("@title:window", "Krita"), m_updaterStatus.updaterOutput());
+    QMessageBox::warning(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), m_updaterStatus.updaterOutput());
 }
 
 void KisWelcomePageWidget::updateVersionUpdaterFrame()
@@ -746,7 +735,7 @@ void KisWelcomePageWidget::updateVersionUpdaterFrame()
     if (m_updaterStatus.status() == UpdaterStatus::StatusID::UPDATE_AVAILABLE) {
         updaterFrame->setVisible(true);
         updaterFrame->setEnabled(true);
-        versionLabelText = i18n("New version of Krita is available.");
+        versionLabelText = i18n("A new version of LibrePaint is available.");
         versionNotificationLabel->setVisible(true);
         updateIcon->setIcon(KisIconUtils::loadIcon("update-medium"));
 
@@ -754,7 +743,7 @@ void KisWelcomePageWidget::updateVersionUpdaterFrame()
             bnVersionUpdate->setVisible(true);
         } else {
             // build URL for label
-            QString downloadLink = QString(" <a style=\"color: %1; text-decoration: underline\" href=\"%2?%3\">Download Krita %4</a>")
+            QString downloadLink = QString(" <a style=\"color: %1; text-decoration: underline\" href=\"%2?%3\">Download LibrePaint %4</a>")
                     .arg(blendedColor.name())
                     .arg(m_updaterStatus.downloadLink())
                     .arg(analyticsString + "version-update")
@@ -837,11 +826,11 @@ void KisWelcomePageWidget::initDonations()
     if (welcomeBannerPixmap.isNull()) {
         qWarning("KisWelcomePage::initDonations: failed to load welcome banner from '%s'",
                  qUtf8Printable(welcomeBannerPath));
-        // Leave the button alone, it will just say "Support Krita!"
+        // This legacy upstream fundraising path is not initialized by LibrePaint.
     } else {
         QVector<QString> headlines = {
             i18n("Become a Supporter!"),
-            i18n("Support Krita!"),
+            i18n("Upstream support service unavailable"),
         };
         QVector<QString> subtitles = {
             i18n("Supporters get brush packs and more."),

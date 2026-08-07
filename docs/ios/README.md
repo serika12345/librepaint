@@ -126,7 +126,7 @@ nix build .#krita-ios-ipa \
 
 The artifacts are
 `build-ios/nix-results/krita-ios-app/krita.app` and
-`build-ios/nix-results/krita-ios-ipa/Krita-iPad-unsigned.ipa`. The app
+`build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`. The app
 derivation builds the 50-target initial static-plugin profile, installs the
 runtime resource tree into the bundle, and rejects the wrong architecture,
 Apple platform, deployment target, SDK, bundle metadata, signing state, or a
@@ -211,7 +211,7 @@ FFmpeg features, and the updater.
 
 With AltServer running and AltStore installed on a connected iPad, one command
 incrementally builds, validates, packages, installs, launches, and collects the
-Krita startup log:
+LibrePaint startup log:
 
 ```sh
 packaging/ios/scripts/build-krita-incremental.sh deploy [device-id]

@@ -22,7 +22,7 @@ namespace {
         if (pack) {
             return pack->constSensorsStruct().sensorDrawingAngle;
         } else {
-            qWarning() << "safeDereferenceDrawingAngleSensor(get): failed to get a Krita sensor data";
+            qWarning() << "safeDereferenceDrawingAngleSensor(get): failed to get free paint app sensor data";
             return KisDrawingAngleSensorData();
         }
     },
@@ -31,7 +31,7 @@ namespace {
         if (pack) {
             pack->sensorsStruct().sensorDrawingAngle = sensor;
         } else {
-            qWarning() << "safeDereferenceDrawingAngleSensor(set): failed to get a Krita sensor data";
+            qWarning() << "safeDereferenceDrawingAngleSensor(set): failed to get free paint app sensor data";
         }
         return data;
     });
@@ -79,4 +79,3 @@ QWidget *KisDynamicSensorFactoryDrawingAngle::createConfigWidget(lager::cursor<K
 
     return widget;
 }
-

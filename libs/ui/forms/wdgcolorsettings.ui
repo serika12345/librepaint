@@ -74,7 +74,7 @@
        <item row="1" column="0" colspan="2">
         <widget class="QGroupBox" name="grpPasteBehaviour">
          <property name="title">
-          <string>When Pasting Into Krita From Other Applications</string>
+          <string>When Pasting Into LibrePaint From Other Applications</string>
          </property>
          <layout class="QVBoxLayout">
           <item>
@@ -101,7 +101,7 @@
           <item>
            <widget class="QLabel" name="textLabel1_2_2">
             <property name="text">
-             <string>Note: When copying/pasting inside Krita color info is always preserved.</string>
+             <string>Note: When copying/pasting inside the free paint app, color info is always preserved.</string>
             </property>
            </widget>
           </item>

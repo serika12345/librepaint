@@ -18,7 +18,7 @@ namespace {
         if (pack) {
             return pack->constSensorsStruct().sensorTime;
         } else {
-            qWarning() << "safeDereferenceTimeSensor(get): failed to get a Krita sensor data";
+            qWarning() << "safeDereferenceTimeSensor(get): failed to get free paint app sensor data";
             return KisSensorWithLengthData(FadeId);
         }
     },
@@ -27,7 +27,7 @@ namespace {
         if (pack) {
             pack->sensorsStruct().sensorTime = sensor;
         } else {
-            qWarning() << "safeDereferenceTimeSensor(set): failed to get a Krita sensor data";
+            qWarning() << "safeDereferenceTimeSensor(set): failed to get free paint app sensor data";
         }
         return data;
     });

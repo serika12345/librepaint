@@ -679,7 +679,7 @@ void KisView::dropEvent(QDropEvent *event)
                                     .errorMessage();
                             QMessageBox::warning(
                                 this,
-                                i18nc("@title:window", "Krita"),
+                                i18nc("@title:window", "LibrePaint"),
                                 i18n("Could not open %2.\nReason: %1.",
                                      msg,
                                      url.toDisplayString()));
@@ -1166,7 +1166,7 @@ bool KisView::queryClose()
             name = i18n("Untitled");
 
         int res = QMessageBox::warning(this,
-                                       i18nc("@title:window", "Krita"),
+                                       i18nc("@title:window", "LibrePaint"),
                                        i18n("<p>The document <b>'%1'</b> has been modified.</p><p>Do you want to save it?</p>", name),
                                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);
 

@@ -1,14 +1,11 @@
-The Krita project is part of the KDE community. Krita is 
-developed on KDE's infrastructure, not GitHub's. Krita on
-GitHub is just a mirror. Do not create pull requests on
-GitHub.
+# Contributing to LibrePaint
 
-Please join our GitLab instance to start contributing. 
+Use this repository's issue tracker and pull requests for LibrePaint-specific
+work. Check `TODO.md` for current milestones and `HACKING` for inherited coding
+guidance. Keep iOS-only behavior behind `Q_OS_IOS`, preserve stable Krita file,
+action, and resource identifiers unless a migration is part of the change, and
+never include signing credentials.
 
-https://invent.kde.org/graphics/krita
-
-Please see the HACKING file for coding guidelines. The Krita
-API documentation is here:
-
-https://api.kde.org/extragear-api/graphics-apidocs/krita/html/index.html
-
+Changes copied or adapted from upstream Krita must retain their accurate
+copyright, license, and provenance. Report a problem to upstream only when it
+also reproduces in an official Krita build.

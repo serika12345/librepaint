@@ -273,6 +273,9 @@ public class MainActivity extends QtActivity {
 
     @SuppressWarnings("unused")
     public static void manageSubscription(String productId) {
+        if (!DonationHelper.isEnabled()) {
+            return;
+        }
         doWithMainActivity((MainActivity activity) -> {
             activity.runOnUiThread(() -> {
                 try {
@@ -290,6 +293,9 @@ public class MainActivity extends QtActivity {
 
     @SuppressWarnings("unused")
     public static void showDonationDialog(boolean splash, byte[] splashBytes, String splashArtist, String splashVersion) {
+        if (!splash && !DonationHelper.isEnabled()) {
+            return;
+        }
         Log.d(TAG, "showDonationDialog");
         try {
             Activity activity = QtNative.activity();

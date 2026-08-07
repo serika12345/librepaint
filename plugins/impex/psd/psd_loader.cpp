@@ -329,7 +329,7 @@ KisImportExportErrorCode PSDLoader::decode(QIODevice &io)
                 warnKrita << "WARNING: Provided PSD has unbalanced group "
                           << "layer markers. Some masks and/or layers can "
                           << "be lost while loading this file. Please "
-                          << "report a bug to Krita developers and attach "
+                          << "report a bug to LibrePaint developers and attach "
                           << "this file to the bugreport\n"
                           << "    " << ppVar(layerRecord->layerName) << "\n"
                           << "    " << ppVar(layerRecord->infoBlocks.sectionDividerType) << "\n"
@@ -671,5 +671,4 @@ void PSDLoader::cancel()
 {
     m_stop = true;
 }
-
 

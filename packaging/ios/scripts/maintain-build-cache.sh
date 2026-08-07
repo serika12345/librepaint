@@ -53,7 +53,7 @@ ipa_files=()
 if [[ -d "$deploy_dir" ]]; then
     while IFS= read -r ipa; do
         ipa_files+=("$ipa")
-    done < <(find "$deploy_dir" -maxdepth 1 -type f -name 'Krita-iPad-*.ipa' -print | sort)
+    done < <(find "$deploy_dir" -maxdepth 1 -type f -name 'LibrePaint-iPad-*.ipa' -print | sort)
 fi
 
 prune_count=$((${#ipa_files[@]} - keep_ipas))

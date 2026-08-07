@@ -2,10 +2,8 @@
 package org.krita.android;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
@@ -17,7 +15,6 @@ import android.widget.TextView;
 import org.krita.R;
 
 import java.util.List;
-import java.util.Locale;
 
 public class DonationProductView {
     private static final String TAG = "krita.DonationProduct";
@@ -60,35 +57,7 @@ public class DonationProductView {
     }
 
     public static List<DonationProductView> getFallbackProducts(Activity activity) {
-        String lang = Locale.getDefault().toLanguageTag();
-        return List.of(
-                new DonationProductView(
-                        activity,
-                        activity.getDrawable(R.drawable.product_fund),
-                        null,
-                        activity.getString(R.string.product_development_fund_description),
-                        activity.getString(R.string.product_development_fund_button),
-                        openLinkOnClick(activity, "https://fund.krita.org/?lang=" + lang)),
-                new DonationProductView(
-                        activity,
-                        null,
-                        activity.getDrawable(R.drawable.product_donation),
-                        activity.getString(R.string.product_donations_description),
-                        activity.getString(R.string.product_donations_button),
-                        openLinkOnClick(activity, "https://krita.org/en/donations?lang=" + lang)));
-    }
-
-    private static View.OnClickListener openLinkOnClick(Activity activity, String link) {
-        Uri uri = Uri.parse(link);
-        return (View view) -> {
-            try {
-                Log.d(TAG, "Opening link " + link);
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                activity.startActivity(intent);
-            } catch (Exception e) {
-                Log.e(TAG, "Exception opening link " + link, e);
-            }
-        };
+        return List.of();
     }
 
     private static Drawable makeSmoothDrawable(Drawable drawable) {

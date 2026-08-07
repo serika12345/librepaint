@@ -413,7 +413,7 @@ KisImportExportErrorCode KisTIFFImport::readImageFromPsdRecords(
                 psdImage->setResolution(POINT_TO_INCH(resInfo->hRes),
                                         POINT_TO_INCH(resInfo->vRes));
             // let's skip the unit for now; we can only set that on the
-            // KisDocument, and krita doesn't use it.
+            // KisDocument, and the free paint app doesn't use it.
             delete resources.take(KisTiffPsdResourceRecord::RESN_INFO);
         }
     }
@@ -493,7 +493,7 @@ KisImportExportErrorCode KisTIFFImport::readImageFromPsdRecords(
                 QString compositeOp = psd_blendmode_to_composite_op(
                     layerRecord->infoBlocks.sectionDividerBlendMode);
 
-                // Krita doesn't support pass-through blend
+                // The free paint app doesn't support pass-through blend
                 // mode. Instead it is just a property of a group
                 // layer, so flip it
                 if (compositeOp == COMPOSITE_PASS_THROUGH) {
@@ -518,7 +518,7 @@ KisImportExportErrorCode KisTIFFImport::readImageFromPsdRecords(
                 warnKrita << "WARNING: Provided PSD has unbalanced group "
                           << "layer markers. Some masks and/or layers can "
                           << "be lost while loading this file. Please "
-                          << "report a bug to Krita developers and attach "
+                          << "report a bug to LibrePaint developers and attach "
                           << "this file to the bugreport\n"
                           << "    " << ppVar(layerRecord->layerName) << "\n"
                           << "    "
@@ -1791,7 +1791,7 @@ KisImportExportErrorCode KisTIFFImport::readTIFFDirectory(KisDocument *m_doc,
 
   // Create the cmsTransform if needed
   if (profile && !profile->isSuitableForWorkspace() && profile->isSuitableForInput()) {
-      dbgFile << "The profile can't be used in krita, need conversion";
+      dbgFile << "The profile can't be used in the free paint app, need conversion";
       basicInfo.transform =
           KoColorSpaceRegistry::instance()
               ->colorSpace(basicInfo.colorSpaceIdTag.first,

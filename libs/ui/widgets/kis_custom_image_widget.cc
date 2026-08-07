@@ -288,7 +288,7 @@ KisDocument* KisCustomImageWidget::createNewImage()
 
             int result =
                 QMessageBox::warning(this,
-                                     i18nc("@title:window", "Krita"),
+                                     i18nc("@title:window", "LibrePaint"),
                                      i18n("Linear gamma RGB color spaces are not supposed to be used "
                                           "in 8-bit integer modes. It is suggested to use 16-bit integer "
                                           "or any floating point colorspace for linear profiles.\n\n"
@@ -430,7 +430,7 @@ void KisCustomImageWidget::saveAsPredefined()
     QFile f(saveLocation + '/' + fileName.replace(' ', '_').replace('(', '_').replace(')', '_').replace(':', '_') + ".predefinedimage");
 
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QMessageBox::warning(this, i18nc("@title:window", "Krita"),
+        QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"),
             i18n("Could not save %1.\nReason: %2.", f.fileName(), f.errorString()));
         return;
     }

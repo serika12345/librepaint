@@ -1,5 +1,5 @@
-<h1 id="batch-exporter-krita-plugin-for-game-developers-and-graphic-designers">Batch Exporter: Krita Plugin for Game Developers and Graphic Designers</h1>
-<p>Free Krita plugin for designers, game artists and digital artists to work more productively:</p>
+<h1 id="batch-exporter-krita-plugin-for-game-developers-and-graphic-designers">Batch Exporter: LibrePaint Plugin for Game Developers and Graphic Designers</h1>
+<p>Free LibrePaint plugin for designers, game artists and digital artists to work more productively:</p>
 <ul>
 <li>Batch export assets to multiple sizes, file types, and custom paths. Supports <code>jpg</code> and <code>png</code>.</li>
 <li>Rename layers quickly with the smart rename tool</li>
@@ -10,7 +10,7 @@
 <li><code>[e=jpg,png]</code> - supported export image extensions</li>
 <li><code>[s=20,33.333,100,150]</code> - size in <code>%</code>.</li>
 <li><code>[b=false]</code> or <code>[b=no]</code> - disable bilinear filtering when scaling layers.</li>
-<li><code>[p=path/to/custom/export/directory]</code> or <code>[p="path with spaces"]</code> - custom output path. Paths can be absolute or relative to the Krita document.</li>
+<li><code>[p=path/to/custom/export/directory]</code> or <code>[p="path with spaces"]</code> - custom output path. Paths can be absolute or relative to the LibrePaint document.</li>
 <li><code>[m=20,30,100]</code> - extra margin in <code>px</code>. The layer is trimmed to the smallest bounding box by default. This option adds extra padding around the layer.</li>
 <li><code>[t=false]</code> or <code>[t=no]</code> - disable trimming the exported layer to the bounding box of the content. This option is not inherited from parent layers.</li>
 <li><code>[i=false]</code> or <code>[i=no]</code> - disable parent metadata inheritance for a layer. More info <a href="#layer-inheritance">below</a>.</li>
@@ -22,12 +22,12 @@
 <p>Batch Exporter gives two options to batch export layers: <code>Export All Layers</code> or <code>Export Selected Layers</code>.</p>
 <p><code>Export All Layers</code> only takes layers with the <code>e=extension[s]</code> tag into account. For example, if the layer name is <code>LeftArm e=png s=50,100</code>, <code>Export All Layers</code> will take it into account. If the layer name is <code>LeftArm s=50,100</code>, it will not be exported with this option.</p>
 <p><code>Export Selected Layers</code> exports all selected layers regardless of the tags.</p>
-<p>By default, the plugin exports the images in an <code>export</code> folder next to your Krita document. The export follows the structure of your layer stack. The group layers become directories and other layers export as files.</p>
+<p>By default, the plugin exports the images in an <code>export</code> folder next to your LibrePaint document. The export follows the structure of your layer stack. The group layers become directories and other layers export as files.</p>
 <blockquote>
 <p><strong>Supported layer types:</strong> paint, vector, group &amp; file layers.</p>
 </blockquote>
 <h2 id="smart-layer-rename-tool">Smart Layer Rename tool</h2>
-<p>Say we have this Krita document structure:</p>
+<p>Say we have this LibrePaint document structure:</p>
 <pre><code>GodetteGroupLayer
   +-- HeadGroupLayer
     +-- Hair
@@ -44,10 +44,10 @@ Background</code></pre>
 <p>The rename tool is smarter with meta tags. Writing <code>e=</code> will remove the extension tag entirely. For example, <code>Godete e=png s=50,100</code> will become <code>Godette s=50,100</code>.</p>
 <h2 id="coa-tools-format">COA Tools format</h2>
 <p>The exporter will generate the necessary sprite contents and metadata file for easy import in COA Tools / Blender.</p>
-<p>If you want to export your krita document to COA Tools format, simply click the <code>Document</code> button under COA Tools.</p>
-<p>If you want to export multiple or specific COA Tool documents from one Krita document (if you have e.g. multiple characters in one Krita document), you can do so by selecting a Group Layer to serve as root for each COA Tool export you want done.</p>
+<p>If you want to export your LibrePaint document to COA Tools format, simply click the <code>Document</code> button under COA Tools.</p>
+<p>If you want to export multiple or specific COA Tool documents from one LibrePaint document (if you have e.g. multiple characters in one LibrePaint document), you can do so by selecting a Group Layer to serve as root for each COA Tool export you want done.</p>
 <h3 id="example">Example</h3>
-<p>You want to export two characters from the same Krita document in one go</p>
+<p>You want to export two characters from the same LibrePaint document in one go</p>
 <pre><code>Root
   +-- Robot (Group Layer)       &lt;-- Select this layer
   |    +-- Head
@@ -65,7 +65,7 @@ Background</code></pre>
 <p>Once the Group Layers are selected you push “COA Tools -&gt; Selected Layers”.</p>
 <p>Each export root supports the following metadata:</p>
 <ul>
-<li><code>[p=path/to/custom/export/directory]</code> - custom output path. Paths can be absolute or relative to the Krita document.</li>
+<li><code>[p=path/to/custom/export/directory]</code> - custom output path. Paths can be absolute or relative to the LibrePaint document.</li>
 </ul>
 <p>Each child node of an export root supports the following metadata:</p>
 <ul>

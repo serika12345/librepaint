@@ -231,7 +231,7 @@ void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfig
         // Warning bells!
         if (filter->colorSpaceIndependence() == TO_LAB16) {
             if (QMessageBox::warning(d->view->mainWindow(),
-                                     i18nc("@title:window", "Krita"),
+                                     i18nc("@title:window", "LibrePaint"),
                                      i18n("The %1 filter will convert your %2 data to 16-bit L*a*b* and vice versa. ",
                                           filter->name(),
                                           dev->colorSpace()->name()),
@@ -240,7 +240,7 @@ void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfig
 
         } else if (filter->colorSpaceIndependence() == TO_RGBA16) {
             if (QMessageBox::warning(d->view->mainWindow(),
-                                     i18nc("@title:window", "Krita"),
+                                     i18nc("@title:window", "LibrePaint"),
                                      i18n("The %1 filter will convert your %2 data to 16-bit RGBA and vice versa. ",
                                           filter->name() , dev->colorSpace()->name()),
                                      QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok)

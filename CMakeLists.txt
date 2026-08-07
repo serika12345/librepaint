@@ -666,6 +666,41 @@ if (QT_MAJOR_VERSION STREQUAL "6")
     endif()
 endif()
 
+if(IOS AND BUILD_WITH_QT6)
+    function(librepaint_ios_remove_imported_resource target resource)
+        set(_properties_removed 0)
+        foreach(_property
+                INTERFACE_LINK_LIBRARIES
+                INTERFACE_LINK_OPTIONS
+                INTERFACE_SOURCES)
+            get_target_property(_value "${target}" "${_property}")
+            if(_value AND NOT _value STREQUAL "_value-NOTFOUND")
+                set(_filtered_value ${_value})
+                list(FILTER _filtered_value EXCLUDE REGEX "${resource}")
+                if(NOT "${_filtered_value}" STREQUAL "${_value}")
+                    set_property(TARGET "${target}"
+                        PROPERTY "${_property}" "${_filtered_value}")
+                    math(EXPR _properties_removed "${_properties_removed} + 1")
+                endif()
+            endif()
+        endforeach()
+        if(NOT _properties_removed EQUAL 3)
+            message(FATAL_ERROR
+                "The imported ${target} resource export for ${resource} changed; "
+                "review the iOS non-code resource boundary")
+        endif()
+    endfunction()
+
+    # KF6WidgetsAddons exports its generated kcharselect-data object as a
+    # transitive static resource. LibrePaint does not link any KCharSelect
+    # implementation on iOS, while the generated Unicode-derived payload has
+    # no self-contained source/license mapping in the pinned KF6 release.
+    # Remove only that unused resource object from the imported target instead
+    # of patching the materialized dependency output.
+    librepaint_ios_remove_imported_resource(
+        KF6::WidgetsAddons KF6WidgetsAddons_resources_1)
+endif()
+
 set(HAVE_WAYLAND FALSE)
 if (TARGET Qt::WaylandClient)
     message(STATUS "Found Qt::WaylandClient, enabling kritawayland platform")

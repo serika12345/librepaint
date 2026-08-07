@@ -1021,7 +1021,7 @@ KisNodeSP KisKraLoader::loadNode(const QDomElement& element, KisImageSP image)
                 i18n("Layer \"%1\" has blending mode \"%2\" that has changed its "
                     "behavior for CMYK color in Krita 5.2. Please check the "
                     "result and consider enabling legacy \"Additive\" algorithm in "
-                    "Settings->Configure Krita->General->Tools->CMYK blending mode",
+                    "Settings->Configure LibrePaint->General->Tools->CMYK blending mode",
                     name, KoCompositeOpRegistry::instance().getKoID(compositeOpName).name());
         }
     }

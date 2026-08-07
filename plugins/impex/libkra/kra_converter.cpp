@@ -70,7 +70,7 @@ KisImportExportErrorCode KraConverter::buildImage(QIODevice *io)
     m_store = KoStore::createStore(io, KoStore::Read, "", KoStore::Zip);
 
     if (m_store->bad()) {
-        m_doc->setErrorMessage(i18n("Not a valid Krita file"));
+        m_doc->setErrorMessage(i18n("Not a valid KRA file"));
         return ImportExportCodes::FileFormatIncorrect;
     }
 
@@ -275,7 +275,7 @@ QDomDocument KraConverter::createDomDocument()
     QDomDocument doc = m_doc->createDomDocument("DOC", CURRENT_DTD_VERSION);
     QDomElement root = doc.documentElement();
 
-    root.setAttribute("editor", "Krita");
+    root.setAttribute("editor", "LibrePaint");
     root.setAttribute("syntaxVersion", CURRENT_DTD_VERSION);
     root.setAttribute("kritaVersion", KritaVersionWrapper::versionString(false));
 
@@ -369,8 +369,8 @@ KisImportExportErrorCode KraConverter::loadXML(const QDomDocument &doc, KoStore 
     const int syntaxVersion = parsedVersionNumber.isNull() ? 3 : parsedVersionNumber.majorVersion();
     
     if (syntaxVersion > 2) {
-        errUI << "The file is too new for this version of Krita:" << syntaxVersion;
-        m_doc->setErrorMessage(i18n("The file is too new for this version of Krita (%1).", syntaxVersion));
+        errUI << "The file is too new for this version of the free paint app:" << syntaxVersion;
+        m_doc->setErrorMessage(i18n("The file is too new for this version of LibrePaint (%1).", syntaxVersion));
         return ImportExportCodes::FormatFeaturesUnsupported;
     }
 
@@ -487,4 +487,3 @@ void KraConverter::setProgress(int progress)
         m_updater->setProgress(progress);
     }
 }
-

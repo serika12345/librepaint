@@ -696,7 +696,7 @@ bool KisAnimTimelineFramesModel::dropMimeDataExtended(const QMimeData *data, Qt:
     if (!srcImage) {
         KisPart *kisPartInstance = KisPart::instance();
         kisPartInstance->currentMainwindow()->viewManager()->showFloatingMessage(
-                    i18n("Dropped frames are not available in this Krita instance")
+                    i18n("Dropped frames are not available in this instance of the free paint app")
                     , QIcon());
         return false;
     }

@@ -398,7 +398,7 @@ void KisDlgLayerStyle::slotLoadStyle()
             if (!storage->valid()) {
                 qWarning() << "Attempted to import an invalid layer style library!" << filename;
                 QMessageBox::warning(this,
-                                     i18nc("@title:window", "Krita"),
+                                     i18nc("@title:window", "LibrePaint"),
                                      i18n("Could not load layer style library %1.", filename));
                 return;
             }

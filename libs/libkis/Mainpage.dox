@@ -17,11 +17,11 @@
  */
 
 /**
-  \mainpage libkis: Krita Scripting and Plugin Wrapper Library
+  \mainpage libkis: LibrePaint Scripting and Plugin Wrapper Library
 
-  Libkis is a QObject-based wrapper around Krita's internal libraries.
+  Libkis is a QObject-based wrapper around the free paint app's internal libraries.
   The wrapper can be used from C++ plugins that do not need the
-  advanced and volatile internal libraries of Krita, or can be bound
+  advanced and volatile internal libraries of the free paint app, or can be bound
   to scripting languages like Python or Javascript.
 
   All classes are based on QObject, so QMetaObject introspection can
@@ -43,7 +43,7 @@
      <li>Add menu items, toolbar items and docker palettes
   </ul>
 
-  The reference implementation of scripting in Krita is implemented
+  The reference implementation of scripting in LibrePaint is implemented
   in Python 3. All examples in the documentation for scripting will be
   provided using Python, although the api documentation is generated
   from C++ header files and shows c++ syntax for arguments.
@@ -51,8 +51,8 @@
   Autostarting Scripts
   ====================
 
-  Autostarting scripts or script-based plugins are scripts that Krita
-  loads on startup. You can add autostarting scripts to Krita by placing
+  Autostarting scripts or script-based plugins are scripts that LibrePaint
+  loads on startup. You can add autostarting scripts to LibrePaint by placing
   them in the pykrita folder in the resources folder: go to settings/
   manage resources and press the Open Resources Folder to open your
   local resources folder.
@@ -78,15 +78,15 @@
     from .hello import *
 @endcode
 
-Krita is a Qt-based application. In principle, you can use any Python
+LibrePaint is a Qt-based application. In principle, you can use any Python
 binding to Qt as long as it's using exactly the same version of Qt
-that Krita uses. In our examples we will be using [PyQt](https://www.riverbankcomputing.com/software/pyqt/intro).
+that the free paint app uses. In our examples we will be using [PyQt](https://www.riverbankcomputing.com/software/pyqt/intro).
 
-The easiest access to the Krita api is by simply importing the "krita"
+The easiest access to the LibrePaint API is by simply importing the technical "krita"
 module. This automatically adds two built-ins: Scripter and Application.
 
 This is an alias for Krita.instance(), which is the first place from
-which to access the running Krita instance.
+which to access the running LibrePaint instance.
 
 @code
 from PyQt5.QtGui import *
@@ -112,8 +112,8 @@ Krita.instance().addExtension(HelloExtension(Krita.instance()))
 @endcode
 
 
-The Krita Object Model
-======================
+The LibrePaint Object Model
+===========================
 
 The starting point is the @see Krita class, which provides a singleton
 object for easy reference. From the Krita class, a hierarchy is provided
@@ -127,8 +127,8 @@ You can access the Krita class as
 
 For ease of use.
 
-The Document class is provided to allow access to the images Krita has
-loaded. *Note*: internally, Krita distinguishes between images and documents.
+The Document class is provided to allow access to the images LibrePaint has
+loaded. *Note*: internally, the free paint app distinguishes between images and documents.
 
 A document contains an image and knows the filename of the image, the image
 itself only knows about the layers and masks it contains. The generic
@@ -139,11 +139,11 @@ a generator layer, a clone layer, a paint layer or a transform mask, a selection
 mask, a transparency mask or a colorize mask. You can change some properties
 of Nodes, but not all of them.
 
-The Window class is provided to allow access to the windows and views Krita
+The Window class is provided to allow access to the windows and views LibrePaint
 has open. A given Document can be shown in more than one View, and in more than
 one Window. You can open and close windows and views.
 
  */
 
-// DOXYGEN_SET_PROJECT_NAME = Krita
+// DOXYGEN_SET_PROJECT_NAME = LibrePaint
 // DOXYGEN_SET_IGNORE_PREFIX = Kis Ko K

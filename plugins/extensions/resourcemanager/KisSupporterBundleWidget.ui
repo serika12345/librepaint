@@ -170,7 +170,7 @@
          <item>
           <widget class="QPushButton" name="m_btnSupport">
            <property name="text">
-            <string>Support Krita</string>
+            <string>Upstream support service unavailable</string>
            </property>
           </widget>
          </item>

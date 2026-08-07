@@ -60,7 +60,7 @@
 				<string>public.image</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Krita 3.0 Image</string>
+			<string>KRA Document</string>
 			<key>UTTypeIdentifier</key>
 			<string>org.krita.kra</string>
 			<key>UTTypeTagSpecification</key>

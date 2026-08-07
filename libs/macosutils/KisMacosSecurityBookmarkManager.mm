@@ -190,7 +190,7 @@ bool KisMacosSecurityBookmarkManager::requestAccessToDir(const QString &path)
 #ifdef KIS_STANDALONE
     NSAlert *alert = [[NSAlert alloc] init];
     [alert setAlertStyle:NSAlertStyleInformational];
-    [alert setMessageText:[NSString stringWithFormat:@"The file %@ is located in a directory where the application has no permission, please give the permission to the container folder or a higher one to allow krita to save temporary backups next to your file", [nsStdPath lastPathComponent]]];
+    [alert setMessageText:[NSString stringWithFormat:@"The file %@ is located in a directory where the application has no permission. Give LibrePaint permission to the container folder or a higher one so it can save temporary backups next to your file.", [nsStdPath lastPathComponent]]];
     [alert runModal];
 
 
@@ -211,8 +211,8 @@ bool KisMacosSecurityBookmarkManager::requestAccessToDir(const QString &path)
 
 #else
     QMessageBox msgBox;
-    msgBox.setText(i18n("The file %1 is located in a directory where the application has no permissions, please give krita permission to this directory or a higher one to allow krita to save temporary backups next to your file", fileURL.fileName()));
-    msgBox.setInformativeText(i18n("The directory you select will grant krita permissions to all files and directories contained in it"));
+    msgBox.setText(i18n("The file %1 is located in a directory where the application has no permissions. Give LibrePaint permission to this directory or a higher one so it can save temporary backups next to your file.", fileURL.fileName()));
+    msgBox.setInformativeText(i18n("The directory you select will grant LibrePaint permission to all files and directories contained in it."));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     int ret = msgBox.exec();

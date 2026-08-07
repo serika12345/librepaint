@@ -37,7 +37,7 @@ bool KisRemoteFileFetcher::fetchFile(const QUrl &remote, QIODevice *io)
 
     if (remote.scheme() != "data") {
         QMessageBox msgBox;
-        msgBox.setWindowTitle(i18nc("@title:window", "Krita"));
+        msgBox.setWindowTitle(i18nc("@title:window", "LibrePaint"));
         msgBox.setIcon(QMessageBox::Question);
         msgBox.setText(i18nc("Fetching remote image",
                              "Do you want to download the image from %1?\nClick \"Show Details\" to view the full link "
@@ -55,13 +55,13 @@ bool KisRemoteFileFetcher::fetchFile(const QUrl &remote, QIODevice *io)
 
     QNetworkAccessManager manager(this);
     m_request = new QNetworkRequest(remote);
-    m_request->setRawHeader("User-Agent", QString("Krita-%1").arg(qApp->applicationVersion()).toUtf8());
+    m_request->setRawHeader("User-Agent", QString("LibrePaint-%1").arg(qApp->applicationVersion()).toUtf8());
     m_reply = manager.get(*m_request);
 
     QLocale loc;
 
     QProgressDialog progress;
-    progress.setWindowTitle(i18nc("@title:window", "Krita"));
+    progress.setWindowTitle(i18nc("@title:window", "LibrePaint"));
     progress.setLabelText(i18nc("Fetching remote image", "Downloading image from %1...").arg(remote.host()));
     progress.setMinimum(0);
     progress.setMaximum(0);
@@ -88,7 +88,7 @@ bool KisRemoteFileFetcher::fetchFile(const QUrl &remote, QIODevice *io)
 
     if (m_reply->error() != QNetworkReply::NoError) {
         QMessageBox msgBox;
-        msgBox.setWindowTitle(i18nc("@title:window", "Krita"));
+        msgBox.setWindowTitle(i18nc("@title:window", "LibrePaint"));
         msgBox.setIcon(QMessageBox::Critical);
         msgBox.setText(i18nc("Fetching remote image", "Could not download %1.").arg(remote.toDisplayString()));
         msgBox.setDetailedText(m_reply->errorString());
@@ -115,7 +115,7 @@ QByteArray KisRemoteFileFetcher::fetchFile(const QUrl &remote)
     connect(&manager, &QNetworkAccessManager::finished, &loop, &QEventLoop::quit);
 
     QNetworkRequest *request = new QNetworkRequest(remote);
-    request->setRawHeader("User-Agent", QString("Krita-%1").arg(qApp->applicationVersion()).toUtf8());
+    request->setRawHeader("User-Agent", QString("LibrePaint-%1").arg(qApp->applicationVersion()).toUtf8());
 
     QNetworkReply *reply = manager.get(*request);
 

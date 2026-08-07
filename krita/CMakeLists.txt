@@ -144,7 +144,6 @@ set(krita_QRCS
     ${CMAKE_SOURCE_DIR}/plugins/paintops/defaultpresets/defaultpresets.qrc
     ${CMAKE_SOURCE_DIR}/krita/pics/branding/${BRANDING}/branding.qrc
     ${CMAKE_SOURCE_DIR}/krita/data/splash/${krita_splash_qrc}
-    ${CMAKE_SOURCE_DIR}/krita/pics/sponsors/sponsors.qrc
     CACHE INTERNAL "krita_QRCS"
 )
 
@@ -203,7 +202,7 @@ if (APPLE AND NOT IOS)
         @loader_path/../Frameworks;@executable_path/../../../../lib;@executable_path/../lib;@executable_path/../Frameworks")
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.template)
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "org.krita")
-    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Krita")
+    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "LibrePaint")
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_ICON_FILE "krita")
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING ${KRITA_VERSION_STRING})
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING ${KRITA_VERSION_NUMBER_STRING})
@@ -216,8 +215,8 @@ if(IOS)
     set_target_properties(krita PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.ios.plist.in
-        MACOSX_BUNDLE_GUI_IDENTIFIER "org.krita.ipad.port"
-        MACOSX_BUNDLE_BUNDLE_NAME "Krita"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "local.librepaint.ipad"
+        MACOSX_BUNDLE_BUNDLE_NAME "LibrePaint"
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${KRITA_VERSION_NUMBER_STRING}
         MACOSX_BUNDLE_BUNDLE_VERSION ${KRITA_VERSION_NUMBER_STRING}
         XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO

@@ -147,7 +147,7 @@ DlgDbExplorer::DlgDbExplorer(QWidget *parent)
         versionModel->setTable("version_information");
         versionModel->setHeaderData(0, Qt::Horizontal, i18n("Id"));
         versionModel->setHeaderData(1, Qt::Horizontal, i18n("Database version"));
-        versionModel->setHeaderData(2, Qt::Horizontal, i18n("Krita version"));
+        versionModel->setHeaderData(2, Qt::Horizontal, i18n("Application version"));
         versionModel->setHeaderData(3, Qt::Horizontal, i18n("Upgrade date"));
         versionModel->addDateTimeColumn(3);
         delegate->addDateTimeColumn(3);

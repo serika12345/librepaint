@@ -1,4 +1,4 @@
-# Krita iPadOS Port TODO
+# LibrePaint iPadOS TODO
 
 この文書は、KritaをiPadOS実機で起動し、Android版に近い主要描画機能を使える状態にするための実装計画である。
 
@@ -272,8 +272,8 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [ ] **P0** Android版のタッチ用設定をiOS profileとして再利用する。
 - [x] **P0** `QComboBox`の選択をタップで確定・閉鎖できるようにする（UIKit pickerをiOSで無効化し、実機検証済み）。
 - [x] **P0** 起動時の画面向き確定後にスプラッシュを画面内へ縮小・再配置する（縦向き・横向きとも実機検証済み）。
-- [x] **P0** `Configure Krita`起動時に検索欄へ自動フォーカスせず、ソフトウェアキーボードを抑止する（実機検証済み）。
-- [ ] **P0** `Configure Krita`を初期画面向き・画面回転・Split View後の利用可能領域へ再配置し、横向きと縦向きの双方で切れないことを実機検証する（初回縦向き・回転後は実機検証済み、Split View確認待ち）。
+- [x] **P0** `Configure LibrePaint`起動時に検索欄へ自動フォーカスせず、ソフトウェアキーボードを抑止する（実機検証済み）。
+- [ ] **P0** `Configure LibrePaint`を初期画面向き・画面回転・Split View後の利用可能領域へ再配置し、横向きと縦向きの双方で切れないことを実機検証する（初回縦向き・回転後は実機検証済み、Split View確認待ち）。
 - [x] **P0** 全`QAbstractScrollArea`を指のスワイプと慣性スクロールに対応させ、ドラッグ中の項目選択を抑止する（設定画面とブラシ選択を実機検証済み）。
 - [x] **P0** ブラシなど編集可能な一覧項目の選択だけではソフトウェアキーボードを表示せず、明示的な文字編集時だけ有効化する（実機検証済み）。
 - [x] **P0** Android版相当の主要ToolとDockerを静的リンクし、実機のToolboxとDockerメニューで表示を確認する（46プラグイン、ビルド`20260802140547`）。
@@ -373,6 +373,10 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [ ] **P0** upstream追従時のrebase/checklistを作る。
 - [ ] **P0** 使用パッチ、削除機能、既知制約を文書化する。
 - [ ] **P0** GPL/LGPL対象ソース、patch、build recipeを保持する。
+- [x] **P0** iOSの非コードdata installを、機能設定、明示ライセンスの31 ICC profile、帰属を同梱した監査済みresource bundleへ限定し、CC-BY/CC-BY-SA/CC0/GPL/LGPL/ICC本文と既存帰属資料を`share/doc/librepaint/non-code-licenses`へ同梱する。曖昧な3 ICCとsponsor logoのQRC組込みを除外し、既定bundle全281 fileをCC0 244件・CC-BY-3.0 37件へ分類した。さらに静的依存resourceを明示ライセンスの7群253 fileへ固定し、Qt標準の未改変`aboutQt` logoは正当な依存帰属として保持し、未使用`kcharselect_data`群だけをiOS linkから除外するexact-set audit gateを追加した。2026-08-07に実機へのインストールと初回起動を確認済み。`aboutQt`表示を含む各機能画面は未確認。
+- [x] **P0** 1,301件のrepository-owned QRC画像と32件のinstall-only画像を閉集合検査する。暫定的に白画像化した845資産のうち、ライセンスと由来を確認できた機能画像596件を原画へ戻し、未確定または商標上の例外に絞った249件だけを同寸法の白いCC0素材として維持する。QRCは、直接CC-BY-SA-4.0を確認した709件、追加根拠を固定したCC-BY-SA-4.0機能画像93件、Breeze/Oxygen LGPL画像319件、Android画像2件、KXmlGui画像2件、project-wide GPL fallback機能画像148件、白画像27件、意図的なzero-byte alias 1件に分類した。install-only 32件は19個のCMake定義から再発見し、QRC・install-onlyとも未分類0件、既存の法的メタデータ68資産・336チャンクのバイト一致を確認した。arm64最終リンク後に配布手順と同じローカル`.app`を再ステージし、228件のruntime dataとの一致を機械検証した。ビルド`20260807134423`を2026-08-07に実機へインストール・起動し、QuickTime captureでツールバー、Toolbox、色選択、ブラシpreviewの復元表示を確認済み。全画面の網羅的な目視検査は継続する。
+- [x] **P0** CC-BY-NC-ND-4.0のNetflix JPEG XL source fixture、派生expected result、専用test case、dataset固有license fileを削除し、制限付きdatasetへの参照をなくす。
+- [ ] **P1** source-onlyのtest/benchmark fixtureを含むREUSE/DEP5相当の資産台帳を作り、残る権利対応が不明なfixtureと個別対応のないUI iconを除去・再作成・正確な帰属維持のいずれかに分類する。
 - [ ] **P1** dependency SBOMとライセンス一覧を生成する。
 - [ ] **P1** private binary cacheの復旧手順を記録する。
 

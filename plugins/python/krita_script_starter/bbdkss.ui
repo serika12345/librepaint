@@ -37,7 +37,7 @@
         </font>
        </property>
        <property name="text">
-        <string>BBD's Krita Script Starter</string>
+        <string>BBD's LibrePaint Script Starter</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -96,7 +96,7 @@
          <item>
           <widget class="QLineEdit" name="e_comment">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This will appear in the &amp;quot;comment&amp;quot; entry in the dialog where a user can enable or disable Krita scripts. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This will appear in the &amp;quot;comment&amp;quot; entry in the dialog where a user can enable or disable scripts for the free paint app. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -149,7 +149,7 @@
        <item>
         <widget class="QCheckBox" name="cb_enable_script">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this is checked your script will be automatically enabled in Krita. That is, it will show up in the Scripts menu or docker list. If not, you will need to manually enable the script through the Krita-&amp;gt;Settings menu entry. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this is checked your script will be automatically enabled in LibrePaint. That is, it will show up in the Scripts menu or docker list. If not, you will need to manually enable the script through LibrePaint's Settings menu. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>Enable Script</string>

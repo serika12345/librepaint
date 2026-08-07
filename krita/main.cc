@@ -1001,13 +1001,11 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     /// Initialize application info, it will be used by both, Qt and
     /// DrKonqi of the host system
     KAboutData aboutData("krita",
-                            i18n("Krita"),
+                            i18n("LibrePaint"),
                             KritaVersionWrapper::versionString(true),
-                            i18n("Krita is the full-featured digital art studio"),
+                            i18n("LibrePaint is the free paint app"),
                             KAboutLicense::GPL,
                             i18nc("@info:credit", "© 1999–2026 The Krita Developers"));
-    aboutData.setHomepage(QStringLiteral("https://krita.org"));
-    aboutData.setOrganizationDomain("krita.org");
 
     // this call sets corresponding fields of QApplication as well
     KAboutData::setApplicationData(aboutData);
@@ -1033,7 +1031,7 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 #endif
 
     if (KisApplication::applicationDirPath().contains(KRITA_BUILD_DIR)) {
-        qFatal("FATAL: You're trying to run krita from the build location. You can only run Krita from the installation location.");
+        qFatal("FATAL: You're trying to run LibrePaint from the build location. You can only run LibrePaint from the installation location.");
     }
 
 #if defined HAVE_KCRASH
@@ -1102,7 +1100,7 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
         if (osVersion.majorVersion() < QOperatingSystemVersion::Windows7.majorVersion()) {
             if (cfg.readEntry("WarnedAboutUnsupportedWindows", false)) {
                 QMessageBox::information(nullptr,
-                                         i18nc("@title:window", "Krita: Warning"),
+                                         i18nc("@title:window", "LibrePaint: Warning"),
                                          i18n("You are running an unsupported version of Windows: %1.\n"
                                               "This is not recommended. Do not report any bugs.\n"
                                               "Please update to a supported version of Windows: Windows 7, 8, 8.1 or 10.", osVersion.name()));
@@ -1152,7 +1150,7 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     KisApplication::setFont(KisUiFont::normalFont());
 
     if (!app.start(args)) {
-        KisUsageLogger::log("Could not start Krita Application");
+        KisUsageLogger::log("Could not start LibrePaint");
         return 1;
     }
 

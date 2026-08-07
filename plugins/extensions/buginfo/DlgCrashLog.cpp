@@ -14,7 +14,7 @@ DlgCrashLog::DlgCrashLog(QWidget *parent)
     initialize();
 }
 
-QString DlgCrashLog::defaultNewFileName() { return "KritaCrashLog.txt"; }
+QString DlgCrashLog::defaultNewFileName() { return "LibrePaintCrashLog.txt"; }
 
 QString DlgCrashLog::originalFileName()
 {
@@ -32,7 +32,7 @@ QString DlgCrashLog::originalFileName()
 QString DlgCrashLog::captionText()
 {
     return i18nc("Caption of the dialog with crash log for bug reports",
-                 "Krita Crash Log: please paste this information to the bug report");
+                 "LibrePaint Crash Log: please paste this information to the bug report");
 }
 
 QString DlgCrashLog::replacementWarningText() { return "No Crashes!\n"; }

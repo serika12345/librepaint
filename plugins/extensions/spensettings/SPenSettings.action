@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ActionCollection version="2" name="Krita">
-  <Actions category="Krita">
+<ActionCollection version="2" name="LibrePaint">
+  <Actions category="LibrePaint">
      <text>S-Pen Actions</text>
 
      <Action name="spen_click">

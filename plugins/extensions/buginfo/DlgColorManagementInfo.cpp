@@ -60,12 +60,12 @@ QString DlgColorManagementInfo::originalFileName()
 
 QString DlgColorManagementInfo::defaultNewFileName()
 {
-    return "KritaColorManagementInformation.txt";
+    return "LibrePaintColorManagementInformation.txt";
 }
 
 QString DlgColorManagementInfo::captionText()
 {
-    return i18nc("Caption of the dialog with color management information for bug reports", "Krita Color Management Information: please paste this information to the bug report");
+    return i18nc("Caption of the dialog with color management information for bug reports", "LibrePaint Color Management Information: please paste this information to the bug report");
 }
 
 QString DlgColorManagementInfo::replacementWarningText()

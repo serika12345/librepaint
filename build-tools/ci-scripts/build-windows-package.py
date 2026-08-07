@@ -9,7 +9,7 @@ import copy
 import glob
 
 # Capture our command line parameters
-parser = argparse.ArgumentParser(description='A script for building Krita Windows package on CI')
+parser = argparse.ArgumentParser(description='A script for building the LibrePaint Windows package on CI')
 parser.add_argument('--skip-debug-package', default=False, action='store_true')
 parser.add_argument('--build-installers', default=False, action='store_true')
 parser.add_argument('--release-package-naming', default=False, action='store_true')
@@ -58,7 +58,7 @@ with open(os.path.join(buildPath, "libs/version/kritaversion.h"), "r") as fp:
 unstablePackageSuffix = '-{}'.format(os.environ['CI_COMMIT_SHORT_SHA']) \
     if not arguments.release_package_naming else ''
 
-packageName = 'krita-x64-{}{}'.format(kritaVersionString, unstablePackageSuffix)
+packageName = 'LibrePaint-x64-{}{}'.format(kritaVersionString, unstablePackageSuffix)
 hookFile = os.path.join(ciUtilitiesPath, 'sign-windows-package-at-notary-service.py')
 
 commandToRun = ' '.join([sys.executable,
@@ -158,9 +158,8 @@ if arguments.build_installers:
         print("## Failed to build the MSIX package")
         sys.exit(1)
 
-    shutil.move(os.path.join(msixFolder, 'krita.msix'),
+    shutil.move(os.path.join(msixFolder, 'LibrePaint.msix'),
                 os.path.join(os.getcwd(), '{}-unsigned.msix'.format(packageName)))
 
     for f in glob.iglob(os.path.join(msixFolder, '*.log')):
         shutil.move(f, os.getcwd())
-

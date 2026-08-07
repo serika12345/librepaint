@@ -107,8 +107,8 @@ QString KisUsageLogger::basicSystemInfo()
 
     // NOTE: This is intentionally not translated!
 
-    // Krita version info
-    systemInfo.append("Krita\n");
+    // Application version info
+    systemInfo.append("LibrePaint\n");
     systemInfo.append("\n Version: ").append(KritaVersionWrapper::versionString(true));
 #ifdef Q_OS_WIN
     {
@@ -264,7 +264,7 @@ void KisUsageLogger::writeHeader()
     s_instance->d->logFile.write(sessionHeader.toUtf8());
 
     QString KritaAndQtVersion;
-    KritaAndQtVersion.append("Krita Version: ").append(KritaVersionWrapper::versionString(true))
+    KritaAndQtVersion.append("LibrePaint Version: ").append(KritaVersionWrapper::versionString(true))
             .append(", Qt version compiled: ").append(QT_VERSION_STR)
             .append(", loaded: ").append(qVersion())
             .append(". Process ID: ")
@@ -328,7 +328,7 @@ void KisUsageLogger::rotateLog()
     if (d->logFile.open(QFile::ReadOnly)) {
         QString log = QString::fromUtf8(d->logFile.readAll());
         if (!log.split(s_sectionHeader).last().contains("CLOSING SESSION")) {
-            log.append("\nKRITA DID NOT CLOSE CORRECTLY\n");
+            log.append("\nLIBREPAINT DID NOT CLOSE CORRECTLY\n");
             QString crashLog = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/kritacrash.log");
             QFile f(crashLog);
             if (f.open(QFile::ReadOnly)) {

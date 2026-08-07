@@ -45,7 +45,5 @@ QString KisWarningWidget::changeImageProfileWarningText()
                  "<li>one or more layers with transparent pixels</li>"
                  "<li>layers with blending modes other than \"Normal\"</li>"
                  "</ul></p>"
-                 "<p>"
-                 "<a href=\"https://docs.krita.org/en/general_concepts/colors/color_managed_workflow.html\">More information</a>"
-                 "</p></body></html>");
+                 "</body></html>");
 }

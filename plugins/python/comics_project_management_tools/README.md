@@ -3,7 +3,7 @@
 Comics Project Management Tools
 ===============================
 
-This is the Comics Project Management Tools python plugin for Krita.
+This is the Comics Project Management Tools Python plugin for LibrePaint.
 
 CPMT aims to simplify comics creation by:
 
@@ -64,7 +64,7 @@ Then after you finish, select *Open Project*, go to the location where you have 
 
 Now, click *Add Page* to add your first page. You will get a dialog asking for the template. Here you can generate one, or import one. CPMT will remember this as the default one.
 
-Double click the new page to open in Krita.
+Double click the new page to open in LibrePaint.
 
 The second column in the docker allows you to see the "subject" line in the document info if it's filled in.
 
@@ -102,7 +102,7 @@ So for example, the following file has three superhero names on different lines,
  Jean Grey
 ```
 
-When you then store it as marvel.txt put into the directory "key_characters", Krita will use the names from the list as suggestion for the character field in the meta-data.
+When you then store it as marvel.txt put into the directory "key_characters", LibrePaint will use the names from the list as suggestions for the character field in the metadata.
 
 The exception is the key_ratings, which uses CSV files, using the top row to determine the title, and then has the rating in the first column, and the description on the second. This allows the description to show up as tool-tips.
 
@@ -169,7 +169,7 @@ Here you can define...
 * which layers to remove by layer color-label
 * to which formats to export, in what file-format and how to resize.
 
-Once you've done that, press export. Krita will pop up a progress bar for you with the estimated time and progress, so you can estimate how long you will have to wait.
+Once you've done that, press export. LibrePaint will pop up a progress bar with the estimated time and progress, so you can estimate how long you will have to wait.
 
 CPMT will store the resized files and meta data in separate folders in the export folder. This is so that you can perform optimization methods afterwards and update everything quickly.
 
@@ -177,7 +177,7 @@ CPMT will store the resized files and meta data in separate folders in the expor
 
 ACBF is the advanced comic book format. It is a metadata file that can hold extra data like panels and text, and can even store translations for the text.
 
-Krita has some support for frames and text. If you name a vector layer "text" or "panels" it will search those for shapes. The shapes that are text nodes will be added to the ACBF file as a text in the main language of the comic, using the bounding box of the text-shape. The shapes that aren't text will have their bounding boxes used as frames. The order of frames and text is determined by the shape z-order in Krita, with the bottom shape being the first and the top shape being the last.
+LibrePaint has some support for frames and text. If you name a vector layer "text" or "panels" it will search those for shapes. The shapes that are text nodes will be added to the ACBF file as text in the main language of the comic, using the bounding box of the text shape. The shapes that aren't text will have their bounding boxes used as frames. The order of frames and text is determined by the shape z-order in LibrePaint, with the bottom shape being the first and the top shape being the last.
 
 When you generate a CBZ file, the ACBF file will be generated alongside of it. There's in fact two ACBF files being generated: The one in the metadata folder is the ACBF file as it is inside the CBZ. The other ACBF file, next to the CBZ is the standalonefile. This file has the pages embedded, but there's currently fewer viewers who can read it.
 
@@ -205,7 +205,7 @@ TODO:
 ======
 Things I still want to do:
 
-* Krita:
+* LibrePaint:
 	- Generate text from the author list. (Requires text api)
 * clean up path relativeness. (Not sure how much better this can be done)
 * Make label removal just a list? (unsure)

@@ -208,7 +208,7 @@ class translation_scraper():
         file.write(quote + "POT-Creation-Date:" + date + "\\n" + quote + newLine)
         file.write(quote + "Content-Type: text/plain; charset=UTF-8\\n" + quote + newLine)
         file.write(quote + "Content-Transfer-Encoding: 8bit\\n" + quote + newLine)
-        file.write(quote + "X-Generator: Krita Comics Project Manager Tools Plugin\\n" + quote + newLine)
+        file.write(quote + "X-Generator: LibrePaint Comics Project Manager Tools Plugin\\n" + quote + newLine)
 
         file.write(newLine)
         file.write("#. Title of the work" + newLine)

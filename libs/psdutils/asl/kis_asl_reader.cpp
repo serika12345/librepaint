@@ -263,7 +263,7 @@ QImage readVirtualArrayList(QIODevice &device, int numPlanes, const QVector<QRgb
     SAFE_READ_EX(byteOrder, device, numberOfChannels);
 
     if (numberOfChannels != 24) {
-        throw ASLParseException("VAList: Krita doesn't support ASL files with 'numberOfChannels' flag not equal to 24 (it is not documented)!");
+        throw ASLParseException("VAList: the free paint app doesn't support ASL files with 'numberOfChannels' flag not equal to 24 (it is not documented)!");
     }
 
     dbgKrita << ppVar(arrayVersion);

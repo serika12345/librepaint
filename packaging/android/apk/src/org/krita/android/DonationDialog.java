@@ -171,7 +171,7 @@ public class DonationDialog {
             return false;
         }
 
-        if (mProductDetails == null) {
+        if (mProductDetails == null || mProductDetails.isEmpty()) {
             Log.d(TAG, "checkAutoShowProducts: no product details");
             return false;
         }
@@ -270,7 +270,7 @@ public class DonationDialog {
         // the splash screen, it may show or hide some elements
         // depending on if the application is still starting up or not.
         Button headerButton = getHeaderButton();
-        boolean showHeaderButton = mPage == PAGE_SPLASH && mProductDetails != null
+        boolean showHeaderButton = mPage == PAGE_SPLASH && mProductDetails != null && !mProductDetails.isEmpty()
                 && !mAnyProductsOwned && !mFirstStartup;
         headerButton.setEnabled(showHeaderButton);
         setViewGone(headerButton, !showHeaderButton);

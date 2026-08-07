@@ -24,7 +24,7 @@ KisSensorData::~KisSensorData()
 void KisSensorData::setBaseCurveRange(const QRectF &rect)
 {
     Q_UNUSED(rect);
-    KIS_SAFE_ASSERT_RECOVER_NOOP(0 && "setBaseCurveRange is not implemented for standard Krita sensors");
+    KIS_SAFE_ASSERT_RECOVER_NOOP(0 && "setBaseCurveRange is not implemented for standard free paint app sensors");
 }
 
 QRectF KisSensorData::baseCurveRange() const

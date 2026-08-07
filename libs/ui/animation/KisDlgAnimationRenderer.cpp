@@ -968,16 +968,16 @@ void KisDlgAnimationRenderer::slotButtonClicked(int button)
         QString fileName = m_page->videoFilename->fileName();
 
         if (fileName.isEmpty()) {
-            QMessageBox::warning(this, i18nc("@title:window", "Krita"), i18n("Please enter a file name to render to."));
+            QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"), i18n("Please enter a file name to render to."));
             return;
         }
         else {
             switch (validateFFmpeg(m_page->ffmpegLocation->fileName())) {
                 case FFmpegValidationResult::COMPRESSED_FORMAT:
-                    QMessageBox::warning(this, i18nc("@title:window", "Krita"), i18n("The FFmpeg that you've given us appears to be compressed. Please try to extract FFmpeg from the archive first."));
+                    QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"), i18n("The FFmpeg that you've given us appears to be compressed. Please try to extract FFmpeg from the archive first."));
                     return;
                 case FFmpegValidationResult::NOT_A_BINARY:
-                    QMessageBox::warning(this, i18nc("@title:window", "Krita"), i18n("The FFmpeg that you've given us appears to be invalid. Please select the correct location of an FFmpeg executable on your system."));
+                    QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"), i18n("The FFmpeg that you've given us appears to be invalid. Please select the correct location of an FFmpeg executable on your system."));
                     return;
                 default:
                     break;

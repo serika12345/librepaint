@@ -60,7 +60,7 @@ class ComicsProjectSetupWizard():
             if os.path.exists(self.projectDirectory) is False:
                 return
             if os.access(self.projectDirectory, os.W_OK) is False:
-                QMessageBox.warning(None, i18n("Folder cannot be used"), i18n("Krita doesn't have write access to this folder, so files cannot be made. Please choose a different folder."), QMessageBox.StandardButton.Ok)
+                QMessageBox.warning(None, i18n("Folder cannot be used"), i18n("LibrePaint doesn't have write access to this folder, so files cannot be made. Please choose a different folder."), QMessageBox.StandardButton.Ok)
                 self.projectDirectory = None
         self.pagesDirectory = os.path.relpath(self.projectDirectory, self.projectDirectory)
         self.exportDirectory = os.path.relpath(self.projectDirectory, self.projectDirectory)

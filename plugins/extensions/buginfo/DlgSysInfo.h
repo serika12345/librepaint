@@ -21,7 +21,7 @@ public:
     ~DlgSysInfo() override;
 
     QString defaultNewFileName() override {
-        return "KritaSystemInformation.txt";
+        return "LibrePaintSystemInformation.txt";
     }
 
     QString originalFileName() override;

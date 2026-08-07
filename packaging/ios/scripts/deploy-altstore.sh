@@ -49,9 +49,15 @@ if [[ ! -f "$build_dir/.krita-ios-incremental-config" ]]; then
     echo "error: build tree is not owned by the incremental workflow: $build_dir" >&2
     exit 1
 fi
+python3 "$repo_root/packaging/ios/scripts/replace-brand-art-with-white.py" \
+    --audit-ios-classification
+python3 "$repo_root/packaging/ios/scripts/audit-default-resource-bundle.py"
 app_path="$build_dir/bin/krita.app"
 binary="$app_path/krita"
 archive_dir="$build_dir/lib"
+python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py" \
+    --binary "$binary" \
+    --build-ninja "$build_dir/build.ninja"
 
 if [[ -z "$device_id" ]]; then
     device_id="$(xcrun devicectl list devices | awk '
@@ -174,7 +180,7 @@ chmod 0755 "$stage_dir/Payload"
 
 output_dir="$repo_root/build-ios/deploy"
 mkdir -p "$output_dir"
-ipa_name="Krita-iPad-${bundle_version}.ipa"
+ipa_name="LibrePaint-iPad-${bundle_version}.ipa"
 ipa_path="$output_dir/$ipa_name"
 staged_ipa="$stage_dir/$ipa_name"
 entry_list="$stage_dir/ipa-entries"
@@ -250,7 +256,7 @@ echo "IPA downloaded; waiting for the signed app to be installed..."
 installed_bundle_id=""
 for _ in {1..300}; do
     installed_line="$(xcrun devicectl device info apps --device "$device_id" \
-        | awk '$2 ~ /^org\.krita\.ipad\.port/ { print; exit }')"
+        | awk '$2 ~ /^local\.librepaint\.ipad/ { print; exit }')"
     installed_version="$(awk '{ print $4 }' <<<"$installed_line")"
     if [[ "$installed_version" == "$bundle_version" ]]; then
         installed_bundle_id="$(awk '{ print $2 }' <<<"$installed_line")"
@@ -266,7 +272,7 @@ fi
 echo "installed: $installed_bundle_id ($bundle_version)"
 xcrun devicectl device process launch --device "$device_id" --terminate-existing "$installed_bundle_id"
 
-launch_log="$output_dir/Krita-iPad-${bundle_version}-krita.log"
+launch_log="$output_dir/LibrePaint-iPad-${bundle_version}-krita.log"
 sleep "${KRITA_IOS_LAUNCH_SETTLE_SECONDS:-5}"
 if xcrun devicectl device copy from \
     --device "$device_id" \
@@ -276,7 +282,7 @@ if xcrun devicectl device copy from \
     --destination "$launch_log" >/dev/null; then
     echo "startup log:    $launch_log"
 else
-    echo "warning: could not collect the Krita startup log" >&2
+    echo "warning: could not collect the LibrePaint startup log" >&2
 fi
 
 "$scripts_dir/maintain-build-cache.sh" \

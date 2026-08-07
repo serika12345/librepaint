@@ -6,9 +6,9 @@ import os
 
 def main_app2pkg():
     parser = argparse.ArgumentParser(prog='macos app to pkg'
-                                     ,description="create a pkg from krita.app to store submission")
-    parser.add_argument('krita_app', metavar="krita.app", type=pathlib.Path
-                        , help="krita.app to make pkg")
+                                     ,description="create a pkg from LibrePaint.app for store submission")
+    parser.add_argument('krita_app', metavar="LibrePaint.app", type=pathlib.Path
+                        , help="LibrePaint.app to make pkg")
     parser.add_argument('-s','--sign-identity', dest='sign_identity', metavar='<identity>'
                         , required=True
                         , help='3rd Party Mac Developer Installer identity')
@@ -27,7 +27,7 @@ def main_app2pkg():
                                       , capture_output=True, text=True).stdout.strip()
 
 
-    krita_pkg: pathlib.Path = pathlib.Path(f'{krita_app.stem}-{kis_version_full}_bv-{kis_bundle_version}.pkg')
+    krita_pkg: pathlib.Path = pathlib.Path(f'LibrePaint-{kis_version_full}_bv-{kis_bundle_version}.pkg')
     print(f'creating {krita_pkg}')
 
     cmd = ['productbuild', '--component', krita_app, '/Applications', krita_pkg

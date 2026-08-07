@@ -1,9 +1,10 @@
-The Krita project is part of the KDE community. The KDE Code of Conduct 
-applies to the Krita community as well:
+# LibrePaint community conduct
 
-    https://www.kde.org/code-of-conduct/
+LibrePaint contributors and participants must communicate respectfully, avoid
+harassment and discrimination, and keep technical discussion constructive.
+Project maintainers may edit or remove abusive content and restrict
+participation when needed to protect the community.
 
-In case of problems within the Krita or wider KDE community, please
-contact the KDE e.V. Community Working Group:
-
-   https://ev.kde.org/workinggroups/cwg.php
+Report conduct concerns through this repository's moderation and reporting
+facilities. LibrePaint is independent from the Krita and KDE communities; do
+not send LibrePaint conduct reports to their community teams.

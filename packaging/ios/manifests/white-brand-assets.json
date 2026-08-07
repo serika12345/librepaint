@@ -1,0 +1,5367 @@
+{
+  "SPDX-License-Identifier": "CC0-1.0",
+  "schema": 1,
+  "policy": {
+    "replacement": "same-size opaque white",
+    "new_white_content_license": "CC0-1.0",
+    "preserved_metadata_and_container_content": "Retains its existing license and provenance",
+    "preserve_svg": [
+      "width",
+      "height",
+      "viewBox",
+      "metadata",
+      "comments",
+      "title",
+      "desc"
+    ],
+    "preserve_archives": "Replace only the root preview.png payload while preserving ZIP entry order and metadata.",
+    "preserve_embedded_raster_metadata": "Retain PNG eXIf/iCCP/iTXt/tEXt/zTXt, JPEG EXIF/ICC/JUMBF/IPTC/COM, WebP EXIF/ICCP/XMP, and embedded PNG metadata in ICO/ICNS representations byte-for-byte.",
+    "legal_wording_gate": "The 68 white raster assets with copyright, Creative Commons, or attribution/share-alike bytes are exact-hash checked; legal wording is never rewritten.",
+    "scope_policy": "Keep functional images under the most specific verified asset, family, or project license; replace application branding and unresolved artwork with same-size white content."
+  },
+  "selection": {
+    "raster_globs": [
+      "krita/data/splash/electrichearts_*",
+      "krita/data/donation/*.png",
+      "krita/data/donation/*.jpg",
+      "krita/pics/sponsors/*.png",
+      "krita/pics/branding/**/*.png",
+      "krita/pics/mimetypes/**/*.png",
+      "pics/krita.png",
+      "krita/pics/sketch/icon-kritasketch-256.png",
+      "packaging/macos/krita_dmgBG.png",
+      "packaging/windows/msix/pkg/Assets/*.png",
+      "packaging/android/apk/ic_launcher*-playstore.png",
+      "packaging/android/apk/res/mipmap-*/*.webp",
+      "packaging/android/apk/res/drawable/product_*.png",
+      "packaging/android/apk/res/drawable/product_*.jpg"
+    ],
+    "svg_globs": [
+      "krita/data/splash/banner.svg",
+      "krita/pics/branding/**/*.svg",
+      "krita/pics/mimetypes/**/*.svg",
+      "pics/*_application-x-krita.svg",
+      "pics/*_application-x-krz.svg",
+      "pics/krita-base.svg",
+      "krita/pics/sketch/icon-kritasketch.svg",
+      "krita/pics/svg/support-krita.svg",
+      "krita/data/storyboard_templates/storyboard_extemp_default.svg",
+      "packaging/android/apk/res-src/default/*.svg",
+      "packaging/android/apk/res-src/Next/*.svg"
+    ],
+    "svgz_globs": [
+      "krita/pics/branding/*/sc-apps-krita.svgz"
+    ],
+    "ico_globs": [
+      "krita/pics/branding/**/*.ico"
+    ],
+    "icns_paths": [
+      "packaging/macos/KritaIcon.icns",
+      "krita/pics/mimetypes/krita-kra.icns",
+      "krita/pics/mimetypes/krz/krita-krz.icns"
+    ],
+    "bundle_paths": [
+      "krita/data/bundles/Krita_3_Default_Resources.bundle",
+      "krita/data/bundles/Krita_4_Default_Resources.bundle",
+      "krita/data/bundles/Krita_Artists_SeExpr_examples.bundle",
+      "krita/data/bundles/RGBA_brushes.bundle"
+    ],
+    "android_vector_paths": [
+      "packaging/android/apk/res/drawable/ic_launcher_background.xml",
+      "packaging/android/apk/res/drawable/ic_launcher_foreground.xml",
+      "packaging/android/apk/res/drawable/ic_launcher_next_background.xml",
+      "packaging/android/apk/res/drawable/ic_launcher_next_foreground.xml"
+    ],
+    "ios_qrc_white_paths": [
+      "krita/pics/Breeze-dark/dark_application-pdf.svg",
+      "krita/pics/Breeze-light/light_application-pdf.svg",
+      "krita/pics/svg/dark_krita_log.svg",
+      "krita/pics/svg/light_krita_log.svg",
+      "krita/pics/tools/SVG/16/dark_tool_comic_panel_move_point.svg",
+      "krita/pics/tools/SVG/16/light_tool_comic_panel_move_point.svg"
+    ]
+  },
+  "ios_image_audit": {
+    "definition": "An image is licensed linked art only when a parseable SVG or SVGZ has a cc:Work with a direct cc:license child whose rdf:resource is nonempty. White and zero-byte states take precedence in the exclusive final-state counts.",
+    "allowed_strict_license_urls": [
+      "http://creativecommons.org/licenses/by-sa/4.0/"
+    ],
+    "intentional_zero_paths": [
+      "krita/data/splash/splash_holidays_dummy.png"
+    ],
+    "core_qrc_paths": [
+      "krita/krita.qrc",
+      "krita/pics/Breeze-dark/breeze-dark-icons.qrc",
+      "krita/pics/Breeze-light/breeze-light-icons.qrc",
+      "krita/pics/layerbox/layerbox-icons.qrc",
+      "krita/pics/layers/layers-icons.qrc",
+      "krita/pics/misc-light/misc-light-icons.qrc",
+      "krita/pics/misc-dark/misc-dark-icons.qrc",
+      "krita/pics/paintops/paintops-icons.qrc",
+      "krita/pics/tools/SVG/16/tools-svg-16-icons.qrc",
+      "krita/pics/tool_transform/tool-transform-icons.qrc",
+      "krita/pics/svg/svg-icons.qrc",
+      "libs/flake/flake.qrc",
+      "libs/widgets/kritawidgets.qrc",
+      "pics/icons.qrc",
+      "krita/data/aboutdata/aboutdata.qrc",
+      "krita/data/shaders/shaders.qrc",
+      "krita/data/cursors/cursors.qrc",
+      "krita/data/gamutmasks/gamutmasks.qrc",
+      "plugins/paintops/defaultpresets/defaultpresets.qrc",
+      "krita/pics/branding/Next/branding.qrc",
+      "krita/data/splash/splash.qrc",
+      "krita/data/mime-database/mime-database.qrc"
+    ],
+    "static_plugin_qrc_paths": [
+      "libs/widgetutils/xmlgui/kxmlgui.qrc",
+      "libs/resources/sql.qrc",
+      "plugins/tools/basictools/defaulttools.qrc",
+      "plugins/tools/defaulttool/defaulttools.qrc",
+      "plugins/tools/selectiontools/selectiontools.qrc",
+      "plugins/tools/tool_crop/toolcrop.qrc",
+      "plugins/tools/tool_polygon/tool_polygon.qrc",
+      "plugins/tools/tool_polyline/polyline.qrc",
+      "plugins/tools/tool_transform2/tool_transform.qrc",
+      "plugins/tools/karbonplugins/tools/karbontools.qrc",
+      "plugins/flake/pathshapes/pathshapes.qrc"
+    ],
+    "scope_definition_paths": [
+      "CMakeLists.txt",
+      "CMakePresets.json",
+      "krita/CMakeLists.txt",
+      "libs/resources/CMakeLists.txt",
+      "libs/widgetutils/CMakeLists.txt",
+      "plugins/flake/pathshapes/CMakeLists.txt",
+      "plugins/tools/basictools/CMakeLists.txt",
+      "plugins/tools/defaulttool/CMakeLists.txt",
+      "plugins/tools/karbonplugins/tools/CMakeLists.txt",
+      "plugins/tools/selectiontools/CMakeLists.txt",
+      "plugins/tools/tool_crop/CMakeLists.txt",
+      "plugins/tools/tool_polygon/CMakeLists.txt",
+      "plugins/tools/tool_polyline/CMakeLists.txt",
+      "plugins/tools/tool_transform2/CMakeLists.txt",
+      "packaging/ios/manifests/initial-plugin-profile.json",
+      "libs/flake/styles/CMakeLists.txt",
+      "plugins/assistants/Assistants/CMakeLists.txt",
+      "plugins/dockers/advancedcolorselector/CMakeLists.txt",
+      "plugins/paintops/colorsmudge/CMakeLists.txt",
+      "plugins/paintops/curvebrush/CMakeLists.txt",
+      "plugins/paintops/defaultpaintops/CMakeLists.txt",
+      "plugins/paintops/deform/CMakeLists.txt",
+      "plugins/paintops/experiment/CMakeLists.txt",
+      "plugins/paintops/filterop/CMakeLists.txt",
+      "plugins/paintops/gridbrush/CMakeLists.txt",
+      "plugins/paintops/hairy/CMakeLists.txt",
+      "plugins/paintops/hatching/CMakeLists.txt",
+      "plugins/paintops/mypaint/CMakeLists.txt",
+      "plugins/paintops/mypaint/brushes/CMakeLists.txt",
+      "plugins/paintops/particle/CMakeLists.txt",
+      "plugins/paintops/roundmarker/CMakeLists.txt",
+      "plugins/paintops/sketch/CMakeLists.txt",
+      "plugins/paintops/spray/CMakeLists.txt",
+      "plugins/paintops/tangentnormal/CMakeLists.txt"
+    ],
+    "static_resource_registration_paths": [
+      "libs/resources/CMakeLists.txt",
+      "libs/widgetutils/CMakeLists.txt",
+      "plugins/flake/pathshapes/CMakeLists.txt",
+      "plugins/tools/basictools/CMakeLists.txt",
+      "plugins/tools/karbonplugins/tools/CMakeLists.txt",
+      "plugins/tools/selectiontools/CMakeLists.txt",
+      "plugins/tools/tool_crop/CMakeLists.txt",
+      "plugins/tools/tool_polygon/CMakeLists.txt",
+      "plugins/tools/tool_polyline/CMakeLists.txt",
+      "plugins/tools/tool_transform2/CMakeLists.txt"
+    ],
+    "expected": {
+      "core_qrc_files": 22,
+      "static_plugin_qrc_files": 11,
+      "scope_definition_files": 34,
+      "scope_definition_sha256": "087f544fa377aa3ef361adc5073061ecc60ee9af78bc217016ee079914ebbf13",
+      "static_resource_registration_files": 10,
+      "qrc_unique_images": 1301,
+      "qrc_image_paths_sha256": "2dc13bbe0e084016751fbd2995e2f80479a9cc4f40087a1d21f780dd9fc479d7",
+      "retained_qrc_images": 564,
+      "retained_qrc_paths_sha256": "b1f9eee52f2ac0e15093951951b9c96ec413ca57633ec6f91cc1cb9ee7f2a02d",
+      "strict_metadata_images": 712,
+      "strict_metadata_paths_sha256": "a387868eada8b87730be7b77326c40fa66c755a23648df2a8302cdd55ab8cbde",
+      "strict_metadata_content_sha256": "b5bac4a79a4639ce27c2216e3fda8aa34da6742bb4e8be3008b496c0b23c6a5e",
+      "strict_metadata_license_urls_sha256": "8954300f9c87aca8acb87fa2aea554252880661a722a037a5c190ea3d15dc81e",
+      "strict_white_overlap": 3,
+      "linked_art": 709,
+      "linked_art_paths_sha256": "8d48606d9e06fb86cfa920dad6b289aaf8941083b1edf84e74974f432f866437",
+      "linked_art_content_sha256": "f475010ba3d078f4398b67a24969b8dad0b06eb15a9df41cfea630a2aff79887",
+      "white": 27,
+      "zero": 1,
+      "unresolved": 0,
+      "installed_only_images": 32,
+      "installed_image_definition_files": 19,
+      "installed_image_definition_paths_sha256": "05129b746d57e382746dfae4ac8a54d04aab0fc710e31597c52e29e6a9dc34ee",
+      "installed_only_paths_sha256": "9bd79bc0a561e14aa0d5e2516c5f061281537bfda91973c45211a2ace87925bc",
+      "installed_only_retained": 32,
+      "installed_only_white": 0
+    },
+    "retained_license_groups": [
+      {
+        "id": "krita-cc-by-sa-4-functional-qrc",
+        "scope": "qrc",
+        "license_expression": "CC-BY-SA-4.0",
+        "source_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "notice_path": "packaging/ios/notices/retained-functional-assets.md",
+        "paths": [
+          "krita/data/cursors/color-sampler_image_background.svg",
+          "krita/data/cursors/color-sampler_image_foreground.svg",
+          "krita/data/cursors/color-sampler_layer_background.svg",
+          "krita/data/cursors/color-sampler_layer_foreground.svg",
+          "krita/data/cursors/cursor-cross.svg",
+          "krita/data/cursors/cursor-eraser.svg",
+          "krita/data/cursors/cursor-round.svg",
+          "krita/data/cursors/cursor-triangle_lefthanded.svg",
+          "krita/data/cursors/cursor-triangle_righthanded.svg",
+          "krita/data/cursors/exposure-cursor-gesture.svg",
+          "krita/data/cursors/gamma-cursor-gesture.svg",
+          "krita/data/cursors/move-selection.svg",
+          "krita/data/cursors/move-tool.svg",
+          "krita/data/cursors/precise-pick-layer-icon.svg",
+          "krita/data/cursors/rotate_cursor.svg",
+          "krita/data/cursors/rotate_discrete.svg",
+          "krita/data/cursors/rotate_smooth.svg",
+          "krita/data/cursors/tool_color_sampler_cursor.svg",
+          "krita/data/cursors/tool_freehand_cursor.svg",
+          "krita/data/cursors/zoom_discrete.svg",
+          "krita/data/cursors/zoom_smooth.svg",
+          "krita/pics/svg/dark_python_plugin_from_file.svg",
+          "krita/pics/svg/dark_python_plugin_from_web.svg",
+          "krita/pics/svg/dark_show_crash_log.svg",
+          "krita/pics/svg/light_python_plugin_from_file.svg",
+          "krita/pics/svg/light_python_plugin_from_web.svg",
+          "krita/pics/svg/light_show_crash_log.svg",
+          "krita/pics/tools/SVG/16/dark_krita_tool_assistant.svg",
+          "krita/pics/tools/SVG/16/dark_shape_handling.svg",
+          "krita/pics/tools/SVG/16/light_krita_tool_assistant.svg",
+          "krita/pics/tools/SVG/16/light_shape_handling.svg",
+          "libs/flake/pics/zoom_in_cursor.svg",
+          "libs/flake/pics/zoom_out_cursor.svg",
+          "plugins/tools/basictools/tool_ellipse_cursor.svg",
+          "plugins/tools/basictools/tool_ellipse_eraser_cursor.svg",
+          "plugins/tools/basictools/tool_fill_cursor.svg",
+          "plugins/tools/basictools/tool_fill_eraser_cursor.svg",
+          "plugins/tools/basictools/tool_gradient_cursor.svg",
+          "plugins/tools/basictools/tool_gradient_eraser_cursor.svg",
+          "plugins/tools/basictools/tool_line_cursor.svg",
+          "plugins/tools/basictools/tool_line_eraser_cursor.svg",
+          "plugins/tools/basictools/tool_rectangle_cursor.svg",
+          "plugins/tools/basictools/tool_rectangle_eraser_cursor.svg",
+          "plugins/tools/defaulttool/pics/cursor_rotate.svg",
+          "plugins/tools/defaulttool/pics/cursor_shear.svg",
+          "plugins/tools/selectiontools/tool_contiguous_selection_cursor.svg",
+          "plugins/tools/selectiontools/tool_contiguous_selection_cursor_add.svg",
+          "plugins/tools/selectiontools/tool_contiguous_selection_cursor_inter.svg",
+          "plugins/tools/selectiontools/tool_contiguous_selection_cursor_sub.svg",
+          "plugins/tools/selectiontools/tool_contiguous_selection_cursor_symdiff.svg",
+          "plugins/tools/selectiontools/tool_elliptical_selection_cursor.svg",
+          "plugins/tools/selectiontools/tool_elliptical_selection_cursor_add.svg",
+          "plugins/tools/selectiontools/tool_elliptical_selection_cursor_inter.svg",
+          "plugins/tools/selectiontools/tool_elliptical_selection_cursor_sub.svg",
+          "plugins/tools/selectiontools/tool_elliptical_selection_cursor_symdiff.svg",
+          "plugins/tools/selectiontools/tool_elliptical_selection_enclose_eraser_cursor.svg",
+          "plugins/tools/selectiontools/tool_magnetic_selection_cursor.svg",
+          "plugins/tools/selectiontools/tool_magnetic_selection_cursor_add.svg",
+          "plugins/tools/selectiontools/tool_magnetic_selection_cursor_inter.svg",
+          "plugins/tools/selectiontools/tool_magnetic_selection_cursor_sub.svg",
+          "plugins/tools/selectiontools/tool_magnetic_selection_cursor_symdiff.svg",
+          "plugins/tools/selectiontools/tool_outline_selection_cursor.svg",
+          "plugins/tools/selectiontools/tool_outline_selection_cursor_add.svg",
+          "plugins/tools/selectiontools/tool_outline_selection_cursor_inter.svg",
+          "plugins/tools/selectiontools/tool_outline_selection_cursor_sub.svg",
+          "plugins/tools/selectiontools/tool_outline_selection_cursor_symdiff.svg",
+          "plugins/tools/selectiontools/tool_outline_selection_enclose_eraser_cursor.svg",
+          "plugins/tools/selectiontools/tool_polygonal_selection_cursor.svg",
+          "plugins/tools/selectiontools/tool_polygonal_selection_cursor_add.svg",
+          "plugins/tools/selectiontools/tool_polygonal_selection_cursor_inter.svg",
+          "plugins/tools/selectiontools/tool_polygonal_selection_cursor_sub.svg",
+          "plugins/tools/selectiontools/tool_polygonal_selection_cursor_symdiff.svg",
+          "plugins/tools/selectiontools/tool_polygonal_selection_enclose_eraser_cursor.svg",
+          "plugins/tools/selectiontools/tool_rectangular_selection_cursor.svg",
+          "plugins/tools/selectiontools/tool_rectangular_selection_cursor_add.svg",
+          "plugins/tools/selectiontools/tool_rectangular_selection_cursor_inter.svg",
+          "plugins/tools/selectiontools/tool_rectangular_selection_cursor_sub.svg",
+          "plugins/tools/selectiontools/tool_rectangular_selection_cursor_symdiff.svg",
+          "plugins/tools/selectiontools/tool_rectangular_selection_enclose_eraser_cursor.svg",
+          "plugins/tools/selectiontools/tool_similar_selection_cursor.svg",
+          "plugins/tools/selectiontools/tool_similar_selection_cursor_add.svg",
+          "plugins/tools/selectiontools/tool_similar_selection_cursor_inter.svg",
+          "plugins/tools/selectiontools/tool_similar_selection_cursor_sub.svg",
+          "plugins/tools/selectiontools/tool_similar_selection_cursor_symdiff.svg",
+          "plugins/tools/tool_crop/tool_crop_cursor.svg",
+          "plugins/tools/tool_polygon/tool_polygon_cursor.svg",
+          "plugins/tools/tool_polygon/tool_polygon_eraser_cursor.svg",
+          "plugins/tools/tool_polyline/tool_polyline_cursor.svg",
+          "plugins/tools/tool_polyline/tool_polyline_eraser_cursor.svg",
+          "plugins/tools/tool_transform2/mesh_cursor_free.svg",
+          "plugins/tools/tool_transform2/mesh_cursor_locked.svg",
+          "plugins/tools/tool_transform2/rotate_cursor_handles.svg",
+          "plugins/tools/tool_transform2/shear_cursor.svg"
+        ],
+        "expected": {
+          "files": 93,
+          "paths_sha256": "4651e48e840baa15d07a0bae1cfebc56ff848c899c40494459a2a7d6232e79f4",
+          "content_sha256": "8d1d5108336f189d439743a8f150f9e48e1409040bbb0622266de13addd4cdab"
+        },
+        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+      },
+      {
+        "id": "kde-oxygen-icons-qrc",
+        "scope": "qrc",
+        "license_expression": "LGPL-3.0-or-later",
+        "source_url": "https://invent.kde.org/frameworks/oxygen-icons/-/raw/246760ed7e382d1ecc92cbfc194acee888d2d308/COPYING",
+        "notice_path": "packaging/ios/notices/retained-functional-assets.md",
+        "paths": [
+          "libs/flake/pics/16-actions-snap-boundingbox.png",
+          "libs/flake/pics/16-actions-snap-extension.png",
+          "libs/flake/pics/22-actions-convert-to-path.png",
+          "libs/flake/pics/22-actions-createpath.png",
+          "libs/flake/pics/22-actions-editpath.png",
+          "libs/flake/pics/22-actions-hand.png",
+          "libs/flake/pics/22-actions-pathshape.png",
+          "libs/flake/pics/sc-actions-snap-boundingbox.svg",
+          "libs/flake/pics/sc-actions-snap-extension.svg",
+          "plugins/flake/pathshapes/pics/22-actions-callout-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-circular-arrow-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-cross-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-ellipse-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-flower-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-gearhead-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-hexagon-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-pentagon-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-polygon-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-rectangle-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-smiley-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-spiral-shape.png",
+          "plugins/flake/pathshapes/pics/22-actions-star-shape.png"
+        ],
+        "expected": {
+          "files": 22,
+          "paths_sha256": "a6899f49689403f35da7b5969859b51534367cbc9cf3ff4759399019031048c7",
+          "content_sha256": "e3964861e115e83347d3d4314f7e5871a449145c30b79f9288840f52d0b1b9d2"
+        },
+        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+      },
+      {
+        "id": "kde-breeze-icons-qrc",
+        "scope": "qrc",
+        "license_expression": "LGPL-3.0-or-later",
+        "source_url": "https://invent.kde.org/frameworks/breeze-icons/-/raw/a0ce9f0faea836e45d765bfb48af2ada6f9bfc70/COPYING-ICONS",
+        "notice_path": "packaging/ios/notices/retained-functional-assets.md",
+        "paths": [
+          "krita/pics/Breeze-dark/dark_application-exit.svg",
+          "krita/pics/Breeze-dark/dark_applications-system.svg",
+          "krita/pics/Breeze-dark/dark_configure.svg",
+          "krita/pics/Breeze-dark/dark_dialog-ok.svg",
+          "krita/pics/Breeze-dark/dark_dialog-warning.svg",
+          "krita/pics/Breeze-dark/dark_document-new.svg",
+          "krita/pics/Breeze-dark/dark_document-open-recent.svg",
+          "krita/pics/Breeze-dark/dark_document-open.svg",
+          "krita/pics/Breeze-dark/dark_document-print-preview.svg",
+          "krita/pics/Breeze-dark/dark_document-save-as.svg",
+          "krita/pics/Breeze-dark/dark_document-save.svg",
+          "krita/pics/Breeze-dark/dark_download.svg",
+          "krita/pics/Breeze-dark/dark_drive-harddisk.svg",
+          "krita/pics/Breeze-dark/dark_edit-clear.svg",
+          "krita/pics/Breeze-dark/dark_edit-copy.svg",
+          "krita/pics/Breeze-dark/dark_edit-paste.svg",
+          "krita/pics/Breeze-dark/dark_folder-documents.svg",
+          "krita/pics/Breeze-dark/dark_folder-pictures.svg",
+          "krita/pics/Breeze-dark/dark_folder.svg",
+          "krita/pics/Breeze-dark/dark_format-list-unordered.svg",
+          "krita/pics/Breeze-dark/dark_go-home.svg",
+          "krita/pics/Breeze-dark/dark_im-user.svg",
+          "krita/pics/Breeze-dark/dark_kde.svg",
+          "krita/pics/Breeze-dark/dark_layer-visible-off.svg",
+          "krita/pics/Breeze-dark/dark_link.svg",
+          "krita/pics/Breeze-dark/dark_object-rotate-left.svg",
+          "krita/pics/Breeze-dark/dark_object-rotate-right.svg",
+          "krita/pics/Breeze-dark/dark_preferences-desktop-color.svg",
+          "krita/pics/Breeze-dark/dark_preferences-desktop-display.svg",
+          "krita/pics/Breeze-dark/dark_process-stop.svg",
+          "krita/pics/Breeze-dark/dark_tag.svg",
+          "krita/pics/Breeze-dark/dark_tools-report-bug.svg",
+          "krita/pics/Breeze-dark/dark_tools-wizard.svg",
+          "krita/pics/Breeze-dark/dark_update-medium.svg",
+          "krita/pics/Breeze-dark/dark_view-fullscreen.svg",
+          "krita/pics/Breeze-dark/dark_view-grid.svg",
+          "krita/pics/Breeze-dark/dark_view-list-text.svg",
+          "krita/pics/Breeze-dark/dark_view-refresh.svg",
+          "krita/pics/Breeze-dark/dark_window-close.svg",
+          "krita/pics/Breeze-dark/dark_window-new.svg",
+          "krita/pics/Breeze-dark/dark_zoom-in.svg",
+          "krita/pics/Breeze-dark/dark_zoom-original.svg",
+          "krita/pics/Breeze-dark/dark_zoom-out.svg",
+          "krita/pics/Breeze-light/light_application-exit.svg",
+          "krita/pics/Breeze-light/light_applications-system.svg",
+          "krita/pics/Breeze-light/light_configure.svg",
+          "krita/pics/Breeze-light/light_dialog-ok.svg",
+          "krita/pics/Breeze-light/light_dialog-warning.svg",
+          "krita/pics/Breeze-light/light_document-new.svg",
+          "krita/pics/Breeze-light/light_document-open-recent.svg",
+          "krita/pics/Breeze-light/light_document-open.svg",
+          "krita/pics/Breeze-light/light_document-print-preview.svg",
+          "krita/pics/Breeze-light/light_document-print.svg",
+          "krita/pics/Breeze-light/light_document-save-as.svg",
+          "krita/pics/Breeze-light/light_document-save.svg",
+          "krita/pics/Breeze-light/light_download.svg",
+          "krita/pics/Breeze-light/light_drive-harddisk.svg",
+          "krita/pics/Breeze-light/light_edit-clear.svg",
+          "krita/pics/Breeze-light/light_edit-copy.svg",
+          "krita/pics/Breeze-light/light_edit-paste.svg",
+          "krita/pics/Breeze-light/light_folder-documents.svg",
+          "krita/pics/Breeze-light/light_folder-pictures.svg",
+          "krita/pics/Breeze-light/light_folder.svg",
+          "krita/pics/Breeze-light/light_format-list-unordered.svg",
+          "krita/pics/Breeze-light/light_go-home.svg",
+          "krita/pics/Breeze-light/light_im-user.svg",
+          "krita/pics/Breeze-light/light_kde.svg",
+          "krita/pics/Breeze-light/light_layer-visible-off.svg",
+          "krita/pics/Breeze-light/light_link.svg",
+          "krita/pics/Breeze-light/light_object-rotate-left.svg",
+          "krita/pics/Breeze-light/light_object-rotate-right.svg",
+          "krita/pics/Breeze-light/light_preferences-desktop-color.svg",
+          "krita/pics/Breeze-light/light_preferences-desktop-display.svg",
+          "krita/pics/Breeze-light/light_process-stop.svg",
+          "krita/pics/Breeze-light/light_tag.svg",
+          "krita/pics/Breeze-light/light_tools-report-bug.svg",
+          "krita/pics/Breeze-light/light_tools-wizard.svg",
+          "krita/pics/Breeze-light/light_update-medium.svg",
+          "krita/pics/Breeze-light/light_view-fullscreen.svg",
+          "krita/pics/Breeze-light/light_view-grid.svg",
+          "krita/pics/Breeze-light/light_view-list-text.svg",
+          "krita/pics/Breeze-light/light_view-refresh.svg",
+          "krita/pics/Breeze-light/light_window-close.svg",
+          "krita/pics/Breeze-light/light_window-new.svg",
+          "krita/pics/Breeze-light/light_zoom-in.svg",
+          "krita/pics/Breeze-light/light_zoom-original.svg",
+          "krita/pics/Breeze-light/light_zoom-out.svg",
+          "pics/16_dark_align-horizontal-center.svg",
+          "pics/16_dark_align-horizontal-left.svg",
+          "pics/16_dark_align-horizontal-right.svg",
+          "pics/16_dark_align-vertical-bottom.svg",
+          "pics/16_dark_align-vertical-center.svg",
+          "pics/16_dark_align-vertical-top.svg",
+          "pics/16_dark_application-x-wmf.svg",
+          "pics/16_dark_character-set.svg",
+          "pics/16_dark_draw-arrow-back.svg",
+          "pics/16_dark_draw-arrow-down.svg",
+          "pics/16_dark_draw-arrow-forward.svg",
+          "pics/16_dark_draw-arrow-up.svg",
+          "pics/16_dark_draw-freehand.svg",
+          "pics/16_dark_edit-rename.svg",
+          "pics/16_dark_edit-select-all.svg",
+          "pics/16_dark_format-indent-less.svg",
+          "pics/16_dark_format-indent-more.svg",
+          "pics/16_dark_format-justify-center.svg",
+          "pics/16_dark_format-justify-fill.svg",
+          "pics/16_dark_format-justify-left.svg",
+          "pics/16_dark_format-justify-right.svg",
+          "pics/16_dark_format-list-ordered.svg",
+          "pics/16_dark_format-stroke-color.svg",
+          "pics/16_dark_format-text-bold.svg",
+          "pics/16_dark_format-text-capitalize.svg",
+          "pics/16_dark_format-text-color.svg",
+          "pics/16_dark_format-text-direction-rtl.svg",
+          "pics/16_dark_format-text-italic.svg",
+          "pics/16_dark_format-text-lowercase.svg",
+          "pics/16_dark_format-text-strikethrough.svg",
+          "pics/16_dark_format-text-subscript.svg",
+          "pics/16_dark_format-text-superscript.svg",
+          "pics/16_dark_format-text-underline.svg",
+          "pics/16_dark_format-text-uppercase.svg",
+          "pics/16_dark_insert-text.svg",
+          "pics/16_dark_list-remove.svg",
+          "pics/16_dark_media-floppy.svg",
+          "pics/16_dark_object-align-horizontal-center-calligra.svg",
+          "pics/16_dark_object-align-horizontal-left-calligra.svg",
+          "pics/16_dark_object-align-vertical-top-calligra.svg",
+          "pics/16_dark_object-group-calligra.svg",
+          "pics/16_dark_shape-choose.svg",
+          "pics/16_dark_snap-extension.svg",
+          "pics/16_dark_snap-guideline.svg",
+          "pics/16_dark_snap-intersection.svg",
+          "pics/16_dark_snap-node.svg",
+          "pics/16_dark_split.svg",
+          "pics/16_dark_tab-close.svg",
+          "pics/16_dark_tab-new.svg",
+          "pics/16_dark_transform-move.svg",
+          "pics/16_dark_trash-empty.svg",
+          "pics/16_dark_zoom-fit-best.svg",
+          "pics/16_light_align-horizontal-center.svg",
+          "pics/16_light_align-horizontal-left.svg",
+          "pics/16_light_align-horizontal-right.svg",
+          "pics/16_light_align-vertical-bottom.svg",
+          "pics/16_light_align-vertical-center.svg",
+          "pics/16_light_align-vertical-top.svg",
+          "pics/16_light_application-x-wmf.svg",
+          "pics/16_light_character-set.svg",
+          "pics/16_light_draw-arrow-back.svg",
+          "pics/16_light_draw-arrow-down.svg",
+          "pics/16_light_draw-arrow-forward.svg",
+          "pics/16_light_draw-arrow-up.svg",
+          "pics/16_light_draw-freehand.svg",
+          "pics/16_light_edit-rename.svg",
+          "pics/16_light_edit-select-all.svg",
+          "pics/16_light_format-indent-less.svg",
+          "pics/16_light_format-indent-more.svg",
+          "pics/16_light_format-justify-center.svg",
+          "pics/16_light_format-justify-fill.svg",
+          "pics/16_light_format-justify-left.svg",
+          "pics/16_light_format-justify-right.svg",
+          "pics/16_light_format-list-ordered.svg",
+          "pics/16_light_format-stroke-color.svg",
+          "pics/16_light_format-text-bold.svg",
+          "pics/16_light_format-text-capitalize.svg",
+          "pics/16_light_format-text-color.svg",
+          "pics/16_light_format-text-direction-rtl.svg",
+          "pics/16_light_format-text-italic.svg",
+          "pics/16_light_format-text-lowercase.svg",
+          "pics/16_light_format-text-strikethrough.svg",
+          "pics/16_light_format-text-subscript.svg",
+          "pics/16_light_format-text-superscript.svg",
+          "pics/16_light_format-text-underline.svg",
+          "pics/16_light_format-text-uppercase.svg",
+          "pics/16_light_insert-text.svg",
+          "pics/16_light_list-remove.svg",
+          "pics/16_light_media-floppy.svg",
+          "pics/16_light_object-align-horizontal-center-calligra.svg",
+          "pics/16_light_object-align-horizontal-left-calligra.svg",
+          "pics/16_light_object-align-vertical-top-calligra.svg",
+          "pics/16_light_object-group-calligra.svg",
+          "pics/16_light_shape-choose.svg",
+          "pics/16_light_snap-extension.svg",
+          "pics/16_light_snap-guideline.svg",
+          "pics/16_light_snap-intersection.svg",
+          "pics/16_light_snap-node.svg",
+          "pics/16_light_split.svg",
+          "pics/16_light_tab-close.svg",
+          "pics/16_light_tab-new.svg",
+          "pics/16_light_transform-move.svg",
+          "pics/16_light_trash-empty.svg",
+          "pics/16_light_zoom-fit-best.svg",
+          "pics/22_dark_align-horizontal-center.svg",
+          "pics/22_dark_align-horizontal-left.svg",
+          "pics/22_dark_align-horizontal-right.svg",
+          "pics/22_dark_align-vertical-bottom.svg",
+          "pics/22_dark_align-vertical-center.svg",
+          "pics/22_dark_align-vertical-top.svg",
+          "pics/22_dark_application-x-wmf.svg",
+          "pics/22_dark_character-set.svg",
+          "pics/22_dark_draw-arrow-back.svg",
+          "pics/22_dark_draw-arrow-down.svg",
+          "pics/22_dark_draw-arrow-forward.svg",
+          "pics/22_dark_draw-arrow-up.svg",
+          "pics/22_dark_draw-freehand.svg",
+          "pics/22_dark_edit-rename.svg",
+          "pics/22_dark_edit-select-all.svg",
+          "pics/22_dark_format-indent-less.svg",
+          "pics/22_dark_format-indent-more.svg",
+          "pics/22_dark_format-justify-center.svg",
+          "pics/22_dark_format-justify-fill.svg",
+          "pics/22_dark_format-justify-left.svg",
+          "pics/22_dark_format-justify-right.svg",
+          "pics/22_dark_format-list-ordered.svg",
+          "pics/22_dark_format-stroke-color.svg",
+          "pics/22_dark_format-text-bold.svg",
+          "pics/22_dark_format-text-color.svg",
+          "pics/22_dark_format-text-direction-rtl.svg",
+          "pics/22_dark_format-text-italic.svg",
+          "pics/22_dark_format-text-strikethrough.svg",
+          "pics/22_dark_format-text-subscript.svg",
+          "pics/22_dark_format-text-superscript.svg",
+          "pics/22_dark_format-text-underline.svg",
+          "pics/22_dark_insert-text.svg",
+          "pics/22_dark_list-remove.svg",
+          "pics/22_dark_media-floppy.svg",
+          "pics/22_dark_object-align-horizontal-center-calligra.svg",
+          "pics/22_dark_object-align-horizontal-left-calligra.svg",
+          "pics/22_dark_object-align-vertical-top-calligra.svg",
+          "pics/22_dark_object-group-calligra.svg",
+          "pics/22_dark_shape-choose.svg",
+          "pics/22_dark_snap-extension.svg",
+          "pics/22_dark_snap-guideline.svg",
+          "pics/22_dark_snap-intersection.svg",
+          "pics/22_dark_snap-node.svg",
+          "pics/22_dark_snap-orthogonal.svg",
+          "pics/22_dark_split.svg",
+          "pics/22_dark_tab-close.svg",
+          "pics/22_dark_tab-new.svg",
+          "pics/22_dark_transform-move.svg",
+          "pics/22_dark_trash-empty.svg",
+          "pics/22_dark_zoom-fit-best.svg",
+          "pics/22_light_align-horizontal-center.svg",
+          "pics/22_light_align-horizontal-left.svg",
+          "pics/22_light_align-horizontal-right.svg",
+          "pics/22_light_align-vertical-bottom.svg",
+          "pics/22_light_align-vertical-center.svg",
+          "pics/22_light_align-vertical-top.svg",
+          "pics/22_light_application-x-wmf.svg",
+          "pics/22_light_character-set.svg",
+          "pics/22_light_draw-arrow-back.svg",
+          "pics/22_light_draw-arrow-down.svg",
+          "pics/22_light_draw-arrow-forward.svg",
+          "pics/22_light_draw-arrow-up.svg",
+          "pics/22_light_draw-freehand.svg",
+          "pics/22_light_edit-rename.svg",
+          "pics/22_light_edit-select-all.svg",
+          "pics/22_light_format-indent-less.svg",
+          "pics/22_light_format-indent-more.svg",
+          "pics/22_light_format-justify-center.svg",
+          "pics/22_light_format-justify-fill.svg",
+          "pics/22_light_format-justify-left.svg",
+          "pics/22_light_format-justify-right.svg",
+          "pics/22_light_format-list-ordered.svg",
+          "pics/22_light_format-stroke-color.svg",
+          "pics/22_light_format-text-bold.svg",
+          "pics/22_light_format-text-color.svg",
+          "pics/22_light_format-text-direction-rtl.svg",
+          "pics/22_light_format-text-italic.svg",
+          "pics/22_light_format-text-strikethrough.svg",
+          "pics/22_light_format-text-subscript.svg",
+          "pics/22_light_format-text-superscript.svg",
+          "pics/22_light_format-text-underline.svg",
+          "pics/22_light_insert-text.svg",
+          "pics/22_light_list-remove.svg",
+          "pics/22_light_media-floppy.svg",
+          "pics/22_light_object-align-horizontal-center-calligra.svg",
+          "pics/22_light_object-align-horizontal-left-calligra.svg",
+          "pics/22_light_object-align-vertical-top-calligra.svg",
+          "pics/22_light_object-group-calligra.svg",
+          "pics/22_light_shape-choose.svg",
+          "pics/22_light_snap-extension.svg",
+          "pics/22_light_snap-guideline.svg",
+          "pics/22_light_snap-intersection.svg",
+          "pics/22_light_snap-node.svg",
+          "pics/22_light_snap-orthogonal.svg",
+          "pics/22_light_split.svg",
+          "pics/22_light_tab-close.svg",
+          "pics/22_light_tab-new.svg",
+          "pics/22_light_transform-move.svg",
+          "pics/22_light_trash-empty.svg",
+          "pics/22_light_zoom-fit-best.svg",
+          "pics/32_dark_application-x-wmf.svg",
+          "pics/32_light_application-x-wmf.svg",
+          "pics/48_dark_klipper.svg",
+          "pics/48_light_klipper.svg",
+          "pics/64_dark_application-x-wmf.svg",
+          "pics/64_light_application-x-wmf.svg"
+        ],
+        "expected": {
+          "files": 297,
+          "paths_sha256": "e96de87e8272d3095e22ab28e0124a439075ca6a9e90f2617643b733e5337210",
+          "content_sha256": "49200e546860107dd3dcee18bd358d0979970ae94db081d1ea412a256f6307f3"
+        },
+        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+      },
+      {
+        "id": "android-robot-functional-qrc",
+        "scope": "qrc",
+        "license_expression": "CC-BY-SA-4.0 AND CC-BY-3.0",
+        "source_url": "https://developer.android.com/distribute/marketing-tools/brand-guidelines",
+        "notice_path": "packaging/ios/notices/retained-functional-assets.md",
+        "paths": [
+          "krita/pics/svg/dark_show_android_log.svg",
+          "krita/pics/svg/light_show_android_log.svg"
+        ],
+        "expected": {
+          "files": 2,
+          "paths_sha256": "d87f2acd26d937a826e621b4758075b7205d854282cfe2374845aad5a5a6bd4f",
+          "content_sha256": "0210f4c485878e5da9ec9e48f7576c8481c14ccca0617dc44c24bc1649825454"
+        },
+        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+      },
+      {
+        "id": "kde-kxmlgui-functional-qrc",
+        "scope": "qrc",
+        "license_expression": "LGPL-2.0-or-later",
+        "source_url": "https://invent.kde.org/frameworks/kxmlgui",
+        "notice_path": "packaging/ios/notices/retained-functional-assets.md",
+        "paths": [
+          "libs/widgetutils/xmlgui/aboutkde.png",
+          "libs/widgetutils/xmlgui/thumb_frame.png"
+        ],
+        "expected": {
+          "files": 2,
+          "paths_sha256": "6d6d571657e4711ef4a27ea514b294cda5b9273664622014744f9f72fd48bc8d",
+          "content_sha256": "383ad0baa82ac36b7745ce8ec9f26f0bd5fa32fdb448fe75a32c66eaa2c8e263"
+        },
+        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+      },
+      {
+        "id": "krita-functional-qrc",
+        "scope": "qrc",
+        "license_expression": "GPL-3.0-only",
+        "source_url": "https://krita.org/en/about/license/",
+        "notice_path": "packaging/ios/notices/retained-functional-assets.md",
+        "paths": [
+          "krita/data/cursors/cursor-pixel-black.xpm",
+          "krita/data/cursors/cursor-pixel-white.xpm",
+          "krita/data/cursors/shear_x.xpm",
+          "krita/data/cursors/shear_y.xpm",
+          "krita/data/gamutmasks/empty_mask_preview.png",
+          "krita/pics/misc-dark/dark_brushsize-decrease.svg",
+          "krita/pics/misc-dark/dark_brushsize-increase.svg",
+          "krita/pics/misc-dark/dark_curve-preset-arch.svg",
+          "krita/pics/misc-dark/dark_curve-preset-j.svg",
+          "krita/pics/misc-dark/dark_curve-preset-l.svg",
+          "krita/pics/misc-dark/dark_curve-preset-linear-reverse.svg",
+          "krita/pics/misc-dark/dark_curve-preset-linear.svg",
+          "krita/pics/misc-dark/dark_curve-preset-s-reverse.svg",
+          "krita/pics/misc-dark/dark_curve-preset-s.svg",
+          "krita/pics/misc-dark/dark_curve-preset-u.svg",
+          "krita/pics/misc-dark/dark_lightness-decrease.svg",
+          "krita/pics/misc-dark/dark_lightness-increase.svg",
+          "krita/pics/misc-dark/dark_opacity-decrease.svg",
+          "krita/pics/misc-dark/dark_opacity-increase.svg",
+          "krita/pics/misc-light/light_brushsize-decrease.svg",
+          "krita/pics/misc-light/light_brushsize-increase.svg",
+          "krita/pics/misc-light/light_curve-preset-arch.svg",
+          "krita/pics/misc-light/light_curve-preset-j.svg",
+          "krita/pics/misc-light/light_curve-preset-l.svg",
+          "krita/pics/misc-light/light_curve-preset-linear-reverse.svg",
+          "krita/pics/misc-light/light_curve-preset-linear.svg",
+          "krita/pics/misc-light/light_curve-preset-s-reverse.svg",
+          "krita/pics/misc-light/light_curve-preset-s.svg",
+          "krita/pics/misc-light/light_curve-preset-u.svg",
+          "krita/pics/misc-light/light_lightness-decrease.svg",
+          "krita/pics/misc-light/light_lightness-increase.svg",
+          "krita/pics/misc-light/light_opacity-decrease.svg",
+          "krita/pics/misc-light/light_opacity-increase.svg",
+          "krita/pics/svg/dark_all-layers.svg",
+          "krita/pics/svg/dark_autolevels.svg",
+          "krita/pics/svg/dark_background_colour.svg",
+          "krita/pics/svg/dark_bundle_archive.svg",
+          "krita/pics/svg/dark_color-adjustment-mode-channels.svg",
+          "krita/pics/svg/dark_color-adjustment-mode-lightness.svg",
+          "krita/pics/svg/dark_color-overlay.svg",
+          "krita/pics/svg/dark_contiguous-selection.svg",
+          "krita/pics/svg/dark_current-layer.svg",
+          "krita/pics/svg/dark_different-regions.svg",
+          "krita/pics/svg/dark_document-edit.svg",
+          "krita/pics/svg/dark_dual_colour.svg",
+          "krita/pics/svg/dark_flip_angle_h.svg",
+          "krita/pics/svg/dark_flip_angle_hv.svg",
+          "krita/pics/svg/dark_flip_angle_v.svg",
+          "krita/pics/svg/dark_forgound_colour.svg",
+          "krita/pics/svg/dark_hamburger_menu_dots.svg",
+          "krita/pics/svg/dark_histogram-linear.svg",
+          "krita/pics/svg/dark_histogram-logarithmic.svg",
+          "krita/pics/svg/dark_histogram-show-all.svg",
+          "krita/pics/svg/dark_histogram-show-best.svg",
+          "krita/pics/svg/dark_interpolation_bezier.svg",
+          "krita/pics/svg/dark_interpolation_constant.svg",
+          "krita/pics/svg/dark_interpolation_linear.svg",
+          "krita/pics/svg/dark_interpolation_sharp.svg",
+          "krita/pics/svg/dark_interpolation_smooth.svg",
+          "krita/pics/svg/dark_paint-order-fill-marker-stroke.svg",
+          "krita/pics/svg/dark_paint-order-fill-stroke-marker.svg",
+          "krita/pics/svg/dark_paint-order-marker-fill-stroke.svg",
+          "krita/pics/svg/dark_paint-order-marker-stroke-fill.svg",
+          "krita/pics/svg/dark_paint-order-stroke-fill-marker.svg",
+          "krita/pics/svg/dark_paint-order-stroke-marker-fill.svg",
+          "krita/pics/svg/dark_region-filling-boundary-fill.svg",
+          "krita/pics/svg/dark_region-filling-flood-fill.svg",
+          "krita/pics/svg/dark_reset_colour.svg",
+          "krita/pics/svg/dark_sample-screen.svg",
+          "krita/pics/svg/dark_similar-regions.svg",
+          "krita/pics/svg/dark_similar-selection.svg",
+          "krita/pics/svg/dark_stop-at-boundary.svg",
+          "krita/pics/svg/dark_swap_colour.svg",
+          "krita/pics/svg/light_all-layers.svg",
+          "krita/pics/svg/light_autolevels.svg",
+          "krita/pics/svg/light_background_colour.svg",
+          "krita/pics/svg/light_bundle_archive.svg",
+          "krita/pics/svg/light_color-adjustment-mode-channels.svg",
+          "krita/pics/svg/light_color-adjustment-mode-lightness.svg",
+          "krita/pics/svg/light_color-overlay.svg",
+          "krita/pics/svg/light_contiguous-selection.svg",
+          "krita/pics/svg/light_current-layer.svg",
+          "krita/pics/svg/light_different-regions.svg",
+          "krita/pics/svg/light_document-edit.svg",
+          "krita/pics/svg/light_dual_colour.svg",
+          "krita/pics/svg/light_flip_angle_h.svg",
+          "krita/pics/svg/light_flip_angle_hv.svg",
+          "krita/pics/svg/light_flip_angle_v.svg",
+          "krita/pics/svg/light_forgound_colour.svg",
+          "krita/pics/svg/light_hamburger_menu_dots.svg",
+          "krita/pics/svg/light_histogram-linear.svg",
+          "krita/pics/svg/light_histogram-logarithmic.svg",
+          "krita/pics/svg/light_histogram-show-all.svg",
+          "krita/pics/svg/light_histogram-show-best.svg",
+          "krita/pics/svg/light_interpolation_bezier.svg",
+          "krita/pics/svg/light_interpolation_constant.svg",
+          "krita/pics/svg/light_interpolation_linear.svg",
+          "krita/pics/svg/light_interpolation_sharp.svg",
+          "krita/pics/svg/light_interpolation_smooth.svg",
+          "krita/pics/svg/light_paint-order-fill-marker-stroke.svg",
+          "krita/pics/svg/light_paint-order-fill-stroke-marker.svg",
+          "krita/pics/svg/light_paint-order-marker-fill-stroke.svg",
+          "krita/pics/svg/light_paint-order-marker-stroke-fill.svg",
+          "krita/pics/svg/light_paint-order-stroke-fill-marker.svg",
+          "krita/pics/svg/light_paint-order-stroke-marker-fill.svg",
+          "krita/pics/svg/light_region-filling-boundary-fill.svg",
+          "krita/pics/svg/light_region-filling-flood-fill.svg",
+          "krita/pics/svg/light_reset_colour.svg",
+          "krita/pics/svg/light_sample-screen.svg",
+          "krita/pics/svg/light_similar-regions.svg",
+          "krita/pics/svg/light_similar-selection.svg",
+          "krita/pics/svg/light_stop-at-boundary.svg",
+          "krita/pics/svg/light_swap_colour.svg",
+          "krita/pics/svg/paintop_presets_disabled.svgz",
+          "krita/pics/svg/paintop_settings_01.svgz",
+          "libs/flake/pics/cursor-needle-move.svg",
+          "libs/flake/pics/cursor-needle.svg",
+          "libs/flake/pics/ox32-mimetype-x-shape-connection.png",
+          "libs/flake/pics/ox32-mimetype-x-shape-text.png",
+          "libs/flake/pics/questionmark.png",
+          "pics/16_dark_format-text-direction-horizontal-tb.svg",
+          "pics/16_dark_format-text-direction-ltr.svg",
+          "pics/16_dark_format-text-direction-vertical-lr.svg",
+          "pics/16_dark_format-text-direction-vertical-rl.svg",
+          "pics/16_dark_warning.svg",
+          "pics/16_light_format-text-direction-horizontal-tb.svg",
+          "pics/16_light_format-text-direction-ltr.svg",
+          "pics/16_light_format-text-direction-vertical-lr.svg",
+          "pics/16_light_format-text-direction-vertical-rl.svg",
+          "pics/16_light_warning.svg",
+          "pics/22_dark_format-text-direction-horizontal-tb.svg",
+          "pics/22_dark_format-text-direction-ltr.svg",
+          "pics/22_dark_format-text-direction-vertical-lr.svg",
+          "pics/22_dark_format-text-direction-vertical-rl.svg",
+          "pics/22_light_format-text-direction-horizontal-tb.svg",
+          "pics/22_light_format-text-direction-ltr.svg",
+          "pics/22_light_format-text-direction-vertical-lr.svg",
+          "pics/22_light_format-text-direction-vertical-rl.svg",
+          "plugins/tools/defaulttool/pics/16-actions-escape-direction-all.png",
+          "plugins/tools/defaulttool/pics/16-actions-escape-direction-down.png",
+          "plugins/tools/defaulttool/pics/16-actions-escape-direction-horizontal.png",
+          "plugins/tools/defaulttool/pics/16-actions-escape-direction-left.png",
+          "plugins/tools/defaulttool/pics/16-actions-escape-direction-right.png",
+          "plugins/tools/defaulttool/pics/16-actions-escape-direction-up.png",
+          "plugins/tools/defaulttool/pics/16-actions-escape-direction-vertical.png",
+          "plugins/tools/defaulttool/pics/cursor_connect.png",
+          "plugins/tools/karbonplugins/tools/22-actions-calligraphy.png",
+          "plugins/tools/selectiontools/tool_eraser_selection_cursor.png"
+        ],
+        "expected": {
+          "files": 148,
+          "paths_sha256": "50c2f1c4c8033dc094ec18788bed902bd34986db52286217204e803c43bc8a49",
+          "content_sha256": "2b66253ab642c40934daf1f47ba864526822c90bd3e8a6a3e86b16607ca20139"
+        },
+        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+      },
+      {
+        "id": "krita-functional-installed",
+        "scope": "installed-only",
+        "license_expression": "GPL-3.0-only",
+        "source_url": "https://krita.org/en/about/license/",
+        "notice_path": "packaging/ios/notices/retained-functional-assets.md",
+        "paths": [
+          "libs/flake/styles/markers.svg",
+          "plugins/assistants/Assistants/dark_krita_tool_assistant.png",
+          "plugins/assistants/Assistants/krita_tool_assistant.png",
+          "plugins/assistants/Assistants/light_krita_tool_assistant.png",
+          "plugins/dockers/advancedcolorselector/kis_colselng_color_patches.png",
+          "plugins/dockers/advancedcolorselector/kis_colselng_color_triangle.png",
+          "plugins/dockers/advancedcolorselector/kis_colselng_my_paint_shade_selector.png",
+          "plugins/paintops/colorsmudge/krita-colorsmudge.png",
+          "plugins/paintops/curvebrush/krita-curve.png",
+          "plugins/paintops/defaultpaintops/krita-duplicate.png",
+          "plugins/paintops/defaultpaintops/krita-eraser.png",
+          "plugins/paintops/defaultpaintops/krita-paintbrush.png",
+          "plugins/paintops/deform/krita-deform.png",
+          "plugins/paintops/experiment/krita-experiment.png",
+          "plugins/paintops/filterop/krita-filterop.png",
+          "plugins/paintops/gridbrush/krita-grid.png",
+          "plugins/paintops/hairy/krita-sumi.png",
+          "plugins/paintops/hatching/krita-hatching.png",
+          "plugins/paintops/mypaint/brushes/c)_Pencil_1_Sketch_(mypaint)_prev.png",
+          "plugins/paintops/mypaint/brushes/c)_Pencil_2b_(mypaint)_prev.png",
+          "plugins/paintops/mypaint/brushes/d)_Ink_pen_(mypaint)_prev.png",
+          "plugins/paintops/mypaint/brushes/e)_Marker_Medium_(mypaint)_prev.png",
+          "plugins/paintops/mypaint/brushes/e)_Marker_Plain_(mypaint)_prev.png",
+          "plugins/paintops/mypaint/brushes/i)_Wet_Knife_Plus_(mypaint)_prev.png",
+          "plugins/paintops/mypaint/brushes/i)_Wet_Paint_Plus_(mypaint)_prev.png",
+          "plugins/paintops/mypaint/krita-mypaint.png",
+          "plugins/paintops/particle/krita-particle.png",
+          "plugins/paintops/roundmarker/krita_roundmarkerop.svg",
+          "plugins/paintops/sketch/krita-sketch.png",
+          "plugins/paintops/spray/krita-spray.png",
+          "plugins/paintops/tangentnormal/krita-tangentnormal-preview.png",
+          "plugins/paintops/tangentnormal/krita-tangentnormal.png"
+        ],
+        "expected": {
+          "files": 32,
+          "paths_sha256": "9bd79bc0a561e14aa0d5e2516c5f061281537bfda91973c45211a2ace87925bc",
+          "content_sha256": "adbecdf809a49cc278816b957d2cdb03a888b112b53168745249b6108d9fc174"
+        },
+        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+      }
+    ],
+    "installed_image_definition_paths": [
+      "libs/flake/styles/CMakeLists.txt",
+      "plugins/assistants/Assistants/CMakeLists.txt",
+      "plugins/dockers/advancedcolorselector/CMakeLists.txt",
+      "plugins/paintops/colorsmudge/CMakeLists.txt",
+      "plugins/paintops/curvebrush/CMakeLists.txt",
+      "plugins/paintops/defaultpaintops/CMakeLists.txt",
+      "plugins/paintops/deform/CMakeLists.txt",
+      "plugins/paintops/experiment/CMakeLists.txt",
+      "plugins/paintops/filterop/CMakeLists.txt",
+      "plugins/paintops/gridbrush/CMakeLists.txt",
+      "plugins/paintops/hairy/CMakeLists.txt",
+      "plugins/paintops/hatching/CMakeLists.txt",
+      "plugins/paintops/mypaint/CMakeLists.txt",
+      "plugins/paintops/mypaint/brushes/CMakeLists.txt",
+      "plugins/paintops/particle/CMakeLists.txt",
+      "plugins/paintops/roundmarker/CMakeLists.txt",
+      "plugins/paintops/sketch/CMakeLists.txt",
+      "plugins/paintops/spray/CMakeLists.txt",
+      "plugins/paintops/tangentnormal/CMakeLists.txt"
+    ]
+  },
+  "legal_metadata_audit": {
+    "definition": "Preserve each original embedded metadata chunk byte-for-byte for raster assets whose source metadata contains copyright, Creative Commons, or attribution/share-alike wording. The permanent gate is self-contained in this manifest and does not require Git history.",
+    "asset_paths": [
+      "krita/pics/branding/Beta/1024-apps-krita.png",
+      "krita/pics/branding/Beta/128-apps-krita.png",
+      "krita/pics/branding/Beta/16-apps-krita.png",
+      "krita/pics/branding/Beta/22-apps-krita.png",
+      "krita/pics/branding/Beta/24-apps-krita.png",
+      "krita/pics/branding/Beta/256-apps-krita.png",
+      "krita/pics/branding/Beta/32-apps-krita.png",
+      "krita/pics/branding/Beta/48-apps-krita.png",
+      "krita/pics/branding/Beta/512-apps-krita.png",
+      "krita/pics/branding/Beta/64-apps-krita.png",
+      "krita/pics/branding/Next/1024-apps-krita.png",
+      "krita/pics/branding/Next/128-apps-krita.png",
+      "krita/pics/branding/Next/16-apps-krita.png",
+      "krita/pics/branding/Next/22-apps-krita.png",
+      "krita/pics/branding/Next/24-apps-krita.png",
+      "krita/pics/branding/Next/256-apps-krita.png",
+      "krita/pics/branding/Next/32-apps-krita.png",
+      "krita/pics/branding/Next/48-apps-krita.png",
+      "krita/pics/branding/Next/512-apps-krita.png",
+      "krita/pics/branding/Next/64-apps-krita.png",
+      "krita/pics/branding/Plus/1024-apps-krita.png",
+      "krita/pics/branding/Plus/128-apps-krita.png",
+      "krita/pics/branding/Plus/16-apps-krita.png",
+      "krita/pics/branding/Plus/22-apps-krita.png",
+      "krita/pics/branding/Plus/24-apps-krita.png",
+      "krita/pics/branding/Plus/256-apps-krita.png",
+      "krita/pics/branding/Plus/32-apps-krita.png",
+      "krita/pics/branding/Plus/48-apps-krita.png",
+      "krita/pics/branding/Plus/512-apps-krita.png",
+      "krita/pics/branding/Plus/64-apps-krita.png",
+      "krita/pics/branding/default/1024-apps-krita.png",
+      "krita/pics/branding/default/128-apps-krita.png",
+      "krita/pics/branding/default/16-apps-krita.png",
+      "krita/pics/branding/default/22-apps-krita.png",
+      "krita/pics/branding/default/24-apps-krita.png",
+      "krita/pics/branding/default/256-apps-krita.png",
+      "krita/pics/branding/default/32-apps-krita.png",
+      "krita/pics/branding/default/48-apps-krita.png",
+      "krita/pics/branding/default/512-apps-krita.png",
+      "krita/pics/branding/default/64-apps-krita.png",
+      "krita/pics/mimetypes/1024-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/128-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/16-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/22-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/24-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/256-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/32-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/48-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/512-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/64-mimetypes-application-x-krita.png",
+      "krita/pics/mimetypes/krz/1024-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/128-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/16-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/22-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/24-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/256-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/32-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/48-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/512-mimetypes-application-x-krz.png",
+      "krita/pics/mimetypes/krz/64-mimetypes-application-x-krz.png",
+      "packaging/android/apk/res/drawable/product_fund.jpg",
+      "packaging/windows/msix/pkg/Assets/fileicon.targetsize-16.png",
+      "packaging/windows/msix/pkg/Assets/fileicon.targetsize-24.png",
+      "packaging/windows/msix/pkg/Assets/fileicon.targetsize-256.png",
+      "packaging/windows/msix/pkg/Assets/fileicon.targetsize-32.png",
+      "packaging/windows/msix/pkg/Assets/fileicon.targetsize-48.png",
+      "packaging/windows/msix/pkg/Assets/fileicon.targetsize-64.png",
+      "pics/krita.png"
+    ],
+    "expected": {
+      "assets": 68,
+      "asset_paths_sha256": "cfdad3fc9abac2de697a69fa31b9fdbf58e46c38a6571b8f8a9a7b72357d40da",
+      "metadata_chunks": 336,
+      "metadata_bytes_sha256": "23b5c550c332de8013e129665598d5ef4037b0a3cffb283743d65acb727cfadb"
+    }
+  },
+  "excluded": [
+    {
+      "path": "krita/data/splash/splash_holidays_dummy.png",
+      "reason": "Intentional zero-byte resource alias"
+    },
+    {
+      "paths": [
+        "krita/data/preset_icons/**",
+        "krita/data/patterns/**",
+        "libs/widgetutils/xmlgui/thumb_frame.png",
+        "packaging/android/apk/res/drawable*/ic_save_notification*"
+      ],
+      "reason": "Non-iOS-scope brush, texture, frame, and save-status artwork"
+    }
+  ],
+  "assets": [
+    {
+      "kind": "bundle",
+      "path": "krita/data/bundles/Krita_3_Default_Resources.bundle",
+      "preview_width": 256,
+      "preview_height": 256,
+      "preserved_sha256": "f3118ae0d10751992888e29094a0fe660f562923adaffa4902ceaaf599461137"
+    },
+    {
+      "kind": "bundle",
+      "path": "krita/data/bundles/Krita_4_Default_Resources.bundle",
+      "preview_width": 256,
+      "preview_height": 256,
+      "preserved_sha256": "15a11eb4c80a1c62117675a3a4c26caca7662ccd6b29c0418d26efee897357bd"
+    },
+    {
+      "kind": "bundle",
+      "path": "krita/data/bundles/Krita_Artists_SeExpr_examples.bundle",
+      "preview_width": 256,
+      "preview_height": 256,
+      "preserved_sha256": "d0a330249c1609282356aa94a3c5ec57b64f0acf6207839aeafdc561c3b07e31"
+    },
+    {
+      "kind": "bundle",
+      "path": "krita/data/bundles/RGBA_brushes.bundle",
+      "preview_width": 256,
+      "preview_height": 256,
+      "preserved_sha256": "902efd4e2aae7f8c6024ba3894c153dc93b12a97b732d5b236c428b215295f08"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/data/donation/banner.png",
+      "format": "png",
+      "width": 300,
+      "height": 383,
+      "preserved_metadata": [
+        {
+          "type": "iCCP",
+          "size": 379,
+          "sha256": "4d14d6a8985046a6e9fb8fe1370fcc7e451713bcec8695b3f2cce5439f0377a0"
+        }
+      ],
+      "preserved_metadata_sha256": "0ef01bfe75620d3ee0df330d962d9b9f6e2159ebff8105de26c19867e6b33c6c"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/data/donation/welcomebanner1.jpg",
+      "format": "jpg",
+      "width": 1920,
+      "height": 384
+    },
+    {
+      "kind": "raster",
+      "path": "krita/data/donation/welcomebanner2.jpg",
+      "format": "jpg",
+      "width": 1920,
+      "height": 384
+    },
+    {
+      "kind": "raster",
+      "path": "krita/data/donation/welcomebanner3.jpg",
+      "format": "jpg",
+      "width": 1920,
+      "height": 384
+    },
+    {
+      "kind": "raster",
+      "path": "krita/data/donation/welcomebanner4.jpg",
+      "format": "jpg",
+      "width": 1920,
+      "height": 384
+    },
+    {
+      "kind": "svg",
+      "path": "krita/data/splash/banner.svg",
+      "width": "131",
+      "height": "80",
+      "viewBox": "0 0 131 80",
+      "preserved_sha256": "a6463b63ec1ca2673d614f3d19962f2e7ec43fdfcdc59b6324699fed3e6eabd8"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/data/splash/electrichearts_20250824A_kiki_4K.png",
+      "format": "png",
+      "width": 3840,
+      "height": 1920
+    },
+    {
+      "kind": "raster",
+      "path": "krita/data/splash/electrichearts_20250824A_kiki_HD.jpg",
+      "format": "jpg",
+      "width": 1920,
+      "height": 960
+    },
+    {
+      "kind": "svg",
+      "path": "krita/data/storyboard_templates/storyboard_extemp_default.svg",
+      "width": "210mm",
+      "height": "297mm",
+      "viewBox": "0 0 210 297",
+      "preserved_sha256": "2f84b1dd97c97b2db9d1759cd4020f0f914f6189b716721605b380d339748795"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/Breeze-dark/dark_application-pdf.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": "0 0 16 16",
+      "preserved_sha256": "2f86a7f36a39a626034074caf4ef4b1bdd8ee42b9abf5d5c707c4a166a938991"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/Breeze-light/light_application-pdf.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": "0 0 16 16",
+      "preserved_sha256": "2f86a7f36a39a626034074caf4ef4b1bdd8ee42b9abf5d5c707c4a166a938991"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/1024-apps-krita.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/128-apps-krita.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/16-apps-krita.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/22-apps-krita.png",
+      "format": "png",
+      "width": 22,
+      "height": 22,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/24-apps-krita.png",
+      "format": "png",
+      "width": 24,
+      "height": 24,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/256-apps-krita.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/32-apps-krita.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/48-apps-krita.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/512-apps-krita.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Beta/64-apps-krita.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "ico",
+      "path": "krita/pics/branding/Beta/krita.ico",
+      "representations": [
+        {
+          "width": 256,
+          "height": 256,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "png"
+        },
+        {
+          "width": 128,
+          "height": 128,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 96,
+          "height": 96,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 64,
+          "height": 64,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 32,
+          "height": 32,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 16,
+          "height": 16,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        }
+      ]
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Beta/krita.icon/Assets/krita-beta 2.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Beta/krita.icon/Assets/krita_default_brush.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Beta/krita.icon/Assets/krita_default_brush_tip.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Beta/krita.icon/Assets/krita_default_cshadow.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Beta/krita.icon/Assets/krita_default_gradient.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Beta/krita.icon/Assets/krita_default_gradient_m.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Beta/krita.icon/Assets/krita_default_gradient_w.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Beta/krita.icon/Assets/krita_default_shadow.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svgz",
+      "path": "krita/pics/branding/Beta/sc-apps-krita.svgz",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/1024-apps-krita.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/128-apps-krita.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/16-apps-krita.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/22-apps-krita.png",
+      "format": "png",
+      "width": 22,
+      "height": 22,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/24-apps-krita.png",
+      "format": "png",
+      "width": 24,
+      "height": 24,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/256-apps-krita.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/32-apps-krita.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/48-apps-krita.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/512-apps-krita.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Next/64-apps-krita.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "ico",
+      "path": "krita/pics/branding/Next/krita.ico",
+      "representations": [
+        {
+          "width": 256,
+          "height": 256,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "png"
+        },
+        {
+          "width": 128,
+          "height": 128,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 96,
+          "height": 96,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 64,
+          "height": 64,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 32,
+          "height": 32,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 16,
+          "height": 16,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        }
+      ]
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita-beta.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita-next.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita_default_brush.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita_default_brush_tip.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita_default_cshadow.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita_default_gradient.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita_default_gradient_m.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita_default_gradient_w.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Next/krita.icon/Assets/krita_default_shadow.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svgz",
+      "path": "krita/pics/branding/Next/sc-apps-krita.svgz",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/1024-apps-krita.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/128-apps-krita.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/16-apps-krita.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/22-apps-krita.png",
+      "format": "png",
+      "width": 22,
+      "height": 22,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/24-apps-krita.png",
+      "format": "png",
+      "width": 24,
+      "height": 24,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/256-apps-krita.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/32-apps-krita.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/48-apps-krita.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/512-apps-krita.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/Plus/64-apps-krita.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "ico",
+      "path": "krita/pics/branding/Plus/krita.ico",
+      "representations": [
+        {
+          "width": 256,
+          "height": 256,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "png"
+        },
+        {
+          "width": 128,
+          "height": 128,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 96,
+          "height": 96,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 64,
+          "height": 64,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 32,
+          "height": 32,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 16,
+          "height": 16,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        }
+      ]
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita-beta 2.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita-plus.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita_default_brush.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita_default_brush_tip.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita_default_cshadow.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita_default_gradient.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita_default_gradient_m.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita_default_gradient_w.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/Plus/krita.icon/Assets/krita_default_shadow.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svgz",
+      "path": "krita/pics/branding/Plus/sc-apps-krita.svgz",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/1024-apps-krita.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/128-apps-krita.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/16-apps-krita.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/22-apps-krita.png",
+      "format": "png",
+      "width": 22,
+      "height": 22,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/24-apps-krita.png",
+      "format": "png",
+      "width": 24,
+      "height": 24,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/256-apps-krita.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/32-apps-krita.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/48-apps-krita.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/512-apps-krita.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/branding/default/64-apps-krita.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    },
+    {
+      "kind": "ico",
+      "path": "krita/pics/branding/default/krita.ico",
+      "representations": [
+        {
+          "width": 256,
+          "height": 256,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "png"
+        },
+        {
+          "width": 128,
+          "height": 128,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 96,
+          "height": 96,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 64,
+          "height": 64,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 32,
+          "height": 32,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 16,
+          "height": 16,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        }
+      ]
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/default/krita.icon/Assets/krita_default_brush.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/default/krita.icon/Assets/krita_default_brush_tip.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/default/krita.icon/Assets/krita_default_cshadow.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/default/krita.icon/Assets/krita_default_gradient.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/default/krita.icon/Assets/krita_default_gradient_m.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/default/krita.icon/Assets/krita_default_gradient_w.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/branding/default/krita.icon/Assets/krita_default_shadow.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svgz",
+      "path": "krita/pics/branding/default/sc-apps-krita.svgz",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "ico",
+      "path": "krita/pics/branding/krita.ico",
+      "representations": [
+        {
+          "width": 256,
+          "height": 256,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "png"
+        },
+        {
+          "width": 128,
+          "height": 128,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 96,
+          "height": 96,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 64,
+          "height": 64,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 48,
+          "height": 48,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 32,
+          "height": 32,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        },
+        {
+          "width": 16,
+          "height": 16,
+          "colors": 0,
+          "reserved": 0,
+          "planes": 1,
+          "bits": 32,
+          "encoding": "dib"
+        }
+      ]
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/1024-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/128-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/16-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "3d1c5fde1d5d6d03258839b54d06b705dc4a81eccae828546668ea744ba257a3"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "2298e526df64d4deb53d8afb095c27f8ddd9ee3d8b6104c660f6af43707b6497"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/22-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 22,
+      "height": 22,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/24-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 24,
+      "height": 24,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "3d1c5fde1d5d6d03258839b54d06b705dc4a81eccae828546668ea744ba257a3"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "2298e526df64d4deb53d8afb095c27f8ddd9ee3d8b6104c660f6af43707b6497"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/256-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/32-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/48-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/512-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/64-mimetypes-application-x-krita.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/mimetypes/application-x-krita-16.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": null,
+      "preserved_sha256": "3b02b8e9892c4abe04dde4eddf540fb630bcd8a2ddcdb3599a767b4d0ed81341"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/mimetypes/application-x-krita-22.svg",
+      "width": "22",
+      "height": "22",
+      "viewBox": null,
+      "preserved_sha256": "15d2b58292e01376ec6592fc2870c7811151943774a88cebfc28729e2c85252b"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/mimetypes/application-x-krita-24.svg",
+      "width": "24",
+      "height": "24",
+      "viewBox": null,
+      "preserved_sha256": "15d2b58292e01376ec6592fc2870c7811151943774a88cebfc28729e2c85252b"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/mimetypes/application-x-krita.svg",
+      "width": "64",
+      "height": "64",
+      "viewBox": "0 0 64 64",
+      "preserved_sha256": "8032ab1e766d673d1e7407640b2f7dad3df332b07111f00b9d0252c950fb097e"
+    },
+    {
+      "kind": "icns",
+      "path": "krita/pics/mimetypes/krita-kra.icns",
+      "chunks": [
+        {
+          "type": "ic12",
+          "width": 64,
+          "height": 64,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "1694808d64fcce24088f44701178f24bf8d4dd6933ade4e8f5ba8707e2f0ec16"
+            }
+          ],
+          "preserved_metadata_sha256": "ede3b1bb2ad0bc49183d0cf062a0812b2caa083e3d1e1a490b86066d99757272"
+        },
+        {
+          "type": "ic07",
+          "width": 128,
+          "height": 128,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "8293d42dad981df90b502f8912d58ae1836dcb55ec6842d16a88ca030826b5cc"
+            }
+          ],
+          "preserved_metadata_sha256": "757e1579c3cd44d9c895aa53fee7d314c69fd671f984e532dfa7894bedc23295"
+        },
+        {
+          "type": "ic13",
+          "width": 256,
+          "height": 256,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "b8d07656b2a0212e04666059f9be4c6dd16bd4f934de6176ecc8f85b1b0d4b0d"
+            }
+          ],
+          "preserved_metadata_sha256": "48c06729d29fa00eade5ef55b0667e74cbb495193da0c0e865bb648349a83d15"
+        },
+        {
+          "type": "ic08",
+          "width": 256,
+          "height": 256,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "b8d07656b2a0212e04666059f9be4c6dd16bd4f934de6176ecc8f85b1b0d4b0d"
+            }
+          ],
+          "preserved_metadata_sha256": "48c06729d29fa00eade5ef55b0667e74cbb495193da0c0e865bb648349a83d15"
+        },
+        {
+          "type": "ic04",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "type": "ic14",
+          "width": 512,
+          "height": 512,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "81e0695f6ba854f4f432cb7e0a26d0d21a13b1fff24ab71b38b047fef5047ad4"
+            }
+          ],
+          "preserved_metadata_sha256": "4d695621d1a67935846d8c5edff35d978e8362304835b98197da05d95395d4af"
+        },
+        {
+          "type": "ic09",
+          "width": 512,
+          "height": 512,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "81e0695f6ba854f4f432cb7e0a26d0d21a13b1fff24ab71b38b047fef5047ad4"
+            }
+          ],
+          "preserved_metadata_sha256": "4d695621d1a67935846d8c5edff35d978e8362304835b98197da05d95395d4af"
+        },
+        {
+          "type": "ic05",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "type": "ic10",
+          "width": 1024,
+          "height": 1024,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "e2671f940e16d12df9695d4ecc94d338e1b5b3920c830f43fcb06d404d271ea7"
+            }
+          ],
+          "preserved_metadata_sha256": "55e9d1af1df1bfa749d29bd52402e91d3663a613903a71e092976b4a7edfe25e"
+        },
+        {
+          "type": "ic11",
+          "width": 32,
+          "height": 32,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "d0242f8aeb30efac6f05d5b1de574766b3955b80c214f91d3b55314a4459b0bf"
+            }
+          ],
+          "preserved_metadata_sha256": "4bc6379929cf1249b3f44cadf4c61ddb1a5137154ea0a9c2ea55f6280471cdd4"
+        },
+        {
+          "type": "info",
+          "preserved_sha256": "2e2d6939137875b0cf88bac255cc5697633279a39629ae8f18e4c57940423345"
+        }
+      ]
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/1024-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/128-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/16-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/22-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 22,
+      "height": 22,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/24-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 24,
+      "height": 24,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/256-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/32-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/48-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/512-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/mimetypes/krz/64-mimetypes-application-x-krz.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "fc43b1fbf38c550a8d78633914180b528e05e311dba5014fdf6f4f5f0462afc7"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "4f6c9923d7dff445dfe91e4ef3f4d1634d6d59c7892b716aab317e32d4e4a567"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/mimetypes/krz/application-x-krz-16.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": null,
+      "preserved_sha256": "9a82aa9d5f11c4f239ae82c440132cf39589bc4f91e2ce2502c2587270979443"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/mimetypes/krz/application-x-krz-22.svg",
+      "width": "22",
+      "height": "22",
+      "viewBox": null,
+      "preserved_sha256": "a28a721413bb9c82a1e5f739ff67552798c742d2c7c256bcdddb1f1aae617a4f"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/mimetypes/krz/application-x-krz-24.svg",
+      "width": "24",
+      "height": "24",
+      "viewBox": null,
+      "preserved_sha256": "a28a721413bb9c82a1e5f739ff67552798c742d2c7c256bcdddb1f1aae617a4f"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/mimetypes/krz/application-x-krz.svg",
+      "width": "64",
+      "height": "64",
+      "viewBox": "0 0 64 64",
+      "preserved_sha256": "d9a0b9b106c378eefd4e6b42bdc9e06cc0f7b2eabd66c424291813c763d985f0"
+    },
+    {
+      "kind": "icns",
+      "path": "krita/pics/mimetypes/krz/krita-krz.icns",
+      "chunks": [
+        {
+          "type": "ic12",
+          "width": 64,
+          "height": 64,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "1694808d64fcce24088f44701178f24bf8d4dd6933ade4e8f5ba8707e2f0ec16"
+            }
+          ],
+          "preserved_metadata_sha256": "ede3b1bb2ad0bc49183d0cf062a0812b2caa083e3d1e1a490b86066d99757272"
+        },
+        {
+          "type": "ic07",
+          "width": 128,
+          "height": 128,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "8293d42dad981df90b502f8912d58ae1836dcb55ec6842d16a88ca030826b5cc"
+            }
+          ],
+          "preserved_metadata_sha256": "757e1579c3cd44d9c895aa53fee7d314c69fd671f984e532dfa7894bedc23295"
+        },
+        {
+          "type": "ic13",
+          "width": 256,
+          "height": 256,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "b8d07656b2a0212e04666059f9be4c6dd16bd4f934de6176ecc8f85b1b0d4b0d"
+            }
+          ],
+          "preserved_metadata_sha256": "48c06729d29fa00eade5ef55b0667e74cbb495193da0c0e865bb648349a83d15"
+        },
+        {
+          "type": "ic08",
+          "width": 256,
+          "height": 256,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "b8d07656b2a0212e04666059f9be4c6dd16bd4f934de6176ecc8f85b1b0d4b0d"
+            }
+          ],
+          "preserved_metadata_sha256": "48c06729d29fa00eade5ef55b0667e74cbb495193da0c0e865bb648349a83d15"
+        },
+        {
+          "type": "ic04",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "type": "ic14",
+          "width": 512,
+          "height": 512,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "81e0695f6ba854f4f432cb7e0a26d0d21a13b1fff24ab71b38b047fef5047ad4"
+            }
+          ],
+          "preserved_metadata_sha256": "4d695621d1a67935846d8c5edff35d978e8362304835b98197da05d95395d4af"
+        },
+        {
+          "type": "ic09",
+          "width": 512,
+          "height": 512,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "81e0695f6ba854f4f432cb7e0a26d0d21a13b1fff24ab71b38b047fef5047ad4"
+            }
+          ],
+          "preserved_metadata_sha256": "4d695621d1a67935846d8c5edff35d978e8362304835b98197da05d95395d4af"
+        },
+        {
+          "type": "ic05",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "type": "ic10",
+          "width": 1024,
+          "height": 1024,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "e2671f940e16d12df9695d4ecc94d338e1b5b3920c830f43fcb06d404d271ea7"
+            }
+          ],
+          "preserved_metadata_sha256": "55e9d1af1df1bfa749d29bd52402e91d3663a613903a71e092976b4a7edfe25e"
+        },
+        {
+          "type": "ic11",
+          "width": 32,
+          "height": 32,
+          "preserved_metadata": [
+            {
+              "type": "eXIf",
+              "size": 80,
+              "sha256": "d0242f8aeb30efac6f05d5b1de574766b3955b80c214f91d3b55314a4459b0bf"
+            }
+          ],
+          "preserved_metadata_sha256": "4bc6379929cf1249b3f44cadf4c61ddb1a5137154ea0a9c2ea55f6280471cdd4"
+        },
+        {
+          "type": "info",
+          "preserved_sha256": "2e2d6939137875b0cf88bac255cc5697633279a39629ae8f18e4c57940423345"
+        }
+      ]
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/sketch/icon-kritasketch-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        }
+      ],
+      "preserved_metadata_sha256": "8c6f0b58c3f4008e0325822fdc66b6a88a13d9dc1a22668c3ecaa3c720a241eb"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/sketch/icon-kritasketch.svg",
+      "width": "256",
+      "height": "256",
+      "viewBox": null,
+      "preserved_sha256": "cd1c48139236c5a4dc501f644cfba8c3594a8939b583c4e68e786dc760c7309c"
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/sponsors/asifa.png",
+      "format": "png",
+      "width": 150,
+      "height": 150
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/sponsors/broken_rules.png",
+      "format": "png",
+      "width": 150,
+      "height": 72
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/sponsors/epic.png",
+      "format": "png",
+      "width": 150,
+      "height": 155
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/sponsors/fosshub.png",
+      "format": "png",
+      "width": 150,
+      "height": 44
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/sponsors/gamechuck.png",
+      "format": "png",
+      "width": 150,
+      "height": 126
+    },
+    {
+      "kind": "raster",
+      "path": "krita/pics/sponsors/intel.png",
+      "format": "png",
+      "width": 150,
+      "height": 150
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/svg/dark_krita_log.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": "0 0 16 16",
+      "preserved_sha256": "cf44ef2fc133d5a02cc946a089e0e22d634935cc3843b47c11c6440f8bcd8d93"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/svg/light_krita_log.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": "0 0 16 16",
+      "preserved_sha256": "cf44ef2fc133d5a02cc946a089e0e22d634935cc3843b47c11c6440f8bcd8d93"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/svg/support-krita.svg",
+      "width": "24",
+      "height": "24",
+      "viewBox": "0 0 6.3499999 6.3500002",
+      "preserved_sha256": "cb2995046997e7cd8e16e6e4e6888361bd179c39b3f06354888900de8a4ebcfc"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/tools/SVG/16/dark_tool_comic_panel_move_point.svg",
+      "width": "3.84pt",
+      "height": "3.84pt",
+      "viewBox": "0 0 3.84 3.84",
+      "preserved_sha256": "3a086a39cb9ca141903dceb91a126c71aa4e7dc97b1e0826807ca551f63234b9"
+    },
+    {
+      "kind": "svg",
+      "path": "krita/pics/tools/SVG/16/light_tool_comic_panel_move_point.svg",
+      "width": "3.84pt",
+      "height": "3.84pt",
+      "viewBox": "0 0 3.84 3.84",
+      "preserved_sha256": "3a086a39cb9ca141903dceb91a126c71aa4e7dc97b1e0826807ca551f63234b9"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/ic_launcher-playstore.png",
+      "format": "png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/ic_launcher_next-playstore.png",
+      "format": "png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "kind": "svg",
+      "path": "packaging/android/apk/res-src/Next/adaptive.svg",
+      "width": "1309",
+      "height": "1309",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "packaging/android/apk/res-src/Next/background.svg",
+      "width": "1309",
+      "height": "1309",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "packaging/android/apk/res-src/Next/foreground.svg",
+      "width": "1309",
+      "height": "1309",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "packaging/android/apk/res-src/Next/legacy.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "svg",
+      "path": "packaging/android/apk/res-src/default/adaptive.svg",
+      "width": "1309",
+      "height": "1309",
+      "viewBox": null,
+      "preserved_sha256": "f1a5b8aa8e16ecb41937691d28fb06d896b8b456211ca06da191b6c632e44e4b"
+    },
+    {
+      "kind": "svg",
+      "path": "packaging/android/apk/res-src/default/background.svg",
+      "width": "1309",
+      "height": "1309",
+      "viewBox": null,
+      "preserved_sha256": "f1a5b8aa8e16ecb41937691d28fb06d896b8b456211ca06da191b6c632e44e4b"
+    },
+    {
+      "kind": "svg",
+      "path": "packaging/android/apk/res-src/default/foreground.svg",
+      "width": "1309",
+      "height": "1309",
+      "viewBox": null,
+      "preserved_sha256": "f1a5b8aa8e16ecb41937691d28fb06d896b8b456211ca06da191b6c632e44e4b"
+    },
+    {
+      "kind": "svg",
+      "path": "packaging/android/apk/res-src/default/legacy.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "android-vector",
+      "path": "packaging/android/apk/res/drawable/ic_launcher_background.xml",
+      "width": "108dp",
+      "height": "108dp",
+      "viewportWidth": "1309",
+      "viewportHeight": "1309",
+      "preserved_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "android-vector",
+      "path": "packaging/android/apk/res/drawable/ic_launcher_foreground.xml",
+      "width": "108dp",
+      "height": "108dp",
+      "viewportWidth": "1309",
+      "viewportHeight": "1309",
+      "preserved_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "android-vector",
+      "path": "packaging/android/apk/res/drawable/ic_launcher_next_background.xml",
+      "width": "108dp",
+      "height": "108dp",
+      "viewportWidth": "1309",
+      "viewportHeight": "1309",
+      "preserved_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "android-vector",
+      "path": "packaging/android/apk/res/drawable/ic_launcher_next_foreground.xml",
+      "width": "108dp",
+      "height": "108dp",
+      "viewportWidth": "1309",
+      "viewportHeight": "1309",
+      "preserved_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/drawable/product_donation.png",
+      "format": "png",
+      "width": 380,
+      "height": 380
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/drawable/product_fund.jpg",
+      "format": "jpg",
+      "width": 380,
+      "height": 380,
+      "preserved_metadata": [
+        {
+          "type": "APP2",
+          "size": 9098,
+          "sha256": "add5adce67a0093227ff478e9604c6284ca53480c89ee74837335e646f0d89c0"
+        }
+      ],
+      "preserved_metadata_sha256": "09749d919317906c79db9917bb3175b4adbe90473f043e981b31ce12fdca797d"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/drawable/product_onetime.png",
+      "format": "png",
+      "width": 360,
+      "height": 360
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/drawable/product_subscription.png",
+      "format": "png",
+      "width": 380,
+      "height": 380
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-hdpi/ic_launcher.webp",
+      "format": "webp",
+      "width": 56,
+      "height": 53
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-hdpi/ic_launcher_next.webp",
+      "format": "webp",
+      "width": 72,
+      "height": 72
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-hdpi/ic_launcher_next_round.webp",
+      "format": "webp",
+      "width": 72,
+      "height": 72
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-hdpi/ic_launcher_round.webp",
+      "format": "webp",
+      "width": 72,
+      "height": 72
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-mdpi/ic_launcher.webp",
+      "format": "webp",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-mdpi/ic_launcher_next.webp",
+      "format": "webp",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-mdpi/ic_launcher_next_round.webp",
+      "format": "webp",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-mdpi/ic_launcher_round.webp",
+      "format": "webp",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xhdpi/ic_launcher.webp",
+      "format": "webp",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xhdpi/ic_launcher_next.webp",
+      "format": "webp",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xhdpi/ic_launcher_next_round.webp",
+      "format": "webp",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xhdpi/ic_launcher_round.webp",
+      "format": "webp",
+      "width": 96,
+      "height": 96
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xxhdpi/ic_launcher.webp",
+      "format": "webp",
+      "width": 110,
+      "height": 103
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xxhdpi/ic_launcher_next.webp",
+      "format": "webp",
+      "width": 114,
+      "height": 109
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xxhdpi/ic_launcher_next_round.webp",
+      "format": "webp",
+      "width": 144,
+      "height": 144
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xxhdpi/ic_launcher_round.webp",
+      "format": "webp",
+      "width": 144,
+      "height": 144
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xxxhdpi/ic_launcher.webp",
+      "format": "webp",
+      "width": 192,
+      "height": 192
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xxxhdpi/ic_launcher_next.webp",
+      "format": "webp",
+      "width": 152,
+      "height": 144
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xxxhdpi/ic_launcher_next_round.webp",
+      "format": "webp",
+      "width": 192,
+      "height": 192
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/android/apk/res/mipmap-xxxhdpi/ic_launcher_round.webp",
+      "format": "webp",
+      "width": 192,
+      "height": 192
+    },
+    {
+      "kind": "icns",
+      "path": "packaging/macos/KritaIcon.icns",
+      "chunks": [
+        {
+          "type": "ic12",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "ic07",
+          "width": 128,
+          "height": 128
+        },
+        {
+          "type": "ic13",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "type": "ic08",
+          "width": 256,
+          "height": 256
+        },
+        {
+          "type": "ic04",
+          "width": 16,
+          "height": 16
+        },
+        {
+          "type": "ic14",
+          "width": 512,
+          "height": 512
+        },
+        {
+          "type": "ic09",
+          "width": 512,
+          "height": 512
+        },
+        {
+          "type": "ic05",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "type": "ic10",
+          "width": 1024,
+          "height": 1024
+        },
+        {
+          "type": "ic11",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "type": "info",
+          "preserved_sha256": "1366bdd047dd6b55190237a201b9d040390e693c72476a0c2b12b7c61486bf4e"
+        }
+      ]
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/macos/krita_dmgBG.png",
+      "format": "png",
+      "width": 1400,
+      "height": 870,
+      "preserved_metadata": [
+        {
+          "type": "eXIf",
+          "size": 180,
+          "sha256": "79c15905bcb17ca494d18898c8c0b7decbbb8c15e2d628c2e6e2dcf709d23b9c"
+        },
+        {
+          "type": "iTXt",
+          "size": 1133,
+          "sha256": "d1ea505b9b863a6aab76392c98721df5265e40b9a421c71f444e4b5f3c05bc63"
+        }
+      ],
+      "preserved_metadata_sha256": "333b6bbbcec914f8aa75129bbccae47f44c6cfee1cb80469945adf3b8f017d6d"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square150x150Logo.scale-100.png",
+      "format": "png",
+      "width": 150,
+      "height": 150
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square150x150Logo.scale-125.png",
+      "format": "png",
+      "width": 188,
+      "height": 188
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square150x150Logo.scale-150.png",
+      "format": "png",
+      "width": 225,
+      "height": 225
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square150x150Logo.scale-200.png",
+      "format": "png",
+      "width": 300,
+      "height": 300
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square150x150Logo.scale-400.png",
+      "format": "png",
+      "width": 600,
+      "height": 600
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square310x310Logo.scale-100.png",
+      "format": "png",
+      "width": 310,
+      "height": 310
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square310x310Logo.scale-125.png",
+      "format": "png",
+      "width": 388,
+      "height": 388
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square310x310Logo.scale-150.png",
+      "format": "png",
+      "width": 465,
+      "height": 465
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square310x310Logo.scale-200.png",
+      "format": "png",
+      "width": 620,
+      "height": 620
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square310x310Logo.scale-400.png",
+      "format": "png",
+      "width": 1240,
+      "height": 1240
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-lightunplated_targetsize-16.png",
+      "format": "png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-lightunplated_targetsize-24.png",
+      "format": "png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-lightunplated_targetsize-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-lightunplated_targetsize-32.png",
+      "format": "png",
+      "width": 32,
+      "height": 32
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-lightunplated_targetsize-48.png",
+      "format": "png",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-unplated_targetsize-16.png",
+      "format": "png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-unplated_targetsize-24.png",
+      "format": "png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-unplated_targetsize-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-unplated_targetsize-32.png",
+      "format": "png",
+      "width": 32,
+      "height": 32
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.altform-unplated_targetsize-48.png",
+      "format": "png",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.scale-100.png",
+      "format": "png",
+      "width": 44,
+      "height": 44
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.scale-125.png",
+      "format": "png",
+      "width": 55,
+      "height": 55
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.scale-150.png",
+      "format": "png",
+      "width": 66,
+      "height": 66
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.scale-200.png",
+      "format": "png",
+      "width": 88,
+      "height": 88
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.scale-400.png",
+      "format": "png",
+      "width": 176,
+      "height": 176
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.targetsize-16.png",
+      "format": "png",
+      "width": 16,
+      "height": 16
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.targetsize-24.png",
+      "format": "png",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.targetsize-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.targetsize-32.png",
+      "format": "png",
+      "width": 32,
+      "height": 32
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square44x44Logo.targetsize-48.png",
+      "format": "png",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square71x71Logo.scale-100.png",
+      "format": "png",
+      "width": 71,
+      "height": 71
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square71x71Logo.scale-125.png",
+      "format": "png",
+      "width": 89,
+      "height": 89
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square71x71Logo.scale-150.png",
+      "format": "png",
+      "width": 107,
+      "height": 107
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square71x71Logo.scale-200.png",
+      "format": "png",
+      "width": 142,
+      "height": 142
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Square71x71Logo.scale-400.png",
+      "format": "png",
+      "width": 284,
+      "height": 284
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/StoreLogo.scale-100.png",
+      "format": "png",
+      "width": 50,
+      "height": 50
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/StoreLogo.scale-125.png",
+      "format": "png",
+      "width": 63,
+      "height": 63
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/StoreLogo.scale-150.png",
+      "format": "png",
+      "width": 75,
+      "height": 75
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/StoreLogo.scale-200.png",
+      "format": "png",
+      "width": 100,
+      "height": 100
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/StoreLogo.scale-400.png",
+      "format": "png",
+      "width": 200,
+      "height": 200
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Wide310x150Logo.scale-100.png",
+      "format": "png",
+      "width": 310,
+      "height": 150
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Wide310x150Logo.scale-125.png",
+      "format": "png",
+      "width": 388,
+      "height": 188
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Wide310x150Logo.scale-150.png",
+      "format": "png",
+      "width": 465,
+      "height": 225
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Wide310x150Logo.scale-200.png",
+      "format": "png",
+      "width": 620,
+      "height": 300
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/Wide310x150Logo.scale-400.png",
+      "format": "png",
+      "width": 1240,
+      "height": 600
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/fileicon.targetsize-16.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "3d1c5fde1d5d6d03258839b54d06b705dc4a81eccae828546668ea744ba257a3"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "2298e526df64d4deb53d8afb095c27f8ddd9ee3d8b6104c660f6af43707b6497"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/fileicon.targetsize-24.png",
+      "format": "png",
+      "width": 24,
+      "height": 24,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "3d1c5fde1d5d6d03258839b54d06b705dc4a81eccae828546668ea744ba257a3"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "2298e526df64d4deb53d8afb095c27f8ddd9ee3d8b6104c660f6af43707b6497"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/fileicon.targetsize-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/fileicon.targetsize-32.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/fileicon.targetsize-48.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "raster",
+      "path": "packaging/windows/msix/pkg/Assets/fileicon.targetsize-64.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 39,
+          "sha256": "e3e4d68d5fb24105bec38e1e8f9dbcb58c5d4f6336119727c15708627de5a360"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "ebffff2d8f519237189d9aaeb196efd2a3dcafd991e6a9c250ffe58750844ba7"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/16_dark_application-x-krita.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": "0 0 16 16",
+      "preserved_sha256": "541416d744f258e73c34f05f1ac4d288a39255e256e3c4b04fcd75274a71a6cd"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/16_dark_application-x-krz.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": "0 0 16 16",
+      "preserved_sha256": "541416d744f258e73c34f05f1ac4d288a39255e256e3c4b04fcd75274a71a6cd"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/16_light_application-x-krita.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": "0 0 16 16",
+      "preserved_sha256": "541416d744f258e73c34f05f1ac4d288a39255e256e3c4b04fcd75274a71a6cd"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/16_light_application-x-krz.svg",
+      "width": "16",
+      "height": "16",
+      "viewBox": "0 0 16 16",
+      "preserved_sha256": "541416d744f258e73c34f05f1ac4d288a39255e256e3c4b04fcd75274a71a6cd"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/22_dark_application-x-krita.svg",
+      "width": "22",
+      "height": "22",
+      "viewBox": null,
+      "preserved_sha256": "df4c267a0af48e03d9774372038e8daaf8e1601c4dc4e97b0893236d357c892d"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/22_dark_application-x-krz.svg",
+      "width": "22",
+      "height": "22",
+      "viewBox": null,
+      "preserved_sha256": "df4c267a0af48e03d9774372038e8daaf8e1601c4dc4e97b0893236d357c892d"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/22_light_application-x-krita.svg",
+      "width": "22",
+      "height": "22",
+      "viewBox": null,
+      "preserved_sha256": "df4c267a0af48e03d9774372038e8daaf8e1601c4dc4e97b0893236d357c892d"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/22_light_application-x-krz.svg",
+      "width": "22",
+      "height": "22",
+      "viewBox": null,
+      "preserved_sha256": "df4c267a0af48e03d9774372038e8daaf8e1601c4dc4e97b0893236d357c892d"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/32_dark_application-x-krita.svg",
+      "width": "32",
+      "height": "32",
+      "viewBox": null,
+      "preserved_sha256": "4924b712f58c333d766485acb62170b5512f9d493ba16c13117439d8a628539e"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/32_dark_application-x-krz.svg",
+      "width": "32",
+      "height": "32",
+      "viewBox": null,
+      "preserved_sha256": "aaa359dba6634b9eaf7b72c226896694fb6ecda003e3ce60747fad0ffd797ec1"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/32_light_application-x-krita.svg",
+      "width": "32",
+      "height": "32",
+      "viewBox": null,
+      "preserved_sha256": "4924b712f58c333d766485acb62170b5512f9d493ba16c13117439d8a628539e"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/32_light_application-x-krz.svg",
+      "width": "32",
+      "height": "32",
+      "viewBox": null,
+      "preserved_sha256": "aaa359dba6634b9eaf7b72c226896694fb6ecda003e3ce60747fad0ffd797ec1"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/64_dark_application-x-krita.svg",
+      "width": "64",
+      "height": "64",
+      "viewBox": "0 0 64 64",
+      "preserved_sha256": "9e912771fe9476c4cce04500d3f424b43304aa4004064458a13d0f6ffb9c95ca"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/64_dark_application-x-krz.svg",
+      "width": "64",
+      "height": "64",
+      "viewBox": "0 0 64 64",
+      "preserved_sha256": "9e912771fe9476c4cce04500d3f424b43304aa4004064458a13d0f6ffb9c95ca"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/64_light_application-x-krita.svg",
+      "width": "64",
+      "height": "64",
+      "viewBox": "0 0 64 64",
+      "preserved_sha256": "9e912771fe9476c4cce04500d3f424b43304aa4004064458a13d0f6ffb9c95ca"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/64_light_application-x-krz.svg",
+      "width": "64",
+      "height": "64",
+      "viewBox": "0 0 64 64",
+      "preserved_sha256": "9e912771fe9476c4cce04500d3f424b43304aa4004064458a13d0f6ffb9c95ca"
+    },
+    {
+      "kind": "svg",
+      "path": "pics/krita-base.svg",
+      "width": "1024",
+      "height": "1024",
+      "viewBox": null,
+      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
+    },
+    {
+      "kind": "raster",
+      "path": "pics/krita.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "preserved_metadata": [
+        {
+          "type": "tEXt",
+          "size": 37,
+          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
+        },
+        {
+          "type": "tEXt",
+          "size": 35,
+          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
+        },
+        {
+          "type": "tEXt",
+          "size": 74,
+          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
+        },
+        {
+          "type": "tEXt",
+          "size": 67,
+          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
+        },
+        {
+          "type": "tEXt",
+          "size": 94,
+          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
+        }
+      ],
+      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
+    }
+  ]
+}

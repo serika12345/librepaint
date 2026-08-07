@@ -214,7 +214,7 @@ bool DlgCreateBundle::putResourcesInTheBundle(KoResourceBundleSP bundle)
         if (usedFilenames.value({res->resourceType().first, prettyFilename}, 0) > 0) {
             QMessageBox::warning(
                 this,
-                i18nc("@title:window", "Krita"),
+                i18nc("@title:window", "LibrePaint"),
                 i18nc("Warning message", "More than one resource share the same file name '%1'. Please export them in separate bundles.", prettyFilename));
             return false;
         }
@@ -316,14 +316,14 @@ void DlgCreateBundle::accept()
 
     if (name.isEmpty()) {
         m_pageMetadataInfo->showWarning();
-        QMessageBox::warning(this, i18nc("@title:window", "Krita"), i18n("The resource bundle name cannot be empty."));
+        QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"), i18n("The resource bundle name cannot be empty."));
         return;
     }
     m_pageMetadataInfo->removeWarning();
 
     if (m_pageBundleSaver->saveLocation().isEmpty() ){
         m_pageBundleSaver->showWarning();
-        QMessageBox::warning(this, i18nc("@title:window", "Krita"), i18n("The save location cannot be empty."));
+        QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"), i18n("The save location cannot be empty."));
         return;
     }
     else {
@@ -355,7 +355,7 @@ void DlgCreateBundle::accept()
             if (!m_bundle->save()) {
                 m_pageBundleSaver->showWarning();
                 QMessageBox::critical(this,
-                    i18nc("@title:window", "Krita"),
+                    i18nc("@title:window", "LibrePaint"),
                     i18n("Could not open '%1' for saving.", filename));
                 m_bundle.reset();
                 return;
@@ -371,7 +371,7 @@ void DlgCreateBundle::accept()
             if (!m_bundle->save()) {
                 m_pageBundleSaver->showWarning();
                 QMessageBox::critical(this,
-                    i18nc("@title:window", "Krita"),
+                    i18nc("@title:window", "LibrePaint"),
                     i18n("Could not open '%1' for saving.", filename));
                 m_bundle.reset();
                 return;

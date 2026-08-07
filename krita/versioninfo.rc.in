@@ -38,8 +38,9 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #define KRITA_PRODUCT_VERSION KRITA_FILE_VERSION
 #define KRITA_PRODUCT_VERSION_STR KRITA_FILE_VERSION_STR
 
-#define KRITA_DESCRIPTION_STR "Krita digital painting application"
+#define KRITA_DESCRIPTION_STR "LibrePaint, the free paint app"
 #define KRITA_FOUNDATION_STR "Krita Foundation"
+#define LIBREPAINT_COMPANY_STR "LibrePaint"
 
 
 VS_VERSION_INFO VERSIONINFO
@@ -63,13 +64,13 @@ BEGIN
     BEGIN
         BLOCK "040904E4"
         BEGIN
-            VALUE "CompanyName", KRITA_FOUNDATION_STR
+            VALUE "CompanyName", LIBREPAINT_COMPANY_STR
             VALUE "FileDescription", KRITA_DESCRIPTION_STR
             VALUE "FileVersion", KRITA_FILE_VERSION_STR
             VALUE "InternalName", "krita"
             VALUE "LegalCopyright", KRITA_FOUNDATION_STR
             VALUE "OriginalFilename", "krita.exe"
-            VALUE "ProductName", "Krita"
+            VALUE "ProductName", "LibrePaint"
             VALUE "ProductVersion", KRITA_PRODUCT_VERSION_STR
         END
     END

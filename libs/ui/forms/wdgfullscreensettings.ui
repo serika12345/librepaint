@@ -22,7 +22,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Select which parts of Krita will be hidden in canvas-only mode.</string>
+      <string>Select which parts of the free paint app will be hidden in canvas-only mode.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -60,7 +60,7 @@
    <item row="5" column="1">
     <widget class="QCheckBox" name="chkTitlebar">
      <property name="text">
-      <string>Titlebar (hiding the titlebar will make Krita go full-screen)</string>
+      <string>Titlebar (hiding the titlebar will make the free paint app go full-screen)</string>
      </property>
     </widget>
    </item>

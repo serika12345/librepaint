@@ -23,7 +23,7 @@ void installKisIOSMemoryWarningHandler()
                     object:nil
                      queue:[NSOperationQueue mainQueue]
                 usingBlock:^(NSNotification *) {
-                    qWarning() << "iOS memory warning: purging Krita tile and pixmap caches";
+                    qWarning() << "iOS memory warning: purging LibrePaint tile and pixmap caches";
                     QPixmapCache::clear();
                     KisTileDataStore::instance()->purgeMemory();
                 }];

@@ -42,7 +42,7 @@ void kis_assert_common(const char *assertion, const char *file, int line, bool a
 
     QString longMessage =
         QString(
-            "Krita has encountered an internal error:\n\n"
+            "LibrePaint has encountered an internal error:\n\n"
             "%1\n\n"
             "Please report a bug to developers!\n\n"
             "Press Ignore to try to continue.\n"
@@ -79,7 +79,7 @@ void kis_assert_common(const char *assertion, const char *file, int line, bool a
 
     if (!disableAssertMsg) {
         button =
-            QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita: Internal Error"),
+            QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint: Internal Error"),
                                   longMessage,
                                   QMessageBox::Ignore | QMessageBox::Abort,
                                   QMessageBox::Ignore);

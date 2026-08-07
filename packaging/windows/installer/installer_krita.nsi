@@ -19,29 +19,30 @@ Unicode true
 # Enabling DPI awareness creates awful CJK text in some sizes, so don't enable it.
 ManifestDPIAware false
 
-# Krita constants (can be overridden in command line params)
+# LibrePaint constants (can be overridden in command line params)
 !define /ifndef KRITA_VERSION "0.0.0.0"
 !define /ifndef KRITA_VERSION_DISPLAY "test-version"
 #!define /ifndef KRITA_VERSION_GIT ""
 !define /ifndef KRITA_INSTALLER_OUTPUT_DIR ""
 !ifdef KRITA_INSTALLER_64
-	!define /ifndef KRITA_INSTALLER_OUTPUT_NAME "krita_x64_setup.exe"
+	!define /ifndef KRITA_INSTALLER_OUTPUT_NAME "LibrePaint_x64_setup.exe"
 !else
-	!define /ifndef KRITA_INSTALLER_OUTPUT_NAME "krita_x86_setup.exe"
+	!define /ifndef KRITA_INSTALLER_OUTPUT_NAME "LibrePaint_x86_setup.exe"
 !endif
 
-# Krita constants (fixed)
+# LibrePaint constants (fixed)
 !if "${KRITA_INSTALLER_OUTPUT_DIR}" == ""
 	!define KRITA_INSTALLER_OUTPUT "${KRITA_INSTALLER_OUTPUT_NAME}"
 !else
 	!define KRITA_INSTALLER_OUTPUT "${KRITA_INSTALLER_OUTPUT_DIR}\${KRITA_INSTALLER_OUTPUT_NAME}"
 !endif
-!define KRTIA_PUBLISHER "Krita Foundation"
+!define KRTIA_PUBLISHER "LibrePaint"
+!define KRITA_LEGAL_PUBLISHER "Krita Foundation"
 !ifdef KRITA_INSTALLER_64
-	!define KRITA_PRODUCTNAME "Krita (x64)"
+	!define KRITA_PRODUCTNAME "LibrePaint (x64)"
 	!define KRITA_UNINSTALL_REGKEY "Krita_x64"
 !else
-	!define KRITA_PRODUCTNAME "Krita (x86)"
+	!define KRITA_PRODUCTNAME "LibrePaint (x86)"
 	!define KRITA_UNINSTALL_REGKEY "Krita_x86"
 !endif
 
@@ -50,7 +51,7 @@ VIAddVersionKey "CompanyName" "${KRTIA_PUBLISHER}"
 VIAddVersionKey "FileDescription" "${KRITA_PRODUCTNAME} ${KRITA_VERSION_DISPLAY} Setup"
 VIAddVersionKey "FileVersion" "${KRITA_VERSION}"
 VIAddVersionKey "InternalName" "${KRITA_INSTALLER_OUTPUT_NAME}"
-VIAddVersionKey "LegalCopyright" "${KRTIA_PUBLISHER}"
+VIAddVersionKey "LegalCopyright" "${KRITA_LEGAL_PUBLISHER}"
 VIAddVersionKey "OriginalFileName" "${KRITA_INSTALLER_OUTPUT_NAME}"
 VIAddVersionKey "ProductName" "${KRITA_PRODUCTNAME} ${KRITA_VERSION_DISPLAY} Setup"
 VIAddVersionKey "ProductVersion" "${KRITA_VERSION}"
@@ -60,9 +61,9 @@ BrandingText "[NSIS ${NSIS_VERSION}]  ${KRITA_PRODUCTNAME} ${KRITA_VERSION}"
 Name "${KRITA_PRODUCTNAME} ${KRITA_VERSION_DISPLAY}"
 OutFile ${KRITA_INSTALLER_OUTPUT}
 !ifdef KRITA_INSTALLER_64
-	InstallDir "$PROGRAMFILES64\Krita (x64)"
+	InstallDir "$PROGRAMFILES64\LibrePaint (x64)"
 !else
-	InstallDir "$PROGRAMFILES32\Krita (x86)"
+	InstallDir "$PROGRAMFILES32\LibrePaint (x86)"
 !endif
 XPstyle on
 
@@ -85,7 +86,7 @@ Var CreateDesktopIcon
 !define MUI_PAGE_CUSTOMFUNCTION_PRE  func_ShellExLicensePage_Init
 !define MUI_PAGE_HEADER_TEXT "$(ShellExLicensePageHeader)"
 !insertmacro MUI_PAGE_LICENSE "license.rtf"
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "Krita"
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "LibrePaint"
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Krita"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "StartMenuFolder"
@@ -193,8 +194,6 @@ Section "-Thing"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${KRITA_UNINSTALL_REGKEY}" \
 	                 "DisplayIcon" "$\"$INSTDIR\shellex\krita.ico$\",0"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${KRITA_UNINSTALL_REGKEY}" \
-	                 "URLInfoAbout" "https://krita.org/"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${KRITA_UNINSTALL_REGKEY}" \
 	                 "InstallLocation" "$INSTDIR"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${KRITA_UNINSTALL_REGKEY}" \
 	                 "Publisher" "${KRTIA_PUBLISHER}"
@@ -251,7 +250,7 @@ Section "-Main_Shortcuts"
 	!insertmacro MUI_STARTMENU_WRITE_END
 	${If} $CreateDesktopIcon == 1
 		# For the desktop icon, keep the name short and omit version info
-		CreateShortcut "$DESKTOP\Krita.lnk" "$INSTDIR\bin\krita.exe" "" "$INSTDIR\shellex\krita.ico" 0
+		CreateShortcut "$DESKTOP\LibrePaint.lnk" "$INSTDIR\bin\krita.exe" "" "$INSTDIR\shellex\krita.ico" 0
 	${EndIf}
 SectionEnd
 
@@ -346,7 +345,7 @@ Section "un.Main_associate"
 SectionEnd
 
 Section "un.Main_Shortcuts"
-	Delete "$DESKTOP\Krita.lnk"
+	Delete "$DESKTOP\LibrePaint.lnk"
 	!insertmacro MUI_STARTMENU_GETFOLDER Krita $KritaStartMenuFolder
 	Delete "$SMPROGRAMS\$KritaStartMenuFolder\${KRITA_PRODUCTNAME}.lnk"
 	RMDir "$SMPROGRAMS\$KritaStartMenuFolder"

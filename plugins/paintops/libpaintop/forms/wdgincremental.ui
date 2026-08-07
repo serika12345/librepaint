@@ -55,7 +55,7 @@
         </property>
         <property name="text">
          <string>&lt;html&gt;
-&lt;p&gt;&lt;b&gt;Painting mode&lt;/b&gt;: Krita offers a choice between two painting modes: &lt;i&gt;buildup&lt;/i&gt; and &lt;i&gt;wash&lt;/i&gt;. The first choice builds up color while painting in one stroke, the second choices gives you an even color in one stroke even if you go over the same place again and again.&lt;/p&gt;&lt;/html&gt;</string>
+&lt;p&gt;&lt;b&gt;Painting mode&lt;/b&gt;: the free paint app offers a choice between two painting modes: &lt;i&gt;buildup&lt;/i&gt; and &lt;i&gt;wash&lt;/i&gt;. The first choice builds up color while painting in one stroke, the second choices gives you an even color in one stroke even if you go over the same place again and again.&lt;/p&gt;&lt;/html&gt;</string>
         </property>
         <property name="textFormat">
          <enum>Qt::RichText</enum>

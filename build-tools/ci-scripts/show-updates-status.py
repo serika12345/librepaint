@@ -53,12 +53,4 @@ def printZSyncStat(title, url):
         for key in ['MTime', 'Filename', 'URL', 'SHA-1']:
             print('    {}: {}'.format(key, values[key]))
 
-print('')
-printZSyncStat("Channel: Stable", 'https://download.kde.org/stable/krita/updates/Krita-Stable-x86_64.appimage.zsync')
-print('')
-printZSyncStat("Channel: Beta (unstable)", 'https://download.kde.org/unstable/krita/updates/Krita-Beta-x86_64.appimage.zsync')
-print('')
-printZSyncStat("Channel: Plus", 'https://autoconfig.kde.org/krita/updates/plus/linux/Krita-Plus-x86_64.appimage.zsync')
-print('')
-printZSyncStat("Channel: Next", 'https://autoconfig.kde.org/krita/updates/next/linux/Krita-Next-x86_64.appimage.zsync')
-print('')
+print('Upstream update-feed checks are disabled for LibrePaint.')

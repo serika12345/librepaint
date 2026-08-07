@@ -48,7 +48,7 @@ KisImportExportErrorCode workaroundUnsuitableImageColorSpace(KisImageSP image,
                     dlgColorSpaceConversion->setCaption(i18n("Convert image color space on import"));
                     dlgColorSpaceConversion->m_page->lblHeadlineWarning->setText(
                         i18nc("the argument is the ICC profile name",
-                              "The image has a profile attached that Krita cannot edit images "
+                              "The image has a profile attached that the free paint app cannot edit images "
                               "in (\"%1\"), please select a space to convert to for editing: \n"
                               , profile->name()));
                     dlgColorSpaceConversion->m_page->lblHeadlineWarning->setVisible(true);

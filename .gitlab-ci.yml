@@ -59,7 +59,7 @@ variables:
 
 .ci-artifacts-with-packages-mixin:
   artifacts:
-    name: krita-$CI_COMMIT_REF_SLUG-$CI_COMMIT_REF_NAME
+    name: LibrePaint-$CI_COMMIT_REF_SLUG-$CI_COMMIT_REF_NAME
     expire_in: 10 days
     when: always
     paths:
@@ -69,9 +69,9 @@ variables:
       - "_build/CMakeFiles/CMakeConfigureLog.yaml"
       - "_build/CMakeCache.txt"
       # Windows packages
-      - "krita-*.zip"
-      - "krita-*-setup.exe"
-      - "krita-*.msix"
+      - "LibrePaint*.zip"
+      - "LibrePaint*setup.exe"
+      - "LibrePaint*.msix"
       # Linux, MacOS and Android packages
       - "_packaging"
       # Logs from MacOS signer/notarizer
@@ -86,7 +86,7 @@ variables:
 # they are uploaded to CDN
 .ci-artifacts-without-packages-mixin:
   artifacts:
-    name: krita-$CI_COMMIT_REF_SLUG-$CI_COMMIT_REF_NAME-no-packages
+    name: LibrePaint-$CI_COMMIT_REF_SLUG-$CI_COMMIT_REF_NAME-no-packages
     expire_in: 10 days
     when: always
     paths:
@@ -102,14 +102,17 @@ variables:
         coverage_format: cobertura
         path: CoberturaLcovResults.xml
 
-.upload-packages-to-cdn-base-mixin:
+.nightly-package-artifacts-mixin:
   extends:
-    - .ci-artifacts-without-packages-mixin
+    - .ci-artifacts-with-packages-mixin
   interruptible: false
   variables:
     KDECI_ONLY_BUILD: True
     KRITACI_SKIP_DEBUG_PACKAGE: False
-    KRITACI_SKIP_UPLOAD_NIGHTLY_PACKAGE: False
+    # LibrePaint has no configured public CDN publishing target. Keep the
+    # inherited upstream publisher disabled unless a future deployment owner
+    # deliberately replaces it with LibrePaint infrastructure.
+    KRITACI_SKIP_UPLOAD_NIGHTLY_PACKAGE: True
     KRITACI_BUILD_INSTALLERS: True
 
 workflow:

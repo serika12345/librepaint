@@ -105,17 +105,17 @@ static constexpr KStandardActionInfo g_rgActionInfo[] = {
     { ShowStatusbar, KStandardShortcut::ShowStatusbar, "options_show_statusbar", QT_TRANSLATE_NOOP("KStandardActions", "Show St&atusbar"), QT_TRANSLATE_NOOP("KStandardActions", "Show or hide statusbar"), {} },
     { FullScreen,    KStandardShortcut::FullScreen, "fullscreen", QT_TRANSLATE_NOOP("KStandardActions", "F&ull Screen Mode"), {}, "view-fullscreen" },
     { KeyBindings,   KStandardShortcut::KeyBindings, "options_configure_keybinding", QT_TRANSLATE_NOOP("KStandardActions", "Configure Keyboard S&hortcuts…"), {}, "configure-shortcuts" },
-    { Preferences,   KStandardShortcut::Preferences, "options_configure", QT_TRANSLATE_NOOP("KStandardActions", "&Configure Krita..."), {}, "configure" },
+    { Preferences,   KStandardShortcut::Preferences, "options_configure", QT_TRANSLATE_NOOP("KStandardActions", "&Configure LibrePaint..."), {}, "configure" },
     { ConfigureToolbars, KStandardShortcut::ConfigureToolbars, "options_configure_toolbars", QT_TRANSLATE_NOOP("KStandardActions", "Configure Tool&bars…"), {}, "configure-toolbars" },
     { ConfigureNotifications, KStandardShortcut::ConfigureNotifications, "options_configure_notifications", QT_TRANSLATE_NOOP("KStandardActions", "Configure &Notifications…"), {}, "preferences-desktop-notification" },
 
     // the idea here is that Contents is used in menus, and Help in dialogs, so both share the same
     // shortcut
-    { HelpContents,  KStandardShortcut::Help, "help_contents", QT_TRANSLATE_NOOP("KStandardActions", "Krita &Handbook"), {}, "help-contents" },
+    { HelpContents,  KStandardShortcut::Help, "help_contents", QT_TRANSLATE_NOOP("KStandardActions", "Upstream &Handbook"), {}, "help-contents" },
     { WhatsThis,     KStandardShortcut::WhatsThis, "help_whats_this", QT_TRANSLATE_NOOP("KStandardActions", "What's &This?"), {}, "help-contextual" },
     { ReportBug,     KStandardShortcut::ReportBug, "help_report_bug", QT_TRANSLATE_NOOP("KStandardActions", "&Report Bug..."), {}, "tools-report-bug" },
     { SwitchApplicationLanguage, KStandardShortcut::SwitchApplicationLanguage, "switch_application_language", QT_TRANSLATE_NOOP("KStandardActions", "Switch Application &Language..."), {}, "preferences-desktop-locale" },
-    { AboutApp,      KStandardShortcut::AccelNone, "help_about_app", QT_TRANSLATE_NOOP("KStandardActions", "&About Krita"), {}, nullptr },
+    { AboutApp,      KStandardShortcut::AccelNone, "help_about_app", QT_TRANSLATE_NOOP("KStandardActions", "&About LibrePaint"), {}, nullptr },
     { AboutKDE,      KStandardShortcut::AccelNone, "help_about_kde", QT_TRANSLATE_NOOP("KStandardActions", "About &KDE"), {}, "kde" },
     { ActionNone,    KStandardShortcut::AccelNone, {}, {}, {}, {} },
     };

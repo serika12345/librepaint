@@ -103,8 +103,8 @@ ForegroundPositive=47,63,20
 ForegroundVisited=54,54,54
 
 [General]
-ColorScheme=Krita neutral
-Name=Krita neutral
+ColorScheme=LibrePaint neutral
+Name=LibrePaint neutral
 shadeSortColumn=true
 
 [KDE]

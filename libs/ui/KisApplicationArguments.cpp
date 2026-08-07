@@ -81,12 +81,12 @@ KisApplicationArguments::KisApplicationArguments(const QApplication &app)
                                                                                           "    * F16 (16 bits floating point)\n"
                                                                                           "    * F32 (32 bits floating point)\n"),
                                         QLatin1String("colorspace,depth,width,height")));
-    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("workspace"), i18n("The name of the workspace to open Krita with"), QLatin1String("workspace")));
-    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("windowlayout"), i18n("The name of the window layout to open Krita with"), QLatin1String("windowlayout")));
-    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("load-session"), i18n("The name of the session to open Krita with"), QLatin1String("load-session"))); // NB: the argument "session" is already used by QGuiApplication
-    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("canvasonly"), i18n("Start Krita in canvas-only mode")));
+    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("workspace"), i18n("The name of the workspace to open LibrePaint with"), QLatin1String("workspace")));
+    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("windowlayout"), i18n("The name of the window layout to open LibrePaint with"), QLatin1String("windowlayout")));
+    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("load-session"), i18n("The name of the session to open LibrePaint with"), QLatin1String("load-session"))); // NB: the argument "session" is already used by QGuiApplication
+    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("canvasonly"), i18n("Start LibrePaint in canvas-only mode")));
     parser.addOption(QCommandLineOption(QStringList() << QLatin1String("nosplash"), i18n("Do not show the splash screen")));
-    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("fullscreen"), i18n("Start Krita in full-screen mode")));
+    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("fullscreen"), i18n("Start LibrePaint in full-screen mode")));
     {
         QCommandLineOption opt(QStringList() << QLatin1String("dpi"), i18n("Override display DPI"), QLatin1String("dpiX,dpiY"));
         opt.setFlags(QCommandLineOption::HiddenFromHelp);
@@ -96,7 +96,7 @@ KisApplicationArguments::KisApplicationArguments(const QApplication &app)
     parser.addOption(QCommandLineOption(QStringList() << QLatin1String("export-sequence"), i18n("Export animation to the given filename and exit")));
     parser.addOption(QCommandLineOption(QStringList() << QLatin1String("export-filename"), i18n("Filename for export"), QLatin1String("filename")));
     parser.addOption(QCommandLineOption(QStringList() << QLatin1String("file-layer"), i18n("File layer to be added to existing or new file"), QLatin1String("file-layer")));
-    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("resource-location"), i18n("A location that overrides the configured location for Krita's resources"), QLatin1String("file-layer")));
+    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("resource-location"), i18n("A location that overrides the configured location for the free paint app's resources"), QLatin1String("file-layer")));
     parser.addPositionalArgument(QLatin1String("[file(s)]"), i18n("File(s) or URL(s) to open"));
 
     QStringList filteredArgs;

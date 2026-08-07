@@ -1,5 +1,5 @@
 {
-  description = "Reproducible host tools for the Krita iPadOS port";
+  description = "Reproducible host tools for the LibrePaint iPadOS port";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 

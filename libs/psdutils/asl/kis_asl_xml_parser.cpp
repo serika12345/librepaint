@@ -350,7 +350,7 @@ bool tryParseDescriptor(const QDomElement &el, const QString &path, const QStrin
             QString key = childEl.attribute("key", "");
 
             if (type == "Boolean" && key == "Cnty") {
-                warnKrita << "WARNING: tryParseDescriptor: The points of the curve object contain \'Cnty\' flag which is unsupported by Krita";
+                warnKrita << "WARNING: tryParseDescriptor: The points of the curve object contain \'Cnty\' flag which is unsupported by the free paint app";
                 warnKrita << "        " << ppVar(type) << ppVar(key) << ppVar(path);
 
                 child = child.nextSibling();

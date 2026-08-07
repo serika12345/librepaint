@@ -8,10 +8,12 @@ fi
 
 app_path="$1"
 runtime_prefix="$2"
+scripts_dir="$(cd "$(dirname "$0")" && pwd -P)"
 expected_share="$runtime_prefix/share"
 bundles_dir="$app_path/share/krita/bundles"
 actions_dir="$app_path/share/krita/actions"
 touch_ui_action="$actions_dir/iostouchui.action"
+license_dir="$app_path/share/doc/librepaint/non-code-licenses"
 
 if [[ ! -d "$app_path" ]]; then
     echo "error: application bundle not found: $app_path" >&2
@@ -44,24 +46,65 @@ if ! diff -u "$expected_list" "$actual_list"; then
 fi
 
 bundle_count="$(find "$bundles_dir" -maxdepth 1 -type f -name '*.bundle' | wc -l | tr -d ' ')"
-profile_count="$(find "$app_path/share/color/icc/krita" -type f -name '*.icc' | wc -l | tr -d ' ')"
+profile_count="$(find "$app_path/share/color/icc/krita" -type f \( -name '*.icc' -o -name '*.icm' \) | wc -l | tr -d ' ')"
 action_count="$(find "$actions_dir" -type f -name '*.action' | wc -l | tr -d ' ')"
 
-if (( bundle_count == 0 )); then
-    echo "error: no Krita resource bundles were packaged" >&2
+if (( bundle_count != 1 )) || [[ ! -f "$bundles_dir/Krita_4_Default_Resources.bundle" ]]; then
+    echo "error: expected exactly the audited Krita_4_Default_Resources.bundle; found $bundle_count bundle(s)" >&2
     exit 1
 fi
-if (( profile_count == 0 )); then
-    echo "error: no ICC color profiles were packaged" >&2
+for notice in \
+    CC-BY-3.0.txt \
+    CC-BY-SA-3.0.txt \
+    CC-BY-SA-4.0.txt \
+    CC0-1.0.txt \
+    GPL-2.0-or-later.txt \
+    GPL-3.0-only.txt \
+    GPL-3.0-or-later.txt \
+    LGPL-2.0-or-later.txt \
+    LGPL-3.0-only.txt \
+    LGPL-3.0-or-later.txt \
+    LicenseRef-ICC-License.txt \
+    default-resource-bundle-licenses.json \
+    non-code-licenses.md \
+    qtbase-icc-attribution.json \
+    retained-functional-assets.md \
+    static-dependency-resources.json \
+    white-brand-assets.json \
+    bundles/README \
+    profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt \
+    profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt; do
+    if [[ ! -s "$license_dir/$notice" ]]; then
+        echo "error: non-code asset notice was not packaged: $notice" >&2
+        exit 1
+    fi
+done
+python3 "$scripts_dir/audit-default-resource-bundle.py" \
+    --bundle "$bundles_dir/Krita_4_Default_Resources.bundle" \
+    --manifest "$license_dir/default-resource-bundle-licenses.json" \
+    --skip-external-notice-check
+python3 "$scripts_dir/audit-static-dependency-resources.py" \
+    --manifest "$license_dir/static-dependency-resources.json"
+if (( profile_count != 31 )); then
+    echo "error: expected exactly 31 audited ICC color profiles; found $profile_count" >&2
     exit 1
 fi
+for excluded_profile in \
+    scRGB.icm \
+    cmyk.icm \
+    krita25_lcms-builtin-sRGB_g100-truegamma.icc; do
+    if [[ -e "$app_path/share/color/icc/krita/$excluded_profile" ]]; then
+        echo "error: ambiguous ICC profile was packaged: $excluded_profile" >&2
+        exit 1
+    fi
+done
 if (( action_count == 0 )); then
-    echo "error: no Krita action definitions were packaged" >&2
+    echo "error: no LibrePaint action definitions were packaged" >&2
     exit 1
 fi
 for core_action in krita.action kritamenu.action; do
     if [[ ! -s "$actions_dir/$core_action" ]]; then
-        echo "error: core Krita action registry was not packaged: $core_action" >&2
+        echo "error: core LibrePaint action registry was not packaged: $core_action" >&2
         exit 1
     fi
 done
@@ -71,7 +114,7 @@ if [[ ! -s "$touch_ui_action" ]]; then
 fi
 
 if ! grep -q '<Action name="copy_merged">' "$actions_dir/kritamenu.action"; then
-    echo "error: packaged Krita menu registry is incomplete" >&2
+    echo "error: packaged LibrePaint menu registry is incomplete" >&2
     exit 1
 fi
 if ! grep -q '<Action name="view_show_ios_touch_ui">' "$touch_ui_action"; then

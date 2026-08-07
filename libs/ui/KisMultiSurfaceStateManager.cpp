@@ -56,7 +56,7 @@ KisMultiSurfaceStateManager::State KisMultiSurfaceStateManager::createInitializi
             multiConfig.uiProfile = m_rootSurfaceInfoProxy->rootSurfaceProfile();
         }
 #else
-        KIS_SAFE_ASSERT_RECOVER_NOOP(0 && "managed surface mode is active, but Krita is compiled without it!");
+        KIS_SAFE_ASSERT_RECOVER_NOOP(0 && "managed surface mode is active, but the free paint app is compiled without it!");
         multiConfig.canvasProfile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
         multiConfig.uiProfile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */

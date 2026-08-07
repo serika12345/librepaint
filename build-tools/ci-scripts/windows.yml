@@ -74,7 +74,7 @@ windows-build-qt5-nightly:
   extends:
     - .windows-base
     - .weekly-job-mixin
-    - .upload-packages-to-cdn-base-mixin
+    - .nightly-package-artifacts-mixin
   variables:
     KDECI_SIGN_BINARIES: True
     KDECI_BUILD_TYPE: RelWithDebInfo
@@ -86,7 +86,7 @@ windows-build-qt6-nightly:
   extends:
   - .windows-qt6-base
   - .weekly-job-mixin
-  - .upload-packages-to-cdn-base-mixin
+  - .nightly-package-artifacts-mixin
   variables:
     KDECI_SIGN_BINARIES: True
     KDECI_BUILD_TYPE: RelWithDebInfo

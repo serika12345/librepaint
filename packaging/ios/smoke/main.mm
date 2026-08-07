@@ -18,7 +18,7 @@
 
     UILabel *label = [[UILabel alloc] initWithFrame:frame];
     label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    label.text = @"Krita iPadOS build environment is working";
+    label.text = @"LibrePaint iPadOS build environment is working";
     label.textAlignment = NSTextAlignmentCenter;
     label.numberOfLines = 0;
     [controller.view addSubview:label];

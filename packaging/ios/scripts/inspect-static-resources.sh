@@ -48,6 +48,11 @@ if (( missing )); then
     exit 1
 fi
 
+if grep -Fxq "sponsors" "$binary_resources"; then
+    echo "error: retired sponsor artwork is still embedded in the final binary" >&2
+    exit 1
+fi
+
 archive_count="$(wc -l <"$archive_resources" | tr -d ' ')"
 echo "static Qt resources retained: $archive_count"
 sed 's/^/  /' "$archive_resources"

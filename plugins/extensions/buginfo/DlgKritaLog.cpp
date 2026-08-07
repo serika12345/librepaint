@@ -20,12 +20,12 @@ QString DlgKritaLog::originalFileName()
 
 QString DlgKritaLog::captionText()
 {
-    return i18nc("Caption of the dialog with Krita usage log for bug reports", "Krita Usage Log: please paste this information to the bug report");
+    return i18nc("Caption of the dialog with LibrePaint usage log for bug reports", "LibrePaint Usage Log: please paste this information to the bug report");
 }
 
 QString DlgKritaLog::replacementWarningText()
 {
-    return "WARNING: The Krita usage log file doesn't exist.";
+    return "WARNING: The LibrePaint usage log file doesn't exist.";
 }
 
 DlgKritaLog::~DlgKritaLog()

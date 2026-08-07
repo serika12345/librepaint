@@ -350,7 +350,7 @@ QSqlError createDatabase(const QString &location)
                 }
 
                 if (schemaIsOutDated) {
-                    QMessageBox::critical(0, i18nc("@title:window", "Krita"), i18n("The resource database scheme has changed. Krita will backup your database and create a new database."));
+                    QMessageBox::critical(0, i18nc("@title:window", "LibrePaint"), i18n("The resource database scheme has changed. The free paint app will back up your database and create a new database."));
                     if (QVersionNumber::compare(oldSchemaVersionNumber, QVersionNumber::fromString("0.0.14")) > 0) {
                         KisResourceLocator::instance()->saveTags();
                     }
@@ -363,7 +363,7 @@ QSqlError createDatabase(const QString &location)
         }
 
         if (allTablesPresent && !schemaIsOutDated) {
-            KisUsageLogger::log(QString("Database is up to date. Version: %1, created by Krita %2, at %3")
+            KisUsageLogger::log(QString("Database is up to date. Version: %1, created by LibrePaint %2, at %3")
                                 .arg(schemaVersion)
                                 .arg(kritaVersion)
                                 .arg(QDateTime::fromSecsSinceEpoch(creationDate).toString()));
@@ -2343,10 +2343,10 @@ void KisResourceCacheDb::synchronizeForeignKeysState()
 {
 #ifdef KRITA_STABLE
     bool useForeignKeys = false;
-    KisUsageLogger::log("INFO: detected stable build of Krita, foreign_keys constraint will be disabled");
+    KisUsageLogger::log("INFO: detected stable build of LibrePaint, foreign_keys constraint will be disabled");
 #else
     bool useForeignKeys = true;
-    KisUsageLogger::log("INFO: detected unstable build of Krita, foreign_keys constraint will be enabled");
+    KisUsageLogger::log("INFO: detected unstable build of LibrePaint, foreign_keys constraint will be enabled");
 #endif
 
     if (qEnvironmentVariableIsSet("KRITA_OVERRIDE_USE_FOREIGN_KEYS")) {

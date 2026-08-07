@@ -7,7 +7,7 @@
         <activity
             android:name="org.krita.android.MainActivity"
             tools:replace="android:label"
-            android:label="Krita Debug" />
+            android:label="LibrePaint Debug" />
     </application>
 
 </manifest>

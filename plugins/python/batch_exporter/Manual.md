@@ -1,6 +1,6 @@
-# Batch Exporter: Krita Plugin for Game Developers and Graphic Designers
+# Batch Exporter: LibrePaint Plugin for Game Developers and Graphic Designers
 
-Free Krita plugin for designers, game artists and digital artists to work more
+Free LibrePaint plugin for designers, game artists and digital artists to work more
 productively:
 
 - Batch export assets to multiple sizes, file types, and custom paths. Supports
@@ -16,7 +16,7 @@ the layer name. The supported options are:
 - `[s=20,33.333,100,150]` - size in `%`.
 - `[b=false]` or `[b=no]` - disable bilinear filtering when scaling layers.
 - `[p=path/to/custom/export/directory]` or `[p="path with spaces"]` - custom output path.
-  Paths can be absolute or relative to the Krita document.
+  Paths can be absolute or relative to the LibrePaint document.
 - `[m=20,30,100]` - extra margin in `px`. The layer is trimmed to the
   smallest bounding box by default. This option adds extra padding around the
   layer.
@@ -46,14 +46,14 @@ layer name is `LeftArm s=50,100`, it will not be exported with this option.
 `Export Selected Layers` exports all selected layers regardless of the tags.
 
 By default, the plugin exports the images in an `export` folder next to your
-Krita document. The export follows the structure of your layer stack. The group
+LibrePaint document. The export follows the structure of your layer stack. The group
 layers become directories and other layers export as files.
 
 > **Supported layer types:** paint, vector, group & file layers.
 
 ## Smart Layer Rename tool
 
-Say we have this Krita document structure:
+Say we have this LibrePaint document structure:
 
 ```
 GodetteGroupLayer
@@ -95,17 +95,17 @@ extension tag entirely. For example, `Godete e=png s=50,100` will become
 The exporter will generate the necessary sprite contents and metadata file for
 easy import in COA Tools / Blender.
 
-If you want to export your krita document to COA Tools format,
+If you want to export your LibrePaint document to COA Tools format,
 simply click the `Document` button under COA Tools.
 
-If you want to export multiple or specific COA Tool documents from one Krita document
-(if you have e.g. multiple characters in one Krita document),
+If you want to export multiple or specific COA Tool documents from one LibrePaint document
+(if you have e.g. multiple characters in one LibrePaint document),
 you can do so by selecting a Group Layer to serve as root for each COA Tool export
 you want done.
 
 ### Example
 
-You want to export two characters from the same Krita document in one go
+You want to export two characters from the same LibrePaint document in one go
 
 ```
 Root
@@ -129,7 +129,7 @@ Once the Group Layers are selected you push "COA Tools -> Selected Layers".
 Each export root supports the following metadata:
 
 - `[p=path/to/custom/export/directory]` - custom output path.
-  Paths can be absolute or relative to the Krita document.
+  Paths can be absolute or relative to the LibrePaint document.
 
 Each child node of an export root supports the following metadata:
 

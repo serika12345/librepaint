@@ -247,7 +247,7 @@
        <item row="0" column="0" colspan="2">
         <widget class="QGroupBox" name="grpPasteFrom">
          <property name="title">
-          <string>When Pasting Into Krita From Other Applications</string>
+          <string>When Pasting Into LibrePaint From Other Applications</string>
          </property>
          <layout class="QFormLayout" name="formLayout_8">
           <item row="1" column="0" colspan="2">
@@ -1361,7 +1361,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>When Krita starts:</string>
+              <string>When LibrePaint starts:</string>
              </property>
             </widget>
            </item>
@@ -1378,7 +1378,7 @@
            <item row="1" column="1">
             <widget class="QCheckBox" name="chkSaveSessionOnQuit">
              <property name="text">
-              <string>Save session when Krita closes</string>
+              <string>Save session when LibrePaint closes</string>
              </property>
             </widget>
            </item>
@@ -1620,7 +1620,7 @@
                  <string>In some Krita versions before 5.0 text size could be dependent on the current display DPI (which was a bug).
 In Krita 5.0 this bug has been fixed, which may cause files created in previous versions look different. 
 
-When loading old files Krita will try to adjust font size to the DPI of the current screen.
+When loading old files the free paint app will try to adjust font size to the DPI of the current screen.
 If the file has been created on a different display, try adjusting this value manually.
 
 After saving the file in Krita 5.0 at least once, no conversions will be needed anymore.</string>
@@ -1777,7 +1777,7 @@ To restore the old behavior you can force Krita to use Display DPI for fonts by 
            <item row="9" column="1">
             <widget class="QCheckBox" name="chkIgnoreHighFunctionKeys">
              <property name="toolTip">
-              <string>Some applications may emulate presses of function keys with high numbers (e.g. F22) to bring themselves to the foreground. This may break Krita's shortcuts and actions system. If you have a keyboard with F13 or higher function keys, and you wish to use them, try disabling this option, but take this potential problem into account.</string>
+              <string>Some applications may emulate presses of function keys with high numbers (e.g. F22) to bring themselves to the foreground. This may break the free paint app's shortcuts and actions system. If you have a keyboard with F13 or higher function keys, and you wish to use them, try disabling this option, but take this potential problem into account.</string>
              </property>
              <property name="text">
               <string>Ignore high function keys (F13-F24)</string>

@@ -431,7 +431,7 @@ public:
                 if (!el.thread->wait(RecorderConst::waitThreadTimeoutMs))
                 {
                     if (!alreadyErr) {
-                        errResources << "Something odd has been happen. Krita was unable to stop one of the Recorder WriterPool Threads. "
+                        errResources << "Something odd has happened. The free paint app was unable to stop one of the Recorder WriterPool threads. "
                                      << "Thread Name: " << el.thread->objectName();
                         alreadyErr = true;
                     }
@@ -461,7 +461,7 @@ public:
 
             auto writerPtr = writerPool[newWorkerId].writer;
             auto threadPtr = writerPool[newWorkerId].thread;
-            threadPtr->setObjectName(QString("Krita-Recorder-WriterPool#%1").arg(newWorkerId));
+            threadPtr->setObjectName(QString("LibrePaint-Recorder-WriterPool#%1").arg(newWorkerId));
             connect(q, SIGNAL(startCapturing(int, int)), writerPtr.get(), SLOT(onCaptureImage(int, int)));
             connect(writerPtr.get(), SIGNAL(capturingDone(int, bool)), q, SLOT(onCapturingDone(int, bool)));
             writerPtr->moveToThread(threadPtr.get());

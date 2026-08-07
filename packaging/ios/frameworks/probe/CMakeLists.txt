@@ -40,7 +40,7 @@ target_link_libraries(
 set_target_properties(
     KritaIOSFrameworksProbe
     PROPERTIES
-        MACOSX_BUNDLE_GUI_IDENTIFIER org.krita.ios.frameworks-probe
+        MACOSX_BUNDLE_GUI_IDENTIFIER local.librepaint.ipad.frameworks-probe
         XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO
 )
 

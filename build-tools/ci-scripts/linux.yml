@@ -76,7 +76,7 @@ linux-build-qt5-nightly:
   extends:
   - .linux-base
   - .weekly-job-mixin
-  - .upload-packages-to-cdn-base-mixin
+  - .nightly-package-artifacts-mixin
   variables:
     KDECI_EXTRA_CMAKE_ARGS: >
       -DHIDE_SAFE_ASSERTS=OFF
@@ -86,7 +86,7 @@ linux-build-qt6-nightly:
   extends:
   - .linux-qt6-base
   - .nightly-job-mixin
-  - .upload-packages-to-cdn-base-mixin
+  - .nightly-package-artifacts-mixin
   variables:
     KDECI_EXTRA_CMAKE_ARGS: >
       -DHIDE_SAFE_ASSERTS=OFF

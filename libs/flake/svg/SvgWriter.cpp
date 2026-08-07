@@ -94,7 +94,7 @@ bool SvgWriter::save(QIODevice &outputDevice, const QSizeF &pageSize)
     svgStream << "\"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">" << Qt::endl;
 
     // add some PR.  one line is more than enough.
-    svgStream << "<!-- Created using Krita: https://krita.org -->" << Qt::endl;
+    svgStream << "<!-- Created using LibrePaint -->" << Qt::endl;
 
     svgStream << "<svg xmlns=\"http://www.w3.org/2000/svg\" \n";
     svgStream << "    xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n";
@@ -310,4 +310,3 @@ void SvgWriter::setDocumentDescription(QString description)
 {
     m_documentDescription = description;
 }
-

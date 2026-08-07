@@ -113,7 +113,7 @@
              <bool>true</bool>
             </property>
             <property name="toolTip">
-             <string>Make a backup of all your tags in the resource folder so they won't get lost on upgrading Krita</string>
+             <string>Make a backup of all your tags in the resource folder so they won't get lost when upgrading LibrePaint</string>
             </property>
             <property name="text">
              <string>Save Tags to Folder</string>

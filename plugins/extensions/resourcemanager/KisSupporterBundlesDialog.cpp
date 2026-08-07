@@ -106,7 +106,7 @@ void KisSupporterBundlesDialog::slotResetBundleWidgets()
         // Don't remove this message without discussing it with them.
         QLabel *purchaseNoteLabel =
             new QLabel(i18n("These bundles have been made available by their authors to help provide rewards for "
-                            "supporting Krita's development. They do not receive compensation for purchases and may "
+                            "supporting the free paint app's development. They do not receive compensation for purchases and may "
                             "make these bundles in other ways behind the links below."));
         purchaseNoteLabel->setTextFormat(Qt::PlainText);
         purchaseNoteLabel->setWordWrap(true);

@@ -1,9 +1,15 @@
 Description
 ===========
 
-- What problem are you going to solve? Note that the issue tracker is only for programming projects you intend to take on yourself. Feature requests go to krita-artists.org, while bugs go to bugzilla.
+- What LibrePaint problem are you solving?
+- Is the problem specific to this iPadOS project, or does it also reproduce in upstream Krita?
 
 Links
 =====
 
-- Bugzilla reports, previous discussions, krita-artists threads, etc. go here.
+- Add related LibrePaint issues, upstream bug reports, or prior discussions.
+
+Test Plan
+---------
+
+- Describe the build, automated tests, and physical-iPad checks needed.

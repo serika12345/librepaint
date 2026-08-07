@@ -287,7 +287,7 @@ public:
         int canvasScreenNumber = qApp->screens().indexOf(view->currentScreen());
 
         if (canvasScreenNumber < 0) {
-            warnKrita << "Couldn't detect screen that Krita belongs to..." << ppVar(view->currentScreen());
+            warnKrita << "Couldn't detect the screen that LibrePaint belongs to..." << ppVar(view->currentScreen());
             canvasScreenNumber = 0;
         }
         return canvasScreenNumber;
@@ -507,7 +507,7 @@ void KisCanvas2::setCanvasWidget(KisAbstractCanvasWidget *widget)
                         &KisCanvas2::slotSurfaceFormatChanged);
             }
         } else {
-            qWarning() << "WARNING: created non-native Krita canvas on managed platform,"
+            qWarning() << "WARNING: created non-native LibrePaint canvas on managed platform,"
                        << "its color space will be limited to sRGB";
         }
     }
@@ -1538,8 +1538,8 @@ void KisCanvas2::slotSurfaceFormatChanged(const KisDisplayConfig &config)
 
             const QString warningMessage = i18n(
                 "WARNING: HDR mode was activated on surface working in 8-bit mode!\n"
-                "Please activate 10-bit mode in Krita's Preferences dialog and restart "
-                "Krita to avoid color banding!");
+                "Please activate 10-bit mode in LibrePaint's Preferences dialog and restart "
+                "LibrePaint to avoid color banding!");
 
             m_d->view->showFloatingMessage(warningMessage, koIcon("warning"), 7000, KisFloatingMessage::High);
             warnOpenGL.noquote() << QString(warningMessage).replace('\n', ' ');

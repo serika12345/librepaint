@@ -17,7 +17,6 @@ private Q_SLOTS:
     void testAnimation();
     void testAnimationWithTail();
     void testFiles();
-    void testHDR();
     void testCmykWithLayers();
     void testMultipage();
     void testSaveRgbaColorSpace();

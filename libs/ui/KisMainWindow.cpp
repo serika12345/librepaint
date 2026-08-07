@@ -16,7 +16,6 @@
 #include <QByteArray>
 #include <QCloseEvent>
 #include <QStandardPaths>
-#include <QDesktopServices>
 #include <QScreen>
 #include <QDialog>
 #include <QDockWidget>
@@ -377,7 +376,7 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     d->viewManager = new KisViewManager(this, actionCollection());
     KConfigGroup group( KSharedConfig::openConfig(), "theme");
 #ifndef Q_OS_HAIKU
-    d->themeManager = new Digikam::ThemeManager(group.readEntry("Theme", "Krita dark"), this);
+    d->themeManager = new Digikam::ThemeManager(group.readEntry("Theme", "LibrePaint dark"), this);
 #endif
     d->windowStateConfig = KSharedConfig::openConfig()->group("MainWindow");
 
@@ -555,11 +554,6 @@ KisMainWindow::KisMainWindow(QUuid uuid)
 
         connect(d->helpMenu, SIGNAL(showAboutApplication()), SLOT(showAboutApplication()));
     }
-
-    // KDE' libs 4''s help contents action is broken outside kde, for some reason... We can handle it just as easily ourselves
-    QAction *helpAction = actionCollection()->action("help_contents");
-    helpAction->disconnect();
-    connect(helpAction, SIGNAL(triggered()), this, SLOT(showManual()));
 
 #if 0
     //check for colliding shortcuts
@@ -1025,7 +1019,7 @@ void KisMainWindow::setCanvasDetached(bool detach)
 {
 #ifdef Q_OS_ANDROID
     if (detach) {
-        QMessageBox::warning(this, i18nc("@title:window", "Krita"),
+        QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"),
                              "Detach Canvas is unsupported on Android");
     }
 #else
@@ -1095,7 +1089,7 @@ bool KisMainWindow::openDocument(const QString &path, OpenFlags flags)
 
     if (!QFile(path).exists()) {
         if (!(flags & BatchMode)) {
-            QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("The file %1 does not exist.", path));
+            QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("The file %1 does not exist.", path));
         }
         KisRecentFilesManager::instance()->remove(QUrl::fromLocalFile(path)); //remove the file from the recent-opened-file-list
         return false;
@@ -1243,7 +1237,7 @@ void KisMainWindow::slotSaveCanceled(const QString &errMsg)
 {
     if (!errMsg.isEmpty()) {   // empty when cancelled by user
         KisUsageLogger::log(QString("Saving cancelled. Error:").arg(errMsg));
-        QMessageBox::critical(this, i18nc("@title:window", "Krita"), errMsg);
+        QMessageBox::critical(this, i18nc("@title:window", "LibrePaint"), errMsg);
     }
     else {
         KisUsageLogger::log(QString("Saving cancelled by the user."));
@@ -1340,7 +1334,7 @@ bool KisMainWindow::saveDocument(KisDocument *document, bool saveas, bool isExpo
     }
     else if (dlg.result() == KisDelayedSaveDialog::Ignored) {
         QMessageBox::critical(qApp->activeWindow(),
-                              i18nc("@title:window", "Krita"),
+                              i18nc("@title:window", "LibrePaint"),
                               i18n("You are saving a file while the image is "
                                    "still rendering. The saved file may be "
                                    "incomplete or corrupted.\n\n"
@@ -2094,7 +2088,7 @@ void KisMainWindow::slotStoragesWarning(const QString &/*location*/)
 
     if (!checkPaintOpAvailable()) {
         warning += i18n("\nThere are no brush presets available. Please enable a bundle that has presets before continuing.\n");
-        QMessageBox::critical(this, i18nc("@title:window", "Krita"), warning);
+        QMessageBox::critical(this, i18nc("@title:window", "LibrePaint"), warning);
 
         QAction *action = actionCollection()->action("manage_bundles");
         if (action) {
@@ -2103,7 +2097,7 @@ void KisMainWindow::slotStoragesWarning(const QString &/*location*/)
     }
 
     if (!checkActiveBundlesAvailable()) {
-        QMessageBox::warning(this, i18nc("@title:window", "Krita"), warning + i18n("\nOnly your local resources are available."));
+        QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"), warning + i18n("\nOnly your local resources are available."));
     }
 
 }
@@ -2242,7 +2236,7 @@ void KisMainWindow::importAnimation()
         if (!status.isOk() && !status.isInternalError()) {
             QString msg = status.errorMessage();
             if (!msg.isEmpty())
-                QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("Could not finish import animation:\n%1", msg));
+                QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("Could not finish import animation:\n%1", msg));
         }
         activeView()->canvasBase()->refetchDataFromImage();
     }
@@ -2303,7 +2297,7 @@ void KisMainWindow::importVideoAnimation()
             KoColor bgColor(qc, cs);
 
             if (!document->newImage(name, width, height, cs, bgColor, KisConfig::RASTER_LAYER, 1, "", double(resolution / 72) )) {
-                QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("Failed to create new document. Animation import aborted."));
+                QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("Failed to create new document. Animation import aborted."));
                 return;
             }
 
@@ -2322,7 +2316,7 @@ void KisMainWindow::importVideoAnimation()
         if (!status.isOk() && !status.isInternalError()) {
             QString msg = status.errorMessage();
             if (!msg.isEmpty())
-                QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("Could not finish import animation:\n%1", msg));
+                QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("Could not finish import animation:\n%1", msg));
         }
 
         activeView()->canvasBase()->refetchDataFromImage();
@@ -2927,7 +2921,7 @@ void KisMainWindow::configChanged()
 
     KConfigGroup group( KSharedConfig::openConfig(), "theme");
 #ifndef Q_OS_HAIKU
-    d->themeManager->setCurrentTheme(group.readEntry("Theme", "Krita dark"));
+    d->themeManager->setCurrentTheme(group.readEntry("Theme", "LibrePaint dark"));
 #endif
     d->actionManager()->updateGUI();
 
@@ -2969,7 +2963,7 @@ void KisMainWindow::newWindow()
 #ifdef Q_OS_ANDROID
     // Check if current mainwindow exists, just to be sure.
     if (KisPart::instance()->currentMainwindow()) {
-        QMessageBox::warning(this, i18nc("@title:window", "Krita"),
+        QMessageBox::warning(this, i18nc("@title:window", "LibrePaint"),
                              "Creating a New Main Window is unsupported on Android");
         return;
     }
@@ -2992,7 +2986,7 @@ void KisMainWindow::checkSanity()
     // print error if the lcms engine is not available
     if (!KoColorSpaceEngineRegistry::instance()->contains("icc")) {
         // need to wait 1 event since exiting here would not work.
-        m_errorMessage = i18n("The Krita LittleCMS color management plugin is not installed. Krita will quit now.");
+        m_errorMessage = i18n("The LibrePaint LittleCMS color management plugin is not installed. LibrePaint will quit now.");
         m_dieOnError = true;
         QTimer::singleShot(0, this, SLOT(showErrorAndDie()));
         return;
@@ -3167,25 +3161,7 @@ void KisMainWindow::createActions()
     connect(d->mdiPreviousWindow, SIGNAL(triggered()), d->mdiArea, SLOT(activatePreviousSubWindow()));
 
 #ifdef Q_OS_ANDROID
-    d->showDonationManagementDialog = actionManager->createAction("manage_donations");
-    connect(d->showDonationManagementDialog,
-            &QAction::triggered,
-            this,
-            &KisMainWindow::slotShowDonationManagementDialog);
-
-    KisAndroidDonations *androidDonations = KisAndroidDonations::instance();
-    if (androidDonations) {
-        d->manageSubscriptions = actionManager->createAction("manage_subscriptions");
-        connect(d->manageSubscriptions,
-                &QAction::triggered,
-                androidDonations,
-                &KisAndroidDonations::slotManageSubscriptions);
-        connect(androidDonations,
-                &KisAndroidDonations::sigShowDonationManagementDialogRequested,
-                this,
-                &KisMainWindow::slotShowDonationManagementDialog,
-                Qt::QueuedConnection);
-    }
+    // LibrePaint does not expose upstream donation or subscription actions.
 #if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
     KisAndroidScaling *androidScaling = KisAndroidScaling::instance();
     if (androidScaling && androidScaling->isSupported()) {
@@ -3284,7 +3260,7 @@ void KisMainWindow::initializeGeometry()
 
 void KisMainWindow::showManual()
 {
-    QDesktopServices::openUrl(QUrl("https://docs.krita.org"));
+    // No LibrePaint handbook endpoint has been configured.
 }
 
 void KisMainWindow::showDockerTitleBars(bool show)

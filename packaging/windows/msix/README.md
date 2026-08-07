@@ -56,7 +56,7 @@ Building the MSIX
 Needs:
 
 - Latest Windows SDK (though I've tested with 10.0.17763.0 and10.0.18362.0)
-- Krita x64 NSIS installer EXE file
+- LibrePaint x64 NSIS installer EXE file
 - 7-Zip
 - The cert to sign the package with
 
@@ -68,14 +68,14 @@ Steps (if running manually):
 3. Copy `manifest.xml.in` into `manifest.xml` then make necessary amendments to
    it, including replacing the `@`-substitutions.
 4. Start a command prompt in this dir, then run
-   `set KRITA_DIR=C:\path\where\you\extracted\the\Krita\files`, and then run
+   `set KRITA_DIR=C:\path\where\you\extracted\the\LibrePaint\files`, and then run
    `build_msix.py`.
     - If you need to specify the keyfile and password used to sign the MSIX
       file, execute the following command before running the final script:
         ```
         set SIGNTOOL_SIGN_FLAGS=/f "absolute_path_to_keyfile.pfx" /p password
         ```
-5. Install and test `out\krita.msix`
+5. Install and test `out\LibrePaint.msix`
 
 The script and related resources are also configured and installed into
 `${CMAKE_INSTALL_PREFIX}/krita-msix`, which is then used by the Binary Factory
@@ -89,7 +89,7 @@ Self-signing the package for testing purposes
 1. Make a backup of the built package if needed. You will **not** be able to remove the signature after it has been added.
 2. Generate a fake certificate for signing by running this command in PowerShell:
    ```
-   New-SelfSignedCertificate -Type Custom -Subject "CN=03E730BB-6849-4762-9BDB-10CD7FFDB2C1" -KeyUsage DigitalSignature -FriendlyName "Fake Krita Foundation certificate for debugging only" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+   New-SelfSignedCertificate -Type Custom -Subject "CN=LibrePaint Local Development" -KeyUsage DigitalSignature -FriendlyName "LibrePaint local development certificate" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
    ```
    This command will add the certificate into your 'Personal' storage.
 3. Go to 'Manage User Certificates' Windows applet. Export the key into a .ppk file

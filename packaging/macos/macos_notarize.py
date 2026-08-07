@@ -11,7 +11,7 @@ class NotarizationHandler:
                  , account: str=None
                  , password: str=None
                  , provider: str=None
-                 , store_credentials_key: str="KritaNotarizeAccount"
+                 , store_credentials_key: str="LibrePaintNotarizeAccount"
                  ):
         self.account = account
         self.provider = provider
@@ -101,11 +101,11 @@ class NotarizationHandler:
 
 
 def main_notarize():
-    parser = argparse.ArgumentParser(prog='macos notarize krita.app',
-                                     description='Utility that receives krita.app and sends for notarization',
+    parser = argparse.ArgumentParser(prog='macos notarize LibrePaint.app',
+                                     description='Utility that receives LibrePaint.app and sends it for notarization',
                                      )
     parser.add_argument('target', type=pathlib.Path
-                        , help='signed krita.app for notarization')
+                        , help='signed LibrePaint.app for notarization')
     parser.add_argument('--apple-id', dest="appleid", help='apple id email')
     parser.add_argument('--password', dest='password', help='application password for appleid')
     parser.add_argument('--team-id', dest='teamid', help='apple developer team id')
@@ -123,7 +123,7 @@ def main_notarize():
         print("### WARNING: it is prefered to store-credentials to notarytool!")
         print("""   xcrun notarytool store-credentials 
         --apple-id <apple-id> --password <app-pass> --team-id <team-id> <key>]""")
-        print("   By default this script searches for 'KritaNotarizeAccount' key")
+        print("   By default this script searches for 'LibrePaintNotarizeAccount' key")
         notarizer.account = args.appleid
 
         if not (args.password and args.teamid):

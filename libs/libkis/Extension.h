@@ -33,7 +33,7 @@
  *     super().__init__(parent)
  *
  * def hello(self):
- *     QMessageBox.information(QWidget(), "Test", "Hello! This is Krita " + Application.version())
+ *     QMessageBox.information(QWidget(), "Test", "Hello! This is LibrePaint " + Application.version())
  *
  * def setup(self):
  *     qDebug("Hello Setup")

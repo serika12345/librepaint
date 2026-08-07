@@ -31,7 +31,7 @@ def find_on_path(variable, executable):
 
 # Begin
 
-print("*** Krita MSIX build script ***")
+print("*** LibrePaint MSIX build script ***")
 
 if (not environ.get('WindowsSdkDir')) and environ.get('ProgramFiles(x86)'):
     environ['WindowsSdkDir'] = fr"{environ['ProgramFiles(x86)']}\Windows Kits\10"
@@ -195,7 +195,7 @@ with tempfile.NamedTemporaryFile(mode='w', delete=False) as OUT_TEMP:
     print(fr'"{scriptDir}\manifest.xml" "AppxManifest.xml"', file=OUT_TEMP)
     print(fr'"{environ["OUTPUT_DIR"]}\resources.pri" "Resources.pri"', file=OUT_TEMP)
 
-    # Krita application files:
+    # LibrePaint application files (the compatibility layout stays under krita/):
     for root, dirs, files in os.walk(environ['KRITA_DIR']):
         for file in files:
             f = os.path.join(root, file)
@@ -220,7 +220,7 @@ r"""
 (this is a comment block...)
 
 For reference, the MSIX Packaging tool uses the following command arguments:
-    pack /v /o /l /nv /nfv /f "%UserProfile%\AppData\Local\Packages\Microsoft.MsixPackagingTool_8wekyb3d8bbwe\LocalState\DiagOutputDir\Logs\wox1ifkc.h0i.txt" /p "D:\dev\krita\msix\Krita-testing_4.3.0.0_x64__svcxxs8w6n55m.msix"
+    pack /v /o /l /nv /nfv /f "%UserProfile%\AppData\Local\Packages\Microsoft.MsixPackagingTool_8wekyb3d8bbwe\LocalState\DiagOutputDir\Logs\wox1ifkc.h0i.txt" /p "D:\dev\librepaint\msix\LibrePaint-testing_4.3.0.0_x64__svcxxs8w6n55m.msix"
 
 The arguments stands for:
     pack: Creates a package.
@@ -233,7 +233,7 @@ The arguments stands for:
     /p <output package name>: Specifies the app package or bundle.
 """
 
-commandToRun = fr'"{environ["MAKEAPPX"]}" pack {"/v" if useVerbosePackagingLog else ""} /f "{environ["OUTPUT_DIR"]}\mapping.txt" /p "{environ["OUTPUT_DIR"]}\krita.msix" /o'
+commandToRun = fr'"{environ["MAKEAPPX"]}" pack {"/v" if useVerbosePackagingLog else ""} /f "{environ["OUTPUT_DIR"]}\mapping.txt" /p "{environ["OUTPUT_DIR"]}\LibrePaint.msix" /o'
 try:
     print(f"Running: {commandToRun}")
     logPath = os.path.join(os.getcwd(), 'makeappx.log')
@@ -243,11 +243,11 @@ except subprocess.CalledProcessError:
     warnings.warn(f"ERROR running makeappx, see {logPath}")
     sys.exit(1)
     
-print(f"\nMSIX generated as {environ['OUTPUT_DIR']}\\krita.msix")
+print(f"\nMSIX generated as {environ['OUTPUT_DIR']}\\LibrePaint.msix")
 
 if environ.get('SIGNTOOL_SIGN_FLAGS'):
     print("Signing MSIX...")
-    commandToRun = fr'"{environ["SIGNTOOL"]}" sign {environ["SIGNTOOL_SIGN_FLAGS"]} /fd sha256 "{environ["OUTPUT_DIR"]}\krita.msix"'
+    commandToRun = fr'"{environ["SIGNTOOL"]}" sign {environ["SIGNTOOL_SIGN_FLAGS"]} /fd sha256 "{environ["OUTPUT_DIR"]}\LibrePaint.msix"'
     try:
         print(f"Running: {commandToRun}")
         subprocess.check_call(commandToRun)

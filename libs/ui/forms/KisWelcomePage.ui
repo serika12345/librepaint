@@ -363,7 +363,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Community</string>
+            <string>Project</string>
            </property>
            <property name="margin">
             <number>0</number>
@@ -522,7 +522,7 @@
               <cursorShape>PointingHandCursor</cursorShape>
              </property>
              <property name="text">
-              <string>Support Krita</string>
+              <string>Support LibrePaint</string>
              </property>
              <property name="textFormat">
               <enum>Qt::RichText</enum>
@@ -612,7 +612,7 @@
               <cursorShape>PointingHandCursor</cursorShape>
              </property>
              <property name="text">
-              <string>Powered by KDE</string>
+              <string/>
              </property>
              <property name="textFormat">
               <enum>Qt::RichText</enum>
@@ -963,7 +963,7 @@
               <cursorShape>PointingHandCursor</cursorShape>
              </property>
              <property name="text">
-              <string>Krita Website</string>
+              <string>LibrePaint Website</string>
              </property>
              <property name="textFormat">
               <enum>Qt::RichText</enum>
@@ -1374,7 +1374,7 @@ recently opened documents</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Krita Version X.X.X Available</string>
+                 <string>LibrePaint Version X.X.X Available</string>
                 </property>
                 <property name="textFormat">
                  <enum>Qt::RichText</enum>
@@ -1484,7 +1484,7 @@ recently opened documents</string>
                </sizepolicy>
               </property>
               <property name="text">
-               <string>You can &lt;a href=&quot;ignored&quot; style=&quot;color: COLOR_PLACEHOLDER; text-decoration: underline;&quot;&gt;enable news&lt;/a&gt; from krita.org in various languages with the menu above</string>
+               <string>Upstream news is not shown in LibrePaint.</string>
               </property>
               <property name="textFormat">
                <enum>Qt::RichText</enum>
@@ -1624,7 +1624,7 @@ recently opened documents</string>
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Krita is an open source and community-driven tool for digital artists everywhere.&lt;br /&gt;Progress is made possible thanks to ongoing support from our community of &lt;a href=&quot;https://docs.krita.org/en/contributors_manual.html&quot;&gt;contributors&lt;/a&gt;, &lt;a href=&quot;https://krita.org/en/sponsors/&quot;&gt;sponsors&lt;/a&gt;, and &lt;a href=&quot;https://fund.krita.org/&quot;&gt;development fund&lt;/a&gt; members.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;LibrePaint is the free paint app.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -1656,7 +1656,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QLabel" name="lblAndroidSupporter">
          <property name="text">
-          <string>Krita is made possible thanks to ongoing support from people like you!</string>
+          <string>LibrePaint is the free paint app.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -1714,7 +1714,7 @@ p, li { white-space: pre-wrap; }
          <cursorShape>PointingHandCursor</cursorShape>
         </property>
         <property name="text">
-         <string>Support Krita!</string>
+         <string>Support LibrePaint!</string>
         </property>
         <property name="flat">
          <bool>false</bool>

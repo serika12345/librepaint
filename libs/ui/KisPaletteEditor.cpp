@@ -100,7 +100,7 @@ KoColorSetSP KisPaletteEditor::addPalette()
     layout->addRow(i18n("New palette name:"), le);
 
     QComboBox *cmbPaletteType = new QComboBox();
-    cmbPaletteType->addItem(i18nc("Palette File Type", "Krita Palette (KPL)"));
+    cmbPaletteType->addItem(i18nc("Palette File Type", "KPL Palette"));
     cmbPaletteType->addItem(i18nc("Palette File Type", "GIMP Palette (GPL)"));
     layout->addRow(cmbPaletteType);
 

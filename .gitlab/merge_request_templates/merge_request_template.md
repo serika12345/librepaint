@@ -1,4 +1,4 @@
-(Tell us what you did!)
+(Tell us what you did.)
 
 Test Plan
 ---------
@@ -6,17 +6,16 @@ Test Plan
 (Tell us how to test the changes you made.)
 
 Formalities Checklist
---------------------- 
+---------------------
 
-- [ ] I confirmed this builds.
-- [ ] I confirmed Krita ran and the relevant functions work.
-- [ ] I tested the relevant unit tests and can confirm they are not broken. (If not possible, don't hesitate to ask for help!)
-- [ ] I made sure my commits build individually and have good descriptions as per [KDE guidelines](https://community.kde.org/Policies/Commit_Policy).
-- [ ] I made sure my code conforms to the standards set in the HACKING file.
-- [ ] I can confirm the code is licensed and attributed appropriately, and that unattributed code is mine, as per [KDE Licensing Policy](https://community.kde.org/Policies/Licensing_Policy).
-- [ ] Does the patch add a user-visible feature? If yes, is there a documentation MR ready for it at [Krita Documentation Repository](https://invent.kde.org/documentation/docs-krita-org)?
+- [ ] I confirmed LibrePaint builds, or documented why a full build was not possible.
+- [ ] I confirmed LibrePaint ran and the relevant functions work when runtime behavior changed.
+- [ ] I ran the relevant unit tests and recorded any tests that remain pending.
+- [ ] My commits build individually and have clear descriptions.
+- [ ] My change follows the inherited coding standards in `HACKING`.
+- [ ] I have the right to contribute all code and non-code assets, and kept every required license, copyright, and provenance notice.
+- [ ] I did not add signing credentials, certificates, provisioning profiles, or device secrets.
 
-_**Reminder: the reviewer is responsible for merging the patch, this is to ensure at the least two people can build the patch. In case a patch breaks the build, both the author and the reviewer should be contacted to fix the build.**_
-_**If this is not possible, the commits shall be reverted, and a notification with the reasoning and any relevant logs shall be sent to the mailing list, kimageshop@kde.org.**_
-
-/label ~"Needs Review" 
+At least one author or reviewer must be able to reproduce the relevant checks
+before merge. Device-specific behavior is not considered verified until it has
+been exercised on a physical iPad.

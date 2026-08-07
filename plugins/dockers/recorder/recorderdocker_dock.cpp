@@ -766,7 +766,7 @@ void RecorderDockerDock::onWriterFrameWriteFailed()
 void RecorderDockerDock::onRecorderStopWarning()
 {
     QMessageBox::warning(this, i18nc("@title:window", "Recorder"),
-                         i18n("Krita was unable to stop the recorder probably. Please try to restart Krita."));
+                         i18n("The free paint app may have been unable to stop the recorder. Please try to restart LibrePaint."));
 }
 void RecorderDockerDock::onLowPerformanceWarning()
 {

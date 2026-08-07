@@ -1069,7 +1069,7 @@ void KisDocument::slotCompleteSavingDocument(const KritaUtils::ExportFileJob &jo
 
 
         if (!fileBatchMode()) {
-            DlgLoadMessages dlg(i18nc("@title:window", "Krita"),
+            DlgLoadMessages dlg(i18nc("@title:window", "LibrePaint"),
                                 i18n("Could not save %1.", job.filePath),
                                 errorMessage.split("\n", Qt::SkipEmptyParts)
                                     + warningMessage.split("\n", Qt::SkipEmptyParts),
@@ -1084,7 +1084,7 @@ void KisDocument::slotCompleteSavingDocument(const KritaUtils::ExportFileJob &jo
             QStringList reasons = warningMessage.split("\n", Qt::SkipEmptyParts);
 
             DlgLoadMessages dlg(
-                i18nc("@title:window", "Krita"),
+                i18nc("@title:window", "LibrePaint"),
                 i18nc("dialog box shown to the user if there were warnings while saving the document, "
                       "%1 is the file path",
                       "%1 has been saved but is incomplete.",
@@ -2148,7 +2148,7 @@ bool KisDocument::openFile()
 {
     //dbgUI <<"for" << localFilePath();
     if (!QFile::exists(localFilePath()) && !fileBatchMode()) {
-        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "Krita"), i18n("File %1 does not exist.", localFilePath()));
+        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("File %1 does not exist.", localFilePath()));
         return false;
     }
 
@@ -2191,7 +2191,7 @@ bool KisDocument::openFile()
         KisUsageLogger::log(QString("Loading %1 failed: %2").arg(prettyPath(), msg));
 
         if (!msg.isEmpty() && !fileBatchMode()) {
-            DlgLoadMessages dlg(i18nc("@title:window", "Krita"),
+            DlgLoadMessages dlg(i18nc("@title:window", "LibrePaint"),
                                 i18n("Could not open %1.", prettyPath()),
                                 errorMessage().split("\n", Qt::SkipEmptyParts)
                                     + warningMessage().split("\n", Qt::SkipEmptyParts),
@@ -2202,7 +2202,7 @@ bool KisDocument::openFile()
         return false;
     }
     else if (!warningMessage().isEmpty() && !fileBatchMode()) {
-        DlgLoadMessages dlg(i18nc("@title:window", "Krita"),
+        DlgLoadMessages dlg(i18nc("@title:window", "LibrePaint"),
                             i18n("There were problems opening %1.", prettyPath()),
                             warningMessage().split("\n", Qt::SkipEmptyParts));
 

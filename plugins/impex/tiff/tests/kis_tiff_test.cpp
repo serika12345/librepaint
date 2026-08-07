@@ -142,8 +142,8 @@ void KisTiffTest::testLoadTiffWithLegacyPQProfile()
     const QString legacyProfileName = "High Dynamic Range UHDTV Wide Color Gamut Display (Rec. 2020) - SMPTE ST 2084 PQ EOTF";
 
     if (KoColorSpaceRegistry::instance()->profileByName(legacyProfileName)->name() == legacyProfileName) {
-        qWarning() << "WARNING: the legacy Rec2020PQ profile is present in the Krita installation directory!";
-        qWarning() << "         It will cause Krita to use it instead of the embedded (better) one.";
+        qWarning() << "WARNING: the legacy Rec2020PQ profile is present in the LibrePaint installation directory!";
+        qWarning() << "         It will cause LibrePaint to use it instead of the embedded (better) one.";
         QSKIP("The installed profile will prevent this test from succeeding");
     }
 
@@ -174,4 +174,3 @@ void KisTiffTest::testLoadTiffWithLegacyPQProfile()
 
 
 KISTEST_MAIN(KisTiffTest)
-

@@ -25,9 +25,9 @@ class DmgFile:
 
 def main():
     parser = argparse.ArgumentParser(prog='macos_apptodmg',
-                                     description='Utility to generate a dmg from a krita.app',
+                                     description='Utility to generate a dmg from a LibrePaint.app',
                                      epilog="This code does not sign the resulting dmg or bundle")
-    parser.add_argument('krita_app', metavar='krita.app', help="krita.app path location")
+    parser.add_argument('krita_app', metavar='LibrePaint.app', help="LibrePaint.app path location")
     parser.add_argument('--buildroot', help="Directory where krita src and _install are located",
                         default=os.getenv("BUILDROOT", False))
     parser.add_argument('--media-path', dest="media_path", metavar='<path>', help="path location of background, icons, and ToS")
@@ -81,7 +81,7 @@ def main():
     kritadmg_style_formatted = krita_dmg_style.read_text() % ("%s", krita_dmg_background.name)
 
 
-    # --- Krita version adjustments
+    # --- LibrePaint version adjustments
     kisenv = os.environ.copy()
     kisenv['PATH'] = f"{os.path.join(krita_app,'Contents','MacOS')}:{kisenv['PATH']}"
 
@@ -94,7 +94,7 @@ def main():
     else:
         kis_version_str = "-".join(kis_version)
 
-    kis_name = "krita-" + kis_version_str
+    kis_name = "LibrePaint-" + kis_version_str
     if args.dmg_name:
         kis_name = args.dmg_name
     if args.suffix:
@@ -111,7 +111,7 @@ def main():
     krita_packaging.mkdir(exist_ok=True)
     shutil.move(krita_dmg, krita_packaging)
 
-    print(f'krita.app to dmg finished!')
+    print(f'LibrePaint.app to dmg finished!')
     print(f'output file {krita_dmg} saved to {krita_packaging}')
 
 
@@ -120,18 +120,18 @@ def kritaCreateDMG(krita_app: pathlib.Path, krita_dmg_media: list[DmgFile], dmg_
                    kritadmg_style: str
                    ) -> pathlib.Path:
 
-    # Create dmg_root location must only contain krita.app
+    # Create dmg_root location must only contain LibrePaint.app
     krita_dmg_root = pathlib.Path('_dmg_wd').resolve()
     krita_dmg_root.mkdir()
 
     # since qt6, codesign embbed Plugins/permissions/obj-Release/* special attributes for a valid signature
     # we use rsync to ensure a real clone with Extended attributes
-    print(f'Cloning source krita.app to working dir {krita_dmg_root}')
+    print(f'Cloning source LibrePaint.app to working dir {krita_dmg_root}')
     cmd = ['rsync', '-aE', krita_app, krita_dmg_root]
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as err:
-        print(f"## ERROR: Cloning krita.app failed!\n{err.stderr}")
+        print(f"## ERROR: Cloning LibrePaint.app failed!\n{err.stderr}")
         exit(1);
 
     kritadmg_title = dmg_name + '.dmg'
@@ -140,7 +140,7 @@ def kritaCreateDMG(krita_app: pathlib.Path, krita_dmg_media: list[DmgFile], dmg_
     # hardcoded size to 2.0G
     dmg_size = 2000
 
-    krita_dmgtmp = pathlib.Path("krita.temp.dmg")
+    krita_dmgtmp = pathlib.Path("LibrePaint.temp.dmg")
 
     cmd = f'hdiutil create -srcfolder {krita_dmg_root} -volname {dmg_name} \
             -fs APFS -format UDIF -verbose -size {dmg_size}m'.split()

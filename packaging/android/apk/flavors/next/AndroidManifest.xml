@@ -7,7 +7,7 @@
         <activity
             android:name="org.krita.android.MainActivity"
             tools:replace="android:label"
-            android:label="Krita Next" />
+            android:label="LibrePaint Next" />
 
     </application>
 </manifest>

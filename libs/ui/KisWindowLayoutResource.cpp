@@ -387,7 +387,7 @@ void KisWindowLayoutResource::loadXml(const QDomElement &element) const
 
 #ifdef Q_OS_ANDROID
     if (element.firstChildElement("window") != element.lastChildElement("window")) {
-        QMessageBox::warning(qApp->activeWindow(), i18nc("@title:window", "Krita"),
+        QMessageBox::warning(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"),
                              "Workspaces with multiple windows isn't supported on Android");
         return;
     }

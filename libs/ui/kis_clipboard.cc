@@ -776,7 +776,7 @@ KisPaintDeviceSP KisClipboard::fetchImageByURL(const QUrl &originalUrl) const
         if (!mimes.contains(type)) {
             QString msg = KisImportExportErrorCode(ImportExportCodes::FileFormatNotSupported).errorMessage();
             QMessageBox::warning(KisPart::instance()->currentMainwindow(),
-                                 i18nc("@title:window", "Krita"),
+                                 i18nc("@title:window", "LibrePaint"),
                                  i18n("Could not open %2.\nReason: %1.", msg, url.toDisplayString()));
             return result;
         }

@@ -359,7 +359,7 @@ ShowCustomDocumentWidgetByDefault=true
 LastReturnType=Custom Document
 
 [theme]
-Theme=Krita dark
+Theme=LibrePaint dark
 
 [python]
 enable_colorspace=true

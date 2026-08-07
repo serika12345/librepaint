@@ -28,10 +28,6 @@ public:
 private Q_SLOTS:
     void slotManageBundles();
     void slotManageResources();
-#ifdef Q_OS_ANDROID
-    void slotManageSupporterBundles();
-#endif
-
 private:
     class Private;
     QScopedPointer<Private> d;

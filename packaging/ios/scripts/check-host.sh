@@ -128,7 +128,7 @@ if [[ "${KRITA_IOS_ALLOW_UNVALIDATED_HOST:-0}" == "1" ]]; then
     echo "warning: version mismatches were allowed by KRITA_IOS_ALLOW_UNVALIDATED_HOST=1" >&2
 fi
 
-echo "Krita iPadOS host"
+echo "LibrePaint iPadOS host"
 echo "  Xcode:       $xcode_version ($xcode_build_version)"
 echo "  iPhoneOS:    $sdk_version ($sdk_build_version)"
 echo "  Simulator:   $simulator_sdk_version"

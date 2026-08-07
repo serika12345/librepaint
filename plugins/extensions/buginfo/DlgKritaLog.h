@@ -21,7 +21,7 @@ public:
 
 
     QString defaultNewFileName() override {
-        return "KritaUsageLog.txt";
+        return "LibrePaintUsageLog.txt";
     }
 
     QString originalFileName() override;

@@ -28,10 +28,6 @@
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 
-#ifdef Q_OS_MACOS
-#include "libs/macosutils/KisMacosEntitlements.h"
-#endif
-
 static void addDropShadow(QWidget *widget)
 {
     QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect(widget);
@@ -226,26 +222,8 @@ void KisSplashScreen::displayLinks(bool show) {
         lblLinksText    << "<html>"
                         << "<head/>"
                         << "<body><table style=\"width:100%\" cellpadding=\"30\"><tr><td>"
-                        << i18n("<p><span style=\" color:%1;\"><b>Using Krita</b></span></p>",color);
-
-#ifdef Q_OS_MACOS
-        // macOS store version should not contain external links containing donation buttons or forms
-        if (!KisMacosEntitlements().sandbox()) {
-#endif
-
-            lblLinksText    << i18n("<p><a href=\"https://krita.org/support-us/\"><span style=\" text-decoration: underline; color:%1;\">Support Krita's Development!</span></a></p>",color)
-                            << i18n("<p><a href=\"https://krita.org/\"><span style=\" text-decoration: underline; color:%1;\">Krita Website</span></a></p>",color);
-#ifdef Q_OS_MACOS
-        }
-#endif
-        lblLinksText    << i18n("<p><a href=\"https://docs.krita.org/en/user_manual/getting_started.html\"><span style=\" text-decoration: underline; color:%1;\">Getting Started</span></a></p>",color)
-                        << i18n("<p><a href=\"https://docs.krita.org/\"><span style=\" text-decoration: underline; color:%1;\">Manual</span></a></p>",color)
-                        << "</td><td>"
-                        << i18n("<p><span style=\" color:%1;\"><b>Coding Krita</b></span></p>",color)
-                        << i18n("<p><a href=\"https://krita-artists.org\"><span style=\" text-decoration: underline; color:%1;\">User Community</span></a></p>",color)
-                        << i18n("<p><a href=\"https://invent.kde.org/graphics/krita\"><span style=\" text-decoration: underline; color:%1;\">Source Code</span></a></p>",color)
-                        << i18n("<p><a href=\"https://api.kde.org/krita/html/classKrita.html\"><span style=\" text-decoration: underline; color:%1;\">Scripting API</span></a></p>",color)
-                        << i18n("<p><a href=\"https://scripting.krita.org/lessons/introduction\"><span style=\" text-decoration: underline; color:%1;\">Scripting School</span></a></p>",color)
+                        << i18n("<p><span style=\" color:%1;\"><b>Using LibrePaint</b></span></p>", color)
+                        << i18n("<p><span style=\" color:%1;\">LibrePaint is the free paint app.</span></p>", color)
                         << "</td></tr></table></body>"
                         << "</html>";
 
@@ -289,7 +267,9 @@ void KisSplashScreen::setLoadingText(QString text)
 
 KisSplashScreen::Source KisSplashScreen::getImageSource()
 {
-    QString artistCredit = i18nc("Normal splash artist name", "Tyson Tan");
+    // LibrePaint deliberately ships a neutral placeholder instead of
+    // third-party splash artwork, so there is no artwork credit to display.
+    QString artistCredit;
     // Loading the ginormous 4K PNG splash image increases the startup time on
     // Android by several seconds and at the same time looks really bad when
     // scaled down to a dinky size. Instead of overengineering this into an

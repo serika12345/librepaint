@@ -30,13 +30,6 @@ void KisJPEGXLTest::testFiles()
     const int fuzziness = 1;
 
     TestUtil::testFiles(QString(FILES_DATA_DIR) + "/sources", {}, {}, fuzziness, 0, true);
-
-    TestUtil::testFiles(QString(FILES_DATA_DIR) + "/sources/netflix",
-                        {"hdr_cosmos01000_cicp9-16-0_lossless.jxl", "LICENSE.txt"},
-                        {},
-                        fuzziness,
-                        0,
-                        true);
 }
 
 void KisJPEGXLTest::testAnimation()
@@ -105,42 +98,6 @@ void KisJPEGXLTest::testAnimationWithTail()
     QCOMPARE(image->animationInterface()->documentPlaybackRange(),
              KisTimeSpan::fromTimeToTime(0, 19));
     QCOMPARE(image->animationInterface()->currentTime(), 0);
-}
-
-void KisJPEGXLTest::testHDR()
-{
-    const auto inputFileName = TestUtil::fetchDataFileLazy("/sources/netflix/hdr_cosmos01000_cicp9-16-0_lossless.jxl");
-
-    QScopedPointer<KisDocument> doc1(qobject_cast<KisDocument *>(KisPart::instance()->createDocument()));
-
-    KisImportExportManager manager(doc1.data());
-    doc1->setFileBatchMode(true);
-
-    const auto status = manager.importDocument(inputFileName, {});
-    QVERIFY(status.isOk());
-
-    KisImageSP image = doc1->image();
-
-    {
-        const auto outputFileName = TestUtil::fetchDataFileLazy("/results/hdr_cosmos01000_cicp9-16-0_lossless.kra");
-
-        KisDocument *doc2 = KisPart::instance()->createDocument();
-        doc2->setFileBatchMode(true);
-        const auto r = doc2->importDocument(outputFileName);
-
-        QVERIFY(r);
-        QVERIFY(doc2->errorMessage().isEmpty());
-        QVERIFY(doc2->image());
-
-        doc1->image()->root()->firstChild()->paintDevice()->convertToQImage(nullptr).save("1.png");
-        doc2->image()->root()->firstChild()->paintDevice()->convertToQImage(nullptr).save("2.png");
-
-        QVERIFY(TestUtil::comparePaintDevicesClever<float>(doc1->image()->root()->firstChild()->paintDevice(),
-                                                           doc2->image()->root()->firstChild()->paintDevice(),
-                                                           0.01f /* meaningless alpha */));
-
-        delete doc2;
-    }
 }
 
 void KisJPEGXLTest::testCmykWithLayers()

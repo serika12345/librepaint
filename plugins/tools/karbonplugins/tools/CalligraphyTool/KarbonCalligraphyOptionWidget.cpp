@@ -224,7 +224,7 @@ void KarbonCalligraphyOptionWidget::saveProfileAs()
 
         if (m_profiles.contains(name)) {
             int ret = QMessageBox::warning(this,
-                                           i18nc("@title:window", "Krita"),
+                                           i18nc("@title:window", "LibrePaint"),
                                            i18n("A profile with that name already exists.\n"
                                                 "Do you want to overwrite it?"),
                     QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes);

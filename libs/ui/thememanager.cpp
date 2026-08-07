@@ -82,6 +82,14 @@ ThemeManager::ThemeManager(const QString &theme, QObject *parent)
     //qDebug() << "Creating theme manager with theme" << theme;
     d->currentThemeName = theme;
     populateThemeMap();
+
+    // Keep existing user configuration usable after the display-name change.
+    if (!d->themeMap.contains(d->currentThemeName) && d->currentThemeName.startsWith(QLatin1String("Krita "))) {
+        const QString migratedName = QStringLiteral("LibrePaint ") + d->currentThemeName.mid(6);
+        if (d->themeMap.contains(migratedName)) {
+            d->currentThemeName = migratedName;
+        }
+    }
 }
 
 ThemeManager::~ThemeManager()
@@ -109,7 +117,7 @@ QString ThemeManager::currentThemeName() const
     }
     if (themeName.isEmpty()) {
         //qDebug() << "\tfallback";
-        themeName = "Krita dark";
+        themeName = "LibrePaint dark";
     }
     //qDebug() << "\tresult" << themeName;
     return themeName;
@@ -119,6 +127,12 @@ void ThemeManager::setCurrentTheme(const QString& name)
 {
     //qDebug() << "setCurrentTheme();" << d->currentThemeName << "to" << name;
     d->currentThemeName = name;
+    if (!d->themeMap.contains(d->currentThemeName) && d->currentThemeName.startsWith(QLatin1String("Krita "))) {
+        const QString migratedName = QStringLiteral("LibrePaint ") + d->currentThemeName.mid(6);
+        if (d->themeMap.contains(migratedName)) {
+            d->currentThemeName = migratedName;
+        }
+    }
 
     if (d->themeMenuAction  && d->themeMenuActionGroup) {
         QList<QAction*> list = d->themeMenuActionGroup->actions();

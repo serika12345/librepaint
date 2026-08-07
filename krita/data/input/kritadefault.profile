@@ -14,7 +14,7 @@
 0={0;2;[59];1;0;0}
 
 [General]
-name=Krita Default
+name=LibrePaint Default
 version=6
 
 [Pan Canvas]

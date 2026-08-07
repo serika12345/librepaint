@@ -228,7 +228,7 @@ void KisWdgOptionsJPEGXL::setConfiguration(const KisPropertiesConfigurationSP cf
                 i18nc("Color space option plus transfer function name", "Keep colorants, encode SMPTE ST 428"),
                 i18nc("@tooltip",
                       "The image will be linearized first, and then encoded with SMPTE ST 428."
-                      " Krita always opens images like these as linear floating point, this option is there to reverse "
+                      " The free paint app always opens images like these as linear floating point, this option is there to reverse "
                       "that"),
                 "ApplySMPTE428");
         }

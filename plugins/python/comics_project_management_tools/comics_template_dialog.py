@@ -120,7 +120,7 @@ class comics_template_dialog(QDialog):
                 self.fill_templates()
 
     def slot_import_template(self):
-        filenames = FileDialog.getOpenFileNames(caption=i18n("Which files should be added to the template folder?"), directory=self.templateDirectory, filter=str(i18n("Krita files") + "(*.kra)"))
+        filenames = FileDialog.getOpenFileNames(caption=i18n("Which files should be added to the template folder?"), directory=self.templateDirectory, filter=str(i18n("KRA files") + "(*.kra)"))
         if not filenames: return
         for file in filenames:
             shutil.copy2(file, self.templateDirectory)

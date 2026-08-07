@@ -216,9 +216,45 @@ mkIOSCMakePackage {
     "krita.app/share/krita/actions/krita.action"
     "krita.app/share/krita/actions/kritamenu.action"
     "krita.app/share/krita/bundles/Krita_4_Default_Resources.bundle"
+    "krita.app/share/doc/librepaint/non-code-licenses/CC-BY-3.0.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-3.0.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-4.0.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/CC0-1.0.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/GPL-2.0-or-later.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/GPL-3.0-only.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/GPL-3.0-or-later.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/LGPL-2.0-or-later.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-only.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-or-later.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/LicenseRef-ICC-License.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/default-resource-bundle-licenses.json"
+    "krita.app/share/doc/librepaint/non-code-licenses/non-code-licenses.md"
+    "krita.app/share/doc/librepaint/non-code-licenses/qtbase-icc-attribution.json"
+    "krita.app/share/doc/librepaint/non-code-licenses/retained-functional-assets.md"
+    "krita.app/share/doc/librepaint/non-code-licenses/static-dependency-resources.json"
+    "krita.app/share/doc/librepaint/non-code-licenses/white-brand-assets.json"
+    "krita.app/share/doc/librepaint/non-code-licenses/bundles/README"
+    "krita.app/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt"
+    "krita.app/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt"
   ];
 
   postConfigure = ''
+    ${python3}/bin/python3 \
+      "${kritaSource}/packaging/ios/scripts/replace-brand-art-with-white.py" \
+      --manifest "${kritaSource}/packaging/ios/manifests/white-brand-assets.json" \
+      --audit-ios-classification
+
+    ${python3}/bin/python3 \
+      "${kritaSource}/packaging/ios/scripts/audit-default-resource-bundle.py" \
+      --bundle "${kritaSource}/krita/data/bundles/Krita_4_Default_Resources.bundle" \
+      --manifest "${kritaSource}/packaging/ios/manifests/default-resource-bundle-licenses.json"
+
+    ${python3}/bin/python3 \
+      "${kritaSource}/packaging/ios/scripts/audit-static-dependency-resources.py" \
+      --qtbase-source-tar "${qtbase-ios.src}" \
+      --kcolorscheme-source-tar "${kcolorscheme-ios.src}" \
+      --kwidgetsaddons-source-tar "${kwidgetsaddons-ios.src}"
+
     check_cache_value() {
       name="$1"
       expected="$2"
@@ -277,6 +313,12 @@ mkIOSCMakePackage {
         app="$out/krita.app"
         binary="$app/krita"
 
+        ${python3}/bin/python3 \
+          "${kritaSource}/packaging/ios/scripts/audit-static-dependency-resources.py" \
+          --binary "$binary" \
+          --build-ninja "$PWD/build.ninja" \
+          --nm "${toolchain.nm}"
+
         architectures="$(${toolchain.lipo} -archs "$binary")"
         if test "$architectures" != "${toolchain.architecture}"; then
           echo "error: Krita contains '$architectures'; expected ${toolchain.architecture}" >&2
@@ -308,7 +350,8 @@ mkIOSCMakePackage {
 
     expected = {
         "CFBundleExecutable": "krita",
-        "CFBundleIdentifier": "org.krita.ipad.port",
+        "CFBundleIdentifier": "local.librepaint.ipad",
+        "CFBundleDisplayName": "LibrePaint",
         "LSRequiresIPhoneOS": True,
         "LSSupportsOpeningDocumentsInPlace": True,
         "MinimumOSVersion": "${toolchain.deploymentTarget}",
@@ -330,12 +373,43 @@ mkIOSCMakePackage {
         fi
 
         bundle_count="$(find "$app/share/krita/bundles" -type f -name '*.bundle' | wc -l | tr -d ' ')"
-        profile_count="$(find "$app/share/color/icc/krita" -type f -name '*.icc' | wc -l | tr -d ' ')"
+        profile_count="$(find "$app/share/color/icc/krita" -type f \( -name '*.icc' -o -name '*.icm' \) | wc -l | tr -d ' ')"
         action_count="$(find "$app/share/krita/actions" -type f -name '*.action' | wc -l | tr -d ' ')"
-        test "$bundle_count" -gt 0
-        test "$profile_count" -gt 0
+        test "$bundle_count" -eq 1
+        test "$profile_count" -eq 31
         test "$action_count" -gt 0
         test -s "$app/share/krita/actions/iostouchui.action"
+        test -s "$app/share/krita/bundles/Krita_4_Default_Resources.bundle"
+        ${python3}/bin/python3 \
+          "${kritaSource}/packaging/ios/scripts/audit-default-resource-bundle.py" \
+          --bundle "$app/share/krita/bundles/Krita_4_Default_Resources.bundle" \
+          --manifest "${kritaSource}/packaging/ios/manifests/default-resource-bundle-licenses.json"
+        for notice in \
+          CC-BY-3.0.txt \
+          CC-BY-SA-3.0.txt \
+          CC-BY-SA-4.0.txt \
+          CC0-1.0.txt \
+          GPL-2.0-or-later.txt \
+          GPL-3.0-only.txt \
+          GPL-3.0-or-later.txt \
+          LGPL-2.0-or-later.txt \
+          LGPL-3.0-only.txt \
+          LGPL-3.0-or-later.txt \
+          LicenseRef-ICC-License.txt \
+          default-resource-bundle-licenses.json \
+          non-code-licenses.md \
+          qtbase-icc-attribution.json \
+          retained-functional-assets.md \
+          static-dependency-resources.json \
+          white-brand-assets.json; do
+          test -s "$app/share/doc/librepaint/non-code-licenses/$notice"
+        done
+        test -s "$app/share/doc/librepaint/non-code-licenses/bundles/README"
+        test -s "$app/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt"
+        test -s "$app/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt"
+        test ! -e "$app/share/color/icc/krita/scRGB.icm"
+        test ! -e "$app/share/color/icc/krita/cmyk.icm"
+        test ! -e "$app/share/color/icc/krita/krita25_lcms-builtin-sRGB_g100-truegamma.icc"
         grep -q '<Action name="copy_merged">' "$app/share/krita/actions/kritamenu.action"
         grep -q '<Action name="view_show_ios_touch_ui">' "$app/share/krita/actions/iostouchui.action"
 
@@ -352,13 +426,13 @@ mkIOSCMakePackage {
   '';
 
   passthru = {
-    bundleIdentifier = "org.krita.ipad.port";
+    bundleIdentifier = "local.librepaint.ipad";
     inherit pluginProfile targetDependencies;
     unsigned = true;
   };
 
   meta = {
-    description = "Unsigned Krita application bundle for arm64 iPadOS";
+    description = "Unsigned LibrePaint application bundle for arm64 iPadOS";
     license = lib.licenses.gpl3Plus;
   };
 }

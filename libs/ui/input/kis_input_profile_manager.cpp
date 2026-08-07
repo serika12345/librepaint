@@ -331,7 +331,7 @@ void KisInputProfileManager::loadProfiles()
     QString currentProfile = cfg.currentInputProfile();
     if (d->profiles.size() > 0) {
         if (currentProfile.isEmpty() || !d->profiles.contains(currentProfile)) {
-            QString kritaDefault = QStringLiteral("Krita Default");
+            QString kritaDefault = QStringLiteral("LibrePaint Default");
             if (d->profiles.contains(kritaDefault)) {
                 d->currentProfile = d->profiles.value(kritaDefault);
             } else {

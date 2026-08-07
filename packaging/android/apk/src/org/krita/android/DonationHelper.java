@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 public class DonationHelper implements PurchasesUpdatedListener, BillingClientStateListener {
 
     private static final String TAG = "krita.DonationHelper";
+    private static final boolean DONATIONS_ENABLED = false;
 
     // Keep this in sync with the enum clas State in KisAndroidDonations.h!
     private static final int STATE_UNKNOWN = 0;
@@ -69,7 +70,16 @@ public class DonationHelper implements PurchasesUpdatedListener, BillingClientSt
                                 .enableOneTimeProducts()
                                 .build())
                 .build();
-        mBillingClient.startConnection(this);
+        if (DONATIONS_ENABLED) {
+            mBillingClient.startConnection(this);
+        } else {
+            mProductDetailsList = List.of();
+            mReady = true;
+        }
+    }
+
+    public static boolean isEnabled() {
+        return DONATIONS_ENABLED;
     }
 
     public static synchronized DonationHelper getInstance() {
@@ -113,6 +123,13 @@ public class DonationHelper implements PurchasesUpdatedListener, BillingClientSt
     }
 
     private void refreshPurchases() {
+        if (!DONATIONS_ENABLED) {
+            mProductDetailsList = List.of();
+            mProductsQueryInProgress = false;
+            mReady = true;
+            sendDonationStateUpdate();
+            return;
+        }
         mReady = false;
         mProductsQueryInProgress = true;
         DonationQuery.execute(this);
@@ -264,6 +281,10 @@ public class DonationHelper implements PurchasesUpdatedListener, BillingClientSt
     }
 
     public void startBillingFlowWith(ProductDetails productDetails, String offerToken) {
+        if (!DONATIONS_ENABLED) {
+            Log.d(TAG, "Upstream billing is disabled in LibrePaint");
+            return;
+        }
         if (anyProductsAvailable() && productDetails != null) {
             ProductDetailsParams.Builder builder = ProductDetailsParams.newBuilder()
                     .setProductDetails(productDetails);
@@ -315,6 +336,9 @@ public class DonationHelper implements PurchasesUpdatedListener, BillingClientSt
     }
 
     private synchronized List<KisSupporterProduct> getCurrentProductsInternal() {
+        if (!DONATIONS_ENABLED) {
+            return List.of();
+        }
         if (isReady()) {
             return DonationProduct.getKisSupporterProducts(
                     QtNative.activity(), getAvailableProductsById(), mOwnedProductIds);

@@ -109,18 +109,14 @@ void KisKHelpMenuPrivate::createActions(KisKHelpMenu *q)
         return;
     }
     mActionsCreated = true;
-    mHandBookAction = KStandardAction::helpContents(q, SLOT(appHelpActivated()), q);
+    // LibrePaint does not expose upstream handbook or bug-report routes.
     if (mShowWhatsThis) {
         mWhatsThisAction = KStandardAction::whatsThis(q, SLOT(contextHelpActivated()), q);
     }
 
-    if (!mAboutData.bugAddress().isEmpty()) {
-        mReportBugAction = KStandardAction::reportBug(q, SLOT(reportBug()), q);
-    }
-
     mSwitchApplicationLanguageAction = KStandardAction::create(KStandardAction::SwitchApplicationLanguage, q, SLOT(switchApplicationLanguage()), q);
     mAboutAppAction = KStandardAction::aboutApp(q, SLOT(aboutApplication()), q);
-    mAboutKDEAction = KStandardAction::aboutKDE(q, SLOT(aboutKDE()), q);
+    // LibrePaint does not expose the upstream KDE promotional dialog.
 }
 
 // Used in the non-xml-gui case, like kfind or ksnapshot's help button.
@@ -222,24 +218,12 @@ void KisKHelpMenu::aboutApplication()
 
 void KisKHelpMenu::aboutKDE()
 {
-    if (!d->mAboutKDE) {
-        d->mAboutKDE = new KisKAboutKdeDialog(d->mParent);
-        connect(d->mAboutKDE, SIGNAL(finished(int)), this, SLOT(dialogFinished()));
-    }
-    d->mAboutKDE->show();
+    // LibrePaint does not expose the upstream KDE promotional dialog.
 }
 
 void KisKHelpMenu::reportBug()
 {
-#ifdef KRITA_STABLE
-    QDesktopServices::openUrl(QUrl("https://docs.krita.org/en/untranslatable_pages/reporting_bugs.html"));
-#else
-    if (!d->mBugReport) {
-        d->mBugReport = new KisKBugReport(d->mAboutData, d->mParent);
-        connect(d->mBugReport, SIGNAL(finished(int)), this, SLOT(dialogFinished()));
-    }
-    d->mBugReport->show();
-#endif
+    // No LibrePaint bug-report endpoint has been configured.
 }
 
 void KisKHelpMenu::switchApplicationLanguage()
@@ -282,4 +266,3 @@ void KisKHelpMenu::contextHelpActivated()
 {
     QWhatsThis::enterWhatsThisMode();
 }
-

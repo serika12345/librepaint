@@ -388,9 +388,6 @@ xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0  http://www.kde.org
       <Action name="change_interface_scale"/>
       <Action name="manage_bundles"/>
       <Action name="manage_resources"/>
-      <Action name="manage_supporter_bundles"/>
-      <Action name="manage_donations"/>
-      <Action name="manage_subscriptions"/>
       <Separator/>
       <Action name="options_configure_toolbars"/>
       <Merge name="StandardToolBarMenuHandler" />
@@ -415,13 +412,11 @@ xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0  http://www.kde.org
     <Separator/>
     <Menu name="help">
       <text>&amp;Help</text>
-      <Action name="help_contents"/>
       <Action name="help_whats_this"/>
       <Separator/>
       <MergeLocal/>
       <Action name="help_show_tip"/>
       <Separator/>
-      <Action name="help_report_bug"/>
       <Action name="buginfo"/>
       <Action name="sysinfo"/>
       <Action name="color_management_report"/>
@@ -429,7 +424,6 @@ xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0  http://www.kde.org
       <Action name="crashlog"/>
       <Separator/>
       <Action name="help_about_app"/>
-      <Action name="help_about_kde"/>
     </Menu>
   </MenuBar>
   <ToolBar name="mainToolBar" fullWidth="false" noMerge="1">
