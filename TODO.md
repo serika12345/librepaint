@@ -306,7 +306,6 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [ ] **P0** suspend/resume、回転、Split View、低ストレージの回帰テストを作る。
 - [ ] **P0** static pluginとresourceを削減し、アプリ容量を確認する。
 - [ ] **P0** crash logと再現手順を保存する運用を作る。
-  - [x] iPadOS向けGitHub Issue Formで、端末・OS・配布経路・再現手順・解析ログの提出項目を標準化する。
   - [ ] 収集したcrash log、Jetsam report、`krita.log`を実機検証記録へ関連付けて保存する。
 - [ ] **P1** Address Sanitizer/Undefined Behavior SanitizerをSimulatorまたは対応構成で実行する。
 - [ ] **P1** Kritaの非GUI単体テストをiOS互換範囲で実行する。

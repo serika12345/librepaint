@@ -78,9 +78,8 @@ Steps (if running manually):
 5. Install and test `out\LibrePaint.msix`
 
 The script and related resources are also configured and installed into
-`${CMAKE_INSTALL_PREFIX}/krita-msix`, which is then used by the Binary Factory
-pipeline. On the Binary Factory, we also need to set `KRITA_SHELLEX` for it
-to copy the files required for the shell extension.
+`${CMAKE_INSTALL_PREFIX}/krita-msix`. Set `KRITA_SHELLEX` when the locally
+prepared package should include the shell-extension files.
 
 
 Self-signing the package for testing purposes

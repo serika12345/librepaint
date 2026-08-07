@@ -12,7 +12,7 @@
 | R8 | Memory | iPadOS terminates large documents under pressure | High | High | Device-specific cache limits and memory-warning handling |
 | R9 | Files | Security-scoped URLs or cloud coordination cause data loss | Medium | Critical | UIDocumentPicker bridge, bookmarks, autosave/recovery tests |
 | R10 | Reproducibility | Nix cache hides an Xcode/SDK mismatch | Medium | High | Version check before build; include validated matrix in artifacts/logs |
-| R11 | Regression | Shared CMake/mobile changes break macOS or Android | Medium | High | Keep platform feature flags narrow and run upstream platform CI later |
+| R11 | Regression | Shared CMake/mobile changes break macOS or Android | Medium | High | Keep platform feature flags narrow and run local platform build/test checks |
 
 ## Gate exit criteria
 

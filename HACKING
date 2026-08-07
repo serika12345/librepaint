@@ -13,7 +13,7 @@ Qt vs STD vs Boost:
     that the STD class is better or whatever. We're dealing with a big project
     with lots of developers here and we should keep the code as consistent and
     easy to grasp as possible. Since people need to know Qt in the first place,
-    keep to Qt. Discuss deviations on #krita
+    keep to Qt. Document intentional deviations in the change.
 
 C++11 and C++14
 
@@ -34,8 +34,8 @@ C++11 and C++14
       templates is perfectly fine
 
     * In some cases it might be okay to use auto as a shortcut for the typename,
-      e.g. when using very long types returned by boost. But better discuss that
-      on #krita.
+      e.g. when using very long types returned by boost. Document the reason
+      when making such an exception.
 
     * Avoid the new sig/slot connection syntax _unless_ you are porting all of
       Krita to the new syntax. Sure, it has some advantages, but having two different
@@ -49,7 +49,7 @@ C++11 and C++14
       loss of the git-blame history (that is, your changes do already change the file
       significantly)
 
-    * Before using other new features, discuss on #krita so we can expand this list.
+    * Before using other new features, update this guide when the convention changes.
 
 
 Indentation

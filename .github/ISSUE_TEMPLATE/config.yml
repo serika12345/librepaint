@@ -1,5 +1,0 @@
-blank_issues_enabled: true
-contact_links:
-  - name: Upstream Krita bug tracker
-    url: https://bugs.kde.org/
-    about: Report bugs that also reproduce in official desktop or Android builds of Krita.

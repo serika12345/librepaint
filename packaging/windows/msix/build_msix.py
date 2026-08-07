@@ -67,8 +67,7 @@ scriptDir = os.path.realpath(os.path.dirname( os.path.realpath(__file__) ))
 try:
     os.mkdir(environ['OUTPUT_DIR'])
 except FileExistsError:
-    # We may have already created it in build-windows-package.py,
-    # just ignore
+    # Reuse an output directory prepared by the caller.
     pass
 
 if not environ['KRITA_DIR']:

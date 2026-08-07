@@ -1,8 +1,0 @@
-# make sure to run this plugins in this subdir
-CHECK dpointer,inline
-
-# boost signals should not be combined with calligra code anyway
-EXCLUDE sigsandslots
-
-# skip files matching this regex in this subdir
-SKIP /kotext/kohyphen
