@@ -128,11 +128,10 @@ does not place a whole container under CC0 when original copyright, creator,
 license, title, or other provenance metadata remains; those original notices
 and licenses continue to apply and are byte-hash checked.
 
-The following five CC-BY-SA-4.0 SVG/SVGZ sources specifically retain their
+The following four CC-BY-SA-4.0 SVG sources specifically retain their
 original metadata while indicating here that their visible artwork was changed
 to white:
 
-- `krita/pics/branding/Next/sc-apps-krita.svgz`
 - `krita/pics/svg/dark_krita_log.svg`
 - `krita/pics/svg/light_krita_log.svg`
 - `pics/32_dark_application-x-krz.svg`
@@ -147,8 +146,10 @@ guidelines do not permit without separate authorization.
 
 https://www.adobe.com/legal/permissions/icons-web-logos.html
 
-Krita application names, icons, splash/donation/sponsor imagery, and other
-branding remain white for trademark separation, consistent with Krita's own
-redistribution guidance. Two temporary comic-panel icons without verified
+Krita donation/sponsor imagery and all branding that has not been explicitly
+reclassified remain white for trademark separation, consistent with Krita's
+own redistribution guidance. The active LibrePaint iOS icon and splash are
+separate CC0-1.0 replacements documented in
+`librepaint-brand-assets.md`. Two temporary comic-panel icons without verified
 individual provenance also remain white. License wording and factual
 attribution are never rewritten.

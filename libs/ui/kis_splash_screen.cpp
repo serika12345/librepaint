@@ -8,7 +8,6 @@
 
 #include <QApplication>
 #include <QScreen>
-#include <QGraphicsDropShadowEffect>
 #include <QPixmap>
 #include <QPainter>
 #include <QCheckBox>
@@ -28,20 +27,11 @@
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 
-static void addDropShadow(QWidget *widget)
-{
-    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect(widget);
-    effect->setBlurRadius(4);
-    effect->setOffset(0.5);
-    effect->setColor(QColor(0, 0, 0, 255));
-    widget->setGraphicsEffect(effect);
-}
-
 KisSplashScreen::KisSplashScreen(bool themed, QWidget *parent, Qt::WindowFlags f)
     : QWidget(parent, Qt::SplashScreen | Qt::FramelessWindowHint | f)
-      , m_themed(themed)
       , m_versionHtml(qApp->applicationVersion().toHtmlEscaped())
 {
+    Q_UNUSED(themed);
 
     setupUi(this);
 #ifndef Q_OS_MACOS
@@ -50,19 +40,21 @@ KisSplashScreen::KisSplashScreen(bool themed, QWidget *parent, Qt::WindowFlags f
 
     m_loadingTextLabel = new QLabel(lblSplash);
     m_loadingTextLabel->setTextFormat(Qt::RichText);
-    m_loadingTextLabel->setStyleSheet(QStringLiteral("QLabel { color: #fff; background-color: transparent; }"));
+    m_loadingTextLabel->setStyleSheet(QStringLiteral("QLabel { color: #171A21; background-color: transparent; }"));
     m_loadingTextLabel->setAlignment(Qt::AlignRight | Qt::AlignTop);
-    addDropShadow(m_loadingTextLabel);
 
     m_brandingSvg = new QSvgWidget(QStringLiteral(":/krita-branding.svgz"), lblSplash);
     m_bannerSvg = new QSvgWidget(QStringLiteral(":/splash/banner.svg"), lblSplash);
-    addDropShadow(m_bannerSvg);
+    // The LibrePaint splash is a complete mark-and-wordmark composition.
+    // Keep the legacy resources available to other callers, but do not draw
+    // the old split mark/banner overlay on top of the complete splash.
+    m_brandingSvg->hide();
+    m_bannerSvg->hide();
 
     m_artCreditsLabel = new QLabel(lblSplash);
     m_artCreditsLabel->setTextFormat(Qt::PlainText);
-    m_artCreditsLabel->setStyleSheet(QStringLiteral("QLabel { color: #fff; background-color: transparent; font: 10pt; }"));
+    m_artCreditsLabel->setStyleSheet(QStringLiteral("QLabel { color: #171A21; background-color: transparent; font: 10pt; }"));
     m_artCreditsLabel->setAlignment(Qt::AlignRight | Qt::AlignBottom);
-    addDropShadow(m_artCreditsLabel);
 
     updateSplashImage();
     setLoadingText(QString());
@@ -298,12 +290,8 @@ KisSplashScreen::Source KisSplashScreen::getImageSource()
 
 QString KisSplashScreen::colorString() const
 {
-    QString color = "#FFFFFF";
-    if (m_themed && qApp->palette().window().color().value() > 100) {
-        color = "#000000";
-    }
-
-    return color;
+    // The bundled LibrePaint splash has a fixed white background.
+    return QStringLiteral("#171A21");
 }
 
 

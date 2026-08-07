@@ -22,7 +22,8 @@ resources. Their exclusive final classification is:
 - two KXmlGui images under LGPL-2.0-or-later;
 - 148 functional images covered by Krita's project-wide GPL-3.0-only
   distribution fallback;
-- 27 same-size white replacements and one intentional zero-byte alias.
+- two LibrePaint-owned brand images under CC0-1.0;
+- 25 same-size white replacements and one intentional zero-byte alias.
 
 A further 32 functional images installed by the selected static plugins and
 data targets are retained under the project-wide GPL fallback. Their exact set
@@ -32,10 +33,27 @@ The exact paths, original dimensions, retained metadata hashes, Qt resource
 inputs, whole-content hashes, CMake definitions, and audit invariants are
 recorded in `white-brand-assets.json`, which is distributed beside this file.
 `retained-functional-assets.md` supplies the Breeze, Oxygen, Android, KXmlGui,
-KDE trademark, project-wide GPL, and modification notices. Copyright, creator,
-title, license, and other provenance metadata retained inside image files
-continues to apply. The complete applicable CC, GPL, LGPL, and CC0 texts are
-distributed beside this index.
+KDE trademark, project-wide GPL, and modification notices.
+`librepaint-brand-assets.md` records the author statement, source hashes,
+CC0 dedication, and current compatibility paths for the new logo. Copyright,
+creator, title, license, and other provenance metadata retained inside image
+files continues to apply. The complete applicable CC, GPL, LGPL, and CC0 texts
+are distributed beside this index.
+
+## LibrePaint branding
+
+The project owner stated that they created the supplied LibrePaint icon and
+wordmark and released them under CC0-1.0. The four unmodified SVG/PNG source
+files are retained in `packaging/ios/brand-assets`; `.license` sidecars apply
+the CC0 declaration without changing their original bytes. The active iOS app
+icon, Qt runtime icon, and 4K splash are derived from those sources. The HD
+splash fallback is derived under the same terms.
+
+The generated assets temporarily retain their existing Krita-era filenames so
+the current build can load them. They are complete replacements and therefore
+do not carry forward creator or CC-BY-SA metadata from the former Krita art.
+Exact source hashes and transformations are listed in
+`librepaint-brand-assets.md`.
 
 ## Default resource bundle
 

@@ -66,6 +66,7 @@ for notice in \
     LGPL-3.0-or-later.txt \
     LicenseRef-ICC-License.txt \
     default-resource-bundle-licenses.json \
+    librepaint-brand-assets.md \
     non-code-licenses.md \
     qtbase-icc-attribution.json \
     retained-functional-assets.md \

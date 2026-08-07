@@ -260,12 +260,14 @@ EVIDENCE_SPECS = {
 }
 
 NOTICE_PATHS = (
+    "LICENSES/CC0-1.0.txt",
     "LICENSES/GPL-3.0-only.txt",
     "LICENSES/LGPL-2.0-or-later.txt",
     "LICENSES/LGPL-3.0-only.txt",
     "LICENSES/LGPL-3.0-or-later.txt",
     "LICENSES/LicenseRef-ICC-License.txt",
     "packaging/ios/manifests/non-code-licenses.md",
+    "packaging/ios/notices/librepaint-brand-assets.md",
     "packaging/ios/notices/qtbase-icc-attribution.json",
     "packaging/ios/notices/retained-functional-assets.md",
 )

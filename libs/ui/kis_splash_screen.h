@@ -55,7 +55,6 @@ private:
 private:
 
     QTimer m_timer;
-    bool m_themed;
     bool m_displayLinks { false };
     QSvgWidget *m_brandingSvg;
     QSvgWidget *m_bannerSvg;

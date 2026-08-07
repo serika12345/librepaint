@@ -84,6 +84,10 @@
   ],
   "notice_files": [
     {
+      "path": "LICENSES/CC0-1.0.txt",
+      "sha256": "6a573fb2f9082662978cf21fb153096df0a1981deaea7dbc10a11046fe005d9f"
+    },
+    {
       "path": "LICENSES/GPL-3.0-only.txt",
       "sha256": "2ca9503d76d1ffab14f599b4741382eec11face60ad1f0d7a41897809003a286"
     },
@@ -105,7 +109,11 @@
     },
     {
       "path": "packaging/ios/manifests/non-code-licenses.md",
-      "sha256": "48052af35dc196a6280dd3abedcaa90ab4f82e91775b85142f19c7fd5b582d8f"
+      "sha256": "6e6899972c2f69b7272be1be3ed1a4343672d72cf124851b19bc2f3626859611"
+    },
+    {
+      "path": "packaging/ios/notices/librepaint-brand-assets.md",
+      "sha256": "55e13562b451beeb142379c72d6138547077fe5e705b71d30bcc6aef79b360f9"
     },
     {
       "path": "packaging/ios/notices/qtbase-icc-attribution.json",
@@ -113,7 +121,7 @@
     },
     {
       "path": "packaging/ios/notices/retained-functional-assets.md",
-      "sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+      "sha256": "1b2fa3a80ea90b2b3c36d0befc198655902fb4b71b9985939fc27562cfe59fb4"
     }
   ],
   "inventory": {

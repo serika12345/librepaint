@@ -16,12 +16,19 @@
     ],
     "preserve_archives": "Replace only the root preview.png payload while preserving ZIP entry order and metadata.",
     "preserve_embedded_raster_metadata": "Retain PNG eXIf/iCCP/iTXt/tEXt/zTXt, JPEG EXIF/ICC/JUMBF/IPTC/COM, WebP EXIF/ICCP/XMP, and embedded PNG metadata in ICO/ICNS representations byte-for-byte.",
-    "legal_wording_gate": "The 68 white raster assets with copyright, Creative Commons, or attribution/share-alike bytes are exact-hash checked; legal wording is never rewritten.",
+    "legal_wording_gate": "The 67 white raster assets with copyright, Creative Commons, or attribution/share-alike bytes are exact-hash checked; legal wording is never rewritten.",
     "scope_policy": "Keep functional images under the most specific verified asset, family, or project license; replace application branding and unresolved artwork with same-size white content."
   },
   "selection": {
+    "restored_brand_paths": [
+      "krita/data/splash/electrichearts_20250824A_kiki_4K.png",
+      "krita/data/splash/electrichearts_20250824A_kiki_HD.jpg",
+      "krita/pics/branding/Next/1024-apps-krita.png",
+      "krita/pics/branding/Next/sc-apps-krita.svgz"
+    ],
     "raster_globs": [
-      "krita/data/splash/electrichearts_*",
+      "krita/data/splash/electrichearts_20250824A_kiki_4K.png",
+      "krita/data/splash/electrichearts_20250824A_kiki_HD.jpg",
       "krita/data/donation/*.png",
       "krita/data/donation/*.jpg",
       "krita/pics/sponsors/*.png",
@@ -182,17 +189,17 @@
       "static_resource_registration_files": 10,
       "qrc_unique_images": 1301,
       "qrc_image_paths_sha256": "2dc13bbe0e084016751fbd2995e2f80479a9cc4f40087a1d21f780dd9fc479d7",
-      "retained_qrc_images": 564,
-      "retained_qrc_paths_sha256": "b1f9eee52f2ac0e15093951951b9c96ec413ca57633ec6f91cc1cb9ee7f2a02d",
-      "strict_metadata_images": 712,
-      "strict_metadata_paths_sha256": "a387868eada8b87730be7b77326c40fa66c755a23648df2a8302cdd55ab8cbde",
-      "strict_metadata_content_sha256": "b5bac4a79a4639ce27c2216e3fda8aa34da6742bb4e8be3008b496c0b23c6a5e",
-      "strict_metadata_license_urls_sha256": "8954300f9c87aca8acb87fa2aea554252880661a722a037a5c190ea3d15dc81e",
-      "strict_white_overlap": 3,
+      "retained_qrc_images": 566,
+      "retained_qrc_paths_sha256": "2ba96f161caf711b8de7c0808f3e9923258f63f975db6502429e8f68a4ae0adc",
+      "strict_metadata_images": 711,
+      "strict_metadata_paths_sha256": "086528215e67d29057e98388e1edcbbeb4277a1fd2ccfbad8b5b89140ff98f35",
+      "strict_metadata_content_sha256": "a4bd3c3b25bf914594838ee54c8955a15a2a1088dd32118b0b9c8cfcd7a56903",
+      "strict_metadata_license_urls_sha256": "b96c149f124d22ec254538b33a950813b1082e5e55babf3689c23d2559be927d",
+      "strict_white_overlap": 2,
       "linked_art": 709,
       "linked_art_paths_sha256": "8d48606d9e06fb86cfa920dad6b289aaf8941083b1edf84e74974f432f866437",
       "linked_art_content_sha256": "f475010ba3d078f4398b67a24969b8dad0b06eb15a9df41cfea630a2aff79887",
-      "white": 27,
+      "white": 25,
       "zero": 1,
       "unresolved": 0,
       "installed_only_images": 32,
@@ -309,7 +316,7 @@
           "paths_sha256": "4651e48e840baa15d07a0bae1cfebc56ff848c899c40494459a2a7d6232e79f4",
           "content_sha256": "8d1d5108336f189d439743a8f150f9e48e1409040bbb0622266de13addd4cdab"
         },
-        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+        "notice_sha256": "1b2fa3a80ea90b2b3c36d0befc198655902fb4b71b9985939fc27562cfe59fb4"
       },
       {
         "id": "kde-oxygen-icons-qrc",
@@ -346,7 +353,7 @@
           "paths_sha256": "a6899f49689403f35da7b5969859b51534367cbc9cf3ff4759399019031048c7",
           "content_sha256": "e3964861e115e83347d3d4314f7e5871a449145c30b79f9288840f52d0b1b9d2"
         },
-        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+        "notice_sha256": "1b2fa3a80ea90b2b3c36d0befc198655902fb4b71b9985939fc27562cfe59fb4"
       },
       {
         "id": "kde-breeze-icons-qrc",
@@ -658,7 +665,7 @@
           "paths_sha256": "e96de87e8272d3095e22ab28e0124a439075ca6a9e90f2617643b733e5337210",
           "content_sha256": "49200e546860107dd3dcee18bd358d0979970ae94db081d1ea412a256f6307f3"
         },
-        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+        "notice_sha256": "1b2fa3a80ea90b2b3c36d0befc198655902fb4b71b9985939fc27562cfe59fb4"
       },
       {
         "id": "android-robot-functional-qrc",
@@ -675,7 +682,7 @@
           "paths_sha256": "d87f2acd26d937a826e621b4758075b7205d854282cfe2374845aad5a5a6bd4f",
           "content_sha256": "0210f4c485878e5da9ec9e48f7576c8481c14ccca0617dc44c24bc1649825454"
         },
-        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+        "notice_sha256": "1b2fa3a80ea90b2b3c36d0befc198655902fb4b71b9985939fc27562cfe59fb4"
       },
       {
         "id": "kde-kxmlgui-functional-qrc",
@@ -692,7 +699,7 @@
           "paths_sha256": "6d6d571657e4711ef4a27ea514b294cda5b9273664622014744f9f72fd48bc8d",
           "content_sha256": "383ad0baa82ac36b7745ce8ec9f26f0bd5fa32fdb448fe75a32c66eaa2c8e263"
         },
-        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+        "notice_sha256": "1b2fa3a80ea90b2b3c36d0befc198655902fb4b71b9985939fc27562cfe59fb4"
       },
       {
         "id": "krita-functional-qrc",
@@ -855,7 +862,7 @@
           "paths_sha256": "50c2f1c4c8033dc094ec18788bed902bd34986db52286217204e803c43bc8a49",
           "content_sha256": "2b66253ab642c40934daf1f47ba864526822c90bd3e8a6a3e86b16607ca20139"
         },
-        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+        "notice_sha256": "1b2fa3a80ea90b2b3c36d0befc198655902fb4b71b9985939fc27562cfe59fb4"
       },
       {
         "id": "krita-functional-installed",
@@ -902,7 +909,24 @@
           "paths_sha256": "9bd79bc0a561e14aa0d5e2516c5f061281537bfda91973c45211a2ace87925bc",
           "content_sha256": "adbecdf809a49cc278816b957d2cdb03a888b112b53168745249b6108d9fc174"
         },
-        "notice_sha256": "c6efd70d40c9009d5c7725580421bd826bdaa5b973c6d43c9384f88ddd8c3865"
+        "notice_sha256": "1b2fa3a80ea90b2b3c36d0befc198655902fb4b71b9985939fc27562cfe59fb4"
+      },
+      {
+        "id": "librepaint-branding-qrc",
+        "scope": "qrc",
+        "license_expression": "CC0-1.0",
+        "source_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "notice_path": "packaging/ios/notices/librepaint-brand-assets.md",
+        "paths": [
+          "krita/data/splash/electrichearts_20250824A_kiki_4K.png",
+          "krita/pics/branding/Next/sc-apps-krita.svgz"
+        ],
+        "expected": {
+          "files": 2,
+          "paths_sha256": "c171f7d79429403d758399e6e924c0922ec213fd1e59e059c2173dff9794b30f",
+          "content_sha256": "fcb064497dea0c8b25dbc57760141af043ea97b75b92fb396591ae7b3d576661"
+        },
+        "notice_sha256": "55e13562b451beeb142379c72d6138547077fe5e705b71d30bcc6aef79b360f9"
       }
     ],
     "installed_image_definition_paths": [
@@ -940,7 +964,6 @@
       "krita/pics/branding/Beta/48-apps-krita.png",
       "krita/pics/branding/Beta/512-apps-krita.png",
       "krita/pics/branding/Beta/64-apps-krita.png",
-      "krita/pics/branding/Next/1024-apps-krita.png",
       "krita/pics/branding/Next/128-apps-krita.png",
       "krita/pics/branding/Next/16-apps-krita.png",
       "krita/pics/branding/Next/22-apps-krita.png",
@@ -1000,10 +1023,10 @@
       "pics/krita.png"
     ],
     "expected": {
-      "assets": 68,
-      "asset_paths_sha256": "cfdad3fc9abac2de697a69fa31b9fdbf58e46c38a6571b8f8a9a7b72357d40da",
-      "metadata_chunks": 336,
-      "metadata_bytes_sha256": "23b5c550c332de8013e129665598d5ef4037b0a3cffb283743d65acb727cfadb"
+      "assets": 67,
+      "asset_paths_sha256": "f06a2c048fb02832da82e3f3658912664efa1b824ca12b1d7efa8d7808e532ad",
+      "metadata_chunks": 331,
+      "metadata_bytes_sha256": "055c4ec6f31f650474da7eb31daf326d525f5c7ec2b32e660fe4df8736138401"
     }
   },
   "excluded": [
@@ -1100,20 +1123,6 @@
       "height": "80",
       "viewBox": "0 0 131 80",
       "preserved_sha256": "a6463b63ec1ca2673d614f3d19962f2e7ec43fdfcdc59b6324699fed3e6eabd8"
-    },
-    {
-      "kind": "raster",
-      "path": "krita/data/splash/electrichearts_20250824A_kiki_4K.png",
-      "format": "png",
-      "width": 3840,
-      "height": 1920
-    },
-    {
-      "kind": "raster",
-      "path": "krita/data/splash/electrichearts_20250824A_kiki_HD.jpg",
-      "format": "jpg",
-      "width": 1920,
-      "height": 960
     },
     {
       "kind": "svg",
@@ -1632,41 +1641,6 @@
     },
     {
       "kind": "raster",
-      "path": "krita/pics/branding/Next/1024-apps-krita.png",
-      "format": "png",
-      "width": 1024,
-      "height": 1024,
-      "preserved_metadata": [
-        {
-          "type": "tEXt",
-          "size": 37,
-          "sha256": "71c856805cb16d680291c5f27b9fb2f3a9db2e599d87506c88571bea8bd22f30"
-        },
-        {
-          "type": "tEXt",
-          "size": 35,
-          "sha256": "5a17f32b03357758e6d8cc3df9fb3c9364b402283237a32c806edb0b13388c73"
-        },
-        {
-          "type": "tEXt",
-          "size": 74,
-          "sha256": "d3d5f1d32447ef0ec8d282a4a9f98da5e871b6f10c6f29630681a8b1006f2f26"
-        },
-        {
-          "type": "tEXt",
-          "size": 67,
-          "sha256": "93d8635adfda6817ae62a9ddec2ba6fac1a8c0ac1ae2091e419b8207062f5419"
-        },
-        {
-          "type": "tEXt",
-          "size": 94,
-          "sha256": "ae67cd41a03d2397ecd0fa4191221e97c7d3df9a58002e11cfdbba45b141a12a"
-        }
-      ],
-      "preserved_metadata_sha256": "eaa3dcbba0664acf9e4bb6b900a7d60282f2bf8d7516e9bb8f2b0f547838e486"
-    },
-    {
-      "kind": "raster",
       "path": "krita/pics/branding/Next/128-apps-krita.png",
       "format": "png",
       "width": 128,
@@ -2116,14 +2090,6 @@
     {
       "kind": "svg",
       "path": "krita/pics/branding/Next/krita.icon/Assets/krita_default_shadow.svg",
-      "width": "1024",
-      "height": "1024",
-      "viewBox": null,
-      "preserved_sha256": "4dd8bd017424223001bab911a9c01e6dfe21b6cd5662129f818ca59f28c353cf"
-    },
-    {
-      "kind": "svgz",
-      "path": "krita/pics/branding/Next/sc-apps-krita.svgz",
       "width": "1024",
       "height": "1024",
       "viewBox": null,

@@ -9,6 +9,9 @@ the source assets. SVG and embedded raster legal/author metadata is retained
 byte-for-byte. ICO and ICNS containers keep every representation and its PNG
 metadata, and bundle rewriting changes only the root preview.png compressed
 payload plus the ZIP bookkeeping that must change with it.
+
+Paths reclassified as LibrePaint-owned CC0 branding are excluded from white
+replacement and content-hash checked through their dedicated retained group.
 """
 
 from __future__ import annotations
@@ -87,6 +90,7 @@ JPEG_PRESERVED_METADATA_MARKERS = {0xE1, 0xE2, 0xEB, 0xED, 0xFE}
 LEGAL_METADATA_RE = re.compile(br"copyright|creative\s*commons|creativecommons|attribution-sharealike", re.IGNORECASE)
 
 RETAINED_NOTICE_PATH = "packaging/ios/notices/retained-functional-assets.md"
+LIBREPAINT_BRAND_NOTICE_PATH = "packaging/ios/notices/librepaint-brand-assets.md"
 RETAINED_LICENSE_GROUP_CONTRACT = {
     "krita-cc-by-sa-4-functional-qrc": {
         "scope": "qrc",
@@ -130,6 +134,17 @@ RETAINED_LICENSE_GROUP_CONTRACT = {
         "source_url": "https://krita.org/en/about/license/",
         "notice_path": RETAINED_NOTICE_PATH,
     },
+    "librepaint-branding-qrc": {
+        "scope": "qrc",
+        "license_expression": "CC0-1.0",
+        "source_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "notice_path": LIBREPAINT_BRAND_NOTICE_PATH,
+    },
+}
+
+LIBREPAINT_BRANDING_QRC_PATHS = {
+    "krita/data/splash/electrichearts_20250824A_kiki_4K.png",
+    "krita/pics/branding/Next/sc-apps-krita.svgz",
 }
 
 MIGRATED_BREEZE_LOGO_PATHS = {
@@ -1170,6 +1185,15 @@ def selection_paths(manifest: dict[str, Any]) -> dict[str, list[str]]:
     }
     for relative in selection.get("ios_qrc_white_paths", []):
         result[image_kind(relative)].append(relative)
+    restored_brand_paths = set(selection.get("restored_brand_paths", []))
+    originally_selected = {relative for paths in result.values() for relative in paths}
+    if restored_brand_paths - originally_selected:
+        raise AssetError(
+            "restored brand path was not part of the white selection: "
+            f"{sorted(restored_brand_paths - originally_selected)}"
+        )
+    for kind, paths in result.items():
+        result[kind] = [relative for relative in paths if relative not in restored_brand_paths]
     for paths in result.values():
         paths.sort()
     seen: dict[str, str] = {}
@@ -1340,6 +1364,19 @@ def migrate_precise_retained_license_groups(manifest: dict[str, Any]) -> None:
     observed_ids = [group.get("id") for group in groups]
     current_ids = list(RETAINED_LICENSE_GROUP_CONTRACT)
     if observed_ids == current_ids:
+        return
+
+    previous_ids = current_ids[:-1]
+    if (
+        observed_ids == previous_ids
+        and current_ids[-1] == "librepaint-branding-qrc"
+    ):
+        groups.append(
+            retained_group_record(
+                "librepaint-branding-qrc",
+                LIBREPAINT_BRANDING_QRC_PATHS,
+            )
+        )
         return
 
     legacy_ids = [
