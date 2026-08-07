@@ -1278,9 +1278,6 @@
          </item>
         </layout>
        </item>
-       <item row="2" column="1">
-        <widget class="KisWarningBlock" name="grpWindowsAppData"/>
-       </item>
        <item row="1" column="1">
         <widget class="KisWarningBlock" name="grpNonWritableLocation"/>
        </item>

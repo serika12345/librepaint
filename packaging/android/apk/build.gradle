@@ -22,19 +22,8 @@ dependencies {
 
 ext {
     abi = System.getenv('ANDROID_ABI') ?: project.ext.properties['abi']
-    ndkpath = System.getenv('KDECI_ANDROID_NDK_ROOT') ?: project.ext.properties['ndk.dir']  // TODO: Newer versions of Qt do support this dir
+    ndkpath = System.getenv('ANDROID_NDK_ROOT') ?: System.getenv('ANDROID_NDK_HOME') ?: project.ext.properties['ndk.dir']
     installPrefix = System.getenv('KRITA_INSTALL_PREFIX')
-
-    // Note about qtResPath vs qt5AndroidDir:
-    //
-    // qt5AndroidDir is set up by androiddeployqt and points to exact files
-    // in _install directory, which is not available on the builder that builds
-    // AppBundle packages, so we should access these files from a manually copied
-    // location.
-    //
-    // tldr; at one time, either qt5AndroidDir or qtResPath is valid and points
-    //       to the same files
-    qtResPath = System.getenv('KRITA_BUILD_APPBUNDLE') ? 'extra-bundle-deps/android/java' : ""
 }
 
 tasks.register('configure') {
@@ -132,7 +121,9 @@ tasks.register('removeDuplicateAssets', Delete) {
 }
 
 def isPackagingAPK() {
-    return gradle.taskGraph.hasTask(assembleRelease) || gradle.taskGraph.hasTask(assembleDebug)
+    return gradle.taskGraph.hasTask(assembleRelease) ||
+            gradle.taskGraph.hasTask(assembleNightly) ||
+            gradle.taskGraph.hasTask(assembleDebug)
 }
 
 android {
@@ -154,9 +145,9 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = [qt5AndroidDir + '/src', qtResPath + '/src', 'src', 'java']
-            aidl.srcDirs = [qt5AndroidDir + '/src', qtResPath + '/src', 'src', 'aidl']
-            res.srcDirs = [qt5AndroidDir + '/res',  qtResPath + '/res', 'res']
+            java.srcDirs = [qt5AndroidDir + '/src', 'src', 'java']
+            aidl.srcDirs = [qt5AndroidDir + '/src', 'src', 'aidl']
+            res.srcDirs = [qt5AndroidDir + '/res', 'res']
             resources.srcDirs = ['src']
             renderscript.srcDirs = ['src']
             assets.srcDirs = ['assets']
@@ -181,8 +172,6 @@ android {
             applicationIdSuffix ".next"
         }
         debug {
-            // Comment this out when testing in-app purchases. The package name
-            // must not have a suffix for those to work properly.
             applicationIdSuffix ".debug"
         }
     }
@@ -215,7 +204,7 @@ android {
         versionCode project.ext.constant * 1000000 + versionMajor * 10000 + versionMinor * 100 + versionRelease
         versionName "5.4.0-prealpha"
         def unstableSuffix = System.getenv('KRITA_UNSTABLE_PACKAGE_SUFFIX')
-        archivesBaseName = System.getenv('KRITA_BUILD_APPBUNDLE') ? "LibrePaint-$versionName$unstableSuffix" : "LibrePaint-$abi-$versionName$unstableSuffix"
+        archivesBaseName = "LibrePaint-$abi-$versionName$unstableSuffix"
     }
     buildFeatures {
         renderScript true

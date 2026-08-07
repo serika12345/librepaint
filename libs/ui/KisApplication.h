@@ -90,9 +90,6 @@ public:
     void initializeGlobals(const KisApplicationArguments &args);
     void processPostponedSynchronizationEvents();
 
-    /// @return true if Krita has been acquired through an app store
-    bool isStoreApplication();
-
     static void verifyMetatypeRegistration();
 
     /**

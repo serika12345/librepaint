@@ -85,8 +85,6 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (APPLE AND NOT IOS)
-    add_subdirectory(packaging/macos)
-
     if(NOT CMAKE_GENERATOR MATCHES "Xcode")
       execute_process(COMMAND
         xcodebuild -version -sdk macosx ProductVersion
@@ -151,14 +149,6 @@ set(KRITA_VERSION_RELEASE 0)
 # - Beta: Starts from 50, increment 1 per release
 # - Stable: Set to 100, bump to 101 if emergency update is needed
 set(KRITA_VERSION_REVISION 0)
-
-# In MSI packages we cannot use the fourth digit for release numbering,
-# since this digit is used by Microsoft Store internally. Hence we cannot
-# release hotfix releases (like 6.0.1.1, 6.0.1.2) on Windows. Therefore we
-# use the same approach as on Android, we just number all the official
-# releases in the same X.Y.* branch sequentially. We use a simple formula
-# for that, e.g. 5.4.2.3 will be released as 5.4.10203.0.
-math(EXPR KRITA_MSI_VERSION_RELEASE_TRANSITIONAL "10000 + 100 * ${KRITA_VERSION_RELEASE} + ${KRITA_VERSION_REVISION}")
 
 # Uncomment the following if this is currently in the "stable" branch.
 # Do not uncomment for master branch.
@@ -341,7 +331,9 @@ add_feature_info("Limit long tests" LIMIT_LONG_TESTS "Run long running unittests
 option(BUILD_KRITA_QT_DESIGNER_PLUGINS "Build Qt Designer plugins for Krita widgets" OFF)
 add_feature_info("Build Qt Designer plugins" BUILD_KRITA_QT_DESIGNER_PLUGINS "Builds Qt Designer plugins for Krita widgets (use -DBUILD_KRITA_QT_DESIGNER_PLUGINS=ON to enable).")
 
-option(ENABLE_UPDATERS "Enable updaters/update notifications" ON)
+# LibrePaint does not publish an update feed. Package updates are handled by
+# the user through the selected platform artifact.
+option(ENABLE_UPDATERS "Enable updaters/update notifications" OFF)
 
 if(IOS)
     option(KRITA_IOS_BUILD_QML_MODULES "Build Krita QML modules for iOS" OFF)
@@ -547,9 +539,8 @@ if (QT_MAJOR_VERSION STREQUAL "5")
     # KDECompilerSettings sets Windows Vista as the default,
     # while MSVC's default is 0x0A00 (_WIN32_WINNT_WIN10, sdkddkver.h) and
     # MinGW's is 0x0601 (_WIN32_WINNT_WIN7, _mingw.h).
-    # Both are enough to supply the APIs we need in main.cc, but since we
-    # need the Windows 8 APIs anyway for the surface orientation and Store API,
-    # we set the minimum here.
+    # Both are enough to supply the APIs we need in main.cc, but surface
+    # orientation support requires the Windows 8 APIs, so we set that minimum.
     remove_definitions(-D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -D_WIN32_IE=0x0600)
     add_definitions(-D_WIN32_WINNT=0x0602 -DWINVER=0x0602  -D_WIN32_IE=0x0602)
 endif()
@@ -1951,7 +1942,6 @@ configure_file(config-powf.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-powf.h)
 
 if(WIN32)
     include(${CMAKE_CURRENT_LIST_DIR}/packaging/windows/installer/ConfigureInstallerNsis.cmake)
-    include(${CMAKE_CURRENT_LIST_DIR}/packaging/windows/msix/ConfigureMsixFiles.cmake)
 endif()
 
 message("\nBroken tests:")

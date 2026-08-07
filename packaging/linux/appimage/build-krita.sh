@@ -7,56 +7,98 @@
 set -e
 set -x
 
-# Read in our parameters
-export BUILD_PREFIX=$1
-export KRITA_SOURCES=$2
-export KRITA_BRANDING="${3}"
+fail()
+{
+    echo "ERROR: $*" >&2
+    exit 2
+}
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    fail "Usage: LIBREPAINT_DEPS_PATH=/absolute/dependency/prefix $0 BUILD_PREFIX SOURCE_DIR [BRANDING]"
+fi
+
+# Read in our parameters. The dependency prefix must be supplied explicitly;
+# this repository no longer carries a downloader or dependency builder.
+export BUILD_PREFIX="$1"
+export KRITA_SOURCES="$2"
+export KRITA_BRANDING="${3:-}"
+export DEPS_INSTALL_PREFIX="${LIBREPAINT_DEPS_PATH:-${KRITA_DEPS_PATH:-}}"
+
+if [ -z "$DEPS_INSTALL_PREFIX" ]; then
+    fail "Set LIBREPAINT_DEPS_PATH to a prebuilt AppImage dependency prefix (KRITA_DEPS_PATH is accepted for compatibility)."
+fi
+case "$BUILD_PREFIX" in
+    /*) ;;
+    *) fail "BUILD_PREFIX must be an absolute path: $BUILD_PREFIX" ;;
+esac
+case "$KRITA_SOURCES" in
+    /*) ;;
+    *) fail "SOURCE_DIR must be an absolute path: $KRITA_SOURCES" ;;
+esac
+case "$DEPS_INSTALL_PREFIX" in
+    /*) ;;
+    *) fail "The dependency prefix must be an absolute path: $DEPS_INSTALL_PREFIX" ;;
+esac
+if [ ! -d "$DEPS_INSTALL_PREFIX" ]; then
+    fail "Dependency prefix does not exist: $DEPS_INSTALL_PREFIX"
+fi
+if [ ! -f "$KRITA_SOURCES/CMakeLists.txt" ]; then
+    fail "Source directory does not contain CMakeLists.txt: $KRITA_SOURCES"
+fi
+if [ ! -x "$DEPS_INSTALL_PREFIX/bin/qtpaths" ]; then
+    fail "Dependency prefix is missing bin/qtpaths: $DEPS_INSTALL_PREFIX"
+fi
+if [ ! -d "$DEPS_INSTALL_PREFIX/lib" ] || [ ! -d "$DEPS_INSTALL_PREFIX/share" ]; then
+    fail "Dependency prefix must contain lib/ and share/: $DEPS_INSTALL_PREFIX"
+fi
+if [ ! -f "$KRITA_SOURCES/packaging/linux/appimage/override_compiler.sh.inc" ]; then
+    fail "AppImage compiler configuration is missing from the source tree."
+fi
 
 # qjsonparser, used to add metadata to the plugins needs to work in a en_US.UTF-8 environment.
 # That's not always the case, so make sure it is
 export LC_ALL=en_US.UTF-8
 export LANG=en_us.UTF-8
 
-# We want to use $prefix/deps/usr/ for all our dependencies
-export DEPS_INSTALL_PREFIX=$BUILD_PREFIX/deps/usr
-export DOWNLOADS_DIR=$BUILD_PREFIX/downloads/
-
 # Setup variables needed to help everything find what we build
-export LD_LIBRARY_PATH=$DEPS_INSTALL_PREFIX/lib:$LD_LIBRARY_PATH
-export PATH=$DEPS_INSTALL_PREFIX/bin:$PATH
-export PKG_CONFIG_PATH=$DEPS_INSTALL_PREFIX/share/pkgconfig:$DEPS_INSTALL_PREFIX/lib/pkgconfig:/usr/lib/pkgconfig:$PKG_CONFIG_PATH
-export CMAKE_PREFIX_PATH=$DEPS_INSTALL_PREFIX:$CMAKE_PREFIX_PATH
+export LD_LIBRARY_PATH="$DEPS_INSTALL_PREFIX/lib:${LD_LIBRARY_PATH:-}"
+export PATH="$DEPS_INSTALL_PREFIX/bin:$PATH"
+export PKG_CONFIG_PATH="$DEPS_INSTALL_PREFIX/share/pkgconfig:$DEPS_INSTALL_PREFIX/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+export CMAKE_PREFIX_PATH="$DEPS_INSTALL_PREFIX:${CMAKE_PREFIX_PATH:-}"
 # https://docs.python.org/3.10/using/cmdline.html#envvar-PYTHONHOME
-export PYTHONPATH=$DEPS_INSTALL_PREFIX/sip
-export PYTHONHOME=$DEPS_INSTALL_PREFIX
+if [ -d "$DEPS_INSTALL_PREFIX/sip" ]; then
+    export PYTHONPATH="$DEPS_INSTALL_PREFIX/sip"
+fi
+export PYTHONHOME="$DEPS_INSTALL_PREFIX"
 
-source ${KRITA_SOURCES}/packaging/linux/appimage/override_compiler.sh.inc
+source "${KRITA_SOURCES}/packaging/linux/appimage/override_compiler.sh.inc"
 
-cd $KRITA_SOURCES
+if ! command -v cmake >/dev/null 2>&1; then
+    fail "cmake was not found in the dependency prefix or host PATH."
+fi
+if ! command -v nproc >/dev/null 2>&1; then
+    fail "nproc was not found in the dependency prefix or host PATH."
+fi
+
+cd "$KRITA_SOURCES"
 
 if [ -z "${KRITA_BRANDING}" ]; then
-    # determine the channel for branding
-    if [ "${JOB_NAME}" == "Krita_Nightly_Appimage_Build" ]; then
-        KRITA_BRANDING="Next"
-    elif [ "${JOB_NAME}" == "Krita_Stable_Appimage_Build" ]; then
-        KRITA_BRANDING="Plus"
-    else
-        KRITA_BRANDING=""
-    fi
+    # Use LibrePaint's current profile unless the caller selects another one.
+    KRITA_BRANDING="Next"
 fi
 
 BUILD_TYPE="Release"
 
 # Make sure our build directory exists
-if [ ! -d $BUILD_PREFIX/krita-build/ ] ; then
-    mkdir -p $BUILD_PREFIX/krita-build/
+if [ ! -d "$BUILD_PREFIX/krita-build/" ] ; then
+    mkdir -p "$BUILD_PREFIX/krita-build/"
 fi
 
 # Now switch to it
-cd $BUILD_PREFIX/krita-build/
+cd "$BUILD_PREFIX/krita-build/"
 
 # Determine how many CPUs we have
-CPU_COUNT=`grep -c processor /proc/cpuinfo`
+CPU_COUNT=$(nproc)
 
 if [ $CPU_COUNT -gt 2 ]; then
     let "jobs = ${CPU_COUNT} - 2"
@@ -64,48 +106,18 @@ if [ $CPU_COUNT -gt 2 ]; then
 fi
 
 # Configure Krita
-cmake $KRITA_SOURCES \
-    -DCMAKE_INSTALL_PREFIX:PATH=$BUILD_PREFIX/krita.appdir/usr \
+cmake "$KRITA_SOURCES" \
+    "-DCMAKE_INSTALL_PREFIX:PATH=$BUILD_PREFIX/krita.appdir/usr" \
     -DDEFINE_NO_DEPRECATED=1 \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     -DFOUNDATION_BUILD=1 \
+    -DENABLE_UPDATERS=OFF \
     -DHIDE_SAFE_ASSERTS=ON \
     -DBUILD_TESTING=FALSE \
     -DKRITA_ENABLE_PCH=off \
-    -DPYQT_SIP_DIR_OVERRIDE=$DEPS_INSTALL_PREFIX/share/sip/ \
+    "-DPYQT_SIP_DIR_OVERRIDE=$DEPS_INSTALL_PREFIX/share/sip/" \
     -DHAVE_MEMORY_LEAK_TRACKER=FALSE \
     -DBRANDING="${KRITA_BRANDING}"
 
 # Build and Install Krita (ready for the next phase)
-cmake --build . --target install --parallel $CPU_COUNT
-
-# We add Krita's AppImage location for plugins (GMic)
-export PLUGINS_INSTALL_PREFIX=$BUILD_PREFIX/krita.appdir/usr
-
-# Setup variables needed to help everything find what we build
-ARCH=`dpkg --print-architecture`
-export LD_LIBRARY_PATH=$PLUGINS_INSTALL_PREFIX/lib:$LD_LIBRARY_PATH
-export CMAKE_PREFIX_PATH=$PLUGINS_INSTALL_PREFIX:$CMAKE_PREFIX_PATH
-
-# Make sure our build directory exists
-if [ ! -d $BUILD_PREFIX/plugins-build/ ] ; then
-    mkdir -p $BUILD_PREFIX/plugins-build/
-fi
-
-# The 3rdparty dependency handling in Krita also requires the install directory to be pre-created
-if [ ! -d $DOWNLOADS_DIR ] ; then
-    mkdir -p $DOWNLOADS_DIR
-fi
-
-# Switch to our build directory as we're basically ready to start building...
-cd $BUILD_PREFIX/plugins-build/
-
-# Configure the dependencies for building
-cmake $KRITA_SOURCES/3rdparty_plugins \
-    -DCMAKE_INSTALL_PREFIX=$PLUGINS_INSTALL_PREFIX \
-    -DINSTALL_ROOT=$PLUGINS_INSTALL_PREFIX \
-    -DEXTERNALS_DOWNLOAD_DIR=$DOWNLOADS_DIR \
-    -DSUBMAKE_JOBS=$CPU_COUNT
-
-# Now start building everything we need, in the appropriate order
-cmake --build . --target ext_gmic --parallel $CPU_COUNT
+cmake --build . --target install --parallel "$CPU_COUNT"

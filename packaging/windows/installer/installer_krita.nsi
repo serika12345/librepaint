@@ -37,7 +37,7 @@ ManifestDPIAware false
 	!define KRITA_INSTALLER_OUTPUT "${KRITA_INSTALLER_OUTPUT_DIR}\${KRITA_INSTALLER_OUTPUT_NAME}"
 !endif
 !define KRTIA_PUBLISHER "LibrePaint"
-!define KRITA_LEGAL_PUBLISHER "Krita Foundation"
+!define KRITA_LEGAL_PUBLISHER "LibrePaint contributors"
 !ifdef KRITA_INSTALLER_64
 	!define KRITA_PRODUCTNAME "LibrePaint (x64)"
 	!define KRITA_UNINSTALL_REGKEY "Krita_x64"

@@ -30,7 +30,6 @@ GSYMS
 BROWSE
 *.kate-swp
 build_dir
-.flatpak-builder
 .cache
 
 cmake-build-debug/

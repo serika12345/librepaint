@@ -11,12 +11,10 @@
 #ifdef Q_OS_WIN
 #include <windows.h>
 #include <tchar.h>
-#include "KisWindowsPackageUtils.h"
 #endif
 
 #ifdef Q_OS_MACOS
 #include "osx.h"
-#include "KisMacosEntitlements.h"
 #endif
 
 #ifdef Q_OS_ANDROID
@@ -31,7 +29,6 @@
 #include <QFile>
 #include <QLocale>
 #include <QMessageBox>
-#include <QProcessEnvironment>
 #include <QPointer>
 #include <QProxyStyle>
 #include <QStringList>
@@ -179,7 +176,6 @@ public:
 #include "kis_node_commands_adapter.h"
 #include "KisSynchronizedConnection.h"
 #include <QThreadStorage>
-#include <KisWindowsPackageUtils.h>
 
 #include <kis_psd_layer_style.h>
 
@@ -1079,35 +1075,6 @@ void KisApplication::processPostponedSynchronizationEvents()
 
         QApplication::notify(typedEvent.destination, &typedEvent);
     }
-}
-
-bool KisApplication::isStoreApplication()
-{
-    if (qEnvironmentVariableIsSet("STEAMAPPID") || qEnvironmentVariableIsSet("SteamAppId")) {
-        return true;
-    }
-
-    if (applicationDirPath().toLower().contains("steam")) {
-        return true;
-    }
-
-#ifdef Q_OS_WIN
-    // This is also true for user-installed MSIX, but that's
-    // likely only true in institutional situations, where
-    // we don't want to show the beginning banner either.
-    if (KisWindowsPackageUtils::isRunningInPackage()) {
-        return true;
-    }
-#endif
-
-#ifdef Q_OS_MACOS
-    KisMacosEntitlements entitlements;
-    if (entitlements.sandbox()) {
-       return true;
-    }
-#endif
-
-    return false;
 }
 
 void KisApplication::verifyMetatypeRegistration()

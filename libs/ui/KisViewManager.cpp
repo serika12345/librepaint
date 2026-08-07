@@ -125,10 +125,6 @@
 #include <kis_selection.h>
 #include <KisUniqueColorSet.h>
 
-#ifdef Q_OS_WIN
-#include "KisWindowsPackageUtils.h"
-#endif
-
 class BlockingUserInputEventFilter : public QObject
 {
     bool eventFilter(QObject *watched, QEvent *event) override
@@ -1456,64 +1452,6 @@ void KisViewManager::toggleTabletLogger()
 void KisViewManager::openResourcesDirectory()
 {
     QString resourcePath = KisResourceLocator::instance()->resourceLocationBase();
-#ifdef Q_OS_WIN
-
-    QString folderInStandardAppData;
-    QString folderInPrivateAppData;
-    KoResourcePaths::getAllUserResourceFoldersLocationsForWindowsStore(folderInStandardAppData, folderInPrivateAppData);
-
-    if (!folderInPrivateAppData.isEmpty()) {
-
-        const auto pathToDisplay = [](const QString &path) {
-            // Due to how Unicode word wrapping works, the string does not
-            // wrap after backslashes in Qt 5.12. We don't want the path to
-            // become too long, so we add a U+200B ZERO WIDTH SPACE to allow
-            // wrapping. The downside is that we cannot let the user select
-            // and copy the path because it now contains invisible unicode
-            // code points.
-            // See: https://bugreports.qt.io/browse/QTBUG-80892
-            return QDir::toNativeSeparators(path).replace(QChar('\\'), QStringLiteral(u"\\\u200B"));
-        };
-
-        QMessageBox mbox(qApp->activeWindow());
-        mbox.setIcon(QMessageBox::Information);
-        mbox.setWindowTitle(i18nc("@title:window resource folder", "Open Resource Folder"));
-        // Similar text is also used in kis_dlg_preferences.cc
-
-        mbox.setText(i18nc("@info resource folder",
-            "<p>You are using the Microsoft Store package version of LibrePaint. "
-            "Even though LibrePaint can be configured to place resources under the "
-            "user AppData location, Windows may actually store the files "
-            "inside a private app location.</p>\n"
-            "<p>You should check both locations to determine where "
-            "the files are located.</p>\n"
-            "<p><b>User AppData</b>:<br/>\n"
-            "%1</p>\n"
-            "<p><b>Private app location</b>:<br/>\n"
-            "%2</p>",
-            pathToDisplay(folderInStandardAppData),
-            pathToDisplay(folderInPrivateAppData)
-        ));
-        mbox.setTextInteractionFlags(Qt::NoTextInteraction);
-
-        const auto *btnOpenUserAppData = mbox.addButton(i18nc("@action:button resource folder", "Open in &user AppData"), QMessageBox::AcceptRole);
-        const auto *btnOpenPrivateAppData = mbox.addButton(i18nc("@action:button resource folder", "Open in &private app location"), QMessageBox::AcceptRole);
-
-        mbox.addButton(QMessageBox::Close);
-        mbox.setDefaultButton(QMessageBox::Close);
-        mbox.exec();
-
-        if (mbox.clickedButton() == btnOpenPrivateAppData) {
-            resourcePath = folderInPrivateAppData;
-        } else if (mbox.clickedButton() == btnOpenUserAppData) {
-            // no-op: resourcePath = resourceDir.absolutePath();
-        } else {
-            return;
-        }
-
-
-    }
-#endif
     QDesktopServices::openUrl(QUrl::fromLocalFile(resourcePath));
 }
 

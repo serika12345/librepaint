@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import argparse
 import os
 import shutil
@@ -11,7 +13,7 @@ import subprocess
 def main():
     parser = argparse.ArgumentParser(prog='macos deploy',
                                      description='Utility to create the LibrePaint.app bundle',
-                                     epilog="osxdeploy does not sign the resulting bundle")
+                                     epilog="macos-deploy does not sign the resulting bundle")
 
     parser.add_argument('--buildroot', help="Directory where the source and _install are located",
                         default=os.getenv("BUILDROOT", False))
@@ -176,8 +178,7 @@ def copyMissingLibs(missingLib: list[str], src: pathlib.Path, dstApp: pathlib.Pa
                 # TODO: shutil error if symlink inside directory exist
                 # BUG: https://github.com/python/cpython/issues/105919
                 cmd = ['rsync','-prulq']
-                # We should avoid copying debug libraries from frameworks
-                # as both Lib_debug and Lib can't be signed at the same time.
+                # Avoid mixing debug and release libraries in one bundle.
                 cmd.extend(['--exclude' ,f'**{file.stem}_debug', '--exclude', f'{file.stem}_debug.prl'])
                 cmd.extend([file,locations[loc]])
                 subprocess.run(cmd)
@@ -364,7 +365,6 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
     kisenv['QMAKE_MACOSX_DEPLOYMENT_TARGET'] = osx_deployment_target
 
     # --- Krita version adjustments
-    # os.environ['KRITACI_RELEASE_PACKAGE_NAMING'] = "ON"
     kis_version_full = subprocess.run(['krita_version', '-v'],
                                       capture_output=True, text=True, env=kisenv).stdout
     kis_version = kis_version_full.replace("-", " ").split()
@@ -529,7 +529,6 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
             , f'-executable={krita_app["macos"].joinpath("krita")}'
             , f'-libpath={krita_install_dir.joinpath("lib")}'
             , f"-qmldir={krita_source_dir.joinpath('plugins', 'dockers', 'textproperties')}"
-            , '-appstore-compliant'
                ]
         cmdLog(cmd)
         proc = subprocess.Popen(cmd, text=True, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -567,9 +566,6 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
                   or f.suffix == '.so'
                   ]
     cleanMissingRpath(krita_install_dir,filesToFix)
-
-    # remove debug version as both versions can't be signed.
-    # krita_app['frameworks'].joinpath('QtScript.framework', 'Versions', 'Current', 'QtScript_debug').unlink(missing_ok=True)
 
     # delete .DS_Store if any
     for f in krita_app['contents'].rglob('*.DS_Store'):

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import pathlib
 import os
 import shutil
@@ -88,11 +90,7 @@ def main():
     kis_version_full = subprocess.run(['krita_version', '-v'],
                                       capture_output=True, text=True, env=kisenv).stdout
     kis_version = kis_version_full.replace("-", " ").split()
-    # os.environ['KRITACI_RELEASE_PACKAGE_NAMING'] = "ON"
-    if 'KRITACI_RELEASE_PACKAGE_NAMING' in os.environ:
-        kis_version_str = kis_version[0]
-    else:
-        kis_version_str = "-".join(kis_version)
+    kis_version_str = "-".join(kis_version)
 
     kis_name = "LibrePaint-" + kis_version_str
     if args.dmg_name:
@@ -124,8 +122,7 @@ def kritaCreateDMG(krita_app: pathlib.Path, krita_dmg_media: list[DmgFile], dmg_
     krita_dmg_root = pathlib.Path('_dmg_wd').resolve()
     krita_dmg_root.mkdir()
 
-    # since qt6, codesign embbed Plugins/permissions/obj-Release/* special attributes for a valid signature
-    # we use rsync to ensure a real clone with Extended attributes
+    # Qt 6 plugins may carry extended attributes, so use rsync to preserve them.
     print(f'Cloning source LibrePaint.app to working dir {krita_dmg_root}')
     cmd = ['rsync', '-aE', krita_app, krita_dmg_root]
     try:

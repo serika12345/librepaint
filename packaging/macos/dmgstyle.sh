@@ -3,9 +3,8 @@
 #  SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-# get krita disk mounted image current properties
-# creates a dummy folder to aid in setting the layout for
-# the dmg image file.
+# Get the mounted DMG's current window properties. A dummy folder is used to
+# design the DMG layout.
 
 set_dmgfolder_props() {
     cp ${DMG_background} "${DMG_STYLE_DIR}/.background/${BG_FILENAME}"
@@ -72,7 +71,7 @@ get_dmgfolder_props() {
         ' "${DMG_STYLE_DIR_OSA}" "${DMG_STYLE_LOCATION}" | osascript 2>&1 | awk '{printf "%s\n" ,$0}'
 }
 
-# Print Suitable command to paste on osxdeploy.sh
+# Print a style definition suitable for macos-apptodmg.py.
 print_osascript_cmd() {
     OLD_IFS=${IFS}
     IFS=$'\n'
@@ -107,23 +106,23 @@ end tell
 
 print_help() {
     printf \
-"dmgstyle.sh is a minitool to aid in the creation of the DMG look for LibrePaint
-out is designed to be copy pasted into osxdeploy.sh in the osascript section
+"dmgstyle.sh is a minitool to aid in the creation of the DMG look for LibrePaint.
+Its output can be saved as a style file for macos-apptodmg.py.
 
 - Run once with set to set new background
-- Edit by moving elements or <Cmd> + J to set net icon size
-- To get current options for osxdeploy: rerun with no arguments.
+- Edit by moving elements or <Cmd> + J to set the icon size
+- To get the current style for macos-apptodmg.py, rerun with no arguments.
 
 USAGE: dmgstyle.sh [option] <args>
 Options:
-<empty>     No option fetches dummy design window state for paste in osxdeploy
+<empty>     Fetch the dummy design window state for macos-apptodmg.py
 set         set default values changing the background to image in <args>
 "
 }
 
 if test -z ${BUILDROOT}; then
     echo "ERROR: BUILDROOT env not set!"
-    echo "\t Must point to the root of the buildfiles as stated in 3rdparty Readme"
+    echo "\t Must point to the macOS build workspace root."
     print_help
     exit 1
 fi
@@ -148,7 +147,8 @@ DMG_DUMMY_NAME="dmg_style_dummy"
 DMG_STYLE_DIR="${BUILDROOT}/${DMG_DUMMY_NAME}"
 DMG_STYLE_DIR_OSA=$(printf "%s/%s" ${build_folder} ${DMG_DUMMY_NAME} | tr / :)
 DMG_STYLE_LOCATION=${dmg_vol_name}
-KIS_INSTALL_DIR="${BUILDROOT}/install"
+BUNDLED_APP="${BUILDROOT}/_dmg/LibrePaint.app"
+SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd -P)
 BG_FILENAME=".background@2x.png"
 
 
@@ -164,9 +164,9 @@ if [[ ${1} = "set" ]]; then
         mkdir "${DMG_STYLE_DIR}/Terms of Use"
         mkdir "${DMG_STYLE_DIR}/.background"
         mkdir "${DMG_STYLE_DIR}/.fseventsd"
-        ln -s "${BUILDROOT}/krita/packaging/macos/KritaIcon.icns" "${DMG_STYLE_DIR}/.VolumeIcon.icns"
+        ln -s "${SCRIPT_DIR}/KritaIcon.icns" "${DMG_STYLE_DIR}/.VolumeIcon.icns"
         ln -s "/Applications" "${DMG_STYLE_DIR}/Applications"
-        ln -s "${KIS_INSTALL_DIR}/bin/krita.app" "${DMG_STYLE_DIR}/LibrePaint.app"
+        ln -s "${BUNDLED_APP}" "${DMG_STYLE_DIR}/LibrePaint.app"
     fi
 
     ## check background validity

@@ -73,10 +73,6 @@
 #include <kis_image_config.h>
 #include "opengl/kis_opengl.h"
 
-#ifdef Q_OS_WIN
-#include <KisWindowsPackageUtils.h>
-#endif
-
 #ifdef Q_OS_ANDROID
 #include "KisAndroidDonations.h"
 #include <QFontMetrics>
@@ -207,27 +203,14 @@ KisWelcomePageWidget::KisWelcomePageWidget(QWidget *parent)
 #ifndef Q_OS_ANDROID
     // Setup version updater, but do not check for them, unless the user explicitly
     // wants to check for updates.
-    // * No updater is created for Linux/Steam, Windows/Steam and Windows/Store distributions,
-    // as those stores have their own updating mechanism.
-    // * STEAMAPPID(Windows)/SteamAppId(Linux) environment variable is set when Krita is run from Steam.
-    // The environment variables are not public API.
-    // * MS Store version runs as a package (though we cannot know if it was
-    // installed from the Store or manually with the .msix package)
 #if defined Q_OS_LINUX
-    if (!qEnvironmentVariableIsSet("SteamAppId")) { // do not create updater for linux/steam
-        if (qEnvironmentVariableIsSet("APPIMAGE")) {
-            m_versionUpdater.reset(new KisAppimageUpdater());
-        } else {
-            m_versionUpdater.reset(new KisManualUpdater());
-        }
+    if (qEnvironmentVariableIsSet("APPIMAGE")) {
+        m_versionUpdater.reset(new KisAppimageUpdater());
+    } else {
+        m_versionUpdater.reset(new KisManualUpdater());
     }
 #elif defined Q_OS_WIN
-    if (!KisWindowsPackageUtils::isRunningInPackage() && !qEnvironmentVariableIsSet("STEAMAPPID")) {
- 		m_versionUpdater.reset(new KisManualUpdater());
-        KisUsageLogger::log("Non-store package - creating updater");
-    } else {
-        KisUsageLogger::log("detected appx or steam package - not creating the updater");
-    }
+	m_versionUpdater.reset(new KisManualUpdater());
 #else
 	// always create updater for MacOS
     m_versionUpdater.reset(new KisManualUpdater());

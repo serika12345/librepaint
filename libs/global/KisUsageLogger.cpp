@@ -28,7 +28,6 @@
 #include <QTextCodec>
 
 #ifdef Q_OS_WIN
-#include "KisWindowsPackageUtils.h"
 #include <windows.h>
 #include <versionhelpers.h>
 #endif
@@ -111,20 +110,7 @@ QString KisUsageLogger::basicSystemInfo()
     systemInfo.append("LibrePaint\n");
     systemInfo.append("\n Version: ").append(KritaVersionWrapper::versionString(true));
 #ifdef Q_OS_WIN
-    {
-        using namespace KisWindowsPackageUtils;
-        QString packageFamilyName;
-        QString packageFullName;
-        systemInfo.append("\n Installation type: ");
-        if (tryGetCurrentPackageFamilyName(&packageFamilyName) && tryGetCurrentPackageFullName(&packageFullName)) {
-            systemInfo.append("Store / MSIX package\n    Family Name: ")
-                .append(packageFamilyName)
-                .append("\n    Full Name: ")
-                .append(packageFullName);
-        } else {
-            systemInfo.append("installer / portable package");
-        }
-    }
+    systemInfo.append("\n Installation type: unpackaged desktop application");
 #endif
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     // Attribute does nothing on Qt6

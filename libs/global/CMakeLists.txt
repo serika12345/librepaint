@@ -48,13 +48,6 @@ set(kritaglobal_LIB_SRCS
     KisTransformComponents.cpp
 )
 
-if(WIN32)
-    set(kritaglobal_LIB_SRCS
-        ${kritaglobal_LIB_SRCS}
-        KisWindowsPackageUtils.cpp
-    )
-endif(WIN32)
-
 if (ANDROID)
     list(APPEND kritaglobal_LIB_SRCS
         KisAndroidCrashHandler.cpp

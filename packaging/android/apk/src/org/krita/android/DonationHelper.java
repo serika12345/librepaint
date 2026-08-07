@@ -36,10 +36,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// Note that for testing this stuff, your Google account needs to be added to
-// the "License Testers" in the Play Console and you need to test with a
-// "krita.org" package, not "krita.org.debug". To change the package name, edit
-// build.gradle and comment out the line `applicationIdSuffix ".debug"`.
 public class DonationHelper implements PurchasesUpdatedListener, BillingClientStateListener {
 
     private static final String TAG = "krita.DonationHelper";

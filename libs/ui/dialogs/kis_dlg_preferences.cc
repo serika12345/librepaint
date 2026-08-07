@@ -16,7 +16,6 @@
 #include <QBitmap>
 #include <QCheckBox>
 #include <QComboBox>
-#include <QClipboard>
 #include <QCursor>
 #include <QScreen>
 #include <QFileDialog>
@@ -124,7 +123,6 @@
 #  include <QtGui/qpa/qplatformintegration.h>
 #endif
 #include "config-high-dpi-scale-factor-rounding-policy.h"
-#include "KisWindowsPackageUtils.h"
 #endif
 
 /**
@@ -705,60 +703,6 @@ GeneralTab::GeneralTab(QWidget *_parent, const char *_name)
 #else
     m_resourceFolderSelector->setVisible(false);
 #endif
-
-    grpWindowsAppData->setVisible(false);
-#ifdef Q_OS_WIN
-    QString folderInStandardAppData;
-    QString folderInPrivateAppData;
-    KoResourcePaths::getAllUserResourceFoldersLocationsForWindowsStore(folderInStandardAppData, folderInPrivateAppData);
-
-    if (!folderInPrivateAppData.isEmpty()) {
-        const auto pathToDisplay = [](const QString &path) {
-            // Due to how Unicode word wrapping works, the string does not
-            // wrap after backslashes in Qt 5.12. We don't want the path to
-            // become too long, so we add a U+200B ZERO WIDTH SPACE to allow
-            // wrapping. The downside is that we cannot let the user select
-            // and copy the path because it now contains invisible unicode
-            // code points.
-            // See: https://bugreports.qt.io/browse/QTBUG-80892
-            return QDir::toNativeSeparators(path).replace(QChar('\\'), QStringLiteral(u"\\\u200B"));
-        };
-
-        const QDir privateResourceDir(folderInPrivateAppData);
-        const QDir appDataDir(folderInStandardAppData);
-        grpWindowsAppData->setPixmap(
-            grpWindowsAppData->style()->standardIcon(QStyle::SP_MessageBoxInformation).pixmap(QSize(32, 32)));
-        // Similar text is also used in KisViewManager.cpp
-        grpWindowsAppData->setText(i18nc("@info resource folder",
-                                         "<p>You are using the Microsoft Store package version of LibrePaint. "
-                                         "Even though LibrePaint can be configured to place resources under the "
-                                         "user AppData location, Windows may actually store the files "
-                                         "inside a private app location.</p>\n"
-                                         "<p>You should check both locations to determine where "
-                                         "the files are located.</p>\n"
-                                         "<p><b>User AppData</b> (<a href=\"copyuser\">Copy</a>):<br/>\n"
-                                         "%1</p>\n"
-                                         "<p><b>Private app location</b> (<a href=\"copyprivate\">Copy</a>):<br/>\n"
-                                         "%2</p>",
-                                         pathToDisplay(appDataDir.absolutePath()),
-                                         pathToDisplay(privateResourceDir.absolutePath())));
-        grpWindowsAppData->setVisible(true);
-
-        connect(grpWindowsAppData,
-                &KisWarningBlock::linkActivated,
-                [userPath = appDataDir.absolutePath(),
-                 privatePath = privateResourceDir.absolutePath()](const QString &link) {
-                    if (link == QStringLiteral("copyuser")) {
-                        qApp->clipboard()->setText(QDir::toNativeSeparators(userPath));
-                    } else if (link == QStringLiteral("copyprivate")) {
-                        qApp->clipboard()->setText(QDir::toNativeSeparators(privatePath));
-                    } else {
-                        qWarning() << "Unexpected link activated in lblWindowsAppDataNote:" << link;
-                    }
-                });
-    }
-#endif
-
 
     const int forcedFontDPI = cfg.readEntry("forcedDpiForQtFontBugWorkaround", -1);
     chkForcedFontDPI->setChecked(forcedFontDPI > 0);
