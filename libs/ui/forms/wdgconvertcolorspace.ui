@@ -137,7 +137,7 @@ colors (Pantone, TruMatch, logo colors, ...)</string>
    <item>
     <widget class="QCheckBox" name="chkAllowLCMSOptimization">
      <property name="toolTip">
-      <string>The free paint app tries to automatically check or uncheck this based on the information it can get from the profile you are converting from and the profile you are converting to.</string>
+      <string>LibrePaint tries to automatically check or uncheck this based on the information it can get from the profile you are converting from and the profile you are converting to.</string>
      </property>
      <property name="text">
       <string>Allow Little CMS optimizations (uncheck when using linear light RGB or XYZ)</string>

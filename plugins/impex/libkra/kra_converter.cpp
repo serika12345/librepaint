@@ -369,7 +369,7 @@ KisImportExportErrorCode KraConverter::loadXML(const QDomDocument &doc, KoStore 
     const int syntaxVersion = parsedVersionNumber.isNull() ? 3 : parsedVersionNumber.majorVersion();
     
     if (syntaxVersion > 2) {
-        errUI << "The file is too new for this version of the free paint app:" << syntaxVersion;
+        errUI << "The file is too new for this version of LibrePaint:" << syntaxVersion;
         m_doc->setErrorMessage(i18n("The file is too new for this version of LibrePaint (%1).", syntaxVersion));
         return ImportExportCodes::FormatFeaturesUnsupported;
     }

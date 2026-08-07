@@ -139,7 +139,7 @@ KisAnimTimelineDockerTitlebar::KisAnimTimelineDockerTitlebar(QWidget* parent) :
         {   // Audio menu..
             QMenu *audioMenu = new QMenu(this);
 
-            strImportAudio = QString(i18nc("@item:inmenu Load audio file into the free paint app from disk.", "Import Audio..."));
+            strImportAudio = QString(i18nc("@item:inmenu Load audio file into LibrePaint from disk.", "Import Audio..."));
             importAudioAction = new QAction(strImportAudio, audioMenu);
             removeAudioAction = new QAction(i18nc("@item:inmenu", "Remove audio"), audioMenu);
 

@@ -436,7 +436,7 @@ namespace GSL
     {
         QMessageBox::warning(qApp->activeWindow(),
                              i18nc("@title:window", "LibrePaint"),
-                             i18n("The free paint app was built without the support "
+                             i18n("LibrePaint was built without the support "
                                   "of GNU Scientific Library, so you cannot scale "
                                   "the selection with handles. Please compile "
                                   "LibrePaint with GNU Scientific Library support, or use "

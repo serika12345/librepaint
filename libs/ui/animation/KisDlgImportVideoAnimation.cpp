@@ -181,7 +181,7 @@ RenderedFrames KisDlgImportVideoAnimation::renderFrames(const QDir& directory)
 
     if (exportDuration / fps > 100.0) {
         if (QMessageBox::warning(this, i18nc("Title for a messagebox", "LibrePaint"),
-                             i18n("Warning: you are trying to import more than 100 frames into the free paint app.\n\n"
+                             i18n("Warning: you are trying to import more than 100 frames into LibrePaint.\n\n"
                                   "This means you might be overloading your system.\n"
                                   "If you want to edit a clip larger than 100 frames, consider using a real video editor, like Kdenlive (https://kdenlive.org)."),
                                  QMessageBox::Ok | QMessageBox::Cancel,
@@ -518,7 +518,7 @@ void KisDlgImportVideoAnimation::slotImportDurationChanged(qreal time)
                || m_videoInfo.colorTransfer == TRC_SMPTE_ST_428_1) {
         warnings.append(text_frames);
         QString text_trc =  i18nc("part of warning in video importer."
-                                  , "The free paint app does not support the video transfer curve (%1), it will be loaded as linear."
+                                  , "LibrePaint does not support the video transfer curve (%1), it will be loaded as linear."
                                   , KoColorProfile::getTransferCharacteristicName(m_videoInfo.colorTransfer));
         warnings.append(text_trc);
     }

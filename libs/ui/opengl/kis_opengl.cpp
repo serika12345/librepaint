@@ -1041,7 +1041,7 @@ KisOpenGL::RendererConfig KisOpenGL::selectSurfaceConfig(KisOpenGL::OpenGLRender
 #endif
 
     if (!info) {
-        dbgOpenGL << "Failed to probe default openGL format! No openGL support will be available in the free paint app";
+        dbgOpenGL << "Failed to probe default openGL format! No openGL support will be available in this build";
         return KisOpenGL::RendererConfig();
     }
 

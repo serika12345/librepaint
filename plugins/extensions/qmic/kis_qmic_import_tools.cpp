@@ -211,7 +211,7 @@ inputNodes(KisImageSP image, InputLayerMode inputMode, KisNodeSP currentNode)
     default: {
         qWarning()
             << "Inputmode" << static_cast<int>(inputMode)
-            << "must be specified by GMic or is not implemented in the free paint app";
+            << "must be specified by GMic or is not implemented in LibrePaint";
         break;
     }
     }

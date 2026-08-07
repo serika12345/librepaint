@@ -431,7 +431,7 @@ public:
                 if (!el.thread->wait(RecorderConst::waitThreadTimeoutMs))
                 {
                     if (!alreadyErr) {
-                        errResources << "Something odd has happened. The free paint app was unable to stop one of the Recorder WriterPool threads. "
+                        errResources << "Something odd has happened. LibrePaint was unable to stop one of the Recorder WriterPool threads. "
                                      << "Thread Name: " << el.thread->objectName();
                         alreadyErr = true;
                     }

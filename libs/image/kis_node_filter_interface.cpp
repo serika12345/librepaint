@@ -26,7 +26,7 @@
     do {                                                        \
         if (m_filterConfiguration && m_filterConfiguration->sanityDerefUsageCounter()) {  \
             warnKrita;                                                 \
-            warnKrita << "WARNING: filter configuration has more than one user! The free paint app will probably crash soon!"; \
+            warnKrita << "WARNING: filter configuration has more than one user! LibrePaint will probably crash soon!"; \
             warnKrita << "WARNING:" << ppVar(this);                    \
             warnKrita << "WARNING:" << ppVar(filter.data());           \
             warnKrita;                                                 \

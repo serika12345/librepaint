@@ -174,7 +174,7 @@
    <item>
     <widget class="QCheckBox" name="chkUseRightMiddleClickWorkaround">
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some tablet devices don't pass barrel-button clicks via tablet API. If you have such a device, you can try activate this workaround. The free paint app will try to read right- and middle-button clicks from the mouse events stream. It may or may not work on your device (depends on the tablet driver implementation).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;After changing this option LibrePaint should be restarted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some tablet devices don't pass barrel-button clicks via tablet API. If you have such a device, you can try activate this workaround. LibrePaint will try to read right- and middle-button clicks from the mouse events stream. It may or may not work on your device (depends on the tablet driver implementation).&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;After changing this option LibrePaint should be restarted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
       <string>Use mouse events for right- and middle-clicks (workaround for convertible devices, needs restart)</string>
@@ -231,7 +231,7 @@
       </sizepolicy>
      </property>
      <property name="toolTip">
-      <string>Amount of smoothing the free paint app should apply to the speed sensor. This value is very hardware-dependent</string>
+      <string>Amount of smoothing LibrePaint should apply to the speed sensor. This value is very hardware-dependent</string>
      </property>
     </widget>
    </item>

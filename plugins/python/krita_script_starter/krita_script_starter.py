@@ -205,7 +205,7 @@ class KritaScriptStarter(EXTENSION):
         self.target_directory = target_directory
 
     def createActions(self, window):
-        """Called by the free paint app to create actions."""
+        """Called by LibrePaint to create actions."""
         action = window.createAction(
             MAIN_KRITA_ID, MAIN_KRITA_MENU_ENTRY, "tools/scripts")
         # parameter 1 = the name that Krita uses to identify the action

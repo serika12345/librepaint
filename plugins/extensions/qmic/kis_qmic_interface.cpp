@@ -115,7 +115,7 @@ QSize KisImageInterface::gmic_qt_get_image_size(int mode)
         default: {
             warnPlugins
                 << "Inputmode" << static_cast<int>(p->m_inputMode)
-                << "must be specified by GMic or is not implemented in the free paint app";
+                << "must be specified by GMic or is not implemented in LibrePaint";
             break;
         }
         }

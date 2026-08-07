@@ -875,7 +875,7 @@ class ChannelsToLayers(Extension):
 
 
     def translateDictKey(self, key, value):
-        """Translate a key from the free paint app's internal values to human-readable text."""
+        """Translate an internal value into human-readable text."""
         returned = i18n('Unknown')
 
         if key in TRANSLATIONS_DICT.keys():

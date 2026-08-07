@@ -5,8 +5,8 @@
     <Action name="open_resources_directory">
       <icon/>
       <text>Open Resources Folder</text>
-      <whatsThis>Opens a file browser at the location the free paint app saves resources such as brushes to.</whatsThis>
-      <toolTip>Opens a file browser at the location the free paint app saves resources such as brushes to.</toolTip>
+      <whatsThis>Opens a file browser at the location LibrePaint saves resources such as brushes to.</whatsThis>
+      <toolTip>Opens a file browser at the location LibrePaint saves resources such as brushes to.</toolTip>
       <iconText>Open Resources Folder</iconText>
       <activationFlags>0</activationFlags>
       <activationConditions>0</activationConditions>

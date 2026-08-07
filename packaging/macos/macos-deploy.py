@@ -17,7 +17,7 @@ def main():
                         default=os.getenv("BUILDROOT", False))
     parser.add_argument('--install-dir', dest='install_dir', help="Path of install directory to deploy")
     parser.add_argument('--output-dir', dest='output_dir', help="Destination path to place the app")
-    parser.add_argument('--source', '--krita-source', dest='source', help="source location of the free paint app")
+    parser.add_argument('--source', '--krita-source', dest='source', help="source location of LibrePaint")
     args = parser.parse_args()
 
     # --- Locations

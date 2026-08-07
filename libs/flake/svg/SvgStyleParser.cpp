@@ -274,7 +274,7 @@ void SvgStyleParser::parsePA(SvgGraphicsContext *gc, const QString &command, con
                || command == "font-synthesis-small-caps" || command == "font-synthesis-position") {
         gc->textProperties.parseSvgTextAttribute(d->context, command, params);
     } else if (command == "font") {
-        qWarning() << "The free paint app does not support the 'font' shorthand";
+        qWarning() << "LibrePaint does not support the 'font' shorthand";
     } else if (command == "text-decoration" || command == "text-decoration-line" || command == "text-decoration-style" || command == "text-decoration-color"
                || command == "text-decoration-position") {
         gc->textProperties.parseSvgTextAttribute(d->context, command, params);

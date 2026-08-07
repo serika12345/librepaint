@@ -175,8 +175,10 @@ documents, and invalid or inaccessible input without that restricted dataset.
 Do not rewrite license text, copyright statements, credits, authorship,
 historical generator values, or source URLs. In particular, factual attribution
 to Krita and the Krita Foundation must remain intact. The generic phrase
-"the free paint app" is only suitable for non-legal product prose; substituting
-it into provenance would make the attribution inaccurate.
+"the free paint app" is reserved for taglines and short generic product
+descriptions. Ordinary product prose uses `LibrePaint` or a context-appropriate
+neutral noun. Substituting either rebranding form into provenance would make
+the attribution inaccurate.
 
 Technical and compatibility identifiers are not product branding. Existing KRA
 format names, `application/x-krita` MIME identifiers, API namespaces, action

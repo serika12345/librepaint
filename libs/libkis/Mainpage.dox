@@ -19,9 +19,9 @@
 /**
   \mainpage libkis: LibrePaint Scripting and Plugin Wrapper Library
 
-  Libkis is a QObject-based wrapper around the free paint app's internal libraries.
+  Libkis is a QObject-based wrapper around LibrePaint's internal libraries.
   The wrapper can be used from C++ plugins that do not need the
-  advanced and volatile internal libraries of the free paint app, or can be bound
+  advanced and volatile internal libraries of LibrePaint, or can be bound
   to scripting languages like Python or Javascript.
 
   All classes are based on QObject, so QMetaObject introspection can
@@ -80,7 +80,7 @@
 
 LibrePaint is a Qt-based application. In principle, you can use any Python
 binding to Qt as long as it's using exactly the same version of Qt
-that the free paint app uses. In our examples we will be using [PyQt](https://www.riverbankcomputing.com/software/pyqt/intro).
+that LibrePaint uses. In our examples we will be using [PyQt](https://www.riverbankcomputing.com/software/pyqt/intro).
 
 The easiest access to the LibrePaint API is by simply importing the technical "krita"
 module. This automatically adds two built-ins: Scripter and Application.
@@ -128,7 +128,7 @@ You can access the Krita class as
 For ease of use.
 
 The Document class is provided to allow access to the images LibrePaint has
-loaded. *Note*: internally, the free paint app distinguishes between images and documents.
+loaded. *Note*: internally, LibrePaint distinguishes between images and documents.
 
 A document contains an image and knows the filename of the image, the image
 itself only knows about the layers and masks it contains. The generic

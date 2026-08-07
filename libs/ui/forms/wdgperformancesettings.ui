@@ -81,7 +81,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label">
             <property name="toolTip">
-             <string>The free paint app will not use more memory than this limit.</string>
+             <string>LibrePaint will not use more memory than this limit.</string>
             </property>
             <property name="text">
              <string>Memory Limit:</string>
@@ -99,7 +99,7 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>The free paint app will not use more memory than this limit.</string>
+               <string>LibrePaint will not use more memory than this limit.</string>
               </property>
              </widget>
             </item>
@@ -272,7 +272,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The free paint app will not use more CPU cores than selected by this limit&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LibrePaint will not use more CPU cores than selected by this limit&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -292,7 +292,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When rendering animation frames (into files or during animation cache regeneration), the free paint app will make the specified number of copies of your image and will work on them in parallel. Each copy will demand more RAM for its storage (about 20% of the size of you image), so raise this limit only if you have enough RAM installed.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Recommended value:&lt;/span&gt; set Clones Limit to the number of &lt;span style=&quot; text-decoration: underline;&quot;&gt;physical&lt;/span&gt; (non-hyperthreaded) cores your CPU has&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When rendering animation frames (into files or during animation cache regeneration), LibrePaint will make the specified number of copies of your image and will work on them in parallel. Each copy will demand more RAM for its storage (about 20% of the size of you image), so raise this limit only if you have enough RAM installed.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Recommended value:&lt;/span&gt; set Clones Limit to the number of &lt;span style=&quot; text-decoration: underline;&quot;&gt;physical&lt;/span&gt; (non-hyperthreaded) cores your CPU has&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -341,7 +341,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The free paint app will try to limit the number of screen updates per second to the given number. A lower number will decrease visual responsiveness but increase stylus precision on some systems like macOS.&lt;p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;LibrePaint will try to limit the number of screen updates per second to the given number. A lower number will decrease visual responsiveness but increase stylus precision on some systems like macOS.&lt;p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -412,7 +412,7 @@
           <enum>QFrame::Shape::NoFrame</enum>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When performance logging is enabled, the free paint app saves timing information into the &lt;tt&gt;&amp;lt;working_dir&amp;gt;/log&lt;/tt&gt; folder. If you experience performance problems, enable this option and include the directory contents with a bug report.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When performance logging is enabled, LibrePaint saves timing information into the &lt;tt&gt;&amp;lt;working_dir&amp;gt;/log&lt;/tt&gt; folder. If you experience performance problems, enable this option and include the directory contents with a bug report.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignmentFlag::AlignJustify|Qt::AlignmentFlag::AlignVCenter</set>

@@ -350,7 +350,7 @@ QSqlError createDatabase(const QString &location)
                 }
 
                 if (schemaIsOutDated) {
-                    QMessageBox::critical(0, i18nc("@title:window", "LibrePaint"), i18n("The resource database scheme has changed. The free paint app will back up your database and create a new database."));
+                    QMessageBox::critical(0, i18nc("@title:window", "LibrePaint"), i18n("The resource database scheme has changed. LibrePaint will back up your database and create a new database."));
                     if (QVersionNumber::compare(oldSchemaVersionNumber, QVersionNumber::fromString("0.0.14")) > 0) {
                         KisResourceLocator::instance()->saveTags();
                     }

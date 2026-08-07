@@ -30,7 +30,7 @@
       <item>
        <widget class="QLabel" name="textLabel1">
         <property name="text">
-         <string>The image data you want to paste does not have an ICM profile associated with it. If you do not select a profile, the free paint app will assume that the image data is encoded in the import profile defined in the Settings dialog.</string>
+         <string>The image data you want to paste does not have an ICM profile associated with it. If you do not select a profile, LibrePaint will assume that the image data is encoded in the import profile defined in the Settings dialog.</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

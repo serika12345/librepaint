@@ -18,7 +18,7 @@ namespace {
         if (pack) {
             return pack->constSensorsStruct().sensorDistance;
         } else {
-            qWarning() << "safeDereferenceDistanceSensor(get): failed to get free paint app sensor data";
+            qWarning() << "safeDereferenceDistanceSensor(get): failed to get sensor data";
             return KisSensorWithLengthData(DistanceId);
         }
     },
@@ -27,7 +27,7 @@ namespace {
         if (pack) {
             pack->sensorsStruct().sensorDistance = sensor;
         } else {
-            qWarning() << "safeDereferenceDistanceSensor(set): failed to get free paint app sensor data";
+            qWarning() << "safeDereferenceDistanceSensor(set): failed to get sensor data";
         }
         return data;
     });

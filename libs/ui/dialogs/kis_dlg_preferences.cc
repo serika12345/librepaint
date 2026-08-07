@@ -1375,7 +1375,7 @@ ColorSettingsTab::ColorSettingsTab(QWidget *parent, const char *name)
                  "a separate native surface for the canvas. It might cause "
                  "performance issues on some systems.</p>"
                  ""
-                 "<p>If color management is disabled, the free paint app will render "
+                 "<p>If color management is disabled, LibrePaint will render "
                  "the canvas into the surface of the main window, which "
                  "is considered sRGB. It will cause two limitations:"
                  ""

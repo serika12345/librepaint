@@ -1152,7 +1152,7 @@ QString convertFormatUnderlineToSvg(QTextCharFormat format)
     if (format.fontUnderline()) {
         line.append("underline");
         if (format.underlineStyle() != QTextCharFormat::SingleUnderline) {
-            warnFile << "The free paint app only supports solid underline style";
+            warnFile << "LibrePaint only supports solid underline style";
         }
     }
 

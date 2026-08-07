@@ -96,7 +96,7 @@
          <item>
           <widget class="QLineEdit" name="e_comment">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This will appear in the &amp;quot;comment&amp;quot; entry in the dialog where a user can enable or disable scripts for the free paint app. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This will appear in the &amp;quot;comment&amp;quot; entry in the dialog where a user can enable or disable scripts for LibrePaint. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>

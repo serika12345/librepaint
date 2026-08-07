@@ -58,7 +58,7 @@ void QMic::slotQMic(bool again)
     for (const auto &loader : offers) {
         auto *factory = qobject_cast<KPluginFactory *>(loader.instance());
         if (!factory) {
-            warnPlugins << "(GMic) This is not a compatible plugin for the free paint app: " << loader.fileName() << loader.errorString();
+            warnPlugins << "(GMic) This is not a compatible plugin for LibrePaint: " << loader.fileName() << loader.errorString();
 
             continue;
         }
@@ -76,7 +76,7 @@ void QMic::slotQMic(bool again)
     }
 
     if (!plugin) {
-        QMessageBox::warning(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("The free paint app cannot launch the gmic-qt plugin. No bundled library found."));
+        QMessageBox::warning(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("LibrePaint cannot launch the gmic-qt plugin. No bundled library found."));
         return;
     }
 

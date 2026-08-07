@@ -572,7 +572,7 @@ KisImportExportErrorCode KisPNGConverter::buildImage(QIODevice* iod)
         profile = KoColorSpaceRegistry::instance()->createColorProfile(csName.first, csName.second, profile_rawdata);
         if (profile) {
             if (!profile->isSuitableForWorkspace()) {
-                dbgFile << "the profile is not suitable for output and therefore cannot be used in the free paint app, we need to convert the image to a standard profile";
+                dbgFile << "the profile is not suitable for output and therefore cannot be used in LibrePaint, we need to convert the image to a standard profile";
             }
         }
 

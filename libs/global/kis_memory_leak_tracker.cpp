@@ -109,7 +109,7 @@ KisMemoryLeakTracker::~KisMemoryLeakTracker()
         d->dumpReferencedObjectsAndDelete(d->whatWhoWhen, true);
         qWarning() << "****************************************";
 #ifndef NDEBUG
-        qFatal("Leaks have been detected... fix the free paint app.");
+        qFatal("Memory leaks have been detected; fix them before continuing.");
 #endif
     }
     delete d;

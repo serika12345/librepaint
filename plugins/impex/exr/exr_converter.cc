@@ -547,7 +547,7 @@ bool EXRConverter::Private::checkExtraLayersInfoConsistent(const QDomDocument &d
     bool result = (extraInfoLayers == exrLayerNames);
 
     if (!result) {
-        dbgKrita << "WARNING: the free paint app's EXR extra layers info is inconsistent!";
+        dbgKrita << "WARNING: LibrePaint's EXR extra layers info is inconsistent!";
         dbgKrita << ppVar(extraInfoLayers.size()) << ppVar(exrLayerNames.size());
 
         std::set<std::string>::const_iterator it1 = extraInfoLayers.begin();
@@ -658,7 +658,7 @@ KisImportExportErrorCode EXRConverter::decode(const QString &filename)
             else if (!qname.contains('.')
                      || !qname.mid(1).contains('.')
                      || !qname.left(qname.size() - 1).contains('.')) {
-                warnFile << "Found a top-level channel that is not part of the rendered image" << qname << ". The free paint app will not load this channel.";
+                warnFile << "Found a top-level channel that is not part of the rendered image" << qname << ". LibrePaint will not load this channel.";
             }
         }
         if (topLevelRGBFound) {
@@ -918,7 +918,7 @@ KisImportExportErrorCode EXRConverter::decode(const QString &filename)
             QString msg =
                     i18nc("@info",
                           "The image contains pixels with zero alpha channel and non-zero "
-                          "color channels. The free paint app has modified those pixels to have "
+                          "color channels. LibrePaint has modified those pixels to have "
                           "at least some alpha. The initial values will <i>not</i> "
                           "be reverted on saving the image back."
                           "<br/><br/>"

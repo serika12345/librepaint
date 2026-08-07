@@ -18,7 +18,7 @@ namespace {
         if (pack) {
             return pack->constSensorsStruct().sensorFade;
         } else {
-            qWarning() << "safeDereferenceFadeSensor(get): failed to get free paint app sensor data";
+            qWarning() << "safeDereferenceFadeSensor(get): failed to get sensor data";
             return KisSensorWithLengthData(FadeId);
         }
     },
@@ -27,7 +27,7 @@ namespace {
         if (pack) {
             pack->sensorsStruct().sensorFade = sensor;
         } else {
-            qWarning() << "safeDereferenceFadeSensor(set): failed to get free paint app sensor data";
+            qWarning() << "safeDereferenceFadeSensor(set): failed to get sensor data";
         }
         return data;
     });

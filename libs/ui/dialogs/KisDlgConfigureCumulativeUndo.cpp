@@ -54,7 +54,7 @@ KisDlgConfigureCumulativeUndo::KisDlgConfigureCumulativeUndo(const KisCumulative
         i18nc("@info:tooltip",
               "The amount of time during which the strokes will "
               "be kept unmerged. When a stroke becomes old enough, "
-              "the free paint app will try to merge it"));
+              "LibrePaint will try to merge it"));
     dblMergeTimeout->setRange(3, 600);
     dblMergeTimeout->setSuffix(i18nc("suffix for \"seconds\"", " sec"));
     form->addRow(i18n("Wait before merging strokes:"), dblMergeTimeout);
@@ -64,7 +64,7 @@ KisDlgConfigureCumulativeUndo::KisDlgConfigureCumulativeUndo(const KisCumulative
     QSpinBox *intExcludeFromMerge = new KisIntParseSpinBox();
     intExcludeFromMerge->setToolTip(
         i18nc("@info:tooltip",
-              "The number of last strokes that the free paint app will not merge "
+              "The number of last strokes that LibrePaint will not merge "
               "(even if they are old enough)"));
     intExcludeFromMerge->setRange(1, undoLimit > 0 ? undoLimit : 1000);
     form->addRow(i18n("Exclude last strokes from merge:"), intExcludeFromMerge);
@@ -98,13 +98,13 @@ KisDlgConfigureCumulativeUndo::KisDlgConfigureCumulativeUndo(const KisCumulative
     vboxLayout->addItem(new QSpacerItem(20, 20));
 
     QLabel *help = new QLabel(
-        i18n("Cumulative Undo allows the free paint app to merge undo actions "
-             "and make undo history cleaner. The free paint app will still keep "
+        i18n("Cumulative Undo allows LibrePaint to merge undo actions "
+             "and make undo history cleaner. LibrePaint will still keep "
              "a few latest actions unmerged according to "
              "\"Wait before merging strokes\" and \"Exclude last strokes from merge\" "
              "options. Whenever an action gets outdated using "
              "the time limit and this action is not excluded using "
-             "\"Exclude last strokes from merge\", the free paint app will try "
+             "\"Exclude last strokes from merge\", LibrePaint will try "
              " to merge this action into a group. The groups are "
              "formed using \"Max group strokes delay\" and "
              "\"Max group duration\" options."),

@@ -101,7 +101,7 @@
           <item>
            <widget class="QLabel" name="textLabel1_2_2">
             <property name="text">
-             <string>Note: When copying/pasting inside the free paint app, color info is always preserved.</string>
+             <string>Note: When copying/pasting inside LibrePaint, color info is always preserved.</string>
             </property>
            </widget>
           </item>

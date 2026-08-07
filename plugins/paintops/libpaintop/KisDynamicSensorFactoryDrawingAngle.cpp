@@ -22,7 +22,7 @@ namespace {
         if (pack) {
             return pack->constSensorsStruct().sensorDrawingAngle;
         } else {
-            qWarning() << "safeDereferenceDrawingAngleSensor(get): failed to get free paint app sensor data";
+            qWarning() << "safeDereferenceDrawingAngleSensor(get): failed to get sensor data";
             return KisDrawingAngleSensorData();
         }
     },
@@ -31,7 +31,7 @@ namespace {
         if (pack) {
             pack->sensorsStruct().sensorDrawingAngle = sensor;
         } else {
-            qWarning() << "safeDereferenceDrawingAngleSensor(set): failed to get free paint app sensor data";
+            qWarning() << "safeDereferenceDrawingAngleSensor(set): failed to get sensor data";
         }
         return data;
     });

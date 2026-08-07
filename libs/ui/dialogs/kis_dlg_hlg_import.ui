@@ -17,7 +17,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is an Hybrid Log Gamma image. The free paint app does not support sending HLG to the monitor, so for import it is recommended to convert from scene linear to display linear.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is an Hybrid Log Gamma image. LibrePaint does not support sending HLG to the monitor, so for import it is recommended to convert from scene linear to display linear.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

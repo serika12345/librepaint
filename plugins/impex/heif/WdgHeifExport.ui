@@ -126,7 +126,7 @@
       <item row="2" column="0" colspan="2">
        <widget class="QCheckBox" name="chkHLGOOTF">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hybrid Log Gamma needs an extra conversion step in between, as the free paint app currently cannot send HLG data directly to the display. Therefore we apply the HLG opto-optical curve to convert from display to scene linear.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hybrid Log Gamma needs an extra conversion step in between, as LibrePaint currently cannot send HLG data directly to the display. Therefore we apply the HLG opto-optical curve to convert from display to scene linear.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Apply reverse Hybrid Log Gamma OOTF</string>
@@ -158,7 +158,7 @@
    <item row="3" column="0" colspan="2">
     <widget class="QCheckBox" name="chkMonochromesRGB">
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Not all encoders for AV1 and by extension avif support saving to monochrome and use a YCbCr fallback. The free paint app will be able to open these files just fine, but not all programs do. Converting to sRGB first before saving solves this at the cost of larger file size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Not all encoders for AV1 and by extension avif support saving to monochrome and use a YCbCr fallback. LibrePaint will be able to open these files just fine, but not all programs do. Converting to sRGB first before saving solves this at the cost of larger file size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
       <string>Convert to sRGB for extra compatibility</string>

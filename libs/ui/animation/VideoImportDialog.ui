@@ -311,8 +311,8 @@
                </property>
                <property name="toolTip">
                 <string>How sensitive should the duplicate frame filter be when determining
-which frames are added to the free paint app.
-The higher the sensitivity, the more frames are added to the free paint app.</string>
+which frames are added to LibrePaint.
+The higher the sensitivity, the more frames are added to LibrePaint.</string>
                </property>
               </widget>
              </item>

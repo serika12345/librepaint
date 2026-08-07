@@ -116,7 +116,7 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
         }
         credits.chop(2);
     }
-    credits.append(i18n(".</p><p><i>For supporting development of the free paint app with advice, icons, brush sets and more.</i></p></body></html>"));
+    credits.append(i18n(".</p><p><i>For supporting Krita development with advice, icons, brush sets and more.</i></p></body></html>"));
 
     wdgTab->lblCredits->setText(credits);
 
