@@ -481,7 +481,6 @@ include(ECMInstallIcons)
 
 include(CMakePackageConfigHelpers)
 include(WriteBasicConfigVersionFile)
-include(CheckFunctionExists)
 include(CheckCXXSymbolExists)
 
 set (KDE_COMPILERSETTINGS_LEVEL "5.0")
@@ -1559,8 +1558,6 @@ set_package_properties(LibMyPaint PROPERTIES
     DESCRIPTION "MyPaint brush engine API for C/C++"
     TYPE OPTIONAL
     PURPOSE "Required for the MyPaint brush engine")
-macro_bool_to_01(LibMyPaint_FOUND HAVE_LIBMYPAINT)
-configure_file(config-mypaint.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-mypaint.h )
 
 ##
 ## Look for OpenGL
@@ -1900,9 +1897,6 @@ add_subdirectory(krita)
 configure_file(KoConfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/KoConfig.h )
 configure_file(KoTestConfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/KoTestConfig.h )
 configure_file(config_convolution.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config_convolution.h)
-
-check_function_exists(powf HAVE_POWF)
-configure_file(config-powf.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-powf.h)
 
 if(WIN32)
     include(${CMAKE_CURRENT_LIST_DIR}/packaging/windows/installer/ConfigureInstallerNsis.cmake)
