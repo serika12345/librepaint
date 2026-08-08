@@ -418,7 +418,7 @@ mkIOSCMakePackage {
 
         preset_bundle_count=0
         while IFS= read -r bundle; do
-          if ${unzip}/bin/unzip -Z1 "$bundle" | grep -q '^paintoppresets/'; then
+          if ${unzip}/bin/unzip -Z1 "$bundle" | grep '^paintoppresets/' >/dev/null; then
             preset_bundle_count=$((preset_bundle_count + 1))
           fi
         done < <(find "$app/share/krita/bundles" -type f -name '*.bundle' | sort)
