@@ -287,9 +287,6 @@ KisToolKnifeOptionsWidget::KisToolKnifeOptionsWidget(KisCanvasResourceProvider *
         KisIconUtils::loadIcon("tool_comic_panel_cut"));
     m_d->buttonModeRemoveGutter = m_d->ui->optionButtonStripToolMode->addButton(
         KisIconUtils::loadIcon("tool_comic_panel_merge"));
-    //m_d->buttonModeMoveGutterEndPoint = m_d->ui->optionButtonStripToolMode->addButton(
-    //    KisIconUtils::loadIcon("tool_comic_panel_move_point"));
-
     m_d->buttonModeAddGutter->setChecked(true);
     m_d->buttonModeAddGutter->setMinimumSize(QSize(20, 20));
     m_d->buttonModeRemoveGutter->setMinimumSize(QSize(20, 20));
@@ -418,4 +415,3 @@ void KisToolKnifeOptionsWidget::currentWidthSystemChanged()
         break;
     }
 }
-

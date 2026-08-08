@@ -331,10 +331,6 @@ add_feature_info("Limit long tests" LIMIT_LONG_TESTS "Run long running unittests
 option(BUILD_KRITA_QT_DESIGNER_PLUGINS "Build Qt Designer plugins for Krita widgets" OFF)
 add_feature_info("Build Qt Designer plugins" BUILD_KRITA_QT_DESIGNER_PLUGINS "Builds Qt Designer plugins for Krita widgets (use -DBUILD_KRITA_QT_DESIGNER_PLUGINS=ON to enable).")
 
-# LibrePaint does not publish an update feed. Package updates are handled by
-# the user through the selected platform artifact.
-option(ENABLE_UPDATERS "Enable updaters/update notifications" OFF)
-
 if(IOS)
     option(KRITA_IOS_BUILD_QML_MODULES "Build Krita QML modules for iOS" OFF)
     option(KRITA_IOS_BUILD_PLUGINS "Build Krita plugins for iOS" OFF)
@@ -360,8 +356,6 @@ if(IOS)
     option(KRITA_IOS_PLUGIN_METADATA "Build Android metadata plugins for iOS" ON)
     option(KRITA_IOS_PLUGIN_COLORSPACE_EXTENSIONS "Build Android color-space extensions for iOS" ON)
 endif()
-configure_file(config-updaters.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-updaters.h)
-add_feature_info("Enable updaters" ENABLE_UPDATERS "Enable updaters/update notifications.")
 
 option(KRITA_ENABLE_PCH "Enable precompiled headers support" OFF)
 add_feature_info("Precompiled Headers" KRITA_ENABLE_PCH "precompiled headers make build process faster on some systems")
@@ -381,20 +375,10 @@ endif()
 
 add_feature_info("ASAN address sanitizer" ADDRESS_SANITIZER_ENABLED "Terminate the application on invalid memory access (-DECM_ENABLE_SANITIZERS=address).")
 
-# Branding. Available options: default, Beta, Plus, Next. Can be set from command line
-if ("${BRANDING}" STREQUAL "")
-    if (DEFINED KRITA_STABLE)
-        set(BRANDING "default")
-    elseif (DEFINED KRITA_BETA OR DEFINED KRITA_RC)
-        set(BRANDING "Beta")
-    elseif (DEFINED KRITA_STABLE_BRANCH)
-        # Alpha/pre-alpha in stable branch
-        set(BRANDING "Plus")
-    else ()
-        # Alpha/pre-alpha in master branch or other experiments
-        set(BRANDING "Next")
-    endif ()
-endif()
+# Keep the compatibility directory name until the later filename migration.
+# LibrePaint has one branding profile and does not inherit upstream release
+# channel artwork.
+set(BRANDING "Next")
 
 message(STATUS "Branding selected: ${BRANDING}")
 

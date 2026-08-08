@@ -3,7 +3,7 @@
  */
 #include "KisAndroidScaling.h"
 
-#include <KisAndroidDonations.h>
+#include <KisAndroidSplash.h>
 #include <KisAndroidUtils.h>
 #include <KisApplication.h>
 #include <kis_config.h>
@@ -60,11 +60,11 @@ KisAndroidScaling::KisAndroidScaling(KisConfig &cfg, KisApplication *app)
             &KisAndroidScaling::slotJniScalingDialogActive,
             Qt::QueuedConnection);
 
-    KisAndroidDonations *androidDonations = app->androidDonations();
-    KIS_SAFE_ASSERT_RECOVER_NOOP(androidDonations);
-    if (androidDonations) {
-        connect(androidDonations,
-                &KisAndroidDonations::sigSplashDialogDismissed,
+    KisAndroidSplash *androidSplash = app->androidSplash();
+    KIS_SAFE_ASSERT_RECOVER_NOOP(androidSplash);
+    if (androidSplash) {
+        connect(androidSplash,
+                &KisAndroidSplash::sigSplashDialogDismissed,
                 this,
                 &KisAndroidScaling::slotSplashDialogDismissed,
                 Qt::QueuedConnection);

@@ -16,7 +16,6 @@
         "CMAKE_IGNORE_PREFIX_PATH": "/usr/local;/opt/homebrew",
         "KF6_HOST_TOOLING": "$env{KRITA_IOS_KF6_HOST_TOOLING}",
         "Qt6LinguistTools_DIR": "$env{KRITA_IOS_LINGUIST_TOOLS_DIR}",
-        "ENABLE_UPDATERS": "OFF",
         "KRITA_IOS_BUILD_PLUGINS": "ON",
         "KRITA_IOS_PLUGIN_KRA": "ON",
         "KRITA_IOS_PLUGIN_PNG": "ON",

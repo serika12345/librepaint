@@ -12,21 +12,13 @@
 
 #include "ui_wdgsplash.h"
 
-class QPixmap;
-class QSvgWidget;
-
 #include "kritaui_export.h"
 
 class KRITAUI_EXPORT KisSplashScreen : public QWidget, public Ui::WdgSplash
 {
     Q_OBJECT
 public:
-    struct Source {
-        QString resourcePath;
-        QString artistCredit;
-    };
-
-    explicit KisSplashScreen(bool themed = false, QWidget *parent = 0, Qt::WindowFlags f = Qt::WindowFlags());
+    explicit KisSplashScreen(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
     void repaint();
 
@@ -36,11 +28,9 @@ public:
 
     void setLoadingText(QString text);
 
-    static Source getImageSource();
+    static QString imageResourcePath();
 
 private Q_SLOTS:
-
-    void toggleShowAtStartup(bool toggle);
     void linkClicked(const QString &link);
 
 protected:
@@ -56,10 +46,7 @@ private:
 
     QTimer m_timer;
     bool m_displayLinks { false };
-    QSvgWidget *m_brandingSvg;
-    QSvgWidget *m_bannerSvg;
     QLabel *m_loadingTextLabel;
-    QLabel *m_artCreditsLabel;
     QString m_versionHtml;
 };
 

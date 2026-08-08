@@ -120,7 +120,7 @@ else()
     set(krita_splash_qrc splash.qrc)
 endif()
 
-# separate listing, both used by Krita and KritaSketch
+# Application resources shared by the supported platform builds.
 set(krita_QRCS
     ${CMAKE_SOURCE_DIR}/krita/krita.qrc
     ${CMAKE_SOURCE_DIR}/krita/pics/Breeze-dark/breeze-dark-icons.qrc

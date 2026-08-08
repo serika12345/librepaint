@@ -37,7 +37,7 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
 
     WdgAboutApplication *wdgTab = new WdgAboutApplication(this);
 
-    KisSplashScreen *splash = new KisSplashScreen(true);
+    KisSplashScreen *splash = new KisSplashScreen();
     splash->setWindowFlags(Qt::Widget);
     splash->displayLinks(true);
 
@@ -88,10 +88,6 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
     translatorHtml.append("</body></html>");
 
     wdgTab->lblTranslators->setText(translatorHtml);
-
-    // Sponsor logos and promotional links belong to the upstream project and
-    // are intentionally not presented as LibrePaint endorsements.
-    wdgTab->tabWidget->removeTab(wdgTab->tabWidget->indexOf(wdgTab->kickstarterTab));
 
     QString credits = i18n("<html>"
                            "<head/>"

@@ -25,7 +25,6 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
@@ -36,7 +35,6 @@ import org.libsdl.app.SDLAudioManager;
 import org.qtproject.qt5.android.QtNative;
 import org.qtproject.qt5.android.bindings.QtActivity;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class MainActivity extends QtActivity {
@@ -47,7 +45,7 @@ public class MainActivity extends QtActivity {
     private boolean haveLibsLoaded = false;
     private boolean serviceStarted = false;
     private boolean inFullScreen = false;
-    private DonationDialog mDonationDialog = null;
+    private SplashDialog mSplashDialog = null;
 
     @Override
     @SuppressLint("MissingSuperCall")
@@ -70,9 +68,6 @@ public class MainActivity extends QtActivity {
         Log.i(TAG, "TouchSlop: " + ViewConfiguration.get(this).getScaledTouchSlop());
         Log.i(TAG, "LibsLoaded");
         haveLibsLoaded = true;
-
-        DonationHelper.getInstance();
-        DonationProduct.initAllProducts(this);
     }
 
     @Override
@@ -267,83 +262,49 @@ public class MainActivity extends QtActivity {
     }
 
     @SuppressWarnings("unused")
-    public static void manageSubscriptions() {
-        manageSubscription(null);
-    }
-
-    @SuppressWarnings("unused")
-    public static void manageSubscription(String productId) {
-        if (!DonationHelper.isEnabled()) {
-            return;
-        }
-        doWithMainActivity((MainActivity activity) -> {
-            activity.runOnUiThread(() -> {
-                try {
-                    String packageName = activity.getApplicationContext().getPackageName();
-                    String uri = "https://play.google.com/store/account/subscriptions?package=" + Uri.encode(packageName)
-                            + (productId == null ? "" : "&sku=" + Uri.encode(productId));
-                    activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to open subscription management", e);
-                    Toast.makeText(QtNative.getContext(), R.string.something_wrong, Toast.LENGTH_LONG).show();
-                }
-            });
-        });
-    }
-
-    @SuppressWarnings("unused")
-    public static void showDonationDialog(boolean splash, byte[] splashBytes, String splashArtist, String splashVersion) {
-        if (!splash && !DonationHelper.isEnabled()) {
-            return;
-        }
-        Log.d(TAG, "showDonationDialog");
+    public static void showSplashDialog(byte[] splashBytes, String splashVersion) {
+        Log.d(TAG, "showSplashDialog");
         try {
             Activity activity = QtNative.activity();
             if (activity instanceof MainActivity) {
-                ((MainActivity) activity).showDonationDialogInternal(splash, splashBytes, splashArtist, splashVersion);
+                ((MainActivity) activity).showSplashDialogInternal(splashBytes, splashVersion);
             } else {
-                Log.e(TAG, "showDonationDialog: QtNative.activity() is not a Krita MainActivity");
+                Log.e(TAG, "showSplashDialog: QtNative.activity() is not a Krita MainActivity");
             }
         } catch (Exception e) {
-            Log.e(TAG, "Exception dispatching donation dialog", e);
+            Log.e(TAG, "Exception dispatching splash dialog", e);
         }
     }
 
-    private void showDonationDialogInternal(boolean splash, byte[] splashBytes, String splashArtist, String splashVersion) {
+    private void showSplashDialogInternal(byte[] splashBytes, String splashVersion) {
         QtNative.activity().runOnUiThread(() -> {
-            if (mDonationDialog == null) {
+            if (mSplashDialog == null) {
                 try {
-                    mDonationDialog = new DonationDialog(MainActivity.this, splash);
-                    updateDonationDialog();
-                    AlertDialog alertDialog = mDonationDialog.getAlertDialog();
+                    mSplashDialog = new SplashDialog(MainActivity.this);
+                    AlertDialog alertDialog = mSplashDialog.getAlertDialog();
                     alertDialog.setOnDismissListener(dialogInterface -> {
-                        if (splash) {
-                            JNIWrappers.onSplashDialogDismissed();
-                        }
-                        if (mDonationDialog != null) {
-                            if (dialogInterface == mDonationDialog.getAlertDialog()) {
-                                Log.d(TAG, "Donation dialog dismissed, clearing");
-                                mDonationDialog = null;
+                        JNIWrappers.onSplashDialogDismissed();
+                        if (mSplashDialog != null) {
+                            if (dialogInterface == mSplashDialog.getAlertDialog()) {
+                                Log.d(TAG, "Splash dialog dismissed, clearing");
+                                mSplashDialog = null;
                             } else {
-                                Log.w(TAG, "Unknown donation dialog dismissed, not clearing it");
+                                Log.w(TAG, "Unknown splash dialog dismissed, not clearing it");
                             }
                         }
                     });
                     alertDialog.show();
 
-                    if (splash) {
-                        Bitmap bitmap = loadSplashImageBitmap(splashBytes);
-                        if (bitmap != null) {
-                            mDonationDialog.setSplashContents(bitmap, combineSplashText(splashArtist, splashVersion));
-                        }
+                    Bitmap bitmap = loadSplashImageBitmap(splashBytes);
+                    if (bitmap != null) {
+                        mSplashDialog.setSplashContents(bitmap, splashVersion);
                     }
-
-                    updateDonationDialogProductsInternal(mDonationDialog);
+                    updateSplashDialogInternal();
                 } catch (Exception e) {
-                    Log.e(TAG, "Exception showing donation dialog", e);
+                    Log.e(TAG, "Exception showing splash dialog", e);
                 }
             } else {
-                Log.w(TAG, "Donation dialog requested while already shown");
+                Log.w(TAG, "Splash dialog requested while already shown");
             }
         });
     }
@@ -372,82 +333,43 @@ public class MainActivity extends QtActivity {
         return bitmap;
     }
 
-    private static String combineSplashText(String splashArtist, String splashVersion) {
-        boolean haveArtist = splashArtist != null && !splashArtist.isEmpty();
-        boolean haveVersion = splashVersion != null && !splashVersion.isEmpty();
-        if (haveArtist) {
-            if (haveVersion) {
-                return splashVersion + "\n" + splashArtist;
-            } else {
-                return splashArtist;
-            }
-        } else if (haveVersion) {
-            return splashVersion;
-        } else {
-            return "";
-        }
-    }
-
     @SuppressWarnings("unused")
     public static void setLoaded(boolean loaded) {
         Log.d(TAG, "setLoaded " + loaded);
         applicationLoaded = loaded;
-        updateDonationDialog();
+        updateSplashDialog();
     }
 
     @SuppressWarnings("unused")
     public static void setLoadingText(String loadingText) {
         Log.d(TAG, "setLoadingText " + loadingText);
         applicationLoadingText = loadingText;
-        updateDonationDialog();
+        updateSplashDialog();
     }
 
-    private static void updateDonationDialog() {
-        doWithDonationDialog((MainActivity activity, DonationDialog dlg) -> {
-            if (dlg.isSplash()) {
-                dlg.setLoading(!applicationLoaded);
-                dlg.setLoadingText(activity.getLoadingText());
-            } else {
-                dlg.showProductListPage();
-                dlg.setLoading(false);
+    private static void updateSplashDialog() {
+        doWithMainActivity(MainActivity::updateSplashDialogInternal);
+    }
+
+    private void updateSplashDialogInternal() {
+        runOnUiThread(() -> {
+            if (mSplashDialog == null) {
+                Log.d(TAG, "Splash dialog not set, not updating it");
+                return;
             }
+
+            mSplashDialog.setLoadingText(getLoadingText());
+            mSplashDialog.setLoading(!applicationLoaded);
         });
     }
 
     private String getLoadingText() {
         if (applicationLoaded) {
-            return getString(R.string.donation_dialog_loaded);
+            return getString(R.string.splash_dialog_loaded);
         } else if (applicationLoadingText == null || applicationLoadingText.isEmpty()) {
-            return getString(R.string.donation_dialog_loading);
+            return getString(R.string.splash_dialog_loading);
         } else {
             return applicationLoadingText;
-        }
-    }
-
-    public static void showPurchaseConfirmation() {
-        JNIWrappers.showDonationManagementDialog();
-        doWithDonationDialog((MainActivity activity, DonationDialog dlg) -> {
-            dlg.showPurchaseConfirmationPage();
-        });
-    }
-
-    public static void doWithDonationDialog(BiConsumer<MainActivity, DonationDialog> consumer) {
-        doWithMainActivity((MainActivity activity) -> {
-            activity.doWithDonationDialogInternal(consumer);
-        });
-    }
-
-    private void doWithDonationDialogInternal(BiConsumer<MainActivity, DonationDialog> consumer) {
-        if (mDonationDialog == null) {
-            Log.d(TAG, "Donation dialog not set, not updating it");
-        } else {
-            QtNative.activity().runOnUiThread(() -> {
-                if (mDonationDialog == null) {
-                    Log.d(TAG, "Donation dialog not set on UI thread, not updating it");
-                } else {
-                    consumer.accept(this, mDonationDialog);
-                }
-            });
         }
     }
 
@@ -462,17 +384,6 @@ public class MainActivity extends QtActivity {
         } catch (Exception e) {
             Log.e(TAG, "Exception in doWithMainActivity", e);
         }
-    }
-
-    public static void updateDonationDialogProducts() {
-        doWithDonationDialog(MainActivity::updateDonationDialogProductsInternal);
-    }
-
-    private void updateDonationDialogProductsInternal(DonationDialog dlg) {
-        DonationHelper donationHelper = DonationHelper.getInstance();
-        dlg.setProductDetails(
-                donationHelper.isReady() ? donationHelper.getProductDetails() : null,
-                donationHelper.isAnyProductsOwned());
     }
 
     public void showScalingDialog(double currentScale, double defaultScale, boolean showOnStartup, boolean canShowOnStartup) {

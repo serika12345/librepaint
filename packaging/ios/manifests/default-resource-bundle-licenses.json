@@ -5,7 +5,7 @@
   "classification_policy": {
     "specific_notice_precedence": "The unmodified krita/data/README applies CC-BY-3.0 to every GBR and GIH brush and takes precedence over the bundle-wide declaration.",
     "bundle_default": "All remaining original entries inherit the explicit CC-0 declaration in meta.xml. The Krita bundle editor reads and writes this field as the license of the resource bundle.",
-    "replacement_preview": "The root preview.png is same-size opaque-white replacement content dedicated under CC0-1.0; its bytes are validated by white-brand-assets.json.",
+    "replacement_preview": "The root preview.png is generated from the LibrePaint icon under CC0-1.0; its exact bytes are sealed in this inventory and its source is documented by librepaint-brand-assets.md.",
     "individual_override_audit": "All 117 KPP preset XML records and all three SVG brush tips contain no individual legal override. Embedded PNG author fields are recorded below and remain applicable.",
     "attribution": "Each sealed inventory record points to the unmodified README and meta.xml creator fields that apply, plus any more-specific embedded PNG Author value."
   },
@@ -45,7 +45,7 @@
     "unique_path_count": 277,
     "duplicate_path_count": 52
   },
-  "classified_inventory_sha256": "ac7f2554f47a99fc70edb537822efd63f55a99e1b30b501111bbf6295c7538a4",
+  "classified_inventory_sha256": "8ed16a19f9e765266b8052815cc1e67673186b7a9ca26fdca64016fb9b6872b0",
   "bundle_metadata": {
     "sha256": "5660ffb6a636960847cb77ee75f0fbae38ba65c29d601bc577482fe6bc12e4f5",
     "license": "CC-0",
@@ -71,6 +71,11 @@
       "path": "LICENSES/CC0-1.0.txt",
       "sha256": "6a573fb2f9082662978cf21fb153096df0a1981deaea7dbc10a11046fe005d9f",
       "applies_to": "244 remaining files"
+    },
+    {
+      "path": "packaging/ios/notices/librepaint-brand-assets.md",
+      "sha256": "1acd96e3fecaa3c94eedbf64c42856d4111c4a8815c56e21e1a0f7399e101621",
+      "applies_to": "preview.png"
     }
   ],
   "embedded_attribution": {

@@ -98,8 +98,6 @@
 #include <KisPlaybackEngine.h>
 
 #ifdef Q_OS_ANDROID
-#include "KisAndroidDonations.h"
-#include "dialogs/KisDonationManagementDialog.h"
 #include <QtAndroid>
 #include <KisAndroidUtils.h>
 #endif
@@ -268,8 +266,6 @@ public:
     KisAction *resetConfigurations {nullptr};
     KisAction *toggleDockerTitleBars {nullptr};
 #ifdef Q_OS_ANDROID
-    KisAction *showDonationManagementDialog {nullptr};
-    KisAction *manageSubscriptions {nullptr};
 #if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
     KisAction *changeInterfaceScale {nullptr};
 #endif
@@ -1666,15 +1662,6 @@ void KisMainWindow::showEvent(QShowEvent *event)
     if (!event->spontaneous()) {
         setMainWindowLayoutForCurrentMainWidget(d->widgetStack->currentIndex(), false);
     }
-#ifdef Q_OS_ANDROID
-    // The user can conceivably purchase a product from the splash screen while
-    // Krita is still loading. In that case, the "pending" flag will be set. The
-    // dialog in question will clear the flag.
-    KisAndroidDonations *androidDonations = KisAndroidDonations::instance();
-    if (androidDonations && androidDonations->isShowDonationManagementDialogPending()) {
-        QTimer::singleShot(0, this, &KisMainWindow::slotShowDonationManagementDialog);
-    }
-#endif
     return KXmlGuiWindow::showEvent(event);
 }
 
@@ -1900,37 +1887,6 @@ void KisMainWindow::slotShowSessionManager() {
 }
 
 #ifdef Q_OS_ANDROID
-void KisMainWindow::slotShowDonationManagementDialog()
-{
-    // Don't show the donation management dialog on top of another dialog
-    // that may have triggered a donation flow, such as the bundle manager.
-    QWidget *win = qApp->activeWindow();
-    if (win && !qobject_cast<KisMainWindow *>(win) && (win->isModal() || win->windowModality() != Qt::NonModal)) {
-        return;
-    }
-
-    // We don't use `exec` here because the purchase stuff runs in Android's
-    // event loop, so it's legitimately possible that we get hit by another
-    // request to show the donation management dialog while it's already up
-    // and it's more convenient for the dialog to handle the deduplication.
-    QString objectName = QStringLiteral("kisdonationmanagementdialog");
-    KisDonationManagementDialog *dlg = findChild<KisDonationManagementDialog *>(objectName, Qt::FindDirectChildrenOnly);
-    if (dlg) {
-        dlg->reshow();
-    } else {
-        dlg = new KisDonationManagementDialog(this);
-
-        QAction *action = actionCollection()->action("manage_supporter_bundles");
-        if (action) {
-            connect(dlg, &KisDonationManagementDialog::sigShowSupporterBundles, action, &QAction::trigger);
-        }
-
-        dlg->setAttribute(Qt::WA_DeleteOnClose);
-        dlg->setObjectName(objectName);
-        dlg->show();
-    }
-}
-
 void KisMainWindow::slotFlashWindowHack()
 {
     if (!d->flashWindowHackInProgress) {
@@ -3161,7 +3117,6 @@ void KisMainWindow::createActions()
     connect(d->mdiPreviousWindow, SIGNAL(triggered()), d->mdiArea, SLOT(activatePreviousSubWindow()));
 
 #ifdef Q_OS_ANDROID
-    // LibrePaint does not expose upstream donation or subscription actions.
 #if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
     KisAndroidScaling *androidScaling = KisAndroidScaling::instance();
     if (androidScaling && androidScaling->isSupported()) {

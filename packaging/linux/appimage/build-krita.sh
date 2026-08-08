@@ -13,15 +13,14 @@ fail()
     exit 2
 }
 
-if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
-    fail "Usage: LIBREPAINT_DEPS_PATH=/absolute/dependency/prefix $0 BUILD_PREFIX SOURCE_DIR [BRANDING]"
+if [ "$#" -ne 2 ]; then
+    fail "Usage: LIBREPAINT_DEPS_PATH=/absolute/dependency/prefix $0 BUILD_PREFIX SOURCE_DIR"
 fi
 
 # Read in our parameters. The dependency prefix must be supplied explicitly;
 # this repository no longer carries a downloader or dependency builder.
 export BUILD_PREFIX="$1"
 export KRITA_SOURCES="$2"
-export KRITA_BRANDING="${3:-}"
 export DEPS_INSTALL_PREFIX="${LIBREPAINT_DEPS_PATH:-${KRITA_DEPS_PATH:-}}"
 
 if [ -z "$DEPS_INSTALL_PREFIX" ]; then
@@ -82,11 +81,6 @@ fi
 
 cd "$KRITA_SOURCES"
 
-if [ -z "${KRITA_BRANDING}" ]; then
-    # Use LibrePaint's current profile unless the caller selects another one.
-    KRITA_BRANDING="Next"
-fi
-
 BUILD_TYPE="Release"
 
 # Make sure our build directory exists
@@ -111,13 +105,11 @@ cmake "$KRITA_SOURCES" \
     -DDEFINE_NO_DEPRECATED=1 \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     -DFOUNDATION_BUILD=1 \
-    -DENABLE_UPDATERS=OFF \
     -DHIDE_SAFE_ASSERTS=ON \
     -DBUILD_TESTING=FALSE \
     -DKRITA_ENABLE_PCH=off \
     "-DPYQT_SIP_DIR_OVERRIDE=$DEPS_INSTALL_PREFIX/share/sip/" \
-    -DHAVE_MEMORY_LEAK_TRACKER=FALSE \
-    -DBRANDING="${KRITA_BRANDING}"
+    -DHAVE_MEMORY_LEAK_TRACKER=FALSE
 
 # Build and Install Krita (ready for the next phase)
 cmake --build . --target install --parallel "$CPU_COUNT"

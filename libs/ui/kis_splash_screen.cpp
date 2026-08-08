@@ -7,32 +7,25 @@
 #include "kis_splash_screen.h"
 
 #include <QApplication>
-#include <QScreen>
-#include <QPixmap>
-#include <QPainter>
-#include <QCheckBox>
-#include <kis_debug.h>
 #include <QFile>
+#include <QLabel>
+#include <QPixmap>
 #include <QScreen>
+#include <QUrl>
 #include <QWindow>
-#include <QSvgWidget>
 
 #include <KisPart.h>
-#include <KisApplication.h>
 
 #include <kis_icon.h>
 
-#include <klocalizedstring.h>
-#include <kconfig.h>
-#include <ksharedconfig.h>
 #include <kconfiggroup.h>
+#include <klocalizedstring.h>
+#include <ksharedconfig.h>
 
-KisSplashScreen::KisSplashScreen(bool themed, QWidget *parent, Qt::WindowFlags f)
+KisSplashScreen::KisSplashScreen(QWidget *parent, Qt::WindowFlags f)
     : QWidget(parent, Qt::SplashScreen | Qt::FramelessWindowHint | f)
       , m_versionHtml(qApp->applicationVersion().toHtmlEscaped())
 {
-    Q_UNUSED(themed);
-
     setupUi(this);
 #ifndef Q_OS_MACOS
     setWindowIcon(KisIconUtils::loadIcon("krita-branding"));
@@ -43,30 +36,8 @@ KisSplashScreen::KisSplashScreen(bool themed, QWidget *parent, Qt::WindowFlags f
     m_loadingTextLabel->setStyleSheet(QStringLiteral("QLabel { color: #171A21; background-color: transparent; }"));
     m_loadingTextLabel->setAlignment(Qt::AlignRight | Qt::AlignTop);
 
-    m_brandingSvg = new QSvgWidget(QStringLiteral(":/krita-branding.svgz"), lblSplash);
-    m_bannerSvg = new QSvgWidget(QStringLiteral(":/splash/banner.svg"), lblSplash);
-    // The LibrePaint splash is a complete mark-and-wordmark composition.
-    // Keep the legacy resources available to other callers, but do not draw
-    // the old split mark/banner overlay on top of the complete splash.
-    m_brandingSvg->hide();
-    m_bannerSvg->hide();
-
-    m_artCreditsLabel = new QLabel(lblSplash);
-    m_artCreditsLabel->setTextFormat(Qt::PlainText);
-    m_artCreditsLabel->setStyleSheet(QStringLiteral("QLabel { color: #171A21; background-color: transparent; font: 10pt; }"));
-    m_artCreditsLabel->setAlignment(Qt::AlignRight | Qt::AlignBottom);
-
     updateSplashImage();
     setLoadingText(QString());
-
-    bnClose->hide();
-    connect(bnClose, SIGNAL(clicked()), this, SLOT(close()));
-    chkShowAtStartup->hide();
-    connect(chkShowAtStartup, SIGNAL(toggled(bool)), this, SLOT(toggleShowAtStartup(bool)));
-
-    KConfigGroup cfg( KSharedConfig::openConfig(), "SplashScreen");
-    bool hideSplash = cfg.readEntry("HideSplashAfterStartup", false);
-    chkShowAtStartup->setChecked(hideSplash);
 
     connect(lblRecent, SIGNAL(linkActivated(QString)), SLOT(linkClicked(QString)));
     connect(&m_timer, SIGNAL(timeout()), SLOT(raise()));
@@ -90,8 +61,7 @@ void KisSplashScreen::updateSplashImage()
     } else {
         splashHeight = SPLASH_HEIGHT_LOADING;
     }
-    Source source = getImageSource();
-    QPixmap img(source.resourcePath);
+    QPixmap img(imageResourcePath());
 
     if (img.isNull() || img.height() == 0) return;
 
@@ -118,9 +88,7 @@ void KisSplashScreen::updateSplashImage()
     }
 #endif
 
-    const int bannerHeight = height * 0.16875;
-    const int marginTop = height * 0.05;
-    const int marginRight = height * 0.1;
+    const int margin = height * 0.05;
 
     setFixedWidth(width);
     setFixedHeight(height);
@@ -134,24 +102,9 @@ void KisSplashScreen::updateSplashImage()
     img.setDevicePixelRatio(devicePixelRatioF());
     lblSplash->setPixmap(img);
 
-    // Align banner to top-left with margin.
-    m_bannerSvg->setFixedHeight(bannerHeight);
-    m_bannerSvg->setFixedWidth(bannerHeight * m_bannerSvg->sizeHint().width() / m_bannerSvg->sizeHint().height());
-    m_bannerSvg->move(width - m_bannerSvg->width() - marginRight, marginTop);
-
-    // Place logo to the left of banner.
-    m_brandingSvg->setFixedSize(bannerHeight, bannerHeight);
-    m_brandingSvg->move(m_bannerSvg->x() - m_brandingSvg->width(), marginTop);
-
-    // Place loading text immediately below.
-    m_loadingTextLabel->move(marginRight, m_brandingSvg->geometry().bottom());
-    m_loadingTextLabel->setFixedWidth(m_bannerSvg->geometry().right() - marginRight);
-
-    // Place credits text on bottom right with similar margins.
-    m_artCreditsLabel->setText(source.artistCredit);
-    m_artCreditsLabel->setFixedWidth(m_loadingTextLabel->width());
-    m_artCreditsLabel->setFixedHeight(20);
-    m_artCreditsLabel->move(m_loadingTextLabel->x(), height - marginTop - m_artCreditsLabel->height());
+    // The splash already contains the complete LibrePaint mark and wordmark.
+    // Keep the transient version/loading text in the otherwise empty top area.
+    m_loadingTextLabel->setGeometry(margin, margin, width - 2 * margin, height - 2 * margin);
 
     if (m_displayLinks) {
         setFixedSize(sizeHint());
@@ -224,12 +177,10 @@ void KisSplashScreen::displayLinks(bool show) {
         lblLinks->setText(lblLinksText.join(""));
 
         filesLayout->setContentsMargins(10,10,10,10);
-        actionControlsLayout->setContentsMargins(5,5,5,5);
 
     } else {
         // eliminating margins here allows for the splash screen image to take the entire area with nothing underneath
         filesLayout->setContentsMargins(0,0,0,0);
-        actionControlsLayout->setContentsMargins(0,0,0,0);
     }
 
     lblLinks->setVisible(show);
@@ -257,34 +208,14 @@ void KisSplashScreen::setLoadingText(QString text)
     m_loadingTextLabel->setText(htmlText);
 }
 
-KisSplashScreen::Source KisSplashScreen::getImageSource()
+QString KisSplashScreen::imageResourcePath()
 {
-    // LibrePaint deliberately ships a neutral placeholder instead of
-    // third-party splash artwork, so there is no artwork credit to display.
-    QString artistCredit;
-    // Loading the ginormous 4K PNG splash image increases the startup time on
-    // Android by several seconds and at the same time looks really bad when
-    // scaled down to a dinky size. Instead of overengineering this into an
-    // Enterprise Splash Screen Solution where we choose the image based on
-    // screen size or something, we'll just use a HD JPEG instead. It's fine.
 #ifdef Q_OS_ANDROID
-    QString resourcePath = QStringLiteral(":/splash/hd.jpg");
+    // Avoid decoding the 4K desktop/iPad image on Android startup.
+    return QStringLiteral(":/splash/hd.jpg");
 #else
-    QString resourcePath = QStringLiteral(":/splash/0.png");
-    // TODO: Re-add the holiday splash...
-#if 0
-    QDate currentDate = QDate::currentDate();
-    if (currentDate > QDate(currentDate.year(), 12, 4) ||
-            currentDate < QDate(currentDate.year(), 1, 9)) {
-        resourcePath = QStringLiteral(":/splash/1.png");
-        artistCredit = QStringLiteral("???")};
-    }
+    return QStringLiteral(":/splash/0.png");
 #endif
-#endif
-    if (!artistCredit.isEmpty()) {
-        artistCredit = i18nc("splash image credit", "Artwork by: %1", artistCredit);
-    }
-    return Source{resourcePath, artistCredit};
 }
 
 
@@ -362,12 +293,6 @@ void KisSplashScreen::show()
     // the next event-loop turn so the first visible frame uses that geometry.
     QTimer::singleShot(0, this, &KisSplashScreen::centerOnScreen);
 #endif
-}
-
-void KisSplashScreen::toggleShowAtStartup(bool toggle)
-{
-    KConfigGroup cfg( KSharedConfig::openConfig(), "SplashScreen");
-    cfg.writeEntry("HideSplashAfterStartup", toggle);
 }
 
 void KisSplashScreen::linkClicked(const QString &link)

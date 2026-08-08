@@ -333,7 +333,6 @@ set(kritaui_LIB_SRCS
     KisPaletteEditor.cpp
     dialogs/KisDlgPaletteEditor.cpp
 
-    widgets/KisNewsWidget.cpp
     widgets/KisGamutMaskToolbar.cpp
 	widgets/KisColorSamplerPreviewPreview.cpp
 
@@ -453,9 +452,6 @@ set(kritaui_LIB_SRCS
 
     KisApplicationArguments.cpp
 
-    KisNetworkAccessManager.cpp
-    KisRssReader.cpp
-    KisMultiFeedRSSModel.cpp
     KisRemoteFileFetcher.cpp
 
     KisSaveGroupVisitor.cpp
@@ -515,10 +511,6 @@ if(WIN32)
         dialogs/KisDlgCustomTabletResolution.cpp
         )
 elseif(ANDROID)
-    list(APPEND kritaui_LIB_SRCS
-        dialogs/KisDonationManagementDialog.cpp
-        widgets/KisDonationManagementWidget.cpp
-    )
     if(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT)
         list(APPEND kritaui_LIB_SRCS
             KisAndroidScaling.cpp
@@ -548,23 +540,6 @@ endif()
         input/wintab/drawpile_tablettester/tablettest.cpp
     )
 
-if (ENABLE_UPDATERS)
-	if (UNIX)
-    	set(kritaui_LIB_SRCS
-        	${kritaui_LIB_SRCS}
-        	utils/KisAppimageUpdater.cpp
-        	)
-	endif()
-
-	set(kritaui_LIB_SRCS
-        ${kritaui_LIB_SRCS}
-    	utils/KisUpdaterBase.cpp
-    	utils/KisManualUpdater.cpp
-    	utils/KisUpdaterStatus.cpp
-		)
-endif()
-
-
 if(APPLE AND NOT IOS)
     set(kritaui_LIB_SRCS
         ${kritaui_LIB_SRCS}
@@ -575,7 +550,7 @@ endif()
 
 if(ANDROID)
     list(APPEND kritaui_LIB_SRCS
-        KisAndroidDonations.cpp
+        KisAndroidSplash.cpp
         animation/KisAndroidMediaEncoderRunnable.cpp
         animation/KisLibavMediaEncoderRunnable.cpp
         animation/KisMediaEncoderFormatPreferencesDialog.cpp
@@ -634,7 +609,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     forms/wdgnewwindowlayout.ui
     forms/KisWelcomePage.ui
     forms/WdgDlgPaletteEditor.ui
-    forms/KisNewsPage.ui
     forms/wdgGamutMaskToolbar.ui
     forms/wdgchangeclonesource.ui
     forms/koDocumentInfoAboutWidget.ui
@@ -687,11 +661,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
 if(WIN32)
     ki18n_wrap_ui(kritaui_LIB_SRCS
         dialogs/KisDlgCustomTabletResolution.ui
-    )
-elseif(ANDROID)
-    ki18n_wrap_ui(kritaui_LIB_SRCS
-        dialogs/KisDonationManagementDialog.ui
-        widgets/KisDonationManagementWidget.ui
     )
 endif()
 
@@ -852,10 +821,4 @@ install(TARGETS kritaui  ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 if (APPLE AND NOT IOS)
     install(FILES osx.stylesheet DESTINATION ${KDE_INSTALL_DATADIR}/krita)
-endif ()
-
-if (UNIX AND BUILD_TESTING AND ENABLE_UPDATERS)
-    install(FILES tests/data/AppImageUpdateDummy
-            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-            DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 endif ()

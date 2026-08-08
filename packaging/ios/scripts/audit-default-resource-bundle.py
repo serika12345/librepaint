@@ -156,8 +156,8 @@ def classify(path: str, manifest: dict[str, Any]) -> tuple[str, str, str]:
     if path == "preview.png":
         return (
             "CC0-1.0",
-            "LibrePaint white replacement",
-            "LibrePaint contributors",
+            "LibrePaint brand asset",
+            "LibrePaint logo author",
         )
     attribution = "meta.xml creator fields"
     if path in manifest["embedded_attribution"]:
@@ -302,8 +302,8 @@ def audit(
             kind_counts[top_level] += 1
             suffix_counts[PurePosixPath(path).suffix.lower() or "<none>"] += 1
 
-            content_hash = "WHITE_PREVIEW" if path == "preview.png" else sha256(data)
-            content_size = 0 if path == "preview.png" else info.file_size
+            content_hash = sha256(data)
+            content_size = info.file_size
             inventory.append(
                 {
                     "path": path,

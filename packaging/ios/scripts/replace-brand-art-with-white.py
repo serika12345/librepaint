@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 LibrePaint contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Audit retained iOS artwork and replace selected branding with opaque white.
+"""Audit retained iOS artwork and the now-empty white-replacement selection.
 
 The manifest records the dimensions and preservation invariants captured from
 the source assets. SVG and embedded raster legal/author metadata is retained
@@ -10,8 +10,8 @@ byte-for-byte. ICO and ICNS containers keep every representation and its PNG
 metadata, and bundle rewriting changes only the root preview.png compressed
 payload plus the ZIP bookkeeping that must change with it.
 
-Paths reclassified as LibrePaint-owned CC0 branding are excluded from white
-replacement and content-hash checked through their dedicated retained group.
+LibrePaint-owned CC0 branding is content-hash checked through its dedicated
+retained group. Unused artwork is deleted instead of kept as white content.
 """
 
 from __future__ import annotations
@@ -144,7 +144,28 @@ RETAINED_LICENSE_GROUP_CONTRACT = {
 
 LIBREPAINT_BRANDING_QRC_PATHS = {
     "krita/data/splash/electrichearts_20250824A_kiki_4K.png",
+    "krita/pics/Breeze-dark/dark_application-pdf.svg",
+    "krita/pics/Breeze-light/light_application-pdf.svg",
     "krita/pics/branding/Next/sc-apps-krita.svgz",
+    "krita/pics/svg/dark_krita_log.svg",
+    "krita/pics/svg/light_krita_log.svg",
+    "pics/16_dark_application-x-krita.svg",
+    "pics/16_dark_application-x-krz.svg",
+    "pics/16_light_application-x-krita.svg",
+    "pics/16_light_application-x-krz.svg",
+    "pics/22_dark_application-x-krita.svg",
+    "pics/22_dark_application-x-krz.svg",
+    "pics/22_light_application-x-krita.svg",
+    "pics/22_light_application-x-krz.svg",
+    "pics/32_dark_application-x-krita.svg",
+    "pics/32_dark_application-x-krz.svg",
+    "pics/32_light_application-x-krita.svg",
+    "pics/32_light_application-x-krz.svg",
+    "pics/64_dark_application-x-krita.svg",
+    "pics/64_dark_application-x-krz.svg",
+    "pics/64_light_application-x-krita.svg",
+    "pics/64_light_application-x-krz.svg",
+    "pics/krita.png",
 }
 
 MIGRATED_BREEZE_LOGO_PATHS = {
@@ -161,12 +182,7 @@ MIGRATED_ANDROID_ROBOT_PATHS = {
     "krita/pics/svg/dark_show_android_log.svg",
     "krita/pics/svg/light_show_android_log.svg",
 }
-MIGRATED_PROJECT_WHITE_PATHS = {
-    "krita/pics/svg/dark_krita_log.svg",
-    "krita/pics/svg/light_krita_log.svg",
-    "krita/pics/tools/SVG/16/dark_tool_comic_panel_move_point.svg",
-    "krita/pics/tools/SVG/16/light_tool_comic_panel_move_point.svg",
-}
+MIGRATED_PROJECT_WHITE_PATHS: set[str] = set()
 MIGRATED_COMMIT_CC_PATHS = {
     "krita/pics/tools/SVG/16/dark_krita_tool_assistant.svg",
     "krita/pics/tools/SVG/16/dark_shape_handling.svg",
@@ -1461,14 +1477,24 @@ def migrate_installed_image_audit(manifest: dict[str, Any]) -> None:
 
 def refresh_retained_group_expectations(manifest: dict[str, Any]) -> None:
     groups = manifest["ios_image_audit"].get("retained_license_groups", [])
+    qrc_paths = qrc_image_paths(manifest)
     for group in groups:
         group_id = group.get("id")
         if group_id not in RETAINED_LICENSE_GROUP_CONTRACT:
             raise AssetError(f"unknown retained license group while generating: {group_id}")
         group.update(RETAINED_LICENSE_GROUP_CONTRACT[group_id])
+        if group_id == "librepaint-branding-qrc":
+            paths = set(LIBREPAINT_BRANDING_QRC_PATHS)
+            missing = paths - qrc_paths
+            if missing:
+                raise AssetError(f"LibrePaint branding path is not linked by the iOS QRC scope: {sorted(missing)}")
+        elif group["scope"] == "qrc":
+            paths = (set(group["paths"]) & qrc_paths) - LIBREPAINT_BRANDING_QRC_PATHS
+        else:
+            paths = {relative for relative in group["paths"] if repo_path(relative).is_file()}
+        group["paths"] = sorted(paths)
         notice_path = repo_path(group["notice_path"])
         group["notice_sha256"] = sha256(notice_path.read_bytes())
-        paths = group["paths"]
         group["expected"] = {
             "files": len(paths),
             "paths_sha256": sorted_path_hash(paths),
@@ -1614,10 +1640,16 @@ def generate_manifest(path: Path) -> int:
             "metadata_chunks": chunk_count,
             "metadata_bytes_sha256": aggregate,
         }
-        manifest["policy"]["legal_wording_gate"] = (
-            f"The {len(legal_paths)} white raster assets with copyright, Creative Commons, or "
-            "attribution/share-alike bytes are exact-hash checked; legal wording is never rewritten."
-        )
+        if legal_paths:
+            manifest["policy"]["legal_wording_gate"] = (
+                f"The {len(legal_paths)} white raster assets with copyright, Creative Commons, or "
+                "attribution/share-alike bytes are exact-hash checked; legal wording is never rewritten."
+            )
+        else:
+            manifest["policy"]["legal_wording_gate"] = (
+                "No selected white raster asset contains embedded legal wording; the empty metadata "
+                "inventory remains hash-checked and legal wording is never rewritten."
+            )
     refresh_ios_image_expectations(manifest)
     encoded = (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
     changed = atomic_write(path, encoded)
@@ -1675,8 +1707,8 @@ def assert_record_invariants(record: dict[str, Any]) -> None:
 
 def replace_assets(path: Path) -> int:
     manifest = load_manifest(path)
-    if not manifest.get("assets"):
-        raise AssetError("manifest assets are empty; run --generate-manifest first")
+    if "assets" not in manifest:
+        raise AssetError("manifest has no assets inventory; run --generate-manifest first")
     changed_by_kind: dict[str, int] = {}
     for record in manifest["assets"]:
         kind = record["kind"]
@@ -2033,8 +2065,8 @@ def assert_record_is_white(record: dict[str, Any]) -> None:
 
 def check_assets(path: Path) -> int:
     manifest = load_manifest(path)
-    if not manifest.get("assets"):
-        raise AssetError("manifest assets are empty; run --generate-manifest first")
+    if "assets" not in manifest:
+        raise AssetError("manifest has no assets inventory; run --generate-manifest first")
     check_selection(manifest)
     counts: dict[str, int] = {}
     failures: list[str] = []
@@ -2045,13 +2077,10 @@ def check_assets(path: Path) -> int:
             counts[kind] = counts.get(kind, 0) + 1
         except (AssetError, OSError, subprocess.CalledProcessError, zipfile.BadZipFile) as exc:
             failures.append(f"{record['path']}: {exc}")
-    dummy = repo_path("krita/data/splash/splash_holidays_dummy.png")
-    if not dummy.is_file() or dummy.stat().st_size != 0:
-        failures.append("krita/data/splash/splash_holidays_dummy.png: expected intentional zero-byte dummy")
     if failures:
         raise AssetError("white asset check failed:\n  " + "\n  ".join(failures))
-    details = ", ".join(f"{kind}={count}" for kind, count in sorted(counts.items()))
-    print(f"check: {sum(counts.values())} assets passed ({details}); zero-byte dummy preserved")
+    details = ", ".join(f"{kind}={count}" for kind, count in sorted(counts.items())) or "no white replacements"
+    print(f"check: {sum(counts.values())} assets passed ({details})")
     audit_ios_images(manifest, verify_white=False)
     return 0
 

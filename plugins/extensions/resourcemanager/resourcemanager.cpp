@@ -41,8 +41,6 @@ ResourceManager::ResourceManager(QObject *parent, const QVariantList &)
     action = new KisAction(i18n("Manage Resources..."), this);
     addAction("manage_resources", action);
     connect(action, SIGNAL(triggered()), this, SLOT(slotManageResources()));
-
-    // LibrePaint does not expose the upstream supporter-bundle service.
 }
 
 ResourceManager::~ResourceManager()

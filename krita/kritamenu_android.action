@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ActionCollection version="2" name="Supporter Benefits">
+<ActionCollection version="2" name="Android Interface">
   <Actions category="Interface">
     <text>Interface</text>
     <Action name="change_interface_scale">

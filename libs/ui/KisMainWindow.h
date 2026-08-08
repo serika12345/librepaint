@@ -258,7 +258,6 @@ public Q_SLOTS:
     void slotShowSessionManager();
 
 #ifdef Q_OS_ANDROID
-    void slotShowDonationManagementDialog();
     void slotFlashWindowHack();
 #endif
 

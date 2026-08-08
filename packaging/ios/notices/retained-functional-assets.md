@@ -3,18 +3,17 @@ SPDX-FileCopyrightText: 2026 LibrePaint contributors
 SPDX-License-Identifier: CC0-1.0
 -->
 
-# Retained and modified functional image assets
+# Retained functional image assets
 
 This notice documents original functional images retained by the LibrePaint
-iOS build and the original notices that remain attached to modified white
-replacements. It supplements, and never replaces, a more-specific notice in
-an asset. Exact paths, source-content hashes, license expressions, and this
+iOS build. It supplements, and never replaces, a more-specific notice in an
+asset. Exact paths, source-content hashes, license expressions, and this
 notice's hash are recorded in `white-brand-assets.json` distributed beside
 this file.
 
 ## Creative Commons functional artwork
 
-The application retains 709 SVG/SVGZ images whose `cc:Work` metadata directly
+The application retains 703 SVG/SVGZ images whose `cc:Work` metadata directly
 links to CC-BY-SA-4.0. Their exact path and whole-file content hashes are
 sealed by the manifest, so creator, rights, and license metadata cannot change
 silently.
@@ -108,8 +107,7 @@ images and 32 images discovered directly from the selected CMake install
 definitions remain part of this modified application under Krita's
 project-wide GPL version 3 declaration. This is a distribution classification,
 not a claim that the individual files have been relicensed. Application
-branding, sponsor/donation material, and any image with a separate notice are
-excluded from this fallback.
+branding and any image with a separate notice are excluded from this fallback.
 
 https://krita.org/en/about/license/
 
@@ -119,37 +117,15 @@ separate comments: five CC0-1.0 and two GPL-2.0-or-later.
 
 https://invent.kde.org/graphics/krita/-/commit/1c976c01fb27cce7cf60ee38b352d0c2760fae92
 
-## White replacements and modification notice
+## LibrePaint branding and removed placeholders
 
-On 2026-08-07, LibrePaint replaced the visible drawing in every path selected
-by `white-brand-assets.json` with deterministic same-size opaque-white content.
-The newly drawn white pixels or SVG elements are dedicated under CC0-1.0. This
-does not place a whole container under CC0 when original copyright, creator,
-license, title, or other provenance metadata remains; those original notices
-and licenses continue to apply and are byte-hash checked.
+The iOS QRC scope contains 23 LibrePaint-owned branding images under CC0-1.0.
+They are generated from the project owner's source artwork and documented in
+`librepaint-brand-assets.md`. This includes the splash, application and
+document icons, log icons, and neutral PDF fallback icons.
 
-The following four CC-BY-SA-4.0 SVG sources specifically retain their
-original metadata while indicating here that their visible artwork was changed
-to white:
-
-- `krita/pics/svg/dark_krita_log.svg`
-- `krita/pics/svg/light_krita_log.svg`
-- `pics/32_dark_application-x-krz.svg`
-- `pics/32_light_application-x-krz.svg`
-
-The visible artwork in
-`krita/pics/Breeze-dark/dark_application-pdf.svg` and
-`krita/pics/Breeze-light/light_application-pdf.svg` was also changed to white.
-Their original Breeze LGPL notice remains applicable. The replacement avoids
-shipping an Adobe PDF logo-shaped icon in software, which Adobe's current icon
-guidelines do not permit without separate authorization.
-
-https://www.adobe.com/legal/permissions/icons-web-logos.html
-
-Krita donation/sponsor imagery and all branding that has not been explicitly
-reclassified remain white for trademark separation, consistent with Krita's
-own redistribution guidance. The active LibrePaint iOS icon and splash are
-separate CC0-1.0 replacements documented in
-`librepaint-brand-assets.md`. Two temporary comic-panel icons without verified
-individual provenance also remain white. License wording and factual
-attribution are never rewritten.
+Unused upstream branding, donation, sponsor, news, and disabled-tool assets
+were deleted together with their UI or resource references. No white
+placeholder or zero-byte image remains in the iOS QRC scope or the source-wide
+white selection. The macOS DMG background now reuses the CC0 LibrePaint splash.
+No original license wording or factual attribution is rewritten.

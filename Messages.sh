@@ -6,10 +6,7 @@
 source kundo2_aware_xgettext.sh
 
 $EXTRACTRC `find . -name \*.ui | grep -v '/tests/'` >> rc.cpp
-RCFILES=`find . -name \*.xmlgui                                               \
-	| grep -v krita/sketch/KritaSketchWin.xmlgui                          \
-	| grep -v krita/gemini/KritaGeminiWin.xmlgui
-         `
+RCFILES=`find . -name \*.xmlgui`
 $EXTRACTRC $RCFILES >> rc.cpp
 
 ACTIONFILES=`find . -name \*.action | grep -v '/tests/'`

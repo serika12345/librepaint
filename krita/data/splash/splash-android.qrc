@@ -5,8 +5,6 @@
 -->
 <RCC version="1.0">
     <qresource prefix="/splash">
-        <file>banner.svg</file>
         <file alias="hd.jpg">electrichearts_20250824A_kiki_HD.jpg</file>
     </qresource>
 </RCC>
-

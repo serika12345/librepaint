@@ -14,7 +14,6 @@ kis_add_tests(
     kis_animation_importer_test.cpp
     KisSpinBoxSplineUnitConverterTest.cpp
     KisDocumentReplaceTest.cpp
-    KisRssReaderTest.cpp
     kis_derived_resources_test.cpp
     kis_animation_frame_cache_test.cpp
     kis_shape_layer_test.cpp
@@ -29,27 +28,6 @@ kis_add_tests(
     kis_file_layer_test.cpp
     LINK_LIBRARIES kritaui kritatransformmaskstubs
     )
-
-if (ENABLE_UPDATERS)
-if (UNIX)
-    kis_add_test( KisAppimageUpdaterTest.cpp
-        TEST_NAME KisAppimageUpdaterTest
-        LINK_LIBRARIES kritaui kritatestsdk
-        )
-endif()
-
-kis_add_test( KisManualUpdaterTest.cpp ../../../sdk/tests/testutil.cpp MockMultiFeedRssModel.cpp
-    TEST_NAME KisManualUpdaterTest
-    LINK_LIBRARIES kritaui kritatestsdk
-    )
-endif()
-
-
-kis_add_test( KisMultiFeedRssModelTest.cpp ../../../sdk/tests/testutil.cpp MockNetworkAccessManager.cpp
-    TEST_NAME KisMultiFeedRssModelTest
-    LINK_LIBRARIES kritaui kritatestsdk
-    )
-
 
 kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testing_utils.cpp
     TEST_NAME KisSelectionDecorationTest

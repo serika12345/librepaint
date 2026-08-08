@@ -170,7 +170,6 @@ mkIOSCMakePackage {
     "-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY:BOOL=OFF"
     "-DCMAKE_IGNORE_PREFIX_PATH:STRING=/opt/homebrew;/usr/local"
     "-DECM_DIR:PATH=${hostEcm}/share/ECM/cmake"
-    "-DENABLE_UPDATERS:BOOL=OFF"
     "-DGETTEXT_MSGFMT_EXECUTABLE:FILEPATH=${gettext}/bin/msgfmt"
     "-DGETTEXT_MSGMERGE_EXECUTABLE:FILEPATH=${gettext}/bin/msgmerge"
     "-DKF6_HOST_TOOLING:PATH=${kf6HostTooling}"

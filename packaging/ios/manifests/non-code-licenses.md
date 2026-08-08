@@ -11,10 +11,10 @@ the license and attribution text embedded in individual files.
 
 ## Static and user-interface images
 
-The iOS resource audit covers 1,301 unique image inputs compiled through Qt
+The iOS resource audit covers 1,290 unique image inputs compiled through Qt
 resources. Their exclusive final classification is:
 
-- 709 direct metadata-linked CC-BY-SA-4.0 images;
+- 703 direct metadata-linked CC-BY-SA-4.0 images;
 - 93 additional CC-BY-SA-4.0 functional images with detached, historically
   malformed, or commit-level license evidence;
 - 297 Breeze and 22 Oxygen icons under LGPL-3.0-or-later;
@@ -22,8 +22,10 @@ resources. Their exclusive final classification is:
 - two KXmlGui images under LGPL-2.0-or-later;
 - 148 functional images covered by Krita's project-wide GPL-3.0-only
   distribution fallback;
-- two LibrePaint-owned brand images under CC0-1.0;
-- 25 same-size white replacements and one intentional zero-byte alias.
+- 23 LibrePaint-owned brand images under CC0-1.0.
+
+There are no white placeholders, zero-byte aliases, or unclassified images in
+the iOS QRC set.
 
 A further 32 functional images installed by the selected static plugins and
 data targets are retained under the project-wide GPL fallback. Their exact set
@@ -45,9 +47,9 @@ are distributed beside this index.
 The project owner stated that they created the supplied LibrePaint icon and
 wordmark and released them under CC0-1.0. The four unmodified SVG/PNG source
 files are retained in `packaging/ios/brand-assets`; `.license` sidecars apply
-the CC0 declaration without changing their original bytes. The active iOS app
-icon, Qt runtime icon, and 4K splash are derived from those sources. The HD
-splash fallback is derived under the same terms.
+the CC0 declaration without changing their original bytes. The cross-platform
+application and document icons, Qt runtime icon, resource bundle previews, and
+both splash variants are derived from those sources.
 
 The generated assets temporarily retain their existing Krita-era filenames so
 the current build can load them. They are complete replacements and therefore
@@ -65,8 +67,8 @@ GBR brush files. That unmodified notice is distributed as `bundles/README` and
 credits David Revoy and the Blender Foundation and identifies Ramon Miranda's
 Gimp Paint Studio source. Four PNG brush tips additionally retain their
 embedded author fields for David Revoy or Scott Petrovic. The root bundle
-preview has been replaced by same-size white CC0 content without changing the
-remaining archive entries.
+preview has been replaced by a same-size rendering of the CC0 LibrePaint icon
+without changing the remaining archive entries.
 
 `default-resource-bundle-licenses.json` records the license rules, exact file
 and format counts, preserved notice hashes, bundle metadata, embedded PNG
@@ -79,7 +81,7 @@ The complete CC-BY-3.0 and CC0-1.0 texts are distributed beside this index.
 
 ## Static dependency resources
 
-Seven resources statically supplied by pinned QtBase and KColorScheme builds
+Seven resource groups statically supplied by pinned QtBase and KColorScheme builds
 are retained as a closed 253-file set: 247 Qt style PNGs, the unmodified Qt
 about-dialog logo, two Qt backing-store QSB shaders, the ICC `sRGB2014.icc`
 profile used by PDF output, and two Breeze color scheme files.

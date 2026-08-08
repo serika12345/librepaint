@@ -18,7 +18,7 @@
 #endif
 
 #ifdef Q_OS_ANDROID
-#include "KisAndroidDonations.h"
+#include "KisAndroidSplash.h"
 #endif
 
 #include <QAbstractItemView>
@@ -253,7 +253,7 @@ public:
     QVector<QString> earlyFileOpenEvents;
     QScopedPointer<KisExtendedModifiersMapperPluginInterface> extendedModifiersPluginInterface;
 #ifdef Q_OS_ANDROID
-    KisAndroidDonations *androidDonations {nullptr};
+    KisAndroidSplash *androidSplash {nullptr};
 #if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
     KisAndroidScaling *androidScaling {nullptr};
 #endif
@@ -546,7 +546,7 @@ void KisApplication::loadPlugins()
 bool KisApplication::start(const KisApplicationArguments &args)
 {
 #ifdef Q_OS_ANDROID
-    KisAndroidDonations::showDonationDialog(true);
+    KisAndroidSplash::show();
 #endif
 
     KisConfig cfg(false);
@@ -702,7 +702,7 @@ bool KisApplication::start(const KisApplicationArguments &args)
 
     setSplashScreenLoadingText(QString()); // done loading, so clear out label
 #ifdef Q_OS_ANDROID
-    KisAndroidDonations::setLoaded(true);
+    KisAndroidSplash::setLoaded(true);
 #endif
     processEvents();
 
@@ -963,14 +963,14 @@ void KisApplication::setSplashScreenLoadingText(const QString &textToLoad)
         d->splashScreen->repaint();
     }
 #ifdef Q_OS_ANDROID
-    KisAndroidDonations::setLoadingText(textToLoad);
+    KisAndroidSplash::setLoadingText(textToLoad);
 #endif
 }
 
 void KisApplication::hideSplashScreen()
 {
 #ifdef Q_OS_ANDROID
-    KisAndroidDonations::setLoaded(true);
+    KisAndroidSplash::setLoaded(true);
 #endif
     if (d->splashScreen) {
         // hide the splashscreen to see the dialog
@@ -1417,13 +1417,12 @@ KisExtendedModifiersMapperPluginInterface* KisApplication::extendedModifiersPlug
 }
 
 #ifdef Q_OS_ANDROID
-KisAndroidDonations *KisApplication::androidDonations()
+KisAndroidSplash *KisApplication::androidSplash()
 {
-    if (!d->androidDonations) {
-        d->androidDonations = new KisAndroidDonations(this);
-        d->androidDonations->syncState();
+    if (!d->androidSplash) {
+        d->androidSplash = new KisAndroidSplash(this);
     }
-    return d->androidDonations;
+    return d->androidSplash;
 }
 
 KisAndroidScaling *KisApplication::androidScaling()

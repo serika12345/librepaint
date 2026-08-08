@@ -22,22 +22,41 @@ The unmodified source files are retained under
 - `librepaint-logo.png`:
   `9650fe80133e0c34d9be036cdc247c6dcc583554d4e1ca363e75a4c19d239dad`
 
-The current iPad-compatible paths are intentionally retained until the later
-filename migration:
+Compatibility filenames are intentionally retained until the later filename
+migration. `packaging/ios/scripts/install-librepaint-brand-assets.sh`
+reproducibly generates or copies the current derivatives:
 
-- `krita/pics/branding/Next/1024-apps-krita.png` is the square icon composited
-  onto opaque white for iOS app-icon compatibility.
-- `krita/pics/branding/Next/sc-apps-krita.svgz` is a deterministic gzip copy of
-  the square vector icon for Qt runtime branding.
+- `krita/pics/branding/Next/*-apps-krita.png` and
+  `krita/pics/branding/Next/sc-apps-krita.svgz` provide the shared desktop and
+  runtime icon. The 1024-pixel PNG is composited onto opaque white for iOS.
+- `krita/pics/branding/Next/krita.icon/Assets/librepaint-icon.svg` is the sole
+  artwork layer used by the Xcode 26 macOS icon package.
+- `krita/pics/mimetypes/*-mimetypes-application-x-krita.png`,
+  `pics/krita.png`, the KRA/KRZ compatibility SVGs under `pics`, the two
+  application-log SVGs, and the two PDF fallback SVGs are temporary uses of
+  the same square icon.
+- `packaging/macos/KritaIcon.icns`,
+  `krita/pics/mimetypes/krita-kra.icns`, and
+  `krita/pics/mimetypes/krz/krita-krz.icns` are generated from that single
+  Xcode icon layer. The first file is also the DMG volume icon.
+- `packaging/macos/krita_dmgBG.png` reuses the LibrePaint splash artwork in
+  the upper half of the 1400 x 870, 144-dpi DMG background, leaving the Finder
+  install-icon area clear.
+- `packaging/android/apk/res/mipmap-*/ic_launcher.webp` contains the five
+  standard Android density renderings. All Android build variants and the
+  round-icon reference use this one set during the temporary branding phase.
+- The root `preview.png` payload in each tracked resource bundle under
+  `krita/data/bundles` is a 256-pixel opaque rendering of the icon. Only that
+  replacement payload is CC0-1.0; the other bundle entries retain their own
+  applicable licenses.
 - `krita/data/splash/electrichearts_20250824A_kiki_4K.png` is the full
-  LibrePaint logo fitted to the existing 3840 x 1920 splash canvas.
-- `krita/data/splash/electrichearts_20250824A_kiki_HD.jpg` is the matching
+  LibrePaint logo fitted to the existing 3840 x 1920 splash canvas, and
+  `krita/data/splash/electrichearts_20250824A_kiki_HD.jpg` is the matching
   1920 x 960 Android fallback.
 
-These files are complete replacements. Copyright, attribution, title, and
-CC-BY-SA metadata belonging to the former Krita artwork are not carried onto
-the new LibrePaint artwork. The old split icon/banner widgets are hidden on
-the splash so that the complete logo is not drawn more than once.
+These outputs are complete artwork replacements derived only from the
+LibrePaint sources listed above. Copyright, attribution, title, and
+CC-BY-SA metadata belonging to former artwork are not carried onto them.
 
 CC0-1.0 permits unrestricted reuse to the extent the author's copyright and
 related rights can be waived, with a permissive public-license fallback where
