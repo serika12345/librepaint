@@ -22,12 +22,6 @@ LibrePaint is an unofficial, experimental iPadOS paint app for physical arm64 iP
 
 Python/PyQt, G'MIC, printing, video and audio features, automatic updates, features that launch external processes, and external third-party plugins are also currently out of scope. Selected internal Krita plugins that provide brushes, tools, dockers, color management, and image I/O are statically linked and registered.
 
-## Project Direction and Long-Term Vision
-
-LibrePaint is intended primarily to give its author access to Krita-equivalent functionality on an iPad as part of a personal creative environment. Although the differences from upstream Krita are currently kept as small as practical, the project does not guarantee continued alignment with upstream or easy integration of future upstream changes. To prioritize the author's creative workflow and usability on iPad, the UI, features, and internal architecture may eventually diverge substantially from upstream Krita.
-
-The long-term vision is to transition to an independent implementation that does not depend on GPL-licensed code derived from Krita, ultimately establishing a **standalone project released under the MIT License**. This is a future goal, not a declaration that the current Krita-derived code is being relicensed under the MIT License. See [License and upstream](#license-and-upstream) for the licenses that currently apply to this repository.
-
 ## Current Support Status
 
 The following reflects the project status as of August 6, 2026. [`TODO.md`](TODO.md) is the authoritative source for progress and physical-device verification results, while [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) is the authoritative source for statically included functionality.
@@ -242,19 +236,8 @@ This smoke test diagnoses the Objective-C++, UIKit, SDK, deployment-target, and 
 
 Do not commit local artifacts such as `build-ios/`, signed build products, credentials, or private cache keys to Git.
 
-## Development Principles
-
-- Guard iOS-specific behavior with `Q_OS_IOS` unless there is a deliberate reason to change behavior on Android, desktop platforms, or macOS.
-- Keep UIKit integration inside thin Objective-C++ bridges and reuse existing Krita actions and subsystems whenever possible.
-- Distinguish between a feature being included in the plugin profile and being verified on a physical device.
-- Do not consider changes involving touch, Apple Pencil, Files, rotation, lifecycle, or memory complete solely because they compile successfully.
-- Update `TODO.md` whenever a milestone or physical-device validation status changes.
-- Never commit certificates, provisioning profiles, Apple IDs, signing secrets, device credentials, or signed IPAs.
-
 ## License and Upstream
 
 This repository is currently a derivative work based on [Krita](https://krita.org/) and is not licensed under the MIT License. Krita as a whole is licensed under the GNU General Public License Version 3, while individual files and bundled components are governed by their respective compatible licenses. See [`COPYING`](COPYING) and the license notices in individual files for the exact terms.
 
-Krita is developed by the Krita Foundation, KDE, and Krita contributors. See the upstream [graphics/krita](https://invent.kde.org/graphics/krita) repository and the [Krita User Manual](https://docs.krita.org/) for usage documentation. Do not treat an issue specific to this port as an upstream Krita issue unless it has also been confirmed to reproduce upstream.
-
-The future MIT-licensed project described here is intended to be an independent successor implementation that contains no GPL-licensed code derived from Krita. This intention does not alter the licensing terms of the current fork, its current build artifacts, or any Krita-derived code.
+Krita is developed by the Krita Foundation, KDE, and Krita contributors. See the upstream [graphics/krita](https://invent.kde.org/graphics/krita) repository for the original project and its history. LibrePaint is an independently maintained modified work and is not affiliated with or endorsed by the Krita Foundation or KDE.

@@ -429,25 +429,15 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
         shutil.copy2(file,krita_app['frameworks'], follow_symlinks=False)
 
     print("Copying plugins...")
-    extra_args = '--delete --delete-excluded --exclude kritaspotlight.mdimporter'
-    copyDirSub(krita_install_dir.joinpath('plugins'), krita_app['plugins'], extra_args=extra_args.split())
-
-    plugins = []
-    krita_app_spotlight = krita_app['contents'].joinpath('Library', 'Spotlight')
-    krita_app_spotlight.mkdir(parents=True)
-
-    plugins.append('Spotlight')
-    copyDirSub(krita_install_dir.joinpath('plugins', 'kritaspotlight.mdimporter'), krita_app_spotlight,
-               only_contents=False)
-
-    plugins.append('krita-thumbnailer')
-    copyDirSub(krita_install_dir.joinpath('plugins', 'krita-thumbnailer.appex'),krita_app['plugins'],
-               only_contents=False)
-    plugins.append('krita-preview')
-    copyDirSub(krita_install_dir.joinpath('plugins', 'krita-preview.appex'), krita_app['plugins'],
-               only_contents=False)
-    print(f'Copied plugins: {",".join(plugins)}')
-
+    # Reused install prefixes may still contain removed optional Finder integration artifacts.
+    extra_args = [
+        '--delete',
+        '--delete-excluded',
+        '--exclude', 'kritaspotlight.mdimporter',
+        '--exclude', 'krita-thumbnailer.appex',
+        '--exclude', 'krita-preview.appex',
+    ]
+    copyDirSub(krita_install_dir.joinpath('plugins'), krita_app['plugins'], extra_args=extra_args)
 
     print("Copying kritaplugins...")
     copyDirSub(krita_install_dir.joinpath('lib', 'kritaplugins'), krita_app['plugins'])
@@ -545,13 +535,6 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
         print("WARNING: continuing without running macdeployqt may result in an invalid app")
     print("macdeployqt Done!")
 
-
-    # TODO: remove after move to Qt6, those plugins are not compatible with macOS>=12
-    # fixes kritaspotlight binaries
-    filesToFix = [f for f in krita_app['contents'].joinpath('Library').rglob('*/Contents/MacOS/*') if
-                  (f.is_file() and stat.S_IMODE(f.stat().st_mode) & 0o111)]
-    for f in filesToFix:
-        installNameTool(f, '-add_rpath @loader_path/../../../../../Frameworks')
 
     # Remove broken symlinks if any
     filesToFix = [f for f in krita_app['contents'].rglob('*') if f.is_symlink() and not f.exists()]

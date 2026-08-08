@@ -22,12 +22,6 @@ LibrePaintは、現在Krita由来のコードを基盤としてarm64の実機iPa
 
 Python/PyQt、G'MIC、印刷、動画・音声機能、自動更新、外部プロセスを起動する機能、外部の第三者プラグインも現在の対象外です。ブラシ、ツール、Docker、色管理、画像入出力を構成するKrita内部プラグインは、選択したものを静的リンクして登録します。
 
-## プロジェクトの位置づけと将来構想
-
-LibrePaintは、作者個人の制作環境でKrita相当の機能をiPadから利用することを主な目的としています。現在はupstream Kritaとの差分を可能な限り限定していますが、将来もupstreamへの追従や変更の取り込みやすさを保証するものではありません。個人の制作フローとiPad上の操作性を優先し、UI、機能、内部構造にupstream Kritaから大きくかけ離れた改造を施す可能性があります。
-
-長期的な最終像としては、Krita由来のGPLコードに依存しない独立実装へ移行し、**MIT Licenseで提供する独立プロジェクト**として成立させることを構想しています。これは将来構想であり、現在のKrita派生コードをMIT Licenseへ変更する宣言ではありません。現リポジトリに適用されるライセンスについては[ライセンスとupstream](#ライセンスとupstream)を参照してください。
-
 ## 現在のサポート状況
 
 以下は2026年8月6日時点の状態です。進捗と実機検証結果の正本は[`TODO.md`](TODO.md)、静的に組み込む機能の正本は[`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json)です。
@@ -242,19 +236,8 @@ nix develop --command packaging/ios/scripts/build-smoke.sh simulator
 
 `build-ios/`、署名済み成果物、credential、private cache keyなどのlocal artifactをGitへcommitしないでください。
 
-## 開発時の原則
-
-- iOS固有の挙動は原則として`Q_OS_IOS`でguardし、意図しないAndroid、desktop、macOS側の変更を避けます。
-- UIKit連携は薄いObjective-C++ bridgeへ閉じ込め、可能な限り既存のKrita actionやsubsystemを再利用します。
-- plugin profileへ含まれていることと、実機で機能検証済みであることを区別します。
-- touch、Pencil、Files、rotation、lifecycle、memoryに関する変更はcompile成功だけで完了扱いにしません。
-- milestoneまたは実機検証状態が変わった場合は`TODO.md`を更新します。
-- certificate、provisioning profile、Apple ID、署名secret、device credential、署名済みIPAをcommitしません。
-
 ## ライセンスとupstream
 
 現在の本リポジトリは[Krita](https://krita.org/)を基にした派生物であり、MIT Licenseではありません。Krita全体にはGNU General Public License Version 3が適用され、個々のファイルや同梱componentにはそれぞれの互換licenseが適用されます。正確な条件は[`COPYING`](COPYING)と各ファイルのlicense表示を参照してください。
 
-KritaはKrita Foundation、KDE、Krita contributorsによって開発されています。upstream repositoryは[graphics/krita](https://invent.kde.org/graphics/krita)、利用方法は[Krita User Manual](https://docs.krita.org/)を参照してください。本ポート固有の問題は、upstreamでも再現することを確認しない限りupstream Kritaの問題として扱わないでください。
-
-将来のMIT License構想は、Krita由来のGPLコードを含まない独立実装として成立した後継プロジェクトを対象とします。現在のfork、現在のbuild成果物、Krita由来コードのライセンス条件を変更するものではありません。
+KritaはKrita Foundation、KDE、Krita contributorsによって開発されています。元projectとその履歴はupstreamの[graphics/krita](https://invent.kde.org/graphics/krita) repositoryを参照してください。LibrePaintは独立して保守される変更版であり、Krita FoundationまたはKDEとの提携・承認関係はありません。

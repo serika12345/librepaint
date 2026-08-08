@@ -85,8 +85,8 @@ if (Python_Interpreter_FOUND)
     list(TRANSFORM _python_prefix_path_v5 APPEND "/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
     cmake_path(CONVERT "${_python_prefix_path_v5}" TO_NATIVE_PATH_LIST KRITA_PYTHONPATH_V5 NORMALIZE)
 
-    message(STATUS "Krita site-packages directories for SIP v4: ${KRITA_PYTHONPATH_V4}")
-    message(STATUS "Krita site-packages directories for SIP v5+: ${KRITA_PYTHONPATH_V5}")
+    message(STATUS "SIP v4 site-packages directories: ${KRITA_PYTHONPATH_V4}")
+    message(STATUS "SIP v5+ site-packages directories: ${KRITA_PYTHONPATH_V5}")
 endif()
 
 find_package_handle_standard_args(PythonLibrary DEFAULT_MSG PYTHON_LIBRARY PYTHON_INCLUDE_DIRS PYTHON_INCLUDE_PATH)

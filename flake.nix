@@ -297,7 +297,7 @@
             export KRITA_IOS_REPO_ROOT="$PWD"
             export KRITA_IOS_BUILD_ROOT="$PWD/build-ios"
             export KRITA_IOS_LOG_ROOT="$PWD/logs/ios"
-            echo "Krita iPadOS development shell"
+            echo "iPadOS development shell"
             echo "  host check: packaging/ios/scripts/check-host.sh"
             echo "  smoke test: packaging/ios/scripts/build-smoke.sh device"
           '';

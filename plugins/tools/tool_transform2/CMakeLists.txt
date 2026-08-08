@@ -42,7 +42,7 @@ target_link_libraries(kritatooltransform_static
 )
 
 if (NOT GSL_FOUND)
-  message (WARNING "KRITA WARNING! No GNU Scientific Library was found! Krita's Transform Tool will not be able to scale the image with handles. Please install GSL library.")
+  message(WARNING "No GNU Scientific Library was found; the Transform Tool cannot scale images with handles. Please install GSL.")
 else ()
   target_link_libraries(kritatooltransform_static
     PUBLIC

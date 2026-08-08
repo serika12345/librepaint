@@ -1004,8 +1004,9 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
                             i18n("LibrePaint"),
                             KritaVersionWrapper::versionString(true),
                             i18n("LibrePaint is the free paint app"),
-                            KAboutLicense::GPL,
-                            i18nc("@info:credit", "© 1999–2026 The Krita Developers"));
+                            KAboutLicense::GPL_V3,
+                            i18nc("@info:credit", "© 1999–2026 The Krita Developers\n© 2026 LibrePaint contributors"));
+    aboutData.setHomepage(QStringLiteral("https://github.com/serika12345/librepaint"));
 
     // this call sets corresponding fields of QApplication as well
     KAboutData::setApplicationData(aboutData);

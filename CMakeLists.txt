@@ -161,7 +161,7 @@ if(NOT DEFINED KRITA_ALPHA AND NOT DEFINED KRITA_BETA AND NOT DEFINED KRITA_RC)
     set(KRITA_STABLE 1) # do not edit
 endif()
 
-message(STATUS "Krita version: ${KRITA_VERSION_STRING}")
+message(STATUS "Application version: ${KRITA_VERSION_STRING}")
 
 # Define the generic version of the Krita libraries here
 # This makes it easy to advance it when the next Krita release comes.
@@ -318,8 +318,8 @@ option(USE_LOCK_FREE_HASH_TABLE "Use lock free hash table instead of blocking." 
 configure_file(config-hash-table-implementation.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-hash-table-implementation.h)
 add_feature_info("Lock free hash table" USE_LOCK_FREE_HASH_TABLE "Use lock free hash table instead of blocking.")
 
-option(FOUNDATION_BUILD "A Foundation build is a binary release build that can package some extra things like color themes. Linux distributions that build and install Krita into a default system location should not define this option to true." OFF)
-add_feature_info("Foundation Build" FOUNDATION_BUILD "A Foundation build is a binary release build that can package some extra things like color themes. Linux distributions that build and install Krita into a default system location should not define this option to true.")
+option(FOUNDATION_BUILD "Bundle additional color themes in a release build" OFF)
+add_feature_info("Additional bundled themes" FOUNDATION_BUILD "Bundle additional color themes in a release build.")
 
 option(KRITA_ENABLE_BROKEN_TESTS "Enable tests that are marked as broken" OFF)
 add_feature_info("Enable Broken Tests" KRITA_ENABLE_BROKEN_TESTS "Runs broken test when \"make test\" is invoked (use -DKRITA_ENABLE_BROKEN_TESTS=ON to enable).")
@@ -379,24 +379,7 @@ if (ECM_ENABLE_SANITIZERS MATCHES address)
     set(ADDRESS_SANITIZER_ENABLED TRUE)
 endif()
 
-add_feature_info("ASAN address sanitizer" ADDRESS_SANITIZER_ENABLED "crash Krita if it violates address access rules (-DECM_ENABLE_SANITIZERS=address)")
-
-# We don't want people to accidentally build unstable Krita versions if they
-# didn't mean to do so. This serves as an extra confirmation. You will get
-# errors during the configure step if you enable an unstable option.
-set(ALLOW_UNSTABLE "" CACHE STRING
-    "Semicolon-separated set of features that make Krita unstable, but you want to build with them anyway")
-string(TOUPPER "${ALLOW_UNSTABLE}" ALLOW_UNSTABLE)
-add_feature_info("Unstable features allowed" ON "${ALLOW_UNSTABLE}")
-
-if(BUILD_WITH_QT6 AND NOT "QT6" IN_LIST ALLOW_UNSTABLE)
-    message(FATAL_ERROR
-        "Building Krita with Qt6 is not yet production-ready. Please don't "
-        "package this and ship it as a stable version of the software.\n"
-        "If you want to continue regardless, pass:\n"
-        "    -DALLOW_UNSTABLE=QT6"
-    )
-endif()
+add_feature_info("ASAN address sanitizer" ADDRESS_SANITIZER_ENABLED "Terminate the application on invalid memory access (-DECM_ENABLE_SANITIZERS=address).")
 
 # Branding. Available options: default, Beta, Plus, Next. Can be set from command line
 if ("${BRANDING}" STREQUAL "")
@@ -411,11 +394,6 @@ if ("${BRANDING}" STREQUAL "")
         # Alpha/pre-alpha in master branch or other experiments
         set(BRANDING "Next")
     endif ()
-endif()
-
-# Qt6 isn't stable, don't make it look like it is.
-if(BRANDING STREQUAL "default" AND BUILD_WITH_QT6)
-    set(BRANDING "Beta")
 endif()
 
 message(STATUS "Branding selected: ${BRANDING}")
@@ -944,7 +922,7 @@ unset(CMAKE_REQUIRED_LIBRARIES)
 include (MacroAddFileDependencies)
 include (MacroBoolTo01)
 include (MacroEnsureOutOfSourceBuild)
-macro_ensure_out_of_source_build("Compiling Krita inside the source directory is not possible. Please refer to the build instruction https://community.kde.org/Krita#Build_Instructions")
+macro_ensure_out_of_source_build("In-source builds are not supported. Use a separate build directory.")
 
 
 # Note: OPTIONAL_COMPONENTS does not seem to be reliable

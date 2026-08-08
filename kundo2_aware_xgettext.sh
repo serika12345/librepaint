@@ -1,7 +1,7 @@
 #
 #  SPDX-License-Identifier: GPL-3.0-or-later
 #
-# Helper function for extracting translatable messages from Krita source code.
+# Helper function for extracting translatable messages from the application source code.
 # Usage: kundo2_aware_xgettext <pot-filename-without-path> <source-files-list>
 # If there are no messages or the <source-files-list> is empty, the pot file is deleted.
 #
@@ -58,8 +58,8 @@ function kundo2_aware_xgettext_internal() {
     $XGETTEXT ${CXG_EXTRA_ARGS} ${SRC_FILES} -o "${POT_PART_NORMAL}" --force-po
 
     XGETTEXT_FLAGS_KUNDO2="\
---copyright-holder=This_file_is_part_of_KDE \
---msgid-bugs-address=http://bugs.kde.org \
+--copyright-holder=The_respective_copyright_holders \
+--msgid-bugs-address=https://github.com/serika12345/librepaint/issues \
 --from-code=UTF-8
 -C -k --kde \
 -kkundo2_i18n:1 -kkundo2_i18np:1,2 -kkundo2_i18nc:1c,2 -kkundo2_i18ncp:1c,2,3 \

@@ -8,7 +8,7 @@ find_package(
 )
 
 if(NOT TARGET libunibreak::libunibreak)
-    message(FATAL_ERROR "Krita's Findlibunibreak module did not define its imported target")
+    message(FATAL_ERROR "Findlibunibreak did not define its imported target")
 endif()
 
 get_target_property(libunibreak_location libunibreak::libunibreak IMPORTED_LOCATION)

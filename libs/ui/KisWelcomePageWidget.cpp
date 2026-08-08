@@ -357,7 +357,7 @@ void KisWelcomePageWidget::slotUpdateThemeColors()
     kritaWebsiteIcon->hide();
     labelSupportText->hide();
 
-    sourceCodeLink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://invent.kde.org/graphics/krita\">")
+    sourceCodeLink->setText(QString("<a style=\"color: " + blendedColor.name() + " \" href=\"https://github.com/serika12345/librepaint\">")
                             .append(i18n("Source Code")).append("</a>"));
 
     QString translationNoFeed = i18n("Upstream news is not shown in LibrePaint.");

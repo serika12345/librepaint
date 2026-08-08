@@ -8,7 +8,7 @@ find_package(
 )
 
 if(NOT TARGET FriBidi::FriBidi)
-    message(FATAL_ERROR "Krita's FindFriBidi module did not define its imported target")
+    message(FATAL_ERROR "FindFriBidi did not define its imported target")
 endif()
 
 if(NOT FriBidi_VERSION STREQUAL KRITA_IOS_FRIBIDI_VERSION)

@@ -1,6 +1,5 @@
 add_subdirectory( dtd )
 add_subdirectory( data )
-add_subdirectory( integration )
 # Install the application icons following the freedesktop icon theme spec
 add_subdirectory( "pics/branding/${BRANDING}" )
 
@@ -207,7 +206,7 @@ if (APPLE AND NOT IOS)
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING ${KRITA_VERSION_STRING})
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING ${KRITA_VERSION_NUMBER_STRING})
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_BUNDLE_VERSION ${KRITA_VERSION_NUMBER_STRING})
-    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_COPYRIGHT "GNU Public License, V2 or, at your option, any later version.")
+    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_COPYRIGHT "Copyright 1999-2026 The Krita Developers; LibrePaint modifications copyright 2026 LibrePaint contributors")
 endif ()
 
 if(IOS)

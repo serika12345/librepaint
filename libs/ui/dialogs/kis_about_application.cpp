@@ -44,10 +44,10 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
     wdgTab->aboutTab->layout()->addWidget(splash);
 
     QString authors = i18n("<html>"
-                          "<head/>"
-                          "<body>"
-                          "<h1 align=\"center\">Created By</h1></p>"
-                          "<p>");
+                           "<head/>"
+                           "<body>"
+                           "<h1 align=\"center\">Upstream Krita Developers</h1>"
+                           "<p>");
 
     QFile fileDevelopers(":/developers.txt");
     Q_ASSERT(fileDevelopers.exists());
@@ -81,10 +81,10 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
 
     translatorHtml.append("<ul></p>");
     translatorHtml.append(
-        i18n("<p>KDE is translated into many languages thanks to the work of the "
-             "translation teams all over the world.</p><p>For more information on KDE "
-             "internationalization visit <a href=\"http://l10n.kde.org\">http://l10n."
-             "kde.org</a></p>"));
+        i18n("<p>The translations bundled with LibrePaint are inherited from Krita and "
+             "provided by KDE translation teams around the world.</p><p>For more information "
+             "about KDE internationalization, visit <a href=\"https://l10n.kde.org\">https://"
+             "l10n.kde.org</a>.</p>"));
     translatorHtml.append("</body></html>");
 
     wdgTab->lblTranslators->setText(translatorHtml);
@@ -94,10 +94,10 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
     wdgTab->tabWidget->removeTab(wdgTab->tabWidget->indexOf(wdgTab->kickstarterTab));
 
     QString credits = i18n("<html>"
-                          "<head/>"
-                          "<body>"
-                          "<h1 align=\"center\">Thanks To</h1>"
-                          "<p>");
+                           "<head/>"
+                           "<body>"
+                           "<h1 align=\"center\">Upstream Krita Credits</h1>"
+                           "<p>");
 
     QFile fileCredits(":/credits.txt");
     Q_ASSERT(fileCredits.exists());
@@ -116,29 +116,19 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
         }
         credits.chop(2);
     }
-    credits.append(i18n(".</p><p><i>For supporting Krita development with advice, icons, brush sets and more.</i></p></body></html>"));
+    credits.append(i18n(".</p><p><i>For supporting upstream Krita development with advice, icons, brush sets and more.</i></p></body></html>"));
 
     wdgTab->lblCredits->setText(credits);
 
     QString license = i18n("<html>"
                            "<head/>"
                            "<body>"
-                           "<h1 align=\"center\"><b>Your Rights</b></h1>"
-                           "<p>Krita is released under the GNU General Public License (version 3 or any later version).</p>"
-                           "<p>This license grants people a number of freedoms:</p>"
-                           "<ul>"
-                           "<li>You are free to use Krita, for any purpose</li>"
-                           "<li>You are free to distribute Krita</li>"
-                           "<li>You can study how Krita works and change it</li>"
-                           "<li>You can distribute changed versions of Krita</li>"
-                           "</ul>"
-                           "<p>The Krita Foundation and its projects on krita.org are <b>committed</b> to preserving Krita as free software.</p>"
-                           "<h1 align=\"center\">Your artwork</h1>"
-                           "<p>What you create with Krita is your sole property. All your artwork is free for you to use as you like.</p>"
-                           "<p>That means that Krita can be used commercially, for any purpose. There are no restrictions whatsoever.</p>"
-                           "<p>Krita’s GNU GPL license guarantees you this freedom. Nobody is ever permitted to take it away, in contrast "
-                           "to trial or educational versions of commercial software that will forbid your work in commercial situations.</p>"
-                           "<br/><hr/><pre>");
+                           "<h1 align=\"center\"><b>Legal Notice</b></h1>"
+                           "<p>LibrePaint is a modified work based on Krita.</p>"
+                           "<p>LibrePaint is distributed under version 3 of the GNU General Public License, without any warranty.</p>"
+                           "<p>Individual files, bundled assets, and third-party components remain subject to their own copyright and license notices.</p>"
+                           "<p>The complete GNU General Public License version 3 follows.</p>"
+                           "<hr/><pre>");
 
     QFile licenseFile(":/LICENSE");
     Q_ASSERT(licenseFile.exists());
@@ -158,8 +148,9 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
         QString thirdPartyHtml = i18n("<html>"
                                       "<head/>"
                                       "<body>"
-                                      "<h1 align=\"center\"><b>Third-party Libraries used by LibrePaint</b></h1>"
-                                      "<p>LibrePaint is built on the following free software libraries:</p><p><ul>");
+                                      "<h1 align=\"center\"><b>Third-party Software Reference</b></h1>"
+                                      "<p>The source tree and platform-specific builds use or may include components from the following projects. "
+                                      "The exact component set and license terms are identified by the notices supplied with each distribution.</p><p><ul>");
 
         Q_FOREACH (const QString &lib, thirdPartyText.readAll().split('\n', Qt::SkipEmptyParts)) {
 

@@ -9,7 +9,6 @@
       "cacheVariables": {
         "BUILD_TESTING": "OFF",
         "BUILD_WITH_QT6": "ON",
-        "ALLOW_UNSTABLE": "QT6",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_PREFIX_PATH": "$env{KRITA_IOS_PREFIX_PATH}",
