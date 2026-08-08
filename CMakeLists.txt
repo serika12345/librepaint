@@ -128,6 +128,8 @@ endif()
 ## Constants defines ##
 #######################
 ######################
+set(LIBREPAINT_VERSION_STRING "1.0.2" CACHE STRING "LibrePaint release version")
+
 if (BUILD_WITH_QT6)
 set(KRITA_VERSION_STRING "6.1.0-prealpha")
 set(KRITA_STABLE_VERSION_MAJOR 6)

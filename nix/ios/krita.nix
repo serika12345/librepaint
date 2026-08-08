@@ -61,6 +61,7 @@
 }:
 
 let
+  librePaintVersion = "1.0.2";
   hostEcm = kfHostTooling.hostEcm;
   hostQt = kfHostTooling.hostQt;
   hostQtTools = kfHostTooling.hostQtTools;
@@ -128,7 +129,7 @@ assert lib.assertMsg (
 ) "Krita iOS initial plugin target inventory changed";
 mkIOSCMakePackage {
   pname = "krita-ios-app";
-  version = "6.1.0-prealpha";
+  version = librePaintVersion;
   src = kritaSource;
 
   inherit targetDependencies;
@@ -175,6 +176,7 @@ mkIOSCMakePackage {
     "-DKF6_HOST_TOOLING:PATH=${kf6HostTooling}"
     "-DKF_IGNORE_PLATFORM_CHECK:BOOL=ON"
     "-DKRITA_ENABLE_PCH:BOOL=OFF"
+    "-DLIBREPAINT_VERSION_STRING:STRING=${librePaintVersion}"
     "-DKRITA_IOS_BUILD_QML_MODULES:BOOL=OFF"
     "-DKRITA_IOS_BUILD_PLUGINS:BOOL=ON"
     "-DKRITA_IOS_PLATFORM:STRING=DEVICE"
@@ -274,6 +276,7 @@ mkIOSCMakePackage {
     check_cache_value CMAKE_OSX_SYSROOT iphoneos
     check_cache_value BUILD_TESTING OFF
     check_cache_value BUILD_WITH_QT6 ON
+    check_cache_value LIBREPAINT_VERSION_STRING ${lib.escapeShellArg librePaintVersion}
     check_cache_value KRITA_IOS_BUILD_PLUGINS ON
     check_cache_value KRITA_IOS_BUILD_QML_MODULES OFF
     check_cache_value KF6_HOST_TOOLING ${lib.escapeShellArg (toString kf6HostTooling)}
@@ -350,6 +353,8 @@ mkIOSCMakePackage {
         "CFBundleExecutable": "krita",
         "CFBundleIdentifier": "local.librepaint.ipad",
         "CFBundleDisplayName": "LibrePaint",
+        "CFBundleShortVersionString": "${librePaintVersion}",
+        "CFBundleVersion": "${librePaintVersion}",
         "LSRequiresIPhoneOS": True,
         "LSSupportsOpeningDocumentsInPlace": True,
         "MinimumOSVersion": "${toolchain.deploymentTarget}",

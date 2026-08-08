@@ -12,7 +12,12 @@
 
 #include "kritaversion_export.h"
 
-// -- WARNING: do not edit values below, instead edit KRITA_* in /CMakeLists.txt --
+// -- WARNING: do not edit values below, instead edit their definitions in /CMakeLists.txt --
+
+/**
+ * @brief LibrePaint product version, independent of the upstream engine ABI.
+ */
+#define LIBREPAINT_VERSION_STRING "@LIBREPAINT_VERSION_STRING@"
 
 /**
 * @def KRITA_VERSION_STRING

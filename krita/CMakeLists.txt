@@ -196,28 +196,26 @@ if(HAVE_KCRASH)
 endif()
 
 if (APPLE AND NOT IOS)
-    set(KRITA_VERSION_NUMBER_STRING "${KRITA_STABLE_VERSION_MAJOR}.${KRITA_STABLE_VERSION_MINOR}.${KRITA_VERSION_RELEASE}")
     set_target_properties(krita PROPERTIES INSTALL_RPATH "@loader_path/../../../../lib;@loader_path/../lib;
         @loader_path/../Frameworks;@executable_path/../../../../lib;@executable_path/../lib;@executable_path/../Frameworks")
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.template)
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "org.krita")
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "LibrePaint")
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_ICON_FILE "krita")
-    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING ${KRITA_VERSION_STRING})
-    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING ${KRITA_VERSION_NUMBER_STRING})
-    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_BUNDLE_VERSION ${KRITA_VERSION_NUMBER_STRING})
+    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING ${LIBREPAINT_VERSION_STRING})
+    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING ${LIBREPAINT_VERSION_STRING})
+    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_BUNDLE_VERSION ${LIBREPAINT_VERSION_STRING})
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_COPYRIGHT "Copyright 1999-2026 The Krita Developers; LibrePaint modifications copyright 2026 LibrePaint contributors")
 endif ()
 
 if(IOS)
-    set(KRITA_VERSION_NUMBER_STRING "${KRITA_STABLE_VERSION_MAJOR}.${KRITA_STABLE_VERSION_MINOR}.${KRITA_VERSION_RELEASE}")
     set_target_properties(krita PROPERTIES
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.ios.plist.in
         MACOSX_BUNDLE_GUI_IDENTIFIER "local.librepaint.ipad"
         MACOSX_BUNDLE_BUNDLE_NAME "LibrePaint"
-        MACOSX_BUNDLE_SHORT_VERSION_STRING ${KRITA_VERSION_NUMBER_STRING}
-        MACOSX_BUNDLE_BUNDLE_VERSION ${KRITA_VERSION_NUMBER_STRING}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${LIBREPAINT_VERSION_STRING}
+        MACOSX_BUNDLE_BUNDLE_VERSION ${LIBREPAINT_VERSION_STRING}
         XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO
         XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2"
     )

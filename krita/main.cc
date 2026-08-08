@@ -42,8 +42,8 @@
 #include <kis_config.h>
 #include <kis_debug.h>
 #include <kis_image_config.h>
+#include <kritaversion.h>
 #include <opengl/kis_opengl.h>
-#include "KritaVersionWrapper.h"
 
 #include "KisApplicationArguments.h"
 #include "KisDocument.h"
@@ -1002,7 +1002,7 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     /// DrKonqi of the host system
     KAboutData aboutData("krita",
                             i18n("LibrePaint"),
-                            KritaVersionWrapper::versionString(true),
+                            QStringLiteral(LIBREPAINT_VERSION_STRING),
                             i18n("LibrePaint is the free paint app"),
                             KAboutLicense::GPL_V3,
                             i18nc("@info:credit", "© 1999–2026 The Krita Developers\n© 2026 LibrePaint contributors"));
