@@ -25,19 +25,19 @@ resources. Their exclusive final classification is:
   distribution fallback;
 - 23 LibrePaint-owned brand images under CC0-1.0.
 
-The iOS QRC audit classifies all 1,289 inputs. White-placeholder,
-zero-byte-alias, and unclassified-image counts are all 0.
+The iOS image audit assigns all 1,289 QRC inputs to a license classification;
+the unclassified-image count is 0.
 
 A further 32 functional images installed by the selected static plugins and
 data targets are retained under the project-wide GPL fallback. Their exact set
 is rediscovered from 19 CMake install definitions during every audit.
 
-The exact paths, original dimensions, retained metadata hashes, Qt resource
-inputs, whole-content hashes, CMake definitions, and audit invariants are
-recorded in `white-brand-assets.json`, which is distributed beside this file.
+For the eight explicit license groups, `ios-image-licenses.json` records the
+exact paths, license expressions and sources, Qt resource inputs, and CMake
+install definitions. It is distributed beside this file.
 `retained-functional-assets.md` supplies the Breeze, Oxygen, Android, KXmlGui,
 KDE trademark, project-wide GPL, and modification notices.
-`librepaint-brand-assets.md` records the author statement, source hashes,
+`librepaint-brand-assets.md` records the author statement, source files,
 CC0 dedication, and current compatibility paths for the new logo. Copyright,
 creator, title, license, and other provenance metadata retained inside image
 files continue to apply. The complete applicable CC, GPL, LGPL, and CC0 texts
@@ -52,31 +52,29 @@ the CC0 declaration while preserving their original bytes. The cross-platform
 application and document icons, Qt runtime icon, resource bundle previews, and
 both splash variants are derived from those sources.
 
-The generated assets temporarily retain their existing Krita-era filenames so
-the current build can load them. As complete replacements, their provenance and
-licensing come exclusively from the LibrePaint source set and its CC0
-declaration.
-Exact source hashes and transformations are listed in
-`librepaint-brand-assets.md`.
+The generated assets use the existing compatibility filenames consumed by the
+build. Their provenance and licensing come from the LibrePaint source set and
+its CC0 declaration; `librepaint-brand-assets.md` lists the source files and
+their current derivatives.
 
 ## Default resource bundle
 
 `Krita_4_Default_Resources.bundle` is retained because it supplies the initial
-brush resources needed for drawing. All 281 files have an exact-set audit: 244
-are covered by the bundle-wide `CC-0` declaration in its unmodified `meta.xml`,
+brush resources needed for drawing. Its 281 files are classified during the
+audit: 244 are covered by the bundle-wide `CC-0` declaration in its `meta.xml`,
 and the more-specific existing notice applies CC-BY-3.0 to its 31 GIH and six
 GBR brush files. That unmodified notice is distributed as `bundles/README` and
 credits David Revoy and the Blender Foundation and identifies Ramon Miranda's
 Gimp Paint Studio source. Four PNG brush tips additionally retain their
 embedded author fields for David Revoy or Scott Petrovic. The root bundle
-preview has been replaced by a same-size rendering of the CC0 LibrePaint icon
-while preserving the remaining archive entries.
+preview is a same-size rendering of the CC0 LibrePaint icon; the other archive
+entries retain their applicable licenses.
 
-`default-resource-bundle-licenses.json` records the license rules, exact file
-and format counts, preserved notice hashes, bundle metadata, embedded PNG
-attribution, and a content-sealed classification digest. Its audit parses all
-117 KPP metadata records, establishes a complete classification, and verifies
-that the startup brush, eraser, and a color-smudge preset remain self-contained.
+`default-resource-bundle-licenses.json` records the three license groups, their
+expected 244/37 totals, the bundle attribution, the applicable notice paths,
+and the four embedded PNG author fields. Its audit classifies every file,
+checks the internal resource manifest, and inspects KPP, SVG, and PNG metadata
+for individual legal overrides.
 
 The complete CC-BY-3.0 and CC0-1.0 texts are distributed beside this index.
 
@@ -87,9 +85,8 @@ are retained as a closed 253-file set: 247 Qt style PNGs, the unmodified Qt
 about-dialog logo, two Qt backing-store QSB shaders, the ICC `sRGB2014.icc`
 profile used by PDF output, and two Breeze color scheme files.
 `static-dependency-resources.json` records every source path and runtime alias,
-the pinned source archives, source and payload hashes, generated initializer
-objects, license evidence, and the exact expected resource symbols in the
-final Mach-O binary.
+the pinned source archive hashes, initializer and payload paths, license
+evidence, and the expected resource symbols in the final Mach-O binary.
 
 The 250 Qt-owned files retain the Qt Company's copyright and are distributed
 under the LGPL-3.0-only option stated by Qt's unmodified REUSE records. The Qt

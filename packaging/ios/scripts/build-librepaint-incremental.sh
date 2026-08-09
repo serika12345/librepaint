@@ -339,8 +339,7 @@ acquire_lock() {
     trap 'exit 130' INT
     trap 'exit 143' TERM
     validate_host
-    python3 "$repo_root/packaging/ios/scripts/replace-brand-art-with-white.py" \
-        --audit-ios-classification
+    python3 "$repo_root/packaging/ios/scripts/audit-ios-image-licenses.py" --check
     python3 "$repo_root/packaging/ios/scripts/audit-default-resource-bundle.py"
     python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py"
     python3 "$repo_root/packaging/ios/scripts/audit-user-visible-branding.py" \

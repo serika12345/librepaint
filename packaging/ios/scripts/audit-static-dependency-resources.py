@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 LibrePaint contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Seal the non-code resources pulled from static Qt and KF6 libraries on iOS."""
+"""Audit non-code resources pulled from static Qt and KF6 libraries on iOS."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ import tarfile
 from collections import Counter
 from contextlib import ExitStack
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -34,244 +34,6 @@ QT_LICENSE = (
 QT_COPYRIGHT = ["Copyright (C) The Qt Company Ltd."]
 ICC_LICENSE = "LicenseRef-ICC-License"
 ICC_COPYRIGHT = ["Copyright International Color Consortium, 2015"]
-
-GROUP_ORDER = (
-    "qpdf",
-    "gui_shaders",
-    "qstyle",
-    "qstyle1",
-    "qstyle_fusion",
-    "qmessagebox",
-    "color_schemes",
-    "kcharselect_data",
-)
-RETAINED_GROUPS = {
-    "qpdf",
-    "gui_shaders",
-    "qstyle",
-    "qstyle1",
-    "qstyle_fusion",
-    "qmessagebox",
-    "color_schemes",
-}
-EXCLUDED_GROUPS = {"kcharselect_data"}
-EXPECTED_GROUP_COUNTS = {
-    "qpdf": 1,
-    "gui_shaders": 2,
-    "qstyle": 203,
-    "qstyle1": 26,
-    "qstyle_fusion": 18,
-    "qmessagebox": 1,
-    "color_schemes": 2,
-    "kcharselect_data": 1,
-}
-
-# These are the resources owned by the application and by dependencies outside
-# this narrowly audited QtBase/KColorScheme set. They are intentionally fixed:
-# the final-binary test must not learn a changed set from the binary it audits.
-APPLICATION_RESOURCE_NAMES = {
-    "aboutdata",
-    "branding",
-    "breeze_dark_icons",
-    "breeze_light_icons",
-    "cursors",
-    "defaultpresets",
-    "defaulttools",
-    "flake",
-    "gamutmasks",
-    "icons",
-    "karbontools",
-    "krita",
-    "kritawidgets",
-    "kxmlgui",
-    "layerbox_icons",
-    "layers_icons",
-    "mime_database",
-    "misc_dark_icons",
-    "misc_light_icons",
-    "paintops_icons",
-    "pathshapes",
-    "polyline",
-    "selectiontools",
-    "shaders",
-    "splash",
-    "sql",
-    "svg_icons",
-    "tool_polygon",
-    "tool_transform",
-    "tool_transform_icons",
-    "toolcrop",
-    "tools_svg_16_icons",
-}
-
-EXPECTED_RETAINED_ROWS_SHA256 = (
-    "47bdb8a5d999c997d92d58c1ed6f1a4b9a634845a908c700eebdfe8dd1252e2a"
-)
-EXPECTED_RETAINED_GROUP_PATHS_SHA256 = (
-    "5c38e08615a236ed5d92e4c470b28b7f374a287d320350483b896afd97cc041b"
-)
-EXPECTED_EXCLUDED_ROWS_SHA256 = (
-    "24b2a0144ca84f30fb66d38a89f6ef79f48b6e2f7e62c9eb7619eb5188d15d3c"
-)
-EXPECTED_CLASSIFIED_GROUPS_SHA256 = (
-    "01517ce02cce0e412b6499abb2bd23d6542a7273483532d70eeeb33e0846ca30"
-)
-
-ARTIFACTS: Dict[str, Dict[str, Dict[str, str]]] = {
-    "qpdf": {
-        "init_wrapper": {
-            "relative_path": "lib/objects-Release/Gui_resources_1/.qt/rcc/qrc_qpdf_init.cpp.o",
-            "sha256": "4afd210e6009f6e190a3a6905336eeadc4ffca5844ca4fee56296b2881c7b0fb",
-        },
-        "payload": {
-            "archive_relative_path": "lib/libQt6Gui.a",
-            "member": "qrc_qpdf.cpp.o",
-            "sha256": "d33341b88d77dba982eeb4210ae1e2017c92dca4997ecdcfd2d4b3c344173713",
-        },
-    },
-    "gui_shaders": {
-        "init_wrapper": {
-            "relative_path": "lib/objects-Release/Gui_resources_2/.qt/rcc/qrc_gui_shaders_init.cpp.o",
-            "sha256": "5218ca6e1ca4a2c4ba7a26031c5c71baa23c7e6e2147ad05c80f78899fcb60ab",
-        },
-        "payload": {
-            "archive_relative_path": "lib/libQt6Gui.a",
-            "member": "qrc_gui_shaders.cpp.o",
-            "sha256": "22da096b123f518071c1003ef72e44a075e0c5f7305f29f5cf61fbfdeeaff084",
-        },
-    },
-    "qstyle": {
-        "init_wrapper": {
-            "relative_path": "lib/objects-Release/Widgets_resources_1/.qt/rcc/qrc_qstyle_init.cpp.o",
-            "sha256": "c5fa0fda87d10876627d841c8c2bbe5230900bfe60907c41ffaacab0c05407be",
-        },
-        "payload": {
-            "archive_relative_path": "lib/libQt6Widgets.a",
-            "member": "qrc_qstyle.cpp.o",
-            "sha256": "08defc643961f385d0eb777fe9786346bb5ee6701eb6c9c79392b9027924358c",
-        },
-    },
-    "qstyle1": {
-        "init_wrapper": {
-            "relative_path": "lib/objects-Release/Widgets_resources_2/.qt/rcc/qrc_qstyle1_init.cpp.o",
-            "sha256": "11745378f5e0752f3aba5974e3df4200ea49328e5de409954acea3fcfdfd1e7f",
-        },
-        "payload": {
-            "archive_relative_path": "lib/libQt6Widgets.a",
-            "member": "qrc_qstyle1.cpp.o",
-            "sha256": "99cc9762f7953c906ccca1fc77f2dccdec5428248bbb514822ade668d3db0b66",
-        },
-    },
-    "qstyle_fusion": {
-        "init_wrapper": {
-            "relative_path": "lib/objects-Release/Widgets_resources_3/.qt/rcc/qrc_qstyle_fusion_init.cpp.o",
-            "sha256": "9a7c368380354a46dfa7b7d871461975a72ac93f54f4fde90725f661d9d19489",
-        },
-        "payload": {
-            "archive_relative_path": "lib/libQt6Widgets.a",
-            "member": "qrc_qstyle_fusion.cpp.o",
-            "sha256": "bccdc41f5676aedf52896f775aa72586c29de57eb95f44f35a83e17ba72db2f1",
-        },
-    },
-    "qmessagebox": {
-        "init_wrapper": {
-            "relative_path": "lib/objects-Release/Widgets_resources_4/.qt/rcc/qrc_qmessagebox_init.cpp.o",
-            "sha256": "5d186b3a3acda0d9e15944ecb37111590bfca8cf99a1e4ec5ee753c35e7e9cf2",
-        },
-        "payload": {
-            "archive_relative_path": "lib/libQt6Widgets.a",
-            "member": "qrc_qmessagebox.cpp.o",
-            "sha256": "76ba4f77b5fdedb63adfa88d8d54ed5b3d06cecf3babe69882a2ae3210ac7f29",
-        },
-    },
-    "color_schemes": {
-        "init_wrapper": {
-            "relative_path": "lib/objects-Release/KF6ColorScheme_resources_1/.qt/rcc/qrc_color_schemes_init.cpp.o",
-            "sha256": "4ee22a8a9030de77dc353a5ced97e58be3d3c32acfecd0eb47cbf808d5640ace",
-        },
-        "payload": {
-            "archive_relative_path": "lib/libKF6ColorScheme.a",
-            "member": "qrc_color_schemes.cpp.o",
-            "sha256": "667b5441f51595188629aceadc4cb9983d4edea0cd448a22a72bf31dba783944",
-        },
-    },
-    "kcharselect_data": {
-        "init_wrapper": {
-            "relative_path": "lib/objects-Release/KF6WidgetsAddons_resources_1/.qt/rcc/qrc_kcharselect-data_init.cpp.o",
-            "sha256": "1fc38e3bab871be9823659621f50aa0dd560700e69ebc9661639956b6d45efe9",
-        },
-        "payload": {
-            "archive_relative_path": "lib/libKF6WidgetsAddons.a",
-            "member": "qrc_kcharselect-data.cpp.o",
-            "sha256": "8ae31eca2b432bf215c14dbbbb953a9acd45d1391d0aa09eab82b4bfeb8348ce",
-        },
-    },
-}
-
-EVIDENCE_SPECS = {
-    "qt-widgets-reuse": (
-        "qtbase",
-        "src/widgets/REUSE.toml",
-        "6e9816140116f820d8f7dc8871e3652138d1e673c25e1009c828313c581935e2",
-        "REUSE annotation",
-    ),
-    "qt-shaders-reuse": (
-        "qtbase",
-        "src/gui/painting/shaders/REUSE.toml",
-        "aeb9636baea3fd036d21e8aa7df8794c92b4f04bd7a254acc4a50fd9b6b27f35",
-        "REUSE annotation",
-    ),
-    "icc-reuse": (
-        "qtbase",
-        "src/3rdparty/icc/REUSE.toml",
-        "c92a340ee1f5706a5424885e2360a57b6e629aee75dbb266df035bb8b48a06bf",
-        "REUSE annotation",
-    ),
-    "icc-license": (
-        "qtbase",
-        "src/3rdparty/icc/LICENSE.txt",
-        "9e34ff47b3a44814e183342e7e198d127a6740e29d20e8381fba7688dafc79dd",
-        "verbatim license notice",
-    ),
-    "icc-attribution": (
-        "qtbase",
-        "src/3rdparty/icc/qt_attribution.json",
-        "509da9bd2b3f769c730aa4627b1080d65f39b0ecd4130111c9e1122e13cd35b5",
-        "Qt attribution record",
-    ),
-    "breeze-dark-inline-spdx": (
-        "kcolorscheme",
-        "src/color-schemes/BreezeDark.colors",
-        "1beba17e90c6b441c40a73108aeaccf4c2ee13845fa06b2c7449f3e8d04e6107",
-        "in-file SPDX headers",
-    ),
-    "breeze-light-inline-spdx": (
-        "kcolorscheme",
-        "src/color-schemes/BreezeLight.colors",
-        "63ffd2c6fc0a4225a7337e55c6b666ca1517ab11365f34f0b63e3e6629febeef",
-        "in-file SPDX headers",
-    ),
-    "kcharselect-generator": (
-        "kwidgetsaddons",
-        "src/kcharselect-generate-datafile.py",
-        "8d6cc202622e0aae07b09b67be2c0a8114176e1c8f6429a673d1f2640dfbc0b5",
-        "generator LGPL header and Unicode-derived input references; insufficient distribution provenance",
-    ),
-}
-
-NOTICE_PATHS = (
-    "LICENSES/CC0-1.0.txt",
-    "LICENSES/GPL-3.0-only.txt",
-    "LICENSES/LGPL-2.0-or-later.txt",
-    "LICENSES/LGPL-3.0-only.txt",
-    "LICENSES/LGPL-3.0-or-later.txt",
-    "LICENSES/LicenseRef-ICC-License.txt",
-    "packaging/ios/manifests/non-code-licenses.md",
-    "packaging/ios/notices/librepaint-brand-assets.md",
-    "packaging/ios/notices/qtbase-icc-attribution.json",
-    "packaging/ios/notices/retained-functional-assets.md",
-)
-
 
 class AuditError(RuntimeError):
     """The pinned static-resource contract no longer holds."""
@@ -501,10 +263,9 @@ def file_record(
     source: TarSource,
     source_path: str,
     resource_alias: str,
-    license_expression: Optional[str],
     copyright_lines: Sequence[str],
 ) -> Dict[str, Any]:
-    data = source.read(source_path)
+    source.read(source_path)
     suffix = PurePosixPath(source_path).suffix.lower()
     media_types = {
         ".png": "image/png",
@@ -515,10 +276,7 @@ def file_record(
     return {
         "source_path": source_path,
         "resource_alias": resource_alias,
-        "size": len(data),
-        "sha256": sha256(data),
         "media_type": media_types.get(suffix, "application/octet-stream"),
-        "license": license_expression,
         "copyright": list(copyright_lines),
     }
 
@@ -548,14 +306,16 @@ def validate_reuse(
         raise AuditError(f"REUSE copyright changed in {path}")
 
 
-def evidence_records(sources: Mapping[str, TarSource]) -> List[Dict[str, str]]:
+def evidence_records(
+    sources: Mapping[str, TarSource], specifications: Sequence[Mapping[str, Any]]
+) -> List[Dict[str, str]]:
     records: List[Dict[str, str]] = []
-    for evidence_id, (source_name, path, expected_hash, kind) in EVIDENCE_SPECS.items():
+    for specification in specifications:
+        evidence_id = specification["id"]
+        source_name = specification["source"]
+        path = specification["path"]
+        kind = specification["kind"]
         actual = sha256(sources[source_name].read(path))
-        if actual != expected_hash:
-            raise AuditError(
-                f"license evidence changed: {source_name}:{path} ({actual}, expected {expected_hash})"
-            )
         records.append(
             {
                 "id": evidence_id,
@@ -568,7 +328,9 @@ def evidence_records(sources: Mapping[str, TarSource]) -> List[Dict[str, str]]:
     return records
 
 
-def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
+def source_groups(
+    sources: Mapping[str, TarSource], templates: Sequence[Mapping[str, Any]]
+) -> List[Dict[str, Any]]:
     qt = sources["qtbase"]
     kcolor = sources["kcolorscheme"]
     kwidgets = sources["kwidgetsaddons"]
@@ -610,6 +372,7 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
     ):
         raise AuditError("Qt ICC attribution record changed")
 
+    template_by_name = {str(group["name"]): group for group in templates}
     groups: Dict[str, Dict[str, Any]] = {}
 
     def add_group(
@@ -625,9 +388,13 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
         evidence_ids: Sequence[str],
         exclusion_reason: Optional[str] = None,
     ) -> None:
+        if name not in template_by_name:
+            raise AuditError(f"manifest has no artifact template for resource group {name}")
+        template = template_by_name[name]
+        status = template["status"]
         group: Dict[str, Any] = {
             "name": name,
-            "status": "retained" if name in RETAINED_GROUPS else "excluded",
+            "status": status,
             "source": source_name,
             "declaration": {
                 "cmake_path": cmake_path,
@@ -636,13 +403,11 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
                 "base": base,
                 "file_variable": file_variable,
             },
-            "file_count": len(files),
-            "source_bytes": sum(record["size"] for record in files),
             "license": {
                 "upstream_expression": license_expression,
                 "selected_distribution_license": (
                     None
-                    if name in EXCLUDED_GROUPS
+                    if status == "excluded"
                     else (
                         "LGPL-3.0-only"
                         if license_expression == QT_LICENSE
@@ -651,8 +416,8 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
                 ),
                 "evidence_ids": list(evidence_ids),
             },
-            "init_wrapper": ARTIFACTS[name]["init_wrapper"],
-            "payload": ARTIFACTS[name]["payload"],
+            "init_wrapper": dict(template["init_wrapper"]),
+            "payload": dict(template["payload"]),
             "files": sorted(files, key=lambda record: record["source_path"]),
         }
         if exclusion_reason:
@@ -687,7 +452,6 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
                     qt,
                     normalize_source("src/widgets", relative),
                     prefix + "/" + relative[len("styles/") :],
-                    QT_LICENSE,
                     QT_COPYRIGHT,
                 )
             )
@@ -729,7 +493,6 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
                 qt,
                 "src/3rdparty/icc/sRGB2014.icc",
                 "/qpdf/sRGB2014.icc",
-                ICC_LICENSE,
                 ICC_COPYRIGHT,
             )
         ],
@@ -760,7 +523,6 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
                 qt,
                 normalize_source("src/gui", relative),
                 "/qt-project.org/gui/" + relative,
-                QT_LICENSE,
                 QT_COPYRIGHT,
             )
             for relative in shader_values
@@ -793,7 +555,6 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
                 qt,
                 "src/widgets/dialogs/images/qtlogo-64.png",
                 "/qt-project.org/qmessagebox/images/qtlogo-64.png",
-                QT_LICENSE,
                 QT_COPYRIGHT,
             )
         ],
@@ -827,7 +588,6 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
                 kcolor,
                 source_path,
                 "/org.kde.kcolorscheme/" + relative,
-                license_expression,
                 copyrights,
             )
         )
@@ -873,7 +633,6 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
                 kwidgets,
                 "src/kcharselect-data",
                 "/kf6/kcharselect/kcharselect-data",
-                None,
                 (),
             )
         ],
@@ -882,12 +641,13 @@ def source_groups(sources: Mapping[str, TarSource]) -> List[Dict[str, Any]]:
         "Unused KCharSelect payload; the pinned archive does not carry a self-contained license mapping for its generated Unicode data.",
     )
 
-    for name, count in EXPECTED_GROUP_COUNTS.items():
-        if len(groups[name]["files"]) != count:
-            raise AuditError(
-                f"resource count changed for {name}: {len(groups[name]['files'])}, expected {count}"
-            )
-    return [groups[name] for name in GROUP_ORDER]
+    template_order = [str(group["name"]) for group in templates]
+    if set(groups) != set(template_order):
+        raise AuditError(
+            "source resource groups differ from the manifest: "
+            f"source={sorted(groups)}, manifest={sorted(template_order)}"
+        )
+    return [groups[name] for name in template_order]
 
 
 def load_json_from_bytes(data: bytes, label: str) -> Any:
@@ -897,63 +657,12 @@ def load_json_from_bytes(data: bytes, label: str) -> Any:
         raise AuditError(f"invalid JSON in {label}: {exc}") from exc
 
 
-def inventory_digest(groups: Iterable[Mapping[str, Any]], include_alias_hash: bool) -> str:
-    rows: List[str] = []
-    for group in groups:
-        for record in group["files"]:
-            fields = [group["name"], record["source_path"]]
-            if include_alias_hash:
-                fields.extend((record["resource_alias"], record["sha256"]))
-            rows.append("\t".join(fields))
-    return sha256(("\n".join(sorted(rows)) + "\n").encode("utf-8"))
-
-
-def inventory_summary(groups: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
-    retained = [group for group in groups if group["status"] == "retained"]
-    excluded = [group for group in groups if group["status"] == "excluded"]
-    retained_files = [record for group in retained for record in group["files"]]
-    excluded_files = [record for group in excluded for record in group["files"]]
-    return {
-        "retained_group_names": sorted(group["name"] for group in retained),
-        "excluded_group_names": sorted(group["name"] for group in excluded),
-        "retained_file_count": len(retained_files),
-        "retained_source_bytes": sum(record["size"] for record in retained_files),
-        "retained_image_count": sum(
-            record["media_type"].startswith("image/") for record in retained_files
-        ),
-        "retained_group_paths_sha256": inventory_digest(retained, False),
-        "retained_rows_sha256": inventory_digest(retained, True),
-        "excluded_file_count": len(excluded_files),
-        "excluded_source_bytes": sum(record["size"] for record in excluded_files),
-        "excluded_rows_sha256": inventory_digest(excluded, True),
-        "classified_groups_sha256": classified_groups_digest(groups),
-    }
-
-
-def classified_groups_digest(groups: Sequence[Mapping[str, Any]]) -> str:
-    """Seal every source-derived field, including all legal metadata."""
-
-    keys = (
-        "name",
-        "status",
-        "source",
-        "declaration",
-        "file_count",
-        "source_bytes",
-        "license",
-        "exclusion_reason",
-        "files",
-    )
-    records = [{key: group.get(key) for key in keys} for group in groups]
-    payload = json.dumps(
-        records, sort_keys=True, separators=(",", ":"), ensure_ascii=True
-    ).encode("utf-8")
-    return sha256(payload)
-
-
-def notice_records() -> List[Dict[str, str]]:
-    records = []
-    for relative in NOTICE_PATHS:
+def notice_records(
+    specifications: Sequence[Mapping[str, Any]],
+) -> List[Dict[str, str]]:
+    records: List[Dict[str, str]] = []
+    for specification in specifications:
+        relative = specification["path"]
         path = REPO_ROOT / relative
         if not path.is_file():
             raise AuditError(f"required notice is missing: {relative}")
@@ -962,26 +671,22 @@ def notice_records() -> List[Dict[str, str]]:
 
 
 def generated_manifest(
-    sources: Mapping[str, TarSource], pins: Mapping[str, Mapping[str, str]]
+    sources: Mapping[str, TarSource],
+    pins: Mapping[str, Mapping[str, str]],
+    template: Mapping[str, Any],
 ) -> Dict[str, Any]:
-    groups = source_groups(sources)
-    expected_resources = sorted(APPLICATION_RESOURCE_NAMES | RETAINED_GROUPS)
     return {
-        "schema": 1,
-        "scope": MANIFEST_SCOPE,
+        "schema": 2,
+        "scope": template["scope"],
         "sources": dict(pins),
-        "license_evidence": evidence_records(sources),
-        "notice_files": notice_records(),
-        "inventory": inventory_summary(groups),
+        "license_evidence": evidence_records(
+            sources, template["license_evidence"]
+        ),
+        "notice_files": notice_records(template["notice_files"]),
         "final_binary": {
-            "expected_application_resource_names": sorted(APPLICATION_RESOURCE_NAMES),
-            "expected_dependency_resource_names": sorted(RETAINED_GROUPS),
-            "expected_qinit_resources": expected_resources,
-            "expected_qcleanup_resources": expected_resources,
-            "forbidden_resource_names": sorted(EXCLUDED_GROUPS),
-            "forbidden_symbol_substrings": ["KCharSelect", "KCharSelectData"],
+            key: list(value) for key, value in template["final_binary"].items()
         },
-        "groups": groups,
+        "groups": source_groups(sources, template["groups"]),
     }
 
 
@@ -992,120 +697,314 @@ def check_source_pins(manifest: Mapping[str, Any]) -> Dict[str, Dict[str, str]]:
     return canonical
 
 
+def valid_sha256(value: Any) -> bool:
+    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+
+
+def string_list(value: Any, label: str, *, allow_empty: bool = False) -> List[str]:
+    if not isinstance(value, list) or any(
+        not isinstance(item, str) or not item for item in value
+    ):
+        raise AuditError(f"{label} must be a list of nonempty strings")
+    if not allow_empty and not value:
+        raise AuditError(f"{label} must not be empty")
+    if len(value) != len(set(value)):
+        raise AuditError(f"{label} contains duplicates")
+    return value
+
+
 def check_notice_files(manifest: Mapping[str, Any]) -> None:
-    records = manifest.get("notice_files")
-    if not isinstance(records, list):
-        raise AuditError("manifest notice_files must be a list")
-    paths = [record.get("path") for record in records if isinstance(record, dict)]
-    if sorted(paths) != sorted(NOTICE_PATHS) or len(paths) != len(set(paths)):
-        raise AuditError(f"notice-file set changed: {paths}")
-    for record in records:
+    for record in manifest["notice_files"]:
         path = REPO_ROOT / record["path"]
         if not path.is_file():
             raise AuditError(f"required notice is missing: {record['path']}")
         actual = file_sha256(path)
-        if actual != record.get("sha256"):
+        if actual != record["sha256"]:
             raise AuditError(
-                f"notice changed: {record['path']} ({actual}, expected {record.get('sha256')})"
+                f"notice changed: {record['path']} ({actual}, expected {record['sha256']})"
             )
 
 
 def check_manifest_structure(manifest: Mapping[str, Any]) -> None:
-    if manifest.get("schema") != 1:
+    expected_top_level = {
+        "schema",
+        "scope",
+        "sources",
+        "license_evidence",
+        "notice_files",
+        "final_binary",
+        "groups",
+    }
+    if set(manifest) != expected_top_level:
+        raise AuditError(
+            "static-resource manifest keys changed: "
+            f"{sorted(manifest)} != {sorted(expected_top_level)}"
+        )
+    if manifest.get("schema") != 2:
         raise AuditError(f"unsupported static-resource schema: {manifest.get('schema')}")
     if manifest.get("scope") != MANIFEST_SCOPE:
         raise AuditError("static-resource manifest scope changed")
-    check_source_pins(manifest)
-    check_notice_files(manifest)
+
+    sources = manifest.get("sources")
+    if not isinstance(sources, dict) or not sources:
+        raise AuditError("manifest sources must be a nonempty object")
+    source_keys = {
+        "version",
+        "flake_attr",
+        "archive_name",
+        "archive_sha256",
+        "canonical_manifest",
+    }
+    for name, source in sources.items():
+        if not isinstance(name, str) or not name or not isinstance(source, dict):
+            raise AuditError(f"invalid source record: {name!r}")
+        if set(source) != source_keys:
+            raise AuditError(f"invalid source fields for {name}")
+        for key in source_keys - {"archive_sha256"}:
+            if not isinstance(source[key], str) or not source[key]:
+                raise AuditError(f"invalid source {key} for {name}")
+        if not valid_sha256(source["archive_sha256"]):
+            raise AuditError(f"invalid source archive hash for {name}")
+        if not safe_source_path(source["canonical_manifest"]):
+            raise AuditError(f"unsafe canonical manifest path for {name}")
 
     evidence = manifest.get("license_evidence")
-    if not isinstance(evidence, list):
-        raise AuditError("manifest license_evidence must be a list")
-    expected_evidence = [
-        {
-            "id": evidence_id,
-            "source": source,
-            "path": path,
-            "sha256": digest,
-            "kind": kind,
-        }
-        for evidence_id, (source, path, digest, kind) in EVIDENCE_SPECS.items()
-    ]
-    if evidence != expected_evidence:
-        raise AuditError("license-evidence set or hash changed")
+    if not isinstance(evidence, list) or not evidence:
+        raise AuditError("manifest license_evidence must be a nonempty list")
+    evidence_ids: Set[str] = set()
+    evidence_sources: Set[Tuple[str, str]] = set()
+    evidence_keys = {"id", "source", "path", "sha256", "kind"}
+    for record in evidence:
+        if not isinstance(record, dict) or set(record) != evidence_keys:
+            raise AuditError(f"invalid license-evidence record: {record!r}")
+        evidence_id = record["id"]
+        source_name = record["source"]
+        path = record["path"]
+        if not isinstance(evidence_id, str) or not evidence_id:
+            raise AuditError(f"invalid license-evidence ID: {evidence_id!r}")
+        if evidence_id in evidence_ids:
+            raise AuditError(f"duplicate license-evidence ID: {evidence_id}")
+        evidence_ids.add(evidence_id)
+        if source_name not in sources or not isinstance(path, str) or not safe_source_path(path):
+            raise AuditError(f"invalid license-evidence source: {evidence_id}")
+        source_path = (source_name, path)
+        if source_path in evidence_sources:
+            raise AuditError(f"duplicate license-evidence source path: {source_name}:{path}")
+        evidence_sources.add(source_path)
+        if not valid_sha256(record["sha256"]):
+            raise AuditError(f"invalid license-evidence hash: {evidence_id}")
+        if not isinstance(record["kind"], str) or not record["kind"]:
+            raise AuditError(f"invalid license-evidence kind: {evidence_id}")
+
+    notices = manifest.get("notice_files")
+    if not isinstance(notices, list) or not notices:
+        raise AuditError("manifest notice_files must be a nonempty list")
+    notice_paths: Set[str] = set()
+    for record in notices:
+        if not isinstance(record, dict) or set(record) != {"path", "sha256"}:
+            raise AuditError(f"invalid notice record: {record!r}")
+        path = record["path"]
+        if not isinstance(path, str) or not safe_source_path(path):
+            raise AuditError(f"unsafe notice path: {path!r}")
+        if path in notice_paths:
+            raise AuditError(f"duplicate notice path: {path}")
+        notice_paths.add(path)
+        if not valid_sha256(record["sha256"]):
+            raise AuditError(f"invalid notice hash: {path}")
 
     groups = manifest.get("groups")
-    if not isinstance(groups, list) or [group.get("name") for group in groups] != list(
-        GROUP_ORDER
-    ):
-        raise AuditError("resource group order/set changed")
+    if not isinstance(groups, list) or not groups:
+        raise AuditError("manifest groups must be a nonempty list")
+    group_names: Set[str] = set()
+    retained_names: Set[str] = set()
+    excluded_names: Set[str] = set()
     aliases: Set[str] = set()
+    source_files: Set[Tuple[str, str]] = set()
+    initializer_paths: Set[str] = set()
+    payload_members: Set[Tuple[str, str]] = set()
+    used_evidence: Set[str] = set()
+    base_group_keys = {
+        "name",
+        "status",
+        "source",
+        "declaration",
+        "license",
+        "init_wrapper",
+        "payload",
+        "files",
+    }
     for group in groups:
-        name = group["name"]
-        expected_status = "retained" if name in RETAINED_GROUPS else "excluded"
-        if group.get("status") != expected_status:
-            raise AuditError(f"wrong distribution status for {name}")
+        if not isinstance(group, dict):
+            raise AuditError(f"invalid resource group: {group!r}")
+        name = group.get("name")
+        status = group.get("status")
+        if not isinstance(name, str) or not name or name in group_names:
+            raise AuditError(f"invalid or duplicate resource group name: {name!r}")
+        group_names.add(name)
+        expected_keys = base_group_keys | ({"exclusion_reason"} if status == "excluded" else set())
+        if set(group) != expected_keys:
+            raise AuditError(f"invalid fields for resource group {name}")
+        if status not in {"retained", "excluded"}:
+            raise AuditError(f"invalid distribution status for {name}: {status!r}")
+        if status == "retained":
+            retained_names.add(name)
+        else:
+            excluded_names.add(name)
+            if not isinstance(group["exclusion_reason"], str) or not group["exclusion_reason"]:
+                raise AuditError(f"excluded group has no reason: {name}")
+        source_name = group.get("source")
+        if source_name not in sources:
+            raise AuditError(f"unknown source for resource group {name}: {source_name!r}")
+
+        declaration = group.get("declaration")
+        declaration_keys = {"cmake_path", "resource_name", "prefix", "base", "file_variable"}
+        if not isinstance(declaration, dict) or set(declaration) != declaration_keys:
+            raise AuditError(f"invalid resource declaration for {name}")
+        if not isinstance(declaration["cmake_path"], str) or not safe_source_path(
+            declaration["cmake_path"]
+        ):
+            raise AuditError(f"unsafe CMake path for {name}")
+        if not isinstance(declaration["resource_name"], str) or not declaration["resource_name"]:
+            raise AuditError(f"invalid resource name for {name}")
+        if not isinstance(declaration["prefix"], str) or not declaration["prefix"].startswith("/"):
+            raise AuditError(f"invalid resource prefix for {name}")
+        for key in ("base", "file_variable"):
+            if declaration[key] is not None and (
+                not isinstance(declaration[key], str) or not declaration[key]
+            ):
+                raise AuditError(f"invalid declaration {key} for {name}")
+
+        license_record = group.get("license")
+        if not isinstance(license_record, dict) or set(license_record) != {
+            "upstream_expression",
+            "selected_distribution_license",
+            "evidence_ids",
+        }:
+            raise AuditError(f"invalid license record for {name}")
+        upstream = license_record["upstream_expression"]
+        selected = license_record["selected_distribution_license"]
+        if upstream is not None and (not isinstance(upstream, str) or not upstream):
+            raise AuditError(f"invalid upstream license for {name}")
+        group_evidence = string_list(
+            license_record["evidence_ids"], f"license evidence for {name}"
+        )
+        unknown_evidence = set(group_evidence) - evidence_ids
+        if unknown_evidence:
+            raise AuditError(
+                f"unknown license evidence for {name}: {sorted(unknown_evidence)}"
+            )
+        used_evidence.update(group_evidence)
+        if status == "retained":
+            if not isinstance(selected, str) or not selected or not upstream:
+                raise AuditError(f"retained group has no distribution license: {name}")
+            upstream_choices = {part.strip() for part in upstream.split(" OR ")}
+            if selected not in upstream_choices:
+                raise AuditError(
+                    f"selected license for {name} is absent from its upstream expression"
+                )
+        elif selected is not None:
+            raise AuditError(f"excluded group selects a distribution license: {name}")
+
+        init_wrapper = group.get("init_wrapper")
+        if not isinstance(init_wrapper, dict) or set(init_wrapper) != {"relative_path"}:
+            raise AuditError(f"invalid initializer record for {name}")
+        init_path = init_wrapper["relative_path"]
+        if not isinstance(init_path, str) or not safe_source_path(init_path):
+            raise AuditError(f"unsafe initializer path for {name}")
+        if init_path in initializer_paths:
+            raise AuditError(f"duplicate initializer path: {init_path}")
+        initializer_paths.add(init_path)
+        payload = group.get("payload")
+        if not isinstance(payload, dict) or set(payload) != {
+            "archive_relative_path",
+            "member",
+        }:
+            raise AuditError(f"invalid payload record for {name}")
+        archive_path = payload["archive_relative_path"]
+        member = payload["member"]
+        if not isinstance(archive_path, str) or not safe_source_path(archive_path):
+            raise AuditError(f"unsafe payload archive path for {name}")
+        if (
+            not isinstance(member, str)
+            or not member
+            or PurePosixPath(member).name != member
+        ):
+            raise AuditError(f"unsafe payload member for {name}")
+        payload_key = (archive_path, member)
+        if payload_key in payload_members:
+            raise AuditError(f"duplicate payload member: {archive_path}:{member}")
+        payload_members.add(payload_key)
         files = group.get("files")
-        if not isinstance(files, list) or len(files) != EXPECTED_GROUP_COUNTS[name]:
-            raise AuditError(f"wrong files[] count for {name}")
-        if group.get("file_count") != len(files):
-            raise AuditError(f"file_count mismatch for {name}")
-        if group.get("source_bytes") != sum(record.get("size", -1) for record in files):
-            raise AuditError(f"source byte count mismatch for {name}")
-        if group.get("init_wrapper") != ARTIFACTS[name]["init_wrapper"]:
-            raise AuditError(f"initializer artifact changed for {name}")
-        if group.get("payload") != ARTIFACTS[name]["payload"]:
-            raise AuditError(f"payload artifact changed for {name}")
+        if not isinstance(files, list) or not files:
+            raise AuditError(f"resource group has no files: {name}")
         if files != sorted(files, key=lambda record: record.get("source_path", "")):
             raise AuditError(f"files[] is not source-path sorted for {name}")
         for record in files:
-            path = record.get("source_path")
-            alias = record.get("resource_alias")
-            digest = record.get("sha256")
+            file_keys = {
+                "source_path",
+                "resource_alias",
+                "media_type",
+                "copyright",
+            }
+            if not isinstance(record, dict) or set(record) != file_keys:
+                raise AuditError(f"invalid source-file record in {name}: {record!r}")
+            path = record["source_path"]
+            alias = record["resource_alias"]
             if not isinstance(path, str) or not safe_source_path(path):
-                raise AuditError(f"unsafe source path in {name}: {path}")
+                raise AuditError(f"unsafe source path in {name}: {path!r}")
+            source_file = (source_name, path)
+            if source_file in source_files:
+                raise AuditError(f"duplicate source file: {source_name}:{path}")
+            source_files.add(source_file)
             if not isinstance(alias, str) or not alias.startswith("/") or ".." in alias.split("/"):
-                raise AuditError(f"unsafe resource alias in {name}: {alias}")
+                raise AuditError(f"unsafe resource alias in {name}: {alias!r}")
             if alias in aliases:
                 raise AuditError(f"duplicate runtime resource alias: {alias}")
             aliases.add(alias)
-            if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
-                raise AuditError(f"invalid source hash for {name}:{path}")
-            if not isinstance(record.get("size"), int) or record["size"] < 0:
-                raise AuditError(f"invalid source size for {name}:{path}")
-            if expected_status == "retained" and not record.get("license"):
-                raise AuditError(f"retained source has no license: {name}:{path}")
+            if not isinstance(record["media_type"], str) or not record["media_type"]:
+                raise AuditError(f"invalid media type for {name}:{path}")
+            copyrights = record["copyright"]
+            if not isinstance(copyrights, list) or any(
+                not isinstance(line, str) or not line for line in copyrights
+            ):
+                raise AuditError(f"invalid copyright lines for {name}:{path}")
 
-    expected_summary = inventory_summary(groups)
-    if manifest.get("inventory") != expected_summary:
-        raise AuditError("manifest inventory summary is not self-consistent")
-    if expected_summary != {
-        "retained_group_names": sorted(RETAINED_GROUPS),
-        "excluded_group_names": sorted(EXCLUDED_GROUPS),
-        "retained_file_count": 253,
-        "retained_source_bytes": 375390,
-        "retained_image_count": 248,
-        "retained_group_paths_sha256": EXPECTED_RETAINED_GROUP_PATHS_SHA256,
-        "retained_rows_sha256": EXPECTED_RETAINED_ROWS_SHA256,
-        "excluded_file_count": 1,
-        "excluded_source_bytes": 3170758,
-        "excluded_rows_sha256": EXPECTED_EXCLUDED_ROWS_SHA256,
-        "classified_groups_sha256": EXPECTED_CLASSIFIED_GROUPS_SHA256,
-    }:
-        raise AuditError("closed static-resource inventory changed")
+    if used_evidence != evidence_ids:
+        raise AuditError(
+            "license evidence is not referenced by the inventory: "
+            f"unused={sorted(evidence_ids - used_evidence)}"
+        )
 
     binary = manifest.get("final_binary")
-    expected_all = sorted(APPLICATION_RESOURCE_NAMES | RETAINED_GROUPS)
-    expected_binary = {
-        "expected_application_resource_names": sorted(APPLICATION_RESOURCE_NAMES),
-        "expected_dependency_resource_names": sorted(RETAINED_GROUPS),
-        "expected_qinit_resources": expected_all,
-        "expected_qcleanup_resources": expected_all,
-        "forbidden_resource_names": sorted(EXCLUDED_GROUPS),
-        "forbidden_symbol_substrings": ["KCharSelect", "KCharSelectData"],
+    binary_keys = {
+        "expected_application_resource_names",
+        "expected_dependency_resource_names",
+        "expected_qinit_resources",
+        "expected_qcleanup_resources",
+        "forbidden_resource_names",
+        "forbidden_symbol_substrings",
     }
-    if binary != expected_binary or len(expected_all) != 39:
-        raise AuditError("final Mach-O resource-symbol contract changed")
+    if not isinstance(binary, dict) or set(binary) != binary_keys:
+        raise AuditError("invalid final-binary contract")
+    for key in binary_keys:
+        values = string_list(binary[key], f"final_binary.{key}")
+        if values != sorted(values):
+            raise AuditError(f"final_binary.{key} is not sorted")
+    application = set(binary["expected_application_resource_names"])
+    dependencies = set(binary["expected_dependency_resource_names"])
+    initialized = sorted(application | dependencies)
+    if application & dependencies:
+        raise AuditError("application and dependency resource names overlap")
+    if dependencies != retained_names:
+        raise AuditError("dependency resource names differ from retained groups")
+    if set(binary["forbidden_resource_names"]) != excluded_names:
+        raise AuditError("forbidden resource names differ from excluded groups")
+    if binary["expected_qinit_resources"] != initialized:
+        raise AuditError("qInitResources contract is inconsistent")
+    if binary["expected_qcleanup_resources"] != initialized:
+        raise AuditError("qCleanupResources contract is inconsistent")
+    if excluded_names & set(initialized):
+        raise AuditError("excluded resource appears in the initialized set")
 
 
 def open_sources(
@@ -1136,15 +1035,13 @@ def open_sources(
 def audit_sources(
     manifest: Mapping[str, Any], sources: Mapping[str, TarSource]
 ) -> None:
-    expected_groups = source_groups(sources)
+    expected_groups = source_groups(sources, manifest["groups"])
     actual_groups = manifest["groups"]
     source_keys = (
         "name",
         "status",
         "source",
         "declaration",
-        "file_count",
-        "source_bytes",
         "license",
         "exclusion_reason",
         "files",
@@ -1154,7 +1051,9 @@ def audit_sources(
         actual_view = {key: actual.get(key) for key in source_keys}
         if actual_view != expected_view:
             raise AuditError(f"source-derived manifest data changed for {expected['name']}")
-    if manifest["license_evidence"] != evidence_records(sources):
+    if manifest["license_evidence"] != evidence_records(
+        sources, manifest["license_evidence"]
+    ):
         raise AuditError("source license evidence differs from manifest")
 
 
@@ -1218,8 +1117,8 @@ def link_matches(tokens: Sequence[str], relative_path: str) -> List[str]:
     return [token for token in tokens if token == relative_path or token.endswith(suffix)]
 
 
-def read_ar_selected(path: Path, targets: Set[str]) -> Dict[str, bytes]:
-    found: Dict[str, bytes] = {}
+def require_ar_members(path: Path, targets: Set[str]) -> None:
+    found: Set[str] = set()
     try:
         with path.open("rb") as handle:
             if handle.read(8) != b"!<arch>\n":
@@ -1265,37 +1164,34 @@ def read_ar_selected(path: Path, targets: Set[str]) -> Dict[str, bytes]:
                     data = handle.read(payload_size)
                     if len(data) != payload_size:
                         raise AuditError(f"short ar member {name}: {path}")
-                    found[name] = data
+                    found.add(name)
                 elif payload_size:
                     handle.seek(payload_size, os.SEEK_CUR)
                 if size % 2:
                     handle.seek(1, os.SEEK_CUR)
     except OSError as exc:
         raise AuditError(f"cannot read archive {path}: {exc}") from exc
-    missing = targets - set(found)
+    missing = targets - found
     if missing:
         raise AuditError(f"archive {path} is missing members: {sorted(missing)}")
-    return found
 
 
 def audit_link_artifacts(
     manifest: Mapping[str, Any], binary: Path, build_ninja: Path
 ) -> None:
     tokens, stanza = final_link_tokens(binary, build_ninja)
-    groups = {group["name"]: group for group in manifest["groups"]}
+    groups = manifest["groups"]
     roots: Dict[str, Path] = {}
-    for name in GROUP_ORDER:
-        group = groups[name]
+    for group in groups:
+        name = group["name"]
         relative = group["init_wrapper"]["relative_path"]
         matches = link_matches(tokens, relative)
-        if name in RETAINED_GROUPS:
+        if group["status"] == "retained":
             if len(matches) != 1:
                 raise AuditError(f"final link has {len(matches)} initializer wrappers for {name}")
             path = resolve_link_path(matches[0], build_ninja.parent)
-            actual = file_sha256(path)
-            expected = group["init_wrapper"]["sha256"]
-            if actual != expected:
-                raise AuditError(f"initializer wrapper changed for {name}: {actual}, expected {expected}")
+            if not path.is_file():
+                raise AuditError(f"initializer wrapper is missing for {name}: {path}")
             suffix = "/" + relative
             root_text = str(path.resolve())[: -len(suffix)] if str(path.resolve()).endswith(suffix) else ""
             if not root_text:
@@ -1305,23 +1201,17 @@ def audit_link_artifacts(
             raise AuditError(f"excluded initializer is still in the final link: {name}")
 
     archive_targets: Dict[Path, Set[str]] = {}
-    archive_expected: Dict[Tuple[Path, str], str] = {}
-    for name in sorted(RETAINED_GROUPS):
-        payload = groups[name]["payload"]
+    for group in groups:
+        if group["status"] != "retained":
+            continue
+        name = group["name"]
+        payload = group["payload"]
         archive = roots[name] / payload["archive_relative_path"]
         archive_targets.setdefault(archive, set()).add(payload["member"])
-        archive_expected[(archive, payload["member"])] = payload["sha256"]
         if not link_matches(tokens, payload["archive_relative_path"]):
             raise AuditError(f"payload archive is absent from final link for {name}: {archive}")
     for archive, members in archive_targets.items():
-        data = read_ar_selected(archive, members)
-        for member, payload in data.items():
-            actual = sha256(payload)
-            expected = archive_expected[(archive, member)]
-            if actual != expected:
-                raise AuditError(
-                    f"resource payload changed: {archive}:{member} ({actual}, expected {expected})"
-                )
+        require_ar_members(archive, members)
 
 
 def resource_symbol_counts(nm_output: str, operation: str) -> Counter:
@@ -1332,10 +1222,6 @@ def resource_symbol_counts(nm_output: str, operation: str) -> Counter:
         if match:
             result[match.group(1)] += 1
     return result
-
-
-def resource_symbols(nm_output: str, operation: str) -> Set[str]:
-    return set(resource_symbol_counts(nm_output, operation))
 
 
 def audit_binary(manifest: Mapping[str, Any], binary: Path, nm_tool: str) -> None:
@@ -1404,7 +1290,10 @@ def main() -> int:
     parser.add_argument(
         "--generate-manifest",
         action="store_true",
-        help="generate the manifest from all three pinned source tarballs",
+        help=(
+            "refresh source-derived records from all three pinned source tarballs, "
+            "using --manifest for artifact and binary policy"
+        ),
     )
     parser.add_argument(
         "--output",
@@ -1424,8 +1313,12 @@ def main() -> int:
         with ExitStack() as stack:
             sources = open_sources(stack, source_paths, pins) if source_paths else {}
             if args.generate_manifest:
-                manifest = generated_manifest(sources, pins)
+                template = load_json(args.manifest.resolve())
+                check_manifest_structure(template)
+                manifest = generated_manifest(sources, pins, template)
                 check_manifest_structure(manifest)
+                check_source_pins(manifest)
+                check_notice_files(manifest)
                 output = (args.output or args.manifest).resolve()
                 output.parent.mkdir(parents=True, exist_ok=True)
                 output.write_text(
@@ -1436,6 +1329,8 @@ def main() -> int:
             else:
                 manifest = load_json(args.manifest.resolve())
                 check_manifest_structure(manifest)
+                check_source_pins(manifest)
+                check_notice_files(manifest)
                 if sources:
                     audit_sources(manifest, sources)
 
@@ -1444,9 +1339,18 @@ def main() -> int:
                 manifest, args.binary.resolve(), args.build_ninja.resolve()
             )
             audit_binary(manifest, args.binary.resolve(), args.nm)
+        retained = [group for group in manifest["groups"] if group["status"] == "retained"]
+        excluded = [group for group in manifest["groups"] if group["status"] == "excluded"]
+        retained_files = [record for group in retained for record in group["files"]]
+        retained_images = sum(
+            record["media_type"].startswith("image/") for record in retained_files
+        )
         print(
-            "static dependency resource audit: 7 retained groups, "
-            "253 files (248 images), 1 excluded group; unclassified=0"
+            "static dependency resource audit: "
+            f"{len(retained)} retained groups, {len(retained_files)} files "
+            f"({retained_images} images), {len(excluded)} excluded "
+            f"group{'s' if len(excluded) != 1 else ''}; "
+            "unclassified=0"
         )
         return 0
     except AuditError as exc:

@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema": 2,
   "scope": "Static QtBase and KF6 non-code resources linked into LibrePaint for iOS",
   "sources": {
     "qtbase": {
@@ -84,14 +84,6 @@
   ],
   "notice_files": [
     {
-      "path": "LICENSES/CC0-1.0.txt",
-      "sha256": "6a573fb2f9082662978cf21fb153096df0a1981deaea7dbc10a11046fe005d9f"
-    },
-    {
-      "path": "LICENSES/GPL-3.0-only.txt",
-      "sha256": "2ca9503d76d1ffab14f599b4741382eec11face60ad1f0d7a41897809003a286"
-    },
-    {
       "path": "LICENSES/LGPL-2.0-or-later.txt",
       "sha256": "de588a8b1c41fe73ffe1201f9d12c718a988ed8e1302929625a6e7c2bced7461"
     },
@@ -100,53 +92,14 @@
       "sha256": "476b03829862ab7e3ed920f87fad3de3c995f7dd93c26476eb40f0117de43fdc"
     },
     {
-      "path": "LICENSES/LGPL-3.0-or-later.txt",
-      "sha256": "476b03829862ab7e3ed920f87fad3de3c995f7dd93c26476eb40f0117de43fdc"
-    },
-    {
       "path": "LICENSES/LicenseRef-ICC-License.txt",
       "sha256": "9e34ff47b3a44814e183342e7e198d127a6740e29d20e8381fba7688dafc79dd"
     },
     {
-      "path": "packaging/ios/manifests/non-code-licenses.md",
-      "sha256": "c0c935ea72c47dacff120a5e93b6832f044569d17b7ce62a8e092bd6f74d89c1"
-    },
-    {
-      "path": "packaging/ios/notices/librepaint-brand-assets.md",
-      "sha256": "693cd7df07e1a32df98888d0c708a7c0fa4e0acb03e0c1cac73c08512d45f1ef"
-    },
-    {
       "path": "packaging/ios/notices/qtbase-icc-attribution.json",
       "sha256": "509da9bd2b3f769c730aa4627b1080d65f39b0ecd4130111c9e1122e13cd35b5"
-    },
-    {
-      "path": "packaging/ios/notices/retained-functional-assets.md",
-      "sha256": "4b709a819864bd83fd59beae6d277ee3905a77fb57bd7a052f8291089fa3efbd"
     }
   ],
-  "inventory": {
-    "retained_group_names": [
-      "color_schemes",
-      "gui_shaders",
-      "qmessagebox",
-      "qpdf",
-      "qstyle",
-      "qstyle1",
-      "qstyle_fusion"
-    ],
-    "excluded_group_names": [
-      "kcharselect_data"
-    ],
-    "retained_file_count": 253,
-    "retained_source_bytes": 375390,
-    "retained_image_count": 248,
-    "retained_group_paths_sha256": "5c38e08615a236ed5d92e4c470b28b7f374a287d320350483b896afd97cc041b",
-    "retained_rows_sha256": "47bdb8a5d999c997d92d58c1ed6f1a4b9a634845a908c700eebdfe8dd1252e2a",
-    "excluded_file_count": 1,
-    "excluded_source_bytes": 3170758,
-    "excluded_rows_sha256": "24b2a0144ca84f30fb66d38a89f6ef79f48b6e2f7e62c9eb7619eb5188d15d3c",
-    "classified_groups_sha256": "01517ce02cce0e412b6499abb2bd23d6542a7273483532d70eeeb33e0846ca30"
-  },
   "final_binary": {
     "expected_application_resource_names": [
       "aboutdata",
@@ -293,8 +246,6 @@
         "base": "painting",
         "file_variable": "qpdf_resource_files"
       },
-      "file_count": 1,
-      "source_bytes": 3024,
       "license": {
         "upstream_expression": "LicenseRef-ICC-License",
         "selected_distribution_license": "LicenseRef-ICC-License",
@@ -305,22 +256,17 @@
         ]
       },
       "init_wrapper": {
-        "relative_path": "lib/objects-Release/Gui_resources_1/.qt/rcc/qrc_qpdf_init.cpp.o",
-        "sha256": "4afd210e6009f6e190a3a6905336eeadc4ffca5844ca4fee56296b2881c7b0fb"
+        "relative_path": "lib/objects-Release/Gui_resources_1/.qt/rcc/qrc_qpdf_init.cpp.o"
       },
       "payload": {
         "archive_relative_path": "lib/libQt6Gui.a",
-        "member": "qrc_qpdf.cpp.o",
-        "sha256": "d33341b88d77dba982eeb4210ae1e2017c92dca4997ecdcfd2d4b3c344173713"
+        "member": "qrc_qpdf.cpp.o"
       },
       "files": [
         {
           "source_path": "src/3rdparty/icc/sRGB2014.icc",
           "resource_alias": "/qpdf/sRGB2014.icc",
-          "size": 3024,
-          "sha256": "384b832de3412066743b52a75ee906b6fb9fb8d9e09e936fc2c43223815c6e0a",
           "media_type": "application/vnd.iccprofile",
-          "license": "LicenseRef-ICC-License",
           "copyright": [
             "Copyright International Color Consortium, 2015"
           ]
@@ -338,8 +284,6 @@
         "base": null,
         "file_variable": null
       },
-      "file_count": 2,
-      "source_bytes": 3065,
       "license": {
         "upstream_expression": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
         "selected_distribution_license": "LGPL-3.0-only",
@@ -348,22 +292,17 @@
         ]
       },
       "init_wrapper": {
-        "relative_path": "lib/objects-Release/Gui_resources_2/.qt/rcc/qrc_gui_shaders_init.cpp.o",
-        "sha256": "5218ca6e1ca4a2c4ba7a26031c5c71baa23c7e6e2147ad05c80f78899fcb60ab"
+        "relative_path": "lib/objects-Release/Gui_resources_2/.qt/rcc/qrc_gui_shaders_init.cpp.o"
       },
       "payload": {
         "archive_relative_path": "lib/libQt6Gui.a",
-        "member": "qrc_gui_shaders.cpp.o",
-        "sha256": "22da096b123f518071c1003ef72e44a075e0c5f7305f29f5cf61fbfdeeaff084"
+        "member": "qrc_gui_shaders.cpp.o"
       },
       "files": [
         {
           "source_path": "src/gui/painting/shaders/backingstorecompose.frag.qsb",
           "resource_alias": "/qt-project.org/gui/painting/shaders/backingstorecompose.frag.qsb",
-          "size": 1657,
-          "sha256": "2c4b5b7415b6dfa562615ed9a836e2c8f16087ca2e381faa1b1a05972ce06c1b",
           "media_type": "application/vnd.qt.qsb",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -371,10 +310,7 @@
         {
           "source_path": "src/gui/painting/shaders/backingstorecompose.vert.qsb",
           "resource_alias": "/qt-project.org/gui/painting/shaders/backingstorecompose.vert.qsb",
-          "size": 1408,
-          "sha256": "e5e191ff1f94085d082b5d73417945fc312f178a27dbce884390f9d838fb5231",
           "media_type": "application/vnd.qt.qsb",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -392,8 +328,6 @@
         "base": "styles",
         "file_variable": "qstyle_resource_files"
       },
-      "file_count": 203,
-      "source_bytes": 336268,
       "license": {
         "upstream_expression": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
         "selected_distribution_license": "LGPL-3.0-only",
@@ -402,22 +336,17 @@
         ]
       },
       "init_wrapper": {
-        "relative_path": "lib/objects-Release/Widgets_resources_1/.qt/rcc/qrc_qstyle_init.cpp.o",
-        "sha256": "c5fa0fda87d10876627d841c8c2bbe5230900bfe60907c41ffaacab0c05407be"
+        "relative_path": "lib/objects-Release/Widgets_resources_1/.qt/rcc/qrc_qstyle_init.cpp.o"
       },
       "payload": {
         "archive_relative_path": "lib/libQt6Widgets.a",
-        "member": "qrc_qstyle.cpp.o",
-        "sha256": "08defc643961f385d0eb777fe9786346bb5ee6701eb6c9c79392b9027924358c"
+        "member": "qrc_qstyle.cpp.o"
       },
       "files": [
         {
           "source_path": "src/widgets/styles/images/arrow-down-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-down-128.png",
-          "size": 279,
-          "sha256": "fe8c2aaba4e822a379db7e5f03a578374f3f5adc6bb7a6ce213df54cfebd088f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -425,10 +354,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-down-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-down-16.png",
-          "size": 206,
-          "sha256": "a30f5977e6aab8b73f7a349d978f8e747c2c05a48e771068a6e4db8c111d106e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -436,10 +362,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-down-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-down-32.png",
-          "size": 766,
-          "sha256": "f52d5d61efa18e62796390795cb89da15139858beb61cae244d78a3b2bf5b919",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -447,10 +370,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-left-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-left-128.png",
-          "size": 279,
-          "sha256": "349aefac47084d14c779e708e642b3116adeb98de0e4d4f035940d80d1e80171",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -458,10 +378,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-left-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-left-16.png",
-          "size": 207,
-          "sha256": "19ba1505e2c807ceebcd717c3b27c35ed573dec561aafd763749bc806b069ded",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -469,10 +386,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-left-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-left-32.png",
-          "size": 733,
-          "sha256": "62cf06a2af6318838ed1ec8dfb5b0e8652b99778f165ddb93dfd945a90c1fc3e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -480,10 +394,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-right-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-right-128.png",
-          "size": 264,
-          "sha256": "52eb5b8b32ac9dd90f1d61c0495b2686f5f6766092b9fedb1a0210b9d9a6c8bb",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -491,10 +402,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-right-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-right-16.png",
-          "size": 196,
-          "sha256": "5ac21bc5eab167c9bae32b9f9f49a6152cebbd87af29fb195400b6ccd207e807",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -502,10 +410,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-right-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-right-32.png",
-          "size": 805,
-          "sha256": "54169ea34c2210c6765ec8063b1395e32264b8f11cb0200fde2a2f7a6159ec2c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -513,10 +418,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-up-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-up-128.png",
-          "size": 261,
-          "sha256": "9d03a603b7b773a92112cbb1b34685a6ff41ce298d06f54a6a3f2a82cd772633",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -524,10 +426,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-up-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-up-16.png",
-          "size": 205,
-          "sha256": "acdbb0f5c05b83df166423f5337071120983371ca61464f89b9fc92007246ee8",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -535,10 +434,7 @@
         {
           "source_path": "src/widgets/styles/images/arrow-up-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/arrow-up-32.png",
-          "size": 629,
-          "sha256": "79876837ff7bd90da5a0f88dbfa8ec64f1283c726987a35010337fd32190807c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -546,10 +442,7 @@
         {
           "source_path": "src/widgets/styles/images/cdr-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/cdr-128.png",
-          "size": 16418,
-          "sha256": "b2c858cf2611b22c6e76bbb259fabadbee93eb0c2d0a4bef4286b0fc4ed78b8c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -557,10 +450,7 @@
         {
           "source_path": "src/widgets/styles/images/cdr-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/cdr-16.png",
-          "size": 845,
-          "sha256": "2a9c15ea6c1cdf98dc86ec3d215de2dad4bcb29d16a8a95d1558ea206b1ca27a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -568,10 +458,7 @@
         {
           "source_path": "src/widgets/styles/images/cdr-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/cdr-32.png",
-          "size": 2016,
-          "sha256": "b50bc9be661471c2a3bc753aabcbc058ea85043c4f474c107b8e4ca53d0be1f6",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -579,10 +466,7 @@
         {
           "source_path": "src/widgets/styles/images/cleartext-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/cleartext-128.png",
-          "size": 3638,
-          "sha256": "56a69228a8914dc58cf5dec25d7126b25673e6f53e0d99afc1a6c343792238f1",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -590,10 +474,7 @@
         {
           "source_path": "src/widgets/styles/images/cleartext-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/cleartext-16.png",
-          "size": 985,
-          "sha256": "5d3dc5a39aa2eeee605218224ca23548c297fe66f5c780b1695c5e341f4e2864",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -601,10 +482,7 @@
         {
           "source_path": "src/widgets/styles/images/cleartext-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/cleartext-32.png",
-          "size": 1310,
-          "sha256": "47fd67720f5aa7efc4c724dda9dd5abe96d7d897990c7f950214400249e4b881",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -612,10 +490,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-10.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/closedock-10.png",
-          "size": 284,
-          "sha256": "8afd735808caabe4676d9b8dfc5bc024650f5c019f51cbd543f2fcc9999d127e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -623,10 +498,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/closedock-16.png",
-          "size": 299,
-          "sha256": "6d82d571e05e3b9b8af338e7fc6c7fee21bbaf8e038490a7a2a87080bcc1c5b2",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -634,10 +506,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-20.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/closedock-20.png",
-          "size": 374,
-          "sha256": "f627b045314cd3c4dc98b2bf07f959f7ccab4008e7bb36002b9632d0a4b18063",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -645,10 +514,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/closedock-32.png",
-          "size": 368,
-          "sha256": "bd0bca522926ecde4758d32f2c1dc2c13a38728ba3b20ead0c97c09a863a0751",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -656,10 +522,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-48.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/closedock-48.png",
-          "size": 468,
-          "sha256": "4f13d1bca52f6a89a2bfc1c950698bc7e51d59c522ae6f636bef71839f609094",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -667,10 +530,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-64.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/closedock-64.png",
-          "size": 541,
-          "sha256": "f8e7c3f0daa4230108ccd78ee106ef4517681dfd6b53fa829b7b39a43faa45f7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -678,10 +538,7 @@
         {
           "source_path": "src/widgets/styles/images/computer-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/computer-16.png",
-          "size": 782,
-          "sha256": "ecbba89c66c46b6f98ba503495b9193fde98274a6645059489149f73ae04ef34",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -689,10 +546,7 @@
         {
           "source_path": "src/widgets/styles/images/computer-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/computer-32.png",
-          "size": 1807,
-          "sha256": "ee181d7b245c8eb628f4ab58f4ec23946a3b95e51dc12361d2716ec773f14042",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -700,10 +554,7 @@
         {
           "source_path": "src/widgets/styles/images/critical-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/critical-128.png",
-          "size": 2938,
-          "sha256": "3bd2b08182b7b8d8536df0c16e0f70e286ea1826fdd27d7572b46ace831032c7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -711,10 +562,7 @@
         {
           "source_path": "src/widgets/styles/images/critical-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/critical-16.png",
-          "size": 835,
-          "sha256": "d67f5934bada238801016eaf1dd98c69d99caa9b6f2ed4741ee86d9bfd174e5f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -722,10 +570,7 @@
         {
           "source_path": "src/widgets/styles/images/critical-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/critical-32.png",
-          "size": 1148,
-          "sha256": "cec91ad911f2cf38d934958e49a3c71f1f568cfbe8bfd84688e74a7ed660fe26",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -733,10 +578,7 @@
         {
           "source_path": "src/widgets/styles/images/desktop-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/desktop-16.png",
-          "size": 773,
-          "sha256": "7d15d470d58abe1aab485b44fd0bd3e3862295a50566ecd9781a353d631b187f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -744,10 +586,7 @@
         {
           "source_path": "src/widgets/styles/images/desktop-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/desktop-32.png",
-          "size": 1103,
-          "sha256": "0ef26c8e8100c90e727ed519083c075093aee7acaf9df37f56c88f59eba214e8",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -755,10 +594,7 @@
         {
           "source_path": "src/widgets/styles/images/dirclosed-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dirclosed-128.png",
-          "size": 1386,
-          "sha256": "8e03c4cb34c8e8cdab9c512807696ff565505ee8babce65ae1466d664f883757",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -766,10 +602,7 @@
         {
           "source_path": "src/widgets/styles/images/dirclosed-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dirclosed-16.png",
-          "size": 231,
-          "sha256": "1e846378ff0b4921a445a9b20ae04335be2ab80c9cc13f13a9ab8cf80988a659",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -777,10 +610,7 @@
         {
           "source_path": "src/widgets/styles/images/dirclosed-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dirclosed-32.png",
-          "size": 474,
-          "sha256": "ad459c13eb3b1fcd034b3b817cc06fe3753778b7c10751dd7e78c5762175b995",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -788,10 +618,7 @@
         {
           "source_path": "src/widgets/styles/images/dirlink-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dirlink-128.png",
-          "size": 5155,
-          "sha256": "5dd4166f9765fe7988c8b0420fd155249b2b7cdc8630203c94151baca2499c0c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -799,10 +626,7 @@
         {
           "source_path": "src/widgets/styles/images/dirlink-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dirlink-16.png",
-          "size": 416,
-          "sha256": "5d2c8551d046abf637c87094794cab8fa89f5424d569b886ba490d593a61b786",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -810,10 +634,7 @@
         {
           "source_path": "src/widgets/styles/images/dirlink-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dirlink-32.png",
-          "size": 1046,
-          "sha256": "cde9a67a7c347fa52e169c8807a8ed79f04c7cca4ddd5df49ed9f80301c35ef3",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -821,10 +642,7 @@
         {
           "source_path": "src/widgets/styles/images/diropen-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/diropen-128.png",
-          "size": 2075,
-          "sha256": "3e725df0f6c5cb979599acc63cc4a782d5163affabd019059ba07cfa3079570d",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -832,10 +650,7 @@
         {
           "source_path": "src/widgets/styles/images/diropen-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/diropen-16.png",
-          "size": 248,
-          "sha256": "0f5f4f504a1d1553ad3149645770d1dd7985ed26299725b0a9263e7972e284e9",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -843,10 +658,7 @@
         {
           "source_path": "src/widgets/styles/images/diropen-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/diropen-32.png",
-          "size": 633,
-          "sha256": "0cb3db5852bd9be5797d8302ad4d2915ff210acc90208fa587338daacd222e42",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -854,10 +666,7 @@
         {
           "source_path": "src/widgets/styles/images/dvd-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dvd-128.png",
-          "size": 14941,
-          "sha256": "1a80063737ba386e6a7ded9c2c86f6cebc4f7bae73344723db3c55e747ca1b46",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -865,10 +674,7 @@
         {
           "source_path": "src/widgets/styles/images/dvd-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dvd-16.png",
-          "size": 892,
-          "sha256": "cf580eb358e73c1882e262853f64d4217b739e8616e5dcbf4bdb3e64f0ee8b13",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -876,10 +682,7 @@
         {
           "source_path": "src/widgets/styles/images/dvd-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/dvd-32.png",
-          "size": 2205,
-          "sha256": "28383b44eb5ba73d3d5023b16c53c183ff62375cf6c4980e17671c7aa993a48b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -887,10 +690,7 @@
         {
           "source_path": "src/widgets/styles/images/file-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/file-128.png",
-          "size": 3997,
-          "sha256": "17f7d2b6da7c0f81b2a678798f73e5786a120ab5ee9fa03080b5042a1ba9bcf8",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -898,10 +698,7 @@
         {
           "source_path": "src/widgets/styles/images/file-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/file-16.png",
-          "size": 423,
-          "sha256": "32711afa8b373192da08c0f63a29c362d3da83993107a835990c966fc3f1904b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -909,10 +706,7 @@
         {
           "source_path": "src/widgets/styles/images/file-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/file-32.png",
-          "size": 713,
-          "sha256": "74726c0f8923ec3fc64f8846663e12101ee9703e53da12d0daac7703f09c5176",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -920,10 +714,7 @@
         {
           "source_path": "src/widgets/styles/images/filecontents-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filecontents-128.png",
-          "size": 8109,
-          "sha256": "19d5a787faae8c10785a6188b8d0d931c1509aac45a6871eab94357d23143366",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -931,10 +722,7 @@
         {
           "source_path": "src/widgets/styles/images/filecontents-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filecontents-16.png",
-          "size": 766,
-          "sha256": "5bd67dba57a4990fb0310e8d0e120f7d4d878b663c170f3d37e830c46a0d6559",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -942,10 +730,7 @@
         {
           "source_path": "src/widgets/styles/images/filecontents-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filecontents-32.png",
-          "size": 1712,
-          "sha256": "990e0d851ce9da16d8cc7cc533d8237b3e3aba23401b5f96569a32d58270ac63",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -953,10 +738,7 @@
         {
           "source_path": "src/widgets/styles/images/filedialog_end-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filedialog_end-128.png",
-          "size": 1393,
-          "sha256": "d309720244c7fa7036f6cb7fc04c5a10eb111f4df48f2f5c85f0ee413a179079",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -964,10 +746,7 @@
         {
           "source_path": "src/widgets/styles/images/filedialog_end-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filedialog_end-16.png",
-          "size": 686,
-          "sha256": "10f62b7797fade399360ca256206b400576895bbbae760fb64dd2d42a86b596f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -975,10 +754,7 @@
         {
           "source_path": "src/widgets/styles/images/filedialog_end-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filedialog_end-32.png",
-          "size": 787,
-          "sha256": "524424bbc4d7c378a631e7f88d611b83892aa570b635874c5831b593377b6dd6",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -986,10 +762,7 @@
         {
           "source_path": "src/widgets/styles/images/filedialog_start-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filedialog_start-128.png",
-          "size": 1326,
-          "sha256": "c9d3543b2ca4cf20f946c3e6441c591d4179bb4e21fd8fc8cc5514d6e979e6a5",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -997,10 +770,7 @@
         {
           "source_path": "src/widgets/styles/images/filedialog_start-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filedialog_start-16.png",
-          "size": 677,
-          "sha256": "1eae6484e76cc51499b22e6343325321d603640b8cc89398af39954ea3b52d32",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1008,10 +778,7 @@
         {
           "source_path": "src/widgets/styles/images/filedialog_start-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filedialog_start-32.png",
-          "size": 761,
-          "sha256": "d5dad998be4dd94dd3a3052ac347a95435c92cbd9db538dd8841d0cef2c78fa5",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1019,10 +786,7 @@
         {
           "source_path": "src/widgets/styles/images/fileinfo-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/fileinfo-128.png",
-          "size": 12002,
-          "sha256": "4c816d7df31e059b5767435454e61d7ec4c18ac5779c14f03aea25120762697e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1030,10 +794,7 @@
         {
           "source_path": "src/widgets/styles/images/fileinfo-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/fileinfo-16.png",
-          "size": 849,
-          "sha256": "2b2d6534110fa633bb9c599ccc47b4841077493e719235d13fba1bb74baaffe6",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1041,10 +802,7 @@
         {
           "source_path": "src/widgets/styles/images/fileinfo-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/fileinfo-32.png",
-          "size": 2010,
-          "sha256": "3d9a16babd6e84b33f26527561d7915affbde00176076d91c26cb55db2570624",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1052,10 +810,7 @@
         {
           "source_path": "src/widgets/styles/images/filelink-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filelink-128.png",
-          "size": 5601,
-          "sha256": "e2d796a397e6cd9edc272e3b9825e83dd822dece652fc972f4e8dce81d1651cf",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1063,10 +818,7 @@
         {
           "source_path": "src/widgets/styles/images/filelink-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filelink-16.png",
-          "size": 566,
-          "sha256": "4a414644d999e651aa63c162b7b291967df19f02b0b6ce4edc512ea822eb53ab",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1074,10 +826,7 @@
         {
           "source_path": "src/widgets/styles/images/filelink-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/filelink-32.png",
-          "size": 1192,
-          "sha256": "6984cf36ac94afb52049984d3d59a23cca1e949a3c509c6dc42d72619dc0e7e7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1085,10 +834,7 @@
         {
           "source_path": "src/widgets/styles/images/floppy-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/floppy-128.png",
-          "size": 5074,
-          "sha256": "d7129901bb8c6d78fd65c34ec02c56d9b7be271275d69a8fb3970b7b68ca58e8",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1096,10 +842,7 @@
         {
           "source_path": "src/widgets/styles/images/floppy-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/floppy-16.png",
-          "size": 602,
-          "sha256": "4bd3b50b1ef0fd4026b7e3885ac8292552ead185bfa849059fd35ac8ff487888",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1107,10 +850,7 @@
         {
           "source_path": "src/widgets/styles/images/floppy-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/floppy-32.png",
-          "size": 1019,
-          "sha256": "f338de3b9ad715b104b404ddf67ed44e0a3bd46aed2b8be13f3a98b9f1a53978",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1118,10 +858,7 @@
         {
           "source_path": "src/widgets/styles/images/fontbitmap-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/fontbitmap-16.png",
-          "size": 537,
-          "sha256": "7f31399999bd3df623fb87a19a861302d6e4f8ea36b7dc8885676d14ec15b5bc",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1129,10 +866,7 @@
         {
           "source_path": "src/widgets/styles/images/fonttruetype-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/fonttruetype-16.png",
-          "size": 442,
-          "sha256": "d1166cdb6c4f48e6276e9e00a0687541d1b6ef6a9c5b7e7fd1096d852d1ace59",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1140,10 +874,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_groupbox.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/fusion_groupbox.png",
-          "size": 485,
-          "sha256": "93e84c1c9fe28c8740aa2ceb8ee08a92e579e6acfd89432142905fa8f149a4e8",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1151,10 +882,7 @@
         {
           "source_path": "src/widgets/styles/images/harddrive-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/harddrive-128.png",
-          "size": 11250,
-          "sha256": "cc1024d73024d59830f6e2a49eb490a613c89e7b2159cb631d1693dd01136c76",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1162,10 +890,7 @@
         {
           "source_path": "src/widgets/styles/images/harddrive-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/harddrive-16.png",
-          "size": 802,
-          "sha256": "0dde1c0b77151dd93c5532d17cf862d3bdf2931a073504f99fdac700e47fb42a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1173,10 +898,7 @@
         {
           "source_path": "src/widgets/styles/images/harddrive-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/harddrive-32.png",
-          "size": 1751,
-          "sha256": "4fa480b31bd0b1a05273a2393cbef82fdcda47da4f86e93e5205495b2d30dd6c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1184,10 +906,7 @@
         {
           "source_path": "src/widgets/styles/images/information-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/information-128.png",
-          "size": 2099,
-          "sha256": "8cc6285553d961dc2aa90e5db92ee6dc1b6de33ccd9105737ae2bba9d711028e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1195,10 +914,7 @@
         {
           "source_path": "src/widgets/styles/images/information-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/information-16.png",
-          "size": 697,
-          "sha256": "f440aff48d2274fa1a5cf742cce0663ffa279dcc421f35876dbe2a9f91784f1f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1206,10 +922,7 @@
         {
           "source_path": "src/widgets/styles/images/information-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/information-32.png",
-          "size": 874,
-          "sha256": "a229dab9406e5a1e77758b815b14f93b3b1e19246cba4014bd487048ef7fc9ba",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1217,10 +930,7 @@
         {
           "source_path": "src/widgets/styles/images/media-pause-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-pause-128.png",
-          "size": 678,
-          "sha256": "00761cda01c5786ea1f6d59f9dc05809b855ce926dc42c15f8ee2b86b572e591",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1228,10 +938,7 @@
         {
           "source_path": "src/widgets/styles/images/media-pause-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-pause-16.png",
-          "size": 181,
-          "sha256": "ba4a4669c0a1c75d7cf3fedd1b17d5e09a2d60a824626218eb678e8c1fc6041a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1239,10 +946,7 @@
         {
           "source_path": "src/widgets/styles/images/media-pause-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-pause-32.png",
-          "size": 249,
-          "sha256": "95d475613676b32ee158f8da37e78f26523e692a519633429eaf987290516f31",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1250,10 +954,7 @@
         {
           "source_path": "src/widgets/styles/images/media-play-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-play-128.png",
-          "size": 780,
-          "sha256": "02ea08cc780be61308eebb30f311600352da23968e69eb39b35a993eeb38f19d",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1261,10 +962,7 @@
         {
           "source_path": "src/widgets/styles/images/media-play-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-play-16.png",
-          "size": 200,
-          "sha256": "de380b34ddf9b13b3d6b1dc6ae69083a53b03adaa78fa86bf3c1299eb491742a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1272,10 +970,7 @@
         {
           "source_path": "src/widgets/styles/images/media-play-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-play-32.png",
-          "size": 272,
-          "sha256": "e2d533e39e37a5611d2286ec670b2802643cd33cf0a526dd734aa70a83a18094",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1283,10 +978,7 @@
         {
           "source_path": "src/widgets/styles/images/media-seek-backward-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-seek-backward-128.png",
-          "size": 969,
-          "sha256": "7f90de5a17d8956030f1fa59cc71be00e0b296ecab66432679c6d054bc99e6fa",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1294,10 +986,7 @@
         {
           "source_path": "src/widgets/styles/images/media-seek-backward-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-seek-backward-16.png",
-          "size": 217,
-          "sha256": "4d60b6980dc7ffae6277ec036656e09081e8ee02b02be67123599c2187e91f8c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1305,10 +994,7 @@
         {
           "source_path": "src/widgets/styles/images/media-seek-backward-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-seek-backward-32.png",
-          "size": 293,
-          "sha256": "a9af0d11ed213d0d932dda189e46d6c3e18c2281a66fe8bc7dfa5f9cc2429e93",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1316,10 +1002,7 @@
         {
           "source_path": "src/widgets/styles/images/media-seek-forward-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-seek-forward-128.png",
-          "size": 957,
-          "sha256": "84746e0c7d4e3d81015739dfe5308ddf56dd7df8bed56b6ce92d7c9c0bc09044",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1327,10 +1010,7 @@
         {
           "source_path": "src/widgets/styles/images/media-seek-forward-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-seek-forward-16.png",
-          "size": 217,
-          "sha256": "f1a5cef687c9086709768e30f865aab85855a6c0acaa4be32b16af2aebd1f1dd",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1338,10 +1018,7 @@
         {
           "source_path": "src/widgets/styles/images/media-seek-forward-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-seek-forward-32.png",
-          "size": 291,
-          "sha256": "bc7fa978ccda37a3a5948cac7b73c061ee68c2a27de704ff070a948f779302ad",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1349,10 +1026,7 @@
         {
           "source_path": "src/widgets/styles/images/media-skip-backward-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-skip-backward-128.png",
-          "size": 964,
-          "sha256": "99b6af93098728671f7007b33ac43cbd23a0fcf0d1d1cea1bc5c3c3e3011af08",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1360,10 +1034,7 @@
         {
           "source_path": "src/widgets/styles/images/media-skip-backward-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-skip-backward-16.png",
-          "size": 240,
-          "sha256": "03b6a16c41617bae2dea147436fbfcd666c93ea3ba740d14a4f85993d78cd4b4",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1371,10 +1042,7 @@
         {
           "source_path": "src/widgets/styles/images/media-skip-backward-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-skip-backward-32.png",
-          "size": 310,
-          "sha256": "1e2f7c28e17b283c85fa1d9b7ae99ffaef8070ec6af0bf2cac08e31506ddc8a9",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1382,10 +1050,7 @@
         {
           "source_path": "src/widgets/styles/images/media-skip-forward-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-skip-forward-128.png",
-          "size": 977,
-          "sha256": "bbf338fd02cb8247a3f8ae8c7d8cbbdf699db590e91cc74d2eb31cf39afa554f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1393,10 +1058,7 @@
         {
           "source_path": "src/widgets/styles/images/media-skip-forward-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-skip-forward-16.png",
-          "size": 222,
-          "sha256": "cae9d9a35d660d2c6cc65b2fbceec0948769069a7e01f3feab5b96d92f5a7f0f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1404,10 +1066,7 @@
         {
           "source_path": "src/widgets/styles/images/media-skip-forward-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-skip-forward-32.png",
-          "size": 318,
-          "sha256": "18fef3f8edf01996adbcd399d4d7c7f57572bbac5a501cf114d4bdf3baf061c2",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1415,10 +1074,7 @@
         {
           "source_path": "src/widgets/styles/images/media-stop-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-stop-128.png",
-          "size": 500,
-          "sha256": "974f029db16b338fd7e858dd8a78b54b544158e45859c0b6b8036915a764dba5",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1426,10 +1082,7 @@
         {
           "source_path": "src/widgets/styles/images/media-stop-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-stop-16.png",
-          "size": 159,
-          "sha256": "1e92a6e8d67aa1e6d405c13321a9ad633d7a0b0b7e05e936faa4179655794b08",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1437,10 +1090,7 @@
         {
           "source_path": "src/widgets/styles/images/media-stop-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-stop-32.png",
-          "size": 191,
-          "sha256": "0613d47bf79e1619609d69f8a449f6ca7f3ac4eb07162a70dfd73f4ca167d2cb",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1448,10 +1098,7 @@
         {
           "source_path": "src/widgets/styles/images/media-volume-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-volume-128.png",
-          "size": 1956,
-          "sha256": "9529635c62a0d038b07fcc5a05d0604f7efe8b076442c4ff9d348cc97a0e5b63",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1459,10 +1106,7 @@
         {
           "source_path": "src/widgets/styles/images/media-volume-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-volume-16.png",
-          "size": 334,
-          "sha256": "847519dfe9ca344419e07388711b0ee222a5e37882c3862159842e3083d595e2",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1470,10 +1114,7 @@
         {
           "source_path": "src/widgets/styles/images/media-volume-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-volume-32.png",
-          "size": 549,
-          "sha256": "5b9c12accb48b997db66b78816bd8dbc2b28bcfefae04cfffd127e554e15bf60",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1481,10 +1122,7 @@
         {
           "source_path": "src/widgets/styles/images/media-volume-muted-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-volume-muted-128.png",
-          "size": 1201,
-          "sha256": "c107221a42e1261eb206760fbcdda4cf6507b9aa97af25b6521077eefa3bcf60",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1492,10 +1130,7 @@
         {
           "source_path": "src/widgets/styles/images/media-volume-muted-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-volume-muted-16.png",
-          "size": 249,
-          "sha256": "2c9fe88f3e3ebdc1760780a1facf7dd2ff4c68b226923c4c54141568eeeffb91",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1503,10 +1138,7 @@
         {
           "source_path": "src/widgets/styles/images/media-volume-muted-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/media-volume-muted-32.png",
-          "size": 375,
-          "sha256": "0b49b1ffa85df79e5830a5fcf7ca2bd6b3a7876b51ac47ce55ef49ce0a3a6627",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1514,10 +1146,7 @@
         {
           "source_path": "src/widgets/styles/images/networkdrive-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/networkdrive-128.png",
-          "size": 18075,
-          "sha256": "594dee92124465d660ede6f67cb8e5afe5ef9d0e9862f2742615e7119af4301a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1525,10 +1154,7 @@
         {
           "source_path": "src/widgets/styles/images/networkdrive-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/networkdrive-16.png",
-          "size": 885,
-          "sha256": "fe9d35a51b0eab4c8414b343a761bf877e4650ea96018e505f13e1986b88a74b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1536,10 +1162,7 @@
         {
           "source_path": "src/widgets/styles/images/networkdrive-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/networkdrive-32.png",
-          "size": 2245,
-          "sha256": "d12dcdc93a6a3a6ce9c940f831cd0a5a25a3b0c9c13dbb7aabc53deb742e1075",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1547,10 +1170,7 @@
         {
           "source_path": "src/widgets/styles/images/newdirectory-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/newdirectory-128.png",
-          "size": 7503,
-          "sha256": "4a7be4e21d906551739a943113c4a2b9caf388f7c109e0f3aea248a1e944044b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1558,10 +1178,7 @@
         {
           "source_path": "src/widgets/styles/images/newdirectory-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/newdirectory-16.png",
-          "size": 870,
-          "sha256": "a588a7839489106ab56d6bd94be5df0f5f5451ef67e85c28b62a4abafaa01ee7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1569,10 +1186,7 @@
         {
           "source_path": "src/widgets/styles/images/newdirectory-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/newdirectory-32.png",
-          "size": 1590,
-          "sha256": "8263663d433434e0005115531ed147c3ac22422661d6d1bcf4e4f446fe57543a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1580,10 +1194,7 @@
         {
           "source_path": "src/widgets/styles/images/normalizedockup-10.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/normalizedockup-10.png",
-          "size": 138,
-          "sha256": "77a11c8d4fb30ff8cbe536f7819e0d1f85c4d7b0f439b0c75395eb1f371bbaf3",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1591,10 +1202,7 @@
         {
           "source_path": "src/widgets/styles/images/normalizedockup-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/normalizedockup-16.png",
-          "size": 256,
-          "sha256": "f21a143a57b66e369d771c0c0fcba0309003a7e23b26b78914879ddfde9b95ed",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1602,10 +1210,7 @@
         {
           "source_path": "src/widgets/styles/images/normalizedockup-20.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/normalizedockup-20.png",
-          "size": 143,
-          "sha256": "5a3e1f0827c1e5e6a15bbab54e3b0deb0b9280ae318eaf0a225456eacceaa9f1",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1613,10 +1218,7 @@
         {
           "source_path": "src/widgets/styles/images/normalizedockup-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/normalizedockup-32.png",
-          "size": 273,
-          "sha256": "0cec840cb67a95c672f018d676f71774eb2ad60ab1dda3f8d157b88fc855babe",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1624,10 +1226,7 @@
         {
           "source_path": "src/widgets/styles/images/normalizedockup-48.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/normalizedockup-48.png",
-          "size": 279,
-          "sha256": "286ea669e318db11419285cb8a8e0029e673ce7bdfe49166a02de2652477653f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1635,10 +1234,7 @@
         {
           "source_path": "src/widgets/styles/images/normalizedockup-64.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/normalizedockup-64.png",
-          "size": 291,
-          "sha256": "9651b2384e2271ead56724499846db88beb95384ef04b7e06dd85d9a3e77e31f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1646,10 +1242,7 @@
         {
           "source_path": "src/widgets/styles/images/parentdir-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/parentdir-128.png",
-          "size": 8093,
-          "sha256": "42e76c67774742f6e196b96fd90503a6ef23d8c50a000476c1b2fdc91949a790",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1657,10 +1250,7 @@
         {
           "source_path": "src/widgets/styles/images/parentdir-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/parentdir-16.png",
-          "size": 938,
-          "sha256": "d459c591ffb0221bac4c28d5a1d83735ff3eb6ee57df5efd3fabf95a9bc8efaa",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1668,10 +1258,7 @@
         {
           "source_path": "src/widgets/styles/images/parentdir-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/parentdir-32.png",
-          "size": 1603,
-          "sha256": "f39bf316396eab741a4990d0c8a04a043fb2e42728f319103e859c64bd1f0882",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1679,10 +1266,7 @@
         {
           "source_path": "src/widgets/styles/images/question-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/question-128.png",
-          "size": 2770,
-          "sha256": "c2139a18dd7c512023aeff595e840127f29921adc988548af244dc10f819f5f7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1690,10 +1274,7 @@
         {
           "source_path": "src/widgets/styles/images/question-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/question-16.png",
-          "size": 797,
-          "sha256": "c05525027745f30a1adb52d3f31503a28db320502f316d24fd43f7f4902e4e0d",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1701,10 +1282,7 @@
         {
           "source_path": "src/widgets/styles/images/question-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/question-32.png",
-          "size": 1063,
-          "sha256": "ebebc2b76d32092218d0c3d4d638d0425716131d4ad3c53bb92643b47fddb23d",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1712,10 +1290,7 @@
         {
           "source_path": "src/widgets/styles/images/refresh-24.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/refresh-24.png",
-          "size": 1654,
-          "sha256": "a5c7714d925faddbca5c6f6c0bb5741ea177739742f04833baaab829cd90a3de",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1723,10 +1298,7 @@
         {
           "source_path": "src/widgets/styles/images/refresh-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/refresh-32.png",
-          "size": 2431,
-          "sha256": "a10a06cf3c37f20ec64985a5d0e6d4d3275320becf76342974cbf07d6c1518b7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1734,10 +1306,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-apply-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-apply-128.png",
-          "size": 5298,
-          "sha256": "72603b2f91c90e3d0683f120794acca2434e5f1cdd59bf71be88ddd458e0c924",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1745,10 +1314,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-apply-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-apply-16.png",
-          "size": 735,
-          "sha256": "4df2cf782af42753f7979281d538bfd4e2557ff10a11975aa7295579a0620036",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1756,10 +1322,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-apply-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-apply-32.png",
-          "size": 1219,
-          "sha256": "3e4d91d1386b7eecdbe033f5d81db3c505f6021f775704771368a427fb999bef",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1767,10 +1330,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-cancel-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-cancel-128.png",
-          "size": 7039,
-          "sha256": "27d443182dcbfb370de576731c95343458b537bd6ef283af983a6666a083ae0d",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1778,10 +1338,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-cancel-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-cancel-16.png",
-          "size": 689,
-          "sha256": "8ea029a7ee25703438011a7d57f638192a97cea8098f43bb4d49d2d9b886ff9a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1789,10 +1346,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-cancel-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-cancel-32.png",
-          "size": 1573,
-          "sha256": "61ff921362a278f0909eaebea580de1dcee848f202572ba81b7b49d90abb8416",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1800,10 +1354,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-clear-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-clear-128.png",
-          "size": 3094,
-          "sha256": "d591c2508762f694b92ec30c9a4df6458c2aa58ea4fab8a79dfa915e2b9877da",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1811,10 +1362,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-clear-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-clear-16.png",
-          "size": 456,
-          "sha256": "a9fd30541df3d3b6a1a3a743694f3c7980e8af94a4a5191c16862d6ab6bdfa24",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1822,10 +1370,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-clear-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-clear-32.png",
-          "size": 866,
-          "sha256": "a270cfc5de667e9ac5a18366a71d11921f643009d833325d4ba55b29a8191259",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1833,10 +1378,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-close-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-close-128.png",
-          "size": 4512,
-          "sha256": "a079679d90212f6c8cb764a84c1c3d7ee87fe72825aefff019a805670556ac5a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1844,10 +1386,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-close-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-close-16.png",
-          "size": 366,
-          "sha256": "ac16ff183aebf3513f412bd255084195f7dbe7890811c7500f08b83de7689620",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1855,10 +1394,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-close-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-close-32.png",
-          "size": 780,
-          "sha256": "440e530c2041e6d3ffa915648367c98555f25db789480b02042c1c2a90359490",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1866,10 +1402,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-128.png",
-          "size": 1657,
-          "sha256": "4a22d1d3a6dce27bd0a24c8cd9bf55fb60d56e3a3dc11529e30f559b50d303a6",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1877,10 +1410,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-16.png",
-          "size": 674,
-          "sha256": "38b5bfa11d4cbe58c228e84589fafe65c6d49e1439d9f610a4d6b3f8aa558992",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1888,10 +1418,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-32.png",
-          "size": 819,
-          "sha256": "6f34bc45f0a06a49653aef1a7a084d6d35e4f683d3c47728ffb1d45c452291db",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1899,10 +1426,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-down-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-down-128.png",
-          "size": 1599,
-          "sha256": "2df4802e765dc6b5aebfff59ac2dfabe41671029e36baf7645ea5e0b2ce986e6",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1910,10 +1434,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-down-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-down-16.png",
-          "size": 666,
-          "sha256": "51b97188c399c162ca47619e7432dd1d944b9043da2b13d884f6990a09921e9c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1921,10 +1442,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-down-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-down-32.png",
-          "size": 810,
-          "sha256": "84944c7f70e2717d0aa3c44850a08fa41341658358faed72f048fb19f3003b27",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1932,10 +1450,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-hover-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-hover-128.png",
-          "size": 1660,
-          "sha256": "068a2800af8a1715bbea70f9a912297d8e656f2b638705fdc277a6dc05b713fd",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1943,10 +1458,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-hover-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-hover-16.png",
-          "size": 675,
-          "sha256": "e66310c69b4b589d3e26d3762a630ea1cd27e6816abb38d92489dff857ffa9c8",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1954,10 +1466,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-closetab-hover-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-closetab-hover-32.png",
-          "size": 822,
-          "sha256": "db1279d836e673082650c90c2b3e53de2a08fb08dde9772d8be03723dfca9835",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1965,10 +1474,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-delete-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-delete-128.png",
-          "size": 5414,
-          "sha256": "7558d2baecbb464905e14c3367f63e53a918c54f63108e1d1a9bcdef230be545",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1976,10 +1482,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-delete-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-delete-16.png",
-          "size": 722,
-          "sha256": "e6411b71f0a2593b12dda9f97417bc51ae20c360ca0014b9e36e2ca1301685f4",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1987,10 +1490,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-delete-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-delete-32.png",
-          "size": 1541,
-          "sha256": "a0fa70f1f3af1a5db5f5177388dac351966fda68ac49d3ce3434e00ccd955761",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -1998,10 +1498,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-help-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-help-128.png",
-          "size": 10765,
-          "sha256": "06178e72d13ec72e3ed0d6d92fe2922a59dfcb804c1cb159df0e28bb78947878",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2009,10 +1506,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-help-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-help-16.png",
-          "size": 840,
-          "sha256": "bec7a1ccd8dd5454ae2309305ec2b96b6a6f7189c001e9281e6ea49d5958924a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2020,10 +1514,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-help-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-help-32.png",
-          "size": 2066,
-          "sha256": "36e179bac71629e6846273e9211d90b7ce7f861db5564bbeca5974072bb9162e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2031,10 +1522,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-no-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-no-128.png",
-          "size": 6437,
-          "sha256": "fffd2394aa1802520b562f6fb49d06fc544e295fe16ab4f6ea9809d99ff99159",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2042,10 +1530,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-no-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-no-16.png",
-          "size": 673,
-          "sha256": "3db87c9067d735205649ad36722a051be938848384a457a05c912d112e2c1d45",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2053,10 +1538,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-no-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-no-32.png",
-          "size": 1476,
-          "sha256": "69e3a292c2a275a93b5d98dedee2cd75a895830468bb4f449dbf2bbd9760a3ab",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2064,10 +1546,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-ok-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-ok-128.png",
-          "size": 4414,
-          "sha256": "2303139a7f943442c7dda2d74d0063c23a0e5b377d702f2532918013f5ad2493",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2075,10 +1554,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-ok-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-ok-16.png",
-          "size": 584,
-          "sha256": "fa905c6124612a83736ddddb98314c9177dda94e0195afda0951126a1cf7edda",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2086,10 +1562,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-ok-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-ok-32.png",
-          "size": 1246,
-          "sha256": "974789ff0ddd0dd22953de23512c50a6a42d395a7999baceed8ee454c4d6822a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2097,10 +1570,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-open-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-open-128.png",
-          "size": 5415,
-          "sha256": "b954c4c9b88e13d2dd58babc1540745b345a571ff01f50eb6551e65b323b12dd",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2108,10 +1578,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-open-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-open-16.png",
-          "size": 629,
-          "sha256": "0b945708ca8dae17fe3f03a9acb3759f06e30460d94a1d9e79858e3acaee900b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2119,10 +1586,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-open-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-open-32.png",
-          "size": 1154,
-          "sha256": "ef5134b8bbc365a624408dc9c6e26bbadf117470679548750aea49ad2a16d092",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2130,10 +1594,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-save-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-save-128.png",
-          "size": 4398,
-          "sha256": "85bd5c9a1b749a5a1b8b4f48f3362ebcb54b6d9cfa19737df7912bbbc2ed6a3b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2141,10 +1602,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-save-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-save-16.png",
-          "size": 583,
-          "sha256": "e65913d68c49f955335937dfcf6a54db50bea03e5a1d6513258f2699a8194815",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2152,10 +1610,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-save-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-save-32.png",
-          "size": 1092,
-          "sha256": "9fa7fa9695c1b5a55df4a89c48e02998cdd9a76a2e5960c966d3c0fa619433f5",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2163,10 +1618,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-yes-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-yes-128.png",
-          "size": 6484,
-          "sha256": "7011fe8f95e61dc183afbf5a741a93569bbc28148578396fa693fe8b91511b86",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2174,10 +1626,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-yes-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-yes-16.png",
-          "size": 661,
-          "sha256": "8e764854df3b07f94dc1d438a69205c68b822534c2824c01d1f156e3e60de91c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2185,10 +1634,7 @@
         {
           "source_path": "src/widgets/styles/images/standardbutton-yes-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/standardbutton-yes-32.png",
-          "size": 1529,
-          "sha256": "59bdce54fa465af3c974509de3246beab320d32360d0f25af53829ed9b328f55",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2196,10 +1642,7 @@
         {
           "source_path": "src/widgets/styles/images/stop-24.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/stop-24.png",
-          "size": 1267,
-          "sha256": "92525edc1cb2624ee60cd29b2707553162422fce57ecc0c1e42262ce9e2f3564",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2207,10 +1650,7 @@
         {
           "source_path": "src/widgets/styles/images/stop-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/stop-32.png",
-          "size": 1878,
-          "sha256": "a04e5a06110e1e9f1de4a2f4363f560a25b520911f787d1f5534ca7d09168bec",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2218,10 +1658,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-contexthelp-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-contexthelp-16.png",
-          "size": 396,
-          "sha256": "f9de505419c97be824e58858b333c0d78239df00d86a492d9a86d7a86da53e67",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2229,10 +1666,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-contexthelp-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-contexthelp-32.png",
-          "size": 661,
-          "sha256": "e6d45b7d18dda9bf4fbfdc433c220cb257cb6a4ac8a256d3b2230c354daeb3da",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2240,10 +1674,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-contexthelp-48.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-contexthelp-48.png",
-          "size": 891,
-          "sha256": "12aefa87063dbc8a2234bdbab521704dbb3866eea94e43195514cd724b0210ae",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2251,10 +1682,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-max-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-max-16.png",
-          "size": 158,
-          "sha256": "0898e4cd6defacfa469f9d668b7d93fbe529beb31212b1a8494f25ec542de935",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2262,10 +1690,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-max-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-max-32.png",
-          "size": 163,
-          "sha256": "f1d2b2f3a44e744c9933a7b0e2c86489081ed61123a8191804ff207a7094767f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2273,10 +1698,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-max-48.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-max-48.png",
-          "size": 167,
-          "sha256": "5eadf3c46855fb7e1d504ea785cbf56245c59c78e65546cf9f8cab2f2f215a0b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2284,10 +1706,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-min-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-min-16.png",
-          "size": 166,
-          "sha256": "dfe26b3ad2703d2152c59060d1969ba3eeccfdffe4288dfa1107318ab0ccbcf7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2295,10 +1714,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-min-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-min-32.png",
-          "size": 171,
-          "sha256": "2be9cc01b6f532d4715ecacc56af54a39e2c5e9d4a88c8b707013eb0bf5c91bc",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2306,10 +1722,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-min-48.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-min-48.png",
-          "size": 175,
-          "sha256": "80ab14e7fce7968006ed03207312c5b88590a3dc7c6360cadb3bbea0e01b7a2d",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2317,10 +1730,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-shade-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-shade-16.png",
-          "size": 253,
-          "sha256": "9348139ddcd3d398d5ca85d28877f67b74ce009c83e310da6afa73ff5a5b5c73",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2328,10 +1738,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-shade-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-shade-32.png",
-          "size": 282,
-          "sha256": "ed65855499f3630bb9b5992632ac48af3ea6d649c762ca22e7de8924baad7089",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2339,10 +1746,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-shade-48.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-shade-48.png",
-          "size": 339,
-          "sha256": "05f1b8c9336bdc1376a7b50ebca3aef95fa35a981d56f34d8f82e4b36f971c40",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2350,10 +1754,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-unshade-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-unshade-16.png",
-          "size": 244,
-          "sha256": "5c525a852e1747e13f1acb30fce37775716265b087c4d7fee46b461f75de9919",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2361,10 +1762,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-unshade-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-unshade-32.png",
-          "size": 294,
-          "sha256": "a772275afabca88e9d71eca958d60e0ef1c7ee787e5a0e6a70eb5088aec192d6",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2372,10 +1770,7 @@
         {
           "source_path": "src/widgets/styles/images/titlebar-unshade-48.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/titlebar-unshade-48.png",
-          "size": 336,
-          "sha256": "ee11cc4a440a7056a0a8e15461f04d68534492f22b0c3914bd2d9a5370076567",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2383,10 +1778,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-h-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-h-128.png",
-          "size": 1765,
-          "sha256": "4550bc2ace924bfc4a3939ab0b95afd50069cb298ef5482b81f15a0d080213aa",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2394,10 +1786,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-h-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-h-16.png",
-          "size": 349,
-          "sha256": "c52802c38e3718995d4616d235929c9a10df1bf1a8fb7c5209b1a61a02e9298c",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2405,10 +1794,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-h-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-h-32.png",
-          "size": 568,
-          "sha256": "6b776046426c02dcdffd8750c00d9da0b48b8f4c3afa7f1df921fb84ca6ceebf",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2416,10 +1802,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-h-8.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-h-8.png",
-          "size": 220,
-          "sha256": "62166df3b4921829ebcbe840a615f649d58151b29e4763a6a4987e5b577715f5",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2427,10 +1810,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-h-rtl-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-h-rtl-128.png",
-          "size": 1740,
-          "sha256": "11b740f100d67190de6c562448dde7a6093a5ee565117dc7528016b8bd680e0f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2438,10 +1818,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-h-rtl-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-h-rtl-16.png",
-          "size": 128,
-          "sha256": "83e8b55fd9bc0e60efc44a956ec3c0cb5d44cce4157cc3d6fd42020cf8e1e597",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2449,10 +1826,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-h-rtl-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-h-rtl-32.png",
-          "size": 148,
-          "sha256": "f91714e2f54c8e278ad124007c46387fb5cd86ef98169629aed93168762747e3",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2460,10 +1834,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-h-rtl-8.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-h-rtl-8.png",
-          "size": 114,
-          "sha256": "1d555f70fde9c772a6398d33141186112d4f943ba20a2bf6ce84e206694abcdc",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2471,10 +1842,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-v-10.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-v-10.png",
-          "size": 387,
-          "sha256": "688e1d9824d25b88652751583a0f08b716d24c6c99794d79929580dcac5fc5fd",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2482,10 +1850,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-v-20.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-v-20.png",
-          "size": 625,
-          "sha256": "2f271c37d606ec2edc9653dc75052944162cd0cb2339187a4a4c4a919f05cd51",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2493,10 +1858,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-v-5.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-v-5.png",
-          "size": 223,
-          "sha256": "4a78f463685c3728638714b689775cf1dd8897899cf00603ba2c1455cbd14f74",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2504,10 +1866,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-v-80.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/toolbar-ext-v-80.png",
-          "size": 2035,
-          "sha256": "5ef400c7508c2cdf15f475f814367c9d2791f8dc7c496b23d79d1371808f1efc",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2515,10 +1874,7 @@
         {
           "source_path": "src/widgets/styles/images/trash-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/trash-128.png",
-          "size": 3296,
-          "sha256": "11ccf8ef5ebfc1016f9a6c22e60e1721c6cd21f3bdb718e231d2661f99c0d236",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2526,10 +1882,7 @@
         {
           "source_path": "src/widgets/styles/images/trash-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/trash-16.png",
-          "size": 419,
-          "sha256": "44065658fc8ad949003d4ac2fa1d543a5eb7aaee2a7a0e93e4070a2cc6e913c3",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2537,10 +1890,7 @@
         {
           "source_path": "src/widgets/styles/images/trash-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/trash-32.png",
-          "size": 883,
-          "sha256": "3b299bc8cd134d3acae782c575a40590f292d287c5d86273cd3edb5875ce59e9",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2548,10 +1898,7 @@
         {
           "source_path": "src/widgets/styles/images/viewdetailed-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/viewdetailed-128.png",
-          "size": 4743,
-          "sha256": "c52ca659e7c5ab8bc119d3bbf809fd6e0bc724eb6e5395e2ae0023b2e5addef7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2559,10 +1906,7 @@
         {
           "source_path": "src/widgets/styles/images/viewdetailed-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/viewdetailed-16.png",
-          "size": 499,
-          "sha256": "57aae62174165ec6d40e2d3d137d18348b2f75de7d485fa88bd5f761160cdd2b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2570,10 +1914,7 @@
         {
           "source_path": "src/widgets/styles/images/viewdetailed-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/viewdetailed-32.png",
-          "size": 1092,
-          "sha256": "bde0d742e28bb67b2297623bd9fe8ee697aabc1f17213dfd210403826c290c3f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2581,10 +1922,7 @@
         {
           "source_path": "src/widgets/styles/images/viewlist-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/viewlist-128.png",
-          "size": 4069,
-          "sha256": "a7d4b44d7a65502c3cc8ef9aeb0d5f7a7be640f884e6ea4911d1ede9e1b60cc1",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2592,10 +1930,7 @@
         {
           "source_path": "src/widgets/styles/images/viewlist-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/viewlist-16.png",
-          "size": 490,
-          "sha256": "a0aa050c4ba323bce1302893d8104726142e14dd0aea59f129fa786b88d14af0",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2603,10 +1938,7 @@
         {
           "source_path": "src/widgets/styles/images/viewlist-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/viewlist-32.png",
-          "size": 1006,
-          "sha256": "2d47b993db4c52abfb69f46ca6ebddc0af395cc65ddd1b943529d71d3d4ba77f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2614,10 +1946,7 @@
         {
           "source_path": "src/widgets/styles/images/warning-128.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/warning-128.png",
-          "size": 1625,
-          "sha256": "1d082279dc94d45d0360c8490333763ebca554acbf1e2ee844341795a83d10b9",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2625,10 +1954,7 @@
         {
           "source_path": "src/widgets/styles/images/warning-16.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/warning-16.png",
-          "size": 660,
-          "sha256": "bb3b38df27115d06724627865d8c47ee8d9da4f54c94f5601b552b20fdab9df4",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2636,10 +1962,7 @@
         {
           "source_path": "src/widgets/styles/images/warning-32.png",
           "resource_alias": "/qt-project.org/styles/commonstyle/images/warning-32.png",
-          "size": 799,
-          "sha256": "5a88291bc7b730a127e80963bb83dd0cf249cfe774e78be7741707a6c777c79a",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2657,8 +1980,6 @@
         "base": "styles",
         "file_variable": "qstyle1_resource_files"
       },
-      "file_count": 26,
-      "source_bytes": 16263,
       "license": {
         "upstream_expression": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
         "selected_distribution_license": "LGPL-3.0-only",
@@ -2667,22 +1988,17 @@
         ]
       },
       "init_wrapper": {
-        "relative_path": "lib/objects-Release/Widgets_resources_2/.qt/rcc/qrc_qstyle1_init.cpp.o",
-        "sha256": "11745378f5e0752f3aba5974e3df4200ea49328e5de409954acea3fcfdfd1e7f"
+        "relative_path": "lib/objects-Release/Widgets_resources_2/.qt/rcc/qrc_qstyle1_init.cpp.o"
       },
       "payload": {
         "archive_relative_path": "lib/libQt6Widgets.a",
-        "member": "qrc_qstyle1.cpp.o",
-        "sha256": "99cc9762f7953c906ccca1fc77f2dccdec5428248bbb514822ade668d3db0b66"
+        "member": "qrc_qstyle1.cpp.o"
       },
       "files": [
         {
           "source_path": "src/widgets/styles/images/closedock-down-macstyle-10.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-down-macstyle-10.png",
-          "size": 195,
-          "sha256": "d7ae948803d4cb2fcf4419e8a167143b827ca0d46dd38a8f6fea344a1036e326",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2690,10 +2006,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-down-macstyle-16.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-down-macstyle-16.png",
-          "size": 578,
-          "sha256": "10f28910a385ae4791e83c46ecc79bb8221522ab67f2abce10c36b6ceb8e8414",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2701,10 +2014,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-down-macstyle-20.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-down-macstyle-20.png",
-          "size": 344,
-          "sha256": "265d81570a401d2be891fd97f3d7492a4f88392b4b334c5cbeaedcf292effc53",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2712,10 +2022,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-down-macstyle-32.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-down-macstyle-32.png",
-          "size": 474,
-          "sha256": "dc56ded3a2167f64ee4bb16577a525f04368ce537b948c864fe078b59a012f7e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2723,10 +2030,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-down-macstyle-48.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-down-macstyle-48.png",
-          "size": 721,
-          "sha256": "fa123aa0d8bb96250233ef13e62c0ff2834d4b553ac09c9f8906eab8ea03e3c4",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2734,10 +2038,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-down-macstyle-64.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-down-macstyle-64.png",
-          "size": 920,
-          "sha256": "899fa221f745f5b1d3ed472c5992526a17508e370d6b1347236839054e8904cb",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2745,10 +2046,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-macstyle-10.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-macstyle-10.png",
-          "size": 309,
-          "sha256": "639f0cce7e81588a9d49e0ab6c582c37ea81801e23228513c457b8c0a1db13c7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2756,10 +2054,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-macstyle-16.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-macstyle-16.png",
-          "size": 516,
-          "sha256": "95629d118e33aac10d10984e22fbe05cfea647b3e39214649a304230b122cdb8",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2767,10 +2062,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-macstyle-20.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-macstyle-20.png",
-          "size": 579,
-          "sha256": "6919bf330fd32f6bb6a50e13ea7f4877524ad48047170ba2224ba2c35747b8b2",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2778,10 +2070,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-macstyle-32.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-macstyle-32.png",
-          "size": 938,
-          "sha256": "bf1aa3c6ec0165821a7bdb4356e298341361c05f988990d2c9cc5d875bbbae0e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2789,10 +2078,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-macstyle-48.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-macstyle-48.png",
-          "size": 1236,
-          "sha256": "0efcd642096dd62e8ee078ee148e6b51e55e76531ed961b7990bc1b69774a47d",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2800,10 +2086,7 @@
         {
           "source_path": "src/widgets/styles/images/closedock-macstyle-64.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/closedock-macstyle-64.png",
-          "size": 1495,
-          "sha256": "6b2440356c885b956c10677ef34b0ea5efb780e23704ff28d35ce7d64cc07aed",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2811,10 +2094,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-down-macstyle-10.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-down-macstyle-10.png",
-          "size": 246,
-          "sha256": "0b445ba706ddfd6d1a3dd055f3491b2581e500d87b341e61b39d276e3d4b9237",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2822,10 +2102,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-down-macstyle-16.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-down-macstyle-16.png",
-          "size": 406,
-          "sha256": "303e366d91929fde4fab7a2f0559d3c9168d56d4f4abe8eb902657cb2f0a99f7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2833,10 +2110,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-down-macstyle-20.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-down-macstyle-20.png",
-          "size": 363,
-          "sha256": "d4369a05dfea75a360a0fe7ab77d592b3b10c9418deed87c8ca639b6cb99d453",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2844,10 +2118,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-down-macstyle-32.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-down-macstyle-32.png",
-          "size": 416,
-          "sha256": "48d72a13ee6c0f8e533c9e24b9790a3173cdc70b49190cfebcf2f3ecf32d20d0",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2855,10 +2126,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-down-macstyle-48.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-down-macstyle-48.png",
-          "size": 622,
-          "sha256": "a4f0c4d20c490332c3628da76b614855a5b80986ec721bf0769c0fa208a7c742",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2866,10 +2134,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-down-macstyle-64.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-down-macstyle-64.png",
-          "size": 771,
-          "sha256": "46a52a328f67353910fb8692dce1be03c958acf3b153511ba10a9cf7babafd85",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2877,10 +2142,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-macstyle-10.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-macstyle-10.png",
-          "size": 339,
-          "sha256": "b1051223c618f0a1319ad68b19a99b8c6ca2ec95ee84da91f672d097dfa1b500",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2888,10 +2150,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-macstyle-16.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-macstyle-16.png",
-          "size": 438,
-          "sha256": "bcca61a3f0050540d2543365e216d89b5b5f7908152184e154c94e2a9acdb765",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2899,10 +2158,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-macstyle-20.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-macstyle-20.png",
-          "size": 555,
-          "sha256": "49670f58f957df18f547abe82498b60552de29c4e2c0c8774ace39c110de92c9",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2910,10 +2166,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-macstyle-32.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-macstyle-32.png",
-          "size": 654,
-          "sha256": "0def5185380f213a58f20bea69eba9bc06e3670d445082fd1013d59c1a3a77bf",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2921,10 +2174,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-macstyle-48.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-macstyle-48.png",
-          "size": 915,
-          "sha256": "c8243e7e64d44a012bd54c1c31a79455890ac2c4946183421c1a6ce32faeb203",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2932,10 +2182,7 @@
         {
           "source_path": "src/widgets/styles/images/dockdock-macstyle-64.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/dockdock-macstyle-64.png",
-          "size": 1212,
-          "sha256": "cfef10a77d3cb6540e617801b2c9e702c6fb3fb028892b18a89a4c8d839c8d49",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2943,10 +2190,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-macstyle.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/toolbar-ext-macstyle.png",
-          "size": 516,
-          "sha256": "06d328b6c705e069eb8107f9b0366b5f08faa0570242472b7d4a8b3ed81ffbf6",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2954,10 +2198,7 @@
         {
           "source_path": "src/widgets/styles/images/toolbar-ext-macstyle@2x.png",
           "resource_alias": "/qt-project.org/styles/macstyle/images/toolbar-ext-macstyle@2x.png",
-          "size": 505,
-          "sha256": "3ae4bbc1a94ccab3a2225544ef22b3da5f863528caf321b18fec9305f88e7131",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -2975,8 +2216,6 @@
         "base": "styles",
         "file_variable": "qstyle_resource_fusion_files"
       },
-      "file_count": 18,
-      "source_bytes": 5707,
       "license": {
         "upstream_expression": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
         "selected_distribution_license": "LGPL-3.0-only",
@@ -2985,22 +2224,17 @@
         ]
       },
       "init_wrapper": {
-        "relative_path": "lib/objects-Release/Widgets_resources_3/.qt/rcc/qrc_qstyle_fusion_init.cpp.o",
-        "sha256": "9a7c368380354a46dfa7b7d871461975a72ac93f54f4fde90725f661d9d19489"
+        "relative_path": "lib/objects-Release/Widgets_resources_3/.qt/rcc/qrc_qstyle_fusion_init.cpp.o"
       },
       "payload": {
         "archive_relative_path": "lib/libQt6Widgets.a",
-        "member": "qrc_qstyle_fusion.cpp.o",
-        "sha256": "bccdc41f5676aedf52896f775aa72586c29de57eb95f44f35a83e17ba72db2f1"
+        "member": "qrc_qstyle_fusion.cpp.o"
       },
       "files": [
         {
           "source_path": "src/widgets/styles/images/fusion_closedock-10.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_closedock-10.png",
-          "size": 238,
-          "sha256": "a4a0a566dedda89dda5d688a34ba802ff89b8d383252b6cb4587771b4375d260",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3008,10 +2242,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_closedock-16.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_closedock-16.png",
-          "size": 288,
-          "sha256": "b2d209220d4a47f7e513325836f325013ef33e36cb9f041a064912d5434e0a9e",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3019,10 +2250,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_closedock-20.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_closedock-20.png",
-          "size": 303,
-          "sha256": "a74e1912556faadbb37a336272a986106793f96fecc4cb2487759109788328b7",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3030,10 +2258,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_closedock-32.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_closedock-32.png",
-          "size": 333,
-          "sha256": "bff9c29073da1309de9abd3814043e8cd9f1dd4bc00a421dbd6fb342966b60b9",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3041,10 +2266,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_closedock-48.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_closedock-48.png",
-          "size": 492,
-          "sha256": "c8348eea307952ba688562fb2774dc84dbf0703419e763487a7df2b6bf517f4b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3052,10 +2274,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_closedock-64.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_closedock-64.png",
-          "size": 617,
-          "sha256": "78edabe268a820ae60d6307b0ce21ec6f0dcee70facb7d5c3269ec21a2bd81ed",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3063,10 +2282,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_normalizedockup-10.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_normalizedockup-10.png",
-          "size": 234,
-          "sha256": "7f56567ad3976de538609e1a3914ce87ae9a0d07a48baea6f219655187717568",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3074,10 +2290,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_normalizedockup-16.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_normalizedockup-16.png",
-          "size": 314,
-          "sha256": "cceb6f4669bd2ad80ec949158e33db533f22bf2454610327730398cd7190f868",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3085,10 +2298,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_normalizedockup-20.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_normalizedockup-20.png",
-          "size": 342,
-          "sha256": "e511f0993aae88e42b599a9bb94a4a9062093adc0ab1149f1ffd7be6c0166292",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3096,10 +2306,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_normalizedockup-32.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_normalizedockup-32.png",
-          "size": 413,
-          "sha256": "52e06e2a75277859b5f325525d09192937be10e22261c8e0afe706193eecef66",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3107,10 +2314,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_normalizedockup-48.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_normalizedockup-48.png",
-          "size": 487,
-          "sha256": "477fc42c67958f1e574e2910278b659c772b2dd50a7da76618c13443457bd229",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3118,10 +2322,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_normalizedockup-64.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_normalizedockup-64.png",
-          "size": 579,
-          "sha256": "11773d212be43bae5ac18b68af109ca56c25e51a45b3759f4b154f6c06156635",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3129,10 +2330,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_titlebar-min-10.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_titlebar-min-10.png",
-          "size": 167,
-          "sha256": "227397486ad44c850d88f626963ca9370ebb6fd8ba0e64ab463a8a93831cb19b",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3140,10 +2338,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_titlebar-min-16.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_titlebar-min-16.png",
-          "size": 141,
-          "sha256": "767f03d6d4b401994d01693da38dbf7995e5b91c38a7f4f4ed2c59cb932a02c4",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3151,10 +2346,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_titlebar-min-20.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_titlebar-min-20.png",
-          "size": 176,
-          "sha256": "7a80dba804621f3cff7a296bdedb633de786d3de566550b305afea8734faefcb",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3162,10 +2354,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_titlebar-min-32.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_titlebar-min-32.png",
-          "size": 214,
-          "sha256": "06e1309c322d0a9367ffd9b1b66945b0f55ca62ae204de69e074390606c8c402",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3173,10 +2362,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_titlebar-min-48.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_titlebar-min-48.png",
-          "size": 179,
-          "sha256": "35db4cf7271401cac2f149b7bbf8c7fa4ad7702eb9c22670a90e6f8c0c969029",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3184,10 +2370,7 @@
         {
           "source_path": "src/widgets/styles/images/fusion_titlebar-min-64.png",
           "resource_alias": "/qt-project.org/styles/fusionstyle/images/fusion_titlebar-min-64.png",
-          "size": 190,
-          "sha256": "a2aee3144334ff5c034d8a21bdf1a977b57cb54a24a724486999bfcec02a8a5f",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3205,8 +2388,6 @@
         "base": "dialogs",
         "file_variable": "qmessagebox_resource_files"
       },
-      "file_count": 1,
-      "source_bytes": 1219,
       "license": {
         "upstream_expression": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
         "selected_distribution_license": "LGPL-3.0-only",
@@ -3215,22 +2396,17 @@
         ]
       },
       "init_wrapper": {
-        "relative_path": "lib/objects-Release/Widgets_resources_4/.qt/rcc/qrc_qmessagebox_init.cpp.o",
-        "sha256": "5d186b3a3acda0d9e15944ecb37111590bfca8cf99a1e4ec5ee753c35e7e9cf2"
+        "relative_path": "lib/objects-Release/Widgets_resources_4/.qt/rcc/qrc_qmessagebox_init.cpp.o"
       },
       "payload": {
         "archive_relative_path": "lib/libQt6Widgets.a",
-        "member": "qrc_qmessagebox.cpp.o",
-        "sha256": "76ba4f77b5fdedb63adfa88d8d54ed5b3d06cecf3babe69882a2ae3210ac7f29"
+        "member": "qrc_qmessagebox.cpp.o"
       },
       "files": [
         {
           "source_path": "src/widgets/dialogs/images/qtlogo-64.png",
           "resource_alias": "/qt-project.org/qmessagebox/images/qtlogo-64.png",
-          "size": 1219,
-          "sha256": "af2ed27327196b7b94b2a0561e4223883af904b4afb68f44925cde8af52173c5",
           "media_type": "image/png",
-          "license": "LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only",
           "copyright": [
             "Copyright (C) The Qt Company Ltd."
           ]
@@ -3248,8 +2424,6 @@
         "base": null,
         "file_variable": null
       },
-      "file_count": 2,
-      "source_bytes": 9844,
       "license": {
         "upstream_expression": "LGPL-2.0-or-later",
         "selected_distribution_license": "LGPL-2.0-or-later",
@@ -3259,22 +2433,17 @@
         ]
       },
       "init_wrapper": {
-        "relative_path": "lib/objects-Release/KF6ColorScheme_resources_1/.qt/rcc/qrc_color_schemes_init.cpp.o",
-        "sha256": "4ee22a8a9030de77dc353a5ced97e58be3d3c32acfecd0eb47cbf808d5640ace"
+        "relative_path": "lib/objects-Release/KF6ColorScheme_resources_1/.qt/rcc/qrc_color_schemes_init.cpp.o"
       },
       "payload": {
         "archive_relative_path": "lib/libKF6ColorScheme.a",
-        "member": "qrc_color_schemes.cpp.o",
-        "sha256": "667b5441f51595188629aceadc4cb9983d4edea0cd448a22a72bf31dba783944"
+        "member": "qrc_color_schemes.cpp.o"
       },
       "files": [
         {
           "source_path": "src/color-schemes/BreezeDark.colors",
           "resource_alias": "/org.kde.kcolorscheme/color-schemes/BreezeDark.colors",
-          "size": 4949,
-          "sha256": "1beba17e90c6b441c40a73108aeaccf4c2ee13845fa06b2c7449f3e8d04e6107",
           "media_type": "text/x-kde-colorscheme",
-          "license": "LGPL-2.0-or-later",
           "copyright": [
             "Andrew Lake <jamboarder@gmail.com>",
             "Marco Martin <notmart@gmail.com>",
@@ -3288,10 +2457,7 @@
         {
           "source_path": "src/color-schemes/BreezeLight.colors",
           "resource_alias": "/org.kde.kcolorscheme/color-schemes/BreezeLight.colors",
-          "size": 4895,
-          "sha256": "63ffd2c6fc0a4225a7337e55c6b666ca1517ab11365f34f0b63e3e6629febeef",
           "media_type": "text/x-kde-colorscheme",
-          "license": "LGPL-2.0-or-later",
           "copyright": [
             "Andrew Lake <jamboarder@gmail.com>",
             "Marco Martin <notmart@gmail.com>",
@@ -3314,8 +2480,6 @@
         "base": null,
         "file_variable": null
       },
-      "file_count": 1,
-      "source_bytes": 3170758,
       "license": {
         "upstream_expression": null,
         "selected_distribution_license": null,
@@ -3324,22 +2488,17 @@
         ]
       },
       "init_wrapper": {
-        "relative_path": "lib/objects-Release/KF6WidgetsAddons_resources_1/.qt/rcc/qrc_kcharselect-data_init.cpp.o",
-        "sha256": "1fc38e3bab871be9823659621f50aa0dd560700e69ebc9661639956b6d45efe9"
+        "relative_path": "lib/objects-Release/KF6WidgetsAddons_resources_1/.qt/rcc/qrc_kcharselect-data_init.cpp.o"
       },
       "payload": {
         "archive_relative_path": "lib/libKF6WidgetsAddons.a",
-        "member": "qrc_kcharselect-data.cpp.o",
-        "sha256": "8ae31eca2b432bf215c14dbbbb953a9acd45d1391d0aa09eab82b4bfeb8348ce"
+        "member": "qrc_kcharselect-data.cpp.o"
       },
       "files": [
         {
           "source_path": "src/kcharselect-data",
           "resource_alias": "/kf6/kcharselect/kcharselect-data",
-          "size": 3170758,
-          "sha256": "c180b422a4aa7a517a160873f2d87ba1b91eb33dc2b6f27c49cd2a6c3453e6ef",
           "media_type": "application/octet-stream",
-          "license": null,
           "copyright": []
         }
       ],

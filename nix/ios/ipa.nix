@@ -100,7 +100,7 @@ stdenvNoCC.mkDerivation {
             "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/qtbase-icc-attribution.json",
             "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/retained-functional-assets.md",
             "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/static-dependency-resources.json",
-            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/white-brand-assets.json",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/ios-image-licenses.json",
             "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/bundles/README",
             "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt",
             "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt",

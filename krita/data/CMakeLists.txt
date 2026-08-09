@@ -28,7 +28,7 @@ if(IOS)
         "${CMAKE_SOURCE_DIR}/packaging/ios/manifests/default-resource-bundle-licenses.json"
         "${CMAKE_SOURCE_DIR}/packaging/ios/manifests/non-code-licenses.md"
         "${CMAKE_SOURCE_DIR}/packaging/ios/manifests/static-dependency-resources.json"
-        "${CMAKE_SOURCE_DIR}/packaging/ios/manifests/white-brand-assets.json"
+        "${CMAKE_SOURCE_DIR}/packaging/ios/manifests/ios-image-licenses.json"
         "${CMAKE_SOURCE_DIR}/packaging/ios/notices/librepaint-brand-assets.md"
         "${CMAKE_SOURCE_DIR}/packaging/ios/notices/qtbase-icc-attribution.json"
         "${CMAKE_SOURCE_DIR}/packaging/ios/notices/retained-functional-assets.md"

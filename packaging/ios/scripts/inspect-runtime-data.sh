@@ -83,7 +83,7 @@ for notice in \
     qtbase-icc-attribution.json \
     retained-functional-assets.md \
     static-dependency-resources.json \
-    white-brand-assets.json \
+    ios-image-licenses.json \
     bundles/README \
     profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt \
     profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt; do

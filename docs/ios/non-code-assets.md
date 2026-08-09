@@ -37,20 +37,17 @@ places those files under CC-BY-3.0. The remaining 244 files are CC0, including
 the LibrePaint icon preview. The complete CC-BY-3.0 and CC0-1.0
 texts are installed under `share/doc/librepaint/non-code-licenses`.
 
-`packaging/ios/manifests/default-resource-bundle-licenses.json` seals the exact
-281-file classification, the four directory entries, the source-notice and
-license-text hashes, the unmodified bundle metadata, and the four embedded PNG
-author fields. The corresponding audit also parses all 117 KPP metadata
-records, rejects an unrecorded individual legal override, and checks the
-self-contained startup brush, eraser, and color-smudge fallback. All bundle
-files have a recorded classification. Run
+`packaging/ios/manifests/default-resource-bundle-licenses.json` records the
+three license groups, their expected 244/37 totals, the bundle attribution,
+and the four embedded PNG author fields. The corresponding audit classifies
+every bundle file, parses KPP, SVG, and PNG metadata for individual legal
+overrides, and checks the bundle's internal resource manifest. Run
 `packaging/ios/scripts/audit-default-resource-bundle.py --list` to print the
 file-by-file license and classification basis.
 
-The bundle's historical generator, authorship, source website, and other
-provenance fields remain unchanged. Its root preview is a separate branding
-surface generated from the CC0 LibrePaint icon. The audit seals the preview's
-exact bytes and uses the entry-specific manifest for every other bundle file.
+The bundle metadata records its historical generator, authorship, source
+website, and other provenance. Its root preview is a separate branding surface
+derived from the CC0 LibrePaint icon.
 
 ## Source-only data groups
 
@@ -73,23 +70,18 @@ The iOS bundle profile also leaves out `Krita_3_Default_Resources.bundle`,
 particular, the RGBA bundle's license field is scoped to the default brushes,
 and the SeExpr bundle records CC-BY-SA without a version.
 
-The unused storyboard template, donation artwork, sponsor logos, and their
-installation/resource definitions have been deleted. Splash, application
-icons, document icons, and bundle previews now use the CC0 LibrePaint artwork
-described in `packaging/ios/notices/librepaint-brand-assets.md`.
+Splash, application icons, document icons, and bundle previews use the CC0
+LibrePaint artwork described in
+`packaging/ios/notices/librepaint-brand-assets.md`.
 
-The white-replacement selection is empty. The macOS DMG background now reuses
-the CC0 LibrePaint splash, while hidden or unused artwork was deleted. The
-historically named `packaging/ios/manifests/white-brand-assets.json` retains an
-empty replacement selection and the closed iOS image-license inventory; run
-`packaging/ios/scripts/replace-brand-art-with-white.py --check` to verify both.
-
-The same manifest audits the repository-owned image inputs linked into the iOS
-app. The closed QRC set contains 1,289 unique images:
+`packaging/ios/manifests/ios-image-licenses.json` is the closed license
+inventory for repository-owned image inputs linked into the iOS app. Run
+`packaging/ios/scripts/audit-ios-image-licenses.py --check` to verify it. The
+QRC set contains 1,289 unique images:
 
 - 703 SVG/SVGZ files with a direct, valid CC-BY-SA-4.0 metadata link;
-- 93 additional functional SVG files with CC-BY-SA-4.0 provenance sealed from
-  their embedded metadata and upstream licensing commits;
+- 93 additional functional SVG files with CC-BY-SA-4.0 provenance documented
+  by their embedded metadata and upstream licensing commits;
 - 297 Breeze icons and 22 Oxygen icons under LGPL-3.0-or-later;
 - two Android log icons under CC-BY-SA-4.0 with their Android robot portions
   under CC-BY-3.0;
@@ -101,15 +93,15 @@ app. The closed QRC set contains 1,289 unique images:
 The selected static plugins and data targets install another 32 functional
 images under the same project-wide GPL fallback. The audit rediscovers that set
 from 19 exact CMake install definitions, which remain its source of truth. The
-QRC and installed sets have zero unclassified images. Exact path,
-whole-content, license-URL, CMake-definition, and notice hashes are installed
-with the app alongside the complete CC, GPL, and LGPL texts and
+QRC and installed sets have zero unclassified images. The manifest records the
+explicit license groups, the QRC and CMake scope, the accepted metadata license
+URL, and the applicable notice paths. It is installed with the app alongside
+the complete CC, GPL, and LGPL texts and
 `packaging/ios/notices/retained-functional-assets.md`.
 
-The iOS QRC audit reports zero white placeholders and zero-byte images.
-Required branding surfaces use LibrePaint's CC0 artwork; unused branding,
-fundraising, sponsor, news, and disabled-tool assets were deleted. The
-source-wide white selection is empty.
+All QRC and installed-only image inputs have a license classification. Required
+branding surfaces use LibrePaint's CC0 artwork, and the macOS DMG background
+uses the same LibrePaint splash.
 
 Static Qt and KDE Frameworks dependencies add a separate, closed resource
 boundary. Seven retained groups contain 253 files: 247 functional Qt style
@@ -117,9 +109,10 @@ PNGs, the unmodified Qt about-dialog logo, two Qt backing-store shaders, one
 ICC sRGB profile used by PDF output, and two KColorScheme color definitions.
 Their exact source inventory, pinned archive hashes, generated initializer
 objects, archive payload members, license evidence, and final
-`qInitResources_*` symbols are sealed in
+`qInitResources_*` symbols are recorded in
 `packaging/ios/manifests/static-dependency-resources.json`. The corresponding
-audit rejects an added, removed, or byte-changed dependency payload.
+audit checks the pinned source inventory, linked payload members, and final
+resource symbols.
 
 The Qt-owned resources are distributed under the LGPL-3.0-only option from
 their upstream multi-license expression. The unmodified Qt logo remains only
@@ -177,9 +170,9 @@ configuration keys, and resource lookup paths.
 
 This boundary covers the installed iOS data selected by CMake. Build
 `20260807134423` was installed and launched on a physical iPad, and a QuickTime
-capture confirmed the restored functional image groups. The later removal of
-hidden UI and placeholder assets, and the cross-platform LibrePaint icon
-unification, still require a fresh build and focused device check.
+capture confirmed the restored functional image groups. The current asset set
+and cross-platform LibrePaint icon unification still require a fresh build and
+focused device check.
 
 The complete source checkout still needs a source-wide asset inventory:
 

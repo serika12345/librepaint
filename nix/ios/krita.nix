@@ -232,7 +232,7 @@ mkIOSCMakePackage {
     "LibrePaint.app/share/doc/librepaint/non-code-licenses/qtbase-icc-attribution.json"
     "LibrePaint.app/share/doc/librepaint/non-code-licenses/retained-functional-assets.md"
     "LibrePaint.app/share/doc/librepaint/non-code-licenses/static-dependency-resources.json"
-    "LibrePaint.app/share/doc/librepaint/non-code-licenses/white-brand-assets.json"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/ios-image-licenses.json"
     "LibrePaint.app/share/doc/librepaint/non-code-licenses/bundles/README"
     "LibrePaint.app/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt"
     "LibrePaint.app/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt"
@@ -240,9 +240,9 @@ mkIOSCMakePackage {
 
   postConfigure = ''
     ${python3}/bin/python3 \
-      "${kritaSource}/packaging/ios/scripts/replace-brand-art-with-white.py" \
-      --manifest "${kritaSource}/packaging/ios/manifests/white-brand-assets.json" \
-      --audit-ios-classification
+      "${kritaSource}/packaging/ios/scripts/audit-ios-image-licenses.py" \
+      --manifest "${kritaSource}/packaging/ios/manifests/ios-image-licenses.json" \
+      --check
 
     ${python3}/bin/python3 \
       "${kritaSource}/packaging/ios/scripts/audit-default-resource-bundle.py" \
@@ -423,7 +423,7 @@ mkIOSCMakePackage {
           qtbase-icc-attribution.json \
           retained-functional-assets.md \
           static-dependency-resources.json \
-          white-brand-assets.json; do
+          ios-image-licenses.json; do
           test -s "$app/share/doc/librepaint/non-code-licenses/$notice"
         done
         test -s "$app/share/doc/librepaint/non-code-licenses/bundles/README"

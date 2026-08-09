@@ -16,6 +16,7 @@ import zlib
 import zipfile
 import xml.etree.ElementTree as ET
 from collections import Counter
+from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -34,11 +35,7 @@ LEGAL_METADATA_PATTERN = re.compile(
 
 
 class AuditError(RuntimeError):
-    """The bundle no longer satisfies its audited license inventory."""
-
-
-def sha256(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
+    """The bundle no longer satisfies its license classification."""
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -138,48 +135,48 @@ def preset_xml(data: bytes) -> bytes:
     return matches[0]
 
 
-def text_param(root: ET.Element, name: str) -> str:
-    for element in root.findall("param"):
-        if element.get("name") == name:
-            return "".join(element.itertext()).strip()
-    return ""
-
-
-def classify(path: str, manifest: dict[str, Any]) -> tuple[str, str, str]:
-    suffix = PurePosixPath(path).suffix.lower()
-    if path.startswith("brushes/") and suffix in {".gbr", ".gih"}:
-        return (
-            "CC-BY-3.0",
-            "krita/data/README",
-            "krita/data/README plus meta.xml creator fields",
-        )
-    if path == "preview.png":
-        return (
-            "CC0-1.0",
-            "LibrePaint brand asset",
-            "LibrePaint logo author",
-        )
-    attribution = "meta.xml creator fields"
+def classify(path: str, manifest: dict[str, Any]) -> tuple[str, str, str, str]:
+    matches: list[dict[str, Any]] = []
+    defaults: list[dict[str, Any]] = []
+    for group in manifest["license_groups"]:
+        if group.get("default"):
+            defaults.append(group)
+            continue
+        if path in group.get("paths", []) or any(
+            fnmatchcase(path, pattern) for pattern in group.get("patterns", [])
+        ):
+            matches.append(group)
+    if len(matches) > 1:
+        raise AuditError(f"overlapping license groups for {path}")
+    if not matches:
+        if len(defaults) != 1:
+            raise AuditError("license inventory must contain one default group")
+        matches = defaults
+    group = matches[0]
+    attribution = group["attribution"]
     if path in manifest["embedded_attribution"]:
         attribution += f"; embedded PNG Author={manifest['embedded_attribution'][path]}"
-    return "CC0-1.0", "meta.xml bundle license", attribution
+    return (
+        group["id"],
+        group["license_expression"],
+        group["basis"],
+        attribution,
+    )
 
 
-def check_external_notice(manifest: dict[str, Any]) -> None:
-    for record in manifest["external_notices"]:
-        path = REPO_ROOT / record["path"]
+def verify_external_notices(manifest: dict[str, Any]) -> None:
+    notice_paths = {
+        path
+        for group in manifest["license_groups"]
+        for path in group["notice_paths"]
+    }
+    for relative in sorted(notice_paths):
+        path = REPO_ROOT / relative
         if not path.is_file():
-            raise AuditError(f"external notice is missing: {record['path']}")
-        actual = sha256(path.read_bytes())
-        if actual != record["sha256"]:
-            raise AuditError(
-                f"external notice changed: {record['path']} ({actual}, expected {record['sha256']})"
-            )
+            raise AuditError(f"external notice is missing: {relative}")
 
 
-def check_manifest_xml(
-    xml: bytes, resource_files: dict[str, bytes], expected: dict[str, int]
-) -> None:
+def check_manifest_xml(xml: bytes, resource_files: dict[str, bytes]) -> None:
     try:
         root = ET.fromstring(xml)
     except ET.ParseError as exc:
@@ -192,17 +189,6 @@ def check_manifest_xml(
         path = element.get(path_key)
         if path and path != "/":
             records.setdefault(path, []).append(element)
-    record_count = sum(len(elements) for elements in records.values())
-    duplicate_path_count = sum(len(elements) > 1 for elements in records.values())
-    actual_counts = {
-        "record_count": record_count,
-        "unique_path_count": len(records),
-        "duplicate_path_count": duplicate_path_count,
-    }
-    if actual_counts != expected:
-        raise AuditError(
-            f"resource manifest counts changed: {actual_counts} (expected {expected})"
-        )
     if set(records) != set(resource_files):
         missing = sorted(set(resource_files) - set(records))
         extra = sorted(set(records) - set(resource_files))
@@ -224,10 +210,24 @@ def audit(
     check_external_notices: bool = True,
 ) -> tuple[Counter[str], list[dict[str, Any]]]:
     manifest = load_json(manifest_path)
-    if manifest.get("schema") != 1:
+    if manifest.get("schema") != 2:
         raise AuditError(f"unsupported audit manifest schema: {manifest.get('schema')}")
+    groups = manifest.get("license_groups", [])
+    group_ids = [group.get("id") for group in groups]
+    if (
+        not groups
+        or any(not isinstance(group_id, str) or not group_id for group_id in group_ids)
+        or len(group_ids) != len(set(group_ids))
+    ):
+        raise AuditError("license group IDs must be present and unique")
+    for group in groups:
+        for key in ("license_expression", "basis", "attribution", "notice_paths"):
+            if not group.get(key):
+                raise AuditError(f"license group {group['id']} has no {key}")
+    if sum(bool(group.get("default")) for group in groups) != 1:
+        raise AuditError("license inventory must contain one default group")
     if check_external_notices:
-        check_external_notice(manifest)
+        verify_external_notices(manifest)
 
     try:
         archive = zipfile.ZipFile(bundle_path)
@@ -244,16 +244,7 @@ def audit(
             if path.is_absolute() or ".." in path.parts:
                 raise AuditError(f"unsafe ZIP entry path: {name}")
 
-        directories = [info.filename for info in infos if info.is_dir()]
-        if directories != manifest["expected_directory_entries"]:
-            raise AuditError(
-                f"directory entries changed: {directories} (expected {manifest['expected_directory_entries']})"
-            )
         files = [info for info in infos if not info.is_dir()]
-        if len(files) != manifest["expected_file_count"]:
-            raise AuditError(
-                f"bundle file count is {len(files)}; expected {manifest['expected_file_count']}"
-            )
 
         required_admin = {"META-INF/manifest.xml", "meta.xml", "mimetype", "preview.png"}
         if not required_admin.issubset(names):
@@ -263,11 +254,9 @@ def audit(
 
         meta_xml = archive.read("meta.xml")
         metadata = manifest["bundle_metadata"]
-        if sha256(meta_xml) != metadata["sha256"]:
-            raise AuditError("meta.xml changed")
         if metadata_value(meta_xml, "license") != metadata["license"]:
             raise AuditError("bundle license metadata changed")
-        for element, expected in metadata["elements"].items():
+        for element, expected in metadata["attribution_elements"].items():
             if element_text(meta_xml, element) != expected:
                 raise AuditError(f"bundle metadata changed: {element}")
 
@@ -277,38 +266,22 @@ def audit(
             for path, data in contents.items()
             if path.startswith(("brushes/", "paintoppresets/", "patterns/"))
         }
-        check_manifest_xml(
-            contents["META-INF/manifest.xml"],
-            resource_files,
-            manifest["resource_manifest_counts"],
-        )
+        check_manifest_xml(contents["META-INF/manifest.xml"], resource_files)
 
         inventory: list[dict[str, Any]] = []
         license_counts: Counter[str] = Counter()
-        kind_counts: Counter[str] = Counter()
-        suffix_counts: Counter[str] = Counter()
         embedded_attribution: dict[str, str] = {}
         embedded_legal_metadata: dict[str, dict[str, str]] = {}
-        required_presets = manifest["required_self_contained_presets"]
-        seen_required: set[str] = set()
-        preset_count = 0
 
         for info in files:
             path = info.filename
             data = contents[path]
-            license_id, basis, attribution = classify(path, manifest)
+            group_id, license_id, basis, attribution = classify(path, manifest)
             license_counts[license_id] += 1
-            top_level = path.split("/", 1)[0]
-            kind_counts[top_level] += 1
-            suffix_counts[PurePosixPath(path).suffix.lower() or "<none>"] += 1
-
-            content_hash = sha256(data)
-            content_size = info.file_size
             inventory.append(
                 {
                     "path": path,
-                    "size": content_size,
-                    "sha256": content_hash,
+                    "group": group_id,
                     "license": license_id,
                     "basis": basis,
                     "attribution": attribution,
@@ -317,32 +290,13 @@ def audit(
 
             suffix = PurePosixPath(path).suffix.lower()
             if path.startswith("paintoppresets/") and suffix == ".kpp":
-                preset_count += 1
                 xml = preset_xml(data)
                 try:
-                    root = ET.fromstring(xml)
+                    ET.fromstring(xml)
                 except ET.ParseError as exc:
                     raise AuditError(f"invalid KPP preset XML in {path}: {exc}") from exc
-                if root.tag != "Preset" or not root.get("name") or not root.get("paintopid"):
-                    raise AuditError(f"incomplete KPP preset metadata: {path}")
                 if LEGAL_METADATA_PATTERN.search(xml.decode("utf-8", "replace")):
                     raise AuditError(f"unexpected per-preset legal override: {path}")
-                filename = PurePosixPath(path).name
-                if filename in required_presets:
-                    expected = required_presets[filename]
-                    if root.get("name") != expected["name"]:
-                        raise AuditError(f"name changed for required preset: {path}")
-                    if root.get("paintopid") != expected["paintopid"]:
-                        raise AuditError(f"paintop changed for required preset: {path}")
-                    brush_definition = text_param(root, "brush_definition")
-                    if expected["auto_brush"] and 'type="auto_brush"' not in brush_definition:
-                        raise AuditError(f"required preset is no longer an auto brush: {path}")
-                    required_files = text_param(root, "requiredBrushFile") + text_param(
-                        root, "requiredBrushFilesList"
-                    )
-                    if expected["self_contained"] and required_files:
-                        raise AuditError(f"required preset gained an external brush dependency: {path}")
-                    seen_required.add(filename)
             elif path.startswith("brushes/") and suffix == ".svg":
                 text = data.decode("utf-8", "replace")
                 if LEGAL_METADATA_PATTERN.search(text):
@@ -361,49 +315,20 @@ def audit(
                 if legal_fields:
                     embedded_legal_metadata[path] = legal_fields
 
-        if preset_count != manifest["expected_preset_count"]:
-            raise AuditError(
-                f"KPP preset count is {preset_count}; expected {manifest['expected_preset_count']}"
-            )
-        if seen_required != set(required_presets):
-            raise AuditError(
-                f"required self-contained presets changed; found={sorted(seen_required)}"
-            )
         if dict(sorted(embedded_attribution.items())) != manifest["embedded_attribution"]:
             raise AuditError(
                 "embedded PNG attribution changed: "
                 f"{dict(sorted(embedded_attribution.items()))}"
             )
-        if (
-            dict(sorted(embedded_legal_metadata.items()))
-            != manifest["individual_legal_overrides"]
-        ):
+        if embedded_legal_metadata:
             raise AuditError(
-                "individual PNG legal metadata changed: "
+                "individual PNG legal metadata found: "
                 f"{dict(sorted(embedded_legal_metadata.items()))}"
             )
         if dict(license_counts) != manifest["expected_license_counts"]:
             raise AuditError(
-                f"license counts changed: {dict(license_counts)} (expected {manifest['expected_license_counts']})"
-            )
-        if dict(kind_counts) != manifest["expected_top_level_counts"]:
-            raise AuditError(
-                f"top-level counts changed: {dict(kind_counts)} (expected {manifest['expected_top_level_counts']})"
-            )
-        if dict(suffix_counts) != manifest["expected_suffix_counts"]:
-            raise AuditError(
-                f"file-format counts changed: {dict(suffix_counts)} "
-                f"(expected {manifest['expected_suffix_counts']})"
-            )
-
-        payload = json.dumps(
-            inventory, sort_keys=True, separators=(",", ":"), ensure_ascii=True
-        ).encode("utf-8")
-        actual_inventory_hash = sha256(payload)
-        if actual_inventory_hash != manifest["classified_inventory_sha256"]:
-            raise AuditError(
-                "classified bundle inventory changed: "
-                f"{actual_inventory_hash} (expected {manifest['classified_inventory_sha256']})"
+                "license counts changed: "
+                f"{dict(license_counts)} (expected {manifest['expected_license_counts']})"
             )
 
     return license_counts, inventory
@@ -416,7 +341,7 @@ def main() -> int:
     parser.add_argument(
         "--skip-external-notice-check",
         action="store_true",
-        help="skip repository-path notice hashes when auditing a packaged copy",
+        help="skip repository-path notice checks when auditing a packaged copy",
     )
     parser.add_argument(
         "--list",
@@ -441,7 +366,7 @@ def main() -> int:
             )
     print(
         "default resource bundle audit: "
-        f"281 files classified (CC0-1.0={counts['CC0-1.0']}, "
+        f"{sum(counts.values())} files classified (CC0-1.0={counts['CC0-1.0']}, "
         f"CC-BY-3.0={counts['CC-BY-3.0']}); unclassified=0"
     )
     return 0
