@@ -118,15 +118,15 @@ aggregate. Krita itself and the deterministic unsigned IPA are separate final
 derivations on top of that aggregate. Build rooted outputs with:
 
 ```sh
-nix build .#krita-ios-app \
-  --out-link build-ios/nix-results/krita-ios-app
-nix build .#krita-ios-ipa \
-  --out-link build-ios/nix-results/krita-ios-ipa
+nix build .#librepaint-ios-app \
+  --out-link build-ios/nix-results/librepaint-ios-app
+nix build .#librepaint-ios-ipa \
+  --out-link build-ios/nix-results/librepaint-ios-ipa
 ```
 
 The artifacts are
-`build-ios/nix-results/krita-ios-app/krita.app` and
-`build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`. The app
+`build-ios/nix-results/librepaint-ios-app/LibrePaint.app` and
+`build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`. The app
 derivation builds the 50-target initial static-plugin profile, installs the
 runtime resource tree into the bundle, and rejects the wrong architecture,
 Apple platform, deployment target, SDK, bundle metadata, signing state, or a
@@ -189,20 +189,20 @@ its persistent Ninja tree. The first configuration needs one explicit
 baseline build:
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh bootstrap
+packaging/ios/scripts/build-librepaint-incremental.sh bootstrap
 ```
 
 After that, inspect and execute only the affected Ninja steps:
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh plan
-packaging/ios/scripts/build-krita-incremental.sh build
+packaging/ios/scripts/build-librepaint-incremental.sh plan
+packaging/ios/scripts/build-librepaint-incremental.sh build
 ```
 
-The exact output directory is printed by `build-krita-incremental.sh path`.
+The exact output directory is printed by `build-librepaint-incremental.sh path`.
 Normal builds refuse more than 200 planned steps, making an accidental broad
 rebuild visible before compilation begins. The pure
-`nix build .#krita-ios-ipa` path remains the clean checkpoint/release gate, not
+`nix build .#librepaint-ios-ipa` path remains the clean checkpoint/release gate, not
 the source edit loop. The iPadOS feature profile links the required Krita
 plugins statically and excludes Python/PyQt, PrintSupport, process-launched
 FFmpeg features, and the updater.
@@ -214,7 +214,7 @@ incrementally builds, validates, packages, installs, launches, and collects the
 LibrePaint startup log:
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh deploy [device-id]
+packaging/ios/scripts/build-librepaint-incremental.sh deploy [device-id]
 ```
 
 `deploy-altstore.sh` without options delegates to the same guarded workflow.

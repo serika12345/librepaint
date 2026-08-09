@@ -2,7 +2,7 @@
 
 Date: 2026-08-02
 
-`packaging/ios/scripts/build-krita-incremental.sh deploy` automates the path
+`packaging/ios/scripts/build-librepaint-incremental.sh deploy` automates the path
 from the current source tree to a launched physical-device build. The unsigned
 CMake product is never modified in place, and no signing identity or Apple
 credential is stored by this repository.
@@ -21,14 +21,14 @@ App Store submission, or distribution profile is involved.
 ## One-command flow
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh deploy
+packaging/ios/scripts/build-librepaint-incremental.sh deploy
 ```
 
 The first available CoreDevice is selected. An explicit identifier can be
 passed as the only positional argument:
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh deploy \
+packaging/ios/scripts/build-librepaint-incremental.sh deploy \
   216CE849-760C-5BFF-8835-CF7C6A1AD431
 ```
 
@@ -41,19 +41,19 @@ handoff because it requires the exact `KRITA_IOS_BUILD_DIR`.
 The first baseline for a new build configuration must be created once:
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh bootstrap
+packaging/ios/scripts/build-librepaint-incremental.sh bootstrap
 ```
 
 To generate only the reproducible unsigned IPA for selection in AltStore or a
 compatible sideloading store, use:
 
 ```sh
-nix build .#krita-ios-ipa \
-  --out-link build-ios/nix-results/krita-ios-ipa
+nix build .#librepaint-ios-ipa \
+  --out-link build-ios/nix-results/librepaint-ios-ipa
 ```
 
 Select
-`build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`. The archive is
+`build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`. The archive is
 deliberately unsigned; AltStore supplies the development signature required by
 iPadOS at installation time.
 

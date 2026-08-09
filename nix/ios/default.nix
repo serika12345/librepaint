@@ -981,4 +981,8 @@ assert lib.assertMsg (
     libmypaint-ios
     pcre2-ios
     ;
+
+  librepaint-ios-app = krita-ios-app;
+  librepaint-ios-incremental-env = krita-ios-incremental-env;
+  librepaint-ios-ipa = krita-ios-ipa;
 }

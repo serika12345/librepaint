@@ -184,6 +184,10 @@
           zug-ios
           kwidgetsaddons-ios
           ;
+
+        librepaint-ios-app = iosPackages.krita-ios-app;
+        librepaint-ios-incremental-env = iosPackages.krita-ios-incremental-env;
+        librepaint-ios-ipa = iosPackages.krita-ios-ipa;
       };
 
       checks.${system} = {
@@ -294,15 +298,19 @@
           ];
 
           shellHook = ''
-            export KRITA_IOS_REPO_ROOT="$PWD"
-            export KRITA_IOS_BUILD_ROOT="$PWD/build-ios"
-            export KRITA_IOS_LOG_ROOT="$PWD/logs/ios"
+            export LIBREPAINT_IOS_REPO_ROOT="$PWD"
+            export LIBREPAINT_IOS_BUILD_ROOT="$PWD/build-ios"
+            export LIBREPAINT_IOS_LOG_ROOT="$PWD/logs/ios"
+            export KRITA_IOS_REPO_ROOT="$LIBREPAINT_IOS_REPO_ROOT"
+            export KRITA_IOS_BUILD_ROOT="$LIBREPAINT_IOS_BUILD_ROOT"
+            export KRITA_IOS_LOG_ROOT="$LIBREPAINT_IOS_LOG_ROOT"
             echo "iPadOS development shell"
             echo "  host check: packaging/ios/scripts/check-host.sh"
             echo "  smoke test: packaging/ios/scripts/build-smoke.sh device"
           '';
         };
 
+        librepaint-ios-incremental = iosPackages.krita-ios-incremental-env;
         krita-ios-incremental = iosPackages.krita-ios-incremental-env;
       };
 

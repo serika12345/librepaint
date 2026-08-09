@@ -24,9 +24,9 @@ device_id="${1:-${KRITA_IOS_DEVICE:-}}"
 # this script back with --skip-build after it has completed the exact tree.
 if (( ! skip_build )); then
     if [[ -n "$device_id" ]]; then
-        exec "$scripts_dir/build-krita-incremental.sh" deploy "$device_id"
+        exec "$scripts_dir/build-librepaint-incremental.sh" deploy "$device_id"
     else
-        exec "$scripts_dir/build-krita-incremental.sh" deploy
+        exec "$scripts_dir/build-librepaint-incremental.sh" deploy
     fi
 fi
 
@@ -52,8 +52,8 @@ fi
 python3 "$repo_root/packaging/ios/scripts/replace-brand-art-with-white.py" \
     --audit-ios-classification
 python3 "$repo_root/packaging/ios/scripts/audit-default-resource-bundle.py"
-app_path="$build_dir/bin/krita.app"
-binary="$app_path/krita"
+app_path="$build_dir/bin/LibrePaint.app"
+binary="$app_path/LibrePaint"
 archive_dir="$build_dir/lib"
 python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py" \
     --binary "$binary" \
@@ -79,6 +79,19 @@ fi
 "$scripts_dir/inspect-apple-binary.sh" device "$binary"
 "$scripts_dir/inspect-static-resources.sh" "$binary" "$archive_dir"
 plutil -lint "$app_path/Info.plist"
+for bundle_contract in \
+    CFBundleDisplayName=LibrePaint \
+    CFBundleExecutable=LibrePaint \
+    CFBundleIdentifier=local.librepaint.ipad \
+    CFBundleName=LibrePaint; do
+    bundle_key="${bundle_contract%%=*}"
+    bundle_expected="${bundle_contract#*=}"
+    bundle_actual="$(plutil -extract "$bundle_key" raw -o - "$app_path/Info.plist" 2>/dev/null || true)"
+    if [[ "$bundle_actual" != "$bundle_expected" ]]; then
+        echo "error: LibrePaint Info.plist $bundle_key is '$bundle_actual'; expected '$bundle_expected'" >&2
+        exit 1
+    fi
+done
 for document_key in UIFileSharingEnabled LSSupportsOpeningDocumentsInPlace; do
     if [[ "$(plutil -extract "$document_key" raw -o - "$app_path/Info.plist" 2>/dev/null || true)" != "true" ]]; then
         echo "error: iPadOS document access is not enabled in Info.plist: $document_key" >&2
@@ -123,12 +136,12 @@ trap cleanup EXIT
 
 mkdir -p "$stage_dir/Payload"
 COPYFILE_DISABLE=1 /bin/cp -RX \
-    "$app_path" "$stage_dir/Payload/krita.app"
+    "$app_path" "$stage_dir/Payload/LibrePaint.app"
 
 # The source may be an immutable Nix output.  Make the private staging copy
 # writable before merging runtime data; the source application is untouched.
 python3 "$ipa_permissions" \
-    normalize-app "$stage_dir/Payload/krita.app"
+    normalize-app "$stage_dir/Payload/LibrePaint.app"
 
 cmake_command="$(awk -F= '$1 == "CMAKE_COMMAND:INTERNAL" { print $2; exit }' "$build_dir/CMakeCache.txt")"
 if [[ -z "$cmake_command" || ! -x "$cmake_command" ]]; then
@@ -167,19 +180,19 @@ if [[ ! -d "$runtime_prefix/share" ]]; then
     echo "error: the iPadOS runtime data install produced no share directory" >&2
     exit 1
 fi
-mkdir -p "$stage_dir/Payload/krita.app/share"
+mkdir -p "$stage_dir/Payload/LibrePaint.app/share"
 COPYFILE_DISABLE=1 /bin/cp -RX \
-    "$runtime_prefix/share/." "$stage_dir/Payload/krita.app/share"
+    "$runtime_prefix/share/." "$stage_dir/Payload/LibrePaint.app/share"
 "$scripts_dir/inspect-runtime-data.sh" \
-    "$stage_dir/Payload/krita.app" "$runtime_prefix"
+    "$stage_dir/Payload/LibrePaint.app" "$runtime_prefix"
 
 bundle_version="${KRITA_IOS_BUNDLE_VERSION:-$(date -u +%Y%m%d%H%M%S)}"
-plutil -replace CFBundleVersion -string "$bundle_version" "$stage_dir/Payload/krita.app/Info.plist"
+plutil -replace CFBundleVersion -string "$bundle_version" "$stage_dir/Payload/LibrePaint.app/Info.plist"
 
 # Normalize again after every staged mutation so CMake install modes and
 # plutil's replacement behavior cannot leak into the completed IPA.
 python3 "$ipa_permissions" \
-    normalize-app "$stage_dir/Payload/krita.app"
+    normalize-app "$stage_dir/Payload/LibrePaint.app"
 chmod 0755 "$stage_dir/Payload"
 
 output_dir="$repo_root/build-ios/deploy"
@@ -199,7 +212,7 @@ entry_list="$stage_dir/ipa-entries"
 )
 unzip -tq "$staged_ipa"
 python3 "$ipa_permissions" check-ipa "$staged_ipa" \
-    --staged-app "$stage_dir/Payload/krita.app"
+    --staged-app "$stage_dir/Payload/LibrePaint.app"
 mv -f "$staged_ipa" "$ipa_path"
 
 network_interface="$(route -n get default | awk '$1 == "interface:" { print $2; exit }')"
@@ -276,13 +289,13 @@ fi
 echo "installed: $installed_bundle_id ($bundle_version)"
 xcrun devicectl device process launch --device "$device_id" --terminate-existing "$installed_bundle_id"
 
-launch_log="$output_dir/LibrePaint-iPad-${bundle_version}-krita.log"
+launch_log="$output_dir/LibrePaint-iPad-${bundle_version}-librepaint.log"
 sleep "${KRITA_IOS_LAUNCH_SETTLE_SECONDS:-5}"
 if xcrun devicectl device copy from \
     --device "$device_id" \
     --domain-type appDataContainer \
     --domain-identifier "$installed_bundle_id" \
-    --source "Library/Application Support/krita.log" \
+    --source "Library/Application Support/librepaint.log" \
     --destination "$launch_log" >/dev/null; then
     echo "startup log:    $launch_log"
 else

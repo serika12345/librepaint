@@ -207,35 +207,35 @@ mkIOSCMakePackage {
   ];
 
   requiredPaths = [
-    "krita.app/1024-apps-krita.png"
-    "krita.app/Info.plist"
-    "krita.app/LaunchScreen.storyboard"
-    "krita.app/krita"
-    "krita.app/share/color/icc/krita"
-    "krita.app/share/krita/actions/iostouchui.action"
-    "krita.app/share/krita/actions/krita.action"
-    "krita.app/share/krita/actions/kritamenu.action"
-    "krita.app/share/krita/bundles/Krita_4_Default_Resources.bundle"
-    "krita.app/share/doc/librepaint/non-code-licenses/CC-BY-3.0.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-3.0.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-4.0.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/CC0-1.0.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/GPL-2.0-or-later.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/GPL-3.0-only.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/GPL-3.0-or-later.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/LGPL-2.0-or-later.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-only.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-or-later.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/LicenseRef-ICC-License.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/default-resource-bundle-licenses.json"
-    "krita.app/share/doc/librepaint/non-code-licenses/non-code-licenses.md"
-    "krita.app/share/doc/librepaint/non-code-licenses/qtbase-icc-attribution.json"
-    "krita.app/share/doc/librepaint/non-code-licenses/retained-functional-assets.md"
-    "krita.app/share/doc/librepaint/non-code-licenses/static-dependency-resources.json"
-    "krita.app/share/doc/librepaint/non-code-licenses/white-brand-assets.json"
-    "krita.app/share/doc/librepaint/non-code-licenses/bundles/README"
-    "krita.app/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt"
-    "krita.app/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt"
+    "LibrePaint.app/1024-apps-krita.png"
+    "LibrePaint.app/Info.plist"
+    "LibrePaint.app/LaunchScreen.storyboard"
+    "LibrePaint.app/LibrePaint"
+    "LibrePaint.app/share/color/icc/krita"
+    "LibrePaint.app/share/krita/actions/iostouchui.action"
+    "LibrePaint.app/share/krita/actions/krita.action"
+    "LibrePaint.app/share/krita/actions/kritamenu.action"
+    "LibrePaint.app/share/krita/bundles/Krita_4_Default_Resources.bundle"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/CC-BY-3.0.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-3.0.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-4.0.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/CC0-1.0.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/GPL-2.0-or-later.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/GPL-3.0-only.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/GPL-3.0-or-later.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/LGPL-2.0-or-later.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-only.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-or-later.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/LicenseRef-ICC-License.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/default-resource-bundle-licenses.json"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/non-code-licenses.md"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/qtbase-icc-attribution.json"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/retained-functional-assets.md"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/static-dependency-resources.json"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/white-brand-assets.json"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/bundles/README"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt"
+    "LibrePaint.app/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt"
   ];
 
   postConfigure = ''
@@ -259,6 +259,11 @@ mkIOSCMakePackage {
       "${kritaSource}/packaging/ios/scripts/audit-user-visible-branding.py" \
       --source-root "${kritaSource}" \
       --xgettext "${gettext}/bin/xgettext"
+
+    ${python3}/bin/python3 \
+      "${kritaSource}/packaging/ios/scripts/audit-ios-compatibility-identifiers.py" \
+      --source-root "${kritaSource}" \
+      --manifest "${kritaSource}/packaging/ios/manifests/compatibility-identifiers.json"
 
     check_cache_value() {
       name="$1"
@@ -298,8 +303,8 @@ mkIOSCMakePackage {
   '';
 
   postInstall = ''
-    if ! test -d bin/krita.app; then
-      echo "error: Krita build did not produce bin/krita.app" >&2
+    if ! test -d bin/LibrePaint.app; then
+      echo "error: LibrePaint build did not produce bin/LibrePaint.app" >&2
       exit 1
     fi
 
@@ -315,14 +320,14 @@ mkIOSCMakePackage {
     # runtime share tree is copied into the application bundle.
     rm -rf -- "$out/share/applications"
 
-    cp -R bin/krita.app "$out/krita.app"
-    cp -R "$out/share" "$out/krita.app/share"
+    cp -R bin/LibrePaint.app "$out/LibrePaint.app"
+    cp -R "$out/share" "$out/LibrePaint.app/share"
     rm -rf "$out/share"
   '';
 
   postInstallCheck = ''
-        app="$out/krita.app"
-        binary="$app/krita"
+        app="$out/LibrePaint.app"
+        binary="$app/LibrePaint"
 
         ${python3}/bin/python3 \
           "${kritaSource}/packaging/ios/scripts/audit-static-dependency-resources.py" \
@@ -360,7 +365,7 @@ mkIOSCMakePackage {
         info = plistlib.load(handle)
 
     expected = {
-        "CFBundleExecutable": "krita",
+        "CFBundleExecutable": "LibrePaint",
         "CFBundleIdentifier": "local.librepaint.ipad",
         "CFBundleDisplayName": "LibrePaint",
         "CFBundleShortVersionString": "${librePaintVersion}",
@@ -443,7 +448,9 @@ mkIOSCMakePackage {
   '';
 
   passthru = {
+    appBundleName = "LibrePaint.app";
     bundleIdentifier = "local.librepaint.ipad";
+    executableName = "LibrePaint";
     inherit pluginProfile targetDependencies;
     unsigned = true;
   };

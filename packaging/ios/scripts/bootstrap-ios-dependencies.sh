@@ -171,4 +171,4 @@ fi
 
 echo "clean bootstrap succeeded: $aggregate"
 echo "final aggregate root:      $final_root"
-echo "normal deployments may now run build-krita-incremental.sh bootstrap/deploy"
+echo "normal deployments may now run build-librepaint-incremental.sh bootstrap/deploy"

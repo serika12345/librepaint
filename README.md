@@ -142,8 +142,8 @@ This check validates the versions of Xcode, the SDK, Clang, Nix, CMake, and rela
 For a new build configuration, create the baseline once:
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh path
-packaging/ios/scripts/build-krita-incremental.sh bootstrap
+packaging/ios/scripts/build-librepaint-incremental.sh path
+packaging/ios/scripts/build-librepaint-incremental.sh bootstrap
 ```
 
 The wrapper creates and reuses a pinned, source-independent Nix profile, so you do not need to enter `nix develop` first. The initial baseline is a full build and may take some time.
@@ -160,38 +160,38 @@ nix build .#kf6-consumer-check --no-link
 After making changes, inspect the work planned by Ninja, then run the incremental build:
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh plan
-packaging/ios/scripts/build-krita-incremental.sh build
+packaging/ios/scripts/build-librepaint-incremental.sh plan
+packaging/ios/scripts/build-librepaint-incremental.sh build
 ```
 
 `path` prints the currently selected build tree. By default, normal `build` and `deploy` operations reject plans larger than 200 Ninja steps so that an unintended full rebuild is caught before compilation starts. After an intentional broad configuration change, review the plan and use `bootstrap` to create a new baseline.
 
-For the normal edit-build-test loop, use this wrapper instead of invoking `cmake --preset` directly or running `nix build .#krita-ios-ipa` after every edit.
+For the normal edit-build-test loop, use this wrapper instead of invoking `cmake --preset` directly or running `nix build .#librepaint-ios-ipa` after every edit. The former `build-krita-incremental.sh` and `krita-ios-*` entry points remain compatibility aliases.
 
 ### Reproducible App and Unsigned IPA
 
 The app bundle and IPA used for clean checkpoints can be built with Nix:
 
 ```sh
-nix build .#krita-ios-app \
-  --out-link build-ios/nix-results/krita-ios-app
-nix build .#krita-ios-ipa \
-  --out-link build-ios/nix-results/krita-ios-ipa
+nix build .#librepaint-ios-app \
+  --out-link build-ios/nix-results/librepaint-ios-app
+nix build .#librepaint-ios-ipa \
+  --out-link build-ios/nix-results/librepaint-ios-ipa
 ```
 
 The resulting artifacts are placed at:
 
-- `build-ios/nix-results/krita-ios-app/krita.app`
-- `build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`
+- `build-ios/nix-results/librepaint-ios-app/LibrePaint.app`
+- `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`
 
-If you need only the IPA, building `krita-ios-ipa` also builds the required app and dependencies automatically. The generated IPA is intentionally unsigned. Never store signing information, provisioning profiles, Apple IDs, or device credentials in the repository.
+If you need only the IPA, building `librepaint-ios-ipa` also builds the required app and dependencies automatically. The generated IPA is intentionally unsigned. Never store signing information, provisioning profiles, Apple IDs, or device credentials in the repository.
 
 ### Deploying to a Physical Device with AltStore
 
 After satisfying the prerequisites and starting AltServer, run the following command to perform the incremental build, validate the binary, plugins, and runtime data, generate the IPA, sign and install it through AltStore, launch LibrePaint, and collect the startup log:
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh deploy [device-id]
+packaging/ios/scripts/build-librepaint-incremental.sh deploy [device-id]
 ```
 
 If `device-id` is omitted, the first available CoreDevice is selected. List connected devices with:
@@ -200,13 +200,13 @@ If `device-id` is omitted, the first available CoreDevice is selected. List conn
 xcrun devicectl list devices
 ```
 
-Timestamped IPAs and collected `krita.log` files are stored under `build-ios/deploy/`. `packaging/ios/scripts/deploy-altstore.sh --skip-build` is reserved for the workflow's internal handoff; do not use it to select an old build tree manually.
+Timestamped IPAs and collected `librepaint.log` files are stored under `build-ios/deploy/`. `packaging/ios/scripts/deploy-altstore.sh --skip-build` is reserved for the workflow's internal handoff; do not use it to select an old build tree manually.
 
 This process uses development signing for the author's local use. It is not an App Store submission or general-distribution signing pipeline.
 
 ### Installing with LiveContainer
 
-The reproducible unsigned IPA at `build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa` can also be imported into LiveContainer. The packaging workflow normalizes the archive permissions required for LiveContainer to patch, launch, and clean up the app bundle. A fresh import and launch have been verified on a physical iPad using LiveContainer's iOS 26 JIT-Less mode.
+The reproducible unsigned IPA at `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa` can also be imported into LiveContainer. The packaging workflow normalizes the archive permissions required for LiveContainer to patch, launch, and clean up the app bundle. A fresh import and launch have been verified on a physical iPad using LiveContainer's iOS 26 JIT-Less mode.
 
 A corrected IPA cannot remove a read-only temporary `Payload` left inside LiveContainer by an earlier failed import. If that stale-state error occurs, clean up or reset the affected LiveContainer state while preserving any required app data before importing again. The exact cleanup UI remains pending physical-device verification; see [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) for the current archive-permission and recovery notes.
 

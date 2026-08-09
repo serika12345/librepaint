@@ -306,7 +306,7 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [ ] **P0** suspend/resume、回転、Split View、低ストレージの回帰テストを作る。
 - [ ] **P0** static pluginとresourceを削減し、アプリ容量を確認する。
 - [ ] **P0** crash logと再現手順を保存する運用を作る。
-  - [ ] 収集したcrash log、Jetsam report、`krita.log`を実機検証記録へ関連付けて保存する。
+  - [ ] 収集したcrash log、Jetsam report、`librepaint.log`を実機検証記録へ関連付けて保存する。
 - [ ] **P1** Address Sanitizer/Undefined Behavior SanitizerをSimulatorまたは対応構成で実行する。
 - [ ] **P1** Kritaの非GUI単体テストをiOS互換範囲で実行する。
 - [ ] **P2** battery/thermal throttlingを長時間試験する。
@@ -363,7 +363,7 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [x] **P0** Nixで固定した依存・ツールチェーンを使う永続Ninjaツリーを追加し、通常のKritaソース変更を増分ビルドできるようにする。
   - [x] ソース非依存の`krita-ios-incremental`環境を固定profileとして記録し、通常編集ごとのflake再評価と約575 MiBのKritaソースsnapshot生成をなくす。`krita-ios-app`固有phase hookのstring contextがprofileからsourceを保持していた漏れも除去し、profile closure全体の`*-krita-ios-source`不在を作成時・再利用時に検査する。修正後のprofile closureは2.7 GiBから2.1 GiBへ587.7 MiB縮小した。
   - [x] 初回3370工程のbaseline構築後、無変更時0工程、単一pluginソース変更時は予定5工程・実行4工程（対象object、archive、最終app link）となり、無関係なarchiveが更新されないことを確認する。
-  - [x] 200工程を超える予期しない再ビルドを標準で拒否し、初回・構成変更時だけ明示的な`bootstrap`を要求する。純粋な`nix build .#krita-ios-ipa`はcheckpoint/release検証用として残す。
+  - [x] 200工程を超える予期しない再ビルドを標準で拒否し、初回・構成変更時だけ明示的な`bootstrap`を要求する。純粋な`nix build .#librepaint-ios-ipa`はcheckpoint/release検証用として残す。
   - [x] Nix app recipeと同じCMake cache契約を増分configureでも検査し、`KoConfig.h`のbuild pathを`/build`へ正規化してローカル絶対パスを最終binaryへ埋め込まない。既存baselineは一度だけ1958工程で補正し、以後は正規化後の内容が同じならheader timestampを維持して再configureによる再発を防ぐ。
   - [x] デプロイ後のcache保守をdirty flakeの評価から分離し、CMake/Ninja graphが参照する53個のStore入力だけを検証・root化することで、編集後の実機更新でもKritaソースsnapshotを生成しない。
 - [x] **P0** 旧`Krita-iPad-*`と現`LibrePaint-iPad-*`を共通のbundle-version順で扱って直近3件を残すIPA整理と、runtimeおよびcache-deployment closureをGC rootで保護した低容量時Nix GCを自動化する。debug logとscreenshotは整理対象外とする回帰テストを追加した。
@@ -375,7 +375,10 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [x] **P0** iOSの非コードdata installを、機能設定、明示ライセンスの31 ICC profile、帰属を同梱した監査済みresource bundleへ限定し、CC-BY/CC-BY-SA/CC0/GPL/LGPL/ICC本文と既存帰属資料を`share/doc/librepaint/non-code-licenses`へ同梱する。曖昧な3 ICCとsponsor logoのQRC組込みを除外し、既定bundle全281 fileをCC0 244件・CC-BY-3.0 37件へ分類した。さらに静的依存resourceを明示ライセンスの7群253 fileへ固定し、Qt標準の未改変`aboutQt` logoは正当な依存帰属として保持し、未使用`kcharselect_data`群だけをiOS linkから除外するexact-set audit gateを追加した。2026-08-07に実機へのインストールと初回起動を確認済み。`aboutQt`表示を含む各機能画面は未確認。
 - [x] **P0** 1,289件のrepository-owned QRC画像と32件のinstall-only画像を閉集合検査する。作者本人がCC0-1.0を選択したLibrePaint原本4件をハッシュ固定し、使用中のアプリケーション、文書、Qt runtime、log、PDF fallback、resource bundle preview、4K/HD splashの各ブランド面へ派生した。不要なupstream branding、fundraising、sponsor、news、disabled-tool画像はresource/UI参照とともに削除し、QRC内の白placeholderとzero-byte aliasを0件にした。現在のQRC分類は、直接CC-BY-SA-4.0を確認した703件、追加根拠を固定したCC-BY-SA-4.0機能画像93件、Breeze/Oxygen LGPL画像319件、Android画像2件、KXmlGui画像1件、project-wide GPL fallback機能画像148件、LibrePaint CC0ブランド画像23件で、未分類は0件。install-only 32件は19個のCMake定義から再発見し、未分類0件を維持する。source-wide white manifestの置換対象も0件で、macOS DMG背景はCC0のLibrePaintスプラッシュを流用する。未到達のbug-report／About KDE実装とAbout KDE画像を削除し、iOSで消費しないLinux desktop alias 24件と非搭載Storyboard docker用workspace 1件をruntime installから除外した。arm64最終リンク後に配布手順と同じローカル`.app`を再ステージし、204件のruntime dataとの一致とdesktop alias不在を機械検証した。ビルド`20260807151823`を2026-08-08に実機へインストール・起動し、QuickTime captureで単一表示のLibrePaintロゴ、About画面、Dock上の新アイコンを確認済み。今回の追加削除後は2026-08-09にhost上の3,453工程baseline build、arm64最終リンク、runtime再ステージまで再確認済みで、実機buildと全画面の網羅的な目視検査は継続する。
 - [x] **P0** C/C++/Objective-C++のgettext抽出msgid、翻訳対象`.ui`文字列、`.action`/XMLGUIの表示要素、plugin JSONの表示フィールドを対象に、旧ブランドの再混入を拒否するユーザー表示監査gateを追加する。例外理由はinlineの`upstream-attribution`と`format-history`だけに固定し、増分buildとNix `postConfigure`の双方へ組み込む。
-- [ ] **P0** KRA/MIMEとplugin/action/config IDは互換契約として維持する。ユーザー表示監査と分離した次段階で、`krita` target・executable・`share` pathなどのbuild/package内部名を棚卸しし、互換契約でないものだけを段階的にrenameする。必要な箇所はaliasまたはmigrationを先行させる（未着手）。
+- [x] **P0** KRA/MIME/UTI、application、plugin/action、config、resource pathの永続IDを互換契約として棚卸しし、56件の明示契約、172 plugin metadata fileの474件、44 `.action` fileの688件をmanifestへ固定する。表示名とは独立した監査gateを増分buildとNix `postConfigure`の双方へ組み込み、意図しない互換ID変更を拒否する。
+  - [x] CMakeの論理target `krita`、KLocalizedString domainとKAboutData ID、`kritarc`/`kritadisplayrc`、`share/krita`、KRA/MIME/UTI、plugin/action IDは互換名として維持する。
+  - [x] 非互換の外向き成果物だけを段階的にrenameし、runtime logを`librepaint.log`/`librepaint-sysinfo.log`、iOS app bundleとmain executableを`LibrePaint.app`/`LibrePaint`、標準Nix entry pointと増分build scriptを`librepaint-ios-*`/`build-librepaint-incremental.sh`へ変更する。旧`krita-ios-*`と`build-krita-incremental.sh`は互換aliasとして維持する。
+- [ ] **P0** 設定・AppData領域の`krita`名を変更する場合は、既存インストールからのupgrade、設定・brush/preset・recent document・logの移行とrollbackを実機で検証してからmigrationを追加する。検証前は既存領域を維持する。
 - [x] **P0** CC-BY-NC-ND-4.0のNetflix JPEG XL source fixture、派生expected result、専用test case、dataset固有license fileを削除し、制限付きdatasetへの参照をなくす。
 - [ ] **P1** source-onlyのtest/benchmark fixtureを含むREUSE/DEP5相当の資産台帳を作り、残る権利対応が不明なfixtureと個別対応のないUI iconを除去・再作成・正確な帰属維持のいずれかに分類する。
 - [ ] **P1** dependency SBOMとライセンス一覧を生成する。

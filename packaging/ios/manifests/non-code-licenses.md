@@ -138,5 +138,7 @@ notice embedded in a file or preserved in its source history.
 ## Scope
 
 This is a packaging inventory, not a relicensing statement or legal opinion.
-Technical compatibility identifiers such as KRA MIME types, resource paths,
-action IDs, and the `krita` executable name are intentionally unchanged.
+Technical compatibility identifiers such as the iOS bundle ID, KRA MIME/UTI
+values, application/configuration IDs, resource paths, and plugin/action IDs
+are intentionally unchanged. The logical CMake target remains `krita`; the
+physical iOS app bundle and executable are `LibrePaint.app` and `LibrePaint`.

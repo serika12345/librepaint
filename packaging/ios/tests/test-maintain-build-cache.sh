@@ -40,7 +40,7 @@ touch \
 # Debug evidence and unrelated packages must never be included in IPA pruning.
 touch \
     "$deploy_dir/Krita-iPad-20260802000000-krita.log" \
-    "$deploy_dir/LibrePaint-iPad-20260803000000-krita.log" \
+    "$deploy_dir/LibrePaint-iPad-20260803000000-librepaint.log" \
     "$deploy_dir/device-screenshot.png" \
     "$deploy_dir/Other-iPad-20260805000000.ipa"
 
@@ -65,7 +65,7 @@ assert_exists "$deploy_dir/LibrePaint-iPad-20260803000000.ipa"
 assert_exists "$deploy_dir/Krita-iPad-20260804000000.ipa"
 
 assert_exists "$deploy_dir/Krita-iPad-20260802000000-krita.log"
-assert_exists "$deploy_dir/LibrePaint-iPad-20260803000000-krita.log"
+assert_exists "$deploy_dir/LibrePaint-iPad-20260803000000-librepaint.log"
 assert_exists "$deploy_dir/device-screenshot.png"
 assert_exists "$deploy_dir/Other-iPad-20260805000000.ipa"
 

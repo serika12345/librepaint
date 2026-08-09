@@ -109,7 +109,7 @@
     },
     {
       "path": "packaging/ios/manifests/non-code-licenses.md",
-      "sha256": "a543d11c8816f48f3e9c6b541910457b4697f90b624584067bd9c8e24c2ecc74"
+      "sha256": "c5c5a865e223ecf78b0262a92ed1b7101de70c97137bca6e1fe88bee704f2a7f"
     },
     {
       "path": "packaging/ios/notices/librepaint-brand-assets.md",

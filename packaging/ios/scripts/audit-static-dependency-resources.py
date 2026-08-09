@@ -1182,7 +1182,7 @@ def final_link_tokens(binary: Path, build_ninja: Path) -> Tuple[List[str], str]:
         relative = str(binary.resolve().relative_to(build_ninja.parent.resolve()))
     except ValueError:
         relative = ""
-    candidates = [relative, "bin/krita.app/krita"]
+    candidates = [relative, "bin/LibrePaint.app/LibrePaint"]
     indices = []
     for index, line in enumerate(lines):
         if not line.startswith("build ") or "EXECUTABLE_LINKER" not in line:

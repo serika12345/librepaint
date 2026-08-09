@@ -15,7 +15,7 @@ DlgSysInfo::DlgSysInfo(QWidget *parent)
 
 QString DlgSysInfo::originalFileName()
 {
-    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/krita-sysinfo.log";
+    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/librepaint-sysinfo.log";
 }
 
 QString DlgSysInfo::captionText()

@@ -142,8 +142,8 @@ nix develop --command packaging/ios/scripts/check-host.sh
 新しいビルド構成では、一度だけbaselineを作成します。
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh path
-packaging/ios/scripts/build-krita-incremental.sh bootstrap
+packaging/ios/scripts/build-librepaint-incremental.sh path
+packaging/ios/scripts/build-librepaint-incremental.sh bootstrap
 ```
 
 wrapperがsource非依存の固定Nix profileを作成して再利用するため、事前に`nix develop`へ入る必要はありません。初回baselineは全面buildになるため時間がかかります。
@@ -160,38 +160,38 @@ nix build .#kf6-consumer-check --no-link
 変更後は、Ninjaが予定している処理を確認してからincremental buildします。
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh plan
-packaging/ios/scripts/build-krita-incremental.sh build
+packaging/ios/scripts/build-librepaint-incremental.sh plan
+packaging/ios/scripts/build-librepaint-incremental.sh build
 ```
 
 `path`は選択中のbuild treeを表示します。通常の`build`と`deploy`は、意図しない全面再buildを事前に発見できるよう、既定で200 Ninja stepを超えるplanを拒否します。構成を意図的に大きく変えた場合は内容を確認し、`bootstrap`で新しいbaselineを構築してください。
 
-日常のedit-build-test loopでは、直接`cmake --preset`を呼び出したり、毎回`nix build .#krita-ios-ipa`を実行したりせず、このwrapperを使用してください。
+日常のedit-build-test loopでは、直接`cmake --preset`を呼び出したり、毎回`nix build .#librepaint-ios-ipa`を実行したりせず、このwrapperを使用してください。旧`build-krita-incremental.sh`と`krita-ios-*` entry pointは互換aliasとして維持します。
 
 ### 再現可能なappと未署名IPA
 
 clean checkpoint用のapp bundleとIPAはNixから構築できます。
 
 ```sh
-nix build .#krita-ios-app \
-  --out-link build-ios/nix-results/krita-ios-app
-nix build .#krita-ios-ipa \
-  --out-link build-ios/nix-results/krita-ios-ipa
+nix build .#librepaint-ios-app \
+  --out-link build-ios/nix-results/librepaint-ios-app
+nix build .#librepaint-ios-ipa \
+  --out-link build-ios/nix-results/librepaint-ios-ipa
 ```
 
 成果物は次の場所に生成されます。
 
-- `build-ios/nix-results/krita-ios-app/krita.app`
-- `build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`
+- `build-ios/nix-results/librepaint-ios-app/LibrePaint.app`
+- `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`
 
-IPAだけが必要な場合は`krita-ios-ipa`だけをbuildすれば、必要なappと依存も自動的に構築されます。生成されるIPAは意図的に未署名です。署名情報、provisioning profile、Apple ID、device credentialをリポジトリへ保存しないでください。
+IPAだけが必要な場合は`librepaint-ios-ipa`だけをbuildすれば、必要なappと依存も自動的に構築されます。生成されるIPAは意図的に未署名です。署名情報、provisioning profile、Apple ID、device credentialをリポジトリへ保存しないでください。
 
 ### AltStoreで実機へ配備
 
 前提環境を満たしてAltServerを起動した後、次のコマンドでincremental build、binary・plugin・runtime data検査、IPA生成、AltStoreによる署名とinstall、LibrePaintの起動、startup log回収まで行います。
 
 ```sh
-packaging/ios/scripts/build-krita-incremental.sh deploy [device-id]
+packaging/ios/scripts/build-librepaint-incremental.sh deploy [device-id]
 ```
 
 `device-id`を省略すると、最初に見つかった利用可能なCoreDeviceを選択します。接続端末は次のコマンドで確認できます。
@@ -200,13 +200,13 @@ packaging/ios/scripts/build-krita-incremental.sh deploy [device-id]
 xcrun devicectl list devices
 ```
 
-timestamp付きIPAと回収した`krita.log`は`build-ios/deploy/`に保存されます。`packaging/ios/scripts/deploy-altstore.sh --skip-build`はworkflow内部のhandoff専用であり、古いbuild treeを手動指定するために使用しないでください。
+timestamp付きIPAと回収した`librepaint.log`は`build-ios/deploy/`に保存されます。`packaging/ios/scripts/deploy-altstore.sh --skip-build`はworkflow内部のhandoff専用であり、古いbuild treeを手動指定するために使用しないでください。
 
 この手順は作者のlocal利用を目的とするdevelopment signingです。App Store提出や一般配布用の署名pipelineではありません。
 
 ### LiveContainerで実機へインストール
 
-再現可能な未署名IPA `build-ios/nix-results/krita-ios-ipa/LibrePaint-iPad-unsigned.ipa`は、LiveContainerへimportして利用することもできます。packaging workflowは、LiveContainerがapp bundleをpatch、起動、cleanupするために必要なarchive permissionを正規化します。LiveContainerのiOS 26 JIT-Less modeを使用した新規importと起動を実機で確認済みです。
+再現可能な未署名IPA `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`は、LiveContainerへimportして利用することもできます。packaging workflowは、LiveContainerがapp bundleをpatch、起動、cleanupするために必要なarchive permissionを正規化します。LiveContainerのiOS 26 JIT-Less modeを使用した新規importと起動を実機で確認済みです。
 
 修正版IPAを使っても、以前の失敗したimportによってLiveContainer内に残ったread-onlyな一時`Payload`は削除できません。このstale state errorが発生する場合は、必要なapp dataを保護したうえで、影響を受けたLiveContainerのstateをcleanupまたはresetしてから再度importしてください。正確なcleanup UIは実機確認中です。現在のarchive permissionと復旧上の注意は[`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md)を参照してください。
 

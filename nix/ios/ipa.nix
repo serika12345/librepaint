@@ -9,6 +9,10 @@
   zip,
 }:
 
+let
+  inherit (krita-ios-app) appBundleName executableName;
+  appArchiveRoot = "Payload/${appBundleName}";
+in
 stdenvNoCC.mkDerivation {
   pname = "krita-ios-unsigned-ipa";
   inherit (krita-ios-app) version;
@@ -28,7 +32,7 @@ stdenvNoCC.mkDerivation {
 
     stage="$NIX_BUILD_TOP/ipa-stage"
     mkdir -p "$stage/Payload" "$out"
-    cp -R ${krita-ios-app}/krita.app "$stage/Payload/krita.app"
+    cp -R ${krita-ios-app}/${appBundleName} "$stage/${appArchiveRoot}"
 
     # Nix store paths are intentionally immutable (0555 directories, 0444
     # data files).  Those modes must not leak into the IPA: importers such as
@@ -37,7 +41,7 @@ stdenvNoCC.mkDerivation {
     # The same helper is used by the host-side incremental deployment path so
     # both producers enforce one bundle and archive contract.
     ${python3}/bin/python3 ${./ipa-permissions.py} \
-      normalize-app "$stage/Payload/krita.app"
+      normalize-app "$stage/${appArchiveRoot}"
 
     chmod 0755 "$stage/Payload"
     find "$stage" -exec touch -h -t 198001010000 {} +
@@ -64,7 +68,7 @@ stdenvNoCC.mkDerivation {
         unzip -tq "$ipa"
 
         ${python3}/bin/python3 ${./ipa-permissions.py} check-ipa "$ipa" \
-          --staged-app "$NIX_BUILD_TOP/ipa-stage/Payload/krita.app"
+          --staged-app "$NIX_BUILD_TOP/ipa-stage/${appArchiveRoot}"
 
         ${python3}/bin/python3 - "$ipa" <<'PY'
     import hashlib
@@ -76,30 +80,30 @@ stdenvNoCC.mkDerivation {
         entries = archive.infolist()
         names = [entry.filename for entry in entries]
         required = {
-            "Payload/krita.app/Info.plist",
-            "Payload/krita.app/krita",
-            "Payload/krita.app/share/krita/actions/krita.action",
-            "Payload/krita.app/share/krita/bundles/Krita_4_Default_Resources.bundle",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/CC-BY-3.0.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-3.0.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/CC-BY-SA-4.0.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/CC0-1.0.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/GPL-2.0-or-later.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/GPL-3.0-only.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/GPL-3.0-or-later.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/LGPL-2.0-or-later.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-only.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/LGPL-3.0-or-later.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/LicenseRef-ICC-License.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/default-resource-bundle-licenses.json",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/non-code-licenses.md",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/qtbase-icc-attribution.json",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/retained-functional-assets.md",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/static-dependency-resources.json",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/white-brand-assets.json",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/bundles/README",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt",
-            "Payload/krita.app/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt",
+            "${appArchiveRoot}/Info.plist",
+            "${appArchiveRoot}/${executableName}",
+            "${appArchiveRoot}/share/krita/actions/krita.action",
+            "${appArchiveRoot}/share/krita/bundles/Krita_4_Default_Resources.bundle",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/CC-BY-3.0.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/CC-BY-SA-3.0.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/CC-BY-SA-4.0.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/CC0-1.0.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/GPL-2.0-or-later.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/GPL-3.0-only.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/GPL-3.0-or-later.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/LGPL-2.0-or-later.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/LGPL-3.0-only.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/LGPL-3.0-or-later.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/LicenseRef-ICC-License.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/default-resource-bundle-licenses.json",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/non-code-licenses.md",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/qtbase-icc-attribution.json",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/retained-functional-assets.md",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/static-dependency-resources.json",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/white-brand-assets.json",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/bundles/README",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/profiles/elles-icc-profiles/plain-text-README-for-elles-well-behaved-icc-profiles.txt",
+            "${appArchiveRoot}/share/doc/librepaint/non-code-licenses/profiles/ycbcr-icc-profiles/LICENSE-PROFILES.txt",
         }
         missing = sorted(required.difference(names))
         if missing:

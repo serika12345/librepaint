@@ -32,26 +32,29 @@ class IPAPermissionsTest(unittest.TestCase):
             self.assertNotIn("Traceback", result.stderr)
         return result
 
-    def make_stage(self, root):
+    def make_stage(
+        self, root, app_name="krita.app", executable_name="krita"
+    ):
         payload = root / "Payload"
-        app = payload / "krita.app"
+        app = payload / app_name
         data_dir = app / "share" / "krita"
         data_dir.mkdir(parents=True)
         with (app / "Info.plist").open("wb") as handle:
-            plistlib.dump({"CFBundleExecutable": "krita"}, handle)
-        (app / "krita").write_bytes(b"executable\n")
+            plistlib.dump({"CFBundleExecutable": executable_name}, handle)
+        executable = app / executable_name
+        executable.write_bytes(b"executable\n")
         (data_dir / "data.txt").write_bytes(b"data\n")
         (data_dir / "literal*?[name].txt").write_bytes(b"literal wildcard\n")
 
         for directory in (data_dir, data_dir.parent, app, payload):
             directory.chmod(0o555)
         (app / "Info.plist").chmod(0o444)
-        (app / "krita").chmod(0o555)
+        executable.chmod(0o555)
         (data_dir / "data.txt").chmod(0o444)
         (data_dir / "literal*?[name].txt").chmod(0o444)
         return payload, app
 
-    def archive_stage(self, root, payload, app):
+    def archive_stage(self, root, payload, app, succeeds=True):
         entries = []
         for directory, directory_names, file_names in os.walk(payload):
             directory_names.sort()
@@ -78,7 +81,9 @@ class IPAPermissionsTest(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.run_helper("check-ipa", ipa, "--staged-app", app)
+        self.run_helper(
+            "check-ipa", ipa, "--staged-app", app, succeeds=succeeds
+        )
         return ipa
 
     def rewrite_archive(self, source, destination, mutation):
@@ -93,24 +98,109 @@ class IPAPermissionsTest(unittest.TestCase):
                 output_archive.writestr(entry, data)
 
     def test_read_only_stage_normalizes_and_archives(self):
+        bundle_names = (
+            ("krita.app", "krita"),
+            ("LibrePaint.app", "LibrePaint"),
+        )
+        for app_name, executable_name in bundle_names:
+            with self.subTest(app=app_name, executable=executable_name):
+                with tempfile.TemporaryDirectory() as temporary:
+                    root = Path(temporary)
+                    payload, app = self.make_stage(
+                        root, app_name, executable_name
+                    )
+                    self.run_helper("normalize-app", app)
+                    payload.chmod(0o755)
+                    ipa = self.archive_stage(root, payload, app)
+                    self.run_helper("check-ipa", ipa)
+
+                    executable_entry = (
+                        f"Payload/{app_name}/{executable_name}"
+                    )
+                    with zipfile.ZipFile(ipa) as archive:
+                        for entry in archive.infolist():
+                            mode = entry.external_attr >> 16
+                            expected = (
+                                0o755
+                                if entry.is_dir()
+                                or entry.filename == executable_entry
+                                else 0o644
+                            )
+                            self.assertEqual(stat.S_IMODE(mode), expected)
+                            self.assertEqual(entry.external_attr & 1, 0)
+                            self.assertEqual(entry.extra, b"")
+
+    def test_archive_requires_one_regular_app_directory(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             payload, app = self.make_stage(root)
             self.run_helper("normalize-app", app)
             payload.chmod(0o755)
-            ipa = self.archive_stage(root, payload, app)
+            source = self.archive_stage(root, payload, app)
+            app_entry_name = "Payload/krita.app/"
 
-            with zipfile.ZipFile(ipa) as archive:
-                for entry in archive.infolist():
-                    mode = entry.external_attr >> 16
-                    expected = (
-                        0o755
-                        if entry.is_dir() or entry.filename == "Payload/krita.app/krita"
-                        else 0o644
-                    )
-                    self.assertEqual(stat.S_IMODE(mode), expected)
-                    self.assertEqual(entry.external_attr & 1, 0)
-                    self.assertEqual(entry.extra, b"")
+            no_app = root / "no-app.ipa"
+            self.rewrite_archive(
+                source,
+                no_app,
+                lambda entry: entry.filename.startswith("Payload/krita.app"),
+            )
+            result = self.run_helper("check-ipa", no_app, succeeds=False)
+            self.assertIn("found 0", result.stderr)
+
+            multiple_apps = root / "multiple-apps.ipa"
+            with zipfile.ZipFile(source) as input_archive, zipfile.ZipFile(
+                multiple_apps, "w"
+            ) as output_archive:
+                for source_entry in input_archive.infolist():
+                    entry = copy.copy(source_entry)
+                    data = input_archive.read(source_entry)
+                    output_archive.writestr(entry, data)
+                    if entry.filename == app_entry_name:
+                        second_app = copy.copy(entry)
+                        second_app.filename = "Payload/LibrePaint.app/"
+                        output_archive.writestr(second_app, b"")
+            result = self.run_helper(
+                "check-ipa", multiple_apps, succeeds=False
+            )
+            self.assertIn("found 2", result.stderr)
+
+            symlink_app = root / "symlink-app.ipa"
+
+            def make_app_symlink(entry):
+                if entry.filename == app_entry_name:
+                    entry.external_attr = (stat.S_IFLNK | 0o777) << 16
+                return False
+
+            self.rewrite_archive(source, symlink_app, make_app_symlink)
+            result = self.run_helper("check-ipa", symlink_app, succeeds=False)
+            self.assertIn("app bundle entry is not a regular directory", result.stderr)
+
+    def test_plist_executable_must_match_a_regular_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            payload, app = self.make_stage(
+                root, "LibrePaint.app", "LibrePaint"
+            )
+            self.run_helper("normalize-app", app)
+            payload.chmod(0o755)
+            app.chmod(0o755)
+            info_path = app / "Info.plist"
+            info_path.chmod(0o644)
+            with info_path.open("wb") as handle:
+                plistlib.dump({"CFBundleExecutable": "MissingExecutable"}, handle)
+            info_path.chmod(0o644)
+            app.chmod(0o755)
+
+            ipa = self.archive_stage(
+                root, payload, app, succeeds=False
+            )
+            result = self.run_helper("check-ipa", ipa, succeeds=False)
+            self.assertIn(
+                "main executable entry is missing: "
+                "Payload/LibrePaint.app/MissingExecutable",
+                result.stderr,
+            )
 
     def test_stage_preflight_rejects_unsafe_entries_before_chmod(self):
         anomaly_names = ("line\nbreak", "back\\slash", ".DS_Store")

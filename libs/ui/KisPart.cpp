@@ -701,7 +701,7 @@ void KisPart::setPlaybackEngine(KisPlaybackEngine *p_playbackEngine)
     d->playbackEngine.swap(backup);
 
     // Log all changes to playback engine for easier debugging.
-    // (See `krita.log` or `Help > Show Krita log for bug reports`.)
+    // (See `librepaint.log` or `Help > Show LibrePaint log for bug reports`.)
     KisUsageLogger::log("Audio Playback Engine: " + QString(p_playbackEngine->metaObject()->className()));
 
     Q_EMIT playbackEngineChanged(p_playbackEngine);

@@ -210,6 +210,7 @@ endif ()
 
 if(IOS)
     set_target_properties(krita PROPERTIES
+        OUTPUT_NAME "LibrePaint"
         MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.ios.plist.in
         MACOSX_BUNDLE_GUI_IDENTIFIER "local.librepaint.ipad"

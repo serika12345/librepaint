@@ -8,8 +8,7 @@ import sys
 import zipfile
 
 
-APP_ARCHIVE_ROOT = "Payload/krita.app"
-INFO_PLIST_ENTRY = f"{APP_ARCHIVE_ROOT}/Info.plist"
+PAYLOAD_ARCHIVE_ROOT = "Payload"
 MAX_REPORTED_ERRORS = 20
 FORBIDDEN_METADATA_COMPONENTS = {
     "__MACOSX",
@@ -45,6 +44,19 @@ def validate_executable_name(value, context):
         or contains_control_character(value)
     ):
         raise ValidationError(f"invalid {context} CFBundleExecutable: {value!r}")
+    return value
+
+
+def validate_app_bundle_name(value, context):
+    if (
+        not isinstance(value, str)
+        or value in {"", ".", "..", ".app"}
+        or not value.endswith(".app")
+        or "/" in value
+        or "\\" in value
+        or contains_control_character(value)
+    ):
+        raise ValidationError(f"invalid {context} app bundle name: {value!r}")
     return value
 
 
@@ -160,18 +172,62 @@ def validate_archive_name(name):
 
 def expected_archive_names(staged_app):
     staged_app = os.path.abspath(staged_app)
+    bundle_name = validate_app_bundle_name(
+        os.path.basename(staged_app), "staged"
+    )
+    app_archive_root = f"{PAYLOAD_ARCHIVE_ROOT}/{bundle_name}"
     directories, regular_files = inventory_app(staged_app)
-    expected = {"Payload/"}
+    expected = {f"{PAYLOAD_ARCHIVE_ROOT}/"}
     for path in directories:
         relative = os.path.relpath(path, staged_app)
-        archive_path = APP_ARCHIVE_ROOT
+        archive_path = app_archive_root
         if relative != ".":
             archive_path += "/" + relative.replace(os.sep, "/")
         expected.add(archive_path + "/")
     for path in regular_files:
         relative = os.path.relpath(path, staged_app).replace(os.sep, "/")
-        expected.add(f"{APP_ARCHIVE_ROOT}/{relative}")
+        expected.add(f"{app_archive_root}/{relative}")
     return expected
+
+
+def detect_archive_app_root(entries, errors):
+    candidates = []
+    for entry in entries:
+        stripped_name = (
+            entry.filename[:-1]
+            if entry.filename.endswith("/")
+            else entry.filename
+        )
+        components = stripped_name.split("/")
+        if (
+            len(components) == 2
+            and components[0] == PAYLOAD_ARCHIVE_ROOT
+            and components[1].endswith(".app")
+        ):
+            candidates.append(entry)
+
+    if len(candidates) != 1:
+        errors.append(
+            "expected exactly one app bundle directory directly under Payload; "
+            f"found {len(candidates)}"
+        )
+        return None
+
+    app_entry = candidates[0]
+    app_archive_root = app_entry.filename.rstrip("/")
+    bundle_name = app_archive_root.split("/", 1)[1]
+    try:
+        validate_app_bundle_name(bundle_name, "archived")
+    except ValidationError as error:
+        errors.append(str(error))
+
+    archive_mode = app_entry.external_attr >> 16
+    if not app_entry.filename.endswith("/") or not stat.S_ISDIR(archive_mode):
+        errors.append(
+            "app bundle entry is not a regular directory: "
+            f"{app_entry.filename}"
+        )
+    return app_archive_root
 
 
 def check_ipa(ipa, staged_app=None):
@@ -196,6 +252,8 @@ def check_ipa(ipa, staged_app=None):
         if archive.comment:
             errors.append("archive comment is present")
 
+        app_archive_root = detect_archive_app_root(entries, errors)
+
         if staged_app is not None:
             expected_names = expected_archive_names(staged_app)
             missing_names = sorted(expected_names.difference(names))
@@ -209,10 +267,15 @@ def check_ipa(ipa, staged_app=None):
                 for name in unexpected_names
             )
 
-        allowed_roots = {"Payload/", f"{APP_ARCHIVE_ROOT}/"}
+        allowed_roots = {f"{PAYLOAD_ARCHIVE_ROOT}/"}
+        if app_archive_root is not None:
+            allowed_roots.add(f"{app_archive_root}/")
         for name in names:
-            if name not in allowed_roots and not name.startswith(f"{APP_ARCHIVE_ROOT}/"):
-                errors.append(f"entry is outside the single Krita app bundle: {name}")
+            if name not in allowed_roots and (
+                app_archive_root is None
+                or not name.startswith(f"{app_archive_root}/")
+            ):
+                errors.append(f"entry is outside the single app bundle: {name}")
         for required_directory in allowed_roots:
             if required_directory not in names:
                 errors.append(f"explicit directory entry is missing: {required_directory}")
@@ -237,28 +300,31 @@ def check_ipa(ipa, staged_app=None):
             ):
                 errors.append(f"signing or Finder metadata is present: {name}")
 
-        try:
-            info = plistlib.loads(archive.read(INFO_PLIST_ENTRY))
-            if not isinstance(info, dict):
-                raise ValidationError("archived Info.plist root is not a dictionary")
-            executable = validate_executable_name(
-                info.get("CFBundleExecutable"), "archived"
-            )
-            executable_entry = f"{APP_ARCHIVE_ROOT}/{executable}"
-        except (
-            KeyError,
-            OSError,
-            RuntimeError,
-            plistlib.InvalidFileException,
-            zipfile.BadZipFile,
-        ) as error:
-            errors.append(f"cannot read archived Info.plist: {error}")
-            executable_entry = f"{APP_ARCHIVE_ROOT}/krita"
-        except ValidationError as error:
-            errors.append(str(error))
-            executable_entry = f"{APP_ARCHIVE_ROOT}/krita"
+        executable_entry = None
+        if app_archive_root is not None:
+            info_plist_entry = f"{app_archive_root}/Info.plist"
+            try:
+                info = plistlib.loads(archive.read(info_plist_entry))
+                if not isinstance(info, dict):
+                    raise ValidationError(
+                        "archived Info.plist root is not a dictionary"
+                    )
+                executable = validate_executable_name(
+                    info.get("CFBundleExecutable"), "archived"
+                )
+                executable_entry = f"{app_archive_root}/{executable}"
+            except (
+                KeyError,
+                OSError,
+                RuntimeError,
+                plistlib.InvalidFileException,
+                zipfile.BadZipFile,
+            ) as error:
+                errors.append(f"cannot read archived Info.plist: {error}")
+            except ValidationError as error:
+                errors.append(str(error))
 
-        if executable_entry not in name_set:
+        if executable_entry is not None and executable_entry not in name_set:
             errors.append(f"main executable entry is missing: {executable_entry}")
 
         for entry in entries:

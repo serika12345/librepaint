@@ -1,0 +1,286 @@
+{
+  "schema": 1,
+  "generated_by": "packaging/ios/scripts/audit-ios-compatibility-identifiers.py",
+  "policy": "Persistent format, application, plugin, action, configuration, and resource identifiers retained across the LibrePaint iPadOS rename. Display names and translated text are intentionally excluded.",
+  "explicit_contracts": {
+    "document_identifiers": {
+      "record_count": 18,
+      "records": [
+        {
+          "source": "krita/Info.ios.plist.in",
+          "field": "CFBundleDocumentTypes.LSItemContentTypes",
+          "value": "org.krita.kra"
+        },
+        {
+          "source": "krita/Info.ios.plist.in",
+          "field": "CFBundleDocumentTypes.LSItemContentTypes",
+          "value": "org.krita.openraster"
+        },
+        {
+          "source": "krita/Info.ios.plist.in",
+          "field": "UTExportedTypeDeclarations.UTTypeIdentifier",
+          "value": "org.krita.kra"
+        },
+        {
+          "source": "krita/Info.ios.plist.in",
+          "field": "UTExportedTypeDeclarations.org.krita.kra.public.filename-extension",
+          "value": "kra"
+        },
+        {
+          "source": "krita/Info.ios.plist.in",
+          "field": "UTExportedTypeDeclarations.org.krita.kra.public.mime-type",
+          "value": "application/x-krita"
+        },
+        {
+          "source": "krita/Info.ios.plist.in",
+          "field": "UTImportedTypeDeclarations.UTTypeIdentifier",
+          "value": "org.krita.openraster"
+        },
+        {
+          "source": "krita/Info.ios.plist.in",
+          "field": "UTImportedTypeDeclarations.org.krita.openraster.public.filename-extension",
+          "value": "ora"
+        },
+        {
+          "source": "krita/Info.ios.plist.in",
+          "field": "UTImportedTypeDeclarations.org.krita.openraster.public.mime-type",
+          "value": "image/openraster"
+        },
+        {
+          "source": "plugins/impex/kra/krita_kra_export.json",
+          "field": "X-KDE-Export",
+          "value": "application/x-krita"
+        },
+        {
+          "source": "plugins/impex/krz/krita_krz_export.json",
+          "field": "X-KDE-Export",
+          "value": "application/x-krita-archive"
+        },
+        {
+          "source": "plugins/impex/kra/krita_kra_export.json",
+          "field": "X-KDE-Extensions",
+          "value": "kra"
+        },
+        {
+          "source": "plugins/impex/kra/krita_kra_import.json",
+          "field": "X-KDE-Extensions",
+          "value": "kra"
+        },
+        {
+          "source": "plugins/impex/kra/krita_kra_import.json",
+          "field": "X-KDE-Extensions",
+          "value": "krz"
+        },
+        {
+          "source": "plugins/impex/krz/krita_krz_export.json",
+          "field": "X-KDE-Extensions",
+          "value": "krz"
+        },
+        {
+          "source": "plugins/impex/kra/krita_kra_import.json",
+          "field": "X-KDE-Import",
+          "value": "application/x-krita"
+        },
+        {
+          "source": "plugins/impex/kra/krita_kra_import.json",
+          "field": "X-KDE-Import",
+          "value": "application/x-krita-archive"
+        },
+        {
+          "source": "krita/data/mime-database/freedesktop.org.xml",
+          "field": "mime-type.glob",
+          "value": "*.kra"
+        },
+        {
+          "source": "krita/data/mime-database/freedesktop.org.xml",
+          "field": "mime-type.type",
+          "value": "application/x-krita"
+        }
+      ]
+    },
+    "application_identity": {
+      "record_count": 4,
+      "records": [
+        {
+          "source": "krita/main.cc",
+          "field": "KAboutData.applicationId",
+          "value": "krita"
+        },
+        {
+          "source": "krita/main.cc",
+          "field": "KLocalizedString::addDomainLocaleDir",
+          "value": "krita"
+        },
+        {
+          "source": "krita/main.cc",
+          "field": "KLocalizedString::setApplicationDomain",
+          "value": "krita"
+        },
+        {
+          "source": "krita/CMakeLists.txt",
+          "field": "MACOSX_BUNDLE_GUI_IDENTIFIER",
+          "value": "local.librepaint.ipad"
+        }
+      ]
+    },
+    "configuration_files": {
+      "record_count": 26,
+      "records": [
+        {
+          "source": "krita/krita.qrc",
+          "alias": "kritarc",
+          "target": "data/kritarc"
+        },
+        {
+          "source": "krita/main.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "krita/main.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "krita/main.cc",
+          "value": "kritadisplayrc"
+        },
+        {
+          "source": "krita/main.cc",
+          "value": "kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/KisApplication.cpp",
+          "value": "/kritarc"
+        },
+        {
+          "source": "libs/ui/KoDocumentInfo.cpp",
+          "value": "kritarc"
+        },
+        {
+          "source": "libs/ui/dialogs/KisDlgCustomTabletResolution.cpp",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/dialogs/KisDlgCustomTabletResolution.cpp",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/dialogs/kis_dlg_preferences.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/dialogs/kis_dlg_preferences.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/opengl/kis_opengl.cpp",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/ui/opengl/kis_opengl.cpp",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "plugins/extensions/buginfo/dlg_buginfo.cpp",
+          "value": "/kritadisplayrc"
+        }
+      ]
+    },
+    "resource_paths": {
+      "record_count": 8,
+      "records": [
+        {
+          "source": "libs/resources/KoResourcePaths.cpp",
+          "value": "/../share/krita/"
+        },
+        {
+          "source": "libs/resources/KoResourcePaths.cpp",
+          "value": "/share/krita/"
+        },
+        {
+          "source": "libs/resources/KoResourcePaths.cpp",
+          "value": "/share/krita/"
+        },
+        {
+          "source": "libs/resources/KoResourcePaths.cpp",
+          "value": "/share/krita/"
+        },
+        {
+          "source": "libs/resources/KoResourcePaths.cpp",
+          "value": "share/krita/"
+        },
+        {
+          "source": "libs/resources/KoResourcePaths.cpp",
+          "value": "share/krita/"
+        },
+        {
+          "source": "libs/resources/KoResourcePaths.cpp",
+          "value": "share/krita/"
+        },
+        {
+          "source": "libs/ui/KisApplication.cpp",
+          "value": "/share/krita"
+        }
+      ]
+    }
+  },
+  "inventories": {
+    "plugin_metadata": {
+      "file_count": 172,
+      "record_count": 474,
+      "sha256": "072165fe6aacebb30fde4af5fced7757d39ea02ad990abefb8b269c8aaa892b2"
+    },
+    "action_ids": {
+      "file_count": 44,
+      "record_count": 688,
+      "sha256": "d580baff92eb425dbf4b78bb6c497410e1350a865ac3276ad32c15d3c4ebed29"
+    }
+  }
+}
