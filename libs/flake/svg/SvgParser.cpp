@@ -1757,6 +1757,7 @@ KoShape *SvgParser::parseTextElement(const QDomElement &e, KoSvgTextShape *merge
         m_context.currentGC()->textProperties.property(KoSvgTextProperties::KraTextVersionId).toInt() < 2) {
 
         static const KoID warning("warn_text_version_1",
+                                  // LIBREPAINT-BRAND-AUDIT: format-history
                                   i18nc("warning while loading SVG text",
                                         "The document has vector text created "
                                         "in Krita 4.x. When you save the document, "

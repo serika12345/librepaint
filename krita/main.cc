@@ -1005,6 +1005,7 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
                             QStringLiteral(LIBREPAINT_VERSION_STRING),
                             i18n("LibrePaint is the free paint app"),
                             KAboutLicense::GPL_V3,
+                            // LIBREPAINT-BRAND-AUDIT: upstream-attribution
                             i18nc("@info:credit", "© 1999–2026 The Krita Developers\n© 2026 LibrePaint contributors"));
     aboutData.setHomepage(QStringLiteral("https://github.com/serika12345/librepaint"));
 

@@ -664,7 +664,7 @@ void KisAdvancedColorSpaceSelector::fillDescription()
         if (profileName.contains("-V4-")) {
             d->colorSpaceSelector->textProfileDescription->append(i18nc("From Elle's notes.",
                                                                         "<p>Use V4 profiles for editing images using high bit depth image editors that use LCMS as the Color Management Module. "
-                                                                        "This includes Krita, digiKam/showFoto, and GIMP 2.9.</p>"));
+                                                                        "This includes LibrePaint, digiKam/showFoto, and GIMP 2.9.</p>"));
         }
         if (profileName.contains("-V2-")) {
             d->colorSpaceSelector->textProfileDescription->append(i18nc("From Elle's notes.",

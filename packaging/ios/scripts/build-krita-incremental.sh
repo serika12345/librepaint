@@ -343,6 +343,8 @@ acquire_lock() {
         --audit-ios-classification
     python3 "$repo_root/packaging/ios/scripts/audit-default-resource-bundle.py"
     python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py"
+    python3 "$repo_root/packaging/ios/scripts/audit-user-visible-branding.py" \
+        --source-root "$repo_root"
 }
 
 configure_tree() {

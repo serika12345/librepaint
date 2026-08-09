@@ -1018,6 +1018,7 @@ KisNodeSP KisKraLoader::loadNode(const QDomElement& element, KisImageSP image)
             subtractiveBlendingModesInCmyk().contains(compositeOpName)) {
 
             m_d->warningMessages <<
+                // LIBREPAINT-BRAND-AUDIT: format-history
                 i18n("Layer \"%1\" has blending mode \"%2\" that has changed its "
                     "behavior for CMYK color in Krita 5.2. Please check the "
                     "result and consider enabling legacy \"Additive\" algorithm in "

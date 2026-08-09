@@ -50,7 +50,7 @@
       <item column="0" row="3">
        <widget class="QLabel" name="label">
         <property name="toolTip">
-         <string>&lt;html&gt;
+         <string extracomment="LIBREPAINT-BRAND-AUDIT: format-history">&lt;html&gt;
 &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; this is the same thing as the &quot;incremental&quot; option in the Krita 1.6 freehand tool options.&lt;/p&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">

@@ -187,7 +187,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only use this option for &lt;span style=&quot; font-weight:600;&quot;&gt;very&lt;/span&gt; large files: larger than 4 GiB on disk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Use Zip64 (for very large files: cannot be opened in versions of Krita older than 4.2.0)</string>
+             <string extracomment="LIBREPAINT-BRAND-AUDIT: format-history">Use Zip64 (for very large files: cannot be opened in versions of Krita older than 4.2.0)</string>
             </property>
            </widget>
           </item>
@@ -1077,12 +1077,12 @@
         <widget class="QComboBox" name="cmbFlowMode">
          <item>
           <property name="text">
-           <string>Creamy (Krita 4.2+)</string>
+           <string extracomment="LIBREPAINT-BRAND-AUDIT: format-history">Creamy (Krita 4.2+)</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Hard (Krita 4.1 and earlier versions)</string>
+           <string extracomment="LIBREPAINT-BRAND-AUDIT: format-history">Hard (Krita 4.1 and earlier versions)</string>
           </property>
          </item>
         </widget>
@@ -1098,12 +1098,12 @@
         <widget class="QComboBox" name="cmbCmykBlendingMode">
          <item>
           <property name="text">
-           <string>Subtractive (Krita 5.2+)</string>
+           <string extracomment="LIBREPAINT-BRAND-AUDIT: format-history">Subtractive (Krita 5.2+)</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Additive (Krita 5.1 and earlier versions)</string>
+           <string extracomment="LIBREPAINT-BRAND-AUDIT: format-history">Additive (Krita 5.1 and earlier versions)</string>
           </property>
          </item>
         </widget>
@@ -1614,7 +1614,7 @@
               <item row="0" column="0">
                <widget class="QLabel" name="label_17">
                 <property name="toolTip">
-                 <string>In some Krita versions before 5.0 text size could be dependent on the current display DPI (which was a bug).
+                 <string extracomment="LIBREPAINT-BRAND-AUDIT: format-history">In some Krita versions before 5.0 text size could be dependent on the current display DPI (which was a bug).
 In Krita 5.0 this bug has been fixed, which may cause files created in previous versions look different. 
 
 When loading old files LibrePaint will try to adjust font size to the DPI of the current screen.
@@ -1630,7 +1630,7 @@ After saving the file in Krita 5.0 at least once, no conversions will be needed 
               <item row="0" column="1">
                <widget class="QSpinBox" name="intForcedFontDPI">
                 <property name="toolTip">
-                 <string>In some versions of Krita before 4.4.3 text size could be dependent on the current display DPI (which was a bug).
+                 <string extracomment="LIBREPAINT-BRAND-AUDIT: format-history">In some versions of Krita before 4.4.3 text size could be dependent on the current display DPI (which was a bug).
 In Krita 4.4.3 this bug has been fixed, which may cause files created in previous versions look different.
 To restore the old behavior you can force LibrePaint to use Display DPI for fonts by entering it in this field.</string>
                 </property>

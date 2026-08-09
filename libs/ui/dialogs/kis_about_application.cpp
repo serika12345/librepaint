@@ -43,6 +43,7 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
 
     wdgTab->aboutTab->layout()->addWidget(splash);
 
+    // LIBREPAINT-BRAND-AUDIT: upstream-attribution
     QString authors = i18n("<html>"
                            "<head/>"
                            "<body>"
@@ -81,6 +82,7 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
 
     translatorHtml.append("<ul></p>");
     translatorHtml.append(
+        // LIBREPAINT-BRAND-AUDIT: upstream-attribution
         i18n("<p>The translations bundled with LibrePaint are inherited from Krita and "
              "provided by KDE translation teams around the world.</p><p>For more information "
              "about KDE internationalization, visit <a href=\"https://l10n.kde.org\">https://"
@@ -89,6 +91,7 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
 
     wdgTab->lblTranslators->setText(translatorHtml);
 
+    // LIBREPAINT-BRAND-AUDIT: upstream-attribution
     QString credits = i18n("<html>"
                            "<head/>"
                            "<body>"
@@ -112,10 +115,12 @@ KisAboutApplication::KisAboutApplication(QWidget *parent)
         }
         credits.chop(2);
     }
+    // LIBREPAINT-BRAND-AUDIT: upstream-attribution
     credits.append(i18n(".</p><p><i>For supporting upstream Krita development with advice, icons, brush sets and more.</i></p></body></html>"));
 
     wdgTab->lblCredits->setText(credits);
 
+    // LIBREPAINT-BRAND-AUDIT: upstream-attribution
     QString license = i18n("<html>"
                            "<head/>"
                            "<body>"

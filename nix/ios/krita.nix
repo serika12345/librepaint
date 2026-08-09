@@ -255,6 +255,11 @@ mkIOSCMakePackage {
       --kcolorscheme-source-tar "${kcolorscheme-ios.src}" \
       --kwidgetsaddons-source-tar "${kwidgetsaddons-ios.src}"
 
+    ${python3}/bin/python3 \
+      "${kritaSource}/packaging/ios/scripts/audit-user-visible-branding.py" \
+      --source-root "${kritaSource}" \
+      --xgettext "${gettext}/bin/xgettext"
+
     check_cache_value() {
       name="$1"
       expected="$2"
