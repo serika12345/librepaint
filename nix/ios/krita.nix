@@ -305,6 +305,11 @@ mkIOSCMakePackage {
       "${kritaSource}/krita/kritamenu.action" \
       "$out/share/krita/actions/kritamenu.action"
 
+    # CMake installs desktop service metadata for host integrations that do not
+    # exist on iPadOS. Prune only that exact generated directory before the
+    # runtime share tree is copied into the application bundle.
+    rm -rf -- "$out/share/applications"
+
     cp -R bin/krita.app "$out/krita.app"
     cp -R "$out/share" "$out/krita.app/share"
     rm -rf "$out/share"
@@ -372,6 +377,10 @@ mkIOSCMakePackage {
         fi
         if find "$app" -type l -print -quit | grep -q .; then
           echo "error: Krita app contains a symlink" >&2
+          exit 1
+        fi
+        if test -e "$app/share/applications" || test -L "$app/share/applications"; then
+          echo "error: desktop application metadata was packaged for iPadOS" >&2
           exit 1
         fi
 

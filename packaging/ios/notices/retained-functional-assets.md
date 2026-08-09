@@ -83,22 +83,13 @@ Google sponsorship, affiliation, or endorsement of LibrePaint.
 
 https://developer.android.com/distribute/marketing-tools/brand-guidelines
 
-## KXmlGui artwork and KDE attribution
+## KXmlGui artwork
 
-`libs/widgetutils/xmlgui/aboutkde.png` and
-`libs/widgetutils/xmlgui/thumb_frame.png` are retained from KDE KXmlGui under
-LGPL-2.0-or-later. The former appears only inside the standard factual About
-KDE dialog; the latter is a functional shortcut-editor frame. The local files
-match their upstream sources, including the historical About KDE artwork
-commit and the KXmlGui 6.28.0 `thumb_frame.png` source:
-
-https://invent.kde.org/frameworks/kxmlgui/-/commit/d5ed5228d59072d3c1d8765087e8a55f84b18cc8
+`libs/widgetutils/xmlgui/thumb_frame.png` is retained from KDE KXmlGui under
+LGPL-2.0-or-later as a functional shortcut-editor frame. The local file
+matches the KXmlGui 6.28.0 source:
 
 https://invent.kde.org/frameworks/kxmlgui/-/blob/v6.28.0/src/thumb_frame.png
-
-KDE® and the K Desktop Environment® logo are registered trademarks of KDE
-e.V. LibrePaint is an independent project and is not endorsed or sponsored by
-KDE e.V.
 
 ## Krita project-wide GPL fallback
 

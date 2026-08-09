@@ -67,10 +67,8 @@ set(kritawidgetutils_LIB_SRCS
     xmlgui/kshortcutschemeseditor.cpp
     xmlgui/kshortcutschemeshelper.cpp
 
-    xmlgui/kaboutkdedialog_p.cpp
     xmlgui/kactioncategory.cpp
     xmlgui/kactioncollection.cpp
-    xmlgui/kbugreport.cpp
     xmlgui/kcheckaccelerators.cpp
     xmlgui/kedittoolbar.cpp
     xmlgui/khelpmenu.cpp

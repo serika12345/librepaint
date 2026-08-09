@@ -167,7 +167,7 @@ void KoDocumentInfoDlg::initAboutTab()
     d->aboutUi->leTitle->setText(d->info->aboutInfo("title"));
     d->aboutUi->leSubject->setText(d->info->aboutInfo("subject"));
 
-    d->aboutUi->leKeywords->setToolTip(i18n("Use ';' (Example: Office;KDE;Calligra)"));
+    d->aboutUi->leKeywords->setToolTip(i18n("Separate keywords with ';' (Example: Illustration;Landscape;Commission)"));
     if (!d->info->aboutInfo("keyword").isEmpty())
         d->aboutUi->leKeywords->setText(d->info->aboutInfo("keyword"));
 

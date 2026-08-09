@@ -48,12 +48,28 @@ if ! [[ "$minimum_free_gib" =~ ^[1-9][0-9]*$ ]]; then
 fi
 
 # IPA files are reproducible deployment artifacts. Keep the newest few, while
-# retaining logs and screenshots used for device debugging.
+# retaining logs and screenshots used for device debugging. Treat the legacy
+# Krita prefix and the current LibrePaint prefix as one history. Sorting by the
+# shared bundle-version suffix keeps the existing name/date policy independent
+# of the product-name migration; the full path is a deterministic tie-breaker.
 ipa_files=()
 if [[ -d "$deploy_dir" ]]; then
-    while IFS= read -r ipa; do
+    while IFS=$'\t' read -r _ ipa; do
         ipa_files+=("$ipa")
-    done < <(find "$deploy_dir" -maxdepth 1 -type f -name 'LibrePaint-iPad-*.ipa' -print | sort)
+    done < <(
+        find "$deploy_dir" -maxdepth 1 -type f \
+            \( -name 'Krita-iPad-*.ipa' -o -name 'LibrePaint-iPad-*.ipa' \) \
+            -print \
+            | while IFS= read -r ipa; do
+                ipa_name="${ipa##*/}"
+                ipa_sort_key="${ipa_name#LibrePaint-iPad-}"
+                if [[ "$ipa_sort_key" == "$ipa_name" ]]; then
+                    ipa_sort_key="${ipa_name#Krita-iPad-}"
+                fi
+                printf '%s\t%s\n' "$ipa_sort_key" "$ipa"
+            done \
+            | LC_ALL=C sort -t $'\t' -k1,1 -k2,2
+    )
 fi
 
 prune_count=$((${#ipa_files[@]} - keep_ipas))

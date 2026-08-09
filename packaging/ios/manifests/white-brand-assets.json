@@ -125,12 +125,12 @@
       "core_qrc_files": 22,
       "static_plugin_qrc_files": 11,
       "scope_definition_files": 34,
-      "scope_definition_sha256": "006ac4c5912a4ffc02bb7e589309173d9a08843df839db3e835cd69bacd4b4d0",
+      "scope_definition_sha256": "f6e04db1dfa826b8a3ad05850ac26df619d0675c1795faafe24fd8ae63a8d59d",
       "static_resource_registration_files": 10,
-      "qrc_unique_images": 1290,
-      "qrc_image_paths_sha256": "64b7dbda9f8f4056a0da44606418de3fb2dcd4489e10565b3eabc2fd59c58fb9",
-      "retained_qrc_images": 587,
-      "retained_qrc_paths_sha256": "2641e862d23e3b04e3c8afa01b5f53a96f3ba6a070ed6f579416c74ffde8fc8f",
+      "qrc_unique_images": 1289,
+      "qrc_image_paths_sha256": "5c7ac8e1537bdc784cc16beda90f98a2ce9d49e878d5a3b184c36f9cea5148f4",
+      "retained_qrc_images": 586,
+      "retained_qrc_paths_sha256": "f2ec9ebc705a10b5429c140af8a804809eb8c23f53021cb55f405f00df96e3e2",
       "strict_metadata_images": 703,
       "strict_metadata_paths_sha256": "5e1542c8143be3918aeebe19e50f965138a21419dc4d12a8aa4b9e4c52bec820",
       "strict_metadata_content_sha256": "b12a6f0e7ef3de1caab36b719d3a434946810715245b8db065dfb5c588611e76",
@@ -256,7 +256,7 @@
           "paths_sha256": "4651e48e840baa15d07a0bae1cfebc56ff848c899c40494459a2a7d6232e79f4",
           "content_sha256": "8d1d5108336f189d439743a8f150f9e48e1409040bbb0622266de13addd4cdab"
         },
-        "notice_sha256": "ef9efed0b4923b4f7772f4320fb433dfd9b3263a2b6564a9c173f1bde6a560a2"
+        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
       },
       {
         "id": "kde-oxygen-icons-qrc",
@@ -293,7 +293,7 @@
           "paths_sha256": "a6899f49689403f35da7b5969859b51534367cbc9cf3ff4759399019031048c7",
           "content_sha256": "e3964861e115e83347d3d4314f7e5871a449145c30b79f9288840f52d0b1b9d2"
         },
-        "notice_sha256": "ef9efed0b4923b4f7772f4320fb433dfd9b3263a2b6564a9c173f1bde6a560a2"
+        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
       },
       {
         "id": "kde-breeze-icons-qrc",
@@ -605,7 +605,7 @@
           "paths_sha256": "e96de87e8272d3095e22ab28e0124a439075ca6a9e90f2617643b733e5337210",
           "content_sha256": "49200e546860107dd3dcee18bd358d0979970ae94db081d1ea412a256f6307f3"
         },
-        "notice_sha256": "ef9efed0b4923b4f7772f4320fb433dfd9b3263a2b6564a9c173f1bde6a560a2"
+        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
       },
       {
         "id": "android-robot-functional-qrc",
@@ -622,7 +622,7 @@
           "paths_sha256": "d87f2acd26d937a826e621b4758075b7205d854282cfe2374845aad5a5a6bd4f",
           "content_sha256": "0210f4c485878e5da9ec9e48f7576c8481c14ccca0617dc44c24bc1649825454"
         },
-        "notice_sha256": "ef9efed0b4923b4f7772f4320fb433dfd9b3263a2b6564a9c173f1bde6a560a2"
+        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
       },
       {
         "id": "kde-kxmlgui-functional-qrc",
@@ -631,15 +631,14 @@
         "source_url": "https://invent.kde.org/frameworks/kxmlgui",
         "notice_path": "packaging/ios/notices/retained-functional-assets.md",
         "paths": [
-          "libs/widgetutils/xmlgui/aboutkde.png",
           "libs/widgetutils/xmlgui/thumb_frame.png"
         ],
         "expected": {
-          "files": 2,
-          "paths_sha256": "6d6d571657e4711ef4a27ea514b294cda5b9273664622014744f9f72fd48bc8d",
-          "content_sha256": "383ad0baa82ac36b7745ce8ec9f26f0bd5fa32fdb448fe75a32c66eaa2c8e263"
+          "files": 1,
+          "paths_sha256": "0ec8104d17b87ccd93ffb64fa86ff5835f4cbc2c83ad024644783181f95c2a1f",
+          "content_sha256": "8ee80886b7a6c8f93febee7233b66fc88b4566bdef12dc72bbb490c2a87fb947"
         },
-        "notice_sha256": "ef9efed0b4923b4f7772f4320fb433dfd9b3263a2b6564a9c173f1bde6a560a2"
+        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
       },
       {
         "id": "krita-functional-qrc",
@@ -802,7 +801,7 @@
           "paths_sha256": "50c2f1c4c8033dc094ec18788bed902bd34986db52286217204e803c43bc8a49",
           "content_sha256": "2b66253ab642c40934daf1f47ba864526822c90bd3e8a6a3e86b16607ca20139"
         },
-        "notice_sha256": "ef9efed0b4923b4f7772f4320fb433dfd9b3263a2b6564a9c173f1bde6a560a2"
+        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
       },
       {
         "id": "krita-functional-installed",
@@ -849,7 +848,7 @@
           "paths_sha256": "9bd79bc0a561e14aa0d5e2516c5f061281537bfda91973c45211a2ace87925bc",
           "content_sha256": "adbecdf809a49cc278816b957d2cdb03a888b112b53168745249b6108d9fc174"
         },
-        "notice_sha256": "ef9efed0b4923b4f7772f4320fb433dfd9b3263a2b6564a9c173f1bde6a560a2"
+        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
       },
       {
         "id": "librepaint-branding-qrc",

@@ -22,10 +22,11 @@ class KAboutData;
 class KisKHelpMenuPrivate;
 
 /**
- * @short Standard %KDE help menu with dialog boxes.
+ * @short Compatibility help menu for the actions available in LibrePaint.
  *
- * This class provides the standard %KDE help menu with the default "about"
- * dialog boxes and help entry.
+ * This class retains the existing XMLGUI API while providing the available
+ * context-help, language, and application-about actions. The upstream
+ * handbook, bug-report, and About KDE routes are intentionally unavailable.
  *
  * This class is used in KisKMainWindow so
  * normally you don't need to use this class yourself. However, if you
@@ -37,13 +38,6 @@ class KisKHelpMenuPrivate;
  * \code
  * mHelpMenu = new KisKHelpMenu( this, <someText> );
  * kmenubar->addMenu(mHelpMenu->menu() );
- * \endcode
- *
- * or if you just want to open a dialog box:
- *
- * \code
- * mHelpMenu = new KisKHelpMenu( this, <someText> );
- * connect( this, SIGNAL(someSignal()), mHelpMenu,SLOT(aboutKDE()));
  * \endcode
  *
  * IMPORTANT:
@@ -112,8 +106,8 @@ public:
      *
      * @param parent The parent of the dialog boxes. The boxes are modeless
      *        and will be centered with respect to the parent.
-     * @param aboutAppText User definable string that is used in the
-     *        default application dialog box.
+     * @param aboutAppText Retained for source compatibility with the original
+     *        API. LibrePaint supplies its application dialog elsewhere.
      * @param showWhatsThis Decides whether a "Whats this" entry will be
      *        added to the dialog.
      *
@@ -124,13 +118,13 @@ public:
     /**
      * Constructor.
      *
-     * This alternative constructor is mainly useful if you want to
-     * override the standard actions (aboutApplication(), aboutKDE(),
-     * helpContents(), reportBug, and optionally whatsThis).
+     * This alternative constructor retains the original API for callers that
+     * supply application metadata.
      *
      * @param parent The parent of the dialog boxes. The boxes are modeless
      *        and will be centered with respect to the parent.
-     * @param aboutData User and app data used in the About app dialog
+     * @param aboutData Retained for source compatibility with the original
+     *        API. LibrePaint supplies its application dialog elsewhere.
      * @param showWhatsThis Decides whether a "Whats this" entry will be
      *        added to the dialog.
      */
@@ -140,7 +134,7 @@ public:
     /**
      * Destructor
      *
-     * Destroys dialogs and the menu pointer returned by menu
+     * Destroys the language dialog and the menu pointer returned by menu().
      */
     ~KisKHelpMenu() override;
 
@@ -148,9 +142,9 @@ public:
      * Returns a popup menu you can use in the menu bar or where you
      * need it.
      *
-     * The returned menu is configured with an icon, a title and
-     * menu entries. Therefore adding the returned pointer to your menu
-     * is enough to have access to the help menu.
+     * The returned menu is configured with a title and the available menu
+     * entries. Therefore adding the returned pointer to your menu is enough
+     * to have access to the help menu.
      *
      * Note: This method will only create one instance of the menu. If
      * you call this method twice or more the same pointer is returned.
@@ -167,8 +161,8 @@ public:
     };
 
     /**
-     * Returns the QAction * associated with the given parameter
-     * Will return 0 pointers if menu() has not been called
+     * Returns the QAction associated with the given parameter. Unavailable
+     * compatibility actions return nullptr.
      *
      * @param id The id of the action of which you want to get QAction *
      */
@@ -176,9 +170,7 @@ public:
 
 public Q_SLOTS:
     /**
-     * Opens the help page for the application. The application name is
-     * used as a key to determine what to display and the system will attempt
-     * to open \<appName\>/index.html.
+     * Compatibility no-op. LibrePaint has no configured handbook endpoint.
      */
     void appHelpActivated();
 
@@ -188,23 +180,18 @@ public Q_SLOTS:
     void contextHelpActivated();
 
     /**
-     * Opens an application specific dialog box.
-     *
-     * The method will try to open the about box using the following steps:
-     * - If the showAboutApplication() signal is connected, then it will be called.
-     *   This means there is an application defined aboutBox.
-     * - If the aboutData was set in the constructor a KAboutApplicationDialog will be created.
-     * - Else a default about box using the aboutAppText from the constructor will be created.
+     * Emits showAboutApplication() when an application-specific handler is
+     * connected.
      */
     void aboutApplication();
 
     /**
-     * Opens the standard "About KDE" dialog box.
+     * Compatibility no-op. LibrePaint does not expose an About KDE dialog.
      */
     void aboutKDE();
 
     /**
-     * Opens the standard "Report Bugs" dialog box.
+     * Compatibility no-op. LibrePaint has no configured bug-report endpoint.
      */
     void reportBug();
 
@@ -222,25 +209,20 @@ private Q_SLOTS:
     void menuDestroyed();
 
     /**
-     * Connected to the dialogs (about kde and bug report) to detect
-     * when they are finished.
+     * Connected to the remaining modeless dialogs to detect when they finish.
      */
     void dialogFinished();
 
     /**
-     * This slot will delete a dialog (about kde or bug report) if the
-     * dialog pointer is not zero and the dialog is not visible. This
-     * slot is activated by a one shot timer started in dialogHidden
+     * Deletes modeless dialogs that have finished and are no longer visible.
+     * This slot is activated by a one-shot timer from dialogFinished().
      */
     void timerExpired();
 
 Q_SIGNALS:
     /**
-     * This signal is emitted from aboutApplication() if no
-     * "about application" string has been defined. The standard
-     * application specific dialog box that is normally activated in
-     * aboutApplication() will not be displayed when this signal
-     * is emitted.
+     * This signal is emitted from aboutApplication() when an
+     * application-specific handler is connected.
      */
     void showAboutApplication();
 

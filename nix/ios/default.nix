@@ -754,23 +754,46 @@ let
     qtXcrunShim = qt-xcrun-shim;
   };
 
+  # Package-specific phase hooks can retain source paths through their string
+  # contexts even when `src` is removed and the phases are never executed.
+  # Keep the common preConfigure toolchain setup, but discard every optional
+  # hook through which the app recipe could capture its source in the future.
+  incrementalDiscardedHooks = [
+    "preUnpack"
+    "postUnpack"
+    "prePatch"
+    "postPatch"
+    "postConfigure"
+    "preBuild"
+    "postBuild"
+    "preInstall"
+    "postInstall"
+    "preFixup"
+    "postFixup"
+    "preInstallCheck"
+    "postInstallCheck"
+  ];
+
   # Preserve the app derivation's exact native tools, target closure, CMake
   # flags, and toolchain identity without retaining or building a Krita source
   # snapshot. A recorded `nix develop --profile` of this derivation is the
   # stable environment for the repository-local incremental Ninja tree.
-  krita-ios-incremental-env = krita-ios-app.overrideAttrs (_old: {
-    pname = "krita-ios-incremental-env";
-    version = "1";
-    src = null;
-    patches = [ ];
-    dontUnpack = true;
-    phases = [ "installPhase" ];
-    installPhase = ''
-      mkdir -p "$out"
-    '';
-    postInstall = "";
-    doInstallCheck = false;
-  });
+  krita-ios-incremental-env = krita-ios-app.overrideAttrs (
+    _old:
+    {
+      pname = "krita-ios-incremental-env";
+      version = "1";
+      src = null;
+      patches = [ ];
+      dontUnpack = true;
+      phases = [ "installPhase" ];
+      installPhase = ''
+        mkdir -p "$out"
+      '';
+      doInstallCheck = false;
+    }
+    // lib.genAttrs incrementalDiscardedHooks (_hook: "")
+  );
 
   krita-ios-ipa = pkgs.callPackage ./ipa.nix {
     inherit krita-ios-app;
@@ -797,6 +820,11 @@ let
   ios-dependencies = mkIOSAggregate "krita-ios-dependencies-bootstrap" allIOSPackages;
   kf6-ios-dependencies = ios-dependencies;
 in
+assert lib.assertMsg (
+  krita-ios-incremental-env.src == null
+  && krita-ios-incremental-env.patches == [ ]
+  && lib.all (hook: (krita-ios-incremental-env.${hook} or null) == "") incrementalDiscardedHooks
+) "incremental iOS environment must discard the app source and package-specific phase hooks";
 assert lib.assertMsg (
   builtins.length allIOSPackages == 58
   && builtins.length (lib.unique (map toString allIOSPackages)) == 58

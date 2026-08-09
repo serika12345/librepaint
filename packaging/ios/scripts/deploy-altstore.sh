@@ -149,6 +149,10 @@ if ! "$cmake_command" -DCMAKE_INSTALL_PREFIX="$runtime_prefix" \
     exit 1
 fi
 
+# Desktop service metadata has no consumer on iPadOS. Remove only this exact
+# generated directory before the runtime tree is inspected and staged.
+rm -rf -- "$runtime_prefix/share/applications"
+
 # These core action registries are installed by krita/CMakeLists.txt rather
 # than the krita/data subtree. Stage them without running the complete Krita
 # install script, which would also duplicate and mutate the application bundle.

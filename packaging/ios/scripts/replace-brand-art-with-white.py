@@ -176,7 +176,7 @@ MIGRATED_ADOBE_PDF_ICON_PATHS = {
     "krita/pics/Breeze-dark/dark_application-pdf.svg",
     "krita/pics/Breeze-light/light_application-pdf.svg",
 }
-MIGRATED_ABOUT_KDE_PATH = "libs/widgetutils/xmlgui/aboutkde.png"
+LEGACY_ABOUT_KDE_PATH = "libs/widgetutils/xmlgui/aboutkde.png"
 MIGRATED_KXMLGUI_THUMB_PATH = "libs/widgetutils/xmlgui/thumb_frame.png"
 MIGRATED_ANDROID_ROBOT_PATHS = {
     "krita/pics/svg/dark_show_android_log.svg",
@@ -1353,9 +1353,9 @@ def migrate_retained_license_groups(manifest: dict[str, Any]) -> None:
     selection["ios_qrc_white_paths"] = sorted(MIGRATED_ADOBE_PDF_ICON_PATHS)
 
     raster_globs = selection["raster_globs"]
-    if MIGRATED_ABOUT_KDE_PATH not in raster_globs:
+    if LEGACY_ABOUT_KDE_PATH not in raster_globs:
         raise AssetError("standard About KDE artwork is absent from the legacy white selection")
-    raster_globs.remove(MIGRATED_ABOUT_KDE_PATH)
+    raster_globs.remove(LEGACY_ABOUT_KDE_PATH)
     svg_globs = selection["svg_globs"]
     for relative in sorted(MIGRATED_BREEZE_LOGO_PATHS):
         if relative not in svg_globs:
@@ -1365,7 +1365,7 @@ def migrate_retained_license_groups(manifest: dict[str, Any]) -> None:
     manifest["ios_image_audit"]["retained_license_groups"] = [
         retained_group_record("krita-functional-qrc", project_paths),
         retained_group_record("kde-breeze-icons-qrc", breeze_paths),
-        retained_group_record("kde-about-dialog-qrc", [MIGRATED_ABOUT_KDE_PATH]),
+        retained_group_record("kde-kxmlgui-functional-qrc", [MIGRATED_KXMLGUI_THUMB_PATH]),
         retained_group_record("krita-functional-installed", old_installed),
     ]
     manifest["policy"]["scope_policy"] = (
@@ -1395,21 +1395,27 @@ def migrate_precise_retained_license_groups(manifest: dict[str, Any]) -> None:
         )
         return
 
-    legacy_ids = [
+    legacy_prefix = [
         "krita-functional-qrc",
         "kde-breeze-icons-qrc",
-        "kde-about-dialog-qrc",
-        "krita-functional-installed",
     ]
-    if observed_ids != legacy_ids:
+    legacy_suffix = ["krita-functional-installed"]
+    legacy_about_ids = legacy_prefix + ["kde-about-dialog-qrc"] + legacy_suffix
+    legacy_kxmlgui_ids = legacy_prefix + ["kde-kxmlgui-functional-qrc"] + legacy_suffix
+    if observed_ids not in (legacy_about_ids, legacy_kxmlgui_ids):
         raise AssetError(f"cannot migrate retained license groups: {observed_ids}")
 
     legacy = {group["id"]: set(group["paths"]) for group in groups}
     project_paths = legacy["krita-functional-qrc"]
     legacy_breeze_paths = legacy["kde-breeze-icons-qrc"]
-    about_paths = legacy["kde-about-dialog-qrc"]
     installed_paths = legacy["krita-functional-installed"]
-    if len(project_paths) != 480 or about_paths != {MIGRATED_ABOUT_KDE_PATH}:
+    if observed_ids == legacy_about_ids:
+        if legacy["kde-about-dialog-qrc"] != {LEGACY_ABOUT_KDE_PATH}:
+            raise AssetError("legacy About KDE inventory changed before precise-license migration")
+        legacy_kxmlgui_paths = {MIGRATED_KXMLGUI_THUMB_PATH}
+    else:
+        legacy_kxmlgui_paths = legacy["kde-kxmlgui-functional-qrc"]
+    if len(project_paths) != 480 or legacy_kxmlgui_paths != {MIGRATED_KXMLGUI_THUMB_PATH}:
         raise AssetError("legacy retained functional inventory changed before precise-license migration")
 
     raw_cc_paths = {
@@ -1423,7 +1429,7 @@ def migrate_precise_retained_license_groups(manifest: dict[str, Any]) -> None:
 
     root_pics_paths = {relative for relative in project_paths if relative.startswith("pics/")}
     root_breeze_paths = root_pics_paths - MIGRATED_ROOT_PICS_GPL_PATHS
-    kxmlgui_paths = {MIGRATED_KXMLGUI_THUMB_PATH}
+    kxmlgui_paths = legacy_kxmlgui_paths
     classified = (
         cc_paths
         | MIGRATED_OXYGEN_PATHS
@@ -1456,7 +1462,7 @@ def migrate_precise_retained_license_groups(manifest: dict[str, Any]) -> None:
         retained_group_record("kde-oxygen-icons-qrc", MIGRATED_OXYGEN_PATHS),
         retained_group_record("kde-breeze-icons-qrc", legacy_breeze_paths | root_breeze_paths),
         retained_group_record("android-robot-functional-qrc", MIGRATED_ANDROID_ROBOT_PATHS),
-        retained_group_record("kde-kxmlgui-functional-qrc", about_paths | kxmlgui_paths),
+        retained_group_record("kde-kxmlgui-functional-qrc", kxmlgui_paths),
         retained_group_record("krita-functional-qrc", gpl_paths),
         retained_group_record("krita-functional-installed", installed_paths),
     ]

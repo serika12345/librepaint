@@ -1632,7 +1632,7 @@ After saving the file in Krita 5.0 at least once, no conversions will be needed 
                 <property name="toolTip">
                  <string>In some versions of Krita before 4.4.3 text size could be dependent on the current display DPI (which was a bug).
 In Krita 4.4.3 this bug has been fixed, which may cause files created in previous versions look different.
-To restore the old behavior you can force Krita to use Display DPI for fonts by entering it in this field.</string>
+To restore the old behavior you can force LibrePaint to use Display DPI for fonts by entering it in this field.</string>
                 </property>
                 <property name="maximum">
                  <number>1000</number>

@@ -50,6 +50,24 @@ if [[ "${KRITA_IOS_INCREMENTAL_ENV:-0}" != "1" ]]; then
     environment_profile_root="$repo_root/build-ios/nix-profiles/krita-ios-incremental"
     environment_profile="$environment_profile_root/profile"
     environment_fingerprint_path="$environment_profile_root/fingerprint"
+    environment_profile_refreshed=0
+
+    validate_incremental_environment_profile() {
+        local reference references
+        if ! references="$(nix-store --query --requisites "$environment_profile")"; then
+            echo "error: failed to inspect incremental environment closure" >&2
+            return 1
+        fi
+        while IFS= read -r reference; do
+            case "${reference##*/}" in
+                *-krita-ios-source)
+                    echo "error: incremental environment retains repository source: $reference" >&2
+                    return 1
+                    ;;
+            esac
+        done <<<"$references"
+    }
+
     recorded_environment_fingerprint=""
     if [[ -f "$environment_fingerprint_path" ]]; then
         recorded_environment_fingerprint="$(<"$environment_fingerprint_path")"
@@ -62,6 +80,11 @@ if [[ "${KRITA_IOS_INCREMENTAL_ENV:-0}" != "1" ]]; then
             --profile "$environment_profile" \
             --command true
         nix profile wipe-history --profile "$environment_profile" >/dev/null
+        environment_profile_refreshed=1
+    fi
+
+    validate_incremental_environment_profile
+    if [[ "$environment_profile_refreshed" == "1" ]]; then
         printf '%s\n' "$environment_fingerprint" \
             >"$environment_fingerprint_path.tmp"
         mv "$environment_fingerprint_path.tmp" "$environment_fingerprint_path"

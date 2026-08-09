@@ -24,6 +24,18 @@ if [[ ! -d "$expected_share" ]]; then
     exit 1
 fi
 
+# File-list comparison does not expose an empty directory, and a dangling
+# symlink does not satisfy -e. Reject both forms in the generated runtime tree
+# and in the application copy so desktop-only metadata cannot slip into iPadOS.
+for applications_dir in \
+    "$expected_share/applications" \
+    "$app_path/share/applications"; do
+    if [[ -e "$applications_dir" || -L "$applications_dir" ]]; then
+        echo "error: desktop application metadata was packaged for iPadOS: $applications_dir" >&2
+        exit 1
+    fi
+done
+
 expected_list="$(mktemp "${TMPDIR:-/tmp}/krita-runtime-expected.XXXXXX")"
 actual_list="$(mktemp "${TMPDIR:-/tmp}/krita-runtime-actual.XXXXXX")"
 cleanup() {
