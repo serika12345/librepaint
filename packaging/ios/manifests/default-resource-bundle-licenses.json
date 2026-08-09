@@ -74,7 +74,7 @@
     },
     {
       "path": "packaging/ios/notices/librepaint-brand-assets.md",
-      "sha256": "1acd96e3fecaa3c94eedbf64c42856d4111c4a8815c56e21e1a0f7399e101621",
+      "sha256": "693cd7df07e1a32df98888d0c708a7c0fa4e0acb03e0c1cac73c08512d45f1ef",
       "applies_to": "preview.png"
     }
   ],

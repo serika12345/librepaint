@@ -256,7 +256,7 @@
           "paths_sha256": "4651e48e840baa15d07a0bae1cfebc56ff848c899c40494459a2a7d6232e79f4",
           "content_sha256": "8d1d5108336f189d439743a8f150f9e48e1409040bbb0622266de13addd4cdab"
         },
-        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
+        "notice_sha256": "4b709a819864bd83fd59beae6d277ee3905a77fb57bd7a052f8291089fa3efbd"
       },
       {
         "id": "kde-oxygen-icons-qrc",
@@ -293,7 +293,7 @@
           "paths_sha256": "a6899f49689403f35da7b5969859b51534367cbc9cf3ff4759399019031048c7",
           "content_sha256": "e3964861e115e83347d3d4314f7e5871a449145c30b79f9288840f52d0b1b9d2"
         },
-        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
+        "notice_sha256": "4b709a819864bd83fd59beae6d277ee3905a77fb57bd7a052f8291089fa3efbd"
       },
       {
         "id": "kde-breeze-icons-qrc",
@@ -605,7 +605,7 @@
           "paths_sha256": "e96de87e8272d3095e22ab28e0124a439075ca6a9e90f2617643b733e5337210",
           "content_sha256": "49200e546860107dd3dcee18bd358d0979970ae94db081d1ea412a256f6307f3"
         },
-        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
+        "notice_sha256": "4b709a819864bd83fd59beae6d277ee3905a77fb57bd7a052f8291089fa3efbd"
       },
       {
         "id": "android-robot-functional-qrc",
@@ -622,7 +622,7 @@
           "paths_sha256": "d87f2acd26d937a826e621b4758075b7205d854282cfe2374845aad5a5a6bd4f",
           "content_sha256": "0210f4c485878e5da9ec9e48f7576c8481c14ccca0617dc44c24bc1649825454"
         },
-        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
+        "notice_sha256": "4b709a819864bd83fd59beae6d277ee3905a77fb57bd7a052f8291089fa3efbd"
       },
       {
         "id": "kde-kxmlgui-functional-qrc",
@@ -638,7 +638,7 @@
           "paths_sha256": "0ec8104d17b87ccd93ffb64fa86ff5835f4cbc2c83ad024644783181f95c2a1f",
           "content_sha256": "8ee80886b7a6c8f93febee7233b66fc88b4566bdef12dc72bbb490c2a87fb947"
         },
-        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
+        "notice_sha256": "4b709a819864bd83fd59beae6d277ee3905a77fb57bd7a052f8291089fa3efbd"
       },
       {
         "id": "krita-functional-qrc",
@@ -801,7 +801,7 @@
           "paths_sha256": "50c2f1c4c8033dc094ec18788bed902bd34986db52286217204e803c43bc8a49",
           "content_sha256": "2b66253ab642c40934daf1f47ba864526822c90bd3e8a6a3e86b16607ca20139"
         },
-        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
+        "notice_sha256": "4b709a819864bd83fd59beae6d277ee3905a77fb57bd7a052f8291089fa3efbd"
       },
       {
         "id": "krita-functional-installed",
@@ -848,7 +848,7 @@
           "paths_sha256": "9bd79bc0a561e14aa0d5e2516c5f061281537bfda91973c45211a2ace87925bc",
           "content_sha256": "adbecdf809a49cc278816b957d2cdb03a888b112b53168745249b6108d9fc174"
         },
-        "notice_sha256": "7a5eb05a734a25b90abc2779d2a6c70bc04bf9b824f88cc903d23f5bdf93217e"
+        "notice_sha256": "4b709a819864bd83fd59beae6d277ee3905a77fb57bd7a052f8291089fa3efbd"
       },
       {
         "id": "librepaint-branding-qrc",
@@ -886,7 +886,7 @@
           "paths_sha256": "2af92a60ec5cc56e980ab817df8b803ed6f741846df374ccda8f80a5fb4cff1c",
           "content_sha256": "da7b2c8deb97662bcabf6066e814baa16f16a4c4a190cacbcda6152628026c97"
         },
-        "notice_sha256": "1acd96e3fecaa3c94eedbf64c42856d4111c4a8815c56e21e1a0f7399e101621"
+        "notice_sha256": "693cd7df07e1a32df98888d0c708a7c0fa4e0acb03e0c1cac73c08512d45f1ef"
       }
     ],
     "installed_image_definition_paths": [

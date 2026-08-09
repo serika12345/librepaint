@@ -7,8 +7,7 @@ SPDX-License-Identifier: CC0-1.0
 
 On 2026-08-08, the LibrePaint project owner stated that they personally
 created the supplied LibrePaint logo and icon and elected to release both
-works under CC0-1.0. The supplied README also states that the artwork was
-assembled without generative AI.
+works under CC0-1.0.
 
 The unmodified source files are retained under
 `packaging/ios/brand-assets`. Their input SHA-256 values are:
@@ -46,20 +45,19 @@ reproducibly generates or copies the current derivatives:
   standard Android density renderings. All Android build variants and the
   round-icon reference use this one set during the temporary branding phase.
 - The root `preview.png` payload in each tracked resource bundle under
-  `krita/data/bundles` is a 256-pixel opaque rendering of the icon. Only that
-  replacement payload is CC0-1.0; the other bundle entries retain their own
-  applicable licenses.
+  `krita/data/bundles` is a 256-pixel opaque rendering of the icon. That
+  replacement payload is CC0-1.0; each other bundle entry retains its
+  applicable license.
 - `krita/data/splash/electrichearts_20250824A_kiki_4K.png` is the full
   LibrePaint logo fitted to the existing 3840 x 1920 splash canvas, and
   `krita/data/splash/electrichearts_20250824A_kiki_HD.jpg` is the matching
   1920 x 960 Android fallback.
 
-These outputs are complete artwork replacements derived only from the
-LibrePaint sources listed above. Copyright, attribution, title, and
-CC-BY-SA metadata belonging to former artwork are not carried onto them.
+These outputs are complete artwork replacements derived exclusively from the
+LibrePaint sources listed above. Their applicable provenance is the LibrePaint
+source set and its CC0-1.0 dedication.
 
-CC0-1.0 permits unrestricted reuse to the extent the author's copyright and
-related rights can be waived, with a permissive public-license fallback where
-waiver is not effective:
+CC0-1.0 dedicates the works to the public domain to the fullest extent permitted
+by law and supplies a permissive public-license fallback:
 
 https://creativecommons.org/publicdomain/zero/1.0/

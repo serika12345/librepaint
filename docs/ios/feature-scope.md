@@ -17,13 +17,13 @@
 - Split View, Stage Manager, external keyboard, and external display polish.
 - WebP/TIFF when their dependency cost is acceptable.
 
-## Deferred
+## Deferred from the initial profile
 
-- Animation UI without audio/video export.
+- Animation editing UI; audio/video export remains a later backend project.
 - OpenEXR, HEIF, JPEG XL, RAW, PDF, and uncommon import/export formats.
 - Optional dockers, generators, assistants, and specialized filters.
 
-## Excluded from the port baseline
+## Outside the initial port baseline
 
 - Python/PyQt scripting and downloadable executable plugins.
 - G'MIC.
@@ -34,13 +34,16 @@
 
 ## Android adaptations to reuse or generalize
 
+Generalization in this table is upstream-facing follow-up work. Current local
+reuse follows the one-line guard policy in `android-reuse-audit.md`.
+
 | Area | Existing code | iPadOS action |
 |---|---|---|
-| Touch scrolling/long press | `KisKineticScroller`, `KisLongPressEventFilter` | Generalize to a mobile/touch capability instead of Android macro |
+| Touch scrolling/long press | `KisKineticScroller`, `KisLongPressEventFilter` | Generalize behind a mobile/touch capability |
 | Compact main window | `KisMainWindow`, `KisWelcomePageWidget` | Extract shared tablet policy |
 | File dialog behavior | `KoFileDialog`, recent files | Reuse UX policy; replace Android URI handling with UIDocumentPicker |
 | Resource locations | `KoResourcePaths`, Android asset setup | Reuse container-safe assumptions; implement Apple bundle paths |
 | High-DPI/canvas setup | Android branches in UI/OpenGL | Validate and move shared parts behind a mobile feature flag |
 | Text input | Android SVG text tool branches | Reuse intent; implement iOS keyboard bridge separately |
-| Logging/crash handling | Android log handlers | Implement OSLog equivalent, not JNI code |
-| Recorder/video | extensive Android specialization | Exclude from the initial port |
+| Logging/crash handling | Android log handlers | Implement a native OSLog bridge |
+| Recorder/video | extensive Android specialization | Defer until an iOS backend is selected |

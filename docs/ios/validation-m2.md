@@ -10,14 +10,13 @@ into unsigned iOS/arm64 probe applications.
 
 The locked nixpkgs revision selects and fetches dependency source derivations
 and provides host tools. Each target library is then compiled outside a Nix
-derivation with Apple Clang and the validated Xcode SDK. This prevents the
-proprietary SDK and its absolute paths from entering the Nix store while keeping
-the open-source inputs pinned by `flake.lock`.
+derivation with Apple Clang and the validated Xcode SDK. The proprietary SDK
+stays in Xcode, and generated outputs are checked for zero retained SDK absolute
+paths. `flake.lock` pins the open-source inputs.
 
-The standard nixpkgs `arm64-apple-ios` cross package set was evaluated first.
-It currently requires importing Xcode 12.3 into the Nix store, so it was rejected
-for this port: the pinned SDK is both obsolete for this matrix and contrary to
-the boundary in ADR 0001.
+The standard nixpkgs `arm64-apple-ios` cross package set currently imports
+Xcode 12.3 into the Nix store. This port uses the custom ADR 0001 boundary to
+retain the pinned Xcode 26.6 and SDK 26.5 matrix.
 
 ## Validated target libraries
 
@@ -76,52 +75,51 @@ one Mach-O application with these properties:
 - platform: IOS
 - minimum OS: 17.0
 - SDK: 26.5
-- unresolved symbols: none
+- unresolved symbols: 0
 
 The Qt/QuaZip probe additionally linked Qt Core, Gui, Widgets, Xml, Network,
 Svg, Concurrent, Sql, OpenGL, OpenGLWidgets, Core5Compat, QuaZip, and the static
 iOS platform and support plugins. Its executable has the same arm64/IOS/minimum
-OS/SDK metadata. Qt's configuration summary reports `Qt PrintSupport ... no`,
-and no PrintSupport archive is installed.
+OS/SDK metadata. Qt's configuration summary reports `Qt PrintSupport ... no`;
+the installed PrintSupport archive count is 0.
 
 The framework probe used the macOS `kconfig_compiler_kf6` to generate target
 C++ sources from a `.kcfg` file, then linked every selected KF6 target and its
 static resources into one application. The resulting executable is arm64,
-platform IOS, minimum iOS 17.0, SDK 26.5, with no unresolved symbols. A second
+platform IOS, minimum iOS 17.0, SDK 26.5, with 0 unresolved symbols. A second
 framework build with unchanged inputs reused every package after matching its
 source/build/toolchain fingerprints.
 
 A separate zlib/libpng Simulator build produced `platform IOSSIMULATOR` archives.
-The archive inspector's negative test correctly rejected a Simulator archive
-when it was presented as a device artifact.
+The archive inspector rejected a Simulator archive presented as a device
+artifact, confirming platform enforcement.
 
 ## Portability fixes exercised
 
 - CMake and pkg-config lookup are isolated from Homebrew, `/usr/local`, and host
   dependency paths.
-- Generated HarfBuzz and Boost CMake packages use their installation prefix
-  instead of embedding the local checkout path.
+- Generated HarfBuzz and Boost CMake packages resolve paths from their
+  installation prefix.
 - The combined probe supplies CoreText/CoreGraphics for HarfBuzz's static
   CoreText backend and the SDK's iconv library for Exiv2.
 - Fontconfig 2.18.2 requires Meson 1.11 or newer, while the locked host Meson is
-  1.10.2. Its official Autotools build is used instead, limited to the target
-  library and generated data needed by the install.
+  1.10.2. The target uses its official Autotools build, limited to the library
+  and generated data needed by the install.
 - Build fingerprints include the source path, build recipe, platform matrix,
   toolchain file, and builder schema. Changed inputs invalidate their stamps.
 - Qt is built from the locked Qt 6.11.1 source outputs with the Nix-provided
   host Qt tools. Its target prefix is isolated from the non-Qt dependency
   prefix, and QuaZip fingerprints the exact target Qt build input.
 - Qt 6.11.1 emits iOS API deprecation warnings under the Xcode 26.5 SDK, chiefly
-  around older permission APIs. They do not prevent compilation or linking and
-  remain an M5 runtime review item.
-- KConfig's command-line programs are excluded from the iOS target build. A
-  separate macOS `kconfig_compiler_kf6`, built from the identical locked source,
-  is exposed through `KF6_HOST_TOOLING` for cross-build code generation.
+  around older permission APIs. Compilation and linking pass; runtime review
+  remains an M5 item.
+- The iOS KConfig target contains the libraries. A separate macOS
+  `kconfig_compiler_kf6`, built from the identical locked source, is exposed
+  through `KF6_HOST_TOOLING` for cross-build code generation.
 - Host Qt Linguist tools generate `.qm` files while the generated translations
   and libraries are installed only into the target prefix.
-- Target lookup roots include only the isolated dependency, Qt, and KF6
-  prefixes. `/usr/local` and `/opt/homebrew` are ignored; pkg-config is limited
-  to target `.pc` files.
+- Target lookup roots contain the isolated dependency, Qt, and KF6 prefixes;
+  pkg-config consumes target `.pc` files.
 - Static GNU libintl requires the iOS SDK's iconv library at final link time.
   The framework probe records that requirement explicitly.
 

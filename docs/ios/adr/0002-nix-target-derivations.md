@@ -7,35 +7,35 @@
 
 The first iPadOS build pipeline pinned sources and host tools with Nix but
 installed all target libraries into mutable prefixes under `build-ios/`. Its
-fingerprints avoided many local rebuilds, but the artifacts could not be
-substituted from a Nix binary cache or recovered after local garbage
-collection. A shared prefix also made the rebuild boundary larger than the
-package that actually changed.
+fingerprints avoided many local rebuilds. Granular Nix outputs add binary-cache
+substitution and recovery after local garbage collection while limiting the
+rebuild boundary to each changed package.
 
 The proprietary iPhoneOS SDK and Apple toolchain must remain external. Their
-identity nevertheless has to participate in every target derivation key so an
-artifact built by a different SDK is never accepted under the same cache key.
+identity participates in every target derivation key, giving each validated SDK
+its own cache key.
 
 ## Decision
 
 1. Each open-source iOS library is built into an independent Nix store path.
    Sources, patches, flags, and direct target dependencies are package-local.
-2. Aggregated prefixes are made with `symlinkJoin`; packages never install into
-   a shared mutable prefix.
+2. Each package installs into its own store path; `symlinkJoin` creates the
+   aggregated prefixes.
 3. The exact Xcode, Xcode build, SDK, SDK build, Apple Clang, deployment target,
    and architecture form a checked toolchain contract and are derivation
    inputs.
 4. Xcode remains outside the Nix store. A target derivation reads only the
-   validated Xcode application and SDK. It must fail before configuration if
-   the installed toolchain does not match the contract.
+   validated Xcode application and SDK. The pre-configuration gate requires an
+   exact match with the toolchain contract.
 5. All Apple static archives are created with `ZERO_AR_DATE=1` and normalized
    with deterministic `ranlib`. Every archive member is checked for arm64,
    platform IOS, minimum OS, SDK version, and duplicate member names.
-6. Outputs must not retain references to the Xcode installation or temporary
-   build directories.
+6. The output reference scan must return zero matches for the Xcode installation
+   and temporary build directories.
 7. Target store paths are published only to a private Nix binary cache. Shared
    caches require a Nix cache signature; this is unrelated to Apple application
-   signing. Cache private keys and Apple credentials are never committed.
+   signing. Cache private keys and Apple credentials stay outside the
+   repository.
 8. Local GC roots retain both the current target aggregate and its cache-
    deployment closure, including derivations, sources, and existing build-time-
    only outputs. GC is skipped when that closure cannot be refreshed without a
@@ -43,14 +43,15 @@ artifact built by a different SDK is never accepted under the same cache key.
 9. AltStore signing, USB device installation, launch, and device log collection
    stay outside Nix because they mutate external state and require credentials.
 10. The script-driven build remains available until equivalent Nix packages and
-   probes have been validated. Migration is package-by-package, not a flag day.
+   probes have been validated. Migration proceeds package-by-package after each
+   probe passes.
 
 ## Xcode sandbox boundary
 
 The validated host runs the Darwin Nix daemon with sandboxing enabled and
-fallback disabled. Xcode is not in `sandbox-paths`; it is the only project-
-specific addition to the administrator-controlled impure host dependency
-allowlist:
+fallback disabled. Xcode stays out of `sandbox-paths` and is the only
+project-specific addition to the administrator-controlled impure host
+dependency allowlist:
 
 ```nix
 nix.settings.sandbox = true;
@@ -62,24 +63,23 @@ nix.settings.extra-allowed-impure-host-deps = [
 
 Using the `extra-` setting preserves Nix's required Darwin defaults. The common
 iOS builder declares `toolchain.impureHostDeps` through `__impureHostDeps`, so
-only those derivations can see Xcode. A negative test derivation without that
-declaration confirmed that `/Applications/Xcode.app` is absent from its build
+only those derivations can see Xcode. A control derivation that omits the
+declaration confirmed the absence of `/Applications/Xcode.app` from its build
 sandbox.
 
 Target derivations read the canonical Xcode and iPhoneOS platform XML plists
-directly for version and build identity. They do not invoke `xcodebuild`:
-although `xcodebuild -version` appears read-only, it initializes IDE/DVT file
-watchers and crashes when their unrelated Mach services and host paths are
-denied. Apple Clang and the SDK work in the strict sandbox without widening the
-host allowlist. Host-side configure, bundling, signing, and installation scripts
-may still use `xcodebuild` outside a Nix build sandbox.
+directly for version and build identity. `xcodebuild` is reserved for host-side
+configure, bundling, signing, and installation scripts: its IDE/DVT startup
+initializes file watchers and crashes when the Nix sandbox denies unrelated
+Mach services and host paths. Apple Clang and the SDK work with the existing
+strict host allowlist.
 
 The common builders reserve their phase, fixed-output, network, and impure-host
-attributes so a package recipe cannot weaken that boundary accidentally.
-Package-specific passthru data cannot replace the checked toolchain identity,
-and every compiled member of a propagated target dependency closure must carry
-the same identity. Pure header packages use a separate builder without Xcode,
-SDK, compiler, or impure host inputs and carry `iosTargetIndependent = true`.
+attributes, enforcing that boundary for every package recipe. The checked
+toolchain identity takes precedence over package-specific passthru data, and
+every compiled member of a propagated target dependency closure carries the
+same identity. Pure header packages use a builder keyed by source and header
+dependencies and carry `iosTargetIndependent = true`.
 When one pure header package depends on another, that builder validates the
 complete closure as toolchain-independent and writes the direct dependencies to
 `nix-support/propagated-build-inputs`; this is explicit because its minimal
@@ -89,9 +89,9 @@ Target builders accept a dependency only when it either has that marker and no
 toolchain identity, or carries the exact current toolchain identity. Header
 trees reject symlinks, special files, compiled artifacts, and mutations by
 package check hooks before they can enter a target closure. Autoconf cache
-entries are validated strings exported only to `configure`; they are never
-merged into derivation attributes. Autotools and Meson pkg-config lookups use
-only declared target closures, with a private empty directory as the search
+entries are validated strings with a configure-only export path. Autotools and
+Meson pkg-config lookups use only declared target closures, with a private empty
+directory as the search
 root when a package has no target dependency. Meson's CMake prefix similarly
 contains only the declared target closure, while native pkg-config and CMake
 search paths are empty. Its `nofallback` wrap mode rejects dependency fallback.
@@ -100,8 +100,8 @@ machine file invokes the Nix compiler with both `SDKROOT` and `DEVELOPER_DIR`
 removed from the compiler commands, while target compilation and linking remain
 fixed to the validated Apple compiler and iPhoneOS SDK.
 
-The restricted daemon settings cannot be changed by an untrusted client or a
-flake. They are installed through the host's nix-darwin configuration. On
+The administrator-controlled nix-darwin configuration installs the restricted
+daemon settings; clients and flakes consume that policy. On
 2026-08-03 the active policy was verified with `nix config show`, followed by:
 
 ```sh
@@ -124,13 +124,13 @@ outputs, establishing determinism under the enforced sandbox.
 - Nix store build from the locked zlib source;
 - all 15 archive members validated as arm64/IOS;
 - relative CMake and pkg-config installation metadata;
-- no retained Xcode path;
+- retained Xcode paths: 0;
 - `nix build --rebuild` produced an identical output;
 - copy to and verification from a local Nix binary cache.
 
-The local proof cache is intentionally unsigned and is restored explicitly by
-`packaging/ios/scripts/restore-nix-cache.sh`. A shared cache must use normal Nix
-signature verification instead of the local `--no-check-sigs` exception.
+The local proof cache uses the explicit local `--no-check-sigs` exception and
+is restored by `packaging/ios/scripts/restore-nix-cache.sh`. Shared caches use
+normal Nix signature verification.
 
 ## Second proof
 
@@ -151,9 +151,9 @@ BZip2, HarfBuzz, and Brotli. The generated `ftoption.h` is checked against that
 contract, and all 42 object members in the archive pass the iOS metadata gates.
 A consumer declares only FreeType as its direct target dependency but discovers
 and links all three archives through `Freetype::Freetype` alone. The installed
-config adds the `ZLIB::ZLIB` and `PNG::PNG` dependency discovery missing from
-upstream's export. That consumer also proves that the common builder recursively
-adds propagated target dependencies to CMake's search roots. A forced rebuild
+config adds explicit `ZLIB::ZLIB` and `PNG::PNG` dependency discovery. That
+consumer also proves that the common builder recursively adds propagated target
+dependencies to CMake's search roots. A forced rebuild
 matched the existing output. The three-path
 zlib/libpng/FreeType closure was then published to the local binary cache,
 restored into a separate temporary Nix store, and verified recursively without
@@ -166,7 +166,7 @@ features and validates both its CMake target and static pkg-config contract.
 Little CMS 2.19.1 keeps thread support while suppressing an unnecessary Apple
 `libm` lookup that otherwise embeds the external SDK path in its exported CMake
 target. Eigen 3.4.1 is header-only, so its proof builds an iOS C++ consumer
-through `Eigen3::Eigen` instead of inspecting an archive.
+through `Eigen3::Eigen` as the validation artifact.
 
 HarfBuzz 13.2.1 consumes only FreeType directly; the common target closure adds
 zlib and libpng. Its installed CMake export replaces upstream's raw FreeType
@@ -193,8 +193,8 @@ from the local cache.
 
 xsimd 14.3.0 adds a source- and toolchain-keyed header-only package. Its
 consumer uses the installed CMake target to compile a real vector batch for the
-pinned arm64 iOS target, so the absence of an archive does not weaken the target
-contract. libunibreak 7.0 builds through the same repository CMake wrapper used
+pinned arm64 iOS target; that executable is the header-only target's contract
+proof. libunibreak 7.0 builds through the same repository CMake wrapper used
 by the legacy dependency pipeline. Its consumer resolves
 `libunibreak::libunibreak` through Krita's find module and links the UTF-8 line-
 breaking API, keeping the Nix package aligned with the actual application
@@ -207,18 +207,18 @@ libjpeg-turbo 3.1.4.1 fixes its static JPEG and TurboJPEG outputs, requires the
 arm64 NEON implementation, and pins the embedded build identity to the existing
 iOS dependency baseline date `19800101`. Two separate consumers use the
 installed `libjpeg-turbo::jpeg-static` and
-`libjpeg-turbo::turbojpeg-static` targets so overlapping codec objects never
-make the proof depend on archive order. Krita's active iOS JPEG file plugin
-continues to use Qt's bundled JPEG implementation; migrating this dependency
-does not reintroduce the external codec into that crash-sensitive path. Its
-source and forced rebuilds matched, and the resulting 12-path aggregate closure
+`libjpeg-turbo::turbojpeg-static` targets, making the proof independent of
+archive order despite overlapping codec objects. Krita's active iOS JPEG file
+plugin continues to use Qt's bundled JPEG implementation; the migrated external
+codec remains an independently validated dependency. Its source and forced
+rebuilds matched, and the resulting 12-path aggregate closure
 was restored and verified in an empty store from the local cache.
 
-Exiv2 0.28.8 fixes its audited library-only feature contract instead of
-inheriting the relevant upstream defaults. It keeps the SDK-provided Iconv
-implementation without exporting a host or SDK path: the static CMake and pkg-config metadata carries
-the portable `-liconv` item required by final iOS links. It propagates only the
-migrated zlib target as a store dependency. Its consumer compiles and links the
+Exiv2 0.28.8 pins its audited library-only feature contract. It keeps the
+SDK-provided Iconv implementation, and the static CMake and pkg-config metadata
+carry the portable `-liconv` item required by final iOS links. Their reference
+scan reports zero host and SDK paths. Exiv2 propagates only the migrated zlib
+target as a store dependency. Its consumer compiles and links the
 creation and reopening of an in-memory JPEG with Exif metadata plus the public
 character-conversion API through `Exiv2::exiv2lib`. Every archive member and the
 resulting executable use the pinned arm64 iOS target. The resulting 12-package
@@ -228,9 +228,9 @@ from the local cache.
 Boost 1.89.0 is the first package built by the pure header path. It copies the
 locked upstream headers and generates the same relocatable `Boost::headers`,
 `Boost::boost`, and `Boost::disable_autolinking` CMake contract used by the
-legacy prefix. The package output contains no Xcode, SDK, toolchain identity, or
-other Nix store reference. A separate pinned-toolchain consumer compiles real
-Boost.MP11 and circular-buffer APIs for arm64 iOS. The resulting 13-package
+legacy prefix. The package output's reference scan reports zero Xcode, SDK,
+toolchain identity, and other Nix store paths. A separate pinned-toolchain
+consumer compiles real Boost.MP11 and circular-buffer APIs for arm64 iOS. The resulting 13-package
 aggregate and its complete 14-path target closure were restored into an empty
 store from the local cache.
 
@@ -239,30 +239,30 @@ package metadata corrects the older versions declared by upstream CMake,
 retains Krita's plain `immer` and `zug` target names, and exports their C++14
 minimum. Separate consumers exercise rejected and accepted same-major ranges,
 resolve the exact versions, and compile real APIs. The Zug proof uses a
-filtering transducer under C++17 so `std::variant`, rather than an undeclared
-Boost.Variant dependency, implements its skip state. The resulting 15-package
+filtering transducer under C++17 with the standard library's `std::variant`
+implementing its skip state. The resulting 15-package
 aggregate and its complete 16-path target closure were restored into an empty
 store from the local cache.
 
-Lager 0.1.3 extends the pure header path with target dependencies. The upstream
-release still declares project version 0.1.0, installs no version file, exports
-only the plain `lager` target, and omits both its C++ standard and required
-headers from that target. The generated package metadata fixes the version,
-exports C++17, and propagates the Boost and Zug targets used directly by
-Lager's core state, cursor, watch, lens, and store headers. Immer remains a
-separate aggregate package: Lager uses it only in optional debugger/cereal
-headers that Krita does not consume, so making it a core dependency would add a
-false reverse rebuild edge. A consumer with only `lager-ios` as its direct Nix
-dependency compiles those APIs and a manual-event-loop store for arm64 iOS. The
-resulting 16-package aggregate has a complete 17-path target closure.
+Lager 0.1.3 extends the pure header path with target dependencies. The generated
+package metadata replaces upstream's project version 0.1.0, adds a version file,
+and completes the plain `lager` target with C++17 plus the Boost and Zug targets
+used directly by Lager's core state, cursor, watch, lens, and store headers.
+Immer remains a separate aggregate package because its use is confined to optional
+debugger/cereal headers outside Krita's active API set. This keeps the reverse
+rebuild graph aligned with actual dependencies. A consumer with only
+`lager-ios` as its direct Nix dependency compiles those APIs and a
+manual-event-loop store for arm64 iOS. The resulting 16-package aggregate has a
+complete 17-path target closure.
 
 libintl 1.0 is built from only the `gettext-runtime/intl` subtree of the locked
 GNU gettext source. The manifest fixes the cross-compile answers and excludes
 Java, C#, OpenMP, Emacs, libiconv-prefix, and ncurses-prefix integration. Its
-target output contains only `libintl.h` and the static `libintl.a`; the native
-gettext and Perl inputs remain build-time tools and do not appear in the output
-closure. A direct-only CMake consumer resolves the exact Intl version, calls
-the translation, domain, and plural APIs, and explicitly links the iOS SDK's
+target output contains only `libintl.h` and the static `libintl.a`; native
+gettext and Perl remain build-time tools outside the output closure. A
+direct-only CMake consumer resolves the exact Intl version, calls the
+translation, domain, and plural APIs, and
+explicitly links the iOS SDK's
 iconv implementation and CoreFoundation. The package and consumer rebuild
 deterministically, while the resulting 17-package aggregate and complete
 18-path target closure restore into an empty local store from the cache.
@@ -280,7 +280,7 @@ target closure restore into an empty local store from the cache.
 
 ## Consequences
 
-- A normal Krita source edit does not rebuild target dependencies.
+- Normal Krita source edits preserve the existing target dependency outputs.
 - A package source, patch, recipe, flag, direct dependency, or toolchain
   contract change rebuilds that package and its reverse dependencies.
 - Static consumers intentionally rebuild when an input library store path

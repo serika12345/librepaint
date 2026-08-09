@@ -21,8 +21,8 @@ XDG_CACHE_HOME="$PWD/.cache/nix" nix develop "path:$PWD" --command \
     packaging/ios/scripts/build-smoke.sh simulator
 ```
 
-The explicit `path:` form was used because the new flake had not yet been
-committed. After commit, the documented plain `nix develop` command is valid.
+At validation time the new flake existed in the working tree, so the explicit
+`path:` form included it. The committed workflow uses plain `nix develop`.
 
 ## Results
 
@@ -31,5 +31,5 @@ committed. After commit, the documented plain `nix develop` command is valid.
 | Device | pass | arm64, `platform IOS`, minOS 17.0, SDK 26.5 |
 | Simulator | pass | arm64, `platform IOSSIMULATOR`, minOS 17.0, SDK 26.5 |
 
-Both unsigned UIKit `.app` bundles compiled, linked, and passed Xcode bundle
-validation. Signing and installation intentionally begin at M5.
+Both UIKit `.app` bundles compiled, linked, and passed Xcode bundle validation.
+The artifacts are unsigned; the signing and installation gate begins at M5.

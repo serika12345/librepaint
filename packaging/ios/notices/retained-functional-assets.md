@@ -6,22 +6,22 @@ SPDX-License-Identifier: CC0-1.0
 # Retained functional image assets
 
 This notice documents original functional images retained by the LibrePaint
-iOS build. It supplements, and never replaces, a more-specific notice in an
-asset. Exact paths, source-content hashes, license expressions, and this
-notice's hash are recorded in `white-brand-assets.json` distributed beside
-this file.
+iOS build. It supplements more-specific notices in individual assets, which
+continue to apply according to their terms. Exact paths, source-content hashes,
+license expressions, and this notice's hash are recorded in
+`white-brand-assets.json` distributed beside this file.
 
 ## Creative Commons functional artwork
 
 The application retains 703 SVG/SVGZ images whose `cc:Work` metadata directly
 links to CC-BY-SA-4.0. Their exact path and whole-file content hashes are
-sealed by the manifest, so creator, rights, and license metadata cannot change
-silently.
+sealed by the manifest, which detects changes to creator, rights, and license
+metadata.
 
 Another 93 functional SVG files are retained under CC-BY-SA-4.0. Eighty-nine
 contain the same canonical license URL and original creator/provenance
-metadata, but their historical RDF either omits the `cc:Work` link or is not
-well-formed XML. Their supplied credits include Wolthera van Hövell tot
+metadata, but their historical RDF either lacks the `cc:Work` link or contains
+malformed XML. Their supplied credits include Wolthera van Hövell tot
 Westerflier (vectorization), Tomtomtom, David Revoy, Deif Lou, Timothée Giet,
 Andrei Rudenko, and superfurryfrog. Four tool icons credit Andrei Rudenko and
 were explicitly placed under CC-BY-SA-4.0 in Raghavendra Kamath's upstream
@@ -66,8 +66,8 @@ The 210 root copies are sealed against the four upstream Krita import commits:
 - https://invent.kde.org/graphics/krita/-/commit/3295c4bdaf79b380c539fabbc9e26ca27a32ebf8
 - https://invent.kde.org/graphics/krita/-/commit/f6b8fc14c362256b79b571c3002bd0918e8b7839
 
-The two small KDE logo icons are used only for factual KDE attribution and are
-not LibrePaint application icons.
+The two small KDE logo icons serve exclusively as factual KDE attribution;
+LibrePaint application branding uses the project-owned CC0 artwork.
 
 ## Android robot
 
@@ -93,12 +93,12 @@ https://invent.kde.org/frameworks/kxmlgui/-/blob/v6.28.0/src/thumb_frame.png
 
 ## Krita project-wide GPL fallback
 
-When no more-specific asset or family license is available, 148 retained QRC
+For assets lacking a more-specific asset or family license, 148 retained QRC
 images and 32 images discovered directly from the selected CMake install
 definitions remain part of this modified application under Krita's
-project-wide GPL version 3 declaration. This is a distribution classification,
-not a claim that the individual files have been relicensed. Application
-branding and any image with a separate notice are excluded from this fallback.
+project-wide GPL version 3 declaration. This distribution classification
+preserves each file's existing license status. Application branding and images
+with separate notices follow those specific terms.
 
 https://krita.org/en/about/license/
 
@@ -108,15 +108,16 @@ separate comments: five CC0-1.0 and two GPL-2.0-or-later.
 
 https://invent.kde.org/graphics/krita/-/commit/1c976c01fb27cce7cf60ee38b352d0c2760fae92
 
-## LibrePaint branding and removed placeholders
+## LibrePaint branding and asset cleanup
 
 The iOS QRC scope contains 23 LibrePaint-owned branding images under CC0-1.0.
 They are generated from the project owner's source artwork and documented in
 `librepaint-brand-assets.md`. This includes the splash, application and
 document icons, log icons, and neutral PDF fallback icons.
 
-Unused upstream branding, donation, sponsor, news, and disabled-tool assets
-were deleted together with their UI or resource references. No white
-placeholder or zero-byte image remains in the iOS QRC scope or the source-wide
-white selection. The macOS DMG background now reuses the CC0 LibrePaint splash.
-No original license wording or factual attribution is rewritten.
+Asset cleanup removed upstream branding, donation, sponsor, news, and
+disabled-tool images together with their UI or resource references. It also
+removed every white placeholder and zero-byte image from the iOS QRC scope and
+the source-wide white selection. The macOS DMG background now reuses the CC0
+LibrePaint splash. Original license wording and factual attribution remain
+intact.

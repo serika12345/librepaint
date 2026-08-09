@@ -20,9 +20,9 @@ platform boundaries is recorded in the
 
 The exact executable host and SDK checks live in `packaging/ios/versions.env`.
 Dependency sources are selected by the locked nixpkgs revision and exposed as
-flake package outputs. The current 31-package target dependency closure is
+flake package outputs. The current 58-package target dependency closure is
 fixed as granular Nix derivations which use the validated external Xcode SDK
-without copying it into the Nix store. See
+while keeping the SDK external to the Nix store. See
 `docs/ios/adr/0002-nix-target-derivations.md`.
 
 ## Build boundary
@@ -30,21 +30,22 @@ without copying it into the Nix store. See
 Nix pins host build tools and open-source target dependencies and owns the
 cacheable target build recipes. Xcode supplies Apple Clang and the proprietary
 SDK. AltStore/AltServer can perform local development signing and device
-installation without storing credentials in the repository. See
+installation; credentials remain in the local signing environment. See
 `docs/ios/adr/0001-nix-xcode-boundary.md` and
 `docs/ios/adr/0002-nix-target-derivations.md`.
 
 The validated Darwin daemon uses `sandbox = true` and
-`sandbox-fallback = false`. `/Applications/Xcode.app` is allowed only for
-derivations that explicitly declare it through `__impureHostDeps`; it is not a
-global `sandbox-paths` entry. Target recipes read version identity from Xcode's
-plists instead of starting `xcodebuild` inside the sandbox.
+`sandbox-fallback = false`. `/Applications/Xcode.app` stays out of
+`sandbox-paths` and is visible only to derivations that explicitly declare it
+through `__impureHostDeps`. Target recipes read version identity directly from
+Xcode's plists. Host-side build and deployment scripts invoke `xcodebuild`
+where needed.
 
 ## Build the pinned target dependency closure
 
-The complete aggregate contains 18 base C/C++ packages; QtBase, QtSvg,
-Qt5Compat, and QuaZip; and the 9 required KF6 packages. Build the aggregate and
-its full consumer proof with:
+The complete aggregate contains 42 base C/C++ packages; QtBase,
+QtSvg, Qt5Compat, and QuaZip; nine KF6 packages; and the Poppler, LibKDCraw, and
+KSeExpr feature packages. Build the aggregate and its full consumer proof with:
 
 ```sh
 nix build .#ios-dependencies --no-link
@@ -55,11 +56,11 @@ Their derivations check the complete Xcode/SDK/compiler contract and validate
 every member of the resulting static archives. The libpng check also builds a
 small iOS consumer through `PNG::PNG` and verifies the transitive zlib package.
 The FreeType package requires both target packages, fixes its optional feature
-set, and adds their missing CMake dependency discovery. Its direct-only consumer
-check links all three archives through `Freetype::Freetype` alone and verifies
-that the common builder expands FreeType's propagated zlib/libpng closure into
-the target CMake roots. The `.#ios-dependencies` output is the complete
-open-source dependency closure for the current iPad profile. HarfBuzz
+set, and adds explicit CMake dependency discovery for them. Its direct-only
+consumer check links all three archives through `Freetype::Freetype` alone and
+verifies that the common builder expands FreeType's propagated zlib/libpng
+closure into the target CMake roots. The `.#ios-dependencies` output is the
+complete open-source dependency closure for the current iPad profile. HarfBuzz
 additionally verifies its FreeType bridge and
 portable CoreText framework export. Fontconfig uses the same sandbox and target
 closure contract through a separate common Autotools builder; its host probes
@@ -73,28 +74,28 @@ API. The libjpeg-turbo proof links its JPEG and TurboJPEG static exports in
 separate consumers and requires arm64 NEON objects. Exiv2 fixes its audited
 library-only feature contract and verifies the installed static target through
 an in-memory JPEG/Exif and character-conversion compile/link probe plus its
-transitive zlib archive. Its export carries the SDK-portable `-liconv` link item
-instead of an absolute Xcode path. Boost is a pure header derivation:
+transitive zlib archive. Its export carries the SDK-portable `-liconv` link
+item. Boost is a pure header derivation:
 its package output is source-keyed but deliberately independent of Xcode, while
 its consumer still compiles representative APIs with the pinned Apple toolchain.
 Immer and Zug use the same pure path, fix their manifest versions in relocatable
 CMake metadata, implement standard same-major range matching, and export the
-C++14 requirement that upstream omitted. Their consumers check rejected,
-accepted, and exact version requests. Zug additionally uses its C++17
-`std::variant` skip path without an accidental Boost dependency.
-Lager corrects upstream's stale package version and omitted public contract. Its
-pure package propagates the Boost and Zug headers required by Krita's
+C++14 requirement. Their consumers check rejected, accepted, and exact version
+requests. Zug additionally uses its C++17
+`std::variant` skip path entirely through the standard library.
+Lager corrects upstream's stale package version and completes its public
+contract. Its pure package propagates the Boost and Zug headers required by Krita's
 state/cursor/watch/store APIs, exports C++17 through the installed plain `lager`
-target, and deliberately leaves debugger-only Immer/Cereal support outside that
-core target. A consumer that directly depends on and links only Lager compiles
+target. Debugger-only Immer/Cereal support belongs to optional headers outside
+that core target. A consumer that directly depends on and links only Lager compiles
 those real APIs for arm64 iOS, proving that the two pure dependencies survive a
 standalone cache restore.
 
 libintl builds only GNU gettext's `gettext-runtime/intl` subtree. Its cross
-answers and feature exclusions are part of the manifest, and its output is
-limited to `libintl.h` and `libintl.a`; host gettext tools and install-time
-catalog data never enter the target closure. A direct-only consumer resolves
-CMake's `Intl::Intl`, calls the gettext/domain/plural APIs, and links the SDK's
+answers and feature settings are part of the manifest, and its target closure
+contains `libintl.h` and `libintl.a`; gettext tools remain host build inputs.
+A direct-only consumer resolves CMake's `Intl::Intl`, calls the
+gettext/domain/plural APIs, and links the SDK's
 portable iconv and CoreFoundation interfaces into an arm64 iOS executable. At
 that migration checkpoint, the 17-package aggregate and its complete 18-path
 closure were restored into an empty local store solely from the binary cache.
@@ -102,14 +103,15 @@ closure were restored into an empty local store solely from the binary cache.
 FriBidi 1.0.16 is the first package using the common Meson target builder.
 Separate native and cross machine files keep its seven table generators on the
 Nix-provided arm64 macOS compiler while fixing the runtime to Apple Clang and
-the iPhoneOS SDK. Dependency fallback and ambient native dependency lookup are
-disabled. The target output retains the public headers, static
-`libfribidi.a`, and `fribidi.pc`, but omits command-line tools, manuals, and
-shared libraries. All 18 archive members and the enabled deprecated-interface
-contract are checked. A direct-only consumer resolves Krita's existing
-`FindFriBidi.cmake` module and calls the same bidi-type, bracket, and paragraph-
-embedding APIs as the bundled Raqm implementation. The package and consumer
-rebuild deterministically. At the next migration checkpoint, the resulting
+the iPhoneOS SDK. The declared target closure is the sole dependency lookup
+source. The target output comprises the public headers, static
+`libfribidi.a`, and `fribidi.pc`; command-line tools, manuals, and shared
+libraries stay outside the target output. All 18 archive members and the
+enabled deprecated-interface contract are checked. A direct-only consumer
+resolves Krita's existing `FindFriBidi.cmake` module and calls the same
+bidi-type, bracket, and paragraph-embedding APIs as the bundled Raqm
+implementation. The package and consumer rebuild deterministically. At the
+next migration checkpoint, the resulting
 18-package aggregate and its complete 19-path target closure were restored into
 an empty local store solely from the binary cache.
 
@@ -137,17 +139,18 @@ and the incremental deployment path stage writable copies with directories at
 archives reject symlinks, special files, extra metadata, non-Unix types or
 modes, unsafe names, stage/archive inventory differences, and the DOS
 read-only bit before they can reach an importer. These rules share a lightweight
-positive and negative regression check. The Nix Store application remains
+success/failure regression check. The Nix Store application remains
 immutable and unsigned.
 
-Nix expressions, generated outputs, port documentation, and `TODO.md` are
-excluded from the filtered Krita compilation source. Changing those files can
-invalidate the relevant recipe or IPA layer without rebuilding Krita; changing
-Krita/CMake source still invalidates the app as intended. The legacy
+Source filtering separates Nix expressions, generated outputs, port
+documentation, and `TODO.md` from the Krita compilation input. Changes to those
+files rebuild the affected recipe or IPA layer while reusing the Krita
+compilation output; Krita/CMake source changes rebuild the app. The legacy
 `build-ios/` builders remain available for device deployment during the
-transition but are no longer required to produce the unsigned app or IPA.
+transition. The Nix app and IPA derivations produce the unsigned release
+artifacts.
 
-To validate an actual source build rather than a binary-cache substitution:
+To force source-build validation:
 
 ```sh
 nix build .#ios-dependencies --no-link --no-substitute
@@ -163,9 +166,8 @@ nix develop
 packaging/ios/scripts/check-host.sh
 ```
 
-The host check also fails if sandboxing is disabled, fallback is enabled, the
-Xcode allowlist entry is missing, or Xcode has been exposed globally through
-`sandbox-paths`.
+The host check requires sandboxing, disabled fallback, the Xcode allowlist
+entry, and Xcode exposure limited to declared impure host dependencies.
 
 In a restricted environment where the user cache is not writable:
 
@@ -176,8 +178,9 @@ XDG_CACHE_HOME="$PWD/.cache/nix" nix develop
 ## Build the smoke application
 
 The smoke application validates Objective-C++, UIKit, the selected SDK,
-deployment target, bundle generation, and target platform metadata. It is not
-signed and is not installed on a device.
+deployment target, bundle generation, and target platform metadata. It produces
+an unsigned inspection bundle; device signing and installation belong to the
+deployment workflow.
 
 ```sh
 nix develop --command packaging/ios/scripts/build-smoke.sh device
@@ -202,10 +205,10 @@ packaging/ios/scripts/build-librepaint-incremental.sh build
 The exact output directory is printed by `build-librepaint-incremental.sh path`.
 Normal builds refuse more than 200 planned steps, making an accidental broad
 rebuild visible before compilation begins. The pure
-`nix build .#librepaint-ios-ipa` path remains the clean checkpoint/release gate, not
-the source edit loop. The iPadOS feature profile links the required Krita
-plugins statically and excludes Python/PyQt, PrintSupport, process-launched
-FFmpeg features, and the updater.
+`nix build .#librepaint-ios-ipa` path is the clean checkpoint/release gate. The
+incremental helper handles source iteration. The iPadOS feature profile links
+the required Krita plugins statically; Python/PyQt, PrintSupport,
+process-launched FFmpeg features, and the updater remain outside this profile.
 
 ## Install the current build with AltStore
 
@@ -217,15 +220,16 @@ LibrePaint startup log:
 packaging/ios/scripts/build-librepaint-incremental.sh deploy [device-id]
 ```
 
-`deploy-altstore.sh` without options delegates to the same guarded workflow.
-Its `--skip-build` form is an internal handoff that requires the exact build
+Bare `deploy-altstore.sh` delegates to the same guarded workflow. Its
+`--skip-build` form is an internal handoff that requires the exact build
 directory selected by the helper. See `docs/ios/altstore-deployment.md` for
 prerequisites, validations, outputs, and the physical-device result.
 
 ## Build M2 dependencies
 
-Build one dependency and its transitive prerequisites, or omit the package name
-to build every dependency currently present in the manifest:
+Pass a package name to build one dependency and its transitive prerequisites.
+With only the platform argument, the script builds every dependency currently
+present in the manifest:
 
 ```sh
 nix develop --command packaging/ios/scripts/build-dependencies.sh device harfbuzz
@@ -276,7 +280,8 @@ explicitly disabled and is rejected as a required Krita dependency.
 
 Build the locked ECM/KF6 subset after the target dependencies and Qt. The
 builder also creates the macOS `kconfig_compiler_kf6` needed while cross
-compiling; target-side command-line tools are not built for iOS.
+compiling. The iOS output contains the target libraries, while
+`kconfig_compiler_kf6` runs on the macOS host.
 
 ```sh
 nix develop --command packaging/ios/scripts/build-frameworks.sh device
@@ -311,7 +316,7 @@ binary cache can be populated with:
 packaging/ios/scripts/publish-nix-cache.sh .#zlib-ios
 ```
 
-Restore a local cache object without rebuilding it, for example after Nix GC:
+Restore a local cache object after Nix GC:
 
 ```sh
 packaging/ios/scripts/restore-nix-cache.sh .#zlib-ios
@@ -334,24 +339,24 @@ successfully realised final aggregate. This is intentionally deferred until all
 dependency recipes are fixed.
 
 The clean bootstrap passed on 2026-08-03 from commit `e8ba4dc`. It removed
-1,808 unrooted store paths (4,627.38 MiB), rebuilt all 31 target dependencies
-from the normal committed Git flake, passed the complete KF6 iOS consumer link,
-and then created only `build-ios/nix-roots/ios-dependencies`.
+1,808 unrooted store paths (4,627.38 MiB), rebuilt the then-current 31 target
+dependencies from the normal committed Git flake, passed the complete KF6 iOS
+consumer link, and then created only
+`build-ios/nix-roots/ios-dependencies`.
 
 After the clean bootstrap, incremental device deployment passes its exact
 CMake/Ninja tree to `maintain-build-cache.sh`. Deployment maintenance extracts
-and roots the store inputs already recorded by that graph without evaluating
-the dirty Git flake, so an edit-and-deploy cycle does not create another full
-Krita source snapshot. The exact incremental tree is mandatory. Maintenance
-runs GC only below the free-space threshold (or when explicitly forced) and
+and roots the store inputs already recorded by that graph. This uses the active
+build graph directly and keeps edit-and-deploy cycles on one Krita source
+snapshot. The exact incremental tree is mandatory. Maintenance runs GC only
+below the free-space threshold (or when explicitly forced) and
 only after the current graph closure has been protected.
 
 The default repository is the ignored
 `build-ios/nix-binary-cache`. Set `KRITA_IOS_NIX_CACHE_URI` to a private,
 writable Nix store URI supported by `nix copy`. A non-file destination also
 requires `KRITA_IOS_NIX_CACHE_SIGNING_KEY`; keep that private key outside the
-repository. Services with their own push protocol require their own client
-rather than this generic script.
+repository. Services with a dedicated push protocol use their native client.
 
 Inspect a closure with:
 
@@ -368,11 +373,10 @@ different validated toolchain selects a different cache key.
 ## Existing platform baseline
 
 - Android has a maintained packaging tree and extensive `Q_OS_ANDROID`
-  adaptations, but the historical `README.android.md` is not a current source
-  of dependency versions.
-- macOS is the closest Apple compilation baseline, but its packaging, RPATH,
-  icon, process, and filesystem assumptions must not leak into iOS.
-- The repository does not currently configure on this host outside the Nix
-  shell because CMake and Ninja are intentionally not globally installed.
-- A full macOS/Android build is not an M0 acceptance test; those builds need
-  their separate prebuilt dependency environments.
+  adaptations. `README.android.md` documents the local configure and APK path;
+  its Android-compatible dependency prefix is prepared separately.
+- macOS is the closest Apple compilation baseline. iOS uses dedicated
+  packaging, RPATH, icon, process, and filesystem policies.
+- Development on this host uses the Nix shell, which supplies CMake and Ninja.
+- M0 acceptance uses the iOS probes. Full macOS and Android builds use their
+  respective prebuilt dependency environments.

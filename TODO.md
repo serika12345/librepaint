@@ -1,6 +1,6 @@
 # LibrePaint iPadOS TODO
 
-この文書は、KritaをiPadOS実機で起動し、Android版に近い主要描画機能を使える状態にするための実装計画である。
+この文書は、LibrePaintのiPadOSワークストリームにおける実装計画と実機検証記録である。全プラットフォーム共通の製品方針と現在地は`README.ja.md`にまとめる。
 
 ## 目標
 
@@ -10,15 +10,15 @@
 - Android版にある主要なブラシ、ツール、Docker、フィルタを利用できる。
 - 同一revisionから再現可能にビルドできる。
 
-## 前提と非目標
+## iPadOSワークストリームの範囲
 
 - 最終ターゲットはiPad実機。Simulatorは初期診断用途に限る。
 - Qt 6系を使用する。
 - NixはOSS依存物とホストツールの固定に使い、XcodeはApple ClangとiOS SDKを供給する。ローカル開発署名と実機更新にはAltStore/AltServerも利用できる。
-- 実機起動に必要な開発署名はAltStoreに任せる。署名情報をリポジトリへ保存せず、公証は行わない。
-- 初期版ではPython/PyQt、G'MIC、動画・音声、印刷、自動更新、外部プロセス依存機能を対象外とする。
-- 「プラグインを捨てる」は外部拡張機能を対象とする。ブラシ、ツール、画像入出力、DockerなどKrita本体機能を構成する内部プラグインは必要なものを静的リンクする。
-- App Store、公式代替マーケットプレイス、一般配布、iPhone対応は対象外。
+- 実機起動に必要な開発署名はAltStoreに任せる。署名情報はリポジトリの外で管理し、公証は現行workstreamの配備工程に含めない。
+- 初期iPadOS profileは主要描画機能とlocal file workflowに集中する。Python/PyQt、G'MIC、動画・音声、印刷、自動更新、外部プロセス依存機能は現行workstreamの範囲外とする。
+- ブラシ、ツール、画像入出力、DockerなどKrita本体機能を構成する内部プラグインは、iPadOS profileで選択して静的リンクする。外部拡張機能はiPadOS profileと分離して扱う。
+- 現行の配備範囲はAltStore／LiveContainerによるlocal sideloadとiPad向けUIで構成する。App Store、公式代替マーケットプレイス、一般配布、iPhone UIは独立したplatform workとして扱う。
 
 ## 優先度
 
@@ -41,7 +41,7 @@
 | M8 | 安定化と性能 | 長時間利用可能な候補ビルド | 15～30日 |
 | M9 | 再現可能な引き渡し | 1コマンドビルド、運用文書 | 5～10日 |
 
-日数は単純加算しない。M2、M4、M5、M8がクリティカルパスである。
+各マイルストーンの日数は一部重複する。クリティカルパスはM2、M4、M5、M8である。
 
 ---
 
@@ -52,15 +52,15 @@
 - [x] **P0** 対象ブランチ、Qt/KFのrevision、最低iPadOSバージョンを記録する。
 - [x] **P0** Xcode、iOS SDK、Nixの要求バージョンを決める。
 - [x] **P0** macOSまたは既存Androidビルドの手順を確認し、移植前の既知エラーを分離する。
-- [x] **P0** Android版の機能を「必須・後回し・削除」に分類する。
+- [x] **P0** Android版の機能を初期iPadOS profile、後続のiPadOS workstream、独立したintegration workstreamに分類する。
 - [x] **P0** 173件の`MODULE`定義（具体的な172ターゲットとテスト用テンプレート1件）をカテゴリ別に棚卸しし、初期版の静的リンク対象を選ぶ。
 - [x] **P0** 必須依存と任意依存の一覧を機械可読な形で作る。
 - [x] **P0** ADR（Architecture Decision Record）を作り、Nix/Xcode境界と静的リンク方針を記録する。
-- [x] **P1** 既存Android固有コードのうち、iPadOSで再利用できるUI・タッチ対応を特定する（基準revisionからの全82コミット・309ファイルを再棚卸しし、`docs/ios/android-reuse-audit.md`に記録済み。upstream追従のため、本体での再利用は既存Android条件へ`Q_OS_IOS`を追加する一行変更だけに限定し、処理本体の共通化は行わない）。
+- [x] **P1** 既存Android固有コードのうち、iPadOSで再利用できるUI・タッチ対応を特定する（基準revisionからの全82コミット・309ファイルを再棚卸しし、`docs/ios/android-reuse-audit.md`に記録済み。upstream追従性を保つため、既存Android条件へ`Q_OS_IOS`を加える1行の変更で同じ処理本体を再利用する）。
 
 ### 完了条件
 
-- [x] 初期機能セットと削除機能が明文化されている。
+- [x] 初期iPadOS profile、後続workstream、独立したintegration workstreamの区分が明文化されている。
 - [x] 必須依存、内部プラグイン、プラットフォームAPIの三つのリスク表がある。
 - [x] Qt/KF/Xcode/iPadOSの組み合わせが一つに固定されている。
 
@@ -79,7 +79,7 @@
 - [x] **P0** deployment target、architecture、bitcode、visibility、dead stripping方針を固定する。
 - [x] **P0** 実機用とSimulator用の出力ディレクトリを分離する。
 - [x] **P1** ローカルNix binary cacheの利用手順を用意する。
-- [x] **P1** CIなしでも実行できるビルドログ収集スクリプトを追加する。
+- [x] **P1** ローカルで実行できるビルドログ収集スクリプトを追加する。
 
 ### 完了条件
 
@@ -110,7 +110,7 @@
 ### 完了条件
 
 - [x] 必須依存がすべてiOS arm64向けにリンク可能である。
-- [x] Homebrewやホスト側`/usr/local`への暗黙依存がない。
+- [x] 依存解決が固定済みclosureとiOS SDKの明示入力で完結する。
 - [x] 同じlock fileから依存物を再生成できる。
 
 ### 技術ゲート G1
@@ -139,8 +139,8 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 ### 完了条件
 
 - [x] 未署名またはad-hocの中間`.app`がリンクまで完了する。
-- [x] iOS SDKに存在しないAPIやmacOS frameworkへのリンクがない。
-- [x] 起動前の静的初期化でクラッシュしない（AltStore署名で実機検証済み）。
+- [x] リンク対象がiOS SDKのAPIとframeworkで完結する。
+- [x] 起動前の静的初期化を完走する（AltStore署名で実機検証済み）。
 
 ---
 
@@ -192,16 +192,16 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [ ] **P0** 正常終了と再起動を確認する。
 - [ ] **P0** 最小キャンバスを作成し、指でストロークを描く。
 - [x] **P0** Apple Pencilの位置、筆圧、傾き、方位、接触状態を記録・検証する（iPad8,1実機で`QTabletEvent`のpress/move/release、pressure、xTilt/yTiltを確認済み）。
-- [x] **P0** 起動・ファイル表示直後から、ツールの再選択なしで最初のApple Pencilストロークを描画できることを実機検証する（初期Enter・Pencil入力デバイス切替を実装し、実機確認済み）。
+- [x] **P0** 起動・ファイル表示直後から、初期選択済みツールで最初のApple Pencilストロークを描画できることを実機検証する（初期Enter・Pencil入力デバイス切替を実装し、実機確認済み）。
 - [ ] **P0** Pencil描画と指ジェスチャーを分離する。
 - [ ] **P0** undo/redo、pan、zoom、rotateを実装・確認する。
 - [ ] **P0** 高DPI、Safe Area、画面回転を修正する（キャンバスの高DPIは、iPad8,1実機でDPR 2と論理サイズの2倍の描画viewportを診断後、診断コードを除いたビルド`20260805122451`をインストールしてOpenGL ES 3.0動作と表示の鮮明化を確認済み。Safe Areaと回転後の再検証は未完了）。
 - [ ] **P0** OpenGL/描画surfaceの作成、破棄、再作成を検証する（AltStore起動時のsuspended状態ではprobeを延期し、active遷移後に作成できることをiPad8,1実機で確認済み。Issue #6対応として、非Active中のQOpenGLWidget resize／Show／DPR変更、描画、projection uploadを保留し、復帰後にcontextを検証してresize・設定・画像全体を再送するiOS専用guardを実装し、arm64最終リンクまで完了。ビルド`20260806104631`で変更済みKRAを開いたままHome→Procreate→Kritaを往復し、PID `6682`維持、キャンバス全面復帰、Pencil描画再開、復元確認なし、新規IPSなしを実機確認済み。画面回転と休止中に文書を閉じる境界は未検証）。
-- [ ] **P1 Apple Pencilダブルタップ対応**: KritaのQt iOS viewへ`UIPencilInteraction`を登録し、ダブルタップを既存のKritaアクションへ橋渡しする（Qtソースpatch不要。最小ブリッジを実装し、消しゴム切り替えを実機確認済み）。
+- [ ] **P1 Apple Pencilダブルタップ対応**: KritaのQt iOS viewへ`UIPencilInteraction`を登録し、ダブルタップを既存のKritaアクションへ橋渡しする（application側の最小ブリッジとして実装し、消しゴム切り替えを実機確認済み）。
   - [ ] iPadOSの`preferredTapAction`を読み、少なくとも「消しゴム切り替え」「直前のプリセットへ切り替え」「カラーパレット表示」「何もしない」を対応する。
   - [x] 消しゴム切り替えを、ペン先／消しゴム側の別プリセットを保持する`eraser_preset_action`へ接続する（実機確認済み）。
   - [ ] 直前プリセット切り替えを`previous_preset`へ接続する（実装済み・実機確認待ち）。任意アクション設定が必要になった場合のみ既存S-Pen設定のaction-name mapを再利用する。
-  - [ ] Apple Pencil第2世代の実機で、起動後の初回接触前と通常描画後の両方について、1回のダブルタップにつきアクションが1回だけ発火し、描画中のストローク、筆圧、傾き、指ジェスチャーへ回帰がないことを確認する。
+  - [ ] Apple Pencil第2世代の実機で、起動後の初回接触前と通常描画後の両方について、1回のダブルタップにつきアクションが1回だけ発火し、描画中のストローク、筆圧、傾き、指ジェスチャーの動作が維持されることを確認する。
 - [ ] **P1** hover対応iPadでPencil hoverを検証する。
 - [ ] **P1** キーボードショートカットを確認する。
 
@@ -209,8 +209,8 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 
 - [ ] 実機で新規キャンバスを作成し、Pencil筆圧付きで描画できる。
 - [ ] Apple PencilダブルタップがiPadOSの選択内容に対応するKritaアクションを実行する。
-- [ ] pan/zoom/rotateと描画が競合しない。
-- [ ] 10分間の連続描画でクラッシュや入力停止がない。
+- [ ] pan/zoom/rotateと描画が並行して正しく動作する。
+- [ ] 10分間の連続描画を完走し、入力が継続する。
 
 ### 技術ゲート G3
 
@@ -243,7 +243,7 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 ### 完了条件
 
 - [ ] FilesからKRAを開き、編集して安全に保存できる。
-- [ ] background/foregroundを20回繰り返してデータ消失やクラッシュがない。
+- [ ] background/foregroundを20回繰り返し、データ整合性を保って完走する。
 - [ ] 強制終了後にautosaveから復旧できる。
 
 ---
@@ -265,17 +265,17 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [ ] **P1** OpenColorIO依存のLUT Dockerを静的profileへ追加する（OpenColorIOと推移依存の個別derivation、config-mode検索、GLES経路、静的登録、arm64最終リンク、実機起動まで完了。実機の`設定 → ドッキングパネル → LUT Management`からDockerを表示できるか、LUTを適用できるかの確認待ち）。
 - [ ] **P1** resource bundleのimport/export（Android相当のResource ManagerをiOS静的プロファイルへ追加し、実機確認待ち）。
 - [ ] **P1** Bluetooth/USBキーボード操作。
-- [ ] **P2** アニメーションUI。ただし動画・音声exportは対象外。
+- [ ] **P2** アニメーションUI。動画・音声exportは現行iPadOS profileの範囲外とする。
 
 ### UI調整
 
 - [ ] **P0** Android版のタッチ用設定をiOS profileとして再利用する。
 - [x] **P0** `QComboBox`の選択をタップで確定・閉鎖できるようにする（UIKit pickerをiOSで無効化し、実機検証済み）。
 - [x] **P0** 起動時の画面向き確定後にスプラッシュを画面内へ縮小・再配置する（縦向き・横向きとも実機検証済み）。
-- [x] **P0** `Configure LibrePaint`起動時に検索欄へ自動フォーカスせず、ソフトウェアキーボードを抑止する（実機検証済み）。
+- [x] **P0** `Configure LibrePaint`起動時はdialog操作へtouch focusを置き、検索欄への明示的なタップで文字入力とソフトウェアキーボードを開始する（実機検証済み）。
 - [ ] **P0** `Configure LibrePaint`を初期画面向き・画面回転・Split View後の利用可能領域へ再配置し、横向きと縦向きの双方で切れないことを実機検証する（初回縦向き・回転後は実機検証済み、Split View確認待ち）。
 - [x] **P0** 全`QAbstractScrollArea`を指のスワイプと慣性スクロールに対応させ、ドラッグ中の項目選択を抑止する（設定画面とブラシ選択を実機検証済み）。
-- [x] **P0** ブラシなど編集可能な一覧項目の選択だけではソフトウェアキーボードを表示せず、明示的な文字編集時だけ有効化する（実機検証済み）。
+- [x] **P0** ブラシなど編集可能な一覧項目では通常の選択focusを維持し、明示的な文字編集操作でソフトウェアキーボードを有効化する（実機検証済み）。
 - [x] **P0** Android版相当の主要ToolとDockerを静的リンクし、実機のToolboxとDockerメニューで表示を確認する（46プラグイン、ビルド`20260802140547`）。
 - [ ] **P0** 小さすぎるmenu、dialog、slider、spinboxのtouch targetを修正する。
 - [ ] **P0** modal dialogとソフトウェアキーボードの重なりを修正する。
@@ -285,8 +285,8 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 ### 完了条件
 
 - [ ] 定義したAndroid版相当のP0機能チェックリストをすべて通過する。
-- [ ] 主要操作にマウスを必要としない。
-- [ ] 初回起動から保存までの操作に行き止まりがない。
+- [ ] 主要操作がtouchとPencilで完結する。
+- [ ] 初回起動から保存まで一貫した操作経路がある。
 
 ---
 
@@ -314,7 +314,7 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 ### 完了条件
 
 - [ ] 対象デバイスで1時間の描画・保存を完走する。
-- [ ] 既知のデータ消失バグがない。
+- [ ] 既知のデータ消失bugを解消し、データ整合性テストをすべて通過する。
 - [ ] P0回帰テストを連続3回通過する。
 - [ ] サポートするキャンバスサイズとメモリ上限が文書化されている。
 
@@ -387,8 +387,8 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 ### 完了条件
 
 - [ ] クリーンなforkから文書どおりに実機ビルドを再現できる。
-- [ ] 別の開発セッションでも手作業の未記録操作を必要としない。
-- [ ] 既知問題、対象外機能、対応端末条件がREADMEに記載されている。
+- [ ] 別の開発セッションでも、文書化されたコマンドと手順だけで再現できる。
+- [ ] 既知問題、現行profileの機能範囲、対応端末条件がREADMEに記載されている。
 
 ---
 
@@ -396,7 +396,7 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 
 正確なtarget名はM0で棚卸しして確定する。
 
-### P0で残す
+### P0 profile
 
 - KRA、ORA、PNG、JPEG import/export
 - Pixel BrushとEraserに必要なpaintop
@@ -405,7 +405,7 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - 基本色管理とresource loader
 - KRAで使用する基本filter/generator
 
-### 初期版から外す
+### 現行iPadOS profileの範囲外
 
 - Python/PyQt
 - G'MIC
@@ -426,14 +426,14 @@ KDE FrameworksまたはQt Widgets/OpenGLがiOS上で成立しない場合、Krit
 - [ ] 再現コマンドが記録されている。
 - [ ] 成功ログまたはテスト結果がある。
 - [ ] 新しい手動前提がREADME/ADRに記録されている。
-- [ ] macOS/Android側への意図しない回帰がない、または影響が明記されている。
+- [ ] macOS/Androidへの影響を検証し、意図した変更は範囲と検証結果を明記する。
 - [ ] 一時的な回避策には削除条件と追跡TODOがある。
 
 ## 直近の実行順序
 
 1. M0の対象version・機能セット・プラグイン棚卸しを確定する。
 2. M1でflakeとiOS Hello Worldを成立させる。
-3. M2では全依存を一度に作らず、Qt → KF → Krita必須C/C++ライブラリの順で追加する。
-4. M3でプラグインなしの最小Krita shellをリンクする。
-5. M4でKRA/PNG、Pixel Brush、Layer Dockerだけを静的登録する。
+3. M2では依存をQt → KF → Krita必須C/C++ライブラリの各段階に分けて追加する。
+4. M3で内部プラグイン登録前の最小Krita shellをリンクする。
+5. M4の最初の静的登録セットをKRA/PNG、Pixel Brush、Layer Dockerとする。
 6. G1～G3を通過してからAndroid版相当機能を追加する。

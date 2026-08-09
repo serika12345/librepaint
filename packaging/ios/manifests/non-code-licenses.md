@@ -6,12 +6,13 @@ SPDX-License-Identifier: CC0-1.0
 # LibrePaint iOS non-code asset notices
 
 This index describes the non-code material intentionally retained in the
-LibrePaint iOS application. It supplements, and does not replace or modify,
-the license and attribution text embedded in individual files.
+LibrePaint iOS application. It supplements the license and attribution notices
+embedded in individual files, which continue to apply according to their
+terms.
 
 ## Static and user-interface images
 
-The iOS resource audit covers 1,290 unique image inputs compiled through Qt
+The iOS resource audit covers 1,289 unique image inputs compiled through Qt
 resources. Their exclusive final classification is:
 
 - 703 direct metadata-linked CC-BY-SA-4.0 images;
@@ -19,13 +20,13 @@ resources. Their exclusive final classification is:
   malformed, or commit-level license evidence;
 - 297 Breeze and 22 Oxygen icons under LGPL-3.0-or-later;
 - two Android log icons under CC-BY-SA-4.0 and CC-BY-3.0;
-- two KXmlGui images under LGPL-2.0-or-later;
+- one KXmlGui image under LGPL-2.0-or-later;
 - 148 functional images covered by Krita's project-wide GPL-3.0-only
   distribution fallback;
 - 23 LibrePaint-owned brand images under CC0-1.0.
 
-There are no white placeholders, zero-byte aliases, or unclassified images in
-the iOS QRC set.
+The iOS QRC audit classifies all 1,289 inputs. White-placeholder,
+zero-byte-alias, and unclassified-image counts are all 0.
 
 A further 32 functional images installed by the selected static plugins and
 data targets are retained under the project-wide GPL fallback. Their exact set
@@ -39,7 +40,7 @@ KDE trademark, project-wide GPL, and modification notices.
 `librepaint-brand-assets.md` records the author statement, source hashes,
 CC0 dedication, and current compatibility paths for the new logo. Copyright,
 creator, title, license, and other provenance metadata retained inside image
-files continues to apply. The complete applicable CC, GPL, LGPL, and CC0 texts
+files continue to apply. The complete applicable CC, GPL, LGPL, and CC0 texts
 are distributed beside this index.
 
 ## LibrePaint branding
@@ -47,13 +48,14 @@ are distributed beside this index.
 The project owner stated that they created the supplied LibrePaint icon and
 wordmark and released them under CC0-1.0. The four unmodified SVG/PNG source
 files are retained in `packaging/ios/brand-assets`; `.license` sidecars apply
-the CC0 declaration without changing their original bytes. The cross-platform
+the CC0 declaration while preserving their original bytes. The cross-platform
 application and document icons, Qt runtime icon, resource bundle previews, and
 both splash variants are derived from those sources.
 
 The generated assets temporarily retain their existing Krita-era filenames so
-the current build can load them. They are complete replacements and therefore
-do not carry forward creator or CC-BY-SA metadata from the former Krita art.
+the current build can load them. As complete replacements, their provenance and
+licensing come exclusively from the LibrePaint source set and its CC0
+declaration.
 Exact source hashes and transformations are listed in
 `librepaint-brand-assets.md`.
 
@@ -68,14 +70,13 @@ credits David Revoy and the Blender Foundation and identifies Ramon Miranda's
 Gimp Paint Studio source. Four PNG brush tips additionally retain their
 embedded author fields for David Revoy or Scott Petrovic. The root bundle
 preview has been replaced by a same-size rendering of the CC0 LibrePaint icon
-without changing the remaining archive entries.
+while preserving the remaining archive entries.
 
 `default-resource-bundle-licenses.json` records the license rules, exact file
 and format counts, preserved notice hashes, bundle metadata, embedded PNG
 attribution, and a content-sealed classification digest. Its audit parses all
-117 KPP metadata records and verifies that the startup brush, eraser, and a
-color-smudge preset remain self-contained. The audit reports zero unclassified
-files.
+117 KPP metadata records, establishes a complete classification, and verifies
+that the startup brush, eraser, and a color-smudge preset remain self-contained.
 
 The complete CC-BY-3.0 and CC0-1.0 texts are distributed beside this index.
 
@@ -101,10 +102,10 @@ and Qt's unmodified attribution JSON are distributed beside this index. The
 LGPL-2.0-or-later, LGPL-3.0-only, GPL-3.0-only, and ICC license texts are also
 included.
 
-The unused `kcharselect_data` Unicode database is excluded from the iOS link.
-The binary audit rejects its resource initializer and any KCharSelect
-implementation symbol so that this exclusion cannot silently break a future
-feature.
+The iOS link omits the unused `kcharselect_data` Unicode database. The binary
+audit rejects its resource initializer and every KCharSelect implementation
+symbol, making any future feature that requires KCharSelect an explicit
+dependency change.
 
 ## ICC profiles
 
@@ -132,13 +133,15 @@ GPL texts and the provenance notice are distributed beside this index.
 Action descriptions, workspaces, themes, input and shortcut profiles,
 predefined image sizes, metadata schemas, and similar functional configuration
 remain part of the GPL application distribution. The GPL-3.0-or-later text is
-included here for continuity; this statement does not override a more specific
-notice embedded in a file or preserved in its source history.
+included here for continuity; more-specific notices embedded in files or
+preserved in source history retain precedence.
 
 ## Scope
 
-This is a packaging inventory, not a relicensing statement or legal opinion.
-Technical compatibility identifiers such as the iOS bundle ID, KRA MIME/UTI
-values, application/configuration IDs, resource paths, and plugin/action IDs
-are intentionally unchanged. The logical CMake target remains `krita`; the
-physical iOS app bundle and executable are `LibrePaint.app` and `LibrePaint`.
+This packaging inventory records included resources, provenance, and license
+evidence. It leaves the cited license texts and source notices intact,
+including the rights and obligations stated in them. Technical compatibility
+identifiers such as the iOS bundle ID, KRA MIME/UTI values,
+application/configuration IDs, resource paths, and plugin/action IDs remain
+stable. The logical CMake target remains `krita`; the physical iOS app bundle
+and executable are `LibrePaint.app` and `LibrePaint`.

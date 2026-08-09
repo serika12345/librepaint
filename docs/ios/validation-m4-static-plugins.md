@@ -22,8 +22,9 @@ The resulting application is:
 ## Implemented path
 
 - `kis_add_library(... MODULE ...)` becomes `STATIC` only for iOS.
-- Every static target receives a target-derived KPlugin factory class name, so
-  generic names such as `ImportFactory` cannot collide in the final executable.
+- CMake rewrites generic KPlugin factory names such as `ImportFactory` to
+  target-derived names, making every static factory symbol unique in the final
+  executable.
 - The enabled targets are collected as they are declared. CMake generates one
   application source file that references and registers every factory and links
   the corresponding archive.
@@ -76,13 +77,12 @@ from every built static archive and rejects the executable if any is missing.
 
 Static linking exposed two non-inline function definitions in
 `kis_paintop_plugin_utils.h`. Marking those header implementations `inline`
-resolves the ODR violation for every static paint-op without adding an iOS-only
-code path.
+resolves the ODR violation for every static paint-op in shared code.
 
 ## Feature profile
 
-The device and Simulator presets explicitly enable the P0 minimum profile. Each
-functional group can also be disabled independently at configure time:
+The device and Simulator presets explicitly enable the P0 minimum profile.
+Configure-time options control each functional group independently:
 
 | CMake option | Static targets |
 |---|---|
@@ -106,13 +106,17 @@ source while retaining the other factory registrations. Reapplying the
 
 ## Physical-device validation
 
-AltStore-signed builds now launch on a physical iPad. Failure before LCMS was
-added, followed by successful main-window presentation after registration,
-confirms runtime enumeration and factory instantiation for the required engine.
+AltStore-signed builds now launch on a physical iPad. The pre-LCMS build stopped
+during startup; the registered-LCMS build presented the main window. This
+comparison confirms runtime enumeration and factory instantiation for the
+required engine.
 The SQL cache schema, XMLGUI data, default tool data, ICC profiles, and four
 resource bundles also load on-device. The resource database contains 169 brush
 presets after first-run synchronization.
 
-M4 still has P1 expansion work: JPEG/ORA and the remaining Android-equivalent
-plugins must be added and validated. Each older plugin factory macro must be
-changed to `K_PLUGIN_CLASS_WITH_JSON` as that plugin enters the iOS profile.
+Subsequent profile expansion covers JPEG/ORA and the remaining
+Android-equivalent plugins. The current 162-target profile has passed final
+linking, IPA inspection, physical-device installation, and startup. It includes
+plugins declared with both `K_PLUGIN_CLASS_WITH_JSON` and
+`K_PLUGIN_FACTORY_WITH_JSON`; CMake gives both forms target-derived static
+symbols. Per-plugin UI and interaction validation remains tracked in `TODO.md`.

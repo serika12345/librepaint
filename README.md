@@ -1,46 +1,60 @@
-# LibrePaint iPadOS Port
+# LibrePaint
 
 [日本語版](README.ja.md)
 
-LibrePaint is an unofficial, experimental iPadOS paint app for physical arm64 iPads, currently built from Krita-derived code. The goal is to provide a practical, locally installed drawing environment with functionality comparable to the Android build, using Apple Pencil, touch input, and the iPadOS Files app.
+LibrePaint is an independently maintained, cross-platform digital painting application derived from Krita. Its goal is to evolve the codebase as a distinct product—including shared application behavior, UI, workflows, branding, packaging, and platform integrations—and make LibrePaint available across desktop and mobile platforms.
+
+iPadOS is currently the most thoroughly validated target. Reproducible arm64 device builds and deployment, Apple Pencil and touch input, Files integration, and core drawing workflows have been exercised on physical hardware. Other targets have source and packaging paths at the stages described in the platform table below.
 
 > [!WARNING]
-> LibrePaint is not an official iPad version from the Krita Foundation or KDE. It remains under development and does not guarantee data integrity, long-term stability, or compatibility with every file format and upstream Krita feature. Keep separate backups of important artwork.
+> LibrePaint remains under development, and maturity and validation coverage vary by platform. The tables below record the exact paths exercised so far. Keep separate backups of important artwork.
 
-## Scope
+## Project Direction
 
 | Item | Policy |
 |---|---|
-| Target devices | Physical arm64 iPads |
-| Minimum OS | iPadOS 17.0 |
-| Input | Apple Pencil and touch |
-| Acceptance target | Physical hardware; Simulator is used only to diagnose toolchain and bundle issues |
-| Installation | Local sideloading through AltStore or LiveContainer |
-| Primary goal | Core drawing functionality comparable to the Android build, internal plugins, and Files integration |
-| Excluded devices | **iPhone is not supported** |
-| Excluded distribution | App Store, official alternative app marketplaces, notarization, and public distribution |
+| Product scope | Develop and maintain LibrePaint as a complete application with shared and platform-specific components |
+| Platform goal | Windows, macOS, Linux, Android (including Android on ChromeOS), iPadOS, and additional targets that the Krita/Qt codebase can support |
+| Shared development | Implement features and UX in shared code when appropriate, with focused platform integrations where required |
+| Compatibility | Preserve artwork, resources, and stable technical identifiers deliberately; make incompatible migrations explicit |
+| Distribution goal | Establish a build, package, validation, and delivery path appropriate to each platform |
 
-Python/PyQt, G'MIC, printing, video and audio features, automatic updates, features that launch external processes, and external third-party plugins are also currently out of scope. Selected internal Krita plugins that provide brushes, tools, dockers, color management, and image I/O are statically linked and registered.
+The platform status below separates roadmap coverage from verified availability. Maturity, feature coverage, and delivery paths currently vary by platform.
 
-## Current Support Status
+## Platform Status
 
-The following reflects the project status as of August 6, 2026. [`TODO.md`](TODO.md) is the authoritative source for progress and physical-device verification results, while [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) is the authoritative source for statically included functionality.
+| Platform | Current repository state | Current validation |
+|---|---|---|
+| iPadOS | Pinned Nix/Xcode environment, unsigned IPA generation, and AltStore/LiveContainer deployment paths | Most actively developed target; detailed physical-device verification on arm64 iPads running iPadOS 17 or later |
+| Android / ChromeOS | LibrePaint APK configuration and a [local build guide](README.android.md) | Next gate: prepare the dependency prefix and complete end-to-end device validation |
+| Linux | [Local AppImage scripts and guide](packaging/linux/appimage/README.md) | Next gates: prepare the dependency prefix, then validate publishing and signing |
+| macOS | LibrePaint app-bundle and DMG packaging paths | Next gates: clean build, signing, notarization, and end-to-end validation |
+| Windows | LibrePaint executable and NSIS installer packaging paths | Next gates: clean build, installer validation, signing, and end-to-end validation |
+
+Current iOS support covers iPad. Support status for additional Apple form factors and platforms will follow their UI, build, packaging, and device validation work.
+
+Some internal names—including the CMake target and executable name `krita` on non-iOS platforms, configuration directories, KRA MIME/UTI identifiers, plugin IDs, and action IDs—are intentionally retained for compatibility. User-facing LibrePaint branding is kept separate from these stable technical contracts.
+
+## Current iPadOS Status
+
+The following reflects the iPadOS workstream as of August 9, 2026. [`TODO.md`](TODO.md) is the authoritative source for iPadOS progress and physical-device verification results, while [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) is the authoritative source for statically included iPadOS functionality.
 
 ### Verified on a Physical Device
 
 | Area | Verified coverage |
 |---|---|
 | Launch and basic UI | Installation and launch through AltStore, fresh IPA import and launch through LiveContainer, the main window, portrait and landscape splash layouts, and the Configure LibrePaint dialog in the initial portrait orientation and after rotation |
-| Touch UI | Swiping and kinetic scrolling outside the canvas, suppression of accidental selections while scrolling, tap confirmation in combo boxes, and suppression of the unwanted software keyboard in settings and brush-selection views |
-| Apple Pencil | Press, move, and release events; pressure and tilt; and drawing with the initially selected brush without first reselecting it |
+| Touch UI | Swipes handled as scrolling and taps handled as selection outside the canvas, tap confirmation in combo boxes, and text-entry focus that begins with explicit editing |
+| Apple Pencil | Press, move, and release events; pressure and tilt; and immediate drawing with the initially selected brush |
 | Pencil double tap | Switching between independent pen and eraser brush presets through `eraser_preset_action` |
 | Files | Native open and save through iPadOS Files, followed by saving, reloading, retrieving, and externally inspecting KRA, PNG, JPEG, and ORA files |
 | Brush engines | Pixel Brush, MyPaint preset registration, and drawing with Color Smudge, Spray, Hatching, and Filter Brush (Invert) |
 | Tools and dockers | Major tools displayed in the Toolbox, major dockers listed in the menu, and basic use of features including the Layer Docker |
 | Filters and generators | Registration of 33 filters and the six legacy generators, layer creation, and KRA open/save/reopen |
 | Canvas display | High-DPI rendering at DPR 2 and canvas rendering through OpenGL ES 3.0 |
+| App lifecycle | Returning from the background with the same process, restoring the full canvas, resuming Pencil drawing, and creating a recovery checkpoint for one modified KRA document |
 
-“Verified” means that the described interaction path was successfully exercised on a specific physical device. It is not a compatibility guarantee covering every setting, document, device, or extended period of use.
+“Verified” means that the described interaction path was successfully exercised on a specific physical device. Coverage is limited to the recorded settings, documents, devices, and test duration.
 
 ### File Formats
 
@@ -49,13 +63,13 @@ The following reflects the project status as of August 6, 2026. [`TODO.md`](TODO
 | Basic round trip verified | KRA, PNG, JPEG, ORA |
 | Limited physical-device verification | WebP saving; PSD, GIF, HEIF, and JPEG XL saving and reloading; TIFF saving and reloading with JPEG compression |
 | Import verified | PDF; an NEF produced by a Nikon Z7, loaded as 8288×5520 16-bit RGBA |
-| Bundled; further verification pending | CSV, SVG, XCF, QML, TGA, Heightmap, brush resources, Spriter, KRZ, RGBE, OpenEXR, JPEG 2000, Exif/IPTC/XMP, and others |
+| Bundled; next validation set | CSV, SVG, XCF, QML, TGA, Heightmap, brush resources, Spriter, KRZ, RGBE, OpenEXR, JPEG 2000, Exif/IPTC/XMP, and others |
 
-The individual results in this table—including PDF and the tested RAW sample—do not guarantee full compatibility with each format. Untested variants, compression methods, color spaces, metadata, and KRA filter configurations remain.
+The individual results in this table—including PDF and the tested RAW sample—cover the recorded samples and paths. Additional variants, compression methods, color spaces, metadata, and KRA filter configurations form the next test set.
 
-### Included, with Interaction Testing Still in Progress
+### Included Features Under Interaction Testing
 
-The current iPad profile statically registers 161 internal Krita plugins. Final arm64 linking, IPA inspection, physical-device installation, and startup have been verified, but not every UI path and interaction for every plugin has been tested. The main areas still under verification are:
+The current iPad profile statically registers 162 internal Krita plugins. Final arm64 linking, IPA inspection, physical-device installation, and startup have been verified. UI and interaction testing continues in these areas:
 
 - The complete SeExpr generator and Fill Layer workflow
 - Displaying the LUT Docker and applying OpenColorIO LUTs
@@ -63,36 +77,44 @@ The current iPad profile statically registers 161 internal Krita plugins. Final 
 - Detailed operation of the Colorize Tool and individual tools and dockers
 - OpenEXR round trips, JPEG 2000 import, and implemented import/export paths for other additional formats
 - The Pencil double-tap options for “previous preset,” “palette,” and “do nothing,” along with the settings UI for arbitrary actions
+- Complete interaction and regression testing for the iPad canvas-only touch UI, Brush Library, and Layer HUD
 
-### Major Incomplete or Unverified Areas
+### Next iPadOS Validation Work
 
 - Complete separation of Pencil drawing from finger gestures, plus systematic regression testing of undo/redo, pan, zoom, and rotation gestures
 - Safe Area behavior, Split View, Stage Manager, external displays, and compact-window geometry
-- Destruction and restoration of OpenGL surfaces and resources across background and foreground transitions
+- Repeated background/foreground transitions, rotation and document-close boundaries while suspended, and recovery under failure or expiration paths
 - Pencil hover and external keyboards
 - Cold and warm launches from Files, recent documents, iCloud Drive, and autosave recovery after forced termination
 - Severe memory pressure, Jetsam, 2K/4K/8K canvas limits, one-hour continuous drawing sessions, and thermal and battery testing
 - Small touch targets and overlap between modal dialogs and the software keyboard
 
-The iOS memory policy sets the default tile-memory budget to 25% of physical RAM, capped at 1 GiB, and limits manual configuration to 37.5% of physical RAM, capped at 1.5 GiB. Purging tile and pixmap caches in response to memory warnings is also implemented, but recovery under severe memory pressure and preservation of unsaved data still require physical-device verification.
+The iOS memory policy sets the default tile-memory budget to 25% of physical RAM, capped at 1 GiB, and limits manual configuration to 37.5% of physical RAM, capped at 1.5 GiB. Purging tile and pixmap caches in response to memory warnings is implemented. The next physical-device gate covers recovery under severe memory pressure and preservation of unsaved data.
 
-### Explicitly Excluded Features
+### Current iPadOS Profile
 
-- iPhone support
-- App Store distribution, notarization, and production signing
-- Python/PyQt, G'MIC, Qt PrintSupport, and printing
-- Video and audio import/export requiring FFmpeg, MLT, or SDL
-- The updater, bug-reporting features, and auxiliary functionality that depend on external processes
+The current iPadOS workstream covers an iPad touch UI and local delivery through AltStore or LiveContainer. iPhone UI adaptation, App Store delivery, and production signing require separately scoped platform work.
+
+The self-contained build concentrates on drawing, bundled resources, and local file workflows. The following integrations sit outside the current iPadOS profile:
+
+- Python/PyQt and G'MIC
+- Qt PrintSupport and printing
+- Video and audio import/export through FFmpeg, MLT, or SDL
+- The updater, bug-reporting features, and auxiliary functionality that use external processes
 - SVG Text Tool/Text Properties, Storyboard, and Small Color Selector
 - Video export from Recorder and animation export from Composition
 
-The animation UI itself remains a possible low-priority future addition, but video and audio export are out of scope.
+Animation UI is a possible low-priority iPadOS addition; multimedia export sits outside the current profile. Feature matrices for other LibrePaint platform builds will be maintained separately.
 
-## Build
+## Build and Development
+
+Android build instructions are in [`README.android.md`](README.android.md), and the local Linux AppImage path is documented in [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md). The macOS and Windows packaging implementations are under [`packaging/macos/`](packaging/macos/) and [`packaging/windows/`](packaging/windows/), respectively. Release and support status remains platform-specific while these paths are developed.
+
+### iPadOS Build and Local Deployment
 
 Run all commands from the repository root. For normal source development, use the incremental workflow, which reuses a pinned Nix environment and a persistent Ninja tree selected by fingerprint.
 
-### Pinned Toolchain
+#### Pinned Toolchain
 
 The exact pinned values are defined in [`packaging/ios/versions.env`](packaging/ios/versions.env).
 
@@ -109,9 +131,9 @@ The exact pinned values are defined in [`packaging/ios/versions.env`](packaging/
 | Deployment target | iPadOS 17.0 |
 | Architecture | arm64 |
 
-`iPhoneOS SDK` is Apple's name for the SDK. It does not mean that iPhone is a supported target. Do not silently override the pinned versions during normal development. Treat version upgrades as separate validation work.
+`iPhoneOS SDK` is Apple's SDK name; the current bundle targets iPad. Keep the pinned values during normal development and treat version upgrades as separate validation work.
 
-### Prerequisites
+#### Prerequisites
 
 - An Apple Silicon Mac with the Xcode version listed above installed at `/Applications/Xcode.app`
 - Nix 2.31 or later, with a Nix daemon configured to support Flakes
@@ -129,7 +151,7 @@ nix.settings.extra-allowed-impure-host-deps = [
 ];
 ```
 
-Do not add Xcode to `sandbox-paths`. Check the environment with:
+Keep Xcode out of `sandbox-paths`. Check the environment with:
 
 ```sh
 nix develop --command packaging/ios/scripts/check-host.sh
@@ -137,7 +159,7 @@ nix develop --command packaging/ios/scripts/check-host.sh
 
 This check validates the versions of Xcode, the SDK, Clang, Nix, CMake, and related tools, as well as the Nix daemon's sandbox policy.
 
-### First Incremental Build
+#### First Incremental Build
 
 For a new build configuration, create the baseline once:
 
@@ -146,7 +168,7 @@ packaging/ios/scripts/build-librepaint-incremental.sh path
 packaging/ios/scripts/build-librepaint-incremental.sh bootstrap
 ```
 
-The wrapper creates and reuses a pinned, source-independent Nix profile, so you do not need to enter `nix develop` first. The initial baseline is a full build and may take some time.
+The wrapper creates and reuses a pinned, source-independent Nix profile. The initial baseline is a full build and may take some time.
 
 To validate only the dependency closure and the KF6 consumer link first, run:
 
@@ -155,7 +177,7 @@ nix build .#ios-dependencies --no-link
 nix build .#kf6-consumer-check --no-link
 ```
 
-### Normal Development Builds
+#### Normal Development Builds
 
 After making changes, inspect the work planned by Ninja, then run the incremental build:
 
@@ -166,9 +188,9 @@ packaging/ios/scripts/build-librepaint-incremental.sh build
 
 `path` prints the currently selected build tree. By default, normal `build` and `deploy` operations reject plans larger than 200 Ninja steps so that an unintended full rebuild is caught before compilation starts. After an intentional broad configuration change, review the plan and use `bootstrap` to create a new baseline.
 
-For the normal edit-build-test loop, use this wrapper instead of invoking `cmake --preset` directly or running `nix build .#librepaint-ios-ipa` after every edit. The former `build-krita-incremental.sh` and `krita-ios-*` entry points remain compatibility aliases.
+The normal edit-build-test loop uses this wrapper. Direct `cmake --preset` and `nix build .#librepaint-ios-ipa` invocations are reserved for configuration work and clean checkpoints, respectively. The former `build-krita-incremental.sh` and `krita-ios-*` entry points remain compatibility aliases.
 
-### Reproducible App and Unsigned IPA
+#### Reproducible App and Unsigned IPA
 
 The app bundle and IPA used for clean checkpoints can be built with Nix:
 
@@ -184,9 +206,9 @@ The resulting artifacts are placed at:
 - `build-ios/nix-results/librepaint-ios-app/LibrePaint.app`
 - `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`
 
-If you need only the IPA, building `librepaint-ios-ipa` also builds the required app and dependencies automatically. The generated IPA is intentionally unsigned. Never store signing information, provisioning profiles, Apple IDs, or device credentials in the repository.
+Building `librepaint-ios-ipa` also builds the required app and dependencies automatically. The generated IPA is unsigned. Keep signing information, provisioning profiles, Apple IDs, and device credentials outside the repository.
 
-### Deploying to a Physical Device with AltStore
+#### Deploying to a Physical Device with AltStore
 
 After satisfying the prerequisites and starting AltServer, run the following command to perform the incremental build, validate the binary, plugins, and runtime data, generate the IPA, sign and install it through AltStore, launch LibrePaint, and collect the startup log:
 
@@ -200,33 +222,35 @@ If `device-id` is omitted, the first available CoreDevice is selected. List conn
 xcrun devicectl list devices
 ```
 
-Timestamped IPAs and collected `librepaint.log` files are stored under `build-ios/deploy/`. `packaging/ios/scripts/deploy-altstore.sh --skip-build` is reserved for the workflow's internal handoff; do not use it to select an old build tree manually.
+Timestamped IPAs and collected `librepaint.log` files are stored under `build-ios/deploy/`. The workflow uses `packaging/ios/scripts/deploy-altstore.sh --skip-build` internally and supplies the exact current build tree.
 
-This process uses development signing for the author's local use. It is not an App Store submission or general-distribution signing pipeline.
+This workflow provides development signing for the author's local use.
 
-### Installing with LiveContainer
+#### Installing with LiveContainer
 
 The reproducible unsigned IPA at `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa` can also be imported into LiveContainer. The packaging workflow normalizes the archive permissions required for LiveContainer to patch, launch, and clean up the app bundle. A fresh import and launch have been verified on a physical iPad using LiveContainer's iOS 26 JIT-Less mode.
 
-A corrected IPA cannot remove a read-only temporary `Payload` left inside LiveContainer by an earlier failed import. If that stale-state error occurs, clean up or reset the affected LiveContainer state while preserving any required app data before importing again. The exact cleanup UI remains pending physical-device verification; see [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) for the current archive-permission and recovery notes.
+An earlier failed import can leave a read-only temporary `Payload` inside LiveContainer. If that stale-state error occurs, preserve any required app data, clean up or reset the affected LiveContainer state, and import the corrected IPA. Physical-device verification of the exact cleanup UI is the next recovery step; see [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) for the current archive-permission and recovery notes.
 
-### Simulator Smoke Test
+#### Simulator Smoke Test
 
 ```sh
 nix develop --command packaging/ios/scripts/build-smoke.sh simulator
 ```
 
-This smoke test diagnoses the Objective-C++, UIKit, SDK, deployment-target, and bundle-metadata integration. It does not sign or install the app and is not a substitute for testing on a physical device.
+This smoke test diagnoses the Objective-C++, UIKit, SDK, deployment-target, and bundle-metadata integration. Physical-device testing remains the runtime acceptance path.
 
-### Maintainer Note for Dependency Recipe Changes
+#### Maintainer Note for Dependency Recipe Changes
 
-`packaging/ios/scripts/bootstrap-ios-dependencies.sh --confirm-pinning-complete` is not a normal first-build command. It is a maintenance procedure to run only after every dependency recipe has been pinned and committed. It releases known legacy GC roots, performs a **full Nix garbage collection**, and then rebuilds the final aggregate. Do not run it during normal source development or when existing cached outputs must be preserved.
+`packaging/ios/scripts/bootstrap-ios-dependencies.sh --confirm-pinning-complete` is the dependency-recipe finalization procedure. Its execution boundary is after every dependency recipe has been pinned and committed, when existing unrooted cached outputs can be discarded. It releases known legacy GC roots, performs a **full Nix garbage collection**, and then rebuilds the final aggregate. Normal source development uses the incremental workflow above.
 
-## Outputs and Related Documentation
+## Documentation and Outputs
 
 | Path | Description |
 |---|---|
-| [`TODO.md`](TODO.md) | Source of truth for milestones, remaining work, and physical-device validation results |
+| [`TODO.md`](TODO.md) | Source of truth for the iPadOS milestones, remaining work, and physical-device validation results |
+| [`README.android.md`](README.android.md) | Current local Android build path and its dependency-prefix limitations |
+| [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md) | Current local Linux AppImage build path and prerequisites |
 | [`docs/ios/README.md`](docs/ios/README.md) | Detailed toolchain, dependency-build, and cache design documentation |
 | [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) | Details of AltStore deployment, IPA permissions, and LiveContainer import caveats |
 | [`packaging/ios/versions.env`](packaging/ios/versions.env) | Pinned versions and deployment target |
@@ -234,10 +258,10 @@ This smoke test diagnoses the Objective-C++, UIKit, SDK, deployment-target, and 
 | `build-ios/` | App and IPA artifacts, incremental build trees, and Nix profiles |
 | `logs/ios/` | Timestamped build logs |
 
-Do not commit local artifacts such as `build-ios/`, signed build products, credentials, or private cache keys to Git.
+Keep local artifacts such as `build-ios/`, signed build products, credentials, and private cache keys out of Git.
 
 ## License and Upstream
 
-This repository is currently a derivative work based on [Krita](https://krita.org/) and is not licensed under the MIT License. Krita as a whole is licensed under the GNU General Public License Version 3, while individual files and bundled components are governed by their respective compatible licenses. See [`COPYING`](COPYING) and the license notices in individual files for the exact terms.
+LibrePaint is a derivative work based on [Krita](https://krita.org/) and is distributed under the GNU General Public License Version 3. Individual files and bundled components carry their respective compatible licenses. See [`COPYING`](COPYING) and the license notices in individual files for the exact terms.
 
-Krita is developed by the Krita Foundation, KDE, and Krita contributors. See the upstream [graphics/krita](https://invent.kde.org/graphics/krita) repository for the original project and its history. LibrePaint is an independently maintained modified work and is not affiliated with or endorsed by the Krita Foundation or KDE.
+Krita is developed by the Krita Foundation, KDE, and Krita contributors. LibrePaint is maintained independently by LibrePaint contributors. See the upstream [graphics/krita](https://invent.kde.org/graphics/krita) repository for the original project and its history.

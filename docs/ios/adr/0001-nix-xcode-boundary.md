@@ -7,8 +7,8 @@
 
 Krita needs a large reproducible dependency graph, while iPadOS compilation,
 bundling, signing, and installation depend on proprietary Xcode components and
-the developer keychain. Treating the whole build as either an unmanaged Xcode
-project or a pure Nix derivation makes one side unnecessarily fragile.
+the developer keychain. A defined boundary gives the open-source dependency
+graph reproducible Nix inputs and leaves Apple platform operations with Xcode.
 
 ## Decision
 
@@ -16,7 +16,7 @@ project or a pure Nix derivation makes one side unnecessarily fragile.
    patches, and open-source libraries compiled for iOS.
 2. Xcode supplies Apple Clang, iPhoneOS/iPhoneSimulator SDKs, final bundle
    generation, development signing, and device installation.
-3. The final Xcode step is deliberately not claimed to be a pure Nix build.
+3. The pure Nix boundary ends before the final Xcode step.
 4. Xcode and SDK versions are explicit validated inputs. A mismatch fails
    before compilation unless an upgrade engineer opts in with
    `KRITA_IOS_ALLOW_UNVALIDATED_HOST=1`.
@@ -29,6 +29,8 @@ project or a pure Nix derivation makes one side unnecessarily fragile.
 ## Consequences
 
 - Dependency builds and patches are repeatable and cacheable.
-- Signing identities and Apple SDK contents never enter the repository/cache.
+- Signing identities remain in the developer keychain, and Apple SDK contents
+  remain in the Xcode installation; neither enters the repository or binary
+  cache.
 - Reproducing the final app still requires the validated Xcode installation.
 - Xcode upgrades require an explicit validation cycle and cache separation.

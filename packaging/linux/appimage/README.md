@@ -1,7 +1,9 @@
 # Local AppImage build
 
-These scripts build a local LibrePaint AppImage from this checkout. They do not
-download, clone, publish, sign, or update dependencies.
+These scripts build a local LibrePaint AppImage from this checkout and a
+prepared dependency prefix. They cover compilation and AppImage assembly.
+Dependency preparation precedes this workflow. Publication and signing, when
+needed, start from the local artifact.
 
 Prepare an architecture-compatible dependency prefix separately and set its
 absolute path in `LIBREPAINT_DEPS_PATH`. The prefix must contain the Qt and KDE
