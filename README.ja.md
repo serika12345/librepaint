@@ -28,12 +28,12 @@ LibrePaintは、Krita由来のコードベースを独立して開発・保守�
 | iPadOS | 固定済みNix／Xcode環境、未署名IPA生成、AltStore／LiveContainer配備経路 | もっとも開発が進んでいる対象。iPadOS 17以降のarm64実機で詳細に検証中 |
 | Android／ChromeOS | LibrePaint APK構成と[ローカルビルドガイド](README.android.md) | 次のgateはdependency prefixの準備とend-to-end実機検証 |
 | Linux | [ローカルAppImage scriptとガイド](packaging/linux/appimage/README.md) | 次のgateはdependency prefixの準備、公開経路と署名の検証 |
-| macOS | LibrePaint app bundleとDMGのpackaging経路 | 次のgateはclean build、署名、公証、end-to-end検証 |
+| macOS | LibrePaint app bundleのNix recipeと既存のDMG packaging経路 | nixpkgsのLLVM toolchainとSDKによるarm64 clean buildとアプリケーション起動を確認済み。次は対話的UIと配布工程を検証 |
 | Windows | LibrePaint executableとNSIS installerのpackaging経路 | 次のgateはclean build、installer、署名、end-to-end検証 |
 
 現在のiOS対応範囲はiPadです。他のApple form factorや追加プラットフォームは、それぞれのUI、build、packaging、実機検証を経て対応状況を更新します。
 
-非iOS版のCMake target／executable名`krita`、設定directory、KRAのMIME／UTI、plugin ID、action IDなど、一部の内部名は互換性のため意図的に維持しています。ユーザーに表示するLibrePaintブランドと、これらの安定した技術契約は分離して扱います。
+既存のCMake target、設定directory、KRAのMIME／UTI、plugin ID、action IDは互換性契約として維持します。
 
 ## 現在のiPadOS開発状況
 
@@ -69,7 +69,7 @@ PDFや確認済みのRAW sampleを含め、表にある個別の確認結果は�
 
 ### 同梱済みで操作確認中の機能
 
-現在のiPad profileは162個のKrita内部プラグインを静的登録しています。arm64での最終link、IPA検査、実機へのinstallとstartupまで確認済みです。次のUIと操作を引き続き検証します。
+現在のiPad profileは162個の内部プラグインを静的登録しています。arm64での最終link、IPA検査、実機へのinstallとstartupまで確認済みです。次のUIと操作を引き続き検証します。
 
 - SeExpr generatorとFill Layerの一連の操作
 - LUT Dockerの表示とOpenColorIO LUTの適用
@@ -108,7 +108,48 @@ Animation UIはiPadOS向けの低優先度候補です。動画・音声export�
 
 ## ビルドと開発
 
-Androidのビルド手順は[`README.android.md`](README.android.md)、LinuxのローカルAppImage経路は[`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md)に記載しています。macOSとWindowsのpackaging実装は、それぞれ[`packaging/macos/`](packaging/macos/)と[`packaging/windows/`](packaging/windows/)にあります。各経路を整備しながら、プラットフォームごとにrelease／support状況を管理します。
+macOSの標準buildは[`nix/macos/`](nix/macos/)で定義しています。Androidのビルド手順は[`README.android.md`](README.android.md)、LinuxのローカルAppImage経路は[`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md)に記載しています。各platformのpackagingは[`packaging/`](packaging/)にまとめています。
+
+### macOSのNix build
+
+Apple SiliconではmacOS packageをflakeのdefault outputに設定しています。リポジトリのrootから名前付きoutputをbuildします。
+
+```sh
+nix build .#librepaint-macos
+```
+
+app bundleは`result/bin/LibrePaint.app`に生成されます。起動する場合は次を実行します。
+
+```sh
+open result/bin/LibrePaint.app
+```
+
+同じ依存環境のdevelopment shellは次のコマンドで起動します。
+
+```sh
+nix develop .#librepaint-macos
+```
+
+clean buildで確認したtoolchainは次のとおりです。
+
+| Component | 確認値 |
+|---|---|
+| Host | Apple Silicon macOS（`aarch64-darwin`） |
+| Compiler | nixpkgsのLLVM Clang 21.1.8 |
+| Linker／archive tool | nixpkgsのcctools／ld64 |
+| SDK | Nix store内のApple SDK 14.4 |
+| Qt | 6.11.1 |
+| KDE Frameworks／ECM | 6.28.0 |
+| Deployment target | macOS 14.0 |
+| Architecture | arm64 |
+
+固定済みのNix graphが宣言済みのbuild toolchainと依存setを供給します。Darwin向けtoolchainは、nixpkgsのLLVM Clang、cctools、SDK、open-sourceの`xcbuild` packageで構成しています。
+
+native C++ desktop profileには、描画application、dynamic plugin、PopplerによるPDF import、LibRaw／KDcrawによるRAW import、KSeExpr generator、OpenColorIO、MLT/SDL audio-video support、FFmpeg／FFprobe、および[`nix/macos/krita.nix`](nix/macos/krita.nix)で宣言した画像形式libraryが含まれます。
+
+次のmacOS dependency workでは、Python/PyQt scripting closureと埋込みruntime pathの統合を進めます。
+
+このNix outputは、runtime libraryをNix closureに保持する再現可能な開発・checkpoint用bundleです。配布recipeでは、このbuildにstandalone bundling、DMG生成、署名、公証を積み重ねます。
 
 ### iPadOSのビルドとローカル配備
 

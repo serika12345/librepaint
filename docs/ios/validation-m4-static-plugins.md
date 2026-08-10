@@ -8,7 +8,9 @@ basic canvas tools, the Layer Docker, and the startup-critical LittleCMS color
 engine. This validates conversion, registration, metadata discovery, and
 dead-stripping on a physical iPad before expanding the profile.
 
-## Reproduction
+## Historical build
+
+At the M4 foundation gate, the eight-plugin artifact below was produced with:
 
 ```sh
 nix develop --command packaging/ios/scripts/configure-krita.sh device
@@ -81,7 +83,8 @@ resolves the ODR violation for every static paint-op in shared code.
 
 ## Feature profile
 
-The device and Simulator presets explicitly enable the P0 minimum profile.
+At this gate, the device and Simulator presets explicitly enabled the P0
+minimum profile.
 Configure-time options control each functional group independently:
 
 | CMake option | Static targets |
@@ -102,7 +105,7 @@ cmake -S . -B build-ios/krita/device-ninja \
 
 This was verified to remove `kritalayerdocker` from the generated registration
 source while retaining the other factory registrations. Reapplying the
-`ios-device` preset restores the complete eight-plugin profile.
+`ios-device` preset at this gate restored the complete eight-plugin profile.
 
 ## Physical-device validation
 

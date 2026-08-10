@@ -23,7 +23,12 @@ kis_add_library(kritastoryboarddocker_static STATIC ${KRITA_STORYBOARDDOCKER_SOU
 
 generate_export_header(kritastoryboarddocker_static BASE_NAME kritastoryboarddocker)
 
-target_link_libraries(kritastoryboarddocker_static kritaui)
+target_link_libraries(kritastoryboarddocker_static
+    PUBLIC
+        kritaui
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::PrintSupport
+)
 
 kis_add_library(kritastoryboarddocker MODULE StoryboardDocker.cpp)
 

@@ -11,6 +11,7 @@ if (ANDROID)
 endif()
 
 set(krita_SRCS main.cc)
+set(KRITA_MACOS_BUNDLE_ICON_FILE "LibrePaint")
 
 if (IOS)
     set(KRITA_IOS_ICON "${CMAKE_CURRENT_SOURCE_DIR}/pics/branding/${BRANDING}/1024-apps-krita.png")
@@ -30,20 +31,25 @@ if (IOS)
 elseif (NOT APPLE)
 	file(GLOB ICON_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/pics/branding/${BRANDING}/*-apps-krita.png")
 else()
-    # XCode below 26 cannot work with .icon format
-    if(${XCODE_VERSION} VERSION_GREATER_EQUAL "26.0")
+    if(NOT KRITA_MACOS_USE_XCODE_TOOLS)
+        set(KRITA_MACOS_ICON "${CMAKE_SOURCE_DIR}/packaging/macos/LibrePaint.icns")
+        set_source_files_properties(${KRITA_MACOS_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+        list(APPEND krita_SRCS ${KRITA_MACOS_ICON})
+        set(KRITA_MACOS_BUNDLE_ICON_FILE "LibrePaint.icns")
+    # Xcode below 26 cannot work with .icon format
+    elseif(XCODE_VERSION VERSION_GREATER_EQUAL "26.0")
         find_program(XCRUN_EXECUTABLE NAMES xcrun)
-        set(KRITA_ASSETS_ICON "${CMAKE_CURRENT_SOURCE_DIR}/pics/branding/${BRANDING}/krita.icon")
+        set(KRITA_ASSETS_ICON "${CMAKE_CURRENT_SOURCE_DIR}/pics/branding/${BRANDING}/LibrePaint.icon")
         cmake_path(SET ASSETS_PATH "${CMAKE_CURRENT_BINARY_DIR}/assets")
 
-        set(ASSETS_FILES "${ASSETS_PATH}/Assets.car" "${ASSETS_PATH}/krita.icns")
+        set(ASSETS_FILES "${ASSETS_PATH}/Assets.car" "${ASSETS_PATH}/LibrePaint.icns")
         add_custom_command(
           OUTPUT ${ASSETS_FILES}
           COMMAND ${CMAKE_COMMAND} ARGS -E make_directory "${ASSETS_PATH}"
           COMMAND ${XCRUN_EXECUTABLE} ARGS actool "${KRITA_ASSETS_ICON}"
             --compile ${ASSETS_PATH}
             --platform macosx --minimum-deployment-target ${MACOS_MINIMUM_VERSION}
-            --app-icon krita --output-partial-info-plist "${CMAKE_CURRENT_BINARY_DIR}/krita_icon.plist"
+            --app-icon LibrePaint --output-partial-info-plist "${CMAKE_CURRENT_BINARY_DIR}/librepaint_icon.plist"
             --output-format human-readable-text
             --standalone-icon-behavior all
           DEPENDS
@@ -91,10 +97,12 @@ if (WIN32)
         DESTINATION ${CMAKE_INSTALL_PREFIX}/installer
     )
 elseif(APPLE AND NOT IOS)
-    if(${XCODE_VERSION} VERSION_GREATER_EQUAL "26.0")
+    if(NOT KRITA_MACOS_USE_XCODE_TOOLS)
+      # The prebuilt ICNS file is already part of krita_SRCS.
+    elseif(XCODE_VERSION VERSION_GREATER_EQUAL "26.0")
       set_source_files_properties(${ASSETS_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     else()
-      ecm_add_app_icon(krita_SRCS OUTFILE_BASENAME krita ICONS ${ICON_SRCS})
+      ecm_add_app_icon(krita_SRCS OUTFILE_BASENAME LibrePaint ICONS ${ICON_SRCS})
     endif()
 elseif(NOT IOS)
     ecm_add_app_icon(krita_SRCS ICONS ${ICON_SRCS})
@@ -196,12 +204,23 @@ if(HAVE_KCRASH)
 endif()
 
 if (APPLE AND NOT IOS)
-    set_target_properties(krita PROPERTIES INSTALL_RPATH "@loader_path/../../../../lib;@loader_path/../lib;
-        @loader_path/../Frameworks;@executable_path/../../../../lib;@executable_path/../lib;@executable_path/../Frameworks")
+    set(KRITA_MACOS_INSTALL_RPATH
+        "@loader_path/../../../../lib"
+        "@loader_path/../lib"
+        "@loader_path/../Frameworks"
+        "@executable_path/../../../../lib"
+        "@executable_path/../lib"
+        "@executable_path/../Frameworks"
+    )
+    set_target_properties(krita PROPERTIES
+        OUTPUT_NAME "LibrePaint"
+        MACOSX_BUNDLE TRUE
+        INSTALL_RPATH "${KRITA_MACOS_INSTALL_RPATH}"
+    )
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.template)
-    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "org.krita")
+    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "local.librepaint.macos")
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "LibrePaint")
-    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_ICON_FILE "krita")
+    set_target_properties(krita PROPERTIES MACOSX_BUNDLE_ICON_FILE "${KRITA_MACOS_BUNDLE_ICON_FILE}")
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_LONG_VERSION_STRING ${LIBREPAINT_VERSION_STRING})
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING ${LIBREPAINT_VERSION_STRING})
     set_target_properties(krita PROPERTIES MACOSX_BUNDLE_BUNDLE_VERSION ${LIBREPAINT_VERSION_STRING})
@@ -254,7 +273,7 @@ if(APPLE AND NOT IOS)
     set_source_files_properties(${KRITA_ASSET_KRZ_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
     # make krita depend on assets icons
-    if(${XCODE_VERSION} VERSION_GREATER_EQUAL "26.0")
+    if(KRITA_MACOS_USE_XCODE_TOOLS AND XCODE_VERSION VERSION_GREATER_EQUAL "26.0")
       target_sources(krita PRIVATE ${ASSETS_FILES})
     endif()
     target_sources(krita PRIVATE ${KRITA_ASSET_KRZ_ICNS})

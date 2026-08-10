@@ -10,6 +10,8 @@
     <string>NO</string>
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
     <key>CFBundleExecutable</key>
     <string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
     <key>CFBundleIconFile</key>
@@ -33,7 +35,7 @@
         <string>MacOSX</string>
       </array>
     <key>CFBundleSignature</key>
-    <string>KRTA</string>
+    <string>LBPT</string>
     <key>CFBundleVersion</key>
     <string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
     <key>CSResourcesFileMapped</key>
@@ -150,7 +152,7 @@
         </dict>
         <dict>
           <key>CFBundleTypeIconFile</key>
-          <string>krita</string>
+          <string>${MACOSX_BUNDLE_ICON_FILE}</string>
           <key>CFBundleTypeName</key>
           <string>OpenRaster File</string>
           <key>CFBundleTypeRole</key>

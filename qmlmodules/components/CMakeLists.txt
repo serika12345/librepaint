@@ -154,11 +154,14 @@ endif ()
 
 if (APPLE)
     # kritaqmlmodules lacks an RPATH which causes macdeployqt to ERROR
-    set_target_properties(kritaqmlcomponents PROPERTIES INSTALL_RPATH "@loader_path/.;
-        @executable_path/../Frameworks;
-        @loader_path/../../../lib;
-        @loader_path/../../lib;
-        @loader_path/../../../../lib"
+    set(KRITA_QML_COMPONENTS_INSTALL_RPATH
+        "@loader_path/."
+        "@executable_path/../Frameworks"
+        "@loader_path/../../../lib"
+        "@loader_path/../../lib"
+        "@loader_path/../../../../lib"
+    )
+    set_target_properties(kritaqmlcomponents PROPERTIES INSTALL_RPATH "${KRITA_QML_COMPONENTS_INSTALL_RPATH}"
     )
 endif()
 
@@ -171,6 +174,5 @@ ecm_finalize_qml_module(kritaqmlcomponents DESTINATION ${KDE_INSTALL_QMLDIR})
 # since all the installation work is done by ecm_finalize_qml_module
 #
 # install(TARGETS kritaqmlcomponents ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
-
 
 

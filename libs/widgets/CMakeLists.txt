@@ -94,7 +94,7 @@ ki18n_wrap_ui( kritawidgets_LIB_SRCS
 kis_add_library(kritawidgets SHARED ${kritawidgets_LIB_SRCS})
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
 target_link_libraries(kritawidgets
-    
+    PUBLIC
     kritaglobal
     kritaflake
     kritapigment
@@ -108,10 +108,6 @@ target_link_libraries(kritawidgets
     KF${KF_MAJOR}::ConfigCore
     KF${KF_MAJOR}::Completion
 )
-
-if(NOT IOS)
-    target_link_libraries(kritawidgets PRIVATE Qt${QT_MAJOR_VERSION}::PrintSupport)
-endif()
 
 set_target_properties(kritawidgets PROPERTIES
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}

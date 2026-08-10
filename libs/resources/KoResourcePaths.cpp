@@ -109,7 +109,7 @@ QString getInstallationPrefix() {
     appPath.chop(QString("MacOS/").length());
     dbgResources << "2" << appPath;
 
-    bool makeInstall = QDir(appPath + "/../../../share/kritaplugins").exists();
+    bool makeInstall = QDir(appPath + "/../../../lib/kritaplugins").exists();
     bool inBundle = QDir(appPath + "/Resources/kritaplugins").exists();
 
     QString bundlePath;
@@ -127,7 +127,7 @@ QString getInstallationPrefix() {
         // This needs krita to be installed.
         QString envInstallPath = qgetenv("KIS_TEST_PREFIX_PATH");
         if (!envInstallPath.isEmpty() && (
-                    QDir(envInstallPath + "/share/kritaplugins").exists()
+                    QDir(envInstallPath + "/lib/kritaplugins").exists()
                     || QDir(envInstallPath + "/Resources/kritaplugins").exists() ))
         {
             bundlePath = envInstallPath;

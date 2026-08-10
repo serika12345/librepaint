@@ -120,8 +120,11 @@ void KoDualColorButton::updateArrows() {
     pen.end();
 }
 
-void KoDualColorButton::setColorDialogState(Selection state){
-    d->colorDialogState->selection = state;
+void KoDualColorButton::setColorDialogState(Selection state)
+{
+    if (d->colorDialogState) {
+        d->colorDialogState->selection = state;
+    }
     d->tmpSelection = state;
 }
 
@@ -472,4 +475,3 @@ bool KoDualColorButton::event(QEvent *event)
     return QWidget::event(event);
 
 }
-

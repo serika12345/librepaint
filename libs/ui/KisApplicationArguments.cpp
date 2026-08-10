@@ -157,7 +157,10 @@ KisApplicationArguments::KisApplicationArguments(const QApplication &app)
         }
     }
 
+    const QString compatibilityApplicationName = QCoreApplication::applicationName();
+    QCoreApplication::setApplicationName(QApplication::applicationDisplayName());
     parser.process(filteredArgs);
+    QCoreApplication::setApplicationName(compatibilityApplicationName);
 
     QString dpiValues = parser.value("dpi");
     if (!dpiValues.isEmpty()) {

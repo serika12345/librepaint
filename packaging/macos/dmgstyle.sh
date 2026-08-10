@@ -164,7 +164,7 @@ if [[ ${1} = "set" ]]; then
         mkdir "${DMG_STYLE_DIR}/Terms of Use"
         mkdir "${DMG_STYLE_DIR}/.background"
         mkdir "${DMG_STYLE_DIR}/.fseventsd"
-        ln -s "${SCRIPT_DIR}/KritaIcon.icns" "${DMG_STYLE_DIR}/.VolumeIcon.icns"
+        ln -s "${SCRIPT_DIR}/LibrePaint.icns" "${DMG_STYLE_DIR}/.VolumeIcon.icns"
         ln -s "/Applications" "${DMG_STYLE_DIR}/Applications"
         ln -s "${BUNDLED_APP}" "${DMG_STYLE_DIR}/LibrePaint.app"
     fi

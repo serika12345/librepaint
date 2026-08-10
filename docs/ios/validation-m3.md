@@ -6,16 +6,17 @@ M3 has reached the unsigned-link gate. A reduced Krita application, including
 the main window, core painting libraries, Qt resources, and the static Qt/KF6
 runtime, configures and links for an arm64 iPadOS device.
 
-## Reproduction
+## Historical build
 
-After completing the M2 dependency, Qt, and framework builds:
+At the M3 gate, after completing the M2 dependency, Qt, and framework builds,
+the artifact below was produced with:
 
 ```sh
 nix develop --command packaging/ios/scripts/configure-krita.sh device --build
 ```
 
-The wrapper validates the host matrix, resolves the pinned host Qt Linguist
-tools, supplies only the isolated target prefixes, and uses the Ninja generator.
+The wrapper validated the host matrix, resolved the pinned host Qt Linguist
+tools, supplied only the isolated target prefixes, and used the Ninja generator.
 Ninja handles the static Qt target object expressions that the Xcode
 generator's cross-compiling compiler checks reject in this configuration.
 

@@ -28,12 +28,12 @@ The platform status below separates roadmap coverage from verified availability.
 | iPadOS | Pinned Nix/Xcode environment, unsigned IPA generation, and AltStore/LiveContainer deployment paths | Most actively developed target; detailed physical-device verification on arm64 iPads running iPadOS 17 or later |
 | Android / ChromeOS | LibrePaint APK configuration and a [local build guide](README.android.md) | Next gate: prepare the dependency prefix and complete end-to-end device validation |
 | Linux | [Local AppImage scripts and guide](packaging/linux/appimage/README.md) | Next gates: prepare the dependency prefix, then validate publishing and signing |
-| macOS | LibrePaint app-bundle and DMG packaging paths | Next gates: clean build, signing, notarization, and end-to-end validation |
+| macOS | Nix recipe for the LibrePaint app bundle, plus the existing DMG packaging path | Clean arm64 build and application startup verified with the nixpkgs LLVM toolchain and SDK; interactive UI and distribution validation follow |
 | Windows | LibrePaint executable and NSIS installer packaging paths | Next gates: clean build, installer validation, signing, and end-to-end validation |
 
 Current iOS support covers iPad. Support status for additional Apple form factors and platforms will follow their UI, build, packaging, and device validation work.
 
-Some internal names—including the CMake target and executable name `krita` on non-iOS platforms, configuration directories, KRA MIME/UTI identifiers, plugin IDs, and action IDs—are intentionally retained for compatibility. User-facing LibrePaint branding is kept separate from these stable technical contracts.
+Compatibility contracts retain the established CMake targets, configuration directories, KRA MIME/UTI identifiers, plugin IDs, and action IDs.
 
 ## Current iPadOS Status
 
@@ -69,7 +69,7 @@ The individual results in this table—including PDF and the tested RAW sample�
 
 ### Included Features Under Interaction Testing
 
-The current iPad profile statically registers 162 internal Krita plugins. Final arm64 linking, IPA inspection, physical-device installation, and startup have been verified. UI and interaction testing continues in these areas:
+The current iPad profile statically registers 162 internal plugins. Final arm64 linking, IPA inspection, physical-device installation, and startup have been verified. UI and interaction testing continues in these areas:
 
 - The complete SeExpr generator and Fill Layer workflow
 - Displaying the LUT Docker and applying OpenColorIO LUTs
@@ -108,7 +108,48 @@ Animation UI is a possible low-priority iPadOS addition; multimedia export sits 
 
 ## Build and Development
 
-Android build instructions are in [`README.android.md`](README.android.md), and the local Linux AppImage path is documented in [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md). The macOS and Windows packaging implementations are under [`packaging/macos/`](packaging/macos/) and [`packaging/windows/`](packaging/windows/), respectively. Release and support status remains platform-specific while these paths are developed.
+The standard macOS build is defined in [`nix/macos/`](nix/macos/). Android build instructions are in [`README.android.md`](README.android.md), and the local Linux AppImage path is documented in [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md). Platform packaging is kept under [`packaging/`](packaging/).
+
+### macOS Nix Build
+
+The macOS package is the default flake output on Apple Silicon. Build the named output from the repository root:
+
+```sh
+nix build .#librepaint-macos
+```
+
+The application bundle is written to `result/bin/LibrePaint.app`. Launch it with:
+
+```sh
+open result/bin/LibrePaint.app
+```
+
+Open the matching development shell with:
+
+```sh
+nix develop .#librepaint-macos
+```
+
+The clean build has been verified with this locked toolchain:
+
+| Component | Verified value |
+|---|---|
+| Host | Apple Silicon macOS (`aarch64-darwin`) |
+| Compiler | LLVM Clang 21.1.8 from nixpkgs |
+| Linker and archive tools | cctools/ld64 from nixpkgs |
+| SDK | Apple SDK 14.4 from the Nix store |
+| Qt | 6.11.1 |
+| KDE Frameworks / ECM | 6.28.0 |
+| Deployment target | macOS 14.0 |
+| Architecture | arm64 |
+
+The locked Nix graph supplies the declared build toolchain and dependency set. Darwin tooling comes from the nixpkgs LLVM Clang, cctools, SDK, and open-source `xcbuild` packages.
+
+The native C++ desktop profile includes the drawing application, its dynamically loaded plugins, PDF import through Poppler, RAW import through LibRaw/KDcraw, KSeExpr generators, OpenColorIO, MLT/SDL audio-video support, FFmpeg/FFprobe, and the image-format libraries declared in [`nix/macos/krita.nix`](nix/macos/krita.nix).
+
+The next macOS dependency work adds the Python/PyQt scripting closure together with its embedded-runtime path integration.
+
+The Nix result is a reproducible development and checkpoint bundle whose runtime libraries remain in its Nix closure. A distribution recipe can layer standalone bundling, DMG generation, signing, and notarization onto this build.
 
 ### iPadOS Build and Local Deployment
 

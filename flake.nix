@@ -1,5 +1,5 @@
 {
-  description = "Reproducible host tools for the LibrePaint iPadOS port";
+  description = "Reproducible LibrePaint builds for supported platforms";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
@@ -8,8 +8,8 @@
     let
       system = "aarch64-darwin";
       pkgs = import nixpkgs { inherit system; };
-      kritaBuildSource = pkgs.lib.cleanSourceWith {
-        name = "krita-ios-source";
+      librepaintBuildSource = pkgs.lib.cleanSourceWith {
+        name = "librepaint-source";
         src = ./.;
         filter =
           path: _type:
@@ -30,7 +30,9 @@
             "flake.nix"
             "logs"
             "nix"
-          ]);
+            "result"
+          ])
+          && !(pkgs.lib.hasPrefix "README" topLevel);
       };
       iosPackages = import ./nix/ios {
         inherit pkgs;
@@ -39,14 +41,20 @@
         qtManifestFile = ./packaging/ios/qt/modules.json;
         frameworkManifestFile = ./packaging/ios/frameworks/frameworks.json;
         pluginProfileFile = ./packaging/ios/manifests/initial-plugin-profile.json;
-        kritaSource = kritaBuildSource;
+        kritaSource = librepaintBuildSource;
+      };
+      macosPackages = import ./nix/macos {
+        inherit pkgs;
+        source = librepaintBuildSource;
       };
     in
     {
-      # Source outputs retain the legacy script-driven build. New iOS package
-      # outputs cross-compile inside individual Nix derivations while using the
-      # validated external Xcode SDK as a narrowly defined host dependency.
+      # macOS is the native default package. iOS package outputs cross-compile
+      # inside individual Nix derivations with the pinned Xcode SDK input.
       packages.${system} = {
+        default = macosPackages.librepaint;
+        librepaint-macos = macosPackages.librepaint;
+
         source-zlib = pkgs.zlib.src;
         source-libdeflate = pkgs.libdeflate.src;
         source-libpng = pkgs.libpng.src;
@@ -191,6 +199,8 @@
       };
 
       checks.${system} = {
+        librepaint-macos = macosPackages.librepaint;
+
         inherit (iosPackages)
           glib-ios
           json-c-ios
@@ -276,7 +286,10 @@
       };
 
       devShells.${system} = {
-        default = pkgs.mkShellNoCC {
+        default = macosPackages.devShell;
+        librepaint-macos = macosPackages.devShell;
+
+        librepaint-ios = pkgs.mkShellNoCC {
           packages = with pkgs; [
             bash
             cmake

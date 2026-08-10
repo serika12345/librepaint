@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import plistlib
 import shutil
 import pathlib
 import stat
@@ -12,14 +13,14 @@ import subprocess
 
 def main():
     parser = argparse.ArgumentParser(prog='macos deploy',
-                                     description='Utility to create the LibrePaint.app bundle',
-                                     epilog="macos-deploy does not sign the resulting bundle")
+                                     description='Utility to create the LibrePaint.app bundle')
 
     parser.add_argument('--buildroot', help="Directory where the source and _install are located",
                         default=os.getenv("BUILDROOT", False))
     parser.add_argument('--install-dir', dest='install_dir', help="Path of install directory to deploy")
     parser.add_argument('--output-dir', dest='output_dir', help="Destination path to place the app")
-    parser.add_argument('--source', '--krita-source', dest='source', help="source location of LibrePaint")
+    parser.add_argument('--source', dest='source', help="source location of LibrePaint")
+    parser.add_argument('--krita-source', dest='source', help=argparse.SUPPRESS)
     args = parser.parse_args()
 
     # --- Locations
@@ -232,7 +233,7 @@ def kritaCreatePyKrita(src: pathlib.Path, dst: pathlib.Path, version: str):
     plistbuddy = lambda key, value: subprocess.run([plistbuddy_loc, info_plist, '-c', f'Add:{key} string {value}'])
 
     plistbuddy("CFBundleExecutable", frame_name)
-    plistbuddy("CFBundleIdentifier", f'org.krita.{frame_name}')
+    plistbuddy("CFBundleIdentifier", 'local.librepaint.macos.pykrita')
     plistbuddy("CFBundlePackageType", "FMWK")
     plistbuddy("CFBundleShortVersionString", f'{frame_version}')
     plistbuddy("CFBundleVersion", f'{frame_version}')
@@ -364,10 +365,9 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
     kisenv['MACOSX_DEPLOYMENT_TARGET'] = osx_deployment_target
     kisenv['QMAKE_MACOSX_DEPLOYMENT_TARGET'] = osx_deployment_target
 
-    # --- Krita version adjustments
-    kis_version_full = subprocess.run(['krita_version', '-v'],
-                                      capture_output=True, text=True, env=kisenv).stdout
-    kis_version = kis_version_full.replace("-", " ").split()
+    with krita_install_dir.joinpath('bin', 'LibrePaint.app', 'Contents', 'Info.plist').open('rb') as handle:
+        bundle_info = plistlib.load(handle)
+    bundle_version = bundle_info['CFBundleShortVersionString']
 
 
     if krita_dmg.exists():
@@ -381,13 +381,12 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
         krita_app[key].mkdir(exist_ok=True, parents=True)
 
     print("copying LibrePaint.app...")
-    copyDirSub(krita_install_dir.joinpath('bin', 'krita.app'), krita_app['root'], only_contents=True)
+    copyDirSub(krita_install_dir.joinpath('bin', 'LibrePaint.app'), krita_app['root'], only_contents=True)
     copyDirSub(krita_install_dir.joinpath('bin', 'kritarunner'), krita_app['macos'], only_contents=False)
-    copyDirSub(krita_install_dir.joinpath('bin', 'krita_version'), krita_app['macos'], only_contents=False)
 
     print("Copying share...")
     extra_args = [     '--delete'
-                       ,'--exclude', 'krita.icns'
+                       ,'--exclude', 'LibrePaint.icns'
                        ,'--exclude', 'krita-krz.icns'
                        ,'--exclude', 'krita-kra.icns'
                        ,'--exclude', 'Assets.car'
@@ -450,7 +449,7 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
 
     print("Copying python...")
     copyDirSub(krita_install_dir.joinpath('lib', 'Python.framework'),krita_app['frameworks'],only_contents=False)
-    kritaCreatePyKrita(krita_install_dir, krita_app['frameworks'], kis_version[0])
+    kritaCreatePyKrita(krita_install_dir, krita_app['frameworks'], bundle_version)
 
     DeployCmd.achmod(krita_app['frameworks'].joinpath('Python.framework','Python'), stat.S_IWRITE)
 
@@ -462,9 +461,8 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
     subprocess.run(cmd,env=kisenv)
 
     # Remove unnecessary rpaths
-    installNameTool(krita_app['macos'].joinpath('krita_version'), "-delete_rpath @executable_path/../lib")
     installNameTool(krita_app['macos'].joinpath('kritarunner'), "-delete_rpath @executable_path/../lib")
-    installNameTool(krita_app['macos'].joinpath('krita'), "-delete_rpath @loader_path/../../../../lib")
+    installNameTool(krita_app['macos'].joinpath('LibrePaint'), "-delete_rpath @loader_path/../../../../lib")
 
     fileToRemove = krita_app['plugins'].joinpath('kf5', 'org.kde.kwindowsystem.platforms')
     if fileToRemove.exists():
@@ -516,7 +514,7 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
         cmd = [exec_path
             ,krita_app['root']
             , '-verbose=0'
-            , f'-executable={krita_app["macos"].joinpath("krita")}'
+            , f'-executable={krita_app["macos"].joinpath("LibrePaint")}'
             , f'-libpath={krita_install_dir.joinpath("lib")}'
             , f"-qmldir={krita_source_dir.joinpath('plugins', 'dockers', 'textproperties')}"
                ]

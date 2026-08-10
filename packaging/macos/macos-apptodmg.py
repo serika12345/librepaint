@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pathlib
 import os
+import plistlib
 import shutil
 import subprocess
 import argparse
@@ -27,10 +28,9 @@ class DmgFile:
 
 def main():
     parser = argparse.ArgumentParser(prog='macos_apptodmg',
-                                     description='Utility to generate a dmg from a LibrePaint.app',
-                                     epilog="This code does not sign the resulting dmg or bundle")
-    parser.add_argument('krita_app', metavar='LibrePaint.app', help="LibrePaint.app path location")
-    parser.add_argument('--buildroot', help="Directory where krita src and _install are located",
+                                     description='Utility to generate a dmg from a LibrePaint.app')
+    parser.add_argument('librepaint_app', metavar='LibrePaint.app', help="LibrePaint.app path location")
+    parser.add_argument('--buildroot', help="Directory where the source tree and _install are located",
                         default=os.getenv("BUILDROOT", False))
     parser.add_argument('--media-path', dest="media_path", metavar='<path>', help="path location of background, icons, and ToS")
 
@@ -40,8 +40,11 @@ def main():
     parser.add_argument('--suffix', dest="suffix", help="Set DMG output name suffix", metavar='<string>')
     args = parser.parse_args()
 
-    krita_app = pathlib.Path(args.krita_app).resolve()
-    print(f'Creating dmg from: {krita_app}')
+    librepaint_app = pathlib.Path(args.librepaint_app).resolve()
+    print(f'Creating dmg from: {librepaint_app}')
+
+    if librepaint_app.name != 'LibrePaint.app':
+        raise SystemExit(f"Expected a LibrePaint.app bundle, got {librepaint_app.name}")
 
     # --- Style options DMG
     if args.buildroot:
@@ -59,7 +62,7 @@ def main():
         krita_media_path = pathlib.Path(args.media_path).resolve()
 
 
-    krita_dmg_background = krita_media_path.joinpath('krita_dmgBG.png') if not args.bg or not os.path.exists(args.bg) else pathlib.Path(args.bg)
+    krita_dmg_background = krita_media_path.joinpath('librepaint-dmg-background.png') if not args.bg or not os.path.exists(args.bg) else pathlib.Path(args.bg)
     dmg_files: list[DmgFile] = [
         DmgFile(
             krita_dmg_background
@@ -71,7 +74,7 @@ def main():
             , 'Terms_of_use.rtf'
         ),
         DmgFile(
-            krita_media_path.joinpath('KritaIcon.icns')
+            krita_media_path.joinpath('LibrePaint.icns')
             , "."
             , '.VolumeIcon.icns'
         )
@@ -84,21 +87,27 @@ def main():
 
 
     # --- LibrePaint version adjustments
-    kisenv = os.environ.copy()
-    kisenv['PATH'] = f"{os.path.join(krita_app,'Contents','MacOS')}:{kisenv['PATH']}"
+    with librepaint_app.joinpath('Contents', 'Info.plist').open('rb') as handle:
+        bundle_info = plistlib.load(handle)
+    expected_identity = {
+        'CFBundleDisplayName': 'LibrePaint',
+        'CFBundleExecutable': 'LibrePaint',
+        'CFBundleIdentifier': 'local.librepaint.macos',
+        'CFBundleName': 'LibrePaint',
+    }
+    for key, expected in expected_identity.items():
+        actual = bundle_info.get(key)
+        if actual != expected:
+            raise SystemExit(f"{key} is {actual!r}; expected {expected!r}")
+    bundle_version = bundle_info['CFBundleShortVersionString']
 
-    kis_version_full = subprocess.run(['krita_version', '-v'],
-                                      capture_output=True, text=True, env=kisenv).stdout
-    kis_version = kis_version_full.replace("-", " ").split()
-    kis_version_str = "-".join(kis_version)
-
-    kis_name = "LibrePaint-" + kis_version_str
+    kis_name = f"LibrePaint-{bundle_version}"
     if args.dmg_name:
         kis_name = args.dmg_name
     if args.suffix:
         kis_name += args.suffix
 
-    krita_dmg = kritaCreateDMG(krita_app, dmg_files, kis_name, kritadmg_style_formatted)
+    krita_dmg = kritaCreateDMG(librepaint_app, dmg_files, kis_name, kritadmg_style_formatted)
 
 
     if args.buildroot:
@@ -114,7 +123,7 @@ def main():
 
 
 
-def kritaCreateDMG(krita_app: pathlib.Path, krita_dmg_media: list[DmgFile], dmg_name: str,
+def kritaCreateDMG(librepaint_app: pathlib.Path, krita_dmg_media: list[DmgFile], dmg_name: str,
                    kritadmg_style: str
                    ) -> pathlib.Path:
 
@@ -124,7 +133,7 @@ def kritaCreateDMG(krita_app: pathlib.Path, krita_dmg_media: list[DmgFile], dmg_
 
     # Qt 6 plugins may carry extended attributes, so use rsync to preserve them.
     print(f'Cloning source LibrePaint.app to working dir {krita_dmg_root}')
-    cmd = ['rsync', '-aE', krita_app, krita_dmg_root]
+    cmd = ['rsync', '-aE', librepaint_app, krita_dmg_root]
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as err:
