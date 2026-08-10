@@ -14,15 +14,6 @@ let
   mlt = qt.mlt.override {
     inherit ffmpeg frei0r;
   };
-  deploymentTarget = pkgs.stdenv.hostPlatform.darwinMinVersion;
-in
-pkgs.stdenv.mkDerivation {
-  pname = "librepaint-macos";
-  version = "1.0.2";
-
-  src = source;
-  strictDeps = true;
-
   nativeBuildInputs = [
     pkgs.cmake
     pkgs.gettext
@@ -33,7 +24,6 @@ pkgs.stdenv.mkDerivation {
     qt.qttools
     qt.wrapQtAppsHook
   ];
-
   buildInputs = [
     pkgs.boost
     pkgs.eigen_5
@@ -85,6 +75,16 @@ pkgs.stdenv.mkDerivation {
     frameworks.libkdcraw
     frameworks.kwidgetsaddons
   ];
+  deploymentTarget = pkgs.stdenv.hostPlatform.darwinMinVersion;
+in
+pkgs.stdenv.mkDerivation {
+  pname = "librepaint-macos";
+  version = "1.0.2";
+
+  src = source;
+  strictDeps = true;
+
+  inherit nativeBuildInputs buildInputs;
 
   postPatch = ''
     substituteInPlace plugins/impex/jp2/jp2_converter.cc \
@@ -168,6 +168,8 @@ pkgs.stdenv.mkDerivation {
   '';
 
   enableParallelBuilding = true;
+
+  passthru.macosDependencyMembers = nativeBuildInputs ++ buildInputs;
 
   meta = {
     description = "LibrePaint digital painting application for macOS";

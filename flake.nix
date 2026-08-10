@@ -54,6 +54,7 @@
       packages.${system} = {
         default = macosPackages.librepaint;
         librepaint-macos = macosPackages.librepaint;
+        macos-dependencies = macosPackages.macosDependencies;
 
         source-zlib = pkgs.zlib.src;
         source-libdeflate = pkgs.libdeflate.src;
@@ -200,6 +201,7 @@
 
       checks.${system} = {
         librepaint-macos = macosPackages.librepaint;
+        macos-dependencies = macosPackages.macosDependencies;
 
         inherit (iosPackages)
           glib-ios
