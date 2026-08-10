@@ -7,7 +7,7 @@
 #ifndef LCMSRGBP2020PQCOLORSPACETRANSFORMATION_H
 #define LCMSRGBP2020PQCOLORSPACETRANSFORMATION_H
 
-#include "KoAlwaysInline.h"
+#include <libs/global/KoAlwaysInline.h>
 #include "KoColorModelStandardIds.h"
 #include "KoColorSpaceMaths.h"
 #include "KoColorModelStandardIdsUtils.h"

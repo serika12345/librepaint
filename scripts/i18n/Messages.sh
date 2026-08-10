@@ -3,17 +3,21 @@
 #  SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-source kundo2_aware_xgettext.sh
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+project_root=$(CDPATH= cd -- "$script_dir/../.." && pwd)
+cd "$project_root" || exit 1
+
+. "$script_dir/kundo2_aware_xgettext.sh"
 
 $EXTRACTRC `find . -name \*.ui | grep -v '/tests/'` >> rc.cpp
 RCFILES=`find . -name \*.xmlgui`
 $EXTRACTRC $RCFILES >> rc.cpp
 
 ACTIONFILES=`find . -name \*.action | grep -v '/tests/'`
-./action_i18n.pl --context=action $ACTIONFILES >> rc.cpp
+"$script_dir/action_i18n.pl" --context=action $ACTIONFILES >> rc.cpp
 
 # extracti18n.pl extracts additional data from brushes, palettes etc.
-perl extracti18n.pl >> rc.cpp
+perl "$script_dir/extracti18n.pl" >> rc.cpp
 
 # Ignore sdk/templates which contains templates for writing future plugins.
 # Also ignore crashreporter, it has it's own catalog

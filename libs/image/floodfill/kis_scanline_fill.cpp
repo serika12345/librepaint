@@ -6,7 +6,7 @@
 
 #include "kis_scanline_fill.h"
 
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 
 #include <QStack>
 #include <KoColor.h>

@@ -818,7 +818,7 @@ QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRound
 "
 HAVE_HIGH_DPI_SCALE_FACTOR_ROUNDING_POLICY
 )
-configure_file(config-high-dpi-scale-factor-rounding-policy.h.in ${CMAKE_CURRENT_BINARY_DIR}/config-high-dpi-scale-factor-rounding-policy.h)
+configure_file(cmake/config/config-high-dpi-scale-factor-rounding-policy.h.in ${CMAKE_CURRENT_BINARY_DIR}/config-high-dpi-scale-factor-rounding-policy.h)
 
 CHECK_CXX_SOURCE_COMPILES("
 #include <QMdiArea>
@@ -840,7 +840,7 @@ QWindowsWindowFunctions::setHasBorderInFullScreenDefault(true);
 "
     HAVE_SET_HAS_BORDER_IN_FULL_SCREEN_DEFAULT
     )
-    configure_file(config-set-has-border-in-full-screen-default.h.in ${CMAKE_CURRENT_BINARY_DIR}/config-set-has-border-in-full-screen-default.h)
+    configure_file(cmake/config/config-set-has-border-in-full-screen-default.h.in ${CMAKE_CURRENT_BINARY_DIR}/config-set-has-border-in-full-screen-default.h)
 
 endif (WIN32)
 

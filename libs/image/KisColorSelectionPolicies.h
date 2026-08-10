@@ -9,7 +9,7 @@
 
 #include <QStack>
 
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 #include <KoColor.h>
 #include <KoColorSpace.h>
 #include <kis_random_accessor_ng.h>

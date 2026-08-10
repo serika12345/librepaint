@@ -10,7 +10,7 @@
 
 #include "KisInterstrokeData.h"
 #include "KisSequentialIteratorProgress.h"
-#include "KoAlwaysInline.h"
+#include <libs/global/KoAlwaysInline.h>
 #include "kis_command_utils.h"
 #include "kundo2command.h"
 

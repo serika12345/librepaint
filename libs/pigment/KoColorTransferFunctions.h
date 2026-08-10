@@ -11,7 +11,7 @@
 
 #include <QtGlobal>
 
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 
 /**
  * @brief The KoColorTransferFunctions class

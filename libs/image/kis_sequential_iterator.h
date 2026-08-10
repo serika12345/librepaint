@@ -7,7 +7,7 @@
 #ifndef __KIS_SEQUENTIAL_ITERATOR_H
 #define __KIS_SEQUENTIAL_ITERATOR_H
 
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 
 #include "kis_types.h"
 #include "kis_paint_device.h"

@@ -17,7 +17,7 @@
 #include "kis_base_rects_walker.h"
 #include "kis_async_merger.h"
 #include "kis_updater_context.h"
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 
 //#define DEBUG_JOBS_SEQUENCE
 

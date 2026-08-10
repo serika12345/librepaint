@@ -8,7 +8,7 @@
 #define KISFASTDEVICEPROCESSINGUTILS_H
 
 #include "kis_random_accessor_ng.h"
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 
 namespace KritaUtils {
 

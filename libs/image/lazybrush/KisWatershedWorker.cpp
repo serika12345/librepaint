@@ -9,7 +9,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColor.h>
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 #include <KoUpdater.h>
 
 #include "kis_lazy_fill_tools.h"

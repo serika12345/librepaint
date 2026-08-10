@@ -19,7 +19,7 @@
 #include <KoRgbaInterleavers.h>
 #endif
 
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 #include <KoCompositeOp.h>
 #include <KoColorSpaceMaths.h>
 

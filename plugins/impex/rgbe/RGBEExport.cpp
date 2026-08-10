@@ -19,7 +19,7 @@
 #include <KisDocument.h>
 #include <KisExportCheckRegistry.h>
 #include <KisImportExportErrorCode.h>
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>

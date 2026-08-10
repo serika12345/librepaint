@@ -8,7 +8,7 @@
 #define __KIS_GAP_MAP_H
 
 #include <kis_types.h>
-#include <KoAlwaysInline.h>
+#include <libs/global/KoAlwaysInline.h>
 #include <kis_shared.h>
 #include <QRect>
 #include <kis_paint_device.h>
