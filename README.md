@@ -27,7 +27,7 @@ The platform status below separates roadmap coverage from verified availability.
 |---|---|---|
 | iPadOS | Pinned Nix/Xcode environment, unsigned IPA generation, and AltStore/LiveContainer deployment paths | Most actively developed target; detailed physical-device verification on arm64 iPads running iPadOS 17 or later |
 | Android / ChromeOS | LibrePaint APK configuration and a [local build guide](README.android.md) | Next gate: prepare the dependency prefix and complete end-to-end device validation |
-| Linux | [Local AppImage scripts and guide](packaging/linux/appimage/README.md) | Next gates: prepare the dependency prefix, then validate publishing and signing |
+| Linux | Nix dependency and completed-build recipes, plus [local AppImage scripts and guide](packaging/linux/appimage/README.md) | Next gates: validate runtime behavior, publishing, and signing |
 | macOS | Nix recipe for the LibrePaint app bundle, plus the existing DMG packaging path | Clean arm64 build and application startup verified with the nixpkgs LLVM toolchain and SDK; interactive UI and distribution validation follow |
 | Windows | LibrePaint executable and NSIS installer packaging paths | Next gates: clean build, installer validation, signing, and end-to-end validation |
 
@@ -108,7 +108,7 @@ Animation UI is a possible low-priority iPadOS addition; multimedia export sits 
 
 ## Build and Development
 
-The standard macOS build is defined in [`nix/macos/`](nix/macos/). Android build instructions are in [`README.android.md`](README.android.md), and the local Linux AppImage path is documented in [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md). Platform packaging is kept under [`packaging/`](packaging/).
+The standard macOS and Linux Nix builds are defined in [`nix/macos/`](nix/macos/) and [`nix/linux/`](nix/linux/). Android build instructions are in [`README.android.md`](README.android.md), and the local Linux AppImage path is documented in [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md). Platform packaging is kept under [`packaging/`](packaging/).
 
 ### macOS Nix Build
 
@@ -150,6 +150,26 @@ The native C++ desktop profile includes the drawing application, its dynamically
 The next macOS dependency work adds the Python/PyQt scripting closure together with its embedded-runtime path integration.
 
 The Nix result is a reproducible development and checkpoint bundle whose runtime libraries remain in its Nix closure. A distribution recipe can layer standalone bundling, DMG generation, signing, and notarization onto this build.
+
+### Linux Nix Build
+
+The x86_64 Linux flake provides a source-independent dependency closure and the completed, wrapped LibrePaint build. Build the dependency closure first to populate the local or configured binary cache without making it sensitive to LibrePaint source changes:
+
+```sh
+nix build .#linux-dependencies --no-link
+```
+
+Build the application with the same dependency recipe:
+
+```sh
+nix build .#librepaint-linux
+```
+
+The result exposes `result/bin/krita`, retaining Krita's compatible desktop entry point and identifiers while presenting LibrePaint branding. The completed build follows nixpkgs' Krita unwrapped/wrapper structure, including the G'MIC plugin and Qt/GLib runtime wrapper. Open the matching development shell with:
+
+```sh
+nix develop .#librepaint-linux
+```
 
 ### iPadOS Build and Local Deployment
 

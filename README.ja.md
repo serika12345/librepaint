@@ -27,7 +27,7 @@ LibrePaintは、Krita由来のコードベースを独立して開発・保守�
 |---|---|---|
 | iPadOS | 固定済みNix／Xcode環境、未署名IPA生成、AltStore／LiveContainer配備経路 | もっとも開発が進んでいる対象。iPadOS 17以降のarm64実機で詳細に検証中 |
 | Android／ChromeOS | LibrePaint APK構成と[ローカルビルドガイド](README.android.md) | 次のgateはdependency prefixの準備とend-to-end実機検証 |
-| Linux | [ローカルAppImage scriptとガイド](packaging/linux/appimage/README.md) | 次のgateはdependency prefixの準備、公開経路と署名の検証 |
+| Linux | Nixのdependency／完成build recipeと[ローカルAppImage scriptとガイド](packaging/linux/appimage/README.md) | 次のgateはruntime動作、公開経路と署名の検証 |
 | macOS | LibrePaint app bundleのNix recipeと既存のDMG packaging経路 | nixpkgsのLLVM toolchainとSDKによるarm64 clean buildとアプリケーション起動を確認済み。次は対話的UIと配布工程を検証 |
 | Windows | LibrePaint executableとNSIS installerのpackaging経路 | 次のgateはclean build、installer、署名、end-to-end検証 |
 
@@ -108,7 +108,7 @@ Animation UIはiPadOS向けの低優先度候補です。動画・音声export�
 
 ## ビルドと開発
 
-macOSの標準buildは[`nix/macos/`](nix/macos/)で定義しています。Androidのビルド手順は[`README.android.md`](README.android.md)、LinuxのローカルAppImage経路は[`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md)に記載しています。各platformのpackagingは[`packaging/`](packaging/)にまとめています。
+macOSとLinuxの標準Nix buildは[`nix/macos/`](nix/macos/)と[`nix/linux/`](nix/linux/)で定義しています。Androidのビルド手順は[`README.android.md`](README.android.md)、LinuxのローカルAppImage経路は[`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md)に記載しています。各platformのpackagingは[`packaging/`](packaging/)にまとめています。
 
 ### macOSのNix build
 
@@ -150,6 +150,26 @@ native C++ desktop profileには、描画application、dynamic plugin、Poppler�
 次のmacOS dependency workでは、Python/PyQt scripting closureと埋込みruntime pathの統合を進めます。
 
 このNix outputは、runtime libraryをNix closureに保持する再現可能な開発・checkpoint用bundleです。配布recipeでは、このbuildにstandalone bundling、DMG生成、署名、公証を積み重ねます。
+
+### LinuxのNix build
+
+x86_64 Linux向けflakeには、source非依存のdependency closureと、wrapperを含む完成済みLibrePaint buildを用意しています。まず次のcommandでdependency closureだけをbuildし、LibrePaint sourceの変更に左右されずlocalまたは設定済みbinary cacheを温めます。
+
+```sh
+nix build .#linux-dependencies --no-link
+```
+
+同じdependency recipeでapplicationをbuildします。
+
+```sh
+nix build .#librepaint-linux
+```
+
+生成物は`result/bin/krita`です。Kritaとの互換desktop entry point／identifierは維持しつつ、表示brandingはLibrePaintです。完成buildはnixpkgsのKrita unwrapped／wrapper構成に従い、G'MIC pluginとQt／GLib runtime wrapperを含みます。対応するdevelopment shellは次のcommandで開けます。
+
+```sh
+nix develop .#librepaint-linux
+```
 
 ### iPadOSのビルドとローカル配備
 

@@ -8,32 +8,38 @@
     let
       system = "aarch64-darwin";
       pkgs = import nixpkgs { inherit system; };
-      librepaintBuildSource = pkgs.lib.cleanSourceWith {
-        name = "librepaint-source";
-        src = ./.;
-        filter =
-          path: _type:
-          let
-            relativePath = pkgs.lib.removePrefix "${toString ./.}/" (toString path);
-            topLevel = builtins.head (pkgs.lib.splitString "/" relativePath);
-          in
-          !(builtins.elem topLevel [
-            ".cache"
-            ".git"
-            ".github"
-            ".gitlab"
-            "AGENTS.md"
-            "TODO.md"
-            "build-ios"
-            "docs"
-            "flake.lock"
-            "flake.nix"
-            "logs"
-            "nix"
-            "result"
-          ])
-          && !(pkgs.lib.hasPrefix "README" topLevel);
-      };
+      linuxSystem = "x86_64-linux";
+      linuxPkgs = import nixpkgs { system = linuxSystem; };
+      mkLibrepaintBuildSource =
+        packageSet:
+        packageSet.lib.cleanSourceWith {
+          name = "librepaint-source";
+          src = ./.;
+          filter =
+            path: _type:
+            let
+              relativePath = packageSet.lib.removePrefix "${toString ./.}/" (toString path);
+              topLevel = builtins.head (packageSet.lib.splitString "/" relativePath);
+            in
+            !(builtins.elem topLevel [
+              ".cache"
+              ".git"
+              ".github"
+              ".gitlab"
+              "AGENTS.md"
+              "TODO.md"
+              "build-ios"
+              "docs"
+              "flake.lock"
+              "flake.nix"
+              "logs"
+              "nix"
+              "result"
+            ])
+            && !(packageSet.lib.hasPrefix "README" topLevel);
+        };
+      librepaintBuildSource = mkLibrepaintBuildSource pkgs;
+      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs;
       iosPackages = import ./nix/ios {
         inherit pkgs;
         versionsFile = ./packaging/ios/versions.env;
@@ -46,6 +52,10 @@
       macosPackages = import ./nix/macos {
         inherit pkgs;
         source = librepaintBuildSource;
+      };
+      linuxPackages = import ./nix/linux {
+        pkgs = linuxPkgs;
+        source = linuxBuildSource;
       };
     in
     {
@@ -199,6 +209,12 @@
         librepaint-ios-ipa = iosPackages.krita-ios-ipa;
       };
 
+      packages.${linuxSystem} = {
+        default = linuxPackages.librepaint;
+        librepaint-linux = linuxPackages.librepaint;
+        linux-dependencies = linuxPackages.linuxDependencies;
+      };
+
       checks.${system} = {
         librepaint-macos = macosPackages.librepaint;
         macos-dependencies = macosPackages.macosDependencies;
@@ -287,6 +303,11 @@
           ;
       };
 
+      checks.${linuxSystem} = {
+        librepaint-linux = linuxPackages.librepaint;
+        linux-dependencies = linuxPackages.linuxDependencies;
+      };
+
       devShells.${system} = {
         default = macosPackages.devShell;
         librepaint-macos = macosPackages.devShell;
@@ -329,6 +350,12 @@
         krita-ios-incremental = iosPackages.krita-ios-incremental-env;
       };
 
+      devShells.${linuxSystem} = {
+        default = linuxPackages.devShell;
+        librepaint-linux = linuxPackages.devShell;
+      };
+
       formatter.${system} = pkgs.nixfmt;
+      formatter.${linuxSystem} = linuxPkgs.nixfmt;
     };
 }
