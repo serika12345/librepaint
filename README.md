@@ -165,7 +165,7 @@ Build the application with the same dependency recipe:
 nix build .#librepaint-linux
 ```
 
-The result exposes `result/bin/krita`, retaining Krita's compatible desktop entry point and identifiers while presenting LibrePaint branding. The completed build follows nixpkgs' Krita unwrapped/wrapper structure, including the G'MIC plugin and Qt/GLib runtime wrapper. Open the matching development shell with:
+The result exposes `result/bin/LibrePaint`. It retains Krita-compatible desktop and MIME identifiers while presenting LibrePaint branding. The completed build follows nixpkgs' Krita unwrapped/wrapper structure, including the G'MIC plugin and Qt/GLib runtime wrapper. Open the matching development shell with:
 
 ```sh
 nix develop .#librepaint-linux

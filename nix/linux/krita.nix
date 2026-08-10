@@ -130,7 +130,11 @@ in
 
   librepaint = pkgs.symlinkJoin {
     pname = "librepaint-linux";
-    inherit (librepaintUnwrapped) version buildInputs meta;
+    inherit (librepaintUnwrapped) version buildInputs;
+
+    meta = librepaintUnwrapped.meta // {
+      mainProgram = "LibrePaint";
+    };
 
     nativeBuildInputs = librepaintUnwrapped.nativeBuildInputs ++ [
       pkgs.wrapGAppsHook3
@@ -145,8 +149,14 @@ in
     # package.  It keeps the desktop, GLib, Qt, Python, and plugin discovery
     # environment intact without copying dependency trees into the output.
     postBuild = ''
+      mv "$out/bin/krita" "$out/bin/LibrePaint"
+      substituteInPlace "$out/share/applications/org.kde.krita.desktop" \
+        --replace-fail "Exec=krita %F" "Exec=LibrePaint %F"
+      substituteInPlace "$out/share/metainfo/org.kde.krita.appdata.xml" \
+        --replace-fail "<binary>krita</binary>" "<binary>LibrePaint</binary>"
+
       gappsWrapperArgsHook
-      wrapQtApp "$out/bin/krita" \
+      wrapQtApp "$out/bin/LibrePaint" \
         "''${gappsWrapperArgs[@]}" \
         --prefix PYTHONPATH : "$PYTHONPATH" \
         --set KRITA_PLUGIN_PATH "$out/lib/kritaplugins"

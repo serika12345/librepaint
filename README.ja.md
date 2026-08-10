@@ -165,7 +165,7 @@ nix build .#linux-dependencies --no-link
 nix build .#librepaint-linux
 ```
 
-生成物は`result/bin/krita`です。Kritaとの互換desktop entry point／identifierは維持しつつ、表示brandingはLibrePaintです。完成buildはnixpkgsのKrita unwrapped／wrapper構成に従い、G'MIC pluginとQt／GLib runtime wrapperを含みます。対応するdevelopment shellは次のcommandで開けます。
+生成物は`result/bin/LibrePaint`です。Kritaとの互換desktop／MIME identifierは維持しつつ、表示brandingはLibrePaintです。完成buildはnixpkgsのKrita unwrapped／wrapper構成に従い、G'MIC pluginとQt／GLib runtime wrapperを含みます。対応するdevelopment shellは次のcommandで開けます。
 
 ```sh
 nix develop .#librepaint-linux
