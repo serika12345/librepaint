@@ -322,10 +322,10 @@ add_feature_info("Install benchmarks" INSTALL_BENCHMARKS "Install benchmarks int
 option(CRASH_ON_SAFE_ASSERTS "Crash unconditionally whenever a \"safe\" assert happens. Useful for running unittests" OFF)
 add_feature_info("Crash on safe asserts" CRASH_ON_SAFE_ASSERTS "Crash unconditionally whenever a \"safe\" assert happens. Useful for running unittests")
 
-configure_file(config-safe-asserts.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-safe-asserts.h)
+configure_file(cmake/config/config-safe-asserts.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-safe-asserts.h)
 
 option(USE_LOCK_FREE_HASH_TABLE "Use lock free hash table instead of blocking." ON)
-configure_file(config-hash-table-implementation.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-hash-table-implementation.h)
+configure_file(cmake/config/config-hash-table-implementation.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-hash-table-implementation.h)
 add_feature_info("Lock free hash table" USE_LOCK_FREE_HASH_TABLE "Use lock free hash table instead of blocking.")
 
 option(FOUNDATION_BUILD "Bundle additional color themes in a release build" OFF)
@@ -335,7 +335,7 @@ option(KRITA_ENABLE_BROKEN_TESTS "Enable tests that are marked as broken" OFF)
 add_feature_info("Enable Broken Tests" KRITA_ENABLE_BROKEN_TESTS "Runs broken test when \"make test\" is invoked (use -DKRITA_ENABLE_BROKEN_TESTS=ON to enable).")
 
 option(LIMIT_LONG_TESTS "Run long running unittests in a limited quick mode" ON)
-configure_file(config-limit-long-tests.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-limit-long-tests.h)
+configure_file(cmake/config/config-limit-long-tests.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-limit-long-tests.h)
 add_feature_info("Limit long tests" LIMIT_LONG_TESTS "Run long running unittests in a limited quick mode")
 
 option(BUILD_KRITA_QT_DESIGNER_PLUGINS "Build Qt Designer plugins for Krita widgets" OFF)
@@ -374,7 +374,7 @@ option(USE_EXTERNAL_RAQM "Fetch Raqm dependency online instead of the embedded o
 
 if(ANDROID)
 option(ANDROID_ENABLE_STDIO_FORWARDING "Enable forwarding of qDebug() and stdio messages to logcat" OFF)
-configure_file(config-android-stdio-forwarding.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-android-stdio-forwarding.h)
+configure_file(cmake/config/config-android-stdio-forwarding.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-android-stdio-forwarding.h)
 add_feature_info("Enable debug logging on Android" ANDROID_ENABLE_STDIO_FORWARDING "Enable forwarding of qDebug() and stdio messages to logcat")
 endif()
 
@@ -682,7 +682,7 @@ if (NOT HAVE_WAYLAND AND KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
     message(WARNING "KRITA_USE_SURFACE_COLOR_MANAGEMENT_API was set when there is no Wayland support, surface management will be useless as no plugins are built")
 endif()
 
-configure_file(config-use-surface-color-management-api.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-use-surface-color-management-api.h)
+configure_file(cmake/config/config-use-surface-color-management-api.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-use-surface-color-management-api.h)
 
 #
 # Check for the presence of custom patches in Qt
@@ -758,7 +758,7 @@ QCoreApplication::setAttribute(Qt::AA_MSWindowsUseWinTabAPI);
 
 #QT5_HAS_WINTAB_SWITCH
 
-    configure_file(config_qt5_has_wintab_switch.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config_qt5_has_wintab_switch.h)
+configure_file(cmake/config/config_qt5_has_wintab_switch.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config_qt5_has_wintab_switch.h)
 endif ()
 
 
@@ -803,7 +803,7 @@ if (WIN32)
 
     endif()
 endif()
-configure_file(config-hdr.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-hdr.h)
+configure_file(cmake/config/config-hdr.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-hdr.h)
 
 set(CMAKE_REQUIRED_INCLUDES ${Qt5Core_INCLUDE_DIRS} ${Qt5Gui_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS})
 set(CMAKE_REQUIRED_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES})
@@ -829,7 +829,7 @@ area.setOption(QMdiArea::AlwaysShowSubwindowNameInTitleBar);
 "
 HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE
 )
-configure_file(config-qmdiarea-always-show-subwindow-title.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qmdiarea-always-show-subwindow-title.h)
+configure_file(cmake/config/config-qmdiarea-always-show-subwindow-title.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qmdiarea-always-show-subwindow-title.h)
 
 if (WIN32)
     CHECK_CXX_SOURCE_COMPILES("
@@ -906,7 +906,7 @@ return screen->densityAdjustment();
 KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
 )
 
-configure_file(config-qt-patches-present.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qt-patches-present.h)
+configure_file(cmake/config/config-qt-patches-present.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-qt-patches-present.h)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
@@ -1365,7 +1365,7 @@ set_package_properties(GSL PROPERTIES
     TYPE RECOMMENDED
     PURPOSE "Required by Krita's Transform tool.")
 macro_bool_to_01(GSL_FOUND HAVE_GSL)
-configure_file(config-gsl.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-gsl.h )
+configure_file(cmake/config/config-gsl.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-gsl.h )
 
  ###########################
 ############################
@@ -1395,7 +1395,7 @@ set_package_properties(KSeExpr PROPERTIES
     PURPOSE "Required by the SeExpr generator layer"
 )
 macro_bool_to_01(KSeExpr_FOUND HAVE_SEEXPR)
-configure_file(config-seexpr.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-seexpr.h )
+configure_file(cmake/config/config-seexpr.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-seexpr.h )
 
 find_package(ZLIB REQUIRED)
 set_package_properties(ZLIB PROPERTIES
@@ -1423,7 +1423,7 @@ else()
     set(TIFF_HAS_PSD_TAGS FALSE)
     set(TIFF_CAN_WRITE_PSD_TAGS FALSE)
 endif()
-configure_file(config-tiff.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-tiff.h)
+configure_file(cmake/config/config-tiff.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-tiff.h)
 
 find_package(JPEG)
 set_package_properties(JPEG PROPERTIES
@@ -1442,7 +1442,7 @@ set_package_properties(libjpeg-turbo PROPERTIES
     TYPE OPTIONAL
     PURPOSE "Required by the Krita JPEG and TIFF filters")
 macro_bool_to_01(libjpeg-turbo_FOUND HAVE_JPEG_TURBO)
-configure_file(config-jpeg.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-jpeg.h )
+configure_file(cmake/config/config-jpeg.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-jpeg.h )
 
 if(libjpeg-turbo_FOUND)
     set(JPEG_TURBO_LIBRARIES libjpeg-turbo::turbojpeg)
@@ -1495,7 +1495,7 @@ set_package_properties(OpenColorIO PROPERTIES
     TYPE OPTIONAL
     PURPOSE "Required by the Krita LUT docker")
 macro_bool_to_01(OpenColorIO_FOUND HAVE_OCIO)
-configure_file(config-ocio.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-ocio.h)
+configure_file(cmake/config/config-ocio.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-ocio.h)
 
 if(IOS)
     set(HAVE_PYTHONLIBS 0)
@@ -1559,7 +1559,7 @@ if (Mlt7_FOUND)
                 PURPOSE "Required for MLT to render audio buffers. Required **only** when MLT is found on the system." )
 endif()
 macro_bool_to_01(Mlt7_FOUND HAVE_MLT)
-configure_file(config-mlt.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-mlt.h)
+configure_file(cmake/config/config-mlt.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-mlt.h)
 
 find_package(LibMyPaint 1.4.0)
 set_package_properties(LibMyPaint PROPERTIES
@@ -1902,9 +1902,9 @@ if (BUILD_TESTING)
 endif()
 add_subdirectory(krita)
 
-configure_file(KoConfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/KoConfig.h )
-configure_file(KoTestConfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/KoTestConfig.h )
-configure_file(config_convolution.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config_convolution.h)
+configure_file(cmake/config/KoConfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/KoConfig.h )
+configure_file(cmake/config/KoTestConfig.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/KoTestConfig.h )
+configure_file(cmake/config/config_convolution.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config_convolution.h)
 
 if(WIN32)
     include(${CMAKE_CURRENT_LIST_DIR}/packaging/windows/installer/ConfigureInstallerNsis.cmake)
