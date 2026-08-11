@@ -1,10 +1,10 @@
 # LibrePaint
 
-[English](README.md)
+[英語版](README.md)
 
-LibrePaintは、Krita由来のコードベースを独立して開発・保守する、クロスプラットフォームのデジタルペイントアプリケーションです。共通のアプリケーション動作、UI、ワークフロー、ブランド、パッケージング、各OSとの統合を含め、コードベース全体をLibrePaintという一つの製品として改造し、デスクトップとモバイルの各プラットフォームへ提供することを目指します。
+LibrePaintは、Krita由来のコードベースを独立して開発・保守する、クロスプラットフォームのデジタルペイントアプリケーションです。共通のアプリケーション動作、ユーザーインターフェース、ワークフロー、ブランド、パッケージング、各OSとの統合を含め、コードベース全体をLibrePaintという一つの製品として改造し、デスクトップとモバイルの各プラットフォームへ提供することを目指します。
 
-現在もっとも検証が進んでいるのはiPadOS版です。arm64実機向けの再現可能なビルドと配備、Apple Pencilとタッチ入力、Files連携、主要な描画ワークフローを実機で確認しています。他ターゲットのソースとパッケージング経路は、下表に示す段階まで整備されています。
+現在もっとも検証が進んでいるのはiPadOS版です。arm64実機向けの再現可能なビルドと配備、Apple Pencilとタッチ入力、「ファイル」アプリとの連携、主要な描画ワークフローを実機で確認しています。ほかのターゲット向けのソースとパッケージング経路は、下表に示す段階まで整備されています。
 
 > [!WARNING]
 > LibrePaintは開発途中であり、完成度と検証範囲はプラットフォームごとに異なります。以下の表に、これまで実施した操作経路を具体的に記録しています。重要な作品は別の場所にもバックアップしてください。
@@ -13,46 +13,46 @@ LibrePaintは、Krita由来のコードベースを独立して開発・保守�
 
 | 項目 | 方針 |
 |---|---|
-| 製品の範囲 | 共通componentとplatform固有componentを持つ一つのアプリケーションとしてLibrePaintを開発・保守する |
+| 製品の範囲 | 共通コンポーネントとプラットフォーム固有コンポーネントを持つ一つのアプリケーションとしてLibrePaintを開発・保守する |
 | 対象プラットフォーム | Windows、macOS、Linux、Android（ChromeOS上のAndroid環境を含む）、iPadOS、およびKrita／Qtコードベースで対応可能な追加ターゲット |
-| 共通開発 | 適切な機能とUXは共通コードで実装し、必要な箇所だけ各プラットフォーム固有の統合を行う |
-| 互換性 | 作品、resource、安定した技術識別子を意図的に維持し、非互換migrationは明示する |
-| 配布目標 | 各プラットフォームに適したbuild、package、検証、提供経路を整備する |
+| 共通開発 | 適切な機能とユーザー体験は共通コードで実装し、必要な箇所だけ各プラットフォーム固有の統合を行う |
+| 互換性 | 作品、リソース、安定した技術識別子を意図的に維持し、互換性のない変更は明示する |
+| 配布目標 | 各プラットフォームに適したビルド、パッケージ化、検証、提供経路を整備する |
 
-以下のplatform statusでは、roadmap上の対象と検証済みの提供範囲を分けて記載します。現在の完成度、機能範囲、提供経路はプラットフォームごとに異なります。
+以下のプラットフォーム別の状況では、ロードマップ上の対象と検証済みの提供範囲を分けて記載します。現在の完成度、機能範囲、提供経路はプラットフォームごとに異なります。
 
 ## プラットフォーム別の現在地
 
 | プラットフォーム | 現在のリポジトリ上の状態 | 現在の検証状況 |
 |---|---|---|
 | iPadOS | 固定済みNix／Xcode環境、未署名IPA生成、AltStore／LiveContainer配備経路 | もっとも開発が進んでいる対象。iPadOS 17以降のarm64実機で詳細に検証中 |
-| Android／ChromeOS | LibrePaint APK構成と[ローカルビルドガイド](README.android.md) | 次のgateはdependency prefixの準備とend-to-end実機検証 |
-| Linux | Nixのdependency／完成build／AppImage recipeと[ローカルAppImage scriptとガイド](packaging/linux/appimage/README.md) | 次のgateはruntime動作、公開経路と署名の検証 |
-| macOS | LibrePaint app bundleのNix recipeと既存のDMG packaging経路 | nixpkgsのLLVM toolchainとSDKによるarm64 clean buildとアプリケーション起動を確認済み。次は対話的UIと配布工程を検証 |
-| Windows | LibrePaint executableとNSIS installerのpackaging経路 | 次のgateはclean build、installer、署名、end-to-end検証 |
+| Android／ChromeOS | LibrePaint APK構成と[ローカルビルドガイド](README.android.md) | 次の課題は依存関係のプレフィックスの準備とエンドツーエンドの実機検証 |
+| Linux | Nixの依存関係、完成ビルド、AppImageレシピと[ローカルAppImageスクリプトおよびガイド](packaging/linux/appimage/README.md) | 次の課題はランタイム動作、公開経路、署名の検証 |
+| macOS | LibrePaintアプリバンドルのNixレシピと既存のDMGパッケージング経路 | nixpkgsのLLVMツールチェーンとSDKによるarm64クリーンビルドとアプリケーション起動を確認済み。次は対話型ユーザーインターフェースと配布工程を検証 |
+| Windows | LibrePaint実行ファイルとNSISインストーラーのパッケージング経路 | 次の課題はクリーンビルド、インストーラー、署名、エンドツーエンド検証 |
 
-現在のiOS対応範囲はiPadです。他のApple form factorや追加プラットフォームは、それぞれのUI、build、packaging、実機検証を経て対応状況を更新します。
+現在のiOS対応範囲はiPadです。ほかのAppleフォームファクターや追加プラットフォームについては、それぞれのユーザーインターフェース、ビルド、パッケージング、実機検証を経て対応状況を更新します。
 
-既存のCMake target、設定directory、KRAのMIME／UTI、plugin ID、action IDは互換性契約として維持します。
+既存のCMakeターゲット、設定ディレクトリ、KRAのMIME／UTI、プラグインID、アクションIDは互換性契約として維持します。
 
 ## 現在のiPadOS開発状況
 
-以下は2026年8月9日時点のiPadOS workstreamの状態です。iPadOSの進捗と実機検証結果の正本は[`TODO.md`](TODO.md)、iPadOSへ静的に組み込む機能の正本は[`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json)です。
+以下は2026年8月9日時点のiPadOSワークストリームの状態です。iPadOSの進捗と実機検証結果の正本は[`TODO.md`](TODO.md)、iPadOSへ静的に組み込む機能の正本は[`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json)です。
 
 ### 実機で確認済み
 
 | 分野 | 確認済みの範囲 |
 |---|---|
-| 起動と基本UI | AltStore経由のインストールと起動、LiveContainerへのIPA新規importと起動、main window、縦向き・横向きのsplash、初期縦向きと回転後のConfigure LibrePaint dialog |
-| タッチUI | 非canvas領域でのスワイプによる慣性scrollとタップによる項目選択、combo boxのタップ確定、明示的な文字編集から始まるtext-entry focus |
-| Apple Pencil | press・move・release、筆圧、傾き、初期選択済みbrushによる即時描画 |
-| Pencil double tap | `eraser_preset_action`による、独立したペン側／消しゴム側brush presetの切り替え |
-| ファイル | iPadOS Filesによるnative open/save、KRA・PNG・JPEG・ORAの保存、再読込、回収後の外部検査 |
-| Brush engine | Pixel Brush、MyPaint presetの登録、Color Smudge、Spray、Hatching、Filter Brush（Invert）の描画 |
-| ToolとDocker | 主要ToolのToolbox表示、主要Dockerのmenu表示、Layer Dockerなどの基本利用 |
-| FilterとGenerator | 33 filterと従来の6 generatorの登録、layer作成、KRAのopen/save/reopen |
-| Canvas表示 | DPR 2の高DPI表示、OpenGL ES 3.0によるcanvas描画 |
-| App lifecycle | 同じprocessを維持したbackgroundからの復帰、canvas全面の復元、Pencil描画の再開、変更済みKRA 1文書のrecovery checkpoint作成 |
+| 起動と基本画面 | AltStore経由のインストールと起動、LiveContainerへのIPA新規インポートと起動、メインウィンドウ、縦向き・横向きのスプラッシュ画面、初期縦向きと回転後のLibrePaint設定ダイアログ |
+| タッチ操作 | キャンバス外でのスワイプによる慣性スクロールとタップによる項目選択、コンボボックスのタップ確定、明示的な文字編集から始まるテキスト入力フォーカス |
+| Apple Pencil | 押下・移動・解放、筆圧、傾き、初期選択済みブラシによる即時描画 |
+| Pencilのダブルタップ | `eraser_preset_action`による、独立したペン側／消しゴム側ブラシプリセットの切り替え |
+| ファイル | iPadOSの「ファイル」アプリによるネイティブな読み込みと保存、KRA・PNG・JPEG・ORAの保存、再読み込み、回収後の外部検査 |
+| ブラシエンジン | ピクセルブラシ、MyPaintプリセットの登録、カラースマッジ、スプレー、ハッチング、フィルターブラシ（反転）の描画 |
+| ツールとドッカー | 主要ツールのツールボックス表示、主要ドッカーのメニュー表示、レイヤードッカーなどの基本利用 |
+| フィルターとジェネレーター | 33個のフィルターと従来の6個のジェネレーターの登録、レイヤー作成、KRAの読み込み・保存・再読み込み |
+| キャンバス表示 | デバイスピクセル比2の高DPI表示、OpenGL ES 3.0によるキャンバス描画 |
+| アプリのライフサイクル | 同じプロセスを維持したバックグラウンドからの復帰、キャンバス全面の復元、Pencil描画の再開、変更済みKRA文書1件のリカバリーチェックポイント作成 |
 
 「確認済み」は記載した操作経路を特定の実機で通過したという意味です。検証範囲は、記録済みの設定、ファイル内容、端末、試験時間に限られます。
 
@@ -60,166 +60,166 @@ LibrePaintは、Krita由来のコードベースを独立して開発・保守�
 
 | 状態 | 形式と確認範囲 |
 |---|---|
-| 基本round trip確認済み | KRA、PNG、JPEG、ORA |
-| 限定的な実機確認済み | WebPの保存。PSD、GIF、HEIF、JPEG XLの保存・再読込。TIFFはJPEG圧縮での保存・再読込を確認済み |
-| 読込確認済み | PDF、Nikon Z7で作成したNEF（8288×5520、16-bit RGBAとして読込） |
-| 同梱・追加検証中 | CSV、SVG、XCF、QML、TGA、Heightmap、Brush resource、Spriter、KRZ、RGBE、OpenEXR、JPEG 2000、Exif/IPTC/XMPなど |
+| 基本ラウンドトリップ確認済み | KRA、PNG、JPEG、ORA |
+| 限定的な実機確認済み | WebPの保存。PSD、GIF、HEIF、JPEG XLの保存・再読み込み。TIFFはJPEG圧縮での保存・再読み込みを確認済み |
+| 読み込み確認済み | PDF、Nikon Z7で作成したNEF（8288×5520、16ビットRGBAとして読み込み） |
+| 同梱済み・追加検証中 | CSV、SVG、XCF、QML、TGA、ハイトマップ、ブラシリソース、Spriter、KRZ、RGBE、OpenEXR、JPEG 2000、Exif／IPTC／XMPなど |
 
-PDFや確認済みのRAW sampleを含め、表にある個別の確認結果は記録済みのsampleと操作経路を対象とします。追加のvariant、圧縮方式、色空間、metadata、KRA filter構成は今後検証します。
+PDFや確認済みのRAWサンプルを含め、表にある個別の確認結果は記録済みのサンプルと操作経路を対象とします。追加のバリエーション、圧縮方式、色空間、メタデータ、KRAフィルター構成は今後検証します。
 
 ### 同梱済みで操作確認中の機能
 
-現在のiPad profileは162個の内部プラグインを静的登録しています。arm64での最終link、IPA検査、実機へのinstallとstartupまで確認済みです。次のUIと操作を引き続き検証します。
+現在のiPadプロファイルは、162個の内部プラグインを静的に登録しています。arm64での最終リンク、IPA検査、実機へのインストールと起動まで確認済みです。次のユーザーインターフェースと操作を引き続き検証します。
 
-- SeExpr generatorとFill Layerの一連の操作
-- LUT Dockerの表示とOpenColorIO LUTの適用
-- Resource Managerによるbundleのimport/export
-- Colorize Toolおよび各Tool/Dockerの詳細操作
-- OpenEXRのround trip、JPEG 2000の読込、その他追加形式で実装済みのimport/export経路
-- Pencil double tapの「直前のpreset」「palette」「何もしない」と、任意actionの設定UI
-- iPad向けcanvas-only touch UI、Brush Library、Layer HUDの全操作と回帰試験
+- SeExprジェネレーターと塗りつぶしレイヤーの一連の操作
+- LUTドッカーの表示とOpenColorIO LUTの適用
+- リソースマネージャーによるバンドルのインポート／エクスポート
+- カラー化ツールおよび各ツール／ドッカーの詳細操作
+- OpenEXRのラウンドトリップ、JPEG 2000の読み込み、その他の追加形式で実装済みのインポート／エクスポート経路
+- Pencilのダブルタップにおける「直前のプリセット」「パレット」「何もしない」の各動作と、任意アクションの設定画面
+- iPad向けのキャンバス専用タッチ操作画面、ブラシライブラリー、レイヤーHUDの全操作と回帰試験
 
 ### 次のiPadOS検証項目
 
-- Pencil描画と指gestureの完全な分離、およびundo/redo、pan、zoom、rotateの体系的な回帰試験
-- Safe Area、Split View、Stage Manager、外部display、compact window geometry
-- background/foregroundの反復、休止中の回転・文書close境界、失敗・期限切れ経路からの復旧
-- Pencil hoverと外部keyboard
-- Filesからのcold/warm launch、recent document、iCloud Drive、強制終了後のautosave recovery
-- severe memory pressure、Jetsam、2K/4K/8K canvas上限、1時間連続描画、thermal/battery試験
-- 小さなtouch target、modal dialogとsoftware keyboardの重なり
+- Pencil描画と指ジェスチャーの完全な分離、およびアンドゥ／リドゥ、パン、ズーム、回転の体系的な回帰試験
+- セーフエリア、Split View、Stage Manager、外部ディスプレイ、コンパクトウィンドウのジオメトリー
+- バックグラウンド／フォアグラウンドの反復、休止中の回転、文書を閉じる際の境界、失敗・期限切れ経路からの復旧
+- Pencilホバーと外部キーボード
+- 「ファイル」アプリからのコールド／ウォーム起動、最近使ったドキュメント、iCloud Drive、強制終了後の自動保存データ復旧
+- 厳しいメモリープレッシャー、Jetsam、2K／4K／8Kキャンバス上限、1時間連続描画、温度／バッテリー試験
+- 小さなタッチターゲット、モーダルダイアログとソフトウェアキーボードの重なり
 
-iOS向けのmemory policyとして、tile予算は物理RAMの25%かつ最大1 GiBを既定値とし、手動設定の上限を37.5%かつ最大1.5 GiBに制限しています。memory warning時のtile・pixmap cache解放も実装済みです。次の実機gateでは、強いmemory pressure下での復帰と未保存データ保持を検証します。
+iOS向けのメモリーポリシーとして、タイル予算は物理RAMの25%、かつ最大1 GiBを既定値とし、手動設定の上限を37.5%、かつ最大1.5 GiBに制限しています。メモリー警告時のタイル・ピックスマップキャッシュ解放も実装済みです。次の実機検証では、強いメモリープレッシャー下での復帰と未保存データ保持を検証します。
 
-### 現行iPadOS profile
+### 現行iPadOSプロファイル
 
-現在のiPadOS workstreamは、iPad向けtouch UIとAltStore／LiveContainerによるlocal配備を対象とします。iPhone向けUI調整、App Store配布、production signingは、それぞれ独立したplatform workとして扱います。
+現在のiPadOSワークストリームは、iPad向けタッチ操作画面とAltStore／LiveContainerによるローカル配備を対象とします。iPhone向けの画面調整、App Store配布、製品版署名は、それぞれ独立したプラットフォーム作業として扱います。
 
-自己完結したbuildは、描画、同梱resource、local file workflowを中心に構成しています。次の統合機能は現行iPadOS profileの範囲外です。
+自己完結したビルドは、描画、同梱リソース、ローカルファイルのワークフローを中心に構成しています。次の統合機能は現行iPadOSプロファイルの範囲外です。
 
 - Python/PyQtとG'MIC
-- Qt PrintSupportと印刷
-- FFmpeg、MLT、SDLによる動画・音声のimport/export
-- updater、外部processを使うbug reportや補助機能
-- SVG Text Tool／Text Properties、Storyboard、Small Color Selector
-- Recorderの動画exportとCompositionのanimation export
+- Qtの印刷サポートと印刷
+- FFmpeg、MLT、SDLによる動画・音声の読み込みと書き出し
+- アップデーター、外部プロセスを使うバグ報告や補助機能
+- SVGテキストツール／テキストプロパティ、ストーリーボード、スモールカラーセレクター
+- 録画機能の動画エクスポートと合成機能のアニメーションエクスポート
 
-Animation UIはiPadOS向けの低優先度候補です。動画・音声exportは現行profileの範囲外です。他のLibrePaint向けplatform buildの機能表は、platformごとに整備します。
+アニメーション画面はiPadOS向けの低優先度候補です。動画・音声のエクスポートは現行プロファイルの範囲外です。ほかのLibrePaint向けプラットフォームビルドの機能表は、プラットフォームごとに整備します。
 
 ## ビルドと開発
 
-macOSとLinuxの標準Nix buildは[`nix/macos/`](nix/macos/)と[`nix/linux/`](nix/linux/)で定義しています。Androidのビルド手順は[`README.android.md`](README.android.md)、LinuxのローカルAppImage経路は[`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md)に記載しています。各platformのpackagingは[`packaging/`](packaging/)にまとめています。
+macOSとLinuxの標準Nixビルドは、[`nix/macos/`](nix/macos/)と[`nix/linux/`](nix/linux/)で定義しています。Androidのビルド手順は[`README.android.md`](README.android.md)、LinuxのローカルAppImageワークフローは[`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md)に記載しています。各プラットフォームのパッケージング定義は[`packaging/`](packaging/)にまとめています。
 
-### macOSのNix build
+### macOSのNixビルド
 
-Apple SiliconではmacOS packageをflakeのdefault outputに設定しています。リポジトリのrootから名前付きoutputをbuildします。
+Apple SiliconではmacOSパッケージをNixフレークのデフォルト出力に設定しています。リポジトリのルートから名前付き出力をビルドします。
 
 ```sh
 nix build .#librepaint-macos
 ```
 
-app bundleは`result/bin/LibrePaint.app`に生成されます。起動する場合は次を実行します。
+アプリバンドルは`result/bin/LibrePaint.app`に生成されます。起動する場合は次を実行します。
 
 ```sh
 open result/bin/LibrePaint.app
 ```
 
-同じ依存環境のdevelopment shellは次のコマンドで起動します。
+同じ依存環境の開発シェルは、次のコマンドで起動します。
 
 ```sh
 nix develop .#librepaint-macos
 ```
 
-clean buildで確認したtoolchainは次のとおりです。
+クリーンビルドで確認したツールチェーンは、次のとおりです。
 
-| Component | 確認値 |
+| コンポーネント | 確認値 |
 |---|---|
-| Host | Apple Silicon macOS（`aarch64-darwin`） |
-| Compiler | nixpkgsのLLVM Clang 21.1.8 |
-| Linker／archive tool | nixpkgsのcctools／ld64 |
-| SDK | Nix store内のApple SDK 14.4 |
+| ホスト | Apple Silicon搭載macOS（`aarch64-darwin`） |
+| コンパイラー | nixpkgsのLLVM Clang 21.1.8 |
+| リンカー／アーカイブツール | nixpkgsのcctools／ld64 |
+| SDK | Nixストア内のApple SDK 14.4 |
 | Qt | 6.11.1 |
 | KDE Frameworks／ECM | 6.28.0 |
-| Deployment target | macOS 14.0 |
-| Architecture | arm64 |
+| デプロイメントターゲット | macOS 14.0 |
+| アーキテクチャ | arm64 |
 
-固定済みのNix graphが宣言済みのbuild toolchainと依存setを供給します。Darwin向けtoolchainは、nixpkgsのLLVM Clang、cctools、SDK、open-sourceの`xcbuild` packageで構成しています。
+固定済みのNixグラフが、宣言済みのビルドツールチェーンと依存関係一式を供給します。Darwin向けツールチェーンは、nixpkgsのLLVM Clang、cctools、SDK、オープンソースの`xcbuild`パッケージで構成しています。
 
-native C++ desktop profileには、描画application、dynamic plugin、PopplerによるPDF import、LibRaw／KDcrawによるRAW import、KSeExpr generator、OpenColorIO、MLT/SDL audio-video support、FFmpeg／FFprobe、および[`nix/macos/krita.nix`](nix/macos/krita.nix)で宣言した画像形式libraryが含まれます。
+ネイティブC++デスクトッププロファイルには、描画アプリケーション、動的プラグイン、PopplerによるPDFインポート、LibRaw／KDcrawによるRAWインポート、KSeExprジェネレーター、OpenColorIO、MLT／SDLによる音声・動画サポート、FFmpeg／FFprobe、および[`nix/macos/krita.nix`](nix/macos/krita.nix)で宣言した画像形式ライブラリーが含まれます。
 
-次のmacOS dependency workでは、Python/PyQt scripting closureと埋込みruntime pathの統合を進めます。
+次のmacOS依存関係対応では、Python／PyQtスクリプティングクロージャと埋め込みランタイムパスの統合を進めます。
 
-このNix outputは、runtime libraryをNix closureに保持する再現可能な開発・checkpoint用bundleです。配布recipeでは、このbuildにstandalone bundling、DMG生成、署名、公証を積み重ねます。
+このNix出力は、ランタイムライブラリーをNixクロージャに保持する、再現可能な開発・チェックポイント用バンドルです。配布レシピでは、このビルドにスタンドアロンバンドル化、DMG生成、署名、公証を重ねます。
 
-### LinuxのNix build
+### LinuxのNixビルド
 
-x86_64 Linux向けflakeには、source非依存のdependency closureと、wrapperを含む完成済みLibrePaint buildを用意しています。まず次のcommandでdependency closureだけをbuildし、LibrePaint sourceの変更に左右されずlocalまたは設定済みbinary cacheを温めます。
+x86_64 Linux向けNixフレークには、ソースに依存しない依存関係クロージャと、ラッパーを含む完成済みLibrePaintビルドを用意しています。まず次のコマンドで依存関係クロージャだけをビルドし、LibrePaintソースの変更に左右されずローカルまたは設定済みのバイナリキャッシュを準備します。
 
 ```sh
 nix build .#linux-dependencies --no-link
 ```
 
-同じdependency recipeでapplicationをbuildします。
+同じ依存関係レシピでアプリケーションをビルドします。
 
 ```sh
 nix build .#librepaint-linux
 ```
 
-生成物は`result/bin/LibrePaint`です。Kritaとの互換desktop／MIME identifierは維持しつつ、表示brandingはLibrePaintです。完成buildはnixpkgsのKrita unwrapped／wrapper構成に従い、G'MIC pluginとQt／GLib runtime wrapperを含みます。対応するdevelopment shellは次のcommandで開けます。
+生成物は`result/bin/LibrePaint`です。Kritaとの互換デスクトップ識別子とMIME識別子は維持しつつ、表示ブランドはLibrePaintとしています。完成ビルドはnixpkgsのKrita本体／ラッパー構成に従い、G'MICプラグインとQt／GLibランタイムラッパーを含みます。対応する開発シェルは、次のコマンドで開けます。
 
 ```sh
 nix develop .#librepaint-linux
 ```
 
-最後のpackaging stageとしてType-2 AppImageをbuildできます。
+パッケージングの最終段階として、タイプ2 AppImageをビルドできます。
 
 ```sh
 nix build .#librepaint-linux-appimage \
   --out-link LibrePaint-1.0.2-x86_64.AppImage
 ```
 
-出力symlinkはentry pointを`LibrePaint`とする自己完結AppImageです。applicationを再buildせず完成済みNix closureを埋め込み、Linux user namespaceを必要とします。
+出力シンボリックリンクは、エントリーポイントを`LibrePaint`とする自己完結型AppImageです。アプリケーションを再ビルドせず、完成済みNixクロージャを埋め込みます。実行にはLinuxユーザー名前空間が必要です。
 
-開発時およびNixOS上でのローカル利用では、AppImageではなく通常のNix packageを使います。
+開発時およびNixOS上でのローカル利用では、AppImageではなく通常のNixパッケージを使います。
 
 ```sh
 nix run .#librepaint-linux
 ```
 
-AppImageは配布用artifactです。Nix closure型AppImageのupstream runtimeには、非NixOSでのOpenGL portabilityに既知の制約があり、nixGL形式のwrapperが必要になる場合があります。配布前に必ずtarget systemとGPUで検証してください。
+AppImageは配布用アーティファクトです。Nixクロージャ型AppImageのアップストリームランタイムには、NixOS以外でのOpenGL移植性に既知の制約があり、nixGL形式のラッパーが必要になる場合があります。配布前に、必ず対象システムとGPUで検証してください。
 
 ### iPadOSのビルドとローカル配備
 
-すべてのコマンドはリポジトリのrootから実行してください。通常のソース編集では、固定済みNix環境とfingerprintごとの永続Ninja treeを使うincremental workflowを推奨します。
+すべてのコマンドは、リポジトリのルートから実行してください。通常のソース編集では、固定済みNix環境とフィンガープリントごとの永続Ninjaビルドツリーを使うインクリメンタルワークフローを推奨します。
 
-#### 固定toolchain
+#### 固定ツールチェーン
 
 現在の正確な固定値は[`packaging/ios/versions.env`](packaging/ios/versions.env)にあります。
 
-| Component | 固定値 |
+| コンポーネント | 固定値 |
 |---|---|
-| Krita base revision | `7173825999953623d28777a163a65b42a3f26f0a` |
-| Host | Apple Silicon macOS (`aarch64-darwin`) |
+| Kritaベースリビジョン | `7173825999953623d28777a163a65b42a3f26f0a` |
+| ホスト | Apple Silicon搭載macOS（`aarch64-darwin`） |
 | Nix | 2.31以上 |
 | Xcode | 26.6 (`17F113`) |
 | iPhoneOS SDK | 26.5 (`23F81a`) |
 | Apple Clang | 21.0.0 (`2100.1.1.101`) |
 | Qt | 6.11.1 |
-| KDE Frameworks / ECM | 6.28.0 |
-| Deployment target | iPadOS 17.0 |
-| Architecture | arm64 |
+| KDE Frameworks／ECM | 6.28.0 |
+| デプロイメントターゲット | iPadOS 17.0 |
+| アーキテクチャ | arm64 |
 
-`iPhoneOS SDK`はAppleのSDK名であり、現在のbundleはiPad向けです。通常の開発では固定versionを維持し、version更新は別の検証作業として扱います。
+`iPhoneOS SDK`はAppleのSDK名であり、現在のバンドルはiPad向けです。通常の開発では固定バージョンを維持し、バージョン更新は別の検証作業として扱います。
 
 #### 前提環境
 
-- `/Applications/Xcode.app`に上表のXcodeがinstallされているApple Silicon Mac
-- Nix 2.31以降とFlakesを利用できるNix daemon
-- AltStoreで自動配備する場合は、iPadOS 17以降のiPad、USB接続、unlock、Macとのtrust、Developer Mode
-- AltStoreで自動配備する場合は、Mac上のAltServer、iPad上で設定済みのAltStore、必要なlocal development signing環境、およびMacとiPad間のlocal network接続
-- LiveContainerでインストールする場合は、iPadにLiveContainerがインストール・設定済みであること。実機確認済みのiOS 26構成ではJIT-Less modeを使用
+- `/Applications/Xcode.app`に上表のXcodeがインストールされているApple Silicon搭載Mac
+- Nix 2.31以降とフレークを利用できるNixデーモン
+- AltStoreで自動配備する場合は、iPadOS 17以降のiPad、USB接続、ロック解除、Macへの信頼設定、開発者モード
+- AltStoreで自動配備する場合は、Mac上のAltServer、iPad上で設定済みのAltStore、必要なローカル開発用署名環境、およびMacとiPad間のローカルネットワーク接続
+- LiveContainerでインストールする場合は、iPadにLiveContainerがインストール・設定済みであること。実機確認済みのiOS 26構成ではJITなしモードを使用
 
-Nix daemonはsandboxを有効、fallbackを無効にし、Xcodeだけを明示的なimpure host dependencyとして許可します。検証済みのnix-darwin設定は次のとおりです。
+Nixデーモンではサンドボックスを有効、フォールバックを無効にし、Xcodeだけを明示的な外部ホスト依存関係として許可します。検証済みのnix-darwin設定は次のとおりです。
 
 ```nix
 nix.settings.sandbox = true;
@@ -235,42 +235,42 @@ nix.settings.extra-allowed-impure-host-deps = [
 nix develop --command packaging/ios/scripts/check-host.sh
 ```
 
-このcheckはXcode、SDK、Clang、Nix、CMakeなどのversionに加え、Nix daemonのsandbox policyも検証します。
+このチェックでは、Xcode、SDK、Clang、Nix、CMakeなどのバージョンに加え、Nixデーモンのサンドボックスポリシーも検証します。
 
-#### 最初のincremental build
+#### 最初のインクリメンタルビルド
 
-新しいビルド構成では、一度だけbaselineを作成します。
+新しいビルド構成では、一度だけベースラインを作成します。
 
 ```sh
 packaging/ios/scripts/build-librepaint-incremental.sh path
 packaging/ios/scripts/build-librepaint-incremental.sh bootstrap
 ```
 
-wrapperがsource非依存の固定Nix profileを作成して再利用します。初回baselineは全面buildになるため時間がかかります。
+ラッパーがソースに依存しない固定Nixプロファイルを作成して再利用します。初回ベースラインはフルビルドになるため、時間がかかります。
 
-依存closureとKF6のconsumer linkだけを先に検証したい場合は、次を実行できます。
+依存関係クロージャとKF6を利用する側のリンクだけを先に検証したい場合は、次を実行できます。
 
 ```sh
 nix build .#ios-dependencies --no-link
 nix build .#kf6-consumer-check --no-link
 ```
 
-#### 通常の開発build
+#### 通常の開発ビルド
 
-変更後は、Ninjaが予定している処理を確認してからincremental buildします。
+変更後は、Ninjaが予定している処理を確認してからインクリメンタルビルドします。
 
 ```sh
 packaging/ios/scripts/build-librepaint-incremental.sh plan
 packaging/ios/scripts/build-librepaint-incremental.sh build
 ```
 
-`path`は選択中のbuild treeを表示します。通常の`build`と`deploy`は、意図しない全面再buildを事前に発見できるよう、既定で200 Ninja stepを超えるplanを拒否します。構成を意図的に大きく変えた場合は内容を確認し、`bootstrap`で新しいbaselineを構築してください。
+`path`は選択中のビルドツリーを表示します。通常の`build`と`deploy`は、意図しないフルリビルドを事前に発見できるよう、既定で200個のNinjaステップを超える`plan`を拒否します。構成を意図的に大きく変えた場合は内容を確認し、`bootstrap`で新しいベースラインを構築してください。
 
-日常のedit-build-test loopでは、このwrapperを使用します。直接の`cmake --preset`は構成作業、`nix build .#librepaint-ios-ipa`はclean checkpointに使用します。旧`build-krita-incremental.sh`と`krita-ios-*` entry pointは互換aliasとして維持します。
+日常の編集・ビルド・テストのサイクルでは、このラッパーを使用します。直接の`cmake --preset`は構成作業、`nix build .#librepaint-ios-ipa`はクリーンチェックポイントに使用します。旧`build-krita-incremental.sh`と`krita-ios-*`のエントリーポイントは、互換エイリアスとして維持します。
 
-#### 再現可能なappと未署名IPA
+#### 再現可能なアプリと未署名IPA
 
-clean checkpoint用のapp bundleとIPAはNixから構築できます。
+クリーンチェックポイント用のアプリバンドルとIPAは、Nixから構築できます。
 
 ```sh
 nix build .#librepaint-ios-app \
@@ -284,11 +284,11 @@ nix build .#librepaint-ios-ipa \
 - `build-ios/nix-results/librepaint-ios-app/LibrePaint.app`
 - `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`
 
-`librepaint-ios-ipa`は必要なappと依存も自動的に構築します。生成されるIPAは未署名です。署名情報、provisioning profile、Apple ID、device credentialはリポジトリの外で管理してください。
+`librepaint-ios-ipa`は必要なアプリと依存関係も自動的に構築します。生成されるIPAは未署名です。署名情報、プロビジョニングプロファイル、Apple ID、デバイス認証情報はリポジトリの外で管理してください。
 
 #### AltStoreで実機へ配備
 
-前提環境を満たしてAltServerを起動した後、次のコマンドでincremental build、binary・plugin・runtime data検査、IPA生成、AltStoreによる署名とinstall、LibrePaintの起動、startup log回収まで行います。
+前提環境を満たしてAltServerを起動した後、次のコマンドでインクリメンタルビルド、バイナリ・プラグイン・ランタイムデータの検査、IPA生成、AltStoreによる署名とインストール、LibrePaintの起動、起動ログの回収まで行います。
 
 ```sh
 packaging/ios/scripts/build-librepaint-incremental.sh deploy [device-id]
@@ -300,46 +300,46 @@ packaging/ios/scripts/build-librepaint-incremental.sh deploy [device-id]
 xcrun devicectl list devices
 ```
 
-timestamp付きIPAと回収した`librepaint.log`は`build-ios/deploy/`に保存されます。workflowは`packaging/ios/scripts/deploy-altstore.sh --skip-build`を内部handoffに使用し、現在の正確なbuild treeを渡します。
+タイムスタンプ付きIPAと回収した`librepaint.log`は`build-ios/deploy/`に保存されます。このワークフローは`packaging/ios/scripts/deploy-altstore.sh --skip-build`を内部ハンドオフに使用し、現在の正確なビルドツリーを渡します。
 
-このworkflowは作者のlocal利用に必要なdevelopment signingを行います。
+このワークフローは、作者のローカル利用に必要な開発用署名を行います。
 
 #### LiveContainerで実機へインストール
 
-再現可能な未署名IPA `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`は、LiveContainerへimportして利用することもできます。packaging workflowは、LiveContainerがapp bundleをpatch、起動、cleanupするために必要なarchive permissionを正規化します。LiveContainerのiOS 26 JIT-Less modeを使用した新規importと起動を実機で確認済みです。
+再現可能な未署名IPA `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`は、LiveContainerへインポートして利用することもできます。パッケージングワークフローは、LiveContainerがアプリバンドルへパッチを適用し、起動、クリーンアップするために必要なアーカイブ権限を正規化します。LiveContainerのiOS 26 JITなしモードを使用した新規インポートと起動を実機で確認済みです。
 
-以前の失敗したimportにより、LiveContainer内へread-onlyな一時`Payload`が残ることがあります。このstale state errorが発生した場合は、必要なapp dataを保護し、影響を受けたLiveContainerのstateをcleanupまたはresetしてから修正版IPAをimportしてください。正確なcleanup UIの実機確認が残る復旧項目です。現在のarchive permissionと復旧上の注意は[`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md)を参照してください。
+以前の失敗したインポートにより、LiveContainer内へ読み取り専用の一時`Payload`が残ることがあります。この古い状態によるエラーが発生した場合は、必要なアプリデータを保護し、影響を受けたLiveContainerの状態をクリーンアップまたはリセットしてから修正版IPAをインポートしてください。正確なクリーンアップ画面の実機確認が残る復旧項目です。現在のアーカイブ権限と復旧上の注意は[`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md)を参照してください。
 
-#### Simulator smoke test
+#### シミュレーターのスモークテスト
 
 ```sh
 nix develop --command packaging/ios/scripts/build-smoke.sh simulator
 ```
 
-このsmoke testはObjective-C++、UIKit、SDK、deployment target、bundle metadataを診断します。runtimeの受け入れ確認には実機試験を使用します。
+このスモークテストはObjective-C++、UIKit、SDK、デプロイメントターゲット、バンドルメタデータを診断します。ランタイムの受け入れ確認には実機試験を使用します。
 
-#### 依存recipeを変更するmaintainer向け注意
+#### 依存関係レシピを変更するメンテナー向け注意
 
-`packaging/ios/scripts/bootstrap-ios-dependencies.sh --confirm-pinning-complete`はdependency recipe固定完了時の保守用手順です。実行時点は、すべての依存recipeを固定してcommitし、rootで保護されていない既存cache outputを破棄できる段階です。この手順は既知のlegacy GC rootを解放し、**Nixのfull garbage collectionを実行してから**最終aggregateを再構築します。通常のソース開発では上記のincremental workflowを使用します。
+`packaging/ios/scripts/bootstrap-ios-dependencies.sh --confirm-pinning-complete`は、依存関係レシピの固定完了時に使う保守手順です。実行するのは、すべての依存関係レシピを固定してコミットし、ルートで保護されていない既存キャッシュ出力を破棄できる段階です。この手順は既知の旧GCルートを解放し、**Nixのフルガベージコレクションを実行してから**最終アグリゲートを再構築します。通常のソース開発では、上記のインクリメンタルワークフローを使用します。
 
 ## 関連文書と出力
 
-| Path | 内容 |
+| パス | 内容 |
 |---|---|
-| [`TODO.md`](TODO.md) | iPadOSのmilestone、残作業、実機検証結果の正本 |
-| [`README.android.md`](README.android.md) | 現在のAndroidローカルbuild経路とdependency prefixの制約 |
-| [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md) | 現在のLinuxローカルAppImage build経路と前提環境 |
-| [`docs/ios/README.md`](docs/ios/README.md) | toolchain、依存build、cache設計の詳細 |
-| [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) | AltStore配備、IPA permission、LiveContainer import時の注意事項 |
-| [`packaging/ios/versions.env`](packaging/ios/versions.env) | 固定versionとdeployment target |
-| [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) | iPad向け静的plugin profile |
-| `build-ios/` | app、IPA、incremental build tree、Nix profile |
-| `logs/ios/` | timestamp付きbuild log |
+| [`TODO.md`](TODO.md) | iPadOSのマイルストーン、残作業、実機検証結果の正本 |
+| [`README.android.md`](README.android.md) | 現在のAndroidローカルビルド経路と依存関係プレフィックスの制約 |
+| [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md) | 現在のLinuxローカルAppImageビルド経路と前提環境 |
+| [`docs/ios/README.md`](docs/ios/README.md) | ツールチェーン、依存関係ビルド、キャッシュ設計の詳細 |
+| [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) | AltStore配備、IPA権限、LiveContainerインポート時の注意事項 |
+| [`packaging/ios/versions.env`](packaging/ios/versions.env) | 固定バージョンとデプロイメントターゲット |
+| [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) | iPad向け静的プラグインプロファイル |
+| `build-ios/` | アプリ、IPA、インクリメンタルビルドツリー、Nixプロファイル |
+| `logs/ios/` | タイムスタンプ付きビルドログ |
 
-`build-ios/`、署名済み成果物、credential、private cache keyなどのlocal artifactはGitの外で管理してください。
+`build-ios/`、署名済み成果物、認証情報、プライベートキャッシュキーなどのローカルアーティファクトはGitの外で管理してください。
 
-## ライセンスとupstream
+## ライセンスとアップストリーム
 
-LibrePaintは[Krita](https://krita.org/)を基にした派生著作物であり、GNU General Public License Version 3の条件に従って配布されます。個々のファイルや同梱componentには、それぞれの互換licenseが適用されます。正確な条件は[`COPYING`](COPYING)と各ファイルのlicense表示を参照してください。
+LibrePaintは[Krita](https://krita.org/)を基にした派生著作物であり、GNU一般公衆利用許諾書第3版の条件に従って配布されます。個々のファイルや同梱コンポーネントには、それぞれ互換性のあるライセンスが適用されます。正確な条件は[`COPYING`](COPYING)と各ファイルのライセンス表示を参照してください。
 
-KritaはKrita Foundation、KDE、Krita contributorsによって開発されています。LibrePaintはLibrePaint contributorsが独立して保守しています。元projectとその履歴はupstreamの[graphics/krita](https://invent.kde.org/graphics/krita) repositoryを参照してください。
+KritaはKrita Foundation、KDE、Kritaコントリビューターによって開発されています。LibrePaintはLibrePaintコントリビューターが独立して保守しています。元プロジェクトとその履歴は、[アップストリームのリポジトリ](https://invent.kde.org/graphics/krita)を参照してください。
