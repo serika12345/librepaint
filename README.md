@@ -27,7 +27,7 @@ The platform status below separates roadmap coverage from verified availability.
 |---|---|---|
 | iPadOS | Pinned Nix/Xcode environment, unsigned IPA generation, and AltStore/LiveContainer deployment paths | Most actively developed target; detailed physical-device verification on arm64 iPads running iPadOS 17 or later |
 | Android / ChromeOS | LibrePaint APK configuration and a [local build guide](README.android.md) | Next gate: prepare the dependency prefix and complete end-to-end device validation |
-| Linux | Nix dependency and completed-build recipes, plus [local AppImage scripts and guide](packaging/linux/appimage/README.md) | Next gates: validate runtime behavior, publishing, and signing |
+| Linux | Nix dependency, completed-build, and AppImage recipes, plus [local AppImage scripts and guide](packaging/linux/appimage/README.md) | Next gates: validate runtime behavior, publishing, and signing |
 | macOS | Nix recipe for the LibrePaint app bundle, plus the existing DMG packaging path | Clean arm64 build and application startup verified with the nixpkgs LLVM toolchain and SDK; interactive UI and distribution validation follow |
 | Windows | LibrePaint executable and NSIS installer packaging paths | Next gates: clean build, installer validation, signing, and end-to-end validation |
 
@@ -170,6 +170,23 @@ The result exposes `result/bin/LibrePaint`. It retains Krita-compatible desktop 
 ```sh
 nix develop .#librepaint-linux
 ```
+
+Build a Type-2 AppImage as the final packaging stage with:
+
+```sh
+nix build .#librepaint-linux-appimage \
+  --out-link LibrePaint-1.0.2-x86_64.AppImage
+```
+
+The output symlink is a self-contained AppImage whose entry point is `LibrePaint`; it embeds the completed Nix closure rather than rebuilding the application. It requires Linux user namespaces.
+
+For development and local use on NixOS, use the normal Nix package rather than the AppImage:
+
+```sh
+nix run .#librepaint-linux
+```
+
+The AppImage is a distribution artifact. Its upstream Nix-closure runtime has a known OpenGL portability limitation on non-NixOS systems and may require a nixGL-style wrapper. Test it on every target system and GPU before distribution.
 
 ### iPadOS Build and Local Deployment
 

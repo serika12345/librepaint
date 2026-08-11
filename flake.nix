@@ -1,10 +1,16 @@
 {
   description = "Reproducible LibrePaint builds for supported platforms";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nix-appimage = {
+      url = "github:ralismark/nix-appimage";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
   outputs =
-    { nixpkgs, ... }:
+    inputs@{ nixpkgs, ... }:
     let
       system = "aarch64-darwin";
       pkgs = import nixpkgs { inherit system; };
@@ -40,6 +46,13 @@
         };
       librepaintBuildSource = mkLibrepaintBuildSource pkgs;
       linuxBuildSource = mkLibrepaintBuildSource linuxPkgs;
+      linuxAppImageAppRun = import ./nix/linux/appimage-apprun.nix {
+        nixAppImage = inputs.nix-appimage;
+        pkgs = linuxPkgs;
+      };
+      mkLinuxAppImage = inputs.nix-appimage.lib.${linuxSystem}.mkAppImage.override {
+        mkappimage-apprun = linuxAppImageAppRun;
+      };
       iosPackages = import ./nix/ios {
         inherit pkgs;
         versionsFile = ./packaging/ios/versions.env;
@@ -56,6 +69,7 @@
       linuxPackages = import ./nix/linux {
         pkgs = linuxPkgs;
         source = linuxBuildSource;
+        inherit mkLinuxAppImage;
       };
     in
     {
@@ -212,6 +226,7 @@
       packages.${linuxSystem} = {
         default = linuxPackages.librepaint;
         librepaint-linux = linuxPackages.librepaint;
+        librepaint-linux-appimage = linuxPackages.librepaintAppImage;
         linux-dependencies = linuxPackages.linuxDependencies;
       };
 

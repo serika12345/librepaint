@@ -1,4 +1,5 @@
 {
+  mkLinuxAppImage,
   pkgs,
   source,
 }:
@@ -7,6 +8,10 @@ let
   inherit (pkgs) lib;
   krita = import ./krita.nix {
     inherit pkgs source;
+  };
+  librepaintAppImage = import ./appimage.nix {
+    inherit mkLinuxAppImage;
+    librepaint = krita.librepaint;
   };
 
   # This derivation deliberately contains no LibrePaint source input.  Its
@@ -31,6 +36,7 @@ let
       echo "LibrePaint Linux development shell"
       echo "  dependencies: nix build .#linux-dependencies"
       echo "  build:        nix build .#librepaint-linux"
+      echo "  AppImage:     nix build .#librepaint-linux-appimage"
     '';
   };
 in
@@ -39,6 +45,6 @@ assert lib.assertMsg (
   == builtins.length (lib.unique (map toString krita.librepaint.linuxDependencyMembers))
 ) "Linux dependency aggregate must contain unique direct inputs";
 {
-  inherit devShell linuxDependencies;
+  inherit devShell librepaintAppImage linuxDependencies;
   inherit (krita) librepaint librepaintGmic librepaintUnwrapped;
 }

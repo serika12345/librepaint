@@ -150,16 +150,26 @@ in
     # environment intact without copying dependency trees into the output.
     postBuild = ''
       mv "$out/bin/krita" "$out/bin/LibrePaint"
-      substituteInPlace "$out/share/applications/org.kde.krita.desktop" \
+
+      # symlinkJoin links these files to the immutable unwrapped output.  Replace
+      # them with local copies before adjusting the LibrePaint launch metadata.
+      desktopFile="$out/share/applications/org.kde.krita.desktop"
+      appStreamFile="$out/share/metainfo/org.kde.krita.appdata.xml"
+      rm "$desktopFile" "$appStreamFile"
+      cp "${librepaintUnwrapped}/share/applications/org.kde.krita.desktop" "$desktopFile"
+      cp "${librepaintUnwrapped}/share/metainfo/org.kde.krita.appdata.xml" "$appStreamFile"
+
+      substituteInPlace "$desktopFile" \
         --replace-fail "Exec=krita %F" "Exec=LibrePaint %F"
-      substituteInPlace "$out/share/metainfo/org.kde.krita.appdata.xml" \
+      substituteInPlace "$appStreamFile" \
         --replace-fail "<binary>krita</binary>" "<binary>LibrePaint</binary>"
 
-      gappsWrapperArgsHook
-      wrapQtApp "$out/bin/LibrePaint" \
-        "''${gappsWrapperArgs[@]}" \
-        --prefix PYTHONPATH : "$PYTHONPATH" \
-        --set KRITA_PLUGIN_PATH "$out/lib/kritaplugins"
+          gappsWrapperArgsHook
+          wrapQtApp "$out/bin/LibrePaint" \
+            "''${gappsWrapperArgs[@]}" \
+            --prefix PYTHONPATH : "$PYTHONPATH" \
+            --set FONTCONFIG_FILE "${pkgs.fontconfig.out}/etc/fonts/fonts.conf" \
+            --set KRITA_PLUGIN_PATH "$out/lib/kritaplugins"
     '';
 
     passthru = {

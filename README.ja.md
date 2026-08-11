@@ -27,7 +27,7 @@ LibrePaintは、Krita由来のコードベースを独立して開発・保守�
 |---|---|---|
 | iPadOS | 固定済みNix／Xcode環境、未署名IPA生成、AltStore／LiveContainer配備経路 | もっとも開発が進んでいる対象。iPadOS 17以降のarm64実機で詳細に検証中 |
 | Android／ChromeOS | LibrePaint APK構成と[ローカルビルドガイド](README.android.md) | 次のgateはdependency prefixの準備とend-to-end実機検証 |
-| Linux | Nixのdependency／完成build recipeと[ローカルAppImage scriptとガイド](packaging/linux/appimage/README.md) | 次のgateはruntime動作、公開経路と署名の検証 |
+| Linux | Nixのdependency／完成build／AppImage recipeと[ローカルAppImage scriptとガイド](packaging/linux/appimage/README.md) | 次のgateはruntime動作、公開経路と署名の検証 |
 | macOS | LibrePaint app bundleのNix recipeと既存のDMG packaging経路 | nixpkgsのLLVM toolchainとSDKによるarm64 clean buildとアプリケーション起動を確認済み。次は対話的UIと配布工程を検証 |
 | Windows | LibrePaint executableとNSIS installerのpackaging経路 | 次のgateはclean build、installer、署名、end-to-end検証 |
 
@@ -170,6 +170,23 @@ nix build .#librepaint-linux
 ```sh
 nix develop .#librepaint-linux
 ```
+
+最後のpackaging stageとしてType-2 AppImageをbuildできます。
+
+```sh
+nix build .#librepaint-linux-appimage \
+  --out-link LibrePaint-1.0.2-x86_64.AppImage
+```
+
+出力symlinkはentry pointを`LibrePaint`とする自己完結AppImageです。applicationを再buildせず完成済みNix closureを埋め込み、Linux user namespaceを必要とします。
+
+開発時およびNixOS上でのローカル利用では、AppImageではなく通常のNix packageを使います。
+
+```sh
+nix run .#librepaint-linux
+```
+
+AppImageは配布用artifactです。Nix closure型AppImageのupstream runtimeには、非NixOSでのOpenGL portabilityに既知の制約があり、nixGL形式のwrapperが必要になる場合があります。配布前に必ずtarget systemとGPUで検証してください。
 
 ### iPadOSのビルドとローカル配備
 
