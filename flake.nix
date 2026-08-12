@@ -71,6 +71,10 @@
         source = linuxBuildSource;
         inherit mkLinuxAppImage;
       };
+      linuxAndroidPackages = import ./nix/android {
+        pkgs = linuxPkgs;
+        source = linuxBuildSource;
+      };
     in
     {
       # macOS is the native default package. iOS package outputs cross-compile
@@ -228,6 +232,8 @@
         librepaint-linux = linuxPackages.librepaint;
         librepaint-linux-appimage = linuxPackages.librepaintAppImage;
         linux-dependencies = linuxPackages.linuxDependencies;
+        librepaint-android = linuxAndroidPackages.librepaint;
+        android-dependencies = linuxAndroidPackages.androidDependencies;
       };
 
       checks.${system} = {
@@ -368,6 +374,7 @@
       devShells.${linuxSystem} = {
         default = linuxPackages.devShell;
         librepaint-linux = linuxPackages.devShell;
+        librepaint-android = linuxAndroidPackages.devShell;
       };
 
       formatter.${system} = pkgs.nixfmt;

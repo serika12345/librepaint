@@ -8,6 +8,40 @@ The Android build starts with a prepared Android-compatible Qt/KDE/dependency
 prefix. This guide covers the LibrePaint CMake configure step through APK
 installation.
 
+## NixOS build
+
+Build the arm64-v8a APK on x86_64 NixOS with the pinned Qt 5 Android dependency
+set. `nix/android/upstream-artifacts.json` records the dependency archive
+versions and SHA-256 values. The Android SDK, NDK, JDK, Gradle, Maven
+dependencies, dependency-management revision, and LibrePaint source are Nix
+inputs.
+
+Build the APK on x86_64 NixOS with:
+
+```shell
+nix build path:.#librepaint-android
+```
+
+The recipe builds the native install prefix and APK packaging as separate
+derivations. This preserves the native build while the androiddeployqt or
+Gradle packaging layer changes.
+
+The build produces `result/LibrePaint-arm64-v8a.apk`. Sign the release APK
+before installation or publication. The package uses the `krita` native target
+and `org.krita` application identifier.
+
+Prepare the dependency prefix with:
+
+```shell
+nix build path:.#android-dependencies
+```
+
+Open the Android development shell with:
+
+```shell
+nix develop path:.#librepaint-android
+```
+
 ## Required Android toolchain
 
 The root CMake project and `packaging/android/apk/build.gradle` currently pin
@@ -92,8 +126,8 @@ Gradle writes APKs under the generated project's
 
 ## Install and inspect
 
-Install a generated APK on a connected device with `adb` from the Android SDK
-platform tools:
+After signing, install a generated APK on a connected device with `adb` from
+the Android SDK platform tools:
 
 ```shell
 adb install -r <path-to-generated.apk>

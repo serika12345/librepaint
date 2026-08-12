@@ -185,7 +185,7 @@ void KoJsonTrader::initializePluginLoaderCache()
         }
     }
 
-    const QList<KPluginMetaData> staticPlugins = KPluginMetaData::findPlugins(QStringLiteral("krita"));
+    const auto staticPlugins = KPluginMetaData::findPlugins(QStringLiteral("krita"));
     for (const KPluginMetaData &plugin : staticPlugins) {
         if (!plugin.isStaticPlugin()) {
             continue;

@@ -1,5 +1,15 @@
 # LibrePaint iPadOS TODO
 
+## Android build recipes
+
+- [x] x86_64 NixOSで、固定したQt 5 arm64-v8a依存セットから未署名のrelease APKを生成する。
+- [ ] macOS用のnative host-tool層とAndroidビルドレシピを作成する。
+- [ ] AndroidのQt 5専用統合をQt 6 APIとCMake定義へ移行する。対象は
+  AndroidExtras/QtAndroid呼び出し、JNIクラス名、Java Activityインターフェース、CMakeターゲット定義。
+- [ ] Linux、macOS、iOS、Androidで共通のQt/KDE依存ツリーを使うQt 6 Androidレシピを作成する。
+
+---
+
 この文書は、LibrePaintのiPadOSワークストリームにおける実装計画と実機検証記録である。全プラットフォーム共通の製品方針と現在地は`README.ja.md`にまとめる。
 
 ## 目標
