@@ -18,17 +18,14 @@
 
 #ifdef Q_OS_WIN
 #include <qpa/qplatformnativeinterface.h>
-#include <d3d11.h>
 #include <wrl/client.h>
 #include <dxgi1_6.h>
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
 #endif
 
 namespace {
-struct EGLException {
-    EGLException() {}
-    EGLException(const QString &what) : m_what(what) {}
+struct ScreenInformationException {
+    ScreenInformationException() {}
+    ScreenInformationException(const QString &what) : m_what(what) {}
 
     QString what() const {
         return m_what;
@@ -38,18 +35,6 @@ private:
     QString m_what;
 };
 
-template <typename FuncType>
-void getProcAddressSafe(QOpenGLContext *context, const char *funcName, FuncType &func)
-{
-    func = reinterpret_cast<FuncType>(context->getProcAddress(funcName));
-    if (!func) {
-        throw EGLException(QString("failed to fetch function %1").arg(funcName));
-    }
-}
-
-#ifdef Q_OS_WIN
-typedef const char *(EGLAPIENTRYP PFNEGLQUERYSTRINGPROC) (EGLDisplay dpy, EGLint name);
-#endif
 }
 
 
@@ -61,7 +46,7 @@ struct KisScreenInformationAdapter::Private
     QString errorString;
 
 #ifdef Q_OS_WIN
-    Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgiAdapter;
+    Microsoft::WRL::ComPtr<IDXGIFactory1> dxgiFactory;
 #endif
 };
 
@@ -85,90 +70,23 @@ void KisScreenInformationAdapter::Private::initialize(QOpenGLContext *newContext
     try {
 
 #if defined Q_OS_WIN
-
-        if (!context->isOpenGLES()) {
-            throw EGLException("the context is not OpenGL ES");
-        }
-
-        PFNEGLQUERYSTRINGPROC queryString = nullptr;
-        getProcAddressSafe(context, "eglQueryString", queryString);
-
-        const char* client_extensions = queryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
-        const QList<QByteArray> extensions = QByteArray(client_extensions).split(' ');
-
-        if (!extensions.contains("EGL_ANGLE_platform_angle_d3d") ||
-            !extensions.contains("EGL_ANGLE_device_creation_d3d11")) {
-
-            throw EGLException("the context is not Angle + D3D11");
-        }
-
-        PFNEGLQUERYDISPLAYATTRIBEXTPROC queryDisplayAttribEXT = nullptr;
-        PFNEGLQUERYDEVICEATTRIBEXTPROC queryDeviceAttribEXT = nullptr;
-
-        getProcAddressSafe(context, "eglQueryDisplayAttribEXT", queryDisplayAttribEXT);
-        getProcAddressSafe(context, "eglQueryDeviceAttribEXT", queryDeviceAttribEXT);
-
-        QPlatformNativeInterface *nativeInterface = qGuiApp->platformNativeInterface();
-        EGLDisplay display = reinterpret_cast<EGLDisplay>(nativeInterface->nativeResourceForContext("egldisplay", context));
-
-        if (!display) {
-            throw EGLException(
-                QString("couldn't request EGLDisplay handle, display = 0x%1").arg(uintptr_t(display), 0, 16));
-        }
-
-        EGLAttrib value = 0;
-        EGLBoolean result = false;
-
-        result = queryDisplayAttribEXT(display, EGL_DEVICE_EXT, &value);
-
-        if (!result || value == EGL_NONE) {
-            throw EGLException(
-               QString("couldn't request EGLDeviceEXT handle, result = 0x%1, value = 0x%2")
-                   .arg(result, 0, 16).arg(value, 0, 16));
-        }
-
-        EGLDeviceEXT device = reinterpret_cast<EGLDeviceEXT>(value);
-
-        result = queryDeviceAttribEXT(device, EGL_D3D11_DEVICE_ANGLE, &value);
-
-        if (!result || value == EGL_NONE) {
-            throw EGLException(
-                QString("couldn't request ID3D11Device pointer, result = 0x%1, value = 0x%2")
-                    .arg(result, 0, 16).arg(value, 0, 16));
-        }
-        ID3D11Device *deviceD3D = reinterpret_cast<ID3D11Device*>(value);
-
-        {
-            HRESULT result = 0;
-
-            Microsoft::WRL::ComPtr<IDXGIDevice> dxgiDevice;
-            result = deviceD3D->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
-
-            if (FAILED(result)) {
-                throw EGLException(
-                    QString("couldn't request IDXGIDevice pointer, result = 0x%1").arg(result, 0, 16));
-            }
-
-            Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgiAdapter;
-            result = dxgiDevice->GetParent(__uuidof(IDXGIAdapter1), (void**)&dxgiAdapter);
-
-            if (FAILED(result)) {
-                throw EGLException(
-                    QString("couldn't request IDXGIAdapter1 pointer, result = 0x%1").arg(result, 0, 16));
-            }
-
-            this->dxgiAdapter = dxgiAdapter;
+        const HRESULT result = CreateDXGIFactory1(
+            __uuidof(IDXGIFactory1),
+            reinterpret_cast<void **>(this->dxgiFactory.GetAddressOf()));
+        if (FAILED(result)) {
+            throw ScreenInformationException(
+                QString("couldn't create IDXGIFactory1, result = 0x%1").arg(result, 0, 16));
         }
 
 #else
-        throw EGLException("current platform doesn't support fetching display information");
+        throw ScreenInformationException("current platform doesn't support fetching display information");
 #endif
 
-    } catch (EGLException &e) {
+    } catch (ScreenInformationException &e) {
         this->context = 0;
         this->errorString = e.what();
 #ifdef Q_OS_WIN
-        this->dxgiAdapter.Reset();
+        this->dxgiFactory.Reset();
 #endif
     }
 }
@@ -176,7 +94,7 @@ void KisScreenInformationAdapter::Private::initialize(QOpenGLContext *newContext
 bool KisScreenInformationAdapter::isValid() const
 {
 #ifdef Q_OS_WIN
-    return m_d->context && m_d->dxgiAdapter;
+    return m_d->context && m_d->dxgiFactory;
 #else
     return false;
 #endif
@@ -196,62 +114,66 @@ KisScreenInformationAdapter::ScreenInfo KisScreenInformationAdapter::infoForScre
     QPlatformNativeInterface *nativeInterface = qGuiApp->platformNativeInterface();
     HMONITOR monitor = reinterpret_cast<HMONITOR>(nativeInterface->nativeResourceForScreen("handle", screen));
 
-    UINT i = 0;
-    Microsoft::WRL::ComPtr<IDXGIOutput> currentOutput;
+    UINT adapterIndex = 0;
+    Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+    while (m_d->dxgiFactory->EnumAdapters1(adapterIndex, adapter.GetAddressOf()) == S_OK) {
+        UINT outputIndex = 0;
+        Microsoft::WRL::ComPtr<IDXGIOutput> currentOutput;
+        while (adapter->EnumOutputs(outputIndex, currentOutput.GetAddressOf()) == S_OK) {
+            HRESULT result = 0;
+            Microsoft::WRL::ComPtr<IDXGIOutput6> output6;
+            result = currentOutput.As(&output6);
 
-    while (m_d->dxgiAdapter->EnumOutputs(i, &currentOutput) != DXGI_ERROR_NOT_FOUND)
-    {
+            if (output6) {
+                DXGI_OUTPUT_DESC1 desc;
+                result = output6->GetDesc1(&desc);
 
-        HRESULT result = 0;
-        Microsoft::WRL::ComPtr<IDXGIOutput6> output6;
-        result = currentOutput.As(&output6);
+                if (desc.Monitor == monitor) {
+                    info.screen = screen;
+                    info.bitsPerColor = desc.BitsPerColor;
+                    info.redPrimary[0] = desc.RedPrimary[0];
+                    info.redPrimary[1] = desc.RedPrimary[1];
+                    info.greenPrimary[0] = desc.GreenPrimary[0];
+                    info.greenPrimary[1] = desc.GreenPrimary[1];
+                    info.bluePrimary[0] = desc.BluePrimary[0];
+                    info.bluePrimary[1] = desc.BluePrimary[1];
+                    info.whitePoint[0] = desc.WhitePoint[0];
+                    info.whitePoint[1] = desc.WhitePoint[1];
+                    info.minLuminance = desc.MinLuminance;
+                    info.maxLuminance = desc.MaxLuminance;
+                    info.maxFullFrameLuminance = desc.MaxFullFrameLuminance;
 
-        if (output6) {
-            DXGI_OUTPUT_DESC1 desc;
-            result = output6->GetDesc1(&desc);
+                    info.colorSpace = KisSurfaceColorSpaceWrapper::DefaultColorSpace;
 
-            if (desc.Monitor == monitor) {
-                info.screen = screen;
-                info.bitsPerColor = desc.BitsPerColor;
-                info.redPrimary[0] = desc.RedPrimary[0];
-                info.redPrimary[1] = desc.RedPrimary[1];
-                info.greenPrimary[0] = desc.GreenPrimary[0];
-                info.greenPrimary[1] = desc.GreenPrimary[1];
-                info.bluePrimary[0] = desc.BluePrimary[0];
-                info.bluePrimary[1] = desc.BluePrimary[1];
-                info.whitePoint[0] = desc.WhitePoint[0];
-                info.whitePoint[1] = desc.WhitePoint[1];
-                info.minLuminance = desc.MinLuminance;
-                info.maxLuminance = desc.MaxLuminance;
-                info.maxFullFrameLuminance = desc.MaxFullFrameLuminance;
-
-                info.colorSpace = KisSurfaceColorSpaceWrapper::DefaultColorSpace;
-
-                if (desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709) {
-                    info.colorSpace = KisSurfaceColorSpaceWrapper::sRGBColorSpace;
-                } else if (desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709) {
+                    if (desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709) {
+                        info.colorSpace = KisSurfaceColorSpaceWrapper::sRGBColorSpace;
+                    } else if (desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709) {
 #ifdef HAVE_HDR
-                    info.colorSpace = KisSurfaceColorSpaceWrapper::scRGBColorSpace;
+                        info.colorSpace = KisSurfaceColorSpaceWrapper::scRGBColorSpace;
 #else
-                    qWarning("WARNING: scRGB display color space is not supported by Qt's build");
+                        qWarning("WARNING: scRGB display color space is not supported by Qt's build");
 #endif
-                } else if (desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020) {
+                    } else if (desc.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020) {
 #ifdef HAVE_HDR
-                    info.colorSpace = KisSurfaceColorSpaceWrapper::bt2020PQColorSpace;
+                        info.colorSpace = KisSurfaceColorSpaceWrapper::bt2020PQColorSpace;
 #else
-                    qWarning("WARNING: bt2020-pq display color space is not supported by Qt's build");
+                        qWarning("WARNING: bt2020-pq display color space is not supported by Qt's build");
 #endif
-                } else {
-                    qWarning("WARNING: unknown display color space! 0x%X", desc.ColorSpace);
+                    } else {
+                        qWarning("WARNING: unknown display color space! 0x%X", desc.ColorSpace);
+                    }
+
+                    return info;
                 }
-
-                break;
             }
+
+            Q_UNUSED(result);
+            currentOutput.Reset();
+            outputIndex++;
         }
 
-        Q_UNUSED(result);
-
-        i++;
+        adapter.Reset();
+        adapterIndex++;
     }
 
 #endif

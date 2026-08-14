@@ -1,0 +1,40 @@
+diff --git a/src/fccompat.c b/src/fccompat.c
+index 49d4ca0..907a4e4 100644
+--- a/src/fccompat.c
++++ b/src/fccompat.c
+@@ -384,5 +384,14 @@ FcLocaleSetCurrent (FcLocale loc)
+ #  endif
+ }
++#else
++FcLocale
++FcLocaleSetCurrent (FcLocale loc)
++{
++    /* MinGW does not provide uselocale().  Formatting falls back to the
++     * process locale when configure does not detect _vsnprintf_l(). */
++    (void)loc;
++    return NULL;
++}
+ #endif
+ 
+ void
+diff --git a/src/fcint.h b/src/fcint.h
+index 86c3356..aa0eaf3 100644
+--- a/src/fcint.h
++++ b/src/fcint.h
+@@ -969,4 +969,2 @@ FcLocaleCreate (FcLocaleMask mask, const char *locale);
+-#ifndef _WIN32
+ FcPrivate FcLocale
+ FcLocaleSetCurrent (FcLocale loc);
+-#endif
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 12fbca2..b60ba94 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -128,6 +128,7 @@ libfontconfig_la_SOURCES = \
+ 	fcatomic.h \
+ 	fccache.c \
+ 	fccfg.c \
++	fcconffile.c \
+ 	fccharset.c \
+ 	fccompat.c \
+ 	fcdbg.c \

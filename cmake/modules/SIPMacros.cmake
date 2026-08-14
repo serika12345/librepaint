@@ -256,7 +256,9 @@ else()
 
         if (MINGW)
             target_compile_definitions(${_logical_name} PRIVATE _hypot=hypot)
-        elseif(NOT MSVC)
+        endif()
+
+        if (NOT MSVC)
             # SIP v5+ redefines access to protected variables.
             target_compile_definitions(${_logical_name} PRIVATE SIP_PROTECTED_IS_PUBLIC)
             target_compile_definitions(${_logical_name} PRIVATE protected=public)

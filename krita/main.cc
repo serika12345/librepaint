@@ -1029,6 +1029,15 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
                 path)
             );
 
+    const auto portablePath = [&appdir](const QString &relativePath) {
+        return QFile::encodeName(QDir::toNativeSeparators(appdir.absoluteFilePath(relativePath)));
+    };
+    qputenv("MLT_ROOT_DIR", portablePath(QStringLiteral(".")));
+    qputenv("MLT_REPOSITORY", portablePath(QStringLiteral("lib/mlt-7")));
+    qputenv("MLT_DATA", portablePath(QStringLiteral("share/mlt-7")));
+    qputenv("MLT_PROFILES_PATH", portablePath(QStringLiteral("share/mlt-7/profiles")));
+    qputenv("MLT_PRESETS_PATH", portablePath(QStringLiteral("share/mlt-7/presets")));
+
     dbgKrita << "PATH" << qgetenv("PATH");
 #endif
 

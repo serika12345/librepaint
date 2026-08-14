@@ -29,7 +29,7 @@ LibrePaintは、Krita由来のコードベースを独立して開発・保守�
 | Android／ChromeOS | LibrePaint APK構成と[ローカルビルドガイド](README.android.md) | 次の課題は依存関係のプレフィックスの準備とエンドツーエンドの実機検証 |
 | Linux | Nixの依存関係、完成ビルド、AppImageレシピと[ローカルAppImageスクリプトおよびガイド](packaging/linux/appimage/README.md) | 次の課題はランタイム動作、公開経路、署名の検証 |
 | macOS | LibrePaintアプリバンドルのNixレシピと既存のDMGパッケージング経路 | nixpkgsのLLVMツールチェーンとSDKによるarm64クリーンビルドとアプリケーション起動を確認済み。次は対話型ユーザーインターフェースと配布工程を検証 |
-| Windows | LibrePaint実行ファイルとNSISインストーラーのパッケージング経路 | 次の課題はクリーンビルド、インストーラー、署名、エンドツーエンド検証 |
+| Windows | x86_64 Linuxから64ビットWindows向けの可搬ディレクトリーとZIPアーカイブをクロスビルドするNixレシピ。[依存構造TODO](docs/windows/TODO.md)で標準パッケージへの移行を管理 | 次の課題はWindowsでの動作、インストーラー、署名、エンドツーエンド検証 |
 
 現在のiOS対応範囲はiPadです。ほかのAppleフォームファクターや追加プラットフォームについては、それぞれのユーザーインターフェース、ビルド、パッケージング、実機検証を経て対応状況を更新します。
 
@@ -108,7 +108,7 @@ iOS向けのメモリーポリシーとして、タイル予算は物理RAMの25
 
 ## ビルドと開発
 
-macOSとLinuxの標準Nixビルドは、[`nix/macos/`](nix/macos/)と[`nix/linux/`](nix/linux/)で定義しています。Androidのビルド手順は[`README.android.md`](README.android.md)、LinuxのローカルAppImageワークフローは[`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md)に記載しています。各プラットフォームのパッケージング定義は[`packaging/`](packaging/)にまとめています。
+macOS、Linux、Windowsの標準Nixビルドは、[`nix/macos/`](nix/macos/)、[`nix/linux/`](nix/linux/)、[`nix/windows/`](nix/windows/)で定義しています。Androidのビルド手順は[`README.android.md`](README.android.md)、LinuxのローカルAppImageワークフローは[`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md)に記載しています。各プラットフォームのパッケージング定義は[`packaging/`](packaging/)にまとめています。
 
 ### macOSのNixビルド
 
@@ -187,6 +187,25 @@ nix run .#librepaint-linux
 ```
 
 AppImageは配布用アーティファクトです。Nixクロージャ型AppImageのアップストリームランタイムには、NixOS以外でのOpenGL移植性に既知の制約があり、nixGL形式のラッパーが必要になる場合があります。配布前に、必ず対象システムとGPUで検証してください。
+
+### WindowsのNixクロスビルド
+
+Windows向けレシピは、x86_64 Linuxから64ビットWindows用の`x86_64-w64-mingw32`ビルドをクロスコンパイルします。LibrePaintのソースに依存しないターゲット依存関係グラフとアプリケーションビルドを分離しているため、変更のない依存関係はバイナリキャッシュから利用できます。
+
+```sh
+nix build .#windows-dependencies --no-link
+nix build .#librepaint-windows
+```
+
+生成物は、`result/bin/LibrePaint.exe`を含む可搬ディレクトリーです。パッケージング段階で、ターゲットDLL、QtプラグインとQMLモジュール、Python／PyQt、G'MIC、FFmpeg／FFprobe、MLTデータ、翻訳、Fontconfigの設定とフォント、`qt.conf`を実行ファイルの隣へ配置します。対応するZIPアーカイブは次のコマンドで生成します。
+
+```sh
+nix build .#librepaint-windows-archive
+```
+
+アーカイブは`result/LibrePaint-1.0.2-x86_64-windows.zip`として生成されます。
+
+このレシピは、Python／PyQtスクリプト、Qt Quick／QML画面、PDFインポート、G'MIC、KSeExpr、FFTW、OpenColorIO、MLT／SDLによる音声・映像対応、FFmpeg／FFprobe、DrMingwのクラッシュ記録、HDR画面情報、およびGIF、HEIF、JPEG XL、TIFF、WebPの各ワークフローを含む、upstreamのWindows版と同等の機能一式を有効にします。
 
 ### iPadOSのビルドとローカル配備
 

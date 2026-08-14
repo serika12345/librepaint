@@ -29,7 +29,7 @@ The platform status below separates roadmap coverage from verified availability.
 | Android / ChromeOS | LibrePaint APK configuration and a [local build guide](README.android.md) | Next gate: prepare the dependency prefix and complete end-to-end device validation |
 | Linux | Nix dependency, completed-build, and AppImage recipes, plus [local AppImage scripts and guide](packaging/linux/appimage/README.md) | Next gates: validate runtime behavior, publishing, and signing |
 | macOS | Nix recipe for the LibrePaint app bundle, plus the existing DMG packaging path | Clean arm64 build and application startup verified with the nixpkgs LLVM toolchain and SDK; interactive UI and distribution validation follow |
-| Windows | LibrePaint executable and NSIS installer packaging paths | Next gates: clean build, installer validation, signing, and end-to-end validation |
+| Windows | Nix recipe for cross-compiling a portable 64-bit Windows directory and ZIP archive from x86_64 Linux; migration to standard packages is tracked in the [dependency architecture TODO](docs/windows/TODO.md) | Next gates: Windows runtime, installer, signing, and end-to-end validation |
 
 Current iOS support covers iPad. Support status for additional Apple form factors and platforms will follow their UI, build, packaging, and device validation work.
 
@@ -108,7 +108,7 @@ Animation UI is a possible low-priority iPadOS addition; multimedia export sits 
 
 ## Build and Development
 
-The standard macOS and Linux Nix builds are defined in [`nix/macos/`](nix/macos/) and [`nix/linux/`](nix/linux/). Android build instructions are in [`README.android.md`](README.android.md), and the local Linux AppImage path is documented in [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md). Platform packaging is kept under [`packaging/`](packaging/).
+The standard macOS, Linux, and Windows Nix builds are defined in [`nix/macos/`](nix/macos/), [`nix/linux/`](nix/linux/), and [`nix/windows/`](nix/windows/). Android build instructions are in [`README.android.md`](README.android.md), and the local Linux AppImage path is documented in [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md). Platform packaging is kept under [`packaging/`](packaging/).
 
 ### macOS Nix Build
 
@@ -187,6 +187,25 @@ nix run .#librepaint-linux
 ```
 
 The AppImage is a distribution artifact. Its upstream Nix-closure runtime has a known OpenGL portability limitation on non-NixOS systems and may require a nixGL-style wrapper. Test it on every target system and GPU before distribution.
+
+### Windows Nix Cross Build
+
+The Windows recipe cross-compiles a 64-bit `x86_64-w64-mingw32` build from x86_64 Linux. It keeps the source-independent target dependency graph separate from the LibrePaint build, allowing binary caches to serve unchanged dependencies:
+
+```sh
+nix build .#windows-dependencies --no-link
+nix build .#librepaint-windows
+```
+
+The result is a portable directory with `result/bin/LibrePaint.exe`. The packaging stage places target DLLs, Qt plugins and QML modules, Python/PyQt, G'MIC, FFmpeg/FFprobe, MLT data, translations, Fontconfig configuration and fonts, and `qt.conf` beside the executable. Create the corresponding ZIP archive with:
+
+```sh
+nix build .#librepaint-windows-archive
+```
+
+The archive is written as `result/LibrePaint-1.0.2-x86_64-windows.zip`.
+
+The recipe enables the complete upstream Windows feature set, including Python/PyQt scripting, Qt Quick/QML interfaces, PDF import, G'MIC, KSeExpr, FFTW, OpenColorIO, MLT/SDL audio and video support, FFmpeg/FFprobe, DrMingw crash logs, HDR display information, and GIF, HEIF, JPEG XL, TIFF, and WebP workflows.
 
 ### iPadOS Build and Local Deployment
 

@@ -1,0 +1,58 @@
+diff --git a/Makefile b/Makefile
+--- a/Makefile
++++ b/Makefile
+@@ -91,12 +91,12 @@
+ MANUAL_PAGES_1_MAN = $(MANUAL_PAGES_1:%.xml=%.1)
+ MANUAL_PAGES_7_MAN = $(MANUAL_PAGES_7:%.xml=%.7)
+ 
+-SOEXTENSION	= so
+-LIBGIFSO	= libgif.$(SOEXTENSION)
+-LIBGIFSOMAJOR	= libgif.$(SOEXTENSION).$(LIBMAJOR)
+-LIBGIFSOVER	= libgif.$(SOEXTENSION).$(LIBVER)
+-LIBUTILSO	= libutil.$(SOEXTENSION)
+-LIBUTILSOMAJOR	= libutil.$(SOEXTENSION).$(LIBMAJOR)
++SOEXTENSION	= dll
++LIBGIFSO	= libgif-$(LIBMAJOR).$(SOEXTENSION)
++LIBGIFSOMAJOR	= $(LIBGIFSO)
++LIBGIFSOVER	= $(LIBGIFSO)
++LIBUTILSO	= libutil-$(LIBMAJOR).$(SOEXTENSION)
++LIBUTILSOMAJOR	= $(LIBUTILSO)
+ ifeq ($(UNAME), Darwin)
+ SOEXTENSION	= dylib
+ LIBGIFSO        = libgif.$(SOEXTENSION)
+@@ -124,7 +124,7 @@
+ ifeq ($(UNAME), Darwin)
+ 	$(CC) $(CFLAGS) -dynamiclib -current_version $(LIBVER) $(OBJECTS) -o $(LIBGIFSO)
+ else
+-	$(CC) $(CFLAGS) $(CPPFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,$(LIBGIFSOMAJOR) -o $(LIBGIFSO) $(OBJECTS)
++	$(CC) $(CFLAGS) $(CPPFLAGS) -shared $(LDFLAGS) -Wl,--out-implib,libgif.$(SOEXTENSION).a -o $(LIBGIFSO) $(OBJECTS)
+ endif
+ 
+ libgif.a: $(OBJECTS) $(HEADERS)
+@@ -134,7 +134,7 @@
+ ifeq ($(UNAME), Darwin)
+ 	$(CC) $(CFLAGS) -dynamiclib -current_version $(LIBVER) $(UOBJECTS) -o $(LIBUTILSO)
+ else
+-	$(CC) $(CFLAGS) $(CPPLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,$(LIBUTILSOMAJOR) -o $(LIBUTILSO) $(UOBJECTS)
++	$(CC) $(CFLAGS) $(CPPFLAGS) -shared $(LDFLAGS) -Wl,--out-implib,libutil.$(SOEXTENSION).a -o $(LIBUTILSO) $(UOBJECTS) -L. -lgif
+ endif
+ 
+ libutil.a: $(UOBJECTS) $(UHEADERS)
+@@ -174,7 +174,7 @@
+ install: all install-bin install-include install-lib install-man install-doc
+ install-bin: $(INSTALLABLE)
+ 	$(INSTALL) -d "$(DESTDIR)$(BINDIR)"
+-	$(INSTALL) $^ "$(DESTDIR)$(BINDIR)"
++	$(INSTALL) $(addsuffix .exe,$^) "$(DESTDIR)$(BINDIR)"
+ install-include:
+ 	$(INSTALL) -d "$(DESTDIR)$(INCDIR)"
+ 	$(INSTALL) -m 644 gif_lib.h "$(DESTDIR)$(INCDIR)"
+@@ -184,8 +184,6 @@
+ install-shared-lib:
+ 	$(INSTALL) -d "$(DESTDIR)$(LIBDIR)"
+ 	$(INSTALL) -m 755 $(LIBGIFSO) "$(DESTDIR)$(LIBDIR)/$(LIBGIFSOVER)"
+-	ln -sf $(LIBGIFSOVER) "$(DESTDIR)$(LIBDIR)/$(LIBGIFSOMAJOR)"
+-	ln -sf $(LIBGIFSOMAJOR) "$(DESTDIR)$(LIBDIR)/$(LIBGIFSO)"
+ install-lib: install-static-lib install-shared-lib
+ install-man:
+ 	$(INSTALL) -d "$(DESTDIR)$(MANDIR)/man1" "$(DESTDIR)$(MANDIR)/man7"

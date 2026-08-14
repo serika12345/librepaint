@@ -727,6 +727,8 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
 endif()
 
 if(WIN32)
+    target_link_libraries(kritaui PRIVATE dxgi)
+
     # Private headers are needed for:
     #    * KisDlgCustomTabletResolution
     #    * KisScreenInformationAdapter

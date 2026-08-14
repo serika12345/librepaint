@@ -36,13 +36,6 @@
 #include "KisOpenGLBufferCreationGuard.h"
 #include <KisPlatformPluginInterfaceFactory.h>
 
-/// we use Angle's EGL on Windows, so we need access to
-/// EGL_ANGLE_platform_angle definition
-#if defined Q_OS_WIN && (defined QT_OPENGL_DYNAMIC || defined QT_OPENGL_ES_2_ANGLE)
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#endif
-
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif
