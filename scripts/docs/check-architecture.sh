@@ -10,8 +10,8 @@ trap 'rm -rf "$temporary_dir"' EXIT
 cd "$repo_root"
 
 shellcheck scripts/docs/*.sh
-markdownlint-cli2 "docs/architecture/README.md"
-lychee --offline --no-progress "docs/architecture/README.md"
+markdownlint-cli2 "docs/architecture/*.md"
+lychee --offline --no-progress docs/architecture/*.md
 env --unset=DEBUG d2 fmt --check "$diagram_dir"/*.d2
 
 for source in "$diagram_dir"/*.d2; do
