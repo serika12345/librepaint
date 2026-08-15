@@ -95,6 +95,27 @@
 - [ ] DrMingwをvcpkg、nixpkgs、MSYS2の標準パッケージから取得できるようにし、`nix/windows/drmingw.nix`を削除する。
 - [ ] 独自に固定している依存ライブラリを一覧化し、標準パッケージへ置換できたものからローカルレシピを削除する。
 
+## P1: Qt 5からQt 6への実行時互換性棚卸し
+
+Qt 6でコンパイルが通ることだけを移行完了条件にしない。今回、Windowsの既定style名が
+`windowsvista`から`windows11`へ変わったことを判定できず、暗色paletteとnative styleが競合して
+文字色と境界線が崩れた。このような、APIには現れにくい識別子、既定値、plugin、描画結果の
+変化をQt 5版の上流Kritaと比較して洗い出す。
+
+- [ ] style、platform、theme、icon、image format、TLS、SQL、multimediaなど、名前で分岐または探索するQt pluginと`objectName()`の利用箇所を全件列挙し、Qt 5/6およびWindows版ごとの実値を記録する。
+- [ ] palette、style、font、icon theme、high-DPI scaling、画面DPI、native dialogの既定値と適用順序を比較し、light/darkおよびWindowsの表示倍率ごとに画面差分を採取する。
+- [ ] Qt 6で変更・廃止されたenum、property、signal/slot、event、入力座標、wheel/tablet/touch処理、正規表現、文字コード、locale/time zone、URL/path処理の利用箇所を静的検索し、暗黙の互換処理を明文化する。
+- [ ] Qt 5のOpenGL経路とQt 6のOpenGL/RHI/ANGLE経路について、surface format、color space、alpha、swap interval、device loss、software fallbackの既定挙動を比較する。
+- [ ] 設定値、window state、shortcut、recent files、resource database、clipboard、drag and drop、MIME dataについて、Qt 5で保存した状態をQt 6で読み込むupgrade試験とrollback試験を行う。
+- [ ] 起動、splash、初回cache/database生成、終了処理、クラッシュハンドラーについて、上流KritaとLibrePaintの時系列ログ、応答状態、スクリーンショットを同条件で比較する。
+- [ ] Qtのminor/patch更新時にも同じ比較を再実行できるよう、採取する環境情報、ログ、代表画面、入力シナリオを自動検証レシピにする。
+
+### 完了条件
+
+- [ ] Qt 5依存の識別子・既定動作・互換分岐が、該当ソース、Qt 6での期待値、検証方法とともに一覧化されている。
+- [ ] 起動直後、workspace、設定画面、file dialog、canvas、主要dock、light/dark、100%/高DPIの基準スクリーンショットに重大な意図しない差分がない。
+- [ ] Qt 6またはQt pluginの更新で比較試験が失敗し、今回の`windows11` style判定漏れと同種の退行を配布前に検出できる。
+
 ## P2: Qt依存セットの版管理
 
 - [ ] qtbase、qtdeclarative、qtsvg、qttools、qttranslationsを一つの対応表またはlock情報で管理する。
