@@ -313,7 +313,9 @@ KisApplication::KisApplication(const QString &key, int &argc, char **argv)
         setWidgetStyle("fusion");
     }
 #else
-    } else if (style()->objectName().toLower() == "macos" || defaultStyle == "windowsvista") {
+    } else if (defaultStyle == "macos" ||
+               defaultStyle == "windowsvista" ||
+               defaultStyle == "windows11") {
         // default to Fusion instead of styles that use native theming
         setWidgetStyle("fusion");
     }
