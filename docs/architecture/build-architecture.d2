@@ -1,0 +1,22 @@
+direction: down
+
+lock: "PINNED BUILD GRAPH\nflake.lock + flake.nix\nplatform output routing"
+
+source: "FILTERED LIBREPAINT SOURCE\nCMake code and application assets"
+
+dependencies: "SOURCE-INDEPENDENT DEPENDENCIES\nmacos/linux/windows/android dependencies\ngranular iOS target derivations"
+
+build: "APPLICATION BUILD\nmacOS · Linux · MinGW Windows\nAndroid native · iOS static plugin profile"
+
+assembly: "RUNTIME ASSEMBLY\nLinux wrapper + G'MIC · Windows DLL/Qt/Python\napplication bundles and platform runtime data"
+
+artifacts: "FINAL ARTIFACTS\nLibrePaint.app · AppImage · Windows ZIP\nAndroid APK · deterministic unsigned IPA"
+
+delivery: "EXTERNAL DELIVERY BOUNDARY\nsigning · notarization · store/import\nphysical-device installation"
+
+lock -> dependencies: selects recipes
+dependencies -> build: target inputs
+source -> build: source changes rebuild here
+build -> assembly: compiled application
+assembly -> artifacts: package without recompiling
+artifacts -> delivery: release or local deployment

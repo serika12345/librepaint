@@ -908,6 +908,29 @@
         pkgs = windowsPkgs;
         source = linuxBuildSource;
       };
+      mkDocsShell =
+        packageSet:
+        packageSet.mkShellNoCC {
+          packages = with packageSet; [
+            bash
+            coreutils
+            d2
+            diffutils
+            findutils
+            git
+            librsvg
+            lychee
+            markdownlint-cli2
+            ripgrep
+            shellcheck
+          ];
+
+          shellHook = ''
+            echo "LibrePaint documentation development shell"
+            echo "  validate: scripts/docs/check-architecture.sh"
+            echo "  render:   scripts/docs/render-architecture.sh"
+          '';
+        };
     in
     {
       # macOS is the native default package. iOS package outputs cross-compile
@@ -1168,6 +1191,7 @@
 
       devShells.${system} = {
         default = macosPackages.devShell;
+        docs = mkDocsShell pkgs;
         librepaint-macos = macosPackages.devShell;
 
         librepaint-ios = pkgs.mkShellNoCC {
@@ -1210,6 +1234,7 @@
 
       devShells.${linuxSystem} = {
         default = linuxPackages.devShell;
+        docs = mkDocsShell linuxPkgs;
         librepaint-linux = linuxPackages.devShell;
         librepaint-android = linuxAndroidPackages.devShell;
       };

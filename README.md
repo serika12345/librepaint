@@ -345,6 +345,7 @@ This smoke test diagnoses the Objective-C++, UIKit, SDK, deployment-target, and 
 
 | Path | Description |
 |---|---|
+| [`docs/architecture/README.md`](docs/architecture/README.md) | Architecture overview, runtime flows, code-reading order, and change-to-location guide |
 | [`TODO.md`](TODO.md) | Source of truth for the iPadOS milestones, remaining work, and physical-device validation results |
 | [`README.android.md`](README.android.md) | Current local Android build path and its dependency-prefix limitations |
 | [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md) | Current local Linux AppImage build path and prerequisites |

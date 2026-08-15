@@ -1,0 +1,21 @@
+direction: down
+
+drawing: "Drawing path" {
+  direction: right
+
+  input: "INPUT DISPATCH\nQt event → KisInputManager\n→ active KisTool"
+  execution: "STROKE EXECUTION\nKisToolFreehandHelper → strategy\n→ scheduler and stroke queue"
+  pixels: "PIXELS AND DISPLAY\nKisPaintOp → KisPaintDevice\n→ projection → KisCanvas2"
+
+  input -> execution -> pixels
+}
+
+fileio: "File input/output path" {
+  direction: right
+
+  request: "DOCUMENT REQUEST\nKisMainWindow → KisDocument\npath and modified state"
+  selection: "FILTER SELECTION\nKisImportExportManager → KoJsonTrader\nMIME type and policy"
+  conversion: "CONVERSION\nKisImportExportFilter ↔ KisImage\n↔ KoStore / codec ↔ file"
+
+  request -> selection -> conversion
+}

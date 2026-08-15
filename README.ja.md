@@ -345,6 +345,7 @@ nix develop .#librepaint-ios --command packaging/ios/scripts/build-smoke.sh simu
 
 | パス | 内容 |
 |---|---|
+| [`docs/architecture/README.md`](docs/architecture/README.md) | アーキテクチャ概要、実行経路、コードを読む順序、変更内容から見る場所を判断するためのガイド |
 | [`TODO.md`](TODO.md) | iPadOSのマイルストーン、残作業、実機検証結果の正本 |
 | [`README.android.md`](README.android.md) | 現在のAndroidローカルビルド経路と依存関係プレフィックスの制約 |
 | [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md) | 現在のLinuxローカルAppImageビルド経路と前提環境 |
