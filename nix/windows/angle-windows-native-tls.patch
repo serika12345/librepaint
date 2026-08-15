@@ -1,0 +1,105 @@
+From: LibrePaint maintainers
+Subject: [PATCH] ANGLE: use Win32 TLS for per-thread GL state
+
+GCC implements C++ thread_local with __emutls_get_address on MinGW. Calling
+that implementation from ANGLE's DLL_THREAD_DETACH handler can run after the
+mcfgthread TLS callback has released the current thread's table. The result is
+an access violation in __MCF_tls_table_get while probing ANGLE renderers at
+LibrePaint startup.
+
+ANGLE already has a native TLS abstraction backed by TlsAlloc, TlsGetValue,
+and TlsSetValue on desktop Windows. Use it for the two per-thread pointers
+that are accessed by DllMain, while retaining C++ thread_local on the other
+platforms.
+
+diff --git a/src/libANGLE/Context.cpp b/src/libANGLE/Context.cpp
+index fd5e51c..69d6652 100644
+--- a/src/libANGLE/Context.cpp
++++ b/src/libANGLE/Context.cpp
+@@ -52,4 +52,6 @@
+ #if defined(ANGLE_PLATFORM_APPLE)
+ #    include <dispatch/dispatch.h>
++#endif
++#if defined(ANGLE_PLATFORM_APPLE) || defined(ANGLE_PLATFORM_WINDOWS)
+ #    include "common/tls.h"
+ #endif
+@@ -387,4 +389,30 @@ void SetCurrentValidContextTLS(Context *context)
+     SetTLSValue(CurrentValidContextIndex, context);
+ }
++#elif defined(ANGLE_PLATFORM_WINDOWS)
++// C++ thread_local uses GCC's emulated TLS on MinGW. DllMain accesses this
++// value during thread detach, where that runtime's TLS table may already have
++// been released. Win32 TLS remains valid for the duration of the callback.
++static TLSIndex CurrentValidContextIndex = TLS_INVALID_INDEX;
++
++static TLSIndex GetCurrentValidContextTLSIndex()
++{
++    if (CurrentValidContextIndex == TLS_INVALID_INDEX)
++    {
++        CurrentValidContextIndex = CreateTLSIndex(nullptr);
++    }
++    return CurrentValidContextIndex;
++}
++Context *GetCurrentValidContextTLS()
++{
++    TLSIndex index = GetCurrentValidContextTLSIndex();
++    ASSERT(index != TLS_INVALID_INDEX);
++    return static_cast<Context *>(GetTLSValue(index));
++}
++void SetCurrentValidContextTLS(Context *context)
++{
++    TLSIndex index = GetCurrentValidContextTLSIndex();
++    ASSERT(index != TLS_INVALID_INDEX);
++    SetTLSValue(index, context);
++}
+ #else
+ static thread_local Context *gCurrentValidContext = nullptr;
+diff --git a/src/libGLESv2/global_state.cpp b/src/libGLESv2/global_state.cpp
+index e7e3bf5..6031be6 100644
+--- a/src/libGLESv2/global_state.cpp
++++ b/src/libGLESv2/global_state.cpp
+@@ -12,4 +12,5 @@
+ #include "common/platform.h"
+ #include "common/system_utils.h"
++#include "common/tls.h"
+ #include "libANGLE/ErrorStrings.h"
+ #include "libANGLE/Thread.h"
+@@ -134,4 +135,30 @@ void SetCurrentThreadTLS(Thread *thread)
+     SetTLSValue(CurrentThreadIndex, thread);
+ }
++#elif defined(ANGLE_PLATFORM_WINDOWS)
++// Avoid GCC emulated TLS in DllMain's thread attach/detach callbacks. The
++// index is initialized by DLL_PROCESS_ATTACH before other threads are
++// notified, so no guarded C++ static initialization is needed here.
++static TLSIndex CurrentThreadIndex = TLS_INVALID_INDEX;
++
++static TLSIndex GetCurrentThreadTLSIndex()
++{
++    if (CurrentThreadIndex == TLS_INVALID_INDEX)
++    {
++        CurrentThreadIndex = CreateTLSIndex(nullptr);
++    }
++    return CurrentThreadIndex;
++}
++Thread *GetCurrentThreadTLS()
++{
++    TLSIndex index = GetCurrentThreadTLSIndex();
++    ASSERT(index != TLS_INVALID_INDEX);
++    return static_cast<Thread *>(GetTLSValue(index));
++}
++void SetCurrentThreadTLS(Thread *thread)
++{
++    TLSIndex index = GetCurrentThreadTLSIndex();
++    ASSERT(index != TLS_INVALID_INDEX);
++    SetTLSValue(index, thread);
++}
+ #else
+ static thread_local Thread *gCurrentThread = nullptr;
+@@ -240,5 +267,7 @@ void DeallocateGlobalMutex(std::atomic<angle::GlobalMutex *> &mutex)
+ void DeallocateCurrentThread()
+ {
+-    SafeDelete(gCurrentThread);
++    Thread *currentThread = GetCurrentThreadTLS();
++    SafeDelete(currentThread);
++    SetCurrentThreadTLS(nullptr);
+ }

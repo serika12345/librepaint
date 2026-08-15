@@ -44,6 +44,7 @@ pkgs.stdenv.mkDerivation {
     "${patchDirectory}/02-patches_krita/0019-Add-resource-files-for-DLL-identification.patch"
     "${patchDirectory}/0001-D3D11-Fix-uniform-setting-for-mat3-followed-by-float.diff"
     "${patchDirectory}/0001-Add-a-switch-to-enable-debugging-output.patch"
+    ./angle-windows-native-tls.patch
   ];
 
   postPatch = ''
