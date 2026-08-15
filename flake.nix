@@ -1198,7 +1198,7 @@
             export KRITA_IOS_REPO_ROOT="$LIBREPAINT_IOS_REPO_ROOT"
             export KRITA_IOS_BUILD_ROOT="$LIBREPAINT_IOS_BUILD_ROOT"
             export KRITA_IOS_LOG_ROOT="$LIBREPAINT_IOS_LOG_ROOT"
-            echo "iPadOS development shell"
+            echo "iOS development shell"
             echo "  host check: packaging/ios/scripts/check-host.sh"
             echo "  smoke test: packaging/ios/scripts/build-smoke.sh device"
           '';

@@ -14,7 +14,7 @@ LibrePaintは、Krita由来のコードベースを独立して開発・保守�
 | 項目 | 方針 |
 |---|---|
 | 製品の範囲 | 共通コンポーネントとプラットフォーム固有コンポーネントを持つ一つのアプリケーションとしてLibrePaintを開発・保守する |
-| 対象プラットフォーム | Windows、macOS、Linux、Android（ChromeOS上のAndroid環境を含む）、iPadOS、およびKrita／Qtコードベースで対応可能な追加ターゲット |
+| 対象プラットフォーム | Windows、macOS、Linux、Android（ChromeOS上のAndroid環境を含む）、iOS／iPadOS、およびKrita／Qtコードベースで対応可能な追加ターゲット |
 | 共通開発 | 適切な機能とユーザー体験は共通コードで実装し、必要な箇所だけ各プラットフォーム固有の統合を行う |
 | 互換性 | 作品、リソース、安定した技術識別子を意図的に維持し、互換性のない変更は明示する |
 | 配布目標 | 各プラットフォームに適したビルド、パッケージ化、検証、提供経路を整備する |
@@ -25,13 +25,13 @@ LibrePaintは、Krita由来のコードベースを独立して開発・保守�
 
 | プラットフォーム | 現在のリポジトリ上の状態 | 現在の検証状況 |
 |---|---|---|
-| iPadOS | 固定済みNix／Xcode環境、未署名IPA生成、AltStore／LiveContainer配備経路 | もっとも開発が進んでいる対象。iPadOS 17以降のarm64実機で詳細に検証中 |
+| iOS／iPadOS | 固定済みNix／Xcode環境、iPhone・iPad共通の未署名IPA生成、AltStore／LiveContainer配備経路 | IPAのメタデータとパッケージはiOS／iPadOS 17以降のarm64 iPhone・iPadに対応。詳細な実機検証は現在iPadで実施 |
 | Android／ChromeOS | LibrePaint APK構成と[ローカルビルドガイド](README.android.md) | 次の課題は依存関係のプレフィックスの準備とエンドツーエンドの実機検証 |
 | Linux | Nixの依存関係、完成ビルド、AppImageレシピと[ローカルAppImageスクリプトおよびガイド](packaging/linux/appimage/README.md) | 次の課題はランタイム動作、公開経路、署名の検証 |
 | macOS | LibrePaintアプリバンドルのNixレシピと既存のDMGパッケージング経路 | nixpkgsのLLVMツールチェーンとSDKによるarm64クリーンビルドとアプリケーション起動を確認済み。次は対話型ユーザーインターフェースと配布工程を検証 |
 | Windows | x86_64 Linuxから64ビットWindows向けの可搬ディレクトリーとZIPアーカイブをクロスビルドするNixレシピ。[依存構造TODO](docs/windows/TODO.md)で標準パッケージへの移行を管理 | 次の課題はWindowsでの動作、インストーラー、署名、エンドツーエンド検証 |
 
-現在のiOS対応範囲はiPadです。ほかのAppleフォームファクターや追加プラットフォームについては、それぞれのユーザーインターフェース、ビルド、パッケージング、実機検証を経て対応状況を更新します。
+現在のiOSアプリとIPAはiPhone・iPadの両方を対象にします。iPhoneでは既存のiPad向け画面をそのまま使用し、iPhone向けの画面調整は現行のインストール対応に含めません。
 
 既存のCMakeターゲット、設定ディレクトリ、KRAのMIME／UTI、プラグインID、アクションIDは互換性契約として維持します。
 
@@ -93,7 +93,7 @@ iOS向けのメモリーポリシーとして、タイル予算は物理RAMの25
 
 ### 現行iPadOSプロファイル
 
-現在のiPadOSワークストリームは、iPad向けタッチ操作画面とAltStore／LiveContainerによるローカル配備を対象とします。iPhone向けの画面調整、App Store配布、製品版署名は、それぞれ独立したプラットフォーム作業として扱います。
+現在のiOSワークストリームは、既存のiPad向けタッチ操作画面をそのまま使用し、AltStoreによるiPhone・iPadへのローカル配備に対応します。iPhone向けの画面調整、App Store配布、製品版署名は、それぞれ独立したプラットフォーム作業として扱います。
 
 自己完結したビルドは、描画、同梱リソース、ローカルファイルのワークフローを中心に構成しています。次の統合機能は現行iPadOSプロファイルの範囲外です。
 
@@ -207,7 +207,7 @@ nix build .#librepaint-windows-archive
 
 このレシピは、Python／PyQtスクリプト、Qt Quick／QML画面、PDFインポート、G'MIC、KSeExpr、FFTW、OpenColorIO、MLT／SDLによる音声・映像対応、FFmpeg／FFprobe、DrMingwのクラッシュ記録、HDR画面情報、およびGIF、HEIF、JPEG XL、TIFF、WebPの各ワークフローを含む、upstreamのWindows版と同等の機能一式を有効にします。
 
-### iPadOSのビルドとローカル配備
+### iOS／iPadOSのビルドとローカル配備
 
 すべてのコマンドは、リポジトリのルートから実行してください。通常のソース編集では、固定済みNix環境とフィンガープリントごとの永続Ninjaビルドツリーを使うインクリメンタルワークフローを推奨します。
 
@@ -225,17 +225,17 @@ nix build .#librepaint-windows-archive
 | Apple Clang | 21.0.0 (`2100.1.1.101`) |
 | Qt | 6.11.1 |
 | KDE Frameworks／ECM | 6.28.0 |
-| デプロイメントターゲット | iPadOS 17.0 |
+| デプロイメントターゲット | iOS／iPadOS 17.0 |
 | アーキテクチャ | arm64 |
 
-`iPhoneOS SDK`はAppleのSDK名であり、現在のバンドルはiPad向けです。通常の開発では固定バージョンを維持し、バージョン更新は別の検証作業として扱います。
+バンドルはAppleの`iPhoneOS` SDKを使用し、iPhoneとiPadの両方を対象にします。通常の開発では固定バージョンを維持し、バージョン更新は別の検証作業として扱います。
 
 #### 前提環境
 
 - `/Applications/Xcode.app`に上表のXcodeがインストールされているApple Silicon搭載Mac
 - Nix 2.31以降とフレークを利用できるNixデーモン
-- AltStoreで自動配備する場合は、iPadOS 17以降のiPad、USB接続、ロック解除、Macへの信頼設定、開発者モード
-- AltStoreで自動配備する場合は、Mac上のAltServer、iPad上で設定済みのAltStore、必要なローカル開発用署名環境、およびMacとiPad間のローカルネットワーク接続
+- AltStoreで自動配備する場合は、iOS／iPadOS 17以降のiPhoneまたはiPad、USB接続、ロック解除、Macへの信頼設定、開発者モード
+- AltStoreで自動配備する場合は、Mac上のAltServer、端末上で設定済みのAltStore、必要なローカル開発用署名環境、およびMacと端末間のローカルネットワーク接続
 - LiveContainerでインストールする場合は、iPadにLiveContainerがインストール・設定済みであること。実機確認済みのiOS 26構成ではJITなしモードを使用
 
 Nixデーモンではサンドボックスを有効、フォールバックを無効にし、Xcodeだけを明示的な外部ホスト依存関係として許可します。検証済みのnix-darwin設定は次のとおりです。
@@ -251,7 +251,7 @@ nix.settings.extra-allowed-impure-host-deps = [
 `sandbox-paths`にはXcodeを含めません。次のコマンドで環境を検査します。
 
 ```sh
-nix develop --command packaging/ios/scripts/check-host.sh
+nix develop .#librepaint-ios --command packaging/ios/scripts/check-host.sh
 ```
 
 このチェックでは、Xcode、SDK、Clang、Nix、CMakeなどのバージョンに加え、Nixデーモンのサンドボックスポリシーも検証します。
@@ -301,7 +301,7 @@ nix build .#librepaint-ios-ipa \
 成果物は次の場所に生成されます。
 
 - `build-ios/nix-results/librepaint-ios-app/LibrePaint.app`
-- `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`
+- `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iOS-unsigned.ipa`
 
 `librepaint-ios-ipa`は必要なアプリと依存関係も自動的に構築します。生成されるIPAは未署名です。署名情報、プロビジョニングプロファイル、Apple ID、デバイス認証情報はリポジトリの外で管理してください。
 
@@ -325,14 +325,14 @@ xcrun devicectl list devices
 
 #### LiveContainerで実機へインストール
 
-再現可能な未署名IPA `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`は、LiveContainerへインポートして利用することもできます。パッケージングワークフローは、LiveContainerがアプリバンドルへパッチを適用し、起動、クリーンアップするために必要なアーカイブ権限を正規化します。LiveContainerのiOS 26 JITなしモードを使用した新規インポートと起動を実機で確認済みです。
+再現可能な未署名IPA `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iOS-unsigned.ipa`は、LiveContainerへインポートして利用することもできます。パッケージングワークフローは、LiveContainerがアプリバンドルへパッチを適用し、起動、クリーンアップするために必要なアーカイブ権限を正規化します。LiveContainerのiOS 26 JITなしモードを使用した新規インポートと起動をiPad実機で確認済みです。
 
 以前の失敗したインポートにより、LiveContainer内へ読み取り専用の一時`Payload`が残ることがあります。この古い状態によるエラーが発生した場合は、必要なアプリデータを保護し、影響を受けたLiveContainerの状態をクリーンアップまたはリセットしてから修正版IPAをインポートしてください。正確なクリーンアップ画面の実機確認が残る復旧項目です。現在のアーカイブ権限と復旧上の注意は[`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md)を参照してください。
 
 #### シミュレーターのスモークテスト
 
 ```sh
-nix develop --command packaging/ios/scripts/build-smoke.sh simulator
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-smoke.sh simulator
 ```
 
 このスモークテストはObjective-C++、UIKit、SDK、デプロイメントターゲット、バンドルメタデータを診断します。ランタイムの受け入れ確認には実機試験を使用します。
@@ -351,7 +351,7 @@ nix develop --command packaging/ios/scripts/build-smoke.sh simulator
 | [`docs/ios/README.md`](docs/ios/README.md) | ツールチェーン、依存関係ビルド、キャッシュ設計の詳細 |
 | [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) | AltStore配備、IPA権限、LiveContainerインポート時の注意事項 |
 | [`packaging/ios/versions.env`](packaging/ios/versions.env) | 固定バージョンとデプロイメントターゲット |
-| [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) | iPad向け静的プラグインプロファイル |
+| [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) | iOS／iPadOS向け静的プラグインプロファイル |
 | `build-ios/` | アプリ、IPA、インクリメンタルビルドツリー、Nixプロファイル |
 | `logs/ios/` | タイムスタンプ付きビルドログ |
 

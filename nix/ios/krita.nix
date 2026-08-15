@@ -373,8 +373,14 @@ mkIOSCMakePackage {
         "LSRequiresIPhoneOS": True,
         "LSSupportsOpeningDocumentsInPlace": True,
         "MinimumOSVersion": "${toolchain.deploymentTarget}",
-        "UIDeviceFamily": [2],
+        "UIDeviceFamily": [1, 2],
         "UIFileSharingEnabled": True,
+        "UISupportedInterfaceOrientations~iphone": [
+            "UIInterfaceOrientationPortrait",
+            "UIInterfaceOrientationPortraitUpsideDown",
+            "UIInterfaceOrientationLandscapeLeft",
+            "UIInterfaceOrientationLandscapeRight",
+        ],
     }
     for key, value in expected.items():
         if info.get(key) != value:
@@ -456,7 +462,7 @@ mkIOSCMakePackage {
   };
 
   meta = {
-    description = "Unsigned LibrePaint application bundle for arm64 iPadOS";
+    description = "Unsigned LibrePaint application bundle for arm64 iOS and iPadOS";
     license = lib.licenses.gpl3Plus;
   };
 }

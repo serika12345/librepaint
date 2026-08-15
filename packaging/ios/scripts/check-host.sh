@@ -128,7 +128,7 @@ if [[ "${KRITA_IOS_ALLOW_UNVALIDATED_HOST:-0}" == "1" ]]; then
     echo "warning: version mismatches were allowed by KRITA_IOS_ALLOW_UNVALIDATED_HOST=1" >&2
 fi
 
-echo "LibrePaint iPadOS host"
+echo "LibrePaint iOS host"
 echo "  Xcode:       $xcode_version ($xcode_build_version)"
 echo "  iPhoneOS:    $sdk_version ($sdk_build_version)"
 echo "  Simulator:   $simulator_sdk_version"
@@ -138,7 +138,7 @@ echo "  Sandbox:     $nix_sandbox (fallback $nix_sandbox_fallback)"
 echo "  Xcode scope: explicit impure host dependency only"
 echo "  CMake:       $cmake_version"
 echo "  Compiler:    $clang_version"
-echo "  Deployment:  iPadOS $KRITA_IOS_DEPLOYMENT_TARGET"
+echo "  Deployment:  iOS/iPadOS $KRITA_IOS_DEPLOYMENT_TARGET"
 echo "  Architecture:$KRITA_IOS_ARCHITECTURE"
 
 if (( failures > 0 || policy_failures > 0 )); then

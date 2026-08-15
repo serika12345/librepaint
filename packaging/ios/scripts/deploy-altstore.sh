@@ -91,16 +91,21 @@ for bundle_contract in \
         exit 1
     fi
 done
+device_family="$(plutil -extract UIDeviceFamily json -o - "$app_path/Info.plist" 2>/dev/null || true)"
+if [[ "$device_family" != "[1,2]" ]]; then
+    echo "error: LibrePaint Info.plist UIDeviceFamily is '$device_family'; expected iPhone and iPad ([1,2])" >&2
+    exit 1
+fi
 for document_key in UIFileSharingEnabled LSSupportsOpeningDocumentsInPlace; do
     if [[ "$(plutil -extract "$document_key" raw -o - "$app_path/Info.plist" 2>/dev/null || true)" != "true" ]]; then
-        echo "error: iPadOS document access is not enabled in Info.plist: $document_key" >&2
+        echo "error: iOS document access is not enabled in Info.plist: $document_key" >&2
         exit 1
     fi
 done
 document_types="$(plutil -extract CFBundleDocumentTypes xml1 -o - "$app_path/Info.plist" 2>/dev/null || true)"
 for document_type in org.krita.kra org.krita.openraster public.png public.jpeg; do
     if ! grep -Fq "$document_type" <<<"$document_types"; then
-        echo "error: iPadOS document type is missing from Info.plist: $document_type" >&2
+        echo "error: iOS document type is missing from Info.plist: $document_type" >&2
         exit 1
     fi
 done
@@ -196,7 +201,7 @@ chmod 0755 "$stage_dir/Payload"
 
 output_dir="$repo_root/build-ios/deploy"
 mkdir -p "$output_dir"
-ipa_name="LibrePaint-iPad-${bundle_version}.ipa"
+ipa_name="LibrePaint-iOS-${bundle_version}.ipa"
 ipa_path="$output_dir/$ipa_name"
 staged_ipa="$stage_dir/$ipa_name"
 entry_list="$stage_dir/ipa-entries"
@@ -288,7 +293,7 @@ fi
 echo "installed: $installed_bundle_id ($bundle_version)"
 xcrun devicectl device process launch --device "$device_id" --terminate-existing "$installed_bundle_id"
 
-launch_log="$output_dir/LibrePaint-iPad-${bundle_version}-librepaint.log"
+launch_log="$output_dir/LibrePaint-iOS-${bundle_version}-librepaint.log"
 sleep "${KRITA_IOS_LAUNCH_SETTLE_SECONDS:-5}"
 if xcrun devicectl device copy from \
     --device "$device_id" \

@@ -54,7 +54,7 @@ stdenvNoCC.mkDerivation {
         find Payload -type f -print
       } | LC_ALL=C sort > "$entry_list"
       ZIPOPT= ZIP= zip -nw -MM -X -9 -q \
-        "$out/LibrePaint-iPad-unsigned.ipa" -@ < "$entry_list"
+        "$out/LibrePaint-iOS-unsigned.ipa" -@ < "$entry_list"
     )
 
     runHook postInstall
@@ -64,7 +64,7 @@ stdenvNoCC.mkDerivation {
   installCheckPhase = ''
         runHook preInstallCheck
 
-        ipa="$out/LibrePaint-iPad-unsigned.ipa"
+        ipa="$out/LibrePaint-iOS-unsigned.ipa"
         unzip -tq "$ipa"
 
         ${python3}/bin/python3 ${./ipa-permissions.py} check-ipa "$ipa" \
@@ -127,7 +127,7 @@ stdenvNoCC.mkDerivation {
   };
 
   meta = {
-    description = "Deterministic unsigned LibrePaint IPA for arm64 iPadOS";
+    description = "Deterministic unsigned LibrePaint IPA for arm64 iOS and iPadOS";
     license = lib.licenses.gpl3Plus;
     platforms = [ "aarch64-darwin" ];
   };

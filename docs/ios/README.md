@@ -128,7 +128,7 @@ nix build .#librepaint-ios-ipa \
 
 The artifacts are
 `build-ios/nix-results/librepaint-ios-app/LibrePaint.app` and
-`build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`. The app
+`build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iOS-unsigned.ipa`. The app
 derivation builds the 50-target initial static-plugin profile, installs the
 runtime resource tree into the bundle, and rejects the wrong architecture,
 Apple platform, deployment target, SDK, bundle metadata, signing state, or a
@@ -183,8 +183,8 @@ an unsigned inspection bundle; device signing and installation belong to the
 deployment workflow.
 
 ```sh
-nix develop --command packaging/ios/scripts/build-smoke.sh device
-nix develop --command packaging/ios/scripts/build-smoke.sh simulator
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-smoke.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-smoke.sh simulator
 ```
 
 For normal device development, use the source-independent Nix environment and
@@ -232,8 +232,8 @@ With only the platform argument, the script builds every dependency currently
 present in the manifest:
 
 ```sh
-nix develop --command packaging/ios/scripts/build-dependencies.sh device harfbuzz
-nix develop --command packaging/ios/scripts/build-dependencies.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-dependencies.sh device harfbuzz
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-dependencies.sh device
 ```
 
 Device and Simulator use separate source-independent prefixes. Every installed
@@ -243,7 +243,7 @@ metadata. A stale or host archive is rejected before its build stamp is written.
 Link the completed core subset into a single unsigned iOS application:
 
 ```sh
-nix develop --command packaging/ios/scripts/probe-dependencies.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/probe-dependencies.sh device
 ```
 
 The dependency graph and package-specific options are defined in
@@ -257,10 +257,10 @@ dependencies first, then Qt, then rerun the dependency builder so it can add
 Qt-dependent packages such as QuaZip:
 
 ```sh
-nix develop --command packaging/ios/scripts/build-dependencies.sh device
-nix develop --command packaging/ios/scripts/build-qt.sh device
-nix develop --command packaging/ios/scripts/build-dependencies.sh device
-nix develop --command packaging/ios/scripts/probe-qt.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-dependencies.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-qt.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-dependencies.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/probe-qt.sh device
 ```
 
 `build-qt.sh` fingerprints the locked source outputs, Xcode/SDK matrix, and
@@ -268,7 +268,7 @@ build recipe. A matching build is reused and all installed archives are still
 revalidated. If an input changes, rebuild the isolated Qt target directory:
 
 ```sh
-nix develop --command packaging/ios/scripts/build-qt.sh device --clean
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-qt.sh device --clean
 ```
 
 The Qt probe links Core, Gui, Widgets, Xml, Network, Svg, Concurrent, Sql,
@@ -284,8 +284,8 @@ compiling. The iOS output contains the target libraries, while
 `kconfig_compiler_kf6` runs on the macOS host.
 
 ```sh
-nix develop --command packaging/ios/scripts/build-frameworks.sh device
-nix develop --command packaging/ios/scripts/probe-frameworks.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-frameworks.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/probe-frameworks.sh device
 ```
 
 The framework probe runs the host KConfig generator and links Config,

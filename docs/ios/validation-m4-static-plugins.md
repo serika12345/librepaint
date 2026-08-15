@@ -13,7 +13,7 @@ dead-stripping on a physical iPad before expanding the profile.
 At the M4 foundation gate, the eight-plugin artifact below was produced with:
 
 ```sh
-nix develop --command packaging/ios/scripts/configure-krita.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/configure-krita.sh device
 nix develop --command cmake --build --preset ios-device --parallel 8
 ```
 

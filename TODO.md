@@ -28,7 +28,7 @@
 - 実機起動に必要な開発署名はAltStoreに任せる。署名情報はリポジトリの外で管理し、公証は現行workstreamの配備工程に含めない。
 - 初期iPadOS profileは主要描画機能とlocal file workflowに集中する。Python/PyQt、G'MIC、動画・音声、印刷、自動更新、外部プロセス依存機能は現行workstreamの範囲外とする。
 - ブラシ、ツール、画像入出力、DockerなどKrita本体機能を構成する内部プラグインは、iPadOS profileで選択して静的リンクする。外部拡張機能はiPadOS profileと分離して扱う。
-- 現行の配備範囲はAltStore／LiveContainerによるlocal sideloadとiPad向けUIで構成する。App Store、公式代替マーケットプレイス、一般配布、iPhone UIは独立したplatform workとして扱う。
+- 現行の配備範囲はAltStore／LiveContainerによるlocal sideloadで構成し、共通IPAはiPhoneとiPadを対象にする。iPhoneでは既存のiPad向けUIをそのまま使用する。App Store、公式代替マーケットプレイス、一般配布、iPhone向けUI調整は独立したplatform workとして扱う。
 
 ## 優先度
 

@@ -40,7 +40,7 @@
     },
     {
       "name": "ios-device",
-      "displayName": "LibrePaint iPadOS device",
+      "displayName": "LibrePaint iOS device",
       "inherits": "ios-common",
       "binaryDir": "${sourceDir}/build-ios/krita/device-ninja",
       "cacheVariables": {
@@ -49,7 +49,7 @@
     },
     {
       "name": "ios-simulator",
-      "displayName": "LibrePaint iPadOS simulator",
+      "displayName": "LibrePaint iOS simulator",
       "inherits": "ios-common",
       "binaryDir": "${sourceDir}/build-ios/krita/simulator-ninja",
       "cacheVariables": {

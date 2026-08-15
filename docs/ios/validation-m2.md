@@ -59,13 +59,13 @@ and Poppler remain explicitly deferred P2 dependencies.
 ## Commands and results
 
 ```sh
-nix develop --command packaging/ios/scripts/build-dependencies.sh device
-nix develop --command packaging/ios/scripts/build-qt.sh device
-nix develop --command packaging/ios/scripts/build-dependencies.sh device
-nix develop --command packaging/ios/scripts/probe-dependencies.sh device
-nix develop --command packaging/ios/scripts/probe-qt.sh device
-nix develop --command packaging/ios/scripts/build-frameworks.sh device
-nix develop --command packaging/ios/scripts/probe-frameworks.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-dependencies.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-qt.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-dependencies.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/probe-dependencies.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/probe-qt.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/build-frameworks.sh device
+nix develop .#librepaint-ios --command packaging/ios/scripts/probe-frameworks.sh device
 ```
 
 The dependency probe compiled and linked the non-Qt C/C++ target libraries into

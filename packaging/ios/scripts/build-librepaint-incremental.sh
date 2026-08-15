@@ -447,6 +447,11 @@ build_target() {
             exit 1
         fi
     done
+    actual="$(/usr/bin/plutil -extract UIDeviceFamily json -o - "$plist" 2>/dev/null || true)"
+    if [[ "$actual" != "[1,2]" ]]; then
+        echo "error: LibrePaint Info.plist UIDeviceFamily is '$actual'; expected iPhone and iPad ([1,2])" >&2
+        exit 1
+    fi
     python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py" \
         --binary "$binary" \
         --build-ninja "$build_dir/build.ninja"

@@ -36,7 +36,7 @@ configuration=RelWithDebInfo
 
 "$scripts_dir/run-logged.sh" "smoke-$mode-build" \
     cmake --build "$build_dir" --config "$configuration" -- \
-    -sdk "$sdk" CODE_SIGNING_ALLOWED=NO
+    -sdk "$sdk" CODE_SIGNING_ALLOWED=NO SDK_STAT_CACHE_ENABLE=NO
 
 binary="$build_dir/$configuration-$sdk/KritaIOSSmoke.app/KritaIOSSmoke"
 "$scripts_dir/inspect-apple-binary.sh" "$mode" "$binary"

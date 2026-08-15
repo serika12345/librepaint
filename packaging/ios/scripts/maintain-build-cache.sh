@@ -49,20 +49,25 @@ fi
 
 # IPA files are reproducible deployment artifacts. Keep the newest few, while
 # retaining logs and screenshots used for device debugging. Treat the legacy
-# Krita prefix and the current LibrePaint prefix as one history. Sorting by the
-# shared bundle-version suffix keeps the existing name/date policy independent
-# of the product-name migration; the full path is a deterministic tie-breaker.
+# iPad-only names and the current universal iOS name as one history. Sorting by
+# the shared bundle-version suffix keeps the existing name/date policy independent
+# of the product and platform-name migrations; the full path is a deterministic
+# tie-breaker.
 ipa_files=()
 if [[ -d "$deploy_dir" ]]; then
     while IFS=$'\t' read -r _ ipa; do
         ipa_files+=("$ipa")
     done < <(
         find "$deploy_dir" -maxdepth 1 -type f \
-            \( -name 'Krita-iPad-*.ipa' -o -name 'LibrePaint-iPad-*.ipa' \) \
+            \( -name 'Krita-iPad-*.ipa' -o -name 'LibrePaint-iPad-*.ipa' \
+                -o -name 'LibrePaint-iOS-*.ipa' \) \
             -print \
             | while IFS= read -r ipa; do
                 ipa_name="${ipa##*/}"
-                ipa_sort_key="${ipa_name#LibrePaint-iPad-}"
+                ipa_sort_key="${ipa_name#LibrePaint-iOS-}"
+                if [[ "$ipa_sort_key" == "$ipa_name" ]]; then
+                    ipa_sort_key="${ipa_name#LibrePaint-iPad-}"
+                fi
                 if [[ "$ipa_sort_key" == "$ipa_name" ]]; then
                     ipa_sort_key="${ipa_name#Krita-iPad-}"
                 fi
@@ -85,7 +90,7 @@ fi
 # or cache-deployment closure. bootstrap-ios-dependencies.sh owns that phase.
 #
 # Once normal deployment has resumed, protect everything needed by the active
-# iPad build before collecting dead Nix store paths. This prevents a cleanup
+# iOS build before collecting dead Nix store paths. This prevents a cleanup
 # from turning the next incremental build into a dependency download/rebuild.
 nix_roots="$repo_root/build-ios/nix-roots"
 mkdir -p "$nix_roots"

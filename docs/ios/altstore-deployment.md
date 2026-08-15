@@ -53,9 +53,9 @@ nix build .#librepaint-ios-ipa \
 ```
 
 Select
-`build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iPad-unsigned.ipa`. The
+`build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iOS-unsigned.ipa`. The
 archive is unsigned; AltStore supplies the development signature required by
-iPadOS at installation time.
+iOS or iPadOS at installation time.
 
 The script performs these operations in order:
 

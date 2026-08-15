@@ -12,7 +12,7 @@ At the M3 gate, after completing the M2 dependency, Qt, and framework builds,
 the artifact below was produced with:
 
 ```sh
-nix develop --command packaging/ios/scripts/configure-krita.sh device --build
+nix develop .#librepaint-ios --command packaging/ios/scripts/configure-krita.sh device --build
 ```
 
 The wrapper validated the host matrix, resolved the pinned host Qt Linguist
