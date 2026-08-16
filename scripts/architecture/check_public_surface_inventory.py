@@ -13,10 +13,173 @@ from typing import Any
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIRECTORY.parents[1]
 PLATFORMS = ("macos", "linux", "ios", "android", "windows")
+HEADER_SUFFIXES = frozenset({".h", ".hh", ".hpp"})
+SOURCE_SUFFIXES = HEADER_SUFFIXES | frozenset({".c", ".cc", ".cpp", ".cxx", ".m", ".mm"})
+PRODUCTION_SOURCE_DIRECTORIES = (
+    "krita",
+    "libs",
+    "packaging",
+    "pch",
+    "plugins",
+    "qmlmodules",
+    "sdk",
+    "winquirks",
+)
+TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
+PUBLICATION_EVIDENCE = ("export-macro", "external-include")
+INCLUDE_PATTERN = re.compile(
+    r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
+)
+PUBLIC_HEADER_SET_SPECS = (
+    {
+        "ownerTarget": "kritaimage",
+        "sourceDirectory": "libs/image",
+        "exportMacro": "KRITAIMAGE_EXPORT",
+        "responsibility": (
+            "Records the declared and de facto inter-package header surface "
+            "for image, layer, tile, projection, brush, and stroke state."
+        ),
+        "evidence": ["libs/image/CMakeLists.txt", "libs/image/kis_image_export.h"],
+    },
+    {
+        "ownerTarget": "kritaui",
+        "sourceDirectory": "libs/ui",
+        "exportMacro": "KRITAUI_EXPORT",
+        "responsibility": (
+            "Records the declared and de facto inter-package header surface "
+            "for application, document, canvas, input, tool, and UI coordination."
+        ),
+        "evidence": ["libs/ui/CMakeLists.txt", "libs/ui/kritaui_export_instance.h"],
+    },
+)
 
 
 class PublicSurfaceError(RuntimeError):
     """Raised when the public-surface inventory violates its contract."""
+
+
+def _is_production_source_path(path: PurePosixPath) -> bool:
+    if any(part in TEST_PATH_PARTS for part in path.parts):
+        return False
+    return not path.name.endswith(("_test.cpp", "_test.cc", "_test.cxx"))
+
+
+def _source_files(repository_root: Path) -> list[tuple[str, Path]]:
+    files: list[tuple[str, Path]] = []
+    for directory in PRODUCTION_SOURCE_DIRECTORIES:
+        root = repository_root / directory
+        if not root.is_dir():
+            continue
+        for path in root.rglob("*"):
+            if not path.is_file() or path.suffix not in SOURCE_SUFFIXES:
+                continue
+            relative = path.relative_to(repository_root).as_posix()
+            if _is_production_source_path(PurePosixPath(relative)):
+                files.append((relative, path))
+    return sorted(files)
+
+
+def discover_public_headers(
+    *,
+    repository_root: Path,
+    source_directory: str,
+    export_macro: str,
+) -> list[dict[str, Any]]:
+    """Return the complete declared or used production header surface."""
+
+    source_files = _source_files(repository_root)
+    owner_headers = [
+        (relative, path)
+        for relative, path in source_files
+        if path.suffix in HEADER_SUFFIXES
+        and _path_is_within(relative, source_directory)
+    ]
+    headers_by_name: dict[str, list[str]] = {}
+    for relative, _path in owner_headers:
+        headers_by_name.setdefault(PurePosixPath(relative).name, []).append(relative)
+    repository_headers_by_name: dict[str, list[str]] = {}
+    for relative, path in source_files:
+        if path.suffix in HEADER_SUFFIXES:
+            repository_headers_by_name.setdefault(
+                PurePosixPath(relative).name, []
+            ).append(relative)
+    ambiguous = {
+        name: repository_headers_by_name[name]
+        for name in headers_by_name
+        if len(repository_headers_by_name[name]) != 1
+    }
+    if ambiguous:
+        raise PublicSurfaceError(
+            f"ambiguous header basenames below {source_directory}: {ambiguous}"
+        )
+
+    consumers_by_name: dict[str, set[str]] = {
+        name: set() for name in headers_by_name
+    }
+    for relative, path in source_files:
+        if _path_is_within(relative, source_directory):
+            continue
+        text = path.read_text(encoding="utf-8")
+        for include in INCLUDE_PATTERN.findall(text):
+            name = PurePosixPath(include).name
+            if name in consumers_by_name:
+                consumers_by_name[name].add(relative)
+
+    entries: list[dict[str, Any]] = []
+    export_macros = (
+        export_macro,
+        f"{export_macro}_TEMPLATE",
+        f"{export_macro}_INSTANCE",
+    )
+    for relative, path in owner_headers:
+        name = PurePosixPath(relative).name
+        text = path.read_text(encoding="utf-8")
+        consumers = sorted(consumers_by_name[name])
+        publication_evidence = []
+        if any(
+            re.search(rf"\b{re.escape(macro)}\b", text)
+            for macro in export_macros
+        ):
+            publication_evidence.append("export-macro")
+        if consumers:
+            publication_evidence.append("external-include")
+        if publication_evidence:
+            entries.append(
+                {
+                    "path": relative,
+                    "publicationEvidence": publication_evidence,
+                    "consumerPaths": consumers,
+                }
+            )
+    return entries
+
+
+def public_header_policy() -> dict[str, Any]:
+    return {
+        "headerSuffixes": sorted(HEADER_SUFFIXES),
+        "sourceSuffixes": sorted(SOURCE_SUFFIXES),
+        "productionSourceDirectories": list(PRODUCTION_SOURCE_DIRECTORIES),
+        "excludedPathParts": sorted(TEST_PATH_PARTS),
+        "excludedFileSuffixes": ["_test.cc", "_test.cpp", "_test.cxx"],
+        "publicationEvidence": list(PUBLICATION_EVIDENCE),
+    }
+
+
+def build_public_header_sets(repository_root: Path) -> list[dict[str, Any]]:
+    sets: list[dict[str, Any]] = []
+    for spec in PUBLIC_HEADER_SET_SPECS:
+        sets.append(
+            {
+                **spec,
+                "platforms": list(PLATFORMS),
+                "headers": discover_public_headers(
+                    repository_root=repository_root,
+                    source_directory=spec["sourceDirectory"],
+                    export_macro=spec["exportMacro"],
+                ),
+            }
+        )
+    return sets
 
 
 def _load_json(path: Path, description: str) -> dict[str, Any]:
@@ -262,13 +425,219 @@ def _validate_consumer_evidence(
         )
 
 
-def _validate_public_headers(
+def _validate_public_header_sets(
     inventory: dict[str, Any],
     *,
     repository_root: Path,
     targets_by_platform: dict[str, dict[str, dict[str, Any]]],
 ) -> dict[str, dict[str, Any]]:
-    entries = _require_array(inventory.get("publicHeaders"), "publicHeaders")
+    if inventory.get("publicHeaderPolicy") != public_header_policy():
+        raise PublicSurfaceError(
+            "publicHeaderPolicy must match the repository discovery policy"
+        )
+
+    entries = _require_array(
+        inventory.get("publicHeaderSets"), "publicHeaderSets"
+    )
+    expected_specs = {spec["ownerTarget"]: spec for spec in PUBLIC_HEADER_SET_SPECS}
+    owners: list[str] = []
+    by_path: dict[str, dict[str, Any]] = {}
+    expected_fields = {
+        "ownerTarget",
+        "sourceDirectory",
+        "exportMacro",
+        "platforms",
+        "headers",
+        "responsibility",
+        "evidence",
+    }
+    for index, item in enumerate(entries):
+        entry = _require_object(item, f"public header set {index}")
+        _require_fields(entry, expected_fields, f"public header set {index}")
+        owner_target = _require_string(
+            entry.get("ownerTarget"), f"owner target for public header set {index}"
+        )
+        description = f"public header set {owner_target}"
+        spec = expected_specs.get(owner_target)
+        if spec is None:
+            raise PublicSurfaceError(
+                f"{description}: target is outside the complete R1-G2b scope"
+            )
+        source_directory = _require_string(
+            entry.get("sourceDirectory"), f"source directory for {description}"
+        )
+        export_macro = _require_string(
+            entry.get("exportMacro"), f"export macro for {description}"
+        )
+        if source_directory != spec["sourceDirectory"]:
+            raise PublicSurfaceError(
+                f"{description}: source directory must be {spec['sourceDirectory']}"
+            )
+        if export_macro != spec["exportMacro"]:
+            raise PublicSurfaceError(
+                f"{description}: export macro must be {spec['exportMacro']}"
+            )
+        source_path = PurePosixPath(source_directory)
+        if (
+            source_path.is_absolute()
+            or ".." in source_path.parts
+            or source_path.as_posix() != source_directory
+            or not (repository_root / source_directory).is_dir()
+        ):
+            raise PublicSurfaceError(
+                f"{description}: invalid source directory {source_directory}"
+            )
+        platforms = _platforms(
+            entry.get("platforms"), f"platforms for {description}"
+        )
+        _require_string(
+            entry.get("responsibility"), f"responsibility for {description}"
+        )
+        cmake_path = f"{source_directory}/CMakeLists.txt"
+        _validate_evidence(
+            entry.get("evidence"),
+            repository_root=repository_root,
+            description=description,
+            required_paths={cmake_path},
+        )
+
+        headers = _require_array(entry.get("headers"), f"headers for {description}")
+        header_paths: list[str] = []
+        recorded_by_path: dict[str, dict[str, Any]] = {}
+        for header_index, header_item in enumerate(headers):
+            header = _require_object(
+                header_item, f"header {header_index} for {description}"
+            )
+            _require_fields(
+                header,
+                {"path", "publicationEvidence", "consumerPaths"},
+                f"header {header_index} for {description}",
+            )
+            path, _resolved = _repository_file(
+                repository_root,
+                header.get("path"),
+                f"header path {header_index} for {description}",
+            )
+            if (
+                PurePosixPath(path).suffix not in HEADER_SUFFIXES
+                or not _path_is_within(path, source_directory)
+                or not _is_production_source_path(PurePosixPath(path))
+            ):
+                raise PublicSurfaceError(
+                    f"{description}: invalid production header path {path}"
+                )
+            publication_evidence = _require_array(
+                header.get("publicationEvidence"),
+                f"publication evidence for {path}",
+            )
+            expected_order = [
+                value for value in PUBLICATION_EVIDENCE if value in publication_evidence
+            ]
+            if not publication_evidence or publication_evidence != expected_order:
+                raise PublicSurfaceError(
+                    f"publication evidence for {path} must be unique and ordered as "
+                    f"{list(PUBLICATION_EVIDENCE)}"
+                )
+            consumer_values = _require_array(
+                header.get("consumerPaths"), f"consumer paths for {path}"
+            )
+            consumer_paths = [
+                _repository_file(
+                    repository_root,
+                    consumer,
+                    f"consumer path for {path}",
+                )[0]
+                for consumer in consumer_values
+            ]
+            if consumer_paths != sorted(set(consumer_paths)):
+                raise PublicSurfaceError(
+                    f"consumer paths for {path} must be sorted and unique"
+                )
+            for consumer in consumer_paths:
+                consumer_path = PurePosixPath(consumer)
+                if (
+                    consumer_path.suffix not in SOURCE_SUFFIXES
+                    or _path_is_within(consumer, source_directory)
+                    or not _is_production_source_path(consumer_path)
+                ):
+                    raise PublicSurfaceError(
+                        f"{description}: invalid external consumer path {consumer} "
+                        f"for {path}"
+                    )
+            header_paths.append(path)
+            recorded_by_path[path] = header
+        if header_paths != sorted(set(header_paths)):
+            raise PublicSurfaceError(
+                f"headers for {description} must be sorted and unique by path"
+            )
+
+        expected_headers = discover_public_headers(
+            repository_root=repository_root,
+            source_directory=source_directory,
+            export_macro=export_macro,
+        )
+        expected_by_path = {header["path"]: header for header in expected_headers}
+        missing = sorted(set(expected_by_path) - set(recorded_by_path))
+        unexpected = sorted(set(recorded_by_path) - set(expected_by_path))
+        if missing or unexpected:
+            raise PublicSurfaceError(
+                f"{description} does not match discovered candidates; "
+                f"missing={missing}, unexpected={unexpected}"
+            )
+        for path in header_paths:
+            expected = expected_by_path[path]
+            if recorded_by_path[path] != expected:
+                raise PublicSurfaceError(
+                    f"recorded publication evidence or consumers for {path} "
+                    "do not match source discovery"
+                )
+
+        _validate_owner(
+            owner_target=owner_target,
+            platforms=platforms,
+            owned_paths=[cmake_path, *header_paths],
+            description=description,
+            targets_by_platform=targets_by_platform,
+        )
+        for platform in platforms:
+            target_source = _require_string(
+                targets_by_platform[platform][owner_target].get("sourceDirectory"),
+                f"source directory for {owner_target} on {platform}",
+            )
+            if target_source != source_directory:
+                raise PublicSurfaceError(
+                    f"{description}: {platform} target source directory is "
+                    f"{target_source}, not {source_directory}"
+                )
+        for path in header_paths:
+            if path in by_path:
+                raise PublicSurfaceError(
+                    f"public header is owned by multiple sets: {path}"
+                )
+            by_path[path] = {
+                "ownerTarget": owner_target,
+                "exportMacro": export_macro,
+                "platforms": platforms,
+            }
+        owners.append(owner_target)
+
+    if owners != sorted(expected_specs):
+        raise PublicSurfaceError(
+            f"publicHeaderSets must contain {sorted(expected_specs)} in owner order"
+        )
+    return by_path
+
+
+def _validate_public_headers(
+    inventory: dict[str, Any],
+    *,
+    repository_root: Path,
+    targets_by_platform: dict[str, dict[str, dict[str, Any]]],
+    complete_public_headers: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    entries = _require_array(
+        inventory.get("publicHeaderDetails"), "publicHeaderDetails"
+    )
     normalized: list[str] = []
     by_path: dict[str, dict[str, Any]] = {}
     expected_fields = {
@@ -306,6 +675,16 @@ def _validate_public_headers(
             description=description,
             targets_by_platform=targets_by_platform,
         )
+        complete_header = complete_public_headers.get(path)
+        if complete_header is None:
+            raise PublicSurfaceError(
+                f"{description}: header is absent from the complete public header sets"
+            )
+        for field in ("ownerTarget", "exportMacro", "platforms"):
+            if entry[field] != complete_header[field]:
+                raise PublicSurfaceError(
+                    f"{description}: {field} does not match its complete header set"
+                )
         if re.search(rf"\b{re.escape(export_macro)}\b", resolved.read_text(encoding="utf-8")) is None:
             raise PublicSurfaceError(
                 f"{description}: export macro {export_macro} was not found"
@@ -326,7 +705,9 @@ def _validate_public_headers(
         normalized.append(path)
         by_path[path] = entry
     if normalized != sorted(set(normalized)):
-        raise PublicSurfaceError("publicHeaders must be sorted and unique by path")
+        raise PublicSurfaceError(
+            "publicHeaderDetails must be sorted and unique by path"
+        )
     return by_path
 
 
@@ -540,18 +921,31 @@ def validate_inventory(
             "schemaVersion",
             "scope",
             "platforms",
-            "publicHeaders",
+            "publicHeaderPolicy",
+            "publicHeaderSets",
+            "publicHeaderDetails",
             "majorClasses",
             "plugins",
         },
         "public-surface inventory",
     )
-    if inventory.get("schemaVersion") != 1:
-        raise PublicSurfaceError("public-surface inventory schemaVersion must be 1")
-    if inventory.get("scope") not in {"representative", "complete"}:
+    if inventory.get("schemaVersion") != 2:
+        raise PublicSurfaceError("public-surface inventory schemaVersion must be 2")
+    scope = _require_object(inventory.get("scope"), "inventory scope")
+    _require_fields(
+        scope,
+        {"publicHeaders", "majorClasses", "plugins"},
+        "inventory scope",
+    )
+    if scope.get("publicHeaders") != "complete":
         raise PublicSurfaceError(
-            "public-surface inventory scope must be representative or complete"
+            "public header inventory scope must be complete"
         )
+    for section in ("majorClasses", "plugins"):
+        if scope.get(section) not in {"representative", "complete"}:
+            raise PublicSurfaceError(
+                f"inventory scope for {section} must be representative or complete"
+            )
     if _platforms(inventory.get("platforms"), "inventory platforms") != list(
         PLATFORMS
     ):
@@ -560,10 +954,16 @@ def validate_inventory(
         )
 
     targets_by_platform = _load_target_graphs(graph_directory)
+    complete_public_headers = _validate_public_header_sets(
+        inventory,
+        repository_root=repository_root,
+        targets_by_platform=targets_by_platform,
+    )
     public_headers = _validate_public_headers(
         inventory,
         repository_root=repository_root,
         targets_by_platform=targets_by_platform,
+        complete_public_headers=complete_public_headers,
     )
     major_classes = _validate_major_classes(
         inventory,
@@ -582,8 +982,8 @@ def validate_inventory(
 def _argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate the representative public headers, major classes, and "
-            "plugins against every recorded CMake target graph."
+            "Validate complete public-header sets and representative major "
+            "classes and plugins against every recorded CMake target graph."
         )
     )
     parser.add_argument(

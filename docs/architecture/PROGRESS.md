@@ -2,11 +2,11 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 12:57 JST
-- 状態: `planned`
+- 更新日時: 2026-08-16 13:35 JST
+- 状態: `in_progress`
 - 現在の検査段階: R1-G2 公開面と主要クラスの棚卸し
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g2a-public-surface-contract`
+- ブランチ: `r1-g2b-public-header-inventory`
 - 目的: R1-G2bとして`kritaui`と`kritaimage`の公開ヘッダーを全件採取し、所有者、
   利用元、公開根拠を5構成のCMakeターゲット台帳へ接続する。
 

@@ -11,6 +11,7 @@ if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
 fi
 
 python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+python3 scripts/architecture/update_public_header_inventory.py --check
 python3 scripts/architecture/check_public_surface_inventory.py
 python3 scripts/check_governance.py
 
