@@ -152,11 +152,14 @@ configure_prepared_tree() {
     fi
 
     mapfile -t cmake_args <"$LIBREPAINT_WINDOWS_CMAKE_FLAGS_FILE"
-    cmake -S "$source_dir" -B "$build_dir" -G Ninja \
-        "${cmake_args[@]}" \
-        -DCMAKE_C_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
-        -DCMAKE_CXX_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
+    (
+        cd "$build_dir"
+        cmake -S "$source_dir" -B "$build_dir" -G Ninja \
+            "${cmake_args[@]}" \
+            -DCMAKE_C_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
+    )
     {
         printf 'schema=1\n'
         printf 'platform=windows-x86_64\n'

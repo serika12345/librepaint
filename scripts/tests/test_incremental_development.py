@@ -128,6 +128,16 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         )
         self.assertIn('source ${buildPkgs.stdenv}/setup', windows_expression)
 
+    def test_windows_configuration_runs_inside_the_build_tree(self):
+        incremental_script = (
+            REPO_ROOT / "scripts/platform/build-windows-incremental"
+        ).read_text(encoding="utf-8")
+
+        self.assertRegex(
+            incremental_script,
+            r'(?s)configure_prepared_tree\(\).*?cd "\$build_dir".*?cmake -S',
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
