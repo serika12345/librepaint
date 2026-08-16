@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "scope": "representative",
+  "platforms": [
+    "macos",
+    "linux",
+    "ios",
+    "android",
+    "windows"
+  ],
+  "publicHeaders": [
+    {
+      "path": "libs/image/kis_image.h",
+      "ownerTarget": "kritaimage",
+      "exportMacro": "KRITAIMAGE_EXPORT",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "consumerEvidence": [
+        {
+          "target": "kritalibkis",
+          "path": "libs/libkis/Document.cpp",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "target": "kritapngimport",
+          "path": "plugins/impex/png/kis_png_import.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "responsibility": "Exposes the image model, layer tree, pixel state, projection updates, and stroke scheduling to dependent packages.",
+      "evidence": [
+        "docs/architecture/README.md",
+        "libs/image/CMakeLists.txt",
+        "libs/image/kis_image.h"
+      ]
+    },
+    {
+      "path": "libs/ui/KisDocument.h",
+      "ownerTarget": "kritaui",
+      "exportMacro": "KRITAUI_EXPORT",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "consumerEvidence": [
+        {
+          "target": "krita",
+          "path": "krita/main.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "target": "kritalibkis",
+          "path": "libs/libkis/Document.cpp",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "target": "kritapngimport",
+          "path": "plugins/impex/png/kis_png_import.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "responsibility": "Exposes document lifetime, file identity, modified state, autosave, import/export coordination, and the current image.",
+      "evidence": [
+        "docs/architecture/README.md",
+        "libs/ui/CMakeLists.txt",
+        "libs/ui/KisDocument.h"
+      ]
+    },
+    {
+      "path": "libs/ui/KisImportExportManager.h",
+      "ownerTarget": "kritaui",
+      "exportMacro": "KRITAUI_EXPORT",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "consumerEvidence": [
+        {
+          "target": "kritapngimport",
+          "path": "plugins/impex/png/kis_png_import.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "responsibility": "Exposes MIME-based import/export filter selection and coordinated document conversion.",
+      "evidence": [
+        "docs/architecture/README.md",
+        "libs/ui/CMakeLists.txt",
+        "libs/ui/KisImportExportManager.h"
+      ]
+    }
+  ],
+  "majorClasses": [
+    {
+      "name": "KisDocument",
+      "header": "libs/ui/KisDocument.h",
+      "implementation": "libs/ui/KisDocument.cpp",
+      "ownerTarget": "kritaui",
+      "exportMacro": "KRITAUI_EXPORT",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "consumerEvidence": [
+        {
+          "target": "krita",
+          "path": "krita/main.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "target": "kritalibkis",
+          "path": "libs/libkis/Document.cpp",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "target": "kritapngimport",
+          "path": "plugins/impex/png/kis_png_import.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "responsibility": "Owns document lifetime, file identity, modified state, autosave, import/export coordination, and the current KisImage.",
+      "evidence": [
+        "docs/architecture/README.md",
+        "libs/ui/KisDocument.cpp",
+        "libs/ui/KisDocument.h"
+      ]
+    },
+    {
+      "name": "KisImage",
+      "header": "libs/image/kis_image.h",
+      "implementation": "libs/image/kis_image.cc",
+      "ownerTarget": "kritaimage",
+      "exportMacro": "KRITAIMAGE_EXPORT",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "consumerEvidence": [
+        {
+          "target": "kritalibkis",
+          "path": "libs/libkis/Document.cpp",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "target": "kritapngimport",
+          "path": "plugins/impex/png/kis_png_import.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "responsibility": "Owns the layer tree, pixel state, projection updates, stroke scheduling, and image change notifications.",
+      "evidence": [
+        "docs/architecture/README.md",
+        "libs/image/kis_image.cc",
+        "libs/image/kis_image.h"
+      ]
+    },
+    {
+      "name": "KisImportExportManager",
+      "header": "libs/ui/KisImportExportManager.h",
+      "implementation": "libs/ui/KisImportExportManager.cpp",
+      "ownerTarget": "kritaui",
+      "exportMacro": "KRITAUI_EXPORT",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "consumerEvidence": [
+        {
+          "target": "kritapngimport",
+          "path": "plugins/impex/png/kis_png_import.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "responsibility": "Selects import/export filters by MIME type and coordinates validation, asynchronous export, warnings, and atomic document I/O.",
+      "evidence": [
+        "docs/architecture/README.md",
+        "libs/ui/KisImportExportManager.cpp",
+        "libs/ui/KisImportExportManager.h"
+      ]
+    }
+  ],
+  "plugins": [
+    {
+      "id": "Krita PNG Import Filter",
+      "metadata": "plugins/impex/png/krita_png_import.json",
+      "implementation": "plugins/impex/png/kis_png_import.cc",
+      "ownerTarget": "kritapngimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+      "runtimeConsumer": "KisImportExportManager",
+      "responsibility": "Decodes PNG and Krita paint-op preset payloads into the current document image through the file-filter registry.",
+      "evidence": [
+        "docs/architecture/README.md",
+        "libs/ui/KisImportExportManager.cpp",
+        "plugins/impex/png/CMakeLists.txt",
+        "plugins/impex/png/kis_png_import.cc",
+        "plugins/impex/png/krita_png_import.json"
+      ]
+    }
+  ]
+}
