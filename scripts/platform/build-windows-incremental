@@ -125,8 +125,7 @@ sync_source() {
     done
     (
         cd "$source_dir"
-        # shellcheck source=/dev/null
-        source "$LIBREPAINT_WINDOWS_SOURCE_PREPARER"
+        "$LIBREPAINT_WINDOWS_SOURCE_PREPARER"
     )
     printf '%s\n' "$source_fingerprint" >"$source_fingerprint_path.tmp"
     mv "$source_fingerprint_path.tmp" "$source_fingerprint_path"

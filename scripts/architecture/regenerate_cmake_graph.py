@@ -17,9 +17,12 @@ if str(SCRIPT_DIRECTORY) not in sys.path:
 import extract_cmake_graph  # noqa: E402
 
 
-PLATFORM_PRESETS = {
+PLATFORM_PROFILES = {
     "macos": "tdd-macos",
     "linux": "tdd-linux",
+    "ios": "ios-device-incremental",
+    "android": "android-arm64-v8a-incremental",
+    "windows": "windows-x86_64-incremental",
 }
 
 
@@ -32,6 +35,41 @@ def prepare_query(build_directory: Path) -> Path:
     query_path.parent.mkdir(parents=True, exist_ok=True)
     query_path.write_bytes(b"")
     return query_path
+
+
+def resolve_build_directory(
+    platform: str,
+    *,
+    runner=subprocess.run,
+) -> Path:
+    result = runner(
+        [
+            str(REPO_ROOT / "scripts/build-incremental"),
+            platform,
+            "path",
+        ],
+        cwd=REPO_ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode != 0:
+        diagnostic = result.stderr.strip() or result.stdout.strip()
+        raise RegenerationError(
+            f"failed to resolve the {platform} build tree: {diagnostic}"
+        )
+
+    absolute_paths = [
+        Path(line.strip())
+        for line in result.stdout.splitlines()
+        if Path(line.strip()).is_absolute()
+    ]
+    if not absolute_paths:
+        raise RegenerationError(
+            f"the {platform} path operation did not report an absolute build tree"
+        )
+    return absolute_paths[-1]
 
 
 def _write_atomically(output_path: Path, content: str) -> None:
@@ -62,15 +100,15 @@ def regenerate(
     check: bool = False,
 ) -> Path:
     try:
-        preset = PLATFORM_PRESETS[platform]
+        build_profile = PLATFORM_PROFILES[platform]
     except KeyError as error:
-        supported = ", ".join(sorted(PLATFORM_PRESETS))
+        supported = ", ".join(PLATFORM_PROFILES)
         raise RegenerationError(
             f"unsupported platform {platform!r}; expected one of: {supported}"
         ) from error
 
     if reply_directory is None:
-        build_directory = REPO_ROOT / "build" / preset
+        build_directory = resolve_build_directory(platform)
         prepare_query(build_directory)
         result = subprocess.run(
             [
@@ -91,7 +129,7 @@ def regenerate(
     graph = extract_cmake_graph.extract_graph(
         reply_directory,
         platform=platform,
-        preset=preset,
+        build_profile=build_profile,
         configuration_name=configuration_name,
     )
     content = extract_cmake_graph.serialize_graph(graph)
@@ -119,7 +157,7 @@ def _argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Configure a native build and regenerate its CMake target ledger."
     )
-    parser.add_argument("platform", choices=sorted(PLATFORM_PRESETS))
+    parser.add_argument("platform", choices=PLATFORM_PROFILES)
     parser.add_argument("--reply-directory", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--configuration")

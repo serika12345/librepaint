@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "platform": "macos",
-  "preset": "tdd-macos",
+  "buildProfile": "tdd-macos",
   "configuration": "RelWithDebInfo",
   "targets": [
     {

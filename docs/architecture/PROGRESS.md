@@ -2,71 +2,68 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 11:26 JST
-- 状態: `planned`
-- 現在の検査段階: R1-G2 公開面と主要クラスの棚卸し
+- 更新日時: 2026-08-16 11:52 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G1 依存グラフ採取基盤
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g1-cmake-graph-foundation`
-- 目的: 公開ヘッダー、主要クラス、プラグインの所有者、利用元、実際の責務を
-  機械可読な台帳へ記録する。
+- 目的: macOS、Linux、iOS、Android、WindowsのCMakeターゲットと直接リンク
+  依存を同じ契約で採取し、全構成を同時に検証する。
 
 ## 再開環境
 
-- direnvが`test`開発シェルと`build-incremental`、`run-test`、`verify-quick`、
-  `verify`を読み込む。
-- macOSのネイティブ試験構成は`tdd-macos`、永続Ninja木は
-  `build/tdd-macos`を使用する。
-- R1-G1でCMake File API `codemodel-v2`から明示的ビルドターゲットと直接リンク
-  依存を再生成する基盤が完成している。
-- `docs/architecture/cmake-targets-macos.json`がmacOS構成の626ターゲットを記録し、
-  `krita`、`kritaui`、`kritaimage`とモジュール型プラグインを含む。
+- DarwinホストがmacOSとiOSの構成を担当する。
+- `ssh nixos`で接続するx86_64 NixOSホストがLinux、Android、Windowsの構成を
+  担当する。
+- 両ホストの清浄な作業ツリーを同じコミットへ揃え、
+  `scripts/architecture/verify_cmake_graphs.py`から5構成を並行検証する。
+- CMake File API `codemodel-v2`の台帳は
+  `docs/architecture/cmake-targets-<platform>.json`、全構成の比較結果は
+  `docs/architecture/cmake-target-matrix.json`に記録する。
 
 ## R1-G1で完了した作業
 
-- 実行形式、共有ライブラリー、モジュール型プラグイン、直接依存、外部ターゲット、
-  CMake生成ターゲットを含む固定File API応答を追加した。
-- `scripts/architecture/extract_cmake_graph.py`がターゲット名、種別、リポジトリ相対の
-  定義場所、`linkLibraries`による直接CMakeターゲット依存を決定的に整列する。
-- `scripts/architecture/regenerate_cmake_graph.py`がFile API問い合わせの作成、
-  macOS構成の同期、台帳更新、バイト単位の差分検査を一つの入口から実行する。
-- 固定応答の受理例、欠落診断、対応File API版、決定的な直列化、差分診断と、
-  macOS台帳の主要入口を18件の高速検査へ接続した。
-- 台帳の範囲、依存の意味、更新コマンド、検査コマンドをアーキテクチャガイドと
-  開発手順へ記録した。
+- 固定File API応答と抽出器が、ターゲット名、種別、リポジトリ相対の定義場所、
+  `linkLibraries`による直接CMakeターゲット依存を決定的に整列する。
+- 再生成器が各プラットフォームの増分構築入口から永続構築木を取得し、問い合わせ、
+  構成同期、台帳更新、バイト単位の差分検査を実行する。
+- macOS 626件、Linux 641件、iOS 560件、Android 566件、Windows 596件の
+  ターゲットを同じ形式で記録した。
+- 差分行列が542件の共通ターゲット、125件の条件付きターゲット、244件の構成差を
+  持つターゲットを記録した。
+- 全プラットフォーム同時検証入口が、Darwinとx86_64 Linuxの担当構成、同一コミット、
+  清浄な作業ツリーを構成開始前に検査する。
+- Windowsのソース準備処理を独立した実行ファイルとし、通常のNix構築と増分構築で
+  同じ置換処理を利用できる契約を固定した。
+- 台帳の範囲、差分行列、ホスト割り当て、更新手順、同時検証コマンドを
+  アーキテクチャガイドと開発手順へ記録した。
 
 ## 検証状態
 
+- 初回契約検査は、5台帳と差分行列の欠落、全構成を受け取らない再生成器、同時検証
+  入口の欠落を診断した。
+- Windowsの初回実構成は`substituteInPlace: command not found`を診断し、修正後に
+  x86_64 NixOS上で構成と台帳生成が成功した。
+- macOSとiOSをDarwin、Linux、Android、Windowsをx86_64 NixOSで構成し、5台帳を
+  生成した。
 - `nix develop .#test --command python3 -m unittest discover -s scripts/tests -p
-  'test_*cmake_graph.py'`: 8件成功。
-- `nix develop .#test --command
-  ./scripts/architecture/regenerate_cmake_graph.py macos --check`: macOS実構成との
-  バイト単位の一致を確認した。
-- `nix develop .#test --command ./scripts/verify-quick`: 18件の単体試験、運用検査、
+  'test_*cmake_graph*.py'`: 15件成功。
+- `nix develop .#test --command ./scripts/verify-quick`: 26件の単体試験、運用検査、
   シェル検査、文書検査、リンク検査、D2再生成検査が成功した。
-- 製品C++、CMake定義、Nix出力を変更していないため、製品構築とNix全システム評価は
-  この変更の検証範囲外とする。
+- `nix flake check --no-build --all-systems`: 全出力、検査、開発シェル、整形器の
+  評価が成功した。
+- 同一コミットによる5構成同時差分検査は次の操作で実行する。
 
 ## 次の操作
 
-R1-G2の最初の小単位として、公開面と主要クラスを記録する台帳契約を作る。
+1. 現在の変更をコミットし、同じコミットの清浄な作業ツリーをNixOSホストへ用意する。
+2. `verify_cmake_graphs.py`から5構成を同時に構成し、各台帳と差分行列の一致を確認する。
+3. 検証結果をこの文書へ記録し、状態を`planned`、次の検査段階をR1-G2へ更新する。
+4. コミットをpushし、既存PRの目的、成果物、検証結果を更新する。
 
-1. この文書の状態を`in_progress`へ変更する。
-2. `libs/ui`と`libs/image`のインストール規則、公開ヘッダー、別ターゲットからの
-   include、主要クラスを調査し、所有者と利用元を判定する証拠を固定する。
-3. 公開ヘッダー、主要クラス、プラグインの受理例を含む最小固定データを作る。
-4. 台帳の各要素がパス、種別、所有ターゲット、利用元、実際の責務、根拠を持つ
-   契約試験を追加し、期待する初回診断を記録する。
-5. 最小の台帳検査器と、`kritaui`、`kritaimage`の代表項目を実装して契約試験を
-   成功させる。
+## R1-G1完了条件
 
-この小単位の完了後、全公開ヘッダー、主要クラス、プラグインへ範囲を広げ、
-所有者がない項目、複数責務、別ターゲットからの内部ヘッダー参照を診断する。
-
-## R1-G2完了条件
-
-- 公開ヘッダーが所有ターゲット、利用元、公開根拠へ対応付く。
-- `KisApplication`、`KisDocument`、`KisImportExportManager`と`libs/ui/tool`の主要
-  クラスが実際の責務へ分類される。
-- 各プラグインがCMakeターゲット、メタデータ、登録先、機能所有者へ対応付く。
-- 台帳が機械可読で、決定的な整列と有効な参照を高速検査で確認できる。
-- 調査結果と検証を記録し、進捗をR1-G3へ更新する。
+- 5構成のCMakeターゲット、種別、定義場所、直接リンク依存を同じ形式で再生成できる。
+- 全構成の共通ターゲット、条件付きターゲット、構成差を決定的に比較できる。
+- Darwinとx86_64 Linuxの同一コミットから5構成を同時に検証できる。
+- 固定応答の契約検査、高速検査、Nix全システム評価、実構成差分検査が成功する。

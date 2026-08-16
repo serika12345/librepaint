@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -22,6 +24,36 @@ SPEC.loader.exec_module(regenerate_cmake_graph)
 
 
 class RegenerateCMakeGraphTests(unittest.TestCase):
+    def test_profiles_cover_every_supported_platform(self) -> None:
+        self.assertEqual(
+            regenerate_cmake_graph.PLATFORM_PROFILES,
+            {
+                "macos": "tdd-macos",
+                "linux": "tdd-linux",
+                "ios": "ios-device-incremental",
+                "android": "android-arm64-v8a-incremental",
+                "windows": "windows-x86_64-incremental",
+            },
+        )
+
+    def test_build_directory_comes_from_the_platform_entry_point(self) -> None:
+        runner = mock.Mock(
+            return_value=subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout="environment ready\n/tmp/platform-build\n",
+                stderr="",
+            )
+        )
+
+        build_directory = regenerate_cmake_graph.resolve_build_directory(
+            "ios", runner=runner
+        )
+
+        self.assertEqual(build_directory, Path("/tmp/platform-build"))
+        command = runner.call_args.args[0]
+        self.assertEqual(command[-2:], ["ios", "path"])
+
     def test_prepare_query_creates_the_stateless_codemodel_request(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             build_directory = Path(temporary_directory)

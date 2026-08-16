@@ -146,7 +146,7 @@ def extract_graph(
     reply_directory: Path,
     *,
     platform: str,
-    preset: str,
+    build_profile: str,
     configuration_name: str | None = None,
 ) -> dict[str, Any]:
     codemodel, codemodel_path = _find_codemodel(reply_directory)
@@ -225,7 +225,7 @@ def extract_graph(
     return {
         "schemaVersion": 1,
         "platform": platform,
-        "preset": preset,
+        "buildProfile": build_profile,
         "configuration": _require_string(
             configuration.get("name"), "configuration name"
         ),
@@ -243,7 +243,7 @@ def _argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("reply_directory", type=Path)
     parser.add_argument("--platform", required=True)
-    parser.add_argument("--preset", required=True)
+    parser.add_argument("--build-profile", required=True)
     parser.add_argument("--configuration")
     parser.add_argument("--output", type=Path)
     return parser
@@ -255,7 +255,7 @@ def main(arguments: list[str] | None = None) -> int:
         graph = extract_graph(
             options.reply_directory,
             platform=options.platform,
-            preset=options.preset,
+            build_profile=options.build_profile,
             configuration_name=options.configuration,
         )
         serialized = serialize_graph(graph)

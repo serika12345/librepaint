@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "platform": "macos",
-  "buildProfile": "tdd-macos",
-  "configuration": "RelWithDebInfo",
+  "platform": "windows",
+  "buildProfile": "windows-x86_64-incremental",
+  "configuration": "Debug",
   "targets": [
     {
       "name": "CCSGraph",
@@ -85,34 +85,6 @@
       "sourceDirectory": "libs/global/tests",
       "dependencies": [
         "kritaglobal",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisAnimationRenderingBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk",
-        "kritaui"
-      ]
-    },
-    {
-      "name": "KisBContrastBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisBlurBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
         "kritatestsdk"
       ]
     },
@@ -214,15 +186,6 @@
       ]
     },
     {
-      "name": "KisDatamanagerBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisDialogStateSaverTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/widgetutils/tests",
@@ -253,47 +216,11 @@
       ]
     },
     {
-      "name": "KisFastMathBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisFilterSelectionsBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisFloodfillBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisForestTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/global/tests",
       "dependencies": [
         "kritaglobal",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisFourPointInterpolatorBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
         "kritatestsdk"
       ]
     },
@@ -345,27 +272,9 @@
       ]
     },
     {
-      "name": "KisGradientBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisGridInterpolationToolsTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/image/tests",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisHLineIteratorBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
       "dependencies": [
         "kritaimage",
         "kritatestsdk"
@@ -422,34 +331,6 @@
       "sourceDirectory": "libs/global/tests",
       "dependencies": [
         "kritaglobal",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisLevelFilterBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisLiquifyTransformWorkerBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "QuaZip::QuaZip",
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisLowMemoryBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
         "kritatestsdk"
       ]
     },
@@ -577,15 +458,6 @@
       ]
     },
     {
-      "name": "KisPainterBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisPaintingAssistantsDecorationTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
@@ -610,16 +482,6 @@
       "dependencies": [
         "kritaimage",
         "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisProjectionBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk",
-        "kritaui"
       ]
     },
     {
@@ -652,15 +514,6 @@
       "name": "KisRandomGenerator2DTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/image/tests",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisRandomIteratorBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
       "dependencies": [
         "kritaimage",
         "kritatestsdk"
@@ -759,15 +612,6 @@
       ]
     },
     {
-      "name": "KisStrokeBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisSurfaceColorSpaceWrapperTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
@@ -793,24 +637,6 @@
       "dependencies": [
         "kritatestsdk",
         "kritaui"
-      ]
-    },
-    {
-      "name": "KisThumbnailBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisVLineIteratorBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
       ]
     },
     {
@@ -1944,6 +1770,12 @@
       "dependencies": []
     },
     {
+      "name": "buildtests",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
       "name": "clean_qml_context_properties",
       "type": "UTILITY",
       "sourceDirectory": "qmlmodules/components",
@@ -2165,16 +1997,6 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "kis_composition_benchmark_NEON64",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritamultiarch",
         "kritatestsdk"
       ]
     },
@@ -3479,8 +3301,14 @@
       ]
     },
     {
+      "name": "krafile_dummy_obj",
+      "type": "OBJECT_LIBRARY",
+      "sourceDirectory": "krita",
+      "dependencies": []
+    },
+    {
       "name": "krita",
-      "type": "EXECUTABLE",
+      "type": "SHARED_LIBRARY",
       "sourceDirectory": "krita",
       "dependencies": [
         "Qt6::Core",
@@ -3493,126 +3321,6 @@
         "kritamultiarch",
         "kritaui"
       ]
-    },
-    {
-      "name": "krita-benchmarks-KisAnimationRenderingBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisBContrastBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisBlurBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisDataManager",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisFastMath",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisFloodFill",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisFourPointInterpolator",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisGradientFill",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisHLineIterator",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisLevelFilterBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisLiquifyTransformWorker",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisLowMemory",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisPainterBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisProjectionBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisRandomIterator",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisStrokeBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisThumbnail",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisVLineIterator",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-kis_composition_benchmark_NEON64",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-image-KisFilterSelectionsBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
     },
     {
       "name": "krita_colorspaces_extensions",
@@ -3705,6 +3413,23 @@
       "dependencies": [
         "Qt6::Core",
         "kritaversion"
+      ]
+    },
+    {
+      "name": "krita_windows_stub_com",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "krita",
+      "dependencies": [
+        "krita"
+      ]
+    },
+    {
+      "name": "krita_windows_stub_exe",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "krita",
+      "dependencies": [
+        "Qt6::EntryPointPrivate",
+        "krita"
       ]
     },
     {
@@ -4012,6 +3737,14 @@
       ]
     },
     {
+      "name": "kritadesignerplugin",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/qt/designer",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
       "name": "kritadigitalmixer",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/digitalmixer",
@@ -4243,7 +3976,6 @@
         "Qt6::OpenGL",
         "Qt6::Widgets",
         "Qt6::Xml",
-        "kritamacosutils",
         "kritaversion",
         "lager",
         "zug"
@@ -4371,7 +4103,6 @@
         "OpenEXR::OpenEXR",
         "kritacommand",
         "kritaglobal",
-        "kritamacosutils",
         "kritametadata",
         "kritamultiarch",
         "kritapigment",
@@ -4630,17 +4361,6 @@
       "dependencies": [
         "OpenColorIO::OpenColorIO",
         "kritaui"
-      ]
-    },
-    {
-      "name": "kritamacosutils",
-      "type": "SHARED_LIBRARY",
-      "sourceDirectory": "libs/macosutils",
-      "dependencies": [
-        "KF6::I18n",
-        "Qt6::Core",
-        "Qt6::Gui",
-        "Qt6::Widgets"
       ]
     },
     {
@@ -4969,6 +4689,14 @@
       ]
     },
     {
+      "name": "kritapykrita",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/plugin",
+      "dependencies": [
+        "pykrita"
+      ]
+    },
+    {
       "name": "kritaqimageioexport",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/qimageio",
@@ -5207,6 +4935,42 @@
       "dependencies": [
         "kritalibpaintop"
       ]
+    },
+    {
+      "name": "kritarunner",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/extensions/pykrita/kritarunner",
+      "dependencies": [
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::Network",
+        "Qt6::PrintSupport",
+        "Qt6::Svg",
+        "Qt6::Widgets",
+        "Qt6::Xml",
+        "pykrita"
+      ]
+    },
+    {
+      "name": "kritarunner_com",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/extensions/pykrita/kritarunner",
+      "dependencies": [
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::Network",
+        "Qt6::PrintSupport",
+        "Qt6::Svg",
+        "Qt6::Widgets",
+        "Qt6::Xml",
+        "pykrita"
+      ]
+    },
+    {
+      "name": "kritarunner_manifest_res",
+      "type": "OBJECT_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/kritarunner",
+      "dependencies": []
     },
     {
       "name": "kritasamplescreencolor",
@@ -5596,7 +5360,6 @@
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",
-        "kritamacosutils",
         "kritaresources",
         "kritaversion",
         "kritawidgets",
@@ -5640,7 +5403,6 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/webp",
       "dependencies": [
-        "WebP::libwebpmux",
         "WebP::webp",
         "kritaimpex",
         "kritalibkra",
@@ -5703,7 +5465,6 @@
         "Qt6::Widgets",
         "Qt6::Xml",
         "kritaglobal",
-        "kritamacosutils",
         "kritaplugin",
         "kritaresources"
       ]
@@ -5756,7 +5517,7 @@
       "dependencies": []
     },
     {
-      "name": "pofiles-b4c30cde5109e877ceaaf396ba95db3c",
+      "name": "pofiles-74556801e887d6b7ae9690e24181745f",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []
@@ -5805,6 +5566,27 @@
       ]
     },
     {
+      "name": "pykrita",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/plugin",
+      "dependencies": [
+        "KF6::ColorScheme",
+        "kritalibkis",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "python_module_PyKrita_krita",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/sip",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritalibkis",
+        "kritaui"
+      ]
+    },
+    {
       "name": "qt_internal_plugins",
       "type": "UTILITY",
       "sourceDirectory": "qmlmodules/components",
@@ -5848,7 +5630,7 @@
       "dependencies": []
     },
     {
-      "name": "tsfiles-b4c30cde5109e877ceaaf396ba95db3c",
+      "name": "tsfiles-74556801e887d6b7ae9690e24181745f",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []

@@ -651,7 +651,9 @@ class PyQtBindings(_PyQtBindings):
     pkgs.stdenv.cc.cc
     qtTranslationsData
   ];
-  sourcePreparer = buildPkgs.writeText "librepaint-windows-prepare-source" ''
+  sourcePreparer = buildPkgs.writeShellScript "librepaint-windows-prepare-source" ''
+    source ${buildPkgs.stdenv}/setup
+
     substituteInPlace plugins/impex/jp2/jp2_converter.cc \
       --replace-fail '<openjpeg.h>' '<${pkgs.openjpeg.incDir}/openjpeg.h>'
 
@@ -746,7 +748,7 @@ pkgs.stdenv.mkDerivation {
   inherit nativeBuildInputs buildInputs;
 
   postPatch = ''
-    source ${sourcePreparer}
+    ${sourcePreparer}
   '';
 
   cmakeFlags = [

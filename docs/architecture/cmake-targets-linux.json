@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "platform": "macos",
-  "buildProfile": "tdd-macos",
+  "platform": "linux",
+  "buildProfile": "tdd-linux",
   "configuration": "RelWithDebInfo",
   "targets": [
     {
@@ -1132,6 +1132,16 @@
       ]
     },
     {
+      "name": "TestIccFromColorimetryConversion",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/color/lcms2engine/tests",
+      "dependencies": [
+        "kritapigment",
+        "kritasurfacecolormanagementapi",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "TestInputDevice",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/flake/tests",
@@ -2169,7 +2179,47 @@
       ]
     },
     {
-      "name": "kis_composition_benchmark_NEON64",
+      "name": "kis_composition_benchmark_AVX",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_AVX2+FMA",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_SSE2",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_SSE4_1",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_SSSE3",
       "type": "EXECUTABLE",
       "sourceDirectory": "benchmarks",
       "dependencies": [
@@ -3483,6 +3533,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "krita",
       "dependencies": [
+        "KF6::Crash",
         "Qt6::Core",
         "Qt6::Gui",
         "Qt6::Network",
@@ -3603,7 +3654,31 @@
       "dependencies": []
     },
     {
-      "name": "krita-benchmarks-kis_composition_benchmark_NEON64",
+      "name": "krita-benchmarks-kis_composition_benchmark_AVX",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_AVX2+FMA",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_SSE2",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_SSE4_1",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_SSSE3",
       "type": "UTILITY",
       "sourceDirectory": "benchmarks",
       "dependencies": []
@@ -3817,6 +3892,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/buginfo",
       "dependencies": [
+        "kritasurfacecolormanagementapi",
         "kritaui"
       ]
     },
@@ -4243,7 +4319,6 @@
         "Qt6::OpenGL",
         "Qt6::Widgets",
         "Qt6::Xml",
-        "kritamacosutils",
         "kritaversion",
         "lager",
         "zug"
@@ -4371,7 +4446,6 @@
         "OpenEXR::OpenEXR",
         "kritacommand",
         "kritaglobal",
-        "kritamacosutils",
         "kritametadata",
         "kritamultiarch",
         "kritapigment",
@@ -4633,17 +4707,6 @@
       ]
     },
     {
-      "name": "kritamacosutils",
-      "type": "SHARED_LIBRARY",
-      "sourceDirectory": "libs/macosutils",
-      "dependencies": [
-        "KF6::I18n",
-        "Qt6::Core",
-        "Qt6::Gui",
-        "Qt6::Widgets"
-      ]
-    },
-    {
       "name": "kritametadata",
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/metadata",
@@ -4853,6 +4916,28 @@
       ]
     },
     {
+      "name": "kritaplatformpluginwayland",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/platforms/wayland",
+      "dependencies": [
+        "Qt6::Gui",
+        "Qt6::GuiPrivate",
+        "Qt6::WaylandClient",
+        "kritaglobal",
+        "kritasurfacecolormanagementapi",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaplatformpluginxcb",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/platforms/xcb",
+      "dependencies": [
+        "kritaglobal",
+        "kritaui"
+      ]
+    },
+    {
       "name": "kritaplugin",
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/koplugin",
@@ -4966,6 +5051,14 @@
         "kritaflake",
         "kritaglobal",
         "kritapigment"
+      ]
+    },
+    {
+      "name": "kritapykrita",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/plugin",
+      "dependencies": [
+        "pykrita"
       ]
     },
     {
@@ -5209,6 +5302,21 @@
       ]
     },
     {
+      "name": "kritarunner",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/extensions/pykrita/kritarunner",
+      "dependencies": [
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::Network",
+        "Qt6::PrintSupport",
+        "Qt6::Svg",
+        "Qt6::Widgets",
+        "Qt6::Xml",
+        "pykrita"
+      ]
+    },
+    {
       "name": "kritasamplescreencolor",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/samplescreencolor",
@@ -5356,6 +5464,15 @@
       "dependencies": [
         "Qt6::PrintSupport",
         "kritaui"
+      ]
+    },
+    {
+      "name": "kritasurfacecolormanagementapi",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/surfacecolormanagementapi",
+      "dependencies": [
+        "kritaglobal",
+        "kritapigment"
       ]
     },
     {
@@ -5596,8 +5713,8 @@
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",
-        "kritamacosutils",
         "kritaresources",
+        "kritasurfacecolormanagementapi",
         "kritaversion",
         "kritawidgets",
         "kritawidgetutils"
@@ -5703,7 +5820,6 @@
         "Qt6::Widgets",
         "Qt6::Xml",
         "kritaglobal",
-        "kritamacosutils",
         "kritaplugin",
         "kritaresources"
       ]
@@ -5756,7 +5872,7 @@
       "dependencies": []
     },
     {
-      "name": "pofiles-b4c30cde5109e877ceaaf396ba95db3c",
+      "name": "pofiles-981c917ff7e2691536c111563df5de66",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []
@@ -5805,6 +5921,27 @@
       ]
     },
     {
+      "name": "pykrita",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/plugin",
+      "dependencies": [
+        "KF6::ColorScheme",
+        "kritalibkis",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "python_module_PyKrita_krita",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/sip",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritalibkis",
+        "kritaui"
+      ]
+    },
+    {
       "name": "qt_internal_plugins",
       "type": "UTILITY",
       "sourceDirectory": "qmlmodules/components",
@@ -5848,7 +5985,7 @@
       "dependencies": []
     },
     {
-      "name": "tsfiles-b4c30cde5109e877ceaaf396ba95db3c",
+      "name": "tsfiles-981c917ff7e2691536c111563df5de66",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []

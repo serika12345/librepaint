@@ -32,11 +32,23 @@
 
 図の編集元は[code-architecture.d2](code-architecture.d2)です。
 
-macOSのCMake構成で有効な明示的ビルドターゲットは
-[CMakeターゲット台帳](cmake-targets-macos.json)に記録する。台帳はターゲット名、
-種別、定義元のソースディレクトリー、CMakeターゲットへの直接リンク依存を持つ。
-CMakeが生成する補助ターゲットは除外し、外部ライブラリーのパスや構築ディレクトリー
-を記録しないため、同じFile API応答から同じJSONを再生成できる。
+各プラットフォームのCMake構成で有効な明示的ビルドターゲットは、次の台帳に
+同じ形式で記録する。
+
+| プラットフォーム | CMakeターゲット台帳 | 構築プロファイル |
+| --- | --- | --- |
+| macOS | [cmake-targets-macos.json](cmake-targets-macos.json) | `tdd-macos` |
+| Linux | [cmake-targets-linux.json](cmake-targets-linux.json) | `tdd-linux` |
+| iOS | [cmake-targets-ios.json](cmake-targets-ios.json) | `ios-device-incremental` |
+| Android | [cmake-targets-android.json](cmake-targets-android.json) | `android-arm64-v8a-incremental` |
+| Windows | [cmake-targets-windows.json](cmake-targets-windows.json) | `windows-x86_64-incremental` |
+
+各台帳はターゲット名、種別、定義元のソースディレクトリー、CMakeターゲットへの
+直接リンク依存を持つ。[全プラットフォーム差分行列](cmake-target-matrix.json)は、
+5構成のターゲット数、共通ターゲット、条件付きターゲット、構成ごとに定義が異なる
+ターゲットを一つの決定的なJSONへまとめる。CMakeが生成する補助ターゲットは除外し、
+外部ライブラリーのパスや構築ディレクトリーを記録しないため、同じFile API応答から
+同じJSONを再生成できる。
 
 台帳の`dependencies`はCMake codemodelの`linkLibraries`が示す直接リンク対象である。
 リンクコマンドへファイルパスやフラグとして入る項目と、推移的な構築順依存は含まない。

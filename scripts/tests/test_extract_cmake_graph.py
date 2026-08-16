@@ -14,7 +14,13 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts/architecture/extract_cmake_graph.py"
 FIXTURE_DIRECTORY = REPO_ROOT / "scripts/tests/fixtures/cmake-file-api"
-RECORDED_MACOS_GRAPH = REPO_ROOT / "docs/architecture/cmake-targets-macos.json"
+PLATFORM_PROFILES = {
+    "macos": "tdd-macos",
+    "linux": "tdd-linux",
+    "ios": "ios-device-incremental",
+    "android": "android-arm64-v8a-incremental",
+    "windows": "windows-x86_64-incremental",
+}
 SPEC = importlib.util.spec_from_file_location("extract_cmake_graph", SCRIPT_PATH)
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError(f"cannot import {SCRIPT_PATH}")
@@ -28,7 +34,7 @@ class ExtractCMakeGraphTests(unittest.TestCase):
         graph = extract_cmake_graph.extract_graph(
             FIXTURE_DIRECTORY,
             platform="macos",
-            preset="tdd-macos",
+            build_profile="tdd-macos",
         )
 
         self.assertEqual(
@@ -36,7 +42,7 @@ class ExtractCMakeGraphTests(unittest.TestCase):
             {
                 "schemaVersion": 1,
                 "platform": "macos",
-                "preset": "tdd-macos",
+                "buildProfile": "tdd-macos",
                 "configuration": "RelWithDebInfo",
                 "targets": [
                     {
@@ -71,7 +77,7 @@ class ExtractCMakeGraphTests(unittest.TestCase):
         graph = extract_cmake_graph.extract_graph(
             FIXTURE_DIRECTORY,
             platform="macos",
-            preset="tdd-macos",
+            build_profile="tdd-macos",
         )
 
         first = extract_cmake_graph.serialize_graph(graph)
@@ -92,7 +98,7 @@ class ExtractCMakeGraphTests(unittest.TestCase):
                 extract_cmake_graph.extract_graph(
                     reply_directory,
                     platform="macos",
-                    preset="tdd-macos",
+                    build_profile="tdd-macos",
                 )
 
     def test_codemodel_without_direct_link_data_is_rejected(self) -> None:
@@ -111,16 +117,43 @@ class ExtractCMakeGraphTests(unittest.TestCase):
                 extract_cmake_graph.extract_graph(
                     reply_directory,
                     platform="macos",
-                    preset="tdd-macos",
+                    build_profile="tdd-macos",
                 )
 
+    def test_recorded_graphs_cover_every_platform(self) -> None:
+        for platform, build_profile in PLATFORM_PROFILES.items():
+            with self.subTest(platform=platform):
+                graph_path = (
+                    REPO_ROOT
+                    / "docs/architecture"
+                    / f"cmake-targets-{platform}.json"
+                )
+                graph = json.loads(graph_path.read_text(encoding="utf-8"))
+                targets = graph["targets"]
+
+                self.assertEqual(graph["platform"], platform)
+                self.assertEqual(graph["buildProfile"], build_profile)
+                self.assertEqual(
+                    [target["name"] for target in targets],
+                    sorted(target["name"] for target in targets),
+                )
+                for target in targets:
+                    self.assertEqual(
+                        set(target),
+                        {"name", "type", "sourceDirectory", "dependencies"},
+                    )
+                    self.assertEqual(
+                        target["dependencies"], sorted(target["dependencies"])
+                    )
+
     def test_recorded_macos_graph_contains_the_architecture_entry_points(self) -> None:
-        graph = json.loads(RECORDED_MACOS_GRAPH.read_text(encoding="utf-8"))
+        graph_path = REPO_ROOT / "docs/architecture/cmake-targets-macos.json"
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
         targets = graph["targets"]
         targets_by_name = {target["name"]: target for target in targets}
 
         self.assertEqual(graph["platform"], "macos")
-        self.assertEqual(graph["preset"], "tdd-macos")
+        self.assertEqual(graph["buildProfile"], "tdd-macos")
         self.assertEqual(
             [target["name"] for target in targets],
             sorted(target["name"] for target in targets),

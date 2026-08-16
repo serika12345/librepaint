@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "platform": "macos",
-  "buildProfile": "tdd-macos",
-  "configuration": "RelWithDebInfo",
+  "platform": "android",
+  "buildProfile": "android-arm64-v8a-incremental",
+  "configuration": "Debug",
   "targets": [
     {
       "name": "CCSGraph",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment"
       ]
     },
@@ -85,34 +85,6 @@
       "sourceDirectory": "libs/global/tests",
       "dependencies": [
         "kritaglobal",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisAnimationRenderingBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk",
-        "kritaui"
-      ]
-    },
-    {
-      "name": "KisBContrastBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisBlurBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
         "kritatestsdk"
       ]
     },
@@ -214,20 +186,11 @@
       ]
     },
     {
-      "name": "KisDatamanagerBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisDialogStateSaverTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/widgetutils/tests",
       "dependencies": [
-        "KF6::ConfigCore",
+        "KF5::ConfigCore",
         "kritatestsdk",
         "kritawidgetutils"
       ]
@@ -253,47 +216,11 @@
       ]
     },
     {
-      "name": "KisFastMathBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisFilterSelectionsBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisFloodfillBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisForestTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/global/tests",
       "dependencies": [
         "kritaglobal",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisFourPointInterpolatorBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
         "kritatestsdk"
       ]
     },
@@ -345,39 +272,12 @@
       ]
     },
     {
-      "name": "KisGradientBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisGridInterpolationToolsTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
         "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisHLineIteratorBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisHeifTest",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "plugins/impex/heif/tests",
-      "dependencies": [
-        "kritatestsdk",
-        "kritaui"
       ]
     },
     {
@@ -426,34 +326,6 @@
       ]
     },
     {
-      "name": "KisLevelFilterBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisLiquifyTransformWorkerBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "QuaZip::QuaZip",
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisLowMemoryBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisMaskGeneratorBenchmark",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/image/tests",
@@ -485,11 +357,11 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/paintops/mypaint/tests",
       "dependencies": [
-        "LibMyPaint::mypaint",
         "kritaimage",
         "kritalibpaintop",
         "kritamypaintop_static",
-        "kritatestsdk"
+        "kritatestsdk",
+        "mypaint"
       ]
     },
     {
@@ -524,18 +396,6 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
-        "kritatestsdk",
-        "kritaui"
-      ]
-    },
-    {
-      "name": "KisOcioDisplayFilterTest",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "plugins/dockers/lut/tests",
-      "dependencies": [
-        "KF6::I18n",
-        "OpenColorIO::OpenColorIO",
-        "kritalutdocker_static",
         "kritatestsdk",
         "kritaui"
       ]
@@ -577,27 +437,9 @@
       ]
     },
     {
-      "name": "KisPainterBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisPaintingAssistantsDecorationTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
-      "dependencies": [
-        "kritatestsdk",
-        "kritaui"
-      ]
-    },
-    {
-      "name": "KisPdfTest",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "plugins/impex/pdf/tests",
       "dependencies": [
         "kritatestsdk",
         "kritaui"
@@ -610,16 +452,6 @@
       "dependencies": [
         "kritaimage",
         "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisProjectionBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk",
-        "kritaui"
       ]
     },
     {
@@ -655,24 +487,6 @@
       "dependencies": [
         "kritaimage",
         "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisRandomIteratorBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisRawTest",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "plugins/impex/raw/tests",
-      "dependencies": [
-        "kritatestsdk",
-        "kritaui"
       ]
     },
     {
@@ -759,15 +573,6 @@
       ]
     },
     {
-      "name": "KisStrokeBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
       "name": "KisSurfaceColorSpaceWrapperTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
@@ -793,24 +598,6 @@
       "dependencies": [
         "kritatestsdk",
         "kritaui"
-      ]
-    },
-    {
-      "name": "KisThumbnailBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "KisVLineIteratorBenchmark",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritatestsdk"
       ]
     },
     {
@@ -845,7 +632,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/benchmarks",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -855,7 +642,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/benchmarks",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -875,8 +662,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/koplugin/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "KF6::CoreAddons",
+        "KF5::ConfigCore",
+        "KF5::CoreAddons",
         "dummytrivialinterface",
         "kritaglobal",
         "kritaplugin",
@@ -898,7 +685,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -989,8 +776,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1023,7 +810,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1033,7 +820,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/color/lcms2engine/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritalcmsengine_static",
         "kritapigment",
         "kritatestsdk",
@@ -1045,7 +832,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1064,7 +851,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1092,7 +879,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1111,8 +898,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1181,7 +968,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1191,7 +978,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1201,7 +988,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1211,7 +998,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1230,7 +1017,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1240,7 +1027,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1259,7 +1046,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritapigment",
         "kritatestsdk"
       ]
@@ -1269,7 +1056,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/color/lcms2engine/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritalcmsengine_static",
         "kritapigment",
         "kritatestsdk",
@@ -1327,7 +1114,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/color/lcms2engine/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritalcmsengine_static",
         "kritapigment",
         "kritatestsdk",
@@ -1348,8 +1135,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1464,7 +1251,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/color/lcms2engine/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritalcmsengine_static",
         "kritapigment",
         "kritatestsdk",
@@ -1485,8 +1272,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1501,8 +1288,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1517,8 +1304,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1542,8 +1329,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1558,8 +1345,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1574,8 +1361,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1590,8 +1377,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1715,8 +1502,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1731,8 +1518,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1819,8 +1606,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1835,8 +1622,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1851,8 +1638,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1867,8 +1654,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Sql",
+        "KF5::ConfigCore",
+        "Qt5::Sql",
         "kritaglobal",
         "kritapigment",
         "kritaplugin",
@@ -1908,33 +1695,15 @@
       ]
     },
     {
-      "name": "all_aotstats",
+      "name": "aab",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []
     },
     {
-      "name": "all_qmllint",
+      "name": "apk",
       "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "all_qmllint_json",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "all_qmllint_module",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "all_qmltyperegistrations",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
+      "sourceDirectory": ".",
       "dependencies": []
     },
     {
@@ -1944,9 +1713,9 @@
       "dependencies": []
     },
     {
-      "name": "clean_qml_context_properties",
+      "name": "buildtests",
       "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
+      "sourceDirectory": ".",
       "dependencies": []
     },
     {
@@ -1959,21 +1728,33 @@
       ]
     },
     {
+      "name": "create-apk",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
+      "name": "create-apk-krita",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
+      "name": "create-fastlane",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
       "name": "dummytrivialinterface",
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/koplugin/tests",
       "dependencies": [
-        "Qt6::Core"
+        "Qt::Core"
       ]
     },
     {
-      "name": "dump_qml_context_properties",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "generate_qmlls_build_ini_file",
+      "name": "install-apk-krita",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []
@@ -2165,16 +1946,6 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
-        "kritatestsdk"
-      ]
-    },
-    {
-      "name": "kis_composition_benchmark_NEON64",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "benchmarks",
-      "dependencies": [
-        "kritaimage",
-        "kritamultiarch",
         "kritatestsdk"
       ]
     },
@@ -3480,147 +3251,28 @@
     },
     {
       "name": "krita",
-      "type": "EXECUTABLE",
+      "type": "SHARED_LIBRARY",
       "sourceDirectory": "krita",
       "dependencies": [
-        "Qt6::Core",
-        "Qt6::Gui",
-        "Qt6::Network",
-        "Qt6::PrintSupport",
-        "Qt6::Svg",
-        "Qt6::Widgets",
-        "Qt6::Xml",
+        "Qt5::AndroidExtras",
+        "Qt5::Core",
+        "Qt5::Gui",
+        "Qt5::Network",
+        "Qt5::PrintSupport",
+        "Qt5::Svg",
+        "Qt5::Widgets",
+        "Qt5::Xml",
         "kritamultiarch",
         "kritaui"
       ]
-    },
-    {
-      "name": "krita-benchmarks-KisAnimationRenderingBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisBContrastBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisBlurBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisDataManager",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisFastMath",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisFloodFill",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisFourPointInterpolator",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisGradientFill",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisHLineIterator",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisLevelFilterBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisLiquifyTransformWorker",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisLowMemory",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisPainterBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisProjectionBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisRandomIterator",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisStrokeBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisThumbnail",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-KisVLineIterator",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-benchmarks-kis_composition_benchmark_NEON64",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
-    },
-    {
-      "name": "krita-image-KisFilterSelectionsBenchmark",
-      "type": "UTILITY",
-      "sourceDirectory": "benchmarks",
-      "dependencies": []
     },
     {
       "name": "krita_colorspaces_extensions",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/color/colorspaceextensions",
       "dependencies": [
-        "KF6::CoreAddons",
-        "KF6::I18n",
+        "KF5::CoreAddons",
+        "KF5::I18n",
         "OpenEXR::OpenEXR",
         "kritaglobal",
         "kritapigment"
@@ -3641,19 +3293,9 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/karbonplugins/tools",
       "dependencies": [
-        "KF6::Completion",
+        "KF5::Completion",
         "kritaui",
         "kritawidgets"
-      ]
-    },
-    {
-      "name": "krita_raw_import",
-      "type": "MODULE_LIBRARY",
-      "sourceDirectory": "plugins/impex/raw",
-      "dependencies": [
-        "KDcrawQt6",
-        "kritaexifcommon",
-        "kritaui"
       ]
     },
     {
@@ -3661,7 +3303,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/flake/imageshape",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritaflake",
         "kritawidgets"
       ]
@@ -3689,22 +3331,13 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/tools/svgtexttool",
       "dependencies": [
-        "KF6::I18n",
-        "Qt6::Qml",
-        "Qt6::Quick",
-        "Qt6::QuickControls2",
-        "Qt6::QuickWidgets",
+        "KF5::I18n",
+        "Qt5::Qml",
+        "Qt5::Quick",
+        "Qt5::QuickControls2",
+        "Qt5::QuickWidgets",
         "kritaqmlwidgets",
         "kritaui"
-      ]
-    },
-    {
-      "name": "krita_version",
-      "type": "EXECUTABLE",
-      "sourceDirectory": "krita",
-      "dependencies": [
-        "Qt6::Core",
-        "kritaversion"
       ]
     },
     {
@@ -3817,6 +3450,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/buginfo",
       "dependencies": [
+        "Qt5::AndroidExtras",
         "kritaui"
       ]
     },
@@ -3841,7 +3475,7 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/color",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritaglobal"
       ]
     },
@@ -3899,10 +3533,10 @@
       "sourceDirectory": "libs/command",
       "dependencies": [
         "Boost::boost",
-        "KF6::ConfigGui",
-        "KF6::I18n",
-        "Qt6::Core",
-        "Qt6::Widgets",
+        "KF5::ConfigGui",
+        "KF5::I18n",
+        "Qt5::Core",
+        "Qt5::Widgets",
         "kritawidgetutils"
       ]
     },
@@ -3960,9 +3594,9 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/dbexplorer",
       "dependencies": [
-        "Qt6::Core",
-        "Qt6::Sql",
-        "Qt6::Widgets",
+        "Qt5::Core",
+        "Qt5::Sql",
+        "Qt5::Widgets",
         "kritaresources",
         "kritaresourcewidgets",
         "kritaui"
@@ -4032,8 +3666,8 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "libs/koplugin/tests",
       "dependencies": [
-        "KF6::CoreAddons",
-        "Qt6::Core",
+        "KF5::CoreAddons",
+        "Qt::Core",
         "dummytrivialinterface",
         "kritaglobal"
       ]
@@ -4043,8 +3677,8 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "libs/koplugin/tests",
       "dependencies": [
-        "KF6::CoreAddons",
-        "Qt6::Core",
+        "KF5::CoreAddons",
+        "Qt::Core",
         "dummytrivialinterface",
         "kritaglobal"
       ]
@@ -4054,8 +3688,8 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "libs/koplugin/tests",
       "dependencies": [
-        "KF6::CoreAddons",
-        "Qt6::Core",
+        "KF5::CoreAddons",
+        "Qt::Core",
         "dummytrivialinterface",
         "kritaglobal"
       ]
@@ -4065,8 +3699,8 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "libs/koplugin/tests",
       "dependencies": [
-        "KF6::CoreAddons",
-        "Qt6::Core",
+        "KF5::CoreAddons",
+        "Qt::Core",
         "dummytrivialinterface",
         "kritaglobal"
       ]
@@ -4100,7 +3734,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/metadata/exif",
       "dependencies": [
-        "KF6::CoreAddons",
+        "KF5::CoreAddons",
         "LibExiv2::LibExiv2",
         "kritametadata"
       ]
@@ -4177,14 +3811,13 @@
         "Fontconfig::Fontconfig",
         "Freetype::Freetype",
         "HarfBuzz::HarfBuzz",
-        "KF6::ConfigCore",
-        "KF6::CoreAddons",
-        "KF6::I18n",
-        "KF6::WidgetsAddons",
-        "Qt6::Gui",
-        "Qt6::OpenGLWidgets",
-        "Qt6::Svg",
-        "Qt6::Xml",
+        "KF5::ConfigCore",
+        "KF5::CoreAddons",
+        "KF5::I18n",
+        "KF5::WidgetsAddons",
+        "Qt5::Gui",
+        "Qt5::Svg",
+        "Qt5::Xml",
         "kritacommand",
         "kritapigment",
         "kritawidgetutils",
@@ -4235,15 +3868,13 @@
         "Boost::boost",
         "Eigen3::Eigen",
         "GSL::gsl",
-        "KF6::ConfigCore",
-        "KF6::I18n",
-        "Qt6::Core",
-        "Qt6::Core5Compat",
-        "Qt6::Gui",
-        "Qt6::OpenGL",
-        "Qt6::Widgets",
-        "Qt6::Xml",
-        "kritamacosutils",
+        "KF5::ConfigCore",
+        "KF5::I18n",
+        "Qt5::AndroidExtras",
+        "Qt5::Core",
+        "Qt5::Gui",
+        "Qt5::Widgets",
+        "Qt5::Xml",
         "kritaversion",
         "lager",
         "zug"
@@ -4306,27 +3937,6 @@
       ]
     },
     {
-      "name": "kritaheifexport",
-      "type": "MODULE_LIBRARY",
-      "sourceDirectory": "plugins/impex/heif",
-      "dependencies": [
-        "heif",
-        "kritaimpex",
-        "kritalibkra",
-        "kritaui"
-      ]
-    },
-    {
-      "name": "kritaheifimport",
-      "type": "MODULE_LIBRARY",
-      "sourceDirectory": "plugins/impex/heif",
-      "dependencies": [
-        "heif",
-        "kritalibkra",
-        "kritaui"
-      ]
-    },
-    {
       "name": "kritaheightmapexport",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/heightmap",
@@ -4371,7 +3981,6 @@
         "OpenEXR::OpenEXR",
         "kritacommand",
         "kritaglobal",
-        "kritamacosutils",
         "kritametadata",
         "kritamultiarch",
         "kritapigment",
@@ -4403,8 +4012,8 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/impex",
       "dependencies": [
-        "KF6::CoreAddons",
-        "KF6::I18n",
+        "KF5::CoreAddons",
+        "KF5::I18n",
         "kritaimage"
       ]
     },
@@ -4421,7 +4030,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/metadata/iptc",
       "dependencies": [
-        "KF6::CoreAddons",
+        "KF5::CoreAddons",
         "LibExiv2::LibExiv2",
         "kritametadata"
       ]
@@ -4553,8 +4162,8 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/color/lcms2engine",
       "dependencies": [
-        "KF6::CoreAddons",
-        "KF6::I18n",
+        "KF5::CoreAddons",
+        "KF5::I18n",
         "OpenEXR::OpenEXR",
         "kritapigment",
         "kritawidgetutils"
@@ -4573,7 +4182,7 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/brush",
       "dependencies": [
-        "Qt6::Svg",
+        "Qt5::Svg",
         "kritaimage",
         "kritamultiarch",
         "lager"
@@ -4616,34 +4225,6 @@
       ]
     },
     {
-      "name": "kritalutdocker",
-      "type": "MODULE_LIBRARY",
-      "sourceDirectory": "plugins/dockers/lut",
-      "dependencies": [
-        "kritalutdocker_static"
-      ]
-    },
-    {
-      "name": "kritalutdocker_static",
-      "type": "STATIC_LIBRARY",
-      "sourceDirectory": "plugins/dockers/lut",
-      "dependencies": [
-        "OpenColorIO::OpenColorIO",
-        "kritaui"
-      ]
-    },
-    {
-      "name": "kritamacosutils",
-      "type": "SHARED_LIBRARY",
-      "sourceDirectory": "libs/macosutils",
-      "dependencies": [
-        "KF6::I18n",
-        "Qt6::Core",
-        "Qt6::Gui",
-        "Qt6::Widgets"
-      ]
-    },
-    {
       "name": "kritametadata",
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/metadata",
@@ -4675,8 +4256,8 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/multiarch",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Core",
+        "KF5::ConfigCore",
+        "Qt5::Core",
         "kritaglobal",
         "xsimd"
       ]
@@ -4702,12 +4283,12 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/paintops/mypaint",
       "dependencies": [
-        "LibMyPaint::mypaint",
         "kritalibbrush",
         "kritalibpaintop",
         "kritaresources",
         "kritaui",
-        "kritawidgetutils"
+        "kritawidgetutils",
+        "mypaint"
       ]
     },
     {
@@ -4808,15 +4389,6 @@
       ]
     },
     {
-      "name": "kritapdfimport",
-      "type": "MODULE_LIBRARY",
-      "sourceDirectory": "plugins/impex/pdf",
-      "dependencies": [
-        "Poppler::Qt6",
-        "kritaui"
-      ]
-    },
-    {
       "name": "kritaphongbumpmap",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/filters/phongbumpmap",
@@ -4830,12 +4402,12 @@
       "sourceDirectory": "libs/pigment",
       "dependencies": [
         "Boost::boost",
-        "KF6::ConfigCore",
-        "KF6::I18n",
+        "KF5::ConfigCore",
+        "KF5::I18n",
         "OpenEXR::OpenEXR",
-        "Qt6::Core",
-        "Qt6::Gui",
-        "Qt6::Xml",
+        "Qt5::Core",
+        "Qt5::Gui",
+        "Qt5::Xml",
         "kritacommand",
         "kritaglobal",
         "kritamultiarch",
@@ -4857,10 +4429,10 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/koplugin",
       "dependencies": [
-        "KF6::ConfigCore",
-        "KF6::CoreAddons",
-        "KF6::I18n",
-        "Qt6::Core",
+        "KF5::ConfigCore",
+        "KF5::CoreAddons",
+        "KF5::I18n",
+        "Qt5::Core",
         "kritaglobal"
       ]
     },
@@ -4949,7 +4521,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/psd",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritaglobal",
         "kritapsd_static",
         "kritaui"
@@ -4960,8 +4532,8 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/psdutils",
       "dependencies": [
-        "Qt6::Core",
-        "Qt6::Gui",
+        "Qt5::Core",
+        "Qt5::Gui",
         "ZLIB::ZLIB",
         "kritaflake",
         "kritaglobal",
@@ -5004,53 +4576,15 @@
     },
     {
       "name": "kritaqmlcomponents",
-      "type": "MODULE_LIBRARY",
+      "type": "SHARED_LIBRARY",
       "sourceDirectory": "qmlmodules/components",
       "dependencies": [
-        "KF6::ColorScheme",
-        "Qt6::Core",
-        "Qt6::Qml",
-        "Qt6::Quick",
-        "Qt6::QuickControls2",
+        "Qt::Qml",
+        "Qt::Quick",
+        "Qt::QuickControls2",
         "kritaqmlwidgets",
         "kritaui"
       ]
-    },
-    {
-      "name": "kritaqmlcomponents_copy_qml",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "kritaqmlcomponents_copy_res",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "kritaqmlcomponents_qmllint",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "kritaqmlcomponents_qmllint_json",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "kritaqmlcomponents_qmllint_module",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
-      "name": "kritaqmlcomponents_qmltyperegistration",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
     },
     {
       "name": "kritaqmlexport",
@@ -5066,10 +4600,10 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "qmlmodules/widgets",
       "dependencies": [
-        "Qt6::Qml",
-        "Qt6::Quick",
-        "Qt6::QuickControls2",
-        "Qt6::QuickWidgets",
+        "Qt::Qml",
+        "Qt::Quick",
+        "Qt::QuickControls2",
+        "Qt::QuickWidgets",
         "kritaui"
       ]
     },
@@ -5124,12 +4658,12 @@
       "sourceDirectory": "libs/resources",
       "dependencies": [
         "Boost::boost",
-        "KF6::ConfigCore",
-        "KF6::CoreAddons",
-        "KF6::I18n",
-        "Qt6::Core",
-        "Qt6::Sql",
-        "Qt6::Widgets",
+        "KF5::ConfigCore",
+        "KF5::CoreAddons",
+        "KF5::I18n",
+        "Qt5::Core",
+        "Qt5::Sql",
+        "Qt5::Widgets",
         "QuaZip::QuaZip",
         "kritaglobal",
         "kritaplugin",
@@ -5142,13 +4676,13 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/resourcewidgets",
       "dependencies": [
-        "KF6::ConfigCore",
-        "KF6::CoreAddons",
-        "KF6::I18n",
-        "KF6::WidgetsAddons",
-        "Qt6::Core",
-        "Qt6::Sql",
-        "Qt6::Widgets",
+        "KF5::ConfigCore",
+        "KF5::CoreAddons",
+        "KF5::I18n",
+        "KF5::WidgetsAddons",
+        "Qt5::Core",
+        "Qt5::Sql",
+        "Qt5::Widgets",
         "kritaglobal",
         "kritaplugin",
         "kritaresources",
@@ -5277,15 +4811,6 @@
       ]
     },
     {
-      "name": "kritasmallcolorselector",
-      "type": "MODULE_LIBRARY",
-      "sourceDirectory": "plugins/dockers/smallcolorselector",
-      "dependencies": [
-        "Qt6::OpenGLWidgets",
-        "kritaui"
-      ]
-    },
-    {
       "name": "kritasmalltilesfilter",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/filters/smalltilesfilter",
@@ -5312,6 +4837,14 @@
       ]
     },
     {
+      "name": "kritaspensettings",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/spensettings",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
       "name": "kritaspraypaintop",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/paintops/spray",
@@ -5333,9 +4866,9 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/store",
       "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Gui",
-        "Qt6::Xml",
+        "KF5::ConfigCore",
+        "Qt5::Gui",
+        "Qt5::Xml",
         "QuaZip::QuaZip",
         "kritaglobal",
         "kritaversion"
@@ -5354,7 +4887,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/storyboarddocker",
       "dependencies": [
-        "Qt6::PrintSupport",
+        "Qt5::PrintSupport",
         "kritaui"
       ]
     },
@@ -5396,10 +4929,10 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/textproperties",
       "dependencies": [
-        "Qt6::Qml",
-        "Qt6::Quick",
-        "Qt6::QuickControls2",
-        "Qt6::QuickWidgets",
+        "Qt5::Qml",
+        "Qt5::Quick",
+        "Qt5::QuickControls2",
+        "Qt5::QuickWidgets",
         "kritaqmlwidgets",
         "kritaui"
       ]
@@ -5579,24 +5112,23 @@
       "dependencies": [
         "Boost::boost",
         "Eigen3::Eigen",
-        "KF6::ColorScheme",
-        "KF6::Completion",
-        "KF6::CoreAddons",
-        "KF6::I18n",
-        "KF6::ItemViews",
+        "KF5::Completion",
+        "KF5::CoreAddons",
+        "KF5::I18n",
+        "KF5::ItemViews",
         "Mlt7::mlt",
         "Mlt7::mlt++",
         "OpenEXR::OpenEXR",
-        "Qt6::Concurrent",
-        "Qt6::Network",
-        "Qt6::OpenGLWidgets",
-        "Qt6::SvgWidgets",
+        "PkgConfig::LibAV",
+        "Qt5::AndroidExtras",
+        "Qt5::Concurrent",
+        "Qt5::Gui",
+        "Qt5::Network",
         "SDL2::SDL2",
         "kritacolor",
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",
-        "kritamacosutils",
         "kritaresources",
         "kritaversion",
         "kritawidgets",
@@ -5616,7 +5148,7 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/version",
       "dependencies": [
-        "Qt6::Core"
+        "Qt5::Core"
       ]
     },
     {
@@ -5670,12 +5202,12 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/widgets",
       "dependencies": [
-        "KF6::Completion",
-        "KF6::ConfigCore",
-        "KF6::ConfigGui",
-        "KF6::CoreAddons",
-        "KF6::GuiAddons",
-        "KF6::WidgetsAddons",
+        "KF5::Completion",
+        "KF5::ConfigCore",
+        "KF5::ConfigGui",
+        "KF5::CoreAddons",
+        "KF5::GuiAddons",
+        "KF5::WidgetsAddons",
         "kritaflake",
         "kritaglobal",
         "kritapigment",
@@ -5689,21 +5221,20 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/widgetutils",
       "dependencies": [
-        "KF6::ColorScheme",
-        "KF6::ConfigCore",
-        "KF6::ConfigGui",
-        "KF6::CoreAddons",
-        "KF6::GuiAddons",
-        "KF6::I18n",
-        "KF6::ItemViews",
-        "KF6::WidgetsAddons",
-        "Qt6::Core",
-        "Qt6::Gui",
-        "Qt6::PrintSupport",
-        "Qt6::Widgets",
-        "Qt6::Xml",
+        "KF5::ConfigCore",
+        "KF5::ConfigGui",
+        "KF5::CoreAddons",
+        "KF5::GuiAddons",
+        "KF5::I18n",
+        "KF5::ItemViews",
+        "KF5::WidgetsAddons",
+        "Qt5::AndroidExtras",
+        "Qt5::Core",
+        "Qt5::Gui",
+        "Qt5::PrintSupport",
+        "Qt5::Widgets",
+        "Qt5::Xml",
         "kritaglobal",
-        "kritamacosutils",
         "kritaplugin",
         "kritaresources"
       ]
@@ -5722,7 +5253,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/metadata/xmp",
       "dependencies": [
-        "KF6::CoreAddons",
+        "KF5::CoreAddons",
         "LibExiv2::LibExiv2",
         "kritametadata"
       ]
@@ -5756,7 +5287,7 @@
       "dependencies": []
     },
     {
-      "name": "pofiles-b4c30cde5109e877ceaaf396ba95db3c",
+      "name": "pofiles-981c917ff7e2691536c111563df5de66",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []
@@ -5766,8 +5297,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/impex/psd/tests",
       "dependencies": [
-        "KF6::I18n",
-        "Qt6::Gui",
+        "KF5::I18n",
+        "Qt5::Gui",
         "kritaglobal",
         "kritapsd",
         "kritapsd_static",
@@ -5788,7 +5319,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/impex/psd/tests",
       "dependencies": [
-        "KF6::I18n",
+        "KF5::I18n",
         "kritaglobal",
         "kritapsd",
         "kritapsd_static",
@@ -5805,17 +5336,11 @@
       ]
     },
     {
-      "name": "qt_internal_plugins",
-      "type": "UTILITY",
-      "sourceDirectory": "qmlmodules/components",
-      "dependencies": []
-    },
-    {
       "name": "storedroptest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/store/tests",
       "dependencies": [
-        "Qt6::Widgets",
+        "Qt5::Widgets",
         "kritastore"
       ]
     },
@@ -5848,7 +5373,7 @@
       "dependencies": []
     },
     {
-      "name": "tsfiles-b4c30cde5109e877ceaaf396ba95db3c",
+      "name": "tsfiles-981c917ff7e2691536c111563df5de66",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []
