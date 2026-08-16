@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 20:14 JST
-- 状態: `in_progress`
-- 現在の検査段階: R1-G5 再配置計画
+- 更新日時: 2026-08-16 20:20 JST
+- 状態: `planned`
+- 現在の検査段階: R1-G6a リソース保存境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g5-package-relocation-plan`
-- 目的: 9責務の目標ディレクトリー、名前空間、CMakeターゲット、移行順、互換経路、
-  削除条件を機械可読な再配置計画へ固定し、R1-G6の全実装順を確定する。
+- 目的: `libs/store`の保存契約を自動試験で固定し、
+  `libs/resources/storage`の`kritaresourcestorage`へ独立移動する。
 
 ## 再開環境
 
@@ -203,17 +203,46 @@
 ## 検証状態
 
 - 初回契約検査は再配置計画検査器の欠落を診断した。
+- `nix develop .#test --command python3 -m unittest
+  scripts.tests.test_package_relocation_plan`: 再配置計画の正常系と、移行順、内部ヘッダー被覆、
+  段階別上限、互換経路、高速検査接続の6契約が成功した。
 - `nix develop .#test --command ./scripts/verify-quick`: 83件の単体試験、公開ヘッダー、
   UI直下クラス、UIツールクラス、プラグイン、責務地図、許可依存方針、依存違反基準の
   決定的更新検査、構造依存基準、再配置計画、公開面検査、運用検査、シェル検査、
   文書検査、リンク検査、D2再生成検査が成功した。
-- Darwinとx86_64 Linuxの独立運用検査、およびmacOS、Linux、iOS、Android、Windowsの
-  5実構成検証を、同一コミットへ揃えて実行する。
+- `nix build --no-link .#checks.aarch64-darwin.governance`と、`ssh nixos`上の
+  `nix build --no-link .#checks.x86_64-linux.governance`が成功した。
+- `nix develop .#test --command ./scripts/architecture/verify_cmake_graphs.py
+  --remote-host nixos --remote-repository
+  /home/masato/worktrees/librepaint-r1-g5-verify`: macOS、Linux、iOS、Android、Windowsの
+  5台帳と差分行列が同一コミット`be97cc3`の実構成に一致した。
+- 製品C++、CMakeターゲット、Nix出力を変更していないため製品全体の再構築と
+  全Nix出力評価は実行していない。計画と検査方針は両ホストの独立検査と5構成で検証した。
 
 ## 次の操作
 
-同一コミットでDarwinとx86_64 Linuxの運用検査、および5構成のCMake台帳一致を確認し、
-R1-G5を完了してR1-G6aのリソース保存契約へ進む。
+R1-G6aを次の順で開始する。
+
+1. `libs/store`のCMake定義、既存の手動`storedroptest`、入出力とリソースの利用元を確認する。
+2. 保存領域の作成、読込、書込、取消し、不正アーカイブ時の不変条件を自動Qt Testへ固定し、
+   期待する初回診断を記録する。
+3. 実装を`libs/resources/storage`へ移し、`kritaresourcestorage`を独立構築する。
+4. `kritastore`を製品ソースを持たない互換ターゲットへ変え、旧includeを転送ヘッダーへ
+   限定する。
+5. 描画から入出力2件とリソースから入出力5件の逆方向includeをゼロにし、基準と5構成の
+   CMake台帳を同じ変更で更新する。
+
+## R1-G5完了根拠
+
+- 9責務すべてが現行所有者、目標ディレクトリー、名前空間、主ターゲット、許可依存、
+  完了条件を持つ。
+- 8移行段階が許可依存の下位から上位へ並び、新規ターゲットを一度だけ作成する。
+- 13の一時互換経路が導入段階、最大範囲、R1-G7の削除条件、検証方法を持つ。
+- 8種類305件の逆方向includeと44ヘッダー627件の内部参照が各段階で一度だけ処理され、
+  最終上限がゼロになる。
+- 最初のR1-G6aが移動元、移動先、必要な契約、基準縮小、完了条件、中止条件を持つ。
+- 計画検査が責務・依存・構造基準と5構成の実体を照合し、DarwinとLinuxの独立検査で
+  同じ結果になる。
 
 ## R1-G4完了根拠
 
