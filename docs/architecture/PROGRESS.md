@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 21:12 JST
-- 状態: `in_progress`
-- 現在の検査段階: R1-G6a リソース保存境界
+- 更新日時: 2026-08-16 21:47 JST
+- 状態: `planned`
+- 現在の検査段階: R1-G6a リソース表示境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6a-resource-storage-boundary`
-- 目的: `libs/store`の保存契約を自動試験で固定し、実装を
-  `libs/resources/storage`の`kritaresourcestorage`へ独立移動して5構成へ反映する。
+- 目的: `libs/resourcewidgets`とリソース設定表示を`libs/resources/ui`の
+  `kritaresourceui`へ分離し、描画設定表示を`kritatoolsui`へ移す契約を固定する。
 
 ## 再開環境
 
@@ -212,31 +212,38 @@
   保存実装を入出力責務からリソース管理責務へ移した。
 - 旧ターゲットと旧ヘッダーで既存の列挙値とAPIが利用できることを
   `TestLegacyStoreCompatibility`へ固定した。
+- XML数値属性の15桁および`FLT_DIG`表現を保存契約へ固定し、保存ターゲットから
+  LibrePaint内の製品ターゲットへの依存を解消した。
+- 5構成で`kritaresourcestorage`を独立構築し、macOS、Linux、Android、Windowsでは
+  共有ライブラリー、iOSでは静的ライブラリーになることをCMake台帳へ固定した。
 
 ## 検証状態
 
-- 初回契約検査は再配置計画検査器の欠落を診断した。
-- `nix develop .#test --command python3 -m unittest
-  scripts.tests.test_package_relocation_plan`: 再配置計画の正常系と、移行順、内部ヘッダー被覆、
-  段階別上限、互換経路、高速検査接続の6契約が成功した。
-- `nix develop .#test --command ./scripts/verify-quick`: 83件の単体試験、公開ヘッダー、
-  UI直下クラス、UIツールクラス、プラグイン、責務地図、許可依存方針、依存違反基準の
-  決定的更新検査、構造依存基準、再配置計画、公開面検査、運用検査、シェル検査、
-  文書検査、リンク検査、D2再生成検査が成功した。
-- `nix build --no-link .#checks.aarch64-darwin.governance`と、`ssh nixos`上の
-  `nix build --no-link .#checks.x86_64-linux.governance`が成功した。
-- `nix develop .#test --command ./scripts/architecture/verify_cmake_graphs.py
-  --remote-host nixos --remote-repository
-  /home/masato/worktrees/librepaint-r1-g5-verify`: macOS、Linux、iOS、Android、Windowsの
-  5台帳と差分行列が同一コミット`be97cc3`の実構成に一致した。
-- 製品C++、CMakeターゲット、Nix出力を変更していないため製品全体の再構築と
-  全Nix出力評価は実行していない。計画と検査方針は両ホストの独立検査と5構成で検証した。
+- 初回の`TestResourceStorageArchiveContract`構築は、未実装の
+  `kritaresourcestorage`により`KoStore.h`の欠落を診断した。
+- `nix develop .#test --command ./scripts/run-test TestResourceStorageArchiveContract`:
+  ZIP、ディレクトリー、不正入力、失敗後の継続、重複書込、XML数値表現の6契約が
+  macOSとLinuxで成功した。
+- `nix develop .#test --command ./scripts/run-test TestLegacyStoreCompatibility`:
+  旧ターゲット、ヘッダー、公開マクロ、列挙値の互換契約がmacOSとLinuxで成功した。
+- `nix develop .#test --command ./scripts/build-incremental macos build
+  kritaresourcestorage`と、iOS増分環境からの同ターゲット構築が成功した。
+- `ssh nixos`上でLinux、Android、Windowsの構成と`kritaresourcestorage`構築を並行実行し、
+  3構成すべてが成功した。Windowsは製品内依存を持たない10工程で完了した。
+- macOS、Linux、iOS、Android、WindowsのCMake台帳は同一ソースコミット`39e2ad0`から
+  再生成した。全構成で保存ターゲットの製品内依存は0件である。
+- `nix develop .#test --command ./scripts/verify-quick`: 84件の単体試験、責務・依存・構造台帳、
+  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems`: 全Nix出力の評価が成功した。
+- `nix develop .#test --command ./scripts/verify`は高速検査を通過した後、保存境界外を含む
+  4,771工程の全体再構築になることを確認した。境界の完了判定には上記の対象試験、
+  5構成の実構築、全Nix出力評価を用いる。
 
 ## 次の操作
 
-macOS、Linux、iOS、Android、WindowsのCMake台帳を新ターゲットで再生成する。責務地図、
-許可依存、逆方向依存基準、再配置計画を新しい保存所有者へ同期し、描画から入出力2件と
-リソースから入出力5件の逆方向includeがゼロになったことを検査する。
+`libs/resourcewidgets`と`libs/ui`のリソース設定表示について、表示の煙試験と型付き
+リソース記述子の契約を先に追加する。続いて`kritaresourceui`と`kritatoolsui`を分離し、
+リソース管理から描画への40件の逆方向includeをゼロへ縮小する。
 
 ## R1-G5完了根拠
 

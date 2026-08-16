@@ -253,7 +253,8 @@ C++名前空間、主CMakeターゲット、許可依存、移行段階へ対応
 保存境界は実装済みである。`kritaresourcestorage`がZIPとディレクトリーの保存契約を所有し、
 製品利用元はこのターゲットへ直接リンクする。`kritastore`は製品ソースを持たない互換用
 ターゲット、`libs/store`のヘッダーは転送ヘッダーとしてR1-G7まで維持する。移行計画の
-`implemented`状態と5構成のCMake台帳が新ターゲットの存在を継続検査する。
+`implemented`状態と5構成のCMake台帳が新ターゲットの存在を継続検査する。保存ターゲットは
+LibrePaint内の製品ターゲットへ依存せず、Qt Core、Gui、Xml、KConfig、QuaZipだけを利用する。
 
 一時互換経路は旧include、`kritastore`、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は

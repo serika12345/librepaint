@@ -1874,10 +1874,7 @@
         "SHARED_LIBRARY",
         "STATIC_LIBRARY"
       ],
-      "repositoryDependencies": [
-        "kritaglobal",
-        "kritaversion"
-      ],
+      "repositoryDependencies": [],
       "repositoryConsumers": [
         "kritapigment",
         "kritapsdexport",

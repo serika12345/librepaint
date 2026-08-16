@@ -4877,8 +4877,7 @@
         "Qt6::Core",
         "Qt6::Gui",
         "Qt6::Xml",
-        "QuaZip::QuaZip",
-        "kritaglobal"
+        "QuaZip::QuaZip"
       ]
     },
     {
