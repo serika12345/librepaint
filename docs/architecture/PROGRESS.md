@@ -2,11 +2,11 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 13:51 JST
-- 状態: `planned`
+- 更新日時: 2026-08-16 13:59 JST
+- 状態: `in_progress`
 - 現在の検査段階: R1-G2 公開面と主要クラスの棚卸し
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g2b-public-header-inventory`
+- ブランチ: `r1-g2c-ui-class-responsibilities`
 - 目的: R1-G2cとして`libs/ui`直下の公開クラスを全件採取し、アプリケーション、
   文書、入出力、ウィンドウ、表示調整の実際の責務へ分類する。
 
