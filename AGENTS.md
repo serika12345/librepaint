@@ -14,6 +14,29 @@ paths, and quoted diagnostics.
 Implementation reports include the change purpose, the resulting capability,
 verification commands and results, remaining risk, and the next durable action.
 
+Implementation reports and pull request descriptions explain the change in
+reviewer-facing domain language before introducing repository identifiers.
+Titles state the architectural or behavioral outcome instead of leading with
+target names, class names, or migration labels. Use this order, omitting a
+section only when it does not apply:
+
+1. State the concrete problem in the previous structure and its effect on
+   ownership, dependencies, behavior, or maintenance.
+2. Describe the resulting responsibility boundaries and dependency direction
+   in conceptual terms.
+3. Identify removed compatibility routes, obsolete structure, dead code, and
+   unintended dependencies.
+4. State the observable behavior and contracts that remain stable.
+5. Give reviewers explicit points to inspect in the implementation.
+6. Report verification by platform and scope, distinguishing successful
+   checks from unrelated baseline failures and remaining risk.
+7. Name the next scoped action.
+
+Repository paths, CMake targets, class names, test names, and commands support
+the explanation after the purpose and structural result are clear. A list of
+internal identifiers is not a substitute for explaining what changed, why it
+changed, and how a reviewer can judge correctness.
+
 ## Roadmap Order
 
 LibrePaint follows the roadmap in `docs/architecture/TODO.md`.
