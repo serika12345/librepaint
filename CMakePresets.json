@@ -132,6 +132,7 @@
       "name": "tdd-macos",
       "configurePreset": "tdd-macos",
       "environment": {
+        "KIS_TEST_PREFIX_PATH": "${sourceDir}/build/tdd-macos",
         "QT_QPA_PLATFORM": "offscreen"
       },
       "execution": {
@@ -147,6 +148,7 @@
       "name": "tdd-linux",
       "configurePreset": "tdd-linux",
       "environment": {
+        "KIS_TEST_PREFIX_PATH": "${sourceDir}/build/tdd-linux",
         "QT_QPA_PLATFORM": "offscreen"
       },
       "execution": {

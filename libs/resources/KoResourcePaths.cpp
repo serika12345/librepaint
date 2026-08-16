@@ -124,11 +124,15 @@ QString getInstallationPrefix() {
     else {
         // This is needed as tests will not run outside of the
         // install directory without this
-        // This needs krita to be installed.
+        // This accepts either an installed prefix or an incremental CMake
+        // build tree selected explicitly by the test preset.
         QString envInstallPath = qgetenv("KIS_TEST_PREFIX_PATH");
+        bool incrementalBuild = QFileInfo(envInstallPath + "/CMakeCache.txt").isFile()
+            && QDir(envInstallPath + "/bin").exists();
         if (!envInstallPath.isEmpty() && (
                     QDir(envInstallPath + "/lib/kritaplugins").exists()
-                    || QDir(envInstallPath + "/Resources/kritaplugins").exists() ))
+                    || QDir(envInstallPath + "/Resources/kritaplugins").exists()
+                    || incrementalBuild ))
         {
             bundlePath = envInstallPath;
         }
