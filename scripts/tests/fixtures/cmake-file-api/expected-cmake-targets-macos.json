@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "platform": "macos",
+  "preset": "tdd-macos",
+  "configuration": "RelWithDebInfo",
+  "targets": [
+    {
+      "name": "foundation",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "libs/foundation",
+      "dependencies": []
+    },
+    {
+      "name": "librepaint",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "app",
+      "dependencies": [
+        "paint",
+        "sampleplugin"
+      ]
+    },
+    {
+      "name": "paint",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/paint",
+      "dependencies": [
+        "Qt6::Core",
+        "foundation"
+      ]
+    },
+    {
+      "name": "sampleplugin",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/sample",
+      "dependencies": [
+        "paint"
+      ]
+    }
+  ]
+}

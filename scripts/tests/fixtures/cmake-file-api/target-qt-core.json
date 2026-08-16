@@ -1,0 +1,11 @@
+{
+  "abstract": true,
+  "id": "Qt6::Core::@external",
+  "imported": true,
+  "name": "Qt6::Core",
+  "paths": {
+    "build": ".",
+    "source": "."
+  },
+  "type": "SHARED_LIBRARY"
+}

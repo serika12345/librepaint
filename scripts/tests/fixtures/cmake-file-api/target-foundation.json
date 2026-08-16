@@ -1,0 +1,9 @@
+{
+  "id": "foundation::@foundation",
+  "name": "foundation",
+  "paths": {
+    "build": "libs/foundation",
+    "source": "libs/foundation"
+  },
+  "type": "STATIC_LIBRARY"
+}

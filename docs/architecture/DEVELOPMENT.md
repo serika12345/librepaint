@@ -178,6 +178,29 @@ nix build --no-link .#checks.x86_64-linux.governance
 `LIMIT_LONG_TESTS=ON`、`CRASH_ON_SAFE_ASSERTS=ON`を使用する。各BROKEN試験の
 原因、決定性、比較規則を確認し、通常検査へ復旧する。
 
+## CMakeターゲット台帳
+
+macOSの現在のターゲット、種別、定義場所、直接リンク依存は
+`docs/architecture/cmake-targets-macos.json`へ記録する。次のコマンドはFile APIの
+`codemodel-v2`問い合わせを`build/tdd-macos`へ作成し、構成を同期して台帳を更新する。
+
+```sh
+nix develop .#test --command \
+  ./scripts/architecture/regenerate_cmake_graph.py macos
+```
+
+CMakeターゲットまたは`target_link_libraries`を変更したときは、台帳を再生成して
+同じ変更へ含める。記録済み台帳とのバイト単位の一致は次のコマンドで確認する。
+
+```sh
+nix develop .#test --command \
+  ./scripts/architecture/regenerate_cmake_graph.py macos --check
+```
+
+`verify-quick`は固定File API応答を使用し、抽出形式、直接依存の選択、決定的な
+整列、差分診断と、記録済みmacOS台帳の主要入口を検査する。実際のmacOS構成との
+一致は上記の`--check`で検査する。
+
 ## テスト駆動開発
 
 観測可能な変更は次の周期で進める。

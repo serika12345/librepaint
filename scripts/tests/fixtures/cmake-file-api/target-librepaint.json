@@ -1,0 +1,28 @@
+{
+  "dependencies": [
+    {
+      "id": "foundation::@foundation"
+    },
+    {
+      "id": "paint::@paint"
+    },
+    {
+      "id": "sampleplugin::@plugin"
+    }
+  ],
+  "id": "librepaint::@app",
+  "linkLibraries": [
+    {
+      "id": "sampleplugin::@plugin"
+    },
+    {
+      "id": "paint::@paint"
+    }
+  ],
+  "name": "librepaint",
+  "paths": {
+    "build": "app",
+    "source": "app"
+  },
+  "type": "EXECUTABLE"
+}
