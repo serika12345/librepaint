@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 20:20 JST
-- 状態: `planned`
+- 更新日時: 2026-08-16 21:12 JST
+- 状態: `in_progress`
 - 現在の検査段階: R1-G6a リソース保存境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g5-package-relocation-plan`
-- 目的: `libs/store`の保存契約を自動試験で固定し、
-  `libs/resources/storage`の`kritaresourcestorage`へ独立移動する。
+- ブランチ: `r1-g6a-resource-storage-boundary`
+- 目的: `libs/store`の保存契約を自動試験で固定し、実装を
+  `libs/resources/storage`の`kritaresourcestorage`へ独立移動して5構成へ反映する。
 
 ## 再開環境
 
@@ -200,6 +200,19 @@
 - 再配置計画の目的、構成、実装順、最初の段階、検査方法、保守条件をアーキテクチャ
   ガイドと開発手順へ記録した。
 
+## R1-G6a保存境界で完了した作業
+
+- ZIPとディレクトリーの読書き、不正ZIPの拒否、失敗した読込後の継続、重複書込の拒否と
+  既存データ保持を`TestResourceStorageArchiveContract`へ固定した。
+- `libs/store`の実装、内部ヘッダー、手動試験を`libs/resources/storage`へ移し、
+  `kritaresourcestorage`を独立した共有ライブラリーとして構築した。
+- `kritastore`を製品ソースを持たない接続用ターゲットへ変更し、旧ヘッダーと旧公開マクロを
+  新しい保存APIへ転送する互換経路を追加した。
+- リソース、リソース表示、色資源、PSD書出しの直接リンクを`kritaresourcestorage`へ変更し、
+  保存実装を入出力責務からリソース管理責務へ移した。
+- 旧ターゲットと旧ヘッダーで既存の列挙値とAPIが利用できることを
+  `TestLegacyStoreCompatibility`へ固定した。
+
 ## 検証状態
 
 - 初回契約検査は再配置計画検査器の欠落を診断した。
@@ -221,16 +234,9 @@
 
 ## 次の操作
 
-R1-G6aを次の順で開始する。
-
-1. `libs/store`のCMake定義、既存の手動`storedroptest`、入出力とリソースの利用元を確認する。
-2. 保存領域の作成、読込、書込、取消し、不正アーカイブ時の不変条件を自動Qt Testへ固定し、
-   期待する初回診断を記録する。
-3. 実装を`libs/resources/storage`へ移し、`kritaresourcestorage`を独立構築する。
-4. `kritastore`を製品ソースを持たない互換ターゲットへ変え、旧includeを転送ヘッダーへ
-   限定する。
-5. 描画から入出力2件とリソースから入出力5件の逆方向includeをゼロにし、基準と5構成の
-   CMake台帳を同じ変更で更新する。
+macOS、Linux、iOS、Android、WindowsのCMake台帳を新ターゲットで再生成する。責務地図、
+許可依存、逆方向依存基準、再配置計画を新しい保存所有者へ同期し、描画から入出力2件と
+リソースから入出力5件の逆方向includeがゼロになったことを検査する。
 
 ## R1-G5完了根拠
 

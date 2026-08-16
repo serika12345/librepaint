@@ -98,7 +98,7 @@ target_include_directories( kritapigment
 target_link_libraries( kritapigment
     PUBLIC
         kritaplugin
-        kritastore
+        kritaresourcestorage
         kritaglobal
         kritaresources
         kritacommand

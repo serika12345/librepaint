@@ -31,7 +31,7 @@ target_link_libraries(kritaresourcewidgets
         kritaversion
         kritaglobal
         kritaplugin
-        kritastore
+        kritaresourcestorage
         kritaresources
         kritawidgetutils
         KF${KF_MAJOR}::ConfigCore
@@ -44,4 +44,3 @@ set_target_properties(kritaresourcewidgets PROPERTIES
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
 )
 install(TARGETS kritaresourcewidgets ${INSTALL_TARGETS_DEFAULT_ARGS} )
-

@@ -76,7 +76,7 @@ target_link_libraries(kritaresources
         kritaversion
         kritaglobal
         kritaplugin
-        kritastore
+        kritaresourcestorage
         KF${KF_MAJOR}::ConfigCore
         KF${KF_MAJOR}::CoreAddons
         KF${KF_MAJOR}::I18n
