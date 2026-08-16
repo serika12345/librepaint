@@ -9,18 +9,18 @@
 #ifndef XMLWRITER_H
 #define XMLWRITER_H
 
-#include <QDebug>
-#include <QMap>
+#include <QByteArray>
 #include <QIODevice>
+#include <QString>
 
-#include "kritaresourcestorage_export.h"
+#include "kritaxmlserialization_export.h"
 
 /**
  * A class for writing out XML (to any QIODevice), with a special attention on performance.
  * The XML is being written out along the way, which avoids requiring the entire
  * document in memory (like QDom does).
  */
-class KRITARESOURCESTORAGE_EXPORT KoXmlWriter
+class KRITAXMLSERIALIZATION_EXPORT KoXmlWriter
 {
 public:
     /**

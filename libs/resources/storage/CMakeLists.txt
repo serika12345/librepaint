@@ -4,8 +4,6 @@ set(kritaresourcestorage_LIB_SRCS
     KoDirectoryStore.cpp
     KoStoreDevice.cpp
     KoStore.cpp
-    KoXmlNS.cpp
-    KoXmlWriter.cpp
     KoQuaZipStore.cpp
     StoreDebug.cpp
 )
@@ -18,8 +16,6 @@ target_link_libraries(kritaresourcestorage
         Qt${QT_MAJOR_VERSION}::Core
     PRIVATE
         KF${KF_MAJOR}::ConfigCore
-        Qt${QT_MAJOR_VERSION}::Xml
-        Qt${QT_MAJOR_VERSION}::Gui
         ${QUAZIP_LIBRARIES}
 )
 

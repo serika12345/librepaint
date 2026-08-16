@@ -31,7 +31,6 @@ target_link_libraries(kritaresourcewidgets
         kritaversion
         kritaglobal
         kritaplugin
-        kritaresourcestorage
         kritaresources
         kritawidgetutils
         KF${KF_MAJOR}::ConfigCore

@@ -8,9 +8,9 @@
 #include <QIODevice>
 #include <QMessageBox>
 
-#include <libs/store/KoStore.h>
+#include <KoStore.h>
 #include <KisReferenceImage.h>
-#include <libs/store/KoStoreDevice.h>
+#include <KoStoreDevice.h>
 
 const QString METADATA_FILE = "reference_images.xml";
 

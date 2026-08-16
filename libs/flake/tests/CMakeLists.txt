@@ -28,7 +28,7 @@ kis_add_tests(
     TestSvgTextShape.cpp
     TestDependentShapes.cpp
 
-    LINK_LIBRARIES kritaflake kritatestsdk
+    LINK_LIBRARIES kritaflake kritatestsdk kritaxmlserialization
     )
 
 kis_add_test(

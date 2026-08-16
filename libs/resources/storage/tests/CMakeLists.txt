@@ -5,11 +5,6 @@ kis_add_tests(
     LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
 )
 
-kis_add_tests(
-    TestLegacyStoreCompatibility.cpp
-    LINK_LIBRARIES kritastore Qt${QT_MAJOR_VERSION}::Test
-)
-
 add_executable(storedroptest storedroptest.cpp)
 target_link_libraries(storedroptest kritaresourcestorage Qt${QT_MAJOR_VERSION}::Widgets)
 ecm_mark_as_test(storedroptest)

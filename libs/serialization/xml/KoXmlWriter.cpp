@@ -7,8 +7,8 @@
 
 #include "KoXmlWriter.h"
 
-#include <StoreDebug.h>
 #include <QByteArray>
+#include <QDebug>
 #include <QStack>
 #include <QTextStream>
 #include <float.h>
@@ -155,7 +155,7 @@ void KoXmlWriter::addCompleteElement(QIODevice* indev)
     const bool openOk = indev->open(QIODevice::ReadOnly);
     Q_ASSERT(openOk);
     if (!openOk) {
-        warnStore << "Failed to re-open the device! wasOpen=" << wasOpen;
+        qWarning() << "Failed to re-open the device! wasOpen=" << wasOpen;
         return;
     }
 
@@ -180,9 +180,9 @@ void KoXmlWriter::addCompleteElement(QIODevice* indev)
 void KoXmlWriter::endElement()
 {
     if (d->tags.isEmpty())
-        warnStore << "EndElement() was called more times than startElement(). "
-                     "The generated XML will be invalid! "
-                     "Please report this bug (by saving the document to another format...)" << Qt::endl;
+        qWarning() << "EndElement() was called more times than startElement(). "
+                      "The generated XML will be invalid! "
+                      "Please report this bug (by saving the document to another format...)" << Qt::endl;
 
     Tag tag = d->tags.pop();
 

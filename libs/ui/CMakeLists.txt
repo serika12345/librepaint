@@ -717,6 +717,9 @@ target_link_libraries(kritaui
         kritawidgets
         kritawidgetutils
         kritaresources
+        kritaresourcestorage
+    PRIVATE
+        kritaxmlserialization
 )
 
 if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
