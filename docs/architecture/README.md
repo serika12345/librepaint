@@ -219,6 +219,42 @@ Windows 223件であり、現在の非自明な強連結成分は両範囲、全
 除去条件、ヘッダー数と参照数の審査済み上限を保持し、増加と縮小可能な上限の両方を
 診断する。
 
+### パッケージ再配置計画
+
+[パッケージ再配置計画](package-relocation-plan.json)は、現在の9責務を目標ディレクトリー、
+C++名前空間、主CMakeターゲット、許可依存、移行段階へ対応付ける。既存の凝集した
+実装ターゲットは保持し、新しい責務接続面と表示部分だけを独立ターゲットとして追加する。
+
+| 責務 | 目標ディレクトリー | 新しいAPIの名前空間 | 主ターゲット | 移行段階 |
+| --- | --- | --- | --- | --- |
+| プラグイン基盤 | `libs/koplugin` | `Krita::Plugin` | `kritaplugin` | 現行境界を保持 |
+| リソース管理 | `libs/resources` | `Krita::Resources` | `kritaresources` | R1-G6a |
+| 描画 | `libs/painting` | `Krita::Painting` | `kritapainting` | R1-G6b |
+| 入出力 | `libs/impex` | `Krita::ImportExport` | `kritaimpex` | R1-G6c |
+| キャンバス表示 | `libs/canvas` | `Krita::Canvas` | `kritacanvas` | R1-G6d |
+| 文書寿命 | `libs/document` | `Krita::Document` | `kritadocument` | R1-G6e |
+| ツール呼出し | `libs/tools` | `Krita::Tools` | `kritatools` | R1-G6f |
+| 入力解釈 | `libs/input` | `Krita::Input` | `kritainput` | R1-G6g |
+| アプリケーション調整 | `libs/application` | `Krita::Application` | `kritaapplication` | R1-G6h |
+
+移行は許可依存の下位から上位へ進める。各段階は必要な特性試験、移動元と移動先、
+作成ターゲット、一時互換経路、完了条件、中止条件を持つ。確認済み逆方向includeの
+段階別上限は305、258、163、163、90、90、90、71、0と縮小する。内部ヘッダーの
+直接参照は、R1-G6bで`kritaimage`の593件を解消し、R1-G6bからR1-G6hで
+`kritaui`の34件を32、28、20、20、3、3、0へ縮小する。
+
+最初の実装段階R1-G6aは、`libs/store`を`libs/resources/storage`の
+`kritaresourcestorage`へ、`libs/resourcewidgets`とリソース設定表示を
+`kritaresourceui`へ移す。同時に描画設定表示を`kritatoolsui`へ分離し、描画から
+入出力2件、リソースから入出力5件、リソースから描画40件の逆方向includeをゼロにする。
+保存領域の読込、書込、取消し、不正アーカイブ、リソース検索、表示接続の契約が、
+この段階の着手条件と完了判定になる。
+
+一時互換経路は旧include、`kritastore`、`kritaui`、既存の大域C++識別子を含む。
+各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
+9責務と5構成の現行ターゲット、8種類305件の逆方向依存、44ヘッダー627件の内部参照を
+正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。
+
 責務の中心は次の四つです。
 
 - `krita/`はプロセスの入口、アプリケーション資産、OSライフサイクルとの接続を持ちます。主要機能は`libs/`と`plugins/`が所有します。
