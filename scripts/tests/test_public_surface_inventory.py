@@ -15,6 +15,9 @@ INVENTORY_PATH = REPO_ROOT / "docs/architecture/public-surface-inventory.json"
 UI_CLASS_INVENTORY_PATH = (
     REPO_ROOT / "docs/architecture/ui-class-responsibilities.json"
 )
+UI_TOOL_CLASS_INVENTORY_PATH = (
+    REPO_ROOT / "docs/architecture/ui-tool-class-responsibilities.json"
+)
 GRAPH_DIRECTORY = REPO_ROOT / "docs/architecture"
 SPEC = importlib.util.spec_from_file_location(
     "check_public_surface_inventory", SCRIPT_PATH
@@ -35,6 +38,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             UI_CLASS_INVENTORY_PATH
         )
 
+    def load_ui_tool_class_inventory(self):
+        return check_public_surface_inventory.load_ui_tool_class_inventory(
+            UI_TOOL_CLASS_INVENTORY_PATH
+        )
+
     def validate(self, inventory) -> None:
         check_public_surface_inventory.validate_inventory(
             inventory,
@@ -44,6 +52,14 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
     def validate_ui_classes(self, inventory) -> None:
         check_public_surface_inventory.validate_ui_class_inventory(
+            inventory,
+            public_surface_inventory=self.load_inventory(),
+            repository_root=REPO_ROOT,
+            graph_directory=GRAPH_DIRECTORY,
+        )
+
+    def validate_ui_tool_classes(self, inventory) -> None:
+        check_public_surface_inventory.validate_ui_tool_class_inventory(
             inventory,
             public_surface_inventory=self.load_inventory(),
             repository_root=REPO_ROOT,
@@ -125,6 +141,100 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             [],
         )
         self.assertNotIn("KisCanvas2", by_name)
+
+    def test_ui_tool_class_discovery_is_complete(self) -> None:
+        inventory = self.load_inventory()
+        classes = check_public_surface_inventory.discover_ui_tool_classes(
+            repository_root=REPO_ROOT,
+            public_surface_inventory=inventory,
+        )
+        by_name = {entry["name"]: entry for entry in classes}
+
+        self.assertEqual(len(classes), 50)
+        self.assertEqual(
+            by_name["Data"],
+            {
+                "name": "Data",
+                "declarationKind": "class",
+                "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
+                "implementationPaths": [
+                    "libs/ui/tool/strokes/move_stroke_strategy.cpp"
+                ],
+                "consumerPaths": [
+                    "plugins/tools/basictools/kis_tool_move.cc",
+                    "plugins/tools/basictools/strokes/"
+                    "move_selection_stroke_strategy.cpp",
+                ],
+            },
+        )
+        self.assertEqual(
+            by_name["NoopActivationPolicy"]["implementationPaths"], []
+        )
+        self.assertIn(
+            "plugins/tools/basictools/kis_tool_brush.cc",
+            by_name["KisTool"]["consumerPaths"],
+        )
+
+    def test_recorded_ui_tool_class_responsibilities_are_complete(self) -> None:
+        inventory = self.load_ui_tool_class_inventory()
+
+        self.validate_ui_tool_classes(inventory)
+
+        self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
+        self.assertEqual(len(inventory["classes"]), 50)
+        by_name = {entry["name"]: entry for entry in inventory["classes"]}
+        self.assertEqual(
+            by_name["KisPaintingInformationBuilder"]["responsibilityArea"],
+            "input-interpretation",
+        )
+        self.assertEqual(
+            by_name["KisTool"]["responsibilityArea"], "tool-invocation"
+        )
+        self.assertEqual(
+            by_name["KisToolFreehandHelper"]["responsibilityArea"],
+            "stroke-generation",
+        )
+        self.assertEqual(
+            by_name["FreehandStrokeStrategy"]["responsibilityArea"],
+            "painting-execution",
+        )
+        self.assertEqual(
+            by_name["KisRectangleConstraintWidget"]["responsibilityArea"],
+            "settings-presentation",
+        )
+
+    def test_missing_ui_tool_class_responsibility_is_rejected(self) -> None:
+        inventory = copy.deepcopy(self.load_ui_tool_class_inventory())
+        inventory["classes"].pop(0)
+
+        with self.assertRaisesRegex(
+            check_public_surface_inventory.PublicSurfaceError,
+            r"missing=\['BarrierUpdateData'\]",
+        ):
+            self.validate_ui_tool_classes(inventory)
+
+    def test_unknown_ui_tool_class_responsibility_is_rejected(self) -> None:
+        inventory = copy.deepcopy(self.load_ui_tool_class_inventory())
+        inventory["classes"][0]["responsibilityArea"] = "unknown-area"
+
+        with self.assertRaisesRegex(
+            check_public_surface_inventory.PublicSurfaceError,
+            "unknown responsibility area unknown-area",
+        ):
+            self.validate_ui_tool_classes(inventory)
+
+    def test_ui_tool_class_consumer_paths_must_match_discovery(self) -> None:
+        inventory = copy.deepcopy(self.load_ui_tool_class_inventory())
+        entry = next(
+            item for item in inventory["classes"] if item["name"] == "KisTool"
+        )
+        entry["consumerPaths"].pop(0)
+
+        with self.assertRaisesRegex(
+            check_public_surface_inventory.PublicSurfaceError,
+            "recorded source evidence for KisTool does not match source discovery",
+        ):
+            self.validate_ui_tool_classes(inventory)
 
     def test_recorded_ui_class_responsibilities_are_complete(self) -> None:
         inventory = self.load_ui_class_inventory()
@@ -277,6 +387,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertIn(
             "python3 scripts/architecture/update_ui_class_responsibilities.py --check",
+            verify_quick,
+        )
+        self.assertIn(
+            "python3 scripts/architecture/update_ui_tool_class_responsibilities.py --check",
             verify_quick,
         )
         self.assertIn("bash scripts/docs/check-architecture.sh", verify_quick)

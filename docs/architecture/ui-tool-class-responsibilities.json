@@ -1,0 +1,782 @@
+{
+  "schemaVersion": 1,
+  "scope": "libs/ui/tool-public-classes",
+  "ownerTarget": "kritaui",
+  "platforms": [
+    "macos",
+    "linux",
+    "ios",
+    "android",
+    "windows"
+  ],
+  "classPolicy": {
+    "publicHeaderOwner": "kritaui",
+    "sourceDirectory": "libs/ui/tool",
+    "recursive": true,
+    "declarationKinds": [
+      "class",
+      "struct"
+    ],
+    "exportMacros": [
+      "KRITAUI_EXPORT",
+      "KRITAUI_EXPORT_TEMPLATE"
+    ],
+    "implementationSuffixes": [
+      ".c",
+      ".cc",
+      ".cpp",
+      ".cxx",
+      ".m",
+      ".mm"
+    ],
+    "privateHeaderImplementationSuffix": "_p",
+    "consumerPathsSource": "production-includes-outside-source-directory"
+  },
+  "responsibilityAreas": [
+    {
+      "id": "input-interpretation",
+      "responsibility": "Transforms pointer events, coordinates, timing, pressure, and sampled canvas state into normalized painting input."
+    },
+    {
+      "id": "tool-invocation",
+      "responsibility": "Coordinates tool factories, activation, interaction state, geometry, and invocation of document or painting operations."
+    },
+    {
+      "id": "stroke-generation",
+      "responsibility": "Combines interpreted input and resource snapshots into stroke jobs and submits their lifecycle to the stroke facade."
+    },
+    {
+      "id": "painting-execution",
+      "responsibility": "Executes painting, compositing, selection, shape, and image mutation work within stroke or command processing."
+    },
+    {
+      "id": "settings-presentation",
+      "responsibility": "Owns tool option widgets and UI-facing configuration, brush-size, and stroke-status state."
+    }
+  ],
+  "classes": [
+    {
+      "name": "BarrierUpdateData",
+      "declarationKind": "struct",
+      "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/move_stroke_strategy.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_move.cc",
+        "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
+      ],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "ColorSamplerConfig",
+      "declarationKind": "struct",
+      "header": "libs/ui/tool/kis_tool_utils.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_utils.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/input/kis_select_layer_action.cpp",
+        "libs/ui/widgets/kis_scratch_pad.cpp",
+        "libs/ui/widgets/kis_zoom_scrollbar.cpp",
+        "plugins/dockers/animation/KisAnimUtils.cpp",
+        "plugins/tools/basictools/kis_tool_colorsampler.cc",
+        "plugins/tools/basictools/kis_tool_move.cc",
+        "plugins/tools/svgtexttool/SvgTextTool.cpp",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
+        "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp"
+      ],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
+      "name": "Data",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/move_stroke_strategy.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_move.cc",
+        "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
+      ],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "DeselectShapesActivationPolicy",
+      "declarationKind": "struct",
+      "header": "libs/ui/tool/kis_delegated_tool_policies.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_delegated_tool_policies.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "FreehandStrokeStrategy",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/freehand_stroke.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/freehand_stroke.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/widgets/kis_preset_live_preview_view.cpp"
+      ],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisAsyncColorSamplerHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisAsyncColorSamplerHelper.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisAsyncColorSamplerHelper.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_colorsampler.h"
+      ],
+      "responsibilityArea": "input-interpretation"
+    },
+    {
+      "name": "KisAsynchronousStrokeUpdateHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisAsynchronousStrokeUpdateHelper.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisAsynchronousStrokeUpdateHelper.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/widgets/kis_preset_live_preview_view.cpp",
+        "plugins/tools/basictools/kis_tool_move.h",
+        "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.h"
+      ],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "KisConverterPaintingInformationBuilder",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_painting_information_builder.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_painting_information_builder.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/widgets/kis_preset_live_preview_view.h",
+        "libs/ui/widgets/kis_scratch_pad.cpp",
+        "plugins/tools/basictools/kis_tool_line.cc",
+        "plugins/tools/basictools/kis_tool_line_helper.cpp",
+        "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
+      ],
+      "responsibilityArea": "input-interpretation"
+    },
+    {
+      "name": "KisFigurePaintingToolHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_figure_painting_tool_helper.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_figure_painting_tool_helper.cpp"
+      ],
+      "consumerPaths": [
+        "libs/libkis/PaintingResources.h",
+        "libs/ui/actions/kis_selection_action_factories.cpp",
+        "libs/ui/kis_selection_manager.cc",
+        "plugins/tools/basictools/kis_tool_ellipse.cc",
+        "plugins/tools/basictools/kis_tool_line.cc",
+        "plugins/tools/basictools/kis_tool_rectangle.cc",
+        "plugins/tools/tool_polygon/kis_tool_polygon.cc",
+        "plugins/tools/tool_polyline/kis_tool_polyline.cc"
+      ],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "KisFilterStrokeStrategy",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/kis_filter_stroke_strategy.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/kis_filter_stroke_strategy.cpp"
+      ],
+      "consumerPaths": [
+        "libs/libkis/Filter.cpp",
+        "libs/ui/kis_filter_manager.cc"
+      ],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisFreehandStrokeInfo",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/KisFreehandStrokeInfo.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/KisFreehandStrokeInfo.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/widgets/kis_preset_live_preview_view.cpp"
+      ],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisMaskedFreehandStrokePainter",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/KisMaskedFreehandStrokePainter.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/KisMaskedFreehandStrokePainter.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisMaskingBrushCompositeOpBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/KisMaskingBrushCompositeOpBase.h",
+      "implementationPaths": [],
+      "consumerPaths": [
+        "plugins/paintops/libpaintop/kis_texture_option.cpp"
+      ],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisMaskingBrushCompositeOpFactory",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/KisMaskingBrushCompositeOpFactory.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/KisMaskingBrushCompositeOpFactory.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/paintops/libpaintop/KisMaskingBrushOption.cpp",
+        "plugins/paintops/libpaintop/kis_texture_option.cpp"
+      ],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisNodeSelectionRecipe",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/KisNodeSelectionRecipe.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/KisNodeSelectionRecipe.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisPainterBasedStrokeStrategy",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/kis_painter_based_stroke_strategy.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/kis_painter_based_stroke_strategy.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisPaintingInformationBuilder",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_painting_information_builder.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_painting_information_builder.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/widgets/kis_preset_live_preview_view.h",
+        "libs/ui/widgets/kis_scratch_pad.cpp",
+        "plugins/tools/basictools/kis_tool_line.cc",
+        "plugins/tools/basictools/kis_tool_line_helper.cpp",
+        "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
+      ],
+      "responsibilityArea": "input-interpretation"
+    },
+    {
+      "name": "KisRectangleConstraintWidget",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_rectangle_constraint_widget.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_rectangle_constraint_widget.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
+      "name": "KisResourcesSnapshot",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_resources_snapshot.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_resources_snapshot.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/KisView.cpp",
+        "libs/ui/processing/KisEncloseAndFillProcessingVisitor.h",
+        "libs/ui/processing/fill_processing_visitor.h",
+        "plugins/tools/basictools/kis_tool_fill.h",
+        "plugins/tools/basictools/kis_tool_gradient.cc",
+        "plugins/tools/basictools/kis_tool_move.cc",
+        "plugins/tools/selectiontools/kis_tool_select_contiguous.cc",
+        "plugins/tools/tool_crop/kis_tool_crop.cc",
+        "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp",
+        "plugins/tools/tool_knife/KisToolKnife.cpp",
+        "plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp",
+        "plugins/tools/tool_transform2/kis_tool_transform.cc"
+      ],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "KisSelectionToolConfigWidgetHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_selection_tool_config_widget_helper.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
+        "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
+        "plugins/tools/selectiontools/kis_tool_select_rectangular.h"
+      ],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
+      "name": "KisSelectionToolFactoryBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisSelectionToolFactoryBase.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisSelectionToolFactoryBase.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
+        "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
+        "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
+        "plugins/tools/selectiontools/kis_tool_select_outline.h",
+        "plugins/tools/selectiontools/kis_tool_select_path.h",
+        "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
+        "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
+        "plugins/tools/selectiontools/kis_tool_select_similar.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisSelectionToolHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_selection_tool_helper.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_selection_tool_helper.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/actions/kis_selection_action_factories.cpp",
+        "libs/ui/kis_selection_manager.cc",
+        "plugins/extensions/colorrange/colorrange.cc",
+        "plugins/extensions/colorrange/dlg_colorrange.cc",
+        "plugins/tools/selectiontools/KisToolSelectMagnetic.cc",
+        "plugins/tools/selectiontools/kis_tool_select_contiguous.cc",
+        "plugins/tools/selectiontools/kis_tool_select_elliptical.cc",
+        "plugins/tools/selectiontools/kis_tool_select_outline.cc",
+        "plugins/tools/selectiontools/kis_tool_select_path.cc",
+        "plugins/tools/selectiontools/kis_tool_select_polygonal.cc",
+        "plugins/tools/selectiontools/kis_tool_select_rectangular.cc",
+        "plugins/tools/selectiontools/kis_tool_select_similar.cc"
+      ],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisShapeToolHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_shape_tool_helper.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_shape_tool_helper.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_ellipse.cc",
+        "plugins/tools/basictools/kis_tool_rectangle.cc",
+        "plugins/tools/selectiontools/kis_tool_select_elliptical.cc",
+        "plugins/tools/selectiontools/kis_tool_select_polygonal.cc",
+        "plugins/tools/selectiontools/kis_tool_select_rectangular.cc"
+      ],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisSmoothingOptions",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_smoothing_options.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_smoothing_options.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
+      "name": "KisStabilizedEventsSampler",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_stabilized_events_sampler.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_stabilized_events_sampler.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "input-interpretation"
+    },
+    {
+      "name": "KisStabilizerDelayedPaintHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisStabilizerDelayedPaintHelper.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "input-interpretation"
+    },
+    {
+      "name": "KisStrokeCompatibilityInfo",
+      "declarationKind": "struct",
+      "header": "libs/ui/tool/KisStrokeCompatibilityInfo.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisStrokeCompatibilityInfo.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "KisStrokeEfficiencyMeasurer",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/KisStrokeEfficiencyMeasurer.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/KisStrokeEfficiencyMeasurer.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "KisStrokeSpeedMonitor",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisStrokeSpeedMonitor.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisStrokeSpeedMonitor.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/canvas/kis_canvas2.cpp",
+        "libs/ui/kis_fps_decoration.cpp"
+      ],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
+      "name": "KisTool",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool.cc"
+      ],
+      "consumerPaths": [
+        "libs/ui/canvas/kis_tool_proxy.h",
+        "libs/ui/input/kis_alternate_invocation_action.h",
+        "libs/ui/input/kis_change_primary_setting_action.h",
+        "libs/ui/input/kis_tool_invocation_action.cpp",
+        "libs/ui/kis_painting_assistant.cc",
+        "libs/ui/kis_paintop_box.cc",
+        "plugins/assistants/Assistants/kis_assistant_tool.h",
+        "plugins/tools/basictools/default_tools.cc",
+        "plugins/tools/basictools/kis_tool_brush.cc",
+        "plugins/tools/basictools/kis_tool_colorsampler.h",
+        "plugins/tools/basictools/kis_tool_measure.h",
+        "plugins/tools/basictools/kis_tool_move.h",
+        "plugins/tools/basictools/kis_tool_pan.h",
+        "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.h",
+        "plugins/tools/tool_crop/kis_tool_crop.h",
+        "plugins/tools/tool_knife/ToolKnife.cpp",
+        "plugins/tools/tool_lazybrush/tool_lazybrush.cpp",
+        "plugins/tools/tool_smart_patch/tool_smartpatch.cpp",
+        "plugins/tools/tool_transform2/kis_tool_transform.h",
+        "plugins/tools/tool_transform2/kis_transform_strategy_base.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolChangesTracker",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisToolChangesTracker.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisToolChangesTracker.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_move.h",
+        "plugins/tools/tool_transform2/kis_tool_transform.h"
+      ],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
+      "name": "KisToolChangesTrackerData",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisToolChangesTrackerData.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisToolChangesTrackerData.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/tool_transform2/tool_transform_args.h"
+      ],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
+      "name": "KisToolEllipseBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_ellipse_base.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_ellipse_base.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_ellipse.h",
+        "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisEllipseEnclosingProducer.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolFreehand",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_freehand.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_freehand.cc"
+      ],
+      "consumerPaths": [
+        "libs/ui/KisViewManager.cpp",
+        "plugins/paintops/defaultpaintops/brush/kis_brushop.cpp",
+        "plugins/tools/basictools/default_tools.cc",
+        "plugins/tools/basictools/kis_tool_brush.h",
+        "plugins/tools/tool_dyna/kis_tool_dyna.h",
+        "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolFreehandHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_freehand_helper.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_freehand_helper.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/widgets/kis_scratch_pad.cpp",
+        "plugins/tools/basictools/kis_tool_line_helper.h"
+      ],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "KisToolFreehandPaintingInformationBuilder",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_painting_information_builder.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_painting_information_builder.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/widgets/kis_preset_live_preview_view.h",
+        "libs/ui/widgets/kis_scratch_pad.cpp",
+        "plugins/tools/basictools/kis_tool_line.cc",
+        "plugins/tools/basictools/kis_tool_line_helper.cpp",
+        "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
+      ],
+      "responsibilityArea": "input-interpretation"
+    },
+    {
+      "name": "KisToolMultihandHelper",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_multihand_helper.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_multihand_helper.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_multihand.cpp"
+      ],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "KisToolOutlineBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisToolOutlineBase.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisToolOutlineBase.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/selectiontools/kis_tool_select_outline.h",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisLassoEnclosingProducer.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolPaint",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_paint.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_paint.cc"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_fill.h",
+        "plugins/tools/basictools/kis_tool_gradient.h",
+        "plugins/tools/tool_smart_patch/kis_tool_smart_patch.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolPaintFactoryBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisToolPaintFactoryBase.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisToolPaintFactoryBase.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_brush.h",
+        "plugins/tools/basictools/kis_tool_ellipse.h",
+        "plugins/tools/basictools/kis_tool_fill.h",
+        "plugins/tools/basictools/kis_tool_gradient.h",
+        "plugins/tools/basictools/kis_tool_line.h",
+        "plugins/tools/basictools/kis_tool_move.h",
+        "plugins/tools/basictools/kis_tool_rectangle.h",
+        "plugins/tools/tool_dyna/kis_tool_dyna.h",
+        "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFillFactory.h",
+        "plugins/tools/tool_knife/KisToolKnife.h",
+        "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.h",
+        "plugins/tools/tool_smart_patch/kis_tool_smart_patch.h",
+        "plugins/tools/tool_transform2/kis_tool_transform.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolPolyLineFactoryBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/KisSelectionToolFactoryBase.h",
+      "implementationPaths": [
+        "libs/ui/tool/KisSelectionToolFactoryBase.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
+        "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
+        "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
+        "plugins/tools/selectiontools/kis_tool_select_outline.h",
+        "plugins/tools/selectiontools/kis_tool_select_path.h",
+        "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
+        "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
+        "plugins/tools/selectiontools/kis_tool_select_similar.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolPolylineBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_polyline_base.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_polyline_base.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
+        "plugins/tools/tool_polygon/kis_tool_polygon.h",
+        "plugins/tools/tool_polyline/kis_tool_polyline.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolRectangleBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_rectangle_base.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_rectangle_base.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_rectangle.h",
+        "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisRectangleEnclosingProducer.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisToolShape",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_shape.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_shape.cc"
+      ],
+      "consumerPaths": [
+        "libs/ui/kis_selection_manager.cc",
+        "plugins/tools/basictools/kis_tool_ellipse.h",
+        "plugins/tools/basictools/kis_tool_line.h",
+        "plugins/tools/basictools/kis_tool_path.h",
+        "plugins/tools/basictools/kis_tool_pencil.h",
+        "plugins/tools/basictools/kis_tool_rectangle.h",
+        "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.h",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisPathEnclosingProducer.h",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.h",
+        "plugins/tools/tool_polygon/kis_tool_polygon.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "MoveStrokeStrategy",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/move_stroke_strategy.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_move.cc",
+        "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
+      ],
+      "responsibilityArea": "painting-execution"
+    },
+    {
+      "name": "NoopActivationPolicy",
+      "declarationKind": "struct",
+      "header": "libs/ui/tool/kis_delegated_tool_policies.h",
+      "implementationPaths": [],
+      "consumerPaths": [],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "PickLayerData",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
+      "implementationPaths": [
+        "libs/ui/tool/strokes/move_stroke_strategy.cpp"
+      ],
+      "consumerPaths": [
+        "plugins/tools/basictools/kis_tool_move.cc",
+        "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
+      ],
+      "responsibilityArea": "stroke-generation"
+    },
+    {
+      "name": "ShapeAddInfo",
+      "declarationKind": "struct",
+      "header": "libs/ui/tool/kis_tool_shape.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_shape.cc"
+      ],
+      "consumerPaths": [
+        "libs/ui/kis_selection_manager.cc",
+        "plugins/tools/basictools/kis_tool_ellipse.h",
+        "plugins/tools/basictools/kis_tool_line.h",
+        "plugins/tools/basictools/kis_tool_path.h",
+        "plugins/tools/basictools/kis_tool_pencil.h",
+        "plugins/tools/basictools/kis_tool_rectangle.h",
+        "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.h",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisPathEnclosingProducer.h",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.h",
+        "plugins/tools/tool_polygon/kis_tool_polygon.h"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "StandardBrushSizes",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_utils.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_tool_utils.cpp"
+      ],
+      "consumerPaths": [
+        "libs/ui/input/kis_select_layer_action.cpp",
+        "libs/ui/widgets/kis_scratch_pad.cpp",
+        "libs/ui/widgets/kis_zoom_scrollbar.cpp",
+        "plugins/dockers/animation/KisAnimUtils.cpp",
+        "plugins/tools/basictools/kis_tool_colorsampler.cc",
+        "plugins/tools/basictools/kis_tool_move.cc",
+        "plugins/tools/svgtexttool/SvgTextTool.cpp",
+        "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
+        "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp"
+      ],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
+      "name": "iterator",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_stabilized_events_sampler.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_stabilized_events_sampler.cpp"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "input-interpretation"
+    }
+  ]
+}
