@@ -281,13 +281,13 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
         self.validate(inventory)
 
-        self.assertEqual(inventory["schemaVersion"], 2)
+        self.assertEqual(inventory["schemaVersion"], 3)
         self.assertEqual(
             inventory["scope"],
             {
                 "publicHeaders": "complete",
                 "majorClasses": "representative",
-                "plugins": "representative",
+                "plugins": "complete",
             },
         )
         self.assertEqual(
@@ -309,9 +309,56 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             [entry["name"] for entry in inventory["majorClasses"]],
             ["KisDocument", "KisImage", "KisImportExportManager"],
         )
+        self.assertEqual(len(inventory["plugins"]), 172)
+        plugin_by_id = {
+            entry["id"]: entry for entry in inventory["plugins"]
+        }
         self.assertEqual(
-            [entry["id"] for entry in inventory["plugins"]],
-            ["Krita PNG Import Filter"],
+            plugin_by_id["Krita PNG Import Filter"]["featureOwner"],
+            "import-export",
+        )
+        self.assertEqual(len(inventory["pluginServiceTypeOwners"]), 14)
+
+    def test_plugin_discovery_is_complete(self) -> None:
+        plugins = check_public_surface_inventory.discover_plugins(
+            repository_root=REPO_ROOT,
+            graph_directory=GRAPH_DIRECTORY,
+        )
+        by_id = {entry["id"]: entry for entry in plugins}
+
+        self.assertEqual(len(plugins), 172)
+        self.assertEqual(
+            by_id["Krita PNG Import Filter"],
+            {
+                "id": "Krita PNG Import Filter",
+                "metadata": "plugins/impex/png/krita_png_import.json",
+                "implementation": "plugins/impex/png/kis_png_import.cc",
+                "ownerTarget": "kritapngimport",
+                "ownerEvidence": "metadata-library",
+                "metadataLibrary": "kritapngimport",
+                "platforms": ["macos", "linux", "ios", "android", "windows"],
+                "serviceTypes": ["Krita/FileFilter"],
+                "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+                "featureOwner": "import-export",
+                "runtimeConsumer": "KisImportExportManager",
+            },
+        )
+        self.assertEqual(
+            by_id["Krita Brush Export Filter"]["ownerEvidence"],
+            "cmake-source-override",
+        )
+        self.assertIsNone(
+            by_id["Krita Brush Export Filter"]["metadataLibrary"]
+        )
+        self.assertEqual(
+            by_id["kritaplatformwayland"]["platforms"], ["linux"]
+        )
+        self.assertEqual(
+            sum(
+                entry["ownerEvidence"] == "cmake-source-override"
+                for entry in plugins
+            ),
+            15,
         )
 
     def test_unknown_owner_target_is_rejected(self) -> None:
@@ -362,13 +409,43 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         ):
             self.validate(inventory)
 
-    def test_plugin_metadata_library_must_match_owner_target(self) -> None:
+    def test_plugin_metadata_library_must_match_metadata(self) -> None:
         inventory = copy.deepcopy(self.load_inventory())
-        inventory["plugins"][0]["ownerTarget"] = "kritapngexport"
+        entry = next(
+            item
+            for item in inventory["plugins"]
+            if item["id"] == "Krita PNG Import Filter"
+        )
+        entry["metadataLibrary"] = "kritapngexport"
 
         with self.assertRaisesRegex(
             check_public_surface_inventory.PublicSurfaceError,
-            "metadata library kritapngimport does not match owner target kritapngexport",
+            "metadata library does not match plugin Krita PNG Import Filter",
+        ):
+            self.validate(inventory)
+
+    def test_missing_plugin_registration_is_rejected(self) -> None:
+        inventory = copy.deepcopy(self.load_inventory())
+        inventory["plugins"].pop(0)
+
+        with self.assertRaisesRegex(
+            check_public_surface_inventory.PublicSurfaceError,
+            r"missing=\['ASC CDL Color Balance'\]",
+        ):
+            self.validate(inventory)
+
+    def test_plugin_feature_owner_must_match_service_type(self) -> None:
+        inventory = copy.deepcopy(self.load_inventory())
+        entry = next(
+            item
+            for item in inventory["plugins"]
+            if item["id"] == "Krita PNG Import Filter"
+        )
+        entry["featureOwner"] = "unknown-owner"
+
+        with self.assertRaisesRegex(
+            check_public_surface_inventory.PublicSurfaceError,
+            "feature owner or runtime consumer does not match its service type",
         ):
             self.validate(inventory)
 
@@ -383,6 +460,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertIn(
             "python3 scripts/architecture/update_public_header_inventory.py --check",
+            verify_quick,
+        )
+        self.assertIn(
+            "python3 scripts/architecture/update_plugin_inventory.py --check",
             verify_quick,
         )
         self.assertIn(

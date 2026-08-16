@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "scope": {
     "publicHeaders": "complete",
     "majorClasses": "representative",
-    "plugins": "representative"
+    "plugins": "complete"
   },
   "platforms": [
     "macos",
@@ -11054,12 +11054,1703 @@
       ]
     }
   ],
+  "pluginPolicy": {
+    "sourceDirectory": "plugins",
+    "excludedPathParts": [
+      "benchmarks",
+      "test",
+      "tests"
+    ],
+    "registrationMacros": [
+      "K_PLUGIN_CLASS_WITH_JSON",
+      "K_PLUGIN_FACTORY_WITH_JSON"
+    ],
+    "metadataArgument": "sibling-json-literal",
+    "ownerEvidence": [
+      "cmake-source-override",
+      "metadata-library"
+    ],
+    "ownerTargetOverrideReason": "CMake source membership is authoritative when plugin metadata omits X-KDE-Library or names a target absent from the recorded graphs.",
+    "ownerTargetOverrides": [
+      {
+        "metadata": "plugins/dockers/touchdocker/kritatouchdocker.json",
+        "ownerTarget": "kritatouchdocker",
+        "cmake": "plugins/dockers/touchdocker/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/extensions/qmic/kritaqmic.json",
+        "ownerTarget": "kritaqmic",
+        "cmake": "plugins/extensions/qmic/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/filters/gaussianhighpass/kritagaussianhighpassfilter.json",
+        "ownerTarget": "kritagaussianhighpassfilter",
+        "cmake": "plugins/filters/gaussianhighpass/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/filters/gradientmap/KritaGradientMapFilter.json",
+        "ownerTarget": "kritagradientmap",
+        "cmake": "plugins/filters/gradientmap/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/filters/halftone/KritaHalftone.json",
+        "ownerTarget": "kritahalftone",
+        "cmake": "plugins/filters/halftone/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/filters/propagatecolors/kritapropagatecolorsfilter.json",
+        "ownerTarget": "kritapropagatecolors",
+        "cmake": "plugins/filters/propagatecolors/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/generators/gradient/KritaGradientGenerator.json",
+        "ownerTarget": "kritagradientgenerator",
+        "cmake": "plugins/generators/gradient/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/generators/screentone/KritaScreentoneGenerator.json",
+        "ownerTarget": "kritascreentonegenerator",
+        "cmake": "plugins/generators/screentone/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/impex/brush/krita_brush_export.json",
+        "ownerTarget": "kritabrushexport",
+        "cmake": "plugins/impex/brush/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/impex/brush/krita_brush_import.json",
+        "ownerTarget": "kritabrushimport",
+        "cmake": "plugins/impex/brush/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/platforms/wayland/kritaplatformwayland.json",
+        "ownerTarget": "kritaplatformpluginwayland",
+        "cmake": "plugins/platforms/wayland/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/platforms/xcb/kritaplatformxcb.json",
+        "ownerTarget": "kritaplatformpluginxcb",
+        "cmake": "plugins/platforms/xcb/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/tools/karbonplugins/tools/karbon_tools.json",
+        "ownerTarget": "krita_karbontools",
+        "cmake": "plugins/tools/karbonplugins/tools/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/tools/tool_knife/kritatoolknife.json",
+        "ownerTarget": "kritatoolKnife",
+        "cmake": "plugins/tools/tool_knife/CMakeLists.txt"
+      },
+      {
+        "metadata": "plugins/tools/tool_smart_patch/kritatoolsmartpatch.json",
+        "ownerTarget": "kritatoolSmartPatch",
+        "cmake": "plugins/tools/tool_smart_patch/CMakeLists.txt"
+      }
+    ]
+  },
+  "pluginServiceTypeOwners": [
+    {
+      "serviceType": "Krita/ApplicationPlugin",
+      "featureOwner": "application-extension",
+      "runtimeConsumer": "KisMainWindow",
+      "evidence": "libs/ui/KisMainWindow.cpp"
+    },
+    {
+      "serviceType": "Krita/ColorSpace",
+      "featureOwner": "color-processing",
+      "runtimeConsumer": "KoColorSpaceRegistry",
+      "evidence": "libs/pigment/KoColorSpaceRegistry.cpp"
+    },
+    {
+      "serviceType": "Krita/ColorSpaceExtension",
+      "featureOwner": "color-processing",
+      "runtimeConsumer": "KoColorSpaceRegistry",
+      "evidence": "libs/pigment/KoColorSpaceRegistry.cpp"
+    },
+    {
+      "serviceType": "Krita/Dock",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry",
+      "evidence": "libs/flake/KoDockRegistry.cpp"
+    },
+    {
+      "serviceType": "Krita/FileFilter",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager",
+      "evidence": "libs/ui/KisImportExportManager.cpp"
+    },
+    {
+      "serviceType": "Krita/Filter",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry",
+      "evidence": "libs/image/filter/kis_filter_registry.cc"
+    },
+    {
+      "serviceType": "Krita/Flake",
+      "featureOwner": "vector-shape",
+      "runtimeConsumer": "KoShapeRegistry",
+      "evidence": "libs/flake/KoShapeRegistry.cpp"
+    },
+    {
+      "serviceType": "Krita/Generator",
+      "featureOwner": "image-generation",
+      "runtimeConsumer": "KisGeneratorRegistry",
+      "evidence": "libs/image/generator/kis_generator_registry.cpp"
+    },
+    {
+      "serviceType": "Krita/Metadata",
+      "featureOwner": "document-metadata",
+      "runtimeConsumer": "KisMetadataBackendRegistry",
+      "evidence": "libs/metadata/kis_meta_data_backend_registry.cpp"
+    },
+    {
+      "serviceType": "Krita/Paintop",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry",
+      "evidence": "libs/image/brushengine/kis_paintop_registry.cc"
+    },
+    {
+      "serviceType": "Krita/PlatformPlugin",
+      "featureOwner": "platform-adapter",
+      "runtimeConsumer": "KisPlatformPluginInterfaceFactory",
+      "evidence": "libs/ui/KisPlatformPluginInterfaceFactory.cpp"
+    },
+    {
+      "serviceType": "Krita/Shape",
+      "featureOwner": "vector-shape",
+      "runtimeConsumer": "KoShapeRegistry",
+      "evidence": "libs/flake/KoShapeRegistry.cpp"
+    },
+    {
+      "serviceType": "Krita/Tool",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry",
+      "evidence": "libs/flake/KoToolRegistry.cpp"
+    },
+    {
+      "serviceType": "Krita/ViewPlugin",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow",
+      "evidence": "libs/ui/KisMainWindow.cpp"
+    }
+  ],
   "plugins": [
     {
-      "id": "Krita PNG Import Filter",
-      "metadata": "plugins/impex/png/krita_png_import.json",
-      "implementation": "plugins/impex/png/kis_png_import.cc",
-      "ownerTarget": "kritapngimport",
+      "id": "ASC CDL Color Balance",
+      "metadata": "plugins/filters/asccdl/kritaasccdl.json",
+      "implementation": "plugins/filters/asccdl/kis_asccdl_filter.cpp",
+      "ownerTarget": "kritaasccdl",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaasccdl",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Animation Docker",
+      "metadata": "plugins/dockers/animation/krita_animationdocker.json",
+      "implementation": "plugins/dockers/animation/KisAnimDockers.cpp",
+      "ownerTarget": "kritaanimationdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaanimationdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Arrange Docker",
+      "metadata": "plugins/dockers/arrangedocker/krita_arrangedocker.json",
+      "implementation": "plugins/dockers/arrangedocker/arrangedocker.cpp",
+      "ownerTarget": "kritaarrangedocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaarrangedocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Artistic color selector",
+      "metadata": "plugins/dockers/artisticcolorselector/krita_artisticcolorselector.json",
+      "implementation": "plugins/dockers/artisticcolorselector/artisticcolorselector_plugin.cpp",
+      "ownerTarget": "kritaartisticcolorselector",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaartisticcolorselector",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "AssistantTool",
+      "metadata": "plugins/assistants/Assistants/kritaassistanttool.json",
+      "implementation": "plugins/assistants/Assistants/assistant_tool.cc",
+      "ownerTarget": "kritaassistanttool",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaassistanttool",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Brush HUD Docker",
+      "metadata": "plugins/dockers/brushhud/krita_brushhud.json",
+      "implementation": "plugins/dockers/brushhud/brushhuddocker.cpp",
+      "ownerTarget": "kritabrushhud",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritabrushhud",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Buginfo Plugin",
+      "metadata": "plugins/extensions/buginfo/kritabuginfo.json",
+      "implementation": "plugins/extensions/buginfo/buginfo.cpp",
+      "ownerTarget": "kritabuginfo",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritabuginfo",
+      "platforms": [
+        "macos",
+        "linux",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Cache Db Explorer Plugin",
+      "metadata": "plugins/extensions/dbexplorer/kritadbexplorer.json",
+      "implementation": "plugins/extensions/dbexplorer/DbExplorer.cpp",
+      "ownerTarget": "kritadbexplorer",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritadbexplorer",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Channel Docker",
+      "metadata": "plugins/dockers/channeldocker/krita_channeldocker.json",
+      "implementation": "plugins/dockers/channeldocker/channeldocker.cpp",
+      "ownerTarget": "kritachanneldocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritachanneldocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Clones Array Plugin",
+      "metadata": "plugins/extensions/clonesarray/kritaclonesarray.json",
+      "implementation": "plugins/extensions/clonesarray/clonesarray.cpp",
+      "ownerTarget": "kritaclonesarray",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaclonesarray",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Color Filters",
+      "metadata": "plugins/filters/colorsfilters/kritacolorsfilter.json",
+      "implementation": "plugins/filters/colorsfilters/colorsfilters.cpp",
+      "ownerTarget": "kritacolorsfilters",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacolorsfilters",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Color Filters (Extension)",
+      "metadata": "plugins/filters/colors/kritaextensioncolorsfilters.json",
+      "implementation": "plugins/filters/colors/colors.cpp",
+      "ownerTarget": "kritaextensioncolorsfilters",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaextensioncolorsfilters",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Color Smudge Brush",
+      "metadata": "plugins/paintops/colorsmudge/kritacolorsmudgepaintop.json",
+      "implementation": "plugins/paintops/colorsmudge/colorsmudge_paintop_plugin.cpp",
+      "ownerTarget": "kritacolorsmudgepaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacolorsmudgepaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Color Transfer Filter",
+      "metadata": "plugins/filters/fastcolortransfer/kritafastcolortransfer.json",
+      "implementation": "plugins/filters/fastcolortransfer/fastcolortransfer.cpp",
+      "ownerTarget": "kritafastcolortransferfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritafastcolortransferfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "ColorSelectorNG",
+      "metadata": "plugins/dockers/advancedcolorselector/krita_colorselectorng.json",
+      "implementation": "plugins/dockers/advancedcolorselector/colorselectorng.cpp",
+      "ownerTarget": "kritacolorselectorng",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacolorselectorng",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Colorrange",
+      "metadata": "plugins/extensions/colorrange/kritacolorrange.json",
+      "implementation": "plugins/extensions/colorrange/colorrange.cc",
+      "ownerTarget": "kritacolorrange",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacolorrange",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Colorspace Conversion",
+      "metadata": "plugins/extensions/colorspaceconversion/kritacolorspaceconversion.json",
+      "implementation": "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
+      "ownerTarget": "kritacolorspaceconversion",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacolorspaceconversion",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Composition Docker",
+      "metadata": "plugins/dockers/compositiondocker/krita_compositiondocker.json",
+      "implementation": "plugins/dockers/compositiondocker/compositiondocker.cpp",
+      "ownerTarget": "kritacompositiondocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacompositiondocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Convert Height To Normal Map Filter",
+      "metadata": "plugins/filters/convertheightnormalmap/kritaconvertheighttonormalmap.json",
+      "implementation": "plugins/filters/convertheightnormalmap/kis_convert_height_to_normal_map_filter.cpp",
+      "ownerTarget": "kritaconvertheighttonormalmap",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaconvertheighttonormalmap",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Convolution Filters",
+      "metadata": "plugins/filters/convolutionfilters/kritaconvolutionfilters.json",
+      "implementation": "plugins/filters/convolutionfilters/convolutionfilters.cpp",
+      "ownerTarget": "kritaconvolutionfilters",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaconvolutionfilters",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Convolution Filters (Extension)",
+      "metadata": "plugins/filters/blur/kritablurfilter.json",
+      "implementation": "plugins/filters/blur/blur.cpp",
+      "ownerTarget": "kritablurfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritablurfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Crop Tool",
+      "metadata": "plugins/tools/tool_crop/kritatoolcrop.json",
+      "implementation": "plugins/tools/tool_crop/tool_crop.cc",
+      "ownerTarget": "kritatoolcrop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatoolcrop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Curve brush",
+      "metadata": "plugins/paintops/curvebrush/kritacurvepaintop.json",
+      "implementation": "plugins/paintops/curvebrush/curve_paintop_plugin.cpp",
+      "ownerTarget": "kritacurvepaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacurvepaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Default Flake Tools",
+      "metadata": "plugins/tools/defaulttool/calligra_tool_defaults.json",
+      "implementation": "plugins/tools/defaulttool/Plugin.cpp",
+      "ownerTarget": "krita_flaketools",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "krita_flaketools",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Default Paint Operations",
+      "metadata": "plugins/paintops/defaultpaintops/kritadefaultpaintops.json",
+      "implementation": "plugins/paintops/defaultpaintops/defaultpaintops_plugin.cc",
+      "ownerTarget": "kritadefaultpaintops",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritadefaultpaintops",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Default Tools",
+      "metadata": "plugins/tools/basictools/kritadefaulttools.json",
+      "implementation": "plugins/tools/basictools/default_tools.cc",
+      "ownerTarget": "kritadefaulttools",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritadefaulttools",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Deform brush",
+      "metadata": "plugins/paintops/deform/kritadeformpaintop.json",
+      "implementation": "plugins/paintops/deform/deform_paintop_plugin.cpp",
+      "ownerTarget": "kritadeformpaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritadeformpaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "DigitalMixer",
+      "metadata": "plugins/dockers/digitalmixer/krita_digitalmixer.json",
+      "implementation": "plugins/dockers/digitalmixer/digitalmixer.cc",
+      "ownerTarget": "kritadigitalmixer",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritadigitalmixer",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Dodge and Burn Filter",
+      "metadata": "plugins/filters/dodgeburn/kritadodgeburn.json",
+      "implementation": "plugins/filters/dodgeburn/DodgeBurnPlugin.cpp",
+      "ownerTarget": "kritadodgeburn",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritadodgeburn",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Dyna Tool",
+      "metadata": "plugins/tools/tool_dyna/kritatooldyna.json",
+      "implementation": "plugins/tools/tool_dyna/tool_dyna.cpp",
+      "ownerTarget": "kritatooldyna",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatooldyna",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "EXIF",
+      "metadata": "plugins/metadata/exif/kritaexif.json",
+      "implementation": "plugins/metadata/exif/kis_exif_plugin.cpp",
+      "ownerTarget": "kritaexif",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaexif",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Metadata"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "document-metadata",
+      "runtimeConsumer": "KisMetadataBackendRegistry"
+    },
+    {
+      "id": "Edge Detection Filter",
+      "metadata": "plugins/filters/edgedetection/kritaedgedetection.json",
+      "implementation": "plugins/filters/edgedetection/kis_edge_detection_filter.cpp",
+      "ownerTarget": "kritaedgedetection",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaedgedetection",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Emboss Filter",
+      "metadata": "plugins/filters/embossfilter/kritaembossfilter.json",
+      "implementation": "plugins/filters/embossfilter/kis_emboss_filter_plugin.cpp",
+      "ownerTarget": "kritaembossfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaembossfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Enclose and Fill Tool",
+      "metadata": "plugins/tools/tool_enclose_and_fill/kritatoolencloseandfill.json",
+      "implementation": "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFillPlugin.cpp",
+      "ownerTarget": "kritatoolencloseandfill",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatoolencloseandfill",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Enhancement Filters",
+      "metadata": "plugins/filters/imageenhancement/kritaimageenhancement.json",
+      "implementation": "plugins/filters/imageenhancement/imageenhancement.cpp",
+      "ownerTarget": "kritaimageenhancement",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaimageenhancement",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Experiment",
+      "metadata": "plugins/paintops/experiment/kritaexperimentpaintop.json",
+      "implementation": "plugins/paintops/experiment/experiment_paintop_plugin.cpp",
+      "ownerTarget": "kritaexperimentpaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaexperimentpaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Filter Op",
+      "metadata": "plugins/paintops/filterop/kritafilterop.json",
+      "implementation": "plugins/paintops/filterop/filterop.cpp",
+      "ownerTarget": "kritafilterop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritafilterop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "G'Mic Plugin",
+      "metadata": "plugins/extensions/qmic/kritaqmic.json",
+      "implementation": "plugins/extensions/qmic/QMic.cpp",
+      "ownerTarget": "kritaqmic",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "kritagmic-qt",
+      "platforms": [
+        "macos",
+        "linux",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Gamut masks",
+      "metadata": "plugins/dockers/gamutmask/krita_gamutmask.json",
+      "implementation": "plugins/dockers/gamutmask/gamutmask_plugin.cpp",
+      "ownerTarget": "kritagamutmask",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritagamutmask",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Gaussian High Pass Filter",
+      "metadata": "plugins/filters/gaussianhighpass/kritagaussianhighpassfilter.json",
+      "implementation": "plugins/filters/gaussianhighpass/gaussianhighpass.cpp",
+      "ownerTarget": "kritagaussianhighpassfilter",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "kritagaussianhighpass",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Gradient Generator",
+      "metadata": "plugins/generators/gradient/KritaGradientGenerator.json",
+      "implementation": "plugins/generators/gradient/KisGradientGeneratorPlugin.cpp",
+      "ownerTarget": "kritagradientgenerator",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "KritaGradientGenerator",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Generator"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-generation",
+      "runtimeConsumer": "KisGeneratorRegistry"
+    },
+    {
+      "id": "Gradient Map Filter",
+      "metadata": "plugins/filters/gradientmap/KritaGradientMapFilter.json",
+      "implementation": "plugins/filters/gradientmap/KisGradientMapFilterPlugin.cpp",
+      "ownerTarget": "kritagradientmap",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "KritaGradientMapFilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Grid Brush",
+      "metadata": "plugins/paintops/gridbrush/kritagridpaintop.json",
+      "implementation": "plugins/paintops/gridbrush/grid_paintop_plugin.cpp",
+      "ownerTarget": "kritagridpaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritagridpaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Grid Docker",
+      "metadata": "plugins/dockers/griddocker/krita_griddocker.json",
+      "implementation": "plugins/dockers/griddocker/griddocker.cpp",
+      "ownerTarget": "kritagriddocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritagriddocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Hairy brushes",
+      "metadata": "plugins/paintops/hairy/kritahairypaintop.json",
+      "implementation": "plugins/paintops/hairy/hairy_paintop_plugin.cpp",
+      "ownerTarget": "kritahairypaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritahairypaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Halftone Filter",
+      "metadata": "plugins/filters/halftone/KritaHalftone.json",
+      "implementation": "plugins/filters/halftone/KisHalftoneFilter.cpp",
+      "ownerTarget": "kritahalftone",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "KritaHalftoneFilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Hatching brush",
+      "metadata": "plugins/paintops/hatching/kritahatchingpaintop.json",
+      "implementation": "plugins/paintops/hatching/hatching_paintop_plugin.cpp",
+      "ownerTarget": "kritahatchingpaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritahatchingpaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Histogram Docker",
+      "metadata": "plugins/dockers/histogram/krita_histogramdocker.json",
+      "implementation": "plugins/dockers/histogram/histogramdocker.cpp",
+      "ownerTarget": "kritahistogramdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritahistogramdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "IPTC",
+      "metadata": "plugins/metadata/iptc/kritaiptc.json",
+      "implementation": "plugins/metadata/iptc/kis_iptc_plugin.cpp",
+      "ownerTarget": "kritaiptc",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaiptc",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Metadata"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "document-metadata",
+      "runtimeConsumer": "KisMetadataBackendRegistry"
+    },
+    {
+      "id": "Image Splitter",
+      "metadata": "plugins/extensions/imagesplit/kritaimagesplit.json",
+      "implementation": "plugins/extensions/imagesplit/imagesplit.cpp",
+      "ownerTarget": "kritaimagesplit",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaimagesplit",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Image enhancement Filters (Extension)",
+      "metadata": "plugins/filters/unsharp/kritaunsharpfilter.json",
+      "implementation": "plugins/filters/unsharp/unsharp.cpp",
+      "ownerTarget": "kritaunsharpfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaunsharpfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Index Colors Filter",
+      "metadata": "plugins/filters/indexcolors/kritaindexcolors.json",
+      "implementation": "plugins/filters/indexcolors/indexcolors.cpp",
+      "ownerTarget": "kritaindexcolors",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaindexcolors",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Inpaint Tool",
+      "metadata": "plugins/tools/tool_smart_patch/kritatoolsmartpatch.json",
+      "implementation": "plugins/tools/tool_smart_patch/tool_smartpatch.cpp",
+      "ownerTarget": "kritatoolSmartPatch",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "kritatoolsmartpatch",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Invert Filter",
+      "metadata": "plugins/filters/example/kritaexample.json",
+      "implementation": "plugins/filters/example/example.cpp",
+      "ownerTarget": "kritaexample",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaexample",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Karbon Tools",
+      "metadata": "plugins/tools/karbonplugins/tools/karbon_tools.json",
+      "implementation": "plugins/tools/karbonplugins/tools/KarbonToolsPlugin.cpp",
+      "ownerTarget": "krita_karbontools",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "krita_karbon_tools",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Knife Tool",
+      "metadata": "plugins/tools/tool_knife/kritatoolknife.json",
+      "implementation": "plugins/tools/tool_knife/ToolKnife.cpp",
+      "ownerTarget": "kritatoolKnife",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "kritatoolknife",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Krita Archival Export Filter",
+      "metadata": "plugins/impex/krz/krita_krz_export.json",
+      "implementation": "plugins/impex/krz/krz_export.cpp",
+      "ownerTarget": "kritakrzexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritakrzexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Brush Export Filter",
+      "metadata": "plugins/impex/brush/krita_brush_export.json",
+      "implementation": "plugins/impex/brush/kis_brush_export.cpp",
+      "ownerTarget": "kritabrushexport",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": null,
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Brush Import Filter",
+      "metadata": "plugins/impex/brush/krita_brush_import.json",
+      "implementation": "plugins/impex/brush/kis_brush_import.cpp",
+      "ownerTarget": "kritabrushimport",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": null,
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita CSV Export Filter",
+      "metadata": "plugins/impex/csv/krita_csv_export.json",
+      "implementation": "plugins/impex/csv/kis_csv_export.cpp",
+      "ownerTarget": "kritacsvexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacsvexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita CSV Import Filter",
+      "metadata": "plugins/impex/csv/krita_csv_import.json",
+      "implementation": "plugins/impex/csv/kis_csv_import.cpp",
+      "ownerTarget": "kritacsvimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacsvimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita GIF Export Filter",
+      "metadata": "plugins/impex/gif/krita_gif_export.json",
+      "implementation": "plugins/impex/gif/kis_gif_export.cpp",
+      "ownerTarget": "kritagifexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritagifexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita GIF Import Filter",
+      "metadata": "plugins/impex/gif/krita_gif_import.json",
+      "implementation": "plugins/impex/gif/kis_gif_import.cpp",
+      "ownerTarget": "kritagifimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritagifimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Gimp Import Filter",
+      "metadata": "plugins/impex/xcf/krita_xcf_import.json",
+      "implementation": "plugins/impex/xcf/kis_xcf_import.cpp",
+      "ownerTarget": "kritaxcfimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaxcfimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita HEIF Export Filter",
+      "metadata": "plugins/impex/heif/krita_heif_export.json",
+      "implementation": "plugins/impex/heif/HeifExport.cpp",
+      "ownerTarget": "kritaheifexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaheifexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita HEIF Import Filter",
+      "metadata": "plugins/impex/heif/krita_heif_import.json",
+      "implementation": "plugins/impex/heif/HeifImport.cpp",
+      "ownerTarget": "kritaheifimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaheifimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Heightmap Export Filter",
+      "metadata": "plugins/impex/heightmap/krita_heightmap_export.json",
+      "implementation": "plugins/impex/heightmap/kis_heightmap_export.cpp",
+      "ownerTarget": "kritaheightmapexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaheightmapexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Heightmap Import Filter",
+      "metadata": "plugins/impex/heightmap/krita_heightmap_import.json",
+      "implementation": "plugins/impex/heightmap/kis_heightmap_import.cpp",
+      "ownerTarget": "kritaheightmapimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaheightmapimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita JPEG Export Filter",
+      "metadata": "plugins/impex/jpeg/krita_jpeg_export.json",
+      "implementation": "plugins/impex/jpeg/kis_jpeg_export.cc",
+      "ownerTarget": "kritajpegexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritajpegexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita JPEG Import Filter",
+      "metadata": "plugins/impex/jpeg/krita_jpeg_import.json",
+      "implementation": "plugins/impex/jpeg/kis_jpeg_import.cc",
+      "ownerTarget": "kritajpegimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritajpegimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita JPEG-XL Export Filter",
+      "metadata": "plugins/impex/jxl/krita_jxl_export.json",
+      "implementation": "plugins/impex/jxl/JPEGXLExport.cpp",
+      "ownerTarget": "kritajxlexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritajxlexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita JPEG-XL Import Filter",
+      "metadata": "plugins/impex/jxl/krita_jxl_import.json",
+      "implementation": "plugins/impex/jxl/JPEGXLImport.cpp",
+      "ownerTarget": "kritajxlimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritajxlimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Native Export Filter",
+      "metadata": "plugins/impex/kra/krita_kra_export.json",
+      "implementation": "plugins/impex/kra/kra_export.cpp",
+      "ownerTarget": "kritakraexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritakraexport",
       "platforms": [
         "macos",
         "linux",
@@ -11071,15 +12762,2060 @@
         "Krita/FileFilter"
       ],
       "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
-      "runtimeConsumer": "KisImportExportManager",
-      "responsibility": "Decodes PNG and Krita paint-op preset payloads into the current document image through the file-filter registry.",
-      "evidence": [
-        "docs/architecture/README.md",
-        "libs/ui/KisImportExportManager.cpp",
-        "plugins/impex/png/CMakeLists.txt",
-        "plugins/impex/png/kis_png_import.cc",
-        "plugins/impex/png/krita_png_import.json"
-      ]
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Native Import Filter",
+      "metadata": "plugins/impex/kra/krita_kra_import.json",
+      "implementation": "plugins/impex/kra/kra_import.cpp",
+      "ownerTarget": "kritakraimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritakraimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita PDF Import Filter",
+      "metadata": "plugins/impex/pdf/krita_pdf_import.json",
+      "implementation": "plugins/impex/pdf/kis_pdf_import.cpp",
+      "ownerTarget": "kritapdfimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapdfimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita PNG Export Filter",
+      "metadata": "plugins/impex/png/krita_png_export.json",
+      "implementation": "plugins/impex/png/kis_png_export.cc",
+      "ownerTarget": "kritapngexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapngexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita PNG Import Filter",
+      "metadata": "plugins/impex/png/krita_png_import.json",
+      "implementation": "plugins/impex/png/kis_png_import.cc",
+      "ownerTarget": "kritapngimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapngimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita PhotoShop Export Filter",
+      "metadata": "plugins/impex/psd/krita_psd_export.json",
+      "implementation": "plugins/impex/psd/psd_export.cc",
+      "ownerTarget": "kritapsdexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapsdexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita PhotoShop Import Filter",
+      "metadata": "plugins/impex/psd/krita_psd_import.json",
+      "implementation": "plugins/impex/psd/psd_import.cc",
+      "ownerTarget": "kritapsdimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapsdimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita QImageIO Export Filter",
+      "metadata": "plugins/impex/qimageio/krita_qimageio_export.json",
+      "implementation": "plugins/impex/qimageio/kis_qimageio_export.cpp",
+      "ownerTarget": "kritaqimageioexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaqimageioexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita QImageIO Import Filter",
+      "metadata": "plugins/impex/qimageio/krita_qimageio_import.json",
+      "implementation": "plugins/impex/qimageio/kis_qimageio_import.cpp",
+      "ownerTarget": "kritaqimageioimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaqimageioimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita QML Export Filter",
+      "metadata": "plugins/impex/qml/krita_qml_export.json",
+      "implementation": "plugins/impex/qml/qml_export.cc",
+      "ownerTarget": "kritaqmlexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaqmlexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita RAW Import Filter",
+      "metadata": "plugins/impex/raw/krita_raw_import.json",
+      "implementation": "plugins/impex/raw/kis_raw_import.cpp",
+      "ownerTarget": "krita_raw_import",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "krita_raw_import",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita RGBE Export Filter",
+      "metadata": "plugins/impex/rgbe/krita_rgbe_export.json",
+      "implementation": "plugins/impex/rgbe/RGBEExport.cpp",
+      "ownerTarget": "kritargbeexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritargbeexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita RGBE Import Filter",
+      "metadata": "plugins/impex/rgbe/krita_rgbe_import.json",
+      "implementation": "plugins/impex/rgbe/RGBEImport.cpp",
+      "ownerTarget": "kritargbeimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritargbeimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita SVG Import Filter",
+      "metadata": "plugins/impex/svg/krita_svg_import.json",
+      "implementation": "plugins/impex/svg/kis_svg_import.cc",
+      "ownerTarget": "kritasvgimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritasvgimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Snapshot Docker plugin",
+      "metadata": "plugins/dockers/snapshotdocker/kritasnapshotdocker.json",
+      "implementation": "plugins/dockers/snapshotdocker/SnapshotPlugin.cpp",
+      "ownerTarget": "kritasnapshotdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritasnapshotdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Krita Spriter Export Filter",
+      "metadata": "plugins/impex/spriter/krita_spriter_export.json",
+      "implementation": "plugins/impex/spriter/kis_spriter_export.cpp",
+      "ownerTarget": "kritaspriterexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaspriterexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita TGA Export Filter",
+      "metadata": "plugins/impex/tga/krita_tga_export.json",
+      "implementation": "plugins/impex/tga/kis_tga_export.cpp",
+      "ownerTarget": "kritatgaexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatgaexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita TGA Import Filter",
+      "metadata": "plugins/impex/tga/krita_tga_import.json",
+      "implementation": "plugins/impex/tga/kis_tga_import.cpp",
+      "ownerTarget": "kritatgaimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatgaimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita TIFF Export Filter",
+      "metadata": "plugins/impex/tiff/krita_tiff_export.json",
+      "implementation": "plugins/impex/tiff/kis_tiff_export.cc",
+      "ownerTarget": "kritatiffexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatiffexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita TIFF Import Filter",
+      "metadata": "plugins/impex/tiff/krita_tiff_import.json",
+      "implementation": "plugins/impex/tiff/kis_tiff_import.cc",
+      "ownerTarget": "kritatiffimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatiffimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita Undo History Docker plugin",
+      "metadata": "plugins/dockers/historydocker/kritahistorydocker.json",
+      "implementation": "plugins/dockers/historydocker/History.cpp",
+      "ownerTarget": "kritahistorydocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritahistorydocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Krita WebP Export Filter",
+      "metadata": "plugins/impex/webp/krita_webp_export.json",
+      "implementation": "plugins/impex/webp/kis_webp_export.cpp",
+      "ownerTarget": "kritawebpexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritawebpexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita WebP Import Filter",
+      "metadata": "plugins/impex/webp/krita_webp_import.json",
+      "implementation": "plugins/impex/webp/kis_webp_import.cpp",
+      "ownerTarget": "kritawebpimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritawebpimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita exr Export Filter",
+      "metadata": "plugins/impex/exr/krita_exr_export.json",
+      "implementation": "plugins/impex/exr/exr_export.cc",
+      "ownerTarget": "kritaexrexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaexrexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita exr Import Filter",
+      "metadata": "plugins/impex/exr/krita_exr_import.json",
+      "implementation": "plugins/impex/exr/exr_import.cc",
+      "ownerTarget": "kritaexrimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaexrimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita iPadOS Touch UI",
+      "metadata": "plugins/extensions/iostouchui/kritaiostouchui.json",
+      "implementation": "plugins/extensions/iostouchui/iostouchui.cpp",
+      "ownerTarget": "kritaiostouchui",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaiostouchui",
+      "platforms": [
+        "ios"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Krita jpeg2000 Import Filter",
+      "metadata": "plugins/impex/jp2/krita_jp2_import.json",
+      "implementation": "plugins/impex/jp2/jp2_import.cc",
+      "ownerTarget": "kritajp2import",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritajp2import",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita ora Export Filter",
+      "metadata": "plugins/impex/ora/krita_ora_export.json",
+      "implementation": "plugins/impex/ora/ora_export.cc",
+      "ownerTarget": "kritaoraexport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaoraexport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "Krita ora Import Filter",
+      "metadata": "plugins/impex/ora/krita_ora_import.json",
+      "implementation": "plugins/impex/ora/ora_import.cc",
+      "ownerTarget": "kritaoraimport",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaoraimport",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/FileFilter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "import-export",
+      "runtimeConsumer": "KisImportExportManager"
+    },
+    {
+      "id": "LCMS Color Management Engine for Pigment",
+      "metadata": "plugins/color/lcms2engine/kolcmsengine.json",
+      "implementation": "plugins/color/lcms2engine/LcmsEnginePlugin.cpp",
+      "ownerTarget": "kritalcmsengine",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritalcmsengine",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ColorSpace"
+      ],
+      "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+      "featureOwner": "color-processing",
+      "runtimeConsumer": "KoColorSpaceRegistry"
+    },
+    {
+      "id": "Layer Docker",
+      "metadata": "plugins/dockers/layerdocker/kritalayerdocker.json",
+      "implementation": "plugins/dockers/layerdocker/LayerDocker.cpp",
+      "ownerTarget": "kritalayerdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritalayerdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Layer Splitter",
+      "metadata": "plugins/extensions/layersplit/kritalayersplit.json",
+      "implementation": "plugins/extensions/layersplit/layersplit.cpp",
+      "ownerTarget": "kritalayersplit",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritalayersplit",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Lazy Brush Tool",
+      "metadata": "plugins/tools/tool_lazybrush/kritatoollazybrush.json",
+      "implementation": "plugins/tools/tool_lazybrush/tool_lazybrush.cpp",
+      "ownerTarget": "kritatoollazybrush",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatoollazybrush",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Log Docker",
+      "metadata": "plugins/dockers/logdocker/krita_logdocker.json",
+      "implementation": "plugins/dockers/logdocker/LogDocker.cpp",
+      "ownerTarget": "kritalogdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritalogdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Lut Docker",
+      "metadata": "plugins/dockers/lut/krita_lutdocker.json",
+      "implementation": "plugins/dockers/lut/lutdocker.cpp",
+      "ownerTarget": "kritalutdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritalutdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Modify Selection",
+      "metadata": "plugins/extensions/modify_selection/kritamodifyselection.json",
+      "implementation": "plugins/extensions/modify_selection/modify_selection.cc",
+      "ownerTarget": "kritamodifyselection",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritamodifyselection",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Multigrid Pattern Generator",
+      "metadata": "plugins/generators/multigridpattern/kritamultigridpatterngenerator.json",
+      "implementation": "plugins/generators/multigridpattern/multigridpatterngenerator.cpp",
+      "ownerTarget": "kritamultigridpatterngenerator",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritamultigridpatterngenerator",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Generator"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-generation",
+      "runtimeConsumer": "KisGeneratorRegistry"
+    },
+    {
+      "id": "MyPaint Brush",
+      "metadata": "plugins/paintops/mypaint/kritamypaintop.json",
+      "implementation": "plugins/paintops/mypaint/MyPaintPaintOpPlugin.cpp",
+      "ownerTarget": "kritamypaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritamypaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Noise Filter",
+      "metadata": "plugins/filters/noisefilter/kritanoisefilter.json",
+      "implementation": "plugins/filters/noisefilter/noisefilter.cpp",
+      "ownerTarget": "kritanoisefilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritanoisefilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Normalize Filter",
+      "metadata": "plugins/filters/normalize/kritanormalize.json",
+      "implementation": "plugins/filters/normalize/kis_normalize.cpp",
+      "ownerTarget": "kritanormalize",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritanormalize",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Offset Image Plugin",
+      "metadata": "plugins/extensions/offsetimage/kritaoffsetimage.json",
+      "implementation": "plugins/extensions/offsetimage/offsetimage.cpp",
+      "ownerTarget": "kritaoffsetimage",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaoffsetimage",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Oilpaint Filter",
+      "metadata": "plugins/filters/oilpaintfilter/kritaoilpaintfilter.json",
+      "implementation": "plugins/filters/oilpaintfilter/kis_oilpaint_filter_plugin.cpp",
+      "ownerTarget": "kritaoilpaintfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaoilpaintfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Overview Docker",
+      "metadata": "plugins/dockers/overview/krita_overviewdocker.json",
+      "implementation": "plugins/dockers/overview/overviewdocker.cpp",
+      "ownerTarget": "kritaoverviewdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaoverviewdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Palette Docker",
+      "metadata": "plugins/dockers/palettedocker/krita_palettedocker.json",
+      "implementation": "plugins/dockers/palettedocker/palettedocker.cpp",
+      "ownerTarget": "kritapalettedocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapalettedocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Palettize Filter",
+      "metadata": "plugins/filters/palettize/kritapalettize.json",
+      "implementation": "plugins/filters/palettize/palettize.cpp",
+      "ownerTarget": "kritapalettize",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapalettize",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Particle brush",
+      "metadata": "plugins/paintops/particle/kritaparticlepaintop.json",
+      "implementation": "plugins/paintops/particle/particle_paintop_plugin.cpp",
+      "ownerTarget": "kritaparticlepaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaparticlepaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Path Shapes",
+      "metadata": "plugins/flake/pathshapes/calligra_shape_paths.json",
+      "implementation": "plugins/flake/pathshapes/PathShapesPlugin.cpp",
+      "ownerTarget": "krita_shape_paths",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "krita_shape_paths",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Shape"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "vector-shape",
+      "runtimeConsumer": "KoShapeRegistry"
+    },
+    {
+      "id": "Pattern Docker",
+      "metadata": "plugins/dockers/patterndocker/krita_patterndocker.json",
+      "implementation": "plugins/dockers/patterndocker/patterndocker.cpp",
+      "ownerTarget": "kritapatterndocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapatterndocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Phong Bumpmap Filter",
+      "metadata": "plugins/filters/phongbumpmap/kritaphongbumpmapfilter.json",
+      "implementation": "plugins/filters/phongbumpmap/kis_phong_bumpmap_plugin.cpp",
+      "ownerTarget": "kritaphongbumpmap",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaphongbumpmap",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Pixelize Filter",
+      "metadata": "plugins/filters/pixelizefilter/kritapixelizefilter.json",
+      "implementation": "plugins/filters/pixelizefilter/kis_pixelize_filter_plugin.cpp",
+      "ownerTarget": "kritapixelizefilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapixelizefilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Polygon Tool",
+      "metadata": "plugins/tools/tool_polygon/kritatoolpolygon.json",
+      "implementation": "plugins/tools/tool_polygon/tool_polygon.cc",
+      "ownerTarget": "kritatoolpolygon",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatoolpolygon",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Polyline Tool",
+      "metadata": "plugins/tools/tool_polyline/kritatoolpolyline.json",
+      "implementation": "plugins/tools/tool_polyline/tool_polyline.cc",
+      "ownerTarget": "kritatoolpolyline",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatoolpolyline",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Posterize Filter",
+      "metadata": "plugins/filters/posterize/kritaposterize.json",
+      "implementation": "plugins/filters/posterize/posterize.cpp",
+      "ownerTarget": "kritaposterize",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaposterize",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Preset Docker",
+      "metadata": "plugins/dockers/presetdocker/krita_presetdocker.json",
+      "implementation": "plugins/dockers/presetdocker/presetdocker.cpp",
+      "ownerTarget": "kritapresetdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapresetdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Preset History Docker",
+      "metadata": "plugins/dockers/presethistory/krita_presethistory.json",
+      "implementation": "plugins/dockers/presethistory/presethistory.cpp",
+      "ownerTarget": "kritapresethistory",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapresethistory",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Propagate Colors Filter",
+      "metadata": "plugins/filters/propagatecolors/kritapropagatecolorsfilter.json",
+      "implementation": "plugins/filters/propagatecolors/KisPropagateColorsFilterPlugin.cpp",
+      "ownerTarget": "kritapropagatecolors",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "KritaPropagateColorsFilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Python Plugin Manager",
+      "metadata": "plugins/extensions/pykrita/plugin/kritapykrita.json",
+      "implementation": "plugins/extensions/pykrita/plugin/plugin.cpp",
+      "ownerTarget": "kritapykrita",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapykrita",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ApplicationPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "application-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Quick Layergroup Switcher",
+      "metadata": "plugins/extensions/layergroupswitcher/kritalayergroupswitcher.json",
+      "implementation": "plugins/extensions/layergroupswitcher/layergroupswitcher.cpp",
+      "ownerTarget": "kritalayergroupswitcher",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritalayergroupswitcher",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Raindrops Filter",
+      "metadata": "plugins/filters/raindropsfilter/kritaraindropsfilter.json",
+      "implementation": "plugins/filters/raindropsfilter/kis_raindrops_filter_plugin.cpp",
+      "ownerTarget": "kritaraindropsfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaraindropsfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Random pick Filter",
+      "metadata": "plugins/filters/randompickfilter/kritarandompickfilter.json",
+      "implementation": "plugins/filters/randompickfilter/randompickfilter.cpp",
+      "ownerTarget": "kritarandompickfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritarandompickfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Recorder Docker",
+      "metadata": "plugins/dockers/recorder/krita_recorderdocker.json",
+      "implementation": "plugins/dockers/recorder/recorderdocker.cpp",
+      "ownerTarget": "kritarecorderdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritarecorderdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Reset Transparent Filter",
+      "metadata": "plugins/filters/resettransparent/kritaresettransparent.json",
+      "implementation": "plugins/filters/resettransparent/KisResetTransparentFilter.cpp",
+      "ownerTarget": "kritaresettransparent",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaresettransparent",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Resource Manager",
+      "metadata": "plugins/extensions/resourcemanager/kritaresourcemanager.json",
+      "implementation": "plugins/extensions/resourcemanager/resourcemanager.cpp",
+      "ownerTarget": "kritaresourcemanager",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaresourcemanager",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Rotate Image Plugin",
+      "metadata": "plugins/extensions/rotateimage/kritarotateimage.json",
+      "implementation": "plugins/extensions/rotateimage/rotateimage.cc",
+      "ownerTarget": "kritarotateimage",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritarotateimage",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Round Corners Filter",
+      "metadata": "plugins/filters/roundcorners/kritaroundcornersfilter.json",
+      "implementation": "plugins/filters/roundcorners/kis_round_corners_filter_plugin.cpp",
+      "ownerTarget": "kritaroundcornersfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaroundcornersfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Round Marker Brush (Quick Brush)",
+      "metadata": "plugins/paintops/roundmarker/kritaroundmarkerpaintop.json",
+      "implementation": "plugins/paintops/roundmarker/roundmarker_paintop_plugin.cpp",
+      "ownerTarget": "kritaroundmarkerpaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaroundmarkerpaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "S-Pen Settings",
+      "metadata": "plugins/extensions/spensettings/kritaspensettings.json",
+      "implementation": "plugins/extensions/spensettings/SPenSettings.cpp",
+      "ownerTarget": "kritaspensettings",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaspensettings",
+      "platforms": [
+        "android"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "SVG Collection Docker",
+      "metadata": "plugins/dockers/svgcollectiondocker/svgcollectiondocker.json",
+      "implementation": "plugins/dockers/svgcollectiondocker/Plugin.cpp",
+      "ownerTarget": "kritasvgcollectiondocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritasvgcollectiondocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Sample Screen Color Plugin",
+      "metadata": "plugins/extensions/samplescreencolor/kritasamplescreencolor.json",
+      "implementation": "plugins/extensions/samplescreencolor/KisSampleScreenColor.cpp",
+      "ownerTarget": "kritasamplescreencolor",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritasamplescreencolor",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Screentone Generator",
+      "metadata": "plugins/generators/screentone/KritaScreentoneGenerator.json",
+      "implementation": "plugins/generators/screentone/KisScreentoneGeneratorPlugin.cpp",
+      "ownerTarget": "kritascreentonegenerator",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "KritaScreentoneGenerator",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Generator"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-generation",
+      "runtimeConsumer": "KisGeneratorRegistry"
+    },
+    {
+      "id": "SeExpr Generator",
+      "metadata": "plugins/generators/seexpr/generator.json",
+      "implementation": "plugins/generators/seexpr/generator.cpp",
+      "ownerTarget": "kritaseexprgenerator",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaseexprgenerator",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Generator"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-generation",
+      "runtimeConsumer": "KisGeneratorRegistry"
+    },
+    {
+      "id": "Selection Tools",
+      "metadata": "plugins/tools/selectiontools/kritaselectiontools.json",
+      "implementation": "plugins/tools/selectiontools/selection_tools.cc",
+      "ownerTarget": "kritaselectiontools",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaselectiontools",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Separate Channels Plugin",
+      "metadata": "plugins/extensions/separate_channels/kritaseparatechannels.json",
+      "implementation": "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
+      "ownerTarget": "kritaseparatechannels",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaseparatechannels",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Shear Image Plugin",
+      "metadata": "plugins/extensions/shearimage/kritashearimage.json",
+      "implementation": "plugins/extensions/shearimage/shearimage.cc",
+      "ownerTarget": "kritashearimage",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritashearimage",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "Simplex Noise Generator",
+      "metadata": "plugins/generators/simplexnoise/kritasimplexnoisegenerator.json",
+      "implementation": "plugins/generators/simplexnoise/simplexnoisegenerator.cpp",
+      "ownerTarget": "kritasimplexnoisegenerator",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritasimplexnoisegenerator",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Generator"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-generation",
+      "runtimeConsumer": "KisGeneratorRegistry"
+    },
+    {
+      "id": "Sketch brush",
+      "metadata": "plugins/paintops/sketch/kritasketchpaintop.json",
+      "implementation": "plugins/paintops/sketch/sketch_paintop_plugin.cpp",
+      "ownerTarget": "kritasketchpaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritasketchpaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Small Tiles Filter",
+      "metadata": "plugins/filters/smalltilesfilter/kritasmalltilesfilter.json",
+      "implementation": "plugins/filters/smalltilesfilter/kis_small_tiles_filter_plugin.cpp",
+      "ownerTarget": "kritasmalltilesfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritasmalltilesfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "SmallColorSelector",
+      "metadata": "plugins/dockers/smallcolorselector/krita_smallcolorselector.json",
+      "implementation": "plugins/dockers/smallcolorselector/smallcolorselector.cc",
+      "ownerTarget": "kritasmallcolorselector",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritasmallcolorselector",
+      "platforms": [
+        "macos",
+        "linux",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Solid Color Generator",
+      "metadata": "plugins/generators/solid/kritacolorgenerator.json",
+      "implementation": "plugins/generators/solid/colorgenerator.cpp",
+      "ownerTarget": "kritacolorgenerator",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritacolorgenerator",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Generator"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-generation",
+      "runtimeConsumer": "KisGeneratorRegistry"
+    },
+    {
+      "id": "Solid Pattern Layer",
+      "metadata": "plugins/generators/pattern/kritapatterngenerator.json",
+      "implementation": "plugins/generators/pattern/patterngenerator.cpp",
+      "ownerTarget": "kritapatterngenerator",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritapatterngenerator",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Generator"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-generation",
+      "runtimeConsumer": "KisGeneratorRegistry"
+    },
+    {
+      "id": "Some extensions to color spaces",
+      "metadata": "plugins/color/colorspaceextensions/krita_colorspaces_extensions_plugin.json",
+      "implementation": "plugins/color/colorspaceextensions/extensions_plugin.cc",
+      "ownerTarget": "krita_colorspaces_extensions",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "krita_colorspaces_extensions",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ColorSpaceExtension"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "color-processing",
+      "runtimeConsumer": "KoColorSpaceRegistry"
+    },
+    {
+      "id": "SpecificColorSelector",
+      "metadata": "plugins/dockers/specificcolorselector/krita_specificcolorselector.json",
+      "implementation": "plugins/dockers/specificcolorselector/specificcolorselector.cc",
+      "ownerTarget": "kritaspecificcolorselector",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaspecificcolorselector",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Spray",
+      "metadata": "plugins/paintops/spray/kritaspraypaintop.json",
+      "implementation": "plugins/paintops/spray/spray_paintop_plugin.cpp",
+      "ownerTarget": "kritaspraypaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaspraypaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Static Vector Shape",
+      "metadata": "plugins/flake/imageshape/krita_shape_image.json",
+      "implementation": "plugins/flake/imageshape/ImageShapePlugin.cpp",
+      "ownerTarget": "krita_shape_image",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "krita_shape_image",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Flake"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "vector-shape",
+      "runtimeConsumer": "KoShapeRegistry"
+    },
+    {
+      "id": "Storyboard Docker",
+      "metadata": "plugins/dockers/storyboarddocker/krita_storyboarddocker.json",
+      "implementation": "plugins/dockers/storyboarddocker/StoryboardDocker.cpp",
+      "ownerTarget": "kritastoryboarddocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritastoryboarddocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "SvgTextTool",
+      "metadata": "plugins/tools/svgtexttool/krita_tool_svgtext.json",
+      "implementation": "plugins/tools/svgtexttool/Plugin.cpp",
+      "ownerTarget": "krita_tool_svgtext",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "krita_tool_svgtext",
+      "platforms": [
+        "macos",
+        "linux",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "Tangent Normal Brush",
+      "metadata": "plugins/paintops/tangentnormal/kritatangentnormalpaintop.json",
+      "implementation": "plugins/paintops/tangentnormal/kis_tangent_normal_paintop_plugin.cpp",
+      "ownerTarget": "kritatangentnormalpaintop",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatangentnormalpaintop",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Paintop"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "painting-execution",
+      "runtimeConsumer": "KisPaintOpRegistry"
+    },
+    {
+      "id": "Taskset Docker",
+      "metadata": "plugins/dockers/tasksetdocker/krita_tasksetdocker.json",
+      "implementation": "plugins/dockers/tasksetdocker/tasksetdocker.cpp",
+      "ownerTarget": "kritatasksetdocker",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatasksetdocker",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Text Properties Docker",
+      "metadata": "plugins/dockers/textproperties/krita_textproperties.json",
+      "implementation": "plugins/dockers/textproperties/TextPropertiesPlugin.cpp",
+      "ownerTarget": "kritatextproperties",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatextproperties",
+      "platforms": [
+        "macos",
+        "linux",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Threshold Filter",
+      "metadata": "plugins/filters/threshold/kritathreshold.json",
+      "implementation": "plugins/filters/threshold/threshold.cpp",
+      "ownerTarget": "kritathreshold",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritathreshold",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Touch Docker",
+      "metadata": "plugins/dockers/touchdocker/kritatouchdocker.json",
+      "implementation": "plugins/dockers/touchdocker/TouchDocker.cpp",
+      "ownerTarget": "kritatouchdocker",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "kritatouchdocker.json",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Transform Tool",
+      "metadata": "plugins/tools/tool_transform2/kritatooltransform.json",
+      "implementation": "plugins/tools/tool_transform2/tool_transform.cc",
+      "ownerTarget": "kritatooltransform",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritatooltransform",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Tool"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "tool-invocation",
+      "runtimeConsumer": "KoToolRegistry"
+    },
+    {
+      "id": "WGColorSelector",
+      "metadata": "plugins/dockers/widegamutcolorselector/krita_widegamutcolorselector.json",
+      "implementation": "plugins/dockers/widegamutcolorselector/WGColorSelectorPlugin.cpp",
+      "ownerTarget": "kritawgcolorselector",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritawgcolorselector",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Dock"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "docker-presentation",
+      "runtimeConsumer": "KoDockRegistry"
+    },
+    {
+      "id": "Wave Filter",
+      "metadata": "plugins/filters/wavefilter/kritawavefilter.json",
+      "implementation": "plugins/filters/wavefilter/wavefilter.cpp",
+      "ownerTarget": "kritawavefilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritawavefilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "Wavelet decomposer",
+      "metadata": "plugins/extensions/waveletdecompose/kritawaveletdecompose.json",
+      "implementation": "plugins/extensions/waveletdecompose/waveletdecompose.cpp",
+      "ownerTarget": "kritawaveletdecompose",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritawaveletdecompose",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
+    },
+    {
+      "id": "XMP",
+      "metadata": "plugins/metadata/xmp/kritaxmp.json",
+      "implementation": "plugins/metadata/xmp/kis_xmp_plugin.cpp",
+      "ownerTarget": "kritaxmp",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritaxmp",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Metadata"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "document-metadata",
+      "runtimeConsumer": "KisMetadataBackendRegistry"
+    },
+    {
+      "id": "kritaplatformwayland",
+      "metadata": "plugins/platforms/wayland/kritaplatformwayland.json",
+      "implementation": "plugins/platforms/wayland/KritaPlatformPluginWayland.cpp",
+      "ownerTarget": "kritaplatformpluginwayland",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "kritaplatformwayland",
+      "platforms": [
+        "linux"
+      ],
+      "serviceTypes": [
+        "Krita/PlatformPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "platform-adapter",
+      "runtimeConsumer": "KisPlatformPluginInterfaceFactory"
+    },
+    {
+      "id": "kritaplatformxcb",
+      "metadata": "plugins/platforms/xcb/kritaplatformxcb.json",
+      "implementation": "plugins/platforms/xcb/KritaPlatformPluginXcb.cpp",
+      "ownerTarget": "kritaplatformpluginxcb",
+      "ownerEvidence": "cmake-source-override",
+      "metadataLibrary": "kritaplatformxcb",
+      "platforms": [
+        "linux"
+      ],
+      "serviceTypes": [
+        "Krita/PlatformPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "platform-adapter",
+      "runtimeConsumer": "KisPlatformPluginInterfaceFactory"
+    },
+    {
+      "id": "levels",
+      "metadata": "plugins/filters/levelfilter/kritalevelsfilter.json",
+      "implementation": "plugins/filters/levelfilter/KisLevelsFilterPlugin.cpp",
+      "ownerTarget": "kritalevelfilter",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritalevelfilter",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/Filter"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "image-filtering",
+      "runtimeConsumer": "KisFilterRegistry"
+    },
+    {
+      "id": "metadataeditor",
+      "metadata": "plugins/extensions/metadataeditor/kritametadataeditor.json",
+      "implementation": "plugins/extensions/metadataeditor/metadataeditor.cc",
+      "ownerTarget": "kritametadataeditor",
+      "ownerEvidence": "metadata-library",
+      "metadataLibrary": "kritametadataeditor",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "serviceTypes": [
+        "Krita/ViewPlugin"
+      ],
+      "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
+      "featureOwner": "view-extension",
+      "runtimeConsumer": "KisMainWindow"
     }
   ]
 }

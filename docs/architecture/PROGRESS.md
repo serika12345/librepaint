@@ -2,11 +2,11 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 14:32 JST
-- 状態: `planned`
+- 更新日時: 2026-08-16 16:12 JST
+- 状態: `in_progress`
 - 現在の検査段階: R1-G2 公開面と主要クラスの棚卸し
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g2d-tool-class-responsibilities`
+- ブランチ: `r1-g2e-plugin-inventory`
 - 目的: R1-G2eとしてプラグインを全件採取し、CMakeターゲット、メタデータ、登録先、
   対応プラットフォーム、機能所有者へ接続してR1-G2を完了する。
 

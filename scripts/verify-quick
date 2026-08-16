@@ -12,6 +12,7 @@ fi
 
 python3 -m unittest discover -s scripts/tests -p 'test_*.py'
 python3 scripts/architecture/update_public_header_inventory.py --check
+python3 scripts/architecture/update_plugin_inventory.py --check
 python3 scripts/architecture/update_ui_class_responsibilities.py --check
 python3 scripts/architecture/update_ui_tool_class_responsibilities.py --check
 python3 scripts/architecture/check_public_surface_inventory.py

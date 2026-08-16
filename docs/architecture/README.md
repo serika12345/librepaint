@@ -69,9 +69,20 @@ R1-G2bでは`kritaimage`の332件と`kritaui`の307件を全件記録し、`scop
 製品ソースディレクトリー、除外する試験経路、公開根拠の種類を固定する。
 
 `publicHeaderDetails`は`KisDocument`、`KisImage`、`KisImportExportManager`について、
-利用元CMakeターゲットと責務の代表記録を持つ。主要クラスとプラグインはR1-G2aの代表範囲を
-維持し、PNGインポートのCMake所有者、JSONメタデータ、登録マクロ、サービス種別、実行時の
-利用者を記録する。`scope`は公開ヘッダー、主要クラス、プラグインの完了状態を個別に示す。
+利用元CMakeターゲットと責務の代表記録を持つ。`scope`は公開ヘッダー、主要クラス、
+プラグインの完了状態を個別に示す。
+
+R1-G2eでは、試験経路を除く`plugins`以下で兄弟JSONを指定する登録マクロ172件を全件記録し、
+`scope.plugins`を`complete`とする。各項目はプラグインID、実装、メタデータ、登録マクロ、
+CMake所有ターゲット、対応構成、サービス種別、機能所有領域、実行時レジストリーを持つ。
+構成別の対象数はmacOS 167件、Linux 170件、iOS 162件、Android 162件、Windows 168件である。
+
+`pluginServiceTypeOwners`は14サービス種別を、入出力、画像フィルター、ドッカー表示、
+表示拡張、ツール呼出し、描画実行、画像生成、文書メタデータ、色処理、ベクター図形、
+プラットフォーム接続、アプリケーション拡張の12領域と実行時の読込元へ対応付ける。
+157件はJSONの`X-KDE-Library`をCMake所有者の根拠とする。残る15件は同項目がないか、
+5構成のターゲット名と一致しないため、`pluginPolicy.ownerTargetOverrides`が登録実装を含む
+`CMakeLists.txt`と実際のターゲットを記録する。
 
 [UI直下クラス責務台帳](ui-class-responsibilities.json)は、`libs/ui`直下の公開ヘッダーに
 宣言された公開クラスと構造体124件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ

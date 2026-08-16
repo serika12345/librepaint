@@ -34,6 +34,11 @@ UI_CLASS_DECLARATION_PATTERN = re.compile(
     r"\b(class|struct)\s+KRITAUI_EXPORT(?:_TEMPLATE)?\s+"
     r"([A-Za-z_][A-Za-z0-9_]*)"
 )
+PLUGIN_REGISTRATION_PATTERN = re.compile(
+    r"\b(K_PLUGIN_(?:FACTORY|CLASS)_WITH_JSON)\s*\("
+    r"[^,]+,\s*\"([^\"]+\.json)\"",
+    re.DOTALL,
+)
 PUBLIC_HEADER_SET_SPECS = (
     {
         "ownerTarget": "kritaimage",
@@ -135,6 +140,121 @@ UI_TOOL_CLASS_RESPONSIBILITY_AREAS = (
             "Owns tool option widgets and UI-facing configuration, brush-size, and "
             "stroke-status state."
         ),
+    },
+)
+PLUGIN_OWNER_TARGET_OVERRIDES = {
+    "plugins/dockers/touchdocker/kritatouchdocker.json": "kritatouchdocker",
+    "plugins/extensions/qmic/kritaqmic.json": "kritaqmic",
+    "plugins/filters/gaussianhighpass/kritagaussianhighpassfilter.json": (
+        "kritagaussianhighpassfilter"
+    ),
+    "plugins/filters/gradientmap/KritaGradientMapFilter.json": "kritagradientmap",
+    "plugins/filters/halftone/KritaHalftone.json": "kritahalftone",
+    "plugins/filters/propagatecolors/kritapropagatecolorsfilter.json": (
+        "kritapropagatecolors"
+    ),
+    "plugins/generators/gradient/KritaGradientGenerator.json": (
+        "kritagradientgenerator"
+    ),
+    "plugins/generators/screentone/KritaScreentoneGenerator.json": (
+        "kritascreentonegenerator"
+    ),
+    "plugins/impex/brush/krita_brush_export.json": "kritabrushexport",
+    "plugins/impex/brush/krita_brush_import.json": "kritabrushimport",
+    "plugins/platforms/wayland/kritaplatformwayland.json": (
+        "kritaplatformpluginwayland"
+    ),
+    "plugins/platforms/xcb/kritaplatformxcb.json": "kritaplatformpluginxcb",
+    "plugins/tools/karbonplugins/tools/karbon_tools.json": "krita_karbontools",
+    "plugins/tools/tool_knife/kritatoolknife.json": "kritatoolKnife",
+    "plugins/tools/tool_smart_patch/kritatoolsmartpatch.json": (
+        "kritatoolSmartPatch"
+    ),
+}
+PLUGIN_SERVICE_TYPE_OWNERS = (
+    {
+        "serviceType": "Krita/ApplicationPlugin",
+        "featureOwner": "application-extension",
+        "runtimeConsumer": "KisMainWindow",
+        "evidence": "libs/ui/KisMainWindow.cpp",
+    },
+    {
+        "serviceType": "Krita/ColorSpace",
+        "featureOwner": "color-processing",
+        "runtimeConsumer": "KoColorSpaceRegistry",
+        "evidence": "libs/pigment/KoColorSpaceRegistry.cpp",
+    },
+    {
+        "serviceType": "Krita/ColorSpaceExtension",
+        "featureOwner": "color-processing",
+        "runtimeConsumer": "KoColorSpaceRegistry",
+        "evidence": "libs/pigment/KoColorSpaceRegistry.cpp",
+    },
+    {
+        "serviceType": "Krita/Dock",
+        "featureOwner": "docker-presentation",
+        "runtimeConsumer": "KoDockRegistry",
+        "evidence": "libs/flake/KoDockRegistry.cpp",
+    },
+    {
+        "serviceType": "Krita/FileFilter",
+        "featureOwner": "import-export",
+        "runtimeConsumer": "KisImportExportManager",
+        "evidence": "libs/ui/KisImportExportManager.cpp",
+    },
+    {
+        "serviceType": "Krita/Filter",
+        "featureOwner": "image-filtering",
+        "runtimeConsumer": "KisFilterRegistry",
+        "evidence": "libs/image/filter/kis_filter_registry.cc",
+    },
+    {
+        "serviceType": "Krita/Flake",
+        "featureOwner": "vector-shape",
+        "runtimeConsumer": "KoShapeRegistry",
+        "evidence": "libs/flake/KoShapeRegistry.cpp",
+    },
+    {
+        "serviceType": "Krita/Generator",
+        "featureOwner": "image-generation",
+        "runtimeConsumer": "KisGeneratorRegistry",
+        "evidence": "libs/image/generator/kis_generator_registry.cpp",
+    },
+    {
+        "serviceType": "Krita/Metadata",
+        "featureOwner": "document-metadata",
+        "runtimeConsumer": "KisMetadataBackendRegistry",
+        "evidence": "libs/metadata/kis_meta_data_backend_registry.cpp",
+    },
+    {
+        "serviceType": "Krita/Paintop",
+        "featureOwner": "painting-execution",
+        "runtimeConsumer": "KisPaintOpRegistry",
+        "evidence": "libs/image/brushengine/kis_paintop_registry.cc",
+    },
+    {
+        "serviceType": "Krita/PlatformPlugin",
+        "featureOwner": "platform-adapter",
+        "runtimeConsumer": "KisPlatformPluginInterfaceFactory",
+        "evidence": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+    },
+    {
+        "serviceType": "Krita/Shape",
+        "featureOwner": "vector-shape",
+        "runtimeConsumer": "KoShapeRegistry",
+        "evidence": "libs/flake/KoShapeRegistry.cpp",
+    },
+    {
+        "serviceType": "Krita/Tool",
+        "featureOwner": "tool-invocation",
+        "runtimeConsumer": "KoToolRegistry",
+        "evidence": "libs/flake/KoToolRegistry.cpp",
+    },
+    {
+        "serviceType": "Krita/ViewPlugin",
+        "featureOwner": "view-extension",
+        "runtimeConsumer": "KisMainWindow",
+        "evidence": "libs/ui/KisMainWindow.cpp",
     },
 )
 
@@ -385,6 +505,125 @@ def discover_ui_tool_classes(
     )
 
 
+def discover_plugins(
+    *,
+    repository_root: Path,
+    graph_directory: Path,
+) -> list[dict[str, Any]]:
+    targets_by_platform = _load_target_graphs(graph_directory)
+    service_type_owners = {
+        entry["serviceType"]: entry for entry in PLUGIN_SERVICE_TYPE_OWNERS
+    }
+    plugins: list[dict[str, Any]] = []
+    identifiers: set[str] = set()
+    discovered_metadata: set[str] = set()
+
+    for implementation, implementation_file in _source_files(repository_root):
+        if (
+            not _path_is_within(implementation, "plugins")
+            or implementation_file.suffix
+            not in SOURCE_SUFFIXES - HEADER_SUFFIXES
+        ):
+            continue
+        implementation_text = implementation_file.read_text(encoding="utf-8")
+        for registration_macro, metadata_name in PLUGIN_REGISTRATION_PATTERN.findall(
+            implementation_text
+        ):
+            metadata_path = implementation_file.parent / metadata_name
+            metadata = metadata_path.relative_to(repository_root).as_posix()
+            metadata_value = _load_json(metadata_path, f"plugin metadata {metadata}")
+            identifier = _require_string(
+                metadata_value.get("Id"), f"plugin id in {metadata}"
+            )
+            if identifier in identifiers:
+                raise PublicSurfaceError(f"duplicate plugin id: {identifier}")
+            if metadata in discovered_metadata:
+                raise PublicSurfaceError(
+                    f"plugin metadata has multiple registrations: {metadata}"
+                )
+
+            service_types = [
+                _require_string(value, f"service type in {metadata}")
+                for value in _require_array(
+                    metadata_value.get("X-KDE-ServiceTypes"),
+                    f"service types in {metadata}",
+                )
+            ]
+            if len(service_types) != 1:
+                raise PublicSurfaceError(
+                    f"plugin metadata must declare one service type: {metadata}"
+                )
+            service_owner = service_type_owners.get(service_types[0])
+            if service_owner is None:
+                raise PublicSurfaceError(
+                    f"plugin metadata has an unknown service type: {metadata}"
+                )
+
+            metadata_library = metadata_value.get("X-KDE-Library")
+            if metadata_library is not None and (
+                not isinstance(metadata_library, str) or not metadata_library
+            ):
+                raise PublicSurfaceError(
+                    f"plugin metadata has an invalid library name: {metadata}"
+                )
+            owner_target = PLUGIN_OWNER_TARGET_OVERRIDES.get(
+                metadata, metadata_library
+            )
+            if owner_target is None:
+                raise PublicSurfaceError(
+                    f"plugin owner target cannot be resolved: {metadata}"
+                )
+            owner_evidence = (
+                "cmake-source-override"
+                if metadata in PLUGIN_OWNER_TARGET_OVERRIDES
+                else "metadata-library"
+            )
+            if owner_evidence == "cmake-source-override":
+                cmake_path = metadata_path.parent / "CMakeLists.txt"
+                cmake_text = cmake_path.read_text(encoding="utf-8")
+                if (
+                    owner_target not in cmake_text
+                    or implementation_file.name not in cmake_text
+                ):
+                    raise PublicSurfaceError(
+                        "plugin owner override does not match CMake source "
+                        f"membership: {metadata}"
+                    )
+
+            platforms = _available_platforms(owner_target, targets_by_platform)
+            if not platforms:
+                raise PublicSurfaceError(
+                    f"plugin owner target is absent from every target graph: "
+                    f"{owner_target}"
+                )
+            plugins.append(
+                {
+                    "id": identifier,
+                    "metadata": metadata,
+                    "implementation": implementation,
+                    "ownerTarget": owner_target,
+                    "ownerEvidence": owner_evidence,
+                    "metadataLibrary": metadata_library,
+                    "platforms": platforms,
+                    "serviceTypes": service_types,
+                    "registrationMacro": registration_macro,
+                    "featureOwner": service_owner["featureOwner"],
+                    "runtimeConsumer": service_owner["runtimeConsumer"],
+                }
+            )
+            identifiers.add(identifier)
+            discovered_metadata.add(metadata)
+
+    unused_overrides = sorted(
+        set(PLUGIN_OWNER_TARGET_OVERRIDES) - discovered_metadata
+    )
+    if unused_overrides:
+        raise PublicSurfaceError(
+            f"plugin owner overrides do not match registrations: {unused_overrides}"
+        )
+    return sorted(plugins, key=lambda entry: entry["id"])
+
+
 def public_header_policy() -> dict[str, Any]:
     return {
         "headerSuffixes": sorted(HEADER_SUFFIXES),
@@ -418,6 +657,33 @@ def ui_tool_class_policy() -> dict[str, Any]:
         "implementationSuffixes": sorted(SOURCE_SUFFIXES - HEADER_SUFFIXES),
         "privateHeaderImplementationSuffix": "_p",
         "consumerPathsSource": "production-includes-outside-source-directory",
+    }
+
+
+def plugin_policy() -> dict[str, Any]:
+    return {
+        "sourceDirectory": "plugins",
+        "excludedPathParts": sorted(TEST_PATH_PARTS),
+        "registrationMacros": [
+            "K_PLUGIN_CLASS_WITH_JSON",
+            "K_PLUGIN_FACTORY_WITH_JSON",
+        ],
+        "metadataArgument": "sibling-json-literal",
+        "ownerEvidence": ["cmake-source-override", "metadata-library"],
+        "ownerTargetOverrideReason": (
+            "CMake source membership is authoritative when plugin metadata omits "
+            "X-KDE-Library or names a target absent from the recorded graphs."
+        ),
+        "ownerTargetOverrides": [
+            {
+                "metadata": metadata,
+                "ownerTarget": owner_target,
+                "cmake": str(PurePosixPath(metadata).parent / "CMakeLists.txt"),
+            }
+            for metadata, owner_target in sorted(
+                PLUGIN_OWNER_TARGET_OVERRIDES.items()
+            )
+        ],
     }
 
 
@@ -1072,21 +1338,76 @@ def _validate_plugins(
     *,
     repository_root: Path,
     targets_by_platform: dict[str, dict[str, dict[str, Any]]],
-    major_classes: set[str],
+    graph_directory: Path,
 ) -> None:
+    if inventory.get("pluginPolicy") != plugin_policy():
+        raise PublicSurfaceError(
+            "pluginPolicy must match the repository plugin discovery policy"
+        )
+    service_owner_entries = _require_array(
+        inventory.get("pluginServiceTypeOwners"), "pluginServiceTypeOwners"
+    )
+    if service_owner_entries != list(PLUGIN_SERVICE_TYPE_OWNERS):
+        raise PublicSurfaceError(
+            "pluginServiceTypeOwners must match the service ownership policy"
+        )
+    service_owners: dict[str, dict[str, Any]] = {}
+    for index, item in enumerate(service_owner_entries):
+        entry = _require_object(item, f"plugin service owner {index}")
+        _require_fields(
+            entry,
+            {"serviceType", "featureOwner", "runtimeConsumer", "evidence"},
+            f"plugin service owner {index}",
+        )
+        service_type = _require_string(
+            entry.get("serviceType"), f"plugin service type {index}"
+        )
+        feature_owner = _require_string(
+            entry.get("featureOwner"), f"feature owner for {service_type}"
+        )
+        runtime_consumer = _require_string(
+            entry.get("runtimeConsumer"),
+            f"runtime consumer for {service_type}",
+        )
+        _evidence, evidence_file = _repository_file(
+            repository_root,
+            entry.get("evidence"),
+            f"runtime evidence for {service_type}",
+        )
+        evidence_text = evidence_file.read_text(encoding="utf-8")
+        if (
+            service_type not in evidence_text
+            or runtime_consumer not in evidence_text
+        ):
+            raise PublicSurfaceError(
+                f"runtime evidence does not bind {service_type} to "
+                f"{runtime_consumer}"
+            )
+        service_owners[service_type] = {
+            "featureOwner": feature_owner,
+            "runtimeConsumer": runtime_consumer,
+        }
+
+    expected_plugins = discover_plugins(
+        repository_root=repository_root,
+        graph_directory=graph_directory,
+    )
+    expected_by_id = {entry["id"]: entry for entry in expected_plugins}
     entries = _require_array(inventory.get("plugins"), "plugins")
     identifiers: list[str] = []
+    recorded_by_id: dict[str, dict[str, Any]] = {}
     expected_fields = {
         "id",
         "metadata",
         "implementation",
         "ownerTarget",
+        "ownerEvidence",
+        "metadataLibrary",
         "platforms",
         "serviceTypes",
         "registrationMacro",
+        "featureOwner",
         "runtimeConsumer",
-        "responsibility",
-        "evidence",
     }
     for index, item in enumerate(entries):
         entry = _require_object(item, f"plugin {index}")
@@ -1110,11 +1431,25 @@ def _validate_plugins(
         registration_macro = _require_string(
             entry.get("registrationMacro"), f"registration macro for {description}"
         )
+        owner_evidence = _require_string(
+            entry.get("ownerEvidence"), f"owner evidence for {description}"
+        )
+        if owner_evidence not in {"cmake-source-override", "metadata-library"}:
+            raise PublicSurfaceError(
+                f"unknown owner evidence for {description}: {owner_evidence}"
+            )
+        metadata_library = entry.get("metadataLibrary")
+        if metadata_library is not None and (
+            not isinstance(metadata_library, str) or not metadata_library
+        ):
+            raise PublicSurfaceError(
+                f"metadata library for {description} must be a string or null"
+            )
+        feature_owner = _require_string(
+            entry.get("featureOwner"), f"feature owner for {description}"
+        )
         runtime_consumer = _require_string(
             entry.get("runtimeConsumer"), f"runtime consumer for {description}"
-        )
-        _require_string(
-            entry.get("responsibility"), f"responsibility for {description}"
         )
         _validate_owner(
             owner_target=owner_target,
@@ -1123,6 +1458,16 @@ def _validate_plugins(
             description=description,
             targets_by_platform=targets_by_platform,
         )
+        for platform in platforms:
+            target_type = _require_string(
+                targets_by_platform[platform][owner_target].get("type"),
+                f"target type for {owner_target} on {platform}",
+            )
+            if target_type not in {"MODULE_LIBRARY", "STATIC_LIBRARY"}:
+                raise PublicSurfaceError(
+                    f"{description}: owner target type is {target_type} on "
+                    f"{platform}"
+                )
         service_types = _require_array(
             entry.get("serviceTypes"), f"service types for {description}"
         )
@@ -1139,11 +1484,9 @@ def _validate_plugins(
             raise PublicSurfaceError(
                 f"metadata id {metadata_value.get('Id')} does not match plugin id {identifier}"
             )
-        metadata_library = metadata_value.get("X-KDE-Library")
-        if metadata_library != owner_target:
+        if metadata_value.get("X-KDE-Library") != metadata_library:
             raise PublicSurfaceError(
-                f"metadata library {metadata_library} does not match owner target "
-                f"{owner_target}"
+                f"metadata library does not match {description}"
             )
         if metadata_value.get("X-KDE-ServiceTypes") != service_types:
             raise PublicSurfaceError(
@@ -1157,20 +1500,49 @@ def _validate_plugins(
                 f"{description}: registration does not bind {metadata} with "
                 f"{registration_macro}"
             )
-        if runtime_consumer not in major_classes:
+        if len(service_types) != 1 or service_types[0] not in service_owners:
             raise PublicSurfaceError(
-                f"{description}: runtime consumer is not a recorded major class: "
-                f"{runtime_consumer}"
+                f"{description}: service type has no recorded feature owner"
             )
-        _validate_evidence(
-            entry.get("evidence"),
-            repository_root=repository_root,
-            description=description,
-            required_paths={metadata, implementation},
-        )
+        service_owner = service_owners[service_types[0]]
+        if (
+            feature_owner != service_owner["featureOwner"]
+            or runtime_consumer != service_owner["runtimeConsumer"]
+        ):
+            raise PublicSurfaceError(
+                f"{description}: feature owner or runtime consumer does not "
+                "match its service type"
+            )
+        recorded_by_id[identifier] = {
+            "id": identifier,
+            "metadata": metadata,
+            "implementation": implementation,
+            "ownerTarget": owner_target,
+            "ownerEvidence": owner_evidence,
+            "metadataLibrary": metadata_library,
+            "platforms": platforms,
+            "serviceTypes": service_types,
+            "registrationMacro": registration_macro,
+            "featureOwner": feature_owner,
+            "runtimeConsumer": runtime_consumer,
+        }
         identifiers.append(identifier)
     if identifiers != sorted(set(identifiers)):
         raise PublicSurfaceError("plugins must be sorted and unique by id")
+
+    missing = sorted(set(expected_by_id) - set(recorded_by_id))
+    unexpected = sorted(set(recorded_by_id) - set(expected_by_id))
+    if missing or unexpected:
+        raise PublicSurfaceError(
+            "plugin inventory does not match discovered registrations; "
+            f"missing={missing}, unexpected={unexpected}"
+        )
+    for identifier in identifiers:
+        if recorded_by_id[identifier] != expected_by_id[identifier]:
+            raise PublicSurfaceError(
+                f"recorded plugin evidence for {identifier} does not match "
+                "source discovery"
+            )
 
 
 def validate_inventory(
@@ -1189,12 +1561,14 @@ def validate_inventory(
             "publicHeaderSets",
             "publicHeaderDetails",
             "majorClasses",
+            "pluginPolicy",
+            "pluginServiceTypeOwners",
             "plugins",
         },
         "public-surface inventory",
     )
-    if inventory.get("schemaVersion") != 2:
-        raise PublicSurfaceError("public-surface inventory schemaVersion must be 2")
+    if inventory.get("schemaVersion") != 3:
+        raise PublicSurfaceError("public-surface inventory schemaVersion must be 3")
     scope = _require_object(inventory.get("scope"), "inventory scope")
     _require_fields(
         scope,
@@ -1205,11 +1579,12 @@ def validate_inventory(
         raise PublicSurfaceError(
             "public header inventory scope must be complete"
         )
-    for section in ("majorClasses", "plugins"):
-        if scope.get(section) not in {"representative", "complete"}:
-            raise PublicSurfaceError(
-                f"inventory scope for {section} must be representative or complete"
-            )
+    if scope.get("majorClasses") not in {"representative", "complete"}:
+        raise PublicSurfaceError(
+            "inventory scope for majorClasses must be representative or complete"
+        )
+    if scope.get("plugins") != "complete":
+        raise PublicSurfaceError("plugin inventory scope must be complete")
     if _platforms(inventory.get("platforms"), "inventory platforms") != list(
         PLATFORMS
     ):
@@ -1229,7 +1604,7 @@ def validate_inventory(
         targets_by_platform=targets_by_platform,
         complete_public_headers=complete_public_headers,
     )
-    major_classes = _validate_major_classes(
+    _validate_major_classes(
         inventory,
         repository_root=repository_root,
         targets_by_platform=targets_by_platform,
@@ -1239,7 +1614,7 @@ def validate_inventory(
         inventory,
         repository_root=repository_root,
         targets_by_platform=targets_by_platform,
-        major_classes=major_classes,
+        graph_directory=graph_directory,
     )
 
 
@@ -1452,8 +1827,8 @@ def _argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Validate complete public-header, top-level UI class, and UI tool "
-            "class inventories, plus representative major classes and plugins, "
-            "against every recorded CMake target graph."
+            "class inventories, complete product plugins, and representative "
+            "major classes against every recorded CMake target graph."
         )
     )
     parser.add_argument(
