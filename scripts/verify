@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
+    echo "verify must run inside: nix develop .#test" >&2
+    exit 1
+fi
+
+./scripts/verify-quick
+
+case "$(uname -s)" in
+    Darwin)
+        preset="tdd-macos"
+        ;;
+    Linux)
+        preset="tdd-linux"
+        ;;
+    *)
+        echo "unsupported native test host: $(uname -s)" >&2
+        exit 1
+        ;;
+esac
+
+cmake --preset "$preset"
+cmake --build --preset "$preset"
+ctest --preset "$preset"
+
+echo "verify: OK"

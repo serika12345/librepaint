@@ -263,6 +263,52 @@ let
     };
   };
 
+  incrementalDiscardedHooks = [
+    "preUnpack"
+    "postUnpack"
+    "prePatch"
+    "postPatch"
+    "preConfigure"
+    "postConfigure"
+    "preBuild"
+    "postBuild"
+    "preInstall"
+    "postInstall"
+    "preFixup"
+    "postFixup"
+    "preInstallCheck"
+    "postInstallCheck"
+  ];
+
+  androidCmakeFlagsFile = androidHost.writeText "librepaint-android-cmake-flags" (
+    lib.concatStringsSep "\n" nativeBuild.cmakeFlags + "\n"
+  );
+  androidConfigIdentity = builtins.hashString "sha256" (builtins.toJSON {
+    inherit androidAbi androidNdkRoot androidSdkRoot;
+    dependencyPrefix = toString dependencyPrefix;
+    cmakeFlags = nativeBuild.cmakeFlags;
+  });
+
+  # Keep the SDK, dependency prefix, native build tools, and CMake contract in
+  # the Nix closure while source files remain in the persistent worktree build.
+  incrementalEnv = nativeBuild.overrideAttrs (
+    old:
+    {
+      pname = "librepaint-android-incremental-env";
+      version = "1";
+      src = null;
+      patches = [ ];
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ androidHost.ccache ];
+      dontUnpack = true;
+      phases = [ "installPhase" ];
+      installPhase = ''
+        mkdir -p "$out"
+      '';
+      doInstallCheck = false;
+    }
+    // lib.genAttrs incrementalDiscardedHooks (_hook: "")
+  );
+
   packagingCmake = androidHost.replaceVars ./package.cmake { inherit androidAbi; };
 
   androidPackageSource = androidHost.runCommand "librepaint-android-package-source" { } ''
@@ -456,12 +502,16 @@ let
   });
 
   devShell = androidHost.mkShell {
-    inputsFrom = [
-      nativeBuild
-      librepaint
+    inputsFrom = [ incrementalEnv ];
+    packages = [
+      androidHost.ccache
+      androidHost.nixfmt
     ];
-    packages = [ androidHost.nixfmt ];
     shellHook = ''
+      export LIBREPAINT_ANDROID_INCREMENTAL_SHELL=1
+      export LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE=${androidCmakeFlagsFile}
+      export LIBREPAINT_ANDROID_CONFIG_ID=${androidConfigIdentity}
+      export LIBREPAINT_ANDROID_DEPENDENCY_PREFIX=${dependencyPrefix}
       export ANDROID_ABI=${androidAbi}
       export ANDROID_HOME=${androidSdkRoot}
       export ANDROID_NDK_HOME=${androidNdkRoot}
@@ -476,11 +526,11 @@ let
       export KDECI_ANDROID_SDK_ROOT=${androidSdkRoot}
       export PATH=${dependencyPrefix}/bin:$PATH
       echo "LibrePaint Android Qt 5 environment (arm64-v8a)"
-      echo "  nix build .#librepaint-android"
+      echo "  build: build-incremental android build"
     '';
   };
 in
 {
   androidDependencies = dependencyPrefix;
-  inherit devShell librepaint;
+  inherit devShell incrementalEnv librepaint;
 }

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
+    echo "verify-quick must run inside: nix develop .#test" >&2
+    exit 1
+fi
+
+python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+python3 scripts/check_governance.py
+
+shellcheck \
+    packaging/ios/scripts/build-librepaint-incremental.sh \
+    scripts/build-incremental \
+    scripts/platform/* \
+    scripts/verify-quick \
+    scripts/verify \
+    scripts/run-test \
+    scripts/docs/*.sh
+
+scripts/docs/check-architecture.sh
+
+echo "verify-quick: OK"

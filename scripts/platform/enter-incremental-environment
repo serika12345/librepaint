@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if (( $# < 5 )); then
+    echo "usage: enter-incremental-environment <platform> <flake-shell> <marker> <command> [arguments]" >&2
+    exit 2
+fi
+
+platform="$1"
+flake_shell="$2"
+marker="$3"
+command_path="$4"
+shift 4
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+repo_root="$(cd -- "$script_dir/../.." && pwd -P)"
+configuration_root="$repo_root/nix/$platform"
+
+[[ -d "$configuration_root" ]] || {
+    echo "platform Nix configuration is unavailable: $configuration_root" >&2
+    exit 1
+}
+
+configuration_fingerprint="$({
+    printf 'schema=1\n'
+    printf 'shell=%s\n' "$flake_shell"
+    {
+        printf '%s\n' "$repo_root/flake.nix" "$repo_root/flake.lock"
+        find "$configuration_root" -type f -print
+    } | LC_ALL=C sort | while IFS= read -r input_path; do
+        printf 'path=%s\n' "${input_path#"$repo_root/"}"
+        sha256sum "$input_path"
+    done
+} | sha256sum | awk '{print $1}')"
+
+profile_root="$repo_root/build/nix-profiles/$platform-incremental"
+profile="$profile_root/profile"
+fingerprint_path="$profile_root/fingerprint"
+recorded_fingerprint=""
+if [[ -f "$fingerprint_path" ]]; then
+    recorded_fingerprint="$(<"$fingerprint_path")"
+fi
+
+if [[ ! -e "$profile" || "$recorded_fingerprint" != "$configuration_fingerprint" ]]; then
+    mkdir -p "$profile_root"
+    echo "creating pinned $platform incremental environment: $profile" >&2
+    nix develop ".#$flake_shell" --profile "$profile" --command true
+    nix profile wipe-history --profile "$profile" >/dev/null
+    printf '%s\n' "$configuration_fingerprint" >"$fingerprint_path.tmp"
+    mv "$fingerprint_path.tmp" "$fingerprint_path"
+fi
+
+while IFS= read -r reference; do
+    case "${reference##*/}" in
+        *-librepaint-source | *-librepaint-policy-source)
+            echo "incremental environment retains repository source: $reference" >&2
+            exit 1
+            ;;
+    esac
+done < <(nix-store --query --requisites "$profile")
+
+exec nix develop "$profile" --command env \
+    "$marker=1" \
+    "$command_path" "$@"

@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+    cat >&2 <<'EOF'
+usage: build-incremental <platform> <operation> [target]
+
+platforms: native, macos, linux, ios, android, windows
+
+native, macos, linux operations:
+  path                 Print the persistent Ninja build tree.
+  configure            Synchronize the CMake configuration.
+  plan [target]        Print the Ninja work plan for all or one target.
+  build [target]       Incrementally build all or one target.
+  bootstrap [target]   Establish a complete baseline in the same build tree.
+  verify               Run the complete native verification cycle.
+  cache-stats          Print compiler-cache statistics.
+
+ios operations:
+  path, configure, plan, build, bootstrap, deploy
+
+android, windows operations:
+  path, configure, plan, build, bootstrap, cache-stats
+EOF
+    exit 2
+}
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+cd "$repo_root"
+platform="${1:-}"
+operation="${2:-}"
+
+[[ -n "$platform" && -n "$operation" ]] || usage
+shift 2
+
+host_system="$(uname -s)"
+case "$platform" in
+    native)
+        case "$host_system" in
+            Darwin) platform="macos" ;;
+            Linux) platform="linux" ;;
+            *)
+                echo "native platform mapping is unavailable for: $host_system" >&2
+                exit 1
+                ;;
+        esac
+        ;;
+    macos | linux | ios | android | windows)
+        ;;
+    *)
+        echo "supported platforms: native, macos, linux, ios, android, windows" >&2
+        exit 2
+        ;;
+esac
+
+case "$platform" in
+    macos)
+        [[ "$host_system" == "Darwin" ]] || {
+            echo "macOS incremental builds run on a Darwin host" >&2
+            exit 1
+        }
+        preset="tdd-macos"
+        ;;
+    linux)
+        [[ "$host_system" == "Linux" ]] || {
+            echo "Linux incremental builds run on a Linux host" >&2
+            exit 1
+        }
+        preset="tdd-linux"
+        ;;
+    ios)
+        exec "$repo_root/packaging/ios/scripts/build-librepaint-incremental.sh" \
+            "$operation" "$@"
+        ;;
+    android)
+        exec "$repo_root/scripts/platform/build-android-incremental" \
+            "$operation" "$@"
+        ;;
+    windows)
+        exec "$repo_root/scripts/platform/build-windows-incremental" \
+            "$operation" "$@"
+        ;;
+esac
+
+build_dir="$repo_root/build/$preset"
+marker_path="${LIBREPAINT_NATIVE_MARKER_PATH:-$build_dir/.librepaint-incremental-config}"
+native_config_fingerprint="$({
+    printf 'schema=1\n'
+    printf 'preset=%s\n' "$preset"
+    sha256sum "$repo_root/CMakePresets.json"
+    printf 'cmake=%s\n' "$(command -v cmake || true)"
+    printf 'ninja=%s\n' "$(command -v ninja || true)"
+    printf 'ccache=%s\n' "$(command -v ccache || true)"
+    printf 'prefix=%s\n' "${CMAKE_PREFIX_PATH:-}"
+} | sha256sum | awk '{print $1}')"
+
+configure_native() {
+    if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
+        echo "native configuration uses the direnv or nix develop .#test environment" >&2
+        exit 1
+    fi
+    cmake --preset "$preset"
+    mkdir -p "$(dirname -- "$marker_path")"
+    {
+        printf 'schema=1\n'
+        printf 'platform=%s\n' "$platform"
+        printf 'config=%s\n' "$native_config_fingerprint"
+    } >"$marker_path.tmp"
+    mv "$marker_path.tmp" "$marker_path"
+}
+
+ensure_native_tree() {
+    if [[ ! -f "$build_dir/build.ninja" ]] \
+        || [[ ! -f "$marker_path" ]] \
+        || ! grep -Fxq "config=$native_config_fingerprint" "$marker_path"; then
+        configure_native
+    fi
+}
+
+case "$operation" in
+    path)
+        (( $# == 0 )) || usage
+        printf '%s\n' "$build_dir"
+        ;;
+    configure)
+        (( $# == 0 )) || usage
+        configure_native
+        ;;
+    plan)
+        (( $# <= 1 )) || usage
+        ensure_native_tree
+        ninja -C "$build_dir" -n "${1:-all}"
+        ;;
+    build)
+        (( $# <= 1 )) || usage
+        ensure_native_tree
+        if (( $# == 1 )); then
+            cmake --build --preset "$preset" --target "$1"
+        else
+            cmake --build --preset "$preset"
+        fi
+        ;;
+    bootstrap)
+        (( $# <= 1 )) || usage
+        configure_native
+        if (( $# == 1 )); then
+            cmake --build --preset "$preset" --target "$1"
+        else
+            cmake --build --preset "$preset"
+        fi
+        ;;
+    verify)
+        (( $# == 0 )) || usage
+        exec "$repo_root/scripts/verify"
+        ;;
+    cache-stats)
+        (( $# == 0 )) || usage
+        ccache --show-stats
+        ;;
+    *)
+        usage
+        ;;
+esac

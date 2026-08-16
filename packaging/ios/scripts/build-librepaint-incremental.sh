@@ -112,12 +112,14 @@ read -r -a cmake_args <<<"$cmakeFlags"
 
 cmake_path="$(command -v cmake)"
 ninja_path="$(command -v ninja)"
+ccache_path="$(command -v ccache)"
 config_schema=1
 config_fingerprint="$({
     printf 'schema=%s\n' "$config_schema"
     printf 'toolchain=%s\n' "$KRITA_IOS_TOOLCHAIN_IDENTITY"
     printf 'cmake=%s\n' "$cmake_path"
     printf 'ninja=%s\n' "$ninja_path"
+    printf 'ccache=%s\n' "$ccache_path"
     printf 'flags=%s\n' "$cmakeFlags"
 } | sha256sum | awk '{print $1}')"
 
@@ -156,6 +158,11 @@ prepare_environment() {
     export OBJCFLAGS="$CFLAGS"
     export OBJCXXFLAGS="$CXXFLAGS"
     export NINJA_STATUS='[%f/%t] '
+    export CCACHE_DIR="${LIBREPAINT_CACHE_ROOT:-$repo_root/.cache/librepaint}/ccache/ios"
+    export CCACHE_BASEDIR="$repo_root"
+    export CCACHE_COMPILERCHECK=content
+    export CCACHE_NOHASHDIR=true
+    mkdir -p "$CCACHE_DIR"
 
     target_roots=""
     for arg in "${cmake_args[@]}"; do
@@ -360,6 +367,10 @@ configure_tree() {
     fi
     if ! cmake -S "$repo_root" -B "$build_dir" \
         "${cmake_args[@]}" \
+        -DCMAKE_C_COMPILER_LAUNCHER="$ccache_path" \
+        -DCMAKE_CXX_COMPILER_LAUNCHER="$ccache_path" \
+        -DCMAKE_OBJC_COMPILER_LAUNCHER="$ccache_path" \
+        -DCMAKE_OBJCXX_COMPILER_LAUNCHER="$ccache_path" \
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON; then
         return 1
     fi

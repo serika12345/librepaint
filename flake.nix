@@ -858,6 +858,7 @@
             in
             !(builtins.elem topLevel [
               ".cache"
+              ".direnv"
               ".git"
               ".github"
               ".gitlab"
@@ -873,8 +874,34 @@
             ])
             && !(packageSet.lib.hasPrefix "README" topLevel);
         };
+      # Policy files use an independent source so policy-only edits preserve
+      # the application compilation cache.
+      mkLibrepaintPolicySource =
+        packageSet:
+        packageSet.lib.cleanSourceWith {
+          name = "librepaint-policy-source";
+          src = ./.;
+          filter =
+            path: _type:
+            let
+              relativePath = packageSet.lib.removePrefix "${toString ./.}/" (toString path);
+              topLevel = builtins.head (packageSet.lib.splitString "/" relativePath);
+            in
+            !(builtins.elem topLevel [
+              ".cache"
+              ".direnv"
+              ".git"
+              "build"
+              "build-ios"
+              "logs"
+              "result"
+            ])
+            && !(packageSet.lib.hasPrefix "result-" topLevel);
+        };
       librepaintBuildSource = mkLibrepaintBuildSource pkgs;
       linuxBuildSource = mkLibrepaintBuildSource linuxPkgs;
+      librepaintPolicySource = mkLibrepaintPolicySource pkgs;
+      linuxPolicySource = mkLibrepaintPolicySource linuxPkgs;
       linuxAppImageAppRun = import ./nix/linux/appimage-apprun.nix {
         nixAppImage = inputs.nix-appimage;
         pkgs = linuxPkgs;
@@ -908,22 +935,25 @@
         pkgs = windowsPkgs;
         source = linuxBuildSource;
       };
+      policyTools =
+        packageSet: with packageSet; [
+          bash
+          coreutils
+          d2
+          diffutils
+          findutils
+          git
+          librsvg
+          lychee
+          markdownlint-cli2
+          python3
+          ripgrep
+          shellcheck
+        ];
       mkDocsShell =
         packageSet:
         packageSet.mkShellNoCC {
-          packages = with packageSet; [
-            bash
-            coreutils
-            d2
-            diffutils
-            findutils
-            git
-            librsvg
-            lychee
-            markdownlint-cli2
-            ripgrep
-            shellcheck
-          ];
+          packages = policyTools packageSet;
 
           shellHook = ''
             echo "LibrePaint documentation development shell"
@@ -931,6 +961,48 @@
             echo "  render:   scripts/docs/render-architecture.sh"
           '';
         };
+      mkTestShell =
+        packageSet: application:
+        packageSet.mkShell {
+          inputsFrom = [ application ];
+          packages = policyTools packageSet ++ (with packageSet; [
+            ccache
+            clang-tools
+            cmake
+            ninja
+          ]);
+
+          shellHook = ''
+            export LIBREPAINT_TEST_SHELL=1
+            export LIBREPAINT_REPO_ROOT="$PWD"
+            export LIBREPAINT_BUILD_ROOT="$PWD/build"
+            export LIBREPAINT_CACHE_ROOT="$PWD/.cache/librepaint"
+            export CCACHE_DIR="$LIBREPAINT_CACHE_ROOT/ccache/native"
+            export CCACHE_BASEDIR="$PWD"
+            export CCACHE_COMPILERCHECK=content
+            export CCACHE_NOHASHDIR=true
+            export NINJA_STATUS='[%f/%t] '
+            mkdir -p "$CCACHE_DIR"
+            echo "LibrePaint native test and policy shell"
+            echo "  build:  build-incremental native build [target]"
+            echo "  quick:  ./scripts/verify-quick"
+            echo "  target: ./scripts/run-test <target> [ctest-regex]"
+            echo "  full:   ./scripts/verify"
+          '';
+        };
+      mkGovernanceCheck =
+        packageSet: policySource:
+        packageSet.runCommand "librepaint-governance" {
+          nativeBuildInputs = policyTools packageSet;
+        } ''
+          cp -R ${policySource} source
+          chmod -R u+w source
+          cd source
+          export LIBREPAINT_TEST_SHELL=1
+          ./scripts/verify-quick
+          mkdir -p "$out"
+          touch "$out/passed"
+        '';
     in
     {
       # macOS is the native default package. iOS package outputs cross-compile
@@ -1097,6 +1169,7 @@
       };
 
       checks.${system} = {
+        governance = mkGovernanceCheck pkgs librepaintPolicySource;
         librepaint-macos = macosPackages.librepaint;
         macos-dependencies = macosPackages.macosDependencies;
 
@@ -1185,6 +1258,7 @@
       };
 
       checks.${linuxSystem} = {
+        governance = mkGovernanceCheck linuxPkgs linuxPolicySource;
         librepaint-linux = linuxPackages.librepaint;
         linux-dependencies = linuxPackages.linuxDependencies;
       };
@@ -1193,6 +1267,8 @@
         default = macosPackages.devShell;
         docs = mkDocsShell pkgs;
         librepaint-macos = macosPackages.devShell;
+        librepaint-test = mkTestShell pkgs macosPackages.librepaint;
+        test = mkTestShell pkgs macosPackages.librepaint;
 
         librepaint-ios = pkgs.mkShellNoCC {
           packages = with pkgs; [
@@ -1236,7 +1312,10 @@
         default = linuxPackages.devShell;
         docs = mkDocsShell linuxPkgs;
         librepaint-linux = linuxPackages.devShell;
+        librepaint-test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;
+        test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;
         librepaint-android = linuxAndroidPackages.devShell;
+        librepaint-windows = windowsPackages.devShell;
       };
 
       formatter.${system} = pkgs.nixfmt;

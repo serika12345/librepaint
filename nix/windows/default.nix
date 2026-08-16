@@ -9,6 +9,56 @@ let
   librepaintUnwrapped = import ./krita.nix {
     inherit pkgs source;
   };
+  incrementalDiscardedHooks = [
+    "preUnpack"
+    "postUnpack"
+    "prePatch"
+    "postPatch"
+    "preConfigure"
+    "postConfigure"
+    "preBuild"
+    "postBuild"
+    "preInstall"
+    "postInstall"
+    "preFixup"
+    "postFixup"
+    "preInstallCheck"
+    "postInstallCheck"
+  ];
+  windowsCmakeFlags = librepaintUnwrapped.cmakeFlags ++ [
+    "-DCMAKE_SYSTEM_NAME:STRING=Windows"
+    "-DCMAKE_C_COMPILER:FILEPATH=${pkgs.stdenv.cc}/bin/${pkgs.stdenv.cc.targetPrefix}gcc"
+    "-DCMAKE_CXX_COMPILER:FILEPATH=${pkgs.stdenv.cc}/bin/${pkgs.stdenv.cc.targetPrefix}g++"
+    "-DCMAKE_AR:FILEPATH=${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}ar"
+    "-DCMAKE_RANLIB:FILEPATH=${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}ranlib"
+    "-DCMAKE_RC_COMPILER:FILEPATH=${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}windres"
+    "-DCMAKE_STRIP:FILEPATH=${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}strip"
+  ];
+  windowsCmakeFlagsFile = buildPkgs.writeText "librepaint-windows-cmake-flags" (
+    lib.concatStringsSep "\n" windowsCmakeFlags + "\n"
+  );
+  windowsConfigIdentity = builtins.hashString "sha256" (builtins.toJSON {
+    cmakeFlags = windowsCmakeFlags;
+    sourcePreparer = toString librepaintUnwrapped.sourcePreparer;
+    buildPreparer = toString librepaintUnwrapped.buildPreparer;
+  });
+  incrementalEnv = librepaintUnwrapped.overrideAttrs (
+    old:
+    {
+      pname = "librepaint-windows-incremental-env";
+      version = "1";
+      src = null;
+      patches = [ ];
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ buildPkgs.ccache ];
+      dontUnpack = true;
+      phases = [ "installPhase" ];
+      installPhase = ''
+        mkdir -p "$out"
+      '';
+      doInstallCheck = false;
+    }
+    // lib.genAttrs incrementalDiscardedHooks (_hook: "")
+  );
   librepaintGmic = (pkgs.krita-plugin-gmic.override {
     cmake = buildPkgs.cmake;
     fftw = pkgs.fftw;
@@ -260,7 +310,33 @@ let
       printf '%s\n' ${lib.escapeShellArg (toString librepaintGmic)} \
         >> "$out/nix-support/windows-dependency-members"
     '';
+  devShell = pkgs.mkShell {
+    inputsFrom = [ incrementalEnv ];
+    nativeBuildInputs = [
+      buildPkgs.ccache
+      buildPkgs.nixfmt
+      buildPkgs.rsync
+    ];
+    shellHook = ''
+      export LIBREPAINT_WINDOWS_INCREMENTAL_SHELL=1
+      export LIBREPAINT_WINDOWS_CMAKE_FLAGS_FILE=${windowsCmakeFlagsFile}
+      export LIBREPAINT_WINDOWS_CONFIG_ID=${windowsConfigIdentity}
+      export LIBREPAINT_WINDOWS_SOURCE_PREPARER=${librepaintUnwrapped.sourcePreparer}
+      export LIBREPAINT_WINDOWS_BUILD_PREPARER=${librepaintUnwrapped.buildPreparer}
+      export PYTHONPATH=${librepaintUnwrapped.PYTHONPATH}
+      echo "LibrePaint Windows cross environment (x86_64-w64-mingw32)"
+      echo "  build: build-incremental windows build"
+    '';
+  };
 in
 {
-  inherit librepaint librepaintArchive librepaintGmic librepaintUnwrapped windowsDependencies;
+  inherit
+    devShell
+    incrementalEnv
+    librepaint
+    librepaintArchive
+    librepaintGmic
+    librepaintUnwrapped
+    windowsDependencies
+    ;
 }

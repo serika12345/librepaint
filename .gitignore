@@ -31,6 +31,7 @@ BROWSE
 *.kate-swp
 build_dir
 .cache
+.direnv/
 
 cmake-build-debug/
 cmake-build-debug-mingw/

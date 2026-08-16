@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
+    echo "run-test must run inside: nix develop .#test" >&2
+    exit 1
+fi
+
+if [[ "$#" -lt 1 || "$#" -gt 2 ]]; then
+    echo "usage: scripts/run-test <cmake-target> [ctest-regex]" >&2
+    exit 2
+fi
+
+target="$1"
+test_regex="${2:-${target}$}"
+
+case "$(uname -s)" in
+    Darwin)
+        preset="tdd-macos"
+        ;;
+    Linux)
+        preset="tdd-linux"
+        ;;
+    *)
+        echo "unsupported native test host: $(uname -s)" >&2
+        exit 1
+        ;;
+esac
+
+cmake --preset "$preset"
+cmake --build --preset "$preset" --target "$target"
+ctest --preset "$preset" --tests-regex "$test_regex"

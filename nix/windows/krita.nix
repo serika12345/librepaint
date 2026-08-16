@@ -651,24 +651,11 @@ class PyQtBindings(_PyQtBindings):
     pkgs.stdenv.cc.cc
     qtTranslationsData
   ];
-in
-pkgs.stdenv.mkDerivation {
-  pname = "librepaint-windows-unwrapped";
-  version = "1.0.2";
-  src = source;
-
-  strictDeps = true;
-  dontWrapQtApps = true;
-  cmakeGenerator = "Ninja";
-  cmakeBuildType = "Release";
-
-  inherit nativeBuildInputs buildInputs;
-
-  postPatch = ''
+  sourcePreparer = buildPkgs.writeText "librepaint-windows-prepare-source" ''
     substituteInPlace plugins/impex/jp2/jp2_converter.cc \
       --replace-fail '<openjpeg.h>' '<${pkgs.openjpeg.incDir}/openjpeg.h>'
 
-    # CMake must compile and link against the target Python while running the
+    # CMake compiles and links against the target Python while running the
     # binding generators with a native interpreter on the Linux build host.
     substituteInPlace CMakeLists.txt \
       --replace-fail \
@@ -698,10 +685,8 @@ pkgs.stdenv.mkDerivation {
         'if (WIN32 AND NOT CMAKE_CROSSCOMPILING)
             set(_krita_python_path'
 
-    # WebPConfig evaluates the caller's component list before FindWebP has
-    # mapped Krita's demux/mux names to the exported CMake targets.  Hide the
-    # list only while loading the package config, then let FindWebP validate
-    # those targets normally.
+    # Preserve Krita's component names across WebP's config-mode probe, then
+    # validate the mapped demux and mux targets in FindWebP.
     substituteInPlace cmake/modules/FindWebP.cmake \
       --replace-fail \
         'find_package(WebP QUIET NO_MODULE
@@ -722,12 +707,46 @@ set(libjpeg-turbo_FIND_COMPONENTS)
 find_package(libjpeg-turbo QUIET NO_MODULE)
 set(libjpeg-turbo_FIND_COMPONENTS "''${_krita_jpeg_turbo_components}")'
 
-    # CMake emits a truncated MinGW import archive for libwebpmux even though
-    # the DLL exports the complete animation/mux API.  Link Krita's animated
-    # WebP exporter through an import archive regenerated in preConfigure.
+    # Link animated WebP through an import archive generated from the complete
+    # MinGW DLL export table during build preparation.
     substituteInPlace plugins/impex/webp/CMakeLists.txt \
       --replace-fail 'WebP::webp WebP::libwebpmux' \
                      'WebP::webp "$ENV{KRITA_WEBP_MUX_LIBRARY}"'
+  '';
+  buildPreparer = buildPkgs.writeText "librepaint-windows-prepare-build" ''
+    unset _PYTHON_HOST_PLATFORM
+    unset _PYTHON_SYSCONFIGDATA_NAME
+
+    auxiliaryDir="''${LIBREPAINT_WINDOWS_AUXILIARY_DIR:-''${TMPDIR:?}}"
+    mkdir -p "$auxiliaryDir"
+    webpMuxDef="$auxiliaryDir/libwebpmux.def"
+    {
+      printf 'EXPORTS\n'
+      ${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}objdump \
+        -p ${pkgs.libwebp}/bin/libwebpmux.dll \
+        | awk '/^.*\[[[:space:]]*[0-9]+\] [+]base\[[[:space:]]*[0-9]+\]/ && $NF != "RVA" { print $NF }'
+    } > "$webpMuxDef"
+    export KRITA_WEBP_MUX_LIBRARY="$auxiliaryDir/libwebpmux.dll.a"
+    ${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}dlltool \
+      --input-def "$webpMuxDef" \
+      --dllname libwebpmux.dll \
+      --output-lib "$KRITA_WEBP_MUX_LIBRARY"
+  '';
+in
+pkgs.stdenv.mkDerivation {
+  pname = "librepaint-windows-unwrapped";
+  version = "1.0.2";
+  src = source;
+
+  strictDeps = true;
+  dontWrapQtApps = true;
+  cmakeGenerator = "Ninja";
+  cmakeBuildType = "Release";
+
+  inherit nativeBuildInputs buildInputs;
+
+  postPatch = ''
+    source ${sourcePreparer}
   '';
 
   cmakeFlags = [
@@ -774,21 +793,7 @@ set(libjpeg-turbo_FIND_COMPONENTS "''${_krita_jpeg_turbo_components}")'
   ];
 
   preConfigure = ''
-    unset _PYTHON_HOST_PLATFORM
-    unset _PYTHON_SYSCONFIGDATA_NAME
-
-    webpMuxDef="$TMPDIR/libwebpmux.def"
-    {
-      printf 'EXPORTS\n'
-      ${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}objdump \
-        -p ${pkgs.libwebp}/bin/libwebpmux.dll \
-        | awk '/^.*\[[[:space:]]*[0-9]+\] [+]base\[[[:space:]]*[0-9]+\]/ && $NF != "RVA" { print $NF }'
-    } > "$webpMuxDef"
-    export KRITA_WEBP_MUX_LIBRARY="$TMPDIR/libwebpmux.dll.a"
-    ${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}dlltool \
-      --input-def "$webpMuxDef" \
-      --dllname libwebpmux.dll \
-      --output-lib "$KRITA_WEBP_MUX_LIBRARY"
+    source ${buildPreparer}
   '';
 
   PYTHONPATH = hostPythonPath;
@@ -807,7 +812,12 @@ set(libjpeg-turbo_FIND_COMPONENTS "''${_krita_jpeg_turbo_components}")'
   enableParallelBuilding = true;
 
   passthru = {
-    inherit hostPythonPath windowsRuntimeDependencies;
+    inherit
+      buildPreparer
+      hostPythonPath
+      sourcePreparer
+      windowsRuntimeDependencies
+      ;
     windowsGmicKdePackages = {
       extra-cmake-modules = kde.extra-cmake-modules;
       kcoreaddons = kde.kcoreaddons;

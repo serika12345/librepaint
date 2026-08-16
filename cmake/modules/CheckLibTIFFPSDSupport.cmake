@@ -28,6 +28,7 @@ function(check_libtiff_psd_support varname_read_tags varname_write_tags)
     " ${varname_read_tags})
     set(_krita_tiff_write_psd_tags_source "
         #include <array>
+        #include <cstdio>
         #include <cstdint>
         #include <tiff.h>
         #include <tiffio.h>
@@ -38,14 +39,17 @@ function(check_libtiff_psd_support varname_read_tags varname_write_tags)
             if (!TIFFSetField(img, TIFFTAG_PHOTOSHOP,
                             static_cast<uint32_t>(data.size()), data.data())) {
                 TIFFClose(img);
+                std::remove(\"test.tif\");
                 return -1;
             }
             if (!TIFFSetField(img, TIFFTAG_IMAGESOURCEDATA,
                             static_cast<uint32_t>(data.size()), data.data())) {
                 TIFFClose(img);
+                std::remove(\"test.tif\");
                 return -1;
             }
             TIFFClose(img);
+            std::remove(\"test.tif\");
             return 0;
         }
     ")

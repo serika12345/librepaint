@@ -2,6 +2,54 @@
   "version": 6,
   "configurePresets": [
     {
+      "name": "tdd-common",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "BUILD_KRITA_QT_DESIGNER_PLUGINS": "OFF",
+        "BUILD_WITH_QT6": "ON",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CRASH_ON_SAFE_ASSERTS": "ON",
+        "KRITA_ENABLE_BROKEN_TESTS": "OFF",
+        "LIMIT_LONG_TESTS": "ON"
+      }
+    },
+    {
+      "name": "tdd-macos",
+      "displayName": "LibrePaint macOS TDD",
+      "inherits": "tdd-common",
+      "binaryDir": "${sourceDir}/build/tdd-macos",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_DISABLE_FIND_PACKAGE_PythonLibrary": "TRUE",
+        "CMAKE_DISABLE_FIND_PACKAGE_Qt6WaylandClient": "TRUE",
+        "CMAKE_REQUIRE_FIND_PACKAGE_Mlt7": "TRUE",
+        "KRITA_MACOS_USE_XCODE_TOOLS": "OFF"
+      }
+    },
+    {
+      "name": "tdd-linux",
+      "displayName": "LibrePaint Linux TDD",
+      "inherits": "tdd-common",
+      "binaryDir": "${sourceDir}/build/tdd-linux",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "ALLOW_UNSTABLE": "QT6"
+      }
+    },
+    {
       "name": "ios-common",
       "hidden": true,
       "generator": "Ninja",
@@ -59,6 +107,16 @@
   ],
   "buildPresets": [
     {
+      "name": "tdd-macos",
+      "configurePreset": "tdd-macos",
+      "jobs": 4
+    },
+    {
+      "name": "tdd-linux",
+      "configurePreset": "tdd-linux",
+      "jobs": 4
+    },
+    {
       "name": "ios-device",
       "configurePreset": "ios-device",
       "targets": ["krita"]
@@ -67,6 +125,38 @@
       "name": "ios-simulator",
       "configurePreset": "ios-simulator",
       "targets": ["krita"]
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "tdd-macos",
+      "configurePreset": "tdd-macos",
+      "environment": {
+        "QT_QPA_PLATFORM": "offscreen"
+      },
+      "execution": {
+        "jobs": 4,
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "tdd-linux",
+      "configurePreset": "tdd-linux",
+      "environment": {
+        "QT_QPA_PLATFORM": "offscreen"
+      },
+      "execution": {
+        "jobs": 4,
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      },
+      "output": {
+        "outputOnFailure": true
+      }
     }
   ]
 }

@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+    cat >&2 <<'EOF'
+usage: build-android-incremental <operation> [target]
+
+operations:
+  path                 Print the configuration-selected Ninja tree.
+  configure            Synchronize the Android CMake configuration.
+  plan [target]        Print the Ninja work plan for all or one target.
+  build [target]       Incrementally build all or one target.
+  bootstrap [target]   Establish a complete baseline in the same build tree.
+  cache-stats          Print Android compiler-cache statistics.
+EOF
+    exit 2
+}
+
+script_path="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/$(basename -- "${BASH_SOURCE[0]}")"
+repo_root="$(cd -- "$(dirname -- "$script_path")/../.." && pwd -P)"
+
+if [[ "$(uname -s):$(uname -m)" != "Linux:x86_64" ]]; then
+    echo "Android incremental builds run on the x86_64 Linux build host" >&2
+    exit 1
+fi
+
+if [[ "${LIBREPAINT_ANDROID_INCREMENTAL_SHELL:-}" != "1" ]]; then
+    exec "$repo_root/scripts/platform/enter-incremental-environment" \
+        android librepaint-android LIBREPAINT_ANDROID_INCREMENTAL_SHELL \
+        "$script_path" "$@"
+fi
+
+operation="${1:-}"
+[[ -n "$operation" ]] || usage
+shift
+(( $# <= 1 )) || usage
+
+: "${LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE:?Android CMake flag contract is unavailable}"
+: "${LIBREPAINT_ANDROID_CONFIG_ID:?Android configuration identity is unavailable}"
+: "${LIBREPAINT_ANDROID_DEPENDENCY_PREFIX:?Android dependency prefix is unavailable}"
+
+config_short="${LIBREPAINT_ANDROID_CONFIG_ID:0:16}"
+build_dir="${LIBREPAINT_ANDROID_BUILD_DIR:-$repo_root/build/android/arm64-v8a/$config_short}"
+install_dir="$build_dir/install"
+marker_path="$build_dir/.librepaint-incremental-config"
+cache_root="${LIBREPAINT_CACHE_ROOT:-$repo_root/.cache/librepaint}"
+target="${1:-all}"
+
+if [[ "$build_dir" != /* ]]; then
+    build_dir="$repo_root/$build_dir"
+    install_dir="$build_dir/install"
+    marker_path="$build_dir/.librepaint-incremental-config"
+fi
+if [[ "$build_dir" == "/" || "$build_dir" == "$repo_root" ]]; then
+    echo "unsafe Android build tree: $build_dir" >&2
+    exit 1
+fi
+
+prepare_environment() {
+    export ANDROID_USER_HOME="$cache_root/android/user-home"
+    export GRADLE_USER_HOME="$cache_root/android/gradle"
+    export CCACHE_DIR="$cache_root/ccache/android"
+    export CCACHE_BASEDIR="$repo_root"
+    export CCACHE_COMPILERCHECK=content
+    export CCACHE_NOHASHDIR=true
+    export KRITA_INSTALL_PREFIX="$install_dir"
+    export KRITA_UNSTABLE_PACKAGE_SUFFIX=""
+    export NINJA_STATUS='[%f/%t] '
+    mkdir -p \
+        "$ANDROID_USER_HOME" \
+        "$GRADLE_USER_HOME" \
+        "$CCACHE_DIR" \
+        "$install_dir"
+}
+
+configure_tree() {
+    prepare_environment
+    mkdir -p "$build_dir"
+    if [[ -f "$marker_path" ]] \
+        && ! grep -Fxq "config=$LIBREPAINT_ANDROID_CONFIG_ID" "$marker_path"; then
+        echo "Android build tree belongs to another configuration: $build_dir" >&2
+        exit 1
+    fi
+
+    mapfile -t cmake_args <"$LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE"
+    cmake -S "$repo_root" -B "$build_dir" -G Ninja \
+        "${cmake_args[@]}" \
+        -DCMAKE_INSTALL_PREFIX:PATH="$install_dir" \
+        -DCMAKE_FIND_ROOT_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$install_dir" \
+        -DCMAKE_PREFIX_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$install_dir" \
+        -DECM_ADDITIONAL_FIND_ROOT_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$install_dir" \
+        -DCMAKE_C_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
+        -DCMAKE_CXX_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
+
+    grep -Fq 'kritawebpimport' "$build_dir/build.ninja"
+    grep -Fq 'kritawebpexport' "$build_dir/build.ninja"
+    grep -Fxq '#define HAVE_JPEG_TURBO 1' "$build_dir/config-jpeg.h"
+    {
+        printf 'schema=1\n'
+        printf 'platform=android-arm64-v8a\n'
+        printf 'config=%s\n' "$LIBREPAINT_ANDROID_CONFIG_ID"
+    } >"$marker_path.tmp"
+    mv "$marker_path.tmp" "$marker_path"
+}
+
+ensure_tree() {
+    prepare_environment
+    if [[ ! -f "$build_dir/build.ninja" ]] \
+        || [[ ! -f "$marker_path" ]] \
+        || ! grep -Fxq "config=$LIBREPAINT_ANDROID_CONFIG_ID" "$marker_path"; then
+        configure_tree
+    fi
+}
+
+case "$operation" in
+    path)
+        (( $# == 0 )) || usage
+        printf '%s\n' "$build_dir"
+        ;;
+    configure)
+        (( $# == 0 )) || usage
+        configure_tree
+        ;;
+    plan)
+        ensure_tree
+        ninja -C "$build_dir" -n "$target"
+        ;;
+    build)
+        ensure_tree
+        cmake --build "$build_dir" --target "$target" --parallel
+        ;;
+    bootstrap)
+        configure_tree
+        cmake --build "$build_dir" --target "$target" --parallel
+        ;;
+    cache-stats)
+        (( $# == 0 )) || usage
+        prepare_environment
+        ccache --show-stats
+        ;;
+    *)
+        usage
+        ;;
+esac

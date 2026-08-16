@@ -779,12 +779,13 @@ let
   # snapshot. A recorded `nix develop --profile` of this derivation is the
   # stable environment for the repository-local incremental Ninja tree.
   krita-ios-incremental-env = krita-ios-app.overrideAttrs (
-    _old:
+    old:
     {
       pname = "krita-ios-incremental-env";
       version = "1";
       src = null;
       patches = [ ];
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.ccache ];
       dontUnpack = true;
       phases = [ "installPhase" ];
       installPhase = ''

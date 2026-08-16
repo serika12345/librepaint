@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+    cat >&2 <<'EOF'
+usage: build-windows-incremental <operation> [target]
+
+operations:
+  path                 Print the configuration-selected Ninja tree.
+  configure            Synchronize and configure the staged Windows source.
+  plan [target]        Print the Ninja work plan for all or one target.
+  build [target]       Incrementally build all or one target.
+  bootstrap [target]   Establish a complete baseline in the same build tree.
+  cache-stats          Print Windows compiler-cache statistics.
+EOF
+    exit 2
+}
+
+script_path="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/$(basename -- "${BASH_SOURCE[0]}")"
+repo_root="$(cd -- "$(dirname -- "$script_path")/../.." && pwd -P)"
+
+if [[ "$(uname -s):$(uname -m)" != "Linux:x86_64" ]]; then
+    echo "Windows cross builds run on the x86_64 Linux build host" >&2
+    exit 1
+fi
+
+if [[ "${LIBREPAINT_WINDOWS_INCREMENTAL_SHELL:-}" != "1" ]]; then
+    exec "$repo_root/scripts/platform/enter-incremental-environment" \
+        windows librepaint-windows LIBREPAINT_WINDOWS_INCREMENTAL_SHELL \
+        "$script_path" "$@"
+fi
+
+operation="${1:-}"
+[[ -n "$operation" ]] || usage
+shift
+(( $# <= 1 )) || usage
+
+: "${LIBREPAINT_WINDOWS_CMAKE_FLAGS_FILE:?Windows CMake flag contract is unavailable}"
+: "${LIBREPAINT_WINDOWS_CONFIG_ID:?Windows configuration identity is unavailable}"
+: "${LIBREPAINT_WINDOWS_SOURCE_PREPARER:?Windows source preparation is unavailable}"
+: "${LIBREPAINT_WINDOWS_BUILD_PREPARER:?Windows build preparation is unavailable}"
+
+config_short="${LIBREPAINT_WINDOWS_CONFIG_ID:0:16}"
+target_root="${LIBREPAINT_WINDOWS_BUILD_ROOT:-$repo_root/build/windows/x86_64/$config_short}"
+source_dir="$target_root/source"
+build_dir="$target_root/ninja"
+marker_path="$build_dir/.librepaint-incremental-config"
+source_fingerprint_path="$source_dir/.librepaint-windows-patch-inputs"
+cache_root="${LIBREPAINT_CACHE_ROOT:-$repo_root/.cache/librepaint}"
+target="${1:-all}"
+
+if [[ "$target_root" != /* ]]; then
+    target_root="$repo_root/$target_root"
+    source_dir="$target_root/source"
+    build_dir="$target_root/ninja"
+    marker_path="$build_dir/.librepaint-incremental-config"
+    source_fingerprint_path="$source_dir/.librepaint-windows-patch-inputs"
+fi
+if [[ "$target_root" == "/" || "$target_root" == "$repo_root" ]]; then
+    echo "unsafe Windows build root: $target_root" >&2
+    exit 1
+fi
+
+patch_inputs=(
+    CMakeLists.txt
+    cmake/modules/FindPyQt6.cmake
+    cmake/modules/FindPythonLibrary.cmake
+    cmake/modules/FindSIP.cmake
+    cmake/modules/FindWebP.cmake
+    cmake/modules/Findlibjpeg-turbo.cmake
+    cmake/modules/SIPMacros.cmake
+    plugins/impex/jp2/jp2_converter.cc
+    plugins/impex/webp/CMakeLists.txt
+)
+
+sync_source() {
+    mkdir -p "$source_dir"
+    rsync_arguments=(
+        --archive
+        --delete
+        --exclude=/.librepaint-windows-patch-inputs
+        --exclude=/.cache/
+        --exclude=/.direnv/
+        --exclude=/.git/
+        --exclude=/.github/
+        --exclude=/.gitlab/
+        --exclude=/AGENTS.md
+        --exclude=/TODO.md
+        --exclude=/build-ios/
+        --exclude=/build/
+        --exclude=/docs/
+        --exclude=/flake.lock
+        --exclude=/flake.nix
+        --exclude=/logs/
+        --exclude=/nix/
+        --exclude=/README\*
+        --exclude=/result
+        --exclude=/result-\*
+    )
+    for relative_path in "${patch_inputs[@]}"; do
+        rsync_arguments+=("--exclude=/$relative_path")
+    done
+    rsync "${rsync_arguments[@]}" "$repo_root/" "$source_dir/"
+
+    source_fingerprint="$({
+        printf 'schema=1\n'
+        sha256sum "$LIBREPAINT_WINDOWS_SOURCE_PREPARER"
+        for relative_path in "${patch_inputs[@]}"; do
+            printf 'path=%s\n' "$relative_path"
+            sha256sum "$repo_root/$relative_path"
+        done
+    } | sha256sum | awk '{print $1}')"
+    recorded_source_fingerprint=""
+    if [[ -f "$source_fingerprint_path" ]]; then
+        recorded_source_fingerprint="$(<"$source_fingerprint_path")"
+    fi
+    if [[ "$recorded_source_fingerprint" == "$source_fingerprint" ]]; then
+        return
+    fi
+
+    for relative_path in "${patch_inputs[@]}"; do
+        mkdir -p "$source_dir/$(dirname -- "$relative_path")"
+        cp -p "$repo_root/$relative_path" "$source_dir/$relative_path"
+    done
+    (
+        cd "$source_dir"
+        # shellcheck source=/dev/null
+        source "$LIBREPAINT_WINDOWS_SOURCE_PREPARER"
+    )
+    printf '%s\n' "$source_fingerprint" >"$source_fingerprint_path.tmp"
+    mv "$source_fingerprint_path.tmp" "$source_fingerprint_path"
+}
+
+prepare_environment() {
+    export LIBREPAINT_WINDOWS_AUXILIARY_DIR="$target_root/auxiliary"
+    export CCACHE_DIR="$cache_root/ccache/windows"
+    export CCACHE_BASEDIR="$repo_root"
+    export CCACHE_COMPILERCHECK=content
+    export CCACHE_NOHASHDIR=true
+    export NINJA_STATUS='[%f/%t] '
+    mkdir -p "$LIBREPAINT_WINDOWS_AUXILIARY_DIR" "$CCACHE_DIR"
+    # shellcheck source=/dev/null
+    source "$LIBREPAINT_WINDOWS_BUILD_PREPARER"
+}
+
+configure_prepared_tree() {
+    mkdir -p "$build_dir"
+    if [[ -f "$marker_path" ]] \
+        && ! grep -Fxq "config=$LIBREPAINT_WINDOWS_CONFIG_ID" "$marker_path"; then
+        echo "Windows build tree belongs to another configuration: $build_dir" >&2
+        exit 1
+    fi
+
+    mapfile -t cmake_args <"$LIBREPAINT_WINDOWS_CMAKE_FLAGS_FILE"
+    cmake -S "$source_dir" -B "$build_dir" -G Ninja \
+        "${cmake_args[@]}" \
+        -DCMAKE_C_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
+        -DCMAKE_CXX_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
+    {
+        printf 'schema=1\n'
+        printf 'platform=windows-x86_64\n'
+        printf 'config=%s\n' "$LIBREPAINT_WINDOWS_CONFIG_ID"
+    } >"$marker_path.tmp"
+    mv "$marker_path.tmp" "$marker_path"
+}
+
+configure_tree() {
+    sync_source
+    prepare_environment
+    configure_prepared_tree
+}
+
+ensure_tree() {
+    sync_source
+    prepare_environment
+    if [[ ! -f "$build_dir/build.ninja" ]] \
+        || [[ ! -f "$marker_path" ]] \
+        || ! grep -Fxq "config=$LIBREPAINT_WINDOWS_CONFIG_ID" "$marker_path"; then
+        configure_prepared_tree
+    fi
+}
+
+case "$operation" in
+    path)
+        (( $# == 0 )) || usage
+        printf '%s\n' "$build_dir"
+        ;;
+    configure)
+        (( $# == 0 )) || usage
+        configure_tree
+        ;;
+    plan)
+        ensure_tree
+        ninja -C "$build_dir" -n "$target"
+        ;;
+    build)
+        ensure_tree
+        cmake --build "$build_dir" --target "$target" --parallel
+        ;;
+    bootstrap)
+        configure_tree
+        cmake --build "$build_dir" --target "$target" --parallel
+        ;;
+    cache-stats)
+        (( $# == 0 )) || usage
+        prepare_environment
+        ccache --show-stats
+        ;;
+    *)
+        usage
+        ;;
+esac
