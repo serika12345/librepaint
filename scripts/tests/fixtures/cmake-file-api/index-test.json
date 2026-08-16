@@ -1,0 +1,23 @@
+{
+  "cmake": {
+    "generator": {
+      "name": "Ninja"
+    },
+    "version": {
+      "major": 4,
+      "minor": 3,
+      "patch": 4,
+      "string": "4.3.4"
+    }
+  },
+  "reply": {
+    "codemodel-v2": {
+      "jsonFile": "codemodel-v2-test.json",
+      "kind": "codemodel",
+      "version": {
+        "major": 2,
+        "minor": 10
+      }
+    }
+  }
+}

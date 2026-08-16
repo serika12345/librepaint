@@ -1,0 +1,17 @@
+{
+  "id": "paint::@paint",
+  "linkLibraries": [
+    {
+      "id": "Qt6::Core::@external"
+    },
+    {
+      "id": "foundation::@foundation"
+    }
+  ],
+  "name": "paint",
+  "paths": {
+    "build": "libs/paint",
+    "source": "libs/paint"
+  },
+  "type": "SHARED_LIBRARY"
+}

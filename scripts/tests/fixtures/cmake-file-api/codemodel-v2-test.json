@@ -1,0 +1,84 @@
+{
+  "configurations": [
+    {
+      "abstractTargets": [
+        {
+          "directoryIndex": 0,
+          "id": "Qt6::Core::@external",
+          "jsonFile": "target-qt-core.json",
+          "name": "Qt6::Core",
+          "projectIndex": 0
+        }
+      ],
+      "directories": [
+        {
+          "build": ".",
+          "projectIndex": 0,
+          "source": ".",
+          "targetIndexes": [0, 1, 2, 3, 4, 5]
+        }
+      ],
+      "name": "RelWithDebInfo",
+      "projects": [
+        {
+          "directoryIndexes": [0],
+          "name": "LibrePaint",
+          "targetIndexes": [0, 1, 2, 3, 4, 5]
+        }
+      ],
+      "targets": [
+        {
+          "directoryIndex": 0,
+          "id": "sampleplugin::@plugin",
+          "jsonFile": "target-sampleplugin.json",
+          "name": "sampleplugin",
+          "projectIndex": 0
+        },
+        {
+          "directoryIndex": 0,
+          "id": "librepaint::@app",
+          "jsonFile": "target-librepaint.json",
+          "name": "librepaint",
+          "projectIndex": 0
+        },
+        {
+          "directoryIndex": 0,
+          "id": "paint::@paint",
+          "jsonFile": "target-paint.json",
+          "name": "paint",
+          "projectIndex": 0
+        },
+        {
+          "directoryIndex": 0,
+          "id": "foundation::@foundation",
+          "jsonFile": "target-foundation.json",
+          "name": "foundation",
+          "projectIndex": 0
+        },
+        {
+          "directoryIndex": 0,
+          "id": "librepaint_autogen::@generated",
+          "jsonFile": "target-librepaint-autogen.json",
+          "name": "librepaint_autogen",
+          "projectIndex": 0
+        },
+        {
+          "directoryIndex": 0,
+          "id": "pofiles-0123456789abcdef0123456789abcdef::@generated",
+          "jsonFile": "target-pofiles.json",
+          "name": "pofiles-0123456789abcdef0123456789abcdef",
+          "projectIndex": 0
+        }
+      ]
+    }
+  ],
+  "kind": "codemodel",
+  "paths": {
+    "build": "/tmp/librepaint-build",
+    "source": "/src/librepaint"
+  },
+  "version": {
+    "major": 2,
+    "minor": 10
+  }
+}

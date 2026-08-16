@@ -178,6 +178,57 @@ nix build --no-link .#checks.x86_64-linux.governance
 `LIMIT_LONG_TESTS=ON`、`CRASH_ON_SAFE_ASSERTS=ON`を使用する。各BROKEN試験の
 原因、決定性、比較規則を確認し、通常検査へ復旧する。
 
+## CMakeターゲット台帳
+
+macOS、Linux、iOS、Android、Windowsの現在のターゲット、種別、定義場所、直接
+リンク依存は`docs/architecture/cmake-targets-<platform>.json`へ同じ形式で記録する。
+各再生成コマンドはFile APIの`codemodel-v2`問い合わせを対象の永続構築木へ作成し、
+構成を同期して台帳を更新する。macOSとiOSはDarwinホストで実行する。
+
+```sh
+nix develop .#test --command \
+  ./scripts/architecture/regenerate_cmake_graph.py macos
+nix develop .#test --command \
+  ./scripts/architecture/regenerate_cmake_graph.py ios
+```
+
+Linux、Android、Windowsはx86_64 Linuxホストで実行する。
+
+```sh
+for platform in linux android windows; do
+  nix develop .#test --command \
+    ./scripts/architecture/regenerate_cmake_graph.py "$platform"
+done
+```
+
+生成した5台帳を一つの変更へ集約した後、共通ターゲット、条件付きターゲット、
+構成差を持つターゲットの行列を更新する。
+
+```sh
+nix develop .#test --command \
+  ./scripts/architecture/regenerate_cmake_graph_matrix.py
+```
+
+CMakeターゲットまたは`target_link_libraries`を変更したときは5台帳と差分行列を
+同じ変更へ含める。記録済み台帳と各実構成の一致は、同じコミットを指す清浄なDarwin
+作業ツリーとx86_64 Linux作業ツリーを用意し、次のコマンドで同時に確認する。
+
+```sh
+nix develop .#test --command \
+  ./scripts/architecture/verify_cmake_graphs.py \
+    --remote-host nixos \
+    --remote-repository /path/to/clean/librepaint
+```
+
+この入口はmacOSとiOSを手元のDarwinホスト、Linux、Android、WindowsをSSH先の
+x86_64 Linuxホストで並行して構成し、5台帳のバイト単位の一致を確認してから差分
+行列を確認する。コミットまたは作業ツリーがホスト間で異なる場合は構成開始前に
+診断する。
+
+`verify-quick`は固定File API応答を使用し、抽出形式、直接依存の選択、決定的な
+整列、差分診断、5台帳と差分行列の形式、同時検証入口のホスト割り当てを検査する。
+実構成との一致は上記の全プラットフォーム同時検証で検査する。
+
 ## テスト駆動開発
 
 観測可能な変更は次の周期で進める。

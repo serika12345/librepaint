@@ -32,6 +32,30 @@
 
 図の編集元は[code-architecture.d2](code-architecture.d2)です。
 
+各プラットフォームのCMake構成で有効な明示的ビルドターゲットは、次の台帳に
+同じ形式で記録する。
+
+| プラットフォーム | CMakeターゲット台帳 | 構築プロファイル |
+| --- | --- | --- |
+| macOS | [cmake-targets-macos.json](cmake-targets-macos.json) | `tdd-macos` |
+| Linux | [cmake-targets-linux.json](cmake-targets-linux.json) | `tdd-linux` |
+| iOS | [cmake-targets-ios.json](cmake-targets-ios.json) | `ios-device-incremental` |
+| Android | [cmake-targets-android.json](cmake-targets-android.json) | `android-arm64-v8a-incremental` |
+| Windows | [cmake-targets-windows.json](cmake-targets-windows.json) | `windows-x86_64-incremental` |
+
+各台帳はターゲット名、種別、定義元のソースディレクトリー、CMakeターゲットへの
+直接リンク依存を持つ。[全プラットフォーム差分行列](cmake-target-matrix.json)は、
+5構成のターゲット数、共通ターゲット、条件付きターゲット、構成ごとに定義が異なる
+ターゲットを一つの決定的なJSONへまとめる。CMakeが生成する補助ターゲットは除外し、
+外部ライブラリーのパスや構築ディレクトリーを記録しないため、同じFile API応答から
+同じJSONを再生成できる。翻訳処理が絶対パスから生成する`pofiles-<hash>`と
+`tsfiles-<hash>`も補助ターゲットとして除外する。
+
+台帳の`dependencies`はCMake codemodelの`linkLibraries`が示す直接リンク対象である。
+リンクコマンドへファイルパスやフラグとして入る項目と、推移的な構築順依存は含まない。
+この範囲により、R1の責務地図と許可依存規則は明示されたターゲット間リンクを入力に
+できる。
+
 責務の中心は次の四つです。
 
 - `krita/`はプロセスの入口、アプリケーション資産、OSライフサイクルとの接続を持ちます。主要機能は`libs/`と`plugins/`が所有します。

@@ -1,0 +1,10 @@
+{
+  "id": "librepaint_autogen::@generated",
+  "isGeneratorProvided": true,
+  "name": "librepaint_autogen",
+  "paths": {
+    "build": "app",
+    "source": "app"
+  },
+  "type": "UTILITY"
+}

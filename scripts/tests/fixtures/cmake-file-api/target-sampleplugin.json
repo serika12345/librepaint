@@ -1,0 +1,14 @@
+{
+  "id": "sampleplugin::@plugin",
+  "linkLibraries": [
+    {
+      "id": "paint::@paint"
+    }
+  ],
+  "name": "sampleplugin",
+  "paths": {
+    "build": "plugins/sample",
+    "source": "plugins/sample"
+  },
+  "type": "MODULE_LIBRARY"
+}

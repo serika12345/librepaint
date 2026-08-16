@@ -1,0 +1,6003 @@
+{
+  "schemaVersion": 1,
+  "platform": "linux",
+  "buildProfile": "tdd-linux",
+  "configuration": "RelWithDebInfo",
+  "targets": [
+    {
+      "name": "CCSGraph",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment"
+      ]
+    },
+    {
+      "name": "CutThroughShapeStrategyTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/tools/tool_knife/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk",
+        "kritatoolKnife_static",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "FillProcessingVisitorTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "FilterStrokeTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "FreehandStrokeBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "FreehandStrokeTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisActionManagerTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisActionsSnapshotTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgetutils/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "KisAdaptedLockTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisAnimationRenderingBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisBContrastBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisBlurBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisBrushModelTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/brush/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisBrushOpTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/paintops/defaultpaintops/brush/tests",
+      "dependencies": [
+        "kritalibpaintop",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisBrushTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/brush/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisCategoriesMapperTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisCategorizedListModelTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisClipboardTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisColorsmudgeOpTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/paintops/colorsmudge/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibpaintop",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisCurveOptionDataTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/paintops/libpaintop/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibpaintop",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisCurveOptionModelTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/paintops/libpaintop/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibpaintop",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisDabRenderingQueueTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/paintops/defaultpaintops/brush/tests",
+      "dependencies": [
+        "kritadefaultpaintops_static",
+        "kritaimage",
+        "kritalibpaintop",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisDatamanagerBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisDialogStateSaverTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgetutils/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "kritatestsdk",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "KisDocumentReplaceTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisExifTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/metadata/tests",
+      "dependencies": [
+        "kritametadata",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisFastMathBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisFilterSelectionsBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisFloodfillBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisForestTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisFourPointInterpolatorBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisFourPointInterpolatorTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisFrameCacheStoreTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisFrameSerializerTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisGifTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/gif/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisGlobalTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisGradientBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisGridInterpolationToolsTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisHLineIteratorBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisHeifTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/heif/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisHistoryListTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisInputManagerTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisJP2Test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/jp2/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisKeyframeAnimationInterfaceSignalTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisLazyStorageTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisLevelFilterBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisLiquifyTransformWorkerBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "QuaZip::QuaZip",
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisLowMemoryBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisMaskGeneratorBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisModelIndexConverterTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisMplTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisMyPaintOpTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/paintops/mypaint/tests",
+      "dependencies": [
+        "LibMyPaint::mypaint",
+        "kritaimage",
+        "kritalibpaintop",
+        "kritamypaintop_static",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisNodeDummiesGraphTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisNodeJugglerCompressedTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisNodeManagerTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisNodeShapesGraphTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisOcioDisplayFilterTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/dockers/lut/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "OpenColorIO::OpenColorIO",
+        "kritalutdocker_static",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisOraTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/ora/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisOverlayPaintDeviceWrapperTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisPaintOnTransparencyMaskTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisPaintOpPresetTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisPainterBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisPaintingAssistantsDecorationTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisPdfTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/pdf/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisPerStrokeRandomSourceTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisProjectionBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisQImageIOTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/qimageio/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisQmlTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/qml/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisRandomGenerator2DDemo",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage"
+      ]
+    },
+    {
+      "name": "KisRandomGenerator2DTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisRandomIteratorBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisRawTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/raw/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisRectsGridTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisSafeDocumentLoaderTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisScreentoneGeneratorTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/generators/screentone/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisSelectionDecorationTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisSelectionManagerTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisSignalAutoConnectionTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisSignalCompressorTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisSpatialContainerTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisSpinBoxSplineUnitConverterTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisStrokeBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisSurfaceColorSpaceWrapperTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisSvgTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/svg/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisTgaTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/tga/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisThumbnailBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisVLineIteratorBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisValueCacheTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisWatershedWorkerTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KoAnchorSelectionWidgetTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgets/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "KoColorSpacesBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/benchmarks",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KoCompositeOpsBenchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/benchmarks",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KoGamutMaskTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/resources/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KoPluginLoaderTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/koplugin/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "KF6::CoreAddons",
+        "dummytrivialinterface",
+        "kritaglobal",
+        "kritaplugin",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KoPropertiesTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgetutils/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "KoRgbU8ColorSpaceTester",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "MoveSelectionStrokeTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/tools/basictools/tests",
+      "dependencies": [
+        "kritabasicflakes",
+        "kritadefaulttools_static",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "MoveStrokeTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/tools/basictools/tests",
+      "dependencies": [
+        "kritabasicflakes",
+        "kritadefaulttools_static",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "StoryboardModelTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/dockers/storyboarddocker/tests",
+      "dependencies": [
+        "kritastoryboarddocker_static",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "StoryboardTimelineSyncTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/dockers/storyboarddocker/tests",
+      "dependencies": [
+        "kritastoryboarddocker_static",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "SvgTextCursorTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/tools/svgtexttool/tests",
+      "dependencies": [
+        "krita_tool_svgtext_static",
+        "kritaflake",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "TestAbrStorage",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/brush/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestAslStorage",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestAssistants",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/assistants/Assistants/tests",
+      "dependencies": [
+        "kritaassistanttool_static",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestBundleStorage",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestChannel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/libkis/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestColorConversion",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestColorConversionSystem",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestColorSpaceRegistry",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/color/lcms2engine/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritalcmsengine_static",
+        "kritapigment",
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestCompositeOpInversion",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestControlPointMoveCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestConvolutionOpImpl",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestDependentShapes",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestDocument",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/libkis/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestFallBackColorTransformation",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestFilter",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/libkis/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestFolderStorage",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestFontLibraryResourceUtils",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestIccFromColorimetryConversion",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/color/lcms2engine/tests",
+      "dependencies": [
+        "kritapigment",
+        "kritasurfacecolormanagementapi",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestInputDevice",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKUndo2Stack",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/command/tests",
+      "dependencies": [
+        "kritacommand",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKisPaletteModel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgets/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestKisSwatchGroup",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKisTagSelectionWidget",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgets/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestKoChannelInfo",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoColor",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoColorSet",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoColorSpaceAbstract",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoColorSpaceMaths",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoColorSpaceRegistry",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoColorSpaceSanity",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoDrag",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoIntegerMaths",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoLcmsColorProfile",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/color/lcms2engine/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritalcmsengine_static",
+        "kritapigment",
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestKoMarkerCollection",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoProgressUpdater",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgetutils/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "TestKoShapeFactory",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoStopGradient",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/pigment/tests",
+      "dependencies": [
+        "kritapigment",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestKoZoomAction",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgets/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestLcmsRGBP2020PQColorSpace",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/color/lcms2engine/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritalcmsengine_static",
+        "kritapigment",
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestManagedColor",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/libkis/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestMemoryStorage",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestNode",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/libkis/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestNodeView",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/dockers/layerdocker/tests",
+      "dependencies": [
+        "kritalayerdocker_static",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "TestNotifier",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/libkis/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestPathSegment",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestPathShape",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestPathTool",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestPerspectiveBasedAssistantHelper",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/assistants/Assistants/tests",
+      "dependencies": [
+        "kritaassistanttool_static",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestPointMergeCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestPointRemoveCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestPointTypeCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestPosition",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestProfileGeneration",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/color/lcms2engine/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritalcmsengine_static",
+        "kritapigment",
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestRemoveSubpathCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestResourceCacheDb",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestResourceLoaderRegistry",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestResourceLocator",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestResourceManager",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestResourceModel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestResourceSearchBoxFilter",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestResourceStorage",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestResourceTypeModel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestSegmentTypeCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSelection",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestShape",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/libkis/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestShapeAt",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestShapeBackgroundCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestShapeContainer",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestShapeGroupCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestShapePainting",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestShapeReorderCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestShapeStrokeCommand",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSnapStrategy",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSqueezedComboBox",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgetutils/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "TestStorageFilterProxyModel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestStorageModel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestSvgParser",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSvgParserCloned",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSvgParserRoundTrip",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSvgSavingContext",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSvgText",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSvgTextCloned",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSvgTextRoundTrip",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestSvgTextShape",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestTag",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestTagFilterResourceProxyModel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestTagModel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestTagResourceModel",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/tests",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Sql",
+        "kritaglobal",
+        "kritapigment",
+        "kritaplugin",
+        "kritaresources",
+        "kritatestsdk",
+        "kritaversion",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestVectorLayer",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/libkis/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestXsimdPainting",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/flake/tests",
+      "dependencies": [
+        "kritaflake",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TransformStrokeStrategyTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/tools/tool_transform2/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritatooltransform_static",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "all_aotstats",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
+      "name": "all_qmllint",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "all_qmllint_json",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "all_qmllint_module",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "all_qmltyperegistrations",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "benchmark",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
+      "name": "clean_qml_context_properties",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "compression_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/psdutils/tests",
+      "dependencies": [
+        "kritapsdutils",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "dummytrivialinterface",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/koplugin/tests",
+      "dependencies": [
+        "Qt6::Core"
+      ]
+    },
+    {
+      "name": "dump_qml_context_properties",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "generate_qmlls_build_ini_file",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
+      "name": "kis_adjustment_layer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_algebra_2d_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_all_filter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/filters/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_animation_exporter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_animation_frame_cache_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_animation_importer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_animation_utils_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/dockers/animation/tests",
+      "dependencies": [
+        "kritaanimationdocker_static",
+        "kritaimage",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_annotation_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_asl_layer_style_serializer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_asl_parser_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_async_merger_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_auto_brush_factory_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/brush/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_auto_brush_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/brush/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_base_node_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_boundary_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/brush/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_bsplines_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_cage_transform_worker_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_chunk_allocator_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_clone_layer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritaimage",
+        "kritatestsdk",
+        "kritatransformmaskstubs"
+      ]
+    },
+    {
+      "name": "kis_colorize_mask_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_AVX",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_AVX2+FMA",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_SSE2",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_SSE4_1",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_composition_benchmark_SSSE3",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "benchmarks",
+      "dependencies": [
+        "kritaimage",
+        "kritamultiarch",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_convolution_painter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_coordinates_converter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_count_visitor_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_crash_filter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/filters/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_crop_processing_visitor_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_cs_conversion_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_csv_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/csv/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_cubic_curve_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_cubic_spline_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_datamanager_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_derived_resources_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_distance_information_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_doc2_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatransformmaskstubs",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_dom_utils_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_dummies_facade_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_effect_mask_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_exr_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/exr/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_fast_math_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_file_layer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatransformmaskstubs",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_fill_interval_map_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_fill_interval_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_fill_painter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_config_widget_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_configuration_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_mask_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_processing_information_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_registry_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_strategy_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_weights_applicator_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_filter_weights_buffer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_fixed_paint_device_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_fixed_point_maths_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_gbr_brush_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/brush/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_gradient_painter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_grid_config_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_group_layer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_heightmap_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/heightmap/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_histogram_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_image_animation_interface_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_image_commands_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_image_signal_router_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_image_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_image_view_converter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_imagepipe_brush_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/brush/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_iterator_benchmark",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_iterator_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_iterators_ng_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_jpeg_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/jpeg/tests",
+      "dependencies": [
+        "kritametadata",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_jpegxl_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/jxl/tests",
+      "dependencies": [
+        "kritametadata",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_keyframing_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_kra_loader_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/libkra/tests",
+      "dependencies": [
+        "kritalibkra",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_kra_saver_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/libkra/tests",
+      "dependencies": [
+        "kritalibkra",
+        "kritatransformmaskstubs",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_layer_style_filter_environment_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_layer_style_projection_plane_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_layer_styles_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_layer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_lazy_brush_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_linked_pattern_manager_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/paintops/libpaintop/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibpaintop",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_liquify_transform_worker_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "QuaZip::QuaZip",
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_lockless_stack_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_lod_capable_layer_offset_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_low_memory_tests",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_marker_painter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_mask_generator_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_mask_similarity_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_mask_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_math_toolbox_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_memory_window_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_mesh_transform_worker_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_meta_data_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/metadata/tests",
+      "dependencies": [
+        "kritametadata",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_multinode_property_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_name_server_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_node_commands_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_node_facade_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_node_graph_listener_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_node_model_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_node_query_path_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_node_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_node_visitor_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_onion_skin_compositor_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_paint_device_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_paint_information_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_paint_layer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_painter_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_paintop_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_parse_spin_boxes_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgetutils/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kis_pattern_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_perspective_transform_worker_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_pixel_selection_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_png_brush_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/brush/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_png_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/png/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_prescaled_projection_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_processing_applicator_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_processings_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_projection_leaf_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_projection_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_properties_configuration_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_psd_layer_style_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_psd_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/psd/tests",
+      "dependencies": [
+        "kritapsd",
+        "kritapsd_static",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_qmic_tests",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/extensions/qmic/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritaqmicinterface",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_queues_progress_updater_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_rgbe_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/rgbe/tests",
+      "dependencies": [
+        "kritametadata",
+        "kritargbeimportutils",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_scanline_fill_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_seexpr_generator_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/generators/seexpr/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_selection_mask_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_selection_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_shape_commands_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_shape_controller_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_shape_layer_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_shape_selection_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_shared_ptr_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_simple_math_parser_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgetutils/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kis_simple_stroke_strategy_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_simple_update_queue_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_stabilized_events_sampler_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_stop_gradient_editor_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_store_limits_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_stroke_strategy_undo_command_based_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_stroke_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_strokes_queue_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_swapped_data_store_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_tiff_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/tiff/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_tile_data_pooler_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_tile_data_store_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_tiled_data_manager_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tiles3/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_time_span_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_transaction_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_transform_mask_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritaimage",
+        "kritatestsdk",
+        "kritatransformmaskstubs"
+      ]
+    },
+    {
+      "name": "kis_transform_worker_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_transparency_mask_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_types_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_unsharp_mask_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/filters/unsharp/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_update_scheduler_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_updater_context_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_vec_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_view_signals_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_walkers_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_warp_transform_worker_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_webp_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/webp/tests",
+      "dependencies": [
+        "kritametadata",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_xcf_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/xcf/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "krita",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "krita",
+      "dependencies": [
+        "KF6::Crash",
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::Network",
+        "Qt6::PrintSupport",
+        "Qt6::Svg",
+        "Qt6::Widgets",
+        "Qt6::Xml",
+        "kritamultiarch",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "krita-benchmarks-KisAnimationRenderingBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisBContrastBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisBlurBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisDataManager",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisFastMath",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisFloodFill",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisFourPointInterpolator",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisGradientFill",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisHLineIterator",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisLevelFilterBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisLiquifyTransformWorker",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisLowMemory",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisPainterBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisProjectionBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisRandomIterator",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisStrokeBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisThumbnail",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-KisVLineIterator",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_AVX",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_AVX2+FMA",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_SSE2",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_SSE4_1",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-benchmarks-kis_composition_benchmark_SSSE3",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita-image-KisFilterSelectionsBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "krita_colorspaces_extensions",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/color/colorspaceextensions",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "OpenEXR::OpenEXR",
+        "kritaglobal",
+        "kritapigment"
+      ]
+    },
+    {
+      "name": "krita_flaketools",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/defaulttool",
+      "dependencies": [
+        "kritaflake",
+        "kritaui",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "krita_karbontools",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/karbonplugins/tools",
+      "dependencies": [
+        "KF6::Completion",
+        "kritaui",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "krita_raw_import",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/raw",
+      "dependencies": [
+        "KDcrawQt6",
+        "kritaexifcommon",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "krita_shape_image",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/flake/imageshape",
+      "dependencies": [
+        "KF6::I18n",
+        "kritaflake",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "krita_shape_paths",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/flake/pathshapes",
+      "dependencies": [
+        "kritaflake",
+        "kritaui",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "krita_tool_svgtext",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/svgtexttool",
+      "dependencies": [
+        "krita_tool_svgtext_static"
+      ]
+    },
+    {
+      "name": "krita_tool_svgtext_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/tools/svgtexttool",
+      "dependencies": [
+        "KF6::I18n",
+        "Qt6::Qml",
+        "Qt6::Quick",
+        "Qt6::QuickControls2",
+        "Qt6::QuickWidgets",
+        "kritaqmlwidgets",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "krita_version",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "krita",
+      "dependencies": [
+        "Qt6::Core",
+        "kritaversion"
+      ]
+    },
+    {
+      "name": "kritaanimationdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/animation",
+      "dependencies": [
+        "kritaanimationdocker_static"
+      ]
+    },
+    {
+      "name": "kritaanimationdocker_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/dockers/animation",
+      "dependencies": [
+        "kritaui",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "kritaarrangedocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/arrangedocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaartisticcolorselector",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/artisticcolorselector",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaasccdl",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/asccdl",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaassistanttool",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/assistants/Assistants",
+      "dependencies": [
+        "kritaassistanttool_static"
+      ]
+    },
+    {
+      "name": "kritaassistanttool_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/assistants/Assistants",
+      "dependencies": [
+        "kritaflake",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritabasicflakes",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/basicflakes",
+      "dependencies": [
+        "kritaflake",
+        "kritapigment",
+        "kritaui",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "kritablurfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/blur",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritabrushexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/brush",
+      "dependencies": [
+        "kritaimpex",
+        "kritalibbrush",
+        "kritalibpaintop",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritabrushhud",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/brushhud",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritabrushimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/brush",
+      "dependencies": [
+        "kritalibbrush",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritabuginfo",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/buginfo",
+      "dependencies": [
+        "kritasurfacecolormanagementapi",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritachanneldocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/channeldocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaclonesarray",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/clonesarray",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacolor",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/color",
+      "dependencies": [
+        "KF6::I18n",
+        "kritaglobal"
+      ]
+    },
+    {
+      "name": "kritacolorgenerator",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/generators/solid",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacolorrange",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/colorrange",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacolorselectorng",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/advancedcolorselector",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacolorsfilters",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/colorsfilters",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacolorsmudgepaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/colorsmudge",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritacolorspaceconversion",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/colorspaceconversion",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacommand",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/command",
+      "dependencies": [
+        "Boost::boost",
+        "KF6::ConfigGui",
+        "KF6::I18n",
+        "Qt6::Core",
+        "Qt6::Widgets",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritacompositiondocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/compositiondocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaconvertheighttonormalmap",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/convertheightnormalmap",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaconvolutionfilters",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/convolutionfilters",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacsvexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/csv",
+      "dependencies": [
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacsvimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/csv",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritacurvepaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/curvebrush",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritadbexplorer",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/dbexplorer",
+      "dependencies": [
+        "Qt6::Core",
+        "Qt6::Sql",
+        "Qt6::Widgets",
+        "kritaresources",
+        "kritaresourcewidgets",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritadefaultpaintops",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/defaultpaintops",
+      "dependencies": [
+        "kritadefaultpaintops_static"
+      ]
+    },
+    {
+      "name": "kritadefaultpaintops_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/paintops/defaultpaintops",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritadefaulttools",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/basictools",
+      "dependencies": [
+        "kritadefaulttools_static"
+      ]
+    },
+    {
+      "name": "kritadefaulttools_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/tools/basictools",
+      "dependencies": [
+        "Boost::boost",
+        "kritabasicflakes",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritadeformpaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/deform",
+      "dependencies": [
+        "kritalibpaintop",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritadigitalmixer",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/digitalmixer",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritadodgeburn",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/dodgeburn",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritadummyplugin1",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "libs/koplugin/tests",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "Qt6::Core",
+        "dummytrivialinterface",
+        "kritaglobal"
+      ]
+    },
+    {
+      "name": "kritadummyplugin2",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "libs/koplugin/tests",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "Qt6::Core",
+        "dummytrivialinterface",
+        "kritaglobal"
+      ]
+    },
+    {
+      "name": "kritadummyplugin2_ver2",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "libs/koplugin/tests",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "Qt6::Core",
+        "dummytrivialinterface",
+        "kritaglobal"
+      ]
+    },
+    {
+      "name": "kritadummyplugin3",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "libs/koplugin/tests",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "Qt6::Core",
+        "dummytrivialinterface",
+        "kritaglobal"
+      ]
+    },
+    {
+      "name": "kritaedgedetection",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/edgedetection",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaembossfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/embossfilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaexample",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/example",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaexif",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/metadata/exif",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "LibExiv2::LibExiv2",
+        "kritametadata"
+      ]
+    },
+    {
+      "name": "kritaexifcommon",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "plugins/metadata/common",
+      "dependencies": [
+        "LibExiv2::LibExiv2",
+        "kritaglobal",
+        "kritametadata"
+      ]
+    },
+    {
+      "name": "kritaexperimentpaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/experiment",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritaexrexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/exr",
+      "dependencies": [
+        "OpenEXR::OpenEXR",
+        "kritaimpex",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaexrimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/exr",
+      "dependencies": [
+        "OpenEXR::OpenEXR",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaextensioncolorsfilters",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/colors",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritafastcolortransferfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/fastcolortransfer",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritafilterop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/filterop",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritaflake",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/flake",
+      "dependencies": [
+        "Boost::boost",
+        "Fontconfig::Fontconfig",
+        "Freetype::Freetype",
+        "HarfBuzz::HarfBuzz",
+        "KF6::ConfigCore",
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "KF6::WidgetsAddons",
+        "Qt6::Gui",
+        "Qt6::OpenGLWidgets",
+        "Qt6::Svg",
+        "Qt6::Xml",
+        "kritacommand",
+        "kritapigment",
+        "kritawidgetutils",
+        "libraqm",
+        "libunibreak::libunibreak"
+      ]
+    },
+    {
+      "name": "kritagamutmask",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/gamutmask",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritagaussianhighpassfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/gaussianhighpass",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritagifexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/gif",
+      "dependencies": [
+        "GIF::GIF",
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritagifimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/gif",
+      "dependencies": [
+        "GIF::GIF",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaglobal",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/global",
+      "dependencies": [
+        "Boost::boost",
+        "Eigen3::Eigen",
+        "GSL::gsl",
+        "KF6::ConfigCore",
+        "KF6::I18n",
+        "Qt6::Core",
+        "Qt6::Core5Compat",
+        "Qt6::Gui",
+        "Qt6::OpenGL",
+        "Qt6::Widgets",
+        "Qt6::Xml",
+        "kritaversion",
+        "lager",
+        "zug"
+      ]
+    },
+    {
+      "name": "kritagradientgenerator",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/generators/gradient",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritagradientmap",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/gradientmap",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritagriddocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/griddocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritagridpaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/gridbrush",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritahairypaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/hairy",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritahalftone",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/halftone",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritahatchingpaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/hatching",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritaheifexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/heif",
+      "dependencies": [
+        "heif",
+        "kritaimpex",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaheifimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/heif",
+      "dependencies": [
+        "heif",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaheightmapexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/heightmap",
+      "dependencies": [
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaheightmapimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/heightmap",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritahistogramdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/histogram",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritahistorydocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/historydocker",
+      "dependencies": [
+        "kritaimage",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaimage",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/image",
+      "dependencies": [
+        "Boost::boost",
+        "Eigen3::Eigen",
+        "GSL::gsl",
+        "OpenEXR::OpenEXR",
+        "kritacommand",
+        "kritaglobal",
+        "kritametadata",
+        "kritamultiarch",
+        "kritapigment",
+        "kritapsdutils",
+        "kritaresources",
+        "kritaversion",
+        "kritawidgets",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritaimageenhancement",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/imageenhancement",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaimagesplit",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/imagesplit",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaimpex",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/impex",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "kritaimage"
+      ]
+    },
+    {
+      "name": "kritaindexcolors",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/indexcolors",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaiptc",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/metadata/iptc",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "LibExiv2::LibExiv2",
+        "kritametadata"
+      ]
+    },
+    {
+      "name": "kritajp2import",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/jp2",
+      "dependencies": [
+        "kritaui",
+        "openjp2"
+      ]
+    },
+    {
+      "name": "kritajpegexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/jpeg",
+      "dependencies": [
+        "LibExiv2::LibExiv2",
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritajpegimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/jpeg",
+      "dependencies": [
+        "LibExiv2::LibExiv2",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritajxlexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/jxl",
+      "dependencies": [
+        "JPEGXL::jxl",
+        "JPEGXL::jxl_threads",
+        "kritaimpex",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritajxlimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/jxl",
+      "dependencies": [
+        "JPEGXL::jxl",
+        "JPEGXL::jxl_threads",
+        "kritalibkra",
+        "kritametadata",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritakraexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/kra",
+      "dependencies": [
+        "kritaimpex",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritakraimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/kra",
+      "dependencies": [
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritakrzexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/krz",
+      "dependencies": [
+        "kritaimpex",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritalayerdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/layerdocker",
+      "dependencies": [
+        "kritalayerdocker_static",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritalayerdocker_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/dockers/layerdocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritalayergroupswitcher",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/layergroupswitcher",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritalayersplit",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/layersplit",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritalcmsengine",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/color/lcms2engine",
+      "dependencies": [
+        "kritalcmsengine_static"
+      ]
+    },
+    {
+      "name": "kritalcmsengine_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/color/lcms2engine",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "OpenEXR::OpenEXR",
+        "kritapigment",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritalevelfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/levelfilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritalibbrush",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/brush",
+      "dependencies": [
+        "Qt6::Svg",
+        "kritaimage",
+        "kritamultiarch",
+        "lager"
+      ]
+    },
+    {
+      "name": "kritalibkis",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/libkis",
+      "dependencies": [
+        "kritaimage",
+        "kritaui",
+        "kritaversion"
+      ]
+    },
+    {
+      "name": "kritalibkra",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "plugins/impex/libkra",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritalibpaintop",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "plugins/paintops/libpaintop",
+      "dependencies": [
+        "kritalibbrush",
+        "kritaui",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritalogdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/logdocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritalutdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/lut",
+      "dependencies": [
+        "kritalutdocker_static"
+      ]
+    },
+    {
+      "name": "kritalutdocker_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/dockers/lut",
+      "dependencies": [
+        "OpenColorIO::OpenColorIO",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritametadata",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/metadata",
+      "dependencies": [
+        "kritaglobal",
+        "kritaplugin",
+        "kritaversion",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritametadataeditor",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/metadataeditor",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritamodifyselection",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/modify_selection",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritamultiarch",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/multiarch",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Core",
+        "kritaglobal",
+        "xsimd"
+      ]
+    },
+    {
+      "name": "kritamultigridpatterngenerator",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/generators/multigridpattern",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritamypaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/mypaint",
+      "dependencies": [
+        "kritamypaintop_static"
+      ]
+    },
+    {
+      "name": "kritamypaintop_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/paintops/mypaint",
+      "dependencies": [
+        "LibMyPaint::mypaint",
+        "kritalibbrush",
+        "kritalibpaintop",
+        "kritaresources",
+        "kritaui",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritanoisefilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/noisefilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritanormalize",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/normalize",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaoffsetimage",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/offsetimage",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaoilpaintfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/oilpaintfilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaoraexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/ora",
+      "dependencies": [
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaoraimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/ora",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaoverviewdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/overview",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapalettedocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/palettedocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapalettize",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/palettize",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaparticlepaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/particle",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritapatterndocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/patterndocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapatterngenerator",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/generators/pattern",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapdfimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/pdf",
+      "dependencies": [
+        "Poppler::Qt6",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaphongbumpmap",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/phongbumpmap",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapigment",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/pigment",
+      "dependencies": [
+        "Boost::boost",
+        "KF6::ConfigCore",
+        "KF6::I18n",
+        "OpenEXR::OpenEXR",
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::Xml",
+        "kritacommand",
+        "kritaglobal",
+        "kritamultiarch",
+        "kritaplugin",
+        "kritaresources",
+        "kritastore"
+      ]
+    },
+    {
+      "name": "kritapixelizefilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/pixelizefilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaplatformpluginwayland",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/platforms/wayland",
+      "dependencies": [
+        "Qt6::Gui",
+        "Qt6::GuiPrivate",
+        "Qt6::WaylandClient",
+        "kritaglobal",
+        "kritasurfacecolormanagementapi",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaplatformpluginxcb",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/platforms/xcb",
+      "dependencies": [
+        "kritaglobal",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaplugin",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/koplugin",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "Qt6::Core",
+        "kritaglobal"
+      ]
+    },
+    {
+      "name": "kritapngexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/png",
+      "dependencies": [
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapngimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/png",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaposterize",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/posterize",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapresetdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/presetdocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapresethistory",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/presethistory",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapropagatecolors",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/propagatecolors",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapsd",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/psd",
+      "dependencies": [
+        "kritaimage",
+        "kritapsdutils",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapsd_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/impex/psd",
+      "dependencies": [
+        "kritaimage",
+        "kritapsd"
+      ]
+    },
+    {
+      "name": "kritapsdexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/psd",
+      "dependencies": [
+        "kritaimpex",
+        "kritapsd",
+        "kritapsd_static",
+        "kritastore",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapsdimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/psd",
+      "dependencies": [
+        "KF6::I18n",
+        "kritaglobal",
+        "kritapsd_static",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapsdutils",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/psdutils",
+      "dependencies": [
+        "Qt6::Core",
+        "Qt6::Gui",
+        "ZLIB::ZLIB",
+        "kritaflake",
+        "kritaglobal",
+        "kritapigment"
+      ]
+    },
+    {
+      "name": "kritapykrita",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/plugin",
+      "dependencies": [
+        "pykrita"
+      ]
+    },
+    {
+      "name": "kritaqimageioexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/qimageio",
+      "dependencies": [
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaqimageioimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/qimageio",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaqmic",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/qmic",
+      "dependencies": [
+        "kritaqmicinterface"
+      ]
+    },
+    {
+      "name": "kritaqmicinterface",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "plugins/extensions/qmic",
+      "dependencies": [
+        "kritaimage",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaqmlcomponents",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": [
+        "KF6::ColorScheme",
+        "Qt6::Core",
+        "Qt6::Qml",
+        "Qt6::Quick",
+        "Qt6::QuickControls2",
+        "kritaqmlwidgets",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaqmlcomponents_copy_qml",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "kritaqmlcomponents_copy_res",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "kritaqmlcomponents_qmllint",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "kritaqmlcomponents_qmllint_json",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "kritaqmlcomponents_qmllint_module",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "kritaqmlcomponents_qmltyperegistration",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "kritaqmlexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/qml",
+      "dependencies": [
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaqmlwidgets",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "qmlmodules/widgets",
+      "dependencies": [
+        "Qt6::Qml",
+        "Qt6::Quick",
+        "Qt6::QuickControls2",
+        "Qt6::QuickWidgets",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaraindropsfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/raindropsfilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritarandompickfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/randompickfilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritarecorderdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/recorder",
+      "dependencies": [
+        "Threads::Threads",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaresettransparent",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/resettransparent",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaresourcemanager",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/resourcemanager",
+      "dependencies": [
+        "kritalibpaintop",
+        "kritaresources",
+        "kritaresourcewidgets",
+        "kritaui",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "kritaresources",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/resources",
+      "dependencies": [
+        "Boost::boost",
+        "KF6::ConfigCore",
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "Qt6::Core",
+        "Qt6::Sql",
+        "Qt6::Widgets",
+        "QuaZip::QuaZip",
+        "kritaglobal",
+        "kritaplugin",
+        "kritastore",
+        "kritaversion"
+      ]
+    },
+    {
+      "name": "kritaresourcewidgets",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/resourcewidgets",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "KF6::WidgetsAddons",
+        "Qt6::Core",
+        "Qt6::Sql",
+        "Qt6::Widgets",
+        "kritaglobal",
+        "kritaplugin",
+        "kritaresources",
+        "kritastore",
+        "kritaversion",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritargbeexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/rgbe",
+      "dependencies": [
+        "kritaimpex",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritargbeimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/rgbe",
+      "dependencies": [
+        "kritargbeimportutils",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritargbeimportutils",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/impex/rgbe",
+      "dependencies": [
+        "kritaimage"
+      ]
+    },
+    {
+      "name": "kritarotateimage",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/rotateimage",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaroundcornersfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/roundcorners",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaroundmarkerpaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/roundmarker",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritarunner",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/extensions/pykrita/kritarunner",
+      "dependencies": [
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::Network",
+        "Qt6::PrintSupport",
+        "Qt6::Svg",
+        "Qt6::Widgets",
+        "Qt6::Xml",
+        "pykrita"
+      ]
+    },
+    {
+      "name": "kritasamplescreencolor",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/samplescreencolor",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritascreentonegenerator",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/generators/screentone",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaseexprgenerator",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/generators/seexpr",
+      "dependencies": [
+        "KSeExpr::KSeExpr",
+        "KSeExpr::KSeExprUI",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaselectiontools",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/selectiontools",
+      "dependencies": [
+        "kritabasicflakes",
+        "kritaimage",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaseparatechannels",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/separate_channels",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritashearimage",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/shearimage",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritasimplexnoisegenerator",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/generators/simplexnoise",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritasketchpaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/sketch",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritasmallcolorselector",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/smallcolorselector",
+      "dependencies": [
+        "Qt6::OpenGLWidgets",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritasmalltilesfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/smalltilesfilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritasnapshotdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/snapshotdocker",
+      "dependencies": [
+        "kritaimage",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaspecificcolorselector",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/specificcolorselector",
+      "dependencies": [
+        "OpenEXR::OpenEXR",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaspraypaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/spray",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritaspriterexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/spriter",
+      "dependencies": [
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritastore",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/store",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Gui",
+        "Qt6::Xml",
+        "QuaZip::QuaZip",
+        "kritaglobal",
+        "kritaversion"
+      ]
+    },
+    {
+      "name": "kritastoryboarddocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/storyboarddocker",
+      "dependencies": [
+        "kritastoryboarddocker_static"
+      ]
+    },
+    {
+      "name": "kritastoryboarddocker_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/dockers/storyboarddocker",
+      "dependencies": [
+        "Qt6::PrintSupport",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritasurfacecolormanagementapi",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/surfacecolormanagementapi",
+      "dependencies": [
+        "kritaglobal",
+        "kritapigment"
+      ]
+    },
+    {
+      "name": "kritasvgcollectiondocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/svgcollectiondocker",
+      "dependencies": [
+        "kritaui",
+        "kritawidgets"
+      ]
+    },
+    {
+      "name": "kritasvgimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/svg",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatangentnormalpaintop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/paintops/tangentnormal",
+      "dependencies": [
+        "kritalibpaintop"
+      ]
+    },
+    {
+      "name": "kritatasksetdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/tasksetdocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatextproperties",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/textproperties",
+      "dependencies": [
+        "Qt6::Qml",
+        "Qt6::Quick",
+        "Qt6::QuickControls2",
+        "Qt6::QuickWidgets",
+        "kritaqmlwidgets",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatgaexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/tga",
+      "dependencies": [
+        "kritaimpex",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatgaimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/tga",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritathreshold",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/threshold",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatiffexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/tiff",
+      "dependencies": [
+        "LibExiv2::LibExiv2",
+        "TIFF::TIFF",
+        "kritaexifcommon",
+        "kritaimpex",
+        "kritatiffpsd",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatiffimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/tiff",
+      "dependencies": [
+        "LibExiv2::LibExiv2",
+        "TIFF::TIFF",
+        "kritaexifcommon",
+        "kritaimpex",
+        "kritametadata",
+        "kritatiffpsd",
+        "kritaui",
+        "libjpeg-turbo::turbojpeg"
+      ]
+    },
+    {
+      "name": "kritatiffpsd",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "plugins/impex/tiff",
+      "dependencies": [
+        "TIFF::TIFF",
+        "kritapsd"
+      ]
+    },
+    {
+      "name": "kritatoolKnife",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_knife",
+      "dependencies": [
+        "kritatoolKnife_static"
+      ]
+    },
+    {
+      "name": "kritatoolKnife_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_knife",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatoolSmartPatch",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_smart_patch",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatoolcrop",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_crop",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatooldyna",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_dyna",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatoolencloseandfill",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_enclose_and_fill",
+      "dependencies": [
+        "kritabasicflakes",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatoollazybrush",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_lazybrush",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatoolpolygon",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_polygon",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatoolpolyline",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_polyline",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatooltransform",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_transform2",
+      "dependencies": [
+        "kritatooltransform_static"
+      ]
+    },
+    {
+      "name": "kritatooltransform_static",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/tools/tool_transform2",
+      "dependencies": [
+        "GSL::gsl",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatouchdocker",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/touchdocker",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritatransformmaskstubs",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "sdk/tests",
+      "dependencies": [
+        "kritaimage"
+      ]
+    },
+    {
+      "name": "kritaui",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/ui",
+      "dependencies": [
+        "Boost::boost",
+        "Eigen3::Eigen",
+        "KF6::ColorScheme",
+        "KF6::Completion",
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "KF6::ItemViews",
+        "Mlt7::mlt",
+        "Mlt7::mlt++",
+        "OpenEXR::OpenEXR",
+        "Qt6::Concurrent",
+        "Qt6::Network",
+        "Qt6::OpenGLWidgets",
+        "Qt6::SvgWidgets",
+        "SDL2::SDL2",
+        "kritacolor",
+        "kritaimage",
+        "kritaimpex",
+        "kritalibbrush",
+        "kritaresources",
+        "kritasurfacecolormanagementapi",
+        "kritaversion",
+        "kritawidgets",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritaunsharpfilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/unsharp",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritaversion",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/version",
+      "dependencies": [
+        "Qt6::Core"
+      ]
+    },
+    {
+      "name": "kritawavefilter",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/filters/wavefilter",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritawaveletdecompose",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/extensions/waveletdecompose",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritawebpexport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/webp",
+      "dependencies": [
+        "WebP::libwebpmux",
+        "WebP::webp",
+        "kritaimpex",
+        "kritalibkra",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritawebpimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/webp",
+      "dependencies": [
+        "WebP::webp",
+        "WebP::webpdemux",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritawgcolorselector",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/dockers/widegamutcolorselector",
+      "dependencies": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritawidgets",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/widgets",
+      "dependencies": [
+        "KF6::Completion",
+        "KF6::ConfigCore",
+        "KF6::ConfigGui",
+        "KF6::CoreAddons",
+        "KF6::GuiAddons",
+        "KF6::WidgetsAddons",
+        "kritaflake",
+        "kritaglobal",
+        "kritapigment",
+        "kritaresources",
+        "kritaresourcewidgets",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritawidgetutils",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/widgetutils",
+      "dependencies": [
+        "KF6::ColorScheme",
+        "KF6::ConfigCore",
+        "KF6::ConfigGui",
+        "KF6::CoreAddons",
+        "KF6::GuiAddons",
+        "KF6::I18n",
+        "KF6::ItemViews",
+        "KF6::WidgetsAddons",
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::PrintSupport",
+        "Qt6::Widgets",
+        "Qt6::Xml",
+        "kritaglobal",
+        "kritaplugin",
+        "kritaresources"
+      ]
+    },
+    {
+      "name": "kritaxcfimport",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/impex/xcf",
+      "dependencies": [
+        "kritaui",
+        "xcftools"
+      ]
+    },
+    {
+      "name": "kritaxmp",
+      "type": "MODULE_LIBRARY",
+      "sourceDirectory": "plugins/metadata/xmp",
+      "dependencies": [
+        "KF6::CoreAddons",
+        "LibExiv2::LibExiv2",
+        "kritametadata"
+      ]
+    },
+    {
+      "name": "libraqm",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "3rdparty_vendor/raqm",
+      "dependencies": [
+        "Freetype::Freetype",
+        "FriBidi::FriBidi",
+        "HarfBuzz::HarfBuzz"
+      ]
+    },
+    {
+      "name": "pigment-benchmarks-KoColorSpacesBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "libs/pigment/benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "pigment-benchmarks-KoCompositeOpsBenchmark",
+      "type": "UTILITY",
+      "sourceDirectory": "libs/pigment/benchmarks",
+      "dependencies": []
+    },
+    {
+      "name": "pofiles",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
+      "name": "psd_colormode_block_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/psd/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "Qt6::Gui",
+        "kritaglobal",
+        "kritapsd",
+        "kritapsd_static",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "psd_cos_parser_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/psdutils/tests",
+      "dependencies": [
+        "kritapsdutils",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "psd_header_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/impex/psd/tests",
+      "dependencies": [
+        "KF6::I18n",
+        "kritaglobal",
+        "kritapsd",
+        "kritapsd_static",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "psd_utils_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/psdutils/tests",
+      "dependencies": [
+        "kritapsdutils",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "pykrita",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/plugin",
+      "dependencies": [
+        "KF6::ColorScheme",
+        "kritalibkis",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "python_module_PyKrita_krita",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "plugins/extensions/pykrita/sip",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
+        "kritalibkis",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "qt_internal_plugins",
+      "type": "UTILITY",
+      "sourceDirectory": "qmlmodules/components",
+      "dependencies": []
+    },
+    {
+      "name": "storedroptest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/store/tests",
+      "dependencies": [
+        "Qt6::Widgets",
+        "kritastore"
+      ]
+    },
+    {
+      "name": "test_animated_transform_parameters",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/tools/tool_transform2/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk",
+        "kritatooltransform_static",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "timeline_model_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "plugins/dockers/animation/tests",
+      "dependencies": [
+        "kritaanimationdocker_static",
+        "kritaimage",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "tsfiles",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
+      "name": "uninstall",
+      "type": "UTILITY",
+      "sourceDirectory": ".",
+      "dependencies": []
+    },
+    {
+      "name": "xcftools",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "plugins/impex/xcf",
+      "dependencies": []
+    },
+    {
+      "name": "zoomhandler_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/widgets/tests",
+      "dependencies": [
+        "kritatestsdk",
+        "kritawidgets"
+      ]
+    }
+  ]
+}

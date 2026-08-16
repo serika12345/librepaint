@@ -1,0 +1,9 @@
+{
+  "id": "pofiles-0123456789abcdef0123456789abcdef::@generated",
+  "name": "pofiles-0123456789abcdef0123456789abcdef",
+  "paths": {
+    "build": ".",
+    "source": "."
+  },
+  "type": "UTILITY"
+}

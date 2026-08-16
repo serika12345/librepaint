@@ -111,6 +111,33 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("native, macos, linux, ios, android, windows", result.stderr)
 
+    def test_windows_source_preparer_runs_in_an_isolated_process(self):
+        incremental_script = (
+            REPO_ROOT / "scripts/platform/build-windows-incremental"
+        ).read_text(encoding="utf-8")
+        windows_expression = (
+            REPO_ROOT / "nix/windows/krita.nix"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"$LIBREPAINT_WINDOWS_SOURCE_PREPARER"', incremental_script)
+        self.assertNotIn(
+            'source "$LIBREPAINT_WINDOWS_SOURCE_PREPARER"', incremental_script
+        )
+        self.assertIn(
+            'sourcePreparer = buildPkgs.writeShellScript', windows_expression
+        )
+        self.assertIn('source ${buildPkgs.stdenv}/setup', windows_expression)
+
+    def test_windows_configuration_runs_inside_the_build_tree(self):
+        incremental_script = (
+            REPO_ROOT / "scripts/platform/build-windows-incremental"
+        ).read_text(encoding="utf-8")
+
+        self.assertRegex(
+            incremental_script,
+            r'(?s)configure_prepared_tree\(\).*?cd "\$build_dir".*?cmake -S',
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
