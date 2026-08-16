@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-17 01:41 JST
+- 更新日時: 2026-08-17 01:45 JST
 - 状態: `planned`
 - 現在の検査段階: R1-G6a リソース表示境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -239,7 +239,7 @@
   `kritaxmlserialization`の実構築が成功した。
 - 5構成のCMake台帳と差分行列を再生成した。全構成から`kritastore`と互換専用試験が消え、
   書庫保存はQt Core、KConfig、QuaZip、XML直列化はQt Coreだけへ直接依存する。
-- `nix develop .#test --command ./scripts/verify-quick`: 85件の単体試験、責務・依存・構造台帳、
+- `nix develop .#test --command ./scripts/verify-quick`: 86件の単体試験、責務・依存・構造台帳、
   再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
 - `nix flake check --no-build --all-systems`: 全Nix出力の評価が成功した。
 - macOSの全3,563構築工程が成功し、LibrePaint本体、全製品プラグイン、登録済み試験を
@@ -248,6 +248,8 @@
   試験接頭辞修正前の資源経路による125件の異常終了は解消した。残る39件は既存の画像基準、
   Qt 6モデル契約、macOSファイル権限、300秒制限、セグメンテーション違反で失敗する。
   `TestResourceStorageArchiveContract`、`TestXmlWriter`と9件の登録済みタイル試験は成功する。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
+  同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
 
 ## 次の操作
 
