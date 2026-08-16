@@ -1,0 +1,1006 @@
+{
+  "schemaVersion": 1,
+  "scope": "r1-package-responsibility-dependency-policy",
+  "responsibilityMap": "docs/architecture/package-responsibilities.json",
+  "projectionPolicy": {
+    "dependencyKind": "direct-link-library",
+    "targetScope": "selected-owner-targets",
+    "sharedTargetHandling": "conservative-cartesian-product",
+    "sameResponsibilityHandling": "internal"
+  },
+  "responsibilities": [
+    {
+      "id": "application-orchestration",
+      "layer": 7,
+      "responsibility": "Composes process startup, operating-system lifecycle, workspaces, and the top-level application services without becoming a domain-state owner.",
+      "publicSurfaces": [
+        {
+          "id": "application-lifecycle",
+          "purpose": "Starts and stops the process-wide application session and accepts operating-system lifecycle notifications.",
+          "lifetime": "The session exists for one process event-loop lifetime; operating-system adapters borrow it while that event loop is active.",
+          "errorBehavior": "Startup failures complete before document state is exposed; lifecycle notification failures preserve the active session and emit diagnostics."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "canvas-presentation",
+          "surface": "canvas-view"
+        },
+        {
+          "responsibility": "document-lifecycle",
+          "surface": "document-persistence"
+        },
+        {
+          "responsibility": "document-lifecycle",
+          "surface": "document-session"
+        },
+        {
+          "responsibility": "import-export",
+          "surface": "format-codec"
+        },
+        {
+          "responsibility": "input-interpretation",
+          "surface": "input-action-stream"
+        },
+        {
+          "responsibility": "plugin-infrastructure",
+          "surface": "plugin-registration"
+        },
+        {
+          "responsibility": "resource-management",
+          "surface": "resource-catalog"
+        },
+        {
+          "responsibility": "tool-invocation",
+          "surface": "tool-command"
+        },
+        {
+          "responsibility": "tool-invocation",
+          "surface": "tool-settings"
+        }
+      ]
+    },
+    {
+      "id": "canvas-presentation",
+      "layer": 3,
+      "responsibility": "Presents image and vector projections, maps view coordinates, and owns canvas screen state.",
+      "publicSurfaces": [
+        {
+          "id": "canvas-view",
+          "purpose": "Presents an image projection and maps between document, canvas, and device coordinates.",
+          "lifetime": "A workspace or view owns the canvas session; the session borrows image state through the image-model surface.",
+          "errorBehavior": "Invalid view inputs are rejected before screen state changes; update failures retain the last valid presentation state."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "painting-rendering",
+          "surface": "image-model"
+        },
+        {
+          "responsibility": "resource-management",
+          "surface": "resource-catalog"
+        }
+      ]
+    },
+    {
+      "id": "document-lifecycle",
+      "layer": 4,
+      "responsibility": "Owns document identity, lifetime, modified state, undo coordination, persistence coordination, and the current image reference.",
+      "publicSurfaces": [
+        {
+          "id": "document-persistence",
+          "purpose": "Coordinates transactional document loading, saving, autosave, and recovery through import-export contracts.",
+          "lifetime": "Each operation is bounded by one document and one persistence request; cancellation ends the request before ownership returns to the caller.",
+          "errorBehavior": "Failures preserve the last valid document identity and content and return a classified persistence result."
+        },
+        {
+          "id": "document-session",
+          "purpose": "Exposes document identity, modified state, undo coordination, and the owned image for application use cases.",
+          "lifetime": "The document owner retains the session and its image reference; consumers borrow the session for their connected application or tool lifetime.",
+          "errorBehavior": "Invalid state transitions are rejected before identity, undo, or image ownership changes."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "import-export",
+          "surface": "document-serialization"
+        },
+        {
+          "responsibility": "import-export",
+          "surface": "format-codec"
+        },
+        {
+          "responsibility": "painting-rendering",
+          "surface": "image-model"
+        },
+        {
+          "responsibility": "plugin-infrastructure",
+          "surface": "plugin-registration"
+        },
+        {
+          "responsibility": "resource-management",
+          "surface": "resource-catalog"
+        }
+      ]
+    },
+    {
+      "id": "import-export",
+      "layer": 3,
+      "responsibility": "Owns format selection, external-data validation, codec execution, and serialized document transfer.",
+      "publicSurfaces": [
+        {
+          "id": "document-serialization",
+          "purpose": "Imports validated external data into image state and exports a stable image snapshot through a selected codec.",
+          "lifetime": "One request owns codec and transaction state until completion or cancellation; image ownership remains with the caller.",
+          "errorBehavior": "Parse, validation, and write failures return classified results before the caller commits document identity or content changes."
+        },
+        {
+          "id": "format-codec",
+          "purpose": "Selects format capabilities by stable MIME identifiers and exposes validation requirements.",
+          "lifetime": "Codec descriptors live with the registration catalog; each import or export request receives a request-scoped codec instance.",
+          "errorBehavior": "Unsupported or invalid formats produce a classified capability result with the requested stable identifier."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "painting-rendering",
+          "surface": "image-model"
+        },
+        {
+          "responsibility": "plugin-infrastructure",
+          "surface": "plugin-registration"
+        },
+        {
+          "responsibility": "resource-management",
+          "surface": "resource-catalog"
+        }
+      ]
+    },
+    {
+      "id": "input-interpretation",
+      "layer": 6,
+      "responsibility": "Converts pointer, keyboard, touch, tablet, and shortcut events into coordinate-aware application and tool actions.",
+      "publicSurfaces": [
+        {
+          "id": "input-action-stream",
+          "purpose": "Emits normalized action sequences with device, coordinate, pressure, modifier, and gesture state.",
+          "lifetime": "An input sequence lasts from activation through completion or cancellation and borrows its canvas and tool sessions.",
+          "errorBehavior": "Invalid or incomplete sequences terminate as cancellation events before a tool command mutates document state."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "canvas-presentation",
+          "surface": "canvas-view"
+        },
+        {
+          "responsibility": "tool-invocation",
+          "surface": "tool-command"
+        }
+      ]
+    },
+    {
+      "id": "painting-rendering",
+      "layer": 2,
+      "responsibility": "Owns image, layer, tile, projection, color, brush, stroke scheduling, and paint execution state.",
+      "publicSurfaces": [
+        {
+          "id": "image-model",
+          "purpose": "Provides owned image state, layer and tile operations, projection notifications, and stable image snapshots.",
+          "lifetime": "The document retains shared image ownership; jobs and views hold explicit shared or borrowed references for their bounded lifetimes.",
+          "errorBehavior": "Invalid image operations fail before observable state changes; asynchronous failures complete their jobs and preserve scheduler consistency."
+        },
+        {
+          "id": "paint-execution",
+          "purpose": "Schedules cancellable stroke and projection work against an image through deterministic job boundaries.",
+          "lifetime": "A stroke owns its job sequence until completion or cancellation; the scheduler retains image state for every accepted job.",
+          "errorBehavior": "Rejected or failed jobs complete with a classified result and leave undo and projection state at a consistent boundary."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "plugin-infrastructure",
+          "surface": "plugin-registration"
+        },
+        {
+          "responsibility": "resource-management",
+          "surface": "resource-catalog"
+        }
+      ]
+    },
+    {
+      "id": "plugin-infrastructure",
+      "layer": 0,
+      "responsibility": "Owns plugin metadata discovery and the process for registering validated factories with domain registries.",
+      "publicSurfaces": [
+        {
+          "id": "plugin-registration",
+          "purpose": "Validates plugin metadata and registers typed factories with an explicitly selected domain registry.",
+          "lifetime": "Registration records live with their process-wide domain registry; plugin instances follow the lifetime contract of that registry.",
+          "errorBehavior": "Invalid, unavailable, or duplicate registrations are rejected with diagnostics that preserve the plugin identifier and service type."
+        }
+      ],
+      "allowedDependencies": []
+    },
+    {
+      "id": "resource-management",
+      "layer": 1,
+      "responsibility": "Owns resource storage, lookup, tagging, bundles, configuration data, and resource selection models.",
+      "publicSurfaces": [
+        {
+          "id": "resource-catalog",
+          "purpose": "Resolves typed resources and immutable resource descriptors by stable identifiers and tags.",
+          "lifetime": "The application resource session owns catalog entries; consumers retain explicit resource values or bounded catalog handles.",
+          "errorBehavior": "Missing, invalid, or incompatible resources return classified lookup results without changing the catalog."
+        },
+        {
+          "id": "resource-storage",
+          "purpose": "Imports, exports, updates, and removes resource content through transactional storage operations.",
+          "lifetime": "Each storage transaction owns its external handles until commit or rollback; committed catalog entries follow the application resource session.",
+          "errorBehavior": "Storage failures roll back the transaction and retain the previous catalog and bundle state."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "plugin-infrastructure",
+          "surface": "plugin-registration"
+        }
+      ]
+    },
+    {
+      "id": "tool-invocation",
+      "layer": 5,
+      "responsibility": "Owns tool selection, tool settings presentation, and cancellable tool commands against canvas and document state.",
+      "publicSurfaces": [
+        {
+          "id": "tool-command",
+          "purpose": "Activates a tool and applies a cancellable interaction as document, image, selection, or transformation commands.",
+          "lifetime": "One active tool owns each interaction until completion or cancellation and borrows its canvas and document sessions.",
+          "errorBehavior": "Validation and execution failures terminate the interaction at an undo-consistent boundary and return a classified result."
+        },
+        {
+          "id": "tool-settings",
+          "purpose": "Presents and updates typed tool configuration while preserving stable resource and action identifiers.",
+          "lifetime": "The active tool session owns settings presentation; persisted values and selected resources follow their owning services.",
+          "errorBehavior": "Invalid settings are rejected before the active tool or persisted configuration changes."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "canvas-presentation",
+          "surface": "canvas-view"
+        },
+        {
+          "responsibility": "document-lifecycle",
+          "surface": "document-session"
+        },
+        {
+          "responsibility": "painting-rendering",
+          "surface": "image-model"
+        },
+        {
+          "responsibility": "painting-rendering",
+          "surface": "paint-execution"
+        },
+        {
+          "responsibility": "resource-management",
+          "surface": "resource-catalog"
+        }
+      ]
+    }
+  ],
+  "currentTargetEdges": [
+    {
+      "sourceTarget": "krita",
+      "dependencyTarget": "kritaui",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "resource-management",
+        "tool-invocation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "application-orchestration",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "import-export",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritabasicflakes",
+      "dependencyTarget": "kritaflake",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritabasicflakes",
+      "dependencyTarget": "kritapigment",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritabasicflakes",
+      "dependencyTarget": "kritaui",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "resource-management",
+        "tool-invocation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "application-orchestration",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaflake",
+      "dependencyTarget": "kritacommand",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaflake",
+      "dependencyTarget": "kritapigment",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimage",
+      "dependencyTarget": "kritacommand",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimage",
+      "dependencyTarget": "kritametadata",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimage",
+      "dependencyTarget": "kritapigment",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimage",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpex",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritalibbrush",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritametadata",
+      "dependencyTarget": "kritaplugin",
+      "sourceResponsibilities": [
+        "document-lifecycle"
+      ],
+      "dependencyResponsibilities": [
+        "plugin-infrastructure"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "plugin-infrastructure",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritapigment",
+      "dependencyTarget": "kritacommand",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritapigment",
+      "dependencyTarget": "kritaplugin",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "plugin-infrastructure"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "plugin-infrastructure",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritapigment",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritapigment",
+      "dependencyTarget": "kritastore",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaresources",
+      "dependencyTarget": "kritaplugin",
+      "sourceResponsibilities": [
+        "resource-management"
+      ],
+      "dependencyResponsibilities": [
+        "plugin-infrastructure"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "plugin-infrastructure",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaresources",
+      "dependencyTarget": "kritastore",
+      "sourceResponsibilities": [
+        "resource-management"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaresourcewidgets",
+      "dependencyTarget": "kritaplugin",
+      "sourceResponsibilities": [
+        "resource-management"
+      ],
+      "dependencyResponsibilities": [
+        "plugin-infrastructure"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "plugin-infrastructure",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaresourcewidgets",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "resource-management"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "resource-management",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaresourcewidgets",
+      "dependencyTarget": "kritastore",
+      "sourceResponsibilities": [
+        "resource-management"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritacolor",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "resource-management",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "resource-management",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritaimpex",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "resource-management",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "import-export",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritalibbrush",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "resource-management",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "resource-management",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "resource-management",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "resource-management",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    }
+  ]
+}
