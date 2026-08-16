@@ -1,0 +1,1459 @@
+{
+  "schemaVersion": 1,
+  "scope": "r1-g4b-structural-dependency-baseline",
+  "inputs": {
+    "allowedDependencyPolicy": "docs/architecture/allowed-package-dependencies.json",
+    "dependencyViolationBaseline": "docs/architecture/dependency-violation-baseline.json",
+    "packageResponsibilityMap": "docs/architecture/package-responsibilities.json",
+    "publicSurfaceInventory": "docs/architecture/public-surface-inventory.json",
+    "uiClassInventory": "docs/architecture/ui-class-responsibilities.json",
+    "uiToolClassInventory": "docs/architecture/ui-tool-class-responsibilities.json",
+    "cmakeGraphs": "docs/architecture/cmake-targets-<platform>.json"
+  },
+  "projectionResolutionPolicy": {
+    "candidateScope": "r1-g4-projections-without-confirmed-violation",
+    "evidence": "uniquely-attributed-direct-includes-for-each-target-link",
+    "successfulDisposition": "disproved-by-direct-include-attribution"
+  },
+  "projectionResolutions": [
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "application-orchestration",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool.cpp",
+          "include": "kis_canvas_resource_provider.h",
+          "headerPath": "libs/ui/kis_canvas_resource_provider.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool_p.h",
+          "include": "kis_config.h",
+          "headerPath": "libs/ui/kis_config.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
+          "include": "widgets/KoStrokeConfigWidget.h",
+          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "import-export",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool.cpp",
+          "include": "kis_canvas_resource_provider.h",
+          "headerPath": "libs/ui/kis_canvas_resource_provider.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool_p.h",
+          "include": "kis_config.h",
+          "headerPath": "libs/ui/kis_config.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
+          "include": "widgets/KoStrokeConfigWidget.h",
+          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.cpp",
+          "include": "KisExportCheckBase.h",
+          "headerPath": "libs/impex/KisExportCheckBase.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.cpp",
+          "include": "KisExportCheckRegistry.h",
+          "headerPath": "libs/impex/KisExportCheckRegistry.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.h",
+          "include": "KisExportCheckBase.h",
+          "headerPath": "libs/impex/KisExportCheckBase.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportManager.cpp",
+          "include": "KisPreExportChecker.h",
+          "headerPath": "libs/impex/KisPreExportChecker.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "input-interpretation",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool.cpp",
+          "include": "kis_canvas_resource_provider.h",
+          "headerPath": "libs/ui/kis_canvas_resource_provider.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool_p.h",
+          "include": "kis_config.h",
+          "headerPath": "libs/ui/kis_config.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
+          "include": "widgets/KoStrokeConfigWidget.h",
+          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "tool-invocation",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool.cpp",
+          "include": "kis_canvas_resource_provider.h",
+          "headerPath": "libs/ui/kis_canvas_resource_provider.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool_p.h",
+          "include": "kis_config.h",
+          "headerPath": "libs/ui/kis_config.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
+          "include": "widgets/KoStrokeConfigWidget.h",
+          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "classified-public-path"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "input-interpretation",
+      "dependencyResponsibility": "import-export",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.cpp",
+          "include": "KisExportCheckBase.h",
+          "headerPath": "libs/impex/KisExportCheckBase.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.cpp",
+          "include": "KisExportCheckRegistry.h",
+          "headerPath": "libs/impex/KisExportCheckRegistry.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.h",
+          "include": "KisExportCheckBase.h",
+          "headerPath": "libs/impex/KisExportCheckBase.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportManager.cpp",
+          "include": "KisPreExportChecker.h",
+          "headerPath": "libs/impex/KisPreExportChecker.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "tool-invocation",
+      "dependencyResponsibility": "import-export",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.cpp",
+          "include": "KisExportCheckBase.h",
+          "headerPath": "libs/impex/KisExportCheckBase.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.cpp",
+          "include": "KisExportCheckRegistry.h",
+          "headerPath": "libs/impex/KisExportCheckRegistry.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.h",
+          "include": "KisExportCheckBase.h",
+          "headerPath": "libs/impex/KisExportCheckBase.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportManager.cpp",
+          "include": "KisPreExportChecker.h",
+          "headerPath": "libs/impex/KisPreExportChecker.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    }
+  ],
+  "targetCycleBaseline": {
+    "policy": {
+      "dependencyKind": "direct-link-library",
+      "scopes": [
+        "core-owner-targets",
+        "all-production-build-targets"
+      ],
+      "productionSourceDirectories": [
+        "krita",
+        "libs",
+        "packaging",
+        "pch",
+        "plugins",
+        "qmlmodules",
+        "sdk",
+        "winquirks"
+      ],
+      "excludedPathParts": [
+        "benchmarks",
+        "test",
+        "tests"
+      ],
+      "targetTypes": [
+        "EXECUTABLE",
+        "MODULE_LIBRARY",
+        "OBJECT_LIBRARY",
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "componentKind": "nontrivial-strongly-connected-component"
+    },
+    "owner": "R1-G6",
+    "maximumComponents": 0,
+    "removalCondition": "Production target relations remain acyclic through the R1 package split and final dependency policy validation.",
+    "scopes": [
+      {
+        "scope": "core-owner-targets",
+        "platforms": [
+          {
+            "platform": "macos",
+            "targetCount": 15,
+            "components": []
+          },
+          {
+            "platform": "linux",
+            "targetCount": 15,
+            "components": []
+          },
+          {
+            "platform": "ios",
+            "targetCount": 15,
+            "components": []
+          },
+          {
+            "platform": "android",
+            "targetCount": 15,
+            "components": []
+          },
+          {
+            "platform": "windows",
+            "targetCount": 15,
+            "components": []
+          }
+        ]
+      },
+      {
+        "scope": "all-production-build-targets",
+        "platforms": [
+          {
+            "platform": "macos",
+            "targetCount": 214,
+            "components": []
+          },
+          {
+            "platform": "linux",
+            "targetCount": 220,
+            "components": []
+          },
+          {
+            "platform": "ios",
+            "targetCount": 206,
+            "components": []
+          },
+          {
+            "platform": "android",
+            "targetCount": 206,
+            "components": []
+          },
+          {
+            "platform": "windows",
+            "targetCount": 223,
+            "components": []
+          }
+        ]
+      }
+    ]
+  },
+  "internalHeaderPolicy": {
+    "ownerScope": "complete-public-header-sets",
+    "headerSelection": "external-include-without-export-macro",
+    "referenceKind": "direct-include-from-outside-owner-source-directory",
+    "publicationEvidence": "de-facto-only"
+  },
+  "internalHeaderBaseline": [
+    {
+      "ownerTarget": "kritaimage",
+      "owner": "R1-G6",
+      "reason": "External packages directly include image headers without a declared KRITAIMAGE_EXPORT public contract.",
+      "maximumHeaders": 29,
+      "maximumDirectReferences": 593,
+      "removalCondition": "Each reference uses a reviewed public image contract or moves behind the owning image package boundary.",
+      "sourceDirectory": "libs/image",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/image/KisImageBarrierLock.h",
+          "consumerPaths": [
+            "libs/ui/KisDocument.cpp",
+            "libs/ui/KisImportExportUtils.h",
+            "libs/ui/KisViewManager.cpp",
+            "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/canvas/KisCanvasAnimationState.cpp",
+            "libs/ui/canvas/kis_canvas2.cpp",
+            "libs/ui/kis_mimedata.cpp",
+            "libs/ui/kis_selection_manager.cc",
+            "plugins/dockers/animation/KisAnimCurvesModel.cpp",
+            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
+            "plugins/dockers/animation/KisTimeBasedItemModel.cpp",
+            "plugins/extensions/layersplit/layersplit.cpp",
+            "plugins/extensions/qmic/kis_qmic_interface.cpp",
+            "plugins/extensions/separate_channels/kis_channel_separator.cc",
+            "plugins/impex/psd/psd_loader.cpp",
+            "plugins/paintops/libpaintop/kis_custom_brush_widget.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/KisNodeAdditionFlags.h",
+          "consumerPaths": [
+            "libs/ui/KisView.h",
+            "libs/ui/flake/kis_dummies_facade_base.h"
+          ]
+        },
+        {
+          "path": "libs/image/KisRenderedDab.h",
+          "consumerPaths": [
+            "plugins/paintops/defaultpaintops/brush/KisDabRenderingExecutor.cpp",
+            "plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.cpp",
+            "plugins/paintops/defaultpaintops/brush/kis_brushop.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/KisRunnableStrokeJobUtils.h",
+          "consumerPaths": [
+            "libs/ui/KisImageThumbnailStrokeStrategy.cpp",
+            "libs/ui/KisLayerThumbnailCache.cpp",
+            "libs/ui/tool/strokes/freehand_stroke.cpp",
+            "libs/ui/tool/strokes/kis_filter_stroke_strategy.cpp",
+            "libs/ui/tool/strokes/kis_painter_based_stroke_strategy.cpp",
+            "libs/ui/tool/strokes/move_stroke_strategy.cpp",
+            "plugins/paintops/defaultpaintops/brush/kis_brushop.cpp",
+            "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp",
+            "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.cpp",
+            "plugins/tools/tool_transform2/strokes/transform_stroke_strategy.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/KisSelectionTags.h",
+          "consumerPaths": [
+            "libs/ui/KisSelectionActionsAdapter.h",
+            "libs/ui/kis_node_model.h",
+            "libs/ui/kis_selection_manager.h",
+            "libs/ui/widgets/kis_selection_options.h"
+          ]
+        },
+        {
+          "path": "libs/image/KisSequentialIteratorProgress.h",
+          "consumerPaths": [
+            "plugins/filters/colors/kis_color_to_alpha.cpp",
+            "plugins/filters/colors/kis_minmax_filters.cpp",
+            "plugins/filters/colorsfilters/colorsfilters.cpp",
+            "plugins/filters/embossfilter/kis_emboss_filter.cpp",
+            "plugins/filters/fastcolortransfer/fastcolortransfer.cpp",
+            "plugins/filters/gaussianhighpass/gaussianhighpass_filter.cpp",
+            "plugins/filters/gradientmap/KisGradientMapFilter.cpp",
+            "plugins/filters/halftone/KisHalftoneFilter.cpp",
+            "plugins/filters/imageenhancement/kis_simple_noise_reducer.cpp",
+            "plugins/filters/oilpaintfilter/kis_oilpaint_filter.cpp",
+            "plugins/filters/palettize/palettize.cpp",
+            "plugins/filters/pixelizefilter/kis_pixelize_filter.cpp",
+            "plugins/filters/propagatecolors/KisPropagateColorsFilter.cpp",
+            "plugins/filters/randompickfilter/randompickfilter.cpp",
+            "plugins/filters/resettransparent/KisResetTransparentFilter.cpp",
+            "plugins/filters/roundcorners/kis_round_corners_filter.cpp",
+            "plugins/filters/threshold/threshold.cpp",
+            "plugins/filters/unsharp/kis_unsharp_filter.cpp",
+            "plugins/filters/wavefilter/wavefilter.cpp",
+            "plugins/generators/screentone/KisScreentoneGenerator.cpp",
+            "plugins/generators/seexpr/generator.cpp",
+            "plugins/generators/simplexnoise/simplexnoisegenerator.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/KisWraparoundAxis.h",
+          "consumerPaths": [
+            "libs/ui/canvas/kis_abstract_canvas_widget.h",
+            "libs/ui/canvas/kis_canvas2.h",
+            "libs/ui/canvas/kis_canvas_controller.h",
+            "libs/ui/opengl/KisOpenGLCanvasRenderer.h"
+          ]
+        },
+        {
+          "path": "libs/image/brushengine/kis_locked_properties.h",
+          "consumerPaths": [
+            "libs/ui/kis_canvas_controls_manager.cpp",
+            "libs/ui/kis_paintop_box.h",
+            "libs/ui/kis_paintop_settings_widget.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/brushengine/kis_paintop_lod_limitations.h",
+          "consumerPaths": [
+            "libs/brush/KisBrushModel.cpp",
+            "libs/brush/kis_auto_brush.cpp",
+            "libs/brush/kis_brush.cpp",
+            "libs/ui/kis_paintop_option.cpp",
+            "libs/ui/kis_paintop_settings_widget.cpp",
+            "libs/ui/widgets/KisLodAvailabilityModel.h",
+            "libs/ui/widgets/kis_lod_availability_widget.h",
+            "plugins/paintops/colorsmudge/KisSmudgeOverlayModeOptionData.cpp",
+            "plugins/paintops/colorsmudge/KisSmudgeOverlayModeOptionWidget.cpp",
+            "plugins/paintops/defaultpaintops/duplicate/kis_duplicateop_settings_widget.cpp",
+            "plugins/paintops/deform/KisDeformOptionData.cpp",
+            "plugins/paintops/hairy/KisHairyBristleOptionData.cpp",
+            "plugins/paintops/hairy/KisHairyBristleOptionWidget.cpp",
+            "plugins/paintops/hatching/KisHatchingOptionsData.cpp",
+            "plugins/paintops/hatching/KisHatchingOptionsWidget.cpp",
+            "plugins/paintops/hatching/KisHatchingPreferencesWidget.cpp",
+            "plugins/paintops/libpaintop/KisMaskingBrushOption.cpp",
+            "plugins/paintops/libpaintop/KisPaintOpOptionWidgetUtils.h",
+            "plugins/paintops/libpaintop/KisSizeOptionData.h",
+            "plugins/paintops/libpaintop/KisSizeOptionWidget.cpp",
+            "plugins/paintops/libpaintop/KisTextureOptionData.cpp",
+            "plugins/paintops/libpaintop/KisTextureOptionWidget.cpp",
+            "plugins/paintops/libpaintop/kis_brush_option_widget.cpp",
+            "plugins/paintops/mypaint/MyPaintCurveOptionWidget.cpp",
+            "plugins/paintops/mypaint/MyPaintPaintOpSettingsWidget.cpp",
+            "plugins/paintops/mypaint/MyPaintStandardOptionData.h",
+            "plugins/paintops/particle/KisParticleOpOptionData.cpp",
+            "plugins/paintops/sketch/KisSketchOpOptionData.cpp",
+            "plugins/paintops/sketch/KisSketchOpOptionWidget.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/brushengine/kis_standard_uniform_properties_factory.h",
+          "consumerPaths": [
+            "plugins/paintops/curvebrush/kis_curve_paintop_settings.cpp",
+            "plugins/paintops/defaultpaintops/duplicate/kis_duplicateop_settings.cpp",
+            "plugins/paintops/deform/kis_deform_paintop_settings.cpp",
+            "plugins/paintops/experiment/kis_experiment_paintop_settings.cpp",
+            "plugins/paintops/particle/kis_particle_paintop_settings.cpp",
+            "plugins/paintops/roundmarker/kis_roundmarkerop_settings.cpp",
+            "plugins/paintops/spray/kis_spray_paintop_settings.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/commands/kis_change_filter_command.h",
+          "consumerPaths": [
+            "libs/ui/dialogs/kis_dlg_generator_layer.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/commands/kis_image_commands.h",
+          "consumerPaths": [
+            "libs/ui/kis_image_manager.cc",
+            "libs/ui/kis_layer_manager.cc",
+            "plugins/extensions/clonesarray/dlg_clonesarray.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/commands/kis_node_commands.h",
+          "consumerPaths": [
+            "libs/ui/kis_layer_manager.cc",
+            "libs/ui/kis_mask_manager.cc",
+            "libs/ui/kis_node_commands_adapter.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/commands/kis_selection_commands.h",
+          "consumerPaths": [
+            "libs/ui/actions/KisPasteActionFactories.cpp",
+            "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/kis_selection_manager.cc",
+            "libs/ui/tool/kis_selection_tool_helper.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_brush_mask_applicator_base.h",
+          "consumerPaths": [
+            "libs/brush/kis_auto_brush.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_cached_paint_device.h",
+          "consumerPaths": [
+            "plugins/filters/gaussianhighpass/gaussianhighpass_filter.h",
+            "plugins/filters/halftone/KisHalftoneFilter.h",
+            "plugins/paintops/libpaintop/kis_texture_option.h"
+          ]
+        },
+        {
+          "path": "libs/image/kis_cross_device_color_sampler.h",
+          "consumerPaths": [
+            "plugins/paintops/deform/deform_brush.cpp",
+            "plugins/paintops/gridbrush/kis_grid_paintop.cpp",
+            "plugins/paintops/hairy/hairy_brush.cpp",
+            "plugins/paintops/mypaint/MyPaintSurface.cpp",
+            "plugins/paintops/roundmarker/kis_roundmarkerop.cpp",
+            "plugins/paintops/spray/spray_brush.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_datamanager.h",
+          "consumerPaths": [
+            "libs/brush/kis_abr_brush.cpp",
+            "libs/brush/kis_auto_brush.cpp",
+            "libs/brush/kis_brush.cpp",
+            "libs/brush/kis_gbr_brush.cpp",
+            "libs/ui/canvas/kis_image_pyramid.cpp",
+            "plugins/impex/libkra/kis_kra_load_visitor.cpp",
+            "plugins/paintops/defaultpaintops/duplicate/kis_duplicateop.cpp",
+            "plugins/paintops/libpaintop/kis_color_source.cpp",
+            "plugins/tools/tool_knife/KisToolKnife.cpp",
+            "plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_do_something_command.h",
+          "consumerPaths": [
+            "libs/ui/flake/kis_shape_layer.cc",
+            "libs/ui/flake/kis_shape_layer_canvas.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_exif_info_visitor.h",
+          "consumerPaths": [
+            "libs/impex/ExifCheck.h",
+            "plugins/impex/heif/HeifExport.cpp",
+            "plugins/impex/jpeg/kis_jpeg_export.cc",
+            "plugins/impex/jxl/JPEGXLExport.cpp",
+            "plugins/impex/png/kis_png_export.cc",
+            "plugins/impex/webp/kis_webp_export.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_layer_projection_plane.h",
+          "consumerPaths": [
+            "libs/ui/widgets/kis_scratch_pad.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_mask_generator.h",
+          "consumerPaths": [
+            "libs/brush/kis_auto_brush.cpp",
+            "libs/brush/kis_auto_brush_factory.cpp",
+            "plugins/filters/blur/kis_blur_filter.cpp",
+            "plugins/filters/gaussianhighpass/gaussianhighpass_filter.cpp",
+            "plugins/filters/imageenhancement/kis_simple_noise_reducer.cpp",
+            "plugins/filters/unsharp/kis_unsharp_filter.cpp",
+            "plugins/paintops/libpaintop/kis_auto_brush_widget.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_progress_update_helper.h",
+          "consumerPaths": [
+            "plugins/filters/colors/kis_color_to_alpha.cpp",
+            "plugins/generators/multigridpattern/multigridpatterngenerator.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_sequential_iterator.h",
+          "consumerPaths": [
+            "libs/libkis/Channel.cpp",
+            "libs/ui/kis_node_manager.cpp",
+            "libs/ui/tool/kis_tool_utils.cpp",
+            "plugins/dockers/channeldocker/KisChannelsThumbnailsStrokeStrategy.cpp",
+            "plugins/dockers/histogram/HistogramComputationStrokeStrategy.cpp",
+            "plugins/dockers/widegamutcolorselector/WGMyPaintShadeSelector.cpp",
+            "plugins/impex/rgbe/RGBEExport.cpp",
+            "plugins/impex/rgbe/RGBEImport.cpp",
+            "plugins/impex/rgbe/RGBEImportUtils.cpp",
+            "plugins/impex/rgbe/RGBEImportUtils.h",
+            "plugins/paintops/mypaint/MyPaintSurface.cpp",
+            "plugins/paintops/mypaint/MyPaintSurface.h",
+            "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.cpp",
+            "plugins/tools/tool_transform2/strokes/transform_stroke_strategy.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_threaded_text_rendering_workaround.h",
+          "consumerPaths": [
+            "libs/brush/kis_text_brush.cpp",
+            "libs/ui/tool/kis_resources_snapshot.cpp",
+            "plugins/paintops/libpaintop/kis_brush_based_paintop.h",
+            "plugins/paintops/libpaintop/kis_brush_option.h"
+          ]
+        },
+        {
+          "path": "libs/image/kis_transaction.h",
+          "consumerPaths": [
+            "libs/libkis/ColorizeMask.cpp",
+            "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
+            "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
+            "libs/ui/dialogs/kis_dlg_file_layer.cpp",
+            "libs/ui/dialogs/kis_dlg_generator_layer.cpp",
+            "libs/ui/kis_mask_manager.cc",
+            "libs/ui/kis_node_manager.cpp",
+            "libs/ui/kis_png_converter.cpp",
+            "libs/ui/kis_selection_manager.cc",
+            "libs/ui/operations/kis_filter_selection_operation.cpp",
+            "libs/ui/tool/kis_selection_tool_helper.cpp",
+            "libs/ui/tool/kis_tool_utils.cpp",
+            "libs/ui/tool/strokes/kis_filter_stroke_strategy.cpp",
+            "libs/ui/tool/strokes/kis_painter_based_stroke_strategy.cpp",
+            "libs/ui/tool/strokes/move_stroke_strategy.h",
+            "libs/ui/widgets/kis_preset_live_preview_view.cpp",
+            "libs/ui/widgets/kis_scratch_pad.cpp",
+            "plugins/dockers/animation/KisAnimUtils.cpp",
+            "plugins/extensions/colorrange/dlg_colorrange.cc",
+            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
+            "plugins/extensions/offsetimage/kis_offset_processing_visitor.cpp",
+            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp",
+            "plugins/extensions/separate_channels/kis_channel_separator.cc",
+            "plugins/impex/brush/kis_brush_import.cpp",
+            "plugins/impex/exr/exr_converter.cc",
+            "plugins/impex/gif/kis_gif_import.cpp",
+            "plugins/impex/heif/HeifImport.cpp",
+            "plugins/impex/heightmap/kis_heightmap_import.cpp",
+            "plugins/impex/jp2/jp2_converter.cc",
+            "plugins/impex/jpeg/kis_jpeg_converter.cc",
+            "plugins/impex/pdf/kis_pdf_import.cpp",
+            "plugins/impex/psd/psd_loader.cpp",
+            "plugins/impex/psd/psd_saver.cpp",
+            "plugins/impex/qimageio/kis_qimageio_import.cpp",
+            "plugins/impex/raw/kis_raw_import.cpp",
+            "plugins/impex/tga/kis_tga_import.cpp",
+            "plugins/impex/xcf/kis_xcf_import.cpp",
+            "plugins/paintops/colorsmudge/KisColorSmudgeInterstrokeData.cpp",
+            "plugins/paintops/filterop/kis_filterop.cpp",
+            "plugins/tools/basictools/kis_tool_gradient.cc",
+            "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp",
+            "plugins/tools/tool_knife/KisToolKnife.cpp",
+            "plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp",
+            "plugins/tools/tool_transform2/kis_tool_transform.cc",
+            "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.cpp",
+            "plugins/tools/tool_transform2/strokes/transform_stroke_strategy.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_types.h",
+          "consumerPaths": [
+            "libs/brush/kis_abr_brush.h",
+            "libs/brush/kis_abr_brush_collection.h",
+            "libs/brush/kis_boundary.h",
+            "libs/brush/kis_brush.h",
+            "libs/brush/kis_brush_registry.h",
+            "libs/brush/kis_gbr_brush.h",
+            "libs/impex/KisExportCheckBase.h",
+            "libs/impex/KisPreExportChecker.h",
+            "libs/libkis/CloneLayer.h",
+            "libs/libkis/ColorizeMask.h",
+            "libs/libkis/Document.cpp",
+            "libs/libkis/FileLayer.h",
+            "libs/libkis/FillLayer.h",
+            "libs/libkis/FilterLayer.h",
+            "libs/libkis/FilterMask.h",
+            "libs/libkis/GroupLayer.h",
+            "libs/libkis/GroupShape.h",
+            "libs/libkis/LibKisUtils.h",
+            "libs/libkis/Node.cpp",
+            "libs/libkis/Node.h",
+            "libs/libkis/Notifier.h",
+            "libs/libkis/Preset.h",
+            "libs/libkis/Resource.h",
+            "libs/libkis/Scratchpad.h",
+            "libs/libkis/Selection.h",
+            "libs/libkis/SelectionMask.h",
+            "libs/libkis/Shape.h",
+            "libs/libkis/TransformMask.h",
+            "libs/libkis/TransparencyMask.h",
+            "libs/libkis/VectorLayer.h",
+            "libs/psd/psd_additional_layer_info_block.h",
+            "libs/psd/psd_layer_record.h",
+            "libs/psd/psd_layer_section.h",
+            "libs/psd/psd_pixel_utils.h",
+            "libs/ui/KisAsyncAnimationRendererBase.h",
+            "libs/ui/KisCanvasSurfaceColorSpaceManager.h",
+            "libs/ui/KisDecorationsWrapperLayer.h",
+            "libs/ui/KisDocument.h",
+            "libs/ui/KisFrameCacheStore.h",
+            "libs/ui/KisIdleTaskStrokeStrategy.h",
+            "libs/ui/KisImageThumbnailStrokeStrategy.h",
+            "libs/ui/KisImportExportFilter.h",
+            "libs/ui/KisLayerThumbnailCache.h",
+            "libs/ui/KisPaintopPropertiesBase.h",
+            "libs/ui/KisPart.h",
+            "libs/ui/KisReferenceImage.h",
+            "libs/ui/KisReferenceImagesDecoration.h",
+            "libs/ui/KisSaveGroupVisitor.h",
+            "libs/ui/KisSelectionActionsAdapter.h",
+            "libs/ui/KisView.h",
+            "libs/ui/KisViewManager.h",
+            "libs/ui/StoryboardItem.h",
+            "libs/ui/animation/KisDlgAnimationRenderer.h",
+            "libs/ui/animation/KisHDRMetadataOptions.h",
+            "libs/ui/animation/KisVideoSaver.h",
+            "libs/ui/animation/VideoHDRMetadataOptionsDialog.h",
+            "libs/ui/canvas/kis_abstract_canvas_widget.h",
+            "libs/ui/canvas/kis_canvas2.h",
+            "libs/ui/canvas/kis_canvas_controller.h",
+            "libs/ui/canvas/kis_coordinates_converter.h",
+            "libs/ui/canvas/kis_display_color_converter.h",
+            "libs/ui/canvas/kis_grid_manager.h",
+            "libs/ui/canvas/kis_image_patch.h",
+            "libs/ui/canvas/kis_prescaled_projection.h",
+            "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.h",
+            "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.h",
+            "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.h",
+            "libs/ui/dialogs/KisColorSpaceConversionDialog.h",
+            "libs/ui/dialogs/KisDlgChangeCloneSource.h",
+            "libs/ui/dialogs/KisRecoverNamedAutosaveDialog.h",
+            "libs/ui/dialogs/kis_delayed_save_dialog.h",
+            "libs/ui/dialogs/kis_dlg_adj_layer_props.h",
+            "libs/ui/dialogs/kis_dlg_adjustment_layer.h",
+            "libs/ui/dialogs/kis_dlg_filter.h",
+            "libs/ui/dialogs/kis_dlg_image_properties.h",
+            "libs/ui/dialogs/kis_dlg_layer_properties.h",
+            "libs/ui/dialogs/kis_dlg_layer_style.h",
+            "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
+            "libs/ui/flake/KisReferenceImagesLayer.h",
+            "libs/ui/flake/kis_dummies_facade_base.h",
+            "libs/ui/flake/kis_node_dummies_graph.h",
+            "libs/ui/flake/kis_node_shape.cpp",
+            "libs/ui/flake/kis_node_shape.h",
+            "libs/ui/flake/kis_node_shapes_graph.h",
+            "libs/ui/flake/kis_shape_layer.cc",
+            "libs/ui/flake/kis_shape_layer.h",
+            "libs/ui/flake/kis_shape_layer_canvas.h",
+            "libs/ui/flake/kis_shape_selection.h",
+            "libs/ui/flake/kis_shape_selection_canvas.h",
+            "libs/ui/flake/kis_shape_selection_model.h",
+            "libs/ui/flake/kis_take_all_shapes_command.h",
+            "libs/ui/imagesize/imagesize.cc",
+            "libs/ui/imagesize/imagesize.h",
+            "libs/ui/kis_animation_cache_populator.h",
+            "libs/ui/kis_animation_frame_cache.h",
+            "libs/ui/kis_animation_importer.h",
+            "libs/ui/kis_bookmarked_filter_configurations_model.h",
+            "libs/ui/kis_canvas_resource_provider.h",
+            "libs/ui/kis_change_file_layer_command.h",
+            "libs/ui/kis_clipboard.h",
+            "libs/ui/kis_config.cc",
+            "libs/ui/kis_favorite_resource_manager.h",
+            "libs/ui/kis_file_layer.cpp",
+            "libs/ui/kis_filter_manager.h",
+            "libs/ui/kis_filters_model.h",
+            "libs/ui/kis_image_manager.cc",
+            "libs/ui/kis_image_view_converter.h",
+            "libs/ui/kis_import_catcher.h",
+            "libs/ui/kis_layer_manager.h",
+            "libs/ui/kis_mask_manager.h",
+            "libs/ui/kis_mimedata.h",
+            "libs/ui/kis_mirror_manager.cpp",
+            "libs/ui/kis_mirror_manager.h",
+            "libs/ui/kis_node_commands_adapter.h",
+            "libs/ui/kis_node_filter_proxy_model.h",
+            "libs/ui/kis_node_juggler_compressed.h",
+            "libs/ui/kis_node_manager.cpp",
+            "libs/ui/kis_node_manager.h",
+            "libs/ui/kis_node_model.h",
+            "libs/ui/kis_node_selection_adapter.h",
+            "libs/ui/kis_painting_assistant.h",
+            "libs/ui/kis_paintop_box.cc",
+            "libs/ui/kis_paintop_box.h",
+            "libs/ui/kis_paintop_option.h",
+            "libs/ui/kis_png_converter.h",
+            "libs/ui/kis_preference_set_registry.h",
+            "libs/ui/kis_safe_document_loader.h",
+            "libs/ui/kis_selection_actions_panel.h",
+            "libs/ui/kis_selection_decoration.cc",
+            "libs/ui/kis_selection_manager.cc",
+            "libs/ui/kis_statusbar.cc",
+            "libs/ui/kis_statusbar.h",
+            "libs/ui/tool/KisAsyncColorSamplerHelper.h",
+            "libs/ui/tool/KisAsynchronousStrokeUpdateHelper.h",
+            "libs/ui/tool/KisStrokeSpeedMonitor.h",
+            "libs/ui/tool/kis_figure_painting_tool_helper.h",
+            "libs/ui/tool/kis_painting_information_builder.h",
+            "libs/ui/tool/kis_resources_snapshot.h",
+            "libs/ui/tool/kis_tool.h",
+            "libs/ui/tool/kis_tool_freehand.h",
+            "libs/ui/tool/kis_tool_freehand_helper.h",
+            "libs/ui/tool/kis_tool_paint.cc",
+            "libs/ui/tool/kis_tool_paint.h",
+            "libs/ui/tool/kis_tool_utils.h",
+            "libs/ui/tool/strokes/KisMaskingBrushRenderer.h",
+            "libs/ui/tool/strokes/KisNodeSelectionRecipe.h",
+            "libs/ui/tool/strokes/freehand_stroke.h",
+            "libs/ui/tool/strokes/kis_filter_stroke_strategy.h",
+            "libs/ui/tool/strokes/move_stroke_strategy.h",
+            "libs/ui/utils/KisDitherUtil.h",
+            "libs/ui/utils/kis_document_aware_spin_box_unit_manager.cpp",
+            "libs/ui/widgets/KisDlgListPicker.h",
+            "libs/ui/widgets/KisProofingOptionsWidget.h",
+            "libs/ui/widgets/kis_color_filter_combo.h",
+            "libs/ui/widgets/kis_filter_selector_widget.h",
+            "libs/ui/widgets/kis_layer_filter_widget.h",
+            "libs/ui/widgets/kis_paintop_presets_editor.h",
+            "libs/ui/widgets/kis_preset_live_preview_view.h",
+            "libs/ui/widgets/kis_scratch_pad.h",
+            "libs/ui/widgets/kis_wdg_generator.h",
+            "pch/kis_image_pch.h",
+            "plugins/dockers/advancedcolorselector/kis_common_colors.h",
+            "plugins/dockers/advancedcolorselector/kis_shade_selector_line.h",
+            "plugins/dockers/animation/KisAnimCurvesDocker.h",
+            "plugins/dockers/animation/KisAnimCurvesModel.h",
+            "plugins/dockers/animation/KisAnimTimelineFramesModel.h",
+            "plugins/dockers/animation/KisAnimUtils.h",
+            "plugins/dockers/animation/KisTimeBasedItemModel.h",
+            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
+            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.h",
+            "plugins/dockers/brushhud/kis_dlg_brush_hud_config.h",
+            "plugins/dockers/channeldocker/channeldocker.cpp",
+            "plugins/dockers/channeldocker/channelmodel.h",
+            "plugins/dockers/compositiondocker/compositiondocker.cpp",
+            "plugins/dockers/compositiondocker/compositionmodel.h",
+            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
+            "plugins/dockers/gamutmask/gamutmask_dock.h",
+            "plugins/dockers/historydocker/HistoryDock.h",
+            "plugins/dockers/historydocker/KisUndoModel.h",
+            "plugins/dockers/historydocker/KisUndoView.h",
+            "plugins/dockers/layerdocker/LayerBox.cpp",
+            "plugins/dockers/layerdocker/LayerBox.h",
+            "plugins/dockers/lut/lutdocker.cpp",
+            "plugins/dockers/lut/lutdocker_dock.h",
+            "plugins/dockers/palettedocker/palettedocker.cpp",
+            "plugins/dockers/presethistory/presethistory_dock.cpp",
+            "plugins/dockers/presethistory/presethistory_dock.h",
+            "plugins/dockers/specificcolorselector/specificcolorselector.cc",
+            "plugins/dockers/specificcolorselector/specificcolorselector_dock.h",
+            "plugins/dockers/storyboarddocker/KisAddRemoveStoryboardCommand.h",
+            "plugins/dockers/storyboarddocker/StoryboardDelegate.h",
+            "plugins/dockers/tasksetdocker/tasksetmodel.h",
+            "plugins/dockers/textproperties/TextPropertiesPlugin.cpp",
+            "plugins/dockers/widegamutcolorselector/WGColorPatches.h",
+            "plugins/dockers/widegamutcolorselector/WGCommonColorsCalculationRunner.h",
+            "plugins/dockers/widegamutcolorselector/WGMyPaintShadeSelector.h",
+            "plugins/extensions/clonesarray/clonesarray.h",
+            "plugins/extensions/clonesarray/dlg_clonesarray.h",
+            "plugins/extensions/colorrange/colorrange.cc",
+            "plugins/extensions/colorrange/dlg_colorrange.cc",
+            "plugins/extensions/colorrange/dlg_colorrange.h",
+            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
+            "plugins/extensions/imagesplit/dlg_imagesplit.h",
+            "plugins/extensions/imagesplit/imagesplit.cpp",
+            "plugins/extensions/layergroupswitcher/layergroupswitcher.cpp",
+            "plugins/extensions/layersplit/dlg_layersplit.h",
+            "plugins/extensions/layersplit/layersplit.cpp",
+            "plugins/extensions/metadataeditor/metadataeditor.cc",
+            "plugins/extensions/offsetimage/kis_offset_processing_visitor.h",
+            "plugins/extensions/offsetimage/offsetimage.cpp",
+            "plugins/extensions/offsetimage/offsetimage.h",
+            "plugins/extensions/qmic/kis_qmic_import_tools.cpp",
+            "plugins/extensions/qmic/kis_qmic_import_tools.h",
+            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp",
+            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.h",
+            "plugins/extensions/rotateimage/rotateimage.cc",
+            "plugins/extensions/rotateimage/rotateimage.h",
+            "plugins/extensions/samplescreencolor/KisSampleScreenColor.h",
+            "plugins/extensions/separate_channels/kis_channel_separator.cc",
+            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
+            "plugins/extensions/shearimage/shearimage.h",
+            "plugins/extensions/waveletdecompose/kis_wavelet_kernel.h",
+            "plugins/extensions/waveletdecompose/waveletdecompose.cpp",
+            "plugins/filters/colorsfilters/colorsfilters.cpp",
+            "plugins/filters/colorsfilters/kis_desaturate_filter.cpp",
+            "plugins/filters/embossfilter/kis_emboss_filter.cpp",
+            "plugins/filters/example/example.cpp",
+            "plugins/filters/gradientmap/KisGradientMapFilter.cpp",
+            "plugins/filters/imageenhancement/imageenhancement.cpp",
+            "plugins/filters/levelfilter/KisLevelsConfigWidget.cpp",
+            "plugins/filters/noisefilter/noisefilter.cpp",
+            "plugins/filters/normalize/kis_normalize.cpp",
+            "plugins/filters/oilpaintfilter/kis_oilpaint_filter.cpp",
+            "plugins/filters/palettize/palettize.cpp",
+            "plugins/filters/phongbumpmap/kis_phong_bumpmap_filter.h",
+            "plugins/filters/pixelizefilter/kis_pixelize_filter.cpp",
+            "plugins/filters/posterize/posterize.cpp",
+            "plugins/filters/raindropsfilter/kis_raindrops_filter.cpp",
+            "plugins/filters/randompickfilter/randompickfilter.cpp",
+            "plugins/filters/roundcorners/kis_round_corners_filter.cpp",
+            "plugins/filters/smalltilesfilter/kis_small_tiles_filter.cpp",
+            "plugins/filters/threshold/threshold.cpp",
+            "plugins/filters/wavefilter/wavefilter.cpp",
+            "plugins/generators/multigridpattern/multigridpatterngenerator.cpp",
+            "plugins/generators/pattern/patterngenerator.cpp",
+            "plugins/generators/seexpr/generator.cpp",
+            "plugins/generators/solid/colorgenerator.cpp",
+            "plugins/impex/csv/csv_saver.cpp",
+            "plugins/impex/csv/csv_saver.h",
+            "plugins/impex/exr/exr_converter.h",
+            "plugins/impex/exr/kis_exr_layers_sorter.h",
+            "plugins/impex/jp2/jp2_converter.h",
+            "plugins/impex/jpeg/kis_jpeg_converter.h",
+            "plugins/impex/jxl/kis_jpegxl_export_tools.h",
+            "plugins/impex/libkra/kis_kra_load_visitor.cpp",
+            "plugins/impex/libkra/kis_kra_load_visitor.h",
+            "plugins/impex/libkra/kis_kra_loader.h",
+            "plugins/impex/libkra/kis_kra_save_visitor.h",
+            "plugins/impex/libkra/kis_kra_saver.h",
+            "plugins/impex/libkra/kis_kra_savexml_visitor.h",
+            "plugins/impex/libkra/kra_converter.h",
+            "plugins/impex/ora/kis_open_raster_load_context.h",
+            "plugins/impex/ora/kis_open_raster_save_context.h",
+            "plugins/impex/ora/kis_open_raster_stack_load_visitor.h",
+            "plugins/impex/ora/kis_open_raster_stack_save_visitor.h",
+            "plugins/impex/ora/ora_converter.h",
+            "plugins/impex/psd/psd_image_data.h",
+            "plugins/impex/psd/psd_loader.cpp",
+            "plugins/impex/psd/psd_loader.h",
+            "plugins/impex/psd/psd_saver.cpp",
+            "plugins/impex/psd/psd_saver.h",
+            "plugins/impex/qml/qml_converter.h",
+            "plugins/impex/spriter/kis_spriter_export.cpp",
+            "plugins/impex/spriter/kis_spriter_export.h",
+            "plugins/impex/tiff/kis_tiff_base_writer.h",
+            "plugins/impex/tiff/kis_tiff_converter.h",
+            "plugins/impex/tiff/kis_tiff_import.h",
+            "plugins/impex/tiff/kis_tiff_psd_writer_visitor.h",
+            "plugins/impex/tiff/kis_tiff_reader.h",
+            "plugins/impex/tiff/kis_tiff_writer_visitor.h",
+            "plugins/impex/xcf/kis_xcf_import.cpp",
+            "plugins/paintops/colorsmudge/KisColorSmudgeInterstrokeData.h",
+            "plugins/paintops/colorsmudge/KisColorSmudgeSource.h",
+            "plugins/paintops/colorsmudge/KisColorSmudgeStrategyBase.h",
+            "plugins/paintops/colorsmudge/kis_colorsmudgeop.h",
+            "plugins/paintops/curvebrush/KisCurveOpOptionData.h",
+            "plugins/paintops/curvebrush/kis_curve_paintop.cpp",
+            "plugins/paintops/curvebrush/kis_curve_paintop.h",
+            "plugins/paintops/defaultpaintops/brush/KisDabRenderingJob.h",
+            "plugins/paintops/defaultpaintops/duplicate/kis_duplicateop.h",
+            "plugins/paintops/defaultpaintops/duplicate/kis_duplicateop_settings.h",
+            "plugins/paintops/deform/KisBrushSizeOptionData.h",
+            "plugins/paintops/deform/KisDeformOptionData.h",
+            "plugins/paintops/deform/deform_brush.cpp",
+            "plugins/paintops/deform/kis_deform_paintop.h",
+            "plugins/paintops/deform/kis_deform_paintop_settings.h",
+            "plugins/paintops/experiment/KisExperimentOpOptionData.h",
+            "plugins/paintops/experiment/kis_experiment_paintop.h",
+            "plugins/paintops/filterop/kis_filterop_settings.cpp",
+            "plugins/paintops/filterop/kis_filterop_settings.h",
+            "plugins/paintops/gridbrush/KisGridOpOptionData.h",
+            "plugins/paintops/gridbrush/KisGridShapeOptionData.h",
+            "plugins/paintops/gridbrush/kis_grid_paintop.cpp",
+            "plugins/paintops/gridbrush/kis_grid_paintop.h",
+            "plugins/paintops/gridbrush/kis_grid_paintop_settings.h",
+            "plugins/paintops/hairy/KisHairyBristleOptionData.h",
+            "plugins/paintops/hairy/KisHairyInkOptionData.h",
+            "plugins/paintops/hairy/hairy_brush.cpp",
+            "plugins/paintops/hairy/kis_hairy_paintop.h",
+            "plugins/paintops/hairy/kis_hairy_paintop_settings.h",
+            "plugins/paintops/hatching/KisHatchingOptionsData.h",
+            "plugins/paintops/hatching/KisHatchingPreferencesData.h",
+            "plugins/paintops/hatching/kis_hatching_paintop.cpp",
+            "plugins/paintops/hatching/kis_hatching_paintop.h",
+            "plugins/paintops/libpaintop/KisColorOptionData.h",
+            "plugins/paintops/libpaintop/KisColorSourceOptionData.h",
+            "plugins/paintops/libpaintop/KisCompositeOpOptionData.h",
+            "plugins/paintops/libpaintop/KisDabCacheUtils.h",
+            "plugins/paintops/libpaintop/KisEmbeddedTextureData.h",
+            "plugins/paintops/libpaintop/KisMaskingBrushOption.h",
+            "plugins/paintops/libpaintop/KisMaskingBrushOptionProperties.h",
+            "plugins/paintops/libpaintop/KisPaintingModeOptionData.h",
+            "plugins/paintops/libpaintop/kis_brush_based_paintop_options_widget.h",
+            "plugins/paintops/libpaintop/kis_clipboard_brush_widget.h",
+            "plugins/paintops/libpaintop/kis_color_source.h",
+            "plugins/paintops/libpaintop/kis_custom_brush_widget.h",
+            "plugins/paintops/libpaintop/kis_texture_option.h",
+            "plugins/paintops/mypaint/MyPaintBasicOptionData.h",
+            "plugins/paintops/mypaint/MyPaintPaintOp.h",
+            "plugins/paintops/mypaint/MyPaintPaintOpSettings.h",
+            "plugins/paintops/particle/KisParticleOpOptionData.h",
+            "plugins/paintops/particle/kis_particle_paintop.cpp",
+            "plugins/paintops/particle/kis_particle_paintop.h",
+            "plugins/paintops/particle/kis_particle_paintop_settings.h",
+            "plugins/paintops/roundmarker/KisRoundMarkerOpOptionData.h",
+            "plugins/paintops/roundmarker/kis_roundmarkerop.h",
+            "plugins/paintops/sketch/KisSketchOpOptionData.h",
+            "plugins/paintops/sketch/kis_sketch_paintop.cpp",
+            "plugins/paintops/sketch/kis_sketch_paintop.h",
+            "plugins/paintops/sketch/kis_sketch_paintop_settings.h",
+            "plugins/paintops/spray/KisSprayOpOptionData.h",
+            "plugins/paintops/spray/KisSprayShapeDynamicsOptionData.h",
+            "plugins/paintops/spray/KisSprayShapeOptionData.h",
+            "plugins/paintops/spray/kis_spray_paintop.cpp",
+            "plugins/paintops/spray/kis_spray_paintop.h",
+            "plugins/paintops/spray/kis_spray_paintop_settings.h",
+            "plugins/paintops/spray/spray_brush.h",
+            "plugins/paintops/tangentnormal/KisTangentTiltOptionData.h",
+            "plugins/paintops/tangentnormal/kis_tangent_normal_paintop.h",
+            "plugins/tools/basictools/KisMoveBoundsCalculationJob.h",
+            "plugins/tools/basictools/kis_tool_brush.cc",
+            "plugins/tools/basictools/kis_tool_ellipse.h",
+            "plugins/tools/basictools/kis_tool_gradient.h",
+            "plugins/tools/basictools/kis_tool_line.h",
+            "plugins/tools/basictools/kis_tool_measure.h",
+            "plugins/tools/basictools/kis_tool_move.h",
+            "plugins/tools/basictools/kis_tool_rectangle.h",
+            "plugins/tools/basictools/strokes/move_selection_stroke_strategy.h",
+            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImagesWidget.h",
+            "plugins/tools/selectiontools/selection_tools.cc",
+            "plugins/tools/tool_crop/tool_crop.cc",
+            "plugins/tools/tool_dyna/tool_dyna.cpp",
+            "plugins/tools/tool_knife/KisToolKnifeOptionsWidget.h",
+            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush_options_widget.h",
+            "plugins/tools/tool_polygon/tool_polygon.cc",
+            "plugins/tools/tool_polyline/tool_polyline.cc",
+            "plugins/tools/tool_smart_patch/kis_tool_smart_patch_options_widget.h",
+            "plugins/tools/tool_transform2/kis_tool_transform.h",
+            "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.h",
+            "plugins/tools/tool_transform2/strokes/transform_stroke_strategy.h",
+            "plugins/tools/tool_transform2/tool_transform.cc"
+          ]
+        },
+        {
+          "path": "libs/image/kis_vec.h",
+          "consumerPaths": [
+            "plugins/paintops/defaultpaintops/brush/kis_brushop.cpp",
+            "plugins/paintops/hairy/kis_hairy_paintop.cpp",
+            "plugins/paintops/particle/kis_particle_paintop.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/kis_wrapped_rect.h",
+          "consumerPaths": [
+            "libs/ui/canvas/kis_canvas2.cpp",
+            "libs/ui/processing/KisEncloseAndFillProcessingVisitor.cpp",
+            "libs/ui/processing/fill_processing_visitor.cpp",
+            "libs/ui/widgets/KisScreenColorSampler.cpp",
+            "plugins/paintops/defaultpaintops/brush/kis_brushop.cpp"
+          ]
+        }
+      ]
+    },
+    {
+      "ownerTarget": "kritaui",
+      "owner": "R1-G6",
+      "reason": "External packages directly include UI headers without a declared KRITAUI_EXPORT public contract.",
+      "maximumHeaders": 15,
+      "maximumDirectReferences": 34,
+      "removalCondition": "Each reference uses a reviewed public UI contract or moves behind the owning UI package boundary.",
+      "sourceDirectory": "libs/ui",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/ui/KisImportUserFeedbackInterface.h",
+          "consumerPaths": [
+            "plugins/impex/psd/psd_loader.cpp",
+            "plugins/impex/tiff/kis_tiff_import.cc"
+          ]
+        },
+        {
+          "path": "libs/ui/KisOcioConfiguration.h",
+          "consumerPaths": [
+            "plugins/dockers/lut/lutdocker_dock.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/KisPopupWidgetInterface.h",
+          "consumerPaths": [
+            "plugins/extensions/iostouchui/iostouchui.cpp",
+            "plugins/tools/karbonplugins/tools/CalligraphyTool/KarbonCalligraphyTool.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/KisSurfaceColorSpaceWrapper.h",
+          "consumerPaths": [
+            "plugins/dockers/lut/lutdocker_dock.cpp",
+            "plugins/dockers/smallcolorselector/KisGLImageWidget.h",
+            "qmlmodules/widgets/KisQQuickWidget.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/KisWidgetWithIdleTask.h",
+          "consumerPaths": [
+            "plugins/dockers/channeldocker/ChannelDockerWidget.h",
+            "plugins/dockers/histogram/histogramdockerwidget.h",
+            "plugins/dockers/overview/overviewwidget.h"
+          ]
+        },
+        {
+          "path": "libs/ui/animation/KisAndroidMediaEncoderRunnable.h",
+          "consumerPaths": [
+            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/kis_animation_cache_populator.h",
+          "consumerPaths": [
+            "plugins/dockers/animation/KisTimeBasedItemModel.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/kis_cursor_override_hijacker.h",
+          "consumerPaths": [
+            "plugins/impex/heightmap/kis_heightmap_import.cpp",
+            "plugins/impex/libkra/kis_kra_loader.cpp",
+            "plugins/impex/pdf/kis_pdf_import.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/kis_popup_palette.h",
+          "consumerPaths": [
+            "plugins/extensions/spensettings/SPenSettings.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/kis_store_paintdevice_writer.h",
+          "consumerPaths": [
+            "plugins/impex/libkra/kis_kra_save_visitor.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/operations/kis_operation_ui_widget_factory.h",
+          "consumerPaths": [
+            "plugins/extensions/modify_selection/modify_selection.cc"
+          ]
+        },
+        {
+          "path": "libs/ui/tool/KisToolShapeUtils.h",
+          "consumerPaths": [
+            "libs/libkis/PaintingResources.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/tool/kis_delegated_tool.h",
+          "consumerPaths": [
+            "plugins/tools/basictools/kis_tool_path.h",
+            "plugins/tools/basictools/kis_tool_pencil.h",
+            "plugins/tools/selectiontools/kis_tool_select_path.h",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisPathEnclosingProducer.h"
+          ]
+        },
+        {
+          "path": "libs/ui/tool/kis_tool_select_base.h",
+          "consumerPaths": [
+            "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
+            "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
+            "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
+            "plugins/tools/selectiontools/kis_tool_select_outline.h",
+            "plugins/tools/selectiontools/kis_tool_select_path.h",
+            "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
+            "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
+            "plugins/tools/selectiontools/kis_tool_select_similar.h"
+          ]
+        },
+        {
+          "path": "libs/ui/tool/strokes/FreehandStrokeRunnableJobDataWithUpdate.h",
+          "consumerPaths": [
+            "plugins/paintops/defaultpaintops/brush/KisDabRenderingExecutor.cpp",
+            "plugins/paintops/defaultpaintops/brush/KisDabRenderingJob.cpp"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -42,6 +42,7 @@ MANUAL_RESPONSIBILITY_FIELDS = {
     "sourceDirectories",
     "ownerTargets",
     "publicHeaderOwnerTargets",
+    "reviewedPublicHeaderPaths",
     "uiClassAreas",
     "uiToolClassAreas",
     "majorClasses",
@@ -263,6 +264,10 @@ def _manual_responsibility(entry: dict[str, Any], index: int) -> dict[str, Any]:
             entry.get("publicHeaderOwnerTargets"),
             f"public header owners for {identifier}",
         ),
+        "reviewedPublicHeaderPaths": _string_list(
+            entry.get("reviewedPublicHeaderPaths"),
+            f"reviewed public header paths for {identifier}",
+        ),
         "uiClassAreas": _string_list(
             entry.get("uiClassAreas"), f"UI class areas for {identifier}"
         ),
@@ -373,6 +378,7 @@ def updated_map(
         }
         for owner in manual["publicHeaderOwnerTargets"]:
             public_header_paths.update(public_headers_by_owner[owner])
+        public_header_paths.update(manual["reviewedPublicHeaderPaths"])
 
         if manual["pluginScope"] == "all-registrations":
             selected_plugins = plugins
@@ -519,6 +525,7 @@ def validate_map(
     tool_area_assignments: list[str] = []
     major_class_assignments: list[str] = []
     feature_owner_assignments: list[str] = []
+    reviewed_header_assignments: list[str] = []
     all_plugin_scopes = 0
     owner_targets: set[str] = set()
     for index, item in enumerate(entries):
@@ -561,6 +568,9 @@ def validate_map(
         unknown_feature_owners = sorted(
             set(manual["pluginFeatureOwners"]) - known_feature_owners
         )
+        unknown_reviewed_headers = sorted(
+            set(manual["reviewedPublicHeaderPaths"]) - known_public_headers
+        )
         if any(
             (
                 unknown_header_owners,
@@ -568,6 +578,7 @@ def validate_map(
                 unknown_tool_areas,
                 unknown_major_classes,
                 unknown_feature_owners,
+                unknown_reviewed_headers,
             )
         ):
             raise ResponsibilityMapError(
@@ -591,6 +602,9 @@ def validate_map(
         ui_area_assignments.extend(manual["uiClassAreas"])
         tool_area_assignments.extend(manual["uiToolClassAreas"])
         major_class_assignments.extend(manual["majorClasses"])
+        reviewed_header_assignments.extend(
+            manual["reviewedPublicHeaderPaths"]
+        )
 
         public_header_paths = _string_list(
             entry.get("publicHeaderPaths"),
@@ -610,6 +624,12 @@ def validate_map(
     if identifiers != sorted(set(identifiers)):
         raise ResponsibilityMapError(
             "responsibilities must be sorted and unique by id"
+        )
+    if len(reviewed_header_assignments) != len(
+        set(reviewed_header_assignments)
+    ):
+        raise ResponsibilityMapError(
+            "reviewed public header paths must have one responsibility"
         )
     missing = sorted(set(RESPONSIBILITY_IDS) - set(identifiers))
     unexpected = sorted(set(identifiers) - set(RESPONSIBILITY_IDS))

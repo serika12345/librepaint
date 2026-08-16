@@ -29,6 +29,7 @@
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
+      "reviewedPublicHeaderPaths": [],
       "uiClassAreas": [
         "application-orchestration",
         "window-workspace"
@@ -137,6 +138,9 @@
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
+      "reviewedPublicHeaderPaths": [
+        "libs/ui/widgets/KoStrokeConfigWidget.h"
+      ],
       "uiClassAreas": [
         "canvas-display"
       ],
@@ -179,7 +183,8 @@
         "libs/ui/kis_painting_assistant.h",
         "libs/ui/kis_painting_assistants_decoration.h",
         "libs/ui/kis_selection_decoration.h",
-        "libs/ui/kis_zoom_manager.h"
+        "libs/ui/kis_zoom_manager.h",
+        "libs/ui/widgets/KoStrokeConfigWidget.h"
       ],
       "classNames": [
         "FramesGluerBase",
@@ -272,6 +277,7 @@
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
+      "reviewedPublicHeaderPaths": [],
       "uiClassAreas": [
         "document-state"
       ],
@@ -351,6 +357,7 @@
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
+      "reviewedPublicHeaderPaths": [],
       "uiClassAreas": [
         "import-export"
       ],
@@ -450,6 +457,7 @@
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
+      "reviewedPublicHeaderPaths": [],
       "uiClassAreas": [],
       "uiToolClassAreas": [
         "input-interpretation"
@@ -499,6 +507,7 @@
       "publicHeaderOwnerTargets": [
         "kritaimage"
       ],
+      "reviewedPublicHeaderPaths": [],
       "uiClassAreas": [],
       "uiToolClassAreas": [
         "painting-execution",
@@ -973,6 +982,7 @@
         "kritaplugin"
       ],
       "publicHeaderOwnerTargets": [],
+      "reviewedPublicHeaderPaths": [],
       "uiClassAreas": [],
       "uiToolClassAreas": [],
       "majorClasses": [],
@@ -1186,6 +1196,7 @@
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
+      "reviewedPublicHeaderPaths": [],
       "uiClassAreas": [
         "resource-configuration"
       ],
@@ -1257,6 +1268,7 @@
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
+      "reviewedPublicHeaderPaths": [],
       "uiClassAreas": [],
       "uiToolClassAreas": [
         "settings-presentation",

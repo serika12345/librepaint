@@ -71,7 +71,7 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             ),
             305,
         )
-        self.assertEqual(len(baseline["unresolvedProjections"]), 6)
+        self.assertEqual(baseline["unresolvedProjections"], [])
         by_pair = {
             (entry["sourceResponsibility"], entry["dependencyResponsibility"]): (
                 entry
@@ -143,9 +143,17 @@ class DependencyViolationBaselineTests(unittest.TestCase):
         ):
             self.validate(baseline)
 
-    def test_unresolved_projection_cannot_be_dropped(self) -> None:
+    def test_resolved_projection_cannot_return_to_unresolved(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())
-        baseline["unresolvedProjections"].pop()
+        baseline["unresolvedProjections"].append(
+            {
+                "sourceResponsibility": "canvas-presentation",
+                "dependencyResponsibility": "application-orchestration",
+                "status": "no-attributed-direct-include",
+                "targetLinks": [],
+                "ambiguousDirectIncludes": [],
+            }
+        )
 
         with self.assertRaisesRegex(
             check_dependency_violation_baseline.DependencyBaselineError,
