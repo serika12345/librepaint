@@ -1,0 +1,3296 @@
+{
+  "schemaVersion": 1,
+  "scope": "r1-g4a-confirmed-reverse-dependency-baseline",
+  "inputs": {
+    "allowedDependencyPolicy": "docs/architecture/allowed-package-dependencies.json",
+    "packageResponsibilityMap": "docs/architecture/package-responsibilities.json",
+    "uiClassInventory": "docs/architecture/ui-class-responsibilities.json",
+    "uiToolClassInventory": "docs/architecture/ui-tool-class-responsibilities.json",
+    "cmakeGraphs": "docs/architecture/cmake-targets-<platform>.json"
+  },
+  "attributionPolicy": {
+    "sourceScope": "production-files-below-selected-target-source-directory",
+    "excludedPathParts": [
+      "benchmarks",
+      "test",
+      "tests"
+    ],
+    "includeResolution": [
+      "dependency-header-path-suffix",
+      "repository-unique-header-basename"
+    ],
+    "responsibilityAttribution": [
+      "unique-target-owner",
+      "classified-public-or-class-path",
+      "longest-responsibility-source-directory"
+    ],
+    "ambiguousHandling": "record-unresolved-projection"
+  },
+  "violations": [
+    {
+      "sourceResponsibility": "application-orchestration",
+      "dependencyResponsibility": "painting-rendering",
+      "owner": "R1-G6",
+      "reason": "The current kritaui target combines process orchestration with image, brush, and color consumers, so application startup and shared services include painting implementation headers directly.",
+      "maximumDirectIncludes": 71,
+      "removalCondition": "Application orchestration reaches painting state through document, tool, and resource public surfaces after those responsibilities leave kritaui, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacolor",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritalibbrush",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacolor",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "kis_color_manager.h",
+          "headerPath": "libs/color/kis_color_manager.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "brushengine/kis_paintop_registry.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_registry.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "filter/kis_filter.h",
+          "headerPath": "libs/image/filter/kis_filter.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "filter/kis_filter_configuration.h",
+          "headerPath": "libs/image/filter/kis_filter_configuration.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "filter/kis_filter_registry.h",
+          "headerPath": "libs/image/filter/kis_filter_registry.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "generator/kis_generator.h",
+          "headerPath": "libs/image/generator/kis_generator.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "generator/kis_generator_registry.h",
+          "headerPath": "libs/image/generator/kis_generator_registry.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "kis_group_layer.h",
+          "headerPath": "libs/image/kis_group_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "kis_image_animation_interface.h",
+          "headerPath": "libs/image/kis_image_animation_interface.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "kis_psd_layer_style.h",
+          "headerPath": "libs/image/kis_psd_layer_style.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "KisImageConfigNotifier.h",
+          "headerPath": "libs/image/KisImageConfigNotifier.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "brushengine/kis_paintop_settings.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_settings.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "kis_group_layer.h",
+          "headerPath": "libs/image/kis_group_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "kis_image_animation_interface.h",
+          "headerPath": "libs/image/kis_image_animation_interface.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "kis_node.h",
+          "headerPath": "libs/image/kis_node.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "krita_utils.h",
+          "headerPath": "libs/image/krita_utils.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "KisBusyWaitBroker.h",
+          "headerPath": "libs/image/KisBusyWaitBroker.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "KisTranslateLayerNamesVisitor.h",
+          "headerPath": "libs/image/KisTranslateLayerNamesVisitor.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "kis_group_layer.h",
+          "headerPath": "libs/image/kis_group_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "kis_idle_watcher.h",
+          "headerPath": "libs/image/kis_idle_watcher.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "kis_image_animation_interface.h",
+          "headerPath": "libs/image/kis_image_animation_interface.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "kis_memory_statistics_server.h",
+          "headerPath": "libs/image/kis_memory_statistics_server.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.cpp",
+          "include": "kis_time_span.h",
+          "headerPath": "libs/image/kis_time_span.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisPart.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisSessionResource.cpp",
+          "include": "kis_properties_configuration.h",
+          "headerPath": "libs/image/kis_properties_configuration.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "commands_new/KisMergeLabeledLayersCommand.h",
+          "headerPath": "libs/image/commands_new/KisMergeLabeledLayersCommand.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "commands_new/kis_processing_command.h",
+          "headerPath": "libs/image/commands_new/kis_processing_command.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "commands_new/kis_update_command.h",
+          "headerPath": "libs/image/commands_new/kis_update_command.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_fill_painter.h",
+          "headerPath": "libs/image/kis_fill_painter.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_group_layer.h",
+          "headerPath": "libs/image/kis_group_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_layer.h",
+          "headerPath": "libs/image/kis_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_mask.h",
+          "headerPath": "libs/image/kis_mask.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_memory_statistics_server.h",
+          "headerPath": "libs/image/kis_memory_statistics_server.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_node.h",
+          "headerPath": "libs/image/kis_node.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_paint_layer.h",
+          "headerPath": "libs/image/kis_paint_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_selection.h",
+          "headerPath": "libs/image/kis_selection.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "kis_stroke_strategy_undo_command_based.h",
+          "headerPath": "libs/image/kis_stroke_strategy_undo_command_based.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "krita_utils.h",
+          "headerPath": "libs/image/krita_utils.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.h",
+          "include": "KisNodeAdditionFlags.h",
+          "headerPath": "libs/image/KisNodeAdditionFlags.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisView.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "KisImageBarrierLock.h",
+          "headerPath": "libs/image/KisImageBarrierLock.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "brushengine/kis_paintop_preset.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_preset.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_composite_progress_proxy.h",
+          "headerPath": "libs/image/kis_composite_progress_proxy.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_group_layer.h",
+          "headerPath": "libs/image/kis_group_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_layer.h",
+          "headerPath": "libs/image/kis_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_node.h",
+          "headerPath": "libs/image/kis_node.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_paint_layer.h",
+          "headerPath": "libs/image/kis_paint_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_selection.h",
+          "headerPath": "libs/image/kis_selection.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_selection_mask.h",
+          "headerPath": "libs/image/kis_selection_mask.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "kis_undo_adapter.h",
+          "headerPath": "libs/image/kis_undo_adapter.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisViewManager.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_action_manager.cpp",
+          "include": "kis_image_animation_interface.h",
+          "headerPath": "libs/image/kis_image_animation_interface.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_action_manager.cpp",
+          "include": "kis_layer.h",
+          "headerPath": "libs/image/kis_layer.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_preference_set_registry.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_statusbar.cc",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_statusbar.cc",
+          "include": "kis_layer_utils.h",
+          "headerPath": "libs/image/kis_layer_utils.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_statusbar.cc",
+          "include": "kis_memory_statistics_server.h",
+          "headerPath": "libs/image/kis_memory_statistics_server.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_statusbar.cc",
+          "include": "kis_paint_device.h",
+          "headerPath": "libs/image/kis_paint_device.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_statusbar.cc",
+          "include": "kis_selection.h",
+          "headerPath": "libs/image/kis_selection.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_statusbar.cc",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_statusbar.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_workspace_resource.h",
+          "include": "kis_properties_configuration.h",
+          "headerPath": "libs/image/kis_properties_configuration.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritalibbrush",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "KisBrushTypeMetaDataFixup.h",
+          "headerPath": "libs/brush/KisBrushTypeMetaDataFixup.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritalibbrush",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "kis_gbr_brush.h",
+          "headerPath": "libs/brush/kis_gbr_brush.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritalibbrush",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "kis_imagepipe_brush.h",
+          "headerPath": "libs/brush/kis_imagepipe_brush.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritalibbrush",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "kis_png_brush.h",
+          "headerPath": "libs/brush/kis_png_brush.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritalibbrush",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "kis_svg_brush.h",
+          "headerPath": "libs/brush/kis_svg_brush.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "document-lifecycle",
+      "owner": "R1-G6",
+      "reason": "Vector canvas and shape commands currently use undo command types grouped with document lifecycle in kritacommand.",
+      "maximumDirectIncludes": 73,
+      "removalCondition": "The reusable command contract moves to a lower-level owned surface and canvas-presentation no longer includes document-lifecycle headers directly.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/KoDocumentResourceManager.cpp",
+          "include": "kundo2stack.h",
+          "headerPath": "libs/command/kundo2stack.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/KoShapeControllerBase.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/KoToolProxy.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoAddRemoveShapeCommands.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoKeepShapesSelectedCommand.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoMultiPathPointMergeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoParameterHandleMoveCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoParameterHandleMoveCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoParameterToPathCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathBaseCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathBreakAtPointCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathCombineCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathControlPointMoveCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathControlPointMoveCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathFillRuleCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathPointInsertCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathPointMergeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathPointMoveCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathPointMoveCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathPointRemoveCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathPointTypeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathReverseCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathSegmentBreakCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathSegmentTypeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathShapeMarkerCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoPathShapeMarkerCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeAlignCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeBackgroundCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeBackgroundCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeClipCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeConnectionChangeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeCreateCommand.cpp",
+          "include": "kis_undo_stores.h",
+          "headerPath": "libs/command/kis_undo_stores.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeCreateCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeDeleteCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeDistributeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeGroupCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeKeepAspectRatioCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeLockCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeMergeTextPropertiesCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeMergeTextPropertiesCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeMoveCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeMoveCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapePaintOrderCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapePaintOrderCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeRenameCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeReorderCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeResizeCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeResizeCommand.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeResizeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeShearCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeSizeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeStrokeCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeStrokeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeTransformCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeTransformCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeTransparencyCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeTransparencyCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeUnclipCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoShapeUngroupCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSubpathJoinCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSubpathRemoveCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSvgConvertTextTypeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSvgTextAddRemoveShapeCommands.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSvgTextAddRemoveShapeCommands.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSvgTextPathInfoChangeCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSvgTextPathInfoChangeCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/commands/KoSvgTextReorderShapeInsideCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/tools/KoInteractionStrategy.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/tools/KoPathControlPointMoveStrategy.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/tools/KoPathPointMoveStrategy.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/tools/KoPathSegmentChangeStrategy.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaflake",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/flake/tools/KoPathTool.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "input-interpretation",
+      "dependencyResponsibility": "painting-rendering",
+      "owner": "R1-G6",
+      "reason": "Input classes inside kritaui currently construct painting information and stroke state instead of emitting normalized actions through tool invocation.",
+      "maximumDirectIncludes": 15,
+      "removalCondition": "Input interpretation emits the input-action-stream contract and painting state is created behind tool-command, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacolor",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritalibbrush",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/input/kis_change_frame_action.cpp",
+          "include": "kis_node.h",
+          "headerPath": "libs/image/kis_node.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/input/kis_gamma_exposure_action.cpp",
+          "include": "krita_utils.h",
+          "headerPath": "libs/image/krita_utils.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/input/kis_input_manager.cpp",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/input/kis_input_manager_p.h",
+          "include": "kis_timed_signal_threshold.h",
+          "headerPath": "libs/image/kis_timed_signal_threshold.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/input/kis_select_layer_action.cpp",
+          "include": "kis_group_layer.h",
+          "headerPath": "libs/image/kis_group_layer.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/input/kis_select_layer_action.cpp",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/input/kis_tool_invocation_action.cpp",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/KisAsyncColorSamplerHelper.cpp",
+          "include": "kis_image_interfaces.h",
+          "headerPath": "libs/image/kis_image_interfaces.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/KisAsyncColorSamplerHelper.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
+          "include": "kis_paint_information.h",
+          "headerPath": "libs/image/brushengine/kis_paint_information.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_painting_information_builder.cpp",
+          "include": "kis_cubic_curve.h",
+          "headerPath": "libs/image/kis_cubic_curve.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_painting_information_builder.h",
+          "include": "brushengine/kis_paint_information.h",
+          "headerPath": "libs/image/brushengine/kis_paint_information.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_painting_information_builder.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_stabilized_events_sampler.cpp",
+          "include": "kis_paint_information.h",
+          "headerPath": "libs/image/brushengine/kis_paint_information.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_stabilized_events_sampler.h",
+          "include": "kis_paint_information.h",
+          "headerPath": "libs/image/brushengine/kis_paint_information.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "input-interpretation",
+      "dependencyResponsibility": "resource-management",
+      "owner": "R1-G6",
+      "reason": "Input classes inside kritaui currently read resource and preset state while translating device events.",
+      "maximumDirectIncludes": 4,
+      "removalCondition": "Tool invocation supplies the resource-backed interaction state required by input interpretation, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaresources",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaresources",
+          "sourcePath": "libs/ui/input/KisInputProfileMigrator.cpp",
+          "include": "KoResourcePaths.h",
+          "headerPath": "libs/resources/KoResourcePaths.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaresources",
+          "sourcePath": "libs/ui/input/config/kis_input_configuration_page.cpp",
+          "include": "KoResourcePaths.h",
+          "headerPath": "libs/resources/KoResourcePaths.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaresources",
+          "sourcePath": "libs/ui/input/kis_input_profile_manager.cpp",
+          "include": "KoResourcePaths.h",
+          "headerPath": "libs/resources/KoResourcePaths.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaresources",
+          "sourcePath": "libs/ui/tool/KisAsyncColorSamplerHelper.cpp",
+          "include": "KoCanvasResourcesIds.h",
+          "headerPath": "libs/resources/KoCanvasResourcesIds.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "painting-rendering",
+      "dependencyResponsibility": "document-lifecycle",
+      "owner": "R1-G6",
+      "reason": "Image and pigment implementations currently use undo and metadata types grouped with document lifecycle.",
+      "maximumDirectIncludes": 95,
+      "removalCondition": "Reusable command facilities move below painting-rendering and image metadata changes pass through a document-owned adapter, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritametadata",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritapigment",
+          "dependencyTarget": "kritacommand",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/KisInterstrokeDataTransactionWrapperFactory.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/KisInterstrokeDataTransactionWrapperFactory.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/KisOverlayPaintDeviceWrapper.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/KisOverlayPaintDeviceWrapper.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/KisBatchUpdateLayerModificationCommand.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/KisChangeDeselectedMaskCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/KisNodeRenameCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/KisNotifySelectionChangedCommand.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_change_filter_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_deselect_global_selection_command.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_image_change_visibility_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_image_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_node_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_node_compositeop_command.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_node_opacity_command.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_node_opacity_command.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_node_property_list_command.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_reselect_global_selection_command.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_set_global_selection_command.cpp",
+          "include": "KisChangeValueCommand.h",
+          "headerPath": "libs/command/KisChangeValueCommand.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_set_global_selection_command.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands/kis_set_global_selection_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisChangeChannelFlagsCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisChangeChannelLockFlagsCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisChangeCloneLayersCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisDisableDirtyRequestsCommand.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisHoldUIUpdatesCommand.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisImageAnimSettingCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisImageAnimSettingCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisLayerCollapseCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisLazyCreateTransformMaskKeyframesCommand.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisMergeLabeledLayersCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisResetGroupLayerCacheCommand.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisSimpleModifyTransformMaskCommand.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisSimpleModifyTransformMaskCommand.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/KisUpdateCommandEx.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_activate_selection_mask_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_change_projection_color_command.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_change_projection_color_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_image_resize_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_image_set_resolution_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_move_command_common.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_processing_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_saved_commands.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_set_layer_style_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_switch_current_time_command.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_switch_current_time_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_transaction_based_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/commands_new/kis_update_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_crop_saved_extra_data.h",
+          "include": "kundo2commandextradata.h",
+          "headerPath": "libs/command/kundo2commandextradata.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_do_something_command.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_image.cc",
+          "include": "kis_undo_stores.h",
+          "headerPath": "libs/command/kis_undo_stores.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_keyframe_channel.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_keyframe_channel.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_keyframe_channel.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_keyframe_commands.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_layer_utils.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_layer_utils.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_layer_utils.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_layer_utils.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_layer_utils.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_macro_based_undo_store.h",
+          "include": "kis_undo_store.h",
+          "headerPath": "libs/command/kis_undo_store.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_mask.cc",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_paint_device_data.h",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_paint_device_data.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_painter.cc",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_painter.h",
+          "include": "kundo2magicstring.h",
+          "headerPath": "libs/command/kundo2magicstring.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_pixel_selection.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_post_execution_undo_adapter.cpp",
+          "include": "kis_undo_store.h",
+          "headerPath": "libs/command/kis_undo_store.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_processing_applicator.cpp",
+          "include": "kis_command_ids.h",
+          "headerPath": "libs/command/kis_command_ids.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_processing_applicator.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_processing_applicator.h",
+          "include": "kundo2commandextradata.h",
+          "headerPath": "libs/command/kundo2commandextradata.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_processing_applicator.h",
+          "include": "kundo2magicstring.h",
+          "headerPath": "libs/command/kundo2magicstring.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_raster_keyframe_channel.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_scalar_keyframe_channel.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_selection.cc",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_selection.cc",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_stroke_strategy.h",
+          "include": "kundo2magicstring.h",
+          "headerPath": "libs/command/kundo2magicstring.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_stroke_strategy_undo_command_based.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_strokes_queue.cpp",
+          "include": "kis_undo_stores.h",
+          "headerPath": "libs/command/kis_undo_stores.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_strokes_queue.h",
+          "include": "kundo2magicstring.h",
+          "headerPath": "libs/command/kundo2magicstring.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_surrogate_undo_adapter.cpp",
+          "include": "kis_undo_stores.h",
+          "headerPath": "libs/command/kis_undo_stores.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_suspend_projection_updates_stroke_strategy.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_sync_lod_cache_stroke_strategy.cpp",
+          "include": "kundo2magicstring.h",
+          "headerPath": "libs/command/kundo2magicstring.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_transaction.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_transaction_data.h",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/kis_undo_adapter.h",
+          "include": "kis_undo_store.h",
+          "headerPath": "libs/command/kis_undo_store.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/image/lazybrush/kis_colorize_mask.cpp",
+          "include": "kis_command_utils.h",
+          "headerPath": "libs/command/kis_command_utils.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritametadata",
+          "sourcePath": "libs/image/kis_exif_info_visitor.h",
+          "include": "kis_meta_data_filter_registry_model.h",
+          "headerPath": "libs/metadata/kis_meta_data_filter_registry_model.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritametadata",
+          "sourcePath": "libs/image/kis_exif_info_visitor.h",
+          "include": "kis_meta_data_store.h",
+          "headerPath": "libs/metadata/kis_meta_data_store.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritametadata",
+          "sourcePath": "libs/image/kis_image.cc",
+          "include": "kis_meta_data_merge_strategy.h",
+          "headerPath": "libs/metadata/kis_meta_data_merge_strategy.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritametadata",
+          "sourcePath": "libs/image/kis_image.cc",
+          "include": "kis_meta_data_merge_strategy_registry.h",
+          "headerPath": "libs/metadata/kis_meta_data_merge_strategy_registry.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritametadata",
+          "sourcePath": "libs/image/kis_layer.cc",
+          "include": "kis_meta_data_store.h",
+          "headerPath": "libs/metadata/kis_meta_data_store.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaimage",
+          "dependencyTarget": "kritametadata",
+          "sourcePath": "libs/image/kis_layer_utils.cpp",
+          "include": "kis_meta_data_merge_strategy.h",
+          "headerPath": "libs/metadata/kis_meta_data_merge_strategy.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritapigment",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/pigment/resources/KoColorSet.cpp",
+          "include": "kundo2command.h",
+          "headerPath": "libs/command/kundo2command.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritapigment",
+          "dependencyTarget": "kritacommand",
+          "sourcePath": "libs/pigment/resources/KoColorSet_p.h",
+          "include": "kundo2stack.h",
+          "headerPath": "libs/command/kundo2stack.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "painting-rendering",
+      "dependencyResponsibility": "import-export",
+      "owner": "R1-G6",
+      "reason": "Pigment resource implementations currently use KoStore container and XML contracts grouped with import-export.",
+      "maximumDirectIncludes": 2,
+      "removalCondition": "Resource serialization uses a lower-level storage surface owned outside import-export, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritapigment",
+          "dependencyTarget": "kritastore",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritapigment",
+          "dependencyTarget": "kritastore",
+          "sourcePath": "libs/pigment/resources/KoColorSet.cpp",
+          "include": "KoStore.h",
+          "headerPath": "libs/store/KoStore.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritapigment",
+          "dependencyTarget": "kritastore",
+          "sourcePath": "libs/pigment/resources/KoStopGradient.cpp",
+          "include": "KoXmlNS.h",
+          "headerPath": "libs/store/KoXmlNS.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "resource-management",
+      "dependencyResponsibility": "import-export",
+      "owner": "R1-G6",
+      "reason": "Resource bundle persistence currently uses KoStore and XML writer contracts grouped with import-export.",
+      "maximumDirectIncludes": 5,
+      "removalCondition": "Resource storage owns or consumes a lower-level container surface without depending on import-export, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaresources",
+          "dependencyTarget": "kritastore",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaresourcewidgets",
+          "dependencyTarget": "kritastore",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaresources",
+          "dependencyTarget": "kritastore",
+          "sourcePath": "libs/resources/KoResourceBundle.cpp",
+          "include": "KoStore.h",
+          "headerPath": "libs/store/KoStore.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaresources",
+          "dependencyTarget": "kritastore",
+          "sourcePath": "libs/resources/KoResourceBundle.cpp",
+          "include": "KoXmlWriter.h",
+          "headerPath": "libs/store/KoXmlWriter.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaresources",
+          "dependencyTarget": "kritastore",
+          "sourcePath": "libs/resources/KoResourceBundle.h",
+          "include": "KoXmlWriter.h",
+          "headerPath": "libs/store/KoXmlWriter.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaresources",
+          "dependencyTarget": "kritastore",
+          "sourcePath": "libs/resources/KoResourceBundleManifest.cpp",
+          "include": "KoXmlNS.h",
+          "headerPath": "libs/store/KoXmlNS.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaresources",
+          "dependencyTarget": "kritastore",
+          "sourcePath": "libs/resources/KoResourceBundleManifest.cpp",
+          "include": "KoXmlWriter.h",
+          "headerPath": "libs/store/KoXmlWriter.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "resource-management",
+      "dependencyResponsibility": "painting-rendering",
+      "owner": "R1-G6",
+      "reason": "Resource configuration classes inside kritaui currently include image, brush, and color implementation headers while presenting presets and paint settings.",
+      "maximumDirectIncludes": 40,
+      "removalCondition": "Painting-specific configuration moves behind tool settings or painting-owned adapters, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacolor",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritalibbrush",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacolor",
+          "sourcePath": "libs/ui/kis_config.cc",
+          "include": "kis_color_manager.h",
+          "headerPath": "libs/color/kis_color_manager.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisResourceServerProvider.cpp",
+          "include": "brushengine/kis_paintop_preset.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_preset.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisResourceServerProvider.cpp",
+          "include": "kis_psd_layer_style.h",
+          "headerPath": "libs/image/kis_psd_layer_style.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/KisResourceServerProvider.h",
+          "include": "brushengine/kis_paintop_preset.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_preset.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_bookmarked_configurations_editor.h",
+          "include": "kis_serializable_configuration.h",
+          "headerPath": "libs/image/kis_serializable_configuration.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_bookmarked_configurations_model.cc",
+          "include": "kis_bookmarked_configuration_manager.h",
+          "headerPath": "libs/image/kis_bookmarked_configuration_manager.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_bookmarked_configurations_model.h",
+          "include": "kis_serializable_configuration.h",
+          "headerPath": "libs/image/kis_serializable_configuration.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_config.cc",
+          "include": "kis_image_config.h",
+          "headerPath": "libs/image/kis_image_config.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_config.cc",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_config.h",
+          "include": "kis_properties_configuration.h",
+          "headerPath": "libs/image/kis_properties_configuration.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_model_index_converter.cpp",
+          "include": "kis_selection_mask.h",
+          "headerPath": "libs/image/kis_selection_mask.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paint_ops_model.cpp",
+          "include": "brushengine/kis_paintop_factory.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_factory.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paint_ops_model.cpp",
+          "include": "brushengine/kis_paintop_registry.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_registry.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paint_ops_model.h",
+          "include": "brushengine/kis_paintop_factory.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_factory.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "brushengine/KisPaintOpPresetUpdateProxy.h",
+          "headerPath": "libs/image/brushengine/KisPaintOpPresetUpdateProxy.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "brushengine/kis_paintop_config_widget.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_config_widget.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "brushengine/kis_paintop_preset.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_preset.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "brushengine/kis_paintop_registry.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_registry.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "brushengine/kis_paintop_settings.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_settings.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_config_widget.h",
+          "headerPath": "libs/image/kis_config_widget.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_image_config.h",
+          "headerPath": "libs/image/kis_image_config.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_node.h",
+          "headerPath": "libs/image/kis_node.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_paint_device.h",
+          "headerPath": "libs/image/kis_paint_device.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.h",
+          "include": "brushengine/kis_locked_properties.h",
+          "headerPath": "libs/image/brushengine/kis_locked_properties.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.h",
+          "include": "brushengine/kis_locked_properties_proxy.h",
+          "headerPath": "libs/image/brushengine/kis_locked_properties_proxy.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.h",
+          "include": "brushengine/kis_locked_properties_server.h",
+          "headerPath": "libs/image/brushengine/kis_locked_properties_server.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.h",
+          "include": "brushengine/kis_paintop_settings.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_settings.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_box.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_option.cpp",
+          "include": "kis_paintop_lod_limitations.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_lod_limitations.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_option.h",
+          "include": "brushengine/kis_locked_properties_proxy.h",
+          "headerPath": "libs/image/brushengine/kis_locked_properties_proxy.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_option.h",
+          "include": "kis_properties_configuration.h",
+          "headerPath": "libs/image/kis_properties_configuration.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_option.h",
+          "include": "kis_types.h",
+          "headerPath": "libs/image/kis_types.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_settings_widget.cpp",
+          "include": "brushengine/kis_locked_properties.h",
+          "headerPath": "libs/image/brushengine/kis_locked_properties.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_settings_widget.cpp",
+          "include": "brushengine/kis_locked_properties_proxy.h",
+          "headerPath": "libs/image/brushengine/kis_locked_properties_proxy.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_settings_widget.cpp",
+          "include": "brushengine/kis_locked_properties_server.h",
+          "headerPath": "libs/image/brushengine/kis_locked_properties_server.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_settings_widget.cpp",
+          "include": "brushengine/kis_paintop_lod_limitations.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_lod_limitations.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_settings_widget.cpp",
+          "include": "brushengine/kis_paintop_preset.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_preset.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/kis_paintop_settings_widget.h",
+          "include": "brushengine/kis_paintop_config_widget.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_config_widget.h",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    }
+  ],
+  "unresolvedProjections": [
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "application-orchestration",
+      "status": "ambiguous-direct-include",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "ambiguousDirectIncludes": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
+          "include": "widgets/KoStrokeConfigWidget.h",
+          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "shared-owner-target",
+          "sourceResponsibilities": [
+            "canvas-presentation"
+          ],
+          "dependencyResponsibilities": [
+            "application-orchestration",
+            "canvas-presentation",
+            "document-lifecycle",
+            "import-export",
+            "input-interpretation",
+            "resource-management",
+            "tool-invocation"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "import-export",
+      "status": "ambiguous-direct-include",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "ambiguousDirectIncludes": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
+          "include": "widgets/KoStrokeConfigWidget.h",
+          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "shared-owner-target",
+          "sourceResponsibilities": [
+            "canvas-presentation"
+          ],
+          "dependencyResponsibilities": [
+            "application-orchestration",
+            "canvas-presentation",
+            "document-lifecycle",
+            "import-export",
+            "input-interpretation",
+            "resource-management",
+            "tool-invocation"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "input-interpretation",
+      "status": "ambiguous-direct-include",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "ambiguousDirectIncludes": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
+          "include": "widgets/KoStrokeConfigWidget.h",
+          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "shared-owner-target",
+          "sourceResponsibilities": [
+            "canvas-presentation"
+          ],
+          "dependencyResponsibilities": [
+            "application-orchestration",
+            "canvas-presentation",
+            "document-lifecycle",
+            "import-export",
+            "input-interpretation",
+            "resource-management",
+            "tool-invocation"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "tool-invocation",
+      "status": "ambiguous-direct-include",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "ambiguousDirectIncludes": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
+          "include": "widgets/KoStrokeConfigWidget.h",
+          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
+          "sourceAttribution": "unique-owner-target",
+          "dependencyAttribution": "shared-owner-target",
+          "sourceResponsibilities": [
+            "canvas-presentation"
+          ],
+          "dependencyResponsibilities": [
+            "application-orchestration",
+            "canvas-presentation",
+            "document-lifecycle",
+            "import-export",
+            "input-interpretation",
+            "resource-management",
+            "tool-invocation"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "input-interpretation",
+      "dependencyResponsibility": "import-export",
+      "status": "no-attributed-direct-include",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "ambiguousDirectIncludes": []
+    },
+    {
+      "sourceResponsibility": "tool-invocation",
+      "dependencyResponsibility": "import-export",
+      "status": "no-attributed-direct-include",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "ambiguousDirectIncludes": []
+    }
+  ]
+}

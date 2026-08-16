@@ -2,11 +2,11 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 17:15 JST
-- 状態: `planned`
+- 更新日時: 2026-08-16 18:39 JST
+- 状態: `in_progress`
 - 現在の検査段階: R1-G4 既存違反基準と継続検査
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g3b-allowed-dependencies`
+- ブランチ: `r1-g4a-dependency-violation-baseline`
 - 目的: R1-G4aとして許可方向外の26射影候補を実際のincludeと利用箇所へ帰属させ、
   確認済みの既存違反を再現可能な基準表へ固定する。
 
