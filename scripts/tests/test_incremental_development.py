@@ -3,6 +3,7 @@
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -10,12 +11,14 @@ import unittest
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 BUILD_SCRIPT = REPO_ROOT / "scripts" / "build-incremental"
+BASH = shutil.which("bash")
 
 
 class IncrementalDevelopmentContractTests(unittest.TestCase):
     def run_build_script(self, *arguments: str, environment=None):
+        self.assertIsNotNone(BASH, "bash must be available in the test environment")
         return subprocess.run(
-            [str(BUILD_SCRIPT), *arguments],
+            [BASH, str(BUILD_SCRIPT), *arguments],
             cwd=REPO_ROOT,
             env=environment,
             text=True,
@@ -49,7 +52,7 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             fake_bin.mkdir()
             fake_cmake = fake_bin / "cmake"
             fake_cmake.write_text(
-                "#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >>\"$COMMAND_LOG\"\n",
+                f"#!{BASH}\nprintf '%s\\n' \"$*\" >>\"$COMMAND_LOG\"\n",
                 encoding="utf-8",
             )
             fake_cmake.chmod(0o755)

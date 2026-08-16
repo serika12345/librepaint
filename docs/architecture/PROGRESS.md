@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 12:19 JST
+- 更新日時: 2026-08-16 12:57 JST
 - 状態: `planned`
 - 現在の検査段階: R1-G2 公開面と主要クラスの棚卸し
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g1-cmake-graph-foundation`
-- 目的: 公開ヘッダー、主要クラス、プラグインの所有者、利用元、実際の責務を、
-  全プラットフォームのCMakeターゲット台帳へ接続できる機械可読な台帳に記録する。
+- ブランチ: `r1-g2a-public-surface-contract`
+- 目的: R1-G2bとして`kritaui`と`kritaimage`の公開ヘッダーを全件採取し、所有者、
+  利用元、公開根拠を5構成のCMakeターゲット台帳へ接続する。
 
 ## 再開環境
 
@@ -41,36 +41,50 @@
 - 台帳の範囲、差分行列、ホスト割り当て、更新手順、同時検証コマンドを
   アーキテクチャガイドと開発手順へ記録した。
 
+## R1-G2aで完了した作業
+
+- `docs/architecture/public-surface-inventory.json`に、`kritaui`と`kritaimage`の
+  代表公開ヘッダー3件、主要クラス3件、PNG読込プラグイン1件を記録した。
+- 公開ヘッダーを所有ターゲット、公開マクロ、別ターゲットからの直接include、
+  対応プラットフォーム、責務、根拠へ接続した。
+- 主要クラスを宣言、実装、所有ターゲット、公開ヘッダー、利用元へ接続し、
+  プラグインをCMakeターゲット、JSONメタデータ、登録マクロ、実行時利用元へ接続した。
+- `check_public_surface_inventory.py`が、パス、決定的な整列、5台帳のターゲット実体、
+  ソース所属、公開マクロ、include、クラス宣言、メタデータ、登録を高速検査で確認する。
+- Nixの独立した運用検査を、Nix提供のBash、明示的なスクリプト処理系、認証局証明書で
+  完結させ、macOSとLinuxで同じ検査を構築できるようにした。
+- 台帳の目的、構成、検査方法、保守手順をアーキテクチャガイドと開発手順へ記録した。
+
 ## 検証状態
 
-- 初回契約検査は、5台帳と差分行列の欠落、全構成を受け取らない再生成器、同時検証
-  入口の欠落を診断した。Windowsの初回実構成は`substituteInPlace: command not found`
-  を診断し、修正後に構成と台帳生成が成功した。
-- `nix develop .#test --command ./scripts/verify-quick`: 27件の単体試験、運用検査、
+- 初回契約検査は公開面検査器の欠落を診断し、統合契約は高速検査に検査器が未接続で
+  あることを診断した。Linuxの独立Nix検査は`/usr/bin/env`への依存と認証局証明書の
+  欠落を順に診断し、処理系と軽量な検査入力を修正した後に成功した。
+- `nix develop .#test --command ./scripts/verify-quick`: 34件の単体試験、公開面検査、運用検査、
   シェル検査、文書検査、リンク検査、D2再生成検査が成功した。
 - `nix flake check --no-build --all-systems`: 全出力、検査、開発シェル、整形器の
   評価が成功した。
+- `nix build --no-link .#checks.aarch64-darwin.governance`と、`ssh nixos`上の
+  `nix build --no-link .#checks.x86_64-linux.governance`が成功した。
 - `nix develop .#test --command ./scripts/architecture/verify_cmake_graphs.py
   --remote-host nixos --remote-repository
-  /home/masato/worktrees/librepaint-r1-g1-verify`: macOS、Linux、iOS、Android、Windowsの
+  /home/masato/worktrees/librepaint-r1-g2a-verify`: macOS、Linux、iOS、Android、Windowsの
   5台帳と差分行列が同一コミットの実構成に一致した。
-- 製品C++を変更していないため製品全体の再構築は実行していない。WindowsのNix変更は
-  全システム評価と実構成により検証し、実行形式の完全構築は配布検査地点に残る。
+- 製品C++とCMakeターゲットを変更していないため製品全体の再構築は実行していない。
+  Nix変更は全システム評価、両ホストの独立運用検査、5構成の実構成で検証した。
 
 ## 次の操作
 
-R1-G2の最初の小単位として、公開面と主要クラスを記録する台帳契約を作る。
+R1-G2bとして`kritaui`と`kritaimage`の公開ヘッダーを全件台帳化する。
 
-1. この文書の状態を`in_progress`へ変更する。
-2. `libs/ui`と`libs/image`のインストール規則、公開ヘッダー、別ターゲットからの
-   include、主要クラスを調査し、所有者と利用元を判定する証拠を固定する。
-3. 公開ヘッダー、主要クラス、プラグインの受理例を含む最小固定データを作る。
-4. 台帳の各要素がパス、種別、所有ターゲット、利用元、実際の責務、根拠を持つ
-   契約試験を追加し、期待する初回診断を記録する。
-5. 最小の台帳検査器と、`kritaui`、`kritaimage`の代表項目を実装して契約試験を
-   成功させる。
-6. 高速検査と全プラットフォーム同時検証を成功させ、調査範囲を全公開ヘッダー、
-   主要クラス、プラグインへ広げる。
+1. この文書の状態を`in_progress`へ変更し、R1-G2aの代表項目を受理例として保持する。
+2. 両ターゲットの公開マクロを持つヘッダーと別ターゲットからの直接includeを機械採取し、
+   現行の公開面候補を固定データへ記録する。
+3. 各候補の所有ターゲット、対応プラットフォーム、利用元、公開根拠を5台帳と実ソースで
+   検証し、生成物または内部専用項目を根拠付きで分類する。
+4. 欠落、重複、誤った所有者、根拠のない公開指定を診断する契約試験を追加する。
+5. `publicHeaders`を両ターゲットの全件へ広げ、高速検査、macOSとLinuxの独立運用検査、
+   5構成の同時検証を成功させる。
 
 ## R1-G2完了条件
 
