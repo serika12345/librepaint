@@ -26,6 +26,7 @@ let
     "postInstallCheck"
   ];
   windowsCmakeFlags = librepaintUnwrapped.cmakeFlags ++ [
+    "-DCMAKE_BUILD_TYPE:STRING=Release"
     "-DCMAKE_SYSTEM_NAME:STRING=Windows"
     "-DCMAKE_C_COMPILER:FILEPATH=${pkgs.stdenv.cc}/bin/${pkgs.stdenv.cc.targetPrefix}gcc"
     "-DCMAKE_CXX_COMPILER:FILEPATH=${pkgs.stdenv.cc}/bin/${pkgs.stdenv.cc.targetPrefix}g++"

@@ -141,6 +141,13 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             r'(?s)configure_prepared_tree\(\).*?cd "\$build_dir".*?cmake -S',
         )
 
+    def test_windows_incremental_configuration_has_a_build_type(self):
+        windows_expression = (
+            REPO_ROOT / "nix/windows/default.nix"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"-DCMAKE_BUILD_TYPE:STRING=Release"', windows_expression)
+
 
 if __name__ == "__main__":
     unittest.main()
