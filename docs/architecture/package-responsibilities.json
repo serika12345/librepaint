@@ -1617,7 +1617,9 @@
       "repositoryDependencies": [
         "kritacommand",
         "kritapigment",
-        "kritawidgetutils"
+        "kritaresourcestorage",
+        "kritawidgetutils",
+        "kritaxmlserialization"
       ],
       "repositoryConsumers": [
         "krita_flaketools",
@@ -1652,6 +1654,7 @@
         "kritapigment",
         "kritapsdutils",
         "kritaresources",
+        "kritaresourcestorage",
         "kritaversion",
         "kritawidgets",
         "kritawidgetutils"
@@ -1790,7 +1793,8 @@
         "kritamultiarch",
         "kritaplugin",
         "kritaresources",
-        "kritaresourcestorage"
+        "kritaresourcestorage",
+        "kritaxmlserialization"
       ],
       "repositoryConsumers": [
         "krita_colorspaces_extensions",
@@ -1846,7 +1850,8 @@
         "kritaglobal",
         "kritaplugin",
         "kritaresourcestorage",
-        "kritaversion"
+        "kritaversion",
+        "kritaxmlserialization"
       ],
       "repositoryConsumers": [
         "kritadbexplorer",
@@ -1876,10 +1881,16 @@
       ],
       "repositoryDependencies": [],
       "repositoryConsumers": [
+        "krita_flaketools",
+        "kritaflake",
+        "kritaimage",
+        "kritalibkra",
+        "kritaoracommon",
+        "kritaoraexport",
+        "kritaoraimport",
         "kritapigment",
-        "kritapsdexport",
         "kritaresources",
-        "kritaresourcewidgets"
+        "kritaui"
       ]
     },
     {
@@ -1900,7 +1911,6 @@
         "kritaglobal",
         "kritaplugin",
         "kritaresources",
-        "kritaresourcestorage",
         "kritaversion",
         "kritawidgetutils"
       ],
@@ -1931,10 +1941,12 @@
         "kritalibbrush",
         "kritamacosutils",
         "kritaresources",
+        "kritaresourcestorage",
         "kritasurfacecolormanagementapi",
         "kritaversion",
         "kritawidgets",
-        "kritawidgetutils"
+        "kritawidgetutils",
+        "kritaxmlserialization"
       ],
       "repositoryConsumers": [
         "krita",

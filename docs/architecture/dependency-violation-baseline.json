@@ -1601,6 +1601,17 @@
             "android",
             "windows"
           ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaresourcestorage",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
         }
       ],
       "directIncludes": [

@@ -466,6 +466,23 @@
       ]
     },
     {
+      "sourceTarget": "kritaflake",
+      "dependencyTarget": "kritaresourcestorage",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritaimage",
       "dependencyTarget": "kritacommand",
       "sourceResponsibilities": [
@@ -519,6 +536,23 @@
     {
       "sourceTarget": "kritaimage",
       "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimage",
+      "dependencyTarget": "kritaresourcestorage",
       "sourceResponsibilities": [
         "painting-rendering"
       ],
@@ -706,23 +740,6 @@
     {
       "sourceTarget": "kritaresourcewidgets",
       "dependencyTarget": "kritaresources",
-      "sourceResponsibilities": [
-        "resource-management"
-      ],
-      "dependencyResponsibilities": [
-        "resource-management"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "resource-management",
-          "dependencyResponsibility": "resource-management",
-          "status": "internal"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaresourcewidgets",
-      "dependencyTarget": "kritaresourcestorage",
       "sourceResponsibilities": [
         "resource-management"
       ],
@@ -952,6 +969,59 @@
     {
       "sourceTarget": "kritaui",
       "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "resource-management",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "resource-management",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "resource-management",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritaresourcestorage",
       "sourceResponsibilities": [
         "application-orchestration",
         "canvas-presentation",

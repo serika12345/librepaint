@@ -160,9 +160,9 @@ R1-G3bで定義する許可依存方向の比較元になる。
 検証済みファクトリーを明示された機能レジストリーへ登録する。このリンク方向と、登録時に
 機能レジストリーへ渡る制御を区別する。
 
-`currentTargetEdges`は15の中核所有ターゲット間にある27の直接リンクを責務へ射影する。
-`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は69候補の
-うち10候補が同一責務内、36候補が許可方向、23候補が`requires-r1-g4-baseline`である。
+`currentTargetEdges`は15の中核所有ターゲット間にある29の直接リンクを責務へ射影する。
+`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は77候補の
+うち10候補が同一責務内、43候補が許可方向、24候補が`requires-r1-g4-baseline`である。
 最後の分類は共有ターゲットが作る曖昧な候補を含むため、R1-G4で実際のincludeと利用箇所を
 根拠に既存違反基準へ確定する。
 
@@ -209,8 +209,8 @@ CMakeターゲット循環、公開宣言を持たないヘッダーのパッケ
 ヘッダーを記録し、新たな未帰属候補を診断する。
 
 ターゲット循環は、15の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 214件、Linux 220件、iOS 206件、Android 206件、
-Windows 223件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
+2範囲を検査する。全製品範囲はmacOS 215件、Linux 221件、iOS 207件、Android 207件、
+Windows 224件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
@@ -243,20 +243,22 @@ C++名前空間、主CMakeターゲット、許可依存、移行段階へ対応
 直接参照は、R1-G6bで`kritaimage`の593件を解消し、R1-G6bからR1-G6hで
 `kritaui`の34件を32、28、20、20、3、3、0へ縮小する。
 
-最初の実装段階R1-G6aは、`libs/store`を`libs/resources/storage`の
-`kritaresourcestorage`へ、`libs/resourcewidgets`とリソース設定表示を
+最初の実装段階R1-G6aは、`libs/store`の書庫保存を`libs/resources/storage`の
+`kritaresourcestorage`へ、XML直列化を`libs/serialization/xml`の
+`kritaxmlserialization`へ分け、`libs/resourcewidgets`とリソース設定表示を
 `kritaresourceui`へ移す。同時に描画設定表示を`kritatoolsui`へ分離し、描画から
 入出力2件、リソースから入出力5件、リソースから描画40件の逆方向includeをゼロにする。
 保存領域の読込、書込、取消し、不正アーカイブ、リソース検索、表示接続の契約が、
 この段階の着手条件と完了判定になる。
 
 保存境界は実装済みである。`kritaresourcestorage`がZIPとディレクトリーの保存契約を所有し、
-製品利用元はこのターゲットへ直接リンクする。`kritastore`は製品ソースを持たない互換用
-ターゲット、`libs/store`のヘッダーは転送ヘッダーとしてR1-G7まで維持する。移行計画の
-`implemented`状態と5構成のCMake台帳が新ターゲットの存在を継続検査する。保存ターゲットは
-LibrePaint内の製品ターゲットへ依存せず、Qt Core、Gui、Xml、KConfig、QuaZipだけを利用する。
+`kritaxmlserialization`がXML名前空間と逐次書出しを所有する。実利用元は必要なターゲットへ
+直接リンクする。`libs/store`、`kritastore`、転送ヘッダーは存在しない。移行計画の
+`implemented`状態と5構成のCMake台帳が保存ターゲットの存在を継続検査する。両ターゲットは
+LibrePaint内の上位製品ターゲットへ依存せず、保存側はQt Core、KConfig、QuaZip、XML側はQt Coreを
+利用する。
 
-一時互換経路は旧include、`kritastore`、`kritaui`、既存の大域C++識別子を含む。
+残る一時互換経路はUI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
 9責務と5構成の現行ターゲット、8種類305件の逆方向依存、44ヘッダー627件の内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。
@@ -348,7 +350,8 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 
 `KisDocument`は`KisImportExportManager`へ処理を委譲します。管理クラスは`Krita/FileFilter`プラグインをMIME型で選び、`KisImportExportFilter::convert()`を呼びます。
 
-- KRAやORAのようなコンテナー形式では`libs/store`の`KoStore`がZIP／ディレクトリー抽象化を提供します。
+- KRAやORAのようなコンテナー形式では`libs/resources/storage`の`KoStore`がZIP／ディレクトリー抽象化を提供します。
+- XML名前空間と逐次書出しは`libs/serialization/xml`が提供します。
 - 画像形式固有の符号化、設定画面、依存ライブラリー接続は`plugins/impex/<format>/`に置きます。
 - インポート後の共通検査、非同期エクスポート、警告、原子的保存の扱いは`KisImportExportManager`側にあります。
 - iOS／Androidの文書選択や内容URIの差は、Qtのファイル機構とプラットフォーム条件を通して共通の`KisDocument`経路へ合流します。
@@ -371,7 +374,7 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | 色空間、プロファイル、合成 | `libs/pigment`、`libs/color`、`plugins/color` | LittleCMS、OpenColorIO、表示変換 |
 | ベクター図形、選択図形 | `libs/flake`、`libs/basicflakes`、`plugins/flake` | `libs/ui/flake`、SVG入出力 |
 | ブラシ等のリソース管理 | `libs/resources`、`libs/resourcewidgets` | リソースDB、ローダーレジストリー、同梱バンドル |
-| KRA内部構造、ZIPストレージ | `plugins/impex/libkra`、`plugins/impex/kra`、`libs/store` | `KisDocument`、メタデータ、互換性 |
+| KRA内部構造、ZIPストレージ | `plugins/impex/libkra`、`plugins/impex/kra`、`libs/resources/storage` | `KisDocument`、メタデータ、XML直列化 |
 | PNG、PSD、RAW等の形式 | `plugins/impex/<format>` | `KisImportExportManager`、プラグインJSON、Nix依存 |
 | 外部操作API、スクリプト公開面 | `libs/libkis`、`plugins/python` | ABI/API互換性、Python/PyQtを含む配布対象 |
 | QML部品 | `qmlmodules` | Qt Quickの有効条件、iOSプロファイル |
@@ -391,7 +394,8 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | `libs/brush`、`libs/pigment`、`libs/color` | ブラシ資産、色空間、色変換・合成の基盤 |
 | `libs/flake`、`libs/basicflakes` | ベクター図形、キャンバス、図形ツールの基盤 |
 | `libs/resources`、`libs/resourcewidgets` | リソース永続化、検索、タグ、バンドルと管理画面 |
-| `libs/store`、`libs/metadata`、`libs/psd*` | コンテナーI/O、メタデータ、PSD共通実装 |
+| `libs/resources/storage`、`libs/serialization/xml` | コンテナーI/OとXML直列化 |
+| `libs/metadata`、`libs/psd*` | メタデータとPSD共通実装 |
 | `libs/koplugin` | プラグイン探索とメタデータ照会 |
 | `libs/impex` | 入出力フィルターの共通契約と書き出し前検査 |
 | `libs/libkis` | 外部APIとスクリプト向けの公開ラッパー |

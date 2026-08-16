@@ -608,27 +608,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 214,
+            "targetCount": 215,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 220,
+            "targetCount": 221,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 206,
+            "targetCount": 207,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 206,
+            "targetCount": 207,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 223,
+            "targetCount": 224,
             "components": []
           }
         ]

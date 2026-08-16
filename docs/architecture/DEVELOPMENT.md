@@ -130,13 +130,13 @@ nix develop .#test --command ./scripts/run-test kis_strokes_queue_test
 第1引数はCMakeの試験ターゲットである。CTest名を絞る必要がある場合は
 第2引数へ正規表現を指定する。
 
-リソース保存境界と旧`kritastore`互換経路は、次の二つの契約で検査する。
+書庫保存境界とXML直列化境界は、次の二つの契約で検査する。
 
 ```sh
 nix develop .#test --command \
   ./scripts/run-test TestResourceStorageArchiveContract
 nix develop .#test --command \
-  ./scripts/run-test TestLegacyStoreCompatibility
+  ./scripts/run-test TestXmlWriter
 ```
 
 ```sh
@@ -395,8 +395,8 @@ nix develop .#test --command \
   サービス種別が公開面台帳の機能所有領域と一致する。
 - 9責務の14公開接続面が目的、寿命、エラー動作を持ち、許可依存が既知の接続面を参照する。
 - 許可依存が自己参照を持たず、常に下位層へ向かい、有向非巡回グラフを形成する。
-- 15ターゲット間の27リンクが、共有ターゲットの全責務を含む69候補へ欠落なく射影され、
-  同一責務内10候補、許可方向36候補、R1-G4で基準化する23候補へ分類される。
+- 15ターゲット間の29リンクが、共有ターゲットの全責務を含む77候補へ欠落なく射影され、
+  同一責務内10候補、許可方向43候補、R1-G4で基準化する24候補へ分類される。
 - 許可方向外の責務対のうち現在の6責務対が298件の直接includeへ一意に帰属し、元の
   CMakeターゲット辺と5構成へ接続される。
 - 確認済み6責務対が理由、所有段階、除去条件、現在件数と等しい審査済み上限を持つ。
