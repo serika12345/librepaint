@@ -37,6 +37,11 @@ the explanation after the purpose and structural result are clear. A list of
 internal identifiers is not a substitute for explaining what changed, why it
 changed, and how a reviewer can judge correctness.
 
+For a split, extraction, relocation, or ownership transfer, report the exact
+starting files or directories and their destination files or directories as a
+traceable mapping. File paths are required review entry points even when class,
+target, and test identifiers are unnecessary supporting detail.
+
 ## Roadmap Order
 
 LibrePaint follows the roadmap in `docs/architecture/TODO.md`.
