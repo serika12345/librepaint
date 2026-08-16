@@ -1,0 +1,1160 @@
+{
+  "schemaVersion": 1,
+  "scope": "libs/ui-top-level-public-classes",
+  "ownerTarget": "kritaui",
+  "platforms": [
+    "macos",
+    "linux",
+    "ios",
+    "android",
+    "windows"
+  ],
+  "classPolicy": {
+    "publicHeaderOwner": "kritaui",
+    "sourceDirectory": "libs/ui",
+    "headerDepth": 1,
+    "declarationKinds": [
+      "class",
+      "struct"
+    ],
+    "exportMacros": [
+      "KRITAUI_EXPORT",
+      "KRITAUI_EXPORT_TEMPLATE"
+    ],
+    "implementationSuffixes": [
+      ".c",
+      ".cc",
+      ".cpp",
+      ".cxx",
+      ".m",
+      ".mm"
+    ],
+    "privateHeaderImplementationSuffix": "_p"
+  },
+  "responsibilityAreas": [
+    {
+      "id": "application-orchestration",
+      "responsibility": "Coordinates process startup, application services, actions, plugins, and the shared application object graph."
+    },
+    {
+      "id": "canvas-display",
+      "responsibility": "Coordinates canvas presentation, display configuration, animation playback and caches, reference overlays, and view transforms."
+    },
+    {
+      "id": "document-state",
+      "responsibility": "Coordinates document metadata, image and node operations, selections, undo state, and document-facing feature managers."
+    },
+    {
+      "id": "import-export",
+      "responsibility": "Coordinates loading, saving, format filters, conversion, clipboard and MIME transfer, and safe document replacement."
+    },
+    {
+      "id": "resource-configuration",
+      "responsibility": "Coordinates settings, resources, paint-op options, palettes, and the models and editors that expose them."
+    },
+    {
+      "id": "window-workspace",
+      "responsibility": "Coordinates windows, views, workspace and session layouts, templates, preferences, status presentation, and startup surfaces."
+    }
+  ],
+  "classes": [
+    {
+      "name": "FramesGluerBase",
+      "declarationKind": "struct",
+      "header": "libs/ui/kis_animation_frame_cache_p.h",
+      "implementationPaths": [
+        "libs/ui/kis_animation_frame_cache.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisAbstractFrameCacheSwapper",
+      "declarationKind": "class",
+      "header": "libs/ui/KisAbstractFrameCacheSwapper.h",
+      "implementationPaths": [
+        "libs/ui/KisAbstractFrameCacheSwapper.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisAbstractPerspectiveGrid",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_abstract_perspective_grid.h",
+      "implementationPaths": [
+        "libs/ui/kis_abstract_perspective_grid.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisAbstractPreferenceSetFactory",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_preference_set_registry.h",
+      "implementationPaths": [],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisAction",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_action.h",
+      "implementationPaths": [
+        "libs/ui/kis_action.cpp"
+      ],
+      "responsibilityArea": "application-orchestration"
+    },
+    {
+      "name": "KisActionManager",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_action_manager.h",
+      "implementationPaths": [
+        "libs/ui/kis_action_manager.cpp"
+      ],
+      "responsibilityArea": "application-orchestration"
+    },
+    {
+      "name": "KisActionPlugin",
+      "declarationKind": "class",
+      "header": "libs/ui/KisActionPlugin.h",
+      "implementationPaths": [
+        "libs/ui/KisActionPlugin.cpp"
+      ],
+      "responsibilityArea": "application-orchestration"
+    },
+    {
+      "name": "KisAndroidScaling",
+      "declarationKind": "class",
+      "header": "libs/ui/KisAndroidScaling.h",
+      "implementationPaths": [
+        "libs/ui/KisAndroidScaling.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisAndroidSplash",
+      "declarationKind": "class",
+      "header": "libs/ui/KisAndroidSplash.h",
+      "implementationPaths": [
+        "libs/ui/KisAndroidSplash.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisAnimationFrameCache",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_animation_frame_cache.h",
+      "implementationPaths": [
+        "libs/ui/kis_animation_frame_cache.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisAnimationImporter",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_animation_importer.h",
+      "implementationPaths": [
+        "libs/ui/kis_animation_importer.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisApplication",
+      "declarationKind": "class",
+      "header": "libs/ui/KisApplication.h",
+      "implementationPaths": [
+        "libs/ui/KisApplication.cpp"
+      ],
+      "responsibilityArea": "application-orchestration"
+    },
+    {
+      "name": "KisApplicationArguments",
+      "declarationKind": "class",
+      "header": "libs/ui/KisApplicationArguments.h",
+      "implementationPaths": [
+        "libs/ui/KisApplicationArguments.cpp"
+      ],
+      "responsibilityArea": "application-orchestration"
+    },
+    {
+      "name": "KisAspectRatioLocker",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_aspect_ratio_locker.h",
+      "implementationPaths": [
+        "libs/ui/kis_aspect_ratio_locker.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisAsyncAnimationRendererBase",
+      "declarationKind": "class",
+      "header": "libs/ui/KisAsyncAnimationRendererBase.h",
+      "implementationPaths": [
+        "libs/ui/KisAsyncAnimationRendererBase.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisBookmarkedConfigurationsEditor",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_bookmarked_configurations_editor.h",
+      "implementationPaths": [
+        "libs/ui/kis_bookmarked_configurations_editor.cc"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisBookmarkedConfigurationsModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_bookmarked_configurations_model.h",
+      "implementationPaths": [
+        "libs/ui/kis_bookmarked_configurations_model.cc"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisCanvasControlsManager",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_canvas_controls_manager.h",
+      "implementationPaths": [
+        "libs/ui/kis_canvas_controls_manager.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisCanvasResourceProvider",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_canvas_resource_provider.h",
+      "implementationPaths": [
+        "libs/ui/kis_canvas_resource_provider.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisCanvasSurfaceColorSpaceManager",
+      "declarationKind": "class",
+      "header": "libs/ui/KisCanvasSurfaceColorSpaceManager.h",
+      "implementationPaths": [
+        "libs/ui/KisCanvasSurfaceColorSpaceManager.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisCategorizedItemDelegate",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_categorized_item_delegate.h",
+      "implementationPaths": [
+        "libs/ui/kis_categorized_item_delegate.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisClipboard",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_clipboard.h",
+      "implementationPaths": [
+        "libs/ui/kis_clipboard.cc"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisCompositeOpListModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_composite_ops_model.h",
+      "implementationPaths": [
+        "libs/ui/kis_composite_ops_model.cc"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisConfig",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_config.h",
+      "implementationPaths": [
+        "libs/ui/kis_config.cc"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisDisplayConfig",
+      "declarationKind": "class",
+      "header": "libs/ui/KisDisplayConfig.h",
+      "implementationPaths": [
+        "libs/ui/KisDisplayConfig.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisDocument",
+      "declarationKind": "class",
+      "header": "libs/ui/KisDocument.h",
+      "implementationPaths": [
+        "libs/ui/KisDocument.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisDocumentUndoStore",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_document_undo_store.h",
+      "implementationPaths": [
+        "libs/ui/kis_document_undo_store.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisFileLayer",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_file_layer.h",
+      "implementationPaths": [
+        "libs/ui/kis_file_layer.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisFilterManager",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_filter_manager.h",
+      "implementationPaths": [
+        "libs/ui/kis_filter_manager.cc"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisFrameCacheStore",
+      "declarationKind": "class",
+      "header": "libs/ui/KisFrameCacheStore.h",
+      "implementationPaths": [
+        "libs/ui/KisFrameCacheStore.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisFrameCacheSwapper",
+      "declarationKind": "class",
+      "header": "libs/ui/KisFrameCacheSwapper.h",
+      "implementationPaths": [
+        "libs/ui/KisFrameCacheSwapper.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisFrameDataSerializer",
+      "declarationKind": "class",
+      "header": "libs/ui/KisFrameDataSerializer.h",
+      "implementationPaths": [
+        "libs/ui/KisFrameDataSerializer.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisIdleTaskStrokeStrategy",
+      "declarationKind": "class",
+      "header": "libs/ui/KisIdleTaskStrokeStrategy.h",
+      "implementationPaths": [
+        "libs/ui/KisIdleTaskStrokeStrategy.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisIdleTasksManager",
+      "declarationKind": "class",
+      "header": "libs/ui/KisIdleTasksManager.h",
+      "implementationPaths": [
+        "libs/ui/KisIdleTasksManager.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisImageManager",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_image_manager.h",
+      "implementationPaths": [
+        "libs/ui/kis_image_manager.cc"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisImageThumbnailStrokeStrategy",
+      "declarationKind": "class",
+      "header": "libs/ui/KisImageThumbnailStrokeStrategy.h",
+      "implementationPaths": [
+        "libs/ui/KisImageThumbnailStrokeStrategy.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisImageThumbnailStrokeStrategyBase",
+      "declarationKind": "class",
+      "header": "libs/ui/KisImageThumbnailStrokeStrategy.h",
+      "implementationPaths": [
+        "libs/ui/KisImageThumbnailStrokeStrategy.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisImageViewConverter",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_image_view_converter.h",
+      "implementationPaths": [
+        "libs/ui/kis_image_view_converter.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisImportCatcher",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_import_catcher.h",
+      "implementationPaths": [
+        "libs/ui/kis_import_catcher.cc"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisImportExportAdditionalChecks",
+      "declarationKind": "class",
+      "header": "libs/ui/KisImportExportAdditionalChecks.h",
+      "implementationPaths": [
+        "libs/ui/KisImportExportAdditionalChecks.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisImportExportComplexError",
+      "declarationKind": "struct",
+      "header": "libs/ui/KisImportExportErrorCode.h",
+      "implementationPaths": [
+        "libs/ui/KisImportExportErrorCode.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisImportExportErrorCannotRead",
+      "declarationKind": "struct",
+      "header": "libs/ui/KisImportExportErrorCode.h",
+      "implementationPaths": [
+        "libs/ui/KisImportExportErrorCode.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisImportExportErrorCannotWrite",
+      "declarationKind": "struct",
+      "header": "libs/ui/KisImportExportErrorCode.h",
+      "implementationPaths": [
+        "libs/ui/KisImportExportErrorCode.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisImportExportErrorCode",
+      "declarationKind": "class",
+      "header": "libs/ui/KisImportExportErrorCode.h",
+      "implementationPaths": [
+        "libs/ui/KisImportExportErrorCode.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisImportExportFilter",
+      "declarationKind": "class",
+      "header": "libs/ui/KisImportExportFilter.h",
+      "implementationPaths": [
+        "libs/ui/KisImportExportFilter.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisImportExportManager",
+      "declarationKind": "class",
+      "header": "libs/ui/KisImportExportManager.h",
+      "implementationPaths": [
+        "libs/ui/KisImportExportManager.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisInMemoryFrameCacheSwapper",
+      "declarationKind": "class",
+      "header": "libs/ui/KisInMemoryFrameCacheSwapper.h",
+      "implementationPaths": [
+        "libs/ui/KisInMemoryFrameCacheSwapper.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisLayerThumbnailCache",
+      "declarationKind": "class",
+      "header": "libs/ui/KisLayerThumbnailCache.h",
+      "implementationPaths": [
+        "libs/ui/KisLayerThumbnailCache.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisMainWindow",
+      "declarationKind": "class",
+      "header": "libs/ui/KisMainWindow.h",
+      "implementationPaths": [
+        "libs/ui/KisMainWindow.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisMainwindowObserver",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_mainwindow_observer.h",
+      "implementationPaths": [
+        "libs/ui/kis_mainwindow_observer.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisMimeData",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_mimedata.h",
+      "implementationPaths": [
+        "libs/ui/kis_mimedata.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisModelIndexConverter",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_model_index_converter.h",
+      "implementationPaths": [
+        "libs/ui/kis_model_index_converter.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisModelIndexConverterBase",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_model_index_converter_base.h",
+      "implementationPaths": [
+        "libs/ui/kis_model_index_converter_base.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisModelIndexConverterShowAll",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_model_index_converter_show_all.h",
+      "implementationPaths": [
+        "libs/ui/kis_model_index_converter_show_all.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisMultiSurfaceDisplayConfig",
+      "declarationKind": "class",
+      "header": "libs/ui/KisDisplayConfig.h",
+      "implementationPaths": [
+        "libs/ui/KisDisplayConfig.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisMultinodePropertyInterface",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_multinode_property.h",
+      "implementationPaths": [
+        "libs/ui/kis_multinode_property.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisNodeCommandsAdapter",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_node_commands_adapter.h",
+      "implementationPaths": [
+        "libs/ui/kis_node_commands_adapter.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisNodeDisplayModeAdapter",
+      "declarationKind": "class",
+      "header": "libs/ui/KisNodeDisplayModeAdapter.h",
+      "implementationPaths": [
+        "libs/ui/KisNodeDisplayModeAdapter.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisNodeFilterProxyModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_node_filter_proxy_model.h",
+      "implementationPaths": [
+        "libs/ui/kis_node_filter_proxy_model.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisNodeJugglerCompressed",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_node_juggler_compressed.h",
+      "implementationPaths": [
+        "libs/ui/kis_node_juggler_compressed.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisNodeManager",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_node_manager.h",
+      "implementationPaths": [
+        "libs/ui/kis_node_manager.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisNodeModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_node_model.h",
+      "implementationPaths": [
+        "libs/ui/kis_node_model.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisNodeSelectionAdapter",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_node_selection_adapter.h",
+      "implementationPaths": [
+        "libs/ui/kis_node_selection_adapter.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisNodeViewColorScheme",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_node_view_color_scheme.h",
+      "implementationPaths": [
+        "libs/ui/kis_node_view_color_scheme.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisOptionInfo",
+      "declarationKind": "struct",
+      "header": "libs/ui/kis_paintop_options_model.h",
+      "implementationPaths": [],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPNGConverter",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_png_converter.h",
+      "implementationPaths": [
+        "libs/ui/kis_png_converter.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisPaintOpInfo",
+      "declarationKind": "struct",
+      "header": "libs/ui/kis_paint_ops_model.h",
+      "implementationPaths": [],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPaintOpListModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_paint_ops_model.h",
+      "implementationPaths": [
+        "libs/ui/kis_paint_ops_model.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPaintOpOption",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_paintop_option.h",
+      "implementationPaths": [
+        "libs/ui/kis_paintop_option.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPaintOpOptionListModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_paintop_options_model.h",
+      "implementationPaths": [
+        "libs/ui/kis_paintop_options_model.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPaintOpSettingsWidget",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_paintop_settings_widget.h",
+      "implementationPaths": [
+        "libs/ui/kis_paintop_settings_widget.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPaintingAssistant",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_painting_assistant.h",
+      "implementationPaths": [
+        "libs/ui/kis_painting_assistant.cc"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPaintingAssistantFactory",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_painting_assistant.h",
+      "implementationPaths": [
+        "libs/ui/kis_painting_assistant.cc"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPaintingAssistantFactoryRegistry",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_painting_assistant.h",
+      "implementationPaths": [
+        "libs/ui/kis_painting_assistant.cc"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPaintingAssistantHandle",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_painting_assistant.h",
+      "implementationPaths": [
+        "libs/ui/kis_painting_assistant.cc"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPaintingAssistantsDecoration",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_painting_assistants_decoration.h",
+      "implementationPaths": [
+        "libs/ui/kis_painting_assistants_decoration.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPaintopBox",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_paintop_box.h",
+      "implementationPaths": [
+        "libs/ui/kis_paintop_box.cc"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPaintopPropertiesBase",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPaintopPropertiesBase.h",
+      "implementationPaths": [
+        "libs/ui/KisPaintopPropertiesBase.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPaintopPropertiesCanvasResourcesBase",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPaintopPropertiesBase.h",
+      "implementationPaths": [
+        "libs/ui/KisPaintopPropertiesBase.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPaintopPropertiesResourcesBase",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPaintopPropertiesBase.h",
+      "implementationPaths": [
+        "libs/ui/KisPaintopPropertiesBase.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPaletteEditor",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPaletteEditor.h",
+      "implementationPaths": [
+        "libs/ui/KisPaletteEditor.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisPart",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPart.h",
+      "implementationPaths": [
+        "libs/ui/KisPart.cpp"
+      ],
+      "responsibilityArea": "application-orchestration"
+    },
+    {
+      "name": "KisPlatformPluginInterfaceFactory",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPlatformPluginInterfaceFactory.h",
+      "implementationPaths": [
+        "libs/ui/KisPlatformPluginInterfaceFactory.cpp"
+      ],
+      "responsibilityArea": "application-orchestration"
+    },
+    {
+      "name": "KisPlaybackEngine",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPlaybackEngine.h",
+      "implementationPaths": [
+        "libs/ui/KisPlaybackEngine.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPlaybackEngineMLT",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPlaybackEngineMLT.h",
+      "implementationPaths": [
+        "libs/ui/KisPlaybackEngineMLT.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPlaybackEngineQT",
+      "declarationKind": "class",
+      "header": "libs/ui/KisPlaybackEngineQT.h",
+      "implementationPaths": [
+        "libs/ui/KisPlaybackEngineQT.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisPreferenceSet",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_preference_set_registry.h",
+      "implementationPaths": [],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisPreferenceSetRegistry",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_preference_set_registry.h",
+      "implementationPaths": [
+        "libs/ui/kis_preference_set_registry.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisReferenceImage",
+      "declarationKind": "class",
+      "header": "libs/ui/KisReferenceImage.h",
+      "implementationPaths": [
+        "libs/ui/KisReferenceImage.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisReferenceImagesDecoration",
+      "declarationKind": "class",
+      "header": "libs/ui/KisReferenceImagesDecoration.h",
+      "implementationPaths": [
+        "libs/ui/KisReferenceImagesDecoration.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisResourceServerProvider",
+      "declarationKind": "class",
+      "header": "libs/ui/KisResourceServerProvider.h",
+      "implementationPaths": [
+        "libs/ui/KisResourceServerProvider.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisRootSurfaceInfoProxy",
+      "declarationKind": "class",
+      "header": "libs/ui/KisRootSurfaceInfoProxy.h",
+      "implementationPaths": [
+        "libs/ui/KisRootSurfaceInfoProxy.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisSRGBSurfaceColorSpaceManager",
+      "declarationKind": "class",
+      "header": "libs/ui/KisSRGBSurfaceColorSpaceManager.h",
+      "implementationPaths": [
+        "libs/ui/KisSRGBSurfaceColorSpaceManager.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisSafeDocumentLoader",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_safe_document_loader.h",
+      "implementationPaths": [
+        "libs/ui/kis_safe_document_loader.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisSaveGroupVisitor",
+      "declarationKind": "class",
+      "header": "libs/ui/KisSaveGroupVisitor.h",
+      "implementationPaths": [
+        "libs/ui/KisSaveGroupVisitor.cpp"
+      ],
+      "responsibilityArea": "import-export"
+    },
+    {
+      "name": "KisSelectionActionsAdapter",
+      "declarationKind": "class",
+      "header": "libs/ui/KisSelectionActionsAdapter.h",
+      "implementationPaths": [
+        "libs/ui/KisSelectionActionsAdapter.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisSelectionActionsPanel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_selection_actions_panel.h",
+      "implementationPaths": [
+        "libs/ui/kis_selection_actions_panel.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisSelectionDecoration",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_selection_decoration.h",
+      "implementationPaths": [
+        "libs/ui/kis_selection_decoration.cc"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KisSelectionManager",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_selection_manager.h",
+      "implementationPaths": [
+        "libs/ui/kis_selection_manager.cc"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisSessionResource",
+      "declarationKind": "class",
+      "header": "libs/ui/KisSessionResource.h",
+      "implementationPaths": [
+        "libs/ui/KisSessionResource.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisSortedCategorizedListModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_categorized_list_model.h",
+      "implementationPaths": [],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisSortedCompositeOpListModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_composite_ops_model.h",
+      "implementationPaths": [],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisSortedPaintOpListModel",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_paint_ops_model.h",
+      "implementationPaths": [],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "KisSplashScreen",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_splash_screen.h",
+      "implementationPaths": [
+        "libs/ui/kis_splash_screen.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisStatusBar",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_statusbar.h",
+      "implementationPaths": [
+        "libs/ui/kis_statusbar.cc"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisTemplateCreateDia",
+      "declarationKind": "class",
+      "header": "libs/ui/KisTemplateCreateDia.h",
+      "implementationPaths": [
+        "libs/ui/KisTemplateCreateDia.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisTemplateGroup",
+      "declarationKind": "class",
+      "header": "libs/ui/KisTemplateGroup.h",
+      "implementationPaths": [
+        "libs/ui/KisTemplateGroup.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisTemplateTree",
+      "declarationKind": "class",
+      "header": "libs/ui/KisTemplateTree.h",
+      "implementationPaths": [
+        "libs/ui/KisTemplateTree.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisTextPropertiesManager",
+      "declarationKind": "class",
+      "header": "libs/ui/KisTextPropertiesManager.h",
+      "implementationPaths": [
+        "libs/ui/KisTextPropertiesManager.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KisView",
+      "declarationKind": "class",
+      "header": "libs/ui/KisView.h",
+      "implementationPaths": [
+        "libs/ui/KisView.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisViewManager",
+      "declarationKind": "class",
+      "header": "libs/ui/KisViewManager.h",
+      "implementationPaths": [
+        "libs/ui/KisViewManager.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisWelcomePageWidget",
+      "declarationKind": "class",
+      "header": "libs/ui/KisWelcomePageWidget.h",
+      "implementationPaths": [
+        "libs/ui/KisWelcomePageWidget.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisWindowLayoutResource",
+      "declarationKind": "class",
+      "header": "libs/ui/KisWindowLayoutResource.h",
+      "implementationPaths": [
+        "libs/ui/KisWindowLayoutResource.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisWorkspaceResource",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_workspace_resource.h",
+      "implementationPaths": [
+        "libs/ui/kis_workspace_resource.cpp"
+      ],
+      "responsibilityArea": "window-workspace"
+    },
+    {
+      "name": "KisZoomManager",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_zoom_manager.h",
+      "implementationPaths": [
+        "libs/ui/kis_zoom_manager.cc"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "KoDocumentInfo",
+      "declarationKind": "class",
+      "header": "libs/ui/KoDocumentInfo.h",
+      "implementationPaths": [
+        "libs/ui/KoDocumentInfo.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "KoDocumentInfoDlg",
+      "declarationKind": "class",
+      "header": "libs/ui/KoDocumentInfoDlg.h",
+      "implementationPaths": [
+        "libs/ui/KoDocumentInfoDlg.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "MultinodePropertyBaseConnector",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_multinode_property.h",
+      "implementationPaths": [
+        "libs/ui/kis_multinode_property.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "MultinodePropertyConnectorInterface",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_multinode_property.h",
+      "implementationPaths": [
+        "libs/ui/kis_multinode_property.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "OptionInfoToQStringConverter",
+      "declarationKind": "struct",
+      "header": "libs/ui/kis_paintop_options_model.h",
+      "implementationPaths": [],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "SetSaturationCommand",
+      "declarationKind": "struct",
+      "header": "libs/ui/KisReferenceImage.h",
+      "implementationPaths": [
+        "libs/ui/KisReferenceImage.cpp"
+      ],
+      "responsibilityArea": "canvas-display"
+    },
+    {
+      "name": "StoryboardItem",
+      "declarationKind": "class",
+      "header": "libs/ui/StoryboardItem.h",
+      "implementationPaths": [
+        "libs/ui/StoryboardItem.cpp"
+      ],
+      "responsibilityArea": "document-state"
+    },
+    {
+      "name": "__CategoriesSignalsBase",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_categories_mapper.h",
+      "implementationPaths": [],
+      "responsibilityArea": "resource-configuration"
+    },
+    {
+      "name": "__CategorizedListModelBase",
+      "declarationKind": "class",
+      "header": "libs/ui/kis_categorized_list_model.h",
+      "implementationPaths": [
+        "libs/ui/kis_categorized_list_model.cpp"
+      ],
+      "responsibilityArea": "resource-configuration"
+    }
+  ]
+}

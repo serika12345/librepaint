@@ -12,6 +12,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts/architecture/check_public_surface_inventory.py"
 INVENTORY_PATH = REPO_ROOT / "docs/architecture/public-surface-inventory.json"
+UI_CLASS_INVENTORY_PATH = (
+    REPO_ROOT / "docs/architecture/ui-class-responsibilities.json"
+)
 GRAPH_DIRECTORY = REPO_ROOT / "docs/architecture"
 SPEC = importlib.util.spec_from_file_location(
     "check_public_surface_inventory", SCRIPT_PATH
@@ -27,9 +30,22 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
     def load_inventory(self):
         return check_public_surface_inventory.load_inventory(INVENTORY_PATH)
 
+    def load_ui_class_inventory(self):
+        return check_public_surface_inventory.load_ui_class_inventory(
+            UI_CLASS_INVENTORY_PATH
+        )
+
     def validate(self, inventory) -> None:
         check_public_surface_inventory.validate_inventory(
             inventory,
+            repository_root=REPO_ROOT,
+            graph_directory=GRAPH_DIRECTORY,
+        )
+
+    def validate_ui_classes(self, inventory) -> None:
+        check_public_surface_inventory.validate_ui_class_inventory(
+            inventory,
+            public_surface_inventory=self.load_inventory(),
             repository_root=REPO_ROOT,
             graph_directory=GRAPH_DIRECTORY,
         )
@@ -81,6 +97,74 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             image_by_path["libs/image/kis_image.h"]["consumerPaths"],
         )
         self.assertNotIn("libs/ui/tests/util.h", ui_by_path)
+
+    def test_ui_top_level_class_discovery_is_complete(self) -> None:
+        inventory = self.load_inventory()
+        classes = check_public_surface_inventory.discover_ui_top_level_classes(
+            repository_root=REPO_ROOT,
+            public_surface_inventory=inventory,
+        )
+        by_name = {entry["name"]: entry for entry in classes}
+
+        self.assertEqual(len(classes), 124)
+        self.assertEqual(
+            by_name["KisApplication"],
+            {
+                "name": "KisApplication",
+                "declarationKind": "class",
+                "header": "libs/ui/KisApplication.h",
+                "implementationPaths": ["libs/ui/KisApplication.cpp"],
+            },
+        )
+        self.assertEqual(
+            by_name["KisImportExportComplexError"]["declarationKind"],
+            "struct",
+        )
+        self.assertEqual(
+            by_name["KisOptionInfo"]["implementationPaths"],
+            [],
+        )
+        self.assertNotIn("KisCanvas2", by_name)
+
+    def test_recorded_ui_class_responsibilities_are_complete(self) -> None:
+        inventory = self.load_ui_class_inventory()
+
+        self.validate_ui_classes(inventory)
+
+        self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
+        self.assertEqual(len(inventory["classes"]), 124)
+        by_name = {entry["name"]: entry for entry in inventory["classes"]}
+        self.assertEqual(
+            by_name["KisApplication"]["responsibilityArea"],
+            "application-orchestration",
+        )
+        self.assertEqual(
+            by_name["KisDocument"]["responsibilityArea"], "document-state"
+        )
+        self.assertEqual(
+            by_name["KisImportExportManager"]["responsibilityArea"],
+            "import-export",
+        )
+
+    def test_missing_ui_class_responsibility_is_rejected(self) -> None:
+        inventory = copy.deepcopy(self.load_ui_class_inventory())
+        inventory["classes"].pop(0)
+
+        with self.assertRaisesRegex(
+            check_public_surface_inventory.PublicSurfaceError,
+            r"missing=\['FramesGluerBase'\]",
+        ):
+            self.validate_ui_classes(inventory)
+
+    def test_unknown_ui_class_responsibility_is_rejected(self) -> None:
+        inventory = copy.deepcopy(self.load_ui_class_inventory())
+        inventory["classes"][0]["responsibilityArea"] = "unknown-area"
+
+        with self.assertRaisesRegex(
+            check_public_surface_inventory.PublicSurfaceError,
+            "unknown responsibility area unknown-area",
+        ):
+            self.validate_ui_classes(inventory)
 
     def test_recorded_inventory_has_complete_public_header_scope(self) -> None:
         inventory = self.load_inventory()
@@ -189,6 +273,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertIn(
             "python3 scripts/architecture/update_public_header_inventory.py --check",
+            verify_quick,
+        )
+        self.assertIn(
+            "python3 scripts/architecture/update_ui_class_responsibilities.py --check",
             verify_quick,
         )
         self.assertIn("bash scripts/docs/check-architecture.sh", verify_quick)
