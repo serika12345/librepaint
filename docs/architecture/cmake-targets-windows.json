@@ -5517,12 +5517,6 @@
       "dependencies": []
     },
     {
-      "name": "pofiles-74556801e887d6b7ae9690e24181745f",
-      "type": "UTILITY",
-      "sourceDirectory": ".",
-      "dependencies": []
-    },
-    {
       "name": "psd_colormode_block_test",
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/impex/psd/tests",
@@ -5625,12 +5619,6 @@
     },
     {
       "name": "tsfiles",
-      "type": "UTILITY",
-      "sourceDirectory": ".",
-      "dependencies": []
-    },
-    {
-      "name": "tsfiles-74556801e887d6b7ae9690e24181745f",
       "type": "UTILITY",
       "sourceDirectory": ".",
       "dependencies": []

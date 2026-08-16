@@ -4,9 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path, PurePosixPath
 from typing import Any
+
+
+NONDETERMINISTIC_AUXILIARY_TARGET = re.compile(
+    r"^(?:pofiles|tsfiles)-[0-9a-f]{32}$"
+)
 
 
 class GraphExtractionError(RuntimeError):
@@ -183,10 +189,11 @@ def extract_graph(
     graph_targets: list[dict[str, Any]] = []
     target_names: set[str] = set()
     for target in targets:
+        name = _require_string(target.get("name"), "target name")
         if target.get("isGeneratorProvided") is True:
             continue
-
-        name = _require_string(target.get("name"), "target name")
+        if NONDETERMINISTIC_AUXILIARY_TARGET.fullmatch(name):
+            continue
         if name in target_names:
             raise GraphExtractionError(f"duplicate build target name: {name}")
         target_names.add(name)

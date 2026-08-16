@@ -44,6 +44,7 @@ def build_jobs(
         else:
             remote_command = (
                 f"cd -- {remote_directory} && "
+                "export NIX_CONFIG='eval-cache = false' && "
                 "nix develop .#test --command "
                 "./scripts/architecture/regenerate_cmake_graph.py "
                 f"{target_platform} --check"

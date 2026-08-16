@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 626,
-    "linux": 641,
-    "ios": 560,
-    "android": 566,
-    "windows": 596
+    "macos": 624,
+    "linux": 639,
+    "ios": 558,
+    "android": 564,
+    "windows": 594
   },
   "commonTargets": [
     "CCSGraph",
@@ -1402,26 +1402,6 @@
       ]
     },
     {
-      "name": "pofiles-74556801e887d6b7ae9690e24181745f",
-      "platforms": [
-        "windows"
-      ]
-    },
-    {
-      "name": "pofiles-981c917ff7e2691536c111563df5de66",
-      "platforms": [
-        "linux",
-        "android"
-      ]
-    },
-    {
-      "name": "pofiles-b4c30cde5109e877ceaaf396ba95db3c",
-      "platforms": [
-        "macos",
-        "ios"
-      ]
-    },
-    {
       "name": "pykrita",
       "platforms": [
         "linux",
@@ -1441,26 +1421,6 @@
         "macos",
         "linux",
         "windows"
-      ]
-    },
-    {
-      "name": "tsfiles-74556801e887d6b7ae9690e24181745f",
-      "platforms": [
-        "windows"
-      ]
-    },
-    {
-      "name": "tsfiles-981c917ff7e2691536c111563df5de66",
-      "platforms": [
-        "linux",
-        "android"
-      ]
-    },
-    {
-      "name": "tsfiles-b4c30cde5109e877ceaaf396ba95db3c",
-      "platforms": [
-        "macos",
-        "ios"
       ]
     }
   ],

@@ -15,7 +15,7 @@
           "build": ".",
           "projectIndex": 0,
           "source": ".",
-          "targetIndexes": [0, 1, 2, 3, 4]
+          "targetIndexes": [0, 1, 2, 3, 4, 5]
         }
       ],
       "name": "RelWithDebInfo",
@@ -23,7 +23,7 @@
         {
           "directoryIndexes": [0],
           "name": "LibrePaint",
-          "targetIndexes": [0, 1, 2, 3, 4]
+          "targetIndexes": [0, 1, 2, 3, 4, 5]
         }
       ],
       "targets": [
@@ -60,6 +60,13 @@
           "id": "librepaint_autogen::@generated",
           "jsonFile": "target-librepaint-autogen.json",
           "name": "librepaint_autogen",
+          "projectIndex": 0
+        },
+        {
+          "directoryIndex": 0,
+          "id": "pofiles-0123456789abcdef0123456789abcdef::@generated",
+          "jsonFile": "target-pofiles.json",
+          "name": "pofiles-0123456789abcdef0123456789abcdef",
           "projectIndex": 0
         }
       ]

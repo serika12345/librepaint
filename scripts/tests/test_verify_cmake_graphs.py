@@ -37,6 +37,7 @@ class VerifyCMakeGraphsTests(unittest.TestCase):
                     f"regenerate_cmake_graph.py {platform} --check",
                     jobs[platform][-1],
                 )
+                self.assertIn("eval-cache = false", jobs[platform][-1])
 
     def test_revision_check_requires_identical_clean_commits(self) -> None:
         self.assertEqual(

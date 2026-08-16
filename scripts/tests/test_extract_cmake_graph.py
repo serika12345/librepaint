@@ -138,6 +138,9 @@ class ExtractCMakeGraphTests(unittest.TestCase):
                     sorted(target["name"] for target in targets),
                 )
                 for target in targets:
+                    self.assertNotRegex(
+                        target["name"], r"^(?:pofiles|tsfiles)-[0-9a-f]{32}$"
+                    )
                     self.assertEqual(
                         set(target),
                         {"name", "type", "sourceDirectory", "dependencies"},
