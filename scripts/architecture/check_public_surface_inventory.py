@@ -100,6 +100,43 @@ UI_CLASS_RESPONSIBILITY_AREAS = (
         ),
     },
 )
+UI_TOOL_CLASS_RESPONSIBILITY_AREAS = (
+    {
+        "id": "input-interpretation",
+        "responsibility": (
+            "Transforms pointer events, coordinates, timing, pressure, and sampled "
+            "canvas state into normalized painting input."
+        ),
+    },
+    {
+        "id": "tool-invocation",
+        "responsibility": (
+            "Coordinates tool factories, activation, interaction state, geometry, "
+            "and invocation of document or painting operations."
+        ),
+    },
+    {
+        "id": "stroke-generation",
+        "responsibility": (
+            "Combines interpreted input and resource snapshots into stroke jobs and "
+            "submits their lifecycle to the stroke facade."
+        ),
+    },
+    {
+        "id": "painting-execution",
+        "responsibility": (
+            "Executes painting, compositing, selection, shape, and image mutation "
+            "work within stroke or command processing."
+        ),
+    },
+    {
+        "id": "settings-presentation",
+        "responsibility": (
+            "Owns tool option widgets and UI-facing configuration, brush-size, and "
+            "stroke-status state."
+        ),
+    },
+)
 
 
 class PublicSurfaceError(RuntimeError):
@@ -202,10 +239,13 @@ def discover_public_headers(
     return entries
 
 
-def discover_ui_top_level_classes(
+def _discover_ui_classes(
     *,
     repository_root: Path,
     public_surface_inventory: dict[str, Any],
+    source_directory: str,
+    recursive: bool,
+    include_consumer_paths: bool,
 ) -> list[dict[str, Any]]:
     ui_header_set = next(
         (
@@ -222,31 +262,72 @@ def discover_ui_top_level_classes(
     if ui_header_set is None:
         raise PublicSurfaceError("publicHeaderSets does not contain kritaui")
 
+    all_source_files = _source_files(repository_root)
     source_files = {
         relative: path
-        for relative, path in _source_files(repository_root)
-        if _path_is_within(relative, "libs/ui")
+        for relative, path in all_source_files
+        if _path_is_within(relative, source_directory)
         and path.suffix in SOURCE_SUFFIXES - HEADER_SUFFIXES
     }
+    header_entries = [
+        _require_object(entry, "kritaui public header")
+        for entry in _require_array(
+            ui_header_set.get("headers"), "headers for public header set kritaui"
+        )
+        if _path_is_within(
+            _require_string(
+                _require_object(entry, "kritaui public header").get("path"),
+                "path for kritaui public header",
+            ),
+            source_directory,
+        )
+    ]
+    consumer_paths_by_header: dict[str, set[str]] = {}
+    if include_consumer_paths:
+        headers_by_name = {
+            PurePosixPath(
+                _require_string(entry.get("path"), "path for kritaui public header")
+            ).name: _require_string(
+                entry.get("path"), "path for kritaui public header"
+            )
+            for entry in header_entries
+        }
+        consumer_paths_by_header = {
+            header_path: set() for header_path in headers_by_name.values()
+        }
+        for relative, source in all_source_files:
+            if _path_is_within(relative, source_directory):
+                continue
+            for include in INCLUDE_PATTERN.findall(
+                source.read_text(encoding="utf-8")
+            ):
+                header_path = headers_by_name.get(PurePosixPath(include).name)
+                if header_path is not None:
+                    consumer_paths_by_header[header_path].add(relative)
+
     classes: list[dict[str, Any]] = []
     names: set[str] = set()
-    for header_entry in _require_array(
-        ui_header_set.get("headers"), "headers for public header set kritaui"
-    ):
-        header = _require_object(header_entry, "kritaui public header")
+    for header in header_entries:
         header_path = _require_string(
             header.get("path"), "path for kritaui public header"
         )
         path = PurePosixPath(header_path)
-        if len(path.parts) != 3:
+        if not _path_is_within(header_path, source_directory):
             continue
+        relative_path = path.relative_to(PurePosixPath(source_directory))
+        if not relative_path.parts or (
+            not recursive and len(relative_path.parts) != 1
+        ):
+            continue
+        consumer_paths = sorted(consumer_paths_by_header.get(header_path, set()))
         header_text = (repository_root / header_path).read_text(encoding="utf-8")
         for declaration_kind, name in UI_CLASS_DECLARATION_PATTERN.findall(
             header_text
         ):
             if name in names:
                 raise PublicSurfaceError(
-                    f"duplicate exported top-level UI class name: {name}"
+                    "duplicate exported UI class name below "
+                    f"{source_directory}: {name}"
                 )
             implementation_stems = [path.with_suffix("").as_posix()]
             if path.stem.endswith("_p"):
@@ -263,16 +344,45 @@ def discover_ui_top_level_classes(
                         source.read_text(encoding="utf-8")
                     ):
                         implementation_paths.append(implementation)
-            classes.append(
-                {
-                    "name": name,
-                    "declarationKind": declaration_kind,
-                    "header": header_path,
-                    "implementationPaths": sorted(set(implementation_paths)),
-                }
-            )
+            entry = {
+                "name": name,
+                "declarationKind": declaration_kind,
+                "header": header_path,
+                "implementationPaths": sorted(set(implementation_paths)),
+            }
+            if include_consumer_paths:
+                entry["consumerPaths"] = consumer_paths
+            classes.append(entry)
             names.add(name)
     return sorted(classes, key=lambda entry: entry["name"])
+
+
+def discover_ui_top_level_classes(
+    *,
+    repository_root: Path,
+    public_surface_inventory: dict[str, Any],
+) -> list[dict[str, Any]]:
+    return _discover_ui_classes(
+        repository_root=repository_root,
+        public_surface_inventory=public_surface_inventory,
+        source_directory="libs/ui",
+        recursive=False,
+        include_consumer_paths=False,
+    )
+
+
+def discover_ui_tool_classes(
+    *,
+    repository_root: Path,
+    public_surface_inventory: dict[str, Any],
+) -> list[dict[str, Any]]:
+    return _discover_ui_classes(
+        repository_root=repository_root,
+        public_surface_inventory=public_surface_inventory,
+        source_directory="libs/ui/tool",
+        recursive=True,
+        include_consumer_paths=True,
+    )
 
 
 def public_header_policy() -> dict[str, Any]:
@@ -295,6 +405,19 @@ def ui_class_policy() -> dict[str, Any]:
         "exportMacros": ["KRITAUI_EXPORT", "KRITAUI_EXPORT_TEMPLATE"],
         "implementationSuffixes": sorted(SOURCE_SUFFIXES - HEADER_SUFFIXES),
         "privateHeaderImplementationSuffix": "_p",
+    }
+
+
+def ui_tool_class_policy() -> dict[str, Any]:
+    return {
+        "publicHeaderOwner": "kritaui",
+        "sourceDirectory": "libs/ui/tool",
+        "recursive": True,
+        "declarationKinds": ["class", "struct"],
+        "exportMacros": ["KRITAUI_EXPORT", "KRITAUI_EXPORT_TEMPLATE"],
+        "implementationSuffixes": sorted(SOURCE_SUFFIXES - HEADER_SUFFIXES),
+        "privateHeaderImplementationSuffix": "_p",
+        "consumerPathsSource": "production-includes-outside-source-directory",
     }
 
 
@@ -335,6 +458,10 @@ def load_inventory(path: Path) -> dict[str, Any]:
 
 def load_ui_class_inventory(path: Path) -> dict[str, Any]:
     return _load_json(path, "UI class responsibility inventory")
+
+
+def load_ui_tool_class_inventory(path: Path) -> dict[str, Any]:
+    return _load_json(path, "UI tool class responsibility inventory")
 
 
 def _require_object(value: Any, description: str) -> dict[str, Any]:
@@ -1116,12 +1243,18 @@ def validate_inventory(
     )
 
 
-def validate_ui_class_inventory(
+def _validate_classified_ui_inventory(
     inventory: dict[str, Any],
     *,
-    public_surface_inventory: dict[str, Any],
     repository_root: Path,
     graph_directory: Path,
+    inventory_description: str,
+    expected_scope: str,
+    expected_policy: dict[str, Any],
+    responsibility_areas: tuple[dict[str, str], ...],
+    expected_classes: list[dict[str, Any]],
+    include_consumer_paths: bool,
+    ownership_description: str,
 ) -> None:
     _require_fields(
         inventory,
@@ -1134,15 +1267,15 @@ def validate_ui_class_inventory(
             "responsibilityAreas",
             "classes",
         },
-        "UI class responsibility inventory",
+        inventory_description,
     )
     if inventory.get("schemaVersion") != 1:
         raise PublicSurfaceError(
-            "UI class responsibility inventory schemaVersion must be 1"
+            f"{inventory_description} schemaVersion must be 1"
         )
-    if inventory.get("scope") != "libs/ui-top-level-public-classes":
+    if inventory.get("scope") != expected_scope:
         raise PublicSurfaceError(
-            "UI class responsibility inventory has an invalid scope"
+            f"{inventory_description} has an invalid scope"
         )
     owner_target = _require_string(
         inventory.get("ownerTarget"), "UI class owner target"
@@ -1152,23 +1285,18 @@ def validate_ui_class_inventory(
     platforms = _platforms(
         inventory.get("platforms"), "UI class inventory platforms"
     )
-    if inventory.get("classPolicy") != ui_class_policy():
+    if inventory.get("classPolicy") != expected_policy:
         raise PublicSurfaceError(
-            "classPolicy must match the top-level UI class discovery policy"
+            f"classPolicy must match the {inventory_description} discovery policy"
         )
-    if inventory.get("responsibilityAreas") != list(
-        UI_CLASS_RESPONSIBILITY_AREAS
-    ):
+    if inventory.get("responsibilityAreas") != list(responsibility_areas):
         raise PublicSurfaceError(
-            "responsibilityAreas must match the recorded UI responsibility policy"
+            f"responsibilityAreas must match the recorded {inventory_description} "
+            "policy"
         )
 
-    expected_classes = discover_ui_top_level_classes(
-        repository_root=repository_root,
-        public_surface_inventory=public_surface_inventory,
-    )
     expected_by_name = {entry["name"]: entry for entry in expected_classes}
-    known_areas = {entry["id"] for entry in UI_CLASS_RESPONSIBILITY_AREAS}
+    known_areas = {entry["id"] for entry in responsibility_areas}
     entries = _require_array(inventory.get("classes"), "UI classes")
     names: list[str] = []
     recorded_by_name: dict[str, dict[str, Any]] = {}
@@ -1176,17 +1304,16 @@ def validate_ui_class_inventory(
     used_areas: set[str] = set()
     for index, item in enumerate(entries):
         entry = _require_object(item, f"UI class {index}")
-        _require_fields(
-            entry,
-            {
-                "name",
-                "declarationKind",
-                "header",
-                "implementationPaths",
-                "responsibilityArea",
-            },
-            f"UI class {index}",
-        )
+        expected_fields = {
+            "name",
+            "declarationKind",
+            "header",
+            "implementationPaths",
+            "responsibilityArea",
+        }
+        if include_consumer_paths:
+            expected_fields.add("consumerPaths")
+        _require_fields(entry, expected_fields, f"UI class {index}")
         name = _require_string(entry.get("name"), f"UI class name {index}")
         area = _require_string(
             entry.get("responsibilityArea"), f"responsibility area for {name}"
@@ -1213,7 +1340,7 @@ def validate_ui_class_inventory(
         header, _header_file = _repository_file(
             repository_root, entry.get("header"), f"header for UI class {name}"
         )
-        recorded_by_name[name] = {
+        recorded = {
             "name": name,
             "declarationKind": _require_string(
                 entry.get("declarationKind"), f"declaration kind for {name}"
@@ -1221,6 +1348,24 @@ def validate_ui_class_inventory(
             "header": header,
             "implementationPaths": implementation_paths,
         }
+        if include_consumer_paths:
+            consumer_values = _require_array(
+                entry.get("consumerPaths"), f"consumer paths for {name}"
+            )
+            consumer_paths = [
+                _repository_file(
+                    repository_root,
+                    value,
+                    f"consumer path for {name}",
+                )[0]
+                for value in consumer_values
+            ]
+            if consumer_paths != sorted(set(consumer_paths)):
+                raise PublicSurfaceError(
+                    f"consumer paths for {name} must be sorted and unique"
+                )
+            recorded["consumerPaths"] = consumer_paths
+        recorded_by_name[name] = recorded
         names.append(name)
         owned_paths.update([header, *implementation_paths])
         used_areas.add(area)
@@ -1237,7 +1382,7 @@ def validate_ui_class_inventory(
     for name in names:
         if recorded_by_name[name] != expected_by_name[name]:
             raise PublicSurfaceError(
-                f"recorded declaration or implementation for {name} does not "
+                f"recorded source evidence for {name} does not "
                 "match source discovery"
             )
     if used_areas != known_areas:
@@ -1250,17 +1395,65 @@ def validate_ui_class_inventory(
         owner_target=owner_target,
         platforms=platforms,
         owned_paths=sorted(owned_paths),
-        description="UI top-level public classes",
+        description=ownership_description,
         targets_by_platform=targets_by_platform,
+    )
+
+
+def validate_ui_class_inventory(
+    inventory: dict[str, Any],
+    *,
+    public_surface_inventory: dict[str, Any],
+    repository_root: Path,
+    graph_directory: Path,
+) -> None:
+    _validate_classified_ui_inventory(
+        inventory,
+        repository_root=repository_root,
+        graph_directory=graph_directory,
+        inventory_description="UI class responsibility inventory",
+        expected_scope="libs/ui-top-level-public-classes",
+        expected_policy=ui_class_policy(),
+        responsibility_areas=UI_CLASS_RESPONSIBILITY_AREAS,
+        expected_classes=discover_ui_top_level_classes(
+            repository_root=repository_root,
+            public_surface_inventory=public_surface_inventory,
+        ),
+        include_consumer_paths=False,
+        ownership_description="UI top-level public classes",
+    )
+
+
+def validate_ui_tool_class_inventory(
+    inventory: dict[str, Any],
+    *,
+    public_surface_inventory: dict[str, Any],
+    repository_root: Path,
+    graph_directory: Path,
+) -> None:
+    _validate_classified_ui_inventory(
+        inventory,
+        repository_root=repository_root,
+        graph_directory=graph_directory,
+        inventory_description="UI tool class responsibility inventory",
+        expected_scope="libs/ui/tool-public-classes",
+        expected_policy=ui_tool_class_policy(),
+        responsibility_areas=UI_TOOL_CLASS_RESPONSIBILITY_AREAS,
+        expected_classes=discover_ui_tool_classes(
+            repository_root=repository_root,
+            public_surface_inventory=public_surface_inventory,
+        ),
+        include_consumer_paths=True,
+        ownership_description="UI tool public classes",
     )
 
 
 def _argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate complete public-header and top-level UI class inventories, "
-            "plus representative major classes and plugins, against every "
-            "recorded CMake target graph."
+            "Validate complete public-header, top-level UI class, and UI tool "
+            "class inventories, plus representative major classes and plugins, "
+            "against every recorded CMake target graph."
         )
     )
     parser.add_argument(
@@ -1278,6 +1471,14 @@ def _argument_parser() -> argparse.ArgumentParser:
         type=Path,
         default=REPO_ROOT / "docs/architecture/ui-class-responsibilities.json",
     )
+    parser.add_argument(
+        "--ui-tool-class-inventory",
+        type=Path,
+        default=(
+            REPO_ROOT
+            / "docs/architecture/ui-tool-class-responsibilities.json"
+        ),
+    )
     return parser
 
 
@@ -1286,6 +1487,9 @@ def main(arguments: list[str] | None = None) -> int:
     try:
         inventory = load_inventory(options.inventory)
         ui_class_inventory = load_ui_class_inventory(options.ui_class_inventory)
+        ui_tool_class_inventory = load_ui_tool_class_inventory(
+            options.ui_tool_class_inventory
+        )
         validate_inventory(
             inventory,
             repository_root=REPO_ROOT,
@@ -1297,12 +1501,19 @@ def main(arguments: list[str] | None = None) -> int:
             repository_root=REPO_ROOT,
             graph_directory=options.graph_directory,
         )
+        validate_ui_tool_class_inventory(
+            ui_tool_class_inventory,
+            public_surface_inventory=inventory,
+            repository_root=REPO_ROOT,
+            graph_directory=options.graph_directory,
+        )
     except (OSError, PublicSurfaceError) as error:
         print(f"check-public-surface-inventory: {error}", file=sys.stderr)
         return 1
     print(
         "public surface and UI class responsibility inventories verified: "
-        f"{options.inventory}, {options.ui_class_inventory}"
+        f"{options.inventory}, {options.ui_class_inventory}, "
+        f"{options.ui_tool_class_inventory}"
     )
     return 0
 

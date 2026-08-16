@@ -248,6 +248,15 @@ nix develop .#test --command \
   ./scripts/architecture/update_ui_class_responsibilities.py
 ```
 
+次のコマンドは`libs/ui/tool`以下の公開クラスについて、記録済みの責務分類を保持しながら
+宣言、実装単位、ツールディレクトリー外の全利用ソースを更新する。新しい公開クラスには
+責務分類を追加してから実行する。
+
+```sh
+nix develop .#test --command \
+  ./scripts/architecture/update_ui_tool_class_responsibilities.py
+```
+
 次のコマンドは台帳の形式と整列に加え、リポジトリおよび5構成のCMakeターゲット台帳を
 根拠として内容を検査する。
 
@@ -268,15 +277,19 @@ nix develop .#test --command \
 - 主要クラスの宣言、実装、公開ヘッダー、責務根拠が有効な参照を持つ。
 - `libs/ui`直下の公開クラスが欠落なく記録され、宣言種別、対応する実装単位、
   所有ターゲット、6種類の責務領域がソースと一致する。
+- `libs/ui/tool`以下の公開クラスが欠落なく記録され、宣言種別、対応する実装単位、
+  ディレクトリー外の全利用ソース、所有ターゲット、5種類の責務領域がソースと一致する。
 - プラグインのID、CMake所有者、JSONのライブラリー名、サービス種別、登録マクロ、
   実行時の利用者が一致する。
 
 公開ヘッダーの追加、削除、公開マクロ、またはパッケージ外includeを変更した場合は更新器を
 実行し、台帳を同じ変更へ含める。`libs/ui`直下の公開クラス、その実装ファイル、または
-責務分類を変更した場合はUIクラス責務台帳の更新器も実行する。`verify-quick`は両更新器の
-`--check`、台帳検査器、欠落、所有者、公開根拠、利用根拠、責務分類の診断例を実行する。
-`scope.publicHeaders`とUI直下クラスは全件、`scope.majorClasses`と`scope.plugins`は
-後続のR1-G2作業で全件へ進める。
+責務分類を変更した場合はUIクラス責務台帳の更新器も実行する。`libs/ui/tool`以下の公開
+クラス、実装ファイル、ディレクトリー外の直接include、または責務分類を変更した場合は
+UIツールクラス責務台帳の更新器も実行する。`verify-quick`は3更新器の`--check`、台帳
+検査器、欠落、所有者、公開根拠、利用根拠、責務分類の診断例を実行する。
+`scope.publicHeaders`、UI直下クラス、UIツールクラスは全件、`scope.majorClasses`と
+`scope.plugins`は後続のR1-G2作業で全件へ進める。
 
 ## テスト駆動開発
 

@@ -2,11 +2,11 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 14:11 JST
-- 状態: `planned`
+- 更新日時: 2026-08-16 14:18 JST
+- 状態: `in_progress`
 - 現在の検査段階: R1-G2 公開面と主要クラスの棚卸し
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g2c-ui-class-responsibilities`
+- ブランチ: `r1-g2d-tool-class-responsibilities`
 - 目的: R1-G2dとして`libs/ui/tool`の公開クラスを全件採取し、入力解釈、ツール呼出し、
   ストローク生成、描画実行、設定表示の実際の責務へ分類する。
 
