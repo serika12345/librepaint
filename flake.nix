@@ -999,7 +999,7 @@
           chmod -R u+w source
           cd source
           export LIBREPAINT_TEST_SHELL=1
-          ./scripts/verify-quick
+          ${packageSet.bash}/bin/bash ./scripts/verify-quick
           mkdir -p "$out"
           touch "$out/passed"
         '';

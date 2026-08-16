@@ -95,8 +95,17 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
 
         self.assertIn(
-            "scripts/architecture/check_public_surface_inventory.py",
+            "python3 scripts/architecture/check_public_surface_inventory.py",
             verify_quick,
+        )
+        self.assertIn("bash scripts/docs/check-architecture.sh", verify_quick)
+
+    def test_nix_governance_uses_the_nix_bash_interpreter(self) -> None:
+        flake = (REPO_ROOT / "flake.nix").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "${packageSet.bash}/bin/bash ./scripts/verify-quick",
+            flake,
         )
 
 

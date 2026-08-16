@@ -11,7 +11,7 @@ if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
 fi
 
 python3 -m unittest discover -s scripts/tests -p 'test_*.py'
-scripts/architecture/check_public_surface_inventory.py
+python3 scripts/architecture/check_public_surface_inventory.py
 python3 scripts/check_governance.py
 
 shellcheck \
@@ -23,6 +23,6 @@ shellcheck \
     scripts/run-test \
     scripts/docs/*.sh
 
-scripts/docs/check-architecture.sh
+bash scripts/docs/check-architecture.sh
 
 echo "verify-quick: OK"
