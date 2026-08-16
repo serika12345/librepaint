@@ -398,6 +398,76 @@
       ]
     },
     {
+      "sourceResponsibility": "resource-management",
+      "dependencyResponsibility": "import-export",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.cpp",
+          "include": "KisExportCheckBase.h",
+          "headerPath": "libs/impex/KisExportCheckBase.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.cpp",
+          "include": "KisExportCheckRegistry.h",
+          "headerPath": "libs/impex/KisExportCheckRegistry.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportFilter.h",
+          "include": "KisExportCheckBase.h",
+          "headerPath": "libs/impex/KisExportCheckBase.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/KisImportExportManager.cpp",
+          "include": "KisPreExportChecker.h",
+          "headerPath": "libs/impex/KisPreExportChecker.h",
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
       "sourceResponsibility": "tool-invocation",
       "dependencyResponsibility": "import-export",
       "status": "disproved-by-direct-include-attribution",

@@ -200,13 +200,11 @@
       "current": {
         "sourceDirectories": [
           "libs/impex",
-          "libs/store",
           "libs/ui",
           "plugins/impex"
         ],
         "cmakeTargets": [
           "kritaimpex",
-          "kritastore",
           "kritaui"
         ],
         "uiClassAreas": [
@@ -418,6 +416,7 @@
         ],
         "cmakeTargets": [
           "kritaresources",
+          "kritaresourcestorage",
           "kritaresourcewidgets",
           "kritaui"
         ],
@@ -448,7 +447,7 @@
             "name": "kritaresourcestorage",
             "directory": "libs/resources/storage",
             "role": "storage",
-            "status": "new"
+            "status": "implemented"
           },
           {
             "name": "kritaresourceui",

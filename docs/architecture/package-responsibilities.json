@@ -347,13 +347,11 @@
       "responsibility": "Selects codecs, validates external formats, and coordinates serialized document input and output.",
       "sourceDirectories": [
         "libs/impex",
-        "libs/store",
         "libs/ui",
         "plugins/impex"
       ],
       "ownerTargets": [
         "kritaimpex",
-        "kritastore",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
@@ -1192,6 +1190,7 @@
       ],
       "ownerTargets": [
         "kritaresources",
+        "kritaresourcestorage",
         "kritaresourcewidgets",
         "kritaui"
       ],
@@ -1791,7 +1790,7 @@
         "kritamultiarch",
         "kritaplugin",
         "kritaresources",
-        "kritastore"
+        "kritaresourcestorage"
       ],
       "repositoryConsumers": [
         "krita_colorspaces_extensions",
@@ -1846,7 +1845,7 @@
       "repositoryDependencies": [
         "kritaglobal",
         "kritaplugin",
-        "kritastore",
+        "kritaresourcestorage",
         "kritaversion"
       ],
       "repositoryConsumers": [
@@ -1862,36 +1861,8 @@
       ]
     },
     {
-      "name": "kritaresourcewidgets",
-      "sourceDirectory": "libs/resourcewidgets",
-      "platforms": [
-        "macos",
-        "linux",
-        "ios",
-        "android",
-        "windows"
-      ],
-      "types": [
-        "SHARED_LIBRARY",
-        "STATIC_LIBRARY"
-      ],
-      "repositoryDependencies": [
-        "kritaglobal",
-        "kritaplugin",
-        "kritaresources",
-        "kritastore",
-        "kritaversion",
-        "kritawidgetutils"
-      ],
-      "repositoryConsumers": [
-        "kritadbexplorer",
-        "kritaresourcemanager",
-        "kritawidgets"
-      ]
-    },
-    {
-      "name": "kritastore",
-      "sourceDirectory": "libs/store",
+      "name": "kritaresourcestorage",
+      "sourceDirectory": "libs/resources/storage",
       "platforms": [
         "macos",
         "linux",
@@ -1912,6 +1883,34 @@
         "kritapsdexport",
         "kritaresources",
         "kritaresourcewidgets"
+      ]
+    },
+    {
+      "name": "kritaresourcewidgets",
+      "sourceDirectory": "libs/resourcewidgets",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaglobal",
+        "kritaplugin",
+        "kritaresources",
+        "kritaresourcestorage",
+        "kritaversion",
+        "kritawidgetutils"
+      ],
+      "repositoryConsumers": [
+        "kritadbexplorer",
+        "kritaresourcemanager",
+        "kritawidgets"
       ]
     },
     {

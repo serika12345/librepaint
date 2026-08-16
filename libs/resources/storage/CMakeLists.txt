@@ -17,11 +17,10 @@ target_link_libraries(kritaresourcestorage
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
     PRIVATE
-        kritaversion 
-        kritaglobal 
+        kritaglobal
         KF${KF_MAJOR}::ConfigCore
-        Qt${QT_MAJOR_VERSION}::Xml 
-        Qt${QT_MAJOR_VERSION}::Gui 
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Gui
         ${QUAZIP_LIBRARIES}
 )
 

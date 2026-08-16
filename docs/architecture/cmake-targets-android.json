@@ -1122,6 +1122,15 @@
       ]
     },
     {
+      "name": "TestLegacyStoreCompatibility",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/storage/tests",
+      "dependencies": [
+        "Qt5::Test",
+        "kritastore"
+      ]
+    },
+    {
       "name": "TestManagedColor",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/libkis/tests",
@@ -1370,6 +1379,15 @@
         "kritatestsdk",
         "kritaversion",
         "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestResourceStorageArchiveContract",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/storage/tests",
+      "dependencies": [
+        "Qt5::Test",
+        "kritaresourcestorage"
       ]
     },
     {
@@ -4413,7 +4431,7 @@
         "kritamultiarch",
         "kritaplugin",
         "kritaresources",
-        "kritastore"
+        "kritaresourcestorage"
       ]
     },
     {
@@ -4512,7 +4530,7 @@
         "kritaimpex",
         "kritapsd",
         "kritapsd_static",
-        "kritastore",
+        "kritaresourcestorage",
         "kritaui"
       ]
     },
@@ -4667,7 +4685,21 @@
         "QuaZip::QuaZip",
         "kritaglobal",
         "kritaplugin",
-        "kritastore",
+        "kritaresourcestorage",
+        "kritaversion"
+      ]
+    },
+    {
+      "name": "kritaresourcestorage",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/resources/storage",
+      "dependencies": [
+        "KF5::ConfigCore",
+        "Qt5::Core",
+        "Qt5::Gui",
+        "Qt5::Xml",
+        "QuaZip::QuaZip",
+        "kritaglobal",
         "kritaversion"
       ]
     },
@@ -4686,7 +4718,7 @@
         "kritaglobal",
         "kritaplugin",
         "kritaresources",
-        "kritastore",
+        "kritaresourcestorage",
         "kritaversion",
         "kritawidgetutils"
       ]
@@ -4859,19 +4891,6 @@
       "dependencies": [
         "kritaimpex",
         "kritaui"
-      ]
-    },
-    {
-      "name": "kritastore",
-      "type": "SHARED_LIBRARY",
-      "sourceDirectory": "libs/store",
-      "dependencies": [
-        "KF5::ConfigCore",
-        "Qt5::Gui",
-        "Qt5::Xml",
-        "QuaZip::QuaZip",
-        "kritaglobal",
-        "kritaversion"
       ]
     },
     {
@@ -5332,10 +5351,10 @@
     {
       "name": "storedroptest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/store/tests",
+      "sourceDirectory": "libs/resources/storage/tests",
       "dependencies": [
         "Qt5::Widgets",
-        "kritastore"
+        "kritaresourcestorage"
       ]
     },
     {

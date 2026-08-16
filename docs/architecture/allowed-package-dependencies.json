@@ -637,18 +637,18 @@
     },
     {
       "sourceTarget": "kritapigment",
-      "dependencyTarget": "kritastore",
+      "dependencyTarget": "kritaresourcestorage",
       "sourceResponsibilities": [
         "painting-rendering"
       ],
       "dependencyResponsibilities": [
-        "import-export"
+        "resource-management"
       ],
       "projections": [
         {
           "sourceResponsibility": "painting-rendering",
-          "dependencyResponsibility": "import-export",
-          "status": "requires-r1-g4-baseline"
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
         }
       ]
     },
@@ -671,18 +671,18 @@
     },
     {
       "sourceTarget": "kritaresources",
-      "dependencyTarget": "kritastore",
+      "dependencyTarget": "kritaresourcestorage",
       "sourceResponsibilities": [
         "resource-management"
       ],
       "dependencyResponsibilities": [
-        "import-export"
+        "resource-management"
       ],
       "projections": [
         {
           "sourceResponsibility": "resource-management",
-          "dependencyResponsibility": "import-export",
-          "status": "requires-r1-g4-baseline"
+          "dependencyResponsibility": "resource-management",
+          "status": "internal"
         }
       ]
     },
@@ -722,18 +722,18 @@
     },
     {
       "sourceTarget": "kritaresourcewidgets",
-      "dependencyTarget": "kritastore",
+      "dependencyTarget": "kritaresourcestorage",
       "sourceResponsibilities": [
         "resource-management"
       ],
       "dependencyResponsibilities": [
-        "import-export"
+        "resource-management"
       ],
       "projections": [
         {
           "sourceResponsibility": "resource-management",
-          "dependencyResponsibility": "import-export",
-          "status": "requires-r1-g4-baseline"
+          "dependencyResponsibility": "resource-management",
+          "status": "internal"
         }
       ]
     },

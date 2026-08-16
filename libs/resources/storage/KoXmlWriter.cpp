@@ -11,7 +11,7 @@
 #include <QByteArray>
 #include <QStack>
 #include <float.h>
-#include "../global/kis_dom_utils.h"
+#include <kis_dom_utils.h>
 
 static const int s_indentBufferLength = 100;
 static const int s_escapeBufferLen = 10000;

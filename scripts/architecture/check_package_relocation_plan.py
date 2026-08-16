@@ -62,7 +62,7 @@ TARGET_FIELDS = {
     "cmakeTargets",
 }
 TARGET_ENTRY_FIELDS = {"name", "directory", "role", "status"}
-TARGET_STATUSES = {"retained", "new", "relocated"}
+TARGET_STATUSES = {"implemented", "retained", "new", "relocated"}
 DESTINATION_FIELDS = {
     "ownerTarget",
     "headerPath",
@@ -255,7 +255,7 @@ def _validate_packages(
         raise RelocationPlanError("packages do not cover the responsibility policy")
 
     result: dict[str, dict[str, Any]] = {}
-    new_targets: set[str] = set()
+    created_targets: set[str] = set()
     planned_targets: set[str] = set()
     target_owners: dict[str, str] = {}
     root_owners: dict[str, str] = {}
@@ -348,7 +348,15 @@ def _validate_packages(
                     raise RelocationPlanError(
                         f"new target directory is outside package root: {name}"
                     )
-                new_targets.add(name)
+                created_targets.add(name)
+            elif status == "implemented":
+                if name not in current_targets:
+                    raise RelocationPlanError(f"implemented target is missing: {name}")
+                if not _is_below(directory, root):
+                    raise RelocationPlanError(
+                        f"implemented target directory is outside package root: {name}"
+                    )
+                created_targets.add(name)
             elif name not in current_targets:
                 raise RelocationPlanError(f"current target is missing: {name}")
         if names != sorted(set(names)) or primary not in names:
@@ -365,7 +373,7 @@ def _validate_packages(
             _string(wave, f"{responsibility} migration wave")
         planned_targets.update(names)
         result[responsibility] = package
-    return result, new_targets, planned_targets
+    return result, created_targets, planned_targets
 
 
 def _validate_routes(plan: dict[str, Any], wave_ids: set[str]) -> dict[str, dict[str, Any]]:
@@ -506,8 +514,7 @@ def _validate_reverse_reductions(
         for raw in _array(baseline.get("violations"), "dependency violations")
         for item in [_object(raw, "dependency violation")]
     }
-    remaining = sum(baseline_by_pair.values())
-    reduced: set[tuple[str, str]] = set()
+    planned_by_pair: dict[tuple[str, str], int] = {}
     for wave in waves:
         for raw in _array(
             wave.get("reverseBaselineReductions"),
@@ -519,22 +526,50 @@ def _validate_reverse_reductions(
                 _string(reduction.get("sourceResponsibility"), "reduction source"),
                 _string(reduction.get("dependencyResponsibility"), "reduction dependency"),
             )
-            if pair not in baseline_by_pair or pair in reduced:
+            if pair in planned_by_pair:
                 raise RelocationPlanError(f"invalid reverse dependency reduction: {pair}")
             before = _integer(reduction.get("from"), "reduction starting maximum")
             after = _integer(reduction.get("to"), "reduction ending maximum")
-            if before != baseline_by_pair[pair] or after != 0:
+            if after != 0:
                 raise RelocationPlanError(f"reverse dependency reduction is stale: {pair}")
+            planned_by_pair[pair] = before
+
+    remaining = sum(planned_by_pair.values())
+    for wave in waves:
+        for raw in _array(
+            wave.get("reverseBaselineReductions"),
+            f"{wave['id']} reverse reductions",
+        ):
+            reduction = _object(raw, f"{wave['id']} reverse reduction")
+            pair = (
+                reduction["sourceResponsibility"],
+                reduction["dependencyResponsibility"],
+            )
+            before = reduction["from"]
+            after = reduction["to"]
             remaining -= before - after
-            reduced.add(pair)
         maximum = wave["maximumReverseDirectIncludesAfterWave"]
         if maximum != remaining:
             raise RelocationPlanError(
                 "reverse dependency reduction does not match wave maximum: "
                 f"{wave['id']} expected {remaining}, found {maximum}"
             )
-    if reduced != set(baseline_by_pair) or remaining != 0:
+    if remaining != 0:
         raise RelocationPlanError("reverse dependency reductions do not reach zero")
+    unexpected = set(baseline_by_pair) - set(planned_by_pair)
+    if unexpected:
+        raise RelocationPlanError(
+            f"dependency violation baseline has unplanned pairs: {sorted(unexpected)}"
+        )
+    increased = {
+        pair: (maximum, planned_by_pair[pair])
+        for pair, maximum in baseline_by_pair.items()
+        if maximum > planned_by_pair[pair]
+    }
+    if increased:
+        raise RelocationPlanError(
+            f"dependency violation baseline exceeds planned maxima: {increased}"
+        )
 
 
 def _validate_internal_destinations(
