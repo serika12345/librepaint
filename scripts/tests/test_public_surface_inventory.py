@@ -108,6 +108,14 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             flake,
         )
 
+    def test_nix_policy_tools_provide_ca_certificates(self) -> None:
+        flake = (REPO_ROOT / "flake.nix").read_text(encoding="utf-8")
+        policy_tools = flake.split("policyTools =", 1)[1].split(
+            "mkDocsShell =", 1
+        )[0]
+
+        self.assertIn("cacert", policy_tools)
+
 
 if __name__ == "__main__":
     unittest.main()

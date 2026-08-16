@@ -938,6 +938,7 @@
       policyTools =
         packageSet: with packageSet; [
           bash
+          cacert
           coreutils
           d2
           diffutils
