@@ -24,6 +24,7 @@ python3 scripts/architecture/check_package_responsibility_map.py
 python3 scripts/architecture/check_allowed_package_dependencies.py
 python3 scripts/architecture/check_dependency_violation_baseline.py
 python3 scripts/architecture/check_structural_dependency_baseline.py
+python3 scripts/architecture/check_package_relocation_plan.py
 python3 scripts/check_governance.py
 
 shellcheck \

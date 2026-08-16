@@ -1,0 +1,1255 @@
+{
+  "schemaVersion": 1,
+  "scope": "r1-g5-complete-package-relocation-plan",
+  "inputs": {
+    "packageResponsibilityMap": "docs/architecture/package-responsibilities.json",
+    "allowedDependencyPolicy": "docs/architecture/allowed-package-dependencies.json",
+    "dependencyViolationBaseline": "docs/architecture/dependency-violation-baseline.json",
+    "structuralDependencyBaseline": "docs/architecture/structural-dependency-baseline.json",
+    "cmakeGraphs": "docs/architecture/cmake-targets-<platform>.json"
+  },
+  "principles": {
+    "dependencyDirection": "higher-layer-to-lower-layer-only",
+    "migrationOrder": "lower-layer-before-dependent-layer",
+    "uiOwnership": "presentation-subtargets-own-widgets-screen-state-and-interaction-wiring",
+    "domainOwnership": "domain-targets-own-state-jobs-serialization-and-platform-neutral-services",
+    "cppNamespacePolicy": "New APIs use the target Krita namespace; existing public global identifiers remain source-compatible through R1-G7.",
+    "publicCompatibility": "Old include paths and CMake target names forward to their replacements until their R1-G7 removal conditions pass.",
+    "stableIdentifierPolicy": "MIME and UTI values, plugin IDs and service types, action IDs, settings keys, serialized formats, and scripting names remain stable unless a separately reviewed migration contract exists."
+  },
+  "packages": [
+    {
+      "responsibility": "application-orchestration",
+      "layer": 7,
+      "migrationWave": "R1-G6h",
+      "current": {
+        "sourceDirectories": [
+          "krita",
+          "libs/ui",
+          "plugins/extensions",
+          "plugins/platforms"
+        ],
+        "cmakeTargets": [
+          "krita",
+          "kritaui"
+        ],
+        "uiClassAreas": [
+          "application-orchestration",
+          "window-workspace"
+        ],
+        "uiToolClassAreas": [],
+        "publicSurfaces": [
+          "application-lifecycle"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/application",
+        "cppNamespace": "Krita::Application",
+        "primaryCmakeTarget": "kritaapplication",
+        "allowedDependencies": [
+          "canvas-presentation",
+          "document-lifecycle",
+          "import-export",
+          "input-interpretation",
+          "plugin-infrastructure",
+          "resource-management",
+          "tool-invocation"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "krita",
+            "directory": "krita",
+            "role": "process-entry",
+            "status": "retained"
+          },
+          {
+            "name": "kritaapplication",
+            "directory": "libs/application",
+            "role": "orchestration",
+            "status": "new"
+          },
+          {
+            "name": "kritaapplicationui",
+            "directory": "libs/application/ui",
+            "role": "presentation",
+            "status": "new"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "The process entry and platform adapters depend on application-lifecycle without owning document, image, or tool state.",
+        "Application code reaches painting only through document, canvas, input, or tool public surfaces."
+      ]
+    },
+    {
+      "responsibility": "canvas-presentation",
+      "layer": 3,
+      "migrationWave": "R1-G6d",
+      "current": {
+        "sourceDirectories": [
+          "libs/basicflakes",
+          "libs/flake",
+          "libs/ui/canvas",
+          "plugins/dockers"
+        ],
+        "cmakeTargets": [
+          "kritabasicflakes",
+          "kritaflake",
+          "kritaui"
+        ],
+        "uiClassAreas": [
+          "canvas-display"
+        ],
+        "uiToolClassAreas": [],
+        "publicSurfaces": [
+          "canvas-view"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/canvas",
+        "cppNamespace": "Krita::Canvas",
+        "primaryCmakeTarget": "kritacanvas",
+        "allowedDependencies": [
+          "painting-rendering",
+          "resource-management"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "kritabasicflakes",
+            "directory": "libs/basicflakes",
+            "role": "vector-implementation",
+            "status": "retained"
+          },
+          {
+            "name": "kritacanvas",
+            "directory": "libs/canvas",
+            "role": "presentation",
+            "status": "new"
+          },
+          {
+            "name": "kritaflake",
+            "directory": "libs/flake",
+            "role": "vector-model",
+            "status": "retained"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "Canvas presentation depends only on image-model and resource-catalog public surfaces.",
+        "Canvas code contains no document-lifecycle headers and exposes canvas-view from kritacanvas."
+      ]
+    },
+    {
+      "responsibility": "document-lifecycle",
+      "layer": 4,
+      "migrationWave": "R1-G6e",
+      "current": {
+        "sourceDirectories": [
+          "libs/command",
+          "libs/metadata",
+          "libs/ui"
+        ],
+        "cmakeTargets": [
+          "kritacommand",
+          "kritametadata",
+          "kritaui"
+        ],
+        "uiClassAreas": [
+          "document-state"
+        ],
+        "uiToolClassAreas": [],
+        "publicSurfaces": [
+          "document-persistence",
+          "document-session"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/document",
+        "cppNamespace": "Krita::Document",
+        "primaryCmakeTarget": "kritadocument",
+        "allowedDependencies": [
+          "import-export",
+          "painting-rendering",
+          "plugin-infrastructure",
+          "resource-management"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "kritadocument",
+            "directory": "libs/document",
+            "role": "domain",
+            "status": "new"
+          },
+          {
+            "name": "kritadocumentui",
+            "directory": "libs/document/ui",
+            "role": "presentation",
+            "status": "new"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "Document identity, modified state, persistence, and undo coordination are owned by kritadocument.",
+        "Document widgets depend on kritadocumentui while domain state remains usable without Qt Widgets."
+      ]
+    },
+    {
+      "responsibility": "import-export",
+      "layer": 3,
+      "migrationWave": "R1-G6c",
+      "current": {
+        "sourceDirectories": [
+          "libs/impex",
+          "libs/store",
+          "libs/ui",
+          "plugins/impex"
+        ],
+        "cmakeTargets": [
+          "kritaimpex",
+          "kritastore",
+          "kritaui"
+        ],
+        "uiClassAreas": [
+          "import-export"
+        ],
+        "uiToolClassAreas": [],
+        "publicSurfaces": [
+          "document-serialization",
+          "format-codec"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/impex",
+        "cppNamespace": "Krita::ImportExport",
+        "primaryCmakeTarget": "kritaimpex",
+        "allowedDependencies": [
+          "painting-rendering",
+          "plugin-infrastructure",
+          "resource-management"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "kritaimpex",
+            "directory": "libs/impex",
+            "role": "domain",
+            "status": "retained"
+          },
+          {
+            "name": "kritaimpexui",
+            "directory": "libs/impex/ui",
+            "role": "presentation",
+            "status": "new"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "Codec selection and serialization are available through kritaimpex without document or application ownership.",
+        "User feedback and format option widgets are isolated in kritaimpexui."
+      ]
+    },
+    {
+      "responsibility": "input-interpretation",
+      "layer": 6,
+      "migrationWave": "R1-G6g",
+      "current": {
+        "sourceDirectories": [
+          "libs/ui/input",
+          "libs/ui/tool"
+        ],
+        "cmakeTargets": [
+          "kritaui"
+        ],
+        "uiClassAreas": [],
+        "uiToolClassAreas": [
+          "input-interpretation"
+        ],
+        "publicSurfaces": [
+          "input-action-stream"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/input",
+        "cppNamespace": "Krita::Input",
+        "primaryCmakeTarget": "kritainput",
+        "allowedDependencies": [
+          "canvas-presentation",
+          "tool-invocation"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "kritainput",
+            "directory": "libs/input",
+            "role": "input-sequence",
+            "status": "new"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "kritainput emits normalized input-action-stream values without image, paint, or resource headers.",
+        "Device and gesture adapters mutate state only by invoking tool-command."
+      ]
+    },
+    {
+      "responsibility": "painting-rendering",
+      "layer": 2,
+      "migrationWave": "R1-G6b",
+      "current": {
+        "sourceDirectories": [
+          "libs/brush",
+          "libs/color",
+          "libs/image",
+          "libs/pigment",
+          "libs/ui/tool/strokes",
+          "plugins/color",
+          "plugins/filters",
+          "plugins/flake",
+          "plugins/generators",
+          "plugins/paintops"
+        ],
+        "cmakeTargets": [
+          "kritacolor",
+          "kritaimage",
+          "kritalibbrush",
+          "kritapigment"
+        ],
+        "uiClassAreas": [],
+        "uiToolClassAreas": [
+          "painting-execution",
+          "stroke-generation"
+        ],
+        "publicSurfaces": [
+          "image-model",
+          "paint-execution"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/painting",
+        "cppNamespace": "Krita::Painting",
+        "primaryCmakeTarget": "kritapainting",
+        "allowedDependencies": [
+          "plugin-infrastructure",
+          "resource-management"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "kritacolor",
+            "directory": "libs/color",
+            "role": "color-implementation",
+            "status": "retained"
+          },
+          {
+            "name": "kritaimage",
+            "directory": "libs/image",
+            "role": "image-implementation",
+            "status": "retained"
+          },
+          {
+            "name": "kritalibbrush",
+            "directory": "libs/brush",
+            "role": "brush-implementation",
+            "status": "retained"
+          },
+          {
+            "name": "kritapainting",
+            "directory": "libs/painting",
+            "role": "domain-facade",
+            "status": "new"
+          },
+          {
+            "name": "kritapigment",
+            "directory": "libs/pigment",
+            "role": "color-space-implementation",
+            "status": "retained"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "Image, stroke, projection, undo primitives, and image metadata use painting-owned contracts without document headers.",
+        "All image internal-header consumers use reviewed image-model or paint-execution APIs."
+      ]
+    },
+    {
+      "responsibility": "plugin-infrastructure",
+      "layer": 0,
+      "migrationWave": null,
+      "current": {
+        "sourceDirectories": [
+          "libs/koplugin",
+          "plugins"
+        ],
+        "cmakeTargets": [
+          "kritaplugin"
+        ],
+        "uiClassAreas": [],
+        "uiToolClassAreas": [],
+        "publicSurfaces": [
+          "plugin-registration"
+        ]
+      },
+      "target": {
+      "rootDirectory": "libs/koplugin",
+        "cppNamespace": "Krita::Plugin",
+        "primaryCmakeTarget": "kritaplugin",
+        "allowedDependencies": [],
+        "cmakeTargets": [
+          {
+            "name": "kritaplugin",
+          "directory": "libs/koplugin",
+            "role": "registration",
+          "status": "retained"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "The existing kritaplugin boundary remains the layer-zero registration contract.",
+        "The retained package preserves plugin IDs, service types, metadata lookup, and registry lifetime."
+      ]
+    },
+    {
+      "responsibility": "resource-management",
+      "layer": 1,
+      "migrationWave": "R1-G6a",
+      "current": {
+        "sourceDirectories": [
+          "libs/resources",
+          "libs/resourcewidgets",
+          "libs/ui",
+          "plugins/extensions/resourcemanager"
+        ],
+        "cmakeTargets": [
+          "kritaresources",
+          "kritaresourcewidgets",
+          "kritaui"
+        ],
+        "uiClassAreas": [
+          "resource-configuration"
+        ],
+        "uiToolClassAreas": [],
+        "publicSurfaces": [
+          "resource-catalog",
+          "resource-storage"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/resources",
+        "cppNamespace": "Krita::Resources",
+        "primaryCmakeTarget": "kritaresources",
+        "allowedDependencies": [
+          "plugin-infrastructure"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "kritaresources",
+            "directory": "libs/resources",
+            "role": "catalog",
+            "status": "retained"
+          },
+          {
+            "name": "kritaresourcestorage",
+            "directory": "libs/resources/storage",
+            "role": "storage",
+            "status": "new"
+          },
+          {
+            "name": "kritaresourceui",
+            "directory": "libs/resources/ui",
+            "role": "presentation",
+            "status": "new"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "Resource catalog and storage depend only on plugin-registration and platform-neutral external libraries.",
+        "Paint-specific settings presentation is owned by tools while resource UI consumes typed resource descriptors."
+      ]
+    },
+    {
+      "responsibility": "tool-invocation",
+      "layer": 5,
+      "migrationWave": "R1-G6f",
+      "current": {
+        "sourceDirectories": [
+          "libs/ui/tool",
+          "plugins/assistants",
+          "plugins/tools"
+        ],
+        "cmakeTargets": [
+          "kritaui"
+        ],
+        "uiClassAreas": [],
+        "uiToolClassAreas": [
+          "settings-presentation",
+          "tool-invocation"
+        ],
+        "publicSurfaces": [
+          "tool-command",
+          "tool-settings"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/tools",
+        "cppNamespace": "Krita::Tools",
+        "primaryCmakeTarget": "kritatools",
+        "allowedDependencies": [
+          "canvas-presentation",
+          "document-lifecycle",
+          "painting-rendering",
+          "resource-management"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "kritatools",
+            "directory": "libs/tools",
+            "role": "command",
+            "status": "new"
+          },
+          {
+            "name": "kritatoolsui",
+            "directory": "libs/tools/ui",
+            "role": "presentation",
+            "status": "new"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "Tool interactions use document-session, canvas-view, image-model, paint-execution, and resource-catalog surfaces explicitly.",
+        "Tool settings widgets are isolated in kritatoolsui and expose typed settings through tool-settings."
+      ]
+    }
+  ],
+  "reviewedInternalHeaderDestinations": [
+    {
+      "ownerTarget": "kritaimage",
+      "headerPath": "*",
+      "destinationResponsibility": "painting-rendering",
+      "destinationDirectory": "libs/painting/api",
+      "wave": "R1-G6b",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/KisImportUserFeedbackInterface.h",
+      "destinationResponsibility": "import-export",
+      "destinationDirectory": "libs/impex/ui",
+      "wave": "R1-G6c",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/KisOcioConfiguration.h",
+      "destinationResponsibility": "canvas-presentation",
+      "destinationDirectory": "libs/canvas/color",
+      "wave": "R1-G6d",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/KisPopupWidgetInterface.h",
+      "destinationResponsibility": "tool-invocation",
+      "destinationDirectory": "libs/tools/ui",
+      "wave": "R1-G6f",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/KisSurfaceColorSpaceWrapper.h",
+      "destinationResponsibility": "canvas-presentation",
+      "destinationDirectory": "libs/canvas/color",
+      "wave": "R1-G6d",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/KisWidgetWithIdleTask.h",
+      "destinationResponsibility": "canvas-presentation",
+      "destinationDirectory": "libs/canvas/tasks",
+      "wave": "R1-G6d",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/animation/KisAndroidMediaEncoderRunnable.h",
+      "destinationResponsibility": "import-export",
+      "destinationDirectory": "libs/impex/animation",
+      "wave": "R1-G6c",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/kis_animation_cache_populator.h",
+      "destinationResponsibility": "canvas-presentation",
+      "destinationDirectory": "libs/canvas/animation",
+      "wave": "R1-G6d",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/kis_cursor_override_hijacker.h",
+      "destinationResponsibility": "application-orchestration",
+      "destinationDirectory": "libs/application/ui",
+      "wave": "R1-G6h",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/kis_popup_palette.h",
+      "destinationResponsibility": "tool-invocation",
+      "destinationDirectory": "libs/tools/ui",
+      "wave": "R1-G6f",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/kis_store_paintdevice_writer.h",
+      "destinationResponsibility": "import-export",
+      "destinationDirectory": "libs/impex",
+      "wave": "R1-G6c",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/operations/kis_operation_ui_widget_factory.h",
+      "destinationResponsibility": "tool-invocation",
+      "destinationDirectory": "libs/tools/ui",
+      "wave": "R1-G6f",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/tool/KisToolShapeUtils.h",
+      "destinationResponsibility": "tool-invocation",
+      "destinationDirectory": "libs/tools",
+      "wave": "R1-G6f",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/tool/kis_delegated_tool.h",
+      "destinationResponsibility": "tool-invocation",
+      "destinationDirectory": "libs/tools",
+      "wave": "R1-G6f",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/tool/kis_tool_select_base.h",
+      "destinationResponsibility": "tool-invocation",
+      "destinationDirectory": "libs/tools",
+      "wave": "R1-G6f",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/tool/strokes/FreehandStrokeRunnableJobDataWithUpdate.h",
+      "destinationResponsibility": "painting-rendering",
+      "destinationDirectory": "libs/painting/strokes",
+      "wave": "R1-G6b",
+      "disposition": "declare-or-replace-public-contract"
+    }
+  ],
+  "compatibilityRoutes": [
+    {
+      "id": "legacy-store-headers",
+      "kind": "forwarding-headers",
+      "legacy": "libs/store public include paths",
+      "replacement": "libs/resources/storage public include paths",
+      "introducedBy": "R1-G6a",
+      "owner": "R1-G7",
+      "maximumScope": "Only headers present when R1-G6a starts.",
+      "removalCondition": "All product and SDK consumers use resource-storage headers and the public-surface inventory records no legacy include consumers.",
+      "verification": "Public-surface inventory and structural dependency baseline report zero legacy consumers."
+    },
+    {
+      "id": "legacy-kritastore-target",
+      "kind": "cmake-compatibility-target",
+      "legacy": "kritastore",
+      "replacement": "kritaresourcestorage",
+      "introducedBy": "R1-G6a",
+      "owner": "R1-G7",
+      "maximumScope": "One compatibility link target with no production sources.",
+      "removalCondition": "All five CMake graphs contain no repository target depending on kritastore.",
+      "verification": "CMake target inventories and matrix contain no kritastore consumer."
+    },
+    {
+      "id": "legacy-resource-ui",
+      "kind": "forwarding-headers-and-target",
+      "legacy": "kritaresourcewidgets and resource-configuration headers in libs/ui",
+      "replacement": "kritaresourceui and paint-specific kritatoolsui adapters",
+      "introducedBy": "R1-G6a",
+      "owner": "R1-G7",
+      "maximumScope": "The R1-G2 resource-configuration class set and existing kritaresourcewidgets target.",
+      "removalCondition": "Resource and tool presentation consumers use their new targets and resource-management has zero painting dependencies.",
+      "verification": "Responsibility inventory and reverse dependency baseline show the resource-management package boundary is clean."
+    },
+    {
+      "id": "legacy-painting-ui-headers",
+      "kind": "forwarding-headers",
+      "legacy": "painting-execution and stroke-generation headers below libs/ui/tool",
+      "replacement": "libs/painting and kritapainting",
+      "introducedBy": "R1-G6b",
+      "owner": "R1-G7",
+      "maximumScope": "The R1-G2 UI tool class inventory selections for painting execution and stroke generation.",
+      "removalCondition": "All consumers use paint-execution and no old UI tool painting header has an external consumer.",
+      "verification": "UI tool inventory, public-surface inventory, and header baseline report no legacy consumer."
+    },
+    {
+      "id": "legacy-command-metadata-headers",
+      "kind": "forwarding-headers-and-targets",
+      "legacy": "painting and canvas primitives currently exposed by kritacommand and kritametadata",
+      "replacement": "painting undo and image metadata contracts plus document-owned coordination",
+      "introducedBy": "R1-G6b",
+      "owner": "R1-G7",
+      "maximumScope": "Only command and metadata symbols classified during the R1-G6b split.",
+      "removalCondition": "Painting and canvas have zero document-lifecycle includes and legacy targets contain only document-owned sources or are empty.",
+      "verification": "Reverse dependency baseline is zero for painting and canvas to document lifecycle."
+    },
+    {
+      "id": "legacy-impex-ui-headers",
+      "kind": "forwarding-headers",
+      "legacy": "import-export headers in libs/ui",
+      "replacement": "libs/impex and libs/impex/ui",
+      "introducedBy": "R1-G6c",
+      "owner": "R1-G7",
+      "maximumScope": "The R1-G2 import-export UI class set and reviewed internal header destinations.",
+      "removalCondition": "All consumers use kritaimpex or kritaimpexui and no legacy include path remains.",
+      "verification": "Public-surface and UI class inventories report no import-export class below libs/ui."
+    },
+    {
+      "id": "legacy-canvas-ui-headers",
+      "kind": "forwarding-headers",
+      "legacy": "canvas-display headers in libs/ui and libs/ui/canvas",
+      "replacement": "libs/canvas and kritacanvas",
+      "introducedBy": "R1-G6d",
+      "owner": "R1-G7",
+      "maximumScope": "The R1-G2 canvas-display class set and reviewed canvas internal headers.",
+      "removalCondition": "All consumers use canvas-view from kritacanvas and no legacy canvas UI include remains.",
+      "verification": "Public-surface inventory and canvas component tests report no legacy consumer."
+    },
+    {
+      "id": "legacy-document-ui-headers",
+      "kind": "forwarding-headers",
+      "legacy": "document-state headers in libs/ui",
+      "replacement": "libs/document and libs/document/ui",
+      "introducedBy": "R1-G6e",
+      "owner": "R1-G7",
+      "maximumScope": "The R1-G2 document-state class set.",
+      "removalCondition": "All consumers use document-session or document-persistence and no document-state class remains below libs/ui.",
+      "verification": "UI class inventory and document component tests report no legacy consumer."
+    },
+    {
+      "id": "legacy-tool-ui-headers",
+      "kind": "forwarding-headers",
+      "legacy": "tool-invocation and settings-presentation headers below libs/ui/tool",
+      "replacement": "libs/tools and libs/tools/ui",
+      "introducedBy": "R1-G6f",
+      "owner": "R1-G7",
+      "maximumScope": "The R1-G2 tool invocation and settings presentation class sets plus reviewed tool internal headers.",
+      "removalCondition": "All consumers use tool-command or tool-settings and no old tool header has an external consumer.",
+      "verification": "UI tool and public-surface inventories report no legacy consumer."
+    },
+    {
+      "id": "legacy-input-ui-headers",
+      "kind": "forwarding-headers",
+      "legacy": "input headers in libs/ui/input and input-interpretation headers below libs/ui/tool",
+      "replacement": "libs/input and kritainput",
+      "introducedBy": "R1-G6g",
+      "owner": "R1-G7",
+      "maximumScope": "The R1-G2 input-interpretation class set and current input directory public surface.",
+      "removalCondition": "All device adapters and consumers use input-action-stream and no legacy input include remains.",
+      "verification": "UI tool inventory and input component tests report no legacy consumer."
+    },
+    {
+      "id": "legacy-application-ui-headers",
+      "kind": "forwarding-headers",
+      "legacy": "application-orchestration and window-workspace headers in libs/ui",
+      "replacement": "libs/application and libs/application/ui",
+      "introducedBy": "R1-G6h",
+      "owner": "R1-G7",
+      "maximumScope": "The R1-G2 application orchestration and window workspace class sets plus reviewed application internal headers.",
+      "removalCondition": "The process entry and platform adapters use application-lifecycle and no application class remains below libs/ui.",
+      "verification": "UI class inventory and application startup tests report no legacy consumer."
+    },
+    {
+      "id": "legacy-kritaui-target",
+      "kind": "cmake-compatibility-target",
+      "legacy": "kritaui",
+      "replacement": "application, canvas, document, import-export, input, resource, and tool targets",
+      "introducedBy": "R1-G6h",
+      "owner": "R1-G7",
+      "maximumScope": "One source-free aggregate compatibility target after all responsibility slices move.",
+      "removalCondition": "All five CMake graphs contain no repository consumer of kritaui and installed SDK metadata exports only replacement targets.",
+      "verification": "CMake target inventories, SDK package tests, and downstream compatibility fixtures contain no kritaui dependency."
+    },
+    {
+      "id": "legacy-global-cpp-identifiers",
+      "kind": "source-compatibility",
+      "legacy": "Existing public global C++ class and function names",
+      "replacement": "Krita responsibility namespaces for new APIs",
+      "introducedBy": "R1-G6h",
+      "owner": "R1-G7",
+      "maximumScope": "Only identifiers present in the R1-G2 public-surface inventories.",
+      "removalCondition": "A separately reviewed API and ABI migration declares downstream compatibility complete for each identifier removed.",
+      "verification": "Public API and ABI fixtures approve every removed alias or forwarding declaration."
+    }
+  ],
+  "migrationWaves": [
+    {
+      "id": "R1-G6a",
+      "order": 1,
+      "responsibilities": [
+        "resource-management"
+      ],
+      "purpose": "Establish resource catalog, storage, and presentation boundaries before their dependents move.",
+      "prerequisites": [
+        "R1-G5 relocation plan accepted",
+        "Automated resource storage round-trip and failure contracts"
+      ],
+      "sourceMoves": [
+        {
+          "from": "libs/store",
+          "to": "libs/resources/storage",
+          "target": "kritaresourcestorage"
+        },
+        {
+          "from": "libs/resourcewidgets",
+          "to": "libs/resources/ui",
+          "target": "kritaresourceui"
+        },
+        {
+          "from": "libs/ui::<resource-configuration-domain>",
+          "to": "libs/resources/ui",
+          "target": "kritaresourceui"
+        },
+        {
+          "from": "libs/ui::<paintop-settings-presentation>",
+          "to": "libs/tools/ui",
+          "target": "kritatoolsui"
+        }
+      ],
+      "createsTargets": [
+        "kritaresourcestorage",
+        "kritaresourceui",
+        "kritatoolsui"
+      ],
+      "compatibilityRoutes": [
+        "legacy-kritastore-target",
+        "legacy-resource-ui",
+        "legacy-store-headers"
+      ],
+      "requiredContracts": [
+        "Resource storage open, read, write, rollback, and malformed archive tests",
+        "Resource catalog lookup and immutable descriptor tests",
+        "Resource UI smoke test through typed descriptors"
+      ],
+      "reverseBaselineReductions": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "import-export",
+          "from": 2,
+          "to": 0
+        },
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "import-export",
+          "from": 5,
+          "to": 0
+        },
+        {
+          "sourceResponsibility": "resource-management",
+          "dependencyResponsibility": "painting-rendering",
+          "from": 40,
+          "to": 0
+        }
+      ],
+      "maximumReverseDirectIncludesAfterWave": 258,
+      "maximumInternalDirectReferencesAfterWave": {
+        "kritaimage": 593,
+        "kritaui": 34
+      },
+      "completionCriteria": [
+        "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
+        "The three reviewed reverse dependency pairs reach zero and both compatibility targets are source-free."
+      ],
+      "stopCondition": "Stop before moving painting code if storage contracts, five-platform target graphs, or baseline reductions fail."
+    },
+    {
+      "id": "R1-G6b",
+      "order": 2,
+      "responsibilities": [
+        "painting-rendering"
+      ],
+      "purpose": "Create painting-owned stroke, undo, metadata, and image public contracts.",
+      "prerequisites": [
+        "R1-G6a complete",
+        "Painting image, stroke order, cancellation, and undo characterization tests"
+      ],
+      "sourceMoves": [
+        {
+          "from": "libs/ui/tool/strokes",
+          "to": "libs/painting/strokes",
+          "target": "kritapainting"
+        },
+        {
+          "from": "libs/command::<image-and-canvas-undo-primitives>",
+          "to": "libs/painting/undo",
+          "target": "kritapainting"
+        },
+        {
+          "from": "libs/metadata::<image-metadata-types>",
+          "to": "libs/painting/metadata",
+          "target": "kritapainting"
+        }
+      ],
+      "createsTargets": [
+        "kritapainting"
+      ],
+      "compatibilityRoutes": [
+        "legacy-command-metadata-headers",
+        "legacy-painting-ui-headers"
+      ],
+      "requiredContracts": [
+        "Image model ownership and snapshot tests",
+        "Stroke scheduling, cancellation, undo, and projection tests",
+        "Public image header compilation fixtures"
+      ],
+      "reverseBaselineReductions": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "document-lifecycle",
+          "from": 95,
+          "to": 0
+        }
+      ],
+      "maximumReverseDirectIncludesAfterWave": 163,
+      "maximumInternalDirectReferencesAfterWave": {
+        "kritaimage": 0,
+        "kritaui": 32
+      },
+      "completionCriteria": [
+        "Painting has zero document-lifecycle includes and exposes image-model and paint-execution from owned targets.",
+        "All 593 kritaimage internal references use reviewed public contracts or move behind the painting boundary."
+      ],
+      "stopCondition": "Stop before import-export and canvas migration if pixel, stroke, undo, or image header contracts regress."
+    },
+    {
+      "id": "R1-G6c",
+      "order": 3,
+      "responsibilities": [
+        "import-export"
+      ],
+      "purpose": "Move format coordination and its presentation into the import-export package.",
+      "prerequisites": [
+        "R1-G6b complete",
+        "Import, export, cancellation, error classification, and format selection contracts"
+      ],
+      "sourceMoves": [
+        {
+          "from": "libs/ui::<import-export>",
+          "to": "libs/impex/ui",
+          "target": "kritaimpexui"
+        }
+      ],
+      "createsTargets": [
+        "kritaimpexui"
+      ],
+      "compatibilityRoutes": [
+        "legacy-impex-ui-headers"
+      ],
+      "requiredContracts": [
+        "Format capability and MIME selection tests",
+        "Transactional import and export result tests",
+        "Import-export UI cancellation and feedback tests"
+      ],
+      "reverseBaselineReductions": [],
+      "maximumReverseDirectIncludesAfterWave": 163,
+      "maximumInternalDirectReferencesAfterWave": {
+        "kritaimage": 0,
+        "kritaui": 28
+      },
+      "completionCriteria": [
+        "All 14 classified import-export classes are owned by kritaimpex or kritaimpexui.",
+        "The four reviewed kritaui internal references assigned to import-export are removed."
+      ],
+      "stopCondition": "Stop before canvas migration if codec, persistence result, or format plugin contracts regress."
+    },
+    {
+      "id": "R1-G6d",
+      "order": 4,
+      "responsibilities": [
+        "canvas-presentation"
+      ],
+      "purpose": "Create the canvas-view boundary over image and resource surfaces.",
+      "prerequisites": [
+        "R1-G6b complete",
+        "Canvas coordinate, projection update, color display, and animation cache tests"
+      ],
+      "sourceMoves": [
+        {
+          "from": "libs/ui/canvas",
+          "to": "libs/canvas",
+          "target": "kritacanvas"
+        },
+        {
+          "from": "libs/ui::<canvas-display>",
+          "to": "libs/canvas/ui",
+          "target": "kritacanvas"
+        }
+      ],
+      "createsTargets": [
+        "kritacanvas"
+      ],
+      "compatibilityRoutes": [
+        "legacy-canvas-ui-headers"
+      ],
+      "requiredContracts": [
+        "Canvas coordinate and view lifetime tests",
+        "Projection notification and last-valid-frame tests",
+        "Color display and animation cache tests"
+      ],
+      "reverseBaselineReductions": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "document-lifecycle",
+          "from": 73,
+          "to": 0
+        }
+      ],
+      "maximumReverseDirectIncludesAfterWave": 90,
+      "maximumInternalDirectReferencesAfterWave": {
+        "kritaimage": 0,
+        "kritaui": 20
+      },
+      "completionCriteria": [
+        "Canvas has zero document-lifecycle includes and depends only on painting and resource public surfaces.",
+        "All eight reviewed kritaui internal references assigned to canvas are removed."
+      ],
+      "stopCondition": "Stop before document migration if canvas display, projection, color, or animation contracts regress."
+    },
+    {
+      "id": "R1-G6e",
+      "order": 5,
+      "responsibilities": [
+        "document-lifecycle"
+      ],
+      "purpose": "Move document session, persistence, and document presentation into owned targets.",
+      "prerequisites": [
+        "R1-G6c and R1-G6d complete",
+        "Document identity, modified state, persistence, autosave, recovery, and undo coordination tests"
+      ],
+      "sourceMoves": [
+        {
+          "from": "libs/ui::<document-state>",
+          "to": "libs/document/ui",
+          "target": "kritadocumentui"
+        },
+        {
+          "from": "libs/command::<document-undo-coordination>",
+          "to": "libs/document/undo",
+          "target": "kritadocument"
+        },
+        {
+          "from": "libs/metadata::<document-metadata-coordination>",
+          "to": "libs/document/metadata",
+          "target": "kritadocument"
+        }
+      ],
+      "createsTargets": [
+        "kritadocument",
+        "kritadocumentui"
+      ],
+      "compatibilityRoutes": [
+        "legacy-document-ui-headers"
+      ],
+      "requiredContracts": [
+        "Document session lifetime and modified-state tests",
+        "Transactional save, autosave, recovery, and cancellation tests",
+        "Document undo coordination tests"
+      ],
+      "reverseBaselineReductions": [],
+      "maximumReverseDirectIncludesAfterWave": 90,
+      "maximumInternalDirectReferencesAfterWave": {
+        "kritaimage": 0,
+        "kritaui": 20
+      },
+      "completionCriteria": [
+        "All 21 classified document classes are owned by kritadocument or kritadocumentui.",
+        "Document targets depend only on import-export, painting, plugin, and resource public surfaces."
+      ],
+      "stopCondition": "Stop before tool migration if document state, persistence, recovery, or undo contracts regress."
+    },
+    {
+      "id": "R1-G6f",
+      "order": 6,
+      "responsibilities": [
+        "tool-invocation"
+      ],
+      "purpose": "Move tool commands and settings presentation behind explicit tool surfaces.",
+      "prerequisites": [
+        "R1-G6d and R1-G6e complete",
+        "Tool activation, command, settings, cancellation, and undo boundary tests"
+      ],
+      "sourceMoves": [
+        {
+          "from": "libs/ui/tool::<tool-invocation>",
+          "to": "libs/tools",
+          "target": "kritatools"
+        },
+        {
+          "from": "libs/ui/tool::<settings-presentation>",
+          "to": "libs/tools/ui",
+          "target": "kritatoolsui"
+        }
+      ],
+      "createsTargets": [
+        "kritatools"
+      ],
+      "compatibilityRoutes": [
+        "legacy-tool-ui-headers"
+      ],
+      "requiredContracts": [
+        "Tool activation and interaction lifetime tests",
+        "Cancellation and undo-consistent command tests",
+        "Typed tool settings round-trip tests"
+      ],
+      "reverseBaselineReductions": [],
+      "maximumReverseDirectIncludesAfterWave": 90,
+      "maximumInternalDirectReferencesAfterWave": {
+        "kritaimage": 0,
+        "kritaui": 3
+      },
+      "completionCriteria": [
+        "All 22 classified tool command and settings classes are owned by kritatools or kritatoolsui.",
+        "All 17 reviewed kritaui internal references assigned to tools are removed."
+      ],
+      "stopCondition": "Stop before input migration if tool activation, settings, cancellation, or undo contracts regress."
+    },
+    {
+      "id": "R1-G6g",
+      "order": 7,
+      "responsibilities": [
+        "input-interpretation"
+      ],
+      "purpose": "Separate normalized device input from paint, resource, and document mutation.",
+      "prerequisites": [
+        "R1-G6f complete",
+        "Mouse, tablet, touch, stylus, gesture, and cancellation replay contracts"
+      ],
+      "sourceMoves": [
+        {
+          "from": "libs/ui/input",
+          "to": "libs/input",
+          "target": "kritainput"
+        },
+        {
+          "from": "libs/ui/tool::<input-interpretation>",
+          "to": "libs/input/tool-adapters",
+          "target": "kritainput"
+        }
+      ],
+      "createsTargets": [
+        "kritainput"
+      ],
+      "compatibilityRoutes": [
+        "legacy-input-ui-headers"
+      ],
+      "requiredContracts": [
+        "Deterministic mouse, tablet, touch, and stylus replay tests",
+        "Normalized pressure, tilt, modifier, and gesture state tests",
+        "Incomplete sequence cancellation tests"
+      ],
+      "reverseBaselineReductions": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "from": 15,
+          "to": 0
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "resource-management",
+          "from": 4,
+          "to": 0
+        }
+      ],
+      "maximumReverseDirectIncludesAfterWave": 71,
+      "maximumInternalDirectReferencesAfterWave": {
+        "kritaimage": 0,
+        "kritaui": 3
+      },
+      "completionCriteria": [
+        "All seven classified input classes are owned by kritainput.",
+        "Input has zero painting and resource includes and mutates state only through tool-command."
+      ],
+      "stopCondition": "Stop before application migration if device replay, normalization, or cancellation contracts regress."
+    },
+    {
+      "id": "R1-G6h",
+      "order": 8,
+      "responsibilities": [
+        "application-orchestration"
+      ],
+      "purpose": "Move process orchestration and workspace presentation out of the kritaui aggregate.",
+      "prerequisites": [
+        "R1-G6g complete",
+        "Application startup, shutdown, workspace, window, and operating-system lifecycle tests"
+      ],
+      "sourceMoves": [
+        {
+          "from": "libs/ui::<application-orchestration>",
+          "to": "libs/application",
+          "target": "kritaapplication"
+        },
+        {
+          "from": "libs/ui::<window-workspace>",
+          "to": "libs/application/ui",
+          "target": "kritaapplicationui"
+        },
+        {
+          "from": "plugins/platforms",
+          "to": "libs/application/platform-adapters",
+          "target": "kritaapplication"
+        }
+      ],
+      "createsTargets": [
+        "kritaapplication",
+        "kritaapplicationui"
+      ],
+      "compatibilityRoutes": [
+        "legacy-application-ui-headers",
+        "legacy-global-cpp-identifiers",
+        "legacy-kritaui-target"
+      ],
+      "requiredContracts": [
+        "Application startup and shutdown tests",
+        "Window, workspace, and session restoration tests",
+        "macOS, iOS, Linux, Android, and Windows lifecycle adapter tests"
+      ],
+      "reverseBaselineReductions": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "painting-rendering",
+          "from": 71,
+          "to": 0
+        }
+      ],
+      "maximumReverseDirectIncludesAfterWave": 0,
+      "maximumInternalDirectReferencesAfterWave": {
+        "kritaimage": 0,
+        "kritaui": 0
+      },
+      "completionCriteria": [
+        "All 24 classified application and workspace classes are owned by application targets.",
+        "kritaui is source-free, all reviewed violation baselines reach zero, and every platform uses the new target graph."
+      ],
+      "stopCondition": "Stop before R1-G7 compatibility removal if startup, workspace, platform lifecycle, or downstream compatibility contracts regress."
+    }
+  ],
+  "firstImplementationWave": "R1-G6a",
+  "finalState": {
+    "reverseDirectIncludes": 0,
+    "unresolvedProjections": 0,
+    "targetCycleComponents": 0,
+    "internalHeaderDirectReferences": 0,
+    "temporaryCompatibilityRoutes": 0
+  }
+}
