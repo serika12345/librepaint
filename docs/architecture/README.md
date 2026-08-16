@@ -102,6 +102,34 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 ストローク作成、描画実行が一つのCMakeターゲットに混在する現在の境界を示し、R1-G3の
 責務地図と依存方針の入力になる。
 
+### 現在のパッケージ責務地図
+
+[パッケージ責務地図](package-responsibilities.json)は、R1-G1の5構成のCMakeターゲット台帳と
+R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務台帳を、現在の9責務へ接続する。
+各責務は説明、所有ソースディレクトリー、所有ターゲット、公開ヘッダー、公開クラス、
+プラグインID、サービス種別を持つ。
+
+| 責務ID | 現在の中核所有ターゲット | 対象 |
+| --- | --- | --- |
+| `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
+| `canvas-presentation` | `kritabasicflakes`、`kritaflake`、`kritaui` | キャンバス表示、ベクター表示、ドッカー |
+| `document-lifecycle` | `kritacommand`、`kritametadata`、`kritaui` | 文書寿命、変更状態、アンドゥ、メタデータ |
+| `import-export` | `kritaimpex`、`kritastore`、`kritaui` | 形式選択、検証、文書入出力 |
+| `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
+| `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理 |
+| `plugin-infrastructure` | `kritaplugin` | メタデータ探索、ファクトリーとサービス種別の登録 |
+| `resource-management` | `kritaresources`、`kritaresourcewidgets`、`kritaui` | リソースの保存、検索、タグ、設定、選択、表示 |
+| `tool-invocation` | `kritaui` | ツール設定表示とキャンバス状態へのツール呼出し |
+
+`targetRelations`は15の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
+ターゲット間の直接依存および利用元を和集合で記録する。この地図は現在の所有関係を表し、
+R1-G3bで定義する許可依存方向の比較元になる。
+
+`kritaui`は9責務中7責務の現所有ターゲットである。UIクラスの責務分類と組み合わせることで、
+文書、入出力、入力解釈、描画実行などを凝集したターゲットへ分割する順序を決められる。
+`plugin-infrastructure`は全172登録の発見機構を所有し、各機能責務は同じ登録を機能領域として
+参照する。機構の所有と機能の所有を、この二つの軸で表現する。
+
 責務の中心は次の四つです。
 
 - `krita/`はプロセスの入口、アプリケーション資産、OSライフサイクルとの接続を持ちます。主要機能は`libs/`と`plugins/`が所有します。
