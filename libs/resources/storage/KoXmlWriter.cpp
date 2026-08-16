@@ -10,8 +10,29 @@
 #include <StoreDebug.h>
 #include <QByteArray>
 #include <QStack>
+#include <QTextStream>
 #include <float.h>
-#include <kis_dom_utils.h>
+
+namespace
+{
+QString numberToString(float value)
+{
+    QString result;
+    QTextStream stream(&result, QIODevice::WriteOnly);
+    stream.setRealNumberPrecision(FLT_DIG);
+    stream << value;
+    return result;
+}
+
+QString numberToString(double value)
+{
+    QString result;
+    QTextStream stream(&result, QIODevice::WriteOnly);
+    stream.setRealNumberPrecision(15);
+    stream << value;
+    return result;
+}
+}
 
 static const int s_indentBufferLength = 100;
 static const int s_escapeBufferLen = 10000;
@@ -224,12 +245,12 @@ void KoXmlWriter::addAttribute(const char* attrName, const char* value)
 
 void KoXmlWriter::addAttribute(const char* attrName, double value)
 {
-    addAttribute(attrName, KisDomUtils::toString(value));
+    addAttribute(attrName, numberToString(value));
 }
 
 void KoXmlWriter::addAttribute(const char* attrName, float value)
 {
-    addAttribute(attrName, KisDomUtils::toString(value));
+    addAttribute(attrName, numberToString(value));
 }
 
 void KoXmlWriter::writeIndent()

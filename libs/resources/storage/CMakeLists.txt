@@ -17,7 +17,6 @@ target_link_libraries(kritaresourcestorage
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
     PRIVATE
-        kritaglobal
         KF${KF_MAJOR}::ConfigCore
         Qt${QT_MAJOR_VERSION}::Xml
         Qt${QT_MAJOR_VERSION}::Gui

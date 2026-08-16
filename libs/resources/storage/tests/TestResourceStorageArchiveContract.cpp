@@ -5,6 +5,7 @@
  */
 
 #include <KoStore.h>
+#include <KoXmlWriter.h>
 
 #include <QBuffer>
 #include <QTemporaryDir>
@@ -22,6 +23,7 @@ private Q_SLOTS:
     void malformedArchiveIsRejected();
     void failedReadPreservesArchiveSession();
     void duplicateWriteIsRejectedWithoutLosingEarlierData();
+    void xmlNumericAttributesRemainStable();
 };
 
 void TestResourceStorageArchiveContract::zipRoundTrip()
@@ -146,6 +148,25 @@ void TestResourceStorageArchiveContract::duplicateWriteIsRejectedWithoutLosingEa
     QVERIFY(reader->open(QStringLiteral("second")));
     QCOMPARE(reader->read(4), QByteArrayLiteral("next"));
     QVERIFY(reader->close());
+}
+
+void TestResourceStorageArchiveContract::xmlNumericAttributesRemainStable()
+{
+    QByteArray xml;
+    QBuffer output(&xml);
+    KoXmlWriter writer(&output);
+    writer.startDocument("numbers");
+    writer.startElement("numbers");
+    writer.addAttribute("double", 1234.56789012345);
+    writer.addAttribute("float", 1.2345678f);
+    writer.endElement();
+    writer.endDocument();
+
+    QCOMPARE(
+        xml,
+        QByteArrayLiteral(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            "<numbers double=\"1234.56789012345\" float=\"1.23457\"/>\n"));
 }
 
 QTEST_GUILESS_MAIN(TestResourceStorageArchiveContract)
