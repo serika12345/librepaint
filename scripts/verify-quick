@@ -16,8 +16,10 @@ python3 scripts/architecture/update_plugin_inventory.py --check
 python3 scripts/architecture/update_ui_class_responsibilities.py --check
 python3 scripts/architecture/update_ui_tool_class_responsibilities.py --check
 python3 scripts/architecture/update_package_responsibility_map.py --check
+python3 scripts/architecture/update_allowed_package_dependencies.py --check
 python3 scripts/architecture/check_public_surface_inventory.py
 python3 scripts/architecture/check_package_responsibility_map.py
+python3 scripts/architecture/check_allowed_package_dependencies.py
 python3 scripts/check_governance.py
 
 shellcheck \

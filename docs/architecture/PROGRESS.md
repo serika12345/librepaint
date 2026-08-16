@@ -2,11 +2,11 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 16:54 JST
-- 状態: `planned`
+- 更新日時: 2026-08-16 17:01 JST
+- 状態: `in_progress`
 - 現在の検査段階: R1-G3 責務地図と依存方針
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g3a-package-responsibility-map`
+- ブランチ: `r1-g3b-allowed-dependencies`
 - 目的: R1-G3bとして現在の責務地図を基準に、責務間の許可依存方向と公開接続面を
   機械可読な方針へ固定する。
 
