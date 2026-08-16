@@ -80,6 +80,10 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             ),
             7,
         )
+        self.assertEqual(
+            by_id["canvas-presentation"]["reviewedPublicHeaderPaths"],
+            ["libs/ui/widgets/KoStrokeConfigWidget.h"],
+        )
         target_by_name = {
             entry["name"]: entry
             for entry in responsibility_map["targetRelations"]

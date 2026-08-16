@@ -308,21 +308,39 @@ nix develop .#test --command \
 ```
 
 `docs/architecture/dependency-violation-baseline.json`は、許可方向外の現在辺から、直接includeで
-一意に帰属できる確認済み違反と、共有ターゲットにより未確定の射影を分けて記録する。
+一意に帰属できる確認済み違反を記録する。
 次のコマンドは、審査済みの最大件数、理由、所有段階、除去条件を保持しながら、CMake辺、
-対応構成、直接include、未確定根拠を更新する。
+対応構成と直接includeを更新する。
 
 ```sh
 nix develop .#test --command \
   ./scripts/architecture/update_dependency_violation_baseline.py
 ```
 
-次のコマンドは、確認済み違反の増加、縮小可能な上限、根拠の置換、未確定射影の欠落を
+次のコマンドは、確認済み違反の増加、縮小可能な上限、根拠の置換を
 検査する。
 
 ```sh
 nix develop .#test --command \
   ./scripts/architecture/check_dependency_violation_baseline.py
+```
+
+`docs/architecture/structural-dependency-baseline.json`は、共有ターゲット由来の射影解決、
+中核および全製品CMakeターゲットの循環、公開宣言を持たないヘッダーのパッケージ外参照を
+保持する。次のコマンドは、射影の直接include根拠、5構成の強連結成分、公開面台帳の
+外部include根拠を更新する。
+
+```sh
+nix develop .#test --command \
+  ./scripts/architecture/update_structural_dependency_baseline.py
+```
+
+次のコマンドは、新たな未帰属射影、ターゲット循環、内部ヘッダー参照の増加、縮小可能な
+上限、根拠の置換を検査する。
+
+```sh
+nix develop .#test --command \
+  ./scripts/architecture/check_structural_dependency_baseline.py
 ```
 
 検査は次の関係を確認する。
@@ -345,6 +363,7 @@ nix develop .#test --command \
   記録済みの所有根拠と一致する。
 - パッケージ責務地図の9責務が、UIクラス領域、UIツールクラス領域、主要クラス、
   プラグイン機能所有領域を各一回割り当てる。
+- UIクラス全件分類の範囲外にある審査済み公開ヘッダーが、一つの責務へ割り当てられる。
 - 15の中核所有ターゲットが5構成のいずれかに存在し、定義場所、種別、製品ターゲットへの
   直接依存、製品ターゲットからの利用元がCMakeターゲット台帳の和集合と一致する。
 - 全プラグイン登録を所有する発見機構が一つ存在し、各機能責務のプラグインIDと
@@ -356,7 +375,10 @@ nix develop .#test --command \
 - 許可方向外の14責務対のうち8責務対が305件の直接includeへ一意に帰属し、元の
   CMakeターゲット辺と5構成へ接続される。
 - 確認済み8責務対が理由、所有段階、除去条件、現在件数と等しい審査済み上限を持つ。
-- 残る6責務対が、曖昧な直接includeまたは帰属済み直接includeの欠落として追跡される。
+- 残る6責務対が直接includeの実責務へ帰属し、逆方向依存ではない射影として解決される。
+- 15中核ターゲットと全製品構築ターゲットが、5構成すべてで強連結成分0件を維持する。
+- 公開宣言を持たない44ヘッダー、627件のパッケージ外参照が、所有段階、理由、除去条件、
+  ヘッダー数と参照数の審査済み上限を持つ。
 
 公開ヘッダーの追加、削除、公開マクロ、またはパッケージ外includeを変更した場合は更新器を
 実行し、台帳を同じ変更へ含める。`libs/ui`直下の公開クラス、その実装ファイル、または
@@ -369,7 +391,9 @@ UIツールクラス責務台帳の更新器も実行する。プラグインの
 変更した場合は方針を編集してから許可依存方針の更新器を実行する。対象ソース、include、
 公開ヘッダー、クラス責務またはCMake直接依存を変更した場合は、先行する台帳更新後に依存違反
 基準の更新器を実行する。現在件数が変わった場合は`maximumDirectIncludes`を同じ変更で審査し、
-縮小時は現在件数まで下げる。`verify-quick`は7更新器の`--check`、台帳検査器、欠落、所有者、
+縮小時は現在件数まで下げる。続けて構造依存基準の更新器を実行し、内部ヘッダーの
+`maximumHeaders`と`maximumDirectReferences`を現在値へ縮小する。`verify-quick`は8更新器の
+`--check`、台帳検査器、欠落、所有者、
 公開根拠、利用根拠、責務分類、ターゲット関係、依存方向、循環、未分類候補、基準拡大、
 縮小可能な上限の診断例を実行する。
 `scope.publicHeaders`、`scope.plugins`、UI直下クラス、UIツールクラスは全件であり、

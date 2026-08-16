@@ -138,6 +138,7 @@ def attribution_policy() -> dict[str, Any]:
             "longest-responsibility-source-directory",
         ],
         "ambiguousHandling": "record-unresolved-projection",
+        "noEvidenceHandling": "structural-projection-resolution-baseline",
     }
 
 
@@ -676,6 +677,8 @@ def discover_baseline_evidence(
             }
             for value in sorted(ambiguous_includes.get(pair, set()))
         ]
+        if not ambiguous:
+            continue
         unresolved[pair] = {
             "targetLinks": target_links_by_pair[pair],
             "ambiguousDirectIncludes": ambiguous,
