@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-17 12:33 JST
-- 状態: `planned`
+- 更新日時: 2026-08-17 15:54 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6b 描画実行境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6a-resource-ui-boundary`
-- 目的: 描画特性契約を追加し、`libs/ui/tool/strokes`を`libs/painting/strokes`へ、
-  `libs/command`の画像・キャンバス向け取り消し処理を`libs/painting/undo`へ、
-  `libs/metadata`の画像メタデータ型を`libs/painting/metadata`へ移す。
+- ブランチ: `r1-g6b-painting-boundary`
+- 目的: `libs/ui/tool/strokes`、`libs/command`、`libs/metadata`に分散していた
+  描画実行、画像向け取り消し、画像メタデータを`libs/painting`の所有境界へ集約し、
+  表示層と文書寿命の知識を描画処理から除去する。
 
 ## 再開環境
 
@@ -257,6 +257,32 @@
 - 確認済み逆方向依存は5責務対257件へ縮小した。全5構成で16中核ターゲットと
   全製品ターゲットの循環は0件である。
 
+## R1-G6b描画実行境界で完了した作業
+
+- `libs/ui/tool/strokes`のストローク生成・実行を`libs/painting/strokes`へ移した。
+  同じ起点にあった`KisAsynchronousStrokeUpdateHelper.*`、
+  `KisStrokeCompatibilityInfo.*`、`KisStrokeSpeedMonitor.*`、
+  `kis_resources_snapshot.*`も`libs/painting`へ移し、`kritapainting`が所有する。
+- `libs/command`の画像・キャンバス向け取り消し処理を`libs/painting/undo`へ移し、
+  `kritapaintingundo`として分離した。`libs/metadata`の画像メタデータ実装は
+  `libs/painting/metadata`へ移し、`kritapaintingmetadata`として分離した。旧ディレクトリー、
+  旧メタデータターゲット、転送ヘッダーは残していない。
+- 画像層が利用する取り消しとメタデータを画像層より下、画像層を利用するストローク実行を
+  画像層より上に分けた。これにより3責務を描画所有へ集約しながらCMakeターゲットの循環を
+  発生させない構成にした。
+- `libs/ui/tool/kis_resources_snapshot.*`を起点とした資源スナップショットは、UIの具体的な
+  資源提供者ではなく`libs/resources`の読出し接続面を保持する。呼出し側が所有する提供者から
+  読出し接続面を渡すことで、描画処理からUI資源管理の知識を除去した。
+- `libs/ui/tool/KisStrokeSpeedMonitor.*`を起点とした速度計測は、設定の読取りをUI側へ移し、
+  描画側は呼出し側から有効状態を受け取る。`libs/ui/tool/kis_tool_utils.*`にあった画像状態だけを
+  扱う色採取とノード検索は`libs/painting/kis_painting_utils.*`へ移した。
+- 描画から文書寿命への直接includeは95件から0件になった。`kritaimage`の29ヘッダー593参照は、
+  `libs/painting/tests/TestPublicImageHeaders.cpp`の構築契約で公開面を確定し、未審査の内部参照を
+  0件にした。`kritaui`の内部参照は14ヘッダー32件まで縮小した。
+- 5構成のCMake台帳はmacOS 634件、Linux 649件、iOS 568件、Android 574件、Windows 604件、
+  共通552件、条件付き119件、構成差252件を記録する。18中核所有ターゲットと全製品ターゲットは
+  5構成すべてで循環0件を維持する。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -297,14 +323,33 @@
 - `nix develop .#test --command ./scripts/verify`: macOSの全2,395構築工程が成功し、
   CTest 316件中279件が成功した。追加した表示境界契約はすべて成功し、残る37件は
   既存の画像基準、Qt 6モデル契約、macOS環境、300秒制限、セグメンテーション違反で失敗する。
+- `ctest --preset tdd-macos`で描画境界、公開画像ヘッダー、取り消し、メタデータ、画像、投影、
+  トランザクション、ストローク、取り消し付きストローク、ストロークキューの対象10件が成功した。
+- `nix develop .#test --command ./scripts/verify-quick`: 88件の単体試験、責務・依存・構造台帳、
+  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems`: 描画境界分離後の全Nix出力の評価が成功した。
+- 描画境界分離後の`kritaui`をmacOSとx86_64 Linuxで、LibrePaint本体をiOSで構築した。
+  Android arm64-v8aの`libkritaui_arm64-v8a.so`とWindows x86_64の`libkritaui.dll`も構築し、
+  5構成すべてで最終生成物のリンクが成功した。
+- Androidの初回構築は、資源キャッシュの共有ポインターを`QVariant`から取り出す箇所で
+  完全型を要求するQt 5の診断を記録した。`libs/painting/kis_resources_snapshot.cpp`が
+  資源キャッシュ接続面の定義を直接includeするよう修正し、AndroidとiOSの再構築が成功した。
+- `nix develop .#test --command ./scripts/verify`: macOSの全3,201構築工程が成功し、
+  CTest 318件中281件が成功した。追加した描画境界と公開画像ヘッダーの2契約は成功し、
+  失敗37件は前段階と同数で、既存の画像基準、Qt 6モデル契約、macOS環境、300秒制限、
+  セグメンテーション違反に分類される。
+- 既存失敗の`plugins-impex-jpeg-kis_jpeg_test`は実メモリが最大約4.2 GiB、システムの
+  スワップ使用量が約23.3 GiBへ増加したため293秒時点で終了した。終了後のスワップ使用量は
+  約2.8 GiB、空きメモリ指標は88%へ回復した。
 
 ## 次の操作
 
-`libs/ui/tool/strokes`、`libs/command`、`libs/metadata`を起点として、画像状態、ストローク順序、
-取り消し、投影の特性契約と公開画像ヘッダーの構築契約を先に追加する。続いて
-`libs/painting/strokes`、`libs/painting/undo`、`libs/painting/metadata`へ所有権を移し、
-`kritapainting`を構築する。描画から文書寿命への95件の逆方向includeと、`kritaimage`の
-内部ヘッダー29件に対する593件のパッケージ外参照をゼロへ縮小する。
+R1-G6cでは`libs/ui/KisImportExportManager.*`、`libs/ui/KisImportExportFilter.*`、
+`libs/ui/KisImportExportErrorCode.*`、`libs/ui/KisImportExportAdditionalChecks.*`、
+`libs/ui/KisImportUserFeedbackInterface.*`を起点として、形式選択、取消し、結果分類、利用者への通知の
+契約を追加する。続いて入出力調整を`libs/impex`へ、表示と利用者操作との接続を`libs/impex/ui`へ
+分け、`kritaimpexui`を構築する。分類済みの入出力14クラスと4件のUI内部参照を移し、旧includeの
+利用元を同じ変更で正規経路へ更新する。
 
 ## R1-G5完了根拠
 

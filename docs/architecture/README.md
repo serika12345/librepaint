@@ -275,7 +275,7 @@ R1-G6bは、`libs/ui/tool/strokes`を`libs/painting/strokes`へ移し、同じUI
 資源スナップショットはUIの具体的な資源提供者ではなく、`libs/resources`が所有する読出し
 接続面を保持する。旧ディレクトリーの転送ヘッダーと旧メタデータターゲットは存在しない。
 
-公開マクロを付与できない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
+共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
 公開根拠として台帳へ記録し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
 
