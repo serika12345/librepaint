@@ -7,6 +7,7 @@ import importlib.util
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -63,13 +64,13 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             baseline["scope"],
             "r1-g4a-confirmed-reverse-dependency-baseline",
         )
-        self.assertEqual(len(baseline["violations"]), 6)
+        self.assertEqual(len(baseline["violations"]), 5)
         self.assertEqual(
             sum(
                 len(entry["directIncludes"])
                 for entry in baseline["violations"]
             ),
-            298,
+            257,
         )
         self.assertEqual(baseline["unresolvedProjections"], [])
         by_pair = {
@@ -132,6 +133,39 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             "baseline can be reduced",
         ):
             self.validate(baseline)
+
+    def test_updater_prunes_a_resolved_violation_pair(self) -> None:
+        baseline = self.load_baseline()
+        confirmed = {
+            (
+                entry["sourceResponsibility"],
+                entry["dependencyResponsibility"],
+            ): {
+                "targetLinks": entry["targetLinks"],
+                "directIncludes": entry["directIncludes"],
+            }
+            for entry in baseline["violations"][:-1]
+        }
+
+        with patch.object(
+            check_dependency_violation_baseline,
+            "discover_baseline_evidence",
+            return_value=(confirmed, {}),
+        ):
+            updated = check_dependency_violation_baseline.updated_baseline(
+                baseline,
+                repository_root=REPO_ROOT,
+                policy={},
+                responsibility_map={},
+                ui_class_inventory={},
+                ui_tool_class_inventory={},
+                graph_directory=GRAPH_DIRECTORY,
+            )
+
+        self.assertEqual(
+            updated["violations"],
+            baseline["violations"][:-1],
+        )
 
     def test_stale_direct_include_evidence_is_rejected(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())

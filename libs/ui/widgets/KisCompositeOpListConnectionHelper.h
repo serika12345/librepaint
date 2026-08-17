@@ -9,11 +9,14 @@
 #include <kritaui_export.h>
 
 class QObject;
+class KisActionManager;
+class KisCompositeOpComboBox;
 class KisCompositeOpListWidget;
 
 namespace KisWidgetConnectionUtils
 {
 void KRITAUI_EXPORT connectControl(KisCompositeOpListWidget *widget, QObject *source, const char *property);
+void KRITAUI_EXPORT connectBlendModeActions(KisCompositeOpComboBox *widget, KisActionManager *manager);
 }
 
 

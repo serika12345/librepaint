@@ -13,6 +13,10 @@ paths, and quoted diagnostics.
 
 Implementation reports include the change purpose, the resulting capability,
 verification commands and results, remaining risk, and the next durable action.
+Structural implementation reports lead with the purpose and identify every
+starting file or directory together with its destination file or directory.
+Internal target and class identifiers may support that mapping, but do not
+replace it.
 
 Implementation reports and pull request descriptions explain the change in
 reviewer-facing domain language before introducing repository identifiers.

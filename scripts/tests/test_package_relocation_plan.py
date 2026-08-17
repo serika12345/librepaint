@@ -58,7 +58,7 @@ class PackageRelocationPlanTests(unittest.TestCase):
                 for wave in plan["migrationWaves"]
                 for reduction in wave["reverseBaselineReductions"]
             ),
-            305,
+            304,
         )
         self.assertEqual(
             plan["finalState"],

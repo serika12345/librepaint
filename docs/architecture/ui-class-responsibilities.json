@@ -49,8 +49,8 @@
       "responsibility": "Coordinates loading, saving, format filters, conversion, clipboard and MIME transfer, and safe document replacement."
     },
     {
-      "id": "resource-configuration",
-      "responsibility": "Coordinates settings, resources, paint-op options, palettes, and the models and editors that expose them."
+      "id": "tool-invocation",
+      "responsibility": "Coordinates toolbar-level tool selection, filter settings, and invocation while reusable settings presentation remains with tools."
     },
     {
       "id": "window-workspace",
@@ -198,7 +198,7 @@
       "implementationPaths": [
         "libs/ui/kis_bookmarked_configurations_editor.cc"
       ],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "tool-invocation"
     },
     {
       "name": "KisBookmarkedConfigurationsModel",
@@ -207,7 +207,7 @@
       "implementationPaths": [
         "libs/ui/kis_bookmarked_configurations_model.cc"
       ],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "tool-invocation"
     },
     {
       "name": "KisCanvasControlsManager",
@@ -237,15 +237,6 @@
       "responsibilityArea": "canvas-display"
     },
     {
-      "name": "KisCategorizedItemDelegate",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_categorized_item_delegate.h",
-      "implementationPaths": [
-        "libs/ui/kis_categorized_item_delegate.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
       "name": "KisClipboard",
       "declarationKind": "class",
       "header": "libs/ui/kis_clipboard.h",
@@ -255,22 +246,13 @@
       "responsibilityArea": "import-export"
     },
     {
-      "name": "KisCompositeOpListModel",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_composite_ops_model.h",
-      "implementationPaths": [
-        "libs/ui/kis_composite_ops_model.cc"
-      ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
       "name": "KisConfig",
       "declarationKind": "class",
       "header": "libs/ui/kis_config.h",
       "implementationPaths": [
         "libs/ui/kis_config.cc"
       ],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "application-orchestration"
     },
     {
       "name": "KisDisplayConfig",
@@ -522,7 +504,7 @@
       "implementationPaths": [
         "libs/ui/kis_model_index_converter.cpp"
       ],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "document-state"
     },
     {
       "name": "KisModelIndexConverterBase",
@@ -531,7 +513,7 @@
       "implementationPaths": [
         "libs/ui/kis_model_index_converter_base.cpp"
       ],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "document-state"
     },
     {
       "name": "KisModelIndexConverterShowAll",
@@ -540,7 +522,7 @@
       "implementationPaths": [
         "libs/ui/kis_model_index_converter_show_all.cpp"
       ],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "document-state"
     },
     {
       "name": "KisMultiSurfaceDisplayConfig",
@@ -630,14 +612,7 @@
       "implementationPaths": [
         "libs/ui/kis_node_view_color_scheme.cpp"
       ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisOptionInfo",
-      "declarationKind": "struct",
-      "header": "libs/ui/kis_paintop_options_model.h",
-      "implementationPaths": [],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "document-state"
     },
     {
       "name": "KisPNGConverter",
@@ -647,49 +622,6 @@
         "libs/ui/kis_png_converter.cpp"
       ],
       "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisPaintOpInfo",
-      "declarationKind": "struct",
-      "header": "libs/ui/kis_paint_ops_model.h",
-      "implementationPaths": [],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisPaintOpListModel",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_paint_ops_model.h",
-      "implementationPaths": [
-        "libs/ui/kis_paint_ops_model.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisPaintOpOption",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_paintop_option.h",
-      "implementationPaths": [
-        "libs/ui/kis_paintop_option.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisPaintOpOptionListModel",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_paintop_options_model.h",
-      "implementationPaths": [
-        "libs/ui/kis_paintop_options_model.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisPaintOpSettingsWidget",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_paintop_settings_widget.h",
-      "implementationPaths": [
-        "libs/ui/kis_paintop_settings_widget.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
     },
     {
       "name": "KisPaintingAssistant",
@@ -743,43 +675,7 @@
       "implementationPaths": [
         "libs/ui/kis_paintop_box.cc"
       ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisPaintopPropertiesBase",
-      "declarationKind": "class",
-      "header": "libs/ui/KisPaintopPropertiesBase.h",
-      "implementationPaths": [
-        "libs/ui/KisPaintopPropertiesBase.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisPaintopPropertiesCanvasResourcesBase",
-      "declarationKind": "class",
-      "header": "libs/ui/KisPaintopPropertiesBase.h",
-      "implementationPaths": [
-        "libs/ui/KisPaintopPropertiesBase.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
-    },
-    {
-      "name": "KisPaintopPropertiesResourcesBase",
-      "declarationKind": "class",
-      "header": "libs/ui/KisPaintopPropertiesBase.h",
-      "implementationPaths": [
-        "libs/ui/KisPaintopPropertiesBase.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisPaletteEditor",
-      "declarationKind": "class",
-      "header": "libs/ui/KisPaletteEditor.h",
-      "implementationPaths": [
-        "libs/ui/KisPaletteEditor.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "tool-invocation"
     },
     {
       "name": "KisPart",
@@ -867,7 +763,7 @@
       "implementationPaths": [
         "libs/ui/KisResourceServerProvider.cpp"
       ],
-      "responsibilityArea": "resource-configuration"
+      "responsibilityArea": "application-orchestration"
     },
     {
       "name": "KisRootSurfaceInfoProxy",
@@ -949,27 +845,6 @@
         "libs/ui/KisSessionResource.cpp"
       ],
       "responsibilityArea": "window-workspace"
-    },
-    {
-      "name": "KisSortedCategorizedListModel",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_categorized_list_model.h",
-      "implementationPaths": [],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisSortedCompositeOpListModel",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_composite_ops_model.h",
-      "implementationPaths": [],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "KisSortedPaintOpListModel",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_paint_ops_model.h",
-      "implementationPaths": [],
-      "responsibilityArea": "resource-configuration"
     },
     {
       "name": "KisSplashScreen",
@@ -1116,13 +991,6 @@
       "responsibilityArea": "document-state"
     },
     {
-      "name": "OptionInfoToQStringConverter",
-      "declarationKind": "struct",
-      "header": "libs/ui/kis_paintop_options_model.h",
-      "implementationPaths": [],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
       "name": "SetSaturationCommand",
       "declarationKind": "struct",
       "header": "libs/ui/KisReferenceImage.h",
@@ -1139,22 +1007,6 @@
         "libs/ui/StoryboardItem.cpp"
       ],
       "responsibilityArea": "document-state"
-    },
-    {
-      "name": "__CategoriesSignalsBase",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_categories_mapper.h",
-      "implementationPaths": [],
-      "responsibilityArea": "resource-configuration"
-    },
-    {
-      "name": "__CategorizedListModelBase",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_categorized_list_model.h",
-      "implementationPaths": [
-        "libs/ui/kis_categorized_list_model.cpp"
-      ],
-      "responsibilityArea": "resource-configuration"
     }
   ]
 }

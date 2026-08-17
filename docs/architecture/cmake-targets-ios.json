@@ -120,19 +120,19 @@
     {
       "name": "KisCategoriesMapperTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/tools/ui/tests",
       "dependencies": [
         "kritatestsdk",
-        "kritaui"
+        "kritatoolsui"
       ]
     },
     {
       "name": "KisCategorizedListModelTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/tools/ui/tests",
       "dependencies": [
         "kritatestsdk",
-        "kritaui"
+        "kritatoolsui"
       ]
     },
     {
@@ -1432,6 +1432,15 @@
       ]
     },
     {
+      "name": "TestResourceUiContract",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/ui/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "kritaresourceui"
+      ]
+    },
+    {
       "name": "TestSegmentTypeCommand",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/flake/tests",
@@ -1718,6 +1727,15 @@
         "kritatestsdk",
         "kritaversion",
         "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestToolSettingsUiContract",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/tools/ui/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "kritatoolsui"
       ]
     },
     {
@@ -3690,6 +3708,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "libs/basicflakes",
       "dependencies": [
+        "KF6::ConfigCore",
         "kritaflake",
         "kritapigment",
         "kritaui",
@@ -3876,7 +3895,7 @@
         "Qt6::Sql",
         "Qt6::Widgets",
         "kritaresources",
-        "kritaresourcewidgets",
+        "kritaresourceui",
         "kritaui"
       ]
     },
@@ -4560,6 +4579,7 @@
       "sourceDirectory": "plugins/paintops/libpaintop",
       "dependencies": [
         "kritalibbrush",
+        "kritatoolsui",
         "kritaui",
         "kritawidgetutils"
       ]
@@ -4731,6 +4751,8 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/palettedocker",
       "dependencies": [
+        "kritaresourceui",
+        "kritatoolsui",
         "kritaui"
       ]
     },
@@ -4993,7 +5015,7 @@
       "dependencies": [
         "kritalibpaintop",
         "kritaresources",
-        "kritaresourcewidgets",
+        "kritaresourceui",
         "kritaui",
         "kritawidgets"
       ]
@@ -5029,9 +5051,9 @@
       ]
     },
     {
-      "name": "kritaresourcewidgets",
+      "name": "kritaresourceui",
       "type": "STATIC_LIBRARY",
-      "sourceDirectory": "libs/resourcewidgets",
+      "sourceDirectory": "libs/resources/ui",
       "dependencies": [
         "KF6::ConfigCore",
         "KF6::CoreAddons",
@@ -5378,6 +5400,24 @@
       ]
     },
     {
+      "name": "kritatoolsui",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "libs/tools/ui",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "KF6::I18n",
+        "Qt6::Core",
+        "Qt6::Widgets",
+        "kritaglobal",
+        "kritaimage",
+        "kritapigment",
+        "kritaresources",
+        "kritaresourceui",
+        "kritawidgets",
+        "kritawidgetutils"
+      ]
+    },
+    {
       "name": "kritatooltransform",
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_transform2",
@@ -5432,6 +5472,8 @@
         "kritalibbrush",
         "kritaresources",
         "kritaresourcestorage",
+        "kritaresourceui",
+        "kritatoolsui",
         "kritaversion",
         "kritawidgets",
         "kritawidgetutils",
@@ -5515,7 +5557,7 @@
         "kritaglobal",
         "kritapigment",
         "kritaresources",
-        "kritaresourcewidgets",
+        "kritaresourceui",
         "kritawidgetutils"
       ]
     },

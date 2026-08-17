@@ -79,52 +79,7 @@
 #include "KisResourceLoaderRegistry.h"
 #include "kis_acyclic_signal_connector.h"
 #include "KisMainWindow.h"
-
-namespace {
-
-void connectBlendModeAction(KisActionManager *manager,
-                            const char *actionName,
-                            KisCompositeOpComboBox *comboBox,
-                            const char *slot)
-{
-    KisAction *action = manager->createAction(actionName);
-    QObject::connect(action, SIGNAL(triggered()), comboBox, slot);
-}
-
-void connectBlendModeActions(KisActionManager *manager, KisCompositeOpComboBox *comboBox)
-{
-    connectBlendModeAction(manager, "Next Blending Mode", comboBox, SLOT(slotNextBlendingMode()));
-    connectBlendModeAction(manager, "Previous Blending Mode", comboBox, SLOT(slotPreviousBlendingMode()));
-    connectBlendModeAction(manager, "Select Normal Blending Mode", comboBox, SLOT(slotNormal()));
-    connectBlendModeAction(manager, "Select Dissolve Blending Mode", comboBox, SLOT(slotDissolve()));
-    connectBlendModeAction(manager, "Select Behind Blending Mode", comboBox, SLOT(slotBehind()));
-    connectBlendModeAction(manager, "Select Clear Blending Mode", comboBox, SLOT(slotClear()));
-    connectBlendModeAction(manager, "Select Darken Blending Mode", comboBox, SLOT(slotDarken()));
-    connectBlendModeAction(manager, "Select Multiply Blending Mode", comboBox, SLOT(slotMultiply()));
-    connectBlendModeAction(manager, "Select Color Burn Blending Mode", comboBox, SLOT(slotColorBurn()));
-    connectBlendModeAction(manager, "Select Linear Burn Blending Mode", comboBox, SLOT(slotLinearBurn()));
-    connectBlendModeAction(manager, "Select Lighten Blending Mode", comboBox, SLOT(slotLighten()));
-    connectBlendModeAction(manager, "Select Screen Blending Mode", comboBox, SLOT(slotScreen()));
-    connectBlendModeAction(manager, "Select Color Dodge Blending Mode", comboBox, SLOT(slotColorDodge()));
-    connectBlendModeAction(manager, "Select Linear Dodge Blending Mode", comboBox, SLOT(slotLinearDodge()));
-    connectBlendModeAction(manager, "Select Overlay Blending Mode", comboBox, SLOT(slotOverlay()));
-    connectBlendModeAction(manager, "Select Hard Overlay Blending Mode", comboBox, SLOT(slotHardOverlay()));
-    connectBlendModeAction(manager, "Select Soft Light Blending Mode", comboBox, SLOT(slotSoftLight()));
-    connectBlendModeAction(manager, "Select Hard Light Blending Mode", comboBox, SLOT(slotHardLight()));
-    connectBlendModeAction(manager, "Select Vivid Light Blending Mode", comboBox, SLOT(slotVividLight()));
-    connectBlendModeAction(manager, "Select Linear Light Blending Mode", comboBox, SLOT(slotLinearLight()));
-    connectBlendModeAction(manager, "Select Pin Light Blending Mode", comboBox, SLOT(slotPinLight()));
-    connectBlendModeAction(manager, "Select Hard Mix Blending Mode", comboBox, SLOT(slotHardMix()));
-    connectBlendModeAction(manager, "Select Difference Blending Mode", comboBox, SLOT(slotDifference()));
-    connectBlendModeAction(manager, "Select Exclusion Blending Mode", comboBox, SLOT(slotExclusion()));
-    connectBlendModeAction(manager, "Select Hue Blending Mode", comboBox, SLOT(slotHue()));
-    connectBlendModeAction(manager, "Select Saturation Blending Mode", comboBox, SLOT(slotSaturation()));
-    connectBlendModeAction(manager, "Select Color Blending Mode", comboBox, SLOT(slotColor()));
-    connectBlendModeAction(manager, "Select Luminosity Blending Mode", comboBox, SLOT(slotLuminosity()));
-}
-
-}
-
+#include "widgets/KisCompositeOpListConnectionHelper.h"
 
 KisPaintopBox::KisPaintopBox(KisViewManager *viewManager, QWidget *parent, const char *name)
     : QWidget(parent)
@@ -373,7 +328,7 @@ KisPaintopBox::KisPaintopBox(KisViewManager *viewManager, QWidget *parent, const
 
     m_cmbCompositeOp = new KisCompositeOpComboBox();
     m_cmbCompositeOp->setFixedHeight(buttonsize);
-    connectBlendModeActions(m_viewManager->actionManager(), m_cmbCompositeOp);
+    KisWidgetConnectionUtils::connectBlendModeActions(m_cmbCompositeOp, m_viewManager->actionManager());
 
     // Workspace Button
     m_workspaceWidget = new KisPopupButton(this);

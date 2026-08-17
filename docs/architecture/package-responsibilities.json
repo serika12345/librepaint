@@ -30,6 +30,7 @@
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
+      "reviewedSourcePaths": [],
       "uiClassAreas": [
         "application-orchestration",
         "window-workspace"
@@ -50,6 +51,7 @@
         "libs/ui/KisMainWindow.h",
         "libs/ui/KisPart.h",
         "libs/ui/KisPlatformPluginInterfaceFactory.h",
+        "libs/ui/KisResourceServerProvider.h",
         "libs/ui/KisSessionResource.h",
         "libs/ui/KisTemplateCreateDia.h",
         "libs/ui/KisTemplateGroup.h",
@@ -60,6 +62,7 @@
         "libs/ui/KisWindowLayoutResource.h",
         "libs/ui/kis_action.h",
         "libs/ui/kis_action_manager.h",
+        "libs/ui/kis_config.h",
         "libs/ui/kis_mainwindow_observer.h",
         "libs/ui/kis_preference_set_registry.h",
         "libs/ui/kis_splash_screen.h",
@@ -74,12 +77,14 @@
         "KisAndroidSplash",
         "KisApplication",
         "KisApplicationArguments",
+        "KisConfig",
         "KisMainWindow",
         "KisMainwindowObserver",
         "KisPart",
         "KisPlatformPluginInterfaceFactory",
         "KisPreferenceSet",
         "KisPreferenceSetRegistry",
+        "KisResourceServerProvider",
         "KisSessionResource",
         "KisSplashScreen",
         "KisStatusBar",
@@ -141,6 +146,7 @@
       "reviewedPublicHeaderPaths": [
         "libs/ui/widgets/KoStrokeConfigWidget.h"
       ],
+      "reviewedSourcePaths": [],
       "uiClassAreas": [
         "canvas-display"
       ],
@@ -165,7 +171,6 @@
         "libs/ui/KisInMemoryFrameCacheSwapper.h",
         "libs/ui/KisLayerThumbnailCache.h",
         "libs/ui/KisNodeDisplayModeAdapter.h",
-        "libs/ui/KisPaintopPropertiesBase.h",
         "libs/ui/KisPlaybackEngine.h",
         "libs/ui/KisPlaybackEngineMLT.h",
         "libs/ui/KisPlaybackEngineQT.h",
@@ -215,7 +220,6 @@
         "KisPaintingAssistantFactoryRegistry",
         "KisPaintingAssistantHandle",
         "KisPaintingAssistantsDecoration",
-        "KisPaintopPropertiesCanvasResourcesBase",
         "KisPlaybackEngine",
         "KisPlaybackEngineMLT",
         "KisPlaybackEngineQT",
@@ -278,6 +282,7 @@
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
+      "reviewedSourcePaths": [],
       "uiClassAreas": [
         "document-state"
       ],
@@ -300,6 +305,9 @@
         "libs/ui/kis_file_layer.h",
         "libs/ui/kis_filter_manager.h",
         "libs/ui/kis_image_manager.h",
+        "libs/ui/kis_model_index_converter.h",
+        "libs/ui/kis_model_index_converter_base.h",
+        "libs/ui/kis_model_index_converter_show_all.h",
         "libs/ui/kis_multinode_property.h",
         "libs/ui/kis_node_commands_adapter.h",
         "libs/ui/kis_node_filter_proxy_model.h",
@@ -307,6 +315,7 @@
         "libs/ui/kis_node_manager.h",
         "libs/ui/kis_node_model.h",
         "libs/ui/kis_node_selection_adapter.h",
+        "libs/ui/kis_node_view_color_scheme.h",
         "libs/ui/kis_selection_actions_panel.h",
         "libs/ui/kis_selection_manager.h"
       ],
@@ -316,6 +325,9 @@
         "KisFileLayer",
         "KisFilterManager",
         "KisImageManager",
+        "KisModelIndexConverter",
+        "KisModelIndexConverterBase",
+        "KisModelIndexConverterShowAll",
         "KisMultinodePropertyInterface",
         "KisNodeCommandsAdapter",
         "KisNodeFilterProxyModel",
@@ -323,6 +335,7 @@
         "KisNodeManager",
         "KisNodeModel",
         "KisNodeSelectionAdapter",
+        "KisNodeViewColorScheme",
         "KisSelectionActionsAdapter",
         "KisSelectionActionsPanel",
         "KisSelectionManager",
@@ -356,6 +369,7 @@
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
+      "reviewedSourcePaths": [],
       "uiClassAreas": [
         "import-export"
       ],
@@ -456,6 +470,7 @@
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
+      "reviewedSourcePaths": [],
       "uiClassAreas": [],
       "uiToolClassAreas": [
         "input-interpretation"
@@ -506,6 +521,7 @@
         "kritaimage"
       ],
       "reviewedPublicHeaderPaths": [],
+      "reviewedSourcePaths": [],
       "uiClassAreas": [],
       "uiToolClassAreas": [
         "painting-execution",
@@ -981,6 +997,7 @@
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
+      "reviewedSourcePaths": [],
       "uiClassAreas": [],
       "uiToolClassAreas": [],
       "majorClasses": [],
@@ -1184,74 +1201,23 @@
       "responsibility": "Owns resource storage, lookup, tagging, configuration, selection, and presentation services.",
       "sourceDirectories": [
         "libs/resources",
-        "libs/resourcewidgets",
-        "libs/ui",
         "plugins/extensions/resourcemanager"
       ],
       "ownerTargets": [
         "kritaresources",
         "kritaresourcestorage",
-        "kritaresourcewidgets",
-        "kritaui"
+        "kritaresourceui"
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
-      "uiClassAreas": [
-        "resource-configuration"
-      ],
+      "reviewedSourcePaths": [],
+      "uiClassAreas": [],
       "uiToolClassAreas": [],
       "majorClasses": [],
       "pluginScope": "feature-owners",
       "pluginFeatureOwners": [],
-      "publicHeaderPaths": [
-        "libs/ui/KisPaintopPropertiesBase.h",
-        "libs/ui/KisPaletteEditor.h",
-        "libs/ui/KisResourceServerProvider.h",
-        "libs/ui/kis_bookmarked_configurations_editor.h",
-        "libs/ui/kis_bookmarked_configurations_model.h",
-        "libs/ui/kis_categories_mapper.h",
-        "libs/ui/kis_categorized_item_delegate.h",
-        "libs/ui/kis_categorized_list_model.h",
-        "libs/ui/kis_composite_ops_model.h",
-        "libs/ui/kis_config.h",
-        "libs/ui/kis_model_index_converter.h",
-        "libs/ui/kis_model_index_converter_base.h",
-        "libs/ui/kis_model_index_converter_show_all.h",
-        "libs/ui/kis_node_view_color_scheme.h",
-        "libs/ui/kis_paint_ops_model.h",
-        "libs/ui/kis_paintop_box.h",
-        "libs/ui/kis_paintop_option.h",
-        "libs/ui/kis_paintop_options_model.h",
-        "libs/ui/kis_paintop_settings_widget.h"
-      ],
-      "classNames": [
-        "KisBookmarkedConfigurationsEditor",
-        "KisBookmarkedConfigurationsModel",
-        "KisCategorizedItemDelegate",
-        "KisCompositeOpListModel",
-        "KisConfig",
-        "KisModelIndexConverter",
-        "KisModelIndexConverterBase",
-        "KisModelIndexConverterShowAll",
-        "KisNodeViewColorScheme",
-        "KisOptionInfo",
-        "KisPaintOpInfo",
-        "KisPaintOpListModel",
-        "KisPaintOpOption",
-        "KisPaintOpOptionListModel",
-        "KisPaintOpSettingsWidget",
-        "KisPaintopBox",
-        "KisPaintopPropertiesBase",
-        "KisPaintopPropertiesResourcesBase",
-        "KisPaletteEditor",
-        "KisResourceServerProvider",
-        "KisSortedCategorizedListModel",
-        "KisSortedCompositeOpListModel",
-        "KisSortedPaintOpListModel",
-        "OptionInfoToQStringConverter",
-        "__CategoriesSignalsBase",
-        "__CategorizedListModelBase"
-      ],
+      "publicHeaderPaths": [],
+      "classNames": [],
       "pluginIds": [],
       "pluginServiceTypes": []
     },
@@ -1259,16 +1225,29 @@
       "id": "tool-invocation",
       "responsibility": "Presents tool settings and invokes selection, transformation, assistant, and painting tools against canvas state.",
       "sourceDirectories": [
+        "libs/tools",
         "libs/ui/tool",
         "plugins/assistants",
         "plugins/tools"
       ],
       "ownerTargets": [
+        "kritatoolsui",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
-      "uiClassAreas": [],
+      "reviewedSourcePaths": [
+        "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
+        "libs/ui/dialogs/kis_dlg_layer_properties.cc",
+        "libs/ui/dialogs/kis_dlg_layer_style.cpp",
+        "libs/ui/kis_favorite_resource_manager.cpp",
+        "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
+        "libs/ui/widgets/kis_paintop_presets_editor.cpp",
+        "libs/ui/widgets/kis_paintop_presets_editor.h"
+      ],
+      "uiClassAreas": [
+        "tool-invocation"
+      ],
       "uiToolClassAreas": [
         "settings-presentation",
         "tool-invocation"
@@ -1279,6 +1258,9 @@
         "tool-invocation"
       ],
       "publicHeaderPaths": [
+        "libs/ui/kis_bookmarked_configurations_editor.h",
+        "libs/ui/kis_bookmarked_configurations_model.h",
+        "libs/ui/kis_paintop_box.h",
         "libs/ui/tool/KisSelectionToolFactoryBase.h",
         "libs/ui/tool/KisStrokeSpeedMonitor.h",
         "libs/ui/tool/KisToolChangesTracker.h",
@@ -1301,6 +1283,9 @@
       "classNames": [
         "ColorSamplerConfig",
         "DeselectShapesActivationPolicy",
+        "KisBookmarkedConfigurationsEditor",
+        "KisBookmarkedConfigurationsModel",
+        "KisPaintopBox",
         "KisRectangleConstraintWidget",
         "KisSelectionToolConfigWidgetHelper",
         "KisSelectionToolFactoryBase",
@@ -1670,6 +1655,7 @@
         "kritargbeimportutils",
         "kritaselectiontools",
         "kritasnapshotdocker",
+        "kritatoolsui",
         "kritaui",
         "python_module_PyKrita_krita"
       ]
@@ -1804,6 +1790,7 @@
         "kritalcmsengine_static",
         "kritapsdutils",
         "kritasurfacecolormanagementapi",
+        "kritatoolsui",
         "kritawidgets"
       ]
     },
@@ -1828,7 +1815,7 @@
         "kritametadata",
         "kritapigment",
         "kritaresources",
-        "kritaresourcewidgets",
+        "kritaresourceui",
         "kritawidgetutils"
       ]
     },
@@ -1859,7 +1846,8 @@
         "kritamypaintop_static",
         "kritapigment",
         "kritaresourcemanager",
-        "kritaresourcewidgets",
+        "kritaresourceui",
+        "kritatoolsui",
         "kritaui",
         "kritawidgets",
         "kritawidgetutils"
@@ -1894,8 +1882,8 @@
       ]
     },
     {
-      "name": "kritaresourcewidgets",
-      "sourceDirectory": "libs/resourcewidgets",
+      "name": "kritaresourceui",
+      "sourceDirectory": "libs/resources/ui",
       "platforms": [
         "macos",
         "linux",
@@ -1916,8 +1904,40 @@
       ],
       "repositoryConsumers": [
         "kritadbexplorer",
+        "kritapalettedocker",
         "kritaresourcemanager",
+        "kritatoolsui",
+        "kritaui",
         "kritawidgets"
+      ]
+    },
+    {
+      "name": "kritatoolsui",
+      "sourceDirectory": "libs/tools/ui",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaglobal",
+        "kritaimage",
+        "kritapigment",
+        "kritaresources",
+        "kritaresourceui",
+        "kritawidgets",
+        "kritawidgetutils"
+      ],
+      "repositoryConsumers": [
+        "kritalibpaintop",
+        "kritapalettedocker",
+        "kritaui"
       ]
     },
     {
@@ -1942,7 +1962,9 @@
         "kritamacosutils",
         "kritaresources",
         "kritaresourcestorage",
+        "kritaresourceui",
         "kritasurfacecolormanagementapi",
+        "kritatoolsui",
         "kritaversion",
         "kritawidgets",
         "kritawidgetutils",

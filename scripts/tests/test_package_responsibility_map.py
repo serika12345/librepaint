@@ -54,7 +54,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "current-production-package-responsibilities",
         )
         self.assertEqual(len(responsibility_map["responsibilities"]), 9)
-        self.assertEqual(len(responsibility_map["targetRelations"]), 15)
+        self.assertEqual(len(responsibility_map["targetRelations"]), 16)
         by_id = {
             entry["id"]: entry
             for entry in responsibility_map["responsibilities"]
@@ -78,11 +78,23 @@ class PackageResponsibilityMapTests(unittest.TestCase):
                 "kritaui" in entry["ownerTargets"]
                 for entry in responsibility_map["responsibilities"]
             ),
-            7,
+            6,
         )
         self.assertEqual(
             by_id["canvas-presentation"]["reviewedPublicHeaderPaths"],
             ["libs/ui/widgets/KoStrokeConfigWidget.h"],
+        )
+        self.assertEqual(
+            by_id["tool-invocation"]["reviewedSourcePaths"],
+            [
+                "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
+                "libs/ui/dialogs/kis_dlg_layer_properties.cc",
+                "libs/ui/dialogs/kis_dlg_layer_style.cpp",
+                "libs/ui/kis_favorite_resource_manager.cpp",
+                "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
+                "libs/ui/widgets/kis_paintop_presets_editor.cpp",
+                "libs/ui/widgets/kis_paintop_presets_editor.h",
+            ],
         )
         target_by_name = {
             entry["name"]: entry
@@ -138,6 +150,21 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         with self.assertRaisesRegex(
             check_package_responsibility_map.ResponsibilityMapError,
             "target relations do not match the recorded CMake graphs",
+        ):
+            self.validate(responsibility_map)
+
+    def test_duplicate_reviewed_source_path_is_rejected(self) -> None:
+        responsibility_map = copy.deepcopy(self.load_map())
+        path = responsibility_map["responsibilities"][-1][
+            "reviewedSourcePaths"
+        ][0]
+        responsibility_map["responsibilities"][0][
+            "reviewedSourcePaths"
+        ].append(path)
+
+        with self.assertRaisesRegex(
+            check_package_responsibility_map.ResponsibilityMapError,
+            "reviewed source paths must have one responsibility",
         ):
             self.validate(responsibility_map)
 

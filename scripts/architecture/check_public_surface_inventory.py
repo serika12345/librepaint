@@ -91,10 +91,10 @@ UI_CLASS_RESPONSIBILITY_AREAS = (
         ),
     },
     {
-        "id": "resource-configuration",
+        "id": "tool-invocation",
         "responsibility": (
-            "Coordinates settings, resources, paint-op options, palettes, and the "
-            "models and editors that expose them."
+            "Coordinates toolbar-level tool selection, filter settings, and "
+            "invocation while reusable settings presentation remains with tools."
         ),
     },
     {

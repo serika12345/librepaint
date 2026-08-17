@@ -43,6 +43,7 @@ MANUAL_RESPONSIBILITY_FIELDS = {
     "ownerTargets",
     "publicHeaderOwnerTargets",
     "reviewedPublicHeaderPaths",
+    "reviewedSourcePaths",
     "uiClassAreas",
     "uiToolClassAreas",
     "majorClasses",
@@ -267,6 +268,10 @@ def _manual_responsibility(entry: dict[str, Any], index: int) -> dict[str, Any]:
         "reviewedPublicHeaderPaths": _string_list(
             entry.get("reviewedPublicHeaderPaths"),
             f"reviewed public header paths for {identifier}",
+        ),
+        "reviewedSourcePaths": _string_list(
+            entry.get("reviewedSourcePaths"),
+            f"reviewed source paths for {identifier}",
         ),
         "uiClassAreas": _string_list(
             entry.get("uiClassAreas"), f"UI class areas for {identifier}"
@@ -526,6 +531,7 @@ def validate_map(
     major_class_assignments: list[str] = []
     feature_owner_assignments: list[str] = []
     reviewed_header_assignments: list[str] = []
+    reviewed_source_assignments: list[str] = []
     all_plugin_scopes = 0
     owner_targets: set[str] = set()
     for index, item in enumerate(entries):
@@ -553,6 +559,22 @@ def validate_map(
             ):
                 raise ResponsibilityMapError(
                     f"invalid source directory for {identifier}: {source_directory}"
+                )
+        for source_path in manual["reviewedSourcePaths"]:
+            path = PurePosixPath(source_path)
+            if (
+                path.is_absolute()
+                or ".." in path.parts
+                or path.as_posix() != source_path
+                or not (repository_root / source_path).is_file()
+                or not any(
+                    path == root or root in path.parents
+                    for root in map(PurePosixPath, PRODUCTION_SOURCE_DIRECTORIES)
+                )
+                or any(part in TEST_PATH_PARTS for part in path.parts)
+            ):
+                raise ResponsibilityMapError(
+                    f"invalid reviewed source path for {identifier}: {source_path}"
                 )
         unknown_header_owners = sorted(
             set(manual["publicHeaderOwnerTargets"])
@@ -605,6 +627,7 @@ def validate_map(
         reviewed_header_assignments.extend(
             manual["reviewedPublicHeaderPaths"]
         )
+        reviewed_source_assignments.extend(manual["reviewedSourcePaths"])
 
         public_header_paths = _string_list(
             entry.get("publicHeaderPaths"),
@@ -630,6 +653,12 @@ def validate_map(
     ):
         raise ResponsibilityMapError(
             "reviewed public header paths must have one responsibility"
+        )
+    if len(reviewed_source_assignments) != len(
+        set(reviewed_source_assignments)
+    ):
+        raise ResponsibilityMapError(
+            "reviewed source paths must have one responsibility"
         )
     missing = sorted(set(RESPONSIBILITY_IDS) - set(identifiers))
     unexpected = sorted(set(identifiers) - set(RESPONSIBILITY_IDS))
