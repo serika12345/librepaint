@@ -19,6 +19,8 @@
 #include <QVariant>
 #include <QtEndian>
 
+#include <limits>
+
 #include <kis_debug.h>
 #include <kis_exiv2_common.h>
 #include <kis_meta_data_entry.h>
@@ -104,18 +106,18 @@ QDateTime exivValueToDateTime(const Exiv2::Value::AutoPtr value)
 }
 
 template<typename T>
-inline T fixEndianness(T v, Exiv2::ByteOrder order)
+T readInteger(const char *data, Exiv2::ByteOrder order)
 {
     switch (order) {
     case Exiv2::invalidByteOrder:
-        return v;
+        return 0;
     case Exiv2::littleEndian:
-        return qFromLittleEndian<T>(v);
+        return qFromLittleEndian<T>(reinterpret_cast<const uchar *>(data));
     case Exiv2::bigEndian:
-        return qFromBigEndian<T>(v);
+        return qFromBigEndian<T>(reinterpret_cast<const uchar *>(data));
     }
     warnKrita << "KisExifIO: unknown byte order";
-    return v;
+    return 0;
 }
 
 Exiv2::ByteOrder invertByteOrder(Exiv2::ByteOrder order)
@@ -132,80 +134,143 @@ Exiv2::ByteOrder invertByteOrder(Exiv2::ByteOrder order)
     return Exiv2::invalidByteOrder;
 }
 
-#if EXIV2_TEST_VERSION(0,28,0)
-KisMetaData::Value exifOECFToKMDOECFStructure(const Exiv2::Value::UniquePtr value, Exiv2::ByteOrder order)
-#else
-KisMetaData::Value exifOECFToKMDOECFStructure(const Exiv2::Value::AutoPtr value, Exiv2::ByteOrder order)
-#endif
+struct StructuredExifDimensions {
+    int columns = 0;
+    int rows = 0;
+    qsizetype valueCount = 0;
+};
+
+bool copyDataValue(const Exiv2::Value &value, QByteArray *array)
 {
-    QMap<QString, KisMetaData::Value> oecfStructure;
-    const Exiv2::DataValue *dvalue = dynamic_cast<const Exiv2::DataValue *>(&*value);
-    Q_ASSERT(dvalue);
-    QByteArray array(dvalue->count(), 0);
-
-    dvalue->copy((Exiv2::byte *)array.data());
-#if EXIV2_TEST_VERSION(0,28,0)
-    size_t columns = fixEndianness<qsizetype>((reinterpret_cast<qsizetype *>(array.data()))[0], order);
-    size_t rows = fixEndianness<qsizetype>((reinterpret_cast<qsizetype *>(array.data()))[1], order);
-#else
-    int columns = fixEndianness<quint16>((reinterpret_cast<quint16 *>(array.data()))[0], order);
-    int rows = fixEndianness<quint16>((reinterpret_cast<quint16 *>(array.data()))[1], order);
-#endif
-
-    if ((columns * rows + 4)
-        > dvalue->count()) { // Sometime byteOrder get messed up (especially if metadata got saved with kexiv2 library,
-                             // or any library that doesn't save back with the same byte order as the camera)
-        order = invertByteOrder(order);
-#if EXIV2_TEST_VERSION(0,28,0)
-        columns = fixEndianness<qsizetype>((reinterpret_cast<qsizetype *>(array.data()))[0], order);
-        rows = fixEndianness<qsizetype>((reinterpret_cast<qsizetype *>(array.data()))[1], order);
-#else
-        columns = fixEndianness<quint16>((reinterpret_cast<quint16 *>(array.data()))[0], order);
-        rows = fixEndianness<quint16>((reinterpret_cast<quint16 *>(array.data()))[1], order);
-#endif
-        Q_ASSERT((columns * rows + 4) > dvalue->count());
+    const Exiv2::DataValue *dataValue = dynamic_cast<const Exiv2::DataValue *>(&value);
+    if (!dataValue) {
+        return false;
     }
-    QVariant qcolumns, qrows;
-    qcolumns.setValue(columns);
-    qrows.setValue(rows);
-    oecfStructure["Columns"] = KisMetaData::Value(qcolumns);
-    oecfStructure["Rows"] = KisMetaData::Value(qrows);
-    int index = 4;
+
+    const quint64 byteCount = static_cast<quint64>(dataValue->count());
+    if (byteCount > static_cast<quint64>(std::numeric_limits<qsizetype>::max())) {
+        return false;
+    }
+
+    array->resize(static_cast<qsizetype>(byteCount));
+    dataValue->copy(reinterpret_cast<Exiv2::byte *>(array->data()));
+    return true;
+}
+
+bool readStructuredDimensions(const QByteArray &array,
+                              Exiv2::ByteOrder byteOrder,
+                              quint64 bytesPerValue,
+                              bool allowsColumnNames,
+                              StructuredExifDimensions *dimensions)
+{
+    if (byteOrder == Exiv2::invalidByteOrder || array.size() < 4) {
+        return false;
+    }
+
+    const quint16 columns = readInteger<quint16>(array.constData(), byteOrder);
+    const quint16 rows = readInteger<quint16>(array.constData() + 2, byteOrder);
+    if (columns == 0 || rows == 0) {
+        return false;
+    }
+
+    const quint64 valueCount = static_cast<quint64>(columns) * rows;
+    const quint64 valueBytes = valueCount * bytesPerValue;
+    const quint64 availableBytes = static_cast<quint64>(array.size() - 4);
+    if (valueBytes > availableBytes || (!allowsColumnNames && valueBytes != availableBytes)
+        || valueCount > static_cast<quint64>(std::numeric_limits<qsizetype>::max())) {
+        return false;
+    }
+
+    dimensions->columns = columns;
+    dimensions->rows = rows;
+    dimensions->valueCount = static_cast<qsizetype>(valueCount);
+    return true;
+}
+
+KisMetaData::Value oecfArrayToMetadata(const QByteArray &array, Exiv2::ByteOrder byteOrder)
+{
+    StructuredExifDimensions dimensions;
+    if (!readStructuredDimensions(array, byteOrder, 8, true, &dimensions)) {
+        return {};
+    }
+
+    const qsizetype valuesOffset = array.size() - dimensions.valueCount * 8;
     QList<KisMetaData::Value> names;
-#if EXIV2_TEST_VERSION(0,28,0)
-    for (size_t i = 0; i < columns; i++) {
-#else
-    for (int i = 0; i < columns; i++) {
-#endif
-        int lastIndex = array.indexOf((char)0, index);
-        QString name = array.mid(index, lastIndex - index);
-        if (index != lastIndex) {
-            index = lastIndex + 1;
-            dbgMetaData << "Name [" << i << "] =" << name;
-            names.append(KisMetaData::Value(name));
-        } else {
-            names.append(KisMetaData::Value(""));
+    names.reserve(dimensions.columns);
+
+    if (valuesOffset == 4) {
+        // hpim3238.exv is an observed camera payload that omits every column name.
+        // The exact value-region length makes this variant unambiguous.
+        for (int column = 0; column < dimensions.columns; ++column) {
+            names.append(KisMetaData::Value(QString()));
+        }
+    } else {
+        qsizetype nameOffset = 4;
+        for (int column = 0; column < dimensions.columns; ++column) {
+            const qsizetype terminatorOffset = array.indexOf('\0', nameOffset);
+            if (terminatorOffset < nameOffset || terminatorOffset >= valuesOffset) {
+                return {};
+            }
+            names.append(KisMetaData::Value(
+                QString::fromLatin1(array.constData() + nameOffset, terminatorOffset - nameOffset)));
+            nameOffset = terminatorOffset + 1;
+        }
+        if (nameOffset != valuesOffset) {
+            return {};
         }
     }
 
-    oecfStructure["Names"] = KisMetaData::Value(names, KisMetaData::Value::OrderedArray);
     QList<KisMetaData::Value> values;
-    qint32 *dataIt = reinterpret_cast<qint32 *>(array.data() + index);
-#if EXIV2_TEST_VERSION(0,28,0)
-    for (size_t i = 0; i < columns; i++) {
-        for (size_t j = 0; j < rows; j++) {
-#else
-    for (int i = 0; i < columns; i++) {
-        for (int j = 0; j < rows; j++) {
-#endif
-            values.append(KisMetaData::Value(
-                KisMetaData::Rational(fixEndianness<qint32>(dataIt[0], order), fixEndianness<qint32>(dataIt[1], order))));
-            dataIt += 2;
-        }
+    values.reserve(dimensions.valueCount);
+    for (qsizetype offset = valuesOffset; offset < array.size(); offset += 8) {
+        values.append(KisMetaData::Value(KisMetaData::Rational(
+            readInteger<qint32>(array.constData() + offset, byteOrder),
+            readInteger<qint32>(array.constData() + offset + 4, byteOrder))));
     }
-    oecfStructure["Values"] = KisMetaData::Value(values, KisMetaData::Value::OrderedArray);
-    dbgMetaData << "OECF: " << ppVar(columns) << ppVar(rows) << ppVar(dvalue->count());
-    return KisMetaData::Value(oecfStructure);
+
+    QMap<QString, KisMetaData::Value> structure;
+    structure["Columns"] = KisMetaData::Value(dimensions.columns);
+    structure["Rows"] = KisMetaData::Value(dimensions.rows);
+    structure["Names"] = KisMetaData::Value(names, KisMetaData::Value::OrderedArray);
+    structure["Values"] = KisMetaData::Value(values, KisMetaData::Value::OrderedArray);
+    return KisMetaData::Value(structure);
+}
+
+KisMetaData::Value cfaArrayToMetadata(const QByteArray &array, Exiv2::ByteOrder byteOrder)
+{
+    StructuredExifDimensions dimensions;
+    if (!readStructuredDimensions(array, byteOrder, 1, false, &dimensions)) {
+        return {};
+    }
+
+    QList<KisMetaData::Value> values;
+    values.reserve(dimensions.valueCount);
+    for (qsizetype offset = 4; offset < array.size(); ++offset) {
+        values.append(KisMetaData::Value(static_cast<quint8>(array.at(offset))));
+    }
+
+    QMap<QString, KisMetaData::Value> structure;
+    structure["Columns"] = KisMetaData::Value(dimensions.columns);
+    structure["Rows"] = KisMetaData::Value(dimensions.rows);
+    structure["Values"] = KisMetaData::Value(values, KisMetaData::Value::OrderedArray);
+    return KisMetaData::Value(structure);
+}
+
+KisMetaData::Value exifOECFToKMDOECFStructure(const Exiv2::Value &value, Exiv2::ByteOrder order)
+{
+    QByteArray array;
+    if (!copyDataValue(value, &array)) {
+        return {};
+    }
+
+    KisMetaData::Value result = oecfArrayToMetadata(array, order);
+    if (result.type() == KisMetaData::Value::Invalid) {
+        result = oecfArrayToMetadata(array, invertByteOrder(order));
+    }
+    if (result.type() == KisMetaData::Value::Invalid) {
+        warnMetaData << "Ignoring invalid EXIF OECF data with" << array.size() << "bytes";
+    }
+    return result;
 }
 
 Exiv2::Value *kmdOECFStructureToExifOECF(const KisMetaData::Value &value)
@@ -305,46 +370,21 @@ Exiv2::Value *deviceSettingDescriptionKMDToExif(const KisMetaData::Value &value)
     return new Exiv2::DataValue((const Exiv2::byte *)array.data(), array.size());
 }
 
-#if EXIV2_TEST_VERSION(0,28,0)
-KisMetaData::Value cfaPatternExifToKMD(const Exiv2::Value::UniquePtr value, Exiv2::ByteOrder order)
-#else
-KisMetaData::Value cfaPatternExifToKMD(const Exiv2::Value::AutoPtr value, Exiv2::ByteOrder order)
-#endif
+KisMetaData::Value cfaPatternExifToKMD(const Exiv2::Value &value, Exiv2::ByteOrder order)
 {
-    QMap<QString, KisMetaData::Value> cfaPatternStructure;
-    const Exiv2::DataValue *dvalue = dynamic_cast<const Exiv2::DataValue *>(&*value);
-    Q_ASSERT(dvalue);
-    QByteArray array(dvalue->count(), 0);
-    dvalue->copy((Exiv2::byte *)array.data());
-#if EXIV2_TEST_VERSION(0,28,0)
-    size_t columns = fixEndianness<qsizetype>((reinterpret_cast<qsizetype *>(array.data()))[0], order);
-    size_t rows = fixEndianness<qsizetype>((reinterpret_cast<qsizetype *>(array.data()))[1], order);
-#else
-    int columns = fixEndianness<quint16>((reinterpret_cast<quint16 *>(array.data()))[0], order);
-    int rows = fixEndianness<quint16>((reinterpret_cast<quint16 *>(array.data()))[1], order);
-#endif
-    if ((columns * rows + 4)
-        != dvalue->count()) { // Sometime byteOrder get messed up (especially if metadata got saved with kexiv2 library,
-                              // or any library that doesn't save back with the same byte order as the camera)
-        order = invertByteOrder(order);
-        columns = fixEndianness<quint16>((reinterpret_cast<quint16 *>(array.data()))[0], order);
-        rows = fixEndianness<quint16>((reinterpret_cast<quint16 *>(array.data()))[1], order);
+    QByteArray array;
+    if (!copyDataValue(value, &array)) {
+        return {};
     }
-    QVariant qcolumns, qrows;
-    qcolumns.setValue(columns);
-    qrows.setValue(rows);
-    cfaPatternStructure["Columns"] = KisMetaData::Value(qcolumns);
-    cfaPatternStructure["Rows"] = KisMetaData::Value(qrows);
-    QList<KisMetaData::Value> values;
-    int index = 4;
-    for (int i = 0; i < columns * rows; i++) {
-        values.append(KisMetaData::Value(*(array.data() + index)));
-        index++;
+
+    KisMetaData::Value result = cfaArrayToMetadata(array, order);
+    if (result.type() == KisMetaData::Value::Invalid) {
+        result = cfaArrayToMetadata(array, invertByteOrder(order));
     }
-    cfaPatternStructure["Values"] = KisMetaData::Value(values, KisMetaData::Value::OrderedArray);
-    dbgMetaData << "CFAPattern " << ppVar(columns) << " " << ppVar(rows) << ppVar(values.size())
-                << ppVar(dvalue->count());
-    return KisMetaData::Value(cfaPatternStructure);
+    if (result.type() == KisMetaData::Value::Invalid) {
+        warnMetaData << "Ignoring invalid EXIF CFA pattern data with" << array.size() << "bytes";
+    }
+    return result;
 }
 
 Exiv2::Value *cfaPatternKMDToExif(const KisMetaData::Value &value)
@@ -639,13 +679,13 @@ bool KisExifIO::loadFrom(KisMetaData::Store *store, QIODevice *ioDevice) const
             } else if (tag == Exif::Photo::ComponentsConfiguration) {
                 metaDataValue = exifArrayToKMDIntOrderedArray(it.getValue());
             } else if (tag == Exif::Photo::OECF) {
-                metaDataValue = exifOECFToKMDOECFStructure(it.getValue(), byteOrder);
+                metaDataValue = exifOECFToKMDOECFStructure(*it.getValue(), byteOrder);
             } else if (tag == Exif::Photo::DateTimeDigitized || tag == Exif::Photo::DateTimeOriginal) {
                 metaDataValue = exivValueToKMDValue(it.getValue(), false);
             } else if (tag == Exif::Photo::DeviceSettingDescription) {
                 metaDataValue = deviceSettingDescriptionExifToKMD(it.getValue());
             } else if (tag == Exif::Photo::CFAPattern) {
-                metaDataValue = cfaPatternExifToKMD(it.getValue(), byteOrder);
+                metaDataValue = cfaPatternExifToKMD(*it.getValue(), byteOrder);
             } else if (tag == Exif::Photo::Flash) {
                 metaDataValue = flashExifToKMD(it.getValue());
             } else if (tag == Exif::Photo::UserComment) {

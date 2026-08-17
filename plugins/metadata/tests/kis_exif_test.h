@@ -15,6 +15,9 @@ class KisExifTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void testExifLoader();
+    void testOECF();
+    void testMalformedOECF();
+    void testCFAPattern();
 };
 
 #endif
