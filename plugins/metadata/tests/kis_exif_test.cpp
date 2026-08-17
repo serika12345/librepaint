@@ -118,6 +118,8 @@ void KisExifTest::testOECF()
     QCOMPARE(oecf["Columns"].asInteger(), 2);
     QCOMPARE(oecf["Rows"].asInteger(), 129);
     QCOMPARE(oecf["Names"].asArray().size(), 2);
+    QCOMPARE(oecf["Names"].asArray().at(0).asVariant().toString(), QString());
+    QCOMPARE(oecf["Names"].asArray().at(1).asVariant().toString(), QString());
     QCOMPARE(oecf["Values"].asArray().size(), 258);
     QCOMPARE(oecf["Values"].asArray().at(0).asRational().numerator, 0);
     QCOMPARE(oecf["Values"].asArray().at(0).asRational().denominator, 1);

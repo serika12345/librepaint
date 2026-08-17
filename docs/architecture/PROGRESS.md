@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-17 16:00 JST
+- 更新日時: 2026-08-17 17:03 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6b 描画実行境界
+- 現在の検査段階: EXIF構造化メタデータ読込修正
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6b-painting-boundary`
-- 目的: `libs/ui/tool/strokes`、`libs/command`、`libs/metadata`に分散していた
-  描画実行、画像向け取り消し、画像メタデータを`libs/painting`の所有境界へ集約し、
-  表示層と文書寿命の知識を描画処理から除去する。
+- ブランチ: `fix-exif-structured-metadata-bounds`
+- 目的: `plugins/metadata/exif/kis_exif_io.cpp`を起点として、OECFとCFAの寸法を
+  EXIF形式どおり16ビットで読み、入力長を超える要素生成を拒否してJPEG読込時の
+  メモリー暴走を解消する。
 
 ## 再開環境
 
@@ -283,6 +283,23 @@
   共通552件、条件付き119件、構成差252件を記録する。18中核所有ターゲットと全製品ターゲットは
   5構成すべてで循環0件を維持する。
 
+## EXIF構造化メタデータ読込修正で完了した作業
+
+- `plugins/metadata/exif/kis_exif_io.cpp`を起点として、OECFとCFAの列数と行数を
+  EXIF形式で定められた16ビット値として読み、ホストの整数幅とExiv2の版に依存しない
+  寸法解釈へ統一した。
+- OECFは列名領域と有理数領域、CFAは画素配列について、列数と行数から求めた必要量を
+  入力長と照合する。ゼロ寸法、積の表現範囲超過、切り詰め、余分なデータを不正値として扱う。
+  実機由来データで確認した列名の全省略は、有理数領域の長さが寸法と完全一致する場合だけ
+  列数分の空名として受理する。
+- 不正な構造化項目はその項目だけを読込対象から外し、同じEXIFデータに含まれるカメラ機種などの
+  正常なメタデータを保持する。CFAの各値は符号なし8ビット値として保持する。
+- `plugins/metadata/tests/kis_exif_test.cpp`に、実在するOECFの2列129行、切り詰めを誘発する
+  異常寸法、CFAの2行2列と値255の往復契約を追加した。EXIF試験の入口は画像・UI資源を
+  初期化しない構成へ限定し、macOSとLinuxで同じ入出力契約を実行可能にした。
+- `plugins/impex/jpeg/tests/kis_jpeg_test.cpp`の既存JPEG読込契約で、問題を再現した
+  `HPIM0760.JPG`を含む入力群が有限メモリーで完了することを確認した。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -343,6 +360,21 @@
   約2.8 GiB、空きメモリ指標は88%へ回復した。
 - `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
   同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
+- macOSで`KisExifTest`のOECF、異常OECF、CFA契約を実行し、5件すべて成功した。
+  `kis_jpeg_test::testFiles`は`HPIM0760.JPG`を含む3件すべてが成功し、最大常駐メモリーは
+  209,027,072バイトだった。修正前の制御実行では最大約13.4 GiBまで増加していた。
+- x86_64 Linuxで同じ`KisExifTest`の5件と`kis_jpeg_test::testFiles`の3件が成功した。
+  EXIF試験から不要なUI資源初期化を除いたため、画面やフォント資源に依存せず構造化
+  メタデータ契約を実行できる。
+- `kritaexif`をmacOSとx86_64 Linuxで共有モジュール、iOSで静的ライブラリー、Android
+  arm64-v8aで`kritaexif_arm64-v8a.so`、Windows x86_64で`kritaexif.dll`として構築した。
+  iOSはLibrePaintアプリケーション本体までリンクし、5構成で利用先との接続が成功した。
+- `nix develop .#test --command ./scripts/verify-quick`: 88件の単体試験、責務・依存・構造台帳、
+  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems`: EXIF修正後の全Nix出力の評価が成功した。
+- `nix develop .#test --command ./scripts/verify`: macOSの全製品と試験のリンクが成功し、
+  CTest 318件中281件が成功した。失敗37件は前段階と同数である。JPEG対象は2.67秒で終了し、
+  読込契約を含む5件が成功した。残る失敗は既存のmacOS読取専用出力契約1件である。
 
 ## 次の操作
 

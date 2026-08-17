@@ -199,6 +199,8 @@ KisMetaData::Value oecfArrayToMetadata(const QByteArray &array, Exiv2::ByteOrder
     names.reserve(dimensions.columns);
 
     if (valuesOffset == 4) {
+        // hpim3238.exv is an observed camera payload that omits every column name.
+        // The exact value-region length makes this variant unambiguous.
         for (int column = 0; column < dimensions.columns; ++column) {
             names.append(KisMetaData::Value(QString()));
         }
