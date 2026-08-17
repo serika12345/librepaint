@@ -16,6 +16,7 @@
 #include <resources/KoPattern.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoCanvasResourcesInterface.h>
+#include <KoResourceCacheInterface.h>
 #include "filter/kis_filter_configuration.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
