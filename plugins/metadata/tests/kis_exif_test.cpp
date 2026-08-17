@@ -7,9 +7,7 @@
 
 #include "kis_exif_test.h"
 
-#include <filestest.h>
 #include <simpletest.h>
-#include <testui.h>
 
 
 #include <QBuffer>
@@ -194,4 +192,4 @@ void KisExifTest::testCFAPattern()
     QVERIFY(!invalidStore.containsEntry(exifSchema, "CFAPattern"));
 }
 
-KISTEST_MAIN(KisExifTest)
+SIMPLE_TEST_MAIN(KisExifTest)
