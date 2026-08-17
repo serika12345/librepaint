@@ -40,6 +40,7 @@
 #include <KisBrushServerProvider.h>
 #include <KoResourceServerProvider.h>
 #include <KisResourceServerProvider.h>
+#include <KisPaintResourceServerProvider.h>
 #include <KisBrushServerProvider.h>
 #include <kis_action_registry.h>
 #include <kis_icon_utils.h>
@@ -273,7 +274,7 @@ QMap<QString, Resource*> Krita::resources(QString &type) const
         type = ResourceType::Workspaces;
     }
     else if (type == "preset") {
-        resourceModel = KisResourceServerProvider::instance()->paintOpPresetServer()->resourceModel();
+        resourceModel = KisPaintResourceServerProvider::instance()->paintOpPresetServer()->resourceModel();
     }
 
     if (resourceModel) {

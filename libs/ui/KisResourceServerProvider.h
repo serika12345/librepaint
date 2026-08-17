@@ -13,16 +13,11 @@
 
 #include <KoResourceServer.h>
 
-#include <brushengine/kis_paintop_preset.h>
-
 #include "kritaui_export.h"
 #include "KisWindowLayoutResource.h"
 
 class KisWorkspaceResource;
 class KisSessionResource;
-class KisPSDLayerStyle;
-
-typedef KoResourceServer<KisPaintOpPreset> KisPaintOpPresetResourceServer;
 
 class KRITAUI_EXPORT KisResourceServerProvider : public QObject
 {
@@ -34,22 +29,17 @@ public:
 
     static KisResourceServerProvider* instance();
 
-    KisPaintOpPresetResourceServer* paintOpPresetServer();
     KoResourceServer<KisWorkspaceResource>* workspaceServer();
     KoResourceServer<KisWindowLayoutResource>* windowLayoutServer();
     KoResourceServer<KisSessionResource>* sessionServer();
-    KoResourceServer<KisPSDLayerStyle>* layerStyleServer();
 
 private:
+    KisResourceServerProvider(const KisResourceServerProvider &) = delete;
+    KisResourceServerProvider &operator=(const KisResourceServerProvider &) = delete;
 
-    KisResourceServerProvider(const KisResourceServerProvider&);
-    KisResourceServerProvider operator=(const KisResourceServerProvider&);
-
-    KisPaintOpPresetResourceServer *m_paintOpPresetServer;
     KoResourceServer<KisWorkspaceResource> *m_workspaceServer;
     KoResourceServer<KisWindowLayoutResource> *m_windowLayoutServer;
     KoResourceServer<KisSessionResource> *m_sessionServer;
-    KoResourceServer<KisPSDLayerStyle> *m_layerStyleServer;
 };
 
 #endif // KIS_RESOURCESERVERPROVIDER_H_

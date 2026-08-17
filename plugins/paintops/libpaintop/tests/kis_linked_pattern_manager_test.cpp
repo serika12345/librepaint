@@ -16,7 +16,6 @@
 #include "KisEmbeddedTextureData.h"
 
 #include <kis_properties_configuration.h>
-#include <KisResourceServerProvider.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KoResourceServerProvider.h>
 #include <KoResourceLoadResult.h>

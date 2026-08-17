@@ -23,13 +23,11 @@
 #include <KisResourceLocator.h>
 
 #include <KoColor.h>
-#include <KoColorSpaceRegistry.h>
-#include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
+#include <KoColorSpaceRegistry.h>
 #include <KoPointerEvent.h>
 
 #include <kis_debug.h>
-#include <kis_types.h>
 
 #include "kis_canvas_resource_provider.h"
 #include "kis_config_notifier.h"
@@ -37,7 +35,6 @@
 
 #include <config-ocio.h>
 
-#include <kis_color_manager.h>
 #include <KisOcioConfiguration.h>
 #include <KisUsageLogger.h>
 #include <kis_image_config.h>
@@ -825,79 +822,6 @@ void KisConfig::setMonitorProfile(int screen, const QString & monitorProfile, bo
     if (!getScreenStringIdentfier(screen).isEmpty()) {
         m_cfg.writeEntry("monitorProfile" + getScreenStringIdentfier(screen), monitorProfile);
     }
-}
-
-// TODO: rename into getSystemScreenProfile
-const KoColorProfile *KisConfig::getScreenProfile(int screen)
-{
-    if (screen < 0) return 0;
-
-    KisConfig cfg(true);
-    QString monitorId;
-    if (KisColorManager::instance()->devices().size() > screen) {
-        monitorId = cfg.monitorForScreen(screen, KisColorManager::instance()->devices()[screen]);
-    }
-    //dbgKrita << "getScreenProfile(). Screen" << screen << "monitor id" << monitorId;
-
-    if (monitorId.isEmpty()) {
-        return 0;
-    }
-
-    QByteArray bytes = KisColorManager::instance()->displayProfile(monitorId);
-
-    //dbgKrita << "\tgetScreenProfile()" << bytes.size();
-    const KoColorProfile * profile = 0;
-    if (bytes.length() > 0) {
-        profile = KoColorSpaceRegistry::instance()->createColorProfile(RGBAColorModelID.id(), Integer8BitsColorDepthID.id(), bytes);
-        //dbgKrita << "\tKisConfig::getScreenProfile for screen" << screen << profile->name();
-    }
-    return profile;
-}
-
-const KoColorProfile *KisConfig::displayProfile(int screen) const
-{
-    if (screen < 0) return 0;
-
-    // if the user plays with the settings, they can override the display profile, in which case
-    // we don't want the system setting.
-    bool override = useSystemMonitorProfile();
-    //dbgKrita << "KisConfig::displayProfile(). Override X11:" << override;
-    const KoColorProfile *profile = 0;
-    if (override) {
-        //dbgKrita << "\tGoing to get the screen profile";
-        profile = KisConfig::getScreenProfile(screen);
-    }
-
-    // if it fails. check the configuration
-    if (!profile || !profile->isSuitableForDisplay()) {
-        //dbgKrita << "\tGoing to get the monitor profile";
-        QString monitorProfileName = monitorProfile(screen);
-        //dbgKrita << "\t\tmonitorProfileName:" << monitorProfileName;
-        if (!monitorProfileName.isEmpty()) {
-            profile = KoColorSpaceRegistry::instance()->profileByName(monitorProfileName);
-        }
-        if (profile) {
-            //dbgKrita << "\t\tsuitable for display" << profile->isSuitableForDisplay();
-        }
-        else {
-            //dbgKrita << "\t\tstill no profile";
-        }
-    }
-    // if we still don't have a profile, or the profile isn't suitable for display,
-    // we need to get a last-resort profile. the built-in sRGB is a good choice then.
-    if (!profile || !profile->isSuitableForDisplay()) {
-        //dbgKrita << "\tnothing worked, going to get sRGB built-in";
-        profile = KoColorSpaceRegistry::instance()->profileByName("sRGB Built-in");
-    }
-
-    if (profile) {
-        //dbgKrita << "\tKisConfig::displayProfile for screen" << screen << "is" << profile->name();
-    }
-    else {
-        //dbgKrita << "\tCouldn't get a display profile at all";
-    }
-
-    return profile;
 }
 
 const QString KisConfig::getScreenStringIdentfier(int screenNo) const {
@@ -1957,36 +1881,6 @@ QStringList KisConfig::favoriteCompositeOps(bool defaultValue) const
 void KisConfig::setFavoriteCompositeOps(const QStringList& compositeOps) const
 {
     m_cfg.writeEntry("favoriteCompositeOps", compositeOps);
-}
-
-QString KisConfig::exportConfigurationXML(const QString &filterId, bool defaultValue) const
-{
-    return (defaultValue ? QString() : m_cfg.readEntry("ExportConfiguration-" + filterId, QString()));
-}
-
-KisPropertiesConfigurationSP KisConfig::exportConfiguration(const QString &filterId, bool defaultValue) const
-{
-    KisPropertiesConfigurationSP cfg = new KisPropertiesConfiguration();
-    const QString xmlData = exportConfigurationXML(filterId, defaultValue);
-    cfg->fromXML(xmlData);
-    return cfg;
-}
-
-void KisConfig::setExportConfiguration(const QString &filterId, KisPropertiesConfigurationSP properties) const
-{
-    QString exportConfig = properties->toXML();
-    m_cfg.writeEntry("ExportConfiguration-" + filterId, exportConfig);
-}
-
-QString KisConfig::importConfiguration(const QString &filterId, bool defaultValue) const
-{
-    return (defaultValue ? QString() : m_cfg.readEntry("ImportConfiguration-" + filterId, QString()));
-}
-
-void KisConfig::setImportConfiguration(const QString &filterId, KisPropertiesConfigurationSP properties) const
-{
-    QString importConfig = properties->toXML();
-    m_cfg.writeEntry("ImportConfiguration-" + filterId, importConfig);
 }
 
 bool KisConfig::useOcio(bool defaultValue) const
@@ -3166,4 +3060,3 @@ QDebug operator<<(QDebug debug, const KisConfig::CanvasSurfaceBitDepthMode &mode
 
     return debug.space();
 }
-

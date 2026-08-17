@@ -181,6 +181,8 @@ public:
     bool hasExportConfiguration(const QString& exportConfigID);
     KisPropertiesConfigurationSP exportConfiguration(const QString &exportConfigId, bool defaultValue = false) const;
     void setExportConfiguration(const QString &exportConfigId, KisPropertiesConfigurationSP properties);
+    QString importConfiguration(const QString &filterId, bool defaultValue = false) const;
+    void setImportConfiguration(const QString &filterId, KisPropertiesConfigurationSP properties);
 
     static void resetConfig();
 private:

@@ -50,11 +50,6 @@ kis_add_test( kis_model_index_converter_test.cpp ../../../sdk/tests/testutil.cpp
     )
 
 
-kis_add_test( kis_categorized_list_model_test.cpp modeltest.cpp
-    TEST_NAME KisCategorizedListModelTest
-    LINK_LIBRARIES kritaui kritatestsdk
-    )
-
 kis_add_test( kis_node_juggler_compressed_test.cpp  ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeJugglerCompressedTest
     LINK_LIBRARIES kritaui kritatestsdk
@@ -143,12 +138,6 @@ krita_add_broken_unit_test( kis_action_manager_test.cpp
     TEST_NAME KisActionManagerTest
     LINK_LIBRARIES kritaui kritatestsdk
     )
-
-krita_add_broken_unit_test( kis_categories_mapper_test.cpp testing_categories_mapper.cpp
-    TEST_NAME KisCategoriesMapperTest
-    LINK_LIBRARIES kritaui kritatestsdk
-    )
-
 
 if (${INSTALL_BENCHMARKS})
     install(TARGETS FreehandStrokeBenchmark  ${INSTALL_TARGETS_DEFAULT_ARGS})

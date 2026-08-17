@@ -58,6 +58,7 @@
 #include "imagesize/wdg_imagesize.h"
 #include "kis_async_action_feedback.h"
 #include "kis_config.h"
+#include <kis_image_config.h>
 #include "kis_grid_config.h"
 #include "kis_guides_config.h"
 #include <kis_adjustment_layer.h>
@@ -475,7 +476,7 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
         }
 
         if (exportConfiguration && !batchMode()) {
-            KisConfig(false).setExportConfiguration(typeName, exportConfiguration);
+            KisImageConfig(false).setExportConfiguration(typeName, exportConfiguration);
         }
     }
     return result;

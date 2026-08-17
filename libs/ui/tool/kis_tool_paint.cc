@@ -53,7 +53,7 @@
 #include "kis_config_notifier.h"
 #include "kis_cursor.h"
 #include "kis_image_config.h"
-#include "widgets/kis_cmb_composite.h"
+#include <kis_cmb_composite.h>
 #include "kis_slider_spin_box.h"
 #include "kis_canvas_resource_provider.h"
 #include "kis_tool_utils.h"
@@ -754,4 +754,3 @@ KisOptimizedBrushOutline KisToolPaint::getOutlinePath(const QPointF &documentPos
 
     return path;
 }
-

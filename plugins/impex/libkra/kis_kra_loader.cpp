@@ -23,7 +23,6 @@
 #include <KoFileDialog.h>
 #include <KisImportExportManager.h>
 #include <KoStoreDevice.h>
-#include <KisResourceServerProvider.h>
 #include <KoResourceServer.h>
 #include <KisResourceStorage.h>
 #include <KisGlobalResourcesInterface.h>

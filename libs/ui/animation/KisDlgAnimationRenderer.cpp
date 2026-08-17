@@ -526,14 +526,12 @@ void KisDlgAnimationRenderer::saveVideoFormatPreferences(const QVariantMap &valu
 #endif
 
 KisPropertiesConfigurationSP KisDlgAnimationRenderer::loadLastConfiguration(QString configurationID) {
-    KisConfig globalConfig(true);
-    return globalConfig.exportConfiguration(configurationID);
+    return KisImageConfig(true).exportConfiguration(configurationID);
 }
 
 void KisDlgAnimationRenderer::saveLastUsedConfiguration(QString configurationID, KisPropertiesConfigurationSP config)
 {
-    KisConfig globalConfig(false);
-    globalConfig.setExportConfiguration(configurationID, config);
+    KisImageConfig(false).setExportConfiguration(configurationID, config);
 }
 
 bool KisDlgAnimationRenderer::looksLikeGif(const QString &videoType)

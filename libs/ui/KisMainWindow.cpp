@@ -121,7 +121,6 @@
 #include "animation/KisDlgAnimationRenderer.h"
 #endif
 #include <KisDocument.h>
-#include "kis_group_layer.h"
 #include "kis_image_from_clipboard_widget.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
@@ -133,6 +132,7 @@
 #include "kis_paintop_box.h"
 #include "KisPart.h"
 #include "KisResourceServerProvider.h"
+#include <KisPaintResourceServerProvider.h>
 #include "kis_signal_compressor_with_param.h"
 #include "kis_statusbar.h"
 #include "KisView.h"
@@ -144,6 +144,7 @@
 #include "animation/KisDlgImportVideoAnimation.h"
 #endif
 #include <KisImageConfigNotifier.h>
+#include <kis_image_config.h>
 #include "KisWindowLayoutManager.h"
 #include <KisUndoActionsUpdateManager.h>
 #include "KisWelcomePageWidget.h"
@@ -2316,9 +2317,7 @@ void KisMainWindow::renderAnimationAgain()
 
     KisDocument *doc = viewManager()->document();
 
-    KisConfig cfg(true);
-
-    KisPropertiesConfigurationSP settings = cfg.exportConfiguration("ANIMATION_EXPORT");
+    KisPropertiesConfigurationSP settings = KisImageConfig(true).exportConfiguration("ANIMATION_EXPORT");
 
     KisAnimationRenderingOptions encoderOptions;
     encoderOptions.fromProperties(settings);
@@ -3291,7 +3290,7 @@ bool KisMainWindow::checkActiveBundlesAvailable()
 
 bool KisMainWindow::checkPaintOpAvailable()
 {
-    KisPaintOpPresetResourceServer * rserver = KisResourceServerProvider::instance()->paintOpPresetServer();
+    KisPaintOpPresetResourceServer * rserver = KisPaintResourceServerProvider::instance()->paintOpPresetServer();
     return (rserver->resourceCount() > 0);
 }
 

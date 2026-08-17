@@ -89,6 +89,8 @@ private Q_SLOTS:
     void redo();
 
 private:
+    void addEntry(const KoColor &color);
+    void editEntry(const QModelIndex &index);
     void setEntryByForeground(const QModelIndex &index);
     void setFGColorByPalette(const KisSwatch &entry);
 

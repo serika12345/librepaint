@@ -16,7 +16,6 @@
 #include <KoFileDialog.h>
 #include "KisImportExportManager.h"
 #include "QDesktopServices"
-#include "KisResourceServerProvider.h"
 #include <kis_paintop_preset_icon_library.h>
 #include <KisResourceUserOperations.h>
 
@@ -228,4 +227,3 @@ void KisPresetSaveWidget::useNewBrushDialog(bool show)
 {
     m_useNewBrushDialog = show;
 }
-

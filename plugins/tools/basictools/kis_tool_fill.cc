@@ -33,7 +33,6 @@
 
 #include <KisViewManager.h>
 #include <canvas/kis_canvas2.h>
-#include <widgets/kis_cmb_composite.h>
 #include <kis_slider_spin_box.h>
 #include <kis_canvas_resource_provider.h>
 #include <kis_cursor.h>

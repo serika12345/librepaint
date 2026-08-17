@@ -113,7 +113,7 @@ void KisPaletteChooser::slotExport()
 
 KisPaletteChooserPrivate::KisPaletteChooserPrivate(KisPaletteChooser *a_c)
     : c(a_c)
-    , itemChooser(new KisResourceItemChooser(ResourceType::Palettes, false, a_c))
+    , itemChooser(new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::Palettes), a_c))
     , delegate(new Delegate(a_c))
 {  }
 

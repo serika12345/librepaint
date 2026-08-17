@@ -17,7 +17,7 @@
 #include "kis_popup_palette.h"
 #include "kis_paintop_box.h"
 #include "KisViewManager.h"
-#include "KisResourceServerProvider.h"
+#include <KisPaintResourceServerProvider.h>
 #include "kis_config.h"
 #include "kis_config_notifier.h"
 #include <kis_paintop_preset.h>
@@ -34,13 +34,13 @@ KisFavoriteResourceManager::KisFavoriteResourceManager(KisPaintopBox *paintopBox
     connect(KisConfigNotifier::instance(), SIGNAL(configChanged()), SLOT(configChanged()));
     configChanged();
 
-    KisPaintOpPresetResourceServer * rServer = KisResourceServerProvider::instance()->paintOpPresetServer();
+    KisPaintOpPresetResourceServer * rServer = KisPaintResourceServerProvider::instance()->paintOpPresetServer();
     rServer->addObserver(this);
 }
 
 KisFavoriteResourceManager::~KisFavoriteResourceManager()
 {
-    KisPaintOpPresetResourceServer *rServer = KisResourceServerProvider::instance()->paintOpPresetServer();
+    KisPaintOpPresetResourceServer *rServer = KisPaintResourceServerProvider::instance()->paintOpPresetServer();
     rServer->removeObserver(this);
 }
 
@@ -221,7 +221,7 @@ void KisFavoriteResourceManager::init()
         
         m_resourceModel = new KisResourceModel(ResourceType::PaintOpPresets, this);
 
-        KisResourceServerProvider::instance()->paintOpPresetServer();
+        KisPaintResourceServerProvider::instance()->paintOpPresetServer();
         QString currentTag = KisConfig(true).readEntry<QString>("favoritePresetsTag", "★ My Favorites");
 
         KisTagModel tagModel(ResourceType::PaintOpPresets);
@@ -243,5 +243,4 @@ void KisFavoriteResourceManager::init()
         updateFavoritePresets();
     }
 }
-
 

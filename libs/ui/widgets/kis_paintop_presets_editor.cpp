@@ -39,7 +39,7 @@
 #include <kis_node.h>
 #include "kis_config.h"
 
-#include "KisResourceServerProvider.h"
+#include <KisPaintResourceServerProvider.h>
 #include "kis_lod_availability_widget.h"
 #include "KisLodAvailabilityModel.h"
 
@@ -318,7 +318,7 @@ KisPaintOpPresetsEditor::KisPaintOpPresetsEditor(KisCanvasResourceProvider * res
 
 void KisPaintOpPresetsEditor::slotBlackListCurrentPreset()
 {
-    KisPaintOpPresetResourceServer *rServer = KisResourceServerProvider::instance()->paintOpPresetServer();
+    KisPaintOpPresetResourceServer *rServer = KisPaintResourceServerProvider::instance()->paintOpPresetServer();
     KisPaintOpPresetSP curPreset = m_d->resourceProvider->currentPreset();
     rServer->removeResourceFromServer(curPreset);
 }

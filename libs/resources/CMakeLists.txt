@@ -88,3 +88,5 @@ set_target_properties(kritaresources PROPERTIES
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
 )
 install(TARGETS kritaresources ${INSTALL_TARGETS_DEFAULT_ARGS} )
+
+add_subdirectory(ui)

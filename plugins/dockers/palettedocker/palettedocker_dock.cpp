@@ -15,6 +15,7 @@
 #include <QCompleter>
 #include <QAction>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QString>
@@ -48,7 +49,6 @@
 #include <kis_palette_view.h>
 #include <KisPaletteChooser.h>
 
-#include <KisPaletteEditor.h>
 #include <dialogs/KisDlgPaletteEditor.h>
 
 #include "ui_wdgpalettedock.h"
@@ -95,6 +95,11 @@ PaletteDockerDock::PaletteDockerDock( )
     m_ui->cmbNameList->setCompanionView(m_ui->paletteView);
 
     m_paletteEditor->setPaletteModel(m_model);
+    connect(m_paletteEditor.data(), &KisPaletteEditor::documentResourceModified, this, [this]() {
+        if (m_view && m_view->document()) {
+            m_view->document()->setModified(true);
+        }
+    });
 
     connect(m_actAdd.data(), SIGNAL(triggered()), SLOT(slotAddColor()));
     connect(m_actRemove.data(), SIGNAL(triggered()), SLOT(slotRemoveColor()));
@@ -251,7 +256,7 @@ void PaletteDockerDock::setCanvas(KoCanvasBase *canvas)
 
     if (m_view && m_view->document()) {
         m_activeDocument = m_view->document();
-        m_paletteEditor->setView(m_view);
+        m_paletteEditor->setDocumentContext(m_view->mainWindowAsQWidget(), m_view->document()->linkedResourcesStorageId());
     }
 
     if (!m_currentColorSet) {
@@ -263,7 +268,7 @@ void PaletteDockerDock::unsetCanvas()
 {
     setEnabled(false);
     m_ui->paletteView->setDisplayRenderer(0);
-    m_paletteEditor->setView(0);
+    m_paletteEditor->clearDocumentContext();
 
     if (!m_currentColorSet) {
         slotSetColorSet(0);
@@ -345,11 +350,92 @@ void PaletteDockerDock::slotSavePalette()
     }
 }
 
+void PaletteDockerDock::addEntry(const KoColor &color)
+{
+    if (!m_model || !m_model->colorSet() || !m_view || !m_view->document()) {
+        return;
+    }
+
+    KoDialog dialog;
+    dialog.setWindowTitle(i18nc("@title:dialog", "Add a new Color Swatch"));
+    QFormLayout *editableItems = new QFormLayout(dialog.mainWidget());
+
+    QComboBox *groups = new QComboBox();
+    groups->addItems(m_model->colorSet()->swatchGroupNames());
+
+    QLineEdit *id = new QLineEdit(QString::number(m_model->colorSet()->colorCount() + 1));
+    QLineEdit *name = new QLineEdit(i18nc("Default name for a color swatch",
+                                          "Color %1",
+                                          QString::number(m_model->colorSet()->colorCount() + 1)));
+    KisColorButton *colorButton = new KisColorButton();
+    colorButton->setColor(color);
+    QCheckBox *spotColor = new QCheckBox();
+    spotColor->setToolTip(i18nc("@info:tooltip",
+                                "A spot color is a color that the printer is able to print without mixing the paints it has available to it. The opposite is called a process color."));
+
+    editableItems->addRow(i18n("Swatch Group:"), groups);
+    editableItems->addRow(i18n("Swatch ID:"), id);
+    editableItems->addRow(i18n("Color swatch name:"), name);
+    editableItems->addRow(i18nc("Color as the Color of a Swatch in a Palette", "Color:"), colorButton);
+    editableItems->addRow(i18n("Spot color:"), spotColor);
+
+    if (dialog.exec() != KoDialog::Accepted) {
+        return;
+    }
+
+    KisSwatch swatch(colorButton->color(), name->text());
+    swatch.setId(id->text());
+    swatch.setSpotColor(spotColor->isChecked());
+    m_model->addSwatch(swatch, groups->currentText());
+}
+
+void PaletteDockerDock::editEntry(const QModelIndex &index)
+{
+    if (!index.isValid() || !m_view || !m_view->document()) {
+        return;
+    }
+
+    const QString groupName = index.data(Qt::DisplayRole).toString();
+    if (index.data(KisPaletteModel::IsGroupNameRole).toBool()) {
+        m_paletteEditor->startEditing();
+        m_paletteEditor->renameGroup(groupName);
+        m_paletteEditor->endEditing();
+        return;
+    }
+
+    KoDialog dialog;
+    dialog.setCaption(i18nc("@title:dialog", "Edit Color Swatch"));
+    QFormLayout *editableItems = new QFormLayout(dialog.mainWidget());
+    KisSwatch swatch = m_model->getSwatch(index);
+
+    QLineEdit *id = new QLineEdit(swatch.id());
+    QLineEdit *name = new QLineEdit(swatch.name());
+    KisColorButton *colorButton = new KisColorButton();
+    colorButton->setColor(swatch.color());
+    QCheckBox *spotColor = new QCheckBox();
+    spotColor->setChecked(swatch.spotColor());
+    spotColor->setToolTip(i18nc("@info:tooltip",
+                                "A spot color is a color that the printer is able to print without mixing the paints it has available to it. The opposite is called a process color."));
+
+    editableItems->addRow(i18n("Swatch ID:"), id);
+    editableItems->addRow(i18n("Color swatch name:"), name);
+    editableItems->addRow(i18nc("Color as the Color of a Swatch in a Palette", "Color:"), colorButton);
+    editableItems->addRow(i18n("Spot color:"), spotColor);
+
+    if (dialog.exec() == KoDialog::Accepted) {
+        swatch.setId(id->text());
+        swatch.setName(name->text());
+        swatch.setColor(colorButton->color());
+        swatch.setSpotColor(spotColor->isChecked());
+        m_model->setSwatch(swatch, index);
+    }
+}
+
 
 void PaletteDockerDock::slotAddColor()
 {
     if (m_resourceProvider) {
-        m_paletteEditor->addEntry(m_resourceProvider->fgColor());
+        addEntry(m_resourceProvider->fgColor());
     }
     slotUpdateLblPaletteName();
 }
@@ -500,7 +586,7 @@ void PaletteDockerDock::slotPaletteIndexClicked(const QModelIndex &index)
 
 void PaletteDockerDock::slotPaletteIndexDoubleClicked(const QModelIndex &index)
 {
-    m_paletteEditor->modifyEntry(index);
+    editEntry(index);
     slotUpdateLblPaletteName();
 }
 
@@ -517,7 +603,7 @@ void PaletteDockerDock::slotEditEntry()
     if (!index.isValid()) {
         return;
     }
-    m_paletteEditor->modifyEntry(index);
+    editEntry(index);
     slotUpdateLblPaletteName();
 }
 

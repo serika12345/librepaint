@@ -25,7 +25,7 @@
 #include "kis_paintop_box.h"
 #include "kis_paintop_presets_chooser_popup.h"
 #include "kis_canvas_resource_provider.h"
-#include "KisResourceServerProvider.h"
+#include <KisPaintResourceServerProvider.h>
 #include <KisKineticScroller.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_types.h>
@@ -70,7 +70,7 @@ PresetHistoryDock::PresetHistoryDock( )
         connect(scroller, SIGNAL(stateChanged(QScroller::State)), this, SLOT(slotScrollerStateChanged(QScroller::State)));
     }
 
-    m_resourceModel = KisResourceServerProvider::instance()->paintOpPresetServer()->resourceModel();
+    m_resourceModel = KisPaintResourceServerProvider::instance()->paintOpPresetServer()->resourceModel();
 
     connect(m_resourceModel, SIGNAL(modelReset()), this, SLOT(updatePresets()));
     connect(m_resourceModel, SIGNAL(rowsRemoved(const QModelIndex, int, int)), this, SLOT(updatePresets()));

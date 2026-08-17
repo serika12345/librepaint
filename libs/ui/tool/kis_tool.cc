@@ -42,7 +42,6 @@
 #include <brushengine/kis_paintop_settings.h>
 #include <resources/KoPattern.h>
 #include <kis_floating_message.h>
-#include <KisResourceServerProvider.h>
 
 #include "opengl/kis_opengl_canvas2.h"
 #include "kis_canvas_resource_provider.h"

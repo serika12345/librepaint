@@ -9,7 +9,7 @@
 #include <QMetaProperty>
 #include <KoCompositeOpRegistry.h>
 #include <kis_assert.h>
-#include "kis_cmb_composite.h"
+#include <kis_cmb_composite.h>
 
 namespace KisWidgetConnectionUtils
 {

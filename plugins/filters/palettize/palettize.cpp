@@ -94,7 +94,7 @@ KisPalettizeWidget::KisPalettizeWidget(QWidget* parent)
     setupUi(this);
 
     paletteIconWidget->setFixedSize(32, 32);
-    m_paletteWidget = new KisResourceItemChooser(ResourceType::Palettes, false, this);
+    m_paletteWidget = new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::Palettes), this);
     paletteIconWidget->setPopupWidget(m_paletteWidget);
     QObject::connect(m_paletteWidget, &KisResourceItemChooser::resourceSelected, paletteIconWidget, &KisIconWidget::setResource);
     QObject::connect(m_paletteWidget, &KisResourceItemChooser::resourceSelected, this, &KisConfigWidget::sigConfigurationItemChanged);

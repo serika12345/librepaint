@@ -165,7 +165,7 @@ KisGradientChooser::KisGradientChooser(QWidget *parent, const char *name, bool u
     m_d->labelName->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
     // Resource Item Chooser
-    m_d->itemChooser = new KisResourceItemChooser(ResourceType::Gradients, false, this);
+    m_d->itemChooser = new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::Gradients), this);
     m_d->itemChooser->showTaggingBar(true);
     m_d->itemChooser->showViewModeBtn(true);
 

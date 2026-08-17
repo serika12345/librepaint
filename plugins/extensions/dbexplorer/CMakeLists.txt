@@ -11,7 +11,7 @@ kis_add_library(kritadbexplorer MODULE ${kritadbexplorer_SOURCES})
 target_link_libraries(kritadbexplorer
     PRIVATE
         kritaresources
-        kritaresourcewidgets
+        kritaresourceui
         kritaui
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Widgets

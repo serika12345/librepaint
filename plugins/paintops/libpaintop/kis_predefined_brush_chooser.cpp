@@ -197,7 +197,7 @@ KisPredefinedBrushChooser::KisPredefinedBrushChooser(int maxBrushSize,
 
     connectControl(brushSpacingSelectionWidget, m_d->model, "aggregatedSpacing");
 
-    m_itemChooser = new KisResourceItemChooser(ResourceType::Brushes, false, this);
+    m_itemChooser = new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::Brushes), this);
     m_itemChooser->setObjectName("brush_selector");
 
     m_itemChooser->showTaggingBar(true);

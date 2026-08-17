@@ -95,7 +95,7 @@ TasksetDockerDock::TasksetDockerDock( )
     chooserButton->setAutoRaise(true);
 
     m_rserver = new KoResourceServer<TasksetResource>(ResourceType::TaskSets);
-    KisResourceItemChooser *itemChooser = new KisResourceItemChooser(ResourceType::TaskSets, false, this);
+    KisResourceItemChooser *itemChooser = new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::TaskSets), this);
     itemChooser->setItemDelegate(new KisTasksetResourceDelegate(this));
     itemChooser->setFixedSize(500, 250);
     itemChooser->setRowHeight(30);

@@ -20,7 +20,7 @@
 #include <KisExportCheckRegistry.h>
 #include "KoUpdater.h"
 #include <klocalizedstring.h>
-#include "kis_config.h"
+#include <kis_image_config.h>
 #include <KoStore.h>
 #include <KisDocument.h>
 
@@ -132,7 +132,7 @@ KisPropertiesConfigurationSP KisImportExportFilter::defaultConfiguration(const Q
 KisPropertiesConfigurationSP KisImportExportFilter::lastSavedConfiguration(const QByteArray &from, const QByteArray &to) const
 {
     KisPropertiesConfigurationSP cfg = defaultConfiguration(from, to);
-    const QString filterConfig = KisConfig(true).exportConfigurationXML(to);
+    const QString filterConfig = KisImageConfig(true).exportConfigurationXML(to);
     if (cfg && !filterConfig.isEmpty()) {
         cfg->fromXML(filterConfig, false);
     }

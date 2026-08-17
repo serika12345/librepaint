@@ -25,6 +25,7 @@
 #include "kis_icon_utils.h"
 #include "KoID.h"
 #include "kis_image.h"
+#include <kis_image_config.h>
 #include "kis_annotation.h"
 #include "kis_config.h"
 #include "kis_signal_compressor.h"
@@ -43,7 +44,7 @@ KisDlgStrokeSelection::KisDlgStrokeSelection(KisImageWSP image, KisViewManager *
     : KoDialog(view->mainWindowAsQWidget())
 {
     m_resourceManager = view->mainWindow()->resourceManager();
-    KisPropertiesConfigurationSP cfg = KisConfig(true).exportConfiguration("StrokeSelection");
+    KisPropertiesConfigurationSP cfg = KisImageConfig(true).exportConfiguration("StrokeSelection");
 
     m_converter = view->canvasBase()->displayColorConverter();
     setButtons(Ok | Cancel);
@@ -118,7 +119,7 @@ KisDlgStrokeSelection::~KisDlgStrokeSelection()
     colorVariant.setValue(m_options.fillColor);
     cfg->setProperty("fillColor", colorVariant);
 
-    KisConfig(false).setExportConfiguration("StrokeSelection", cfg);
+    KisImageConfig(false).setExportConfiguration("StrokeSelection", cfg);
 
     delete m_page;
 }
@@ -368,5 +369,4 @@ KisToolShapeUtils::FillStyle StrokeSelectionOptions::fillStyle() const
     }
     return style;
 }
-
 

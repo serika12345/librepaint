@@ -31,6 +31,7 @@
 #include <kis_iterator_ng.h>
 #include <kis_random_accessor_ng.h>
 #include <kis_config.h>
+#include <kis_image_config.h>
 #include <kis_cursor_override_hijacker.h>
 
 #include "kis_wdg_options_heightmap.h"
@@ -95,7 +96,7 @@ KisImportExportErrorCode KisHeightMapImport::convert(KisDocument *document, QIOD
 
         connect(wdg, SIGNAL(statusUpdated(bool)), kdb, SLOT(enableButtonOk(bool)));
 
-        KisConfig config(true);
+        KisImageConfig config(false);
 
         QString filterConfig = config.importConfiguration(mimeType());
         KisPropertiesConfigurationSP cfg(new KisPropertiesConfiguration);
@@ -146,7 +147,7 @@ KisImportExportErrorCode KisHeightMapImport::convert(KisDocument *document, QIOD
             bo = QDataStream::BigEndian;
             cfg->setProperty("endianness", 0);
         }
-        KisConfig(true).setExportConfiguration(mimeType(), cfg);
+        KisImageConfig(false).setExportConfiguration(mimeType(), cfg);
 
     } else {
         const int pixelSize =

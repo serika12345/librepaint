@@ -81,7 +81,6 @@
 #include "KisDocument.h"
 #include "kis_favorite_resource_manager.h"
 #include "kis_filter_manager.h"
-#include "kis_group_layer.h"
 #include <kis_image.h>
 #include "kis_image_manager.h"
 #include <kis_layer.h>

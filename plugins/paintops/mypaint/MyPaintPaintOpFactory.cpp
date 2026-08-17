@@ -14,7 +14,6 @@
 #include <kis_icon.h>
 #include <KoResourceServer.h>
 #include <KoResourceServerProvider.h>
-#include <KisResourceServerProvider.h>
 #include <KoResourceLoadResult.h>
 
 #include "MyPaintPaintOp.h"

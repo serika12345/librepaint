@@ -32,7 +32,7 @@ KisSeExprScriptChooser::KisSeExprScriptChooser(QWidget *parent)
     m_lblName->setTextElideMode(Qt::ElideMiddle);
     m_lblName->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
-    m_itemChooser = new KisResourceItemChooser(ResourceType::SeExprScripts, true, this);
+    m_itemChooser = new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::SeExprScripts, true), this);
     m_itemChooser->setPreviewTiled(true);
     m_itemChooser->setPreviewOrientation(Qt::Horizontal);
     m_itemChooser->showTaggingBar(true);

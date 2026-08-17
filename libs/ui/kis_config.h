@@ -15,11 +15,10 @@
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 
+#include <KoColor.h>
 #include <kis_global.h>
-#include <kis_properties_configuration.h>
 #include "kritaui_export.h"
 
-class KoColorProfile;
 class KoColorSpace;
 class KisSnapConfig;
 class QSettings;
@@ -206,11 +205,6 @@ public:
 
     QString monitorForScreen(int screen, const QString &defaultMonitor, bool defaultValue = true) const;
     void setMonitorForScreen(int screen, const QString& monitor);
-
-    /// Get the actual profile to be used for the given screen, which is
-    /// either the screen profile set by the color management system or
-    /// the custom monitor profile set by the user, depending on the configuration
-    const KoColorProfile *displayProfile(int screen) const;
 
     const QString getScreenStringIdentfier(int screenNo) const;
 
@@ -502,13 +496,6 @@ public:
 
     QStringList favoriteCompositeOps(bool defaultValue = false) const;
     void setFavoriteCompositeOps(const QStringList& compositeOps) const;
-
-    QString exportConfigurationXML(const QString &filterId, bool defaultValue = false) const;
-    KisPropertiesConfigurationSP exportConfiguration(const QString &filterId, bool defaultValue = false) const;
-    void setExportConfiguration(const QString &filterId, KisPropertiesConfigurationSP properties) const;
-
-    QString importConfiguration(const QString &filterId, bool defaultValue = false) const;
-    void setImportConfiguration(const QString &filterId, KisPropertiesConfigurationSP properties) const;
 
     bool useOcio(bool defaultValue = false) const;
     void setUseOcio(bool useOCIO) const;
@@ -891,7 +878,6 @@ public:
 
 
     /// get the profile the color management system has stored for the given screen
-    static const KoColorProfile* getScreenProfile(int screen);
 
 private:
     KisConfig(const KisConfig&);

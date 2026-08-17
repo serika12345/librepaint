@@ -6,6 +6,8 @@
 
 #include "KisOpenGLSync.h"
 
+#include <kis_debug.h>
+
 namespace Sync {
     //For checking sync status
     enum SyncStatus {

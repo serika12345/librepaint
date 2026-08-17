@@ -791,6 +791,16 @@ void KisImageConfig::setExportConfiguration(const QString &exportConfigId, KisPr
     m_config.writeEntry(configId, exportConfig);
 }
 
+QString KisImageConfig::importConfiguration(const QString &filterId, bool defaultValue) const
+{
+    return defaultValue ? QString() : m_config.readEntry("ImportConfiguration-" + filterId, QString());
+}
+
+void KisImageConfig::setImportConfiguration(const QString &filterId, KisPropertiesConfigurationSP properties)
+{
+    m_config.writeEntry("ImportConfiguration-" + filterId, properties->toXML());
+}
+
 void KisImageConfig::resetConfig()
 {
     KConfigGroup config = KSharedConfig::openConfig()->group(QString());
