@@ -12,7 +12,6 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceMaths.h>
 
-#include "kis_display_filter.h"
 #include "kis_painter.h"
 #include "kis_iterator_ng.h"
 #include "kis_datamanager.h"
@@ -137,7 +136,7 @@ void KisImagePyramid::setChannelFlags(const QBitArray &channelFlags)
     m_onlyOneChannelSelected = (selectedChannels == 1);
 }
 
-void KisImagePyramid::setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter)
+void KisImagePyramid::setDisplayFilter(QSharedPointer<KisProjectionPixelFilter> displayFilter)
 {
     m_displayFilter = displayFilter;
 }
@@ -287,11 +286,11 @@ void KisImagePyramid::retrieveImageData(const QRect &rect)
     m_pyramid[ORIGINAL_INDEX]->writeBytes(originalBytes.get(), rect);
 }
 
-void KisImagePyramid::recalculateCache(KisPPUpdateInfoSP info)
+void KisImagePyramid::recalculateCache(KisProjectionUpdateInfoSP info)
 {
     KisPaintDevice *src;
     KisPaintDevice *dst;
-    QRect currentSrcRect = info->dirtyImageRectVar;
+    QRect currentSrcRect = info->dirtyImageRect();
 
     for (int i = FIRST_NOT_ORIGINAL_INDEX; i < m_pyramidHeight; i++) {
         src = m_pyramid[i-1].data();
@@ -448,7 +447,7 @@ void KisImagePyramid::alignSourceRect(QRect& rect, qreal scale)
     dbgRender << "After alignment:\t" << rect;
 }
 
-KisImagePatch KisImagePyramid::getNearestPatch(KisPPUpdateInfoSP info)
+KisImagePatch KisImagePyramid::getNearestPatch(KisProjectionUpdateInfoSP info)
 {
     qint32 index = findFirstGoodPlaneIndex(qMax(info->scaleX, info->scaleY),
                                            info->imageRect.size());
@@ -465,7 +464,7 @@ KisImagePatch KisImagePyramid::getNearestPatch(KisPPUpdateInfoSP info)
     return patch;
 }
 
-void KisImagePyramid::drawFromOriginalImage(QPainter& gc, KisPPUpdateInfoSP info)
+void KisImagePyramid::drawFromOriginalImage(QPainter& gc, KisProjectionUpdateInfoSP info)
 {
     KisImagePatch patch = getNearestPatch(info);
     patch.drawMe(gc, info->viewportRect, info->renderHints);
@@ -489,4 +488,3 @@ void KisImagePyramid::configChanged()
     KisConfig cfg(true);
     m_useOcio = cfg.useOcio();
 }
-

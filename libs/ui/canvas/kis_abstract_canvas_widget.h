@@ -22,7 +22,7 @@ class KoColorSpace;
 class KisDisplayConfig;
 
 #include "kis_types.h"
-#include "kis_ui_types.h"
+#include <kis_update_info.h>
 #include "KisWraparoundAxis.h"
 
 class KisAbstractCanvasWidget

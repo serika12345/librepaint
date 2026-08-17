@@ -6,7 +6,7 @@
 #include "KisInMemoryFrameCacheSwapper.h"
 
 #include <QMap>
-#include <kis_update_info.h>
+#include "opengl/kis_opengl_update_info.h"
 
 
 struct KRITAUI_NO_EXPORT KisInMemoryFrameCacheSwapper::Private

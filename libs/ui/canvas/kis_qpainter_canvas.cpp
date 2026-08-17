@@ -33,6 +33,9 @@
 #include "KisViewManager.h"
 #include "kis_canvas2.h"
 #include "kis_prescaled_projection.h"
+#include "kis_projection_update_info.h"
+#include "kis_display_filter.h"
+#include "kis_qpainter_projection_factory.h"
 #include "kis_canvas_resource_provider.h"
 #include "KisDocument.h"
 #include "kis_selection_manager.h"
@@ -178,7 +181,9 @@ void KisQPainterCanvas::channelSelectionChanged(const QBitArray &channelFlags)
 void KisQPainterCanvas::setDisplayConfig(const KisDisplayConfig &config)
 {
     Q_ASSERT(m_d->prescaledProjection);
-    m_d->prescaledProjection->setDisplayConfig(config);
+    m_d->prescaledProjection->setMonitorProfile(config.profile,
+                                                config.intent,
+                                                config.conversionFlags);
 }
 
 void KisQPainterCanvas::setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter)
@@ -239,8 +244,8 @@ QRect KisQPainterCanvas::updateCanvasProjection(KisUpdateInfoSP info)
     * update info is being stuck in the Qt's signals queue. Than a wrong
     * type of the info may come. So just check it here.
     */
-    bool isPPUpdateInfo = dynamic_cast<KisPPUpdateInfo*>(info.data());
-    if (isPPUpdateInfo) {
+    bool isProjectionUpdateInfo = dynamic_cast<KisProjectionUpdateInfo*>(info.data());
+    if (isProjectionUpdateInfo) {
         m_d->prescaledProjection->recalculateCache(info);
         return info->dirtyViewportRect();
     } else {
@@ -268,6 +273,9 @@ void KisQPainterCanvas::slotConfigChanged()
 
     m_d->checkBrush = QBrush(createCheckersImage());
     m_d->scrollCheckers = cfg.scrollCheckers();
+    if (m_d->prescaledProjection) {
+        m_d->prescaledProjection->setUpdatePatchSize(qPainterProjectionUpdatePatchSize());
+    }
     notifyConfigChanged();
 }
 

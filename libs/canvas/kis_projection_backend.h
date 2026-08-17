@@ -7,13 +7,20 @@
 #ifndef KIS_PROJECTION_BACKEND
 #define KIS_PROJECTION_BACKEND
 
-#include "kis_update_info.h"
-
-class KoColorProfile;
-class KisImagePatch;
-class KisDisplayFilter;
+#include <QBitArray>
+#include <QPainter>
+#include <QSharedPointer>
 
 #include <KoColorConversionTransformation.h>
+
+#include <kritacanvas_export.h>
+#include <kis_types.h>
+
+#include "kis_image_patch.h"
+#include "kis_projection_update_info.h"
+
+class KoColorProfile;
+class KisProjectionPixelFilter;
 
 /**
  * KisProjectionBackend is an abstract class representing
@@ -21,7 +28,7 @@ class KisDisplayFilter;
  * More than that this object can perform some scaling operations
  * that are based on "patches" paradigm
  */
-class KisProjectionBackend
+class KRITACANVAS_EXPORT KisProjectionBackend
 {
 public:
     virtual ~KisProjectionBackend();
@@ -34,7 +41,7 @@ public:
     virtual void setImageSize(qint32 w, qint32 h) = 0;
     virtual void setMonitorProfile(const KoColorProfile* monitorProfile, KoColorConversionTransformation::Intent renderingIntent, KoColorConversionTransformation::ConversionFlags conversionFlags) = 0;
     virtual void setChannelFlags(const QBitArray &channelFlags) = 0;
-    virtual void setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter) = 0;
+    virtual void setDisplayFilter(QSharedPointer<KisProjectionPixelFilter> displayFilter) = 0;
 
     /**
      * Updates the cache of the backend by reading from
@@ -49,7 +56,7 @@ public:
      * do the calculations. No data transfers with KisImage
      * should happen during this phase
      */
-    virtual void recalculateCache(KisPPUpdateInfoSP info) = 0;
+    virtual void recalculateCache(KisProjectionUpdateInfoSP info) = 0;
 
     /**
      * Some backends cannot work with arbitrary areas due to
@@ -65,12 +72,12 @@ public:
      * the patch will have these scales - it'll have the nearest suitable
      * scale or even original scale (e.g. KisProjectionCache)
      *
-     * If info.borderWidth is non-zero, info.requestedRect will
+     * If info.borderWidth is non-zero, info.imageRect will
      * be expended by info.borderWidth pixels to all directions and
      * image of this rect will actually be written to the patch's QImage.
      * That is done to eliminate border effects in smooth scaling.
      */
-    virtual KisImagePatch getNearestPatch(KisPPUpdateInfoSP info) = 0;
+    virtual KisImagePatch getNearestPatch(KisProjectionUpdateInfoSP info) = 0;
 
     /**
      * Draws a piece of original image onto @p gc 's canvas
@@ -82,7 +89,7 @@ public:
      * @p info.renderHints - hints, transmitted to QPainter during drawing
      */
     virtual void drawFromOriginalImage(QPainter& gc,
-                                       KisPPUpdateInfoSP info) = 0;
+                                       KisProjectionUpdateInfoSP info) = 0;
 };
 
 #endif /* KIS_PROJECTION_BACKEND */

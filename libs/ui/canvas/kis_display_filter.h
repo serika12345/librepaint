@@ -11,6 +11,7 @@
 #include <qopengl.h>
 
 #include <kritaui_export.h>
+#include <kis_projection_pixel_filter.h>
 
 struct KisExposureGammaCorrectionInterface;
 
@@ -28,7 +29,7 @@ class QOpenGLShaderProgram;
  * @brief The KisDisplayFilter class is the base class for filters that
  * are applied by the canvas to the projection before displaying.
  */
-class KRITAUI_EXPORT KisDisplayFilter : public QObject
+class KRITAUI_EXPORT KisDisplayFilter : public QObject, public KisProjectionPixelFilter
 {
     Q_OBJECT
 public:
@@ -36,10 +37,10 @@ public:
 
     virtual QString program() const = 0;
     virtual void setupTextures(GLFunctions *f, QOpenGLShaderProgram *program) const = 0;
-    virtual void filter(quint8 *pixels, quint32 numPixels) = 0;
+    void filter(quint8 *pixels, quint32 numPixels) override = 0;
     virtual void approximateInverseTransformation(quint8 *pixels, quint32 numPixels) = 0;
     virtual void approximateForwardTransformation(quint8 *pixels, quint32 numPixels) = 0;
-    virtual bool useInternalColorManagement() const = 0;
+    bool useInternalColorManagement() const override = 0;
     virtual KisExposureGammaCorrectionInterface *correctionInterface() const = 0;
     virtual bool lockCurrentColorVisualRepresentation() const = 0;
     /**

@@ -5,8 +5,6 @@
  */
 #include "KisOpenGLUpdateInfoBuilder.h"
 
-// TODO: conversion options into a separate file!
-#include "kis_update_info.h"
 #include "opengl/kis_texture_tile_info_pool.h"
 
 #include "KisProofingConfiguration.h"

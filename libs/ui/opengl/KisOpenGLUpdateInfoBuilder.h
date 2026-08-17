@@ -7,6 +7,7 @@
 #define KISOPENGLUPDATEINFOBUILDER_H
 
 #include "kritaui_export.h"
+#include "kis_opengl_update_info.h"
 #include <QScopedPointer>
 #include <QSharedPointer>
 
@@ -25,11 +26,7 @@ typedef KisSharedPtr<KisImage> KisImageSP;
 class KisPaintDevice;
 typedef KisSharedPtr<KisPaintDevice> KisPaintDeviceSP;
 
-class KisOpenGLUpdateInfo;
-typedef KisSharedPtr<KisOpenGLUpdateInfo> KisOpenGLUpdateInfoSP;
-
 class KoColorSpace;
-struct ConversionOptions;
 
 
 class KRITAUI_EXPORT KisOpenGLUpdateInfoBuilder

@@ -6,9 +6,12 @@
 #ifndef KIS_PRESCALED_PROJECTION_H
 #define KIS_PRESCALED_PROJECTION_H
 
-#include <QObject>
+#include <memory>
 
-#include <kritaui_export.h>
+#include <QObject>
+#include <QSharedPointer>
+
+#include <kritacanvas_export.h>
 #include <kis_shared.h>
 
 #include "KoColorConversionTransformation.h"
@@ -19,27 +22,30 @@ class QPainter;
 
 class KoColorProfile;
 class KisCoordinatesConverter;
-class KisDisplayFilter;
-class KisDisplayConfig;
 class KisCanvasState;
+class KisProjectionBackend;
+class KisProjectionPixelFilter;
 
 #include <kis_types.h>
-#include "kis_ui_types.h"
+#include "kis_projection_update_info.h"
+#include "kis_update_info.h"
+
+class KisPrescaledProjection;
+using KisPrescaledProjectionSP = KisSharedPtr<KisPrescaledProjection>;
 
 
 /**
  * KisPrescaledProjection is responsible for keeping around a
  * prescaled QImage representation that is always suitable for
  * painting onto the canvas.
- *
- * Note: the export macro is only for the unittest.
  */
-class KRITAUI_EXPORT KisPrescaledProjection : public QObject, public KisShared
+class KRITACANVAS_EXPORT KisPrescaledProjection : public QObject, public KisShared
 {
     Q_OBJECT
 public:
 
-    KisPrescaledProjection();
+    KisPrescaledProjection(std::unique_ptr<KisProjectionBackend> projectionBackend,
+                           const QSize &updatePatchSize);
     ~KisPrescaledProjection() override;
 
     void setImage(KisImageWSP image);
@@ -69,11 +75,6 @@ public Q_SLOTS:
      */
     void recalculateCache(KisUpdateInfoSP info);
 
-    /**
-     * Called whenever the configuration settings change.
-     */
-    void updateSettings();
-
     void notifyCanvasStateChanged(const KisCanvasState &state);
 
     /**
@@ -90,14 +91,18 @@ public Q_SLOTS:
      */
     void notifyCanvasSizeChanged(const QSize &widgetSize);
 
+    void setUpdatePatchSize(const QSize &updatePatchSize);
+
     /**
      * Set the current monitor profile
      */
-    void setDisplayConfig(const KisDisplayConfig &config);
+    void setMonitorProfile(const KoColorProfile *monitorProfile,
+                           KoColorConversionTransformation::Intent renderingIntent,
+                           KoColorConversionTransformation::ConversionFlags conversionFlags);
 
     void setChannelFlags(const QBitArray &channelFlags);
 
-    void setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter);
+    void setDisplayFilter(QSharedPointer<KisProjectionPixelFilter> displayFilter);
 
     /**
      * Called whenever the zoom level changes or another chunk of the
@@ -131,7 +136,7 @@ private:
      *
      * @see fillInUpdateInformation()
      */
-    KisPPUpdateInfoSP getInitialUpdateInformation(const QRect &dirtyImageRect);
+    KisProjectionUpdateInfoSP getInitialUpdateInformation(const QRect &dirtyImageRect);
 
     /**
      * Prepare all the information about rects needed during
@@ -146,21 +151,21 @@ private:
      * @see getInitialUpdateInformation()
      */
     void fillInUpdateInformation(const QRect &viewportRect,
-                                 KisPPUpdateInfoSP info);
+                                 KisProjectionUpdateInfoSP info);
 
     /**
      * Initiates the process of prescaled image update
      *
      * @param info prepared information
      */
-    void updateScaledImage(KisPPUpdateInfoSP info);
+    void updateScaledImage(KisProjectionUpdateInfoSP info);
 
     /**
      * Actual drawing is done here
      * @param info prepared information
      * @param gc The painter we draw on
      */
-    void drawUsingBackend(QPainter &gc, KisPPUpdateInfoSP info);
+    void drawUsingBackend(QPainter &gc, KisProjectionUpdateInfoSP info);
 
     struct Private;
     Private * const m_d;

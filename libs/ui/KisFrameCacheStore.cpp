@@ -6,7 +6,7 @@
 #include "KisFrameCacheStore.h"
 
 #include <KoColorSpace.h>
-#include "kis_update_info.h"
+#include "opengl/kis_opengl_update_info.h"
 #include "KisFrameDataSerializer.h"
 #include "opengl/KisOpenGLUpdateInfoBuilder.h"
 

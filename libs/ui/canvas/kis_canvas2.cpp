@@ -18,7 +18,6 @@
 #include <QTime>
 #include <QMouseEvent>
 #include <QScreen>
-#include <QScreen>
 #include <QWindow>
 
 #include <kis_debug.h>
@@ -40,6 +39,7 @@
 #include "kis_tool_proxy.h"
 #include "kis_coordinates_converter.h"
 #include "kis_prescaled_projection.h"
+#include "kis_qpainter_projection_factory.h"
 #include "kis_image.h"
 #include "KisImageBarrierLock.h"
 #include "kis_undo_adapter.h"
@@ -730,14 +730,14 @@ KoToolProxy * KisCanvas2::toolProxy() const
 void KisCanvas2::createQPainterCanvas()
 {
     m_d->currentCanvasIsOpenGL = false;
-
     m_d->multiSurfaceState =
         m_d->multiSurfaceSetupManager.createInitializingConfig(false, m_d->currentScreenId(), m_d->proofingConfig);
 
     KisQPainterCanvas * canvasWidget = new KisQPainterCanvas(this, m_d->coordinatesConverter, m_d->view);
-    m_d->prescaledProjection = new KisPrescaledProjection();
+    m_d->prescaledProjection = new KisPrescaledProjection(createQPainterProjectionBackend(), qPainterProjectionUpdatePatchSize());
     m_d->prescaledProjection->setCoordinatesConverter(m_d->coordinatesConverter);
-    m_d->prescaledProjection->setDisplayConfig(m_d->multiSurfaceState->multiConfig.canvasDisplayConfig());
+    const KisDisplayConfig displayConfig = m_d->multiSurfaceState->multiConfig.canvasDisplayConfig();
+    m_d->prescaledProjection->setMonitorProfile(displayConfig.profile, displayConfig.intent, displayConfig.conversionFlags);
     m_d->prescaledProjection->setDisplayFilter(m_d->displayColorConverter.displayFilter());
     canvasWidget->setPrescaledProjection(m_d->prescaledProjection);
     setCanvasWidget(canvasWidget);

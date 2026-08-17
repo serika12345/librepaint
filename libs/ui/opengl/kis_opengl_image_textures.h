@@ -14,7 +14,7 @@
 
 #include "kis_shared.h"
 
-#include "canvas/kis_update_info.h"
+#include "kis_opengl_update_info.h"
 #include "opengl/kis_texture_tile.h"
 #include "KisOpenGLUpdateInfoBuilder.h"
 #include "KisOpenGLBufferCircularStorage.h"
@@ -219,4 +219,3 @@ private:
 };
 
 #endif // KIS_OPENGL_IMAGE_TEXTURES_H_
-

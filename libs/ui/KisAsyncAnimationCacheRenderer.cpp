@@ -7,7 +7,7 @@
 #include "KisAsyncAnimationCacheRenderer.h"
 
 #include "kis_animation_frame_cache.h"
-#include "kis_update_info.h"
+#include "opengl/kis_opengl_update_info.h"
 
 struct KisAsyncAnimationCacheRenderer::Private
 {
@@ -73,5 +73,4 @@ void KisAsyncAnimationCacheRenderer::clearFrameRegenerationState(bool isCancelle
 
     KisAsyncAnimationRendererBase::clearFrameRegenerationState(isCancelled);
 }
-
 

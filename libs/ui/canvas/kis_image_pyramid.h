@@ -15,6 +15,7 @@
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include "kis_projection_backend.h"
+#include "kis_projection_pixel_filter.h"
 
 
 class KisImagePyramid : QObject, public KisProjectionBackend
@@ -29,12 +30,12 @@ public:
     void setImageSize(qint32 w, qint32 h) override;
     void setMonitorProfile(const KoColorProfile* monitorProfile, KoColorConversionTransformation::Intent renderingIntent, KoColorConversionTransformation::ConversionFlags conversionFlags) override;
     void setChannelFlags(const QBitArray &channelFlags) override;
-    void setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter) override;
+    void setDisplayFilter(QSharedPointer<KisProjectionPixelFilter> displayFilter) override;
     void updateCache(const QRect &dirtyImageRect) override;
-    void recalculateCache(KisPPUpdateInfoSP info) override;
+    void recalculateCache(KisProjectionUpdateInfoSP info) override;
 
-    KisImagePatch getNearestPatch(KisPPUpdateInfoSP info) override;
-    void drawFromOriginalImage(QPainter& gc, KisPPUpdateInfoSP info) override;
+    KisImagePatch getNearestPatch(KisProjectionUpdateInfoSP info) override;
+    void drawFromOriginalImage(QPainter& gc, KisProjectionUpdateInfoSP info) override;
 
     /**
      * Render the projection onto a QImage.
@@ -109,7 +110,7 @@ private:
     const KoColorProfile* m_monitorProfile {0};
     const KoColorSpace* m_monitorColorSpace {0};
 
-    QSharedPointer<KisDisplayFilter> m_displayFilter;
+    QSharedPointer<KisProjectionPixelFilter> m_displayFilter;
 
     KoColorConversionTransformation::Intent m_renderingIntent { KoColorConversionTransformation::IntentPerceptual };
     KoColorConversionTransformation::ConversionFlags m_conversionFlags { KoColorConversionTransformation::Empty };

@@ -136,6 +136,7 @@
         "libs/canvas",
         "libs/flake",
         "libs/ui/canvas",
+        "libs/ui/opengl",
         "plugins/dockers"
       ],
       "ownerTargets": [
@@ -152,7 +153,7 @@
       ],
       "reviewedSourcePaths": [
         "libs/ui/kis_fps_decoration.cpp",
-        "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp"
+        "libs/ui/widgets/kis_scratch_pad.cpp"
       ],
       "uiClassAreas": [
         "canvas-display"
@@ -166,6 +167,12 @@
       "publicHeaderPaths": [
         "libs/canvas/KisCanvasState.h",
         "libs/canvas/kis_coordinates_converter.h",
+        "libs/canvas/kis_image_patch.h",
+        "libs/canvas/kis_prescaled_projection.h",
+        "libs/canvas/kis_projection_backend.h",
+        "libs/canvas/kis_projection_pixel_filter.h",
+        "libs/canvas/kis_projection_update_info.h",
+        "libs/canvas/kis_update_info.h",
         "libs/ui/KisAbstractFrameCacheSwapper.h",
         "libs/ui/KisAndroidScaling.h",
         "libs/ui/KisAsyncAnimationRendererBase.h",

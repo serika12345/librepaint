@@ -6,9 +6,7 @@
 
 #include "kis_projection_backend.h"
 
-KisProjectionBackend::~KisProjectionBackend()
-{
-}
+KisProjectionBackend::~KisProjectionBackend() = default;
 
 void KisProjectionBackend::alignSourceRect(QRect& rect, qreal scale)
 {

@@ -9,7 +9,7 @@
 #include <QPainter>
 #include "kis_debug.h"
 
-#include <math.h>
+#include <cmath>
 
 /****** Some helper functions *******/
 
@@ -79,8 +79,8 @@ void KisImagePatch::preScale(const QRectF &dstRect)
     qreal scaleX = dstRect.width() / m_interestRect.width();
     qreal scaleY = dstRect.height() / m_interestRect.height();
 
-    QSize newImageSize = QSize(ceil(m_image.width() * scaleX),
-                                   ceil(m_image.height() * scaleY));
+    QSize newImageSize = QSize(std::ceil(m_image.width() * scaleX),
+                               std::ceil(m_image.height() * scaleY));
     // Calculating new _aligned_ scale
     scaleX = qreal(newImageSize.width()) / m_image.width();
     scaleY = qreal(newImageSize.height()) / m_image.height();
