@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-17 10:39 JST
-- 状態: `in_progress`
-- 現在の検査段階: R1-G6a リソース表示境界
+- 更新日時: 2026-08-17 12:33 JST
+- 状態: `planned`
+- 現在の検査段階: R1-G6b 描画実行境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6a-resource-ui-boundary`
-- 目的: `libs/resourcewidgets`を`libs/resources/ui`へ、`libs/ui`と
-  `libs/ui/widgets`の描画設定表示を`libs/tools/ui`へ移し、リソース管理から描画への
-  逆方向依存を解消する。
+- 目的: 描画特性契約を追加し、`libs/ui/tool/strokes`を`libs/painting/strokes`へ、
+  `libs/command`の画像・キャンバス向け取り消し処理を`libs/painting/undo`へ、
+  `libs/metadata`の画像メタデータ型を`libs/painting/metadata`へ移す。
 
 ## 再開環境
 
@@ -282,12 +282,29 @@
   `TestResourceStorageArchiveContract`、`TestXmlWriter`と9件の登録済みタイル試験は成功する。
 - `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
   同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
+- `nix develop .#test --command ./scripts/run-test TestResourceUiContract`、
+  `TestToolSettingsUiContract`、`TestKisPaletteModel`: macOSでリソース記述子、描画設定表示、
+  パレットモデルの契約が成功した。
+- macOSで`kritaui`、iOSでLibrePaint本体まで構築し、表示境界の分離後もリンクが成功した。
+- `ssh nixos`上のx86_64 Linuxで`kritaui`、Android arm64-v8aで
+  `libkritaui_arm64-v8a.so`、Windows x86_64で`libkritaui.dll`の構築とリンクが成功した。
+- 5構成のCMake台帳を再生成した。macOS 630件、Linux 645件、iOS 564件、Android 570件、
+  Windows 600件のターゲット、548件の共通ターゲット、119件の条件付きターゲット、
+  250件の構成差を持つターゲットを記録した。
+- `nix develop .#test --command ./scripts/verify-quick`: 88件の単体試験、責務・依存・構造台帳、
+  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems`: 表示境界分離後の全Nix出力の評価が成功した。
+- `nix develop .#test --command ./scripts/verify`: macOSの全2,395構築工程が成功し、
+  CTest 316件中279件が成功した。追加した表示境界契約はすべて成功し、残る37件は
+  既存の画像基準、Qt 6モデル契約、macOS環境、300秒制限、セグメンテーション違反で失敗する。
 
 ## 次の操作
 
-`libs/resourcewidgets`と`libs/ui`のリソース設定表示について、表示の煙試験と型付き
-リソース記述子の契約を先に追加する。続いて`kritaresourceui`と`kritatoolsui`を分離し、
-リソース管理から描画への40件の逆方向includeをゼロへ縮小する。
+`libs/ui/tool/strokes`、`libs/command`、`libs/metadata`を起点として、画像状態、ストローク順序、
+取り消し、投影の特性契約と公開画像ヘッダーの構築契約を先に追加する。続いて
+`libs/painting/strokes`、`libs/painting/undo`、`libs/painting/metadata`へ所有権を移し、
+`kritapainting`を構築する。描画から文書寿命への95件の逆方向includeと、`kritaimage`の
+内部ヘッダー29件に対する593件のパッケージ外参照をゼロへ縮小する。
 
 ## R1-G5完了根拠
 
