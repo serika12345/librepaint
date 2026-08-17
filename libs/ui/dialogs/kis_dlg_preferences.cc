@@ -79,7 +79,6 @@
 #include <kis_image.h>
 #include <KisSqueezedComboBox.h>
 #include "kis_cie_tongue_widget.h"
-#include "kis_clipboard.h"
 #include "widgets/kis_cmb_idlist.h"
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
@@ -235,7 +234,7 @@ QIcon addDisabledStatesToIcon(const QIcon &_icon, const QSize &size) {
     return icon;
 }
 
-GeneralTab::GeneralTab(QWidget *_parent, const char *_name)
+GeneralTab::GeneralTab(QWidget *_parent, const KisImportExportPreferenceOptions &importExportOptions, const char *_name)
     : WdgGeneralSettings(_parent, _name)
 {
     KisConfig cfg(true);
@@ -458,7 +457,7 @@ GeneralTab::GeneralTab(QWidget *_parent, const char *_name)
     intNumBackupFiles->setValue(cfg.readEntry<int>("numberofbackupfiles", 1));
 
     cmbDefaultExportFileType->clear(); 
-    QStringList mimeFilter = KisImportExportManager::supportedMimeTypes(KisImportExportManager::Export);
+    const QStringList &mimeFilter = importExportOptions.exportMimeTypes;
 
         QMap<QString, QString> mimeTypeMap;
 
@@ -710,10 +709,10 @@ GeneralTab::GeneralTab(QWidget *_parent, const char *_name)
     intForcedFontDPI->setEnabled(forcedFontDPI > 0);
     connect(chkForcedFontDPI, SIGNAL(toggled(bool)), intForcedFontDPI, SLOT(setEnabled(bool)));
 
-    m_pasteFormatGroup.addButton(btnDownload, KisClipboard::PASTE_FORMAT_DOWNLOAD);
-    m_pasteFormatGroup.addButton(btnLocal, KisClipboard::PASTE_FORMAT_LOCAL);
-    m_pasteFormatGroup.addButton(btnBitmap, KisClipboard::PASTE_FORMAT_CLIP);
-    m_pasteFormatGroup.addButton(btnAsk, KisClipboard::PASTE_FORMAT_ASK);
+    m_pasteFormatGroup.addButton(btnDownload, importExportOptions.pasteFormatDownload);
+    m_pasteFormatGroup.addButton(btnLocal, importExportOptions.pasteFormatLocal);
+    m_pasteFormatGroup.addButton(btnBitmap, importExportOptions.pasteFormatBitmap);
+    m_pasteFormatGroup.addButton(btnAsk, importExportOptions.pasteFormatAsk);
 
     QAbstractButton *button = m_pasteFormatGroup.button(cfg.pasteFormat(false));
 
@@ -1208,7 +1207,7 @@ void ShortcutSettingsTab::cancelChanges()
     m_page->undo();
 }
 
-ColorSettingsTab::ColorSettingsTab(QWidget *parent, const char *name)
+ColorSettingsTab::ColorSettingsTab(QWidget *parent, const KisImportExportPreferenceOptions &importExportOptions, const char *name)
     : QWidget(parent)
     , m_proofModel(new KisProofingConfigModel())
 {
@@ -1460,9 +1459,9 @@ ColorSettingsTab::ColorSettingsTab(QWidget *parent, const char *name)
     connect(m_page->cmbMonitorIntent, SIGNAL(currentIndexChanged(int)), this, SLOT(updateProofingDisplayInfo()));
     updateProofingDisplayInfo();
 
-    m_pasteBehaviourGroup.addButton(m_page->radioPasteWeb, KisClipboard::PASTE_ASSUME_WEB);
-    m_pasteBehaviourGroup.addButton(m_page->radioPasteMonitor, KisClipboard::PASTE_ASSUME_MONITOR);
-    m_pasteBehaviourGroup.addButton(m_page->radioPasteAsk, KisClipboard::PASTE_ASK);
+    m_pasteBehaviourGroup.addButton(m_page->radioPasteWeb, importExportOptions.pasteAssumeWeb);
+    m_pasteBehaviourGroup.addButton(m_page->radioPasteMonitor, importExportOptions.pasteAssumeMonitor);
+    m_pasteBehaviourGroup.addButton(m_page->radioPasteAsk, importExportOptions.pasteAsk);
 
     QAbstractButton *button = m_pasteBehaviourGroup.button(cfg.pasteBehaviour());
     Q_ASSERT(button);
@@ -2667,7 +2666,7 @@ void PopupPaletteTab::slotSelectorTypeChanged(int index) {
 
 //---------------------------------------------------------------------------------------------------
 
-KisDlgPreferences::KisDlgPreferences(QWidget* parent, const char* name)
+KisDlgPreferences::KisDlgPreferences(QWidget *parent, const KisImportExportPreferenceOptions &importExportOptions, const char *name)
     : KPageDialog(parent)
 {
     Q_UNUSED(name);
@@ -2684,7 +2683,7 @@ KisDlgPreferences::KisDlgPreferences(QWidget* parent, const char* name)
     page->setIcon(KisIconUtils::loadIcon("config-general"));
     m_pages << page;
     addPage(page);
-    m_general = new GeneralTab(vbox);
+    m_general = new GeneralTab(vbox, importExportOptions);
 
     // Shortcuts
     vbox = new KoVBox();
@@ -2724,7 +2723,7 @@ KisDlgPreferences::KisDlgPreferences(QWidget* parent, const char* name)
     page->setIcon(KisIconUtils::loadIcon("config-color-manage"));
     m_pages << page;
     addPage(page);
-    m_colorSettings = new ColorSettingsTab(vbox);
+    m_colorSettings = new ColorSettingsTab(vbox, importExportOptions);
 
     // Performance
     vbox = new KoVBox();

@@ -54,7 +54,7 @@ class QDomDocument;
 class KisReferenceImagesLayer;
 class KisUniqueColorSet;
 
-#define KIS_MIME_TYPE "application/x-krita"
+#include <KisImportExportMimeType.h>
 
 /**
  *  KisDocument contains the image and keeps track of loading,

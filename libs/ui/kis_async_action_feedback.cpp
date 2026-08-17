@@ -11,6 +11,7 @@
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
 #include <QProgressDialog>
+#include <KLocalizedString>
 
 
 struct KisAsyncActionFeedback::Private
@@ -33,26 +34,6 @@ KisAsyncActionFeedback::KisAsyncActionFeedback(const QString &message, QWidget *
 
 KisAsyncActionFeedback::~KisAsyncActionFeedback()
 {
-}
-
-template <typename T>
-T runActionImpl(std::function<T()> func)
-{
-    QFuture<T> result = QtConcurrent::run(func);
-    QFutureWatcher<T> watcher;
-    watcher.setFuture(result);
-
-    while (watcher.isRunning()) {
-        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-    }
-
-    watcher.waitForFinished();
-    return watcher.result();
-}
-
-KisImportExportErrorCode KisAsyncActionFeedback::runAction(std::function<KisImportExportErrorCode()> func)
-{
-    return runActionImpl(func);
 }
 
 void KisAsyncActionFeedback::runVoidAction(std::function<void()> func)

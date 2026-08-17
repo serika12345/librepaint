@@ -45,11 +45,11 @@
 #ifdef Q_OS_ANDROID
 #include <QButtonGroup>
 #include <QJsonDocument>
-#include "animation/KisMediaEncoderFormatPreferencesDialog.h"
-#include "animation/KisMediaEncoderWrapper.h"
+#include <KisMediaEncoderFormatPreferencesDialog.h>
+#include <KisMediaEncoderWrapper.h>
 #else
 #include "VideoExportOptionsDialog.h"
-#include "animation/KisFFMpegWrapper.h"
+#include "KisFFMpegWrapper.h"
 #endif
 
 

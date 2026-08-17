@@ -30,12 +30,12 @@
 #include "KisPart.h"
 
 #ifdef Q_OS_ANDROID
-#include "animation/KisMediaEncoderWrapper.h"
+#include <KisMediaEncoderWrapper.h>
 #include <KisAndroidUtils.h>
 #include <QJsonDocument>
 #include <QTemporaryFile>
 #else
-#include "animation/KisFFMpegWrapper.h"
+#include "KisFFMpegWrapper.h"
 #endif
 
 KisAnimationVideoSaver::KisAnimationVideoSaver(KisDocument *doc, bool batchMode)

@@ -6,6 +6,8 @@
 
 #include "KisImportExportManager.h"
 
+#include <memory>
+
 #include <QDir>
 #include <QFile>
 #include <QLabel>
@@ -13,10 +15,8 @@
 #include <QList>
 #include <QApplication>
 #include <QByteArray>
-#include <QPluginLoader>
 #include <QFileInfo>
 #include <QMessageBox>
-#include <QJsonObject>
 #include <QTextBrowser>
 #include <QCheckBox>
 #include <QSaveFile>
@@ -27,18 +27,17 @@
 
 #include <klocalizedstring.h>
 #include <ksqueezedtextlabel.h>
-#include <kpluginfactory.h>
 
 #include <KisMimeDatabase.h>
 #include <KisPart.h>
 #include <KisPopupButton.h>
 #include <KisPreExportChecker.h>
+#include <KisImportExportFilterRegistry.h>
 #include <KisUsageLogger.h>
 #include <KoColorProfile.h>
 #include <KoColorProfileConstants.h>
 #include <KoDialog.h>
 #include <KoFileDialog.h>
-#include <KoJsonTrader.h>
 #include <KoProgressUpdater.h>
 #include <kis_assert.h>
 #include <kis_config_widget.h>
@@ -51,12 +50,12 @@
 #include <kis_painter.h>
 
 #include "KisDocument.h"
+#include "KisImportExportAsyncFeedback.h"
 #include "KisImportExportErrorCode.h"
 #include "KisImportExportFilter.h"
+#include "KisImportExportResizeWidget.h"
 #include "KisMainWindow.h"
 #include "KisReferenceImagesLayer.h"
-#include "imagesize/wdg_imagesize.h"
-#include "kis_async_action_feedback.h"
 #include "kis_config.h"
 #include <kis_image_config.h>
 #include "kis_grid_config.h"
@@ -65,34 +64,7 @@
 #include <kis_filter_mask.h>
 
 #include <KisImportUserFeedbackInterface.h>
-
-// static cache for import and export mimetypes
-QStringList KisImportExportManager::m_importMimeTypes;
-QStringList KisImportExportManager::m_exportMimeTypes;
-
-namespace {
-struct SynchronousUserFeedbackInterface : KisImportUserFeedbackInterface
-{
-    SynchronousUserFeedbackInterface(QWidget *parent, bool batchMode)
-        : m_parent(parent)
-        , m_batchMode(batchMode)
-    {
-    }
-
-    Result askUser(AskCallback callback) override
-    {
-        if (m_batchMode) return SuppressedByBatchMode;
-        KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(m_parent, SuppressedByBatchMode);
-
-        return callback(m_parent) ? Success : UserCancelled;
-    }
-
-    QWidget *m_parent {nullptr};
-    bool m_batchMode {false};
-};
-
-}
-
+#include <KisSynchronousImportUserFeedback.h>
 
 class Q_DECL_HIDDEN KisImportExportManager::Private
 {
@@ -188,91 +160,17 @@ QFuture<KisImportExportErrorCode> KisImportExportManager::exportDocumentAsync(co
 // graph this mimetype has a connection to.
 QStringList KisImportExportManager::supportedMimeTypes(Direction direction)
 {
-    // Find the right mimetype by the extension
-    QSet<QString> mimeTypes;
-    //    mimeTypes << KisDocument::nativeFormatMimeType() << "application/x-krita-paintoppreset" << "image/openraster";
-
-    if (direction == KisImportExportManager::Import) {
-        if (m_importMimeTypes.isEmpty()) {
-            QList<KoJsonTrader::Plugin> list = KoJsonTrader::instance()->query("Krita/FileFilter", "");
-            Q_FOREACH(const KoJsonTrader::Plugin &loader, list) {
-                QJsonObject json = loader.metaData().value("MetaData").toObject();
-                Q_FOREACH(const QString &mimetype, json.value("X-KDE-Import").toString().split(",", Qt::SkipEmptyParts)) {
-
-                    //qDebug() << "Adding  import mimetype" << mimetype << KisMimeDatabase::descriptionForMimeType(mimetype) << "from plugin" << loader;
-                    mimeTypes << mimetype;
-                }
-            }
-            m_importMimeTypes = QList<QString>(mimeTypes.begin(), mimeTypes.end());
-        }
-        return m_importMimeTypes;
-    }
-    else if (direction == KisImportExportManager::Export) {
-        if (m_exportMimeTypes.isEmpty()) {
-            QList<KoJsonTrader::Plugin> list = KoJsonTrader::instance()->query("Krita/FileFilter", "");
-            Q_FOREACH(const KoJsonTrader::Plugin &loader, list) {
-                QJsonObject json = loader.metaData().value("MetaData").toObject();
-                Q_FOREACH(const QString &mimetype, json.value("X-KDE-Export").toString().split(",", Qt::SkipEmptyParts)) {
-
-                    //qDebug() << "Adding  export mimetype" << mimetype << KisMimeDatabase::descriptionForMimeType(mimetype) << "from plugin" << loader;
-                    mimeTypes << mimetype;
-                }
-            }
-            m_exportMimeTypes = QList<QString>(mimeTypes.begin(), mimeTypes.end());
-        }
-        return m_exportMimeTypes;
-    }
-    return QStringList();
+    return KisImportExportFilterRegistry::supportedMimeTypes(
+        direction == Export ? KisImportExportFilterRegistry::Export
+                            : KisImportExportFilterRegistry::Import);
 }
 
 KisImportExportFilter *KisImportExportManager::filterForMimeType(const QString &mimetype, KisImportExportManager::Direction direction)
 {
-    int weight = -1;
-    KisImportExportFilter *filter = 0;
-    QList<KoJsonTrader::Plugin>list = KoJsonTrader::instance()->query("Krita/FileFilter", "");
-
-    Q_FOREACH(const KoJsonTrader::Plugin &loader, list) {
-        QJsonObject json = loader.metaData().value("MetaData").toObject();
-        QString directionKey = direction == Export ? "X-KDE-Export" : "X-KDE-Import";
-
-        if (json.value(directionKey).toString().split(",", Qt::SkipEmptyParts).contains(mimetype)) {
-
-            KPluginFactory *factory = qobject_cast<KPluginFactory *>(loader.instance());
-
-            if (!factory) {
-                warnUI << loader.errorString();
-                continue;
-            }
-
-            QObject* obj = factory->create<KisImportExportFilter>(0);
-            if (!obj || !obj->inherits("KisImportExportFilter")) {
-                delete obj;
-                continue;
-            }
-
-            KisImportExportFilter *f = qobject_cast<KisImportExportFilter*>(obj);
-            if (!f) {
-                delete obj;
-                continue;
-            }
-
-            KIS_ASSERT_RECOVER_NOOP(json.value("X-KDE-Weight").isDouble());
-
-            int w = json.value("X-KDE-Weight").toInt();
-
-            if (w > weight) {
-                delete filter;
-                filter = f;
-                f->setObjectName(loader.fileName());
-                weight = w;
-            }
-        }
-    }
-
-    if (filter) {
-        filter->setMimeType(mimetype);
-    }
-    return filter;
+    return KisImportExportFilterRegistry::createFilter(
+        mimetype,
+        direction == Export ? KisImportExportFilterRegistry::Export
+                            : KisImportExportFilterRegistry::Import);
 }
 
 bool KisImportExportManager::batchMode(void) const
@@ -360,7 +258,7 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
 
     if (direction == Import) {
         KisMainWindow *kisMain = KisPart::instance()->currentMainwindow();
-        filter->setImportUserFeedBackInterface(new SynchronousUserFeedbackInterface(kisMain, batchMode()));
+        filter->setImportUserFeedBackInterface(new KisSynchronousImportUserFeedback(kisMain, batchMode()));
     }
 
     if (!d->updater.isNull()) {
@@ -400,8 +298,10 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
 
         // FIXME: Dmitry says "this progress reporting code never worked. Initial idea was to implement it his way, but I stopped and didn't finish it"
         if (0 && !batchMode()) {
-            KisAsyncActionFeedback f(i18n("Opening document..."), 0);
-            result = f.runAction(std::bind(&KisImportExportManager::doImport, this, location, filter));
+            result = runImportExportActionWithFeedback(
+                i18n("Opening document..."),
+                nullptr,
+                std::bind(&KisImportExportManager::doImport, this, location, filter));
         } else {
             result = doImport(location, filter);
         }
@@ -468,9 +368,15 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
             result.setStatus(ImportExportCodes::OK);
 
         } else if (!batchMode()) {
-            KisAsyncActionFeedback f(i18n("Saving document..."), 0);
-            result = f.runAction(std::bind(&KisImportExportManager::doExport, this, location, filter,
-                                           exportConfiguration, alsoAsKraLocation));
+            result = runImportExportActionWithFeedback(
+                i18n("Saving document..."),
+                nullptr,
+                std::bind(&KisImportExportManager::doExport,
+                          this,
+                          location,
+                          filter,
+                          exportConfiguration,
+                          alsoAsKraLocation));
         } else {
             result = doExport(location, filter, exportConfiguration, alsoAsKraLocation);
         }
@@ -673,12 +579,16 @@ bool KisImportExportManager::askUserAboutExportConfiguration(
             box->addTab(wdg,i18n("Options"));
         }
 
-        WdgImageSize *wdgImageSize = nullptr;
+        std::unique_ptr<KisImportExportResizeWidget> resizeWidget;
 
         if (isAdvancedExporting) {
-            wdgImageSize = new WdgImageSize(box, m_document->image()->width(), m_document->image()->height(), m_document->image()->yRes());
+            resizeWidget = createImportExportResizeWidget(
+                box,
+                m_document->image()->width(),
+                m_document->image()->height(),
+                m_document->image()->yRes());
 
-            box->addTab(wdgImageSize,i18n("Resize"));
+            box->addTab(resizeWidget->widget(), i18n("Resize"));
         }
         layout->addWidget(box);
 
@@ -707,17 +617,17 @@ bool KisImportExportManager::askUserAboutExportConfiguration(
             *alsoAsKra = chkAlsoAsKra->isChecked();
         }
 
-        KIS_SAFE_ASSERT_RECOVER_NOOP(bool(isAdvancedExporting) == bool(wdgImageSize));
+        KIS_SAFE_ASSERT_RECOVER_NOOP(bool(isAdvancedExporting) == bool(resizeWidget));
 
-        if (isAdvancedExporting && wdgImageSize) {
+        if (isAdvancedExporting && resizeWidget) {
             if (shouldFlattenTheImageBeforeScaling) {
                 m_document->savingImage()->flatten(KisNodeSP());
                 m_document->savingImage()->waitForDone();
             }
 
-            const QSize desiredSize(wdgImageSize->desiredWidth(), wdgImageSize->desiredHeight());
-            double res = wdgImageSize->desiredResolution();
-            m_document->savingImage()->scaleImage(desiredSize,res,res,wdgImageSize->filterType());
+            const QSize desiredSize = resizeWidget->desiredSize();
+            double res = resizeWidget->desiredResolution();
+            m_document->savingImage()->scaleImage(desiredSize, res, res, resizeWidget->filterType());
             m_document->savingImage()->waitForDone();
             KisLayerUtils::forceAllDelayedNodesUpdate(m_document->savingImage()->root());
             m_document->savingImage()->waitForDone();

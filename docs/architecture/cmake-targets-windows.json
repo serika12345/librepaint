@@ -348,6 +348,15 @@
       ]
     },
     {
+      "name": "KisMimeDatabaseTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/koplugin/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "kritaplugin"
+      ]
+    },
+    {
       "name": "KisModelIndexConverterTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
@@ -969,6 +978,25 @@
         "kritaflake",
         "kritatestsdk",
         "kritaxmlserialization"
+      ]
+    },
+    {
+      "name": "TestImportExportBoundary",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/impex/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "kritaimpex"
+      ]
+    },
+    {
+      "name": "TestImportExportUiBoundary",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/impex/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "Qt6::Widgets",
+        "kritaui"
       ]
     },
     {
@@ -4338,7 +4366,37 @@
       "dependencies": [
         "KF6::CoreAddons",
         "KF6::I18n",
-        "kritaimage"
+        "kritaimage",
+        "kritaplugin",
+        "kritaresourcestorage",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritaimpexui",
+      "type": "OBJECT_LIBRARY",
+      "sourceDirectory": "libs/impex",
+      "dependencies": [
+        "KF6::Completion",
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "KF6::ItemViews",
+        "Qt6::Concurrent",
+        "Qt6::Network",
+        "Qt6::Widgets",
+        "kritaimage",
+        "kritaimpex",
+        "kritalibbrush",
+        "kritapainting",
+        "kritapaintingmetadata",
+        "kritapaintingundo",
+        "kritapigment",
+        "kritaresources",
+        "kritaresourcestorage",
+        "kritaresourceui",
+        "kritawidgets",
+        "kritawidgetutils",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -5616,6 +5674,7 @@
         "kritacolor",
         "kritaimage",
         "kritaimpex",
+        "kritaimpexui",
         "kritalibbrush",
         "kritapainting",
         "kritaresources",

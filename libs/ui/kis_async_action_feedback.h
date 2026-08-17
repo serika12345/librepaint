@@ -9,8 +9,7 @@
 
 #include <QScopedPointer>
 #include <functional>
-#include "KisImportExportFilter.h"
-
+#include <memory>
 class QWidget;
 class QMutex;
 
@@ -25,7 +24,6 @@ public:
     KisAsyncActionFeedback(const QString &message, QWidget *parent);
     ~KisAsyncActionFeedback();
 
-    KisImportExportErrorCode runAction(std::function<KisImportExportErrorCode()> func);
     void runVoidAction(std::function<void()> func);
 
     template <typename Mutex>

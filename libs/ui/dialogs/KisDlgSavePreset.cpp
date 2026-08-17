@@ -12,9 +12,9 @@
 #include <QVBoxLayout>
 #include <QDialogButtonBox>
 #include <QMessageBox>
+#include <QImageReader>
 
 #include <KoFileDialog.h>
-#include "KisImportExportManager.h"
 #include "QDesktopServices"
 #include <kis_paintop_preset_icon_library.h>
 #include <KisResourceUserOperations.h>
@@ -100,7 +100,11 @@ void KisPresetSaveWidget::loadImageFromFile()
 {
     // create a dialog to retrieve an image file.
     KoFileDialog dialog(0, KoFileDialog::OpenFile, "OpenDocument");
-    dialog.setMimeTypeFilters(KisImportExportManager::supportedMimeTypes(KisImportExportManager::Import));
+    QStringList mimeTypes;
+    for (const QByteArray &mimeType : QImageReader::supportedMimeTypes()) {
+        mimeTypes.append(QString::fromLatin1(mimeType));
+    }
+    dialog.setMimeTypeFilters(mimeTypes);
     dialog.setDefaultDir(QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
     QString filename = dialog.filename(); // the filename() returns the entire path & file name, not just the file name
 

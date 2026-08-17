@@ -40,8 +40,8 @@
 
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>
 #ifndef Q_OS_IOS
-#include <animation/KisAnimationRenderingOptions.h>
-#include <animation/KisAnimationRender.h>
+#include <KisAnimationRenderingOptions.h>
+#include <KisAnimationRender.h>
 #endif
 #include <kis_image_animation_interface.h>
 #include <kis_image_config.h>
@@ -49,7 +49,7 @@
 #include <KisMimeDatabase.h>
 
 #ifdef Q_OS_ANDROID
-#include <animation/KisAndroidMediaEncoderRunnable.h>
+#include <KisAndroidMediaEncoderRunnable.h>
 #endif
 
 

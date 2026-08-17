@@ -11,11 +11,12 @@
 #include <QRect>
 
 #include <kis_types.h>
+#include <kis_image.h>
+#include <kis_node.h>
 #include <kritaui_export.h>
 
 class KisShapeController;
 class KisNodeDummy;
-class KisNodeInsertionAdapter;
 class KisNodeGraphListener;
 class KisProcessingApplicator;
 class KisDisplayConfig;
@@ -29,6 +30,14 @@ class KRITAUI_EXPORT KisMimeData : public QMimeData
 {
     Q_OBJECT
 public:
+    class NodeInsertionInterface
+    {
+    public:
+        virtual ~NodeInsertionInterface() = default;
+        virtual void moveNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis) = 0;
+        virtual void addNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis) = 0;
+    };
+
     KisMimeData(QList<KisNodeSP> nodes, KisImageSP image, bool forceCopy = false);
 
     /// return the node set on this mimedata object -- for internal use
@@ -108,7 +117,7 @@ public:
                                  KisNodeDummy *parentDummy,
                                  KisNodeDummy *aboveThisDummy,
                                  bool copyNode,
-                                 KisNodeInsertionAdapter *nodeInsertionAdapter,
+                                 NodeInsertionInterface *nodeInsertionAdapter,
                                  bool changeOffset = false,
                                  QPointF offset = QPointF(),
                                  KisProcessingApplicator *applicator = nullptr);

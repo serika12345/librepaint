@@ -54,7 +54,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "current-production-package-responsibilities",
         )
         self.assertEqual(len(responsibility_map["responsibilities"]), 9)
-        self.assertEqual(len(responsibility_map["targetRelations"]), 18)
+        self.assertEqual(len(responsibility_map["targetRelations"]), 19)
         by_id = {
             entry["id"]: entry
             for entry in responsibility_map["responsibilities"]
@@ -78,7 +78,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
                 "kritaui" in entry["ownerTargets"]
                 for entry in responsibility_map["responsibilities"]
             ),
-            6,
+            5,
         )
         self.assertEqual(
             by_id["canvas-presentation"]["reviewedPublicHeaderPaths"],

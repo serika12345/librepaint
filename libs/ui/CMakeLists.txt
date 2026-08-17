@@ -61,11 +61,9 @@ set(kritaui_LIB_SRCS
     dialogs/kis_dlg_stroke_selection_properties.cpp
     dialogs/kis_dlg_image_properties.cc
     dialogs/kis_dlg_layer_properties.cc
-    dialogs/kis_dlg_paste_format.cpp
     dialogs/kis_dlg_preferences.cc
     dialogs/slider_and_spin_box_sync.cpp
     dialogs/kis_dlg_layer_style.cpp
-    dialogs/kis_dlg_png_import.cpp
     dialogs/kis_dlg_import_image_sequence.cpp
     dialogs/kis_delayed_save_dialog.cpp
     dialogs/KisSessionManagerDialog.cpp
@@ -73,7 +71,6 @@ set(kritaui_LIB_SRCS
     dialogs/KisDlgChangeCloneSource.cpp
     dialogs/KisRecoverNamedAutosaveDialog.cpp
     dialogs/KisDlgSavePreset.cpp
-    dialogs/kis_dlg_missing_color_profile.cpp
     dialogs/kis_dlg_hlg_import.cpp
     dialogs/KisDlgConfigureCumulativeUndo.cpp
     dialogs/KisCumulativeUndoModel.cpp
@@ -104,7 +101,6 @@ set(kritaui_LIB_SRCS
     KisPresetShadowUpdater.cpp
     kis_canvas_resource_provider.cpp
     kis_derived_resources.cpp
-    kis_clipboard.cc
     kis_config.cc
     KisOcioConfiguration.cpp
     kis_control_frame.cpp
@@ -112,16 +108,13 @@ set(kritaui_LIB_SRCS
     kis_custom_pattern.cc
     kis_file_layer.cpp
     kis_change_file_layer_command.h
-    kis_safe_document_loader.cpp
     kis_splash_screen.cpp
     kis_filter_manager.cc
     kis_filters_model.cc
     kis_image_manager.cc
     kis_image_view_converter.cpp
-    kis_import_catcher.cc
     kis_layer_manager.cc
     kis_mask_manager.cc
-    kis_mimedata.cpp
     kis_node_commands_adapter.cpp
     kis_node_manager.cpp
     kis_node_juggler_compressed.cpp
@@ -143,7 +136,6 @@ set(kritaui_LIB_SRCS
     KisDecorationsManager.cpp
     kis_paintop_box.cc
     kis_popup_palette.cpp
-    kis_png_converter.cpp
     kis_preference_set_registry.cpp
     KisResourceServerProvider.cpp
     KisSelectedShapesProxy.cpp
@@ -391,12 +383,10 @@ set(kritaui_LIB_SRCS
     KisAutoSaveRecoveryDialog.cpp
     KisDetailsPane.cpp
     KisDocument.cpp
+    KisImportExportColorSpaceDialog.cpp
+    KisImportExportResizeWidget.cpp
     KisCloneDocumentStroke.cpp
     kis_node_view_color_scheme.cpp
-    KisImportExportFilter.cpp
-    KisImportExportManager.cpp
-    KisImportExportUtils.cpp
-    KisImportUserFeedbackInterface.cpp
     kis_async_action_feedback.cpp
     KisMainWindow.cpp
     KisOpenPane.cpp
@@ -410,8 +400,6 @@ set(kritaui_LIB_SRCS
     KisUndoActionsUpdateManager.cpp
     KisView.cpp
     KisCanvasWindow.cpp
-    KisImportExportErrorCode.cpp
-    KisImportExportAdditionalChecks.cpp
 
     thememanager.cpp
 
@@ -424,9 +412,7 @@ set(kritaui_LIB_SRCS
 
     KisApplicationArguments.cpp
 
-    KisRemoteFileFetcher.cpp
 
-    KisSaveGroupVisitor.cpp
     KisWindowLayoutResource.cpp
     KisWindowLayoutManager.cpp
     KisSessionResource.cpp
@@ -447,22 +433,6 @@ set(kritaui_LIB_SRCS
     KisNodeActivationActionCreatorVisitor.cpp
     KisAndroidFileProxy.cpp
 )
-
-# iOS does not provide QProcess. Keep animation playback/editing support, but
-# omit the FFmpeg-based import and rendering UI that launches host processes.
-if (NOT IOS)
-    list(APPEND kritaui_LIB_SRCS
-        animation/KisFFMpegWrapper.cpp
-        animation/KisVideoSaver.cpp
-        animation/KisAnimationRenderingOptions.cpp
-        animation/KisAnimationRender.cpp
-        animation/KisDlgAnimationRenderer.cpp
-        animation/VideoExportOptionsDialog.cpp
-        animation/VideoHDRMetadataOptionsDialog.cpp
-        animation/KisHDRMetadataOptions.cpp
-        animation/KisDlgImportVideoAnimation.cpp
-    )
-endif()
 
 if (KSeExpr_FOUND)
     set(kritaui_LIB_SRCS ${kritaui_LIB_SRCS}
@@ -501,7 +471,6 @@ endif()
         dialogs/KisAsyncAnimationCacheRenderDialog.cpp
         dialogs/KisAsyncAnimationFramesSaveDialog.cpp
         canvas/KisCanvasAnimationState.cpp	
-        kis_animation_importer.cpp
         KisFrameDataSerializer.cpp
         KisFrameCacheStore.cpp
         KisFrameCacheSwapper.cpp
@@ -523,10 +492,6 @@ endif()
 if(ANDROID)
     list(APPEND kritaui_LIB_SRCS
         KisAndroidSplash.cpp
-        animation/KisAndroidMediaEncoderRunnable.cpp
-        animation/KisLibavMediaEncoderRunnable.cpp
-        animation/KisMediaEncoderFormatPreferencesDialog.cpp
-        animation/KisMediaEncoderWrapper.cpp
     )
 endif()
 
@@ -537,7 +502,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     widgets/KisAutoLevelsWidget.ui
 
     forms/wdgaboutapplication.ui
-    forms/wdgdlgpngimport.ui
     forms/wdgfullscreensettings.ui
     forms/wdgsegmentgradienteditor.ui
     forms/wdggeneralsettings.ui
@@ -586,8 +550,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     forms/koDocumentInfoAboutWidget.ui
     forms/koDocumentInfoAuthorWidget.ui
     forms/WdgPopupPaletteSettings.ui
-    forms/wdgMissingColorProfile.ui
-    forms/wdgPasteFormat.ui
     forms/wdgconvertcolorspace.ui
 
 
@@ -619,11 +581,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
 
     wdgsplash.ui
     input/wintab/drawpile_tablettester/tablettest.ui
-
-    animation/wdg_animationrenderer.ui
-    animation/video_export_options_dialog.ui
-    animation/VideoHDRMetadataOptionsDialog.ui
-    animation/VideoImportDialog.ui
 
     imagesize/wdg_imagesize.ui
     imagesize/wdg_layersize.ui
@@ -693,6 +650,7 @@ target_link_libraries(kritaui
         kritaresourcestorage
         kritatoolsui
     PRIVATE
+        kritaimpexui
         kritaresourceui
         kritaxmlserialization
 )
@@ -783,6 +741,8 @@ endif()
 
 target_include_directories(kritaui
     PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/impex/ui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/impex/animation>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/canvas>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/flake>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ora>

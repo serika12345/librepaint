@@ -301,7 +301,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -319,11 +318,6 @@
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "document-lifecycle",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
           "status": "allowed"
         },
         {
@@ -382,7 +376,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -400,11 +393,6 @@
         {
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "import-export",
           "status": "requires-r1-g4-baseline"
         },
         {
@@ -585,6 +573,210 @@
         {
           "sourceResponsibility": "import-export",
           "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpex",
+      "dependencyTarget": "kritaplugin",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "plugin-infrastructure"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "plugin-infrastructure",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpex",
+      "dependencyTarget": "kritaresourcestorage",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritaimpex",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "import-export",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritalibbrush",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritapainting",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritapaintingmetadata",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritapaintingundo",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritapigment",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritaresourcestorage",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritaresourceui",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "resource-management",
           "status": "allowed"
         }
       ]
@@ -868,7 +1060,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -888,11 +1079,6 @@
         },
         {
           "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "import-export",
           "dependencyResponsibility": "painting-rendering",
           "status": "allowed"
         },
@@ -915,7 +1101,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -939,11 +1124,6 @@
           "status": "allowed"
         },
         {
-          "sourceResponsibility": "import-export",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "painting-rendering",
           "status": "requires-r1-g4-baseline"
@@ -962,7 +1142,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -986,9 +1165,45 @@
           "status": "allowed"
         },
         {
-          "sourceResponsibility": "import-export",
+          "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "import-export",
-          "status": "internal"
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritaimpexui",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "import-export",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "status": "allowed"
         },
         {
           "sourceResponsibility": "input-interpretation",
@@ -1009,7 +1224,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -1029,11 +1243,6 @@
         },
         {
           "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "import-export",
           "dependencyResponsibility": "painting-rendering",
           "status": "allowed"
         },
@@ -1056,7 +1265,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -1080,11 +1288,6 @@
           "status": "allowed"
         },
         {
-          "sourceResponsibility": "import-export",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "painting-rendering",
           "status": "requires-r1-g4-baseline"
@@ -1103,7 +1306,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -1123,11 +1325,6 @@
         },
         {
           "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "import-export",
           "dependencyResponsibility": "resource-management",
           "status": "allowed"
         },
@@ -1150,7 +1347,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -1170,11 +1366,6 @@
         },
         {
           "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "import-export",
           "dependencyResponsibility": "resource-management",
           "status": "allowed"
         },
@@ -1197,7 +1388,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -1221,11 +1411,6 @@
           "status": "allowed"
         },
         {
-          "sourceResponsibility": "import-export",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "resource-management",
           "status": "requires-r1-g4-baseline"
@@ -1244,7 +1429,6 @@
         "application-orchestration",
         "canvas-presentation",
         "document-lifecycle",
-        "import-export",
         "input-interpretation",
         "tool-invocation"
       ],
@@ -1264,11 +1448,6 @@
         },
         {
           "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "import-export",
           "dependencyResponsibility": "tool-invocation",
           "status": "requires-r1-g4-baseline"
         },

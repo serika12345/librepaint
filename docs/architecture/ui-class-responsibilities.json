@@ -45,10 +45,6 @@
       "responsibility": "Coordinates document metadata, image and node operations, selections, undo state, and document-facing feature managers."
     },
     {
-      "id": "import-export",
-      "responsibility": "Coordinates loading, saving, format filters, conversion, clipboard and MIME transfer, and safe document replacement."
-    },
-    {
       "id": "tool-invocation",
       "responsibility": "Coordinates toolbar-level tool selection, filter settings, and invocation while reusable settings presentation remains with tools."
     },
@@ -147,15 +143,6 @@
       "responsibilityArea": "canvas-display"
     },
     {
-      "name": "KisAnimationImporter",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_animation_importer.h",
-      "implementationPaths": [
-        "libs/ui/kis_animation_importer.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
       "name": "KisApplication",
       "declarationKind": "class",
       "header": "libs/ui/KisApplication.h",
@@ -235,15 +222,6 @@
         "libs/ui/KisCanvasSurfaceColorSpaceManager.cpp"
       ],
       "responsibilityArea": "canvas-display"
-    },
-    {
-      "name": "KisClipboard",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_clipboard.h",
-      "implementationPaths": [
-        "libs/ui/kis_clipboard.cc"
-      ],
-      "responsibilityArea": "import-export"
     },
     {
       "name": "KisConfig",
@@ -381,78 +359,6 @@
       "responsibilityArea": "canvas-display"
     },
     {
-      "name": "KisImportCatcher",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_import_catcher.h",
-      "implementationPaths": [
-        "libs/ui/kis_import_catcher.cc"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisImportExportAdditionalChecks",
-      "declarationKind": "class",
-      "header": "libs/ui/KisImportExportAdditionalChecks.h",
-      "implementationPaths": [
-        "libs/ui/KisImportExportAdditionalChecks.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisImportExportComplexError",
-      "declarationKind": "struct",
-      "header": "libs/ui/KisImportExportErrorCode.h",
-      "implementationPaths": [
-        "libs/ui/KisImportExportErrorCode.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisImportExportErrorCannotRead",
-      "declarationKind": "struct",
-      "header": "libs/ui/KisImportExportErrorCode.h",
-      "implementationPaths": [
-        "libs/ui/KisImportExportErrorCode.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisImportExportErrorCannotWrite",
-      "declarationKind": "struct",
-      "header": "libs/ui/KisImportExportErrorCode.h",
-      "implementationPaths": [
-        "libs/ui/KisImportExportErrorCode.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisImportExportErrorCode",
-      "declarationKind": "class",
-      "header": "libs/ui/KisImportExportErrorCode.h",
-      "implementationPaths": [
-        "libs/ui/KisImportExportErrorCode.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisImportExportFilter",
-      "declarationKind": "class",
-      "header": "libs/ui/KisImportExportFilter.h",
-      "implementationPaths": [
-        "libs/ui/KisImportExportFilter.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisImportExportManager",
-      "declarationKind": "class",
-      "header": "libs/ui/KisImportExportManager.h",
-      "implementationPaths": [
-        "libs/ui/KisImportExportManager.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
       "name": "KisInMemoryFrameCacheSwapper",
       "declarationKind": "class",
       "header": "libs/ui/KisInMemoryFrameCacheSwapper.h",
@@ -487,15 +393,6 @@
         "libs/ui/kis_mainwindow_observer.cpp"
       ],
       "responsibilityArea": "window-workspace"
-    },
-    {
-      "name": "KisMimeData",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_mimedata.h",
-      "implementationPaths": [
-        "libs/ui/kis_mimedata.cpp"
-      ],
-      "responsibilityArea": "import-export"
     },
     {
       "name": "KisModelIndexConverter",
@@ -613,15 +510,6 @@
         "libs/ui/kis_node_view_color_scheme.cpp"
       ],
       "responsibilityArea": "document-state"
-    },
-    {
-      "name": "KisPNGConverter",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_png_converter.h",
-      "implementationPaths": [
-        "libs/ui/kis_png_converter.cpp"
-      ],
-      "responsibilityArea": "import-export"
     },
     {
       "name": "KisPaintingAssistant",
@@ -782,24 +670,6 @@
         "libs/ui/KisSRGBSurfaceColorSpaceManager.cpp"
       ],
       "responsibilityArea": "canvas-display"
-    },
-    {
-      "name": "KisSafeDocumentLoader",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_safe_document_loader.h",
-      "implementationPaths": [
-        "libs/ui/kis_safe_document_loader.cpp"
-      ],
-      "responsibilityArea": "import-export"
-    },
-    {
-      "name": "KisSaveGroupVisitor",
-      "declarationKind": "class",
-      "header": "libs/ui/KisSaveGroupVisitor.h",
-      "implementationPaths": [
-        "libs/ui/KisSaveGroupVisitor.cpp"
-      ],
-      "responsibilityArea": "import-export"
     },
     {
       "name": "KisSelectionActionsAdapter",

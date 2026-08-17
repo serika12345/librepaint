@@ -52,7 +52,7 @@ def render_inventory(inventory: dict[str, Any]) -> str:
 def _argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Update the complete kritaimage and kritaui public-header sets from "
+            "Update the complete image, import-export, and UI public-header sets from "
             "declared export macros and external production includes."
         )
     )

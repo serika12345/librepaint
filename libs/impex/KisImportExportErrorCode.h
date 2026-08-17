@@ -10,7 +10,7 @@
 #include <QFile>
 #include <QFileDevice>
 #include <QString>
-#include <kritaui_export.h>
+#include <kritaimpex_export.h>
 #include <QDebug>
 
 
@@ -54,7 +54,7 @@ namespace ImportExportCodes
 
 class KisImportExportErrorCode;
 
-struct KRITAUI_EXPORT KisImportExportComplexError
+struct KRITAIMPEX_EXPORT KisImportExportComplexError
 {
     virtual QString errorMessage() const = 0;
     KisImportExportComplexError(QFileDevice::FileError error);
@@ -68,7 +68,7 @@ protected:
     QFileDevice::FileError m_error;
 };
 
-struct KRITAUI_EXPORT KisImportExportErrorCannotWrite : KisImportExportComplexError
+struct KRITAIMPEX_EXPORT KisImportExportErrorCannotWrite : KisImportExportComplexError
 {
 
     KisImportExportErrorCannotWrite(QFileDevice::FileError error);
@@ -86,7 +86,7 @@ private:
 
 };
 
-struct KRITAUI_EXPORT KisImportExportErrorCannotRead : KisImportExportComplexError
+struct KRITAIMPEX_EXPORT KisImportExportErrorCannotRead : KisImportExportComplexError
 {
 
     KisImportExportErrorCannotRead(QFileDevice::FileError error);
@@ -106,7 +106,7 @@ private:
 
 
 
-class KRITAUI_EXPORT KisImportExportErrorCode
+class KRITAIMPEX_EXPORT KisImportExportErrorCode
 {
 public:
     // required by kis_async_action_feedback

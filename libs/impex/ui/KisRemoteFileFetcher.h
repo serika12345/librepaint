@@ -14,10 +14,12 @@
 #include <QObject>
 #include <QUrl>
 
+#include <kritaui_export.h>
+
 /**
  * @brief The KisRemoteFileFetcher class can fetch a remote file and blocks until the file is downloaded
  */
-class KisRemoteFileFetcher : public QObject
+class KRITAUI_EXPORT KisRemoteFileFetcher : public QObject
 {
     Q_OBJECT
 public:

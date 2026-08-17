@@ -79,11 +79,19 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             source_directory="libs/image",
             export_macro="KRITAIMAGE_EXPORT",
         )
+        impex_ui_headers = check_public_surface_inventory.discover_public_headers(
+            repository_root=REPO_ROOT,
+            source_directory="libs/impex",
+            export_macro="KRITAUI_EXPORT",
+            header_directories=["libs/impex/animation", "libs/impex/ui"],
+        )
         ui_by_path = {entry["path"]: entry for entry in ui_headers}
         image_by_path = {entry["path"]: entry for entry in image_headers}
+        impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
 
-        self.assertEqual(len(ui_headers), 279)
+        self.assertEqual(len(ui_headers), 257)
         self.assertEqual(len(image_headers), 332)
+        self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(
             ui_by_path["libs/ui/KisAbstractFrameCacheSwapper.h"],
             {
@@ -93,14 +101,14 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             },
         )
         self.assertEqual(
-            ui_by_path["libs/ui/KisImportUserFeedbackInterface.h"][
+            impex_ui_by_path["libs/impex/ui/KisImportUserFeedbackInterface.h"][
                 "publicationEvidence"
             ],
-            ["external-include"],
+            ["export-macro", "external-include"],
         )
         self.assertIn(
             "plugins/impex/psd/psd_loader.cpp",
-            ui_by_path["libs/ui/KisImportUserFeedbackInterface.h"][
+            impex_ui_by_path["libs/impex/ui/KisImportUserFeedbackInterface.h"][
                 "consumerPaths"
             ],
         )
@@ -122,7 +130,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 106)
+        self.assertEqual(len(classes), 92)
         self.assertEqual(
             by_name["KisApplication"],
             {
@@ -132,10 +140,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "implementationPaths": ["libs/ui/KisApplication.cpp"],
             },
         )
-        self.assertEqual(
-            by_name["KisImportExportComplexError"]["declarationKind"],
-            "struct",
-        )
+        self.assertNotIn("KisImportExportComplexError", by_name)
+        self.assertNotIn("KisImportExportManager", by_name)
         self.assertEqual(
             by_name["KisAbstractPreferenceSetFactory"]["implementationPaths"],
             [],
@@ -225,7 +231,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
-        self.assertEqual(len(inventory["classes"]), 106)
+        self.assertEqual(len(inventory["classes"]), 92)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisApplication"]["responsibilityArea"],
@@ -234,9 +240,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(
             by_name["KisDocument"]["responsibilityArea"], "document-state"
         )
-        self.assertEqual(
-            by_name["KisImportExportManager"]["responsibilityArea"],
+        self.assertNotIn("KisImportExportManager", by_name)
+        self.assertNotIn(
             "import-export",
+            {entry["responsibilityArea"] for entry in inventory["classes"]},
         )
 
     def test_missing_ui_class_responsibility_is_rejected(self) -> None:
@@ -278,14 +285,19 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 entry["ownerTarget"]: len(entry["headers"])
                 for entry in inventory["publicHeaderSets"]
             },
-            {"kritaimage": 332, "kritaui": 279},
+            {
+                "kritaimage": 332,
+                "kritaimpex": 11,
+                "kritaimpexui": 23,
+                "kritaui": 257,
+            },
         )
         self.assertEqual(
             [entry["path"] for entry in inventory["publicHeaderDetails"]],
             [
                 "libs/image/kis_image.h",
+                "libs/impex/ui/KisImportExportManager.h",
                 "libs/ui/KisDocument.h",
-                "libs/ui/KisImportExportManager.h",
             ],
         )
         self.assertEqual(
@@ -323,7 +335,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "serviceTypes": ["Krita/FileFilter"],
                 "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
                 "featureOwner": "import-export",
-                "runtimeConsumer": "KisImportExportManager",
+                "runtimeConsumer": "KisImportExportFilterRegistry",
             },
         )
         self.assertEqual(
@@ -357,12 +369,12 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
     def test_consumer_evidence_must_include_the_public_header(self) -> None:
         inventory = copy.deepcopy(self.load_inventory())
         inventory["publicHeaderDetails"][1]["consumerEvidence"][0]["path"] = (
-            "krita/windows_stub_main.cpp"
+            "plugins/impex/png/kis_png_import.h"
         )
 
         with self.assertRaisesRegex(
             check_public_surface_inventory.PublicSurfaceError,
-            "does not include KisDocument.h",
+            "does not include KisImportExportManager.h",
         ):
             self.validate(inventory)
 
@@ -378,13 +390,18 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
     def test_publication_evidence_must_match_source_discovery(self) -> None:
         inventory = copy.deepcopy(self.load_inventory())
-        ui_headers = inventory["publicHeaderSets"][1]["headers"]
+        impex_ui_headers = next(
+            item["headers"]
+            for item in inventory["publicHeaderSets"]
+            if item["ownerTarget"] == "kritaimpexui"
+        )
         entry = next(
             header
-            for header in ui_headers
-            if header["path"] == "libs/ui/KisImportUserFeedbackInterface.h"
+            for header in impex_ui_headers
+            if header["path"]
+            == "libs/impex/ui/KisImportUserFeedbackInterface.h"
         )
-        entry["publicationEvidence"] = ["export-macro", "external-include"]
+        entry["publicationEvidence"] = ["external-include"]
 
         with self.assertRaisesRegex(
             check_public_surface_inventory.PublicSurfaceError,

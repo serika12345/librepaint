@@ -14,7 +14,7 @@
     "uiOwnership": "presentation-subtargets-own-widgets-screen-state-and-interaction-wiring",
     "domainOwnership": "domain-targets-own-state-jobs-serialization-and-platform-neutral-services",
     "cppNamespacePolicy": "New APIs use the target Krita namespace; existing public global identifiers remain source-compatible through R1-G7.",
-    "publicCompatibility": "Old include paths and CMake target names forward to their replacements until their R1-G7 removal conditions pass.",
+    "publicCompatibility": "Only the compatibility routes recorded in this plan may preserve old include paths or CMake target names. A wave that updates every repository consumer removes its old paths in the same change.",
     "stableIdentifierPolicy": "MIME and UTI values, plugin IDs and service types, action IDs, settings keys, serialized formats, and scripting names remain stable unless a separately reviewed migration contract exists."
   },
   "packages": [
@@ -198,16 +198,13 @@
       "current": {
         "sourceDirectories": [
           "libs/impex",
-          "libs/ui",
           "plugins/impex"
         ],
         "cmakeTargets": [
           "kritaimpex",
-          "kritaui"
+          "kritaimpexui"
         ],
-        "uiClassAreas": [
-          "import-export"
-        ],
+        "uiClassAreas": [],
         "uiToolClassAreas": [],
         "publicSurfaces": [
           "document-serialization",
@@ -234,7 +231,7 @@
             "name": "kritaimpexui",
             "directory": "libs/impex/ui",
             "role": "presentation",
-            "status": "new"
+            "status": "implemented"
           }
         ]
       },
@@ -531,14 +528,6 @@
   "reviewedInternalHeaderDestinations": [
     {
       "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/KisImportUserFeedbackInterface.h",
-      "destinationResponsibility": "import-export",
-      "destinationDirectory": "libs/impex/ui",
-      "wave": "R1-G6c",
-      "disposition": "move-behind-boundary"
-    },
-    {
-      "ownerTarget": "kritaui",
       "headerPath": "libs/ui/KisOcioConfiguration.h",
       "destinationResponsibility": "canvas-presentation",
       "destinationDirectory": "libs/canvas/color",
@@ -571,14 +560,6 @@
     },
     {
       "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/animation/KisAndroidMediaEncoderRunnable.h",
-      "destinationResponsibility": "import-export",
-      "destinationDirectory": "libs/impex/animation",
-      "wave": "R1-G6c",
-      "disposition": "move-behind-boundary"
-    },
-    {
-      "ownerTarget": "kritaui",
       "headerPath": "libs/ui/kis_animation_cache_populator.h",
       "destinationResponsibility": "canvas-presentation",
       "destinationDirectory": "libs/canvas/animation",
@@ -599,14 +580,6 @@
       "destinationResponsibility": "tool-invocation",
       "destinationDirectory": "libs/tools/ui",
       "wave": "R1-G6f",
-      "disposition": "move-behind-boundary"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/kis_store_paintdevice_writer.h",
-      "destinationResponsibility": "import-export",
-      "destinationDirectory": "libs/impex",
-      "wave": "R1-G6c",
       "disposition": "move-behind-boundary"
     },
     {
@@ -643,17 +616,6 @@
     }
   ],
   "compatibilityRoutes": [
-    {
-      "id": "legacy-impex-ui-headers",
-      "kind": "forwarding-headers",
-      "legacy": "import-export headers in libs/ui",
-      "replacement": "libs/impex and libs/impex/ui",
-      "introducedBy": "R1-G6c",
-      "owner": "R1-G7",
-      "maximumScope": "The R1-G2 import-export UI class set and reviewed internal header destinations.",
-      "removalCondition": "All consumers use kritaimpex or kritaimpexui and no legacy include path remains.",
-      "verification": "Public-surface and UI class inventories report no import-export class below libs/ui."
-    },
     {
       "id": "legacy-canvas-ui-headers",
       "kind": "forwarding-headers",
@@ -800,7 +762,7 @@
       "maximumReverseDirectIncludesAfterWave": 264,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 32
+        "kritaui": 28
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
@@ -858,7 +820,7 @@
       "maximumReverseDirectIncludesAfterWave": 169,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 32
+        "kritaui": 28
       },
       "completionCriteria": [
         "Painting has zero document-lifecycle includes and exposes image-model and paint-execution from owned targets.",
@@ -879,17 +841,25 @@
       ],
       "sourceMoves": [
         {
-          "from": "libs/ui::<import-export>",
+          "from": "libs/ui/KisImportExport{AdditionalChecks,ErrorCode,Filter}.{h,cpp}",
+          "to": "libs/impex",
+          "target": "kritaimpex"
+        },
+        {
+          "from": "libs/ui/KisImportExportManager.{h,cpp} and document-facing import-export coordination",
           "to": "libs/impex/ui",
+          "target": "kritaimpexui"
+        },
+        {
+          "from": "libs/ui/animation::<media-import-export>",
+          "to": "libs/impex/animation",
           "target": "kritaimpexui"
         }
       ],
       "createsTargets": [
         "kritaimpexui"
       ],
-      "compatibilityRoutes": [
-        "legacy-impex-ui-headers"
-      ],
+      "compatibilityRoutes": [],
       "requiredContracts": [
         "Format capability and MIME selection tests",
         "Transactional import and export result tests",

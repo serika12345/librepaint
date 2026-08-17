@@ -29,6 +29,7 @@ TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
 PUBLICATION_EVIDENCE = ("export-macro", "compile-contract", "external-include")
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
+    "libs/impex": ("libs/impex/tests/TestImportExportBoundary.cpp",),
 }
 INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
@@ -46,6 +47,8 @@ PUBLIC_HEADER_SET_SPECS = (
     {
         "ownerTarget": "kritaimage",
         "sourceDirectory": "libs/image",
+        "headerDirectories": ["libs/image"],
+        "excludedHeaderDirectories": [],
         "exportMacro": "KRITAIMAGE_EXPORT",
         "responsibility": (
             "Records the declared and de facto inter-package header surface "
@@ -54,8 +57,38 @@ PUBLIC_HEADER_SET_SPECS = (
         "evidence": ["libs/image/CMakeLists.txt", "libs/image/kis_image_export.h"],
     },
     {
+        "ownerTarget": "kritaimpex",
+        "sourceDirectory": "libs/impex",
+        "headerDirectories": ["libs/impex"],
+        "excludedHeaderDirectories": [
+            "libs/impex/animation",
+            "libs/impex/tests",
+            "libs/impex/ui",
+        ],
+        "exportMacro": "KRITAIMPEX_EXPORT",
+        "responsibility": (
+            "Records the declared and de facto inter-package header surface "
+            "for format discovery, codec selection, validation, and conversion results."
+        ),
+        "evidence": ["libs/impex/CMakeLists.txt", "libs/impex/KisImportExportFilter.h"],
+    },
+    {
+        "ownerTarget": "kritaimpexui",
+        "sourceDirectory": "libs/impex",
+        "headerDirectories": ["libs/impex/animation", "libs/impex/ui"],
+        "excludedHeaderDirectories": [],
+        "exportMacro": "KRITAUI_EXPORT",
+        "responsibility": (
+            "Records the declared and de facto inter-package header surface "
+            "for document-facing conversion coordination, feedback, and format options."
+        ),
+        "evidence": ["libs/impex/CMakeLists.txt", "libs/impex/ui/KisImportExportManager.h"],
+    },
+    {
         "ownerTarget": "kritaui",
         "sourceDirectory": "libs/ui",
+        "headerDirectories": ["libs/ui"],
+        "excludedHeaderDirectories": [],
         "exportMacro": "KRITAUI_EXPORT",
         "responsibility": (
             "Records the declared and de facto inter-package header surface "
@@ -84,13 +117,6 @@ UI_CLASS_RESPONSIBILITY_AREAS = (
         "responsibility": (
             "Coordinates document metadata, image and node operations, selections, "
             "undo state, and document-facing feature managers."
-        ),
-    },
-    {
-        "id": "import-export",
-        "responsibility": (
-            "Coordinates loading, saving, format filters, conversion, clipboard and "
-            "MIME transfer, and safe document replacement."
         ),
     },
     {
@@ -202,8 +228,8 @@ PLUGIN_SERVICE_TYPE_OWNERS = (
     {
         "serviceType": "Krita/FileFilter",
         "featureOwner": "import-export",
-        "runtimeConsumer": "KisImportExportManager",
-        "evidence": "libs/ui/KisImportExportManager.cpp",
+        "runtimeConsumer": "KisImportExportFilterRegistry",
+        "evidence": "libs/impex/KisImportExportFilterRegistry.cpp",
     },
     {
         "serviceType": "Krita/Filter",
@@ -292,15 +318,28 @@ def discover_public_headers(
     repository_root: Path,
     source_directory: str,
     export_macro: str,
+    header_directories: list[str] | None = None,
+    excluded_header_directories: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Return the complete declared or used production header surface."""
+
+    header_directories = header_directories or [source_directory]
+    excluded_header_directories = excluded_header_directories or []
+
+    def is_owned_path(relative: str) -> bool:
+        return any(
+            _path_is_within(relative, directory) for directory in header_directories
+        ) and not any(
+            _path_is_within(relative, directory)
+            for directory in excluded_header_directories
+        )
 
     source_files = _source_files(repository_root)
     owner_headers = [
         (relative, path)
         for relative, path in source_files
         if path.suffix in HEADER_SUFFIXES
-        and _path_is_within(relative, source_directory)
+        and is_owned_path(relative)
     ]
     headers_by_name: dict[str, list[str]] = {}
     for relative, _path in owner_headers:
@@ -318,14 +357,14 @@ def discover_public_headers(
     }
     if ambiguous:
         raise PublicSurfaceError(
-            f"ambiguous header basenames below {source_directory}: {ambiguous}"
+            f"ambiguous header basenames for {header_directories}: {ambiguous}"
         )
 
     consumers_by_name: dict[str, set[str]] = {
         name: set() for name in headers_by_name
     }
     for relative, path in source_files:
-        if _path_is_within(relative, source_directory):
+        if is_owned_path(relative):
             continue
         text = path.read_text(encoding="utf-8")
         for include in INCLUDE_PATTERN.findall(text):
@@ -713,6 +752,8 @@ def build_public_header_sets(repository_root: Path) -> list[dict[str, Any]]:
                     repository_root=repository_root,
                     source_directory=spec["sourceDirectory"],
                     export_macro=spec["exportMacro"],
+                    header_directories=spec["headerDirectories"],
+                    excluded_header_directories=spec["excludedHeaderDirectories"],
                 ),
             }
         )
@@ -990,6 +1031,8 @@ def _validate_public_header_sets(
     expected_fields = {
         "ownerTarget",
         "sourceDirectory",
+        "headerDirectories",
+        "excludedHeaderDirectories",
         "exportMacro",
         "platforms",
         "headers",
@@ -1021,6 +1064,22 @@ def _validate_public_header_sets(
         if export_macro != spec["exportMacro"]:
             raise PublicSurfaceError(
                 f"{description}: export macro must be {spec['exportMacro']}"
+            )
+        header_directories = _require_array(
+            entry.get("headerDirectories"), f"header directories for {description}"
+        )
+        excluded_header_directories = _require_array(
+            entry.get("excludedHeaderDirectories"),
+            f"excluded header directories for {description}",
+        )
+        if header_directories != spec["headerDirectories"]:
+            raise PublicSurfaceError(
+                f"{description}: header directories must be {spec['headerDirectories']}"
+            )
+        if excluded_header_directories != spec["excludedHeaderDirectories"]:
+            raise PublicSurfaceError(
+                f"{description}: excluded header directories must be "
+                f"{spec['excludedHeaderDirectories']}"
             )
         source_path = PurePosixPath(source_directory)
         if (
@@ -1102,7 +1161,16 @@ def _validate_public_header_sets(
                 consumer_path = PurePosixPath(consumer)
                 if (
                     consumer_path.suffix not in SOURCE_SUFFIXES
-                    or _path_is_within(consumer, source_directory)
+                    or (
+                        any(
+                            _path_is_within(consumer, directory)
+                            for directory in header_directories
+                        )
+                        and not any(
+                            _path_is_within(consumer, directory)
+                            for directory in excluded_header_directories
+                        )
+                    )
                     or not _is_production_source_path(consumer_path)
                 ):
                     raise PublicSurfaceError(
@@ -1120,6 +1188,8 @@ def _validate_public_header_sets(
             repository_root=repository_root,
             source_directory=source_directory,
             export_macro=export_macro,
+            header_directories=header_directories,
+            excluded_header_directories=excluded_header_directories,
         )
         expected_by_path = {header["path"]: header for header in expected_headers}
         missing = sorted(set(expected_by_path) - set(recorded_by_path))

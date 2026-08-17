@@ -2,14 +2,15 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-17 17:03 JST
+- 更新日時: 2026-08-17 21:14 JST
 - 状態: `completed`
-- 現在の検査段階: EXIF構造化メタデータ読込修正
+- 現在の検査段階: R1-G6c入出力境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `fix-exif-structured-metadata-bounds`
-- 目的: `plugins/metadata/exif/kis_exif_io.cpp`を起点として、OECFとCFAの寸法を
-  EXIF形式どおり16ビットで読み、入力長を超える要素生成を拒否してJPEG読込時の
-  メモリー暴走を解消する。
+- ブランチ: `r1-g6c-import-export-boundary`
+- 目的: `libs/ui/KisImportExportManager.*`、`KisImportExportFilter.*`、
+  `KisImportExportErrorCode.*`、`KisImportExportAdditionalChecks.*`、
+  `KisImportUserFeedbackInterface.*`を起点として、形式知識と文書・利用者接続を
+  `libs/impex`へ移し、UI共有パッケージから入出力責務を分離する。
 
 ## 再開環境
 
@@ -300,6 +301,30 @@
 - `plugins/impex/jpeg/tests/kis_jpeg_test.cpp`の既存JPEG読込契約で、問題を再現した
   `HPIM0760.JPG`を含む入力群が有限メモリーで完了することを確認した。
 
+## R1-G6c入出力境界で完了した作業
+
+- `libs/ui/KisImportExportFilter.*`、`KisImportExportErrorCode.*`、
+  `KisImportExportAdditionalChecks.*`を`libs/impex`へ移した。形式探索とMIME選択は
+  `KisImportExportFilterRegistry.*`が所有し、結果分類、ファイル事前条件、変換フィルターと
+  合わせて`kritaimpex`だけで構築・検査できる。
+- `libs/ui/KisImportExportManager.*`と`KisImportUserFeedbackInterface.*`を起点として、
+  文書変換の調整、利用者通知、ダイアログ、クリップボード、画像読込補助を
+  `libs/impex/ui`へ移した。動画符号化調整は`libs/impex/animation`へ移し、
+  `kritaimpexui`が両ディレクトリーを所有する。
+- `kritaimpexui`は文書・画面型との現在のABI接続を保つオブジェクト所有単位として
+  `kritaui`へ全実装を組み込む。入出力の製品実装は`kritaui`のソース一覧に属さず、
+  5構成のCMake台帳が所有ターゲットと依存方向を別々に記録する。
+- `KisMimeData`はノード追加・移動に必要な狭い接続面を所有し、UI側のノード挿入実装が
+  その接続面を実装する。参照画像のクリップボード読込はQtの画像値を受け取る経路へ変更し、
+  キャンバス表示から入出力への逆方向includeを除去した。
+- `libs/ui`の旧入出力ファイル、旧ダイアログ、旧媒体符号化ファイルを削除し、利用元を
+  正規の`libs/impex`経路へ更新した。転送ヘッダーと互換分岐は追加していない。
+- UI直下の入出力14クラスは所有先へ移り、UI直下クラス台帳は92件になった。
+  `kritaimpex`と`kritaimpexui`の未宣言パッケージ外参照は0件、`kritaui`の内部参照は
+  11ヘッダー28件になった。19中核所有ターゲットと全製品ターゲットは全5構成で循環0件を保つ。
+- Android増分構成へ`Release`構成種別を明示し、AndroidのCMake File API台帳を
+  他の構成と同じ決定的な構成名から再生成できるようにした。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -375,15 +400,33 @@
 - `nix develop .#test --command ./scripts/verify`: macOSの全製品と試験のリンクが成功し、
   CTest 318件中281件が成功した。失敗37件は前段階と同数である。JPEG対象は2.67秒で終了し、
   読込契約を含む5件が成功した。残る失敗は既存のmacOS読取専用出力契約1件である。
+- `TestImportExportBoundary`、`TestImportExportUiBoundary`、`KisMimeDatabaseTest`が成功した。
+  形式探索の依存方向、結果分類、ファイル事前条件、利用者通知の一括処理、
+  `.kra`のMIME判定を固定した。
+- `nix develop .#test --command ./scripts/verify`: macOSの全製品と試験のリンクが成功し、
+  CTest 321件中285件が成功した。追加した入出力境界契約とKRA保存往復は成功した。
+  残る36件は既存の画像基準、Qt 6モデル契約、macOS環境、300秒制限、
+  セグメンテーション違反に分類される。KRA保存の残る2件はmacOSの読取専用出力と
+  利用できない`rec2100 PQ 203 nits`プロファイルによる既存失敗である。
+- macOSで`kritaui`、iOSでLibrePaintアプリケーション本体、x86_64 Linuxで
+  `kritaui`を構築した。Android arm64-v8aの`libkritaui_arm64-v8a.so`と
+  Windows x86_64の`libkritaui.dll`も構築し、5構成すべてで最終生成物のリンクが成功した。
+- 5構成のCMake台帳を再生成した。macOS 638件、Linux 653件、iOS 572件、Android 578件、
+  Windows 608件のターゲット、556件の共通ターゲット、119件の条件付きターゲット、
+  256件の構成差を持つターゲットを記録した。19中核所有ターゲットと全製品ターゲットは
+  5構成すべてで循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`: 90件の単体試験、責務・依存・構造台帳、
+  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems`: 入出力境界分離後の全Nix出力の評価が成功した。
 
 ## 次の操作
 
-R1-G6cでは`libs/ui/KisImportExportManager.*`、`libs/ui/KisImportExportFilter.*`、
-`libs/ui/KisImportExportErrorCode.*`、`libs/ui/KisImportExportAdditionalChecks.*`、
-`libs/ui/KisImportUserFeedbackInterface.*`を起点として、形式選択、取消し、結果分類、利用者への通知の
-契約を追加する。続いて入出力調整を`libs/impex`へ、表示と利用者操作との接続を`libs/impex/ui`へ
-分け、`kritaimpexui`を構築する。分類済みの入出力14クラスと4件のUI内部参照を移し、旧includeの
-利用元を同じ変更で正規経路へ更新する。
+R1-G6dでは`libs/ui/canvas`を起点として、座標変換、ビュー寿命、投影更新、最終有効フレーム、
+表示色変換、動画キャッシュの契約を追加する。続いてキャンバス表示を`libs/canvas`と
+`libs/canvas/ui`へ移し、`kritacanvas`を構築する。`KisOcioConfiguration.h`、
+`KisSurfaceColorSpaceWrapper.h`、`KisWidgetWithIdleTask.h`、
+`kis_animation_cache_populator.h`を含むキャンバス所有の8件のUI内部参照と、
+キャンバス表示から文書寿命への73件の逆方向includeを解消する。
 
 ## R1-G5完了根拠
 

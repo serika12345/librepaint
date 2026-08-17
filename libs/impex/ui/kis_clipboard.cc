@@ -38,8 +38,7 @@
 #include "KisMimeDatabase.h"
 #include "KisPart.h"
 #include "KisRemoteFileFetcher.h"
-#include "dialogs/kis_dlg_missing_color_profile.h"
-#include "dialogs/kis_dlg_paste_format.h"
+#include "KisImportExportDialogs.h"
 #include "kis_mimedata.h"
 #include "kis_store_paintdevice_writer.h"
 #include "KisDisplayConfig.h"
@@ -429,19 +428,17 @@ KisClipboard::askUserForSourceWithData(QImage qimage, const QList<QUrl> urls, bo
         dbgUI << "\tIs data URI:" << isURI;
 
         if (hasMultipleFormatsAvailable && choice == PASTE_FORMAT_ASK && !isURI) {
-            KisDlgPasteFormat dlg(qApp->activeWindow());
-
-            dlg.setSourceAvailable(PASTE_FORMAT_DOWNLOAD, remote);
-            dlg.setSourceAvailable(PASTE_FORMAT_LOCAL, local);
-            dlg.setSourceAvailable(PASTE_FORMAT_CLIP, !qimage.isNull());
-
-            if (dlg.exec() != KoDialog::Accepted) {
+            const std::optional<int> selectedSource =
+                KisImportExportDialogs::choosePasteSource(qApp->activeWindow(),
+                                                          remote,
+                                                          local,
+                                                          !qimage.isNull(),
+                                                          &saveSourceSetting);
+            if (!selectedSource) {
                 return {false, PASTE_FORMAT_ASK};
-            };
+            }
 
-            choice = dlg.source();
-
-            saveSourceSetting = dlg.remember();
+            choice = static_cast<PasteFormatBehaviour>(*selectedSource);
         } else if (defaultOptionUnavailable || choice == PASTE_FORMAT_ASK) {
             if (remote) {
                 choice = PASTE_FORMAT_DOWNLOAD;
@@ -525,15 +522,14 @@ KisPaintDeviceSP KisClipboard::clipFromBoardContentsWithData(QImage qimage,
 
         if (behaviour == PASTE_ASK && showPopup) {
             // Ask user each time.
-            KisDlgMissingColorProfile dlg(qApp->activeWindow());
-
-            if (dlg.exec() != QDialog::Accepted) {
+            const std::optional<int> selectedSource =
+                KisImportExportDialogs::chooseClipboardColorSource(qApp->activeWindow(),
+                                                                   &saveColorSetting);
+            if (!selectedSource) {
                 return nullptr;
             }
 
-            behaviour = dlg.source();
-
-            saveColorSetting = dlg.remember(); // should we save this option to the config for next time?
+            behaviour = *selectedSource;
         }
 
         const KoColorSpace *cs = nullptr;

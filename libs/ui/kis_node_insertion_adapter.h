@@ -11,17 +11,18 @@
 
 #include "kis_node_manager.h"
 #include "kis_node.h"
+#include <kis_mimedata.h>
 
 
-class KisNodeInsertionAdapter
+class KisNodeInsertionAdapter : public KisMimeData::NodeInsertionInterface
 {
 public:
     KisNodeInsertionAdapter(KisNodeManager *nodeManager);
     ~KisNodeInsertionAdapter();
 
-    void moveNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis);
+    void moveNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis) override;
     void copyNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis);
-    void addNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis);
+    void addNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis) override;
 
 private:
     struct Private;
