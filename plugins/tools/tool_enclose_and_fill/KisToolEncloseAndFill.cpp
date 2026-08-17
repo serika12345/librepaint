@@ -271,7 +271,7 @@ void KisToolEncloseAndFill::slot_delegateTool_enclosingMaskProduced(KisPixelSele
     m_dirtyRect.reset(new QRect);
 
     KisResourcesSnapshotSP resources =
-        new KisResourcesSnapshot(image(), currentNode(), this->canvas()->resourceManager());
+        new KisResourcesSnapshot(image(), currentNode(), this->canvas()->resourceManager()->canvasResourcesInterface());
 
     if (m_reference == CurrentLayer) {
         m_referencePaintDevice = currentNode()->paintDevice();

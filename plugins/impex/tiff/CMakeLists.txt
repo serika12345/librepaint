@@ -31,7 +31,7 @@ target_link_libraries(kritatiffimport
     kritaui
     kritaimpex
     LibExiv2::LibExiv2
-    kritametadata
+    kritapaintingmetadata
     kritaexifcommon
     ${JPEG_TURBO_LIBRARIES}
     ${KRITATIFFPSD_LIBRARY}

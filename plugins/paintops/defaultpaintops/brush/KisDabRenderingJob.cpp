@@ -14,7 +14,7 @@
 #include "KisDabCacheUtils.h"
 #include "KisDabRenderingQueue.h"
 
-#include <tool/strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
+#include <strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
 
 KisDabRenderingJob::KisDabRenderingJob(int _seqNo, KisDabRenderingJob::JobType _type, qreal _opacity, qreal _flow)
     : seqNo(_seqNo)

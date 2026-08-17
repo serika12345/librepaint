@@ -295,7 +295,7 @@ void KisFilterManager::apply(KisFilterConfigurationSP _filterConfig)
     KisResourcesSnapshotSP resources =
         new KisResourcesSnapshot(image,
                                  d->view->activeNode(),
-                                 resourceManager);
+                                 resourceManager->canvasResourcesInterface());
 
     KisFilterStrokeStrategy *strategy = new KisFilterStrokeStrategy(filter,
                                                                     KisFilterConfigurationSP(filterConfig),

@@ -1,0 +1,43 @@
+set(kritapaintingmetadata_LIB_SRCS
+    kis_meta_data_entry.cc
+    kis_meta_data_filter.cc
+    kis_meta_data_filter_p.cc
+    kis_meta_data_filter_registry.cc
+    kis_meta_data_filter_registry_model.cc
+    kis_meta_data_merge_strategy.cc
+    kis_meta_data_merge_strategy_p.cc
+    kis_meta_data_merge_strategy_registry.cc
+    kis_meta_data_parser.cc
+    kis_meta_data_schema.cc
+    kis_meta_data_schema_registry.cc
+    kis_meta_data_store.cc
+    kis_meta_data_type_info.cc
+    kis_meta_data_validator.cc
+    kis_meta_data_value.cc
+    kis_meta_data_backend_registry.cpp
+)
+
+kis_add_library(kritapaintingmetadata SHARED ${kritapaintingmetadata_LIB_SRCS})
+generate_export_header(kritapaintingmetadata BASE_NAME kritapaintingmetadata)
+
+target_link_libraries(kritapaintingmetadata
+    PUBLIC
+        kritaversion
+        kritaglobal
+        kritaplugin
+        kritawidgetutils
+)
+
+target_include_directories(kritapaintingmetadata
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+
+set_target_properties(kritapaintingmetadata PROPERTIES
+    VERSION ${GENERIC_KRITA_LIB_VERSION}
+    SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
+)
+
+install(TARGETS kritapaintingmetadata ${INSTALL_TARGETS_DEFAULT_ARGS})
+
+add_subdirectory(tests)

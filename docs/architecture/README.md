@@ -123,10 +123,10 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | --- | --- | --- |
 | `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
 | `canvas-presentation` | `kritabasicflakes`、`kritaflake`、`kritaui` | キャンバス表示、ベクター表示、ドッカー |
-| `document-lifecycle` | `kritacommand`、`kritametadata`、`kritaui` | 文書寿命、変更状態、アンドゥ、メタデータ |
+| `document-lifecycle` | `kritacommand`、`kritaui` | 文書寿命、変更状態、取り消し履歴の表示、文書調整 |
 | `import-export` | `kritaimpex`、`kritaui` | 形式選択、検証、文書入出力 |
 | `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
-| `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理 |
+| `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
 | `plugin-infrastructure` | `kritaplugin` | メタデータ探索、ファクトリーとサービス種別の登録 |
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
 | `tool-invocation` | `kritatoolsui`、`kritaui` | 描画設定表示とキャンバス状態へのツール呼出し |
@@ -266,7 +266,20 @@ LibrePaint内の上位製品ターゲットへ依存せず、保存側はQt Core
 `kritatoolsui`はパレット、合成方法、プリセット、描画設定の表示を所有する。旧
 `libs/resourcewidgets`、旧ターゲット、転送ヘッダーは存在しない。
 
-残る10の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
+R1-G6bは、`libs/ui/tool/strokes`を`libs/painting/strokes`へ移し、同じUIツール領域に
+置かれていた資源スナップショット、非同期更新、互換性判定、速度計測を`libs/painting`へ
+移した。`libs/command`の画像・キャンバス向け取り消し処理は`libs/painting/undo`へ、
+`libs/metadata`の画像メタデータ実装は`libs/painting/metadata`へ移した。画像層から利用する
+取り消し処理とメタデータをそれぞれ`kritapaintingundo`、`kritapaintingmetadata`とし、画像層を
+利用するストローク実行を`kritapainting`とすることで、CMakeターゲットの循環を避けている。
+資源スナップショットはUIの具体的な資源提供者ではなく、`libs/resources`が所有する読出し
+接続面を保持する。旧ディレクトリーの転送ヘッダーと旧メタデータターゲットは存在しない。
+
+公開マクロを付与できない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
+`libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
+公開根拠として台帳へ記録し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
+
+残る8の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
 9責務と5構成の現行ターゲット、5種類257件の逆方向依存、44ヘッダー627件の内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。
@@ -376,9 +389,9 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | ウィンドウ、ドッカー、キャンバス画面 | `libs/ui`、`plugins/dockers` | `KisMainWindow`、`KisViewManager`、`KisCanvas2` |
 | 入力割り当て、ジェスチャー | `libs/ui/input` | 現在ツール、Qtプラットフォームイベント、OS統合 |
 | ツールの操作 | `plugins/tools` | `libs/ui/tool`、`KoToolRegistry`、アクション |
-| ブラシエンジンやプリセット | `plugins/paintops`、`libs/brush` | `libs/ui/tool/strokes`、`libs/resources`、`libs/pigment` |
+| ブラシエンジンやプリセット | `plugins/paintops`、`libs/brush` | `libs/painting/strokes`、`libs/resources`、`libs/pigment` |
 | レイヤー、マスク、画素、投影 | `libs/image` | `KisNode`、`KisPaintDevice`、`KisUpdateScheduler` |
-| アンドゥ、非同期処理 | `libs/command`、`libs/image/commands*`、`libs/image/kis_strokes_queue.*` | ストローク戦略の順序・排他属性 |
+| アンドゥ、非同期処理 | `libs/painting/undo`、`libs/painting/strokes`、`libs/image/commands*`、`libs/image/kis_strokes_queue.*` | ストローク戦略の順序・排他属性 |
 | 色空間、プロファイル、合成 | `libs/pigment`、`libs/color`、`plugins/color` | LittleCMS、OpenColorIO、表示変換 |
 | ベクター図形、選択図形 | `libs/flake`、`libs/basicflakes`、`plugins/flake` | `libs/ui/flake`、SVG入出力 |
 | ブラシ等のリソース管理 | `libs/resources`、`libs/resources/ui` | リソースDB、ローダーレジストリー、同梱バンドル、選択・タグ表示 |
@@ -400,12 +413,13 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | `libs/global`、`libs/widgetutils`、`libs/widgets` | 共通基盤、Qt補助部品、再利用画面部品 |
 | `libs/ui` | アプリケーション調整、文書、ウィンドウ、キャンバス、入力、ツール共通部 |
 | `libs/image` | 画像・ノード・画素タイル・投影・ストローク・更新処理 |
+| `libs/painting` | 描画ストローク、画像・キャンバス向け取り消し処理、画像メタデータ、描画用資源スナップショット |
 | `libs/brush`、`libs/pigment`、`libs/color` | ブラシ資産、色空間、色変換・合成の基盤 |
 | `libs/flake`、`libs/basicflakes` | ベクター図形、キャンバス、図形ツールの基盤 |
 | `libs/resources`、`libs/resources/ui` | リソース永続化、検索、タグ、バンドルと汎用管理画面 |
 | `libs/tools/ui` | 描画ツールの設定、パレット、プリセットの表示 |
 | `libs/resources/storage`、`libs/serialization/xml` | コンテナーI/OとXML直列化 |
-| `libs/metadata`、`libs/psd*` | メタデータとPSD共通実装 |
+| `libs/painting/metadata`、`libs/psd*` | 画像メタデータとPSD共通実装 |
 | `libs/koplugin` | プラグイン探索とメタデータ照会 |
 | `libs/impex` | 入出力フィルターの共通契約と書き出し前検査 |
 | `libs/libkis` | 外部APIとスクリプト向けの公開ラッパー |

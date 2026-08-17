@@ -6,7 +6,7 @@
   "legacyFiles": {
     "krita/data/profiles/elles-icc-profiles/make-elles-profiles.c": 1641,
     "krita/main.cc": 1366,
-    "libs/command/kundo2stack.cpp": 1485,
+    "libs/painting/undo/kundo2stack.cpp": 1485,
     "libs/flake/KoPathSegment.cpp": 1099,
     "libs/flake/KoPathShape.cpp": 1412,
     "libs/flake/KoRTree.h": 1156,
@@ -42,7 +42,7 @@
     "libs/image/lazybrush/kis_lazy_fill_graph.h": 1017,
     "libs/libkis/Document.cpp": 1303,
     "libs/libkis/Document.h": 1069,
-    "libs/metadata/kis_meta_data_tags.h": 1694,
+    "libs/painting/metadata/kis_meta_data_tags.h": 1694,
     "libs/pigment/KoColorSpaceMaths.h": 1183,
     "libs/pigment/KoColorSpaceRegistry.cpp": 1071,
     "libs/pigment/compositeops/KoCompositeOpFunctions.h": 1349,

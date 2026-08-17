@@ -381,9 +381,9 @@ target_link_libraries(kritaimage
         kritapsdutils 
          
         kritapigment 
-        kritacommand
+        kritapaintingundo
         kritawidgetutils 
-        kritametadata
+        kritapaintingmetadata
         kritaresources
 
         Eigen3::Eigen

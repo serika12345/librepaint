@@ -55,7 +55,7 @@ public:
         KisResourcesSnapshotSP resources =
             new KisResourcesSnapshot(image,
                                      fillNode,
-                                     manager);
+                                     manager->canvasResourcesInterface());
         
         FillProcessingVisitor *visitor = new FillProcessingVisitor(0,
                                                                    image->globalSelection(),

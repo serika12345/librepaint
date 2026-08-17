@@ -279,7 +279,7 @@ target_link_libraries(kritaflake
     PUBLIC
         kritapigment
         kritawidgetutils
-        kritacommand
+        kritapaintingundo
         KF${KF_MAJOR}::WidgetsAddons
         Qt${QT_MAJOR_VERSION}::Svg
         KF${KF_MAJOR}::CoreAddons

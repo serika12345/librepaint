@@ -199,7 +199,6 @@ set(kritaui_LIB_SRCS
     tool/kis_tool_freehand_helper.cpp
     tool/kis_tool_multihand_helper.cpp
     tool/kis_figure_painting_tool_helper.cpp
-    tool/KisAsynchronousStrokeUpdateHelper.cpp
     tool/kis_tool_paint.cc
     tool/kis_tool_shape.cc
     tool/kis_tool_ellipse_base.cpp
@@ -207,22 +206,8 @@ set(kritaui_LIB_SRCS
     tool/kis_tool_polyline_base.cpp
     tool/KisToolOutlineBase.cpp
     tool/kis_tool_utils.cpp
-    tool/kis_resources_snapshot.cpp
-    tool/KisStrokeCompatibilityInfo.cpp
     tool/kis_smoothing_options.cpp
     tool/KisStabilizerDelayedPaintHelper.cpp
-    tool/KisStrokeSpeedMonitor.cpp
-    tool/strokes/freehand_stroke.cpp
-    tool/strokes/KisStrokeEfficiencyMeasurer.cpp
-    tool/strokes/kis_painter_based_stroke_strategy.cpp
-    tool/strokes/kis_filter_stroke_strategy.cpp
-    tool/strokes/kis_color_sampler_stroke_strategy.cpp
-    tool/strokes/KisFreehandStrokeInfo.cpp
-    tool/strokes/KisMaskedFreehandStrokePainter.cpp
-    tool/strokes/KisMaskingBrushRenderer.cpp
-    tool/strokes/KisMaskingBrushCompositeOpFactory.cpp
-    tool/strokes/move_stroke_strategy.cpp
-    tool/strokes/KisNodeSelectionRecipe.cpp
     tool/KisSelectionToolFactoryBase.cpp
     tool/KisToolPaintFactoryBase.cpp
     tool/KisAsyncColorSamplerHelper.cpp
@@ -700,6 +685,7 @@ target_link_libraries(kritaui
         kritaimpex
         kritacolor
         kritaimage
+        kritapainting
         kritalibbrush
         kritawidgets
         kritawidgetutils

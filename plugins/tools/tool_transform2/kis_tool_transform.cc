@@ -917,7 +917,7 @@ void KisToolTransform::startStroke(ToolTransformArgs::TransformMode mode, bool f
 
     // set up and null checks before we do anything
     KisResourcesSnapshotSP resources =
-            new KisResourcesSnapshot(image(), currentNode(), this->canvas()->resourceManager(), 0, selectedNodes(), 0);
+            new KisResourcesSnapshot(image(), currentNode(), this->canvas()->resourceManager()->canvasResourcesInterface(), 0, selectedNodes(), 0);
     KisNodeList rootNodes = resources->selectedNodes();
     //Filter out any nodes that might be children of other selected nodes so they aren't used twice
     KisLayerUtils::filterMergeableNodes(rootNodes, true);

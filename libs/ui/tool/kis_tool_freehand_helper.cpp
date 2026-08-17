@@ -315,7 +315,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
 
     m_d->resources = new KisResourcesSnapshot(image,
                                               currentNode,
-                                              resourceManager,
+                                              resourceManager->canvasResourcesInterface(),
                                               bounds);
     if(overrideNode) {
         m_d->resources->setCurrentNode(overrideNode);

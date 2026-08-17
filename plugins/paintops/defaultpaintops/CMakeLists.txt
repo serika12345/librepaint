@@ -26,7 +26,7 @@ ki18n_wrap_ui(kritadefaultpaintops_SOURCES duplicate/wdgduplicateop.ui )
 kis_add_library(kritadefaultpaintops_static STATIC ${kritadefaultpaintops_SOURCES})
 generate_export_header(kritadefaultpaintops_static BASE_NAME kritadefaultpaintops EXPORT_MACRO_NAME KRITADEFAULTPAINTOPS_EXPORT)
 
-target_link_libraries(kritadefaultpaintops_static kritalibpaintop)
+target_link_libraries(kritadefaultpaintops_static kritalibpaintop kritapainting)
 
 kis_add_library(kritadefaultpaintops MODULE defaultpaintops_plugin.cc)
 

@@ -9,7 +9,7 @@ generate_export_header(kritaiptc)
 
 target_link_libraries(kritaiptc
     PRIVATE
-        kritametadata
+        kritapaintingmetadata
         KF${KF_MAJOR}::CoreAddons
         LibExiv2::LibExiv2
 )

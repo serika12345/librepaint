@@ -146,12 +146,10 @@
       "current": {
         "sourceDirectories": [
           "libs/command",
-          "libs/metadata",
           "libs/ui"
         ],
         "cmakeTargets": [
           "kritacommand",
-          "kritametadata",
           "kritaui"
         ],
         "uiClassAreas": [
@@ -297,7 +295,7 @@
           "libs/color",
           "libs/image",
           "libs/pigment",
-          "libs/ui/tool/strokes",
+          "libs/painting",
           "plugins/color",
           "plugins/filters",
           "plugins/flake",
@@ -308,6 +306,9 @@
           "kritacolor",
           "kritaimage",
           "kritalibbrush",
+          "kritapainting",
+          "kritapaintingmetadata",
+          "kritapaintingundo",
           "kritapigment"
         ],
         "uiClassAreas": [],
@@ -351,7 +352,19 @@
             "name": "kritapainting",
             "directory": "libs/painting",
             "role": "domain-facade",
-            "status": "new"
+            "status": "implemented"
+          },
+          {
+            "name": "kritapaintingmetadata",
+            "directory": "libs/painting/metadata",
+            "role": "image-metadata",
+            "status": "implemented"
+          },
+          {
+            "name": "kritapaintingundo",
+            "directory": "libs/painting/undo",
+            "role": "image-and-canvas-undo",
+            "status": "implemented"
           },
           {
             "name": "kritapigment",
@@ -517,14 +530,6 @@
   ],
   "reviewedInternalHeaderDestinations": [
     {
-      "ownerTarget": "kritaimage",
-      "headerPath": "*",
-      "destinationResponsibility": "painting-rendering",
-      "destinationDirectory": "libs/painting/api",
-      "wave": "R1-G6b",
-      "disposition": "declare-or-replace-public-contract"
-    },
-    {
       "ownerTarget": "kritaui",
       "headerPath": "libs/ui/KisImportUserFeedbackInterface.h",
       "destinationResponsibility": "import-export",
@@ -646,28 +651,6 @@
     }
   ],
   "compatibilityRoutes": [
-    {
-      "id": "legacy-painting-ui-headers",
-      "kind": "forwarding-headers",
-      "legacy": "painting-execution and stroke-generation headers below libs/ui/tool",
-      "replacement": "libs/painting and kritapainting",
-      "introducedBy": "R1-G6b",
-      "owner": "R1-G7",
-      "maximumScope": "The R1-G2 UI tool class inventory selections for painting execution and stroke generation.",
-      "removalCondition": "All consumers use paint-execution and no old UI tool painting header has an external consumer.",
-      "verification": "UI tool inventory, public-surface inventory, and header baseline report no legacy consumer."
-    },
-    {
-      "id": "legacy-command-metadata-headers",
-      "kind": "forwarding-headers-and-targets",
-      "legacy": "painting and canvas primitives currently exposed by kritacommand and kritametadata",
-      "replacement": "painting undo and image metadata contracts plus document-owned coordination",
-      "introducedBy": "R1-G6b",
-      "owner": "R1-G7",
-      "maximumScope": "Only command and metadata symbols classified during the R1-G6b split.",
-      "removalCondition": "Painting and canvas have zero document-lifecycle includes and legacy targets contain only document-owned sources or are empty.",
-      "verification": "Reverse dependency baseline is zero for painting and canvas to document lifecycle."
-    },
     {
       "id": "legacy-impex-ui-headers",
       "kind": "forwarding-headers",
@@ -824,7 +807,7 @@
       ],
       "maximumReverseDirectIncludesAfterWave": 257,
       "maximumInternalDirectReferencesAfterWave": {
-        "kritaimage": 593,
+        "kritaimage": 0,
         "kritaui": 34
       },
       "completionCriteria": [
@@ -853,21 +836,20 @@
         {
           "from": "libs/command::<image-and-canvas-undo-primitives>",
           "to": "libs/painting/undo",
-          "target": "kritapainting"
+          "target": "kritapaintingundo"
         },
         {
           "from": "libs/metadata::<image-metadata-types>",
           "to": "libs/painting/metadata",
-          "target": "kritapainting"
+          "target": "kritapaintingmetadata"
         }
       ],
       "createsTargets": [
-        "kritapainting"
+        "kritapainting",
+        "kritapaintingmetadata",
+        "kritapaintingundo"
       ],
-      "compatibilityRoutes": [
-        "legacy-command-metadata-headers",
-        "legacy-painting-ui-headers"
-      ],
+      "compatibilityRoutes": [],
       "requiredContracts": [
         "Image model ownership and snapshot tests",
         "Stroke scheduling, cancellation, undo, and projection tests",

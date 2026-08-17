@@ -23,6 +23,7 @@
 
 #include <kis_cursor.h>
 #include <kis_tool_utils.h>
+#include <kis_painting_utils.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
 #include <kis_gradient_painter.h>
@@ -473,7 +474,7 @@ void KisScratchPad::endPan(KoPointerEvent *event)
 void KisScratchPad::sample(KoPointerEvent *event)
 {
     KoColor color;
-    if (KisToolUtils::sampleColor(color, m_paintLayer->projection(), event->point.toPoint())) {
+    if (KisPaintingUtils::sampleColor(color, m_paintLayer->projection(), event->point.toPoint())) {
         Q_EMIT colorSelected(color);
     }
 }

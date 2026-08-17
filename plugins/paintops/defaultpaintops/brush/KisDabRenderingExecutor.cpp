@@ -12,7 +12,7 @@
 #include "KisRenderedDab.h"
 #include "KisRunnableStrokeJobsInterface.h"
 #include "KisRunnableStrokeJobData.h"
-#include <tool/strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
+#include <strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
 
 struct KisDabRenderingExecutor::Private
 {

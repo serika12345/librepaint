@@ -11,7 +11,6 @@ kis_add_library(kritatoolSmartPatch MODULE ${kritatoolSmartPatch_SOURCES})
 
 generate_export_header(kritatoolSmartPatch BASE_NAME kritatoolSmartPatch)
 
-target_link_libraries(kritatoolSmartPatch kritaui)
+target_link_libraries(kritatoolSmartPatch kritaui kritapainting)
 
 install(TARGETS kritatoolSmartPatch  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
-

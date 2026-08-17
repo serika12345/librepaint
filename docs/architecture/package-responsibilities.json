@@ -269,15 +269,13 @@
     },
     {
       "id": "document-lifecycle",
-      "responsibility": "Owns document lifetime, identity, modified state, undo coordination, metadata, and the connection between a document and its image.",
+      "responsibility": "Owns document lifetime, identity, modified state, undo coordination, document metadata coordination, and the connection between a document and its image.",
       "sourceDirectories": [
         "libs/command",
-        "libs/metadata",
         "libs/ui"
       ],
       "ownerTargets": [
         "kritacommand",
-        "kritametadata",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
@@ -503,8 +501,8 @@
         "libs/brush",
         "libs/color",
         "libs/image",
+        "libs/painting",
         "libs/pigment",
-        "libs/ui/tool/strokes",
         "plugins/color",
         "plugins/filters",
         "plugins/flake",
@@ -515,6 +513,9 @@
         "kritacolor",
         "kritaimage",
         "kritalibbrush",
+        "kritapainting",
+        "kritapaintingmetadata",
+        "kritapaintingundo",
         "kritapigment"
       ],
       "publicHeaderOwnerTargets": [

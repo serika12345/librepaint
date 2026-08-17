@@ -195,7 +195,7 @@ void KisToolShape::addShape(KoShape* shape)
 
     KisResourcesSnapshot resources(image(),
                                    currentNode(),
-                                   canvas()->resourceManager());
+                                   canvas()->resourceManager()->canvasResourcesInterface());
     switch(fillStyle()) {
         case FillStyleForegroundColor:
             shape->setBackground(QSharedPointer<KoColorBackground>(new KoColorBackground(resources.currentFgColor().toQColor())));
