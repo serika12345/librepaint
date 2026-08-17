@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-17 15:54 JST
+- 更新日時: 2026-08-17 16:00 JST
 - 状態: `completed`
 - 現在の検査段階: R1-G6b 描画実行境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -341,6 +341,8 @@
 - 既存失敗の`plugins-impex-jpeg-kis_jpeg_test`は実メモリが最大約4.2 GiB、システムの
   スワップ使用量が約23.3 GiBへ増加したため293秒時点で終了した。終了後のスワップ使用量は
   約2.8 GiB、空きメモリ指標は88%へ回復した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
+  同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
 
 ## 次の操作
 
