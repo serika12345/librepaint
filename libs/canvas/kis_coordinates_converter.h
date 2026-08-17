@@ -13,7 +13,7 @@
 #include <QTransform>
 #include <KoZoomHandler.h>
 
-#include "kritaui_export.h"
+#include "kritacanvas_export.h"
 #include "kis_types.h"
 
 class KoViewTransformStillPoint;
@@ -45,7 +45,7 @@ namespace _Private
     template<> struct Traits<QLine>:    public Traits<QLineF>    { };
 }
 
-class KRITAUI_EXPORT KisCoordinatesConverter: public KoZoomHandler
+class KRITACANVAS_EXPORT KisCoordinatesConverter: public KoZoomHandler
 {
 public:
     KisCoordinatesConverter();
@@ -61,11 +61,13 @@ public:
     void setImageBounds(const QRect &rect, const QPointF oldImageStillPoint, const QPointF newImageStillPoint);
     void setImageResolution(qreal xRes, qreal yRes);
     void setDocumentOffset(const QPointF &offset);
+    void setVastScrolling(qreal value);
 
     qreal devicePixelRatio() const;
     QPoint documentOffset() const;
     QPointF documentOffsetF() const;
     qreal rotationAngle() const;
+    qreal vastScrolling() const;
 
 
     /**

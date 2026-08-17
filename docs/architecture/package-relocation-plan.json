@@ -88,12 +88,14 @@
       "current": {
         "sourceDirectories": [
           "libs/basicflakes",
+          "libs/canvas",
           "libs/flake",
           "libs/ui/canvas",
           "plugins/dockers"
         ],
         "cmakeTargets": [
           "kritabasicflakes",
+          "kritacanvas",
           "kritaflake",
           "kritaui"
         ],
@@ -124,7 +126,7 @@
             "name": "kritacanvas",
             "directory": "libs/canvas",
             "role": "presentation",
-            "status": "new"
+            "status": "implemented"
           },
           {
             "name": "kritaflake",
@@ -617,17 +619,6 @@
   ],
   "compatibilityRoutes": [
     {
-      "id": "legacy-canvas-ui-headers",
-      "kind": "forwarding-headers",
-      "legacy": "canvas-display headers in libs/ui and libs/ui/canvas",
-      "replacement": "libs/canvas and kritacanvas",
-      "introducedBy": "R1-G6d",
-      "owner": "R1-G7",
-      "maximumScope": "The R1-G2 canvas-display class set and reviewed canvas internal headers.",
-      "removalCondition": "All consumers use canvas-view from kritacanvas and no legacy canvas UI include remains.",
-      "verification": "Public-surface inventory and canvas component tests report no legacy consumer."
-    },
-    {
       "id": "legacy-document-ui-headers",
       "kind": "forwarding-headers",
       "legacy": "document-state headers in libs/ui",
@@ -903,9 +894,7 @@
       "createsTargets": [
         "kritacanvas"
       ],
-      "compatibilityRoutes": [
-        "legacy-canvas-ui-headers"
-      ],
+      "compatibilityRoutes": [],
       "requiredContracts": [
         "Canvas coordinate and view lifetime tests",
         "Projection notification and last-valid-frame tests",

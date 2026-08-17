@@ -1414,6 +1414,304 @@
     },
     {
       "sourceResponsibility": "document-lifecycle",
+      "dependencyResponsibility": "canvas-presentation",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/KisReferenceImage.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/KisReferenceImagesDecoration.h",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/KoCanvasControllerWidget.cpp",
+          "include": "KisCanvasState.h",
+          "headerPath": "libs/canvas/KisCanvasState.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas2.cpp",
+          "include": "KisCanvasState.h",
+          "headerPath": "libs/canvas/KisCanvasState.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas2.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas2.h",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas_controller.cpp",
+          "include": "KisCanvasState.h",
+          "headerPath": "libs/canvas/KisCanvasState.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas_controller.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas_widget_base.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_grid_decoration.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_grid_manager.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_guides_decoration.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_guides_manager.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_prescaled_projection.cpp",
+          "include": "KisCanvasState.h",
+          "headerPath": "libs/canvas/KisCanvasState.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_prescaled_projection.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_qpainter_canvas.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/input/kis_tool_invocation_action.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/kis_fps_decoration.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/kis_painting_assistant.cc",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/kis_selection_decoration.cc",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/kis_zoom_manager.cc",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp",
+          "include": "canvas/kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/tool/kis_painting_information_builder.cpp",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/tool/kis_tool.cc",
+          "include": "kis_coordinates_converter.h",
+          "headerPath": "libs/canvas/kis_coordinates_converter.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "document-lifecycle",
       "dependencyResponsibility": "tool-invocation",
       "status": "disproved-by-direct-include-attribution",
       "targetLinks": [
@@ -3721,27 +4019,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 19,
+            "targetCount": 20,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 19,
+            "targetCount": 20,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 19,
+            "targetCount": 20,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 19,
+            "targetCount": 20,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 19,
+            "targetCount": 20,
             "components": []
           }
         ]
@@ -3751,27 +4049,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 219,
+            "targetCount": 220,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 225,
+            "targetCount": 226,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 211,
+            "targetCount": 212,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 211,
+            "targetCount": 212,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 228,
+            "targetCount": 229,
             "components": []
           }
         ]
@@ -3785,6 +4083,23 @@
     "publicationEvidence": "export-macro-or-compile-contract"
   },
   "internalHeaderBaseline": [
+    {
+      "ownerTarget": "kritacanvas",
+      "owner": "R1-G6",
+      "reason": "External packages use the declared canvas coordinate and view-state header surface.",
+      "maximumHeaders": 0,
+      "maximumDirectReferences": 0,
+      "removalCondition": "Canvas consumers continue to use declared public contracts.",
+      "sourceDirectory": "libs/canvas",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": []
+    },
     {
       "ownerTarget": "kritaimage",
       "owner": "R1-G6",

@@ -45,6 +45,21 @@ PLUGIN_REGISTRATION_PATTERN = re.compile(
 )
 PUBLIC_HEADER_SET_SPECS = (
     {
+        "ownerTarget": "kritacanvas",
+        "sourceDirectory": "libs/canvas",
+        "headerDirectories": ["libs/canvas"],
+        "excludedHeaderDirectories": ["libs/canvas/tests"],
+        "exportMacro": "KRITACANVAS_EXPORT",
+        "responsibility": (
+            "Records the declared canvas-view surface for coordinate mapping "
+            "and immutable snapshots of canvas screen state."
+        ),
+        "evidence": [
+            "libs/canvas/CMakeLists.txt",
+            "libs/canvas/kis_coordinates_converter.h",
+        ],
+    },
+    {
         "ownerTarget": "kritaimage",
         "sourceDirectory": "libs/image",
         "headerDirectories": ["libs/image"],

@@ -14,7 +14,6 @@
 #include <QTransform>
 #include <KoViewConverter.h>
 
-#include <kis_config.h>
 #include <kis_image.h>
 #include <kis_algebra_2d.h>
 #include <kis_assert.h>
@@ -52,6 +51,7 @@ struct KisCoordinatesConverter::Private {
     bool rotationIsOrthogonal;
     QSizeF canvasWidgetSize;
     qreal devicePixelRatio;
+    qreal vastScrolling {0.9};
     QPointF documentOffset;
     QPointF preferredTransformationCenterImage;
     QPoint minimumOffset;
@@ -95,14 +95,12 @@ struct KisCoordinatesConverter::Private {
 
 QPointF KisCoordinatesConverter::centeringCorrection() const
 {
-    KisConfig cfg(true);
-
     QSize documentSize = imageRectInWidgetPixels().toAlignedRect().size();
     QPointF dPoint(documentSize.width(), documentSize.height());
     QPointF wPoint(m_d->canvasWidgetSize.width(), m_d->canvasWidgetSize.height());
 
-    QPointF minOffset = -cfg.vastScrolling() * wPoint;
-    QPointF maxOffset = dPoint - wPoint + cfg.vastScrolling() * wPoint;
+    QPointF minOffset = -m_d->vastScrolling * wPoint;
+    QPointF maxOffset = dPoint - wPoint + m_d->vastScrolling * wPoint;
 
     QPointF range = maxOffset - minOffset;
 
@@ -118,8 +116,6 @@ void KisCoordinatesConverter::recalculateOffsetBoundsAndCrop()
 {
     if (!m_d->canvasWidgetSize.isValid()) return;
 
-    KisConfig cfg(true);
-
     const QRect refRect = imageToWidget(m_d->extraReferencesBounds).toAlignedRect();
 
     QRect documentRect = imageRectInWidgetPixels().toAlignedRect();
@@ -129,8 +125,8 @@ void KisCoordinatesConverter::recalculateOffsetBoundsAndCrop()
                       qMin(0,  refRect.top() - documentRect.y()));
     QPointF wPoint(m_d->canvasWidgetSize.width(), m_d->canvasWidgetSize.height());
 
-    QPointF minOffset = dPointMin - cfg.vastScrolling() * wPoint;
-    QPointF maxOffset = dPointMax - wPoint + cfg.vastScrolling() * wPoint;
+    QPointF minOffset = dPointMin - m_d->vastScrolling * wPoint;
+    QPointF maxOffset = dPointMax - wPoint + m_d->vastScrolling * wPoint;
 
     m_d->minimumOffset = minOffset.toPoint();
     m_d->maximumOffset = maxOffset.toPoint();
@@ -349,6 +345,16 @@ void KisCoordinatesConverter::setDocumentOffset(const QPointF& offset)
     resetPreferredTransformationCenter();
 }
 
+void KisCoordinatesConverter::setVastScrolling(qreal value)
+{
+    if (qFuzzyCompare(m_d->vastScrolling, value)) {
+        return;
+    }
+
+    m_d->vastScrolling = value;
+    recalculateTransformations();
+}
+
 qreal KisCoordinatesConverter::devicePixelRatio() const
 {
     return m_d->devicePixelRatio;
@@ -372,6 +378,11 @@ QPointF KisCoordinatesConverter::preferredTransformationCenter() const
 qreal KisCoordinatesConverter::rotationAngle() const
 {
     return m_d->rotationAngle;
+}
+
+qreal KisCoordinatesConverter::vastScrolling() const
+{
+    return m_d->vastScrolling;
 }
 
 void KisCoordinatesConverter::setZoom(qreal zoom)

@@ -408,6 +408,40 @@
       ]
     },
     {
+      "sourceTarget": "kritacanvas",
+      "dependencyTarget": "kritaflake",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritacanvas",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritacommand",
       "dependencyTarget": "kritapaintingundo",
       "sourceResponsibilities": [
@@ -1049,6 +1083,47 @@
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritacanvas",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation",
           "status": "allowed"
         }
       ]

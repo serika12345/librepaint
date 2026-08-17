@@ -27,7 +27,6 @@ set(kritaui_LIB_SRCS
     canvas/kis_exposure_gamma_correction_interface.cpp
     canvas/kis_tool_proxy.cpp
     canvas/kis_canvas_decoration.cc
-    canvas/kis_coordinates_converter.cpp
     canvas/kis_grid_manager.cpp
     canvas/kis_grid_decoration.cpp
     canvas/kis_grid_config.cpp
@@ -49,7 +48,6 @@ set(kritaui_LIB_SRCS
     canvas/KisMirrorAxisConfig.cpp
     canvas/KoCanvasControllerWidget.cpp
     canvas/KoCanvasControllerWidgetViewport_p.cpp
-    canvas/KisCanvasState.cpp
 
     dialogs/kis_about_application.cpp
     dialogs/kis_dlg_adj_layer_props.cc
@@ -649,6 +647,7 @@ target_link_libraries(kritaui
         kritaresources
         kritaresourcestorage
         kritatoolsui
+        kritacanvas
     PRIVATE
         kritaimpexui
         kritaresourceui

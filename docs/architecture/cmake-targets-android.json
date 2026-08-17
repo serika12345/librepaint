@@ -2093,11 +2093,10 @@
     {
       "name": "kis_coordinates_converter_test",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/canvas/tests",
       "dependencies": [
-        "kritalibkis",
-        "kritatestsdk",
-        "kritaui"
+        "kritacanvas",
+        "kritatestsdk"
       ]
     },
     {
@@ -3676,6 +3675,18 @@
       "dependencies": [
         "Qt5::AndroidExtras",
         "kritaui"
+      ]
+    },
+    {
+      "name": "kritacanvas",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/canvas",
+      "dependencies": [
+        "Boost::boost",
+        "Qt5::Core",
+        "Qt5::Gui",
+        "kritaflake",
+        "kritaimage"
       ]
     },
     {
@@ -5444,6 +5455,7 @@
         "Qt5::Gui",
         "Qt5::Network",
         "SDL2::SDL2",
+        "kritacanvas",
         "kritacolor",
         "kritaimage",
         "kritaimpex",

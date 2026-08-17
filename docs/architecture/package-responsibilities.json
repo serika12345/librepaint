@@ -133,20 +133,27 @@
       "responsibility": "Presents image and vector content on canvases and provides docked views of canvas-related state.",
       "sourceDirectories": [
         "libs/basicflakes",
+        "libs/canvas",
         "libs/flake",
         "libs/ui/canvas",
         "plugins/dockers"
       ],
       "ownerTargets": [
         "kritabasicflakes",
+        "kritacanvas",
         "kritaflake",
         "kritaui"
       ],
-      "publicHeaderOwnerTargets": [],
+      "publicHeaderOwnerTargets": [
+        "kritacanvas"
+      ],
       "reviewedPublicHeaderPaths": [
         "libs/ui/widgets/KoStrokeConfigWidget.h"
       ],
-      "reviewedSourcePaths": [],
+      "reviewedSourcePaths": [
+        "libs/ui/kis_fps_decoration.cpp",
+        "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp"
+      ],
       "uiClassAreas": [
         "canvas-display"
       ],
@@ -157,6 +164,8 @@
         "docker-presentation"
       ],
       "publicHeaderPaths": [
+        "libs/canvas/KisCanvasState.h",
+        "libs/canvas/kis_coordinates_converter.h",
         "libs/ui/KisAbstractFrameCacheSwapper.h",
         "libs/ui/KisAndroidScaling.h",
         "libs/ui/KisAsyncAnimationRendererBase.h",
@@ -1534,6 +1543,28 @@
       ]
     },
     {
+      "name": "kritacanvas",
+      "sourceDirectory": "libs/canvas",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaflake",
+        "kritaimage"
+      ],
+      "repositoryConsumers": [
+        "kritaui"
+      ]
+    },
+    {
       "name": "kritacolor",
       "sourceDirectory": "libs/color",
       "platforms": [
@@ -1601,6 +1632,7 @@
         "krita_shape_paths",
         "kritaassistanttool_static",
         "kritabasicflakes",
+        "kritacanvas",
         "kritapsdutils",
         "kritawidgets"
       ]
@@ -1634,6 +1666,7 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
+        "kritacanvas",
         "kritahistorydocker",
         "kritaimpex",
         "kritaimpexui",
@@ -2049,6 +2082,7 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
+        "kritacanvas",
         "kritacolor",
         "kritaimage",
         "kritaimpex",
