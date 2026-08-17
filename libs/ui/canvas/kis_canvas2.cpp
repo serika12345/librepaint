@@ -352,6 +352,7 @@ void KisCanvas2::setup()
 {
     // a bit of duplication from slotConfigChanged()
     KisConfig cfg(true);
+    m_d->coordinatesConverter->setVastScrolling(cfg.vastScrolling());
     m_d->lodPreferredInImage = cfg.levelOfDetailEnabled();
     m_d->regionOfInterestMargin = KisImageConfig(true).animationCacheRegionOfInterestMargin();
 
@@ -1443,6 +1444,7 @@ void KisCanvas2::slotCanvasStateChanged()
 void KisCanvas2::slotConfigChanged()
 {
     KisConfig cfg(true);
+    m_d->coordinatesConverter->setVastScrolling(cfg.vastScrolling());
     m_d->regionOfInterestMargin = KisImageConfig(true).animationCacheRegionOfInterestMargin();
 
     resetCanvas(cfg.useOpenGL());

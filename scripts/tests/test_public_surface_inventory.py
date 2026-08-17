@@ -74,6 +74,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             source_directory="libs/ui",
             export_macro="KRITAUI_EXPORT",
         )
+        canvas_headers = check_public_surface_inventory.discover_public_headers(
+            repository_root=REPO_ROOT,
+            source_directory="libs/canvas",
+            export_macro="KRITACANVAS_EXPORT",
+        )
         image_headers = check_public_surface_inventory.discover_public_headers(
             repository_root=REPO_ROOT,
             source_directory="libs/image",
@@ -89,7 +94,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         image_by_path = {entry["path"]: entry for entry in image_headers}
         impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
 
-        self.assertEqual(len(ui_headers), 257)
+        self.assertEqual(len(canvas_headers), 2)
+        self.assertEqual(len(ui_headers), 255)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(
@@ -286,10 +292,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 for entry in inventory["publicHeaderSets"]
             },
             {
+                "kritacanvas": 2,
                 "kritaimage": 332,
                 "kritaimpex": 11,
                 "kritaimpexui": 23,
-                "kritaui": 257,
+                "kritaui": 255,
             },
         )
         self.assertEqual(

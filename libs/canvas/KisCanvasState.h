@@ -7,7 +7,7 @@
 #ifndef KIS_CANVAS_STATE_H
 #define KIS_CANVAS_STATE_H
 
-#include <kritaui_export.h>
+#include <kritacanvas_export.h>
 #include <boost/operators.hpp>
 #include <QPoint>
 #include <QSize>
@@ -17,7 +17,7 @@
 class KoZoomState;
 class KisCoordinatesConverter;
 
-class KRITAUI_EXPORT KisCanvasState : public boost::equality_comparable<KisCanvasState>
+class KRITACANVAS_EXPORT KisCanvasState : public boost::equality_comparable<KisCanvasState>
 {
 public:
     qreal zoom;

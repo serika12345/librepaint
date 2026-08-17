@@ -15,6 +15,8 @@ class KisCoordinatesConverterTest : public QObject
 
 private Q_SLOTS:
     void testConversion();
+    void testImageLifetime();
+    void testVastScrollingConfiguration();
     void testImageCropping();
     void testTransformations();
     void testConsistency();
@@ -65,4 +67,3 @@ private Q_SLOTS:
 };
 
 #endif /* KIS_COORDINATES_CONVERTER_TEST_H */
-

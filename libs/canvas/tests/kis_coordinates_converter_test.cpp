@@ -73,6 +73,43 @@ void KisCoordinatesConverterTest::testConversion()
     QCOMPARE(converter.documentToImage(testRect), QRectF(10000,10000,10000,10000));
 }
 
+void KisCoordinatesConverterTest::testImageLifetime()
+{
+    KisImageSP image;
+    KisCoordinatesConverter converter;
+    initImage(&image, &converter);
+
+    converter.setImage(image);
+    converter.setCanvasWidgetSize(QSize(500, 500));
+    converter.setZoom(1.0);
+
+    const QRect imageBounds = converter.imageRectInImagePixels();
+    const QTransform imageToWidget = converter.imageToWidgetTransform();
+    KisImageWSP weakImage(image);
+
+    image.clear();
+
+    QVERIFY(!weakImage.isValid());
+    QCOMPARE(converter.imageRectInImagePixels(), imageBounds);
+    QCOMPARE(converter.imageToWidgetTransform(), imageToWidget);
+}
+
+void KisCoordinatesConverterTest::testVastScrollingConfiguration()
+{
+    KisImageSP image;
+    KisCoordinatesConverter converter;
+    initImage(&image, &converter);
+
+    converter.setImage(image);
+    converter.setCanvasWidgetSize(QSize(500, 500));
+    converter.setZoom(1.0);
+    converter.setVastScrolling(0.25);
+
+    QCOMPARE(converter.vastScrolling(), 0.25);
+    QCOMPARE(converter.minimumOffset(), QPoint(-125, -125));
+    QCOMPARE(converter.maximumOffset(), QPoint(625, 625));
+}
+
 void KisCoordinatesConverterTest::testImageCropping()
 {
     KisImageSP image;
@@ -2257,4 +2294,3 @@ void KisCoordinatesConverterTest::testPreferredCenterTransformations()
 }
 
 SIMPLE_TEST_MAIN(KisCoordinatesConverterTest)
-
