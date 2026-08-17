@@ -26,7 +26,10 @@ PRODUCTION_SOURCE_DIRECTORIES = (
     "winquirks",
 )
 TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
-PUBLICATION_EVIDENCE = ("export-macro", "external-include")
+PUBLICATION_EVIDENCE = ("export-macro", "compile-contract", "external-include")
+PUBLIC_HEADER_COMPILE_CONTRACTS = {
+    "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
+}
 INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
 )
@@ -224,7 +227,7 @@ PLUGIN_SERVICE_TYPE_OWNERS = (
         "serviceType": "Krita/Metadata",
         "featureOwner": "document-metadata",
         "runtimeConsumer": "KisMetadataBackendRegistry",
-        "evidence": "libs/metadata/kis_meta_data_backend_registry.cpp",
+        "evidence": "libs/painting/metadata/kis_meta_data_backend_registry.cpp",
     },
     {
         "serviceType": "Krita/Paintop",
@@ -330,6 +333,16 @@ def discover_public_headers(
             if name in consumers_by_name:
                 consumers_by_name[name].add(relative)
 
+    compile_contract_headers: set[str] = set()
+    for relative in PUBLIC_HEADER_COMPILE_CONTRACTS.get(source_directory, ()):
+        path = repository_root / relative
+        if not path.is_file():
+            raise PublicSurfaceError(f"public header compile contract is missing: {relative}")
+        for include in INCLUDE_PATTERN.findall(path.read_text(encoding="utf-8")):
+            name = PurePosixPath(include).name
+            if name in headers_by_name:
+                compile_contract_headers.add(name)
+
     entries: list[dict[str, Any]] = []
     export_macros = (
         export_macro,
@@ -346,6 +359,8 @@ def discover_public_headers(
             for macro in export_macros
         ):
             publication_evidence.append("export-macro")
+        if name in compile_contract_headers:
+            publication_evidence.append("compile-contract")
         if consumers:
             publication_evidence.append("external-include")
         if publication_evidence:

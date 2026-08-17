@@ -82,7 +82,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         ui_by_path = {entry["path"]: entry for entry in ui_headers}
         image_by_path = {entry["path"]: entry for entry in image_headers}
 
-        self.assertEqual(len(ui_headers), 294)
+        self.assertEqual(len(ui_headers), 279)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(
             ui_by_path["libs/ui/KisAbstractFrameCacheSwapper.h"],
@@ -150,23 +150,9 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 50)
-        self.assertEqual(
-            by_name["Data"],
-            {
-                "name": "Data",
-                "declarationKind": "class",
-                "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
-                "implementationPaths": [
-                    "libs/ui/tool/strokes/move_stroke_strategy.cpp"
-                ],
-                "consumerPaths": [
-                    "plugins/tools/basictools/kis_tool_move.cc",
-                    "plugins/tools/basictools/strokes/"
-                    "move_selection_stroke_strategy.cpp",
-                ],
-            },
-        )
+        self.assertEqual(len(classes), 33)
+        self.assertNotIn("Data", by_name)
+        self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertEqual(
             by_name["NoopActivationPolicy"]["implementationPaths"], []
         )
@@ -181,7 +167,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 50)
+        self.assertEqual(len(inventory["classes"]), 33)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisPaintingInformationBuilder"]["responsibilityArea"],
@@ -194,10 +180,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             by_name["KisToolFreehandHelper"]["responsibilityArea"],
             "stroke-generation",
         )
-        self.assertEqual(
-            by_name["FreehandStrokeStrategy"]["responsibilityArea"],
-            "painting-execution",
-        )
+        self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertEqual(
             by_name["KisRectangleConstraintWidget"]["responsibilityArea"],
             "settings-presentation",
@@ -209,7 +192,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             check_public_surface_inventory.PublicSurfaceError,
-            r"missing=\['BarrierUpdateData'\]",
+            r"missing=\['ColorSamplerConfig'\]",
         ):
             self.validate_ui_tool_classes(inventory)
 
@@ -295,7 +278,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 entry["ownerTarget"]: len(entry["headers"])
                 for entry in inventory["publicHeaderSets"]
             },
-            {"kritaimage": 332, "kritaui": 294},
+            {"kritaimage": 332, "kritaui": 279},
         )
         self.assertEqual(
             [entry["path"] for entry in inventory["publicHeaderDetails"]],

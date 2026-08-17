@@ -11,7 +11,7 @@ target_include_directories(kritaexifcommon PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
 )
 
-target_link_libraries(kritaexifcommon kritaglobal kritametadata LibExiv2::LibExiv2)
+target_link_libraries(kritaexifcommon kritaglobal kritapaintingmetadata LibExiv2::LibExiv2)
 
 set_target_properties(kritaexifcommon PROPERTIES
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}

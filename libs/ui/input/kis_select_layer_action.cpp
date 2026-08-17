@@ -20,7 +20,7 @@
 #include <kis_cursor.h>
 
 #include "kis_input_manager.h"
-#include "kis_tool_utils.h"
+#include "kis_painting_utils.h"
 #include <kis_group_layer.h>
 
 #include <kis_assert.h>
@@ -191,14 +191,14 @@ void KisSelectLayerAction::inputEvent(QEvent *event)
     KisNodeList nodesToSelect;
 
     if (layerSelectionMode == LayerSelectionMode_TopLayer) {
-        KisNodeSP foundNode = KisToolUtils::findNode(inputManager()->canvas()->image()->root(), pos, false);
+        KisNodeSP foundNode = KisPaintingUtils::findNode(inputManager()->canvas()->image()->root(), pos, false);
         if (!foundNode) {
             return;
         }
         nodesToSelect.append(foundNode);
     } else {
         // Retrieve group nodes only if the mode is LayerSelectionMode_Ask
-        const KisNodeList foundNodes = KisToolUtils::findNodes(
+        const KisNodeList foundNodes = KisPaintingUtils::findNodes(
                                             inputManager()->canvas()->image()->root()->firstChild(),
                                             pos, false, layerSelectionMode == LayerSelectionMode_Ask);
 

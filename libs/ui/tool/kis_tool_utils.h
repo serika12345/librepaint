@@ -36,31 +36,6 @@ private:
 };
 
 /**
- * Sample a color based on the given position on the given paint device.
- *
- * out_color   - Output parameter returning newly sampled color.
- * dev         - Paint device to sample from.
- * pos         - Position to sample from.
- * blendColor  - Optional color to be blended with.
- * radius      - Sampling area radius in pixels.
- * blend       - Blend percentage. 100% all sampled, 0% all blendColor.
- * pure        - Whether to bypass radius, blending, and active layer settings for pure sampling.
- *
- * RETURN      - Returns TRUE whenever a valid color is sampled.
- */
-bool KRITAUI_EXPORT sampleColor(KoColor &out_color, KisPaintDeviceSP dev, const QPoint &pos,
-                                KoColor const *const blendColor = nullptr, int radius = 1,
-                                int blend = 100, bool pure = false);
-
-/**
- * Recursively search a node with a non-transparent pixel
- */
-KisNodeSP KRITAUI_EXPORT findNode(KisNodeSP node, const QPoint &point, bool wholeGroup, bool editableOnly = true);
-
-KisNodeList KRITAUI_EXPORT findNodes(KisNodeSP node, const QPoint &point, bool wholeGroup,
-                                     bool includeGroups = true, bool editableOnly = true);
-
-/**
  * @brief nodeEditableMessage
  * @param node -- active node.
  * @param blockedNoIndirectPainting -- whether editing is blocked due no-indirect painting being possible.

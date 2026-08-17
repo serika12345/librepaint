@@ -44,7 +44,7 @@ void MoveSelectionStrokeTest::test()
     KisResourcesSnapshotSP resources =
         new KisResourcesSnapshot(image,
                                  image->root()->firstChild(),
-                                 manager.data());
+                                 manager->canvasResourcesInterface());
 
     KisNodeSP currentNode = resources->currentNode();
     KisPaintLayerSP currentPaintLayer = dynamic_cast<KisPaintLayer*>(currentNode.data());

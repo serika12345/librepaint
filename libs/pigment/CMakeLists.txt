@@ -100,7 +100,7 @@ target_link_libraries( kritapigment
         kritaplugin
         kritaglobal
         kritaresources
-        kritacommand
+        kritapaintingundo
         ${LINK_OPENEXR_LIB}
         kritamultiarch
         KF${KF_MAJOR}::I18n 

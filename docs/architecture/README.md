@@ -123,10 +123,10 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | --- | --- | --- |
 | `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
 | `canvas-presentation` | `kritabasicflakes`、`kritaflake`、`kritaui` | キャンバス表示、ベクター表示、ドッカー |
-| `document-lifecycle` | `kritacommand`、`kritametadata`、`kritaui` | 文書寿命、変更状態、アンドゥ、メタデータ |
+| `document-lifecycle` | `kritacommand`、`kritaui` | 文書寿命、変更状態、取り消し履歴の表示、文書調整 |
 | `import-export` | `kritaimpex`、`kritaui` | 形式選択、検証、文書入出力 |
 | `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
-| `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理 |
+| `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
 | `plugin-infrastructure` | `kritaplugin` | メタデータ探索、ファクトリーとサービス種別の登録 |
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
 | `tool-invocation` | `kritatoolsui`、`kritaui` | 描画設定表示とキャンバス状態へのツール呼出し |
@@ -174,29 +174,29 @@ R1-G3bで定義する許可依存方向の比較元になる。
 ### 確認済み逆方向依存の基準
 
 [依存違反基準](dependency-violation-baseline.json)は、許可方向外の責務対を製品ソースの
-直接includeへ照合し、一意に責務へ帰属できる現在の5責務対を確認済み違反として記録する。
+直接includeへ照合し、一意に責務へ帰属できる現在の3責務対を確認済み違反として記録する。
 各項目は元のCMakeターゲット辺と5構成、全include根拠、審査済みの最大件数、所有する
 ロードマップ段階、現在必要な理由、除去条件を持つ。
 
 | 依存元 | 依存先 | 直接include上限 | 主な現在境界 |
 | --- | --- | ---: | --- |
-| アプリケーション調整 | 描画 | 70 | `kritaui`内の起動・共有サービスから画像、ブラシ、色処理 |
-| キャンバス表示 | 文書寿命 | 73 | `kritaflake`から文書側に分類した共通アンドゥ命令 |
-| 入力解釈 | 描画 | 15 | 入力処理から描画情報とストローク状態 |
+| アプリケーション調整 | 描画 | 75 | `kritaui`内の起動・共有サービスから画像、ブラシ、色処理 |
+| 入力解釈 | 描画 | 17 | 入力処理から描画情報とストローク状態 |
 | 入力解釈 | リソース管理 | 4 | 入力処理からプリセットとリソース状態 |
-| 描画 | 文書寿命 | 95 | 画像・色処理からアンドゥ命令とメタデータ |
 
 採取器は各対象ターゲットの記録済みソースディレクトリー以下から製品ソースを読み、試験経路を
 除外する。includeは依存先ヘッダーのパス末尾、またはリポジトリ内で一意なヘッダー名により
 解決する。責務は単一所有ターゲット、分類済み公開クラス、最長一致する責務ディレクトリーの
 順に決める。全件クラス台帳の範囲外にある審査済みソースは`reviewedSourcePaths`を根拠に
-一意に帰属する。この規則で257件の直接includeが現在の確認済み基準になる。R1-G6aは、
+一意に帰属する。この規則で96件の直接includeが現在の確認済み基準になる。R1-G6aは、
 描画から入出力への2件、リソース管理から入出力への5件、リソース管理から描画への40件を
-解消し、アプリケーション調整から描画への上限を70件へ縮小した。
+解消した。R1-G6bは描画から文書寿命への95件を解消した。描画処理を3ターゲットへ分離した
+結果、同一ターゲット内に隠れていたアプリケーション調整から描画への5件と入力解釈から
+描画への2件がパッケージ間参照として可視化され、現在件数と同じ上限へ記録されている。
 
-共有ターゲットの保守的射影から生じた残り8責務対は、構造違反基準が実際の
+共有ターゲットの保守的射影から生じた残り9責務対は、構造違反基準が実際の
 includeを全件帰属させる。`unresolvedProjections`は空であり、確認済み違反の上限には
-根拠のある現在の5責務対だけを含める。
+根拠のある現在の3責務対だけを含める。
 
 検査では現在件数が審査済み上限を超える変更を基準拡大として診断する。現在件数が減った場合も
 上限を同じ変更で縮小するまで診断する。根拠の置換は件数が同じでも生成差分として現れる。
@@ -207,21 +207,21 @@ includeを全件帰属させる。`unresolvedProjections`は空であり、確�
 CMakeターゲット循環、公開宣言を持たないヘッダーのパッケージ外参照を一つの継続検査へ
 接続する。
 
-8射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
+9射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
 `kritabasicflakes`から`kritaui`への3includeは、キャンバス表示内または許可済みの
 リソース管理への依存である。`kritaui`から`kritaimpex`への4includeは、入出力責務内の
 依存である。保存実装の移動後に残るリソース管理から入出力への保守的射影も、実際の
 直接includeがないことを固定する。各解決は元のターゲット辺、5構成、実際の責務対、ソース、include、
 ヘッダーを記録し、新たな未帰属候補を診断する。
 
-ターゲット循環は、16の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 216件、Linux 222件、iOS 208件、Android 208件、
-Windows 225件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
+ターゲット循環は、18の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
+2範囲を検査する。全製品範囲はmacOS 218件、Linux 224件、iOS 210件、Android 210件、
+Windows 227件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
-宣言済み公開面へ移す対象として基準化する。現在は`kritaimage`が29ヘッダー、593参照、
-`kritaui`が15ヘッダー、34参照で、合計44ヘッダー、627参照である。所有段階、理由、
+宣言済み公開面へ移す対象として基準化する。`kritaimage`の29ヘッダー、593参照は公開
+ヘッダー構築契約へ移行して0件となった。現在は`kritaui`の14ヘッダー、32参照が残る。所有段階、理由、
 除去条件、ヘッダー数と参照数の審査済み上限を保持し、増加と縮小可能な上限の両方を
 診断する。
 
@@ -245,9 +245,9 @@ C++名前空間、主CMakeターゲット、許可依存、移行段階へ対応
 
 移行は許可依存の下位から上位へ進める。各段階は必要な特性試験、移動元と移動先、
 作成ターゲット、一時互換経路、完了条件、中止条件を持つ。確認済み逆方向includeの
-段階別上限は304、257、162、162、89、89、89、70、0と縮小する。内部ヘッダーの
-直接参照は、R1-G6bで`kritaimage`の593件を解消し、R1-G6bからR1-G6hで
-`kritaui`の34件を32、28、20、20、3、3、0へ縮小する。
+段階別上限は311、264、169、169、96、96、96、75、0と縮小する。内部ヘッダーの
+直接参照は、R1-G6bで`kritaimage`の593件を解消した。`kritaui`に残る32件は、
+R1-G6cからR1-G6hで28、20、20、3、3、0へ縮小する。
 
 最初の実装段階R1-G6aは、`libs/store`の書庫保存を`libs/resources/storage`の
 `kritaresourcestorage`へ、XML直列化を`libs/serialization/xml`の
@@ -266,9 +266,22 @@ LibrePaint内の上位製品ターゲットへ依存せず、保存側はQt Core
 `kritatoolsui`はパレット、合成方法、プリセット、描画設定の表示を所有する。旧
 `libs/resourcewidgets`、旧ターゲット、転送ヘッダーは存在しない。
 
-残る10の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
+R1-G6bは、`libs/ui/tool/strokes`を`libs/painting/strokes`へ移し、同じUIツール領域に
+置かれていた資源スナップショット、非同期更新、互換性判定、速度計測を`libs/painting`へ
+移した。`libs/command`の画像・キャンバス向け取り消し処理は`libs/painting/undo`へ、
+`libs/metadata`の画像メタデータ実装は`libs/painting/metadata`へ移した。画像層から利用する
+取り消し処理とメタデータをそれぞれ`kritapaintingundo`、`kritapaintingmetadata`とし、画像層を
+利用するストローク実行を`kritapainting`とすることで、CMakeターゲットの循環を避けている。
+資源スナップショットはUIの具体的な資源提供者ではなく、`libs/resources`が所有する読出し
+接続面を保持する。旧ディレクトリーの転送ヘッダーと旧メタデータターゲットは存在しない。
+
+共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
+`libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
+公開根拠として台帳へ記録し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
+
+残る8の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
-9責務と5構成の現行ターゲット、5種類257件の逆方向依存、44ヘッダー627件の内部参照を
+9責務と5構成の現行ターゲット、3種類96件の逆方向依存、14ヘッダー32件の内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。
 
 責務の中心は次の四つです。
@@ -376,9 +389,9 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | ウィンドウ、ドッカー、キャンバス画面 | `libs/ui`、`plugins/dockers` | `KisMainWindow`、`KisViewManager`、`KisCanvas2` |
 | 入力割り当て、ジェスチャー | `libs/ui/input` | 現在ツール、Qtプラットフォームイベント、OS統合 |
 | ツールの操作 | `plugins/tools` | `libs/ui/tool`、`KoToolRegistry`、アクション |
-| ブラシエンジンやプリセット | `plugins/paintops`、`libs/brush` | `libs/ui/tool/strokes`、`libs/resources`、`libs/pigment` |
+| ブラシエンジンやプリセット | `plugins/paintops`、`libs/brush` | `libs/painting/strokes`、`libs/resources`、`libs/pigment` |
 | レイヤー、マスク、画素、投影 | `libs/image` | `KisNode`、`KisPaintDevice`、`KisUpdateScheduler` |
-| アンドゥ、非同期処理 | `libs/command`、`libs/image/commands*`、`libs/image/kis_strokes_queue.*` | ストローク戦略の順序・排他属性 |
+| アンドゥ、非同期処理 | `libs/painting/undo`、`libs/painting/strokes`、`libs/image/commands*`、`libs/image/kis_strokes_queue.*` | ストローク戦略の順序・排他属性 |
 | 色空間、プロファイル、合成 | `libs/pigment`、`libs/color`、`plugins/color` | LittleCMS、OpenColorIO、表示変換 |
 | ベクター図形、選択図形 | `libs/flake`、`libs/basicflakes`、`plugins/flake` | `libs/ui/flake`、SVG入出力 |
 | ブラシ等のリソース管理 | `libs/resources`、`libs/resources/ui` | リソースDB、ローダーレジストリー、同梱バンドル、選択・タグ表示 |
@@ -400,12 +413,13 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | `libs/global`、`libs/widgetutils`、`libs/widgets` | 共通基盤、Qt補助部品、再利用画面部品 |
 | `libs/ui` | アプリケーション調整、文書、ウィンドウ、キャンバス、入力、ツール共通部 |
 | `libs/image` | 画像・ノード・画素タイル・投影・ストローク・更新処理 |
+| `libs/painting` | 描画ストローク、画像・キャンバス向け取り消し処理、画像メタデータ、描画用資源スナップショット |
 | `libs/brush`、`libs/pigment`、`libs/color` | ブラシ資産、色空間、色変換・合成の基盤 |
 | `libs/flake`、`libs/basicflakes` | ベクター図形、キャンバス、図形ツールの基盤 |
 | `libs/resources`、`libs/resources/ui` | リソース永続化、検索、タグ、バンドルと汎用管理画面 |
 | `libs/tools/ui` | 描画ツールの設定、パレット、プリセットの表示 |
 | `libs/resources/storage`、`libs/serialization/xml` | コンテナーI/OとXML直列化 |
-| `libs/metadata`、`libs/psd*` | メタデータとPSD共通実装 |
+| `libs/painting/metadata`、`libs/psd*` | 画像メタデータとPSD共通実装 |
 | `libs/koplugin` | プラグイン探索とメタデータ照会 |
 | `libs/impex` | 入出力フィルターの共通契約と書き出し前検査 |
 | `libs/libkis` | 外部APIとスクリプト向けの公開ラッパー |

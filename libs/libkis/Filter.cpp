@@ -126,7 +126,7 @@ bool Filter::startFilter(Node *node, int x, int y, int w, int h)
     if (document && KisPart::instance()->viewCount(document->document()) > 0) {
         Q_FOREACH (QPointer<KisView> view, KisPart::instance()->views()) {
             if (view && view->document() == document->document()) {
-                resources = new KisResourcesSnapshot(image, node->node(), view->resourceProvider()->resourceManager());
+                resources = new KisResourcesSnapshot(image, node->node(), view->resourceProvider()->resourceManager()->canvasResourcesInterface());
                 break;
             }
         }

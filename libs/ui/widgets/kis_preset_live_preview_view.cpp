@@ -285,7 +285,7 @@ void KisPresetLivePreviewView::setupAndPaintStroke()
 
     KisResourcesSnapshotSP resources =
             new KisResourcesSnapshot(m_image,
-                                     m_layer, m_resourceManager,
+                                     m_layer, m_resourceManager->canvasResourcesInterface(),
                                      0, {},
                                      proxy_preset);
     resources->setOpacity(settings->paintOpOpacity());

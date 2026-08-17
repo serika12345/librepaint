@@ -11,7 +11,7 @@ ki18n_wrap_ui(kritatoolcrop_SOURCES wdg_tool_crop.ui)
 
 kis_add_library(kritatoolcrop MODULE ${kritatoolcrop_SOURCES})
 
-target_link_libraries(kritatoolcrop kritaui)
+target_link_libraries(kritatoolcrop kritaui kritapainting)
 
 install(TARGETS kritatoolcrop  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

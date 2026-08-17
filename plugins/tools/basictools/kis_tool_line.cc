@@ -361,7 +361,7 @@ void KisToolLine::endStroke()
     else {
         KisResourcesSnapshot resources(image(),
                                        currentNode(),
-                                       canvas()->resourceManager());
+                                       canvas()->resourceManager()->canvasResourcesInterface());
         KoPathShape* path = new KoPathShape();
         path->setShapeId(KoPathShapeId);
 

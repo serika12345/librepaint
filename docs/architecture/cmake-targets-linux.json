@@ -247,7 +247,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/metadata/tests",
       "dependencies": [
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritatestsdk",
         "kritaui"
       ]
@@ -1168,9 +1168,9 @@
     {
       "name": "TestKUndo2Stack",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/command/tests",
+      "sourceDirectory": "libs/painting/undo/tests",
       "dependencies": [
-        "kritacommand",
+        "kritapaintingundo",
         "kritatestsdk"
       ]
     },
@@ -1416,6 +1416,15 @@
       ]
     },
     {
+      "name": "TestPaintingBoundary",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/painting/tests",
+      "dependencies": [
+        "kritapainting",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "TestPathSegment",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/flake/tests",
@@ -1503,6 +1512,15 @@
         "kritapigment",
         "kritatestsdk",
         "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestPublicImageHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/painting/tests",
+      "dependencies": [
+        "kritapainting",
+        "kritatestsdk"
       ]
     },
     {
@@ -2791,7 +2809,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/impex/jpeg/tests",
       "dependencies": [
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritatestsdk",
         "kritaui"
       ]
@@ -2801,7 +2819,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/impex/jxl/tests",
       "dependencies": [
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritatestsdk",
         "kritaui"
       ]
@@ -3006,9 +3024,9 @@
     {
       "name": "kis_meta_data_test",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/metadata/tests",
+      "sourceDirectory": "libs/painting/metadata/tests",
       "dependencies": [
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritatestsdk"
       ]
     },
@@ -3325,7 +3343,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/impex/rgbe/tests",
       "dependencies": [
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritargbeimportutils",
         "kritatestsdk",
         "kritaui"
@@ -3688,7 +3706,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/impex/webp/tests",
       "dependencies": [
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritatestsdk",
         "kritaui"
       ]
@@ -4157,6 +4175,7 @@
         "KF6::I18n",
         "Qt6::Core",
         "Qt6::Widgets",
+        "kritapaintingundo",
         "kritawidgetutils"
       ]
     },
@@ -4235,7 +4254,8 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/paintops/defaultpaintops",
       "dependencies": [
-        "kritalibpaintop"
+        "kritalibpaintop",
+        "kritapainting"
       ]
     },
     {
@@ -4253,6 +4273,7 @@
       "dependencies": [
         "Boost::boost",
         "kritabasicflakes",
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -4356,7 +4377,7 @@
       "dependencies": [
         "KF6::CoreAddons",
         "LibExiv2::LibExiv2",
-        "kritametadata"
+        "kritapaintingmetadata"
       ]
     },
     {
@@ -4366,7 +4387,7 @@
       "dependencies": [
         "LibExiv2::LibExiv2",
         "kritaglobal",
-        "kritametadata"
+        "kritapaintingmetadata"
       ]
     },
     {
@@ -4439,7 +4460,7 @@
         "Qt6::OpenGLWidgets",
         "Qt6::Svg",
         "Qt6::Xml",
-        "kritacommand",
+        "kritapaintingundo",
         "kritapigment",
         "kritaresourcestorage",
         "kritawidgetutils",
@@ -4624,10 +4645,10 @@
         "Eigen3::Eigen",
         "GSL::gsl",
         "OpenEXR::OpenEXR",
-        "kritacommand",
         "kritaglobal",
-        "kritametadata",
         "kritamultiarch",
+        "kritapaintingmetadata",
+        "kritapaintingundo",
         "kritapigment",
         "kritapsdutils",
         "kritaresources",
@@ -4678,7 +4699,7 @@
       "dependencies": [
         "KF6::CoreAddons",
         "LibExiv2::LibExiv2",
-        "kritametadata"
+        "kritapaintingmetadata"
       ]
     },
     {
@@ -4729,7 +4750,7 @@
         "JPEGXL::jxl",
         "JPEGXL::jxl_threads",
         "kritalibkra",
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritaui"
       ]
     },
@@ -4840,6 +4861,7 @@
       "sourceDirectory": "libs/libkis",
       "dependencies": [
         "kritaimage",
+        "kritapainting",
         "kritaui",
         "kritaversion"
       ]
@@ -4860,6 +4882,7 @@
       "sourceDirectory": "plugins/paintops/libpaintop",
       "dependencies": [
         "kritalibbrush",
+        "kritapainting",
         "kritatoolsui",
         "kritaui",
         "kritawidgetutils"
@@ -4888,17 +4911,6 @@
       "dependencies": [
         "OpenColorIO::OpenColorIO",
         "kritaui"
-      ]
-    },
-    {
-      "name": "kritametadata",
-      "type": "SHARED_LIBRARY",
-      "sourceDirectory": "libs/metadata",
-      "dependencies": [
-        "kritaglobal",
-        "kritaplugin",
-        "kritaversion",
-        "kritawidgetutils"
       ]
     },
     {
@@ -5017,6 +5029,42 @@
       ]
     },
     {
+      "name": "kritapainting",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/painting",
+      "dependencies": [
+        "Boost::boost",
+        "KF6::I18n",
+        "Qt6::Core",
+        "kritaimage",
+        "kritapaintingundo"
+      ]
+    },
+    {
+      "name": "kritapaintingmetadata",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/painting/metadata",
+      "dependencies": [
+        "kritaglobal",
+        "kritaplugin",
+        "kritaversion",
+        "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritapaintingundo",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/painting/undo",
+      "dependencies": [
+        "Boost::boost",
+        "KF6::ConfigGui",
+        "KF6::I18n",
+        "Qt6::Core",
+        "Qt6::Widgets",
+        "kritawidgetutils"
+      ]
+    },
+    {
       "name": "kritapalettedocker",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/palettedocker",
@@ -5087,9 +5135,9 @@
         "Qt6::Core",
         "Qt6::Gui",
         "Qt6::Xml",
-        "kritacommand",
         "kritaglobal",
         "kritamultiarch",
+        "kritapaintingundo",
         "kritaplugin",
         "kritaresources",
         "kritaresourcestorage",
@@ -5547,6 +5595,7 @@
       "dependencies": [
         "kritabasicflakes",
         "kritaimage",
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -5753,7 +5802,7 @@
         "TIFF::TIFF",
         "kritaexifcommon",
         "kritaimpex",
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritatiffpsd",
         "kritaui",
         "libjpeg-turbo::turbojpeg"
@@ -5781,6 +5830,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_knife",
       "dependencies": [
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -5789,6 +5839,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_smart_patch",
       "dependencies": [
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -5797,6 +5848,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_crop",
       "dependencies": [
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -5814,6 +5866,7 @@
       "sourceDirectory": "plugins/tools/tool_enclose_and_fill",
       "dependencies": [
         "kritabasicflakes",
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -5873,6 +5926,7 @@
       "sourceDirectory": "plugins/tools/tool_transform2",
       "dependencies": [
         "GSL::gsl",
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -5916,6 +5970,7 @@
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",
+        "kritapainting",
         "kritaresources",
         "kritaresourcestorage",
         "kritaresourceui",
@@ -6055,7 +6110,7 @@
       "dependencies": [
         "KF6::CoreAddons",
         "LibExiv2::LibExiv2",
-        "kritametadata"
+        "kritapaintingmetadata"
       ]
     },
     {

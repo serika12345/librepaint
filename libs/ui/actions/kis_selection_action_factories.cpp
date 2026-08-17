@@ -233,7 +233,7 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
     }
 
     KisResourcesSnapshotSP resources =
-        new KisResourcesSnapshot(image, node, view->canvasResourceProvider()->resourceManager());
+        new KisResourcesSnapshot(image, node, view->canvasResourceProvider()->resourceManager()->canvasResourcesInterface());
     if (!fillSource.contains("opacity")) {
         resources->setOpacity(1.0);
     }

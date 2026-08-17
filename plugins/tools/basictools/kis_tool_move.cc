@@ -108,7 +108,7 @@ void KisToolMove::resetCursorStyle()
         }
     } else {
         KisResourcesSnapshotSP resources =
-            new KisResourcesSnapshot(this->image(), currentNode(), canvas()->resourceManager());
+            new KisResourcesSnapshot(this->image(), currentNode(), canvas()->resourceManager()->canvasResourcesInterface());
         KisSelectionSP selection = resources->activeSelection();
 
         KisPaintLayerSP paintLayer =
@@ -147,7 +147,7 @@ bool KisToolMove::startStrokeImpl(MoveToolMode mode, const QPoint *pos)
     KisImageSP image = this->image();
 
     KisResourcesSnapshotSP resources =
-        new KisResourcesSnapshot(image, currentNode(), canvas()->resourceManager());
+        new KisResourcesSnapshot(image, currentNode(), canvas()->resourceManager()->canvasResourcesInterface());
     KisSelectionSP selection = resources->activeSelection();
 
     KisPaintLayerSP paintLayer =
@@ -788,7 +788,7 @@ void KisToolMove::moveBySpinY(int newY)
 void KisToolMove::requestHandlesRectUpdate()
 {
     KisResourcesSnapshotSP resources =
-        new KisResourcesSnapshot(image(), currentNode(), canvas()->resourceManager());
+        new KisResourcesSnapshot(image(), currentNode(), canvas()->resourceManager()->canvasResourcesInterface());
     KisSelectionSP selection = resources->activeSelection();
 
     KisMoveBoundsCalculationJob *job = new KisMoveBoundsCalculationJob(this->selectedNodes(),

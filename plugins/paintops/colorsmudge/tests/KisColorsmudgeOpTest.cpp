@@ -74,7 +74,7 @@ public:
         KisResourcesSnapshotSP resources =
             new KisResourcesSnapshot(image,
                                      targetNode,
-                                     manager.data());
+                                     manager->canvasResourcesInterface());
 
         resources->setupPainter(&gc);
 

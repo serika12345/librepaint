@@ -269,15 +269,13 @@
     },
     {
       "id": "document-lifecycle",
-      "responsibility": "Owns document lifetime, identity, modified state, undo coordination, metadata, and the connection between a document and its image.",
+      "responsibility": "Owns document lifetime, identity, modified state, undo coordination, document metadata coordination, and the connection between a document and its image.",
       "sourceDirectories": [
         "libs/command",
-        "libs/metadata",
         "libs/ui"
       ],
       "ownerTargets": [
         "kritacommand",
-        "kritametadata",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
@@ -503,8 +501,8 @@
         "libs/brush",
         "libs/color",
         "libs/image",
+        "libs/painting",
         "libs/pigment",
-        "libs/ui/tool/strokes",
         "plugins/color",
         "plugins/filters",
         "plugins/flake",
@@ -515,6 +513,9 @@
         "kritacolor",
         "kritaimage",
         "kritalibbrush",
+        "kritapainting",
+        "kritapaintingmetadata",
+        "kritapaintingundo",
         "kritapigment"
       ],
       "publicHeaderOwnerTargets": [
@@ -871,48 +872,19 @@
         "libs/image/tiles3/swap/kis_tile_compressor_2.h",
         "libs/image/tiles3/swap/kis_tile_compressor_factory.h",
         "libs/image/tiles3/swap/kis_tile_data_swapper.h",
-        "libs/ui/tool/KisAsynchronousStrokeUpdateHelper.h",
-        "libs/ui/tool/KisStrokeCompatibilityInfo.h",
         "libs/ui/tool/kis_figure_painting_tool_helper.h",
-        "libs/ui/tool/kis_resources_snapshot.h",
         "libs/ui/tool/kis_selection_tool_helper.h",
         "libs/ui/tool/kis_shape_tool_helper.h",
         "libs/ui/tool/kis_tool_freehand_helper.h",
-        "libs/ui/tool/kis_tool_multihand_helper.h",
-        "libs/ui/tool/strokes/KisFreehandStrokeInfo.h",
-        "libs/ui/tool/strokes/KisMaskedFreehandStrokePainter.h",
-        "libs/ui/tool/strokes/KisMaskingBrushCompositeOpBase.h",
-        "libs/ui/tool/strokes/KisMaskingBrushCompositeOpFactory.h",
-        "libs/ui/tool/strokes/KisNodeSelectionRecipe.h",
-        "libs/ui/tool/strokes/KisStrokeEfficiencyMeasurer.h",
-        "libs/ui/tool/strokes/freehand_stroke.h",
-        "libs/ui/tool/strokes/kis_filter_stroke_strategy.h",
-        "libs/ui/tool/strokes/kis_painter_based_stroke_strategy.h",
-        "libs/ui/tool/strokes/move_stroke_strategy.h"
+        "libs/ui/tool/kis_tool_multihand_helper.h"
       ],
       "classNames": [
-        "BarrierUpdateData",
-        "Data",
-        "FreehandStrokeStrategy",
-        "KisAsynchronousStrokeUpdateHelper",
         "KisFigurePaintingToolHelper",
-        "KisFilterStrokeStrategy",
-        "KisFreehandStrokeInfo",
         "KisImage",
-        "KisMaskedFreehandStrokePainter",
-        "KisMaskingBrushCompositeOpBase",
-        "KisMaskingBrushCompositeOpFactory",
-        "KisNodeSelectionRecipe",
-        "KisPainterBasedStrokeStrategy",
-        "KisResourcesSnapshot",
         "KisSelectionToolHelper",
         "KisShapeToolHelper",
-        "KisStrokeCompatibilityInfo",
-        "KisStrokeEfficiencyMeasurer",
         "KisToolFreehandHelper",
-        "KisToolMultihandHelper",
-        "MoveStrokeStrategy",
-        "PickLayerData"
+        "KisToolMultihandHelper"
       ],
       "pluginIds": [
         "ASC CDL Color Balance",
@@ -1262,7 +1234,6 @@
         "libs/ui/kis_bookmarked_configurations_model.h",
         "libs/ui/kis_paintop_box.h",
         "libs/ui/tool/KisSelectionToolFactoryBase.h",
-        "libs/ui/tool/KisStrokeSpeedMonitor.h",
         "libs/ui/tool/KisToolChangesTracker.h",
         "libs/ui/tool/KisToolChangesTrackerData.h",
         "libs/ui/tool/KisToolOutlineBase.h",
@@ -1290,7 +1261,6 @@
         "KisSelectionToolConfigWidgetHelper",
         "KisSelectionToolFactoryBase",
         "KisSmoothingOptions",
-        "KisStrokeSpeedMonitor",
         "KisTool",
         "KisToolChangesTracker",
         "KisToolChangesTrackerData",
@@ -1577,13 +1547,10 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
+        "kritapaintingundo",
         "kritawidgetutils"
       ],
-      "repositoryConsumers": [
-        "kritaflake",
-        "kritaimage",
-        "kritapigment"
-      ]
+      "repositoryConsumers": []
     },
     {
       "name": "kritaflake",
@@ -1600,7 +1567,7 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
-        "kritacommand",
+        "kritapaintingundo",
         "kritapigment",
         "kritaresourcestorage",
         "kritawidgetutils",
@@ -1631,11 +1598,11 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
-        "kritacommand",
         "kritaglobal",
         "kritamacosutils",
-        "kritametadata",
         "kritamultiarch",
+        "kritapaintingmetadata",
+        "kritapaintingundo",
         "kritapigment",
         "kritapsdutils",
         "kritaresources",
@@ -1649,6 +1616,7 @@
         "kritaimpex",
         "kritalibbrush",
         "kritalibkis",
+        "kritapainting",
         "kritapsd",
         "kritapsd_static",
         "kritaqmicinterface",
@@ -1730,8 +1698,40 @@
       ]
     },
     {
-      "name": "kritametadata",
-      "sourceDirectory": "libs/metadata",
+      "name": "kritapainting",
+      "sourceDirectory": "libs/painting",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaimage",
+        "kritapaintingundo"
+      ],
+      "repositoryConsumers": [
+        "kritadefaultpaintops_static",
+        "kritadefaulttools_static",
+        "kritalibkis",
+        "kritalibpaintop",
+        "kritaselectiontools",
+        "kritatoolKnife_static",
+        "kritatoolSmartPatch",
+        "kritatoolcrop",
+        "kritatoolencloseandfill",
+        "kritatooltransform_static",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritapaintingmetadata",
+      "sourceDirectory": "libs/painting/metadata",
       "platforms": [
         "macos",
         "linux",
@@ -1760,6 +1760,31 @@
       ]
     },
     {
+      "name": "kritapaintingundo",
+      "sourceDirectory": "libs/painting/undo",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritawidgetutils"
+      ],
+      "repositoryConsumers": [
+        "kritacommand",
+        "kritaflake",
+        "kritaimage",
+        "kritapainting",
+        "kritapigment"
+      ]
+    },
+    {
       "name": "kritapigment",
       "sourceDirectory": "libs/pigment",
       "platforms": [
@@ -1774,9 +1799,9 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
-        "kritacommand",
         "kritaglobal",
         "kritamultiarch",
+        "kritapaintingundo",
         "kritaplugin",
         "kritaresources",
         "kritaresourcestorage",
@@ -1812,7 +1837,7 @@
         "kritaglobal"
       ],
       "repositoryConsumers": [
-        "kritametadata",
+        "kritapaintingmetadata",
         "kritapigment",
         "kritaresources",
         "kritaresourceui",
@@ -1960,6 +1985,7 @@
         "kritaimpex",
         "kritalibbrush",
         "kritamacosutils",
+        "kritapainting",
         "kritaresources",
         "kritaresourcestorage",
         "kritaresourceui",

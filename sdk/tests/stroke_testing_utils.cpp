@@ -277,7 +277,7 @@ QImage utils::StrokeTester::doStroke(bool cancelled,
         KisResourcesSnapshotSP resources =
             new KisResourcesSnapshot(image,
                                      image->rootLayer()->firstChild(),
-                                     manager);
+                                     manager->canvasResourcesInterface());
 
         if(externalLayer) {
             KisNodeSP externalNode = new KisPaintLayer(0, "extlyr", OPACITY_OPAQUE_U8, image->colorSpace());

@@ -56,19 +56,6 @@
   ],
   "classes": [
     {
-      "name": "BarrierUpdateData",
-      "declarationKind": "struct",
-      "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/move_stroke_strategy.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/basictools/kis_tool_move.cc",
-        "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
-      ],
-      "responsibilityArea": "stroke-generation"
-    },
-    {
       "name": "ColorSamplerConfig",
       "declarationKind": "struct",
       "header": "libs/ui/tool/kis_tool_utils.h",
@@ -76,8 +63,6 @@
         "libs/ui/tool/kis_tool_utils.cpp"
       ],
       "consumerPaths": [
-        "libs/ui/input/kis_select_layer_action.cpp",
-        "libs/ui/widgets/kis_scratch_pad.cpp",
         "libs/ui/widgets/kis_zoom_scrollbar.cpp",
         "plugins/dockers/animation/KisAnimUtils.cpp",
         "plugins/tools/basictools/kis_tool_colorsampler.cc",
@@ -87,19 +72,6 @@
         "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp"
       ],
       "responsibilityArea": "settings-presentation"
-    },
-    {
-      "name": "Data",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/move_stroke_strategy.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/basictools/kis_tool_move.cc",
-        "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
-      ],
-      "responsibilityArea": "stroke-generation"
     },
     {
       "name": "DeselectShapesActivationPolicy",
@@ -112,18 +84,6 @@
       "responsibilityArea": "tool-invocation"
     },
     {
-      "name": "FreehandStrokeStrategy",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/freehand_stroke.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/freehand_stroke.cpp"
-      ],
-      "consumerPaths": [
-        "libs/ui/widgets/kis_preset_live_preview_view.cpp"
-      ],
-      "responsibilityArea": "painting-execution"
-    },
-    {
       "name": "KisAsyncColorSamplerHelper",
       "declarationKind": "class",
       "header": "libs/ui/tool/KisAsyncColorSamplerHelper.h",
@@ -134,20 +94,6 @@
         "plugins/tools/basictools/kis_tool_colorsampler.h"
       ],
       "responsibilityArea": "input-interpretation"
-    },
-    {
-      "name": "KisAsynchronousStrokeUpdateHelper",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/KisAsynchronousStrokeUpdateHelper.h",
-      "implementationPaths": [
-        "libs/ui/tool/KisAsynchronousStrokeUpdateHelper.cpp"
-      ],
-      "consumerPaths": [
-        "libs/ui/widgets/kis_preset_live_preview_view.cpp",
-        "plugins/tools/basictools/kis_tool_move.h",
-        "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.h"
-      ],
-      "responsibilityArea": "stroke-generation"
     },
     {
       "name": "KisConverterPaintingInformationBuilder",
@@ -185,84 +131,6 @@
       "responsibilityArea": "stroke-generation"
     },
     {
-      "name": "KisFilterStrokeStrategy",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/kis_filter_stroke_strategy.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/kis_filter_stroke_strategy.cpp"
-      ],
-      "consumerPaths": [
-        "libs/libkis/Filter.cpp",
-        "libs/ui/kis_filter_manager.cc"
-      ],
-      "responsibilityArea": "painting-execution"
-    },
-    {
-      "name": "KisFreehandStrokeInfo",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/KisFreehandStrokeInfo.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/KisFreehandStrokeInfo.cpp"
-      ],
-      "consumerPaths": [
-        "libs/ui/widgets/kis_preset_live_preview_view.cpp"
-      ],
-      "responsibilityArea": "painting-execution"
-    },
-    {
-      "name": "KisMaskedFreehandStrokePainter",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/KisMaskedFreehandStrokePainter.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/KisMaskedFreehandStrokePainter.cpp"
-      ],
-      "consumerPaths": [],
-      "responsibilityArea": "painting-execution"
-    },
-    {
-      "name": "KisMaskingBrushCompositeOpBase",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/KisMaskingBrushCompositeOpBase.h",
-      "implementationPaths": [],
-      "consumerPaths": [
-        "plugins/paintops/libpaintop/kis_texture_option.cpp"
-      ],
-      "responsibilityArea": "painting-execution"
-    },
-    {
-      "name": "KisMaskingBrushCompositeOpFactory",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/KisMaskingBrushCompositeOpFactory.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/KisMaskingBrushCompositeOpFactory.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/paintops/libpaintop/KisMaskingBrushOption.cpp",
-        "plugins/paintops/libpaintop/kis_texture_option.cpp"
-      ],
-      "responsibilityArea": "painting-execution"
-    },
-    {
-      "name": "KisNodeSelectionRecipe",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/KisNodeSelectionRecipe.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/KisNodeSelectionRecipe.cpp"
-      ],
-      "consumerPaths": [],
-      "responsibilityArea": "painting-execution"
-    },
-    {
-      "name": "KisPainterBasedStrokeStrategy",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/kis_painter_based_stroke_strategy.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/kis_painter_based_stroke_strategy.cpp"
-      ],
-      "consumerPaths": [],
-      "responsibilityArea": "painting-execution"
-    },
-    {
       "name": "KisPaintingInformationBuilder",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_painting_information_builder.h",
@@ -287,29 +155,6 @@
       ],
       "consumerPaths": [],
       "responsibilityArea": "settings-presentation"
-    },
-    {
-      "name": "KisResourcesSnapshot",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_resources_snapshot.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_resources_snapshot.cpp"
-      ],
-      "consumerPaths": [
-        "libs/ui/KisView.cpp",
-        "libs/ui/processing/KisEncloseAndFillProcessingVisitor.h",
-        "libs/ui/processing/fill_processing_visitor.h",
-        "plugins/tools/basictools/kis_tool_fill.h",
-        "plugins/tools/basictools/kis_tool_gradient.cc",
-        "plugins/tools/basictools/kis_tool_move.cc",
-        "plugins/tools/selectiontools/kis_tool_select_contiguous.cc",
-        "plugins/tools/tool_crop/kis_tool_crop.cc",
-        "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp",
-        "plugins/tools/tool_knife/KisToolKnife.cpp",
-        "plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp",
-        "plugins/tools/tool_transform2/kis_tool_transform.cc"
-      ],
-      "responsibilityArea": "stroke-generation"
     },
     {
       "name": "KisSelectionToolConfigWidgetHelper",
@@ -412,39 +257,6 @@
       ],
       "consumerPaths": [],
       "responsibilityArea": "input-interpretation"
-    },
-    {
-      "name": "KisStrokeCompatibilityInfo",
-      "declarationKind": "struct",
-      "header": "libs/ui/tool/KisStrokeCompatibilityInfo.h",
-      "implementationPaths": [
-        "libs/ui/tool/KisStrokeCompatibilityInfo.cpp"
-      ],
-      "consumerPaths": [],
-      "responsibilityArea": "stroke-generation"
-    },
-    {
-      "name": "KisStrokeEfficiencyMeasurer",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/KisStrokeEfficiencyMeasurer.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/KisStrokeEfficiencyMeasurer.cpp"
-      ],
-      "consumerPaths": [],
-      "responsibilityArea": "painting-execution"
-    },
-    {
-      "name": "KisStrokeSpeedMonitor",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/KisStrokeSpeedMonitor.h",
-      "implementationPaths": [
-        "libs/ui/tool/KisStrokeSpeedMonitor.cpp"
-      ],
-      "consumerPaths": [
-        "libs/ui/canvas/kis_canvas2.cpp",
-        "libs/ui/kis_fps_decoration.cpp"
-      ],
-      "responsibilityArea": "settings-presentation"
     },
     {
       "name": "KisTool",
@@ -694,38 +506,12 @@
       "responsibilityArea": "tool-invocation"
     },
     {
-      "name": "MoveStrokeStrategy",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/move_stroke_strategy.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/basictools/kis_tool_move.cc",
-        "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
-      ],
-      "responsibilityArea": "painting-execution"
-    },
-    {
       "name": "NoopActivationPolicy",
       "declarationKind": "struct",
       "header": "libs/ui/tool/kis_delegated_tool_policies.h",
       "implementationPaths": [],
       "consumerPaths": [],
       "responsibilityArea": "tool-invocation"
-    },
-    {
-      "name": "PickLayerData",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/strokes/move_stroke_strategy.h",
-      "implementationPaths": [
-        "libs/ui/tool/strokes/move_stroke_strategy.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/basictools/kis_tool_move.cc",
-        "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
-      ],
-      "responsibilityArea": "stroke-generation"
     },
     {
       "name": "ShapeAddInfo",
@@ -756,8 +542,6 @@
         "libs/ui/tool/kis_tool_utils.cpp"
       ],
       "consumerPaths": [
-        "libs/ui/input/kis_select_layer_action.cpp",
-        "libs/ui/widgets/kis_scratch_pad.cpp",
         "libs/ui/widgets/kis_zoom_scrollbar.cpp",
         "plugins/dockers/animation/KisAnimUtils.cpp",
         "plugins/tools/basictools/kis_tool_colorsampler.cc",

@@ -111,9 +111,9 @@ def target_cycle_policy() -> dict[str, Any]:
 def internal_header_policy() -> dict[str, Any]:
     return {
         "ownerScope": "complete-public-header-sets",
-        "headerSelection": "external-include-without-export-macro",
+        "headerSelection": "external-include-without-reviewed-publication-evidence",
         "referenceKind": "direct-include-from-outside-owner-source-directory",
-        "publicationEvidence": "de-facto-only",
+        "publicationEvidence": "export-macro-or-compile-contract",
     }
 
 
@@ -543,7 +543,9 @@ def discover_internal_headers(
             evidence = _require_array(
                 header.get("publicationEvidence"), "publication evidence"
             )
-            if "external-include" not in evidence or "export-macro" in evidence:
+            if "external-include" not in evidence or any(
+                item in evidence for item in ("export-macro", "compile-contract")
+            ):
                 continue
             headers.append(
                 {

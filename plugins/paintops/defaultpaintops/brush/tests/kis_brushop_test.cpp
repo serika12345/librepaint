@@ -123,7 +123,7 @@ public:
         KisResourcesSnapshotSP resources =
             new KisResourcesSnapshot(image,
                                      paint1,
-                                     manager.data());
+                                     manager->canvasResourcesInterface());
 
         resources->setupPainter(&gc);
 

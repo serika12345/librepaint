@@ -420,19 +420,36 @@
       ]
     },
     {
+      "sourceTarget": "kritacommand",
+      "dependencyTarget": "kritapaintingundo",
+      "sourceResponsibilities": [
+        "document-lifecycle"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritaflake",
-      "dependencyTarget": "kritacommand",
+      "dependencyTarget": "kritapaintingundo",
       "sourceResponsibilities": [
         "canvas-presentation"
       ],
       "dependencyResponsibilities": [
-        "document-lifecycle"
+        "painting-rendering"
       ],
       "projections": [
         {
           "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
         }
       ]
     },
@@ -472,35 +489,35 @@
     },
     {
       "sourceTarget": "kritaimage",
-      "dependencyTarget": "kritacommand",
+      "dependencyTarget": "kritapaintingmetadata",
       "sourceResponsibilities": [
         "painting-rendering"
       ],
       "dependencyResponsibilities": [
-        "document-lifecycle"
+        "painting-rendering"
       ],
       "projections": [
         {
           "sourceResponsibility": "painting-rendering",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
+          "dependencyResponsibility": "painting-rendering",
+          "status": "internal"
         }
       ]
     },
     {
       "sourceTarget": "kritaimage",
-      "dependencyTarget": "kritametadata",
+      "dependencyTarget": "kritapaintingundo",
       "sourceResponsibilities": [
         "painting-rendering"
       ],
       "dependencyResponsibilities": [
-        "document-lifecycle"
+        "painting-rendering"
       ],
       "projections": [
         {
           "sourceResponsibility": "painting-rendering",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
+          "dependencyResponsibility": "painting-rendering",
+          "status": "internal"
         }
       ]
     },
@@ -590,17 +607,51 @@
       ]
     },
     {
-      "sourceTarget": "kritametadata",
+      "sourceTarget": "kritapainting",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritapainting",
+      "dependencyTarget": "kritapaintingundo",
+      "sourceResponsibilities": [
+        "painting-rendering"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "painting-rendering",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritapaintingmetadata",
       "dependencyTarget": "kritaplugin",
       "sourceResponsibilities": [
-        "document-lifecycle"
+        "painting-rendering"
       ],
       "dependencyResponsibilities": [
         "plugin-infrastructure"
       ],
       "projections": [
         {
-          "sourceResponsibility": "document-lifecycle",
+          "sourceResponsibility": "painting-rendering",
           "dependencyResponsibility": "plugin-infrastructure",
           "status": "allowed"
         }
@@ -608,18 +659,18 @@
     },
     {
       "sourceTarget": "kritapigment",
-      "dependencyTarget": "kritacommand",
+      "dependencyTarget": "kritapaintingundo",
       "sourceResponsibilities": [
         "painting-rendering"
       ],
       "dependencyResponsibilities": [
-        "document-lifecycle"
+        "painting-rendering"
       ],
       "projections": [
         {
           "sourceResponsibility": "painting-rendering",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
+          "dependencyResponsibility": "painting-rendering",
+          "status": "internal"
         }
       ]
     },
@@ -954,6 +1005,53 @@
     {
       "sourceTarget": "kritaui",
       "dependencyTarget": "kritalibbrush",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritapainting",
       "sourceResponsibilities": [
         "application-orchestration",
         "canvas-presentation",

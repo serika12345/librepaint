@@ -75,7 +75,7 @@ void KisToolEllipse::finishRect(const QRectF& rect, qreal roundCornersX, qreal r
     } else {
         KisResourcesSnapshot resources(image(),
                                        currentNode(),
-                                       canvas()->resourceManager());
+                                       canvas()->resourceManager()->canvasResourcesInterface());
         QRectF r = convertToPt(rect);
         KoShape* shape = KisShapeToolHelper::createEllipseShape(r);
         shape->rotate(qRadiansToDegrees(getRotationAngle()));

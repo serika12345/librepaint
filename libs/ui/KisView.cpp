@@ -783,7 +783,7 @@ void KisView::dropEvent(QDropEvent *event)
         QSharedPointer<QRect> dirtyRect = QSharedPointer<QRect>(new QRect);
 
         KisResourcesSnapshotSP resources =
-            new KisResourcesSnapshot(image(), d->viewManager->activeNode(), d->viewManager->canvasResourceProvider()->resourceManager());
+            new KisResourcesSnapshot(image(), d->viewManager->activeNode(), d->viewManager->canvasResourceProvider()->resourceManager()->canvasResourcesInterface());
 
         if (event->mimeData()->hasColor()) {
             resources->setFGColorOverride(KoColor(event->mimeData()->colorData().value<QColor>(), image()->colorSpace()));

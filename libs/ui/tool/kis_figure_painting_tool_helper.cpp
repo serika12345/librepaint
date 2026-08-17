@@ -29,7 +29,7 @@ KisFigurePaintingToolHelper::KisFigurePaintingToolHelper(const KUndo2MagicString
     m_resources =
         new KisResourcesSnapshot(image,
                                  currentNode,
-                                 resourceManager);
+                                 resourceManager->canvasResourcesInterface());
 
     setupPaintStyles(m_resources, strokeStyle, fillStyle, fillTransform);
 
