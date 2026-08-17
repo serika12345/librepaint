@@ -388,6 +388,8 @@ target_link_libraries(kritaimage
 
         Eigen3::Eigen
         Boost::boost
+    PRIVATE
+        kritaresourcestorage
 )
 
 if(HAVE_CXX_ATOMICS_WITH_LIB OR HAVE_CXX_ATOMICS64_WITH_LIB)

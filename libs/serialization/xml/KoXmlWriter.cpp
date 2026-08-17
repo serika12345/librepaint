@@ -7,11 +7,32 @@
 
 #include "KoXmlWriter.h"
 
-#include <StoreDebug.h>
 #include <QByteArray>
+#include <QDebug>
 #include <QStack>
+#include <QTextStream>
 #include <float.h>
-#include "../global/kis_dom_utils.h"
+
+namespace
+{
+QString numberToString(float value)
+{
+    QString result;
+    QTextStream stream(&result, QIODevice::WriteOnly);
+    stream.setRealNumberPrecision(FLT_DIG);
+    stream << value;
+    return result;
+}
+
+QString numberToString(double value)
+{
+    QString result;
+    QTextStream stream(&result, QIODevice::WriteOnly);
+    stream.setRealNumberPrecision(15);
+    stream << value;
+    return result;
+}
+}
 
 static const int s_indentBufferLength = 100;
 static const int s_escapeBufferLen = 10000;
@@ -134,7 +155,7 @@ void KoXmlWriter::addCompleteElement(QIODevice* indev)
     const bool openOk = indev->open(QIODevice::ReadOnly);
     Q_ASSERT(openOk);
     if (!openOk) {
-        warnStore << "Failed to re-open the device! wasOpen=" << wasOpen;
+        qWarning() << "Failed to re-open the device! wasOpen=" << wasOpen;
         return;
     }
 
@@ -159,9 +180,9 @@ void KoXmlWriter::addCompleteElement(QIODevice* indev)
 void KoXmlWriter::endElement()
 {
     if (d->tags.isEmpty())
-        warnStore << "EndElement() was called more times than startElement(). "
-                     "The generated XML will be invalid! "
-                     "Please report this bug (by saving the document to another format...)" << Qt::endl;
+        qWarning() << "EndElement() was called more times than startElement(). "
+                      "The generated XML will be invalid! "
+                      "Please report this bug (by saving the document to another format...)" << Qt::endl;
 
     Tag tag = d->tags.pop();
 
@@ -224,12 +245,12 @@ void KoXmlWriter::addAttribute(const char* attrName, const char* value)
 
 void KoXmlWriter::addAttribute(const char* attrName, double value)
 {
-    addAttribute(attrName, KisDomUtils::toString(value));
+    addAttribute(attrName, numberToString(value));
 }
 
 void KoXmlWriter::addAttribute(const char* attrName, float value)
 {
-    addAttribute(attrName, KisDomUtils::toString(value));
+    addAttribute(attrName, numberToString(value));
 }
 
 void KoXmlWriter::writeIndent()

@@ -10,7 +10,7 @@ set(libkritaconverter_LIB_SRCS
 
 if(IOS)
     kis_add_library(kritaoracommon STATIC ${libkritaconverter_LIB_SRCS})
-    target_link_libraries(kritaoracommon PUBLIC kritaui)
+    target_link_libraries(kritaoracommon PUBLIC kritaui kritaresourcestorage)
     set(kritaoracommon_TARGET kritaoracommon)
     set(libkritaconverter_PLUGIN_SRCS)
 else()
@@ -24,7 +24,7 @@ set(kritaoraimport_SOURCES
 
 kis_add_library(kritaoraimport MODULE ${kritaoraimport_SOURCES})
 
-target_link_libraries(kritaoraimport kritaui ${kritaoracommon_TARGET})
+target_link_libraries(kritaoraimport kritaui kritaresourcestorage ${kritaoracommon_TARGET})
 
 install(TARGETS kritaoraimport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -35,7 +35,7 @@ set(kritaoraexport_SOURCES
 
 kis_add_library(kritaoraexport MODULE ${kritaoraexport_SOURCES})
 
-target_link_libraries(kritaoraexport kritaui kritaimpex ${kritaoracommon_TARGET})
+target_link_libraries(kritaoraexport kritaui kritaimpex kritaresourcestorage ${kritaoracommon_TARGET})
 
 install(TARGETS kritaoraexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

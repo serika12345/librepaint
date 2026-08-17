@@ -292,6 +292,8 @@ target_link_libraries(kritaflake
         HarfBuzz::HarfBuzz
         Fontconfig::Fontconfig
     PRIVATE
+        kritaresourcestorage
+        kritaxmlserialization
         Raqm::Raqm
         libunibreak::libunibreak
 )

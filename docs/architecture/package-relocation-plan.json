@@ -200,13 +200,11 @@
       "current": {
         "sourceDirectories": [
           "libs/impex",
-          "libs/store",
           "libs/ui",
           "plugins/impex"
         ],
         "cmakeTargets": [
           "kritaimpex",
-          "kritastore",
           "kritaui"
         ],
         "uiClassAreas": [
@@ -418,6 +416,7 @@
         ],
         "cmakeTargets": [
           "kritaresources",
+          "kritaresourcestorage",
           "kritaresourcewidgets",
           "kritaui"
         ],
@@ -448,7 +447,7 @@
             "name": "kritaresourcestorage",
             "directory": "libs/resources/storage",
             "role": "storage",
-            "status": "new"
+            "status": "implemented"
           },
           {
             "name": "kritaresourceui",
@@ -649,28 +648,6 @@
   ],
   "compatibilityRoutes": [
     {
-      "id": "legacy-store-headers",
-      "kind": "forwarding-headers",
-      "legacy": "libs/store public include paths",
-      "replacement": "libs/resources/storage public include paths",
-      "introducedBy": "R1-G6a",
-      "owner": "R1-G7",
-      "maximumScope": "Only headers present when R1-G6a starts.",
-      "removalCondition": "All product and SDK consumers use resource-storage headers and the public-surface inventory records no legacy include consumers.",
-      "verification": "Public-surface inventory and structural dependency baseline report zero legacy consumers."
-    },
-    {
-      "id": "legacy-kritastore-target",
-      "kind": "cmake-compatibility-target",
-      "legacy": "kritastore",
-      "replacement": "kritaresourcestorage",
-      "introducedBy": "R1-G6a",
-      "owner": "R1-G7",
-      "maximumScope": "One compatibility link target with no production sources.",
-      "removalCondition": "All five CMake graphs contain no repository target depending on kritastore.",
-      "verification": "CMake target inventories and matrix contain no kritastore consumer."
-    },
-    {
       "id": "legacy-resource-ui",
       "kind": "forwarding-headers-and-target",
       "legacy": "kritaresourcewidgets and resource-configuration headers in libs/ui",
@@ -832,9 +809,7 @@
         "kritatoolsui"
       ],
       "compatibilityRoutes": [
-        "legacy-kritastore-target",
-        "legacy-resource-ui",
-        "legacy-store-headers"
+        "legacy-resource-ui"
       ],
       "requiredContracts": [
         "Resource storage open, read, write, rollback, and malformed archive tests",
@@ -868,7 +843,7 @@
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
-        "The three reviewed reverse dependency pairs reach zero and both compatibility targets are source-free."
+        "The three reviewed reverse dependency pairs reach zero, and libs/store and kritastore are absent."
       ],
       "stopCondition": "Stop before moving painting code if storage contracts, five-platform target graphs, or baseline reductions fail."
     },

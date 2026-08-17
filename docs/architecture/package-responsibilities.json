@@ -347,13 +347,11 @@
       "responsibility": "Selects codecs, validates external formats, and coordinates serialized document input and output.",
       "sourceDirectories": [
         "libs/impex",
-        "libs/store",
         "libs/ui",
         "plugins/impex"
       ],
       "ownerTargets": [
         "kritaimpex",
-        "kritastore",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
@@ -1192,6 +1190,7 @@
       ],
       "ownerTargets": [
         "kritaresources",
+        "kritaresourcestorage",
         "kritaresourcewidgets",
         "kritaui"
       ],
@@ -1618,7 +1617,9 @@
       "repositoryDependencies": [
         "kritacommand",
         "kritapigment",
-        "kritawidgetutils"
+        "kritaresourcestorage",
+        "kritawidgetutils",
+        "kritaxmlserialization"
       ],
       "repositoryConsumers": [
         "krita_flaketools",
@@ -1653,6 +1654,7 @@
         "kritapigment",
         "kritapsdutils",
         "kritaresources",
+        "kritaresourcestorage",
         "kritaversion",
         "kritawidgets",
         "kritawidgetutils"
@@ -1791,7 +1793,8 @@
         "kritamultiarch",
         "kritaplugin",
         "kritaresources",
-        "kritastore"
+        "kritaresourcestorage",
+        "kritaxmlserialization"
       ],
       "repositoryConsumers": [
         "krita_colorspaces_extensions",
@@ -1846,8 +1849,9 @@
       "repositoryDependencies": [
         "kritaglobal",
         "kritaplugin",
-        "kritastore",
-        "kritaversion"
+        "kritaresourcestorage",
+        "kritaversion",
+        "kritaxmlserialization"
       ],
       "repositoryConsumers": [
         "kritadbexplorer",
@@ -1859,6 +1863,34 @@
         "kritaui",
         "kritawidgets",
         "kritawidgetutils"
+      ]
+    },
+    {
+      "name": "kritaresourcestorage",
+      "sourceDirectory": "libs/resources/storage",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [],
+      "repositoryConsumers": [
+        "krita_flaketools",
+        "kritaflake",
+        "kritaimage",
+        "kritalibkra",
+        "kritaoracommon",
+        "kritaoraexport",
+        "kritaoraimport",
+        "kritapigment",
+        "kritaresources",
+        "kritaui"
       ]
     },
     {
@@ -1879,7 +1911,6 @@
         "kritaglobal",
         "kritaplugin",
         "kritaresources",
-        "kritastore",
         "kritaversion",
         "kritawidgetutils"
       ],
@@ -1887,31 +1918,6 @@
         "kritadbexplorer",
         "kritaresourcemanager",
         "kritawidgets"
-      ]
-    },
-    {
-      "name": "kritastore",
-      "sourceDirectory": "libs/store",
-      "platforms": [
-        "macos",
-        "linux",
-        "ios",
-        "android",
-        "windows"
-      ],
-      "types": [
-        "SHARED_LIBRARY",
-        "STATIC_LIBRARY"
-      ],
-      "repositoryDependencies": [
-        "kritaglobal",
-        "kritaversion"
-      ],
-      "repositoryConsumers": [
-        "kritapigment",
-        "kritapsdexport",
-        "kritaresources",
-        "kritaresourcewidgets"
       ]
     },
     {
@@ -1935,10 +1941,12 @@
         "kritalibbrush",
         "kritamacosutils",
         "kritaresources",
+        "kritaresourcestorage",
         "kritasurfacecolormanagementapi",
         "kritaversion",
         "kritawidgets",
-        "kritawidgetutils"
+        "kritawidgetutils",
+        "kritaxmlserialization"
       ],
       "repositoryConsumers": [
         "krita",

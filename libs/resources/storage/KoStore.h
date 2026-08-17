@@ -10,7 +10,7 @@
 
 #include <QByteArray>
 #include <QIODevice>
-#include "kritastore_export.h"
+#include "kritaresourcestorage_export.h"
 
 class QWidget;
 class QUrl;
@@ -22,7 +22,7 @@ class KoStorePrivate;
  * We call a "store" the file on the hard disk (the one the users sees)
  * and call a "file" a file inside the store.
  */
-class KRITASTORE_EXPORT KoStore
+class KRITARESOURCESTORAGE_EXPORT KoStore
 {
 public:
 

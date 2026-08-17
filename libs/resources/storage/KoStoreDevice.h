@@ -8,7 +8,7 @@
 #define koStoreDevice_h
 
 #include "KoStore.h"
-#include <kritastore_export.h>
+#include <kritaresourcestorage_export.h>
 
 
 /**
@@ -16,7 +16,7 @@
  * it can be used to create a QDomDocument from it, to be written or read
  * using QDataStream or to be written using QTextStream
  */
-class KRITASTORE_EXPORT KoStoreDevice : public QIODevice
+class KRITARESOURCESTORAGE_EXPORT KoStoreDevice : public QIODevice
 {
     Q_OBJECT
 public:

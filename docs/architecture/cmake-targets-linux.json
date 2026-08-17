@@ -303,6 +303,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -359,6 +360,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -413,6 +415,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -459,6 +462,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -555,6 +559,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -573,6 +578,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -609,6 +615,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -654,6 +661,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -745,6 +753,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -828,6 +837,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -972,6 +982,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -1056,7 +1067,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1075,7 +1087,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1128,7 +1141,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1147,7 +1161,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1261,7 +1276,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1292,7 +1308,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1311,7 +1328,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1403,7 +1421,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1412,7 +1431,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1421,7 +1441,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1448,7 +1469,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1457,7 +1479,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1466,7 +1489,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1487,7 +1511,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1544,7 +1569,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1596,6 +1622,15 @@
       ]
     },
     {
+      "name": "TestResourceStorageArchiveContract",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/resources/storage/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "kritaresourcestorage"
+      ]
+    },
+    {
       "name": "TestResourceTypeModel",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/resources/tests",
@@ -1617,7 +1652,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1626,7 +1662,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1644,7 +1681,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1653,7 +1691,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1662,7 +1701,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1671,7 +1711,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1680,7 +1721,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1689,7 +1731,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1698,7 +1741,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1707,7 +1751,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1785,7 +1830,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1821,7 +1867,8 @@
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1898,12 +1945,22 @@
       ]
     },
     {
+      "name": "TestXmlWriter",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/serialization/xml/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "kritaxmlserialization"
+      ]
+    },
+    {
       "name": "TestXsimdPainting",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/flake/tests",
       "dependencies": [
         "kritaflake",
-        "kritatestsdk"
+        "kritatestsdk",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -1994,6 +2051,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2003,6 +2061,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2062,6 +2121,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2071,6 +2131,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2080,6 +2141,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2089,6 +2151,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2118,6 +2181,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2137,6 +2201,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2146,6 +2211,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2175,6 +2241,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2234,6 +2301,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2253,6 +2321,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2271,6 +2340,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2280,6 +2350,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2298,6 +2369,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2307,6 +2379,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2316,6 +2389,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2335,6 +2409,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2353,6 +2428,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2371,6 +2447,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2389,6 +2466,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2407,6 +2485,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2416,6 +2495,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2425,6 +2505,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2434,6 +2515,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2443,6 +2525,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2452,6 +2535,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2461,6 +2545,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2470,6 +2555,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2479,6 +2565,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2488,6 +2575,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2497,6 +2585,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2506,6 +2595,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2515,6 +2605,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2524,6 +2615,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2543,6 +2635,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2562,6 +2655,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2580,6 +2674,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2589,6 +2684,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2598,6 +2694,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2607,6 +2704,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2616,6 +2714,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2645,6 +2744,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2654,6 +2754,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2663,6 +2764,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2692,6 +2794,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2721,6 +2824,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2730,6 +2834,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2739,6 +2844,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2748,6 +2854,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2757,6 +2864,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2795,6 +2903,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2813,6 +2922,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2822,6 +2932,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2831,6 +2942,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2840,6 +2952,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2849,6 +2962,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2867,6 +2981,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2895,6 +3010,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2904,6 +3020,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2913,6 +3030,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2922,6 +3040,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2940,6 +3059,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2949,6 +3069,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2958,6 +3079,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2967,6 +3089,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2976,6 +3099,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2985,6 +3109,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -2994,6 +3119,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3003,6 +3129,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3012,6 +3139,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3031,6 +3159,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3049,6 +3178,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3087,6 +3217,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3096,6 +3227,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3105,6 +3237,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3114,6 +3247,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3123,6 +3257,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3132,6 +3267,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3162,6 +3298,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3182,6 +3319,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3200,6 +3338,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3209,6 +3348,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3257,6 +3397,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3276,6 +3417,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3285,6 +3427,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3323,6 +3466,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3332,6 +3476,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3341,6 +3486,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3395,6 +3541,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3404,6 +3551,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3424,6 +3572,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3433,6 +3582,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3442,6 +3592,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3460,6 +3611,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3469,6 +3621,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3478,6 +3631,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3497,6 +3651,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3506,6 +3661,7 @@
       "sourceDirectory": "libs/image/tests",
       "dependencies": [
         "kritaimage",
+        "kritaresourcestorage",
         "kritatestsdk"
       ]
     },
@@ -3707,6 +3863,7 @@
       "sourceDirectory": "plugins/tools/defaulttool",
       "dependencies": [
         "kritaflake",
+        "kritaresourcestorage",
         "kritaui",
         "kritawidgets"
       ]
@@ -3738,7 +3895,8 @@
       "dependencies": [
         "KF6::I18n",
         "kritaflake",
-        "kritawidgets"
+        "kritawidgets",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -3748,7 +3906,8 @@
       "dependencies": [
         "kritaflake",
         "kritaui",
-        "kritawidgets"
+        "kritawidgets",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -4263,7 +4422,9 @@
         "Qt6::Xml",
         "kritacommand",
         "kritapigment",
+        "kritaresourcestorage",
         "kritawidgetutils",
+        "kritaxmlserialization",
         "libraqm",
         "libunibreak::libunibreak"
       ]
@@ -4451,6 +4612,7 @@
         "kritapigment",
         "kritapsdutils",
         "kritaresources",
+        "kritaresourcestorage",
         "kritaversion",
         "kritawidgets",
         "kritawidgetutils"
@@ -4668,7 +4830,9 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "plugins/impex/libkra",
       "dependencies": [
-        "kritaui"
+        "kritaresourcestorage",
+        "kritaui",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -4811,6 +4975,7 @@
       "sourceDirectory": "plugins/impex/ora",
       "dependencies": [
         "kritaimpex",
+        "kritaresourcestorage",
         "kritaui"
       ]
     },
@@ -4819,6 +4984,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/ora",
       "dependencies": [
+        "kritaresourcestorage",
         "kritaui"
       ]
     },
@@ -4904,7 +5070,8 @@
         "kritamultiarch",
         "kritaplugin",
         "kritaresources",
-        "kritastore"
+        "kritaresourcestorage",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -5025,7 +5192,6 @@
         "kritaimpex",
         "kritapsd",
         "kritapsd_static",
-        "kritastore",
         "kritaui"
       ]
     },
@@ -5226,8 +5392,19 @@
         "QuaZip::QuaZip",
         "kritaglobal",
         "kritaplugin",
-        "kritastore",
-        "kritaversion"
+        "kritaresourcestorage",
+        "kritaversion",
+        "kritaxmlserialization"
+      ]
+    },
+    {
+      "name": "kritaresourcestorage",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/resources/storage",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Core",
+        "QuaZip::QuaZip"
       ]
     },
     {
@@ -5245,7 +5422,6 @@
         "kritaglobal",
         "kritaplugin",
         "kritaresources",
-        "kritastore",
         "kritaversion",
         "kritawidgetutils"
       ]
@@ -5434,19 +5610,6 @@
       "dependencies": [
         "kritaimpex",
         "kritaui"
-      ]
-    },
-    {
-      "name": "kritastore",
-      "type": "SHARED_LIBRARY",
-      "sourceDirectory": "libs/store",
-      "dependencies": [
-        "KF6::ConfigCore",
-        "Qt6::Gui",
-        "Qt6::Xml",
-        "QuaZip::QuaZip",
-        "kritaglobal",
-        "kritaversion"
       ]
     },
     {
@@ -5714,10 +5877,12 @@
         "kritaimpex",
         "kritalibbrush",
         "kritaresources",
+        "kritaresourcestorage",
         "kritasurfacecolormanagementapi",
         "kritaversion",
         "kritawidgets",
-        "kritawidgetutils"
+        "kritawidgetutils",
+        "kritaxmlserialization"
       ]
     },
     {
@@ -5834,6 +5999,14 @@
       ]
     },
     {
+      "name": "kritaxmlserialization",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/serialization/xml",
+      "dependencies": [
+        "Qt6::Core"
+      ]
+    },
+    {
       "name": "kritaxmp",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/metadata/xmp",
@@ -5944,10 +6117,10 @@
     {
       "name": "storedroptest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/store/tests",
+      "sourceDirectory": "libs/resources/storage/tests",
       "dependencies": [
         "Qt6::Widgets",
-        "kritastore"
+        "kritaresourcestorage"
       ]
     },
     {

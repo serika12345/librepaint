@@ -35,7 +35,7 @@ set(kritapsdexport_SOURCES
 
 kis_add_library(kritapsdexport MODULE ${kritapsdexport_SOURCES})
 
-target_link_libraries(kritapsdexport kritapsd_static kritaui kritapsd kritaimpex kritastore)
+target_link_libraries(kritapsdexport kritapsd_static kritaui kritapsd kritaimpex)
 
 install(TARGETS kritapsdexport DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

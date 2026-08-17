@@ -63,13 +63,13 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             baseline["scope"],
             "r1-g4a-confirmed-reverse-dependency-baseline",
         )
-        self.assertEqual(len(baseline["violations"]), 8)
+        self.assertEqual(len(baseline["violations"]), 6)
         self.assertEqual(
             sum(
                 len(entry["directIncludes"])
                 for entry in baseline["violations"]
             ),
-            305,
+            298,
         )
         self.assertEqual(baseline["unresolvedProjections"], [])
         by_pair = {

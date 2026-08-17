@@ -103,6 +103,26 @@ class PackageRelocationPlanTests(unittest.TestCase):
         ):
             self.validate(plan)
 
+    def test_implemented_target_must_exist(self) -> None:
+        plan = copy.deepcopy(self.load_plan())
+        resource_package = next(
+            item
+            for item in plan["packages"]
+            if item["responsibility"] == "resource-management"
+        )
+        storage_target = next(
+            item
+            for item in resource_package["target"]["cmakeTargets"]
+            if item["name"] == "kritaresourcestorage"
+        )
+        storage_target["name"] = "kritamissingstorage"
+
+        with self.assertRaisesRegex(
+            check_package_relocation_plan.RelocationPlanError,
+            "implemented target is missing",
+        ):
+            self.validate(plan)
+
     def test_compatibility_route_requires_removal_condition(self) -> None:
         plan = copy.deepcopy(self.load_plan())
         plan["compatibilityRoutes"][0]["removalCondition"] = ""

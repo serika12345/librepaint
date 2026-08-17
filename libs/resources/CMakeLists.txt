@@ -72,11 +72,12 @@ target_link_libraries(kritaresources
         Qt${QT_MAJOR_VERSION}::Widgets
         Qt${QT_MAJOR_VERSION}::Sql
         Boost::boost
+        kritaxmlserialization
     PRIVATE
         kritaversion
         kritaglobal
         kritaplugin
-        kritastore
+        kritaresourcestorage
         KF${KF_MAJOR}::ConfigCore
         KF${KF_MAJOR}::CoreAddons
         KF${KF_MAJOR}::I18n

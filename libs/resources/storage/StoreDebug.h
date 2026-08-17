@@ -8,9 +8,9 @@
 
 #include <QDebug>
 #include <QLoggingCategory>
-#include <kritastore_export.h>
+#include <kritaresourcestorage_export.h>
 
-extern const KRITASTORE_EXPORT QLoggingCategory &STORE_LOG();
+extern const KRITARESOURCESTORAGE_EXPORT QLoggingCategory &STORE_LOG();
 
 #define debugStore qCDebug(STORE_LOG)
 #define warnStore qCWarning(STORE_LOG)

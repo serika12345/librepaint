@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-16 20:20 JST
+- 更新日時: 2026-08-17 01:45 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6a リソース保存境界
+- 現在の検査段階: R1-G6a リソース表示境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g5-package-relocation-plan`
-- 目的: `libs/store`の保存契約を自動試験で固定し、
-  `libs/resources/storage`の`kritaresourcestorage`へ独立移動する。
+- ブランチ: `r1-g6a-resource-storage-boundary`
+- 目的: `libs/resourcewidgets`とリソース設定表示を`libs/resources/ui`の
+  `kritaresourceui`へ分離し、描画設定表示を`kritatoolsui`へ移す契約を固定する。
 
 ## 再開環境
 
@@ -28,9 +28,9 @@
   `linkLibraries`による直接CMakeターゲット依存を決定的に整列する。
 - 再生成器が各プラットフォームの増分構築入口から永続構築木を取得し、問い合わせ、
   構成同期、台帳更新、バイト単位の差分検査を実行する。
-- macOS 624件、Linux 639件、iOS 558件、Android 564件、Windows 594件の
+- macOS 627件、Linux 642件、iOS 561件、Android 567件、Windows 597件の
   ターゲットを同じ形式で記録した。
-- 差分行列が542件の共通ターゲット、119件の条件付きターゲット、244件の構成差を
+- 差分行列が545件の共通ターゲット、119件の条件付きターゲット、247件の構成差を
   持つターゲットを記録した。
 - 絶対パスから名前が変わる翻訳補助ターゲットを固定応答の契約で除外し、異なる
   作業ツリーから同じ台帳を再生成できるようにした。
@@ -173,7 +173,7 @@
   `kritaui`から`kritaimpex`への4includeの実責務へ帰属させ、逆方向依存ではないことを
   `docs/architecture/structural-dependency-baseline.json`へ記録した。
 - 15中核ターゲットと全製品構築ターゲットの強連結成分を5構成で採取した。全製品範囲は
-  macOS 214件、Linux 220件、iOS 206件、Android 206件、Windows 223件で、両範囲の
+  macOS 215件、Linux 221件、iOS 207件、Android 207件、Windows 224件で、両範囲の
   循環上限を0件に固定した。
 - 公開マクロを持たず、所有元外の直接includeだけを公開根拠とする`kritaimage`の
   29ヘッダー、593参照と、`kritaui`の15ヘッダー、34参照を既存違反基準へ記録した。
@@ -191,8 +191,8 @@
 - 各段階に移動元、移動先、作成ターゲット、必要な特性試験、完了条件、中止条件を設定し、
   8種類305件の逆方向includeと44ヘッダー627件の内部参照を最終的にゼロへ縮小する
   段階別上限を固定した。
-- 旧include、`kritastore`、`kritaui`、既存の大域C++識別子を含む13の一時互換経路へ、
-  導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を設定した。
+- UI旧include、`kritaui`、既存の大域C++識別子を含む11の一時互換経路へ、導入段階、
+  R1-G7の所有者、最大範囲、削除条件、検証方法を設定した。
 - 最初の実装をR1-G6aに決め、`libs/store`を`libs/resources/storage`へ移す保存契約、
   リソース表示と描画設定表示の分離、47件の逆方向include解消を一つの検査単位にした。
 - 計画検査器が責務地図、許可依存、依存違反基準、構造依存基準、5構成の現行
@@ -200,44 +200,69 @@
 - 再配置計画の目的、構成、実装順、最初の段階、検査方法、保守条件をアーキテクチャ
   ガイドと開発手順へ記録した。
 
+## R1-G6a保存境界で完了した作業
+
+- ZIPとディレクトリーの読書き、不正ZIPの拒否、失敗した読込後の継続、重複書込の拒否と
+  既存データ保持を`TestResourceStorageArchiveContract`へ固定した。
+- `libs/store`の書庫保存実装、内部ヘッダー、手動試験を`libs/resources/storage`へ移し、
+  `kritaresourcestorage`を独立したライブラリーとして構築した。
+- `KoXmlNS`と`KoXmlWriter`を`libs/serialization/xml`へ移し、Qt Coreだけに依存する
+  `kritaxmlserialization`として書庫保存から分離した。
+- `libs/store`、`kritastore`、転送ヘッダー、旧公開マクロ、互換専用試験を除去し、製品中の
+  旧include経路を正規ヘッダーへ変更した。
+- 書庫保存とXML直列化の実利用ターゲットへ直接リンクを設定し、利用実体のなかった
+  `kritaresourcewidgets`とPSD書出しの保存リンクを除去した。
+- XML数値属性の15桁および`FLT_DIG`表現、エスケープ、文書構造を`TestXmlWriter`へ固定し、
+  保存契約を`TestResourceStorageArchiveContract`へ限定した。
+- 5構成で`kritaresourcestorage`と`kritaxmlserialization`を独立構築し、macOS、Linux、
+  Android、Windowsでは共有ライブラリー、iOSでは静的ライブラリーになることを
+  CMake台帳へ固定した。
+- Windows増分構成へ`Release`構成種別を明示し、清浄な構築木から有効なCMake File API
+  構成名を生成する契約を固定した。
+- タイル試験の共通補助から`KoStore_p.h`と保存内部状態の操作を除去し、CMakeへ登録されて
+  いなかった圧縮試験ソースを削除した。製品外を含め、保存内部ヘッダーは所有パッケージの
+  実装3ファイルだけが参照する。
+- ネイティブCTestのアプリケーション接頭辞とプラグイン探索先を各増分構築木へ固定した。
+  macOSで存在しないNix storeのインストール先を参照していた試験環境を解消した。
+
 ## 検証状態
 
-- 初回契約検査は再配置計画検査器の欠落を診断した。
-- `nix develop .#test --command python3 -m unittest
-  scripts.tests.test_package_relocation_plan`: 再配置計画の正常系と、移行順、内部ヘッダー被覆、
-  段階別上限、互換経路、高速検査接続の6契約が成功した。
-- `nix develop .#test --command ./scripts/verify-quick`: 83件の単体試験、公開ヘッダー、
-  UI直下クラス、UIツールクラス、プラグイン、責務地図、許可依存方針、依存違反基準の
-  決定的更新検査、構造依存基準、再配置計画、公開面検査、運用検査、シェル検査、
-  文書検査、リンク検査、D2再生成検査が成功した。
-- `nix build --no-link .#checks.aarch64-darwin.governance`と、`ssh nixos`上の
-  `nix build --no-link .#checks.x86_64-linux.governance`が成功した。
-- `nix develop .#test --command ./scripts/architecture/verify_cmake_graphs.py
-  --remote-host nixos --remote-repository
-  /home/masato/worktrees/librepaint-r1-g5-verify`: macOS、Linux、iOS、Android、Windowsの
-  5台帳と差分行列が同一コミット`be97cc3`の実構成に一致した。
-- 製品C++、CMakeターゲット、Nix出力を変更していないため製品全体の再構築と
-  全Nix出力評価は実行していない。計画と検査方針は両ホストの独立検査と5構成で検証した。
+- 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
+  参照していることを診断した。現在の公開面に対する数値、エスケープ、構造契約へ置換した。
+- `nix develop .#test --command ./scripts/run-test TestResourceStorageArchiveContract`:
+  ZIP、ディレクトリー、不正入力、失敗後の継続、重複書込の5契約がmacOSとLinuxで成功した。
+- `nix develop .#test --command ./scripts/run-test TestXmlWriter`: doubleとfloatの数値表現、
+  属性とテキストのエスケープ、字下げを含む文書構造がmacOSとLinuxで成功した。
+- macOSで`kritaflake`、`kritaimage`、`kritaui`、KRA/ORA入出力、画像・パス図形、既定
+  ツールを含む1,549工程の主要利用先構築が成功した。
+- macOS、iOS、Linux、Android、Windowsで`kritaresourcestorage`と
+  `kritaxmlserialization`の実構築が成功した。
+- 5構成のCMake台帳と差分行列を再生成した。全構成から`kritastore`と互換専用試験が消え、
+  書庫保存はQt Core、KConfig、QuaZip、XML直列化はQt Coreだけへ直接依存する。
+- `nix develop .#test --command ./scripts/verify-quick`: 86件の単体試験、責務・依存・構造台帳、
+  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems`: 全Nix出力の評価が成功した。
+- macOSの全3,563構築工程が成功し、LibrePaint本体、全製品プラグイン、登録済み試験を
+  旧保存互換なしでリンクした。
+- `ctest --preset tdd-macos`: 書庫保存、XML直列化、タイル保存を含む275件が成功した。
+  試験接頭辞修正前の資源経路による125件の異常終了は解消した。残る39件は既存の画像基準、
+  Qt 6モデル契約、macOSファイル権限、300秒制限、セグメンテーション違反で失敗する。
+  `TestResourceStorageArchiveContract`、`TestXmlWriter`と9件の登録済みタイル試験は成功する。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
+  同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
 
 ## 次の操作
 
-R1-G6aを次の順で開始する。
-
-1. `libs/store`のCMake定義、既存の手動`storedroptest`、入出力とリソースの利用元を確認する。
-2. 保存領域の作成、読込、書込、取消し、不正アーカイブ時の不変条件を自動Qt Testへ固定し、
-   期待する初回診断を記録する。
-3. 実装を`libs/resources/storage`へ移し、`kritaresourcestorage`を独立構築する。
-4. `kritastore`を製品ソースを持たない互換ターゲットへ変え、旧includeを転送ヘッダーへ
-   限定する。
-5. 描画から入出力2件とリソースから入出力5件の逆方向includeをゼロにし、基準と5構成の
-   CMake台帳を同じ変更で更新する。
+`libs/resourcewidgets`と`libs/ui`のリソース設定表示について、表示の煙試験と型付き
+リソース記述子の契約を先に追加する。続いて`kritaresourceui`と`kritatoolsui`を分離し、
+リソース管理から描画への40件の逆方向includeをゼロへ縮小する。
 
 ## R1-G5完了根拠
 
 - 9責務すべてが現行所有者、目標ディレクトリー、名前空間、主ターゲット、許可依存、
   完了条件を持つ。
 - 8移行段階が許可依存の下位から上位へ並び、新規ターゲットを一度だけ作成する。
-- 13の一時互換経路が導入段階、最大範囲、R1-G7の削除条件、検証方法を持つ。
+- 11の一時互換経路が導入段階、最大範囲、R1-G7の削除条件、検証方法を持つ。
 - 8種類305件の逆方向includeと44ヘッダー627件の内部参照が各段階で一度だけ処理され、
   最終上限がゼロになる。
 - 最初のR1-G6aが移動元、移動先、必要な契約、基準縮小、完了条件、中止条件を持つ。

@@ -1601,6 +1601,17 @@
             "android",
             "windows"
           ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaresourcestorage",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
         }
       ],
       "directIncludes": [
@@ -2537,137 +2548,6 @@
           "sourcePath": "libs/pigment/resources/KoColorSet_p.h",
           "include": "kundo2stack.h",
           "headerPath": "libs/command/kundo2stack.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        }
-      ]
-    },
-    {
-      "sourceResponsibility": "painting-rendering",
-      "dependencyResponsibility": "import-export",
-      "owner": "R1-G6",
-      "reason": "Pigment resource implementations currently use KoStore container and XML contracts grouped with import-export.",
-      "maximumDirectIncludes": 2,
-      "removalCondition": "Resource serialization uses a lower-level storage surface owned outside import-export, reducing this direct-include set to zero.",
-      "targetLinks": [
-        {
-          "sourceTarget": "kritapigment",
-          "dependencyTarget": "kritastore",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        }
-      ],
-      "directIncludes": [
-        {
-          "sourceTarget": "kritapigment",
-          "dependencyTarget": "kritastore",
-          "sourcePath": "libs/pigment/resources/KoColorSet.cpp",
-          "include": "KoStore.h",
-          "headerPath": "libs/store/KoStore.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritapigment",
-          "dependencyTarget": "kritastore",
-          "sourcePath": "libs/pigment/resources/KoStopGradient.cpp",
-          "include": "KoXmlNS.h",
-          "headerPath": "libs/store/KoXmlNS.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        }
-      ]
-    },
-    {
-      "sourceResponsibility": "resource-management",
-      "dependencyResponsibility": "import-export",
-      "owner": "R1-G6",
-      "reason": "Resource bundle persistence currently uses KoStore and XML writer contracts grouped with import-export.",
-      "maximumDirectIncludes": 5,
-      "removalCondition": "Resource storage owns or consumes a lower-level container surface without depending on import-export, reducing this direct-include set to zero.",
-      "targetLinks": [
-        {
-          "sourceTarget": "kritaresources",
-          "dependencyTarget": "kritastore",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        },
-        {
-          "sourceTarget": "kritaresourcewidgets",
-          "dependencyTarget": "kritastore",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        }
-      ],
-      "directIncludes": [
-        {
-          "sourceTarget": "kritaresources",
-          "dependencyTarget": "kritastore",
-          "sourcePath": "libs/resources/KoResourceBundle.cpp",
-          "include": "KoStore.h",
-          "headerPath": "libs/store/KoStore.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaresources",
-          "dependencyTarget": "kritastore",
-          "sourcePath": "libs/resources/KoResourceBundle.cpp",
-          "include": "KoXmlWriter.h",
-          "headerPath": "libs/store/KoXmlWriter.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaresources",
-          "dependencyTarget": "kritastore",
-          "sourcePath": "libs/resources/KoResourceBundle.h",
-          "include": "KoXmlWriter.h",
-          "headerPath": "libs/store/KoXmlWriter.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaresources",
-          "dependencyTarget": "kritastore",
-          "sourcePath": "libs/resources/KoResourceBundleManifest.cpp",
-          "include": "KoXmlNS.h",
-          "headerPath": "libs/store/KoXmlNS.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaresources",
-          "dependencyTarget": "kritastore",
-          "sourcePath": "libs/resources/KoResourceBundleManifest.cpp",
-          "include": "KoXmlWriter.h",
-          "headerPath": "libs/store/KoXmlWriter.h",
           "sourceAttribution": "unique-owner-target",
           "dependencyAttribution": "unique-owner-target"
         }

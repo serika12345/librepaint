@@ -96,6 +96,31 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             common["cacheVariables"]["CMAKE_CXX_COMPILER_LAUNCHER"], "ccache"
         )
 
+    def test_native_test_runtime_uses_the_incremental_build_tree(self):
+        presets = json.loads(
+            (REPO_ROOT / "CMakePresets.json").read_text(encoding="utf-8")
+        )
+        test_presets = {
+            preset["name"]: preset for preset in presets["testPresets"]
+        }
+
+        self.assertEqual(
+            test_presets["tdd-macos"]["environment"]["KIS_TEST_PREFIX_PATH"],
+            "${sourceDir}/build/tdd-macos",
+        )
+        self.assertEqual(
+            test_presets["tdd-linux"]["environment"]["KIS_TEST_PREFIX_PATH"],
+            "${sourceDir}/build/tdd-linux",
+        )
+
+        test_config = (
+            REPO_ROOT / "cmake" / "config" / "KoTestConfig.h.cmake"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            '#define KRITA_PLUGINS_DIR_FOR_TESTS "${CMAKE_BINARY_DIR}/bin"',
+            test_config,
+        )
+
     def test_every_platform_entry_point_is_executable(self):
         entry_points = [
             BUILD_SCRIPT,
@@ -140,6 +165,13 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             incremental_script,
             r'(?s)configure_prepared_tree\(\).*?cd "\$build_dir".*?cmake -S',
         )
+
+    def test_windows_incremental_configuration_has_a_build_type(self):
+        windows_expression = (
+            REPO_ROOT / "nix/windows/default.nix"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"-DCMAKE_BUILD_TYPE:STRING=Release"', windows_expression)
 
 
 if __name__ == "__main__":

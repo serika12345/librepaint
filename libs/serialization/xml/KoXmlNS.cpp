@@ -102,4 +102,3 @@ const char* KoXmlNS::nsURI2NS(const QString &nsURI)
     // Shouldn't happen.
     return "";
 }
-

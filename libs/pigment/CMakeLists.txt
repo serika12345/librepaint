@@ -98,7 +98,6 @@ target_include_directories( kritapigment
 target_link_libraries( kritapigment
     PUBLIC
         kritaplugin
-        kritastore
         kritaglobal
         kritaresources
         kritacommand
@@ -110,6 +109,9 @@ target_link_libraries( kritapigment
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Xml
         Boost::boost
+    PRIVATE
+        kritaresourcestorage
+        kritaxmlserialization
 )
 
 set_target_properties(kritapigment PROPERTIES
