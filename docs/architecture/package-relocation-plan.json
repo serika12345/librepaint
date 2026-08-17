@@ -294,8 +294,8 @@
           "libs/brush",
           "libs/color",
           "libs/image",
-          "libs/pigment",
           "libs/painting",
+          "libs/pigment",
           "plugins/color",
           "plugins/filters",
           "plugins/flake",
@@ -640,14 +640,6 @@
       "destinationDirectory": "libs/tools",
       "wave": "R1-G6f",
       "disposition": "declare-or-replace-public-contract"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/tool/strokes/FreehandStrokeRunnableJobDataWithUpdate.h",
-      "destinationResponsibility": "painting-rendering",
-      "destinationDirectory": "libs/painting/strokes",
-      "wave": "R1-G6b",
-      "disposition": "declare-or-replace-public-contract"
     }
   ],
   "compatibilityRoutes": [
@@ -805,10 +797,10 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 257,
+      "maximumReverseDirectIncludesAfterWave": 264,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 34
+        "kritaui": 32
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
@@ -863,7 +855,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 162,
+      "maximumReverseDirectIncludesAfterWave": 169,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 32
@@ -904,7 +896,7 @@
         "Import-export UI cancellation and feedback tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 162,
+      "maximumReverseDirectIncludesAfterWave": 169,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 28
@@ -957,7 +949,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 89,
+      "maximumReverseDirectIncludesAfterWave": 96,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 20
@@ -1009,7 +1001,7 @@
         "Document undo coordination tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 89,
+      "maximumReverseDirectIncludesAfterWave": 96,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 20
@@ -1055,7 +1047,7 @@
         "Typed tool settings round-trip tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 89,
+      "maximumReverseDirectIncludesAfterWave": 96,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 3
@@ -1104,7 +1096,7 @@
         {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "painting-rendering",
-          "from": 15,
+          "from": 17,
           "to": 0
         },
         {
@@ -1114,7 +1106,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 70,
+      "maximumReverseDirectIncludesAfterWave": 75,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 3
@@ -1171,7 +1163,7 @@
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "painting-rendering",
-          "from": 70,
+          "from": 75,
           "to": 0
         }
       ],

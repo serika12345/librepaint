@@ -22,7 +22,6 @@
 #include <KisPortingUtils.h>
 
 #include <kis_cursor.h>
-#include <kis_tool_utils.h>
 #include <kis_painting_utils.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>

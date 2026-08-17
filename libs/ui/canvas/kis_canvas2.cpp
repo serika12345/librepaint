@@ -411,26 +411,16 @@ void KisCanvas2::setup()
 void KisCanvas2::initializeFpsDecoration()
 {
     KisConfig cfg(true);
-    const bool brushSpeedLoggingEnabled = cfg.enableBrushSpeedLogging();
-    KisStrokeSpeedMonitor::instance()->setHaveStrokeSpeedMeasurement(brushSpeedLoggingEnabled);
-
-    if (brushSpeedLoggingEnabled) {
-        connect(KisStrokeSpeedMonitor::instance(),
-                SIGNAL(sigStatsUpdated()),
-                this,
-                SLOT(updateCanvas()),
-                Qt::UniqueConnection);
-    } else {
-        disconnect(KisStrokeSpeedMonitor::instance(), SIGNAL(sigStatsUpdated()), this, SLOT(updateCanvas()));
-    }
+    KisStrokeSpeedMonitor *monitor = KisStrokeSpeedMonitor::instance();
+    connect(monitor, SIGNAL(sigStatsUpdated()), this, SLOT(updateCanvas()), Qt::UniqueConnection);
+    monitor->setHaveStrokeSpeedMeasurement(cfg.enableBrushSpeedLogging());
 
     const bool shouldShowDebugOverlay =
         (canvasIsOpenGL() && cfg.enableOpenGLFramerateLogging()) ||
-        brushSpeedLoggingEnabled;
+        cfg.enableBrushSpeedLogging();
 
     if (shouldShowDebugOverlay && !decoration(KisFpsDecoration::idTag)) {
         addDecoration(new KisFpsDecoration(imageView()));
-
     } else if (!shouldShowDebugOverlay && decoration(KisFpsDecoration::idTag)) {
         m_d->canvasWidget->removeDecoration(KisFpsDecoration::idTag);
     }

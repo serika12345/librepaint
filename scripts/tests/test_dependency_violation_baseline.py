@@ -64,13 +64,13 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             baseline["scope"],
             "r1-g4a-confirmed-reverse-dependency-baseline",
         )
-        self.assertEqual(len(baseline["violations"]), 5)
+        self.assertEqual(len(baseline["violations"]), 3)
         self.assertEqual(
             sum(
                 len(entry["directIncludes"])
                 for entry in baseline["violations"]
             ),
-            257,
+            96,
         )
         self.assertEqual(baseline["unresolvedProjections"], [])
         by_pair = {
@@ -79,22 +79,9 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             )
             for entry in baseline["violations"]
         }
-        image_to_metadata = by_pair[
-            ("painting-rendering", "document-lifecycle")
-        ]["directIncludes"]
-        self.assertIn(
-            {
-                "sourceTarget": "kritaimage",
-                "dependencyTarget": "kritametadata",
-                "sourcePath": "libs/image/kis_image.cc",
-                "include": "kis_meta_data_merge_strategy.h",
-                "headerPath": (
-                    "libs/metadata/kis_meta_data_merge_strategy.h"
-                ),
-                "sourceAttribution": "unique-owner-target",
-                "dependencyAttribution": "unique-owner-target",
-            },
-            image_to_metadata,
+        self.assertNotIn(
+            ("painting-rendering", "document-lifecycle"),
+            by_pair,
         )
         for entry in baseline["violations"]:
             self.assertEqual(

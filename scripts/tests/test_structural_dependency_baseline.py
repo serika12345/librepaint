@@ -44,7 +44,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
         self.assertEqual(
             baseline["scope"], "r1-g4b-structural-dependency-baseline"
         )
-        self.assertEqual(len(baseline["projectionResolutions"]), 8)
+        self.assertEqual(len(baseline["projectionResolutions"]), 9)
         self.assertEqual(
             baseline["targetCycleBaseline"]["maximumComponents"], 0
         )
@@ -58,7 +58,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
         internal = baseline["internalHeaderBaseline"]
         self.assertEqual(len(internal), 2)
         self.assertEqual(
-            sum(len(entry["headers"]) for entry in internal), 44
+            sum(len(entry["headers"]) for entry in internal), 14
         )
         self.assertEqual(
             sum(
@@ -66,7 +66,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
                 for entry in internal
                 for header in entry["headers"]
             ),
-            627,
+            32,
         )
 
     def test_projection_resolution_cannot_be_dropped(self) -> None:
@@ -91,7 +91,12 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
 
     def test_internal_header_growth_exceeds_reviewed_maximum(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())
-        baseline["internalHeaderBaseline"][0][
+        entry = next(
+            entry
+            for entry in baseline["internalHeaderBaseline"]
+            if entry["maximumDirectReferences"] > 0
+        )
+        entry[
             "maximumDirectReferences"
         ] -= 1
 

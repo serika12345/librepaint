@@ -63,7 +63,6 @@
         "libs/ui/tool/kis_tool_utils.cpp"
       ],
       "consumerPaths": [
-        "libs/ui/widgets/kis_scratch_pad.cpp",
         "libs/ui/widgets/kis_zoom_scrollbar.cpp",
         "plugins/dockers/animation/KisAnimUtils.cpp",
         "plugins/tools/basictools/kis_tool_colorsampler.cc",
@@ -543,7 +542,6 @@
         "libs/ui/tool/kis_tool_utils.cpp"
       ],
       "consumerPaths": [
-        "libs/ui/widgets/kis_scratch_pad.cpp",
         "libs/ui/widgets/kis_zoom_scrollbar.cpp",
         "plugins/dockers/animation/KisAnimUtils.cpp",
         "plugins/tools/basictools/kis_tool_colorsampler.cc",
