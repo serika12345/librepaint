@@ -165,6 +165,11 @@ void KisMimeDatabase::fillMimeData()
 
         KisMimeType mimeType;
 
+        mimeType.mimeType = "application/x-krita";
+        mimeType.description = i18nc("description of a file type", "LibrePaint document");
+        mimeType.suffixes = QStringList() << "kra";
+        s_mimeDatabase << mimeType;
+
         mimeType.mimeType = "image/x-gimp-brush";
         mimeType.description = i18nc("description of a file type", "Gimp Brush");
         mimeType.suffixes = QStringList() << "gbr" << "vbr";

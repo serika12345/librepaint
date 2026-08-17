@@ -39,6 +39,18 @@ class KoConfigAuthorPage;
 class KisProofingConfigModel;
 class KisFrameRateLimitModel;
 
+struct KisImportExportPreferenceOptions
+{
+    QStringList exportMimeTypes;
+    int pasteFormatAsk;
+    int pasteFormatDownload;
+    int pasteFormatLocal;
+    int pasteFormatBitmap;
+    int pasteAssumeWeb;
+    int pasteAssumeMonitor;
+    int pasteAsk;
+};
+
 /**
  *  "General"-tab for preferences dialog
  */
@@ -62,7 +74,9 @@ class KRITAUI_EXPORT GeneralTab : public WdgGeneralSettings
 
 public:
 
-    GeneralTab(QWidget *parent = 0, const char *name = 0);
+    GeneralTab(QWidget *parent,
+               const KisImportExportPreferenceOptions &importExportOptions,
+               const char *name = 0);
 
     CursorStyle cursorStyle();
     OutlineStyle outlineStyle();
@@ -197,7 +211,9 @@ class ColorSettingsTab : public QWidget
 
 public:
 
-    ColorSettingsTab(QWidget *parent = 0, const char  *name = 0);
+    ColorSettingsTab(QWidget *parent,
+                     const KisImportExportPreferenceOptions &importExportOptions,
+                     const char *name = 0);
 
     enum PreferredSpaceType {
         PreferredSpace,
@@ -451,7 +467,9 @@ public:
         int tab;
     };
 
-    KisDlgPreferences(QWidget *parent = 0, const char *name = 0);
+    KisDlgPreferences(QWidget *parent,
+                      const KisImportExportPreferenceOptions &importExportOptions,
+                      const char *name = 0);
     ~KisDlgPreferences() override;
 
     bool editPreferences(std::optional<PageDesc> page);

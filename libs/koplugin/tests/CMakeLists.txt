@@ -41,6 +41,12 @@ kis_add_test(
     LINK_LIBRARIES kritaplugin kritaglobal kritatestsdk KF${KF_MAJOR}::CoreAddons KF${KF_MAJOR}::ConfigCore dummytrivialinterface
 )
 
+kis_add_test(
+    KisMimeDatabaseTest.cpp
+    TEST_NAME KisMimeDatabaseTest
+    LINK_LIBRARIES kritaplugin Qt${QT_MAJOR_VERSION}::Test
+)
+
 target_compile_definitions(KoPluginLoaderTest
     PRIVATE
     DUMMY_PLUGINS_PATH=${CMAKE_CURRENT_BINARY_DIR}/dummyplugins

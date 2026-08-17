@@ -59,6 +59,10 @@
     {
       "ownerTarget": "kritaimage",
       "sourceDirectory": "libs/image",
+      "headerDirectories": [
+        "libs/image"
+      ],
+      "excludedHeaderDirectories": [],
       "exportMacro": "KRITAIMAGE_EXPORT",
       "responsibility": "Records the declared and de facto inter-package header surface for image, layer, tile, projection, brush, and stroke state.",
       "evidence": [
@@ -222,13 +226,13 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/KisImportExportUtils.h",
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/ui/KisDocument.cpp",
-            "libs/ui/KisImportExportUtils.h",
             "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_selection_manager.cc",
             "plugins/dockers/animation/KisAnimCurvesModel.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
@@ -1271,12 +1275,12 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_animation_importer.cpp",
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/libkis/Node.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
-            "libs/ui/kis_animation_importer.cpp",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_node_commands_adapter.h",
             "libs/ui/kis_node_juggler_compressed.cpp",
             "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp"
@@ -1289,7 +1293,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/ui/kis_node_commands_adapter.cpp",
             "libs/ui/kis_node_juggler_compressed.cpp"
           ]
@@ -1814,6 +1818,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/FillLayer.cpp",
             "libs/libkis/Filter.cpp",
@@ -1834,7 +1839,6 @@
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_layer_manager.h",
             "libs/ui/kis_mask_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/tool/kis_tool.cc",
             "libs/ui/utils/KisDitherUtil.cpp",
             "libs/ui/widgets/KisDitherWidget.cpp",
@@ -2070,6 +2074,7 @@
             "libs/impex/FillLayerTypeCheck.h",
             "libs/impex/LayerOpacityCheck.h",
             "libs/impex/PSDLayerStylesCheck.h",
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/FillLayer.cpp",
             "libs/libkis/LibKisUtils.cpp",
@@ -2080,7 +2085,6 @@
             "libs/ui/dialogs/kis_dlg_generator_layer.cpp",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_layer_manager.h",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_node_juggler_compressed.cpp",
             "plugins/extensions/offsetimage/kis_offset_processing_visitor.cpp",
             "plugins/impex/jpeg/kis_jpeg_export.cc",
@@ -2104,12 +2108,12 @@
             "libs/impex/FillLayerTypeCheck.h",
             "libs/impex/KisExportCheckRegistry.cpp",
             "libs/impex/ShapeLayerTypeCheck.h",
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/FillLayer.cpp",
             "libs/psd/psd_additional_layer_info_block.h",
             "libs/ui/KisApplication.cpp",
             "libs/ui/KisDocument.cpp",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/widgets/kis_wdg_generator.cpp",
             "plugins/filters/halftone/KisHalftoneConfigPageWidget.cpp",
             "plugins/filters/halftone/KisHalftoneFilter.cpp",
@@ -2154,11 +2158,11 @@
             "libs/impex/ColorModelPerLayerCheck.h",
             "libs/impex/LayerOpacityCheck.h",
             "libs/impex/PSDLayerStylesCheck.h",
+            "libs/impex/ui/KisImportExportManager.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/FilterLayer.cpp",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
-            "libs/ui/KisImportExportManager.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/flake/kis_shape_controller.cpp",
@@ -2185,12 +2189,12 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_clipboard.cc",
+            "libs/impex/ui/kis_png_converter.h",
             "libs/libkis/Document.cpp",
             "libs/psd/psd_resource_block.h",
             "libs/ui/dialogs/kis_dlg_image_properties.cc",
             "libs/ui/dialogs/kis_dlg_stroke_selection_properties.cpp",
-            "libs/ui/kis_clipboard.cc",
-            "libs/ui/kis_png_converter.h",
             "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
             "plugins/impex/brush/KisAnimatedBrushAnnotation.h",
             "plugins/impex/csv/csv_saver.cpp",
@@ -2342,6 +2346,7 @@
             "libs/impex/ColorModelPerLayerCheck.h",
             "libs/impex/LayerOpacityCheck.h",
             "libs/impex/PSDLayerStylesCheck.h",
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/libkis/CloneLayer.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/LibKisUtils.cpp",
@@ -2351,7 +2356,6 @@
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "plugins/extensions/clonesarray/dlg_clonesarray.cpp",
             "plugins/impex/libkra/kis_kra_load_visitor.cpp",
             "plugins/impex/libkra/kis_kra_loader.cpp",
@@ -2382,9 +2386,9 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisImportExportManager.cpp",
-            "libs/ui/animation/KisDlgAnimationRenderer.cpp",
-            "libs/ui/animation/VideoExportOptionsDialog.h",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/VideoExportOptionsDialog.h",
+            "libs/impex/ui/KisImportExportManager.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
             "libs/ui/dialogs/kis_dlg_file_layer.cpp",
@@ -2527,7 +2531,7 @@
           ],
           "consumerPaths": [
             "libs/impex/NodeTypeCheck.h",
-            "libs/ui/kis_import_catcher.cc"
+            "libs/impex/ui/kis_import_catcher.cc"
           ]
         },
         {
@@ -2792,11 +2796,11 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/KisImportExportManager.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/FilterMask.cpp",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
-            "libs/ui/KisImportExportManager.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
             "libs/ui/kis_mask_manager.cc",
@@ -2956,6 +2960,11 @@
             "libs/impex/MultiTransparencyMaskCheck.h",
             "libs/impex/PSDLayerStylesCheck.h",
             "libs/impex/ShapeLayerTypeCheck.h",
+            "libs/impex/ui/KisSaveGroupVisitor.h",
+            "libs/impex/ui/kis_animation_importer.cpp",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_png_converter.cpp",
+            "libs/impex/ui/kis_safe_document_loader.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/GroupLayer.cpp",
             "libs/libkis/LibKisUtils.cpp",
@@ -2967,7 +2976,6 @@
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
             "libs/ui/KisPart.cpp",
-            "libs/ui/KisSaveGroupVisitor.h",
             "libs/ui/KisView.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
@@ -2977,15 +2985,11 @@
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/input/kis_select_layer_action.cpp",
-            "libs/ui/kis_animation_importer.cpp",
             "libs/ui/kis_canvas_resource_provider.cpp",
-            "libs/ui/kis_import_catcher.cc",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_model.cpp",
-            "libs/ui/kis_png_converter.cpp",
-            "libs/ui/kis_safe_document_loader.cpp",
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/tool/kis_tool.cc",
             "libs/ui/widgets/kis_custom_image_widget.cc",
@@ -3115,7 +3119,19 @@
             "libs/impex/NodeTypeCheck.h",
             "libs/impex/PSDLayerStylesCheck.h",
             "libs/impex/ShapeLayerTypeCheck.h",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
+            "libs/impex/animation/KisVideoSaver.cpp",
             "libs/impex/sRGBProfileCheck.h",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/KisImportExportUtils.cpp",
+            "libs/impex/ui/KisSaveGroupVisitor.h",
+            "libs/impex/ui/kis_animation_importer.cpp",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_mimedata.h",
+            "libs/impex/ui/kis_png_converter.cpp",
+            "libs/impex/ui/kis_safe_document_loader.cpp",
             "libs/libkis/CloneLayer.cpp",
             "libs/libkis/ColorizeMask.cpp",
             "libs/libkis/Document.cpp",
@@ -3140,21 +3156,16 @@
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisDocument.h",
             "libs/ui/KisIdleTasksManager.cpp",
-            "libs/ui/KisImportExportManager.cpp",
-            "libs/ui/KisImportExportUtils.cpp",
+            "libs/ui/KisImportExportColorSpaceDialog.cpp",
             "libs/ui/KisLayerThumbnailCache.cpp",
             "libs/ui/KisMainWindow.cpp",
             "libs/ui/KisPart.cpp",
             "libs/ui/KisPlaybackEngineQT.cpp",
             "libs/ui/KisPresetShadowUpdater.cpp",
-            "libs/ui/KisSaveGroupVisitor.h",
             "libs/ui/KisView.cpp",
             "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
-            "libs/ui/animation/KisDlgAnimationRenderer.cpp",
-            "libs/ui/animation/KisDlgImportVideoAnimation.cpp",
-            "libs/ui/animation/KisVideoSaver.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_canvas_controller.cpp",
@@ -3194,17 +3205,14 @@
             "libs/ui/input/kis_tool_invocation_action.cpp",
             "libs/ui/kis_animation_cache_populator.cpp",
             "libs/ui/kis_animation_frame_cache.cpp",
-            "libs/ui/kis_animation_importer.cpp",
             "libs/ui/kis_canvas_resource_provider.cpp",
             "libs/ui/kis_control_frame.cpp",
             "libs/ui/kis_custom_pattern.cc",
             "libs/ui/kis_file_layer.cpp",
             "libs/ui/kis_image_manager.cc",
             "libs/ui/kis_image_view_converter.cpp",
-            "libs/ui/kis_import_catcher.cc",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_node_commands_adapter.cpp",
             "libs/ui/kis_node_filter_proxy_model.cpp",
             "libs/ui/kis_node_juggler_compressed.cpp",
@@ -3212,8 +3220,6 @@
             "libs/ui/kis_node_manager.h",
             "libs/ui/kis_node_model.cpp",
             "libs/ui/kis_paintop_box.cc",
-            "libs/ui/kis_png_converter.cpp",
-            "libs/ui/kis_safe_document_loader.cpp",
             "libs/ui/kis_selection_decoration.cc",
             "libs/ui/kis_selection_manager.h",
             "libs/ui/kis_statusbar.cc",
@@ -3424,6 +3430,9 @@
           "consumerPaths": [
             "libs/impex/AnimationCheck.h",
             "libs/impex/IntegralFrameDuration.h",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
+            "libs/impex/animation/KisVideoSaver.cpp",
             "libs/libkis/Document.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
@@ -3436,10 +3445,7 @@
             "libs/ui/KisPlaybackEngineMLT.cpp",
             "libs/ui/KisPlaybackEngineQT.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
-            "libs/ui/animation/KisDlgAnimationRenderer.cpp",
-            "libs/ui/animation/KisDlgImportVideoAnimation.cpp",
             "libs/ui/animation/KisFrameDisplayProxy.cpp",
-            "libs/ui/animation/KisVideoSaver.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
             "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
@@ -3487,13 +3493,13 @@
           ],
           "consumerPaths": [
             "krita/main.cc",
+            "libs/impex/KisImportExportFilter.cpp",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
+            "libs/impex/ui/KisImportExportManager.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/ui/KisAsyncAnimationRendererBase.cpp",
-            "libs/ui/KisImportExportFilter.cpp",
-            "libs/ui/KisImportExportManager.cpp",
             "libs/ui/KisMainWindow.cpp",
-            "libs/ui/animation/KisDlgAnimationRenderer.cpp",
-            "libs/ui/animation/KisDlgImportVideoAnimation.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_image_pyramid.cpp",
@@ -3584,16 +3590,16 @@
             "libs/brush/kis_brush.cpp",
             "libs/global/kis_acs_pixel_cache_renderer.h",
             "libs/global/kis_acs_types.h",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/kis_png_converter.cpp",
             "libs/libkis/Selection.cpp",
             "libs/psd/psd_layer_record.cpp",
             "libs/psd/psd_pixel_utils.cpp",
-            "libs/ui/KisImportExportManager.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/canvas/kis_display_color_converter.cpp",
             "libs/ui/canvas/kis_image_pyramid.cpp",
             "libs/ui/flake/kis_shape_selection.cpp",
             "libs/ui/kis_mask_manager.cc",
-            "libs/ui/kis_png_converter.cpp",
             "libs/ui/kis_selection_manager.cc",
             "plugins/dockers/channeldocker/channelmodel.cpp",
             "plugins/extensions/colorrange/colorrange.cc",
@@ -3689,13 +3695,16 @@
             "libs/impex/ColorModelHomogenousCheck.h",
             "libs/impex/ColorModelPerLayerCheck.h",
             "libs/impex/LayerOpacityCheck.h",
+            "libs/impex/ui/KisSaveGroupVisitor.h",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_png_converter.cpp",
             "libs/libkis/Channel.cpp",
             "libs/libkis/CloneLayer.cpp",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
             "libs/libkis/TransparencyMask.cpp",
             "libs/ui/KisDocument.cpp",
-            "libs/ui/KisSaveGroupVisitor.h",
             "libs/ui/KisView.cpp",
             "libs/ui/KisViewManager.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
@@ -3706,14 +3715,11 @@
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/kis_action_manager.cpp",
             "libs/ui/kis_custom_pattern.cc",
-            "libs/ui/kis_import_catcher.cc",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_multinode_property.h",
             "libs/ui/kis_node_juggler_compressed.cpp",
             "libs/ui/kis_node_manager.cpp",
-            "libs/ui/kis_png_converter.cpp",
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/tool/kis_selection_tool_helper.h",
             "libs/ui/tool/kis_tool_freehand.cc",
@@ -3818,6 +3824,10 @@
           ],
           "consumerPaths": [
             "libs/impex/MultiTransparencyMaskCheck.h",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/kis_clipboard.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_safe_document_loader.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/Node.cpp",
             "libs/painting/strokes/KisNodeSelectionRecipe.cpp",
@@ -3825,7 +3835,6 @@
             "libs/painting/strokes/move_stroke_strategy.cpp",
             "libs/ui/KisCloneDocumentStroke.cpp",
             "libs/ui/KisDocument.cpp",
-            "libs/ui/KisImportExportManager.cpp",
             "libs/ui/KisLayerThumbnailCache.cpp",
             "libs/ui/KisReferenceImagesDecoration.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
@@ -3835,15 +3844,12 @@
             "libs/ui/dialogs/kis_dlg_layer_properties.cc",
             "libs/ui/dialogs/kis_dlg_stroke_selection_properties.cpp",
             "libs/ui/flake/kis_dummies_facade_base.cpp",
-            "libs/ui/kis_clipboard.cc",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/kis_image_manager.cc",
             "libs/ui/kis_layer_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_multinode_property.h",
             "libs/ui/kis_node_juggler_compressed.cpp",
             "libs/ui/kis_node_manager.cpp",
-            "libs/ui/kis_safe_document_loader.cpp",
             "libs/ui/kis_statusbar.cc",
             "libs/ui/tool/kis_tool_utils.cpp",
             "plugins/dockers/gamutmask/gamutmask_dock.cpp",
@@ -4010,9 +4016,9 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
             "libs/ui/KisPart.cpp",
             "libs/ui/KisView.cpp",
-            "libs/ui/animation/KisDlgImportVideoAnimation.cpp",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
             "libs/ui/kis_statusbar.cc"
           ]
@@ -4048,6 +4054,9 @@
             "libs/impex/ColorModelPerLayerCheck.h",
             "libs/impex/LayerOpacityCheck.h",
             "libs/impex/PSDLayerStylesCheck.h",
+            "libs/impex/ui/KisSaveGroupVisitor.h",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_mimedata.h",
             "libs/libkis/Channel.h",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
@@ -4063,7 +4072,6 @@
             "libs/psd/psd_layer_section.cpp",
             "libs/ui/KisMainWindow.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
-            "libs/ui/KisSaveGroupVisitor.h",
             "libs/ui/KisView.cpp",
             "libs/ui/KisViewManager.cpp",
             "libs/ui/canvas/kis_display_color_converter.cpp",
@@ -4075,7 +4083,6 @@
             "libs/ui/flake/kis_node_shapes_graph.h",
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/input/kis_change_frame_action.cpp",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_multinode_property.h",
             "libs/ui/kis_node_filter_proxy_model.cpp",
             "libs/ui/kis_node_insertion_adapter.h",
@@ -4206,9 +4213,9 @@
             "libs/impex/LayerOpacityCheck.h",
             "libs/impex/PSDLayerStylesCheck.h",
             "libs/impex/ShapeLayerTypeCheck.h",
+            "libs/impex/ui/KisSaveGroupVisitor.h",
             "libs/ui/KisDecorationsWrapperLayer.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
-            "libs/ui/KisSaveGroupVisitor.h",
             "libs/ui/flake/KisReferenceImagesLayer.cpp",
             "libs/ui/flake/kis_shape_layer.cc",
             "libs/ui/kis_file_layer.cpp",
@@ -4257,6 +4264,10 @@
             "libs/brush/kis_gbr_brush.cpp",
             "libs/brush/kis_pipebrush_parasite.h",
             "libs/global/kis_acs_pixel_cache_renderer.h",
+            "libs/impex/ui/kis_clipboard.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_png_converter.cpp",
+            "libs/impex/ui/kis_safe_document_loader.h",
             "libs/libkis/Document.cpp",
             "libs/libkis/Filter.cpp",
             "libs/libkis/Selection.cpp",
@@ -4280,14 +4291,11 @@
             "libs/ui/flake/kis_shape_selection.cpp",
             "libs/ui/kis_bookmarked_filter_configurations_model.cc",
             "libs/ui/kis_canvas_resource_provider.cpp",
-            "libs/ui/kis_clipboard.cc",
             "libs/ui/kis_custom_pattern.cc",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/kis_filters_model.cc",
             "libs/ui/kis_layer_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_paintop_box.cc",
-            "libs/ui/kis_png_converter.cpp",
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/kis_statusbar.cc",
             "libs/ui/opengl/kis_texture_tile_update_info.h",
@@ -4506,7 +4514,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/kis_store_paintdevice_writer.h"
+            "libs/impex/kis_store_paintdevice_writer.h"
           ]
         },
         {
@@ -4520,6 +4528,12 @@
             "libs/impex/ColorModelPerLayerCheck.h",
             "libs/impex/LayerOpacityCheck.h",
             "libs/impex/PSDLayerStylesCheck.h",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/KisSaveGroupVisitor.cpp",
+            "libs/impex/ui/kis_animation_importer.cpp",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_png_converter.cpp",
+            "libs/impex/ui/kis_safe_document_loader.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
@@ -4529,24 +4543,18 @@
             "libs/psd/psd_layer_section.cpp",
             "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
             "libs/ui/KisDocument.cpp",
-            "libs/ui/KisImportExportManager.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
-            "libs/ui/KisSaveGroupVisitor.cpp",
             "libs/ui/KisView.cpp",
             "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
-            "libs/ui/kis_animation_importer.cpp",
             "libs/ui/kis_custom_pattern.cc",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_model.cpp",
-            "libs/ui/kis_png_converter.cpp",
-            "libs/ui/kis_safe_document_loader.cpp",
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_freehand.cc",
@@ -4630,6 +4638,10 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/KisSaveGroupVisitor.cpp",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_png_converter.cpp",
             "libs/libkis/Selection.cpp",
             "libs/painting/kis_resources_snapshot.h",
             "libs/painting/strokes/KisFreehandStrokeInfo.cpp",
@@ -4641,18 +4653,14 @@
             "libs/psd/psd_layer_section.cpp",
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisImageThumbnailStrokeStrategy.cpp",
-            "libs/ui/KisImportExportManager.cpp",
-            "libs/ui/KisSaveGroupVisitor.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/canvas/kis_image_pyramid.cpp",
             "libs/ui/flake/kis_shape_layer.cc",
             "libs/ui/flake/kis_shape_layer_canvas.cpp",
             "libs/ui/flake/kis_shape_selection.cpp",
             "libs/ui/kis_custom_pattern.cc",
-            "libs/ui/kis_import_catcher.cc",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_node_manager.cpp",
-            "libs/ui/kis_png_converter.cpp",
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/tool/kis_figure_painting_tool_helper.cpp",
             "libs/ui/tool/kis_tool.cc",
@@ -4829,6 +4837,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/libkis/Node.cpp",
             "libs/libkis/Shape.cpp",
             "libs/libkis/TransformMask.cpp",
@@ -4837,7 +4846,6 @@
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/dialogs/KisDlgChangeCloneSource.cpp",
             "libs/ui/kis_layer_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_node_commands_adapter.cpp",
             "libs/ui/kis_node_juggler_compressed.cpp",
             "libs/ui/kis_node_manager.cpp",
@@ -4999,6 +5007,13 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/KisImportExportFilter.h",
+            "libs/impex/animation/KisAnimationRenderingOptions.h",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisDlgAnimationRenderer.h",
+            "libs/impex/animation/KisDlgImportVideoAnimation.h",
+            "libs/impex/animation/KisHDRMetadataOptions.cpp",
+            "libs/impex/animation/VideoExportOptionsDialog.h",
             "libs/libkis/Filter.cpp",
             "libs/libkis/InfoObject.cpp",
             "libs/libkis/InfoObject.h",
@@ -5006,14 +5021,7 @@
             "libs/tools/ui/KisPaintopPropertiesBase.cpp",
             "libs/tools/ui/kis_paintop_option.h",
             "libs/ui/KisDocument.h",
-            "libs/ui/KisImportExportFilter.h",
             "libs/ui/KisSessionResource.cpp",
-            "libs/ui/animation/KisAnimationRenderingOptions.h",
-            "libs/ui/animation/KisDlgAnimationRenderer.cpp",
-            "libs/ui/animation/KisDlgAnimationRenderer.h",
-            "libs/ui/animation/KisDlgImportVideoAnimation.h",
-            "libs/ui/animation/KisHDRMetadataOptions.cpp",
-            "libs/ui/animation/VideoExportOptionsDialog.h",
             "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp",
             "libs/ui/kis_workspace_resource.h",
             "libs/ui/operations/kis_operation.h",
@@ -5168,6 +5176,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_animation_importer.cpp",
             "libs/libkis/Node.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
@@ -5175,7 +5184,6 @@
             "libs/ui/KisPlaybackEngine.cpp",
             "libs/ui/KisPlaybackEngineMLT.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
-            "libs/ui/kis_animation_importer.cpp",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_node_manager.cpp",
@@ -5266,6 +5274,8 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/libkis/ColorizeMask.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/FillLayer.cpp",
@@ -5290,10 +5300,8 @@
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/kis_custom_pattern.cc",
             "libs/ui/kis_filters_model.cc",
-            "libs/ui/kis_import_catcher.cc",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
-            "libs/ui/kis_mimedata.cpp",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_model.cpp",
             "libs/ui/kis_selection_actions_panel.cpp",
@@ -5654,14 +5662,15 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/animation/KisAnimationRender.cpp",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisVideoSaver.cpp",
+            "libs/impex/ui/kis_clipboard.cc",
             "libs/libkis/Document.cpp",
             "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
             "libs/ui/KisPart.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
-            "libs/ui/animation/KisAnimationRender.cpp",
-            "libs/ui/animation/KisDlgAnimationRenderer.cpp",
-            "libs/ui/animation/KisVideoSaver.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.h",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
@@ -5670,7 +5679,6 @@
             "libs/ui/kis_animation_cache_populator.cpp",
             "libs/ui/kis_animation_frame_cache.cpp",
             "libs/ui/kis_animation_frame_cache_p.h",
-            "libs/ui/kis_clipboard.cc",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/utils/kis_document_aware_spin_box_unit_manager.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
@@ -5720,6 +5728,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_png_converter.cpp",
             "libs/libkis/ColorizeMask.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
@@ -5731,7 +5740,6 @@
             "libs/ui/dialogs/kis_dlg_generator_layer.cpp",
             "libs/ui/kis_mask_manager.cc",
             "libs/ui/kis_node_manager.cpp",
-            "libs/ui/kis_png_converter.cpp",
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/operations/kis_filter_selection_operation.cpp",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
@@ -5888,7 +5896,19 @@
             "libs/brush/kis_brush_registry.h",
             "libs/brush/kis_gbr_brush.h",
             "libs/impex/KisExportCheckBase.h",
+            "libs/impex/KisImportExportFilter.h",
             "libs/impex/KisPreExportChecker.h",
+            "libs/impex/animation/KisDlgAnimationRenderer.h",
+            "libs/impex/animation/KisHDRMetadataOptions.h",
+            "libs/impex/animation/KisVideoSaver.h",
+            "libs/impex/animation/VideoHDRMetadataOptionsDialog.h",
+            "libs/impex/ui/KisSaveGroupVisitor.h",
+            "libs/impex/ui/kis_animation_importer.h",
+            "libs/impex/ui/kis_clipboard.h",
+            "libs/impex/ui/kis_import_catcher.h",
+            "libs/impex/ui/kis_mimedata.h",
+            "libs/impex/ui/kis_png_converter.h",
+            "libs/impex/ui/kis_safe_document_loader.h",
             "libs/libkis/CloneLayer.h",
             "libs/libkis/ColorizeMask.h",
             "libs/libkis/Document.cpp",
@@ -5930,21 +5950,15 @@
             "libs/ui/KisFrameCacheStore.h",
             "libs/ui/KisIdleTaskStrokeStrategy.h",
             "libs/ui/KisImageThumbnailStrokeStrategy.h",
-            "libs/ui/KisImportExportFilter.h",
             "libs/ui/KisLayerThumbnailCache.h",
             "libs/ui/KisMultiSurfaceStateManager.h",
             "libs/ui/KisPart.h",
             "libs/ui/KisReferenceImage.h",
             "libs/ui/KisReferenceImagesDecoration.h",
-            "libs/ui/KisSaveGroupVisitor.h",
             "libs/ui/KisSelectionActionsAdapter.h",
             "libs/ui/KisView.h",
             "libs/ui/KisViewManager.h",
             "libs/ui/StoryboardItem.h",
-            "libs/ui/animation/KisDlgAnimationRenderer.h",
-            "libs/ui/animation/KisHDRMetadataOptions.h",
-            "libs/ui/animation/KisVideoSaver.h",
-            "libs/ui/animation/VideoHDRMetadataOptionsDialog.h",
             "libs/ui/canvas/kis_abstract_canvas_widget.h",
             "libs/ui/canvas/kis_canvas2.h",
             "libs/ui/canvas/kis_canvas_controller.h",
@@ -5984,21 +5998,17 @@
             "libs/ui/imagesize/imagesize.h",
             "libs/ui/kis_animation_cache_populator.h",
             "libs/ui/kis_animation_frame_cache.h",
-            "libs/ui/kis_animation_importer.h",
             "libs/ui/kis_bookmarked_filter_configurations_model.h",
             "libs/ui/kis_canvas_resource_provider.h",
             "libs/ui/kis_change_file_layer_command.h",
-            "libs/ui/kis_clipboard.h",
             "libs/ui/kis_favorite_resource_manager.h",
             "libs/ui/kis_file_layer.cpp",
             "libs/ui/kis_filter_manager.h",
             "libs/ui/kis_filters_model.h",
             "libs/ui/kis_image_manager.cc",
             "libs/ui/kis_image_view_converter.h",
-            "libs/ui/kis_import_catcher.h",
             "libs/ui/kis_layer_manager.h",
             "libs/ui/kis_mask_manager.h",
-            "libs/ui/kis_mimedata.h",
             "libs/ui/kis_mirror_manager.cpp",
             "libs/ui/kis_mirror_manager.h",
             "libs/ui/kis_node_commands_adapter.h",
@@ -6011,9 +6021,7 @@
             "libs/ui/kis_painting_assistant.h",
             "libs/ui/kis_paintop_box.cc",
             "libs/ui/kis_paintop_box.h",
-            "libs/ui/kis_png_converter.h",
             "libs/ui/kis_preference_set_registry.h",
-            "libs/ui/kis_safe_document_loader.h",
             "libs/ui/kis_selection_actions_panel.h",
             "libs/ui/kis_selection_decoration.cc",
             "libs/ui/kis_selection_manager.cc",
@@ -6259,12 +6267,12 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_animation_importer.cpp",
             "libs/libkis/Document.cpp",
             "libs/ui/KisViewManager.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/dialogs/KisDlgChangeCloneSource.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
-            "libs/ui/kis_animation_importer.cpp",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
             "libs/ui/kis_node_commands_adapter.cpp",
@@ -6583,7 +6591,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/kis_animation_importer.cpp"
+            "libs/impex/ui/kis_animation_importer.cpp"
           ]
         },
         {
@@ -6781,8 +6789,577 @@
       ]
     },
     {
+      "ownerTarget": "kritaimpex",
+      "sourceDirectory": "libs/impex",
+      "headerDirectories": [
+        "libs/impex"
+      ],
+      "excludedHeaderDirectories": [
+        "libs/impex/animation",
+        "libs/impex/tests",
+        "libs/impex/ui"
+      ],
+      "exportMacro": "KRITAIMPEX_EXPORT",
+      "responsibility": "Records the declared and de facto inter-package header surface for format discovery, codec selection, validation, and conversion results.",
+      "evidence": [
+        "libs/impex/CMakeLists.txt",
+        "libs/impex/KisImportExportFilter.h"
+      ],
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/impex/ImageSizeCheck.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/impex/psd/psd_export.cc"
+          ]
+        },
+        {
+          "path": "libs/impex/IntegralFrameDuration.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/impex/KisExportCheckBase.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/impex/KisExportCheckRegistry.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/impex/brush/kis_brush_export.cpp",
+            "plugins/impex/csv/kis_csv_export.cpp",
+            "plugins/impex/exr/exr_export.cc",
+            "plugins/impex/gif/kis_gif_export.cpp",
+            "plugins/impex/heif/HeifExport.cpp",
+            "plugins/impex/heightmap/kis_heightmap_export.cpp",
+            "plugins/impex/jpeg/kis_jpeg_export.cc",
+            "plugins/impex/jxl/JPEGXLExport.cpp",
+            "plugins/impex/kra/kra_export.cpp",
+            "plugins/impex/krz/krz_export.cpp",
+            "plugins/impex/ora/ora_export.cc",
+            "plugins/impex/png/kis_png_export.cc",
+            "plugins/impex/psd/psd_export.cc",
+            "plugins/impex/qimageio/kis_qimageio_export.cpp",
+            "plugins/impex/qml/qml_export.cc",
+            "plugins/impex/rgbe/RGBEExport.cpp",
+            "plugins/impex/spriter/kis_spriter_export.cpp",
+            "plugins/impex/tga/kis_tga_export.cpp",
+            "plugins/impex/tiff/kis_tiff_export.cc",
+            "plugins/impex/webp/kis_webp_export.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/KisImportExportAdditionalChecks.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/impex/exr/exr_converter.cc",
+            "plugins/impex/gif/kis_gif_import.cpp",
+            "plugins/impex/tiff/kis_tiff_import.cc"
+          ]
+        },
+        {
+          "path": "libs/impex/KisImportExportErrorCode.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/impex/animation/KisFFMpegWrapper.h",
+            "libs/impex/animation/KisMediaEncoderWrapper.h",
+            "libs/impex/ui/KisImportExportAsyncFeedback.h",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/KisImportExportUtils.h",
+            "libs/impex/ui/kis_animation_importer.h",
+            "libs/impex/ui/kis_png_converter.h",
+            "libs/libkis/Document.cpp",
+            "libs/ui/KisDocument.cpp",
+            "plugins/impex/csv/csv_loader.h",
+            "plugins/impex/csv/csv_saver.h",
+            "plugins/impex/exr/exr_converter.h",
+            "plugins/impex/heif/HeifError.h",
+            "plugins/impex/jp2/jp2_converter.h",
+            "plugins/impex/jpeg/kis_jpeg_converter.h",
+            "plugins/impex/jxl/JPEGXLExport.cpp",
+            "plugins/impex/jxl/JPEGXLImport.cpp",
+            "plugins/impex/libkra/kra_converter.h",
+            "plugins/impex/ora/ora_converter.h",
+            "plugins/impex/pdf/kis_pdf_import.cpp",
+            "plugins/impex/png/kis_png_export.cc",
+            "plugins/impex/psd/psd_loader.h",
+            "plugins/impex/psd/psd_saver.h",
+            "plugins/impex/qml/qml_converter.h",
+            "plugins/impex/raw/kis_raw_import.cpp",
+            "plugins/impex/rgbe/RGBEExport.cpp",
+            "plugins/impex/rgbe/RGBEImport.cpp",
+            "plugins/impex/tiff/kis_tiff_import.cc",
+            "plugins/impex/tiff/kis_tiff_psd_writer_visitor.h",
+            "plugins/impex/webp/kis_webp_export.cpp",
+            "plugins/impex/webp/kis_webp_import.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/KisImportExportFilter.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisVideoSaver.h",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/KisImportExportManager.h",
+            "libs/impex/ui/kis_animation_importer.h",
+            "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
+            "libs/ui/KisDocument.h",
+            "libs/ui/KisMainWindow.cpp",
+            "plugins/filters/fastcolortransfer/kis_wdg_fastcolortransfer.cpp",
+            "plugins/impex/brush/KisWdgOptionsBrush.h",
+            "plugins/impex/brush/kis_brush_export.h",
+            "plugins/impex/brush/kis_brush_import.h",
+            "plugins/impex/csv/kis_csv_export.h",
+            "plugins/impex/csv/kis_csv_import.h",
+            "plugins/impex/exr/exr_export.h",
+            "plugins/impex/exr/exr_import.h",
+            "plugins/impex/gif/kis_gif_export.h",
+            "plugins/impex/gif/kis_gif_import.h",
+            "plugins/impex/heif/HeifExport.h",
+            "plugins/impex/heif/HeifImport.h",
+            "plugins/impex/heightmap/kis_heightmap_export.h",
+            "plugins/impex/heightmap/kis_heightmap_import.h",
+            "plugins/impex/jp2/jp2_import.h",
+            "plugins/impex/jpeg/kis_jpeg_export.h",
+            "plugins/impex/jpeg/kis_jpeg_import.h",
+            "plugins/impex/jxl/JPEGXLExport.h",
+            "plugins/impex/jxl/JPEGXLImport.h",
+            "plugins/impex/jxl/kis_wdg_options_jpegxl.h",
+            "plugins/impex/kra/kra_export.h",
+            "plugins/impex/kra/kra_import.h",
+            "plugins/impex/krz/krz_export.h",
+            "plugins/impex/ora/ora_export.h",
+            "plugins/impex/ora/ora_import.h",
+            "plugins/impex/pdf/kis_pdf_import.h",
+            "plugins/impex/png/kis_png_export.h",
+            "plugins/impex/png/kis_png_import.h",
+            "plugins/impex/psd/psd_export.h",
+            "plugins/impex/psd/psd_import.h",
+            "plugins/impex/qimageio/kis_qimageio_export.h",
+            "plugins/impex/qimageio/kis_qimageio_import.h",
+            "plugins/impex/qml/qml_export.h",
+            "plugins/impex/raw/kis_raw_import.h",
+            "plugins/impex/rgbe/RGBEExport.h",
+            "plugins/impex/rgbe/RGBEImport.h",
+            "plugins/impex/rgbe/kis_wdg_options_rgbe.h",
+            "plugins/impex/spriter/kis_spriter_export.h",
+            "plugins/impex/svg/kis_svg_import.h",
+            "plugins/impex/tga/kis_tga_export.h",
+            "plugins/impex/tga/kis_tga_import.h",
+            "plugins/impex/tiff/kis_dlg_options_tiff.cpp",
+            "plugins/impex/tiff/kis_tiff_export.h",
+            "plugins/impex/tiff/kis_tiff_import.h",
+            "plugins/impex/webp/kis_webp_export.h",
+            "plugins/impex/webp/kis_webp_import.h",
+            "plugins/impex/xcf/kis_xcf_import.h"
+          ]
+        },
+        {
+          "path": "libs/impex/KisImportExportFilterRegistry.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/impex/ui/KisImportExportManager.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/KisImportExportMimeType.h",
+          "publicationEvidence": [
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisDocument.h"
+          ]
+        },
+        {
+          "path": "libs/impex/KisPreExportChecker.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/impex/ui/KisImportExportManager.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/kis_store_paintdevice_writer.h",
+          "publicationEvidence": [
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/impex/ui/kis_clipboard.cc",
+            "plugins/impex/libkra/kis_kra_save_visitor.cpp"
+          ]
+        }
+      ]
+    },
+    {
+      "ownerTarget": "kritaimpexui",
+      "sourceDirectory": "libs/impex",
+      "headerDirectories": [
+        "libs/impex/animation",
+        "libs/impex/ui"
+      ],
+      "excludedHeaderDirectories": [],
+      "exportMacro": "KRITAUI_EXPORT",
+      "responsibility": "Records the declared and de facto inter-package header surface for document-facing conversion coordination, feedback, and format options.",
+      "evidence": [
+        "libs/impex/CMakeLists.txt",
+        "libs/impex/ui/KisImportExportManager.h"
+      ],
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/impex/animation/KisAndroidMediaEncoderRunnable.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/animation/KisAnimationRender.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisMainWindow.cpp",
+            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/animation/KisAnimationRenderingOptions.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/animation/KisDlgAnimationRenderer.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisMainWindow.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/animation/KisDlgImportVideoAnimation.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisMainWindow.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/animation/KisFFMpegWrapper.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/recorder/recorder_export.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/animation/KisMediaEncoderFormatPreferencesDialog.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/recorder/recorder_export.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/animation/KisMediaEncoderWrapper.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/recorder/recorder_export.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/animation/KisVideoSaver.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisImportExportColorSpaceDialog.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/KisImportExportManager.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisApplication.h",
+            "libs/ui/KisDocument.cpp",
+            "libs/ui/KisMainWindow.cpp",
+            "libs/ui/KisPart.cpp",
+            "libs/ui/KisView.cpp",
+            "libs/ui/dialogs/KisDlgCreateNewDocument.cpp",
+            "libs/ui/dialogs/kis_dlg_file_layer.cpp",
+            "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
+            "libs/ui/kis_image_manager.cc",
+            "libs/ui/kis_layer_manager.cc",
+            "libs/ui/kis_node_manager.cpp",
+            "plugins/dockers/animation/KisAnimTimelineFramesView.cpp",
+            "plugins/extensions/imagesplit/imagesplit.cpp",
+            "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
+            "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
+            "plugins/extensions/resourcemanager/page_metadata_info.cpp",
+            "plugins/extensions/resourcemanager/page_tag_chooser.cpp",
+            "plugins/extensions/resourcemanager/wdgtagselection.cpp",
+            "plugins/extensions/separate_channels/kis_channel_separator.cc",
+            "plugins/filters/fastcolortransfer/kis_wdg_fastcolortransfer.cpp",
+            "plugins/generators/seexpr/kis_wdg_seexpr_presets_save.cpp",
+            "plugins/impex/brush/kis_brush_export.cpp",
+            "plugins/impex/csv/kis_csv_export.cpp",
+            "plugins/impex/csv/kis_csv_import.cpp",
+            "plugins/impex/exr/exr_export.cc",
+            "plugins/impex/exr/exr_import.cc",
+            "plugins/impex/gif/kis_gif_export.cpp",
+            "plugins/impex/heif/HeifExport.cpp",
+            "plugins/impex/heif/HeifImport.cpp",
+            "plugins/impex/heightmap/kis_heightmap_export.cpp",
+            "plugins/impex/heightmap/kis_heightmap_import.cpp",
+            "plugins/impex/jp2/jp2_converter.cc",
+            "plugins/impex/jpeg/kis_jpeg_export.cc",
+            "plugins/impex/jpeg/kis_jpeg_import.cc",
+            "plugins/impex/kra/kra_export.cpp",
+            "plugins/impex/krz/krz_export.cpp",
+            "plugins/impex/libkra/kis_kra_load_visitor.cpp",
+            "plugins/impex/libkra/kis_kra_loader.cpp",
+            "plugins/impex/libkra/kis_kra_saver.cpp",
+            "plugins/impex/ora/ora_export.cc",
+            "plugins/impex/png/kis_png_export.cc",
+            "plugins/impex/png/kis_png_import.cc",
+            "plugins/impex/psd/psd_export.cc",
+            "plugins/impex/spriter/kis_spriter_export.cpp",
+            "plugins/impex/tga/kis_tga_export.cpp",
+            "plugins/impex/webp/kis_webp_export.cpp",
+            "plugins/paintops/spray/KisSprayShapeOptionWidget.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/KisImportExportResizeWidget.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisImportExportResizeWidget.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/KisImportExportUtils.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisDocument.h"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/KisImportUserFeedbackInterface.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/impex/psd/psd_loader.cpp",
+            "plugins/impex/tiff/kis_tiff_import.cc"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/KisRemoteFileFetcher.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisView.cpp",
+            "libs/ui/KisWelcomePageWidget.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/KisSaveGroupVisitor.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/kis_layer_manager.cc"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/KisSynchronousImportUserFeedback.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/impex/ui/kis_animation_importer.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/Document.cpp",
+            "libs/ui/KisMainWindow.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/kis_clipboard.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/Selection.cpp",
+            "libs/ui/KisDocument.cpp",
+            "libs/ui/KisMainWindow.cpp",
+            "libs/ui/KisView.cpp",
+            "libs/ui/KisWelcomePageWidget.cpp",
+            "libs/ui/actions/KisPasteActionFactories.cpp",
+            "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/kis_action_manager.cpp",
+            "libs/ui/kis_layer_manager.cc",
+            "libs/ui/kis_node_manager.cpp",
+            "libs/ui/kis_selection_manager.cc",
+            "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
+            "plugins/dockers/layerdocker/LayerBox.cpp",
+            "plugins/paintops/libpaintop/kis_clipboard_brush_widget.cpp",
+            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImagesWidget.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/kis_import_catcher.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisView.cpp",
+            "libs/ui/actions/KisPasteActionFactories.cpp",
+            "libs/ui/kis_image_manager.cc",
+            "libs/ui/widgets/kis_image_from_clipboard_widget.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/kis_mimedata.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisView.cpp",
+            "libs/ui/kis_node_insertion_adapter.h",
+            "libs/ui/kis_node_manager.cpp",
+            "libs/ui/kis_node_model.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/kis_png_converter.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/impex/csv/csv_saver.cpp",
+            "plugins/impex/libkra/kis_kra_saver.cpp",
+            "plugins/impex/ora/kis_open_raster_load_context.cpp",
+            "plugins/impex/ora/kis_open_raster_save_context.cpp",
+            "plugins/impex/ora/ora_converter.cpp",
+            "plugins/impex/png/kis_png_export.cc",
+            "plugins/impex/png/kis_png_import.cc",
+            "plugins/impex/spriter/kis_spriter_export.cpp"
+          ]
+        },
+        {
+          "path": "libs/impex/ui/kis_safe_document_loader.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/kis_file_layer.h"
+          ]
+        }
+      ]
+    },
+    {
       "ownerTarget": "kritaui",
       "sourceDirectory": "libs/ui",
+      "headerDirectories": [
+        "libs/ui"
+      ],
+      "excludedHeaderDirectories": [],
       "exportMacro": "KRITAUI_EXPORT",
       "responsibility": "Records the declared and de facto inter-package header surface for application, document, canvas, input, tool, and UI coordination.",
       "evidence": [
@@ -6894,6 +7471,8 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_clipboard.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
             "plugins/dockers/channeldocker/ChannelDockerWidget.cpp",
             "plugins/dockers/overview/overviewwidget.cc",
             "plugins/dockers/smallcolorselector/kis_small_color_widget.cc"
@@ -6907,6 +7486,18 @@
           ],
           "consumerPaths": [
             "krita/main.cc",
+            "libs/impex/animation/KisAnimationRender.cpp",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
+            "libs/impex/animation/KisVideoSaver.cpp",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/KisSaveGroupVisitor.cpp",
+            "libs/impex/ui/kis_animation_importer.cpp",
+            "libs/impex/ui/kis_clipboard.cc",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_png_converter.cpp",
+            "libs/impex/ui/kis_safe_document_loader.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/Filter.cpp",
             "libs/libkis/Krita.cpp",
@@ -7066,168 +7657,6 @@
           ]
         },
         {
-          "path": "libs/ui/KisImportExportAdditionalChecks.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/impex/exr/exr_converter.cc",
-            "plugins/impex/gif/kis_gif_import.cpp",
-            "plugins/impex/tiff/kis_tiff_import.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/KisImportExportErrorCode.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/Document.cpp",
-            "plugins/impex/csv/csv_loader.h",
-            "plugins/impex/csv/csv_saver.h",
-            "plugins/impex/exr/exr_converter.h",
-            "plugins/impex/heif/HeifError.h",
-            "plugins/impex/jp2/jp2_converter.h",
-            "plugins/impex/jpeg/kis_jpeg_converter.h",
-            "plugins/impex/jxl/JPEGXLExport.cpp",
-            "plugins/impex/jxl/JPEGXLImport.cpp",
-            "plugins/impex/libkra/kra_converter.h",
-            "plugins/impex/ora/ora_converter.h",
-            "plugins/impex/pdf/kis_pdf_import.cpp",
-            "plugins/impex/png/kis_png_export.cc",
-            "plugins/impex/psd/psd_loader.h",
-            "plugins/impex/psd/psd_saver.h",
-            "plugins/impex/qml/qml_converter.h",
-            "plugins/impex/raw/kis_raw_import.cpp",
-            "plugins/impex/rgbe/RGBEExport.cpp",
-            "plugins/impex/rgbe/RGBEImport.cpp",
-            "plugins/impex/tiff/kis_tiff_import.cc",
-            "plugins/impex/tiff/kis_tiff_psd_writer_visitor.h",
-            "plugins/impex/webp/kis_webp_export.cpp",
-            "plugins/impex/webp/kis_webp_import.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisImportExportFilter.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/filters/fastcolortransfer/kis_wdg_fastcolortransfer.cpp",
-            "plugins/impex/brush/KisWdgOptionsBrush.h",
-            "plugins/impex/brush/kis_brush_export.h",
-            "plugins/impex/brush/kis_brush_import.h",
-            "plugins/impex/csv/kis_csv_export.h",
-            "plugins/impex/csv/kis_csv_import.h",
-            "plugins/impex/exr/exr_export.h",
-            "plugins/impex/exr/exr_import.h",
-            "plugins/impex/gif/kis_gif_export.h",
-            "plugins/impex/gif/kis_gif_import.h",
-            "plugins/impex/heif/HeifExport.h",
-            "plugins/impex/heif/HeifImport.h",
-            "plugins/impex/heightmap/kis_heightmap_export.h",
-            "plugins/impex/heightmap/kis_heightmap_import.h",
-            "plugins/impex/jp2/jp2_import.h",
-            "plugins/impex/jpeg/kis_jpeg_export.h",
-            "plugins/impex/jpeg/kis_jpeg_import.h",
-            "plugins/impex/jxl/JPEGXLExport.h",
-            "plugins/impex/jxl/JPEGXLImport.h",
-            "plugins/impex/jxl/kis_wdg_options_jpegxl.h",
-            "plugins/impex/kra/kra_export.h",
-            "plugins/impex/kra/kra_import.h",
-            "plugins/impex/krz/krz_export.h",
-            "plugins/impex/ora/ora_export.h",
-            "plugins/impex/ora/ora_import.h",
-            "plugins/impex/pdf/kis_pdf_import.h",
-            "plugins/impex/png/kis_png_export.h",
-            "plugins/impex/png/kis_png_import.h",
-            "plugins/impex/psd/psd_export.h",
-            "plugins/impex/psd/psd_import.h",
-            "plugins/impex/qimageio/kis_qimageio_export.h",
-            "plugins/impex/qimageio/kis_qimageio_import.h",
-            "plugins/impex/qml/qml_export.h",
-            "plugins/impex/raw/kis_raw_import.h",
-            "plugins/impex/rgbe/RGBEExport.h",
-            "plugins/impex/rgbe/RGBEImport.h",
-            "plugins/impex/rgbe/kis_wdg_options_rgbe.h",
-            "plugins/impex/spriter/kis_spriter_export.h",
-            "plugins/impex/svg/kis_svg_import.h",
-            "plugins/impex/tga/kis_tga_export.h",
-            "plugins/impex/tga/kis_tga_import.h",
-            "plugins/impex/tiff/kis_dlg_options_tiff.cpp",
-            "plugins/impex/tiff/kis_tiff_export.h",
-            "plugins/impex/tiff/kis_tiff_import.h",
-            "plugins/impex/webp/kis_webp_export.h",
-            "plugins/impex/webp/kis_webp_import.h",
-            "plugins/impex/xcf/kis_xcf_import.h"
-          ]
-        },
-        {
-          "path": "libs/ui/KisImportExportManager.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/animation/KisAnimTimelineFramesView.cpp",
-            "plugins/extensions/imagesplit/imagesplit.cpp",
-            "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
-            "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
-            "plugins/extensions/resourcemanager/page_metadata_info.cpp",
-            "plugins/extensions/resourcemanager/page_tag_chooser.cpp",
-            "plugins/extensions/resourcemanager/wdgtagselection.cpp",
-            "plugins/extensions/separate_channels/kis_channel_separator.cc",
-            "plugins/filters/fastcolortransfer/kis_wdg_fastcolortransfer.cpp",
-            "plugins/generators/seexpr/kis_wdg_seexpr_presets_save.cpp",
-            "plugins/impex/brush/kis_brush_export.cpp",
-            "plugins/impex/csv/kis_csv_export.cpp",
-            "plugins/impex/csv/kis_csv_import.cpp",
-            "plugins/impex/exr/exr_export.cc",
-            "plugins/impex/exr/exr_import.cc",
-            "plugins/impex/gif/kis_gif_export.cpp",
-            "plugins/impex/heif/HeifExport.cpp",
-            "plugins/impex/heif/HeifImport.cpp",
-            "plugins/impex/heightmap/kis_heightmap_export.cpp",
-            "plugins/impex/heightmap/kis_heightmap_import.cpp",
-            "plugins/impex/jp2/jp2_converter.cc",
-            "plugins/impex/jpeg/kis_jpeg_export.cc",
-            "plugins/impex/jpeg/kis_jpeg_import.cc",
-            "plugins/impex/kra/kra_export.cpp",
-            "plugins/impex/krz/krz_export.cpp",
-            "plugins/impex/libkra/kis_kra_load_visitor.cpp",
-            "plugins/impex/libkra/kis_kra_loader.cpp",
-            "plugins/impex/libkra/kis_kra_saver.cpp",
-            "plugins/impex/ora/ora_export.cc",
-            "plugins/impex/png/kis_png_export.cc",
-            "plugins/impex/png/kis_png_import.cc",
-            "plugins/impex/psd/psd_export.cc",
-            "plugins/impex/spriter/kis_spriter_export.cpp",
-            "plugins/impex/tga/kis_tga_export.cpp",
-            "plugins/impex/webp/kis_webp_export.cpp",
-            "plugins/paintops/spray/KisSprayShapeOptionWidget.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisImportExportUtils.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisImportUserFeedbackInterface.h",
-          "publicationEvidence": [
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/impex/psd/psd_loader.cpp",
-            "plugins/impex/tiff/kis_tiff_import.cc"
-          ]
-        },
-        {
           "path": "libs/ui/KisInMemoryFrameCacheSwapper.h",
           "publicationEvidence": [
             "export-macro"
@@ -7249,6 +7678,10 @@
           ],
           "consumerPaths": [
             "krita/main.cc",
+            "libs/impex/animation/KisAnimationRender.cpp",
+            "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/kis_clipboard.cc",
             "libs/libkis/Document.cpp",
             "libs/libkis/Krita.cpp",
             "libs/libkis/Node.cpp",
@@ -7310,6 +7743,15 @@
           ],
           "consumerPaths": [
             "krita/main.cc",
+            "libs/impex/animation/KisFFMpegWrapper.cpp",
+            "libs/impex/animation/KisVideoSaver.cpp",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/KisSaveGroupVisitor.cpp",
+            "libs/impex/ui/kis_animation_importer.cpp",
+            "libs/impex/ui/kis_clipboard.cc",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_safe_document_loader.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/Filter.cpp",
             "libs/libkis/Krita.cpp",
@@ -7354,6 +7796,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_mimedata.cpp",
             "plugins/dockers/smallcolorselector/kis_small_color_widget.cc",
             "plugins/extensions/buginfo/DlgColorManagementInfo.cpp"
           ]
@@ -7448,13 +7891,6 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/KisSaveGroupVisitor.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/KisSelectionActionsAdapter.h",
           "publicationEvidence": [
             "export-macro",
@@ -7531,6 +7967,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/animation/KisDlgImportVideoAnimation.h",
             "libs/libkis/Canvas.cpp",
             "libs/libkis/Filter.cpp",
             "libs/libkis/Notifier.h",
@@ -7556,6 +7993,8 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/animation/KisAnimationRender.cpp",
+            "libs/impex/ui/kis_import_catcher.cc",
             "libs/libkis/Document.cpp",
             "libs/libkis/Krita.cpp",
             "libs/libkis/PaintingResources.cpp",
@@ -7718,6 +8157,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_png_converter.cpp",
             "libs/libkis/Document.cpp",
             "plugins/dockers/recorder/recorderdocker_dock.cpp",
             "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
@@ -7784,52 +8224,6 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/animation/KisAndroidMediaEncoderRunnable.h",
-          "publicationEvidence": [
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/animation/KisAnimationRender.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/animation/KisAnimationRenderingOptions.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/animation/KisDlgAnimationRenderer.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/animation/KisFFMpegWrapper.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/recorder/recorder_export.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/animation/KisFrameDisplayProxy.h",
           "publicationEvidence": [
             "export-macro",
@@ -7840,33 +8234,6 @@
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
             "plugins/dockers/animation/KisTimeBasedItemModel.cpp"
           ]
-        },
-        {
-          "path": "libs/ui/animation/KisMediaEncoderFormatPreferencesDialog.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/recorder/recorder_export.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/animation/KisMediaEncoderWrapper.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/recorder/recorder_export.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/animation/KisVideoSaver.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/canvas/KisCanvasAnimationState.h",
@@ -8196,6 +8563,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/KisImportExportManager.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/GridConfig.cpp",
             "libs/libkis/GridConfig.h",
@@ -8222,6 +8590,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/KisImportExportManager.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/GuidesConfig.cpp",
             "libs/libkis/GuidesConfig.h",
@@ -8289,6 +8658,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/animation/KisAnimationRender.cpp",
             "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
           ]
         },
@@ -8357,6 +8727,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/KisImportExportManager.cpp",
             "libs/libkis/Node.cpp",
             "plugins/impex/libkra/kis_kra_load_visitor.cpp",
             "plugins/impex/libkra/kis_kra_loader.cpp",
@@ -8384,6 +8755,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_mimedata.cpp",
             "plugins/dockers/animation/KisAnimCurvesChannelsModel.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
             "plugins/dockers/animation/timeline_frames_index_converter.cpp",
@@ -8398,6 +8770,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_mimedata.cpp",
             "plugins/dockers/animation/KisAnimCurvesChannelsModel.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
             "plugins/dockers/animation/timeline_frames_index_converter.cpp",
@@ -8445,6 +8818,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_mimedata.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
@@ -8459,6 +8833,8 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
@@ -8702,16 +9078,6 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/kis_animation_importer.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/Document.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/kis_aspect_ratio_locker.h",
           "publicationEvidence": [
             "export-macro",
@@ -8815,19 +9181,6 @@
           ]
         },
         {
-          "path": "libs/ui/kis_clipboard.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/Selection.cpp",
-            "plugins/dockers/layerdocker/LayerBox.cpp",
-            "plugins/paintops/libpaintop/kis_clipboard_brush_widget.cpp",
-            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImagesWidget.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/kis_config.h",
           "publicationEvidence": [
             "export-macro",
@@ -8835,6 +9188,14 @@
           ],
           "consumerPaths": [
             "krita/main.cc",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisFFMpegWrapper.cpp",
+            "libs/impex/animation/KisVideoSaver.cpp",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/kis_dlg_png_import.cpp",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_png_converter.cpp",
             "libs/libkis/Krita.cpp",
             "libs/libkis/PresetChooser.cpp",
             "libs/libkis/Scratchpad.cpp",
@@ -8981,13 +9342,6 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/kis_import_catcher.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/kis_mainwindow_observer.h",
           "publicationEvidence": [
             "export-macro",
@@ -9011,13 +9365,6 @@
             "plugins/dockers/textproperties/TextPropertiesDock.h",
             "plugins/dockers/widegamutcolorselector/WGColorSelectorDock.h"
           ]
-        },
-        {
-          "path": "libs/ui/kis_mimedata.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/kis_model_index_converter.h",
@@ -9054,6 +9401,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_import_catcher.cc",
             "plugins/extensions/layersplit/layersplit.cpp",
             "plugins/extensions/separate_channels/kis_channel_separator.cc",
             "plugins/extensions/waveletdecompose/waveletdecompose.cpp"
@@ -9083,6 +9431,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_import_catcher.cc",
             "libs/libkis/Document.cpp",
             "libs/libkis/View.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
@@ -9206,23 +9555,6 @@
           ]
         },
         {
-          "path": "libs/ui/kis_png_converter.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/impex/csv/csv_saver.cpp",
-            "plugins/impex/libkra/kis_kra_saver.cpp",
-            "plugins/impex/ora/kis_open_raster_load_context.cpp",
-            "plugins/impex/ora/kis_open_raster_save_context.cpp",
-            "plugins/impex/ora/ora_converter.cpp",
-            "plugins/impex/png/kis_png_export.cc",
-            "plugins/impex/png/kis_png_import.cc",
-            "plugins/impex/spriter/kis_spriter_export.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/kis_popup_palette.h",
           "publicationEvidence": [
             "external-include"
@@ -9247,13 +9579,6 @@
             "plugins/extensions/spensettings/KisSPenSettings.h",
             "plugins/extensions/spensettings/SPenSettings.cpp"
           ]
-        },
-        {
-          "path": "libs/ui/kis_safe_document_loader.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/kis_selection_actions_panel.h",
@@ -9310,15 +9635,6 @@
           ]
         },
         {
-          "path": "libs/ui/kis_store_paintdevice_writer.h",
-          "publicationEvidence": [
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/impex/libkra/kis_kra_save_visitor.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/kis_workspace_resource.h",
           "publicationEvidence": [
             "export-macro",
@@ -9367,6 +9683,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_mimedata.cpp",
             "plugins/dockers/lut/lutdocker_dock.cpp",
             "plugins/dockers/smallcolorselector/kis_small_color_widget.cc"
           ]
@@ -10403,6 +10720,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/impex/ui/kis_import_catcher.cc",
             "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
             "plugins/tools/tool_transform2/kis_tool_transform.cc"
           ]
@@ -10556,6 +10874,37 @@
       ]
     },
     {
+      "path": "libs/impex/ui/KisImportExportManager.h",
+      "ownerTarget": "kritaimpexui",
+      "exportMacro": "KRITAUI_EXPORT",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "consumerEvidence": [
+        {
+          "target": "kritapngimport",
+          "path": "plugins/impex/png/kis_png_import.cc",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "responsibility": "Exposes MIME-based import/export filter selection and coordinated document conversion.",
+      "evidence": [
+        "docs/architecture/README.md",
+        "libs/impex/CMakeLists.txt",
+        "libs/impex/ui/KisImportExportManager.h"
+      ]
+    },
+    {
       "path": "libs/ui/KisDocument.h",
       "ownerTarget": "kritaui",
       "exportMacro": "KRITAUI_EXPORT",
@@ -10606,37 +10955,6 @@
         "docs/architecture/README.md",
         "libs/ui/CMakeLists.txt",
         "libs/ui/KisDocument.h"
-      ]
-    },
-    {
-      "path": "libs/ui/KisImportExportManager.h",
-      "ownerTarget": "kritaui",
-      "exportMacro": "KRITAUI_EXPORT",
-      "platforms": [
-        "macos",
-        "linux",
-        "ios",
-        "android",
-        "windows"
-      ],
-      "consumerEvidence": [
-        {
-          "target": "kritapngimport",
-          "path": "plugins/impex/png/kis_png_import.cc",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        }
-      ],
-      "responsibility": "Exposes MIME-based import/export filter selection and coordinated document conversion.",
-      "evidence": [
-        "docs/architecture/README.md",
-        "libs/ui/CMakeLists.txt",
-        "libs/ui/KisImportExportManager.h"
       ]
     }
   ],
@@ -10742,9 +11060,9 @@
     },
     {
       "name": "KisImportExportManager",
-      "header": "libs/ui/KisImportExportManager.h",
-      "implementation": "libs/ui/KisImportExportManager.cpp",
-      "ownerTarget": "kritaui",
+      "header": "libs/impex/ui/KisImportExportManager.h",
+      "implementation": "libs/impex/ui/KisImportExportManager.cpp",
+      "ownerTarget": "kritaimpexui",
       "exportMacro": "KRITAUI_EXPORT",
       "platforms": [
         "macos",
@@ -10769,8 +11087,8 @@
       "responsibility": "Selects import/export filters by MIME type and coordinates validation, asynchronous export, warnings, and atomic document I/O.",
       "evidence": [
         "docs/architecture/README.md",
-        "libs/ui/KisImportExportManager.cpp",
-        "libs/ui/KisImportExportManager.h"
+        "libs/impex/ui/KisImportExportManager.cpp",
+        "libs/impex/ui/KisImportExportManager.h"
       ]
     }
   ],
@@ -10897,8 +11215,8 @@
     {
       "serviceType": "Krita/FileFilter",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager",
-      "evidence": "libs/ui/KisImportExportManager.cpp"
+      "runtimeConsumer": "KisImportExportFilterRegistry",
+      "evidence": "libs/impex/KisImportExportFilterRegistry.cpp"
     },
     {
       "serviceType": "Krita/Filter",
@@ -12149,7 +12467,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Brush Export Filter",
@@ -12170,7 +12488,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Brush Import Filter",
@@ -12191,7 +12509,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita CSV Export Filter",
@@ -12212,7 +12530,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita CSV Import Filter",
@@ -12233,7 +12551,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita GIF Export Filter",
@@ -12254,7 +12572,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita GIF Import Filter",
@@ -12275,7 +12593,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Gimp Import Filter",
@@ -12296,7 +12614,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita HEIF Export Filter",
@@ -12316,7 +12634,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita HEIF Import Filter",
@@ -12336,7 +12654,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Heightmap Export Filter",
@@ -12357,7 +12675,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Heightmap Import Filter",
@@ -12378,7 +12696,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita JPEG Export Filter",
@@ -12399,7 +12717,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita JPEG Import Filter",
@@ -12420,7 +12738,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita JPEG-XL Export Filter",
@@ -12441,7 +12759,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita JPEG-XL Import Filter",
@@ -12462,7 +12780,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Native Export Filter",
@@ -12483,7 +12801,7 @@
       ],
       "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Native Import Filter",
@@ -12504,7 +12822,7 @@
       ],
       "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita PDF Import Filter",
@@ -12524,7 +12842,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita PNG Export Filter",
@@ -12545,7 +12863,7 @@
       ],
       "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita PNG Import Filter",
@@ -12566,7 +12884,7 @@
       ],
       "registrationMacro": "K_PLUGIN_CLASS_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita PhotoShop Export Filter",
@@ -12587,7 +12905,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita PhotoShop Import Filter",
@@ -12608,7 +12926,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita QImageIO Export Filter",
@@ -12629,7 +12947,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita QImageIO Import Filter",
@@ -12650,7 +12968,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita QML Export Filter",
@@ -12671,7 +12989,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita RAW Import Filter",
@@ -12691,7 +13009,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita RGBE Export Filter",
@@ -12712,7 +13030,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita RGBE Import Filter",
@@ -12733,7 +13051,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita SVG Import Filter",
@@ -12754,7 +13072,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Snapshot Docker plugin",
@@ -12796,7 +13114,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita TGA Export Filter",
@@ -12817,7 +13135,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita TGA Import Filter",
@@ -12838,7 +13156,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita TIFF Export Filter",
@@ -12859,7 +13177,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita TIFF Import Filter",
@@ -12880,7 +13198,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita Undo History Docker plugin",
@@ -12922,7 +13240,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita WebP Import Filter",
@@ -12943,7 +13261,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita exr Export Filter",
@@ -12964,7 +13282,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita exr Import Filter",
@@ -12985,7 +13303,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita iPadOS Touch UI",
@@ -13023,7 +13341,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita ora Export Filter",
@@ -13044,7 +13362,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "Krita ora Import Filter",
@@ -13065,7 +13383,7 @@
       ],
       "registrationMacro": "K_PLUGIN_FACTORY_WITH_JSON",
       "featureOwner": "import-export",
-      "runtimeConsumer": "KisImportExportManager"
+      "runtimeConsumer": "KisImportExportFilterRegistry"
     },
     {
       "id": "LCMS Color Management Engine for Pigment",

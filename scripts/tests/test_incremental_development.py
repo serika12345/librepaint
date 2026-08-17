@@ -173,6 +173,13 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
 
         self.assertIn('"-DCMAKE_BUILD_TYPE:STRING=Release"', windows_expression)
 
+    def test_android_incremental_configuration_has_a_build_type(self):
+        android_expression = (
+            REPO_ROOT / "nix/android/default.nix"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"-DCMAKE_BUILD_TYPE:STRING=Release"', android_expression)
+
 
 if __name__ == "__main__":
     unittest.main()

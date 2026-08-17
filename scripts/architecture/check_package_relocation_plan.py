@@ -644,12 +644,35 @@ def _validate_internal_destinations(
         owner: _integer(item.get("maximumDirectReferences"), f"{owner} baseline maximum")
         for owner, item in baseline_sets.items()
     }
-    if set(remaining) != {"kritaimage", "kritaui"}:
-        raise RelocationPlanError("unexpected internal header baseline owners")
+    planned_owners = set(
+        _object(
+            waves[0].get("maximumInternalDirectReferencesAfterWave"),
+            "first wave internal header maximum",
+        )
+    )
+    unplanned_nonzero = {
+        owner: maximum
+        for owner, maximum in remaining.items()
+        if owner not in planned_owners and maximum
+    }
+    if unplanned_nonzero:
+        raise RelocationPlanError(
+            f"unplanned internal header baseline owners: {unplanned_nonzero}"
+        )
+    remaining = {owner: remaining[owner] for owner in planned_owners}
     for wave in waves:
+        wave_maximum = _object(
+            wave.get("maximumInternalDirectReferencesAfterWave"),
+            f"{wave['id']} internal header maximum",
+        )
+        if set(wave_maximum) != planned_owners:
+            raise RelocationPlanError(
+                "internal header maximum owners differ between waves"
+            )
         for owner, count in removed_by_wave[wave["id"]].items():
-            remaining[owner] -= count
-        if wave["maximumInternalDirectReferencesAfterWave"] != remaining:
+            if owner in remaining:
+                remaining[owner] -= count
+        if wave_maximum != remaining:
             raise RelocationPlanError(
                 f"internal header reduction does not match wave maximum: {wave['id']}"
             )

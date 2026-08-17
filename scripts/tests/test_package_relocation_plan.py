@@ -91,6 +91,24 @@ class PackageRelocationPlanTests(unittest.TestCase):
         ):
             self.validate(plan)
 
+    def test_zero_reference_public_owner_does_not_require_a_migration(self) -> None:
+        structural_path = REPO_ROOT / (
+            "docs/architecture/structural-dependency-baseline.json"
+        )
+        structural = check_package_relocation_plan._load_json(
+            structural_path, "structural dependency baseline"
+        )
+
+        self.assertIn(
+            "kritaimpex",
+            {
+                item["ownerTarget"]
+                for item in structural["internalHeaderBaseline"]
+                if item["maximumDirectReferences"] == 0
+            },
+        )
+        self.validate(self.load_plan())
+
     def test_reverse_baseline_must_reach_each_wave_maximum(self) -> None:
         plan = copy.deepcopy(self.load_plan())
         plan["migrationWaves"][0][

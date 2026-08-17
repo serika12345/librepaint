@@ -11,7 +11,7 @@
 #include <KoColorProfile.h>
 #include "kis_image.h"
 #include "KisImportUserFeedbackInterface.h"
-#include "dialogs/KisColorSpaceConversionDialog.h"
+#include "KisImportExportColorSpaceDialog.h"
 
 namespace KritaUtils {
 
@@ -36,35 +36,12 @@ KisImportExportErrorCode workaroundUnsuitableImageColorSpace(KisImageSP image,
             KisImportUserFeedbackInterface::Result result =
                 feedbackInterface->askUser([&] (QWidget *parent) {
 
-                    KisColorSpaceConversionDialog * dlgColorSpaceConversion = new KisColorSpaceConversionDialog(parent, "ColorSpaceConversion");
-                    Q_CHECK_PTR(dlgColorSpaceConversion);
-
-                    const KoColorSpace* fallbackColorSpace =
-                        KoColorSpaceRegistry::instance()->colorSpace(
-                            colorSpace->colorModelId().id(),
-                            colorSpace->colorDepthId().id(),
-                            nullptr);
-
-                    dlgColorSpaceConversion->setCaption(i18n("Convert image color space on import"));
-                    dlgColorSpaceConversion->m_page->lblHeadlineWarning->setText(
-                        i18nc("the argument is the ICC profile name",
-                              "The image has a profile attached that LibrePaint cannot edit images "
-                              "in (\"%1\"), please select a space to convert to for editing: \n"
-                              , profile->name()));
-                    dlgColorSpaceConversion->m_page->lblHeadlineWarning->setVisible(true);
-
-                    dlgColorSpaceConversion->setInitialColorSpace(fallbackColorSpace, 0);
-
-                    if (dlgColorSpaceConversion->exec() == QDialog::Accepted) {
-
-                        replacementColorSpace = dlgColorSpaceConversion->colorSpace();
-                        replacementColorSpaceIntent = dlgColorSpaceConversion->conversionIntent();
-                        replacementColorSpaceConversionFlags= dlgColorSpaceConversion->conversionFlags();
-                    } else {
-                        return false;
-                    }
-
-                    return true;
+                    return KisImportExportColorSpaceDialog::selectEditableColorSpace(
+                        parent,
+                        colorSpace,
+                        &replacementColorSpace,
+                        &replacementColorSpaceIntent,
+                        &replacementColorSpaceConversionFlags);
                 });
 
             if (result == KisImportUserFeedbackInterface::SuppressedByBatchMode) {

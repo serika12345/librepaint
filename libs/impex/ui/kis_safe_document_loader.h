@@ -9,6 +9,7 @@
 
 #include <QObject>
 #include "kis_types.h"
+#include <kis_paint_device.h>
 #include "kritaui_export.h"
 
 class KRITAUI_EXPORT KisSafeDocumentLoader : public QObject

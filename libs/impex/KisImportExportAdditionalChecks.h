@@ -8,8 +8,9 @@
 
 #include <QString>
 #include <KisImportExportErrorCode.h>
+#include <kritaimpex_export.h>
 
-class KRITAUI_EXPORT KisImportExportAdditionalChecks
+class KRITAIMPEX_EXPORT KisImportExportAdditionalChecks
 {
 
 public:

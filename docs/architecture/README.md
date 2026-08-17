@@ -63,8 +63,10 @@
 所有元の外にある製品ソースから直接includeされるヘッダーの和集合を記録する。各集合は
 所有ターゲット、公開マクロ、対応プラットフォーム、全利用ソースを持つ。
 
-R1-G2bでは`kritaimage`の332件と`kritaui`の307件を全件記録し、`scope.publicHeaders`を
-`complete`とする。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
+現在は`kritaimage`の332件、`kritaimpex`の11件、`kritaimpexui`の23件、`kritaui`の
+257件を全件記録し、`scope.publicHeaders`を`complete`とする。入出力領域は
+`libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
+文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
 表さないため、候補と利用ソースの採取から除外する。`publicHeaderPolicy`が対象拡張子、
 製品ソースディレクトリー、除外する試験経路、公開根拠の種類を固定する。
 
@@ -85,10 +87,10 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 `CMakeLists.txt`と実際のターゲットを記録する。
 
 [UI直下クラス責務台帳](ui-class-responsibilities.json)は、`libs/ui`直下の公開ヘッダーに
-宣言された現存クラスと構造体106件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ
-接続する。104件は実装単位を持ち、2件は宣言側で完結する。責務領域はアプリケーション調整、
-キャンバス・表示、文書状態、入出力、ツール呼出し、ウィンドウ・作業空間の6種類である。
-描画設定表示として`libs/tools/ui`へ移動したクラスは更新時に台帳から除く。
+宣言された現存クラスと構造体92件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ
+接続する。90件は実装単位を持ち、2件は宣言側で完結する。責務領域はアプリケーション調整、
+キャンバス・表示、文書状態、ツール呼出し、ウィンドウ・作業空間の5種類である。
+描画設定表示と入出力として所有先へ移動したクラスは更新時に台帳から除く。
 
 この台帳は`libs/ui`直下の公開クラスを全件対象とする。
 [UIツールクラス責務台帳](ui-tool-class-responsibilities.json)は、同じ公開ヘッダー集合の
@@ -124,19 +126,19 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
 | `canvas-presentation` | `kritabasicflakes`、`kritaflake`、`kritaui` | キャンバス表示、ベクター表示、ドッカー |
 | `document-lifecycle` | `kritacommand`、`kritaui` | 文書寿命、変更状態、取り消し履歴の表示、文書調整 |
-| `import-export` | `kritaimpex`、`kritaui` | 形式選択、検証、文書入出力 |
+| `import-export` | `kritaimpex`、`kritaimpexui` | 形式選択、検証、文書入出力、利用者への結果通知 |
 | `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
 | `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
 | `plugin-infrastructure` | `kritaplugin` | メタデータ探索、ファクトリーとサービス種別の登録 |
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
 | `tool-invocation` | `kritatoolsui`、`kritaui` | 描画設定表示とキャンバス状態へのツール呼出し |
 
-`targetRelations`は16の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
+`targetRelations`は19の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
 ターゲット間の直接依存および利用元を和集合で記録する。この地図は現在の所有関係を表し、
 R1-G3bで定義する許可依存方向の比較元になる。
 
-`kritaui`は9責務中6責務の現所有ターゲットである。UIクラスの責務分類と組み合わせることで、
-文書、入出力、入力解釈、描画実行などを凝集したターゲットへ分割する順序を決められる。
+`kritaui`は9責務中5責務の現所有ターゲットである。UIクラスの責務分類と組み合わせることで、
+文書、キャンバス、入力解釈などを凝集したターゲットへ分割する順序を決められる。
 `plugin-infrastructure`は全172登録の発見機構を所有し、各機能責務は同じ登録を機能領域として
 参照する。機構の所有と機能の所有を、この二つの軸で表現する。
 
@@ -165,9 +167,9 @@ R1-G3bで定義する許可依存方向の比較元になる。
 検証済みファクトリーを明示された機能レジストリーへ登録する。このリンク方向と、登録時に
 機能レジストリーへ渡る制御を区別する。
 
-`currentTargetEdges`は16の中核所有ターゲット間にある35の直接リンクを責務へ射影する。
-`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は85候補の
-うち9候補が同一責務内、52候補が許可方向、24候補が`requires-r1-g4-baseline`である。
+`currentTargetEdges`は19の中核所有ターゲット間にある52の直接リンクを責務へ射影する。
+`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は100候補の
+うち14候補が同一責務内、63候補が許可方向、23候補が`requires-r1-g4-baseline`である。
 最後の分類は共有ターゲットが作る曖昧な候補を含むため、R1-G4で実際のincludeと利用箇所を
 根拠に既存違反基準へ確定する。
 
@@ -207,21 +209,21 @@ includeを全件帰属させる。`unresolvedProjections`は空であり、確�
 CMakeターゲット循環、公開宣言を持たないヘッダーのパッケージ外参照を一つの継続検査へ
 接続する。
 
-9射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
-`kritabasicflakes`から`kritaui`への3includeは、キャンバス表示内または許可済みの
-リソース管理への依存である。`kritaui`から`kritaimpex`への4includeは、入出力責務内の
-依存である。保存実装の移動後に残るリソース管理から入出力への保守的射影も、実際の
-直接includeがないことを固定する。各解決は元のターゲット辺、5構成、実際の責務対、ソース、include、
+8射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
+`kritabasicflakes`から`kritaui`、および`kritaui`から`kritatoolsui`への共有ターゲット辺を、
+キャンバス表示とツール呼出しの実際のincludeへ帰属させる。入出力を独立所有ターゲットへ
+移した結果、入出力責務をUI共有ターゲットへ射影する候補は存在しない。各解決は元のターゲット辺、5構成、実際の責務対、ソース、include、
 ヘッダーを記録し、新たな未帰属候補を診断する。
 
-ターゲット循環は、18の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 218件、Linux 224件、iOS 210件、Android 210件、
-Windows 227件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
+ターゲット循環は、19の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
+2範囲を検査する。全製品範囲はmacOS 219件、Linux 225件、iOS 211件、Android 211件、
+Windows 228件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
 宣言済み公開面へ移す対象として基準化する。`kritaimage`の29ヘッダー、593参照は公開
-ヘッダー構築契約へ移行して0件となった。現在は`kritaui`の14ヘッダー、32参照が残る。所有段階、理由、
+ヘッダー構築契約へ移行して0件となった。`kritaimpex`と`kritaimpexui`も未宣言の
+パッケージ外参照が0件であり、現在は`kritaui`の11ヘッダー、28参照が残る。所有段階、理由、
 除去条件、ヘッダー数と参照数の審査済み上限を保持し、増加と縮小可能な上限の両方を
 診断する。
 
@@ -246,8 +248,8 @@ C++名前空間、主CMakeターゲット、許可依存、移行段階へ対応
 移行は許可依存の下位から上位へ進める。各段階は必要な特性試験、移動元と移動先、
 作成ターゲット、一時互換経路、完了条件、中止条件を持つ。確認済み逆方向includeの
 段階別上限は311、264、169、169、96、96、96、75、0と縮小する。内部ヘッダーの
-直接参照は、R1-G6bで`kritaimage`の593件を解消した。`kritaui`に残る32件は、
-R1-G6cからR1-G6hで28、20、20、3、3、0へ縮小する。
+直接参照は、R1-G6bで`kritaimage`の593件を解消し、R1-G6cで`kritaui`を28件へ
+縮小した。後続段階では20、20、3、3、0へ縮小する。
 
 最初の実装段階R1-G6aは、`libs/store`の書庫保存を`libs/resources/storage`の
 `kritaresourcestorage`へ、XML直列化を`libs/serialization/xml`の
@@ -275,24 +277,34 @@ R1-G6bは、`libs/ui/tool/strokes`を`libs/painting/strokes`へ移し、同じUI
 資源スナップショットはUIの具体的な資源提供者ではなく、`libs/resources`が所有する読出し
 接続面を保持する。旧ディレクトリーの転送ヘッダーと旧メタデータターゲットは存在しない。
 
+R1-G6cは、`libs/ui/KisImportExportManager.*`、`KisImportExportFilter.*`、
+`KisImportExportErrorCode.*`、`KisImportExportAdditionalChecks.*`、
+`KisImportUserFeedbackInterface.*`を起点として分割した。形式探索、MIME選択、結果分類、
+事前検査、変換フィルターは`libs/impex`の`kritaimpex`が所有する。文書変換の調整、
+利用者通知、クリップボード、ダイアログ、画像読込補助は`libs/impex/ui`、動画符号化調整は
+`libs/impex/animation`に置き、`kritaimpexui`が所有する。`kritaimpexui`は文書・画面型との
+現在のABI接続を保つオブジェクト所有単位として`kritaui`へ組み込む。旧`libs/ui`の入出力ヘッダーと
+転送ヘッダーは存在せず、利用元は正規の所有先を直接参照する。
+
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
 公開根拠として台帳へ記録し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
 
-残る8の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
+残る7の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
-9責務と5構成の現行ターゲット、3種類96件の逆方向依存、14ヘッダー32件の内部参照を
+9責務と5構成の現行ターゲット、3種類96件の逆方向依存、11ヘッダー28件の内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。
 
-責務の中心は次の四つです。
+責務の中心は次の五つです。
 
 - `krita/`はプロセスの入口、アプリケーション資産、OSライフサイクルとの接続を持ちます。主要機能は`libs/`と`plugins/`が所有します。
 - `libs/ui`の`kritaui`はアプリケーション、ウィンドウ、文書、キャンバス、入力、ツール共通部をまとめます。
+- `libs/impex`の`kritaimpex`と`kritaimpexui`は形式契約、文書入出力、利用者通知をまとめます。
 - `libs/image`の`kritaimage`はレイヤーツリー、ペイントデバイス、タイル、ストロークキュー、投影更新を扱います。
 - `plugins/`はツール、ブラシエンジン、フィルター、ドッカー、ファイル形式などの機能をレジストリーへ登録します。
 
-`libs/ui`は画面機能と、`KisDocument`、入出力管理、ツール共通処理などの
-アプリケーション調整を扱います。`KisImage`は画像内容と非同期処理を中心に扱い、
+`libs/ui`は画面機能と、`KisDocument`、ツール共通処理などのアプリケーション調整を
+扱います。入出力管理は`libs/impex`に置き、`KisImage`は画像内容と非同期処理を中心に扱い、
 ウィンドウとファイル名は`libs/ui`側が所有します。
 
 ## 主要な設計境界
@@ -369,12 +381,14 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 
 ### ファイル入出力
 
-`KisDocument`は`KisImportExportManager`へ処理を委譲します。管理クラスは`Krita/FileFilter`プラグインをMIME型で選び、`KisImportExportFilter::convert()`を呼びます。
+`KisDocument`は`libs/impex/ui`の`KisImportExportManager`へ処理を委譲します。
+`libs/impex`の`KisImportExportFilterRegistry`が`Krita/FileFilter`プラグインをMIME型で選び、
+管理クラスが`KisImportExportFilter::convert()`を呼びます。
 
 - KRAやORAのようなコンテナー形式では`libs/resources/storage`の`KoStore`がZIP／ディレクトリー抽象化を提供します。
 - XML名前空間と逐次書出しは`libs/serialization/xml`が提供します。
 - 画像形式固有の符号化、設定画面、依存ライブラリー接続は`plugins/impex/<format>/`に置きます。
-- インポート後の共通検査、非同期エクスポート、警告、原子的保存の扱いは`KisImportExportManager`側にあります。
+- 形式探索、結果分類、事前検査は`libs/impex`、非同期エクスポート、警告、原子的保存の調整は`libs/impex/ui`にあります。
 - iOS／Androidの文書選択や内容URIの差は、Qtのファイル機構とプラットフォーム条件を通して共通の`KisDocument`経路へ合流します。
 
 ## 変更内容から見る場所
@@ -397,7 +411,9 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | ブラシ等のリソース管理 | `libs/resources`、`libs/resources/ui` | リソースDB、ローダーレジストリー、同梱バンドル、選択・タグ表示 |
 | 描画設定表示 | `libs/tools/ui` | パレット、合成方法、プリセット、描画設定の表示 |
 | KRA内部構造、ZIPストレージ | `plugins/impex/libkra`、`plugins/impex/kra`、`libs/resources/storage` | `KisDocument`、メタデータ、XML直列化 |
-| PNG、PSD、RAW等の形式 | `plugins/impex/<format>` | `KisImportExportManager`、プラグインJSON、Nix依存 |
+| 形式探索、MIME選択、入出力結果と事前検査 | `libs/impex` | `KisImportExportFilterRegistry`、`KisImportExportFilter`、プラグインJSON |
+| 文書入出力、通知、クリップボード、動画符号化 | `libs/impex/ui`、`libs/impex/animation` | `KisDocument`、利用者操作、プラットフォーム媒体処理 |
+| PNG、PSD、RAW等の形式 | `plugins/impex/<format>` | `libs/impex`の形式契約、プラグインJSON、Nix依存 |
 | 外部操作API、スクリプト公開面 | `libs/libkis`、`plugins/python` | ABI/API互換性、Python/PyQtを含む配布対象 |
 | QML部品 | `qmlmodules` | Qt Quickの有効条件、iOSプロファイル |
 | 共通ビルド条件 | ルート`CMakeLists.txt`、対象ディレクトリーの`CMakeLists.txt` | CMakeオプション、ターゲットの公開依存 |
@@ -421,7 +437,8 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | `libs/resources/storage`、`libs/serialization/xml` | コンテナーI/OとXML直列化 |
 | `libs/painting/metadata`、`libs/psd*` | 画像メタデータとPSD共通実装 |
 | `libs/koplugin` | プラグイン探索とメタデータ照会 |
-| `libs/impex` | 入出力フィルターの共通契約と書き出し前検査 |
+| `libs/impex` | 形式探索、MIME選択、入出力フィルター、結果分類、書き出し前検査 |
+| `libs/impex/ui`、`libs/impex/animation` | 文書入出力の調整、利用者通知、クリップボード、媒体符号化 |
 | `libs/libkis` | 外部APIとスクリプト向けの公開ラッパー |
 | `plugins/` | 実行時に登録する機能実装 |
 | `qmlmodules/` | Qt Quick向けの再利用部品 |

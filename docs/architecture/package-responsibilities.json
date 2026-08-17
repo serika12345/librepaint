@@ -280,7 +280,19 @@
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
-      "reviewedSourcePaths": [],
+      "reviewedSourcePaths": [
+        "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
+        "libs/ui/KisImportExportColorSpaceDialog.cpp",
+        "libs/ui/KisImportExportResizeWidget.cpp",
+        "libs/ui/actions/KisPasteActionFactories.cpp",
+        "libs/ui/actions/kis_selection_action_factories.cpp",
+        "libs/ui/dialogs/KisDlgCreateNewDocument.cpp",
+        "libs/ui/dialogs/kis_dlg_file_layer.cpp",
+        "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
+        "libs/ui/kis_layer_manager.cc",
+        "libs/ui/kis_node_insertion_adapter.h",
+        "libs/ui/widgets/kis_image_from_clipboard_widget.cpp"
+      ],
       "uiClassAreas": [
         "document-state"
       ],
@@ -358,19 +370,19 @@
       "responsibility": "Selects codecs, validates external formats, and coordinates serialized document input and output.",
       "sourceDirectories": [
         "libs/impex",
-        "libs/ui",
         "plugins/impex"
       ],
       "ownerTargets": [
         "kritaimpex",
-        "kritaui"
+        "kritaimpexui"
       ],
-      "publicHeaderOwnerTargets": [],
+      "publicHeaderOwnerTargets": [
+        "kritaimpex",
+        "kritaimpexui"
+      ],
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [],
-      "uiClassAreas": [
-        "import-export"
-      ],
+      "uiClassAreas": [],
       "uiToolClassAreas": [],
       "majorClasses": [
         "KisImportExportManager"
@@ -380,33 +392,43 @@
         "import-export"
       ],
       "publicHeaderPaths": [
-        "libs/ui/KisImportExportAdditionalChecks.h",
-        "libs/ui/KisImportExportErrorCode.h",
-        "libs/ui/KisImportExportFilter.h",
-        "libs/ui/KisImportExportManager.h",
-        "libs/ui/KisSaveGroupVisitor.h",
-        "libs/ui/kis_animation_importer.h",
-        "libs/ui/kis_clipboard.h",
-        "libs/ui/kis_import_catcher.h",
-        "libs/ui/kis_mimedata.h",
-        "libs/ui/kis_png_converter.h",
-        "libs/ui/kis_safe_document_loader.h"
+        "libs/impex/ImageSizeCheck.h",
+        "libs/impex/IntegralFrameDuration.h",
+        "libs/impex/KisExportCheckBase.h",
+        "libs/impex/KisExportCheckRegistry.h",
+        "libs/impex/KisImportExportAdditionalChecks.h",
+        "libs/impex/KisImportExportErrorCode.h",
+        "libs/impex/KisImportExportFilter.h",
+        "libs/impex/KisImportExportFilterRegistry.h",
+        "libs/impex/KisImportExportMimeType.h",
+        "libs/impex/KisPreExportChecker.h",
+        "libs/impex/animation/KisAndroidMediaEncoderRunnable.h",
+        "libs/impex/animation/KisAnimationRender.h",
+        "libs/impex/animation/KisAnimationRenderingOptions.h",
+        "libs/impex/animation/KisDlgAnimationRenderer.h",
+        "libs/impex/animation/KisDlgImportVideoAnimation.h",
+        "libs/impex/animation/KisFFMpegWrapper.h",
+        "libs/impex/animation/KisMediaEncoderFormatPreferencesDialog.h",
+        "libs/impex/animation/KisMediaEncoderWrapper.h",
+        "libs/impex/animation/KisVideoSaver.h",
+        "libs/impex/kis_store_paintdevice_writer.h",
+        "libs/impex/ui/KisImportExportColorSpaceDialog.h",
+        "libs/impex/ui/KisImportExportManager.h",
+        "libs/impex/ui/KisImportExportResizeWidget.h",
+        "libs/impex/ui/KisImportExportUtils.h",
+        "libs/impex/ui/KisImportUserFeedbackInterface.h",
+        "libs/impex/ui/KisRemoteFileFetcher.h",
+        "libs/impex/ui/KisSaveGroupVisitor.h",
+        "libs/impex/ui/KisSynchronousImportUserFeedback.h",
+        "libs/impex/ui/kis_animation_importer.h",
+        "libs/impex/ui/kis_clipboard.h",
+        "libs/impex/ui/kis_import_catcher.h",
+        "libs/impex/ui/kis_mimedata.h",
+        "libs/impex/ui/kis_png_converter.h",
+        "libs/impex/ui/kis_safe_document_loader.h"
       ],
       "classNames": [
-        "KisAnimationImporter",
-        "KisClipboard",
-        "KisImportCatcher",
-        "KisImportExportAdditionalChecks",
-        "KisImportExportComplexError",
-        "KisImportExportErrorCannotRead",
-        "KisImportExportErrorCannotWrite",
-        "KisImportExportErrorCode",
-        "KisImportExportFilter",
-        "KisImportExportManager",
-        "KisMimeData",
-        "KisPNGConverter",
-        "KisSafeDocumentLoader",
-        "KisSaveGroupVisitor"
+        "KisImportExportManager"
       ],
       "pluginIds": [
         "Krita Archival Export Filter",
@@ -1614,6 +1636,7 @@
       "repositoryConsumers": [
         "kritahistorydocker",
         "kritaimpex",
+        "kritaimpexui",
         "kritalibbrush",
         "kritalibkis",
         "kritapainting",
@@ -1643,7 +1666,10 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
-        "kritaimage"
+        "kritaimage",
+        "kritaplugin",
+        "kritaresourcestorage",
+        "kritawidgetutils"
       ],
       "repositoryConsumers": [
         "kritabrushexport",
@@ -1652,6 +1678,7 @@
         "kritagifexport",
         "kritaheifexport",
         "kritaheightmapexport",
+        "kritaimpexui",
         "kritajpegexport",
         "kritajxlexport",
         "kritakraexport",
@@ -1668,6 +1695,38 @@
         "kritatiffimport",
         "kritaui",
         "kritawebpexport"
+      ]
+    },
+    {
+      "name": "kritaimpexui",
+      "sourceDirectory": "libs/impex",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "OBJECT_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaimage",
+        "kritaimpex",
+        "kritalibbrush",
+        "kritapainting",
+        "kritapaintingmetadata",
+        "kritapaintingundo",
+        "kritapigment",
+        "kritaresources",
+        "kritaresourcestorage",
+        "kritaresourceui",
+        "kritawidgets",
+        "kritawidgetutils",
+        "kritaxmlserialization"
+      ],
+      "repositoryConsumers": [
+        "kritaui"
       ]
     },
     {
@@ -1691,6 +1750,7 @@
       "repositoryConsumers": [
         "kritabrushexport",
         "kritabrushimport",
+        "kritaimpexui",
         "kritalibpaintop",
         "kritamypaintop_static",
         "kritaui",
@@ -1718,6 +1778,7 @@
       "repositoryConsumers": [
         "kritadefaultpaintops_static",
         "kritadefaulttools_static",
+        "kritaimpexui",
         "kritalibkis",
         "kritalibpaintop",
         "kritaselectiontools",
@@ -1753,6 +1814,7 @@
         "kritaexif",
         "kritaexifcommon",
         "kritaimage",
+        "kritaimpexui",
         "kritaiptc",
         "kritajxlimport",
         "kritatiffimport",
@@ -1780,6 +1842,7 @@
         "kritacommand",
         "kritaflake",
         "kritaimage",
+        "kritaimpexui",
         "kritapainting",
         "kritapigment"
       ]
@@ -1812,6 +1875,7 @@
         "kritabasicflakes",
         "kritaflake",
         "kritaimage",
+        "kritaimpexui",
         "kritalcmsengine_static",
         "kritapsdutils",
         "kritasurfacecolormanagementapi",
@@ -1837,6 +1901,7 @@
         "kritaglobal"
       ],
       "repositoryConsumers": [
+        "kritaimpex",
         "kritapaintingmetadata",
         "kritapigment",
         "kritaresources",
@@ -1868,6 +1933,7 @@
       "repositoryConsumers": [
         "kritadbexplorer",
         "kritaimage",
+        "kritaimpexui",
         "kritamypaintop_static",
         "kritapigment",
         "kritaresourcemanager",
@@ -1897,6 +1963,8 @@
         "krita_flaketools",
         "kritaflake",
         "kritaimage",
+        "kritaimpex",
+        "kritaimpexui",
         "kritalibkra",
         "kritaoracommon",
         "kritaoraexport",
@@ -1929,6 +1997,7 @@
       ],
       "repositoryConsumers": [
         "kritadbexplorer",
+        "kritaimpexui",
         "kritapalettedocker",
         "kritaresourcemanager",
         "kritatoolsui",
@@ -1983,6 +2052,7 @@
         "kritacolor",
         "kritaimage",
         "kritaimpex",
+        "kritaimpexui",
         "kritalibbrush",
         "kritamacosutils",
         "kritapainting",

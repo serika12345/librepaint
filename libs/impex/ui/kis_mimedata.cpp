@@ -23,7 +23,6 @@
 #include "kis_filter_configuration.h"
 #include "kis_generator_layer.h"
 #include "kis_selection.h"
-#include "kis_node_insertion_adapter.h"
 #include "kis_dummies_facade_base.h"
 #include "kis_node_dummies_graph.h"
 #include "KisImportExportManager.h"
@@ -496,7 +495,7 @@ bool KisMimeData::insertMimeLayers(const QMimeData *data,
                                    KisNodeDummy *parentDummy,
                                    KisNodeDummy *aboveThisDummy,
                                    bool copyNode,
-                                   KisNodeInsertionAdapter *nodeInsertionAdapter,
+                                   NodeInsertionInterface *nodeInsertionAdapter,
                                    bool changeOffset,
                                    QPointF offset,
                                    KisProcessingApplicator *applicator)

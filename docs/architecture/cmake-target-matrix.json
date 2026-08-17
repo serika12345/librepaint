@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 634,
-    "linux": 649,
-    "ios": 568,
-    "android": 574,
-    "windows": 604
+    "macos": 638,
+    "linux": 653,
+    "ios": 572,
+    "android": 578,
+    "windows": 608
   },
   "commonTargets": [
     "CCSGraph",
@@ -50,6 +50,7 @@
     "KisKeyframeAnimationInterfaceSignalTest",
     "KisLazyStorageTest",
     "KisMaskGeneratorBenchmark",
+    "KisMimeDatabaseTest",
     "KisModelIndexConverterTest",
     "KisMplTest",
     "KisMyPaintOpTest",
@@ -107,6 +108,8 @@
     "TestFilter",
     "TestFolderStorage",
     "TestFontLibraryResourceUtils",
+    "TestImportExportBoundary",
+    "TestImportExportUiBoundary",
     "TestInputDevice",
     "TestKUndo2Stack",
     "TestKisPaletteModel",
@@ -427,6 +430,7 @@
     "kritaimageenhancement",
     "kritaimagesplit",
     "kritaimpex",
+    "kritaimpexui",
     "kritaindexcolors",
     "kritaiptc",
     "kritajp2import",
@@ -1437,6 +1441,7 @@
   "variantTargets": [
     "CCSGraph",
     "KisDialogStateSaverTest",
+    "KisMimeDatabaseTest",
     "KisMyPaintOpTest",
     "KoColorSpacesBenchmark",
     "KoCompositeOpsBenchmark",
@@ -1449,6 +1454,8 @@
     "TestConvolutionOpImpl",
     "TestFallBackColorTransformation",
     "TestFolderStorage",
+    "TestImportExportBoundary",
+    "TestImportExportUiBoundary",
     "TestKoChannelInfo",
     "TestKoColor",
     "TestKoColorSet",
@@ -1557,6 +1564,7 @@
     "kritaimageenhancement",
     "kritaimagesplit",
     "kritaimpex",
+    "kritaimpexui",
     "kritaindexcolors",
     "kritaiptc",
     "kritajp2import",

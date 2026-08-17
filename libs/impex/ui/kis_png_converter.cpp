@@ -37,13 +37,12 @@
 #include <KoColor.h>
 #include <KoUnit.h>
 
-#include "dialogs/kis_dlg_png_import.h"
+#include "KisImportExportDialogs.h"
 #include "kis_clipboard.h"
 #include "kis_undo_stores.h"
 #include <KisDocument.h>
 #include <KoColorModelStandardIds.h>
 #include <kis_config.h>
-#include <kis_cursor_override_hijacker.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_iterator_ng.h>
@@ -583,12 +582,10 @@ KisImportExportErrorCode KisPNGConverter::buildImage(QIODevice* iod)
         KisConfig cfg(true);
         quint32 behaviour = cfg.pasteBehaviour();
         if (behaviour == KisClipboard::PASTE_ASK) {
-            KisDlgPngImport dlg(m_path, csName.first, csName.second);
-            KisCursorOverrideHijacker hijacker;
-            Q_UNUSED(hijacker);
-            dlg.exec();
-            if (!dlg.profile().isEmpty()) {
-                profile = KoColorSpaceRegistry::instance()->profileByName(dlg.profile());
+            const QString selectedProfile = KisImportExportDialogs::choosePngProfile(
+                m_path, csName.first, csName.second);
+            if (!selectedProfile.isEmpty()) {
+                profile = KoColorSpaceRegistry::instance()->profileByName(selectedProfile);
             }
         }
     }
@@ -1416,4 +1413,3 @@ bool KisPNGConverter::isColorSpaceSupported(const KoColorSpace *cs)
 {
     return colorSpaceIdSupported(cs->id());
 }
-

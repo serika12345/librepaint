@@ -8,12 +8,12 @@
 */
 
 #include "KisImportExportFilter.h"
+#include "KisImportExportMimeType.h"
 
 #include <QFile>
 #include <QFileInfo>
 #include <kis_debug.h>
 #include <QStack>
-#include "KisImportExportManager.h"
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
 #include <KisExportCheckBase.h>
@@ -22,7 +22,6 @@
 #include <klocalizedstring.h>
 #include <kis_image_config.h>
 #include <KoStore.h>
-#include <KisDocument.h>
 
 const QString KisImportExportFilter::ImageContainsTransparencyTag = "ImageContainsTransparency";
 const QString KisImportExportFilter::ColorModelIDTag = "ColorModelID";

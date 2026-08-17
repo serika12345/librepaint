@@ -17,6 +17,7 @@
 #include <KoColorProfileConstants.h>
 #include "KisView.h"
 #include "kis_properties_configuration.h"
+#include "kritaui_export.h"
 #include "ui_VideoImportDialog.h"
 
 class KisDocument;
@@ -49,7 +50,7 @@ public:
     inline size_t size() const { return renderedFrameFiles.size(); }
 };
 
-class KisDlgImportVideoAnimation : public KoDialog
+class KRITAUI_EXPORT KisDlgImportVideoAnimation : public KoDialog
 {
     Q_OBJECT
 
@@ -97,4 +98,3 @@ private:
 };
 
 #endif // KISDLGIMPORTVIDEOANIMATION_H
-

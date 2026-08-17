@@ -7,10 +7,12 @@
 #include "KisMediaEncoderWrapper.h"
 #include <QWidget>
 
+#include <kritaui_export.h>
+
 class QComboBox;
 class QSpinBox;
 
-class KisAndroidMediaEncoderRunnable : public KisMediaEncoderRunnable
+class KRITAUI_EXPORT KisAndroidMediaEncoderRunnable : public KisMediaEncoderRunnable
 {
 public:
     static KisAndroidMediaEncoderRunnable *create(const KisMediaEncoderWrapperSettings &settings,
@@ -65,7 +67,7 @@ private:
     static void checkFormatSupport(Context &ctx, int formatId, QVector<KisMediaEncoderFormat *> &outSupportedFormats);
 };
 
-class KisAndroidMediaEncoderPreferencesWidget : public QWidget
+class KRITAUI_EXPORT KisAndroidMediaEncoderPreferencesWidget : public QWidget
 {
     Q_OBJECT
 public:

@@ -138,10 +138,6 @@ private:
 
     KisDocument *m_document;
 
-    /// A static cache for the availability checks of filters
-    static QStringList m_importMimeTypes;
-    static QStringList m_exportMimeTypes;
-
     class Private;
     Private * const d;
 };

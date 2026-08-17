@@ -32,11 +32,11 @@
 #include "kis_debug.h"
 
 #ifdef Q_OS_ANDROID
-#include "animation/KisMediaEncoderFormatPreferencesDialog.h"
-#include "animation/KisMediaEncoderWrapper.h"
+#include <KisMediaEncoderFormatPreferencesDialog.h>
+#include <KisMediaEncoderWrapper.h>
 #include <KisAndroidUtils.h>
 #else
-#include "animation/KisFFMpegWrapper.h"
+#include <KisFFMpegWrapper.h>
 #include "recorder_profile_settings.h"
 #endif
 

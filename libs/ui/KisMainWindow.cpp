@@ -117,8 +117,8 @@
 #include "kis_config_notifier.h"
 #include "kis_custom_image_widget.h"
 #ifndef Q_OS_IOS
-#include "animation/KisAnimationRender.h"
-#include "animation/KisDlgAnimationRenderer.h"
+#include <KisAnimationRender.h>
+#include <KisDlgAnimationRenderer.h>
 #endif
 #include <KisDocument.h>
 #include "kis_image_from_clipboard_widget.h"
@@ -141,7 +141,7 @@
 #include "kis_animation_importer.h"
 #include "dialogs/kis_dlg_import_image_sequence.h"
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
-#include "animation/KisDlgImportVideoAnimation.h"
+#include <KisDlgImportVideoAnimation.h>
 #endif
 #include <KisImageConfigNotifier.h>
 #include <kis_image_config.h>
@@ -839,25 +839,26 @@ void KisMainWindow::showView(KisView *imageView, QMdiSubWindow *subwin)
 void KisMainWindow::slotPreferences()
 {
     std::optional<KisDlgPreferences::PageDesc>page = std::nullopt;
-
     KisAction* action = d->actionManager()->actionByName("options_configure");
     QVariant data  = action->data();
     if (data.userType() == QMetaType::QVariantList) {
         // Reset the data first
         action->setData(QVariant());
         QList<QVariant> list = data.toList();
-
         Q_ASSERT(list.length() == 2);
         Q_ASSERT(list[0].userType() == QMetaType::Int);
         Q_ASSERT(list[1].userType() == QMetaType::Int);
-
         KisDlgPreferences::Page p = (KisDlgPreferences::Page)list[0].toInt();
         int t = list[1].toInt();
         page = KisDlgPreferences::PageDesc{p, t};
     }
 
-    QScopedPointer<KisDlgPreferences> dlgPreferences(new KisDlgPreferences(this));
-
+    const KisImportExportPreferenceOptions importExportOptions {
+        KisImportExportManager::supportedMimeTypes(KisImportExportManager::Export),
+        KisClipboard::PASTE_FORMAT_ASK, KisClipboard::PASTE_FORMAT_DOWNLOAD,
+        KisClipboard::PASTE_FORMAT_LOCAL, KisClipboard::PASTE_FORMAT_CLIP,
+        KisClipboard::PASTE_ASSUME_WEB, KisClipboard::PASTE_ASSUME_MONITOR, KisClipboard::PASTE_ASK};
+    QScopedPointer<KisDlgPreferences> dlgPreferences(new KisDlgPreferences(this, importExportOptions));
     if (dlgPreferences->editPreferences(page)) {
         KisConfigNotifier::instance()->notifyConfigChanged();
         KisConfigNotifier::instance()->notifyPixelGridModeChanged();

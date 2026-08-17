@@ -27,7 +27,7 @@ class KisDocument;
 class KisConfigWidget;
 class KisImportUserFeedbackInterface;
 
-#include "kritaui_export.h"
+#include "kritaimpex_export.h"
 #include "KisImportExportErrorCode.h"
 
 /**
@@ -50,7 +50,7 @@ class KisImportUserFeedbackInterface;
  * @author Werner Trobin <trobin@kde.org>
  * @todo the class has no constructor and therefore cannot initialize its private class
  */
-class KRITAUI_EXPORT KisImportExportFilter : public QObject
+class KRITAIMPEX_EXPORT KisImportExportFilter : public QObject
 {
     Q_OBJECT
 public:
