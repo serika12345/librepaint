@@ -57,6 +57,99 @@
   },
   "publicHeaderSets": [
     {
+      "ownerTarget": "kritacanvas",
+      "sourceDirectory": "libs/canvas",
+      "headerDirectories": [
+        "libs/canvas"
+      ],
+      "excludedHeaderDirectories": [
+        "libs/canvas/tests"
+      ],
+      "exportMacro": "KRITACANVAS_EXPORT",
+      "responsibility": "Records the declared canvas-view surface for coordinate mapping and immutable snapshots of canvas screen state.",
+      "evidence": [
+        "libs/canvas/CMakeLists.txt",
+        "libs/canvas/kis_coordinates_converter.h"
+      ],
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/canvas/KisCanvasState.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/KoCanvasControllerWidget.cpp",
+            "libs/ui/canvas/kis_canvas2.cpp",
+            "libs/ui/canvas/kis_canvas_controller.cpp",
+            "libs/ui/canvas/kis_prescaled_projection.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/kis_coordinates_converter.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/Document.cpp",
+            "libs/ui/KisReferenceImage.cpp",
+            "libs/ui/KisReferenceImagesDecoration.h",
+            "libs/ui/canvas/kis_canvas2.cpp",
+            "libs/ui/canvas/kis_canvas2.h",
+            "libs/ui/canvas/kis_canvas_controller.cpp",
+            "libs/ui/canvas/kis_canvas_widget_base.cpp",
+            "libs/ui/canvas/kis_grid_decoration.cpp",
+            "libs/ui/canvas/kis_grid_manager.cpp",
+            "libs/ui/canvas/kis_guides_decoration.cpp",
+            "libs/ui/canvas/kis_guides_manager.cpp",
+            "libs/ui/canvas/kis_prescaled_projection.cpp",
+            "libs/ui/canvas/kis_qpainter_canvas.cpp",
+            "libs/ui/input/kis_tool_invocation_action.cpp",
+            "libs/ui/kis_fps_decoration.cpp",
+            "libs/ui/kis_painting_assistant.cc",
+            "libs/ui/kis_selection_decoration.cc",
+            "libs/ui/kis_zoom_manager.cc",
+            "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp",
+            "libs/ui/tool/kis_painting_information_builder.cpp",
+            "libs/ui/tool/kis_tool.cc",
+            "plugins/assistants/Assistants/ConcentricEllipseAssistant.cc",
+            "plugins/assistants/Assistants/CurvilinearPerspectiveAssistant.cc",
+            "plugins/assistants/Assistants/EllipseAssistant.cc",
+            "plugins/assistants/Assistants/FisheyePointAssistant.cc",
+            "plugins/assistants/Assistants/InfiniteRulerAssistant.cc",
+            "plugins/assistants/Assistants/ParallelRulerAssistant.cc",
+            "plugins/assistants/Assistants/PerspectiveAssistant.cc",
+            "plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.cpp",
+            "plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc",
+            "plugins/assistants/Assistants/RulerAssistant.cc",
+            "plugins/assistants/Assistants/SplineAssistant.cc",
+            "plugins/assistants/Assistants/TwoPointAssistant.cc",
+            "plugins/assistants/Assistants/VanishingPointAssistant.cc",
+            "plugins/assistants/Assistants/assistant_tool.cc",
+            "plugins/extensions/imagesplit/imagesplit.cpp",
+            "plugins/tools/defaulttool/defaulttool/SelectionDecorator.cpp",
+            "plugins/tools/svgtexttool/SvgTextCursor.cpp",
+            "plugins/tools/svgtexttool/SvgTextTool.cpp",
+            "plugins/tools/tool_transform2/kis_free_transform_strategy.cpp",
+            "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp",
+            "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp",
+            "plugins/tools/tool_transform2/kis_perspective_transform_strategy.cpp",
+            "plugins/tools/tool_transform2/kis_simplified_action_policy_strategy.cpp",
+            "plugins/tools/tool_transform2/kis_transform_utils.h",
+            "plugins/tools/tool_transform2/kis_warp_transform_strategy.cpp"
+          ]
+        }
+      ]
+    },
+    {
       "ownerTarget": "kritaimage",
       "sourceDirectory": "libs/image",
       "headerDirectories": [
@@ -3101,6 +3194,7 @@
             "libs/brush/kis_abr_brush.cpp",
             "libs/brush/kis_brush.cpp",
             "libs/brush/kis_gbr_brush.cpp",
+            "libs/canvas/kis_coordinates_converter.cpp",
             "libs/impex/AnimationCheck.h",
             "libs/impex/CheckImageSize.h",
             "libs/impex/ColorModelCheck.h",
@@ -3171,7 +3265,6 @@
             "libs/ui/canvas/kis_canvas_controller.cpp",
             "libs/ui/canvas/kis_canvas_decoration.h",
             "libs/ui/canvas/kis_change_guides_command.cpp",
-            "libs/ui/canvas/kis_coordinates_converter.cpp",
             "libs/ui/canvas/kis_display_color_converter.cpp",
             "libs/ui/canvas/kis_grid_manager.cpp",
             "libs/ui/canvas/kis_image_pyramid.h",
@@ -5895,6 +5988,7 @@
             "libs/brush/kis_brush.h",
             "libs/brush/kis_brush_registry.h",
             "libs/brush/kis_gbr_brush.h",
+            "libs/canvas/kis_coordinates_converter.h",
             "libs/impex/KisExportCheckBase.h",
             "libs/impex/KisImportExportFilter.h",
             "libs/impex/KisPreExportChecker.h",
@@ -5962,7 +6056,6 @@
             "libs/ui/canvas/kis_abstract_canvas_widget.h",
             "libs/ui/canvas/kis_canvas2.h",
             "libs/ui/canvas/kis_canvas_controller.h",
-            "libs/ui/canvas/kis_coordinates_converter.h",
             "libs/ui/canvas/kis_display_color_converter.h",
             "libs/ui/canvas/kis_grid_manager.h",
             "libs/ui/canvas/kis_image_patch.h",
@@ -8250,13 +8343,6 @@
           ]
         },
         {
-          "path": "libs/ui/canvas/KisCanvasState.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/canvas/KisMirrorAxisConfig.h",
           "publicationEvidence": [
             "export-macro",
@@ -8459,41 +8545,6 @@
             "export-macro"
           ],
           "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/canvas/kis_coordinates_converter.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/Document.cpp",
-            "plugins/assistants/Assistants/ConcentricEllipseAssistant.cc",
-            "plugins/assistants/Assistants/CurvilinearPerspectiveAssistant.cc",
-            "plugins/assistants/Assistants/EllipseAssistant.cc",
-            "plugins/assistants/Assistants/FisheyePointAssistant.cc",
-            "plugins/assistants/Assistants/InfiniteRulerAssistant.cc",
-            "plugins/assistants/Assistants/ParallelRulerAssistant.cc",
-            "plugins/assistants/Assistants/PerspectiveAssistant.cc",
-            "plugins/assistants/Assistants/PerspectiveBasedAssistantHelper.cpp",
-            "plugins/assistants/Assistants/PerspectiveEllipseAssistant.cc",
-            "plugins/assistants/Assistants/RulerAssistant.cc",
-            "plugins/assistants/Assistants/SplineAssistant.cc",
-            "plugins/assistants/Assistants/TwoPointAssistant.cc",
-            "plugins/assistants/Assistants/VanishingPointAssistant.cc",
-            "plugins/assistants/Assistants/assistant_tool.cc",
-            "plugins/extensions/imagesplit/imagesplit.cpp",
-            "plugins/tools/defaulttool/defaulttool/SelectionDecorator.cpp",
-            "plugins/tools/svgtexttool/SvgTextCursor.cpp",
-            "plugins/tools/svgtexttool/SvgTextTool.cpp",
-            "plugins/tools/tool_transform2/kis_free_transform_strategy.cpp",
-            "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp",
-            "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp",
-            "plugins/tools/tool_transform2/kis_perspective_transform_strategy.cpp",
-            "plugins/tools/tool_transform2/kis_simplified_action_policy_strategy.cpp",
-            "plugins/tools/tool_transform2/kis_transform_utils.h",
-            "plugins/tools/tool_transform2/kis_warp_transform_strategy.cpp"
-          ]
         },
         {
           "path": "libs/ui/canvas/kis_display_color_converter.h",

@@ -387,7 +387,12 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
     def test_missing_complete_public_header_is_rejected(self) -> None:
         inventory = copy.deepcopy(self.load_inventory())
-        inventory["publicHeaderSets"][0]["headers"].pop(0)
+        image_headers = next(
+            item["headers"]
+            for item in inventory["publicHeaderSets"]
+            if item["ownerTarget"] == "kritaimage"
+        )
+        image_headers.pop(0)
 
         with self.assertRaisesRegex(
             check_public_surface_inventory.PublicSurfaceError,

@@ -2,15 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-17 21:31 JST
+- 更新日時: 2026-08-18 00:11 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6c入出力境界
+- 現在の検査段階: R1-G6dキャンバス座標境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6c-import-export-boundary`
-- 目的: `libs/ui/KisImportExportManager.*`、`KisImportExportFilter.*`、
-  `KisImportExportErrorCode.*`、`KisImportExportAdditionalChecks.*`、
-  `KisImportUserFeedbackInterface.*`を起点として、形式知識と文書・利用者接続を
-  `libs/impex`へ移し、UI共有パッケージから入出力責務を分離する。
+- ブランチ: `r1-g6d-canvas-boundary`
+- 目的: `libs/ui/canvas/kis_coordinates_converter.*`と
+  `libs/ui/canvas/KisCanvasState.*`を起点として、座標変換と画面状態を独立所有させ、
+  UI共有パッケージからキャンバス表示責務を段階的に分離する。
 
 ## 再開環境
 
@@ -328,6 +327,23 @@
   ドメイン計算とI/O副作用の分離を長期ビジョンとして記録した。正式評価はキャンバス表示と
   文書寿命の分離後に行い、専用の移行は保守責任者の明示的な決定後に開始する。
 
+## キャンバス座標境界で完了した作業
+
+- `libs/ui/canvas/kis_coordinates_converter.*`と`KisCanvasState.*`を`libs/canvas`へ
+  移し、独立した共有ライブラリー`kritacanvas`が座標変換と画面状態を所有するようにした。
+  旧ファイルと転送ヘッダーは残していない。
+- 座標変換器から設定読込みを除き、`libs/ui/canvas/kis_canvas2.cpp`が表示設定値を
+  明示的に渡すようにした。変換器は構築元画像を保持せず、画像解放後も構築時の幾何情報と
+  変換結果を利用できる寿命契約を追加した。
+- `libs/ui/tests/kis_coordinates_converter_test.*`を`libs/canvas/tests`へ移し、
+  `kritaui`をリンクせずに画像寿命、設定入力、既存の座標変換を検査するようにした。
+- 構造検査が`kritacanvas`の実体、旧配置の不在、UI設定・文書・表示型への逆方向includeの
+  不在を継続確認する。公開面台帳は`kritacanvas`の2ヘッダーを記録する。
+- 5構成のCMake台帳は`kritacanvas`を独立所有ターゲットとして記録し、20の中核所有
+  ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- この単位では投影更新、色変換、動画キャッシュおよび長期構造ビジョンの専用移行を
+  開始していない。長期構造の専用移行は保守責任者の明示的な判断を開始条件とする。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -421,15 +437,36 @@
 - `nix develop .#test --command ./scripts/verify-quick`: 90件の単体試験、責務・依存・構造台帳、
   再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
 - `nix flake check --no-build --all-systems`: 入出力境界分離後の全Nix出力の評価が成功した。
+- `nix develop .#test --command ./scripts/run-test kis_coordinates_converter_test`:
+  macOSで座標変換、画像解放後の寿命、明示的な表示設定入力を含む1件が成功した。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify`: macOSの全製品と
+  試験のリンクが成功し、CTest 321件中285件が成功した。`libs-canvas`所有へ移した
+  座標変換試験も成功した。残る36件は直前の入出力境界分離時と同数であり、既存の
+  画像基準、Qt 6モデル契約、macOS環境、300秒制限、セグメンテーション違反に分類される。
+- `nix develop --no-eval-cache .#test --command ./scripts/build-incremental ios build --allow-large`:
+  iOSの`libkritacanvas.a`と`LibrePaint.app/LibrePaint`のリンクが成功した。
+- Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と`libkritaui_arm64-v8a.so`の
+  リンクが成功した。
+- x86_64 Linuxで`libkritacanvas.so`と`libkritaui.so`のリンク、および
+  `libs-canvas-kis_coordinates_converter_test`の1件が成功した。
+- Windows x86_64で`libkritacanvas.dll`と`libkritaui.dll`のリンクが成功した。
+- 5構成のCMake台帳を再生成した。macOS 639件、Linux 654件、iOS 573件、Android 579件、
+  Windows 609件のターゲット、557件の共通ターゲット、119件の条件付きターゲット、
+  257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
+  5構成すべてで循環0件を維持する。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 92件の単体試験、
+  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: キャンバス座標境界分離後の
+  全Nix出力の評価が成功した。
 
 ## 次の操作
 
-R1-G6dでは`libs/ui/canvas`を起点として、座標変換、ビュー寿命、投影更新、最終有効フレーム、
-表示色変換、動画キャッシュの契約を追加する。続いてキャンバス表示を`libs/canvas`と
-`libs/canvas/ui`へ移し、`kritacanvas`を構築する。`KisOcioConfiguration.h`、
-`KisSurfaceColorSpaceWrapper.h`、`KisWidgetWithIdleTask.h`、
-`kis_animation_cache_populator.h`を含むキャンバス所有の8件のUI内部参照と、
-キャンバス表示から文書寿命への73件の逆方向includeを解消する。
+R1-G6dの次の独立単位では`libs/ui/canvas/kis_prescaled_projection.*`を起点として、
+投影更新通知と最終有効フレームの契約を固定し、投影表示の所有範囲と依存先を確定する。
+その後に表示色変換と動画キャッシュを別々の検証単位として扱う。R1-G6d全体の完了判定は、
+キャンバス所有の8件のUI内部参照と、キャンバス表示から文書寿命への73件の逆方向includeを
+解消した時点で行う。UIから利用事例を登録・呼出しする専用移行は、この完了後に
+保守責任者が明示的に開始を決定する。
 
 ## R1-G5完了根拠
 

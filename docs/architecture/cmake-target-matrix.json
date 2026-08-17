@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 638,
-    "linux": 653,
-    "ios": 572,
-    "android": 578,
-    "windows": 608
+    "macos": 639,
+    "linux": 654,
+    "ios": 573,
+    "android": 579,
+    "windows": 609
   },
   "commonTargets": [
     "CCSGraph",
@@ -370,6 +370,7 @@
     "kritabrushexport",
     "kritabrushhud",
     "kritabrushimport",
+    "kritacanvas",
     "kritachanneldocker",
     "kritaclonesarray",
     "kritacolor",
@@ -1504,6 +1505,7 @@
     "kritabrushhud",
     "kritabrushimport",
     "kritabuginfo",
+    "kritacanvas",
     "kritachanneldocker",
     "kritaclonesarray",
     "kritacolor",

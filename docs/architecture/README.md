@@ -63,8 +63,9 @@
 所有元の外にある製品ソースから直接includeされるヘッダーの和集合を記録する。各集合は
 所有ターゲット、公開マクロ、対応プラットフォーム、全利用ソースを持つ。
 
-現在は`kritaimage`の332件、`kritaimpex`の11件、`kritaimpexui`の23件、`kritaui`の
-257件を全件記録し、`scope.publicHeaders`を`complete`とする。入出力領域は
+現在は`kritacanvas`の2件、`kritaimage`の332件、`kritaimpex`の11件、
+`kritaimpexui`の23件、`kritaui`の255件を全件記録し、
+`scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
 表さないため、候補と利用ソースの採取から除外する。`publicHeaderPolicy`が対象拡張子、
@@ -124,7 +125,7 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | 責務ID | 現在の中核所有ターゲット | 対象 |
 | --- | --- | --- |
 | `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
-| `canvas-presentation` | `kritabasicflakes`、`kritaflake`、`kritaui` | キャンバス表示、ベクター表示、ドッカー |
+| `canvas-presentation` | `kritabasicflakes`、`kritacanvas`、`kritaflake`、`kritaui` | 座標変換、キャンバス表示、ベクター表示、ドッカー |
 | `document-lifecycle` | `kritacommand`、`kritaui` | 文書寿命、変更状態、取り消し履歴の表示、文書調整 |
 | `import-export` | `kritaimpex`、`kritaimpexui` | 形式選択、検証、文書入出力、利用者への結果通知 |
 | `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
@@ -133,7 +134,7 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
 | `tool-invocation` | `kritatoolsui`、`kritaui` | 描画設定表示とキャンバス状態へのツール呼出し |
 
-`targetRelations`は19の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
+`targetRelations`は20の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
 ターゲット間の直接依存および利用元を和集合で記録する。この地図は現在の所有関係を表し、
 R1-G3bで定義する許可依存方向の比較元になる。
 
@@ -209,15 +210,15 @@ includeを全件帰属させる。`unresolvedProjections`は空であり、確�
 CMakeターゲット循環、公開宣言を持たないヘッダーのパッケージ外参照を一つの継続検査へ
 接続する。
 
-8射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
+9射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
 `kritabasicflakes`から`kritaui`、および`kritaui`から`kritatoolsui`への共有ターゲット辺を、
 キャンバス表示とツール呼出しの実際のincludeへ帰属させる。入出力を独立所有ターゲットへ
 移した結果、入出力責務をUI共有ターゲットへ射影する候補は存在しない。各解決は元のターゲット辺、5構成、実際の責務対、ソース、include、
 ヘッダーを記録し、新たな未帰属候補を診断する。
 
-ターゲット循環は、19の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 219件、Linux 225件、iOS 211件、Android 211件、
-Windows 228件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
+ターゲット循環は、20の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
+2範囲を検査する。全製品範囲はmacOS 220件、Linux 226件、iOS 212件、Android 212件、
+Windows 229件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
@@ -286,11 +287,19 @@ R1-G6cは、`libs/ui/KisImportExportManager.*`、`KisImportExportFilter.*`、
 現在のABI接続を保つオブジェクト所有単位として`kritaui`へ組み込む。旧`libs/ui`の入出力ヘッダーと
 転送ヘッダーは存在せず、利用元は正規の所有先を直接参照する。
 
+R1-G6dの最初の独立単位は、`libs/ui/canvas/kis_coordinates_converter.*`と
+`libs/ui/canvas/KisCanvasState.*`を起点として分割した。座標変換と画面状態は
+`libs/canvas`の`kritacanvas`が所有し、`kritaui`は表示設定を明示的に渡して利用する。
+座標変換器は構築元の画像を保持せず、構築時に取り込んだ幾何情報と変換結果を画像の
+解放後も利用できる。旧配置と転送ヘッダーは存在せず、利用元と試験は新しい所有先を
+直接参照する。投影更新、最終有効フレーム、表示色変換、動画キャッシュは同じ段階の
+後続単位として残る。
+
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
 公開根拠として台帳へ記録し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
 
-残る7の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
+残る6の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
 9責務と5構成の現行ターゲット、3種類96件の逆方向依存、11ヘッダー28件の内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。

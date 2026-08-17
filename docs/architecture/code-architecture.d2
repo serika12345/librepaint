@@ -4,6 +4,8 @@ platform: "PROCESS AND PLATFORM BOUNDARY\nkrita/main.cc · Windows stub · KisIO
 
 application: "APPLICATION COORDINATION — kritaui\nKisApplication · KisPart · KisMainWindow\nKisDocument · KisCanvas2 · input and tool base"
 
+canvas: "CANVAS VIEW BOUNDARY — kritacanvas\ncoordinate transforms · canvas screen state"
+
 extensions: "RUNTIME EXTENSION BOUNDARY\nkoplugin · plugin metadata · registries\nplugins/* · qmlmodules"
 
 engines: "CONTENT ENGINES\nkritaimage: nodes · tiles · strokes · projection\nbrush/pigment/color · flake · resources"
@@ -14,11 +16,16 @@ foundation: "SHARED FOUNDATION\nQt · KDE Frameworks · external libraries\nglob
 
 platform -> application: starts
 application -> extensions: activates registries
-application -> engines: document and canvas
+application -> canvas: configures and presents
+application -> engines: document, input, and tools
+canvas -> engines: maps image and vector state
 extensions -> engines: contributes capabilities
 application -> persistence: opens and saves
 persistence -> engines: imports / exports
 foundation -> application: runtime services {
+  style.stroke-dash: 5
+}
+foundation -> canvas: runtime services {
   style.stroke-dash: 5
 }
 foundation -> extensions: runtime services {
