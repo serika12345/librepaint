@@ -86,8 +86,8 @@ KisDisplayConfig KisMimeData::displayConfigForMimePastes()
          */
         result.profile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
     } else {
-        KisConfig cfg(true);
-        const KoColorProfile *profile = cfg.displayProfile(KisPortingUtils::getScreenNumberForWidget(QApplication::activeWindow()));
+        const KoColorProfile *profile = KisDisplayConfig::profileForScreen(
+            KisPortingUtils::getScreenNumberForWidget(QApplication::activeWindow()));
         KIS_SAFE_ASSERT_RECOVER(profile) {
             result.profile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
         }

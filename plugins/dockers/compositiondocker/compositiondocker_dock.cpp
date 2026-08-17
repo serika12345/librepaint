@@ -44,6 +44,7 @@
 #include <animation/KisAnimationRender.h>
 #endif
 #include <kis_image_animation_interface.h>
+#include <kis_image_config.h>
 #include <kis_time_span.h>
 #include <KisMimeDatabase.h>
 
@@ -344,8 +345,7 @@ void CompositionDockerDock::exportImageClicked()
 #ifndef Q_OS_IOS
 void CompositionDockerDock::exportAnimationClicked()
 {
-    KisConfig cfg(true);
-    KisPropertiesConfigurationSP settings = cfg.exportConfiguration("ANIMATION_EXPORT");
+    KisPropertiesConfigurationSP settings = KisImageConfig(true).exportConfiguration("ANIMATION_EXPORT");
     KisAnimationRenderingOptions exportOptions;
     exportOptions.fromProperties(settings);
 
@@ -490,4 +490,3 @@ void CompositionDockerDock::renameComposition()
         }
     }
 }
-

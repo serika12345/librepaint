@@ -5,7 +5,10 @@
  */
 #include "KisDisplayConfig.h"
 
+#include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
+#include <KoColorSpaceRegistry.h>
+#include <kis_color_manager.h>
 #include <kis_config.h>
 //#include <opengl/KisOpenGLModeProber.h>
 
@@ -54,6 +57,40 @@ KisDisplayConfig::Options KisDisplayConfig::optionsFromKisConfig(const KisConfig
 {
     return {renderingIntentFromConfig(cfg),
             conversionFlagsFromConfig(cfg)};
+}
+
+const KoColorProfile *KisDisplayConfig::profileForScreen(int screen)
+{
+    if (screen < 0) {
+        return nullptr;
+    }
+
+    KisConfig config(true);
+    const KoColorProfile *profile = nullptr;
+
+    if (config.useSystemMonitorProfile() &&
+        KisColorManager::instance()->devices().size() > screen) {
+        const QString monitorId = config.monitorForScreen(
+            screen, KisColorManager::instance()->devices()[screen]);
+        const QByteArray profileData = KisColorManager::instance()->displayProfile(monitorId);
+        if (!profileData.isEmpty()) {
+            profile = KoColorSpaceRegistry::instance()->createColorProfile(
+                RGBAColorModelID.id(), Integer8BitsColorDepthID.id(), profileData);
+        }
+    }
+
+    if (!profile || !profile->isSuitableForDisplay()) {
+        const QString profileName = config.monitorProfile(screen);
+        if (!profileName.isEmpty()) {
+            profile = KoColorSpaceRegistry::instance()->profileByName(profileName);
+        }
+    }
+
+    if (!profile || !profile->isSuitableForDisplay()) {
+        profile = KoColorSpaceRegistry::instance()->profileByName("sRGB Built-in");
+    }
+
+    return profile;
 }
 
 bool KisDisplayConfig::operator==(const KisDisplayConfig &rhs) const

@@ -44,7 +44,6 @@
 #include <kis_asl_layer_style_serializer.h>
 #include <asl/kis_asl_xml_parser.h>
 #include <cos/psd_text_data_converter.h>
-#include "KisResourceServerProvider.h"
 
 #include "psd.h"
 #include "psd_header.h"
@@ -671,4 +670,3 @@ void PSDLoader::cancel()
 {
     m_stop = true;
 }
-

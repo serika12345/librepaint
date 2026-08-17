@@ -9,6 +9,7 @@
 #include <kis_config.h>
 #include <KisDisplayConfig.h>
 #include <KisProofingConfiguration.h>
+#include <kis_types.h>
 
 #include <config-use-surface-color-management-api.h>
 

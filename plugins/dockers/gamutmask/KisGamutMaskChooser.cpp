@@ -167,7 +167,7 @@ KisGamutMaskChooser::KisGamutMaskChooser(QWidget *parent)
 {
     m_delegate = new KisGamutMaskDelegate(KisResourceModelProvider::resourceMetadataModel(), this);
 
-    m_itemChooser = new KisResourceItemChooser(ResourceType::GamutMasks, false, this);
+    m_itemChooser = new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::GamutMasks), this);
     m_itemChooser->setItemDelegate(m_delegate);
     m_itemChooser->showTaggingBar(true);
     m_itemChooser->showImportExportBtns(false);

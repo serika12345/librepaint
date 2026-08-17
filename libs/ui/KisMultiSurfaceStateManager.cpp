@@ -61,7 +61,7 @@ KisMultiSurfaceStateManager::State KisMultiSurfaceStateManager::createInitializi
         multiConfig.uiProfile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */
     } else {
-        const KoColorProfile *profile = cfg.displayProfile(screenId);
+        const KoColorProfile *profile = KisDisplayConfig::profileForScreen(screenId);
         KIS_SAFE_ASSERT_RECOVER(profile) {
             profile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
         }
@@ -137,8 +137,7 @@ KisMultiSurfaceStateManager::State KisMultiSurfaceStateManager::onConfigChanged(
     if (!KisOpenGLModeProber::instance()->useHDRMode() &&
         !KisPlatformPluginInterfaceFactory::instance()->surfaceColorManagedByOS()) {
 
-        KisConfig cfg(true);
-        const KoColorProfile *profile = cfg.displayProfile(screenId);
+        const KoColorProfile *profile = KisDisplayConfig::profileForScreen(screenId);
         KIS_SAFE_ASSERT_RECOVER(profile) {
             profile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
         }

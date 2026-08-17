@@ -303,7 +303,6 @@
         "document-lifecycle",
         "import-export",
         "input-interpretation",
-        "resource-management",
         "tool-invocation"
       ],
       "projections": [
@@ -330,11 +329,6 @@
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "input-interpretation",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "resource-management",
           "status": "allowed"
         },
         {
@@ -390,7 +384,6 @@
         "document-lifecycle",
         "import-export",
         "input-interpretation",
-        "resource-management",
         "tool-invocation"
       ],
       "projections": [
@@ -418,11 +411,6 @@
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "input-interpretation",
           "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
         },
         {
           "sourceResponsibility": "canvas-presentation",
@@ -721,7 +709,7 @@
       ]
     },
     {
-      "sourceTarget": "kritaresourcewidgets",
+      "sourceTarget": "kritaresourceui",
       "dependencyTarget": "kritaplugin",
       "sourceResponsibilities": [
         "resource-management"
@@ -738,7 +726,7 @@
       ]
     },
     {
-      "sourceTarget": "kritaresourcewidgets",
+      "sourceTarget": "kritaresourceui",
       "dependencyTarget": "kritaresources",
       "sourceResponsibilities": [
         "resource-management"
@@ -755,6 +743,74 @@
       ]
     },
     {
+      "sourceTarget": "kritatoolsui",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatoolsui",
+      "dependencyTarget": "kritapigment",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatoolsui",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatoolsui",
+      "dependencyTarget": "kritaresourceui",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritaui",
       "dependencyTarget": "kritacolor",
       "sourceResponsibilities": [
@@ -763,7 +819,6 @@
         "document-lifecycle",
         "import-export",
         "input-interpretation",
-        "resource-management",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
@@ -792,11 +847,6 @@
         },
         {
           "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "resource-management",
           "dependencyResponsibility": "painting-rendering",
           "status": "requires-r1-g4-baseline"
         },
@@ -816,7 +866,6 @@
         "document-lifecycle",
         "import-export",
         "input-interpretation",
-        "resource-management",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
@@ -849,11 +898,6 @@
           "status": "requires-r1-g4-baseline"
         },
         {
-          "sourceResponsibility": "resource-management",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "painting-rendering",
           "status": "allowed"
@@ -869,7 +913,6 @@
         "document-lifecycle",
         "import-export",
         "input-interpretation",
-        "resource-management",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
@@ -902,11 +945,6 @@
           "status": "requires-r1-g4-baseline"
         },
         {
-          "sourceResponsibility": "resource-management",
-          "dependencyResponsibility": "import-export",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "import-export",
           "status": "requires-r1-g4-baseline"
@@ -922,7 +960,6 @@
         "document-lifecycle",
         "import-export",
         "input-interpretation",
-        "resource-management",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
@@ -955,11 +992,6 @@
           "status": "requires-r1-g4-baseline"
         },
         {
-          "sourceResponsibility": "resource-management",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "painting-rendering",
           "status": "allowed"
@@ -975,7 +1007,6 @@
         "document-lifecycle",
         "import-export",
         "input-interpretation",
-        "resource-management",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
@@ -1006,11 +1037,6 @@
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "resource-management",
           "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "resource-management",
-          "dependencyResponsibility": "resource-management",
-          "status": "internal"
         },
         {
           "sourceResponsibility": "tool-invocation",
@@ -1028,7 +1054,6 @@
         "document-lifecycle",
         "import-export",
         "input-interpretation",
-        "resource-management",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
@@ -1061,14 +1086,103 @@
           "status": "requires-r1-g4-baseline"
         },
         {
-          "sourceResponsibility": "resource-management",
+          "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "resource-management",
-          "status": "internal"
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritaresourceui",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "resource-management",
+          "status": "requires-r1-g4-baseline"
         },
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "resource-management",
           "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritatoolsui",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "tool-invocation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "internal"
         }
       ]
     }

@@ -82,7 +82,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         ui_by_path = {entry["path"]: entry for entry in ui_headers}
         image_by_path = {entry["path"]: entry for entry in image_headers}
 
-        self.assertEqual(len(ui_headers), 307)
+        self.assertEqual(len(ui_headers), 294)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(
             ui_by_path["libs/ui/KisAbstractFrameCacheSwapper.h"],
@@ -122,7 +122,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 124)
+        self.assertEqual(len(classes), 106)
         self.assertEqual(
             by_name["KisApplication"],
             {
@@ -137,7 +137,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             "struct",
         )
         self.assertEqual(
-            by_name["KisOptionInfo"]["implementationPaths"],
+            by_name["KisAbstractPreferenceSetFactory"]["implementationPaths"],
             [],
         )
         self.assertNotIn("KisCanvas2", by_name)
@@ -242,7 +242,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
-        self.assertEqual(len(inventory["classes"]), 124)
+        self.assertEqual(len(inventory["classes"]), 106)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisApplication"]["responsibilityArea"],
@@ -295,7 +295,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 entry["ownerTarget"]: len(entry["headers"])
                 for entry in inventory["publicHeaderSets"]
             },
-            {"kritaimage": 332, "kritaui": 307},
+            {"kritaimage": 332, "kritaui": 294},
         )
         self.assertEqual(
             [entry["path"] for entry in inventory["publicHeaderDetails"]],

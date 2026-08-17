@@ -33,7 +33,7 @@ KisPatternChooser::KisPatternChooser(QWidget *parent)
     m_lblName->setTextElideMode(Qt::ElideMiddle);
     m_lblName->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
-    m_itemChooser = new KisResourceItemChooser(ResourceType::Patterns, true, this);
+    m_itemChooser = new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::Patterns, true), this);
     m_itemChooser->setPreviewTiled(true);
     m_itemChooser->setPreviewOrientation(Qt::Horizontal);
     m_itemChooser->showTaggingBar(true);
@@ -103,5 +103,4 @@ void KisPatternChooser::setGrayscalePreview(bool grayscale)
 {
     m_itemChooser->setGrayscalePreview(grayscale);
 }
-
 

@@ -410,19 +410,14 @@
       "current": {
         "sourceDirectories": [
           "libs/resources",
-          "libs/resourcewidgets",
-          "libs/ui",
           "plugins/extensions/resourcemanager"
         ],
         "cmakeTargets": [
           "kritaresources",
           "kritaresourcestorage",
-          "kritaresourcewidgets",
-          "kritaui"
+          "kritaresourceui"
         ],
-        "uiClassAreas": [
-          "resource-configuration"
-        ],
+        "uiClassAreas": [],
         "uiToolClassAreas": [],
         "publicSurfaces": [
           "resource-catalog",
@@ -453,7 +448,7 @@
             "name": "kritaresourceui",
             "directory": "libs/resources/ui",
             "role": "presentation",
-            "status": "new"
+            "status": "implemented"
           }
         ]
       },
@@ -468,14 +463,18 @@
       "migrationWave": "R1-G6f",
       "current": {
         "sourceDirectories": [
+          "libs/tools",
           "libs/ui/tool",
           "plugins/assistants",
           "plugins/tools"
         ],
         "cmakeTargets": [
+          "kritatoolsui",
           "kritaui"
         ],
-        "uiClassAreas": [],
+        "uiClassAreas": [
+          "tool-invocation"
+        ],
         "uiToolClassAreas": [
           "settings-presentation",
           "tool-invocation"
@@ -506,7 +505,7 @@
             "name": "kritatoolsui",
             "directory": "libs/tools/ui",
             "role": "presentation",
-            "status": "new"
+            "status": "implemented"
           }
         ]
       },
@@ -648,17 +647,6 @@
   ],
   "compatibilityRoutes": [
     {
-      "id": "legacy-resource-ui",
-      "kind": "forwarding-headers-and-target",
-      "legacy": "kritaresourcewidgets and resource-configuration headers in libs/ui",
-      "replacement": "kritaresourceui and paint-specific kritatoolsui adapters",
-      "introducedBy": "R1-G6a",
-      "owner": "R1-G7",
-      "maximumScope": "The R1-G2 resource-configuration class set and existing kritaresourcewidgets target.",
-      "removalCondition": "Resource and tool presentation consumers use their new targets and resource-management has zero painting dependencies.",
-      "verification": "Responsibility inventory and reverse dependency baseline show the resource-management package boundary is clean."
-    },
-    {
       "id": "legacy-painting-ui-headers",
       "kind": "forwarding-headers",
       "legacy": "painting-execution and stroke-generation headers below libs/ui/tool",
@@ -793,9 +781,9 @@
           "target": "kritaresourceui"
         },
         {
-          "from": "libs/ui::<resource-configuration-domain>",
-          "to": "libs/resources/ui",
-          "target": "kritaresourceui"
+          "from": "libs/ui/KisPaletteEditor.{h,cpp}",
+          "to": "libs/tools/ui",
+          "target": "kritatoolsui"
         },
         {
           "from": "libs/ui::<paintop-settings-presentation>",
@@ -808,9 +796,7 @@
         "kritaresourceui",
         "kritatoolsui"
       ],
-      "compatibilityRoutes": [
-        "legacy-resource-ui"
-      ],
+      "compatibilityRoutes": [],
       "requiredContracts": [
         "Resource storage open, read, write, rollback, and malformed archive tests",
         "Resource catalog lookup and immutable descriptor tests",
@@ -836,7 +822,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 258,
+      "maximumReverseDirectIncludesAfterWave": 257,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 593,
         "kritaui": 34
@@ -895,7 +881,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 163,
+      "maximumReverseDirectIncludesAfterWave": 162,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 32
@@ -936,7 +922,7 @@
         "Import-export UI cancellation and feedback tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 163,
+      "maximumReverseDirectIncludesAfterWave": 162,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 28
@@ -989,7 +975,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 90,
+      "maximumReverseDirectIncludesAfterWave": 89,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 20
@@ -1041,7 +1027,7 @@
         "Document undo coordination tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 90,
+      "maximumReverseDirectIncludesAfterWave": 89,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 20
@@ -1087,7 +1073,7 @@
         "Typed tool settings round-trip tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 90,
+      "maximumReverseDirectIncludesAfterWave": 89,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 3
@@ -1146,7 +1132,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 71,
+      "maximumReverseDirectIncludesAfterWave": 70,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 3
@@ -1203,7 +1189,7 @@
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "painting-rendering",
-          "from": 71,
+          "from": 70,
           "to": 0
         }
       ],

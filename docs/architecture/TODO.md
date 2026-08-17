@@ -92,6 +92,7 @@ R1は次の順で進め、各ゲートの完了時に停止して成果物と検
 - [x] アプリケーション、文書、入出力、入力、ツール、キャンバス、描画、リソース、プラグイン基盤の責務と依存方向を定義する。
 - [x] 新しいディレクトリー、名前空間、CMakeターゲットの対応表と段階的な再配置計画を作成する。
 - [x] `libs/store`の書庫保存実装を`libs/resources/storage`の`kritaresourcestorage`へ、XML直列化を`libs/serialization/xml`の`kritaxmlserialization`へ分離し、旧ターゲットと旧ヘッダーを除去する。
+- [x] `libs/resourcewidgets`を`libs/resources/ui`へ、`libs/ui`と`libs/ui/widgets`の描画設定表示を`libs/tools/ui`へ分離し、旧ターゲットと旧ヘッダーを除去する。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。

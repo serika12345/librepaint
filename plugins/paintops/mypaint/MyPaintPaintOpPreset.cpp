@@ -14,7 +14,6 @@
 #include <png.h>
 
 #include <KisResourceLocator.h>
-#include <KisResourceServerProvider.h>
 #include <KoColorConversions.h>
 #include <KoColorModelStandardIds.h>
 #include <kis_debug.h>

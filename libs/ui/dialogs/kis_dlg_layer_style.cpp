@@ -30,7 +30,7 @@
 #include "kis_config.h"
 #include "kis_cmb_contour.h"
 #include "kis_cmb_gradient.h"
-#include "KisResourceServerProvider.h"
+#include <KisPaintResourceServerProvider.h>
 #include "kis_psd_layer_style.h"
 #include <KisAslStorage.h>
 #include <KisResourceLocator.h>
@@ -289,7 +289,7 @@ bool checkCustomNameAvailable(const QString &name)
 {
     Q_UNUSED(name);
     const QString customName = "CustomStyles.asl";
-    KoResourceServer<KisPSDLayerStyle> *server = KisResourceServerProvider::instance()->layerStyleServer();
+    KoResourceServer<KisPSDLayerStyle> *server = KisPaintResourceServerProvider::instance()->layerStyleServer();
     KoResourceSP resource = server->resource("", "", customName);
     return !resource;
 }

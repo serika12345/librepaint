@@ -13,7 +13,7 @@
 #include <KoID.h>
 #include <kis_types.h>
 #include <brushengine/kis_paintop_factory.h>
-#include "../kis_paint_ops_model.h"
+#include <kis_paint_ops_model.h>
 #include <kis_action.h>
 #include "dialogs/KisDlgSavePreset.h"
 #include "kis_favorite_resource_manager.h"

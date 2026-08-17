@@ -53,7 +53,7 @@
 #include "kis_node_manager.h"
 #include "KisViewManager.h"
 #include "kis_canvas_resource_provider.h"
-#include "KisResourceServerProvider.h"
+#include <KisPaintResourceServerProvider.h>
 #include "kis_favorite_resource_manager.h"
 #include "kis_config.h"
 #include "kis_image_config.h"
@@ -64,11 +64,11 @@
 #include "widgets/kis_paintop_presets_editor.h"
 #include "widgets/kis_paintop_presets_chooser_popup.h"
 #include "widgets/kis_workspace_chooser.h"
-#include "widgets/kis_paintop_list_widget.h"
+#include <kis_paintop_list_widget.h>
 #include "kis_slider_spin_box.h"
 #include "KisAngleSelector.h"
 #include "kis_multipliers_double_slider_spinbox.h"
-#include "widgets/kis_cmb_composite.h"
+#include <kis_cmb_composite.h>
 #include "widgets/kis_widget_chooser.h"
 #include "tool/kis_tool.h"
 #include "kis_signals_blocker.h"
@@ -79,7 +79,7 @@
 #include "KisResourceLoaderRegistry.h"
 #include "kis_acyclic_signal_connector.h"
 #include "KisMainWindow.h"
-
+#include "widgets/KisCompositeOpListConnectionHelper.h"
 
 KisPaintopBox::KisPaintopBox(KisViewManager *viewManager, QWidget *parent, const char *name)
     : QWidget(parent)
@@ -328,7 +328,7 @@ KisPaintopBox::KisPaintopBox(KisViewManager *viewManager, QWidget *parent, const
 
     m_cmbCompositeOp = new KisCompositeOpComboBox();
     m_cmbCompositeOp->setFixedHeight(buttonsize);
-    m_cmbCompositeOp->connectBlendmodeActions(m_viewManager->actionManager());
+    KisWidgetConnectionUtils::connectBlendModeActions(m_cmbCompositeOp, m_viewManager->actionManager());
 
     // Workspace Button
     m_workspaceWidget = new KisPopupButton(this);
@@ -636,7 +636,7 @@ void KisPaintopBox::resourceSelected(KoResourceSP resource)
             KisSignalsBlocker blocker(m_optionWidget);
             Q_UNUSED(blocker);
 
-            KisPaintOpPresetResourceServer *rserver = KisResourceServerProvider::instance()->paintOpPresetServer();
+            KisPaintOpPresetResourceServer *rserver = KisPaintResourceServerProvider::instance()->paintOpPresetServer();
 
             if (!rserver->reloadResource(preset)) {
                 qWarning() << "failed to reload the preset.";
@@ -923,7 +923,7 @@ void KisPaintopBox::slotInputDeviceChanged(const KoInputDevice& inputDevice)
 
     if (toolData == m_tabletToolMap.end()) {
         KisConfig cfg(true);
-        KisPaintOpPresetResourceServer *rserver = KisResourceServerProvider::instance()->paintOpPresetServer();
+        KisPaintOpPresetResourceServer *rserver = KisPaintResourceServerProvider::instance()->paintOpPresetServer();
         KisPaintOpPresetSP preset;
 
         findDefaultPresets();
@@ -1407,7 +1407,7 @@ void KisPaintopBox::slotReloadPreset()
 {
     KisSignalsBlocker blocker(m_optionWidget);
 
-    KisPaintOpPresetResourceServer *rserver = KisResourceServerProvider::instance()->paintOpPresetServer();
+    KisPaintOpPresetResourceServer *rserver = KisPaintResourceServerProvider::instance()->paintOpPresetServer();
     QSharedPointer<KisPaintOpPreset> preset = m_resourceProvider->currentPreset();
 
     // Presets that just have been created cannot be reloaded.
@@ -1576,4 +1576,3 @@ void KisPaintopBox::updatePresetConfig()
         }
     }
 }
-

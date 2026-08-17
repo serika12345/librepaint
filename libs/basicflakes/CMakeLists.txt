@@ -27,6 +27,8 @@ target_link_libraries(kritabasicflakes
         kritawidgets
         kritaflake 
         kritapigment
+    PRIVATE
+        KF${KF_MAJOR}::ConfigCore
 )
 
 set_target_properties(kritabasicflakes PROPERTIES

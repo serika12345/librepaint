@@ -20,7 +20,8 @@
 #include "KoSnapStrategy.h"
 #include "KoToolBase_p.h"
 #include <KoViewConverter.h>
-#include "kis_config.h"
+#include <KConfigGroup>
+#include <KSharedConfig>
 
 #include "math.h"
 
@@ -412,13 +413,15 @@ public:
     void autoSmoothCurvesChanged(bool value) {
         autoSmoothCurves = value;
 
-        KisConfig cfg(false);
-        cfg.setAutoSmoothBezierCurves(value);
+        KSharedConfigPtr config = KSharedConfig::openConfig();
+        config->group(QString()).writeEntry("autoSmoothBezierCurves", value);
+        config->sync();
     }
 
     void loadAutoSmoothValueFromConfig() {
-        KisConfig cfg(true);
-        autoSmoothCurves = cfg.autoSmoothBezierCurves();
+        autoSmoothCurves = KSharedConfig::openConfig()
+                               ->group(QString())
+                               .readEntry("autoSmoothBezierCurves", false);
 
         Q_EMIT q->sigUpdateAutoSmoothCurvesGUI(autoSmoothCurves);
     }

@@ -25,6 +25,7 @@
 #include <KisImportExportManager.h>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
+#include <kis_image_config.h>
 #include <kis_memory_statistics_server.h>
 #include <kis_icon_utils.h>
 
@@ -149,14 +150,12 @@ KisDlgImportVideoAnimation::KisDlgImportVideoAnimation(KisMainWindow *mainWindow
 }
 
 KisPropertiesConfigurationSP KisDlgImportVideoAnimation::loadLastUsedConfiguration(QString configurationID) {
-    KisConfig globalConfig(true);
-    return globalConfig.exportConfiguration(configurationID);
+    return KisImageConfig(true).exportConfiguration(configurationID);
 }
 
 void KisDlgImportVideoAnimation::saveLastUsedConfiguration(QString configurationID, KisPropertiesConfigurationSP config)
 {
-    KisConfig globalConfig(false);
-    globalConfig.setExportConfiguration(configurationID, config);
+    KisImageConfig(false).setExportConfiguration(configurationID, config);
 }
 
 float rerange(float value, float oldMin, float oldMax, float newMin, float newMax) {

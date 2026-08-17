@@ -24,7 +24,6 @@
 #include "kis_painter.h"
 
 #include <kis_debug.h>
-#include "KisResourceServerProvider.h"
 #include <KisResourceLoaderRegistry.h>
 #include "kis_paint_layer.h"
 #include <KisResourceUserOperations.h>
@@ -215,5 +214,4 @@ void KisCustomPattern::createPattern()
                                                                  KoColorConversionTransformation::internalRenderingIntent(),
                                                                  KoColorConversionTransformation::internalConversionFlags()), name, dir));
 }
-
 

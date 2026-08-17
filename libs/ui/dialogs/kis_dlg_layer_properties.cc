@@ -22,7 +22,7 @@
 #include <kis_debug.h>
 #include <kis_global.h>
 
-#include "widgets/kis_cmb_composite.h"
+#include <kis_cmb_composite.h>
 #include "KoColorProfile.h"
 #include "kis_multinode_property.h"
 #include "kis_layer_utils.h"

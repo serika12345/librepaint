@@ -99,22 +99,16 @@ set(kritaui_LIB_SRCS
     kis_bookmarked_configurations_editor.cc
     kis_bookmarked_configurations_model.cc
     kis_bookmarked_filter_configurations_model.cc
-    KisPaintopPropertiesBase.cpp
     KisPlaybackEngine.cpp
     KisPlaybackEngineQT.cpp
     KisPresetShadowUpdater.cpp
     kis_canvas_resource_provider.cpp
     kis_derived_resources.cpp
-    kis_categories_mapper.cpp
-    kis_categorized_list_model.cpp
-    kis_categorized_item_delegate.cpp
     kis_clipboard.cc
     kis_config.cc
     KisOcioConfiguration.cpp
     kis_control_frame.cpp
-    kis_composite_ops_model.cc
     KisDisplayConfig.cpp
-    kis_paint_ops_model.cpp
     kis_custom_pattern.cc
     kis_file_layer.cpp
     kis_change_file_layer_command.h
@@ -148,9 +142,6 @@ set(kritaui_LIB_SRCS
     kis_selection_actions_panel_button.cpp
     KisDecorationsManager.cpp
     kis_paintop_box.cc
-    kis_paintop_option.cpp
-    kis_paintop_options_model.cpp
-    kis_paintop_settings_widget.cpp
     kis_popup_palette.cpp
     kis_png_converter.cpp
     kis_preference_set_registry.cpp
@@ -242,12 +233,10 @@ set(kritaui_LIB_SRCS
     toolbox/KoToolBoxFactory.cpp
 
     widgets/kis_canvas_drop.cpp
-    widgets/kis_cmb_composite.cc
     widgets/KisCompositeOpListConnectionHelper.cpp
     widgets/kis_cmb_contour.cpp
     widgets/kis_cmb_gradient.cpp
     widgets/kis_collapsible_button_group.cpp
-    widgets/kis_paintop_list_widget.cpp
     widgets/kis_cmb_idlist.cc
     widgets/kis_color_space_selector.cc
     widgets/kis_advanced_color_space_selector.cc
@@ -284,7 +273,6 @@ set(kritaui_LIB_SRCS
     widgets/kis_size_group_p.cpp
     widgets/kis_wdg_generator.cpp
     widgets/kis_workspace_chooser.cpp
-    widgets/kis_categorized_list_view.cpp
     widgets/kis_widget_chooser.cpp
     widgets/kis_tool_button.cpp
     widgets/kis_floating_message.cpp
@@ -330,7 +318,6 @@ set(kritaui_LIB_SRCS
     widgets/gradient/KisGradientWidgetsUtils.cpp
     widgets/gradient/KisGradientColorEditor.cpp
 
-    KisPaletteEditor.cpp
     dialogs/KisDlgPaletteEditor.cpp
 
     widgets/KisGamutMaskToolbar.cpp
@@ -718,7 +705,9 @@ target_link_libraries(kritaui
         kritawidgetutils
         kritaresources
         kritaresourcestorage
+        kritatoolsui
     PRIVATE
+        kritaresourceui
         kritaxmlserialization
 )
 

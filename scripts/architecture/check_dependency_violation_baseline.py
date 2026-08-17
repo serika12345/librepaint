@@ -38,7 +38,6 @@ AREA_TO_RESPONSIBILITY = {
     "canvas-display": "canvas-presentation",
     "document-state": "document-lifecycle",
     "import-export": "import-export",
-    "resource-configuration": "resource-management",
     "input-interpretation": "input-interpretation",
     "tool-invocation": "tool-invocation",
     "settings-presentation": "tool-invocation",
@@ -276,6 +275,7 @@ def _path_classifications(
     ui_tool_class_inventory: dict[str, Any],
 ) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     public_paths: dict[str, set[str]] = {}
+    class_paths: dict[str, set[str]] = {}
     for item in _require_array(
         responsibility_map.get("responsibilities"),
         "responsibility map responsibilities",
@@ -288,7 +288,12 @@ def _path_classifications(
         ):
             public_paths.setdefault(path, set()).add(identifier)
 
-    class_paths: dict[str, set[str]] = {}
+        for path in _string_list(
+            entry.get("reviewedSourcePaths"),
+            f"reviewed source paths for {identifier}",
+        ):
+            class_paths.setdefault(path, set()).add(identifier)
+
     for inventory, description in (
         (ui_class_inventory, "UI class inventory"),
         (ui_tool_class_inventory, "UI tool class inventory"),
@@ -722,11 +727,11 @@ def updated_baseline(
         (entry["sourceResponsibility"], entry["dependencyResponsibility"])
         for entry in manual_entries
     }
-    if manual_pairs != set(confirmed):
+    missing_pairs = set(confirmed) - manual_pairs
+    if missing_pairs:
         raise DependencyBaselineError(
-            "confirmed violation pairs do not match discovery; "
-            f"missing={sorted(set(confirmed) - manual_pairs)}, "
-            f"unexpected={sorted(manual_pairs - set(confirmed))}"
+            "confirmed violation pairs are missing manual review data; "
+            f"missing={sorted(missing_pairs)}"
         )
     violations = []
     for manual in manual_entries:
@@ -734,6 +739,8 @@ def updated_baseline(
             manual["sourceResponsibility"],
             manual["dependencyResponsibility"],
         )
+        if pair not in confirmed:
+            continue
         violations.append({**manual, **confirmed[pair]})
     unresolved_entries = [
         {

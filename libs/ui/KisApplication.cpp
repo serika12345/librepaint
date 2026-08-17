@@ -172,7 +172,6 @@ public:
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>
 #include <kis_image_animation_interface.h>
 #include "kis_file_layer.h"
-#include "kis_group_layer.h"
 #include "kis_node_commands_adapter.h"
 #include "KisSynchronizedConnection.h"
 #include <QThreadStorage>

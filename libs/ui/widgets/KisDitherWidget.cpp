@@ -28,7 +28,7 @@ KisDitherWidget::KisDitherWidget(QWidget* parent)
 
     patternIconWidget->setFixedSize(64, 64);
     patternIconWidget->setBackgroundColor(Qt::white);
-    m_ditherPatternWidget = new KisResourceItemChooser(ResourceType::Patterns, false, this);
+    m_ditherPatternWidget = new KisResourceItemChooser(KisResourceUiDescriptor(ResourceType::Patterns), this);
     patternIconWidget->setPopupWidget(m_ditherPatternWidget);
     QObject::connect(m_ditherPatternWidget, &KisResourceItemChooser::resourceSelected, patternIconWidget, &KisIconWidget::setResource);
     QObject::connect(m_ditherPatternWidget, &KisResourceItemChooser::resourceSelected, this, &KisDitherWidget::sigConfigurationItemChanged);

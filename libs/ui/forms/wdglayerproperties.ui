@@ -295,7 +295,7 @@
   <customwidget>
    <class>KisCompositeOpComboBox</class>
    <extends>QComboBox</extends>
-   <header>widgets/kis_cmb_composite.h</header>
+   <header>kis_cmb_composite.h</header>
   </customwidget>
   <customwidget>
    <class>KisColorLabelSelectorWidget</class>

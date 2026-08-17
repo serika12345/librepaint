@@ -25,7 +25,6 @@
 #include <kis_icon.h>
 #include "kis_action.h"
 #include <KisResourceStorage.h>
-#include <KisResourceServerProvider.h>
 #include <KisStorageModel.h>
 #include <KisStorageFilterProxyModel.h>
 #include <kis_config.h>
@@ -451,4 +450,3 @@ void DlgBundleManager::updateBundleInformation(QModelIndex idx)
     m_ui->lblPreview->setPixmap(QPixmap::fromImage(thumbnail));
     m_ui->lblType->setText(KisResourceStorage::storageTypeToString(storage->type()));
 }
-

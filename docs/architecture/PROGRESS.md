@@ -2,13 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-17 01:45 JST
+- 更新日時: 2026-08-17 12:33 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6a リソース表示境界
+- 現在の検査段階: R1-G6b 描画実行境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6a-resource-storage-boundary`
-- 目的: `libs/resourcewidgets`とリソース設定表示を`libs/resources/ui`の
-  `kritaresourceui`へ分離し、描画設定表示を`kritatoolsui`へ移す契約を固定する。
+- ブランチ: `r1-g6a-resource-ui-boundary`
+- 目的: 描画特性契約を追加し、`libs/ui/tool/strokes`を`libs/painting/strokes`へ、
+  `libs/command`の画像・キャンバス向け取り消し処理を`libs/painting/undo`へ、
+  `libs/metadata`の画像メタデータ型を`libs/painting/metadata`へ移す。
 
 ## 再開環境
 
@@ -225,6 +226,37 @@
 - ネイティブCTestのアプリケーション接頭辞とプラグイン探索先を各増分構築木へ固定した。
   macOSで存在しないNix storeのインストール先を参照していた試験環境を解消した。
 
+## R1-G6a表示境界で完了した作業
+
+- `libs/resourcewidgets`を`libs/resources/ui`へ移し、汎用の選択、タグ、一覧、保管場所の
+  表示を`kritaresourceui`として独立構築した。型付きの不変リソース記述子と表示契約を
+  `TestResourceUiContract`へ固定した。
+- `libs/ui/KisPaintopPropertiesBase.*`、`libs/ui/KisPaletteEditor.*`、
+  `libs/ui/kis_categories_mapper.*`、`libs/ui/kis_categorized_*`、
+  `libs/ui/kis_composite_ops_model.*`、`libs/ui/kis_paint_ops_model.*`、
+  `libs/ui/kis_paintop_option*`、`libs/ui/kis_paintop_settings_widget.*`を
+  `libs/tools/ui`へ移した。
+- `libs/ui/widgets/kis_categorized_list_view.*`、`libs/ui/widgets/kis_cmb_composite.*`、
+  `libs/ui/widgets/kis_paintop_list_widget.*`を`libs/tools/ui`へ移し、描画設定表示を
+  `kritatoolsui`として独立構築した。設定表示契約を`TestToolSettingsUiContract`へ固定した。
+- `libs/ui/tests`にあった分類モデル試験を`libs/tools/ui/tests`へ移し、製品実装と試験の
+  所有先を一致させた。
+- `libs/ui/KisResourceServerProvider.*`を起点として、描画プリセットとレイヤースタイルの
+  提供処理を`libs/tools/ui/KisPaintResourceServerProvider.*`へ分離した。起点ファイルには
+  作業空間、ウィンドウ配置、セッションの提供処理を残した。
+- `libs/ui/kis_config.*`を起点として、画像入出力設定を`libs/image/kis_image_config.*`へ、
+  画面プロファイル選択を`libs/ui/KisDisplayConfig.*`へ分離した。
+- パレット編集の文書操作は`libs/tools/ui/KisPaletteEditor.*`の表示から分離し、
+  `plugins/dockers/palettedocker/palettedocker_dock.cpp`が現在の文書と操作ダイアログを
+  接続する。
+- 旧`libs/resourcewidgets`、旧`kritaresourcewidgets`ターゲット、転送ヘッダーを除去した。
+  `kritaresourceui`は描画ターゲットへ依存せず、リソース管理から描画への40件の
+  逆方向includeは0件になった。
+- 共有ターゲット内に残るパレット、レイヤー設定、プリセット編集の7ソースを
+  `reviewedSourcePaths`でツール呼出し責務へ帰属させ、未確定射影を0件に保った。
+- 確認済み逆方向依存は5責務対257件へ縮小した。全5構成で16中核ターゲットと
+  全製品ターゲットの循環は0件である。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -250,12 +282,29 @@
   `TestResourceStorageArchiveContract`、`TestXmlWriter`と9件の登録済みタイル試験は成功する。
 - `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
   同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
+- `nix develop .#test --command ./scripts/run-test TestResourceUiContract`、
+  `TestToolSettingsUiContract`、`TestKisPaletteModel`: macOSでリソース記述子、描画設定表示、
+  パレットモデルの契約が成功した。
+- macOSで`kritaui`、iOSでLibrePaint本体まで構築し、表示境界の分離後もリンクが成功した。
+- `ssh nixos`上のx86_64 Linuxで`kritaui`、Android arm64-v8aで
+  `libkritaui_arm64-v8a.so`、Windows x86_64で`libkritaui.dll`の構築とリンクが成功した。
+- 5構成のCMake台帳を再生成した。macOS 630件、Linux 645件、iOS 564件、Android 570件、
+  Windows 600件のターゲット、548件の共通ターゲット、119件の条件付きターゲット、
+  250件の構成差を持つターゲットを記録した。
+- `nix develop .#test --command ./scripts/verify-quick`: 88件の単体試験、責務・依存・構造台帳、
+  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems`: 表示境界分離後の全Nix出力の評価が成功した。
+- `nix develop .#test --command ./scripts/verify`: macOSの全2,395構築工程が成功し、
+  CTest 316件中279件が成功した。追加した表示境界契約はすべて成功し、残る37件は
+  既存の画像基準、Qt 6モデル契約、macOS環境、300秒制限、セグメンテーション違反で失敗する。
 
 ## 次の操作
 
-`libs/resourcewidgets`と`libs/ui`のリソース設定表示について、表示の煙試験と型付き
-リソース記述子の契約を先に追加する。続いて`kritaresourceui`と`kritatoolsui`を分離し、
-リソース管理から描画への40件の逆方向includeをゼロへ縮小する。
+`libs/ui/tool/strokes`、`libs/command`、`libs/metadata`を起点として、画像状態、ストローク順序、
+取り消し、投影の特性契約と公開画像ヘッダーの構築契約を先に追加する。続いて
+`libs/painting/strokes`、`libs/painting/undo`、`libs/painting/metadata`へ所有権を移し、
+`kritapainting`を構築する。描画から文書寿命への95件の逆方向includeと、`kritaimage`の
+内部ヘッダー29件に対する593件のパッケージ外参照をゼロへ縮小する。
 
 ## R1-G5完了根拠
 

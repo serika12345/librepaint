@@ -40,7 +40,7 @@
 
 #include <canvas/kis_canvas2.h>
 #include <KisViewManager.h>
-#include <widgets/kis_cmb_composite.h>
+#include <kis_cmb_composite.h>
 #include <kis_slider_spin_box.h>
 #include <kis_cursor.h>
 #include <kis_config.h>
@@ -323,5 +323,4 @@ void KisToolGradient::slotSetAntiAliasThreshold(qreal value)
     m_antiAliasThreshold = value;
     m_configGroup.writeEntry("antialiasThreshold", value);
 }
-
 

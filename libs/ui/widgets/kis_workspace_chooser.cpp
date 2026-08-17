@@ -121,7 +121,7 @@ KisWorkspaceChooser::ChooserWidgets KisWorkspaceChooser::createChooserWidgets(co
     titleLabel->setFont(titleFont);
     titleLabel->setText(title);
 
-    r.itemChooser = new KisResourceItemChooser(resourceType, false, this);
+    r.itemChooser = new KisResourceItemChooser(KisResourceUiDescriptor(resourceType), this);
     r.itemChooser->setItemDelegate(new KisWorkspaceDelegate(this));
     r.itemChooser->setListViewMode(ListViewMode::Detail);
     r.itemChooser->setRowHeight(KisWorkspaceDelegate::heightHint);

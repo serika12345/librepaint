@@ -40,6 +40,7 @@ public:
     }
 
     static Options optionsFromKisConfig(const KisConfig &cfg);
+    static const KoColorProfile *profileForScreen(int screen);
 
     const KoColorProfile *profile;
     KoColorConversionTransformation::Intent intent;

@@ -100,7 +100,7 @@ target_link_libraries(kritawidgets
     kritapigment
     kritawidgetutils
     kritaresources
-    kritaresourcewidgets
+    kritaresourceui
     KF${KF_MAJOR}::CoreAddons
     KF${KF_MAJOR}::ConfigGui
     KF${KF_MAJOR}::GuiAddons
