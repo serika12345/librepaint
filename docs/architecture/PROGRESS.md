@@ -2,16 +2,15 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 16:57 JST
+- 更新日時: 2026-08-18 18:09 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6dアニメーションキャッシュ境界
+- 現在の検査段階: ネイティブ試験正常化の原因分類
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6d-animation-cache-boundary`
-- 目的: `libs/ui/kis_animation_frame_cache.*`、
-  `libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameDataSerializer.*`、
-  `libs/ui/KisFrameCacheStore.*`、`libs/ui/KisFrameCacheSwapper.*`を起点として、
-  フレーム範囲、保存、直列化、タイル転送をキャンバス責務へ分離し、UI側を再生状態、
-  生成時機、OpenGL更新情報との接続に限定する。
+- ブランチ: `test-failure-cause-classification`
+- 目的: `sdk/tests/filestest.h`、`libs/pigment/KoColorSpaceRegistry.cpp`、
+  `libs/ui/tests/kis_shape_layer_test.cpp`、`libs/ui/tests/KisSafeDocumentLoaderTest.cpp`を
+  主な起点として、マージ後のmacOSネイティブ試験37失敗を試験契約、製品実装、
+  依存・実行時資源契約、非同期同期へ分類し、修正実装とは別のレビュー単位で確定する。
 
 ## 再開環境
 
@@ -407,6 +406,22 @@
   `kritaui`内部参照は9ヘッダー24件から7ヘッダー20件へ縮小し、キャンバス表示から
   文書寿命への逆方向includeは0件を維持する。これによりR1-G6dの完了条件を満たす。
 
+## ネイティブ試験正常化の原因分類で完了した作業
+
+- 対象コミット`142583963dc2da80c285154f745d2f00e090ea2f`でmacOS 327件を逐次実行し、
+  290件成功、37件失敗を再現した。直前の並列実行で成功した図形選択履歴と安全な外部文書
+  再読込を条件付き失敗として分離し、残る35件を固定的な失敗として確認した。
+- x86_64 Linuxの清浄な作業ツリーを同じコミットへ揃え、同じQt 6.11.1、LittleCMS 2.19、
+  libtiff 4.7.2で対象試験を比較した。対象だけの構築で実行時プラグインを欠く結果は根拠から
+  除外し、同じ製品・試験依存が揃った対象だけをプラットフォーム比較に使用した。
+- `docs/architecture/TEST_FAILURE_CLASSIFICATION.md`に37対象を、試験契約15件、製品実装6件、
+  依存・実行時資源契約14件、非同期同期2件へ一次分類した。複数原因を持つKRA保存は、
+  203 nit PQ資源登録と読取専用出力を個別の修正境界へ接続した。
+- 各原因に、分割対象の起点ファイル、観測結果、修正対象、期待値を変更する前に必要な契約を
+  記録した。分類文書はmacOSとLinuxの全ネイティブ試験成功を削除条件とする一時台帳である。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
+  責務・依存・構造台帳、文書形式、リンク、D2再生成を含む高速検査が成功した。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -596,8 +611,9 @@
 
 ## 次の操作
 
-アニメーションキャッシュ境界の変更をレビューしてマージする。マージ後はR1-G6e文書寿命境界の
-最初の独立単位を計画する。
+ネイティブ試験失敗の原因分類をレビューしてマージする。マージ後は分類台帳の原因単位で
+修正実装を行う。macOSとLinuxの全ネイティブ試験が成功した変更で一時分類文書を削除し、
+R1-G6e文書寿命境界の最初の独立単位を計画できる状態へ戻す。
 UIから利用事例を登録・呼出しする専用移行と、ドメイン計算からI/Oを分離する専用移行は、
 保守責任者が明示的に開始を決定するまで着手しない。
 
