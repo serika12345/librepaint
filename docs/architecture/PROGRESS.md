@@ -2,14 +2,16 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 13:03 JST
+- 更新日時: 2026-08-18 16:57 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6d表示色変換境界
+- 現在の検査段階: R1-G6dアニメーションキャッシュ境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6d-display-color-boundary`
-- 目的: `libs/ui/KisOcioConfiguration.*`、`libs/ui/KisSurfaceColorSpaceWrapper.h`、
-  `libs/ui/canvas/kis_display_color_converter.*`を起点として、表示色の値型と変換本体を
-  UI状態から分離し、画面設定とパレット反映の接続範囲を確定する。
+- ブランチ: `r1-g6d-animation-cache-boundary`
+- 目的: `libs/ui/kis_animation_frame_cache.*`、
+  `libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameDataSerializer.*`、
+  `libs/ui/KisFrameCacheStore.*`、`libs/ui/KisFrameCacheSwapper.*`を起点として、
+  フレーム範囲、保存、直列化、タイル転送をキャンバス責務へ分離し、UI側を再生状態、
+  生成時機、OpenGL更新情報との接続に限定する。
 
 ## 再開環境
 
@@ -383,6 +385,28 @@
 - 公開面は`kritacanvas`の12ヘッダーへ拡張し、未宣言だった`kritaui`内部参照の基準を
   11ヘッダー28件から9ヘッダー24件へ縮小した。動画キャッシュは後続の独立単位とする。
 
+## アニメーションキャッシュ境界で完了した作業
+
+- `libs/ui/kis_animation_frame_cache.*`を起点として、フレーム範囲の検索、挿入、無効化、
+  結合と移動指示を`libs/canvas/animation/kis_animation_frame_cache_index.*`へ分離した。
+  UI側のキャッシュはこの状態を保持し、画像の再生状態と保存・復元処理を調整する。
+- `libs/ui/KisFrameDataSerializer.*`と`libs/ui/KisFrameCacheStore.*`を起点として、
+  タイル差分の直列化とフレーム保存を`libs/canvas/animation`へ移した。保存値はUI型と
+  OpenGL型を含まず、UI側の`libs/ui/animation/cache/KisFrameCacheSwapper.*`が
+  OpenGL更新情報との相互変換を担当する。
+- `libs/ui/opengl/kis_texture_tile_info_pool.*`を、描画方式に依存しないタイル転送領域として
+  `libs/canvas/tiles`へ移した。旧クラス名、旧ファイル、転送ヘッダーは残していない。
+- `libs/ui/kis_animation_cache_populator.*`とキャッシュ調停を`libs/ui/animation`へ、
+  保存変換を`libs/ui/animation/cache`へ配置した。`libs/image/kis_types.h`からUIキャッシュ型の
+  別名を除き、UI所有の前方宣言を利用元が明示的に参照する。
+- `libs/ui/KisWidgetWithIdleTask.h`を`libs/ui/canvas`へ移し、ドッカーから利用する表示契約を
+  `libs/ui/tests/TestCanvasUiPublicHeaders.cpp`の構築で固定した。旧配置は残していない。
+- フレーム範囲、保存、直列化をUIライブラリーなしで検査する3契約と、UIの保存変換、
+  既存キャッシュ統合、公開表示ヘッダーを検査する3契約を固定した。
+- `kritacanvas`の公開面は17ヘッダー、`kritaui`は249ヘッダーになった。未宣言の
+  `kritaui`内部参照は9ヘッダー24件から7ヘッダー20件へ縮小し、キャンバス表示から
+  文書寿命への逆方向includeは0件を維持する。これによりR1-G6dの完了条件を満たす。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -544,16 +568,38 @@
   全Nix出力の評価が成功した。
 - `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
   同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
+- macOSで`libkritacanvas.dylib`、iOSで`libkritacanvas.a`と
+  `LibrePaint.app/LibrePaint`、x86_64 Linuxで`libkritacanvas.so`と
+  `libkritaui.so`、Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と
+  `libkritaui_arm64-v8a.so`、Windows x86_64で`libkritacanvas.dll`と
+  `libkritaui.dll`の構築とリンクが成功した。
+- Androidの初回構築は、`libs/canvas/animation/kis_frame_data_serializer.cpp`が
+  `QDataStream`を間接includeに依存していたことをQt 5構成で診断した。実装が利用する
+  Qt型を直接includeした後、macOS、iOS、Linux、Android、Windowsの全構成で再構築が
+  成功した。
+- `ctest --preset tdd-macos`: 327件中292件が成功した。今回のフレーム範囲、保存、
+  直列化、UI保存変換、既存キャッシュ統合、公開表示ヘッダーの6契約はすべて成功した。
+  残る35件は直前から継続する画像基準、Qt 6モデル契約、macOS環境、
+  セグメンテーション違反の既知失敗である。
+- x86_64 Linuxで`QT_QPA_PLATFORM=offscreen`を設定し、今回の6契約がすべて成功した。
+- 5構成のCMake台帳を再生成した。macOS 645件、Linux 660件、iOS 579件、Android
+  585件、Windows 615件のターゲット、563件の共通ターゲット、119件の条件付き
+  ターゲット、257件の構成差を持つターゲットを記録した。20中核所有ターゲットと
+  全製品ターゲットは5構成すべてで循環0件を維持する。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos
+  --remote-repository /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから
+  macOS、iOS、Linux、Android、Windowsの5台帳と差分行列の一致を確認した。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
+  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: アニメーションキャッシュ
+  境界分離後の全Nix出力の評価が成功した。
 
 ## 次の操作
 
-R1-G6dの次の独立単位では`libs/ui/kis_animation_frame_cache.*`、
-`libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameCacheStore.*`、
-`libs/ui/KisFrameCacheSwapper.*`を起点として、フレーム生成、保存、交換、再生側への反映を
-特性試験で固定し、動画キャッシュの所有範囲とI/O境界を確定する。R1-G6d全体の完了判定は、
-キャンバス所有のUI内部参照と、キャンバス表示から文書寿命への逆方向includeを解消した時点で
-行う。UIから利用事例を登録・呼出しする専用移行は、この完了後に保守責任者が明示的に
-開始を決定する。
+アニメーションキャッシュ境界の変更をレビューしてマージする。マージ後はR1-G6e文書寿命境界の
+最初の独立単位を計画する。
+UIから利用事例を登録・呼出しする専用移行と、ドメイン計算からI/Oを分離する専用移行は、
+保守責任者が明示的に開始を決定するまで着手しない。
 
 ## R1-G5完了根拠
 

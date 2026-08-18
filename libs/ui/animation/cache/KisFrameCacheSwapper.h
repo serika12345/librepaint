@@ -11,18 +11,13 @@
 #include "KisAbstractFrameCacheSwapper.h"
 
 class KisOpenGLUpdateInfoBuilder;
+class QString;
 
 
 /**
- * KisFrameCacheSwapper is the most highlevel facade of the frame
- * swapping infrastructure. The main responsibilities of the class:
- *
- * 1) Asynchronously predict and prefetch the pending frames from disk
- *    and maintain a short in-memory cache of these frames (already
- *    converted into KisOpenGLUpdateInfo)
- *
- * 2) Pass all the other requests to the lower-level API,
- *    like KisFrameCacheStore
+ * Adapts UI-owned OpenGL update data to the canvas-owned frame store.
+ * Disk compression, frame differences, and stored metadata remain behind
+ * the canvas boundary.
  */
 
 class KRITAUI_EXPORT KisFrameCacheSwapper : public KisAbstractFrameCacheSwapper

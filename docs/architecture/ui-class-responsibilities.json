@@ -55,24 +55,6 @@
   ],
   "classes": [
     {
-      "name": "FramesGluerBase",
-      "declarationKind": "struct",
-      "header": "libs/ui/kis_animation_frame_cache_p.h",
-      "implementationPaths": [
-        "libs/ui/kis_animation_frame_cache.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
-    },
-    {
-      "name": "KisAbstractFrameCacheSwapper",
-      "declarationKind": "class",
-      "header": "libs/ui/KisAbstractFrameCacheSwapper.h",
-      "implementationPaths": [
-        "libs/ui/KisAbstractFrameCacheSwapper.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
-    },
-    {
       "name": "KisAbstractPerspectiveGrid",
       "declarationKind": "class",
       "header": "libs/ui/kis_abstract_perspective_grid.h",
@@ -132,15 +114,6 @@
         "libs/ui/KisAndroidSplash.cpp"
       ],
       "responsibilityArea": "window-workspace"
-    },
-    {
-      "name": "KisAnimationFrameCache",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_animation_frame_cache.h",
-      "implementationPaths": [
-        "libs/ui/kis_animation_frame_cache.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisApplication",
@@ -278,33 +251,6 @@
       "responsibilityArea": "document-state"
     },
     {
-      "name": "KisFrameCacheStore",
-      "declarationKind": "class",
-      "header": "libs/ui/KisFrameCacheStore.h",
-      "implementationPaths": [
-        "libs/ui/KisFrameCacheStore.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
-    },
-    {
-      "name": "KisFrameCacheSwapper",
-      "declarationKind": "class",
-      "header": "libs/ui/KisFrameCacheSwapper.h",
-      "implementationPaths": [
-        "libs/ui/KisFrameCacheSwapper.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
-    },
-    {
-      "name": "KisFrameDataSerializer",
-      "declarationKind": "class",
-      "header": "libs/ui/KisFrameDataSerializer.h",
-      "implementationPaths": [
-        "libs/ui/KisFrameDataSerializer.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
-    },
-    {
       "name": "KisIdleTaskStrokeStrategy",
       "declarationKind": "class",
       "header": "libs/ui/KisIdleTaskStrokeStrategy.h",
@@ -355,15 +301,6 @@
       "header": "libs/ui/kis_image_view_converter.h",
       "implementationPaths": [
         "libs/ui/kis_image_view_converter.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
-    },
-    {
-      "name": "KisInMemoryFrameCacheSwapper",
-      "declarationKind": "class",
-      "header": "libs/ui/KisInMemoryFrameCacheSwapper.h",
-      "implementationPaths": [
-        "libs/ui/KisInMemoryFrameCacheSwapper.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },

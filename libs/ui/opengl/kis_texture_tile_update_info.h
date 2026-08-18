@@ -13,7 +13,7 @@
 #include "kis_config.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
-#include "kis_texture_tile_info_pool.h"
+#include <tiles/kis_tile_data_buffer.h>
 #include <KoChannelInfo.h>
 #include <KoColorConversionTransformation.h>
 #include <KoColorModelStandardIds.h>
@@ -36,84 +36,10 @@ typedef QVector<KisTextureTileUpdateInfoSP> KisTextureTileUpdateInfoSPList;
  *   of memory, so you don't have to thing about freeing the memory
  */
 
-class DataBuffer
-{
-public:
-    DataBuffer(KisTextureTileInfoPoolSP pool)
-        : m_data(0),
-          m_pixelSize(0),
-          m_pool(pool)
-    {
-    }
-
-    DataBuffer(int pixelSize, KisTextureTileInfoPoolSP pool)
-        : m_data(0),
-          m_pixelSize(0),
-          m_pool(pool)
-    {
-        allocate(pixelSize);
-    }
-
-    DataBuffer(DataBuffer &&rhs)
-        : m_data(rhs.m_data),
-          m_pixelSize(rhs.m_pixelSize),
-          m_pool(rhs.m_pool)
-    {
-        rhs.m_data = 0;
-    }
-
-    DataBuffer& operator=(DataBuffer &&rhs) {
-        swap(rhs);
-        return *this;
-    }
-
-    ~DataBuffer() {
-        if (m_data) {
-            m_pool->free(m_data, m_pixelSize);
-        }
-    }
-
-    void allocate(int pixelSize) {
-        Q_ASSERT(!m_data);
-
-        m_pixelSize = pixelSize;
-        m_data = m_pool->malloc(m_pixelSize);
-    }
-
-    inline quint8* data() const {
-        return m_data;
-    }
-
-    void swap(DataBuffer &other) {
-        std::swap(other.m_pixelSize, m_pixelSize);
-        std::swap(other.m_data, m_data);
-        std::swap(other.m_pool, m_pool);
-    }
-
-    int size() const {
-        return m_data ? m_pool->chunkSize(m_pixelSize) : 0;
-    }
-
-    KisTextureTileInfoPoolSP pool() const {
-        return m_pool;
-    }
-
-    int pixelSize() const {
-        return m_pixelSize;
-    }
-
-private:
-    Q_DISABLE_COPY(DataBuffer)
-
-    quint8 *m_data {nullptr};
-    int m_pixelSize;
-    KisTextureTileInfoPoolSP m_pool;
-};
-
 class KisTextureTileUpdateInfo
 {
 public:
-    KisTextureTileUpdateInfo(KisTextureTileInfoPoolSP pool)
+    KisTextureTileUpdateInfo(KisTileDataPoolSP pool)
         : m_patchPixels(pool),
           m_pool(pool)
     {
@@ -122,7 +48,7 @@ public:
     KisTextureTileUpdateInfo(qint32 col, qint32 row,
                              const QRect &tileRect, const QRect &updateRect, const QRect &currentImageRect,
                              int levelOfDetail,
-                             KisTextureTileInfoPoolSP pool)
+                             KisTileDataPoolSP pool)
         : m_patchPixels(pool),
           m_pool(pool)
     {
@@ -160,7 +86,7 @@ public:
         // XXX: if the paint colorspace is rgb, we should do the channel swizzling in
         //      the display shader
         if (!channelFlags.isEmpty() && selectedChannelIndex >= 0 && selectedChannelIndex < m_patchColorSpace->channelCount()) {
-            DataBuffer conversionCache(m_patchColorSpace->pixelSize(), m_pool);
+            KisTileDataBuffer conversionCache(m_patchColorSpace->pixelSize(), m_pool);
 
             quint32 numPixels = m_patchRect.width() * m_patchRect.height();
 
@@ -191,7 +117,7 @@ public:
 
         if (m_patchRect.isValid()) {
             const qint32 numPixels = m_patchRect.width() * m_patchRect.height();
-            DataBuffer conversionCache(dstCS->pixelSize(), m_pool);
+            KisTileDataBuffer conversionCache(dstCS->pixelSize(), m_pool);
 
             m_patchColorSpace->convertPixelsTo(m_patchPixels.data(), conversionCache.data(), dstCS, numPixels, renderingIntent, conversionFlags);
 
@@ -208,7 +134,7 @@ public:
 
         if (m_patchRect.isValid()) {
             const qint32 numPixels = m_patchRect.width() * m_patchRect.height();
-            DataBuffer conversionCache(dstCS->pixelSize(), m_pool);
+            KisTileDataBuffer conversionCache(dstCS->pixelSize(), m_pool);
 
             m_patchColorSpace->proofPixelsTo(m_patchPixels.data(), conversionCache.data(), numPixels, proofingTransform);
 
@@ -298,11 +224,11 @@ public:
         return m_patchRect.isValid();
     }
 
-    inline DataBuffer&& takePixelData() {
+    inline KisTileDataBuffer&& takePixelData() {
         return std::move(m_patchPixels);
     }
 
-    inline void putPixelData(DataBuffer &&buffer, const KoColorSpace *colorSpace) {
+    inline void putPixelData(KisTileDataBuffer &&buffer, const KoColorSpace *colorSpace) {
         m_patchPixels = std::move(buffer);
         m_patchColorSpace = colorSpace;
     }
@@ -326,10 +252,9 @@ private:
     QRect m_originalPatchRect;
     QRect m_originalTileRect;
 
-    DataBuffer m_patchPixels;
-    KisTextureTileInfoPoolSP m_pool;
+    KisTileDataBuffer m_patchPixels;
+    KisTileDataPoolSP m_pool;
 };
 
 
 #endif /* KIS_TEXTURE_TILE_UPDATE_INFO_H_ */
-

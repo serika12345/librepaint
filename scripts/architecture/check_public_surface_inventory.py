@@ -30,6 +30,7 @@ PUBLICATION_EVIDENCE = ("export-macro", "compile-contract", "external-include")
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
     "libs/impex": ("libs/impex/tests/TestImportExportBoundary.cpp",),
+    "libs/ui": ("libs/ui/tests/TestCanvasUiPublicHeaders.cpp",),
 }
 INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
@@ -51,8 +52,9 @@ PUBLIC_HEADER_SET_SPECS = (
         "excludedHeaderDirectories": ["libs/canvas/tests"],
         "exportMacro": "KRITACANVAS_EXPORT",
         "responsibility": (
-            "Records the declared canvas-view surface for coordinate mapping "
-            "and immutable snapshots of canvas screen state."
+            "Records the declared canvas-view surface for coordinate mapping, "
+            "display projection and color, animation cache storage, and immutable "
+            "snapshots of canvas screen state."
         ),
         "evidence": [
             "libs/canvas/CMakeLists.txt",

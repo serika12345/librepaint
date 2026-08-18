@@ -13,6 +13,7 @@
 #include "kritaanimationdocker_export.h"
 
 #include "kis_types.h"
+#include <animation/kis_animation_frame_cache_fwd.h>
 
 class KisTimeSpan;
 class KisCanvasAnimationState;

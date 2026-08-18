@@ -7,7 +7,7 @@
 #define KISWIDGETWITHIDLETASK_H
 
 #include <QWidget>
-#include "KisIdleTasksManager.h"
+#include <KisIdleTasksManager.h>
 
 class KisCanvas2;
 class KoColorSpace;

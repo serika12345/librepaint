@@ -35,6 +35,7 @@
 #include "kis_painting_tweaks.h"
 #include "KisOpenGLBufferCreationGuard.h"
 #include <KisPlatformPluginInterfaceFactory.h>
+#include <tiles/kis_tile_data_pool.h>
 
 #ifdef HAVE_OPENEXR
 #include <half.h>
@@ -110,8 +111,9 @@ void KisOpenGLImageTextures::initGL(QOpenGLFunctions *f)
 
     // we use local static object for creating pools shared among
     // different images
-    static KisTextureTileInfoPoolRegistry s_poolRegistry;
-    m_updateInfoBuilder.setTextureInfoPool(s_poolRegistry.getPool(m_texturesInfo.width, m_texturesInfo.height));
+    static KisTileDataPoolRegistry s_poolRegistry;
+    m_updateInfoBuilder.setTileDataPool(
+        s_poolRegistry.poolForTileSize(m_texturesInfo.width, m_texturesInfo.height));
 
     m_checkerTexture = GLuint();
     m_glFuncs->glGenTextures(1, &(*m_checkerTexture));
@@ -416,7 +418,7 @@ void KisOpenGLImageTextures::updateConfig(bool useBuffer, int NumMipmapLevels)
 void KisOpenGLImageTextures::testingForceInitialized()
 {
     m_initialized = true;
-    m_updateInfoBuilder.setTextureInfoPool(toQShared(new KisTextureTileInfoPool(256, 256)));
+    m_updateInfoBuilder.setTileDataPool(toQShared(new KisTileDataPool(256, 256)));
 
     ConversionOptions options;
     options.m_destinationColorSpace = KoColorSpaceRegistry::instance()->rgb8();

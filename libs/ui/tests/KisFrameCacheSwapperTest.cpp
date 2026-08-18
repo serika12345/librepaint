@@ -3,7 +3,7 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
-#include "KisFrameCacheStoreTest.h"
+#include "KisFrameCacheSwapperTest.h"
 
 #include <simpletest.h>
 #include <testutil.h>
@@ -22,7 +22,8 @@
 #include "opengl/kis_texture_tile_update_info.h"
 
 
-#include "KisFrameCacheStore.h"
+#include <animation/cache/KisFrameCacheSwapper.h>
+#include <tiles/kis_tile_data_pool.h>
 
 static const int maxTileSize = 256;
 
@@ -94,9 +95,10 @@ class TestFramesRenderer : public KisAsyncAnimationRendererBase
 
 public:
     TestFramesRenderer()
-        : m_pool(m_poolRegistry.getPool(maxTileSize, maxTileSize))
+        : m_pool(m_poolRegistry.poolForTileSize(maxTileSize, maxTileSize))
+        , m_swapper(m_updateInfoBuilder)
     {
-        m_updateInfoBuilder.setTextureInfoPool(m_pool);
+        m_updateInfoBuilder.setTileDataPool(m_pool);
 
         const KoColorSpace *dstColorSpace = KoColorSpaceRegistry::instance()->rgb8();
         m_updateInfoBuilder.setConversionOptions(
@@ -125,11 +127,11 @@ public:
         qDebug() << ppVar(info->tileList.size());
 
         KisOpenGLUpdateInfoSP infoForSave = m_updateInfoBuilder.buildUpdateInfo(image->bounds(), image, true);
-        m_store.saveFrame(11, infoForSave, image->bounds());
+        m_swapper.saveFrame(11, infoForSave, image->bounds());
 
-        KIS_SAFE_ASSERT_RECOVER_NOOP(m_store.hasFrame(11));
+        KIS_SAFE_ASSERT_RECOVER_NOOP(m_swapper.hasFrame(11));
 
-        KisOpenGLUpdateInfoSP loadedInfo = m_store.loadFrame(11, m_updateInfoBuilder);
+        KisOpenGLUpdateInfoSP loadedInfo = m_swapper.loadFrame(11);
 
         qDebug() << ppVar(loadedInfo->tileList.size());
 
@@ -149,15 +151,15 @@ Q_SIGNALS:
 
 private:
     KisOpenGLUpdateInfoBuilder m_updateInfoBuilder;
-    KisTextureTileInfoPoolRegistry m_poolRegistry;
-    KisTextureTileInfoPoolSP m_pool;
-    KisFrameCacheStore m_store;
+    KisTileDataPoolRegistry m_poolRegistry;
+    KisTileDataPoolSP m_pool;
+    KisFrameCacheSwapper m_swapper;
 };
 
 
 
 
-void KisFrameCacheStoreTest::test()
+void KisFrameCacheSwapperTest::test()
 {
     QRect refRect(QRect(0,0,512,512));
     TestUtil::MaskParent p(refRect);
@@ -179,6 +181,6 @@ void KisFrameCacheStoreTest::test()
 
 }
 
-SIMPLE_TEST_MAIN(KisFrameCacheStoreTest)
+SIMPLE_TEST_MAIN(KisFrameCacheSwapperTest)
 
-#include "KisFrameCacheStoreTest.moc"
+#include "KisFrameCacheSwapperTest.moc"

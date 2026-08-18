@@ -9,10 +9,6 @@
 #include <QScopedPointer>
 
 #include "KisAbstractFrameCacheSwapper.h"
-#include "opengl/kis_texture_tile_info_pool.h"
-
-class KisOpenGLUpdateInfoBuilder;
-
 
 class KRITAUI_EXPORT KisInMemoryFrameCacheSwapper : public KisAbstractFrameCacheSwapper
 {

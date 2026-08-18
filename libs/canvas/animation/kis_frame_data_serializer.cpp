@@ -3,16 +3,25 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
-#include "KisFrameDataSerializer.h"
+#include "kis_frame_data_serializer.h"
 
 #include <cstring>
 
-#include <QTemporaryDir>
+#include <QByteArray>
+#include <QDataStream>
+#include <QDebug>
+#include <QDir>
 #include <QElapsedTimer>
+#include <QFile>
+#include <QFileInfo>
+#include <QString>
+#include <QTemporaryDir>
+
+#include <kis_assert.h>
 
 #include "tiles3/swap/kis_lzf_compression.h"
 
-struct KRITAUI_NO_EXPORT KisFrameDataSerializer::Private
+struct KRITACANVAS_NO_EXPORT KisFrameDataSerializer::Private
 {
     Private(const QString &frameCachePath)
         : framesDir(
@@ -140,7 +149,7 @@ int KisFrameDataSerializer::saveFrame(const KisFrameDataSerializer::Frame &frame
     return frameId;
 }
 
-KisFrameDataSerializer::Frame KisFrameDataSerializer::loadFrame(int frameId, KisTextureTileInfoPoolSP pool)
+KisFrameDataSerializer::Frame KisFrameDataSerializer::loadFrame(int frameId, KisTileDataPoolSP pool)
 {
     KisLzfCompression compression;
 
@@ -219,19 +228,6 @@ KisFrameDataSerializer::Frame KisFrameDataSerializer::loadFrame(int frameId, Kis
     file.close();
 
     return frame;
-}
-
-void KisFrameDataSerializer::moveFrame(int srcFrameId, int dstFrameId)
-{
-    const QString srcFramePath = m_d->filePathForFrame(srcFrameId);
-    const QString dstFramePath = m_d->filePathForFrame(dstFrameId);
-    KIS_SAFE_ASSERT_RECOVER_RETURN(QFileInfo(srcFramePath).exists());
-
-    KIS_SAFE_ASSERT_RECOVER(!QFileInfo(dstFramePath).exists()) {
-        QFile::remove(dstFramePath);
-    }
-
-    QFile::rename(srcFramePath, dstFramePath);
 }
 
 bool KisFrameDataSerializer::hasFrame(int frameId) const

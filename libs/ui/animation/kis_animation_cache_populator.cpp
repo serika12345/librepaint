@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_animation_cache_populator.h"
+#include "animation/kis_animation_cache_populator.h"
 
 #include <functional>
 
@@ -19,7 +19,7 @@
 #include "kis_image_animation_interface.h"
 #include "kis_canvas2.h"
 #include "kis_time_span.h"
-#include "kis_animation_frame_cache.h"
+#include "animation/kis_animation_frame_cache.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_idle_watcher.h"
 #include "KisViewManager.h"

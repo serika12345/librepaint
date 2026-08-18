@@ -91,19 +91,22 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             header_directories=["libs/impex/animation", "libs/impex/ui"],
         )
         ui_by_path = {entry["path"]: entry for entry in ui_headers}
+        canvas_by_path = {entry["path"]: entry for entry in canvas_headers}
         image_by_path = {entry["path"]: entry for entry in image_headers}
         impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
 
-        self.assertEqual(len(canvas_headers), 12)
-        self.assertEqual(len(ui_headers), 253)
+        self.assertEqual(len(canvas_headers), 17)
+        self.assertEqual(len(ui_headers), 249)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(
-            ui_by_path["libs/ui/KisAbstractFrameCacheSwapper.h"],
+            canvas_by_path["libs/canvas/animation/kis_frame_cache_store.h"],
             {
-                "path": "libs/ui/KisAbstractFrameCacheSwapper.h",
-                "publicationEvidence": ["export-macro"],
-                "consumerPaths": [],
+                "path": "libs/canvas/animation/kis_frame_cache_store.h",
+                "publicationEvidence": ["export-macro", "external-include"],
+                "consumerPaths": [
+                    "libs/ui/animation/cache/KisFrameCacheSwapper.cpp"
+                ],
             },
         )
         self.assertEqual(
@@ -136,7 +139,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 92)
+        self.assertEqual(len(classes), 85)
         self.assertEqual(
             by_name["KisApplication"],
             {
@@ -237,7 +240,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
-        self.assertEqual(len(inventory["classes"]), 92)
+        self.assertEqual(len(inventory["classes"]), 85)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisApplication"]["responsibilityArea"],
@@ -258,7 +261,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             check_public_surface_inventory.PublicSurfaceError,
-            r"missing=\['FramesGluerBase'\]",
+            r"missing=\['KisAbstractPerspectiveGrid'\]",
         ):
             self.validate_ui_classes(inventory)
 
@@ -292,11 +295,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 for entry in inventory["publicHeaderSets"]
             },
             {
-                "kritacanvas": 12,
+                "kritacanvas": 17,
                 "kritaimage": 332,
                 "kritaimpex": 11,
                 "kritaimpexui": 23,
-                "kritaui": 253,
+                "kritaui": 249,
             },
         )
         self.assertEqual(

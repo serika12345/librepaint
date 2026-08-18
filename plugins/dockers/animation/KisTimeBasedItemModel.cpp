@@ -9,7 +9,7 @@
 #include <QPointer>
 #include <kis_config.h>
 
-#include "kis_animation_frame_cache.h"
+#include <animation/kis_animation_frame_cache.h>
 #include "KisCanvasAnimationState.h"
 #include "animation/KisFrameDisplayProxy.h"
 #include "kis_signal_compressor_with_param.h"
@@ -25,7 +25,6 @@
 #include "kis_command_utils.h"
 #include "KisPart.h"
 #include "KisPlaybackEngine.h"
-#include "kis_animation_cache_populator.h"
 
 struct KisTimeBasedItemModel::Private
 {

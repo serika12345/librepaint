@@ -9,7 +9,7 @@
 #include <simpletest.h>
 #include <testutil.h>
 
-#include "kis_animation_frame_cache.h"
+#include <animation/kis_animation_frame_cache.h>
 #include "kis_image_animation_interface.h"
 #include "opengl/kis_opengl_image_textures.h"
 #include "kis_time_span.h"
@@ -101,29 +101,11 @@ void KisAnimationFrameCacheTest::slotFrameGenerationFinished(int time)
 
 }
 
-#include <kis_animation_frame_cache_p.h>
+#include <animation/kis_animation_frame_cache_index.h>
 
 using MapType = QMap<int, int>;
 using DroppedFramesType = std::vector<int>;
 using MovedFramesType = std::vector<std::pair<int, int>>;
-
-
-struct TestingFramesGluer : FramesGluerBase
-{
-    TestingFramesGluer(QMap<int, int> &_frames) : FramesGluerBase(_frames) {}
-
-    DroppedFramesType droppedSwapFrames;
-    MovedFramesType movedSwapFrames;
-
-    void moveFrame(int oldStart, int newStart) override
-    {
-        movedSwapFrames.emplace_back(oldStart, newStart);
-    }
-    void forgetFrame(int start) override
-    {
-        droppedSwapFrames.emplace_back(start);
-    }
-};
 
 
 void KisAnimationFrameCacheTest::testFrameGlueing_data()
@@ -284,15 +266,20 @@ void KisAnimationFrameCacheTest::testFrameGlueing_data()
 
 void KisAnimationFrameCacheTest::testFrameGlueing()
 {
-    QMap<int, int> frames;
+    const QMap<int, int> originalFrames {
+        {0, 3},
+        {5, 3},
+        {8, 3},
+        {11, 3},
+        {16, -1},
+    };
 
-    frames.insert(0, 3);
-    frames.insert(5, 3);
-    frames.insert(8, 3);
-    frames.insert(11, 3);
-    frames.insert(16, -1);
-
-    const QMap<int, int> originalFrames = frames;
+    KisAnimationFrameCacheIndex index;
+    for (auto it = originalFrames.constBegin(); it != originalFrames.constEnd(); ++it) {
+        index.insert(it.value() == -1
+                         ? KisTimeSpan::infinite(it.key())
+                         : KisTimeSpan::fromTimeWithDuration(it.key(), it.value()));
+    }
 
     QFETCH(KisTimeSpan, glueRange);
     QFETCH(MapType, referenceFrames);
@@ -300,9 +287,24 @@ void KisAnimationFrameCacheTest::testFrameGlueing()
     QFETCH(DroppedFramesType, droppedSwapFrames);
     QFETCH(MovedFramesType, movedSwapFrames);
 
-    TestingFramesGluer gluer(frames);
+    const KisAnimationFrameCacheIndex::ChangeSet changes = index.glue(glueRange);
 
-    const bool result = gluer.glueFrames(glueRange);
+    QMap<int, int> frames;
+    const QList<QPair<int, int>> resultRanges =
+        index.rangesIntersecting(KisTimeSpan::infinite(0));
+    for (const QPair<int, int> &range : resultRanges) {
+        frames.insert(range.first, range.second);
+    }
+
+    DroppedFramesType actualDroppedFrames;
+    MovedFramesType actualMovedFrames;
+    for (const KisAnimationFrameCacheIndex::StorageOperation &operation : changes.storageOperations) {
+        if (operation.type == KisAnimationFrameCacheIndex::StorageOperation::Move) {
+            actualMovedFrames.emplace_back(operation.sourceFrameId, operation.destinationFrameId);
+        } else {
+            actualDroppedFrames.emplace_back(operation.sourceFrameId);
+        }
+    }
 
     if (frames != referenceFrames) {
         qDebug() << "=== FAILURE ===";
@@ -316,8 +318,8 @@ void KisAnimationFrameCacheTest::testFrameGlueing()
         QFAIL("unexpected frames after gluing");
     }
 
-    if (gluer.droppedSwapFrames != droppedSwapFrames ||
-        gluer.movedSwapFrames != movedSwapFrames) {
+    if (actualDroppedFrames != droppedSwapFrames ||
+        actualMovedFrames != movedSwapFrames) {
 
         qDebug() << "=== FAILURE (swapper callbacks) ===";
         qDebug() << ppVar(originalFrames);
@@ -326,15 +328,15 @@ void KisAnimationFrameCacheTest::testFrameGlueing()
         qDebug() << ppVar(frames);
         qDebug() << ppVar(referenceFrames);
         qDebug() << ppVar(droppedSwapFrames);
-        qDebug() << ppVar(gluer.droppedSwapFrames);
+        qDebug() << ppVar(actualDroppedFrames);
         qDebug() << ppVar(movedSwapFrames);
-        qDebug() << ppVar(gluer.movedSwapFrames);
+        qDebug() << ppVar(actualMovedFrames);
         qDebug() << "===================================";
 
         QFAIL("unexpected swapper callbacks");
     }
 
-    QCOMPARE(result, framesChanged);
+    QCOMPARE(changes.changed, framesChanged);
 }
 
 KISTEST_MAIN(KisAnimationFrameCacheTest)

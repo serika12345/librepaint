@@ -5,7 +5,7 @@
  */
 #include "KisOpenGLUpdateInfoBuilder.h"
 
-#include "opengl/kis_texture_tile_info_pool.h"
+#include <tiles/kis_tile_data_pool.h>
 
 #include "KisProofingConfiguration.h"
 
@@ -28,7 +28,7 @@ struct KRITAUI_NO_EXPORT KisOpenGLUpdateInfoBuilder::Private
     KisProofingConfigurationSP proofingConfig;
     QScopedPointer<KoColorConversionTransformation> proofingTransform;
 
-    KisTextureTileInfoPoolSP pool;
+    KisTileDataPoolSP pool;
     QReadWriteLock lock;
 };
 
@@ -233,14 +233,14 @@ void KisOpenGLUpdateInfoBuilder::setEffectiveTextureSize(const QSize &size)
     m_d->effectiveTextureSize = size;
 }
 
-void KisOpenGLUpdateInfoBuilder::setTextureInfoPool(KisTextureTileInfoPoolSP pool)
+void KisOpenGLUpdateInfoBuilder::setTileDataPool(KisTileDataPoolSP pool)
 {
     QWriteLocker lock(&m_d->lock);
 
     m_d->pool = pool;
 }
 
-KisTextureTileInfoPoolSP KisOpenGLUpdateInfoBuilder::textureInfoPool() const
+KisTileDataPoolSP KisOpenGLUpdateInfoBuilder::tileDataPool() const
 {
     QReadLocker lock(&m_d->lock);
     return m_d->pool;

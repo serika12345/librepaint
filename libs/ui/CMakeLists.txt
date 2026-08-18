@@ -159,7 +159,6 @@ set(kritaui_LIB_SRCS
     opengl/kis_opengl_image_textures.cpp
     opengl/kis_texture_tile.cpp
     opengl/kis_opengl_shader_loader.cpp
-    opengl/kis_texture_tile_info_pool.cpp
     opengl/kis_opengl_update_info.cpp
     opengl/KisOpenGLUpdateInfoBuilder.cpp
     opengl/KisOpenGLModeProber.cpp
@@ -457,8 +456,8 @@ endif()
 
     set(kritaui_LIB_SRCS
         ${kritaui_LIB_SRCS}
-        kis_animation_frame_cache.cpp
-        kis_animation_cache_populator.cpp
+        animation/kis_animation_frame_cache.cpp
+        animation/kis_animation_cache_populator.cpp
         KisAsyncAnimationRendererBase.cpp
         KisAsyncAnimationCacheRenderer.cpp
         KisAsyncAnimationFramesSavingRenderer.cpp
@@ -466,11 +465,9 @@ endif()
         dialogs/KisAsyncAnimationCacheRenderDialog.cpp
         dialogs/KisAsyncAnimationFramesSaveDialog.cpp
         canvas/KisCanvasAnimationState.cpp	
-        KisFrameDataSerializer.cpp
-        KisFrameCacheStore.cpp
-        KisFrameCacheSwapper.cpp
-        KisAbstractFrameCacheSwapper.cpp
-        KisInMemoryFrameCacheSwapper.cpp
+        animation/cache/KisFrameCacheSwapper.cpp
+        animation/cache/KisAbstractFrameCacheSwapper.cpp
+        animation/cache/KisInMemoryFrameCacheSwapper.cpp
 
         input/wintab/drawpile_tablettester/tablettester.cpp
         input/wintab/drawpile_tablettester/tablettest.cpp

@@ -6,13 +6,12 @@
 #ifndef KISFRAMEDATASERIALIZER_H
 #define KISFRAMEDATASERIALIZER_H
 
-#include "kritaui_export.h"
+#include <kritacanvas_export.h>
+#include <QRect>
 #include <QScopedPointer>
-#include "opengl/kis_texture_tile_info_pool.h"
+#include <tiles/kis_tile_data_buffer.h>
 
-// TODO: extract DataBuffer into a separate file
-#include "opengl/kis_texture_tile_update_info.h"
-
+#include <utility>
 #include <vector>
 #include <boost/optional.hpp>
 
@@ -30,12 +29,12 @@ class QString;
  * 2) Compress this data and save it on disk
  */
 
-class KRITAUI_EXPORT KisFrameDataSerializer
+class KRITACANVAS_EXPORT KisFrameDataSerializer
 {
 public:
     struct FrameTile
     {
-        FrameTile(KisTextureTileInfoPoolSP pool) : data(pool) {}
+        explicit FrameTile(KisTileDataPoolSP pool) : data(std::move(pool)) {}
 
         FrameTile(FrameTile &&rhs) = default;
         FrameTile& operator=(FrameTile &&rhs) = default;
@@ -62,9 +61,8 @@ public:
 
         int col = -1;
         int row = -1;
-        bool isCompressed = false;
         QRect rect;
-        DataBuffer data;
+        KisTileDataBuffer data;
     };
 
     struct Frame
@@ -100,9 +98,7 @@ public:
     ~KisFrameDataSerializer();
 
     int saveFrame(const Frame &frame);
-    Frame loadFrame(int frameId, KisTextureTileInfoPoolSP pool);
-
-    void moveFrame(int srcFrameId, int dstFrameId);
+    Frame loadFrame(int frameId, KisTileDataPoolSP pool);
 
     bool hasFrame(int frameId) const;
     void forgetFrame(int frameId);

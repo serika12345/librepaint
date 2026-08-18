@@ -181,10 +181,6 @@ typedef QVector<KisAnnotationSP> vKisAnnotationSP;
 typedef vKisAnnotationSP::iterator vKisAnnotationSP_it;
 typedef vKisAnnotationSP::const_iterator vKisAnnotationSP_cit;
 
-class KisAnimationFrameCache;
-typedef KisSharedPtr<KisAnimationFrameCache> KisAnimationFrameCacheSP;
-typedef KisWeakSharedPtr<KisAnimationFrameCache> KisAnimationFrameCacheWSP;
-
 class KisPaintingAssistant;
 typedef QSharedPointer<KisPaintingAssistant> KisPaintingAssistantSP;
 typedef QWeakPointer<KisPaintingAssistant> KisPaintingAssistantWSP;
@@ -345,4 +341,3 @@ enum class KisThumbnailBoundsMode {
 #include <kis_pinned_shared_ptr.h>
 
 #endif // KISTYPES_H_
-

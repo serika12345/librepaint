@@ -20,7 +20,7 @@
 #include "kis_canvas_resource_provider.h"
 #include "kis_config.h"
 #include "kis_debug.h"
-
+#include <QApplication>
 #include <QPainter>
 #include <QPainterPath>
 #include <QOpenGLPaintDevice>

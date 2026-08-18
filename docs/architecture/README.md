@@ -63,8 +63,8 @@
 所有元の外にある製品ソースから直接includeされるヘッダーの和集合を記録する。各集合は
 所有ターゲット、公開マクロ、対応プラットフォーム、全利用ソースを持つ。
 
-現在は`kritacanvas`の12件、`kritaimage`の332件、`kritaimpex`の11件、
-`kritaimpexui`の23件、`kritaui`の253件を全件記録し、
+現在は`kritacanvas`の17件、`kritaimage`の332件、`kritaimpex`の11件、
+`kritaimpexui`の23件、`kritaui`の249件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -224,7 +224,7 @@ Windows 229件であり、現在の非自明な強連結成分は両範囲、全
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
 宣言済み公開面へ移す対象として基準化する。`kritaimage`の29ヘッダー、593参照は公開
 ヘッダー構築契約へ移行して0件となった。`kritaimpex`と`kritaimpexui`も未宣言の
-パッケージ外参照が0件であり、現在は`kritaui`の9ヘッダー、24参照が残る。所有段階、理由、
+パッケージ外参照が0件であり、現在は`kritaui`の7ヘッダー、20参照が残る。所有段階、理由、
 除去条件、ヘッダー数と参照数の審査済み上限を保持し、増加と縮小可能な上限の両方を
 診断する。
 
@@ -311,7 +311,17 @@ UI側に保持する。汚れ領域の更新通知と、空の更新では直前
 `libs/ui/canvas/kis_display_color_converter.*`はこの変換本体を保持し、現在ノード、設定通知、
 前景色、画面パレットとの接続を担当する。UIをリンクしない色変換・色空間値契約と、
 UI設定反映契約が同じ結果と通知回数を検査する。旧値型ファイルと転送ヘッダーは存在しない。
-動画キャッシュは同じ段階の後続単位として残る。
+
+動画キャッシュの独立単位は、`libs/ui/kis_animation_frame_cache.*`、
+`libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameDataSerializer.*`、
+`libs/ui/KisFrameCacheStore.*`、`libs/ui/KisFrameCacheSwapper.*`を起点として分割した。
+フレーム範囲の判定と変更指示、差分保存、ディスク直列化、タイル転送バッファーは
+`libs/canvas/animation`と`libs/canvas/tiles`の`kritacanvas`が所有する。
+`libs/ui/animation`は現在画像と再生状態、生成時機、設定変更を調整し、
+`libs/ui/animation/cache`はOpenGL更新情報と保存値の変換を担当する。範囲管理、保存、
+直列化はUI型を参照せずに構築・検査できる。旧配置と転送ヘッダーは存在しない。
+`libs/ui/KisWidgetWithIdleTask.h`は表示部品として`libs/ui/canvas`へ移し、別ターゲットの
+ドッカーが利用する公開ヘッダーを構築契約で固定した。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
@@ -319,7 +329,7 @@ UI設定反映契約が同じ結果と通知回数を検査する。旧値型フ
 
 残る6の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
-9責務と5構成の現行ターゲット、3種類96件の逆方向依存、9ヘッダー24件の内部参照を
+9責務と5構成の現行ターゲット、3種類96件の逆方向依存、7ヘッダー20件の内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。
 
 責務の中心は次の五つです。

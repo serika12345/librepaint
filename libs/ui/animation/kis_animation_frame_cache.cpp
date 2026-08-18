@@ -4,10 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_animation_frame_cache.h"
-#include "kis_animation_frame_cache_p.h"
-
-#include <QMap>
+#include "animation/kis_animation_frame_cache.h"
 
 #include "kis_debug.h"
 
@@ -15,17 +12,18 @@
 #include "kis_image_animation_interface.h"
 #include "kis_time_span.h"
 #include "KisPart.h"
-#include "kis_animation_cache_populator.h"
+#include "animation/kis_animation_cache_populator.h"
 
-#include <KisAbstractFrameCacheSwapper.h>
-#include "KisFrameCacheSwapper.h"
-#include "KisInMemoryFrameCacheSwapper.h"
+#include "animation/cache/KisAbstractFrameCacheSwapper.h"
+#include "animation/cache/KisFrameCacheSwapper.h"
+#include "animation/cache/KisInMemoryFrameCacheSwapper.h"
 
 #include "kis_image_config.h"
 #include "kis_config_notifier.h"
 
 #include "opengl/kis_opengl_image_textures.h"
 
+#include <animation/kis_animation_frame_cache_index.h>
 #include <kis_algebra_2d.h>
 #include <cmath>
 
@@ -60,38 +58,15 @@ struct KisAnimationFrameCache::Private
         {}
     };
 
-    QMap<int, int> newFrames;
+    KisAnimationFrameCacheIndex frameIndex;
 
     int getFrameIdAtTime(int time) const
     {
-        if (newFrames.isEmpty()) return -1;
-
-        auto it = newFrames.upperBound(time);
-
-        if (it != newFrames.constBegin()) it--;
-
-        KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(it != newFrames.constEnd(), 0);
-        const int start = it.key();
-        const int length = it.value();
-
-        bool foundFrameValid = false;
-
-        if (length == -1) {
-            if (start <= time) {
-                foundFrameValid = true;
-            }
-        } else {
-            int end = start + length - 1;
-            if (start <= time && time <= end) {
-                foundFrameValid = true;
-            }
-        }
-
-        return foundFrameValid ? start : -1;
+        return frameIndex.frameIdAtTime(time);
     }
 
     bool hasFrame(int time) const {
-        return getFrameIdAtTime(time) >= 0;
+        return frameIndex.contains(time);
     }
 
     KisOpenGLUpdateInfoSP getFrame(int time)
@@ -102,11 +77,19 @@ struct KisAnimationFrameCache::Private
 
     void addFrame(KisOpenGLUpdateInfoSP info, const KisTimeSpan& range)
     {
-        invalidate(range);
-
-        const int length = range.isInfinite() ? -1 : range.end() - range.start() + 1;
-        newFrames.insert(range.start(), length);
+        applyStorageOperations(frameIndex.insert(range));
         swapper->saveFrame(range.start(), info, image->bounds());
+    }
+
+    void applyStorageOperations(const KisAnimationFrameCacheIndex::ChangeSet &changes)
+    {
+        for (const KisAnimationFrameCacheIndex::StorageOperation &operation : changes.storageOperations) {
+            if (operation.type == KisAnimationFrameCacheIndex::StorageOperation::Move) {
+                swapper->moveFrame(operation.sourceFrameId, operation.destinationFrameId);
+            } else {
+                swapper->forgetFrame(operation.sourceFrameId);
+            }
+        }
     }
 
     /**
@@ -116,51 +99,9 @@ struct KisAnimationFrameCache::Private
      */
     bool invalidate(const KisTimeSpan& range)
     {
-        if (newFrames.isEmpty()) return false;
-
-        bool cacheChanged = false;
-
-        auto it = newFrames.lowerBound(range.start());
-        if (it.key() != range.start() && it != newFrames.begin()) it--;
-
-        while (it != newFrames.end()) {
-            const int start = it.key();
-            const int length = it.value();
-            const bool frameIsInfinite = (length == -1);
-            const int end = start + length - 1;
-
-            if (start >= range.start()) {
-                if (!range.isInfinite() && start > range.end()) {
-                    break;
-                }
-
-                if (!range.isInfinite() && (frameIsInfinite || end > range.end())) {
-                    // Reinsert with a later start
-                    int newStart = range.end() + 1;
-                    int newLength = frameIsInfinite ? -1 : (end - newStart + 1);
-
-                    newFrames.insert(newStart, newLength);
-                    swapper->moveFrame(start, newStart);
-                } else {
-                    swapper->forgetFrame(start);
-                }
-
-                it = newFrames.erase(it);
-
-                cacheChanged = true;
-                continue;
-
-            } else if (frameIsInfinite || end >= range.start()) {
-                const int newEnd = range.start() - 1;
-                *it = newEnd - start + 1;
-
-                cacheChanged = true;
-            }
-
-            it++;
-        }
-
-        return cacheChanged;
+        const KisAnimationFrameCacheIndex::ChangeSet changes = frameIndex.invalidate(range);
+        applyStorageOperations(changes);
+        return changes.changed;
     }
 
     int effectiveLevelOfDetail(const QRect &rc) const {
@@ -242,13 +183,7 @@ bool KisAnimationFrameCache::uploadFrame(int time)
 
 bool KisAnimationFrameCache::shouldUploadNewFrame(int newTime, int oldTime) const
 {
-    if (oldTime < 0) return true;
-
-    const int oldKeyframeStart = m_d->getFrameIdAtTime(oldTime);
-    if (oldKeyframeStart < 0) return true;
-
-    const int oldKeyFrameLength = m_d->newFrames[oldKeyframeStart];
-    return !(newTime >= oldKeyframeStart && (newTime < oldKeyframeStart + oldKeyFrameLength || oldKeyFrameLength == -1));
+    return m_d->frameIndex.shouldUploadNewFrame(newTime, oldTime);
 }
 
 KisAnimationFrameCache::CacheStatus KisAnimationFrameCache::frameStatus(int time) const
@@ -256,102 +191,16 @@ KisAnimationFrameCache::CacheStatus KisAnimationFrameCache::frameStatus(int time
     return m_d->hasFrame(time) ? Cached : Uncached;
 }
 
-FramesGluerBase::~FramesGluerBase()
-{
-}
-
-bool FramesGluerBase::glueFrames(const KisTimeSpan &range) {
-    bool framesChanged = false;
-
-    if (frames.isEmpty()) return framesChanged;
-
-    // find the first element, which `end` is greater or equal to `range.start()`
-    auto it = frames.begin();
-    for (; it != frames.end(); ++it) {
-        if (it.key() + it.value() - 1 >= range.start()) {
-            break;
-        }
-    }
-
-    if (it != frames.end()) {
-        if (it.key() > range.start()) {
-            // Reinsert with an earilier start
-            const int oldStart = it.key();
-            const int newStart = range.start();
-            const int newLength = range.isInfinite() ? -1 : range.duration();
-
-            it = frames.erase(it);
-            it = frames.insert(newStart, newLength);
-            this->moveFrame(oldStart, newStart);
-            framesChanged = true;
-        }
-
-        if (range.isInfinite()) {
-            it.value() = -1;
-            framesChanged = true;
-        } else if (it.value() != -1 && it.key() + it.value() - 1 < range.end()) {
-            it.value() = range.end() - it.key() + 1;
-            framesChanged = true;
-        }
-
-        it = std::next(it);
-
-        while (it != frames.end()) {
-            if (range.isInfinite() || (it.value() != -1 && it.key() + it.value() - 1 <= range.end())) {
-                this->forgetFrame(it.key());
-                it = frames.erase(it);
-                framesChanged = true;
-            } else if (it.key() > range.end()) {
-                break;
-            } else if (it.value() == -1 || it.key() + it.value() - 1 > range.end()) {
-                // Reinsert with a later start
-                int oldStart = it.key();
-                int newStart = range.end() + 1;
-                int newLength = it.value() == -1 ? -1 : (it.key() + it.value() - 1 - newStart + 1);
-
-                frames.erase(it);
-                frames.insert(newStart, newLength);
-                this->moveFrame(oldStart, newStart);
-                framesChanged = true;
-                break;
-            } else {
-                KIS_SAFE_ASSERT_RECOVER_BREAK(0 && "we should never get here");
-            }
-        }
-    }
-
-    return framesChanged;
-}
-
 bool KisAnimationFrameCache::tryGlueSameFrames(const KisTimeSpan &range)
 {
-    struct FramesGluer : FramesGluerBase
-    {
-        KisAbstractFrameCacheSwapper *swapper {nullptr};
+    const KisAnimationFrameCacheIndex::ChangeSet changes = m_d->frameIndex.glue(range);
+    m_d->applyStorageOperations(changes);
 
-        FramesGluer(KisAbstractFrameCacheSwapper *_swapper, QMap<int, int> &_frames)
-            : FramesGluerBase(_frames)
-            , swapper(_swapper)
-        {}
-
-        void moveFrame(int oldStart, int newStart) override {
-            swapper->moveFrame(oldStart, newStart);
-        }
-
-        void forgetFrame(int start) override{
-            swapper->forgetFrame(start);
-        }
-    };
-
-    FramesGluer gluer(m_d->swapper.data(), m_d->newFrames);
-
-    const bool cacheChanged = gluer.glueFrames(range);
-
-    if (cacheChanged) {
+    if (changes.changed) {
         Q_EMIT changed();
     }
 
-    return cacheChanged;
+    return changes.changed;
 }
 
 KisImageWSP KisAnimationFrameCache::image()
@@ -374,7 +223,7 @@ void KisAnimationFrameCache::framesChanged(const KisTimeSpan &range, const QRect
 
 void KisAnimationFrameCache::slotConfigChanged()
 {
-    m_d->newFrames.clear();
+    m_d->frameIndex.clear();
 
     KisImageConfig cfg(true);
 
@@ -442,31 +291,17 @@ void KisAnimationFrameCache::addConvertedFrameData(KisOpenGLUpdateInfoSP info, i
 void KisAnimationFrameCache::dropLowQualityFrames(const KisTimeSpan &range, const QRect &regionOfInterest, const QRect &minimalRect)
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN(!range.isInfinite());
-    if (m_d->newFrames.isEmpty()) return;
+    if (m_d->frameIndex.isEmpty()) return;
 
-    auto it = m_d->newFrames.upperBound(range.start());
-
-    // the vector is guaranteed to be non-empty,
-    // so decrementing iterator is safe
-    if (it != m_d->newFrames.begin()) it--;
-
-    while (it != m_d->newFrames.end() && it.key() <= range.end()) {
-        const int frameId = it.key();
-        const int frameLength = it.value();
-
-        if (frameId + frameLength - 1 < range.start()) {
-            ++it;
-            continue;
-        }
-
+    const QList<QPair<int, int>> frames = m_d->frameIndex.rangesIntersecting(range);
+    for (const QPair<int, int> &frame : frames) {
+        const int frameId = frame.first;
         const QRect frameRect = m_d->swapper->frameDirtyRect(frameId);
         const int frameLod = m_d->swapper->frameLevelOfDetail(frameId);
 
         if (frameLod > m_d->effectiveLevelOfDetail(regionOfInterest) || !frameRect.contains(minimalRect)) {
             m_d->swapper->forgetFrame(frameId);
-            it = m_d->newFrames.erase(it);
-        } else {
-            ++it;
+            m_d->frameIndex.removeFrame(frameId);
         }
     }
 }
@@ -474,26 +309,16 @@ void KisAnimationFrameCache::dropLowQualityFrames(const KisTimeSpan &range, cons
 bool KisAnimationFrameCache::framesHaveValidRoi(const KisTimeSpan &range, const QRect &regionOfInterest)
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(!range.isInfinite(), false);
-    if (m_d->newFrames.isEmpty()) return false;
+    const QList<QPair<int, int>> frames = m_d->frameIndex.rangesIntersecting(range);
+    if (frames.isEmpty()) return false;
 
-    auto it = m_d->newFrames.upperBound(range.start());
+    int expectedNextTime = range.start();
+    for (const QPair<int, int> &frame : frames) {
+        const int frameId = frame.first;
+        const int frameLength = frame.second;
+        const int coveredStart = qMax(frameId, range.start());
 
-    if (it != m_d->newFrames.begin()) it--;
-
-    int expectedNextFrameStart = it.key();
-
-    while (it.key() <= range.end()) {
-        const int frameId = it.key();
-        const int frameLength = it.value();
-
-        if (frameId + frameLength - 1 < range.start()) {
-            expectedNextFrameStart = frameId + frameLength;
-            ++it;
-            continue;
-        }
-
-        if (expectedNextFrameStart != frameId) {
-            KIS_SAFE_ASSERT_RECOVER_NOOP(expectedNextFrameStart < frameId);
+        if (coveredStart != expectedNextTime) {
             return false;
         }
 
@@ -501,9 +326,12 @@ bool KisAnimationFrameCache::framesHaveValidRoi(const KisTimeSpan &range, const 
             return false;
         }
 
-        expectedNextFrameStart = frameId + frameLength;
-        ++it;
+        if (frameLength == -1 || frameId + frameLength - 1 >= range.end()) {
+            return true;
+        }
+
+        expectedNextTime = frameId + frameLength;
     }
 
-    return true;
+    return false;
 }

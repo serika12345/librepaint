@@ -43,7 +43,7 @@
 #include "KisAnimTimelineFramesModel.h"
 #include "KisAnimTimelineFramesView.h"
 #include "kis_time_span.h"
-#include "kis_animation_frame_cache.h"
+#include <animation/kis_animation_frame_cache.h>
 #include "kis_image_animation_interface.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_node_manager.h"

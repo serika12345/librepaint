@@ -18,6 +18,7 @@
 #include <KoCanvasBase.h>
 #include <kritaui_export.h>
 #include <kis_types.h>
+#include <animation/kis_animation_frame_cache_fwd.h>
 #include <KoPointerEvent.h>
 
 #include "opengl/kis_opengl.h"
