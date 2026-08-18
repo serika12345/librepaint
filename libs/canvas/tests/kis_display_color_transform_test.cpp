@@ -31,6 +31,14 @@ public:
     quint32 filteredPixelCount {0};
 };
 
+const KoColorSpace *standardColorSpace()
+{
+    return KoColorSpaceRegistry::instance()->colorSpace(
+        RGBAColorModelID.id(),
+        Integer8BitsColorDepthID.id(),
+        KoColorSpaceRegistry::instance()->p709SRGBProfile());
+}
+
 void configureTransform(KisDisplayColorTransform &transform)
 {
     const KoColorProfile *profile =
@@ -40,8 +48,8 @@ void configureTransform(KisDisplayColorTransform &transform)
         profile,
         KoColorConversionTransformation::internalRenderingIntent(),
         KoColorConversionTransformation::internalConversionFlags());
-    transform.setInputColorSpace(KoColorSpaceRegistry::instance()->rgb8());
-    transform.setPaintingColorSpace(KoColorSpaceRegistry::instance()->rgb8());
+    transform.setInputColorSpace(standardColorSpace());
+    transform.setPaintingColorSpace(standardColorSpace());
 }
 }
 
@@ -67,7 +75,7 @@ void KisDisplayColorTransformTest::testStandardDisplayConversionWithoutUi()
 {
     KisDisplayColorTransform transform;
     configureTransform(transform);
-    const KoColorSpace *colorSpace = KoColorSpaceRegistry::instance()->rgb8();
+    const KoColorSpace *colorSpace = standardColorSpace();
     const QColor expected(12, 34, 56, 78);
     const KoColor source(expected, colorSpace);
 
@@ -83,7 +91,7 @@ void KisDisplayColorTransformTest::testDisplayFilterParticipatesInConversion()
     auto filter = QSharedPointer<CountingDisplayColorFilter>::create();
     transform.setDisplayFilter(filter);
 
-    const KoColorSpace *colorSpace = KoColorSpaceRegistry::instance()->rgb8();
+    const KoColorSpace *colorSpace = standardColorSpace();
     const KoColor source(QColor(40, 80, 120, 255), colorSpace);
     const KoColor floatingPointResult =
         transform.applyDisplayFiltering(source, Float32BitsColorDepthID);
