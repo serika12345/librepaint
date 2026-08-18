@@ -1,5 +1,16 @@
 set(kritacanvas_LIB_SRCS
     kis_coordinates_converter.cpp
+    kis_image_patch.h
+    kis_image_patch.cpp
+    kis_prescaled_projection.h
+    kis_prescaled_projection.cpp
+    kis_projection_backend.h
+    kis_projection_backend.cpp
+    kis_projection_pixel_filter.h
+    kis_projection_update_info.h
+    kis_projection_update_info.cpp
+    kis_update_info.h
+    kis_update_info.cpp
     KisCanvasState.cpp
 )
 

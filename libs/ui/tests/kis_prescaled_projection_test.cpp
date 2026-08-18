@@ -5,6 +5,8 @@
  */
 
 #include "kis_prescaled_projection_test.h"
+#include <memory>
+
 #include <simpletest.h>
 #include <QCoreApplication>
 
@@ -28,8 +30,27 @@
 
 #include "canvas/kis_coordinates_converter.h"
 #include "canvas/kis_prescaled_projection.h"
+#include "canvas/kis_qpainter_projection_factory.h"
 
 #include "../../sdk/tests/testutil.h"
+
+namespace {
+QSize projectionUpdatePatchSize()
+{
+    return qPainterProjectionUpdatePatchSize();
+}
+
+std::unique_ptr<KisProjectionBackend> createProjectionBackend()
+{
+    return createQPainterProjectionBackend();
+}
+
+void applyDefaultDisplayConfig(KisPrescaledProjection &projection)
+{
+    const KisDisplayConfig config;
+    projection.setMonitorProfile(config.profile, config.intent, config.conversionFlags);
+}
+}
 
 bool KisPrescaledProjectionTest::testProjectionScenario(KisPrescaledProjection & projection,
         KoZoomHandler * viewConverter,
@@ -138,7 +159,8 @@ bool KisPrescaledProjectionTest::testProjectionScenario(KisPrescaledProjection &
 void KisPrescaledProjectionTest::testCreation()
 {
     KisPrescaledProjection * prescaledProjection = 0;
-    prescaledProjection = new KisPrescaledProjection();
+    prescaledProjection = new KisPrescaledProjection(createProjectionBackend(),
+                                                     projectionUpdatePatchSize());
     QVERIFY(prescaledProjection != 0);
     QVERIFY(prescaledProjection->prescaledQImage().isNull());
     delete prescaledProjection;
@@ -161,12 +183,12 @@ void KisPrescaledProjectionTest::testScalingUndeferredSmoothingPixelForPixel()
     image->addNode(layer.data(), image->rootLayer(), 0);
     layer->paintDevice()->convertFromQImage(qimage, 0);
 
-    KisPrescaledProjection projection;
+    KisPrescaledProjection projection(createProjectionBackend(), projectionUpdatePatchSize());
     KisCoordinatesConverter converter;
     
     converter.setImage(image);
     projection.setCoordinatesConverter(&converter);
-    projection.setDisplayConfig(KisDisplayConfig());
+    applyDefaultDisplayConfig(projection);
     projection.setImage(image);
 
     // pixel-for-pixel, at 100% zoom
@@ -194,12 +216,12 @@ void KisPrescaledProjectionTest::testScalingUndeferredSmoothing()
     image->addNode(layer.data(), image->rootLayer(), 0);
     layer->paintDevice()->convertFromQImage(qimage, 0);
 
-    KisPrescaledProjection projection;
+    KisPrescaledProjection projection(createProjectionBackend(), projectionUpdatePatchSize());
     KisCoordinatesConverter converter;
     
     converter.setImage(image);
     projection.setCoordinatesConverter(&converter);
-    projection.setDisplayConfig(KisDisplayConfig());
+    applyDefaultDisplayConfig(projection);
     projection.setImage(image);
 
     testProjectionScenario(projection, &converter, "120dpi");
@@ -224,12 +246,12 @@ void KisPrescaledProjectionTest::benchmarkUpdate()
 
     image->addNode(layer, image->rootLayer(), 0);
 
-    KisPrescaledProjection projection;
+    KisPrescaledProjection projection(createProjectionBackend(), projectionUpdatePatchSize());
 
     KisCoordinatesConverter converter;
     converter.setImage(image);
     projection.setCoordinatesConverter(&converter);
-    projection.setDisplayConfig(KisDisplayConfig());
+    applyDefaultDisplayConfig(projection);
     projection.setImage(image);
 
     // Emulate pixel size aspect canvas mapping
@@ -266,7 +288,9 @@ void KisPrescaledProjectionTest::benchmarkUpdate()
 class PrescaledProjectionTester
 {
 public:
-    PrescaledProjectionTester() {
+    PrescaledProjectionTester()
+        : projection(createProjectionBackend(), projectionUpdatePatchSize())
+    {
         sourceImage = QImage(QString(FILES_DATA_DIR) + '/' + "carrot.png");
 
         const KoColorSpace * cs = KoColorSpaceRegistry::instance()->rgb8();
@@ -285,7 +309,7 @@ public:
         converter.setDocumentOffset(QPoint(100,100));
 
         projection.setCoordinatesConverter(&converter);
-        projection.setDisplayConfig(KisDisplayConfig());
+        applyDefaultDisplayConfig(projection);
         projection.setImage(image);
         projection.notifyCanvasSizeChanged(QSize(100,100));
     }
@@ -459,5 +483,3 @@ void KisPrescaledProjectionTest::testQtScaling()
 }
 
 SIMPLE_TEST_MAIN(KisPrescaledProjectionTest)
-
-

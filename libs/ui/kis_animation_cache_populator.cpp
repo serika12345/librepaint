@@ -20,7 +20,6 @@
 #include "kis_canvas2.h"
 #include "kis_time_span.h"
 #include "kis_animation_frame_cache.h"
-#include "kis_update_info.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_idle_watcher.h"
 #include "KisViewManager.h"

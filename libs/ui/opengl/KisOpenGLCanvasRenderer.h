@@ -18,7 +18,7 @@
 #include "opengl/kis_opengl_image_textures.h"
 
 #include "kritaui_export.h"
-#include "kis_ui_types.h"
+#include <kis_update_info.h>
 #include "KisWraparoundAxis.h"
 
 class KisCanvas2;

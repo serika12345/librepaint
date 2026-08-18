@@ -88,8 +88,7 @@
           "consumerPaths": [
             "libs/ui/canvas/KoCanvasControllerWidget.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
-            "libs/ui/canvas/kis_canvas_controller.cpp",
-            "libs/ui/canvas/kis_prescaled_projection.cpp"
+            "libs/ui/canvas/kis_canvas_controller.cpp"
           ]
         },
         {
@@ -110,7 +109,6 @@
             "libs/ui/canvas/kis_grid_manager.cpp",
             "libs/ui/canvas/kis_guides_decoration.cpp",
             "libs/ui/canvas/kis_guides_manager.cpp",
-            "libs/ui/canvas/kis_prescaled_projection.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
             "libs/ui/input/kis_tool_invocation_action.cpp",
             "libs/ui/kis_fps_decoration.cpp",
@@ -145,6 +143,75 @@
             "plugins/tools/tool_transform2/kis_simplified_action_policy_strategy.cpp",
             "plugins/tools/tool_transform2/kis_transform_utils.h",
             "plugins/tools/tool_transform2/kis_warp_transform_strategy.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/kis_image_patch.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/widgets/kis_scratch_pad.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/kis_prescaled_projection.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_canvas2.cpp",
+            "libs/ui/canvas/kis_qpainter_canvas.cpp",
+            "libs/ui/canvas/kis_qpainter_canvas.h"
+          ]
+        },
+        {
+          "path": "libs/canvas/kis_projection_backend.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_image_pyramid.h",
+            "libs/ui/canvas/kis_qpainter_projection_factory.h"
+          ]
+        },
+        {
+          "path": "libs/canvas/kis_projection_pixel_filter.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_display_filter.h",
+            "libs/ui/canvas/kis_image_pyramid.h"
+          ]
+        },
+        {
+          "path": "libs/canvas/kis_projection_update_info.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_qpainter_canvas.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/kis_update_info.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_abstract_canvas_widget.h",
+            "libs/ui/canvas/kis_canvas_updates_compressor.h",
+            "libs/ui/canvas/kis_canvas_widget_base.cpp",
+            "libs/ui/opengl/KisOpenGLCanvasRenderer.h",
+            "libs/ui/opengl/kis_opengl_canvas2.h",
+            "libs/ui/opengl/kis_opengl_update_info.h"
           ]
         }
       ]
@@ -3195,6 +3262,7 @@
             "libs/brush/kis_brush.cpp",
             "libs/brush/kis_gbr_brush.cpp",
             "libs/canvas/kis_coordinates_converter.cpp",
+            "libs/canvas/kis_prescaled_projection.cpp",
             "libs/impex/AnimationCheck.h",
             "libs/impex/CheckImageSize.h",
             "libs/impex/ColorModelCheck.h",
@@ -3270,7 +3338,6 @@
             "libs/ui/canvas/kis_image_pyramid.h",
             "libs/ui/canvas/kis_infinity_manager.cpp",
             "libs/ui/canvas/kis_mirror_axis.cpp",
-            "libs/ui/canvas/kis_prescaled_projection.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
             "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp",
@@ -3596,7 +3663,7 @@
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_image_pyramid.cpp",
-            "libs/ui/canvas/kis_prescaled_projection.cpp",
+            "libs/ui/canvas/kis_qpainter_projection_factory.cpp",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
             "libs/ui/dialogs/kis_dlg_image_properties.cc",
             "libs/ui/dialogs/kis_dlg_preferences.cc",
@@ -5989,6 +6056,9 @@
             "libs/brush/kis_brush_registry.h",
             "libs/brush/kis_gbr_brush.h",
             "libs/canvas/kis_coordinates_converter.h",
+            "libs/canvas/kis_image_patch.h",
+            "libs/canvas/kis_prescaled_projection.h",
+            "libs/canvas/kis_projection_backend.h",
             "libs/impex/KisExportCheckBase.h",
             "libs/impex/KisImportExportFilter.h",
             "libs/impex/KisPreExportChecker.h",
@@ -6058,8 +6128,6 @@
             "libs/ui/canvas/kis_canvas_controller.h",
             "libs/ui/canvas/kis_display_color_converter.h",
             "libs/ui/canvas/kis_grid_manager.h",
-            "libs/ui/canvas/kis_image_patch.h",
-            "libs/ui/canvas/kis_prescaled_projection.h",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.h",
             "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.h",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.h",
@@ -6487,6 +6555,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/canvas/kis_prescaled_projection.cpp",
             "libs/libkis/Filter.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
@@ -6495,7 +6564,6 @@
             "libs/ui/KisReferenceImage.cpp",
             "libs/ui/KisView.cpp",
             "libs/ui/canvas/kis_canvas_controller.cpp",
-            "libs/ui/canvas/kis_prescaled_projection.cpp",
             "libs/ui/flake/kis_shape_layer_canvas.cpp",
             "libs/ui/input/kis_gamma_exposure_action.cpp",
             "libs/ui/kis_filter_manager.cc",
@@ -8679,7 +8747,7 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/canvas/kis_prescaled_projection.h",
+          "path": "libs/ui/canvas/kis_qpainter_projection_factory.h",
           "publicationEvidence": [
             "export-macro"
           ],
@@ -8694,13 +8762,6 @@
           "consumerPaths": [
             "plugins/dockers/recorder/recorder_writer.cpp"
           ]
-        },
-        {
-          "path": "libs/ui/canvas/kis_update_info.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.h",
@@ -9777,6 +9838,13 @@
         },
         {
           "path": "libs/ui/opengl/kis_opengl_image_textures.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/opengl/kis_opengl_update_info.h",
           "publicationEvidence": [
             "export-macro"
           ],

@@ -22,7 +22,6 @@
 
 #include "opengl/kis_opengl.h"
 
-#include "kis_ui_types.h"
 #include "kis_coordinates_converter.h"
 #include "kis_canvas_decoration.h"
 #include "kis_painting_assistants_decoration.h"

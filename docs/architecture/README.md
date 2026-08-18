@@ -63,7 +63,7 @@
 所有元の外にある製品ソースから直接includeされるヘッダーの和集合を記録する。各集合は
 所有ターゲット、公開マクロ、対応プラットフォーム、全利用ソースを持つ。
 
-現在は`kritacanvas`の2件、`kritaimage`の332件、`kritaimpex`の11件、
+現在は`kritacanvas`の8件、`kritaimage`の332件、`kritaimpex`の11件、
 `kritaimpexui`の23件、`kritaui`の255件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
@@ -292,8 +292,17 @@ R1-G6dの最初の独立単位は、`libs/ui/canvas/kis_coordinates_converter.*`
 `libs/canvas`の`kritacanvas`が所有し、`kritaui`は表示設定を明示的に渡して利用する。
 座標変換器は構築元の画像を保持せず、構築時に取り込んだ幾何情報と変換結果を画像の
 解放後も利用できる。旧配置と転送ヘッダーは存在せず、利用元と試験は新しい所有先を
-直接参照する。投影更新、最終有効フレーム、表示色変換、動画キャッシュは同じ段階の
-後続単位として残る。
+直接参照する。
+
+同段階の次の独立単位は、`libs/ui/canvas/kis_prescaled_projection.*`を起点として分割した。
+表示用画像片、投影更新情報、投影取得接続面、拡大縮小済みフレームは`libs/canvas`の
+`kritacanvas`が所有する。更新処理は画面設定やUI固有の表示フィルターを直接取得せず、
+呼出し側が更新片の寸法、画面プロファイル、変換方法、画素フィルターを渡す。
+`libs/ui/canvas/kis_qpainter_projection_factory.*`はUI設定と具体的な画像投影実装を
+この接続面へ結び、`libs/ui/opengl/kis_opengl_update_info.*`はOpenGL固有の更新情報を
+UI側に保持する。汚れ領域の更新通知と、空の更新では直前の有効フレームを保持する契約を
+`libs/canvas/tests/kis_prescaled_projection_contract_test.*`が検査する。旧配置と転送
+ヘッダーは存在しない。表示色変換と動画キャッシュは同じ段階の後続単位として残る。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

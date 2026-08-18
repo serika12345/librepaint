@@ -17,8 +17,7 @@
 #include "KoColorSpace.h"
 #include "KisLockFrameGenerationLock.h"
 
-// TODO: conversion options into a separate file!
-#include "kis_update_info.h"
+#include "opengl/kis_opengl_update_info.h"
 
 #include "opengl/kis_texture_tile_update_info.h"
 

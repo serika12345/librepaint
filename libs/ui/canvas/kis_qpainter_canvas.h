@@ -10,7 +10,7 @@
 #include <QWidget>
 
 #include "kis_canvas_widget_base.h"
-#include "kis_ui_types.h"
+#include <kis_prescaled_projection.h>
 
 class QPaintEvent;
 class KisCanvas2;

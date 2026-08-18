@@ -3037,6 +3037,15 @@
       ]
     },
     {
+      "name": "kis_prescaled_projection_contract_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/canvas/tests",
+      "dependencies": [
+        "kritacanvas",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "kis_prescaled_projection_test",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",

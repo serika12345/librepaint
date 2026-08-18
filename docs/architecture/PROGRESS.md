@@ -2,14 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 00:11 JST
+- 更新日時: 2026-08-18 10:45 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6dキャンバス座標境界
+- 現在の検査段階: R1-G6d投影更新境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6d-canvas-boundary`
-- 目的: `libs/ui/canvas/kis_coordinates_converter.*`と
-  `libs/ui/canvas/KisCanvasState.*`を起点として、座標変換と画面状態を独立所有させ、
-  UI共有パッケージからキャンバス表示責務を段階的に分離する。
+- ブランチ: `r1-g6d-projection-boundary`
+- 目的: `libs/ui/canvas/kis_prescaled_projection.*`を起点として、投影フレームの生成と
+  更新契約を独立所有させ、UI設定、具体的な画像投影実装、OpenGL更新情報から分離する。
 
 ## 再開環境
 
@@ -344,6 +343,26 @@
 - この単位では投影更新、色変換、動画キャッシュおよび長期構造ビジョンの専用移行を
   開始していない。長期構造の専用移行は保守責任者の明示的な判断を開始条件とする。
 
+## 投影更新境界で完了した作業
+
+- `libs/ui/canvas/kis_prescaled_projection.*`を起点として、表示用画像片、投影更新情報、
+  投影取得接続面、拡大縮小済みフレームを`libs/canvas`へ移し、`kritacanvas`が所有する
+  公開面を8ヘッダーへ拡張した。旧配置、転送ヘッダー、型別名だけを集めたヘッダーは
+  残していない。
+- 投影フレーム生成からUI設定の読取りと具体的な表示フィルター型を除き、呼出し側が
+  更新片の寸法、画面プロファイル、色変換方法、画素フィルターを明示的に渡す構成にした。
+  `libs/ui/canvas/kis_qpainter_projection_factory.*`がUI設定と具体的な画像投影実装を
+  キャンバス所有の接続面へ結ぶ。
+- 共通の更新情報は`libs/canvas/kis_update_info.*`が所有し、QPainter投影向けの更新情報を
+  `libs/canvas/kis_projection_update_info.*`、OpenGL固有のタイル更新情報を
+  `libs/ui/opengl/kis_opengl_update_info.*`へ分けた。キャンバス側はOpenGLタイル型を
+  参照しない。
+- `libs/canvas/tests/kis_prescaled_projection_contract_test.*`が、画像の汚れ領域を投影更新へ
+  通知すること、画像外の空更新では直前の有効フレームを保持することを、UIライブラリーを
+  リンクせずに検査する。
+- 構造検査が新しい所有先、旧配置の不在、UI設定、表示型、OpenGLタイル型、文書型への
+  逆方向includeの不在を継続確認する。表示色変換と動画キャッシュは後続の独立単位とする。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -458,13 +477,35 @@
   責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: キャンバス座標境界分離後の
   全Nix出力の評価が成功した。
+- `nix develop --no-eval-cache .#test --command ./scripts/run-test kis_prescaled_projection_contract_test`:
+  macOSで汚れ領域通知と最終有効フレーム保持の2契約が成功した。
+- `nix develop --no-eval-cache .#test --command ./scripts/run-test kis_prescaled_projection_test`:
+  既存の拡大縮小、移動、回転、更新契約がmacOSで成功した。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify`: macOSの全製品と全試験の
+  構築・リンクが成功し、CTest 322件中287件が成功した。追加した投影更新契約は成功し、
+  残る35件は直前の36件から増加していない。
+- `nix develop --no-eval-cache .#test --command ./scripts/build-incremental ios build --allow-large`:
+  iOSの`libkritacanvas.a`と`LibrePaint.app/LibrePaint`のリンクが成功した。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 94件の単体試験、
+  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 投影更新境界分離後の全Nix出力の
+  評価が成功した。
+- x86_64 Linuxで`libkritacanvas.so`と`libkritaui.so`のリンク、および
+  `libs-canvas-kis_prescaled_projection_contract_test`の2契約が成功した。
+- Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
+  Windows x86_64で`libkritacanvas.dll`と`libkritaui.dll`のリンクが成功した。
+- 5構成のCMake台帳を再生成した。macOS 640件、Linux 655件、iOS 574件、Android 580件、
+  Windows 610件のターゲット、558件の共通ターゲット、119件の条件付きターゲット、
+  257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
+  5構成すべてで循環0件を維持する。
 
 ## 次の操作
 
-R1-G6dの次の独立単位では`libs/ui/canvas/kis_prescaled_projection.*`を起点として、
-投影更新通知と最終有効フレームの契約を固定し、投影表示の所有範囲と依存先を確定する。
-その後に表示色変換と動画キャッシュを別々の検証単位として扱う。R1-G6d全体の完了判定は、
-キャンバス所有の8件のUI内部参照と、キャンバス表示から文書寿命への73件の逆方向includeを
+R1-G6dの次の独立単位では`libs/ui/KisOcioConfiguration.*`、
+`libs/ui/KisSurfaceColorSpaceWrapper.h`、`libs/ui/canvas/kis_display_color_converter.*`を
+起点として、表示色の入力、変換、画面側への反映を特性試験で固定し、色表示の所有範囲と
+I/O境界を確定する。その後に動画キャッシュを独立した検証単位として扱う。R1-G6d全体の
+完了判定は、キャンバス所有のUI内部参照と、キャンバス表示から文書寿命への逆方向includeを
 解消した時点で行う。UIから利用事例を登録・呼出しする専用移行は、この完了後に
 保守責任者が明示的に開始を決定する。
 

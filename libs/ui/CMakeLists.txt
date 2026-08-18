@@ -30,11 +30,8 @@ set(kritaui_LIB_SRCS
     canvas/kis_grid_manager.cpp
     canvas/kis_grid_decoration.cpp
     canvas/kis_grid_config.cpp
-    canvas/kis_prescaled_projection.cpp
     canvas/kis_qpainter_canvas.cpp
-    canvas/kis_projection_backend.cpp
-    canvas/kis_update_info.cpp
-    canvas/kis_image_patch.cpp
+    canvas/kis_qpainter_projection_factory.cpp
     canvas/kis_image_pyramid.cpp
     canvas/kis_infinity_manager.cpp
     canvas/kis_change_guides_command.cpp
@@ -164,6 +161,7 @@ set(kritaui_LIB_SRCS
     opengl/kis_texture_tile.cpp
     opengl/kis_opengl_shader_loader.cpp
     opengl/kis_texture_tile_info_pool.cpp
+    opengl/kis_opengl_update_info.cpp
     opengl/KisOpenGLUpdateInfoBuilder.cpp
     opengl/KisOpenGLModeProber.cpp
     opengl/KisScreenInformationAdapter.cpp

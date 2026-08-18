@@ -91,6 +91,7 @@
           "libs/canvas",
           "libs/flake",
           "libs/ui/canvas",
+          "libs/ui/opengl",
           "plugins/dockers"
         ],
         "cmakeTargets": [
