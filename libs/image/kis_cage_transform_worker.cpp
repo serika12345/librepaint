@@ -333,6 +333,10 @@ void KisCageTransformWorker::run(KisPaintDeviceSP srcDevice, KisPaintDeviceSP ds
     KIS_SAFE_ASSERT_RECOVER_RETURN(m_d->origCage.size() == m_d->transfCage.size());
     KIS_SAFE_ASSERT_RECOVER_RETURN(*srcDevice->colorSpace() == *dstDevice->colorSpace());
 
+    if (m_d->origCage == m_d->transfCage) {
+        return;
+    }
+
     QVector<QPointF> transformedPoints = m_d->calculateTransformedPoints();
 
     KisPaintDeviceSP tempDevice = new KisPaintDevice(dstDevice->colorSpace());
@@ -379,6 +383,11 @@ QImage KisCageTransformWorker::runOnQImage(QPointF *newOffset)
 
     KIS_ASSERT_RECOVER(m_d->srcImage.format() == QImage::Format_ARGB32) {
         return QImage();
+    }
+
+    if (m_d->origCage == m_d->transfCage) {
+        *newOffset = m_d->srcImageOffset;
+        return m_d->srcImage;
     }
 
     QVector<QPointF> transformedPoints = m_d->calculateTransformedPoints();
@@ -428,4 +437,3 @@ QImage KisCageTransformWorker::runOnQImage(QPointF *newOffset)
 
     return dstImage;
 }
-

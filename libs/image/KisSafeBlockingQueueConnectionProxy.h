@@ -14,7 +14,7 @@
 #include "kritaimage_export.h"
 
 namespace KisSafeBlockingQueueConnectionProxyPrivate {
-void KRITAIMAGE_EXPORT passBlockingSignalSafely(FunctionToSignalProxy &source, SignalToFunctionProxy &destination);
+void KRITAIMAGE_EXPORT passBlockingSignalSafely(SignalToFunctionProxy &destination);
 void KRITAIMAGE_EXPORT initProxyObject(QObject *object);
 }
 
@@ -47,17 +47,14 @@ public:
         : m_function(function),
           m_destination(std::bind(&KisSafeBlockingQueueConnectionProxy::fakeSlotTimeout, this))
     {
-        KisSafeBlockingQueueConnectionProxyPrivate::initProxyObject(&m_source);
         KisSafeBlockingQueueConnectionProxyPrivate::initProxyObject(&m_destination);
-
-        QObject::connect(&m_source, SIGNAL(timeout()), &m_destination, SLOT(start()), Qt::BlockingQueuedConnection);
     }
 
     void start(T value) {
         const int sanityQueueSize = m_value.size();
 
         m_value.enqueue(value);
-        KisSafeBlockingQueueConnectionProxyPrivate::passBlockingSignalSafely(m_source, m_destination);
+        KisSafeBlockingQueueConnectionProxyPrivate::passBlockingSignalSafely(m_destination);
 
         KIS_SAFE_ASSERT_RECOVER_NOOP(m_value.size() == sanityQueueSize);
     }
@@ -70,7 +67,6 @@ private:
 
 private:
     CallbackFunction m_function;
-    FunctionToSignalProxy m_source;
     SignalToFunctionProxy m_destination;
     QQueue<T> m_value;
 };
@@ -88,14 +84,11 @@ public:
         : m_function(function),
           m_destination(std::bind(&KisSafeBlockingQueueConnectionProxy::fakeSlotTimeout, this))
     {
-        KisSafeBlockingQueueConnectionProxyPrivate::initProxyObject(&m_source);
         KisSafeBlockingQueueConnectionProxyPrivate::initProxyObject(&m_destination);
-
-        QObject::connect(&m_source, SIGNAL(timeout()), &m_destination, SLOT(start()), Qt::BlockingQueuedConnection);
     }
 
     void start() {
-        KisSafeBlockingQueueConnectionProxyPrivate::passBlockingSignalSafely(m_source, m_destination);
+        KisSafeBlockingQueueConnectionProxyPrivate::passBlockingSignalSafely(m_destination);
     }
 
 private:
@@ -105,7 +98,6 @@ private:
 
 private:
     CallbackFunction m_function;
-    FunctionToSignalProxy m_source;
     SignalToFunctionProxy m_destination;
 };
 

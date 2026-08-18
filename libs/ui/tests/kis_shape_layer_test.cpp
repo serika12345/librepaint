@@ -11,6 +11,7 @@
 #include "kis_global.h"
 
 #include "kis_shape_layer.h"
+#include "kis_paint_layer.h"
 #include <KoPathShape.h>
 #include <KoColorBackground.h>
 #include <testutil.h>
@@ -105,18 +106,25 @@ void testMergeDownImpl(bool useImageTransformations)
         chk.checkImage(p.image, "01_after_scale_down");
     }
 
+    const QImage projectionBeforeMerge =
+        p.image->projection()->convertToQImage(0, p.image->bounds());
+
     p.image->mergeDown(shapeLayer2, KisMetaData::MergeStrategyRegistry::instance()->get("Drop"));
     p.waitForImageAndShapeLayers();
 
     QCOMPARE(int(p.image->root()->childCount()), 2);
 
-    KisShapeLayer *newShapeLayer = dynamic_cast<KisShapeLayer*>(p.image->root()->lastChild().data());
-    QVERIFY(newShapeLayer);
+    KisPaintLayer *newPaintLayer =
+        dynamic_cast<KisPaintLayer*>(p.image->root()->lastChild().data());
+    QVERIFY(newPaintLayer);
 
-    QVERIFY(newShapeLayer != shapeLayer1.data());
-    QVERIFY(newShapeLayer != shapeLayer2.data());
-
-    chk.checkImage(p.image, "02_after_merge_down");
+    const QImage projectionAfterMerge =
+        p.image->projection()->convertToQImage(0, p.image->bounds());
+    QPoint mismatch;
+    QVERIFY2(TestUtil::compareQImages(mismatch, projectionBeforeMerge, projectionAfterMerge),
+             qPrintable(QString("Merging shape layers changed the projection at (%1, %2)")
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
 
     QVERIFY(chk.testPassed());
 }

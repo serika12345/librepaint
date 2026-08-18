@@ -107,11 +107,22 @@ void testCage(bool clockwise, bool unityTransform, bool benchmarkPrepareOnly = f
         .arg(unityTransform ? "unity" : "normal");
 
     if (testQImage) {
-        QVERIFY(TestUtil::checkQImage(result, "cage_transform_test", "cage_qimage", testName, 1, 1));
+        if (unityTransform) {
+            QPoint mismatch;
+            QCOMPARE(dstQImageOffset, srcQImageOffset);
+            QVERIFY(TestUtil::compareQImages(mismatch, result, image));
+        } else {
+            QVERIFY(TestUtil::checkQImage(result, "cage_transform_test", "cage_qimage", testName, 1, 1));
+        }
     } else if (!benchmarkPrepareOnly && pixelPrecision == 8) {
 
         result = dev->convertToQImage(0);
-        QVERIFY(TestUtil::checkQImage(result, "cage_transform_test", "cage", testName, 1, 1));
+        if (unityTransform) {
+            QPoint mismatch;
+            QVERIFY(TestUtil::compareQImages(mismatch, result, image));
+        } else {
+            QVERIFY(TestUtil::checkQImage(result, "cage_transform_test", "cage", testName, 1, 1));
+        }
     }
 }
 
@@ -133,6 +144,11 @@ void KisCageTransformWorkerTest::testCageClockwisePixelPrecision4()
 void KisCageTransformWorkerTest::testCageClockwisePixelPrecision8QImage()
 {
     testCage(true, false, false, 8, true);
+}
+
+void KisCageTransformWorkerTest::testCageClockwiseUnityQImage()
+{
+    testCage(true, true, false, 8, true);
 }
 
 void KisCageTransformWorkerTest::testCageCounterclockwise()

@@ -12,6 +12,7 @@
 #include <KoColorConversionSystem.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
+#include <KoColorProfileQuery.h>
 #include <KoColorSpaceRegistry.h>
 #include <testpigment.h>
 
@@ -506,7 +507,15 @@ void TestColorConversionSystem::testRec2020PQConnectionPaths_data()
     };
 
     addPQTests("pq", KoColorSpaceRegistry::instance()->p2020PQProfile()->name());
-    addPQTests("pq_180nit", "Krita Rec. 2100 Perceptual Quantizer 180nits");
+
+    KoColorProfileQuery query(PRIMARIES_ITU_R_BT_2020_2_AND_2100_0,
+                              TRC_ITU_R_BT_2100_0_PQ,
+                              180.0);
+    const KoColorProfile *additionalProfile =
+        KoColorSpaceRegistry::instance()->profileForInternal(query, true);
+    QVERIFY(additionalProfile);
+    addPQTests("pq_180nit", additionalProfile->name());
+
     addPQTests("pq_legacy", "High Dynamic Range UHDTV Wide Color Gamut Display (Rec. 2020) - SMPTE ST 2084 PQ EOTF");
 }
 
@@ -530,13 +539,9 @@ void TestColorConversionSystem::testRec2020PQConnectionPaths()
         }
     };
 
-    const QString additionalProfileName = "Krita Rec. 2100 Perceptual Quantizer 180nits";
-    const QString additionalProfileFileName = "rec2020pq-crwl-180nits-cicp.icc";
-
     const QString legacyProfileName = "High Dynamic Range UHDTV Wide Color Gamut Display (Rec. 2020) - SMPTE ST 2084 PQ EOTF";
     const QString legacyProfileFileName = "ITUR_2100_PQ_FULL.ICC";
 
-    loadExternalProfile(additionalProfileName, additionalProfileFileName);
     loadExternalProfile(legacyProfileName, legacyProfileFileName);
 
     QCOMPARE(calcPath(expectedPath, false), expectedPath);

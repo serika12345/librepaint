@@ -22,6 +22,7 @@ endif()
 
 set(kritatiffimport_SOURCES
     kis_tiff_import.cc
+    kis_tiff_jpeg_buffer.cpp
     kis_buffer_stream.cc
 )
 

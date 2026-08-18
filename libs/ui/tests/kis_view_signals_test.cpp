@@ -16,6 +16,7 @@
 #include <KisPart.h>
 #include <KisView.h>
 #include <KisViewManager.h>
+#include <opengl/kis_opengl.h>
 
 #include <KoInteractionTool.h>
 #include <KoToolManager.h>
@@ -32,6 +33,7 @@
 void KisViewSignalsTest::initTestCase()
 {
     Q_INIT_RESOURCE(krita);
+    KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
 
     m_document = createEmptyDocument();
     QVERIFY(m_document);
@@ -64,15 +66,8 @@ void KisViewSignalsTest::cleanupTestCase()
     delete m_view;
     m_view = nullptr;
 
-    if (m_kisView) {
-        m_kisView->setViewManager(nullptr);
-        m_kisView->closeView();
-        QApplication::sendPostedEvents();
-        QApplication::processEvents();
-        m_kisView = nullptr;
-    }
-
     m_viewManager = nullptr;
+    m_kisView = nullptr;
 
     if (m_mainWindow) {
         m_mainWindow->hide();

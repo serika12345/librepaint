@@ -102,7 +102,7 @@ void KisBusyWaitBroker::setFeedbackCallback(std::function<void (KisImageSP)> cal
 
 bool KisBusyWaitBroker::guiThreadIsWaitingForBetterWeather() const
 {
+    QMutexLocker l(&m_d->lock);
     return m_d->guiThreadLockCount;
 }
-
 

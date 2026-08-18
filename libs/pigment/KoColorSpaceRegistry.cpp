@@ -712,7 +712,7 @@ const KoColorProfile *KoColorSpaceRegistry::p2020G10Profile() const
 
 const KoColorProfile *KoColorSpaceRegistry::p2020PQProfile() const
 {
-    return profileByName("Krita Rec. 2100 Perceptual Quantizer (203cd/m²)");
+    return d->profileStorage.profilesFor(KoColorProfileQuery(PRIMARIES_ITU_R_BT_2020_2_AND_2100_0, TRC_ITU_R_BT_2100_0_PQ, 203.0)).value(0);
 }
 
 const KoColorProfile *KoColorSpaceRegistry::p709G10Profile() const

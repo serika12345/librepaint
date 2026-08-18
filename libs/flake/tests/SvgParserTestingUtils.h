@@ -13,11 +13,13 @@
 #include <KoViewConverter.h>
 #include <KoDocumentResourceManager.h>
 #include <KoShape.h>
+#include <KoShapeFillWrapper.h>
 #include <KoShapeGroup.h>
 #include <QPainter>
 #include <KoShapePainter.h>
 
 #include "kis_algebra_2d.h"
+#include "SvgMeshGradient.h"
 
 #include <QXmlSimpleReader>
 
@@ -116,11 +118,40 @@ struct SvgRenderTester : public SvgTester
         m_fuzzyThreshold = fuzzyThreshold;
     }
 
+    void setFuzzyAlphaThreshold(int fuzzyAlphaThreshold) {
+        m_fuzzyAlphaThreshold = fuzzyAlphaThreshold;
+    }
+
     void setCheckQImagePremultiplied(bool value) {
         m_checkQImagePremultiplied = value;
     }
 
-    static void testRender(KoShape *shape, const QString &prefix, const QString &testName, const QSize canvasSize, qreal dpi, int fuzzyThreshold = 0, bool checkQImagePremultiplied = false) {
+    void verifyMeshGradient(SvgMeshGradient::Shading shading,
+                            KoFlake::CoordinateSystem units)
+    {
+        KoShape *shape = findShape("testRect");
+        QVERIFY(shape);
+
+        KoShapeFillWrapper fill(shape, KoFlake::Fill);
+        QCOMPARE(fill.type(), KoFlake::MeshGradient);
+
+        const SvgMeshGradient *gradient = fill.meshgradient();
+        QVERIFY(gradient);
+        QVERIFY(gradient->isValid());
+        QCOMPARE(gradient->type(), shading);
+        QCOMPARE(gradient->gradientUnits(), units);
+        QVERIFY(gradient->boundingRect().isValid());
+        QVERIFY(!gradient->boundingRect().isEmpty());
+    }
+
+    static void testRender(KoShape *shape,
+                           const QString &prefix,
+                           const QString &testName,
+                           const QSize canvasSize,
+                           qreal dpi,
+                           int fuzzyThreshold = 0,
+                           int fuzzyAlphaThreshold = -1,
+                           bool checkQImagePremultiplied = false) {
         QImage canvas(canvasSize, QImage::Format_ARGB32);
         // 72 dpi => ~2834 dpm
         qreal inchesInMeter = 39.37007874;
@@ -139,7 +170,7 @@ struct SvgRenderTester : public SvgTester
 
         QVERIFY(TestUtil::checkQImageImpl(false,
                                           canvas, "svg_render", prefix, testName,
-                                          fuzzyThreshold, -1, 0,
+                                          fuzzyThreshold, fuzzyAlphaThreshold, 0,
                                           checkQImagePremultiplied));
     }
 
@@ -221,11 +252,19 @@ struct SvgRenderTester : public SvgTester
             }
         }
 
-        testRender(shape, "load", testName, canvasSize, pixelsPerInch, m_fuzzyThreshold, m_checkQImagePremultiplied);
+        testRender(shape,
+                   "load",
+                   testName,
+                   canvasSize,
+                   pixelsPerInch,
+                   m_fuzzyThreshold,
+                   m_fuzzyAlphaThreshold,
+                   m_checkQImagePremultiplied);
     }
 
 private:
     int m_fuzzyThreshold;
+    int m_fuzzyAlphaThreshold = -1;
     int m_checkQImagePremultiplied = false;
 };
 

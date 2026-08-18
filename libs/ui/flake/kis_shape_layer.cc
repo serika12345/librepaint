@@ -339,7 +339,7 @@ KisLayerSP KisShapeLayer::tryCreateInternallyMergedLayerFromMutipleLayers(QList<
     QList<KisShapeLayer*> shapeLayers;
     Q_FOREACH(KisLayerSP layer, layers) {
         KisShapeLayer *shapeLayer = dynamic_cast<KisShapeLayer*>(layer.data());
-        if (!shapeLayer) return nullptr;
+        if (!shapeLayer || !canMergeAndKeepBlendOptions(layer)) return nullptr;
 
         shapeLayers << shapeLayer;
     }
@@ -382,7 +382,6 @@ KisLayerSP KisShapeLayer::createMergedLayerTemplate(KisLayerSP prevLayer)
     KisShapeLayer *prevShape = dynamic_cast<KisShapeLayer*>(prevLayer.data());
     if (prevShape) {
         newLayer = tryCreateInternallyMergedLayerFromMutipleLayers({prevLayer, this});
-        KIS_SAFE_ASSERT_RECOVER_NOOP(newLayer);
     }
 
     return newLayer ? newLayer : KisExternalLayer::createMergedLayerTemplate(prevLayer);

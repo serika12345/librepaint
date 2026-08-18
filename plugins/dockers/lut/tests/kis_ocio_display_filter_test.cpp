@@ -6,8 +6,8 @@
 
 #include "kis_ocio_display_filter_test.h"
 
-#include <simpletest.h>
 #include <stroke_testing_utils.h>
+#include <testui.h>
 #include <testutil.h>
 
 #include <QFile>
@@ -103,4 +103,4 @@ void KisOcioDisplayFilterTest::test()
 
 }
 
-SIMPLE_TEST_MAIN(KisOcioDisplayFilterTest)
+KISTEST_MAIN(KisOcioDisplayFilterTest)
