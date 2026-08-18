@@ -66,7 +66,7 @@
         "libs/canvas/tests"
       ],
       "exportMacro": "KRITACANVAS_EXPORT",
-      "responsibility": "Records the declared canvas-view surface for coordinate mapping and immutable snapshots of canvas screen state.",
+      "responsibility": "Records the declared canvas-view surface for coordinate mapping, display projection and color, animation cache storage, and immutable snapshots of canvas screen state.",
       "evidence": [
         "libs/canvas/CMakeLists.txt",
         "libs/canvas/kis_coordinates_converter.h"
@@ -90,6 +90,33 @@
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_canvas_controller.cpp"
           ]
+        },
+        {
+          "path": "libs/canvas/animation/kis_animation_frame_cache_index.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/animation/kis_animation_frame_cache.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/animation/kis_frame_cache_store.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/animation/cache/KisFrameCacheSwapper.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/animation/kis_frame_data_serializer.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
         },
         {
           "path": "libs/canvas/color/KisOcioConfiguration.h",
@@ -257,6 +284,27 @@
             "libs/ui/opengl/KisOpenGLCanvasRenderer.h",
             "libs/ui/opengl/kis_opengl_canvas2.h",
             "libs/ui/opengl/kis_opengl_update_info.h"
+          ]
+        },
+        {
+          "path": "libs/canvas/tiles/kis_tile_data_buffer.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/opengl/kis_texture_tile_update_info.h"
+          ]
+        },
+        {
+          "path": "libs/canvas/tiles/kis_tile_data_pool.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/opengl/KisOpenGLUpdateInfoBuilder.cpp",
+            "libs/ui/opengl/kis_opengl_image_textures.cpp"
           ]
         }
       ]
@@ -539,8 +587,8 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
-            "libs/ui/kis_animation_cache_populator.cpp",
             "plugins/dockers/storyboarddocker/KisStoryboardThumbnailRenderScheduler.cpp"
           ]
         },
@@ -3292,7 +3340,7 @@
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisIdleTasksManager.cpp",
             "libs/ui/KisPart.cpp",
-            "libs/ui/kis_animation_cache_populator.cpp",
+            "libs/ui/animation/kis_animation_cache_populator.cpp",
             "plugins/dockers/layerdocker/LayerBox.h",
             "plugins/dockers/storyboarddocker/StoryboardModel.h"
           ]
@@ -3374,6 +3422,8 @@
             "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/animation/kis_animation_cache_populator.cpp",
+            "libs/ui/animation/kis_animation_frame_cache.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_canvas_controller.cpp",
@@ -3408,8 +3458,6 @@
             "libs/ui/input/kis_input_manager.cpp",
             "libs/ui/input/kis_select_layer_action.cpp",
             "libs/ui/input/kis_tool_invocation_action.cpp",
-            "libs/ui/kis_animation_cache_populator.cpp",
-            "libs/ui/kis_animation_frame_cache.cpp",
             "libs/ui/kis_canvas_resource_provider.cpp",
             "libs/ui/kis_control_frame.cpp",
             "libs/ui/kis_custom_pattern.cc",
@@ -3651,12 +3699,12 @@
             "libs/ui/KisPlaybackEngineQT.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/animation/KisFrameDisplayProxy.cpp",
+            "libs/ui/animation/kis_animation_cache_populator.cpp",
+            "libs/ui/animation/kis_animation_frame_cache.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
             "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
             "libs/ui/kis_action_manager.cpp",
-            "libs/ui/kis_animation_cache_populator.cpp",
-            "libs/ui/kis_animation_frame_cache.cpp",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/utils/kis_document_aware_spin_box_unit_manager.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
@@ -3705,6 +3753,7 @@
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/ui/KisAsyncAnimationRendererBase.cpp",
             "libs/ui/KisMainWindow.cpp",
+            "libs/ui/animation/kis_animation_frame_cache.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_image_pyramid.cpp",
@@ -3713,7 +3762,6 @@
             "libs/ui/dialogs/kis_dlg_image_properties.cc",
             "libs/ui/dialogs/kis_dlg_preferences.cc",
             "libs/ui/dialogs/kis_dlg_stroke_selection_properties.cpp",
-            "libs/ui/kis_animation_frame_cache.cpp",
             "libs/ui/kis_config.cc",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/kis_paintop_box.cc",
@@ -3870,8 +3918,8 @@
             "libs/painting/strokes/move_stroke_strategy.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
-            "libs/ui/kis_animation_cache_populator.cpp",
             "libs/ui/kis_node_manager.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
             "plugins/dockers/animation/KisAnimCurvesModel.cpp",
@@ -4122,6 +4170,7 @@
             "libs/painting/strokes/kis_color_sampler_stroke_strategy.h",
             "libs/painting/strokes/kis_filter_stroke_strategy.h",
             "libs/painting/strokes/move_stroke_strategy.h",
+            "libs/ui/animation/cache/KisFrameCacheSwapper.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/flake/kis_shape_selection.cpp",
             "libs/ui/opengl/kis_texture_tile_update_info.h",
@@ -5868,6 +5917,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/canvas/animation/kis_animation_frame_cache_index.cpp",
             "libs/impex/animation/KisAnimationRender.cpp",
             "libs/impex/animation/KisDlgAnimationRenderer.cpp",
             "libs/impex/animation/KisVideoSaver.cpp",
@@ -5877,14 +5927,13 @@
             "libs/ui/KisPart.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/animation/kis_animation_cache_populator.cpp",
+            "libs/ui/animation/kis_animation_frame_cache.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.h",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
             "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
-            "libs/ui/kis_animation_cache_populator.cpp",
-            "libs/ui/kis_animation_frame_cache.cpp",
-            "libs/ui/kis_animation_frame_cache_p.h",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/utils/kis_document_aware_spin_box_unit_manager.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
@@ -6158,7 +6207,6 @@
             "libs/ui/KisCanvasSurfaceColorSpaceManager.h",
             "libs/ui/KisDecorationsWrapperLayer.h",
             "libs/ui/KisDocument.h",
-            "libs/ui/KisFrameCacheStore.h",
             "libs/ui/KisIdleTaskStrokeStrategy.h",
             "libs/ui/KisImageThumbnailStrokeStrategy.h",
             "libs/ui/KisLayerThumbnailCache.h",
@@ -6170,6 +6218,8 @@
             "libs/ui/KisView.h",
             "libs/ui/KisViewManager.h",
             "libs/ui/StoryboardItem.h",
+            "libs/ui/animation/kis_animation_cache_populator.h",
+            "libs/ui/animation/kis_animation_frame_cache.h",
             "libs/ui/canvas/kis_abstract_canvas_widget.h",
             "libs/ui/canvas/kis_canvas2.h",
             "libs/ui/canvas/kis_canvas_controller.h",
@@ -6204,8 +6254,6 @@
             "libs/ui/flake/kis_take_all_shapes_command.h",
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/imagesize/imagesize.h",
-            "libs/ui/kis_animation_cache_populator.h",
-            "libs/ui/kis_animation_frame_cache.h",
             "libs/ui/kis_bookmarked_filter_configurations_model.h",
             "libs/ui/kis_canvas_resource_provider.h",
             "libs/ui/kis_change_file_layer_command.h",
@@ -6956,7 +7004,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisFrameDataSerializer.cpp"
+            "libs/canvas/animation/kis_frame_data_serializer.cpp"
           ]
         },
         {
@@ -7583,13 +7631,6 @@
       ],
       "headers": [
         {
-          "path": "libs/ui/KisAbstractFrameCacheSwapper.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/KisActionPlugin.h",
           "publicationEvidence": [
             "export-macro",
@@ -7812,27 +7853,6 @@
           ]
         },
         {
-          "path": "libs/ui/KisFrameCacheStore.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisFrameCacheSwapper.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisFrameDataSerializer.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/KisIdleTaskStrokeStrategy.h",
           "publicationEvidence": [
             "export-macro",
@@ -7863,13 +7883,6 @@
             "plugins/dockers/channeldocker/KisChannelsThumbnailsStrokeStrategy.h",
             "plugins/dockers/overview/overviewwidget.cc"
           ]
-        },
-        {
-          "path": "libs/ui/KisInMemoryFrameCacheSwapper.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/KisLayerThumbnailCache.h",
@@ -8321,17 +8334,6 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/KisWidgetWithIdleTask.h",
-          "publicationEvidence": [
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/channeldocker/ChannelDockerWidget.h",
-            "plugins/dockers/histogram/histogramdockerwidget.h",
-            "plugins/dockers/overview/overviewwidget.h"
-          ]
-        },
-        {
           "path": "libs/ui/KisWindowLayoutResource.h",
           "publicationEvidence": [
             "export-macro"
@@ -8424,6 +8426,50 @@
           ]
         },
         {
+          "path": "libs/ui/animation/cache/KisAbstractFrameCacheSwapper.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/animation/cache/KisFrameCacheSwapper.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/animation/cache/KisInMemoryFrameCacheSwapper.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/animation/kis_animation_frame_cache.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
+            "plugins/dockers/animation/KisTimeBasedItemModel.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/animation/kis_animation_frame_cache_fwd.h",
+          "publicationEvidence": [
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/animation/KisTimeBasedItemModel.h"
+          ]
+        },
+        {
           "path": "libs/ui/canvas/KisCanvasAnimationState.h",
           "publicationEvidence": [
             "export-macro",
@@ -8456,6 +8502,18 @@
           ],
           "consumerPaths": [
             "plugins/tools/defaulttool/defaulttool/ShapeGradientEditStrategy.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/canvas/KisWidgetWithIdleTask.h",
+          "publicationEvidence": [
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/channeldocker/ChannelDockerWidget.h",
+            "plugins/dockers/histogram/histogramdockerwidget.h",
+            "plugins/dockers/overview/overviewwidget.h"
           ]
         },
         {
@@ -9189,34 +9247,6 @@
           ]
         },
         {
-          "path": "libs/ui/kis_animation_cache_populator.h",
-          "publicationEvidence": [
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/animation/KisTimeBasedItemModel.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_animation_frame_cache.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
-            "plugins/dockers/animation/KisTimeBasedItemModel.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_animation_frame_cache_p.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/kis_aspect_ratio_locker.h",
           "publicationEvidence": [
             "export-macro",
@@ -9872,13 +9902,6 @@
         },
         {
           "path": "libs/ui/opengl/kis_opengl_update_info.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/opengl/kis_texture_tile_info_pool.h",
           "publicationEvidence": [
             "export-macro"
           ],

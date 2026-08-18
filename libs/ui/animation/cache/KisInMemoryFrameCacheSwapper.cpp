@@ -3,7 +3,7 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
-#include "KisInMemoryFrameCacheSwapper.h"
+#include "animation/cache/KisInMemoryFrameCacheSwapper.h"
 
 #include <QMap>
 #include "opengl/kis_opengl_update_info.h"

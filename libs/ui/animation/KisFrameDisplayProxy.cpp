@@ -6,6 +6,7 @@
  */
 
 #include "KisFrameDisplayProxy.h"
+#include "kis_animation_frame_cache.h"
 
 #include "kis_canvas2.h"
 #include "kis_image_animation_interface.h"

@@ -9,6 +9,7 @@
 
 #include <QObject>
 #include "kis_types.h"
+#include "kis_animation_frame_cache_fwd.h"
 
 class KisPart;
 

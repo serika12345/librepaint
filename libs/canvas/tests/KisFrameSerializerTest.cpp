@@ -6,8 +6,8 @@
 
 #include "KisFrameSerializerTest.h"
 
-#include <KisFrameDataSerializer.h>
-#include "opengl/kis_texture_tile_info_pool.h"
+#include <animation/kis_frame_data_serializer.h>
+#include <tiles/kis_tile_data_pool.h>
 
 #include <testutil.h>
 
@@ -15,7 +15,7 @@
 
 static const int maxTileSize = 256;
 
-KisFrameDataSerializer::Frame generateTestFrame(int frameSeed, KisTextureTileInfoPoolSP pool)
+KisFrameDataSerializer::Frame generateTestFrame(int frameSeed, KisTileDataPoolSP pool)
 {
     KisFrameDataSerializer::Frame frame;
     frame.pixelSize = 4;
@@ -69,8 +69,8 @@ bool verifyTestFrame(int frameSeed, const KisFrameDataSerializer::Frame &frame)
 
 void KisFrameSerializerTest::testFrameDataSerialization()
 {
-    KisTextureTileInfoPoolRegistry poolRegistry;
-    KisTextureTileInfoPoolSP pool = poolRegistry.getPool(maxTileSize, maxTileSize);
+    KisTileDataPoolRegistry poolRegistry;
+    KisTileDataPoolSP pool = poolRegistry.poolForTileSize(maxTileSize, maxTileSize);
 
 
     KisFrameDataSerializer serializer;
@@ -141,8 +141,8 @@ void randomizeFrame(KisFrameDataSerializer::Frame &frame, qreal portion)
 
 void KisFrameSerializerTest::testFrameUniquenessEstimation()
 {
-    KisTextureTileInfoPoolRegistry poolRegistry;
-    KisTextureTileInfoPoolSP pool = poolRegistry.getPool(maxTileSize, maxTileSize);
+    KisTileDataPoolRegistry poolRegistry;
+    KisTileDataPoolSP pool = poolRegistry.poolForTileSize(maxTileSize, maxTileSize);
 
     KisFrameDataSerializer::Frame testFrame1 = generateTestFrame(2, pool);
     KisFrameDataSerializer::Frame testFrame2 = generateTestFrame(2, pool);
@@ -169,8 +169,8 @@ void KisFrameSerializerTest::testFrameUniquenessEstimation()
 
 void KisFrameSerializerTest::testFrameArithmetics()
 {
-    KisTextureTileInfoPoolRegistry poolRegistry;
-    KisTextureTileInfoPoolSP pool = poolRegistry.getPool(maxTileSize, maxTileSize);
+    KisTileDataPoolRegistry poolRegistry;
+    KisTileDataPoolSP pool = poolRegistry.poolForTileSize(maxTileSize, maxTileSize);
 
     KisFrameDataSerializer::Frame testFrame1 = generateTestFrame(2, pool);
     KisFrameDataSerializer::Frame testFrame2 = generateTestFrame(2, pool);

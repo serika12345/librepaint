@@ -14,8 +14,8 @@
 class KisProofingConfiguration;
 typedef QSharedPointer<KisProofingConfiguration> KisProofingConfigurationSP;
 
-class KisTextureTileInfoPool;
-typedef QSharedPointer<KisTextureTileInfoPool> KisTextureTileInfoPoolSP;
+class KisTileDataPool;
+using KisTileDataPoolSP = QSharedPointer<KisTileDataPool>;
 
 template<class T>
 class KisSharedPtr;
@@ -51,8 +51,8 @@ public:
     void setTextureBorder(int value);
     void setEffectiveTextureSize(const QSize &size);
 
-    void setTextureInfoPool(KisTextureTileInfoPoolSP pool);
-    KisTextureTileInfoPoolSP textureInfoPool() const;
+    void setTileDataPool(KisTileDataPoolSP pool);
+    KisTileDataPoolSP tileDataPool() const;
 
     void setProofingConfig(KisProofingConfigurationSP config);
     KisProofingConfigurationSP proofingConfig() const;

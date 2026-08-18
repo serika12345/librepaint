@@ -11,7 +11,7 @@
 #include <KisKineticScroller.h>
 
 #include <KisChannelsThumbnailsStrokeStrategyMetatypes.h>
-#include "KisWidgetWithIdleTask.h"
+#include <canvas/KisWidgetWithIdleTask.h>
 #include <QTableView>
 #include <kis_canvas2.h>
 

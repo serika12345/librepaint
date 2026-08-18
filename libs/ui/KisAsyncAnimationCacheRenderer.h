@@ -8,6 +8,7 @@
 #define KISASYNCANIMATIONCACHERENDERER_H
 
 #include <KisAsyncAnimationRendererBase.h>
+#include <animation/kis_animation_frame_cache_fwd.h>
 
 class KisAsyncAnimationCacheRenderer : public KisAsyncAnimationRendererBase
 {

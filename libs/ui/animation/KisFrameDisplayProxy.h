@@ -12,7 +12,7 @@
 
 #include "kritaui_export.h"
 
-#include "kis_animation_frame_cache.h"
+#include "kis_animation_frame_cache_fwd.h"
 
 /**
  * @brief The KisFrameDisplayProxy class sits between the KisCanvas (within its KisCanvasAnimationState) and its associated KisImage.

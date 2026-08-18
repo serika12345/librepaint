@@ -23,8 +23,6 @@ class KisOpenGLImageTextures;
 typedef KisSharedPtr<KisOpenGLImageTextures> KisOpenGLImageTexturesSP;
 
 class KoColorProfile;
-class KisTextureTileUpdateInfoPoolCollection;
-typedef QSharedPointer<KisTextureTileInfoPool> KisTextureTileInfoPoolSP;
 
 class KisProofingConfiguration;
 typedef QSharedPointer<KisProofingConfiguration> KisProofingConfigurationSP;

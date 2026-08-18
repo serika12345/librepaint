@@ -7,12 +7,12 @@
 #ifndef KIS_ANIMATION_FRAME_CACHE_H
 #define KIS_ANIMATION_FRAME_CACHE_H
 
-#include <QImage>
 #include <QObject>
 
 #include "kritaui_export.h"
 #include "kis_types.h"
 #include "kis_shared.h"
+#include "kis_animation_frame_cache_fwd.h"
 
 class KisImage;
 class KisImageAnimationInterface;
@@ -38,7 +38,6 @@ public:
     KisAnimationFrameCache(KisOpenGLImageTexturesSP textures);
     ~KisAnimationFrameCache() override;
 
-    QImage getFrame(int time);
     bool uploadFrame(int time);
 
     bool shouldUploadNewFrame(int newTime, int oldTime) const;

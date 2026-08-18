@@ -2,14 +2,16 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 13:03 JST
-- 状態: `completed`
-- 現在の検査段階: R1-G6d表示色変換境界
+- 更新日時: 2026-08-18 14:44 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G6dアニメーションキャッシュ境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6d-display-color-boundary`
-- 目的: `libs/ui/KisOcioConfiguration.*`、`libs/ui/KisSurfaceColorSpaceWrapper.h`、
-  `libs/ui/canvas/kis_display_color_converter.*`を起点として、表示色の値型と変換本体を
-  UI状態から分離し、画面設定とパレット反映の接続範囲を確定する。
+- ブランチ: `r1-g6d-animation-cache-boundary`
+- 目的: `libs/ui/kis_animation_frame_cache.*`、
+  `libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameDataSerializer.*`、
+  `libs/ui/KisFrameCacheStore.*`、`libs/ui/KisFrameCacheSwapper.*`を起点として、
+  フレーム範囲、保存、直列化、タイル転送をキャンバス責務へ分離し、UI側を再生状態、
+  生成時機、OpenGL更新情報との接続に限定する。
 
 ## 再開環境
 
@@ -383,6 +385,28 @@
 - 公開面は`kritacanvas`の12ヘッダーへ拡張し、未宣言だった`kritaui`内部参照の基準を
   11ヘッダー28件から9ヘッダー24件へ縮小した。動画キャッシュは後続の独立単位とする。
 
+## アニメーションキャッシュ境界で完了した作業
+
+- `libs/ui/kis_animation_frame_cache.*`を起点として、フレーム範囲の検索、挿入、無効化、
+  結合と移動指示を`libs/canvas/animation/kis_animation_frame_cache_index.*`へ分離した。
+  UI側のキャッシュはこの状態を保持し、画像の再生状態と保存・復元処理を調整する。
+- `libs/ui/KisFrameDataSerializer.*`と`libs/ui/KisFrameCacheStore.*`を起点として、
+  タイル差分の直列化とフレーム保存を`libs/canvas/animation`へ移した。保存値はUI型と
+  OpenGL型を含まず、UI側の`libs/ui/animation/cache/KisFrameCacheSwapper.*`が
+  OpenGL更新情報との相互変換を担当する。
+- `libs/ui/opengl/kis_texture_tile_info_pool.*`を、描画方式に依存しないタイル転送領域として
+  `libs/canvas/tiles`へ移した。旧クラス名、旧ファイル、転送ヘッダーは残していない。
+- `libs/ui/kis_animation_cache_populator.*`とキャッシュ調停を`libs/ui/animation`へ、
+  保存変換を`libs/ui/animation/cache`へ配置した。`libs/image/kis_types.h`からUIキャッシュ型の
+  別名を除き、UI所有の前方宣言を利用元が明示的に参照する。
+- `libs/ui/KisWidgetWithIdleTask.h`を`libs/ui/canvas`へ移し、ドッカーから利用する表示契約を
+  `libs/ui/tests/TestCanvasUiPublicHeaders.cpp`の構築で固定した。旧配置は残していない。
+- フレーム範囲、保存、直列化をUIライブラリーなしで検査する3契約と、UIの保存変換、
+  既存キャッシュ統合、公開表示ヘッダーを検査する3契約を固定した。
+- `kritacanvas`の公開面は17ヘッダー、`kritaui`は249ヘッダーになった。未宣言の
+  `kritaui`内部参照は9ヘッダー24件から7ヘッダー20件へ縮小し、キャンバス表示から
+  文書寿命への逆方向includeは0件を維持する。これによりR1-G6dの完了条件を満たす。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -547,13 +571,10 @@
 
 ## 次の操作
 
-R1-G6dの次の独立単位では`libs/ui/kis_animation_frame_cache.*`、
-`libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameCacheStore.*`、
-`libs/ui/KisFrameCacheSwapper.*`を起点として、フレーム生成、保存、交換、再生側への反映を
-特性試験で固定し、動画キャッシュの所有範囲とI/O境界を確定する。R1-G6d全体の完了判定は、
-キャンバス所有のUI内部参照と、キャンバス表示から文書寿命への逆方向includeを解消した時点で
-行う。UIから利用事例を登録・呼出しする専用移行は、この完了後に保守責任者が明示的に
-開始を決定する。
+アニメーションキャッシュ境界の全プラットフォーム構築、CMake台帳再生成、全ネイティブ試験、
+Nix評価を完了してPRを提出する。マージ後はR1-G6e文書寿命境界の最初の独立単位を計画する。
+UIから利用事例を登録・呼出しする専用移行と、ドメイン計算からI/Oを分離する専用移行は、
+保守責任者が明示的に開始を決定するまで着手しない。
 
 ## R1-G5完了根拠
 

@@ -13,7 +13,7 @@
 #include <QLabel>
 #include <QThread>
 #include "HistogramComputationStrokeStrategy.h"
-#include "KisWidgetWithIdleTask.h"
+#include <canvas/KisWidgetWithIdleTask.h>
 
 class KoColorSpace;
 

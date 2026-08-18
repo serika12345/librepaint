@@ -3,16 +3,16 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
-#ifndef KISFRAMECACHESTORETEST_H
-#define KISFRAMECACHESTORETEST_H
+#ifndef KISFRAMECACHESWAPPERTEST_H
+#define KISFRAMECACHESWAPPERTEST_H
 
 #include <QObject>
 
-class KisFrameCacheStoreTest : public QObject
+class KisFrameCacheSwapperTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
     void test();
 };
 
-#endif // KISFRAMECACHESTORETEST_H
+#endif // KISFRAMECACHESWAPPERTEST_H

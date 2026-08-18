@@ -6,8 +6,7 @@ kis_add_tests(
     kis_shape_commands_test.cpp
     kis_stop_gradient_editor_test.cpp
     kis_multinode_property_test.cpp
-    KisFrameSerializerTest.cpp
-    KisFrameCacheStoreTest.cpp
+    KisFrameCacheSwapperTest.cpp
     kis_animation_exporter_test.cpp
     kis_prescaled_projection_test.cpp
     kis_display_color_converter_contract_test.cpp
@@ -16,6 +15,7 @@ kis_add_tests(
     KisDocumentReplaceTest.cpp
     kis_derived_resources_test.cpp
     kis_animation_frame_cache_test.cpp
+    TestCanvasUiPublicHeaders.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp
     LINK_LIBRARIES kritaui kritalibkis kritatestsdk

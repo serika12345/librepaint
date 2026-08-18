@@ -12,7 +12,7 @@
 #include <QWidget>
 #include <QPixmap>
 
-#include "KisWidgetWithIdleTask.h"
+#include <canvas/KisWidgetWithIdleTask.h>
 
 #include <kis_canvas2.h>
 

@@ -59,7 +59,7 @@
 #include "kis_config.h"
 #include "kis_shape_controller.h"
 #include "KisResourceServerProvider.h"
-#include "kis_animation_cache_populator.h"
+#include <animation/kis_animation_cache_populator.h>
 #include "kis_image_animation_interface.h"
 #include "kis_time_span.h"
 #include "kis_idle_watcher.h"

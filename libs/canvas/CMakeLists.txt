@@ -1,4 +1,13 @@
 set(kritacanvas_LIB_SRCS
+    animation/kis_animation_frame_cache_index.h
+    animation/kis_animation_frame_cache_index.cpp
+    animation/kis_frame_data_serializer.h
+    animation/kis_frame_data_serializer.cpp
+    animation/kis_frame_cache_store.h
+    animation/kis_frame_cache_store.cpp
+    tiles/kis_tile_data_buffer.h
+    tiles/kis_tile_data_pool.h
+    tiles/kis_tile_data_pool.cpp
     color/KisOcioConfiguration.h
     color/KisSurfaceColorSpaceWrapper.h
     color/kis_display_color_filter.h

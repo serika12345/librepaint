@@ -1473,6 +1473,28 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/animation/cache/KisFrameCacheSwapper.cpp",
+          "include": "animation/kis_frame_cache_store.h",
+          "headerPath": "libs/canvas/animation/kis_frame_cache_store.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/animation/kis_animation_frame_cache.cpp",
+          "include": "animation/kis_animation_frame_cache_index.h",
+          "headerPath": "libs/canvas/animation/kis_animation_frame_cache_index.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/canvas/KoCanvasControllerWidget.cpp",
           "include": "KisCanvasState.h",
           "headerPath": "libs/canvas/KisCanvasState.h",
@@ -1836,6 +1858,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/opengl/KisOpenGLUpdateInfoBuilder.cpp",
+          "include": "tiles/kis_tile_data_pool.h",
+          "headerPath": "libs/canvas/tiles/kis_tile_data_pool.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/opengl/KisScreenInformationAdapter.h",
           "include": "color/KisSurfaceColorSpaceWrapper.h",
           "headerPath": "libs/canvas/color/KisSurfaceColorSpaceWrapper.h",
@@ -1869,9 +1902,31 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/opengl/kis_opengl_image_textures.cpp",
+          "include": "tiles/kis_tile_data_pool.h",
+          "headerPath": "libs/canvas/tiles/kis_tile_data_pool.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/opengl/kis_opengl_update_info.h",
           "include": "kis_update_info.h",
           "headerPath": "libs/canvas/kis_update_info.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/opengl/kis_texture_tile_update_info.h",
+          "include": "tiles/kis_tile_data_buffer.h",
+          "headerPath": "libs/canvas/tiles/kis_tile_data_buffer.h",
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "longest-responsibility-source-directory",
@@ -4357,8 +4412,8 @@
       "ownerTarget": "kritaui",
       "owner": "R1-G6",
       "reason": "External packages directly include UI headers without a declared KRITAUI_EXPORT public contract.",
-      "maximumHeaders": 9,
-      "maximumDirectReferences": 24,
+      "maximumHeaders": 7,
+      "maximumDirectReferences": 20,
       "removalCondition": "Each reference uses a reviewed public UI contract or moves behind the owning UI package boundary.",
       "sourceDirectory": "libs/ui",
       "platforms": [
@@ -4374,20 +4429,6 @@
           "consumerPaths": [
             "plugins/extensions/iostouchui/iostouchui.cpp",
             "plugins/tools/karbonplugins/tools/CalligraphyTool/KarbonCalligraphyTool.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisWidgetWithIdleTask.h",
-          "consumerPaths": [
-            "plugins/dockers/channeldocker/ChannelDockerWidget.h",
-            "plugins/dockers/histogram/histogramdockerwidget.h",
-            "plugins/dockers/overview/overviewwidget.h"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_animation_cache_populator.h",
-          "consumerPaths": [
-            "plugins/dockers/animation/KisTimeBasedItemModel.cpp"
           ]
         },
         {

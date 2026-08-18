@@ -22,7 +22,7 @@ class KRITAUI_EXPORT KisAbstractFrameCacheSwapper
 public:
     virtual ~KisAbstractFrameCacheSwapper();
 
-    // WARNING: after transferring \p info to saveFrame() the object becomes invalid
+    /** Transfers ownership of the tile buffers in \p info to the cache. */
     virtual void saveFrame(int frameId, KisOpenGLUpdateInfoSP info, const QRect &imageBounds) = 0;
     virtual KisOpenGLUpdateInfoSP loadFrame(int frameId) = 0;
 
