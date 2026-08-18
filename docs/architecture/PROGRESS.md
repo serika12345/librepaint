@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 19:13 JST
+- 更新日時: 2026-08-18 19:19 JST
 - 状態: `completed`
 - 現在の検査段階: ネイティブ試験正常化の読取専用出力契約
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -635,6 +635,11 @@
   正常化し、残る25件は一時分類台帳に記録した別原因である。
 - `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
   責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 全Nix出力の評価が成功した。
+- `nix develop --no-eval-cache .#test --command
+  ./scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットからmacOS、iOS、Linux、Android、
+  Windowsの5台帳と差分行列の一致を確認した。
 
 ## 次の操作
 
