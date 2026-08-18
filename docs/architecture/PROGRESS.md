@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 13:01 JST
+- 更新日時: 2026-08-18 13:03 JST
 - 状態: `completed`
 - 現在の検査段階: R1-G6d表示色変換境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -542,6 +542,8 @@
   責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: 表示色変換境界分離後の
   全Nix出力の評価が成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
+  同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
 
 ## 次の操作
 
