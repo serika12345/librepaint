@@ -2,13 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 10:45 JST
+- 更新日時: 2026-08-18 13:03 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6d投影更新境界
+- 現在の検査段階: R1-G6d表示色変換境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6d-projection-boundary`
-- 目的: `libs/ui/canvas/kis_prescaled_projection.*`を起点として、投影フレームの生成と
-  更新契約を独立所有させ、UI設定、具体的な画像投影実装、OpenGL更新情報から分離する。
+- ブランチ: `r1-g6d-display-color-boundary`
+- 目的: `libs/ui/KisOcioConfiguration.*`、`libs/ui/KisSurfaceColorSpaceWrapper.h`、
+  `libs/ui/canvas/kis_display_color_converter.*`を起点として、表示色の値型と変換本体を
+  UI状態から分離し、画面設定とパレット反映の接続範囲を確定する。
 
 ## 再開環境
 
@@ -363,6 +364,25 @@
 - 構造検査が新しい所有先、旧配置の不在、UI設定、表示型、OpenGLタイル型、文書型への
   逆方向includeの不在を継続確認する。表示色変換と動画キャッシュは後続の独立単位とする。
 
+## 表示色変換境界で完了した作業
+
+- `libs/ui/KisOcioConfiguration.*`と`libs/ui/KisSurfaceColorSpaceWrapper.h`を起点として、
+  表示色の設定値とQt画面色空間との変換値を`libs/canvas/color`へ移した。旧配置と
+  転送ヘッダーは残さず、プラグインとUIは`kritacanvas`の公開面を直接参照する。
+- `libs/ui/canvas/kis_display_color_converter.*`から画素、色、画像の変換処理を
+  `libs/canvas/color/kis_display_color_transform.*`へ分離した。変換本体はUI設定、現在ノード、
+  資源管理、画面パレットを参照せず、プロファイル、変換方法、表示フィルターを入力として
+  色変換を実行する。
+- UI側の色変換器は変換本体を保持し、現在ノードと設定通知の監視、前景色の視覚表現維持、
+  ハンドル色とシステムパレットの更新、利用元への変更通知を担当する。
+- `libs/canvas/tests/kis_display_color_transform_test.*`が標準表示変換、往復変換、
+  プロファイル一致時の省略判定、表示フィルター適用、ビット深度別キャッシュをUIなしで
+  検査する。`KisSurfaceColorSpaceWrapperTest`も`libs/canvas/tests`へ移した。
+- `libs/ui/tests/kis_display_color_converter_contract_test.cpp`が画面設定を一度だけ反映し、
+  同じ設定の再入力で通知を重複させず、UI接続後も表示色結果を維持することを検査する。
+- 公開面は`kritacanvas`の12ヘッダーへ拡張し、未宣言だった`kritaui`内部参照の基準を
+  11ヘッダー28件から9ヘッダー24件へ縮小した。動画キャッシュは後続の独立単位とする。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -498,16 +518,42 @@
   Windows 610件のターゲット、558件の共通ターゲット、119件の条件付きターゲット、
   257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
   5構成すべてで循環0件を維持する。
+- `kis_display_color_transform_test`、`KisSurfaceColorSpaceWrapperTest`、
+  `kis_display_color_converter_contract_test`、`kis_prescaled_projection_test`がmacOSで
+  成功した。表示色変換試験は、実際に登録された標準色空間のプロファイルを入力とし、
+  試験構築時だけ色管理プラグインを用意して高ビット深度の変換経路も検査する。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify`: macOSの全製品と全試験の
+  構築・リンクが成功し、CTest 324件中288件が成功した。追加した表示色変換とUI接続の
+  2契約、および直前の投影更新契約は成功した。失敗36件のうち35件は直前から継続し、
+  追加の`libs-widgetutils-TestKoProgressUpdater`も単独再実行で失敗する変更範囲外の試験である。
+- `nix develop --no-eval-cache .#test --command ./scripts/build-incremental ios build --allow-large`:
+  iOSの`libkritacanvas.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`のリンクが成功した。
+- x86_64 Linuxで`QT_QPA_PLATFORM=offscreen`を設定し、
+  `libs-canvas-kis_display_color_transform_test`と
+  `libs-ui-kis_display_color_converter_contract_test`が成功した。`libkritacanvas.so`、
+  `libkritaui.so`と両試験実行ファイルのリンクも成功した。
+- Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
+  Windows x86_64で`libkritacanvas.dll`と`libkritaui.dll`のリンクが成功した。
+- 5構成のCMake台帳を再生成した。macOS 642件、Linux 657件、iOS 576件、Android 582件、
+  Windows 612件のターゲット、560件の共通ターゲット、119件の条件付きターゲット、
+  257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
+  5構成すべてで循環0件を維持する。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
+  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 表示色変換境界分離後の
+  全Nix出力の評価が成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
+  同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
 
 ## 次の操作
 
-R1-G6dの次の独立単位では`libs/ui/KisOcioConfiguration.*`、
-`libs/ui/KisSurfaceColorSpaceWrapper.h`、`libs/ui/canvas/kis_display_color_converter.*`を
-起点として、表示色の入力、変換、画面側への反映を特性試験で固定し、色表示の所有範囲と
-I/O境界を確定する。その後に動画キャッシュを独立した検証単位として扱う。R1-G6d全体の
-完了判定は、キャンバス所有のUI内部参照と、キャンバス表示から文書寿命への逆方向includeを
-解消した時点で行う。UIから利用事例を登録・呼出しする専用移行は、この完了後に
-保守責任者が明示的に開始を決定する。
+R1-G6dの次の独立単位では`libs/ui/kis_animation_frame_cache.*`、
+`libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameCacheStore.*`、
+`libs/ui/KisFrameCacheSwapper.*`を起点として、フレーム生成、保存、交換、再生側への反映を
+特性試験で固定し、動画キャッシュの所有範囲とI/O境界を確定する。R1-G6d全体の完了判定は、
+キャンバス所有のUI内部参照と、キャンバス表示から文書寿命への逆方向includeを解消した時点で
+行う。UIから利用事例を登録・呼出しする専用移行は、この完了後に保守責任者が明示的に
+開始を決定する。
 
 ## R1-G5完了根拠
 

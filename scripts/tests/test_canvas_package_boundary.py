@@ -116,6 +116,76 @@ class CanvasPackageBoundaryTest(unittest.TestCase):
                 with self.subTest(path=relative_path, fragment=fragment):
                     self.assertNotIn(fragment, source)
 
+    def test_display_color_boundary_has_one_owner(self) -> None:
+        canvas_cmake = (
+            REPOSITORY_ROOT / "libs/canvas/CMakeLists.txt"
+        ).read_text(encoding="utf-8")
+        expected_files = (
+            "libs/canvas/color/KisOcioConfiguration.h",
+            "libs/canvas/color/KisSurfaceColorSpaceWrapper.h",
+            "libs/canvas/color/kis_display_color_filter.h",
+            "libs/canvas/color/kis_display_color_transform.h",
+            "libs/canvas/color/kis_display_color_transform.cpp",
+            "libs/canvas/tests/kis_display_color_transform_test.h",
+            "libs/canvas/tests/kis_display_color_transform_test.cpp",
+            "libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.h",
+            "libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp",
+        )
+        for relative_path in expected_files:
+            with self.subTest(path=relative_path):
+                self.assertTrue((REPOSITORY_ROOT / relative_path).is_file())
+                if "/tests/" not in relative_path:
+                    self.assertIn(Path(relative_path).name, canvas_cmake)
+
+        removed_paths = (
+            "libs/ui/KisOcioConfiguration.h",
+            "libs/ui/KisOcioConfiguration.cpp",
+            "libs/ui/KisSurfaceColorSpaceWrapper.h",
+            "libs/ui/tests/KisSurfaceColorSpaceWrapperTest.h",
+            "libs/ui/tests/KisSurfaceColorSpaceWrapperTest.cpp",
+        )
+        for relative_path in removed_paths:
+            with self.subTest(path=relative_path):
+                self.assertFalse((REPOSITORY_ROOT / relative_path).exists())
+
+    def test_display_color_transform_does_not_read_ui_state(self) -> None:
+        production_sources = (
+            "libs/canvas/color/KisOcioConfiguration.h",
+            "libs/canvas/color/KisSurfaceColorSpaceWrapper.h",
+            "libs/canvas/color/kis_display_color_filter.h",
+            "libs/canvas/color/kis_display_color_transform.h",
+            "libs/canvas/color/kis_display_color_transform.cpp",
+        )
+        forbidden_fragments = (
+            "kritaui",
+            "kis_config.h",
+            "kis_config_notifier.h",
+            "KoCanvasResourceProvider",
+            "KisDisplayConfig",
+            "KisDocument",
+            "KisMainWindow",
+            "KisNode",
+            "KisPart",
+            "QApplication",
+            "QPalette",
+        )
+        for relative_path in production_sources:
+            source = (REPOSITORY_ROOT / relative_path).read_text(encoding="utf-8")
+            for fragment in forbidden_fragments:
+                with self.subTest(path=relative_path, fragment=fragment):
+                    self.assertNotIn(fragment, source)
+
+    def test_ui_display_color_converter_only_coordinates_external_state(self) -> None:
+        source = (
+            REPOSITORY_ROOT
+            / "libs/ui/canvas/kis_display_color_converter.cpp"
+        ).read_text(encoding="utf-8")
+        self.assertIn("KisDisplayColorTransform transform", source)
+        self.assertIn("KisConfig config", source)
+        self.assertIn("KisHandlePalette", source)
+        self.assertNotIn("convertPixelsTo", source)
+        self.assertNotIn("KisSequentialIterator", source)
+
 
 if __name__ == "__main__":
     unittest.main()

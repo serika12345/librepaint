@@ -16,7 +16,7 @@
 #include <KLocalizedContext>
 
 #include <KoResourcePaths.h>
-#include <KisSurfaceColorSpaceWrapper.h>
+#include <color/KisSurfaceColorSpaceWrapper.h>
 #include <kis_config_notifier.h>
 
 KisQQuickWidget::KisQQuickWidget(QWidget *parent): QQuickWidget(parent)

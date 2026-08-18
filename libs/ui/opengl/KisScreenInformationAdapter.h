@@ -9,7 +9,7 @@
 
 #include "kritaui_export.h"
 #include <QScopedPointer>
-#include <KisSurfaceColorSpaceWrapper.h>
+#include <color/KisSurfaceColorSpaceWrapper.h>
 
 class QScreen;
 class QOpenGLContext;

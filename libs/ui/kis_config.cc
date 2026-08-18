@@ -35,7 +35,7 @@
 
 #include <config-ocio.h>
 
-#include <KisOcioConfiguration.h>
+#include <color/KisOcioConfiguration.h>
 #include <KisUsageLogger.h>
 #include <kis_image_config.h>
 #include <KisCumulativeUndoData.h>

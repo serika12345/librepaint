@@ -14,7 +14,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <KisGLImageF16.h>
-#include <KisSurfaceColorSpaceWrapper.h>
+#include <color/KisSurfaceColorSpaceWrapper.h>
 
 class KisGLImageWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {

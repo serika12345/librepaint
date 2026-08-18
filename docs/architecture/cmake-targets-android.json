@@ -593,11 +593,10 @@
     {
       "name": "KisSurfaceColorSpaceWrapperTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/canvas/tests",
       "dependencies": [
-        "kritalibkis",
-        "kritatestsdk",
-        "kritaui"
+        "kritacanvas",
+        "kritatestsdk"
       ]
     },
     {
@@ -2185,6 +2184,25 @@
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
+      ]
+    },
+    {
+      "name": "kis_display_color_converter_contract_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kis_display_color_transform_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/canvas/tests",
+      "dependencies": [
+        "kritacanvas",
+        "kritatestsdk"
       ]
     },
     {

@@ -94,8 +94,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         image_by_path = {entry["path"]: entry for entry in image_headers}
         impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
 
-        self.assertEqual(len(canvas_headers), 8)
-        self.assertEqual(len(ui_headers), 255)
+        self.assertEqual(len(canvas_headers), 12)
+        self.assertEqual(len(ui_headers), 253)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(
@@ -292,11 +292,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 for entry in inventory["publicHeaderSets"]
             },
             {
-                "kritacanvas": 8,
+                "kritacanvas": 12,
                 "kritaimage": 332,
                 "kritaimpex": 11,
                 "kritaimpexui": 23,
-                "kritaui": 255,
+                "kritaui": 253,
             },
         )
         self.assertEqual(

@@ -10,6 +10,7 @@ kis_add_tests(
     KisFrameCacheStoreTest.cpp
     kis_animation_exporter_test.cpp
     kis_prescaled_projection_test.cpp
+    kis_display_color_converter_contract_test.cpp
     kis_animation_importer_test.cpp
     KisSpinBoxSplineUnitConverterTest.cpp
     KisDocumentReplaceTest.cpp
@@ -17,8 +18,6 @@ kis_add_tests(
     kis_animation_frame_cache_test.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp
-    KisSurfaceColorSpaceWrapperTest.cpp
-
     LINK_LIBRARIES kritaui kritalibkis kritatestsdk
     )
 
