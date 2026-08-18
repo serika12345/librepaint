@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 11:33 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-18 13:01 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6d表示色変換境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6d-display-color-boundary`
@@ -518,6 +518,30 @@
   Windows 610件のターゲット、558件の共通ターゲット、119件の条件付きターゲット、
   257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
   5構成すべてで循環0件を維持する。
+- `kis_display_color_transform_test`、`KisSurfaceColorSpaceWrapperTest`、
+  `kis_display_color_converter_contract_test`、`kis_prescaled_projection_test`がmacOSで
+  成功した。表示色変換試験は、実際に登録された標準色空間のプロファイルを入力とし、
+  試験構築時だけ色管理プラグインを用意して高ビット深度の変換経路も検査する。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify`: macOSの全製品と全試験の
+  構築・リンクが成功し、CTest 324件中288件が成功した。追加した表示色変換とUI接続の
+  2契約、および直前の投影更新契約は成功した。失敗36件のうち35件は直前から継続し、
+  追加の`libs-widgetutils-TestKoProgressUpdater`も単独再実行で失敗する変更範囲外の試験である。
+- `nix develop --no-eval-cache .#test --command ./scripts/build-incremental ios build --allow-large`:
+  iOSの`libkritacanvas.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`のリンクが成功した。
+- x86_64 Linuxで`QT_QPA_PLATFORM=offscreen`を設定し、
+  `libs-canvas-kis_display_color_transform_test`と
+  `libs-ui-kis_display_color_converter_contract_test`が成功した。`libkritacanvas.so`、
+  `libkritaui.so`と両試験実行ファイルのリンクも成功した。
+- Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
+  Windows x86_64で`libkritacanvas.dll`と`libkritaui.dll`のリンクが成功した。
+- 5構成のCMake台帳を再生成した。macOS 642件、Linux 657件、iOS 576件、Android 582件、
+  Windows 612件のターゲット、560件の共通ターゲット、119件の条件付きターゲット、
+  257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
+  5構成すべてで循環0件を維持する。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
+  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 表示色変換境界分離後の
+  全Nix出力の評価が成功した。
 
 ## 次の操作
 
