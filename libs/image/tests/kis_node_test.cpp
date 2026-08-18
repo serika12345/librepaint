@@ -301,9 +301,10 @@ void KisNodeTest::testChildNodes()
 
 class KisNodeTest::VisibilityKiller : public QRunnable {
 public:
-    VisibilityKiller(KisNodeSP victimNode, KisNodeSP nastyChild, bool /*isWriter*/)
+    VisibilityKiller(KisNodeSP victimNode, KisNodeSP nastyChild, bool isWriter)
         : m_victimNode(victimNode),
-          m_nastyChild(nastyChild)
+          m_nastyChild(nastyChild),
+          m_isWriter(isWriter)
     {}
 
     void run() override {
@@ -311,11 +312,13 @@ public:
         int visibility = 0;
 
         for(int i = 0; i < NUM_CYCLES; i++) {
-            if(i % 3 == 0) {
+            if (m_isWriter) {
                 m_nastyChild->setVisible(visibility++ & 0x1);
-                // dbgKrita << "visibility" << i << m_nastyChild->visible();
             }
-            else if (i%3 == 1){
+            else if (i % 3 == 0) {
+                m_nastyChild->visible();
+            }
+            else if (i % 3 == 1) {
                 KoProperties props;
                 props.setProperty("visible", true);
 
@@ -323,16 +326,15 @@ public:
                     m_victimNode->childNodes(QStringList("TestNodeB"), props);
 
                 Q_FOREACH (KisNodeSP node, visibleNodes) {
-                    m_nastyChild->setVisible(visibility++ & 0x1);
+                    node->visible();
                 }
-                // dbgKrita << visibleNodes;
             }
             else {
                 Q_ASSERT(m_victimNode->firstChild());
                 Q_ASSERT(m_victimNode->lastChild());
 
-                m_victimNode->firstChild()->setVisible(visibility++ & 0x1);
-                m_victimNode->lastChild()->setVisible(visibility++ & 0x1);
+                m_victimNode->firstChild()->visible();
+                m_victimNode->lastChild()->visible();
             }
         }
     }
@@ -340,6 +342,7 @@ public:
 private:
     KisNodeSP m_victimNode;
     KisNodeSP m_nastyChild;
+    bool m_isWriter;
 };
 
 
@@ -428,5 +431,4 @@ void KisNodeTest::graphStressTest() {
 }
 
 SIMPLE_TEST_MAIN(KisNodeTest)
-
 
