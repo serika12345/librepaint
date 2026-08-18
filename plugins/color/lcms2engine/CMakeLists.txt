@@ -86,5 +86,9 @@ generate_export_header(kritalcmsengine_static BASE_NAME kritalcmsengine)
 target_link_libraries(kritalcmsengine_static kritapigment kritawidgetutils KF${KF_MAJOR}::I18n KF${KF_MAJOR}::CoreAddons ${LCMS2_LIBRARIES} ${LINK_OPENEXR_LIB})
 
 target_link_libraries(kritalcmsengine PRIVATE kritalcmsengine_static)
-install(TARGETS kritalcmsengine DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
+if (TARGET kis_display_color_transform_test)
+    add_dependencies(kis_display_color_transform_test kritalcmsengine)
+endif()
+
+install(TARGETS kritalcmsengine DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

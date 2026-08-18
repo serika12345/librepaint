@@ -33,23 +33,20 @@ public:
 
 const KoColorSpace *standardColorSpace()
 {
-    return KoColorSpaceRegistry::instance()->colorSpace(
-        RGBAColorModelID.id(),
-        Integer8BitsColorDepthID.id(),
-        KoColorSpaceRegistry::instance()->p709SRGBProfile());
+    return KoColorSpaceRegistry::instance()->rgb8();
 }
 
 void configureTransform(KisDisplayColorTransform &transform)
 {
-    const KoColorProfile *profile =
-        KoColorSpaceRegistry::instance()->p709SRGBProfile();
+    const KoColorSpace *colorSpace = standardColorSpace();
+    const KoColorProfile *profile = colorSpace->profile();
     transform.setDisplayConfiguration(
         profile,
         profile,
         KoColorConversionTransformation::internalRenderingIntent(),
         KoColorConversionTransformation::internalConversionFlags());
-    transform.setInputColorSpace(standardColorSpace());
-    transform.setPaintingColorSpace(standardColorSpace());
+    transform.setInputColorSpace(colorSpace);
+    transform.setPaintingColorSpace(colorSpace);
 }
 }
 
