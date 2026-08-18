@@ -2,13 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 10:45 JST
-- 状態: `completed`
-- 現在の検査段階: R1-G6d投影更新境界
+- 更新日時: 2026-08-18 11:33 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G6d表示色変換境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6d-projection-boundary`
-- 目的: `libs/ui/canvas/kis_prescaled_projection.*`を起点として、投影フレームの生成と
-  更新契約を独立所有させ、UI設定、具体的な画像投影実装、OpenGL更新情報から分離する。
+- ブランチ: `r1-g6d-display-color-boundary`
+- 目的: `libs/ui/KisOcioConfiguration.*`、`libs/ui/KisSurfaceColorSpaceWrapper.h`、
+  `libs/ui/canvas/kis_display_color_converter.*`を起点として、表示色の値型と変換本体を
+  UI状態から分離し、画面設定とパレット反映の接続範囲を確定する。
 
 ## 再開環境
 
@@ -363,6 +364,25 @@
 - 構造検査が新しい所有先、旧配置の不在、UI設定、表示型、OpenGLタイル型、文書型への
   逆方向includeの不在を継続確認する。表示色変換と動画キャッシュは後続の独立単位とする。
 
+## 表示色変換境界で完了した作業
+
+- `libs/ui/KisOcioConfiguration.*`と`libs/ui/KisSurfaceColorSpaceWrapper.h`を起点として、
+  表示色の設定値とQt画面色空間との変換値を`libs/canvas/color`へ移した。旧配置と
+  転送ヘッダーは残さず、プラグインとUIは`kritacanvas`の公開面を直接参照する。
+- `libs/ui/canvas/kis_display_color_converter.*`から画素、色、画像の変換処理を
+  `libs/canvas/color/kis_display_color_transform.*`へ分離した。変換本体はUI設定、現在ノード、
+  資源管理、画面パレットを参照せず、プロファイル、変換方法、表示フィルターを入力として
+  色変換を実行する。
+- UI側の色変換器は変換本体を保持し、現在ノードと設定通知の監視、前景色の視覚表現維持、
+  ハンドル色とシステムパレットの更新、利用元への変更通知を担当する。
+- `libs/canvas/tests/kis_display_color_transform_test.*`が標準表示変換、往復変換、
+  プロファイル一致時の省略判定、表示フィルター適用、ビット深度別キャッシュをUIなしで
+  検査する。`KisSurfaceColorSpaceWrapperTest`も`libs/canvas/tests`へ移した。
+- `libs/ui/tests/kis_display_color_converter_contract_test.cpp`が画面設定を一度だけ反映し、
+  同じ設定の再入力で通知を重複させず、UI接続後も表示色結果を維持することを検査する。
+- 公開面は`kritacanvas`の12ヘッダーへ拡張し、未宣言だった`kritaui`内部参照の基準を
+  11ヘッダー28件から9ヘッダー24件へ縮小した。動画キャッシュは後続の独立単位とする。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -501,13 +521,13 @@
 
 ## 次の操作
 
-R1-G6dの次の独立単位では`libs/ui/KisOcioConfiguration.*`、
-`libs/ui/KisSurfaceColorSpaceWrapper.h`、`libs/ui/canvas/kis_display_color_converter.*`を
-起点として、表示色の入力、変換、画面側への反映を特性試験で固定し、色表示の所有範囲と
-I/O境界を確定する。その後に動画キャッシュを独立した検証単位として扱う。R1-G6d全体の
-完了判定は、キャンバス所有のUI内部参照と、キャンバス表示から文書寿命への逆方向includeを
-解消した時点で行う。UIから利用事例を登録・呼出しする専用移行は、この完了後に
-保守責任者が明示的に開始を決定する。
+R1-G6dの次の独立単位では`libs/ui/kis_animation_frame_cache.*`、
+`libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameCacheStore.*`、
+`libs/ui/KisFrameCacheSwapper.*`を起点として、フレーム生成、保存、交換、再生側への反映を
+特性試験で固定し、動画キャッシュの所有範囲とI/O境界を確定する。R1-G6d全体の完了判定は、
+キャンバス所有のUI内部参照と、キャンバス表示から文書寿命への逆方向includeを解消した時点で
+行う。UIから利用事例を登録・呼出しする専用移行は、この完了後に保守責任者が明示的に
+開始を決定する。
 
 ## R1-G5完了根拠
 

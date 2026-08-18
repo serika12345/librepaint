@@ -41,10 +41,10 @@
 #include <KisSqueezedComboBox.h>
 #include "kis_signals_blocker.h"
 #include "krita_utils.h"
-#include <KisOcioConfiguration.h>
+#include <color/KisOcioConfiguration.h>
 
 #include <opengl/KisOpenGLModeProber.h>
-#include <KisSurfaceColorSpaceWrapper.h>
+#include <color/KisSurfaceColorSpaceWrapper.h>
 
 #include "black_white_point_chooser.h"
 
@@ -626,4 +626,3 @@ void LutDockerDock::clearLut()
     m_txtLut->clear();
     updateDisplaySettings();
 }
-

@@ -531,27 +531,11 @@
   "reviewedInternalHeaderDestinations": [
     {
       "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/KisOcioConfiguration.h",
-      "destinationResponsibility": "canvas-presentation",
-      "destinationDirectory": "libs/canvas/color",
-      "wave": "R1-G6d",
-      "disposition": "move-behind-boundary"
-    },
-    {
-      "ownerTarget": "kritaui",
       "headerPath": "libs/ui/KisPopupWidgetInterface.h",
       "destinationResponsibility": "tool-invocation",
       "destinationDirectory": "libs/tools/ui",
       "wave": "R1-G6f",
       "disposition": "declare-or-replace-public-contract"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/KisSurfaceColorSpaceWrapper.h",
-      "destinationResponsibility": "canvas-presentation",
-      "destinationDirectory": "libs/canvas/color",
-      "wave": "R1-G6d",
-      "disposition": "move-behind-boundary"
     },
     {
       "ownerTarget": "kritaui",
@@ -754,7 +738,7 @@
       "maximumReverseDirectIncludesAfterWave": 264,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 28
+        "kritaui": 24
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
@@ -812,7 +796,7 @@
       "maximumReverseDirectIncludesAfterWave": 169,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 28
+        "kritaui": 24
       },
       "completionCriteria": [
         "Painting has zero document-lifecycle includes and exposes image-model and paint-execution from owned targets.",
@@ -861,7 +845,7 @@
       "maximumReverseDirectIncludesAfterWave": 169,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 28
+        "kritaui": 24
       },
       "completionCriteria": [
         "All 14 classified import-export classes are owned by kritaimpex or kritaimpexui.",

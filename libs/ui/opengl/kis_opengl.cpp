@@ -37,7 +37,7 @@
 #include <kis_config.h>
 #include <kis_debug.h>
 
-#include <KisSurfaceColorSpaceWrapper.h>
+#include <color/KisSurfaceColorSpaceWrapper.h>
 #include "KisOpenGLModeProber.h"
 #include "opengl/kis_opengl.h"
 

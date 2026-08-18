@@ -1,4 +1,9 @@
 set(kritacanvas_LIB_SRCS
+    color/KisOcioConfiguration.h
+    color/KisSurfaceColorSpaceWrapper.h
+    color/kis_display_color_filter.h
+    color/kis_display_color_transform.h
+    color/kis_display_color_transform.cpp
     kis_coordinates_converter.cpp
     kis_image_patch.h
     kis_image_patch.cpp

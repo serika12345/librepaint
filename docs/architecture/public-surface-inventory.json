@@ -92,6 +92,52 @@
           ]
         },
         {
+          "path": "libs/canvas/color/KisOcioConfiguration.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/kis_config.cc",
+            "plugins/dockers/lut/lutdocker_dock.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/color/KisSurfaceColorSpaceWrapper.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/opengl/KisOpenGLModeProber.cpp",
+            "libs/ui/opengl/KisScreenInformationAdapter.h",
+            "libs/ui/opengl/kis_opengl.cpp",
+            "plugins/dockers/lut/lutdocker_dock.cpp",
+            "plugins/dockers/smallcolorselector/KisGLImageWidget.h",
+            "qmlmodules/widgets/KisQQuickWidget.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/color/kis_display_color_filter.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_display_filter.h"
+          ]
+        },
+        {
+          "path": "libs/canvas/color/kis_display_color_transform.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_display_color_converter.cpp"
+          ]
+        },
+        {
           "path": "libs/canvas/kis_coordinates_converter.h",
           "publicationEvidence": [
             "export-macro",
@@ -185,7 +231,6 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/canvas/kis_display_filter.h",
             "libs/ui/canvas/kis_image_pyramid.h"
           ]
         },
@@ -3011,6 +3056,7 @@
             "libs/brush/kis_boundary.cc",
             "libs/brush/kis_brush.cpp",
             "libs/brush/kis_brushes_pipe.h",
+            "libs/canvas/color/kis_display_color_transform.cpp",
             "libs/ui/canvas/kis_display_color_converter.cpp",
             "libs/ui/opengl/kis_opengl_image_textures.cpp",
             "plugins/dockers/smallcolorselector/kis_small_color_widget.cc",
@@ -3333,7 +3379,6 @@
             "libs/ui/canvas/kis_canvas_controller.cpp",
             "libs/ui/canvas/kis_canvas_decoration.h",
             "libs/ui/canvas/kis_change_guides_command.cpp",
-            "libs/ui/canvas/kis_display_color_converter.cpp",
             "libs/ui/canvas/kis_grid_manager.cpp",
             "libs/ui/canvas/kis_image_pyramid.h",
             "libs/ui/canvas/kis_infinity_manager.cpp",
@@ -3748,6 +3793,7 @@
           ],
           "consumerPaths": [
             "libs/brush/kis_brush.cpp",
+            "libs/canvas/color/kis_display_color_transform.cpp",
             "libs/global/kis_acs_pixel_cache_renderer.h",
             "libs/global/kis_acs_types.h",
             "libs/impex/ui/KisImportExportManager.cpp",
@@ -3756,7 +3802,6 @@
             "libs/psd/psd_layer_record.cpp",
             "libs/psd/psd_pixel_utils.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
-            "libs/ui/canvas/kis_display_color_converter.cpp",
             "libs/ui/canvas/kis_image_pyramid.cpp",
             "libs/ui/flake/kis_shape_selection.cpp",
             "libs/ui/kis_mask_manager.cc",
@@ -4423,6 +4468,7 @@
             "libs/brush/kis_brush.cpp",
             "libs/brush/kis_gbr_brush.cpp",
             "libs/brush/kis_pipebrush_parasite.h",
+            "libs/canvas/color/kis_display_color_transform.cpp",
             "libs/global/kis_acs_pixel_cache_renderer.h",
             "libs/impex/ui/kis_clipboard.cc",
             "libs/impex/ui/kis_mimedata.cpp",
@@ -6055,6 +6101,7 @@
             "libs/brush/kis_brush.h",
             "libs/brush/kis_brush_registry.h",
             "libs/brush/kis_gbr_brush.h",
+            "libs/canvas/color/kis_display_color_transform.h",
             "libs/canvas/kis_coordinates_converter.h",
             "libs/canvas/kis_image_patch.h",
             "libs/canvas/kis_prescaled_projection.h",
@@ -7888,15 +7935,6 @@
           ]
         },
         {
-          "path": "libs/ui/KisOcioConfiguration.h",
-          "publicationEvidence": [
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/lut/lutdocker_dock.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/KisPart.h",
           "publicationEvidence": [
             "export-macro",
@@ -8067,17 +8105,6 @@
             "export-macro"
           ],
           "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisSurfaceColorSpaceWrapper.h",
-          "publicationEvidence": [
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/lut/lutdocker_dock.cpp",
-            "plugins/dockers/smallcolorselector/KisGLImageWidget.h",
-            "qmlmodules/widgets/KisQQuickWidget.cpp"
-          ]
         },
         {
           "path": "libs/ui/KisTemplateCreateDia.h",

@@ -110,6 +110,7 @@ R1は次の順で進め、各ゲートの完了時に停止して成果物と検
 - [x] `libs/ui/KisImportExportManager.*`、`KisImportExportFilter.*`、`KisImportExportErrorCode.*`、`KisImportExportAdditionalChecks.*`、`KisImportUserFeedbackInterface.*`を起点として、形式探索・検査を`libs/impex`へ、文書・利用者・媒体との接続を`libs/impex/ui`と`libs/impex/animation`へ分離し、`kritaimpexui`を構築して旧入出力ヘッダーを除去する。
 - [x] `libs/ui/canvas/kis_coordinates_converter.*`と`KisCanvasState.*`を起点として、座標変換と画面状態を`libs/canvas`の`kritacanvas`へ分離し、設定入力と画像寿命の契約を固定して旧ファイルを除去する。
 - [x] `libs/ui/canvas/kis_prescaled_projection.*`を起点として、表示用画像片、投影更新情報、投影取得接続面、拡大縮小済みフレームを`libs/canvas`の`kritacanvas`へ分離し、汚れ領域通知と最終有効フレームの契約を固定して旧ファイルを除去する。
+- [x] `libs/ui/KisOcioConfiguration.*`、`libs/ui/KisSurfaceColorSpaceWrapper.h`、`libs/ui/canvas/kis_display_color_converter.*`を起点として、表示色の値型と変換本体を`libs/canvas/color`へ分離し、UI側を設定・ノード・パレットとの接続に限定して旧値型ファイルを除去する。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。

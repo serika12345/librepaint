@@ -24,7 +24,7 @@
 #endif
 
 #include <QGlobalStatic>
-#include <KisSurfaceColorSpaceWrapper.h>
+#include <color/KisSurfaceColorSpaceWrapper.h>
 #include <kis_debug.h>
 
 Q_GLOBAL_STATIC(KisOpenGLModeProber, s_instance)

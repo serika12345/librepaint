@@ -97,7 +97,6 @@ set(kritaui_LIB_SRCS
     kis_canvas_resource_provider.cpp
     kis_derived_resources.cpp
     kis_config.cc
-    KisOcioConfiguration.cpp
     kis_control_frame.cpp
     KisDisplayConfig.cpp
     kis_custom_pattern.cc

@@ -1431,6 +1431,10 @@
       ],
       "actualResponsibilityPairs": [
         {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "canvas-presentation"
+        },
+        {
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation"
         },
@@ -1590,9 +1594,20 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_display_color_converter.cpp",
+          "include": "color/kis_display_color_transform.h",
+          "headerPath": "libs/canvas/color/kis_display_color_transform.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/canvas/kis_display_filter.h",
-          "include": "kis_projection_pixel_filter.h",
-          "headerPath": "libs/canvas/kis_projection_pixel_filter.h",
+          "include": "color/kis_display_color_filter.h",
+          "headerPath": "libs/canvas/color/kis_display_color_filter.h",
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "longest-responsibility-source-directory",
@@ -1733,6 +1748,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/kis_config.cc",
+          "include": "color/KisOcioConfiguration.h",
+          "headerPath": "libs/canvas/color/KisOcioConfiguration.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/kis_fps_decoration.cpp",
           "include": "kis_coordinates_converter.h",
           "headerPath": "libs/canvas/kis_coordinates_converter.h",
@@ -1791,6 +1817,39 @@
           "sourcePath": "libs/ui/opengl/KisOpenGLCanvasRenderer.h",
           "include": "kis_update_info.h",
           "headerPath": "libs/canvas/kis_update_info.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/opengl/KisOpenGLModeProber.cpp",
+          "include": "color/KisSurfaceColorSpaceWrapper.h",
+          "headerPath": "libs/canvas/color/KisSurfaceColorSpaceWrapper.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/opengl/KisScreenInformationAdapter.h",
+          "include": "color/KisSurfaceColorSpaceWrapper.h",
+          "headerPath": "libs/canvas/color/KisSurfaceColorSpaceWrapper.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/opengl/kis_opengl.cpp",
+          "include": "color/KisSurfaceColorSpaceWrapper.h",
+          "headerPath": "libs/canvas/color/KisSurfaceColorSpaceWrapper.h",
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "longest-responsibility-source-directory",
@@ -4298,8 +4357,8 @@
       "ownerTarget": "kritaui",
       "owner": "R1-G6",
       "reason": "External packages directly include UI headers without a declared KRITAUI_EXPORT public contract.",
-      "maximumHeaders": 11,
-      "maximumDirectReferences": 28,
+      "maximumHeaders": 9,
+      "maximumDirectReferences": 24,
       "removalCondition": "Each reference uses a reviewed public UI contract or moves behind the owning UI package boundary.",
       "sourceDirectory": "libs/ui",
       "platforms": [
@@ -4311,24 +4370,10 @@
       ],
       "headers": [
         {
-          "path": "libs/ui/KisOcioConfiguration.h",
-          "consumerPaths": [
-            "plugins/dockers/lut/lutdocker_dock.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/KisPopupWidgetInterface.h",
           "consumerPaths": [
             "plugins/extensions/iostouchui/iostouchui.cpp",
             "plugins/tools/karbonplugins/tools/CalligraphyTool/KarbonCalligraphyTool.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisSurfaceColorSpaceWrapper.h",
-          "consumerPaths": [
-            "plugins/dockers/lut/lutdocker_dock.cpp",
-            "plugins/dockers/smallcolorselector/KisGLImageWidget.h",
-            "qmlmodules/widgets/KisQQuickWidget.cpp"
           ]
         },
         {

@@ -166,6 +166,10 @@
       ],
       "publicHeaderPaths": [
         "libs/canvas/KisCanvasState.h",
+        "libs/canvas/color/KisOcioConfiguration.h",
+        "libs/canvas/color/KisSurfaceColorSpaceWrapper.h",
+        "libs/canvas/color/kis_display_color_filter.h",
+        "libs/canvas/color/kis_display_color_transform.h",
         "libs/canvas/kis_coordinates_converter.h",
         "libs/canvas/kis_image_patch.h",
         "libs/canvas/kis_prescaled_projection.h",
