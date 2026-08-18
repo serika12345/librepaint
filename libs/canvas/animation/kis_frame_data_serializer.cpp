@@ -7,8 +7,15 @@
 
 #include <cstring>
 
-#include <QTemporaryDir>
+#include <QByteArray>
+#include <QDataStream>
+#include <QDebug>
+#include <QDir>
 #include <QElapsedTimer>
+#include <QFile>
+#include <QFileInfo>
+#include <QString>
+#include <QTemporaryDir>
 
 #include <kis_assert.h>
 
