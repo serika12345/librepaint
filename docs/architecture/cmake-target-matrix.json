@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 642,
-    "linux": 657,
-    "ios": 576,
-    "android": 582,
-    "windows": 612
+    "macos": 645,
+    "linux": 660,
+    "ios": 579,
+    "android": 585,
+    "windows": 615
   },
   "commonTargets": [
     "CCSGraph",
@@ -39,7 +39,7 @@
     "KisExifTest",
     "KisForestTest",
     "KisFourPointInterpolatorTest",
-    "KisFrameCacheStoreTest",
+    "KisFrameCacheSwapperTest",
     "KisFrameSerializerTest",
     "KisGifTest",
     "KisGlobalTest",
@@ -95,6 +95,7 @@
     "TestAslStorage",
     "TestAssistants",
     "TestBundleStorage",
+    "TestCanvasUiPublicHeaders",
     "TestChannel",
     "TestColorConversion",
     "TestColorConversionSystem",
@@ -196,6 +197,7 @@
     "kis_algebra_2d_test",
     "kis_all_filter_test",
     "kis_animation_exporter_test",
+    "kis_animation_frame_cache_index_test",
     "kis_animation_frame_cache_test",
     "kis_animation_importer_test",
     "kis_animation_utils_test",
@@ -247,6 +249,7 @@
     "kis_filter_weights_buffer_test",
     "kis_fixed_paint_device_test",
     "kis_fixed_point_maths_test",
+    "kis_frame_cache_store_test",
     "kis_gbr_brush_test",
     "kis_gradient_painter_test",
     "kis_grid_config_test",

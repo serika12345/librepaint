@@ -235,7 +235,7 @@
       ]
     },
     {
-      "name": "KisFrameCacheStoreTest",
+      "name": "KisFrameCacheSwapperTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
@@ -247,11 +247,10 @@
     {
       "name": "KisFrameSerializerTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/canvas/tests",
       "dependencies": [
-        "kritalibkis",
-        "kritatestsdk",
-        "kritaui"
+        "kritacanvas",
+        "kritatestsdk"
       ]
     },
     {
@@ -804,6 +803,16 @@
         "kritatestsdk",
         "kritaversion",
         "kritawidgets"
+      ]
+    },
+    {
+      "name": "TestCanvasUiPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
       ]
     },
     {
@@ -1919,6 +1928,15 @@
       ]
     },
     {
+      "name": "kis_animation_frame_cache_index_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/canvas/tests",
+      "dependencies": [
+        "kritacanvas",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "kis_animation_frame_cache_test",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
@@ -2418,6 +2436,15 @@
       "dependencies": [
         "kritaimage",
         "kritaresourcestorage",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_frame_cache_store_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/canvas/tests",
+      "dependencies": [
+        "kritacanvas",
         "kritatestsdk"
       ]
     },
