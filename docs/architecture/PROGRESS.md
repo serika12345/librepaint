@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 08:43 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-18 10:45 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6d投影更新境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6d-projection-boundary`
@@ -490,6 +490,14 @@
   責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: 投影更新境界分離後の全Nix出力の
   評価が成功した。
+- x86_64 Linuxで`libkritacanvas.so`と`libkritaui.so`のリンク、および
+  `libs-canvas-kis_prescaled_projection_contract_test`の2契約が成功した。
+- Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
+  Windows x86_64で`libkritacanvas.dll`と`libkritaui.dll`のリンクが成功した。
+- 5構成のCMake台帳を再生成した。macOS 640件、Linux 655件、iOS 574件、Android 580件、
+  Windows 610件のターゲット、558件の共通ターゲット、119件の条件付きターゲット、
+  257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
+  5構成すべてで循環0件を維持する。
 
 ## 次の操作
 
