@@ -2417,95 +2417,12 @@ QDebug operator<<(QDebug debug, const VectorPath::VectorPathPoint &point)
 
 bool isInsideShape(const VectorPath &path, const QPointF &point)
 {
-    if (path.pointsCount() == 0) {
-        return false;
-    }
-
-    QRectF boundRect;
-    accumulateBounds(path.pointAt(0).endPoint, &boundRect);
-
-    bool isPolygon = true;
-
-    for (int i = 0; i < path.segmentsCount(); i++) {
-        QList<VectorPath::VectorPathPoint> points = path.segmentAt(i);
-        accumulateBounds(points[0].endPoint, &boundRect);
-        accumulateBounds(points[1].endPoint, &boundRect);
-
-        if (points[1].type == VectorPath::VectorPathPoint::BezierTo) {
-            accumulateBounds(points[1].controlPoint1, &boundRect);
-            accumulateBounds(points[1].controlPoint2, &boundRect);
-            isPolygon = false;
-        }
-    }
-
-    if (!boundRect.contains(point)) {
-        return false;
-    }
-
-    if (isPolygon) {
-        return path.asPainterPath().toFillPolygon().containsPoint(point, Qt::WindingFill);
-    }
-
-    boundRect = kisGrowRect(boundRect, 5); // just safety margins
-
-    // NOTE: it would be way faster to do it taking into account the fact that the lines are vertical and horizontal
-    // except for the last one maybe
-    // but let's wait until it proves to be a problem
-    QList<QLineF> lines;
-    lines << QLineF(point, QPointF(boundRect.left(), point.y()));
-    lines << QLineF(point, QPointF(boundRect.right(), point.y()));
-    lines << QLineF(point, QPointF(point.x(), boundRect.top()));
-    lines << QLineF(point, QPointF(point.x(), boundRect.bottom()));
-    lines << QLineF(point, boundRect.topLeft()); // last resort, diagonal
-
-    int intersectionsCount = 0;
-
-    for (int k = 0; k < lines.length(); k++) {
-        int intersections = 0;
-        QLineF line = lines[k];
-        bool checkNext = false;
-
-        for (int i = 0; i < path.segmentsCount(); i++) {
-            std::optional<VectorPath::Segment> segmentOpt = path.segmentAtAsSegment(i);
-            KIS_SAFE_ASSERT_RECOVER(segmentOpt.has_value()) {continue;}
-            VectorPath::Segment segment = segmentOpt.value();
-
-            QList<QPointF> intersectionsHere = VectorPath::intersectSegmentWithLineBounded(line, segment);
-            qreal eps = 1e-4;
-
-            for (int i = 0; i < intersectionsHere.count(); i++) {
-                if (fuzzyPointCompare(intersectionsHere[i], segment.startPoint, eps) || fuzzyPointCompare(intersectionsHere[i], segment.endPoint, eps)) {
-                    checkNext = true;
-                    break;
-                }
-            }
-
-            if (checkNext) {
-                break;
-            }
-
-            intersections += intersectionsHere.count();
-        }
-
-        intersectionsCount = intersections;
-        if (!checkNext) {
-            break;
-        }
-    }
-
-    return intersectionsCount%2 == 1;
+    return path.pointsCount() > 0 && path.asPainterPath().contains(point);
 }
 
 bool isInsideShape(const QPainterPath &path, const QPointF &point)
 {
-    for (int i = 0; i < path.elementCount(); i++) {
-        if (path.elementAt(i).type == QPainterPath::CurveToDataElement) {
-            // contains control points
-            return isInsideShape(VectorPath(path), point);
-        }
-    }
-
-    return path.toFillPolygon().containsPoint(point, Qt::WindingFill);
+    return path.contains(point);
 }
 
 bool isOnLine(const QLineF &line, const QPointF &point, const qreal eps, bool boundedStart, bool boundedEnd, bool includeEnds)

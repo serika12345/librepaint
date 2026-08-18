@@ -5,6 +5,8 @@
 #ifndef KOSHAPEBULKACTIONINTERFACE_H
 #define KOSHAPEBULKACTIONINTERFACE_H
 
+#include "kritaflake_export.h"
+
 #include <QRect>
 
 /**
@@ -26,7 +28,7 @@
  *
  * 4) Any non-KoShape specific methods may be invalid in this state.
  */
-struct KoShapeBulkActionInterface
+struct KRITAFLAKE_EXPORT KoShapeBulkActionInterface
 {
     virtual ~KoShapeBulkActionInterface() = default;
 

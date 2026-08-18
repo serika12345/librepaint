@@ -12,6 +12,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QBuffer>
+#include <QMap>
 #include <QTemporaryFile>
 
 #include <kconfig.h>
@@ -109,13 +110,23 @@ void TestResourceLocator::testLocatorInitialization()
     QVersionNumber version = QVersionNumber::fromString(QString::fromUtf8(f.readAll()));
     QVERIFY(version == QVersionNumber::fromString(KritaVersionWrapper::versionString()));
 
-    {
+    const QMap<QString, KisResourceStorage::StorageType> requiredStorages {
+        {QStringLiteral(""), KisResourceStorage::StorageType::Folder},
+        {QStringLiteral("test1.bundle"), KisResourceStorage::StorageType::Bundle},
+        {QStringLiteral("test2.bundle"), KisResourceStorage::StorageType::Bundle},
+        {QStringLiteral("fontregistry"), KisResourceStorage::StorageType::FontStorage},
+        {QStringLiteral("memory"), KisResourceStorage::StorageType::Memory},
+    };
+
+    for (auto it = requiredStorages.constBegin(); it != requiredStorages.constEnd(); ++it) {
         QSqlQuery query;
-        bool r = query.exec("SELECT COUNT(*) FROM storages");
-        QVERIFY(r);
+        QVERIFY(query.prepare("SELECT storage_type_id, active FROM storages WHERE location = :location"));
+        query.bindValue(":location", it.key());
+        QVERIFY(query.exec());
         QVERIFY(query.lastError() == QSqlError());
-        query.first();
-        QCOMPARE(query.value(0).toInt(), 4);
+        QVERIFY2(query.first(), qPrintable(QStringLiteral("Required storage is missing: %1").arg(it.key())));
+        QCOMPARE(query.value("storage_type_id").toInt(), static_cast<int>(it.value()));
+        QCOMPARE(query.value("active").toBool(), true);
     }
 
     {
@@ -1407,4 +1418,3 @@ void TestResourceLocator::cleanupTestCase()
 }
 
 SIMPLE_TEST_MAIN(TestResourceLocator)
-
