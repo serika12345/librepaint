@@ -2,15 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 18:09 JST
+- 更新日時: 2026-08-18 19:13 JST
 - 状態: `completed`
-- 現在の検査段階: ネイティブ試験正常化の原因分類
+- 現在の検査段階: ネイティブ試験正常化の読取専用出力契約
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `test-failure-cause-classification`
-- 目的: `sdk/tests/filestest.h`、`libs/pigment/KoColorSpaceRegistry.cpp`、
-  `libs/ui/tests/kis_shape_layer_test.cpp`、`libs/ui/tests/KisSafeDocumentLoaderTest.cpp`を
-  主な起点として、マージ後のmacOSネイティブ試験37失敗を試験契約、製品実装、
-  依存・実行時資源契約、非同期同期へ分類し、修正実装とは別のレビュー単位で確定する。
+- ブランチ: `normalize-readonly-export-tests`
+- 目的: `sdk/tests/filestest.h`を起点として、書込可能な親ディレクトリーでは成立しなかった
+  読取専用出力試験を、ファイル置換を含む保存方式でも書込みを拒否する共通契約へ改める。
 
 ## 再開環境
 
@@ -422,6 +420,20 @@
 - `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
   責務・依存・構造台帳、文書形式、リンク、D2再生成を含む高速検査が成功した。
 
+## 読取専用出力試験契約で完了した作業
+
+- `sdk/tests/filestest.h`の共通補助は、書込可能な親ディレクトリーに置いた既存ファイルの
+  書込権限だけを除いていた。macOSでは一時ファイルからの原子的な置換が成立するため、
+  保存処理が成功し、失敗契約を観測できなかった。
+- 形式試験ごとに固有の一時ディレクトリーと出力ファイルを作成し、双方の元の権限を保持して
+  全書込権限を除くようにした。権限設定と復元の成否も検査し、試験終了後は元の権限へ戻す。
+- 共通補助を利用する有効な17形式について、macOSとx86_64 Linuxで読取専用出力が拒否される
+  ことを確認した。macOS固有の製品分岐と形式別の例外は追加していない。
+- 変更はネイティブ試験用の共通ヘッダーに限定され、iOS、Android、Windowsの製品構築物と
+  CMake依存グラフには影響しない。
+- `docs/architecture/TEST_FAILURE_CLASSIFICATION.md`は、残る分類対象を修正してmacOSとLinuxの
+  全ネイティブ試験が成功するまで一時台帳として維持する。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -608,12 +620,28 @@
   責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: アニメーションキャッシュ
   境界分離後の全Nix出力の評価が成功した。
+- 修正前の`nix develop --no-eval-cache .#test --command ./scripts/run-test kis_jpeg_test`は、
+  `sdk/tests/filestest.h`の読取専用出力検査で保存成功を観測して失敗した。修正後は同じ
+  コマンドの1件が成功した。
+- `ctest --preset tdd-macos --output-on-failure --tests-regex <対象17形式>`で、JPEG、JPEG XL、
+  PSD、EXR、RGBE、WebP、PDF、TGA、Brush、QImageIO、GIF、ORA、QML、JP2、Heightmap、KRA、
+  TIFFの読取専用出力検査17件が成功した。KRAとTIFFの試験対象全体に残る失敗は、分類済みの
+  色プロファイル登録と固定試験データ読込であり、この契約とは独立している。
+- x86_64 Linuxの清浄な同一コミット`96a1970`で17形式を構築し、読取専用出力検査17件が
+  成功した。KRAは対象全体が先行する既知失敗で終了するため、同じ試験環境で読取専用出力検査を
+  直接指定して成功を確認した。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify`: macOSの全製品と全試験の
+  1,876構築工程が成功し、CTest 327件中302件が成功した。直前の全試験から10試験対象が
+  正常化し、残る25件は一時分類台帳に記録した別原因である。
+- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
+  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
 
 ## 次の操作
 
-ネイティブ試験失敗の原因分類をレビューしてマージする。マージ後は分類台帳の原因単位で
-修正実装を行う。macOSとLinuxの全ネイティブ試験が成功した変更で一時分類文書を削除し、
-R1-G6e文書寿命境界の最初の独立単位を計画できる状態へ戻す。
+読取専用出力試験契約の修正をレビューしてマージする。マージ後は
+`libs/resources/tests/TestResourceLocator.cpp`を起点として、資源保管場所の必須識別子と属性を
+検査する契約を次の独立PRで修正する。macOSとLinuxの全ネイティブ試験が成功した変更で
+一時分類文書を削除し、R1-G6e文書寿命境界の最初の独立単位を計画できる状態へ戻す。
 UIから利用事例を登録・呼出しする専用移行と、ドメイン計算からI/Oを分離する専用移行は、
 保守責任者が明示的に開始を決定するまで着手しない。
 
