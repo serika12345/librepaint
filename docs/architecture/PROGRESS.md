@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 20:50 JST
+- 更新日時: 2026-08-19 22:53 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e文書回復状態境界
+- 現在の検査段階: R1-G6e-D0文書ドメイン分離計画
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-document-recovery-status`
-- 目的: `libs/ui/KisDocument.cpp`の回復済み文書状態を
-  `libs/document/session/kis_document_recovery_status.*`へ抽出し、回復元であるという文書事実を
-  UI実装から`kritadocument`へ移す。
+- ブランチ: `r1-g6e-domain-separation-milestone`
+- 目的: `libs/ui/KisDocument.{h,cpp}`に残る保存、回復、読込、文書情報の調整を、
+  UI接続、利用事例、ドメイン判断、副作用アダプターへ分けるR1-G6e後半の実装順と
+  完了条件を固定する。
 
 ## 再開環境
 
@@ -512,6 +512,27 @@
 - この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
   24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
 
+## R1-G6e-D0文書ドメイン分離計画で完了した作業
+
+- `docs/architecture/document-domain-separation-plan.md`に、`KisDocument`へ残る保存、回復、
+  読込、文書情報の調整を、表示、利用事例、ドメイン判断、副作用アダプターへ分ける
+  R1-G6e後半の目的と実装順を記録した。
+- 目標所有を`kritadocument`、`kritadocumentusecases`、`kritadocumentpersistence`、
+  `kritadocumentui`へ分け、UIから利用事例、利用事例からドメインへ向かう依存と、
+  具体アダプターが利用事例所有の接続面を実装する依存方向を固定した。
+- 新しい副作用接続面には、同じ検査段階で製品アダプター、決定的な試験用実装、所有寿命、
+  完了方法、エラー契約を要求した。汎用リポジトリー、サービス探索器、共通利用事例基底クラスを
+  文書境界の共通抽象として使用しない。
+- 実装をD1文書ドメインからの取り消しUI依存除去、D2回復用自動保存、D3通常保存と書出し、D4自動保存と
+  回復I/O、D5文書読込、D6文書情報、D7文書UI接続の7検査段階へ分けた。
+- R1-G6e中は`KisDocument`内の一つの構成経路を上限として利用事例とアダプターを接続する。
+  R1-G6hのアプリケーション構成が置換し、R1-G7が旧構成経路の不在を検査する削除条件を
+  再配置計画へ記録した。
+- 最初の実装単位は`libs/document/undo/kis_document_undo_store.{h,cpp}`と
+  `libs/command/{kundo2model,kundo2view}.{h,cpp}`を起点とし、文書と取り消し履歴の接続および
+  履歴表示を`libs/document/ui/undo`へ移す。`kritadocument`のリンク閉包からQt Guiと
+  Qt Widgetsを除去した状態をD1の完了条件とする。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -836,14 +857,18 @@
   構造台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: 文書回復状態境界分離後の
   全Nix出力の評価が成功した。
+- `nix develop .#test --command ./scripts/verify-quick`: 文書ドメイン分離計画、R1 TODO、
+  再配置計画、進捗スナップショットの整合を含む97件の単体試験と高速検査が成功した。
+- R1-G6e-D0は製品ソース、CMake、Nix出力を変更しない計画単位である。5構成の製品構築と
+  macOS、Linuxの全ネイティブ試験は、直前の文書回復状態境界で記録した結果を維持する。
 
 ## 次の操作
 
-R1-G6e文書回復状態境界をレビューして統合する。統合後はmasterを同期し、保存と入出力診断、
-文書情報、ノードと選択の操作、取り消し履歴処理とQt Widgets用アクション生成から、依存方向と
-契約を保った最小の独立単位を選定する。構成値、時刻、ファイルI/O、UI文書参照が混在する
-文書情報と、回復I/Oを含む単位は、専用のUI・ドメイン分離または純粋計算・I/O分離を開始する
-判断まで現行所有を維持する。
+R1-G6e-D0文書ドメイン分離計画をレビューして統合する。統合後はmasterを同期し、
+R1-G6e-D1として`libs/document/undo/kis_document_undo_store.{h,cpp}`と
+`libs/command/{kundo2model,kundo2view}.{h,cpp}`の履歴接続、通知、操作名、履歴表示の
+特性契約を追加する。初期診断を確認後、文書と取り消し履歴の接続および履歴表示を
+`libs/document/ui/undo`へ移し、`kritadocument`の公開依存をQt Coreだけへ縮小する。
 
 ## R1-G5完了根拠
 

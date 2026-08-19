@@ -185,16 +185,29 @@
             "status": "implemented"
           },
           {
+            "name": "kritadocumentpersistence",
+            "directory": "libs/document/persistence",
+            "role": "side-effect-adapters",
+            "status": "new"
+          },
+          {
             "name": "kritadocumentui",
             "directory": "libs/document/ui",
             "role": "presentation",
+            "status": "new"
+          },
+          {
+            "name": "kritadocumentusecases",
+            "directory": "libs/document/usecases",
+            "role": "application-use-cases",
             "status": "new"
           }
         ]
       },
       "completionCriteria": [
-        "Document identity, modified state, persistence, and undo coordination are owned by kritadocument.",
-        "Document widgets depend on kritadocumentui while domain state remains usable without Qt Widgets."
+        "Document identity, modified state, and metadata rules are owned by kritadocument without Qt Gui or Qt Widgets.",
+        "Document use cases derive state transitions and side-effect instructions without concrete file, configuration, clock, or background-job implementations.",
+        "Document widgets depend on kritadocumentui, and concrete persistence adapters depend inward on use-case-owned contracts."
       ]
     },
     {
@@ -591,6 +604,17 @@
   ],
   "compatibilityRoutes": [
     {
+      "id": "document-ui-composition-adapter",
+      "kind": "application-composition-adapter",
+      "legacy": "KisDocument construction inside kritaui creates document use cases and concrete persistence adapters",
+      "replacement": "R1-G6h application composition constructs and injects document use cases, persistence adapters, and UI wiring",
+      "introducedBy": "R1-G6e",
+      "owner": "R1-G7",
+      "maximumScope": "One construction path in libs/ui/KisDocument.cpp with no service locator, global registry, forwarding header, or compatibility alias.",
+      "removalCondition": "R1-G6h owns the same dependency lifetimes at application startup and every KisDocument construction path receives the composed dependencies.",
+      "verification": "Application startup contracts and source inspection report no document use-case or persistence-adapter construction below libs/ui."
+    },
+    {
       "id": "legacy-tool-ui-headers",
       "kind": "forwarding-headers",
       "legacy": "tool-invocation and settings-presentation headers below libs/ui/tool",
@@ -923,9 +947,19 @@
           "target": "kritadocument"
         },
         {
-          "from": "remaining libs/ui/KisDocument.{h,cpp} document session and persistence implementation",
-          "to": "libs/document",
-          "target": "kritadocument"
+          "from": "libs/document/undo/kis_document_undo_store.{h,cpp}",
+          "to": "libs/document/ui/undo",
+          "target": "kritadocumentui"
+        },
+        {
+          "from": "libs/ui/KisDocument.cpp save, autosave, recovery, and open use-case coordination",
+          "to": "libs/document/usecases",
+          "target": "kritadocumentusecases"
+        },
+        {
+          "from": "libs/ui/KisDocument.cpp file, configuration, clock, format-conversion, and background-job effects",
+          "to": "libs/document/persistence",
+          "target": "kritadocumentpersistence"
         },
         {
           "from": "libs/ui::<document presentation and interaction wiring>",
@@ -938,18 +972,35 @@
           "target": "kritadocumentui"
         },
         {
-          "from": "libs/ui/KoDocumentInfo.{h,cpp}",
+          "from": "libs/ui/KoDocumentInfo.{h,cpp} document information values and update rules",
           "to": "libs/document/metadata",
           "target": "kritadocument"
+        },
+        {
+          "from": "libs/ui/KoDocumentInfo.{h,cpp} configuration, clock, and file-attribute access",
+          "to": "libs/document/persistence",
+          "target": "kritadocumentpersistence"
+        },
+        {
+          "from": "libs/ui/KoDocumentInfo.{h,cpp} dialog and widget connections",
+          "to": "libs/document/ui",
+          "target": "kritadocumentui"
         }
       ],
       "createsTargets": [
         "kritadocument",
-        "kritadocumentui"
+        "kritadocumentpersistence",
+        "kritadocumentui",
+        "kritadocumentusecases"
       ],
-      "compatibilityRoutes": [],
+      "compatibilityRoutes": [
+        "document-ui-composition-adapter"
+      ],
       "requiredContracts": [
+        "Deterministic document use-case instruction and result tests with fake side-effect adapters",
+        "Document domain and use-case link closure without Qt Gui or Qt Widgets",
         "Document session lifetime and modified-state tests",
+        "Document UI notification, dialog, and undo action tests",
         "Transactional save, autosave, recovery, and cancellation tests",
         "Document undo coordination tests"
       ],
@@ -961,9 +1012,12 @@
       },
       "completionCriteria": [
         "All 25 document classes classified at the start of R1-G6e have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",
-        "Document targets depend only on import-export, painting, plugin, and resource public surfaces."
+        "Concrete file, configuration, clock, format-conversion, and background-job effects implement use-case-owned contracts in kritadocumentpersistence.",
+        "Document domain and use-case targets have no Qt Gui or Qt Widgets dependency, while kritadocumentui owns presentation and interaction wiring.",
+        "Document targets depend only on import-export, painting, plugin, and resource public surfaces.",
+        "Save, export, autosave, recovery, and open behavior is invoked through document use cases with deterministic state-transition and failure contracts."
       ],
-      "stopCondition": "Stop before tool migration if document state, persistence, recovery, or undo contracts regress."
+      "stopCondition": "Stop before the next document gate or tool migration if document state, persistence, recovery, undo, platform file behavior, target link closure, or cycle contracts regress."
     },
     {
       "id": "R1-G6f",
