@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 10:06 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-19 11:07 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6e文書取り消し境界の最初の独立単位
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6e-document-undo-plan`
 - 目的: `libs/ui/kis_document_undo_store.*`を起点として、文書全体への依存を取り消し履歴の
-  借用へ狭め、`libs/document/undo`の`kritadocument`を成立させる最初の独立単位を実装する。
+  借用へ狭め、`libs/document/undo`の`kritadocument`を成立させる最初の独立単位を完了した。
 
 ## 再開環境
 
@@ -635,13 +635,17 @@
   Android 587件、Windows 617件を記録し、`kritadocument`は全構成に存在する。
 - `nix develop .#test --command ./scripts/verify-quick`: 文書所有の公開面、21中核所有ターゲット、
   57リンクの依存射影、循環0件、再配置計画、文書を含む97件の単体試験と高速検査が成功した。
+- 同一コミット`7247a9834a32ca3fef6a164bf37b367be61f0ad0`で
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 328件と
+  x86_64 Linux 330件の全ネイティブ試験が成功した。
+- `nix flake check --no-build --all-systems`: 文書取り消し境界分離後の全Nix出力の評価が
+  成功した。
 
 ## 次の操作
 
-R1-G6e文書取り消し境界の計画をレビューする。承認後は`libs/ui/kis_document_undo_store.*`を
-起点とする上記の一単位だけを実装する。文書識別、変更状態、保存、自動保存、回復、文書情報、
-ノードと選択の操作、および利用事例登録とI/O分離の専用移行は、保守責任者が対象と開始を
-明示的に決定するまで着手しない。
+R1-G6e文書取り消し境界の実装をレビューする。文書識別、変更状態、保存、自動保存、回復、
+文書情報、ノードと選択の操作、および利用事例登録とI/O分離の専用移行は、保守責任者が
+次の対象と開始を明示的に決定するまで着手しない。
 
 ## R1-G5完了根拠
 
