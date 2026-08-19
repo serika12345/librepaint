@@ -75,8 +75,15 @@ void KisDocumentReplaceTest::testDocumentIdentityDelegation()
     QCOMPARE(snapshot->localFilePath(), localPath);
     QCOMPARE(snapshot->mimeType(), QByteArray("application/x-krita"));
 
+    QString localPathDuringResetSignal;
+    connect(m_doc, &KisDocument::sigPathChanged, this, [&](const QString &path) {
+        if (path.isEmpty()) {
+            localPathDuringResetSignal = m_doc->localFilePath();
+        }
+    });
     m_doc->resetPath();
     QCOMPARE(pathChangedSpy.count(), 2);
+    QCOMPARE(localPathDuringResetSignal, localPath);
     QVERIFY(m_doc->path().isEmpty());
     QVERIFY(m_doc->localFilePath().isEmpty());
 
