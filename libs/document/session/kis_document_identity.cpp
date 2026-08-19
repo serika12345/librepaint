@@ -32,12 +32,6 @@ void Identity::setLocalFilePath(const QString &localFilePath)
     m_localFilePath = localFilePath;
 }
 
-void Identity::resetPaths()
-{
-    m_path.clear();
-    m_localFilePath.clear();
-}
-
 QByteArray Identity::mimeType() const
 {
     return m_mimeType;

@@ -39,10 +39,6 @@ void KisDocumentIdentityTest::tracksDisplayAndLocalPathsIndependently()
 
     QCOMPARE(identity.path(), QStringLiteral("content://provider/document/42"));
     QCOMPARE(identity.localFilePath(), QStringLiteral("/tmp/librepaint-open-42.kra"));
-
-    identity.resetPaths();
-    QVERIFY(identity.path().isEmpty());
-    QVERIFY(identity.localFilePath().isEmpty());
 }
 
 void KisDocumentIdentityTest::preservesMimeSelectionAndDetectionStateWhenCopied()

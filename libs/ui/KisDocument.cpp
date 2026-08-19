@@ -2769,11 +2769,8 @@ void KisDocument::setMirrorAxisConfig(const KisMirrorAxisConfig &config)
 }
 
 void KisDocument::resetPath() {
-    const bool pathChanged = !d->identity.path().isEmpty();
-    d->identity.resetPaths();
-    if (pathChanged) {
-        Q_EMIT sigPathChanged(QString());
-    }
+    setPath(QString());
+    setLocalFilePath(QString());
 }
 
 KoDocumentInfoDlg *KisDocument::createDocumentInfoDialog(QWidget *parent, KoDocumentInfo *docInfo) const

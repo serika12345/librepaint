@@ -32,7 +32,6 @@ public:
 
     QString localFilePath() const;
     void setLocalFilePath(const QString &localFilePath);
-    void resetPaths();
 
     QByteArray mimeType() const;
     void setMimeType(const QByteArray &mimeType);
