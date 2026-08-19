@@ -589,17 +589,6 @@
   ],
   "compatibilityRoutes": [
     {
-      "id": "legacy-document-ui-headers",
-      "kind": "forwarding-headers",
-      "legacy": "document-state headers in libs/ui",
-      "replacement": "libs/document and libs/document/ui",
-      "introducedBy": "R1-G6e",
-      "owner": "R1-G7",
-      "maximumScope": "The R1-G2 document-state class set.",
-      "removalCondition": "All consumers use document-session or document-persistence and no document-state class remains below libs/ui.",
-      "verification": "UI class inventory and document component tests report no legacy consumer."
-    },
-    {
       "id": "legacy-tool-ui-headers",
       "kind": "forwarding-headers",
       "legacy": "tool-invocation and settings-presentation headers below libs/ui/tool",
@@ -902,17 +891,27 @@
       ],
       "sourceMoves": [
         {
-          "from": "libs/ui::<document-state>",
-          "to": "libs/document/ui",
-          "target": "kritadocumentui"
-        },
-        {
-          "from": "libs/command::<document-undo-coordination>",
+          "from": "libs/ui/kis_document_undo_store.{h,cpp}",
           "to": "libs/document/undo",
           "target": "kritadocument"
         },
         {
-          "from": "libs/metadata::<document-metadata-coordination>",
+          "from": "libs/ui/KisDocument.{h,cpp} and its document session and persistence implementation",
+          "to": "libs/document",
+          "target": "kritadocument"
+        },
+        {
+          "from": "libs/ui::<document presentation and interaction wiring>",
+          "to": "libs/document/ui",
+          "target": "kritadocumentui"
+        },
+        {
+          "from": "libs/command/{kundo2model,kundo2view}.{h,cpp}",
+          "to": "libs/document/ui",
+          "target": "kritadocumentui"
+        },
+        {
+          "from": "libs/ui/KoDocumentInfo.{h,cpp}",
           "to": "libs/document/metadata",
           "target": "kritadocument"
         }
@@ -921,9 +920,7 @@
         "kritadocument",
         "kritadocumentui"
       ],
-      "compatibilityRoutes": [
-        "legacy-document-ui-headers"
-      ],
+      "compatibilityRoutes": [],
       "requiredContracts": [
         "Document session lifetime and modified-state tests",
         "Transactional save, autosave, recovery, and cancellation tests",
@@ -936,7 +933,7 @@
         "kritaui": 20
       },
       "completionCriteria": [
-        "All 21 classified document classes are owned by kritadocument or kritadocumentui.",
+        "All 25 currently classified document classes have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",
         "Document targets depend only on import-export, painting, plugin, and resource public surfaces."
       ],
       "stopCondition": "Stop before tool migration if document state, persistence, recovery, or undo contracts regress."
