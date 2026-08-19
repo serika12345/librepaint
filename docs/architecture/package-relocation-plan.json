@@ -150,10 +150,12 @@
       "current": {
         "sourceDirectories": [
           "libs/command",
+          "libs/document",
           "libs/ui"
         ],
         "cmakeTargets": [
           "kritacommand",
+          "kritadocument",
           "kritaui"
         ],
         "uiClassAreas": [
@@ -180,7 +182,7 @@
             "name": "kritadocument",
             "directory": "libs/document",
             "role": "domain",
-            "status": "new"
+            "status": "implemented"
           },
           {
             "name": "kritadocumentui",
@@ -933,7 +935,7 @@
         "kritaui": 20
       },
       "completionCriteria": [
-        "All 25 currently classified document classes have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",
+        "All 25 document classes classified at the start of R1-G6e have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",
         "Document targets depend only on import-export, painting, plugin, and resource public surfaces."
       ],
       "stopCondition": "Stop before tool migration if document state, persistence, recovery, or undo contracts regress."

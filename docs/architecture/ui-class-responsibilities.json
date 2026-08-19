@@ -224,15 +224,6 @@
       "responsibilityArea": "document-state"
     },
     {
-      "name": "KisDocumentUndoStore",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_document_undo_store.h",
-      "implementationPaths": [
-        "libs/ui/kis_document_undo_store.cpp"
-      ],
-      "responsibilityArea": "document-state"
-    },
-    {
       "name": "KisFileLayer",
       "declarationKind": "class",
       "header": "libs/ui/kis_file_layer.h",

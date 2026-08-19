@@ -284,13 +284,17 @@
       "responsibility": "Owns document lifetime, identity, modified state, undo coordination, document metadata coordination, and the connection between a document and its image.",
       "sourceDirectories": [
         "libs/command",
+        "libs/document",
         "libs/ui"
       ],
       "ownerTargets": [
         "kritacommand",
+        "kritadocument",
         "kritaui"
       ],
-      "publicHeaderOwnerTargets": [],
+      "publicHeaderOwnerTargets": [
+        "kritadocument"
+      ],
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [
         "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
@@ -317,13 +321,13 @@
         "document-metadata"
       ],
       "publicHeaderPaths": [
+        "libs/document/undo/kis_document_undo_store.h",
         "libs/ui/KisDocument.h",
         "libs/ui/KisSelectionActionsAdapter.h",
         "libs/ui/KisTextPropertiesManager.h",
         "libs/ui/KoDocumentInfo.h",
         "libs/ui/KoDocumentInfoDlg.h",
         "libs/ui/StoryboardItem.h",
-        "libs/ui/kis_document_undo_store.h",
         "libs/ui/kis_file_layer.h",
         "libs/ui/kis_filter_manager.h",
         "libs/ui/kis_image_manager.h",
@@ -343,7 +347,6 @@
       ],
       "classNames": [
         "KisDocument",
-        "KisDocumentUndoStore",
         "KisFileLayer",
         "KisFilterManager",
         "KisImageManager",
@@ -1609,6 +1612,27 @@
       "repositoryConsumers": []
     },
     {
+      "name": "kritadocument",
+      "sourceDirectory": "libs/document",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritapaintingundo"
+      ],
+      "repositoryConsumers": [
+        "kritaui"
+      ]
+    },
+    {
       "name": "kritaflake",
       "sourceDirectory": "libs/flake",
       "platforms": [
@@ -1876,6 +1900,7 @@
       ],
       "repositoryConsumers": [
         "kritacommand",
+        "kritadocument",
         "kritaflake",
         "kritaimage",
         "kritaimpexui",
@@ -2087,6 +2112,7 @@
       "repositoryDependencies": [
         "kritacanvas",
         "kritacolor",
+        "kritadocument",
         "kritaimage",
         "kritaimpex",
         "kritaimpexui",

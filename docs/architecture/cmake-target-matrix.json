@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 645,
-    "linux": 660,
-    "ios": 579,
-    "android": 585,
-    "windows": 615
+    "macos": 647,
+    "linux": 662,
+    "ios": 581,
+    "android": 587,
+    "windows": 617
   },
   "commonTargets": [
     "CCSGraph",
@@ -229,6 +229,7 @@
     "kis_display_color_transform_test",
     "kis_distance_information_test",
     "kis_doc2_test",
+    "kis_document_undo_store_test",
     "kis_dom_utils_test",
     "kis_dummies_facade_test",
     "kis_effect_mask_test",
@@ -400,6 +401,7 @@
     "kritadefaulttools_static",
     "kritadeformpaintop",
     "kritadigitalmixer",
+    "kritadocument",
     "kritadodgeburn",
     "kritadummyplugin1",
     "kritadummyplugin2",
@@ -1533,6 +1535,7 @@
     "kritadefaulttools",
     "kritadeformpaintop",
     "kritadigitalmixer",
+    "kritadocument",
     "kritadodgeburn",
     "kritadummyplugin1",
     "kritadummyplugin2",

@@ -2522,6 +2522,15 @@
       ]
     },
     {
+      "name": "kis_document_undo_store_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/tests",
+      "dependencies": [
+        "kritadocument",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "kis_dom_utils_test",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/image/tests",
@@ -4388,6 +4397,15 @@
       ]
     },
     {
+      "name": "kritadocument",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/document",
+      "dependencies": [
+        "Qt6::Core",
+        "kritapaintingundo"
+      ]
+    },
+    {
       "name": "kritadodgeburn",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/filters/dodgeburn",
@@ -6091,6 +6109,7 @@
         "SDL2::SDL2",
         "kritacanvas",
         "kritacolor",
+        "kritadocument",
         "kritaimage",
         "kritaimpex",
         "kritaimpexui",
