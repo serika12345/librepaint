@@ -38,6 +38,7 @@
 #include <KisResourceTypes.h>
 #include <KisGlobalResourcesInterface.h>
 #include <session/kis_document_identity.h>
+#include <session/kis_document_modification_state.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceModelProvider.h>
 #include <KisResourceCacheDb.h>
@@ -302,7 +303,6 @@ public:
         , importExportManager(new KisImportExportManager(_q)) // deleted manually
         , autoSaveTimer(new QTimer(_q))
         , undoStack(new UndoStack(_q)) // deleted by QObject
-        , modified(false)
         , readwrite(true)
         , autoSaveActive(true)
         , firstMod(QDateTime::currentDateTime())
@@ -348,13 +348,13 @@ public:
     KisImportExportManager *importExportManager = 0; // The filter-manager to use when loading/saving [for the options]
 
     Krita::Document::Identity identity;
+    Krita::Document::ModificationState modificationState;
 
     QTimer *autoSaveTimer;
     QString lastErrorMessage; // see openFile()
     QString lastWarningMessage;
 
     int autoSaveDelay = 300; // in seconds, 0 to disable.
-    bool modifiedAfterAutosave = false;
     bool isAutosaving = false;
     bool disregardAutosaveFailure = false;
     int autoSaveFailureCount = 0;
@@ -372,7 +372,6 @@ public:
 
     QMutex savingMutex;
 
-    bool modified = false;
     bool readwrite = false;
     bool autoSaveActive = true;
 
@@ -403,8 +402,6 @@ public:
 
     KisGridConfig gridConfig;
 
-    bool imageModifiedWithoutUndo = false;
-    bool modifiedWhileSaving = false;
     std::unique_ptr<KisDocument> backgroundSaveDocument;
     QPointer<KoUpdater> savingUpdater;
     QFuture<KisImportExportErrorCode> childSavingFuture;
@@ -509,7 +506,7 @@ void KisDocument::Private::copyFromImpl(const Private &rhs, KisDocument *q, KisD
     if (policy == REPLACE) {
         q->setGuidesConfig(rhs.guidesConfig);
         q->setMirrorAxisConfig(rhs.mirrorAxisConfig);
-        q->setModified(rhs.modified);
+        q->setModified(rhs.modificationState.isModified());
         q->setAssistants(KisPaintingAssistant::cloneAssistantList(rhs.assistants));
         q->setStoryboardItemList(StoryboardItem::cloneStoryboardItemList(rhs.m_storyboardItemList));
         q->setStoryboardCommentList(rhs.m_storyboardCommentList);
@@ -522,7 +519,7 @@ void KisDocument::Private::copyFromImpl(const Private &rhs, KisDocument *q, KisD
         // because KisDocument does not yet have a pointer to us.
         guidesConfig = rhs.guidesConfig;
         mirrorAxisConfig = rhs.mirrorAxisConfig;
-        modified = rhs.modified;
+        modificationState = rhs.modificationState.snapshotState();
         assistants = KisPaintingAssistant::cloneAssistantList(rhs.assistants);
         m_storyboardItemList = StoryboardItem::cloneStoryboardItemList(rhs.m_storyboardItemList);
         m_storyboardCommentList = rhs.m_storyboardCommentList;
@@ -530,7 +527,11 @@ void KisDocument::Private::copyFromImpl(const Private &rhs, KisDocument *q, KisD
         audioLevel = rhs.audioLevel;
         gridConfig = rhs.gridConfig;
     }
-    imageModifiedWithoutUndo = rhs.imageModifiedWithoutUndo;
+    if (rhs.modificationState.imageModifiedWithoutUndo()) {
+        modificationState.markImageModifiedWithoutUndo();
+    } else {
+        modificationState.clearImageModifiedWithoutUndo();
+    }
     readwrite = rhs.readwrite;
     autoSaveActive = rhs.autoSaveActive;
     firstMod = rhs.firstMod;
@@ -1121,7 +1122,7 @@ void KisDocument::Private::updateDocumentMetadataOnSaving(const QString &filePat
     q->setReadWrite(fi.isWritable());
 #endif
 
-    if (!modifiedWhileSaving) {
+    if (!modificationState.wasModifiedWhileSaving()) {
         /**
          * If undo stack is already clean/empty, it doesn't Q_EMIT any
          * signals, so we might forget update document modified state
@@ -1131,7 +1132,7 @@ void KisDocument::Private::updateDocumentMetadataOnSaving(const QString &filePat
         if (undoStack->isClean()) {
             q->setModified(false);
         } else {
-            imageModifiedWithoutUndo = false;
+            modificationState.clearImageModifiedWithoutUndo();
             undoStack->setClean();
         }
     }
@@ -1454,7 +1455,7 @@ KritaUtils::BackgroudSavingStartResult KisDocument::initiateSavingInBackground(c
 
     d->backgroundSaveDocument.reset(clonedDocument.release());
     d->backgroundSaveJob = job;
-    d->modifiedWhileSaving = false;
+    d->modificationState.markSavingStarted();
 
     if (d->backgroundSaveJob.flags & KritaUtils::SaveInAutosaveMode) {
         d->backgroundSaveDocument->d->isAutosaving = true;
@@ -1553,7 +1554,10 @@ void KisDocument::slotChildCompletedSavingInBackground(KisImportExportErrorCode 
 
 void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalClonedDocument)
 {
-    if (!d->modified || !d->modifiedAfterAutosave) return;
+    if (!d->modificationState.isModified() ||
+        !d->modificationState.hasChangesAfterAutoSave()) {
+        return;
+    }
     const QString autoSaveFileName = generateAutoSaveFileName(localFilePath());
 
     Q_EMIT statusBarMessage(i18n("Autosaving... %1", autoSaveFileName), successMessageTimeout);
@@ -1590,7 +1594,7 @@ void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalCloned
     } else if (result != KritaUtils::BackgroudSavingStartResult::Success) {
         setEmergencyAutoSaveInterval();
     } else {
-        d->modifiedAfterAutosave = false;
+        d->modificationState.markAutoSaveStarted();
     }
 }
 
@@ -1617,7 +1621,7 @@ bool KisDocument::resourceSavingFilter(const QString &path, const QByteArray &mi
                     }
 
                     if (res) {
-                        d->modifiedWhileSaving = false;
+                        d->modificationState.markSavingStarted();
 
                         if (!exportConfiguration) {
                             QScopedPointer<KisImportExportFilter> filter(
@@ -1657,7 +1661,7 @@ bool KisDocument::resourceSavingFilter(const QString &path, const QByteArray &mi
                     }
                 }
                 else {
-                    d->modifiedWhileSaving = false;
+                    d->modificationState.markSavingStarted();
                     if (exportDocumentSync(tempFileName, mimeType, exportConfiguration)) {
                         KoResourceSP res = model.importResourceFile(tempFileName, false);
                         if (res) {
@@ -1715,7 +1719,7 @@ void KisDocument::slotCompleteAutoSaving(const KritaUtils::ExportFileJob &job, K
         // so edits made during that job can be detected. A failed job did not
         // create a usable checkpoint, therefore the document must remain
         // eligible for another autosave even when no newer edit arrived.
-        d->modifiedAfterAutosave = d->modified;
+        d->modificationState.restoreAutoSaveRequirement();
         setEmergencyAutoSaveInterval();
         Q_EMIT statusBarMessage(i18nc("%1 --- failing file name, %2 --- error message",
                                     "Error during autosaving %1: %2",
@@ -1725,7 +1729,7 @@ void KisDocument::slotCompleteAutoSaving(const KritaUtils::ExportFileJob &job, K
         KisConfig cfg(true);
         d->autoSaveDelay = cfg.autoSaveInterval();
 
-        if (!d->modifiedWhileSaving) {
+        if (!d->modificationState.wasModifiedWhileSaving()) {
             d->autoSaveTimer->stop(); // until the next change
             d->autoSaveFailureCount = 0;
         } else {
@@ -1747,7 +1751,7 @@ void KisDocument::slotCompleteRecoveryAutoSaving(const KritaUtils::ExportFileJob
     const bool saved = status.isOk() && recoveryFile.isFile() && recoveryFile.size() > 0;
 
     if (!saved) {
-        d->modifiedAfterAutosave = d->modified;
+        d->modificationState.restoreAutoSaveRequirement();
         if (status.isOk()) {
             setEmergencyAutoSaveInterval();
         }
@@ -1755,7 +1759,7 @@ void KisDocument::slotCompleteRecoveryAutoSaving(const KritaUtils::ExportFileJob
         return;
     }
 
-    if (d->modifiedAfterAutosave) {
+    if (d->modificationState.hasChangesAfterAutoSave()) {
         // The just-finished snapshot is valid, but a newer modification was
         // observed while it was being written. Keep the request pending; the
         // common completion path queues a fresh recovery autosave after the
@@ -1781,12 +1785,12 @@ void KisDocument::slotContinuePendingRecoveryAutoSave()
         return;
     }
 
-    if (!d->modified) {
+    if (!d->modificationState.isModified()) {
         finishRecoveryAutoSaveRequest(QString(), true);
         return;
     }
 
-    if (!d->modifiedAfterAutosave) {
+    if (!d->modificationState.hasChangesAfterAutoSave()) {
         QString recoveryPath = d->joinedRecoveryAutoSavePath;
         if (recoveryPath.isEmpty()) {
             recoveryPath = generateAutoSaveFileName(localFilePath());
@@ -1800,7 +1804,7 @@ void KisDocument::slotContinuePendingRecoveryAutoSave()
 
         // The prior job claimed the current revision, but there is no usable
         // file to join. Force a fresh recovery snapshot.
-        d->modifiedAfterAutosave = d->modified;
+        d->modificationState.restoreAutoSaveRequirement();
     }
 
     d->joinedRecoveryAutoSavePath.clear();
@@ -1810,7 +1814,7 @@ void KisDocument::slotContinuePendingRecoveryAutoSave()
         return;
     }
 
-    d->modifiedAfterAutosave = d->modified;
+    d->modificationState.restoreAutoSaveRequirement();
     finishRecoveryAutoSaveRequest(generateAutoSaveFileName(localFilePath()), false);
 }
 
@@ -1951,7 +1955,7 @@ KoDocumentInfo *KisDocument::documentInfo() const
 
 bool KisDocument::isModified() const
 {
-    return d->modified;
+    return d->modificationState.isModified();
 }
 
 QPixmap KisDocument::generatePreview(const QSize& size)
@@ -2224,7 +2228,7 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::startRecoveryAutoSave()
     // Clear before clone preparation so a modification delivered by its
     // event processing is distinguishable from the revision being saved.
     // Every unsuccessful start restores the flag below.
-    d->modifiedAfterAutosave = false;
+    d->modificationState.markAutoSaveStarted();
 
     const KritaUtils::BackgroudSavingStartResult result =
         initiateSavingInBackground(i18n("Autosaving..."),
@@ -2251,14 +2255,14 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::startRecoveryAutoSave()
         }
         return RecoveryAutoSaveStartResult::Started;
     case KritaUtils::BackgroudSavingStartResult::AnotherSavingInProgress:
-        d->modifiedAfterAutosave = d->modified;
+        d->modificationState.restoreAutoSaveRequirement();
         d->recoveryAutoSaveCompletionDeferred = false;
         d->deferredRecoveryAutoSavePath.clear();
         return RecoveryAutoSaveStartResult::AlreadySaving;
     case KritaUtils::BackgroudSavingStartResult::ImageLockFailure:
     case KritaUtils::BackgroudSavingStartResult::Failure:
     case KritaUtils::BackgroudSavingStartResult::Cancelled:
-        d->modifiedAfterAutosave = d->modified;
+        d->modificationState.restoreAutoSaveRequirement();
         d->recoveryAutoSaveCompletionDeferred = false;
         d->deferredRecoveryAutoSavePath.clear();
         setEmergencyAutoSaveInterval();
@@ -2293,7 +2297,7 @@ void KisDocument::finishRecoveryAutoSaveRequest(const QString &filePath, bool su
 
 KisDocument::RecoveryAutoSaveStartResult KisDocument::requestRecoveryAutoSave()
 {
-    if (!d->modified || d->documentIsClosing) {
+    if (!d->modificationState.isModified() || d->documentIsClosing) {
         return RecoveryAutoSaveStartResult::NoChanges;
     }
 
@@ -2308,7 +2312,7 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::requestRecoveryAutoSave()
         return RecoveryAutoSaveStartResult::AlreadySaving;
     }
 
-    if (!d->modifiedAfterAutosave) {
+    if (!d->modificationState.hasChangesAfterAutoSave()) {
         return RecoveryAutoSaveStartResult::NoChanges;
     }
 
@@ -2330,8 +2334,10 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::requestRecoveryAutoSave()
 
 void KisDocument::autoSaveOnPause()
 {
-    if (!d->modified || !d->modifiedAfterAutosave)
+    if (!d->modificationState.isModified() ||
+        !d->modificationState.hasChangesAfterAutoSave()) {
         return;
+    }
 
     const QString autoSaveFileName = generateAutoSaveFileName(localFilePath());
 
@@ -2339,7 +2345,7 @@ void KisDocument::autoSaveOnPause()
 
     if (started)
     {
-        d->modifiedAfterAutosave = false;
+        d->modificationState.markAutoSaveStarted();
         dbgAndroid << "autoSaveOnPause successful";
     }
     else
@@ -2380,17 +2386,9 @@ void KisDocument::setModified(bool mod)
         // First change since last autosave -> start the autosave timer
         setNormalAutoSaveInterval();
     }
-    d->modifiedAfterAutosave = mod;
-    d->modifiedWhileSaving = mod;
-
-    if (!mod) {
-        d->imageModifiedWithoutUndo = mod;
-    }
-
-    if (mod == isModified())
+    if (!d->modificationState.setModified(mod)) {
         return;
-
-    d->modified = mod;
+    }
 
     if (mod) {
         documentInfo()->updateParameters();
@@ -2562,7 +2560,7 @@ KisImportExportManager *KisDocument::importExportManager() const
 
 void KisDocument::slotUndoStackCleanChanged(bool value)
 {
-    setModified(!value || d->imageModifiedWithoutUndo);
+    setModified(!value || d->modificationState.imageModifiedWithoutUndo());
 }
 
 void KisDocument::slotConfigChanged()
@@ -3128,12 +3126,12 @@ void KisDocument::hackPreliminarySetImage(KisImageSP image)
 void KisDocument::setImageModified()
 {
     // we only set as modified if undo stack is not at clean state
-    setModified(d->imageModifiedWithoutUndo || !d->undoStack->isClean());
+    setModified(d->modificationState.imageModifiedWithoutUndo() || !d->undoStack->isClean());
 }
 
 void KisDocument::setImageModifiedWithoutUndo()
 {
-    d->imageModifiedWithoutUndo = true;
+    d->modificationState.markImageModifiedWithoutUndo();
     setImageModified();
 }
 

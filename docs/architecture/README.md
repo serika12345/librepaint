@@ -334,7 +334,7 @@ LibrePaint内では`kritapaintingundo`だけを下位ライブラリーとして
 この単位はLibrePaint内の`kritaui`依存を除去した。Qt Widgets依存の分離は文書ドメインを
 Qt Widgetsなしで利用できるというR1-G6e全体の完了条件に照らして後続単位で判定する。
 
-R1-G6eの次の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた文書パス、
+R1-G6eの第2の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた文書パス、
 入出力実装へ渡す実ファイルパス、現在のMIME形式、自動判定由来を起点とする。
 これらの文書識別状態は`libs/document/session/kis_document_identity.*`の
 `Krita::Document::Identity`が所有し、`KisDocument`は既存APIとパス変更通知を接続する。
@@ -343,8 +343,20 @@ R1-G6eの次の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれて�
 除去した。文書識別はQt Coreだけで構築・検査でき、保存、自動保存、回復のI/O調整は
 `KisDocument`に残る。
 
+R1-G6eの第3の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた変更済み状態、
+自動保存チェックポイント後の変更、保存実行中の変更、取り消し履歴に現れない画像変更を
+起点とする。これらの文書変更状態は
+`libs/document/session/kis_document_modification_state.*`の
+`Krita::Document::ModificationState`が所有する。同じ変更済み値の再設定でも保存中と
+自動保存後の変更を記録し、未変更への遷移では取り消し不能変更を消去する。保存用複製は
+文書の変更状態を引き継ぎ、進行中の保存と自動保存の経過を初期化する。
+`KisDocument`は編集時刻、文書情報更新、自動保存タイマー、Qt通知、保存・回復処理の
+実行を接続し、既存の公開APIを維持する。変更状態はQt Coreだけの`kritadocument`で
+独立して構築・検査できる。
+
 R1-G6e開始時の`document-state`分類は25クラスであり、最初の分割後にUI所有の分類は
 24クラスとなった。文書識別の抽出後も`KisDocument`自体はUI分類に残るため件数は24である。
+変更状態の抽出も同じ`KisDocument`内の埋込み状態を移すため、分類件数は24を維持する。
 残る分類は文書寿命だけでなくノード操作、選択操作、表示モデルを含む。
 後続単位では各クラスの実依存から文書状態、文書表示、別機能の操作接続を
 判定し、文書寿命を所有するものだけを文書ターゲットへ移す。利用事例の登録構造と
