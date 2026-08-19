@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 18:22 JST
+- 更新日時: 2026-08-19 20:50 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e文書回復自動保存調停状態境界
+- 現在の検査段階: R1-G6e文書回復状態境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-document-recovery-autosave-state`
-- 目的: `libs/ui/KisDocument.cpp`の回復用自動保存要求、保存開始中の同期完了延期、
-  既存保存への合流状態を`libs/document/session/kis_document_recovery_autosave_state.*`へ
-  抽出し、回復要求の調停状態をUI実装から`kritadocument`へ移す。
+- ブランチ: `r1-g6e-document-recovery-status`
+- 目的: `libs/ui/KisDocument.cpp`の回復済み文書状態を
+  `libs/document/session/kis_document_recovery_status.*`へ抽出し、回復元であるという文書事実を
+  UI実装から`kritadocument`へ移す。
 
 ## 再開環境
 
@@ -497,6 +497,21 @@
 - この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
   24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
 
+## R1-G6e文書回復状態境界の実装
+
+- `libs/ui/KisDocument.cpp`の回復済み文書状態を起点として、
+  `libs/document/session/kis_document_recovery_status.{h,cpp}`の
+  `Krita::Document::RecoveryStatus`へ移した。
+- 通常文書の初期状態、実際の状態遷移だけを通知対象とする変更判定、文書状態の値コピーを
+  UIなしの契約で固定した。既存`KisDocument`契約は同値再設定時の通知抑制と、保存用
+  スナップショットが通常文書状態から始まる挙動を固定する。
+- `KisDocument`は回復データの探索と読込、保存後の回復ファイル消去、表示、
+  `sigRecoveredChanged`通知を維持する。
+- 旧`isRecovered`フィールドは除去した。互換経路、転送ヘッダー、旧名の別名は
+  追加していない。
+- この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
+  24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -797,14 +812,38 @@
   責務・依存・構造台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: 文書回復自動保存調停状態境界
   分離後の全Nix出力の評価が成功した。
+- `kis_document_recovery_status_test`の初回構築は、新しい文書回復状態ヘッダーが存在しない
+  診断で失敗した。実装後は通常文書の初期状態、実際の遷移だけを通知対象とする変更判定、
+  値コピーがmacOSとx86_64 Linuxで成功した。
+- `KisDocumentReplaceTest`は同値再設定時の通知抑制、回復状態の解除、保存用スナップショットが
+  通常文書状態から始まる既存挙動をmacOSとx86_64 Linuxで固定した。
+- 同一コミット`fe791e1aa878d2688b2941dc989ee36795a99dfb`で
+  `nix develop .#test --command ./scripts/verify`を実行した。x86_64 Linuxは335件の
+  全ネイティブ試験が成功した。macOSは333件中、変更契約を含む332件が成功し、既存の
+  `KisSafeDocumentLoaderTest`だけが1.5秒待機のファイル監視通知数で失敗した。
+  同試験の単独再実行でも通知数が試行ごとに変動し、変更対象外の環境依存試験として区別する。
+- iOSで`libkritadocument.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`、
+  Android arm64-v8aで`libkritadocument_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
+  Windows x86_64で`libkritadocument.dll`と`libkritaui.dll`の構築とリンクが成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 652件、Linux 667件、iOS 586件、
+  Android 592件、Windows 622件のターゲット、570件の共通ターゲット、119件の条件付き
+  ターゲット、258件の構成差を持つターゲットを記録した。21中核所有ターゲットと
+  全製品ターゲットは全構成で循環0件を維持する。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の
+  一致を確認した。
+- `nix develop .#test --command ./scripts/verify-quick`: 文書回復状態の公開面、責務・依存・
+  構造台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 文書回復状態境界分離後の
+  全Nix出力の評価が成功した。
 
 ## 次の操作
 
-R1-G6e文書回復自動保存調停状態境界をレビューして統合する。統合後はmasterを同期し、
-保存、文書情報、ノードと選択の操作、取り消し履歴処理とQt Widgets用アクション生成から、
-依存方向と契約を保った最小の独立単位を選定する。構成値、時刻、ファイルI/O、UI文書参照が
-混在する文書情報と、回復I/Oを含む単位は、専用のUI・ドメイン分離または純粋計算・I/O分離を
-開始する判断まで現行所有を維持する。
+R1-G6e文書回復状態境界をレビューして統合する。統合後はmasterを同期し、保存と入出力診断、
+文書情報、ノードと選択の操作、取り消し履歴処理とQt Widgets用アクション生成から、依存方向と
+契約を保った最小の独立単位を選定する。構成値、時刻、ファイルI/O、UI文書参照が混在する
+文書情報と、回復I/Oを含む単位は、専用のUI・ドメイン分離または純粋計算・I/O分離を開始する
+判断まで現行所有を維持する。
 
 ## R1-G5完了根拠
 
