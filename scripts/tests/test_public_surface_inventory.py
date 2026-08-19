@@ -104,10 +104,16 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
 
         self.assertEqual(len(canvas_headers), 17)
-        self.assertEqual(len(document_headers), 3)
+        self.assertEqual(len(document_headers), 4)
         self.assertEqual(len(ui_headers), 248)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(len(impex_ui_headers), 23)
+        self.assertEqual(
+            document_by_path[
+                "libs/document/session/kis_document_autosave_state.h"
+            ]["publicationEvidence"],
+            ["export-macro", "external-include"],
+        )
         self.assertEqual(
             document_by_path[
                 "libs/document/undo/kis_document_undo_store.h"
@@ -324,7 +330,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             },
             {
                 "kritacanvas": 17,
-                "kritadocument": 3,
+                "kritadocument": 4,
                 "kritaimage": 332,
                 "kritaimpex": 11,
                 "kritaimpexui": 23,

@@ -129,6 +129,17 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocument",
           "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "session/kis_document_autosave_state.h",
+          "headerPath": "libs/document/session/kis_document_autosave_state.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "session/kis_document_identity.h",
           "headerPath": "libs/document/session/kis_document_identity.h",
           "sourceResponsibility": "document-lifecycle",
@@ -2201,6 +2212,17 @@
         }
       ],
       "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "session/kis_document_autosave_state.h",
+          "headerPath": "libs/document/session/kis_document_autosave_state.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocument",

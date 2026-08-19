@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 14:16 JST
-- 状態: `completed`
-- 現在の検査段階: R1-G6e文書変更状態境界
+- 更新日時: 2026-08-19 14:36 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G6e文書自動保存実行状態境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-document-modification-state`
-- 目的: `libs/ui/KisDocument.cpp`の変更済み、自動保存後変更、保存中変更、
-  取り消し不能変更の状態を`libs/document/session/kis_document_modification_state.*`へ
-  抽出し、文書の変更状態をUI実装から`kritadocument`へ移す。
+- ブランチ: `r1-g6e-document-autosave-state`
+- 目的: `libs/ui/KisDocument.cpp`の自動保存用書出し状態と連続失敗後の複製切替状態を
+  `libs/document/session/kis_document_autosave_state.*`へ抽出し、自動保存の実行状態を
+  UI実装から`kritadocument`へ移す。
 
 ## 再開環境
 
@@ -466,6 +466,22 @@
   24クラスを維持する。保存、自動保存、回復、文書情報、ノードと選択の操作は後続単位とする。
   利用事例登録と純粋計算・I/O分離の専用移行は、保守責任者が開始を決定する段階まで
   現行構造を維持する。
+
+## R1-G6e文書自動保存実行状態境界の実装
+
+- `libs/ui/KisDocument.cpp`の自動保存用複製の書出し中状態と連続失敗回数を起点として、
+  `libs/document/session/kis_document_autosave_state.{h,cpp}`の
+  `Krita::Document::AutoSaveState`へ移した。
+- 自動保存用複製の書出し開始と終了、3回の連続失敗後に次の試行で複製経路へ切り替える
+  境界値、通常間隔へ戻る際の失敗履歴消去をUIなしの契約で固定した。
+- `KisDocument`は自動保存タイマー、有効状態と通常・緊急間隔、文書複製、ファイル出力、
+  状態表示、回復用自動保存の調整を維持する。既存の`isAutosaving()`公開APIは新しい状態を
+  読み取る。
+- 読み書きされていなかった旧`disregardAutosaveFailure`は除去した。互換経路、転送ヘッダー、
+  旧名の別名は追加していない。
+- この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
+  24クラスを維持する。自動保存I/Oと回復処理の分離、利用事例登録、純粋計算・I/O分離の
+  専用移行は開始していない。
 
 ## 検証状態
 

@@ -333,6 +333,16 @@
       ],
       "headers": [
         {
+          "path": "libs/document/session/kis_document_autosave_state.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisDocument.cpp"
+          ]
+        },
+        {
           "path": "libs/document/session/kis_document_identity.h",
           "publicationEvidence": [
             "export-macro",

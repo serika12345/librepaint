@@ -321,6 +321,7 @@
         "document-metadata"
       ],
       "publicHeaderPaths": [
+        "libs/document/session/kis_document_autosave_state.h",
         "libs/document/session/kis_document_identity.h",
         "libs/document/session/kis_document_modification_state.h",
         "libs/document/undo/kis_document_undo_store.h",
