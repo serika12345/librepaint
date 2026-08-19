@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 15:04 JST
-- 状態: `completed`
-- 現在の検査段階: R1-G6e文書自動保存実行状態境界
+- 更新日時: 2026-08-19 15:21 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G6e文書回復自動保存調停状態境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-document-autosave-state`
-- 目的: `libs/ui/KisDocument.cpp`の自動保存用書出し状態と連続失敗後の複製切替状態を
-  `libs/document/session/kis_document_autosave_state.*`へ抽出し、自動保存の実行状態を
-  UI実装から`kritadocument`へ移す。
+- ブランチ: `r1-g6e-document-recovery-autosave-state`
+- 目的: `libs/ui/KisDocument.cpp`の回復用自動保存要求、保存開始中の同期完了延期、
+  既存保存への合流状態を`libs/document/session/kis_document_recovery_autosave_state.*`へ
+  抽出し、回復要求の調停状態をUI実装から`kritadocument`へ移す。
 
 ## 再開環境
 
@@ -482,6 +482,20 @@
 - この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
   24クラスを維持する。自動保存I/Oと回復処理の分離、利用事例登録、純粋計算・I/O分離の
   専用移行は開始していない。
+
+## R1-G6e文書回復自動保存調停状態境界の実装
+
+- `libs/ui/KisDocument.cpp`の回復用自動保存要求、保存開始中状態、同期完了の延期結果、
+  既存保存への合流先を起点として、
+  `libs/document/session/kis_document_recovery_autosave_state.{h,cpp}`の
+  `Krita::Document::RecoveryAutoSaveState`へ移した。
+- 未処理要求の開始と取消し、利用可能な既存保存への合流、保存開始中に届いた同期完了の
+  延期、開始失敗時の延期破棄、要求ごとの一度限りの完了をUIなしの契約で固定した。
+- `KisDocument`は変更状態、自動保存タイマー、背景保存の開始と継続、ファイルの存在と
+  大きさの検証、状態表示、`sigRecoveryAutoSaveFinished`通知を維持する。
+- 旧6フィールドは除去した。互換経路、転送ヘッダー、旧名の別名は追加していない。
+- この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
+  24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
 
 ## 検証状態
 

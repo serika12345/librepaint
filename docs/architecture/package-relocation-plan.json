@@ -913,6 +913,11 @@
           "target": "kritadocument"
         },
         {
+          "from": "libs/ui/KisDocument.cpp recovery autosave coordination state",
+          "to": "libs/document/session/kis_document_recovery_autosave_state.{h,cpp}",
+          "target": "kritadocument"
+        },
+        {
           "from": "remaining libs/ui/KisDocument.{h,cpp} document session and persistence implementation",
           "to": "libs/document",
           "target": "kritadocument"
