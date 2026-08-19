@@ -113,7 +113,7 @@ R1は次の順で進め、各ゲートの完了時に停止して成果物と検
 - [x] `libs/ui/KisOcioConfiguration.*`、`libs/ui/KisSurfaceColorSpaceWrapper.h`、`libs/ui/canvas/kis_display_color_converter.*`を起点として、表示色の値型と変換本体を`libs/canvas/color`へ分離し、UI側を設定・ノード・パレットとの接続に限定して旧値型ファイルを除去する。
 - [x] `libs/ui/kis_animation_frame_cache.*`、`libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameDataSerializer.*`、`libs/ui/KisFrameCacheStore.*`、`libs/ui/KisFrameCacheSwapper.*`を起点として、フレーム範囲管理、差分保存、直列化、タイル転送バッファーを`libs/canvas`へ分離し、UI側を再生状態、生成時機、OpenGL更新情報との接続に限定して旧ファイルを除去する。`libs/ui/KisWidgetWithIdleTask.h`は`libs/ui/canvas`の公開表示契約へ移す。
 - [x] `libs/ui/kis_document_undo_store.*`を起点として、文書全体ではなく取り消し履歴を保持する文書所有の取り消し接続を`libs/document/undo`へ分離し、`kritadocument`の最初の独立単位を構築する。履歴操作、通知、借用寿命を固定し、旧ファイルと転送ヘッダーを残さない。
-- [ ] `libs/ui/KisDocument.cpp`の文書パス、実ファイルパス、MIME状態を起点として、文書識別を`libs/document/session/kis_document_identity.*`へ分離する。パス変更、MIME自動判定由来、複製、既存`KisDocument`通知を固定し、未使用の書出しMIME状態を除去する。
+- [x] `libs/ui/KisDocument.cpp`の文書パス、実ファイルパス、MIME状態を起点として、文書識別を`libs/document/session/kis_document_identity.*`へ分離する。パス変更、MIME自動判定由来、複製、既存`KisDocument`通知を固定し、未使用の書出しMIME状態を除去する。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。
