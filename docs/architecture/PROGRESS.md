@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 13:46 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-19 14:16 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6e文書変更状態境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6e-document-modification-state`
@@ -460,8 +460,8 @@
   自動保存の経過を複製先へ持ち込まない。
 - `KisDocument`は既存の`isModified()`、`setModified()`、`modified(bool)`を維持し、
   編集時刻、文書情報更新、自動保存タイマー、保存・回復処理、Qt通知を接続する。
-- 互換経路、転送ヘッダー、旧名の別名は追加していない。変更状態は`kritadocument`の
-  Qt Core境界で構築でき、公開面台帳は`kritaui`の直接利用と5構成の対象へ接続する。
+- 互換経路、転送ヘッダー、旧名の別名は追加していない。変更状態の実装はQt型を参照せず、
+  公開面台帳は`kritadocument`の所有、`kritaui`の直接利用、5構成の対象へ接続する。
 - この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
   24クラスを維持する。保存、自動保存、回復、文書情報、ノードと選択の操作は後続単位とする。
   利用事例登録と純粋計算・I/O分離の専用移行は、保守責任者が開始を決定する段階まで
@@ -703,13 +703,34 @@
   再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: 文書識別境界分離後の全Nix出力の
   評価が成功した。
+- `kis_document_modification_state_test`の初回構築は、新しい文書変更状態ヘッダーが存在しない
+  診断で失敗した。実装後は初期状態、自動保存チェックポイント、保存中変更、取り消し履歴に
+  現れない変更、保存用複製の契約がmacOSとx86_64 Linuxで成功した。
+- `KisDocumentReplaceTest`は既存公開APIから文書変更状態へ接続し、同じ変更済み値の通知抑制、
+  保存用スナップショット、未変更への遷移をmacOSとx86_64 Linuxで固定した。
+- 同一コミット`e733cad55cac7792437b1dfbd9192c99451e9621`でx86_64 Linuxの全332試験が
+  成功した。macOSは全330件中、今回の変更契約を含む329件が成功し、既存の
+  `KisSafeDocumentLoaderTest`だけが1.5秒待機のファイル監視通知で時間切れになった。
+  同試験の単独再実行は成功し、変更対象外の環境依存試験として区別する。
+- iOSで`libkritadocument.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`、
+  Android arm64-v8aで`libkritadocument_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
+  Windows x86_64で`libkritadocument.dll`と`libkritaui.dll`の構築とリンクが成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 649件、Linux 664件、iOS 583件、
+  Android 589件、Windows 619件のターゲット、567件の共通ターゲット、119件の条件付き
+  ターゲット、258件の構成差を持つターゲットを記録した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の一致を
+  確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`: 文書変更状態の公開面、責務・依存・構造
+  台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 文書変更状態境界分離後の
+  全Nix出力の評価が成功した。
 
 ## 次の操作
 
-R1-G6e文書変更状態境界をmacOS、x86_64 Linux、iOS、Android arm64-v8a、Windows x86_64の
-同一コミットで検証し、CMake台帳を同期する。レビュー後は保存、自動保存、回復、文書情報、
-ノードと選択の操作、取り消し履歴処理とQt Widgets用アクション生成から、依存方向と契約を
-保った最小の独立単位を選定する。
+R1-G6e文書変更状態境界をレビューして統合する。統合後はmasterを同期し、保存、自動保存、
+回復、文書情報、ノードと選択の操作、取り消し履歴処理とQt Widgets用アクション生成から、
+依存方向と契約を保った最小の独立単位を選定する。
 
 ## R1-G5完了根拠
 
