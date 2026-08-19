@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 12:19 JST
+- 更新日時: 2026-08-19 12:23 JST
 - 状態: `completed`
 - 現在の検査段階: R1-G6e文書識別境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -676,6 +676,11 @@
 - 5構成のCMake台帳と差分行列を再生成した。macOS 648件、Linux 663件、iOS 582件、
   Android 588件、Windows 618件のターゲット、566件の共通ターゲット、119件の条件付き
   ターゲット、258件の構成差を持つターゲットを記録した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の一致を
+  確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`: 文書識別の公開面、責務・依存・構造台帳、
+  再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: 文書識別境界分離後の全Nix出力の
   評価が成功した。
 
