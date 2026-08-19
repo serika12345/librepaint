@@ -20,6 +20,7 @@ class KisDocumentReplaceTest : public QObject
 
 private Q_SLOTS:
     void testCopyFromDocument();
+    void testDocumentIdentityDelegation();
 
 private:
     KisDocument *m_doc;

@@ -1,4 +1,5 @@
 set(kritadocument_LIB_SRCS
+    session/kis_document_identity.cpp
     undo/kis_document_undo_store.cpp
 )
 

@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 647,
-    "linux": 662,
-    "ios": 581,
-    "android": 587,
-    "windows": 617
+    "macos": 648,
+    "linux": 663,
+    "ios": 582,
+    "android": 588,
+    "windows": 618
   },
   "commonTargets": [
     "CCSGraph",
@@ -229,6 +229,7 @@
     "kis_display_color_transform_test",
     "kis_distance_information_test",
     "kis_doc2_test",
+    "kis_document_identity_test",
     "kis_document_undo_store_test",
     "kis_dom_utils_test",
     "kis_dummies_facade_test",

@@ -2,13 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 11:07 JST
+- 更新日時: 2026-08-19 12:23 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e文書取り消し境界の最初の独立単位
+- 現在の検査段階: R1-G6e文書識別境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-document-undo-plan`
-- 目的: `libs/ui/kis_document_undo_store.*`を起点として、文書全体への依存を取り消し履歴の
-  借用へ狭め、`libs/document/undo`の`kritadocument`を成立させる最初の独立単位を完了した。
+- ブランチ: `r1-g6e-document-identity`
+- 目的: `libs/ui/KisDocument.cpp`の文書パス、実ファイルパス、MIME状態を
+  `libs/document/session/kis_document_identity.*`へ抽出し、文書識別をUI実装から
+  `kritadocument`へ移す。
 
 ## 再開環境
 
@@ -428,6 +429,24 @@
   この単位だけでは文書ドメインのQt Widgets依存は完了条件を満たさない。履歴と表示用アクションの
   分離要否はR1-G6eの後続単位で判断し、最初の単位へ新しい接続面を追加しない。
 
+## R1-G6e文書識別境界の実装
+
+- `libs/ui/KisDocument.cpp`の文書パス、実ファイルパス、現在MIME形式、MIME自動判定由来を
+  起点として、`libs/document/session/kis_document_identity.{h,cpp}`の
+  `Krita::Document::Identity`へ移した。`KisDocument`は既存の公開API、パス変更通知、
+  MIME判定とファイルを開く調整を維持する。
+- 文書識別はQt Coreの値状態として、表示用パスと入出力用実ファイルパスを独立して保持する。
+  パスの実変更判定、MIME形式と自動判定由来、複製をUIなしの契約で固定した。
+- `KisDocument`の接続契約は、同一パスの再設定では通知しないこと、パス初期化時の通知、
+  パス初期化通知時点では実ファイルパスを保持して通知後に消去する順序、実ファイルパスと
+  MIME形式、保存用スナップショットへの識別状態の複製を固定する。
+- 旧`KisDocument::Private::outputMimeType`は設定と複製だけが行われ、読み取る利用元が
+  存在しなかったため削除した。互換経路、転送ヘッダー、旧名の別名は追加していない。
+- 公開面台帳は`kritadocument`の文書識別ヘッダーを、`kritaui`の直接利用と5構成の
+  対象へ接続する。文書識別の抽出ではUI直下の`document-state`分類24クラスは変わらない。
+- この単位は文書識別だけを扱う。変更状態、保存、自動保存、回復、文書情報、ノードと選択の
+  操作、および利用事例登録とI/O分離の専用移行は開始していない。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -640,12 +659,36 @@
   x86_64 Linux 330件の全ネイティブ試験が成功した。
 - `nix flake check --no-build --all-systems`: 文書取り消し境界分離後の全Nix出力の評価が
   成功した。
+- `kis_document_identity_test`の初回構築は、新しい文書識別ヘッダーが存在しない診断で
+  失敗した。実装後は表示用パスと実ファイルパス、実変更判定、MIME形式、自動判定由来、
+  複製の契約がmacOSとx86_64 Linuxで成功した。
+- `KisDocumentReplaceTest`は既存公開APIから文書識別へ接続し、同一パスの通知抑制、
+  パス初期化通知時の実ファイルパス保持、初期化後の消去、保存用スナップショットへの複製を
+  macOSとx86_64 Linuxで固定した。
+- macOSの初回全試験では、既存`KisSafeDocumentLoaderTest`の1.5秒待機を使うファイル監視
+  通知が時間切れになった。再リンク後の反復では成功と時間切れの両方を再現し、文書を開く
+  項目は成功した。最終の全試験では同試験を含む329件がすべて成功した。
+- x86_64 Linuxでは331件の全ネイティブ試験が成功した。通知順序契約を追加した最終実装
+  コミットでも`KisDocumentReplaceTest`と`kis_document_identity_test`が成功した。
+- iOSで`libkritadocument.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`、Android arm64-v8aで
+  `libkritadocument_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、Windows x86_64で
+  `libkritadocument.dll`と`libkritaui.dll`の構築とリンクが成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 648件、Linux 663件、iOS 582件、
+  Android 588件、Windows 618件のターゲット、566件の共通ターゲット、119件の条件付き
+  ターゲット、258件の構成差を持つターゲットを記録した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の一致を
+  確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`: 文書識別の公開面、責務・依存・構造台帳、
+  再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 文書識別境界分離後の全Nix出力の
+  評価が成功した。
 
 ## 次の操作
 
-R1-G6e文書取り消し境界の実装をレビューする。文書識別、変更状態、保存、自動保存、回復、
-文書情報、ノードと選択の操作、および利用事例登録とI/O分離の専用移行は、保守責任者が
-次の対象と開始を明示的に決定するまで着手しない。
+R1-G6e文書識別境界の実装をレビューする。変更状態、保存、自動保存、回復、文書情報、
+ノードと選択の操作、取り消し履歴処理とQt Widgets用アクション生成の分離要否から次の
+独立単位を保守責任者が明示するまで、後続の文書実装は開始しない。
 
 ## R1-G5完了根拠
 
