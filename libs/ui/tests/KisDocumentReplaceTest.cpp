@@ -117,4 +117,32 @@ void KisDocumentReplaceTest::testDocumentModificationStateDelegation()
     finalize();
 }
 
+void KisDocumentReplaceTest::testDocumentRecoveryStatusDelegation()
+{
+    init();
+    QSignalSpy recoveredSpy(m_doc, &KisDocument::sigRecoveredChanged);
+
+    QVERIFY(!m_doc->isRecovered());
+
+    m_doc->setRecovered(true);
+    m_doc->setRecovered(true);
+
+    QCOMPARE(recoveredSpy.count(), 1);
+    QCOMPARE(recoveredSpy.at(0).at(0).toBool(), true);
+    QVERIFY(m_doc->isRecovered());
+
+    QScopedPointer<KisDocument> snapshot(m_doc->lockAndCreateSnapshot());
+    QVERIFY(snapshot);
+    QVERIFY(!snapshot->isRecovered());
+
+    m_doc->setRecovered(false);
+    m_doc->setRecovered(false);
+
+    QCOMPARE(recoveredSpy.count(), 2);
+    QCOMPARE(recoveredSpy.at(1).at(0).toBool(), false);
+    QVERIFY(!m_doc->isRecovered());
+
+    finalize();
+}
+
 KISTEST_MAIN(KisDocumentReplaceTest)

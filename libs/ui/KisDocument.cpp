@@ -41,6 +41,7 @@
 #include <session/kis_document_identity.h>
 #include <session/kis_document_modification_state.h>
 #include <session/kis_document_recovery_autosave_state.h>
+#include <session/kis_document_recovery_status.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceModelProvider.h>
 #include <KisResourceCacheDb.h>
@@ -353,6 +354,7 @@ public:
     Krita::Document::Identity identity;
     Krita::Document::ModificationState modificationState;
     Krita::Document::RecoveryAutoSaveState recoveryAutoSaveState;
+    Krita::Document::RecoveryStatus recoveryStatus;
 
     QTimer *autoSaveTimer;
     QString lastErrorMessage; // see openFile()
@@ -403,8 +405,6 @@ public:
     KritaUtils::ExportFileJob backgroundSaveJob;
     QMetaObject::Connection completeSavingConnection;
     KisSignalAutoConnectionsStore referenceLayerConnections;
-
-    bool isRecovered = false;
 
     bool batchMode { false };
     bool decorationsSyncingDisabled = false;
@@ -2376,18 +2376,14 @@ void KisDocument::setModified(bool mod)
 
 void KisDocument::setRecovered(bool value)
 {
-    const bool changed = value != d->isRecovered;
-
-    d->isRecovered = value;
-
-    if (changed) {
+    if (d->recoveryStatus.setRecovered(value)) {
         Q_EMIT sigRecoveredChanged(value);
     }
 }
 
 bool KisDocument::isRecovered() const
 {
-    return d->isRecovered;
+    return d->recoveryStatus.isRecovered();
 }
 
 void KisDocument::updateEditingTime(bool forceStoreElapsed)

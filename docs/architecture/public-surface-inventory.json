@@ -373,6 +373,16 @@
           ]
         },
         {
+          "path": "libs/document/session/kis_document_recovery_status.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisDocument.cpp"
+          ]
+        },
+        {
           "path": "libs/document/undo/kis_document_undo_store.h",
           "publicationEvidence": [
             "export-macro",

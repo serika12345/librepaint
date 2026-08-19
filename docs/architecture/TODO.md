@@ -117,6 +117,7 @@ R1は次の順で進め、各ゲートの完了時に停止して成果物と検
 - [x] `libs/ui/KisDocument.cpp`の変更済み、自動保存後変更、保存中変更、取り消し不能変更の状態を起点として、`libs/document/session/kis_document_modification_state.*`へ分離する。`KisDocument`のタイマー、編集時刻、通知、保存調整を維持し、変更と保存チェックポイントの契約を固定する。
 - [x] `libs/ui/KisDocument.cpp`の自動保存用書出し状態と連続失敗後の複製切替状態を起点として、`libs/document/session/kis_document_autosave_state.*`へ分離する。タイマー、設定、複製、ファイル出力、通知、回復調整を`KisDocument`に維持し、書出し期間と失敗回数の境界値を固定する。
 - [x] `libs/ui/KisDocument.cpp`の回復用自動保存要求、保存開始中の同期完了延期、既存保存への合流状態を起点として、`libs/document/session/kis_document_recovery_autosave_state.*`へ分離する。タイマー、保存開始、ファイル検証、完了通知を`KisDocument`に維持し、要求ごとの完了調停を固定する。
+- [x] `libs/ui/KisDocument.cpp`の回復済み文書状態を起点として、`libs/document/session/kis_document_recovery_status.*`へ分離する。回復データの探索と読込、保存後の回復ファイル消去、表示、通知を`KisDocument`に維持し、初期状態、遷移判定、値コピー、保存用スナップショットの既存状態を固定する。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。

@@ -2,14 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 18:22 JST
-- 状態: `completed`
-- 現在の検査段階: R1-G6e文書回復自動保存調停状態境界
+- 更新日時: 2026-08-19 20:17 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G6e文書回復状態境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-document-recovery-autosave-state`
-- 目的: `libs/ui/KisDocument.cpp`の回復用自動保存要求、保存開始中の同期完了延期、
-  既存保存への合流状態を`libs/document/session/kis_document_recovery_autosave_state.*`へ
-  抽出し、回復要求の調停状態をUI実装から`kritadocument`へ移す。
+- ブランチ: `r1-g6e-document-recovery-status`
+- 目的: `libs/ui/KisDocument.cpp`の回復済み文書状態を
+  `libs/document/session/kis_document_recovery_status.*`へ抽出し、回復元であるという文書事実を
+  UI実装から`kritadocument`へ移す。
 
 ## 再開環境
 
@@ -494,6 +494,21 @@
 - `KisDocument`は変更状態、自動保存タイマー、背景保存の開始と継続、ファイルの存在と
   大きさの検証、状態表示、`sigRecoveryAutoSaveFinished`通知を維持する。
 - 旧6フィールドは除去した。互換経路、転送ヘッダー、旧名の別名は追加していない。
+- この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
+  24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
+
+## R1-G6e文書回復状態境界の実装
+
+- `libs/ui/KisDocument.cpp`の回復済み文書状態を起点として、
+  `libs/document/session/kis_document_recovery_status.{h,cpp}`の
+  `Krita::Document::RecoveryStatus`へ移した。
+- 通常文書の初期状態、実際の状態遷移だけを通知対象とする変更判定、文書状態の値コピーを
+  UIなしの契約で固定した。既存`KisDocument`契約は同値再設定時の通知抑制と、保存用
+  スナップショットが通常文書状態から始まる挙動を固定する。
+- `KisDocument`は回復データの探索と読込、保存後の回復ファイル消去、表示、
+  `sigRecoveredChanged`通知を維持する。
+- 旧`isRecovered`フィールドは除去した。互換経路、転送ヘッダー、旧名の別名は
+  追加していない。
 - この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
   24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
 

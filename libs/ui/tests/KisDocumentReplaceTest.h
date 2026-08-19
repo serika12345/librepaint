@@ -22,6 +22,7 @@ private Q_SLOTS:
     void testCopyFromDocument();
     void testDocumentIdentityDelegation();
     void testDocumentModificationStateDelegation();
+    void testDocumentRecoveryStatusDelegation();
 
 private:
     KisDocument *m_doc;
