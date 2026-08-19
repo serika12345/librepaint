@@ -90,4 +90,31 @@ void KisDocumentReplaceTest::testDocumentIdentityDelegation()
     finalize();
 }
 
+void KisDocumentReplaceTest::testDocumentModificationStateDelegation()
+{
+    init();
+    QSignalSpy modifiedSpy(m_doc, &KisDocument::modified);
+
+    QVERIFY(!m_doc->isModified());
+
+    m_doc->setModified(true);
+    m_doc->setModified(true);
+
+    QCOMPARE(modifiedSpy.count(), 1);
+    QCOMPARE(modifiedSpy.at(0).at(0).toBool(), true);
+    QVERIFY(m_doc->isModified());
+
+    QScopedPointer<KisDocument> snapshot(m_doc->lockAndCreateSnapshot());
+    QVERIFY(snapshot);
+    QVERIFY(!snapshot->isModified());
+
+    m_doc->setModified(false);
+
+    QCOMPARE(modifiedSpy.count(), 2);
+    QCOMPARE(modifiedSpy.at(1).at(0).toBool(), false);
+    QVERIFY(!m_doc->isModified());
+
+    finalize();
+}
+
 KISTEST_MAIN(KisDocumentReplaceTest)

@@ -2224,6 +2224,15 @@
       ]
     },
     {
+      "name": "kis_document_modification_state_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/tests",
+      "dependencies": [
+        "kritadocument",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "kis_document_undo_store_test",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
