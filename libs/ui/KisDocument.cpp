@@ -87,7 +87,7 @@
 #include <kis_painter.h>
 #include <kis_selection.h>
 #include <kis_fill_painter.h>
-#include <kis_document_undo_store.h>
+#include <undo/kis_document_undo_store.h>
 #include <kis_idle_watcher.h>
 #include <kis_signal_auto_connection.h>
 #include <kis_canvas_widget_base.h>
@@ -3118,7 +3118,7 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
     }
 
     d->setImageAndInitIdleWatcher(image);
-    d->image->setUndoStore(new KisDocumentUndoStore(this));
+    d->image->setUndoStore(new KisDocumentUndoStore(d->undoStack));
     d->shapeController->setImage(image, preActivatedNode);
     d->image->setMirrorAxesCenter(KisAlgebra2D::absoluteToRelative(d->mirrorAxisConfig.axisPosition(), image->bounds()));
     setModified(false);
@@ -3156,7 +3156,7 @@ void KisDocument::setImageModifiedWithoutUndo()
 
 KisUndoStore* KisDocument::createUndoStore()
 {
-    return new KisDocumentUndoStore(this);
+    return new KisDocumentUndoStore(d->undoStack);
 }
 
 bool KisDocument::isAutosaving() const

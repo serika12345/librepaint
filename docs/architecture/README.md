@@ -126,7 +126,7 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | --- | --- | --- |
 | `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
 | `canvas-presentation` | `kritabasicflakes`、`kritacanvas`、`kritaflake`、`kritaui` | 座標変換、キャンバス表示、ベクター表示、ドッカー |
-| `document-lifecycle` | `kritacommand`、`kritaui` | 文書寿命、変更状態、取り消し履歴の表示、文書調整 |
+| `document-lifecycle` | `kritacommand`、`kritadocument`、`kritaui` | 文書寿命、変更状態、取り消し履歴、文書調整 |
 | `import-export` | `kritaimpex`、`kritaimpexui` | 形式選択、検証、文書入出力、利用者への結果通知 |
 | `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
 | `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
@@ -134,7 +134,7 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
 | `tool-invocation` | `kritatoolsui`、`kritaui` | 描画設定表示とキャンバス状態へのツール呼出し |
 
-`targetRelations`は20の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
+`targetRelations`は21の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
 ターゲット間の直接依存および利用元を和集合で記録する。この地図は現在の所有関係を表し、
 R1-G3bで定義する許可依存方向の比較元になる。
 
@@ -168,9 +168,9 @@ R1-G3bで定義する許可依存方向の比較元になる。
 検証済みファクトリーを明示された機能レジストリーへ登録する。このリンク方向と、登録時に
 機能レジストリーへ渡る制御を区別する。
 
-`currentTargetEdges`は19の中核所有ターゲット間にある52の直接リンクを責務へ射影する。
-`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は100候補の
-うち14候補が同一責務内、63候補が許可方向、23候補が`requires-r1-g4-baseline`である。
+`currentTargetEdges`は21の中核所有ターゲット間にある57の直接リンクを責務へ射影する。
+`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は113候補の
+うち17候補が同一責務内、70候補が許可方向、26候補が`requires-r1-g4-baseline`である。
 最後の分類は共有ターゲットが作る曖昧な候補を含むため、R1-G4で実際のincludeと利用箇所を
 根拠に既存違反基準へ確定する。
 
@@ -210,15 +210,15 @@ includeを全件帰属させる。`unresolvedProjections`は空であり、確�
 CMakeターゲット循環、公開宣言を持たないヘッダーのパッケージ外参照を一つの継続検査へ
 接続する。
 
-9射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
+10射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
 `kritabasicflakes`から`kritaui`、および`kritaui`から`kritatoolsui`への共有ターゲット辺を、
 キャンバス表示とツール呼出しの実際のincludeへ帰属させる。入出力を独立所有ターゲットへ
 移した結果、入出力責務をUI共有ターゲットへ射影する候補は存在しない。各解決は元のターゲット辺、5構成、実際の責務対、ソース、include、
 ヘッダーを記録し、新たな未帰属候補を診断する。
 
-ターゲット循環は、20の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 220件、Linux 226件、iOS 212件、Android 212件、
-Windows 229件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
+ターゲット循環は、21の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
+2範囲を検査する。全製品範囲はmacOS 221件、Linux 227件、iOS 213件、Android 213件、
+Windows 230件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
@@ -323,11 +323,28 @@ UI設定反映契約が同じ結果と通知回数を検査する。旧値型フ
 `libs/ui/KisWidgetWithIdleTask.h`は表示部品として`libs/ui/canvas`へ移し、別ターゲットの
 ドッカーが利用する公開ヘッダーを構築契約で固定した。
 
+R1-G6eの最初の独立単位は、`libs/ui/kis_document_undo_store.*`を起点とする文書の
+取り消し接続である。文書全体への参照を取り消し履歴の直接借用へ狭め、履歴操作と
+変更通知だけを`libs/document/undo`の`kritadocument`へ移した。`KisDocument`は履歴を
+接続より先に構築し、借用先を明示して接続を生成する。文書側はUIライブラリーを参照せず、
+LibrePaint内では`kritapaintingundo`だけを下位ライブラリーとして利用する。履歴の現在位置、
+追加、取消し、マクロ、やり直し破棄、同一スレッド上の同期通知、接続が履歴を所有しないことを
+専用契約で固定した。旧ファイルと転送ヘッダーは存在せず、利用元は新しい所有先を直接参照する。
+既存の取り消し履歴は操作履歴とQt Widgetsのアクション生成を同じライブラリーで提供する。
+この単位はLibrePaint内の`kritaui`依存を除去した。Qt Widgets依存の分離は文書ドメインを
+Qt Widgetsなしで利用できるというR1-G6e全体の完了条件に照らして後続単位で判定する。
+
+R1-G6e開始時の`document-state`分類は25クラスであり、最初の分割後にUI所有の分類は
+24クラスとなった。残る分類は文書寿命だけでなくノード操作、選択操作、表示モデルを含む。
+後続単位では各クラスの実依存から文書状態、文書表示、別機能の操作接続を
+判定し、文書寿命を所有するものだけを文書ターゲットへ移す。利用事例の登録構造と
+ドメイン計算からI/Oを分ける専用移行は、この再配置とは別の保守責任者判断を開始条件とする。
+
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
 公開根拠として台帳へ記録し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
 
-残る6の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
+残る5の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
 9責務と5構成の現行ターゲット、3種類96件の逆方向依存、7ヘッダー20件の内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。

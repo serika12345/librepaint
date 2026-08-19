@@ -2,14 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 00:02 JST
-- 状態: `planned`
-- 現在の検査段階: R1-G6e文書寿命境界の計画
+- 更新日時: 2026-08-19 11:07 JST
+- 状態: `completed`
+- 現在の検査段階: R1-G6e文書取り消し境界の最初の独立単位
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `normalize-readonly-export-tests`
-- 目的: `libs/ui/KisDocument.*`と文書状態21クラスを起点として、文書識別、変更状態、
-  永続化、自動保存、回復、取り消し調整の契約を確認し、文書寿命境界の最初の独立単位を
-  実装開始前に計画する。
+- ブランチ: `r1-g6e-document-undo-plan`
+- 目的: `libs/ui/kis_document_undo_store.*`を起点として、文書全体への依存を取り消し履歴の
+  借用へ狭め、`libs/document/undo`の`kritadocument`を成立させる最初の独立単位を完了した。
 
 ## 再開環境
 
@@ -405,6 +404,30 @@
   `kritaui`内部参照は9ヘッダー24件から7ヘッダー20件へ縮小し、キャンバス表示から
   文書寿命への逆方向includeは0件を維持する。これによりR1-G6dの完了条件を満たす。
 
+## R1-G6e文書取り消し境界の実装
+
+- R1-G6e開始時にUIの文書状態へ分類した25クラスのうち、最初の起点を
+  `libs/ui/kis_document_undo_store.*`とした。文書全体への参照を取り消し履歴の直接借用へ
+  狭め、履歴操作と変更通知を`libs/document/undo`の`kritadocument`へ移した。
+- `KisDocument`は履歴を先に構築して接続へ渡し、履歴が接続より長く存続する責務を持つ。
+  接続は非nullと同一スレッドを検査し、履歴位置の通知を同期転送する。
+- 空履歴の現在操作、命令追加、直前命令の取消し、マクロの一括化、やり直し履歴の破棄、
+  履歴位置変更の同期通知、同一スレッド、非所有の借用寿命を専用契約へ固定した。
+- 旧ファイル、転送ヘッダー、旧クラス名の別名は存在しない。UI直下の文書状態分類は
+  24クラスとなり、公開面台帳は文書所有の正規ヘッダーを5構成へ接続する。
+- 5構成のCMake台帳は`kritadocument`を記録する。LibrePaint内の直接依存は
+  `kritapaintingundo`、直接利用元は`kritaui`であり、中核所有ターゲットと全製品ターゲットの
+  循環は全構成で0件を維持する。
+- この単位は取り消し履歴の所有境界だけを扱う。文書識別、変更状態、保存、自動保存、
+  回復、文書情報、ノードと選択の操作は後続レビュー単位とする。利用事例の登録構造と、
+  ドメイン計算からI/Oを分ける専用移行は開始しない。
+- 取り消し接続は`KisDocument`と`kritaui`を参照せず、`kritadocument`はLibrePaint内では
+  `kritapaintingundo`だけを下位依存として構築できる。既存の文書・画像の取り消し挙動は
+  専用契約とUI利用元の構築で維持する。
+- `kritapaintingundo`は操作履歴とQt Widgetsのアクション生成を同じライブラリーで提供するため、
+  この単位だけでは文書ドメインのQt Widgets依存は完了条件を満たさない。履歴と表示用アクションの
+  分離要否はR1-G6eの後続単位で判断し、最初の単位へ新しい接続面を追加しない。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -600,15 +623,29 @@
   /home/masato/librepaint-r1-g6b-verify`で、macOS、iOS、Linux、Android、Windowsの
   5台帳と差分行列の一致を確認した。
 - `nix flake check --no-build --all-systems`: 全Nix出力の評価が成功した。
+- `nix develop .#test --command ./scripts/verify-quick`: R1-G6e文書取り消し境界の計画、
+  現行25クラスとの整合、再配置計画、責務・依存・構造台帳、文書、リンク、D2再生成を含む
+  97件の単体試験と高速検査が成功した。
+- `nix develop .#test --command ./scripts/run-test kis_document_undo_store_test`:
+  履歴操作、マクロ、やり直し破棄、同期通知、同一スレッド、非所有の借用寿命を検査する
+  文書取り消し契約がmacOSで成功した。
+- macOSとx86_64 Linuxで`kritaui`、iOSでLibrePaint本体、AndroidとWindowsで`kritaui`を
+  構築した。新しい`kritadocument`と直接利用元が5対象すべてでコンパイルおよびリンクに成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 647件、Linux 662件、iOS 581件、
+  Android 587件、Windows 617件を記録し、`kritadocument`は全構成に存在する。
+- `nix develop .#test --command ./scripts/verify-quick`: 文書所有の公開面、21中核所有ターゲット、
+  57リンクの依存射影、循環0件、再配置計画、文書を含む97件の単体試験と高速検査が成功した。
+- 同一コミット`7247a9834a32ca3fef6a164bf37b367be61f0ad0`で
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 328件と
+  x86_64 Linux 330件の全ネイティブ試験が成功した。
+- `nix flake check --no-build --all-systems`: 文書取り消し境界分離後の全Nix出力の評価が
+  成功した。
 
 ## 次の操作
 
-ネイティブ試験正常化の変更をレビューしてマージする。マージ後は
-`libs/ui/KisDocument.*`と文書状態21クラスについて、文書識別、変更状態、永続化、自動保存、
-回復、取り消し調整の既存契約と所有境界を確認し、R1-G6e文書寿命境界の最初の独立単位を
-計画する。実装範囲と開始は計画レビュー後に保守責任者が決定する。
-UIから利用事例を登録・呼出しする専用移行と、ドメイン計算からI/Oを分離する専用移行は、
-保守責任者が明示的に開始を決定するまで着手しない。
+R1-G6e文書取り消し境界の実装をレビューする。文書識別、変更状態、保存、自動保存、回復、
+文書情報、ノードと選択の操作、および利用事例登録とI/O分離の専用移行は、保守責任者が
+次の対象と開始を明示的に決定するまで着手しない。
 
 ## R1-G5完了根拠
 

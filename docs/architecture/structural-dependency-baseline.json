@@ -79,12 +79,27 @@
             "android",
             "windows"
           ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
         }
       ],
       "actualResponsibilityPairs": [
         {
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle"
         }
       ],
       "directIncludes": [
@@ -109,6 +124,17 @@
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "unique-owner-target",
           "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "undo/kis_document_undo_store.h",
+          "headerPath": "libs/document/undo/kis_document_undo_store.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
         }
       ]
     },
@@ -2124,6 +2150,43 @@
           "headerPath": "libs/tools/ui/kis_paint_ops_model.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "input-interpretation",
+      "dependencyResponsibility": "document-lifecycle",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "undo/kis_document_undo_store.h",
+          "headerPath": "libs/document/undo/kis_document_undo_store.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         }
@@ -4276,27 +4339,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 20,
+            "targetCount": 21,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 20,
+            "targetCount": 21,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 20,
+            "targetCount": 21,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 20,
+            "targetCount": 21,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 20,
+            "targetCount": 21,
             "components": []
           }
         ]
@@ -4306,27 +4369,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 220,
+            "targetCount": 221,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 226,
+            "targetCount": 227,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 212,
+            "targetCount": 213,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 212,
+            "targetCount": 213,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 229,
+            "targetCount": 230,
             "components": []
           }
         ]
@@ -4348,6 +4411,23 @@
       "maximumDirectReferences": 0,
       "removalCondition": "Canvas consumers continue to use declared public contracts.",
       "sourceDirectory": "libs/canvas",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": []
+    },
+    {
+      "ownerTarget": "kritadocument",
+      "owner": "R1-G6",
+      "reason": "External packages use the declared document-domain undo coordination surface.",
+      "maximumHeaders": 0,
+      "maximumDirectReferences": 0,
+      "removalCondition": "Document consumers continue to use declared public contracts.",
+      "sourceDirectory": "libs/document",
       "platforms": [
         "macos",
         "linux",

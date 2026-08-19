@@ -79,6 +79,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             source_directory="libs/canvas",
             export_macro="KRITACANVAS_EXPORT",
         )
+        document_headers = check_public_surface_inventory.discover_public_headers(
+            repository_root=REPO_ROOT,
+            source_directory="libs/document",
+            export_macro="KRITADOCUMENT_EXPORT",
+        )
         image_headers = check_public_surface_inventory.discover_public_headers(
             repository_root=REPO_ROOT,
             source_directory="libs/image",
@@ -92,13 +97,23 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         ui_by_path = {entry["path"]: entry for entry in ui_headers}
         canvas_by_path = {entry["path"]: entry for entry in canvas_headers}
+        document_by_path = {
+            entry["path"]: entry for entry in document_headers
+        }
         image_by_path = {entry["path"]: entry for entry in image_headers}
         impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
 
         self.assertEqual(len(canvas_headers), 17)
-        self.assertEqual(len(ui_headers), 249)
+        self.assertEqual(len(document_headers), 1)
+        self.assertEqual(len(ui_headers), 248)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(len(impex_ui_headers), 23)
+        self.assertEqual(
+            document_by_path[
+                "libs/document/undo/kis_document_undo_store.h"
+            ]["publicationEvidence"],
+            ["export-macro", "compile-contract", "external-include"],
+        )
         self.assertEqual(
             canvas_by_path["libs/canvas/animation/kis_frame_cache_store.h"],
             {
@@ -139,7 +154,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 85)
+        self.assertEqual(len(classes), 84)
         self.assertEqual(
             by_name["KisApplication"],
             {
@@ -151,6 +166,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertNotIn("KisImportExportComplexError", by_name)
         self.assertNotIn("KisImportExportManager", by_name)
+        self.assertNotIn("KisDocumentUndoStore", by_name)
         self.assertEqual(
             by_name["KisAbstractPreferenceSetFactory"]["implementationPaths"],
             [],
@@ -240,7 +256,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
-        self.assertEqual(len(inventory["classes"]), 85)
+        self.assertEqual(len(inventory["classes"]), 84)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisApplication"]["responsibilityArea"],
@@ -296,10 +312,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             },
             {
                 "kritacanvas": 17,
+                "kritadocument": 1,
                 "kritaimage": 332,
                 "kritaimpex": 11,
                 "kritaimpexui": 23,
-                "kritaui": 249,
+                "kritaui": 248,
             },
         )
         self.assertEqual(

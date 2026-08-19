@@ -54,7 +54,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "current-production-package-responsibilities",
         )
         self.assertEqual(len(responsibility_map["responsibilities"]), 9)
-        self.assertEqual(len(responsibility_map["targetRelations"]), 20)
+        self.assertEqual(len(responsibility_map["targetRelations"]), 21)
         by_id = {
             entry["id"]: entry
             for entry in responsibility_map["responsibilities"]
@@ -66,6 +66,14 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         self.assertIn(
             "Krita PNG Import Filter",
             by_id["import-export"]["pluginIds"],
+        )
+        self.assertIn(
+            "kritadocument",
+            by_id["document-lifecycle"]["ownerTargets"],
+        )
+        self.assertIn(
+            "libs/document/undo/kis_document_undo_store.h",
+            by_id["document-lifecycle"]["publicHeaderPaths"],
         )
         self.assertEqual(
             len(by_id["plugin-infrastructure"]["pluginIds"]), 172

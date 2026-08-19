@@ -28,6 +28,9 @@ PRODUCTION_SOURCE_DIRECTORIES = (
 TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
 PUBLICATION_EVIDENCE = ("export-macro", "compile-contract", "external-include")
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
+    "libs/document": (
+        "libs/document/tests/kis_document_undo_store_test.cpp",
+    ),
     "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
     "libs/impex": ("libs/impex/tests/TestImportExportBoundary.cpp",),
     "libs/ui": ("libs/ui/tests/TestCanvasUiPublicHeaders.cpp",),
@@ -59,6 +62,21 @@ PUBLIC_HEADER_SET_SPECS = (
         "evidence": [
             "libs/canvas/CMakeLists.txt",
             "libs/canvas/kis_coordinates_converter.h",
+        ],
+    },
+    {
+        "ownerTarget": "kritadocument",
+        "sourceDirectory": "libs/document",
+        "headerDirectories": ["libs/document"],
+        "excludedHeaderDirectories": ["libs/document/tests"],
+        "exportMacro": "KRITADOCUMENT_EXPORT",
+        "responsibility": (
+            "Records the declared document-domain surface for document lifetime "
+            "and undo coordination without presentation ownership."
+        ),
+        "evidence": [
+            "libs/document/CMakeLists.txt",
+            "libs/document/undo/kis_document_undo_store.h",
         ],
     },
     {
