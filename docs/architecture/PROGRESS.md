@@ -2,13 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 11:07 JST
-- 状態: `completed`
-- 現在の検査段階: R1-G6e文書取り消し境界の最初の独立単位
+- 更新日時: 2026-08-19 11:39 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G6e文書識別境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-document-undo-plan`
-- 目的: `libs/ui/kis_document_undo_store.*`を起点として、文書全体への依存を取り消し履歴の
-  借用へ狭め、`libs/document/undo`の`kritadocument`を成立させる最初の独立単位を完了した。
+- ブランチ: `r1-g6e-document-identity`
+- 目的: `libs/ui/KisDocument.cpp`の文書パス、実ファイルパス、MIME状態を
+  `libs/document/session/kis_document_identity.*`へ抽出し、文書識別をUI実装から
+  `kritadocument`へ移す。
 
 ## 再開環境
 
@@ -428,6 +429,23 @@
   この単位だけでは文書ドメインのQt Widgets依存は完了条件を満たさない。履歴と表示用アクションの
   分離要否はR1-G6eの後続単位で判断し、最初の単位へ新しい接続面を追加しない。
 
+## R1-G6e文書識別境界の実装
+
+- `libs/ui/KisDocument.cpp`の文書パス、実ファイルパス、現在MIME形式、MIME自動判定由来を
+  起点として、`libs/document/session/kis_document_identity.{h,cpp}`の
+  `Krita::Document::Identity`へ移した。`KisDocument`は既存の公開API、パス変更通知、
+  MIME判定とファイルを開く調整を維持する。
+- 文書識別はQt Coreの値状態として、表示用パスと入出力用実ファイルパスを独立して保持する。
+  パスの実変更判定、パスの一括初期化、MIME形式と自動判定由来、複製をUIなしの契約で固定した。
+- `KisDocument`の接続契約は、同一パスの再設定では通知しないこと、パス初期化時の通知、
+  実ファイルパスとMIME形式、保存用スナップショットへの識別状態の複製を固定する。
+- 旧`KisDocument::Private::outputMimeType`は設定と複製だけが行われ、読み取る利用元が
+  存在しなかったため削除した。互換経路、転送ヘッダー、旧名の別名は追加していない。
+- 公開面台帳は`kritadocument`の文書識別ヘッダーを、`kritaui`の直接利用と5構成の
+  対象へ接続する。文書識別の抽出ではUI直下の`document-state`分類24クラスは変わらない。
+- この単位は文書識別だけを扱う。変更状態、保存、自動保存、回復、文書情報、ノードと選択の
+  操作、および利用事例登録とI/O分離の専用移行は開始していない。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -643,9 +661,9 @@
 
 ## 次の操作
 
-R1-G6e文書取り消し境界の実装をレビューする。文書識別、変更状態、保存、自動保存、回復、
-文書情報、ノードと選択の操作、および利用事例登録とI/O分離の専用移行は、保守責任者が
-次の対象と開始を明示的に決定するまで着手しない。
+文書識別境界の実装コミットをDarwinホストとx86_64 Linuxホストの清浄な作業ツリーへ揃え、
+macOSとLinuxの全ネイティブ試験、iOSのLibrePaint本体、AndroidとWindowsの`kritaui`、
+5構成のCMake台帳と循環を検証する。検証後にR1-G6e文書識別境界を完了へ更新する。
 
 ## R1-G5完了根拠
 

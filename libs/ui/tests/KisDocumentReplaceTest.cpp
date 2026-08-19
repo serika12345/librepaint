@@ -9,6 +9,7 @@
 #include <KisDocument.h>
 #include <KisPart.h>
 #include <QScopedPointer>
+#include <QSignalSpy>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_layer_utils.h>
@@ -48,6 +49,37 @@ void KisDocumentReplaceTest::testCopyFromDocument()
     QCOMPARE(oldNodes.size(), newNodes.size());
 
     KisPart::instance()->removeDocument(anotherDoc);
+    finalize();
+}
+
+void KisDocumentReplaceTest::testDocumentIdentityDelegation()
+{
+    init();
+    QSignalSpy pathChangedSpy(m_doc, &KisDocument::sigPathChanged);
+
+    const QString displayPath = QStringLiteral("content://provider/document/42");
+    const QString localPath = QStringLiteral("/tmp/librepaint-open-42.kra");
+    m_doc->setPath(displayPath);
+    m_doc->setPath(displayPath);
+    m_doc->setLocalFilePath(localPath);
+    m_doc->setMimeType("application/x-krita");
+
+    QCOMPARE(pathChangedSpy.count(), 1);
+    QCOMPARE(m_doc->path(), displayPath);
+    QCOMPARE(m_doc->localFilePath(), localPath);
+    QCOMPARE(m_doc->mimeType(), QByteArray("application/x-krita"));
+
+    QScopedPointer<KisDocument> snapshot(m_doc->lockAndCreateSnapshot());
+    QVERIFY(snapshot);
+    QCOMPARE(snapshot->path(), displayPath);
+    QCOMPARE(snapshot->localFilePath(), localPath);
+    QCOMPARE(snapshot->mimeType(), QByteArray("application/x-krita"));
+
+    m_doc->resetPath();
+    QCOMPARE(pathChangedSpy.count(), 2);
+    QVERIFY(m_doc->path().isEmpty());
+    QVERIFY(m_doc->localFilePath().isEmpty());
+
     finalize();
 }
 

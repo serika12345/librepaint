@@ -37,6 +37,7 @@
 #include <KisResourceLocator.h>
 #include <KisResourceTypes.h>
 #include <KisGlobalResourcesInterface.h>
+#include <session/kis_document_identity.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceModelProvider.h>
 #include <KisResourceCacheDb.h>
@@ -301,7 +302,6 @@ public:
         , importExportManager(new KisImportExportManager(_q)) // deleted manually
         , autoSaveTimer(new QTimer(_q))
         , undoStack(new UndoStack(_q)) // deleted by QObject
-        , m_bAutoDetectedMime(false)
         , modified(false)
         , readwrite(true)
         , autoSaveActive(true)
@@ -347,8 +347,7 @@ public:
 
     KisImportExportManager *importExportManager = 0; // The filter-manager to use when loading/saving [for the options]
 
-    QByteArray mimeType; // The actual mimeType of the document
-    QByteArray outputMimeType; // The mimeType to use when saving
+    Krita::Document::Identity identity;
 
     QTimer *autoSaveTimer;
     QString lastErrorMessage; // see openFile()
@@ -370,10 +369,6 @@ public:
 
     KisGuidesConfig guidesConfig;
     KisMirrorAxisConfig mirrorAxisConfig;
-
-    bool m_bAutoDetectedMime = false; // whether the mimeType in the arguments was detected by the part itself
-    QString m_path; // local url - the one displayed to the user.
-    QString m_file; // Local file - the only one the part implementation should deal with.
 
     QMutex savingMutex;
 
@@ -509,8 +504,7 @@ void KisDocument::Private::copyFromImpl(const Private &rhs, KisDocument *q, KisD
     }
     docInfo = (new KoDocumentInfo(*rhs.docInfo, q));
     unit = rhs.unit;
-    mimeType = rhs.mimeType;
-    outputMimeType = rhs.outputMimeType;
+    identity = rhs.identity;
 
     if (policy == REPLACE) {
         q->setGuidesConfig(rhs.guidesConfig);
@@ -537,9 +531,6 @@ void KisDocument::Private::copyFromImpl(const Private &rhs, KisDocument *q, KisD
         gridConfig = rhs.gridConfig;
     }
     imageModifiedWithoutUndo = rhs.imageModifiedWithoutUndo;
-    m_bAutoDetectedMime = rhs.m_bAutoDetectedMime;
-    m_path = rhs.m_path;
-    m_file = rhs.m_file;
     readwrite = rhs.readwrite;
     autoSaveActive = rhs.autoSaveActive;
     firstMod = rhs.firstMod;
@@ -1149,12 +1140,12 @@ void KisDocument::Private::updateDocumentMetadataOnSaving(const QString &filePat
 
 QByteArray KisDocument::mimeType() const
 {
-    return d->mimeType;
+    return d->identity.mimeType();
 }
 
 void KisDocument::setMimeType(const QByteArray & mimeType)
 {
-    d->mimeType = mimeType;
+    d->identity.setMimeType(mimeType);
 }
 
 bool KisDocument::fileBatchMode() const
@@ -2360,8 +2351,7 @@ void KisDocument::autoSaveOnPause()
 // shared between openFile and koMainWindow's "create new empty document" code
 void KisDocument::setMimeTypeAfterLoading(const QString& mimeType)
 {
-    d->mimeType = mimeType.toLatin1();
-    d->outputMimeType = d->mimeType;
+    d->identity.setMimeType(mimeType.toLatin1());
 }
 
 
@@ -2779,8 +2769,11 @@ void KisDocument::setMirrorAxisConfig(const KisMirrorAxisConfig &config)
 }
 
 void KisDocument::resetPath() {
-    setPath(QString());
-    setLocalFilePath(QString());
+    const bool pathChanged = !d->identity.path().isEmpty();
+    d->identity.resetPaths();
+    if (pathChanged) {
+        Q_EMIT sigPathChanged(QString());
+    }
 }
 
 KoDocumentInfoDlg *KisDocument::createDocumentInfoDialog(QWidget *parent, KoDocumentInfo *docInfo) const
@@ -2795,7 +2788,7 @@ bool KisDocument::isReadWrite() const
 
 QString KisDocument::path() const
 {
-    return d->m_path;
+    return d->identity.path();
 }
 
 bool KisDocument::closePath(bool promptToSave)
@@ -2812,7 +2805,7 @@ bool KisDocument::closePath(bool promptToSave)
         }
     }
     // Not modified => ok and delete temp file.
-    d->mimeType = QByteArray();
+    d->identity.clearMimeType();
 
     // It always succeeds for a read-only part,
     // but the return value exists for reimplementations
@@ -2824,24 +2817,20 @@ bool KisDocument::closePath(bool promptToSave)
 
 void KisDocument::setPath(const QString &path)
 {
-    const bool changed = path != d->m_path;
-
-    d->m_path = path;
-
-    if (changed) {
+    if (d->identity.setPath(path)) {
         Q_EMIT sigPathChanged(path);
     }
 }
 
 QString KisDocument::localFilePath() const
 {
-    return d->m_file;
+    return d->identity.localFilePath();
 }
 
 
 void KisDocument::setLocalFilePath( const QString &localFilePath )
 {
-    d->m_file = localFilePath;
+    d->identity.setLocalFilePath(localFilePath);
 }
 
 bool KisDocument::openPathInternal(const QString &path)
@@ -2850,35 +2839,33 @@ bool KisDocument::openPathInternal(const QString &path)
         return false;
     }
 
-    if (d->m_bAutoDetectedMime) {
-        d->mimeType = QByteArray();
-        d->m_bAutoDetectedMime = false;
+    if (d->identity.mimeTypeWasAutoDetected()) {
+        d->identity.clearMimeType();
+        d->identity.setMimeTypeWasAutoDetected(false);
     }
 
-    QByteArray mimeType = d->mimeType;
+    QByteArray mimeType = d->identity.mimeType();
 
     if ( !closePath() ) {
         return false;
     }
 
-    d->mimeType = mimeType;
+    d->identity.setMimeType(mimeType);
     setPath(path);
 
-    d->m_file.clear();
-
-    d->m_file = d->m_path;
+    d->identity.setLocalFilePath(d->identity.path());
 
     bool ret = false;
     // set the mimeType only if it was not already set (for example, by the host application)
-    if (d->mimeType.isEmpty()) {
+    if (d->identity.mimeType().isEmpty()) {
         // get the mimeType of the file
         // using findByUrl() to avoid another string -> url conversion
-        QString mime = KisMimeDatabase::mimeTypeForFile(d->m_path);
-        d->mimeType = mime.toLocal8Bit();
-        d->m_bAutoDetectedMime = true;
+        QString mime = KisMimeDatabase::mimeTypeForFile(d->identity.path());
+        d->identity.setMimeType(mime.toLocal8Bit());
+        d->identity.setMimeTypeWasAutoDetected(true);
     }
 
-    setPath(d->m_path);
+    setPath(d->identity.path());
     ret = openFile();
 
     if (ret) {

@@ -104,7 +104,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
 
         self.assertEqual(len(canvas_headers), 17)
-        self.assertEqual(len(document_headers), 1)
+        self.assertEqual(len(document_headers), 2)
         self.assertEqual(len(ui_headers), 248)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(len(impex_ui_headers), 23)
@@ -113,6 +113,12 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "libs/document/undo/kis_document_undo_store.h"
             ]["publicationEvidence"],
             ["export-macro", "compile-contract", "external-include"],
+        )
+        self.assertEqual(
+            document_by_path[
+                "libs/document/session/kis_document_identity.h"
+            ]["publicationEvidence"],
+            ["export-macro", "external-include"],
         )
         self.assertEqual(
             canvas_by_path["libs/canvas/animation/kis_frame_cache_store.h"],
@@ -312,7 +318,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             },
             {
                 "kritacanvas": 17,
-                "kritadocument": 1,
+                "kritadocument": 2,
                 "kritaimage": 332,
                 "kritaimpex": 11,
                 "kritaimpexui": 23,
