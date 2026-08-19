@@ -37,6 +37,7 @@
 #include <KisResourceLocator.h>
 #include <KisResourceTypes.h>
 #include <KisGlobalResourcesInterface.h>
+#include <session/kis_document_autosave_state.h>
 #include <session/kis_document_identity.h>
 #include <session/kis_document_modification_state.h>
 #include <KisResourceLoaderRegistry.h>
@@ -347,6 +348,7 @@ public:
 
     KisImportExportManager *importExportManager = 0; // The filter-manager to use when loading/saving [for the options]
 
+    Krita::Document::AutoSaveState autoSaveState;
     Krita::Document::Identity identity;
     Krita::Document::ModificationState modificationState;
 
@@ -355,9 +357,6 @@ public:
     QString lastWarningMessage;
 
     int autoSaveDelay = 300; // in seconds, 0 to disable.
-    bool isAutosaving = false;
-    bool disregardAutosaveFailure = false;
-    int autoSaveFailureCount = 0;
     bool recoveryAutoSavePending = false;
     bool recoveryAutoSaveStartInProgress = false;
     bool recoveryAutoSaveCompletionDeferred = false;
@@ -1458,7 +1457,7 @@ KritaUtils::BackgroudSavingStartResult KisDocument::initiateSavingInBackground(c
     d->modificationState.markSavingStarted();
 
     if (d->backgroundSaveJob.flags & KritaUtils::SaveInAutosaveMode) {
-        d->backgroundSaveDocument->d->isAutosaving = true;
+        d->backgroundSaveDocument->d->autoSaveState.markAutoSaveExportStarted();
     }
 
     connect(d->backgroundSaveDocument.get(),
@@ -1512,7 +1511,7 @@ void KisDocument::slotChildCompletedSavingInBackground(KisImportExportErrorCode 
     KIS_ASSERT_RECOVER_RETURN(d->backgroundSaveDocument);
 
     if (d->backgroundSaveJob.flags & KritaUtils::SaveInAutosaveMode) {
-        d->backgroundSaveDocument->d->isAutosaving = false;
+        d->backgroundSaveDocument->d->autoSaveState.markAutoSaveExportFinished();
     }
 
     d->backgroundSaveDocument.release()->deleteLater();
@@ -1577,7 +1576,9 @@ void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalCloned
         Q_EMIT statusBarMessage(i18n("Autosaving postponed: document is busy..."), errorMessageTimeout);
     }
 
-    if (result != KritaUtils::BackgroudSavingStartResult::Success && !hadClonedDocument && d->autoSaveFailureCount >= 3) {
+    if (result != KritaUtils::BackgroudSavingStartResult::Success &&
+        !hadClonedDocument &&
+        d->autoSaveState.shouldUseCloneFallback()) {
         KisCloneDocumentStroke *stroke = new KisCloneDocumentStroke(this);
         connect(stroke, SIGNAL(sigDocumentCloned(KisDocument*)),
                 this, SLOT(slotInitiateAsyncAutosaving(KisDocument*)),
@@ -1731,7 +1732,7 @@ void KisDocument::slotCompleteAutoSaving(const KritaUtils::ExportFileJob &job, K
 
         if (!d->modificationState.wasModifiedWhileSaving()) {
             d->autoSaveTimer->stop(); // until the next change
-            d->autoSaveFailureCount = 0;
+            d->autoSaveState.clearFailures();
         } else {
             setNormalAutoSaveInterval();
         }
@@ -1928,14 +1929,14 @@ void KisDocument::setAutoSaveDelay(int delay)
 void KisDocument::setNormalAutoSaveInterval()
 {
     setAutoSaveDelay(d->autoSaveDelay);
-    d->autoSaveFailureCount = 0;
+    d->autoSaveState.clearFailures();
 }
 
 void KisDocument::setEmergencyAutoSaveInterval()
 {
     const int emergencyAutoSaveInterval = 10; /* sec */
     setAutoSaveDelay(emergencyAutoSaveInterval);
-    d->autoSaveFailureCount++;
+    d->autoSaveState.recordFailure();
 }
 
 void KisDocument::setInfiniteAutoSaveInterval()
@@ -2376,7 +2377,7 @@ void KisDocument::setModified(bool mod)
     /// 2) When closing a document, QUndoStack emits a lot of
     ///    modified signals, when clearing itself, so we should
     ///    ignore all of them.
-    if (d->isAutosaving || d->documentIsClosing)
+    if (d->autoSaveState.isExportingAutoSave() || d->documentIsClosing)
         return;
 
     //dbgUI<<" url:" << url.path();
@@ -3143,7 +3144,7 @@ KisUndoStore* KisDocument::createUndoStore()
 
 bool KisDocument::isAutosaving() const
 {
-    return d->isAutosaving;
+    return d->autoSaveState.isExportingAutoSave();
 }
 
 QString KisDocument::exportErrorToUserMessage(KisImportExportErrorCode status, const QString &errorMessage)
