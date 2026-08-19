@@ -359,33 +359,6 @@ int KoSvgTextShape::lineEnd(int pos)
     return candidate;
 }
 
-int KoSvgTextShape::wordLeft(int pos, bool visual)
-{
-    //TODO: figure out preferred behaviour for wordLeft in RTL && visual.
-    Q_UNUSED(visual)
-    if (pos < 0 || pos > d->cursorPos.size()-1 || d->result.isEmpty() || d->cursorPos.isEmpty()) {
-        return pos;
-    }
-    KoSvgText::Direction direction = KoSvgText::Direction(this->textProperties().propertyOrDefault(KoSvgTextProperties::DirectionId).toInt());
-    if (direction == KoSvgText::DirectionRightToLeft) {
-        return wordEnd(pos);
-    }
-    return wordStart(pos);
-}
-
-int KoSvgTextShape::wordRight(int pos, bool visual)
-{
-    Q_UNUSED(visual)
-    if (pos < 0 || pos > d->cursorPos.size()-1 || d->result.isEmpty() || d->cursorPos.isEmpty()) {
-        return pos;
-    }
-    KoSvgText::Direction direction = KoSvgText::Direction(this->textProperties().propertyOrDefault(KoSvgTextProperties::DirectionId).toInt());
-    if (direction == KoSvgText::DirectionRightToLeft) {
-        return wordStart(pos);
-    }
-    return wordEnd(pos);
-}
-
 int KoSvgTextShape::nextIndex(int pos)
 {
     if (d->cursorPos.isEmpty()) {
@@ -2686,4 +2659,3 @@ void KoSvgTextShape::TextCursorChangeListener::notifyShapeChanged(KoShape::Chang
     Q_UNUSED(type);
     Q_UNUSED(shape);
 }
-

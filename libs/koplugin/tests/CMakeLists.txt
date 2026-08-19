@@ -38,6 +38,7 @@ add_dummy_plugin(kritadummyplugin3 "dummyplugin3" 3 "dummyplugin3_ver_as_int.jso
 kis_add_test(
     KoPluginLoaderTest.cpp
     TEST_NAME KoPluginLoaderTest
+    TEST_NAME_VAR ko_plugin_loader_test_name
     LINK_LIBRARIES kritaplugin kritaglobal kritatestsdk KF${KF_MAJOR}::CoreAddons KF${KF_MAJOR}::ConfigCore dummytrivialinterface
 )
 
@@ -47,9 +48,8 @@ kis_add_test(
     LINK_LIBRARIES kritaplugin Qt${QT_MAJOR_VERSION}::Test
 )
 
-target_compile_definitions(KoPluginLoaderTest
-    PRIVATE
-    DUMMY_PLUGINS_PATH=${CMAKE_CURRENT_BINARY_DIR}/dummyplugins
-    )
+set_tests_properties(${ko_plugin_loader_test_name} PROPERTIES
+    ENVIRONMENT "KRITA_PLUGIN_PATH=${CMAKE_CURRENT_BINARY_DIR}/dummyplugins"
+)
 
 add_dependencies(KoPluginLoaderTest kritadummyplugin1 kritadummyplugin2 kritadummyplugin2_ver2 kritadummyplugin3)

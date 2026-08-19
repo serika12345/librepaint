@@ -464,12 +464,13 @@ void KisDocument::Private::syncDecorationsWrapperLayerState()
 
     const bool needsDecorationsWrapper =
             gridConfig.showGrid() || (guidesConfig.showGuides() && guidesConfig.hasGuides()) || !assistants.isEmpty();
-
+    KisDecorationsWrapperLayerSP layerToAdd = needsDecorationsWrapper && !decorationsLayer ? new KisDecorationsWrapperLayer(q) : KisDecorationsWrapperLayerSP();
     struct SyncDecorationsWrapperStroke : public KisSimpleStrokeStrategy {
-        SyncDecorationsWrapperStroke(KisDocument *document, bool needsDecorationsWrapper)
+        SyncDecorationsWrapperStroke(KisImageSP image, KisDecorationsWrapperLayerSP layerToAdd, bool needsDecorationsWrapper)
             : KisSimpleStrokeStrategy(QLatin1String("sync-decorations-wrapper"),
                                       kundo2_noi18n("start-isolated-mode")),
-              m_document(document),
+              m_image(image),
+              m_layerToAdd(layerToAdd),
               m_needsDecorationsWrapper(needsDecorationsWrapper)
         {
             this->enableJob(JOB_INIT, true, KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
@@ -478,22 +479,21 @@ void KisDocument::Private::syncDecorationsWrapperLayerState()
         }
 
         void initStrokeCallback() override {
-            KisDecorationsWrapperLayerSP decorationsLayer =
-                    KisLayerUtils::findNodeByType<KisDecorationsWrapperLayer>(m_document->image()->root());
+            KisDecorationsWrapperLayerSP decorationsLayer = KisLayerUtils::findNodeByType<KisDecorationsWrapperLayer>(m_image->root());
 
             if (m_needsDecorationsWrapper && !decorationsLayer) {
-                m_document->image()->addNode(new KisDecorationsWrapperLayer(m_document));
+                m_image->addNode(m_layerToAdd);
             } else if (!m_needsDecorationsWrapper && decorationsLayer) {
-                m_document->image()->removeNode(decorationsLayer);
+                m_image->removeNode(decorationsLayer);
             }
         }
-
     private:
-        KisDocument *m_document = 0;
+        KisImageSP m_image;
+        KisDecorationsWrapperLayerSP m_layerToAdd;
         bool m_needsDecorationsWrapper = false;
     };
 
-    KisStrokeId id = image->startStroke(new SyncDecorationsWrapperStroke(q, needsDecorationsWrapper));
+    KisStrokeId id = image->startStroke(new SyncDecorationsWrapperStroke(image, layerToAdd, needsDecorationsWrapper));
     image->endStroke(id);
 }
 

@@ -5,9 +5,6 @@
  */
 
 #include "TestProfileGeneration.h"
-#include "colorprofiles/LcmsColorProfileContainer.h"
-#include "colorprofiles/IccColorProfile.h"
-
 #include <QTest>
 #include <cmath>
 #include <lcms2.h>
@@ -403,14 +400,19 @@ void TestProfileGeneration::testCICPwriting()
     QVERIFY(profile->getColorPrimaries() == primaries);
     QVERIFY(profile->getTransferCharacteristics() == transfer);
 
-    const IccColorProfile *icc = dynamic_cast<const IccColorProfile*>(profile);
-    QVERIFY(icc);
-    const LcmsColorProfileContainer *lcms = icc->asLcms();
-    QVERIFY(lcms);
+    QCOMPARE(profile->type(), QStringLiteral("icc"));
 
-    QVERIFY(lcms->hasCicpValues());
-    QVERIFY(lcms->cicpPrimaries() == primaries);
-    QVERIFY(lcms->cicpTransfer() == transfer);
+    const QByteArray rawData = profile->rawData();
+    cmsHPROFILE lcmsProfile = cmsOpenProfileFromMem(rawData.constData(), rawData.size());
+    QVERIFY(lcmsProfile);
+
+    const auto *cicpValues = static_cast<const cmsVideoSignalType *>(
+        cmsReadTag(lcmsProfile, cmsSigcicpTag));
+    QVERIFY(cicpValues);
+    QCOMPARE(cicpValues->ColourPrimaries, static_cast<quint8>(primaries));
+    QCOMPARE(cicpValues->TransferCharacteristics, static_cast<quint8>(transfer));
+
+    cmsCloseProfile(lcmsProfile);
 }
 
 void TestProfileGeneration::testRetrieveNits_data()

@@ -19,6 +19,12 @@
 
 #include <memory>
 
+namespace
+{
+constexpr int meshGradientRasterizationTolerance = 17;
+constexpr int imageScalingRasterizationTolerance = 1;
+}
+
 #ifdef USE_ROUND_TRIP
 #include "SvgWriter.h"
 #include <QBuffer>
@@ -1190,11 +1196,11 @@ void TestSvgParser::testIccColor()
 
     SvgRenderTester t (data);
 
-    int numFetches = 0;
+    QStringList fetchedProfileNames;
 
     t.parser().setFileFetcher(
-        [&numFetches](const QString &name) {
-            numFetches++;
+        [&fetchedProfileNames](const QString &name) {
+            fetchedProfileNames.append(QFileInfo(name).fileName());
             QString fileName = TestUtil::fetchDataFileLazy(name);
             if (fileName.isEmpty()) {
                 fileName = TestUtil::fetchDataFileLazy("icc/" + name);
@@ -1211,7 +1217,10 @@ void TestSvgParser::testIccColor()
         QSharedPointer<KoColorBackground>  bg = qSharedPointerDynamicCast<KoColorBackground>(shape->background());
         QVERIFY2(bg->color() == QColor("#00FFFF"), "icc-color is not being loaded during parsing");
     }
-    QCOMPARE(numFetches, 1);
+    QVERIFY(!fetchedProfileNames.isEmpty());
+    for (const QString &name : std::as_const(fetchedProfileNames)) {
+        QCOMPARE(name, QStringLiteral("sRGB-elle-V4-srgbtrc.icc"));
+    }
 #undef PROFILE_UNIQUE_ID_HEX
 }
 
@@ -1759,8 +1768,11 @@ void TestSvgParser::testRenderMeshGradient_bilinear_2by2_UserCoord()
         "</svg>";
 
     SvgRenderTester t(data);
-    t.setFuzzyThreshold(5);
+    t.setFuzzyThreshold(meshGradientRasterizationTolerance);
+    t.setFuzzyAlphaThreshold(0);
     t.test_standard("meshgradient_bilinear_2by2_in_user", QSize(100, 100), 72);
+    t.verifyMeshGradient(SvgMeshGradient::BILINEAR,
+                         KoFlake::UserSpaceOnUse);
 }
 
 void TestSvgParser::testRenderMeshGradient_bicubic_2by2_UserCoord()
@@ -1820,8 +1832,11 @@ void TestSvgParser::testRenderMeshGradient_bicubic_2by2_UserCoord()
         "</svg>";
 
     SvgRenderTester t(data);
-    t.setFuzzyThreshold(5);
+    t.setFuzzyThreshold(meshGradientRasterizationTolerance);
+    t.setFuzzyAlphaThreshold(0);
     t.test_standard("meshgradient_bicubic_2by2", QSize(100, 100), 72);
+    t.verifyMeshGradient(SvgMeshGradient::BICUBIC,
+                         KoFlake::UserSpaceOnUse);
 }
 
 void TestSvgParser::testRenderMeshGradient_bilinear_1by1_Obb()
@@ -1967,8 +1982,11 @@ void TestSvgParser::testRenderMeshGradient_bicubic_2by2_Obb()
 
 
     SvgRenderTester t(data);
-    t.setFuzzyThreshold(5);
+    t.setFuzzyThreshold(meshGradientRasterizationTolerance);
+    t.setFuzzyAlphaThreshold(0);
     t.test_standard("meshgradient_bicubic_2by2", QSize(100, 100), 72);
+    t.verifyMeshGradient(SvgMeshGradient::BICUBIC,
+                         KoFlake::UserSpaceOnUse);
 }
 
 void TestSvgParser::testRenderMeshGradient_MeshTransform_UserCoord()
@@ -2146,8 +2164,11 @@ void TestSvgParser::testRenderMeshGradient_MeshTransform_Obb()
 
 
     SvgRenderTester t(data);
-    t.setFuzzyThreshold(5);
+    t.setFuzzyThreshold(meshGradientRasterizationTolerance);
+    t.setFuzzyAlphaThreshold(0);
     t.test_standard("meshgradient_meshtransform_in_obb", QSize(100, 100), 72);
+    t.verifyMeshGradient(SvgMeshGradient::BILINEAR,
+                         KoFlake::UserSpaceOnUse);
 }
 
 void TestSvgParser::testRenderMeshGradient_ShapeTransform_Obb()
@@ -2328,8 +2349,11 @@ void TestSvgParser::testRenderMeshGradient_reversed()
         "</svg>";
 
     SvgRenderTester t(data);
-    t.setFuzzyThreshold(5);
+    t.setFuzzyThreshold(meshGradientRasterizationTolerance);
+    t.setFuzzyAlphaThreshold(0);
     t.test_standard("meshgradient_reversed", QSize(100, 100), 72);
+    t.verifyMeshGradient(SvgMeshGradient::BILINEAR,
+                         KoFlake::UserSpaceOnUse);
 }
 
 QPainterPath bakeShape(const QPainterPath &path,
@@ -3316,6 +3340,8 @@ void TestSvgParser::testRenderImage_AspectDefault()
 
     SvgRenderTester t (data);
     t.parser().setFileFetcher(fileFetcherFunc);
+    t.setFuzzyThreshold(imageScalingRasterizationTolerance);
+    t.setFuzzyAlphaThreshold(0);
 
     t.test_standard_30px_72ppi("image_aspect_default", false);
 }

@@ -23,6 +23,7 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 
+#include <QTemporaryDir>
 #include <QTemporaryFile>
 #include <QFileInfo>
 #include <QApplication>
@@ -239,19 +240,41 @@ void testExportToReadonly(QString mimetype)
     }
 #endif
 
-    QString readonlyFilename = impexTempFilesDir() + "readonlyFile.txt";
+    QTemporaryDir readonlyDirectory(impexTempFilesDir() + "readonly-output-XXXXXX");
+    QVERIFY2(readonlyDirectory.isValid(), "Could not create the read-only output directory.");
+
+    const QString readonlyFilename = readonlyDirectory.filePath("readonlyFile.txt");
 
     QFileInfo sourceFileInfo(readonlyFilename);
-    prepareFile(sourceFileInfo, true, false);
+    prepareFile(sourceFileInfo, false, false);
+    QVERIFY2(sourceFileInfo.exists(), "Could not create the read-only output file.");
 
     KisDocument *doc = qobject_cast<KisDocument*>(KisPart::instance()->createDocument());
+    QVERIFY(doc);
 
     KisImportExportManager manager(doc);
     doc->setFileBatchMode(true);
 
     KisImportExportErrorCode status = ImportExportCodes::OK;
-    QString failMessage = "";
-    bool fail = false;
+
+    const QFileDevice::Permissions filePermissionsBefore = sourceFileInfo.permissions();
+    const QFileInfo directoryInfo(readonlyDirectory.path());
+    const QFileDevice::Permissions directoryPermissionsBefore = directoryInfo.permissions();
+    const QFileDevice::Permissions writePermissions =
+            QFileDevice::WriteUser | QFileDevice::WriteOwner |
+            QFileDevice::WriteGroup | QFileDevice::WriteOther;
+
+    const bool fileIsReadOnly = QFile::setPermissions(
+            sourceFileInfo.absoluteFilePath(), filePermissionsBefore & ~writePermissions);
+    const bool directoryIsReadOnly = QFile::setPermissions(
+            directoryInfo.absoluteFilePath(), directoryPermissionsBefore & ~writePermissions);
+
+    if (!fileIsReadOnly || !directoryIsReadOnly) {
+        QFile::setPermissions(directoryInfo.absoluteFilePath(), directoryPermissionsBefore);
+        QFile::setPermissions(sourceFileInfo.absoluteFilePath(), filePermissionsBefore);
+        delete doc;
+        QFAIL("Could not make the output file and its directory read-only.");
+    }
 
     {
     MaskParent p;
@@ -271,18 +294,21 @@ void testExportToReadonly(QString mimetype)
     }
 
     }
-    delete doc;
 
     if (status.isOk()) {
         qDebug() << "The file permission is:" << QFile::permissions(sourceFileInfo.absoluteFilePath());
     }
 
-    restorePermissionsToReadAndWrite(sourceFileInfo);
+    const bool directoryPermissionsRestored = QFile::setPermissions(
+            directoryInfo.absoluteFilePath(), directoryPermissionsBefore);
+    const bool filePermissionsRestored = QFile::setPermissions(
+            sourceFileInfo.absoluteFilePath(), filePermissionsBefore);
 
+    delete doc;
+
+    QVERIFY2(directoryPermissionsRestored, "Could not restore the output directory permissions.");
+    QVERIFY2(filePermissionsRestored, "Could not restore the output file permissions.");
     QVERIFY(!status.isOk());
-    if (fail) {
-        QFAIL(failMessage.toUtf8());
-    }
 }
 
 

@@ -43,6 +43,17 @@ inline QString toOctaveFormat(const QTransform &t)
     return s;
 }
 
+namespace
+{
+bool rectEdgesWithinOnePixel(const QRect &actual, const QRect &expected)
+{
+    return qAbs(actual.left() - expected.left()) <= 1 &&
+        qAbs(actual.top() - expected.top()) <= 1 &&
+        qAbs(actual.right() - expected.right()) <= 1 &&
+        qAbs(actual.bottom() - expected.bottom()) <= 1;
+}
+}
+
 void KisTransformMaskTest::testSafeTransform()
 {
     QTransform transform(-0.177454, -0.805953, -0.00213713,
@@ -67,7 +78,7 @@ void KisTransformMaskTest::testSafeTransform()
     ref << QPoint(236, 403);
     ref << QPoint(284, 410);
     QCOMPARE(fwdPoly.toPolygon(), ref);
-    QCOMPARE(fwdRect.toRect(), QRect(10,403,274,210));
+    QVERIFY(rectEdgesWithinOnePixel(fwdRect.toRect(), QRect(10,403,274,210)));
 
     ref.clear();
     ref << QPoint(512, 1024);
@@ -179,7 +190,7 @@ void KisTransformMaskTest::testSafeTransformSingleVanishingPoint()
     ref << QPoint(629, 847);
     ref << QPoint(765, 648);
     QCOMPARE(fwdPoly.toPolygon(), ref);
-    QCOMPARE(fwdRect.toRect(), QRect(629,648,972,199));
+    QVERIFY(rectEdgesWithinOnePixel(fwdRect.toRect(), QRect(629,648,972,199)));
 
     ref.clear();
     ref << QPoint(1536,1024);

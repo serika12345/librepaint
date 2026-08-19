@@ -9,9 +9,23 @@
 
 #include <simpletest.h>
 
+#include <QCoreApplication>
+#include <QEvent>
+
 #include <testutil.h>
 #include <KoProgressUpdater.h>
 #include <KoUpdater.h>
+
+namespace
+{
+void processDeferredDeletes()
+{
+    // Deleting KoUpdaterPrivate schedules deletion of its public KoUpdater.
+    // Drain both deferred-delete generations before checking QPointer state.
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+}
+}
 
 
 void TestKoProgressUpdater::test()
@@ -84,6 +98,7 @@ void TestKoProgressUpdater::test()
     QCOMPARE(testProxy.format(), QString("Test Action: %p%"));
 
     // both updaters are auto-killed right after completion
+    processDeferredDeletes();
     QVERIFY(!updater1);
     QVERIFY(!updater2);
 
@@ -253,6 +268,7 @@ void TestKoProgressUpdater::testPersistentSubtask()
     QCOMPARE(testProxy.autoNestedName(), QString(""));
 
     // normal subtask is killed, persistent is still alive
+    processDeferredDeletes();
     QVERIFY(!updater1);
     QVERIFY(updater2_persistent);
 
@@ -260,6 +276,7 @@ void TestKoProgressUpdater::testPersistentSubtask()
     QTest::qWait(15);
 
     // persistent subtask is killed only after explicit removal
+    processDeferredDeletes();
     QVERIFY(!updater2_persistent);
 }
 
@@ -372,6 +389,7 @@ void TestKoProgressUpdater::testDestructionNonpersistentSubtasks()
 
     // main updater has been killed already since all the children
     // updaters are completed
+    processDeferredDeletes();
     QVERIFY(!updater1);
 
     // subupdater are killed as well
@@ -496,6 +514,7 @@ void TestKoProgressUpdater::testNonStandardRange()
     QCOMPARE(testProxy.format(), QString("%p%"));
     QCOMPARE(testProxy.autoNestedName(), QString(""));
 
+    processDeferredDeletes();
     QVERIFY(!updater1);
 }
 

@@ -1201,47 +1201,6 @@ void StoryboardModel::slotFrameRenderCancelled(int frame)
     Q_UNUSED(frame);
 }
 
-void StoryboardModel::slotCommentDataChanged()
-{
-    m_commentList = m_commentModel->m_commentList;
-    emit(layoutChanged());
-}
-
-void StoryboardModel::slotCommentRowInserted(const QModelIndex parent, int first, int last)
-{
-    Q_UNUSED(parent);
-    int numItems = rowCount();
-    for(int row = 0; row < numItems; row++) {
-        QModelIndex parentIndex = index(row, 0);
-        insertRows(4 + first, last - first + 1, parentIndex);       //four indices are already there
-    }
-    slotCommentDataChanged();
-}
-
-void StoryboardModel::slotCommentRowRemoved(const QModelIndex parent, int first, int last)
-{
-    Q_UNUSED(parent);
-    int numItems = rowCount();
-    for(int row = 0; row < numItems; row++) {
-        QModelIndex parentIndex = index(row, 0);
-        removeRows(4 + first, last - first + 1, parentIndex);
-    }
-    slotCommentDataChanged();
-}
-
-void StoryboardModel::slotCommentRowMoved(const QModelIndex &sourceParent, int start, int end,
-                            const QModelIndex &destinationParent, int destinationRow)
-{
-    Q_UNUSED(sourceParent);
-    Q_UNUSED(destinationParent);
-    int numItems = rowCount();
-    for(int row = 0; row < numItems; row++) {
-        QModelIndex parentIndex = index(row, 0);
-        moveRowsImpl(parentIndex, start + 4, end - start + 1, parentIndex, destinationRow + 4);
-    }
-    slotCommentDataChanged();
-}
-
 void StoryboardModel::insertChildRows(int position, KUndo2Command *cmd)
 {
     if (position + 1 < rowCount()) {

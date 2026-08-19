@@ -8,6 +8,7 @@
 
 #include <KisGlobalResourcesInterface.h>
 #include <KisImageResolutionProxy.h>
+#include <QSet>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoProgressUpdater.h>
@@ -36,6 +37,65 @@ $color=ccurve($val,\n\
 $color\n\
 "
 
+namespace
+{
+QImage generateImage(const QString &script)
+{
+    KisGeneratorSP generator = KisGeneratorRegistry::instance()->get("seexpr");
+    if (!generator) {
+        return QImage();
+    }
+
+    KisFilterConfigurationSP config =
+        generator->defaultConfiguration(KisGlobalResourcesInterface::instance());
+    if (!config) {
+        return QImage();
+    }
+
+    config->setProperty("script", script);
+
+    const QPoint point(0, 0);
+    const QSize testSize(256, 256);
+    KisDefaultBoundsBaseSP bounds(new KisWrapAroundBoundsWrapper(
+        new KisDefaultBounds(), QRect(point, testSize)));
+    KisPaintDeviceSP device = new KisPaintDevice(KoColorSpaceRegistry::instance()->rgb8());
+    device->setDefaultBounds(bounds);
+    device->setSupportsWraparoundMode(true);
+
+    KisFillPainter fillPainter(device);
+    fillPainter.fillRect(point.x(),
+                         point.y(),
+                         testSize.width(),
+                         testSize.height(),
+                         config);
+
+    return device->convertToQImage(nullptr, QRect(point, testSize));
+}
+
+void verifyGeneratedImageProperties(const QImage &image)
+{
+    QCOMPARE(image.size(), QSize(256, 256));
+
+    QSet<QRgb> colors;
+    int minimumLuminance = 255;
+    int maximumLuminance = 0;
+
+    for (int y = 0; y < image.height(); ++y) {
+        for (int x = 0; x < image.width(); ++x) {
+            const QRgb pixel = image.pixel(x, y);
+            QCOMPARE(qAlpha(pixel), 255);
+            colors.insert(pixel);
+            minimumLuminance = qMin(minimumLuminance, qGray(pixel));
+            maximumLuminance = qMax(maximumLuminance, qGray(pixel));
+        }
+    }
+
+    QVERIFY(colors.size() >= 64);
+    QVERIFY(minimumLuminance < 32);
+    QVERIFY(maximumLuminance > 224);
+}
+}
+
 void KisSeExprGeneratorTest::initTestCase()
 {
     KisGeneratorRegistry::instance();
@@ -43,68 +103,34 @@ void KisSeExprGeneratorTest::initTestCase()
 
 void KisSeExprGeneratorTest::testGenerationFromScript()
 {
-    KisGeneratorSP generator = KisGeneratorRegistry::instance()->get("seexpr");
-    QVERIFY(generator);
+    const QImage firstResult = generateImage(BASE_SCRIPT);
+    const QImage secondResult = generateImage(BASE_SCRIPT);
 
-    KisFilterConfigurationSP config = generator->defaultConfiguration(KisGlobalResourcesInterface::instance());
-    QVERIFY(config);
+    QVERIFY(!firstResult.isNull());
+    verifyGeneratedImageProperties(firstResult);
 
-    config->setProperty("script", BASE_SCRIPT);
-
-    QPoint point(0, 0);
-    QSize testSize(256, 256);
-
-    KisDefaultBoundsBaseSP bounds(new KisWrapAroundBoundsWrapper(new KisDefaultBounds(), QRect(point.x(), point.y(), testSize.width(), testSize.height())));
-    const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
-    KisPaintDeviceSP dev = new KisPaintDevice(cs);
-    dev->setDefaultBounds(bounds);
-    dev->setSupportsWraparoundMode(true);
-
-    KisFillPainter fillPainter(dev);
-    fillPainter.fillRect(point.x(), point.y(), 256, 256, config);
-
-    QImage qimage(QString(FILES_DATA_DIR) + QDir::separator() + "noisecolor2.png");
-
-    QPoint errpoint;
-    if (!TestUtil::compareQImages(errpoint, qimage, dev->convertToQImage(nullptr, point.x(), point.y(), testSize.width(), testSize.height()), 1)) {
-        dev->convertToQImage(nullptr, point.x(), point.y(), testSize.width(), testSize.height()).save("filtertest.png");
-        QFAIL(QString("Failed to create image, first different pixel: %1,%2 ").arg(errpoint.x()).arg(errpoint.y()).toLatin1());
-    }
+    QPoint mismatch;
+    QVERIFY2(TestUtil::compareQImages(mismatch, firstResult, secondResult),
+             qPrintable(QString("Repeated generation differs at (%1, %2)")
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
 }
 
 void KisSeExprGeneratorTest::testGenerationFromKoResource()
 {
-    KisGeneratorSP generator = KisGeneratorRegistry::instance()->get("seexpr");
-    QVERIFY(generator);
+    KisSeExprScript resource(TestUtil::fetchDataFileLazy("Disney_noisecolor2.kse"));
+    QVERIFY(resource.load(KisGlobalResourcesInterface::instance()));
+    QVERIFY(resource.valid());
 
-    KisFilterConfigurationSP config = generator->defaultConfiguration(KisGlobalResourcesInterface::instance());
-    QVERIFY(config);
+    const QImage resourceResult = generateImage(resource.script());
+    const QImage scriptResult = generateImage(BASE_SCRIPT);
 
-    auto resource = new KisSeExprScript(TestUtil::fetchDataFileLazy("Disney_noisecolor2.kse"));
-    resource->load(KisGlobalResourcesInterface::instance());
-    Q_ASSERT(resource->valid());
-
-    config->setProperty("script", resource->script());
-
-    QPoint point(0, 0);
-    QSize testSize(256, 256);
-
-    KisDefaultBoundsBaseSP bounds(new KisWrapAroundBoundsWrapper(new KisDefaultBounds(), QRect(point.x(), point.y(), testSize.width(), testSize.height())));
-    const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();
-    KisPaintDeviceSP dev = new KisPaintDevice(cs);
-    dev->setDefaultBounds(bounds);
-    dev->setSupportsWraparoundMode(true);
-
-    KisFillPainter fillPainter(dev);
-    fillPainter.fillRect(point.x(), point.y(), 256, 256, config);
-
-    QImage qimage(QString(FILES_DATA_DIR) + QDir::separator() + "noisecolor2.png");
-
-    QPoint errpoint;
-    if (!TestUtil::compareQImages(errpoint, qimage, dev->convertToQImage(nullptr, point.x(), point.y(), testSize.width(), testSize.height()), 1)) {
-        dev->convertToQImage(nullptr, point.x(), point.y(), testSize.width(), testSize.height()).save("filtertest.png");
-        QFAIL(QString("Failed to create image, first different pixel: %1,%2 ").arg(errpoint.x()).arg(errpoint.y()).toLatin1());
-    }
+    QVERIFY(!resourceResult.isNull());
+    QPoint mismatch;
+    QVERIFY2(TestUtil::compareQImages(mismatch, resourceResult, scriptResult),
+             qPrintable(QString("Resource generation differs from the source script at (%1, %2)")
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
 }
 
 KISTEST_MAIN(KisSeExprGeneratorTest)

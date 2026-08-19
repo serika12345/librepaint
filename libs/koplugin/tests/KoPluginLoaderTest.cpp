@@ -19,8 +19,9 @@
 
 void KoPluginLoaderTest::initTestCase()
 {
-    qDebug() << QT_STRINGIFY(DUMMY_PLUGINS_PATH);
-    qputenv("KRITA_PLUGIN_PATH", QT_STRINGIFY(DUMMY_PLUGINS_PATH));
+    const QByteArray pluginPath = qgetenv("KRITA_PLUGIN_PATH");
+    QVERIFY2(!pluginPath.isEmpty(), "CTest must provide the test plugin directory");
+    qDebug() << pluginPath;
 }
 
 void KoPluginLoaderTest::testLoadSinglePlugin_data()

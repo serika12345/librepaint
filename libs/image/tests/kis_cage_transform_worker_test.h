@@ -17,6 +17,7 @@ private Q_SLOTS:
     void testCageClockwisePrepareOnly();
     void testCageClockwisePixelPrecision4();
     void testCageClockwisePixelPrecision8QImage();
+    void testCageClockwiseUnityQImage();
     void testCageCounterclockwise();
     void testCageClockwiseUnity();
     void testCageCounterclockwiseUnity();

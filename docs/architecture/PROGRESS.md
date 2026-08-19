@@ -2,15 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-18 18:09 JST
-- 状態: `completed`
-- 現在の検査段階: ネイティブ試験正常化の原因分類
+- 更新日時: 2026-08-19 00:02 JST
+- 状態: `planned`
+- 現在の検査段階: R1-G6e文書寿命境界の計画
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `test-failure-cause-classification`
-- 目的: `sdk/tests/filestest.h`、`libs/pigment/KoColorSpaceRegistry.cpp`、
-  `libs/ui/tests/kis_shape_layer_test.cpp`、`libs/ui/tests/KisSafeDocumentLoaderTest.cpp`を
-  主な起点として、マージ後のmacOSネイティブ試験37失敗を試験契約、製品実装、
-  依存・実行時資源契約、非同期同期へ分類し、修正実装とは別のレビュー単位で確定する。
+- ブランチ: `normalize-readonly-export-tests`
+- 目的: `libs/ui/KisDocument.*`と文書状態21クラスを起点として、文書識別、変更状態、
+  永続化、自動保存、回復、取り消し調整の契約を確認し、文書寿命境界の最初の独立単位を
+  実装開始前に計画する。
 
 ## 再開環境
 
@@ -406,22 +405,6 @@
   `kritaui`内部参照は9ヘッダー24件から7ヘッダー20件へ縮小し、キャンバス表示から
   文書寿命への逆方向includeは0件を維持する。これによりR1-G6dの完了条件を満たす。
 
-## ネイティブ試験正常化の原因分類で完了した作業
-
-- 対象コミット`142583963dc2da80c285154f745d2f00e090ea2f`でmacOS 327件を逐次実行し、
-  290件成功、37件失敗を再現した。直前の並列実行で成功した図形選択履歴と安全な外部文書
-  再読込を条件付き失敗として分離し、残る35件を固定的な失敗として確認した。
-- x86_64 Linuxの清浄な作業ツリーを同じコミットへ揃え、同じQt 6.11.1、LittleCMS 2.19、
-  libtiff 4.7.2で対象試験を比較した。対象だけの構築で実行時プラグインを欠く結果は根拠から
-  除外し、同じ製品・試験依存が揃った対象だけをプラットフォーム比較に使用した。
-- `docs/architecture/TEST_FAILURE_CLASSIFICATION.md`に37対象を、試験契約15件、製品実装6件、
-  依存・実行時資源契約14件、非同期同期2件へ一次分類した。複数原因を持つKRA保存は、
-  203 nit PQ資源登録と読取専用出力を個別の修正境界へ接続した。
-- 各原因に、分割対象の起点ファイル、観測結果、修正対象、期待値を変更する前に必要な契約を
-  記録した。分類文書はmacOSとLinuxの全ネイティブ試験成功を削除条件とする一時台帳である。
-- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
-  責務・依存・構造台帳、文書形式、リンク、D2再生成を含む高速検査が成功した。
-
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -608,12 +591,22 @@
   責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: アニメーションキャッシュ
   境界分離後の全Nix出力の評価が成功した。
+- 同一コミット`5eff49b46b5293af6c9c0d38d5546a775159a7b7`で
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 327件と
+  x86_64 Linux 329件の全ネイティブ試験が成功した。
+- `libs-widgetutils-TestKoProgressUpdater`をmacOSとx86_64 Linuxで各50回連続実行し、
+  進捗通知の値、表示、通常副処理と永続副処理の寿命契約がすべて成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`で、macOS、iOS、Linux、Android、Windowsの
+  5台帳と差分行列の一致を確認した。
+- `nix flake check --no-build --all-systems`: 全Nix出力の評価が成功した。
 
 ## 次の操作
 
-ネイティブ試験失敗の原因分類をレビューしてマージする。マージ後は分類台帳の原因単位で
-修正実装を行う。macOSとLinuxの全ネイティブ試験が成功した変更で一時分類文書を削除し、
-R1-G6e文書寿命境界の最初の独立単位を計画できる状態へ戻す。
+ネイティブ試験正常化の変更をレビューしてマージする。マージ後は
+`libs/ui/KisDocument.*`と文書状態21クラスについて、文書識別、変更状態、永続化、自動保存、
+回復、取り消し調整の既存契約と所有境界を確認し、R1-G6e文書寿命境界の最初の独立単位を
+計画する。実装範囲と開始は計画レビュー後に保守責任者が決定する。
 UIから利用事例を登録・呼出しする専用移行と、ドメイン計算からI/Oを分離する専用移行は、
 保守責任者が明示的に開始を決定するまで着手しない。
 

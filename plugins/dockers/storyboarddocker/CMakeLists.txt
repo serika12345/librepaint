@@ -6,6 +6,7 @@ set(KRITA_STORYBOARDDOCKER_SOURCES
     StoryboardDockerDock.cpp
     CommentDelegate.cpp
     StoryboardModel.cpp
+    StoryboardModelComments.cpp
     StoryboardDelegate.cpp
     StoryboardView.cpp
     KisAsyncStoryboardThumbnailRenderer.cpp

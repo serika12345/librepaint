@@ -15,7 +15,6 @@
 #include <QStack>
 
 #include <array>
-
 #include <exiv2/exiv2.hpp>
 #include <kpluginfactory.h>
 #ifdef Q_OS_WIN
@@ -54,6 +53,7 @@
 
 #include "kis_buffer_stream.h"
 #include "kis_tiff_logger.h"
+#include "kis_tiff_jpeg_buffer.h"
 #include "kis_tiff_reader.h"
 #include "kis_tiff_ycbcr_reader.h"
 
@@ -1029,24 +1029,6 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
             }
         }
 
-        {
-            int width = 0;
-            int height = 0;
-
-            if (hasSplitTables
-                && tjDecompressHeader(handle.get(), tables, sz, &width, &height)
-                    != 0) {
-                errFile << tjGetErrorStr2(handle.get());
-                m_doc->setErrorMessage(
-                    i18nc("TIFF errors",
-                          "This TIFF file is compressed with JPEG, but "
-                          "libjpeg-turbo could not load its coefficient "
-                          "quantization and/or Huffman coding tables. "
-                          "Please upgrade your version of libjpeg-turbo "
-                          "and try again."));
-                return ImportExportCodes::FileFormatIncorrect;
-            }
-        }
     }
 #endif
 
@@ -1088,9 +1070,11 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
                    && color_type == PHOTOMETRIC_YCBCR
                    && compression == COMPRESSION_JPEG) {
 #ifdef HAVE_JPEG_TURBO
-            jpegBuf.resize(tileSize);
             ps_buf->resize(nbchannels);
-            TIFFReadRawTile(image, 0, jpegBuf.data(), tileSize);
+            if (!readTiffJpegTile(image, 0, tileSize, tables, sz, &jpegBuf)) {
+                errFile << "Unable to reconstruct the first JPEG-compressed TIFF tile";
+                return ImportExportCodes::FileFormatIncorrect;
+            }
 
             int width = tileWidth;
             int height = tileHeight;
@@ -1099,7 +1083,7 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
 
             if (tjDecompressHeader3(handle.get(),
                                     jpegBuf.data(),
-                                    tileSize,
+                                    jpegBuf.size(),
                                     &width,
                                     &height,
                                     &jpegSubsamp,
@@ -1121,7 +1105,8 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
                                .arg(uncompressedTileSize)
                                .toStdString()
                                .c_str();
-                tsize_t scanLineSize = uncompressedTileSize / tileHeight;
+                const tsize_t scanLineSize = tjPlaneWidth(i, width, jpegSubsamp);
+                KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(scanLineSize > 0, ImportExportCodes::FileFormatIncorrect);
                 dbgFile << QString("scan line size (plane %1): %2")
                                .arg(i)
                                .arg(scanLineSize)
@@ -1187,7 +1172,10 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
                                && compression == COMPRESSION_JPEG)) {
                     uint32_t tile =
                         TIFFComputeTile(image, x, y, 0, (tsample_t)-1);
-                    TIFFReadRawTile(image, tile, jpegBuf.data(), tileSize);
+                    if (!readTiffJpegTile(image, tile, tileSize, tables, sz, &jpegBuf)) {
+                        errFile << "Unable to reconstruct a JPEG-compressed TIFF tile";
+                        return ImportExportCodes::FileFormatIncorrect;
+                    }
 
                     int width = tileWidth;
                     int height = tileHeight;
@@ -1196,7 +1184,7 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
 
                     if (tjDecompressHeader3(handle.get(),
                                             jpegBuf.data(),
-                                            tileSize,
+                                            jpegBuf.size(),
                                             &width,
                                             &height,
                                             &jpegSubsamp,
@@ -1208,7 +1196,7 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
 
                     if (tjDecompressToYUVPlanes(handle.get(),
                                                 jpegBuf.data(),
-                                                tileSize,
+                                                jpegBuf.size(),
                                                 ps_buf->data(),
                                                 width,
                                                 nullptr,
@@ -1277,9 +1265,11 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
                    && color_type == PHOTOMETRIC_YCBCR
                    && compression == COMPRESSION_JPEG) {
 #ifdef HAVE_JPEG_TURBO
-            jpegBuf.resize(stripsize);
             ps_buf->resize(nbchannels);
-            TIFFReadRawStrip(image, 0, jpegBuf.data(), stripsize);
+            if (!readTiffJpegStrip(image, 0, stripsize, tables, sz, &jpegBuf)) {
+                errFile << "Unable to reconstruct the first JPEG-compressed TIFF strip";
+                return ImportExportCodes::FileFormatIncorrect;
+            }
 
             int width = basicInfo.width;
             int height = rowsPerStrip;
@@ -1288,7 +1278,7 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
 
             if (tjDecompressHeader3(handle.get(),
                                     jpegBuf.data(),
-                                    stripsize,
+                                    jpegBuf.size(),
                                     &width,
                                     &height,
                                     &jpegSubsamp,
@@ -1308,7 +1298,8 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
                 dbgFile << QString("Uncompressed strip size (plane %1): %2")
                                .arg(i)
                                .arg(uncompressedStripsize);
-                tsize_t scanLineSize = uncompressedStripsize / rowsPerStrip;
+                const tsize_t scanLineSize = tjPlaneWidth(i, width, jpegSubsamp);
+                KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(scanLineSize > 0, ImportExportCodes::FileFormatIncorrect);
                 dbgFile << QString("scan line size (plane %1): %2")
                                .arg(i)
                                .arg(scanLineSize);
@@ -1371,7 +1362,10 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
             } else if (planarconfig == PLANARCONFIG_CONTIG
                        && (color_type == PHOTOMETRIC_YCBCR
                            && compression == COMPRESSION_JPEG)) {
-                TIFFReadRawStrip(image, strip, jpegBuf.data(), stripsize);
+                if (!readTiffJpegStrip(image, strip, stripsize, tables, sz, &jpegBuf)) {
+                    errFile << "Unable to reconstruct a JPEG-compressed TIFF strip";
+                    return ImportExportCodes::FileFormatIncorrect;
+                }
 
                 int width = basicInfo.width;
                 int height = rowsPerStrip;
@@ -1380,7 +1374,7 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
 
                 if (tjDecompressHeader3(handle.get(),
                                         jpegBuf.data(),
-                                        stripsize,
+                                        jpegBuf.size(),
                                         &width,
                                         &height,
                                         &jpegSubsamp,
@@ -1393,7 +1387,7 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
                 if (tjDecompressToYUVPlanes(
                         handle.get(),
                         jpegBuf.data(),
-                        stripsize,
+                        jpegBuf.size(),
                         ps_buf->data(),
                         width,
                         nullptr,
