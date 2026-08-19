@@ -339,7 +339,6 @@ set(kritaui_LIB_SRCS
     actions/KisTransformToolActivationCommand.cpp
     animation/KisFrameDisplayProxy.cpp
     input/kis_touch_shortcut.cpp
-    kis_document_undo_store.cpp
     kis_gui_context_command.cpp
     kis_gui_context_command_p.cpp
     input/kis_tablet_debugger.cpp
@@ -643,6 +642,7 @@ target_link_libraries(kritaui
         kritatoolsui
         kritacanvas
     PRIVATE
+        kritadocument
         kritaimpexui
         kritaresourceui
         kritaxmlserialization
