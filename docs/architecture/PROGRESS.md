@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 21:23 JST
+- 更新日時: 2026-08-20 21:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6e-P3文書ファイル保存の集約
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -968,11 +968,36 @@
   成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
   成功した。
 
+## R1-G6e-P3で進行中の作業
+
+- `libs/ui/KisDocument.cpp`の保存先検査、バックアップ、自動保存名、回復ファイル消去を起点に、
+  `libs/document/files/kis_document_save_target.{h,cpp}`、
+  `kis_document_backup_file.{h,cpp}`、`kis_document_autosave_files.{h,cpp}`へ集約した。
+  `libs/document/files`を具体的な文書ファイル処理の所有先とする`kritadocumentfiles`を構築した。
+- `libs/document/ui/recovery/KisAutoSaveRecoveryDialog.{h,cpp}`の回復ファイル読込を起点に、
+  回復候補の探索、更新時刻、プレビュー読込を`kis_document_autosave_files`へ移した。
+  ダイアログは生成済みの回復候補値を表示し、選択結果を返す。
+- `libs/ui/KisApplication.cpp`と`libs/ui/KisView.cpp`は、起動時の回復調整と破棄操作を維持し、
+  自動保存ファイルの探索、パス組立て、使用可否判定、消去を`kritadocumentfiles`へ委ねる。
+- 旧配置の公開メソッド、転送ヘッダー、別名は残していない。既存の形式選択、形式変換、
+  直列化、非同期保存は既存`kritaimpex`と`KisDocument`に維持し、新しい利用事例層、
+  汎用永続化層、接続面、アダプター、サービス、リポジトリーは追加していない。
+- 文書ファイル契約の初回構築は、`files/kis_document_autosave_files.h`が存在しない診断で
+  失敗した。実装後は保存先の存在と書込可否、単純および世代付きバックアップ、自動保存名、
+  回復候補の探索、使用可否、消去を検証する`kis_document_files_test`が成功した。
+  自動保存回復ダイアログ試験と`kritaui`の構築・リンクもmacOSで成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 660件、Linux 675件、iOS 594件、
+  Android 600件、Windows 630件のターゲット、578件の共通ターゲット、119件の条件付き
+  ターゲット、260件の構成差を持つターゲットを記録した。22中核所有ターゲットと
+  全製品ターゲットは全構成で循環0件を維持する。
+- 確認済み逆方向includeは3種類96件、`kritaui`の内部ヘッダー参照は7ヘッダー20件を維持し、
+  新しい逆方向依存と内部ヘッダー参照を追加していない。
+
 ## 次の操作
 
-R1-G6e-P2のPRをレビューして統合する。統合後は`master`を同期し、R1-G6e-P3として
-`libs/ui/KisDocument.cpp`の文書ファイル、バックアップ、自動保存ファイル、回復ファイルの
-具体処理を起点に`libs/document/files`へ集約する。
+実装と台帳を同じコミットへ確定し、DarwinとNixOSの清浄な作業ツリーを揃える。
+macOSとLinuxの全ネイティブ試験、iOSアプリケーション、AndroidとWindowsの`kritaui`、
+5構成のCMake台帳、高速検査、Nix全構成評価を検証した後、R1-G6e-P3のPRを提出する。
 
 ## R1-G5完了根拠
 

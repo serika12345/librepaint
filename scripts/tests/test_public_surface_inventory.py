@@ -83,7 +83,18 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             repository_root=REPO_ROOT,
             source_directory="libs/document",
             export_macro="KRITADOCUMENT_EXPORT",
-            excluded_header_directories=["libs/document/ui"],
+            excluded_header_directories=[
+                "libs/document/files",
+                "libs/document/ui",
+            ],
+        )
+        document_file_headers = (
+            check_public_surface_inventory.discover_public_headers(
+                repository_root=REPO_ROOT,
+                source_directory="libs/document/files",
+                export_macro="KRITADOCUMENTFILES_EXPORT",
+                header_directories=["libs/document/files"],
+            )
         )
         document_ui_headers = check_public_surface_inventory.discover_public_headers(
             repository_root=REPO_ROOT,
@@ -107,6 +118,9 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         document_by_path = {
             entry["path"]: entry for entry in document_headers
         }
+        document_file_by_path = {
+            entry["path"]: entry for entry in document_file_headers
+        }
         document_ui_by_path = {
             entry["path"]: entry for entry in document_ui_headers
         }
@@ -115,6 +129,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
         self.assertEqual(len(canvas_headers), 17)
         self.assertEqual(len(document_headers), 5)
+        self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
         self.assertEqual(len(ui_headers), 246)
         self.assertEqual(len(image_headers), 332)
@@ -122,6 +137,12 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(
             document_by_path[
                 "libs/document/session/kis_document_autosave_state.h"
+            ]["publicationEvidence"],
+            ["export-macro", "external-include"],
+        )
+        self.assertEqual(
+            document_file_by_path[
+                "libs/document/files/kis_document_autosave_files.h"
             ]["publicationEvidence"],
             ["export-macro", "external-include"],
         )
@@ -366,6 +387,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             {
                 "kritacanvas": 17,
                 "kritadocument": 5,
+                "kritadocumentfiles": 3,
                 "kritadocumentui": 6,
                 "kritaimage": 332,
                 "kritaimpex": 12,

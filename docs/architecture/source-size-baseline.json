@@ -60,7 +60,7 @@
     "libs/resources/KisResourceModel.cpp": 1190,
     "libs/resources/KisTagResourceModel.cpp": 1028,
     "libs/ui/KisApplication.cpp": 1440,
-    "libs/ui/KisDocument.cpp": 3026,
+    "libs/ui/KisDocument.cpp": 3022,
     "libs/ui/KisMainWindow.cpp": 3383,
     "libs/ui/KisView.cpp": 1461,
     "libs/ui/KisViewManager.cpp": 1713,

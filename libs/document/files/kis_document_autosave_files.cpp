@@ -5,6 +5,7 @@
 
 #include "kis_document_autosave_files.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -72,6 +73,17 @@ QString KisDocumentAutoSaveFiles::directory()
 }
 
 QString KisDocumentAutoSaveFiles::filePath(const QString &documentPath,
+                                           const QString &documentObjectName,
+                                           bool hidden)
+{
+    return filePath(documentPath,
+                    directory(),
+                    QCoreApplication::applicationPid(),
+                    documentObjectName,
+                    hidden);
+}
+
+QString KisDocumentAutoSaveFiles::filePath(const QString &documentPath,
                                            const QString &recoveryDirectory,
                                            qint64 processId,
                                            const QString &documentObjectName,
@@ -126,6 +138,19 @@ bool KisDocumentAutoSaveFiles::isUsable(const QString &filePath)
 bool KisDocumentAutoSaveFiles::remove(const QString &filePath)
 {
     return !QFileInfo::exists(filePath) || QFile::remove(filePath);
+}
+
+void KisDocumentAutoSaveFiles::removeForDocument(const QString &autoSaveBaseName,
+                                                 bool wasRecovered,
+                                                 const QString &documentObjectName,
+                                                 bool hidden)
+{
+    removeForDocument(autoSaveBaseName,
+                      wasRecovered,
+                      directory(),
+                      QCoreApplication::applicationPid(),
+                      documentObjectName,
+                      hidden);
 }
 
 void KisDocumentAutoSaveFiles::removeForDocument(const QString &autoSaveBaseName,

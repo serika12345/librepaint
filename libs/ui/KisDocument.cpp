@@ -157,8 +157,6 @@ QString autoSaveFilePath(const KisDocument *document, const QString &path)
 {
     return Krita::Document::KisDocumentAutoSaveFiles::filePath(
         path,
-        Krita::Document::KisDocumentAutoSaveFiles::directory(),
-        qApp->applicationPid(),
         document->objectName(),
         KisConfig(true).readEntry<bool>("autosavefileshidden"));
 }
@@ -1042,8 +1040,6 @@ void KisDocument::slotCompleteSavingDocument(const KritaUtils::ExportFileJob &jo
         Krita::Document::KisDocumentAutoSaveFiles::removeForDocument(
             existingAutoSaveBaseName,
             wasRecovered,
-            Krita::Document::KisDocumentAutoSaveFiles::directory(),
-            qApp->applicationPid(),
             objectName(),
             KisConfig(true).readEntry<bool>("autosavefileshidden"));
     }

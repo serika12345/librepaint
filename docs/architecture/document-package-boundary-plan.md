@@ -126,6 +126,8 @@
 
 ### R1-G6e-P3 文書ファイル保存の集約
 
+状態は`in_progress`とする。
+
 `libs/ui/KisDocument.cpp`の文書ファイル、バックアップ、自動保存ファイル、回復ファイルに対する
 具体処理を起点として、`libs/document/files`の`kritadocumentfiles`へ集約する。
 形式選択と形式変換は既存の入出力公開面を直接利用する。

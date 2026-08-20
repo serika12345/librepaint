@@ -30,6 +30,10 @@ public:
     static QString directory();
 
     static QString filePath(const QString &documentPath,
+                            const QString &documentObjectName,
+                            bool hidden);
+
+    static QString filePath(const QString &documentPath,
                             const QString &recoveryDirectory,
                             qint64 processId,
                             const QString &documentObjectName,
@@ -38,6 +42,11 @@ public:
     static QList<KisDocumentAutoSaveFile> recoverableFiles(const QString &recoveryDirectory = QString());
     static bool isUsable(const QString &filePath);
     static bool remove(const QString &filePath);
+
+    static void removeForDocument(const QString &autoSaveBaseName,
+                                  bool wasRecovered,
+                                  const QString &documentObjectName,
+                                  bool hidden);
 
     static void removeForDocument(const QString &autoSaveBaseName,
                                   bool wasRecovered,

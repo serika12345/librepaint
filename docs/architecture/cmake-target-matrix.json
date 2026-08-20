@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 658,
-    "linux": 673,
-    "ios": 592,
-    "android": 598,
-    "windows": 628
+    "macos": 660,
+    "linux": 675,
+    "ios": 594,
+    "android": 600,
+    "windows": 630
   },
   "commonTargets": [
     "CCSGraph",
@@ -231,6 +231,7 @@
     "kis_doc2_test",
     "kis_document_autosave_recovery_dialog_test",
     "kis_document_autosave_state_test",
+    "kis_document_files_test",
     "kis_document_identity_test",
     "kis_document_info_dialog_test",
     "kis_document_io_presentation_test",
@@ -412,6 +413,7 @@
     "kritadeformpaintop",
     "kritadigitalmixer",
     "kritadocument",
+    "kritadocumentfiles",
     "kritadocumentui",
     "kritadodgeburn",
     "kritadummyplugin1",
@@ -1547,6 +1549,7 @@
     "kritadeformpaintop",
     "kritadigitalmixer",
     "kritadocument",
+    "kritadocumentfiles",
     "kritadocumentui",
     "kritadodgeburn",
     "kritadummyplugin1",

@@ -54,7 +54,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "current-production-package-responsibilities",
         )
         self.assertEqual(len(responsibility_map["responsibilities"]), 9)
-        self.assertEqual(len(responsibility_map["targetRelations"]), 21)
+        self.assertEqual(len(responsibility_map["targetRelations"]), 22)
         by_id = {
             entry["id"]: entry
             for entry in responsibility_map["responsibilities"]
@@ -131,9 +131,14 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             target_by_name["kritadocument"]["repositoryDependencies"], []
         )
         self.assertEqual(
+            target_by_name["kritadocumentfiles"]["repositoryDependencies"],
+            ["kritaglobal", "kritaresourcestorage"],
+        )
+        self.assertEqual(
             target_by_name["kritadocumentui"]["repositoryDependencies"],
             [
                 "kritadocument",
+                "kritadocumentfiles",
                 "kritaimpex",
                 "kritapaintingundo",
                 "kritaplugin",
