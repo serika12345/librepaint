@@ -1,5 +1,5 @@
 /*
- *  SPDX-FileCopyrightText: 2020 Agata Cacko <cacko.azh@gmail.com>>
+ *  SPDX-FileCopyrightText: 2020 Agata Cacko <cacko.azh@gmail.com>
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
@@ -7,21 +7,15 @@
 #include "KisRecoverNamedAutosaveDialog.h"
 #include "ui_KisRecoverNamedAutosaveDialog.h"
 
-#include <QThread>
+#include <KLocalizedString>
 
-#include "kis_debug.h"
-#include "kis_image.h"
-#include "kis_composite_progress_proxy.h"
-
-#include <KisFileIconCreator.h>
-
-
-KisRecoverNamedAutosaveDialog::KisRecoverNamedAutosaveDialog(QWidget *parent, QString mainFile, QString autosaveFile)
+KisRecoverNamedAutosaveDialog::KisRecoverNamedAutosaveDialog(QWidget *parent)
     : QDialog(parent),
       ui(new Ui::KisRecoverNamedAutosaveDialog)
 {
 
     ui->setupUi(this);
+    m_filePreviewIconSize = ui->rbOpenAutosave->iconSize() * 4;
 
     connect(ui->btOk, SIGNAL(clicked()), this, SLOT(slotOkRequested()));
     connect(ui->btCancel, SIGNAL(clicked()), this, SLOT(slotCancelRequested()));
@@ -30,29 +24,29 @@ KisRecoverNamedAutosaveDialog::KisRecoverNamedAutosaveDialog(QWidget *parent, QS
                                       "An autosave for this file exists. How do you want to proceed?\n"
                                       "Warning: if you discard the autosave now, it will be removed."));
 
-    KisFileIconCreator creator;
-    QIcon mainFileIcon, autosaveFileIcon;
-
-    QSize size = ui->rbOpenAutosave->iconSize();
-    size = size*4;
-    bool success = creator.createFileIcon(mainFile, mainFileIcon, devicePixelRatioF(), size);
-    if (success) {
-        ui->rbDiscardAutosave->setIcon(mainFileIcon);
-        ui->rbDiscardAutosave->setIconSize(size);
-    }
-    success = creator.createFileIcon(autosaveFile, autosaveFileIcon, devicePixelRatioF(), size);
-    if (success) {
-        ui->rbOpenAutosave->setIcon(autosaveFileIcon);
-        ui->rbOpenAutosave->setIconSize(size);
-    }
-
     ui->rbOpenAutosave->setChecked(true); // it should be selected by default
-
 }
 
 KisRecoverNamedAutosaveDialog::~KisRecoverNamedAutosaveDialog()
 {
     delete ui;
+}
+
+QSize KisRecoverNamedAutosaveDialog::filePreviewIconSize() const
+{
+    return m_filePreviewIconSize;
+}
+
+void KisRecoverNamedAutosaveDialog::setMainFileIcon(const QIcon &icon)
+{
+    ui->rbDiscardAutosave->setIcon(icon);
+    ui->rbDiscardAutosave->setIconSize(filePreviewIconSize());
+}
+
+void KisRecoverNamedAutosaveDialog::setAutosaveFileIcon(const QIcon &icon)
+{
+    ui->rbOpenAutosave->setIcon(icon);
+    ui->rbOpenAutosave->setIconSize(filePreviewIconSize());
 }
 
 void KisRecoverNamedAutosaveDialog::slotOkRequested()
@@ -66,4 +60,3 @@ void KisRecoverNamedAutosaveDialog::slotCancelRequested()
     close();
     setResult(Cancel);
 }
-

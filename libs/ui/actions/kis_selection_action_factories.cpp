@@ -22,7 +22,7 @@
 #include <KoSelection.h>
 #include <KoDocumentResourceManager.h>
 #include <KoShapeStroke.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoCanvasBase.h>
 
 #include "KisViewManager.h"

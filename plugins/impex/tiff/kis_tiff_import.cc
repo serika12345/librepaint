@@ -26,7 +26,7 @@
 #include <KisImportExportAdditionalChecks.h>
 #include <KisViewManager.h>
 #include <KoColorProfile.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoUnit.h>
 #include <KisExiv2IODevice.h>
 #include <kis_group_layer.h>

@@ -23,7 +23,7 @@
 #include <KisImportExportManager.h>
 #include <kis_slider_spin_box.h>
 #include <KisDocument.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <kis_image.h>
 #include <kis_group_layer.h>
 #include <kis_paint_layer.h>

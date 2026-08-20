@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 16:45 JST
+- 更新日時: 2026-08-20 19:37 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e-P1独立した文書UIの一括移設
+- 現在の検査段階: R1-G6e-P2文書表示の集約
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-p1-document-undo-ui-boundary`
-- 目的: 独立ファイルとして移設できる取り消し履歴UIと自動保存回復UIを一つのPRにまとめ、
-  文書状態の公開依存から分離して具体的な文書UI所有へ集約する。
+- ブランチ: `r1-g6e-p2-document-presentation`
+- 目的: `KisDocument`内の保存・読込表示とQt通知、文書情報編集、名前付き自動保存回復表示を
+  具体的な文書UI所有へ集約し、直列化される文書情報を入出力所有へ移して依存を一方向にする。
 
 ## 再開環境
 
@@ -927,12 +927,52 @@
   台帳と差分行列の一致を確認し、21中核所有ターゲットと全製品ターゲットは循環0件を
   維持した。
 
+## R1-G6e-P2で完了した作業
+
+- `libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知の接続を起点として、
+  `libs/document/ui/io/kis_document_io_presentation.{h,cpp}`へ移した。保存成功時の
+  `completed`、`sigSavingFinished`、状態表示の順序、取消し時の非表示、バッチ失敗時の
+  状態表示、自動保存の状態表示を専用契約へ固定した。
+- `libs/ui/KoDocumentInfoDlg.{h,cpp}`と`libs/ui/forms/koDocumentInfo{About,Author}Widget.ui`を
+  `libs/document/ui/info`へ移した。ダイアログは`KisDocument`の親型から値を推測せず、
+  表示するパスとMIME形式を値として受け取る。
+- `libs/ui/dialogs/KisRecoverNamedAutosaveDialog.{h,cpp,ui}`を
+  `libs/document/ui/recovery`へ移した。ファイルからのプレビュー生成は既存の
+  `KisFileIconCreator`利用元に維持し、ダイアログは生成済み`QIcon`値の表示だけを所有する。
+- `libs/ui/KoDocumentInfo.{h,cpp}`を`libs/impex/metadata`へ移した。文書情報は形式処理が
+  直接直列化する実依存に従って`kritaimpex`が所有し、`kritaimpexui`から文書寿命への
+  新しい逆方向依存を回避した。自動保存中と変更済み状態は呼出元が明示する。
+- 旧配置、転送ヘッダー、別名は残していない。既存の入出力エラー型、文書状態、`QIcon`値を
+  直接使用し、利用事例層、汎用永続化層、接続面、アダプター、共通基底クラスは追加していない。
+- 文書情報試験の初回構築は新しい所有先のヘッダーが存在しない診断で失敗した。
+  名前付き自動保存回復試験も同じく新しい回復ヘッダーが存在しない診断で失敗した。
+  実装後は文書情報、文書情報編集、入出力表示、名前付き自動保存回復の4試験がmacOSで成功し、
+  `kritaimpex`、`kritadocumentui`、`kritaui`の構築とリンクが成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 658件、Linux 673件、iOS 592件、
+  Android 598件、Windows 628件のターゲット、576件の共通ターゲット、119件の条件付き
+  ターゲット、259件の構成差を持つターゲットを記録した。21中核所有ターゲットと
+  全製品ターゲットは全構成で循環0件を維持する。
+- 確認済み逆方向includeは3種類96件、`kritaui`の内部ヘッダー参照は7ヘッダー20件を維持し、
+  新しい逆方向依存と内部ヘッダー参照を追加していない。
+- 同一コミット`8145698206b2185e2b4502985d8dab32e8e56e47`の清浄な作業ツリーで
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 339件と
+  x86_64 Linux 341件の全ネイティブ試験が成功した。追加した4試験も両構成で成功した。
+- `nix develop .#test --command ./scripts/build-incremental ios build --allow-large`で
+  `LibrePaint.app/LibrePaint`まで構築した。Android arm64-v8aとWindows x86_64では
+  `./scripts/build-incremental <platform> build kritaui`を実行し、
+  `libkritaui_arm64-v8a.so`と`libkritaui.dll`のリンクに成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`は、清浄な同一コミットから5構成の台帳と差分行列を
+  検証し、21中核所有ターゲットと全製品ターゲットの循環0件を確認した。
+- `nix develop .#test --command ./scripts/verify-quick`はmacOSとLinuxで97件と全統治検査に
+  成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
+  成功した。
+
 ## 次の操作
 
-R1-G6e-P1独立した文書UIの一括移設をレビューして統合する。統合後はmasterを同期し、
-R1-G6e-P2として`libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知の接続と
-`libs/ui/KoDocumentInfoDlg.{h,cpp}`を起点に、文書表示の既存挙動と実依存を調査する。
-最小の特性契約で初期診断を確認してから`libs/document/ui`へ集約する。
+R1-G6e-P2のPRをレビューして統合する。統合後は`master`を同期し、R1-G6e-P3として
+`libs/ui/KisDocument.cpp`の文書ファイル、バックアップ、自動保存ファイル、回復ファイルの
+具体処理を起点に`libs/document/files`へ集約する。
 
 ## R1-G5完了根拠
 

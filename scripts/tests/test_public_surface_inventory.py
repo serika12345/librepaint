@@ -115,8 +115,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
         self.assertEqual(len(canvas_headers), 17)
         self.assertEqual(len(document_headers), 5)
-        self.assertEqual(len(document_ui_headers), 3)
-        self.assertEqual(len(ui_headers), 248)
+        self.assertEqual(len(document_ui_headers), 6)
+        self.assertEqual(len(ui_headers), 246)
         self.assertEqual(len(image_headers), 332)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(
@@ -207,7 +207,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 84)
+        self.assertEqual(len(classes), 82)
         self.assertEqual(
             by_name["KisApplication"],
             {
@@ -309,7 +309,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
-        self.assertEqual(len(inventory["classes"]), 84)
+        self.assertEqual(len(inventory["classes"]), 82)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisApplication"]["responsibilityArea"],
@@ -366,11 +366,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             {
                 "kritacanvas": 17,
                 "kritadocument": 5,
-                "kritadocumentui": 3,
+                "kritadocumentui": 6,
                 "kritaimage": 332,
-                "kritaimpex": 11,
+                "kritaimpex": 12,
                 "kritaimpexui": 23,
-                "kritaui": 248,
+                "kritaui": 246,
             },
         )
         self.assertEqual(

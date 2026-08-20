@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 654,
-    "linux": 669,
-    "ios": 588,
-    "android": 594,
-    "windows": 624
+    "macos": 658,
+    "linux": 673,
+    "ios": 592,
+    "android": 598,
+    "windows": 628
   },
   "commonTargets": [
     "CCSGraph",
@@ -232,7 +232,11 @@
     "kis_document_autosave_recovery_dialog_test",
     "kis_document_autosave_state_test",
     "kis_document_identity_test",
+    "kis_document_info_dialog_test",
+    "kis_document_io_presentation_test",
+    "kis_document_metadata_test",
     "kis_document_modification_state_test",
+    "kis_document_named_autosave_dialog_test",
     "kis_document_recovery_autosave_state_test",
     "kis_document_recovery_status_test",
     "kis_document_undo_store_test",
@@ -1501,6 +1505,7 @@
     "TestToolSettingsUiContract",
     "TestXmlWriter",
     "dummytrivialinterface",
+    "kis_document_metadata_test",
     "krita",
     "krita_colorspaces_extensions",
     "krita_flaketools",

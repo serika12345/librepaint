@@ -60,7 +60,7 @@
 #include <KoViewConverter.h>
 #include <KoZoomHandler.h>
 #include <KoPluginLoader.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoColorSpaceRegistry.h>
 #include <KisResourceLocator.h>
 
@@ -1589,7 +1589,7 @@ void KisViewManager::changeAuthorProfile(const QString &profileName)
     }
     appAuthorGroup.sync();
     Q_FOREACH (KisDocument *doc, KisPart::instance()->documents()) {
-        doc->documentInfo()->updateParameters();
+        doc->documentInfo()->updateParameters(doc->isModified());
     }
 }
 

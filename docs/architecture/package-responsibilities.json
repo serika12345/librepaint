@@ -326,14 +326,15 @@
         "libs/document/session/kis_document_modification_state.h",
         "libs/document/session/kis_document_recovery_autosave_state.h",
         "libs/document/session/kis_document_recovery_status.h",
+        "libs/document/ui/info/KoDocumentInfoDlg.h",
+        "libs/document/ui/io/kis_document_io_presentation.h",
         "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+        "libs/document/ui/recovery/KisRecoverNamedAutosaveDialog.h",
         "libs/document/ui/undo/kis_document_undo_store.h",
         "libs/document/ui/undo/kundo2view.h",
         "libs/ui/KisDocument.h",
         "libs/ui/KisSelectionActionsAdapter.h",
         "libs/ui/KisTextPropertiesManager.h",
-        "libs/ui/KoDocumentInfo.h",
-        "libs/ui/KoDocumentInfoDlg.h",
         "libs/ui/StoryboardItem.h",
         "libs/ui/kis_file_layer.h",
         "libs/ui/kis_filter_manager.h",
@@ -372,8 +373,6 @@
         "KisSelectionActionsPanel",
         "KisSelectionManager",
         "KisTextPropertiesManager",
-        "KoDocumentInfo",
-        "KoDocumentInfoDlg",
         "MultinodePropertyBaseConnector",
         "MultinodePropertyConnectorInterface",
         "StoryboardItem"
@@ -434,6 +433,7 @@
         "libs/impex/animation/KisMediaEncoderWrapper.h",
         "libs/impex/animation/KisVideoSaver.h",
         "libs/impex/kis_store_paintdevice_writer.h",
+        "libs/impex/metadata/KoDocumentInfo.h",
         "libs/impex/ui/KisImportExportColorSpaceDialog.h",
         "libs/impex/ui/KisImportExportManager.h",
         "libs/impex/ui/KisImportExportResizeWidget.h",
@@ -1614,6 +1614,7 @@
       ],
       "repositoryDependencies": [],
       "repositoryConsumers": [
+        "kritadocumentui",
         "kritaui"
       ]
     },
@@ -1632,7 +1633,10 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
+        "kritadocument",
+        "kritaimpex",
         "kritapaintingundo",
+        "kritaplugin",
         "kritaresourcestorage",
         "kritawidgets",
         "kritawidgetutils"
@@ -1737,12 +1741,14 @@
       "repositoryDependencies": [
         "kritaimage",
         "kritaplugin",
+        "kritaresources",
         "kritaresourcestorage",
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
         "kritabrushexport",
         "kritacsvexport",
+        "kritadocumentui",
         "kritaexrexport",
         "kritagifexport",
         "kritaheifexport",
@@ -1970,6 +1976,7 @@
         "kritaglobal"
       ],
       "repositoryConsumers": [
+        "kritadocumentui",
         "kritaimpex",
         "kritapaintingmetadata",
         "kritapigment",
@@ -2002,6 +2009,7 @@
       "repositoryConsumers": [
         "kritadbexplorer",
         "kritaimage",
+        "kritaimpex",
         "kritaimpexui",
         "kritamypaintop_static",
         "kritapigment",

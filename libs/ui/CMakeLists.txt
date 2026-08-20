@@ -64,7 +64,6 @@ set(kritaui_LIB_SRCS
     dialogs/KisSessionManagerDialog.cpp
     dialogs/KisNewWindowLayoutDialog.cpp
     dialogs/KisDlgChangeCloneSource.cpp
-    dialogs/KisRecoverNamedAutosaveDialog.cpp
     dialogs/KisDlgSavePreset.cpp
     dialogs/kis_dlg_hlg_import.cpp
     dialogs/KisDlgConfigureCumulativeUndo.cpp
@@ -417,9 +416,6 @@ set(kritaui_LIB_SRCS
 
     KisDecorationsWrapperLayer.cpp
 
-    KoDocumentInfoDlg.cpp
-    KoDocumentInfo.cpp
-
     StoryboardItem.cpp
 
     KisNodeActivationActionCreatorVisitor.cpp
@@ -537,8 +533,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     forms/WdgDlgPaletteEditor.ui
     forms/wdgGamutMaskToolbar.ui
     forms/wdgchangeclonesource.ui
-    forms/koDocumentInfoAboutWidget.ui
-    forms/koDocumentInfoAuthorWidget.ui
     forms/WdgPopupPaletteSettings.ui
     forms/wdgconvertcolorspace.ui
 
@@ -546,7 +540,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     widgets/KisDlgListPicker.ui
     dialogs/kis_delayed_save_dialog.ui
     dialogs/kis_dlg_hlg_import.ui
-    dialogs/KisRecoverNamedAutosaveDialog.ui
     input/config/kis_input_configuration_page.ui
     input/config/kis_edit_profiles_dialog.ui
     input/config/kis_input_configuration_page_item.ui
@@ -640,8 +633,8 @@ target_link_libraries(kritaui
         kritaresourcestorage
         kritatoolsui
         kritacanvas
-    PRIVATE
         kritadocument
+    PRIVATE
         kritadocumentui
         kritaimpexui
         kritaresourceui

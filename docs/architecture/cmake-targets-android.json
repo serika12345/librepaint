@@ -955,6 +955,7 @@
       "sourceDirectory": "libs/impex/tests",
       "dependencies": [
         "Qt5::Test",
+        "Qt5::Xml",
         "kritaimpex"
       ]
     },
@@ -2247,7 +2248,9 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/ui/tests",
       "dependencies": [
+        "kritadocument",
         "kritadocumentui",
+        "kritaimpex",
         "kritatestsdk"
       ]
     },
@@ -2270,11 +2273,54 @@
       ]
     },
     {
+      "name": "kis_document_info_dialog_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/ui/tests",
+      "dependencies": [
+        "kritadocument",
+        "kritadocumentui",
+        "kritaimpex",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_document_io_presentation_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/ui/tests",
+      "dependencies": [
+        "kritadocument",
+        "kritadocumentui",
+        "kritaimpex",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_document_metadata_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/impex/tests",
+      "dependencies": [
+        "Qt5::Test",
+        "Qt5::Xml",
+        "kritaimpex"
+      ]
+    },
+    {
       "name": "kis_document_modification_state_test",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
         "kritadocument",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_document_named_autosave_dialog_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/ui/tests",
+      "dependencies": [
+        "kritadocument",
+        "kritadocumentui",
+        "kritaimpex",
         "kritatestsdk"
       ]
     },
@@ -2301,7 +2347,9 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/ui/tests",
       "dependencies": [
+        "kritadocument",
         "kritadocumentui",
+        "kritaimpex",
         "kritatestsdk"
       ]
     },
@@ -2310,7 +2358,9 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/ui/tests",
       "dependencies": [
+        "kritadocument",
         "kritadocumentui",
+        "kritaimpex",
         "kritatestsdk"
       ]
     },
@@ -4019,7 +4069,10 @@
         "KF5::I18n",
         "KF5::ItemViews",
         "Qt5::Widgets",
+        "kritadocument",
+        "kritaimpex",
         "kritapaintingundo",
+        "kritaplugin",
         "kritaresourcestorage",
         "kritawidgets",
         "kritawidgetutils"
@@ -4387,10 +4440,13 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/impex",
       "dependencies": [
+        "KF5::ConfigCore",
         "KF5::CoreAddons",
         "KF5::I18n",
+        "Qt5::Xml",
         "kritaimage",
         "kritaplugin",
+        "kritaresources",
         "kritaresourcestorage",
         "kritawidgetutils"
       ]

@@ -19,7 +19,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpaceEngine.h>
 #include <KoColorProfile.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoFileDialog.h>
 #include <KisImportExportManager.h>
 #include <KoStoreDevice.h>

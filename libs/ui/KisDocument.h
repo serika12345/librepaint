@@ -776,8 +776,6 @@ private:
 
     void copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy);
 
-    QString exportErrorToUserMessage(KisImportExportErrorCode status, const QString &errorMessage);
-
     QString prettyPath() const;
 
     bool openPathInternal(const QString &path);

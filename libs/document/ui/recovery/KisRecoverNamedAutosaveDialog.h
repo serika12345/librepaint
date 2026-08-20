@@ -8,7 +8,10 @@
 #define KIS_RECOVER_NAMED_AUTOSAVE_DIALOG_H
 
 #include <QDialog>
-#include "kis_types.h"
+#include <QIcon>
+#include <QSize>
+
+#include "kritadocumentui_export.h"
 
 namespace Ui {
 class KisRecoverNamedAutosaveDialog;
@@ -21,7 +24,7 @@ class KisRecoverNamedAutosaveDialog;
  * unexpected happens that makes it impossible to close Krita correctly, often there is an autosave left behind
  * in the directory of the file. This dialog allows choosing whether to open the autosaved file or the original file.
  */
-class KisRecoverNamedAutosaveDialog : public QDialog
+class KRITADOCUMENTUI_EXPORT KisRecoverNamedAutosaveDialog : public QDialog
 {
     Q_OBJECT
 
@@ -43,14 +46,16 @@ public:
     /**
      * @brief KisRecoverNamedAutosaveDialog basic constructor
      * @param parent parent widget
-     * @param mainFile path to the main file (used to create a thumbnail)
-     * @param autosaveFile path to the autosaved file (used to create a thumbnail)
      */
-    explicit KisRecoverNamedAutosaveDialog(QWidget *parent = 0, QString mainFile = "", QString autosaveFile = "");
+    explicit KisRecoverNamedAutosaveDialog(QWidget *parent = nullptr);
     /**
      * @brief ~KisRecoverNamedAutosaveDialog basic destructor
      */
     ~KisRecoverNamedAutosaveDialog() override;
+
+    QSize filePreviewIconSize() const;
+    void setMainFileIcon(const QIcon &icon);
+    void setAutosaveFileIcon(const QIcon &icon);
 
 private Q_SLOTS:
     /**
@@ -73,7 +78,7 @@ private Q_SLOTS:
 
 private:
     Ui::KisRecoverNamedAutosaveDialog *ui;
-
+    QSize m_filePreviewIconSize;
 };
 
 #endif // KIS_RECOVER_NAMED_AUTOSAVE_DIALOG_H

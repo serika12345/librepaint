@@ -30,7 +30,7 @@
 #include <QUrl>
 
 #include <KoColorSpace.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoID.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>

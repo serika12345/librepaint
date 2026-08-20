@@ -19,7 +19,7 @@
 #include <QUrl>
 #include <QBuffer>
 
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColorProfile.h>

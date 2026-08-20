@@ -148,12 +148,12 @@
           "value": "kritadisplayrc"
         },
         {
-          "source": "libs/ui/KisApplication.cpp",
-          "value": "/kritarc"
+          "source": "libs/impex/metadata/KoDocumentInfo.cpp",
+          "value": "kritarc"
         },
         {
-          "source": "libs/ui/KoDocumentInfo.cpp",
-          "value": "kritarc"
+          "source": "libs/ui/KisApplication.cpp",
+          "value": "/kritarc"
         },
         {
           "source": "libs/ui/dialogs/KisDlgCustomTabletResolution.cpp",

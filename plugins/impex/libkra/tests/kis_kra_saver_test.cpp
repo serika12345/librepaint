@@ -10,7 +10,7 @@
 
 
 #include <KisDocument.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoShapeContainer.h>
 #include <KoPathShape.h>
 

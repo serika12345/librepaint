@@ -753,24 +753,6 @@
       "responsibilityArea": "canvas-display"
     },
     {
-      "name": "KoDocumentInfo",
-      "declarationKind": "class",
-      "header": "libs/ui/KoDocumentInfo.h",
-      "implementationPaths": [
-        "libs/ui/KoDocumentInfo.cpp"
-      ],
-      "responsibilityArea": "document-state"
-    },
-    {
-      "name": "KoDocumentInfoDlg",
-      "declarationKind": "class",
-      "header": "libs/ui/KoDocumentInfoDlg.h",
-      "implementationPaths": [
-        "libs/ui/KoDocumentInfoDlg.cpp"
-      ],
-      "responsibilityArea": "document-state"
-    },
-    {
       "name": "MultinodePropertyBaseConnector",
       "declarationKind": "class",
       "header": "libs/ui/kis_multinode_property.h",

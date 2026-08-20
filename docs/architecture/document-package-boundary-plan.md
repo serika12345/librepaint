@@ -40,9 +40,10 @@
 
 | 所有先 | CMakeターゲット | 現在確認できる関心 | 依存方向 |
 | --- | --- | --- | --- |
-| `libs/document/session`、`libs/document/metadata` | `kritadocument` | 文書識別、変更状態、自動保存状態、回復状態、文書情報 | Qt Coreと下位の公開面だけを利用する |
+| `libs/document/session` | `kritadocument` | 文書識別、変更状態、自動保存状態、回復状態 | Qt Coreだけを利用する |
+| `libs/impex/metadata` | `kritaimpex` | 形式処理と文書表示が共有する直列化対象の文書情報 | 描画、プラグイン、リソースの公開面を利用する |
 | `libs/document/files` | `kritadocumentfiles` | 文書ファイル、バックアップ、自動保存ファイル、回復ファイルの具体処理 | `kritadocument`、`kritaimpex`、描画、リソースの公開面を利用する |
-| `libs/document/ui` | `kritadocumentui` | 履歴接続と表示、文書情報編集、保存・読込のダイアログ、状態表示、Qt通知 | `kritadocumentfiles`と`kritadocument`を利用する |
+| `libs/document/ui` | `kritadocumentui` | 履歴接続と表示、文書情報編集、保存・読込のダイアログ、状態表示、Qt通知 | `kritadocumentfiles`、`kritadocument`、`kritaimpex`を利用する |
 
 `kritadocument`は`kritadocumentfiles`と`kritadocumentui`へ依存しない。
 `kritadocumentfiles`は`kritadocumentui`と`kritaui`へ依存しない。
@@ -103,9 +104,22 @@
 
 ### R1-G6e-P2 文書表示の集約
 
-`libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知の接続と、
-`libs/ui/KoDocumentInfoDlg.{h,cpp}`を`libs/document/ui`へ移す。表示が必要とする結果値には
-既存の入出力エラー型と文書状態を直接使用する。
+状態は`completed`とする。
+
+`libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知の接続を
+`libs/document/ui/io/kis_document_io_presentation.{h,cpp}`へ移した。
+`libs/ui/KoDocumentInfoDlg.{h,cpp}`と対応する2個のUIフォームは`libs/document/ui/info`へ、
+`libs/ui/dialogs/KisRecoverNamedAutosaveDialog.{h,cpp,ui}`は`libs/document/ui/recovery`へ移した。
+回復候補の画像生成はファイルを扱う`KisDocument`側に維持し、表示側は生成済みの`QIcon`値を
+受け取る。
+
+`libs/ui/KoDocumentInfo.{h,cpp}`は、形式処理が直接読み書きする直列化対象であることを
+実依存から確認し、`libs/impex/metadata`の`kritaimpex`へ移した。これにより
+`kritaimpexui`から上位の文書寿命への新しい逆方向依存を作らず、`kritadocument`はQt Coreだけの
+公開リンク閉包を維持する。自動保存中か、文書が変更済みかという状態は親`QObject`から推測せず、
+既存の呼出元が値として明示する。
+
+表示が必要とする結果値には既存の入出力エラー型と文書状態を直接使用する。
 
 表示コードを移すためだけの利用事例層やエラー変換階層は作らない。保存成功、警告を伴う成功、
 失敗、取消し、バッチ処理時の非表示、Qt通知順序を既存契約として維持する。
@@ -122,7 +136,7 @@
 
 ### R1-G6e-P4 境界評価
 
-P1からP3の完了後、`KisDocument`に残るメソッドと24クラスを実依存で再分類する。
+P1からP3の完了後、`KisDocument`に残るメソッドと22クラスを実依存で再分類する。
 文書状態、文書表示、文書ファイル保存へ帰属するものは対応する具体所有へ移し、ノード操作、
 選択操作、表示モデルはR1-G6fまたはUI表示所有へ割り当てる。
 
@@ -146,7 +160,7 @@ P1からP3の完了後、`KisDocument`に残るメソッドと24クラスを実�
 
 各実装検査段階は、対象の特性試験で初期診断を確認してから最小の移動を行う。
 対象CTest、`verify-quick`、macOSとLinuxの全ネイティブ試験を実行する。CMake境界を変更する
-P1とP3ではmacOS、Linux、iOS、Android、Windowsの対象ターゲットを構築し、5構成の
+P1からP3ではmacOS、Linux、iOS、Android、Windowsの対象ターゲットを構築し、5構成の
 CMake台帳、依存行列、循環、公開面を同一コミットから再生成する。
 
 ## 保守

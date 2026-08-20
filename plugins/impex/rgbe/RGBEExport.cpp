@@ -25,7 +25,7 @@
 #include <KoColorSpace.h>
 #include <KoColorTransferFunctions.h>
 #include <KoConfig.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <kis_assert.h>
 #include <kis_debug.h>
 #include <kis_iterator_ng.h>
