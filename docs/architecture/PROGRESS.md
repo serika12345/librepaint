@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 18:28 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-20 19:37 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6e-P2文書表示の集約
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6e-p2-document-presentation`
@@ -954,13 +954,25 @@
   全製品ターゲットは全構成で循環0件を維持する。
 - 確認済み逆方向includeは3種類96件、`kritaui`の内部ヘッダー参照は7ヘッダー20件を維持し、
   新しい逆方向依存と内部ヘッダー参照を追加していない。
+- 同一コミット`8145698206b2185e2b4502985d8dab32e8e56e47`の清浄な作業ツリーで
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 339件と
+  x86_64 Linux 341件の全ネイティブ試験が成功した。追加した4試験も両構成で成功した。
+- `nix develop .#test --command ./scripts/build-incremental ios build --allow-large`で
+  `LibrePaint.app/LibrePaint`まで構築した。Android arm64-v8aとWindows x86_64では
+  `./scripts/build-incremental <platform> build kritaui`を実行し、
+  `libkritaui_arm64-v8a.so`と`libkritaui.dll`のリンクに成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`は、清浄な同一コミットから5構成の台帳と差分行列を
+  検証し、21中核所有ターゲットと全製品ターゲットの循環0件を確認した。
+- `nix develop .#test --command ./scripts/verify-quick`はmacOSとLinuxで97件と全統治検査に
+  成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
+  成功した。
 
 ## 次の操作
 
-R1-G6e-P2についてmacOSとLinuxの全ネイティブ試験、iOSのLibrePaint本体、AndroidとWindowsの
-`kritaui`、5構成の清浄同一コミット検査、Nix全出力評価を完了する。完了後はPRをレビューして
-統合する。次の実装単位はR1-G6e-P3で、`libs/ui/KisDocument.cpp`の文書ファイル、バックアップ、
-自動保存ファイル、回復ファイルの具体処理を起点に`libs/document/files`へ集約する。
+R1-G6e-P2のPRをレビューして統合する。統合後は`master`を同期し、R1-G6e-P3として
+`libs/ui/KisDocument.cpp`の文書ファイル、バックアップ、自動保存ファイル、回復ファイルの
+具体処理を起点に`libs/document/files`へ集約する。
 
 ## R1-G5完了根拠
 
