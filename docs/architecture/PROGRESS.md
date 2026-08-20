@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 16:19 JST
+- 更新日時: 2026-08-20 16:45 JST
 - 状態: `completed`
 - 現在の検査段階: R1-G6e-P1独立した文書UIの一括移設
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -912,6 +912,20 @@
 - 5構成のCMake台帳と差分行列を再生成した。macOS 654件、Linux 669件、iOS 588件、
   Android 594件、Windows 624件のターゲット、572件の共通ターゲット、119件の条件付き
   ターゲット、258件の構成差を持つターゲットを記録した。
+- 同一コミット`e0f24b17fc54ba482e7ed7b46bd614a87700b702`で
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 335件と
+  x86_64 Linux 337件の全ネイティブ試験が成功した。
+- `./scripts/build-incremental ios build --allow-large`でiOSの`libkritadocumentui.a`、
+  `libkritaui.a`、`LibrePaint.app/LibrePaint`まで構築成功した。
+  Android arm64-v8aとWindows x86_64では`./scripts/build-incremental <platform> build
+  kritaui`を実行し、それぞれ`libkritadocumentui_arm64-v8a.so`と
+  `libkritaui_arm64-v8a.so`、`libkritadocumentui.dll`と`libkritaui.dll`の構築に成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 自動保存回復UIの移設後も
+  全Nix出力の評価が成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: DarwinとNixOSの清浄な同一コミットから5構成の
+  台帳と差分行列の一致を確認し、21中核所有ターゲットと全製品ターゲットは循環0件を
+  維持した。
 
 ## 次の操作
 
