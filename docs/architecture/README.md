@@ -126,7 +126,7 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | --- | --- | --- |
 | `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
 | `canvas-presentation` | `kritabasicflakes`、`kritacanvas`、`kritaflake`、`kritaui` | 座標変換、キャンバス表示、ベクター表示、ドッカー |
-| `document-lifecycle` | `kritacommand`、`kritadocument`、`kritaui` | 文書寿命、変更状態、取り消し履歴、文書調整 |
+| `document-lifecycle` | `kritadocument`、`kritadocumentui`、`kritaui` | 文書寿命、変更状態、取り消し履歴、文書調整 |
 | `import-export` | `kritaimpex`、`kritaimpexui` | 形式選択、検証、文書入出力、利用者への結果通知 |
 | `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
 | `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
@@ -323,16 +323,20 @@ UI設定反映契約が同じ結果と通知回数を検査する。旧値型フ
 `libs/ui/KisWidgetWithIdleTask.h`は表示部品として`libs/ui/canvas`へ移し、別ターゲットの
 ドッカーが利用する公開ヘッダーを構築契約で固定した。
 
-R1-G6eの最初の独立単位は、`libs/ui/kis_document_undo_store.*`を起点とする文書の
-取り消し接続である。文書全体への参照を取り消し履歴の直接借用へ狭め、履歴操作と
-変更通知だけを`libs/document/undo`の`kritadocument`へ移した。`KisDocument`は履歴を
-接続より先に構築し、借用先を明示して接続を生成する。文書側はUIライブラリーを参照せず、
-LibrePaint内では`kritapaintingundo`だけを下位ライブラリーとして利用する。履歴の現在位置、
-追加、取消し、マクロ、やり直し破棄、同一スレッド上の同期通知、接続が履歴を所有しないことを
-専用契約で固定した。旧ファイルと転送ヘッダーは存在せず、利用元は新しい所有先を直接参照する。
-既存の取り消し履歴は操作履歴とQt Widgetsのアクション生成を同じライブラリーで提供する。
-この単位はLibrePaint内の`kritaui`依存を除去した。Qt Widgets依存の分離は文書ドメインを
-Qt Widgetsなしで利用できるというR1-G6e全体の完了条件に照らして後続単位で判定する。
+R1-G6eの最初の独立単位は、`libs/ui/kis_document_undo_store.*`を起点として文書全体への
+参照を取り消し履歴の直接借用へ狭めた。R1-G6e-P1では、その接続を
+`libs/document/undo/kis_document_undo_store.*`から
+`libs/document/ui/undo/kis_document_undo_store.*`へ移し、履歴表示も
+`libs/command/{kundo2model,kundo2view}.*`から同じ所有先へ集約した。
+`kritadocumentui`が文書と履歴の接続、Qt Widgets用操作、履歴表示を所有し、`kritaui`が
+直接利用する。汎用状態だけを持つ`kritadocument`は`kritapaintingundo`への依存を除去し、
+Qt Coreだけで公開リンク閉包を構成する。履歴の現在位置、追加、取消し、マクロ、やり直し破棄、
+同一スレッド上の同期通知、非所有の借用寿命に加え、操作名、有効状態、履歴行、選択による
+履歴移動を専用契約で固定した。旧`kritacommand`、旧配置、転送ヘッダー、別名は存在しない。
+同じ一括移設で`libs/ui/KisAutoSaveRecoveryDialog.*`を
+`libs/document/ui/recovery/KisAutoSaveRecoveryDialog.*`へ移し、回復候補の初期選択と一括破棄を
+文書UI契約として固定した。`KisDocument`状態へ直接依存してAPI再構築を要する文書情報編集と
+保存処理は、機械的なファイル移動とは区別して後続の構造変更で扱う。
 
 R1-G6eの第2の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた文書パス、
 入出力実装へ渡す実ファイルパス、現在のMIME形式、自動判定由来を起点とする。
@@ -388,8 +392,19 @@ R1-G6e開始時の`document-state`分類は25クラスであり、最初の分�
 `KisDocument`内の埋込み状態を移すため、分類件数は24を維持する。
 残る分類は文書寿命だけでなくノード操作、選択操作、表示モデルを含む。
 後続単位では各クラスの実依存から文書状態、文書表示、別機能の操作接続を
-判定し、文書寿命を所有するものだけを文書ターゲットへ移す。利用事例の登録構造と
-ドメイン計算からI/Oを分ける専用移行は、この再配置とは別の保守責任者判断を開始条件とする。
+判定し、文書寿命を所有するものだけを文書ターゲットへ移す。
+
+R1-G6e後半は[文書パッケージ境界計画](document-package-boundary-plan.md)に従い、依存経路の
+一方向化、具体的な命名、現存する関心領域ごとの分割と集約を行う。`kritadocument`は文書状態、
+`kritadocumentfiles`は文書ファイル、バックアップ、自動保存ファイル、回復ファイル、
+`kritadocumentui`はダイアログ、状態表示、文書情報編集、取り消し履歴との接続と表示を所有する。
+依存は文書UIから文書ファイル保存、文書ファイル保存から文書状態へ向ける。
+
+最初の検査段階で、文書と取り消し履歴の接続および履歴表示を`kritadocumentui`へ移し、
+`kritadocument`の公開リンク閉包をQt Coreだけへ縮小した。次の検査段階は表示を文書UIへ集約し、
+その後に既存の具体的なファイル処理を文書ファイル保存へ集約する。形式選択と形式変換は既存の
+入出力所有に維持する。パッケージ境界の成立後に残る依存と試験困難性を再評価し、現在必要な
+根拠を持つ場合だけロジック再構築または抽象化を独立した検査段階として追加する。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

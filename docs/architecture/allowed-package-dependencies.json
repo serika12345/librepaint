@@ -442,7 +442,7 @@
       ]
     },
     {
-      "sourceTarget": "kritacommand",
+      "sourceTarget": "kritadocumentui",
       "dependencyTarget": "kritapaintingundo",
       "sourceResponsibilities": [
         "document-lifecycle"
@@ -459,18 +459,18 @@
       ]
     },
     {
-      "sourceTarget": "kritadocument",
-      "dependencyTarget": "kritapaintingundo",
+      "sourceTarget": "kritadocumentui",
+      "dependencyTarget": "kritaresourcestorage",
       "sourceResponsibilities": [
         "document-lifecycle"
       ],
       "dependencyResponsibilities": [
-        "painting-rendering"
+        "resource-management"
       ],
       "projections": [
         {
           "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "painting-rendering",
+          "dependencyResponsibility": "resource-management",
           "status": "allowed"
         }
       ]
@@ -1189,6 +1189,47 @@
     {
       "sourceTarget": "kritaui",
       "dependencyTarget": "kritadocument",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritadocumentui",
       "sourceResponsibilities": [
         "application-orchestration",
         "canvas-presentation",

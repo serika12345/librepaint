@@ -9,7 +9,7 @@
 
 #include <kis_undo_store.h>
 
-#include <kritadocument_export.h>
+#include <kritadocumentui_export.h>
 
 class KUndo2Stack;
 
@@ -19,7 +19,7 @@ class KUndo2Stack;
  * The stack is borrowed and must outlive this store. Both objects must belong
  * to the same thread so history notifications can be forwarded synchronously.
  */
-class KRITADOCUMENT_EXPORT KisDocumentUndoStore : public KisUndoStore
+class KRITADOCUMENTUI_EXPORT KisDocumentUndoStore : public KisUndoStore
 {
 public:
     explicit KisDocumentUndoStore(KUndo2Stack *undoStack);

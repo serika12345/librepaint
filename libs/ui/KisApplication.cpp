@@ -58,7 +58,7 @@
 #include "thememanager.h"
 #include "KisDocument.h"
 #include "KisMainWindow.h"
-#include "KisAutoSaveRecoveryDialog.h"
+#include <recovery/KisAutoSaveRecoveryDialog.h>
 #include "KisPart.h"
 #include <kis_icon.h>
 #include "kis_splash_screen.h"

@@ -51,7 +51,7 @@
 #include <kis_debug.h>
 #include <kis_generator_layer.h>
 #include <kis_generator_registry.h>
-#include <KisAutoSaveRecoveryDialog.h>
+#include <recovery/KisAutoSaveRecoveryDialog.h>
 #include <kdesktopfile.h>
 #include <kconfiggroup.h>
 #include <KisBackup.h>

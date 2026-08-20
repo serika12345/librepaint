@@ -68,12 +68,20 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             by_id["import-export"]["pluginIds"],
         )
         self.assertIn(
-            "kritadocument",
+            "kritadocumentui",
             by_id["document-lifecycle"]["ownerTargets"],
         )
         self.assertIn(
-            "libs/document/undo/kis_document_undo_store.h",
+            "libs/document/ui/undo/kis_document_undo_store.h",
             by_id["document-lifecycle"]["publicHeaderPaths"],
+        )
+        self.assertIn(
+            "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+            by_id["document-lifecycle"]["publicHeaderPaths"],
+        )
+        self.assertNotIn(
+            "kritacommand",
+            by_id["document-lifecycle"]["ownerTargets"],
         )
         self.assertEqual(
             len(by_id["plugin-infrastructure"]["pluginIds"]), 172
@@ -110,6 +118,22 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         }
         self.assertIn(
             "kritaimage", target_by_name["kritaui"]["repositoryDependencies"]
+        )
+        self.assertEqual(
+            target_by_name["kritadocument"]["repositoryDependencies"], []
+        )
+        self.assertEqual(
+            target_by_name["kritadocumentui"]["repositoryDependencies"],
+            [
+                "kritapaintingundo",
+                "kritaresourcestorage",
+                "kritawidgets",
+                "kritawidgetutils",
+            ],
+        )
+        self.assertIn(
+            "kritadocumentui",
+            target_by_name["kritaui"]["repositoryDependencies"],
         )
         self.assertIn(
             "kritapngimport", target_by_name["kritaui"]["repositoryConsumers"]

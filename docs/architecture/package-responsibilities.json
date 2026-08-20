@@ -283,17 +283,17 @@
       "id": "document-lifecycle",
       "responsibility": "Owns document lifetime, identity, modified state, undo coordination, document metadata coordination, and the connection between a document and its image.",
       "sourceDirectories": [
-        "libs/command",
         "libs/document",
         "libs/ui"
       ],
       "ownerTargets": [
-        "kritacommand",
         "kritadocument",
+        "kritadocumentui",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [
-        "kritadocument"
+        "kritadocument",
+        "kritadocumentui"
       ],
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [
@@ -326,7 +326,9 @@
         "libs/document/session/kis_document_modification_state.h",
         "libs/document/session/kis_document_recovery_autosave_state.h",
         "libs/document/session/kis_document_recovery_status.h",
-        "libs/document/undo/kis_document_undo_store.h",
+        "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+        "libs/document/ui/undo/kis_document_undo_store.h",
+        "libs/document/ui/undo/kundo2view.h",
         "libs/ui/KisDocument.h",
         "libs/ui/KisSelectionActionsAdapter.h",
         "libs/ui/KisTextPropertiesManager.h",
@@ -1597,26 +1599,6 @@
       ]
     },
     {
-      "name": "kritacommand",
-      "sourceDirectory": "libs/command",
-      "platforms": [
-        "macos",
-        "linux",
-        "ios",
-        "android",
-        "windows"
-      ],
-      "types": [
-        "SHARED_LIBRARY",
-        "STATIC_LIBRARY"
-      ],
-      "repositoryDependencies": [
-        "kritapaintingundo",
-        "kritawidgetutils"
-      ],
-      "repositoryConsumers": []
-    },
-    {
       "name": "kritadocument",
       "sourceDirectory": "libs/document",
       "platforms": [
@@ -1630,8 +1612,30 @@
         "SHARED_LIBRARY",
         "STATIC_LIBRARY"
       ],
+      "repositoryDependencies": [],
+      "repositoryConsumers": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritadocumentui",
+      "sourceDirectory": "libs/document/ui",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
       "repositoryDependencies": [
-        "kritapaintingundo"
+        "kritapaintingundo",
+        "kritaresourcestorage",
+        "kritawidgets",
+        "kritawidgetutils"
       ],
       "repositoryConsumers": [
         "kritaui"
@@ -1904,8 +1908,7 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
-        "kritacommand",
-        "kritadocument",
+        "kritadocumentui",
         "kritaflake",
         "kritaimage",
         "kritaimpexui",
@@ -2027,6 +2030,7 @@
       "repositoryDependencies": [],
       "repositoryConsumers": [
         "krita_flaketools",
+        "kritadocumentui",
         "kritaflake",
         "kritaimage",
         "kritaimpex",
@@ -2118,6 +2122,7 @@
         "kritacanvas",
         "kritacolor",
         "kritadocument",
+        "kritadocumentui",
         "kritaimage",
         "kritaimpex",
         "kritaimpexui",

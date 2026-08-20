@@ -90,9 +90,24 @@
             "android",
             "windows"
           ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
         }
       ],
       "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle"
+        },
         {
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation"
@@ -124,6 +139,28 @@
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "unique-owner-target",
           "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -185,7 +222,40 @@
           "dependencyTarget": "kritadocument",
           "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "undo/kis_document_undo_store.h",
-          "headerPath": "libs/document/undo/kis_document_undo_store.h",
+          "headerPath": "libs/document/ui/undo/kis_document_undo_store.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "undo/kis_document_undo_store.h",
+          "headerPath": "libs/document/ui/undo/kis_document_undo_store.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
@@ -2225,15 +2295,52 @@
             "android",
             "windows"
           ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
         }
       ],
       "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle"
+        },
         {
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle"
         }
       ],
       "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocument",
@@ -2294,7 +2401,40 @@
           "dependencyTarget": "kritadocument",
           "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "undo/kis_document_undo_store.h",
-          "headerPath": "libs/document/undo/kis_document_undo_store.h",
+          "headerPath": "libs/document/ui/undo/kis_document_undo_store.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "undo/kis_document_undo_store.h",
+          "headerPath": "libs/document/ui/undo/kis_document_undo_store.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
@@ -4533,11 +4673,28 @@
     {
       "ownerTarget": "kritadocument",
       "owner": "R1-G6",
-      "reason": "External packages use the declared document-domain undo coordination surface.",
+      "reason": "External packages use the declared document session-state surface.",
       "maximumHeaders": 0,
       "maximumDirectReferences": 0,
       "removalCondition": "Document consumers continue to use declared public contracts.",
       "sourceDirectory": "libs/document",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": []
+    },
+    {
+      "ownerTarget": "kritadocumentui",
+      "owner": "R1-G6",
+      "reason": "External packages use the declared document undo connection and history presentation surface.",
+      "maximumHeaders": 0,
+      "maximumDirectReferences": 0,
+      "removalCondition": "Document UI consumers continue to use declared public contracts.",
+      "sourceDirectory": "libs/document/ui",
       "platforms": [
         "macos",
         "linux",

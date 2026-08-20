@@ -149,13 +149,12 @@
       "migrationWave": "R1-G6e",
       "current": {
         "sourceDirectories": [
-          "libs/command",
           "libs/document",
           "libs/ui"
         ],
         "cmakeTargets": [
-          "kritacommand",
           "kritadocument",
+          "kritadocumentui",
           "kritaui"
         ],
         "uiClassAreas": [
@@ -185,16 +184,23 @@
             "status": "implemented"
           },
           {
+            "name": "kritadocumentfiles",
+            "directory": "libs/document/files",
+            "role": "document-files",
+            "status": "new"
+          },
+          {
             "name": "kritadocumentui",
             "directory": "libs/document/ui",
             "role": "presentation",
-            "status": "new"
+            "status": "implemented"
           }
         ]
       },
       "completionCriteria": [
-        "Document identity, modified state, persistence, and undo coordination are owned by kritadocument.",
-        "Document widgets depend on kritadocumentui while domain state remains usable without Qt Widgets."
+        "Document identity, modified state, and metadata are owned by kritadocument with a Qt Core-only public link closure.",
+        "Document file, backup, autosave-file, and recovery-file handling is owned by kritadocumentfiles through direct dependencies on existing public surfaces.",
+        "Document dialogs, status presentation, metadata editing, undo connection, and undo history presentation are owned by kritadocumentui."
       ]
     },
     {
@@ -886,10 +892,10 @@
       "responsibilities": [
         "document-lifecycle"
       ],
-      "purpose": "Move document session, persistence, and document presentation into owned targets.",
+      "purpose": "Move document session, document file storage, and document presentation into concrete owned targets with one-directional dependencies.",
       "prerequisites": [
         "R1-G6c and R1-G6d complete",
-        "Document identity, modified state, persistence, autosave, recovery, and undo coordination tests"
+        "Document identity, modified state, document-file, autosave, recovery, and undo coordination tests"
       ],
       "sourceMoves": [
         {
@@ -923,9 +929,19 @@
           "target": "kritadocument"
         },
         {
-          "from": "remaining libs/ui/KisDocument.{h,cpp} document session and persistence implementation",
-          "to": "libs/document",
-          "target": "kritadocument"
+          "from": "libs/document/undo/kis_document_undo_store.{h,cpp}",
+          "to": "libs/document/ui/undo",
+          "target": "kritadocumentui"
+        },
+        {
+          "from": "libs/ui/KisAutoSaveRecoveryDialog.{h,cpp}",
+          "to": "libs/document/ui/recovery",
+          "target": "kritadocumentui"
+        },
+        {
+          "from": "libs/ui/KisDocument.cpp document file, backup, autosave-file, and recovery-file handling",
+          "to": "libs/document/files",
+          "target": "kritadocumentfiles"
         },
         {
           "from": "libs/ui::<document presentation and interaction wiring>",
@@ -934,21 +950,30 @@
         },
         {
           "from": "libs/command/{kundo2model,kundo2view}.{h,cpp}",
-          "to": "libs/document/ui",
+          "to": "libs/document/ui/undo",
           "target": "kritadocumentui"
         },
         {
           "from": "libs/ui/KoDocumentInfo.{h,cpp}",
           "to": "libs/document/metadata",
           "target": "kritadocument"
+        },
+        {
+          "from": "libs/ui/KoDocumentInfoDlg.{h,cpp}",
+          "to": "libs/document/ui",
+          "target": "kritadocumentui"
         }
       ],
       "createsTargets": [
         "kritadocument",
+        "kritadocumentfiles",
         "kritadocumentui"
       ],
       "compatibilityRoutes": [],
       "requiredContracts": [
+        "Document dialogs, status messages, metadata editing, and Qt notification tests",
+        "Document file, backup, autosave-file, recovery-file, and platform path tests",
+        "Document link direction and Qt Core-only domain closure checks",
         "Document session lifetime and modified-state tests",
         "Transactional save, autosave, recovery, and cancellation tests",
         "Document undo coordination tests"
@@ -961,9 +986,12 @@
       },
       "completionCriteria": [
         "All 25 document classes classified at the start of R1-G6e have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",
-        "Document targets depend only on import-export, painting, plugin, and resource public surfaces."
+        "Document file, backup, autosave-file, and recovery-file handling is owned by kritadocumentfiles without a dependency on kritadocumentui or kritaui.",
+        "Document presentation is owned by kritadocumentui, and kritadocument has a Qt Core-only public link closure.",
+        "Document targets depend only on import-export, painting, plugin, and resource public surfaces.",
+        "No generic use-case, persistence, port, adapter, service-locator, repository, common-base, or empty target is introduced without current production evidence."
       ],
-      "stopCondition": "Stop before tool migration if document state, persistence, recovery, or undo contracts regress."
+      "stopCondition": "Stop before the next document gate or tool migration if document state, file storage, recovery, undo, platform path behavior, target link closure, or cycle contracts regress."
     },
     {
       "id": "R1-G6f",

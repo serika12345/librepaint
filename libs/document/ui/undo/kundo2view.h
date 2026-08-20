@@ -49,7 +49,7 @@
 #include <QListView>
 #include <QString>
 
-#include "kritacommand_export.h"
+#include "kritadocumentui_export.h"
 
 #ifndef QT_NO_UNDOVIEW
 
@@ -58,7 +58,7 @@ class KUndo2QStack;
 class KUndo2Group;
 class QIcon;
 
-class KRITACOMMAND_EXPORT KUndo2View : public QListView
+class KRITADOCUMENTUI_EXPORT KUndo2View : public QListView
 {
     Q_OBJECT
     Q_PROPERTY(QString emptyLabel READ emptyLabel WRITE setEmptyLabel)

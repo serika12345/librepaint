@@ -2,14 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-19 20:50 JST
+- 更新日時: 2026-08-20 16:45 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e文書回復状態境界
+- 現在の検査段階: R1-G6e-P1独立した文書UIの一括移設
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-document-recovery-status`
-- 目的: `libs/ui/KisDocument.cpp`の回復済み文書状態を
-  `libs/document/session/kis_document_recovery_status.*`へ抽出し、回復元であるという文書事実を
-  UI実装から`kritadocument`へ移す。
+- ブランチ: `r1-g6e-p1-document-undo-ui-boundary`
+- 目的: 独立ファイルとして移設できる取り消し履歴UIと自動保存回復UIを一つのPRにまとめ、
+  文書状態の公開依存から分離して具体的な文書UI所有へ集約する。
 
 ## 再開環境
 
@@ -512,6 +511,47 @@
 - この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
   24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
 
+## R1-G6e-P0文書パッケージ境界計画で完了した作業
+
+- `AGENTS.md`に、依存方向、具体的な命名、現存する関心領域の分割と集約、必要性を確認した
+  ロジック再構築と抽象化というリファクタリング順序を固定した。
+- YAGNIを優先し、差し替え、値の受渡しでは成立しない試験境界、外部処理の置換、移動だけでは
+  解けない循環の根拠がない利用事例層、接続面、アダプター、リポジトリー、サービス探索器、
+  共通基底、空ターゲットを追加しない運用規則を固定した。
+- `docs/architecture/document-package-boundary-plan.md`に、文書状態の`kritadocument`、
+  文書ファイル保存の`kritadocumentfiles`、文書表示の`kritadocumentui`という
+  現在確認できる具体所有と一方向の依存を記録した。
+- 実装をP1独立した文書UIの一括移設、P2文書表示の構造分離、P3文書ファイル保存の構造分離、
+  P4残る境界評価の4検査段階へ分けた。ロジック再構築とI/O隔離はP4で現在の根拠を
+  確認してから独立段階として計画する。
+- 最初の実装単位は`libs/document/undo/kis_document_undo_store.{h,cpp}`と
+  `libs/command/{kundo2model,kundo2view}.{h,cpp}`を起点とし、文書と取り消し履歴の接続および
+  履歴表示を`libs/document/ui/undo`へ移す。`kritadocument`の公開リンク閉包をQt Coreだけへ
+  縮小した状態をP1の完了条件とする。
+
+## R1-G6e-P1独立した文書UIの一括移設で完了した作業
+
+- `libs/document/undo/kis_document_undo_store.{h,cpp}`を起点として
+  `libs/document/ui/undo/kis_document_undo_store.{h,cpp}`へ移し、文書と画像所有の履歴を
+  接続する責務を`kritadocumentui`へ移した。
+- `libs/command/{kundo2model,kundo2view}.{h,cpp}`を起点として
+  `libs/document/ui/undo/{kundo2model,kundo2view}.{h,cpp}`へ移し、履歴の行、選択状態、
+  操作名、有効状態を文書UI所有へ集約した。
+- `kritaui`は`kritadocument`と`kritadocumentui`を直接利用する。`kritadocumentui`は
+  `kritapaintingundo`を利用し、`kritadocument`はQt Core以外の公開リンク依存を持たない。
+- 履歴表示だけを所有していた旧`kritacommand`ターゲットと`libs/command`の旧ファイルを
+  除去した。旧配置の転送ヘッダー、別名、互換ターゲットは追加していない。
+- 既存の履歴操作、マクロ、やり直し破棄、同期通知、非所有の借用寿命を維持し、履歴表示、
+  操作名、取消し・やり直しの有効状態、履歴選択による移動を新しい特性契約で固定した。
+- 新しい利用事例層、永続化層、接続面、アダプター、サービス探索器、共通基底は追加せず、
+  現在存在する実装と依存を具体的な所有へ移した。
+- `libs/ui/KisAutoSaveRecoveryDialog.{h,cpp}`を起点として
+  `libs/document/ui/recovery/KisAutoSaveRecoveryDialog.{h,cpp}`へ移し、回復候補の一覧、選択、
+  一括破棄、プラットフォーム別回復場所を`kritadocumentui`へ集約した。
+- 独立ファイルの移設は同じPRへまとめた。`KoDocumentInfo`、`KoDocumentInfoDlg`、
+  `KisDocument.cpp`内の保存処理は上位状態へ直接依存し、別ライブラリー化にAPIと責務の
+  再構築が必要なため、機械的移設ではなくP2とP3の構造変更として扱う。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -836,14 +876,63 @@
   構造台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
 - `nix flake check --no-build --all-systems --no-eval-cache`: 文書回復状態境界分離後の
   全Nix出力の評価が成功した。
+- `nix develop .#test --command ./scripts/verify-quick`: 文書パッケージ境界計画、R1 TODO、
+  再配置計画、進捗スナップショットの整合を含む97件の単体試験と高速検査が成功した。
+- R1-G6e-P0は製品ソース、CMake、Nix出力を変更しない計画単位である。5構成の製品構築と
+  macOS、Linuxの全ネイティブ試験は、直前の文書回復状態境界で記録した結果を維持する。
+- `kis_document_undo_ui_test`の初回構築は、新しい文書UIターゲットが存在しないため
+  Qt Widgetsの`QAction`を解決できない診断で失敗した。公開面契約も旧文書所有の
+  6ヘッダーを検出して失敗した。
+- 実装後の`kis_document_undo_store_test`と`kis_document_undo_ui_test`はmacOSで成功した。
+  履歴操作、通知、借用寿命に加え、操作名、取消し・やり直しの有効状態、履歴行、
+  履歴選択による移動を固定した。
+- macOSで`kritadocument`、`kritadocumentui`、`kritaui`の構築とリンクが成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 653件、Linux 668件、iOS 587件、
+  Android 593件、Windows 623件のターゲット、571件の共通ターゲット、119件の条件付き
+  ターゲット、258件の構成差を持つターゲットを記録した。21中核所有ターゲットと
+  全製品ターゲットは全構成で循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`: `kritadocument`の依存0件、
+  `kritadocumentui`から`kritapaintingundo`への依存、`kritaui`から両文書ターゲットへの依存、
+  公開面、責務、再配置計画、循環0件を含む97件の単体試験と高速検査が成功した。
+- 同一コミット`600aaf17eb00f34eb42ce3413a50c8b433e3c678`で
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 334件と
+  x86_64 Linux 336件の全ネイティブ試験が成功した。
+- iOSで`libkritadocument.a`、`libkritadocumentui.a`、`libkritaui.a`、
+  `LibrePaint.app/LibrePaint`、Android arm64-v8aで`libkritadocument_arm64-v8a.so`、
+  `libkritadocumentui_arm64-v8a.so`、`libkritaui_arm64-v8a.so`、Windows x86_64で
+  `libkritadocument.dll`、`libkritadocumentui.dll`、`libkritaui.dll`の構築とリンクが成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の
+  一致を確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 取り消し履歴の文書UI境界分離後の
+  全Nix出力の評価が成功した。
+- `kis_document_autosave_recovery_dialog_test`の初回構築は、新しい文書UI所有の回復ダイアログ
+  ヘッダーが存在しない診断で失敗した。実装後は回復候補の初期選択と一括破棄がmacOSで
+  成功し、`kritaui`も新しい所有先を直接利用してリンクした。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 654件、Linux 669件、iOS 588件、
+  Android 594件、Windows 624件のターゲット、572件の共通ターゲット、119件の条件付き
+  ターゲット、258件の構成差を持つターゲットを記録した。
+- 同一コミット`e0f24b17fc54ba482e7ed7b46bd614a87700b702`で
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 335件と
+  x86_64 Linux 337件の全ネイティブ試験が成功した。
+- `./scripts/build-incremental ios build --allow-large`でiOSの`libkritadocumentui.a`、
+  `libkritaui.a`、`LibrePaint.app/LibrePaint`まで構築成功した。
+  Android arm64-v8aとWindows x86_64では`./scripts/build-incremental <platform> build
+  kritaui`を実行し、それぞれ`libkritadocumentui_arm64-v8a.so`と
+  `libkritaui_arm64-v8a.so`、`libkritadocumentui.dll`と`libkritaui.dll`の構築に成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 自動保存回復UIの移設後も
+  全Nix出力の評価が成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: DarwinとNixOSの清浄な同一コミットから5構成の
+  台帳と差分行列の一致を確認し、21中核所有ターゲットと全製品ターゲットは循環0件を
+  維持した。
 
 ## 次の操作
 
-R1-G6e文書回復状態境界をレビューして統合する。統合後はmasterを同期し、保存と入出力診断、
-文書情報、ノードと選択の操作、取り消し履歴処理とQt Widgets用アクション生成から、依存方向と
-契約を保った最小の独立単位を選定する。構成値、時刻、ファイルI/O、UI文書参照が混在する
-文書情報と、回復I/Oを含む単位は、専用のUI・ドメイン分離または純粋計算・I/O分離を開始する
-判断まで現行所有を維持する。
+R1-G6e-P1独立した文書UIの一括移設をレビューして統合する。統合後はmasterを同期し、
+R1-G6e-P2として`libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知の接続と
+`libs/ui/KoDocumentInfoDlg.{h,cpp}`を起点に、文書表示の既存挙動と実依存を調査する。
+最小の特性契約で初期診断を確認してから`libs/document/ui`へ集約する。
 
 ## R1-G5完了根拠
 
