@@ -1,4 +1,5 @@
 set(kritadocumentui_LIB_SRCS
+    recovery/KisAutoSaveRecoveryDialog.cpp
     undo/kis_document_undo_store.cpp
     undo/kundo2model.cpp
     undo/kundo2view.cpp
@@ -10,9 +11,13 @@ generate_export_header(kritadocumentui BASE_NAME kritadocumentui)
 target_link_libraries(kritadocumentui
     PUBLIC
         kritapaintingundo
+        kritawidgets
+        kritawidgetutils
         Qt${QT_MAJOR_VERSION}::Widgets
     PRIVATE
+        kritaresourcestorage
         KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::ItemViews
 )
 
 target_include_directories(kritadocumentui

@@ -4,7 +4,7 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
-#include "KisAutoSaveRecoveryDialog.h"
+#include <recovery/KisAutoSaveRecoveryDialog.h>
 
 #include <KoStore.h>
 
