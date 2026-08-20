@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 10:20 JST
+- 更新日時: 2026-08-20 10:56 JST
 - 状態: `completed`
 - 現在の検査段階: R1-G6e-P1取り消し履歴の文書UI境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -888,6 +888,18 @@
 - `nix develop .#test --command ./scripts/verify-quick`: `kritadocument`の依存0件、
   `kritadocumentui`から`kritapaintingundo`への依存、`kritaui`から両文書ターゲットへの依存、
   公開面、責務、再配置計画、循環0件を含む97件の単体試験と高速検査が成功した。
+- 同一コミット`600aaf17eb00f34eb42ce3413a50c8b433e3c678`で
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 334件と
+  x86_64 Linux 336件の全ネイティブ試験が成功した。
+- iOSで`libkritadocument.a`、`libkritadocumentui.a`、`libkritaui.a`、
+  `LibrePaint.app/LibrePaint`、Android arm64-v8aで`libkritadocument_arm64-v8a.so`、
+  `libkritadocumentui_arm64-v8a.so`、`libkritaui_arm64-v8a.so`、Windows x86_64で
+  `libkritadocument.dll`、`libkritadocumentui.dll`、`libkritaui.dll`の構築とリンクが成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の
+  一致を確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- `nix flake check --no-build --all-systems --no-eval-cache`: 取り消し履歴の文書UI境界分離後の
+  全Nix出力の評価が成功した。
 
 ## 次の操作
 
