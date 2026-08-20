@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 21:31 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-20 22:36 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6e-P3文書ファイル保存の集約
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6e-p3-document-files`
@@ -968,7 +968,7 @@
   成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
   成功した。
 
-## R1-G6e-P3で進行中の作業
+## R1-G6e-P3で完了した作業
 
 - `libs/ui/KisDocument.cpp`の保存先検査、バックアップ、自動保存名、回復ファイル消去を起点に、
   `libs/document/files/kis_document_save_target.{h,cpp}`、
@@ -992,12 +992,27 @@
   全製品ターゲットは全構成で循環0件を維持する。
 - 確認済み逆方向includeは3種類96件、`kritaui`の内部ヘッダー参照は7ヘッダー20件を維持し、
   新しい逆方向依存と内部ヘッダー参照を追加していない。
+- 同一コミット`19be6382d82d6124eced7172f7bf4a887323180e`の清浄な作業ツリーで
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 340件と
+  x86_64 Linux 342件の全ネイティブ試験が成功した。追加した文書ファイル契約も
+  両構成で成功した。
+- `nix develop .#test --command ./scripts/build-incremental ios build --allow-large`で
+  `libkritadocumentfiles.a`、`libkritadocumentui.a`、`libkritaui.a`と
+  `LibrePaint.app/LibrePaint`を構築した。Android arm64-v8aとWindows x86_64では
+  `./scripts/build-incremental <platform> build kritaui`を実行し、
+  `libkritadocumentfiles`、`libkritadocumentui`、`libkritaui`のリンクに成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`は、清浄な同一コミットから5構成の台帳と差分行列を
+  検証し、22中核所有ターゲットと全製品ターゲットの循環0件を確認した。
+- `nix develop .#test --command ./scripts/verify-quick`はmacOSとLinuxで97件と全統治検査に
+  成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
+  成功した。
 
 ## 次の操作
 
-実装と台帳を同じコミットへ確定し、DarwinとNixOSの清浄な作業ツリーを揃える。
-macOSとLinuxの全ネイティブ試験、iOSアプリケーション、AndroidとWindowsの`kritaui`、
-5構成のCMake台帳、高速検査、Nix全構成評価を検証した後、R1-G6e-P3のPRを提出する。
+R1-G6e-P3のPRをレビューして統合する。統合後は`master`を同期し、R1-G6e-P4として
+`KisDocument`に残るメソッドと22クラスを実依存で再分類する。残る依存と試験困難性を根拠に、
+具体所有への追加移動、R1-G6fまたはUI表示所有への割当て、ロジック再構築の要否を記録する。
 
 ## R1-G5完了根拠
 
