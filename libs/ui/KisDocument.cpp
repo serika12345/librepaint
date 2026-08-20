@@ -6,7 +6,6 @@
  */
 
 #include "KisMainWindow.h" // XXX: remove
-#include <QMessageBox>
 
 #include <KisMimeDatabase.h>
 
@@ -16,8 +15,8 @@
 #include <KoColorSpaceEngine.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoDocumentInfoDlg.h>
-#include <KoDocumentInfo.h>
+#include <info/KoDocumentInfoDlg.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoUnit.h>
 #include <KoID.h>
 #include <KoProgressProxy.h>
@@ -52,6 +51,7 @@
 #include <kis_generator_layer.h>
 #include <kis_generator_registry.h>
 #include <recovery/KisAutoSaveRecoveryDialog.h>
+#include <io/kis_document_io_presentation.h>
 #include <kdesktopfile.h>
 #include <kconfiggroup.h>
 #include <KisBackup.h>
@@ -119,7 +119,8 @@
 #include "kis_guides_config.h"
 #include "KisImageBarrierLock.h"
 #include "KisReferenceImagesLayer.h"
-#include "dialogs/KisRecoverNamedAutosaveDialog.h"
+#include <recovery/KisRecoverNamedAutosaveDialog.h>
+#include "utils/KisFileIconCreator.h"
 
 #include <mutex>
 #include "kis_config_notifier.h"
@@ -148,12 +149,6 @@
 #endif
 
 using namespace std;
-
-namespace {
-constexpr int errorMessageTimeout = 5000;
-constexpr int successMessageTimeout = 1000;
-}
-
 
 /**********************************************************
  *
@@ -303,6 +298,7 @@ public:
     Private(KisDocument *_q)
         : q(_q)
         , docInfo(new KoDocumentInfo(_q)) // deleted by QObject
+        , ioPresentation(new KisDocumentIoPresentation(_q)) // deleted by QObject
         , importExportManager(new KisImportExportManager(_q)) // deleted manually
         , autoSaveTimer(new QTimer(_q))
         , undoStack(new UndoStack(_q)) // deleted by QObject
@@ -320,12 +316,14 @@ public:
         } else {
             unit = KoUnit::Centimeter;
         }
+        connectPresentation();
         connect(&imageIdleWatcher, SIGNAL(startedIdleMode()), q, SLOT(slotPerformIdleRoutines()));
     }
 
     Private(const Private &rhs, KisDocument *_q)
         : q(_q)
         , docInfo(new KoDocumentInfo(*rhs.docInfo, _q))
+        , ioPresentation(new KisDocumentIoPresentation(_q))
         , importExportManager(new KisImportExportManager(_q))
         , autoSaveTimer(new QTimer(_q))
         , undoStack(new UndoStack(_q))
@@ -335,6 +333,7 @@ public:
         , colorHistoryModel(rhs.colorHistoryModel)
     {
         copyFromImpl(rhs, _q, CONSTRUCT);
+        connectPresentation();
         connect(&imageIdleWatcher, SIGNAL(startedIdleMode()), q, SLOT(slotPerformIdleRoutines()));
     }
 
@@ -345,6 +344,7 @@ public:
 
     KisDocument *q = 0;
     KoDocumentInfo *docInfo = 0;
+    KisDocumentIoPresentation *ioPresentation = 0;
 
     KoUnit unit;
 
@@ -434,6 +434,26 @@ public:
     KisDocument* lockAndCloneImpl(bool fetchResourcesFromLayers);
 
     void updateDocumentMetadataOnSaving(const QString &filePath, const QByteArray &mimeType);
+
+    void connectPresentation()
+    {
+        QObject::connect(ioPresentation,
+                         &KisDocumentIoPresentation::statusBarMessage,
+                         q,
+                         &KisDocument::statusBarMessage);
+        QObject::connect(ioPresentation,
+                         &KisDocumentIoPresentation::savingCompleted,
+                         q,
+                         &KisDocument::completed);
+        QObject::connect(ioPresentation,
+                         &KisDocumentIoPresentation::savingFinished,
+                         q,
+                         &KisDocument::sigSavingFinished);
+        QObject::connect(ioPresentation,
+                         &KisDocumentIoPresentation::loadingFinished,
+                         q,
+                         &KisDocument::sigLoadingFinished);
+    }
 
     /// clones the palette list oldList
     /// the ownership of the returned KoColorSet * belongs to the caller
@@ -1003,102 +1023,32 @@ QByteArray KisDocument::serializeToNativeByteArray()
     return buffer.data();
 }
 
-class DlgLoadMessages : public QMessageBox
-{
-public:
-    DlgLoadMessages(const QString &title,
-                    const QString &message,
-                    const QStringList &warnings = {},
-                    const QString &details = {})
-        : QMessageBox(QMessageBox::Warning, title, message, QMessageBox::Ok, qApp->activeWindow())
-    {
-        if (!details.isEmpty()) {
-            setInformativeText(details);
-        }
-        if (!warnings.isEmpty()) {
-            setDetailedText(warnings);
-        }
-    }
-
-private:
-    void setDetailedText(const QStringList &text)
-    {
-        QMessageBox::setDetailedText(text.first());
-
-        QTextEdit *messageBox = findChild<QTextEdit *>();
-
-        if (messageBox) {
-            messageBox->setAcceptRichText(true);
-
-            QString warning = "<html><body><ul>";
-            Q_FOREACH (const QString &i, text) {
-                warning += "\n<li>" + i + "</li>";
-            }
-            warning += "</ul></body></html>";
-
-            messageBox->setText(warning);
-        }
-    }
-};
-
 void KisDocument::slotCompleteSavingDocument(const KritaUtils::ExportFileJob &job, KisImportExportErrorCode status, const QString &errorMessage, const QString &warningMessage)
 {
-    if (status.isCancelled())
+    if (status.isCancelled()) {
         return;
+    }
 
-    const QString fileName = QFileInfo(job.filePath).fileName();
+    d->ioPresentation->presentSaveResult(job.filePath,
+                                         status,
+                                         errorMessage,
+                                         warningMessage,
+                                         fileBatchMode());
 
     if (!status.isOk()) {
-        Q_EMIT statusBarMessage(i18nc("%1 --- failing file name, %2 --- error message",
-                                    "Error during saving %1: %2",
-                                    fileName,
-                                    errorMessage), errorMessageTimeout);
-
-
-        if (!fileBatchMode()) {
-            DlgLoadMessages dlg(i18nc("@title:window", "LibrePaint"),
-                                i18n("Could not save %1.", job.filePath),
-                                errorMessage.split("\n", Qt::SkipEmptyParts)
-                                    + warningMessage.split("\n", Qt::SkipEmptyParts),
-                                status.errorMessage());
-
-            dlg.exec();
-        }
+        return;
     }
-    else {
-        if (!fileBatchMode() && !warningMessage.isEmpty()) {
 
-            QStringList reasons = warningMessage.split("\n", Qt::SkipEmptyParts);
+    if (!(job.flags & KritaUtils::SaveIsExporting)) {
+        const QString existingAutoSaveBaseName = localFilePath();
+        const bool wasRecovered = isRecovered();
 
-            DlgLoadMessages dlg(
-                i18nc("@title:window", "LibrePaint"),
-                i18nc("dialog box shown to the user if there were warnings while saving the document, "
-                      "%1 is the file path",
-                      "%1 has been saved but is incomplete.",
-                      job.filePath),
-                reasons,
-                reasons.isEmpty()
-                    ? ""
-                    : i18nc("dialog box shown to the user if there were warnings while saving the document",
-                            "Some problems were encountered when saving."));
-            dlg.exec();
-        }
+        d->updateDocumentMetadataOnSaving(job.filePath, job.mimeType);
 
-
-        if (!(job.flags & KritaUtils::SaveIsExporting)) {
-            const QString existingAutoSaveBaseName = localFilePath();
-            const bool wasRecovered = isRecovered();
-
-            d->updateDocumentMetadataOnSaving(job.filePath, job.mimeType);
-
-            removeAutoSaveFiles(existingAutoSaveBaseName, wasRecovered);
-        }
-
-        Q_EMIT completed();
-        Q_EMIT sigSavingFinished(job.filePath);
-
-        Q_EMIT statusBarMessage(i18n("Finished saving %1", fileName), successMessageTimeout);
+        removeAutoSaveFiles(existingAutoSaveBaseName, wasRecovered);
     }
+
+    d->ioPresentation->notifySaveSucceeded(job.filePath);
 }
 
 void KisDocument::Private::updateDocumentMetadataOnSaving(const QString &filePath, const QByteArray &mimeType)
@@ -1553,7 +1503,7 @@ void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalCloned
     }
     const QString autoSaveFileName = generateAutoSaveFileName(localFilePath());
 
-    Q_EMIT statusBarMessage(i18n("Autosaving... %1", autoSaveFileName), successMessageTimeout);
+    d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
 
     KisUsageLogger::log(QString("Autosaving: %1").arg(autoSaveFileName));
 
@@ -1567,7 +1517,7 @@ void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalCloned
                                              0,
                                              std::move(optionalClonedDocument));
     } else {
-        Q_EMIT statusBarMessage(i18n("Autosaving postponed: document is busy..."), errorMessageTimeout);
+        d->ioPresentation->notifyAutoSavePostponed();
     }
 
     if (result != KritaUtils::BackgroudSavingStartResult::Success &&
@@ -1716,10 +1666,7 @@ void KisDocument::slotCompleteAutoSaving(const KritaUtils::ExportFileJob &job, K
         // eligible for another autosave even when no newer edit arrived.
         d->modificationState.restoreAutoSaveRequirement();
         setEmergencyAutoSaveInterval();
-        Q_EMIT statusBarMessage(i18nc("%1 --- failing file name, %2 --- error message",
-                                    "Error during autosaving %1: %2",
-                                    fileName,
-                                    exportErrorToUserMessage(status, errorMessage)), errorMessageTimeout);
+        d->ioPresentation->notifyAutoSaveFailed(fileName, status, errorMessage);
     } else {
         KisConfig cfg(true);
         d->autoSaveDelay = cfg.autoSaveInterval();
@@ -1731,7 +1678,7 @@ void KisDocument::slotCompleteAutoSaving(const KritaUtils::ExportFileJob &job, K
             setNormalAutoSaveInterval();
         }
 
-        Q_EMIT statusBarMessage(i18n("Finished autosaving %1", fileName), successMessageTimeout);
+        d->ioPresentation->notifyAutoSaveFinished(fileName);
     }
 }
 
@@ -2081,7 +2028,17 @@ bool KisDocument::openPath(const QString &_path, OpenFlags flags)
             kisApp->hideSplashScreen();
             //qDebug() <<"asf=" << asf;
             // ## TODO compare timestamps ?
-            KisRecoverNamedAutosaveDialog dlg(0, file, asf);
+            KisRecoverNamedAutosaveDialog dlg;
+            KisFileIconCreator iconCreator;
+            QIcon mainFileIcon;
+            QIcon autosaveFileIcon;
+            const QSize iconSize = dlg.filePreviewIconSize();
+            if (iconCreator.createFileIcon(file, mainFileIcon, dlg.devicePixelRatioF(), iconSize)) {
+                dlg.setMainFileIcon(mainFileIcon);
+            }
+            if (iconCreator.createFileIcon(asf, autosaveFileIcon, dlg.devicePixelRatioF(), iconSize)) {
+                dlg.setAutosaveFileIcon(autosaveFileIcon);
+            }
             dlg.exec();
             int res = dlg.result();
 
@@ -2138,7 +2095,7 @@ bool KisDocument::openFile()
 {
     //dbgUI <<"for" << localFilePath();
     if (!QFile::exists(localFilePath()) && !fileBatchMode()) {
-        QMessageBox::critical(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("File %1 does not exist.", localFilePath()));
+        d->ioPresentation->presentMissingFile(localFilePath(), fileBatchMode());
         return false;
     }
 
@@ -2180,29 +2137,23 @@ bool KisDocument::openFile()
         QString msg = status.errorMessage();
         KisUsageLogger::log(QString("Loading %1 failed: %2").arg(prettyPath(), msg));
 
-        if (!msg.isEmpty() && !fileBatchMode()) {
-            DlgLoadMessages dlg(i18nc("@title:window", "LibrePaint"),
-                                i18n("Could not open %1.", prettyPath()),
-                                errorMessage().split("\n", Qt::SkipEmptyParts)
-                                    + warningMessage().split("\n", Qt::SkipEmptyParts),
-                                msg);
-
-            dlg.exec();
-        }
+        d->ioPresentation->presentLoadFailure(prettyPath(),
+                                              status,
+                                              errorMessage(),
+                                              warningMessage(),
+                                              fileBatchMode());
         return false;
     }
     else if (!warningMessage().isEmpty() && !fileBatchMode()) {
-        DlgLoadMessages dlg(i18nc("@title:window", "LibrePaint"),
-                            i18n("There were problems opening %1.", prettyPath()),
-                            warningMessage().split("\n", Qt::SkipEmptyParts));
-
-        dlg.exec();
+        d->ioPresentation->presentLoadWarning(prettyPath(),
+                                              warningMessage(),
+                                              fileBatchMode());
         setPath(QString());
     }
 
     setMimeTypeAfterLoading(typeName);
     d->syncDecorationsWrapperLayerState();
-    Q_EMIT sigLoadingFinished();
+    d->ioPresentation->notifyLoadSucceeded();
 
     undoStack()->clear();
 
@@ -2213,7 +2164,7 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::startRecoveryAutoSave()
 {
     const QString autoSaveFileName = generateAutoSaveFileName(localFilePath());
 
-    Q_EMIT statusBarMessage(i18n("Autosaving... %1", autoSaveFileName), successMessageTimeout);
+    d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
     KisUsageLogger::log(QString("Autosaving recovery checkpoint: %1").arg(autoSaveFileName));
 
     d->recoveryAutoSaveState.beginSaveStart();
@@ -2368,7 +2319,7 @@ void KisDocument::setModified(bool mod)
     }
 
     if (mod) {
-        documentInfo()->updateParameters();
+        documentInfo()->updateParameters(isModified());
     }
 
     Q_EMIT modified(mod);
@@ -2746,7 +2697,7 @@ void KisDocument::resetPath() {
 
 KoDocumentInfoDlg *KisDocument::createDocumentInfoDialog(QWidget *parent, KoDocumentInfo *docInfo) const
 {
-    return new KoDocumentInfoDlg(parent, docInfo);
+    return new KoDocumentInfoDlg(parent, docInfo, localFilePath(), mimeType());
 }
 
 bool KisDocument::isReadWrite() const
@@ -3117,11 +3068,6 @@ KisUndoStore* KisDocument::createUndoStore()
 bool KisDocument::isAutosaving() const
 {
     return d->autoSaveState.isExportingAutoSave();
-}
-
-QString KisDocument::exportErrorToUserMessage(KisImportExportErrorCode status, const QString &errorMessage)
-{
-    return errorMessage.isEmpty() ? status.errorMessage() : errorMessage;
 }
 
 void KisDocument::setAssistantsGlobalColor(QColor color)

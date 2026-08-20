@@ -24,7 +24,7 @@
 #include <kis_statusbar.h>
 #include <KisDocument.h>
 #include <KisViewManager.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <kactioncollection.h>
 #include <KisPart.h>
 #include <KisKineticScroller.h>

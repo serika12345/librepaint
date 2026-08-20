@@ -19,7 +19,7 @@
 #include <QPair>
 
 #include <KisImportExportManager.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoFileDialog.h>
 #include <kis_icon.h>
 #include <KoResource.h>

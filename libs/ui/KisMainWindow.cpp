@@ -77,8 +77,8 @@
 #include <KoDockFactoryBase.h>
 #include <KoDockWidgetTitleBar.h>
 #include <kis_utility_title_bar.h>
-#include <KoDocumentInfoDlg.h>
-#include <KoDocumentInfo.h>
+#include <info/KoDocumentInfoDlg.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoFileDialog.h>
 #include <kis_icon.h>
 #include <KoToolManager.h>

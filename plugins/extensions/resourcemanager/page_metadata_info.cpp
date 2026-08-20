@@ -7,7 +7,7 @@
 #include "page_metadata_info.h"
 #include "ui_pagemetadatainfo.h"
 #include <kis_config.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KisImportExportManager.h>
 #include <KoFileDialog.h>
 #include <KoResource.h>

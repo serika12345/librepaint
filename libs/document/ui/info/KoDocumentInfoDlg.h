@@ -11,12 +11,14 @@
 #define __koDocumentInfoDlg_h__
 
 #include <kpagedialog.h>
+#include <QByteArray>
+#include <QString>
 
 class KoDocumentInfo;
 class KPageWidgetItem;
 class KoPageWidgetItem;
 
-#include "kritaui_export.h"
+#include "kritadocumentui_export.h"
 
 /**
  * @short The dialog that shows information about the document
@@ -36,7 +38,7 @@ class KoPageWidgetItem;
  * KPageDialog and uses the face type Tabbed.
  */
 
-class KRITAUI_EXPORT KoDocumentInfoDlg : public KPageDialog
+class KRITADOCUMENTUI_EXPORT KoDocumentInfoDlg : public KPageDialog
 {
     Q_OBJECT
 
@@ -45,8 +47,13 @@ public:
      * The constructor
      * @param parent a pointer to the parent widget
      * @param docInfo a pointer to the shown KoDocumentInfo
+     * @param filePath the displayed document path
+     * @param mimeType the displayed document MIME type
      */
-    KoDocumentInfoDlg(QWidget *parent, KoDocumentInfo* docInfo);
+    KoDocumentInfoDlg(QWidget *parent,
+                      KoDocumentInfo *docInfo,
+                      const QString &filePath,
+                      const QByteArray &mimeType);
 
     /** The destructor */
     ~KoDocumentInfoDlg() override;

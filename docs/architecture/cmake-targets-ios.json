@@ -2219,7 +2219,9 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/ui/tests",
       "dependencies": [
+        "kritadocument",
         "kritadocumentui",
+        "kritaimpex",
         "kritatestsdk"
       ]
     },
@@ -2228,6 +2230,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
+        "Qt6::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -2237,6 +2240,39 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
+        "Qt6::Xml",
+        "kritadocument",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_document_info_dialog_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/ui/tests",
+      "dependencies": [
+        "kritadocument",
+        "kritadocumentui",
+        "kritaimpex",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_document_io_presentation_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/ui/tests",
+      "dependencies": [
+        "kritadocument",
+        "kritadocumentui",
+        "kritaimpex",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_document_metadata_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/tests",
+      "dependencies": [
+        "Qt6::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -2246,7 +2282,19 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
+        "Qt6::Xml",
         "kritadocument",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_document_named_autosave_dialog_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/ui/tests",
+      "dependencies": [
+        "kritadocument",
+        "kritadocumentui",
+        "kritaimpex",
         "kritatestsdk"
       ]
     },
@@ -2255,6 +2303,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
+        "Qt6::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -2264,6 +2313,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
+        "Qt6::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -2273,7 +2323,9 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/ui/tests",
       "dependencies": [
+        "kritadocument",
         "kritadocumentui",
+        "kritaimpex",
         "kritatestsdk"
       ]
     },
@@ -2282,7 +2334,9 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/ui/tests",
       "dependencies": [
+        "kritadocument",
         "kritadocumentui",
+        "kritaimpex",
         "kritatestsdk"
       ]
     },
@@ -4127,7 +4181,11 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "libs/document",
       "dependencies": [
-        "Qt6::Core"
+        "KF6::ConfigCore",
+        "KF6::I18n",
+        "Qt6::Core",
+        "Qt6::Xml",
+        "kritaresources"
       ]
     },
     {
@@ -4138,7 +4196,10 @@
         "KF6::I18n",
         "KF6::ItemViews",
         "Qt6::Widgets",
+        "kritadocument",
+        "kritaimpex",
         "kritapaintingundo",
+        "kritaplugin",
         "kritaresourcestorage",
         "kritawidgets",
         "kritawidgetutils"
@@ -4569,6 +4630,7 @@
         "Qt6::Concurrent",
         "Qt6::Network",
         "Qt6::Widgets",
+        "kritadocument",
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",

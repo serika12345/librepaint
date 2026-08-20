@@ -11,7 +11,7 @@
 
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoToolManager.h>
 
 #include <kis_icon.h>

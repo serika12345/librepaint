@@ -25,7 +25,7 @@
 #include "kis_processing_applicator.h"
 #include "kis_node_manager.h"
 
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoSvgPaste.h>
 #include <KoShapeController.h>
 #include <KoShapeControllerBase.h>

@@ -29,7 +29,7 @@
 #include "KisView.h"
 #include "KisViewManager.h"
 #include "KisImportExportManager.h"
-#include "KoDocumentInfo.h"
+#include <metadata/KoDocumentInfo.h>
 #include "KisUsageLogger.h"
 
 #include <kis_debug.h>

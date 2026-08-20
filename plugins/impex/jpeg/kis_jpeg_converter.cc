@@ -30,7 +30,7 @@ extern "C" {
 
 #include <klocalizedstring.h>
 
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>

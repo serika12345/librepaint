@@ -32,7 +32,7 @@
 #include <KoColorSpace.h>
 #include <KoColorTransferFunctions.h>
 #include <KoConfig.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoProperties.h>
 #include <KoUpdater.h>
 #include <filter/kis_filter.h>

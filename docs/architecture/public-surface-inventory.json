@@ -334,6 +334,40 @@
       ],
       "headers": [
         {
+          "path": "libs/document/metadata/KoDocumentInfo.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/document/ui/info/KoDocumentInfoDlg.cpp",
+            "libs/impex/ui/kis_png_converter.cpp",
+            "libs/libkis/Document.cpp",
+            "libs/ui/KisDocument.cpp",
+            "libs/ui/KisMainWindow.cpp",
+            "libs/ui/KisPart.cpp",
+            "libs/ui/KisView.cpp",
+            "libs/ui/KisViewManager.cpp",
+            "libs/ui/actions/KisPasteActionFactories.cpp",
+            "libs/ui/actions/kis_selection_action_factories.cpp",
+            "plugins/dockers/recorder/recorderdocker_dock.cpp",
+            "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
+            "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
+            "plugins/extensions/resourcemanager/page_metadata_info.cpp",
+            "plugins/extensions/resourcemanager/page_tag_chooser.cpp",
+            "plugins/extensions/resourcemanager/wdgtagselection.cpp",
+            "plugins/impex/jpeg/kis_jpeg_converter.cc",
+            "plugins/impex/jpeg/kis_jpeg_export.cc",
+            "plugins/impex/jxl/JPEGXLExport.cpp",
+            "plugins/impex/libkra/kis_kra_loader.cpp",
+            "plugins/impex/libkra/kis_kra_saver.cpp",
+            "plugins/impex/libkra/kra_converter.cpp",
+            "plugins/impex/rgbe/RGBEExport.cpp",
+            "plugins/impex/tiff/kis_tiff_export.cc",
+            "plugins/impex/tiff/kis_tiff_import.cc"
+          ]
+        },
+        {
           "path": "libs/document/session/kis_document_autosave_state.h",
           "publicationEvidence": [
             "export-macro",
@@ -410,6 +444,27 @@
       ],
       "headers": [
         {
+          "path": "libs/document/ui/info/KoDocumentInfoDlg.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisDocument.cpp",
+            "libs/ui/KisMainWindow.cpp"
+          ]
+        },
+        {
+          "path": "libs/document/ui/io/kis_document_io_presentation.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisDocument.cpp"
+          ]
+        },
+        {
           "path": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "publicationEvidence": [
             "export-macro",
@@ -418,6 +473,16 @@
           ],
           "consumerPaths": [
             "libs/ui/KisApplication.cpp",
+            "libs/ui/KisDocument.cpp"
+          ]
+        },
+        {
+          "path": "libs/document/ui/recovery/KisRecoverNamedAutosaveDialog.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
             "libs/ui/KisDocument.cpp"
           ]
         },
@@ -2761,7 +2826,6 @@
           ],
           "consumerPaths": [
             "libs/ui/KisViewManager.cpp",
-            "libs/ui/dialogs/KisRecoverNamedAutosaveDialog.cpp",
             "libs/ui/dialogs/kis_delayed_save_dialog.cpp"
           ]
         },
@@ -3572,7 +3636,6 @@
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
             "libs/ui/dialogs/KisColorSpaceConversionDialog.cpp",
             "libs/ui/dialogs/KisDlgChangeCloneSource.cpp",
-            "libs/ui/dialogs/KisRecoverNamedAutosaveDialog.cpp",
             "libs/ui/dialogs/kis_delayed_save_dialog.cpp",
             "libs/ui/dialogs/kis_dlg_image_properties.cc",
             "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
@@ -6363,7 +6426,6 @@
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.h",
             "libs/ui/dialogs/KisColorSpaceConversionDialog.h",
             "libs/ui/dialogs/KisDlgChangeCloneSource.h",
-            "libs/ui/dialogs/KisRecoverNamedAutosaveDialog.h",
             "libs/ui/dialogs/kis_delayed_save_dialog.h",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.h",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.h",
@@ -7276,6 +7338,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/document/ui/io/kis_document_io_presentation.cpp",
             "libs/impex/animation/KisFFMpegWrapper.h",
             "libs/impex/animation/KisMediaEncoderWrapper.h",
             "libs/impex/ui/KisImportExportAsyncFeedback.h",
@@ -8468,39 +8531,6 @@
         },
         {
           "path": "libs/ui/KisWindowLayoutResource.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KoDocumentInfo.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/impex/ui/kis_png_converter.cpp",
-            "libs/libkis/Document.cpp",
-            "plugins/dockers/recorder/recorderdocker_dock.cpp",
-            "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
-            "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
-            "plugins/extensions/resourcemanager/page_metadata_info.cpp",
-            "plugins/extensions/resourcemanager/page_tag_chooser.cpp",
-            "plugins/extensions/resourcemanager/wdgtagselection.cpp",
-            "plugins/impex/jpeg/kis_jpeg_converter.cc",
-            "plugins/impex/jpeg/kis_jpeg_export.cc",
-            "plugins/impex/jxl/JPEGXLExport.cpp",
-            "plugins/impex/libkra/kis_kra_loader.cpp",
-            "plugins/impex/libkra/kis_kra_saver.cpp",
-            "plugins/impex/libkra/kra_converter.cpp",
-            "plugins/impex/rgbe/RGBEExport.cpp",
-            "plugins/impex/tiff/kis_tiff_export.cc",
-            "plugins/impex/tiff/kis_tiff_import.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/KoDocumentInfoDlg.h",
           "publicationEvidence": [
             "export-macro"
           ],

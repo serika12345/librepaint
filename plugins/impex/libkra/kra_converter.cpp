@@ -13,7 +13,7 @@
 #include <KoStore.h>
 #include <KoStoreDevice.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoDocumentInfo.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoXmlWriter.h>
 
 #include <KisDocument.h>
@@ -230,7 +230,9 @@ KisImportExportErrorCode KraConverter::saveRootDocuments(KoStore *store)
     if (store->open("documentinfo.xml")) {
         QDomDocument doc = KisDocument::createDomDocument("document-info"
                                                           /*DTD name*/, "document-info" /*tag name*/, "1.1");
-        doc = m_doc->documentInfo()->save(doc);
+        doc = m_doc->documentInfo()->save(doc,
+                                          m_doc->isAutosaving(),
+                                          m_doc->isModified());
         KoStoreDevice dev(store);
         QByteArray s = doc.toByteArray(); // this is already Utf8!
         bool success = dev.write(s.data(), s.size());

@@ -7,13 +7,12 @@
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
-#include "KoDocumentInfoDlg.h"
+#include <info/KoDocumentInfoDlg.h>
 
 #include "ui_koDocumentInfoAboutWidget.h"
 #include "ui_koDocumentInfoAuthorWidget.h"
 
-#include "KoDocumentInfo.h"
-#include "KisDocument.h"
+#include <metadata/KoDocumentInfo.h>
 #include "KoPageWidgetItem.h"
 #include <KoIcon.h>
 #include <kstandardguiitem.h>
@@ -21,9 +20,6 @@
 
 #include <klocalizedstring.h>
 
-#include <kmainwindow.h>
-#include <KoDialog.h>
-#include <QUrl>
 #include <QCompleter>
 #include <QLineEdit>
 #include <QDateTime>
@@ -59,16 +55,23 @@ public:
     QList<KPageWidgetItem*> pages;
     Ui::KoDocumentInfoAboutWidget* aboutUi {nullptr};
     Ui::KoDocumentInfoAuthorWidget* authorUi {nullptr};
+    QString filePath;
+    QByteArray mimeType;
 
     bool documentSaved {false};
 };
 
 
-KoDocumentInfoDlg::KoDocumentInfoDlg(QWidget* parent, KoDocumentInfo* docInfo)
+KoDocumentInfoDlg::KoDocumentInfoDlg(QWidget *parent,
+                                     KoDocumentInfo *docInfo,
+                                     const QString &filePath,
+                                     const QByteArray &mimeType)
     : KPageDialog(parent)
     , d(new KoDocumentInfoDlgPrivate)
 {
     d->info = docInfo;
+    d->filePath = filePath;
+    d->mimeType = mimeType;
 
     setWindowTitle(i18n("Document Information"));
     //    setInitialSize(QSize(500, 500));
@@ -91,18 +94,7 @@ KoDocumentInfoDlg::KoDocumentInfoDlg(QWidget* parent, KoDocumentInfo* docInfo)
     KPageWidgetItem *page = new KPageWidgetItem(infodlg, i18n("General"));
     page->setHeader(i18n("General"));
 
-    // Ugly hack, the mimetype should be a parameter, instead
-    KisDocument* doc = dynamic_cast< KisDocument* >(d->info->parent());
-    if (doc) {
-        page->setIcon(KisIconUtils::loadIcon(KisMimeDatabase::iconNameForMimeType(doc->mimeType())));
-    } else {
-        // hide all entries not used in pages for KoDocumentInfoPropsPage
-        d->aboutUi->filePathInfoLabel->setVisible(false);
-        d->aboutUi->filePathLabel->setVisible(false);
-        d->aboutUi->filePathSeparatorLine->setVisible(false);
-        d->aboutUi->lblTypeDesc->setVisible(false);
-        d->aboutUi->lblType->setVisible(false);
-    }
+    page->setIcon(KisIconUtils::loadIcon(KisMimeDatabase::iconNameForMimeType(d->mimeType)));
     addPage(page);
     d->pages.append(page);
 
@@ -158,11 +150,7 @@ bool KoDocumentInfoDlg::isDocumentSaved()
 
 void KoDocumentInfoDlg::initAboutTab()
 {
-    KisDocument* doc = dynamic_cast< KisDocument* >(d->info->parent());
-
-    if (doc) {
-        d->aboutUi->filePathLabel->setText(doc->localFilePath());
-    }
+    d->aboutUi->filePathLabel->setText(d->filePath);
 
     d->aboutUi->leTitle->setText(d->info->aboutInfo("title"));
     d->aboutUi->leSubject->setText(d->info->aboutInfo("subject"));
@@ -175,8 +163,8 @@ void KoDocumentInfoDlg::initAboutTab()
         d->aboutUi->leLicense->setText(d->info->aboutInfo("license"));
     }
     d->aboutUi->meDescription->setPlainText(d->info->aboutInfo("abstract"));
-    if (doc && !doc->mimeType().isEmpty()) {
-        d->aboutUi->lblType->setText(KisMimeDatabase::descriptionForMimeType(doc->mimeType()));
+    if (!d->mimeType.isEmpty()) {
+        d->aboutUi->lblType->setText(KisMimeDatabase::descriptionForMimeType(d->mimeType));
     }
     if (!d->info->aboutInfo("creation-date").isEmpty()) {
         QDateTime t = QDateTime::fromString(d->info->aboutInfo("creation-date"),
