@@ -172,6 +172,31 @@ evidence.
 R1 establishes the authoritative package map. During R1, current public
 boundaries remain stable while baseline contracts measure structural progress.
 
+### Refactoring Order and YAGNI
+
+Structural refactoring proceeds in this order:
+
+1. Make dependency paths one-directional.
+2. Replace vague package and target names with concrete responsibility names.
+3. Split and aggregate existing code by demonstrated areas of concern.
+4. Reconstruct logic and introduce abstractions only after the ownership and
+   dependency boundaries expose a current need.
+
+YAGNI has priority over speculative extensibility during refactoring. Prefer a
+direct dependency on a concrete owner when the direction is correct and one
+production implementation satisfies the current behavior. Do not introduce a
+use-case layer, port, adapter, repository, service locator, factory, registry,
+base class, or generic target solely for hypothetical replacement, future I/O
+isolation, or easier mocking.
+
+A new abstraction requires evidence in the active change: multiple current
+production implementations, a required deterministic test seam that values
+cannot provide, an external boundary that the requested behavior must replace,
+or a dependency cycle that ownership and relocation cannot remove. The same
+change supplies its production consumer and implementation, observable
+contract, ownership and lifetime, and concrete name. Plans do not reserve empty
+layers or targets for possible future abstractions.
+
 Names express responsibility. Packages named `utils`, `helpers`, `common`,
 `core`, or `types` require one documented responsibility and a clear
 dependency direction.
@@ -221,9 +246,11 @@ destruction behavior remain explicit. Stroke queues, update scheduling, image
 locking, projection updates, and GUI-thread boundaries receive deterministic
 tests or matching dynamic evidence.
 
-Filesystem, process, time, randomness, global state, and platform services
-enter deterministic logic through explicit adapters. Adapter boundaries
-validate external data before document or image state changes.
+When deterministic logic currently requires isolation from filesystem,
+process, time, randomness, global state, or platform services, prefer passing
+validated values and explicit results. Introduce an adapter only when the
+active behavior requires substitution or effect isolation, and validate
+external data before document or image state changes.
 
 Single responsibility guides reuse decisions. Shared abstractions emerge after
 their owners and reasons to change align.
