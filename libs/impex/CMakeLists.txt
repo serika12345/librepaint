@@ -6,6 +6,7 @@ set(kritaimpex_LIB_SRCS
     KisExportCheckBase.cpp
     KisPreExportChecker.cpp
     KisExportCheckRegistry.cpp
+    metadata/KoDocumentInfo.cpp
 )
 
 kis_add_library(kritaimpex SHARED ${kritaimpex_HEADERS_MOC} ${kritaimpex_LIB_SRCS})
@@ -20,7 +21,10 @@ target_link_libraries(kritaimpex
         kritaresourcestorage
     PRIVATE
         kritaplugin
+        kritaresources
         kritawidgetutils
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
 )
 
 set_target_properties(kritaimpex
@@ -112,7 +116,6 @@ target_include_directories(kritaimpexui
 
 target_link_libraries(kritaimpexui
     PUBLIC
-        kritadocument
         kritaimpex
         kritaimage
         kritapainting

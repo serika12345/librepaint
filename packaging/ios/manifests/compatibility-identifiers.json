@@ -148,7 +148,7 @@
           "value": "kritadisplayrc"
         },
         {
-          "source": "libs/document/metadata/KoDocumentInfo.cpp",
+          "source": "libs/impex/metadata/KoDocumentInfo.cpp",
           "value": "kritarc"
         },
         {

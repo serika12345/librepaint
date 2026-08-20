@@ -1,5 +1,4 @@
 set(kritadocument_LIB_SRCS
-    metadata/KoDocumentInfo.cpp
     session/kis_document_autosave_state.cpp
     session/kis_document_identity.cpp
     session/kis_document_modification_state.cpp
@@ -13,11 +12,6 @@ generate_export_header(kritadocument BASE_NAME kritadocument)
 target_link_libraries(kritadocument
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
-    PRIVATE
-        kritaresources
-        Qt${QT_MAJOR_VERSION}::Xml
-        KF${KF_MAJOR}::ConfigCore
-        KF${KF_MAJOR}::I18n
 )
 
 target_include_directories(kritadocument

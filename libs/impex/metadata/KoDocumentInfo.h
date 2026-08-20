@@ -14,7 +14,7 @@
 #include <QString>
 #include <QStringList>
 
-#include "kritadocument_export.h"
+#include "kritaimpex_export.h"
 
 class QDomDocument;
 class QDomElement;
@@ -31,7 +31,7 @@ class QDomElement;
  * stored in two QMap and can be accessed through aboutInfo() and authorInfo().
  * The about info can be changed with setAboutInfo() and setAuthorInfo()
  */
-class KRITADOCUMENT_EXPORT KoDocumentInfo : public QObject
+class KRITAIMPEX_EXPORT KoDocumentInfo : public QObject
 {
     Q_OBJECT
 

@@ -10,7 +10,7 @@
 
 #include <QDomDocument>
 
-class KisDocumentMetadataTest : public QObject
+class KisImportExportDocumentMetadataTest : public QObject
 {
     Q_OBJECT
 
@@ -19,7 +19,7 @@ private Q_SLOTS:
     void testParameterUpdateUsesExplicitModificationState();
 };
 
-void KisDocumentMetadataTest::testSaveUsesExplicitDocumentState()
+void KisImportExportDocumentMetadataTest::testSaveUsesExplicitDocumentState()
 {
     KoDocumentInfo info;
     info.setAboutInfo("editing-cycles", "4");
@@ -35,7 +35,7 @@ void KisDocumentMetadataTest::testSaveUsesExplicitDocumentState()
     QCOMPARE(info.aboutInfo("editing-cycles"), QString("5"));
 }
 
-void KisDocumentMetadataTest::testParameterUpdateUsesExplicitModificationState()
+void KisImportExportDocumentMetadataTest::testParameterUpdateUsesExplicitModificationState()
 {
     KoDocumentInfo info;
     info.setAuthorInfo("creator", "Explicit Author");
@@ -47,6 +47,6 @@ void KisDocumentMetadataTest::testParameterUpdateUsesExplicitModificationState()
     QCOMPARE(info.authorInfo("creator"), QString("Explicit Author"));
 }
 
-QTEST_GUILESS_MAIN(KisDocumentMetadataTest)
+QTEST_GUILESS_MAIN(KisImportExportDocumentMetadataTest)
 
 #include "kis_document_metadata_test.moc"

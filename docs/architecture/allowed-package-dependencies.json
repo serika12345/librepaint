@@ -442,6 +442,57 @@
       ]
     },
     {
+      "sourceTarget": "kritadocument",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "document-lifecycle"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritadocumentui",
+      "dependencyTarget": "kritadocument",
+      "sourceResponsibilities": [
+        "document-lifecycle"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritadocumentui",
+      "dependencyTarget": "kritaimpex",
+      "sourceResponsibilities": [
+        "document-lifecycle"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritadocumentui",
       "dependencyTarget": "kritapaintingundo",
       "sourceResponsibilities": [
@@ -454,6 +505,23 @@
         {
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritadocumentui",
+      "dependencyTarget": "kritaplugin",
+      "sourceResponsibilities": [
+        "document-lifecycle"
+      ],
+      "dependencyResponsibilities": [
+        "plugin-infrastructure"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "plugin-infrastructure",
           "status": "allowed"
         }
       ]
@@ -659,6 +727,23 @@
           "sourceResponsibility": "import-export",
           "dependencyResponsibility": "resource-management",
           "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritadocument",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "requires-r1-g4-baseline"
         }
       ]
     },
