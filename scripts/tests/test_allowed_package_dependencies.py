@@ -62,9 +62,9 @@ class AllowedPackageDependencyTests(unittest.TestCase):
         self.assertEqual(
             status_counts,
             {
-                "internal": 17,
-                "allowed": 70,
-                "requires-r1-g4-baseline": 26,
+                "internal": 18,
+                "allowed": 71,
+                "requires-r1-g4-baseline": 28,
             },
         )
         by_id = {

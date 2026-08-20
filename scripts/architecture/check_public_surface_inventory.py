@@ -28,8 +28,9 @@ PRODUCTION_SOURCE_DIRECTORIES = (
 TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
 PUBLICATION_EVIDENCE = ("export-macro", "compile-contract", "external-include")
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
-    "libs/document": (
-        "libs/document/tests/kis_document_undo_store_test.cpp",
+    "libs/document/ui": (
+        "libs/document/ui/tests/kis_document_undo_store_test.cpp",
+        "libs/document/ui/tests/kis_document_undo_ui_test.cpp",
     ),
     "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
     "libs/impex": ("libs/impex/tests/TestImportExportBoundary.cpp",),
@@ -68,15 +69,30 @@ PUBLIC_HEADER_SET_SPECS = (
         "ownerTarget": "kritadocument",
         "sourceDirectory": "libs/document",
         "headerDirectories": ["libs/document"],
-        "excludedHeaderDirectories": ["libs/document/tests"],
+        "excludedHeaderDirectories": ["libs/document/tests", "libs/document/ui"],
         "exportMacro": "KRITADOCUMENT_EXPORT",
         "responsibility": (
             "Records the declared document-domain surface for document lifetime "
-            "and undo coordination without presentation ownership."
+            "and session state without presentation ownership."
         ),
         "evidence": [
             "libs/document/CMakeLists.txt",
-            "libs/document/undo/kis_document_undo_store.h",
+            "libs/document/session/kis_document_identity.h",
+        ],
+    },
+    {
+        "ownerTarget": "kritadocumentui",
+        "sourceDirectory": "libs/document/ui",
+        "headerDirectories": ["libs/document/ui"],
+        "excludedHeaderDirectories": ["libs/document/ui/tests"],
+        "exportMacro": "KRITADOCUMENTUI_EXPORT",
+        "responsibility": (
+            "Records the declared document UI surface for connecting document "
+            "history to undo stacks, actions, and history presentation."
+        ),
+        "evidence": [
+            "libs/document/ui/CMakeLists.txt",
+            "libs/document/ui/undo/kis_document_undo_store.h",
         ],
     },
     {

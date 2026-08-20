@@ -56,7 +56,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
             )
         )
         internal = baseline["internalHeaderBaseline"]
-        self.assertEqual(len(internal), 6)
+        self.assertEqual(len(internal), 7)
         self.assertEqual(
             sum(len(entry["headers"]) for entry in internal), 7
         )

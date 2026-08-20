@@ -149,13 +149,12 @@
       "migrationWave": "R1-G6e",
       "current": {
         "sourceDirectories": [
-          "libs/command",
           "libs/document",
           "libs/ui"
         ],
         "cmakeTargets": [
-          "kritacommand",
           "kritadocument",
+          "kritadocumentui",
           "kritaui"
         ],
         "uiClassAreas": [
@@ -194,7 +193,7 @@
             "name": "kritadocumentui",
             "directory": "libs/document/ui",
             "role": "presentation",
-            "status": "new"
+            "status": "implemented"
           }
         ]
       },
@@ -946,7 +945,7 @@
         },
         {
           "from": "libs/command/{kundo2model,kundo2view}.{h,cpp}",
-          "to": "libs/document/ui",
+          "to": "libs/document/ui/undo",
           "target": "kritadocumentui"
         },
         {

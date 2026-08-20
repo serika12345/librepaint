@@ -76,12 +76,15 @@
 
 ### R1-G6e-P1 取り消し履歴の文書UI境界
 
+状態は`completed`とする。
+
 次の対応を一つの構造的関心として実装する。
 
 - `libs/document/undo/kis_document_undo_store.{h,cpp}`から
   `libs/document/ui/undo/kis_document_undo_store.{h,cpp}`へ移す。
 - `libs/command/{kundo2model,kundo2view}.{h,cpp}`から`libs/document/ui/undo`へ移す。
 - `kritadocumentui`を、文書と取り消し履歴の接続および履歴表示を所有する具体ターゲットとして作る。
+- 履歴表示だけを所有していた旧`kritacommand`を除去し、旧配置、転送ヘッダー、別名を残さない。
 
 既存の取消し、やり直し、マクロ、履歴通知、操作名、アクション有効状態、履歴表示を特性試験で
 固定する。完了時に`kritadocument`は`kritapaintingundo`への公開依存を持たず、公開リンク閉包が

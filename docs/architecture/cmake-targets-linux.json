@@ -2569,9 +2569,18 @@
     {
       "name": "kis_document_undo_store_test",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/document/tests",
+      "sourceDirectory": "libs/document/ui/tests",
       "dependencies": [
-        "kritadocument",
+        "kritadocumentui",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "kis_document_undo_ui_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/ui/tests",
+      "dependencies": [
+        "kritadocumentui",
         "kritatestsdk"
       ]
     },
@@ -4313,20 +4322,6 @@
       ]
     },
     {
-      "name": "kritacommand",
-      "type": "SHARED_LIBRARY",
-      "sourceDirectory": "libs/command",
-      "dependencies": [
-        "Boost::boost",
-        "KF6::ConfigGui",
-        "KF6::I18n",
-        "Qt6::Core",
-        "Qt6::Widgets",
-        "kritapaintingundo",
-        "kritawidgetutils"
-      ]
-    },
-    {
       "name": "kritacompositiondocker",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/compositiondocker",
@@ -4446,7 +4441,16 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/document",
       "dependencies": [
-        "Qt6::Core",
+        "Qt6::Core"
+      ]
+    },
+    {
+      "name": "kritadocumentui",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/document/ui",
+      "dependencies": [
+        "KF6::I18n",
+        "Qt6::Widgets",
         "kritapaintingundo"
       ]
     },
@@ -6155,6 +6159,7 @@
         "kritacanvas",
         "kritacolor",
         "kritadocument",
+        "kritadocumentui",
         "kritaimage",
         "kritaimpex",
         "kritaimpexui",

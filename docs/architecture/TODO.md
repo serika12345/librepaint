@@ -130,7 +130,7 @@ R1-G6e後半は、依存方向を一方向にした後、文書状態、文書�
 - [x] `libs/ui/KisDocument.cpp`の回復用自動保存要求、保存開始中の同期完了延期、既存保存への合流状態を起点として、`libs/document/session/kis_document_recovery_autosave_state.*`へ分離する。タイマー、保存開始、ファイル検証、完了通知を`KisDocument`に維持し、要求ごとの完了調停を固定する。
 - [x] `libs/ui/KisDocument.cpp`の回復済み文書状態を起点として、`libs/document/session/kis_document_recovery_status.*`へ分離する。回復データの探索と読込、保存後の回復ファイル消去、表示、通知を`KisDocument`に維持し、初期状態、遷移判定、値コピー、保存用スナップショットの既存状態を固定する。
 - [x] R1-G6e-P文書パッケージ境界について、依存方向、具体的な所有名、YAGNI、実装検査段階、完了条件を設計記録へ固定する。
-- [ ] R1-G6e-P1として、文書と取り消し履歴の接続および履歴表示を`kritadocumentui`へ移し、`kritadocument`の公開リンク閉包をQt Coreだけへ縮小する。
+- [x] R1-G6e-P1として、文書と取り消し履歴の接続および履歴表示を`kritadocumentui`へ移し、`kritadocument`の公開リンク閉包をQt Coreだけへ縮小する。
 - [ ] R1-G6e-P2として、文書のダイアログ、状態表示、Qt通知、文書情報編集を`kritadocumentui`へ集約する。
 - [ ] R1-G6e-P3として、文書ファイル、バックアップ、自動保存ファイル、回復ファイルの具体処理を`kritadocumentfiles`へ集約する。
 - [ ] R1-G6e-P4として、残る`KisDocument`メソッドと24クラスを実依存で再分類し、ロジック再構築または抽象化の現在必要な根拠を評価する。

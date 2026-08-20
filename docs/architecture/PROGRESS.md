@@ -2,14 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 09:47 JST
+- 更新日時: 2026-08-20 10:20 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e-P0文書パッケージ境界計画
+- 現在の検査段階: R1-G6e-P1取り消し履歴の文書UI境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-domain-separation-milestone`
-- 目的: R1-G6e後半を依存方向の一方向化、具体的な命名、文書状態・文書表示・
-  文書ファイル保存への集約として進め、現在必要な根拠のない層と抽象を追加しない
-  実装順と完了条件を固定する。
+- ブランチ: `r1-g6e-p1-document-undo-ui-boundary`
+- 目的: 文書状態の公開依存から取り消し履歴とQt Widgetsを除き、履歴接続、操作、表示を
+  具体的な文書UI所有へ集約する。
 
 ## 再開環境
 
@@ -530,6 +529,23 @@
   履歴表示を`libs/document/ui/undo`へ移す。`kritadocument`の公開リンク閉包をQt Coreだけへ
   縮小した状態をP1の完了条件とする。
 
+## R1-G6e-P1取り消し履歴の文書UI境界で完了した作業
+
+- `libs/document/undo/kis_document_undo_store.{h,cpp}`を起点として
+  `libs/document/ui/undo/kis_document_undo_store.{h,cpp}`へ移し、文書と画像所有の履歴を
+  接続する責務を`kritadocumentui`へ移した。
+- `libs/command/{kundo2model,kundo2view}.{h,cpp}`を起点として
+  `libs/document/ui/undo/{kundo2model,kundo2view}.{h,cpp}`へ移し、履歴の行、選択状態、
+  操作名、有効状態を文書UI所有へ集約した。
+- `kritaui`は`kritadocument`と`kritadocumentui`を直接利用する。`kritadocumentui`は
+  `kritapaintingundo`を利用し、`kritadocument`はQt Core以外の公開リンク依存を持たない。
+- 履歴表示だけを所有していた旧`kritacommand`ターゲットと`libs/command`の旧ファイルを
+  除去した。旧配置の転送ヘッダー、別名、互換ターゲットは追加していない。
+- 既存の履歴操作、マクロ、やり直し破棄、同期通知、非所有の借用寿命を維持し、履歴表示、
+  操作名、取消し・やり直しの有効状態、履歴選択による移動を新しい特性契約で固定した。
+- 新しい利用事例層、永続化層、接続面、アダプター、サービス探索器、共通基底は追加せず、
+  現在存在する実装と依存を具体的な所有へ移した。
+
 ## 検証状態
 
 - 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
@@ -858,14 +874,27 @@
   再配置計画、進捗スナップショットの整合を含む97件の単体試験と高速検査が成功した。
 - R1-G6e-P0は製品ソース、CMake、Nix出力を変更しない計画単位である。5構成の製品構築と
   macOS、Linuxの全ネイティブ試験は、直前の文書回復状態境界で記録した結果を維持する。
+- `kis_document_undo_ui_test`の初回構築は、新しい文書UIターゲットが存在しないため
+  Qt Widgetsの`QAction`を解決できない診断で失敗した。公開面契約も旧文書所有の
+  6ヘッダーを検出して失敗した。
+- 実装後の`kis_document_undo_store_test`と`kis_document_undo_ui_test`はmacOSで成功した。
+  履歴操作、通知、借用寿命に加え、操作名、取消し・やり直しの有効状態、履歴行、
+  履歴選択による移動を固定した。
+- macOSで`kritadocument`、`kritadocumentui`、`kritaui`の構築とリンクが成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 653件、Linux 668件、iOS 587件、
+  Android 593件、Windows 623件のターゲット、571件の共通ターゲット、119件の条件付き
+  ターゲット、258件の構成差を持つターゲットを記録した。21中核所有ターゲットと
+  全製品ターゲットは全構成で循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`: `kritadocument`の依存0件、
+  `kritadocumentui`から`kritapaintingundo`への依存、`kritaui`から両文書ターゲットへの依存、
+  公開面、責務、再配置計画、循環0件を含む97件の単体試験と高速検査が成功した。
 
 ## 次の操作
 
-R1-G6e-P0文書パッケージ境界計画をレビューして統合する。統合後はmasterを同期し、
-R1-G6e-P1として`libs/document/undo/kis_document_undo_store.{h,cpp}`と
-`libs/command/{kundo2model,kundo2view}.{h,cpp}`の履歴接続、通知、操作名、履歴表示の
-特性契約を追加する。初期診断を確認後、文書と取り消し履歴の接続および履歴表示を
-`libs/document/ui/undo`へ移し、`kritadocument`の公開依存をQt Coreだけへ縮小する。
+R1-G6e-P1取り消し履歴の文書UI境界をレビューして統合する。統合後はmasterを同期し、
+R1-G6e-P2として`libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知の接続と
+`libs/ui/KoDocumentInfoDlg.{h,cpp}`を起点に、文書表示の既存挙動と実依存を調査する。
+最小の特性契約で初期診断を確認してから`libs/document/ui`へ集約する。
 
 ## R1-G5完了根拠
 
