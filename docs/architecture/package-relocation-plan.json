@@ -187,7 +187,7 @@
             "name": "kritadocumentfiles",
             "directory": "libs/document/files",
             "role": "document-files",
-            "status": "new"
+            "status": "implemented"
           },
           {
             "name": "kritadocumentui",

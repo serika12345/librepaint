@@ -316,6 +316,7 @@
         "libs/document"
       ],
       "excludedHeaderDirectories": [
+        "libs/document/files",
         "libs/document/tests",
         "libs/document/ui"
       ],
@@ -386,6 +387,64 @@
       ]
     },
     {
+      "ownerTarget": "kritadocumentfiles",
+      "sourceDirectory": "libs/document/files",
+      "headerDirectories": [
+        "libs/document/files"
+      ],
+      "excludedHeaderDirectories": [
+        "libs/document/files/tests"
+      ],
+      "exportMacro": "KRITADOCUMENTFILES_EXPORT",
+      "responsibility": "Records the concrete document-file surface for save-target inspection, backup creation, autosave paths, and recovery files.",
+      "evidence": [
+        "libs/document/files/CMakeLists.txt",
+        "libs/document/files/kis_document_autosave_files.h"
+      ],
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/document/files/kis_document_autosave_files.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+            "libs/ui/KisApplication.cpp",
+            "libs/ui/KisDocument.cpp",
+            "libs/ui/KisView.cpp"
+          ]
+        },
+        {
+          "path": "libs/document/files/kis_document_backup_file.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisDocument.cpp"
+          ]
+        },
+        {
+          "path": "libs/document/files/kis_document_save_target.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisDocument.cpp"
+          ]
+        }
+      ]
+    },
+    {
       "ownerTarget": "kritadocumentui",
       "sourceDirectory": "libs/document/ui",
       "headerDirectories": [
@@ -438,8 +497,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisApplication.cpp",
-            "libs/ui/KisDocument.cpp"
+            "libs/ui/KisApplication.cpp"
           ]
         },
         {

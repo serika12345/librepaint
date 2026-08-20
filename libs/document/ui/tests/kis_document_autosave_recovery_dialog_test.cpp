@@ -17,13 +17,15 @@ private Q_SLOTS:
 
 void KisDocumentAutoSaveRecoveryDialogTest::keepsRecoverableFilesSelectedUntilTheyAreDiscarded()
 {
-    const QStringList files {
-        QStringLiteral("first-autosave.kra"),
-        QStringLiteral("second-autosave.kra"),
+    const QList<Krita::Document::KisDocumentAutoSaveFile> files {
+        {QStringLiteral("first-autosave.kra"), {}, {}, {}},
+        {QStringLiteral("second-autosave.kra"), {}, {}, {}},
     };
     KisAutoSaveRecoveryDialog dialog(files);
 
-    QCOMPARE(dialog.recoverableFiles(), files);
+    QCOMPARE(dialog.recoverableFiles(),
+             QStringList({QStringLiteral("first-autosave.kra"),
+                          QStringLiteral("second-autosave.kra")}));
 
     dialog.slotDeleteAll();
 

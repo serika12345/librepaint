@@ -288,11 +288,13 @@
       ],
       "ownerTargets": [
         "kritadocument",
+        "kritadocumentfiles",
         "kritadocumentui",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [
         "kritadocument",
+        "kritadocumentfiles",
         "kritadocumentui"
       ],
       "reviewedPublicHeaderPaths": [],

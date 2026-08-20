@@ -313,11 +313,6 @@ public:
     KoDocumentInfo *documentInfo() const;
 
     /**
-     * Performs a cleanup of unneeded backup files
-     */
-    void removeAutoSaveFiles(const QString &autosaveBaseName, bool wasRecovered);
-
-    /**
      * Returns true if this document or any of its internal child documents are modified.
      */
     bool isModified() const;
@@ -576,8 +571,6 @@ private:
      * Generate a name for the document.
      */
     QString newObjectName();
-
-    QString generateAutoSaveFileName(const QString & path) const;
 
     /**
      *  Loads a document

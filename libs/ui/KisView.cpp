@@ -15,6 +15,7 @@
 #include <KoToolManager.h>
 
 #include <kis_icon.h>
+#include <files/kis_document_autosave_files.h>
 
 #include <kactioncollection.h>
 #include <klocalizedstring.h>
@@ -1182,7 +1183,13 @@ bool KisView::queryClose()
             image->requestStrokeCancellation();
             viewManager()->blockUntilOperationsFinishedForced(image);
 
-            document()->removeAutoSaveFiles(document()->localFilePath(), document()->isRecovered());
+            Krita::Document::KisDocumentAutoSaveFiles::removeForDocument(
+                document()->localFilePath(),
+                document()->isRecovered(),
+                Krita::Document::KisDocumentAutoSaveFiles::directory(),
+                qApp->applicationPid(),
+                document()->objectName(),
+                KisConfig(true).readEntry<bool>("autosavefileshidden"));
             document()->setModified(false);   // Now when queryClose() is called by closeEvent it won't do anything.
             break;
         }
