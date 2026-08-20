@@ -442,23 +442,6 @@
       ]
     },
     {
-      "sourceTarget": "kritadocument",
-      "dependencyTarget": "kritaresources",
-      "sourceResponsibilities": [
-        "document-lifecycle"
-      ],
-      "dependencyResponsibilities": [
-        "resource-management"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
       "sourceTarget": "kritadocumentui",
       "dependencyTarget": "kritadocument",
       "sourceResponsibilities": [
@@ -715,7 +698,7 @@
     },
     {
       "sourceTarget": "kritaimpex",
-      "dependencyTarget": "kritaresourcestorage",
+      "dependencyTarget": "kritaresources",
       "sourceResponsibilities": [
         "import-export"
       ],
@@ -731,19 +714,19 @@
       ]
     },
     {
-      "sourceTarget": "kritaimpexui",
-      "dependencyTarget": "kritadocument",
+      "sourceTarget": "kritaimpex",
+      "dependencyTarget": "kritaresourcestorage",
       "sourceResponsibilities": [
         "import-export"
       ],
       "dependencyResponsibilities": [
-        "document-lifecycle"
+        "resource-management"
       ],
       "projections": [
         {
           "sourceResponsibility": "import-export",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
         }
       ]
     },

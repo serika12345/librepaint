@@ -79,6 +79,14 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
             by_id["document-lifecycle"]["publicHeaderPaths"],
         )
+        self.assertIn(
+            "libs/document/ui/io/kis_document_io_presentation.h",
+            by_id["document-lifecycle"]["publicHeaderPaths"],
+        )
+        self.assertIn(
+            "libs/impex/metadata/KoDocumentInfo.h",
+            by_id["import-export"]["publicHeaderPaths"],
+        )
         self.assertNotIn(
             "kritacommand",
             by_id["document-lifecycle"]["ownerTargets"],
@@ -125,7 +133,10 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         self.assertEqual(
             target_by_name["kritadocumentui"]["repositoryDependencies"],
             [
+                "kritadocument",
+                "kritaimpex",
                 "kritapaintingundo",
+                "kritaplugin",
                 "kritaresourcestorage",
                 "kritawidgets",
                 "kritawidgetutils",

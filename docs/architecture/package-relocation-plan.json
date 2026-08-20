@@ -198,7 +198,7 @@
         ]
       },
       "completionCriteria": [
-        "Document identity, modified state, and metadata are owned by kritadocument with a Qt Core-only public link closure.",
+        "Document identity and modified state are owned by kritadocument with a Qt Core-only public link closure; serialized document information is owned by kritaimpex.",
         "Document file, backup, autosave-file, and recovery-file handling is owned by kritadocumentfiles through direct dependencies on existing public surfaces.",
         "Document dialogs, status presentation, metadata editing, undo connection, and undo history presentation are owned by kritadocumentui."
       ]
@@ -944,8 +944,8 @@
           "target": "kritadocumentfiles"
         },
         {
-          "from": "libs/ui::<document presentation and interaction wiring>",
-          "to": "libs/document/ui",
+          "from": "libs/ui/KisDocument.cpp save and load dialogs, status presentation, and Qt notification wiring",
+          "to": "libs/document/ui/io/kis_document_io_presentation.{h,cpp}",
           "target": "kritadocumentui"
         },
         {
@@ -955,12 +955,17 @@
         },
         {
           "from": "libs/ui/KoDocumentInfo.{h,cpp}",
-          "to": "libs/document/metadata",
-          "target": "kritadocument"
+          "to": "libs/impex/metadata",
+          "target": "kritaimpex"
         },
         {
           "from": "libs/ui/KoDocumentInfoDlg.{h,cpp}",
-          "to": "libs/document/ui",
+          "to": "libs/document/ui/info",
+          "target": "kritadocumentui"
+        },
+        {
+          "from": "libs/ui/dialogs/KisRecoverNamedAutosaveDialog.{h,cpp,ui}",
+          "to": "libs/document/ui/recovery",
           "target": "kritadocumentui"
         }
       ],

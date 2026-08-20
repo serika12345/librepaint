@@ -955,6 +955,7 @@
       "sourceDirectory": "libs/impex/tests",
       "dependencies": [
         "Qt5::Test",
+        "Qt5::Xml",
         "kritaimpex"
       ]
     },
@@ -2258,7 +2259,6 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
-        "Qt5::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -2268,7 +2268,6 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
-        "Qt5::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -2298,11 +2297,11 @@
     {
       "name": "kis_document_metadata_test",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/document/tests",
+      "sourceDirectory": "libs/impex/tests",
       "dependencies": [
+        "Qt5::Test",
         "Qt5::Xml",
-        "kritadocument",
-        "kritatestsdk"
+        "kritaimpex"
       ]
     },
     {
@@ -2310,7 +2309,6 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
-        "Qt5::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -2331,7 +2329,6 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
-        "Qt5::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -2341,7 +2338,6 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
       "dependencies": [
-        "Qt5::Xml",
         "kritadocument",
         "kritatestsdk"
       ]
@@ -4062,11 +4058,7 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/document",
       "dependencies": [
-        "KF5::ConfigCore",
-        "KF5::I18n",
-        "Qt5::Core",
-        "Qt5::Xml",
-        "kritaresources"
+        "Qt5::Core"
       ]
     },
     {
@@ -4448,10 +4440,13 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/impex",
       "dependencies": [
+        "KF5::ConfigCore",
         "KF5::CoreAddons",
         "KF5::I18n",
+        "Qt5::Xml",
         "kritaimage",
         "kritaplugin",
+        "kritaresources",
         "kritaresourcestorage",
         "kritawidgetutils"
       ]
@@ -4472,7 +4467,6 @@
         "Qt5::Concurrent",
         "Qt5::Network",
         "Qt5::Widgets",
-        "kritadocument",
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",

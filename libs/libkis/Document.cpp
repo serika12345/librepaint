@@ -260,9 +260,7 @@ QString Document::documentInfo() const
 {
     QDomDocument doc = KisDocument::createDomDocument("document-info"
                                                       /*DTD name*/, "document-info" /*tag name*/, "1.1");
-    doc = d->document->documentInfo()->save(doc,
-                                            d->document->isAutosaving(),
-                                            d->document->isModified());
+    doc = d->document->documentInfo()->save(doc, d->document->isAutosaving(), d->document->isModified());
     return doc.toString();
 }
 

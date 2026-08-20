@@ -321,7 +321,6 @@
         "document-metadata"
       ],
       "publicHeaderPaths": [
-        "libs/document/metadata/KoDocumentInfo.h",
         "libs/document/session/kis_document_autosave_state.h",
         "libs/document/session/kis_document_identity.h",
         "libs/document/session/kis_document_modification_state.h",
@@ -434,6 +433,7 @@
         "libs/impex/animation/KisMediaEncoderWrapper.h",
         "libs/impex/animation/KisVideoSaver.h",
         "libs/impex/kis_store_paintdevice_writer.h",
+        "libs/impex/metadata/KoDocumentInfo.h",
         "libs/impex/ui/KisImportExportColorSpaceDialog.h",
         "libs/impex/ui/KisImportExportManager.h",
         "libs/impex/ui/KisImportExportResizeWidget.h",
@@ -1612,12 +1612,9 @@
         "SHARED_LIBRARY",
         "STATIC_LIBRARY"
       ],
-      "repositoryDependencies": [
-        "kritaresources"
-      ],
+      "repositoryDependencies": [],
       "repositoryConsumers": [
         "kritadocumentui",
-        "kritaimpexui",
         "kritaui"
       ]
     },
@@ -1744,6 +1741,7 @@
       "repositoryDependencies": [
         "kritaimage",
         "kritaplugin",
+        "kritaresources",
         "kritaresourcestorage",
         "kritawidgetutils"
       ],
@@ -1788,7 +1786,6 @@
         "OBJECT_LIBRARY"
       ],
       "repositoryDependencies": [
-        "kritadocument",
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",
@@ -2011,8 +2008,8 @@
       ],
       "repositoryConsumers": [
         "kritadbexplorer",
-        "kritadocument",
         "kritaimage",
+        "kritaimpex",
         "kritaimpexui",
         "kritamypaintop_static",
         "kritapigment",
