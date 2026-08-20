@@ -203,4 +203,3 @@ QIcon KUndo2Model::cleanIcon() const
 {
     return m_clean_icon;
 }
-

@@ -643,6 +643,7 @@ target_link_libraries(kritaui
         kritacanvas
     PRIVATE
         kritadocument
+        kritadocumentui
         kritaimpexui
         kritaresourceui
         kritaxmlserialization
