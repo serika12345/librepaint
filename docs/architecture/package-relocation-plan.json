@@ -934,6 +934,11 @@
           "target": "kritadocumentui"
         },
         {
+          "from": "libs/ui/KisAutoSaveRecoveryDialog.{h,cpp}",
+          "to": "libs/document/ui/recovery",
+          "target": "kritadocumentui"
+        },
+        {
           "from": "libs/ui/KisDocument.cpp document file, backup, autosave-file, and recovery-file handling",
           "to": "libs/document/files",
           "target": "kritadocumentfiles"

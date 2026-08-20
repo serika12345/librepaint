@@ -459,6 +459,23 @@
       ]
     },
     {
+      "sourceTarget": "kritadocumentui",
+      "dependencyTarget": "kritaresourcestorage",
+      "sourceResponsibilities": [
+        "document-lifecycle"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritaflake",
       "dependencyTarget": "kritapaintingundo",
       "sourceResponsibilities": [

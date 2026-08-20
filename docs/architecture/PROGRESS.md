@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 10:56 JST
+- 更新日時: 2026-08-20 16:19 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e-P1取り消し履歴の文書UI境界
+- 現在の検査段階: R1-G6e-P1独立した文書UIの一括移設
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6e-p1-document-undo-ui-boundary`
-- 目的: 文書状態の公開依存から取り消し履歴とQt Widgetsを除き、履歴接続、操作、表示を
-  具体的な文書UI所有へ集約する。
+- 目的: 独立ファイルとして移設できる取り消し履歴UIと自動保存回復UIを一つのPRにまとめ、
+  文書状態の公開依存から分離して具体的な文書UI所有へ集約する。
 
 ## 再開環境
 
@@ -521,7 +521,7 @@
 - `docs/architecture/document-package-boundary-plan.md`に、文書状態の`kritadocument`、
   文書ファイル保存の`kritadocumentfiles`、文書表示の`kritadocumentui`という
   現在確認できる具体所有と一方向の依存を記録した。
-- 実装をP1取り消し履歴の文書UI境界、P2文書表示の集約、P3文書ファイル保存の集約、
+- 実装をP1独立した文書UIの一括移設、P2文書表示の構造分離、P3文書ファイル保存の構造分離、
   P4残る境界評価の4検査段階へ分けた。ロジック再構築とI/O隔離はP4で現在の根拠を
   確認してから独立段階として計画する。
 - 最初の実装単位は`libs/document/undo/kis_document_undo_store.{h,cpp}`と
@@ -529,7 +529,7 @@
   履歴表示を`libs/document/ui/undo`へ移す。`kritadocument`の公開リンク閉包をQt Coreだけへ
   縮小した状態をP1の完了条件とする。
 
-## R1-G6e-P1取り消し履歴の文書UI境界で完了した作業
+## R1-G6e-P1独立した文書UIの一括移設で完了した作業
 
 - `libs/document/undo/kis_document_undo_store.{h,cpp}`を起点として
   `libs/document/ui/undo/kis_document_undo_store.{h,cpp}`へ移し、文書と画像所有の履歴を
@@ -545,6 +545,12 @@
   操作名、取消し・やり直しの有効状態、履歴選択による移動を新しい特性契約で固定した。
 - 新しい利用事例層、永続化層、接続面、アダプター、サービス探索器、共通基底は追加せず、
   現在存在する実装と依存を具体的な所有へ移した。
+- `libs/ui/KisAutoSaveRecoveryDialog.{h,cpp}`を起点として
+  `libs/document/ui/recovery/KisAutoSaveRecoveryDialog.{h,cpp}`へ移し、回復候補の一覧、選択、
+  一括破棄、プラットフォーム別回復場所を`kritadocumentui`へ集約した。
+- 独立ファイルの移設は同じPRへまとめた。`KoDocumentInfo`、`KoDocumentInfoDlg`、
+  `KisDocument.cpp`内の保存処理は上位状態へ直接依存し、別ライブラリー化にAPIと責務の
+  再構築が必要なため、機械的移設ではなくP2とP3の構造変更として扱う。
 
 ## 検証状態
 
@@ -900,10 +906,16 @@
   一致を確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
 - `nix flake check --no-build --all-systems --no-eval-cache`: 取り消し履歴の文書UI境界分離後の
   全Nix出力の評価が成功した。
+- `kis_document_autosave_recovery_dialog_test`の初回構築は、新しい文書UI所有の回復ダイアログ
+  ヘッダーが存在しない診断で失敗した。実装後は回復候補の初期選択と一括破棄がmacOSで
+  成功し、`kritaui`も新しい所有先を直接利用してリンクした。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 654件、Linux 669件、iOS 588件、
+  Android 594件、Windows 624件のターゲット、572件の共通ターゲット、119件の条件付き
+  ターゲット、258件の構成差を持つターゲットを記録した。
 
 ## 次の操作
 
-R1-G6e-P1取り消し履歴の文書UI境界をレビューして統合する。統合後はmasterを同期し、
+R1-G6e-P1独立した文書UIの一括移設をレビューして統合する。統合後はmasterを同期し、
 R1-G6e-P2として`libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知の接続と
 `libs/ui/KoDocumentInfoDlg.{h,cpp}`を起点に、文書表示の既存挙動と実依存を調査する。
 最小の特性契約で初期診断を確認してから`libs/document/ui`へ集約する。

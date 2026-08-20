@@ -74,24 +74,32 @@
 状態は`completed`とする。`AGENTS.md`、この計画、R1 TODO、進捗スナップショット、
 再配置計画が、リファクタリング順序、YAGNI、具体所有、検証条件を同じ内容で記録する。
 
-### R1-G6e-P1 取り消し履歴の文書UI境界
+### R1-G6e-P1 独立した文書UIの一括移設
 
 状態は`completed`とする。
 
-次の対応を一つの構造的関心として実装する。
+次の独立ファイル移設を一つのPRとして実装する。
 
 - `libs/document/undo/kis_document_undo_store.{h,cpp}`から
   `libs/document/ui/undo/kis_document_undo_store.{h,cpp}`へ移す。
 - `libs/command/{kundo2model,kundo2view}.{h,cpp}`から`libs/document/ui/undo`へ移す。
-- `kritadocumentui`を、文書と取り消し履歴の接続および履歴表示を所有する具体ターゲットとして作る。
+- `libs/ui/KisAutoSaveRecoveryDialog.{h,cpp}`から
+  `libs/document/ui/recovery/KisAutoSaveRecoveryDialog.{h,cpp}`へ移す。
+- `kritadocumentui`を、文書と取り消し履歴の接続、履歴表示、自動保存回復表示を所有する
+  具体ターゲットとして作る。
 - 履歴表示だけを所有していた旧`kritacommand`を除去し、旧配置、転送ヘッダー、別名を残さない。
 
-既存の取消し、やり直し、マクロ、履歴通知、操作名、アクション有効状態、履歴表示を特性試験で
-固定する。完了時に`kritadocument`は`kritapaintingundo`への公開依存を持たず、公開リンク閉包が
-Qt Coreだけで成立する。
+既存の取消し、やり直し、マクロ、履歴通知、操作名、アクション有効状態、履歴表示に加え、
+回復候補の初期選択と一括破棄を特性試験で固定する。完了時に`kritadocument`は
+`kritapaintingundo`への公開依存を持たず、公開リンク閉包がQt Coreだけで成立する。
 
 `KUndo2Stack`と`KUndo2Group`自体は既存の公開記号を持つため移動しない。文書境界の修正に
 必要な接続と表示だけを移し、汎用取り消しライブラリーのAPI／ABI移行を同じPRへ含めない。
+
+独立した製品ファイルを実装変更なしで所有ターゲットへ移せる変更はP1の一つのPRへまとめる。
+`KoDocumentInfo`、`KoDocumentInfoDlg`、`KisDocument.cpp`内の処理は`KisDocument`の状態と
+上位UI型へ直接依存しており、別ライブラリー化にはAPIと責務の再構築が必要である。このため
+ファイル移動に見せかけた循環依存や互換層を追加せず、P2とP3の構造変更として扱う。
 
 ### R1-G6e-P2 文書表示の集約
 

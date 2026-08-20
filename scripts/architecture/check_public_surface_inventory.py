@@ -29,6 +29,7 @@ TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
 PUBLICATION_EVIDENCE = ("export-macro", "compile-contract", "external-include")
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/document/ui": (
+        "libs/document/ui/tests/kis_document_autosave_recovery_dialog_test.cpp",
         "libs/document/ui/tests/kis_document_undo_store_test.cpp",
         "libs/document/ui/tests/kis_document_undo_ui_test.cpp",
     ),
@@ -88,10 +89,12 @@ PUBLIC_HEADER_SET_SPECS = (
         "exportMacro": "KRITADOCUMENTUI_EXPORT",
         "responsibility": (
             "Records the declared document UI surface for connecting document "
-            "history to undo stacks, actions, and history presentation."
+            "history to undo stacks, actions, history presentation, and "
+            "autosave recovery selection."
         ),
         "evidence": [
             "libs/document/ui/CMakeLists.txt",
+            "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
             "libs/document/ui/undo/kis_document_undo_store.h",
         ],
     },

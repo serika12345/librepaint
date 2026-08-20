@@ -2215,6 +2215,15 @@
       ]
     },
     {
+      "name": "kis_document_autosave_recovery_dialog_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/ui/tests",
+      "dependencies": [
+        "kritadocumentui",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "kis_document_autosave_state_test",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
@@ -4127,8 +4136,12 @@
       "sourceDirectory": "libs/document/ui",
       "dependencies": [
         "KF6::I18n",
+        "KF6::ItemViews",
         "Qt6::Widgets",
-        "kritapaintingundo"
+        "kritapaintingundo",
+        "kritaresourcestorage",
+        "kritawidgets",
+        "kritawidgetutils"
       ]
     },
     {

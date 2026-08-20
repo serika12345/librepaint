@@ -333,6 +333,10 @@ R1-G6eの最初の独立単位は、`libs/ui/kis_document_undo_store.*`を起点
 Qt Coreだけで公開リンク閉包を構成する。履歴の現在位置、追加、取消し、マクロ、やり直し破棄、
 同一スレッド上の同期通知、非所有の借用寿命に加え、操作名、有効状態、履歴行、選択による
 履歴移動を専用契約で固定した。旧`kritacommand`、旧配置、転送ヘッダー、別名は存在しない。
+同じ一括移設で`libs/ui/KisAutoSaveRecoveryDialog.*`を
+`libs/document/ui/recovery/KisAutoSaveRecoveryDialog.*`へ移し、回復候補の初期選択と一括破棄を
+文書UI契約として固定した。`KisDocument`状態へ直接依存してAPI再構築を要する文書情報編集と
+保存処理は、機械的なファイル移動とは区別して後続の構造変更で扱う。
 
 R1-G6eの第2の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた文書パス、
 入出力実装へ渡す実ファイルパス、現在のMIME形式、自動判定由来を起点とする。

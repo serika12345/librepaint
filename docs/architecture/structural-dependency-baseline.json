@@ -105,6 +105,10 @@
       ],
       "actualResponsibilityPairs": [
         {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle"
+        },
+        {
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation"
         },
@@ -135,6 +139,28 @@
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "unique-owner-target",
           "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -197,6 +223,28 @@
           "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "undo/kis_document_undo_store.h",
           "headerPath": "libs/document/ui/undo/kis_document_undo_store.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
@@ -2262,11 +2310,37 @@
       ],
       "actualResponsibilityPairs": [
         {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle"
+        },
+        {
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle"
         }
       ],
       "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocument",
@@ -2328,6 +2402,28 @@
           "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "undo/kis_document_undo_store.h",
           "headerPath": "libs/document/ui/undo/kis_document_undo_store.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentui",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "recovery/KisAutoSaveRecoveryDialog.h",
+          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",

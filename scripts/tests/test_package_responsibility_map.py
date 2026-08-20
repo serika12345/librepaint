@@ -75,6 +75,10 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "libs/document/ui/undo/kis_document_undo_store.h",
             by_id["document-lifecycle"]["publicHeaderPaths"],
         )
+        self.assertIn(
+            "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
+            by_id["document-lifecycle"]["publicHeaderPaths"],
+        )
         self.assertNotIn(
             "kritacommand",
             by_id["document-lifecycle"]["ownerTargets"],
@@ -120,7 +124,12 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         )
         self.assertEqual(
             target_by_name["kritadocumentui"]["repositoryDependencies"],
-            ["kritapaintingundo"],
+            [
+                "kritapaintingundo",
+                "kritaresourcestorage",
+                "kritawidgets",
+                "kritawidgetutils",
+            ],
         )
         self.assertIn(
             "kritadocumentui",

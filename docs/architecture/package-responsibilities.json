@@ -326,6 +326,7 @@
         "libs/document/session/kis_document_modification_state.h",
         "libs/document/session/kis_document_recovery_autosave_state.h",
         "libs/document/session/kis_document_recovery_status.h",
+        "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
         "libs/document/ui/undo/kis_document_undo_store.h",
         "libs/document/ui/undo/kundo2view.h",
         "libs/ui/KisDocument.h",
@@ -1631,7 +1632,10 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
-        "kritapaintingundo"
+        "kritapaintingundo",
+        "kritaresourcestorage",
+        "kritawidgets",
+        "kritawidgetutils"
       ],
       "repositoryConsumers": [
         "kritaui"
@@ -2026,6 +2030,7 @@
       "repositoryDependencies": [],
       "repositoryConsumers": [
         "krita_flaketools",
+        "kritadocumentui",
         "kritaflake",
         "kritaimage",
         "kritaimpex",
