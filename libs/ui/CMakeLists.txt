@@ -635,6 +635,7 @@ target_link_libraries(kritaui
         kritacanvas
         kritadocument
     PRIVATE
+        kritadocumentfiles
         kritadocumentui
         kritaimpexui
         kritaresourceui

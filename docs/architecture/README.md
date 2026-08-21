@@ -126,7 +126,7 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | --- | --- | --- |
 | `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
 | `canvas-presentation` | `kritabasicflakes`、`kritacanvas`、`kritaflake`、`kritaui` | 座標変換、キャンバス表示、ベクター表示、ドッカー |
-| `document-lifecycle` | `kritadocument`、`kritadocumentui`、`kritaui` | 文書寿命、変更状態、取り消し履歴、文書調整 |
+| `document-lifecycle` | `kritadocument`、`kritadocumentfiles`、`kritadocumentui`、`kritaui` | 文書寿命、変更状態、保存用ファイル、取り消し履歴、文書調整 |
 | `import-export` | `kritaimpex`、`kritaimpexui` | 形式選択、検証、文書入出力、利用者への結果通知 |
 | `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
 | `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
@@ -134,7 +134,7 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
 | `tool-invocation` | `kritatoolsui`、`kritaui` | 描画設定表示とキャンバス状態へのツール呼出し |
 
-`targetRelations`は21の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
+`targetRelations`は22の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
 ターゲット間の直接依存および利用元を和集合で記録する。この地図は現在の所有関係を表し、
 R1-G3bで定義する許可依存方向の比較元になる。
 
@@ -168,9 +168,9 @@ R1-G3bで定義する許可依存方向の比較元になる。
 検証済みファクトリーを明示された機能レジストリーへ登録する。このリンク方向と、登録時に
 機能レジストリーへ渡る制御を区別する。
 
-`currentTargetEdges`は21の中核所有ターゲット間にある57の直接リンクを責務へ射影する。
-`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は113候補の
-うち17候補が同一責務内、70候補が許可方向、26候補が`requires-r1-g4-baseline`である。
+`currentTargetEdges`は22の中核所有ターゲット間にある65の直接リンクを責務へ射影する。
+`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は129候補の
+うち21候補が同一責務内、78候補が許可方向、30候補が`requires-r1-g4-baseline`である。
 最後の分類は共有ターゲットが作る曖昧な候補を含むため、R1-G4で実際のincludeと利用箇所を
 根拠に既存違反基準へ確定する。
 
@@ -216,9 +216,9 @@ CMakeターゲット循環、公開宣言を持たないヘッダーのパッケ
 移した結果、入出力責務をUI共有ターゲットへ射影する候補は存在しない。各解決は元のターゲット辺、5構成、実際の責務対、ソース、include、
 ヘッダーを記録し、新たな未帰属候補を診断する。
 
-ターゲット循環は、21の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 221件、Linux 227件、iOS 213件、Android 213件、
-Windows 230件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
+ターゲット循環は、22の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
+2範囲を検査する。全製品範囲はmacOS 222件、Linux 228件、iOS 214件、Android 214件、
+Windows 231件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
@@ -408,10 +408,12 @@ R1-G6e後半は[文書パッケージ境界計画](document-package-boundary-pla
 `libs/document/ui/io`へ、文書情報編集と名前付き自動保存回復ダイアログを
 `libs/document/ui/info`と`libs/document/ui/recovery`へ集約した。`KoDocumentInfo`は
 `libs/impex/metadata`へ移し、入出力が上位の文書寿命へ依存する辺を作らずに、文書状態を
-明示値として受け取る。次は既存の具体的なファイル処理を文書ファイル保存へ集約する。
-形式選択と形式変換は既存の入出力所有に維持する。パッケージ境界の成立後に残る依存と
-試験困難性を再評価し、現在必要な
-根拠を持つ場合だけロジック再構築または抽象化を独立した検査段階として追加する。
+明示値として受け取る。第3段階では`libs/ui/KisDocument.cpp`と自動保存回復UIにあった
+保存先検査、バックアップ、自動保存名、回復候補の探索と読込、使用可否判定、消去を
+`libs/document/files`へ集約した。文書UIは生成済みの回復候補値を表示し、形式選択と形式変換、
+直列化、非同期保存は既存の入出力所有と文書調整に維持する。次の境界評価で残る依存と
+試験困難性を再分類し、現在必要な根拠を持つ場合だけロジック再構築または抽象化を
+独立した検査段階として追加する。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

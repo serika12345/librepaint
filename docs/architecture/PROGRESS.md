@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-20 19:37 JST
+- 更新日時: 2026-08-20 22:36 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e-P2文書表示の集約
+- 現在の検査段階: R1-G6e-P3文書ファイル保存の集約
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-p2-document-presentation`
-- 目的: `KisDocument`内の保存・読込表示とQt通知、文書情報編集、名前付き自動保存回復表示を
-  具体的な文書UI所有へ集約し、直列化される文書情報を入出力所有へ移して依存を一方向にする。
+- ブランチ: `r1-g6e-p3-document-files`
+- 目的: `KisDocument`と自動保存回復UI内の保存先判定、バックアップ、自動保存名、回復ファイル
+  読込と消去を、具体的な文書ファイル所有へ集約して依存を一方向にする。
 
 ## 再開環境
 
@@ -968,11 +968,51 @@
   成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
   成功した。
 
+## R1-G6e-P3で完了した作業
+
+- `libs/ui/KisDocument.cpp`の保存先検査、バックアップ、自動保存名、回復ファイル消去を起点に、
+  `libs/document/files/kis_document_save_target.{h,cpp}`、
+  `kis_document_backup_file.{h,cpp}`、`kis_document_autosave_files.{h,cpp}`へ集約した。
+  `libs/document/files`を具体的な文書ファイル処理の所有先とする`kritadocumentfiles`を構築した。
+- `libs/document/ui/recovery/KisAutoSaveRecoveryDialog.{h,cpp}`の回復ファイル読込を起点に、
+  回復候補の探索、更新時刻、プレビュー読込を`kis_document_autosave_files`へ移した。
+  ダイアログは生成済みの回復候補値を表示し、選択結果を返す。
+- `libs/ui/KisApplication.cpp`と`libs/ui/KisView.cpp`は、起動時の回復調整と破棄操作を維持し、
+  自動保存ファイルの探索、パス組立て、使用可否判定、消去を`kritadocumentfiles`へ委ねる。
+- 旧配置の公開メソッド、転送ヘッダー、別名は残していない。既存の形式選択、形式変換、
+  直列化、非同期保存は既存`kritaimpex`と`KisDocument`に維持し、新しい利用事例層、
+  汎用永続化層、接続面、アダプター、サービス、リポジトリーは追加していない。
+- 文書ファイル契約の初回構築は、`files/kis_document_autosave_files.h`が存在しない診断で
+  失敗した。実装後は保存先の存在と書込可否、単純および世代付きバックアップ、自動保存名、
+  回復候補の探索、使用可否、消去を検証する`kis_document_files_test`が成功した。
+  自動保存回復ダイアログ試験と`kritaui`の構築・リンクもmacOSで成功した。
+- 5構成のCMake台帳と差分行列を再生成した。macOS 660件、Linux 675件、iOS 594件、
+  Android 600件、Windows 630件のターゲット、578件の共通ターゲット、119件の条件付き
+  ターゲット、260件の構成差を持つターゲットを記録した。22中核所有ターゲットと
+  全製品ターゲットは全構成で循環0件を維持する。
+- 確認済み逆方向includeは3種類96件、`kritaui`の内部ヘッダー参照は7ヘッダー20件を維持し、
+  新しい逆方向依存と内部ヘッダー参照を追加していない。
+- 同一コミット`19be6382d82d6124eced7172f7bf4a887323180e`の清浄な作業ツリーで
+  `nix develop .#test --command ./scripts/verify`を実行し、macOS 340件と
+  x86_64 Linux 342件の全ネイティブ試験が成功した。追加した文書ファイル契約も
+  両構成で成功した。
+- `nix develop .#test --command ./scripts/build-incremental ios build --allow-large`で
+  `libkritadocumentfiles.a`、`libkritadocumentui.a`、`libkritaui.a`と
+  `LibrePaint.app/LibrePaint`を構築した。Android arm64-v8aとWindows x86_64では
+  `./scripts/build-incremental <platform> build kritaui`を実行し、
+  `libkritadocumentfiles`、`libkritadocumentui`、`libkritaui`のリンクに成功した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
+  /home/masato/librepaint-r1-g6b-verify`は、清浄な同一コミットから5構成の台帳と差分行列を
+  検証し、22中核所有ターゲットと全製品ターゲットの循環0件を確認した。
+- `nix develop .#test --command ./scripts/verify-quick`はmacOSとLinuxで97件と全統治検査に
+  成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
+  成功した。
+
 ## 次の操作
 
-R1-G6e-P2のPRをレビューして統合する。統合後は`master`を同期し、R1-G6e-P3として
-`libs/ui/KisDocument.cpp`の文書ファイル、バックアップ、自動保存ファイル、回復ファイルの
-具体処理を起点に`libs/document/files`へ集約する。
+R1-G6e-P3のPRをレビューして統合する。統合後は`master`を同期し、R1-G6e-P4として
+`KisDocument`に残るメソッドと22クラスを実依存で再分類する。残る依存と試験困難性を根拠に、
+具体所有への追加移動、R1-G6fまたはUI表示所有への割当て、ロジック再構築の要否を記録する。
 
 ## R1-G5完了根拠
 

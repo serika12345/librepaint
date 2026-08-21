@@ -58,6 +58,7 @@
 #include "thememanager.h"
 #include "KisDocument.h"
 #include "KisMainWindow.h"
+#include <files/kis_document_autosave_files.h>
 #include <recovery/KisAutoSaveRecoveryDialog.h>
 #include "KisPart.h"
 #include <kis_icon.h>
@@ -1237,23 +1238,11 @@ void KisApplication::checkAutosaveFiles()
 {
     if (d->batchRun) return;
 
-    QDir dir = KisAutoSaveRecoveryDialog::autoSaveLocation();
-
-    // Check for autosave files from a previous run. There can be several, and
-    // we want to offer a restore for every one. Including a nice thumbnail!
-
-    // Hidden autosave files
-    QStringList filters = QStringList() << QString(".krita-*-*-autosave.kra");
-
-    // all autosave files for our application
-    QStringList autosaveFiles = dir.entryList(filters, QDir::Files | QDir::Hidden);
-
-    // Visible autosave files
-    filters = QStringList() << QString("krita-*-*-autosave.kra");
-    autosaveFiles += dir.entryList(filters, QDir::Files);
+    const QList<Krita::Document::KisDocumentAutoSaveFile> autosaveFiles =
+        Krita::Document::KisDocumentAutoSaveFiles::recoverableFiles();
 
     // Allow the user to make their selection
-    if (autosaveFiles.size() > 0) {
+    if (!autosaveFiles.isEmpty()) {
         if (d->splashScreen) {
             // hide the splashscreen to see the dialog
             hideSplashScreen();
@@ -1261,29 +1250,22 @@ void KisApplication::checkAutosaveFiles()
         d->autosaveDialog = new KisAutoSaveRecoveryDialog(autosaveFiles, activeWindow());
         QDialog::DialogCode result = (QDialog::DialogCode) d->autosaveDialog->exec();
 
+        QStringList filesToRecover;
         if (result == QDialog::Accepted) {
-            QStringList filesToRecover = d->autosaveDialog->recoverableFiles();
-            Q_FOREACH (const QString &autosaveFile, autosaveFiles) {
-                if (!filesToRecover.contains(autosaveFile)) {
-                    KisUsageLogger::log(QString("Removing autosave file %1").arg(dir.absolutePath() + "/" + autosaveFile));
-                    QFile::remove(dir.absolutePath() + "/" + autosaveFile);
+            filesToRecover = d->autosaveDialog->recoverableFiles();
+            for (const Krita::Document::KisDocumentAutoSaveFile &autosaveFile : autosaveFiles) {
+                if (!filesToRecover.contains(autosaveFile.fileName)) {
+                    KisUsageLogger::log(QString("Removing autosave file %1").arg(autosaveFile.path));
+                    Krita::Document::KisDocumentAutoSaveFiles::remove(autosaveFile.path);
                 }
             }
-            autosaveFiles = filesToRecover;
-        } else {
-            autosaveFiles.clear();
         }
 
-        if (autosaveFiles.size() > 0) {
-            QList<QString> autosavePaths;
-            Q_FOREACH (const QString &autoSaveFile, autosaveFiles) {
-                const QString path = dir.absolutePath() + QLatin1Char('/') + autoSaveFile;
-                autosavePaths << path;
-            }
-            if (d->mainWindow) {
-                Q_FOREACH (const QString &path, autosavePaths) {
+        if (!filesToRecover.isEmpty() && d->mainWindow) {
+            for (const Krita::Document::KisDocumentAutoSaveFile &autosaveFile : autosaveFiles) {
+                if (filesToRecover.contains(autosaveFile.fileName)) {
                     KisMainWindow::OpenFlags flags = d->batchRun ? KisMainWindow::BatchMode : KisMainWindow::None;
-                    d->mainWindow->openDocument(path, flags | KisMainWindow::RecoveryFile);
+                    d->mainWindow->openDocument(autosaveFile.path, flags | KisMainWindow::RecoveryFile);
                 }
             }
         }

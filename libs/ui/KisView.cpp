@@ -15,6 +15,7 @@
 #include <KoToolManager.h>
 
 #include <kis_icon.h>
+#include <files/kis_document_autosave_files.h>
 
 #include <kactioncollection.h>
 #include <klocalizedstring.h>
@@ -35,7 +36,6 @@
 #include <QMoveEvent>
 #include <QMdiSubWindow>
 #include <QFileInfo>
-#include <QScreen>
 
 #include <kis_image.h>
 #include <kis_node.h>
@@ -1181,8 +1181,9 @@ bool KisView::queryClose()
             KisImageSP image = document()->image();
             image->requestStrokeCancellation();
             viewManager()->blockUntilOperationsFinishedForced(image);
-
-            document()->removeAutoSaveFiles(document()->localFilePath(), document()->isRecovered());
+            Krita::Document::KisDocumentAutoSaveFiles::removeForDocument(
+                document()->localFilePath(), document()->isRecovered(), document()->objectName(),
+                KisConfig(true).readEntry<bool>("autosavefileshidden"));
             document()->setModified(false);   // Now when queryClose() is called by closeEvent it won't do anything.
             break;
         }
@@ -1192,7 +1193,6 @@ bool KisView::queryClose()
     }
 
     return true;
-
 }
 
 void KisView::slotMigratedToScreen(QScreen *screen)

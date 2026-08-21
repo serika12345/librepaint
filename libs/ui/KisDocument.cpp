@@ -41,6 +41,9 @@
 #include <session/kis_document_modification_state.h>
 #include <session/kis_document_recovery_autosave_state.h>
 #include <session/kis_document_recovery_status.h>
+#include <files/kis_document_autosave_files.h>
+#include <files/kis_document_backup_file.h>
+#include <files/kis_document_save_target.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceModelProvider.h>
 #include <KisResourceCacheDb.h>
@@ -50,17 +53,14 @@
 #include <kis_debug.h>
 #include <kis_generator_layer.h>
 #include <kis_generator_registry.h>
-#include <recovery/KisAutoSaveRecoveryDialog.h>
 #include <io/kis_document_io_presentation.h>
 #include <kdesktopfile.h>
 #include <kconfiggroup.h>
-#include <KisBackup.h>
 #include <KisView.h>
 
 #include <QTextBrowser>
 #include <QApplication>
 #include <QBuffer>
-#include <QStandardPaths>
 #include <QDir>
 #include <QDomDocument>
 #include <QDomElement>
@@ -149,6 +149,19 @@
 #endif
 
 using namespace std;
+
+namespace
+{
+
+QString autoSaveFilePath(const KisDocument *document, const QString &path)
+{
+    return Krita::Document::KisDocumentAutoSaveFiles::filePath(
+        path,
+        document->objectName(),
+        KisConfig(true).readEntry<bool>("autosavefileshidden"));
+}
+
+}
 
 /**********************************************************
  *
@@ -802,14 +815,10 @@ bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPr
     // that hard. Well, at least none of the ones that actually save files, as
     // mentioned above some of them just seem to lose whatever you give them.
 
-    QFileInfo filePathInfo(job.filePath);
-    bool fileExists = filePathInfo.exists();
-#ifdef Q_OS_ANDROID
-    if (fileExists) {
-        fileExists = filePathInfo.size() > 0;
-    }
-#else
-    if (fileExists && !filePathInfo.isWritable()) {
+    const Krita::Document::KisDocumentSaveTarget saveTarget =
+        Krita::Document::KisDocumentSaveTarget::inspect(job.filePath);
+#ifndef Q_OS_ANDROID
+    if (saveTarget.exists && !saveTarget.writable) {
         slotCompleteSavingDocument(job, ImportExportCodes::NoAccessToWrite,
                                    i18n("%1 cannot be written to. Please save under a different name.", job.filePath),
                                    "");
@@ -818,24 +827,17 @@ bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPr
 #endif
 
     KisConfig cfg(true);
-    if (cfg.backupFile() && fileExists) {
-
-        QString backupDir;
-
-        switch(cfg.readEntry<int>("backupfilelocation", 0)) {
+    Krita::Document::KisDocumentBackupOptions backupOptions;
+    backupOptions.enabled = cfg.backupFile() && saveTarget.exists;
+    switch (cfg.readEntry<int>("backupfilelocation", 0)) {
         case 1:
-            backupDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+            backupOptions.location = Krita::Document::KisDocumentBackupLocation::Home;
             break;
         case 2:
-            backupDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+            backupOptions.location = Krita::Document::KisDocumentBackupLocation::Temporary;
             break;
         default:
-#ifdef Q_OS_ANDROID
-            // We deal with URIs, there may or may not be a "directory"
-            backupDir = KisAutoSaveRecoveryDialog::autoSaveLocation();
-            QDir().mkpath(backupDir);
-#endif
-
+            backupOptions.location = Krita::Document::KisDocumentBackupLocation::Adjacent;
 #ifdef Q_OS_MACOS
             KisMacosSecurityBookmarkManager *bookmarkmngr = KisMacosSecurityBookmarkManager::instance();
             if (bookmarkmngr->isSandboxed()) {
@@ -843,52 +845,42 @@ bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPr
                 // files to be inside Container tmp
                 QUrl fileUrl = QUrl::fromLocalFile(job.filePath);
                 if( !bookmarkmngr->parentDirHasPermissions(fileUrl.path()) ) {
-                    backupDir = QDir::tempPath();
+                    backupOptions.forceTemporaryDirectory = true;
                 }
             }
 #endif
-
-            // Do nothing: the empty string is user file location
             break;
-        }
+    }
+    backupOptions.numberOfBackups = cfg.readEntry<int>("numberofbackupfiles", 1);
+    backupOptions.suffix = cfg.readEntry<QString>("backupfilesuffix", "~");
 
-        int numOfBackupsKept = cfg.readEntry<int>("numberofbackupfiles", 1);
-        QString suffix = cfg.readEntry<QString>("backupfilesuffix", "~");
-
-        if (numOfBackupsKept == 1) {
-            if (!KisBackup::simpleBackupFile(job.filePath, backupDir, suffix)) {
-                qWarning() << "Failed to create simple backup file!" << job.filePath << backupDir << suffix;
-                KisUsageLogger::log(QString("Failed to create a simple backup for %1 in %2.")
-                                        .arg(job.filePath, backupDir.isEmpty()
-                                                               ? "the same location as the file"
-                                                               : backupDir));
-                slotCompleteSavingDocument(job, ImportExportCodes::ErrorWhileWriting, i18nc("Saving error message", "Failed to create a backup file"), "");
-                return false;
-            }
-            else {
-                KisUsageLogger::log(QString("Create a simple backup for %1 in %2.")
-                                        .arg(job.filePath, backupDir.isEmpty()
-                                                               ? "the same location as the file"
-                                                               : backupDir));
-            }
-        }
-        else if (numOfBackupsKept > 1) {
-            if (!KisBackup::numberedBackupFile(job.filePath, backupDir, suffix, numOfBackupsKept)) {
-                qWarning() << "Failed to create numbered backup file!" << job.filePath << backupDir << suffix;
-                KisUsageLogger::log(QString("Failed to create a numbered backup for %2.")
-                                        .arg(job.filePath, backupDir.isEmpty()
-                                                               ? "the same location as the file"
-                                                               : backupDir));
-                slotCompleteSavingDocument(job, ImportExportCodes::ErrorWhileWriting, i18nc("Saving error message", "Failed to create a numbered backup file"), "");
-                return false;
-            }
-            else {
-                KisUsageLogger::log(QString("Create a simple backup for %1 in %2.")
-                                        .arg(job.filePath, backupDir.isEmpty()
-                                                               ? "the same location as the file"
-                                                               : backupDir));
-            }
-        }
+    const Krita::Document::KisDocumentBackupResult backupResult =
+        Krita::Document::KisDocumentBackupFile::create(
+            job.filePath,
+            backupOptions,
+            Krita::Document::KisDocumentAutoSaveFiles::directory());
+    const QString backupLocation = backupResult.directory.isEmpty()
+        ? QStringLiteral("the same location as the file")
+        : backupResult.directory;
+    if (backupResult.status == Krita::Document::KisDocumentBackupStatus::Failed) {
+        const bool numbered = backupOptions.numberOfBackups > 1;
+        qWarning() << "Failed to create backup file!" << job.filePath
+                   << backupResult.directory << backupOptions.suffix;
+        KisUsageLogger::log(QString("Failed to create a %1 backup for %2 in %3.")
+                                .arg(numbered ? QStringLiteral("numbered") : QStringLiteral("simple"),
+                                     job.filePath,
+                                     backupLocation));
+        slotCompleteSavingDocument(
+            job,
+            ImportExportCodes::ErrorWhileWriting,
+            numbered
+                ? i18nc("Saving error message", "Failed to create a numbered backup file")
+                : i18nc("Saving error message", "Failed to create a backup file"),
+            "");
+        return false;
+    } else if (backupResult.status == Krita::Document::KisDocumentBackupStatus::Created) {
+        KisUsageLogger::log(QString("Created a backup for %1 in %2.")
+                                .arg(job.filePath, backupLocation));
     }
 
     //KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(!job.mimeType.isEmpty(), false);
@@ -1045,7 +1037,11 @@ void KisDocument::slotCompleteSavingDocument(const KritaUtils::ExportFileJob &jo
 
         d->updateDocumentMetadataOnSaving(job.filePath, job.mimeType);
 
-        removeAutoSaveFiles(existingAutoSaveBaseName, wasRecovered);
+        Krita::Document::KisDocumentAutoSaveFiles::removeForDocument(
+            existingAutoSaveBaseName,
+            wasRecovered,
+            objectName(),
+            KisConfig(true).readEntry<bool>("autosavefileshidden"));
     }
 
     d->ioPresentation->notifySaveSucceeded(job.filePath);
@@ -1058,14 +1054,7 @@ void KisDocument::Private::updateDocumentMetadataOnSaving(const QString &filePat
     q->setMimeType(mimeType);
     q->updateEditingTime(true);
 
-#ifdef Q_OS_ANDROID
-    // See the comment titled "ANDROID NOTES" in this file for an explanation of
-    // what this is about. (This is not that comment.)
-    q->setReadWrite(true);
-#else
-    QFileInfo fi(filePath);
-    q->setReadWrite(fi.isWritable());
-#endif
+    q->setReadWrite(Krita::Document::KisDocumentSaveTarget::inspect(filePath).writable);
 
     if (!modificationState.wasModifiedWhileSaving()) {
         /**
@@ -1501,7 +1490,7 @@ void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalCloned
         !d->modificationState.hasChangesAfterAutoSave()) {
         return;
     }
-    const QString autoSaveFileName = generateAutoSaveFileName(localFilePath());
+    const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
 
     d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
 
@@ -1689,8 +1678,8 @@ void KisDocument::slotCompleteRecoveryAutoSaving(const KritaUtils::ExportFileJob
 {
     slotCompleteAutoSaving(job, status, errorMessage, warningMessage);
 
-    const QFileInfo recoveryFile(job.filePath);
-    const bool saved = status.isOk() && recoveryFile.isFile() && recoveryFile.size() > 0;
+    const bool saved = status.isOk()
+        && Krita::Document::KisDocumentAutoSaveFiles::isUsable(job.filePath);
 
     if (!saved) {
         d->modificationState.restoreAutoSaveRequirement();
@@ -1735,11 +1724,10 @@ void KisDocument::slotContinuePendingRecoveryAutoSave()
     if (!d->modificationState.hasChangesAfterAutoSave()) {
         QString recoveryPath = d->recoveryAutoSaveState.joinedSavePath();
         if (recoveryPath.isEmpty()) {
-            recoveryPath = generateAutoSaveFileName(localFilePath());
+            recoveryPath = autoSaveFilePath(this, localFilePath());
         }
 
-        const QFileInfo recoveryFile(recoveryPath);
-        if (recoveryFile.isFile() && recoveryFile.size() > 0) {
+        if (Krita::Document::KisDocumentAutoSaveFiles::isUsable(recoveryPath)) {
             finishRecoveryAutoSaveRequest(recoveryPath, true);
             return;
         }
@@ -1757,7 +1745,7 @@ void KisDocument::slotContinuePendingRecoveryAutoSave()
     }
 
     d->modificationState.restoreAutoSaveRequirement();
-    finishRecoveryAutoSaveRequest(generateAutoSaveFileName(localFilePath()), false);
+    finishRecoveryAutoSaveRequest(autoSaveFilePath(this, localFilePath()), false);
 }
 
 KisImportExportErrorCode KisDocument::startExportInBackground(const QString &actionName,
@@ -1943,49 +1931,6 @@ QPixmap KisDocument::generatePreview(const QSize& size)
     return QPixmap(size);
 }
 
-QString KisDocument::generateAutoSaveFileName(const QString & path) const
-{
-    QString retval;
-
-    // Using the extension allows to avoid relying on the mime magic when opening
-    const QString extension (".kra");
-    QString prefix = KisConfig(true).readEntry<bool>("autosavefileshidden") ? QString(".") : QString();
-    QRegularExpression autosavePattern1("^\\..+-autosave.kra$");
-    QRegularExpression autosavePattern2("^.+-autosave.kra$");
-
-    QFileInfo fi(path);
-    QString dir = fi.absolutePath();
-
-#ifdef Q_OS_ANDROID
-    // URIs may or may not have a directory backing them, so we save to our default autosave location
-    if (path.startsWith("content://")) {
-        dir = KisAutoSaveRecoveryDialog::autoSaveLocation();
-        QDir().mkpath(dir);
-    }
-#endif
-
-    QString filename = fi.fileName();
-
-    if (path.isEmpty() || autosavePattern1.match(filename).hasMatch() || autosavePattern2.match(filename).hasMatch() || !fi.isWritable()) {
-        // Never saved?
-        retval = QString("%1%2%3%4-%5-%6-autosave%7")
-                     .arg(KisAutoSaveRecoveryDialog::autoSaveLocation())
-                     .arg('/')
-                     .arg(prefix)
-                     .arg("krita")
-                     .arg(qApp->applicationPid())
-                     .arg(objectName())
-                     .arg(extension);
-    } else {
-        // Beware: don't reorder arguments
-        //   otherwise in case of filename = '1-file.kra' it will become '.-file.kra-autosave.kra' instead of '.1-file.kra-autosave.kra'
-        retval = QString("%1%2%3%4-autosave%5").arg(dir).arg('/').arg(prefix).arg(filename).arg(extension);
-    }
-
-    //qDebug() << "generateAutoSaveFileName() for path" << path << ":" << retval;
-    return retval;
-}
-
 bool KisDocument::importDocument(const QString &_path)
 {
     bool ret;
@@ -2022,7 +1967,7 @@ bool KisDocument::openPath(const QString &_path, OpenFlags flags)
     bool autosaveOpened = false;
     if (!fileBatchMode()) {
         QString file = path;
-        QString asf = generateAutoSaveFileName(file);
+        QString asf = autoSaveFilePath(this, file);
         if (QFile::exists(asf)) {
             KisApplication *kisApp = static_cast<KisApplication*>(qApp);
             kisApp->hideSplashScreen();
@@ -2162,7 +2107,7 @@ bool KisDocument::openFile()
 
 KisDocument::RecoveryAutoSaveStartResult KisDocument::startRecoveryAutoSave()
 {
-    const QString autoSaveFileName = generateAutoSaveFileName(localFilePath());
+    const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
 
     d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
     KisUsageLogger::log(QString("Autosaving recovery checkpoint: %1").arg(autoSaveFileName));
@@ -2267,7 +2212,7 @@ void KisDocument::autoSaveOnPause()
         return;
     }
 
-    const QString autoSaveFileName = generateAutoSaveFileName(localFilePath());
+    const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
 
     bool started = exportDocumentSync(autoSaveFileName, nativeFormatMimeType());
 
@@ -2426,38 +2371,6 @@ QString KisDocument::warningMessage() const
     return d->lastWarningMessage;
 }
 
-
-void KisDocument::removeAutoSaveFiles(const QString &autosaveBaseName, bool wasRecovered)
-{
-    // Eliminate any auto-save file
-    QString asf = generateAutoSaveFileName(autosaveBaseName);   // the one in the current dir
-    if (QFile::exists(asf)) {
-        KisUsageLogger::log(QString("Removing autosave file: %1").arg(asf));
-        QFile::remove(asf);
-    }
-    asf = generateAutoSaveFileName(QString());   // and the one in $HOME
-
-    if (QFile::exists(asf)) {
-        KisUsageLogger::log(QString("Removing autosave file: %1").arg(asf));
-        QFile::remove(asf);
-    }
-
-    QList<QRegularExpression> expressions;
-
-    expressions << QRegularExpression("^\\..+-autosave.kra$")
-                << QRegularExpression("^.+-autosave.kra$");
-
-    Q_FOREACH(const QRegularExpression &rex, expressions) {
-        if (wasRecovered &&
-                !autosaveBaseName.isEmpty() &&
-                rex.match(QFileInfo(autosaveBaseName).fileName()).hasMatch() &&
-                QFile::exists(autosaveBaseName)) {
-
-            KisUsageLogger::log(QString("Removing autosave file: %1").arg(autosaveBaseName));
-            QFile::remove(autosaveBaseName);
-        }
-    }
-}
 
 KoUnit KisDocument::unit() const
 {

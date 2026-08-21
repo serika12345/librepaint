@@ -288,11 +288,13 @@
       ],
       "ownerTargets": [
         "kritadocument",
+        "kritadocumentfiles",
         "kritadocumentui",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [
         "kritadocument",
+        "kritadocumentfiles",
         "kritadocumentui"
       ],
       "reviewedPublicHeaderPaths": [],
@@ -321,6 +323,9 @@
         "document-metadata"
       ],
       "publicHeaderPaths": [
+        "libs/document/files/kis_document_autosave_files.h",
+        "libs/document/files/kis_document_backup_file.h",
+        "libs/document/files/kis_document_save_target.h",
         "libs/document/session/kis_document_autosave_state.h",
         "libs/document/session/kis_document_identity.h",
         "libs/document/session/kis_document_modification_state.h",
@@ -1619,6 +1624,29 @@
       ]
     },
     {
+      "name": "kritadocumentfiles",
+      "sourceDirectory": "libs/document/files",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaglobal",
+        "kritaresourcestorage"
+      ],
+      "repositoryConsumers": [
+        "kritadocumentui",
+        "kritaui"
+      ]
+    },
+    {
       "name": "kritadocumentui",
       "sourceDirectory": "libs/document/ui",
       "platforms": [
@@ -1634,6 +1662,7 @@
       ],
       "repositoryDependencies": [
         "kritadocument",
+        "kritadocumentfiles",
         "kritaimpex",
         "kritapaintingundo",
         "kritaplugin",
@@ -2038,6 +2067,7 @@
       "repositoryDependencies": [],
       "repositoryConsumers": [
         "krita_flaketools",
+        "kritadocumentfiles",
         "kritadocumentui",
         "kritaflake",
         "kritaimage",
@@ -2130,6 +2160,7 @@
         "kritacanvas",
         "kritacolor",
         "kritadocument",
+        "kritadocumentfiles",
         "kritadocumentui",
         "kritaimage",
         "kritaimpex",

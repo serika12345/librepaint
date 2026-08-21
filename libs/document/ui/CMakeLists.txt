@@ -22,6 +22,7 @@ target_link_libraries(kritadocumentui
         kritapaintingundo
         kritawidgets
         kritawidgetutils
+        kritadocumentfiles
         Qt${QT_MAJOR_VERSION}::Widgets
     PRIVATE
         kritadocument

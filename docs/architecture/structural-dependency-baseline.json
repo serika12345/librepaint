@@ -93,6 +93,17 @@
         },
         {
           "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocumentui",
           "platforms": [
             "macos",
@@ -144,9 +155,53 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocument",
           "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisApplication.cpp",
           "include": "recovery/KisAutoSaveRecoveryDialog.h",
           "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_backup_file.h",
+          "headerPath": "libs/document/files/kis_document_backup_file.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_save_target.h",
+          "headerPath": "libs/document/files/kis_document_save_target.h",
+          "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
@@ -168,17 +223,6 @@
           "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "io/kis_document_io_presentation.h",
           "headerPath": "libs/document/ui/io/kis_document_io_presentation.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "recovery/KisAutoSaveRecoveryDialog.h",
-          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
@@ -274,6 +318,72 @@
         },
         {
           "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_backup_file.h",
+          "headerPath": "libs/document/files/kis_document_backup_file.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_save_target.h",
+          "headerPath": "libs/document/files/kis_document_save_target.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocumentui",
           "sourcePath": "libs/ui/KisApplication.cpp",
           "include": "recovery/KisAutoSaveRecoveryDialog.h",
@@ -300,17 +410,6 @@
           "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "io/kis_document_io_presentation.h",
           "headerPath": "libs/document/ui/io/kis_document_io_presentation.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "recovery/KisAutoSaveRecoveryDialog.h",
-          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
@@ -2540,6 +2639,17 @@
         },
         {
           "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocumentui",
           "platforms": [
             "macos",
@@ -2565,9 +2675,53 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocument",
           "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisApplication.cpp",
           "include": "recovery/KisAutoSaveRecoveryDialog.h",
           "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_backup_file.h",
+          "headerPath": "libs/document/files/kis_document_backup_file.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_save_target.h",
+          "headerPath": "libs/document/files/kis_document_save_target.h",
+          "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
@@ -2589,17 +2743,6 @@
           "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "io/kis_document_io_presentation.h",
           "headerPath": "libs/document/ui/io/kis_document_io_presentation.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "recovery/KisAutoSaveRecoveryDialog.h",
-          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
@@ -2695,6 +2838,72 @@
         },
         {
           "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocument",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_backup_file.h",
+          "headerPath": "libs/document/files/kis_document_backup_file.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisDocument.cpp",
+          "include": "files/kis_document_save_target.h",
+          "headerPath": "libs/document/files/kis_document_save_target.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritadocumentfiles",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "files/kis_document_autosave_files.h",
+          "headerPath": "libs/document/files/kis_document_autosave_files.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
           "dependencyTarget": "kritadocumentui",
           "sourcePath": "libs/ui/KisApplication.cpp",
           "include": "recovery/KisAutoSaveRecoveryDialog.h",
@@ -2721,17 +2930,6 @@
           "sourcePath": "libs/ui/KisDocument.cpp",
           "include": "io/kis_document_io_presentation.h",
           "headerPath": "libs/document/ui/io/kis_document_io_presentation.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "recovery/KisAutoSaveRecoveryDialog.h",
-          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "document-lifecycle",
           "sourceAttribution": "classified-class-path",
@@ -5227,27 +5425,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 21,
+            "targetCount": 22,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 21,
+            "targetCount": 22,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 21,
+            "targetCount": 22,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 21,
+            "targetCount": 22,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 21,
+            "targetCount": 22,
             "components": []
           }
         ]
@@ -5257,27 +5455,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 221,
+            "targetCount": 222,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 227,
+            "targetCount": 228,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 213,
+            "targetCount": 214,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 213,
+            "targetCount": 214,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 230,
+            "targetCount": 231,
             "components": []
           }
         ]
@@ -5316,6 +5514,23 @@
       "maximumDirectReferences": 0,
       "removalCondition": "Document consumers continue to use declared public contracts.",
       "sourceDirectory": "libs/document",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": []
+    },
+    {
+      "ownerTarget": "kritadocumentfiles",
+      "owner": "R1-G6",
+      "reason": "External packages use the declared document file-operation surface.",
+      "maximumHeaders": 0,
+      "maximumDirectReferences": 0,
+      "removalCondition": "Document file-operation consumers continue to use declared public contracts.",
+      "sourceDirectory": "libs/document/files",
       "platforms": [
         "macos",
         "linux",

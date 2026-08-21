@@ -11,6 +11,7 @@
 #include <QModelIndex>
 
 #include "kritadocumentui_export.h"
+#include <files/kis_document_autosave_files.h>
 
 class QListView;
 
@@ -21,10 +22,11 @@ class KRITADOCUMENTUI_EXPORT KisAutoSaveRecoveryDialog : public KoDialog
     Q_OBJECT
 public:
 
-    explicit KisAutoSaveRecoveryDialog(const QStringList &filenames, QWidget *parent = 0);
+    explicit KisAutoSaveRecoveryDialog(
+        const QList<Krita::Document::KisDocumentAutoSaveFile> &files,
+        QWidget *parent = 0);
     ~KisAutoSaveRecoveryDialog() override;
     QStringList recoverableFiles();
-    static QString autoSaveLocation();
 
 public Q_SLOTS:
 

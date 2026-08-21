@@ -70,7 +70,11 @@ PUBLIC_HEADER_SET_SPECS = (
         "ownerTarget": "kritadocument",
         "sourceDirectory": "libs/document",
         "headerDirectories": ["libs/document"],
-        "excludedHeaderDirectories": ["libs/document/tests", "libs/document/ui"],
+        "excludedHeaderDirectories": [
+            "libs/document/files",
+            "libs/document/tests",
+            "libs/document/ui",
+        ],
         "exportMacro": "KRITADOCUMENT_EXPORT",
         "responsibility": (
             "Records the declared document-domain surface for document lifetime "
@@ -79,6 +83,21 @@ PUBLIC_HEADER_SET_SPECS = (
         "evidence": [
             "libs/document/CMakeLists.txt",
             "libs/document/session/kis_document_identity.h",
+        ],
+    },
+    {
+        "ownerTarget": "kritadocumentfiles",
+        "sourceDirectory": "libs/document/files",
+        "headerDirectories": ["libs/document/files"],
+        "excludedHeaderDirectories": ["libs/document/files/tests"],
+        "exportMacro": "KRITADOCUMENTFILES_EXPORT",
+        "responsibility": (
+            "Records the concrete document-file surface for save-target "
+            "inspection, backup creation, autosave paths, and recovery files."
+        ),
+        "evidence": [
+            "libs/document/files/CMakeLists.txt",
+            "libs/document/files/kis_document_autosave_files.h",
         ],
     },
     {

@@ -6,8 +6,6 @@
 
 #include <recovery/KisAutoSaveRecoveryDialog.h>
 
-#include <KoStore.h>
-
 #include <kwidgetitemdelegate.h>
 #include <klocalizedstring.h>
 #include <KisKineticScroller.h>
@@ -17,13 +15,9 @@
 #include <QListView>
 #include <QAbstractTableModel>
 #include <QLabel>
-#include <QDir>
-#include <QFileInfo>
-#include <QDateTime>
 #include <QImage>
 #include <QPixmap>
 #include <QHeaderView>
-#include <QStandardPaths>
 #include <QPainter>
 #include <QCheckBox>
 #include <kis_debug.h>
@@ -171,7 +165,9 @@ public:
     QList<FileItem *> m_fileItems;
 };
 
-KisAutoSaveRecoveryDialog::KisAutoSaveRecoveryDialog(const QStringList &filenames, QWidget *parent) :
+KisAutoSaveRecoveryDialog::KisAutoSaveRecoveryDialog(
+    const QList<Krita::Document::KisDocumentAutoSaveFile> &files,
+    QWidget *parent) :
     KoDialog(parent)
 {
     setCaption(i18nc("@title:window", "Recover Files"));
@@ -180,7 +176,7 @@ KisAutoSaveRecoveryDialog::KisAutoSaveRecoveryDialog(const QStringList &filename
     setMinimumSize(650, 500);
     QWidget *page = new QWidget(this);
     QVBoxLayout *layout = new QVBoxLayout(page);
-    if (filenames.size() == 1) {
+    if (files.size() == 1) {
         layout->addWidget(new QLabel(i18n("The following autosave file can be recovered:")));
     }
     else {
@@ -193,37 +189,19 @@ KisAutoSaveRecoveryDialog::KisAutoSaveRecoveryDialog(const QStringList &filename
     m_listView->setItemDelegate(delegate);
 
     QList<FileItem*> fileItems;
-    Q_FOREACH (const QString &filename, filenames) {
+    for (const Krita::Document::KisDocumentAutoSaveFile &recoveryFile : files) {
 
         FileItem *file = new FileItem();
-        file->name = filename;
+        file->name = recoveryFile.fileName;
 
-        QString path = autoSaveLocation() + "/" + filename;
-        // get thumbnail -- almost all Krita-supported formats save a thumbnail
-        KoStore* store = KoStore::createStore(path, KoStore::Read);
-
-        if (store) {
-            QString thumbnailPath = QLatin1String("Thumbnails/thumbnail.png");
-            QString previewPath = QLatin1String("preview.png");
-            bool thumbnailExists = store->hasFile(thumbnailPath);
-            bool previewExists = store->hasFile(previewPath);
-            QString pathToUse = thumbnailExists ? thumbnailPath : (previewExists ? previewPath : "");
-
-            if (!pathToUse.isEmpty() && store->open(pathToUse)) {
-                // Hooray! No long delay for the user...
-                QByteArray bytes = store->read(store->size());
-                store->close();
-                QImage img;
-                img.loadFromData(bytes);
-                file->thumbnail = img.scaled(QSize(200,200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            }
-
-            delete store;
+        QImage preview;
+        if (preview.loadFromData(recoveryFile.previewData)) {
+            file->thumbnail = preview.scaled(
+                QSize(200, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
         }
 
-        // get the date
-        QDateTime date = QFileInfo(path).lastModified();
-        file->date = "(" + QLocale::system().toString(date, QLocale::ShortFormat) + ")";
+        file->date = "(" + QLocale::system().toString(
+            recoveryFile.lastModified, QLocale::ShortFormat) + ")";
 
         fileItems.append(file);
     }
@@ -269,33 +247,6 @@ QStringList KisAutoSaveRecoveryDialog::recoverableFiles()
         }
     }
     return files;
-}
-
-QString KisAutoSaveRecoveryDialog::autoSaveLocation()
-{
-#if defined(Q_OS_WIN)
-    // On Windows, use the temp location (https://bugs.kde.org/show_bug.cgi?id=314921)
-    return QDir::tempPath();
-#elif defined(Q_OS_ANDROID)
-    QString path = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation).append("/krita-backup");
-    if (!QDir(path).exists()) {
-        QDir().mkpath(path);
-    }
-    return path;
-#elif defined(Q_OS_IOS)
-    // Keep recovery data private to the app. Documents is intentionally
-    // reserved for user-visible work and Caches/tmp may be removed by iPadOS.
-    QString path = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-        .append("/krita-autosave");
-    if (!QDir(path).exists()) {
-        QDir().mkpath(path);
-    }
-    return path;
-#else
-    // On Linux, use a temp file in $HOME then. Mark it with the pid so two instances don't overwrite each other's
-    // autosave file
-    return QDir::homePath();
-#endif
 }
 
 void KisAutoSaveRecoveryDialog::toggleFileItem(bool toggle)

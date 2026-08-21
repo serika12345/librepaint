@@ -2543,6 +2543,15 @@
       ]
     },
     {
+      "name": "kis_document_files_test",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/document/files/tests",
+      "dependencies": [
+        "kritadocumentfiles",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "kis_document_identity_test",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/document/tests",
@@ -4504,6 +4513,16 @@
       ]
     },
     {
+      "name": "kritadocumentfiles",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/document/files",
+      "dependencies": [
+        "Qt6::Core",
+        "kritaglobal",
+        "kritaresourcestorage"
+      ]
+    },
+    {
       "name": "kritadocumentui",
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/document/ui",
@@ -4512,6 +4531,7 @@
         "KF6::ItemViews",
         "Qt6::Widgets",
         "kritadocument",
+        "kritadocumentfiles",
         "kritaimpex",
         "kritapaintingundo",
         "kritaplugin",
@@ -6228,6 +6248,7 @@
         "kritacanvas",
         "kritacolor",
         "kritadocument",
+        "kritadocumentfiles",
         "kritadocumentui",
         "kritaimage",
         "kritaimpex",
