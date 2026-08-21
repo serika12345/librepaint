@@ -1,0 +1,649 @@
+{
+  "schemaVersion": 1,
+  "scope": "r1-g6e-p4-document-boundary-evaluation",
+  "sources": {
+    "uiClassInventory": "docs/architecture/ui-class-responsibilities.json",
+    "kisDocumentHeader": "libs/ui/KisDocument.h",
+    "kisDocumentImplementation": "libs/ui/KisDocument.cpp",
+    "packageRelocationPlan": "docs/architecture/package-relocation-plan.json",
+    "startingDocumentClassCount": 25,
+    "previouslyResolvedClasses": [
+      {
+        "name": "KisDocumentUndoStore",
+        "destination": "libs/document/ui/undo",
+        "gate": "R1-G6e-P1"
+      },
+      {
+        "name": "KoDocumentInfo",
+        "destination": "libs/impex/metadata",
+        "gate": "R1-G6e-P2"
+      },
+      {
+        "name": "KoDocumentInfoDlg",
+        "destination": "libs/document/ui/info",
+        "gate": "R1-G6e-P2"
+      }
+    ]
+  },
+  "dispositionKinds": [
+    "move-as-unit",
+    "retain-until-prerequisite",
+    "split-by-responsibility"
+  ],
+  "destinations": [
+    {
+      "id": "application-composition",
+      "responsibility": "application-orchestration",
+      "directory": "libs/application",
+      "target": "kritaapplication",
+      "ownership": "Concrete composition and lifetime after lower responsibility boundaries exist."
+    },
+    {
+      "id": "application-ui",
+      "responsibility": "application-orchestration",
+      "directory": "libs/application/ui",
+      "target": "kritaapplicationui",
+      "ownership": "Application actions, dialogs, windows, and user interaction wiring."
+    },
+    {
+      "id": "canvas-presentation",
+      "responsibility": "canvas-presentation",
+      "directory": "libs/canvas",
+      "target": "kritacanvas",
+      "ownership": "Canvas guide, grid, mirror, assistant, and reference-image presentation state."
+    },
+    {
+      "id": "document-files",
+      "responsibility": "document-lifecycle",
+      "directory": "libs/document/files",
+      "target": "kritadocumentfiles",
+      "ownership": "Concrete document file, backup, autosave, recovery, open, and save sequencing."
+    },
+    {
+      "id": "document-session",
+      "responsibility": "document-lifecycle",
+      "directory": "libs/document/session",
+      "target": "kritadocument",
+      "ownership": "Document identity, transitions, and serialized session values."
+    },
+    {
+      "id": "document-ui",
+      "responsibility": "document-lifecycle",
+      "directory": "libs/document/ui",
+      "target": "kritadocumentui",
+      "ownership": "Document dialogs, status presentation, models, and Qt notification wiring."
+    },
+    {
+      "id": "document-ui-nodes",
+      "responsibility": "document-lifecycle",
+      "directory": "libs/document/ui/nodes",
+      "target": "kritadocumentui",
+      "ownership": "Node-tree models, filtering, model-index conversion, and style values."
+    },
+    {
+      "id": "document-ui-storyboard",
+      "responsibility": "document-lifecycle",
+      "directory": "libs/document/ui/storyboard",
+      "target": "kritadocumentui",
+      "ownership": "Storyboard thumbnails and presentation state."
+    },
+    {
+      "id": "document-ui-undo",
+      "responsibility": "document-lifecycle",
+      "directory": "libs/document/ui/undo",
+      "target": "kritadocumentui",
+      "ownership": "Document-owned undo history connection and notification."
+    },
+    {
+      "id": "image-model",
+      "responsibility": "painting-rendering",
+      "directory": "libs/image",
+      "target": "kritaimage",
+      "ownership": "Image, node, layer, shape, decoration stroke, and image modification behavior."
+    },
+    {
+      "id": "import-export",
+      "responsibility": "import-export",
+      "directory": "libs/impex",
+      "target": "kritaimpex",
+      "ownership": "Format capability, conversion, configuration, loading, and result classification."
+    },
+    {
+      "id": "import-export-metadata",
+      "responsibility": "import-export",
+      "directory": "libs/impex/metadata",
+      "target": "kritaimpex",
+      "ownership": "Serialized document metadata and XML document creation."
+    },
+    {
+      "id": "resource-storage",
+      "responsibility": "resource-management",
+      "directory": "libs/resources",
+      "target": "kritaresources",
+      "ownership": "Document-local linked and embedded resource storage."
+    },
+    {
+      "id": "tool-commands",
+      "responsibility": "tool-invocation",
+      "directory": "libs/tools",
+      "target": "kritatools",
+      "ownership": "Image, filter, node, and selection commands using explicit domain inputs."
+    },
+    {
+      "id": "tool-node-commands",
+      "responsibility": "tool-invocation",
+      "directory": "libs/tools/nodes",
+      "target": "kritatools",
+      "ownership": "Node mutation command construction, compression, application, and undo behavior."
+    },
+    {
+      "id": "tool-selection-commands",
+      "responsibility": "tool-invocation",
+      "directory": "libs/tools/selection",
+      "target": "kritatools",
+      "ownership": "Selection mutation commands using explicit image, node, and selection inputs."
+    },
+    {
+      "id": "tool-ui",
+      "responsibility": "tool-invocation",
+      "directory": "libs/tools/ui",
+      "target": "kritatoolsui",
+      "ownership": "Tool actions, configuration dialogs, warnings, and view wiring."
+    },
+    {
+      "id": "tool-ui-nodes",
+      "responsibility": "tool-invocation",
+      "directory": "libs/tools/ui/nodes",
+      "target": "kritatoolsui",
+      "ownership": "Node actions, dialogs, selection presentation, and interaction wiring."
+    },
+    {
+      "id": "tool-ui-properties",
+      "responsibility": "tool-invocation",
+      "directory": "libs/tools/ui/properties",
+      "target": "kritatoolsui",
+      "ownership": "Selected-node property widgets, connectors, and edit wiring."
+    },
+    {
+      "id": "tool-ui-selection",
+      "responsibility": "tool-invocation",
+      "directory": "libs/tools/ui/selection",
+      "target": "kritatoolsui",
+      "ownership": "Selection actions, canvas decoration, and pointer interaction wiring."
+    },
+    {
+      "id": "tool-ui-text",
+      "responsibility": "tool-invocation",
+      "directory": "libs/tools/ui/text",
+      "target": "kritatoolsui",
+      "ownership": "Text-property selection and canvas-resource presentation wiring."
+    }
+  ],
+  "classGroups": [
+    {
+      "id": "action-managers",
+      "classes": [
+        "KisFilterManager",
+        "KisImageManager",
+        "KisNodeManager",
+        "KisSelectionManager"
+      ],
+      "concern": "Combine domain mutations with QAction, dialog, warning, plugin-action, canvas, and view wiring.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "tool-commands",
+        "tool-ui"
+      ],
+      "nextGate": "R1-G6f",
+      "evidence": [
+        "Their implementations obtain domain objects through KisViewManager while constructing user actions and presentation objects."
+      ]
+    },
+    {
+      "id": "document-composition",
+      "classes": [
+        "KisDocument"
+      ],
+      "concern": "Composes document state, image ownership, import-export, file saving, presentation notification, and application lifetime.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "application-composition",
+        "document-files",
+        "document-session",
+        "document-ui"
+      ],
+      "nextGate": "R1-G6h",
+      "evidence": [
+        "KisDocument.h exposes painting, import-export, QWidget-facing, and serialized feature values while Private constructs all concrete owners."
+      ]
+    },
+    {
+      "id": "external-file-layer",
+      "classes": [
+        "KisFileLayer"
+      ],
+      "concern": "Combines image-layer and linked-file reload behavior with an application command that opens the linked document.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "application-ui",
+        "image-model"
+      ],
+      "nextGate": "R1-G6h",
+      "evidence": [
+        "KisFileLayer derives from the image layer model but calls KisPart and KisDocument to open another document."
+      ]
+    },
+    {
+      "id": "multinode-property-presentation",
+      "classes": [
+        "KisMultinodePropertyInterface",
+        "MultinodePropertyBaseConnector",
+        "MultinodePropertyConnectorInterface"
+      ],
+      "concern": "Presents and edits shared properties across selected nodes through colocated Qt widgets, connectors, adapters, and undo commands.",
+      "disposition": "move-as-unit",
+      "destinationIds": [
+        "tool-ui-properties"
+      ],
+      "nextGate": "R1-G6f",
+      "evidence": [
+        "kis_multinode_property.h binds QCheckBox and QObject connectors to its concrete node property adapters."
+      ]
+    },
+    {
+      "id": "node-command-coordination",
+      "classes": [
+        "KisNodeCommandsAdapter",
+        "KisNodeJugglerCompressed"
+      ],
+      "concern": "Owns undo-consistent node commands but reaches current image and selection through UI-owned managers.",
+      "disposition": "retain-until-prerequisite",
+      "destinationIds": [
+        "tool-node-commands"
+      ],
+      "nextGate": "R1-G6f",
+      "evidence": [
+        "The command implementations depend on KisViewManager or KisNodeManager even though their mutations use image and node values."
+      ]
+    },
+    {
+      "id": "node-tree-presentation",
+      "classes": [
+        "KisModelIndexConverter",
+        "KisModelIndexConverterBase",
+        "KisModelIndexConverterShowAll",
+        "KisNodeFilterProxyModel",
+        "KisNodeModel",
+        "KisNodeViewColorScheme"
+      ],
+      "concern": "Presents, filters, indexes, and styles the document node tree through Qt models.",
+      "disposition": "retain-until-prerequisite",
+      "destinationIds": [
+        "document-ui-nodes"
+      ],
+      "nextGate": "R1-G6f",
+      "evidence": [
+        "The Qt models consume KisNodeManager and command adapters, so relocation must follow their tool-command ownership split."
+      ]
+    },
+    {
+      "id": "selection-interaction",
+      "classes": [
+        "KisNodeSelectionAdapter",
+        "KisSelectionActionsAdapter",
+        "KisSelectionActionsPanel"
+      ],
+      "concern": "Bridges node and canvas selection presentation to UI-owned node and selection managers.",
+      "disposition": "retain-until-prerequisite",
+      "destinationIds": [
+        "tool-ui-nodes",
+        "tool-ui-selection"
+      ],
+      "nextGate": "R1-G6f",
+      "evidence": [
+        "The adapters directly wrap KisNodeManager or KisSelectionManager and the panel owns buttons and pointer events."
+      ]
+    },
+    {
+      "id": "storyboard-state-and-thumbnail",
+      "classes": [
+        "StoryboardItem"
+      ],
+      "concern": "Combines serialized storyboard values and comments with a QPixmap thumbnail used by presentation.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "document-session",
+        "document-ui-storyboard"
+      ],
+      "nextGate": "R1-G6h",
+      "evidence": [
+        "StoryboardItem stores QPixmap beside values serialized through QDomElement and exposed by KisDocument."
+      ]
+    },
+    {
+      "id": "text-property-presentation",
+      "classes": [
+        "KisTextPropertiesManager"
+      ],
+      "concern": "Connects selected vector text shapes to canvas text-property resources.",
+      "disposition": "move-as-unit",
+      "destinationIds": [
+        "tool-ui-text"
+      ],
+      "nextGate": "R1-G6f",
+      "evidence": [
+        "KisTextPropertiesManager contains selected-shape and canvas-resource signal wiring around text property values."
+      ]
+    }
+  ],
+  "kisDocumentMethodGroups": [
+    {
+      "id": "application-composition-and-lifetime",
+      "concern": "Constructs, copies, snapshots, and owns the concrete document object graph.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "application-composition"
+      ],
+      "nextGate": "R1-G6h",
+      "methods": [
+        "KisDocument",
+        "Private::copyFrom",
+        "Private::copyFromImpl",
+        "Private::lockAndCloneImpl",
+        "clone",
+        "copyFromDocument",
+        "copyFromDocumentImpl",
+        "lockAndCloneForSaving",
+        "lockAndCreateSnapshot",
+        "newObjectName",
+        "~KisDocument"
+      ],
+      "evidence": [
+        "KisDocument::Private constructs metadata, presentation, import-export, timers, undo, image, resource storage, and background-save owners."
+      ]
+    },
+    {
+      "id": "document-content-and-presentation-state",
+      "concern": "Stores document-attached guides, assistants, reference images, storyboard, audio, colors, and measurement values used by serialization and presentation.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "canvas-presentation",
+        "document-session",
+        "document-ui"
+      ],
+      "nextGate": "R1-G6h",
+      "methods": [
+        "assistants",
+        "assistantsGlobalColor",
+        "colorHistoryColors",
+        "colorHistoryModel",
+        "documentBounds",
+        "getAudioLevel",
+        "getAudioTracks",
+        "getStoryboardCommentsList",
+        "getStoryboardItemList",
+        "gridConfig",
+        "guidesConfig",
+        "mirrorAxisConfig",
+        "referenceImagesLayer",
+        "setAssistants",
+        "setAssistantsGlobalColor",
+        "setAudioTracks",
+        "setAudioVolume",
+        "setColorHistoryColors",
+        "setGridConfig",
+        "setGuidesConfig",
+        "setMirrorAxisConfig",
+        "setReferenceImagesLayer",
+        "setStoryboardCommentList",
+        "setStoryboardItemList",
+        "setUnit",
+        "slotConfigChanged",
+        "unit"
+      ],
+      "evidence": [
+        "The fields are copied as document data, serialized by format code, and also drive canvas or docker presentation signals."
+      ]
+    },
+    {
+      "id": "document-file-open-and-load",
+      "concern": "Coordinates path opening, import, native loading, and document closing across file, format, and application owners.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "document-files",
+        "import-export"
+      ],
+      "nextGate": "R1-G6h",
+      "methods": [
+        "closePath",
+        "importDocument",
+        "loadNativeFormat",
+        "openFile",
+        "openPath",
+        "openPathInternal"
+      ],
+      "evidence": [
+        "The methods combine concrete path state with KisImportExportManager calls and application-visible completion signals."
+      ]
+    },
+    {
+      "id": "document-file-save-and-recovery",
+      "concern": "Coordinates save, export, backup, background save, autosave, recovery requests, and completion notification.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "document-files",
+        "document-ui",
+        "import-export"
+      ],
+      "nextGate": "R1-G6h",
+      "methods": [
+        "Private::updateDocumentMetadataOnSaving",
+        "autoSaveOnPause",
+        "exportDocument",
+        "exportDocumentImpl",
+        "exportDocumentSync",
+        "fileBatchMode",
+        "finishExportInBackground",
+        "finishRecoveryAutoSaveRequest",
+        "importExportManager",
+        "initiateSavingInBackground",
+        "isAutoSaveActive",
+        "isAutosaving",
+        "isSaving",
+        "requestRecoveryAutoSave",
+        "resourceSavingFilter",
+        "save",
+        "saveAs",
+        "serializeToNativeByteArray",
+        "setAutoSaveActive",
+        "setAutoSaveDelay",
+        "setEmergencyAutoSaveInterval",
+        "setFileBatchMode",
+        "setInfiniteAutoSaveInterval",
+        "setNormalAutoSaveInterval",
+        "slotAutoSave",
+        "slotAutoSaveImpl",
+        "slotChildCompletedSavingInBackground",
+        "slotCompleteAutoSaving",
+        "slotCompleteRecoveryAutoSaving",
+        "slotCompleteSavingDocument",
+        "slotContinuePendingRecoveryAutoSave",
+        "slotDocumentCloningCancelled",
+        "slotInitiateAsyncAutosaving",
+        "startExportInBackground",
+        "startRecoveryAutoSave",
+        "waitForSavingToComplete"
+      ],
+      "evidence": [
+        "P1 through P3 isolate state, file policy, and presentation while these methods remain the concrete assembly sequence."
+      ]
+    },
+    {
+      "id": "document-metadata-and-resource-storage",
+      "concern": "Coordinates serialized metadata and document-owned resource storage used by native files.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "import-export-metadata",
+        "resource-storage"
+      ],
+      "nextGate": "R1-G6h",
+      "methods": [
+        "Private::uploadLinkedResourcesFromLayersToStorage",
+        "createDomDocument",
+        "documentInfo",
+        "embeddedResourcesStorageId",
+        "linkedDocumentResources",
+        "linkedResourcesStorageId",
+        "setPaletteList"
+      ],
+      "evidence": [
+        "KoDocumentInfo is owned by kritaimpex while KisDocument still composes resource storage and format serialization inputs."
+      ]
+    },
+    {
+      "id": "document-session-and-diagnostics",
+      "concern": "Exposes path, MIME, modification, recovery, read-write, editing-time, and diagnostic state through the legacy facade.",
+      "disposition": "retain-until-prerequisite",
+      "destinationIds": [
+        "document-session"
+      ],
+      "nextGate": "R1-G6h",
+      "methods": [
+        "errorMessage",
+        "isModified",
+        "isNativeFormat",
+        "isReadWrite",
+        "isRecovered",
+        "localFilePath",
+        "mimeType",
+        "path",
+        "resetPath",
+        "setErrorMessage",
+        "setLocalFilePath",
+        "setMimeType",
+        "setMimeTypeAfterLoading",
+        "setModified",
+        "setPath",
+        "setReadWrite",
+        "setRecovered",
+        "setWarningMessage",
+        "updateEditingTime",
+        "warningMessage"
+      ],
+      "evidence": [
+        "Identity, modification, autosave, recovery, and undo state delegate to concrete document session values; wrappers remain for current consumers."
+      ]
+    },
+    {
+      "id": "image-undo-and-document-attachment",
+      "concern": "Owns the current image, shape bridge, image idle behavior, undo connection, and document decorations.",
+      "disposition": "split-by-responsibility",
+      "destinationIds": [
+        "document-ui-undo",
+        "image-model"
+      ],
+      "nextGate": "R1-G6h",
+      "methods": [
+        "Private::syncDecorationsWrapperLayerState",
+        "clearUndoHistory",
+        "createUndoStore",
+        "hackPreliminarySetImage",
+        "image",
+        "newImage",
+        "preActivatedNode",
+        "savingImage",
+        "setCurrentImage",
+        "setImageModified",
+        "setImageModifiedWithoutUndo",
+        "setPreActivatedNode",
+        "shapeController",
+        "shapeForNode",
+        "slotImageRootChanged",
+        "slotPerformIdleRoutines",
+        "slotUndoStackCleanChanged",
+        "undoStack"
+      ],
+      "evidence": [
+        "The methods manipulate KisImage, nodes, shape controllers, painting strokes, and undo adapters while the facade owns their lifetime."
+      ]
+    },
+    {
+      "id": "presentation-and-feedback",
+      "concern": "Builds document captions, previews, paths, and document-information dialogs for presentation.",
+      "disposition": "retain-until-prerequisite",
+      "destinationIds": [
+        "document-ui"
+      ],
+      "nextGate": "R1-G6h",
+      "methods": [
+        "caption",
+        "createDocumentInfoDialog",
+        "generatePreview",
+        "prettyPath"
+      ],
+      "evidence": [
+        "The methods return QPixmap or QWidget-facing values and format document state for users without owning file conversion."
+      ]
+    }
+  ],
+  "abstractionAssessment": [
+    {
+      "concern": "document-operation-registration",
+      "decision": "do-not-introduce",
+      "currentRequirement": false,
+      "evidence": [
+        "Current callers invoke concrete document, tool, and presentation owners directly; no runtime replacement or multiple implementation exists."
+      ],
+      "nextGate": "R1-G6f"
+    },
+    {
+      "concern": "document-save-calculation",
+      "decision": "do-not-introduce",
+      "currentRequirement": false,
+      "evidence": [
+        "Deterministic identity, modification, autosave, recovery, and presentation transitions are extracted; the remaining save sequence coordinates live image and import-export work."
+      ],
+      "nextGate": "R1-G6h"
+    },
+    {
+      "concern": "document-storage-substitution",
+      "decision": "do-not-introduce",
+      "currentRequirement": false,
+      "evidence": [
+        "The product has one concrete Qt and KoStore file implementation and current tests require controlled paths rather than a replaceable storage implementation."
+      ],
+      "nextGate": "R1-G6h"
+    },
+    {
+      "concern": "linked-file-layer-opening",
+      "decision": "do-not-introduce",
+      "currentRequirement": false,
+      "evidence": [
+        "The concrete image-layer state and application open action can be separated at application migration without adding a generic port to the image model."
+      ],
+      "nextGate": "R1-G6h"
+    }
+  ],
+  "nextAction": {
+    "gate": "R1-G6f",
+    "purpose": "Separate existing tool commands from action, dialog, canvas, node, and selection presentation before relocating dependent document node models.",
+    "startingPaths": [
+      "libs/ui/kis_filter_manager.h",
+      "libs/ui/kis_image_manager.h",
+      "libs/ui/kis_node_commands_adapter.h",
+      "libs/ui/kis_node_manager.h",
+      "libs/ui/kis_selection_manager.h",
+      "libs/ui/tool"
+    ],
+    "prerequisites": [
+      "R1-G6e document classes and KisDocument methods have a recorded owner or later gate.",
+      "Tool activation, command, settings, cancellation, and undo boundary contracts are identified before relocation."
+    ],
+    "completionCriteria": [
+      "All tool command and settings classes are owned by kritatools or kritatoolsui.",
+      "Document presentation models no longer depend on command managers owned by kritaui.",
+      "The reviewed kritaui internal references assigned to tools are removed."
+    ],
+    "stopCondition": "Stop before input migration if tool activation, settings, cancellation, or undo contracts regress."
+  }
+}
