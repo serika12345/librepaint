@@ -20,7 +20,7 @@
 #include "kis_layer.h"
 #include "kis_painter.h"
 #include "kis_selection.h"
-#include "kis_node_commands_adapter.h"
+#include <commands/kis_node_commands_adapter.h>
 #include "kis_group_layer.h"
 #include "kis_progress_widget.h"
 #include "kis_config.h"
@@ -70,7 +70,7 @@ void KisImportCatcher::Private::importAsPaintLayer(KisPaintDeviceSP device, QStr
         parent = view->image()->rootLayer();
     }
 
-    KisNodeCommandsAdapter adapter(view);
+    KisNodeCommandsAdapter adapter(view->image());
     adapter.addNode(newLayer, parent, currentActiveLayer);
 }
 
@@ -87,7 +87,7 @@ void KisImportCatcher::Private::importShapeLayer(KisShapeLayerSP shapeLayer)
         parent = view->image()->rootLayer();
     }
 
-    KisNodeCommandsAdapter adapter(view);
+    KisNodeCommandsAdapter adapter(view->image());
     adapter.addNode(shapeLayer, parent, currentActiveLayer);
 }
 
@@ -187,4 +187,3 @@ void KisImportCatcher::adaptClipToImageColorSpace(KisPaintDeviceSP dev, KisImage
         dev->convertTo(image->colorSpace());
     }
 }
-

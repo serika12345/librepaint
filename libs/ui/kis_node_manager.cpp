@@ -51,7 +51,7 @@
 #include "kis_group_layer.h"
 #include "kis_layer_manager.h"
 #include "kis_selection_manager.h"
-#include "kis_node_commands_adapter.h"
+#include <commands/kis_node_commands_adapter.h>
 #include "kis_action.h"
 #include "kis_action_manager.h"
 #include "kis_processing_applicator.h"
@@ -88,7 +88,7 @@ struct KisNodeManager::Private {
         , imageView(0)
         , layerManager(v)
         , maskManager(v)
-        , commandsAdapter(v)
+        , commandsAdapter(KisImageWSP(), v)
         , nodeSelectionAdapter(new KisNodeSelectionAdapter(q))
         , nodeInsertionAdapter(new KisNodeInsertionAdapter(q))
         , nodeDisplayModeAdapter(new KisNodeDisplayModeAdapter())
@@ -214,6 +214,7 @@ void KisNodeManager::setView(QPointer<KisView>imageView)
     }
 
     m_d->imageView = imageView;
+    m_d->commandsAdapter.setImage(imageView ? imageView->image() : KisImageWSP());
 
     if (m_d->imageView) {
         KisShapeController *shapeController = dynamic_cast<KisShapeController*>(m_d->imageView->document()->shapeController());
@@ -546,23 +547,22 @@ void KisNodeManager::moveNodeAt(KisNodeSP node, KisNodeSP parent, int index)
 
 void KisNodeManager::moveNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
 {
-    KUndo2MagicString actionName = kundo2_i18n("Move Nodes");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-    juggler->moveNode(nodes, parent, aboveThis);
+    m_d->lazyGetJuggler(kundo2_i18n("Move Nodes"))->moveNode(nodes, parent, aboveThis);
 }
 
 void KisNodeManager::copyNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
 {
-    KUndo2MagicString actionName = kundo2_i18n("Copy Nodes");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-    juggler->copyNode(nodes, parent, aboveThis);
+    m_d->lazyGetJuggler(kundo2_i18n("Copy Nodes"))->copyNode(nodes, parent, aboveThis);
 }
 
 void KisNodeManager::addNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
 {
-    KUndo2MagicString actionName = kundo2_i18n("Add Nodes");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-    juggler->addNode(nodes, parent, aboveThis);
+    m_d->lazyGetJuggler(kundo2_i18n("Add Nodes"))->addNode(nodes, parent, aboveThis);
+}
+
+void KisNodeManager::addNodeUndoable(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis)
+{
+    m_d->commandsAdapter.addNode(node, parent, aboveThis);
 }
 
 void KisNodeManager::toggleIsolateActiveNode()

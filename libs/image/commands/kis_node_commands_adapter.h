@@ -7,14 +7,13 @@
 #ifndef KIS_NODE_COMMANDS_ADAPTER_H
 #define KIS_NODE_COMMANDS_ADAPTER_H
 
-class KisViewManager;
 class KoCompositeOp;
 class KUndo2MagicString;
 class KisProcessingApplicator;
 
 
 #include <kis_types.h>
-#include <kritaui_export.h>
+#include <kritaimage_export.h>
 #include <commands/kis_image_layer_add_command.h>
 
 #include <QObject>
@@ -22,14 +21,20 @@ class KisProcessingApplicator;
 /**
  * This class allows the manipulation of nodes in a KisImage
  * and creates commands as needed.
+ *
+ * The image is borrowed through a weak pointer. Long-lived UI owners must
+ * rebind the adapter whenever their active image changes.
  */
-class KRITAUI_EXPORT KisNodeCommandsAdapter : public QObject
+class KRITAIMAGE_EXPORT KisNodeCommandsAdapter : public QObject
 {
-    Q_OBJECT
-
 public:
-    KisNodeCommandsAdapter(KisViewManager * view);
+    explicit KisNodeCommandsAdapter(
+        KisImageWSP image = KisImageWSP(),
+        QObject *parent = nullptr);
     ~KisNodeCommandsAdapter() override;
+
+    void setImage(KisImageWSP image);
+
 public:
     /**
      * Applies \p cmd on a provided \p applicator. If \p applicator is null, then a temporary
@@ -59,7 +64,9 @@ public:
 
     void undoLastCommand();
 private:
-    KisViewManager* m_view;
+    KisImageSP image() const;
+
+    KisImageWSP m_image;
 };
 
 #endif // KIS_NODE_COMMANDS_ADAPTER_H

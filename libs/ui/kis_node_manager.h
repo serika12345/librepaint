@@ -147,6 +147,11 @@ public Q_SLOTS:
     void addNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis);
 
     /**
+     * Adds one node immediately through the image undo stack.
+     */
+    void addNodeUndoable(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis);
+
+    /**
      * Moves a list of nodes without searching appropriate position
      * for it.  You *must* ensure that the nodes are allowed to be
      * added to the parent, otherwise you'll get an assert.

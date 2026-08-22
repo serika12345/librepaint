@@ -20,7 +20,7 @@
 #include <kis_config.h>
 
 #include "kis_selection.h"
-#include "kis_node_commands_adapter.h"
+#include <commands/kis_node_commands_adapter.h>
 #include "kis_filter_manager.h"
 #include "ui_wdgfilterdialog.h"
 #include "kis_canvas2.h"
@@ -221,7 +221,7 @@ void KisDlgFilter::createMask()
 
     Q_ASSERT(layer->allowAsChild(mask));
 
-    KisNodeCommandsAdapter adapter(d->view);
+    KisNodeCommandsAdapter adapter(d->view->image());
     adapter.addNode(mask, layer, layer->lastChild());
 
     close();

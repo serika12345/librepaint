@@ -63,7 +63,7 @@
 #include "flake/kis_shape_layer.h"
 #include "kis_selection_decoration.h"
 #include "canvas/kis_canvas_decoration.h"
-#include "kis_node_commands_adapter.h"
+#include <commands/kis_node_commands_adapter.h>
 #include "kis_iterator_ng.h"
 #include "kis_clipboard.h"
 #include "KisViewManager.h"
@@ -84,7 +84,7 @@
 
 KisSelectionManager::KisSelectionManager(KisViewManager * view)
         : m_view(view)
-        , m_adapter(new KisNodeCommandsAdapter(view))
+        , m_adapter(new KisNodeCommandsAdapter(KisImageWSP(), view))
 {
     m_clipboard = KisClipboard::instance();
 }
@@ -226,6 +226,7 @@ void KisSelectionManager::setView(QPointer<KisView>imageView)
     }
 
     m_imageView = imageView;
+    m_adapter->setImage(imageView ? imageView->image() : KisImageWSP());
     if (m_imageView) {
         connect(m_imageView->canvasBase()->selectedShapesProxy(), SIGNAL(selectionChanged()), this, SLOT(shapeSelectionChanged()), Qt::UniqueConnection);
 

@@ -36,7 +36,7 @@
 #include <kis_transform_worker.h>
 #include <KoColorSpace.h>
 #include <KoColor.h>
-#include "kis_node_commands_adapter.h"
+#include <commands/kis_node_commands_adapter.h>
 #include "commands/kis_deselect_global_selection_command.h"
 #include "commands_new/KisLayerCollapseCommand.h"
 #include "kis_iterator_ng.h"
@@ -47,13 +47,14 @@
 KisMaskManager::KisMaskManager(KisViewManager * view)
     : m_view(view)
     , m_imageView(0)
-    , m_commandsAdapter(new KisNodeCommandsAdapter(m_view))
+    , m_commandsAdapter(new KisNodeCommandsAdapter(KisImageWSP(), view))
 {
 }
 
 void KisMaskManager::setView(QPointer<KisView>imageView)
 {
     m_imageView = imageView;
+    m_commandsAdapter->setImage(imageView ? imageView->image() : KisImageWSP());
 }
 
 void KisMaskManager::setup(KisKActionCollection *actionCollection, KisActionManager *actionManager)

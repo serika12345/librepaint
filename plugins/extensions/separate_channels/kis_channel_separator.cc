@@ -44,7 +44,7 @@
 #include <KisViewManager.h>
 #include <kis_paint_device.h>
 #include <kis_node_manager.h>
-#include <kis_node_commands_adapter.h>
+#include <commands/kis_node_commands_adapter.h>
 #include <KisMimeDatabase.h>
 #include "KisImageBarrierLock.h"
 
@@ -193,7 +193,7 @@ void KisChannelSeparator::separate(KoUpdater * progressUpdater, enumSepAlphaOpti
     vKisPaintDeviceSP::const_iterator paintDeviceIterator = paintDevices.cbegin();
 
     if (!progressUpdater->interrupted()) {
-        KisNodeCommandsAdapter adapter(m_viewManager);
+        KisNodeCommandsAdapter adapter(image);
         adapter.beginMacro(kundo2_i18n("Separate Image"));
 
         for (QList<KoChannelInfo *>::const_iterator it =  channels.constBegin(); it != channels.constEnd(); ++it) {

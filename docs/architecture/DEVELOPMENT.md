@@ -382,7 +382,7 @@ nix develop .#test --command \
 変更した場合は、先行する台帳を更新してから再配置計画を同じ変更で更新する。
 
 `docs/architecture/document-boundary-assessment.json`は、R1-G6e開始時の文書25クラスの
-解決先、UI直下に残る22クラスの関心、`KisDocument.cpp`の全メソッド定義、追加抽象の
+解決先、UI直下に残る21クラスの関心、`KisDocument.cpp`の全メソッド定義、追加抽象の
 現在必要性、次の検査段階を保持する。宣言と実装の経路はUIクラス責務台帳を正本とし、
 重複して保持しない。次のコマンドはUIクラス責務台帳、実装ファイル、
 再配置計画との一致を検査する。
@@ -400,7 +400,8 @@ nix develop .#test --command \
 検査は次の関係を確認する。
 
 - `publicHeaderPolicy`が対象ソース、拡張子、試験経路の除外、公開根拠の種類を固定する。
-- `kritacanvas`、`kritaimage`、`kritaimpex`、`kritaimpexui`、`kritaui`について、公開マクロまたは
+- `kritacanvas`、`kritadocument`、`kritadocumentfiles`、`kritadocumentui`、`kritaimage`、
+  `kritaimpex`、`kritaimpexui`、`kritaui`について、公開マクロまたは
   公開ヘッダー構築契約を持つ製品ヘッダーと、所有元外から直接includeされる製品ヘッダーの
   和集合が、欠落と余分な項目なしで記録されている。
 - 所有ターゲットが記録した全プラットフォームに存在し、宣言と実装が所有元の
@@ -411,7 +412,8 @@ nix develop .#test --command \
 - 主要クラスの宣言、実装、公開ヘッダー、責務根拠が有効な参照を持つ。
 - `libs/ui`直下の公開クラスが欠落なく記録され、宣言種別、対応する実装単位、
   所有ターゲット、5種類の責務領域がソースと一致する。
-- 文書状態に分類された22クラスと`KisDocument.cpp`の129メソッド定義が、関心、
+- 文書状態に分類された21クラス、既に所有を移した4クラス、`KisDocument.cpp`の
+  129メソッド定義が、関心、
   具体的な所有先、後続検査段階へ一度だけ割り当てられる。
 - `libs/ui/tool`以下の公開クラスが欠落なく記録され、宣言種別、対応する実装単位、
   ディレクトリー外の全利用ソース、所有ターゲット、5種類の責務領域がソースと一致する。

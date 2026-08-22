@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 660,
-    "linux": 675,
-    "ios": 594,
-    "android": 600,
-    "windows": 630
+    "macos": 661,
+    "linux": 676,
+    "ios": 595,
+    "android": 601,
+    "windows": 631
   },
   "commonTargets": [
     "CCSGraph",
@@ -54,6 +54,7 @@
     "KisModelIndexConverterTest",
     "KisMplTest",
     "KisMyPaintOpTest",
+    "KisNodeCommandsAdapterTest",
     "KisNodeDummiesGraphTest",
     "KisNodeJugglerCompressedTest",
     "KisNodeManagerTest",
