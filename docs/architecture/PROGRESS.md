@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-22 19:52 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-22 20:00 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6f画像ノード命令境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6f-tool-boundary`
@@ -1054,11 +1054,15 @@
 - 5構成のCMake台帳はmacOS 661件、Linux 676件、iOS 595件、Android 601件、
   Windows 631件を記録する。共通579件、条件付き119件、構成差260件であり、
   22中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- 実装コミット`74f0d0c360bfcadc4cbf207b320297eded34cb59`を両ホストの清浄な作業ツリーへ
+  揃え、macOSの全341試験とx86_64 Linuxの全343試験が成功した。iOSはLibrePaint本体、
+  Android arm64-v8aとWindows x86_64はUIライブラリーまで構築に成功した。
+- 同じ実装コミットで5構成台帳の完全一致検査、103件の方針・台帳試験を含む
+  `verify-quick`、`nix flake check --no-build --all-systems --no-eval-cache`が成功した。
 
 ## 次の操作
 
-この変更の全ネイティブ試験とiOS、Android、Windows構築、5構成台帳の同一コミット検証を
-完了し、PRを提出する。統合後は`libs/ui/kis_node_juggler_compressed.{h,cpp}`と
+この変更のPRをレビューして統合する。統合後は`libs/ui/kis_node_juggler_compressed.{h,cpp}`と
 `libs/ui/kis_node_manager.{h,cpp}`を起点に、圧縮、取消し、取り消し履歴の契約を固定して、
 ノード命令と表示・選択配線を分ける次のR1-G6f単位を確定する。
 
