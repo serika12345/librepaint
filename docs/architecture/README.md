@@ -440,6 +440,12 @@ R1-G6fの最初の単位では、`libs/ui/kis_node_commands_adapter.*`を
 操作バッチの寿命構成と利用者操作の配線は`KisNodeManager`に残る。旧ファイル、転送ヘッダー、
 旧名の別名は存在せず、新しい汎用層も追加していない。
 
+`KisNodeManager`から画像ノードを変更する場合、移動可能性と選択マスクのアクティブ状態は
+`KisNodeCommandsAdapter`が保証する。ミラー処理の再帰範囲、選択範囲、全フレーム処理、並行
+ジョブ、取り消し履歴への登録は`KisMirrorProcessingVisitor::applyToNodes()`が構成する。
+`KisNodeManager`は編集可否を利用者へ通知し、これらの画像処理を呼び出し、完了後の画面更新を
+通知する。
+
 残るファイル移動を先行させず、R1-G6fで具体的なツール命令とその表示配線を引き続き分ける。
 操作管理を`kritaui`から除いた後にノード表示を`kritadocumentui`へ、R1-G6hで文書構成と
 外部ファイル層のアプリケーション接続を最終所有へ移す。

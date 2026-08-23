@@ -16,6 +16,7 @@ private Q_SLOTS:
     void testCropVisitor();
     void testTransformVisitorScale();
     void testTransformVisitorScaleRotate();
+    void testMirrorNodesOperation();
 };
 
 #endif /* __KIS_PROCESSINGS_TEST_H */

@@ -13,12 +13,19 @@
 
 #include "KisSelectionBasedProcessingHelper.h"
 
+class KUndo2MagicString;
 
 class KRITAIMAGE_EXPORT KisMirrorProcessingVisitor : public KisSimpleProcessingVisitor
 {
 public:
     KisMirrorProcessingVisitor(const QRect &bounds, Qt::Orientation orientation);
     KisMirrorProcessingVisitor(KisSelectionSP selection, Qt::Orientation orientation);
+
+    static void applyToNodes(KisImageSP image,
+                             const KisNodeList &nodes,
+                             Qt::Orientation orientation,
+                             KisSelectionSP selection,
+                             const KUndo2MagicString &actionName);
 
 private:
     void visitNodeWithPaintDevice(KisNode *node, KisUndoAdapter *undoAdapter) override;

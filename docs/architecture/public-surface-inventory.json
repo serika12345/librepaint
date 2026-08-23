@@ -5337,7 +5337,6 @@
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/dialogs/KisDlgChangeCloneSource.cpp",
             "libs/ui/kis_layer_manager.cc",
-            "libs/ui/kis_node_manager.cpp",
             "libs/ui/operations/kis_filter_selection_operation.cpp",
             "libs/ui/operations/kis_operation.cpp",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
