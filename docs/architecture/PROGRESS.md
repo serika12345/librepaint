@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-23 10:42 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-23 11:37 JST
+- 状態: `completed`
 - 現在の検査段階: R1-G6f画像ノード操作バッチ境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6f-node-juggler-boundary`
@@ -1060,7 +1060,7 @@
 - 同じ実装コミットで5構成台帳の完全一致検査、103件の方針・台帳試験を含む
   `verify-quick`、`nix flake check --no-build --all-systems --no-eval-cache`が成功した。
 
-## R1-G6f画像ノード操作バッチ境界で進行中の作業
+## R1-G6f画像ノード操作バッチ境界で完了した作業
 
 - `libs/ui/kis_node_juggler_compressed.{h,cpp}`を起点として、
   `libs/image/commands/kis_node_operation_batch.{h,cpp}`へ移した。連続するノードの追加、移動、
@@ -1077,11 +1077,21 @@
 - 公開面台帳は`kritaimage`334ヘッダー、`kritaui`244ヘッダーを記録する。UI直下の
   公開クラスは80件、文書状態分類は20件となり、R1-G6e開始時の25クラスのうち5クラスが
   具体的な所有先へ移った。
+- 実装と台帳を含むコミット`8a92e2bf63b6bd5e3cfaabf82d5a5fb82499c4fd`をDarwinと
+  x86_64 Linuxの清浄な作業ツリーへ揃えた。macOSの全341試験とx86_64 Linuxの
+  全343試験が成功し、iOSはLibrePaint本体、Android arm64-v8aとWindows x86_64は
+  UIライブラリーまで構築に成功した。
+- 同じコミットで5構成台帳の完全一致検査と循環0件を確認した。103件の方針・台帳試験を
+  含む`verify-quick`と`nix flake check --no-build --all-systems --no-eval-cache`が成功した。
+- AndroidとWindowsは構築契約までを確認し、実行時の利用者操作はmacOSとLinuxの
+  `KisNodeOperationBatchTest`が固定する。移動対象外のUI管理器と各プラットフォームの
+  既存警告は、この境界の残存リスクとして追跡する。
 
 ## 次の操作
 
-同一コミットをDarwinとx86_64 Linuxの清浄な作業ツリーへ揃え、5構成のCMake台帳、
-macOSとLinuxの全ネイティブ試験、iOS本体、AndroidとWindowsのUIライブラリーを検証する。
+この変更をレビューして統合する。統合後は`libs/ui/kis_node_manager.{h,cpp}`を起点として、
+残る処理を画面操作の配線と画像ノード命令に再分類し、現存する責務だけで次のR1-G6f単位を
+決める。
 
 ## R1-G5完了根拠
 
