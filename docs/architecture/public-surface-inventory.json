@@ -1755,7 +1755,6 @@
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
-            "libs/ui/kis_node_juggler_compressed.cpp",
             "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp"
           ]
         },
@@ -1766,8 +1765,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/impex/ui/kis_mimedata.cpp",
-            "libs/ui/kis_node_juggler_compressed.cpp"
+            "libs/impex/ui/kis_mimedata.cpp"
           ]
         },
         {
@@ -1842,6 +1840,16 @@
           ],
           "consumerPaths": [
             "plugins/extensions/qmic/kis_qmic_import_tools.cpp"
+          ]
+        },
+        {
+          "path": "libs/image/commands/kis_node_operation_batch.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/kis_node_manager.cpp"
           ]
         },
         {
@@ -2573,7 +2581,6 @@
             "libs/ui/dialogs/kis_dlg_generator_layer.cpp",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_layer_manager.h",
-            "libs/ui/kis_node_juggler_compressed.cpp",
             "plugins/extensions/offsetimage/kis_offset_processing_visitor.cpp",
             "plugins/impex/jpeg/kis_jpeg_export.cc",
             "plugins/impex/libkra/kis_kra_load_visitor.cpp",
@@ -3700,7 +3707,6 @@
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
             "libs/ui/kis_node_filter_proxy_model.cpp",
-            "libs/ui/kis_node_juggler_compressed.cpp",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_manager.h",
             "libs/ui/kis_node_model.cpp",
@@ -4203,7 +4209,6 @@
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
             "libs/ui/kis_multinode_property.h",
-            "libs/ui/kis_node_juggler_compressed.cpp",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/tool/kis_selection_tool_helper.h",
@@ -4333,7 +4338,6 @@
             "libs/ui/kis_image_manager.cc",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_multinode_property.h",
-            "libs/ui/kis_node_juggler_compressed.cpp",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_statusbar.cc",
             "libs/ui/tool/kis_tool_utils.cpp",
@@ -5333,7 +5337,6 @@
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/dialogs/KisDlgChangeCloneSource.cpp",
             "libs/ui/kis_layer_manager.cc",
-            "libs/ui/kis_node_juggler_compressed.cpp",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/operations/kis_filter_selection_operation.cpp",
             "libs/ui/operations/kis_operation.cpp",
@@ -5947,7 +5950,6 @@
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
             "libs/ui/kis_model_index_converter.cpp",
-            "libs/ui/kis_node_juggler_compressed.cpp",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_model.cpp",
             "libs/ui/kis_selection_decoration.cc",
@@ -6498,7 +6500,6 @@
             "libs/ui/kis_mirror_manager.cpp",
             "libs/ui/kis_mirror_manager.h",
             "libs/ui/kis_node_filter_proxy_model.h",
-            "libs/ui/kis_node_juggler_compressed.h",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_manager.h",
             "libs/ui/kis_node_model.h",
@@ -9795,13 +9796,6 @@
           "consumerPaths": [
             "plugins/dockers/layerdocker/LayerBox.cpp"
           ]
-        },
-        {
-          "path": "libs/ui/kis_node_juggler_compressed.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/kis_node_manager.h",

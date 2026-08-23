@@ -4,15 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_node_juggler_compressed_test.h"
+#include "kis_node_operation_batch_test.h"
+
+#include <algorithm>
 
 #include <simpletest.h>
-#include "kis_node_juggler_compressed.h"
+#include <commands/kis_node_operation_batch.h>
 
 #include <KoColor.h>
 #include <KoColorSpace.h>
 
-void KisNodeJugglerCompressedTest::init()
+void KisNodeOperationBatchTest::init()
 {
     p.reset(new TestUtil::MaskParent);
 
@@ -39,22 +41,22 @@ void KisNodeJugglerCompressedTest::init()
     p->image->initialRefreshGraph();
 }
 
-void KisNodeJugglerCompressedTest::cleanup()
+void KisNodeOperationBatchTest::cleanup()
 {
     p.reset();
     layer1.clear();
     layer2.clear();
 }
 
-void KisNodeJugglerCompressedTest::testMove(int delayBeforeEnd)
+void KisNodeOperationBatchTest::testMove(int delayBeforeEnd)
 {
     TestUtil::ReferenceImageChecker chk("node_juggler", "move_test");
     chk.setMaxFailingPixels(0);
 
-    KisNodeJugglerCompressed juggler(kundo2_i18n("Move Layer"), p->image, 0, 600);
+    KisNodeOperationBatch batch(kundo2_i18n("Move Layer"), p->image, 600);
     QVERIFY(chk.checkImage(p->image, "initial"));
 
-    juggler.moveNode(layer1, p->image->root(), layer2);
+    batch.moveNode(layer1, p->image->root(), layer2);
     QTest::qWait(100);
     QVERIFY(chk.checkImage(p->image, "initial"));
 
@@ -63,7 +65,7 @@ void KisNodeJugglerCompressedTest::testMove(int delayBeforeEnd)
         QVERIFY(chk.checkImage(p->image, "moved"));
     }
 
-    juggler.end();
+    batch.end();
     p->image->waitForDone();
     QVERIFY(chk.checkImage(p->image, "moved"));
 
@@ -73,17 +75,17 @@ void KisNodeJugglerCompressedTest::testMove(int delayBeforeEnd)
     QVERIFY(chk.checkImage(p->image, "initial"));
 }
 
-void KisNodeJugglerCompressedTest::testApplyUndo()
+void KisNodeOperationBatchTest::testApplyUndo()
 {
     testMove(1000);
 }
 
-void KisNodeJugglerCompressedTest::testEndBeforeUpdate()
+void KisNodeOperationBatchTest::testEndBeforeUpdate()
 {
     testMove(0);
 }
 
-void KisNodeJugglerCompressedTest::testDuplicateImpl(bool externalParent, bool useMove)
+void KisNodeOperationBatchTest::testDuplicateImpl(bool externalParent, bool useMove)
 {
     TestUtil::ReferenceImageChecker chk("node_juggler", "move_test");
     chk.setMaxFailingPixels(0);
@@ -103,21 +105,21 @@ void KisNodeJugglerCompressedTest::testDuplicateImpl(bool externalParent, bool u
     selectedNodes << layer3;
     selectedNodes << layer5;
 
-    KisNodeJugglerCompressed juggler(kundo2_i18n("Duplicate Layers"), p->image, 0, 600);
+    KisNodeOperationBatch batch(kundo2_i18n("Duplicate Layers"), p->image, 600);
 
     if (!externalParent) {
-        juggler.duplicateNode(selectedNodes);
+        batch.duplicateNode(selectedNodes, layer2);
     } else {
         if (useMove) {
-            juggler.moveNode(selectedNodes, p->image->root(), layer6);
+            batch.moveNode(selectedNodes, p->image->root(), layer6, layer2);
         } else {
-            juggler.copyNode(selectedNodes, p->image->root(), layer6);
+            batch.copyNode(selectedNodes, p->image->root(), layer6, layer2);
         }
     }
 
     QTest::qWait(1000);
 
-    juggler.end();
+    batch.end();
     p->image->waitForDone();
 
     QStringList ref;
@@ -159,19 +161,46 @@ void KisNodeJugglerCompressedTest::testDuplicateImpl(bool externalParent, bool u
     QVERIFY(TestUtil::checkHierarchy(p->image->root(), initialRef));
 }
 
-void KisNodeJugglerCompressedTest::testDuplicate()
+void KisNodeOperationBatchTest::testDuplicate()
 {
     testDuplicateImpl(false, false);
 }
 
-void KisNodeJugglerCompressedTest::testCopyLayers()
+void KisNodeOperationBatchTest::testCopyLayers()
 {
     testDuplicateImpl(true, false);
 }
 
-void KisNodeJugglerCompressedTest::testMoveLayers()
+void KisNodeOperationBatchTest::testMoveLayers()
 {
     testDuplicateImpl(true, true);
 }
 
-SIMPLE_TEST_MAIN(KisNodeJugglerCompressedTest)
+void KisNodeOperationBatchTest::testActiveNodeIsRestoredByUndo()
+{
+    QList<QPair<KisNodeSP, KisNodeList>> reselectionRequests;
+    connect(p->image.data(), &KisImage::sigRequestNodeReselection,
+            this, [&reselectionRequests](KisNodeSP activeNode,
+                                         const KisNodeList &selectedNodes) {
+        reselectionRequests.append(qMakePair(activeNode, selectedNodes));
+    });
+
+    KisNodeOperationBatch batch(kundo2_i18n("Remove Layer"), p->image, 600);
+    batch.removeNode(KisNodeList() << layer2, layer2);
+    batch.end();
+    p->image->waitForDone();
+
+    p->undoStore->undo();
+    p->image->waitForDone();
+
+    QTRY_VERIFY_WITH_TIMEOUT(
+        std::any_of(
+            reselectionRequests.cbegin(), reselectionRequests.cend(),
+            [this](const QPair<KisNodeSP, KisNodeList> &request) {
+                return request.first.data() == layer2.data() &&
+                       request.second == (KisNodeList() << layer2);
+            }),
+        1000);
+}
+
+SIMPLE_TEST_MAIN(KisNodeOperationBatchTest)

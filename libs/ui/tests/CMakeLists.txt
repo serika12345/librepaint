@@ -48,11 +48,6 @@ kis_add_test( kis_model_index_converter_test.cpp ../../../sdk/tests/testutil.cpp
     )
 
 
-kis_add_test( kis_node_juggler_compressed_test.cpp  ../../../sdk/tests/testutil.cpp
-    TEST_NAME KisNodeJugglerCompressedTest
-    LINK_LIBRARIES kritaui kritatestsdk
-    )
-
 kis_add_test(
     kis_input_manager_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisInputManagerTest

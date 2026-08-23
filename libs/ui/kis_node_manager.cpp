@@ -59,7 +59,7 @@
 #include "kis_transaction.h"
 #include "kis_node_selection_adapter.h"
 #include "kis_node_insertion_adapter.h"
-#include "kis_node_juggler_compressed.h"
+#include "commands/kis_node_operation_batch.h"
 #include "KisNodeDisplayModeAdapter.h"
 #include "kis_clipboard.h"
 #include "kis_node_dummies_graph.h"
@@ -109,7 +109,7 @@ struct KisNodeManager::Private {
     KisAction *pinToTimeline {nullptr};
 
     KisNodeList selectedNodes;
-    QPointer<KisNodeJugglerCompressed> nodeJuggler;
+    QPointer<KisNodeOperationBatch> nodeOperationBatch;
 
     KisNodeWSP previouslyActiveNode;
 
@@ -129,7 +129,7 @@ struct KisNodeManager::Private {
                            quint8 opacity);
 
     void mergeTransparencyMaskAsAlpha(bool writeToLayers);
-    KisNodeJugglerCompressed* lazyGetJuggler(const KUndo2MagicString &actionName);
+    KisNodeOperationBatch* lazyGetNodeOperationBatch(const KUndo2MagicString &actionName);
 };
 
 bool KisNodeManager::Private::activateNodeImpl(KisNodeSP node)
@@ -547,17 +547,17 @@ void KisNodeManager::moveNodeAt(KisNodeSP node, KisNodeSP parent, int index)
 
 void KisNodeManager::moveNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
 {
-    m_d->lazyGetJuggler(kundo2_i18n("Move Nodes"))->moveNode(nodes, parent, aboveThis);
+    m_d->lazyGetNodeOperationBatch(kundo2_i18n("Move Nodes"))->moveNode(nodes, parent, aboveThis, activeNode());
 }
 
 void KisNodeManager::copyNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
 {
-    m_d->lazyGetJuggler(kundo2_i18n("Copy Nodes"))->copyNode(nodes, parent, aboveThis);
+    m_d->lazyGetNodeOperationBatch(kundo2_i18n("Copy Nodes"))->copyNode(nodes, parent, aboveThis, activeNode());
 }
 
 void KisNodeManager::addNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
 {
-    m_d->lazyGetJuggler(kundo2_i18n("Add Nodes"))->addNode(nodes, parent, aboveThis);
+    m_d->lazyGetNodeOperationBatch(kundo2_i18n("Add Nodes"))->addNode(nodes, parent, aboveThis, activeNode());
 }
 
 void KisNodeManager::addNodeUndoable(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis)
@@ -1062,24 +1062,24 @@ void KisNodeManager::nodeCompositeOpChanged(const KoCompositeOp* op)
 void KisNodeManager::duplicateActiveNode()
 {
     KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-    juggler->duplicateNode(selectedNodes());
+    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
+    batch->duplicateNode(selectedNodes(), activeNode());
 }
 
-KisNodeJugglerCompressed* KisNodeManager::Private::lazyGetJuggler(const KUndo2MagicString &actionName)
+KisNodeOperationBatch* KisNodeManager::Private::lazyGetNodeOperationBatch(const KUndo2MagicString &actionName)
 {
     KisImageWSP image = view->image();
 
-    if (!nodeJuggler ||
-            (nodeJuggler &&
-             (nodeJuggler->isEnded() ||
-              !nodeJuggler->canMergeAction(actionName)))) {
+    if (!nodeOperationBatch ||
+            (nodeOperationBatch &&
+             (nodeOperationBatch->isEnded() ||
+              !nodeOperationBatch->canMergeAction(actionName)))) {
 
-        nodeJuggler = new KisNodeJugglerCompressed(actionName, image, q, 750);
-        nodeJuggler->setAutoDelete(true);
+        nodeOperationBatch = new KisNodeOperationBatch(actionName, image, 750);
+        nodeOperationBatch->setAutoDelete(true);
     }
 
-    return nodeJuggler;
+    return nodeOperationBatch;
 }
 
 void KisNodeManager::raiseNode()
@@ -1087,8 +1087,8 @@ void KisNodeManager::raiseNode()
     if (!canMoveLayers(selectedNodes())) return;
 
     KUndo2MagicString actionName = kundo2_i18n("Raise Nodes");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-    juggler->raiseNode(selectedNodes());
+    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
+    batch->raiseNode(selectedNodes(), activeNode());
 }
 
 void KisNodeManager::lowerNode()
@@ -1096,8 +1096,8 @@ void KisNodeManager::lowerNode()
     if (!canMoveLayers(selectedNodes())) return;
 
     KUndo2MagicString actionName = kundo2_i18n("Lower Nodes");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-    juggler->lowerNode(selectedNodes());
+    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
+    batch->lowerNode(selectedNodes(), activeNode());
 }
 
 void KisNodeManager::removeSingleNode(KisNodeSP node)
@@ -1116,8 +1116,8 @@ void KisNodeManager::removeSelectedNodes(KisNodeList nodes)
     if (!canModifyLayers(nodes)) return;
 
     KUndo2MagicString actionName = kundo2_i18n("Remove Nodes");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-    juggler->removeNode(nodes);
+    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
+    batch->removeNode(nodes, activeNode());
 }
 
 void KisNodeManager::removeNode()
@@ -1582,8 +1582,8 @@ void KisNodeManager::cutLayersToClipboard()
 
     if (canModifyLayers(nodes)) {
         KUndo2MagicString actionName = kundo2_i18n("Cut Nodes");
-        KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-        juggler->removeNode(nodes);
+        KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
+        batch->removeNode(nodes, activeNode());
     }
 }
 
@@ -1623,7 +1623,7 @@ void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset,
                                   applicator);
 }
 
-bool KisNodeManager::createQuickGroupImpl(KisNodeJugglerCompressed *juggler,
+bool KisNodeManager::createQuickGroupImpl(KisNodeOperationBatch *batch,
                                           const QString &overrideGroupName,
                                           KisNodeSP *newGroup,
                                           KisNodeSP *newLastChild)
@@ -1653,8 +1653,8 @@ bool KisNodeManager::createQuickGroupImpl(KisNodeJugglerCompressed *juggler,
     KisNodeSP parent = active->parent();
     KisNodeSP aboveThis = active;
 
-    juggler->addNode(nodes1, parent, aboveThis);
-    juggler->moveNode(nodes2, group, 0);
+    batch->addNode(nodes1, parent, aboveThis, active);
+    batch->moveNode(nodes2, group, 0, active);
 
     *newGroup = group;
     *newLastChild = nodes2.last();
@@ -1665,28 +1665,28 @@ bool KisNodeManager::createQuickGroupImpl(KisNodeJugglerCompressed *juggler,
 void KisNodeManager::createQuickGroup()
 {
     KUndo2MagicString actionName = kundo2_i18n("Quick Group");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
+    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
 
     KisNodeSP parent;
     KisNodeSP above;
 
-    createQuickGroupImpl(juggler, "", &parent, &above);
+    createQuickGroupImpl(batch, "", &parent, &above);
 }
 
 void KisNodeManager::createQuickClippingGroup()
 {
     KUndo2MagicString actionName = kundo2_i18n("Quick Clipping Group");
-    KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
+    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
 
     KisNodeSP parent;
     KisNodeSP above;
 
     KisImageSP image = m_d->view->image();
-    if (createQuickGroupImpl(juggler, image->nextLayerName(i18nc("default name for a clipping group layer", "Clipping Group")), &parent, &above)) {
+    if (createQuickGroupImpl(batch, image->nextLayerName(i18nc("default name for a clipping group layer", "Clipping Group")), &parent, &above)) {
         KisPaintLayerSP maskLayer = new KisPaintLayer(image.data(), i18nc("default name for quick clip group mask layer", "Mask Layer"), OPACITY_OPAQUE_U8, image->colorSpace());
         maskLayer->disableAlphaChannel(true);
 
-        juggler->addNode(KisNodeList() << maskLayer, parent, above);
+        batch->addNode(KisNodeList() << maskLayer, parent, above, activeNode());
     }
 }
 
@@ -1727,9 +1727,9 @@ void KisNodeManager::quickUngroup()
         KisNodeList nodes = active->childNodes(QStringList(), KoProperties());
 
         if (checkCanMoveLayers(nodes, parent)) {
-            KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-            juggler->moveNode(nodes, parent, active);
-            juggler->removeNode(KisNodeList() << active);
+            KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
+            batch->moveNode(nodes, parent, active, active);
+            batch->removeNode(KisNodeList() << active, active);
         }
     } else if (parent && parent->parent()) {
         KisNodeSP grandParent = parent->parent();
@@ -1740,10 +1740,10 @@ void KisNodeManager::quickUngroup()
         const bool removeParent = KritaUtils::compareListsUnordered(allChildNodes, allSelectedNodes);
 
         if (checkCanMoveLayers(allSelectedNodes, parent)) {
-            KisNodeJugglerCompressed *juggler = m_d->lazyGetJuggler(actionName);
-            juggler->moveNode(allSelectedNodes, grandParent, parent);
+            KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
+            batch->moveNode(allSelectedNodes, grandParent, parent, active);
             if (removeParent) {
-                juggler->removeNode(KisNodeList() << parent);
+                batch->removeNode(KisNodeList() << parent, active);
             }
         }
     }

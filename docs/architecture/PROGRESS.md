@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-22 20:00 JST
-- 状態: `completed`
-- 現在の検査段階: R1-G6f画像ノード命令境界
+- 更新日時: 2026-08-23 10:42 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G6f画像ノード操作バッチ境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6f-tool-boundary`
-- 目的: UI全体を借用していた共有ノード操作命令を、実利用元に共通する画像命令へ移し、
-  文書、入出力、アプリケーション、ツールからの依存方向を既存の許可方向へ揃える。
+- ブランチ: `r1-g6f-node-juggler-boundary`
+- 目的: UI管理器を借用していた非同期ノード操作バッチを画像命令へ移し、選択復元に必要な
+  アクティブノードを明示値にして、画像処理からUIへの依存を除去する。
 
 ## 再開環境
 
@@ -1060,11 +1060,28 @@
 - 同じ実装コミットで5構成台帳の完全一致検査、103件の方針・台帳試験を含む
   `verify-quick`、`nix flake check --no-build --all-systems --no-eval-cache`が成功した。
 
+## R1-G6f画像ノード操作バッチ境界で進行中の作業
+
+- `libs/ui/kis_node_juggler_compressed.{h,cpp}`を起点として、
+  `libs/image/commands/kis_node_operation_batch.{h,cpp}`へ移した。連続するノードの追加、移動、
+  複製、削除、投影更新と一つの非同期取り消し履歴項目への集約を`kritaimage`が所有する。
+- 画像処理が借用していた`KisNodeManager`を除去した。選択復元に必要なアクティブノードは、
+  `KisNodeManager`が各操作の呼出し時に値として渡す。操作バッチの寿命構成と利用者操作の
+  配線はUI所有に残る。
+- `libs/ui/tests/kis_node_juggler_compressed_test.{h,cpp}`を起点として、
+  `libs/image/tests/kis_node_operation_batch_test.{h,cpp}`へ移した。新しい公開ヘッダーがない
+  初回構築の失敗を確認し、既存の移動、複製、コピー、取り消しに加え、渡したアクティブ
+  ノードが取り消し時に復元される契約を固定した。
+- `KisNodeOperationBatchTest`の全試験と`kritaui`の増分構築が成功した。旧ファイル、転送
+  ヘッダー、旧名の別名、新しい汎用接続面は追加していない。
+- 公開面台帳は`kritaimage`334ヘッダー、`kritaui`244ヘッダーを記録する。UI直下の
+  公開クラスは80件、文書状態分類は20件となり、R1-G6e開始時の25クラスのうち5クラスが
+  具体的な所有先へ移った。
+
 ## 次の操作
 
-この変更のPRをレビューして統合する。統合後は`libs/ui/kis_node_juggler_compressed.{h,cpp}`と
-`libs/ui/kis_node_manager.{h,cpp}`を起点に、圧縮、取消し、取り消し履歴の契約を固定して、
-ノード命令と表示・選択配線を分ける次のR1-G6f単位を確定する。
+同一コミットをDarwinとx86_64 Linuxの清浄な作業ツリーへ揃え、5構成のCMake台帳、
+macOSとLinuxの全ネイティブ試験、iOS本体、AndroidとWindowsのUIライブラリーを検証する。
 
 ## R1-G5完了根拠
 

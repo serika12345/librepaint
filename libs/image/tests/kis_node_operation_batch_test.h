@@ -4,14 +4,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef __KIS_NODE_JUGGLER_COMPRESSED_TEST_H
-#define __KIS_NODE_JUGGLER_COMPRESSED_TEST_H
+#ifndef KIS_NODE_OPERATION_BATCH_TEST_H
+#define KIS_NODE_OPERATION_BATCH_TEST_H
 
 #include <simpletest.h>
 #include <testutil.h>
 #include "kis_group_layer.h"
 
-class KisNodeJugglerCompressedTest : public QObject
+class KisNodeOperationBatchTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
@@ -24,6 +24,7 @@ private Q_SLOTS:
     void testDuplicate();
     void testCopyLayers();
     void testMoveLayers();
+    void testActiveNodeIsRestoredByUndo();
 
 private:
     void testMove(int delayBeforeEnd);
@@ -38,4 +39,4 @@ private:
     KisPaintLayerSP layer6;
 };
 
-#endif /* __KIS_NODE_JUGGLER_COMPRESSED_TEST_H */
+#endif /* KIS_NODE_OPERATION_BATCH_TEST_H */

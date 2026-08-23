@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_node_juggler_compressed.h"
+#include "commands/kis_node_operation_batch.h"
 
 #include <QHash>
 #include <QSharedPointer>
@@ -19,7 +19,6 @@
 #include "kis_signal_compressor.h"
 #include "kis_command_utils.h"
 #include "kis_layer_utils.h"
-#include "kis_node_manager.h"
 #include "kis_layer.h"
 #include "kis_generator_layer.h"
 #include "kis_selection_mask.h"
@@ -109,8 +108,8 @@ typedef QHash<KisNodeSP, MoveNodeStructSP> MovedNodesHash;
 /**
  * All the commands executed by the stroke system are running in the
  * background asynchronously. But, at the same time, they Q_EMIT updates
- * in parallel to the ones emitted by the juggler. Therefore, the
- * juggler and all its commands should share some data: which updates
+ * in parallel to the ones emitted by the batch. Therefore, the
+ * batch and all its commands should share some data: which updates
  * have been requested, but not yet dispatched (m_movedNodesInitial),
  * and what updates have already been processed and executed
  * (m_movedNodesUpdated). This object is shared via a shared pointer
@@ -123,11 +122,11 @@ class BatchMoveUpdateData {
 
     QMutex m_mutex;
 
-    QPointer<KisNodeJugglerCompressed> m_parentJuggler;
+    QPointer<KisNodeOperationBatch> m_parentBatch;
 
 public:
-    BatchMoveUpdateData(KisNodeJugglerCompressed *parentJuggler)
-        : m_parentJuggler(parentJuggler) {}
+    BatchMoveUpdateData(KisNodeOperationBatch *parentBatch)
+        : m_parentBatch(parentBatch) {}
 
 private:
 
@@ -209,11 +208,11 @@ public:
             addToHashLazy(&m_movedNodesInitial, moveStruct);
             resolveParentCollisions(&m_movedNodesInitial);
 
-            // the juggler might directly forward the signal to processUnhandledUpdates,
+            // the batch might directly forward the signal to processUnhandledUpdates,
             // which would also like to get a lock, so we should release it beforehand
         }
-        if (m_parentJuggler) {
-            Q_EMIT m_parentJuggler->requestUpdateAsyncFromCommand();
+        if (m_parentBatch) {
+            Q_EMIT m_parentBatch->requestUpdateAsyncFromCommand();
         }
     }
 
@@ -256,7 +255,7 @@ public:
         if (currentState == FINALIZING && isFirstRedo()) {
             /**
              * When doing the first redo() some of the updates might
-             * have already been executed by the juggler itself, so we
+             * have already been executed by the batch itself, so we
              * should process 'unhandled' updates only
              */
             m_updateData->processUnhandledUpdates();
@@ -264,7 +263,7 @@ public:
             /**
              * When being executed by real undo/redo operations, we
              * should Q_EMIT all the update signals. No one else will do
-             * that for us (juggler, which did it in the previous
+             * that for us (the batch, which did it in the previous
              * case, might have already died).
              */
             m_updateData->emitFinalUpdates(currentState);
@@ -678,22 +677,20 @@ private:
     KisNodeSP m_activeNode;
 };
 
-struct KisNodeJugglerCompressed::Private
+struct KisNodeOperationBatch::Private
 {
-    Private(KisNodeJugglerCompressed *juggler, const KUndo2MagicString &_actionName, KisImageSP _image, KisNodeManager *_nodeManager, int _timeout)
+    Private(KisNodeOperationBatch *batch, const KUndo2MagicString &_actionName, KisImageSP _image, int _timeout)
         : actionName(_actionName),
           image(_image),
-          nodeManager(_nodeManager),
           compressor(_timeout, KisSignalCompressor::FIRST_ACTIVE_POSTPONE_NEXT),
           selfDestructionCompressor(3 * _timeout, KisSignalCompressor::POSTPONE),
-          updateData(new BatchMoveUpdateData(juggler)),
+          updateData(new BatchMoveUpdateData(batch)),
           autoDelete(false),
           isStarted(false)
     {}
 
     KUndo2MagicString actionName;
     KisImageSP image;
-    KisNodeManager *nodeManager;
     QScopedPointer<KisProcessingApplicator> applicator;
 
     KisSignalCompressor compressor;
@@ -705,8 +702,8 @@ struct KisNodeJugglerCompressed::Private
     bool isStarted;
 };
 
-KisNodeJugglerCompressed::KisNodeJugglerCompressed(const KUndo2MagicString &actionName, KisImageSP image, KisNodeManager *nodeManager, int timeout)
-    : m_d(new Private(this, actionName, image, nodeManager, timeout))
+KisNodeOperationBatch::KisNodeOperationBatch(const KUndo2MagicString &actionName, KisImageSP image, int timeout)
+    : m_d(new Private(this, actionName, image, timeout))
 {
 
     KisImageSignalVector emitSignals;
@@ -729,7 +726,7 @@ KisNodeJugglerCompressed::KisNodeJugglerCompressed(const KUndo2MagicString &acti
     m_d->isStarted = true;
 }
 
-KisNodeJugglerCompressed::~KisNodeJugglerCompressed()
+KisNodeOperationBatch::~KisNodeOperationBatch()
 {
     KIS_ASSERT_RECOVER(!m_d->applicator) {
         m_d->applicator->end();
@@ -737,15 +734,13 @@ KisNodeJugglerCompressed::~KisNodeJugglerCompressed()
     }
 }
 
-bool KisNodeJugglerCompressed::canMergeAction(const KUndo2MagicString &actionName)
+bool KisNodeOperationBatch::canMergeAction(const KUndo2MagicString &actionName) const
 {
     return actionName == m_d->actionName;
 }
 
-void KisNodeJugglerCompressed::lowerNode(const KisNodeList &nodes)
+void KisNodeOperationBatch::lowerNode(const KisNodeList &nodes, KisNodeSP activeNode)
 {
-    KisNodeSP activeNode = m_d->nodeManager ? m_d->nodeManager->activeNode() : 0;
-
     m_d->applicator->applyCommand(
         new LowerRaiseLayer(m_d->updateData,
                             m_d->image,
@@ -754,10 +749,8 @@ void KisNodeJugglerCompressed::lowerNode(const KisNodeList &nodes)
 
 }
 
-void KisNodeJugglerCompressed::raiseNode(const KisNodeList &nodes)
+void KisNodeOperationBatch::raiseNode(const KisNodeList &nodes, KisNodeSP activeNode)
 {
-    KisNodeSP activeNode = m_d->nodeManager ? m_d->nodeManager->activeNode() : 0;
-
     m_d->applicator->applyCommand(
         new LowerRaiseLayer(m_d->updateData,
                             m_d->image,
@@ -765,10 +758,8 @@ void KisNodeJugglerCompressed::raiseNode(const KisNodeList &nodes)
                 KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
 }
 
-void KisNodeJugglerCompressed::removeNode(const KisNodeList &nodes)
+void KisNodeOperationBatch::removeNode(const KisNodeList &nodes, KisNodeSP activeNode)
 {
-    KisNodeSP activeNode = m_d->nodeManager ? m_d->nodeManager->activeNode() : 0;
-
     m_d->applicator->applyCommand(
         new RemoveLayers(m_d->updateData,
                          m_d->image,
@@ -776,10 +767,8 @@ void KisNodeJugglerCompressed::removeNode(const KisNodeList &nodes)
                 KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
 }
 
-void KisNodeJugglerCompressed::duplicateNode(const KisNodeList &nodes)
+void KisNodeOperationBatch::duplicateNode(const KisNodeList &nodes, KisNodeSP activeNode)
 {
-    KisNodeSP activeNode = m_d->nodeManager ? m_d->nodeManager->activeNode() : 0;
-
     m_d->applicator->applyCommand(
         new DuplicateLayers(m_d->updateData,
                             m_d->image,
@@ -790,10 +779,8 @@ void KisNodeJugglerCompressed::duplicateNode(const KisNodeList &nodes)
                 KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
 }
 
-void KisNodeJugglerCompressed::copyNode(const KisNodeList &nodes, KisNodeSP dstParent, KisNodeSP dstAbove)
+void KisNodeOperationBatch::copyNode(const KisNodeList &nodes, KisNodeSP dstParent, KisNodeSP dstAbove, KisNodeSP activeNode)
 {
-    KisNodeSP activeNode = m_d->nodeManager ? m_d->nodeManager->activeNode() : 0;
-
     m_d->applicator->applyCommand(
         new DuplicateLayers(m_d->updateData,
                             m_d->image,
@@ -804,10 +791,8 @@ void KisNodeJugglerCompressed::copyNode(const KisNodeList &nodes, KisNodeSP dstP
                 KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
 }
 
-void KisNodeJugglerCompressed::moveNode(const KisNodeList &nodes, KisNodeSP dstParent, KisNodeSP dstAbove)
+void KisNodeOperationBatch::moveNode(const KisNodeList &nodes, KisNodeSP dstParent, KisNodeSP dstAbove, KisNodeSP activeNode)
 {
-    KisNodeSP activeNode = m_d->nodeManager ? m_d->nodeManager->activeNode() : 0;
-
     m_d->applicator->applyCommand(
         new DuplicateLayers(m_d->updateData,
                             m_d->image,
@@ -818,10 +803,8 @@ void KisNodeJugglerCompressed::moveNode(const KisNodeList &nodes, KisNodeSP dstP
                 KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
 }
 
-void KisNodeJugglerCompressed::addNode(const KisNodeList &nodes, KisNodeSP dstParent, KisNodeSP dstAbove)
+void KisNodeOperationBatch::addNode(const KisNodeList &nodes, KisNodeSP dstParent, KisNodeSP dstAbove, KisNodeSP activeNode)
 {
-    KisNodeSP activeNode = m_d->nodeManager ? m_d->nodeManager->activeNode() : 0;
-
     m_d->applicator->applyCommand(
         new DuplicateLayers(m_d->updateData,
                             m_d->image,
@@ -832,7 +815,7 @@ void KisNodeJugglerCompressed::addNode(const KisNodeList &nodes, KisNodeSP dstPa
                 KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
 }
 
-void KisNodeJugglerCompressed::moveNode(KisNodeSP node, KisNodeSP parent, KisNodeSP above)
+void KisNodeOperationBatch::moveNode(KisNodeSP node, KisNodeSP parent, KisNodeSP above)
 {
     m_d->applicator->applyCommand(new KisImageLayerMoveCommand(m_d->image, node, parent, above, false),
                                   KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
@@ -842,7 +825,7 @@ void KisNodeJugglerCompressed::moveNode(KisNodeSP node, KisNodeSP parent, KisNod
     m_d->updateData->addInitialUpdate(moveStruct);
 }
 
-void KisNodeJugglerCompressed::startTimers()
+void KisNodeOperationBatch::startTimers()
 {
     m_d->compressor.start();
 
@@ -851,9 +834,9 @@ void KisNodeJugglerCompressed::startTimers()
     }
 }
 
-void KisNodeJugglerCompressed::slotUpdateTimeout()
+void KisNodeOperationBatch::slotUpdateTimeout()
 {
-    // The juggler could have been already finished explicitly
+    // The batch could have been already finished explicitly
     // by slotEndStrokeRequested(). In such a case the final updates
     // will be issued by the last command of the stroke.
 
@@ -874,7 +857,7 @@ void KisNodeJugglerCompressed::slotUpdateTimeout()
             }));
 }
 
-void KisNodeJugglerCompressed::end()
+void KisNodeOperationBatch::end()
 {
     if (!m_d->isStarted) return;
 
@@ -885,7 +868,7 @@ void KisNodeJugglerCompressed::end()
     cleanup();
 }
 
-void KisNodeJugglerCompressed::cleanup()
+void KisNodeOperationBatch::cleanup()
 {
     m_d->applicator.reset();
     m_d->compressor.stop();
@@ -899,19 +882,19 @@ void KisNodeJugglerCompressed::cleanup()
     }
 }
 
-void KisNodeJugglerCompressed::setAutoDelete(bool value)
+void KisNodeOperationBatch::setAutoDelete(bool value)
 {
     m_d->autoDelete = value;
     connect(&m_d->selfDestructionCompressor, SIGNAL(timeout()), SLOT(end()));
 }
 
-void KisNodeJugglerCompressed::slotEndStrokeRequested()
+void KisNodeOperationBatch::slotEndStrokeRequested()
 {
     if (!m_d->isStarted) return;
     end();
 }
 
-void KisNodeJugglerCompressed::slotUndoDuringStrokeRequested()
+void KisNodeOperationBatch::slotUndoDuringStrokeRequested()
 {
     if (!m_d->isStarted) return;
 
@@ -930,7 +913,7 @@ void KisNodeJugglerCompressed::slotUndoDuringStrokeRequested()
     image->waitForDone();
 }
 
-void KisNodeJugglerCompressed::slotImageAboutToBeDeleted()
+void KisNodeOperationBatch::slotImageAboutToBeDeleted()
 {
     if (!m_d->isStarted) return;
 
@@ -941,7 +924,7 @@ void KisNodeJugglerCompressed::slotImageAboutToBeDeleted()
     end();
 }
 
-bool KisNodeJugglerCompressed::isEnded() const
+bool KisNodeOperationBatch::isEnded() const
 {
     return !m_d->isStarted;
 }
