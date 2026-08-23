@@ -131,8 +131,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 246)
-        self.assertEqual(len(image_headers), 332)
+        self.assertEqual(len(ui_headers), 245)
+        self.assertEqual(len(image_headers), 333)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(
             document_by_path[
@@ -218,6 +218,13 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             "plugins/impex/png/kis_png_import.cc",
             image_by_path["libs/image/kis_image.h"]["consumerPaths"],
         )
+        self.assertIn(
+            "libs/ui/kis_node_manager.cpp",
+            image_by_path[
+                "libs/image/commands/kis_node_commands_adapter.h"
+            ]["consumerPaths"],
+        )
+        self.assertNotIn("libs/ui/kis_node_commands_adapter.h", ui_by_path)
         self.assertNotIn("libs/ui/tests/util.h", ui_by_path)
 
     def test_ui_top_level_class_discovery_is_complete(self) -> None:
@@ -228,7 +235,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 82)
+        self.assertEqual(len(classes), 81)
         self.assertEqual(
             by_name["KisApplication"],
             {
@@ -330,7 +337,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
-        self.assertEqual(len(inventory["classes"]), 82)
+        self.assertEqual(len(inventory["classes"]), 81)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisApplication"]["responsibilityArea"],
@@ -340,6 +347,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             by_name["KisDocument"]["responsibilityArea"], "document-state"
         )
         self.assertNotIn("KisImportExportManager", by_name)
+        self.assertNotIn("KisNodeCommandsAdapter", by_name)
         self.assertNotIn(
             "import-export",
             {entry["responsibilityArea"] for entry in inventory["classes"]},
@@ -389,10 +397,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritadocument": 5,
                 "kritadocumentfiles": 3,
                 "kritadocumentui": 6,
-                "kritaimage": 332,
+                "kritaimage": 333,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
-                "kritaui": 246,
+                "kritaui": 245,
             },
         )
         self.assertEqual(

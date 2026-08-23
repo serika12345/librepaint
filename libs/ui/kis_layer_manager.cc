@@ -84,7 +84,7 @@
 #include "widgets/kis_meta_data_merge_strategy_chooser_widget.h"
 #include "widgets/kis_wdg_generator.h"
 #include "kis_progress_widget.h"
-#include "kis_node_commands_adapter.h"
+#include <commands/kis_node_commands_adapter.h>
 #include "kis_node_manager.h"
 #include "kis_action.h"
 #include "kis_action_manager.h"
@@ -106,8 +106,7 @@
 
 KisLayerManager::KisLayerManager(KisViewManager * view)
     : m_view(view)
-    , m_commandsAdapter(new KisNodeCommandsAdapter(m_view))
-
+    , m_commandsAdapter(new KisNodeCommandsAdapter(KisImageWSP(), view))
 {
 }
 
@@ -119,6 +118,7 @@ KisLayerManager::~KisLayerManager()
 void KisLayerManager::setView(QPointer<KisView>view)
 {
     m_imageView = view;
+    m_commandsAdapter->setImage(view ? view->image() : KisImageWSP());
 }
 
 KisLayerSP KisLayerManager::activeLayer()

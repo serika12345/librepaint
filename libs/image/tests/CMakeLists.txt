@@ -142,6 +142,12 @@ kis_add_test(
     LINK_LIBRARIES kritaimage kritatestsdk kritaglobal kritatransformmaskstubs
     )
 
+kis_add_test(
+    kis_node_commands_adapter_test.cpp
+    TEST_NAME KisNodeCommandsAdapterTest
+    LINK_LIBRARIES kritaimage kritatestsdk
+    )
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 

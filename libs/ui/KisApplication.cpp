@@ -173,7 +173,7 @@ public:
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>
 #include <kis_image_animation_interface.h>
 #include "kis_file_layer.h"
-#include "kis_node_commands_adapter.h"
+#include "kis_node_manager.h"
 #include "KisSynchronizedConnection.h"
 #include <QThreadStorage>
 
@@ -882,9 +882,10 @@ bool KisApplication::start(const KisApplicationArguments &args)
                                                     d->mainWindow->viewManager()->image()->nextLayerName(i18n("File layer")), OPACITY_OPAQUE_U8);
             QFileInfo fi(fileLayer->path());
             if (fi.exists()){
-                KisNodeCommandsAdapter adapter(d->mainWindow->viewManager());
-                adapter.addNode(fileLayer, d->mainWindow->viewManager()->activeNode()->parent(),
-                                    d->mainWindow->viewManager()->activeNode());
+                d->mainWindow->viewManager()->nodeManager()->addNodeUndoable(
+                    fileLayer,
+                    d->mainWindow->viewManager()->activeNode()->parent(),
+                    d->mainWindow->viewManager()->activeNode());
             }
             else{
                 QMessageBox::warning(qApp->activeWindow(), i18nc("@title:window", "LibrePaint:Warning"),
@@ -1174,9 +1175,10 @@ void KisApplication::executeRemoteArguments(QByteArray message, KisMainWindow *m
                                                     mainWindow->viewManager()->image()->nextLayerName(i18n("File layer")), OPACITY_OPAQUE_U8);
             QFileInfo fi(fileLayer->path());
             if (fi.exists()){
-                KisNodeCommandsAdapter adapter(d->mainWindow->viewManager());
-                adapter.addNode(fileLayer, d->mainWindow->viewManager()->activeNode()->parent(),
-                                    d->mainWindow->viewManager()->activeNode());
+                d->mainWindow->viewManager()->nodeManager()->addNodeUndoable(
+                    fileLayer,
+                    d->mainWindow->viewManager()->activeNode()->parent(),
+                    d->mainWindow->viewManager()->activeNode());
             }
             else{
                 QMessageBox::warning(mainWindow, i18nc("@title:window", "LibrePaint:Warning"),

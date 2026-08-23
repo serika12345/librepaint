@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-21 14:59 JST
+- 更新日時: 2026-08-22 20:00 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6e-P4文書境界評価
+- 現在の検査段階: R1-G6f画像ノード命令境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6e-p4-document-boundary-evaluation`
-- 目的: UI直下に残る文書分類22クラスと`KisDocument`メソッドを実依存で再分類し、
-  最終所有先、後続検査段階、ロジック再構築または抽象化の現在必要性を確定する。
+- ブランチ: `r1-g6f-tool-boundary`
+- 目的: UI全体を借用していた共有ノード操作命令を、実利用元に共通する画像命令へ移し、
+  文書、入出力、アプリケーション、ツールからの依存方向を既存の許可方向へ揃える。
 
 ## 再開環境
 
@@ -1035,11 +1035,36 @@
   `KisNodeCommandsAdapter`、`KisNodeManager`、`KisSelectionManager`を調査起点に記録した。
   具体的な命令と、アクション、ダイアログ、キャンバス、ノード、選択の表示配線を分ける。
 
+## R1-G6f画像ノード命令境界で完了した作業
+
+- `libs/ui/kis_node_commands_adapter.{h,cpp}`を起点として、
+  `libs/image/commands/kis_node_commands_adapter.{h,cpp}`へ移した。ノード追加、移動、削除、
+  不透明度、合成方法、名前変更と、それらの取り消し履歴への登録を既存の画像命令へ集約した。
+- `KisViewManager`への参照を除去し、命令側は操作対象画像を弱参照する。長寿命の
+  `KisLayerManager`、`KisMaskManager`、`KisNodeManager`、`KisSelectionManager`は、
+  ビュー切替時に画像を明示的に結び直す。
+- `KisApplication`と`KisView`は画像命令を直接参照せず、既存の`KisNodeManager`へ
+  単一ノード追加を委ねる。文書、入出力、ツールの既存利用元は画像命令を直接利用し、
+  新しい逆方向依存を作らない。確認済み逆方向includeは75件、17件、4件を維持する。
+- 専用契約の初回構築は、画像を直接受ける構築子と画像の再設定操作が存在しない診断で
+  失敗した。実装後はノード追加が取り消し可能であることと、操作対象画像を再設定できることを
+  `KisNodeCommandsAdapterTest`で確認した。
+- 新規の汎用接続面、利用事例層、サービス、リポジトリーは追加していない。ツール専用ではない
+  実利用が判明したため、`kritatools`の作成を先行せず既存の画像命令所有へ配置した。
+- 5構成のCMake台帳はmacOS 661件、Linux 676件、iOS 595件、Android 601件、
+  Windows 631件を記録する。共通579件、条件付き119件、構成差260件であり、
+  22中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- 実装コミット`74f0d0c360bfcadc4cbf207b320297eded34cb59`を両ホストの清浄な作業ツリーへ
+  揃え、macOSの全341試験とx86_64 Linuxの全343試験が成功した。iOSはLibrePaint本体、
+  Android arm64-v8aとWindows x86_64はUIライブラリーまで構築に成功した。
+- 同じ実装コミットで5構成台帳の完全一致検査、103件の方針・台帳試験を含む
+  `verify-quick`、`nix flake check --no-build --all-systems --no-eval-cache`が成功した。
+
 ## 次の操作
 
-R1-G6e-P4のPRをレビューして統合する。統合後は`master`を同期し、R1-G6fとして
-`libs/ui/tool`と操作管理の具体的な命令、アクション、ダイアログ、キャンバス、ノード、選択の
-表示配線を実依存で分類し、最初の実装単位と特性試験を確定する。
+この変更のPRをレビューして統合する。統合後は`libs/ui/kis_node_juggler_compressed.{h,cpp}`と
+`libs/ui/kis_node_manager.{h,cpp}`を起点に、圧縮、取消し、取り消し履歴の契約を固定して、
+ノード命令と表示・選択配線を分ける次のR1-G6f単位を確定する。
 
 ## R1-G5完了根拠
 

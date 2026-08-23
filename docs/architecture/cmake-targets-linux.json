@@ -505,6 +505,15 @@
       ]
     },
     {
+      "name": "KisNodeCommandsAdapterTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "KisNodeDummiesGraphTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",

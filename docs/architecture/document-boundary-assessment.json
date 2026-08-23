@@ -14,6 +14,11 @@
         "gate": "R1-G6e-P1"
       },
       {
+        "name": "KisNodeCommandsAdapter",
+        "destination": "libs/image/commands",
+        "gate": "R1-G6f"
+      },
+      {
         "name": "KoDocumentInfo",
         "destination": "libs/impex/metadata",
         "gate": "R1-G6e-P2"
@@ -100,6 +105,13 @@
       "directory": "libs/image",
       "target": "kritaimage",
       "ownership": "Image, node, layer, shape, decoration stroke, and image modification behavior."
+    },
+    {
+      "id": "image-node-commands",
+      "responsibility": "painting-rendering",
+      "directory": "libs/image/commands",
+      "target": "kritaimage",
+      "ownership": "Undo-consistent construction and application of image node mutations shared by documents, import, and tools."
     },
     {
       "id": "import-export",
@@ -253,17 +265,16 @@
     {
       "id": "node-command-coordination",
       "classes": [
-        "KisNodeCommandsAdapter",
         "KisNodeJugglerCompressed"
       ],
-      "concern": "Owns undo-consistent node commands but reaches current image and selection through UI-owned managers.",
+      "concern": "Compresses undo-consistent node commands but reaches selection through a UI-owned manager.",
       "disposition": "retain-until-prerequisite",
       "destinationIds": [
         "tool-node-commands"
       ],
       "nextGate": "R1-G6f",
       "evidence": [
-        "The command implementations depend on KisViewManager or KisNodeManager even though their mutations use image and node values."
+        "The command implementation depends on KisNodeManager even though its mutations use image and node values."
       ]
     },
     {
@@ -630,7 +641,7 @@
     "startingPaths": [
       "libs/ui/kis_filter_manager.h",
       "libs/ui/kis_image_manager.h",
-      "libs/ui/kis_node_commands_adapter.h",
+      "libs/ui/kis_node_juggler_compressed.h",
       "libs/ui/kis_node_manager.h",
       "libs/ui/kis_selection_manager.h",
       "libs/ui/tool"

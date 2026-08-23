@@ -87,7 +87,6 @@
 #include "kis_mainwindow_observer.h"
 #include "kis_mask_manager.h"
 #include "kis_mirror_manager.h"
-#include "kis_node_commands_adapter.h"
 #include "kis_node.h"
 #include "kis_node_manager.h"
 #include "KisDecorationsManager.h"

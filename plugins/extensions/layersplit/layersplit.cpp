@@ -30,7 +30,7 @@
 #include <kis_random_accessor_ng.h>
 #include "dlg_layersplit.h"
 #include "kis_node_manager.h"
-#include "kis_node_commands_adapter.h"
+#include <commands/kis_node_commands_adapter.h>
 #include "kis_undo_adapter.h"
 #include <KisImageBarrierLock.h>
 #include "kis_selection_mask.h"
@@ -191,7 +191,7 @@ void LayerSplit::slotLayerSplit()
 
         KisUndoAdapter *undo = image->undoAdapter();
         undo->beginMacro(kundo2_i18n("Split Layer"));
-        KisNodeCommandsAdapter adapter(viewManager());
+        KisNodeCommandsAdapter adapter(image);
 
         if(modeToLayer){
             KisGroupLayerSP baseGroup = dynamic_cast<KisGroupLayer*>(node->parent().data());

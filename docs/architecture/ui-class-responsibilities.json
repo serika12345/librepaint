@@ -368,15 +368,6 @@
       "responsibilityArea": "document-state"
     },
     {
-      "name": "KisNodeCommandsAdapter",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_node_commands_adapter.h",
-      "implementationPaths": [
-        "libs/ui/kis_node_commands_adapter.cpp"
-      ],
-      "responsibilityArea": "document-state"
-    },
-    {
       "name": "KisNodeDisplayModeAdapter",
       "declarationKind": "class",
       "header": "libs/ui/KisNodeDisplayModeAdapter.h",

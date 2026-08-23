@@ -66,7 +66,6 @@
 #include "kis_image_manager.h"
 #include "kis_import_catcher.h"
 #include "kis_mimedata.h"
-#include "kis_node_commands_adapter.h"
 #include "kis_node_manager.h"
 #include "kis_paint_layer.h"
 #include "kis_painting_assistants_decoration.h"
@@ -498,13 +497,14 @@ void KisView::dropEvent(QDropEvent *event)
 
         Q_FOREACH (KisNodeSP node, nodes) {
             if (node) {
-                KisNodeCommandsAdapter adapter(viewManager());
                 if (!viewManager()->nodeManager()->activeLayer()) {
-                    adapter.addNode(node, kisimage->rootLayer() , 0);
+                    viewManager()->nodeManager()->addNodeUndoable(
+                        node, kisimage->rootLayer(), 0);
                 } else {
-                    adapter.addNode(node,
-                                    viewManager()->nodeManager()->activeLayer()->parent(),
-                                    viewManager()->nodeManager()->activeLayer());
+                    viewManager()->nodeManager()->addNodeUndoable(
+                        node,
+                        viewManager()->nodeManager()->activeLayer()->parent(),
+                        viewManager()->nodeManager()->activeLayer());
                 }
             }
         }
@@ -592,9 +592,7 @@ void KisView::dropEvent(QDropEvent *event)
                     this->image()->nextLayerName() + " " + i18n("(pasted)"),
                     OPACITY_OPAQUE_U8,
                     clip);
-                KisNodeCommandsAdapter adapter(
-                    this->mainWindow()->viewManager());
-                adapter.addNode(
+                this->mainWindow()->viewManager()->nodeManager()->addNodeUndoable(
                     layer,
                     this->mainWindow()->viewManager()->activeNode()->parent(),
                     this->mainWindow()->viewManager()->activeNode());
@@ -662,8 +660,6 @@ void KisView::dropEvent(QDropEvent *event)
                     } else if (action == KisCanvasDrop::INSERT_MANY_FILE_LAYERS
                                || action
                                    == KisCanvasDrop::INSERT_AS_NEW_FILE_LAYER) {
-                        KisNodeCommandsAdapter adapter(
-                            this->mainWindow()->viewManager());
                         QFileInfo fileInfo(url.toLocalFile());
 
                         QString type =
@@ -703,7 +699,10 @@ void KisView::dropEvent(QDropEvent *event)
                                                        ->image()
                                                        ->root();
 
-                        adapter.addNode(fileLayer, parent, above);
+                        this->mainWindow()
+                            ->viewManager()
+                            ->nodeManager()
+                            ->addNodeUndoable(fileLayer, parent, above);
                     } else if (action == KisCanvasDrop::OPEN_IN_NEW_DOCUMENT
                                || action
                                    == KisCanvasDrop::OPEN_MANY_DOCUMENTS) {

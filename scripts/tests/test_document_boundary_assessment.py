@@ -41,8 +41,8 @@ class DocumentBoundaryAssessmentTests(unittest.TestCase):
             sum(
                 len(group["classes"])
                 for group in assessment["classGroups"]
-            ),
-            22,
+            ) + len(assessment["sources"]["previouslyResolvedClasses"]),
+            assessment["sources"]["startingDocumentClassCount"],
         )
         self.assertEqual(
             sum(

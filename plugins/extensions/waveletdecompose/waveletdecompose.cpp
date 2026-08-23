@@ -31,7 +31,7 @@
 #include <kis_random_accessor_ng.h>
 #include "dlg_waveletdecompose.h"
 #include "kis_node_manager.h"
-#include "kis_node_commands_adapter.h"
+#include <commands/kis_node_commands_adapter.h>
 #include "kis_undo_adapter.h"
 
 #include <KisCursorOverrideLock.h>
@@ -110,7 +110,7 @@ void WaveletDecompose::slotWaveletDecompose()
         KisUndoAdapter *undo = image->undoAdapter();
         undo->beginMacro(kundo2_i18n("Wavelet decompose"));
         
-        KisNodeCommandsAdapter adapter(viewManager());
+        KisNodeCommandsAdapter adapter(image);
         
         KisGroupLayerSP baseGroup = image->rootLayer();
 

@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "./kis_node_commands_adapter.h"
+#include "commands/kis_node_commands_adapter.h"
 
 #include <KoCompositeOp.h>
 #include "kis_undo_adapter.h"
@@ -13,18 +13,30 @@
 #include "commands/kis_image_layer_remove_command.h"
 #include "commands/KisNodeRenameCommand.h"
 #include "commands/kis_node_commands.h"
-#include "KisViewManager.h"
 #include "kis_processing_applicator.h"
 
-KisNodeCommandsAdapter::KisNodeCommandsAdapter(KisViewManager * view)
-        : QObject(view)
-        , m_view(view)
+KisNodeCommandsAdapter::KisNodeCommandsAdapter(
+    KisImageWSP image,
+    QObject *parent)
+    : QObject(parent)
+    , m_image(image)
 {
-
 }
 
 KisNodeCommandsAdapter::~KisNodeCommandsAdapter()
 {
+}
+
+void KisNodeCommandsAdapter::setImage(KisImageWSP image)
+{
+    m_image = image;
+}
+
+KisImageSP KisNodeCommandsAdapter::image() const
+{
+    KisImageSP image = m_image.toStrongRef();
+    Q_ASSERT(image);
+    return image;
 }
 
 void KisNodeCommandsAdapter::applyOneCommandAsync(KUndo2Command *cmd, KisProcessingApplicator *applicator)
@@ -32,8 +44,9 @@ void KisNodeCommandsAdapter::applyOneCommandAsync(KUndo2Command *cmd, KisProcess
     if (applicator) {
         applicator->applyCommand(cmd, KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
     } else {
+        KisImageSP currentImage = image();
         QScopedPointer<KisProcessingApplicator> localApplicator(
-            new KisProcessingApplicator(m_view->image(), 0, KisProcessingApplicator::NONE,
+            new KisProcessingApplicator(currentImage, 0, KisProcessingApplicator::NONE,
                                         KisImageSignalVector(),
                                         cmd->text(),
                                         0, cmd->id()));
@@ -44,62 +57,70 @@ void KisNodeCommandsAdapter::applyOneCommandAsync(KUndo2Command *cmd, KisProcess
 
 void KisNodeCommandsAdapter::addNodeAsync(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis, bool doRedoUpdates, bool doUndoUpdates, KisProcessingApplicator *applicator)
 {
-    KUndo2Command *cmd = new KisImageLayerAddCommand(m_view->image(), node, parent, aboveThis, doRedoUpdates, doUndoUpdates);
+    KUndo2Command *cmd = new KisImageLayerAddCommand(image(), node, parent, aboveThis, doRedoUpdates, doUndoUpdates);
     applyOneCommandAsync(cmd, applicator);
 }
 
 void KisNodeCommandsAdapter::addNodeAsync(KisNodeSP node, KisNodeSP parent, quint32 index, bool doRedoUpdates, bool doUndoUpdates, KisProcessingApplicator *applicator)
 {
-    KUndo2Command *cmd = new KisImageLayerAddCommand(m_view->image(), node, parent, index, doRedoUpdates, doUndoUpdates);
+    KUndo2Command *cmd = new KisImageLayerAddCommand(image(), node, parent, index, doRedoUpdates, doUndoUpdates);
     applyOneCommandAsync(cmd, applicator);
 }
 
 void KisNodeCommandsAdapter::beginMacro(const KUndo2MagicString& macroName)
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->beginMacro(macroName);
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->beginMacro(macroName);
 }
 
 void KisNodeCommandsAdapter::addExtraCommand(KUndo2Command *command)
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->addCommand(command);
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->addCommand(command);
 }
 
 void KisNodeCommandsAdapter::endMacro()
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->endMacro();
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->endMacro();
 }
 
 void KisNodeCommandsAdapter::addNode(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis, KisImageLayerAddCommand::Flags flags)
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->addCommand(new KisImageLayerAddCommand(m_view->image(), node, parent, aboveThis, flags));
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->addCommand(new KisImageLayerAddCommand(currentImage, node, parent, aboveThis, flags));
 }
 
 void KisNodeCommandsAdapter::addNode(KisNodeSP node, KisNodeSP parent, quint32 index, KisImageLayerAddCommand::Flags flags)
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->addCommand(new KisImageLayerAddCommand(m_view->image(), node, parent, index, flags));
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->addCommand(new KisImageLayerAddCommand(currentImage, node, parent, index, flags));
 }
 
 void KisNodeCommandsAdapter::moveNode(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis)
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->addCommand(new KisImageLayerMoveCommand(m_view->image(), node, parent, aboveThis));
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->addCommand(new KisImageLayerMoveCommand(currentImage, node, parent, aboveThis));
 }
 
 void KisNodeCommandsAdapter::moveNode(KisNodeSP node, KisNodeSP parent, quint32 indexaboveThis)
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->addCommand(new KisImageLayerMoveCommand(m_view->image(), node, parent, indexaboveThis));
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->addCommand(new KisImageLayerMoveCommand(currentImage, node, parent, indexaboveThis));
 }
 
 void KisNodeCommandsAdapter::removeNode(KisNodeSP node)
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->addCommand(new KisImageLayerRemoveCommand(m_view->image(), node));
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->addCommand(new KisImageLayerRemoveCommand(currentImage, node));
 }
 
 void KisNodeCommandsAdapter::setOpacity(KisNodeSP node, qint32 opacity)
@@ -124,6 +145,7 @@ void KisNodeCommandsAdapter::setNodeName(KisNodeSP node, const QString &name)
 
 void KisNodeCommandsAdapter::undoLastCommand()
 {
-    Q_ASSERT(m_view->image()->undoAdapter());
-    m_view->image()->undoAdapter()->undoLastCommand();
+    KisImageSP currentImage = image();
+    Q_ASSERT(currentImage->undoAdapter());
+    currentImage->undoAdapter()->undoLastCommand();
 }
