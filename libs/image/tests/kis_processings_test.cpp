@@ -6,11 +6,16 @@
 
 #include "kis_processings_test.h"
 
+#include <KoColor.h>
+#include <KoColorSpaceRegistry.h>
 #include <simpletest.h>
 
+#include "kis_paint_layer.h"
+#include "kis_group_layer.h"
 #include "kis_undo_stores.h"
 #include "kis_processing_applicator.h"
 #include "processing/kis_crop_processing_visitor.h"
+#include "processing/kis_mirror_processing_visitor.h"
 
 #include "testutil.h"
 #include "kistest.h"
@@ -104,6 +109,39 @@ void KisProcessingsTest::testTransformVisitorScaleRotate()
                                           filter);
 
     tester.test("transform_scale_rotate", visitor);
+}
+
+void KisProcessingsTest::testMirrorNodesOperation()
+{
+    const KoColorSpace *colorSpace = KoColorSpaceRegistry::instance()->rgb8();
+    KisSurrogateUndoStore *undoStore = new KisSurrogateUndoStore();
+    KisImageSP image = new KisImage(undoStore, 4, 1, colorSpace, "mirror test");
+    KisPaintLayerSP layer = new KisPaintLayer(image, "paint", OPACITY_OPAQUE_U8);
+
+    layer->paintDevice()->fill(QRect(0, 0, 1, 1), KoColor(Qt::red, colorSpace));
+    layer->paintDevice()->fill(QRect(3, 0, 1, 1), KoColor(Qt::blue, colorSpace));
+    image->addNode(layer, image->rootLayer());
+    image->initialRefreshGraph();
+    image->waitForDone();
+
+    KisMirrorProcessingVisitor::applyToNodes(
+        image,
+        KisNodeList {layer},
+        Qt::Horizontal,
+        KisSelectionSP(),
+        kundo2_noi18n("Mirror Nodes"));
+    image->waitForDone();
+
+    QImage mirrored = layer->paintDevice()->convertToQImage(0, 0, 0, 4, 1);
+    QCOMPARE(mirrored.pixelColor(0, 0), QColor(Qt::blue));
+    QCOMPARE(mirrored.pixelColor(3, 0), QColor(Qt::red));
+
+    undoStore->undo();
+    image->waitForDone();
+
+    QImage restored = layer->paintDevice()->convertToQImage(0, 0, 0, 4, 1);
+    QCOMPARE(restored.pixelColor(0, 0), QColor(Qt::red));
+    QCOMPARE(restored.pixelColor(3, 0), QColor(Qt::blue));
 }
 
 KISTEST_MAIN(KisProcessingsTest)

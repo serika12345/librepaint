@@ -54,7 +54,6 @@
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_action.h"
 #include "kis_action_manager.h"
-#include "kis_processing_applicator.h"
 #include "kis_sequential_iterator.h"
 #include "kis_transaction.h"
 #include "kis_node_selection_adapter.h"
@@ -533,16 +532,7 @@ bool KisNodeManager::canMoveLayer(KisNodeSP node, bool showWarning)
 
 void KisNodeManager::moveNodeAt(KisNodeSP node, KisNodeSP parent, int index)
 {
-    if (parent->allowAsChild(node)) {
-        if (node->inherits("KisSelectionMask") && parent->inherits("KisLayer")) {
-            KisSelectionMask *m = dynamic_cast<KisSelectionMask*>(node.data());
-            KisLayer *l = qobject_cast<KisLayer*>(parent.data());
-            if (m && m->active() && l && l->selectionMask()) {
-                l->selectionMask()->setActive(false);
-            }
-        }
-        m_d->commandsAdapter.moveNode(node, parent, index);
-    }
+    m_d->commandsAdapter.moveNode(node, parent, index);
 }
 
 void KisNodeManager::moveNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
@@ -1262,27 +1252,8 @@ void KisNodeManager::mirrorNodes(KisNodeList nodes,
         if (!canModifyLayer(node)) return;
     }
 
-    KisImageSignalVector emitSignals;
-
-    KisProcessingApplicator applicator(m_d->view->image(), nodes,
-                                       KisProcessingApplicator::RECURSIVE,
-                                       emitSignals, actionName);
-
-    KisProcessingVisitorSP visitor;
-
-    if (selection) {
-        visitor = new KisMirrorProcessingVisitor(selection, orientation);
-    } else {
-        visitor = new KisMirrorProcessingVisitor(m_d->view->image()->bounds(), orientation);
-    }
-
-    if (!selection) {
-        applicator.applyVisitorAllFrames(visitor, KisStrokeJobData::CONCURRENT);
-    } else {
-        applicator.applyVisitor(visitor, KisStrokeJobData::CONCURRENT);
-    }
-
-    applicator.end();
+    KisMirrorProcessingVisitor::applyToNodes(
+        m_d->view->image(), nodes, orientation, selection, actionName);
 
     nodesUpdated();
 }

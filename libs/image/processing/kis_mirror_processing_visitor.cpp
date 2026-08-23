@@ -11,6 +11,7 @@
 #include "kis_node.h"
 #include "kis_image.h"
 #include "kis_painter.h"
+#include "kis_processing_applicator.h"
 
 #include "kis_transform_worker.h"
 #include "lazybrush/kis_colorize_mask.h"
@@ -34,6 +35,30 @@ KisMirrorProcessingVisitor::KisMirrorProcessingVisitor(KisSelectionSP selection,
     : KisMirrorProcessingVisitor(selection->selectedExactRect(), orientation)
 {
     m_selectionHelper.setSelection(selection);
+}
+
+void KisMirrorProcessingVisitor::applyToNodes(KisImageSP image,
+                                              const KisNodeList &nodes,
+                                              Qt::Orientation orientation,
+                                              KisSelectionSP selection,
+                                              const KUndo2MagicString &actionName)
+{
+    KisProcessingApplicator applicator(image,
+                                       nodes,
+                                       KisProcessingApplicator::RECURSIVE,
+                                       KisImageSignalVector(),
+                                       actionName);
+
+    KisProcessingVisitorSP visitor;
+    if (selection) {
+        visitor = new KisMirrorProcessingVisitor(selection, orientation);
+        applicator.applyVisitor(visitor, KisStrokeJobData::CONCURRENT);
+    } else {
+        visitor = new KisMirrorProcessingVisitor(image->bounds(), orientation);
+        applicator.applyVisitorAllFrames(visitor, KisStrokeJobData::CONCURRENT);
+    }
+
+    applicator.end();
 }
 
 KUndo2Command *KisMirrorProcessingVisitor::createInitCommand()

@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-23 11:37 JST
+- 更新日時: 2026-08-23 12:43 JST
 - 状態: `completed`
-- 現在の検査段階: R1-G6f画像ノード操作バッチ境界
+- 現在の検査段階: R1-G6f画像ノード変更実行境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6f-node-juggler-boundary`
-- 目的: UI管理器を借用していた非同期ノード操作バッチを画像命令へ移し、選択復元に必要な
-  アクティブノードを明示値にして、画像処理からUIへの依存を除去する。
+- ブランチ: `r1-g6f-node-manager-boundary`
+- 目的: UI管理器が直接所有していたノード移動条件とミラー処理ジョブ構成を既存の画像命令と
+  画像処理へ集約し、UIを編集可否の警告、操作の呼出し、画面更新通知へ限定する。
 
 ## 再開環境
 
@@ -1087,11 +1087,46 @@
   `KisNodeOperationBatchTest`が固定する。移動対象外のUI管理器と各プラットフォームの
   既存警告は、この境界の残存リスクとして追跡する。
 
+## R1-G6f画像ノード変更実行境界で完了した作業
+
+- `libs/ui/kis_node_manager.cpp`の`moveNodeAt()`にあった移動可能性の判定と、移動先レイヤーで
+  既存の選択マスクを非アクティブ化する不変条件を、既存の
+  `libs/image/commands/kis_node_commands_adapter.cpp`へ移した。二つの移動入口が同じ条件を
+  適用し、UI以外の命令利用元でも画像ノードの規則が成立する。
+- 同じ起点の`mirrorNodes()`にあった処理適用器、再帰実行、全フレーム処理、並行ジョブ、
+  取り消し履歴項目の構成を、既存の
+  `libs/image/processing/kis_mirror_processing_visitor.{h,cpp}`へ移した。UI管理器には編集可否の
+  警告、画像処理の呼出し、`nodesUpdated()`による表示更新通知を残した。
+- `libs/image/tests/kis_node_commands_adapter_test.cpp`は、アクティブな選択マスクを移すと移動先の
+  既存マスクが非アクティブになる契約を固定する。初回実行は既存マスクがアクティブなままの
+  診断で失敗し、実装後に成功した。
+- `libs/image/tests/kis_processings_test.{h,cpp}`は、UI管理器を使わずに画像、対象ノード、方向、
+  選択、操作名だけでミラー処理を実行し、取り消せる契約を固定する。初回構築は画像処理側に
+  実行入口が存在しない診断で失敗し、実装後に成功した。
+- 新しいファイル、CMakeターゲット、汎用層、利用事例、サービス、リポジトリーは追加して
+  いない。現存する二つの具体的な画像所有者へ処理を集約した。
+- `KisNodeManager`は`kis_processing_applicator.h`の直接利用元から外れ、公開面台帳を同期した。
+  `libs/ui/kis_node_manager.cpp`は1827行から1798行へ縮小し、ソース行数基準を更新した。
+- 実装と台帳を含むコミット`a6c74853d96bd17c18eb2144cd719111bd0f2611`をDarwinと
+  x86_64 Linuxの清浄な作業ツリーへ揃えた。macOSの全341試験とx86_64 Linuxの全343試験が
+  成功し、iOSは`LibrePaint.app`、Android arm64-v8aとWindows x86_64は`kritaui`まで構築に
+  成功した。
+- 同じコミットで5構成のCMake台帳と差分行列の完全一致を確認した。ターゲット数はmacOS
+  661件、Linux 676件、iOS 595件、Android 601件、Windows 631件を維持し、22中核所有
+  ターゲットと全製品ターゲットは全構成で循環0件を維持する。
+- 103件の方針・台帳試験を含む`verify-quick`、画像側の二契約、`kritaui`の増分構築、
+  `nix flake check --no-build --all-systems --no-eval-cache`が成功した。既存の
+  `KisNodeManagerTest`は通常構成でbroken試験として登録されており、実行対象外である。
+- AndroidとWindowsは構築契約までを確認し、実行時契約はmacOSとLinuxの画像側単体試験で
+  固定する。移動対象外のノード管理処理、broken試験のUI統合範囲、各構成の既存警告は
+  残存リスクとして追跡する。
+
 ## 次の操作
 
-この変更をレビューして統合する。統合後は`libs/ui/kis_node_manager.{h,cpp}`を起点として、
-残る処理を画面操作の配線と画像ノード命令に再分類し、現存する責務だけで次のR1-G6f単位を
-決める。
+この変更をレビューして統合する。統合後は`libs/ui/kis_node_manager.cpp`の
+`createQuickGroupImpl()`と`quickUngroup()`を起点として、グループ化と解除の画像グラフ変更を
+既存の`KisNodeOperationBatch`だけで所有できるか契約で確認する。アクション選択、名前入力、
+選択更新はUI所有に維持し、具体的な必要性がない新しい抽象は追加しない。
 
 ## R1-G5完了根拠
 

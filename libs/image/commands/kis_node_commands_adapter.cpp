@@ -14,6 +14,27 @@
 #include "commands/KisNodeRenameCommand.h"
 #include "commands/kis_node_commands.h"
 #include "kis_processing_applicator.h"
+#include "kis_layer.h"
+#include "kis_selection_mask.h"
+
+namespace {
+
+bool prepareNodeMove(KisNodeSP node, KisNodeSP parent)
+{
+    if (!parent->allowAsChild(node)) {
+        return false;
+    }
+
+    KisSelectionMask *selectionMask = dynamic_cast<KisSelectionMask *>(node.data());
+    KisLayer *parentLayer = qobject_cast<KisLayer *>(parent.data());
+    if (selectionMask && selectionMask->active() && parentLayer && parentLayer->selectionMask()) {
+        parentLayer->selectionMask()->setActive(false);
+    }
+
+    return true;
+}
+
+}
 
 KisNodeCommandsAdapter::KisNodeCommandsAdapter(
     KisImageWSP image,
@@ -104,6 +125,10 @@ void KisNodeCommandsAdapter::addNode(KisNodeSP node, KisNodeSP parent, quint32 i
 
 void KisNodeCommandsAdapter::moveNode(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis)
 {
+    if (!prepareNodeMove(node, parent)) {
+        return;
+    }
+
     KisImageSP currentImage = image();
     Q_ASSERT(currentImage->undoAdapter());
     currentImage->undoAdapter()->addCommand(new KisImageLayerMoveCommand(currentImage, node, parent, aboveThis));
@@ -111,6 +136,10 @@ void KisNodeCommandsAdapter::moveNode(KisNodeSP node, KisNodeSP parent, KisNodeS
 
 void KisNodeCommandsAdapter::moveNode(KisNodeSP node, KisNodeSP parent, quint32 indexaboveThis)
 {
+    if (!prepareNodeMove(node, parent)) {
+        return;
+    }
+
     KisImageSP currentImage = image();
     Q_ASSERT(currentImage->undoAdapter());
     currentImage->undoAdapter()->addCommand(new KisImageLayerMoveCommand(currentImage, node, parent, indexaboveThis));
