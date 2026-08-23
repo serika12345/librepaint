@@ -148,6 +148,12 @@ kis_add_test(
     LINK_LIBRARIES kritaimage kritatestsdk
     )
 
+kis_add_test(
+    kis_node_operation_batch_test.cpp ../../../sdk/tests/testutil.cpp
+    TEST_NAME KisNodeOperationBatchTest
+    LINK_LIBRARIES kritaimage kritatestsdk
+    )
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 

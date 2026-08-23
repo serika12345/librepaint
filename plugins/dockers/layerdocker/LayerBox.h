@@ -47,7 +47,6 @@ class KisCanvas2;
 class KisNodeModel;
 class KisNodeFilterProxyModel;
 class Ui_WdgLayerBox;
-class KisNodeJugglerCompressed;
 class KisColorLabelSelectorWidgetMenuWrapper;
 class QWidgetAction;
 class KisKeyframeChannel;
@@ -213,4 +212,3 @@ public:
 };
 
 #endif // KIS_LAYERBOX_H
-

@@ -131,8 +131,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 245)
-        self.assertEqual(len(image_headers), 333)
+        self.assertEqual(len(ui_headers), 244)
+        self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(
             document_by_path[
@@ -224,7 +224,14 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "libs/image/commands/kis_node_commands_adapter.h"
             ]["consumerPaths"],
         )
+        self.assertEqual(
+            image_by_path[
+                "libs/image/commands/kis_node_operation_batch.h"
+            ]["consumerPaths"],
+            ["libs/ui/kis_node_manager.cpp"],
+        )
         self.assertNotIn("libs/ui/kis_node_commands_adapter.h", ui_by_path)
+        self.assertNotIn("libs/ui/kis_node_juggler_compressed.h", ui_by_path)
         self.assertNotIn("libs/ui/tests/util.h", ui_by_path)
 
     def test_ui_top_level_class_discovery_is_complete(self) -> None:
@@ -235,7 +242,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 81)
+        self.assertEqual(len(classes), 80)
         self.assertEqual(
             by_name["KisApplication"],
             {
@@ -248,6 +255,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertNotIn("KisImportExportComplexError", by_name)
         self.assertNotIn("KisImportExportManager", by_name)
         self.assertNotIn("KisDocumentUndoStore", by_name)
+        self.assertNotIn("KisNodeJugglerCompressed", by_name)
         self.assertEqual(
             by_name["KisAbstractPreferenceSetFactory"]["implementationPaths"],
             [],
@@ -337,7 +345,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
-        self.assertEqual(len(inventory["classes"]), 81)
+        self.assertEqual(len(inventory["classes"]), 80)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisApplication"]["responsibilityArea"],
@@ -348,6 +356,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertNotIn("KisImportExportManager", by_name)
         self.assertNotIn("KisNodeCommandsAdapter", by_name)
+        self.assertNotIn("KisNodeJugglerCompressed", by_name)
         self.assertNotIn(
             "import-export",
             {entry["responsibilityArea"] for entry in inventory["classes"]},
@@ -397,10 +406,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritadocument": 5,
                 "kritadocumentfiles": 3,
                 "kritadocumentui": 6,
-                "kritaimage": 333,
+                "kritaimage": 334,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
-                "kritaui": 245,
+                "kritaui": 244,
             },
         )
         self.assertEqual(

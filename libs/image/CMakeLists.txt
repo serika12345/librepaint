@@ -87,6 +87,7 @@ set(kritaimage_LIB_SRCS
    commands/kis_image_layer_remove_command.cpp
    commands/kis_image_layer_remove_command_impl.cpp
    commands/kis_node_commands_adapter.cpp
+   commands/kis_node_operation_batch.cpp
    commands/kis_node_command.cpp
    commands/kis_node_compositeop_command.cpp
    commands/kis_node_opacity_command.cpp

@@ -64,8 +64,8 @@
 所有ターゲット、公開マクロ、対応プラットフォーム、全利用ソースを持つ。
 
 現在は`kritacanvas`の17件、`kritadocument`の5件、`kritadocumentfiles`の3件、
-`kritadocumentui`の6件、`kritaimage`の333件、`kritaimpex`の12件、
-`kritaimpexui`の23件、`kritaui`の245件を全件記録し、
+`kritadocumentui`の6件、`kritaimage`の334件、`kritaimpex`の12件、
+`kritaimpexui`の23件、`kritaui`の244件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -89,13 +89,13 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 `CMakeLists.txt`と実際のターゲットを記録する。
 
 [UI直下クラス責務台帳](ui-class-responsibilities.json)は、`libs/ui`直下の公開ヘッダーに
-宣言された現存クラスと構造体81件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ
-接続する。79件は実装単位を持ち、2件は宣言側で完結する。責務領域はアプリケーション調整、
+宣言された現存クラスと構造体80件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ
+接続する。78件は実装単位を持ち、2件は宣言側で完結する。責務領域はアプリケーション調整、
 キャンバス・表示、文書状態、ツール呼出し、ウィンドウ・作業空間の5種類である。
 描画設定表示と入出力として所有先へ移動したクラスは更新時に台帳から除く。
 
 この台帳は`libs/ui`直下の公開クラスを全件対象とする。
-[文書境界評価](document-boundary-assessment.json)は、文書状態に分類された残る21クラスと
+[文書境界評価](document-boundary-assessment.json)は、文書状態に分類された残る20クラスと
 `KisDocument.cpp`の129メソッド定義を全件対象とし、現在の関心、具体的な所有先、
 後続検査段階へ接続する。宣言と実装の経路はクラス責務台帳を正本とする。検査器は
 クラス責務台帳との一致、全メソッドの一度限りの分類、
@@ -396,8 +396,9 @@ R1-G6e開始時の`document-state`分類は25クラスであり、最初の分�
 24クラスとなった。文書識別の抽出後も`KisDocument`自体はUI分類に残るため件数は24である。
 変更状態、自動保存実行状態、回復用自動保存調停状態、回復済み文書状態の抽出も同じ
 `KisDocument`内の埋込み状態を移すため、分類件数は24を維持する。
-文書表示の集約と最初のツール命令分離により、`KoDocumentInfo`、`KoDocumentInfoDlg`、
-`KisNodeCommandsAdapter`がUI分類から外れ、現在は21クラスである。
+文書表示の集約と2つの画像ノード命令分離により、`KoDocumentInfo`、`KoDocumentInfoDlg`、
+`KisNodeCommandsAdapter`、旧`KisNodeJugglerCompressed`（現`KisNodeOperationBatch`）が
+UI分類から外れ、現在は20クラスである。
 残る分類は文書寿命だけでなくノード操作、選択操作、表示モデルを含む。
 後続単位では各クラスの実依存から文書状態、文書表示、別機能の操作接続を
 判定し、文書寿命を所有するものだけを文書ターゲットへ移す。
@@ -431,6 +432,13 @@ R1-G6fの最初の単位では、`libs/ui/kis_node_commands_adapter.*`を
 長寿命の表示管理側が画面切替時に画像を明示的に結び直す。旧ファイル、転送ヘッダー、旧名の
 別名は存在しない。入出力、文書、アプリケーション、ツールが同じ命令を利用しているため、
 上位のツール所有へ置かず、既存の許可方向に従って画像命令を所有先とする。
+
+次の単位では、`libs/ui/kis_node_juggler_compressed.*`を
+`libs/image/commands/kis_node_operation_batch.*`へ移し、ノードの連続した追加、移動、複製、
+削除と一つの取り消し履歴項目への集約を画像所有へ置いた。画像処理が借用していた
+`KisNodeManager`は除去し、選択復元に必要なアクティブノードを呼出し側が値として渡す。
+操作バッチの寿命構成と利用者操作の配線は`KisNodeManager`に残る。旧ファイル、転送ヘッダー、
+旧名の別名は存在せず、新しい汎用層も追加していない。
 
 残るファイル移動を先行させず、R1-G6fで具体的なツール命令とその表示配線を引き続き分ける。
 操作管理を`kritaui`から除いた後にノード表示を`kritadocumentui`へ、R1-G6hで文書構成と

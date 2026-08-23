@@ -19,6 +19,11 @@
         "gate": "R1-G6f"
       },
       {
+        "name": "KisNodeJugglerCompressed",
+        "destination": "libs/image/commands",
+        "gate": "R1-G6f"
+      },
+      {
         "name": "KoDocumentInfo",
         "destination": "libs/impex/metadata",
         "gate": "R1-G6e-P2"
@@ -260,21 +265,6 @@
       "nextGate": "R1-G6f",
       "evidence": [
         "kis_multinode_property.h binds QCheckBox and QObject connectors to its concrete node property adapters."
-      ]
-    },
-    {
-      "id": "node-command-coordination",
-      "classes": [
-        "KisNodeJugglerCompressed"
-      ],
-      "concern": "Compresses undo-consistent node commands but reaches selection through a UI-owned manager.",
-      "disposition": "retain-until-prerequisite",
-      "destinationIds": [
-        "tool-node-commands"
-      ],
-      "nextGate": "R1-G6f",
-      "evidence": [
-        "The command implementation depends on KisNodeManager even though its mutations use image and node values."
       ]
     },
     {
@@ -641,7 +631,6 @@
     "startingPaths": [
       "libs/ui/kis_filter_manager.h",
       "libs/ui/kis_image_manager.h",
-      "libs/ui/kis_node_juggler_compressed.h",
       "libs/ui/kis_node_manager.h",
       "libs/ui/kis_selection_manager.h",
       "libs/ui/tool"

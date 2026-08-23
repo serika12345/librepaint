@@ -1233,7 +1233,7 @@ public Q_SLOTS:
      * the current node is changed. Use to distinguish
      * sigStrokeEndRequested() and
      * sigStrokeEndRequestedActiveNodeFiltered() which are used by
-     * KisNodeJugglerCompressed
+     * KisNodeOperationBatch
      */
     void requestStrokeEndActiveNode();
 

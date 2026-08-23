@@ -386,15 +386,6 @@
       "responsibilityArea": "document-state"
     },
     {
-      "name": "KisNodeJugglerCompressed",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_node_juggler_compressed.h",
-      "implementationPaths": [
-        "libs/ui/kis_node_juggler_compressed.cpp"
-      ],
-      "responsibilityArea": "document-state"
-    },
-    {
       "name": "KisNodeManager",
       "declarationKind": "class",
       "header": "libs/ui/kis_node_manager.h",

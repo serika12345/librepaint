@@ -404,7 +404,7 @@
       ]
     },
     {
-      "name": "KisNodeJugglerCompressedTest",
+      "name": "KisNodeManagerTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
@@ -413,12 +413,12 @@
       ]
     },
     {
-      "name": "KisNodeManagerTest",
+      "name": "KisNodeOperationBatchTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/image/tests",
       "dependencies": [
-        "kritatestsdk",
-        "kritaui"
+        "kritaimage",
+        "kritatestsdk"
       ]
     },
     {

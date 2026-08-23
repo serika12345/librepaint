@@ -563,9 +563,9 @@ bool KisMimeData::insertMimeLayers(const QMimeData *data,
 
     if (hasDelayedNodes) {
         /**
-         * We have the node juggler running, so it will delay the update of the
-         * generator layers that might be included into the paste. To avoid
-         * that we should forcefully to make it stop
+         * We have the node operation batch running, so it will delay the
+         * update of the generator layers that might be included into the
+         * paste. To avoid that we should forcefully to make it stop
          */
         image->requestStrokeEnd();
     }

@@ -28,7 +28,7 @@ class KisView;
 class KisNodeSelectionAdapter;
 class KisNodeInsertionAdapter;
 class KisNodeDisplayModeAdapter;
-class KisNodeJugglerCompressed;
+class KisNodeOperationBatch;
 class KoProperties;
 class KisProcessingApplicator;
 
@@ -286,7 +286,7 @@ private:
     qint32 convertOpacityToInt(qreal opacity);
     void removeSelectedNodes(KisNodeList selectedNodes);
     void slotSomethingActivatedNodeImpl(KisNodeSP node);
-    bool createQuickGroupImpl(KisNodeJugglerCompressed *juggler,
+    bool createQuickGroupImpl(KisNodeOperationBatch *batch,
                               const QString &overrideGroupName,
                               KisNodeSP *newGroup,
                               KisNodeSP *newLastChild);
