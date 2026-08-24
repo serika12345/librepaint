@@ -17,7 +17,7 @@
 #include "kis_paint_layer.h"
 #include "kis_painter.h"
 #include "kis_distance_information.h"
-#include "kis_painting_information_builder.h"
+#include <brushengine/kis_paint_information.h>
 #include <kis_image.h>
 #include <kis_types.h>
 #include <KoColor.h>

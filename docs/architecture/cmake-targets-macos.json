@@ -6132,6 +6132,7 @@
       "dependencies": [
         "GSL::gsl",
         "kritapainting",
+        "kritatools",
         "kritaui"
       ]
     },

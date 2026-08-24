@@ -5,10 +5,12 @@ set(kritatools_LIB_SRCS
     KisToolChangesTrackerData.cpp
     kis_delegated_tool_policies.cpp
     kis_outline_interaction.cpp
+    kis_painting_information_builder.cpp
     kis_polyline_interaction.cpp
     kis_rectangle_interaction.cpp
     kis_selection_modifier_mapping.cpp
     kis_smoothing_options.cpp
+    kis_speed_smoother.cpp
     kis_tool.cc
     kis_tool_paint_interaction.cpp
     kis_tool_utils.cpp

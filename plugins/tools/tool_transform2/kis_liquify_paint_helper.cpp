@@ -11,7 +11,7 @@
 #include "kis_algebra_2d.h"
 #include "KoPointerEvent.h"
 #include <brushengine/kis_paint_information.h>
-#include "kis_painting_information_builder.h"
+#include <kis_painting_information_builder_adapters.h>
 #include "kis_liquify_transform_worker.h"
 #include <brushengine/kis_paintop_utils.h>
 #include "kis_coordinates_converter.h"

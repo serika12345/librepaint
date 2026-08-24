@@ -5806,6 +5806,7 @@
       "sourceDirectory": "plugins/tools/tool_transform2",
       "dependencies": [
         "kritapainting",
+        "kritatools",
         "kritaui"
       ]
     },

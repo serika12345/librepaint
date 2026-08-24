@@ -40,6 +40,7 @@ target_link_libraries(kritatooltransform_static
   PUBLIC
     kritaui
     kritapainting
+    kritatools
 )
 
 if (NOT GSL_FOUND)

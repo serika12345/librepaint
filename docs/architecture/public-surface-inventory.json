@@ -207,7 +207,7 @@
             "libs/ui/kis_selection_decoration.cc",
             "libs/ui/kis_zoom_manager.cc",
             "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp",
-            "libs/ui/tool/kis_painting_information_builder.cpp",
+            "libs/ui/tool/kis_painting_information_builder_adapters.cpp",
             "plugins/assistants/Assistants/ConcentricEllipseAssistant.cc",
             "plugins/assistants/Assistants/CurvilinearPerspectiveAssistant.cc",
             "plugins/assistants/Assistants/EllipseAssistant.cc",
@@ -1271,13 +1271,14 @@
             "libs/brush/kis_gbr_brush.h",
             "libs/painting/kis_figure_painting_stroke.h",
             "libs/painting/strokes/freehand_stroke.h",
+            "libs/tools/kis_painting_information_builder.h",
             "libs/tools/kis_tool_paint_interaction.cpp",
             "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
-            "libs/ui/tool/kis_painting_information_builder.h",
             "libs/ui/tool/kis_stabilized_events_sampler.cpp",
             "libs/ui/tool/kis_stabilized_events_sampler.h",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h",
+            "libs/ui/widgets/kis_preset_live_preview_view.h",
             "plugins/paintops/deform/deform_brush.h",
             "plugins/paintops/gridbrush/kis_grid_paintop.cpp",
             "plugins/paintops/hairy/hairy_brush.h",
@@ -3078,8 +3079,8 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/tools/kis_painting_information_builder.cpp",
             "libs/ui/dialogs/kis_dlg_preferences.cc",
-            "libs/ui/tool/kis_painting_information_builder.cpp",
             "libs/ui/widgets/KisCurveWidgetConnectionHelper.cpp",
             "libs/ui/widgets/kis_curve_widget.h",
             "libs/ui/widgets/kis_curve_widget_p.h",
@@ -6540,7 +6541,6 @@
             "libs/ui/kis_statusbar.cc",
             "libs/ui/kis_statusbar.h",
             "libs/ui/tool/KisAsyncColorSamplerHelper.h",
-            "libs/ui/tool/kis_painting_information_builder.h",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h",
             "libs/ui/utils/KisDitherUtil.h",
@@ -8258,6 +8258,18 @@
           ]
         },
         {
+          "path": "libs/tools/kis_painting_information_builder.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_painting_information_builder_adapters.h",
+            "plugins/tools/basictools/kis_tool_line_helper.cpp"
+          ]
+        },
+        {
           "path": "libs/tools/kis_polyline_interaction.h",
           "publicationEvidence": [
             "export-macro",
@@ -8297,6 +8309,17 @@
           "consumerPaths": [
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h"
+          ]
+        },
+        {
+          "path": "libs/tools/kis_speed_smoother.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/wintab/drawpile_tablettester/tablettest.h"
           ]
         },
         {
@@ -10731,14 +10754,13 @@
           ]
         },
         {
-          "path": "libs/ui/tool/kis_painting_information_builder.h",
+          "path": "libs/ui/tool/kis_painting_information_builder_adapters.h",
           "publicationEvidence": [
             "export-macro",
             "external-include"
           ],
           "consumerPaths": [
             "plugins/tools/basictools/kis_tool_line.cc",
-            "plugins/tools/basictools/kis_tool_line_helper.cpp",
             "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
           ]
         },

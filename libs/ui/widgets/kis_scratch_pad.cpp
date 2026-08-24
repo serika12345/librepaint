@@ -29,7 +29,6 @@
 #include <kis_fill_painter.h>
 #include <kis_default_bounds.h>
 #include <kis_canvas_resource_provider.h>
-#include <KisPortingUtils.h>
 
 #include "kis_config.h"
 #include "kis_image.h"
@@ -37,7 +36,8 @@
 #include "kis_update_scheduler.h"
 #include "kis_post_execution_undo_adapter.h"
 #include "kis_scratch_pad_event_filter.h"
-#include "kis_painting_information_builder.h"
+#include "tool/kis_painting_information_builder_adapters.h"
+#include "tool/kis_painting_information_builder_config_p.h"
 #include "kis_tool_freehand_helper.h"
 #include "kis_image_patch.h"
 #include "kis_canvas_widget_base.h"
@@ -87,7 +87,6 @@ KIS_DECLARE_ADAPTED_LOCK(KisUpdateSchedulerLockWithFeedback,
                          KisAsyncActionFeedback::MutexWrapper<KisUpdateSchedulerLockAdapter>)
 
 }
-
 
 class KisScratchPadNodeListener : public KisNodeGraphListener
 {
@@ -146,6 +145,7 @@ public:
     KisScratchPadPaintingInformationBuilder(KisScratchPad *scratchPad)
         : m_scratchPad(scratchPad)
     {
+        initializePaintingInformationBuilderFromConfig(this);
     }
 
 protected:

@@ -1876,6 +1876,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/input/wintab/drawpile_tablettester/tablettest.h",
+          "include": "kis_speed_smoother.h",
+          "headerPath": "libs/tools/kis_speed_smoother.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
           "include": "KisPaintResourceServerProvider.h",
           "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
@@ -1935,6 +1946,17 @@
           "include": "kis_outline_interaction.h",
           "headerPath": "libs/tools/kis_outline_interaction.h",
           "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_painting_information_builder_adapters.h",
+          "include": "kis_painting_information_builder.h",
+          "headerPath": "libs/tools/kis_painting_information_builder.h",
+          "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
@@ -2735,7 +2757,7 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
-          "sourcePath": "libs/ui/tool/kis_painting_information_builder.cpp",
+          "sourcePath": "libs/ui/tool/kis_painting_information_builder_adapters.cpp",
           "include": "kis_coordinates_converter.h",
           "headerPath": "libs/canvas/kis_coordinates_converter.h",
           "sourceResponsibility": "input-interpretation",
@@ -2890,6 +2912,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/input/wintab/drawpile_tablettester/tablettest.h",
+          "include": "kis_speed_smoother.h",
+          "headerPath": "libs/tools/kis_speed_smoother.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
           "include": "KisPaintResourceServerProvider.h",
           "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
@@ -2949,6 +2982,17 @@
           "include": "kis_outline_interaction.h",
           "headerPath": "libs/tools/kis_outline_interaction.h",
           "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_painting_information_builder_adapters.h",
+          "include": "kis_painting_information_builder.h",
+          "headerPath": "libs/tools/kis_painting_information_builder.h",
+          "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"

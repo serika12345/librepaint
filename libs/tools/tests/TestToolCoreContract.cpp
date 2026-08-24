@@ -5,6 +5,7 @@
 
 #include <QAction>
 #include <QKeyEvent>
+#include <QMouseEvent>
 #include <QStandardPaths>
 #include <QTest>
 
@@ -14,13 +15,16 @@
 #include <KSharedConfig>
 
 #include <KisToolPaintFactoryBase.h>
+#include <KoPointerEvent.h>
 #include <kis_delegated_tool.h>
 #include <kis_delegated_tool_policies.h>
 #include <kis_outline_interaction.h>
+#include <kis_painting_information_builder.h>
 #include <kis_polyline_interaction.h>
 #include <kis_selection_modifier_mapping.h>
 #include <kis_rectangle_interaction.h>
 #include <kis_smoothing_options.h>
+#include <kis_speed_smoother.h>
 #include <kis_tool_select_base.h>
 #include <kis_tool_paint_interaction.h>
 #include <kis_tool_utils.h>
@@ -44,6 +48,45 @@ public:
     }
 };
 
+class TestPaintingInformationBuilder : public KisPaintingInformationBuilder
+{
+protected:
+    QPointF documentToImage(const QPointF &point) override
+    {
+        return point * 2.0;
+    }
+
+    QPointF imageToDocument(const QPointF &point) override
+    {
+        return point / 2.0;
+    }
+
+    QPointF imageToView(const QPointF &point) override
+    {
+        return point + QPointF(5.0, 7.0);
+    }
+
+    qreal calculatePerspective(const QPointF &) override
+    {
+        return 0.25;
+    }
+
+    qreal canvasRotation() const override
+    {
+        return 15.0;
+    }
+
+    bool canvasMirroredX() const override
+    {
+        return true;
+    }
+
+    bool canvasMirroredY() const override
+    {
+        return false;
+    }
+};
+
 class TestToolCoreContract : public QObject
 {
     Q_OBJECT
@@ -62,6 +105,8 @@ private Q_SLOTS:
     void rectangleRotation();
     void outlineInputLifecycle();
     void outlineContinuedInput();
+    void paintingInformationSettings();
+    void deterministicSpeedSmoothing();
     void polylinePointLifecycle();
     void polylineUndoAndCancel();
 
@@ -313,6 +358,59 @@ void TestToolCoreContract::outlineContinuedInput()
     QVERIFY(!interaction.isContinuedMode());
     QCOMPARE(interaction.finish(),
              QVector<QPointF>({QPointF(1.0, 2.0), QPointF(2.0, 3.0)}));
+}
+
+void TestToolCoreContract::paintingInformationSettings()
+{
+    TestPaintingInformationBuilder builder;
+    KisPaintingInformationSettings settings;
+    settings.pressureCurve = QStringLiteral("0,0;0.5,1;1,1;");
+    settings.maximumSpeed = 40;
+    settings.tiltDirectionOffset = -45.0;
+    settings.useEventTimestamps = true;
+    settings.speedSmoothingSamples = 1;
+    builder.setSettings(settings);
+
+    QCOMPARE(builder.pressureToCurve(0.5), 1.0);
+
+    QMouseEvent mouseEvent(QEvent::MouseMove,
+                           QPointF(2.0, 3.0),
+                           QPointF(2.0, 3.0),
+                           Qt::NoButton,
+                           Qt::NoButton,
+                           Qt::NoModifier);
+    mouseEvent.setTimestamp(100);
+    KoPointerEvent pointerEvent(&mouseEvent, QPointF(2.0, 3.0));
+
+    const KisPaintInformation info =
+        builder.startStroke(&pointerEvent, 42, nullptr);
+    QCOMPARE(info.pos(), QPointF(4.0, 6.0));
+    QCOMPARE(info.currentTime(), 42.0);
+    QCOMPARE(info.perspective(), 0.25);
+    QCOMPARE(info.canvasRotation(), 15.0);
+    QVERIFY(info.canvasMirroredH());
+    QVERIFY(!info.canvasMirroredV());
+    QCOMPARE(info.tiltDirectionOffset(), 315.0);
+
+    const KisPaintInformation hover = builder.hover(QPointF(8.0, 10.0),
+                                                    &pointerEvent,
+                                                    false);
+    QCOMPARE(hover.perspective(), 0.25);
+    QCOMPARE(hover.canvasRotation(), 15.0);
+    QVERIFY(hover.canvasMirroredH());
+    QCOMPARE(hover.tiltDirectionOffset(), 315.0);
+}
+
+void TestToolCoreContract::deterministicSpeedSmoothing()
+{
+    KisSpeedSmoother smoother;
+    smoother.setSettings(true, 1);
+    smoother.clear();
+
+    QCOMPARE(smoother.getNextSpeed(QPointF(10.0, 10.0), 100), 0.0);
+    QCOMPARE(smoother.getNextSpeed(QPointF(20.0, 10.0), 110), 0.5);
+    QCOMPARE(smoother.getNextSpeed(QPointF(20.0, 10.0), 120), 0.5);
+    QCOMPARE(smoother.getNextSpeed(QPointF(30.0, 10.0), 120), 1.0);
 }
 
 void TestToolCoreContract::polylinePointLifecycle()

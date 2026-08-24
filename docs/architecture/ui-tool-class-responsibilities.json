@@ -70,31 +70,13 @@
     {
       "name": "KisConverterPaintingInformationBuilder",
       "declarationKind": "class",
-      "header": "libs/ui/tool/kis_painting_information_builder.h",
+      "header": "libs/ui/tool/kis_painting_information_builder_adapters.h",
       "implementationPaths": [
-        "libs/ui/tool/kis_painting_information_builder.cpp"
+        "libs/ui/tool/kis_painting_information_builder_adapters.cpp"
       ],
       "consumerPaths": [
-        "libs/ui/widgets/kis_preset_live_preview_view.h",
         "libs/ui/widgets/kis_scratch_pad.cpp",
         "plugins/tools/basictools/kis_tool_line.cc",
-        "plugins/tools/basictools/kis_tool_line_helper.cpp",
-        "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
-      ],
-      "responsibilityArea": "input-interpretation"
-    },
-    {
-      "name": "KisPaintingInformationBuilder",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_painting_information_builder.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_painting_information_builder.cpp"
-      ],
-      "consumerPaths": [
-        "libs/ui/widgets/kis_preset_live_preview_view.h",
-        "libs/ui/widgets/kis_scratch_pad.cpp",
-        "plugins/tools/basictools/kis_tool_line.cc",
-        "plugins/tools/basictools/kis_tool_line_helper.cpp",
         "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
       ],
       "responsibilityArea": "input-interpretation"
@@ -229,15 +211,13 @@
     {
       "name": "KisToolFreehandPaintingInformationBuilder",
       "declarationKind": "class",
-      "header": "libs/ui/tool/kis_painting_information_builder.h",
+      "header": "libs/ui/tool/kis_painting_information_builder_adapters.h",
       "implementationPaths": [
-        "libs/ui/tool/kis_painting_information_builder.cpp"
+        "libs/ui/tool/kis_painting_information_builder_adapters.cpp"
       ],
       "consumerPaths": [
-        "libs/ui/widgets/kis_preset_live_preview_view.h",
         "libs/ui/widgets/kis_scratch_pad.cpp",
         "plugins/tools/basictools/kis_tool_line.cc",
-        "plugins/tools/basictools/kis_tool_line_helper.cpp",
         "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
       ],
       "responsibilityArea": "input-interpretation"

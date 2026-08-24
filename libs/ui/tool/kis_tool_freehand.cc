@@ -45,7 +45,7 @@
 #include "kis_cursor.h"
 #include <KisViewManager.h>
 #include <kis_painting_assistants_decoration.h>
-#include "kis_painting_information_builder.h"
+#include "kis_painting_information_builder_adapters.h"
 #include "kis_tool_freehand_helper.h"
 #include "strokes/freehand_stroke.h"
 #include "kis_tool_utils.h"
@@ -495,5 +495,4 @@ KisOptimizedBrushOutline KisToolFreehand::getOutlinePath(const QPointF &document
     else
         return KisOptimizedBrushOutline();
 }
-
 

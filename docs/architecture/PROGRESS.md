@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 14:30 JST
+- 更新日時: 2026-08-24 15:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1302,13 +1302,44 @@
   `KisSafeDocumentLoaderTest`はファイル監視通知が1500ミリ秒以内に届かず、`test()`と
   `testFileLost()`が失敗したが、同試験ターゲットの単独再実行は1件中1件成功した。同試験、文書監視、
   文書読込、入出力の製品実装には変更がなく、既知の時間依存試験失敗として区別する。
+- `libs/ui/tool/kis_speed_smoother.{h,cpp}`を`libs/tools/kis_speed_smoother.{h,cpp}`へ移し、
+  時刻源と平滑化標本数を設定値として受け取る決定論的な速度計算にした。タブレット試験器は
+  UI設定を読んで二つの平滑化器へ明示的に渡し、製品の既存設定を維持する。
+- `libs/ui/tool/kis_painting_information_builder.{h,cpp}`の入力値決定部分を
+  `libs/tools/kis_painting_information_builder.{h,cpp}`へ、座標変換器と自由描画ツールへの接続を
+  `libs/ui/tool/kis_painting_information_builder_adapters.{h,cpp}`へ分けた。設定読込と変更通知は新しい
+  `libs/ui/tool/kis_painting_information_builder_config_p.h`から値として渡す。スクラッチパッド、直線、
+  自由描画、変形リキファイは同じUI接続を使用し、旧配置と転送ヘッダーは残していない。
+- 新しい中核は公開ヘッダー118行、実装331行、UI接続は公開ヘッダー62行、実装147行、内部設定接続
+  14行である。旧UI配置の公開ヘッダー154行と実装454行を除去した。`TestToolCoreContract`は固定した
+  圧力曲線、座標変換、時刻、遠近係数、回転、反転、負の傾き補正と、固定時刻列による速度平滑化を
+  検査する。契約追加直後は`libs/tools`に公開ヘッダーがなくコンパイル段階で失敗し、実装後は1件の
+  CTestが成功した。
+- 公開面台帳は`kritatools`を15ヘッダーから17ヘッダーへ更新し、`kritaui`の234ヘッダーを維持する。
+  UIツール責務台帳は22クラスから21クラスとなった。UIから画像描画への確認済み逆方向includeを
+  3件削減し、toolsの未公開内部参照0件、UIの4ヘッダー7参照、23中核所有ターゲットと全製品
+  ターゲットの5構成における循環0件を維持する。
+- 変形ツールは描画入力値の所有者`kritatools`を直接リンクする。macOSとiOSのCMake台帳を実構成から
+  再生成し、Linux、Android、Windowsへ同じ直接辺を同期した。ターゲット数はmacOS 663件、
+  Linux 678件、iOS 597件、Android 603件、Windows 633件、共通581件、条件付き119件、構成差262件を
+  維持する。`kritaui`、既定描画ツール、変形ツールはmacOSでリンクまで成功した。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、構造、
+  再配置計画、文書、リンク、D2再生成を含めて成功した。`nix develop .#test --command ./scripts/verify`は
+  増分構築とリンクを完了し、macOSの342件中341件のネイティブ試験が成功した。変更範囲外の
+  `KisSafeDocumentLoaderTest::testFileLost()`はファイル監視通知が1500ミリ秒以内に届かず
+  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:109`で実測0件、期待1件として失敗した。単独再実行では
+  同副試験が成功し、同じ時間依存通知を検査する`test()`が
+  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として失敗した。同試験、文書監視、
+  文書読込、入出力の製品実装には変更がなく、失敗箇所の交替から既知の時間依存試験失敗として
+  区別する。`nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、
+  Windowsを含む全Nix出力の評価に成功した。
 
 ## 次の操作
 
-自由形状操作状態の移設をコミットした後、`libs/ui/tool/kis_painting_information_builder.{h,cpp}`と
-`libs/ui/tool/kis_speed_smoother.{h,cpp}`を起点に、圧力、速度、傾き、時間から描画入力値を組み立てる
-決定処理を`libs/tools`へ移す。座標変換器と自由描画ツールへの接続、設定変更通知はUI所有へ残し、
-固定設定と入力列から得る圧力曲線、速度、キャンバス回転、反転、傾き補正を観測可能な契約で固定する。
+描画入力値の決定処理をコミットした後、`libs/ui/widgets/kis_selection_options.{h,cc}`と
+`libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を`libs/tools/ui`へ移す。選択方式、結合方法、
+アンチエイリアス、拡張、境界停止、ぼかし、参照レイヤー、色ラベルの設定往復を契約で固定し、
+`kritatoolsui`が選択設定表示を所有する。キャンバス、選択メニュー、アクションとの接続はUI側へ残す。
 清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
 
 ## R1-G5完了根拠

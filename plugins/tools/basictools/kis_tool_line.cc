@@ -30,7 +30,7 @@
 #include <kis_canvas_resource_provider.h>
 #include <KisViewManager.h>
 #include <kis_action_registry.h>
-#include <kis_painting_information_builder.h>
+#include <kis_painting_information_builder_adapters.h>
 #include <kis_resources_snapshot.h>
 
 #include "kis_tool_line_helper.h"

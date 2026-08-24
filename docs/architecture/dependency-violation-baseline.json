@@ -764,7 +764,7 @@
       "dependencyResponsibility": "painting-rendering",
       "owner": "R1-G6",
       "reason": "Input classes inside kritaui currently construct painting information and stroke state instead of emitting normalized actions through tool invocation.",
-      "maximumDirectIncludes": 17,
+      "maximumDirectIncludes": 14,
       "removalCondition": "Input interpretation emits the input-action-stream contract and painting state is created behind tool-command, reducing this direct-include set to zero.",
       "targetLinks": [
         {
@@ -900,33 +900,6 @@
           "sourcePath": "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
           "include": "kis_paint_information.h",
           "headerPath": "libs/image/brushengine/kis_paint_information.h",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/tool/kis_painting_information_builder.cpp",
-          "include": "kis_cubic_curve.h",
-          "headerPath": "libs/image/kis_cubic_curve.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/tool/kis_painting_information_builder.h",
-          "include": "brushengine/kis_paint_information.h",
-          "headerPath": "libs/image/brushengine/kis_paint_information.h",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/tool/kis_painting_information_builder.h",
-          "include": "kis_types.h",
-          "headerPath": "libs/image/kis_types.h",
           "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },

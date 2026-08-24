@@ -499,8 +499,19 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 同じ操作状態を使用し、単一点終了、複数点、閉路、点の取り消し、全取消しの契約を
 `TestToolCoreContract`が固定する。
 
-次は`libs/ui/tool/KisToolOutlineBase.{h,cpp}`を起点として、自由形状の点列、継続入力、取消し状態を
-`libs/tools`へ移し、入力座標変換、輪郭表示、キャンバス更新、操作完了の接続をUI所有へ残す。
+描画入力値の決定は`kritatools`が所有する。開始元の
+`libs/ui/tool/kis_speed_smoother.{h,cpp}`は`libs/tools/kis_speed_smoother.{h,cpp}`へ移した。
+`libs/ui/tool/kis_painting_information_builder.{h,cpp}`の圧力曲線、速度、傾き、時刻、キャンバス状態の
+組立ては`libs/tools/kis_painting_information_builder.{h,cpp}`へ、座標変換と自由描画ツールへの接続は
+`libs/ui/tool/kis_painting_information_builder_adapters.{h,cpp}`へ分けた。UI設定は
+`libs/ui/tool/kis_painting_information_builder_config_p.h`の内部接続から値として中核へ渡す。
+旧配置と転送ヘッダーは存在せず、設定変更通知、座標変換、圧力曲線、決定論的な速度平滑化、
+キャンバス回転・反転、傾き補正の契約を維持する。
+
+次は選択設定表示を一つの所有先へ集約する。`libs/ui/widgets/kis_selection_options.{h,cc}`と
+`libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を`libs/tools/ui`へ移し、
+`kritatoolsui`から独立構築する。選択ツールのキャンバス接続はUI側へ残し、設定値の読書きと
+表示状態の往復を契約で固定する。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

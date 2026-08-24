@@ -11,12 +11,18 @@
 #include <QPaintEvent>
 #include <QPainter>
 
+#include <kis_config.h>
+
 TabletTester::TabletTester(QWidget *parent)
     : QWidget(parent), m_mouseDown(false), m_tabletDown(false)
 {
-    // we don't explicitly update settings inside KisSpeedSmoother
-    // here because the tablet tester is created every time anew.
-
+    KisConfig config(true);
+    const bool useEventTimestamps =
+        config.readEntry("useTimestampsForBrushSpeed", false);
+    const int smoothingSamples =
+        config.readEntry("speedValueSmoothing", 3);
+    m_mouseSpeedSmoother.setSettings(useEventTimestamps, smoothingSamples);
+    m_tabletSpeedSmoother.setSettings(useEventTimestamps, smoothingSamples);
 }
 
 QSize TabletTester::sizeHint() const
