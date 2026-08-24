@@ -16,6 +16,7 @@
 #include <KoShapeStroke.h>
 
 #include <brushengine/kis_paintop_preset.h>
+#include <kis_image.h>
 #include "kis_figure_painting_tool_helper.h"
 
 KisToolPolyline::KisToolPolyline(KoCanvasBase * canvas)

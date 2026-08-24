@@ -14,6 +14,7 @@
 
 #include <flake/kis_node_shape.h>
 #include <kis_icon.h>
+#include <kis_node.h>
 #include <QKeySequence>
 
 #include <kconfig.h>

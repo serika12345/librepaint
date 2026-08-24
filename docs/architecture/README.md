@@ -466,8 +466,13 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 `libs/tools/kis_selection_modifier_mapping.*`へ移し、設定値をキャンバス借用契約から渡す。
 旧配置、転送ヘッダー、大域的な設定監視オブジェクトは存在しない。
 
-次は`libs/ui/tool/kis_tool_paint.*`、`kis_tool_shape.*`、矩形、楕円、多角線、輪郭の各基底を
-起点として、描画入力と図形生成を`libs/tools`へ、設定部品と画面資源接続をUI所有へ分ける。
+描画ツールの操作状態は`libs/tools/kis_tool_paint_interaction.{h,cpp}`が所有する。
+`libs/ui/tool/kis_tool_paint.{h,cc}`からポインター追跡、ブラシ寸法・回転操作、輪郭状態、
+輪郭生成を移し、UI側には色採取、ポップアップ、設定部品、設定に基づく輪郭表示、描画補助線の
+更新を残した。`kritatools`から`kritaui`への依存はなく、UI側が操作基盤を継承する方向となる。
+
+次は`libs/ui/tool/kis_tool_shape.*`、矩形、楕円、多角線、輪郭の各基底を起点として、図形生成と
+入力状態を`libs/tools`へ、設定部品と画面資源接続をUI所有へ分ける。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

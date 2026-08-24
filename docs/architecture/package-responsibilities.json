@@ -1296,6 +1296,7 @@
         "libs/tools/kis_selection_modifier_mapping.h",
         "libs/tools/kis_smoothing_options.h",
         "libs/tools/kis_tool.h",
+        "libs/tools/kis_tool_paint_interaction.h",
         "libs/tools/kis_tool_select_base.h",
         "libs/tools/kis_tool_utils.h",
         "libs/ui/kis_bookmarked_configurations_editor.h",

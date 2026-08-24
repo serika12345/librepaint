@@ -6,6 +6,8 @@
  */
 
 #include "kis_tool_pencil.h"
+
+#include <QPainterPath>
 #include <KoPathShape.h>
 #include <KoCanvasBase.h>
 #include <KoPointerEvent.h>

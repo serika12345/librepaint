@@ -8,6 +8,7 @@ set(kritatools_LIB_SRCS
     kis_selection_modifier_mapping.cpp
     kis_smoothing_options.cpp
     kis_tool.cc
+    kis_tool_paint_interaction.cpp
     kis_tool_utils.cpp
 )
 

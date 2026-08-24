@@ -9,6 +9,7 @@
  */
 
 #include <QAction>
+#include <QPainterPath>
 
 #include <KoPointerEvent.h>
 #include <KoShapeController.h>

@@ -7,6 +7,8 @@
 #ifndef KISTOOLBASICBRUSHBASE_H
 #define KISTOOLBASICBRUSHBASE_H
 
+#include <QPainterPath>
+
 #include <kis_tool_shape.h>
 #include <kis_cursor.h>
 

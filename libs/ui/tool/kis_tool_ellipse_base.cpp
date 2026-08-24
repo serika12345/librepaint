@@ -6,6 +6,7 @@
 
 #include "kis_tool_ellipse_base.h"
 
+#include <QPainterPath>
 #include <KoPointerEvent.h>
 #include <KoCanvasBase.h>
 #include <KoCanvasController.h>

@@ -18,6 +18,7 @@
 #include <kis_selection_modifier_mapping.h>
 #include <kis_smoothing_options.h>
 #include <kis_tool_select_base.h>
+#include <kis_tool_paint_interaction.h>
 #include <kis_tool_utils.h>
 
 class TestToolFactory : public KisToolPaintFactoryBase

@@ -17,6 +17,7 @@
 #include <KoShapeStroke.h>
 
 #include <brushengine/kis_paintop_registry.h>
+#include <kis_image.h>
 #include "kis_figure_painting_tool_helper.h"
 
 KisToolPolygon::KisToolPolygon(KoCanvasBase *canvas)

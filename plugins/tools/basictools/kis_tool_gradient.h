@@ -19,6 +19,7 @@
 
 #include <kis_tool_paint.h>
 #include <kis_global.h>
+#include <kis_node.h>
 #include <kis_types.h>
 #include <kis_gradient_painter.h>
 #include <flake/kis_node_shape.h>
@@ -120,4 +121,3 @@ public:
 };
 
 #endif //KIS_TOOL_GRADIENT_H_
-

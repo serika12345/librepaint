@@ -12,7 +12,7 @@
 
 #include "kis_tool_line.h"
 
-
+#include <QCheckBox>
 
 #include <ksharedconfig.h>
 

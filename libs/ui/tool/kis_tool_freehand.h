@@ -21,6 +21,7 @@
 
 class KoPointerEvent;
 class KoCanvasBase;
+class KUndo2MagicString;
 
 class KisPaintingInformationBuilder;
 class KisToolFreehandHelper;

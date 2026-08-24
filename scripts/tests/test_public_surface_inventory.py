@@ -142,7 +142,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(ui_headers), 235)
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
-        self.assertEqual(len(tool_headers), 12)
+        self.assertEqual(len(tool_headers), 13)
         self.assertEqual(
             document_by_path[
                 "libs/document/session/kis_document_autosave_state.h"
@@ -246,6 +246,12 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertIn(
             "libs/ui/tool/kis_tool_freehand_helper.h",
             tool_by_path["libs/tools/kis_smoothing_options.h"]["consumerPaths"],
+        )
+        self.assertEqual(
+            tool_by_path["libs/tools/kis_tool_paint_interaction.h"][
+                "consumerPaths"
+            ],
+            ["libs/ui/tool/kis_tool_paint.h"],
         )
         self.assertNotIn("libs/ui/kis_node_commands_adapter.h", ui_by_path)
         self.assertNotIn("libs/ui/kis_node_juggler_compressed.h", ui_by_path)
@@ -435,7 +441,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimage": 334,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
-                "kritatools": 12,
+                "kritatools": 13,
                 "kritaui": 235,
             },
         )

@@ -10,6 +10,8 @@
 #ifndef KISTOOLOUTLINEBASE_H
 #define KISTOOLOUTLINEBASE_H
 
+#include <QPainterPath>
+
 #include <kis_tool_shape.h>
 #include <kis_cursor.h>
 

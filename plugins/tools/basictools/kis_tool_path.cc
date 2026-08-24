@@ -6,6 +6,8 @@
  */
 
 #include "kis_tool_path.h"
+
+#include <QPainterPath>
 #include <KoPathShape.h>
 #include <KoCanvasBase.h>
 #include <kis_cursor.h>

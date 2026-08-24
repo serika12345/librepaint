@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 12:05 JST
+- 更新日時: 2026-08-24 12:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1200,15 +1200,32 @@
   単独再実行でも同じ行で再現し、同試験、文書読込実装、入出力ターゲットには変更がない。
 - `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、
   Windowsを含む全出力の式評価に成功した。
+- `libs/ui/tool/kis_tool_paint.{h,cc}`を起点として、ポインター追跡、ブラシ寸法・回転操作、
+  輪郭状態、輪郭生成を`libs/tools/kis_tool_paint_interaction.{h,cpp}`へ移した。UI側の
+  `KisToolPaint`はこの操作基盤を継承し、色採取、ポップアップ、設定部品、設定に基づく
+  輪郭表示、描画補助線の更新を所有する。`kritatools`から`kritaui`への逆向き依存はない。
+- 未使用だったプリセット、透過率、変更状態、版番号のスナップショットと復旧入口を除去した。
+  分離で明らかになった旧`kis_tool_paint.h`への暗黙依存は、図形基底と既定描画、動的、
+  多角形、多角線、囲み塗り、色塗りマスクの各プラグインで必要なQtまたは画像型を直接includeして
+  解消した。
+- `libs/ui/tool/kis_tool_paint.cc`は757行から465行、同ヘッダーは169行から87行へ縮小した。
+  新しい操作基盤は実装296行、公開ヘッダー92行である。公開面台帳は`kritatools`を12ヘッダー
+  から13ヘッダーへ更新し、`kritaui`の235ヘッダーとUIツール責務台帳23クラスを維持した。
+- `TestToolCoreContract`へ操作基盤の公開ヘッダー構築契約を追加した。初回はヘッダー不在で
+  コンパイルが失敗し、実装後は1件のCTestが成功した。`kritaui`、既定描画ツール、選択ツール、
+  囲み塗り、スマート補修、動的、多角形、多角線の各ターゲットはmacOSでリンクまで成功した。
+- `nix develop .#test --command cmake --build build/tdd-macos`は全製品と試験ターゲットのリンクまで
+  成功した。`nix develop .#test --command ./scripts/verify`は103件の運用検査と342件のネイティブ
+  試験をすべて完了した。前の単位で失敗した`KisSafeDocumentLoaderTest::testFileLost()`も成功し、
+  今回の単位に残るmacOS検証失敗はない。
 
 ## 次の操作
 
-選択基盤分割をコミットした後、清浄な同一コミットをDarwinとx86_64 Linuxへ揃えて5構成の
-CMake台帳完全一致を確認する。`KisSafeDocumentLoaderTest::testFileLost()`のファイル監視通知は
-この構造変更と分けて基準障害として追跡する。次の実装単位は`libs/ui/tool/kis_tool_paint.*`と
-`kis_tool_shape.*`を起点として、描画入力と図形生成を`libs/tools`へ、設定部品と画面資源接続を
-UI所有へ分ける。矩形、楕円、多角線、輪郭の各基底はこの依存方向に合わせて同じ単位で
-移設条件を確定する。
+描画操作基盤の分割をコミットした後、次の実装単位として`libs/ui/tool/kis_tool_shape.*`を
+起点に、図形生成と入力状態を`libs/tools`へ、設定部品と画面資源接続をUI所有へ分ける。
+矩形、楕円、多角線、輪郭の各基底は依存と状態を調査し、最初の図形基盤単位の移設範囲を
+確定する。清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査は
+R1-G6f統合時に実施する。
 
 ## R1-G5完了根拠
 

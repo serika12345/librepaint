@@ -19,6 +19,7 @@
 #include "kundo2magicstring.h"
 
 #include "kis_cursor.h"
+#include <kis_image.h>
 #include <kis_slider_spin_box.h>
 #include <KisAngleSelector.h>
 
@@ -338,5 +339,4 @@ void KisToolDyna::slotSetAngle(qreal angle)
 
     m_configGroup.writeEntry("angleAmount", angle);
 }
-
 
