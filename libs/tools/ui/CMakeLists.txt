@@ -15,6 +15,7 @@ set(kritatoolsui_LIB_SRCS
     kis_paintop_settings_widget.cpp
     kis_selection_options.cc
     kis_selection_tool_config_widget_helper.cpp
+    kis_tool_options_popup.cpp
 )
 
 kis_add_library(kritatoolsui SHARED ${kritatoolsui_LIB_SRCS})

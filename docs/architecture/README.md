@@ -515,8 +515,13 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 レイヤーツリーの配色所有者を`kritaui`へ残した。選択方式、結合方法、アンチエイリアス、拡張、
 境界停止、ぼかし、参照レイヤー、色ラベルの保存と再読込は`TestToolSettingsUiContract`が固定する。
 
-次は`libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を起点として、ツール設定のポップアップ表示状態を
-`libs/tools/ui`へ移し、ドッカー、キャンバス、操作アクションへの接続をUI所有へ残す。
+ツール設定ポップアップは`kritatoolsui`が所有する。開始元の
+`libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を同名の`libs/tools/ui`へ移し、設定部品の見出し、区切り、
+並び替え、退避を下位UIだけで構築できるようにした。ドック用フォントは`libs/ui/kis_paintop_box.cc`が
+値として渡し、ポップアップボタン、キャンバス、操作アクションとの接続は`kritaui`に残る。
+
+次は`libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`を起点として、矩形制約の表示状態と設定往復を
+`libs/tools/ui`へ移し、矩形ツールとの信号接続をUI側へ残す。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

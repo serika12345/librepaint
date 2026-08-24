@@ -9,11 +9,16 @@
 #include <QWidget>
 #include <QPointer>
 
-class KisToolOptionsPopup : public QWidget
+#include <kritatoolsui_export.h>
+
+class QFont;
+
+class KRITATOOLSUI_EXPORT KisToolOptionsPopup : public QWidget
 {
     Q_OBJECT
 public:
-    explicit KisToolOptionsPopup(QWidget *parent = 0);
+    explicit KisToolOptionsPopup(const QFont &font,
+                                 QWidget *parent = nullptr);
     ~KisToolOptionsPopup() override;
 
     void newOptionWidgets(const QList<QPointer<QWidget> > &optionWidgetList);

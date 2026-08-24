@@ -3,33 +3,21 @@
  *
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
-#include "widgets/kis_tool_options_popup.h"
+#include <kis_tool_options_popup.h>
 
 
 #include <QList>
 #include <QFont>
-#include <QAction>
 #include <QShowEvent>
 #include <QPointer>
 #include <QGridLayout>
 #include <QFrame>
 #include <QLabel>
 #include <QApplication>
-#include <QFontDatabase>
-
-#include <KoDockRegistry.h>
-
-#include <kconfig.h>
-#include <klocalizedstring.h>
-
-
-#include "kis_config.h"
-#include "KisUiFont.h"
 
 struct KisToolOptionsPopup::Private
 {
 public:
-    QFont smallFont;
     bool ignoreHideEvents;
 
     QList<QPointer<QWidget> > currentWidgetList;
@@ -97,14 +85,13 @@ public:
 };
 
 
-KisToolOptionsPopup::KisToolOptionsPopup(QWidget *parent)
+KisToolOptionsPopup::KisToolOptionsPopup(const QFont &font, QWidget *parent)
     : QWidget(parent)
     , d(new Private())
 {
     setObjectName("KisToolOptionsPopup");
 
-    KConfigGroup group( KSharedConfig::openConfig(), "GUI");
-    setFont(KisUiFont::dockFont());
+    setFont(font);
 
     d->ignoreHideEvents = false;
 

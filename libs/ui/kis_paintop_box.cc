@@ -60,7 +60,8 @@
 
 #include "KisPopupButton.h"
 #include "widgets/kis_iconwidget.h"
-#include "widgets/kis_tool_options_popup.h"
+#include <kis_tool_options_popup.h>
+#include <KisUiFont.h>
 #include "widgets/kis_paintop_presets_editor.h"
 #include "widgets/kis_paintop_presets_chooser_popup.h"
 #include "widgets/kis_workspace_chooser.h"
@@ -465,7 +466,7 @@ KisPaintopBox::KisPaintopBox(KisViewManager *viewManager, QWidget *parent, const
     workspacePopup->addAction(action);
 
     if (!cfg.toolOptionsInDocker()) {
-        m_toolOptionsPopup = new KisToolOptionsPopup();
+        m_toolOptionsPopup = new KisToolOptionsPopup(KisUiFont::dockFont());
         m_toolOptionsPopupButton->setPopupWidget(m_toolOptionsPopup);
     }
 

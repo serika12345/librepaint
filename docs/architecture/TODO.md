@@ -148,7 +148,8 @@ R1-G6e後半は、依存方向を一方向にした後、文書状態、文書�
 - [x] `libs/ui/tool/KisToolOutlineBase.{h,cpp}`の点列、入力中状態、継続入力、点の取り消し、完了と取消しを`libs/tools/kis_outline_interaction.{h,cpp}`へ移す。UI基底には座標変換、編集可否の通知、輪郭表示、キャンバス更新、入力フィルターと操作接続を残す。
 - [x] `libs/ui/tool/kis_painting_information_builder.{h,cpp}`と`kis_speed_smoother.{h,cpp}`を起点として、圧力、速度、傾き、時間から描画入力値を組み立てる決定処理を`libs/tools`へ移す。UI側には座標変換器と自由描画ツールへの接続、設定変更通知を残す。
 - [x] `libs/ui/widgets/kis_selection_options.{h,cc}`と`libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を`libs/tools/ui`へ移し、選択設定の表示と保存を`kritatoolsui`へ集約する。依存する汎用色ラベル部品は`libs/widgets`へ移し、キャンバスと操作アクションの接続をUI側へ残す。
-- [ ] `libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を起点として、ツール設定のポップアップ表示状態を`libs/tools/ui`へ移し、ドッカーとキャンバスへの接続をUI側へ残す。
+- [x] `libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を起点として、ツール設定のポップアップ表示状態を`libs/tools/ui`へ移し、ドッカーとキャンバスへの接続をUI側へ残す。
+- [ ] `libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`を起点として、矩形制約の表示状態と設定往復を`libs/tools/ui`へ移し、矩形ツールとの信号接続をUI側へ残す。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。

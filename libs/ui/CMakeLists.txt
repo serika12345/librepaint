@@ -217,7 +217,6 @@ set(kritaui_LIB_SRCS
     widgets/kis_multi_double_filter_widget.cc
     widgets/kis_multi_integer_filter_widget.cc
     widgets/kis_paintop_presets_editor.cpp
-    widgets/kis_tool_options_popup.cpp
     widgets/kis_paintop_presets_chooser_popup.cpp
     widgets/kis_paintop_preset_icon_library.cpp
     widgets/kis_pattern_chooser.cc

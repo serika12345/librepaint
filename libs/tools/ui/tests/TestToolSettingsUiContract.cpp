@@ -6,9 +6,13 @@
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTest>
+#include <QFont>
+#include <QLabel>
+#include <QVBoxLayout>
 
 #include <kis_paintop_option.h>
 #include <kis_selection_tool_config_widget_helper.h>
+#include <kis_tool_options_popup.h>
 
 class TestToolSettingsUiContract : public QObject
 {
@@ -17,6 +21,7 @@ class TestToolSettingsUiContract : public QObject
 private Q_SLOTS:
     void optionStateAndNotifications();
     void selectionSettingsRoundTrip();
+    void toolOptionsPopupLayout();
 };
 
 void TestToolSettingsUiContract::optionStateAndNotifications()
@@ -35,6 +40,36 @@ void TestToolSettingsUiContract::optionStateAndNotifications()
     QVERIFY(!option.isChecked());
     QCOMPARE(checkedSpy.count(), 1);
     QCOMPARE(settingSpy.count(), 1);
+}
+
+void TestToolSettingsUiContract::toolOptionsPopupLayout()
+{
+    KisToolOptionsPopup popup(QFont {});
+    QWidget first;
+    first.setObjectName(QStringLiteral("first-options"));
+    first.setWindowTitle(QStringLiteral("First"));
+    first.setLayout(new QVBoxLayout);
+    QWidget second;
+    second.setObjectName(QStringLiteral("second-options"));
+    second.setWindowTitle(QStringLiteral("Second"));
+
+    popup.newOptionWidgets({QPointer<QWidget>(&first),
+                            QPointer<QWidget>(&second)});
+
+    QCOMPARE(first.parentWidget(), &popup);
+    QCOMPARE(second.parentWidget(), &popup);
+    const QList<QLabel *> initialLabels = popup.findChildren<QLabel *>();
+    QCOMPARE(initialLabels.size(), 2);
+    QCOMPARE(initialLabels.at(0)->text(), QStringLiteral("First"));
+    QCOMPARE(initialLabels.at(1)->text(), QStringLiteral("Second"));
+
+    popup.newOptionWidgets({QPointer<QWidget>(&second)});
+
+    QVERIFY(first.parentWidget() != &popup);
+    QCOMPARE(second.parentWidget(), &popup);
+    const QList<QLabel *> updatedLabels = popup.findChildren<QLabel *>();
+    QCOMPARE(updatedLabels.size(), 1);
+    QCOMPARE(updatedLabels.at(0)->text(), QStringLiteral("Second"));
 }
 
 void TestToolSettingsUiContract::selectionSettingsRoundTrip()

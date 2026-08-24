@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 16:15 JST
+- 更新日時: 2026-08-24 16:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1354,12 +1354,24 @@
   基本塗りつぶし、囲み塗りつぶしを含めて再構築し、macOSの全342件のネイティブ試験に成功した。
   `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
   含む全Nix出力の評価に成功した。
+- `libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を同名の`libs/tools/ui`へ移し、設定部品の見出し、区切り、
+  並び替え、非表示部品への退避を`kritatoolsui`へ移した。旧配置と転送ヘッダーは残していない。
+  ドック用フォントは`libs/ui/kis_paintop_box.cc`が値として渡し、ポップアップボタン、キャンバス、
+  操作アクションとの接続をUI所有に維持した。未使用だったドック登録、設定、翻訳依存も除去した。
+- `TestToolSettingsUiContract`は二つの設定部品の見出しと親子関係、単一部品への更新後に旧部品を
+  退避する状態を固定する。契約追加直後は`kritatoolsui`に公開ヘッダーがなくコンパイル段階で失敗し、
+  移設後は1件のCTestが成功した。`kritatoolsui`と`kritaui`はmacOSでリンクまで成功し、未解決の
+  責務射影0件、構造射影10件、全製品ターゲットの循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+  `nix develop .#test --command ./scripts/verify`はmacOSの全342件のネイティブ試験に成功した。
+  `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
+  含む全Nix出力の評価に成功した。
 
 ## 次の操作
 
-選択設定表示の移設をコミットした後、`libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を起点として、
-ツール設定のポップアップ表示状態を`libs/tools/ui`へ移す。ドッカー、キャンバス、操作アクションとの
-接続はUI側へ残す。
+ツール設定ポップアップの移設をコミットした後、
+`libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`を起点として、矩形制約の表示状態と設定往復を
+`libs/tools/ui`へ移す。矩形ツールとの信号接続はUI側へ残す。
 清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
 
 ## R1-G5完了根拠

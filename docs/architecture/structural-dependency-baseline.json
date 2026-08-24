@@ -1942,6 +1942,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_tool_options_popup.h",
+          "headerPath": "libs/tools/ui/kis_tool_options_popup.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/KisToolOutlineBase.h",
           "include": "kis_outline_interaction.h",
           "headerPath": "libs/tools/kis_outline_interaction.h",
@@ -2209,6 +2220,17 @@
           "sourcePath": "libs/ui/kis_paintop_box.cc",
           "include": "kis_paintop_list_widget.h",
           "headerPath": "libs/tools/ui/kis_paintop_list_widget.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatoolsui",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_tool_options_popup.h",
+          "headerPath": "libs/tools/ui/kis_tool_options_popup.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
@@ -3022,6 +3044,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_tool_options_popup.h",
+          "headerPath": "libs/tools/ui/kis_tool_options_popup.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/KisToolOutlineBase.h",
           "include": "kis_outline_interaction.h",
           "headerPath": "libs/tools/kis_outline_interaction.h",
@@ -3289,6 +3322,17 @@
           "sourcePath": "libs/ui/kis_paintop_box.cc",
           "include": "kis_paintop_list_widget.h",
           "headerPath": "libs/tools/ui/kis_paintop_list_widget.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatoolsui",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_tool_options_popup.h",
+          "headerPath": "libs/tools/ui/kis_tool_options_popup.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
