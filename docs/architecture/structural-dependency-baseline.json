@@ -3156,6 +3156,17 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritainput",
           "sourcePath": "libs/ui/input/kis_input_manager_p.h",
+          "include": "KisInputEventSuppressor.h",
+          "headerPath": "libs/input/KisInputEventSuppressor.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager_p.h",
           "include": "kis_shortcut_configuration.h",
           "headerPath": "libs/input/kis_shortcut_configuration.h",
           "sourceResponsibility": "input-interpretation",

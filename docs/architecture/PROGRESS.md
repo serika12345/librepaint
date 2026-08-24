@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 21:33 JST
+- 更新日時: 2026-08-24 22:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6g入力解釈所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6g-input-profile-boundary`
-- 目的: 入力プロファイルとショートカットの永続値をUI入力アクションの実体から分離し、
-  入力ターゲットが識別子と正規化済み入力値を、UIターゲットが表示と実行時解決を所有する。
+- ブランチ: `master`
+- 目的: タブレット・タッチ入力に伴う合成マウス入力の抑止状態と判定をUI事象フィルターから分離し、
+  入力ターゲットが正規化済み入力列を、UIターゲットがQt接続、設定、診断表示を所有する。
 
 ## 再開環境
 
@@ -1530,14 +1530,36 @@
   含むmacOSの全344件のネイティブ試験に成功した。
   `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
   含む全Nix出力の式評価に成功した。
+- 合成入力抑止について、次の開始ファイルと移設先を対応させ、UI内部の状態所有を除去した。
+  - `libs/ui/input/kis_input_manager_p.{h,cpp}`の内部`EventEater`にあった連続マウス抑止、遅延した
+    左クリック1回、合成事象、右・中ボタン代替、タッチ開始の状態と判定から、
+    `libs/input/KisInputEventSuppressor.{h,cpp}`。
+  - 同じ開始ファイルの設定読込、Qt事象から正規化値への変換、タブレット診断表示、`TouchBegin`の
+    無視、Qt事象フィルター接続は`libs/ui/input/kis_input_manager_p.{h,cpp}`に維持した。
+- `KisInputEventSuppressor`は正規化済みの事象種別、ボタン種別、合成元情報を受け取り、抑止理由を
+  返す。右・中ボタン代替設定とプラットフォームの合成事象対応は構築時の値として固定し、macOSの
+  合成事象条件、Windowsで実行中ストロークを保護する解除条件、既存のQt事象伝播を維持する。
+- `libs/input/tests/TestInputEventSuppressor.cpp`はマウス、タブレット、タッチ列を再生し、連続抑止、
+  遅延左クリック1回、合成事象、右・中ボタン代替、タッチ開始の抑止理由を固定する。契約追加時は
+  `KisInputEventSuppressor.h`が存在せずコンパイルで失敗し、実装後は1件のCTestが成功した。
+  `KisInputManagerTest`も1件のCTestに成功し、`kritaui`はmacOSでリンクまで成功した。
+- CMake台帳は`TestInputEventSuppressor`を5構成の共通ターゲットとして追加した。現在はmacOS
+  667件、Linux 682件、iOS 601件、Android 607件、Windows 637件、共通585件、条件付き119件、
+  構成差267件である。公開面台帳は`kritainput`を12ヘッダーへ増やし、全製品ターゲットの循環0件を
+  維持する。`libs/ui/input/kis_input_manager_p.cpp`は1011行から990行へ縮小し、大規模ファイルの
+  ソース寸法基準から除去した。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+  `nix develop .#test --command ./scripts/verify`は44件の増分構築工程で全製品と試験ターゲットを
+  リンクし、新しい合成入力抑止契約を含むmacOSの全345件のネイティブ試験に成功した。
+  `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
+  含む全Nix出力の式評価に成功した。
 
 ## 次の操作
 
-`libs/ui/input/kis_input_manager_p.{h,cpp}`の`EventEater`を起点として、タブレット・タッチ入力に
-伴う合成マウス入力の抑止状態と判定を`libs/input`へ移す。UI側は設定値の読込、事象の診断表示、
-Qt事象フィルターとの接続を維持する。マウス、タブレット、タッチの再生契約を先に追加し、
-右・中ボタン代替設定は構築時の値として渡す。清浄な同一コミットをDarwinとx86_64 Linuxへ
-揃える5構成の完全一致検査はR1-G6g統合時に実施する。
+`libs/ui/input/kis_extended_modifiers_mapper.{h,cpp}`を起点として、Qt修飾キーから照合キー列への
+正規化とShift・Alt・Metaキー事象の補正を`libs/input`へ移す。UI側はOSキー状態の取得、設定読込、
+アプリケーションプラグイン解決を維持する。値入力だけの契約を先に追加する。清浄な同一コミットを
+Darwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6g統合時に実施する。
 
 ## R1-G5完了根拠
 

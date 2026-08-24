@@ -223,7 +223,7 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
 {
     if (object != d->eventsReceiver) return false;
 
-    if (d->eventEater.eventFilter(object, event)) return false;
+    if (d->filterSuppressedEvent(event)) return false;
 
     if (!d->matcher.hasRunningShortcut()) {
 

@@ -162,7 +162,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(ui_headers), 221)
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
-        self.assertEqual(len(input_headers), 11)
+        self.assertEqual(len(input_headers), 12)
         self.assertEqual(len(painting_headers), 19)
         self.assertEqual(len(tool_headers), 19)
         self.assertIn("libs/input/KisInputAction.h", input_by_path)
@@ -600,7 +600,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimage": 334,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
-                "kritainput": 11,
+                "kritainput": 12,
                 "kritapainting": 19,
                 "kritatools": 19,
                 "kritaui": 221,

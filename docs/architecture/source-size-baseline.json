@@ -71,7 +71,6 @@
     "libs/ui/dialogs/kis_dlg_layer_style.cpp": 1595,
     "libs/ui/dialogs/kis_dlg_preferences.cc": 3346,
     "libs/ui/input/kis_input_manager.cpp": 1129,
-    "libs/ui/input/kis_input_manager_p.cpp": 1011,
     "libs/input/kis_shortcut_matcher.cpp": 1178,
     "libs/ui/kis_config.cc": 3169,
     "libs/ui/kis_layer_manager.cc": 1156,

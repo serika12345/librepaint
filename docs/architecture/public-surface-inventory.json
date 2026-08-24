@@ -7943,6 +7943,16 @@
           ]
         },
         {
+          "path": "libs/input/KisInputEventSuppressor.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/kis_input_manager_p.h"
+          ]
+        },
+        {
           "path": "libs/input/KisTouchGestureType.h",
           "publicationEvidence": [
             "compile-contract"

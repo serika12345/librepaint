@@ -537,6 +537,7 @@
       "publicHeaderPaths": [
         "libs/input/KisInputAction.h",
         "libs/input/KisInputActionGroup.h",
+        "libs/input/KisInputEventSuppressor.h",
         "libs/input/KisTouchGestureType.h",
         "libs/input/kis_abstract_shortcut.h",
         "libs/input/kis_input_profile.h",

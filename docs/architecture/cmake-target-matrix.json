@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 666,
-    "linux": 681,
-    "ios": 600,
-    "android": 606,
-    "windows": 636
+    "macos": 667,
+    "linux": 682,
+    "ios": 601,
+    "android": 607,
+    "windows": 637
   },
   "commonTargets": [
     "CCSGraph",
@@ -113,6 +113,7 @@
     "TestImportExportBoundary",
     "TestImportExportUiBoundary",
     "TestInputDevice",
+    "TestInputEventSuppressor",
     "TestInputProfile",
     "TestInputShortcutMatcher",
     "TestKUndo2Stack",

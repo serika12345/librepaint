@@ -1,5 +1,6 @@
 set(kritainput_LIB_SRCS
     KisInputActionGroup.cpp
+    KisInputEventSuppressor.cpp
     kis_input_profile.cpp
     kis_abstract_shortcut.cpp
     kis_native_gesture_shortcut.cpp

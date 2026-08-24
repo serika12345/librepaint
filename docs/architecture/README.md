@@ -574,8 +574,17 @@ R1-G6gの最初の単位では、`libs/ui/input`のショートカット照合�
 具体アクションへ解決する。保存形式と表示文言は維持され、`TestInputProfile`が固定保存列、往復、
 識別子索引を検査する。
 
-次は`libs/ui/input/kis_input_manager_p.{h,cpp}`の合成入力抑止判定を起点として、マウス、
-タブレット、タッチの再生契約を追加し、正規化済み判定状態を`libs/input`へ移す。
+合成入力の抑止状態と判定は、`libs/ui/input/kis_input_manager_p.{h,cpp}`の内部`EventEater`から
+`libs/input/KisInputEventSuppressor.{h,cpp}`へ移した。入力パッケージは正規化済みの事象種別、
+ボタン種別、合成元情報から、連続マウス抑止、遅延左クリック1回、右・中ボタン代替、タッチ開始の
+抑止理由を決定する。UI入力管理器は設定値とプラットフォーム能力を構築時に渡し、Qt事象の正規化、
+タブレット診断、`TouchBegin`の無視、事象フィルター接続を維持する。既存のQt事象伝播、macOSの
+合成事象条件、Windowsの実行中ストローク保護は維持され、`TestInputEventSuppressor`がマウス、
+タブレット、タッチ列を入力パッケージ単独で固定する。
+
+次は`libs/ui/input/kis_extended_modifiers_mapper.{h,cpp}`を起点として、Qt修飾キーから照合キー列への
+正規化とキー事象補正を`libs/input`へ移す。OSキー状態の取得、設定読込、プラグイン解決はUIと
+プラットフォーム接続に維持する。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
