@@ -13,10 +13,11 @@
 #include "kundo2magicstring.h"
 #include "kis_layer.h"
 #include "kis_selection.h"
-#include "kis_canvas2.h"
 #include "kis_processing_applicator.h"
 
+class KoCanvasBase;
 class KoShape;
+class KisCanvas2;
 
 /**
  * XXX: Doc!
@@ -38,7 +39,7 @@ public:
     bool canShortcutToNoop(const QRect &rect, SelectionAction action);
 
     bool tryDeselectCurrentSelection(const QRectF selectionViewRect, SelectionAction action);
-    static QMenu* getSelectionContextMenu(KisCanvas2* canvas);
+    static QMenu* getSelectionContextMenu(KoCanvasBase* canvas);
 
     SelectionMode tryOverrideSelectionMode(KisSelectionSP activeSelection, SelectionMode currentMode, SelectionAction currentAction) const;
 

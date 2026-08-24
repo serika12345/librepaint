@@ -84,7 +84,7 @@ void KisToolSelectContiguous::deactivate()
 
 void KisToolSelectContiguous::beginPrimaryAction(KoPointerEvent *event)
 {
-    KisToolSelectBase::beginPrimaryAction(event);
+    KisToolSelect::beginPrimaryAction(event);
     if (isMovingSelection()) {
         return;
     }
@@ -243,7 +243,7 @@ void KisToolSelectContiguous::beginPrimaryAction(KoPointerEvent *event)
 void KisToolSelectContiguous::endPrimaryAction(KoPointerEvent *event)
 {
     if (isMovingSelection()) {
-        KisToolSelectBase::endPrimaryAction(event);
+        KisToolSelect::endPrimaryAction(event);
         return;
     }
 
@@ -354,7 +354,7 @@ KoColor KisToolSelectContiguous::loadContiguousSelectionBoundaryColorFromConfig(
 
 QWidget* KisToolSelectContiguous::createOptionWidget()
 {
-    KisToolSelectBase::createOptionWidget();
+    KisToolSelect::createOptionWidget();
     KisSelectionOptions *selectionWidget = selectionOptionWidget();
 
     selectionWidget->setStopGrowingAtDarkestPixelButtonVisible(true);

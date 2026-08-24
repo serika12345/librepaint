@@ -10,7 +10,7 @@
 
 #include <KoCreatePathTool.h>
 #include <KisSelectionToolFactoryBase.h>
-#include "kis_tool_select_base.h"
+#include "kis_tool_select_ui_base.h"
 #include "kis_delegated_tool.h"
 
 #include <kis_icon.h>
@@ -65,7 +65,7 @@ struct KisDelegatedSelectPathWrapper : public DelegatedSelectPathTool {
 };
 
 
-class KisToolSelectPath : public KisToolSelectBase<KisDelegatedSelectPathWrapper>
+class KisToolSelectPath : public KisToolSelectUiBase<KisDelegatedSelectPathWrapper>
 {
     Q_OBJECT
 public:

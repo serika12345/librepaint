@@ -13,7 +13,7 @@
 
 #include "KisSelectionToolFactoryBase.h"
 #include "kis_tool_rectangle_base.h"
-#include <kis_tool_select_base.h>
+#include <kis_tool_select_ui_base.h>
 #include "kis_selection_tool_config_widget_helper.h"
 #include <kis_icon.h>
 #include <QKeySequence>
@@ -28,7 +28,7 @@ public:
 };
 
 
-class KisToolSelectRectangular : public KisToolSelectBase<__KisToolSelectRectangularLocal>
+class KisToolSelectRectangular : public KisToolSelectUiBase<__KisToolSelectRectangularLocal>
 {
     Q_OBJECT
 public:
@@ -65,4 +65,3 @@ public:
 
 
 #endif // KIS_TOOL_SELECT_RECTANGULAR_H_
-

@@ -38,7 +38,7 @@ __KisToolSelectPolygonalLocal::__KisToolSelectPolygonalLocal(KoCanvasBase *canva
 
 
 KisToolSelectPolygonal::KisToolSelectPolygonal(KoCanvasBase *canvas):
-    KisToolSelectBase<__KisToolSelectPolygonalLocal>(canvas, i18n("Polygonal Selection"))
+    KisToolSelectUiBase<__KisToolSelectPolygonalLocal>(canvas, i18n("Polygonal Selection"))
 {
 }
 
@@ -58,7 +58,7 @@ void KisToolSelectPolygonal::finishPolyline(const QVector<QPointF> &points)
     }
 
     const SelectionMode mode =
-        helper.tryOverrideSelectionMode(kisCanvas->viewManager()->selection(),
+        helper.tryOverrideSelectionMode(kisCanvas->currentSelectionForTool(),
                                         selectionMode(),
                                         selectionAction());
 
@@ -163,7 +163,6 @@ void KisToolSelectPolygonal::resetCursorStyle()
     } else if (selectionAction() == SELECTION_SYMMETRICDIFFERENCE) {
         useCursor(KisCursor::loadWithSize("tool_polygonal_selection_cursor_symdiff.svg", 32, 32, 6, 6));
     } else {
-        KisToolSelectBase<__KisToolSelectPolygonalLocal>::resetCursorStyle();
+        KisToolSelectUiBase<__KisToolSelectPolygonalLocal>::resetCursorStyle();
     }
 }
-

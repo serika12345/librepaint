@@ -35,7 +35,7 @@ __KisToolSelectRectangularLocal::__KisToolSelectRectangularLocal(KoCanvasBase * 
 
 
 KisToolSelectRectangular::KisToolSelectRectangular(KoCanvasBase *canvas):
-    KisToolSelectBase<__KisToolSelectRectangularLocal>(canvas, i18n("Rectangular Selection"))
+    KisToolSelectUiBase<__KisToolSelectRectangularLocal>(canvas, i18n("Rectangular Selection"))
 {}
 
 void KisToolSelectRectangular::finishRect(const QRectF& rect, qreal roundCornersX, qreal roundCornersY)
@@ -57,7 +57,7 @@ void KisToolSelectRectangular::finishRect(const QRectF& rect, qreal roundCorners
     }
 
     const SelectionMode mode =
-        helper.tryOverrideSelectionMode(kisCanvas->viewManager()->selection(),
+        helper.tryOverrideSelectionMode(kisCanvas->currentSelectionForTool(),
                                         selectionMode(),
                                         selectionAction());
 
@@ -166,7 +166,6 @@ void KisToolSelectRectangular::resetCursorStyle()
     } else if (selectionAction() == SELECTION_SYMMETRICDIFFERENCE) {
         useCursor(KisCursor::loadWithSize("tool_rectangular_selection_cursor_symdiff.svg", 32, 32, 6, 6));
     } else {
-        KisToolSelectBase<__KisToolSelectRectangularLocal>::resetCursorStyle();
+        KisToolSelectUiBase<__KisToolSelectRectangularLocal>::resetCursorStyle();
     }
 }
-

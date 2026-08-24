@@ -139,10 +139,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 236)
+        self.assertEqual(len(ui_headers), 235)
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
-        self.assertEqual(len(tool_headers), 9)
+        self.assertEqual(len(tool_headers), 12)
         self.assertEqual(
             document_by_path[
                 "libs/document/session/kis_document_autosave_state.h"
@@ -287,7 +287,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 22)
+        self.assertEqual(len(classes), 23)
         self.assertNotIn("Data", by_name)
         self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertNotIn("NoopActivationPolicy", by_name)
@@ -306,7 +306,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 22)
+        self.assertEqual(len(inventory["classes"]), 23)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisPaintingInformationBuilder"]["responsibilityArea"],
@@ -314,6 +314,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertEqual(
             by_name["KisToolShape"]["responsibilityArea"], "tool-invocation"
+        )
+        self.assertEqual(
+            by_name["KisToolSelectUiBase"]["responsibilityArea"],
+            "settings-presentation",
         )
         self.assertNotIn("KisTool", by_name)
         self.assertEqual(
@@ -431,8 +435,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimage": 334,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
-                "kritatools": 9,
-                "kritaui": 236,
+                "kritatools": 12,
+                "kritaui": 235,
             },
         )
         self.assertEqual(

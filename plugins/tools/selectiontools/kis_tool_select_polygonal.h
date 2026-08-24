@@ -14,8 +14,9 @@
 
 #include "KisSelectionToolFactoryBase.h"
 #include "kis_tool_polyline_base.h"
-#include <kis_tool_select_base.h>
+#include <kis_tool_select_ui_base.h>
 #include "kis_selection_tool_config_widget_helper.h"
+#include <kis_action_registry.h>
 #include <kis_icon.h>
 
 class __KisToolSelectPolygonalLocal : public KisToolPolylineBase
@@ -25,7 +26,7 @@ public:
     __KisToolSelectPolygonalLocal(KoCanvasBase *canvas);
 };
 
-class KisToolSelectPolygonal : public KisToolSelectBase<__KisToolSelectPolygonalLocal>
+class KisToolSelectPolygonal : public KisToolSelectUiBase<__KisToolSelectPolygonalLocal>
 {
     Q_OBJECT
 public:
@@ -73,4 +74,3 @@ public:
 };
 
 #endif //__selecttoolpolygonal_h__
-

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 10:37 JST
+- 更新日時: 2026-08-24 12:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1170,15 +1170,45 @@
   共通ターゲットの構成差を既存のQt/KF版とライブラリー種別へ反映した。清浄な同一コミットを
   必要とする5構成の完全一致検査、Linuxの全ネイティブ試験、iOS本体、Android、Windowsの
   再構築は、この進行中単位の残存検証である。
+- `libs/ui/tool/kis_delegated_tool.h`を`libs/tools/kis_delegated_tool.h`へ移し、委譲ツールが
+  `KisCanvas2`と入力管理器を直接参照する経路を除去した。優先入力フィルターの登録と解除は
+  `KisToolCanvas`の借用契約を通り、委譲先の入力転送、起動方針、設定部品の集約は維持する。
+- `libs/ui/tool/kis_tool_select_base.h`を、選択操作状態、修飾キー、選択境界移動を所有する
+  `libs/tools/kis_tool_select_base.h`と、設定部品、アクション接続、ショートカット表示、選択用
+  メニューを所有する`libs/ui/tool/kis_tool_select_ui_base.h`へ分けた。8種類の選択ツールは
+  新しい表示基底を使用し、旧配置と転送ヘッダーは残していない。
+- `plugins/tools/selectiontools/kis_selection_modifier_mapper.{h,cc}`を
+  `libs/tools/kis_selection_modifier_mapping.{h,cpp}`へ移し、大域オブジェクトと設定変更通知を
+  除去した。現在の交換設定を`KisToolCanvas`から値で渡し、修飾キー組合せとmacOSの
+  Shift+Meta補正を`TestToolCoreContract`で固定した。契約追加前はヘッダー不在でコンパイルが
+  失敗し、実装後は1件のCTestが成功した。
+- 選択取得、修飾キー交換設定、移動カーソル、優先入力フィルターを
+  `libs/canvas/KisToolCanvas.h`へ追加し、`libs/ui/canvas/kis_canvas_tool_support.cpp`が既存の
+  UI所有者へ接続する。選択メニューは`KisSelectionToolHelper`の表示責務に維持し、選択プラグイン
+  から`KisViewManager`を経由する選択取得も除去した。
+- 公開面は`kritatools`の9ヘッダーから12ヘッダーへ、`kritaui`の236ヘッダーから235ヘッダーへ
+  更新した。UIツール責務台帳は設定表示を所有する`KisToolSelectUiBase`を加えて23クラスとなり、
+  `kritaui`の未公開内部参照は6ヘッダー19件から4ヘッダー7件へ縮小した。
+- `kritaselectiontools`、`kritadefaulttools_static`、`kritatoolencloseandfill`はmacOSでリンクまで
+  成功した。macOSとiOSのCMake台帳は実構成から更新し、Linux、Android、Windowsは同じ三つの
+  直接`kritatools`依存を記録した。ターゲット数と循環上限は変わらない。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、
+  構造、再配置計画、文書、リンク、D2再生成を含めて成功した。
+- `nix develop .#test --command ./scripts/verify`はmacOSの245増分構築工程を完了し、342件中
+  341件のネイティブ試験が成功した。変更範囲外の`KisSafeDocumentLoaderTest::testFileLost()`は、
+  再作成した一時ファイルへの後続書込み後に`loadingFinished`が1500ミリ秒以内に届かず失敗した。
+  単独再実行でも同じ行で再現し、同試験、文書読込実装、入出力ターゲットには変更がない。
+- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、
+  Windowsを含む全出力の式評価に成功した。
 
 ## 次の操作
 
-清浄な同一コミットをDarwinとx86_64 Linuxへ揃え、5構成のCMake台帳完全一致、Linuxの
-全ネイティブ試験、iOS本体、Android、Windowsの構築を確認する。次の実装単位は
-`libs/ui/tool/kis_delegated_tool.h`と`libs/ui/tool/kis_tool_select_base.h`を起点として、
-入力フィルターの接続と選択設定表示をツール命令から分ける。具体的なキャンバス操作を
-`KisToolCanvas`へ追加して`kritaui`内部ヘッダー12参照を除去し、同じ単位で残る
-`KisToolPaint`、`KisToolShape`、幾何ツール基底の移設条件を確定する。
+選択基盤分割をコミットした後、清浄な同一コミットをDarwinとx86_64 Linuxへ揃えて5構成の
+CMake台帳完全一致を確認する。`KisSafeDocumentLoaderTest::testFileLost()`のファイル監視通知は
+この構造変更と分けて基準障害として追跡する。次の実装単位は`libs/ui/tool/kis_tool_paint.*`と
+`kis_tool_shape.*`を起点として、描画入力と図形生成を`libs/tools`へ、設定部品と画面資源接続を
+UI所有へ分ける。矩形、楕円、多角線、輪郭の各基底はこの依存方向に合わせて同じ単位で
+移設条件を確定する。
 
 ## R1-G5完了根拠
 

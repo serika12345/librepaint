@@ -6,6 +6,7 @@
 
 #include "kis_selection_tool_helper.h"
 
+#include <kis_assert.h>
 
 #include <kundo2command.h>
 #include <kactioncollection.h>
@@ -349,11 +350,14 @@ bool KisSelectionToolHelper::tryDeselectCurrentSelection(const QRectF selectionV
 }
 
 
-QMenu* KisSelectionToolHelper::getSelectionContextMenu(KisCanvas2* canvas)
+QMenu* KisSelectionToolHelper::getSelectionContextMenu(KoCanvasBase* canvas)
 {
+    KisCanvas2 *kisCanvas = dynamic_cast<KisCanvas2 *>(canvas);
+    KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(kisCanvas, nullptr);
+
     QMenu *m_contextMenu = new QMenu();
 
-    KisKActionCollection *actionCollection = canvas->viewManager()->actionCollection();
+    KisKActionCollection *actionCollection = kisCanvas->viewManager()->actionCollection();
 
     m_contextMenu->addSection(i18n("Selection Actions"));
     m_contextMenu->addSeparator();
@@ -371,8 +375,8 @@ QMenu* KisSelectionToolHelper::getSelectionContextMenu(KisCanvas2* canvas)
 
     m_contextMenu->addSeparator();
 
-    KisSelectionSP selection = canvas->viewManager()->selection();
-    if (selection && canvas->viewManager()->selectionEditable()) {
+    KisSelectionSP selection = kisCanvas->viewManager()->selection();
+    if (selection && kisCanvas->viewManager()->selectionEditable()) {
         m_contextMenu->addAction(actionCollection->action("edit_selection"));
 
         if (!selection->hasShapeSelection()) {

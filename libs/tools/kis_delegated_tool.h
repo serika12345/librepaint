@@ -13,11 +13,11 @@
 #include <QLayout>
 #include <QPointer>
 
-#include "canvas/kis_canvas2.h"
-#include "input/kis_input_manager.h"
-#include "kis_delegated_tool_policies.h"
-#include "kis_tool.h"
 #include <KisOptionCollectionWidget.h>
+#include <KisToolCanvas.h>
+#include <kis_delegated_tool_policies.h>
+#include <kis_tool.h>
+#include <kritatools_export.h>
 
 #define PRESS_CONDITION_OM(_event, _mode, _button, _modifier)           \
     (this->mode() == (_mode) && (_event)->button() == (_button) &&      \
@@ -25,31 +25,29 @@
       (_event)->modifiers() == Qt::NoModifier))
 
 template <class BaseClass, class DelegateTool, class ActivationPolicy = NoopActivationPolicy>
-    class KisDelegatedTool : public BaseClass
+class KRITATOOLS_EXPORT KisDelegatedTool : public BaseClass
 {
 public:
     KisDelegatedTool(KoCanvasBase *canvas,
                      const QCursor &cursor,
                      DelegateTool *delegateTool)
-        : BaseClass(canvas, cursor),
-          m_localTool(delegateTool)
+        : BaseClass(canvas, cursor)
+        , m_localTool(delegateTool)
     {
     }
 
-    DelegateTool* localTool() const {
+    DelegateTool *localTool() const
+    {
         return m_localTool.data();
     }
 
-    void activate(const QSet<KoShape*> &shapes) override
+    void activate(const QSet<KoShape *> &shapes) override
     {
         BaseClass::activate(shapes);
         m_localTool->activate(shapes);
         ActivationPolicy::onActivate(BaseClass::canvas());
 
-        KisInputManager *inputManager = (static_cast<KisCanvas2*>(BaseClass::canvas()))->globalInputManager();
-        if (inputManager) {
-            inputManager->attachPriorityEventFilter(this);
-        }
+        toolCanvas()->attachPriorityEventFilterForTool(this);
     }
 
     void deactivate() override
@@ -57,38 +55,35 @@ public:
         m_localTool->deactivate();
         BaseClass::deactivate();
 
-        KisInputManager *inputManager = (static_cast<KisCanvas2*>(BaseClass::canvas()))->globalInputManager();
-        if (inputManager) {
-            inputManager->detachPriorityEventFilter(this);
-        }
+        toolCanvas()->detachPriorityEventFilterForTool(this);
     }
 
     void mousePressEvent(KoPointerEvent *event) override
     {
-        if(PRESS_CONDITION_OM(event, KisTool::HOVER_MODE,
-                              Qt::LeftButton, Qt::ShiftModifier |
-                              Qt::ControlModifier | Qt::AltModifier)) {
-
+        if (PRESS_CONDITION_OM(event,
+                               KisTool::HOVER_MODE,
+                               Qt::LeftButton,
+                               Qt::ShiftModifier | Qt::ControlModifier |
+                                   Qt::AltModifier)) {
             this->setMode(KisTool::PAINT_MODE);
 
             Q_ASSERT(m_localTool);
             m_localTool->mousePressEvent(event);
-        }
-        else {
+        } else {
             BaseClass::mousePressEvent(event);
         }
     }
 
     void mouseDoubleClickEvent(KoPointerEvent *event) override
     {
-        if(PRESS_CONDITION_OM(event, KisTool::HOVER_MODE,
-                              Qt::LeftButton, Qt::ShiftModifier |
-                              Qt::ControlModifier | Qt::AltModifier)) {
-
+        if (PRESS_CONDITION_OM(event,
+                               KisTool::HOVER_MODE,
+                               Qt::LeftButton,
+                               Qt::ShiftModifier | Qt::ControlModifier |
+                                   Qt::AltModifier)) {
             Q_ASSERT(m_localTool);
             m_localTool->mouseDoubleClickEvent(event);
-        }
-        else {
+        } else {
             BaseClass::mouseDoubleClickEvent(event);
         }
     }
@@ -103,13 +98,13 @@ public:
 
     void mouseReleaseEvent(KoPointerEvent *event) override
     {
-        if (this->mode() == KisTool::PAINT_MODE && event->button() == Qt::LeftButton) {
+        if (this->mode() == KisTool::PAINT_MODE &&
+            event->button() == Qt::LeftButton) {
             this->setMode(KisTool::HOVER_MODE);
 
             Q_ASSERT(m_localTool);
             m_localTool->mouseReleaseEvent(event);
-        }
-        else {
+        } else {
             BaseClass::mouseReleaseEvent(event);
         }
     }
@@ -120,26 +115,28 @@ public:
         m_localTool->paint(painter, converter);
     }
 
-    QList<QPointer<QWidget> > createOptionWidgets() override
+    QList<QPointer<QWidget>> createOptionWidgets() override
     {
-        QList<QPointer<QWidget>> baseWidgetList =
-            BaseClass::createOptionWidgets();
+        QList<QPointer<QWidget>> baseWidgetList = BaseClass::createOptionWidgets();
         QList<QPointer<QWidget>> localWidgetList =
             m_localTool->createOptionWidgets();
 
-        if (baseWidgetList.size() > 0
-            && dynamic_cast<KisOptionCollectionWidget *>(
-                baseWidgetList.first().data())) {
-            KisOptionCollectionWidget *baseOptionsWidget =
-                dynamic_cast<KisOptionCollectionWidget *>(
-                    baseWidgetList.first().data());
+        KisOptionCollectionWidget *baseOptionsWidget =
+            baseWidgetList.isEmpty()
+            ? nullptr
+            : dynamic_cast<KisOptionCollectionWidget *>(
+                  baseWidgetList.first().data());
+
+        if (baseOptionsWidget) {
             for (int i = 0; i < localWidgetList.size(); ++i) {
                 QWidget *widget = localWidgetList[i];
                 KisOptionCollectionWidgetWithHeader *section =
                     new KisOptionCollectionWidgetWithHeader(
                         widget->windowTitle());
-                const QString sectionName = "section" + QString::number(i);
-                section->appendWidget(sectionName + "Widget", widget);
+                const QString sectionName =
+                    QStringLiteral("section") + QString::number(i);
+                section->appendWidget(sectionName + QStringLiteral("Widget"),
+                                      widget);
                 baseOptionsWidget->appendWidget(sectionName, section);
             }
         } else {
@@ -150,6 +147,15 @@ public:
 
 protected:
     QScopedPointer<DelegateTool> m_localTool;
+
+private:
+    KisToolCanvas *toolCanvas() const
+    {
+        KisToolCanvas *result =
+            dynamic_cast<KisToolCanvas *>(BaseClass::canvas());
+        Q_ASSERT(result);
+        return result;
+    }
 };
 
 #endif /* __KIS_DELEGATED_TOOL_H */

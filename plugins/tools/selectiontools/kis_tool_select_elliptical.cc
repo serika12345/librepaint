@@ -34,7 +34,7 @@ __KisToolSelectEllipticalLocal::__KisToolSelectEllipticalLocal(KoCanvasBase *can
 
 
 KisToolSelectElliptical::KisToolSelectElliptical(KoCanvasBase *canvas):
-    KisToolSelectBase<__KisToolSelectEllipticalLocal>(canvas, i18n("Elliptical Selection"))
+    KisToolSelectUiBase<__KisToolSelectEllipticalLocal>(canvas, i18n("Elliptical Selection"))
 {}
 
 void KisToolSelectElliptical::finishRect(const QRectF &rect, qreal roundCornersX, qreal roundCornersY)
@@ -56,7 +56,7 @@ void KisToolSelectElliptical::finishRect(const QRectF &rect, qreal roundCornersX
     }
 
     const SelectionMode mode =
-        helper.tryOverrideSelectionMode(kisCanvas->viewManager()->selection(),
+        helper.tryOverrideSelectionMode(kisCanvas->currentSelectionForTool(),
                                         selectionMode(),
                                         selectionAction());
 
@@ -154,7 +154,6 @@ void KisToolSelectElliptical::resetCursorStyle()
     } else if (selectionAction() == SELECTION_SYMMETRICDIFFERENCE) {
         useCursor(KisCursor::loadWithSize("tool_elliptical_selection_cursor_symdiff.svg", 32, 32, 6, 6));
     } else {
-        KisToolSelectBase<__KisToolSelectEllipticalLocal>::resetCursorStyle();
+        KisToolSelectUiBase<__KisToolSelectEllipticalLocal>::resetCursorStyle();
     }
 }
-

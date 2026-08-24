@@ -8,15 +8,38 @@
 
 #include <KisOptimizedBrushOutline.h>
 #include <KisViewManager.h>
+#include <kis_config.h>
 #include <kis_config_notifier.h>
+#include <kis_cursor.h>
 #include <kis_icon.h>
 #include <kis_node_manager.h>
+#include <kis_selection.h>
 
+#include "input/kis_input_manager.h"
 #include "opengl/kis_opengl_canvas2.h"
+
+KisSelectionSP KisCanvas2::currentSelectionForTool() const
+{
+    return viewManager()->selection();
+}
 
 KisNodeList KisCanvas2::selectedNodesForTool() const
 {
     return viewManager()->nodeManager()->selectedNodes();
+}
+
+void KisCanvas2::attachPriorityEventFilterForTool(QObject *filter)
+{
+    if (KisInputManager *inputManager = globalInputManager()) {
+        inputManager->attachPriorityEventFilter(filter);
+    }
+}
+
+void KisCanvas2::detachPriorityEventFilterForTool(QObject *filter)
+{
+    if (KisInputManager *inputManager = globalInputManager()) {
+        inputManager->detachPriorityEventFilter(filter);
+    }
 }
 
 bool KisCanvas2::blockUntilOperationsFinishedForTool(KisImageSP image)
@@ -32,6 +55,16 @@ void KisCanvas2::blockUntilOperationsFinishedForToolForced(KisImageSP image)
 bool KisCanvas2::selectionEditableForTool() const
 {
     return viewManager()->selectionEditable();
+}
+
+bool KisCanvas2::selectionModifierMappingSwapsCtrlAndAltForTool() const
+{
+    return KisConfig(true).switchSelectionCtrlAlt();
+}
+
+QCursor KisCanvas2::moveSelectionCursorForTool() const
+{
+    return KisCursor::moveSelectionCursor();
 }
 
 void KisCanvas2::showToolMessage(const QString &message, const QString &iconName)

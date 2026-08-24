@@ -15,7 +15,7 @@
 #include <QPoint>
 #include <KisSelectionToolFactoryBase.h>
 #include <KisToolOutlineBase.h>
-#include <kis_tool_select_base.h>
+#include <kis_tool_select_ui_base.h>
 #include <kis_icon.h>
 
 class __KisToolSelectOutlineLocal : public KisToolOutlineBase
@@ -26,7 +26,7 @@ public:
     __KisToolSelectOutlineLocal(KoCanvasBase * canvas);
 };
 
-class KisToolSelectOutline : public KisToolSelectBase<__KisToolSelectOutlineLocal>
+class KisToolSelectOutline : public KisToolSelectUiBase<__KisToolSelectOutlineLocal>
 {
     Q_OBJECT
 
@@ -65,4 +65,3 @@ public:
 
 
 #endif //__selecttoolfreehand_h__
-

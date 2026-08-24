@@ -28,6 +28,7 @@ kis_add_library(kritadefaulttools_static STATIC ${kritadefaulttools_static_SRCS}
 target_link_libraries(kritadefaulttools_static 
     PUBLIC
         kritaui
+        kritatools
         kritapainting
         kritabasicflakes
         Boost::boost

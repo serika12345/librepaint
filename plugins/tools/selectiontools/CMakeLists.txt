@@ -7,7 +7,6 @@ set(kritaselectiontools_SOURCES
     kis_tool_select_outline.cc
     kis_tool_select_path.cc
     kis_tool_select_similar.cc
-    kis_selection_modifier_mapper.cc
     KisMagneticWorker.cc
     KisToolSelectMagnetic.cc
 )
@@ -19,7 +18,13 @@ kis_add_library(kritaselectiontools MODULE ${kritaselectiontools_SOURCES})
 
 generate_export_header(kritaselectiontools BASE_NAME kritaselectiontools)
 
-target_link_libraries(kritaselectiontools kritaui kritabasicflakes kritaimage kritapainting)
+target_link_libraries(kritaselectiontools
+    kritaui
+    kritatools
+    kritabasicflakes
+    kritaimage
+    kritapainting
+)
 
 install(TARGETS kritaselectiontools  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

@@ -142,10 +142,15 @@ public: // KoCanvasBase implementation
     // current shape selection.
     KisImageWSP currentImage() const override;
 
+    KisSelectionSP currentSelectionForTool() const override;
     KisNodeList selectedNodesForTool() const override;
+    void attachPriorityEventFilterForTool(QObject *filter) override;
+    void detachPriorityEventFilterForTool(QObject *filter) override;
     bool blockUntilOperationsFinishedForTool(KisImageSP image) override;
     void blockUntilOperationsFinishedForToolForced(KisImageSP image) override;
     bool selectionEditableForTool() const override;
+    bool selectionModifierMappingSwapsCtrlAndAltForTool() const override;
+    QCursor moveSelectionCursorForTool() const override;
     void showToolMessage(const QString &message, const QString &iconName) override;
     void drawToolOutline(QPainter *painter,
                          const KisOptimizedBrushOutline &path,

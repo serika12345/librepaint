@@ -207,7 +207,7 @@ void KisToolSelectMagnetic::mouseMoveEvent(KoPointerEvent *event)
 // press primary mouse button
 void KisToolSelectMagnetic::beginPrimaryAction(KoPointerEvent *event)
 {
-    KisToolSelectBase::beginPrimaryAction(event);
+    KisToolSelect::beginPrimaryAction(event);
     if (isMovingSelection()) {
         return;
     }
@@ -311,7 +311,7 @@ void KisToolSelectMagnetic::beginPrimaryDoubleClickAction(KoPointerEvent *event)
 void KisToolSelectMagnetic::continuePrimaryAction(KoPointerEvent *event)
 {
     if (isMovingSelection()) {
-        KisToolSelectBase::continuePrimaryAction(event);
+        KisToolSelect::continuePrimaryAction(event);
         return;
     }
 
@@ -341,7 +341,7 @@ void KisToolSelectMagnetic::slotCalculateEdge()
 void KisToolSelectMagnetic::endPrimaryAction(KoPointerEvent *event)
 {
     if (isMovingSelection()) {
-        KisToolSelectBase::endPrimaryAction(event);
+        KisToolSelect::endPrimaryAction(event);
         return;
     }
 
@@ -494,7 +494,7 @@ void KisToolSelectMagnetic::finishSelectionAction()
         KisCursorOverrideLock cursorLock(KisCursor::waitCursor());
 
         const SelectionMode mode =
-            helper.tryOverrideSelectionMode(kisCanvas->viewManager()->selection(),
+            helper.tryOverrideSelectionMode(kisCanvas->currentSelectionForTool(),
                                             selectionMode(),
                                             selectionAction());
         if (mode == PIXEL_SELECTION) {
@@ -723,7 +723,7 @@ void KisToolSelectMagnetic::requestStrokeCancellation()
 
 QWidget * KisToolSelectMagnetic::createOptionWidget()
 {
-    KisToolSelectBase::createOptionWidget();
+    KisToolSelect::createOptionWidget();
     KisSelectionOptions *selectionWidget = selectionOptionWidget();
 
     // Create widgets

@@ -5,6 +5,7 @@ set(kritatools_LIB_SRCS
     KisToolChangesTrackerData.cpp
     KisToolShapeUtils.cpp
     kis_delegated_tool_policies.cpp
+    kis_selection_modifier_mapping.cpp
     kis_smoothing_options.cpp
     kis_tool.cc
     kis_tool_utils.cpp
@@ -25,10 +26,10 @@ target_link_libraries(kritatools
         kritapainting
         kritapigment
         kritaresources
+        kritawidgetutils
     PRIVATE
         KF${KF_MAJOR}::ConfigCore
         KF${KF_MAJOR}::I18n
-        kritawidgetutils
 )
 
 target_include_directories(kritatools

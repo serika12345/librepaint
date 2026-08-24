@@ -48,7 +48,7 @@ __KisToolSelectOutlineLocal::__KisToolSelectOutlineLocal(KoCanvasBase * canvas)
 
 
 KisToolSelectOutline::KisToolSelectOutline(KoCanvasBase * canvas)
-    : KisToolSelectBase<__KisToolSelectOutlineLocal>(canvas, i18n("Freehand Selection"))
+    : KisToolSelectUiBase<__KisToolSelectOutlineLocal>(canvas, i18n("Freehand Selection"))
 {}
 
 void KisToolSelectOutline::finishOutline(const QVector<QPointF>& points)
@@ -74,7 +74,7 @@ void KisToolSelectOutline::finishOutline(const QVector<QPointF>& points)
     KisCursorOverrideLock cursorLock(Qt::WaitCursor);
 
     const SelectionMode mode =
-        helper.tryOverrideSelectionMode(kisCanvas->viewManager()->selection(),
+        helper.tryOverrideSelectionMode(kisCanvas->currentSelectionForTool(),
                                         selectionMode(),
                                         selectionAction());
 
@@ -197,7 +197,6 @@ void KisToolSelectOutline::resetCursorStyle()
     } else if (selectionAction() == SELECTION_SYMMETRICDIFFERENCE) {
         useCursor(KisCursor::loadWithSize("tool_outline_selection_cursor_symdiff.svg", 32, 32, 5, 5));
     } else {
-        KisToolSelectBase<__KisToolSelectOutlineLocal>::resetCursorStyle();
+        KisToolSelectUiBase<__KisToolSelectOutlineLocal>::resetCursorStyle();
     }
 }
-

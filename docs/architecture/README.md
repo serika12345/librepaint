@@ -65,7 +65,7 @@
 
 現在は`kritacanvas`の18件、`kritadocument`の5件、`kritadocumentfiles`の3件、
 `kritadocumentui`の6件、`kritaimage`の334件、`kritaimpex`の12件、
-`kritaimpexui`の23件、`kritatools`の9件、`kritaui`の236件を全件記録し、
+`kritaimpexui`の23件、`kritatools`の12件、`kritaui`の235件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -458,9 +458,16 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 `libs/ui/tool/kis_tool_canvas_utils.*`、`KisCanvas2`との接続は
 `libs/ui/canvas/kis_canvas_tool_support.cpp`が所有する。旧配置の転送ヘッダーは存在しない。
 
-次は`libs/ui/tool/kis_delegated_tool.h`と`kis_tool_select_base.h`を起点として、入力フィルターの
-接続と選択設定表示をツール命令から分ける。現在の製品実装に必要な具体的なキャンバス操作を
-既存の借用契約へ追加し、UI内部ヘッダー12参照を除去してから、残る描画ツール階層を移す。
+委譲ツールの入力フィルター接続と選択ツールの操作状態は`libs/tools`が所有する。
+`libs/ui/tool/kis_delegated_tool.h`は`libs/tools/kis_delegated_tool.h`へ移し、
+`libs/ui/tool/kis_tool_select_base.h`は操作を持つ`libs/tools/kis_tool_select_base.h`と、設定表示を
+持つ`libs/ui/tool/kis_tool_select_ui_base.h`へ分けた。修飾キー対応は
+`plugins/tools/selectiontools/kis_selection_modifier_mapper.*`から
+`libs/tools/kis_selection_modifier_mapping.*`へ移し、設定値をキャンバス借用契約から渡す。
+旧配置、転送ヘッダー、大域的な設定監視オブジェクトは存在しない。
+
+次は`libs/ui/tool/kis_tool_paint.*`、`kis_tool_shape.*`、矩形、楕円、多角線、輪郭の各基底を
+起点として、描画入力と図形生成を`libs/tools`へ、設定部品と画面資源接続をUI所有へ分ける。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
@@ -468,7 +475,7 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 
 残る5の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
-9責務と5構成の現行ターゲット、3種類96件の逆方向依存、6ヘッダー19件のUI内部参照を
+9責務と5構成の現行ターゲット、3種類96件の逆方向依存、4ヘッダー7件のUI内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。
 
 責務の中心は次の五つです。

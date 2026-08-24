@@ -1266,10 +1266,8 @@
         "libs/ui/dialogs/kis_dlg_layer_style.cpp",
         "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
         "libs/ui/kis_favorite_resource_manager.cpp",
-        "libs/ui/tool/kis_delegated_tool.h",
         "libs/ui/tool/kis_figure_painting_tool_helper.h",
         "libs/ui/tool/kis_tool_freehand_helper.h",
-        "libs/ui/tool/kis_tool_select_base.h",
         "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
         "libs/ui/widgets/kis_paintop_presets_editor.cpp",
         "libs/ui/widgets/kis_paintop_presets_editor.h",
@@ -1293,9 +1291,12 @@
         "libs/tools/KisToolChangesTrackerData.h",
         "libs/tools/KisToolPaintFactoryBase.h",
         "libs/tools/KisToolShapeUtils.h",
+        "libs/tools/kis_delegated_tool.h",
         "libs/tools/kis_delegated_tool_policies.h",
+        "libs/tools/kis_selection_modifier_mapping.h",
         "libs/tools/kis_smoothing_options.h",
         "libs/tools/kis_tool.h",
+        "libs/tools/kis_tool_select_base.h",
         "libs/tools/kis_tool_utils.h",
         "libs/ui/kis_bookmarked_configurations_editor.h",
         "libs/ui/kis_bookmarked_configurations_model.h",
@@ -1308,6 +1309,7 @@
         "libs/ui/tool/kis_tool_paint.h",
         "libs/ui/tool/kis_tool_polyline_base.h",
         "libs/ui/tool/kis_tool_rectangle_base.h",
+        "libs/ui/tool/kis_tool_select_ui_base.h",
         "libs/ui/tool/kis_tool_shape.h"
       ],
       "classNames": [
@@ -1322,6 +1324,7 @@
         "KisToolPaint",
         "KisToolPolylineBase",
         "KisToolRectangleBase",
+        "KisToolSelectUiBase",
         "KisToolShape",
         "ShapeAddInfo"
       ],
@@ -2143,6 +2146,9 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
+        "kritadefaulttools_static",
+        "kritaselectiontools",
+        "kritatoolencloseandfill",
         "kritaui"
       ]
     },

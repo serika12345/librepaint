@@ -4151,6 +4151,7 @@
         "Boost::boost",
         "kritabasicflakes",
         "kritapainting",
+        "kritatools",
         "kritaui"
       ]
     },
@@ -5549,6 +5550,7 @@
         "kritabasicflakes",
         "kritaimage",
         "kritapainting",
+        "kritatools",
         "kritaui"
       ]
     },
@@ -5811,6 +5813,7 @@
       "dependencies": [
         "kritabasicflakes",
         "kritapainting",
+        "kritatools",
         "kritaui"
       ]
     },

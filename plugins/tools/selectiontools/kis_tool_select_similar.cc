@@ -61,7 +61,7 @@ void KisToolSelectSimilar::deactivate()
 
 void KisToolSelectSimilar::beginPrimaryAction(KoPointerEvent *event)
 {
-    KisToolSelectBase::beginPrimaryAction(event);
+    KisToolSelect::beginPrimaryAction(event);
     if (isMovingSelection()) {
         return;
     }
@@ -200,7 +200,7 @@ void KisToolSelectSimilar::beginPrimaryAction(KoPointerEvent *event)
 void KisToolSelectSimilar::endPrimaryAction(KoPointerEvent *event)
 {
     if (isMovingSelection()) {
-        KisToolSelectBase::endPrimaryAction(event);
+        KisToolSelect::endPrimaryAction(event);
         return;
     }
 
@@ -221,7 +221,7 @@ void KisToolSelectSimilar::slotSetOpacitySpread(int opacitySpread)
 
 QWidget* KisToolSelectSimilar::createOptionWidget()
 {
-    KisToolSelectBase::createOptionWidget();
+    KisToolSelect::createOptionWidget();
     KisSelectionOptions *selectionWidget = selectionOptionWidget();
 
     selectionWidget->setStopGrowingAtDarkestPixelButtonVisible(true);

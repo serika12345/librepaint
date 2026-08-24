@@ -23,7 +23,7 @@
 #include <kis_default_bounds.h>
 
 KisToolSelectPath::KisToolSelectPath(KoCanvasBase * canvas)
-    : KisToolSelectBase<KisDelegatedSelectPathWrapper>(canvas,
+    : KisToolSelectUiBase<KisDelegatedSelectPathWrapper>(canvas,
                                                        KisCursor::loadWithSize("tool_polygonal_selection_cursor.svg", 32, 32, 6, 6),
                                                        i18n("Select path"),
                                                        new __KisToolSelectPathLocalTool(canvas, this))
@@ -157,7 +157,7 @@ void __KisToolSelectPathLocalTool::addPathShape(KoPathShape* pathShape)
     KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select by Bezier Curve"));
 
     const SelectionMode mode =
-        helper.tryOverrideSelectionMode(kisCanvas->viewManager()->selection(),
+        helper.tryOverrideSelectionMode(kisCanvas->currentSelectionForTool(),
                                         m_selectionTool->selectionMode(),
                                         m_selectionTool->selectionAction());
 
@@ -262,8 +262,6 @@ void KisToolSelectPath::resetCursorStyle()
     } else if (selectionAction() == SELECTION_SYMMETRICDIFFERENCE) {
         useCursor(KisCursor::loadWithSize("tool_polygonal_selection_cursor_symdiff.svg", 32, 32, 6, 6));
     } else {
-        KisToolSelectBase<KisDelegatedSelectPathWrapper>::resetCursorStyle();
+        KisToolSelectUiBase<KisDelegatedSelectPathWrapper>::resetCursorStyle();
     }
 }
-
-

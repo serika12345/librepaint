@@ -4,6 +4,7 @@
  */
 
 #include <QAction>
+#include <QKeyEvent>
 #include <QStandardPaths>
 #include <QTest>
 
@@ -12,8 +13,11 @@
 
 #include <KisToolPaintFactoryBase.h>
 #include <KisToolShapeUtils.h>
+#include <kis_delegated_tool.h>
 #include <kis_delegated_tool_policies.h>
+#include <kis_selection_modifier_mapping.h>
 #include <kis_smoothing_options.h>
+#include <kis_tool_select_base.h>
 #include <kis_tool_utils.h>
 
 class TestToolFactory : public KisToolPaintFactoryBase
@@ -47,6 +51,7 @@ private Q_SLOTS:
     void standardBrushSizes();
     void factoryActions();
     void noOpActivationPolicy();
+    void selectionModifierMapping();
 
 private:
     void clearSmoothingSettings();
@@ -169,6 +174,28 @@ void TestToolCoreContract::factoryActions()
 void TestToolCoreContract::noOpActivationPolicy()
 {
     NoopActivationPolicy::onActivate(nullptr);
+}
+
+void TestToolCoreContract::selectionModifierMapping()
+{
+    QCOMPARE(mapSelectionToolModifiers(Qt::NoModifier, false), SELECTION_DEFAULT);
+    QCOMPARE(mapSelectionToolModifiers(Qt::ControlModifier, false), SELECTION_REPLACE);
+    QCOMPARE(mapSelectionToolModifiers(Qt::AltModifier, false), SELECTION_SUBTRACT);
+    QCOMPARE(mapSelectionToolModifiers(Qt::ShiftModifier, false), SELECTION_ADD);
+    QCOMPARE(mapSelectionToolModifiers(Qt::AltModifier | Qt::ShiftModifier, false),
+             SELECTION_INTERSECT);
+    QCOMPARE(mapSelectionToolModifiers(Qt::ControlModifier | Qt::AltModifier, false),
+             SELECTION_SYMMETRICDIFFERENCE);
+
+    QCOMPARE(mapSelectionToolModifiers(Qt::AltModifier, true), SELECTION_REPLACE);
+    QCOMPARE(mapSelectionToolModifiers(Qt::ControlModifier, true), SELECTION_SUBTRACT);
+    QCOMPARE(mapSelectionToolModifiers(Qt::ControlModifier | Qt::ShiftModifier, true),
+             SELECTION_INTERSECT);
+
+    const QKeyEvent macAltEvent(QEvent::KeyPress,
+                                Qt::Key_Meta,
+                                Qt::ShiftModifier);
+    QCOMPARE(normalizedSelectionModifierKey(&macAltEvent), Qt::Key_Alt);
 }
 
 QTEST_MAIN(TestToolCoreContract)

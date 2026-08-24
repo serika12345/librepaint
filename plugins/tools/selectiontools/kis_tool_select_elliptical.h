@@ -14,7 +14,7 @@
 
 #include "KisSelectionToolFactoryBase.h"
 #include "kis_tool_ellipse_base.h"
-#include <kis_tool_select_base.h>
+#include <kis_tool_select_ui_base.h>
 #include "kis_selection_tool_config_widget_helper.h"
 #include <KoIcon.h>
 #include <QKeySequence>
@@ -28,7 +28,7 @@ public:
     __KisToolSelectEllipticalLocal(KoCanvasBase *canvas);
 };
 
-class KisToolSelectElliptical : public KisToolSelectBase<__KisToolSelectEllipticalLocal>
+class KisToolSelectElliptical : public KisToolSelectUiBase<__KisToolSelectEllipticalLocal>
 {
     Q_OBJECT
 public:
@@ -63,4 +63,3 @@ public:
 };
 
 #endif //__KIS_TOOL_SELECT_ELLIPTICAL_H__
-

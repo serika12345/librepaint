@@ -10,7 +10,7 @@
 #include <KisSelectionToolFactoryBase.h>
 #include <kis_icon.h>
 #include <kconfig.h>
-#include "kis_tool_select_base.h"
+#include "kis_tool_select_ui_base.h"
 #include <kconfiggroup.h>
 #include <commands_new/KisMergeLabeledLayersCommand.h>
 
@@ -36,7 +36,7 @@ public Q_SLOTS:
     void slotSetOpacitySpread(int);
 
 protected:
-    using KisToolSelectBase::m_widgetHelper;
+    using KisToolSelect::m_widgetHelper;
     bool isPixelOnly() const override { return true; }
     bool usesColorLabels() const override { return true; }
 
@@ -70,4 +70,3 @@ public:
 
 
 #endif // KIS_TOOL_SELECT_SIMILAR_H_
-

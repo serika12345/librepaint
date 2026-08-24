@@ -9,7 +9,8 @@
 
 #include <QPoint>
 #include "KisSelectionToolFactoryBase.h"
-#include <kis_tool_select_base.h>
+#include <kis_tool_select_ui_base.h>
+#include <kis_action_registry.h>
 #include <kis_signal_compressor.h>
 #include <kis_icon.h>
 #include "KisMagneticWorker.h"
@@ -54,7 +55,7 @@ public Q_SLOTS:
     void slotCalculateEdge();
 
 protected:
-    using KisToolSelectBase::m_widgetHelper;
+    using KisToolSelect::m_widgetHelper;
 
 private:
     void finishSelectionAction();

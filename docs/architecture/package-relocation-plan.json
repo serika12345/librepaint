@@ -571,22 +571,6 @@
       "destinationDirectory": "libs/tools/ui",
       "wave": "R1-G6f",
       "disposition": "declare-or-replace-public-contract"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/tool/kis_delegated_tool.h",
-      "destinationResponsibility": "tool-invocation",
-      "destinationDirectory": "libs/tools",
-      "wave": "R1-G6f",
-      "disposition": "declare-or-replace-public-contract"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/tool/kis_tool_select_base.h",
-      "destinationResponsibility": "tool-invocation",
-      "destinationDirectory": "libs/tools",
-      "wave": "R1-G6f",
-      "disposition": "declare-or-replace-public-contract"
     }
   ],
   "compatibilityRoutes": [
@@ -714,7 +698,7 @@
       "maximumReverseDirectIncludesAfterWave": 264,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 19
+        "kritaui": 7
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
@@ -772,7 +756,7 @@
       "maximumReverseDirectIncludesAfterWave": 169,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 19
+        "kritaui": 7
       },
       "completionCriteria": [
         "Painting has zero document-lifecycle includes and exposes image-model and paint-execution from owned targets.",
@@ -821,7 +805,7 @@
       "maximumReverseDirectIncludesAfterWave": 169,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 19
+        "kritaui": 7
       },
       "completionCriteria": [
         "All 14 classified import-export classes are owned by kritaimpex or kritaimpexui.",
@@ -872,7 +856,7 @@
       "maximumReverseDirectIncludesAfterWave": 96,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 19
+        "kritaui": 7
       },
       "completionCriteria": [
         "Canvas has zero document-lifecycle includes and depends only on painting and resource public surfaces.",
@@ -981,7 +965,7 @@
       "maximumReverseDirectIncludesAfterWave": 96,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 19
+        "kritaui": 7
       },
       "completionCriteria": [
         "All 25 document classes classified at the start of R1-G6e have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",

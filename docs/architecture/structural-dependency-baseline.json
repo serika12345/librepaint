@@ -1942,28 +1942,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_delegated_tool.h",
-          "include": "kis_delegated_tool_policies.h",
-          "headerPath": "libs/tools/kis_delegated_tool_policies.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_delegated_tool.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_figure_painting_tool_helper.h",
           "include": "KisToolShapeUtils.h",
           "headerPath": "libs/tools/KisToolShapeUtils.h",
@@ -2052,12 +2030,12 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_select_base.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_tool_select_base.h",
+          "headerPath": "libs/tools/kis_tool_select_base.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
+          "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {
@@ -3011,28 +2989,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_delegated_tool.h",
-          "include": "kis_delegated_tool_policies.h",
-          "headerPath": "libs/tools/kis_delegated_tool_policies.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_delegated_tool.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_figure_painting_tool_helper.h",
           "include": "KisToolShapeUtils.h",
           "headerPath": "libs/tools/KisToolShapeUtils.h",
@@ -3121,12 +3077,12 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_select_base.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_tool_select_base.h",
+          "headerPath": "libs/tools/kis_tool_select_base.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
+          "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {
@@ -6337,8 +6293,8 @@
       "ownerTarget": "kritaui",
       "owner": "R1-G6",
       "reason": "External packages directly include UI headers without a declared KRITAUI_EXPORT public contract.",
-      "maximumHeaders": 6,
-      "maximumDirectReferences": 19,
+      "maximumHeaders": 4,
+      "maximumDirectReferences": 7,
       "removalCondition": "Each reference uses a reviewed public UI contract or moves behind the owning UI package boundary.",
       "sourceDirectory": "libs/ui",
       "platforms": [
@@ -6374,28 +6330,6 @@
           "path": "libs/ui/operations/kis_operation_ui_widget_factory.h",
           "consumerPaths": [
             "plugins/extensions/modify_selection/modify_selection.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/tool/kis_delegated_tool.h",
-          "consumerPaths": [
-            "plugins/tools/basictools/kis_tool_path.h",
-            "plugins/tools/basictools/kis_tool_pencil.h",
-            "plugins/tools/selectiontools/kis_tool_select_path.h",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisPathEnclosingProducer.h"
-          ]
-        },
-        {
-          "path": "libs/ui/tool/kis_tool_select_base.h",
-          "consumerPaths": [
-            "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
-            "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
-            "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
-            "plugins/tools/selectiontools/kis_tool_select_outline.h",
-            "plugins/tools/selectiontools/kis_tool_select_path.h",
-            "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
-            "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
-            "plugins/tools/selectiontools/kis_tool_select_similar.h"
           ]
         }
       ]

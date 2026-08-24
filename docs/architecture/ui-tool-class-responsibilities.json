@@ -329,6 +329,23 @@
       "responsibilityArea": "tool-invocation"
     },
     {
+      "name": "KisToolSelectUiBase",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_tool_select_ui_base.h",
+      "implementationPaths": [],
+      "consumerPaths": [
+        "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
+        "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
+        "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
+        "plugins/tools/selectiontools/kis_tool_select_outline.h",
+        "plugins/tools/selectiontools/kis_tool_select_path.h",
+        "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
+        "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
+        "plugins/tools/selectiontools/kis_tool_select_similar.h"
+      ],
+      "responsibilityArea": "settings-presentation"
+    },
+    {
       "name": "KisToolShape",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_tool_shape.h",
