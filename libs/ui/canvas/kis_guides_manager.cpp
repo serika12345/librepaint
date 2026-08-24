@@ -14,7 +14,6 @@
 #include "kis_action_manager.h"
 #include "kis_action.h"
 #include "kis_signals_blocker.h"
-#include "input/ui/kis_input_manager.h"
 #include "kis_coordinates_converter.h"
 #include "kis_zoom_manager.h"
 #include "kis_signal_auto_connection.h"
@@ -163,13 +162,11 @@ void KisGuidesManager::attachEventFilterImpl(bool value)
 {
     if (!m_d->view) return;
 
-    KisInputManager *inputManager = m_d->view->globalInputManager();
-    if (inputManager) {
-        if (value) {
-            inputManager->attachPriorityEventFilter(this, 100);
-        } else {
-            inputManager->detachPriorityEventFilter(this);
-        }
+    KisCanvas2 *canvas = m_d->view->canvasBase();
+    if (value) {
+        canvas->attachPriorityEventFilterForTool(this, 100);
+    } else {
+        canvas->detachPriorityEventFilterForTool(this);
     }
 }
 

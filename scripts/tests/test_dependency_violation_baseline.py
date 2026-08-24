@@ -64,31 +64,15 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             baseline["scope"],
             "r1-g4a-confirmed-reverse-dependency-baseline",
         )
-        self.assertEqual(len(baseline["violations"]), 5)
+        self.assertEqual(len(baseline["violations"]), 2)
         self.assertEqual(
             sum(
                 len(entry["directIncludes"])
                 for entry in baseline["violations"]
             ),
-            123,
+            78,
         )
-        self.assertEqual(len(baseline["unresolvedProjections"]), 1)
-        self.assertEqual(
-            {
-                "sourceResponsibility": baseline["unresolvedProjections"][0][
-                    "sourceResponsibility"
-                ],
-                "dependencyResponsibility": baseline[
-                    "unresolvedProjections"
-                ][0]["dependencyResponsibility"],
-                "status": baseline["unresolvedProjections"][0]["status"],
-            },
-            {
-                "sourceResponsibility": "document-lifecycle",
-                "dependencyResponsibility": "input-interpretation",
-                "status": "ambiguous-direct-include",
-            },
-        )
+        self.assertEqual(len(baseline["unresolvedProjections"]), 0)
         by_pair = {
             (entry["sourceResponsibility"], entry["dependencyResponsibility"]): (
                 entry
@@ -106,18 +90,9 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             )
             self.assertIn(entry["owner"], {"R1-G6", "R1-G6g"})
             self.assertTrue(entry["removalCondition"])
-        self.assertEqual(
-            by_pair[("canvas-presentation", "input-interpretation")][
-                "maximumDirectIncludes"
-            ],
-            13,
-        )
-        self.assertEqual(
-            by_pair[("tool-invocation", "input-interpretation")][
-                "maximumDirectIncludes"
-            ],
-            7,
-        )
+        self.assertNotIn(("canvas-presentation", "input-interpretation"), by_pair)
+        self.assertNotIn(("input-interpretation", "painting-rendering"), by_pair)
+        self.assertNotIn(("tool-invocation", "input-interpretation"), by_pair)
 
     def test_missing_violation_pair_is_rejected(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())

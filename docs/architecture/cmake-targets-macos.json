@@ -4955,6 +4955,7 @@
       "dependencies": [
         "Qt6::Core",
         "Qt6::Gui",
+        "kritacanvas",
         "kritaflake",
         "kritaglobal"
       ]
@@ -4974,11 +4975,8 @@
         "Qt6::Widgets",
         "kritacanvas",
         "kritaflake",
-        "kritaimage",
         "kritainput",
-        "kritalibbrush",
         "kritamacosutils",
-        "kritapainting",
         "kritaresources",
         "kritaresourceui",
         "kritatools",

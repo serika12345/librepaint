@@ -12,7 +12,7 @@
 #include <KoCanvasBase.h>
 #include <KoCanvasController.h>
 #include <KoViewConverter.h>
-#include <input/ui/kis_input_manager.h>
+#include <KisToolCanvas.h>
 
 #include "kis_tool_polyline_base.h"
 #include "kis_canvas2.h"
@@ -43,9 +43,8 @@ void KisToolPolylineBase::activate(const QSet<KoShape *> &shapes)
     KisToolShape::activate(shapes);
     connect(action("undo_polygon_selection"), SIGNAL(triggered()), SLOT(undoSelectionOrCancel()), Qt::UniqueConnection);
 
-    KisInputManager *inputManager = (static_cast<KisCanvas2*>(canvas()))->globalInputManager();
-    if (inputManager) {
-        inputManager->attachPriorityEventFilter(this);
+    if (KisToolCanvas *toolCanvas = dynamic_cast<KisToolCanvas *>(canvas())) {
+        toolCanvas->attachPriorityEventFilterForTool(this);
     }
 }
 
@@ -54,9 +53,8 @@ void KisToolPolylineBase::deactivate()
     disconnect(action("undo_polygon_selection"), 0, this, 0);
     cancelStroke();
 
-    KisInputManager *inputManager = (static_cast<KisCanvas2*>(canvas()))->globalInputManager();
-    if (inputManager) {
-        inputManager->detachPriorityEventFilter(this);
+    if (KisToolCanvas *toolCanvas = dynamic_cast<KisToolCanvas *>(canvas())) {
+        toolCanvas->detachPriorityEventFilterForTool(this);
     }
 
     KisToolShape::deactivate();

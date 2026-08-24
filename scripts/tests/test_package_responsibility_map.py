@@ -122,7 +122,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
                 "kritaui" in entry["ownerTargets"]
                 for entry in responsibility_map["responsibilities"]
             ),
-            5,
+            4,
         )
         self.assertEqual(
             by_id["canvas-presentation"]["reviewedPublicHeaderPaths"],
@@ -131,12 +131,19 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         self.assertEqual(
             by_id["tool-invocation"]["reviewedSourcePaths"],
             [
+                "libs/tools/KisStabilizerDelayedPaintHelper.cpp",
+                "libs/tools/KisStabilizerDelayedPaintHelper.h",
+                "libs/tools/kis_stabilized_events_sampler.cpp",
+                "libs/tools/kis_stabilized_events_sampler.h",
                 "libs/ui/canvas/kis_tool_proxy.h",
                 "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
+                "libs/ui/dialogs/kis_dlg_filter.cpp",
                 "libs/ui/dialogs/kis_dlg_layer_properties.cc",
                 "libs/ui/dialogs/kis_dlg_layer_style.cpp",
+                "libs/ui/dialogs/kis_dlg_preferences.cc",
                 "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
                 "libs/ui/kis_favorite_resource_manager.cpp",
+                "libs/ui/tool/kis_tool_freehand_helper.cpp",
                 "libs/ui/tool/kis_tool_freehand_helper.h",
                 "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
                 "libs/ui/widgets/kis_paintop_presets_editor.cpp",
@@ -239,6 +246,9 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         responsibility_map["responsibilities"][0][
             "reviewedSourcePaths"
         ].append(path)
+        responsibility_map["responsibilities"][0][
+            "reviewedSourcePaths"
+        ].sort()
 
         with self.assertRaisesRegex(
             check_package_responsibility_map.ResponsibilityMapError,

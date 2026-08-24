@@ -30,8 +30,10 @@ public:
     virtual KisImageWSP currentImage() const = 0;
     virtual KisSelectionSP currentSelectionForTool() const = 0;
     virtual KisNodeList selectedNodesForTool() const = 0;
-    virtual void attachPriorityEventFilterForTool(QObject *filter) = 0;
+    virtual void attachPriorityEventFilterForTool(QObject *filter, int priority = 0) = 0;
     virtual void detachPriorityEventFilterForTool(QObject *filter) = 0;
+    virtual void requestStrokeEndForTool() = 0;
+    virtual void requestStrokeCancellationForTool() = 0;
     virtual bool blockUntilOperationsFinishedForTool(KisImageSP image) = 0;
     virtual void blockUntilOperationsFinishedForToolForced(KisImageSP image) = 0;
     virtual bool selectionEditableForTool() const = 0;

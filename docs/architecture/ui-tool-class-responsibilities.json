@@ -65,7 +65,7 @@
       "consumerPaths": [
         "plugins/tools/basictools/kis_tool_colorsampler.h"
       ],
-      "responsibilityArea": "input-interpretation"
+      "responsibilityArea": "tool-invocation"
     },
     {
       "name": "KisConverterPaintingInformationBuilder",

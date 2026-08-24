@@ -483,6 +483,8 @@ private:
 
     KPageWidgetItem* getPage(Page page_enum);
     void switchTab (PageDesc tab);
+    void addInputConfigurationPage();
+    void setInputConfigurationDefaults();
 
     GeneralTab *m_general;
     ShortcutSettingsTab  *m_shortcutSettings;

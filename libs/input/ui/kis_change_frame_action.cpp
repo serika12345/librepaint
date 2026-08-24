@@ -12,7 +12,6 @@
 #include "kis_canvas2.h"
 #include "KisViewManager.h"
 #include "kis_action_manager.h"
-#include "kis_node.h"
 
 
 struct KisChangeFrameAction::Private
@@ -38,9 +37,7 @@ KisChangeFrameAction::~KisChangeFrameAction()
 
 bool KisChangeFrameAction::isAvailable() const
 {
-    KisNodeSP node = inputManager()->canvas()->viewManager()->activeNode();
-
-    return node ? node->isAnimated() : false;
+    return inputManager()->canvas()->viewManager()->activeNodeIsAnimated();
 }
 
 void KisChangeFrameAction::begin(int shortcut, QEvent *event)

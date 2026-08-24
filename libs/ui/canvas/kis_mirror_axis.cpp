@@ -26,7 +26,6 @@
 #include "KisView.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas_controller.h"
-#include "input/ui/kis_input_manager.h"
 #include "kis_algebra_2d.h"
 
 #include <KisMirrorAxisConfig.h>
@@ -406,13 +405,13 @@ void KisMirrorAxis::setVisible(bool v)
     KisCanvasDecoration::setVisible(v);
 
 
-    KisInputManager *inputManager = view() ? view()->canvasBase()->globalInputManager() : 0;
-    if (!inputManager) return;
+    KisCanvas2 *canvas = view() ? view()->canvasBase() : nullptr;
+    if (!canvas) return;
 
     if (v) {
-        inputManager->attachPriorityEventFilter(this);
+        canvas->attachPriorityEventFilterForTool(this);
     } else {
-        inputManager->detachPriorityEventFilter(this);
+        canvas->detachPriorityEventFilterForTool(this);
     }
 }
 

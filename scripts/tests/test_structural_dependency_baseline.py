@@ -44,7 +44,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
         self.assertEqual(
             baseline["scope"], "r1-g4b-structural-dependency-baseline"
         )
-        self.assertEqual(len(baseline["projectionResolutions"]), 9)
+        self.assertEqual(len(baseline["projectionResolutions"]), 10)
         self.assertEqual(
             baseline["targetCycleBaseline"]["maximumComponents"], 0
         )
@@ -58,7 +58,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
         internal = baseline["internalHeaderBaseline"]
         self.assertEqual(len(internal), 12)
         self.assertEqual(
-            sum(len(entry["headers"]) for entry in internal), 9
+            sum(len(entry["headers"]) for entry in internal), 8
         )
         self.assertEqual(
             sum(
@@ -66,7 +66,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
                 for entry in internal
                 for header in entry["headers"]
             ),
-            16,
+            15,
         )
 
     def test_projection_resolution_cannot_be_dropped(self) -> None:

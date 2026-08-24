@@ -165,15 +165,15 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         painting_by_path = {entry["path"]: entry for entry in painting_headers}
         tool_by_path = {entry["path"]: entry for entry in tool_headers}
 
-        self.assertEqual(len(canvas_headers), 18)
+        self.assertEqual(len(canvas_headers), 19)
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 217)
-        self.assertEqual(len(image_headers), 334)
+        self.assertEqual(len(ui_headers), 218)
+        self.assertEqual(len(image_headers), 333)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(input_headers), 12)
-        self.assertEqual(len(input_ui_headers), 9)
+        self.assertEqual(len(input_ui_headers), 8)
         self.assertEqual(len(painting_headers), 19)
         self.assertEqual(len(tool_headers), 19)
         self.assertIn("libs/input/KisInputAction.h", input_by_path)
@@ -605,18 +605,18 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 for entry in inventory["publicHeaderSets"]
             },
             {
-                "kritacanvas": 18,
+                "kritacanvas": 19,
                 "kritadocument": 5,
                 "kritadocumentfiles": 3,
                 "kritadocumentui": 6,
-                "kritaimage": 334,
+                "kritaimage": 333,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
                 "kritainput": 12,
-                "kritainputui": 9,
+                "kritainputui": 8,
                 "kritapainting": 19,
                 "kritatools": 19,
-                "kritaui": 217,
+                "kritaui": 218,
             },
         )
         self.assertEqual(

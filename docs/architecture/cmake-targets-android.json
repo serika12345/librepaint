@@ -4568,6 +4568,7 @@
       "dependencies": [
         "Qt5::Core",
         "Qt5::Gui",
+        "kritacanvas",
         "kritaflake",
         "kritaglobal"
       ]
@@ -4586,10 +4587,7 @@
         "Qt5::Widgets",
         "kritacanvas",
         "kritaflake",
-        "kritaimage",
         "kritainput",
-        "kritalibbrush",
-        "kritapainting",
         "kritaresources",
         "kritaresourceui",
         "kritatools",

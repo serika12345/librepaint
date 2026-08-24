@@ -80,7 +80,6 @@
 #include <kis_favorite_resource_manager.h>
 #include <kis_popup_palette.h>
 
-#include "input/ui/kis_input_manager.h"
 #include "kis_painting_assistants_decoration.h"
 
 #include "kis_canvas_updates_compressor.h"
@@ -143,29 +142,28 @@ namespace {
 
 class Q_DECL_HIDDEN KisCanvas2::KisCanvas2Private
 {
-    /**
-     * Interface that can be void-ed when original canvas has been deleted
-     * Providing a void interface is necessary to avoid a KisInputActionGroupsMaskGuard updating
-     * an already-deleted canvas
-     */
     struct CanvasInputActionGroupsMaskInterface : public KisInputActionGroupsMaskInterface
     {
-        KisCanvas2Private * m_canvasPrivateRef = nullptr;
-        CanvasInputActionGroupsMaskInterface() = delete;
-        CanvasInputActionGroupsMaskInterface(KisCanvas2Private * canvasPrivateRef)
-            :m_canvasPrivateRef(canvasPrivateRef)
-        { }
+        KisCanvas2Private *canvasPrivate = nullptr;
+
+        explicit CanvasInputActionGroupsMaskInterface(KisCanvas2Private *canvasPrivate)
+            : canvasPrivate(canvasPrivate)
+        {
+        }
+
         KisInputActionGroupsMask inputActionGroupsMask() const override
         {
-            Q_ASSERT(m_canvasPrivateRef); // this method should only be used upon creating a KisInputActionGroupsMaskGuard
-            return m_canvasPrivateRef->inputActionGroupsMask;
+            Q_ASSERT(canvasPrivate);
+            return canvasPrivate->inputActionGroupsMask;
         }
+
         void setInputActionGroupsMask(KisInputActionGroupsMask mask) override
         {
-            if(m_canvasPrivateRef)
-                m_canvasPrivateRef->inputActionGroupsMask = mask;
+            if (canvasPrivate) {
+                canvasPrivate->inputActionGroupsMask = mask;
+            }
         }
-    }; // class CanvasInputActionGroupsMask
+    };
 
 public:
     KisCanvas2Private(KisCanvas2 *parent,
@@ -203,7 +201,7 @@ public:
 
     ~KisCanvas2Private()
     {
-        inputActionGroupsMaskInterface->m_canvasPrivateRef = nullptr;
+        inputActionGroupsMaskInterface->canvasPrivate = nullptr;
 
         // We need to make sure that the QScopedPointer gets freed within the scope
         // of KisCanvas2Private's lifespan. For some reason, this isn't guaranteed
@@ -247,7 +245,6 @@ public:
     bool bootstrapLodBlocked = false;
     QPointer<KoShapeManager> currentlyActiveShapeManager;
     KisInputActionGroupsMask inputActionGroupsMask = AllActionGroup;
-
     QSharedPointer<CanvasInputActionGroupsMaskInterface> inputActionGroupsMaskInterface;
 
     KisSignalCompressor frameRenderStartCompressor;
@@ -446,12 +443,9 @@ void KisCanvas2::setCanvasWidget(KisAbstractCanvasWidget *widget)
 
         widget->setDecorations(m_d->canvasWidget->decorations());
 
-        if(viewManager()) {
-            viewManager()->inputManager()->removeTrackedCanvas(this);
-            m_d->canvasWidget = widget;
-            viewManager()->inputManager()->addTrackedCanvas(this);
-        } else {
-            m_d->canvasWidget = widget;
+        m_d->canvasWidget = widget;
+        if (m_inputCanvasWidgetChangedCallback) {
+            m_inputCanvasWidgetChangedCallback();
         }
     } else {
         m_d->canvasWidget = widget;

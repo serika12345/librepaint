@@ -1,6 +1,6 @@
 set(kritainput_LIB_SRCS
-    KisInputActionGroup.cpp
     KisInputEventSuppressor.cpp
+    KisTimedSignalThreshold.cpp
     kis_input_profile.cpp
     kis_abstract_shortcut.cpp
     kis_native_gesture_shortcut.cpp
@@ -18,6 +18,7 @@ target_link_libraries(kritainput
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+        kritacanvas
     PRIVATE
         kritaflake
         kritaglobal

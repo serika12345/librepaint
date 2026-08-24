@@ -7,9 +7,10 @@
 #ifndef __KIS_TIMED_SIGNAL_THRESHOLD_H
 #define __KIS_TIMED_SIGNAL_THRESHOLD_H
 
-#include "kritaimage_export.h"
-#include <QScopedPointer>
+#include <kritainput_export.h>
+
 #include <QObject>
+#include <QScopedPointer>
 
 
 /**
@@ -18,7 +19,7 @@
  * If the events were not coming for \p cancelDelay of milliseconds the
  * counting is dropped and the new period is started.
  */
-class KRITAIMAGE_EXPORT KisTimedSignalThreshold : public QObject
+class KRITAINPUT_EXPORT KisTimedSignalThreshold : public QObject
 {
     Q_OBJECT
 public:

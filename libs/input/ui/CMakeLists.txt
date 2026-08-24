@@ -12,6 +12,7 @@ set(kritainputui_LIB_SRCS
     kis_extended_modifiers_mapper.cpp
     kis_gamma_exposure_action.cpp
     kis_input_manager.cpp
+    kis_input_manager_canvas.cpp
     kis_input_manager_p.cpp
     kis_input_profile_manager.cpp
     kis_pan_action.cpp
@@ -85,9 +86,6 @@ target_include_directories(kritainputui
 target_link_libraries(kritainputui
     PRIVATE
         kritaversion
-        kritaimage
-        kritapainting
-        kritalibbrush
         kritawidgets
         kritawidgetutils
         kritaresources

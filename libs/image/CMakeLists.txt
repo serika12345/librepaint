@@ -240,7 +240,6 @@ set(kritaimage_LIB_SRCS
    kis_regenerate_frame_stroke_strategy.cpp
    kis_switch_time_stroke_strategy.cpp
    kis_crop_saved_extra_data.cpp
-   kis_timed_signal_threshold.cpp
    kis_layer.cc
    kis_indirect_painting_support.cpp
    kis_abstract_projection_plane.cpp

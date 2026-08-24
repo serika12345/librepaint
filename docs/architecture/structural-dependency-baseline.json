@@ -1659,6 +1659,219 @@
     },
     {
       "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "input-interpretation",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_profile_manager.h",
+          "headerPath": "libs/input/ui/kis_input_profile_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/config/kis_input_configuration_page.h",
+          "headerPath": "libs/input/ui/config/kis_input_configuration_page.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_profile_manager.h",
+          "headerPath": "libs/input/ui/kis_input_profile_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/config/kis_input_configuration_page.h",
+          "headerPath": "libs/input/ui/config/kis_input_configuration_page.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "canvas-presentation",
       "dependencyResponsibility": "tool-invocation",
       "status": "disproved-by-direct-include-attribution",
       "targetLinks": [
@@ -1706,14 +1919,6 @@
           "dependencyResponsibility": "canvas-presentation"
         },
         {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation"
-        },
-        {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation"
-        },
-        {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation"
         }
@@ -1750,7 +1955,7 @@
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1761,7 +1966,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1772,7 +1977,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1783,7 +1988,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1794,7 +1999,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1805,7 +2010,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1816,7 +2021,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1827,7 +2032,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1838,7 +2043,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1849,7 +2054,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1860,7 +2065,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1871,7 +2076,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1879,10 +2084,10 @@
           "sourcePath": "libs/ui/tool/kis_painting_information_builder_adapters.h",
           "include": "kis_painting_information_builder.h",
           "headerPath": "libs/tools/kis_painting_information_builder.h",
-          "sourceResponsibility": "input-interpretation",
+          "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1893,7 +2098,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1904,7 +2109,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1912,10 +2117,10 @@
           "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
           "include": "KisStabilizerDelayedPaintHelper.h",
           "headerPath": "libs/tools/KisStabilizerDelayedPaintHelper.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-class-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1923,10 +2128,10 @@
           "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
           "include": "kis_stabilized_events_sampler.h",
           "headerPath": "libs/tools/kis_stabilized_events_sampler.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-class-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1937,7 +2142,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1948,7 +2153,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1959,7 +2164,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1970,7 +2175,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1981,7 +2186,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1992,7 +2197,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2003,7 +2208,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2014,7 +2219,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2025,7 +2230,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2036,7 +2241,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2047,7 +2252,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2058,7 +2263,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2069,7 +2274,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2080,7 +2285,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2276,7 +2481,7 @@
           "dependencyResponsibility": "canvas-presentation"
         },
         {
-          "sourceResponsibility": "input-interpretation",
+          "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "canvas-presentation"
         }
       ],
@@ -2375,6 +2580,17 @@
           "sourcePath": "libs/ui/canvas/kis_canvas2.cpp",
           "include": "kis_prescaled_projection.h",
           "headerPath": "libs/canvas/kis_prescaled_projection.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas2.h",
+          "include": "KisInputActionGroup.h",
+          "headerPath": "libs/canvas/KisInputActionGroup.h",
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "longest-responsibility-source-directory",
@@ -2603,6 +2819,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_filter.cpp",
+          "include": "KisInputActionGroup.h",
+          "headerPath": "libs/canvas/KisInputActionGroup.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/kis_config.cc",
           "include": "color/KisOcioConfiguration.h",
           "headerPath": "libs/canvas/color/KisOcioConfiguration.h",
@@ -2768,10 +2995,43 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/tool/KisToolOutlineBase.cpp",
+          "include": "KisInputActionGroup.h",
+          "headerPath": "libs/canvas/KisInputActionGroup.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/tool/KisToolOutlineBase.cpp",
+          "include": "KisToolCanvas.h",
+          "headerPath": "libs/canvas/KisToolCanvas.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/tool/kis_painting_information_builder_adapters.cpp",
           "include": "kis_coordinates_converter.h",
           "headerPath": "libs/canvas/kis_coordinates_converter.h",
-          "sourceResponsibility": "input-interpretation",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/tool/kis_tool_polyline_base.cpp",
+          "include": "KisToolCanvas.h",
+          "headerPath": "libs/canvas/KisToolCanvas.h",
+          "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
@@ -2784,6 +3044,219 @@
           "headerPath": "libs/canvas/kis_image_patch.h",
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "document-lifecycle",
+      "dependencyResponsibility": "input-interpretation",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_profile_manager.h",
+          "headerPath": "libs/input/ui/kis_input_profile_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/config/kis_input_configuration_page.h",
+          "headerPath": "libs/input/ui/config/kis_input_configuration_page.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_profile_manager.h",
+          "headerPath": "libs/input/ui/kis_input_profile_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/config/kis_input_configuration_page.h",
+          "headerPath": "libs/input/ui/config/kis_input_configuration_page.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         }
@@ -2823,14 +3296,6 @@
           "dependencyResponsibility": "tool-invocation"
         },
         {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation"
-        },
-        {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation"
-        },
-        {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation"
         }
@@ -2845,7 +3310,7 @@
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2856,7 +3321,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2867,7 +3332,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2878,7 +3343,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2889,7 +3354,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2900,7 +3365,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2911,7 +3376,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2922,7 +3387,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2933,7 +3398,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2944,7 +3409,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2955,7 +3420,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2966,7 +3431,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2974,10 +3439,10 @@
           "sourcePath": "libs/ui/tool/kis_painting_information_builder_adapters.h",
           "include": "kis_painting_information_builder.h",
           "headerPath": "libs/tools/kis_painting_information_builder.h",
-          "sourceResponsibility": "input-interpretation",
+          "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2988,7 +3453,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -2999,7 +3464,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3007,10 +3472,10 @@
           "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
           "include": "KisStabilizerDelayedPaintHelper.h",
           "headerPath": "libs/tools/KisStabilizerDelayedPaintHelper.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-class-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3018,10 +3483,10 @@
           "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
           "include": "kis_stabilized_events_sampler.h",
           "headerPath": "libs/tools/kis_stabilized_events_sampler.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-class-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3032,7 +3497,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3043,7 +3508,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3054,7 +3519,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3065,7 +3530,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3076,7 +3541,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3087,7 +3552,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3098,7 +3563,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3109,7 +3574,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3120,7 +3585,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3131,7 +3596,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3142,7 +3607,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3153,7 +3618,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3164,7 +3629,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3175,7 +3640,7 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -3339,1562 +3804,6 @@
           "headerPath": "libs/tools/ui/kis_paint_ops_model.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        }
-      ]
-    },
-    {
-      "sourceResponsibility": "input-interpretation",
-      "dependencyResponsibility": "document-lifecycle",
-      "status": "disproved-by-direct-include-attribution",
-      "targetLinks": [
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentfiles",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        }
-      ],
-      "actualResponsibilityPairs": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle"
-        }
-      ],
-      "directIncludes": [
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisApplication.cpp",
-          "include": "files/kis_document_autosave_files.h",
-          "headerPath": "libs/document/files/kis_document_autosave_files.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisApplication.cpp",
-          "include": "recovery/KisAutoSaveRecoveryDialog.h",
-          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "files/kis_document_autosave_files.h",
-          "headerPath": "libs/document/files/kis_document_autosave_files.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "files/kis_document_backup_file.h",
-          "headerPath": "libs/document/files/kis_document_backup_file.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "files/kis_document_save_target.h",
-          "headerPath": "libs/document/files/kis_document_save_target.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "info/KoDocumentInfoDlg.h",
-          "headerPath": "libs/document/ui/info/KoDocumentInfoDlg.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "io/kis_document_io_presentation.h",
-          "headerPath": "libs/document/ui/io/kis_document_io_presentation.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "recovery/KisRecoverNamedAutosaveDialog.h",
-          "headerPath": "libs/document/ui/recovery/KisRecoverNamedAutosaveDialog.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "session/kis_document_autosave_state.h",
-          "headerPath": "libs/document/session/kis_document_autosave_state.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "session/kis_document_identity.h",
-          "headerPath": "libs/document/session/kis_document_identity.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "session/kis_document_modification_state.h",
-          "headerPath": "libs/document/session/kis_document_modification_state.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "session/kis_document_recovery_autosave_state.h",
-          "headerPath": "libs/document/session/kis_document_recovery_autosave_state.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "session/kis_document_recovery_status.h",
-          "headerPath": "libs/document/session/kis_document_recovery_status.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "undo/kis_document_undo_store.h",
-          "headerPath": "libs/document/ui/undo/kis_document_undo_store.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "info/KoDocumentInfoDlg.h",
-          "headerPath": "libs/document/ui/info/KoDocumentInfoDlg.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocument",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "files/kis_document_autosave_files.h",
-          "headerPath": "libs/document/files/kis_document_autosave_files.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentfiles",
-          "sourcePath": "libs/ui/KisApplication.cpp",
-          "include": "files/kis_document_autosave_files.h",
-          "headerPath": "libs/document/files/kis_document_autosave_files.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentfiles",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "files/kis_document_autosave_files.h",
-          "headerPath": "libs/document/files/kis_document_autosave_files.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentfiles",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "files/kis_document_backup_file.h",
-          "headerPath": "libs/document/files/kis_document_backup_file.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentfiles",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "files/kis_document_save_target.h",
-          "headerPath": "libs/document/files/kis_document_save_target.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentfiles",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "files/kis_document_autosave_files.h",
-          "headerPath": "libs/document/files/kis_document_autosave_files.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "sourcePath": "libs/ui/KisApplication.cpp",
-          "include": "recovery/KisAutoSaveRecoveryDialog.h",
-          "headerPath": "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "info/KoDocumentInfoDlg.h",
-          "headerPath": "libs/document/ui/info/KoDocumentInfoDlg.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "io/kis_document_io_presentation.h",
-          "headerPath": "libs/document/ui/io/kis_document_io_presentation.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "recovery/KisRecoverNamedAutosaveDialog.h",
-          "headerPath": "libs/document/ui/recovery/KisRecoverNamedAutosaveDialog.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "undo/kis_document_undo_store.h",
-          "headerPath": "libs/document/ui/undo/kis_document_undo_store.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritadocumentui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "info/KoDocumentInfoDlg.h",
-          "headerPath": "libs/document/ui/info/KoDocumentInfoDlg.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        }
-      ]
-    },
-    {
-      "sourceResponsibility": "input-interpretation",
-      "dependencyResponsibility": "import-export",
-      "status": "disproved-by-direct-include-attribution",
-      "targetLinks": [
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        }
-      ],
-      "actualResponsibilityPairs": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export"
-        }
-      ],
-      "directIncludes": [
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisApplication.h",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
-          "include": "KisImportExportFilter.h",
-          "headerPath": "libs/impex/KisImportExportFilter.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "KisImportExportErrorCode.h",
-          "headerPath": "libs/impex/KisImportExportErrorCode.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisDocument.h",
-          "include": "KisImportExportFilter.h",
-          "headerPath": "libs/impex/KisImportExportFilter.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisDocument.h",
-          "include": "KisImportExportMimeType.h",
-          "headerPath": "libs/impex/KisImportExportMimeType.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisDocument.h",
-          "include": "KisImportExportUtils.h",
-          "headerPath": "libs/impex/ui/KisImportExportUtils.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisImportExportColorSpaceDialog.cpp",
-          "include": "KisImportExportColorSpaceDialog.h",
-          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisImportExportResizeWidget.cpp",
-          "include": "KisImportExportResizeWidget.h",
-          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisAnimationRender.h",
-          "headerPath": "libs/impex/animation/KisAnimationRender.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisDlgAnimationRenderer.h",
-          "headerPath": "libs/impex/animation/KisDlgAnimationRenderer.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisDlgImportVideoAnimation.h",
-          "headerPath": "libs/impex/animation/KisDlgImportVideoAnimation.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisImportExportFilter.h",
-          "headerPath": "libs/impex/KisImportExportFilter.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "kis_animation_importer.h",
-          "headerPath": "libs/impex/ui/kis_animation_importer.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisPart.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisPart.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "KisRemoteFileFetcher.h",
-          "headerPath": "libs/impex/ui/KisRemoteFileFetcher.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "kis_import_catcher.h",
-          "headerPath": "libs/impex/ui/kis_import_catcher.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "kis_mimedata.h",
-          "headerPath": "libs/impex/ui/kis_mimedata.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisViewManager.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisWelcomePageWidget.cpp",
-          "include": "KisRemoteFileFetcher.h",
-          "headerPath": "libs/impex/ui/KisRemoteFileFetcher.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisWelcomePageWidget.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
-          "include": "kis_import_catcher.h",
-          "headerPath": "libs/impex/ui/kis_import_catcher.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/actions/kis_selection_action_factories.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/actions/kis_selection_action_factories.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/dialogs/KisDlgCreateNewDocument.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_file_layer.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_action_manager.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_file_layer.h",
-          "include": "kis_safe_document_loader.h",
-          "headerPath": "libs/impex/ui/kis_safe_document_loader.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_image_manager.cc",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_image_manager.cc",
-          "include": "kis_import_catcher.h",
-          "headerPath": "libs/impex/ui/kis_import_catcher.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_layer_manager.cc",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_layer_manager.cc",
-          "include": "KisSaveGroupVisitor.h",
-          "headerPath": "libs/impex/ui/KisSaveGroupVisitor.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_layer_manager.cc",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_node_insertion_adapter.h",
-          "include": "kis_mimedata.h",
-          "headerPath": "libs/impex/ui/kis_mimedata.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_node_manager.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_node_manager.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_node_manager.cpp",
-          "include": "kis_mimedata.h",
-          "headerPath": "libs/impex/ui/kis_mimedata.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_node_model.cpp",
-          "include": "kis_mimedata.h",
-          "headerPath": "libs/impex/ui/kis_mimedata.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/kis_selection_manager.cc",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-          "include": "kis_import_catcher.h",
-          "headerPath": "libs/impex/ui/kis_import_catcher.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisApplication.h",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
-          "include": "KisImportExportFilter.h",
-          "headerPath": "libs/impex/KisImportExportFilter.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "KisImportExportErrorCode.h",
-          "headerPath": "libs/impex/KisImportExportErrorCode.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisDocument.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisDocument.h",
-          "include": "KisImportExportFilter.h",
-          "headerPath": "libs/impex/KisImportExportFilter.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisDocument.h",
-          "include": "KisImportExportMimeType.h",
-          "headerPath": "libs/impex/KisImportExportMimeType.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisDocument.h",
-          "include": "KisImportExportUtils.h",
-          "headerPath": "libs/impex/ui/KisImportExportUtils.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisImportExportColorSpaceDialog.cpp",
-          "include": "KisImportExportColorSpaceDialog.h",
-          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisImportExportResizeWidget.cpp",
-          "include": "KisImportExportResizeWidget.h",
-          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisAnimationRender.h",
-          "headerPath": "libs/impex/animation/KisAnimationRender.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisDlgAnimationRenderer.h",
-          "headerPath": "libs/impex/animation/KisDlgAnimationRenderer.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisDlgImportVideoAnimation.h",
-          "headerPath": "libs/impex/animation/KisDlgImportVideoAnimation.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisImportExportFilter.h",
-          "headerPath": "libs/impex/KisImportExportFilter.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "kis_animation_importer.h",
-          "headerPath": "libs/impex/ui/kis_animation_importer.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisPart.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisPart.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "KisRemoteFileFetcher.h",
-          "headerPath": "libs/impex/ui/KisRemoteFileFetcher.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "kis_import_catcher.h",
-          "headerPath": "libs/impex/ui/kis_import_catcher.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "kis_mimedata.h",
-          "headerPath": "libs/impex/ui/kis_mimedata.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisView.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisViewManager.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisWelcomePageWidget.cpp",
-          "include": "KisRemoteFileFetcher.h",
-          "headerPath": "libs/impex/ui/KisRemoteFileFetcher.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisWelcomePageWidget.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
-          "include": "kis_import_catcher.h",
-          "headerPath": "libs/impex/ui/kis_import_catcher.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/actions/kis_selection_action_factories.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/actions/kis_selection_action_factories.cpp",
-          "include": "metadata/KoDocumentInfo.h",
-          "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/dialogs/KisDlgCreateNewDocument.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_file_layer.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_action_manager.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_file_layer.h",
-          "include": "kis_safe_document_loader.h",
-          "headerPath": "libs/impex/ui/kis_safe_document_loader.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_image_manager.cc",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_image_manager.cc",
-          "include": "kis_import_catcher.h",
-          "headerPath": "libs/impex/ui/kis_import_catcher.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_layer_manager.cc",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_layer_manager.cc",
-          "include": "KisSaveGroupVisitor.h",
-          "headerPath": "libs/impex/ui/KisSaveGroupVisitor.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_layer_manager.cc",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_node_insertion_adapter.h",
-          "include": "kis_mimedata.h",
-          "headerPath": "libs/impex/ui/kis_mimedata.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_node_manager.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_node_manager.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_node_manager.cpp",
-          "include": "kis_mimedata.h",
-          "headerPath": "libs/impex/ui/kis_mimedata.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_node_model.cpp",
-          "include": "kis_mimedata.h",
-          "headerPath": "libs/impex/ui/kis_mimedata.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/kis_selection_manager.cc",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-          "include": "kis_clipboard.h",
-          "headerPath": "libs/impex/ui/kis_clipboard.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-          "include": "kis_import_catcher.h",
-          "headerPath": "libs/impex/ui/kis_import_catcher.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         }
@@ -6106,6 +5015,219 @@
           "dependencyAttribution": "unique-owner-target"
         }
       ]
+    },
+    {
+      "sourceResponsibility": "tool-invocation",
+      "dependencyResponsibility": "input-interpretation",
+      "status": "disproved-by-direct-include-attribution",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "actualResponsibilityPairs": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation"
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_profile_manager.h",
+          "headerPath": "libs/input/ui/kis_input_profile_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/config/kis_input_configuration_page.h",
+          "headerPath": "libs/input/ui/config/kis_input_configuration_page.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisApplication.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+          "include": "input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "headerPath": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisView.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_manager.h",
+          "headerPath": "libs/input/ui/kis_input_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/KisViewManager.cpp",
+          "include": "input/ui/kis_input_profile_manager.h",
+          "headerPath": "libs/input/ui/kis_input_profile_manager.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/config/kis_input_configuration_page.h",
+          "headerPath": "libs/input/ui/config/kis_input_configuration_page.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainputui",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+          "include": "input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
     }
   ],
   "targetCycleBaseline": {
@@ -6352,8 +5474,8 @@
       "ownerTarget": "kritainputui",
       "owner": "R1-G6g",
       "reason": "Input UI translation units directly use input-owned headers whose current cross-target use is part of the recorded package boundary.",
-      "maximumHeaders": 3,
-      "maximumDirectReferences": 3,
+      "maximumHeaders": 2,
+      "maximumDirectReferences": 2,
       "removalCondition": "The next input package stage gives each recorded header a declared contract or places its consumer within the same final linked owner.",
       "sourceDirectory": "libs/input/ui",
       "platforms": [
@@ -6367,19 +5489,13 @@
         {
           "path": "libs/input/ui/config/kis_input_configuration_page.h",
           "consumerPaths": [
-            "libs/ui/dialogs/kis_dlg_preferences.cc"
-          ]
-        },
-        {
-          "path": "libs/input/ui/kis_tablet_debugger.h",
-          "consumerPaths": [
-            "libs/ui/canvas/kis_tool_proxy.cpp"
+            "libs/ui/dialogs/kis_dlg_preferences_input.cpp"
           ]
         },
         {
           "path": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
           "consumerPaths": [
-            "libs/ui/dialogs/kis_dlg_preferences.cc"
+            "libs/ui/dialogs/kis_dlg_preferences_input.cpp"
           ]
         }
       ]

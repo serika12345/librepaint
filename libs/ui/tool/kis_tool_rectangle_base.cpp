@@ -15,10 +15,20 @@
 #include <KoCanvasController.h>
 #include <KoPointerEvent.h>
 #include <KoViewConverter.h>
-#include <input/ui/kis_extended_modifiers_mapper.h>
 #include <kis_icon.h>
 
 #include "kis_rectangle_constraint_widget.h"
+
+namespace
+{
+Qt::Key normalizedModifierKey(const QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Meta && event->modifiers().testFlag(Qt::ShiftModifier)) {
+        return Qt::Key_Alt;
+    }
+    return static_cast<Qt::Key>(event->key());
+}
+}
 
 KisToolRectangleBase::KisToolRectangleBase(KoCanvasBase * canvas, KisToolRectangleBase::ToolType type, const QCursor & cursor)
     : KisToolShape(canvas, cursor)
@@ -123,7 +133,7 @@ void KisToolRectangleBase::deactivate()
 }
 
 void KisToolRectangleBase::keyPressEvent(QKeyEvent *event) {
-    const Qt::Key key = KisExtendedModifiersMapper::workaroundShiftAltMetaHell(event);
+    const Qt::Key key = normalizedModifierKey(event);
 
     if (key == Qt::Key_Control) {
         m_rectangleInteraction.setModifier(Qt::ControlModifier, true);
@@ -137,7 +147,7 @@ void KisToolRectangleBase::keyPressEvent(QKeyEvent *event) {
 }
 
 void KisToolRectangleBase::keyReleaseEvent(QKeyEvent *event) {
-    const Qt::Key key = KisExtendedModifiersMapper::workaroundShiftAltMetaHell(event);
+    const Qt::Key key = normalizedModifierKey(event);
 
     if (key == Qt::Key_Control) {
         m_rectangleInteraction.setModifier(Qt::ControlModifier, false);

@@ -107,9 +107,6 @@
 #include <kis_cubic_curve.h>
 #include <kis_signals_blocker.h>
 
-#include <input/ui/config/kis_input_configuration_page.h>
-#include <input/ui/wintab/drawpile_tablettester/tablettester.h>
-
 #include "KisDlgConfigureCumulativeUndo.h"
 #include <config-qt-patches-present.h>
 
@@ -1829,12 +1826,6 @@ TabletSettingsTab::TabletSettingsTab(QWidget* parent, const char* name): QWidget
     m_page->tiltDirectionOffsetAngle->setFlipOptionsMode(KisAngleSelector::FlipOptionsMode_MenuButton);
 }
 
-void TabletSettingsTab::slotTabletTest()
-{
-    TabletTestDialog tabletTestDialog(this);
-    tabletTestDialog.exec();
-}
-
 #ifdef Q_OS_WIN
 #include "KisDlgCustomTabletResolution.h"
 #endif
@@ -2697,13 +2688,7 @@ KisDlgPreferences::KisDlgPreferences(QWidget *parent, const KisImportExportPrefe
     connect(this, SIGNAL(accepted()), m_shortcutSettings, SLOT(saveChanges()));
     connect(this, SIGNAL(rejected()), m_shortcutSettings, SLOT(cancelChanges()));
 
-    // Canvas input settings
-    m_inputConfiguration = new KisInputConfigurationPage();
-    page = addPage(m_inputConfiguration, i18n("Canvas Input Settings"));
-    page->setHeader(i18n("Canvas Input"));
-    page->setObjectName("canvasinput");
-    page->setIcon(KisIconUtils::loadIcon("config-canvas-input"));
-    m_pages << page;
+    addInputConfigurationPage();
 
     // Display
     vbox = new KoVBox();
@@ -2777,9 +2762,6 @@ KisDlgPreferences::KisDlgPreferences(QWidget *parent, const KisImportExportPrefe
     KGuiItem::assign(button(QDialogButtonBox::Cancel), KStandardGuiItem::cancel());
     QPushButton *restoreDefaultsButton = button(QDialogButtonBox::RestoreDefaults);
     restoreDefaultsButton->setText(i18nc("@action:button", "Restore Defaults"));
-
-    connect(this, SIGNAL(accepted()), m_inputConfiguration, SLOT(saveChanges()));
-    connect(this, SIGNAL(rejected()), m_inputConfiguration, SLOT(revertChanges()));
 
     KisPreferenceSetRegistry *preferenceSetRegistry = KisPreferenceSetRegistry::instance();
     QStringList keys = preferenceSetRegistry->keys();
@@ -2940,7 +2922,7 @@ void KisDlgPreferences::slotDefault()
         m_fullscreenSettings->setDefault();
     }
     else if (currentPage()->objectName() == "canvasinput") {
-        m_inputConfiguration->setDefaults();
+        setInputConfigurationDefaults();
     }
     else if (currentPage()->objectName() == "popuppalette") {
         m_popupPaletteSettings->setDefault();

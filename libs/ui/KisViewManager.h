@@ -107,6 +107,7 @@ public:  // Krita specific interfaces
      * a layer or a mask or a selection
      */
     KisNodeSP activeNode();
+    bool activeNodeIsAnimated();
 
     /// Convenience method to get at the active layer
     KisLayerSP activeLayer();

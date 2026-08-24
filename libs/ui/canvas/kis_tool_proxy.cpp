@@ -6,7 +6,10 @@
 
 #include "kis_tool_proxy.h"
 #include "kis_canvas2.h"
-#include "input/ui/kis_tablet_debugger.h"
+
+#include <QMouseEvent>
+#include <QTabletEvent>
+#include <QTouchEvent>
 
 #include <KoToolProxy_p.h>
 

@@ -17,6 +17,7 @@
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
 #include <KisViewManager.h>
+#include <KisInputActionGroup.h>
 #include <kis_config.h>
 
 #include "kis_selection.h"

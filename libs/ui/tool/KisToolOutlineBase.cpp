@@ -18,10 +18,10 @@
 #include <KoCanvasBase.h>
 #include <kis_icon.h>
 #include <kis_canvas2.h>
-#include <input/ui/kis_input_manager.h>
+#include <KisToolCanvas.h>
+#include <KisInputActionGroup.h>
 
 #include "KisToolOutlineBase.h"
-#include <KisInputActionGroup.h>
 
 KisToolOutlineBase::KisToolOutlineBase(KoCanvasBase * canvas, ToolType type, const QCursor & cursor)
     : KisToolShape(canvas, cursor)
@@ -73,9 +73,8 @@ void KisToolOutlineBase::activate(const QSet<KoShape *> &shapes)
     KisToolShape::activate(shapes);
     connect(action("undo_polygon_selection"), SIGNAL(triggered()), SLOT(undoLastPoint()), Qt::UniqueConnection);
 
-    KisInputManager *inputManager = (static_cast<KisCanvas2*>(canvas()))->globalInputManager();
-    if (inputManager) {
-        inputManager->attachPriorityEventFilter(this);
+    if (KisToolCanvas *toolCanvas = dynamic_cast<KisToolCanvas *>(canvas())) {
+        toolCanvas->attachPriorityEventFilterForTool(this);
     }
 }
 
@@ -89,9 +88,8 @@ void KisToolOutlineBase::deactivate()
 
     m_outlineInteraction.disableContinuedMode();
 
-    KisInputManager *inputManager = kisCanvas->globalInputManager();
-    if (inputManager) {
-        inputManager->detachPriorityEventFilter(this);
+    if (KisToolCanvas *toolCanvas = dynamic_cast<KisToolCanvas *>(canvas())) {
+        toolCanvas->detachPriorityEventFilterForTool(this);
     }
 
     KisToolShape::deactivate();
@@ -302,9 +300,8 @@ void KisToolOutlineBase::installBlockActionGuard()
     if (m_blockModifyingActionsGuard)
         return;
     m_blockModifyingActionsGuard.reset(new KisInputActionGroupsMaskGuard(
-        static_cast<KisCanvas2*>(canvas())->inputActionGroupsMaskInterface(),
-                                 ViewTransformActionGroup | ToolInvoactionActionGroup
-                                ));
+        static_cast<KisCanvas2 *>(canvas())->inputActionGroupsMaskInterface(),
+        ViewTransformActionGroup | ToolInvoactionActionGroup));
 }
 
 void KisToolOutlineBase::uninstallBlockActionGuard()

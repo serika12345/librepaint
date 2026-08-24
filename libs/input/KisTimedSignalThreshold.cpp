@@ -4,9 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_timed_signal_threshold.h"
+#include "KisTimedSignalThreshold.h"
 #include <QElapsedTimer>
-#include "kis_debug.h"
 
 
 struct KisTimedSignalThreshold::Private
@@ -28,7 +27,6 @@ struct KisTimedSignalThreshold::Private
     int cancelDelay;
     bool enabled;
 };
-
 
 KisTimedSignalThreshold::KisTimedSignalThreshold(int delay, int cancelDelay, QObject *parent)
     : QObject(parent),

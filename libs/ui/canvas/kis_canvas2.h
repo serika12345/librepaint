@@ -31,6 +31,8 @@
 #include "KisReferenceImagesDecoration.h"
 #include "KisWraparoundAxis.h"
 
+#include <functional>
+
 class KoToolProxy;
 class KisDisplayConfig;
 
@@ -144,8 +146,10 @@ public: // KoCanvasBase implementation
 
     KisSelectionSP currentSelectionForTool() const override;
     KisNodeList selectedNodesForTool() const override;
-    void attachPriorityEventFilterForTool(QObject *filter) override;
+    void attachPriorityEventFilterForTool(QObject *filter, int priority = 0) override;
     void detachPriorityEventFilterForTool(QObject *filter) override;
+    void requestStrokeEndForTool() override;
+    void requestStrokeCancellationForTool() override;
     bool blockUntilOperationsFinishedForTool(KisImageSP image) override;
     void blockUntilOperationsFinishedForToolForced(KisImageSP image) override;
     bool selectionEditableForTool() const override;
@@ -231,9 +235,9 @@ public: // KisCanvas2 methods
 
     KisPopupPalette* popupPalette();
 
-    /**
-     * @return a reference to alter this canvas' input action groups mask
-     */
+    void setInputEventFilterConnection(std::function<void(QObject *, bool, int)> connection);
+    void setInputCanvasWidgetChangedCallback(std::function<void()> callback);
+
     KisInputActionGroupsMaskInterface::SharedInterface inputActionGroupsMaskInterface();
 
     /**
@@ -364,6 +368,8 @@ private:
     friend class KisView; // calls setup()
     class KisCanvas2Private;
     KisCanvas2Private * const m_d;
+    std::function<void(QObject *, bool, int)> m_inputEventFilterConnection;
+    std::function<void()> m_inputCanvasWidgetChangedCallback;
 };
 
 #endif

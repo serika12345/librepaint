@@ -27,7 +27,6 @@
 #include <kis_config_notifier.h>
 #include <kis_canvas2.h>
 #include <KisViewManager.h>
-#include <kis_image.h>
 #include <kis_canvas_resource_provider.h>
 #include <kis_favorite_resource_manager.h>
 
@@ -92,16 +91,6 @@ KisInputManager::~KisInputManager()
     KisExtendedModifiersMapper::setLocalMonitor(false);
 #endif
     delete d;
-}
-
-void KisInputManager::addTrackedCanvas(KisCanvas2 *canvas)
-{
-    d->canvasSwitcher.addCanvas(canvas);
-}
-
-void KisInputManager::removeTrackedCanvas(KisCanvas2 *canvas)
-{
-    d->canvasSwitcher.removeCanvas(canvas);
 }
 
 void KisInputManager::registerPopupWidget(KisPopupWidgetInterface *popupWidget)

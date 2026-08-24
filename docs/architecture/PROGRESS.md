@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 00:04 JST
+- 更新日時: 2026-08-25 00:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6g入力解釈所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: 入力中核とQt接続、設定表示、診断、プラットフォーム統合を`libs/input`の責務ルートへ
-  集約し、入力UIを独立した所有単位として構築する。
+- 目的: キャンバス、入力、ツール、描画の具体所有を一方向に接続し、入力境界に残る
+  リソース操作と入力UI共有ライブラリー化の開始条件を整える。
 
 ## 再開環境
 
@@ -1566,12 +1566,42 @@
   include-cleaner診断は移設した全翻訳単位で不要includeと不足includeを報告していない。
   `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
 
+## R1-G6g入力境界の第2実装単位で完了した作業
+
+- 次の開始ファイルと移設先を対応させ、入力列、キャンバス状態、画像操作の具体所有を分けた。
+  - `libs/input/KisInputActionGroup.{h,cpp}`から`libs/canvas/KisInputActionGroup.{h,cpp}`。
+  - `libs/image/kis_timed_signal_threshold.{h,cpp}`から
+    `libs/input/KisTimedSignalThreshold.{h,cpp}`。
+  - `libs/input/ui/kis_select_layer_action.cpp`のレイヤー探索、選択変更、選択メニューから
+    `libs/ui/actions/KisLayerSelectionAction.{h,cpp}`。
+  - `libs/ui/dialogs/kis_dlg_preferences.cc`の入力設定ページ追加とタブレット診断スロットから
+    `libs/ui/dialogs/kis_dlg_preferences_input.cpp`。
+- `KisCanvas2`はキャンバス単位の入力アクション群マスクとスコープガードを維持し、登録中の
+  `KisInputManager`から優先事象フィルター接続とキャンバス部品変更通知を受け取る。
+  ガイド、無限キャンバス、鏡軸、輪郭、折線は`KisCanvas2`または`KisToolCanvas`の具体操作面を使う。
+- 入力アクションはストローク終了と取消しを`KisToolCanvas`、活動ノードのアニメーション判定を
+  `KisViewManager`、レイヤー選択をUIアクションへ委譲する。矩形修飾キーは入力写像器と同じ
+  ShiftとMetaの正規化結果を局所値として使う。
+- 遅延描画、安定化標本化、自由描画ストローク生成、非同期色採取表示を実装する翻訳単位は
+  ツール呼出しへ帰属する。入力責務の既定ディレクトリーは`libs/input`と`libs/input/ui`であり、
+  個別のUI接続は分類済み公開クラスと審査済みソースで帰属する。
+- 確認済み逆方向includeは、キャンバス表示から入力解釈13件、入力解釈から描画24件、
+  ツール呼出しから入力解釈7件が各0件になった。入力解釈からリソース管理は3件へ縮小し、
+  アプリケーション調整から描画75件と合わせた確認済み基準は2責務対78件、未確定射影は0件である。
+- `nix develop .#test --command ./scripts/build-incremental native build kritaui`、
+  `nix develop .#test --command ./scripts/run-test KisInputManagerTest`、
+  `nix develop .#test --command ./scripts/run-test TestInputShortcutMatcher`はmacOSで成功した。
+  clangdのinclude-cleaner検査は変更した21翻訳単位で不要includeと不足includeを報告していない。
+  `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+
 ## 次の操作
 
-入力境界に帰属する48件の逆方向includeを一つの統合単位で除去する。入力列の判定と正規化は
-`kritainput`へ、画像・描画・資源を操作するアクションとQt事象接続は対応するツールまたはUI所有へ
-配置する。`kritainputui`を独立共有ライブラリーとして構築し、Darwinとx86_64 Linuxの清浄な
-同一コミットから5構成の完全一致検査を実施する。
+`libs/input/ui/KisInputProfileMigrator.cpp`、
+`libs/input/ui/config/kis_input_configuration_page.cpp`、
+`libs/input/ui/kis_input_profile_manager.cpp`のプロファイル検索、保存場所、既定値復旧を
+ツール設定の具体所有へ移し、入力解釈からリソース管理3件を0件へ縮小する。入力依存が
+アプリケーション設定接続へ限定された状態で`kritainputui`を独立共有ライブラリーへ変更し、
+公開記号の利用元と5構成のCMake台帳を同期する。
 
 ## R1-G5完了根拠
 

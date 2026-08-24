@@ -18,7 +18,6 @@
 
 #include "kis_tool.h"
 #include "kis_input_manager.h"
-#include "kis_image.h"
 
 class KisToolInvocationAction::Private
 {
@@ -177,7 +176,7 @@ void KisToolInvocationAction::begin(int shortcut, QEvent *event)
          * press. Until all the tools support it, we just duplicate the
          * key event and the method call
          */
-        inputManager()->canvas()->image()->requestStrokeEnd();
+        inputManager()->canvas()->requestStrokeEndForTool();
 
         /**
          * Some tools would like to distinguish automated requestStrokeEnd()
@@ -196,7 +195,7 @@ void KisToolInvocationAction::begin(int shortcut, QEvent *event)
          * so just request it.
          */
 
-        inputManager()->canvas()->image()->requestStrokeCancellation();
+        inputManager()->canvas()->requestStrokeCancellationForTool();
     }
 }
 

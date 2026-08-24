@@ -644,6 +644,8 @@ KisNodeSP KisViewManager::activeNode()
     return d->nodeManager.activeNode();
 }
 
+bool KisViewManager::activeNodeIsAnimated() { const KisNodeSP node = activeNode(); return node && node->isAnimated(); }
+
 KisLayerSP KisViewManager::activeLayer()
 {
     return d->nodeManager.activeLayer();

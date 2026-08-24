@@ -30,7 +30,9 @@
       ],
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
-      "reviewedSourcePaths": [],
+      "reviewedSourcePaths": [
+        "libs/ui/dialogs/kis_dlg_preferences_input.cpp"
+      ],
       "uiClassAreas": [
         "application-orchestration",
         "window-workspace"
@@ -167,6 +169,7 @@
       ],
       "publicHeaderPaths": [
         "libs/canvas/KisCanvasState.h",
+        "libs/canvas/KisInputActionGroup.h",
         "libs/canvas/KisToolCanvas.h",
         "libs/canvas/animation/kis_animation_frame_cache_index.h",
         "libs/canvas/animation/kis_frame_cache_store.h",
@@ -505,30 +508,18 @@
       "responsibility": "Interprets pointer, keyboard, touch, tablet, and shortcut input as application and tool actions.",
       "sourceDirectories": [
         "libs/input",
-        "libs/input/ui",
-        "libs/ui/tool"
+        "libs/input/ui"
       ],
       "ownerTargets": [
         "kritainput",
-        "kritainputui",
-        "kritatools",
-        "kritaui"
+        "kritainputui"
       ],
       "publicHeaderOwnerTargets": [
         "kritainput",
         "kritainputui"
       ],
-      "reviewedPublicHeaderPaths": [
-        "libs/tools/KisStabilizerDelayedPaintHelper.h",
-        "libs/tools/kis_stabilized_events_sampler.h"
-      ],
-      "reviewedSourcePaths": [
-        "libs/tools/KisStabilizerDelayedPaintHelper.cpp",
-        "libs/tools/KisStabilizerDelayedPaintHelper.h",
-        "libs/tools/kis_stabilized_events_sampler.cpp",
-        "libs/tools/kis_stabilized_events_sampler.h",
-        "libs/ui/tool/kis_tool_freehand_helper.cpp"
-      ],
+      "reviewedPublicHeaderPaths": [],
+      "reviewedSourcePaths": [],
       "uiClassAreas": [],
       "uiToolClassAreas": [
         "input-interpretation"
@@ -538,8 +529,8 @@
       "pluginFeatureOwners": [],
       "publicHeaderPaths": [
         "libs/input/KisInputAction.h",
-        "libs/input/KisInputActionGroup.h",
         "libs/input/KisInputEventSuppressor.h",
+        "libs/input/KisTimedSignalThreshold.h",
         "libs/input/KisTouchGestureType.h",
         "libs/input/kis_abstract_shortcut.h",
         "libs/input/kis_input_profile.h",
@@ -556,15 +547,10 @@
         "libs/input/ui/kis_extended_modifiers_mapper.h",
         "libs/input/ui/kis_input_manager.h",
         "libs/input/ui/kis_input_profile_manager.h",
-        "libs/input/ui/kis_tablet_debugger.h",
         "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
-        "libs/tools/KisStabilizerDelayedPaintHelper.h",
-        "libs/tools/kis_stabilized_events_sampler.h",
-        "libs/ui/tool/KisAsyncColorSamplerHelper.h",
         "libs/ui/tool/kis_painting_information_builder_adapters.h"
       ],
       "classNames": [
-        "KisAsyncColorSamplerHelper",
         "KisConverterPaintingInformationBuilder",
         "KisToolFreehandPaintingInformationBuilder"
       ],
@@ -888,7 +874,6 @@
         "libs/image/kis_sync_lod_cache_stroke_strategy.h",
         "libs/image/kis_threaded_text_rendering_workaround.h",
         "libs/image/kis_time_span.h",
-        "libs/image/kis_timed_signal_threshold.h",
         "libs/image/kis_timing_information.h",
         "libs/image/kis_transaction.h",
         "libs/image/kis_transaction_data.h",
@@ -1307,12 +1292,19 @@
       ],
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [
+        "libs/tools/KisStabilizerDelayedPaintHelper.cpp",
+        "libs/tools/KisStabilizerDelayedPaintHelper.h",
+        "libs/tools/kis_stabilized_events_sampler.cpp",
+        "libs/tools/kis_stabilized_events_sampler.h",
         "libs/ui/canvas/kis_tool_proxy.h",
         "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
+        "libs/ui/dialogs/kis_dlg_filter.cpp",
         "libs/ui/dialogs/kis_dlg_layer_properties.cc",
         "libs/ui/dialogs/kis_dlg_layer_style.cpp",
+        "libs/ui/dialogs/kis_dlg_preferences.cc",
         "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
         "libs/ui/kis_favorite_resource_manager.cpp",
+        "libs/ui/tool/kis_tool_freehand_helper.cpp",
         "libs/ui/tool/kis_tool_freehand_helper.h",
         "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
         "libs/ui/widgets/kis_paintop_presets_editor.cpp",
@@ -1354,6 +1346,7 @@
         "libs/ui/kis_bookmarked_configurations_editor.h",
         "libs/ui/kis_bookmarked_configurations_model.h",
         "libs/ui/kis_paintop_box.h",
+        "libs/ui/tool/KisAsyncColorSamplerHelper.h",
         "libs/ui/tool/KisToolOutlineBase.h",
         "libs/ui/tool/kis_tool_ellipse_base.h",
         "libs/ui/tool/kis_tool_freehand.h",
@@ -1364,6 +1357,7 @@
         "libs/ui/tool/kis_tool_shape.h"
       ],
       "classNames": [
+        "KisAsyncColorSamplerHelper",
         "KisBookmarkedConfigurationsEditor",
         "KisBookmarkedConfigurationsModel",
         "KisPaintopBox",
@@ -1630,6 +1624,7 @@
         "kritaimage"
       ],
       "repositoryConsumers": [
+        "kritainput",
         "kritainputui",
         "kritatools",
         "kritaui"
@@ -1797,7 +1792,6 @@
         "kritahistorydocker",
         "kritaimpex",
         "kritaimpexui",
-        "kritainputui",
         "kritalibbrush",
         "kritalibkis",
         "kritapainting",
@@ -1908,6 +1902,7 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
+        "kritacanvas",
         "kritaflake",
         "kritaglobal"
       ],
@@ -1932,11 +1927,8 @@
       "repositoryDependencies": [
         "kritacanvas",
         "kritaflake",
-        "kritaimage",
         "kritainput",
-        "kritalibbrush",
         "kritamacosutils",
-        "kritapainting",
         "kritaresources",
         "kritaresourceui",
         "kritatools",
@@ -1972,7 +1964,6 @@
         "kritabrushexport",
         "kritabrushimport",
         "kritaimpexui",
-        "kritainputui",
         "kritalibpaintop",
         "kritamypaintop_static",
         "kritaui",
@@ -2001,7 +1992,6 @@
         "kritadefaultpaintops_static",
         "kritadefaulttools_static",
         "kritaimpexui",
-        "kritainputui",
         "kritalibkis",
         "kritalibpaintop",
         "kritaselectiontools",

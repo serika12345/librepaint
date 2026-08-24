@@ -12,10 +12,10 @@
 #include <kis_config_notifier.h>
 #include <kis_cursor.h>
 #include <kis_icon.h>
+#include <kis_image.h>
 #include <kis_node_manager.h>
 #include <kis_selection.h>
 
-#include "input/ui/kis_input_manager.h"
 #include "opengl/kis_opengl_canvas2.h"
 
 KisSelectionSP KisCanvas2::currentSelectionForTool() const
@@ -26,20 +26,6 @@ KisSelectionSP KisCanvas2::currentSelectionForTool() const
 KisNodeList KisCanvas2::selectedNodesForTool() const
 {
     return viewManager()->nodeManager()->selectedNodes();
-}
-
-void KisCanvas2::attachPriorityEventFilterForTool(QObject *filter)
-{
-    if (KisInputManager *inputManager = globalInputManager()) {
-        inputManager->attachPriorityEventFilter(filter);
-    }
-}
-
-void KisCanvas2::detachPriorityEventFilterForTool(QObject *filter)
-{
-    if (KisInputManager *inputManager = globalInputManager()) {
-        inputManager->detachPriorityEventFilter(filter);
-    }
 }
 
 bool KisCanvas2::blockUntilOperationsFinishedForTool(KisImageSP image)
@@ -99,4 +85,38 @@ void KisCanvas2::drawToolOutline(QPainter *painter,
 QObject *KisCanvas2::toolConfigNotifier() const
 {
     return KisConfigNotifier::instance();
+}
+
+void KisCanvas2::setInputEventFilterConnection(std::function<void(QObject *, bool, int)> connection)
+{
+    m_inputEventFilterConnection = std::move(connection);
+}
+
+void KisCanvas2::attachPriorityEventFilterForTool(QObject *filter, int priority)
+{
+    if (m_inputEventFilterConnection) {
+        m_inputEventFilterConnection(filter, true, priority);
+    }
+}
+
+void KisCanvas2::detachPriorityEventFilterForTool(QObject *filter)
+{
+    if (m_inputEventFilterConnection) {
+        m_inputEventFilterConnection(filter, false, 0);
+    }
+}
+
+void KisCanvas2::requestStrokeEndForTool()
+{
+    image()->requestStrokeEnd();
+}
+
+void KisCanvas2::requestStrokeCancellationForTool()
+{
+    image()->requestStrokeCancellation();
+}
+
+void KisCanvas2::setInputCanvasWidgetChangedCallback(std::function<void()> callback)
+{
+    m_inputCanvasWidgetChangedCallback = std::move(callback);
 }

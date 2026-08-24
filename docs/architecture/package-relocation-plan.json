@@ -260,14 +260,11 @@
       "current": {
         "sourceDirectories": [
           "libs/input",
-          "libs/input/ui",
-          "libs/ui/tool"
+          "libs/input/ui"
         ],
         "cmakeTargets": [
           "kritainput",
-          "kritainputui",
-          "kritatools",
-          "kritaui"
+          "kritainputui"
         ],
         "uiClassAreas": [],
         "uiToolClassAreas": [
@@ -560,14 +557,6 @@
     },
     {
       "ownerTarget": "kritainputui",
-      "headerPath": "libs/input/ui/kis_tablet_debugger.h",
-      "destinationResponsibility": "input-interpretation",
-      "destinationDirectory": "libs/input/ui",
-      "wave": "R1-G6g",
-      "disposition": "declare-or-replace-public-contract"
-    },
-    {
-      "ownerTarget": "kritainputui",
       "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
       "destinationResponsibility": "input-interpretation",
       "destinationDirectory": "libs/input/ui",
@@ -737,7 +726,7 @@
       "maximumReverseDirectIncludesAfterWave": 291,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 3,
+        "kritainputui": 2,
         "kritaui": 11
       },
       "completionCriteria": [
@@ -796,7 +785,7 @@
       "maximumReverseDirectIncludesAfterWave": 196,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 3,
+        "kritainputui": 2,
         "kritaui": 11
       },
       "completionCriteria": [
@@ -846,7 +835,7 @@
       "maximumReverseDirectIncludesAfterWave": 196,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 3,
+        "kritainputui": 2,
         "kritaui": 11
       },
       "completionCriteria": [
@@ -898,7 +887,7 @@
       "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 3,
+        "kritainputui": 2,
         "kritaui": 10
       },
       "completionCriteria": [
@@ -1008,7 +997,7 @@
       "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 3,
+        "kritainputui": 2,
         "kritaui": 10
       },
       "completionCriteria": [
@@ -1058,7 +1047,7 @@
       "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 3,
+        "kritainputui": 2,
         "kritaui": 3
       },
       "completionCriteria": [

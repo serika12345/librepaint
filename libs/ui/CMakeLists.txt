@@ -58,6 +58,7 @@ set(kritaui_LIB_SRCS
     dialogs/kis_dlg_image_properties.cc
     dialogs/kis_dlg_layer_properties.cc
     dialogs/kis_dlg_preferences.cc
+    dialogs/kis_dlg_preferences_input.cpp
     dialogs/slider_and_spin_box_sync.cpp
     dialogs/kis_dlg_layer_style.cpp
     dialogs/kis_dlg_import_image_sequence.cpp
@@ -289,6 +290,7 @@ set(kritaui_LIB_SRCS
     actions/kis_selection_action_factories.cpp
     actions/KisPasteActionFactories.cpp
     actions/KisTransformToolActivationCommand.cpp
+    actions/KisLayerSelectionAction.cpp
     animation/KisFrameDisplayProxy.cpp
     kis_gui_context_command.cpp
     kis_gui_context_command_p.cpp
