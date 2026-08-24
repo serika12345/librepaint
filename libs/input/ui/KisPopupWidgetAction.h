@@ -17,7 +17,7 @@
 #include "kis_global.h"
 #include "kis_debug.h"
 #include "kis_canvas2.h"
-#include "KisPopupWidgetInterface.h"
+#include "events/KisPopupWidgetInterface.h"
 class QMenu;
 
 

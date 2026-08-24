@@ -24,7 +24,7 @@
 
 #include <KoUnit.h>
 #include <KoShapeManager.h>
-#include <KisSelectedShapesProxy.h>
+#include <flake/KisSelectedShapesProxy.h>
 #include <KoColorProfile.h>
 #include <KoCanvasControllerWidget.h>
 #include <document/KisDocument.h>
@@ -77,8 +77,8 @@
 #include "KoColorConversionTransformation.h"
 #include "KisProofingConfiguration.h"
 
-#include <kis_favorite_resource_manager.h>
-#include <kis_popup_palette.h>
+#include <resources/kis_favorite_resource_manager.h>
+#include <resources/kis_popup_palette.h>
 
 #include "canvas/kis_painting_assistants_decoration.h"
 

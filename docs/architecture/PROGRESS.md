@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 03:26 JST
-- 状態: `in_progress`
-- 現在の検査段階: R1-G6g UI root残存配置境界
+- 更新日時: 2026-08-25 03:53 JST
+- 状態: `planned`
+- 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: `libs/ui`直下に残る台帳外の表示・事象・資源接続を既存責務へ配置し、rootの
-  調査入口をCMake定義とターゲット公開記号設定へ限定する。
+- 目的: `kritainputui`を独立した共有ライブラリーとして構築し、入力UIの公開記号を
+  利用するターゲットから直接接続する。
 
 ## 再開環境
 
@@ -1693,11 +1693,35 @@
   `kis_filters_model.*`、`kis_popup_palette.*`、文書・図形接続の`KisSelectedShapesProxy.*`と
   `KisUndoActionsUpdateManager.*`、共有UI接続面と補助処理の残りで構成される。
 
+## R1-G6g UI root残存配置境界で完了した作業
+
+- `libs/ui`直下の台帳外43ファイルを現在責務へ配置した。入出力表示2ファイルは
+  `libs/ui/impex`、事象接続13ファイルは`libs/ui/events`、テーマ表示4ファイルは
+  `libs/ui/theme`、macOS接続3ファイルは`libs/ui/platform`、資源表示17ファイルは
+  `libs/ui/resources`、図形選択接続2ファイルは`libs/ui/flake`、履歴アクション接続2ファイルは
+  `libs/ui/actions`が所有する。全開始パスと宛先パスは
+  `docs/architecture/remaining-ui-root-relocations.json`が一対一で記録する。
+- `libs/ui`直下には`CMakeLists.txt`と`kritaui_export_instance.h`の2ファイルが存在する。
+  前者は`kritaui`の構築定義を、後者はターゲット公開テンプレート記号の設定を所有する。
+  再配置検査は旧開始パスの消滅、全宛先の実在、責務ディレクトリー、CMake登録、rootの
+  正確な2ファイルを継続確認する。
+- `KisPopupWidgetInterface.h`、`KisUiFont.h`、`kis_cursor_override_hijacker.h`、
+  `kis_favorite_resource_manager.h`、`kis_popup_palette.h`の公開面は責務別の正規入れ子経路を持つ。
+  `TestRemainingUiRootPublicHeaders`が5ヘッダーを一つの利用翻訳単位として構築する。
+- `libs/ui/resources/kis_md5_generator.cpp`は宣言ヘッダー、利用元、CMake登録が存在せず、
+  存在しない`kis_md5_generator.h`をincludeする孤立実装である。再配置台帳は現在の非構築状態を
+  `resource-presentation`所有、R1-G7追跡、最大1ファイル、宣言と実利用を確立した登録または
+  未利用実装の除去を完了条件とする審査済み例外へ固定する。
+- `kritaui`、`TestRemainingUiRootPublicHeaders`、`kis_derived_resources_test`はmacOSで成功した。
+  clangdのinclude-cleaner検査はCMake登録された移設先20翻訳単位で不要includeと直接include不足を
+  報告していない。`kis_md5_generator.cpp`のテキスト監査は欠落宣言ヘッダー1件、利用元0件、
+  CMake参照0件という現在状態を確認した。
+- `nix develop .#test --command ./scripts/verify-quick`は全運用試験と統治検査に成功した。
+
 ## 次の操作
 
-`libs/ui`直下の台帳外実装を、入出力表示、事象接続、テーマ・OS接続、資源表示、図形・履歴接続の
-既存責務ディレクトリーへ移す。製品と試験のinclude、CMake、公開面・構造・ソース寸法台帳を
-正規経路へ更新し、root配置を`CMakeLists.txt`と`kritaui_export_instance.h`へ限定する。
+`kritainputui`を独立共有ライブラリーとして構築し、現在`kritaui`の公開記号を利用する入力UIの
+利用元を直接所有先へ接続する。5構成のCMake台帳と公開面・責務・依存基準を新しい所有境界へ同期する。
 
 ## R1-G5完了根拠
 

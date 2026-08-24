@@ -112,8 +112,8 @@
       ],
       "consumerPaths": [
         "libs/libkis/View.cpp",
-        "libs/ui/kis_control_frame.cpp",
-        "libs/ui/kis_favorite_resource_manager.cpp",
+        "libs/ui/resources/kis_control_frame.cpp",
+        "libs/ui/resources/kis_favorite_resource_manager.cpp",
         "libs/ui/workspace/KisMainWindow.cpp",
         "libs/ui/workspace/KisViewManager.cpp",
         "plugins/dockers/presetdocker/presetdocker_dock.cpp",

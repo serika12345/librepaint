@@ -15,7 +15,7 @@ REPO_ROOT = SCRIPT_DIRECTORY.parents[1]
 PLATFORMS = ("macos", "linux", "ios", "android", "windows")
 HEADER_SUFFIXES = frozenset({".h", ".hh", ".hpp"})
 SOURCE_SUFFIXES = HEADER_SUFFIXES | frozenset({".c", ".cc", ".cpp", ".cxx", ".m", ".mm"})
-UI_PLACEMENT_SUFFIXES = SOURCE_SUFFIXES | frozenset({".ui"})
+UI_PLACEMENT_SUFFIXES = SOURCE_SUFFIXES | frozenset({".stylesheet", ".ui"})
 PRODUCTION_SOURCE_DIRECTORIES = (
     "krita",
     "libs",
@@ -43,6 +43,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
         "libs/ui/tests/TestCanvasUiPublicHeaders.cpp",
         "libs/ui/tests/TestDocumentStateUiPublicHeaders.cpp",
+        "libs/ui/tests/TestRemainingUiRootPublicHeaders.cpp",
     ),
 }
 UI_CANVAS_CLASS_NESTED_HEADER_PATHS = (
@@ -150,6 +151,7 @@ UI_PLACEMENT_RELOCATION_PATHS = (
     "docs/architecture/canvas-presentation-ui-relocations.json",
     "docs/architecture/document-state-ui-relocations.json",
     "docs/architecture/application-workspace-tool-ui-relocations.json",
+    "docs/architecture/remaining-ui-root-relocations.json",
 )
 UI_PLACEMENT_RELOCATION_SPECS = {
     "docs/architecture/canvas-presentation-ui-relocations.json": {
@@ -175,7 +177,23 @@ UI_PLACEMENT_RELOCATION_SPECS = {
             "window-workspace": "workspace",
         },
     },
+    "docs/architecture/remaining-ui-root-relocations.json": {
+        "scope": "r1-g6g-ui-root-placement",
+        "placementAreas": {
+            "action-state-wiring": "actions",
+            "event-wiring": "events",
+            "import-export-presentation": "impex",
+            "platform-integration": "platform",
+            "resource-presentation": "resources",
+            "shape-presentation": "flake",
+            "theme-presentation": "theme",
+        },
+        "allowsReviewedBuildExceptions": True,
+    },
 }
+UI_ROOT_EXPECTED_FILES = frozenset(
+    {"CMakeLists.txt", "kritaui_export_instance.h"}
+)
 INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
 )
@@ -1163,17 +1181,20 @@ def validate_ui_placement_relocations(
         inventory = load_ui_placement_relocation_inventory(
             repository_root / inventory_path
         )
+        expected_inventory_fields = {
+            "schemaVersion",
+            "scope",
+            "purpose",
+            "currentOwnerTarget",
+            "currentResponsibilities",
+            "reviewedResponsibilityOverrides",
+            "relocations",
+        }
+        if spec.get("allowsReviewedBuildExceptions"):
+            expected_inventory_fields.add("reviewedBuildExceptions")
         _require_fields(
             inventory,
-            {
-                "schemaVersion",
-                "scope",
-                "purpose",
-                "currentOwnerTarget",
-                "currentResponsibilities",
-                "reviewedResponsibilityOverrides",
-                "relocations",
-            },
+            expected_inventory_fields,
             f"UI placement relocation inventory {inventory_path}",
         )
         if inventory.get("schemaVersion") != 1:
@@ -1211,7 +1232,69 @@ def validate_ui_placement_relocations(
             raise PublicSurfaceError(
                 f"relocations must contain at least one entry in {inventory_path}"
             )
+        reviewed_build_exception_paths: set[str] = set()
+        if spec.get("allowsReviewedBuildExceptions"):
+            reviewed_build_exceptions = _require_array(
+                inventory.get("reviewedBuildExceptions"),
+                f"reviewedBuildExceptions in {inventory_path}",
+            )
+            for index, exception_value in enumerate(reviewed_build_exceptions):
+                exception = _require_object(
+                    exception_value,
+                    f"reviewed build exception {index} in {inventory_path}",
+                )
+                _require_fields(
+                    exception,
+                    {
+                        "path",
+                        "reason",
+                        "owner",
+                        "trackedRoadmapItem",
+                        "maximumFiles",
+                        "removalCondition",
+                    },
+                    f"reviewed build exception {index} in {inventory_path}",
+                )
+                exception_path = _repository_relative_path(
+                    exception.get("path"),
+                    f"reviewed build exception path {index} in {inventory_path}",
+                )
+                for field in (
+                    "reason",
+                    "owner",
+                    "trackedRoadmapItem",
+                    "removalCondition",
+                ):
+                    _require_string(
+                        exception.get(field),
+                        f"{field} for reviewed build exception {index} in "
+                        f"{inventory_path}",
+                    )
+                if exception.get("maximumFiles") != 1:
+                    raise PublicSurfaceError(
+                        f"maximumFiles must be 1 for reviewed build exception "
+                        f"{exception_path}"
+                    )
+                if PurePosixPath(exception_path).suffix not in {
+                    ".c",
+                    ".cc",
+                    ".cpp",
+                    ".cxx",
+                    ".m",
+                    ".mm",
+                }:
+                    raise PublicSurfaceError(
+                        f"reviewed build exception is not a translation unit: "
+                        f"{exception_path}"
+                    )
+                if exception_path in reviewed_build_exception_paths:
+                    raise PublicSurfaceError(
+                        f"duplicate reviewed build exception: {exception_path}"
+                    )
+                reviewed_build_exception_paths.add(exception_path)
+
         inventory_destinations: set[str] = set()
+        used_build_exception_paths: set[str] = set()
         for index, relocation_value in enumerate(relocations):
             relocation = _require_object(
                 relocation_value,
@@ -1280,13 +1363,24 @@ def validate_ui_placement_relocations(
                     rf"(?![A-Za-z0-9_./-])",
                     cmake_source_list,
                 ):
-                    raise PublicSurfaceError(
-                        f"relocated translation unit is absent from "
-                        f"libs/ui/CMakeLists.txt: {destination}"
-                    )
+                    if destination not in reviewed_build_exception_paths:
+                        raise PublicSurfaceError(
+                            f"relocated translation unit is absent from "
+                            f"libs/ui/CMakeLists.txt: {destination}"
+                        )
+                    used_build_exception_paths.add(destination)
             all_sources.add(source)
             all_destinations.add(destination)
             inventory_destinations.add(destination)
+        unused_build_exception_paths = sorted(
+            reviewed_build_exception_paths - used_build_exception_paths
+        )
+        if unused_build_exception_paths:
+            raise PublicSurfaceError(
+                "reviewed build exceptions must identify relocated translation "
+                "units absent from libs/ui/CMakeLists.txt: "
+                f"{unused_build_exception_paths}"
+            )
         destinations_by_inventory[inventory_path] = inventory_destinations
 
         overrides = _require_array(
@@ -1348,6 +1442,18 @@ def validate_ui_placement_relocations(
         raise PublicSurfaceError(
             "classified public UI class headers remain directly under libs/ui: "
             f"{root_class_headers}"
+        )
+
+    actual_root_files = {
+        path.name
+        for path in (repository_root / "libs/ui").iterdir()
+        if path.is_file()
+    }
+    if actual_root_files != UI_ROOT_EXPECTED_FILES:
+        raise PublicSurfaceError(
+            "libs/ui root files do not match the placement contract; "
+            f"missing={sorted(UI_ROOT_EXPECTED_FILES - actual_root_files)}, "
+            f"unexpected={sorted(actual_root_files - UI_ROOT_EXPECTED_FILES)}"
         )
 
     document_destinations = destinations_by_inventory[

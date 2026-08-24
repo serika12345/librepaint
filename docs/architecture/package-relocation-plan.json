@@ -565,42 +565,10 @@
     },
     {
       "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/KisPopupWidgetInterface.h",
-      "destinationResponsibility": "tool-invocation",
-      "destinationDirectory": "libs/tools/ui",
-      "wave": "R1-G6f",
-      "disposition": "declare-or-replace-public-contract"
-    },
-    {
-      "ownerTarget": "kritaui",
       "headerPath": "libs/ui/canvas/kis_qpainter_canvas.h",
       "destinationResponsibility": "canvas-presentation",
       "destinationDirectory": "libs/canvas",
       "wave": "R1-G6d",
-      "disposition": "move-behind-boundary"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/kis_cursor_override_hijacker.h",
-      "destinationResponsibility": "application-orchestration",
-      "destinationDirectory": "libs/application/ui",
-      "wave": "R1-G6h",
-      "disposition": "move-behind-boundary"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/kis_favorite_resource_manager.h",
-      "destinationResponsibility": "resource-management",
-      "destinationDirectory": "libs/resources/ui",
-      "wave": "R1-G6a",
-      "disposition": "move-behind-boundary"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/kis_popup_palette.h",
-      "destinationResponsibility": "tool-invocation",
-      "destinationDirectory": "libs/tools/ui",
-      "wave": "R1-G6f",
       "disposition": "move-behind-boundary"
     },
     {
@@ -727,7 +695,7 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 2,
-        "kritaui": 11
+        "kritaui": 2
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
@@ -786,7 +754,7 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 2,
-        "kritaui": 11
+        "kritaui": 2
       },
       "completionCriteria": [
         "Painting has zero document-lifecycle includes and exposes image-model and paint-execution from owned targets.",
@@ -836,7 +804,7 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 2,
-        "kritaui": 11
+        "kritaui": 2
       },
       "completionCriteria": [
         "All 14 classified import-export classes are owned by kritaimpex or kritaimpexui.",
@@ -888,7 +856,7 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 2,
-        "kritaui": 10
+        "kritaui": 1
       },
       "completionCriteria": [
         "Canvas has zero document-lifecycle includes and depends only on painting and resource public surfaces.",
@@ -998,7 +966,7 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 2,
-        "kritaui": 10
+        "kritaui": 1
       },
       "completionCriteria": [
         "All 25 document classes classified at the start of R1-G6e have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",
@@ -1048,7 +1016,7 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 2,
-        "kritaui": 3
+        "kritaui": 0
       },
       "completionCriteria": [
         "All 22 classified tool command and settings classes are owned by kritatools or kritatoolsui.",
@@ -1124,7 +1092,7 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 3
+        "kritaui": 0
       },
       "completionCriteria": [
         "All seven classified input classes are owned by kritainput.",

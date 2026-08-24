@@ -27,7 +27,7 @@
 #include <kis_group_layer.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
-#include "kis_favorite_resource_manager.h"
+#include "resources/kis_favorite_resource_manager.h"
 
 #include "application/kis_config.h"
 #include "workspace/KisViewManager.h"

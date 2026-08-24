@@ -32,7 +32,7 @@
 #include <kis_random_accessor_ng.h>
 #include <application/kis_config.h>
 #include <kis_image_config.h>
-#include <kis_cursor_override_hijacker.h>
+#include <events/kis_cursor_override_hijacker.h>
 
 #include "kis_wdg_options_heightmap.h"
 #include "kis_heightmap_utils.h"

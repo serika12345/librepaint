@@ -20,7 +20,7 @@
 #include <kis_canvas2.h>
 #include <input/ui/kis_input_manager.h>
 #include <kis_canvas_controller.h>
-#include <kis_popup_palette.h>
+#include <resources/kis_popup_palette.h>
 
 
 K_PLUGIN_FACTORY_WITH_JSON(SPenSettingsFactory, "kritaspensettings.json", registerPlugin<SPenSettings>();)

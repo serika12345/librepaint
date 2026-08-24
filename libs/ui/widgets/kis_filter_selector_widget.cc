@@ -32,7 +32,7 @@
 // From krita/ui
 #include "tool/kis_bookmarked_configurations_editor.h"
 #include "tool/kis_bookmarked_filter_configurations_model.h"
-#include "kis_filters_model.h"
+#include "resources/kis_filters_model.h"
 #include "application/kis_config.h"
 
 #include <kstandardguiitem.h>
@@ -360,4 +360,3 @@ void KisFilterSelectorWidget::setVisible(bool visible)
         update();
     }
 }
-

@@ -11,7 +11,7 @@
 
 #include "ui_wdgsavebrushpreset.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "kis_favorite_resource_manager.h"
+#include "resources/kis_favorite_resource_manager.h"
 
 class KisPaintOpPresetSaveDialog : public QDialog , public Ui::WdgSaveBrushPreset
 {

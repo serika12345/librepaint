@@ -27,7 +27,7 @@
 #include <kis_icon.h>
 #include "kis_processing_applicator.h"
 #include "commands_new/kis_transaction_based_command.h"
-#include "kis_gui_context_command.h"
+#include "events/kis_gui_context_command.h"
 #include "kis_command_utils.h"
 #include "commands/kis_deselect_global_selection_command.h"
 

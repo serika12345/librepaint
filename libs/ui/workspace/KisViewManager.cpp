@@ -77,9 +77,9 @@
 #include <KoProgressUpdater.h>
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
-#include "kis_control_frame.h"
+#include "resources/kis_control_frame.h"
 #include "document/KisDocument.h"
-#include "kis_favorite_resource_manager.h"
+#include "resources/kis_favorite_resource_manager.h"
 #include "document/kis_filter_manager.h"
 #include <kis_image.h>
 #include "document/kis_image_manager.h"
@@ -110,8 +110,8 @@
 #include "kis_signal_auto_connection.h"
 #include "kis_icon_utils.h"
 #include "kis_guides_manager.h"
-#include "kis_derived_resources.h"
-#include "kis_abstract_resources.h"
+#include "resources/kis_derived_resources.h"
+#include "resources/kis_abstract_resources.h"
 #include "dialogs/kis_delayed_save_dialog.h"
 #include <workspace/KisMainWindow.h>
 #include "kis_signals_blocker.h"

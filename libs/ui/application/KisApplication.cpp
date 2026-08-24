@@ -14,7 +14,7 @@
 #endif
 
 #ifdef Q_OS_MACOS
-#include "osx.h"
+#include "platform/osx.h"
 #endif
 
 #ifdef Q_OS_ANDROID
@@ -55,7 +55,7 @@
 #include "KoConfig.h"
 #include <KoResourcePaths.h>
 #include <KisMimeDatabase.h>
-#include "thememanager.h"
+#include "theme/thememanager.h"
 #include "document/KisDocument.h"
 #include "workspace/KisMainWindow.h"
 #include <files/kis_document_autosave_files.h>
@@ -168,7 +168,7 @@ public:
 
 #include "widgets/KisScreenColorSampler.h"
 #include "KisDlgInternalColorSelector.h"
-#include "KisLongPressEventFilter.h"
+#include "events/KisLongPressEventFilter.h"
 
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>
 #include <kis_image_animation_interface.h>

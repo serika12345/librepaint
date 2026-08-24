@@ -22,7 +22,7 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoColor.h>
 #include <KoViewConverter.h>
-#include <KisPopupWidgetInterface.h>
+#include <events/KisPopupWidgetInterface.h>
 
 #include <QAction>
 #include <QDebug>

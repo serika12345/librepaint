@@ -17,7 +17,7 @@
 #include "kis_image_config.h"
 #include <QWidgetAction>
 #include <QMenu>
-#include <KisLongPressEventFilter.h>
+#include <events/KisLongPressEventFilter.h>
 #include <KisWidgetConnectionUtils.h>
 
 #include "kis_signals_blocker.h"

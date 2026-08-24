@@ -30,7 +30,7 @@
 #include "kis_canvas_controller.h"
 #include "kis_acyclic_signal_connector.h"
 #include <kis_paintop_preset.h>
-#include "KisMouseClickEater.h"
+#include "events/KisMouseClickEater.h"
 #include <application/KisPlatformPluginInterfaceFactory.h>
 
 static const int WIDGET_MARGIN = 16;

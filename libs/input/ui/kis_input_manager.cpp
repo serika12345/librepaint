@@ -28,7 +28,7 @@
 #include <kis_canvas2.h>
 #include <workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_favorite_resource_manager.h>
+#include <resources/kis_favorite_resource_manager.h>
 
 #include "kis_abstract_input_action.h"
 #include "kis_tool_invocation_action.h"

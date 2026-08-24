@@ -77,7 +77,7 @@
 #include "kis_layer_properties_icons.h"
 #include "nodes/kis_node_view_color_scheme.h"
 #include "KisMirrorAxisConfig.h"
-#include <kis_cursor_override_hijacker.h>
+#include <events/kis_cursor_override_hijacker.h>
 
 /*
   Color model id comparison through the ages:

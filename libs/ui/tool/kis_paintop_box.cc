@@ -54,14 +54,14 @@
 #include "workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include <KisPaintResourceServerProvider.h>
-#include "kis_favorite_resource_manager.h"
+#include "resources/kis_favorite_resource_manager.h"
 #include "application/kis_config.h"
 #include "kis_image_config.h"
 
 #include "KisPopupButton.h"
 #include "widgets/kis_iconwidget.h"
 #include <kis_tool_options_popup.h>
-#include <KisUiFont.h>
+#include <theme/KisUiFont.h>
 #include "widgets/kis_paintop_presets_editor.h"
 #include "widgets/kis_paintop_presets_chooser_popup.h"
 #include "widgets/kis_workspace_chooser.h"

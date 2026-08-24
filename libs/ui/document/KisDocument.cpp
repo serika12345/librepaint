@@ -124,7 +124,7 @@
 
 #include <mutex>
 #include "kis_config_notifier.h"
-#include "kis_async_action_feedback.h"
+#include "events/kis_async_action_feedback.h"
 #include "document/KisCloneDocumentStroke.h"
 
 #include <kis_algebra_2d.h>

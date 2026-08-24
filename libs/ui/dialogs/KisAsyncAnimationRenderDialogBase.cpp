@@ -14,7 +14,7 @@
 #include <QTime>
 #include <QList>
 #include <QtMath>
-#include <kis_async_action_feedback.h>
+#include <events/kis_async_action_feedback.h>
 
 #include <klocalizedstring.h>
 

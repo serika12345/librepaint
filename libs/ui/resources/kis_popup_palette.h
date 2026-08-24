@@ -16,7 +16,7 @@
 #include "kis_tool_button.h"
 #include "KisHighlightedToolButton.h"
 #include "KisColorSelectorInterface.h"
-#include "KisPopupWidgetInterface.h"
+#include "events/KisPopupWidgetInterface.h"
 
 class KisFavoriteResourceManager;
 class QWidget;

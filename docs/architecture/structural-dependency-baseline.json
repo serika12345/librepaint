@@ -492,28 +492,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisImportExportColorSpaceDialog.cpp",
-          "include": "KisImportExportColorSpaceDialog.h",
-          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisImportExportResizeWidget.cpp",
-          "include": "KisImportExportResizeWidget.h",
-          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
           "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
           "include": "kis_clipboard.h",
           "headerPath": "libs/impex/ui/kis_clipboard.h",
@@ -759,6 +737,28 @@
           "sourcePath": "libs/ui/document/kis_image_manager.cc",
           "include": "kis_import_catcher.h",
           "headerPath": "libs/impex/ui/kis_import_catcher.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/impex/KisImportExportColorSpaceDialog.cpp",
+          "include": "KisImportExportColorSpaceDialog.h",
+          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/impex/KisImportExportResizeWidget.cpp",
+          "include": "KisImportExportResizeWidget.h",
+          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "import-export",
           "sourceAttribution": "classified-class-path",
@@ -1075,28 +1075,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisImportExportColorSpaceDialog.cpp",
-          "include": "KisImportExportColorSpaceDialog.h",
-          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisImportExportResizeWidget.cpp",
-          "include": "KisImportExportResizeWidget.h",
-          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
           "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
           "include": "kis_clipboard.h",
           "headerPath": "libs/impex/ui/kis_clipboard.h",
@@ -1342,6 +1320,28 @@
           "sourcePath": "libs/ui/document/kis_image_manager.cc",
           "include": "kis_import_catcher.h",
           "headerPath": "libs/impex/ui/kis_import_catcher.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpexui",
+          "sourcePath": "libs/ui/impex/KisImportExportColorSpaceDialog.cpp",
+          "include": "KisImportExportColorSpaceDialog.h",
+          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpexui",
+          "sourcePath": "libs/ui/impex/KisImportExportResizeWidget.cpp",
+          "include": "KisImportExportResizeWidget.h",
+          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "import-export",
           "sourceAttribution": "classified-class-path",
@@ -1993,7 +1993,7 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
+          "sourcePath": "libs/ui/resources/kis_favorite_resource_manager.cpp",
           "include": "KisPaintResourceServerProvider.h",
           "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
           "sourceResponsibility": "tool-invocation",
@@ -2323,7 +2323,7 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatoolsui",
-          "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
+          "sourcePath": "libs/ui/resources/kis_favorite_resource_manager.cpp",
           "include": "KisPaintResourceServerProvider.h",
           "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
           "sourceResponsibility": "tool-invocation",
@@ -3348,7 +3348,7 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
+          "sourcePath": "libs/ui/resources/kis_favorite_resource_manager.cpp",
           "include": "KisPaintResourceServerProvider.h",
           "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
           "sourceResponsibility": "tool-invocation",
@@ -3678,7 +3678,7 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatoolsui",
-          "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
+          "sourcePath": "libs/ui/resources/kis_favorite_resource_manager.cpp",
           "include": "KisPaintResourceServerProvider.h",
           "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
           "sourceResponsibility": "tool-invocation",
@@ -3848,28 +3848,6 @@
         }
       ],
       "directIncludes": [
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisImportExportColorSpaceDialog.cpp",
-          "include": "KisImportExportColorSpaceDialog.h",
-          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/KisImportExportResizeWidget.cpp",
-          "include": "KisImportExportResizeWidget.h",
-          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimpex",
@@ -4118,6 +4096,28 @@
           "sourcePath": "libs/ui/document/kis_image_manager.cc",
           "include": "kis_import_catcher.h",
           "headerPath": "libs/impex/ui/kis_import_catcher.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/impex/KisImportExportColorSpaceDialog.cpp",
+          "include": "KisImportExportColorSpaceDialog.h",
+          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpex",
+          "sourcePath": "libs/ui/impex/KisImportExportResizeWidget.cpp",
+          "include": "KisImportExportResizeWidget.h",
+          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "import-export",
           "sourceAttribution": "classified-class-path",
@@ -4434,28 +4434,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisImportExportColorSpaceDialog.cpp",
-          "include": "KisImportExportColorSpaceDialog.h",
-          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/KisImportExportResizeWidget.cpp",
-          "include": "KisImportExportResizeWidget.h",
-          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
           "sourcePath": "libs/ui/actions/KisPasteActionFactories.cpp",
           "include": "kis_clipboard.h",
           "headerPath": "libs/impex/ui/kis_clipboard.h",
@@ -4701,6 +4679,28 @@
           "sourcePath": "libs/ui/document/kis_image_manager.cc",
           "include": "kis_import_catcher.h",
           "headerPath": "libs/impex/ui/kis_import_catcher.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpexui",
+          "sourcePath": "libs/ui/impex/KisImportExportColorSpaceDialog.cpp",
+          "include": "KisImportExportColorSpaceDialog.h",
+          "headerPath": "libs/impex/ui/KisImportExportColorSpaceDialog.h",
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "import-export",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimpexui",
+          "sourcePath": "libs/ui/impex/KisImportExportResizeWidget.cpp",
+          "include": "KisImportExportResizeWidget.h",
+          "headerPath": "libs/impex/ui/KisImportExportResizeWidget.h",
           "sourceResponsibility": "document-lifecycle",
           "dependencyResponsibility": "import-export",
           "sourceAttribution": "classified-class-path",
@@ -5538,8 +5538,8 @@
       "ownerTarget": "kritaui",
       "owner": "R1-G6",
       "reason": "External packages directly include UI headers without a declared KRITAUI_EXPORT public contract.",
-      "maximumHeaders": 6,
-      "maximumDirectReferences": 13,
+      "maximumHeaders": 2,
+      "maximumDirectReferences": 2,
       "removalCondition": "Each reference uses a reviewed public UI contract or moves behind the owning UI package boundary.",
       "sourceDirectory": "libs/ui",
       "platforms": [
@@ -5551,40 +5551,9 @@
       ],
       "headers": [
         {
-          "path": "libs/ui/KisPopupWidgetInterface.h",
-          "consumerPaths": [
-            "libs/input/ui/KisPopupWidgetAction.h",
-            "plugins/extensions/iostouchui/iostouchui.cpp",
-            "plugins/tools/karbonplugins/tools/CalligraphyTool/KarbonCalligraphyTool.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/canvas/kis_qpainter_canvas.h",
           "consumerPaths": [
             "libs/input/ui/KisQtWidgetsTweaker.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_cursor_override_hijacker.h",
-          "consumerPaths": [
-            "plugins/impex/heightmap/kis_heightmap_import.cpp",
-            "plugins/impex/libkra/kis_kra_loader.cpp",
-            "plugins/impex/pdf/kis_pdf_import.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_favorite_resource_manager.h",
-          "consumerPaths": [
-            "libs/input/ui/KisPopupWidgetAction.cpp",
-            "libs/input/ui/kis_input_manager.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_popup_palette.h",
-          "consumerPaths": [
-            "libs/input/ui/KisPopupWidgetAction.cpp",
-            "libs/input/ui/kis_input_manager_p.cpp",
-            "plugins/extensions/spensettings/SPenSettings.cpp"
           ]
         },
         {

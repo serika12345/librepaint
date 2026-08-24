@@ -46,7 +46,7 @@
 #include "kis_transaction.h"
 #include "kis_algebra_2d.h"
 #include <KisAdaptedLock.h>
-#include <kis_async_action_feedback.h>
+#include <events/kis_async_action_feedback.h>
 #include <KisScreenMigrationTracker.h>
 #include <kis_config_notifier.h>
 

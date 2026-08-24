@@ -71,7 +71,7 @@
     "libs/ui/dialogs/kis_dlg_layer_style.cpp": 1595,
     "libs/ui/dialogs/kis_dlg_preferences.cc": 3327,
     "libs/ui/document/KisDocument.cpp": 3022,
-    "libs/ui/kis_popup_palette.cpp": 1603,
+    "libs/ui/resources/kis_popup_palette.cpp": 1603,
     "libs/ui/nodes/kis_layer_manager.cc": 1156,
     "libs/ui/nodes/kis_node_manager.cpp": 1739,
     "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp": 1138,

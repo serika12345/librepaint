@@ -39,7 +39,7 @@
 #include <kis_image.h>
 #include <kis_paint_layer.h>
 #include <kis_transaction.h>
-#include <kis_cursor_override_hijacker.h>
+#include <events/kis_cursor_override_hijacker.h>
 
 // plugins's headers
 #include "kis_pdf_import_widget.h"

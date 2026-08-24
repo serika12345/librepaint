@@ -28,6 +28,9 @@ APPLICATION_WORKSPACE_TOOL_UI_RELOCATION_INVENTORY_PATH = (
     REPO_ROOT
     / "docs/architecture/application-workspace-tool-ui-relocations.json"
 )
+REMAINING_UI_ROOT_RELOCATION_INVENTORY_PATH = (
+    REPO_ROOT / "docs/architecture/remaining-ui-root-relocations.json"
+)
 GRAPH_DIRECTORY = REPO_ROOT / "docs/architecture"
 SPEC = importlib.util.spec_from_file_location(
     "check_public_surface_inventory", SCRIPT_PATH
@@ -635,6 +638,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 APPLICATION_WORKSPACE_TOOL_UI_RELOCATION_INVENTORY_PATH
             )
         )
+        remaining_root_inventory = (
+            check_public_surface_inventory.load_ui_placement_relocation_inventory(
+                REMAINING_UI_ROOT_RELOCATION_INVENTORY_PATH
+            )
+        )
 
         check_public_surface_inventory.validate_ui_placement_relocations(
             repository_root=REPO_ROOT,
@@ -645,6 +653,28 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_inventory["relocations"]), 51)
         self.assertEqual(
             len(application_workspace_tool_inventory["relocations"]), 74
+        )
+        self.assertEqual(len(remaining_root_inventory["relocations"]), 43)
+        self.assertEqual(
+            remaining_root_inventory["reviewedBuildExceptions"],
+            [
+                {
+                    "path": "libs/ui/resources/kis_md5_generator.cpp",
+                    "reason": "The implementation has no declaration header or consumer in the repository, includes the absent kis_md5_generator.h header, and is not registered in the kritaui CMake source list; relocation preserves this current orphaned non-build state.",
+                    "owner": "resource-presentation",
+                    "trackedRoadmapItem": "R1-G7",
+                    "maximumFiles": 1,
+                    "removalCondition": "R1-G7 resolves the orphan by establishing a complete declaration and live consumer before CMake registration or by removing the unused implementation.",
+                }
+            ],
+        )
+        self.assertEqual(
+            {
+                path.name
+                for path in (REPO_ROOT / "libs/ui").iterdir()
+                if path.is_file()
+            },
+            {"CMakeLists.txt", "kritaui_export_instance.h"},
         )
         document_destinations = {
             entry["to"] for entry in document_inventory["relocations"]

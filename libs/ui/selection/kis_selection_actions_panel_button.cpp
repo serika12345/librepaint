@@ -6,7 +6,7 @@
 
 #include "selection/kis_selection_actions_panel_button.h"
 
-#include "KisLongPressEventFilter.h"
+#include "events/KisLongPressEventFilter.h"
 #include "kis_icon_utils.h"
 #include <qapplication.h>
 #include <qevent.h>

@@ -26,7 +26,7 @@
 #include <application/kis_config.h>
 #include <kis_icon.h>
 #include <kis_image.h>
-#include <kis_popup_palette.h>
+#include <resources/kis_popup_palette.h>
 #include <kis_tool_canvas_utils.h>
 #include <kis_tool_utils.h>
 

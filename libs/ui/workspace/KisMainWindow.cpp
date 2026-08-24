@@ -137,7 +137,7 @@
 #include "workspace/kis_statusbar.h"
 #include "workspace/KisView.h"
 #include "workspace/KisViewManager.h"
-#include "thememanager.h"
+#include "theme/thememanager.h"
 #include "kis_animation_importer.h"
 #include "dialogs/kis_dlg_import_image_sequence.h"
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
@@ -146,7 +146,7 @@
 #include <KisImageConfigNotifier.h>
 #include <kis_image_config.h>
 #include "workspace/KisWindowLayoutManager.h"
-#include <KisUndoActionsUpdateManager.h>
+#include <actions/KisUndoActionsUpdateManager.h>
 #include "workspace/KisWelcomePageWidget.h"
 #include "KisRecentDocumentsModelWrapper.h"
 #include <KritaVersionWrapper.h>
@@ -154,7 +154,7 @@
 #include "application/kis_action.h"
 #include <katecommandbar.h>
 #include "nodes/KisNodeActivationActionCreatorVisitor.h"
-#include "KisUiFont.h"
+#include "theme/KisUiFont.h"
 #include <KisResourceUserOperations.h>
 #include "KisRecentFilesManager.h"
 #include "KisWidgetConnectionUtils.h"

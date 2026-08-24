@@ -8,7 +8,7 @@
 
 #include <KisDockerHud.h>
 #include <workspace/KisMainWindow.h>
-#include <KisPopupWidgetInterface.h>
+#include <events/KisPopupWidgetInterface.h>
 #include <KisResourceModel.h>
 #include <KisResourceTypes.h>
 #include <workspace/KisViewManager.h>

@@ -30,7 +30,7 @@
 #include "kis_color_label_selector_widget.h"
 #include "nodes/kis_node_view_color_scheme.h"
 
-#include "KisMouseClickEater.h"
+#include "events/KisMouseClickEater.h"
 #include "KisPopupSelfActivatingLineEdit.h"
 
 KisLayerFilterWidget::KisLayerFilterWidget(QWidget *parent) : QWidget(parent)

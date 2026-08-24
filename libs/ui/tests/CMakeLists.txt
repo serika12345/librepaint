@@ -17,6 +17,7 @@ kis_add_tests(
     TestCanvasUiPublicHeaders.cpp
     TestDocumentStateUiPublicHeaders.cpp
     TestApplicationWorkspaceToolUiPublicHeaders.cpp
+    TestRemainingUiRootPublicHeaders.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp
     LINK_LIBRARIES kritaui kritalibkis kritatestsdk

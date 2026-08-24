@@ -93,18 +93,18 @@ set(kritaui_LIB_SRCS
     tool/kis_bookmarked_filter_configurations_model.cc
     animation/KisPlaybackEngine.cpp
     animation/KisPlaybackEngineQT.cpp
-    KisPresetShadowUpdater.cpp
+    resources/KisPresetShadowUpdater.cpp
     canvas/kis_canvas_resource_provider.cpp
-    kis_derived_resources.cpp
+    resources/kis_derived_resources.cpp
     application/kis_config.cc
-    kis_control_frame.cpp
+    resources/kis_control_frame.cpp
     canvas/KisDisplayConfig.cpp
-    kis_custom_pattern.cc
+    resources/kis_custom_pattern.cc
     document/kis_file_layer.cpp
     document/kis_change_file_layer_command.h
     workspace/kis_splash_screen.cpp
     document/kis_filter_manager.cc
-    kis_filters_model.cc
+    resources/kis_filters_model.cc
     document/kis_image_manager.cc
     canvas/kis_image_view_converter.cpp
     nodes/kis_layer_manager.cc
@@ -127,16 +127,16 @@ set(kritaui_LIB_SRCS
     selection/kis_selection_actions_panel_button.cpp
     canvas/KisDecorationsManager.cpp
     tool/kis_paintop_box.cc
-    kis_popup_palette.cpp
+    resources/kis_popup_palette.cpp
     workspace/kis_preference_set_registry.cpp
     application/KisResourceServerProvider.cpp
-    KisSelectedShapesProxy.cpp
+    flake/KisSelectedShapesProxy.cpp
     canvas/kis_selection_decoration.cc
     selection/kis_selection_manager.cc
     selection/KisSelectionActionsAdapter.cpp
     workspace/kis_statusbar.cc
     canvas/kis_zoom_manager.cc
-    kis_favorite_resource_manager.cpp
+    resources/kis_favorite_resource_manager.cpp
     workspace/kis_workspace_resource.cpp
     application/kis_action.cpp
     application/kis_action_manager.cpp
@@ -144,12 +144,12 @@ set(kritaui_LIB_SRCS
     canvas/kis_canvas_controls_manager.cpp
     nodes/kis_multinode_property.cpp
     workspace/KisWelcomePageWidget.cpp
-    KisUiFont.cpp
+    theme/KisUiFont.cpp
     canvas/KisIdleTasksManager.cpp
     canvas/KisIdleTaskStrokeStrategy.cpp
     canvas/KisImageThumbnailStrokeStrategy.cpp
     document/KisTextPropertiesManager.cpp
-    KisLongPressEventFilter.cpp
+    events/KisLongPressEventFilter.cpp
 
     opengl/kis_opengl.cpp
     opengl/kis_opengl_canvas2.cpp
@@ -292,8 +292,8 @@ set(kritaui_LIB_SRCS
     actions/KisTransformToolActivationCommand.cpp
     actions/KisLayerSelectionAction.cpp
     animation/KisFrameDisplayProxy.cpp
-    kis_gui_context_command.cpp
-    kis_gui_context_command_p.cpp
+    events/kis_gui_context_command.cpp
+    events/kis_gui_context_command_p.cpp
     processing/fill_processing_visitor.cpp
     processing/KisEncloseAndFillProcessingVisitor.cpp
     canvas/kis_mirror_axis.cpp
@@ -311,11 +311,11 @@ set(kritaui_LIB_SRCS
     application/KisApplication.cpp
     workspace/KisDetailsPane.cpp
     document/KisDocument.cpp
-    KisImportExportColorSpaceDialog.cpp
-    KisImportExportResizeWidget.cpp
+    impex/KisImportExportColorSpaceDialog.cpp
+    impex/KisImportExportResizeWidget.cpp
     document/KisCloneDocumentStroke.cpp
     nodes/kis_node_view_color_scheme.cpp
-    kis_async_action_feedback.cpp
+    events/kis_async_action_feedback.cpp
     workspace/KisMainWindow.cpp
     workspace/KisOpenPane.cpp
     application/KisPart.cpp
@@ -325,11 +325,11 @@ set(kritaui_LIB_SRCS
     workspace/KisTemplates.cpp
     workspace/KisTemplatesPane.cpp
     workspace/KisTemplateTree.cpp
-    KisUndoActionsUpdateManager.cpp
+    actions/KisUndoActionsUpdateManager.cpp
     workspace/KisView.cpp
     workspace/KisCanvasWindow.cpp
 
-    thememanager.cpp
+    theme/thememanager.cpp
 
     workspace/kis_mainwindow_observer.cpp
     workspace/KisViewManager.cpp
@@ -349,7 +349,7 @@ set(kritaui_LIB_SRCS
     canvas/KisReferenceImage.cpp
     flake/KisReferenceImagesLayer.cpp
     flake/KisReferenceImagesLayer.h
-    KisMouseClickEater.cpp
+    events/KisMouseClickEater.cpp
 
     canvas/KisDecorationsWrapperLayer.cpp
 
@@ -405,7 +405,7 @@ endif()
 if(APPLE AND NOT IOS)
     set(kritaui_LIB_SRCS
         ${kritaui_LIB_SRCS}
-        osx.mm
+        platform/osx.mm
     )
 endif()
 
@@ -526,8 +526,8 @@ endif()
 
 target_sources(kritaui
   PRIVATE
-    kis_abstract_resources.h
-    kis_abstract_resources.cpp
+    resources/kis_abstract_resources.h
+    resources/kis_abstract_resources.cpp
 )
 generate_export_header(kritaui BASE_NAME kritaui)
 
@@ -674,5 +674,5 @@ install(TARGETS kritaui  ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 
 if (APPLE AND NOT IOS)
-    install(FILES osx.stylesheet DESTINATION ${KDE_INSTALL_DATADIR}/krita)
+    install(FILES platform/osx.stylesheet DESTINATION ${KDE_INSTALL_DATADIR}/krita)
 endif ()

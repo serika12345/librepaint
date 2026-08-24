@@ -142,7 +142,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
                 "libs/ui/dialogs/kis_dlg_layer_style.cpp",
                 "libs/ui/dialogs/kis_dlg_preferences.cc",
                 "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
-                "libs/ui/kis_favorite_resource_manager.cpp",
+                "libs/ui/resources/kis_favorite_resource_manager.cpp",
                 "libs/ui/tool/kis_tool_freehand_helper.cpp",
                 "libs/ui/tool/kis_tool_freehand_helper.h",
                 "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",

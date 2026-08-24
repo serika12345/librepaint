@@ -48,7 +48,7 @@
 #include "application/KisApplicationArguments.h"
 #include "document/KisDocument.h"
 #include "application/KisPart.h"
-#include "KisUiFont.h"
+#include "theme/KisUiFont.h"
 #include "input/ui/KisQtWidgetsTweaker.h"
 #include "workspace/kis_splash_screen.h"
 #include "config-qt-patches-present.h"
