@@ -9,7 +9,6 @@
 #include "ui_kis_input_configuration_page.h"
 
 #include <QDebug>
-#include <QDir>
 #include <QMap>
 
 #include "input/ui/kis_input_profile_manager.h"
@@ -20,7 +19,6 @@
 #include "kis_edit_profiles_dialog.h"
 #include "kis_input_profile_model.h"
 #include "kis_input_configuration_page_item.h"
-#include <KoResourcePaths.h>
 #include <kis_config.h>
 #include <kis_signals_blocker.h>
 
@@ -157,19 +155,9 @@ void KisInputConfigurationPage::setDefaults()
 {
     KisSignalsBlocker(ui->profileComboBox, KisInputProfileManager::instance());
 
-    QDir profileDir(KoResourcePaths::saveLocation("data", "input/", false));
     KisConfig(false).setCurrentInputProfile("LibrePaint Default");
-
-    if (profileDir.exists()) {
-        QStringList entries = profileDir.entryList(QStringList() << "*.profile", QDir::Files | QDir::NoDotAndDotDot);
-        Q_FOREACH(const QString & file, entries) {
-            profileDir.remove(file);
-        }
-
-        KisInputProfileManager::instance()->loadProfiles();
-        changeCurrentProfile("LibrePaint Default");
-        KisInputProfileManager::instance()->setCurrentProfile(KisInputProfileManager::instance()->profile("LibrePaint Default"));
-    }
+    KisInputProfileManager::instance()->resetAll();
+    changeCurrentProfile("LibrePaint Default");
     ui->profileComboBox->setCurrentItem("LibrePaint Default");
 }
 

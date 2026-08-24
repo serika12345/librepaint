@@ -27,7 +27,7 @@
     {
       "name": "FillProcessingVisitorTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/input/ui/tests",
+      "sourceDirectory": "libs/ui/tests",
       "dependencies": [
         "kritatestsdk",
         "kritaui"
@@ -302,7 +302,7 @@
     {
       "name": "KisInputManagerTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/input/ui/tests",
       "dependencies": [
         "kritatestsdk",
         "kritaui"
@@ -4747,8 +4747,6 @@
         "kritacanvas",
         "kritaflake",
         "kritainput",
-        "kritaresources",
-        "kritaresourceui",
         "kritatools",
         "kritatoolsui",
         "kritaversion",

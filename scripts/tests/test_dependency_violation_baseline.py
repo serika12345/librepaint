@@ -64,13 +64,13 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             baseline["scope"],
             "r1-g4a-confirmed-reverse-dependency-baseline",
         )
-        self.assertEqual(len(baseline["violations"]), 2)
+        self.assertEqual(len(baseline["violations"]), 1)
         self.assertEqual(
             sum(
                 len(entry["directIncludes"])
                 for entry in baseline["violations"]
             ),
-            78,
+            75,
         )
         self.assertEqual(len(baseline["unresolvedProjections"]), 0)
         by_pair = {
@@ -92,6 +92,7 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             self.assertTrue(entry["removalCondition"])
         self.assertNotIn(("canvas-presentation", "input-interpretation"), by_pair)
         self.assertNotIn(("input-interpretation", "painting-rendering"), by_pair)
+        self.assertNotIn(("input-interpretation", "resource-management"), by_pair)
         self.assertNotIn(("tool-invocation", "input-interpretation"), by_pair)
 
     def test_missing_violation_pair_is_rejected(self) -> None:

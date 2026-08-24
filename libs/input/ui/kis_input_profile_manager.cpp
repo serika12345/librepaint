@@ -11,12 +11,13 @@
 #include <QMap>
 #include <QStringList>
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QGlobalStatic>
 #include <QRegularExpression>
 
 #include <algorithm>
 
-#include <KoResourcePaths.h>
 #include <kconfig.h>
 #include <kconfiggroup.h>
 
@@ -45,12 +46,17 @@ public:
 
     void createActions();
     QString profileFileName(const QString &profileName);
+    QStringList availableProfileFiles() const;
+    void rememberProfileFile(const QString &profileFile);
 
     KisInputProfile *currentProfile;
 
     QMap<QString, KisInputProfile *> profiles;
 
     QList<KisAbstractInputAction *> actions;
+
+    QStringList profileFiles;
+    QString profileStorageDirectory;
 };
 
 Q_GLOBAL_STATIC(KisInputProfileManager, inputProfileManager)
@@ -116,7 +122,7 @@ void KisInputProfileManager::removeProfile(const QString &name)
         d->profiles.remove(name);
 
         //Delete the settings file for the removed profile, if it exists
-        QDir userDir(KoResourcePaths::saveLocation("data", "input/"));
+        QDir userDir(d->profileStorageDirectory);
 
         if (userDir.exists(d->profileFileName(name))) {
             userDir.remove(d->profileFileName(name));
@@ -186,6 +192,13 @@ KisAbstractInputAction *KisInputProfileManager::action(const QString &id) const
     return found == d->actions.cend() ? nullptr : *found;
 }
 
+void KisInputProfileManager::setProfileLocations(const QStringList &profileFiles,
+                                                  const QString &profileStorageDirectory)
+{
+    d->profileFiles = profileFiles;
+    d->profileStorageDirectory = QDir::cleanPath(profileStorageDirectory) + QLatin1Char('/');
+}
+
 void KisInputProfileManager::loadProfiles()
 {
     //Remove any profiles that already exist
@@ -193,8 +206,8 @@ void KisInputProfileManager::loadProfiles()
     qDeleteAll(d->profiles);
     d->profiles.clear();
 
-    //Look up all profiles (this includes those installed to $prefix as well as the user's local data dir)
-    QStringList profiles = KoResourcePaths::findAllAssets("data", "input/*.profile", KoResourcePaths::Recursive);
+    // The application owner resolves installed and local resource locations before loading profiles.
+    const QStringList profiles = d->availableProfileFiles();
 
     dbgKrita << "profiles" << profiles;
 
@@ -240,7 +253,7 @@ void KisInputProfileManager::loadProfiles()
     }
 
     {
-        const QString userLocalSaveLocation = KoResourcePaths::saveLocation("data", "input/");
+        const QString userLocalSaveLocation = d->profileStorageDirectory;
         auto entriesIt = profileEntriesToMigrate.begin();
         while (entriesIt != profileEntriesToMigrate.end()) {
             ProfileEntry entry = *entriesIt;
@@ -272,12 +285,14 @@ void KisInputProfileManager::loadProfiles()
     }
 
     {
-        KisInputProfileMigrator5To6 migrator(this);
+        const QStringList defaultProfiles = profiles.filter(QStringLiteral("kritadefault.profile"));
+        const QString defaultProfile = defaultProfiles.isEmpty() ? QString() : defaultProfiles.last();
+        KisInputProfileMigrator5To6 migrator(this, defaultProfile);
         QMap<ProfileEntry, QList<KisShortcutConfiguration>> parsedProfilesToMigrate =
             migrator.migrate(profileEntriesToMigrate);
 
         for (ProfileEntry profileEntry : parsedProfilesToMigrate.keys()) {
-            const QString storagePath = KoResourcePaths::saveLocation("data", "input/", true);
+            const QString storagePath = d->profileStorageDirectory;
 
             {
                 // the profile we have here uses the previous config, the only thing we need to make sure is
@@ -361,9 +376,8 @@ void KisInputProfileManager::loadProfiles()
 
 void KisInputProfileManager::saveProfiles()
 {
-    QString storagePath = KoResourcePaths::saveLocation("data", "input/", true);
     Q_FOREACH(KisInputProfile * p, d->profiles) {
-        saveProfile(p, storagePath);
+        saveProfile(p, d->profileStorageDirectory);
     }
 
     KisConfig config(false);
@@ -393,6 +407,7 @@ void KisInputProfileManager::saveProfile(KisInputProfile *profile, QString stora
     }
 
     config.sync();
+    d->rememberProfileFile(profilePath);
 }
 
 QList<KisShortcutConfiguration *> KisInputProfileManager::getConflictingShortcuts(KisInputProfile *profile)
@@ -416,14 +431,11 @@ QList<KisShortcutConfiguration *> KisInputProfileManager::getConflictingShortcut
 
 void KisInputProfileManager::resetAll()
 {
-    QString kdeHome = KoResourcePaths::getAppDataLocation();
-    QStringList profiles = KoResourcePaths::findAllAssets("data", "input/*", KoResourcePaths::Recursive);
-
-    Q_FOREACH (const QString &profile, profiles) {
-        if(profile.contains(kdeHome)) {
-            //This is a local file, remove it.
-            QFile::remove(profile);
-        }
+    QDir profileDirectory(d->profileStorageDirectory);
+    const QStringList localProfiles =
+        profileDirectory.entryList({QStringLiteral("*.profile")}, QDir::Files | QDir::NoDotAndDotDot);
+    for (const QString &profile : localProfiles) {
+        profileDirectory.remove(profile);
     }
 
     //Load the profiles again, this should now only load those shipped with Krita.
@@ -467,4 +479,24 @@ QString KisInputProfileManager::Private::profileFileName(const QString &profileN
 {
     QRegularExpression reg("[^a-z0-9]");
     return profileName.toLower().remove(reg).append(".profile");
+}
+
+QStringList KisInputProfileManager::Private::availableProfileFiles() const
+{
+    QStringList availableFiles;
+    for (const QString &profileFile : profileFiles) {
+        const QString cleanPath = QDir::cleanPath(profileFile);
+        if (QFileInfo::exists(cleanPath) && !availableFiles.contains(cleanPath)) {
+            availableFiles.append(cleanPath);
+        }
+    }
+    return availableFiles;
+}
+
+void KisInputProfileManager::Private::rememberProfileFile(const QString &profileFile)
+{
+    const QString cleanPath = QDir::cleanPath(profileFile);
+    if (!profileFiles.contains(cleanPath)) {
+        profileFiles.prepend(cleanPath);
+    }
 }

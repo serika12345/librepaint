@@ -135,7 +135,7 @@ include元で解決する。
 | `canvas-presentation` | `kritabasicflakes`、`kritacanvas`、`kritaflake`、`kritaui` | 座標変換、キャンバス表示、ベクター表示、ドッカー |
 | `document-lifecycle` | `kritadocument`、`kritadocumentfiles`、`kritadocumentui`、`kritaui` | 文書寿命、変更状態、保存用ファイル、取り消し履歴、文書調整 |
 | `import-export` | `kritaimpex`、`kritaimpexui` | 形式選択、検証、文書入出力、利用者への結果通知 |
-| `input-interpretation` | `kritaui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
+| `input-interpretation` | `kritainput`、`kritainputui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
 | `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
 | `plugin-infrastructure` | `kritaplugin` | メタデータ探索、ファクトリーとサービス種別の登録 |
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
@@ -184,20 +184,19 @@ R1-G3bで定義する許可依存方向の比較元になる。
 ### 確認済み逆方向依存の基準
 
 [依存違反基準](dependency-violation-baseline.json)は、許可方向外の責務対を製品ソースの
-直接includeへ照合し、一意に責務へ帰属できる現在の2責務対を確認済み違反として記録する。
+直接includeへ照合し、一意に責務へ帰属できる現在の1責務対を確認済み違反として記録する。
 各項目は元のCMakeターゲット辺と5構成、全include根拠、審査済みの最大件数、所有する
 ロードマップ段階、現在必要な理由、除去条件を持つ。
 
 | 依存元 | 依存先 | 直接include上限 | 主な現在境界 |
 | --- | --- | ---: | --- |
 | アプリケーション調整 | 描画 | 75 | `kritaui`内の起動・共有サービスから画像、ブラシ、色処理 |
-| 入力解釈 | リソース管理 | 3 | 入力プロファイルの検索、保存場所、既定値復旧 |
 
 採取器は各対象ターゲットの記録済みソースディレクトリー以下から製品ソースを読み、試験経路を
 除外する。includeは依存先ヘッダーのパス末尾、またはリポジトリ内で一意なヘッダー名により
 解決する。責務は単一所有ターゲット、分類済み公開クラス、最長一致する責務ディレクトリーの
 順に決める。全件クラス台帳の範囲外にある審査済みソースは`reviewedSourcePaths`を根拠に
-一意に帰属する。この規則で78件の直接includeが現在の確認済み基準になる。
+一意に帰属する。この規則で75件の直接includeが現在の確認済み基準になる。
 
 入力アクション群とキャンバス単位のマスクは`libs/canvas/KisInputActionGroup.*`が所有する。
 `KisCanvas2`はキャンバスごとのマスク寿命、入力事象フィルターの接続、キャンバス部品変更通知を
@@ -208,6 +207,12 @@ R1-G3bで定義する許可依存方向の比較元になる。
 `libs/ui/dialogs/kis_dlg_preferences_input.cpp`がアプリケーション設定画面へ接続する。
 キャンバス表示から入力解釈、入力解釈から描画、ツール呼出しから入力解釈の直接include上限は
 各0件であり、未確定射影も0件である。
+
+入力プロファイルの配置はアプリケーション調整が解決する。`KisViewManager`が優先順を保持した
+プロファイルファイル一覧と利用者用の保存ディレクトリーを値として`KisInputProfileManager`へ渡す。
+プロファイル管理器はその値を検索、保存、削除、再読込、既定プロファイルへの復旧に用い、移行器には
+同じ一覧から選んだ既定プロファイルを渡す。`KisInputManagerTest`は利用者用プロファイルの優先、
+version 5から6への移行、保存、同梱既定プロファイルへの復旧を一時配置上で固定する。
 
 検査では現在件数が審査済み上限を超える変更を基準拡大として診断する。現在件数が減った場合も
 上限を同じ変更で縮小するまで診断する。根拠の置換は件数が同じでも生成差分として現れる。
@@ -585,7 +590,7 @@ R1-G6gの最初の単位では、`libs/ui/input`のショートカット照合�
 
 再配置計画は`kritaui`、大域C++識別子、UI再配置用includeの4経路に導入段階、R1-G7の所有者、
 最大範囲、削除条件、検証方法を割り当てる。計画検査は9責務と5構成の現行ターゲット、
-5種類123件の逆方向依存、9ヘッダー16件の内部参照を正本へ照合し、最終状態のゼロ上限を確認する。
+1種類75件の逆方向依存、8ヘッダー15件の内部参照を正本へ照合し、最終状態のゼロ上限を確認する。
 
 責務の中心は次の五つです。
 

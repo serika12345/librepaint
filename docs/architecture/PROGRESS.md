@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 00:52 JST
+- 更新日時: 2026-08-25 01:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6g入力解釈所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1594,14 +1594,35 @@
   clangdのinclude-cleaner検査は変更した21翻訳単位で不要includeと不足includeを報告していない。
   `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
 
+## R1-G6g入力プロファイル配置境界で完了した作業
+
+- `libs/ui/KisViewManager.cpp`がプロファイルの優先順付きファイル一覧と利用者用保存ディレクトリーを
+  解決し、既存の`KisInputProfileManager`へ値として渡す。プロファイル管理器は同じ値で読込、保存、
+  削除、再読込、既定値復旧を行い、移行器は一覧から選択済みの既定プロファイルを受け取る。
+- `libs/input/ui/KisInputProfileMigrator.cpp`、
+  `libs/input/ui/config/kis_input_configuration_page.cpp`、
+  `libs/input/ui/kis_input_profile_manager.cpp`から`KoResourcePaths.h`参照を除去した。
+  `kritainputui`から`kritaresources`と`kritaresourceui`への直接CMake依存も除去した。
+- `KisInputManagerTest::testProfileStorageLifecycle()`は、利用者用プロファイル優先、version 5から6への
+  移行と互換保存、編集後の保存、同梱既定プロファイルへの復旧を一時配置上で固定する。契約追加時は
+  `setProfileLocations()`が存在せずコンパイルで失敗し、実装後は1件のCTestが成功した。
+- 確認済み逆方向includeは入力解釈からリソース管理3件が0件となり、アプリケーション調整から
+  描画75件だけを残す1責務対75件へ縮小した。未確定射影0件、解決済み構造射影10件、
+  25中核所有ターゲットと全製品ターゲットの循環0件を維持する。
+- CMake台帳はmacOS 668件、Linux 683件、iOS 602件、Android 608件、Windows 638件、共通586件、
+  条件付き119件、構成差270件を維持する。macOSとiOSを実構成から再生成し、Linux、Android、
+  Windowsへ同じ無条件依存削除を同期した。
+- `kritainputui`と`kritaui`のmacOS構築、`KisInputManagerTest`は成功した。clangdのinclude-cleaner検査は
+  変更した5翻訳単位で不要includeと不足includeを報告していない。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+
 ## 次の操作
 
-`libs/input/ui/KisInputProfileMigrator.cpp`、
-`libs/input/ui/config/kis_input_configuration_page.cpp`、
-`libs/input/ui/kis_input_profile_manager.cpp`のプロファイル検索、保存場所、既定値復旧を
-ツール設定の具体所有へ移し、入力解釈からリソース管理3件を0件へ縮小する。入力依存が
-アプリケーション設定接続へ限定された状態で`kritainputui`を独立共有ライブラリーへ変更し、
-公開記号の利用元と5構成のCMake台帳を同期する。
+`kritainputui`の共有ライブラリー化に必要な既存UI接続を小さい所有単位へ分ける。
+`libs/input/ui/kis_input_manager.cpp`と入力アクション群が参照する`KisCanvas2`、`KisViewManager`、
+`KisConfig`、`kis_icon_utils`の具体操作を既存のキャンバス、ツール、アプリケーション設定所有へ
+値と具体操作として接続する。入力UI公開ヘッダーの`kritaui_export.h`を専用公開記号へ移行した後、
+`kritaui`から`kritainputui`への一方向リンクで独立共有ライブラリーを構築する。
 
 ## R1-G5完了根拠
 

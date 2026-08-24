@@ -9,6 +9,7 @@
 
 #include <QList>
 #include <QMap>
+#include <QString>
 
 class KisShortcutConfiguration;
 class KisInputProfileManager;
@@ -42,7 +43,7 @@ class KisInputProfileMigrator5To6 : public KisInputProfileMigrator
 {
 
 public:
-    KisInputProfileMigrator5To6(KisInputProfileManager *manager);
+    KisInputProfileMigrator5To6(KisInputProfileManager *manager, const QString &defaultProfile);
     ~KisInputProfileMigrator5To6() override;
 
     QMap<ProfileEntry, QList<KisShortcutConfiguration>>
@@ -58,7 +59,6 @@ private:
 
 private:
     KisInputProfileManager *m_manager;
-    QStringList m_profilesList;
     QString m_defaultProfile;
 };
 

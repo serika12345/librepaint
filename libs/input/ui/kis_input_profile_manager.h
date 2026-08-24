@@ -9,6 +9,7 @@
 #define KISINPUTPROFILEMANAGER_H
 
 #include <QObject>
+#include <QStringList>
 
 #include "kritaui_export.h"
 
@@ -104,6 +105,12 @@ public:
      * Resolve a persisted action identifier to its UI implementation.
      */
     KisAbstractInputAction *action(const QString &id) const;
+
+    /**
+     * Set the resolved profile files and writable directory used by profile operations.
+     */
+    void setProfileLocations(const QStringList &profileFiles,
+                             const QString &profileStorageDirectory);
 
     /**
      * Load all profiles from the configuration stored on disk.

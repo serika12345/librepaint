@@ -1009,40 +1009,6 @@
     },
     {
       "sourceTarget": "kritainputui",
-      "dependencyTarget": "kritaresources",
-      "sourceResponsibilities": [
-        "input-interpretation"
-      ],
-      "dependencyResponsibilities": [
-        "resource-management"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "resource-management",
-          "status": "requires-r1-g4-baseline"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritainputui",
-      "dependencyTarget": "kritaresourceui",
-      "sourceResponsibilities": [
-        "input-interpretation"
-      ],
-      "dependencyResponsibilities": [
-        "resource-management"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "resource-management",
-          "status": "requires-r1-g4-baseline"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritainputui",
       "dependencyTarget": "kritatools",
       "sourceResponsibilities": [
         "input-interpretation"

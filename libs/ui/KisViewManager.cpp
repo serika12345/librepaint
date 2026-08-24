@@ -328,11 +328,10 @@ KisViewManager::KisViewManager(QWidget *parent, KisKActionCollection *_actionCol
 
     connect(KisConfigNotifier::instance(), SIGNAL(configChanged()), SLOT(slotUpdateAuthorProfileActions()));
     connect(KisConfigNotifier::instance(), SIGNAL(pixelGridModeChanged()), SLOT(slotUpdatePixelGridAction()));
-
     connect(KoToolManager::instance(), SIGNAL(createOpacityResource(bool, KoToolBase*)), SLOT(slotCreateOpacityResource(bool, KoToolBase*)));
-
+    KisInputProfileManager::instance()->setProfileLocations(
+        KoResourcePaths::findAllAssets("data", "input/*.profile", KoResourcePaths::Recursive), KoResourcePaths::saveLocation("data", "input/", true));
     KisInputProfileManager::instance()->loadProfiles();
-
     KisConfig cfg(true);
     d->showFloatingMessage = cfg.showCanvasMessages();
     const KoColorSpace *cs = KoColorSpaceRegistry::instance()->rgb8();

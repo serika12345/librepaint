@@ -9,6 +9,12 @@
 #include <simpletest.h>
 
 #include <QMouseEvent>
+#include <QDir>
+#include <QFileInfo>
+#include <QTemporaryDir>
+
+#include <KConfig>
+#include <KConfigGroup>
 
 #include <KisInputAction.h>
 #include <kis_single_action_shortcut.h>
@@ -16,6 +22,18 @@
 #include "input/ui/kis_abstract_input_action.h"
 #include "input/ui/kis_input_profile_manager.h"
 #include <kis_shortcut_matcher.h>
+
+namespace
+{
+void writeProfile(const QString &path, const QString &name, int version)
+{
+    KConfig config(path, KConfig::SimpleConfig);
+    KConfigGroup general = config.group(QStringLiteral("General"));
+    general.writeEntry(QStringLiteral("name"), name);
+    general.writeEntry(QStringLiteral("version"), version);
+    config.sync();
+}
+}
 
 void KisInputManagerTest::testProfileActionResolution()
 {
@@ -26,6 +44,41 @@ void KisInputManagerTest::testProfileActionResolution()
         QCOMPARE(manager->action(action->id()), action);
     }
     QVERIFY(!manager->action(QStringLiteral("unknown-input-action")));
+}
+
+void KisInputManagerTest::testProfileStorageLifecycle()
+{
+    QTemporaryDir temporaryDir;
+    QVERIFY(temporaryDir.isValid());
+
+    const QString installedDirectory = temporaryDir.filePath(QStringLiteral("installed"));
+    const QString localDirectory = temporaryDir.filePath(QStringLiteral("local"));
+    QVERIFY(QDir().mkpath(installedDirectory));
+    QVERIFY(QDir().mkpath(localDirectory));
+
+    const QString defaultProfile = installedDirectory + QStringLiteral("/kritadefault.profile");
+    const QString legacyProfile = localDirectory + QStringLiteral("/legacy.profile");
+    writeProfile(defaultProfile, QStringLiteral("LibrePaint Default"), PROFILE_VERSION);
+    writeProfile(legacyProfile, QStringLiteral("Migrated Profile"), PROFILE_VERSION - 1);
+
+    KisInputProfileManager manager;
+    manager.setProfileLocations({legacyProfile, defaultProfile}, localDirectory);
+    manager.loadProfiles();
+
+    QVERIFY(manager.profile(QStringLiteral("LibrePaint Default")));
+    QVERIFY(manager.profile(QStringLiteral("Migrated Profile")));
+    QVERIFY(QFileInfo::exists(localDirectory + QStringLiteral("/legacy5.profile")));
+    QVERIFY(QFileInfo::exists(localDirectory + QStringLiteral("/migratedprofile.profile")));
+
+    KisInputProfile *savedProfile = manager.addProfile(QStringLiteral("Saved Profile"));
+    manager.setCurrentProfile(savedProfile);
+    manager.saveProfiles();
+    QVERIFY(QFileInfo::exists(localDirectory + QStringLiteral("/savedprofile.profile")));
+
+    manager.resetAll();
+    QCOMPARE(manager.profileNames(), QStringList({QStringLiteral("LibrePaint Default")}));
+    QCOMPARE(manager.currentProfile(), manager.profile(QStringLiteral("LibrePaint Default")));
+    QCOMPARE(QDir(localDirectory).entryList({QStringLiteral("*.profile")}, QDir::Files), QStringList());
 }
 
 

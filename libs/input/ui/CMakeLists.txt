@@ -88,8 +88,6 @@ target_link_libraries(kritainputui
         kritaversion
         kritawidgets
         kritawidgetutils
-        kritaresources
-        kritaresourceui
         kritatools
         kritatoolsui
         kritacanvas

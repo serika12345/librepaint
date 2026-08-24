@@ -758,67 +758,6 @@
           "dependencyAttribution": "unique-owner-target"
         }
       ]
-    },
-    {
-      "sourceResponsibility": "input-interpretation",
-      "dependencyResponsibility": "resource-management",
-      "owner": "R1-G6",
-      "reason": "Input classes inside kritaui currently read resource and preset state while translating device events.",
-      "maximumDirectIncludes": 3,
-      "removalCondition": "Tool invocation supplies the resource-backed interaction state required by input interpretation, reducing this direct-include set to zero.",
-      "targetLinks": [
-        {
-          "sourceTarget": "kritainputui",
-          "dependencyTarget": "kritaresources",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        },
-        {
-          "sourceTarget": "kritainputui",
-          "dependencyTarget": "kritaresourceui",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        }
-      ],
-      "directIncludes": [
-        {
-          "sourceTarget": "kritainputui",
-          "dependencyTarget": "kritaresources",
-          "sourcePath": "libs/input/ui/KisInputProfileMigrator.cpp",
-          "include": "KoResourcePaths.h",
-          "headerPath": "libs/resources/KoResourcePaths.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritainputui",
-          "dependencyTarget": "kritaresources",
-          "sourcePath": "libs/input/ui/config/kis_input_configuration_page.cpp",
-          "include": "KoResourcePaths.h",
-          "headerPath": "libs/resources/KoResourcePaths.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritainputui",
-          "dependencyTarget": "kritaresources",
-          "sourcePath": "libs/input/ui/kis_input_profile_manager.cpp",
-          "include": "KoResourcePaths.h",
-          "headerPath": "libs/resources/KoResourcePaths.h",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "unique-owner-target"
-        }
-      ]
     }
   ],
   "unresolvedProjections": []
