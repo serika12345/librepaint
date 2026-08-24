@@ -9994,21 +9994,6 @@
           ]
         },
         {
-          "path": "libs/ui/kis_aspect_ratio_locker.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/griddocker/grid_config_widget.cpp",
-            "plugins/paintops/libpaintop/kis_auto_brush_widget.cpp",
-            "plugins/paintops/spray/KisSprayShapeOptionWidget.cpp",
-            "plugins/tools/basictools/kis_tool_brush.cc",
-            "plugins/tools/basictools/kis_tool_multihand.cpp",
-            "plugins/tools/defaulttool/defaulttool/DefaultToolGeometryWidget.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/kis_bookmarked_configurations_editor.h",
           "publicationEvidence": [
             "export-macro"
@@ -10761,13 +10746,6 @@
             "plugins/tools/basictools/kis_tool_line.cc",
             "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
           ]
-        },
-        {
-          "path": "libs/ui/tool/kis_rectangle_constraint_widget.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/tool/kis_selection_tool_helper.h",

@@ -134,7 +134,7 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
 kis_add_library(kritalibpaintop SHARED ${kritalibpaintop_LIB_SRCS} )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 
-target_link_libraries(kritalibpaintop kritaui kritatoolsui kritalibbrush kritapainting kritawidgetutils)
+target_link_libraries(kritalibpaintop kritaui kritatoolsui kritalibbrush kritapainting kritawidgets kritawidgetutils)
 target_link_libraries(kritalibpaintop LINK_INTERFACE_LIBRARIES kritaui kritatoolsui kritalibbrush kritapainting)
 
 set_target_properties(kritalibpaintop PROPERTIES

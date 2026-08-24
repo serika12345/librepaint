@@ -151,7 +151,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 230)
+        self.assertEqual(len(ui_headers), 228)
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(painting_headers), 19)
@@ -372,6 +372,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertNotIn("libs/ui/kis_node_commands_adapter.h", ui_by_path)
         self.assertNotIn("libs/ui/kis_node_juggler_compressed.h", ui_by_path)
+        self.assertNotIn("libs/ui/kis_aspect_ratio_locker.h", ui_by_path)
+        self.assertNotIn(
+            "libs/ui/tool/kis_rectangle_constraint_widget.h", ui_by_path
+        )
         self.assertNotIn("libs/ui/tests/util.h", ui_by_path)
 
     def test_ui_top_level_class_discovery_is_complete(self) -> None:
@@ -382,7 +386,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 80)
+        self.assertEqual(len(classes), 79)
         self.assertEqual(
             by_name["KisApplication"],
             {
@@ -396,6 +400,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertNotIn("KisImportExportManager", by_name)
         self.assertNotIn("KisDocumentUndoStore", by_name)
         self.assertNotIn("KisNodeJugglerCompressed", by_name)
+        self.assertNotIn("KisAspectRatioLocker", by_name)
         self.assertEqual(
             by_name["KisAbstractPreferenceSetFactory"]["implementationPaths"],
             [],
@@ -410,10 +415,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 20)
+        self.assertEqual(len(classes), 19)
         self.assertNotIn("Data", by_name)
         self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertNotIn("NoopActivationPolicy", by_name)
+        self.assertNotIn("KisRectangleConstraintWidget", by_name)
         self.assertEqual(
             by_name["KisToolFreehand"]["implementationPaths"],
             ["libs/ui/tool/kis_tool_freehand.cc"],
@@ -429,7 +435,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 20)
+        self.assertEqual(len(inventory["classes"]), 19)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertNotIn("KisPaintingInformationBuilder", by_name)
         self.assertEqual(
@@ -451,10 +457,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             "stroke-generation",
         )
         self.assertNotIn("FreehandStrokeStrategy", by_name)
-        self.assertEqual(
-            by_name["KisRectangleConstraintWidget"]["responsibilityArea"],
-            "settings-presentation",
-        )
+        self.assertNotIn("KisRectangleConstraintWidget", by_name)
 
     def test_missing_ui_tool_class_responsibility_is_rejected(self) -> None:
         inventory = copy.deepcopy(self.load_ui_tool_class_inventory())
@@ -497,7 +500,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
-        self.assertEqual(len(inventory["classes"]), 80)
+        self.assertEqual(len(inventory["classes"]), 79)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisApplication"]["responsibilityArea"],
@@ -509,6 +512,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertNotIn("KisImportExportManager", by_name)
         self.assertNotIn("KisNodeCommandsAdapter", by_name)
         self.assertNotIn("KisNodeJugglerCompressed", by_name)
+        self.assertNotIn("KisAspectRatioLocker", by_name)
         self.assertNotIn(
             "import-export",
             {entry["responsibilityArea"] for entry in inventory["classes"]},
@@ -563,7 +567,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimpexui": 23,
                 "kritapainting": 19,
                 "kritatools": 17,
-                "kritaui": 230,
+                "kritaui": 228,
             },
         )
         self.assertEqual(

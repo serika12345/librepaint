@@ -87,7 +87,6 @@ set(kritaui_LIB_SRCS
     flake/kis_shape_selection_model.cpp
     flake/kis_take_all_shapes_command.cpp
 
-    kis_aspect_ratio_locker.cpp
     kis_bookmarked_configurations_editor.cc
     kis_bookmarked_configurations_model.cc
     kis_bookmarked_filter_configurations_model.cc
@@ -169,7 +168,6 @@ set(kritaui_LIB_SRCS
     kis_fps_decoration.cpp
 
     tool/kis_selection_tool_helper.cpp
-    tool/kis_rectangle_constraint_widget.cpp
     tool/kis_shape_tool_helper.cpp
     tool/kis_tool_freehand.cc
     tool/kis_painting_information_builder_adapters.cpp
@@ -506,7 +504,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     forms/wdgpresetselectorstrip.ui
     forms/wdgsavebrushpreset.ui
     forms/wdgpreseticonlibrary.ui
-    forms/wdgrectangleconstraints.ui
     forms/wdgimportimagesequence.ui
     forms/wdgstrokeselectionproperties.ui
     forms/KisDetailsPaneBase.ui

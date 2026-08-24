@@ -82,16 +82,6 @@
       "responsibilityArea": "input-interpretation"
     },
     {
-      "name": "KisRectangleConstraintWidget",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_rectangle_constraint_widget.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_rectangle_constraint_widget.cpp"
-      ],
-      "consumerPaths": [],
-      "responsibilityArea": "settings-presentation"
-    },
-    {
       "name": "KisSelectionToolHelper",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_selection_tool_helper.h",

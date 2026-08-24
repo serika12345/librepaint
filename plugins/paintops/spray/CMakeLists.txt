@@ -24,7 +24,7 @@ ki18n_wrap_ui(kritaspraypaintop_SOURCES wdgsprayoptions.ui wdgsprayshapeoptions.
 
 kis_add_library(kritaspraypaintop MODULE ${kritaspraypaintop_SOURCES})
 
-target_link_libraries(kritaspraypaintop kritalibpaintop)
+target_link_libraries(kritaspraypaintop kritalibpaintop kritawidgets)
 
 install(TARGETS kritaspraypaintop  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -33,4 +33,3 @@ install(TARGETS kritaspraypaintop  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
 install( FILES
     krita-spray.png DESTINATION ${KDE_INSTALL_DATADIR}/krita/images)
-

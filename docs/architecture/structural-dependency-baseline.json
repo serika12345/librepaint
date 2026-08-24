@@ -2041,6 +2041,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.cpp",
+          "include": "kis_rectangle_constraint_widget.h",
+          "headerPath": "libs/tools/ui/kis_rectangle_constraint_widget.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.h",
           "include": "kis_rectangle_interaction.h",
           "headerPath": "libs/tools/kis_rectangle_interaction.h",
@@ -2231,6 +2242,17 @@
           "sourcePath": "libs/ui/kis_paintop_box.cc",
           "include": "kis_tool_options_popup.h",
           "headerPath": "libs/tools/ui/kis_tool_options_popup.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatoolsui",
+          "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.cpp",
+          "include": "kis_rectangle_constraint_widget.h",
+          "headerPath": "libs/tools/ui/kis_rectangle_constraint_widget.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
@@ -3143,6 +3165,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.cpp",
+          "include": "kis_rectangle_constraint_widget.h",
+          "headerPath": "libs/tools/ui/kis_rectangle_constraint_widget.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.h",
           "include": "kis_rectangle_interaction.h",
           "headerPath": "libs/tools/kis_rectangle_interaction.h",
@@ -3333,6 +3366,17 @@
           "sourcePath": "libs/ui/kis_paintop_box.cc",
           "include": "kis_tool_options_popup.h",
           "headerPath": "libs/tools/ui/kis_tool_options_popup.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatoolsui",
+          "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.cpp",
+          "include": "kis_rectangle_constraint_widget.h",
+          "headerPath": "libs/tools/ui/kis_rectangle_constraint_widget.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",

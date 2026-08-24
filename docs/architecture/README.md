@@ -520,8 +520,15 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 並び替え、退避を下位UIだけで構築できるようにした。ドック用フォントは`libs/ui/kis_paintop_box.cc`が
 値として渡し、ポップアップボタン、キャンバス、操作アクションとの接続は`kritaui`に残る。
 
-次は`libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`を起点として、矩形制約の表示状態と設定往復を
-`libs/tools/ui`へ移し、矩形ツールとの信号接続をUI側へ残す。
+矩形制約表示は`kritatoolsui`が所有する。開始元の
+`libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`と`libs/ui/forms/wdgrectangleconstraints.ui`を
+同名の`libs/tools/ui`へ移し、ウィジェットは設定グループを受け取って制約値と角丸値を信号で返す。
+`libs/ui/tool/kis_tool_rectangle_base.cpp`が矩形状態、設定再読込、制約適用を接続し、下位UIは矩形ツールを
+参照しない。必要な汎用比率ロックは`libs/ui/kis_aspect_ratio_locker.{h,cpp}`から同名の`libs/widgets`へ
+移し、画像寸法、フィルター、描画設定の既存利用元も`kritawidgets`の公開面を使う。
+
+次は`libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を起点として、矩形と楕円の図形生成、登録済み図形が
+ない場合のパス生成を`libs/flake`へ移し、図形ツールからUI共有ターゲットへの依存を除く。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

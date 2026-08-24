@@ -4180,7 +4180,8 @@
         "kritabasicflakes",
         "kritapainting",
         "kritatools",
-        "kritaui"
+        "kritaui",
+        "kritawidgets"
       ]
     },
     {
@@ -4499,7 +4500,8 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/griddocker",
       "dependencies": [
-        "kritaui"
+        "kritaui",
+        "kritawidgets"
       ]
     },
     {
@@ -4902,6 +4904,7 @@
         "kritapainting",
         "kritatoolsui",
         "kritaui",
+        "kritawidgets",
         "kritawidgetutils"
       ]
     },
@@ -5567,7 +5570,8 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/paintops/spray",
       "dependencies": [
-        "kritalibpaintop"
+        "kritalibpaintop",
+        "kritawidgets"
       ]
     },
     {

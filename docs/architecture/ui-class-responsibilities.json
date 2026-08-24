@@ -134,15 +134,6 @@
       "responsibilityArea": "application-orchestration"
     },
     {
-      "name": "KisAspectRatioLocker",
-      "declarationKind": "class",
-      "header": "libs/ui/kis_aspect_ratio_locker.h",
-      "implementationPaths": [
-        "libs/ui/kis_aspect_ratio_locker.cpp"
-      ],
-      "responsibilityArea": "canvas-display"
-    },
-    {
       "name": "KisAsyncAnimationRendererBase",
       "declarationKind": "class",
       "header": "libs/ui/KisAsyncAnimationRendererBase.h",

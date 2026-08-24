@@ -75,6 +75,7 @@ set(kritawidgets_LIB_SRCS
 
     KisAngleGauge.cpp
     KisAngleSelector.cpp
+    kis_aspect_ratio_locker.cpp
 
     KisTagSelectionWidget.cpp
 

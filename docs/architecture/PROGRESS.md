@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 16:33 JST
+- 更新日時: 2026-08-24 17:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1366,12 +1366,35 @@
   `nix develop .#test --command ./scripts/verify`はmacOSの全342件のネイティブ試験に成功した。
   `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
   含む全Nix出力の評価に成功した。
+- `libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`と
+  `libs/ui/forms/wdgrectangleconstraints.ui`を同名の`libs/tools/ui`へ移し、矩形の寸法・比率制約、角丸表示、
+  角丸設定の保存と再読込を`kritatoolsui`へ集約した。ウィジェットは矩形ツールを保持せず、設定グループを
+  受け取って制約値と角丸値を信号で返す。`libs/ui/tool/kis_tool_rectangle_base.cpp`が矩形状態、設定再読込、
+  制約適用を接続し、旧配置と転送ヘッダーは残していない。
+- 移設に必要な汎用比率ロックを`libs/ui/kis_aspect_ratio_locker.{h,cpp}`から同名の`libs/widgets`へ移した。
+  画像寸法、複数整数フィルター、グリッド、ブラシ、スプレー、基本図形の各利用元は同じ公開型を使い、
+  直接利用する4製品ターゲットへ`kritawidgets`リンクを明示した。macOSとiOSのCMake台帳は実構成から
+  再生成し、Linux、Android、Windowsへ同じ無条件の4辺を同期した。
+- `TestToolSettingsUiContract`は角丸X/Y値、角丸比率ロック、角丸UIの表示可否、別ウィジェットへの
+  設定再読込を固定する。契約追加直後は`libs/tools/ui`に公開ヘッダーがなくコンパイル段階で失敗し、
+  実装後は1件のCTestが成功した。`kritatoolsui`と`kritaui`はmacOSでリンクまで成功した。
+- 公開面台帳は`kritaui`を230ヘッダーから228ヘッダーへ、UIツール責務台帳を20クラスから19クラスへ、
+  UI直下責務台帳を80クラスから79クラスへ縮小した。未解決の責務射影0件、構造射影10件、全製品
+  ターゲットの循環0件を維持する。`nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と
+  全統治検査に成功した。
+- `nix develop .#test --command ./scripts/verify`は44増分構築工程を完了し、macOSの342件中341件の
+  ネイティブ試験が成功した。変更範囲外の`KisSafeDocumentLoaderTest::test()`はファイル監視通知が
+  1500ミリ秒以内に届かず、`libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として
+  失敗した。同試験ターゲットの単独再実行は1件中1件成功し、同試験、文書監視、文書読込、入出力の
+  製品実装には変更がないため、既知の時間依存試験失敗として区別する。
+- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
+  含む全Nix出力の評価に成功した。
 
 ## 次の操作
 
-ツール設定ポップアップの移設をコミットした後、
-`libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`を起点として、矩形制約の表示状態と設定往復を
-`libs/tools/ui`へ移す。矩形ツールとの信号接続はUI側へ残す。
+矩形制約表示の移設をコミットした後、`libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を起点として、矩形と
+楕円の図形生成、登録済み図形がない場合のパス生成を`libs/flake`へ移す。図形ツールからUI共有
+ターゲットへの依存を除去し、登録済み図形と代替パスの両方を観測可能な契約で固定する。
 清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
 
 ## R1-G5完了根拠

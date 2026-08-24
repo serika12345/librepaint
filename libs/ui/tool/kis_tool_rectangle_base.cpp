@@ -34,7 +34,24 @@ QList<QPointer<QWidget> > KisToolRectangleBase::createOptionWidgets()
     QList<QPointer<QWidget>> widgetsList = KisToolShape::createOptionWidgets();
 
     KisRectangleConstraintWidget *widget =
-        new KisRectangleConstraintWidget(0, this, showRoundCornersGUI());
+        new KisRectangleConstraintWidget(toolId(), showRoundCornersGUI());
+    connect(widget,
+            &KisRectangleConstraintWidget::constraintsChanged,
+            this,
+            &KisToolRectangleBase::constraintsChanged);
+    connect(widget,
+            &KisRectangleConstraintWidget::roundCornersChanged,
+            this,
+            &KisToolRectangleBase::roundCornersChanged);
+    connect(this,
+            &KisToolRectangleBase::rectangleChanged,
+            widget,
+            &KisRectangleConstraintWidget::setRectangle);
+    connect(this,
+            &KisToolRectangleBase::sigRequestReloadConfig,
+            widget,
+            &KisRectangleConstraintWidget::reloadConfig);
+    widget->reloadConfig();
 
     if (widgetsList.size() > 0
         && dynamic_cast<KisOptionCollectionWidget *>(

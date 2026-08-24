@@ -31,6 +31,7 @@ target_link_libraries(kritadefaulttools_static
         kritatools
         kritapainting
         kritabasicflakes
+        kritawidgets
         Boost::boost
 )
 

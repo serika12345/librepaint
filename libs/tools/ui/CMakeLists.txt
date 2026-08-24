@@ -13,9 +13,14 @@ set(kritatoolsui_LIB_SRCS
     kis_paintop_option.cpp
     kis_paintop_options_model.cpp
     kis_paintop_settings_widget.cpp
+    kis_rectangle_constraint_widget.cpp
     kis_selection_options.cc
     kis_selection_tool_config_widget_helper.cpp
     kis_tool_options_popup.cpp
+)
+
+ki18n_wrap_ui(kritatoolsui_LIB_SRCS
+    forms/wdgrectangleconstraints.ui
 )
 
 kis_add_library(kritatoolsui SHARED ${kritatoolsui_LIB_SRCS})
