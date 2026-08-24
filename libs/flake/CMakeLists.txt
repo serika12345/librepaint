@@ -68,6 +68,7 @@ set(kritaflake_SRCS
     KoDeferredShapeFactoryBase.cpp
     KoToolFactoryBase.cpp
     KoPathShapeFactory.cpp
+    KoBasicShapeFactory.cpp
     KoShapeFactoryBase.cpp
     KoShapeUserData.cpp
     KoParameterShape.cpp

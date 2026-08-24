@@ -18,7 +18,7 @@
 #include "kis_canvas2.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
-#include "kis_shape_tool_helper.h"
+#include <KoBasicShapeFactory.h>
 #include <kis_default_bounds.h>
 
 #include "KisViewManager.h"
@@ -137,9 +137,9 @@ void KisToolSelectRectangular::finishRect(const QRectF& rect, qreal roundCorners
         const qreal docRoundCornersX = convertToPt(roundCornersX);
         const qreal docRoundCornersY = convertToPt(roundCornersY);
 
-        KoShape* shape = KisShapeToolHelper::createRectangleShape(documentRect,
-                                                                  docRoundCornersX,
-                                                                  docRoundCornersY);
+        KoShape* shape = KoBasicShapeFactory::createRectangle(documentRect,
+                                                              docRoundCornersX,
+                                                              docRoundCornersY);
         shape->rotate(qRadiansToDegrees(getRotationAngle()));
         helper.addSelectionShape(shape, selectionAction());
     }

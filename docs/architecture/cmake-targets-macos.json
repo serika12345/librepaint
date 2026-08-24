@@ -4425,6 +4425,7 @@
       "dependencies": [
         "Boost::boost",
         "kritabasicflakes",
+        "kritaflake",
         "kritapainting",
         "kritatools",
         "kritaui",
@@ -5787,6 +5788,7 @@
       "sourceDirectory": "plugins/tools/selectiontools",
       "dependencies": [
         "kritabasicflakes",
+        "kritaflake",
         "kritaimage",
         "kritapainting",
         "kritatools",

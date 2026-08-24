@@ -105,22 +105,6 @@
       "responsibilityArea": "painting-execution"
     },
     {
-      "name": "KisShapeToolHelper",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_shape_tool_helper.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_shape_tool_helper.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/basictools/kis_tool_ellipse.cc",
-        "plugins/tools/basictools/kis_tool_rectangle.cc",
-        "plugins/tools/selectiontools/kis_tool_select_elliptical.cc",
-        "plugins/tools/selectiontools/kis_tool_select_polygonal.cc",
-        "plugins/tools/selectiontools/kis_tool_select_rectangular.cc"
-      ],
-      "responsibilityArea": "painting-execution"
-    },
-    {
       "name": "KisStabilizedEventsSampler",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_stabilized_events_sampler.h",

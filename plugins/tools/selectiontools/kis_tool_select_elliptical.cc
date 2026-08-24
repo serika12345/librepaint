@@ -19,7 +19,7 @@
 #include "kis_selection_manager.h"
 #include "kis_selection_options.h"
 #include "kis_selection_tool_helper.h"
-#include "kis_shape_tool_helper.h"
+#include <KoBasicShapeFactory.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_command_utils.h>
 #include <kis_selection_filters.h>
@@ -126,7 +126,7 @@ void KisToolSelectElliptical::finishRect(const QRectF &rect, qreal roundCornersX
 
     } else {
         QRectF ptRect = convertToPt(rect);
-        KoShape* shape = KisShapeToolHelper::createEllipseShape(ptRect);
+        KoShape* shape = KoBasicShapeFactory::createEllipse(ptRect);
         shape->rotate(qRadiansToDegrees(getRotationAngle()));
 
         helper.addSelectionShape(shape, selectionAction());

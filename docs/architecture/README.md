@@ -527,8 +527,15 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 参照しない。必要な汎用比率ロックは`libs/ui/kis_aspect_ratio_locker.{h,cpp}`から同名の`libs/widgets`へ
 移し、画像寸法、フィルター、描画設定の既存利用元も`kritawidgets`の公開面を使う。
 
-次は`libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を起点として、矩形と楕円の図形生成、登録済み図形が
-ない場合のパス生成を`libs/flake`へ移し、図形ツールからUI共有ターゲットへの依存を除く。
+基本図形生成は`kritaflake`が所有する。開始元の`libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を
+`libs/flake/KoBasicShapeFactory.{h,cpp}`へ移し、矩形と楕円は登録済み図形ファクトリーを優先して生成し、
+対応するプラグインがない構成では同じ境界矩形を持つパス図形を生成する。基本図形ツールと選択ツールは
+`kritaflake`へ直接依存し、旧UI補助クラスと転送ヘッダーは存在しない。
+
+次は`libs/ui/tool/kis_stabilized_events_sampler.{h,cpp}`と
+`libs/ui/tool/KisStabilizerDelayedPaintHelper.{h,cpp}`を同名の`libs/tools`へ移し、実時間に基づく入力標本化と
+遅延描画キューをツール入力所有へ集約する。`libs/ui/tool/kis_tool_freehand_helper.cpp`は自由描画ストロークの
+生成と輪郭更新をコールバックで接続する。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

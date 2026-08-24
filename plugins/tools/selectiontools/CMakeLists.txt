@@ -20,6 +20,7 @@ generate_export_header(kritaselectiontools BASE_NAME kritaselectiontools)
 
 target_link_libraries(kritaselectiontools
     kritaui
+    kritaflake
     kritatools
     kritabasicflakes
     kritaimage

@@ -10767,20 +10767,6 @@
           ]
         },
         {
-          "path": "libs/ui/tool/kis_shape_tool_helper.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/tools/basictools/kis_tool_ellipse.cc",
-            "plugins/tools/basictools/kis_tool_rectangle.cc",
-            "plugins/tools/selectiontools/kis_tool_select_elliptical.cc",
-            "plugins/tools/selectiontools/kis_tool_select_polygonal.cc",
-            "plugins/tools/selectiontools/kis_tool_select_rectangular.cc"
-          ]
-        },
-        {
           "path": "libs/ui/tool/kis_stabilized_events_sampler.h",
           "publicationEvidence": [
             "export-macro"

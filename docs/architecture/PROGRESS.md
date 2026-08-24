@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 17:05 JST
+- 更新日時: 2026-08-24 17:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1389,12 +1389,33 @@
   製品実装には変更がないため、既知の時間依存試験失敗として区別する。
 - `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
   含む全Nix出力の評価に成功した。
+- `libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を`libs/flake/KoBasicShapeFactory.{h,cpp}`へ移し、矩形と
+  楕円の生成、登録済み図形ファクトリーの検索、プラグイン不在時のパス代替生成を`kritaflake`へ
+  集約した。基本図形ツールと選択ツールは`kritaflake`へ直接依存し、旧UI補助クラスと転送ヘッダーは
+  残していない。未使用だった多角形選択側の旧includeも除去した。
+- `TestKoShapeFactory`は矩形の位置、寸法、角丸比率を登録済みファクトリーへ渡す契約、楕円の位置と
+  寸法を設定する契約、両プラグインがない場合に入力境界矩形と一致するパス図形を返す契約を固定する。
+  契約追加直後は`KoBasicShapeFactory.h`がなくコンパイル段階で失敗し、実装後は1件のCTestが成功した。
+  `kritaflake`、`kritadefaulttools_static`、`kritaselectiontools`はmacOSでリンクまで成功した。
+- 公開面台帳は`kritaui`を228ヘッダーから227ヘッダーへ、UIツール責務台帳を19クラスから18クラスへ
+  縮小した。macOSとiOSのCMake台帳は実構成から再生成し、基本図形ツールと選択ツールから
+  `kritaflake`への2辺をLinux、Android、Windowsへ同期した。未解決の責務射影0件、構造射影10件、
+  全製品ターゲットの循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+  `nix develop .#test --command ./scripts/verify`は18増分構築工程を完了し、macOSの342件中341件の
+  ネイティブ試験が成功した。変更範囲外の`KisSafeDocumentLoaderTest::test()`は
+  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として失敗し、同試験ターゲットの
+  単独再実行は1件中1件成功した。文書監視、文書読込、入出力の製品実装には変更がないため、既知の
+  時間依存試験失敗として区別する。
+- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
+  含む全Nix出力の評価に成功した。
 
 ## 次の操作
 
-矩形制約表示の移設をコミットした後、`libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を起点として、矩形と
-楕円の図形生成、登録済み図形がない場合のパス生成を`libs/flake`へ移す。図形ツールからUI共有
-ターゲットへの依存を除去し、登録済み図形と代替パスの両方を観測可能な契約で固定する。
+基本図形生成の移設をコミットした後、`libs/ui/tool/kis_stabilized_events_sampler.{h,cpp}`と
+`libs/ui/tool/KisStabilizerDelayedPaintHelper.{h,cpp}`を同名の`libs/tools`へ移し、実時間に基づく
+入力標本化と遅延描画キューをツール入力所有へ集約する。自由描画ストロークの生成と輪郭更新は
+`libs/ui/tool/kis_tool_freehand_helper.cpp`からコールバックで接続し、既存の入力順序を契約で固定する。
 清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
 
 ## R1-G5完了根拠

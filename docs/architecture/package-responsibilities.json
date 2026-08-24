@@ -938,14 +938,12 @@
         "libs/painting/strokes/kis_painter_based_stroke_strategy.h",
         "libs/painting/strokes/move_stroke_strategy.h",
         "libs/ui/tool/kis_selection_tool_helper.h",
-        "libs/ui/tool/kis_shape_tool_helper.h",
         "libs/ui/tool/kis_tool_freehand_helper.h",
         "libs/ui/tool/kis_tool_multihand_helper.h"
       ],
       "classNames": [
         "KisImage",
         "KisSelectionToolHelper",
-        "KisShapeToolHelper",
         "KisToolFreehandHelper",
         "KisToolMultihandHelper"
       ],
@@ -1720,7 +1718,9 @@
         "kritaassistanttool_static",
         "kritabasicflakes",
         "kritacanvas",
+        "kritadefaulttools_static",
         "kritapsdutils",
+        "kritaselectiontools",
         "kritatools",
         "kritawidgets"
       ]
