@@ -75,6 +75,7 @@
 
 #include "KisHandlePainterHelper.h"
 #include "kis_tool_utils.h"
+#include "kis_tool_canvas_utils.h"
 #include "kis_debug.h"
 #include <commands/KoKeepShapesSelectedCommand.h>
 #include <kis_display_color_converter.h>
@@ -1157,4 +1158,3 @@ void SvgTextTool::addMappedAction(KisSignalMapper *mapper, const QString &action
         }
     }
 }
-

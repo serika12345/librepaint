@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_delegated_tool_policies.h"
+#include <kis_delegated_tool_policies.h>
 
 #include <QWidget>
 
@@ -18,4 +18,3 @@ void DeselectShapesActivationPolicy::onActivate(KoCanvasBase *canvas)
     canvas->shapeManager()->selection()->deselectAll();
     canvas->canvasWidget()->update();
 }
-

@@ -70,7 +70,7 @@
 #include "kis_multipliers_double_slider_spinbox.h"
 #include <kis_cmb_composite.h>
 #include "widgets/kis_widget_chooser.h"
-#include "tool/kis_tool.h"
+#include <kis_tool.h>
 #include "kis_signals_blocker.h"
 #include "kis_action_manager.h"
 #include "KisHighlightedToolButton.h"

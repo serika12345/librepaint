@@ -54,7 +54,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "current-production-package-responsibilities",
         )
         self.assertEqual(len(responsibility_map["responsibilities"]), 9)
-        self.assertEqual(len(responsibility_map["targetRelations"]), 22)
+        self.assertEqual(len(responsibility_map["targetRelations"]), 23)
         by_id = {
             entry["id"]: entry
             for entry in responsibility_map["responsibilities"]
@@ -111,13 +111,20 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         self.assertEqual(
             by_id["tool-invocation"]["reviewedSourcePaths"],
             [
+                "libs/ui/canvas/kis_tool_proxy.h",
                 "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
                 "libs/ui/dialogs/kis_dlg_layer_properties.cc",
                 "libs/ui/dialogs/kis_dlg_layer_style.cpp",
+                "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
                 "libs/ui/kis_favorite_resource_manager.cpp",
+                "libs/ui/tool/kis_delegated_tool.h",
+                "libs/ui/tool/kis_figure_painting_tool_helper.h",
+                "libs/ui/tool/kis_tool_freehand_helper.h",
+                "libs/ui/tool/kis_tool_select_base.h",
                 "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
                 "libs/ui/widgets/kis_paintop_presets_editor.cpp",
                 "libs/ui/widgets/kis_paintop_presets_editor.h",
+                "libs/ui/widgets/kis_zoom_scrollbar.cpp",
             ],
         )
         target_by_name = {
@@ -126,6 +133,9 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         }
         self.assertIn(
             "kritaimage", target_by_name["kritaui"]["repositoryDependencies"]
+        )
+        self.assertIn(
+            "kritatools", target_by_name["kritaui"]["repositoryDependencies"]
         )
         self.assertEqual(
             target_by_name["kritadocument"]["repositoryDependencies"], []

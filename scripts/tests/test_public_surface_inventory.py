@@ -113,6 +113,13 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             export_macro="KRITAUI_EXPORT",
             header_directories=["libs/impex/animation", "libs/impex/ui"],
         )
+        tool_headers = check_public_surface_inventory.discover_public_headers(
+            repository_root=REPO_ROOT,
+            source_directory="libs/tools",
+            export_macro="KRITATOOLS_EXPORT",
+            header_directories=["libs/tools"],
+            excluded_header_directories=["libs/tools/tests", "libs/tools/ui"],
+        )
         ui_by_path = {entry["path"]: entry for entry in ui_headers}
         canvas_by_path = {entry["path"]: entry for entry in canvas_headers}
         document_by_path = {
@@ -126,14 +133,16 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         }
         image_by_path = {entry["path"]: entry for entry in image_headers}
         impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
+        tool_by_path = {entry["path"]: entry for entry in tool_headers}
 
-        self.assertEqual(len(canvas_headers), 17)
+        self.assertEqual(len(canvas_headers), 18)
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 244)
+        self.assertEqual(len(ui_headers), 236)
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
+        self.assertEqual(len(tool_headers), 9)
         self.assertEqual(
             document_by_path[
                 "libs/document/session/kis_document_autosave_state.h"
@@ -198,6 +207,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 ],
             },
         )
+        self.assertIn(
+            "libs/tools/kis_tool.cc",
+            canvas_by_path["libs/canvas/KisToolCanvas.h"]["consumerPaths"],
+        )
         self.assertEqual(
             impex_ui_by_path["libs/impex/ui/KisImportUserFeedbackInterface.h"][
                 "publicationEvidence"
@@ -229,6 +242,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "libs/image/commands/kis_node_operation_batch.h"
             ]["consumerPaths"],
             ["libs/ui/kis_node_manager.cpp"],
+        )
+        self.assertIn(
+            "libs/ui/tool/kis_tool_freehand_helper.h",
+            tool_by_path["libs/tools/kis_smoothing_options.h"]["consumerPaths"],
         )
         self.assertNotIn("libs/ui/kis_node_commands_adapter.h", ui_by_path)
         self.assertNotIn("libs/ui/kis_node_juggler_compressed.h", ui_by_path)
@@ -270,15 +287,17 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 33)
+        self.assertEqual(len(classes), 22)
         self.assertNotIn("Data", by_name)
         self.assertNotIn("FreehandStrokeStrategy", by_name)
+        self.assertNotIn("NoopActivationPolicy", by_name)
         self.assertEqual(
-            by_name["NoopActivationPolicy"]["implementationPaths"], []
+            by_name["KisToolFreehand"]["implementationPaths"],
+            ["libs/ui/tool/kis_tool_freehand.cc"],
         )
         self.assertIn(
-            "plugins/tools/basictools/kis_tool_brush.cc",
-            by_name["KisTool"]["consumerPaths"],
+            "plugins/tools/basictools/kis_tool_brush.h",
+            by_name["KisToolFreehand"]["consumerPaths"],
         )
 
     def test_recorded_ui_tool_class_responsibilities_are_complete(self) -> None:
@@ -287,15 +306,16 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 33)
+        self.assertEqual(len(inventory["classes"]), 22)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisPaintingInformationBuilder"]["responsibilityArea"],
             "input-interpretation",
         )
         self.assertEqual(
-            by_name["KisTool"]["responsibilityArea"], "tool-invocation"
+            by_name["KisToolShape"]["responsibilityArea"], "tool-invocation"
         )
+        self.assertNotIn("KisTool", by_name)
         self.assertEqual(
             by_name["KisToolFreehandHelper"]["responsibilityArea"],
             "stroke-generation",
@@ -312,7 +332,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             check_public_surface_inventory.PublicSurfaceError,
-            r"missing=\['ColorSamplerConfig'\]",
+            r"missing=\['KisAsyncColorSamplerHelper'\]",
         ):
             self.validate_ui_tool_classes(inventory)
 
@@ -329,13 +349,15 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
     def test_ui_tool_class_consumer_paths_must_match_discovery(self) -> None:
         inventory = copy.deepcopy(self.load_ui_tool_class_inventory())
         entry = next(
-            item for item in inventory["classes"] if item["name"] == "KisTool"
+            item
+            for item in inventory["classes"]
+            if item["name"] == "KisToolFreehand"
         )
         entry["consumerPaths"].pop(0)
 
         with self.assertRaisesRegex(
             check_public_surface_inventory.PublicSurfaceError,
-            "recorded source evidence for KisTool does not match source discovery",
+            "recorded source evidence for KisToolFreehand does not match source discovery",
         ):
             self.validate_ui_tool_classes(inventory)
 
@@ -402,14 +424,15 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 for entry in inventory["publicHeaderSets"]
             },
             {
-                "kritacanvas": 17,
+                "kritacanvas": 18,
                 "kritadocument": 5,
                 "kritadocumentfiles": 3,
                 "kritadocumentui": 6,
                 "kritaimage": 334,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
-                "kritaui": 244,
+                "kritatools": 9,
+                "kritaui": 236,
             },
         )
         self.assertEqual(

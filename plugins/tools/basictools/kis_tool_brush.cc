@@ -598,9 +598,7 @@ QWidget * KisToolBrush::createOptionWidget()
     connect(m_chkAssistant, SIGNAL(toggled(bool)), snapSingleLabel, SLOT(setVisible(bool)));
     connect(m_chkAssistant, SIGNAL(toggled(bool)), snapEraserLabel, SLOT(setVisible(bool)));
 
-    KisConfig cfg(true);
-
-    slotSetSmoothingType(cfg.lineSmoothingType());
+    slotSetSmoothingType(smoothingOptions()->smoothingType());
 
     return optionsWidget;
 }

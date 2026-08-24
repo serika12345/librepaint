@@ -56,9 +56,9 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
             )
         )
         internal = baseline["internalHeaderBaseline"]
-        self.assertEqual(len(internal), 8)
+        self.assertEqual(len(internal), 9)
         self.assertEqual(
-            sum(len(entry["headers"]) for entry in internal), 7
+            sum(len(entry["headers"]) for entry in internal), 6
         )
         self.assertEqual(
             sum(
@@ -66,7 +66,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
                 for entry in internal
                 for header in entry["headers"]
             ),
-            20,
+            19,
         )
 
     def test_projection_resolution_cannot_be_dropped(self) -> None:

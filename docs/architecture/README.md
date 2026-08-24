@@ -63,9 +63,9 @@
 所有元の外にある製品ソースから直接includeされるヘッダーの和集合を記録する。各集合は
 所有ターゲット、公開マクロ、対応プラットフォーム、全利用ソースを持つ。
 
-現在は`kritacanvas`の17件、`kritadocument`の5件、`kritadocumentfiles`の3件、
+現在は`kritacanvas`の18件、`kritadocument`の5件、`kritadocumentfiles`の3件、
 `kritadocumentui`の6件、`kritaimage`の334件、`kritaimpex`の12件、
-`kritaimpexui`の23件、`kritaui`の244件を全件記録し、
+`kritaimpexui`の23件、`kritatools`の9件、`kritaui`の236件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -101,12 +101,12 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 クラス責務台帳との一致、全メソッドの一度限りの分類、
 再配置計画に存在する責務、ディレクトリー、ターゲット、検査段階を確認する。
 [UIツールクラス責務台帳](ui-tool-class-responsibilities.json)は、同じ公開ヘッダー集合の
-`libs/ui/tool`以下を再帰的に調べ、公開クラスと構造体33件を記録する。対象26ヘッダー、
-名前に対応する実装単位を持つ32件、宣言側で完結する1件を、入力解釈7件、ツール呼出し
-14件、ストローク生成3件、描画実行2件、設定表示7件へ分類する。
+`libs/ui/tool`以下を再帰的に調べ、移設後もUI所有に残る公開クラスと構造体22件を記録する。
+対象18ヘッダーの全22件が名前に対応する実装単位を持ち、入力解釈7件、ツール呼出し8件、
+ストローク生成3件、描画実行2件、設定表示2件へ分類する。
 
 各ツールクラスは宣言、実装単位、`kritaui`所有者、5構成に加え、`libs/ui/tool`の外から
-対象ヘッダーを直接includeする製品ソースへ接続する。利用元は83ソースで、同じヘッダーに
+対象ヘッダーを直接includeする製品ソースへ接続する。利用元は51ソースで、同じヘッダーに
 複数の公開クラスがある場合は各クラスが同じ利用元集合を持つ。この分類は画面表示、入力、
 ストローク作成、描画実行が一つのCMakeターゲットに混在する現在の境界を示し、R1-G3の
 責務地図と依存方針の入力になる。
@@ -124,9 +124,9 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 `canvas-presentation`へ割り当てる。
 
 `reviewedSourcePaths`は、共有ターゲット内に残る表示実装のうち、全件クラス台帳の範囲外に
-あるソースを実責務へ一意に割り当てる。描画設定表示を利用するパレット、レイヤー設定、
-プリセット編集の7ソースは`tool-invocation`へ割り当て、共有ターゲットの保守的な射影を
-実際のinclude元で解決する。
+あるソースを実責務へ一意に割り当てる。描画設定表示、ツールプロキシー、選択ツール配線を
+担う14ソースは`tool-invocation`へ割り当て、共有ターゲットの保守的な射影を実際の
+include元で解決する。
 
 | 責務ID | 現在の中核所有ターゲット | 対象 |
 | --- | --- | --- |
@@ -138,9 +138,9 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 | `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
 | `plugin-infrastructure` | `kritaplugin` | メタデータ探索、ファクトリーとサービス種別の登録 |
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
-| `tool-invocation` | `kritatoolsui`、`kritaui` | 描画設定表示とキャンバス状態へのツール呼出し |
+| `tool-invocation` | `kritatools`、`kritatoolsui`、`kritaui` | ツール命令、描画設定表示、キャンバス状態へのツール呼出し |
 
-`targetRelations`は22の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
+`targetRelations`は23の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
 ターゲット間の直接依存および利用元を和集合で記録する。この地図は現在の所有関係を表し、
 R1-G3bで定義する許可依存方向の比較元になる。
 
@@ -222,15 +222,15 @@ CMakeターゲット循環、公開宣言を持たないヘッダーのパッケ
 移した結果、入出力責務をUI共有ターゲットへ射影する候補は存在しない。各解決は元のターゲット辺、5構成、実際の責務対、ソース、include、
 ヘッダーを記録し、新たな未帰属候補を診断する。
 
-ターゲット循環は、22の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 222件、Linux 228件、iOS 214件、Android 214件、
-Windows 231件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
+ターゲット循環は、23の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
+2範囲を検査する。全製品範囲はmacOS 223件、Linux 229件、iOS 215件、Android 215件、
+Windows 232件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
 宣言済み公開面へ移す対象として基準化する。`kritaimage`の29ヘッダー、593参照は公開
-ヘッダー構築契約へ移行して0件となった。`kritaimpex`と`kritaimpexui`も未宣言の
-パッケージ外参照が0件であり、現在は`kritaui`の7ヘッダー、20参照が残る。所有段階、理由、
+ヘッダー構築契約へ移行して0件となった。`kritaimpex`、`kritaimpexui`、`kritatools`も未宣言の
+パッケージ外参照が0件であり、現在は`kritaui`の6ヘッダー、19参照が残る。所有段階、理由、
 除去条件、ヘッダー数と参照数の審査済み上限を保持し、増加と縮小可能な上限の両方を
 診断する。
 
@@ -446,9 +446,21 @@ R1-G6fの最初の単位では、`libs/ui/kis_node_commands_adapter.*`を
 `KisNodeManager`は編集可否を利用者へ通知し、これらの画像処理を呼び出し、完了後の画面更新を
 通知する。
 
-残るファイル移動を先行させず、R1-G6fで具体的なツール命令とその表示配線を引き続き分ける。
-操作管理を`kritaui`から除いた後にノード表示を`kritadocumentui`へ、R1-G6hで文書構成と
-外部ファイル層のアプリケーション接続を最終所有へ移す。
+クイックグループ化と解除の画像グラフ変更は
+`libs/image/commands/kis_node_operation_batch.*`と`kis_node_group_operations.*`が所有する。
+`KisNodeManager`は操作名、編集可否、選択更新、互換性エラーの表示だけを所有し、同ファイルは
+1798行から1739行へ縮小した。
+
+R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール、起動方針、変更追跡、
+ファクトリー、平滑化設定、共通値処理を`libs/tools`へ移し、`kritatools`として独立構築する。
+キャンバス操作の借用契約は`libs/canvas/KisToolCanvas.h`を`kritacanvas`が所有し、依存方向を
+`kritatools`から`kritacanvas`へ固定する。画面固有の浮動メッセージと図形選択は
+`libs/ui/tool/kis_tool_canvas_utils.*`、`KisCanvas2`との接続は
+`libs/ui/canvas/kis_canvas_tool_support.cpp`が所有する。旧配置の転送ヘッダーは存在しない。
+
+次は`libs/ui/tool/kis_delegated_tool.h`と`kis_tool_select_base.h`を起点として、入力フィルターの
+接続と選択設定表示をツール命令から分ける。現在の製品実装に必要な具体的なキャンバス操作を
+既存の借用契約へ追加し、UI内部ヘッダー12参照を除去してから、残る描画ツール階層を移す。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
@@ -456,7 +468,7 @@ R1-G6fの最初の単位では、`libs/ui/kis_node_commands_adapter.*`を
 
 残る5の一時互換経路は後続UI再配置用の旧include、`kritaui`、既存の大域C++識別子を含む。
 各経路は導入段階、R1-G7の所有者、最大範囲、削除条件、検証方法を持つ。計画検査は
-9責務と5構成の現行ターゲット、3種類96件の逆方向依存、7ヘッダー20件の内部参照を
+9責務と5構成の現行ターゲット、3種類96件の逆方向依存、6ヘッダー19件のUI内部参照を
 正本へ照合し、全基準と一時経路が最終状態でゼロになることを確認する。
 
 責務の中心は次の五つです。

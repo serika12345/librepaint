@@ -577,39 +577,6 @@ public:
     BackgroundStyle defaultBackgroundStyle(bool defaultValue = false) const;
     void setDefaultBackgroundStyle(BackgroundStyle value);
 
-    int lineSmoothingType(bool defaultValue = false) const;
-    void setLineSmoothingType(int value);
-
-    qreal lineSmoothingDistanceMin(bool defaultValue = false) const;
-    void setLineSmoothingDistanceMin(qreal value);
-
-    qreal lineSmoothingDistanceMax(bool defaultValue = false) const;
-    void setLineSmoothingDistanceMax(qreal value);
-
-    bool lineSmoothingDistanceKeepAspectRatio(bool defaultValue = false) const;
-    void setLineSmoothingDistanceKeepAspectRatio(bool value);
-
-    qreal lineSmoothingTailAggressiveness(bool defaultValue = false) const;
-    void setLineSmoothingTailAggressiveness(qreal value);
-
-    bool lineSmoothingSmoothPressure(bool defaultValue = false) const;
-    void setLineSmoothingSmoothPressure(bool value);
-
-    bool lineSmoothingScalableDistance(bool defaultValue = false) const;
-    void setLineSmoothingScalableDistance(bool value);
-
-    qreal lineSmoothingDelayDistance(bool defaultValue = false) const;
-    void setLineSmoothingDelayDistance(qreal value);
-
-    bool lineSmoothingUseDelayDistance(bool defaultValue = false) const;
-    void setLineSmoothingUseDelayDistance(bool value);
-
-    bool lineSmoothingFinishStabilizedCurve(bool defaultValue = false) const;
-    void setLineSmoothingFinishStabilizedCurve(bool value);
-
-    bool lineSmoothingStabilizeSensors(bool defaultValue = false) const;
-    void setLineSmoothingStabilizeSensors(bool value);
-
     int tabletEventsDelay(bool defaultValue = false) const;
     void setTabletEventsDelay(int value);
 

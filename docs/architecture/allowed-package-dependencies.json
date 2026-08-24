@@ -1139,6 +1139,108 @@
       ]
     },
     {
+      "sourceTarget": "kritatools",
+      "dependencyTarget": "kritacanvas",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatools",
+      "dependencyTarget": "kritaflake",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatools",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatools",
+      "dependencyTarget": "kritapainting",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatools",
+      "dependencyTarget": "kritapigment",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatools",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritatoolsui",
       "dependencyTarget": "kritaimage",
       "sourceResponsibilities": [
@@ -1736,6 +1838,47 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "resource-management",
           "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritatools",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "tool-invocation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "internal"
         }
       ]
     },

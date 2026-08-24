@@ -203,4 +203,59 @@ void KisNodeOperationBatchTest::testActiveNodeIsRestoredByUndo()
         1000);
 }
 
+void KisNodeOperationBatchTest::testCreateGroup()
+{
+    KisNodeOperationBatch batch(kundo2_i18n("Quick Group"), p->image, 600);
+    KisNodeSP newGroup;
+    KisNodeSP newLastChild;
+
+    QVERIFY(batch.createGroup(KisNodeList() << layer2 << layer3,
+                              layer2,
+                              QStringLiteral("Grouped Layers"),
+                              &newGroup,
+                              &newLastChild));
+
+    batch.end();
+    p->image->waitForDone();
+
+    QCOMPARE(newGroup->name(), QStringLiteral("Grouped Layers"));
+    QCOMPARE(newGroup->parent(), p->image->root());
+    QCOMPARE(layer2->parent(), newGroup);
+    QCOMPARE(layer3->parent(), newGroup);
+    QCOMPARE(newLastChild, KisNodeSP(layer3));
+
+    p->undoStore->undo();
+    p->image->waitForDone();
+
+    QVERIFY(!newGroup->parent());
+    QCOMPARE(layer2->parent(), p->image->root());
+    QCOMPARE(layer3->parent(), p->image->root());
+}
+
+void KisNodeOperationBatchTest::testUngroup()
+{
+    KisNodeOperationBatch batch(kundo2_i18n("Quick Ungroup"), p->image, 600);
+    KisNodeSP incompatibleNode;
+    KisNodeSP destinationParent;
+
+    QVERIFY(batch.ungroupNodes(KisNodeList() << group4,
+                               group4,
+                               &incompatibleNode,
+                               &destinationParent));
+    QVERIFY(!incompatibleNode);
+    QCOMPARE(destinationParent, p->image->root());
+
+    batch.end();
+    p->image->waitForDone();
+
+    QVERIFY(!group4->parent());
+    QCOMPARE(layer5->parent(), p->image->root());
+
+    p->undoStore->undo();
+    p->image->waitForDone();
+
+    QCOMPARE(group4->parent(), p->image->root());
+    QCOMPARE(layer5->parent(), KisNodeSP(group4));
+}
+
 SIMPLE_TEST_MAIN(KisNodeOperationBatchTest)

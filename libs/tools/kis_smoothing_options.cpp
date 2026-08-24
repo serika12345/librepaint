@@ -5,25 +5,37 @@
  */
 #include "kis_smoothing_options.h"
 
-#include "kis_config.h"
+#include "kis_assert.h"
 #include "kis_signal_compressor.h"
+
+#include <KConfigGroup>
+#include <KSharedConfig>
+
+namespace {
+
+KConfigGroup toolSettings()
+{
+    return KSharedConfig::openConfig()->group(QString());
+}
+
+}
 
 struct KisSmoothingOptions::Private {
     Private(bool useSavedSmoothing)
         : writeCompressor(500, KisSignalCompressor::FIRST_ACTIVE)
     {
-        KisConfig cfg(true);
-        smoothingType = (SmoothingType)cfg.lineSmoothingType(!useSavedSmoothing);
-        smoothnessDistanceMin = cfg.lineSmoothingDistanceMin(!useSavedSmoothing);
-        smoothnessDistanceMax = cfg.lineSmoothingDistanceMax(!useSavedSmoothing);
-        smoothnessDistanceKeepAspectRatio = cfg.lineSmoothingDistanceKeepAspectRatio(!useSavedSmoothing);
-        tailAggressiveness = cfg.lineSmoothingTailAggressiveness(!useSavedSmoothing);
-        smoothPressure = cfg.lineSmoothingSmoothPressure(!useSavedSmoothing);
-        useScalableDistance = cfg.lineSmoothingScalableDistance(!useSavedSmoothing);
-        delayDistance = cfg.lineSmoothingDelayDistance(!useSavedSmoothing);
-        useDelayDistance = cfg.lineSmoothingUseDelayDistance(!useSavedSmoothing);
-        finishStabilizedCurve = cfg.lineSmoothingFinishStabilizedCurve(!useSavedSmoothing);
-        stabilizeSensors = cfg.lineSmoothingStabilizeSensors(!useSavedSmoothing);
+        const KConfigGroup cfg = toolSettings();
+        smoothingType = static_cast<SmoothingType>(useSavedSmoothing ? cfg.readEntry("LineSmoothingType", 1) : 1);
+        smoothnessDistanceMin = useSavedSmoothing ? cfg.readEntry("LineSmoothingDistanceMin", 50.0) : 50.0;
+        smoothnessDistanceMax = useSavedSmoothing ? cfg.readEntry("LineSmoothingDistanceMax", 50.0) : 50.0;
+        smoothnessDistanceKeepAspectRatio = useSavedSmoothing ? cfg.readEntry("LineSmoothingDistanceKeepAspectRatio", true) : true;
+        tailAggressiveness = useSavedSmoothing ? cfg.readEntry("LineSmoothingTailAggressiveness", 0.15) : 0.15;
+        smoothPressure = useSavedSmoothing ? cfg.readEntry("LineSmoothingSmoothPressure", false) : false;
+        useScalableDistance = useSavedSmoothing ? cfg.readEntry("LineSmoothingScalableDistance", true) : true;
+        delayDistance = useSavedSmoothing ? cfg.readEntry("LineSmoothingDelayDistance", 50.0) : 50.0;
+        useDelayDistance = useSavedSmoothing ? cfg.readEntry("LineSmoothingUseDelayDistance", true) : true;
+        finishStabilizedCurve = useSavedSmoothing ? cfg.readEntry("LineSmoothingFinishStabilizedCurve", true) : true;
+        stabilizeSensors = useSavedSmoothing ? cfg.readEntry("LineSmoothingStabilizeSensors", true) : true;
     }
 
     KisSignalCompressor writeCompressor;
@@ -181,16 +193,17 @@ bool KisSmoothingOptions::stabilizeSensors() const
 
 void KisSmoothingOptions::slotWriteConfig()
 {
-    KisConfig cfg(false);
-    cfg.setLineSmoothingType(m_d->smoothingType);
-    cfg.setLineSmoothingDistanceMin(m_d->smoothnessDistanceMin);
-    cfg.setLineSmoothingDistanceMax(m_d->smoothnessDistanceMax);
-    cfg.setLineSmoothingDistanceKeepAspectRatio(m_d->smoothnessDistanceKeepAspectRatio);
-    cfg.setLineSmoothingTailAggressiveness(m_d->tailAggressiveness);
-    cfg.setLineSmoothingSmoothPressure(m_d->smoothPressure);
-    cfg.setLineSmoothingScalableDistance(m_d->useScalableDistance);
-    cfg.setLineSmoothingDelayDistance(m_d->delayDistance);
-    cfg.setLineSmoothingUseDelayDistance(m_d->useDelayDistance);
-    cfg.setLineSmoothingFinishStabilizedCurve(m_d->finishStabilizedCurve);
-    cfg.setLineSmoothingStabilizeSensors(m_d->stabilizeSensors);
+    KConfigGroup cfg = toolSettings();
+    cfg.writeEntry("LineSmoothingType", static_cast<int>(m_d->smoothingType));
+    cfg.writeEntry("LineSmoothingDistanceMin", m_d->smoothnessDistanceMin);
+    cfg.writeEntry("LineSmoothingDistanceMax", m_d->smoothnessDistanceMax);
+    cfg.writeEntry("LineSmoothingDistanceKeepAspectRatio", m_d->smoothnessDistanceKeepAspectRatio);
+    cfg.writeEntry("LineSmoothingTailAggressiveness", m_d->tailAggressiveness);
+    cfg.writeEntry("LineSmoothingSmoothPressure", m_d->smoothPressure);
+    cfg.writeEntry("LineSmoothingScalableDistance", m_d->useScalableDistance);
+    cfg.writeEntry("LineSmoothingDelayDistance", m_d->delayDistance);
+    cfg.writeEntry("LineSmoothingUseDelayDistance", m_d->useDelayDistance);
+    cfg.writeEntry("LineSmoothingFinishStabilizedCurve", m_d->finishStabilizedCurve);
+    cfg.writeEntry("LineSmoothingStabilizeSensors", m_d->stabilizeSensors);
+    cfg.sync();
 }

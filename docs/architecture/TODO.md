@@ -137,6 +137,9 @@ R1-G6e後半は、依存方向を一方向にした後、文書状態、文書�
 - [x] R1-G6fの最初の依存調査として、`libs/ui/kis_node_commands_adapter.*`を実利用元に共通する`libs/image/commands`へ移し、UI全体への参照を操作対象画像の非所有参照へ縮小する。
 - [x] `libs/ui/kis_node_juggler_compressed.*`を起点として、連続する画像ノード操作と取り消し履歴への登録を`libs/image/commands/kis_node_operation_batch.*`へ移す。UI管理器への参照を操作時点のアクティブノード値へ縮小し、旧名と旧ファイルを除去する。
 - [x] `libs/ui/kis_node_manager.cpp`のノード移動条件とミラー処理ジョブ構成を起点として、選択マスク移動の不変条件を既存の`libs/image/commands/kis_node_commands_adapter.cpp`へ、ミラー処理の実行を既存の`libs/image/processing/kis_mirror_processing_visitor.cpp`へ移す。UI管理器には編集可否の警告と画面更新通知を残す。
+- [x] `libs/ui/kis_node_manager.cpp`のクイックグループ化と解除を起点として、画像グラフの検証、グループ作成、ノード移動、空になったグループの除去を`libs/image/commands/kis_node_operation_batch.*`と`kis_node_group_operations.*`へ移す。UI管理器には操作名、編集可否、選択更新、警告表示を残す。
+- [x] `libs/ui/tool`の基底ツール、起動方針、変更追跡、ファクトリー、平滑化設定、共通値処理を`libs/tools`の`kritatools`へ移す。キャンバス公開契約を`libs/canvas/KisToolCanvas.h`へ置き、`kritatools`から`kritacanvas`へ依存する一方向を固定する。
+- [x] `libs/ui/tool/kis_tool_utils.*`を起点として、画像と値だけを扱う処理を`libs/tools/kis_tool_utils.*`へ、浮動メッセージと図形選択の表示接続を`libs/ui/tool/kis_tool_canvas_utils.*`へ分ける。平滑化設定の永続化は`libs/ui/kis_config.*`から`KisSmoothingOptions`へ移す。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。

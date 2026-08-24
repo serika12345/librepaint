@@ -25,6 +25,7 @@ set(kritacanvas_LIB_SRCS
     kis_projection_update_info.cpp
     kis_update_info.h
     kis_update_info.cpp
+    KisToolCanvas.h
     KisCanvasState.cpp
 )
 

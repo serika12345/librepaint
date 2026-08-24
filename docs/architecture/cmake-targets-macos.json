@@ -1999,6 +1999,15 @@
       ]
     },
     {
+      "name": "TestToolCoreContract",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/tools/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "kritatools"
+      ]
+    },
+    {
       "name": "TestToolSettingsUiContract",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/tools/ui/tests",
@@ -6066,6 +6075,26 @@
       ]
     },
     {
+      "name": "kritatools",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/tools",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "KF6::I18n",
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::Widgets",
+        "kritacanvas",
+        "kritaflake",
+        "kritaglobal",
+        "kritaimage",
+        "kritapainting",
+        "kritapigment",
+        "kritaresources",
+        "kritawidgetutils"
+      ]
+    },
+    {
       "name": "kritatoolsui",
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/tools/ui",
@@ -6151,6 +6180,7 @@
         "kritaresources",
         "kritaresourcestorage",
         "kritaresourceui",
+        "kritatools",
         "kritatoolsui",
         "kritaversion",
         "kritawidgets",

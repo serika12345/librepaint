@@ -8,10 +8,10 @@
 #define KISTOOLCHANGESTRACKERDATA_H
 
 #include <QObject>
-#include "kritaui_export.h"
+#include "kritatools_export.h"
 #include <QSharedPointer>
 
-class KRITAUI_EXPORT KisToolChangesTrackerData
+class KRITATOOLS_EXPORT KisToolChangesTrackerData
 {
 public:
     virtual ~KisToolChangesTrackerData();

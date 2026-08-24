@@ -20,6 +20,7 @@
 #include <kis_types.h>
 #include <animation/kis_animation_frame_cache_fwd.h>
 #include <KoPointerEvent.h>
+#include <KisToolCanvas.h>
 
 #include "opengl/kis_opengl.h"
 
@@ -54,7 +55,7 @@ class KisPopupPalette;
  * the widget it contains, which may be either a QPainter based
  * canvas, or an OpenGL based canvas: that are the real widgets.
  */
-class KRITAUI_EXPORT KisCanvas2 : public KoCanvasBase
+class KRITAUI_EXPORT KisCanvas2 : public KoCanvasBase, public KisToolCanvas
 {
 
     Q_OBJECT
@@ -121,7 +122,7 @@ public: // KoCanvasBase implementation
 
     void updateCanvas(const QRectF& rc) override;
 
-    const KisCoordinatesConverter* coordinatesConverter() const;
+    const KisCoordinatesConverter* coordinatesConverter() const override;
     const KoViewConverter *viewConverter() const override;
     KoViewConverter *viewConverter() override;
 
@@ -139,7 +140,17 @@ public: // KoCanvasBase implementation
     // Temporary! Either get the current layer and image from the
     // resource provider, or use this, which gets them from the
     // current shape selection.
-    KisImageWSP currentImage() const;
+    KisImageWSP currentImage() const override;
+
+    KisNodeList selectedNodesForTool() const override;
+    bool blockUntilOperationsFinishedForTool(KisImageSP image) override;
+    void blockUntilOperationsFinishedForToolForced(KisImageSP image) override;
+    bool selectionEditableForTool() const override;
+    void showToolMessage(const QString &message, const QString &iconName) override;
+    void drawToolOutline(QPainter *painter,
+                         const KisOptimizedBrushOutline &path,
+                         int thickness) override;
+    QObject *toolConfigNotifier() const override;
 
     /**
      * Filters events and sends them to canvas actions. Shared

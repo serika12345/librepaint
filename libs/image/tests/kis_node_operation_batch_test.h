@@ -25,6 +25,8 @@ private Q_SLOTS:
     void testCopyLayers();
     void testMoveLayers();
     void testActiveNodeIsRestoredByUndo();
+    void testCreateGroup();
+    void testUngroup();
 
 private:
     void testMove(int delayBeforeEnd);

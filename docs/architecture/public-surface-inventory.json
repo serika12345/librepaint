@@ -69,6 +69,7 @@
       "responsibility": "Records the declared canvas-view surface for coordinate mapping, display projection and color, animation cache storage, and immutable snapshots of canvas screen state.",
       "evidence": [
         "libs/canvas/CMakeLists.txt",
+        "libs/canvas/KisToolCanvas.h",
         "libs/canvas/kis_coordinates_converter.h"
       ],
       "platforms": [
@@ -89,6 +90,17 @@
             "libs/ui/canvas/KoCanvasControllerWidget.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_canvas_controller.cpp"
+          ]
+        },
+        {
+          "path": "libs/canvas/KisToolCanvas.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/tools/kis_tool.cc",
+            "libs/ui/canvas/kis_canvas2.h"
           ]
         },
         {
@@ -172,6 +184,7 @@
           ],
           "consumerPaths": [
             "libs/libkis/Document.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisReferenceImage.cpp",
             "libs/ui/KisReferenceImagesDecoration.h",
             "libs/ui/canvas/kis_canvas2.cpp",
@@ -190,7 +203,6 @@
             "libs/ui/kis_zoom_manager.cc",
             "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp",
             "libs/ui/tool/kis_painting_information_builder.cpp",
-            "libs/ui/tool/kis_tool.cc",
             "plugins/assistants/Assistants/ConcentricEllipseAssistant.cc",
             "plugins/assistants/Assistants/CurvilinearPerspectiveAssistant.cc",
             "plugins/assistants/Assistants/EllipseAssistant.cc",
@@ -562,9 +574,9 @@
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
+            "libs/tools/kis_tool_utils.cpp",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/processing/fill_processing_visitor.cpp",
-            "libs/ui/tool/kis_tool_utils.cpp",
             "plugins/tools/basictools/kis_tool_move.cc",
             "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp",
             "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.cpp",
@@ -1087,8 +1099,9 @@
             "libs/brush/kis_auto_brush.cpp",
             "libs/brush/kis_brush.cpp",
             "libs/brush/kis_imagepipe_brush.cpp",
+            "libs/tools/kis_tool.cc",
+            "libs/ui/canvas/kis_canvas_tool_support.cpp",
             "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/tool/kis_tool_paint.cc",
@@ -1414,6 +1427,7 @@
             "libs/painting/strokes/KisMaskedFreehandStrokePainter.cpp",
             "libs/painting/strokes/freehand_stroke.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/tools/ui/KisPaintResourceServerProvider.h",
             "libs/tools/ui/kis_paintop_settings_widget.cpp",
             "libs/ui/KisPresetShadowUpdater.cpp",
@@ -1423,7 +1437,6 @@
             "libs/ui/kis_favorite_resource_manager.cpp",
             "libs/ui/kis_paintop_box.cc",
             "libs/ui/kis_popup_palette.cpp",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/tool/kis_tool_paint.cc",
@@ -1517,12 +1530,12 @@
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/painting/strokes/freehand_stroke.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisMainWindow.cpp",
             "libs/ui/kis_canvas_resource_provider.cpp",
             "libs/ui/kis_derived_resources.cpp",
             "libs/ui/kis_paintop_box.cc",
             "libs/ui/kis_paintop_box.h",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h",
             "libs/ui/tool/kis_tool_paint.h",
@@ -2324,6 +2337,7 @@
             "libs/libkis/Krita.cpp",
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisApplication.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
@@ -2335,7 +2349,6 @@
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_layer_manager.h",
             "libs/ui/kis_mask_manager.cc",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/utils/KisDitherUtil.cpp",
             "libs/ui/widgets/KisDitherWidget.cpp",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
@@ -2658,13 +2671,13 @@
             "libs/libkis/FilterLayer.cpp",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_layer_manager.h",
             "libs/ui/kis_selection_manager.cc",
-            "libs/ui/tool/kis_tool.cc",
             "plugins/extensions/offsetimage/kis_offset_processing_visitor.cpp",
             "plugins/impex/libkra/kis_kra_load_visitor.cpp",
             "plugins/impex/libkra/kis_kra_loader.cpp",
@@ -3468,6 +3481,7 @@
             "libs/libkis/VectorLayer.cpp",
             "libs/painting/kis_painting_utils.cpp",
             "libs/psd/psd_layer_section.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
             "libs/ui/KisPart.cpp",
@@ -3486,7 +3500,6 @@
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_model.cpp",
             "libs/ui/kis_selection_manager.cc",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
@@ -3648,6 +3661,7 @@
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
             "libs/psd/psd_layer_section.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
             "libs/ui/KisAsyncAnimationRendererBase.cpp",
             "libs/ui/KisDocument.cpp",
@@ -3725,7 +3739,6 @@
             "libs/ui/tool/kis_figure_painting_tool_helper.cpp",
             "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/tool/kis_tool_paint.cc",
             "libs/ui/tool/kis_tool_paint.h",
@@ -4323,6 +4336,7 @@
             "libs/painting/strokes/KisNodeSelectionRecipe.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
+            "libs/tools/kis_tool_utils.cpp",
             "libs/ui/KisCloneDocumentStroke.cpp",
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisLayerThumbnailCache.cpp",
@@ -4340,7 +4354,7 @@
             "libs/ui/kis_multinode_property.h",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_statusbar.cc",
-            "libs/ui/tool/kis_tool_utils.cpp",
+            "libs/ui/tool/kis_tool_canvas_utils.cpp",
             "plugins/dockers/gamutmask/gamutmask_dock.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/dockers/storyboarddocker/KisAddRemoveStoryboardCommand.cpp",
@@ -4462,12 +4476,12 @@
           ],
           "consumerPaths": [
             "libs/libkis/Document.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisView.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.h",
             "libs/ui/kis_node_manager.cpp",
-            "libs/ui/tool/kis_tool.cc",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/impex/libkra/kis_kra_save_visitor.cpp"
           ]
@@ -5032,6 +5046,7 @@
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/psd/psd_layer_record.cpp",
             "libs/psd/psd_layer_section.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
@@ -5047,7 +5062,6 @@
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_model.cpp",
             "libs/ui/kis_selection_manager.cc",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_shape.cc",
             "libs/ui/widgets/kis_custom_image_widget.cc",
@@ -5142,6 +5156,7 @@
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/psd/psd_layer_section.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisImageThumbnailStrokeStrategy.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
@@ -5154,7 +5169,6 @@
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/tool/kis_figure_painting_tool_helper.cpp",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/tool/kis_tool_multihand_helper.cpp",
@@ -5333,6 +5347,7 @@
             "libs/libkis/Shape.cpp",
             "libs/libkis/TransformMask.cpp",
             "libs/libkis/VectorLayer.cpp",
+            "libs/tools/kis_tool_utils.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/dialogs/KisDlgChangeCloneSource.cpp",
@@ -5342,7 +5357,6 @@
             "libs/ui/tool/kis_selection_tool_helper.cpp",
             "libs/ui/tool/kis_selection_tool_helper.h",
             "libs/ui/tool/kis_tool_shape.cc",
-            "libs/ui/tool/kis_tool_utils.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
             "plugins/dockers/animation/KisAnimCurvesModel.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
@@ -5506,6 +5520,7 @@
             "libs/libkis/InfoObject.cpp",
             "libs/libkis/InfoObject.h",
             "libs/libkis/Krita.cpp",
+            "libs/tools/kis_tool_utils.cpp",
             "libs/tools/ui/KisPaintopPropertiesBase.cpp",
             "libs/tools/ui/kis_paintop_option.h",
             "libs/ui/KisDocument.h",
@@ -5514,7 +5529,6 @@
             "libs/ui/kis_workspace_resource.h",
             "libs/ui/operations/kis_operation.h",
             "libs/ui/operations/kis_operation_configuration.h",
-            "libs/ui/tool/kis_tool_utils.cpp",
             "libs/ui/widgets/KisDitherWidget.cpp",
             "libs/ui/widgets/KisLodAvailabilityData.cpp",
             "libs/ui/widgets/kis_custom_image_widget.h",
@@ -5775,6 +5789,7 @@
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.h",
             "libs/psd/psd_layer_section.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisView.cpp",
             "libs/ui/KisViewManager.cpp",
@@ -5800,7 +5815,6 @@
             "libs/ui/processing/fill_processing_visitor.h",
             "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
             "libs/ui/tool/kis_selection_tool_helper.h",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_select_base.h",
             "plugins/dockers/layerdocker/LayerBox.cpp",
@@ -5939,6 +5953,7 @@
             "libs/libkis/Node.cpp",
             "libs/libkis/SelectionMask.cpp",
             "libs/painting/kis_resources_snapshot.cpp",
+            "libs/tools/kis_tool.cc",
             "libs/ui/KisDocument.cpp",
             "libs/ui/KisNodeActivationActionCreatorVisitor.h",
             "libs/ui/KisViewManager.cpp",
@@ -5953,7 +5968,6 @@
             "libs/ui/kis_node_model.cpp",
             "libs/ui/kis_selection_decoration.cc",
             "libs/ui/kis_selection_manager.cc",
-            "libs/ui/tool/kis_tool.cc",
             "libs/ui/tool/kis_tool_shape.cc",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/extensions/layersplit/layersplit.cpp",
@@ -6220,6 +6234,7 @@
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.h",
+            "libs/tools/kis_tool_utils.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
@@ -6230,7 +6245,6 @@
             "libs/ui/kis_selection_manager.cc",
             "libs/ui/operations/kis_filter_selection_operation.cpp",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
-            "libs/ui/tool/kis_tool_utils.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.cpp",
             "libs/ui/widgets/kis_scratch_pad.cpp",
             "plugins/dockers/animation/KisAnimUtils.cpp",
@@ -6382,6 +6396,7 @@
             "libs/brush/kis_brush.h",
             "libs/brush/kis_brush_registry.h",
             "libs/brush/kis_gbr_brush.h",
+            "libs/canvas/KisToolCanvas.h",
             "libs/canvas/color/kis_display_color_transform.h",
             "libs/canvas/kis_coordinates_converter.h",
             "libs/canvas/kis_image_patch.h",
@@ -6433,6 +6448,8 @@
             "libs/psd/psd_layer_record.h",
             "libs/psd/psd_layer_section.h",
             "libs/psd/psd_pixel_utils.h",
+            "libs/tools/kis_tool.h",
+            "libs/tools/kis_tool_utils.h",
             "libs/tools/ui/KisPaintopPropertiesBase.h",
             "libs/tools/ui/kis_paintop_option.h",
             "libs/ui/KisAsyncAnimationRendererBase.h",
@@ -6515,12 +6532,10 @@
             "libs/ui/tool/KisAsyncColorSamplerHelper.h",
             "libs/ui/tool/kis_figure_painting_tool_helper.h",
             "libs/ui/tool/kis_painting_information_builder.h",
-            "libs/ui/tool/kis_tool.h",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h",
             "libs/ui/tool/kis_tool_paint.cc",
             "libs/ui/tool/kis_tool_paint.h",
-            "libs/ui/tool/kis_tool_utils.h",
             "libs/ui/utils/KisDitherUtil.h",
             "libs/ui/utils/kis_document_aware_spin_box_unit_manager.cpp",
             "libs/ui/widgets/KisDlgListPicker.h",
@@ -7868,6 +7883,181 @@
           ],
           "consumerPaths": [
             "libs/ui/kis_file_layer.h"
+          ]
+        }
+      ]
+    },
+    {
+      "ownerTarget": "kritatools",
+      "sourceDirectory": "libs/tools",
+      "headerDirectories": [
+        "libs/tools"
+      ],
+      "excludedHeaderDirectories": [
+        "libs/tools/tests",
+        "libs/tools/ui"
+      ],
+      "exportMacro": "KRITATOOLS_EXPORT",
+      "responsibility": "Records the declared and externally consumed tool-command surface for activation, settings state, canvas access, and shared tool policies.",
+      "evidence": [
+        "libs/tools/CMakeLists.txt",
+        "libs/tools/kis_tool.h"
+      ],
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/tools/KisSelectionToolFactoryBase.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_shape.h",
+            "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
+            "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
+            "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
+            "plugins/tools/selectiontools/kis_tool_select_outline.h",
+            "plugins/tools/selectiontools/kis_tool_select_path.h",
+            "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
+            "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
+            "plugins/tools/selectiontools/kis_tool_select_similar.h"
+          ]
+        },
+        {
+          "path": "libs/tools/KisToolChangesTracker.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/tools/basictools/kis_tool_move.h",
+            "plugins/tools/tool_transform2/kis_tool_transform.h"
+          ]
+        },
+        {
+          "path": "libs/tools/KisToolChangesTrackerData.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/tools/tool_transform2/tool_transform_args.h"
+          ]
+        },
+        {
+          "path": "libs/tools/KisToolPaintFactoryBase.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/tools/basictools/kis_tool_brush.h",
+            "plugins/tools/basictools/kis_tool_ellipse.h",
+            "plugins/tools/basictools/kis_tool_fill.h",
+            "plugins/tools/basictools/kis_tool_gradient.h",
+            "plugins/tools/basictools/kis_tool_line.h",
+            "plugins/tools/basictools/kis_tool_move.h",
+            "plugins/tools/basictools/kis_tool_rectangle.h",
+            "plugins/tools/tool_dyna/kis_tool_dyna.h",
+            "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFillFactory.h",
+            "plugins/tools/tool_knife/KisToolKnife.h",
+            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.h",
+            "plugins/tools/tool_smart_patch/kis_tool_smart_patch.h",
+            "plugins/tools/tool_transform2/kis_tool_transform.h"
+          ]
+        },
+        {
+          "path": "libs/tools/KisToolShapeUtils.h",
+          "publicationEvidence": [
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/PaintingResources.cpp",
+            "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
+            "libs/ui/tool/kis_figure_painting_tool_helper.h",
+            "libs/ui/tool/kis_tool_shape.h"
+          ]
+        },
+        {
+          "path": "libs/tools/kis_delegated_tool_policies.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_delegated_tool.h"
+          ]
+        },
+        {
+          "path": "libs/tools/kis_smoothing_options.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_freehand.h",
+            "libs/ui/tool/kis_tool_freehand_helper.h"
+          ]
+        },
+        {
+          "path": "libs/tools/kis_tool.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_tool_proxy.h",
+            "libs/ui/input/kis_alternate_invocation_action.h",
+            "libs/ui/input/kis_change_primary_setting_action.h",
+            "libs/ui/input/kis_tool_invocation_action.cpp",
+            "libs/ui/kis_paintop_box.cc",
+            "libs/ui/tool/kis_delegated_tool.h",
+            "libs/ui/tool/kis_tool_paint.h",
+            "libs/ui/tool/kis_tool_select_base.h",
+            "plugins/assistants/Assistants/kis_assistant_tool.h",
+            "plugins/tools/basictools/default_tools.cc",
+            "plugins/tools/basictools/kis_tool_brush.cc",
+            "plugins/tools/basictools/kis_tool_colorsampler.h",
+            "plugins/tools/basictools/kis_tool_measure.h",
+            "plugins/tools/basictools/kis_tool_move.h",
+            "plugins/tools/basictools/kis_tool_pan.h",
+            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.h",
+            "plugins/tools/tool_crop/kis_tool_crop.h",
+            "plugins/tools/tool_knife/ToolKnife.cpp",
+            "plugins/tools/tool_lazybrush/tool_lazybrush.cpp",
+            "plugins/tools/tool_smart_patch/tool_smartpatch.cpp",
+            "plugins/tools/tool_transform2/kis_tool_transform.h",
+            "plugins/tools/tool_transform2/kis_transform_strategy_base.h"
+          ]
+        },
+        {
+          "path": "libs/tools/kis_tool_utils.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_freehand.cc",
+            "libs/ui/tool/kis_tool_paint.cc",
+            "libs/ui/tool/kis_tool_paint.h",
+            "libs/ui/widgets/kis_zoom_scrollbar.cpp",
+            "plugins/dockers/animation/KisAnimUtils.cpp",
+            "plugins/tools/basictools/kis_tool_colorsampler.cc",
+            "plugins/tools/basictools/kis_tool_move.cc",
+            "plugins/tools/svgtexttool/SvgTextTool.cpp",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
+            "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp"
           ]
         }
       ]
@@ -10218,49 +10408,11 @@
           ]
         },
         {
-          "path": "libs/ui/tool/KisSelectionToolFactoryBase.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
-            "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
-            "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
-            "plugins/tools/selectiontools/kis_tool_select_outline.h",
-            "plugins/tools/selectiontools/kis_tool_select_path.h",
-            "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
-            "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
-            "plugins/tools/selectiontools/kis_tool_select_similar.h"
-          ]
-        },
-        {
           "path": "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
           "publicationEvidence": [
             "export-macro"
           ],
           "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/tool/KisToolChangesTracker.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/tools/basictools/kis_tool_move.h",
-            "plugins/tools/tool_transform2/kis_tool_transform.h"
-          ]
-        },
-        {
-          "path": "libs/ui/tool/KisToolChangesTrackerData.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/tools/tool_transform2/tool_transform_args.h"
-          ]
         },
         {
           "path": "libs/ui/tool/KisToolOutlineBase.h",
@@ -10274,37 +10426,6 @@
           ]
         },
         {
-          "path": "libs/ui/tool/KisToolPaintFactoryBase.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/tools/basictools/kis_tool_brush.h",
-            "plugins/tools/basictools/kis_tool_ellipse.h",
-            "plugins/tools/basictools/kis_tool_fill.h",
-            "plugins/tools/basictools/kis_tool_gradient.h",
-            "plugins/tools/basictools/kis_tool_line.h",
-            "plugins/tools/basictools/kis_tool_move.h",
-            "plugins/tools/basictools/kis_tool_rectangle.h",
-            "plugins/tools/tool_dyna/kis_tool_dyna.h",
-            "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFillFactory.h",
-            "plugins/tools/tool_knife/KisToolKnife.h",
-            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.h",
-            "plugins/tools/tool_smart_patch/kis_tool_smart_patch.h",
-            "plugins/tools/tool_transform2/kis_tool_transform.h"
-          ]
-        },
-        {
-          "path": "libs/ui/tool/KisToolShapeUtils.h",
-          "publicationEvidence": [
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/PaintingResources.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/tool/kis_delegated_tool.h",
           "publicationEvidence": [
             "external-include"
@@ -10315,13 +10436,6 @@
             "plugins/tools/selectiontools/kis_tool_select_path.h",
             "plugins/tools/tool_enclose_and_fill/subtools/KisPathEnclosingProducer.h"
           ]
-        },
-        {
-          "path": "libs/ui/tool/kis_delegated_tool_policies.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/tool/kis_figure_painting_tool_helper.h",
@@ -10403,13 +10517,6 @@
           ]
         },
         {
-          "path": "libs/ui/tool/kis_smoothing_options.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/tool/kis_stabilized_events_sampler.h",
           "publicationEvidence": [
             "export-macro"
@@ -10417,26 +10524,14 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/tool/kis_tool.h",
+          "path": "libs/ui/tool/kis_tool_canvas_utils.h",
           "publicationEvidence": [
             "export-macro",
             "external-include"
           ],
           "consumerPaths": [
-            "plugins/assistants/Assistants/kis_assistant_tool.h",
-            "plugins/tools/basictools/default_tools.cc",
-            "plugins/tools/basictools/kis_tool_brush.cc",
-            "plugins/tools/basictools/kis_tool_colorsampler.h",
-            "plugins/tools/basictools/kis_tool_measure.h",
-            "plugins/tools/basictools/kis_tool_move.h",
-            "plugins/tools/basictools/kis_tool_pan.h",
-            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.h",
-            "plugins/tools/tool_crop/kis_tool_crop.h",
-            "plugins/tools/tool_knife/ToolKnife.cpp",
-            "plugins/tools/tool_lazybrush/tool_lazybrush.cpp",
-            "plugins/tools/tool_smart_patch/tool_smartpatch.cpp",
-            "plugins/tools/tool_transform2/kis_tool_transform.h",
-            "plugins/tools/tool_transform2/kis_transform_strategy_base.h"
+            "plugins/tools/svgtexttool/SvgTextTool.cpp",
+            "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp"
           ]
         },
         {
@@ -10553,21 +10648,6 @@
             "plugins/tools/tool_enclose_and_fill/subtools/KisPathEnclosingProducer.h",
             "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.h",
             "plugins/tools/tool_polygon/kis_tool_polygon.h"
-          ]
-        },
-        {
-          "path": "libs/ui/tool/kis_tool_utils.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/animation/KisAnimUtils.cpp",
-            "plugins/tools/basictools/kis_tool_colorsampler.cc",
-            "plugins/tools/basictools/kis_tool_move.cc",
-            "plugins/tools/svgtexttool/SvgTextTool.cpp",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
-            "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp"
           ]
         },
         {

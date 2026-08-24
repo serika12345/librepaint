@@ -42,6 +42,16 @@ public:
     void moveNode(const KisNodeList &nodes, KisNodeSP dstParent, KisNodeSP dstAbove, KisNodeSP activeNode);
     void addNode(const KisNodeList &nodes, KisNodeSP dstParent, KisNodeSP dstAbove, KisNodeSP activeNode);
 
+    bool createGroup(const KisNodeList &nodes,
+                     KisNodeSP activeNode,
+                     const QString &groupName,
+                     KisNodeSP *newGroup,
+                     KisNodeSP *newLastChild);
+    bool ungroupNodes(const KisNodeList &selectedNodes,
+                      KisNodeSP activeNode,
+                      KisNodeSP *incompatibleNode,
+                      KisNodeSP *destinationParent);
+
     bool canMergeAction(const KUndo2MagicString &actionName) const;
 
 public Q_SLOTS:

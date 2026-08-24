@@ -36,8 +36,8 @@ class KisOptimizedBrushOutline;
 //activation id for Krita tools, Krita tools are always active and handle locked and invisible layers by themselves
 static const QString KRITA_TOOL_ACTIVATION_ID = "flake/always";
 
-#include <kritaui_export.h>
-class  KRITAUI_EXPORT KisTool : public KoToolBase
+#include <kritatools_export.h>
+class  KRITATOOLS_EXPORT KisTool : public KoToolBase
 {
     Q_OBJECT
 

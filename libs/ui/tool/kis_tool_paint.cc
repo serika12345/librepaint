@@ -57,6 +57,7 @@
 #include "kis_slider_spin_box.h"
 #include "kis_canvas_resource_provider.h"
 #include "kis_tool_utils.h"
+#include "kis_tool_canvas_utils.h"
 #include <brushengine/kis_paintop.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/KisOptimizedBrushOutline.h>

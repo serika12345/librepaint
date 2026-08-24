@@ -1723,6 +1723,17 @@
         },
         {
           "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
           "dependencyTarget": "kritatoolsui",
           "platforms": [
             "macos",
@@ -1741,6 +1752,10 @@
         {
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation"
         },
         {
           "sourceResponsibility": "tool-invocation",
@@ -1769,6 +1784,347 @@
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "unique-owner-target",
           "dependencyAttribution": "classified-public-path"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/canvas/kis_tool_proxy.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
+          "include": "KisPaletteEditor.h",
+          "headerPath": "libs/tools/ui/KisPaletteEditor.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_layer_properties.cc",
+          "include": "kis_cmb_composite.h",
+          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_layer_style.cpp",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
+          "include": "KisToolShapeUtils.h",
+          "headerPath": "libs/tools/KisToolShapeUtils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/input/kis_alternate_invocation_action.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/input/kis_change_primary_setting_action.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/input/kis_tool_invocation_action.cpp",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_cmb_composite.h",
+          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_paintop_list_widget.h",
+          "headerPath": "libs/tools/ui/kis_paintop_list_widget.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_delegated_tool.h",
+          "include": "kis_delegated_tool_policies.h",
+          "headerPath": "libs/tools/kis_delegated_tool_policies.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_delegated_tool.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_figure_painting_tool_helper.h",
+          "include": "KisToolShapeUtils.h",
+          "headerPath": "libs/tools/KisToolShapeUtils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand.cc",
+          "include": "kis_tool_utils.h",
+          "headerPath": "libs/tools/kis_tool_utils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand.h",
+          "include": "kis_smoothing_options.h",
+          "headerPath": "libs/tools/kis_smoothing_options.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.h",
+          "include": "kis_smoothing_options.h",
+          "headerPath": "libs/tools/kis_smoothing_options.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_paint.cc",
+          "include": "kis_cmb_composite.h",
+          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_paint.cc",
+          "include": "kis_tool_utils.h",
+          "headerPath": "libs/tools/kis_tool_utils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_paint.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_paint.h",
+          "include": "kis_tool_utils.h",
+          "headerPath": "libs/tools/kis_tool_utils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_select_base.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_shape.h",
+          "include": "KisSelectionToolFactoryBase.h",
+          "headerPath": "libs/tools/KisSelectionToolFactoryBase.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_shape.h",
+          "include": "KisToolShapeUtils.h",
+          "headerPath": "libs/tools/KisToolShapeUtils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
+          "include": "kis_cmb_composite.h",
+          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/widgets/kis_paintop_presets_editor.cpp",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/widgets/kis_paintop_presets_editor.h",
+          "include": "kis_paint_ops_model.h",
+          "headerPath": "libs/tools/ui/kis_paint_ops_model.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/widgets/kis_zoom_scrollbar.cpp",
+          "include": "kis_tool_utils.h",
+          "headerPath": "libs/tools/kis_tool_utils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
@@ -1933,10 +2289,6 @@
         {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "canvas-presentation"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "canvas-presentation"
         }
       ],
       "directIncludes": [
@@ -2034,6 +2386,17 @@
           "sourcePath": "libs/ui/canvas/kis_canvas2.cpp",
           "include": "kis_prescaled_projection.h",
           "headerPath": "libs/canvas/kis_prescaled_projection.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas2.h",
+          "include": "KisToolCanvas.h",
+          "headerPath": "libs/canvas/KisToolCanvas.h",
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "longest-responsibility-source-directory",
@@ -2438,17 +2801,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
-          "sourcePath": "libs/ui/tool/kis_tool.cc",
-          "include": "kis_coordinates_converter.h",
-          "headerPath": "libs/canvas/kis_coordinates_converter.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "canvas-presentation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/widgets/kis_scratch_pad.cpp",
           "include": "kis_image_patch.h",
           "headerPath": "libs/canvas/kis_image_patch.h",
@@ -2464,6 +2816,17 @@
       "dependencyResponsibility": "tool-invocation",
       "status": "disproved-by-direct-include-attribution",
       "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatoolsui",
@@ -2482,11 +2845,356 @@
           "dependencyResponsibility": "tool-invocation"
         },
         {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation"
+        },
+        {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation"
         }
       ],
       "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/KisMainWindow.cpp",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/canvas/kis_tool_proxy.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
+          "include": "KisPaletteEditor.h",
+          "headerPath": "libs/tools/ui/KisPaletteEditor.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_layer_properties.cc",
+          "include": "kis_cmb_composite.h",
+          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_layer_style.cpp",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
+          "include": "KisToolShapeUtils.h",
+          "headerPath": "libs/tools/KisToolShapeUtils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/input/kis_alternate_invocation_action.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/input/kis_change_primary_setting_action.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/input/kis_tool_invocation_action.cpp",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_cmb_composite.h",
+          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_paintop_list_widget.h",
+          "headerPath": "libs/tools/ui/kis_paintop_list_widget.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/kis_paintop_box.cc",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_delegated_tool.h",
+          "include": "kis_delegated_tool_policies.h",
+          "headerPath": "libs/tools/kis_delegated_tool_policies.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_delegated_tool.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_figure_painting_tool_helper.h",
+          "include": "KisToolShapeUtils.h",
+          "headerPath": "libs/tools/KisToolShapeUtils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand.cc",
+          "include": "kis_tool_utils.h",
+          "headerPath": "libs/tools/kis_tool_utils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand.h",
+          "include": "kis_smoothing_options.h",
+          "headerPath": "libs/tools/kis_smoothing_options.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.h",
+          "include": "kis_smoothing_options.h",
+          "headerPath": "libs/tools/kis_smoothing_options.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_paint.cc",
+          "include": "kis_cmb_composite.h",
+          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_paint.cc",
+          "include": "kis_tool_utils.h",
+          "headerPath": "libs/tools/kis_tool_utils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_paint.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_paint.h",
+          "include": "kis_tool_utils.h",
+          "headerPath": "libs/tools/kis_tool_utils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_select_base.h",
+          "include": "kis_tool.h",
+          "headerPath": "libs/tools/kis_tool.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_shape.h",
+          "include": "KisSelectionToolFactoryBase.h",
+          "headerPath": "libs/tools/KisSelectionToolFactoryBase.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_shape.h",
+          "include": "KisToolShapeUtils.h",
+          "headerPath": "libs/tools/KisToolShapeUtils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
+          "include": "kis_cmb_composite.h",
+          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/widgets/kis_paintop_presets_editor.cpp",
+          "include": "KisPaintResourceServerProvider.h",
+          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/widgets/kis_paintop_presets_editor.h",
+          "include": "kis_paint_ops_model.h",
+          "headerPath": "libs/tools/ui/kis_paint_ops_model.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/widgets/kis_zoom_scrollbar.cpp",
+          "include": "kis_tool_utils.h",
+          "headerPath": "libs/tools/kis_tool_utils.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatoolsui",
@@ -5425,27 +6133,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 22,
+            "targetCount": 23,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 22,
+            "targetCount": 23,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 22,
+            "targetCount": 23,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 22,
+            "targetCount": 23,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 22,
+            "targetCount": 23,
             "components": []
           }
         ]
@@ -5455,27 +6163,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 222,
+            "targetCount": 223,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 228,
+            "targetCount": 229,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 214,
+            "targetCount": 215,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 214,
+            "targetCount": 215,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 231,
+            "targetCount": 232,
             "components": []
           }
         ]
@@ -5609,11 +6317,28 @@
       "headers": []
     },
     {
+      "ownerTarget": "kritatools",
+      "owner": "R1-G6",
+      "reason": "External packages use the declared tool command and settings-state header surface.",
+      "maximumHeaders": 0,
+      "maximumDirectReferences": 0,
+      "removalCondition": "Tool consumers continue to use declared public contracts.",
+      "sourceDirectory": "libs/tools",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": []
+    },
+    {
       "ownerTarget": "kritaui",
       "owner": "R1-G6",
       "reason": "External packages directly include UI headers without a declared KRITAUI_EXPORT public contract.",
-      "maximumHeaders": 7,
-      "maximumDirectReferences": 20,
+      "maximumHeaders": 6,
+      "maximumDirectReferences": 19,
       "removalCondition": "Each reference uses a reviewed public UI contract or moves behind the owning UI package boundary.",
       "sourceDirectory": "libs/ui",
       "platforms": [
@@ -5649,12 +6374,6 @@
           "path": "libs/ui/operations/kis_operation_ui_widget_factory.h",
           "consumerPaths": [
             "plugins/extensions/modify_selection/modify_selection.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/tool/KisToolShapeUtils.h",
-          "consumerPaths": [
-            "libs/libkis/PaintingResources.cpp"
           ]
         },
         {

@@ -22,6 +22,7 @@
 #include "kis_layer.h"
 #include "kis_generator_layer.h"
 #include "kis_selection_mask.h"
+#include "commands/kis_node_group_operations.h"
 
 
 /**
@@ -813,6 +814,25 @@ void KisNodeOperationBatch::addNode(const KisNodeList &nodes, KisNodeSP dstParen
                             activeNode,
                             DuplicateLayers::ADD),
                 KisStrokeJobData::SEQUENTIAL, KisStrokeJobData::EXCLUSIVE);
+}
+
+bool KisNodeOperationBatch::createGroup(const KisNodeList &nodes,
+                                        KisNodeSP activeNode,
+                                        const QString &groupName,
+                                        KisNodeSP *newGroup,
+                                        KisNodeSP *newLastChild)
+{
+    return KisNodeGroupOperations::createGroup(
+        this, m_d->image, nodes, activeNode, groupName, newGroup, newLastChild);
+}
+
+bool KisNodeOperationBatch::ungroupNodes(const KisNodeList &selectedNodes,
+                                         KisNodeSP activeNode,
+                                         KisNodeSP *incompatibleNode,
+                                         KisNodeSP *destinationParent)
+{
+    return KisNodeGroupOperations::ungroupNodes(
+        this, selectedNodes, activeNode, incompatibleNode, destinationParent);
 }
 
 void KisNodeOperationBatch::moveNode(KisNodeSP node, KisNodeSP parent, KisNodeSP above)

@@ -167,6 +167,7 @@
       ],
       "publicHeaderPaths": [
         "libs/canvas/KisCanvasState.h",
+        "libs/canvas/KisToolCanvas.h",
         "libs/canvas/animation/kis_animation_frame_cache_index.h",
         "libs/canvas/animation/kis_frame_cache_store.h",
         "libs/canvas/animation/kis_frame_data_serializer.h",
@@ -1250,19 +1251,29 @@
         "plugins/tools"
       ],
       "ownerTargets": [
+        "kritatools",
         "kritatoolsui",
         "kritaui"
       ],
-      "publicHeaderOwnerTargets": [],
+      "publicHeaderOwnerTargets": [
+        "kritatools"
+      ],
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [
+        "libs/ui/canvas/kis_tool_proxy.h",
         "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
         "libs/ui/dialogs/kis_dlg_layer_properties.cc",
         "libs/ui/dialogs/kis_dlg_layer_style.cpp",
+        "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
         "libs/ui/kis_favorite_resource_manager.cpp",
+        "libs/ui/tool/kis_delegated_tool.h",
+        "libs/ui/tool/kis_figure_painting_tool_helper.h",
+        "libs/ui/tool/kis_tool_freehand_helper.h",
+        "libs/ui/tool/kis_tool_select_base.h",
         "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
         "libs/ui/widgets/kis_paintop_presets_editor.cpp",
-        "libs/ui/widgets/kis_paintop_presets_editor.h"
+        "libs/ui/widgets/kis_paintop_presets_editor.h",
+        "libs/ui/widgets/kis_zoom_scrollbar.cpp"
       ],
       "uiClassAreas": [
         "tool-invocation"
@@ -1277,52 +1288,42 @@
         "tool-invocation"
       ],
       "publicHeaderPaths": [
+        "libs/tools/KisSelectionToolFactoryBase.h",
+        "libs/tools/KisToolChangesTracker.h",
+        "libs/tools/KisToolChangesTrackerData.h",
+        "libs/tools/KisToolPaintFactoryBase.h",
+        "libs/tools/KisToolShapeUtils.h",
+        "libs/tools/kis_delegated_tool_policies.h",
+        "libs/tools/kis_smoothing_options.h",
+        "libs/tools/kis_tool.h",
+        "libs/tools/kis_tool_utils.h",
         "libs/ui/kis_bookmarked_configurations_editor.h",
         "libs/ui/kis_bookmarked_configurations_model.h",
         "libs/ui/kis_paintop_box.h",
-        "libs/ui/tool/KisSelectionToolFactoryBase.h",
-        "libs/ui/tool/KisToolChangesTracker.h",
-        "libs/ui/tool/KisToolChangesTrackerData.h",
         "libs/ui/tool/KisToolOutlineBase.h",
-        "libs/ui/tool/KisToolPaintFactoryBase.h",
-        "libs/ui/tool/kis_delegated_tool_policies.h",
         "libs/ui/tool/kis_rectangle_constraint_widget.h",
         "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
-        "libs/ui/tool/kis_smoothing_options.h",
-        "libs/ui/tool/kis_tool.h",
         "libs/ui/tool/kis_tool_ellipse_base.h",
         "libs/ui/tool/kis_tool_freehand.h",
         "libs/ui/tool/kis_tool_paint.h",
         "libs/ui/tool/kis_tool_polyline_base.h",
         "libs/ui/tool/kis_tool_rectangle_base.h",
-        "libs/ui/tool/kis_tool_shape.h",
-        "libs/ui/tool/kis_tool_utils.h"
+        "libs/ui/tool/kis_tool_shape.h"
       ],
       "classNames": [
-        "ColorSamplerConfig",
-        "DeselectShapesActivationPolicy",
         "KisBookmarkedConfigurationsEditor",
         "KisBookmarkedConfigurationsModel",
         "KisPaintopBox",
         "KisRectangleConstraintWidget",
         "KisSelectionToolConfigWidgetHelper",
-        "KisSelectionToolFactoryBase",
-        "KisSmoothingOptions",
-        "KisTool",
-        "KisToolChangesTracker",
-        "KisToolChangesTrackerData",
         "KisToolEllipseBase",
         "KisToolFreehand",
         "KisToolOutlineBase",
         "KisToolPaint",
-        "KisToolPaintFactoryBase",
-        "KisToolPolyLineFactoryBase",
         "KisToolPolylineBase",
         "KisToolRectangleBase",
         "KisToolShape",
-        "NoopActivationPolicy",
-        "ShapeAddInfo",
-        "StandardBrushSizes"
+        "ShapeAddInfo"
       ],
       "pluginIds": [
         "AssistantTool",
@@ -1577,6 +1578,7 @@
         "kritaimage"
       ],
       "repositoryConsumers": [
+        "kritatools",
         "kritaui"
       ]
     },
@@ -1701,6 +1703,7 @@
         "kritabasicflakes",
         "kritacanvas",
         "kritapsdutils",
+        "kritatools",
         "kritawidgets"
       ]
     },
@@ -1746,6 +1749,7 @@
         "kritargbeimportutils",
         "kritaselectiontools",
         "kritasnapshotdocker",
+        "kritatools",
         "kritatoolsui",
         "kritaui",
         "python_module_PyKrita_krita"
@@ -1888,6 +1892,7 @@
         "kritatoolSmartPatch",
         "kritatoolcrop",
         "kritatoolencloseandfill",
+        "kritatools",
         "kritatooltransform_static",
         "kritaui"
       ]
@@ -1981,6 +1986,7 @@
         "kritalcmsengine_static",
         "kritapsdutils",
         "kritasurfacecolormanagementapi",
+        "kritatools",
         "kritatoolsui",
         "kritawidgets"
       ]
@@ -2042,6 +2048,7 @@
         "kritapigment",
         "kritaresourcemanager",
         "kritaresourceui",
+        "kritatools",
         "kritatoolsui",
         "kritaui",
         "kritawidgets",
@@ -2112,6 +2119,34 @@
       ]
     },
     {
+      "name": "kritatools",
+      "sourceDirectory": "libs/tools",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritacanvas",
+        "kritaflake",
+        "kritaglobal",
+        "kritaimage",
+        "kritapainting",
+        "kritapigment",
+        "kritaresources",
+        "kritawidgetutils"
+      ],
+      "repositoryConsumers": [
+        "kritaui"
+      ]
+    },
+    {
       "name": "kritatoolsui",
       "sourceDirectory": "libs/tools/ui",
       "platforms": [
@@ -2170,6 +2205,7 @@
         "kritaresourcestorage",
         "kritaresourceui",
         "kritasurfacecolormanagementapi",
+        "kritatools",
         "kritatoolsui",
         "kritaversion",
         "kritawidgets",

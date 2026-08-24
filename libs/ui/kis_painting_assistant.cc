@@ -12,7 +12,6 @@
 #include "kis_debug.h"
 #include "kis_dom_utils.h"
 #include <kis_canvas2.h>
-#include "kis_tool.h"
 #include "kis_config.h"
 
 #include <KoStore.h>
@@ -1165,4 +1164,3 @@ KisPaintingAssistantFactoryRegistry* KisPaintingAssistantFactoryRegistry::instan
 {
     return s_instance;
 }
-

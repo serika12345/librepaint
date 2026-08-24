@@ -25,6 +25,7 @@
 #include "kis_liquify_transform_worker.h"
 #include "KoCanvasResourceProvider.h"
 #include "kis_tool_utils.h"
+#include "kis_tool_canvas_utils.h"
 
 
 struct KisLiquifyTransformStrategy::Private
@@ -341,4 +342,3 @@ void KisLiquifyTransformStrategy::Private::recalculateTransformations()
     handlesTransform = scaleTransform;
     Q_EMIT q->requestImageRecalculation();
 }
-

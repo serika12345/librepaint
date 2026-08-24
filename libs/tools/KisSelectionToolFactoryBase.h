@@ -8,9 +8,9 @@
 
 #include "KisToolPaintFactoryBase.h"
 
-#include "kritaui_export.h"
+#include "kritatools_export.h"
 
-class KRITAUI_EXPORT KisSelectionToolFactoryBase : public KisToolPaintFactoryBase
+class KRITATOOLS_EXPORT KisSelectionToolFactoryBase : public KisToolPaintFactoryBase
 {
 public:
     explicit KisSelectionToolFactoryBase(const QString &id);
@@ -19,7 +19,7 @@ protected:
     QList<QAction *> createActionsImpl() override;
 };
 
-class KRITAUI_EXPORT KisToolPolyLineFactoryBase : public KisToolPaintFactoryBase
+class KRITATOOLS_EXPORT KisToolPolyLineFactoryBase : public KisToolPaintFactoryBase
 {
 public:
     explicit KisToolPolyLineFactoryBase(const QString &id);

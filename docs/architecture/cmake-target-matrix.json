@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 661,
-    "linux": 676,
-    "ios": 595,
-    "android": 601,
-    "windows": 631
+    "macos": 663,
+    "linux": 678,
+    "ios": 597,
+    "android": 603,
+    "windows": 633
   },
   "commonTargets": [
     "CCSGraph",
@@ -186,6 +186,7 @@
     "TestTagFilterResourceProxyModel",
     "TestTagModel",
     "TestTagResourceModel",
+    "TestToolCoreContract",
     "TestToolSettingsUiContract",
     "TestVectorLayer",
     "TestXmlWriter",
@@ -561,6 +562,7 @@
     "kritatoollazybrush",
     "kritatoolpolygon",
     "kritatoolpolyline",
+    "kritatools",
     "kritatoolsui",
     "kritatooltransform",
     "kritatooltransform_static",
@@ -1505,6 +1507,7 @@
     "TestTagFilterResourceProxyModel",
     "TestTagModel",
     "TestTagResourceModel",
+    "TestToolCoreContract",
     "TestToolSettingsUiContract",
     "TestXmlWriter",
     "dummytrivialinterface",
@@ -1701,6 +1704,7 @@
     "kritatoollazybrush",
     "kritatoolpolygon",
     "kritatoolpolyline",
+    "kritatools",
     "kritatoolsui",
     "kritatooltransform",
     "kritatooltransform_static",

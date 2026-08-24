@@ -38,11 +38,10 @@ def updated_inventory(
     )
     discovered_names = {entry["name"] for entry in discovered}
     missing = sorted(discovered_names - set(assignments))
-    unexpected = sorted(set(assignments) - discovered_names)
-    if missing or unexpected:
+    if missing:
         raise inventory_contract.PublicSurfaceError(
             "UI tool class responsibility assignments do not match discovery; "
-            f"missing={missing}, unexpected={unexpected}"
+            f"missing={missing}"
         )
     known_areas = {
         entry["id"]

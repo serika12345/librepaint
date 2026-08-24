@@ -46,7 +46,7 @@ class AllowedPackageDependencyTests(unittest.TestCase):
             policy["scope"], "r1-package-responsibility-dependency-policy"
         )
         self.assertEqual(len(policy["responsibilities"]), 9)
-        self.assertEqual(len(policy["currentTargetEdges"]), 65)
+        self.assertEqual(len(policy["currentTargetEdges"]), 72)
         status_counts = {
             status: sum(
                 projection["status"] == status
@@ -62,9 +62,9 @@ class AllowedPackageDependencyTests(unittest.TestCase):
         self.assertEqual(
             status_counts,
             {
-                "internal": 21,
-                "allowed": 78,
-                "requires-r1-g4-baseline": 30,
+                "internal": 22,
+                "allowed": 86,
+                "requires-r1-g4-baseline": 32,
             },
         )
         by_id = {

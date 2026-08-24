@@ -9,18 +9,18 @@
 
 #include <QtGlobal>
 
-#include "kritaui_export.h"
+#include "kritatools_export.h"
 
 
 class KoCanvasBase;
 
-struct KRITAUI_EXPORT NoopActivationPolicy {
+struct KRITATOOLS_EXPORT NoopActivationPolicy {
     static inline void onActivate(KoCanvasBase *canvas) {
         Q_UNUSED(canvas);
     }
 };
 
-struct KRITAUI_EXPORT DeselectShapesActivationPolicy {
+struct KRITATOOLS_EXPORT DeselectShapesActivationPolicy {
     static void onActivate(KoCanvasBase *canvas);
 };
 

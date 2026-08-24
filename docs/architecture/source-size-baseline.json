@@ -74,7 +74,7 @@
     "libs/ui/input/kis_shortcut_matcher.cpp": 1178,
     "libs/ui/kis_config.cc": 3169,
     "libs/ui/kis_layer_manager.cc": 1156,
-    "libs/ui/kis_node_manager.cpp": 1798,
+    "libs/ui/kis_node_manager.cpp": 1739,
     "libs/ui/kis_painting_assistant.cc": 1168,
     "libs/ui/kis_paintop_box.cc": 1579,
     "libs/ui/kis_popup_palette.cpp": 1603,

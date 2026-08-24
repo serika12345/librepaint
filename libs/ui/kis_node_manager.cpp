@@ -10,7 +10,6 @@
 #include <QMessageBox>
 #include <KisSignalMapper.h>
 #include <QApplication>
-
 #include <kactioncollection.h>
 
 #include <QKeySequence>
@@ -34,6 +33,7 @@
 #include <kis_selection.h>
 #include <kis_selection_mask.h>
 #include <kis_layer.h>
+#include <kis_group_layer.h>
 #include <kis_mask.h>
 #include <kis_image.h>
 #include <kis_painter.h>
@@ -48,7 +48,6 @@
 #include "KisViewManager.h"
 #include "KisDocument.h"
 #include "kis_mask_manager.h"
-#include "kis_group_layer.h"
 #include "kis_layer_manager.h"
 #include "kis_selection_manager.h"
 #include <commands/kis_node_commands_adapter.h>
@@ -69,7 +68,6 @@
 #include "kis_keyframe_channel.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kis_paint_device_frames_interface.h"
-#include "kis_layer_utils.h"
 #include "kis_filter_mask.h"
 
 #include "processing/kis_mirror_processing_visitor.h"
@@ -1605,32 +1603,11 @@ bool KisNodeManager::createQuickGroupImpl(KisNodeOperationBatch *batch,
     if (!canMoveLayer(active)) return false;
 
     KisImageSP image = m_d->view->image();
-    QString groupName = !overrideGroupName.isEmpty() ? overrideGroupName : image->nextLayerName(i18nc("A group of layers", "Group"));
-    KisGroupLayerSP group = new KisGroupLayer(image.data(), groupName, OPACITY_OPAQUE_U8);
+    const QString groupName = !overrideGroupName.isEmpty()
+        ? overrideGroupName
+        : image->nextLayerName(i18nc("A group of layers", "Group"));
 
-    KisNodeList nodes1;
-    nodes1 << group;
-
-    KisNodeList nodes2;
-    nodes2 = KisLayerUtils::sortMergeableNodes(image->root(), selectedNodes());
-    KisLayerUtils::filterMergeableNodes(nodes2);
-
-    if (nodes2.size() == 0) return false;
-
-    if (KisLayerUtils::checkIsChildOf(active, nodes2)) {
-        active = nodes2.first();
-    }
-
-    KisNodeSP parent = active->parent();
-    KisNodeSP aboveThis = active;
-
-    batch->addNode(nodes1, parent, aboveThis, active);
-    batch->moveNode(nodes2, group, 0, active);
-
-    *newGroup = group;
-    *newLastChild = nodes2.last();
-
-    return true;
+    return batch->createGroup(selectedNodes(), active, groupName, newGroup, newLastChild);
 }
 
 void KisNodeManager::createQuickGroup()
@@ -1668,55 +1645,19 @@ void KisNodeManager::quickUngroup()
 
     if (!canModifyLayer(active)) return;
 
-    KisNodeSP parent = active->parent();
-    KisNodeSP aboveThis = active;
-
-    auto checkCanMoveLayers = [this] (KisNodeList nodes, KisNodeSP newParent) -> bool {
-        auto incompatibleNode =
-            std::find_if(nodes.begin(), nodes.end(),
-                [newParent] (KisNodeSP node) {
-                    return !newParent->allowAsChild(node);
-                });
-
-        if (incompatibleNode != nodes.end()) {
-            const QString message =
-                    newParent->parent() ?
-                        i18n("Cannot move layer \"%1\" into new parent \"%2\"",
-                             (*incompatibleNode)->name(),
-                             newParent->name()) :
-                        i18n("Cannot move layer \"%1\" into the root layer",
-                             (*incompatibleNode)->name());
-            m_d->view->showFloatingMessage(message, QIcon());
-            return false;
-        }
-        return true;
-    };
-
     KUndo2MagicString actionName = kundo2_i18n("Quick Ungroup");
 
-    if (parent && dynamic_cast<KisGroupLayer*>(active.data())) {
-        KisNodeList nodes = active->childNodes(QStringList(), KoProperties());
-
-        if (checkCanMoveLayers(nodes, parent)) {
-            KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-            batch->moveNode(nodes, parent, active, active);
-            batch->removeNode(KisNodeList() << active, active);
-        }
-    } else if (parent && parent->parent()) {
-        KisNodeSP grandParent = parent->parent();
-
-        KisNodeList allChildNodes = parent->childNodes(QStringList(), KoProperties());
-        KisNodeList allSelectedNodes = selectedNodes();
-
-        const bool removeParent = KritaUtils::compareListsUnordered(allChildNodes, allSelectedNodes);
-
-        if (checkCanMoveLayers(allSelectedNodes, parent)) {
-            KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-            batch->moveNode(allSelectedNodes, grandParent, parent, active);
-            if (removeParent) {
-                batch->removeNode(KisNodeList() << parent, active);
-            }
-        }
+    KisNodeSP incompatibleNode;
+    KisNodeSP destinationParent;
+    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
+    if (!batch->ungroupNodes(selectedNodes(), active, &incompatibleNode, &destinationParent) &&
+        incompatibleNode && destinationParent) {
+        const QString message = destinationParent->parent()
+            ? i18n("Cannot move layer \"%1\" into new parent \"%2\"",
+                   incompatibleNode->name(), destinationParent->name())
+            : i18n("Cannot move layer \"%1\" into the root layer",
+                   incompatibleNode->name());
+        m_d->view->showFloatingMessage(message, QIcon());
     }
 }
 

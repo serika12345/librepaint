@@ -35,6 +35,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     ),
     "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
     "libs/impex": ("libs/impex/tests/TestImportExportBoundary.cpp",),
+    "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
     "libs/ui": ("libs/ui/tests/TestCanvasUiPublicHeaders.cpp",),
 }
 INCLUDE_PATTERN = re.compile(
@@ -63,6 +64,7 @@ PUBLIC_HEADER_SET_SPECS = (
         ),
         "evidence": [
             "libs/canvas/CMakeLists.txt",
+            "libs/canvas/KisToolCanvas.h",
             "libs/canvas/kis_coordinates_converter.h",
         ],
     },
@@ -156,6 +158,18 @@ PUBLIC_HEADER_SET_SPECS = (
             "for document-facing conversion coordination, feedback, and format options."
         ),
         "evidence": ["libs/impex/CMakeLists.txt", "libs/impex/ui/KisImportExportManager.h"],
+    },
+    {
+        "ownerTarget": "kritatools",
+        "sourceDirectory": "libs/tools",
+        "headerDirectories": ["libs/tools"],
+        "excludedHeaderDirectories": ["libs/tools/tests", "libs/tools/ui"],
+        "exportMacro": "KRITATOOLS_EXPORT",
+        "responsibility": (
+            "Records the declared and externally consumed tool-command surface "
+            "for activation, settings state, canvas access, and shared tool policies."
+        ),
+        "evidence": ["libs/tools/CMakeLists.txt", "libs/tools/kis_tool.h"],
     },
     {
         "ownerTarget": "kritaui",

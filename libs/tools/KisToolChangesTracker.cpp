@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "KisToolChangesTracker.h"
+#include <KisToolChangesTracker.h>
 
 #include "kis_global.h"
 #include <QSharedPointer>

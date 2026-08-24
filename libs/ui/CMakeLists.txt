@@ -20,6 +20,7 @@ endif ()
 set(kritaui_LIB_SRCS
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp
+    canvas/kis_canvas_tool_support.cpp
     canvas/kis_canvas_updates_compressor.cpp
     canvas/kis_canvas_controller.cpp
     canvas/kis_display_color_converter.cpp
@@ -167,14 +168,10 @@ set(kritaui_LIB_SRCS
     opengl/KisOpenGLContextSwitchLock.cpp
     kis_fps_decoration.cpp
 
-    tool/KisToolChangesTracker.cpp
-    tool/KisToolChangesTrackerData.cpp
     tool/kis_selection_tool_helper.cpp
     tool/kis_selection_tool_config_widget_helper.cpp
     tool/kis_rectangle_constraint_widget.cpp
     tool/kis_shape_tool_helper.cpp
-    tool/kis_tool.cc
-    tool/kis_delegated_tool_policies.cpp
     tool/kis_tool_freehand.cc
     tool/kis_speed_smoother.cpp
     tool/kis_painting_information_builder.cpp
@@ -188,11 +185,8 @@ set(kritaui_LIB_SRCS
     tool/kis_tool_rectangle_base.cpp
     tool/kis_tool_polyline_base.cpp
     tool/KisToolOutlineBase.cpp
-    tool/kis_tool_utils.cpp
-    tool/kis_smoothing_options.cpp
+    tool/kis_tool_canvas_utils.cpp
     tool/KisStabilizerDelayedPaintHelper.cpp
-    tool/KisSelectionToolFactoryBase.cpp
-    tool/KisToolPaintFactoryBase.cpp
     tool/KisAsyncColorSamplerHelper.cpp
 
     toolbox/KoToolBox.cpp
@@ -629,6 +623,7 @@ target_link_libraries(kritaui
         kritawidgetutils
         kritaresources
         kritaresourcestorage
+        kritatools
         kritatoolsui
         kritacanvas
         kritadocument

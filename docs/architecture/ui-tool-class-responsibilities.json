@@ -56,34 +56,6 @@
   ],
   "classes": [
     {
-      "name": "ColorSamplerConfig",
-      "declarationKind": "struct",
-      "header": "libs/ui/tool/kis_tool_utils.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_tool_utils.cpp"
-      ],
-      "consumerPaths": [
-        "libs/ui/widgets/kis_zoom_scrollbar.cpp",
-        "plugins/dockers/animation/KisAnimUtils.cpp",
-        "plugins/tools/basictools/kis_tool_colorsampler.cc",
-        "plugins/tools/basictools/kis_tool_move.cc",
-        "plugins/tools/svgtexttool/SvgTextTool.cpp",
-        "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
-        "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp"
-      ],
-      "responsibilityArea": "settings-presentation"
-    },
-    {
-      "name": "DeselectShapesActivationPolicy",
-      "declarationKind": "struct",
-      "header": "libs/ui/tool/kis_delegated_tool_policies.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_delegated_tool_policies.cpp"
-      ],
-      "consumerPaths": [],
-      "responsibilityArea": "tool-invocation"
-    },
-    {
       "name": "KisAsyncColorSamplerHelper",
       "declarationKind": "class",
       "header": "libs/ui/tool/KisAsyncColorSamplerHelper.h",
@@ -171,25 +143,6 @@
       "responsibilityArea": "settings-presentation"
     },
     {
-      "name": "KisSelectionToolFactoryBase",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/KisSelectionToolFactoryBase.h",
-      "implementationPaths": [
-        "libs/ui/tool/KisSelectionToolFactoryBase.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
-        "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
-        "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
-        "plugins/tools/selectiontools/kis_tool_select_outline.h",
-        "plugins/tools/selectiontools/kis_tool_select_path.h",
-        "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
-        "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
-        "plugins/tools/selectiontools/kis_tool_select_similar.h"
-      ],
-      "responsibilityArea": "tool-invocation"
-    },
-    {
       "name": "KisSelectionToolHelper",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_selection_tool_helper.h",
@@ -229,16 +182,6 @@
       "responsibilityArea": "painting-execution"
     },
     {
-      "name": "KisSmoothingOptions",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_smoothing_options.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_smoothing_options.cpp"
-      ],
-      "consumerPaths": [],
-      "responsibilityArea": "settings-presentation"
-    },
-    {
       "name": "KisStabilizedEventsSampler",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_stabilized_events_sampler.h",
@@ -257,62 +200,6 @@
       ],
       "consumerPaths": [],
       "responsibilityArea": "input-interpretation"
-    },
-    {
-      "name": "KisTool",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_tool.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_tool.cc"
-      ],
-      "consumerPaths": [
-        "libs/ui/canvas/kis_tool_proxy.h",
-        "libs/ui/input/kis_alternate_invocation_action.h",
-        "libs/ui/input/kis_change_primary_setting_action.h",
-        "libs/ui/input/kis_tool_invocation_action.cpp",
-        "libs/ui/kis_painting_assistant.cc",
-        "libs/ui/kis_paintop_box.cc",
-        "plugins/assistants/Assistants/kis_assistant_tool.h",
-        "plugins/tools/basictools/default_tools.cc",
-        "plugins/tools/basictools/kis_tool_brush.cc",
-        "plugins/tools/basictools/kis_tool_colorsampler.h",
-        "plugins/tools/basictools/kis_tool_measure.h",
-        "plugins/tools/basictools/kis_tool_move.h",
-        "plugins/tools/basictools/kis_tool_pan.h",
-        "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.h",
-        "plugins/tools/tool_crop/kis_tool_crop.h",
-        "plugins/tools/tool_knife/ToolKnife.cpp",
-        "plugins/tools/tool_lazybrush/tool_lazybrush.cpp",
-        "plugins/tools/tool_smart_patch/tool_smartpatch.cpp",
-        "plugins/tools/tool_transform2/kis_tool_transform.h",
-        "plugins/tools/tool_transform2/kis_transform_strategy_base.h"
-      ],
-      "responsibilityArea": "tool-invocation"
-    },
-    {
-      "name": "KisToolChangesTracker",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/KisToolChangesTracker.h",
-      "implementationPaths": [
-        "libs/ui/tool/KisToolChangesTracker.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/basictools/kis_tool_move.h",
-        "plugins/tools/tool_transform2/kis_tool_transform.h"
-      ],
-      "responsibilityArea": "settings-presentation"
-    },
-    {
-      "name": "KisToolChangesTrackerData",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/KisToolChangesTrackerData.h",
-      "implementationPaths": [
-        "libs/ui/tool/KisToolChangesTrackerData.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/tool_transform2/tool_transform_args.h"
-      ],
-      "responsibilityArea": "settings-presentation"
     },
     {
       "name": "KisToolEllipseBase",
@@ -414,49 +301,6 @@
       "responsibilityArea": "tool-invocation"
     },
     {
-      "name": "KisToolPaintFactoryBase",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/KisToolPaintFactoryBase.h",
-      "implementationPaths": [
-        "libs/ui/tool/KisToolPaintFactoryBase.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/basictools/kis_tool_brush.h",
-        "plugins/tools/basictools/kis_tool_ellipse.h",
-        "plugins/tools/basictools/kis_tool_fill.h",
-        "plugins/tools/basictools/kis_tool_gradient.h",
-        "plugins/tools/basictools/kis_tool_line.h",
-        "plugins/tools/basictools/kis_tool_move.h",
-        "plugins/tools/basictools/kis_tool_rectangle.h",
-        "plugins/tools/tool_dyna/kis_tool_dyna.h",
-        "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFillFactory.h",
-        "plugins/tools/tool_knife/KisToolKnife.h",
-        "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.h",
-        "plugins/tools/tool_smart_patch/kis_tool_smart_patch.h",
-        "plugins/tools/tool_transform2/kis_tool_transform.h"
-      ],
-      "responsibilityArea": "tool-invocation"
-    },
-    {
-      "name": "KisToolPolyLineFactoryBase",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/KisSelectionToolFactoryBase.h",
-      "implementationPaths": [
-        "libs/ui/tool/KisSelectionToolFactoryBase.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/selectiontools/KisToolSelectMagnetic.h",
-        "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
-        "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
-        "plugins/tools/selectiontools/kis_tool_select_outline.h",
-        "plugins/tools/selectiontools/kis_tool_select_path.h",
-        "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
-        "plugins/tools/selectiontools/kis_tool_select_rectangular.h",
-        "plugins/tools/selectiontools/kis_tool_select_similar.h"
-      ],
-      "responsibilityArea": "tool-invocation"
-    },
-    {
       "name": "KisToolPolylineBase",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_tool_polyline_base.h",
@@ -506,14 +350,6 @@
       "responsibilityArea": "tool-invocation"
     },
     {
-      "name": "NoopActivationPolicy",
-      "declarationKind": "struct",
-      "header": "libs/ui/tool/kis_delegated_tool_policies.h",
-      "implementationPaths": [],
-      "consumerPaths": [],
-      "responsibilityArea": "tool-invocation"
-    },
-    {
       "name": "ShapeAddInfo",
       "declarationKind": "struct",
       "header": "libs/ui/tool/kis_tool_shape.h",
@@ -533,24 +369,6 @@
         "plugins/tools/tool_polygon/kis_tool_polygon.h"
       ],
       "responsibilityArea": "tool-invocation"
-    },
-    {
-      "name": "StandardBrushSizes",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_tool_utils.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_tool_utils.cpp"
-      ],
-      "consumerPaths": [
-        "libs/ui/widgets/kis_zoom_scrollbar.cpp",
-        "plugins/dockers/animation/KisAnimUtils.cpp",
-        "plugins/tools/basictools/kis_tool_colorsampler.cc",
-        "plugins/tools/basictools/kis_tool_move.cc",
-        "plugins/tools/svgtexttool/SvgTextTool.cpp",
-        "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
-        "plugins/tools/tool_transform2/kis_liquify_transform_strategy.cpp"
-      ],
-      "responsibilityArea": "settings-presentation"
     },
     {
       "name": "iterator",

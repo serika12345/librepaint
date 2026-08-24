@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-23 12:43 JST
-- 状態: `completed`
-- 現在の検査段階: R1-G6f画像ノード変更実行境界
+- 更新日時: 2026-08-24 10:37 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6f-node-manager-boundary`
-- 目的: UI管理器が直接所有していたノード移動条件とミラー処理ジョブ構成を既存の画像命令と
-  画像処理へ集約し、UIを編集可否の警告、操作の呼出し、画面更新通知へ限定する。
+- 目的: UI共有ターゲットに混在する画像グラフ変更とツール命令を、画像命令、キャンバス公開面、
+  ツール命令ターゲットへ一括移設し、UIを入力、表示、選択、操作の接続へ限定する。
 
 ## 再開環境
 
@@ -1121,12 +1121,64 @@
   固定する。移動対象外のノード管理処理、broken試験のUI統合範囲、各構成の既存警告は
   残存リスクとして追跡する。
 
+## R1-G6fツール命令所有境界で進行中の作業
+
+- `libs/ui/kis_node_manager.cpp`の`createQuickGroupImpl()`と`quickUngroup()`を起点として、
+  画像グラフの検証と変更を`libs/image/commands/kis_node_operation_batch.{h,cpp}`へ移した。
+  グループ作成、移動先適合性、子ノード移動、空になったグループの除去は新しい具体実装
+  `libs/image/commands/kis_node_group_operations.{h,cpp}`が所有する。UI管理器には操作名、編集可否、
+  選択更新、互換性エラーの表示を残した。
+- `libs/ui/tool/KisSelectionToolFactoryBase.*`、`KisToolPaintFactoryBase.*`、
+  `KisToolChangesTracker*`、`KisToolShapeUtils.*`、`kis_delegated_tool_policies.*`、
+  `kis_smoothing_options.*`、`kis_tool.{h,cc}`を`libs/tools/`の同名ファイルへ移した。
+  `libs/tools/CMakeLists.txt`はこれらを新しい共有ライブラリー`kritatools`として構築し、
+  `libs/tools/tests/TestToolCoreContract.cpp`が平滑化設定、ブラシ寸法、アクションID、起動方針を
+  固定する。旧配置、転送ヘッダー、旧名の別名は残していない。
+- `libs/ui/tool/kis_tool_utils.{h,cpp}`を起点として、画像消去、色採取設定、編集可否の文言、
+  カーソル位置、標準ブラシ寸法を`libs/tools/kis_tool_utils.{h,cpp}`へ移した。浮動メッセージと
+  複数レイヤー上の図形選択は`libs/ui/tool/kis_tool_canvas_utils.{h,cpp}`へ分離した。
+- `libs/ui/kis_config.{h,cc}`の線平滑化設定操作を除去し、既存の設定キーと既定値の所有を
+  `libs/tools/kis_smoothing_options.{h,cpp}`へ移した。設定保存は従来と同じ圧縮時機と
+  `KSharedConfig`を使用し、UIの汎用設定所有を経由しない。
+- ツールが借用する座標変換、画像、ノード選択、処理待機、編集可否、表示通知、輪郭描画、
+  設定通知を`libs/canvas/KisToolCanvas.h`へ固定した。`KisCanvas2`の実装は
+  `libs/ui/canvas/kis_canvas_tool_support.cpp`へ分割した。`kritatools`が`kritacanvas`へ依存し、
+  キャンバスからツールへの逆向き依存と新しい循環は存在しない。
+- UIツール責務台帳の33クラスから、`KisTool`、二つのファクトリー、二つの起動方針、
+  変更追跡、平滑化設定、共通値型を含む11クラスを`kritatools`へ移した。UI側の分類対象は
+  33件から22件、`kritaui`公開ヘッダーは244件から236件となり、`kritatools`の9公開
+  ヘッダーと`kritacanvas`の新しい借用契約を公開面台帳へ追加した。
+- `libs/ui/canvas/kis_canvas2.cpp`のツール接続実装を
+  `libs/ui/canvas/kis_canvas_tool_support.cpp`へ分け、行数上限1726を維持した。
+  `libs/image/commands/kis_node_operation_batch.cpp`はグループ処理を具体ファイルへ分けて
+  1041行から950行、`libs/ui/kis_node_manager.cpp`は1798行から1739行へ縮小した。
+- CMake台帳へ`kritatools`と`TestToolCoreContract`を追加した。現在の記録はmacOS 663件、
+  Linux 678件、iOS 597件、Android 603件、Windows 633件、共通581件、条件付き119件、
+  構成差262件である。23中核所有ターゲットと全製品ターゲットは5構成で循環0件を維持し、
+  `kritatools`の未宣言内部ヘッダー参照は0件である。`kritaui`の内部参照は7ヘッダー20件から
+  6ヘッダー19件へ縮小した。
+- `KisNodeOperationBatchTest`と`TestToolCoreContract`はmacOSで成功した。`kritatools`、
+  `kritaui`、既定描画ツール、選択ツールの増分構築も成功した。`kritaui`の初回再構築では、
+  `KisNodeManager`が別用途で必要とする`KisGroupLayer`の完全型include不足を検出し、明示的な
+  includeを復旧した後にリンクまで成功した。既存の非推奨API警告は基準内である。
+- `nix develop .#test --command ./scripts/verify`は、macOSの全1853構築工程と342件の
+  ネイティブ試験に成功した。`verify-quick`の103件、公開面、責務、依存、構造、再配置計画、
+  文書、リンク、D2再生成の全検査も成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`は、macOS、iOS、Linux、Android、
+  Windowsを含む全出力の式評価に成功した。
+- macOSとiOSのCMake台帳は現在の作業ツリーから再生成した。Linux、Android、Windowsの台帳は、
+  共通ターゲットの構成差を既存のQt/KF版とライブラリー種別へ反映した。清浄な同一コミットを
+  必要とする5構成の完全一致検査、Linuxの全ネイティブ試験、iOS本体、Android、Windowsの
+  再構築は、この進行中単位の残存検証である。
+
 ## 次の操作
 
-この変更をレビューして統合する。統合後は`libs/ui/kis_node_manager.cpp`の
-`createQuickGroupImpl()`と`quickUngroup()`を起点として、グループ化と解除の画像グラフ変更を
-既存の`KisNodeOperationBatch`だけで所有できるか契約で確認する。アクション選択、名前入力、
-選択更新はUI所有に維持し、具体的な必要性がない新しい抽象は追加しない。
+清浄な同一コミットをDarwinとx86_64 Linuxへ揃え、5構成のCMake台帳完全一致、Linuxの
+全ネイティブ試験、iOS本体、Android、Windowsの構築を確認する。次の実装単位は
+`libs/ui/tool/kis_delegated_tool.h`と`libs/ui/tool/kis_tool_select_base.h`を起点として、
+入力フィルターの接続と選択設定表示をツール命令から分ける。具体的なキャンバス操作を
+`KisToolCanvas`へ追加して`kritaui`内部ヘッダー12参照を除去し、同じ単位で残る
+`KisToolPaint`、`KisToolShape`、幾何ツール基底の移設条件を確定する。
 
 ## R1-G5完了根拠
 
