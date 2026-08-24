@@ -87,6 +87,14 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "libs/impex/metadata/KoDocumentInfo.h",
             by_id["import-export"]["publicHeaderPaths"],
         )
+        self.assertIn(
+            "libs/painting/kis_figure_painting_stroke.h",
+            by_id["painting-rendering"]["publicHeaderPaths"],
+        )
+        self.assertIn(
+            "kritapainting",
+            by_id["painting-rendering"]["publicHeaderOwnerTargets"],
+        )
         self.assertNotIn(
             "kritacommand",
             by_id["document-lifecycle"]["ownerTargets"],
@@ -117,7 +125,6 @@ class PackageResponsibilityMapTests(unittest.TestCase):
                 "libs/ui/dialogs/kis_dlg_layer_style.cpp",
                 "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
                 "libs/ui/kis_favorite_resource_manager.cpp",
-                "libs/ui/tool/kis_figure_painting_tool_helper.h",
                 "libs/ui/tool/kis_tool_freehand_helper.h",
                 "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
                 "libs/ui/widgets/kis_paintop_presets_editor.cpp",

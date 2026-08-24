@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 12:45 JST
+- 更新日時: 2026-08-24 13:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1218,14 +1218,41 @@
   成功した。`nix develop .#test --command ./scripts/verify`は103件の運用検査と342件のネイティブ
   試験をすべて完了した。前の単位で失敗した`KisSafeDocumentLoaderTest::testFileLost()`も成功し、
   今回の単位に残るmacOS検証失敗はない。
+- `libs/ui/tool/kis_figure_painting_tool_helper.{h,cpp}`を
+  `libs/painting/kis_figure_painting_stroke.{h,cpp}`へ移し、図形描画ストロークの開始、描画ジョブ、
+  終了を`kritapainting`へ集約した。新しい`KisFigurePaintingStroke`は複製不能であり、構築から
+  破棄まで一つのストロークを所有する。UI側とlibkisは描画実行を所有せず、この具体契約を直接使う。
+- `libs/tools/KisToolShapeUtils.h`を`libs/painting/KisFigurePaintingOptions.h`へ移し、描線と塗りの
+  安定値を実際の描画所有者へ置いた。空だった`libs/tools/KisToolShapeUtils.cpp`、旧配置、旧名、
+  転送ヘッダーは除去した。`TestPaintingBoundary`は列挙値の順序とストローク所有契約を固定する。
+- ヘッダー縮小で明らかになった暗黙依存は、`libs/ui/tool/kis_tool_shape.cc`の`KisSelection`、
+  `plugins/tools/basictools/kis_tool_line.cc`の`QPainterPath`と`KisResourcesSnapshot`を利用元で
+  明示した。`libs/libkis/Notifier.*`は不要な`KisView`と`KisApplication`のヘッダー依存を除去し、
+  Qtアプリケーションと必要な画像ノード型を直接参照する。
+- 公開面台帳へ`kritapainting`の19ヘッダーを追加した。`kritatools`は13件から12件、`kritaui`は
+  235件から234件、UIツール責務台帳は23クラスから22クラスとなった。painting、toolsの未公開
+  内部参照は0件であり、UIの4ヘッダー7参照と全製品ターゲットの循環0件を維持する。
+- 多角形と多角線プラグインは`kritapainting`を直接リンクする。macOSとiOSのCMake台帳は実構成から
+  再生成し、Linux、Android、Windowsにも同じ2辺を同期した。差分行列は共通581件、条件付き119件、
+  構成差262件を維持する。
+- `TestPaintingBoundary`の初回構築は新しい公開ヘッダーが存在せず失敗し、実装後は1件のCTestが
+  成功した。`kritaui`、`kritalibkis`、既定描画ツール、多角形、多角線はmacOSでリンクまで成功した。
+- `TestNotifier`は公開ヘッダー縮小で不足が明らかになった画像ノード型を試験側で明示した後、
+  1件のCTestが成功した。`verify-quick`は103件の運用試験、公開面、責務、依存、構造、再配置計画、
+  文書、リンク、D2再生成を含めて成功した。
+- `nix develop .#test --command ./scripts/verify`はmacOSの全製品と試験ターゲットを構築し、342件中
+  341件のネイティブ試験が成功した。変更範囲外の`KisSafeDocumentLoaderTest::test()`は、監視対象を
+  再書込みした後の`loadingFinished`が1500ミリ秒以内に届かず、
+  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として失敗した。単独再実行でも
+  同じ行で再現し、同じ試験の`testFileLost()`は成功した。同試験、文書監視実装、文書読込、入出力
+  ターゲットには変更がない。
 
 ## 次の操作
 
-描画操作基盤の分割をコミットした後、次の実装単位として`libs/ui/tool/kis_tool_shape.*`を
-起点に、図形生成と入力状態を`libs/tools`へ、設定部品と画面資源接続をUI所有へ分ける。
-矩形、楕円、多角線、輪郭の各基底は依存と状態を調査し、最初の図形基盤単位の移設範囲を
-確定する。清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査は
-R1-G6f統合時に実施する。
+図形描画実行の移設をコミットした後、`libs/ui/tool/kis_tool_rectangle_base.{h,cpp}`を起点に、
+矩形の幾何計算と入力状態を`libs/tools`へ移す。設定部品、キャンバス座標接続、画面更新はUI所有へ
+残し、矩形ツールの既存入力契約を最小の観測可能な試験で固定する。清浄な同一コミットをDarwinと
+x86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
 
 ## R1-G5完了根拠
 

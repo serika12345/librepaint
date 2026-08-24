@@ -4,7 +4,10 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "Notifier.h"
-#include <KisApplication.h>
+
+#include <QApplication>
+
+#include <kis_node.h>
 #include <KisPart.h>
 #include <kis_config_notifier.h>
 #include "View.h"
@@ -82,4 +85,3 @@ void Notifier::windowIsBeingCreated(KisMainWindow *window)
     Q_EMIT windowIsBeingCreated(w);
     delete w;
 }
-

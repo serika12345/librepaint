@@ -12,11 +12,11 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 
+#include <KisFigurePaintingOptions.h>
 #include <kis_painter.h>
 
 #include "kis_tool_paint.h"
 #include "KisSelectionToolFactoryBase.h"
-#include "KisToolShapeUtils.h"
 
 #include "ui_wdggeometryoptions.h"
 
@@ -58,8 +58,8 @@ public Q_SLOTS:
 protected:
     QWidget* createOptionWidget() override;
 
-    KisToolShapeUtils::FillStyle fillStyle();
-    KisToolShapeUtils::StrokeStyle strokeStyle();
+    KisFigurePaintingOptions::FillStyle fillStyle();
+    KisFigurePaintingOptions::StrokeStyle strokeStyle();
     QTransform fillTransform();
 
     qreal currentStrokeWidth() const;
@@ -88,4 +88,3 @@ protected:
 };
 
 #endif // KIS_TOOL_SHAPE_H_
-

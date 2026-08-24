@@ -12,7 +12,6 @@
 #include <KSharedConfig>
 
 #include <KisToolPaintFactoryBase.h>
-#include <KisToolShapeUtils.h>
 #include <kis_delegated_tool.h>
 #include <kis_delegated_tool_policies.h>
 #include <kis_selection_modifier_mapping.h>

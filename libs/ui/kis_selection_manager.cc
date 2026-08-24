@@ -68,7 +68,7 @@
 #include "kis_clipboard.h"
 #include "KisViewManager.h"
 #include "kis_selection_filters.h"
-#include "kis_figure_painting_tool_helper.h"
+#include <kis_figure_painting_stroke.h>
 #include "KisView.h"
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 
@@ -643,17 +643,18 @@ void KisSelectionManager::paintSelectedShapes()
     m_adapter->beginMacro(actionName);
     m_adapter->addNode(paintLayer.data(), layer->parent().data(), layer.data());
 
-    KisFigurePaintingToolHelper helper(actionName,
-                                       image,
-                                       paintLayer.data(),
-                                       m_view->canvasResourceProvider()->resourceManager(),
-                                       KisToolShapeUtils::StrokeStyleForeground,
-                                       KisToolShapeUtils::FillStyleNone);
+    KisFigurePaintingStroke stroke(
+        actionName,
+        image,
+        paintLayer.data(),
+        m_view->canvasResourceProvider()->resourceManager(),
+        KisFigurePaintingOptions::StrokeStyleForeground,
+        KisFigurePaintingOptions::FillStyleNone);
 
     Q_FOREACH (KoShape* shape, shapes) {
         QTransform matrix = shape->absoluteTransformation() * QTransform::fromScale(image->xRes(), image->yRes());
         QPainterPath mappedOutline = matrix.map(shape->outline());
-        helper.paintPainterPath(mappedOutline);
+        stroke.paintPainterPath(mappedOutline);
     }
     m_adapter->endMacro();
 }

@@ -6,10 +6,15 @@
 #include <QTest>
 
 #include <KoColorSpaceRegistry.h>
+#include <KisFigurePaintingOptions.h>
 #include <KisStrokeSpeedMonitor.h>
 #include <kis_image.h>
+#include <kis_figure_painting_stroke.h>
 #include <kis_paint_layer.h>
 #include <kis_resources_snapshot.h>
+#include <strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
+
+#include <type_traits>
 
 class TestPaintingBoundary : public QObject
 {
@@ -18,6 +23,7 @@ class TestPaintingBoundary : public QObject
 private Q_SLOTS:
     void snapshotOwnsStrokeState();
     void measurementStateIsSetByTheCaller();
+    void figurePaintingContracts();
 };
 
 void TestPaintingBoundary::snapshotOwnsStrokeState()
@@ -52,6 +58,22 @@ void TestPaintingBoundary::measurementStateIsSetByTheCaller()
     QVERIFY(monitor->haveStrokeSpeedMeasurement());
 
     monitor->setHaveStrokeSpeedMeasurement(false);
+}
+
+void TestPaintingBoundary::figurePaintingContracts()
+{
+    using namespace KisFigurePaintingOptions;
+
+    QCOMPARE(int(StrokeStyleNone), 0);
+    QCOMPARE(int(StrokeStyleForeground), 1);
+    QCOMPARE(int(StrokeStyleBackground), 2);
+    QCOMPARE(int(FillStyleNone), 0);
+    QCOMPARE(int(FillStyleForegroundColor), 1);
+    QCOMPARE(int(FillStyleBackgroundColor), 2);
+    QCOMPARE(int(FillStylePattern), 3);
+
+    QVERIFY(!std::is_copy_constructible_v<KisFigurePaintingStroke>);
+    QVERIFY(!std::is_copy_assignable_v<KisFigurePaintingStroke>);
 }
 
 QTEST_MAIN(TestPaintingBoundary)

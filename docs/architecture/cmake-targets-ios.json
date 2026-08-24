@@ -5741,6 +5741,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_polygon",
       "dependencies": [
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -5749,6 +5750,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_polyline",
       "dependencies": [
+        "kritapainting",
         "kritaui"
       ]
     },

@@ -19,7 +19,7 @@
 #include <canvas/kis_canvas2.h>
 #include <kis_canvas_resource_provider.h>
 #include <kis_shape_tool_helper.h>
-#include "kis_figure_painting_tool_helper.h"
+#include <kis_figure_painting_stroke.h>
 #include <brushengine/kis_paintop_preset.h>
 
 KisToolEllipse::KisToolEllipse(KoCanvasBase * canvas)
@@ -61,17 +61,17 @@ void KisToolEllipse::finishRect(const QRectF& rect, qreal roundCornersX, qreal r
         shouldAddShape(currentNode());
 
     if (!info.shouldAddShape) {
-        KisFigurePaintingToolHelper helper(kundo2_i18n("Draw Ellipse"),
-                                           image(),
-                                           currentNode(),
-                                           canvas()->resourceManager(),
-                                           strokeStyle(),
-                                           fillStyle(),
-                                           fillTransform());
+        KisFigurePaintingStroke stroke(kundo2_i18n("Draw Ellipse"),
+                                       image(),
+                                       currentNode(),
+                                       canvas()->resourceManager(),
+                                       strokeStyle(),
+                                       fillStyle(),
+                                       fillTransform());
         QPainterPath path;
         path.addEllipse(rect);
         getRotatedPath(path, rect.center(), getRotationAngle());
-        helper.paintPainterPath(path);
+        stroke.paintPainterPath(path);
     } else {
         KisResourcesSnapshot resources(image(),
                                        currentNode(),

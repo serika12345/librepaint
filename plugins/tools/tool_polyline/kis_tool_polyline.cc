@@ -17,7 +17,7 @@
 
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_image.h>
-#include "kis_figure_painting_tool_helper.h"
+#include <kis_figure_painting_stroke.h>
 
 KisToolPolyline::KisToolPolyline(KoCanvasBase * canvas)
         : KisToolPolylineBase(canvas, KisToolPolylineBase::PAINT, KisCursor::loadWithSize("tool_polyline_cursor.svg", 32, 32, 6, 6))
@@ -53,14 +53,14 @@ void KisToolPolyline::finishPolyline(const QVector<QPointF>& points)
         shouldAddShape(currentNode());
 
     if (!info.shouldAddShape || info.shouldAddSelectionShape) {
-        KisFigurePaintingToolHelper helper(kundo2_i18n("Draw Polyline"),
-                                           image(),
-                                           currentNode(),
-                                           canvas()->resourceManager(),
-                                           strokeStyle(),
-                                           fillStyle(),
-                                           fillTransform());
-        helper.paintPolyline(points);
+        KisFigurePaintingStroke stroke(kundo2_i18n("Draw Polyline"),
+                                       image(),
+                                       currentNode(),
+                                       canvas()->resourceManager(),
+                                       strokeStyle(),
+                                       fillStyle(),
+                                       fillTransform());
+        stroke.paintPolyline(points);
     } else {
         KoPathShape* path = new KoPathShape();
         path->setShapeId(KoPathShapeId);

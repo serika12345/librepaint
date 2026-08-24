@@ -5603,6 +5603,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_polygon",
       "dependencies": [
+        "kritapainting",
         "kritaui"
       ]
     },
@@ -5611,6 +5612,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_polyline",
       "dependencies": [
+        "kritapainting",
         "kritaui"
       ]
     },

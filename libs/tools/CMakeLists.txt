@@ -3,7 +3,6 @@ set(kritatools_LIB_SRCS
     KisToolPaintFactoryBase.cpp
     KisToolChangesTracker.cpp
     KisToolChangesTrackerData.cpp
-    KisToolShapeUtils.cpp
     kis_delegated_tool_policies.cpp
     kis_selection_modifier_mapping.cpp
     kis_smoothing_options.cpp

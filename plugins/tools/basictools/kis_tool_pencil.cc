@@ -103,7 +103,7 @@ __KisToolPencilLocalTool::__KisToolPencilLocalTool(KoCanvasBase * canvas, KisToo
 
 void __KisToolPencilLocalTool::paint(QPainter &painter, const KoViewConverter &converter)
 {
-    if (m_parentTool->strokeStyle() == KisToolShapeUtils::StrokeStyleNone) {
+    if (m_parentTool->strokeStyle() == KisFigurePaintingOptions::StrokeStyleNone) {
         paintPath(path(), painter, converter);
     } else {
         KoPencilTool::paint(painter, converter);
@@ -141,11 +141,11 @@ void __KisToolPencilLocalTool::slotUpdatePencilCursor()
     m_parentTool->updatePencilCursor(stroke && stroke->isVisible());
 
     auto style = m_parentTool->strokeStyle();
-    if (style ==  KisToolShapeUtils::StrokeStyleForeground )
+    if (style == KisFigurePaintingOptions::StrokeStyleForeground)
     {
         KoPencilTool::setStrokeColor(canvas()->resourceManager()->foregroundColor().toQColor());
     }
-    else if ( style == KisToolShapeUtils::StrokeStyleBackground)
+    else if (style == KisFigurePaintingOptions::StrokeStyleBackground)
     {
         KoPencilTool::setStrokeColor(canvas()->resourceManager()->backgroundColor().toQColor());
     }

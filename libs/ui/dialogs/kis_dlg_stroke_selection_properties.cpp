@@ -343,9 +343,9 @@ StrokeSelectionOptions ::StrokeSelectionOptions()
     customColor.fromQColor(Qt::black);
 }
 
-KisToolShapeUtils::FillStyle StrokeSelectionOptions::fillStyle() const
+KisFigurePaintingOptions::FillStyle StrokeSelectionOptions::fillStyle() const
 {
-    using namespace KisToolShapeUtils;
+    using namespace KisFigurePaintingOptions;
 
     ColorFillSource tempColor = static_cast<ColorFillSource>(colorFillSource);
     FillStyle style = FillStyleNone;
@@ -369,4 +369,3 @@ KisToolShapeUtils::FillStyle StrokeSelectionOptions::fillStyle() const
     }
     return style;
 }
-

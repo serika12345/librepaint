@@ -5,6 +5,7 @@ set(kritapainting_LIB_SRCS
     KisAsynchronousStrokeUpdateHelper.cpp
     KisStrokeCompatibilityInfo.cpp
     KisStrokeSpeedMonitor.cpp
+    kis_figure_painting_stroke.cpp
     kis_resources_snapshot.cpp
     kis_painting_utils.cpp
 

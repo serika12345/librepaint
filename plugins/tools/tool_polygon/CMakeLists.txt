@@ -7,7 +7,7 @@ qt_add_resources(kritatoolpolygon_SOURCES tool_polygon.qrc)
 krita_ios_add_static_resource(tool_polygon)
 kis_add_library(kritatoolpolygon MODULE ${kritatoolpolygon_SOURCES})
 
-target_link_libraries(kritatoolpolygon kritaui)
+target_link_libraries(kritatoolpolygon kritaui kritapainting)
 
 install(TARGETS kritatoolpolygon  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

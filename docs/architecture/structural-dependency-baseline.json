@@ -1843,17 +1843,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
-          "include": "KisToolShapeUtils.h",
-          "headerPath": "libs/tools/KisToolShapeUtils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/input/kis_alternate_invocation_action.h",
           "include": "kis_tool.h",
           "headerPath": "libs/tools/kis_tool.h",
@@ -1942,17 +1931,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_figure_painting_tool_helper.h",
-          "include": "KisToolShapeUtils.h",
-          "headerPath": "libs/tools/KisToolShapeUtils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_tool_freehand.cc",
           "include": "kis_tool_utils.h",
           "headerPath": "libs/tools/kis_tool_utils.h",
@@ -2022,17 +2000,6 @@
           "sourcePath": "libs/ui/tool/kis_tool_shape.h",
           "include": "KisSelectionToolFactoryBase.h",
           "headerPath": "libs/tools/KisSelectionToolFactoryBase.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_shape.h",
-          "include": "KisToolShapeUtils.h",
-          "headerPath": "libs/tools/KisToolShapeUtils.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
@@ -2857,17 +2824,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
-          "include": "KisToolShapeUtils.h",
-          "headerPath": "libs/tools/KisToolShapeUtils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/input/kis_alternate_invocation_action.h",
           "include": "kis_tool.h",
           "headerPath": "libs/tools/kis_tool.h",
@@ -2956,17 +2912,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_figure_painting_tool_helper.h",
-          "include": "KisToolShapeUtils.h",
-          "headerPath": "libs/tools/KisToolShapeUtils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_tool_freehand.cc",
           "include": "kis_tool_utils.h",
           "headerPath": "libs/tools/kis_tool_utils.h",
@@ -3036,17 +2981,6 @@
           "sourcePath": "libs/ui/tool/kis_tool_shape.h",
           "include": "KisSelectionToolFactoryBase.h",
           "headerPath": "libs/tools/KisSelectionToolFactoryBase.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_shape.h",
-          "include": "KisToolShapeUtils.h",
-          "headerPath": "libs/tools/KisToolShapeUtils.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",
@@ -6197,6 +6131,23 @@
       "maximumDirectReferences": 0,
       "removalCondition": "Document-facing import-export consumers continue to use declared public contracts.",
       "sourceDirectory": "libs/impex",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": []
+    },
+    {
+      "ownerTarget": "kritapainting",
+      "owner": "R1-G6",
+      "reason": "External packages use the declared painting-execution and stroke header surface.",
+      "maximumHeaders": 0,
+      "maximumDirectReferences": 0,
+      "removalCondition": "Painting consumers continue to use declared public contracts.",
+      "sourceDirectory": "libs/painting",
       "platforms": [
         "macos",
         "linux",

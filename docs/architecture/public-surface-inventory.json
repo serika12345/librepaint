@@ -1269,10 +1269,10 @@
             "libs/brush/kis_brush.cpp",
             "libs/brush/kis_brushes_pipe.h",
             "libs/brush/kis_gbr_brush.h",
+            "libs/painting/kis_figure_painting_stroke.h",
             "libs/painting/strokes/freehand_stroke.h",
             "libs/tools/kis_tool_paint_interaction.cpp",
             "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
-            "libs/ui/tool/kis_figure_painting_tool_helper.h",
             "libs/ui/tool/kis_painting_information_builder.h",
             "libs/ui/tool/kis_stabilized_events_sampler.cpp",
             "libs/ui/tool/kis_stabilized_events_sampler.h",
@@ -3180,11 +3180,11 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/painting/kis_figure_painting_stroke.cpp",
             "libs/painting/strokes/KisFreehandStrokeInfo.cpp",
             "libs/painting/strokes/freehand_stroke.h",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/tools/kis_tool_paint_interaction.cpp",
-            "libs/ui/tool/kis_figure_painting_tool_helper.cpp",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.h"
@@ -3662,6 +3662,7 @@
             "libs/libkis/TransformMask.cpp",
             "libs/libkis/TransparencyMask.cpp",
             "libs/libkis/VectorLayer.cpp",
+            "libs/painting/kis_figure_painting_stroke.cpp",
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
@@ -3742,7 +3743,6 @@
             "libs/ui/operations/kis_operation.cpp",
             "libs/ui/processing/KisEncloseAndFillProcessingVisitor.cpp",
             "libs/ui/processing/fill_processing_visitor.cpp",
-            "libs/ui/tool/kis_figure_painting_tool_helper.cpp",
             "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
@@ -4571,6 +4571,7 @@
             "libs/libkis/Channel.h",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
+            "libs/libkis/Notifier.cpp",
             "libs/libkis/Selection.cpp",
             "libs/painting/KisStrokeCompatibilityInfo.cpp",
             "libs/painting/strokes/KisNodeSelectionRecipe.cpp",
@@ -5156,6 +5157,7 @@
             "libs/impex/ui/kis_import_catcher.cc",
             "libs/impex/ui/kis_png_converter.cpp",
             "libs/libkis/Selection.cpp",
+            "libs/painting/kis_figure_painting_stroke.cpp",
             "libs/painting/kis_resources_snapshot.h",
             "libs/painting/strokes/KisFreehandStrokeInfo.cpp",
             "libs/painting/strokes/KisMaskedFreehandStrokePainter.cpp",
@@ -5176,7 +5178,6 @@
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_selection_manager.cc",
-            "libs/ui/tool/kis_figure_painting_tool_helper.cpp",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/tool/kis_tool_multihand_helper.cpp",
@@ -5827,6 +5828,7 @@
             "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
             "libs/ui/tool/kis_selection_tool_helper.h",
             "libs/ui/tool/kis_tool_freehand.cc",
+            "libs/ui/tool/kis_tool_shape.cc",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/extensions/colorrange/colorrange.cc",
             "plugins/extensions/colorrange/dlg_colorrange.cc",
@@ -6436,7 +6438,6 @@
             "libs/libkis/LibKisUtils.h",
             "libs/libkis/Node.cpp",
             "libs/libkis/Node.h",
-            "libs/libkis/Notifier.h",
             "libs/libkis/Preset.h",
             "libs/libkis/Resource.h",
             "libs/libkis/Scratchpad.h",
@@ -6446,6 +6447,7 @@
             "libs/libkis/TransformMask.h",
             "libs/libkis/TransparencyMask.h",
             "libs/libkis/VectorLayer.h",
+            "libs/painting/kis_figure_painting_stroke.h",
             "libs/painting/kis_painting_utils.h",
             "libs/painting/kis_resources_snapshot.h",
             "libs/painting/strokes/KisMaskingBrushRenderer.h",
@@ -6538,7 +6540,6 @@
             "libs/ui/kis_statusbar.cc",
             "libs/ui/kis_statusbar.h",
             "libs/ui/tool/KisAsyncColorSamplerHelper.h",
-            "libs/ui/tool/kis_figure_painting_tool_helper.h",
             "libs/ui/tool/kis_painting_information_builder.h",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h",
@@ -7894,6 +7895,247 @@
       ]
     },
     {
+      "ownerTarget": "kritapainting",
+      "sourceDirectory": "libs/painting",
+      "headerDirectories": [
+        "libs/painting"
+      ],
+      "excludedHeaderDirectories": [
+        "libs/painting/metadata",
+        "libs/painting/tests",
+        "libs/painting/undo"
+      ],
+      "exportMacro": "KRITAPAINTING_EXPORT",
+      "responsibility": "Records the declared and externally consumed painting-execution surface for resource snapshots, figure strokes, and painting jobs.",
+      "evidence": [
+        "libs/painting/CMakeLists.txt",
+        "libs/painting/kis_figure_painting_stroke.h"
+      ],
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/painting/KisAsynchronousStrokeUpdateHelper.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_freehand_helper.cpp",
+            "libs/ui/widgets/kis_preset_live_preview_view.cpp",
+            "plugins/tools/basictools/kis_tool_move.h",
+            "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.h"
+          ]
+        },
+        {
+          "path": "libs/painting/KisFigurePaintingOptions.h",
+          "publicationEvidence": [
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/PaintingResources.cpp",
+            "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
+            "libs/ui/tool/kis_tool_shape.h"
+          ]
+        },
+        {
+          "path": "libs/painting/KisStrokeCompatibilityInfo.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/painting/KisStrokeSpeedMonitor.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_canvas2.cpp",
+            "libs/ui/kis_fps_decoration.cpp"
+          ]
+        },
+        {
+          "path": "libs/painting/kis_figure_painting_stroke.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/PaintingResources.h",
+            "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/kis_selection_manager.cc",
+            "libs/ui/tool/kis_tool_shape.cc",
+            "plugins/tools/basictools/kis_tool_ellipse.cc",
+            "plugins/tools/basictools/kis_tool_rectangle.cc",
+            "plugins/tools/tool_polygon/kis_tool_polygon.cc",
+            "plugins/tools/tool_polyline/kis_tool_polyline.cc"
+          ]
+        },
+        {
+          "path": "libs/painting/kis_painting_utils.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/kis_select_layer_action.cpp",
+            "libs/ui/widgets/kis_scratch_pad.cpp"
+          ]
+        },
+        {
+          "path": "libs/painting/kis_resources_snapshot.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/tools/kis_tool.cc",
+            "libs/ui/KisView.cpp",
+            "libs/ui/processing/KisEncloseAndFillProcessingVisitor.h",
+            "libs/ui/processing/fill_processing_visitor.h",
+            "plugins/tools/basictools/kis_tool_fill.h",
+            "plugins/tools/basictools/kis_tool_gradient.cc",
+            "plugins/tools/basictools/kis_tool_line.cc",
+            "plugins/tools/basictools/kis_tool_move.cc",
+            "plugins/tools/selectiontools/kis_tool_select_contiguous.cc",
+            "plugins/tools/tool_crop/kis_tool_crop.cc",
+            "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp",
+            "plugins/tools/tool_knife/KisToolKnife.cpp",
+            "plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp",
+            "plugins/tools/tool_transform2/kis_tool_transform.cc"
+          ]
+        },
+        {
+          "path": "libs/painting/strokes/FreehandStrokeRunnableJobDataWithUpdate.h",
+          "publicationEvidence": [
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/paintops/defaultpaintops/brush/KisDabRenderingExecutor.cpp",
+            "plugins/paintops/defaultpaintops/brush/KisDabRenderingJob.cpp"
+          ]
+        },
+        {
+          "path": "libs/painting/strokes/KisFreehandStrokeInfo.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_freehand_helper.cpp",
+            "libs/ui/tool/kis_tool_multihand_helper.cpp",
+            "libs/ui/widgets/kis_preset_live_preview_view.cpp"
+          ]
+        },
+        {
+          "path": "libs/painting/strokes/KisMaskedFreehandStrokePainter.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/painting/strokes/KisMaskingBrushCompositeOpBase.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/paintops/libpaintop/kis_texture_option.cpp"
+          ]
+        },
+        {
+          "path": "libs/painting/strokes/KisMaskingBrushCompositeOpFactory.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/paintops/libpaintop/KisMaskingBrushOption.cpp",
+            "plugins/paintops/libpaintop/kis_texture_option.cpp"
+          ]
+        },
+        {
+          "path": "libs/painting/strokes/KisNodeSelectionRecipe.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/painting/strokes/KisStrokeEfficiencyMeasurer.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/painting/strokes/freehand_stroke.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_freehand.cc",
+            "libs/ui/tool/kis_tool_freehand_helper.cpp",
+            "libs/ui/widgets/kis_preset_live_preview_view.cpp"
+          ]
+        },
+        {
+          "path": "libs/painting/strokes/kis_color_sampler_stroke_strategy.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/KisAsyncColorSamplerHelper.cpp"
+          ]
+        },
+        {
+          "path": "libs/painting/strokes/kis_filter_stroke_strategy.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/Filter.cpp",
+            "libs/ui/kis_filter_manager.cc"
+          ]
+        },
+        {
+          "path": "libs/painting/strokes/kis_painter_based_stroke_strategy.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/painting/strokes/move_stroke_strategy.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/tools/kis_tool_select_base.h",
+            "plugins/tools/basictools/kis_tool_move.cc",
+            "plugins/tools/basictools/strokes/move_selection_stroke_strategy.cpp"
+          ]
+        }
+      ]
+    },
+    {
       "ownerTarget": "kritatools",
       "sourceDirectory": "libs/tools",
       "headerDirectories": [
@@ -7977,19 +8219,6 @@
             "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.h",
             "plugins/tools/tool_smart_patch/kis_tool_smart_patch.h",
             "plugins/tools/tool_transform2/kis_tool_transform.h"
-          ]
-        },
-        {
-          "path": "libs/tools/KisToolShapeUtils.h",
-          "publicationEvidence": [
-            "compile-contract",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/PaintingResources.cpp",
-            "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
-            "libs/ui/tool/kis_figure_painting_tool_helper.h",
-            "libs/ui/tool/kis_tool_shape.h"
           ]
         },
         {
@@ -8178,7 +8407,6 @@
           ],
           "consumerPaths": [
             "krita/main.cc",
-            "libs/libkis/Notifier.cpp",
             "plugins/extensions/pykrita/kritarunner/main.cpp"
           ]
         },
@@ -8667,7 +8895,6 @@
             "libs/impex/animation/KisDlgImportVideoAnimation.h",
             "libs/libkis/Canvas.cpp",
             "libs/libkis/Filter.cpp",
-            "libs/libkis/Notifier.h",
             "libs/libkis/PaintingResources.cpp",
             "libs/libkis/Shape.cpp",
             "libs/libkis/View.cpp",
@@ -10465,21 +10692,6 @@
           "consumerPaths": [
             "plugins/tools/selectiontools/kis_tool_select_outline.h",
             "plugins/tools/tool_enclose_and_fill/subtools/KisLassoEnclosingProducer.h"
-          ]
-        },
-        {
-          "path": "libs/ui/tool/kis_figure_painting_tool_helper.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/PaintingResources.h",
-            "plugins/tools/basictools/kis_tool_ellipse.cc",
-            "plugins/tools/basictools/kis_tool_line.cc",
-            "plugins/tools/basictools/kis_tool_rectangle.cc",
-            "plugins/tools/tool_polygon/kis_tool_polygon.cc",
-            "plugins/tools/tool_polyline/kis_tool_polyline.cc"
           ]
         },
         {

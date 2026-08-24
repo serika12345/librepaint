@@ -9,12 +9,11 @@
 #include <QObject>
 
 #include "kritalibkis_export.h"
-#include <kis_types.h>
 #include "libkis.h"
-#include <KisView.h>
 
 class KisMainWindow;
 class KisDocument;
+class KisView;
 
 /**
  * The Notifier can be used to be informed of state changes in the Krita application.

@@ -84,25 +84,6 @@
       "responsibilityArea": "input-interpretation"
     },
     {
-      "name": "KisFigurePaintingToolHelper",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_figure_painting_tool_helper.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_figure_painting_tool_helper.cpp"
-      ],
-      "consumerPaths": [
-        "libs/libkis/PaintingResources.h",
-        "libs/ui/actions/kis_selection_action_factories.cpp",
-        "libs/ui/kis_selection_manager.cc",
-        "plugins/tools/basictools/kis_tool_ellipse.cc",
-        "plugins/tools/basictools/kis_tool_line.cc",
-        "plugins/tools/basictools/kis_tool_rectangle.cc",
-        "plugins/tools/tool_polygon/kis_tool_polygon.cc",
-        "plugins/tools/tool_polyline/kis_tool_polyline.cc"
-      ],
-      "responsibilityArea": "stroke-generation"
-    },
-    {
       "name": "KisPaintingInformationBuilder",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_painting_information_builder.h",

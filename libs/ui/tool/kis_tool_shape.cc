@@ -30,8 +30,9 @@
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
-#include "kis_figure_painting_tool_helper.h"
+#include <kis_figure_painting_stroke.h>
 #include <kis_node_query_path.h>
+#include <kis_selection.h>
 
 #include <KoSelectedShapesProxy.h>
 #include <KoSelection.h>
@@ -100,7 +101,7 @@ QWidget * KisToolShape::createOptionWidget()
         m_shapeOptionsWidget->cmbOutline->setCurrentIndex(1); // brush
     }
 
-    bool enablePatternTransform = (m_shapeOptionsWidget->cmbFill->currentIndex() == int(KisToolShapeUtils::FillStylePattern));
+    bool enablePatternTransform = (m_shapeOptionsWidget->cmbFill->currentIndex() == int(KisFigurePaintingOptions::FillStylePattern));
     m_shapeOptionsWidget->gbPatternTransform->setEnabled(enablePatternTransform);
 
     return m_shapeOptionsWidget;
@@ -114,7 +115,7 @@ void KisToolShape::outlineSettingChanged(int value)
 void KisToolShape::fillSettingChanged(int value)
 {
     m_configGroup.writeEntry("fillType", value);
-    bool enable = (value == int(KisToolShapeUtils::FillStylePattern));
+    bool enable = (value == int(KisFigurePaintingOptions::FillStylePattern));
     m_shapeOptionsWidget->gbPatternTransform->setEnabled(enable);
 }
 
@@ -128,21 +129,21 @@ void KisToolShape::patternScaleSettingChanged(qreal value)
     m_configGroup.writeEntry("patternTransformScale", value);
 }
 
-KisToolShapeUtils::FillStyle KisToolShape::fillStyle()
+KisFigurePaintingOptions::FillStyle KisToolShape::fillStyle()
 {
     if (m_shapeOptionsWidget) {
-        return static_cast<KisToolShapeUtils::FillStyle>(m_shapeOptionsWidget->cmbFill->currentIndex());
+        return static_cast<KisFigurePaintingOptions::FillStyle>(m_shapeOptionsWidget->cmbFill->currentIndex());
     } else {
-        return KisToolShapeUtils::FillStyleNone;
+        return KisFigurePaintingOptions::FillStyleNone;
     }
 }
 
-KisToolShapeUtils::StrokeStyle KisToolShape::strokeStyle()
+KisFigurePaintingOptions::StrokeStyle KisToolShape::strokeStyle()
 {
     if (m_shapeOptionsWidget) {
-        return static_cast<KisToolShapeUtils::StrokeStyle>(m_shapeOptionsWidget->cmbOutline->currentIndex());
+        return static_cast<KisFigurePaintingOptions::StrokeStyle>(m_shapeOptionsWidget->cmbOutline->currentIndex());
     } else {
-        return KisToolShapeUtils::StrokeStyleNone;
+        return KisFigurePaintingOptions::StrokeStyleNone;
     }
 }
 
@@ -192,7 +193,7 @@ void KisToolShape::ShapeAddInfo::markAsSelectionShapeIfNeeded(KoShape *shape) co
 
 void KisToolShape::addShape(KoShape* shape)
 {
-    using namespace KisToolShapeUtils;
+    using namespace KisFigurePaintingOptions;
 
     KisResourcesSnapshot resources(image(),
                                    currentNode(),
@@ -213,14 +214,14 @@ void KisToolShape::addShape(KoShape* shape)
     }
 
     switch (strokeStyle()) {
-    case KisToolShapeUtils::StrokeStyleNone:
+    case KisFigurePaintingOptions::StrokeStyleNone:
         shape->setStroke(KoShapeStrokeModelSP());
         break;
-    case KisToolShapeUtils::StrokeStyleForeground:
-    case KisToolShapeUtils::StrokeStyleBackground: {
+    case KisFigurePaintingOptions::StrokeStyleForeground:
+    case KisFigurePaintingOptions::StrokeStyleBackground: {
         KoShapeStrokeSP stroke(new KoShapeStroke());
         stroke->setLineWidth(currentStrokeWidth());
-        const QColor color = strokeStyle() == KisToolShapeUtils::StrokeStyleForeground ?
+        const QColor color = strokeStyle() == KisFigurePaintingOptions::StrokeStyleForeground ?
                     resources.currentFgColor().toQColor() :
                     resources.currentBgColor().toQColor();
         stroke->setColor(color);
@@ -259,14 +260,14 @@ void KisToolShape::addPathShape(KoPathShape* pathShape, const KUndo2MagicString&
     QPainterPath mappedOutline = matrix.map(pathShape->outline());
 
     if (node->hasEditablePaintDevice()) {
-        KisFigurePaintingToolHelper helper(name,
-                                           image,
-                                           node,
-                                           canvas()->resourceManager(),
-                                           strokeStyle(),
-                                           fillStyle(),
-                                           fillTransform());
-        helper.paintPainterPath(mappedOutline);
+        KisFigurePaintingStroke stroke(name,
+                                       image,
+                                       node,
+                                       canvas()->resourceManager(),
+                                       strokeStyle(),
+                                       fillStyle(),
+                                       fillTransform());
+        stroke.paintPainterPath(mappedOutline);
     } else if (node->inherits("KisShapeLayer")) {
         pathShape->normalize();
         addShape(pathShape);

@@ -142,6 +142,7 @@ R1-G6e後半は、依存方向を一方向にした後、文書状態、文書�
 - [x] `libs/ui/tool/kis_tool_utils.*`を起点として、画像と値だけを扱う処理を`libs/tools/kis_tool_utils.*`へ、浮動メッセージと図形選択の表示接続を`libs/ui/tool/kis_tool_canvas_utils.*`へ分ける。平滑化設定の永続化は`libs/ui/kis_config.*`から`KisSmoothingOptions`へ移す。
 - [x] `libs/ui/tool/kis_delegated_tool.h`と`kis_tool_select_base.h`を起点として、入力フィルター接続と選択操作を`libs/tools`へ、選択設定表示を`libs/ui/tool/kis_tool_select_ui_base.h`へ分ける。選択修飾キー対応を値入力の関数へ置き換え、旧ファイルと転送ヘッダーを除去する。
 - [x] `libs/ui/tool/kis_tool_paint.{h,cc}`を起点として、ポインター追跡、ブラシ寸法・回転操作、輪郭状態と輪郭生成を`libs/tools/kis_tool_paint_interaction.{h,cpp}`へ分ける。UI側には色採取、ポップアップ、設定部品、輪郭表示更新を残し、未使用のプリセット状態を除去する。
+- [x] `libs/ui/tool/kis_figure_painting_tool_helper.{h,cpp}`を`libs/painting/kis_figure_painting_stroke.{h,cpp}`へ、`libs/tools/KisToolShapeUtils.h`を`libs/painting/KisFigurePaintingOptions.h`へ移し、図形描画の実行とスタイル値を`kritapainting`へ集約する。旧配置、空の実装ファイル、転送経路を除去する。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。

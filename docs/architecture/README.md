@@ -65,7 +65,8 @@
 
 現在は`kritacanvas`の18件、`kritadocument`の5件、`kritadocumentfiles`の3件、
 `kritadocumentui`の6件、`kritaimage`の334件、`kritaimpex`の12件、
-`kritaimpexui`の23件、`kritatools`の12件、`kritaui`の235件を全件記録し、
+`kritaimpexui`の23件、`kritapainting`の19件、`kritatools`の12件、
+`kritaui`の234件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -471,8 +472,15 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 輪郭生成を移し、UI側には色採取、ポップアップ、設定部品、設定に基づく輪郭表示、描画補助線の
 更新を残した。`kritatools`から`kritaui`への依存はなく、UI側が操作基盤を継承する方向となる。
 
-次は`libs/ui/tool/kis_tool_shape.*`、矩形、楕円、多角線、輪郭の各基底を起点として、図形生成と
-入力状態を`libs/tools`へ、設定部品と画面資源接続をUI所有へ分ける。
+図形を描画装置へ反映する実行は`kritapainting`が所有する。
+`libs/ui/tool/kis_figure_painting_tool_helper.{h,cpp}`を
+`libs/painting/kis_figure_painting_stroke.{h,cpp}`へ移し、一つの描画ストロークの開始、ジョブ追加、
+終了を`KisFigurePaintingStroke`の寿命へまとめた。`libs/tools/KisToolShapeUtils.h`の描線・塗り値は
+`libs/painting/KisFigurePaintingOptions.h`へ移し、空だった同名実装ファイルを除去した。
+列挙値の順序とスクリプトのスタイル名対応は維持し、旧配置、転送ヘッダー、旧名の別名は存在しない。
+
+次は`libs/ui/tool/kis_tool_rectangle_base.*`を起点として、矩形の幾何計算と入力状態を
+`libs/tools`へ移し、設定部品と画面資源接続をUI所有へ残す。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

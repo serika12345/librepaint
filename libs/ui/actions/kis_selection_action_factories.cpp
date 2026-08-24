@@ -62,7 +62,7 @@
 #include <commands_new/kis_update_command.h>
 #include <kis_selection_tool_helper.h>
 
-#include "kis_figure_painting_tool_helper.h"
+#include <kis_figure_painting_stroke.h>
 #include "kis_update_outline_job.h"
 
 namespace ActionHelper {
@@ -629,25 +629,26 @@ void KisStrokeSelectionActionFactory::run(KisViewManager *view, const StrokeSele
     KisNodeSP currentNode = view->canvasResourceProvider()->resourceManager()->resource(KoCanvasResource::CurrentKritaNode).value<KisNodeWSP>();
     if (!currentNode->inherits("KisShapeLayer") && currentNode->paintDevice()) {
         KoCanvasResourceProvider * rManager = view->canvasResourceProvider()->resourceManager();
-        KisToolShapeUtils::StrokeStyle strokeStyle =  KisToolShapeUtils::StrokeStyleForeground;
-        KisToolShapeUtils::FillStyle fillStyle = params.fillStyle();
+        KisFigurePaintingOptions::StrokeStyle strokeStyle =
+            KisFigurePaintingOptions::StrokeStyleForeground;
+        KisFigurePaintingOptions::FillStyle fillStyle = params.fillStyle();
 
-        KisFigurePaintingToolHelper helper(kundo2_i18n("Draw Polyline"),
+        KisFigurePaintingStroke stroke(kundo2_i18n("Draw Polyline"),
                                        image,
                                        currentNode,
-                                       rManager ,
+                                       rManager,
                                        strokeStyle,
                                        fillStyle);
-        helper.setFGColorOverride(params.color);
-        helper.setSelectionOverride(0);
+        stroke.setFGColorOverride(params.color);
+        stroke.setSelectionOverride(0);
         QPen pen(Qt::red, size);
         pen.setJoinStyle(Qt::RoundJoin);
 
-        if (fillStyle != KisToolShapeUtils::FillStyleNone) {
-            helper.paintPainterPathQPenFill(outline, pen, params.fillColor);
+        if (fillStyle != KisFigurePaintingOptions::FillStyleNone) {
+            stroke.paintPainterPathQPenFill(outline, pen, params.fillColor);
         }
         else {
-            helper.paintPainterPathQPen(outline, pen, params.fillColor);
+            stroke.paintPainterPathQPen(outline, pen, params.fillColor);
         }
     }
     else if (currentNode->inherits("KisShapeLayer")) {
@@ -687,18 +688,20 @@ void KisStrokeBrushSelectionActionFactory::run(KisViewManager *view, const Strok
     {
         KoCanvasResourceProvider * rManager = view->canvasResourceProvider()->resourceManager();
         QPainterPath outline = pixelSelection->outlineCache();
-        KisToolShapeUtils::StrokeStyle strokeStyle =  KisToolShapeUtils::StrokeStyleForeground;
-        KisToolShapeUtils::FillStyle fillStyle =  KisToolShapeUtils::FillStyleNone;
+        KisFigurePaintingOptions::StrokeStyle strokeStyle =
+            KisFigurePaintingOptions::StrokeStyleForeground;
+        KisFigurePaintingOptions::FillStyle fillStyle =
+            KisFigurePaintingOptions::FillStyleNone;
         KoColor color = params.color;
 
-        KisFigurePaintingToolHelper helper(kundo2_i18n("Draw Polyline"),
+        KisFigurePaintingStroke stroke(kundo2_i18n("Draw Polyline"),
                                        image,
                                        currentNode,
                                        rManager,
                                        strokeStyle,
                                        fillStyle);
-        helper.setFGColorOverride(color);
-        helper.setSelectionOverride(0);
-        helper.paintPainterPath(outline);
+        stroke.setFGColorOverride(color);
+        stroke.setSelectionOverride(0);
+        stroke.paintPainterPath(outline);
     }
 }

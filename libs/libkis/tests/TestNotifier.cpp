@@ -8,6 +8,7 @@
 #include <simpletest.h>
 
 #include <Notifier.h>
+#include <kis_node.h>
 #include <KisPart.h>
 #include <Document.h>
 
@@ -39,4 +40,3 @@ void TestNotifier::documentAdded(Document *image)
 }
 
 KISTEST_MAIN(TestNotifier)
-

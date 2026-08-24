@@ -35,6 +35,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     ),
     "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
     "libs/impex": ("libs/impex/tests/TestImportExportBoundary.cpp",),
+    "libs/painting": ("libs/painting/tests/TestPaintingBoundary.cpp",),
     "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
     "libs/ui": ("libs/ui/tests/TestCanvasUiPublicHeaders.cpp",),
 }
@@ -158,6 +159,25 @@ PUBLIC_HEADER_SET_SPECS = (
             "for document-facing conversion coordination, feedback, and format options."
         ),
         "evidence": ["libs/impex/CMakeLists.txt", "libs/impex/ui/KisImportExportManager.h"],
+    },
+    {
+        "ownerTarget": "kritapainting",
+        "sourceDirectory": "libs/painting",
+        "headerDirectories": ["libs/painting"],
+        "excludedHeaderDirectories": [
+            "libs/painting/metadata",
+            "libs/painting/tests",
+            "libs/painting/undo",
+        ],
+        "exportMacro": "KRITAPAINTING_EXPORT",
+        "responsibility": (
+            "Records the declared and externally consumed painting-execution surface "
+            "for resource snapshots, figure strokes, and painting jobs."
+        ),
+        "evidence": [
+            "libs/painting/CMakeLists.txt",
+            "libs/painting/kis_figure_painting_stroke.h",
+        ],
     },
     {
         "ownerTarget": "kritatools",

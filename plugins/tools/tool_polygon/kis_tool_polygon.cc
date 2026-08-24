@@ -18,7 +18,7 @@
 
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_image.h>
-#include "kis_figure_painting_tool_helper.h"
+#include <kis_figure_painting_stroke.h>
 
 KisToolPolygon::KisToolPolygon(KoCanvasBase *canvas)
         : KisToolPolylineBase(canvas,  KisToolPolylineBase::PAINT, KisCursor::loadWithSize("tool_polygon_cursor.svg", 32, 32, 6, 6))
@@ -49,14 +49,14 @@ void KisToolPolygon::finishPolyline(const QVector<QPointF>& points)
         shouldAddShape(currentNode());
 
     if (!info.shouldAddShape) {
-        KisFigurePaintingToolHelper helper(kundo2_i18n("Draw Polygon"),
-                                           image(),
-                                           currentNode(),
-                                           canvas()->resourceManager(),
-                                           strokeStyle(),
-                                           fillStyle(),
-                                           fillTransform());
-        helper.paintPolygon(points);
+        KisFigurePaintingStroke stroke(kundo2_i18n("Draw Polygon"),
+                                       image(),
+                                       currentNode(),
+                                       canvas()->resourceManager(),
+                                       strokeStyle(),
+                                       fillStyle(),
+                                       fillTransform());
+        stroke.paintPolygon(points);
     } else {
         // remove the last point if it overlaps with the first
         QVector<QPointF> newPoints = points;

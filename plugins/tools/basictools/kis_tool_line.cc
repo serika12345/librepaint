@@ -13,6 +13,7 @@
 #include "kis_tool_line.h"
 
 #include <QCheckBox>
+#include <QPainterPath>
 
 #include <ksharedconfig.h>
 
@@ -25,12 +26,12 @@
 #include <kis_debug.h>
 #include <kis_cursor.h>
 #include <brushengine/kis_paintop_registry.h>
-#include <kis_figure_painting_tool_helper.h>
 #include <kis_canvas2.h>
 #include <kis_canvas_resource_provider.h>
 #include <KisViewManager.h>
 #include <kis_action_registry.h>
 #include <kis_painting_information_builder.h>
+#include <kis_resources_snapshot.h>
 
 #include "kis_tool_line_helper.h"
 

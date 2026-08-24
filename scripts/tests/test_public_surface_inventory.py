@@ -113,6 +113,17 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             export_macro="KRITAUI_EXPORT",
             header_directories=["libs/impex/animation", "libs/impex/ui"],
         )
+        painting_headers = check_public_surface_inventory.discover_public_headers(
+            repository_root=REPO_ROOT,
+            source_directory="libs/painting",
+            export_macro="KRITAPAINTING_EXPORT",
+            header_directories=["libs/painting"],
+            excluded_header_directories=[
+                "libs/painting/metadata",
+                "libs/painting/tests",
+                "libs/painting/undo",
+            ],
+        )
         tool_headers = check_public_surface_inventory.discover_public_headers(
             repository_root=REPO_ROOT,
             source_directory="libs/tools",
@@ -133,16 +144,51 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         }
         image_by_path = {entry["path"]: entry for entry in image_headers}
         impex_ui_by_path = {entry["path"]: entry for entry in impex_ui_headers}
+        painting_by_path = {entry["path"]: entry for entry in painting_headers}
         tool_by_path = {entry["path"]: entry for entry in tool_headers}
 
         self.assertEqual(len(canvas_headers), 18)
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 235)
+        self.assertEqual(len(ui_headers), 234)
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
-        self.assertEqual(len(tool_headers), 13)
+        self.assertEqual(len(painting_headers), 19)
+        self.assertEqual(len(tool_headers), 12)
+        self.assertEqual(
+            painting_by_path["libs/painting/KisFigurePaintingOptions.h"],
+            {
+                "path": "libs/painting/KisFigurePaintingOptions.h",
+                "publicationEvidence": ["compile-contract", "external-include"],
+                "consumerPaths": [
+                    "libs/libkis/PaintingResources.cpp",
+                    "libs/ui/dialogs/kis_dlg_stroke_selection_properties.h",
+                    "libs/ui/tool/kis_tool_shape.h",
+                ],
+            },
+        )
+        self.assertEqual(
+            painting_by_path["libs/painting/kis_figure_painting_stroke.h"],
+            {
+                "path": "libs/painting/kis_figure_painting_stroke.h",
+                "publicationEvidence": [
+                    "export-macro",
+                    "compile-contract",
+                    "external-include",
+                ],
+                "consumerPaths": [
+                    "libs/libkis/PaintingResources.h",
+                    "libs/ui/actions/kis_selection_action_factories.cpp",
+                    "libs/ui/kis_selection_manager.cc",
+                    "libs/ui/tool/kis_tool_shape.cc",
+                    "plugins/tools/basictools/kis_tool_ellipse.cc",
+                    "plugins/tools/basictools/kis_tool_rectangle.cc",
+                    "plugins/tools/tool_polygon/kis_tool_polygon.cc",
+                    "plugins/tools/tool_polyline/kis_tool_polyline.cc",
+                ],
+            },
+        )
         self.assertEqual(
             document_by_path[
                 "libs/document/session/kis_document_autosave_state.h"
@@ -293,7 +339,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 23)
+        self.assertEqual(len(classes), 22)
         self.assertNotIn("Data", by_name)
         self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertNotIn("NoopActivationPolicy", by_name)
@@ -312,7 +358,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 23)
+        self.assertEqual(len(inventory["classes"]), 22)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(
             by_name["KisPaintingInformationBuilder"]["responsibilityArea"],
@@ -441,8 +487,9 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimage": 334,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
-                "kritatools": 13,
-                "kritaui": 235,
+                "kritapainting": 19,
+                "kritatools": 12,
+                "kritaui": 234,
             },
         )
         self.assertEqual(

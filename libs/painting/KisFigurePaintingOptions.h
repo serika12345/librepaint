@@ -4,10 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef KISTOOLSHAPEUTILS_H
-#define KISTOOLSHAPEUTILS_H
+#ifndef KIS_FIGURE_PAINTING_OPTIONS_H
+#define KIS_FIGURE_PAINTING_OPTIONS_H
 
-namespace KisToolShapeUtils
+/**
+ * Stable style values used when a figure is rendered into a paint device.
+ *
+ * The ordinal values are shared with the geometry option widgets and the
+ * scripting style-name mapping.
+ */
+namespace KisFigurePaintingOptions
 {
 
 enum FillStyle {
@@ -25,4 +31,4 @@ enum StrokeStyle {
 
 }
 
-#endif // KISTOOLSHAPEUTILS_H
+#endif

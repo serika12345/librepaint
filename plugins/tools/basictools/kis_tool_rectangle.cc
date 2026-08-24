@@ -21,7 +21,7 @@
 #include <canvas/kis_canvas2.h>
 #include <kis_canvas_resource_provider.h>
 #include "kis_shape_tool_helper.h"
-#include "kis_figure_painting_tool_helper.h"
+#include <kis_figure_painting_stroke.h>
 
 #include <KoCanvasController.h>
 #include <KoShapeStroke.h>
@@ -63,13 +63,13 @@ void KisToolRectangle::finishRect(const QRectF &rect, qreal roundCornersX, qreal
         shouldAddShape(currentNode());
 
     if (!info.shouldAddShape) {
-        KisFigurePaintingToolHelper helper(kundo2_i18n("Draw Rectangle"),
-                                           image(),
-                                           currentNode(),
-                                           canvas()->resourceManager(),
-                                           strokeStyle(),
-                                           fillStyle(),
-                                           fillTransform());
+        KisFigurePaintingStroke stroke(kundo2_i18n("Draw Rectangle"),
+                                       image(),
+                                       currentNode(),
+                                       canvas()->resourceManager(),
+                                       strokeStyle(),
+                                       fillStyle(),
+                                       fillTransform());
 
         QPainterPath path;
 
@@ -79,7 +79,7 @@ void KisToolRectangle::finishRect(const QRectF &rect, qreal roundCornersX, qreal
             path.addRect(rect);
         }
         getRotatedPath(path, rect.center(), getRotationAngle());
-        helper.paintPainterPath(path);
+        stroke.paintPainterPath(path);
     } else {
         const QRectF r = convertToPt(rect);
         const qreal docRoundCornersX = convertToPt(roundCornersX);
@@ -88,8 +88,8 @@ void KisToolRectangle::finishRect(const QRectF &rect, qreal roundCornersX, qreal
         shape->rotate(qRadiansToDegrees(getRotationAngle()));
 
         KoShapeStrokeSP border;
-        if (strokeStyle() != KisToolShapeUtils::StrokeStyleNone) {
-            const QColor color = strokeStyle() == KisToolShapeUtils::StrokeStyleForeground ?
+        if (strokeStyle() != KisFigurePaintingOptions::StrokeStyleNone) {
+            const QColor color = strokeStyle() == KisFigurePaintingOptions::StrokeStyleForeground ?
                         canvas()->resourceManager()->foregroundColor().toQColor() :
                         canvas()->resourceManager()->backgroundColor().toQColor();
 
