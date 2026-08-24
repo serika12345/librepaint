@@ -28,6 +28,8 @@ public:
     void setTrackedImages(const QVector<KisImageSP> &images);
     void setTrackedImage(KisImageSP image);
 
+    void connectMemoryStatisticsUpdates();
+
     //Force to image modified state and start countdown to event
     void forceImageModified() { slotImageModified(); }
     void restartCountdown();

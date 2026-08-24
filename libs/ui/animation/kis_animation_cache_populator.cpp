@@ -6,7 +6,9 @@
 
 #include "animation/kis_animation_cache_populator.h"
 
-#include <functional>
+#include <algorithm>
+#include <mutex>
+#include <utility>
 
 #include <QTimer>
 #include <QStack>
@@ -14,13 +16,11 @@
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "application/KisPart.h"
-#include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_canvas2.h"
 #include "kis_time_span.h"
 #include "animation/kis_animation_frame_cache.h"
-#include "kis_signal_auto_connection.h"
 #include "kis_idle_watcher.h"
 #include "workspace/KisViewManager.h"
 #include "nodes/kis_node_manager.h"
@@ -359,6 +359,7 @@ void KisAnimationCachePopulator::requestRegenerationWithPriorityFrame(KisImageSP
     if (!m_d->calculateAnimationCacheInBackground) return;
     if (!KisAnimationFrameCache::cacheForImage(image)) return;
     if (!image->animationInterface()->hasAnimation()) return;
+    if (!image->animationInterface()->documentPlaybackRange().contains(frameIndex)) return;
 
     m_d->priorityFrames.append(qMakePair(image, frameIndex));
 

@@ -13,8 +13,25 @@
 #include <QtGlobal>
 
 #include "kis_debug.h"
+#include "KisBusyWaitBroker.h"
 #include "kis_image.h"
 #include "kis_composite_progress_proxy.h"
+#include "application/KisPart.h"
+
+namespace
+{
+void busyWaitWithFeedback(KisImageSP image)
+{
+    const int busyWaitDelay = 1000;
+    if (KisPart::instance()->currentMainwindowAsQWidget()) {
+        KisDelayedSaveDialog dialog(image,
+                                    KisDelayedSaveDialog::ForcedDialog,
+                                    busyWaitDelay,
+                                    KisPart::instance()->currentMainwindowAsQWidget());
+        dialog.blockIfImageIsBusy();
+    }
+}
+}
 
 struct Q_DECL_HIDDEN KisDelayedSaveDialog::Private {
     Private(KisImageSP _image, int _busyWait, Type _type) : image(_image), busyWait(_busyWait), type(_type) {}
@@ -82,6 +99,11 @@ KisDelayedSaveDialog::~KisDelayedSaveDialog()
 {
     m_d->image->compositeProgressProxy()->removeProxy(ui->progressBar);
     delete ui;
+}
+
+void KisDelayedSaveDialog::registerBusyWaitFeedback()
+{
+    KisBusyWaitBroker::instance()->setFeedbackCallback(&busyWaitWithFeedback);
 }
 
 void KisDelayedSaveDialog::blockIfImageIsBusy()

@@ -570,17 +570,6 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimpex",
           "sourcePath": "libs/ui/application/KisPart.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/application/KisPart.cpp",
           "include": "metadata/KoDocumentInfo.h",
           "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
           "sourceResponsibility": "application-orchestration",
@@ -1147,17 +1136,6 @@
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "import-export",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/application/KisPart.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {
@@ -3929,17 +3907,6 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimpex",
           "sourcePath": "libs/ui/application/KisPart.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpex",
-          "sourcePath": "libs/ui/application/KisPart.cpp",
           "include": "metadata/KoDocumentInfo.h",
           "headerPath": "libs/impex/metadata/KoDocumentInfo.h",
           "sourceResponsibility": "application-orchestration",
@@ -4506,17 +4473,6 @@
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "import-export",
           "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimpexui",
-          "sourcePath": "libs/ui/application/KisPart.cpp",
-          "include": "KisImportExportManager.h",
-          "headerPath": "libs/impex/ui/KisImportExportManager.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {

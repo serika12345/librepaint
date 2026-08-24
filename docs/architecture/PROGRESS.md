@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 05:52 JST
+- 更新日時: 2026-08-25 06:55 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
+- 現在の検査段階: R1-G6g アプリケーション共有サービス所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: `kritainputui`を独立した共有ライブラリーとして構築し、入力UIの公開記号を
-  利用するターゲットから直接接続する。
+- 目的: アプリケーション調整に残る描画所有ヘッダーを既存の具体所有面へ接続し、
+  起動順序とプロセス寿命を維持したまま逆方向includeを縮小する。
 
 ## 再開環境
 
@@ -1793,10 +1793,38 @@
 - `KisDocument.cpp`は最大3027行、`kis_node_manager.cpp`は最大1763行の審査済みソース行数例外を持つ。
   R1-G6hの文書・画像構成とノード・画像調整の所有分割が各ファイルを標準最大値へ縮小し、例外を完了する。
 
+## R1-G6gアプリケーション共有サービス所有境界で完了した作業
+
+- アプリケーション調整にあった描画状態の取得と共有サービス接続を、次の開始ファイルと所有先へ
+  対応させた。
+  - `libs/ui/application/KisApplication.cpp`のアニメーション書出し範囲取得から
+    `libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.{h,cpp}`の文書再生範囲を使う生成経路。
+  - `libs/ui/application/KisPart.cpp`のテンプレート層名変換から
+    `libs/ui/document/KisDocument.h`と`libs/ui/document/KisDocumentTemplate.cpp`の
+    `translateTemplateRootLayerName()`。
+  - 同じ開始ファイルの優先キャッシュ範囲判定から
+    `libs/ui/animation/kis_animation_cache_populator.cpp`の優先要求受付。
+  - 同じ開始ファイルの画像待機表示コールバック登録から
+    `libs/ui/dialogs/kis_delayed_save_dialog.{h,cpp}`の`registerBusyWaitFeedback()`。
+  - 同じ開始ファイルのアイドル時メモリー統計接続から
+    `libs/image/kis_idle_watcher.{h,cpp}`の`connectMemoryStatisticsUpdates()`。
+- アニメーション書出し範囲、優先キャッシュの再生範囲、テンプレートのルートレイヤー名、強制待機表示、
+  アイドル時メモリー統計更新の順序と寿命を維持する。アプリケーション調整から描画への
+  確認済み逆方向includeは56件から48件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
+- `libs/ui/tests/kis_animation_exporter_test.cpp`は書出しダイアログが画像の文書再生範囲を使う経路を
+  検査する。`libs/ui/tests/KisDocumentReplaceTest.cpp`はテンプレート辞書によるルートレイヤー名変換を検査する。
+- 変更した9翻訳単位はmacOSの製品コンパイル条件でコード生成に成功した。include-cleaner監査は
+  未使用include 21件を除去し、`QMap`、標準アルゴリズム、排他制御、所有権、関数、キューの
+  直接includeを追加した。更新した実装オブジェクトを既存ライブラリーへ個別リンクした
+  `KisDocumentReplaceTest::testTemplateRootLayerNameTranslation`と
+  `KisAnimationExporterTest::testAnimationExport`は成功した。`verify-quick`は方針試験104件、
+  生成台帳、依存方向、製品ターゲット循環、ソース行数、文書と図の検査に成功した。
+
 ## 次の操作
 
-`kritainputui`を独立共有ライブラリーとして構築し、現在`kritaui`の公開記号を利用する入力UIの
-利用元を直接所有先へ接続する。5構成のCMake台帳と公開面・責務・依存基準を新しい所有境界へ同期する。
+`libs/ui/workspace/kis_statusbar.{h,cc}`をキャンバス状態表示の所有先である
+`libs/ui/canvas/`へ移し、画像寸法、選択範囲、色プロファイル、メモリー使用量、
+キャンバス回転の表示契約と利用元includeを新しい配置へ同期する。
 
 ## R1-G5完了根拠
 

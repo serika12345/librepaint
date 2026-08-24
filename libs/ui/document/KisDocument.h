@@ -11,6 +11,7 @@
 #include <QDateTime>
 #include <QList>
 #include <QFileInfo>
+#include <QMap>
 
 #include <klocalizedstring.h>
 
@@ -618,6 +619,8 @@ public:
     KisImageWSP image() const;
 
     bool hasAnimation() const;
+
+    void translateTemplateRootLayerName(const QMap<QString, QString> &dictionary);
 
     /**
      * @brief savingImage provides a detached, shallow copy of the original image that must be used when saving.

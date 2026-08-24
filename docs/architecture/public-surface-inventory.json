@@ -675,7 +675,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/application/KisPart.cpp"
+            "libs/ui/dialogs/kis_delayed_save_dialog.cpp"
           ]
         },
         {
@@ -1096,7 +1096,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/application/KisPart.cpp"
+            "libs/ui/document/KisDocumentTemplate.cpp"
           ]
         },
         {
@@ -3503,12 +3503,12 @@
             "libs/ui/actions/KisLayerSelectionAction.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
-            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_canvas_resource_provider.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/document/KisDocument.cpp",
+            "libs/ui/document/KisDocumentTemplate.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/nodes/KisNodeActivationActionCreatorVisitor.h",
@@ -3690,7 +3690,6 @@
             "libs/ui/animation/KisPlaybackEngineQT.cpp",
             "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/animation/kis_animation_frame_cache.cpp",
-            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/KisIdleTasksManager.cpp",
             "libs/ui/canvas/KisLayerThumbnailCache.cpp",
@@ -3721,6 +3720,7 @@
             "libs/ui/dialogs/kis_dlg_stroke_selection_properties.cpp",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/document/KisDocument.h",
+            "libs/ui/document/KisDocumentTemplate.cpp",
             "libs/ui/document/kis_file_layer.cpp",
             "libs/ui/document/kis_image_manager.cc",
             "libs/ui/flake/kis_dummies_facade.cpp",
@@ -3967,10 +3967,9 @@
             "libs/ui/animation/KisPlaybackEngineQT.cpp",
             "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/animation/kis_animation_frame_cache.cpp",
-            "libs/ui/application/KisApplication.cpp",
-            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
+            "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp",
             "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/document/kis_filter_manager.cc",
@@ -4537,7 +4536,6 @@
           ],
           "consumerPaths": [
             "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
-            "libs/ui/application/KisPart.cpp",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
             "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/kis_statusbar.cc"
@@ -6192,7 +6190,6 @@
             "libs/ui/animation/KisAsyncAnimationFramesSavingRenderer.cpp",
             "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/animation/kis_animation_frame_cache.cpp",
-            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.h",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
@@ -7689,7 +7686,6 @@
           ],
           "consumerPaths": [
             "libs/ui/application/KisApplication.h",
-            "libs/ui/application/KisPart.cpp",
             "libs/ui/dialogs/KisDlgCreateNewDocument.cpp",
             "libs/ui/dialogs/kis_dlg_file_layer.cpp",
             "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",

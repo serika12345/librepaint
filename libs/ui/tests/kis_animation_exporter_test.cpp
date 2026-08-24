@@ -15,7 +15,6 @@
 #include "document/KisDocument.h"
 #include "kis_image_animation_interface.h"
 #include "KoColor.h"
-#include <KoUpdater.h>
 #include "kis_time_span.h"
 #include "kis_keyframe_channel.h"
 #include <testui.h>
@@ -54,7 +53,6 @@ void KisAnimationExporterTest::testAnimationExport()
     QImage frame2 = dev->convertToQImage(0, rect);
 
     KisAsyncAnimationFramesSaveDialog exporter(document->image(),
-                                               KisTimeSpan::fromTimeToTime(0,2),
                                                "export-test.png",
                                                0,
                                                false,

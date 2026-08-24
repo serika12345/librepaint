@@ -6,6 +6,8 @@
 
 #include "kis_idle_watcher.h"
 
+#include "kis_memory_statistics_server.h"
+
 #include <QTimer>
 #include "kis_image.h"
 #include "kis_signal_auto_connection.h"
@@ -50,6 +52,14 @@ KisIdleWatcher::KisIdleWatcher(int delay, QObject *parent)
 
 KisIdleWatcher::~KisIdleWatcher()
 {
+}
+
+void KisIdleWatcher::connectMemoryStatisticsUpdates()
+{
+    connect(this,
+            &KisIdleWatcher::startedIdleMode,
+            KisMemoryStatisticsServer::instance(),
+            &KisMemoryStatisticsServer::tryForceUpdateMemoryStatisticsWhileIdle);
 }
 
 bool KisIdleWatcher::isIdle() const

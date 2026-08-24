@@ -7,6 +7,7 @@
 #include "KisAsyncAnimationFramesSaveDialog.h"
 
 #include <kis_image.h>
+#include <kis_image_animation_interface.h>
 #include <kis_time_span.h>
 
 #include <animation/KisAsyncAnimationFramesSavingRenderer.h>
@@ -54,6 +55,20 @@ struct KisAsyncAnimationFramesSaveDialog::Private {
     int sequenceNumberingOffset;
     KisPropertiesConfigurationSP exportConfiguration;
 };
+
+KisAsyncAnimationFramesSaveDialog::KisAsyncAnimationFramesSaveDialog(KisImageSP originalImage,
+                                                                     const QString &baseFilename,
+                                                                     int startNumberingAt,
+                                                                     bool onlyNeedsUniqueFrames,
+                                                                     KisPropertiesConfigurationSP exportConfiguration)
+    : KisAsyncAnimationFramesSaveDialog(originalImage,
+                                        originalImage->animationInterface()->documentPlaybackRange(),
+                                        baseFilename,
+                                        startNumberingAt,
+                                        onlyNeedsUniqueFrames,
+                                        exportConfiguration)
+{
+}
 
 KisAsyncAnimationFramesSaveDialog::KisAsyncAnimationFramesSaveDialog(KisImageSP originalImage,
                                                                      const KisTimeSpan &range,

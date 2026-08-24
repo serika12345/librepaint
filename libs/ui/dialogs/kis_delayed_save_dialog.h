@@ -35,6 +35,8 @@ public:
     explicit KisDelayedSaveDialog(KisImageSP image, Type type, int busyWait, QWidget *parent = nullptr);
     ~KisDelayedSaveDialog() override;
 
+    static void registerBusyWaitFeedback();
+
     void blockIfImageIsBusy();
 
 private Q_SLOTS:

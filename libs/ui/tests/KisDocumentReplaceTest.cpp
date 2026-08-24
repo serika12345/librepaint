@@ -8,6 +8,7 @@
 
 #include <document/KisDocument.h>
 #include <application/KisPart.h>
+#include <QMap>
 #include <QScopedPointer>
 #include <QSignalSpy>
 #include <kis_group_layer.h>
@@ -141,6 +142,24 @@ void KisDocumentReplaceTest::testDocumentRecoveryStatusDelegation()
     QCOMPARE(recoveredSpy.count(), 2);
     QCOMPARE(recoveredSpy.at(1).at(0).toBool(), false);
     QVERIFY(!m_doc->isRecovered());
+
+    finalize();
+}
+
+void KisDocumentReplaceTest::testTemplateRootLayerNameTranslation()
+{
+    init();
+
+    KisNodeSP layer = m_doc->image()->rootLayer();
+    QVERIFY(layer);
+    layer->setName(QStringLiteral("Background"));
+
+    const QMap<QString, QString> dictionary {
+        {QStringLiteral("Background"), QStringLiteral("Translated Background")}
+    };
+    m_doc->translateTemplateRootLayerName(dictionary);
+
+    QCOMPARE(layer->name(), QStringLiteral("Translated Background"));
 
     finalize();
 }

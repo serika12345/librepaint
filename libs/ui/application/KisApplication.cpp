@@ -7,6 +7,8 @@
 
 #include "application/KisApplication.h"
 
+#include <functional>
+#include <queue>
 #include <stdlib.h>
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -24,21 +26,16 @@
 #include <QAbstractItemView>
 #include <QAbstractScrollArea>
 #include <QStandardPaths>
-#include <QScreen>
 #include <QDir>
 #include <QFile>
-#include <QLocale>
 #include <QMessageBox>
 #include <QPointer>
 #include <QProxyStyle>
 #include <QStringList>
 #include <QStyle>
 #include <QStyleFactory>
-#include <QSysInfo>
 #include <QTimer>
 #include <QWidget>
-#include <QImageReader>
-#include <QImageWriter>
 #include <QItemSelectionModel>
 #include <QThread>
 
@@ -156,7 +153,6 @@ public:
 #include "events/KisLongPressEventFilter.h"
 
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>
-#include <kis_image_animation_interface.h>
 #include "document/kis_file_layer.h"
 #include "nodes/kis_node_manager.h"
 #include "KisSynchronizedConnection.h"
@@ -807,7 +803,7 @@ bool KisApplication::start(const KisApplicationArguments &args)
                     doc->openPath(fileName);
                     qApp->processEvents(); // For vector layers to be updated
                     
-                    if (!doc->image()->animationInterface()->hasAnimation()) {
+                    if (!doc->hasAnimation()) {
                         errKrita << "This file has no animation." << Qt::endl;
                         QTimer::singleShot(0, this, SLOT(quit()));
                         return false;
@@ -816,10 +812,8 @@ bool KisApplication::start(const KisApplicationArguments &args)
                     doc->setFileBatchMode(true);
                     int sequenceStart = 0;
 
-
                     qDebug() << ppVar(exportFileName);
                     KisAsyncAnimationFramesSaveDialog exporter(doc->image(),
-                                               doc->image()->animationInterface()->documentPlaybackRange(),
                                                exportFileName,
                                                sequenceStart,
                                                false,

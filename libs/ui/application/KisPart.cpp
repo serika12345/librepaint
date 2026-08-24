@@ -11,64 +11,47 @@
 
 #include "application/KisPart.h"
 
+#include <memory>
+
 #include <config-mlt.h>
 
-#include "KoProgressProxy.h"
-#include <KoCanvasController.h>
-#include <KoCanvasControllerWidget.h>
 #include <KoCanvasBase.h>
-#include <KoToolManager.h>
 #include <KoResourceServerProvider.h>
 
-#include "application/KisApplication.h"
 #include "workspace/KisMainWindow.h"
 #include "document/KisDocument.h"
 #include "workspace/KisView.h"
 #include "workspace/KisViewManager.h"
-#include "KisImportExportManager.h"
 #include <metadata/KoDocumentInfo.h>
 #include "KisUsageLogger.h"
 
 #include <kis_debug.h>
 #include <KoResourcePaths.h>
 #include <QMessageBox>
-#include <QMenu>
-#include <QScopedPointer>
 #include <QMap>
 #include <QRegularExpression>
 
-#include <QMenuBar>
 #include <klocalizedstring.h>
 #include <kactioncollection.h>
 #include <kconfig.h>
 #include <kconfiggroup.h>
-#include <QKeySequence>
 
 #include <QApplication>
-#include <QDomDocument>
-#include <QDomElement>
 #include <QGlobalStatic>
 #include <KisMimeDatabase.h>
 #include <dialogs/KisSessionManagerDialog.h>
 
-#include <kis_group_layer.h>
 #include "application/kis_config.h"
 #include "kis_shape_controller.h"
 #include "application/KisResourceServerProvider.h"
 #include <animation/kis_animation_cache_populator.h>
-#include "kis_image_animation_interface.h"
-#include "kis_time_span.h"
 #include "kis_idle_watcher.h"
-#include "kis_image.h"
-#include "KisTranslateLayerNamesVisitor.h"
 #include "kis_color_manager.h"
 
 #include <KisCursorOverrideLock.h>
 #include "kis_action_registry.h"
 #include "workspace/KisSessionResource.h"
-#include "KisBusyWaitBroker.h"
 #include "dialogs/kis_delayed_save_dialog.h"
-#include "kis_memory_statistics_server.h"
 #include "KisRecentFilesManager.h"
 #include "KisRecentFileIconCache.h"
 #include "animation/KisPlaybackEngine.h"
@@ -128,17 +111,6 @@ KisPart* KisPart::instance()
     return s_instance;
 }
 
-namespace {
-void busyWaitWithFeedback(KisImageSP image)
-{
-    const int busyWaitDelay = 1000;
-    if (KisPart::instance()->currentMainwindow()) {
-        KisDelayedSaveDialog dialog(image, KisDelayedSaveDialog::ForcedDialog, busyWaitDelay, KisPart::instance()->currentMainwindow());
-        dialog.blockIfImageIsBusy();
-    }
-}
-}
-
 KisPart::KisPart()
     : d(new Private(this))
 {
@@ -157,15 +129,14 @@ KisPart::KisPart()
             this, SLOT(updateShortcuts()));
     connect(&d->idleWatcher, SIGNAL(startedIdleMode()),
             &d->animationCachePopulator, SLOT(slotRequestRegeneration()));
-    connect(&d->idleWatcher, SIGNAL(startedIdleMode()),
-            KisMemoryStatisticsServer::instance(), SLOT(tryForceUpdateMemoryStatisticsWhileIdle()));
+    d->idleWatcher.connectMemoryStatisticsUpdates();
 
     // We start by loading the simple QTimer-based anim playback engine first.
     // To save RAM, the MLT-based engine will be loaded later, once the KisImage in question becomes animated.
     setPlaybackEngine(new KisPlaybackEngineQT(this));
 
     d->animationCachePopulator.slotRequestRegeneration();
-    KisBusyWaitBroker::instance()->setFeedbackCallback(&busyWaitWithFeedback);
+    KisDelayedSaveDialog::registerBusyWaitFeedback();
 }
 
 KisPart::~KisPart()
@@ -499,10 +470,7 @@ KisPlaybackEngine *KisPart::playbackEngine() const
 }
 
 void KisPart::prioritizeFrameForCache(KisImageSP image, int frame) {
-    KisImageAnimationInterface* animInterface = image->animationInterface();
-    if ( animInterface && animInterface->documentPlaybackRange().contains(frame)) {
-        d->animationCachePopulator.requestRegenerationWithPriorityFrame(image, frame);
-    }
+    d->animationCachePopulator.requestRegenerationWithPriorityFrame(image, frame);
 }
 
 void KisPart::openExistingFile(const QString &path)
@@ -557,8 +525,7 @@ void KisPart::openTemplate(const QUrl &url)
     }
     QMap<QString, QString> dictionary;
     // XXX: fill the dictionary from the desktop file
-    KisTranslateLayerNamesVisitor v(dictionary);
-    document->image()->rootLayer()->accept(v);
+    document->translateTemplateRootLayerName(dictionary);
 
     addDocument(document);
 

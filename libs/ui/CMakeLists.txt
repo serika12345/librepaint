@@ -311,6 +311,7 @@ set(kritaui_LIB_SRCS
     application/KisApplication.cpp
     workspace/KisDetailsPane.cpp
     document/KisDocument.cpp
+    document/KisDocumentTemplate.cpp
     impex/KisImportExportColorSpaceDialog.cpp
     impex/KisImportExportResizeWidget.cpp
     document/KisCloneDocumentStroke.cpp
