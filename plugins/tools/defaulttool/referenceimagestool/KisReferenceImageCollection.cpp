@@ -9,7 +9,7 @@
 #include <QMessageBox>
 
 #include <KoStore.h>
-#include <KisReferenceImage.h>
+#include <canvas/KisReferenceImage.h>
 #include <KoStoreDevice.h>
 
 const QString METADATA_FILE = "reference_images.xml";

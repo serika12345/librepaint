@@ -34,7 +34,7 @@
 #include <KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <kis_slider_spin_box.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_cursor.h>
 #include <kis_color_filter_combo.h>
 #include <KisAngleSelector.h>
@@ -58,7 +58,7 @@
 #include <KoShapeControllerBase.h>
 #include <kis_shape_controller.h>
 #include <kis_image_animation_interface.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>
 
 #include "kis_icon_utils.h"

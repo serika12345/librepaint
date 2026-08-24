@@ -12,7 +12,7 @@
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
 
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include <brushengine/kis_paintop_preset.h>
 
 struct KisToolLineHelper::Private

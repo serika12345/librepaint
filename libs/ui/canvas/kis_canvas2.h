@@ -26,9 +26,9 @@
 
 #include "kis_coordinates_converter.h"
 #include "kis_canvas_decoration.h"
-#include "kis_painting_assistants_decoration.h"
+#include "canvas/kis_painting_assistants_decoration.h"
 #include <KisInputActionGroup.h>
-#include "KisReferenceImagesDecoration.h"
+#include "canvas/KisReferenceImagesDecoration.h"
 #include "KisWraparoundAxis.h"
 
 #include <functional>

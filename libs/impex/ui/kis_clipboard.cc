@@ -41,7 +41,7 @@
 #include "KisImportExportDialogs.h"
 #include "kis_mimedata.h"
 #include "kis_store_paintdevice_writer.h"
-#include "KisDisplayConfig.h"
+#include "canvas/KisDisplayConfig.h"
 
 Q_GLOBAL_STATIC(KisClipboard, s_instance)
 

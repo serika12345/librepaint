@@ -13,7 +13,7 @@
 #include <QSet>
 #include <QPointer>
 #include "kis_keyframe_channel.h"
-#include "KisNodeDisplayModeAdapter.h"
+#include "canvas/KisNodeDisplayModeAdapter.h"
 #include "kis_signal_auto_connection.h"
 
 struct TimelineNodeListKeeper::Private

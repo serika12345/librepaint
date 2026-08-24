@@ -9,7 +9,7 @@
 #include <KoPathShape.h>
 
 #include "kis_canvas2.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_cursor.h"
 #include "kis_image.h"
 #include "kis_painter.h"

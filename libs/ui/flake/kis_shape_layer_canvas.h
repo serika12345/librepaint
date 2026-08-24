@@ -16,7 +16,7 @@
 #include <KoShapeManager.h>
 #include <KisSafeBlockingQueueConnectionProxy.h>
 #include <kis_signal_auto_connection.h>
-#include "kis_image_view_converter.h"
+#include "canvas/kis_image_view_converter.h"
 #include "kis_default_bounds_base.h"
 #include "KoColorConversionTransformation.h"
 

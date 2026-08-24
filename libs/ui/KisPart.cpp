@@ -76,11 +76,11 @@
 #include "kis_memory_statistics_server.h"
 #include "KisRecentFilesManager.h"
 #include "KisRecentFileIconCache.h"
-#include "KisPlaybackEngine.h"
-#include "KisPlaybackEngineQT.h"
+#include "animation/KisPlaybackEngine.h"
+#include "animation/KisPlaybackEngineQT.h"
 
 #ifdef HAVE_MLT
-#include "KisPlaybackEngineMLT.h"
+#include "animation/KisPlaybackEngineMLT.h"
 #endif
 
 Q_GLOBAL_STATIC(KisPart, s_instance)

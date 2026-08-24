@@ -14,7 +14,7 @@
 
 #include "kis_default_bounds.h"
 #include "KisReferenceImagesLayer.h"
-#include "KisReferenceImage.h"
+#include "canvas/KisReferenceImage.h"
 #include "KisDocument.h"
 #include <KoViewConverter.h>
 

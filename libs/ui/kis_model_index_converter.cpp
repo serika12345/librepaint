@@ -12,7 +12,7 @@
 #include "kis_node_model.h"
 #include "kis_node_manager.h"
 #include "KisReferenceImagesLayer.h"
-#include "KisDecorationsWrapperLayer.h"
+#include "canvas/KisDecorationsWrapperLayer.h"
 
 
 KisModelIndexConverter::KisModelIndexConverter(KisDummiesFacadeBase *dummiesFacade,

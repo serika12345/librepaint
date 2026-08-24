@@ -18,7 +18,7 @@
 #include "KoSnapGuide.h"
 #include "canvas/kis_canvas_decoration.h"
 #include "kis_icon_utils.h"
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include <kritaui_export.h>
 
 class KisCanvas2;

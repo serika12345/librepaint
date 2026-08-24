@@ -39,7 +39,7 @@
 #include "KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_progress_widget.h"
-#include "kis_zoom_manager.h"
+#include "canvas/kis_zoom_manager.h"
 #include <KisAngleSelector.h>
 #include <kis_canvas_controller.h>
 #include <kis_signals_blocker.h>

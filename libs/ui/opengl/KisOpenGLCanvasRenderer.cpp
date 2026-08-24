@@ -17,7 +17,7 @@
 #include "canvas/kis_display_filter.h"
 #include "canvas/kis_canvas_widget_base.h"
 #include "KisOpenGLModeProber.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_config.h"
 #include "kis_debug.h"
 #include <QApplication>
@@ -40,7 +40,7 @@
 #include "KisOpenGLBufferCircularStorage.h"
 #include "kis_painting_tweaks.h"
 #include <KisOptimizedBrushOutline.h>
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 
 #include <config-ocio.h>
 

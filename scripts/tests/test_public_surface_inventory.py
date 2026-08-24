@@ -439,6 +439,14 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "implementationPaths": ["libs/ui/KisApplication.cpp"],
             },
         )
+        self.assertEqual(
+            by_name["KisAsyncAnimationRendererBase"]["header"],
+            "libs/ui/animation/KisAsyncAnimationRendererBase.h",
+        )
+        self.assertEqual(
+            by_name["KisDisplayConfig"]["header"],
+            "libs/ui/canvas/KisDisplayConfig.h",
+        )
         self.assertNotIn("KisImportExportComplexError", by_name)
         self.assertNotIn("KisImportExportManager", by_name)
         self.assertNotIn("KisDocumentUndoStore", by_name)
@@ -546,7 +554,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
         self.validate_ui_classes(inventory)
 
-        self.assertEqual(inventory["scope"], "libs/ui-top-level-public-classes")
+        self.assertEqual(
+            inventory["scope"],
+            "libs/ui-root-and-classified-nested-public-classes",
+        )
         self.assertEqual(len(inventory["classes"]), 79)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertEqual(

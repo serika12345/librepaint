@@ -22,7 +22,7 @@
 
 #include "canvas/kis_canvas2.h"
 #include <kis_image.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include "kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_debug.h"
@@ -32,7 +32,7 @@
 #include "KisOpenGLModeProber.h"
 #include "KisOpenGLContextSwitchLock.h"
 #include <KisPlatformPluginInterfaceFactory.h>
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 
 #include "config-qt-patches-present.h"
 

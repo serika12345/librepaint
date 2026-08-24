@@ -7,7 +7,7 @@
 #ifndef HISTOGRAMCOMPUTATIONSTROKESTRATEGY_H
 #define HISTOGRAMCOMPUTATIONSTROKESTRATEGY_H
 
-#include <KisIdleTaskStrokeStrategy.h>
+#include <canvas/KisIdleTaskStrokeStrategy.h>
 #include <vector>
 
 class KoColorSpace;

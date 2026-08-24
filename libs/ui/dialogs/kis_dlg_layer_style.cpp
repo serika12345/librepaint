@@ -40,7 +40,7 @@
 
 #include "kis_signals_blocker.h"
 #include "kis_signal_compressor.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include <KisGlobalResourcesInterface.h>
 #include <KisLocalStrokeResources.h>
 #include <KisRequiredResourcesOperators.h>

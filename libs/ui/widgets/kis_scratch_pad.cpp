@@ -28,7 +28,7 @@
 #include <kis_gradient_painter.h>
 #include <kis_fill_painter.h>
 #include <kis_default_bounds.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 
 #include "kis_config.h"
 #include "kis_image.h"
@@ -52,7 +52,7 @@
 
 #include <KisPlatformPluginInterfaceFactory.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
-#include <KisRootSurfaceInfoProxy.h>
+#include <canvas/KisRootSurfaceInfoProxy.h>
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */
 
 namespace {

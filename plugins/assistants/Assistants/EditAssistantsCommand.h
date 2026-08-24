@@ -7,7 +7,7 @@
 #include <QPointer>
 
 #include <kundo2command.h>
-#include <kis_painting_assistant.h>
+#include <canvas/kis_painting_assistant.h>
 
 class KisCanvas2;
 

@@ -16,7 +16,7 @@
 
 #include <KisViewManager.h>
 #include <kis_canvas2.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_selection.h>

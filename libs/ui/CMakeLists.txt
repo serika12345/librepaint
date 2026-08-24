@@ -91,14 +91,14 @@ set(kritaui_LIB_SRCS
     kis_bookmarked_configurations_editor.cc
     kis_bookmarked_configurations_model.cc
     kis_bookmarked_filter_configurations_model.cc
-    KisPlaybackEngine.cpp
-    KisPlaybackEngineQT.cpp
+    animation/KisPlaybackEngine.cpp
+    animation/KisPlaybackEngineQT.cpp
     KisPresetShadowUpdater.cpp
-    kis_canvas_resource_provider.cpp
+    canvas/kis_canvas_resource_provider.cpp
     kis_derived_resources.cpp
     kis_config.cc
     kis_control_frame.cpp
-    KisDisplayConfig.cpp
+    canvas/KisDisplayConfig.cpp
     kis_custom_pattern.cc
     kis_file_layer.cpp
     kis_change_file_layer_command.h
@@ -106,48 +106,48 @@ set(kritaui_LIB_SRCS
     kis_filter_manager.cc
     kis_filters_model.cc
     kis_image_manager.cc
-    kis_image_view_converter.cpp
+    canvas/kis_image_view_converter.cpp
     kis_layer_manager.cc
     kis_mask_manager.cc
     kis_node_manager.cpp
     kis_node_selection_adapter.cpp
     kis_node_insertion_adapter.cpp
-    KisNodeDisplayModeAdapter.cpp
+    canvas/KisNodeDisplayModeAdapter.cpp
     kis_node_model.cpp
     kis_node_filter_proxy_model.cpp
     kis_model_index_converter_base.cpp
     kis_model_index_converter.cpp
     kis_model_index_converter_show_all.cpp
-    KisMultiSurfaceStateManager.cpp
-    KisLayerThumbnailCache.cpp
-    kis_painting_assistant.cc
-    kis_painting_assistants_decoration.cpp
+    canvas/KisMultiSurfaceStateManager.cpp
+    canvas/KisLayerThumbnailCache.cpp
+    canvas/kis_painting_assistant.cc
+    canvas/kis_painting_assistants_decoration.cpp
     kis_selection_actions_panel.cpp
     kis_selection_actions_panel_handle.cpp
     kis_selection_actions_panel_button.cpp
-    KisDecorationsManager.cpp
+    canvas/KisDecorationsManager.cpp
     kis_paintop_box.cc
     kis_popup_palette.cpp
     kis_preference_set_registry.cpp
     KisResourceServerProvider.cpp
     KisSelectedShapesProxy.cpp
-    kis_selection_decoration.cc
+    canvas/kis_selection_decoration.cc
     kis_selection_manager.cc
     KisSelectionActionsAdapter.cpp
     kis_statusbar.cc
-    kis_zoom_manager.cc
+    canvas/kis_zoom_manager.cc
     kis_favorite_resource_manager.cpp
     kis_workspace_resource.cpp
     kis_action.cpp
     kis_action_manager.cpp
     KisActionPlugin.cpp
-    kis_canvas_controls_manager.cpp
+    canvas/kis_canvas_controls_manager.cpp
     kis_multinode_property.cpp
     KisWelcomePageWidget.cpp
     KisUiFont.cpp
-    KisIdleTasksManager.cpp
-    KisIdleTaskStrokeStrategy.cpp
-    KisImageThumbnailStrokeStrategy.cpp
+    canvas/KisIdleTasksManager.cpp
+    canvas/KisIdleTaskStrokeStrategy.cpp
+    canvas/KisImageThumbnailStrokeStrategy.cpp
     KisTextPropertiesManager.cpp
     KisLongPressEventFilter.cpp
 
@@ -166,7 +166,7 @@ set(kritaui_LIB_SRCS
     opengl/KisOpenGLBufferCreationGuard.cpp
     opengl/KisOpenGLCanvasRenderer.cpp
     opengl/KisOpenGLContextSwitchLock.cpp
-    kis_fps_decoration.cpp
+    canvas/kis_fps_decoration.cpp
 
     tool/kis_selection_tool_helper.cpp
     tool/kis_tool_freehand.cc
@@ -304,8 +304,8 @@ set(kritaui_LIB_SRCS
     imagesize/wdg_imagesize.cc
     imagesize/dlg_layersize.cc
 
-    kcanvaspreview.cc
-    kis_abstract_perspective_grid.cpp
+    canvas/kcanvaspreview.cc
+    canvas/kis_abstract_perspective_grid.cpp
 
     KisPlatformPluginInterfaceFactory.cpp
     KisApplication.cpp
@@ -333,7 +333,7 @@ set(kritaui_LIB_SRCS
 
     kis_mainwindow_observer.cpp
     KisViewManager.cpp
-    kis_mirror_manager.cpp
+    canvas/kis_mirror_manager.cpp
 
     qtsingleapplication/qtlocalpeer.cpp
     qtsingleapplication/qtsingleapplication.cpp
@@ -345,13 +345,13 @@ set(kritaui_LIB_SRCS
     KisWindowLayoutManager.cpp
     KisSessionResource.cpp
 
-    KisReferenceImagesDecoration.cpp
-    KisReferenceImage.cpp
+    canvas/KisReferenceImagesDecoration.cpp
+    canvas/KisReferenceImage.cpp
     flake/KisReferenceImagesLayer.cpp
     flake/KisReferenceImagesLayer.h
     KisMouseClickEater.cpp
 
-    KisDecorationsWrapperLayer.cpp
+    canvas/KisDecorationsWrapperLayer.cpp
 
     StoryboardItem.cpp
 
@@ -367,8 +367,8 @@ endif()
 
 if (Mlt7_FOUND)
     set(kritaui_LIB_SRCS ${kritaui_LIB_SRCS}
-        KisPlaybackEngineMLT.cpp
-        KisMLTProducerKrita.cpp
+        animation/KisPlaybackEngineMLT.cpp
+        animation/KisMLTProducerKrita.cpp
     )
 endif()
 
@@ -380,7 +380,7 @@ if(WIN32)
 elseif(ANDROID)
     if(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT)
         list(APPEND kritaui_LIB_SRCS
-            KisAndroidScaling.cpp
+            canvas/KisAndroidScaling.cpp
         )
     endif()
 endif()
@@ -389,9 +389,9 @@ endif()
         ${kritaui_LIB_SRCS}
         animation/kis_animation_frame_cache.cpp
         animation/kis_animation_cache_populator.cpp
-        KisAsyncAnimationRendererBase.cpp
-        KisAsyncAnimationCacheRenderer.cpp
-        KisAsyncAnimationFramesSavingRenderer.cpp
+        animation/KisAsyncAnimationRendererBase.cpp
+        animation/KisAsyncAnimationCacheRenderer.cpp
+        animation/KisAsyncAnimationFramesSavingRenderer.cpp
         dialogs/KisAsyncAnimationRenderDialogBase.cpp
         dialogs/KisAsyncAnimationCacheRenderDialog.cpp
         dialogs/KisAsyncAnimationFramesSaveDialog.cpp
@@ -505,9 +505,9 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
     set(kritaui_LIB_SRCS
         ${kritaui_LIB_SRCS}
 
-        KisSRGBSurfaceColorSpaceManager.cpp
-        KisCanvasSurfaceColorSpaceManager.cpp
-        KisRootSurfaceInfoProxy.cpp
+        canvas/KisSRGBSurfaceColorSpaceManager.cpp
+        canvas/KisCanvasSurfaceColorSpaceManager.cpp
+        canvas/KisRootSurfaceInfoProxy.cpp
     )
 endif()
 
@@ -597,7 +597,7 @@ elseif(ANDROID)
     # to allow us to dynamically change the UI scale on Android.
     if(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT)
         set_source_files_properties(
-            KisAndroidScaling.cpp
+            canvas/KisAndroidScaling.cpp
             PROPERTIES
             INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )

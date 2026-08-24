@@ -18,8 +18,8 @@
 #include <kis_types.h>
 #include <kis_gradient_painter.h>
 #include <kritaui_export.h>
-#include <KisDisplayConfig.h>
-#include <KisMultiSurfaceStateManager.h>
+#include <canvas/KisDisplayConfig.h>
+#include <canvas/KisMultiSurfaceStateManager.h>
 
 class QColor;
 

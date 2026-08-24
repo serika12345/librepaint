@@ -30,7 +30,7 @@
 #include <kis_icon.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_config_widget.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <widgets/kis_preset_chooser.h>
 #include <KisResourceUserOperations.h>
 #include <KisResourceItemChooser.h>

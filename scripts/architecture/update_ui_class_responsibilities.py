@@ -36,6 +36,10 @@ def updated_inventory(
         repository_root=REPO_ROOT,
         public_surface_inventory=public_surface_inventory,
     )
+    nested_headers = set(inventory_contract.UI_CLASS_NESTED_HEADER_PATHS)
+    for entry in discovered:
+        if entry["header"] in nested_headers:
+            assignments.setdefault(entry["name"], "canvas-display")
     discovered_names = {entry["name"] for entry in discovered}
     missing = sorted(discovered_names - set(assignments))
     if missing:
@@ -56,7 +60,7 @@ def updated_inventory(
         )
     return {
         "schemaVersion": 1,
-        "scope": "libs/ui-top-level-public-classes",
+        "scope": "libs/ui-root-and-classified-nested-public-classes",
         "ownerTarget": "kritaui",
         "platforms": list(inventory_contract.PLATFORMS),
         "classPolicy": inventory_contract.ui_class_policy(),

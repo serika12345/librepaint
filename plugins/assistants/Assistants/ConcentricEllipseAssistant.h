@@ -9,7 +9,7 @@
 #ifndef _CONCENTRIC_ELLIPSE_ASSISTANT_H_
 #define _CONCENTRIC_ELLIPSE_ASSISTANT_H_
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include "Ellipse.h"
 #include <QLineF>
 #include <QObject>

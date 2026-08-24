@@ -9,7 +9,7 @@
 #ifndef _TWO_POINT_ASSISTANT_H_
 #define _TWO_POINT_ASSISTANT_H_
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include <QObject>
 #include <QLineF>
 #include <QTransform>

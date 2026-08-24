@@ -22,7 +22,7 @@
 #include <KoCompositeOpRegistry.h>
 #include <KoSelection.h>
 #include <KoUnit.h>
-#include "kis_image_view_converter.h"
+#include "canvas/kis_image_view_converter.h"
 
 #include <kis_debug.h>
 
@@ -32,7 +32,7 @@
 #include <kis_spontaneous_job.h>
 #include "kis_global.h"
 #include "krita_utils.h"
-#include "kis_image_view_converter.h"
+#include "canvas/kis_image_view_converter.h"
 #include "kis_default_bounds.h"
 #include "kis_do_something_command.h"
 

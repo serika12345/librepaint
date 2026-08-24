@@ -9,7 +9,7 @@
 #ifndef _SPLINE_ASSISTANT_H_
 #define _SPLINE_ASSISTANT_H_
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include <QObject>
 
 class SplineAssistant : public KisPaintingAssistant

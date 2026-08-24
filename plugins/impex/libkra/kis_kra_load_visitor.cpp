@@ -9,7 +9,7 @@
 #include "kis_kra_tags.h"
 #include "flake/kis_shape_layer.h"
 #include "flake/KisReferenceImagesLayer.h"
-#include "KisReferenceImage.h"
+#include "canvas/KisReferenceImage.h"
 #include <KisImportExportManager.h>
 
 #include <QBuffer>

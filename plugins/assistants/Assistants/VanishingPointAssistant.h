@@ -10,7 +10,7 @@
 #ifndef _VANISHINGPOINT_ASSISTANT_H_
 #define _VANISHINGPOINT_ASSISTANT_H_
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include <QObject>
 #include <QLineF>
 /* Design:

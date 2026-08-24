@@ -10,7 +10,7 @@
 #include <filter/kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisViewManager.h>
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include <kis_signals_blocker.h>
 
 #include "KisGradientMapFilterConfigWidget.h"

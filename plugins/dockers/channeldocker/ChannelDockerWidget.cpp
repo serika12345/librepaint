@@ -15,7 +15,7 @@
 #include <kis_canvas2.h>
 #include "KisChannelsThumbnailsStrokeStrategy.h"
 #include <kis_display_color_converter.h>
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 
 ChannelDockerWidget::ChannelDockerWidget(QWidget *parent, const char *name)
     : KisWidgetWithIdleTask<QWidget>(parent)

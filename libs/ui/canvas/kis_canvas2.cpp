@@ -44,7 +44,7 @@
 #include "KisImageBarrierLock.h"
 #include "kis_undo_adapter.h"
 #include "flake/kis_shape_layer.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "KisViewManager.h"
 #include "kis_config.h"
 #include "kis_config_notifier.h"
@@ -72,7 +72,7 @@
 #include <animation/kis_animation_frame_cache.h>
 #include "opengl/kis_opengl_canvas2.h"
 #include "opengl/kis_opengl.h"
-#include "kis_fps_decoration.h"
+#include "canvas/kis_fps_decoration.h"
 
 #include "KoColorConversionTransformation.h"
 #include "KisProofingConfiguration.h"
@@ -80,7 +80,7 @@
 #include <kis_favorite_resource_manager.h>
 #include <kis_popup_palette.h>
 
-#include "kis_painting_assistants_decoration.h"
+#include "canvas/kis_painting_assistants_decoration.h"
 
 #include "kis_canvas_updates_compressor.h"
 
@@ -92,7 +92,7 @@
 #include "kis_image_signal_router.h"
 
 #include "KisSnapPixelStrategy.h"
-#include "KisDisplayConfig.h"
+#include "canvas/KisDisplayConfig.h"
 #include "config-qt-patches-present.h"
 #include <KoIcon.h>
 
@@ -100,13 +100,13 @@
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 
 #include <surfacecolormanagement/KisSurfaceColorManagerInterface.h>
-#include <KisCanvasSurfaceColorSpaceManager.h>
-#include <KisRootSurfaceInfoProxy.h>
+#include <canvas/KisCanvasSurfaceColorSpaceManager.h>
+#include <canvas/KisRootSurfaceInfoProxy.h>
 
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */
 
 #include <KisPlatformPluginInterfaceFactory.h>
-#include <KisMultiSurfaceStateManager.h>
+#include <canvas/KisMultiSurfaceStateManager.h>
 #include <KisCanvasState.h>
 
 

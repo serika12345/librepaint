@@ -58,7 +58,7 @@
 #include <KoPointerEvent.h>
 
 #include <KoFileDialog.h>
-#include "KisRootSurfaceInfoProxy.h"
+#include "canvas/KisRootSurfaceInfoProxy.h"
 #include "KoID.h"
 #include <KoVBox.h>
 
@@ -82,7 +82,7 @@
 #include "widgets/kis_cmb_idlist.h"
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_color_manager.h"
 #include "kis_config.h"
 #include "kis_image_config.h"

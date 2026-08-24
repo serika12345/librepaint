@@ -30,7 +30,7 @@
 
 #include "artisticcolorselector_dock.h"
 #include <KisViewManager.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_arcs_constants.h>
 #include <KisGamutMaskToolbar.h>
 

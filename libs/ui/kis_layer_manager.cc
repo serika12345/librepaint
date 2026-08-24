@@ -75,11 +75,11 @@
 #include "commands/kis_node_commands.h"
 #include <commands/KisNodeRenameCommand.h>
 #include "kis_change_file_layer_command.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_selection_manager.h"
 #include "kis_statusbar.h"
 #include "KisViewManager.h"
-#include "kis_zoom_manager.h"
+#include "canvas/kis_zoom_manager.h"
 #include "canvas/kis_canvas2.h"
 #include "widgets/kis_meta_data_merge_strategy_chooser_widget.h"
 #include "widgets/kis_wdg_generator.h"

@@ -24,7 +24,7 @@
 #include "KisViewManager.h"
 #include "kis_paintop_box.h"
 #include "kis_paintop_presets_chooser_popup.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include <KisPaintResourceServerProvider.h>
 #include <KisKineticScroller.h>
 #include <brushengine/kis_paintop_preset.h>

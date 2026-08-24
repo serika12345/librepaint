@@ -10,7 +10,7 @@
 #include <KisScreenColorSampler.h>
 #include <kpluginfactory.h>
 #include <kis_action.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KisViewManager.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisSampleScreenColorFactory, "kritasamplescreencolor.json", registerPlugin<KisSampleScreenColor>();)

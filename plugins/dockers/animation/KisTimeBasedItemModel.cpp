@@ -24,7 +24,7 @@
 #include "commands_new/kis_switch_current_time_command.h"
 #include "kis_command_utils.h"
 #include "KisPart.h"
-#include "KisPlaybackEngine.h"
+#include "animation/KisPlaybackEngine.h"
 
 struct KisTimeBasedItemModel::Private
 {

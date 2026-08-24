@@ -10,8 +10,8 @@
 #include <boost/optional.hpp>
 
 #include "Ellipse.h"
-#include "kis_abstract_perspective_grid.h"
-#include "kis_painting_assistant.h"
+#include "canvas/kis_abstract_perspective_grid.h"
+#include "canvas/kis_painting_assistant.h"
 
 #include "kritaassistanttool_export.h"
 

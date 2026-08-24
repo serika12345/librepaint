@@ -13,7 +13,7 @@
 #include <lager/state.hpp>
 
 #include <KisProofingConfiguration.h>
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 #include <KisWidgetConnectionUtils.h>
 
 class KisDisplayColorConverter;

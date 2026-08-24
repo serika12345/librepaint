@@ -10,7 +10,7 @@
 #ifndef _FISHEYEPOINT_ASSISTANT_H_
 #define _FISHEYEPOINT_ASSISTANT_H_
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include "Ellipse.h"
 #include <QObject>
 #include <QLineF>

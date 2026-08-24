@@ -7,7 +7,7 @@
  */
 
 #include "dlg_canvassize.h"
-#include "kcanvaspreview.h"
+#include "canvas/kcanvaspreview.h"
 
 #include <kis_config.h>
 #include <KoUnit.h>

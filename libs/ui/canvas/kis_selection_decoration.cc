@@ -1,0 +1,303 @@
+/*
+ * SPDX-FileCopyrightText: 2008 Sven Langkamp <sven.langkamp@gmail.com>
+ *
+ *  SPDX-License-Identifier: LGPL-2.0-or-later
+ */
+
+#include "canvas/kis_selection_decoration.h"
+#include "kis_selection_actions_panel.h"
+
+#include <QPainter>
+#include <QVarLengthArray>
+#include <QApplication>
+#include <QMainWindow>
+#include <QWindow>
+#include <QScreen>
+
+#include <kis_debug.h>
+#include <klocalizedstring.h>
+
+#include <KisMainWindow.h>
+#include "kis_types.h"
+#include "KisViewManager.h"
+#include "kis_selection.h"
+#include "kis_image.h"
+#include "flake/kis_shape_selection.h"
+#include "kis_pixel_selection.h"
+#include "kis_update_outline_job.h"
+#include "kis_selection_manager.h"
+#include "canvas/kis_canvas2.h"
+#include "canvas/kis_canvas_resource_provider.h"
+#include "kis_coordinates_converter.h"
+#include "kis_config.h"
+#include "kis_config_notifier.h"
+#include "kis_image_config.h"
+#include "KisImageConfigNotifier.h"
+#include "kis_painting_tweaks.h"
+#include "KisView.h"
+#include "kis_selection_mask.h"
+#include <KisPart.h>
+#include <KisScreenMigrationTracker.h>
+#include <kis_display_color_converter.h>
+
+static const unsigned int ANT_LENGTH = 4;
+static const unsigned int ANT_SPACE = 4;
+static const unsigned int ANT_ADVANCE_WIDTH = ANT_LENGTH + ANT_SPACE;
+
+KisSelectionDecoration::KisSelectionDecoration(QPointer<KisView>_view)
+    : KisCanvasDecoration("selection", _view),
+      m_signalCompressor(50 /*ms*/, KisSignalCompressor::FIRST_ACTIVE),
+      m_offset(0),
+      m_mode(Ants)
+{
+    initializePens();
+    connect(this->view()->canvasBase()->resourceManager(), SIGNAL(canvasResourceChanged(int, const QVariant&)), this, SLOT(slotCanvasResourcesChanged(int, const QVariant&)));
+
+    connect(KisConfigNotifier::instance(), SIGNAL(configChanged()), SLOT(slotConfigChanged()));
+    connect(KisImageConfigNotifier::instance(), SIGNAL(configChanged()), SLOT(slotConfigChanged()));
+
+    m_antsTimer = new QTimer(this);
+    m_antsTimer->setInterval(150);
+    m_antsTimer->setSingleShot(false);
+    connect(m_antsTimer, SIGNAL(timeout()), SLOT(antsAttackEvent()));
+
+    connect(&m_signalCompressor, SIGNAL(timeout()), SLOT(slotStartUpdateSelection()));
+
+    // selections should be at the top of the stack
+    setPriority(100);
+
+    m_selectionActionsPanel = new KisSelectionActionsPanel(this->view()->viewManager());
+
+    slotConfigChanged();
+}
+
+KisSelectionDecoration::~KisSelectionDecoration()
+{
+    delete m_selectionActionsPanel;
+}
+
+KisSelectionDecoration::Mode KisSelectionDecoration::mode() const
+{
+    return m_mode;
+}
+
+void KisSelectionDecoration::setMode(Mode mode)
+{
+    m_mode = mode;
+    selectionChanged();
+}
+
+bool KisSelectionDecoration::selectionIsActive()
+{
+    KisSelectionSP selection = view()->selection();
+    return visible() && selection &&
+        (selection->hasNonEmptyPixelSelection() || selection->hasNonEmptyShapeSelection()) &&
+            selection->isVisible();
+}
+
+void KisSelectionDecoration::initializePens()
+{
+    QColor white(Qt::white);
+    QColor black(Qt::black);
+
+    KisPaintingTweaks::initAntsPen(&m_antsPen, &m_outlinePen,
+                                   ANT_LENGTH, ANT_SPACE,
+                                   black, white);
+
+    m_antsPen.setWidth(decorationThickness());
+    m_outlinePen.setWidth(decorationThickness());
+}
+
+void KisSelectionDecoration::selectionChanged()
+{
+    KisSelectionMaskSP mask = qobject_cast<KisSelectionMask*>(view()->currentNode().data());
+    if (!mask || !mask->active() || !mask->visible(true)) {
+        mask = 0;
+    }
+
+    if (!view()->isCurrent() ||
+        view()->viewManager()->mainWindow() == KisPart::instance()->currentMainwindow()) {
+
+        view()->image()->setOverlaySelectionMask(mask);
+    }
+
+    KisSelectionSP selection = view()->selection();
+
+    if (!mask && selectionIsActive()) {
+        if ((m_mode == Ants && selection->outlineCacheValid()) ||
+            (m_mode == Mask && selection->thumbnailImageValid())) {
+
+            m_signalCompressor.stop();
+
+            if (m_mode == Ants) {
+                m_outlinePath = selection->outlineCache();
+                m_antsTimer->start();
+            } else {
+                m_thumbnailImage = selection->thumbnailImage();
+                m_thumbnailImageTransform = selection->thumbnailImageTransform();
+                m_antsTimer->stop();
+            }
+
+            if (view() && view()->canvasBase()) {
+                view()->canvasBase()->updateCanvas();
+            }
+
+
+            m_selectionActionsPanel->setVisible(true);
+        } else {
+            m_signalCompressor.start();
+        }
+    } else {
+        m_signalCompressor.stop();
+        m_outlinePath = QPainterPath();
+        m_thumbnailImage = QImage();
+        m_thumbnailImageTransform = QTransform();
+        view()->canvasBase()->updateCanvas();
+        m_antsTimer->stop();
+    }
+
+    if (!selection && !selectionIsActive()) {
+        m_selectionActionsPanel->setVisible(false);
+    }
+    m_selectionActionsPanel->updatePositioning();
+}
+
+void KisSelectionDecoration::slotStartUpdateSelection()
+{
+    KisSelectionSP selection = view()->selection();
+    if (!selection) return;
+
+    view()->image()->addSpontaneousJob(new KisUpdateOutlineJob(selection, m_mode == Mask, m_maskColor));
+}
+
+void KisSelectionDecoration::slotConfigChanged()
+{
+    KisImageConfig imageConfig(true);
+    KisConfig cfg(true);
+
+    m_opacity = imageConfig.selectionOutlineOpacity();
+    m_maskColor = imageConfig.selectionOverlayMaskColor();
+    m_antialiasSelectionOutline = cfg.antialiasSelectionOutline();
+    m_selectionActionsPanel->setEnabled(cfg.selectionActionBar());
+}
+
+void KisSelectionDecoration::slotCanvasResourcesChanged(int key, const QVariant &v)
+{
+    Q_UNUSED(v);
+    if (key == KoCanvasResource::DecorationThickness) {
+        initializePens();
+    }
+}
+
+void KisSelectionDecoration::antsAttackEvent()
+{
+    KisSelectionSP selection = view()->selection();
+    if (!selection) return;
+
+    if (selectionIsActive()) {
+        m_offset = (m_offset + 1) % (ANT_ADVANCE_WIDTH);
+        m_antsPen.setDashOffset(m_offset);
+        view()->canvasBase()->updateCanvas();
+    }
+}
+
+void KisSelectionDecoration::toggleSelectionVisibility() {
+    m_selectionVisibility = !m_selectionVisibility;
+}
+
+bool KisSelectionDecoration::selectionVisible() {
+    return m_selectionVisibility;
+}
+
+void KisSelectionDecoration::drawDecoration(QPainter& gc, const QRectF& updateRect, const KisCoordinatesConverter *converter, KisCanvas2 *canvas)
+{
+    Q_UNUSED(updateRect);
+    Q_UNUSED(canvas);
+
+    // render Selection Action Bar first, so that it doesn't blink when making a new selection
+
+    if ((m_mode == Ants && m_outlinePath.isEmpty()) || (m_mode == Mask && m_thumbnailImage.isNull())
+        || !m_selectionVisibility) {
+        //The SAP needs to be drawn on top of the decoration, but to avoid the panel flashing when making a new selection, we also need to call draw here
+        m_selectionActionsPanel->draw(gc, canvas->displayRendererInterface());
+
+        return;
+    }
+
+    if (!m_selectionVisibility) {
+        return;
+    }
+
+    QTransform transform = converter->imageToWidgetTransform();
+
+    gc.save();
+    gc.setTransform(transform, false);
+
+    if (m_mode == Mask) {
+        gc.setRenderHints(QPainter::SmoothPixmapTransform |
+                          QPainter::Antialiasing, false);
+
+        gc.setTransform(m_thumbnailImageTransform, true);
+        gc.drawImage(QPoint(), m_thumbnailImage);
+
+        QRect r1 = m_thumbnailImageTransform.inverted().mapRect(view()->image()->bounds());
+        QRect r2 = m_thumbnailImage.rect();
+
+        QPainterPath p1;
+        p1.addRect(r1);
+
+        QPainterPath p2;
+        p2.addRect(r2);
+
+        KoColor c;
+        c.fromQColor(m_maskColor);
+        gc.setBrush(canvas->displayColorConverter()->convertColorToDisplayColorSpace(c));
+        gc.setPen(Qt::NoPen);
+        gc.drawPath(p1 - p2);
+
+    } else /* if (m_mode == Ants) */ {
+
+        KoColor c;
+        c.fromQColor(Qt::white);
+        m_outlinePen.setColor(canvas->displayColorConverter()->convertColorToDisplayColorSpace(c));
+        c.fromQColor(Qt::black);
+        m_antsPen.setColor(canvas->displayColorConverter()->convertColorToDisplayColorSpace(c));
+
+        gc.setRenderHints(QPainter::Antialiasing | QPainter::Antialiasing, m_antialiasSelectionOutline);
+
+        gc.setOpacity(m_opacity);
+
+        // render selection outline in white
+        gc.setPen(m_outlinePen);
+        gc.drawPath(m_outlinePath);
+
+        // render marching ants in black (above the white outline)
+        gc.setPen(m_antsPen);
+        gc.drawPath(m_outlinePath);
+    }
+
+    gc.restore();
+    m_selectionActionsPanel->draw(gc, canvas->displayRendererInterface());
+}
+
+void KisSelectionDecoration::setCanvasWidget(KisCanvasWidgetBase* canvas)
+{
+    m_selectionActionsPanel->canvasWidgetChanged(canvas);
+}
+
+void KisSelectionDecoration::setVisible(bool v)
+{
+    m_selectionVisibility = v;
+    KisCanvasDecoration::setVisible(v);
+    selectionChanged();
+    m_selectionActionsPanel->setVisible(v);
+}
+
+void KisSelectionDecoration::notifyWindowMinimized(bool minimized)
+{
+    if(minimized) {
+        m_antsTimer->stop();
+    } else {
+        selectionChanged();
+    }
+}

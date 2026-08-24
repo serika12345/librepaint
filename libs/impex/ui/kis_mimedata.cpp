@@ -36,7 +36,7 @@
 #include <KoStore.h>
 #include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 #include <KisPlatformPluginInterfaceFactory.h>
 #include <opengl/KisOpenGLModeProber.h>
 

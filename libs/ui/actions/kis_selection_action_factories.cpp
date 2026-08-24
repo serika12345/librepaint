@@ -26,7 +26,7 @@
 #include <KoCanvasBase.h>
 
 #include "KisViewManager.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_clipboard.h"
 #include "kis_pixel_selection.h"
 #include "kis_paint_layer.h"

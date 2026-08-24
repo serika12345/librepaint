@@ -20,11 +20,11 @@
 #include <kis_signal_compressor.h>
 #include <kis_config.h>
 #include <QApplication>
-#include "KisImageThumbnailStrokeStrategy.h"
+#include "canvas/KisImageThumbnailStrokeStrategy.h"
 #include <kis_display_color_converter.h>
 #include <KisMainWindow.h>
-#include "KisIdleTasksManager.h"
-#include <KisDisplayConfig.h>
+#include "canvas/KisIdleTasksManager.h"
+#include <canvas/KisDisplayConfig.h>
 
 
 OverviewWidget::OverviewWidget(QWidget * parent)

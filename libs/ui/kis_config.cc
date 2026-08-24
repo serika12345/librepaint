@@ -29,7 +29,7 @@
 
 #include <kis_debug.h>
 
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_config_notifier.h"
 #include "kis_snap_config.h"
 

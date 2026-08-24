@@ -13,7 +13,7 @@
 #include <kis_canvas2.h>
 #include <KoCanvasBase.h>
 #include <KoResourceServerProvider.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisResourceTypes.h>

@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 1,
+  "scope": "r1-g6g-canvas-presentation-ui-placement",
+  "purpose": "Place canvas presentation implementation under responsibility directories while preserving the kritaui target, public behavior, class names, and ownership lifetime.",
+  "currentOwnerTarget": "kritaui",
+  "currentResponsibilities": {
+    "animation-playback": "Animation playback and asynchronous frame rendering presentation.",
+    "canvas-presentation": "Canvas display state, decorations, view conversion, controls, and presentation wiring."
+  },
+  "reviewedResponsibilityOverrides": [
+    {
+      "path": "libs/ui/animation/KisAsyncAnimationFramesSavingRenderer.cpp",
+      "responsibility": "document-lifecycle",
+      "reason": "The renderer coordinates frame export and retains its reviewed document-lifecycle attribution."
+    }
+  ],
+  "relocations": [
+    {
+      "from": "libs/ui/KisAsyncAnimationCacheRenderer.cpp",
+      "to": "libs/ui/animation/KisAsyncAnimationCacheRenderer.cpp",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisAsyncAnimationCacheRenderer.h",
+      "to": "libs/ui/animation/KisAsyncAnimationCacheRenderer.h",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisAsyncAnimationFramesSavingRenderer.cpp",
+      "to": "libs/ui/animation/KisAsyncAnimationFramesSavingRenderer.cpp",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisAsyncAnimationFramesSavingRenderer.h",
+      "to": "libs/ui/animation/KisAsyncAnimationFramesSavingRenderer.h",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisAsyncAnimationRendererBase.cpp",
+      "to": "libs/ui/animation/KisAsyncAnimationRendererBase.cpp",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisAsyncAnimationRendererBase.h",
+      "to": "libs/ui/animation/KisAsyncAnimationRendererBase.h",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisMLTProducerKrita.cpp",
+      "to": "libs/ui/animation/KisMLTProducerKrita.cpp",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisMLTProducerKrita.h",
+      "to": "libs/ui/animation/KisMLTProducerKrita.h",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisPlaybackEngine.cpp",
+      "to": "libs/ui/animation/KisPlaybackEngine.cpp",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisPlaybackEngine.h",
+      "to": "libs/ui/animation/KisPlaybackEngine.h",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisPlaybackEngineMLT.cpp",
+      "to": "libs/ui/animation/KisPlaybackEngineMLT.cpp",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisPlaybackEngineMLT.h",
+      "to": "libs/ui/animation/KisPlaybackEngineMLT.h",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisPlaybackEngineQT.cpp",
+      "to": "libs/ui/animation/KisPlaybackEngineQT.cpp",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisPlaybackEngineQT.h",
+      "to": "libs/ui/animation/KisPlaybackEngineQT.h",
+      "placementArea": "animation-playback"
+    },
+    {
+      "from": "libs/ui/KisAndroidScaling.cpp",
+      "to": "libs/ui/canvas/KisAndroidScaling.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisAndroidScaling.h",
+      "to": "libs/ui/canvas/KisAndroidScaling.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisCanvasSurfaceColorSpaceManager.cpp",
+      "to": "libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisCanvasSurfaceColorSpaceManager.h",
+      "to": "libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisClonableViewConverter.h",
+      "to": "libs/ui/canvas/KisClonableViewConverter.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisDecorationsManager.cpp",
+      "to": "libs/ui/canvas/KisDecorationsManager.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisDecorationsManager.h",
+      "to": "libs/ui/canvas/KisDecorationsManager.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisDecorationsWrapperLayer.cpp",
+      "to": "libs/ui/canvas/KisDecorationsWrapperLayer.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisDecorationsWrapperLayer.h",
+      "to": "libs/ui/canvas/KisDecorationsWrapperLayer.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisDisplayConfig.cpp",
+      "to": "libs/ui/canvas/KisDisplayConfig.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisDisplayConfig.h",
+      "to": "libs/ui/canvas/KisDisplayConfig.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisIdleTaskStrokeStrategy.cpp",
+      "to": "libs/ui/canvas/KisIdleTaskStrokeStrategy.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisIdleTaskStrokeStrategy.h",
+      "to": "libs/ui/canvas/KisIdleTaskStrokeStrategy.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisIdleTasksManager.cpp",
+      "to": "libs/ui/canvas/KisIdleTasksManager.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisIdleTasksManager.h",
+      "to": "libs/ui/canvas/KisIdleTasksManager.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisImageThumbnailStrokeStrategy.cpp",
+      "to": "libs/ui/canvas/KisImageThumbnailStrokeStrategy.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisImageThumbnailStrokeStrategy.h",
+      "to": "libs/ui/canvas/KisImageThumbnailStrokeStrategy.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisLayerThumbnailCache.cpp",
+      "to": "libs/ui/canvas/KisLayerThumbnailCache.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisLayerThumbnailCache.h",
+      "to": "libs/ui/canvas/KisLayerThumbnailCache.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisMultiSurfaceStateManager.cpp",
+      "to": "libs/ui/canvas/KisMultiSurfaceStateManager.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisMultiSurfaceStateManager.h",
+      "to": "libs/ui/canvas/KisMultiSurfaceStateManager.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisNodeDisplayModeAdapter.cpp",
+      "to": "libs/ui/canvas/KisNodeDisplayModeAdapter.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisNodeDisplayModeAdapter.h",
+      "to": "libs/ui/canvas/KisNodeDisplayModeAdapter.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisReferenceImage.cpp",
+      "to": "libs/ui/canvas/KisReferenceImage.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisReferenceImage.h",
+      "to": "libs/ui/canvas/KisReferenceImage.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisReferenceImagesDecoration.cpp",
+      "to": "libs/ui/canvas/KisReferenceImagesDecoration.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisReferenceImagesDecoration.h",
+      "to": "libs/ui/canvas/KisReferenceImagesDecoration.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisRootSurfaceInfoProxy.cpp",
+      "to": "libs/ui/canvas/KisRootSurfaceInfoProxy.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisRootSurfaceInfoProxy.h",
+      "to": "libs/ui/canvas/KisRootSurfaceInfoProxy.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisSRGBSurfaceColorSpaceManager.cpp",
+      "to": "libs/ui/canvas/KisSRGBSurfaceColorSpaceManager.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/KisSRGBSurfaceColorSpaceManager.h",
+      "to": "libs/ui/canvas/KisSRGBSurfaceColorSpaceManager.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kcanvaspreview.cc",
+      "to": "libs/ui/canvas/kcanvaspreview.cc",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kcanvaspreview.h",
+      "to": "libs/ui/canvas/kcanvaspreview.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_abstract_perspective_grid.cpp",
+      "to": "libs/ui/canvas/kis_abstract_perspective_grid.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_abstract_perspective_grid.h",
+      "to": "libs/ui/canvas/kis_abstract_perspective_grid.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_canvas_controls_manager.cpp",
+      "to": "libs/ui/canvas/kis_canvas_controls_manager.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_canvas_controls_manager.h",
+      "to": "libs/ui/canvas/kis_canvas_controls_manager.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_canvas_resource_provider.cpp",
+      "to": "libs/ui/canvas/kis_canvas_resource_provider.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_canvas_resource_provider.h",
+      "to": "libs/ui/canvas/kis_canvas_resource_provider.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_fps_decoration.cpp",
+      "to": "libs/ui/canvas/kis_fps_decoration.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_fps_decoration.h",
+      "to": "libs/ui/canvas/kis_fps_decoration.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_image_view_converter.cpp",
+      "to": "libs/ui/canvas/kis_image_view_converter.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_image_view_converter.h",
+      "to": "libs/ui/canvas/kis_image_view_converter.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_mirror_manager.cpp",
+      "to": "libs/ui/canvas/kis_mirror_manager.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_mirror_manager.h",
+      "to": "libs/ui/canvas/kis_mirror_manager.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_painting_assistant.cc",
+      "to": "libs/ui/canvas/kis_painting_assistant.cc",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_painting_assistant.h",
+      "to": "libs/ui/canvas/kis_painting_assistant.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_painting_assistants_decoration.cpp",
+      "to": "libs/ui/canvas/kis_painting_assistants_decoration.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_painting_assistants_decoration.h",
+      "to": "libs/ui/canvas/kis_painting_assistants_decoration.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_decoration.cc",
+      "to": "libs/ui/canvas/kis_selection_decoration.cc",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_decoration.h",
+      "to": "libs/ui/canvas/kis_selection_decoration.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_zoom_manager.cc",
+      "to": "libs/ui/canvas/kis_zoom_manager.cc",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_zoom_manager.h",
+      "to": "libs/ui/canvas/kis_zoom_manager.h",
+      "placementArea": "canvas-presentation"
+    }
+  ]
+}

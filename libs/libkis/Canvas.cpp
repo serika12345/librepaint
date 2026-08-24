@@ -9,7 +9,7 @@
 #include <KisView.h>
 #include <KoCanvasController.h>
 #include <kis_canvas_controller.h>
-#include <kis_zoom_manager.h>
+#include <canvas/kis_zoom_manager.h>
 #include <View.h>
 
 struct Canvas::Private {

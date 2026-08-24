@@ -10,7 +10,7 @@
 #ifndef _CURVILINEARPERSPECTIVE_ASSISTANT_H_
 #define _CURVILINEARPERSPECTIVE_ASSISTANT_H_
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include <QObject>
 #include <QLineF>
 //class CurvilinearPerspective;

@@ -16,7 +16,7 @@
 
 #include "kis_tool_polyline_base.h"
 #include "kis_canvas2.h"
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KisViewManager.h>
 #include <kis_action.h>
 #include <kactioncollection.h>

@@ -40,13 +40,13 @@
 #include "kis_node_insertion_adapter.h"
 #include "kis_node_manager.h"
 #include <KisSelectionActionsAdapter.h>
-#include <KisNodeDisplayModeAdapter.h>
+#include <canvas/KisNodeDisplayModeAdapter.h>
 
 #include "kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_signal_compressor.h"
-#include "KisLayerThumbnailCache.h"
+#include "canvas/KisLayerThumbnailCache.h"
 
 
 struct KisNodeModel::Private

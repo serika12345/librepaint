@@ -7,7 +7,7 @@
 #ifndef KISCHANNELSTHUMBNAILSSTROKESTRATEGY_H
 #define KISCHANNELSTHUMBNAILSSTROKESTRATEGY_H
 
-#include <KisImageThumbnailStrokeStrategy.h>
+#include <canvas/KisImageThumbnailStrokeStrategy.h>
 #include <KisChannelsThumbnailsStrokeStrategyMetatypes.h>
 
 class KisChannelsThumbnailsStrokeStrategy : public KisImageThumbnailStrokeStrategyBase

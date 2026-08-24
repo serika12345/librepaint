@@ -11,7 +11,7 @@
 #include "KisAnimTimelineLayersHeader.h"
 #include "timeline_insert_keyframe_dialog.h"
 #include "KisAnimTimelineFrameDelegate.h"
-#include "KisPlaybackEngine.h"
+#include "animation/KisPlaybackEngine.h"
 
 #include <QPainter>
 #include <QApplication>

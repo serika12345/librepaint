@@ -13,7 +13,7 @@
 #include <QScopedPointer>
 
 #include <kis_types.h>
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 
 /**
  * @brief A widget that allows to select a combination of auto levels parameters

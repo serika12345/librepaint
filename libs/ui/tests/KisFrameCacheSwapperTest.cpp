@@ -9,7 +9,7 @@
 #include <testutil.h>
 
 #include <KoColor.h>
-#include "KisAsyncAnimationRendererBase.h"
+#include "animation/KisAsyncAnimationRendererBase.h"
 #include "kis_image_animation_interface.h"
 #include "opengl/KisOpenGLUpdateInfoBuilder.h"
 

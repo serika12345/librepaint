@@ -12,7 +12,7 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 
-#include "kis_image_view_converter.h"
+#include "canvas/kis_image_view_converter.h"
 #include "kis_paint_device.h"
 #include "kis_image.h"
 #include "kis_types.h"

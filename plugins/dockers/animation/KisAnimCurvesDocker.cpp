@@ -51,7 +51,7 @@
 #include "kis_processing_applicator.h"
 #include "KisMainWindow.h"
 #include "KisPart.h"
-#include "KisPlaybackEngine.h"
+#include "animation/KisPlaybackEngine.h"
 #include <QItemSelection>
 #include "KisAnimationPlaybackControlsModel.h"
 #include "KisWidgetConnectionUtils.h"

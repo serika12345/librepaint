@@ -52,7 +52,7 @@
 #include "kis_canvas2.h"
 #include "kis_node_manager.h"
 #include "KisViewManager.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include <KisPaintResourceServerProvider.h>
 #include "kis_favorite_resource_manager.h"
 #include "kis_config.h"

@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 01:38 JST
+- 更新日時: 2026-08-25 02:16 JST
 - 状態: `in_progress`
-- 現在の検査段階: R1-G6g入力解釈所有境界
+- 現在の検査段階: R1-G6gキャンバス表示配置境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: キャンバス、入力、ツール、描画の具体所有を一方向に接続し、入力境界に残る
-  リソース操作と入力UI共有ライブラリー化の開始条件を整える。
+- 目的: `libs/ui`直下に混在していたキャンバス表示実装を既存の責務ディレクトリーへ配置し、
+  公開挙動と所有寿命を維持したまま調査入口を明確にする。
 
 ## 再開環境
 
@@ -1616,13 +1616,36 @@
   変更した5翻訳単位で不要includeと不足includeを報告していない。
 - `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
 
+## R1-G6gキャンバス表示配置境界で完了した作業
+
+- `libs/ui`直下のアニメーション再生と非同期フレーム描画14ファイルを同名の
+  `libs/ui/animation`へ、キャンバス表示状態、装飾、座標変換、表示接続53ファイルを同名の
+  `libs/ui/canvas`へ移した。開始パスと宛先パスの全67件は
+  `docs/architecture/canvas-presentation-ui-relocations.json`が一対一で記録する。
+- `KisAsyncAnimation*`、`KisPlaybackEngine*`、`KisMLTProducerKrita*`はアニメーション再生配置を
+  所有する。`KisAsyncAnimationFramesSavingRenderer.cpp`は動画書出し調整として
+  `document-lifecycle`の審査済み帰属を維持する。残る移設ファイルはキャンバス表示配置を所有する。
+- `KisDecorationsManager`と`KisDecorationsWrapperLayer`、`KisMultiSurfaceStateManager`、
+  `kcanvaspreview`、`kis_fps_decoration`、`KisClonableViewConverter`、`kis_mirror_manager`は、
+  同じ具象表示関心の実装と対になるヘッダーとしてキャンバス表示配置へ集約した。
+- `kritaui`のCMake所有、クラス名、公開記号、所有寿命を維持し、製品と試験のincludeを正規の
+  `animation/...`または`canvas/...`経路へ更新した。公開ヘッダー試験は旧経路の移設前に
+  `animation/KisAsyncAnimationRendererBase.h`不在で失敗し、移設後に成功した。
+- UIクラス責務台帳は79クラス、実装単位を持つ77クラス、宣言側で完結する2クラスを維持する。
+  キャンバス・表示30クラスは分類済み入れ子ヘッダーとして継続追跡され、台帳上の
+  `libs/ui`直下キャンバス・表示ヘッダーは0件となった。5構成のCMakeターゲット台帳は
+  ターゲット、構成差、直接リンク依存を維持する。
+- `nix develop .#test --command ./scripts/build-incremental native build kritaui`、
+  `TestCanvasUiPublicHeaders`、`kis_image_view_converter_test`、`KisFrameCacheSwapperTest`、
+  `kis_display_color_converter_contract_test`はmacOSで成功した。clangdのinclude-cleaner検査は
+  移設した全33翻訳単位で不要includeと直接include不足を報告していない。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+
 ## 次の操作
 
-`kritainputui`の共有ライブラリー化に必要な既存UI接続を小さい所有単位へ分ける。
-`libs/input/ui/kis_input_manager.cpp`と入力アクション群が参照する`KisCanvas2`、`KisViewManager`、
-`KisConfig`、`kis_icon_utils`の具体操作を既存のキャンバス、ツール、アプリケーション設定所有へ
-値と具体操作として接続する。入力UI公開ヘッダーの`kritaui_export.h`を専用公開記号へ移行した後、
-`kritaui`から`kritainputui`への一方向リンクで独立共有ライブラリーを構築する。
+`libs/ui`直下で`document-state`に分類済みの公開クラスと同族実装を、文書構成、ノード表示と
+操作接続、選択接続の責務別サブディレクトリーへ移す。クラス名、公開記号、所有寿命を維持し、
+製品と試験のinclude、CMake、公開面・責務・構造・ソース寸法台帳を正規の入れ子経路へ更新する。
 
 ## R1-G5完了根拠
 

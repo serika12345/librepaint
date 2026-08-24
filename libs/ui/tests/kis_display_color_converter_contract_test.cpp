@@ -7,7 +7,7 @@
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
 
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 #include <kis_display_color_converter.h>
 #include <simpletest.h>
 

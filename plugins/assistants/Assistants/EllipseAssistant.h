@@ -9,7 +9,7 @@
 #ifndef _ELLIPSE_ASSISTANT_H_
 #define _ELLIPSE_ASSISTANT_H_
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include "Ellipse.h"
 #include <QObject>
 

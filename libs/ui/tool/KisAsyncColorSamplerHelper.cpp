@@ -26,7 +26,7 @@
 #include "KisViewManager.h"
 #include "KisDocument.h"
 #include "KisReferenceImagesLayer.h"
-#include "KisReferenceImagesDecoration.h"
+#include "canvas/KisReferenceImagesDecoration.h"
 #include "kis_display_color_converter.h"
 
 

@@ -36,7 +36,7 @@
 #include "kis_projection_update_info.h"
 #include "kis_display_filter.h"
 #include "kis_qpainter_projection_factory.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "KisDocument.h"
 #include "kis_selection_manager.h"
 #include "kis_selection.h"
@@ -46,7 +46,7 @@
 
 #include <KoCanvasController.h>
 #include <KisRepaintDebugger.h>
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 
 class KisQPainterCanvas::Private
 {

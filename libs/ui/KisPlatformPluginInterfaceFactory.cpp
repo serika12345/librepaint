@@ -17,7 +17,7 @@
 
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 
-#include <KisRootSurfaceInfoProxy.h>
+#include <canvas/KisRootSurfaceInfoProxy.h>
 #include <surfacecolormanagement/KisSurfaceColorManagerInterface.h>
 #include <surfacecolormanagement/KisSurfaceColorManagementInfo.h>
 

@@ -40,6 +40,32 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
     "libs/ui": ("libs/ui/tests/TestCanvasUiPublicHeaders.cpp",),
 }
+UI_CLASS_NESTED_HEADER_PATHS = (
+    "libs/ui/animation/KisAsyncAnimationRendererBase.h",
+    "libs/ui/animation/KisPlaybackEngine.h",
+    "libs/ui/animation/KisPlaybackEngineMLT.h",
+    "libs/ui/animation/KisPlaybackEngineQT.h",
+    "libs/ui/canvas/KisAndroidScaling.h",
+    "libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.h",
+    "libs/ui/canvas/KisDisplayConfig.h",
+    "libs/ui/canvas/KisIdleTaskStrokeStrategy.h",
+    "libs/ui/canvas/KisIdleTasksManager.h",
+    "libs/ui/canvas/KisImageThumbnailStrokeStrategy.h",
+    "libs/ui/canvas/KisLayerThumbnailCache.h",
+    "libs/ui/canvas/KisNodeDisplayModeAdapter.h",
+    "libs/ui/canvas/KisReferenceImage.h",
+    "libs/ui/canvas/KisReferenceImagesDecoration.h",
+    "libs/ui/canvas/KisRootSurfaceInfoProxy.h",
+    "libs/ui/canvas/KisSRGBSurfaceColorSpaceManager.h",
+    "libs/ui/canvas/kis_abstract_perspective_grid.h",
+    "libs/ui/canvas/kis_canvas_controls_manager.h",
+    "libs/ui/canvas/kis_canvas_resource_provider.h",
+    "libs/ui/canvas/kis_image_view_converter.h",
+    "libs/ui/canvas/kis_painting_assistant.h",
+    "libs/ui/canvas/kis_painting_assistants_decoration.h",
+    "libs/ui/canvas/kis_selection_decoration.h",
+    "libs/ui/canvas/kis_zoom_manager.h",
+)
 INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
 )
@@ -685,13 +711,29 @@ def discover_ui_top_level_classes(
     repository_root: Path,
     public_surface_inventory: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    return _discover_ui_classes(
+    discovered = _discover_ui_classes(
         repository_root=repository_root,
         public_surface_inventory=public_surface_inventory,
         source_directory="libs/ui",
-        recursive=False,
+        recursive=True,
         include_consumer_paths=False,
     )
+    nested_headers = set(UI_CLASS_NESTED_HEADER_PATHS)
+    classes = [
+        entry
+        for entry in discovered
+        if len(PurePosixPath(entry["header"]).parts) == 3
+        or entry["header"] in nested_headers
+    ]
+    discovered_nested_headers = {
+        entry["header"] for entry in classes if entry["header"] in nested_headers
+    }
+    missing = sorted(nested_headers - discovered_nested_headers)
+    if missing:
+        raise PublicSurfaceError(
+            f"classified nested UI headers are missing declarations: {missing}"
+        )
+    return classes
 
 
 def discover_ui_tool_classes(
@@ -843,6 +885,7 @@ def ui_class_policy() -> dict[str, Any]:
         "publicHeaderOwner": "kritaui",
         "sourceDirectory": "libs/ui",
         "headerDepth": 1,
+        "classifiedNestedHeaderPaths": list(UI_CLASS_NESTED_HEADER_PATHS),
         "declarationKinds": ["class", "struct"],
         "exportMacros": ["KRITAUI_EXPORT", "KRITAUI_EXPORT_TEMPLATE"],
         "implementationSuffixes": sorted(SOURCE_SUFFIXES - HEADER_SUFFIXES),
@@ -2021,7 +2064,7 @@ def validate_ui_class_inventory(
         repository_root=repository_root,
         graph_directory=graph_directory,
         inventory_description="UI class responsibility inventory",
-        expected_scope="libs/ui-top-level-public-classes",
+        expected_scope="libs/ui-root-and-classified-nested-public-classes",
         expected_policy=ui_class_policy(),
         responsibility_areas=UI_CLASS_RESPONSIBILITY_AREAS,
         expected_classes=discover_ui_top_level_classes(
@@ -2029,7 +2072,7 @@ def validate_ui_class_inventory(
             public_surface_inventory=public_surface_inventory,
         ),
         include_consumer_paths=False,
-        ownership_description="UI top-level public classes",
+        ownership_description="UI root and classified nested public classes",
     )
 
 

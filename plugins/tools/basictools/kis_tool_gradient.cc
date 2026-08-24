@@ -33,7 +33,7 @@
 
 #include <kis_gradient_painter.h>
 #include <kis_painter.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_layer.h>
 #include <kis_selection.h>
 #include <kis_paint_layer.h>

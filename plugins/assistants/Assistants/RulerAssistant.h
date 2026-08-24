@@ -11,7 +11,7 @@
 
 #include <QMap>
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 
 class Ruler;
 

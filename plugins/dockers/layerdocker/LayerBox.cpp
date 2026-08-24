@@ -81,7 +81,7 @@
 #include "kis_processing_applicator.h"
 #include "commands/kis_set_global_selection_command.h"
 #include "KisSelectionActionsAdapter.h"
-#include "KisIdleTasksManager.h"
+#include "canvas/KisIdleTasksManager.h"
 
 #include "kis_layer_utils.h"
 

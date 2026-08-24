@@ -29,14 +29,14 @@
 #include <KoColorDisplayRendererInterface.h>
 
 #include <canvas/kis_canvas2.h>
-#include <kis_abstract_perspective_grid.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_abstract_perspective_grid.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_cursor.h>
 #include <kis_document_aware_spin_box_unit_manager.h>
 #include <kis_dom_utils.h>
 #include <kis_global.h>
 #include <kis_image.h>
-#include <kis_painting_assistants_decoration.h>
+#include <canvas/kis_painting_assistants_decoration.h>
 #include <kis_undo_adapter.h>
 
 #include <KisViewManager.h>

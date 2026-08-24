@@ -28,7 +28,7 @@
 #include "KisMainWindow.h"
 
 #include <KisLockFrameGenerationLock.h>
-#include "KisAsyncAnimationCacheRenderer.h"
+#include "animation/KisAsyncAnimationCacheRenderer.h"
 #include "dialogs/KisAsyncAnimationCacheRenderDialog.h"
 
 

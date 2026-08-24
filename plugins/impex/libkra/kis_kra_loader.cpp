@@ -59,7 +59,7 @@
 #include "kis_keyframe_channel.h"
 #include <kis_filter_configuration.h>
 #include "KisReferenceImagesLayer.h"
-#include "KisReferenceImage.h"
+#include "canvas/KisReferenceImage.h"
 #include <KoColorSet.h>
 
 #include "KisDocument.h"

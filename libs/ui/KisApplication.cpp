@@ -192,12 +192,12 @@ public:
 
 #include <QWindow>
 #include <QPlatformSurfaceEvent>
-#include <KisSRGBSurfaceColorSpaceManager.h>
+#include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */
 
 #if defined(Q_OS_ANDROID) && KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-#include <KisAndroidScaling.h>
+#include <canvas/KisAndroidScaling.h>
 #endif
 
 namespace {

@@ -22,7 +22,7 @@
 #include <kis_debug.h>
 
 #include <KoCanvasResourceProvider.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_icon.h>
 
 #include "kis_color_selector_ring.h"

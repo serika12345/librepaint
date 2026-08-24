@@ -17,7 +17,7 @@
 
 #include <kis_exposure_gamma_correction_interface.h>
 #include <kis_display_color_converter.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 
 #include <config-ocio.h>
 #include <ocio_display_filter_vfx2021.h>

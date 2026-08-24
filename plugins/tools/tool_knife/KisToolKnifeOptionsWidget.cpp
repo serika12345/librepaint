@@ -12,7 +12,7 @@
 
 #include "kis_config.h"
 #include <resources/KoColorSet.h>
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include <KisOptionButtonStrip.h>
 #include <kis_icon_utils.h>
 #include <KoGroupButton.h>

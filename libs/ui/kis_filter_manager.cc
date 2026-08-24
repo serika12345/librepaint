@@ -37,7 +37,7 @@
 
 #include "kis_action.h"
 #include "kis_action_manager.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "dialogs/kis_dlg_filter.h"
 #include "strokes/kis_filter_stroke_strategy.h"
 #include "krita_utils.h"

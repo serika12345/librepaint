@@ -34,7 +34,7 @@
 #include <QInputDialog>
 
 #include <KisViewManager.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KoColorBackground.h>
 #include <KoShapeStroke.h>
 #include "KisMainWindow.h"

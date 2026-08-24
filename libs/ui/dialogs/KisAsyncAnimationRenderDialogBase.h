@@ -11,7 +11,7 @@
 #include "kis_types.h"
 #include "kritaui_export.h"
 
-#include <KisAsyncAnimationRendererBase.h>
+#include <animation/KisAsyncAnimationRendererBase.h>
 
 class KisTimeSpan;
 class KisViewManager;

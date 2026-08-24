@@ -33,7 +33,7 @@
 #include "KisDecoratedNodeInterface.h"
 #include "kis_keyframe_channel.h"
 #include "kis_algebra_2d.h"
-#include "KisPlaybackEngine.h"
+#include "animation/KisPlaybackEngine.h"
 
 #include "kis_image_config.h"
 #include <limits>

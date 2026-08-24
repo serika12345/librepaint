@@ -12,7 +12,7 @@
 #include <QToolTip>
 
 
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_slider_spin_box.h>
 #include "kis_image_config.h"
 #include <QWidgetAction>

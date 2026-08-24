@@ -53,7 +53,7 @@
 #include "kis_default_bounds.h"
 #include <kis_paint_device.h>
 #include "kis_shape_layer_canvas.h"
-#include "kis_image_view_converter.h"
+#include "canvas/kis_image_view_converter.h"
 #include <kis_painter.h>
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"

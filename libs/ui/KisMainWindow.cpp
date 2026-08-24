@@ -95,7 +95,7 @@
 #include <KisResourceCacheDb.h>
 #include <KisStorageModel.h>
 #include <KisStorageFilterProxyModel.h>
-#include <KisPlaybackEngine.h>
+#include <animation/KisPlaybackEngine.h>
 
 #ifdef Q_OS_ANDROID
 #include <QtAndroid>
@@ -111,7 +111,7 @@
 #include "KisApplication.h"
 #include "kis_canvas2.h"
 #include "kis_canvas_controller.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_clipboard.h"
 #include "kis_config.h"
 #include "kis_config_notifier.h"
@@ -165,7 +165,7 @@
 #include <mutex>
 
 #if defined(Q_OS_ANDROID) && KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
-#include <KisAndroidScaling.h>
+#include <canvas/KisAndroidScaling.h>
 #endif
 
 class ToolDockerFactory : public KoDockFactoryBase

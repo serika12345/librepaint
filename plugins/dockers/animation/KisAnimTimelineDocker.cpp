@@ -37,7 +37,7 @@
 #include "kis_keyframe_channel.h"
 #include "kis_image.h"
 #include "KisPart.h"
-#include "KisPlaybackEngine.h"
+#include "animation/KisPlaybackEngine.h"
 #include "kis_processing_applicator.h"
 
 #include "KisAnimTimelineFramesModel.h"

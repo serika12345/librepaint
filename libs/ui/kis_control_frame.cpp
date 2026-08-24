@@ -38,7 +38,7 @@
 #include <kis_image.h>
 
 #include <resources/KoPattern.h>
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 
 #include "widgets/kis_iconwidget.h"
 

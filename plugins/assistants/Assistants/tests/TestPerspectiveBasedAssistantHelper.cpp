@@ -10,7 +10,7 @@
 #include <testutil.h>
 
 
-#include <kis_painting_assistant.h>
+#include <canvas/kis_painting_assistant.h>
 #include <PerspectiveBasedAssistantHelper.h>
 #include <kis_algebra_2d.h>
 #include <kis_global.h>

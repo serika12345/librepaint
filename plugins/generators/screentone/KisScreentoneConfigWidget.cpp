@@ -12,7 +12,7 @@
 #include <kis_signals_blocker.h>
 #include <kis_generator_registry.h>
 #include <KisViewManager.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KoUnit.h>
 

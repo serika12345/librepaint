@@ -13,7 +13,7 @@
 #include <kis_cursor.h>
 #include <KisViewManager.h>
 #include <canvas/kis_canvas2.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 
 
 KisToolPath::KisToolPath(KoCanvasBase * canvas)

@@ -33,7 +33,7 @@
 #include <KisSqueezedComboBox.h>
 #include "kis_layer_utils.h"
 #include <kis_ls_utils.h>
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "KoUnit.h"
 #include "kis_display_color_converter.h"
 #include "KisMainWindow.h"

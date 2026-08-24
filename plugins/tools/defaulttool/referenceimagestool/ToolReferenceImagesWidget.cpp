@@ -15,7 +15,7 @@
 #include <kis_config.h>
 #include <kis_signals_blocker.h>
 #include <kis_signal_compressor.h>
-#include <KisReferenceImage.h>
+#include <canvas/KisReferenceImage.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <kis_clipboard.h>
 

@@ -15,7 +15,7 @@
 
 #include "kis_config.h"
 #include <resources/KoColorSet.h>
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_signal_auto_connection.h"
 #include "lazybrush/kis_colorize_mask.h"
 #include "kis_image.h"

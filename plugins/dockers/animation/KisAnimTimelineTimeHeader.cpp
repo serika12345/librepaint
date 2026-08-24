@@ -14,7 +14,7 @@
 #include <QAction>
 #include <QPainter>
 #include <QPaintEvent>
-#include <KisPlaybackEngine.h>
+#include <animation/KisPlaybackEngine.h>
 
 #include <klocalizedstring.h>
 

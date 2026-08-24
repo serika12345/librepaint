@@ -9,8 +9,8 @@
 #ifndef _PERSPECTIVE_ASSISTANT_H_
 #define _PERSPECTIVE_ASSISTANT_H_
 
-#include "kis_abstract_perspective_grid.h"
-#include "kis_painting_assistant.h"
+#include "canvas/kis_abstract_perspective_grid.h"
+#include "canvas/kis_painting_assistant.h"
 #include <QObject>
 #include <QPolygonF>
 #include <QLineF>

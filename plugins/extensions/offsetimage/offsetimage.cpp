@@ -17,7 +17,7 @@
 #include <KisViewManager.h>
 #include <kis_image_manager.h>
 #include <kis_node_manager.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_group_layer.h>
 #include <kis_image_signal_router.h>
 #include <kis_processing_applicator.h>

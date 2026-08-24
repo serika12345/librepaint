@@ -71,8 +71,8 @@
 #include "input/ui/kis_input_profile_manager.h"
 #include "kis_action_manager.h"
 #include "kis_action.h"
-#include "kis_canvas_controls_manager.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_controls_manager.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_composite_progress_proxy.h"
 #include <KoProgressUpdater.h>
 #include "kis_config.h"
@@ -86,10 +86,10 @@
 #include <kis_layer.h>
 #include "kis_mainwindow_observer.h"
 #include "kis_mask_manager.h"
-#include "kis_mirror_manager.h"
+#include "canvas/kis_mirror_manager.h"
 #include "kis_node.h"
 #include "kis_node_manager.h"
-#include "KisDecorationsManager.h"
+#include "canvas/KisDecorationsManager.h"
 #include <kis_paint_layer.h>
 #include "kis_paintop_box.h"
 #include <brushengine/kis_paintop_preset.h>
@@ -105,7 +105,7 @@
 #include <kis_tool_freehand.h>
 #include <kis_undo_adapter.h>
 #include "KisView.h"
-#include "kis_zoom_manager.h"
+#include "canvas/kis_zoom_manager.h"
 #include "widgets/kis_floating_message.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_icon_utils.h"
@@ -117,7 +117,7 @@
 #include "kis_signals_blocker.h"
 #include "imagesize/imagesize.h"
 #include <KoToolDocker.h>
-#include <KisIdleTasksManager.h>
+#include <canvas/KisIdleTasksManager.h>
 #include <KisImageBarrierLock.h>
 #include <KisTextPropertiesManager.h>
 #include <kis_selection.h>

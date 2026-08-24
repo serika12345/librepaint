@@ -17,7 +17,7 @@
 #include <KoColorSpace.h>
 
 #include "lazybrush/kis_colorize_mask.h"
-#include <KisReferenceImage.h>
+#include <canvas/KisReferenceImage.h>
 #include <KisReferenceImagesLayer.h>
 #include <filter/kis_filter_configuration.h>
 #include <generator/kis_generator_layer.h>

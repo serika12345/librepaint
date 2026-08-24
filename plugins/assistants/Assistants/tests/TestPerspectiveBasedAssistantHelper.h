@@ -10,7 +10,7 @@
 #include <simpletest.h>
 #include "empty_nodes_test.h"
 
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 
 
 class TestPerspectiveBasedAssistantHelper : public QObject

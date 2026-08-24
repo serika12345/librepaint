@@ -27,14 +27,14 @@
 #include <KoColorSpaceRegistry.h>
 #include "kis_fixed_paint_device.h"
 #include <opengl/KisOpenGLModeProber.h>
-#include <KisDisplayConfig.h>
+#include <canvas/KisDisplayConfig.h>
 
 #include <KisPlatformPluginInterfaceFactory.h>
 
 #include <config-use-surface-color-management-api.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 
-#include <KisRootSurfaceInfoProxy.h>
+#include <canvas/KisRootSurfaceInfoProxy.h>
 
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */
 

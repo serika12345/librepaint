@@ -13,7 +13,7 @@
 
 #include <kis_canvas2.h>
 #include <KisViewManager.h>
-#include <kis_zoom_manager.h>
+#include <canvas/kis_zoom_manager.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_signal_compressor.h>

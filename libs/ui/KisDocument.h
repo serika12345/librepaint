@@ -21,8 +21,8 @@
 #include <KisImportExportFilter.h>
 #include <kis_properties_configuration.h>
 #include <kis_types.h>
-#include <kis_painting_assistant.h>
-#include <KisReferenceImage.h>
+#include <canvas/kis_painting_assistant.h>
+#include <canvas/KisReferenceImage.h>
 #include <kis_debug.h>
 #include <KisImportExportUtils.h>
 #include <kis_config.h>

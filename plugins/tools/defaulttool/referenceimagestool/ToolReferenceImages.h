@@ -13,7 +13,7 @@
 #include <KoIcon.h>
 
 #include <kis_tool.h>
-#include "kis_painting_assistant.h"
+#include "canvas/kis_painting_assistant.h"
 #include <kis_icon.h>
 #include <kis_canvas2.h>
 

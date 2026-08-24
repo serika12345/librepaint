@@ -12,16 +12,16 @@
 #include "qimage_based_test.h"
 
 #include <KoCanvasResourceProvider.h>
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include <util.h>
 #include <KisMainWindow.h>
 #include <KisDocument.h>
 #include <KisPart.h>
 #include <KisView.h>
 #include <KisViewManager.h>
-#include <KisDecorationsManager.h>
+#include <canvas/KisDecorationsManager.h>
 
-#include "kis_painting_assistants_decoration.h"
+#include "canvas/kis_painting_assistants_decoration.h"
 #include "KisPart.h"
 #include "testui.h"
 #include <kis_config.h>

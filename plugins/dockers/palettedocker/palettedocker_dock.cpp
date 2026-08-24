@@ -31,7 +31,7 @@
 #include <kis_icon.h>
 #include <kis_config.h>
 #include <kis_node_manager.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KisMainWindow.h>
 #include <KisViewManager.h>
 #include <kis_display_color_converter.h>

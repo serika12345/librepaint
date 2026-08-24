@@ -26,7 +26,7 @@
 
 #include "kis_processing_applicator.h"
 #include "kis_datamanager.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 
 #include "KoColorSpaceRegistry.h"
 #include <KisCursorOverrideLock.h>

@@ -23,7 +23,7 @@
 #include "kis_undo_adapter.h"
 #include "kis_node_dummies_graph.h"
 #include "kis_dummies_facade_base.h"
-#include "KisNodeDisplayModeAdapter.h"
+#include "canvas/KisNodeDisplayModeAdapter.h"
 #include "kis_signal_compressor.h"
 #include "kis_signal_compressor_with_param.h"
 #include "kis_keyframe_channel.h"
@@ -35,7 +35,7 @@
 
 #include "KisAnimUtils.h"
 #include "KisAnimTimelineColors.h"
-#include "KisPlaybackEngine.h"
+#include "animation/KisPlaybackEngine.h"
 #include "kis_node_model.h"
 #include "kis_projection_leaf.h"
 #include "kis_time_span.h"

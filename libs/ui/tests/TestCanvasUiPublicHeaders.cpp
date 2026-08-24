@@ -8,8 +8,10 @@
 #include <QTest>
 #include <QWidget>
 
+#include <animation/KisAsyncAnimationRendererBase.h>
 #include <animation/kis_animation_frame_cache_fwd.h>
 #include <animation/kis_animation_frame_cache.h>
+#include <canvas/KisDisplayConfig.h>
 #include <canvas/KisWidgetWithIdleTask.h>
 
 static_assert(std::is_base_of_v<QWidget, KisWidgetWithIdleTask<QWidget>>);

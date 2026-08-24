@@ -18,7 +18,7 @@
 #include "kis_popup_palette.h"
 #include "kis_favorite_resource_manager.h"
 #include "kis_icon_utils.h"
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KoTriangleColorSelector.h>
 #include "KoColorDisplayRendererInterface.h"
 #include <KisVisualColorSelector.h>

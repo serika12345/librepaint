@@ -13,7 +13,7 @@
 
 #include "kis_config.h"
 #include <resources/KoColorSet.h>
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 
 
 struct KisToolSmartPatchOptionsWidget::Private {

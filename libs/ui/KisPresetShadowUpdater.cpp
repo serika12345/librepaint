@@ -19,7 +19,7 @@
 #include <kis_spontaneous_job.h>
 
 #include <KisGlobalResourcesInterface.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceCacheStorage.h>

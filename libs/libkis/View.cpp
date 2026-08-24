@@ -13,7 +13,7 @@
 #include <KisViewManager.h>
 #include <kis_node_manager.h>
 #include <kis_selection_manager.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_exposure_gamma_correction_interface.h>
 #include <kis_paintop_box.h>
 #include <KisMainWindow.h>

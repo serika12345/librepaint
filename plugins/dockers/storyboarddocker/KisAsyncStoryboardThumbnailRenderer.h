@@ -7,7 +7,7 @@
 #ifndef KISASYNCSTORYBOARDTHUMBNAILRENDERER_H
 #define KISASYNCSTORYBOARDTHUMBNAILRENDERER_H
 
-#include <KisAsyncAnimationRendererBase.h>
+#include <animation/KisAsyncAnimationRendererBase.h>
 
 class KisPaintDevice;
 

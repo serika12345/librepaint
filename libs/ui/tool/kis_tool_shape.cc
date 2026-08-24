@@ -25,7 +25,7 @@
 #include <ksharedconfig.h>
 
 #include <kis_debug.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <kis_image.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_paint_layer.h>

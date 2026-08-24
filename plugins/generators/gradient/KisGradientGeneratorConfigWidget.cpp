@@ -14,7 +14,7 @@
 #include <kis_signals_blocker.h>
 #include <kis_gradient_painter.h>
 #include <KisViewManager.h>
-#include <kis_canvas_resource_provider.h>
+#include <canvas/kis_canvas_resource_provider.h>
 
 #include "KisGradientGeneratorConfiguration.h"
 #include "KisGradientGeneratorConfigWidget.h"

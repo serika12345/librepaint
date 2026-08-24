@@ -21,10 +21,10 @@
 #include <kis_fixed_paint_device.h>
 #include <kis_paint_device.h>
 
-#include "KisDisplayConfig.h"
+#include "canvas/KisDisplayConfig.h"
 #include "KisMainWindow.h"
 #include "KisPart.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_node.h"

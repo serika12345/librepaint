@@ -107,7 +107,7 @@
 #include "canvas/kis_canvas2.h"
 #include "flake/kis_shape_controller.h"
 #include "widgets/kis_progress_widget.h"
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "KisResourceServerProvider.h"
 #include "kis_node_manager.h"
 #include "KisPart.h"
@@ -129,7 +129,7 @@
 
 #include <kis_algebra_2d.h>
 #include <KisMirrorAxisConfig.h>
-#include <KisDecorationsWrapperLayer.h>
+#include <canvas/KisDecorationsWrapperLayer.h>
 #include "kis_simple_stroke_strategy.h"
 #include <KisCursorOverrideLock.h>
 

@@ -63,10 +63,10 @@
 所有元の外にある製品ソースから直接includeされるヘッダーの和集合を記録する。各集合は
 所有ターゲット、公開マクロ、対応プラットフォーム、全利用ソースを持つ。
 
-現在は`kritacanvas`の18件、`kritadocument`の5件、`kritadocumentfiles`の3件、
-`kritadocumentui`の6件、`kritaimage`の334件、`kritaimpex`の12件、
-`kritaimpexui`の23件、`kritainput`の9件、`kritapainting`の19件、`kritatools`の19件、
-`kritaui`の221件を全件記録し、
+現在は`kritacanvas`の19件、`kritadocument`の5件、`kritadocumentfiles`の3件、
+`kritadocumentui`の6件、`kritaimage`の333件、`kritaimpex`の12件、
+`kritaimpexui`の23件、`kritainput`の12件、`kritainputui`の8件、
+`kritapainting`の19件、`kritatools`の19件、`kritaui`の218件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -89,13 +89,17 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 5構成のターゲット名と一致しないため、`pluginPolicy.ownerTargetOverrides`が登録実装を含む
 `CMakeLists.txt`と実際のターゲットを記録する。
 
-[UI直下クラス責務台帳](ui-class-responsibilities.json)は、`libs/ui`直下の公開ヘッダーに
-宣言された現存クラスと構造体79件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ
-接続する。77件は実装単位を持ち、2件は宣言側で完結する。責務領域はアプリケーション調整、
-キャンバス・表示、文書状態、ツール呼出し、ウィンドウ・作業空間の5種類である。
-描画設定表示と入出力として所有先へ移動したクラスは更新時に台帳から除く。
+[UIクラス責務台帳](ui-class-responsibilities.json)は、`libs/ui`直下の公開ヘッダーと
+`classPolicy.classifiedNestedHeaderPaths`に固定した24ヘッダーに宣言された現存クラスと構造体
+79件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ接続する。77件は実装単位を持ち、
+2件は宣言側で完結する。責務領域はアプリケーション調整、キャンバス・表示、文書状態、
+ツール呼出し、ウィンドウ・作業空間の5種類である。キャンバス・表示30件は
+`libs/ui/animation`または`libs/ui/canvas`の責務配置で継続追跡する。
 
-この台帳は`libs/ui`直下の公開クラスを全件対象とする。
+[キャンバス表示UI再配置台帳](canvas-presentation-ui-relocations.json)は、`libs/ui`直下から
+`libs/ui/animation`へ移した14ファイルと`libs/ui/canvas`へ移した53ファイルについて、
+開始パス、宛先パス、現在の配置責務を全件記録する。所有ターゲットは`kritaui`であり、
+アニメーション書出しを調整する1翻訳単位は`document-lifecycle`の審査済み帰属を維持する。
 [文書境界評価](document-boundary-assessment.json)は、文書状態に分類された残る20クラスと
 `KisDocument.cpp`の129メソッド定義を全件対象とし、現在の関心、具体的な所有先、
 後続検査段階へ接続する。宣言と実装の経路はクラス責務台帳を正本とする。検査器は

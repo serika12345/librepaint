@@ -23,7 +23,7 @@
 #include "kis_node_manager.h"
 #include "kis_layer_properties_icons.h"
 
-#include "kis_canvas_resource_provider.h"
+#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_tool_lazy_brush_options_widget.h"
 
 #include "lazybrush/kis_colorize_mask.h"

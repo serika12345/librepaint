@@ -9,7 +9,7 @@
 #include "KisLager.h"
 
 #include "KisCanvasAnimationState.h"
-#include "KisPlaybackEngine.h"
+#include "animation/KisPlaybackEngine.h"
 
 
 KisAnimationPlaybackControlsModel::KisAnimationPlaybackControlsModel()

@@ -40,7 +40,7 @@
 #include "kis_shape_selection_model.h"
 #include "kis_shape_selection_canvas.h"
 #include "kis_take_all_shapes_command.h"
-#include "kis_image_view_converter.h"
+#include "canvas/kis_image_view_converter.h"
 #include "kis_shape_layer.h"
 #include "kis_lod_transform.h"
 

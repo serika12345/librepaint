@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "scope": "libs/ui-top-level-public-classes",
+  "scope": "libs/ui-root-and-classified-nested-public-classes",
   "ownerTarget": "kritaui",
   "platforms": [
     "macos",
@@ -13,6 +13,32 @@
     "publicHeaderOwner": "kritaui",
     "sourceDirectory": "libs/ui",
     "headerDepth": 1,
+    "classifiedNestedHeaderPaths": [
+      "libs/ui/animation/KisAsyncAnimationRendererBase.h",
+      "libs/ui/animation/KisPlaybackEngine.h",
+      "libs/ui/animation/KisPlaybackEngineMLT.h",
+      "libs/ui/animation/KisPlaybackEngineQT.h",
+      "libs/ui/canvas/KisAndroidScaling.h",
+      "libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.h",
+      "libs/ui/canvas/KisDisplayConfig.h",
+      "libs/ui/canvas/KisIdleTaskStrokeStrategy.h",
+      "libs/ui/canvas/KisIdleTasksManager.h",
+      "libs/ui/canvas/KisImageThumbnailStrokeStrategy.h",
+      "libs/ui/canvas/KisLayerThumbnailCache.h",
+      "libs/ui/canvas/KisNodeDisplayModeAdapter.h",
+      "libs/ui/canvas/KisReferenceImage.h",
+      "libs/ui/canvas/KisReferenceImagesDecoration.h",
+      "libs/ui/canvas/KisRootSurfaceInfoProxy.h",
+      "libs/ui/canvas/KisSRGBSurfaceColorSpaceManager.h",
+      "libs/ui/canvas/kis_abstract_perspective_grid.h",
+      "libs/ui/canvas/kis_canvas_controls_manager.h",
+      "libs/ui/canvas/kis_canvas_resource_provider.h",
+      "libs/ui/canvas/kis_image_view_converter.h",
+      "libs/ui/canvas/kis_painting_assistant.h",
+      "libs/ui/canvas/kis_painting_assistants_decoration.h",
+      "libs/ui/canvas/kis_selection_decoration.h",
+      "libs/ui/canvas/kis_zoom_manager.h"
+    ],
     "declarationKinds": [
       "class",
       "struct"
@@ -57,9 +83,9 @@
     {
       "name": "KisAbstractPerspectiveGrid",
       "declarationKind": "class",
-      "header": "libs/ui/kis_abstract_perspective_grid.h",
+      "header": "libs/ui/canvas/kis_abstract_perspective_grid.h",
       "implementationPaths": [
-        "libs/ui/kis_abstract_perspective_grid.cpp"
+        "libs/ui/canvas/kis_abstract_perspective_grid.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -100,9 +126,9 @@
     {
       "name": "KisAndroidScaling",
       "declarationKind": "class",
-      "header": "libs/ui/KisAndroidScaling.h",
+      "header": "libs/ui/canvas/KisAndroidScaling.h",
       "implementationPaths": [
-        "libs/ui/KisAndroidScaling.cpp"
+        "libs/ui/canvas/KisAndroidScaling.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -136,9 +162,9 @@
     {
       "name": "KisAsyncAnimationRendererBase",
       "declarationKind": "class",
-      "header": "libs/ui/KisAsyncAnimationRendererBase.h",
+      "header": "libs/ui/animation/KisAsyncAnimationRendererBase.h",
       "implementationPaths": [
-        "libs/ui/KisAsyncAnimationRendererBase.cpp"
+        "libs/ui/animation/KisAsyncAnimationRendererBase.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -163,27 +189,27 @@
     {
       "name": "KisCanvasControlsManager",
       "declarationKind": "class",
-      "header": "libs/ui/kis_canvas_controls_manager.h",
+      "header": "libs/ui/canvas/kis_canvas_controls_manager.h",
       "implementationPaths": [
-        "libs/ui/kis_canvas_controls_manager.cpp"
+        "libs/ui/canvas/kis_canvas_controls_manager.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisCanvasResourceProvider",
       "declarationKind": "class",
-      "header": "libs/ui/kis_canvas_resource_provider.h",
+      "header": "libs/ui/canvas/kis_canvas_resource_provider.h",
       "implementationPaths": [
-        "libs/ui/kis_canvas_resource_provider.cpp"
+        "libs/ui/canvas/kis_canvas_resource_provider.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisCanvasSurfaceColorSpaceManager",
       "declarationKind": "class",
-      "header": "libs/ui/KisCanvasSurfaceColorSpaceManager.h",
+      "header": "libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.h",
       "implementationPaths": [
-        "libs/ui/KisCanvasSurfaceColorSpaceManager.cpp"
+        "libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -199,9 +225,9 @@
     {
       "name": "KisDisplayConfig",
       "declarationKind": "class",
-      "header": "libs/ui/KisDisplayConfig.h",
+      "header": "libs/ui/canvas/KisDisplayConfig.h",
       "implementationPaths": [
-        "libs/ui/KisDisplayConfig.cpp"
+        "libs/ui/canvas/KisDisplayConfig.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -235,18 +261,18 @@
     {
       "name": "KisIdleTaskStrokeStrategy",
       "declarationKind": "class",
-      "header": "libs/ui/KisIdleTaskStrokeStrategy.h",
+      "header": "libs/ui/canvas/KisIdleTaskStrokeStrategy.h",
       "implementationPaths": [
-        "libs/ui/KisIdleTaskStrokeStrategy.cpp"
+        "libs/ui/canvas/KisIdleTaskStrokeStrategy.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisIdleTasksManager",
       "declarationKind": "class",
-      "header": "libs/ui/KisIdleTasksManager.h",
+      "header": "libs/ui/canvas/KisIdleTasksManager.h",
       "implementationPaths": [
-        "libs/ui/KisIdleTasksManager.cpp"
+        "libs/ui/canvas/KisIdleTasksManager.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -262,36 +288,36 @@
     {
       "name": "KisImageThumbnailStrokeStrategy",
       "declarationKind": "class",
-      "header": "libs/ui/KisImageThumbnailStrokeStrategy.h",
+      "header": "libs/ui/canvas/KisImageThumbnailStrokeStrategy.h",
       "implementationPaths": [
-        "libs/ui/KisImageThumbnailStrokeStrategy.cpp"
+        "libs/ui/canvas/KisImageThumbnailStrokeStrategy.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisImageThumbnailStrokeStrategyBase",
       "declarationKind": "class",
-      "header": "libs/ui/KisImageThumbnailStrokeStrategy.h",
+      "header": "libs/ui/canvas/KisImageThumbnailStrokeStrategy.h",
       "implementationPaths": [
-        "libs/ui/KisImageThumbnailStrokeStrategy.cpp"
+        "libs/ui/canvas/KisImageThumbnailStrokeStrategy.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisImageViewConverter",
       "declarationKind": "class",
-      "header": "libs/ui/kis_image_view_converter.h",
+      "header": "libs/ui/canvas/kis_image_view_converter.h",
       "implementationPaths": [
-        "libs/ui/kis_image_view_converter.cpp"
+        "libs/ui/canvas/kis_image_view_converter.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisLayerThumbnailCache",
       "declarationKind": "class",
-      "header": "libs/ui/KisLayerThumbnailCache.h",
+      "header": "libs/ui/canvas/KisLayerThumbnailCache.h",
       "implementationPaths": [
-        "libs/ui/KisLayerThumbnailCache.cpp"
+        "libs/ui/canvas/KisLayerThumbnailCache.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -343,9 +369,9 @@
     {
       "name": "KisMultiSurfaceDisplayConfig",
       "declarationKind": "class",
-      "header": "libs/ui/KisDisplayConfig.h",
+      "header": "libs/ui/canvas/KisDisplayConfig.h",
       "implementationPaths": [
-        "libs/ui/KisDisplayConfig.cpp"
+        "libs/ui/canvas/KisDisplayConfig.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -361,9 +387,9 @@
     {
       "name": "KisNodeDisplayModeAdapter",
       "declarationKind": "class",
-      "header": "libs/ui/KisNodeDisplayModeAdapter.h",
+      "header": "libs/ui/canvas/KisNodeDisplayModeAdapter.h",
       "implementationPaths": [
-        "libs/ui/KisNodeDisplayModeAdapter.cpp"
+        "libs/ui/canvas/KisNodeDisplayModeAdapter.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -415,45 +441,45 @@
     {
       "name": "KisPaintingAssistant",
       "declarationKind": "class",
-      "header": "libs/ui/kis_painting_assistant.h",
+      "header": "libs/ui/canvas/kis_painting_assistant.h",
       "implementationPaths": [
-        "libs/ui/kis_painting_assistant.cc"
+        "libs/ui/canvas/kis_painting_assistant.cc"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisPaintingAssistantFactory",
       "declarationKind": "class",
-      "header": "libs/ui/kis_painting_assistant.h",
+      "header": "libs/ui/canvas/kis_painting_assistant.h",
       "implementationPaths": [
-        "libs/ui/kis_painting_assistant.cc"
+        "libs/ui/canvas/kis_painting_assistant.cc"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisPaintingAssistantFactoryRegistry",
       "declarationKind": "class",
-      "header": "libs/ui/kis_painting_assistant.h",
+      "header": "libs/ui/canvas/kis_painting_assistant.h",
       "implementationPaths": [
-        "libs/ui/kis_painting_assistant.cc"
+        "libs/ui/canvas/kis_painting_assistant.cc"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisPaintingAssistantHandle",
       "declarationKind": "class",
-      "header": "libs/ui/kis_painting_assistant.h",
+      "header": "libs/ui/canvas/kis_painting_assistant.h",
       "implementationPaths": [
-        "libs/ui/kis_painting_assistant.cc"
+        "libs/ui/canvas/kis_painting_assistant.cc"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisPaintingAssistantsDecoration",
       "declarationKind": "class",
-      "header": "libs/ui/kis_painting_assistants_decoration.h",
+      "header": "libs/ui/canvas/kis_painting_assistants_decoration.h",
       "implementationPaths": [
-        "libs/ui/kis_painting_assistants_decoration.cpp"
+        "libs/ui/canvas/kis_painting_assistants_decoration.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -487,27 +513,27 @@
     {
       "name": "KisPlaybackEngine",
       "declarationKind": "class",
-      "header": "libs/ui/KisPlaybackEngine.h",
+      "header": "libs/ui/animation/KisPlaybackEngine.h",
       "implementationPaths": [
-        "libs/ui/KisPlaybackEngine.cpp"
+        "libs/ui/animation/KisPlaybackEngine.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisPlaybackEngineMLT",
       "declarationKind": "class",
-      "header": "libs/ui/KisPlaybackEngineMLT.h",
+      "header": "libs/ui/animation/KisPlaybackEngineMLT.h",
       "implementationPaths": [
-        "libs/ui/KisPlaybackEngineMLT.cpp"
+        "libs/ui/animation/KisPlaybackEngineMLT.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisPlaybackEngineQT",
       "declarationKind": "class",
-      "header": "libs/ui/KisPlaybackEngineQT.h",
+      "header": "libs/ui/animation/KisPlaybackEngineQT.h",
       "implementationPaths": [
-        "libs/ui/KisPlaybackEngineQT.cpp"
+        "libs/ui/animation/KisPlaybackEngineQT.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -530,18 +556,18 @@
     {
       "name": "KisReferenceImage",
       "declarationKind": "class",
-      "header": "libs/ui/KisReferenceImage.h",
+      "header": "libs/ui/canvas/KisReferenceImage.h",
       "implementationPaths": [
-        "libs/ui/KisReferenceImage.cpp"
+        "libs/ui/canvas/KisReferenceImage.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisReferenceImagesDecoration",
       "declarationKind": "class",
-      "header": "libs/ui/KisReferenceImagesDecoration.h",
+      "header": "libs/ui/canvas/KisReferenceImagesDecoration.h",
       "implementationPaths": [
-        "libs/ui/KisReferenceImagesDecoration.cpp"
+        "libs/ui/canvas/KisReferenceImagesDecoration.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -557,18 +583,18 @@
     {
       "name": "KisRootSurfaceInfoProxy",
       "declarationKind": "class",
-      "header": "libs/ui/KisRootSurfaceInfoProxy.h",
+      "header": "libs/ui/canvas/KisRootSurfaceInfoProxy.h",
       "implementationPaths": [
-        "libs/ui/KisRootSurfaceInfoProxy.cpp"
+        "libs/ui/canvas/KisRootSurfaceInfoProxy.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisSRGBSurfaceColorSpaceManager",
       "declarationKind": "class",
-      "header": "libs/ui/KisSRGBSurfaceColorSpaceManager.h",
+      "header": "libs/ui/canvas/KisSRGBSurfaceColorSpaceManager.h",
       "implementationPaths": [
-        "libs/ui/KisSRGBSurfaceColorSpaceManager.cpp"
+        "libs/ui/canvas/KisSRGBSurfaceColorSpaceManager.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -593,9 +619,9 @@
     {
       "name": "KisSelectionDecoration",
       "declarationKind": "class",
-      "header": "libs/ui/kis_selection_decoration.h",
+      "header": "libs/ui/canvas/kis_selection_decoration.h",
       "implementationPaths": [
-        "libs/ui/kis_selection_decoration.cc"
+        "libs/ui/canvas/kis_selection_decoration.cc"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -719,9 +745,9 @@
     {
       "name": "KisZoomManager",
       "declarationKind": "class",
-      "header": "libs/ui/kis_zoom_manager.h",
+      "header": "libs/ui/canvas/kis_zoom_manager.h",
       "implementationPaths": [
-        "libs/ui/kis_zoom_manager.cc"
+        "libs/ui/canvas/kis_zoom_manager.cc"
       ],
       "responsibilityArea": "canvas-display"
     },
@@ -746,9 +772,9 @@
     {
       "name": "SetSaturationCommand",
       "declarationKind": "struct",
-      "header": "libs/ui/KisReferenceImage.h",
+      "header": "libs/ui/canvas/KisReferenceImage.h",
       "implementationPaths": [
-        "libs/ui/KisReferenceImage.cpp"
+        "libs/ui/canvas/KisReferenceImage.cpp"
       ],
       "responsibilityArea": "canvas-display"
     },
