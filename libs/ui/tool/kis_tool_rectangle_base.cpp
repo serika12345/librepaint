@@ -6,7 +6,6 @@
 
 #include "kis_tool_rectangle_base.h"
 
-#include <QtCore/qmath.h>
 #include <QPainterPath>
 
 #include "KisViewManager.h"
@@ -23,22 +22,9 @@
 
 KisToolRectangleBase::KisToolRectangleBase(KoCanvasBase * canvas, KisToolRectangleBase::ToolType type, const QCursor & cursor)
     : KisToolShape(canvas, cursor)
-    , m_dragStart(0, 0)
-    , m_dragEnd(0, 0)
     , m_type(type)
-    , m_isRatioForced(false)
-    , m_isWidthForced(false)
-    , m_isHeightForced(false)
-    , m_rotateActive(false)
-    , m_forcedRatio(1.0)
-    , m_forcedWidth(0)
-    , m_forcedHeight(0)
     , m_roundCornersX(0)
     , m_roundCornersY(0)
-    , m_referenceAngle(0)
-    , m_angle(0)
-    , m_angleBuffer(0)
-    , m_currentModifiers(Qt::NoModifier)
 {
 }
 
@@ -70,17 +56,12 @@ QList<QPointer<QWidget> > KisToolRectangleBase::createOptionWidgets()
 
 void KisToolRectangleBase::constraintsChanged(bool forceRatio, bool forceWidth, bool forceHeight, float ratio, float width, float height)
 {
-    m_isWidthForced = forceWidth;
-    m_isHeightForced = forceHeight;
-    m_isRatioForced = forceRatio;
-
-    m_forcedHeight = height;
-    m_forcedWidth = width;
-    m_forcedRatio = ratio;
-
-    // Avoid division by zero in size calculations
-    if (ratio < 0.0001f)
-        m_isRatioForced = false;
+    m_rectangleInteraction.setConstraints(forceRatio,
+                                          forceWidth,
+                                          forceHeight,
+                                          ratio,
+                                          width,
+                                          height);
 }
 
 void KisToolRectangleBase::roundCornersChanged(int rx, int ry)
@@ -93,16 +74,19 @@ void KisToolRectangleBase::showSize()
 {
     KisCanvas2 *kisCanvas =dynamic_cast<KisCanvas2*>(canvas());
     KIS_SAFE_ASSERT_RECOVER_RETURN(kisCanvas);
+    const QRectF rectangle = createRect(m_rectangleInteraction.start(),
+                                        m_rectangleInteraction.end());
     kisCanvas->viewManager()->showFloatingMessage(i18n("Width: %1 px\nHeight: %2 px"
-                                                       , createRect(m_dragStart, m_dragEnd).width()
-                                                       , createRect(m_dragStart, m_dragEnd).height()), QIcon(), 1000
+                                                       , rectangle.width()
+                                                       , rectangle.height()), QIcon(), 1000
                                                        , KisFloatingMessage::High,  Qt::AlignLeft | Qt::TextWordWrap | Qt::AlignVCenter);
 
 }
 void KisToolRectangleBase::paint(QPainter& gc, const KoViewConverter &converter)
 {
     if(mode() == KisTool::PAINT_MODE) {
-        paintRectangle(gc, createRect(m_dragStart, m_dragEnd));
+        paintRectangle(gc, createRect(m_rectangleInteraction.start(),
+                                      m_rectangleInteraction.end()));
     }
 
     KisToolPaint::paint(gc, converter);
@@ -125,11 +109,11 @@ void KisToolRectangleBase::keyPressEvent(QKeyEvent *event) {
     const Qt::Key key = KisExtendedModifiersMapper::workaroundShiftAltMetaHell(event);
 
     if (key == Qt::Key_Control) {
-        m_currentModifiers |= Qt::ControlModifier;
+        m_rectangleInteraction.setModifier(Qt::ControlModifier, true);
     } else if (key == Qt::Key_Shift) {
-        m_currentModifiers |= Qt::ShiftModifier;
+        m_rectangleInteraction.setModifier(Qt::ShiftModifier, true);
     } else if (key == Qt::Key_Alt) {
-        m_currentModifiers |= Qt::AltModifier;
+        m_rectangleInteraction.setModifier(Qt::AltModifier, true);
     }
 
     KisToolShape::keyPressEvent(event);
@@ -139,11 +123,11 @@ void KisToolRectangleBase::keyReleaseEvent(QKeyEvent *event) {
     const Qt::Key key = KisExtendedModifiersMapper::workaroundShiftAltMetaHell(event);
 
     if (key == Qt::Key_Control) {
-        m_currentModifiers &= ~Qt::ControlModifier;
+        m_rectangleInteraction.setModifier(Qt::ControlModifier, false);
     } else if (key == Qt::Key_Shift) {
-        m_currentModifiers &= ~Qt::ShiftModifier;
+        m_rectangleInteraction.setModifier(Qt::ShiftModifier, false);
     } else if (key == Qt::Key_Alt) {
-        m_currentModifiers &= ~Qt::AltModifier;
+        m_rectangleInteraction.setModifier(Qt::AltModifier, false);
     }
 
     KisToolShape::keyReleaseEvent(event);
@@ -172,134 +156,31 @@ void KisToolRectangleBase::beginPrimaryAction(KoPointerEvent *event)
     setMode(KisTool::PAINT_MODE);
     beginShape();
 
-    m_currentModifiers = Qt::NoModifier;
-
     QPointF pos = convertToPixelCoordAndSnap(event, QPointF(), false);
-    m_dragStart = m_dragCenter = pos;
-    m_angle = m_angleBuffer = 0;
-    m_rotateActive = false;
-
-    QSizeF area = QSizeF(0,0);
-
-    applyConstraints(area, false);
-
-    m_dragEnd.setX(m_dragStart.x() + area.width());
-    m_dragEnd.setY(m_dragStart.y() + area.height());
-
-    m_dragCenter = QPointF((m_dragStart.x() + m_dragEnd.x()) / 2,
-                           (m_dragStart.y() + m_dragEnd.y()) / 2);
+    m_rectangleInteraction.begin(pos);
     showSize();
     event->accept();
-}
-
-bool KisToolRectangleBase::isFixedSize() {
-  if (m_isWidthForced && m_isHeightForced) return true;
-  if (m_isRatioForced && (m_isWidthForced || m_isHeightForced)) return true;
-
-  return false;
-}
-
-void KisToolRectangleBase::applyConstraints(QSizeF &area, bool overrideRatio) {
-  if (m_isWidthForced) {
-    area.setWidth(m_forcedWidth);
-  }
-  if (m_isHeightForced) {
-    area.setHeight(m_forcedHeight);
-  }
-
-  if (m_isHeightForced && m_isWidthForced) return;
-
-  if (m_isRatioForced || overrideRatio) {
-    float ratio = m_isRatioForced ? m_forcedRatio : 1.0f;
-
-    if (m_isWidthForced) {
-      area.setHeight(area.width() / ratio);
-    } else {
-      area.setWidth(area.height() * ratio);
-    }
-  }
 }
 
 void KisToolRectangleBase::continuePrimaryAction(KoPointerEvent *event)
 {
     CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
 
-    bool constraintToggle = m_currentModifiers & Qt::ShiftModifier;
-    bool translateMode = m_currentModifiers & Qt::AltModifier;
-    bool expandFromCenter = m_currentModifiers & Qt::ControlModifier;
+    const QPointF pos = convertToPixelCoordAndSnap(event, QPointF(), false);
+    m_rectangleInteraction.update(pos);
 
-    bool rotateMode = expandFromCenter && translateMode;
-    bool fixedSize = isFixedSize() && !constraintToggle;
-
-    QPointF pos = convertToPixelCoordAndSnap(event, QPointF(), false);
-
-    if (rotateMode) {
-        QPointF angleVector;
-        if (!m_rotateActive) {
-            m_rotateActive = true;
-            angleVector = (fixedSize)? m_dragEnd: pos;
-            angleVector -= m_dragStart;
-            m_referenceAngle = atan2(angleVector.y(), angleVector.x());
-        }
-        angleVector = pos - m_dragStart;
-        qreal a2 = atan2(angleVector.y(), angleVector.x());
-        m_angleBuffer = a2 - m_referenceAngle;
-    } else {
-        m_rotateActive = false;
-        m_angle += m_angleBuffer;
-        m_angleBuffer = 0;
-    }
-
-    if (fixedSize && !rotateMode) {
-      m_dragStart = pos;
-    } else if (translateMode && !rotateMode) {
-      QPointF trans = pos - m_dragEnd;
-      m_dragStart += trans;
-      m_dragEnd += trans;
-
-    }
-
-    QPointF diag = pos - m_dragStart;
-    QTransform t1, t2;
-    t1.rotateRadians(-getRotationAngle());
-    QPointF baseDiag = t1.map(diag);
-    QSizeF area = QSizeF(fabs(baseDiag.x()), fabs(baseDiag.y()));
-
-    bool overrideRatio = constraintToggle && !(m_isHeightForced || m_isWidthForced || m_isRatioForced);
-    if (!constraintToggle || overrideRatio) {
-      applyConstraints(area, overrideRatio);
-    }
-
-    baseDiag = QPointF(
-      (baseDiag.x() < 0) ? -area.width() : area.width(),
-      (baseDiag.y() < 0) ? -area.height() : area.height()
-    );
-
-    t2.rotateRadians(getRotationAngle());
-    diag = t2.map(baseDiag);
-
-    // resize around center point?
-    if (expandFromCenter && !fixedSize && !rotateMode) {
-      m_dragStart = m_dragCenter - diag / 2;
-      m_dragEnd = m_dragCenter + diag / 2;
-    } else {
-      m_dragEnd = m_dragStart + diag;
-    }
-
-    if(!translateMode) {
+    if (!m_rectangleInteraction.isTranslating()) {
         showSize();
-    }
-    else {
+    } else {
         KisCanvas2 *kisCanvas =dynamic_cast<KisCanvas2*>(canvas());
         KIS_ASSERT(kisCanvas);
+        const QPointF start = m_rectangleInteraction.start();
         kisCanvas->viewManager()->showFloatingMessage(i18n("X: %1 px\nY: %2 px"
-                                                           , QString::number(m_dragStart.x(), 'f', 1)
-                                                           , QString::number(m_dragStart.y(), 'f', 1)), QIcon(), 1000
+                                                           , QString::number(start.x(), 'f', 1)
+                                                           , QString::number(start.y(), 'f', 1)), QIcon(), 1000
                                                            , KisFloatingMessage::High,  Qt::AlignLeft | Qt::TextWordWrap | Qt::AlignVCenter);
     }
     updateArea();
-    m_dragCenter = QPointF((m_dragStart.x() + m_dragEnd.x()) / 2,
-                           (m_dragStart.y() + m_dragEnd.y()) / 2);
 
     KisToolPaint::requestUpdateOutline(event->point, event);
 }
@@ -339,7 +220,10 @@ void KisToolRectangleBase::endStroke()
 {
     setMode(KisTool::HOVER_MODE);
     updateArea();
-    finishRect(createRect(m_dragStart, m_dragEnd), m_roundCornersX, m_roundCornersY);
+    finishRect(createRect(m_rectangleInteraction.start(),
+                          m_rectangleInteraction.end()),
+               m_roundCornersX,
+               m_roundCornersY);
     endShape();
 }
 
@@ -352,21 +236,7 @@ void KisToolRectangleBase::cancelStroke()
 
 QRectF KisToolRectangleBase::createRect(const QPointF &start, const QPointF &end)
 {
-    QTransform t;
-    t.translate(start.x(), start.y());
-    t.rotateRadians(-getRotationAngle());
-    t.translate(-start.x(), -start.y());
-    const QTransform tInv = t.inverted();
-
-    const QPointF end1 = t.map(end);
-    const QPointF newStart(qRound(start.x()), qRound(start.y()));
-    const QPointF newEnd(qRound(end1.x()), qRound(end1.y()));
-    const QPointF newCenter = (newStart + newEnd) / 2.0;
-   
-    QRectF result(newStart, newEnd);
-    result.moveCenter(tInv.map(newCenter));
-
-    return result.normalized();
+    return m_rectangleInteraction.rectangle(start, end);
 }
 
 bool KisToolRectangleBase::showRoundCornersGUI() const
@@ -396,13 +266,14 @@ void KisToolRectangleBase::paintRectangle(QPainter &gc, const QRectF &imageRect)
     }
 
     getRotatedPath(path, viewRect.center(), getRotationAngle());
-    path.addPath(drawX(pixelToView(m_dragStart)));
-    path.addPath(drawX(pixelToView(m_dragCenter)));
+    path.addPath(drawX(pixelToView(dragStart())));
+    path.addPath(drawX(pixelToView(dragCenter())));
     paintToolOutline(&gc, path);
 }
 
 void KisToolRectangleBase::updateArea() {
-    const QRectF bound = createRect(m_dragStart, m_dragEnd);
+    const QRectF bound = createRect(m_rectangleInteraction.start(),
+                                    m_rectangleInteraction.end());
 
     canvas()->updateCanvas(convertToPt(bound).adjusted(-100, -100, +200, +200));
 
@@ -410,7 +281,17 @@ void KisToolRectangleBase::updateArea() {
 }
 
 qreal KisToolRectangleBase::getRotationAngle() {
-    return m_angle + m_angleBuffer;
+    return m_rectangleInteraction.rotationAngle();
+}
+
+QPointF KisToolRectangleBase::dragStart() const
+{
+    return m_rectangleInteraction.start();
+}
+
+QPointF KisToolRectangleBase::dragCenter() const
+{
+    return m_rectangleInteraction.center();
 }
 
 QPainterPath KisToolRectangleBase::drawX(const QPointF &pt) {

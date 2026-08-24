@@ -155,7 +155,21 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(painting_headers), 19)
-        self.assertEqual(len(tool_headers), 12)
+        self.assertEqual(len(tool_headers), 13)
+        self.assertEqual(
+            tool_by_path["libs/tools/kis_rectangle_interaction.h"],
+            {
+                "path": "libs/tools/kis_rectangle_interaction.h",
+                "publicationEvidence": [
+                    "export-macro",
+                    "compile-contract",
+                    "external-include",
+                ],
+                "consumerPaths": [
+                    "libs/ui/tool/kis_tool_rectangle_base.h",
+                ],
+            },
+        )
         self.assertEqual(
             painting_by_path["libs/painting/KisFigurePaintingOptions.h"],
             {
@@ -488,7 +502,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
                 "kritapainting": 19,
-                "kritatools": 12,
+                "kritatools": 13,
                 "kritaui": 234,
             },
         )

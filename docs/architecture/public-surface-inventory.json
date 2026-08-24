@@ -8146,9 +8146,10 @@
         "libs/tools/ui"
       ],
       "exportMacro": "KRITATOOLS_EXPORT",
-      "responsibility": "Records the declared and externally consumed tool-command surface for activation, settings state, canvas access, and shared tool policies.",
+      "responsibility": "Records the declared and externally consumed tool-command surface for activation, interaction geometry, settings state, canvas access, and shared tool policies.",
       "evidence": [
         "libs/tools/CMakeLists.txt",
+        "libs/tools/kis_rectangle_interaction.h",
         "libs/tools/kis_tool.h"
       ],
       "platforms": [
@@ -8242,6 +8243,17 @@
             "compile-contract"
           ],
           "consumerPaths": []
+        },
+        {
+          "path": "libs/tools/kis_rectangle_interaction.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_rectangle_base.h"
+          ]
         },
         {
           "path": "libs/tools/kis_selection_modifier_mapping.h",

@@ -65,7 +65,7 @@
 
 現在は`kritacanvas`の18件、`kritadocument`の5件、`kritadocumentfiles`の3件、
 `kritadocumentui`の6件、`kritaimage`の334件、`kritaimpex`の12件、
-`kritaimpexui`の23件、`kritapainting`の19件、`kritatools`の12件、
+`kritaimpexui`の23件、`kritapainting`の19件、`kritatools`の13件、
 `kritaui`の234件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
@@ -479,8 +479,15 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 `libs/painting/KisFigurePaintingOptions.h`へ移し、空だった同名実装ファイルを除去した。
 列挙値の順序とスクリプトのスタイル名対応は維持し、旧配置、転送ヘッダー、旧名の別名は存在しない。
 
-次は`libs/ui/tool/kis_tool_rectangle_base.*`を起点として、矩形の幾何計算と入力状態を
-`libs/tools`へ移し、設定部品と画面資源接続をUI所有へ残す。
+矩形ツールの制約、修飾キー、ドラッグ座標、回転角と矩形計算は
+`libs/tools/kis_rectangle_interaction.{h,cpp}`が所有する。
+`libs/ui/tool/kis_tool_rectangle_base.{h,cpp}`にはポインター座標変換、編集可否の通知、寸法と位置の
+表示、輪郭描画、キャンバス更新、設定部品を残した。矩形、楕円、矩形選択、矩形囲み塗りは同じ
+操作状態を使用し、制約、固定寸法、正方形化、移動、中央拡張、回転の座標契約を
+`TestToolCoreContract`が固定する。
+
+次は`libs/ui/tool/kis_tool_polyline_base.{h,cpp}`を起点として、多角線の点列と入力状態を
+`libs/tools`へ移し、輪郭表示、キャンバス更新、操作完了の接続をUI所有へ残す。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

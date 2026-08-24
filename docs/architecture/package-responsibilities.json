@@ -1309,6 +1309,7 @@
         "libs/tools/KisToolPaintFactoryBase.h",
         "libs/tools/kis_delegated_tool.h",
         "libs/tools/kis_delegated_tool_policies.h",
+        "libs/tools/kis_rectangle_interaction.h",
         "libs/tools/kis_selection_modifier_mapping.h",
         "libs/tools/kis_smoothing_options.h",
         "libs/tools/kis_tool.h",

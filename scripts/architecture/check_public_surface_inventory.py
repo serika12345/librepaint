@@ -187,9 +187,14 @@ PUBLIC_HEADER_SET_SPECS = (
         "exportMacro": "KRITATOOLS_EXPORT",
         "responsibility": (
             "Records the declared and externally consumed tool-command surface "
-            "for activation, settings state, canvas access, and shared tool policies."
+            "for activation, interaction geometry, settings state, canvas access, "
+            "and shared tool policies."
         ),
-        "evidence": ["libs/tools/CMakeLists.txt", "libs/tools/kis_tool.h"],
+        "evidence": [
+            "libs/tools/CMakeLists.txt",
+            "libs/tools/kis_rectangle_interaction.h",
+            "libs/tools/kis_tool.h",
+        ],
     },
     {
         "ownerTarget": "kritaui",

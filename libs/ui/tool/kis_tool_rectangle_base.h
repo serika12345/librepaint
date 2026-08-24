@@ -9,6 +9,7 @@
 
 #include <kis_tool_shape.h>
 #include <kis_cursor.h>
+#include <kis_rectangle_interaction.h>
 
 class KRITAUI_EXPORT KisToolRectangleBase : public KisToolShape
 {
@@ -49,29 +50,14 @@ public:
 protected:
     virtual void finishRect(const QRectF &rect, qreal roundCornersX, qreal roundCornersY) = 0;
 
-    QPointF m_dragCenter;
-    QPointF m_dragStart;
-    QPointF m_dragEnd;
     ToolType m_type;
-
-    bool m_isRatioForced;
-    bool m_isWidthForced;
-    bool m_isHeightForced;
-    bool m_rotateActive;
-    float m_forcedRatio;
-    float m_forcedWidth;
-    float m_forcedHeight;
     int m_roundCornersX;
     int m_roundCornersY;
-    qreal m_referenceAngle;
-    qreal m_angle;
-    qreal m_angleBuffer;
-    Qt::KeyboardModifiers m_currentModifiers;
 
-    bool isFixedSize();
     qreal getRotationAngle();
+    QPointF dragStart() const;
+    QPointF dragCenter() const;
     QPainterPath drawX(const QPointF &pt);
-    void applyConstraints(QSizeF& area, bool overrideRatio);
     void getRotatedPath(QPainterPath &path, const QPointF &center, const qreal &angle);
 
     void updateArea();
@@ -81,6 +67,9 @@ protected:
 
     void endStroke();
     void cancelStroke();
+
+private:
+    KisRectangleInteraction m_rectangleInteraction;
 };
 
 #endif // KIS_TOOL_RECTANGLE_BASE_H
