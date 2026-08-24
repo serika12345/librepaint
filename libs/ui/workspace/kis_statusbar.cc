@@ -19,7 +19,6 @@
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>
 #include <KoToolManager.h>
-#include <KoViewConverter.h>
 #include <QHBoxLayout>
 
 #include <KisUsageLogger.h>

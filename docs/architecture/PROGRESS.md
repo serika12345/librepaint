@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 03:53 JST
+- 更新日時: 2026-08-25 04:28 JST
 - 状態: `planned`
 - 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1717,6 +1717,21 @@
   報告していない。`kis_md5_generator.cpp`のテキスト監査は欠落宣言ヘッダー1件、利用元0件、
   CMake参照0件という現在状態を確認した。
 - `nix develop .#test --command ./scripts/verify-quick`は全運用試験と統治検査に成功した。
+
+## R1-G6gアプリケーション・作業空間include境界で完了した作業
+
+- `libs/ui/application/KisApplication.cpp`、`KisPart.cpp`、`kis_action_manager.cpp`と、
+  `libs/ui/workspace/KisMainWindow.cpp`、`KisView.cpp`、`KisViewManager.cpp`、
+  `kis_statusbar.cc`から、記号利用を持たない35件のincludeを除去した。
+- `KisApplication.cpp`は`KoGamutMask.h`と`KisSeExprScript.h`を直接参照する。
+  完全型を必要とする`KisPlaybackEngine.h`、`KisToolBarStateModel.h`、`kis_selection.h`も
+  各利用翻訳単位から直接参照する。
+- アプリケーション調整から描画への確認済み逆方向includeは、`filter/kis_filter.h`、
+  `generator/kis_generator.h`、`brushengine/kis_paintop_settings.h`の3件を解消し、
+  1責務対75件から72件へ縮小した。未確定射影0件とターゲット循環0件を維持する。
+- `kritaui`、`TestApplicationWorkspaceToolUiPublicHeaders`、`kis_view_signals_test`は
+  macOSで成功した。変更した7翻訳単位の差分はinclude行に限定される。
+  `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
 
 ## 次の操作
 

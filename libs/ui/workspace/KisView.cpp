@@ -9,18 +9,14 @@
 
 #include "workspace/KisView_p.h"
 
-#include <KoDockFactoryBase.h>
-#include <KoDockRegistry.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoToolManager.h>
 
-#include <kis_icon.h>
 #include <files/kis_document_autosave_files.h>
 
 #include <kactioncollection.h>
 #include <klocalizedstring.h>
 #include <kis_debug.h>
-#include <kselectaction.h>
 #include <kconfiggroup.h>
 
 #include <QMessageBox>

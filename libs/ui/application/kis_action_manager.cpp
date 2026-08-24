@@ -9,7 +9,6 @@
 #include <QList>
 #include <kactioncollection.h>
 
-#include <kis_icon.h>
 #include "application/KisPart.h"
 #include "application/kis_action.h"
 #include "workspace/KisViewManager.h"

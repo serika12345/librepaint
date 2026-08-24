@@ -1566,7 +1566,6 @@
             "libs/ui/widgets/kis_paintop_presets_editor.cpp",
             "libs/ui/widgets/kis_preset_chooser.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.cpp",
-            "libs/ui/workspace/KisMainWindow.cpp",
             "plugins/dockers/brushhud/kis_brush_hud.cpp",
             "plugins/dockers/brushhud/kis_dlg_brush_hud_config.cpp",
             "plugins/paintops/colorsmudge/KisPaintThicknessOptionData.cpp",
@@ -2229,7 +2228,6 @@
             "libs/libkis/Filter.cpp",
             "libs/libkis/Krita.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
-            "libs/ui/application/KisApplication.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
@@ -2579,7 +2577,6 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/application/KisApplication.cpp",
             "libs/ui/dialogs/kis_dlg_generator_layer.h",
             "libs/ui/widgets/kis_wdg_generator.cpp",
             "plugins/filters/halftone/KisHalftoneConfigPageWidget.cpp",

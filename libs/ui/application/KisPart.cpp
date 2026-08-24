@@ -16,12 +16,9 @@
 #include "KoProgressProxy.h"
 #include <KoCanvasController.h>
 #include <KoCanvasControllerWidget.h>
-#include <KoColorSpaceEngine.h>
 #include <KoCanvasBase.h>
 #include <KoToolManager.h>
-#include <KoShapeControllerBase.h>
 #include <KoResourceServerProvider.h>
-#include <kis_icon.h>
 
 #include "application/KisApplication.h"
 #include "workspace/KisMainWindow.h"
@@ -34,7 +31,6 @@
 
 #include <kis_debug.h>
 #include <KoResourcePaths.h>
-#include <KoDialog.h>
 #include <QMessageBox>
 #include <QMenu>
 #include <QScopedPointer>
@@ -68,7 +64,6 @@
 #include "kis_color_manager.h"
 
 #include <KisCursorOverrideLock.h>
-#include "application/kis_action.h"
 #include "kis_action_registry.h"
 #include "workspace/KisSessionResource.h"
 #include "KisBusyWaitBroker.h"

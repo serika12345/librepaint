@@ -167,7 +167,6 @@
         "libs/ui/tool/kis_tool_freehand.cc"
       ],
       "consumerPaths": [
-        "libs/ui/workspace/KisViewManager.cpp",
         "plugins/paintops/defaultpaintops/brush/kis_brushop.cpp",
         "plugins/tools/basictools/default_tools.cc",
         "plugins/tools/basictools/kis_tool_brush.h",

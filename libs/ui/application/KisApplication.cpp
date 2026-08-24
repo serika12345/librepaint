@@ -50,27 +50,25 @@
 #include <KoDockRegistry.h>
 #include <KoToolRegistry.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoPluginLoader.h>
 #include <KoShapeRegistry.h>
 #include "KoConfig.h"
 #include <KoResourcePaths.h>
+#include <KoGamutMask.h>
 #include <KisMimeDatabase.h>
+#include <KisSeExprScript.h>
 #include "theme/thememanager.h"
 #include "document/KisDocument.h"
 #include "workspace/KisMainWindow.h"
 #include <files/kis_document_autosave_files.h>
 #include <recovery/KisAutoSaveRecoveryDialog.h>
 #include "application/KisPart.h"
-#include <kis_icon.h>
 #include "workspace/kis_splash_screen.h"
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "flake/kis_shape_selection.h"
-#include <filter/kis_filter.h>
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter_configuration.h>
 #include <generator/kis_generator_registry.h>
-#include <generator/kis_generator.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_meta_data_io_backend.h>
 #include <kis_meta_data_backend_registry.h>
@@ -79,13 +77,11 @@
 #include "kis_action_registry.h"
 #include <KoResourceServer.h>
 #include <application/KisResourceServerProvider.h>
-#include <KoResourceServerProvider.h>
 #include "opengl/kis_opengl.h"
 #include "kis_spin_box_unit_manager.h"
 #include "kis_document_aware_spin_box_unit_manager.h"
 #include "workspace/KisViewManager.h"
 #include <KisUsageLogger.h>
-#include <KisKineticScroller.h>
 
 namespace
 {
@@ -144,7 +140,6 @@ public:
 #endif
 }
 
-#include <dialogs/KisSessionManagerDialog.h>
 
 #include <KisResourceCacheDb.h>
 #include <KisResourceLocator.h>
@@ -166,8 +161,6 @@ public:
 #include <resources/KoFontFamily.h>
 #include <resources/KoCssStylePreset.h>
 
-#include "widgets/KisScreenColorSampler.h"
-#include "KisDlgInternalColorSelector.h"
 #include "events/KisLongPressEventFilter.h"
 
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>

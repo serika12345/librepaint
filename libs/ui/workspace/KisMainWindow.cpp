@@ -80,14 +80,12 @@
 #include <info/KoDocumentInfoDlg.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoFileDialog.h>
-#include <kis_icon.h>
 #include <KoToolManager.h>
 #include "KoToolDocker.h"
 #include "toolbox/KoToolBoxFactory.h"
 #include <KoDockRegistry.h>
 #include <KoPluginLoader.h>
 #include <KoColorSpaceEngine.h>
-#include <KoUpdater.h>
 #include <KisResourceModel.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceIterator.h>
@@ -95,7 +93,6 @@
 #include <KisResourceCacheDb.h>
 #include <KisStorageModel.h>
 #include <KisStorageFilterProxyModel.h>
-#include <animation/KisPlaybackEngine.h>
 
 #ifdef Q_OS_ANDROID
 #include <QtAndroid>
@@ -103,7 +100,7 @@
 #endif
 
 #include <KisUsageLogger.h>
-#include <brushengine/kis_paintop_settings.h>
+#include <animation/KisPlaybackEngine.h>
 #include "dialogs/kis_about_application.h"
 #include "dialogs/kis_delayed_save_dialog.h"
 #include "dialogs/kis_dlg_preferences.h"
@@ -121,7 +118,6 @@
 #include <KisDlgAnimationRenderer.h>
 #endif
 #include <document/KisDocument.h>
-#include "kis_image_from_clipboard_widget.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include <KisImportExportFilter.h>
@@ -149,7 +145,6 @@
 #include <actions/KisUndoActionsUpdateManager.h>
 #include "workspace/KisWelcomePageWidget.h"
 #include "KisRecentDocumentsModelWrapper.h"
-#include <KritaVersionWrapper.h>
 #include "workspace/KisCanvasWindow.h"
 #include "application/kis_action.h"
 #include <katecommandbar.h>

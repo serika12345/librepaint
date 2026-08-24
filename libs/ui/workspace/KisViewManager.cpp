@@ -48,18 +48,10 @@
 
 #include <KoCanvasController.h>
 #include <KoCompositeOp.h>
-#include <KoDockRegistry.h>
 #include <KoDockWidgetTitleBar.h>
-#include <KoFileDialog.h>
-#include <KoProperties.h>
 #include <KisResourceItemChooserSync.h>
-#include <KoSelection.h>
 #include <KoStore.h>
 #include <KoToolManager.h>
-#include <KoToolRegistry.h>
-#include <KoViewConverter.h>
-#include <KoZoomHandler.h>
-#include <KoPluginLoader.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoColorSpaceRegistry.h>
 #include <KisResourceLocator.h>
@@ -96,13 +88,13 @@
 #include "application/KisPart.h"
 #include <KoUpdater.h>
 #include "kis_selection_mask.h"
+#include "kis_selection.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_shape_controller.h"
 #include "kis_shape_layer.h"
 #include <kis_signal_compressor.h>
 #include "workspace/kis_statusbar.h"
 #include <workspace/KisTemplateCreateDia.h>
-#include <kis_tool_freehand.h>
 #include <kis_undo_adapter.h>
 #include "workspace/KisView.h"
 #include "canvas/kis_zoom_manager.h"
@@ -120,8 +112,6 @@
 #include <canvas/KisIdleTasksManager.h>
 #include <KisImageBarrierLock.h>
 #include <document/KisTextPropertiesManager.h>
-#include <kis_selection.h>
-#include <KisUniqueColorSet.h>
 
 class BlockingUserInputEventFilter : public QObject
 {
