@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 05:10 JST
+- 更新日時: 2026-08-25 05:52 JST
 - 状態: `planned`
 - 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1017,14 +1017,14 @@
 - 残る22クラスを`KisDocument`1件、外部ファイル層1件、操作管理5件、ノード・選択操作接続
   4件、Qtモデルと表示状態11件へ再分類した。ノード表示モデルから`KisNodeManager`への依存と、
   `KisFileLayer`から`KisPart`への依存を、ファイル移動を先行できない根拠として記録した。
-- `libs/ui/KisDocument.cpp`の129の一意なメソッド定義を、アプリケーション構成、文書付随状態、
+- `libs/ui/KisDocument.cpp`の130の一意なメソッド定義を、アプリケーション構成、文書付随状態、
   ファイル読込、ファイル保存と回復、メタデータと資源、文書セッション、画像と取り消し、
   表示と通知の8関心へ一度ずつ割り当てた。
 - 保存I/O差し替え、保存計算、利用事例登録、外部ファイル層の抽象接続面について、現在の
   複数実装、差し替え要求、重複、決定的試験の阻害がないことを確認し、抽象を追加しない
   判断を記録した。
 - `scripts/architecture/check_document_boundary_assessment.py`は、22クラスと責務台帳の一致、
-  129メソッドの欠落と重複、再配置計画にある所有先と後続段階、現在要求を
+  130メソッドの欠落と重複、再配置計画にある所有先と後続段階、現在要求を
   持たない抽象導入を検査する。
 - 専用単体試験の初回実行は、新しい評価検査器が存在しない診断で失敗した。検査器と台帳の
   実装後は、全件被覆、欠落、陳腐化、重複、抽象化判断の6試験が成功した。
@@ -1775,6 +1775,23 @@
 - macOSで`krita`、`TestBuiltInResourceLoaderRegistration`、
   `TestApplicationWorkspaceToolUiPublicHeaders`、`kis_filter_registry_test`の構築と試験に成功した。
   `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
+
+## R1-G6gアクション有効状態所有境界で完了した作業
+
+- `libs/ui/application/kis_action_manager.cpp`にあった画像アニメーション有無の取得を
+  `libs/ui/document/KisDocument.{h,cpp}`の`hasAnimation()`へ配置した。
+- 同じ開始ファイルにあった活動ノードの存在、レイヤー型、継承型、編集可否、編集可能な
+  ペイントデバイス有無の取得を`libs/ui/nodes/kis_node_manager.{h,cpp}`へ配置した。
+  アクション管理は所有者から得た値を既存の順序で起動フラグと起動条件へ合成する。
+- `libs/ui/application/kis_action_manager.cpp`から`kis_layer.h`と
+  `kis_image_animation_interface.h`の直接includeを除去し、`nodes/kis_node_manager.h`を追加した。
+  確認済み逆方向includeは58件から56件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
+- `libs/ui/tests/kis_action_manager_test.cpp`は活動ノード未設定時とペイントレイヤー起動後の
+  `ACTIVE_LAYER`契約を検査する。macOSで`KisActionManagerTest`の構築に成功した。
+  CTest登録はbroken指定で除外され、直接実行は表示初期化中の既存SIGSEGVを再現する。
+- 変更した4翻訳単位のclangd include-cleaner検査は不要includeと直接include不足を報告していない。
+- `KisDocument.cpp`は最大3027行、`kis_node_manager.cpp`は最大1763行の審査済みソース行数例外を持つ。
+  R1-G6hの文書・画像構成とノード・画像調整の所有分割が各ファイルを標準最大値へ縮小し、例外を完了する。
 
 ## 次の操作
 

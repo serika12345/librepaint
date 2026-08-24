@@ -17,9 +17,15 @@
 #include <application/kis_action.h>
 #include <application/kis_action_manager.h>
 #include <workspace/KisViewManager.h>
+#include <opengl/kis_opengl.h>
 
 #include "nodes/kis_node_manager.h"
 #include <testui.h>
+
+void KisActionManagerTest::initTestCase()
+{
+    KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
+}
 
 void KisActionManagerTest::testUpdateGUI()
 {
@@ -40,10 +46,15 @@ void KisActionManagerTest::testUpdateGUI()
     KisAction* action2 = new KisAction("dummy", this);
     action2->setActivationFlags(KisAction::ACTIVE_SHAPE_LAYER);
     view->viewManager()->actionManager()->addAction("dummy", action2);
+
+    KisAction* action3 = new KisAction("dummy", this);
+    action3->setActivationFlags(KisAction::ACTIVE_LAYER);
+    view->viewManager()->actionManager()->addAction("dummy", action3);
     
     view->viewManager()->actionManager()->updateGUI();
     QVERIFY(!action->isEnabled());
     QVERIFY(!action2->isEnabled());
+    QVERIFY(!action3->isEnabled());
 
     KisPaintLayerSP paintLayer1 = new KisPaintLayer(doc->image(), "paintlayer1", OPACITY_OPAQUE_U8);
     doc->image()->addNode(paintLayer1);
@@ -53,6 +64,7 @@ void KisActionManagerTest::testUpdateGUI()
     view->viewManager()->actionManager()->updateGUI();
     QVERIFY(action->isEnabled());
     QVERIFY(!action2->isEnabled());
+    QVERIFY(action3->isEnabled());
 }
 
 void KisActionManagerTest::testCondition()

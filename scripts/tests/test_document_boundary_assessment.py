@@ -49,7 +49,7 @@ class DocumentBoundaryAssessmentTests(unittest.TestCase):
                 len(group["methods"])
                 for group in assessment["kisDocumentMethodGroups"]
             ),
-            129,
+            130,
         )
         self.assertEqual(assessment["nextAction"]["gate"], "R1-G6f")
 

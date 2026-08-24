@@ -16,10 +16,9 @@
 #include "operations/kis_operation_ui_factory.h"
 #include "operations/kis_operation_registry.h"
 #include "operations/kis_operation.h"
-#include "kis_layer.h"
 #include "document/KisDocument.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_clipboard.h"
-#include <kis_image_animation_interface.h>
 #include "application/kis_config.h"
 #include <KisPortingUtils.h>
 
@@ -188,29 +187,28 @@ void KisActionManager::updateGUI()
     //TODO other flags
     KisAction::ActivationFlags flags;
 
-    KisImageWSP image;
     KisNodeSP node;
-    KisLayerSP layer;
     KisSelectionManager *selectionManager = 0;
+    KisNodeManager *nodeManager = nullptr;
 
     KisAction::ActivationConditions conditions = KisAction::NO_CONDITION;
 
     if (d->viewManager) {
-        node = d->viewManager->activeNode();
+        nodeManager = d->viewManager->nodeManager();
+        node = nodeManager->activeNode();
         selectionManager = d->viewManager->selectionManager();
 
         // if there are no views, that means no document is open.
         // we cannot have nodes (selections), devices, or documents without a view
         if ( d->viewManager->viewCount() > 0 )
         {
-            image = d->viewManager->image();
             flags |= KisAction::ACTIVE_IMAGE;
 
-            if (image && image->animationInterface()->hasAnimation()) {
+            KisDocument *document = d->viewManager->document();
+            if (document && document->hasAnimation()) {
                 flags |= KisAction::IMAGE_HAS_ANIMATION;
             }
 
-            KisDocument *document = d->viewManager->document();
             if (document && document->isReadWrite()) {
                 flags |= KisAction::IMAGE_IS_WRITABLE;
             }
@@ -241,17 +239,15 @@ void KisActionManager::updateGUI()
         // if a node exists, we know there is an active layer as well
         flags |= KisAction::ACTIVE_NODE;
 
-        layer = qobject_cast<KisLayer*>(node.data());
-        if (layer) {
+        if (nodeManager->activeNodeIsLayer()) {
             flags |= KisAction::ACTIVE_LAYER;
         }
 
-        if (node->inherits("KisTransparencyMask")) {
+        if (nodeManager->activeNodeInherits("KisTransparencyMask")) {
             flags |= KisAction::ACTIVE_TRANSPARENCY_MASK;
         }
 
-
-        if (layer && layer->inherits("KisShapeLayer")) {
+        if (nodeManager->activeNodeInherits("KisShapeLayer")) {
             flags |= KisAction::ACTIVE_SHAPE_LAYER;
         }
 
@@ -294,11 +290,11 @@ void KisActionManager::updateGUI()
             }
         }
 
-        if (node->isEditable(false)) {
+        if (nodeManager->activeNodeIsEditable()) {
             conditions |= KisAction::ACTIVE_NODE_EDITABLE;
         }
 
-        if (node->hasEditablePaintDevice()) {
+        if (nodeManager->activeNodeHasEditablePaintDevice()) {
             conditions |= KisAction::ACTIVE_NODE_EDITABLE_PAINT_DEVICE;
         }
     }
@@ -323,7 +319,7 @@ void KisActionManager::updateGUI()
 
             if (node && enable) {
                 Q_FOREACH (const QString &type, action->excludedNodeTypes()) {
-                    if (node->inherits(type.toLatin1())) {
+                    if (nodeManager->activeNodeInherits(type)) {
                         enable = false;
                         break;
                     }

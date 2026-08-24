@@ -2914,6 +2914,11 @@ KisImageWSP KisDocument::image() const
     return d->image;
 }
 
+bool KisDocument::hasAnimation() const
+{
+    return d->image && d->image->animationInterface()->hasAnimation();
+}
+
 KisImageSP KisDocument::savingImage() const
 {
     return d->savingImage;

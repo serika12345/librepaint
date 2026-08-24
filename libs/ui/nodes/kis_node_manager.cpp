@@ -457,6 +457,30 @@ KisNodeSP KisNodeManager::activeNode()
     return 0;
 }
 
+bool KisNodeManager::activeNodeIsLayer()
+{
+    const KisNodeSP node = activeNode();
+    return node && qobject_cast<const KisLayer *>(node.data());
+}
+
+bool KisNodeManager::activeNodeInherits(const QString &type)
+{
+    const KisNodeSP node = activeNode();
+    return node && node->inherits(type.toLatin1());
+}
+
+bool KisNodeManager::activeNodeIsEditable()
+{
+    const KisNodeSP node = activeNode();
+    return node && node->isEditable(false);
+}
+
+bool KisNodeManager::activeNodeHasEditablePaintDevice()
+{
+    const KisNodeSP node = activeNode();
+    return node && node->hasEditablePaintDevice();
+}
+
 KisLayerSP KisNodeManager::activeLayer()
 {
     return m_d->layerManager.activeLayer();

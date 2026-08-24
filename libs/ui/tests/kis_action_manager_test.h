@@ -14,6 +14,7 @@ class KisActionManagerTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void initTestCase();
     void testUpdateGUI();
     void testCondition();
     void testTakeAction();

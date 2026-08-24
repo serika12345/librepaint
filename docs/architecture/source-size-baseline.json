@@ -70,10 +70,8 @@
     "libs/ui/canvas/kis_painting_assistant.cc": 1166,
     "libs/ui/dialogs/kis_dlg_layer_style.cpp": 1595,
     "libs/ui/dialogs/kis_dlg_preferences.cc": 3327,
-    "libs/ui/document/KisDocument.cpp": 3022,
     "libs/ui/resources/kis_popup_palette.cpp": 1603,
     "libs/ui/nodes/kis_layer_manager.cc": 1156,
-    "libs/ui/nodes/kis_node_manager.cpp": 1739,
     "libs/ui/opengl/KisOpenGLCanvasRenderer.cpp": 1138,
     "libs/ui/opengl/kis_opengl.cpp": 1246,
     "libs/ui/tool/kis_paintop_box.cc": 1579,
@@ -112,5 +110,18 @@
     "plugins/tools/tool_transform2/kis_tool_transform_config_widget.cpp": 1382,
     "plugins/tools/tool_transform2/strokes/inplace_transform_stroke_strategy.cpp": 1231
   },
-  "exceptions": {}
+  "exceptions": {
+    "libs/ui/document/KisDocument.cpp": {
+      "maxLines": 3027,
+      "reason": "Document-owned animation state retrieval keeps image lifetime with its concrete owner while the application action manager consumes a value.",
+      "todo": "docs/architecture/TODO.md#r1-コードパッケージングの改善",
+      "removalCondition": "R1-G6h moves document and image composition to its planned owners and reduces this file to the standard source-size maximum."
+    },
+    "libs/ui/nodes/kis_node_manager.cpp": {
+      "maxLines": 1763,
+      "reason": "Node-owned action state retrieval keeps active-node selection with its concrete owner while the application action manager consumes values.",
+      "todo": "docs/architecture/TODO.md#r1-コードパッケージングの改善",
+      "removalCondition": "R1-G6h moves node and image coordination to its planned owners and reduces this file to the standard source-size maximum."
+    }
+  }
 }

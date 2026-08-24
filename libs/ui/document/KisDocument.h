@@ -617,6 +617,8 @@ public:
 
     KisImageWSP image() const;
 
+    bool hasAnimation() const;
+
     /**
      * @brief savingImage provides a detached, shallow copy of the original image that must be used when saving.
      * Any strokes in progress will not be applied to this image, so the result might be missing some data. On

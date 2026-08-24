@@ -68,6 +68,11 @@ public:
     /// Convenience function to get the active layer or mask
     KisNodeSP activeNode();
 
+    bool activeNodeIsLayer();
+    bool activeNodeInherits(const QString &type);
+    bool activeNodeIsEditable();
+    bool activeNodeHasEditablePaintDevice();
+
     /// convenience function to get the active layer. If a mask is
     /// active, it's parent layer is the active layer.
     KisLayerSP activeLayer();
