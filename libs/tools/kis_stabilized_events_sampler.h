@@ -11,13 +11,13 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "kritaui_export.h"
+#include "kritatools_export.h"
 
 class KisPaintInformation;
 #include <kis_paint_information.h>
 
 
-class KRITAUI_EXPORT KisStabilizedEventsSampler
+class KRITATOOLS_EXPORT KisStabilizedEventsSampler
 {
 public:
     KisStabilizedEventsSampler(int sampleTime = 1);
@@ -28,7 +28,7 @@ public:
     void addFinishingEvent(int numSamples);
 
 public:
-    class KRITAUI_EXPORT iterator :
+    class KRITATOOLS_EXPORT iterator :
         public boost::iterator_facade <iterator,
                                        KisPaintInformation const,
                                        boost::forward_traversal_tag >

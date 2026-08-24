@@ -2,7 +2,6 @@ kis_add_tests(
     kis_image_view_converter_test.cpp
     kis_shape_selection_test.cpp
     kis_grid_config_test.cpp
-    kis_stabilized_events_sampler_test.cpp
     kis_shape_commands_test.cpp
     kis_stop_gradient_editor_test.cpp
     kis_multinode_property_test.cpp

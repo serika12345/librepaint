@@ -84,4 +84,3 @@ KisStabilizedEventsSampler::range() const
                           iterator(this, elapsed, alpha));
 }
 
-

@@ -764,9 +764,42 @@
       "dependencyResponsibility": "painting-rendering",
       "owner": "R1-G6",
       "reason": "Input classes inside kritaui currently construct painting information and stroke state instead of emitting normalized actions through tool invocation.",
-      "maximumDirectIncludes": 14,
+      "maximumDirectIncludes": 25,
       "removalCondition": "Input interpretation emits the input-action-stream contract and painting state is created behind tool-command, reducing this direct-include set to zero.",
       "targetLinks": [
+        {
+          "sourceTarget": "kritatools",
+          "dependencyTarget": "kritaimage",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritatools",
+          "dependencyTarget": "kritapainting",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritatools",
+          "dependencyTarget": "kritapigment",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacolor",
@@ -813,6 +846,33 @@
         }
       ],
       "directIncludes": [
+        {
+          "sourceTarget": "kritatools",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/tools/KisStabilizerDelayedPaintHelper.h",
+          "include": "kis_paint_information.h",
+          "headerPath": "libs/image/brushengine/kis_paint_information.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritatools",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/tools/kis_stabilized_events_sampler.cpp",
+          "include": "kis_paint_information.h",
+          "headerPath": "libs/image/brushengine/kis_paint_information.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritatools",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/tools/kis_stabilized_events_sampler.h",
+          "include": "kis_paint_information.h",
+          "headerPath": "libs/image/brushengine/kis_paint_information.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimage",
@@ -897,28 +957,73 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
-          "include": "kis_paint_information.h",
-          "headerPath": "libs/image/brushengine/kis_paint_information.h",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/tool/kis_stabilized_events_sampler.cpp",
-          "include": "kis_paint_information.h",
-          "headerPath": "libs/image/brushengine/kis_paint_information.h",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "KisOptimizedBrushOutline.h",
+          "headerPath": "libs/image/brushengine/KisOptimizedBrushOutline.h",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/tool/kis_stabilized_events_sampler.h",
-          "include": "kis_paint_information.h",
-          "headerPath": "libs/image/brushengine/kis_paint_information.h",
-          "sourceAttribution": "classified-public-path",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "KisPerStrokeRandomSource.h",
+          "headerPath": "libs/image/brushengine/KisPerStrokeRandomSource.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "brushengine/kis_paintop_preset.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_preset.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "brushengine/kis_paintop_utils.h",
+          "headerPath": "libs/image/brushengine/kis_paintop_utils.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "kis_distance_information.h",
+          "headerPath": "libs/image/kis_distance_information.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "kis_image.h",
+          "headerPath": "libs/image/kis_image.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "kis_painter.h",
+          "headerPath": "libs/image/kis_painter.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritaimage",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "kis_update_time_monitor.h",
+          "headerPath": "libs/image/kis_update_time_monitor.h",
+          "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {
@@ -938,6 +1043,33 @@
           "headerPath": "libs/painting/strokes/kis_color_sampler_stroke_strategy.h",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritapainting",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "KisAsynchronousStrokeUpdateHelper.h",
+          "headerPath": "libs/painting/KisAsynchronousStrokeUpdateHelper.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritapainting",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "strokes/KisFreehandStrokeInfo.h",
+          "headerPath": "libs/painting/strokes/KisFreehandStrokeInfo.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritapainting",
+          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
+          "include": "strokes/freehand_stroke.h",
+          "headerPath": "libs/painting/strokes/freehand_stroke.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
         }
       ]
     },
@@ -949,6 +1081,17 @@
       "maximumDirectIncludes": 4,
       "removalCondition": "Tool invocation supplies the resource-backed interaction state required by input interpretation, reducing this direct-include set to zero.",
       "targetLinks": [
+        {
+          "sourceTarget": "kritatools",
+          "dependencyTarget": "kritaresources",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaresources",

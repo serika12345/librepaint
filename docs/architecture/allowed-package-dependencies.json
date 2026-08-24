@@ -1142,12 +1142,18 @@
       "sourceTarget": "kritatools",
       "dependencyTarget": "kritacanvas",
       "sourceResponsibilities": [
+        "input-interpretation",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
         "canvas-presentation"
       ],
       "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        },
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "canvas-presentation",
@@ -1159,12 +1165,18 @@
       "sourceTarget": "kritatools",
       "dependencyTarget": "kritaflake",
       "sourceResponsibilities": [
+        "input-interpretation",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
         "canvas-presentation"
       ],
       "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        },
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "canvas-presentation",
@@ -1176,12 +1188,18 @@
       "sourceTarget": "kritatools",
       "dependencyTarget": "kritaimage",
       "sourceResponsibilities": [
+        "input-interpretation",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
         "painting-rendering"
       ],
       "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "painting-rendering",
@@ -1193,12 +1211,18 @@
       "sourceTarget": "kritatools",
       "dependencyTarget": "kritapainting",
       "sourceResponsibilities": [
+        "input-interpretation",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
         "painting-rendering"
       ],
       "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "painting-rendering",
@@ -1210,12 +1234,18 @@
       "sourceTarget": "kritatools",
       "dependencyTarget": "kritapigment",
       "sourceResponsibilities": [
+        "input-interpretation",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
         "painting-rendering"
       ],
       "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        },
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "painting-rendering",
@@ -1227,12 +1257,18 @@
       "sourceTarget": "kritatools",
       "dependencyTarget": "kritaresources",
       "sourceResponsibilities": [
+        "input-interpretation",
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
         "resource-management"
       ],
       "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "resource-management",
+          "status": "requires-r1-g4-baseline"
+        },
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "resource-management",
@@ -1852,9 +1888,15 @@
         "tool-invocation"
       ],
       "dependencyResponsibilities": [
+        "input-interpretation",
         "tool-invocation"
       ],
       "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "allowed"
+        },
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "tool-invocation",
@@ -1862,7 +1904,17 @@
         },
         {
           "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "tool-invocation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "input-interpretation",
           "status": "requires-r1-g4-baseline"
         },
         {
@@ -1872,8 +1924,18 @@
         },
         {
           "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "tool-invocation",
           "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "requires-r1-g4-baseline"
         },
         {
           "sourceResponsibility": "tool-invocation",

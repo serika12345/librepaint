@@ -1,5 +1,6 @@
 set(kritatools_LIB_SRCS
     KisSelectionToolFactoryBase.cpp
+    KisStabilizerDelayedPaintHelper.cpp
     KisToolPaintFactoryBase.cpp
     KisToolChangesTracker.cpp
     KisToolChangesTrackerData.cpp
@@ -10,6 +11,7 @@ set(kritatools_LIB_SRCS
     kis_rectangle_interaction.cpp
     kis_selection_modifier_mapping.cpp
     kis_smoothing_options.cpp
+    kis_stabilized_events_sampler.cpp
     kis_speed_smoother.cpp
     kis_tool.cc
     kis_tool_paint_interaction.cpp

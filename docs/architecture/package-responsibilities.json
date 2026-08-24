@@ -508,11 +508,21 @@
         "libs/ui/tool"
       ],
       "ownerTargets": [
+        "kritatools",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [],
-      "reviewedPublicHeaderPaths": [],
-      "reviewedSourcePaths": [],
+      "reviewedPublicHeaderPaths": [
+        "libs/tools/KisStabilizerDelayedPaintHelper.h",
+        "libs/tools/kis_stabilized_events_sampler.h"
+      ],
+      "reviewedSourcePaths": [
+        "libs/tools/KisStabilizerDelayedPaintHelper.cpp",
+        "libs/tools/KisStabilizerDelayedPaintHelper.h",
+        "libs/tools/kis_stabilized_events_sampler.cpp",
+        "libs/tools/kis_stabilized_events_sampler.h",
+        "libs/ui/tool/kis_tool_freehand_helper.cpp"
+      ],
       "uiClassAreas": [],
       "uiToolClassAreas": [
         "input-interpretation"
@@ -521,18 +531,15 @@
       "pluginScope": "feature-owners",
       "pluginFeatureOwners": [],
       "publicHeaderPaths": [
+        "libs/tools/KisStabilizerDelayedPaintHelper.h",
+        "libs/tools/kis_stabilized_events_sampler.h",
         "libs/ui/tool/KisAsyncColorSamplerHelper.h",
-        "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
-        "libs/ui/tool/kis_painting_information_builder_adapters.h",
-        "libs/ui/tool/kis_stabilized_events_sampler.h"
+        "libs/ui/tool/kis_painting_information_builder_adapters.h"
       ],
       "classNames": [
         "KisAsyncColorSamplerHelper",
         "KisConverterPaintingInformationBuilder",
-        "KisStabilizedEventsSampler",
-        "KisStabilizerDelayedPaintHelper",
-        "KisToolFreehandPaintingInformationBuilder",
-        "iterator"
+        "KisToolFreehandPaintingInformationBuilder"
       ],
       "pluginIds": [],
       "pluginServiceTypes": []
@@ -1299,6 +1306,7 @@
       ],
       "publicHeaderPaths": [
         "libs/tools/KisSelectionToolFactoryBase.h",
+        "libs/tools/KisStabilizerDelayedPaintHelper.h",
         "libs/tools/KisToolChangesTracker.h",
         "libs/tools/KisToolChangesTrackerData.h",
         "libs/tools/KisToolPaintFactoryBase.h",
@@ -1311,6 +1319,7 @@
         "libs/tools/kis_selection_modifier_mapping.h",
         "libs/tools/kis_smoothing_options.h",
         "libs/tools/kis_speed_smoother.h",
+        "libs/tools/kis_stabilized_events_sampler.h",
         "libs/tools/kis_tool.h",
         "libs/tools/kis_tool_paint_interaction.h",
         "libs/tools/kis_tool_select_base.h",

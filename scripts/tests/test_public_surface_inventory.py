@@ -151,11 +151,23 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 227)
+        self.assertEqual(len(ui_headers), 225)
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(painting_headers), 19)
-        self.assertEqual(len(tool_headers), 17)
+        self.assertEqual(len(tool_headers), 19)
+        self.assertEqual(
+            tool_by_path[
+                "libs/tools/KisStabilizerDelayedPaintHelper.h"
+            ]["consumerPaths"],
+            ["libs/ui/tool/kis_tool_freehand_helper.cpp"],
+        )
+        self.assertEqual(
+            tool_by_path["libs/tools/kis_stabilized_events_sampler.h"][
+                "consumerPaths"
+            ],
+            ["libs/ui/tool/kis_tool_freehand_helper.cpp"],
+        )
         self.assertEqual(
             tool_by_path["libs/tools/kis_painting_information_builder.h"],
             {
@@ -377,6 +389,12 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             "libs/ui/tool/kis_rectangle_constraint_widget.h", ui_by_path
         )
         self.assertNotIn("libs/ui/tool/kis_shape_tool_helper.h", ui_by_path)
+        self.assertNotIn(
+            "libs/ui/tool/KisStabilizerDelayedPaintHelper.h", ui_by_path
+        )
+        self.assertNotIn(
+            "libs/ui/tool/kis_stabilized_events_sampler.h", ui_by_path
+        )
         self.assertNotIn("libs/ui/tests/util.h", ui_by_path)
 
     def test_ui_top_level_class_discovery_is_complete(self) -> None:
@@ -416,12 +434,15 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 18)
+        self.assertEqual(len(classes), 15)
         self.assertNotIn("Data", by_name)
         self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertNotIn("NoopActivationPolicy", by_name)
         self.assertNotIn("KisRectangleConstraintWidget", by_name)
         self.assertNotIn("KisShapeToolHelper", by_name)
+        self.assertNotIn("KisStabilizedEventsSampler", by_name)
+        self.assertNotIn("KisStabilizerDelayedPaintHelper", by_name)
+        self.assertNotIn("iterator", by_name)
         self.assertEqual(
             by_name["KisToolFreehand"]["implementationPaths"],
             ["libs/ui/tool/kis_tool_freehand.cc"],
@@ -437,7 +458,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 18)
+        self.assertEqual(len(inventory["classes"]), 15)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertNotIn("KisPaintingInformationBuilder", by_name)
         self.assertEqual(
@@ -568,8 +589,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
                 "kritapainting": 19,
-                "kritatools": 17,
-                "kritaui": 227,
+                "kritatools": 19,
+                "kritaui": 225,
             },
         )
         self.assertEqual(

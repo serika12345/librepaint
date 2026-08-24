@@ -1271,11 +1271,11 @@
             "libs/brush/kis_gbr_brush.h",
             "libs/painting/kis_figure_painting_stroke.h",
             "libs/painting/strokes/freehand_stroke.h",
+            "libs/tools/KisStabilizerDelayedPaintHelper.h",
             "libs/tools/kis_painting_information_builder.h",
+            "libs/tools/kis_stabilized_events_sampler.cpp",
+            "libs/tools/kis_stabilized_events_sampler.h",
             "libs/tools/kis_tool_paint_interaction.cpp",
-            "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
-            "libs/ui/tool/kis_stabilized_events_sampler.cpp",
-            "libs/ui/tool/kis_stabilized_events_sampler.h",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h",
             "libs/ui/widgets/kis_preset_live_preview_view.h",
@@ -8179,6 +8179,16 @@
           ]
         },
         {
+          "path": "libs/tools/KisStabilizerDelayedPaintHelper.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_freehand_helper.cpp"
+          ]
+        },
+        {
           "path": "libs/tools/KisToolChangesTracker.h",
           "publicationEvidence": [
             "export-macro",
@@ -8318,6 +8328,16 @@
           ],
           "consumerPaths": [
             "libs/ui/input/wintab/drawpile_tablettester/tablettest.h"
+          ]
+        },
+        {
+          "path": "libs/tools/kis_stabilized_events_sampler.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_freehand_helper.cpp"
           ]
         },
         {
@@ -10719,13 +10739,6 @@
           ]
         },
         {
-          "path": "libs/ui/tool/KisStabilizerDelayedPaintHelper.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/tool/KisToolOutlineBase.h",
           "publicationEvidence": [
             "export-macro",
@@ -10765,13 +10778,6 @@
             "plugins/tools/selectiontools/kis_tool_select_rectangular.cc",
             "plugins/tools/selectiontools/kis_tool_select_similar.cc"
           ]
-        },
-        {
-          "path": "libs/ui/tool/kis_stabilized_events_sampler.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/tool/kis_tool_canvas_utils.h",

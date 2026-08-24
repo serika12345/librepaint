@@ -263,6 +263,7 @@
           "libs/ui/tool"
         ],
         "cmakeTargets": [
+          "kritatools",
           "kritaui"
         ],
         "uiClassAreas": [],
@@ -695,7 +696,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 264,
+      "maximumReverseDirectIncludesAfterWave": 272,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -753,7 +754,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 169,
+      "maximumReverseDirectIncludesAfterWave": 177,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -802,7 +803,7 @@
         "Import-export UI cancellation and feedback tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 169,
+      "maximumReverseDirectIncludesAfterWave": 177,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -853,7 +854,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 96,
+      "maximumReverseDirectIncludesAfterWave": 104,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -962,7 +963,7 @@
         "Document undo coordination tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 96,
+      "maximumReverseDirectIncludesAfterWave": 104,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -1011,7 +1012,7 @@
         "Typed tool settings round-trip tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 96,
+      "maximumReverseDirectIncludesAfterWave": 104,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 3
@@ -1060,7 +1061,7 @@
         {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "painting-rendering",
-          "from": 17,
+          "from": 25,
           "to": 0
         },
         {

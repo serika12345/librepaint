@@ -15,9 +15,9 @@
 #include <functional>
 
 #include "kis_paint_information.h"
-#include "kritaui_export.h"
+#include "kritatools_export.h"
 
-class KRITAUI_EXPORT KisStabilizerDelayedPaintHelper : public QObject
+class KRITATOOLS_EXPORT KisStabilizerDelayedPaintHelper : public QObject
 {
     Q_OBJECT
 

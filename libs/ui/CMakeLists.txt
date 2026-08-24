@@ -170,7 +170,6 @@ set(kritaui_LIB_SRCS
     tool/kis_selection_tool_helper.cpp
     tool/kis_tool_freehand.cc
     tool/kis_painting_information_builder_adapters.cpp
-    tool/kis_stabilized_events_sampler.cpp
     tool/kis_tool_freehand_helper.cpp
     tool/kis_tool_multihand_helper.cpp
     tool/kis_tool_paint.cc
@@ -180,7 +179,6 @@ set(kritaui_LIB_SRCS
     tool/kis_tool_polyline_base.cpp
     tool/KisToolOutlineBase.cpp
     tool/kis_tool_canvas_utils.cpp
-    tool/KisStabilizerDelayedPaintHelper.cpp
     tool/KisAsyncColorSamplerHelper.cpp
 
     toolbox/KoToolBox.cpp

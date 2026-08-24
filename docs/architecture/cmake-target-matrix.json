@@ -1466,6 +1466,7 @@
   "variantTargets": [
     "CCSGraph",
     "KisDialogStateSaverTest",
+    "KisDocumentReplaceTest",
     "KisMimeDatabaseTest",
     "KisMyPaintOpTest",
     "KoColorSpacesBenchmark",
@@ -1512,6 +1513,7 @@
     "TestXmlWriter",
     "dummytrivialinterface",
     "kis_document_metadata_test",
+    "kis_stabilized_events_sampler_test",
     "krita",
     "krita_colorspaces_extensions",
     "krita_flaketools",

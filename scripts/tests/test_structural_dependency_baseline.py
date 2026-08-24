@@ -44,7 +44,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
         self.assertEqual(
             baseline["scope"], "r1-g4b-structural-dependency-baseline"
         )
-        self.assertEqual(len(baseline["projectionResolutions"]), 10)
+        self.assertEqual(len(baseline["projectionResolutions"]), 12)
         self.assertEqual(
             baseline["targetCycleBaseline"]["maximumComponents"], 0
         )

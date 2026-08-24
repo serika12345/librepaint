@@ -3383,11 +3383,10 @@
     {
       "name": "kis_stabilized_events_sampler_test",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/tools/tests",
       "dependencies": [
-        "kritalibkis",
         "kritatestsdk",
-        "kritaui"
+        "kritatools"
       ]
     },
     {

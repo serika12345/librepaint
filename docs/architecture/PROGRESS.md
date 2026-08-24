@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 17:31 JST
+- 更新日時: 2026-08-24 18:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1409,13 +1409,43 @@
   時間依存試験失敗として区別する。
 - `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
   含む全Nix出力の評価に成功した。
+- `libs/ui/tool/kis_stabilized_events_sampler.{h,cpp}`と
+  `libs/ui/tool/KisStabilizerDelayedPaintHelper.{h,cpp}`を同名の`libs/tools`へ移し、入力イベントの実時間
+  標本化、描画点の遅延キュー、タイマー駆動を`kritatools`へ集約した。旧UI配置と転送ヘッダーは残して
+  いない。`libs/ui/tool/kis_tool_freehand_helper.cpp`は既存の自由描画線生成と輪郭更新をコールバックで
+  接続する。
+- `libs/ui/tests/kis_stabilized_events_sampler_test.{h,cpp}`を同名の`libs/tools/tests`へ移し、標本化の
+  時間分配に加えて、遅延描画キューが3入力点を2線分として順序どおり完了し、取消し時に未描画点を
+  破棄する契約を固定した。契約移設直後は`KisStabilizerDelayedPaintHelper.h`が`kritatools`の公開面に
+  なくコンパイル段階で失敗し、実装後は1件のCTestが成功した。`kritatools`と`kritaui`はmacOSで
+  リンクまで成功した。
+- 公開面台帳は`kritaui`を227ヘッダーから225ヘッダーへ縮小し、`kritatools`を17ヘッダーから
+  19ヘッダーへ拡張した。UIツール責務台帳は18クラスから15クラスへ縮小した。入力解釈責務の所有者に
+  `kritatools`を記録し、移設した4製品ファイルとUI接続元を明示分類した。未解決の責務射影0件、
+  構造射影12件、内部ヘッダー基準10件、全製品ターゲットの循環0件を維持する。
+- 入力解釈から描画への直接includeは、移設先に残る3件と、入力とストローク生成が混在するUI接続元の
+  明示分類で11件が可視化され、14件から25件になった。製品includeは追加していない。確認済み逆方向
+  includeは3責務対104件、移設計画の初期縮小量は319件となり、未解決射影0件を維持する。
+- 標本化試験ターゲットは`libs/ui/tests`から`libs/tools/tests`へ移り、直接依存を`kritaui`と
+  `kritalibkis`から`kritatools`へ縮小した。macOSとiOSのCMake台帳は実構成から再生成し、Linux、
+  Android、Windowsへ同じ無条件差分を同期した。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+  `nix develop .#test --command ./scripts/verify`は全製品と試験ターゲットをリンクし、macOSの342件中
+  341件が成功した。新しい`libs-tools-kis_stabilized_events_sampler_test`も成功した。
+- 変更範囲外の`KisSafeDocumentLoaderTest::test()`は
+  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として失敗した。単独再実行2回も
+  不安定であり、1回目は同じ箇所、2回目は`test()`が成功した後に`testFileLost()`が109行で実測0件、
+  期待1件として失敗した。文書監視、文書読込、入出力の製品実装には変更がなく、通知待機の既知の
+  基線不安定性として区別する。
+- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
+  含む全Nix出力の評価に成功した。
 
 ## 次の操作
 
-基本図形生成の移設をコミットした後、`libs/ui/tool/kis_stabilized_events_sampler.{h,cpp}`と
-`libs/ui/tool/KisStabilizerDelayedPaintHelper.{h,cpp}`を同名の`libs/tools`へ移し、実時間に基づく
-入力標本化と遅延描画キューをツール入力所有へ集約する。自由描画ストロークの生成と輪郭更新は
-`libs/ui/tool/kis_tool_freehand_helper.cpp`からコールバックで接続し、既存の入力順序を契約で固定する。
+入力標本化と遅延描画キューの移設をコミットした後、`libs/ui/tool/KisAsyncColorSamplerHelper.{h,cpp}`を
+起点として、色採取ストロークの開始、採取ジョブ投入、完了を`libs/painting`へ分離する。UI側には
+採取対象の解決、キャンバス色資源、カーソル、プレビュー配置と描画を残し、採取ジョブの順序と
+最終色通知を契約で固定する。
 清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
 
 ## R1-G5完了根拠
