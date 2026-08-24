@@ -21,7 +21,7 @@
 #include <kis_action_registry.h>
 #include <kis_canvas2.h>
 #include <kis_icon_utils.h>
-#include <workspace/kis_statusbar.h>
+#include <canvas/kis_statusbar.h>
 #include <document/KisDocument.h>
 #include <workspace/KisViewManager.h>
 #include <metadata/KoDocumentInfo.h>

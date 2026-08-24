@@ -33,7 +33,6 @@
 #include <workspace/kis_mainwindow_observer.h>
 #include <workspace/kis_preference_set_registry.h>
 #include <workspace/kis_splash_screen.h>
-#include <workspace/kis_statusbar.h>
 #include <workspace/kis_workspace_resource.h>
 
 static_assert(std::is_base_of_v<QObject, KisApplication>);

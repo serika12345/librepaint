@@ -341,6 +341,16 @@
       "placementArea": "canvas-presentation"
     },
     {
+      "from": "libs/ui/kis_statusbar.cc",
+      "to": "libs/ui/canvas/kis_statusbar.cc",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_statusbar.h",
+      "to": "libs/ui/canvas/kis_statusbar.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
       "from": "libs/ui/kis_zoom_manager.cc",
       "to": "libs/ui/canvas/kis_zoom_manager.cc",
       "placementArea": "canvas-presentation"

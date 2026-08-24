@@ -47,7 +47,7 @@
 #include "kis_fill_painter.h"
 #include "kis_group_layer.h"
 #include "kis_layer.h"
-#include "workspace/kis_statusbar.h"
+#include "canvas/kis_statusbar.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_painter.h"

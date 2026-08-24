@@ -93,7 +93,7 @@
 #include "kis_shape_controller.h"
 #include "kis_shape_layer.h"
 #include <kis_signal_compressor.h>
-#include "workspace/kis_statusbar.h"
+#include "canvas/kis_statusbar.h"
 #include <workspace/KisTemplateCreateDia.h>
 #include <kis_undo_adapter.h>
 #include "workspace/KisView.h"

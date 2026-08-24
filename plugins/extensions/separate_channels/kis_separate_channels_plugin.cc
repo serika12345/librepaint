@@ -23,7 +23,7 @@
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_layer.h>
-#include <workspace/kis_statusbar.h>
+#include <canvas/kis_statusbar.h>
 #include <nodes/kis_node_manager.h>
 #include <widgets/kis_progress_widget.h>
 #include <application/kis_action.h>

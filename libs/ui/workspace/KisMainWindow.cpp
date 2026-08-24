@@ -130,7 +130,7 @@
 #include "application/KisResourceServerProvider.h"
 #include <KisPaintResourceServerProvider.h>
 #include "kis_signal_compressor_with_param.h"
-#include "workspace/kis_statusbar.h"
+#include "canvas/kis_statusbar.h"
 #include "workspace/KisView.h"
 #include "workspace/KisViewManager.h"
 #include "theme/thememanager.h"

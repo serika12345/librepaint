@@ -3706,6 +3706,7 @@
             "libs/ui/canvas/kis_mirror_axis.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
             "libs/ui/canvas/kis_selection_decoration.cc",
+            "libs/ui/canvas/kis_statusbar.cc",
             "libs/ui/canvas/kis_zoom_manager.cc",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
             "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp",
@@ -3765,7 +3766,6 @@
             "libs/ui/workspace/KisMainWindow.cpp",
             "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/KisViewManager.cpp",
-            "libs/ui/workspace/kis_statusbar.cc",
             "plugins/assistants/Assistants/kis_assistant_tool.cc",
             "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
             "plugins/dockers/advancedcolorselector/kis_common_colors.cpp",
@@ -4356,6 +4356,7 @@
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/KisLayerThumbnailCache.cpp",
             "libs/ui/canvas/KisReferenceImagesDecoration.cpp",
+            "libs/ui/canvas/kis_statusbar.cc",
             "libs/ui/dialogs/KisColorSpaceConversionDialog.cpp",
             "libs/ui/dialogs/kis_dlg_image_properties.cc",
             "libs/ui/dialogs/kis_dlg_layer_properties.cc",
@@ -4369,7 +4370,6 @@
             "libs/ui/nodes/kis_multinode_property.h",
             "libs/ui/nodes/kis_node_manager.cpp",
             "libs/ui/tool/kis_tool_canvas_utils.cpp",
-            "libs/ui/workspace/kis_statusbar.cc",
             "plugins/dockers/gamutmask/gamutmask_dock.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/dockers/storyboarddocker/KisAddRemoveStoryboardCommand.cpp",
@@ -4536,9 +4536,9 @@
           ],
           "consumerPaths": [
             "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
+            "libs/ui/canvas/kis_statusbar.cc",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
-            "libs/ui/workspace/KisView.cpp",
-            "libs/ui/workspace/kis_statusbar.cc"
+            "libs/ui/workspace/KisView.cpp"
           ]
         },
         {
@@ -4805,6 +4805,7 @@
             "libs/ui/canvas/kis_canvas_resource_provider.cpp",
             "libs/ui/canvas/kis_display_color_converter.cpp",
             "libs/ui/canvas/kis_image_pyramid.h",
+            "libs/ui/canvas/kis_statusbar.cc",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
             "libs/ui/dialogs/kis_dlg_file_layer.cpp",
@@ -4826,7 +4827,6 @@
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_scratch_pad.cpp",
             "libs/ui/widgets/kis_wdg_generator.cpp",
-            "libs/ui/workspace/kis_statusbar.cc",
             "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_triangle.h",
@@ -5812,6 +5812,7 @@
             "libs/ui/canvas/kis_canvas_tool_support.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
             "libs/ui/canvas/kis_selection_decoration.cc",
+            "libs/ui/canvas/kis_statusbar.cc",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
@@ -5834,7 +5835,6 @@
             "libs/ui/tool/kis_tool_shape.cc",
             "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/KisViewManager.cpp",
-            "libs/ui/workspace/kis_statusbar.cc",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/extensions/colorrange/colorrange.cc",
             "plugins/extensions/colorrange/dlg_colorrange.cc",
@@ -6480,6 +6480,7 @@
             "libs/ui/canvas/kis_mirror_manager.h",
             "libs/ui/canvas/kis_painting_assistant.h",
             "libs/ui/canvas/kis_selection_decoration.cc",
+            "libs/ui/canvas/kis_statusbar.cc",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.h",
             "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.h",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.h",
@@ -6543,7 +6544,6 @@
             "libs/ui/widgets/kis_preset_live_preview_view.h",
             "libs/ui/widgets/kis_scratch_pad.h",
             "libs/ui/widgets/kis_wdg_generator.h",
-            "libs/ui/workspace/kis_statusbar.cc",
             "pch/kis_image_pch.h",
             "plugins/dockers/advancedcolorselector/kis_common_colors.h",
             "plugins/dockers/advancedcolorselector/kis_shade_selector_line.h",
@@ -9809,6 +9809,19 @@
           "consumerPaths": []
         },
         {
+          "path": "libs/ui/canvas/kis_statusbar.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/recorder/recorderdocker_dock.cpp",
+            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
+            "plugins/tools/tool_transform2/kis_tool_transform.cc"
+          ]
+        },
+        {
           "path": "libs/ui/canvas/kis_tool_proxy.h",
           "publicationEvidence": [
             "export-macro",
@@ -11780,19 +11793,6 @@
           ],
           "consumerPaths": [
             "krita/main.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/workspace/kis_statusbar.h",
-          "publicationEvidence": [
-            "export-macro",
-            "compile-contract",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/recorder/recorderdocker_dock.cpp",
-            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
-            "plugins/tools/tool_transform2/kis_tool_transform.cc"
           ]
         },
         {

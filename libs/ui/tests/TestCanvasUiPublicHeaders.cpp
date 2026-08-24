@@ -13,6 +13,7 @@
 #include <animation/kis_animation_frame_cache.h>
 #include <canvas/KisDisplayConfig.h>
 #include <canvas/KisWidgetWithIdleTask.h>
+#include <canvas/kis_statusbar.h>
 
 static_assert(std::is_base_of_v<QWidget, KisWidgetWithIdleTask<QWidget>>);
 

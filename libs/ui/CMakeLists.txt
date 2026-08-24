@@ -134,7 +134,7 @@ set(kritaui_LIB_SRCS
     canvas/kis_selection_decoration.cc
     selection/kis_selection_manager.cc
     selection/KisSelectionActionsAdapter.cpp
-    workspace/kis_statusbar.cc
+    canvas/kis_statusbar.cc
     canvas/kis_zoom_manager.cc
     resources/kis_favorite_resource_manager.cpp
     workspace/kis_workspace_resource.cpp

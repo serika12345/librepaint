@@ -46,6 +46,7 @@
       "libs/ui/canvas/kis_painting_assistant.h",
       "libs/ui/canvas/kis_painting_assistants_decoration.h",
       "libs/ui/canvas/kis_selection_decoration.h",
+      "libs/ui/canvas/kis_statusbar.h",
       "libs/ui/canvas/kis_zoom_manager.h",
       "libs/ui/document/KisDocument.h",
       "libs/ui/document/KisTextPropertiesManager.h",
@@ -81,7 +82,6 @@
       "libs/ui/workspace/kis_mainwindow_observer.h",
       "libs/ui/workspace/kis_preference_set_registry.h",
       "libs/ui/workspace/kis_splash_screen.h",
-      "libs/ui/workspace/kis_statusbar.h",
       "libs/ui/workspace/kis_workspace_resource.h"
     ],
     "declarationKinds": [
@@ -700,11 +700,11 @@
     {
       "name": "KisStatusBar",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/kis_statusbar.h",
+      "header": "libs/ui/canvas/kis_statusbar.h",
       "implementationPaths": [
-        "libs/ui/workspace/kis_statusbar.cc"
+        "libs/ui/canvas/kis_statusbar.cc"
       ],
-      "responsibilityArea": "window-workspace"
+      "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisTemplateCreateDia",

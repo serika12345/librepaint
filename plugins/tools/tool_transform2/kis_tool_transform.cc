@@ -44,7 +44,7 @@
 #include <kis_selection.h>
 #include <kis_filter_strategy.h>
 #include <widgets/kis_cmb_idlist.h>
-#include <workspace/kis_statusbar.h>
+#include <canvas/kis_statusbar.h>
 #include <kis_transform_worker.h>
 #include <kis_perspectivetransform_worker.h>
 #include <kis_warptransform_worker.h>

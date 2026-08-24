@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 06:55 JST
+- 更新日時: 2026-08-25 07:13 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6g アプリケーション共有サービス所有境界
+- 現在の検査段階: R1-G6g キャンバス状態表示所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: アプリケーション調整に残る描画所有ヘッダーを既存の具体所有面へ接続し、
-  起動順序とプロセス寿命を維持したまま逆方向includeを縮小する。
+- 目的: キャンバス状態を表示する公開部品を表示責務へ配置し、既存の表示契約を維持したまま
+  アプリケーション調整から描画への逆方向includeを縮小する。
 
 ## 再開環境
 
@@ -1619,8 +1619,8 @@
 ## R1-G6gキャンバス表示配置境界で完了した作業
 
 - `libs/ui`直下のアニメーション再生と非同期フレーム描画14ファイルを同名の
-  `libs/ui/animation`へ、キャンバス表示状態、装飾、座標変換、表示接続53ファイルを同名の
-  `libs/ui/canvas`へ移した。開始パスと宛先パスの全67件は
+  `libs/ui/animation`へ、キャンバス表示状態、装飾、座標変換、表示接続55ファイルを同名の
+  `libs/ui/canvas`へ移した。開始パスと宛先パスの全69件は
   `docs/architecture/canvas-presentation-ui-relocations.json`が一対一で記録する。
 - `KisAsyncAnimation*`、`KisPlaybackEngine*`、`KisMLTProducerKrita*`はアニメーション再生配置を
   所有する。`KisAsyncAnimationFramesSavingRenderer.cpp`は動画書出し調整として
@@ -1632,7 +1632,7 @@
   `animation/...`または`canvas/...`経路へ更新した。公開ヘッダー試験は旧経路の移設前に
   `animation/KisAsyncAnimationRendererBase.h`不在で失敗し、移設後に成功した。
 - UIクラス責務台帳は79クラス、実装単位を持つ77クラス、宣言側で完結する2クラスを維持する。
-  キャンバス・表示30クラスは分類済み入れ子ヘッダーとして継続追跡され、台帳上の
+  キャンバス・表示31クラスは分類済み入れ子ヘッダーとして継続追跡され、台帳上の
   `libs/ui`直下キャンバス・表示ヘッダーは0件となった。5構成のCMakeターゲット台帳は
   ターゲット、構成差、直接リンク依存を維持する。
 - `nix develop .#test --command ./scripts/build-incremental native build kritaui`、
@@ -1667,11 +1667,11 @@
 ## R1-G6gアプリケーション・作業空間・ツールUI配置境界で完了した作業
 
 - `libs/ui`直下のアプリケーション調整20ファイルを`libs/ui/application`、ウィンドウ・
-  作業空間46ファイルを`libs/ui/workspace`、ツール呼出し8ファイルを既存の`libs/ui/tool`へ
-  同じ基底名で移した。全74件の正確な開始パスと宛先パスは
+  作業空間44ファイルを`libs/ui/workspace`、ツール呼出し8ファイルを既存の`libs/ui/tool`へ
+  同じ基底名で移した。全72件の正確な開始パスと宛先パスは
   `docs/architecture/application-workspace-tool-ui-relocations.json`が一対一で記録する。
 - アクション、起動、設定、プラグイン、資源提供、Androidファイル接続はアプリケーション調整配置を
-  所有する。ウィンドウ、ビュー、セッション、作業空間、テンプレート、環境設定、状態表示、
+  所有する。ウィンドウ、ビュー、セッション、作業空間、テンプレート、環境設定、
   起動画面は作業空間配置を所有する。ブックマーク済みツール・フィルター設定と描画ツール箱は
   ツール呼出し配置を所有する。
 - `kritaui`のCMake所有、クラス名、公開記号、公開挙動、所有寿命を維持し、製品と試験のinclude、
@@ -1679,7 +1679,7 @@
   更新した。公開includeは正規経路へ直接接続し、公開ヘッダー試験は移設前に
   `application/KisActionPlugin.h`不在で失敗し、移設後に成功した。
 - UIクラス責務台帳は79クラス、69ヘッダー、実装単位を持つ77クラス、宣言側で完結する2クラスを
-  維持する。今回の29クラスを27の分類済み入れ子ヘッダーで継続追跡し、分類済み公開クラスの
+  維持する。今回の28クラスを26の分類済み入れ子ヘッダーで継続追跡し、分類済み公開クラスの
   `libs/ui`直下配置を0件に固定した。UIツールクラス責務台帳は18クラス、16ヘッダー、利用元56ソースを
   記録する。
 - `kritaui`、`TestApplicationWorkspaceToolUiPublicHeaders`、`kis_derived_resources_test`、
@@ -1820,11 +1820,31 @@
   `KisAnimationExporterTest::testAnimationExport`は成功した。`verify-quick`は方針試験104件、
   生成台帳、依存方向、製品ターゲット循環、ソース行数、文書と図の検査に成功した。
 
+## R1-G6gキャンバス状態表示所有境界で完了した作業
+
+- `libs/ui/workspace/kis_statusbar.h`を`libs/ui/canvas/kis_statusbar.h`、
+  `libs/ui/workspace/kis_statusbar.cc`を`libs/ui/canvas/kis_statusbar.cc`へ移した。
+  `KisStatusBar`は画像寸法、選択範囲、色プロファイル、メモリー使用量、キャンバス回転の
+  表示と利用者操作との接続をキャンバス表示配置で所有する。
+- `kritaui`のCMake所有、公開クラス名、公開記号、所有寿命を維持し、製品と公開ヘッダー試験の
+  10 include経路を`canvas/kis_statusbar.h`へ同期した。キャンバス表示再配置台帳は
+  14アニメーションファイルと55キャンバスファイル、アプリケーション・作業空間・ツール
+  再配置台帳は20アプリケーションファイル、44作業空間ファイル、8ツールファイルを記録する。
+- UIクラス責務台帳は`KisStatusBar`をキャンバス・表示へ分類し、キャンバス・表示31クラス、
+  ウィンドウ・作業空間16クラスを記録する。アプリケーション調整から描画への確認済み
+  逆方向includeは48件から42件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
+- 変更した11翻訳単位はmacOSの製品コンパイル条件でコード生成に成功した。
+  clangd include-cleaner監査は未使用includeと直接include不足が0件であることを確認した。
+  更新した公開ヘッダー試験オブジェクトを既存ライブラリーへ個別リンクした
+  `TestCanvasUiPublicHeaders`は3件すべて成功した。移設後の実装は474行、公開ヘッダーは135行で、
+  ソース行数検査の標準最大値内にある。
+- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
+  文書と図の検査に成功した。
+
 ## 次の操作
 
-`libs/ui/workspace/kis_statusbar.{h,cc}`をキャンバス状態表示の所有先である
-`libs/ui/canvas/`へ移し、画像寸法、選択範囲、色プロファイル、メモリー使用量、
-キャンバス回転の表示契約と利用元includeを新しい配置へ同期する。
+`libs/ui/workspace/KisMainWindow.cpp`に残る画像設定通知、画像・ノード・アニメーション状態の
+6 includeを、キャンバス表示と文書状態の具体所有面へ接続する。
 
 ## R1-G5完了根拠
 

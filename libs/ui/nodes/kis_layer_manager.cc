@@ -77,7 +77,7 @@
 #include "document/kis_change_file_layer_command.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "selection/kis_selection_manager.h"
-#include "workspace/kis_statusbar.h"
+#include "canvas/kis_statusbar.h"
 #include "workspace/KisViewManager.h"
 #include "canvas/kis_zoom_manager.h"
 #include "canvas/kis_canvas2.h"

@@ -649,10 +649,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             ui_class_inventory=self.load_ui_class_inventory(),
         )
 
-        self.assertEqual(len(canvas_inventory["relocations"]), 67)
+        self.assertEqual(len(canvas_inventory["relocations"]), 69)
         self.assertEqual(len(document_inventory["relocations"]), 51)
         self.assertEqual(
-            len(application_workspace_tool_inventory["relocations"]), 74
+            len(application_workspace_tool_inventory["relocations"]), 72
         )
         self.assertEqual(len(remaining_root_inventory["relocations"]), 43)
         self.assertEqual(

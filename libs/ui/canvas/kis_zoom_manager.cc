@@ -26,7 +26,7 @@
 #include "canvas/kis_canvas2.h"
 #include "kis_coordinates_converter.h"
 #include "kis_image.h"
-#include "workspace/kis_statusbar.h"
+#include "canvas/kis_statusbar.h"
 #include "application/kis_config.h"
 #include "krita_utils.h"
 #include "canvas/kis_canvas_resource_provider.h"
@@ -352,4 +352,3 @@ void KisZoomManager::slotConfigChanged()
         }
     }
 }
-

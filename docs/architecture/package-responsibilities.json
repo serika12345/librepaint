@@ -68,7 +68,6 @@
         "libs/ui/workspace/kis_mainwindow_observer.h",
         "libs/ui/workspace/kis_preference_set_registry.h",
         "libs/ui/workspace/kis_splash_screen.h",
-        "libs/ui/workspace/kis_statusbar.h",
         "libs/ui/workspace/kis_workspace_resource.h"
       ],
       "classNames": [
@@ -89,7 +88,6 @@
         "KisResourceServerProvider",
         "KisSessionResource",
         "KisSplashScreen",
-        "KisStatusBar",
         "KisTemplateCreateDia",
         "KisTemplateGroup",
         "KisTemplateTree",
@@ -210,6 +208,7 @@
         "libs/ui/canvas/kis_painting_assistant.h",
         "libs/ui/canvas/kis_painting_assistants_decoration.h",
         "libs/ui/canvas/kis_selection_decoration.h",
+        "libs/ui/canvas/kis_statusbar.h",
         "libs/ui/canvas/kis_zoom_manager.h",
         "libs/ui/widgets/KoStrokeConfigWidget.h"
       ],
@@ -242,6 +241,7 @@
         "KisRootSurfaceInfoProxy",
         "KisSRGBSurfaceColorSpaceManager",
         "KisSelectionDecoration",
+        "KisStatusBar",
         "KisZoomManager",
         "SetSaturationCommand"
       ],

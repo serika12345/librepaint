@@ -5,7 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "workspace/kis_statusbar.h"
+#include "canvas/kis_statusbar.h"
 
 #include <QToolButton>
 #include <QAction>

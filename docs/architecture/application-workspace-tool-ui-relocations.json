@@ -6,7 +6,7 @@
   "currentResponsibilities": {
     "application-orchestration": "Process startup, application services, actions, plugins, configuration, platform integration, resources, and the shared application object graph.",
     "tool-invocation": "Toolbar-level tool and filter setting selection, bookmarked configurations, and invocation wiring.",
-    "window-workspace": "Windows, views, workspace and session layouts, templates, preferences, status presentation, startup surfaces, and their concrete presentation components."
+    "window-workspace": "Windows, views, workspace and session layouts, templates, preferences, startup surfaces, and their concrete presentation components."
   },
   "reviewedResponsibilityOverrides": [],
   "relocations": [
@@ -108,16 +108,6 @@
     {
       "from": "libs/ui/kis_splash_screen.h",
       "to": "libs/ui/workspace/kis_splash_screen.h",
-      "placementArea": "window-workspace"
-    },
-    {
-      "from": "libs/ui/kis_statusbar.cc",
-      "to": "libs/ui/workspace/kis_statusbar.cc",
-      "placementArea": "window-workspace"
-    },
-    {
-      "from": "libs/ui/kis_statusbar.h",
-      "to": "libs/ui/workspace/kis_statusbar.h",
       "placementArea": "window-workspace"
     },
     {

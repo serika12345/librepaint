@@ -70,6 +70,7 @@ UI_CANVAS_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/canvas/kis_painting_assistant.h",
     "libs/ui/canvas/kis_painting_assistants_decoration.h",
     "libs/ui/canvas/kis_selection_decoration.h",
+    "libs/ui/canvas/kis_statusbar.h",
     "libs/ui/canvas/kis_zoom_manager.h",
 )
 UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS = (
@@ -122,7 +123,6 @@ UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/workspace/kis_mainwindow_observer.h",
     "libs/ui/workspace/kis_preference_set_registry.h",
     "libs/ui/workspace/kis_splash_screen.h",
-    "libs/ui/workspace/kis_statusbar.h",
     "libs/ui/workspace/kis_workspace_resource.h",
 )
 UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH = {
@@ -1517,7 +1517,7 @@ def validate_ui_placement_relocations(
         for entry in application_workspace_tool_classes
     }
     if (
-        len(application_workspace_tool_classes) != 29
+        len(application_workspace_tool_classes) != 28
         or application_workspace_tool_headers
         != expected_application_workspace_tool_headers
     ):
