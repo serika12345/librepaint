@@ -16,7 +16,7 @@
 #include <kis_image.h>
 #include <nodes/kis_node_manager.h>
 #include <kis_painting_utils.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 
 namespace
 {

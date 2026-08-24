@@ -11,7 +11,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QGraphicsOpacityEffect>
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kactioncollection.h"
 #include "kis_tool_button.h"
 #include "KisHighlightedToolButton.h"

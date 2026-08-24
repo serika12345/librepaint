@@ -22,9 +22,9 @@
 
 #include <kis_types.h>
 
-#include "kis_action.h"
-#include "KisViewManager.h"
-#include "kis_mainwindow_observer.h"
+#include "application/kis_action.h"
+#include "workspace/KisViewManager.h"
+#include "workspace/kis_mainwindow_observer.h"
 #include "kis_signal_compressor.h"
 #include "kis_layer_filter_widget.h"
 #include "kis_signal_auto_connection.h"

@@ -6,18 +6,18 @@
 
 #include "kis_doc2_test.h"
 
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 
 #include <simpletest.h>
 
 #include "document/KisDocument.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "kis_image.h"
 #include "kis_undo_store.h"
 #include "util.h"
-#include <KisView.h>
-#include <KisViewManager.h>
-#include <kis_config.h>
+#include <workspace/KisView.h>
+#include <workspace/KisViewManager.h>
+#include <application/kis_config.h>
 #include <testui.h>
 #include "KritaTransformMaskStubs.h"
 

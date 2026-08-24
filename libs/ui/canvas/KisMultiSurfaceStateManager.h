@@ -6,7 +6,7 @@
 #ifndef KISMULTISURFACESTATEMANAGER_H
 #define KISMULTISURFACESTATEMANAGER_H
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <canvas/KisDisplayConfig.h>
 #include <KisProofingConfiguration.h>
 #include <kis_types.h>

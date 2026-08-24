@@ -18,9 +18,9 @@
 #include <KisAngleSelector.h>
 #include <klocalizedstring.h>
 #include "kis_canvas2.h"
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kactioncollection.h>
-#include <kis_action.h>
+#include <application/kis_action.h>
 #include <canvas/kis_zoom_manager.h>
 #include "kis_image.h"
 #include "kis_paint_device.h"

@@ -13,7 +13,7 @@
 
 #include <kconfig.h>
 #include <kconfiggroup.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_icon.h>
 #include <ksharedconfig.h>
 #include <KisKineticScroller.h>

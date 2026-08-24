@@ -31,7 +31,7 @@
 // KDE includes.
 
 #include <kis_debug.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <klocalizedstring.h>
 
 #include <kis_signal_compressor.h>

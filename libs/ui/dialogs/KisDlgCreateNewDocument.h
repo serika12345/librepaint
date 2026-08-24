@@ -7,7 +7,7 @@
 #ifndef KIS_DLG_CREATE_NEW_DOCUMENT
 #define KIS_DLG_CREATE_NEW_DOCUMENT
 
-#include "KisOpenPane.h"
+#include "workspace/KisOpenPane.h"
 
 class KisDlgCreateNewDocument : public KisOpenPane
 {

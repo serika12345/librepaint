@@ -8,7 +8,7 @@
 #include <QPainter>
 #include <kis_debug.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 WdgLayerSplit::WdgLayerSplit(QWidget* parent)
     : QWidget(parent)

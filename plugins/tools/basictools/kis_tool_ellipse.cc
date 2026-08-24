@@ -15,7 +15,7 @@
 #include <KoCanvasBase.h>
 #include <KoShapeStroke.h>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KoBasicShapeFactory.h>

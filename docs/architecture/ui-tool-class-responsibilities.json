@@ -68,6 +68,28 @@
       "responsibilityArea": "tool-invocation"
     },
     {
+      "name": "KisBookmarkedConfigurationsEditor",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_bookmarked_configurations_editor.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_bookmarked_configurations_editor.cc"
+      ],
+      "consumerPaths": [
+        "libs/ui/widgets/kis_filter_selector_widget.cc"
+      ],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
+      "name": "KisBookmarkedConfigurationsModel",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_bookmarked_configurations_model.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_bookmarked_configurations_model.cc"
+      ],
+      "consumerPaths": [],
+      "responsibilityArea": "tool-invocation"
+    },
+    {
       "name": "KisConverterPaintingInformationBuilder",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_painting_information_builder_adapters.h",
@@ -80,6 +102,25 @@
         "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
       ],
       "responsibilityArea": "input-interpretation"
+    },
+    {
+      "name": "KisPaintopBox",
+      "declarationKind": "class",
+      "header": "libs/ui/tool/kis_paintop_box.h",
+      "implementationPaths": [
+        "libs/ui/tool/kis_paintop_box.cc"
+      ],
+      "consumerPaths": [
+        "libs/libkis/View.cpp",
+        "libs/ui/kis_control_frame.cpp",
+        "libs/ui/kis_favorite_resource_manager.cpp",
+        "libs/ui/workspace/KisMainWindow.cpp",
+        "libs/ui/workspace/KisViewManager.cpp",
+        "plugins/dockers/presetdocker/presetdocker_dock.cpp",
+        "plugins/dockers/presethistory/presethistory_dock.cpp",
+        "plugins/extensions/iostouchui/iostouchui.cpp"
+      ],
+      "responsibilityArea": "tool-invocation"
     },
     {
       "name": "KisSelectionToolHelper",
@@ -126,7 +167,7 @@
         "libs/ui/tool/kis_tool_freehand.cc"
       ],
       "consumerPaths": [
-        "libs/ui/KisViewManager.cpp",
+        "libs/ui/workspace/KisViewManager.cpp",
         "plugins/paintops/defaultpaintops/brush/kis_brushop.cpp",
         "plugins/tools/basictools/default_tools.cc",
         "plugins/tools/basictools/kis_tool_brush.h",

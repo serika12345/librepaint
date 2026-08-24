@@ -29,7 +29,7 @@
 #include <KisImportExportManager.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoFileDialog.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_icon.h>
 #include <KoResource.h>
 #include <KoResourceServer.h>
@@ -37,7 +37,7 @@
 #include <KoResource.h>
 #include <kstandardguiitem.h>
 
-#include <kis_workspace_resource.h>
+#include <workspace/kis_workspace_resource.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <dlg_embed_tags.h>
 #include <KisGlobalResourcesInterface.h>

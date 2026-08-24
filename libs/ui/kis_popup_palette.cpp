@@ -14,7 +14,7 @@
 #include <KisTagModel.h>
 
 #include "kis_canvas2.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_popup_palette.h"
 #include "kis_favorite_resource_manager.h"
 #include "kis_icon_utils.h"
@@ -31,7 +31,7 @@
 #include "kis_acyclic_signal_connector.h"
 #include <kis_paintop_preset.h>
 #include "KisMouseClickEater.h"
-#include <KisPlatformPluginInterfaceFactory.h>
+#include <application/KisPlatformPluginInterfaceFactory.h>
 
 static const int WIDGET_MARGIN = 16;
 static const qreal BORDER_WIDTH = 3.0;

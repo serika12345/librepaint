@@ -10,7 +10,7 @@
 
 #include "kis_shade_selector_line_editor.h"
 #include "kis_double_parse_spin_box.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 KisShadeSelectorLineEditor::KisShadeSelectorLineEditor(QWidget* parent, KisShadeSelectorLine* preview)
     : KisShadeSelectorLineBase(parent)

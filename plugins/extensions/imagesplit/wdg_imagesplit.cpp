@@ -10,7 +10,7 @@
 
 #include <kis_debug.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 WdgImagesplit::WdgImagesplit(QWidget* parent)
     : QWidget(parent)

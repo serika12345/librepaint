@@ -29,7 +29,7 @@
 #include <ksqueezedtextlabel.h>
 
 #include <KisMimeDatabase.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <KisPopupButton.h>
 #include <KisPreExportChecker.h>
 #include <KisImportExportFilterRegistry.h>
@@ -54,9 +54,9 @@
 #include "KisImportExportErrorCode.h"
 #include "KisImportExportFilter.h"
 #include "KisImportExportResizeWidget.h"
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 #include "KisReferenceImagesLayer.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include <kis_image_config.h>
 #include "kis_grid_config.h"
 #include "kis_guides_config.h"

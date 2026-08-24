@@ -6,7 +6,7 @@
 
 #include "recorder_config.h"
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include <QString>
 #include <QDir>

@@ -21,14 +21,14 @@
 #include <kis_action_registry.h>
 #include <kis_canvas2.h>
 #include <kis_icon_utils.h>
-#include <kis_statusbar.h>
+#include <workspace/kis_statusbar.h>
 #include <document/KisDocument.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <metadata/KoDocumentInfo.h>
 #include <kactioncollection.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <KisKineticScroller.h>
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 #include "KoFileDialog.h"
 
 #include <QFileInfo>

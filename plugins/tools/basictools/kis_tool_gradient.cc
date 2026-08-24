@@ -39,11 +39,11 @@
 #include <kis_paint_layer.h>
 
 #include <canvas/kis_canvas2.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_cmb_composite.h>
 #include <kis_slider_spin_box.h>
 #include <kis_cursor.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include "kis_resources_snapshot.h"
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"

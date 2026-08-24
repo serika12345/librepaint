@@ -13,9 +13,9 @@
 #include <QMap>
 #include <QModelIndex>
 
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include <kactioncollection.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <kactioncategory.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>

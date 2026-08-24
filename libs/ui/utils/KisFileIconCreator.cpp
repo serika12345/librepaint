@@ -13,7 +13,7 @@
 
 #include <KisMimeDatabase.h>
 #include <document/KisDocument.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <KisPreviewFileDialog.h>
 #include <QFileInfo>
 

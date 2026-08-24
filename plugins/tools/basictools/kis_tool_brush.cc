@@ -23,7 +23,7 @@
 
 #include <kis_action_registry.h>
 #include "kis_cursor.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_slider_spin_box.h"
 #include "kundo2magicstring.h"
 
@@ -35,7 +35,7 @@
 #include "kis_aspect_ratio_locker.h"
 #include "kis_floating_message.h"
 #include "canvas/kis_canvas2.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 
 #define MAXIMUM_SMOOTHNESS_DISTANCE 1000.0 // 0..1000.0 == weight in gui
 #define MAXIMUM_MAGNETISM 1000

@@ -12,7 +12,7 @@
 
 #include <QPointer>
 #include <QDockWidget>
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 #include <KisVisualColorModel.h>
 
 #include <KoColor.h>

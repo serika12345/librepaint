@@ -12,7 +12,7 @@
 
 #include "KisUiFont.h"
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include <boost/optional.hpp>
 

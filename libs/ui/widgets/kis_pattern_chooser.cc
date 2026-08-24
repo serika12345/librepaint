@@ -21,7 +21,7 @@
 #include "kis_signals_blocker.h"
 
 #include "kis_global.h"
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <resources/KoPattern.h>
 
 #include <ksqueezedtextlabel.h>

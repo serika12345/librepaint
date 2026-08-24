@@ -43,9 +43,9 @@
 #include "widgets/kis_iconwidget.h"
 
 #include "widgets/gradient/KisGradientChooser.h"
-#include "KisViewManager.h"
-#include "kis_config.h"
-#include "kis_paintop_box.h"
+#include "workspace/KisViewManager.h"
+#include "application/kis_config.h"
+#include "tool/kis_paintop_box.h"
 #include "KisDockerHud.h"
 #include "kis_custom_pattern.h"
 #include "widgets/kis_pattern_chooser.h"

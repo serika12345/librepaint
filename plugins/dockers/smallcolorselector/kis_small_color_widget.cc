@@ -29,7 +29,7 @@
 #include <opengl/KisOpenGLModeProber.h>
 #include <canvas/KisDisplayConfig.h>
 
-#include <KisPlatformPluginInterfaceFactory.h>
+#include <application/KisPlatformPluginInterfaceFactory.h>
 
 #include <config-use-surface-color-management-api.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API

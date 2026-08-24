@@ -23,12 +23,12 @@
 #include <kis_icon.h>
 #include <KisImportExportManager.h>
 #include "kis_import_catcher.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "dialogs/kis_dlg_image_properties.h"
 #include "commands/kis_image_commands.h"
-#include "kis_action.h"
-#include "kis_action_manager.h"
+#include "application/kis_action.h"
+#include "application/kis_action_manager.h"
 #include "kis_layer_utils.h"
 #include "kis_canvas2.h"
 

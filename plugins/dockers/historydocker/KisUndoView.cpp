@@ -57,7 +57,7 @@
 #include <QDoubleSpinBox>
 #include <QWidgetAction>
 #include <QGridLayout>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <KisKineticScroller.h>
 
 #include "kis_double_parse_spin_box.h"

@@ -25,7 +25,7 @@
 #include <canvas/KisReferenceImage.h>
 #include <kis_debug.h>
 #include <KisImportExportUtils.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include "document/StoryboardItem.h"
 
 #include "kritaui_export.h"

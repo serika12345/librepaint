@@ -8,12 +8,12 @@
 #include <QObject>
 #include <QAction>
 
-#include <kis_action.h>
-#include <KisMainWindow.h>
-#include <KisPart.h>
+#include <application/kis_action.h>
+#include <workspace/KisMainWindow.h>
+#include <application/KisPart.h>
 #include <document/KisDocument.h>
-#include <KisViewManager.h>
-#include <kis_action_manager.h>
+#include <workspace/KisViewManager.h>
+#include <application/kis_action_manager.h>
 #include <kis_debug.h>
 
 #include <Document.h>

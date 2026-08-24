@@ -11,7 +11,7 @@
 #include <QElapsedTimer>
 #include <QDebug>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include <kis_config_notifier.h>
 
 struct KisOpenglCanvasDebugger::Private

@@ -32,7 +32,7 @@
 #include "kis_elided_label.h"
 
 #include "kis_canvas2.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kactioncollection.h"
 
 #include "kis_debug.h"

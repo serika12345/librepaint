@@ -5,7 +5,7 @@
  */
 #include "Scratchpad.h"
 #include <KoResource.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_gradient_painter.h>
 #include "kis_scratch_pad.h"
 #include "Resource.h"

@@ -14,7 +14,7 @@
 #include "kis_int_parse_spin_box.h"
 
 #include <kis_icon_utils.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_config_notifier.h>
 
 #include <QStandardItem>

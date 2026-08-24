@@ -12,7 +12,7 @@
 #include <QVariant>
 
 #include <QUrl>
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 
 class Imagesplit : public KisActionPlugin
 {

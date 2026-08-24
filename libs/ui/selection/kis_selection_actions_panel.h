@@ -7,7 +7,7 @@
 #ifndef _KIS_SELECTION_ACTIONS_PANEL_H_
 #define _KIS_SELECTION_ACTIONS_PANEL_H_
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_types.h"
 #include <QColor>
 #include <QObject>

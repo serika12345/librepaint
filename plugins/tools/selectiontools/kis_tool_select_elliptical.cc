@@ -12,7 +12,7 @@
 
 #include <QVBoxLayout>
 
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include "kis_painter.h"
 #include "kis_pixel_selection.h"

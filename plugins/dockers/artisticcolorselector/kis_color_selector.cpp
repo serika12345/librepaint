@@ -16,7 +16,7 @@
 #include <QTransform>
 #include <cmath>
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_arcs_constants.h>
 #include <resources/KoGamutMask.h>
 //#include <KisGamutMaskViewConverter.h>

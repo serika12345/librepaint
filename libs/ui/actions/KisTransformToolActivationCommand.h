@@ -10,7 +10,7 @@
 #include <QObject>
 #include <kritaui_export.h>
 #include <kundo2command.h>
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 
 class KRITAUI_EXPORT KisTransformToolActivationCommand :  public QObject, public KUndo2Command
 {

@@ -12,9 +12,9 @@
 #include <utility>
 
 #include <document/KisDocument.h>
-#include <KisMainWindow.h>
-#include <KisPart.h>
-#include <KisViewManager.h>
+#include <workspace/KisMainWindow.h>
+#include <application/KisPart.h>
+#include <workspace/KisViewManager.h>
 #include <KoColorSpaceConstants.h>
 #include <commands/kis_image_layer_add_command.h>
 #include <kis_command_utils.h>

@@ -14,7 +14,7 @@
 #include <KoPointerEvent.h>
 #include <KoShapeController.h>
 #include <KoViewConverter.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <KoCanvasBase.h>
 #include <kis_icon.h>
 #include <kis_canvas2.h>

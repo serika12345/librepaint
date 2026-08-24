@@ -14,7 +14,7 @@
 #include <KisResourceModel.h>
 
 #include "kis_layer.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 #include "kis_global.h"
 #include "kis_debug.h"
@@ -42,14 +42,14 @@
 
 #include "nodes/kis_node_view_color_scheme.h"
 #include <kis_painting_tweaks.h>
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include <QApplication>
 #include "document/KisDocument.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_processing_applicator.h"
 #include <KisImageBarrierLock.h>
 #include "kis_node_uuid_info.h"
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 
 
 struct KisAnimTimelineFramesModel::Private

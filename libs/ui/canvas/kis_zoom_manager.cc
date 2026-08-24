@@ -14,7 +14,7 @@
 #include <ktoggleaction.h>
 #include <kis_debug.h>
 
-#include <KisView.h>
+#include <workspace/KisView.h>
 #include <KoZoomAction.h>
 #include <KoRuler.h>
 #include <KoZoomHandler.h>
@@ -22,12 +22,12 @@
 #include <KoUnit.h>
 
 #include "document/KisDocument.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_coordinates_converter.h"
 #include "kis_image.h"
-#include "kis_statusbar.h"
-#include "kis_config.h"
+#include "workspace/kis_statusbar.h"
+#include "application/kis_config.h"
 #include "krita_utils.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_snap_line_strategy.h"

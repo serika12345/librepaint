@@ -9,7 +9,7 @@
 #include "dlg_canvassize.h"
 #include "canvas/kcanvaspreview.h"
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <KoUnit.h>
 #include <kis_icon.h>
 #include <kis_size_group.h>

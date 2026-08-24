@@ -12,7 +12,7 @@
 
 #include <klocalizedstring.h>
 #include <kis_icon_utils.h>
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "KoFileDialog.h"
 #include "KisMimeDatabase.h"
 

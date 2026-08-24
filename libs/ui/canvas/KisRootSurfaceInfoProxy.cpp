@@ -11,7 +11,7 @@
 #include <QEvent>
 #include <QWidget>
 #include <QWindow>
-#include <KisPlatformPluginInterfaceFactory.h>
+#include <application/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisSRGBSurfaceColorSpaceManager.h>
 #include <surfacecolormanagement/KisSurfaceColorimetry.h>
 

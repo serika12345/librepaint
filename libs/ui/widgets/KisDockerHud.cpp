@@ -15,12 +15,12 @@
 #include <QPointer>
 
 #include <kseparator.h>
-#include "KisMainWindow.h"
-#include "KisPart.h"
+#include "workspace/KisMainWindow.h"
+#include "application/KisPart.h"
 #include "KisDlgListPicker.h"
 #include "kis_utility_title_bar.h"
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_icon_utils.h"
 
 QHash<QString, QList<QString>> KisDockerHud::borrowedWidgetOwners = QHash<QString, QList<QString>>();

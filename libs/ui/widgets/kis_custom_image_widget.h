@@ -10,7 +10,7 @@
 #include "kis_global.h"
 #include "KoUnit.h"
 #include "kis_properties_configuration.h"
-#include "KisOpenPane.h"
+#include "workspace/KisOpenPane.h"
 
 #include <ui_wdgnewimage.h>
 

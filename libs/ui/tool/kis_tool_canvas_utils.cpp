@@ -20,7 +20,7 @@
 #include <KoSvgTextProperties.h>
 #include <KoSvgTextShape.h>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_assert.h>
 #include <kis_floating_message.h>
 #include <kis_layer_utils.h>

@@ -5,12 +5,12 @@
 
   SPDX-License-Identifier: LGPL-2.0-or-later
 */
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "NodeDelegate.h"
 #include "nodes/kis_node_model.h"
 #include "NodeToolTip.h"
 #include "NodeView.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "input/ui/kis_input_manager.h"
 
 #include <QtDebug>

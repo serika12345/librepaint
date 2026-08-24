@@ -16,7 +16,7 @@
 #include <QMessageBox>
 
 #include "document/KisDocument.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_image.h"
 #include "kis_layer.h"
 #include "kis_paint_device.h"

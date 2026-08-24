@@ -11,7 +11,7 @@
 #include <QPointer>
 
 #include <kis_image.h>
-#include "KisView.h"
+#include "workspace/KisView.h"
 #include <KisSelectionTags.h>
 
 #include <kritaui_export.h>

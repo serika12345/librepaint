@@ -25,7 +25,7 @@
 #include "KisAddRemoveStoryboardCommand.h"
 #include "kis_processing_applicator.h"
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 StoryboardModel::StoryboardModel(QObject *parent)
         : QAbstractItemModel(parent)

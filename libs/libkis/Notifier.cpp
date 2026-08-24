@@ -8,7 +8,7 @@
 #include <QApplication>
 
 #include <kis_node.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <kis_config_notifier.h>
 #include "View.h"
 #include "Window.h"

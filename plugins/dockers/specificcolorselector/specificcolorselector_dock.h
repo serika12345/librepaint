@@ -12,7 +12,7 @@
 #include <QPointer>
 
 #include <kis_types.h>
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 #include <kis_canvas2.h>
 
 class KisViewManager;

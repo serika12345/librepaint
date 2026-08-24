@@ -6,11 +6,11 @@
 
 #include "KisDlgCreateNewDocument.h"
 #include "KisImportExportManager.h"
-#include "KisOpenPane.h"
+#include "workspace/KisOpenPane.h"
 #include "dialogs/kis_dlg_preferences.h"
 #include "kis_custom_image_widget.h"
 #include "kis_image_from_clipboard_widget.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 
 
 KisDlgCreateNewDocument::KisDlgCreateNewDocument(QWidget* parent)

@@ -10,7 +10,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfileQuery.h>
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include <canvas/KisDisplayConfig.h>
 #include <KisProofingConfiguration.h>

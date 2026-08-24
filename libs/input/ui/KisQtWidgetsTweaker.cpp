@@ -17,7 +17,7 @@
 
 #include "opengl/kis_opengl_canvas2.h"
 #include "canvas/kis_qpainter_canvas.h"
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 
 Q_GLOBAL_STATIC(KisQtWidgetsTweaker, kqwt_instance)
 

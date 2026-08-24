@@ -6,9 +6,9 @@
 
 #include "KisPasteActionFactories.h"
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_image.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_tool_proxy.h"
 #include "kis_canvas2.h"
 #include "kis_canvas_controller.h"
@@ -39,14 +39,14 @@
 #include "kis_keyframe_channel.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kis_painter.h"
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <document/KisDocument.h>
 #include <KisReferenceImagesLayer.h>
 #include <KoShapeBackgroundCommand.h>
 #include <KoShapeStrokeCommand.h>
 #include <KoShapeBackground.h>
 #include <KoShapeStroke.h>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include <QApplication>
 #include <QClipboard>
 

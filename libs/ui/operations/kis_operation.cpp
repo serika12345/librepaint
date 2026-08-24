@@ -6,7 +6,7 @@
 
 #include "kis_operation.h"
 #include "kis_processing_applicator.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_image.h"
 
 KisOperation::KisOperation(const QString &id)

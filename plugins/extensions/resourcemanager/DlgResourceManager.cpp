@@ -12,8 +12,8 @@
 #include <QItemSelection>
 #include <QPainter>
 
-#include <kis_action.h>
-#include <kis_action_manager.h>
+#include <application/kis_action.h>
+#include <application/kis_action_manager.h>
 #include <KisResourceTypeModel.h>
 #include <KisStorageModel.h>
 #include <KisTagModel.h>

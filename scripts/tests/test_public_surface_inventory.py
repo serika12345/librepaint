@@ -24,6 +24,10 @@ CANVAS_UI_RELOCATION_INVENTORY_PATH = (
 DOCUMENT_STATE_UI_RELOCATION_INVENTORY_PATH = (
     REPO_ROOT / "docs/architecture/document-state-ui-relocations.json"
 )
+APPLICATION_WORKSPACE_TOOL_UI_RELOCATION_INVENTORY_PATH = (
+    REPO_ROOT
+    / "docs/architecture/application-workspace-tool-ui-relocations.json"
+)
 GRAPH_DIRECTORY = REPO_ROOT / "docs/architecture"
 SPEC = importlib.util.spec_from_file_location(
     "check_public_surface_inventory", SCRIPT_PATH
@@ -441,8 +445,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             {
                 "name": "KisApplication",
                 "declarationKind": "class",
-                "header": "libs/ui/KisApplication.h",
-                "implementationPaths": ["libs/ui/KisApplication.cpp"],
+                "header": "libs/ui/application/KisApplication.h",
+                "implementationPaths": [
+                    "libs/ui/application/KisApplication.cpp"
+                ],
             },
         )
         self.assertEqual(
@@ -472,7 +478,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 15)
+        self.assertEqual(len(classes), 18)
         self.assertNotIn("Data", by_name)
         self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertNotIn("NoopActivationPolicy", by_name)
@@ -485,6 +491,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             by_name["KisToolFreehand"]["implementationPaths"],
             ["libs/ui/tool/kis_tool_freehand.cc"],
         )
+        self.assertEqual(
+            by_name["KisPaintopBox"]["implementationPaths"],
+            ["libs/ui/tool/kis_paintop_box.cc"],
+        )
         self.assertIn(
             "plugins/tools/basictools/kis_tool_brush.h",
             by_name["KisToolFreehand"]["consumerPaths"],
@@ -496,7 +506,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 15)
+        self.assertEqual(len(inventory["classes"]), 18)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertNotIn("KisPaintingInformationBuilder", by_name)
         self.assertEqual(
@@ -507,6 +517,9 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertEqual(
             by_name["KisToolShape"]["responsibilityArea"], "tool-invocation"
+        )
+        self.assertEqual(
+            by_name["KisPaintopBox"]["responsibilityArea"], "tool-invocation"
         )
         self.assertEqual(
             by_name["KisToolSelectUiBase"]["responsibilityArea"],
@@ -577,6 +590,26 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             by_name["KisDocument"]["header"],
             "libs/ui/document/KisDocument.h",
         )
+        self.assertEqual(
+            by_name["KisApplication"]["header"],
+            "libs/ui/application/KisApplication.h",
+        )
+        self.assertEqual(
+            by_name["KisMainWindow"]["header"],
+            "libs/ui/workspace/KisMainWindow.h",
+        )
+        self.assertEqual(
+            by_name["KisPaintopBox"]["header"],
+            "libs/ui/tool/kis_paintop_box.h",
+        )
+        self.assertEqual(
+            {
+                entry["header"]
+                for entry in inventory["classes"]
+                if len(Path(entry["header"]).parts) == 3
+            },
+            set(),
+        )
         self.assertNotIn("KisImportExportManager", by_name)
         self.assertNotIn("KisNodeCommandsAdapter", by_name)
         self.assertNotIn("KisNodeJugglerCompressed", by_name)
@@ -597,6 +630,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 DOCUMENT_STATE_UI_RELOCATION_INVENTORY_PATH
             )
         )
+        application_workspace_tool_inventory = (
+            check_public_surface_inventory.load_ui_placement_relocation_inventory(
+                APPLICATION_WORKSPACE_TOOL_UI_RELOCATION_INVENTORY_PATH
+            )
+        )
 
         check_public_surface_inventory.validate_ui_placement_relocations(
             repository_root=REPO_ROOT,
@@ -605,6 +643,9 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
 
         self.assertEqual(len(canvas_inventory["relocations"]), 67)
         self.assertEqual(len(document_inventory["relocations"]), 51)
+        self.assertEqual(
+            len(application_workspace_tool_inventory["relocations"]), 74
+        )
         document_destinations = {
             entry["to"] for entry in document_inventory["relocations"]
         }
@@ -613,6 +654,19 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 check_public_surface_inventory.UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS
             )
             - document_destinations,
+            set(),
+        )
+        application_workspace_tool_destinations = {
+            entry["to"]
+            for entry in application_workspace_tool_inventory["relocations"]
+        }
+        self.assertEqual(
+            set(
+                check_public_surface_inventory.UI_APPLICATION_ORCHESTRATION_CLASS_NESTED_HEADER_PATHS
+                + check_public_surface_inventory.UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS
+                + check_public_surface_inventory.UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS
+            )
+            - application_workspace_tool_destinations,
             set(),
         )
 

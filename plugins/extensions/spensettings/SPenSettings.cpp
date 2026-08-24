@@ -7,16 +7,16 @@
 #include "SPenSettings.h"
 #include <KisSPenSettings.h>
 
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include <kpluginfactory.h>
-#include <kis_action.h>
-#include <KisViewManager.h>
-#include <kis_action_manager.h>
-#include <KisPart.h>
+#include <application/kis_action.h>
+#include <workspace/KisViewManager.h>
+#include <application/kis_action_manager.h>
+#include <application/KisPart.h>
 #include <kactioncollection.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
-#include <kis_preference_set_registry.h>
+#include <workspace/kis_preference_set_registry.h>
 #include <kis_canvas2.h>
 #include <input/ui/kis_input_manager.h>
 #include <kis_canvas_controller.h>

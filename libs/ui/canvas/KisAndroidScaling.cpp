@@ -3,10 +3,10 @@
  */
 #include "canvas/KisAndroidScaling.h"
 
-#include <KisAndroidSplash.h>
+#include <workspace/KisAndroidSplash.h>
 #include <KisAndroidUtils.h>
-#include <KisApplication.h>
-#include <kis_config.h>
+#include <application/KisApplication.h>
+#include <application/kis_config.h>
 
 #include <QGuiApplication>
 

@@ -16,7 +16,7 @@
 #include <kis_layer.h>
 #include <kis_global.h>
 #include <kis_types.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 
 #include <document/kis_image_manager.h>
 #include <nodes/kis_node_manager.h>
@@ -28,8 +28,8 @@
 #include "dlg_canvassize.h"
 #include "dlg_layersize.h"
 #include "kis_filter_strategy.h"
-#include "kis_action.h"
-#include "kis_action_manager.h"
+#include "application/kis_action.h"
+#include "application/kis_action_manager.h"
 
 ImageSize::ImageSize(QObject *parent)
     : KisActionPlugin(parent)

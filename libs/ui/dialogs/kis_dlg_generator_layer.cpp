@@ -21,7 +21,7 @@
 #include <commands/kis_change_filter_command.h>
 #include <commands/KisNodeRenameCommand.h>
 #include <kis_generator_layer.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_command_utils.h>

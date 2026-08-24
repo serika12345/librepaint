@@ -22,7 +22,7 @@
 #include "kis_image.h"
 #include <testutil.h>
 #include "testui.h"
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <document/KisDocument.h>
 #include "kis_transaction.h"
 

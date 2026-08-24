@@ -9,7 +9,7 @@
 
 #include <QPointer>
 #include <QAbstractButton>
-#include "kis_action.h"
+#include "application/kis_action.h"
 
 #include "kritalayerdocker_export.h"
 

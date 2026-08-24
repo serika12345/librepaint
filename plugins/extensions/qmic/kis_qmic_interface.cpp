@@ -9,7 +9,7 @@
 #include "kis_qmic_interface.h"
 
 #include <KisImageSignals.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_algebra_2d.h>
 #include <kis_debug.h>
 #include <kis_image.h>

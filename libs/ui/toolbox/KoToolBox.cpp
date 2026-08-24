@@ -32,7 +32,7 @@
 #include <KisPortingUtils.h>
 
 #include <kactioncollection.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <KoCanvasController.h>
 #include <KoShapeLayer.h>
 

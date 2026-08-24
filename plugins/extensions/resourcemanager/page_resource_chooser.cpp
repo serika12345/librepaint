@@ -8,7 +8,7 @@
 #include "ui_pageresourcechooser.h"
 #include "wdg_resource_preview.h"
 #include "KisResourceItemViewer.h"
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include "dlg_create_bundle.h"
 
 #include <QPainter>

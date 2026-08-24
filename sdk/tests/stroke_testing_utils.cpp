@@ -21,7 +21,7 @@
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_group_layer.h"
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 
 #include <testutil.h>
 #include <KisGlobalResourcesInterface.h>

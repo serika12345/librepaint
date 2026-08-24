@@ -8,7 +8,7 @@
 
 #include <kpluginfactory.h>
 #include <QFileInfo>
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 #include <QInputDialog>
 #include <document/KisDocument.h>

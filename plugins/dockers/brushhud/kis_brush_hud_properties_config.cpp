@@ -9,7 +9,7 @@
 #include <QDomDocument>
 #include <QDomElement>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_dom_utils.h"
 
 

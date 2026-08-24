@@ -17,7 +17,7 @@
 #include <kis_types.h>
 #include <KisResourceItemChooser.h>
 
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 
 class KisCanvasResourceProvider;
 class KisColor;

@@ -7,9 +7,9 @@
 
 #include "canvas/KisDecorationsManager.h"
 
-#include "KisViewManager.h"
-#include "kis_action_manager.h"
-#include "kis_action.h"
+#include "workspace/KisViewManager.h"
+#include "application/kis_action_manager.h"
+#include "application/kis_action.h"
 #include "kis_config_notifier.h"
 
 #include "kis_canvas2.h"

@@ -26,15 +26,15 @@
 #include <KoColorModelStandardIds.h>
 
 #include "kis_image.h"
-#include "kis_config.h"
-#include "KisPart.h"
+#include "application/kis_config.h"
+#include "application/KisPart.h"
 #include "KisOpenGLModeProber.h"
 #include "kis_fixed_paint_device.h"
 #include "KisOpenGLSync.h"
 #include <QVector3D>
 #include "kis_painting_tweaks.h"
 #include "KisOpenGLBufferCreationGuard.h"
-#include <KisPlatformPluginInterfaceFactory.h>
+#include <application/KisPlatformPluginInterfaceFactory.h>
 #include <tiles/kis_tile_data_pool.h>
 
 #ifdef HAVE_OPENEXR

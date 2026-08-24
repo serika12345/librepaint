@@ -9,7 +9,7 @@
 
 #include <QVariant>
 
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 
 namespace KisMetaData
 {

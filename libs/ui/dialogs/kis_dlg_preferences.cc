@@ -45,10 +45,10 @@
 #include <QTimer>
 #endif
 
-#include <KisApplication.h>
+#include <application/KisApplication.h>
 #include <document/KisDocument.h>
 #include <kis_icon.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
@@ -84,15 +84,15 @@
 #include "KoColorSpaceRegistry.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_color_manager.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_image_config.h"
-#include "kis_preference_set_registry.h"
-#include "KisMainWindow.h"
+#include "workspace/kis_preference_set_registry.h"
+#include "workspace/KisMainWindow.h"
 #include "KisMimeDatabase.h"
 #include "kis_file_name_requester.h"
 #include <KisWidgetConnectionUtils.h>
 #include <dialogs/KisFrameRateLimitModel.h>
-#include <KisPlatformPluginInterfaceFactory.h>
+#include <application/KisPlatformPluginInterfaceFactory.h>
 #ifdef Q_OS_LINUX
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <surfacecolormanagement/KisSurfaceColorimetry.h>

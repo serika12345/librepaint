@@ -12,7 +12,7 @@
 
 #include <kritaui_export.h>
 #include <kis_image.h>
-#include "KisView.h"
+#include "workspace/KisView.h"
 #include <kis_shared.h>
 
 class KisCanvasWidgetBase;

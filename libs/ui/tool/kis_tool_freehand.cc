@@ -38,12 +38,12 @@
 
 // Krita/ui
 #include "canvas/kis_abstract_perspective_grid.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_image_config.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_cursor.h"
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <canvas/kis_painting_assistants_decoration.h>
 #include "kis_painting_information_builder_adapters.h"
 #include "kis_tool_freehand_helper.h"

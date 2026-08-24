@@ -9,8 +9,8 @@
 #include <QMetaProperty>
 #include <KoCompositeOpRegistry.h>
 #include <kis_assert.h>
-#include <kis_action.h>
-#include <kis_action_manager.h>
+#include <application/kis_action.h>
+#include <application/kis_action_manager.h>
 #include <kis_cmb_composite.h>
 
 namespace KisWidgetConnectionUtils

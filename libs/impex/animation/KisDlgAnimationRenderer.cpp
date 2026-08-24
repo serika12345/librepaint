@@ -33,7 +33,7 @@
 #include <kis_signals_blocker.h>
 #include <document/KisDocument.h>
 #include <QHBoxLayout>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_file_name_requester.h>
 #include <KoDialog.h>
 #include "kis_slider_spin_box.h"

@@ -7,7 +7,7 @@
 #ifndef CLONESARRAY_H
 #define CLONESARRAY_H
 
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 #include <kis_types.h>
 
 class ClonesArray : public KisActionPlugin

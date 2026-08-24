@@ -8,7 +8,7 @@
 
 #include <QPainterPath>
 
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include <KisOptionCollectionWidget.h>
 #include <KoCanvasBase.h>

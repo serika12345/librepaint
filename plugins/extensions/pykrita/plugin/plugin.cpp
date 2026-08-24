@@ -10,7 +10,7 @@
 #include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <kis_preference_set_registry.h>
+#include <workspace/kis_preference_set_registry.h>
 #include "pyqtpluginsettings.h"
 
 #include <QCoreApplication>

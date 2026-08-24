@@ -16,7 +16,7 @@
 #include <functional>
 
 #include "KoChannelInfo.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 
 

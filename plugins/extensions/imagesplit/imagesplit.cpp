@@ -21,12 +21,12 @@
 #include <KoFileDialog.h>
 #include <document/KisDocument.h>
 
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <kis_debug.h>
 #include <kis_types.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_image.h>
-#include <kis_action.h>
+#include <application/kis_action.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
 #include <kis_paint_device.h>

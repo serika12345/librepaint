@@ -16,13 +16,13 @@
 #include "WGSelectorWidgetBase.h"
 #include "WGShadeSelector.h"
 
-#include <kis_action.h>
-#include <kis_action_manager.h>
+#include <application/kis_action.h>
+#include <application/kis_action_manager.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_display_color_converter.h>
 #include <kis_signal_compressor.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <KisVisualColorSelector.h>
 
 #include <QVector4D>

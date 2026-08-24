@@ -12,7 +12,7 @@
 #include <kis_assert.h>
 #include <kis_config_notifier.h>
 
-#include <KisPlatformPluginInterfaceFactory.h>
+#include <application/KisPlatformPluginInterfaceFactory.h>
 #include <surfacecolormanagement/KisSurfaceColorManagerInterface.h>
 
 

@@ -63,7 +63,7 @@
 #include <KoColorSet.h>
 
 #include "document/KisDocument.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_kra_tags.h"
 #include "kis_kra_utils.h"
 #include "kis_kra_load_visitor.h"

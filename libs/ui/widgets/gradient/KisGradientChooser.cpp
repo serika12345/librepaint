@@ -26,7 +26,7 @@
 #include <KisResourceItemChooser.h>
 #include <KoResourceServerProvider.h>
 #include <kis_icon.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_signals_blocker.h>
 #include "KisSegmentGradientEditor.h"
 #include "canvas/kis_canvas_resource_provider.h"

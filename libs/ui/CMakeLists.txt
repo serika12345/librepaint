@@ -88,21 +88,21 @@ set(kritaui_LIB_SRCS
     flake/kis_shape_selection_model.cpp
     flake/kis_take_all_shapes_command.cpp
 
-    kis_bookmarked_configurations_editor.cc
-    kis_bookmarked_configurations_model.cc
-    kis_bookmarked_filter_configurations_model.cc
+    tool/kis_bookmarked_configurations_editor.cc
+    tool/kis_bookmarked_configurations_model.cc
+    tool/kis_bookmarked_filter_configurations_model.cc
     animation/KisPlaybackEngine.cpp
     animation/KisPlaybackEngineQT.cpp
     KisPresetShadowUpdater.cpp
     canvas/kis_canvas_resource_provider.cpp
     kis_derived_resources.cpp
-    kis_config.cc
+    application/kis_config.cc
     kis_control_frame.cpp
     canvas/KisDisplayConfig.cpp
     kis_custom_pattern.cc
     document/kis_file_layer.cpp
     document/kis_change_file_layer_command.h
-    kis_splash_screen.cpp
+    workspace/kis_splash_screen.cpp
     document/kis_filter_manager.cc
     kis_filters_model.cc
     document/kis_image_manager.cc
@@ -126,24 +126,24 @@ set(kritaui_LIB_SRCS
     selection/kis_selection_actions_panel_handle.cpp
     selection/kis_selection_actions_panel_button.cpp
     canvas/KisDecorationsManager.cpp
-    kis_paintop_box.cc
+    tool/kis_paintop_box.cc
     kis_popup_palette.cpp
-    kis_preference_set_registry.cpp
-    KisResourceServerProvider.cpp
+    workspace/kis_preference_set_registry.cpp
+    application/KisResourceServerProvider.cpp
     KisSelectedShapesProxy.cpp
     canvas/kis_selection_decoration.cc
     selection/kis_selection_manager.cc
     selection/KisSelectionActionsAdapter.cpp
-    kis_statusbar.cc
+    workspace/kis_statusbar.cc
     canvas/kis_zoom_manager.cc
     kis_favorite_resource_manager.cpp
-    kis_workspace_resource.cpp
-    kis_action.cpp
-    kis_action_manager.cpp
-    KisActionPlugin.cpp
+    workspace/kis_workspace_resource.cpp
+    application/kis_action.cpp
+    application/kis_action_manager.cpp
+    application/KisActionPlugin.cpp
     canvas/kis_canvas_controls_manager.cpp
     nodes/kis_multinode_property.cpp
-    KisWelcomePageWidget.cpp
+    workspace/KisWelcomePageWidget.cpp
     KisUiFont.cpp
     canvas/KisIdleTasksManager.cpp
     canvas/KisIdleTaskStrokeStrategy.cpp
@@ -307,43 +307,43 @@ set(kritaui_LIB_SRCS
     canvas/kcanvaspreview.cc
     canvas/kis_abstract_perspective_grid.cpp
 
-    KisPlatformPluginInterfaceFactory.cpp
-    KisApplication.cpp
-    KisDetailsPane.cpp
+    application/KisPlatformPluginInterfaceFactory.cpp
+    application/KisApplication.cpp
+    workspace/KisDetailsPane.cpp
     document/KisDocument.cpp
     KisImportExportColorSpaceDialog.cpp
     KisImportExportResizeWidget.cpp
     document/KisCloneDocumentStroke.cpp
     nodes/kis_node_view_color_scheme.cpp
     kis_async_action_feedback.cpp
-    KisMainWindow.cpp
-    KisOpenPane.cpp
-    KisPart.cpp
-    KisTemplate.cpp
-    KisTemplateCreateDia.cpp
-    KisTemplateGroup.cpp
-    KisTemplates.cpp
-    KisTemplatesPane.cpp
-    KisTemplateTree.cpp
+    workspace/KisMainWindow.cpp
+    workspace/KisOpenPane.cpp
+    application/KisPart.cpp
+    workspace/KisTemplate.cpp
+    workspace/KisTemplateCreateDia.cpp
+    workspace/KisTemplateGroup.cpp
+    workspace/KisTemplates.cpp
+    workspace/KisTemplatesPane.cpp
+    workspace/KisTemplateTree.cpp
     KisUndoActionsUpdateManager.cpp
-    KisView.cpp
-    KisCanvasWindow.cpp
+    workspace/KisView.cpp
+    workspace/KisCanvasWindow.cpp
 
     thememanager.cpp
 
-    kis_mainwindow_observer.cpp
-    KisViewManager.cpp
+    workspace/kis_mainwindow_observer.cpp
+    workspace/KisViewManager.cpp
     canvas/kis_mirror_manager.cpp
 
     qtsingleapplication/qtlocalpeer.cpp
     qtsingleapplication/qtsingleapplication.cpp
 
-    KisApplicationArguments.cpp
+    application/KisApplicationArguments.cpp
 
 
-    KisWindowLayoutResource.cpp
-    KisWindowLayoutManager.cpp
-    KisSessionResource.cpp
+    workspace/KisWindowLayoutResource.cpp
+    workspace/KisWindowLayoutManager.cpp
+    workspace/KisSessionResource.cpp
 
     canvas/KisReferenceImagesDecoration.cpp
     canvas/KisReferenceImage.cpp
@@ -356,7 +356,7 @@ set(kritaui_LIB_SRCS
     document/StoryboardItem.cpp
 
     nodes/KisNodeActivationActionCreatorVisitor.cpp
-    KisAndroidFileProxy.cpp
+    application/KisAndroidFileProxy.cpp
 )
 
 if (KSeExpr_FOUND)
@@ -411,7 +411,7 @@ endif()
 
 if(ANDROID)
     list(APPEND kritaui_LIB_SRCS
-        KisAndroidSplash.cpp
+        workspace/KisAndroidSplash.cpp
     )
 endif()
 
@@ -489,7 +489,7 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     layerstyles/wdgTexture.ui
     layerstyles/wdgKisLayerStyleAngleSelector.ui
 
-    wdgsplash.ui
+    workspace/wdgsplash.ui
     imagesize/wdg_imagesize.ui
     imagesize/wdg_layersize.ui
     imagesize/wdg_canvassize.ui
@@ -587,7 +587,7 @@ if(WIN32)
         dialogs/KisDlgCustomTabletResolution.cpp
         opengl/KisScreenInformationAdapter.cpp
         dialogs/kis_dlg_preferences.cc # for WinTab switching API
-        kis_config.cc # for logging the WinTab API
+        application/kis_config.cc # for logging the WinTab API
         PROPERTIES
         INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )

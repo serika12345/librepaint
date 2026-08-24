@@ -34,8 +34,8 @@
 #include <KoPointerEvent.h>
 #include <KoColorProfile.h>
 #include <KoSelection.h>
-#include <KisPart.h>
-#include <KisMainWindow.h>
+#include <application/KisPart.h>
+#include <workspace/KisMainWindow.h>
 
 #include <filter/kis_filter_configuration.h>
 #include <filter/kis_filter.h>
@@ -59,7 +59,7 @@
 #include <KisMimeDatabase.h>
 #include <kis_clipboard.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_cursor.h"
 #include "dialogs/kis_dlg_adj_layer_props.h"
 #include "dialogs/kis_dlg_adjustment_layer.h"
@@ -77,8 +77,8 @@
 #include "document/kis_change_file_layer_command.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "selection/kis_selection_manager.h"
-#include "kis_statusbar.h"
-#include "KisViewManager.h"
+#include "workspace/kis_statusbar.h"
+#include "workspace/KisViewManager.h"
 #include "canvas/kis_zoom_manager.h"
 #include "canvas/kis_canvas2.h"
 #include "widgets/kis_meta_data_merge_strategy_chooser_widget.h"
@@ -86,8 +86,8 @@
 #include "kis_progress_widget.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "nodes/kis_node_manager.h"
-#include "kis_action.h"
-#include "kis_action_manager.h"
+#include "application/kis_action.h"
+#include "application/kis_action_manager.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kis_signal_compressor_with_param.h"
 #include "kis_abstract_projection_plane.h"

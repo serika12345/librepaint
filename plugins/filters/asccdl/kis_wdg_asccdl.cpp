@@ -5,7 +5,7 @@
  */
 
 #include "kis_wdg_asccdl.h"
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_color_button.h>
 #include <kis_filter_configuration.h>
 #include <KisVisualColorSelectorShape.h>

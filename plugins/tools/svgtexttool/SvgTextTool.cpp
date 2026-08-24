@@ -38,7 +38,7 @@
 
 #include <klocalizedstring.h>
 
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <kis_canvas2.h>
 #include <KSharedConfig>
 #include "kis_assert.h"
@@ -68,10 +68,10 @@
 #include <KisResourceModel.h>
 
 #include <document/KisTextPropertiesManager.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <KisQQuickWidget.h>
 #include <QQmlError>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 
 #include "KisHandlePainterHelper.h"
 #include "kis_tool_utils.h"

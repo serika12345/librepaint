@@ -8,7 +8,7 @@
 #define TEXTPROPERTIESDOCK_H
 
 #include <QDockWidget>
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 #include <QPointer>
 
 #include <kis_canvas2.h>

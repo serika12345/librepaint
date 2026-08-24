@@ -9,12 +9,12 @@
 #include <KoPointerEvent.h>
 #include <KoShapeController.h>
 #include <KoViewConverter.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <KoCanvasBase.h>
 #include <kis_icon.h>
 #include <kis_canvas2.h>
 #include <kis_cubic_curve.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_config_notifier.h>
 #include <kis_image_config.h>
 #include <brushengine/kis_paintop_preset.h>

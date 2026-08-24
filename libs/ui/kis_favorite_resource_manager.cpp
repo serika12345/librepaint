@@ -15,10 +15,10 @@
 #include <kconfig.h>
 #include "kis_favorite_resource_manager.h"
 #include "kis_popup_palette.h"
-#include "kis_paintop_box.h"
-#include "KisViewManager.h"
+#include "tool/kis_paintop_box.h"
+#include "workspace/KisViewManager.h"
 #include <KisPaintResourceServerProvider.h>
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include <kis_paintop_preset.h>
 #include <KisSortedHistoryList.h>

@@ -19,20 +19,20 @@
 #include <kis_undo_adapter.h>
 #include <kis_transaction.h>
 #include <kis_annotation.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_global.h>
 #include <kis_image.h>
 #include <nodes/kis_node_manager.h>
 #include <kis_layer.h>
 #include <kis_types.h>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_paint_device.h>
-#include <kis_action.h>
+#include <application/kis_action.h>
 #include <kis_group_layer.h>
 
 #include <dialogs/KisColorSpaceConversionDialog.h>
-#include "kis_action_manager.h"
+#include "application/kis_action_manager.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(ColorSpaceConversionFactory, "kritacolorspaceconversion.json", registerPlugin<ColorSpaceConversion>();)
 

@@ -15,6 +15,7 @@ REPO_ROOT = SCRIPT_DIRECTORY.parents[1]
 PLATFORMS = ("macos", "linux", "ios", "android", "windows")
 HEADER_SUFFIXES = frozenset({".h", ".hh", ".hpp"})
 SOURCE_SUFFIXES = HEADER_SUFFIXES | frozenset({".c", ".cc", ".cpp", ".cxx", ".m", ".mm"})
+UI_PLACEMENT_SUFFIXES = SOURCE_SUFFIXES | frozenset({".ui"})
 PRODUCTION_SOURCE_DIRECTORIES = (
     "krita",
     "libs",
@@ -39,6 +40,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/painting": ("libs/painting/tests/TestPaintingBoundary.cpp",),
     "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
     "libs/ui": (
+        "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
         "libs/ui/tests/TestCanvasUiPublicHeaders.cpp",
         "libs/ui/tests/TestDocumentStateUiPublicHeaders.cpp",
     ),
@@ -89,11 +91,56 @@ UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/selection/kis_selection_actions_panel.h",
     "libs/ui/selection/kis_selection_manager.h",
 )
+UI_APPLICATION_ORCHESTRATION_CLASS_NESTED_HEADER_PATHS = (
+    "libs/ui/application/KisActionPlugin.h",
+    "libs/ui/application/KisApplication.h",
+    "libs/ui/application/KisApplicationArguments.h",
+    "libs/ui/application/KisPart.h",
+    "libs/ui/application/KisPlatformPluginInterfaceFactory.h",
+    "libs/ui/application/KisResourceServerProvider.h",
+    "libs/ui/application/kis_action.h",
+    "libs/ui/application/kis_action_manager.h",
+    "libs/ui/application/kis_config.h",
+)
+UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS = (
+    "libs/ui/tool/kis_bookmarked_configurations_editor.h",
+    "libs/ui/tool/kis_bookmarked_configurations_model.h",
+    "libs/ui/tool/kis_paintop_box.h",
+)
+UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS = (
+    "libs/ui/workspace/KisAndroidSplash.h",
+    "libs/ui/workspace/KisMainWindow.h",
+    "libs/ui/workspace/KisSessionResource.h",
+    "libs/ui/workspace/KisTemplateCreateDia.h",
+    "libs/ui/workspace/KisTemplateGroup.h",
+    "libs/ui/workspace/KisTemplateTree.h",
+    "libs/ui/workspace/KisView.h",
+    "libs/ui/workspace/KisViewManager.h",
+    "libs/ui/workspace/KisWelcomePageWidget.h",
+    "libs/ui/workspace/KisWindowLayoutResource.h",
+    "libs/ui/workspace/kis_mainwindow_observer.h",
+    "libs/ui/workspace/kis_preference_set_registry.h",
+    "libs/ui/workspace/kis_splash_screen.h",
+    "libs/ui/workspace/kis_statusbar.h",
+    "libs/ui/workspace/kis_workspace_resource.h",
+)
 UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH = {
+    **{
+        path: "application-orchestration"
+        for path in UI_APPLICATION_ORCHESTRATION_CLASS_NESTED_HEADER_PATHS
+    },
     **{path: "canvas-display" for path in UI_CANVAS_CLASS_NESTED_HEADER_PATHS},
     **{
         path: "document-state"
         for path in UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS
+    },
+    **{
+        path: "tool-invocation"
+        for path in UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS
+    },
+    **{
+        path: "window-workspace"
+        for path in UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS
     },
 }
 UI_CLASS_NESTED_HEADER_PATHS = tuple(
@@ -102,6 +149,7 @@ UI_CLASS_NESTED_HEADER_PATHS = tuple(
 UI_PLACEMENT_RELOCATION_PATHS = (
     "docs/architecture/canvas-presentation-ui-relocations.json",
     "docs/architecture/document-state-ui-relocations.json",
+    "docs/architecture/application-workspace-tool-ui-relocations.json",
 )
 UI_PLACEMENT_RELOCATION_SPECS = {
     "docs/architecture/canvas-presentation-ui-relocations.json": {
@@ -117,6 +165,14 @@ UI_PLACEMENT_RELOCATION_SPECS = {
             "document-composition": "document",
             "node-presentation": "nodes",
             "selection-presentation": "selection",
+        },
+    },
+    "docs/architecture/application-workspace-tool-ui-relocations.json": {
+        "scope": "r1-g6g-application-workspace-tool-ui-placement",
+        "placementAreas": {
+            "application-orchestration": "application",
+            "tool-invocation": "tool",
+            "window-workspace": "workspace",
         },
     },
 }
@@ -434,7 +490,7 @@ PLUGIN_SERVICE_TYPE_OWNERS = (
         "serviceType": "Krita/ApplicationPlugin",
         "featureOwner": "application-extension",
         "runtimeConsumer": "KisMainWindow",
-        "evidence": "libs/ui/KisMainWindow.cpp",
+        "evidence": "libs/ui/workspace/KisMainWindow.cpp",
     },
     {
         "serviceType": "Krita/ColorSpace",
@@ -494,7 +550,7 @@ PLUGIN_SERVICE_TYPE_OWNERS = (
         "serviceType": "Krita/PlatformPlugin",
         "featureOwner": "platform-adapter",
         "runtimeConsumer": "KisPlatformPluginInterfaceFactory",
-        "evidence": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+        "evidence": "libs/ui/application/KisPlatformPluginInterfaceFactory.cpp",
     },
     {
         "serviceType": "Krita/Shape",
@@ -512,7 +568,7 @@ PLUGIN_SERVICE_TYPE_OWNERS = (
         "serviceType": "Krita/ViewPlugin",
         "featureOwner": "view-extension",
         "runtimeConsumer": "KisMainWindow",
-        "evidence": "libs/ui/KisMainWindow.cpp",
+        "evidence": "libs/ui/workspace/KisMainWindow.cpp",
     },
 )
 
@@ -1201,9 +1257,9 @@ def validate_ui_placement_relocations(
                 raise PublicSurfaceError(
                     f"destination does not match {placement_area}: {destination}"
                 )
-            if source_path.suffix not in SOURCE_SUFFIXES:
+            if source_path.suffix not in UI_PLACEMENT_SUFFIXES:
                 raise PublicSurfaceError(
-                    f"relocation path is not a C/C++ source: {source}"
+                    f"relocation path is not a C/C++ source or UI form: {source}"
                 )
             if source in all_sources or destination in all_destinations:
                 raise PublicSurfaceError(
@@ -1280,6 +1336,20 @@ def validate_ui_placement_relocations(
             f"inventories: {missing_classified_paths}"
         )
 
+    root_class_headers = sorted(
+        {
+            _require_string(entry.get("header"), "UI class header")
+            for entry in _require_array(ui_class_inventory.get("classes"), "UI classes")
+            if isinstance(entry, dict)
+            and len(PurePosixPath(str(entry.get("header", ""))).parts) == 3
+        }
+    )
+    if root_class_headers:
+        raise PublicSurfaceError(
+            "classified public UI class headers remain directly under libs/ui: "
+            f"{root_class_headers}"
+        )
+
     document_destinations = destinations_by_inventory[
         "docs/architecture/document-state-ui-relocations.json"
     ]
@@ -1313,6 +1383,61 @@ def validate_ui_placement_relocations(
         raise PublicSurfaceError(
             "document-state UI class evidence is missing from its relocation "
             f"inventory: {missing_document_paths}"
+        )
+
+    application_workspace_tool_destinations = destinations_by_inventory[
+        "docs/architecture/application-workspace-tool-ui-relocations.json"
+    ]
+    application_workspace_tool_areas = {
+        "application-orchestration",
+        "tool-invocation",
+        "window-workspace",
+    }
+    application_workspace_tool_classes = [
+        _require_object(entry, "application, workspace, or tool UI class")
+        for entry in _require_array(ui_class_inventory.get("classes"), "UI classes")
+        if isinstance(entry, dict)
+        and entry.get("responsibilityArea") in application_workspace_tool_areas
+    ]
+    expected_application_workspace_tool_headers = set(
+        UI_APPLICATION_ORCHESTRATION_CLASS_NESTED_HEADER_PATHS
+        + UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS
+        + UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS
+    )
+    application_workspace_tool_headers = {
+        _require_string(
+            entry.get("header"), "application, workspace, or tool UI class header"
+        )
+        for entry in application_workspace_tool_classes
+    }
+    if (
+        len(application_workspace_tool_classes) != 29
+        or application_workspace_tool_headers
+        != expected_application_workspace_tool_headers
+    ):
+        raise PublicSurfaceError(
+            "application, workspace, and tool UI classes do not match their "
+            "classified nested paths"
+        )
+    application_workspace_tool_class_paths = set(
+        application_workspace_tool_headers
+    )
+    for entry in application_workspace_tool_classes:
+        application_workspace_tool_class_paths.update(
+            _require_array(
+                entry.get("implementationPaths"),
+                f"implementation paths for {entry.get('name')}",
+            )
+        )
+    missing_application_workspace_tool_paths = sorted(
+        application_workspace_tool_class_paths
+        - application_workspace_tool_destinations
+    )
+    if missing_application_workspace_tool_paths:
+        raise PublicSurfaceError(
+            "application, workspace, and tool UI class evidence is missing "
+            "from its relocation inventory: "
+            f"{missing_application_workspace_tool_paths}"
         )
 
 

@@ -22,7 +22,7 @@
 #include "kis_image.h"
 #include "kis_wrapped_rect.h"
 #include "document/KisDocument.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "KisReferenceImagesLayer.h"
 #include "KisScreenColorSampler.h"
 #include "KisDlgInternalColorSelector.h"

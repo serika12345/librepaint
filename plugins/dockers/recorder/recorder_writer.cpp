@@ -13,7 +13,7 @@
 #include <document/KisDocument.h>
 #include <KoToolProxy.h>
 #include "kis_tool_proxy.h"
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 
 #include <QDir>
 #include <QDirIterator>

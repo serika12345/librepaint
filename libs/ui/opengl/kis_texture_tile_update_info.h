@@ -10,7 +10,7 @@
 #include <QThreadStorage>
 #include <QScopedArrayPointer>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include <tiles/kis_tile_data_buffer.h>

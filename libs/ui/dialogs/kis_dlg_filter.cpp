@@ -16,9 +16,9 @@
 #include <kis_node.h>
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <KisInputActionGroup.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include "kis_selection.h"
 #include <commands/kis_node_commands_adapter.h>

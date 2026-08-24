@@ -17,7 +17,7 @@
 #include "kis_datamanager.h"
 #include "kis_config_notifier.h"
 #include "kis_debug.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_image_config.h"
 
 #include <memory>

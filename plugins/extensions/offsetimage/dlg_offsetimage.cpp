@@ -8,7 +8,7 @@
 
 #include <klocalizedstring.h>
 #include <kis_debug.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include "kis_document_aware_spin_box_unit_manager.h"
 

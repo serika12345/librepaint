@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include "KisMainWindow.h" // XXX: remove
+#include "workspace/KisMainWindow.h" // XXX: remove
 
 #include <KisMimeDatabase.h>
 
@@ -56,7 +56,7 @@
 #include <io/kis_document_io_presentation.h>
 #include <kdesktopfile.h>
 #include <kconfiggroup.h>
-#include <KisView.h>
+#include <workspace/KisView.h>
 
 #include <QTextBrowser>
 #include <QApplication>
@@ -82,7 +82,7 @@
 
 // Krita Image
 #include <kis_image_animation_interface.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <flake/kis_shape_layer.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
@@ -101,20 +101,20 @@
 #include "kis_selection_mask.h"
 
 // Local
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_clipboard.h"
 #include "widgets/kis_custom_image_widget.h"
 #include "canvas/kis_canvas2.h"
 #include "flake/kis_shape_controller.h"
 #include "widgets/kis_progress_widget.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "KisResourceServerProvider.h"
+#include "application/KisResourceServerProvider.h"
 #include "nodes/kis_node_manager.h"
-#include "KisPart.h"
-#include "KisApplication.h"
+#include "application/KisPart.h"
+#include "application/KisApplication.h"
 #include "document/KisDocument.h"
 #include "KisImportExportManager.h"
-#include "KisView.h"
+#include "workspace/KisView.h"
 #include "kis_grid_config.h"
 #include "kis_guides_config.h"
 #include "KisImageBarrierLock.h"

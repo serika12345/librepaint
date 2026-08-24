@@ -8,7 +8,7 @@
 #define DBEXPLORER_H
 
 #include <QVariant>
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 
 class KUndo2MagicString;
 

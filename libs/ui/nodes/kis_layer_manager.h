@@ -13,7 +13,7 @@
 #include "kis_generator_layer.h"
 #include "kis_selection.h"
 #include "kis_types.h"
-#include "KisView.h"
+#include "workspace/KisView.h"
 #include <filter/kis_filter_configuration.h>
 
 class KisViewManager;

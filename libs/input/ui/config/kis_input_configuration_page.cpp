@@ -19,7 +19,7 @@
 #include "kis_edit_profiles_dialog.h"
 #include "kis_input_profile_model.h"
 #include "kis_input_configuration_page_item.h"
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_signals_blocker.h>
 
 

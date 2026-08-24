@@ -18,7 +18,7 @@
 #include <KisResourceModel.h>
 #include <QApplication>
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <klocalizedstring.h>
 #include <KisKineticScroller.h>
 

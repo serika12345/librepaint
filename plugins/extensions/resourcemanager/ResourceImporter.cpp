@@ -16,13 +16,13 @@
 #include <KisResourceModel.h>
 #include <kis_assert.h>
 #include <KisResourceTypes.h>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include <KisResourceTypeModel.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisMimeDatabase.h>
 #include <KisStorageModel.h>
 #include <KisResourceLocator.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <KisResourceUserOperations.h>
 
 #include "DlgResourceTypeForFile.h"

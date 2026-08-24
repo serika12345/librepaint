@@ -16,7 +16,7 @@
 #include <QString>
 
 #include <kpagedialog.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include "kis_cie_tongue_widget.h"
 #include "kis_global.h"

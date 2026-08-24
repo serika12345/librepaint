@@ -19,7 +19,7 @@
 #include <KoChannelInfo.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_properties_configuration.h>
 
 #include <config-tiff.h>

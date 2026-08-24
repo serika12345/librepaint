@@ -11,9 +11,9 @@
 #include <QMessageBox>
 #include <memory>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <KoJsonTrader.h>
-#include <kis_action.h>
+#include <application/kis_action.h>
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>

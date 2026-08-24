@@ -13,7 +13,7 @@
 #include <KisImageSignals.h>
 #include <kis_signals_blocker.h>
 
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include <commands_new/KisChangeCloneLayersCommand.h>
 
 struct KisDlgChangeCloneSource::Private

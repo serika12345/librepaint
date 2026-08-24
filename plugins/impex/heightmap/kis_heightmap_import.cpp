@@ -30,7 +30,7 @@
 #include <kis_transaction.h>
 #include <kis_iterator_ng.h>
 #include <kis_random_accessor_ng.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_image_config.h>
 #include <kis_cursor_override_hijacker.h>
 

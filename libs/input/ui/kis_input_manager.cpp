@@ -23,10 +23,10 @@
 
 #include "kis_tool_proxy.h"
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_config_notifier.h>
 #include <kis_canvas2.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_favorite_resource_manager.h>
 

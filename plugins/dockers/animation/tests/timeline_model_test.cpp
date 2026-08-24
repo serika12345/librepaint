@@ -18,7 +18,7 @@
 #include "kis_image_animation_interface.h"
 #include "document/KisDocument.h"
 #include "canvas/KisNodeDisplayModeAdapter.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "kis_name_server.h"
 #include "flake/kis_shape_controller.h"
 #include "kis_undo_adapter.h"

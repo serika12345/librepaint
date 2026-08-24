@@ -18,15 +18,15 @@
 #include <KoUpdater.h>
 #include <KoColorSpace.h>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_types.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_layer.h>
-#include <kis_statusbar.h>
+#include <workspace/kis_statusbar.h>
 #include <nodes/kis_node_manager.h>
 #include <widgets/kis_progress_widget.h>
-#include <kis_action.h>
+#include <application/kis_action.h>
 #include <KisCursorOverrideLock.h>
 
 #include "kis_channel_separator.h"

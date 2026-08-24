@@ -22,8 +22,8 @@
 
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "KisViewManager.h"
-#include "KisView.h"
+#include "workspace/KisViewManager.h"
+#include "workspace/KisView.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas_controller.h"
 #include "kis_algebra_2d.h"

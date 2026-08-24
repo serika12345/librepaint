@@ -13,10 +13,10 @@
 #include <KoCanvasBase.h>
 #include <KoCanvasController.h>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include "kis_canvas2.h"
 #include "kis_cursor.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kundo2magicstring.h"
 
 #include "KoProperties.h"

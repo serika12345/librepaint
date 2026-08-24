@@ -14,7 +14,7 @@
 
 #include "nodes/kis_node_manager.h"
 #include "kis_count_visitor.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_layer.h"
@@ -23,8 +23,8 @@
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_group_layer.h"
 #include "kis_progress_widget.h"
-#include "kis_config.h"
-#include "KisPart.h"
+#include "application/kis_config.h"
+#include "application/KisPart.h"
 #include "kis_shape_layer.h"
 
 struct KisImportCatcher::Private

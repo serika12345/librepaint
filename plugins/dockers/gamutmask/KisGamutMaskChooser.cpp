@@ -20,7 +20,7 @@
 #include <KisResourceModel.h>
 #include <KisResourceThumbnailCache.h>
 #include <kis_icon_utils.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include "KisPopupButton.h"
 #include <KisResourceModelProvider.h>
 #include <KisResourceMetaDataModel.h>

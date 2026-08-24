@@ -24,7 +24,7 @@
 #include "kis_canvas2.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_common_colors_recalculation_runner.h"
 
 

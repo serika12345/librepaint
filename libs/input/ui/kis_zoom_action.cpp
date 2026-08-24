@@ -17,9 +17,9 @@
 #include <kis_canvas_controller.h>
 #include <KoViewTransformStillPoint.h>
 #include "kis_cursor.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_input_manager.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 
 class KisZoomAction::Private

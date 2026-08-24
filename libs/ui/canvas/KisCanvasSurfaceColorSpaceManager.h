@@ -10,7 +10,7 @@
 
 #include <canvas/KisDisplayConfig.h>
 #include <kis_types.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 class KoColorProfile;
 class KisSurfaceColorManagerInterface;

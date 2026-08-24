@@ -9,12 +9,12 @@
 
 #include "KoCanvasController.h"
 #include "dialogs/kis_dlg_preferences.h"
-#include "kis_action.h"
-#include "kis_action_manager.h"
+#include "application/kis_action.h"
+#include "application/kis_action_manager.h"
 #include "kis_config_notifier.h"
 #include "kis_canvas_widget_base.h"
 #include "document/KisDocument.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_icon_utils.h"
@@ -36,8 +36,8 @@
 #include <klocalizedstring.h>
 #include <ktoggleaction.h>
 #include <kconfiggroup.h>
-#include <KisPart.h>
-#include <KisMainWindow.h>
+#include <application/KisPart.h>
+#include <workspace/KisMainWindow.h>
 
 #include <QApplication>
 #include <QPainter>

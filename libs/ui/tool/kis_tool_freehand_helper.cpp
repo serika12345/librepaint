@@ -26,7 +26,7 @@
 #include "kis_update_time_monitor.h"
 #include "kis_stabilized_events_sampler.h"
 #include "KisStabilizerDelayedPaintHelper.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 #include "kis_random_source.h"
 #include "KisPerStrokeRandomSource.h"

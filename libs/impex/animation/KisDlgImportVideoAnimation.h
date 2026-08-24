@@ -15,7 +15,7 @@
 #include <QJsonObject>
 #include "KoDialog.h"
 #include <KoColorProfileConstants.h>
-#include "KisView.h"
+#include "workspace/KisView.h"
 #include "kis_properties_configuration.h"
 #include "kritaui_export.h"
 #include "ui_VideoImportDialog.h"

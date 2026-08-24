@@ -18,7 +18,7 @@
 #include "KisCumulativeUndoModel.h"
 #include "KisWidgetConnectionUtils.h"
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 struct KisDlgConfigureCumulativeUndo::Private
 {

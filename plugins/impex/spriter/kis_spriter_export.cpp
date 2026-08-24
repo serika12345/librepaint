@@ -33,7 +33,7 @@
 #include <kis_clone_layer.h>
 #include <kis_generator_layer.h>
 #include <kis_adjustment_layer.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <kis_types.h>
 #include <kis_png_converter.h>
 #include <kis_global.h> // for KisDegreesToRadians

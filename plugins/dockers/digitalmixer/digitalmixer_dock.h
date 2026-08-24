@@ -15,9 +15,9 @@
 #include <KoColor.h>
 #include <KoCanvasBase.h>
 
-#include <kis_workspace_resource.h>
-#include <kis_mainwindow_observer.h>
-#include <KisViewManager.h>
+#include <workspace/kis_workspace_resource.h>
+#include <workspace/kis_mainwindow_observer.h>
+#include <workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 
 class KoColorPopupAction;

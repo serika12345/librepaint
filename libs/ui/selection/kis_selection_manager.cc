@@ -26,7 +26,7 @@
 #include "KoChannelInfo.h"
 #include "KoIntegerMaths.h"
 #include <document/KisDocument.h>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include <KoSelection.h>
 #include <KoShapeManager.h>
 #include <KoSelectedShapesProxy.h>
@@ -40,14 +40,14 @@
 #include "kis_adjustment_layer.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/kis_canvas2.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_convolution_painter.h"
 #include "kis_convolution_kernel.h"
 #include "kis_debug.h"
 #include "kis_fill_painter.h"
 #include "kis_group_layer.h"
 #include "kis_layer.h"
-#include "kis_statusbar.h"
+#include "workspace/kis_statusbar.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_painter.h"
@@ -66,16 +66,16 @@
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_iterator_ng.h"
 #include "kis_clipboard.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_selection_filters.h"
 #include <kis_figure_painting_stroke.h>
-#include "KisView.h"
+#include "workspace/KisView.h"
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 
 #include "actions/kis_selection_action_factories.h"
 #include "actions/KisPasteActionFactories.h"
-#include "kis_action.h"
-#include "kis_action_manager.h"
+#include "application/kis_action.h"
+#include "application/kis_action_manager.h"
 #include "operations/kis_operation_configuration.h"
 //new
 #include "kis_node_query_path.h"

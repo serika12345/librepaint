@@ -19,7 +19,7 @@
 #include <QApplication>
 
 #include <kis_debug.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include <KoColorProfile.h>
 #include "kis_coordinates_converter.h"
@@ -30,7 +30,7 @@
 #include <kis_image.h>
 #include <kis_layer.h>
 
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include "kis_prescaled_projection.h"
 #include "kis_projection_update_info.h"

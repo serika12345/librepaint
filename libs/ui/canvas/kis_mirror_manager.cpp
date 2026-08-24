@@ -6,7 +6,7 @@
  */
 
 #include "canvas/kis_mirror_manager.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include <kis_canvas_controller.h>
 #include <kis_icon.h>
 

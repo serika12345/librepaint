@@ -9,7 +9,7 @@
 #include "kis_painting_information_builder_config_p.h"
 
 #include <kis_canvas2.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_config_notifier.h>
 #include <kis_coordinates_converter.h>
 #include <kis_tool_freehand.h>

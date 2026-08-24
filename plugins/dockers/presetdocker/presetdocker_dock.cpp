@@ -14,11 +14,11 @@
 #include <KoCanvasBase.h>
 
 #include "kis_canvas2.h"
-#include "KisViewManager.h"
-#include "kis_paintop_box.h"
+#include "workspace/KisViewManager.h"
+#include "tool/kis_paintop_box.h"
 #include "kis_paintop_presets_chooser_popup.h"
 #include <brushengine/kis_paintop_preset.h>
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 
 
 PresetDockerDock::PresetDockerDock( )

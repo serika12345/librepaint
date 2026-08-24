@@ -42,7 +42,7 @@
 #include <kis_transform_mask_params_interface.h>
 #include <kis_transparency_mask.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_store_paintdevice_writer.h"
 #include "flake/kis_shape_selection.h"
 

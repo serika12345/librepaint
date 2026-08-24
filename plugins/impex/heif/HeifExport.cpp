@@ -30,7 +30,7 @@
 #include <KoColorTransferFunctions.h>
 #include <KoColorProfileQuery.h>
 #include <kis_assert.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_exif_info_visitor.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>

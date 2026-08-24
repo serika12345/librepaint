@@ -29,8 +29,8 @@
 #include <brushengine/kis_paintop_settings.h>
 #include "kis_favorite_resource_manager.h"
 
-#include "kis_config.h"
-#include "KisViewManager.h"
+#include "application/kis_config.h"
+#include "workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include <KoUnit.h>
 

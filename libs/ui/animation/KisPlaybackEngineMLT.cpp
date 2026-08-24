@@ -20,7 +20,7 @@
 #include "kis_raster_keyframe_channel.h"
 #include "kis_signal_compressor_with_param.h"
 #include "animation/KisFrameDisplayProxy.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_onion_skin_compositor.h"
 
 #include <mlt++/Mlt.h>
@@ -33,7 +33,7 @@
 #include "KisRollingSumAccumulatorWrapper.h"
 
 #ifdef Q_OS_ANDROID
-#include <KisAndroidFileProxy.h>
+#include <application/KisAndroidFileProxy.h>
 #endif
 
 #include "kis_debug.h"

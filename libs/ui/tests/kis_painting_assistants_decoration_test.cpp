@@ -14,17 +14,17 @@
 #include <KoCanvasResourceProvider.h>
 #include "canvas/kis_canvas_resource_provider.h"
 #include <util.h>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include <document/KisDocument.h>
-#include <KisPart.h>
-#include <KisView.h>
-#include <KisViewManager.h>
+#include <application/KisPart.h>
+#include <workspace/KisView.h>
+#include <workspace/KisViewManager.h>
 #include <canvas/KisDecorationsManager.h>
 
 #include "canvas/kis_painting_assistants_decoration.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "testui.h"
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <testutil.h>
 #include <KoResourcePaths.h>
 #include "opengl/kis_opengl.h"

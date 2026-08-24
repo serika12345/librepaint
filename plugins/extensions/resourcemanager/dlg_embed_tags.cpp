@@ -25,11 +25,11 @@
 #include <kstandardguiitem.h>
 #include <KisTagModel.h>
 
-#include <kis_workspace_resource.h>
+#include <workspace/kis_workspace_resource.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <dlg_embed_tags.h>
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #define ICON_SIZE 48
 

@@ -11,9 +11,9 @@
 #include <KoDockFactoryBase.h>
 #include <KisStaticInitializer.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_types.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 
 #include "TextPropertiesDock.h"
 #include <KoDockRegistry.h>

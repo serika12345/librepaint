@@ -13,12 +13,12 @@
 #include <QApplication>
 
 #include "document/KisDocument.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "KisAnimationRenderingOptions.h"
 #include "KisMimeDatabase.h"
 #include "dialogs/KisAsyncAnimationFramesSaveDialog.h"
 #include "kis_time_span.h"
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 
 #include "krita_container_utils.h"
 

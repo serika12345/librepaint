@@ -7,7 +7,7 @@
 #include "StoryboardModel.h"
 
 #include "KoFileDialog.h"
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_file_name_requester.h>
 #include <kis_time_span.h>
 

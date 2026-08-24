@@ -17,7 +17,7 @@
 #include "kis_signal_auto_connection.h"
 #include "kis_signal_compressor.h"
 
-#include "KisView.h"
+#include "workspace/KisView.h"
 
 class KoZoomHandler;
 class KoZoomAction;

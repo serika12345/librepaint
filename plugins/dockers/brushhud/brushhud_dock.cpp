@@ -13,7 +13,7 @@
 
 #include "kis_brush_hud.h"
 #include "kis_canvas2.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 
 
 BrushHudDock::BrushHudDock( )

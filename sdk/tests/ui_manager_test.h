@@ -16,12 +16,12 @@
 #include "kis_filter_strategy.h"
 #include "selection/kis_selection_manager.h"
 #include "nodes/kis_node_manager.h"
-#include "KisViewManager.h"
-#include "KisView.h"
-#include "KisPart.h"
+#include "workspace/KisViewManager.h"
+#include "workspace/KisView.h"
+#include "application/KisPart.h"
 #include <document/KisDocument.h>
-#include <kis_action_manager.h>
-#include "KisMainWindow.h"
+#include <application/kis_action_manager.h>
+#include "workspace/KisMainWindow.h"
 #include "kis_selection_mask.h"
 #include <KisGlobalResourcesInterface.h>
 

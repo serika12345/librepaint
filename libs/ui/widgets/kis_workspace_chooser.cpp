@@ -24,17 +24,17 @@
 #include <KisResourceModel.h>
 #include <KisResourceModelProvider.h>
 #include <KoDockWidgetTitleBar.h>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include <KisTagFilterResourceProxyModel.h>
 
-#include "kis_workspace_resource.h"
-#include "KisViewManager.h"
+#include "workspace/kis_workspace_resource.h"
+#include "workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "KisMainWindow.h"
-#include "KisPart.h"
-#include "KisWindowLayoutManager.h"
+#include "workspace/KisMainWindow.h"
+#include "application/KisPart.h"
+#include "workspace/KisWindowLayoutManager.h"
 #include "dialogs/KisNewWindowLayoutDialog.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include <kis_icon.h>
 #include <KisResourceUserOperations.h>
 

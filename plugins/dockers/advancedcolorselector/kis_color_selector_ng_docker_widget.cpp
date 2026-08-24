@@ -20,15 +20,15 @@
 #include <kactioncollection.h>
 
 #include "kis_canvas2.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_color_space_selector.h"
 #include "kis_config_notifier.h"
-#include "kis_preference_set_registry.h"
+#include "workspace/kis_preference_set_registry.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 
 #include "kis_color_history.h"
 #include "kis_common_colors.h"

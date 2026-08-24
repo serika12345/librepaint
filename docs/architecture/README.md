@@ -21,7 +21,7 @@
 1. [ルートのCMakeLists.txt](../../CMakeLists.txt)末尾で、`libs`、`qmlmodules`、`plugins`、`krita`の構成順とiOS条件を確認します。
 2. [libs/CMakeLists.txt](../../libs/CMakeLists.txt)と[plugins/CMakeLists.txt](../../plugins/CMakeLists.txt)で、常時リンクするライブラリーと機能単位のプラグインを分けます。
 3. [krita/CMakeLists.txt](../../krita/CMakeLists.txt)で実行形式、Qtリソース、OS別ソース、静的プラグインの最終リンクを確認します。
-4. [krita/main.cc](../../krita/main.cc)から`KisApplication::start()`を追い、[KisApplication.cpp](../../libs/ui/KisApplication.cpp)でグローバル状態、プラグイン、リソース、メインウィンドウの初期化順を確認します。
+4. [krita/main.cc](../../krita/main.cc)から`KisApplication::start()`を追い、[KisApplication.cpp](../../libs/ui/application/KisApplication.cpp)でグローバル状態、プラグイン、リソース、メインウィンドウの初期化順を確認します。
 5. [KisDocument.h](../../libs/ui/document/KisDocument.h)と[kis_image.h](../../libs/image/kis_image.h)を読み、文書の寿命・入出力と、画像モデル・描画スケジューラーを分けて捉えます。
 6. 対象機能を[変更内容から見る場所](#変更内容から見る場所)で引き、近傍の`CMakeLists.txt`、プラグインJSON、テストまで範囲を広げます。
 7. 配布や依存関係の変更では、[flake.nix](../../flake.nix)を入口に、該当する`nix/<platform>/`と`packaging/<platform>/`を読みます。
@@ -89,13 +89,16 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 5構成のターゲット名と一致しないため、`pluginPolicy.ownerTargetOverrides`が登録実装を含む
 `CMakeLists.txt`と実際のターゲットを記録する。
 
-[UIクラス責務台帳](ui-class-responsibilities.json)は、`libs/ui`直下の公開ヘッダーと
-`classPolicy.classifiedNestedHeaderPaths`に固定した42ヘッダーに宣言された現存クラスと構造体
+[UIクラス責務台帳](ui-class-responsibilities.json)は、
+`classPolicy.classifiedNestedHeaderPaths`に固定した69ヘッダーに宣言された現存クラスと構造体
 79件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ接続する。77件は実装単位を持ち、
 2件は宣言側で完結する。責務領域はアプリケーション調整、キャンバス・表示、文書状態、
-ツール呼出し、ウィンドウ・作業空間の5種類である。キャンバス・表示30件は
+ツール呼出し、ウィンドウ・作業空間の5種類である。分類済み公開クラスの`libs/ui`直下配置は
+0件である。キャンバス・表示30件は
 `libs/ui/animation`または`libs/ui/canvas`、文書状態20件は`libs/ui/document`、
-`libs/ui/nodes`、`libs/ui/selection`の責務配置で継続追跡する。
+`libs/ui/nodes`、`libs/ui/selection`、アプリケーション調整9件は`libs/ui/application`、
+ウィンドウ・作業空間17件は`libs/ui/workspace`、ツール呼出し3件は`libs/ui/tool`の責務配置で
+継続追跡する。
 
 [キャンバス表示UI再配置台帳](canvas-presentation-ui-relocations.json)は、`libs/ui`直下から
 `libs/ui/animation`へ移した14ファイルと`libs/ui/canvas`へ移した53ファイルについて、
@@ -106,18 +109,23 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 `libs/ui/selection`へ移した10ファイルについて、開始パス、宛先パス、現在の配置責務を
 全件記録する。所有ターゲットは`kritaui`であり、公開クラス20件を宣言する18ヘッダーは
 分類済み入れ子経路として継続追跡する。
+[アプリケーション・作業空間・ツールUI再配置台帳](application-workspace-tool-ui-relocations.json)は、
+`libs/ui`直下から`libs/ui/application`へ移した20ファイル、`libs/ui/workspace`へ移した46ファイル、
+`libs/ui/tool`へ移した8ファイルについて、74件の正確な開始パス、宛先パス、現在の配置責務を
+一対一で記録する。所有ターゲットは`kritaui`であり、対象には29公開クラスを宣言する27ヘッダー、
+対応する実装、同じ具体責務を持つ内部ヘッダーとUIフォームを含む。
 [文書境界評価](document-boundary-assessment.json)は、文書状態に分類された20クラスと
 `KisDocument.cpp`の129メソッド定義を全件対象とし、現在の関心、具体的な所有先、
 後続検査段階へ接続する。宣言と実装の経路はクラス責務台帳を正本とする。検査器は
 クラス責務台帳との一致、全メソッドの一度限りの分類、
 再配置計画に存在する責務、ディレクトリー、ターゲット、検査段階を確認する。
 [UIツールクラス責務台帳](ui-tool-class-responsibilities.json)は、同じ公開ヘッダー集合の
-`libs/ui/tool`以下を再帰的に調べ、移設後もUI所有に残る公開クラスと構造体15件を記録する。
-対象13ヘッダーの14件が名前に対応する実装単位を持ち、1件は宣言側で完結する。入力解釈3件、
-ツール呼出し8件、ストローク生成2件、描画実行1件、設定表示1件へ分類する。
+`libs/ui/tool`以下を再帰的に調べ、移設後もUI所有に残る公開クラスと構造体18件を記録する。
+対象16ヘッダーの17件が名前に対応する実装単位を持ち、1件は宣言側で完結する。入力解釈2件、
+ツール呼出し12件、ストローク生成2件、描画実行1件、設定表示1件へ分類する。
 
 各ツールクラスは宣言、実装単位、`kritaui`所有者、5構成に加え、`libs/ui/tool`の外から
-対象ヘッダーを直接includeする製品ソースへ接続する。利用元は48ソースで、同じヘッダーに
+対象ヘッダーを直接includeする製品ソースへ接続する。利用元は56ソースで、同じヘッダーに
 複数の公開クラスがある場合は各クラスが同じ利用元集合を持つ。この分類は画面表示、入力、
 ストローク作成、描画実行が一つのCMakeターゲットに混在する現在の境界を示し、R1-G3の
 責務地図と依存方針の入力になる。
@@ -532,7 +540,7 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 
 ツール設定ポップアップは`kritatoolsui`が所有する。開始元の
 `libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を同名の`libs/tools/ui`へ移し、設定部品の見出し、区切り、
-並び替え、退避を下位UIだけで構築できるようにした。ドック用フォントは`libs/ui/kis_paintop_box.cc`が
+並び替え、退避を下位UIだけで構築できるようにした。ドック用フォントは`libs/ui/tool/kis_paintop_box.cc`が
 値として渡し、ポップアップボタン、キャンバス、操作アクションとの接続は`kritaui`に残る。
 
 矩形制約表示は`kritatoolsui`が所有する。開始元の
@@ -705,12 +713,12 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 
 | 変更内容 | 最初に見る場所 | 次に確認する境界 |
 | --- | --- | --- |
-| 起動順、引数、単一起動 | `krita/main.cc`、`libs/ui/KisApplication.*` | `KisPart`、`KisMainWindow`、OS条件 |
+| 起動順、引数、単一起動 | `krita/main.cc`、`libs/ui/application/KisApplication.*` | `KisPart`、`KisMainWindow`、OS条件 |
 | Windowsの実行形式だけに関係する起動 | `krita/windows_stub_main.cpp`、`krita/CMakeLists.txt` | DLLの`krita_main`、配布ツリー |
 | iOSライフサイクル、Pencil、メモリー警告 | `krita/KisIOS*.mm`、`krita/main.cc` | `plugins/extensions/iostouchui`、iOS検証文書 |
 | メニュー、ショートカット、アクション | `krita/krita.action`、`krita/krita5.xmlgui`、対象`KisViewManager`機能 | アクションID、プラグイン`*.action` |
 | Qtリソースの追加 | `krita/krita.qrc`、`krita/CMakeLists.txt`の`krita_QRCS` | リソースURL、`Q_INIT_RESOURCE`、iOS静的資産 |
-| ウィンドウ、ドッカー、キャンバス画面 | `libs/ui`、`plugins/dockers` | `KisMainWindow`、`KisViewManager`、`KisCanvas2` |
+| ウィンドウ、ドッカー、キャンバス画面 | `libs/ui/workspace`、`libs/ui/canvas`、`plugins/dockers` | `KisMainWindow`、`KisViewManager`、`KisCanvas2` |
 | 入力割り当て、ジェスチャー | `libs/input`、`libs/input/ui` | 現在ツール、Qtプラットフォームイベント、OS統合 |
 | ツールの操作 | `plugins/tools` | `libs/ui/tool`、`KoToolRegistry`、アクション |
 | ブラシエンジンやプリセット | `plugins/paintops`、`libs/brush` | `libs/painting/strokes`、`libs/resources`、`libs/pigment` |

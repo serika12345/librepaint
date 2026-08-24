@@ -18,16 +18,16 @@
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <KoDialog.h>
 #include <KoCanvasBase.h>
 #include <KoIcon.h>
 #include <KoFileDialog.h>
 
 #include "kis_canvas2.h"
-#include "KisViewManager.h"
-#include "KisMainWindow.h"
-#include "kis_config.h"
+#include "workspace/KisViewManager.h"
+#include "workspace/KisMainWindow.h"
+#include "application/kis_config.h"
 
 #include <QThread>
 #include <QMutex>

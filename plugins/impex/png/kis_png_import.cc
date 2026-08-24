@@ -13,7 +13,7 @@
 #include <document/KisDocument.h>
 #include <kis_image.h>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 
 #include "kis_png_converter.h"
 

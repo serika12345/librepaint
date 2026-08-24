@@ -21,7 +21,7 @@
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_icon_utils.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include <KoCompositeOpRegistry.h>
 #include "kis_tool_proxy.h"
 #include <KoColorDisplayRendererInterface.h>

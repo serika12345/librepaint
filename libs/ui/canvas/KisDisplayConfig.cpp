@@ -9,7 +9,7 @@
 #include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <kis_color_manager.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 //#include <opengl/KisOpenGLModeProber.h>
 
 namespace {

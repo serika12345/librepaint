@@ -14,7 +14,7 @@
 
 #include "kis_operation_ui_factory.h"
 #include "operations/kis_operation_ui_widget.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 
 
 /**

@@ -26,7 +26,7 @@
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_properties_configuration.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_iterator_ng.h>
 #include <kis_random_accessor_ng.h>
 #include <kis_config_widget.h>

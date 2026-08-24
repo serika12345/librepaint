@@ -16,9 +16,9 @@
 
 #include <kis_canvas2.h>
 #include <kis_icon_utils.h>
-#include <kis_action.h>
-#include <kis_action_manager.h>
-#include <KisViewManager.h>
+#include <application/kis_action.h>
+#include <application/kis_action_manager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_signal_auto_connection.h>
 
 struct SnapshotDocker::Private

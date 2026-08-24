@@ -8,7 +8,7 @@
 #include "ui_pagebundlesaver.h"
 #include "dlg_create_bundle.h"
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <KoFileDialog.h>
 
 #include <config-seexpr.h>

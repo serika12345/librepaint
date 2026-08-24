@@ -14,7 +14,7 @@
 #include "kis_global.h"
 #include "kis_algebra_2d.h"
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_image.h"
 #include "kis_canvas2.h"
@@ -38,10 +38,10 @@
 #include "kis_image_config.h"
 #include <limits>
 
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_icon_utils.h"
 
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "dialogs/KisAsyncAnimationCacheRenderDialog.h"
 #include "KisRollingMeanAccumulatorWrapper.h"
 #include "kis_onion_skin_compositor.h"

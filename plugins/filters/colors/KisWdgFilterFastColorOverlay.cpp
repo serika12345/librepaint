@@ -6,7 +6,7 @@
 
 #include "KisWdgFilterFastColorOverlay.h"
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include "kis_filter_configuration.h"

@@ -12,7 +12,7 @@
 
 #include "ui_wdgsessionmanager.h"
 
-#include <KisSessionResource.h>
+#include <workspace/KisSessionResource.h>
 
 class KisResourceModel;
 

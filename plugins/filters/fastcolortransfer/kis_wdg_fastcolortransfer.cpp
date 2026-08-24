@@ -15,7 +15,7 @@
 
 #include <filter/kis_filter_configuration.h>
 #include <document/KisDocument.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <kis_image.h>
 #include <kis_iterator_ng.h>
 #include <kis_paint_device.h>

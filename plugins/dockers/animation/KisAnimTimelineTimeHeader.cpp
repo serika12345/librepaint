@@ -20,9 +20,9 @@
 
 #include "KisTimeBasedItemModel.h"
 #include "KisAnimTimelineColors.h"
-#include "kis_action.h"
+#include "application/kis_action.h"
 #include "kis_signal_compressor_with_param.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 #include "kis_debug.h"
 

@@ -42,7 +42,7 @@
 #include <selection/KisSelectionActionsAdapter.h>
 #include <canvas/KisNodeDisplayModeAdapter.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_signal_compressor.h"

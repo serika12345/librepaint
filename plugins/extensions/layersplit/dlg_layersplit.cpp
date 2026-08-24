@@ -11,7 +11,7 @@
 #include <KoResourceServerProvider.h>
 #include <kis_debug.h>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
 
@@ -19,7 +19,7 @@
 #include <QCheckBox>
 #include <QSpinBox>
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <KisDialogStateSaver.h>
 
 DlgLayerSplit::DlgLayerSplit()

@@ -19,9 +19,9 @@
 #include <QApplication>
 #include <QThread>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 
-#include "KisPart.h"
+#include "application/KisPart.h"
 
 namespace
 {

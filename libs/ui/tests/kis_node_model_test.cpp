@@ -11,7 +11,7 @@
 #include <kis_debug.h>
 
 #include "document/KisDocument.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "nodes/kis_node_model.h"
 #include "kis_name_server.h"
 #include "flake/kis_shape_controller.h"

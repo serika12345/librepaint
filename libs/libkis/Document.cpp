@@ -12,12 +12,12 @@
 #include <KoColorSpaceConstants.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <kis_paint_device.h>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include <nodes/kis_node_manager.h>
 #include <nodes/kis_node_selection_adapter.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <document/kis_file_layer.h>
 #include <kis_adjustment_layer.h>
 #include <kis_mask.h>

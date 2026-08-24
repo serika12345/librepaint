@@ -11,7 +11,7 @@
 #include <QHeaderView>
 
 #include "channelmodel.h"
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include "KisChannelsThumbnailsStrokeStrategy.h"
 #include <kis_display_color_converter.h>

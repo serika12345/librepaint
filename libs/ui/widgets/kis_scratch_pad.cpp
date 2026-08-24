@@ -30,7 +30,7 @@
 #include <kis_default_bounds.h>
 #include <canvas/kis_canvas_resource_provider.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_image.h"
 #include "kis_undo_stores.h"
 #include "kis_update_scheduler.h"
@@ -50,7 +50,7 @@
 #include <KisScreenMigrationTracker.h>
 #include <kis_config_notifier.h>
 
-#include <KisPlatformPluginInterfaceFactory.h>
+#include <application/KisPlatformPluginInterfaceFactory.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 #include <canvas/KisRootSurfaceInfoProxy.h>
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */

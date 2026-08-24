@@ -55,7 +55,7 @@
 #include <KisSpinBoxI18nHelper.h>
 #include <KisScreenColorSampler.h>
 #include <kis_icon.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_file_name_requester.h>
 #include <kis_action_registry.h>
 

@@ -11,7 +11,7 @@
 
 #include <QHeaderView>
 #include <QScopedPointer>
-#include "kis_action_manager.h"
+#include "application/kis_action_manager.h"
 
 class QPaintEvent;
 

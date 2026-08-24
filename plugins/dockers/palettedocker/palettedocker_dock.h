@@ -20,9 +20,9 @@
 #include <resources/KoColorSet.h>
 
 #include <kis_canvas2.h>
-#include <kis_mainwindow_observer.h>
-#include <KisView.h>
-#include <kis_workspace_resource.h>
+#include <workspace/kis_mainwindow_observer.h>
+#include <workspace/KisView.h>
+#include <workspace/kis_workspace_resource.h>
 #include <kis_signal_auto_connection.h>
 
 

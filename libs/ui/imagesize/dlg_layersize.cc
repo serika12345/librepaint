@@ -11,7 +11,7 @@
 #include "dlg_layersize.h"
 
 #include <KoUnit.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include <klocalizedstring.h>
 

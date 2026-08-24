@@ -24,7 +24,7 @@
 #include <kis_paint_layer.h>
 #include <kis_shape_layer.h>
 #include <KoProperties.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include "kra_converter.h"
 
 class KisExternalLayer;

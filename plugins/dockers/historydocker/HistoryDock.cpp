@@ -6,7 +6,7 @@
 
 #include "HistoryDock.h"
 #include <KoDocumentResourceManager.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_icon_utils.h>
 
 #include <QDebug>

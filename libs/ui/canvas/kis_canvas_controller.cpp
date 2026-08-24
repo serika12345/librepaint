@@ -18,10 +18,10 @@
 #include "opengl/kis_opengl_canvas2.h"
 #include "document/KisDocument.h"
 #include "kis_image.h"
-#include "KisViewManager.h"
-#include "KisView.h"
+#include "workspace/KisViewManager.h"
+#include "workspace/KisView.h"
 #include "krita_utils.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_signal_compressor_with_param.h"
 #include "kis_config_notifier.h"
 #include <KoUnit.h>

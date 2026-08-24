@@ -37,7 +37,7 @@
 
 #include <ui_wdgpaintopsettings.h>
 #include <kis_node.h>
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 #include <KisPaintResourceServerProvider.h>
 #include "kis_lod_availability_widget.h"

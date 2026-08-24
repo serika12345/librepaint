@@ -20,7 +20,7 @@
 #include <KoPattern.h>
 #include <KoAbstractGradient.h>
 #include <resources/KoGamutMask.h>
-#include <kis_workspace_resource.h>
+#include <workspace/kis_workspace_resource.h>
 #include "KisPresetShadowUpdater.h"
 
 class KoColorProfile;

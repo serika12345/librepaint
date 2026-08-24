@@ -42,7 +42,7 @@
 #include "kis_undo_stores.h"
 #include <document/KisDocument.h>
 #include <KoColorModelStandardIds.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_iterator_ng.h>

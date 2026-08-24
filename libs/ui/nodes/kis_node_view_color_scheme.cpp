@@ -13,7 +13,7 @@
 #include <QApplication>
 
 #include <QGlobalStatic>
-#include <kis_config.h>
+#include <application/kis_config.h>
 Q_GLOBAL_STATIC(KisNodeViewColorScheme, s_instance)
 
 struct KisNodeViewColorScheme::Private

@@ -28,11 +28,11 @@
 #include "wdgtagpreview.h"
 #include <KisTag.h>
 
-#include <kis_workspace_resource.h>
+#include <workspace/kis_workspace_resource.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <dlg_embed_tags.h>
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 
 PageTagChooser::PageTagChooser(KoResourceBundleSP bundle, QWidget *parent) :

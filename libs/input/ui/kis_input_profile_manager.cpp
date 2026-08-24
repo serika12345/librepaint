@@ -21,7 +21,7 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_alternate_invocation_action.h"
 #include "kis_change_primary_setting_action.h"
 #include "kis_pan_action.h"

@@ -9,7 +9,7 @@
 #include "ResourceListViewModes.h"
 #include "KisPopupButton.h"
 #include <KoIcon.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include <QMenu>
 #include <QActionGroup>

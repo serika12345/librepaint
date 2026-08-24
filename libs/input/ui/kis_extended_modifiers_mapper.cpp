@@ -7,7 +7,7 @@
 #include "kis_extended_modifiers_mapper.h"
 #include "KisExtendedModifiersMapperPluginInterface.h"
 
-#include <KisApplication.h>
+#include <application/KisApplication.h>
 #include <QKeyEvent>
 
 #include <krita_container_utils.h>
@@ -25,7 +25,7 @@
 #include <winuser.h>
 
 #include "krita_container_utils.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 
 QVector<Qt::Key> queryPressedKeysWin()

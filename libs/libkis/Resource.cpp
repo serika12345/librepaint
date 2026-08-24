@@ -12,7 +12,7 @@
 #include <kis_brush.h>
 #include <kis_paintop_preset.h>
 #include <KoColorSet.h>
-#include <kis_workspace_resource.h>
+#include <workspace/kis_workspace_resource.h>
 #include <KisResourceLocator.h>
 
 struct Resource::Private {

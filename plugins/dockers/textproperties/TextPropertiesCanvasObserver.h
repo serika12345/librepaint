@@ -7,7 +7,7 @@
 #define TEXTPROPERTIESMANAGER_H
 
 #include <QObject>
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 
 #include <kis_canvas2.h>
 #include <KoResource.h>

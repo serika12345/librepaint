@@ -34,7 +34,7 @@
 #include <KisRepaintDebugger.h>
 #include <KisUsageLogger.h>
 #include <kis_assert.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_debug.h>
 
 #include <color/KisSurfaceColorSpaceWrapper.h>

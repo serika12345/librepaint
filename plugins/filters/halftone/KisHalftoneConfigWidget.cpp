@@ -13,7 +13,7 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <kis_signals_blocker.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 
 

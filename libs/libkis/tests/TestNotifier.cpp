@@ -9,7 +9,7 @@
 
 #include <Notifier.h>
 #include <kis_node.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <Document.h>
 
 #include <testui.h>

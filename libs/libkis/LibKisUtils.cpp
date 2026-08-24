@@ -20,7 +20,7 @@
 #include <kis_selection_mask.h>
 #include <lazybrush/kis_colorize_mask.h>
 #include <kis_layer.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <document/KisDocument.h>
 
 #include "Document.h"

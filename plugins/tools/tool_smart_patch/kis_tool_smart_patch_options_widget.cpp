@@ -11,7 +11,7 @@
 #include <KoColorSpaceRegistry.h>
 #include "KisPaletteModel.h"
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include <resources/KoColorSet.h>
 #include "canvas/kis_canvas_resource_provider.h"
 

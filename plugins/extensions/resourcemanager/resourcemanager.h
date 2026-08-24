@@ -12,7 +12,7 @@
 
 #include <KoResourceServer.h>
 
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 #include <KoResourceBundle.h>
 
 #include "dlg_create_bundle.h"

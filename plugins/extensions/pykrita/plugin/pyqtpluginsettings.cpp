@@ -13,7 +13,7 @@
 #include <QTreeView>
 
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_icon_utils.h"
 #include "PythonPluginManager.h"
 

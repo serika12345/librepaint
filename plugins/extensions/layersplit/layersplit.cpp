@@ -18,9 +18,9 @@
 
 #include <kis_debug.h>
 #include <kis_types.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_image.h>
-#include <kis_action.h>
+#include <application/kis_action.h>
 #include <document/KisDocument.h>
 #include <kis_node.h>
 #include <kis_painter.h>

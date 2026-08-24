@@ -17,8 +17,8 @@
 #include <QCompleter>
 #include <QLineEdit>
 
-#include <kis_action.h>
-#include <kis_action_manager.h>
+#include <application/kis_action.h>
+#include <application/kis_action_manager.h>
 #include <kis_icon.h>
 #include <KisResourceTypeModel.h>
 #include <KisStorageModel.h>
@@ -36,7 +36,7 @@
 #include <ResourceImporter.h>
 #include <KoIcon.h>
 #include "ResourceListViewModes.h"
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include "KisResourceItemViewer.h"
 
 #include <config-seexpr.h>

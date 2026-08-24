@@ -12,8 +12,8 @@
 #include <kis_debug.h>
 #include <kpluginfactory.h>
 #include <kis_icon.h>
-#include <KisViewManager.h>
-#include <kis_action.h>
+#include <workspace/KisViewManager.h>
+#include <application/kis_action.h>
 #include "DlgDbExplorer.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(DbExplorerFactory, "kritadbexplorer.json", registerPlugin<DbExplorer>();)

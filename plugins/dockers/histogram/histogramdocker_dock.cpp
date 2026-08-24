@@ -14,7 +14,7 @@
 
 
 #include "kis_canvas2.h"
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include "histogramdockerwidget.h"
 
 HistogramDockerDock::HistogramDockerDock()

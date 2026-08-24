@@ -6,7 +6,7 @@
 
 #include "KisPresetShadowUpdater.h"
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 
 #include <KoCanvasResourcesIds.h>
 

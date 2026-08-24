@@ -9,7 +9,7 @@
 
 #include <QDockWidget>
 
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 
 #include "ui_WdgLogDocker.h"
 

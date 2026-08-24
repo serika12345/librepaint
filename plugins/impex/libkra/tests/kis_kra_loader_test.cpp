@@ -16,7 +16,7 @@
 
 #include "kis_image.h"
 #include <testutil.h>
-#include "KisPart.h"
+#include "application/KisPart.h"
 
 #include <filter/kis_filter_registry.h>
 #include <generator/kis_generator_registry.h>

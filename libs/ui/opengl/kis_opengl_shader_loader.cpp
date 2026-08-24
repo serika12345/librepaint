@@ -8,7 +8,7 @@
 #include "kis_opengl_shader_loader.h"
 
 #include "opengl/kis_opengl.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 #include <config-ocio.h>
 

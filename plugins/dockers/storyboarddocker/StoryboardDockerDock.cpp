@@ -31,8 +31,8 @@
 
 #include <klocalizedstring.h>
 
-#include <KisPart.h>
-#include <KisViewManager.h>
+#include <application/KisPart.h>
+#include <workspace/KisViewManager.h>
 #include <nodes/kis_node_manager.h>
 #include <document/KisDocument.h>
 #include <kis_icon.h>

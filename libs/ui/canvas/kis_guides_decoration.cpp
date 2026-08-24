@@ -7,7 +7,7 @@
 #include "kis_guides_decoration.h"
 
 #include <document/KisDocument.h>
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_guides_config.h"
 #include "kis_coordinates_converter.h"
 #include <KoColorDisplayRendererInterface.h>

@@ -19,10 +19,10 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasBase.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_canvas2.h"
-#include "KisViewManager.h"
-#include "kis_paintop_box.h"
+#include "workspace/KisViewManager.h"
+#include "tool/kis_paintop_box.h"
 #include "kis_paintop_presets_chooser_popup.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include <KisPaintResourceServerProvider.h>

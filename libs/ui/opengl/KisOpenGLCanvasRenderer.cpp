@@ -18,7 +18,7 @@
 #include "canvas/kis_canvas_widget_base.h"
 #include "KisOpenGLModeProber.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_debug.h"
 #include <QApplication>
 #include <QPainter>

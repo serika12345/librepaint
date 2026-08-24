@@ -23,18 +23,18 @@
 #include <KoFileDialog.h>
 
 #include <kis_icon.h>
-#include "kis_action.h"
+#include "application/kis_action.h"
 #include <KisResourceStorage.h>
 #include <KisStorageModel.h>
 #include <KisStorageFilterProxyModel.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <KisResourceLocator.h>
 #include <KisKineticScroller.h>
 #include <KisCursorOverrideLock.h>
 #include "KisBundleStorage.h"
 
-#include <KisMainWindow.h>
-#include <KisPart.h>
+#include <workspace/KisMainWindow.h>
+#include <application/KisPart.h>
 
 DlgBundleManager::ItemDelegate::ItemDelegate(QObject *parent, KisStorageFilterProxyModel* proxy)
     : QStyledItemDelegate(parent)

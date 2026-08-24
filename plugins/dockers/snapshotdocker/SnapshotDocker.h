@@ -9,7 +9,7 @@
 #include <QDockWidget>
 #include <QScopedPointer>
 
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 #include <klocalizedstring.h>
 
 #include <KoShapeController.h>

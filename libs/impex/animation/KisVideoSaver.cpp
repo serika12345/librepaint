@@ -24,10 +24,10 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
 #include <KoResourcePaths.h>
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "KisAnimationRenderingOptions.h"
 
-#include "KisPart.h"
+#include "application/KisPart.h"
 
 #ifdef Q_OS_ANDROID
 #include <KisMediaEncoderWrapper.h>

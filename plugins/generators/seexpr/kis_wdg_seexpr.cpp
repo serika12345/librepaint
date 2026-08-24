@@ -18,7 +18,7 @@
 
 #include <filter/kis_filter_configuration.h>
 #include <kis_assert.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_debug.h>
 #include <kis_icon.h>
 #include <kis_signals_blocker.h>

@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 1,
+  "scope": "r1-g6g-application-workspace-tool-ui-placement",
+  "purpose": "Records every source-to-destination move that places the classified application orchestration, window and workspace, and tool invocation UI files under their current responsibility directories while retaining kritaui ownership.",
+  "currentOwnerTarget": "kritaui",
+  "currentResponsibilities": {
+    "application-orchestration": "Process startup, application services, actions, plugins, configuration, platform integration, resources, and the shared application object graph.",
+    "tool-invocation": "Toolbar-level tool and filter setting selection, bookmarked configurations, and invocation wiring.",
+    "window-workspace": "Windows, views, workspace and session layouts, templates, preferences, status presentation, startup surfaces, and their concrete presentation components."
+  },
+  "reviewedResponsibilityOverrides": [],
+  "relocations": [
+    {
+      "from": "libs/ui/kis_action_manager.cpp",
+      "to": "libs/ui/application/kis_action_manager.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/kis_action_manager.h",
+      "to": "libs/ui/application/kis_action_manager.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/kis_action.cpp",
+      "to": "libs/ui/application/kis_action.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/kis_action.h",
+      "to": "libs/ui/application/kis_action.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/kis_bookmarked_configurations_editor.cc",
+      "to": "libs/ui/tool/kis_bookmarked_configurations_editor.cc",
+      "placementArea": "tool-invocation"
+    },
+    {
+      "from": "libs/ui/kis_bookmarked_configurations_editor.h",
+      "to": "libs/ui/tool/kis_bookmarked_configurations_editor.h",
+      "placementArea": "tool-invocation"
+    },
+    {
+      "from": "libs/ui/kis_bookmarked_configurations_model.cc",
+      "to": "libs/ui/tool/kis_bookmarked_configurations_model.cc",
+      "placementArea": "tool-invocation"
+    },
+    {
+      "from": "libs/ui/kis_bookmarked_configurations_model.h",
+      "to": "libs/ui/tool/kis_bookmarked_configurations_model.h",
+      "placementArea": "tool-invocation"
+    },
+    {
+      "from": "libs/ui/kis_bookmarked_filter_configurations_model.cc",
+      "to": "libs/ui/tool/kis_bookmarked_filter_configurations_model.cc",
+      "placementArea": "tool-invocation"
+    },
+    {
+      "from": "libs/ui/kis_bookmarked_filter_configurations_model.h",
+      "to": "libs/ui/tool/kis_bookmarked_filter_configurations_model.h",
+      "placementArea": "tool-invocation"
+    },
+    {
+      "from": "libs/ui/kis_config.cc",
+      "to": "libs/ui/application/kis_config.cc",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/kis_config.h",
+      "to": "libs/ui/application/kis_config.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/kis_mainwindow_observer.cpp",
+      "to": "libs/ui/workspace/kis_mainwindow_observer.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_mainwindow_observer.h",
+      "to": "libs/ui/workspace/kis_mainwindow_observer.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_paintop_box.cc",
+      "to": "libs/ui/tool/kis_paintop_box.cc",
+      "placementArea": "tool-invocation"
+    },
+    {
+      "from": "libs/ui/kis_paintop_box.h",
+      "to": "libs/ui/tool/kis_paintop_box.h",
+      "placementArea": "tool-invocation"
+    },
+    {
+      "from": "libs/ui/kis_preference_set_registry.cpp",
+      "to": "libs/ui/workspace/kis_preference_set_registry.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_preference_set_registry.h",
+      "to": "libs/ui/workspace/kis_preference_set_registry.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_splash_screen.cpp",
+      "to": "libs/ui/workspace/kis_splash_screen.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_splash_screen.h",
+      "to": "libs/ui/workspace/kis_splash_screen.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_statusbar.cc",
+      "to": "libs/ui/workspace/kis_statusbar.cc",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_statusbar.h",
+      "to": "libs/ui/workspace/kis_statusbar.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_workspace_resource.cpp",
+      "to": "libs/ui/workspace/kis_workspace_resource.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/kis_workspace_resource.h",
+      "to": "libs/ui/workspace/kis_workspace_resource.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisActionPlugin.cpp",
+      "to": "libs/ui/application/KisActionPlugin.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisActionPlugin.h",
+      "to": "libs/ui/application/KisActionPlugin.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisAndroidFileProxy.cpp",
+      "to": "libs/ui/application/KisAndroidFileProxy.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisAndroidFileProxy.h",
+      "to": "libs/ui/application/KisAndroidFileProxy.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisAndroidSplash.cpp",
+      "to": "libs/ui/workspace/KisAndroidSplash.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisAndroidSplash.h",
+      "to": "libs/ui/workspace/KisAndroidSplash.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisApplication.cpp",
+      "to": "libs/ui/application/KisApplication.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisApplication.h",
+      "to": "libs/ui/application/KisApplication.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisApplicationArguments.cpp",
+      "to": "libs/ui/application/KisApplicationArguments.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisApplicationArguments.h",
+      "to": "libs/ui/application/KisApplicationArguments.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisCanvasWindow.cpp",
+      "to": "libs/ui/workspace/KisCanvasWindow.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisCanvasWindow.h",
+      "to": "libs/ui/workspace/KisCanvasWindow.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisDetailsPane.cpp",
+      "to": "libs/ui/workspace/KisDetailsPane.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisDetailsPane.h",
+      "to": "libs/ui/workspace/KisDetailsPane.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisMainWindow.cpp",
+      "to": "libs/ui/workspace/KisMainWindow.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisMainWindow.h",
+      "to": "libs/ui/workspace/KisMainWindow.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisOpenPane.cpp",
+      "to": "libs/ui/workspace/KisOpenPane.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisOpenPane.h",
+      "to": "libs/ui/workspace/KisOpenPane.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisPart.cpp",
+      "to": "libs/ui/application/KisPart.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisPart.h",
+      "to": "libs/ui/application/KisPart.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+      "to": "libs/ui/application/KisPlatformPluginInterfaceFactory.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisPlatformPluginInterfaceFactory.h",
+      "to": "libs/ui/application/KisPlatformPluginInterfaceFactory.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisResourceServerProvider.cpp",
+      "to": "libs/ui/application/KisResourceServerProvider.cpp",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisResourceServerProvider.h",
+      "to": "libs/ui/application/KisResourceServerProvider.h",
+      "placementArea": "application-orchestration"
+    },
+    {
+      "from": "libs/ui/KisSessionResource.cpp",
+      "to": "libs/ui/workspace/KisSessionResource.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisSessionResource.h",
+      "to": "libs/ui/workspace/KisSessionResource.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplate.cpp",
+      "to": "libs/ui/workspace/KisTemplate.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplate.h",
+      "to": "libs/ui/workspace/KisTemplate.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplateCreateDia.cpp",
+      "to": "libs/ui/workspace/KisTemplateCreateDia.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplateCreateDia.h",
+      "to": "libs/ui/workspace/KisTemplateCreateDia.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplateGroup.cpp",
+      "to": "libs/ui/workspace/KisTemplateGroup.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplateGroup.h",
+      "to": "libs/ui/workspace/KisTemplateGroup.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplates.cpp",
+      "to": "libs/ui/workspace/KisTemplates.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplates.h",
+      "to": "libs/ui/workspace/KisTemplates.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplatesPane.cpp",
+      "to": "libs/ui/workspace/KisTemplatesPane.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplatesPane.h",
+      "to": "libs/ui/workspace/KisTemplatesPane.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplateTree.cpp",
+      "to": "libs/ui/workspace/KisTemplateTree.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisTemplateTree.h",
+      "to": "libs/ui/workspace/KisTemplateTree.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisView_p.h",
+      "to": "libs/ui/workspace/KisView_p.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisView.cpp",
+      "to": "libs/ui/workspace/KisView.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisView.h",
+      "to": "libs/ui/workspace/KisView.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisViewManager.cpp",
+      "to": "libs/ui/workspace/KisViewManager.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisViewManager.h",
+      "to": "libs/ui/workspace/KisViewManager.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisWelcomePageWidget.cpp",
+      "to": "libs/ui/workspace/KisWelcomePageWidget.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisWelcomePageWidget.h",
+      "to": "libs/ui/workspace/KisWelcomePageWidget.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisWindowLayoutManager.cpp",
+      "to": "libs/ui/workspace/KisWindowLayoutManager.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisWindowLayoutManager.h",
+      "to": "libs/ui/workspace/KisWindowLayoutManager.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisWindowLayoutResource.cpp",
+      "to": "libs/ui/workspace/KisWindowLayoutResource.cpp",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/KisWindowLayoutResource.h",
+      "to": "libs/ui/workspace/KisWindowLayoutResource.h",
+      "placementArea": "window-workspace"
+    },
+    {
+      "from": "libs/ui/wdgsplash.ui",
+      "to": "libs/ui/workspace/wdgsplash.ui",
+      "placementArea": "window-workspace"
+    }
+  ]
+}

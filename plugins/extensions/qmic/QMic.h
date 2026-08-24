@@ -8,7 +8,7 @@
 #ifndef QMIC_H
 #define QMIC_H
 
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 
 class KisAction;
 

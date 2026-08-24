@@ -41,8 +41,8 @@
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 
-#include "kis_config.h"
-#include "KisPart.h"
+#include "application/kis_config.h"
+#include "application/KisPart.h"
 #include "document/KisDocument.h"
 #include "widgets/kis_cmb_idlist.h"
 #include <KisSpinBoxI18nHelper.h>

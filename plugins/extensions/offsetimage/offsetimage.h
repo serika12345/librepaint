@@ -9,7 +9,7 @@
 
 #include <QVariant>
 
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 #include <kis_types.h>
 #include <kis_node.h>
 

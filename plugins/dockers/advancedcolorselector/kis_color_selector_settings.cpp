@@ -22,7 +22,7 @@
 
 #include "kis_color_selector_combo_box.h"
 #include "kis_color_selector.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_config_notifier.h"
 
 

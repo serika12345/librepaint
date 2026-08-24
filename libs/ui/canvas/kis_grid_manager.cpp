@@ -17,12 +17,12 @@
 
 #include "kis_canvas2.h"
 #include "kis_coordinates_converter.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_grid_decoration.h"
 #include "kis_image.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "document/KisDocument.h"
-#include "KisView.h"
+#include "workspace/KisView.h"
 #include "kis_grid_config.h"
 #include "kis_signals_blocker.h"
 #include <kis_signal_auto_connection.h>

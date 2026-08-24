@@ -28,7 +28,7 @@
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_action_registry.h>
 #include <kis_painting_information_builder_adapters.h>
 #include <kis_resources_snapshot.h>

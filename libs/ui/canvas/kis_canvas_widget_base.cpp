@@ -21,9 +21,9 @@
 
 #include "kis_coordinates_converter.h"
 #include "kis_canvas_decoration.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_canvas2.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "selection/kis_selection_manager.h"
 #include "document/KisDocument.h"
 #include "kis_update_info.h"

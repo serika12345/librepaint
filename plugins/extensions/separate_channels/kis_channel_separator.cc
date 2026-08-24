@@ -40,8 +40,8 @@
 #include <kis_global.h>
 #include <kis_types.h>
 #include "kis_iterator_ng.h"
-#include <KisPart.h>
-#include <KisViewManager.h>
+#include <application/KisPart.h>
+#include <workspace/KisViewManager.h>
 #include <kis_paint_device.h>
 #include <nodes/kis_node_manager.h>
 #include <commands/kis_node_commands_adapter.h>

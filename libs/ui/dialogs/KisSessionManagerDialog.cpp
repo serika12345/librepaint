@@ -3,14 +3,14 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
-#include <KisSessionResource.h>
+#include <workspace/KisSessionResource.h>
 #include <QInputDialog>
 #include <QMessageBox>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include "KisSessionManagerDialog.h"
 #include <KisResourceUserOperations.h>
 #include <KisResourceModel.h>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 
 int KisSessionManagerDialog::refreshEventType = -1;
 

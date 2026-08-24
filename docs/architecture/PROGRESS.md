@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 02:48 JST
+- 更新日時: 2026-08-25 03:26 JST
 - 状態: `in_progress`
-- 現在の検査段階: R1-G6g文書状態UI配置境界
+- 現在の検査段階: R1-G6g UI root残存配置境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: `libs/ui`直下に混在していた文書構成、ノード表示と操作接続、選択接続を
-  責務ディレクトリーへ配置し、公開挙動と所有寿命を維持したまま調査入口を明確にする。
+- 目的: `libs/ui`直下に残る台帳外の表示・事象・資源接続を既存責務へ配置し、rootの
+  調査入口をCMake定義とターゲット公開記号設定へ限定する。
 
 ## 再開環境
 
@@ -1664,12 +1664,40 @@
   `kis_bookmarked_filter_configurations_model.*`はベクター選択、履歴アクション、フィルター一覧の
   画面接続を含む`libs/ui`直下の候補であり、公開文書状態クラス集合の外側で責務分類を行う。
 
+## R1-G6gアプリケーション・作業空間・ツールUI配置境界で完了した作業
+
+- `libs/ui`直下のアプリケーション調整20ファイルを`libs/ui/application`、ウィンドウ・
+  作業空間46ファイルを`libs/ui/workspace`、ツール呼出し8ファイルを既存の`libs/ui/tool`へ
+  同じ基底名で移した。全74件の正確な開始パスと宛先パスは
+  `docs/architecture/application-workspace-tool-ui-relocations.json`が一対一で記録する。
+- アクション、起動、設定、プラグイン、資源提供、Androidファイル接続はアプリケーション調整配置を
+  所有する。ウィンドウ、ビュー、セッション、作業空間、テンプレート、環境設定、状態表示、
+  起動画面は作業空間配置を所有する。ブックマーク済みツール・フィルター設定と描画ツール箱は
+  ツール呼出し配置を所有する。
+- `kritaui`のCMake所有、クラス名、公開記号、公開挙動、所有寿命を維持し、製品と試験のinclude、
+  CMakeソース、`wdgsplash.ui`の参照を`application/...`、`workspace/...`、`tool/...`の正規経路へ
+  更新した。公開includeは正規経路へ直接接続し、公開ヘッダー試験は移設前に
+  `application/KisActionPlugin.h`不在で失敗し、移設後に成功した。
+- UIクラス責務台帳は79クラス、69ヘッダー、実装単位を持つ77クラス、宣言側で完結する2クラスを
+  維持する。今回の29クラスを27の分類済み入れ子ヘッダーで継続追跡し、分類済み公開クラスの
+  `libs/ui`直下配置を0件に固定した。UIツールクラス責務台帳は18クラス、16ヘッダー、利用元56ソースを
+  記録する。
+- `kritaui`、`TestApplicationWorkspaceToolUiPublicHeaders`、`kis_derived_resources_test`、
+  `kis_view_signals_test`はmacOSで成功した。clangdのinclude-cleaner検査は移設した全36翻訳単位で
+  不要includeと直接include不足を報告していない。
+- `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
+- `libs/ui`直下の台帳外候補は、入出力表示の`KisImportExport*`、事象接続の
+  `KisLongPressEventFilter.*`と`KisMouseClickEater.*`、表示構成とOS接続の`KisUiFont.*`、
+  `thememanager.*`、`osx.*`、ツール・資源表示の`KisPresetShadowUpdater.*`、`kis_control_frame.*`、
+  `kis_custom_pattern.*`、`kis_derived_resources.*`、`kis_favorite_resource_manager.*`、
+  `kis_filters_model.*`、`kis_popup_palette.*`、文書・図形接続の`KisSelectedShapesProxy.*`と
+  `KisUndoActionsUpdateManager.*`、共有UI接続面と補助処理の残りで構成される。
+
 ## 次の操作
 
-`libs/ui`直下でアプリケーション調整、ウィンドウ・作業空間、ツール呼出しに分類済みの
-公開クラスと同族実装を、`libs/ui/application`、`libs/ui/workspace`、既存の`libs/ui/tool`へ移す。
-クラス名、公開記号、所有寿命を維持し、製品と試験のinclude、CMake、公開面・責務・構造・
-ソース寸法台帳を正規の入れ子経路へ更新する。
+`libs/ui`直下の台帳外実装を、入出力表示、事象接続、テーマ・OS接続、資源表示、図形・履歴接続の
+既存責務ディレクトリーへ移す。製品と試験のinclude、CMake、公開面・構造・ソース寸法台帳を
+正規経路へ更新し、root配置を`CMakeLists.txt`と`kritaui_export_instance.h`へ限定する。
 
 ## R1-G5完了根拠
 

@@ -22,8 +22,8 @@
 #include "kis_transaction.h"
 #include "kis_node.h"
 #include "kis_node_filter_interface.h"
-#include <kis_config.h>
-#include "KisViewManager.h"
+#include <application/kis_config.h>
+#include "workspace/KisViewManager.h"
 #include <kis_icon_utils.h>
 
 

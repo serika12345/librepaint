@@ -12,7 +12,7 @@
 #include <QDialog>
 #include <QScopedPointer>
 
-#include "kis_preference_set_registry.h"
+#include "workspace/kis_preference_set_registry.h"
 #include "KisColorSelectorConfiguration.h"
 
 namespace Ui {

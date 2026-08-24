@@ -14,7 +14,7 @@
 #include <kis_paint_device.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 
 void KisProjectionBenchmark::initTestCase()
 {

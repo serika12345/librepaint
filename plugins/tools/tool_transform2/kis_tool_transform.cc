@@ -35,7 +35,7 @@
 
 #include <kis_global.h>
 #include <canvas/kis_canvas2.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_painter.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
@@ -44,7 +44,7 @@
 #include <kis_selection.h>
 #include <kis_filter_strategy.h>
 #include <widgets/kis_cmb_idlist.h>
-#include <kis_statusbar.h>
+#include <workspace/kis_statusbar.h>
 #include <kis_transform_worker.h>
 #include <kis_perspectivetransform_worker.h>
 #include <kis_warptransform_worker.h>

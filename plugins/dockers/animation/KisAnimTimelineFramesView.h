@@ -12,7 +12,7 @@
 #include <QTableView>
 #include <QScroller>
 #include <QScrollBar>
-#include "kis_action_manager.h"
+#include "application/kis_action_manager.h"
 #include "kritaanimationdocker_export.h"
 
 class KisAction;

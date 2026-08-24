@@ -6,7 +6,7 @@
  */
 #include "kis_zoom_scrollbar.h"
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_global.h"
 #include "kis_debug.h"
 #include "kis_tool_utils.h"

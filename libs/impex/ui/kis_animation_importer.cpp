@@ -12,7 +12,7 @@
 #include <KoUpdater.h>
 #include <QApplication>
 #include <QQueue>
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_undo_adapter.h"

@@ -16,7 +16,7 @@
 #include <KoColorBackground.h>
 #include <testutil.h>
 
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <document/KisDocument.h>
 
 #include <kis_meta_data_store.h>

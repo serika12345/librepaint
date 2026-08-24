@@ -15,13 +15,13 @@
 #include <KoColor.h>
 #include <resources/KoGamutMask.h>
 #include <kis_icon_utils.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <kis_shape_layer.h>
 #include <kis_types.h>
 #include <document/KisDocument.h>
 #include <nodes/kis_node_selection_adapter.h>
 #include <kis_group_layer.h>
-#include <KisView.h>
+#include <workspace/KisView.h>
 #include <KisResourceItemChooser.h>
 #include <KisResourceUserOperations.h>
 
@@ -33,11 +33,11 @@
 #include <QMessageBox>
 #include <QInputDialog>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KoColorBackground.h>
 #include <KoShapeStroke.h>
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 
 #include <ctime>
 

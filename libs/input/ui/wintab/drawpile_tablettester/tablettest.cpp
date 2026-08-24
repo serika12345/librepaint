@@ -11,7 +11,7 @@
 #include <QPaintEvent>
 #include <QPainter>
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 TabletTester::TabletTester(QWidget *parent)
     : QWidget(parent), m_mouseDown(false), m_tabletDown(false)

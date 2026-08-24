@@ -18,12 +18,12 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoPointerEvent.h>
 
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_algebra_2d.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_icon.h>
 #include <kis_image.h>
 #include <kis_popup_palette.h>

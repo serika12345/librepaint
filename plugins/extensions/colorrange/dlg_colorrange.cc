@@ -32,7 +32,7 @@
 #include <KisImageResolutionProxy.h>
 #include <kis_types.h>
 #include <kis_undo_adapter.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_transaction.h>
 #include <kis_cursor.h>
 #include "kis_iterator_ng.h"

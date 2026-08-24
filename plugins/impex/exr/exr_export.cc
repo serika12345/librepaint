@@ -18,7 +18,7 @@
 #include <KisExportCheckRegistry.h>
 
 #include <kis_properties_configuration.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_group_layer.h>

@@ -27,7 +27,7 @@
 #include <kis_image.h>
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_filter_registry_model.h>
 #include <kis_exif_info_visitor.h>

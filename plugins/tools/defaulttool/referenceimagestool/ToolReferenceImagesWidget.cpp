@@ -12,7 +12,7 @@
 #include <KoSelection.h>
 #include <KoShapeTransparencyCommand.h>
 #include <KoShapeKeepAspectRatioCommand.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_signals_blocker.h>
 #include <kis_signal_compressor.h>
 #include <canvas/KisReferenceImage.h>

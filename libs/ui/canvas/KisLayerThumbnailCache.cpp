@@ -5,7 +5,7 @@
  */
 #include "canvas/KisLayerThumbnailCache.h"
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_image.h"
 #include "canvas/KisIdleTasksManager.h"
 #include "kis_layer_utils.h"

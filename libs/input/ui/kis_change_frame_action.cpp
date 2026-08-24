@@ -7,11 +7,11 @@
 #include "kis_change_frame_action.h"
 
 #include <klocalizedstring.h>
-#include "kis_action.h"
+#include "application/kis_action.h"
 #include "kis_input_manager.h"
 #include "kis_canvas2.h"
-#include "KisViewManager.h"
-#include "kis_action_manager.h"
+#include "workspace/KisViewManager.h"
+#include "application/kis_action_manager.h"
 
 
 struct KisChangeFrameAction::Private

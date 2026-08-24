@@ -10,7 +10,7 @@
 #include <QObject>
 #include <QString>
 #include <QStandardItemModel>
-#include <kis_preference_set_registry.h>
+#include <workspace/kis_preference_set_registry.h>
 
 #include "ui_wdg_spensettings.h"
 

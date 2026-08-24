@@ -27,7 +27,7 @@
 #include "kis_image.h"
 #include <kis_image_config.h>
 #include "kis_annotation.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_signal_compressor.h"
 #include "widgets/kis_cmb_idlist.h"
 #include <KisSqueezedComboBox.h>
@@ -36,7 +36,7 @@
 #include "canvas/kis_canvas_resource_provider.h"
 #include "KoUnit.h"
 #include "kis_display_color_converter.h"
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 
 #include <kis_signals_blocker.h>
 

@@ -16,8 +16,8 @@
 #include <document/KisDocument.h>
 #include <kis_paint_device.h>
 #include <kis_paint_device_frames_interface.h>
-#include <KisPart.h>
-#include <KisView.h>
+#include <application/KisPart.h>
+#include <workspace/KisView.h>
 
 #include <strokes/kis_filter_stroke_strategy.h>
 #include <krita_utils.h>

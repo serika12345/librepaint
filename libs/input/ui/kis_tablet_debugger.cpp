@@ -11,7 +11,7 @@
 #include <QApplication>
 
 #include <kis_debug.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <KisPortingUtils.h>
 
 #include <QGlobalStatic>

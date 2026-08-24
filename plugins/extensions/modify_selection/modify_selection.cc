@@ -11,7 +11,7 @@
 #include <klocalizedstring.h>
 #include <kis_debug.h>
 
-#include "kis_action.h"
+#include "application/kis_action.h"
 #include <kpluginfactory.h>
 #include <operations/kis_operation_ui_widget_factory.h>
 

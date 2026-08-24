@@ -5,7 +5,7 @@
  */
 
 #include "canvas/KisNodeDisplayModeAdapter.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_config_notifier.h"
 
 

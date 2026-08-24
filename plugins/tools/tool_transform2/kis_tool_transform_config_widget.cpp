@@ -13,8 +13,8 @@
 #include <KisSignalMapper.h>
 #include "kis_liquify_properties.h"
 
-#include "KisMainWindow.h"
-#include "KisViewManager.h"
+#include "workspace/KisMainWindow.h"
+#include "workspace/KisViewManager.h"
 #include "kis_transform_utils.h"
 #include "kis_config_notifier.h"
 #include <kstandardguiitem.h>

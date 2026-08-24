@@ -13,7 +13,7 @@
 #include "KisPaletteModel.h"
 #include <KisSpinBoxI18nHelper.h>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include <resources/KoColorSet.h>
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_signal_auto_connection.h"

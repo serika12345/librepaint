@@ -9,7 +9,7 @@
 #include <QVariant>
 
 #include <QUrl>
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 
 class LayerSplit : public KisActionPlugin
 {

@@ -10,7 +10,7 @@
 
 #include <QVariant>
 
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 #include "kis_types.h"
 
 class ImageSize : public KisActionPlugin

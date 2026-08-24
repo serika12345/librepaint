@@ -36,6 +36,12 @@ def updated_inventory(
         repository_root=REPO_ROOT,
         public_surface_inventory=public_surface_inventory,
     )
+    for entry in discovered:
+        if (
+            entry["header"]
+            in inventory_contract.UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS
+        ):
+            assignments.setdefault(entry["name"], "tool-invocation")
     discovered_names = {entry["name"] for entry in discovered}
     missing = sorted(discovered_names - set(assignments))
     if missing:

@@ -12,8 +12,8 @@
 #include "kis_image_animation_interface.h"
 #include "kis_raster_keyframe_channel.h"
 #include "animation/KisFrameDisplayProxy.h"
-#include "KisViewManager.h"
-#include "kis_config.h"
+#include "workspace/KisViewManager.h"
+#include "application/kis_config.h"
 
 #include "kis_onion_skin_compositor.h"
 

@@ -10,7 +10,7 @@
 
 #include <QVariant>
 
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 
 class ModifySelection : public KisActionPlugin
 {

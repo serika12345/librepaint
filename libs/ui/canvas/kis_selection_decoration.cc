@@ -17,9 +17,9 @@
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include "kis_types.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "kis_selection.h"
 #include "kis_image.h"
 #include "flake/kis_shape_selection.h"
@@ -29,14 +29,14 @@
 #include "canvas/kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_coordinates_converter.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_image_config.h"
 #include "KisImageConfigNotifier.h"
 #include "kis_painting_tweaks.h"
-#include "KisView.h"
+#include "workspace/KisView.h"
 #include "kis_selection_mask.h"
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <KisScreenMigrationTracker.h>
 #include <kis_display_color_converter.h>
 

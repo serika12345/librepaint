@@ -19,7 +19,7 @@
 #include <QStylePainter>
 #include <QStyleOption>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 KisWidgetChooser::KisWidgetChooser(int id, QWidget* parent)
     : QFrame(parent)

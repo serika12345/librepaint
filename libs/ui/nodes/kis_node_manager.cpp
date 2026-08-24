@@ -41,18 +41,18 @@
 #include <KisMimeDatabase.h>
 #include <KisReferenceImagesLayer.h>
 
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_shape_controller.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "nodes/kis_mask_manager.h"
 #include "nodes/kis_layer_manager.h"
 #include "selection/kis_selection_manager.h"
 #include <commands/kis_node_commands_adapter.h>
-#include "kis_action.h"
-#include "kis_action_manager.h"
+#include "application/kis_action.h"
+#include "application/kis_action_manager.h"
 #include "kis_sequential_iterator.h"
 #include "kis_transaction.h"
 #include "nodes/kis_node_selection_adapter.h"
@@ -71,7 +71,7 @@
 #include "kis_filter_mask.h"
 
 #include "processing/kis_mirror_processing_visitor.h"
-#include "KisView.h"
+#include "workspace/KisView.h"
 
 #include <kis_signals_blocker.h>
 #include <libs/image/kis_layer_properties_icons.h>

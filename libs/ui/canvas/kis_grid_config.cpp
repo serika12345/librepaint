@@ -9,7 +9,7 @@
 #include <QDomElement>
 #include <QtMath>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_dom_utils.h"
 #include "kis_algebra_2d.h"
 #include <KisStaticInitializer.h>

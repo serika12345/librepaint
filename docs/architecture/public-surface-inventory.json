@@ -158,7 +158,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/kis_config.cc",
+            "libs/ui/application/kis_config.cc",
             "plugins/dockers/lut/lutdocker_dock.cpp"
           ]
         },
@@ -452,9 +452,9 @@
           ],
           "consumerPaths": [
             "libs/document/ui/recovery/KisAutoSaveRecoveryDialog.h",
-            "libs/ui/KisApplication.cpp",
-            "libs/ui/KisView.cpp",
-            "libs/ui/document/KisDocument.cpp"
+            "libs/ui/application/KisApplication.cpp",
+            "libs/ui/document/KisDocument.cpp",
+            "libs/ui/workspace/KisView.cpp"
           ]
         },
         {
@@ -510,8 +510,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/document/KisDocument.cpp"
+            "libs/ui/document/KisDocument.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp"
           ]
         },
         {
@@ -532,7 +532,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisApplication.cpp"
+            "libs/ui/application/KisApplication.cpp"
           ]
         },
         {
@@ -675,7 +675,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisPart.cpp"
+            "libs/ui/application/KisPart.cpp"
           ]
         },
         {
@@ -738,12 +738,12 @@
           "consumerPaths": [
             "libs/impex/ui/KisImportExportUtils.h",
             "libs/impex/ui/kis_mimedata.cpp",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/selection/kis_selection_manager.cc",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/animation/KisAnimCurvesModel.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
             "plugins/dockers/animation/KisTimeBasedItemModel.cpp",
@@ -762,9 +762,9 @@
           ],
           "consumerPaths": [
             "libs/painting/KisStrokeSpeedMonitor.cpp",
-            "libs/ui/KisMainWindow.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_selection_decoration.cc",
+            "libs/ui/workspace/KisMainWindow.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp"
           ]
         },
@@ -856,8 +856,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisView.h",
-            "libs/ui/flake/kis_dummies_facade_base.h"
+            "libs/ui/flake/kis_dummies_facade_base.h",
+            "libs/ui/workspace/KisView.h"
           ]
         },
         {
@@ -1096,7 +1096,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisPart.cpp"
+            "libs/ui/application/KisPart.cpp"
           ]
         },
         {
@@ -1155,7 +1155,7 @@
           "consumerPaths": [
             "libs/ui/KisPresetShadowUpdater.cpp",
             "libs/ui/kis_derived_resources.cpp",
-            "libs/ui/kis_paintop_box.cc",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/widgets/kis_paintop_presets_editor.cpp",
             "plugins/dockers/brushhud/kis_brush_hud.cpp",
             "plugins/paintops/colorsmudge/kis_colorsmudgeop_settings.cpp",
@@ -1233,7 +1233,7 @@
           "consumerPaths": [
             "libs/tools/ui/kis_paintop_settings_widget.cpp",
             "libs/ui/canvas/kis_canvas_controls_manager.cpp",
-            "libs/ui/kis_paintop_box.h"
+            "libs/ui/tool/kis_paintop_box.h"
           ]
         },
         {
@@ -1246,7 +1246,7 @@
             "libs/tools/ui/kis_paintop_option.h",
             "libs/tools/ui/kis_paintop_settings_widget.cpp",
             "libs/ui/canvas/kis_canvas_controls_manager.cpp",
-            "libs/ui/kis_paintop_box.h"
+            "libs/ui/tool/kis_paintop_box.h"
           ]
         },
         {
@@ -1259,7 +1259,7 @@
             "libs/tools/ui/kis_paintop_list_widget.cpp",
             "libs/tools/ui/kis_paintop_settings_widget.cpp",
             "libs/ui/canvas/kis_canvas_controls_manager.cpp",
-            "libs/ui/kis_paintop_box.h"
+            "libs/ui/tool/kis_paintop_box.h"
           ]
         },
         {
@@ -1370,7 +1370,7 @@
           ],
           "consumerPaths": [
             "libs/tools/ui/kis_paintop_settings_widget.h",
-            "libs/ui/kis_paintop_box.cc",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/widgets/kis_paintop_presets_editor.cpp"
           ]
         },
@@ -1455,12 +1455,11 @@
             "libs/tools/ui/KisPaintResourceServerProvider.h",
             "libs/tools/ui/kis_paintop_settings_widget.cpp",
             "libs/ui/KisPresetShadowUpdater.cpp",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/canvas/kis_canvas_resource_provider.cpp",
             "libs/ui/kis_derived_resources.cpp",
             "libs/ui/kis_favorite_resource_manager.cpp",
-            "libs/ui/kis_paintop_box.cc",
             "libs/ui/kis_popup_palette.cpp",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/tool/kis_tool_paint.cc",
@@ -1470,6 +1469,7 @@
             "libs/ui/widgets/kis_preset_chooser.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.h",
             "libs/ui/widgets/kis_scratch_pad.h",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/brushhud/kis_brush_hud.cpp",
             "plugins/dockers/brushhud/kis_dlg_brush_hud_config.cpp",
             "plugins/dockers/presetdocker/presetdocker_dock.cpp",
@@ -1510,9 +1510,9 @@
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/tools/ui/kis_paint_ops_model.cpp",
-            "libs/ui/KisApplication.cpp",
+            "libs/ui/application/KisApplication.cpp",
             "libs/ui/kis_favorite_resource_manager.cpp",
-            "libs/ui/kis_paintop_box.cc",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/tool/kis_tool_shape.cc",
             "libs/ui/widgets/KisLodAvailabilityData.cpp",
             "plugins/extensions/resourcemanager/DlgResourceManager.cpp",
@@ -1556,17 +1556,17 @@
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/tools/kis_tool.cc",
             "libs/tools/kis_tool_paint_interaction.h",
-            "libs/ui/KisMainWindow.cpp",
             "libs/ui/canvas/kis_canvas_resource_provider.cpp",
             "libs/ui/kis_derived_resources.cpp",
-            "libs/ui/kis_paintop_box.cc",
-            "libs/ui/kis_paintop_box.h",
+            "libs/ui/tool/kis_paintop_box.cc",
+            "libs/ui/tool/kis_paintop_box.h",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h",
             "libs/ui/widgets/kis_paintop_presets_chooser_popup.cpp",
             "libs/ui/widgets/kis_paintop_presets_editor.cpp",
             "libs/ui/widgets/kis_preset_chooser.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
             "plugins/dockers/brushhud/kis_brush_hud.cpp",
             "plugins/dockers/brushhud/kis_dlg_brush_hud_config.cpp",
             "plugins/paintops/colorsmudge/KisPaintThicknessOptionData.cpp",
@@ -2004,7 +2004,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisView.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/tools/basictools/kis_tool_fill.h",
             "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
             "plugins/tools/selectiontools/kis_tool_select_similar.h",
@@ -2091,8 +2091,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisView.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/tools/basictools/kis_tool_fill.cc",
             "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp"
           ]
@@ -2167,8 +2167,8 @@
           ],
           "consumerPaths": [
             "libs/painting/strokes/move_stroke_strategy.cpp",
-            "libs/ui/KisView.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/tools/basictools/kis_tool_fill.cc",
             "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp"
           ]
@@ -2229,14 +2229,14 @@
             "libs/libkis/Filter.cpp",
             "libs/libkis/Krita.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
-            "libs/ui/KisApplication.cpp",
+            "libs/ui/application/KisApplication.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
             "libs/ui/document/kis_filter_manager.cc",
-            "libs/ui/kis_bookmarked_filter_configurations_model.cc",
             "libs/ui/kis_filters_model.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
+            "libs/ui/tool/kis_bookmarked_filter_configurations_model.cc",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
             "plugins/filters/asccdl/kis_asccdl_filter.h",
             "plugins/filters/blur/kis_blur_filter.h",
@@ -2362,17 +2362,17 @@
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/tools/kis_tool.cc",
-            "libs/ui/KisApplication.cpp",
+            "libs/ui/application/KisApplication.cpp",
             "libs/ui/canvas/kis_canvas_resource_provider.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
             "libs/ui/dialogs/kis_dlg_generator_layer.cpp",
             "libs/ui/document/kis_filter_manager.cc",
-            "libs/ui/kis_bookmarked_filter_configurations_model.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_layer_manager.h",
             "libs/ui/nodes/kis_mask_manager.cc",
+            "libs/ui/tool/kis_bookmarked_filter_configurations_model.cc",
             "libs/ui/utils/KisDitherUtil.cpp",
             "libs/ui/widgets/KisDitherWidget.cpp",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
@@ -2487,7 +2487,7 @@
             "libs/libkis/FilterLayer.cpp",
             "libs/libkis/FilterMask.cpp",
             "libs/libkis/Krita.cpp",
-            "libs/ui/KisApplication.cpp",
+            "libs/ui/application/KisApplication.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/document/kis_filter_manager.cc",
             "libs/ui/kis_filters_model.cc",
@@ -2579,7 +2579,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisApplication.cpp",
+            "libs/ui/application/KisApplication.cpp",
             "libs/ui/dialogs/kis_dlg_generator_layer.h",
             "libs/ui/widgets/kis_wdg_generator.cpp",
             "plugins/filters/halftone/KisHalftoneConfigPageWidget.cpp",
@@ -2644,7 +2644,7 @@
             "libs/libkis/Document.cpp",
             "libs/libkis/FillLayer.cpp",
             "libs/psd/psd_additional_layer_info_block.h",
-            "libs/ui/KisApplication.cpp",
+            "libs/ui/application/KisApplication.cpp",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/widgets/kis_wdg_generator.cpp",
             "plugins/filters/halftone/KisHalftoneConfigPageWidget.cpp",
@@ -2814,7 +2814,7 @@
           ],
           "consumerPaths": [
             "libs/ui/document/kis_filter_manager.cc",
-            "libs/ui/kis_bookmarked_configurations_model.cc",
+            "libs/ui/tool/kis_bookmarked_configurations_model.cc",
             "plugins/filters/colorsfilters/kis_cross_channel_filter.cpp",
             "plugins/filters/colorsfilters/kis_multichannel_filter_base.cpp",
             "plugins/filters/colorsfilters/kis_perchannel_filter.cpp"
@@ -2906,8 +2906,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisViewManager.cpp",
-            "libs/ui/dialogs/kis_delayed_save_dialog.cpp"
+            "libs/ui/dialogs/kis_delayed_save_dialog.cpp",
+            "libs/ui/workspace/KisViewManager.cpp"
           ]
         },
         {
@@ -2924,7 +2924,7 @@
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
             "libs/ui/dialogs/kis_dlg_file_layer.cpp",
             "libs/ui/dialogs/kis_dlg_generator_layer.cpp",
-            "libs/ui/kis_paintop_box.cc",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
             "libs/ui/widgets/kis_multi_bool_filter_widget.h",
             "libs/ui/widgets/kis_multi_double_filter_widget.cc",
@@ -3300,7 +3300,6 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisView.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/processing/fill_processing_visitor.h",
@@ -3308,6 +3307,7 @@
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/generators/multigridpattern/multigridpatterngenerator.cpp",
             "plugins/generators/pattern/patterngenerator.cpp",
             "plugins/generators/seexpr/generator.cpp",
@@ -3506,11 +3506,10 @@
             "libs/painting/kis_painting_utils.cpp",
             "libs/psd/psd_layer_section.cpp",
             "libs/tools/kis_tool.cc",
-            "libs/ui/KisPart.cpp",
-            "libs/ui/KisView.cpp",
             "libs/ui/actions/KisLayerSelectionAction.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_canvas_resource_provider.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
@@ -3526,6 +3525,7 @@
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
             "plugins/dockers/channeldocker/channelmodel.cpp",
             "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
@@ -3615,8 +3615,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisPart.cpp",
             "libs/ui/animation/kis_animation_cache_populator.cpp",
+            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/KisIdleTasksManager.cpp",
             "libs/ui/document/KisDocument.cpp",
             "plugins/dockers/layerdocker/LayerBox.h",
@@ -3689,11 +3689,7 @@
             "libs/tools/kis_tool.cc",
             "libs/tools/kis_tool_select_base.h",
             "libs/ui/KisImportExportColorSpaceDialog.cpp",
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/KisPart.cpp",
             "libs/ui/KisPresetShadowUpdater.cpp",
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/KisLayerSelectionAction.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
@@ -3702,6 +3698,7 @@
             "libs/ui/animation/KisPlaybackEngineQT.cpp",
             "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/animation/kis_animation_frame_cache.cpp",
+            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/KisIdleTasksManager.cpp",
             "libs/ui/canvas/KisLayerThumbnailCache.cpp",
@@ -3745,8 +3742,6 @@
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/kis_control_frame.cpp",
             "libs/ui/kis_custom_pattern.cc",
-            "libs/ui/kis_paintop_box.cc",
-            "libs/ui/kis_statusbar.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_mask_manager.cc",
             "libs/ui/nodes/kis_node_filter_proxy_model.cpp",
@@ -3761,6 +3756,7 @@
             "libs/ui/processing/KisEncloseAndFillProcessingVisitor.cpp",
             "libs/ui/processing/fill_processing_visitor.cpp",
             "libs/ui/selection/kis_selection_manager.h",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/tool/kis_tool_paint.cc",
@@ -3772,6 +3768,10 @@
             "libs/ui/widgets/kis_preset_live_preview_view.h",
             "libs/ui/widgets/kis_scratch_pad.cpp",
             "libs/ui/widgets/kis_wdg_generator.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisViewManager.cpp",
+            "libs/ui/workspace/kis_statusbar.cc",
             "plugins/assistants/Assistants/kis_assistant_tool.cc",
             "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
             "plugins/dockers/advancedcolorselector/kis_common_colors.cpp",
@@ -3965,9 +3965,6 @@
             "libs/libkis/Document.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
-            "libs/ui/KisApplication.cpp",
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/KisPart.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/animation/KisAsyncAnimationRendererBase.cpp",
             "libs/ui/animation/KisFrameDisplayProxy.cpp",
@@ -3976,13 +3973,16 @@
             "libs/ui/animation/KisPlaybackEngineQT.cpp",
             "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/animation/kis_animation_frame_cache.cpp",
+            "libs/ui/application/KisApplication.cpp",
+            "libs/ui/application/KisPart.cpp",
+            "libs/ui/application/kis_action_manager.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
             "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/document/kis_filter_manager.cc",
-            "libs/ui/kis_action_manager.cpp",
             "libs/ui/utils/kis_document_aware_spin_box_unit_manager.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
@@ -4028,9 +4028,9 @@
             "libs/impex/ui/KisImportExportManager.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/tools/kis_tool_paint_interaction.cpp",
-            "libs/ui/KisMainWindow.cpp",
             "libs/ui/animation/KisAsyncAnimationRendererBase.cpp",
             "libs/ui/animation/kis_animation_frame_cache.cpp",
+            "libs/ui/application/kis_config.cc",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_image_pyramid.cpp",
@@ -4041,10 +4041,10 @@
             "libs/ui/dialogs/kis_dlg_preferences.cc",
             "libs/ui/dialogs/kis_dlg_stroke_selection_properties.cpp",
             "libs/ui/document/kis_filter_manager.cc",
-            "libs/ui/kis_config.cc",
-            "libs/ui/kis_paintop_box.cc",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/widgets/kis_lod_availability_widget.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesView.cpp",
@@ -4233,8 +4233,7 @@
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
             "libs/libkis/TransparencyMask.cpp",
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisViewManager.cpp",
+            "libs/ui/application/kis_action_manager.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
@@ -4242,7 +4241,6 @@
             "libs/ui/flake/kis_node_shape.cpp",
             "libs/ui/flake/kis_shape_layer_canvas.cpp",
             "libs/ui/imagesize/imagesize.cc",
-            "libs/ui/kis_action_manager.cpp",
             "libs/ui/kis_custom_pattern.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_mask_manager.cc",
@@ -4254,6 +4252,8 @@
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/dockers/specificcolorselector/specificcolorselector_dock.cc",
@@ -4374,11 +4374,11 @@
             "libs/ui/document/kis_filter_manager.cc",
             "libs/ui/document/kis_image_manager.cc",
             "libs/ui/flake/kis_dummies_facade_base.cpp",
-            "libs/ui/kis_statusbar.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_multinode_property.h",
             "libs/ui/nodes/kis_node_manager.cpp",
             "libs/ui/tool/kis_tool_canvas_utils.cpp",
+            "libs/ui/workspace/kis_statusbar.cc",
             "plugins/dockers/gamutmask/gamutmask_dock.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/dockers/storyboarddocker/KisAddRemoveStoryboardCommand.cpp",
@@ -4501,11 +4501,11 @@
           "consumerPaths": [
             "libs/libkis/Document.cpp",
             "libs/tools/kis_tool.cc",
-            "libs/ui/KisView.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_mask_manager.h",
             "libs/ui/nodes/kis_node_manager.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/impex/libkra/kis_kra_save_visitor.cpp"
           ]
@@ -4545,10 +4545,10 @@
           ],
           "consumerPaths": [
             "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
-            "libs/ui/KisPart.cpp",
-            "libs/ui/KisView.cpp",
+            "libs/ui/application/KisPart.cpp",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
-            "libs/ui/kis_statusbar.cc"
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/kis_statusbar.cc"
           ]
         },
         {
@@ -4599,9 +4599,6 @@
             "libs/psd/psd_layer_record.cpp",
             "libs/psd/psd_layer_record.h",
             "libs/psd/psd_layer_section.cpp",
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/canvas/kis_display_color_converter.cpp",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
             "libs/ui/dialogs/kis_dlg_file_layer.cpp",
@@ -4610,7 +4607,6 @@
             "libs/ui/flake/kis_node_shape.cpp",
             "libs/ui/flake/kis_node_shapes_graph.h",
             "libs/ui/flake/kis_shape_controller.cpp",
-            "libs/ui/kis_paintop_box.cc",
             "libs/ui/nodes/KisNodeActivationActionCreatorVisitor.h",
             "libs/ui/nodes/kis_multinode_property.h",
             "libs/ui/nodes/kis_node_filter_proxy_model.cpp",
@@ -4620,9 +4616,13 @@
             "libs/ui/nodes/kis_node_selection_adapter.cpp",
             "libs/ui/processing/KisEncloseAndFillProcessingVisitor.cpp",
             "libs/ui/processing/fill_processing_visitor.cpp",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/widgets/kis_color_filter_combo.cpp",
             "libs/ui/widgets/kis_layer_filter_widget.cpp",
             "libs/ui/widgets/kis_paintop_presets_editor.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
@@ -4823,20 +4823,20 @@
             "libs/ui/flake/kis_shape_layer.cc",
             "libs/ui/flake/kis_shape_layer_canvas.cpp",
             "libs/ui/flake/kis_shape_selection.cpp",
-            "libs/ui/kis_bookmarked_filter_configurations_model.cc",
             "libs/ui/kis_custom_pattern.cc",
             "libs/ui/kis_filters_model.cc",
-            "libs/ui/kis_paintop_box.cc",
-            "libs/ui/kis_statusbar.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/opengl/kis_texture_tile_update_info.h",
             "libs/ui/selection/kis_selection_manager.cc",
+            "libs/ui/tool/kis_bookmarked_filter_configurations_model.cc",
+            "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/tool/kis_tool_shape.cc",
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_scratch_pad.cpp",
             "libs/ui/widgets/kis_wdg_generator.cpp",
+            "libs/ui/workspace/kis_statusbar.cc",
             "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_triangle.h",
@@ -5072,8 +5072,6 @@
             "libs/psd/psd_layer_record.cpp",
             "libs/psd/psd_layer_section.cpp",
             "libs/tools/kis_tool.cc",
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/animation/KisAsyncAnimationFramesSavingRenderer.cpp",
@@ -5093,6 +5091,8 @@
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.h",
             "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
             "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
             "plugins/extensions/imagesplit/imagesplit.cpp",
@@ -5548,16 +5548,16 @@
             "libs/tools/kis_tool_utils.cpp",
             "libs/tools/ui/KisPaintopPropertiesBase.cpp",
             "libs/tools/ui/kis_paintop_option.h",
-            "libs/ui/KisSessionResource.cpp",
             "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.cpp",
             "libs/ui/document/KisDocument.h",
-            "libs/ui/kis_workspace_resource.h",
             "libs/ui/operations/kis_operation.h",
             "libs/ui/operations/kis_operation_configuration.h",
             "libs/ui/widgets/KisDitherWidget.cpp",
             "libs/ui/widgets/KisLodAvailabilityData.cpp",
             "libs/ui/widgets/kis_custom_image_widget.h",
             "libs/ui/widgets/kis_image_from_clipboard_widget.h",
+            "libs/ui/workspace/KisSessionResource.cpp",
+            "libs/ui/workspace/kis_workspace_resource.h",
             "plugins/dockers/digitalmixer/digitalmixer_dock.cc",
             "plugins/filters/phongbumpmap/phong_pixel_processor.h",
             "plugins/impex/brush/KisWdgOptionsBrush.h",
@@ -5639,7 +5639,7 @@
           "consumerPaths": [
             "libs/psd/psd_additional_layer_info_block.h",
             "libs/tools/ui/KisPaintResourceServerProvider.cpp",
-            "libs/ui/KisApplication.cpp",
+            "libs/ui/application/KisApplication.cpp",
             "libs/ui/dialogs/kis_dlg_layer_style.cpp",
             "libs/ui/dialogs/kis_dlg_layer_style.h",
             "libs/ui/nodes/kis_layer_manager.cc",
@@ -5817,8 +5817,6 @@
             "libs/tools/kis_selection_modifier_mapping.h",
             "libs/tools/kis_tool.cc",
             "libs/tools/kis_tool_select_base.h",
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_canvas_tool_support.cpp",
@@ -5832,7 +5830,6 @@
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/kis_custom_pattern.cc",
             "libs/ui/kis_filters_model.cc",
-            "libs/ui/kis_statusbar.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_layer_manager.h",
             "libs/ui/nodes/kis_mask_manager.cc",
@@ -5845,6 +5842,9 @@
             "libs/ui/tool/kis_selection_tool_helper.h",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_shape.cc",
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisViewManager.cpp",
+            "libs/ui/workspace/kis_statusbar.cc",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/extensions/colorrange/colorrange.cc",
             "plugins/extensions/colorrange/dlg_colorrange.cc",
@@ -5980,7 +5980,6 @@
             "libs/libkis/SelectionMask.cpp",
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/tools/kis_tool.cc",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_selection_decoration.cc",
@@ -5995,6 +5994,7 @@
             "libs/ui/nodes/kis_node_model.cpp",
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/tool/kis_tool_shape.cc",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/extensions/layersplit/layersplit.cpp",
             "plugins/extensions/offsetimage/kis_offset_processing_visitor.cpp",
@@ -6036,9 +6036,9 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/kis_bookmarked_configurations_editor.h",
-            "libs/ui/kis_bookmarked_configurations_model.h",
-            "libs/ui/kis_bookmarked_filter_configurations_model.h"
+            "libs/ui/tool/kis_bookmarked_configurations_editor.h",
+            "libs/ui/tool/kis_bookmarked_configurations_model.h",
+            "libs/ui/tool/kis_bookmarked_filter_configurations_model.h"
           ]
         },
         {
@@ -6133,8 +6133,8 @@
           "consumerPaths": [
             "libs/painting/strokes/kis_filter_stroke_strategy.h",
             "libs/painting/strokes/move_stroke_strategy.h",
-            "libs/ui/KisView.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/tools/basictools/kis_tool_fill.cc",
             "plugins/tools/basictools/strokes/move_selection_stroke_strategy.h",
             "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp",
@@ -6195,12 +6195,12 @@
             "libs/impex/animation/KisVideoSaver.cpp",
             "libs/impex/ui/kis_clipboard.cc",
             "libs/libkis/Document.cpp",
-            "libs/ui/KisPart.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/animation/KisAsyncAnimationFramesSavingRenderer.cpp",
             "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/animation/kis_animation_frame_cache.cpp",
+            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.h",
             "libs/ui/dialogs/KisAsyncAnimationCacheRenderDialog.cpp",
@@ -6469,12 +6469,10 @@
             "libs/tools/kis_tool_utils.h",
             "libs/tools/ui/KisPaintopPropertiesBase.h",
             "libs/tools/ui/kis_paintop_option.h",
-            "libs/ui/KisPart.h",
-            "libs/ui/KisView.h",
-            "libs/ui/KisViewManager.h",
             "libs/ui/animation/KisAsyncAnimationRendererBase.h",
             "libs/ui/animation/kis_animation_cache_populator.h",
             "libs/ui/animation/kis_animation_frame_cache.h",
+            "libs/ui/application/KisPart.h",
             "libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.h",
             "libs/ui/canvas/KisDecorationsWrapperLayer.h",
             "libs/ui/canvas/KisIdleTaskStrokeStrategy.h",
@@ -6528,14 +6526,8 @@
             "libs/ui/flake/kis_take_all_shapes_command.h",
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/imagesize/imagesize.h",
-            "libs/ui/kis_bookmarked_filter_configurations_model.h",
             "libs/ui/kis_favorite_resource_manager.h",
             "libs/ui/kis_filters_model.h",
-            "libs/ui/kis_paintop_box.cc",
-            "libs/ui/kis_paintop_box.h",
-            "libs/ui/kis_preference_set_registry.h",
-            "libs/ui/kis_statusbar.cc",
-            "libs/ui/kis_statusbar.h",
             "libs/ui/nodes/kis_layer_manager.h",
             "libs/ui/nodes/kis_mask_manager.h",
             "libs/ui/nodes/kis_node_filter_proxy_model.h",
@@ -6547,6 +6539,9 @@
             "libs/ui/selection/kis_selection_actions_panel.h",
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/tool/KisAsyncColorSamplerHelper.h",
+            "libs/ui/tool/kis_bookmarked_filter_configurations_model.h",
+            "libs/ui/tool/kis_paintop_box.cc",
+            "libs/ui/tool/kis_paintop_box.h",
             "libs/ui/tool/kis_tool_freehand.h",
             "libs/ui/tool/kis_tool_freehand_helper.h",
             "libs/ui/utils/KisDitherUtil.h",
@@ -6560,6 +6555,11 @@
             "libs/ui/widgets/kis_preset_live_preview_view.h",
             "libs/ui/widgets/kis_scratch_pad.h",
             "libs/ui/widgets/kis_wdg_generator.h",
+            "libs/ui/workspace/KisView.h",
+            "libs/ui/workspace/KisViewManager.h",
+            "libs/ui/workspace/kis_preference_set_registry.h",
+            "libs/ui/workspace/kis_statusbar.cc",
+            "libs/ui/workspace/kis_statusbar.h",
             "pch/kis_image_pch.h",
             "plugins/dockers/advancedcolorselector/kis_common_colors.h",
             "plugins/dockers/advancedcolorselector/kis_shade_selector_line.h",
@@ -6782,7 +6782,6 @@
           "consumerPaths": [
             "libs/impex/ui/kis_animation_importer.cpp",
             "libs/libkis/Document.cpp",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/dialogs/KisDlgChangeCloneSource.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
@@ -6791,6 +6790,7 @@
             "libs/ui/nodes/kis_node_model.cpp",
             "libs/ui/processing/fill_processing_visitor.cpp",
             "libs/ui/selection/kis_selection_manager.cc",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/assistants/Assistants/kis_assistant_tool.cc",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
             "plugins/extensions/colorrange/dlg_colorrange.cc",
@@ -6910,8 +6910,6 @@
             "libs/libkis/Filter.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/KisView.cpp",
             "libs/ui/canvas/KisImageThumbnailStrokeStrategy.cpp",
             "libs/ui/canvas/KisReferenceImage.cpp",
             "libs/ui/canvas/kis_canvas_controller.cpp",
@@ -6923,6 +6921,8 @@
             "libs/ui/widgets/gradient/KisSegmentGradientSlider.cpp",
             "libs/ui/widgets/gradient/KisStopGradientSlider.cpp",
             "libs/ui/widgets/kis_color_filter_combo.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/dockers/animation/KisAnimCurvesChannelDelegate.cpp",
             "plugins/dockers/animation/KisAnimTimelineColors.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
@@ -7444,9 +7444,9 @@
             "libs/impex/ui/KisImportExportManager.cpp",
             "libs/impex/ui/KisImportExportManager.h",
             "libs/impex/ui/kis_animation_importer.h",
-            "libs/ui/KisMainWindow.cpp",
             "libs/ui/animation/KisAsyncAnimationFramesSavingRenderer.cpp",
             "libs/ui/document/KisDocument.h",
+            "libs/ui/workspace/KisMainWindow.cpp",
             "plugins/filters/fastcolortransfer/kis_wdg_fastcolortransfer.cpp",
             "plugins/impex/brush/KisWdgOptionsBrush.h",
             "plugins/impex/brush/kis_brush_export.h",
@@ -7548,13 +7548,13 @@
             "libs/document/ui/info/KoDocumentInfoDlg.cpp",
             "libs/impex/ui/kis_png_converter.cpp",
             "libs/libkis/Document.cpp",
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/KisPart.cpp",
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisViewManager.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/application/KisPart.cpp",
             "libs/ui/document/KisDocument.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/recorder/recorderdocker_dock.cpp",
             "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
             "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
@@ -7613,7 +7613,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisMainWindow.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
             "plugins/dockers/compositiondocker/compositiondocker_dock.cpp"
           ]
         },
@@ -7634,7 +7634,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisMainWindow.cpp"
+            "libs/ui/workspace/KisMainWindow.cpp"
           ]
         },
         {
@@ -7644,7 +7644,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisMainWindow.cpp"
+            "libs/ui/workspace/KisMainWindow.cpp"
           ]
         },
         {
@@ -7701,10 +7701,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisApplication.h",
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/KisPart.cpp",
-            "libs/ui/KisView.cpp",
+            "libs/ui/application/KisApplication.h",
+            "libs/ui/application/KisPart.cpp",
             "libs/ui/dialogs/KisDlgCreateNewDocument.cpp",
             "libs/ui/dialogs/kis_dlg_file_layer.cpp",
             "libs/ui/dialogs/kis_dlg_import_image_sequence.cpp",
@@ -7712,6 +7710,8 @@
             "libs/ui/document/kis_image_manager.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_node_manager.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesView.cpp",
             "plugins/extensions/imagesplit/imagesplit.cpp",
             "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
@@ -7788,8 +7788,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisWelcomePageWidget.cpp"
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisWelcomePageWidget.cpp"
           ]
         },
         {
@@ -7817,7 +7817,7 @@
           ],
           "consumerPaths": [
             "libs/libkis/Document.cpp",
-            "libs/ui/KisMainWindow.cpp"
+            "libs/ui/workspace/KisMainWindow.cpp"
           ]
         },
         {
@@ -7828,17 +7828,17 @@
           ],
           "consumerPaths": [
             "libs/libkis/Selection.cpp",
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisWelcomePageWidget.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/application/kis_action_manager.cpp",
             "libs/ui/document/KisDocument.cpp",
-            "libs/ui/kis_action_manager.cpp",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_node_manager.cpp",
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisWelcomePageWidget.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/paintops/libpaintop/kis_clipboard_brush_widget.cpp",
             "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImagesWidget.cpp"
@@ -7851,10 +7851,10 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisView.cpp",
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/document/kis_image_manager.cc",
-            "libs/ui/widgets/kis_image_from_clipboard_widget.cpp"
+            "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
+            "libs/ui/workspace/KisView.cpp"
           ]
         },
         {
@@ -7864,10 +7864,10 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisView.cpp",
             "libs/ui/nodes/kis_node_insertion_adapter.h",
             "libs/ui/nodes/kis_node_manager.cpp",
-            "libs/ui/nodes/kis_node_model.cpp"
+            "libs/ui/nodes/kis_node_model.cpp",
+            "libs/ui/workspace/KisView.cpp"
           ]
         },
         {
@@ -8092,8 +8092,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisApplication.cpp",
-            "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+            "libs/ui/application/KisApplication.cpp",
+            "libs/ui/application/KisPlatformPluginInterfaceFactory.cpp",
             "plugins/platforms/wayland/KisExtendedModifiersMapperWayland.h",
             "plugins/platforms/xcb/KisExtendedModifiersMapperX11.h"
           ]
@@ -8142,9 +8142,9 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisMainWindow.cpp",
-            "libs/ui/KisView.cpp",
-            "libs/ui/KisViewManager.cpp",
+            "libs/ui/workspace/KisMainWindow.cpp",
+            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/layerdocker/NodeDelegate.cpp",
             "plugins/extensions/iostouchui/iostouchui.cpp",
             "plugins/extensions/spensettings/SPenSettings.cpp"
@@ -8157,7 +8157,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/KisViewManager.cpp"
+            "libs/ui/workspace/KisViewManager.cpp"
           ]
         },
         {
@@ -8289,9 +8289,9 @@
           ],
           "consumerPaths": [
             "libs/tools/kis_tool.cc",
-            "libs/ui/KisView.cpp",
             "libs/ui/processing/KisEncloseAndFillProcessingVisitor.h",
             "libs/ui/processing/fill_processing_visitor.h",
+            "libs/ui/workspace/KisView.cpp",
             "plugins/tools/basictools/kis_tool_fill.h",
             "plugins/tools/basictools/kis_tool_gradient.cc",
             "plugins/tools/basictools/kis_tool_line.cc",
@@ -8631,7 +8631,7 @@
             "libs/input/ui/kis_change_primary_setting_action.h",
             "libs/input/ui/kis_tool_invocation_action.cpp",
             "libs/ui/canvas/kis_tool_proxy.h",
-            "libs/ui/kis_paintop_box.cc",
+            "libs/ui/tool/kis_paintop_box.cc",
             "plugins/assistants/Assistants/kis_assistant_tool.h",
             "plugins/tools/basictools/default_tools.cc",
             "plugins/tools/basictools/kis_tool_brush.cc",
@@ -8713,181 +8713,6 @@
       ],
       "headers": [
         {
-          "path": "libs/ui/KisActionPlugin.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/extensions/buginfo/buginfo.h",
-            "plugins/extensions/clonesarray/clonesarray.h",
-            "plugins/extensions/colorrange/colorrange.h",
-            "plugins/extensions/colorspaceconversion/colorspaceconversion.h",
-            "plugins/extensions/dbexplorer/DbExplorer.h",
-            "plugins/extensions/imagesplit/imagesplit.h",
-            "plugins/extensions/iostouchui/iostouchui.h",
-            "plugins/extensions/layergroupswitcher/layergroupswitcher.h",
-            "plugins/extensions/layersplit/layersplit.h",
-            "plugins/extensions/metadataeditor/metadataeditor.h",
-            "plugins/extensions/modify_selection/modify_selection.h",
-            "plugins/extensions/offsetimage/offsetimage.h",
-            "plugins/extensions/pykrita/plugin/plugin.h",
-            "plugins/extensions/qmic/QMic.h",
-            "plugins/extensions/resourcemanager/resourcemanager.h",
-            "plugins/extensions/rotateimage/rotateimage.h",
-            "plugins/extensions/samplescreencolor/KisSampleScreenColor.h",
-            "plugins/extensions/separate_channels/kis_separate_channels_plugin.h",
-            "plugins/extensions/shearimage/shearimage.h",
-            "plugins/extensions/spensettings/SPenSettings.h",
-            "plugins/extensions/waveletdecompose/waveletdecompose.h"
-          ]
-        },
-        {
-          "path": "libs/ui/KisAndroidSplash.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisApplication.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "krita/main.cc",
-            "libs/input/ui/kis_extended_modifiers_mapper.cpp",
-            "plugins/extensions/pykrita/kritarunner/main.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisApplicationArguments.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "krita/main.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/KisMainWindow.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "krita/main.cc",
-            "libs/impex/animation/KisAnimationRender.cpp",
-            "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
-            "libs/impex/ui/KisImportExportManager.cpp",
-            "libs/impex/ui/kis_clipboard.cc",
-            "libs/input/ui/KisCanvasOnlyAction.cpp",
-            "libs/input/ui/KisQtWidgetsTweaker.cpp",
-            "libs/input/ui/KisTouchGestureAction.cpp",
-            "libs/libkis/Document.cpp",
-            "libs/libkis/Krita.cpp",
-            "libs/libkis/Node.cpp",
-            "libs/libkis/PaintingResources.cpp",
-            "libs/libkis/Shape.cpp",
-            "libs/libkis/View.cpp",
-            "libs/libkis/Window.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
-            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
-            "plugins/dockers/animation/KisOnionSkinsDocker.cpp",
-            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
-            "plugins/dockers/logdocker/LogDockerDock.cpp",
-            "plugins/dockers/lut/lutdocker_dock.cpp",
-            "plugins/dockers/overview/overviewwidget.cc",
-            "plugins/dockers/palettedocker/palettedocker_dock.cpp",
-            "plugins/dockers/presetdocker/presetdocker_dock.cpp",
-            "plugins/dockers/recorder/recorder_writer.cpp",
-            "plugins/dockers/recorder/recorderdocker_dock.cpp",
-            "plugins/dockers/tasksetdocker/tasksetdocker_dock.cpp",
-            "plugins/extensions/buginfo/DlgColorManagementInfo.cpp",
-            "plugins/extensions/iostouchui/iostouchui.cpp",
-            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp",
-            "plugins/extensions/resourcemanager/ResourceImporter.cpp",
-            "plugins/extensions/resourcemanager/dlg_bundle_manager.cpp",
-            "plugins/extensions/spensettings/KisSPenSettings.cpp",
-            "plugins/extensions/spensettings/SPenSettings.cpp",
-            "plugins/impex/csv/csv_loader.cpp",
-            "plugins/tools/svgtexttool/SvgTextTool.cpp",
-            "plugins/tools/tool_transform2/kis_tool_transform_config_widget.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisPart.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "krita/main.cc",
-            "libs/impex/animation/KisFFMpegWrapper.cpp",
-            "libs/impex/animation/KisVideoSaver.cpp",
-            "libs/impex/ui/KisImportExportManager.cpp",
-            "libs/impex/ui/KisSaveGroupVisitor.cpp",
-            "libs/impex/ui/kis_animation_importer.cpp",
-            "libs/impex/ui/kis_clipboard.cc",
-            "libs/impex/ui/kis_import_catcher.cc",
-            "libs/impex/ui/kis_mimedata.cpp",
-            "libs/impex/ui/kis_safe_document_loader.cpp",
-            "libs/input/ui/KisCanvasOnlyAction.cpp",
-            "libs/input/ui/KisTouchGestureAction.cpp",
-            "libs/libkis/Document.cpp",
-            "libs/libkis/Filter.cpp",
-            "libs/libkis/Krita.cpp",
-            "libs/libkis/LibKisUtils.cpp",
-            "libs/libkis/Node.cpp",
-            "libs/libkis/Notifier.cpp",
-            "libs/libkis/PaintingResources.cpp",
-            "libs/libkis/Shape.cpp",
-            "libs/libkis/Window.cpp",
-            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
-            "plugins/dockers/animation/KisTimeBasedItemModel.cpp",
-            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
-            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
-            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
-            "plugins/dockers/layerdocker/NodeDelegate.cpp",
-            "plugins/dockers/logdocker/LogDockerDock.cpp",
-            "plugins/dockers/palettedocker/palettedocker_dock.cpp",
-            "plugins/dockers/recorder/recorderdocker_dock.cpp",
-            "plugins/dockers/storyboarddocker/StoryboardDockerDock.cpp",
-            "plugins/extensions/imagesplit/imagesplit.cpp",
-            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp",
-            "plugins/extensions/resourcemanager/dlg_bundle_manager.cpp",
-            "plugins/extensions/resourcemanager/resourcemanager.cpp",
-            "plugins/extensions/separate_channels/kis_channel_separator.cc",
-            "plugins/extensions/spensettings/KisSPenSettings.cpp",
-            "plugins/extensions/spensettings/SPenSettings.cpp",
-            "plugins/filters/fastcolortransfer/kis_wdg_fastcolortransfer.cpp",
-            "plugins/impex/csv/csv_loader.cpp",
-            "plugins/impex/csv/csv_saver.cpp",
-            "plugins/impex/spriter/kis_spriter_export.cpp",
-            "plugins/tools/basictools/kis_tool_fill.cc",
-            "plugins/tools/svgtexttool/SvgTextTool.cpp",
-            "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisPlatformPluginInterfaceFactory.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/impex/ui/kis_mimedata.cpp",
-            "plugins/dockers/smallcolorselector/kis_small_color_widget.cc",
-            "plugins/extensions/buginfo/DlgColorManagementInfo.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/KisPopupWidgetInterface.h",
           "publicationEvidence": [
             "external-include"
@@ -8899,44 +8724,6 @@
           ]
         },
         {
-          "path": "libs/ui/KisResourceServerProvider.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/Krita.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisSessionResource.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisTemplateCreateDia.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisTemplateGroup.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisTemplateTree.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/KisUiFont.h",
           "publicationEvidence": [
             "export-macro",
@@ -8945,189 +8732,6 @@
           "consumerPaths": [
             "krita/main.cc"
           ]
-        },
-        {
-          "path": "libs/ui/KisView.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/impex/animation/KisDlgImportVideoAnimation.h",
-            "libs/libkis/Canvas.cpp",
-            "libs/libkis/Filter.cpp",
-            "libs/libkis/PaintingResources.cpp",
-            "libs/libkis/Shape.cpp",
-            "libs/libkis/View.cpp",
-            "plugins/assistants/Assistants/EditAssistantsCommand.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
-            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
-            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
-            "plugins/dockers/gamutmask/gamutmask_dock.h",
-            "plugins/dockers/layerdocker/LayerBox.cpp",
-            "plugins/dockers/palettedocker/palettedocker_dock.h",
-            "plugins/dockers/snapshotdocker/KisSnapshotModel.cpp",
-            "plugins/impex/csv/csv_loader.cpp",
-            "plugins/tools/selectiontools/kis_tool_select_path.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/KisViewManager.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/impex/animation/KisAnimationRender.cpp",
-            "libs/impex/ui/kis_import_catcher.cc",
-            "libs/input/ui/kis_change_frame_action.cpp",
-            "libs/input/ui/kis_gamma_exposure_action.cpp",
-            "libs/input/ui/kis_input_manager.cpp",
-            "libs/input/ui/kis_zoom_action.cpp",
-            "libs/input/ui/kis_zoom_and_rotate_action.cpp",
-            "libs/libkis/Document.cpp",
-            "libs/libkis/Krita.cpp",
-            "libs/libkis/PaintingResources.cpp",
-            "libs/libkis/View.cpp",
-            "libs/libkis/Window.cpp",
-            "plugins/assistants/Assistants/EditAssistantsCommand.cpp",
-            "plugins/assistants/Assistants/kis_assistant_tool.cc",
-            "plugins/dockers/advancedcolorselector/kis_color_history.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
-            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
-            "plugins/dockers/animation/KisAnimDockers.cpp",
-            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
-            "plugins/dockers/animation/KisOnionSkinsDocker.cpp",
-            "plugins/dockers/arrangedocker/arrangedocker_dock.cpp",
-            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
-            "plugins/dockers/brushhud/brushhud_dock.cpp",
-            "plugins/dockers/brushhud/kis_brush_hud.cpp",
-            "plugins/dockers/channeldocker/ChannelDockerWidget.cpp",
-            "plugins/dockers/channeldocker/channeldocker.cpp",
-            "plugins/dockers/compositiondocker/compositiondocker.cpp",
-            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
-            "plugins/dockers/digitalmixer/digitalmixer_dock.h",
-            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
-            "plugins/dockers/griddocker/griddocker_dock.cpp",
-            "plugins/dockers/histogram/histogramdocker_dock.cpp",
-            "plugins/dockers/histogram/histogramdockerwidget.cpp",
-            "plugins/dockers/historydocker/HistoryDock.h",
-            "plugins/dockers/historydocker/KisUndoModel.h",
-            "plugins/dockers/layerdocker/LayerBox.cpp",
-            "plugins/dockers/layerdocker/LayerBox.h",
-            "plugins/dockers/logdocker/LogDockerDock.cpp",
-            "plugins/dockers/lut/lutdocker_dock.cpp",
-            "plugins/dockers/overview/overviewdocker_page.cpp",
-            "plugins/dockers/overview/overviewwidget.cc",
-            "plugins/dockers/palettedocker/palettedocker.cpp",
-            "plugins/dockers/palettedocker/palettedocker_dock.cpp",
-            "plugins/dockers/patterndocker/patterndocker_dock.cpp",
-            "plugins/dockers/presetdocker/presetdocker_dock.cpp",
-            "plugins/dockers/presethistory/presethistory_dock.cpp",
-            "plugins/dockers/recorder/recorderdocker_dock.cpp",
-            "plugins/dockers/snapshotdocker/KisSnapshotModel.cpp",
-            "plugins/dockers/snapshotdocker/SnapshotDocker.cpp",
-            "plugins/dockers/specificcolorselector/specificcolorselector.cc",
-            "plugins/dockers/specificcolorselector/specificcolorselector_dock.cc",
-            "plugins/dockers/storyboarddocker/StoryboardDockerDock.cpp",
-            "plugins/dockers/tasksetdocker/tasksetdocker_dock.cpp",
-            "plugins/dockers/textproperties/TextPropertiesCanvasObserver.cpp",
-            "plugins/dockers/textproperties/TextPropertiesDock.cpp",
-            "plugins/dockers/textproperties/TextPropertiesPlugin.cpp",
-            "plugins/dockers/touchdocker/TouchDockerWidget.cpp",
-            "plugins/dockers/widegamutcolorselector/WGActionManager.cpp",
-            "plugins/extensions/buginfo/DlgColorManagementInfo.cpp",
-            "plugins/extensions/buginfo/buginfo.cpp",
-            "plugins/extensions/clonesarray/clonesarray.cpp",
-            "plugins/extensions/clonesarray/dlg_clonesarray.cpp",
-            "plugins/extensions/colorrange/colorrange.cc",
-            "plugins/extensions/colorrange/dlg_colorrange.cc",
-            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
-            "plugins/extensions/dbexplorer/DbExplorer.cpp",
-            "plugins/extensions/imagesplit/dlg_imagesplit.cpp",
-            "plugins/extensions/imagesplit/imagesplit.cpp",
-            "plugins/extensions/iostouchui/iostouchui.cpp",
-            "plugins/extensions/layergroupswitcher/layergroupswitcher.cpp",
-            "plugins/extensions/layersplit/dlg_layersplit.cpp",
-            "plugins/extensions/layersplit/layersplit.cpp",
-            "plugins/extensions/metadataeditor/metadataeditor.cc",
-            "plugins/extensions/modify_selection/dlg_border_selection.cc",
-            "plugins/extensions/modify_selection/dlg_feather_selection.cc",
-            "plugins/extensions/modify_selection/dlg_grow_selection.cc",
-            "plugins/extensions/modify_selection/dlg_shrink_selection.cc",
-            "plugins/extensions/offsetimage/offsetimage.cpp",
-            "plugins/extensions/qmic/QMic.cpp",
-            "plugins/extensions/qmic/kis_qmic_interface.cpp",
-            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp",
-            "plugins/extensions/resourcemanager/resourcemanager.cpp",
-            "plugins/extensions/rotateimage/rotateimage.cc",
-            "plugins/extensions/samplescreencolor/KisSampleScreenColor.cpp",
-            "plugins/extensions/separate_channels/kis_channel_separator.cc",
-            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
-            "plugins/extensions/shearimage/shearimage.cc",
-            "plugins/extensions/spensettings/SPenSettings.cpp",
-            "plugins/extensions/waveletdecompose/waveletdecompose.cpp",
-            "plugins/filters/colors/KisWdgFilterFastColorOverlay.cpp",
-            "plugins/filters/colors/kis_wdg_color_to_alpha.cpp",
-            "plugins/filters/gradientmap/KisGradientMapFilterConfigWidget.cpp",
-            "plugins/filters/halftone/KisHalftoneConfigWidget.cpp",
-            "plugins/generators/gradient/KisGradientGeneratorConfigWidget.cpp",
-            "plugins/generators/screentone/KisScreentoneConfigWidget.cpp",
-            "plugins/impex/brush/KisWdgOptionsBrush.cpp",
-            "plugins/impex/brush/kis_brush_export.cpp",
-            "plugins/impex/jpeg/kis_jpeg_import.cc",
-            "plugins/impex/png/kis_png_import.cc",
-            "plugins/impex/tiff/kis_tiff_import.cc",
-            "plugins/tools/basictools/kis_tool_brush.cc",
-            "plugins/tools/basictools/kis_tool_colorsampler.cc",
-            "plugins/tools/basictools/kis_tool_ellipse.cc",
-            "plugins/tools/basictools/kis_tool_fill.cc",
-            "plugins/tools/basictools/kis_tool_gradient.cc",
-            "plugins/tools/basictools/kis_tool_line.cc",
-            "plugins/tools/basictools/kis_tool_measure.cc",
-            "plugins/tools/basictools/kis_tool_move.cc",
-            "plugins/tools/basictools/kis_tool_multihand.cpp",
-            "plugins/tools/basictools/kis_tool_path.cc",
-            "plugins/tools/basictools/kis_tool_pencil.cc",
-            "plugins/tools/basictools/kis_tool_rectangle.cc",
-            "plugins/tools/defaulttool/defaulttool/DefaultTool.cpp",
-            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.cpp",
-            "plugins/tools/selectiontools/kis_tool_select_elliptical.cc",
-            "plugins/tools/selectiontools/kis_tool_select_polygonal.cc",
-            "plugins/tools/selectiontools/kis_tool_select_rectangular.cc",
-            "plugins/tools/svgtexttool/SvgTextTool.cpp",
-            "plugins/tools/tool_crop/kis_tool_crop.cc",
-            "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisBrushEnclosingProducer.cpp",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisEllipseEnclosingProducer.cpp",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisLassoEnclosingProducer.cpp",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisPathEnclosingProducer.cpp",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisRectangleEnclosingProducer.cpp",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
-            "plugins/tools/tool_knife/KisToolKnife.cpp",
-            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.cpp",
-            "plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp",
-            "plugins/tools/tool_transform2/kis_tool_transform.cc",
-            "plugins/tools/tool_transform2/kis_tool_transform_config_widget.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/KisWelcomePageWidget.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/KisWindowLayoutResource.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/ui/actions/KisLayerSelectionAction.h",
@@ -9262,6 +8866,327 @@
           ],
           "consumerPaths": [
             "plugins/dockers/animation/KisTimeBasedItemModel.h"
+          ]
+        },
+        {
+          "path": "libs/ui/application/KisActionPlugin.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/extensions/buginfo/buginfo.h",
+            "plugins/extensions/clonesarray/clonesarray.h",
+            "plugins/extensions/colorrange/colorrange.h",
+            "plugins/extensions/colorspaceconversion/colorspaceconversion.h",
+            "plugins/extensions/dbexplorer/DbExplorer.h",
+            "plugins/extensions/imagesplit/imagesplit.h",
+            "plugins/extensions/iostouchui/iostouchui.h",
+            "plugins/extensions/layergroupswitcher/layergroupswitcher.h",
+            "plugins/extensions/layersplit/layersplit.h",
+            "plugins/extensions/metadataeditor/metadataeditor.h",
+            "plugins/extensions/modify_selection/modify_selection.h",
+            "plugins/extensions/offsetimage/offsetimage.h",
+            "plugins/extensions/pykrita/plugin/plugin.h",
+            "plugins/extensions/qmic/QMic.h",
+            "plugins/extensions/resourcemanager/resourcemanager.h",
+            "plugins/extensions/rotateimage/rotateimage.h",
+            "plugins/extensions/samplescreencolor/KisSampleScreenColor.h",
+            "plugins/extensions/separate_channels/kis_separate_channels_plugin.h",
+            "plugins/extensions/shearimage/shearimage.h",
+            "plugins/extensions/spensettings/SPenSettings.h",
+            "plugins/extensions/waveletdecompose/waveletdecompose.h"
+          ]
+        },
+        {
+          "path": "libs/ui/application/KisApplication.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "krita/main.cc",
+            "libs/input/ui/kis_extended_modifiers_mapper.cpp",
+            "plugins/extensions/pykrita/kritarunner/main.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/application/KisApplicationArguments.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "krita/main.cc"
+          ]
+        },
+        {
+          "path": "libs/ui/application/KisPart.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "krita/main.cc",
+            "libs/impex/animation/KisFFMpegWrapper.cpp",
+            "libs/impex/animation/KisVideoSaver.cpp",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/KisSaveGroupVisitor.cpp",
+            "libs/impex/ui/kis_animation_importer.cpp",
+            "libs/impex/ui/kis_clipboard.cc",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_safe_document_loader.cpp",
+            "libs/input/ui/KisCanvasOnlyAction.cpp",
+            "libs/input/ui/KisTouchGestureAction.cpp",
+            "libs/libkis/Document.cpp",
+            "libs/libkis/Filter.cpp",
+            "libs/libkis/Krita.cpp",
+            "libs/libkis/LibKisUtils.cpp",
+            "libs/libkis/Node.cpp",
+            "libs/libkis/Notifier.cpp",
+            "libs/libkis/PaintingResources.cpp",
+            "libs/libkis/Shape.cpp",
+            "libs/libkis/Window.cpp",
+            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
+            "plugins/dockers/animation/KisTimeBasedItemModel.cpp",
+            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
+            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
+            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
+            "plugins/dockers/layerdocker/NodeDelegate.cpp",
+            "plugins/dockers/logdocker/LogDockerDock.cpp",
+            "plugins/dockers/palettedocker/palettedocker_dock.cpp",
+            "plugins/dockers/recorder/recorderdocker_dock.cpp",
+            "plugins/dockers/storyboarddocker/StoryboardDockerDock.cpp",
+            "plugins/extensions/imagesplit/imagesplit.cpp",
+            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp",
+            "plugins/extensions/resourcemanager/dlg_bundle_manager.cpp",
+            "plugins/extensions/resourcemanager/resourcemanager.cpp",
+            "plugins/extensions/separate_channels/kis_channel_separator.cc",
+            "plugins/extensions/spensettings/KisSPenSettings.cpp",
+            "plugins/extensions/spensettings/SPenSettings.cpp",
+            "plugins/filters/fastcolortransfer/kis_wdg_fastcolortransfer.cpp",
+            "plugins/impex/csv/csv_loader.cpp",
+            "plugins/impex/csv/csv_saver.cpp",
+            "plugins/impex/spriter/kis_spriter_export.cpp",
+            "plugins/tools/basictools/kis_tool_fill.cc",
+            "plugins/tools/svgtexttool/SvgTextTool.cpp",
+            "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/application/KisPlatformPluginInterfaceFactory.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/impex/ui/kis_mimedata.cpp",
+            "plugins/dockers/smallcolorselector/kis_small_color_widget.cc",
+            "plugins/extensions/buginfo/DlgColorManagementInfo.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/application/KisResourceServerProvider.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/Krita.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/application/kis_action.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/input/ui/kis_change_frame_action.cpp",
+            "libs/libkis/Krita.cpp",
+            "libs/libkis/Window.cpp",
+            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineFramesView.cpp",
+            "plugins/dockers/animation/KisAnimTimelineTimeHeader.cpp",
+            "plugins/dockers/animation/KisOnionSkinsDocker.cpp",
+            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
+            "plugins/dockers/griddocker/griddocker_dock.cpp",
+            "plugins/dockers/layerdocker/LayerBox.cpp",
+            "plugins/dockers/layerdocker/LayerBox.h",
+            "plugins/dockers/layerdocker/SyncButtonAndAction.h",
+            "plugins/dockers/overview/overviewdocker_page.cpp",
+            "plugins/dockers/snapshotdocker/SnapshotDocker.cpp",
+            "plugins/dockers/storyboarddocker/StoryboardDockerDock.h",
+            "plugins/dockers/touchdocker/TouchDockerWidget.cpp",
+            "plugins/dockers/widegamutcolorselector/WGActionManager.cpp",
+            "plugins/extensions/buginfo/buginfo.cpp",
+            "plugins/extensions/clonesarray/clonesarray.cpp",
+            "plugins/extensions/colorrange/colorrange.cc",
+            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
+            "plugins/extensions/dbexplorer/DbExplorer.cpp",
+            "plugins/extensions/imagesplit/imagesplit.cpp",
+            "plugins/extensions/iostouchui/iostouchui.cpp",
+            "plugins/extensions/layergroupswitcher/layergroupswitcher.cpp",
+            "plugins/extensions/layersplit/layersplit.cpp",
+            "plugins/extensions/metadataeditor/metadataeditor.cc",
+            "plugins/extensions/modify_selection/modify_selection.cc",
+            "plugins/extensions/offsetimage/offsetimage.cpp",
+            "plugins/extensions/qmic/QMic.cpp",
+            "plugins/extensions/resourcemanager/DlgResourceManager.cpp",
+            "plugins/extensions/resourcemanager/dlg_bundle_manager.cpp",
+            "plugins/extensions/resourcemanager/resourcemanager.cpp",
+            "plugins/extensions/resourcemanager/wdg_resource_preview.cpp",
+            "plugins/extensions/rotateimage/rotateimage.cc",
+            "plugins/extensions/samplescreencolor/KisSampleScreenColor.cpp",
+            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
+            "plugins/extensions/shearimage/shearimage.cc",
+            "plugins/extensions/spensettings/SPenSettings.cpp",
+            "plugins/extensions/waveletdecompose/waveletdecompose.cpp",
+            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.cpp",
+            "plugins/tools/tool_crop/kis_tool_crop.h",
+            "plugins/tools/tool_transform2/kis_tool_transform.h"
+          ]
+        },
+        {
+          "path": "libs/ui/application/kis_action_manager.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/input/ui/kis_change_frame_action.cpp",
+            "libs/libkis/Window.cpp",
+            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineFramesView.h",
+            "plugins/dockers/animation/KisAnimTimelineTimeHeader.h",
+            "plugins/dockers/animation/KisOnionSkinsDocker.cpp",
+            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
+            "plugins/dockers/layerdocker/LayerBox.cpp",
+            "plugins/dockers/snapshotdocker/SnapshotDocker.cpp",
+            "plugins/dockers/touchdocker/TouchDockerWidget.cpp",
+            "plugins/dockers/widegamutcolorselector/WGActionManager.cpp",
+            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
+            "plugins/extensions/resourcemanager/DlgResourceManager.cpp",
+            "plugins/extensions/resourcemanager/wdg_resource_preview.cpp",
+            "plugins/extensions/spensettings/SPenSettings.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/application/kis_config.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "krita/main.cc",
+            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
+            "libs/impex/animation/KisFFMpegWrapper.cpp",
+            "libs/impex/animation/KisVideoSaver.cpp",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/kis_dlg_png_import.cpp",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/impex/ui/kis_mimedata.cpp",
+            "libs/impex/ui/kis_png_converter.cpp",
+            "libs/input/ui/config/kis_input_configuration_page.cpp",
+            "libs/input/ui/kis_extended_modifiers_mapper.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_input_manager_p.cpp",
+            "libs/input/ui/kis_input_profile_manager.cpp",
+            "libs/input/ui/kis_tablet_debugger.cpp",
+            "libs/input/ui/kis_zoom_action.cpp",
+            "libs/input/ui/wintab/drawpile_tablettester/tablettest.cpp",
+            "libs/libkis/Krita.cpp",
+            "libs/libkis/PresetChooser.cpp",
+            "libs/libkis/Scratchpad.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector_settings.cpp",
+            "plugins/dockers/advancedcolorselector/kis_common_colors.cpp",
+            "plugins/dockers/advancedcolorselector/kis_shade_selector_line_editor.cpp",
+            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
+            "plugins/dockers/animation/KisAnimTimelineTimeHeader.cpp",
+            "plugins/dockers/animation/KisTimeBasedItemModel.cpp",
+            "plugins/dockers/artisticcolorselector/kis_color_selector.cpp",
+            "plugins/dockers/brushhud/kis_brush_hud_properties_config.cpp",
+            "plugins/dockers/channeldocker/channeldocker.cpp",
+            "plugins/dockers/compositiondocker/compositiondocker.cpp",
+            "plugins/dockers/gamutmask/KisGamutMaskChooser.cpp",
+            "plugins/dockers/griddocker/grid_config_widget.cpp",
+            "plugins/dockers/historydocker/HistoryDock.cpp",
+            "plugins/dockers/historydocker/KisUndoView.cpp",
+            "plugins/dockers/layerdocker/LayerBox.cpp",
+            "plugins/dockers/layerdocker/NodeDelegate.cpp",
+            "plugins/dockers/layerdocker/NodeView.cpp",
+            "plugins/dockers/logdocker/LogDockerDock.cpp",
+            "plugins/dockers/lut/lutdocker.cpp",
+            "plugins/dockers/lut/lutdocker_dock.cpp",
+            "plugins/dockers/lut/ocio_display_filter_vfx2021.cpp",
+            "plugins/dockers/overview/overviewwidget.cc",
+            "plugins/dockers/palettedocker/palettedocker.cpp",
+            "plugins/dockers/palettedocker/palettedocker_dock.cpp",
+            "plugins/dockers/presethistory/presethistory_dock.cpp",
+            "plugins/dockers/recorder/recorder_config.cpp",
+            "plugins/dockers/recorder/recorder_export.cpp",
+            "plugins/dockers/recorder/recorder_export_config.cpp",
+            "plugins/dockers/smallcolorselector/smallcolorselector.cc",
+            "plugins/dockers/specificcolorselector/specificcolorselector.cc",
+            "plugins/dockers/storyboarddocker/DlgExportStoryboard.cpp",
+            "plugins/dockers/storyboarddocker/StoryboardModel.cpp",
+            "plugins/dockers/textproperties/TextPropertiesPlugin.cpp",
+            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
+            "plugins/extensions/imagesplit/wdg_imagesplit.cpp",
+            "plugins/extensions/iostouchui/iostouchui.cpp",
+            "plugins/extensions/layersplit/dlg_layersplit.cpp",
+            "plugins/extensions/layersplit/wdg_layersplit.cpp",
+            "plugins/extensions/metadataeditor/metadataeditor.cc",
+            "plugins/extensions/offsetimage/dlg_offsetimage.cpp",
+            "plugins/extensions/pykrita/plugin/pyqtpluginsettings.cpp",
+            "plugins/extensions/resourcemanager/KisResourceItemViewer.cpp",
+            "plugins/extensions/resourcemanager/ResourceImporter.cpp",
+            "plugins/extensions/resourcemanager/dlg_bundle_manager.cpp",
+            "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
+            "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
+            "plugins/extensions/resourcemanager/page_bundle_saver.cpp",
+            "plugins/extensions/resourcemanager/page_metadata_info.cpp",
+            "plugins/extensions/resourcemanager/page_resource_chooser.cpp",
+            "plugins/extensions/resourcemanager/page_tag_chooser.cpp",
+            "plugins/extensions/resourcemanager/wdg_resource_preview.cpp",
+            "plugins/filters/asccdl/kis_wdg_asccdl.cpp",
+            "plugins/generators/seexpr/kis_wdg_seexpr.cpp",
+            "plugins/impex/brush/kis_brush_export.cpp",
+            "plugins/impex/exr/exr_export.cc",
+            "plugins/impex/heif/HeifExport.cpp",
+            "plugins/impex/heightmap/kis_heightmap_export.cpp",
+            "plugins/impex/heightmap/kis_heightmap_import.cpp",
+            "plugins/impex/jpeg/kis_jpeg_export.cc",
+            "plugins/impex/krz/krz_export.cpp",
+            "plugins/impex/libkra/kis_kra_loader.cpp",
+            "plugins/impex/libkra/kis_kra_save_visitor.cpp",
+            "plugins/impex/png/kis_png_export.cc",
+            "plugins/impex/svg/kis_svg_import.cc",
+            "plugins/impex/tiff/kis_dlg_options_tiff.cpp",
+            "plugins/tools/basictools/kis_tool_brush.cc",
+            "plugins/tools/basictools/kis_tool_colorsampler.cc",
+            "plugins/tools/basictools/kis_tool_gradient.cc",
+            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImagesWidget.cpp",
+            "plugins/tools/svgtexttool/SvgTextEditor.cpp",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
+            "plugins/tools/tool_knife/KisToolKnifeOptionsWidget.cpp",
+            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.cpp",
+            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush_options_widget.cpp",
+            "plugins/tools/tool_smart_patch/kis_tool_smart_patch_options_widget.cpp"
           ]
         },
         {
@@ -10367,202 +10292,6 @@
           ]
         },
         {
-          "path": "libs/ui/kis_action.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/input/ui/kis_change_frame_action.cpp",
-            "libs/libkis/Krita.cpp",
-            "libs/libkis/Window.cpp",
-            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineFramesView.cpp",
-            "plugins/dockers/animation/KisAnimTimelineTimeHeader.cpp",
-            "plugins/dockers/animation/KisOnionSkinsDocker.cpp",
-            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
-            "plugins/dockers/griddocker/griddocker_dock.cpp",
-            "plugins/dockers/layerdocker/LayerBox.cpp",
-            "plugins/dockers/layerdocker/LayerBox.h",
-            "plugins/dockers/layerdocker/SyncButtonAndAction.h",
-            "plugins/dockers/overview/overviewdocker_page.cpp",
-            "plugins/dockers/snapshotdocker/SnapshotDocker.cpp",
-            "plugins/dockers/storyboarddocker/StoryboardDockerDock.h",
-            "plugins/dockers/touchdocker/TouchDockerWidget.cpp",
-            "plugins/dockers/widegamutcolorselector/WGActionManager.cpp",
-            "plugins/extensions/buginfo/buginfo.cpp",
-            "plugins/extensions/clonesarray/clonesarray.cpp",
-            "plugins/extensions/colorrange/colorrange.cc",
-            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
-            "plugins/extensions/dbexplorer/DbExplorer.cpp",
-            "plugins/extensions/imagesplit/imagesplit.cpp",
-            "plugins/extensions/iostouchui/iostouchui.cpp",
-            "plugins/extensions/layergroupswitcher/layergroupswitcher.cpp",
-            "plugins/extensions/layersplit/layersplit.cpp",
-            "plugins/extensions/metadataeditor/metadataeditor.cc",
-            "plugins/extensions/modify_selection/modify_selection.cc",
-            "plugins/extensions/offsetimage/offsetimage.cpp",
-            "plugins/extensions/qmic/QMic.cpp",
-            "plugins/extensions/resourcemanager/DlgResourceManager.cpp",
-            "plugins/extensions/resourcemanager/dlg_bundle_manager.cpp",
-            "plugins/extensions/resourcemanager/resourcemanager.cpp",
-            "plugins/extensions/resourcemanager/wdg_resource_preview.cpp",
-            "plugins/extensions/rotateimage/rotateimage.cc",
-            "plugins/extensions/samplescreencolor/KisSampleScreenColor.cpp",
-            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
-            "plugins/extensions/shearimage/shearimage.cc",
-            "plugins/extensions/spensettings/SPenSettings.cpp",
-            "plugins/extensions/waveletdecompose/waveletdecompose.cpp",
-            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.cpp",
-            "plugins/tools/tool_crop/kis_tool_crop.h",
-            "plugins/tools/tool_transform2/kis_tool_transform.h"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_action_manager.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/input/ui/kis_change_frame_action.cpp",
-            "libs/libkis/Window.cpp",
-            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
-            "plugins/dockers/animation/KisAnimTimelineFramesView.h",
-            "plugins/dockers/animation/KisAnimTimelineTimeHeader.h",
-            "plugins/dockers/animation/KisOnionSkinsDocker.cpp",
-            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
-            "plugins/dockers/layerdocker/LayerBox.cpp",
-            "plugins/dockers/snapshotdocker/SnapshotDocker.cpp",
-            "plugins/dockers/touchdocker/TouchDockerWidget.cpp",
-            "plugins/dockers/widegamutcolorselector/WGActionManager.cpp",
-            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
-            "plugins/extensions/resourcemanager/DlgResourceManager.cpp",
-            "plugins/extensions/resourcemanager/wdg_resource_preview.cpp",
-            "plugins/extensions/spensettings/SPenSettings.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_bookmarked_configurations_editor.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/kis_bookmarked_configurations_model.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/kis_config.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "krita/main.cc",
-            "libs/impex/animation/KisDlgAnimationRenderer.cpp",
-            "libs/impex/animation/KisFFMpegWrapper.cpp",
-            "libs/impex/animation/KisVideoSaver.cpp",
-            "libs/impex/ui/KisImportExportManager.cpp",
-            "libs/impex/ui/kis_dlg_png_import.cpp",
-            "libs/impex/ui/kis_import_catcher.cc",
-            "libs/impex/ui/kis_mimedata.cpp",
-            "libs/impex/ui/kis_png_converter.cpp",
-            "libs/input/ui/config/kis_input_configuration_page.cpp",
-            "libs/input/ui/kis_extended_modifiers_mapper.cpp",
-            "libs/input/ui/kis_input_manager.cpp",
-            "libs/input/ui/kis_input_manager_p.cpp",
-            "libs/input/ui/kis_input_profile_manager.cpp",
-            "libs/input/ui/kis_tablet_debugger.cpp",
-            "libs/input/ui/kis_zoom_action.cpp",
-            "libs/input/ui/wintab/drawpile_tablettester/tablettest.cpp",
-            "libs/libkis/Krita.cpp",
-            "libs/libkis/PresetChooser.cpp",
-            "libs/libkis/Scratchpad.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector_settings.cpp",
-            "plugins/dockers/advancedcolorselector/kis_common_colors.cpp",
-            "plugins/dockers/advancedcolorselector/kis_shade_selector_line_editor.cpp",
-            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
-            "plugins/dockers/animation/KisAnimTimelineTimeHeader.cpp",
-            "plugins/dockers/animation/KisTimeBasedItemModel.cpp",
-            "plugins/dockers/artisticcolorselector/kis_color_selector.cpp",
-            "plugins/dockers/brushhud/kis_brush_hud_properties_config.cpp",
-            "plugins/dockers/channeldocker/channeldocker.cpp",
-            "plugins/dockers/compositiondocker/compositiondocker.cpp",
-            "plugins/dockers/gamutmask/KisGamutMaskChooser.cpp",
-            "plugins/dockers/griddocker/grid_config_widget.cpp",
-            "plugins/dockers/historydocker/HistoryDock.cpp",
-            "plugins/dockers/historydocker/KisUndoView.cpp",
-            "plugins/dockers/layerdocker/LayerBox.cpp",
-            "plugins/dockers/layerdocker/NodeDelegate.cpp",
-            "plugins/dockers/layerdocker/NodeView.cpp",
-            "plugins/dockers/logdocker/LogDockerDock.cpp",
-            "plugins/dockers/lut/lutdocker.cpp",
-            "plugins/dockers/lut/lutdocker_dock.cpp",
-            "plugins/dockers/lut/ocio_display_filter_vfx2021.cpp",
-            "plugins/dockers/overview/overviewwidget.cc",
-            "plugins/dockers/palettedocker/palettedocker.cpp",
-            "plugins/dockers/palettedocker/palettedocker_dock.cpp",
-            "plugins/dockers/presethistory/presethistory_dock.cpp",
-            "plugins/dockers/recorder/recorder_config.cpp",
-            "plugins/dockers/recorder/recorder_export.cpp",
-            "plugins/dockers/recorder/recorder_export_config.cpp",
-            "plugins/dockers/smallcolorselector/smallcolorselector.cc",
-            "plugins/dockers/specificcolorselector/specificcolorselector.cc",
-            "plugins/dockers/storyboarddocker/DlgExportStoryboard.cpp",
-            "plugins/dockers/storyboarddocker/StoryboardModel.cpp",
-            "plugins/dockers/textproperties/TextPropertiesPlugin.cpp",
-            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
-            "plugins/extensions/imagesplit/wdg_imagesplit.cpp",
-            "plugins/extensions/iostouchui/iostouchui.cpp",
-            "plugins/extensions/layersplit/dlg_layersplit.cpp",
-            "plugins/extensions/layersplit/wdg_layersplit.cpp",
-            "plugins/extensions/metadataeditor/metadataeditor.cc",
-            "plugins/extensions/offsetimage/dlg_offsetimage.cpp",
-            "plugins/extensions/pykrita/plugin/pyqtpluginsettings.cpp",
-            "plugins/extensions/resourcemanager/KisResourceItemViewer.cpp",
-            "plugins/extensions/resourcemanager/ResourceImporter.cpp",
-            "plugins/extensions/resourcemanager/dlg_bundle_manager.cpp",
-            "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
-            "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
-            "plugins/extensions/resourcemanager/page_bundle_saver.cpp",
-            "plugins/extensions/resourcemanager/page_metadata_info.cpp",
-            "plugins/extensions/resourcemanager/page_resource_chooser.cpp",
-            "plugins/extensions/resourcemanager/page_tag_chooser.cpp",
-            "plugins/extensions/resourcemanager/wdg_resource_preview.cpp",
-            "plugins/filters/asccdl/kis_wdg_asccdl.cpp",
-            "plugins/generators/seexpr/kis_wdg_seexpr.cpp",
-            "plugins/impex/brush/kis_brush_export.cpp",
-            "plugins/impex/exr/exr_export.cc",
-            "plugins/impex/heif/HeifExport.cpp",
-            "plugins/impex/heightmap/kis_heightmap_export.cpp",
-            "plugins/impex/heightmap/kis_heightmap_import.cpp",
-            "plugins/impex/jpeg/kis_jpeg_export.cc",
-            "plugins/impex/krz/krz_export.cpp",
-            "plugins/impex/libkra/kis_kra_loader.cpp",
-            "plugins/impex/libkra/kis_kra_save_visitor.cpp",
-            "plugins/impex/png/kis_png_export.cc",
-            "plugins/impex/svg/kis_svg_import.cc",
-            "plugins/impex/tiff/kis_dlg_options_tiff.cpp",
-            "plugins/tools/basictools/kis_tool_brush.cc",
-            "plugins/tools/basictools/kis_tool_colorsampler.cc",
-            "plugins/tools/basictools/kis_tool_gradient.cc",
-            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImagesWidget.cpp",
-            "plugins/tools/svgtexttool/SvgTextEditor.cpp",
-            "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
-            "plugins/tools/tool_knife/KisToolKnifeOptionsWidget.cpp",
-            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.cpp",
-            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush_options_widget.cpp",
-            "plugins/tools/tool_smart_patch/kis_tool_smart_patch_options_widget.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/kis_cursor_override_hijacker.h",
           "publicationEvidence": [
             "external-include"
@@ -10584,44 +10313,6 @@
           ]
         },
         {
-          "path": "libs/ui/kis_mainwindow_observer.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/animation/KisAnimCurvesDocker.h",
-            "plugins/dockers/animation/KisAnimTimelineDocker.h",
-            "plugins/dockers/animation/KisOnionSkinsDocker.h",
-            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.h",
-            "plugins/dockers/digitalmixer/digitalmixer_dock.h",
-            "plugins/dockers/gamutmask/gamutmask_dock.h",
-            "plugins/dockers/layerdocker/LayerBox.h",
-            "plugins/dockers/logdocker/LogDockerDock.h",
-            "plugins/dockers/palettedocker/palettedocker_dock.h",
-            "plugins/dockers/patterndocker/patterndocker_dock.h",
-            "plugins/dockers/snapshotdocker/SnapshotDocker.h",
-            "plugins/dockers/specificcolorselector/specificcolorselector_dock.h",
-            "plugins/dockers/storyboarddocker/StoryboardDockerDock.h",
-            "plugins/dockers/textproperties/TextPropertiesCanvasObserver.h",
-            "plugins/dockers/textproperties/TextPropertiesDock.h",
-            "plugins/dockers/widegamutcolorselector/WGColorSelectorDock.h"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_paintop_box.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/View.cpp",
-            "plugins/dockers/presetdocker/presetdocker_dock.cpp",
-            "plugins/dockers/presethistory/presethistory_dock.cpp",
-            "plugins/extensions/iostouchui/iostouchui.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/kis_popup_palette.h",
           "publicationEvidence": [
             "external-include"
@@ -10630,61 +10321,6 @@
             "libs/input/ui/KisPopupWidgetAction.cpp",
             "libs/input/ui/kis_input_manager_p.cpp",
             "plugins/extensions/spensettings/SPenSettings.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_preference_set_registry.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/advancedcolorselector/colorselectorng.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
-            "plugins/dockers/advancedcolorselector/kis_color_selector_settings.h",
-            "plugins/dockers/widegamutcolorselector/WGColorSelectorSettings.h",
-            "plugins/extensions/pykrita/plugin/plugin.cpp",
-            "plugins/extensions/pykrita/plugin/pyqtpluginsettings.h",
-            "plugins/extensions/spensettings/KisSPenSettings.h",
-            "plugins/extensions/spensettings/SPenSettings.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_splash_screen.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "krita/main.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_statusbar.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/recorder/recorderdocker_dock.cpp",
-            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
-            "plugins/tools/tool_transform2/kis_tool_transform.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/kis_workspace_resource.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/Krita.cpp",
-            "libs/libkis/Resource.cpp",
-            "plugins/dockers/digitalmixer/digitalmixer_dock.h",
-            "plugins/dockers/palettedocker/palettedocker_dock.h",
-            "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
-            "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
-            "plugins/extensions/resourcemanager/page_tag_chooser.cpp"
           ]
         },
         {
@@ -11051,6 +10687,22 @@
           ]
         },
         {
+          "path": "libs/ui/tool/kis_bookmarked_configurations_editor.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/tool/kis_bookmarked_configurations_model.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
           "path": "libs/ui/tool/kis_painting_information_builder_adapters.h",
           "publicationEvidence": [
             "export-macro",
@@ -11059,6 +10711,20 @@
           "consumerPaths": [
             "plugins/tools/basictools/kis_tool_line.cc",
             "plugins/tools/tool_transform2/kis_liquify_paint_helper.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/tool/kis_paintop_box.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/View.cpp",
+            "plugins/dockers/presetdocker/presetdocker_dock.cpp",
+            "plugins/dockers/presethistory/presethistory_dock.cpp",
+            "plugins/extensions/iostouchui/iostouchui.cpp"
           ]
         },
         {
@@ -11796,6 +11462,367 @@
             "plugins/dockers/animation/KisAnimCurvesView.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesView.cpp"
           ]
+        },
+        {
+          "path": "libs/ui/workspace/KisAndroidSplash.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/workspace/KisMainWindow.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "krita/main.cc",
+            "libs/impex/animation/KisAnimationRender.cpp",
+            "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
+            "libs/impex/ui/KisImportExportManager.cpp",
+            "libs/impex/ui/kis_clipboard.cc",
+            "libs/input/ui/KisCanvasOnlyAction.cpp",
+            "libs/input/ui/KisQtWidgetsTweaker.cpp",
+            "libs/input/ui/KisTouchGestureAction.cpp",
+            "libs/libkis/Document.cpp",
+            "libs/libkis/Krita.cpp",
+            "libs/libkis/Node.cpp",
+            "libs/libkis/PaintingResources.cpp",
+            "libs/libkis/Shape.cpp",
+            "libs/libkis/View.cpp",
+            "libs/libkis/Window.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
+            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
+            "plugins/dockers/animation/KisOnionSkinsDocker.cpp",
+            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
+            "plugins/dockers/logdocker/LogDockerDock.cpp",
+            "plugins/dockers/lut/lutdocker_dock.cpp",
+            "plugins/dockers/overview/overviewwidget.cc",
+            "plugins/dockers/palettedocker/palettedocker_dock.cpp",
+            "plugins/dockers/presetdocker/presetdocker_dock.cpp",
+            "plugins/dockers/recorder/recorder_writer.cpp",
+            "plugins/dockers/recorder/recorderdocker_dock.cpp",
+            "plugins/dockers/tasksetdocker/tasksetdocker_dock.cpp",
+            "plugins/extensions/buginfo/DlgColorManagementInfo.cpp",
+            "plugins/extensions/iostouchui/iostouchui.cpp",
+            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp",
+            "plugins/extensions/resourcemanager/ResourceImporter.cpp",
+            "plugins/extensions/resourcemanager/dlg_bundle_manager.cpp",
+            "plugins/extensions/spensettings/KisSPenSettings.cpp",
+            "plugins/extensions/spensettings/SPenSettings.cpp",
+            "plugins/impex/csv/csv_loader.cpp",
+            "plugins/tools/svgtexttool/SvgTextTool.cpp",
+            "plugins/tools/tool_transform2/kis_tool_transform_config_widget.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/workspace/KisSessionResource.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/workspace/KisTemplateCreateDia.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/workspace/KisTemplateGroup.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/workspace/KisTemplateTree.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/workspace/KisView.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/impex/animation/KisDlgImportVideoAnimation.h",
+            "libs/libkis/Canvas.cpp",
+            "libs/libkis/Filter.cpp",
+            "libs/libkis/PaintingResources.cpp",
+            "libs/libkis/Shape.cpp",
+            "libs/libkis/View.cpp",
+            "plugins/assistants/Assistants/EditAssistantsCommand.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
+            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
+            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
+            "plugins/dockers/gamutmask/gamutmask_dock.h",
+            "plugins/dockers/layerdocker/LayerBox.cpp",
+            "plugins/dockers/palettedocker/palettedocker_dock.h",
+            "plugins/dockers/snapshotdocker/KisSnapshotModel.cpp",
+            "plugins/impex/csv/csv_loader.cpp",
+            "plugins/tools/selectiontools/kis_tool_select_path.cc"
+          ]
+        },
+        {
+          "path": "libs/ui/workspace/KisViewManager.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/impex/animation/KisAnimationRender.cpp",
+            "libs/impex/ui/kis_import_catcher.cc",
+            "libs/input/ui/kis_change_frame_action.cpp",
+            "libs/input/ui/kis_gamma_exposure_action.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_zoom_action.cpp",
+            "libs/input/ui/kis_zoom_and_rotate_action.cpp",
+            "libs/libkis/Document.cpp",
+            "libs/libkis/Krita.cpp",
+            "libs/libkis/PaintingResources.cpp",
+            "libs/libkis/View.cpp",
+            "libs/libkis/Window.cpp",
+            "plugins/assistants/Assistants/EditAssistantsCommand.cpp",
+            "plugins/assistants/Assistants/kis_assistant_tool.cc",
+            "plugins/dockers/advancedcolorselector/kis_color_history.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
+            "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
+            "plugins/dockers/animation/KisAnimDockers.cpp",
+            "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
+            "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
+            "plugins/dockers/animation/KisOnionSkinsDocker.cpp",
+            "plugins/dockers/arrangedocker/arrangedocker_dock.cpp",
+            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
+            "plugins/dockers/brushhud/brushhud_dock.cpp",
+            "plugins/dockers/brushhud/kis_brush_hud.cpp",
+            "plugins/dockers/channeldocker/ChannelDockerWidget.cpp",
+            "plugins/dockers/channeldocker/channeldocker.cpp",
+            "plugins/dockers/compositiondocker/compositiondocker.cpp",
+            "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
+            "plugins/dockers/digitalmixer/digitalmixer_dock.h",
+            "plugins/dockers/gamutmask/gamutmask_dock.cpp",
+            "plugins/dockers/griddocker/griddocker_dock.cpp",
+            "plugins/dockers/histogram/histogramdocker_dock.cpp",
+            "plugins/dockers/histogram/histogramdockerwidget.cpp",
+            "plugins/dockers/historydocker/HistoryDock.h",
+            "plugins/dockers/historydocker/KisUndoModel.h",
+            "plugins/dockers/layerdocker/LayerBox.cpp",
+            "plugins/dockers/layerdocker/LayerBox.h",
+            "plugins/dockers/logdocker/LogDockerDock.cpp",
+            "plugins/dockers/lut/lutdocker_dock.cpp",
+            "plugins/dockers/overview/overviewdocker_page.cpp",
+            "plugins/dockers/overview/overviewwidget.cc",
+            "plugins/dockers/palettedocker/palettedocker.cpp",
+            "plugins/dockers/palettedocker/palettedocker_dock.cpp",
+            "plugins/dockers/patterndocker/patterndocker_dock.cpp",
+            "plugins/dockers/presetdocker/presetdocker_dock.cpp",
+            "plugins/dockers/presethistory/presethistory_dock.cpp",
+            "plugins/dockers/recorder/recorderdocker_dock.cpp",
+            "plugins/dockers/snapshotdocker/KisSnapshotModel.cpp",
+            "plugins/dockers/snapshotdocker/SnapshotDocker.cpp",
+            "plugins/dockers/specificcolorselector/specificcolorselector.cc",
+            "plugins/dockers/specificcolorselector/specificcolorselector_dock.cc",
+            "plugins/dockers/storyboarddocker/StoryboardDockerDock.cpp",
+            "plugins/dockers/tasksetdocker/tasksetdocker_dock.cpp",
+            "plugins/dockers/textproperties/TextPropertiesCanvasObserver.cpp",
+            "plugins/dockers/textproperties/TextPropertiesDock.cpp",
+            "plugins/dockers/textproperties/TextPropertiesPlugin.cpp",
+            "plugins/dockers/touchdocker/TouchDockerWidget.cpp",
+            "plugins/dockers/widegamutcolorselector/WGActionManager.cpp",
+            "plugins/extensions/buginfo/DlgColorManagementInfo.cpp",
+            "plugins/extensions/buginfo/buginfo.cpp",
+            "plugins/extensions/clonesarray/clonesarray.cpp",
+            "plugins/extensions/clonesarray/dlg_clonesarray.cpp",
+            "plugins/extensions/colorrange/colorrange.cc",
+            "plugins/extensions/colorrange/dlg_colorrange.cc",
+            "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
+            "plugins/extensions/dbexplorer/DbExplorer.cpp",
+            "plugins/extensions/imagesplit/dlg_imagesplit.cpp",
+            "plugins/extensions/imagesplit/imagesplit.cpp",
+            "plugins/extensions/iostouchui/iostouchui.cpp",
+            "plugins/extensions/layergroupswitcher/layergroupswitcher.cpp",
+            "plugins/extensions/layersplit/dlg_layersplit.cpp",
+            "plugins/extensions/layersplit/layersplit.cpp",
+            "plugins/extensions/metadataeditor/metadataeditor.cc",
+            "plugins/extensions/modify_selection/dlg_border_selection.cc",
+            "plugins/extensions/modify_selection/dlg_feather_selection.cc",
+            "plugins/extensions/modify_selection/dlg_grow_selection.cc",
+            "plugins/extensions/modify_selection/dlg_shrink_selection.cc",
+            "plugins/extensions/offsetimage/offsetimage.cpp",
+            "plugins/extensions/qmic/QMic.cpp",
+            "plugins/extensions/qmic/kis_qmic_interface.cpp",
+            "plugins/extensions/qmic/kis_qmic_synchronize_layers_command.cpp",
+            "plugins/extensions/resourcemanager/resourcemanager.cpp",
+            "plugins/extensions/rotateimage/rotateimage.cc",
+            "plugins/extensions/samplescreencolor/KisSampleScreenColor.cpp",
+            "plugins/extensions/separate_channels/kis_channel_separator.cc",
+            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
+            "plugins/extensions/shearimage/shearimage.cc",
+            "plugins/extensions/spensettings/SPenSettings.cpp",
+            "plugins/extensions/waveletdecompose/waveletdecompose.cpp",
+            "plugins/filters/colors/KisWdgFilterFastColorOverlay.cpp",
+            "plugins/filters/colors/kis_wdg_color_to_alpha.cpp",
+            "plugins/filters/gradientmap/KisGradientMapFilterConfigWidget.cpp",
+            "plugins/filters/halftone/KisHalftoneConfigWidget.cpp",
+            "plugins/generators/gradient/KisGradientGeneratorConfigWidget.cpp",
+            "plugins/generators/screentone/KisScreentoneConfigWidget.cpp",
+            "plugins/impex/brush/KisWdgOptionsBrush.cpp",
+            "plugins/impex/brush/kis_brush_export.cpp",
+            "plugins/impex/jpeg/kis_jpeg_import.cc",
+            "plugins/impex/png/kis_png_import.cc",
+            "plugins/impex/tiff/kis_tiff_import.cc",
+            "plugins/tools/basictools/kis_tool_brush.cc",
+            "plugins/tools/basictools/kis_tool_colorsampler.cc",
+            "plugins/tools/basictools/kis_tool_ellipse.cc",
+            "plugins/tools/basictools/kis_tool_fill.cc",
+            "plugins/tools/basictools/kis_tool_gradient.cc",
+            "plugins/tools/basictools/kis_tool_line.cc",
+            "plugins/tools/basictools/kis_tool_measure.cc",
+            "plugins/tools/basictools/kis_tool_move.cc",
+            "plugins/tools/basictools/kis_tool_multihand.cpp",
+            "plugins/tools/basictools/kis_tool_path.cc",
+            "plugins/tools/basictools/kis_tool_pencil.cc",
+            "plugins/tools/basictools/kis_tool_rectangle.cc",
+            "plugins/tools/defaulttool/defaulttool/DefaultTool.cpp",
+            "plugins/tools/defaulttool/referenceimagestool/ToolReferenceImages.cpp",
+            "plugins/tools/selectiontools/kis_tool_select_elliptical.cc",
+            "plugins/tools/selectiontools/kis_tool_select_polygonal.cc",
+            "plugins/tools/selectiontools/kis_tool_select_rectangular.cc",
+            "plugins/tools/svgtexttool/SvgTextTool.cpp",
+            "plugins/tools/tool_crop/kis_tool_crop.cc",
+            "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisBrushEnclosingProducer.cpp",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisEllipseEnclosingProducer.cpp",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisLassoEnclosingProducer.cpp",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisPathEnclosingProducer.cpp",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisRectangleEnclosingProducer.cpp",
+            "plugins/tools/tool_enclose_and_fill/subtools/KisToolBasicBrushBase.cpp",
+            "plugins/tools/tool_knife/KisToolKnife.cpp",
+            "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.cpp",
+            "plugins/tools/tool_smart_patch/kis_tool_smart_patch.cpp",
+            "plugins/tools/tool_transform2/kis_tool_transform.cc",
+            "plugins/tools/tool_transform2/kis_tool_transform_config_widget.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/workspace/KisWelcomePageWidget.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/workspace/KisWindowLayoutResource.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/ui/workspace/kis_mainwindow_observer.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/animation/KisAnimCurvesDocker.h",
+            "plugins/dockers/animation/KisAnimTimelineDocker.h",
+            "plugins/dockers/animation/KisOnionSkinsDocker.h",
+            "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.h",
+            "plugins/dockers/digitalmixer/digitalmixer_dock.h",
+            "plugins/dockers/gamutmask/gamutmask_dock.h",
+            "plugins/dockers/layerdocker/LayerBox.h",
+            "plugins/dockers/logdocker/LogDockerDock.h",
+            "plugins/dockers/palettedocker/palettedocker_dock.h",
+            "plugins/dockers/patterndocker/patterndocker_dock.h",
+            "plugins/dockers/snapshotdocker/SnapshotDocker.h",
+            "plugins/dockers/specificcolorselector/specificcolorselector_dock.h",
+            "plugins/dockers/storyboarddocker/StoryboardDockerDock.h",
+            "plugins/dockers/textproperties/TextPropertiesCanvasObserver.h",
+            "plugins/dockers/textproperties/TextPropertiesDock.h",
+            "plugins/dockers/widegamutcolorselector/WGColorSelectorDock.h"
+          ]
+        },
+        {
+          "path": "libs/ui/workspace/kis_preference_set_registry.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/advancedcolorselector/colorselectorng.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
+            "plugins/dockers/advancedcolorselector/kis_color_selector_settings.h",
+            "plugins/dockers/widegamutcolorselector/WGColorSelectorSettings.h",
+            "plugins/extensions/pykrita/plugin/plugin.cpp",
+            "plugins/extensions/pykrita/plugin/pyqtpluginsettings.h",
+            "plugins/extensions/spensettings/KisSPenSettings.h",
+            "plugins/extensions/spensettings/SPenSettings.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/workspace/kis_splash_screen.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "krita/main.cc"
+          ]
+        },
+        {
+          "path": "libs/ui/workspace/kis_statusbar.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "plugins/dockers/recorder/recorderdocker_dock.cpp",
+            "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
+            "plugins/tools/tool_transform2/kis_tool_transform.cc"
+          ]
+        },
+        {
+          "path": "libs/ui/workspace/kis_workspace_resource.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/Krita.cpp",
+            "libs/libkis/Resource.cpp",
+            "plugins/dockers/digitalmixer/digitalmixer_dock.h",
+            "plugins/dockers/palettedocker/palettedocker_dock.h",
+            "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
+            "plugins/extensions/resourcemanager/dlg_embed_tags.cpp",
+            "plugins/extensions/resourcemanager/page_tag_chooser.cpp"
+          ]
         }
       ]
     }
@@ -12162,7 +12189,7 @@
       "serviceType": "Krita/ApplicationPlugin",
       "featureOwner": "application-extension",
       "runtimeConsumer": "KisMainWindow",
-      "evidence": "libs/ui/KisMainWindow.cpp"
+      "evidence": "libs/ui/workspace/KisMainWindow.cpp"
     },
     {
       "serviceType": "Krita/ColorSpace",
@@ -12222,7 +12249,7 @@
       "serviceType": "Krita/PlatformPlugin",
       "featureOwner": "platform-adapter",
       "runtimeConsumer": "KisPlatformPluginInterfaceFactory",
-      "evidence": "libs/ui/KisPlatformPluginInterfaceFactory.cpp"
+      "evidence": "libs/ui/application/KisPlatformPluginInterfaceFactory.cpp"
     },
     {
       "serviceType": "Krita/Shape",
@@ -12240,7 +12267,7 @@
       "serviceType": "Krita/ViewPlugin",
       "featureOwner": "view-extension",
       "runtimeConsumer": "KisMainWindow",
-      "evidence": "libs/ui/KisMainWindow.cpp"
+      "evidence": "libs/ui/workspace/KisMainWindow.cpp"
     }
   ],
   "plugins": [

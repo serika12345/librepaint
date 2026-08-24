@@ -14,11 +14,11 @@
 #include <KoResourceServerProvider.h>
 #include <KoResourceServer.h>
 #include <resources/KoGamutMask.h>
-#include <KisView.h>
+#include <workspace/KisView.h>
 #include <kis_types.h>
 #include <KisResourceItemChooser.h>
 
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 
 class KisDocument;
 class KisCanvasResourceProvider;

@@ -8,7 +8,7 @@
 #define _PATTERN_DOCK_H_
 
 #include <QDockWidget>
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 
 #include <KoPattern.h>
 

@@ -9,7 +9,7 @@
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "KisImportExportFilter.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "document/KisDocument.h"
 #include "kis_time_span.h"
 #include "kis_paint_layer.h"

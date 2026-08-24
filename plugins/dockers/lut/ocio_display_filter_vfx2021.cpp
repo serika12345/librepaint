@@ -28,7 +28,7 @@
 #include <cmath>
 #include <cstring>
 
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_debug.h>
 #include <opengl/kis_opengl.h>
 #include <qsurface.h>

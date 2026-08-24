@@ -17,7 +17,7 @@
 #include <QRect>
 #include <QSlider>
 
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>

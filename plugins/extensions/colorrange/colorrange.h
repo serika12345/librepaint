@@ -11,7 +11,7 @@
 
 #include <QVariant>
 
-#include <KisActionPlugin.h>
+#include <application/KisActionPlugin.h>
 
 class ColorRange : public KisActionPlugin
 {

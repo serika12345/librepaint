@@ -12,9 +12,9 @@
 #include <QItemSelection>
 #include <QPointer>
 
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 #include <kis_canvas2.h>
-#include <kis_action.h>
+#include <application/kis_action.h>
 #include <boost/optional.hpp>
 #include "DlgExportStoryboard.h"
 #include <QDomElement>

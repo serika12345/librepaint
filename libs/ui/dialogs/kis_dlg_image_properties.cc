@@ -16,7 +16,7 @@
 #include <KoColor.h>
 #include <kis_image.h>
 #include <kis_annotation.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <kis_signal_compressor.h>
 #include <kis_image_config.h>
 #include "kis_layer_utils.h"

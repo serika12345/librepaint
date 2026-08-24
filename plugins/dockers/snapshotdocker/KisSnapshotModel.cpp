@@ -13,8 +13,8 @@
 #include <QString>
 
 #include <document/KisDocument.h>
-#include <KisView.h>
-#include <KisViewManager.h>
+#include <workspace/KisView.h>
+#include <workspace/KisViewManager.h>
 #include <nodes/kis_node_manager.h>
 #include <kis_name_server.h>
 #include <kis_image_signal_router.h>

@@ -25,12 +25,12 @@
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <nodes/kis_node_manager.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 #include <KisReferenceImagesLayer.h>
 #include <kis_image.h>
 #include "QClipboard"
-#include "kis_action.h"
+#include "application/kis_action.h"
 #include <KisCursorOverrideLock.h>
 
 #include "ToolReferenceImagesWidget.h"

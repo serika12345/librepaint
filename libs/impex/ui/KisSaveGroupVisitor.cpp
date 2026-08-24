@@ -8,7 +8,7 @@
 #include <document/KisDocument.h>
 #include <kis_painter.h>
 #include <kis_paint_layer.h>
-#include <KisPart.h>
+#include <application/KisPart.h>
 
 KisSaveGroupVisitor::KisSaveGroupVisitor(KisImageWSP image,
                                          bool saveInvisible,

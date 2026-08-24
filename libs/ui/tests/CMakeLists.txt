@@ -16,6 +16,7 @@ kis_add_tests(
     kis_animation_frame_cache_test.cpp
     TestCanvasUiPublicHeaders.cpp
     TestDocumentStateUiPublicHeaders.cpp
+    TestApplicationWorkspaceToolUiPublicHeaders.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp
     LINK_LIBRARIES kritaui kritalibkis kritatestsdk

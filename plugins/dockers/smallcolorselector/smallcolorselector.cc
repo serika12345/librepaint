@@ -14,7 +14,7 @@
 
 #include "smallcolorselector_dock.h"
 #include "opengl/kis_opengl.h"
-#include "kis_config.h"
+#include "application/kis_config.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(SmallColorSelectorPluginFactory, "krita_smallcolorselector.json", registerPlugin<SmallColorSelectorPlugin>();)
 

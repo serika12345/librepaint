@@ -8,7 +8,7 @@
 #define _KIS_ANIMATION_CURVE_DOCKER_H_
 
 #include <QDockWidget>
-#include <kis_mainwindow_observer.h>
+#include <workspace/kis_mainwindow_observer.h>
 #include <QScopedPointer>
 #include <kis_types.h>
 #include <KisKineticScroller.h>

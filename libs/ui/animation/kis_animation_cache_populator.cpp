@@ -11,9 +11,9 @@
 #include <QTimer>
 #include <QStack>
 
-#include "kis_config.h"
+#include "application/kis_config.h"
 #include "kis_config_notifier.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
@@ -22,10 +22,10 @@
 #include "animation/kis_animation_frame_cache.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_idle_watcher.h"
-#include "KisViewManager.h"
+#include "workspace/KisViewManager.h"
 #include "nodes/kis_node_manager.h"
 #include "kis_keyframe_channel.h"
-#include "KisMainWindow.h"
+#include "workspace/KisMainWindow.h"
 
 #include <KisLockFrameGenerationLock.h>
 #include "animation/KisAsyncAnimationCacheRenderer.h"

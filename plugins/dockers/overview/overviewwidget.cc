@@ -15,14 +15,14 @@
 #include <KoCanvasController.h>
 
 #include <kis_canvas2.h>
-#include <KisViewManager.h>
+#include <workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <kis_signal_compressor.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include <QApplication>
 #include "canvas/KisImageThumbnailStrokeStrategy.h"
 #include <kis_display_color_converter.h>
-#include <KisMainWindow.h>
+#include <workspace/KisMainWindow.h>
 #include "canvas/KisIdleTasksManager.h"
 #include <canvas/KisDisplayConfig.h>
 

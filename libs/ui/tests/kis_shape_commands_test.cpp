@@ -15,7 +15,7 @@
 #include <KoColorBackground.h>
 #include <testutil.h>
 
-#include <KisPart.h>
+#include <application/KisPart.h>
 #include <document/KisDocument.h>
 
 #include <KoShapeGroup.h>

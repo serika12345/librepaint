@@ -6,7 +6,7 @@
 #include "PresetChooser.h"
 
 #include <KoResource.h>
-#include <kis_config.h>
+#include <application/kis_config.h>
 #include "Resource.h"
 
 PresetChooser::PresetChooser(QWidget *parent)

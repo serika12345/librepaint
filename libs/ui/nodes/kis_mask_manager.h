@@ -10,7 +10,7 @@
 #include <QPointer>
 
 #include "kis_types.h"
-#include "KisView.h"
+#include "workspace/KisView.h"
 
 class KisViewManager;
 class KisKActionCollection;

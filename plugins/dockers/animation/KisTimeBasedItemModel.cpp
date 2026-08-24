@@ -7,7 +7,7 @@
 #include "KisTimeBasedItemModel.h"
 
 #include <QPointer>
-#include <kis_config.h>
+#include <application/kis_config.h>
 
 #include <animation/kis_animation_frame_cache.h>
 #include "KisCanvasAnimationState.h"
@@ -23,7 +23,7 @@
 #include "KisImageBarrierLock.h"
 #include "commands_new/kis_switch_current_time_command.h"
 #include "kis_command_utils.h"
-#include "KisPart.h"
+#include "application/KisPart.h"
 #include "animation/KisPlaybackEngine.h"
 
 struct KisTimeBasedItemModel::Private
