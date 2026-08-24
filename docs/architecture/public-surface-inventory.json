@@ -4064,8 +4064,8 @@
           ],
           "consumerPaths": [
             "libs/painting/KisAsynchronousStrokeUpdateHelper.cpp",
-            "libs/painting/strokes/move_stroke_strategy.cpp",
-            "libs/ui/tool/KisAsyncColorSamplerHelper.cpp"
+            "libs/painting/KisColorSamplerStroke.cpp",
+            "libs/painting/strokes/move_stroke_strategy.cpp"
           ]
         },
         {
@@ -4786,6 +4786,7 @@
             "libs/libkis/Document.cpp",
             "libs/libkis/Filter.cpp",
             "libs/libkis/Selection.cpp",
+            "libs/painting/KisColorSamplerStroke.cpp",
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/painting/strokes/KisMaskingBrushRenderer.cpp",
             "libs/painting/strokes/kis_color_sampler_stroke_strategy.cpp",
@@ -6446,6 +6447,7 @@
             "libs/libkis/TransformMask.h",
             "libs/libkis/TransparencyMask.h",
             "libs/libkis/VectorLayer.h",
+            "libs/painting/KisColorSamplerStroke.h",
             "libs/painting/kis_figure_painting_stroke.h",
             "libs/painting/kis_painting_utils.h",
             "libs/painting/kis_resources_snapshot.h",
@@ -7931,6 +7933,17 @@
           ]
         },
         {
+          "path": "libs/painting/KisColorSamplerStroke.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/KisAsyncColorSamplerHelper.cpp"
+          ]
+        },
+        {
           "path": "libs/painting/KisFigurePaintingOptions.h",
           "publicationEvidence": [
             "compile-contract",
@@ -8089,16 +8102,6 @@
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.cpp"
-          ]
-        },
-        {
-          "path": "libs/painting/strokes/kis_color_sampler_stroke_strategy.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/ui/tool/KisAsyncColorSamplerHelper.cpp"
           ]
         },
         {

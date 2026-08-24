@@ -152,7 +152,7 @@ R1-G6e後半は、依存方向を一方向にした後、文書状態、文書�
 - [x] `libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`を起点として、矩形制約の表示状態と設定往復を`libs/tools/ui`へ移し、矩形ツールとの信号接続をUI側へ残す。
 - [x] `libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を起点として、矩形と楕円の図形生成、登録済み図形がない場合のパス生成を`libs/flake`へ移し、図形ツールからUI共有ターゲットへの依存を除く。
 - [x] `libs/ui/tool/kis_stabilized_events_sampler.{h,cpp}`と`libs/ui/tool/KisStabilizerDelayedPaintHelper.{h,cpp}`を`libs/tools`へ移し、実時間に基づく入力標本化と遅延描画キューをツール入力所有へ集約する。自由描画ストロークの生成と輪郭更新の接続はUI側へ残す。
-- [ ] `libs/ui/tool/KisAsyncColorSamplerHelper.{h,cpp}`を起点として、色採取ストロークの開始、採取ジョブ投入、完了を`libs/painting`へ分離する。UI側には採取対象の解決、キャンバス色資源、カーソル、プレビュー配置と描画を残す。
+- [x] `libs/ui/tool/KisAsyncColorSamplerHelper.{h,cpp}`を起点として、色採取ストロークの開始、採取ジョブ投入、完了を`libs/painting`へ分離する。UI側には採取対象の解決、キャンバス色資源、カーソル、プレビュー配置と描画を残す。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。

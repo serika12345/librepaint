@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 18:10 JST
+- 更新日時: 2026-08-24 19:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1439,13 +1439,31 @@
   基線不安定性として区別する。
 - `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
   含む全Nix出力の評価に成功した。
+- `libs/ui/tool/KisAsyncColorSamplerHelper.cpp`にあったストローク開始、採取ジョブ投入、完了ジョブ、
+  終了処理を、新しい`libs/painting/KisColorSamplerStroke.{h,cpp}`へ分離した。UI側の
+  `libs/ui/tool/KisAsyncColorSamplerHelper.{h,cpp}`は採取対象と参照画像の解決、キャンバス色資源、
+  カーソル、プレビュー配置と描画を維持し、画像ストローク接続面と内部ストローク戦略を直接扱わない。
+  `libs/painting/strokes/kis_color_sampler_stroke_strategy.h`は公開記号を除去し、描画パッケージ内部へ
+  閉じた。
+- `libs/painting/tests/TestPaintingBoundary.cpp`は、二つの採取ジョブ、完了ジョブ、ストローク終了の順序と、
+  最後の採取色を一度だけ確定通知する契約を固定する。契約追加直後は
+  `KisColorSamplerStroke.h`が存在せずコンパイル段階で失敗し、実装後は1件のCTestが成功した。
+  `kritaui`と`kritadefaulttools`もmacOSでリンクまで成功した。
+- 公開面台帳は旧ストローク戦略を新しい実行所有クラスへ置き換えて`kritapainting`の19ヘッダー、
+  `kritaui`の225ヘッダー、UIツール責務台帳の15クラスを維持した。入力解釈から描画への直接includeは
+  25件から24件、
+  確認済み逆方向includeは3責務対104件から103件へ縮小した。未解決の責務射影0件、構造射影12件、
+  内部ヘッダー基準10件、全製品ターゲットの循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+  `nix develop .#test --command ./scripts/verify`は全製品と試験ターゲットをリンクし、macOSの
+  全342件のネイティブ試験に成功した。`nix flake check --no-build --all-systems --no-eval-cache`は
+  macOS、iOS、Linux、Android、Windowsを含む全Nix出力の式評価に成功した。
 
 ## 次の操作
 
-入力標本化と遅延描画キューの移設をコミットした後、`libs/ui/tool/KisAsyncColorSamplerHelper.{h,cpp}`を
-起点として、色採取ストロークの開始、採取ジョブ投入、完了を`libs/painting`へ分離する。UI側には
-採取対象の解決、キャンバス色資源、カーソル、プレビュー配置と描画を残し、採取ジョブの順序と
-最終色通知を契約で固定する。
+色採取ストローク実行の分離をコミットした後、R1-G6fの完了監査として残るUIツールクラス、
+公開面、内部ヘッダー参照、依存方向を照合する。完了条件を満たしたら、`libs/ui/input`と
+`libs/ui/tool`の入力解釈を`libs/input`の`kritainput`へ移すR1-G6gの最初の実装検査段階を定義する。
 清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
 
 ## R1-G5完了根拠

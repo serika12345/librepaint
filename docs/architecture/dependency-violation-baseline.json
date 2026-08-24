@@ -764,7 +764,7 @@
       "dependencyResponsibility": "painting-rendering",
       "owner": "R1-G6",
       "reason": "Input classes inside kritaui currently construct painting information and stroke state instead of emitting normalized actions through tool invocation.",
-      "maximumDirectIncludes": 25,
+      "maximumDirectIncludes": 24,
       "removalCondition": "Input interpretation emits the input-action-stream contract and painting state is created behind tool-command, reducing this direct-include set to zero.",
       "targetLinks": [
         {
@@ -939,15 +939,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/tool/KisAsyncColorSamplerHelper.cpp",
-          "include": "kis_image_interfaces.h",
-          "headerPath": "libs/image/kis_image_interfaces.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
           "sourcePath": "libs/ui/tool/KisAsyncColorSamplerHelper.h",
           "include": "kis_types.h",
           "headerPath": "libs/image/kis_types.h",
@@ -1039,8 +1030,8 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritapainting",
           "sourcePath": "libs/ui/tool/KisAsyncColorSamplerHelper.cpp",
-          "include": "strokes/kis_color_sampler_stroke_strategy.h",
-          "headerPath": "libs/painting/strokes/kis_color_sampler_stroke_strategy.h",
+          "include": "KisColorSamplerStroke.h",
+          "headerPath": "libs/painting/KisColorSamplerStroke.h",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         },

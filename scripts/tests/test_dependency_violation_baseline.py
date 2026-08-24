@@ -70,7 +70,7 @@ class DependencyViolationBaselineTests(unittest.TestCase):
                 len(entry["directIncludes"])
                 for entry in baseline["violations"]
             ),
-            104,
+            103,
         )
         self.assertEqual(baseline["unresolvedProjections"], [])
         by_pair = {

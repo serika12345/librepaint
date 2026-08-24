@@ -16,7 +16,6 @@
 
 class QPainter;
 class KoViewConverter;
-class KisStrokesFacade;
 class KisCanvas2;
 class KoColor;
 

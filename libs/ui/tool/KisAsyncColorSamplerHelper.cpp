@@ -19,16 +19,15 @@
 #include "KoCanvasResourceProvider.h"
 #include "KoViewConverter.h"
 #include "KoIcon.h"
+#include "KisColorSamplerStroke.h"
 #include "kis_cursor.h"
 #include "kis_signal_compressor_with_param.h"
-#include "kis_image_interfaces.h"
 #include "kis_canvas2.h"
 #include "KisViewManager.h"
 #include "KisDocument.h"
 #include "KisReferenceImagesLayer.h"
 #include "KisReferenceImagesDecoration.h"
 #include "kis_display_color_converter.h"
-#include "strokes/kis_color_sampler_stroke_strategy.h"
 
 
 namespace {
@@ -57,7 +56,7 @@ struct KisAsyncColorSamplerHelper::Private
     bool showPreview {false};
     bool haveSample {false};
 
-    KisStrokeId strokeId;
+    KisColorSamplerStroke samplingStroke;
     typedef KisSignalCompressorWithParam<QPointF> SamplingCompressor;
     QScopedPointer<SamplingCompressor> samplingCompressor;
 
@@ -77,10 +76,6 @@ struct KisAsyncColorSamplerHelper::Private
     QPixmap cache;
     qreal cacheRotation = 0.0;
     bool cacheMirror = false;
-
-    KisStrokesFacade *strokesFacade() const {
-        return canvas->image().data();
-    }
 
     const KoViewConverter &converter() const {
         return *canvas->imageView()->viewConverter();
@@ -182,13 +177,17 @@ KisAsyncColorSamplerHelper::KisAsyncColorSamplerHelper(KisCanvas2 *canvas)
     m_d->activationDelayTimer.setInterval(100);
     m_d->activationDelayTimer.setSingleShot(true);
     connect(&m_d->activationDelayTimer, SIGNAL(timeout()), this, SLOT(activateDelayedPreview()));
+    connect(&m_d->samplingStroke, &KisColorSamplerStroke::sigColorUpdated,
+            this, &KisAsyncColorSamplerHelper::slotColorSamplingFinished);
+    connect(&m_d->samplingStroke, &KisColorSamplerStroke::sigFinalColorSelected,
+            this, &KisAsyncColorSamplerHelper::sigFinalColorSelected);
     connect(m_d->canvas->displayColorConverter(), SIGNAL(displayConfigurationChanged()), this, SLOT(slotUpdateBgColor()));
     slotUpdateBgColor();
 }
 
 KisAsyncColorSamplerHelper::~KisAsyncColorSamplerHelper()
 {
-    KIS_SAFE_ASSERT_RECOVER_NOOP(!m_d->strokeId);
+    KIS_SAFE_ASSERT_RECOVER_NOOP(!m_d->samplingStroke.isActive());
 }
 
 bool KisAsyncColorSamplerHelper::isActive() const
@@ -289,7 +288,7 @@ bool KisAsyncColorSamplerHelper::updateGlobalColor() const
 
 void KisAsyncColorSamplerHelper::deactivate()
 {
-    KIS_SAFE_ASSERT_RECOVER(!m_d->strokeId) {
+    KIS_SAFE_ASSERT_RECOVER(!m_d->samplingStroke.isActive()) {
         endAction();
     }
 
@@ -311,33 +310,21 @@ void KisAsyncColorSamplerHelper::deactivate()
 
 void KisAsyncColorSamplerHelper::startAction(const QPointF &docPoint, int radius, int blend)
 {
-    KisColorSamplerStrokeStrategy *strategy = new KisColorSamplerStrokeStrategy(radius, blend);
-    connect(strategy, &KisColorSamplerStrokeStrategy::sigColorUpdated,
-            this, &KisAsyncColorSamplerHelper::slotColorSamplingFinished);
-    connect(strategy, &KisColorSamplerStrokeStrategy::sigFinalColorSelected,
-            this, &KisAsyncColorSamplerHelper::sigFinalColorSelected);
-
     activatePreview();
     m_d->haveSample = true;
-    m_d->strokeId = m_d->strokesFacade()->startStroke(strategy);
+    m_d->samplingStroke.start(m_d->canvas->image().data(), radius, blend);
     m_d->samplingCompressor->start(docPoint);
 }
 
 void KisAsyncColorSamplerHelper::continueAction(const QPointF &docPoint)
 {
-    KIS_SAFE_ASSERT_RECOVER_RETURN(m_d->strokeId);
+    KIS_SAFE_ASSERT_RECOVER_RETURN(m_d->samplingStroke.isActive());
     m_d->samplingCompressor->start(docPoint);
 }
 
 void KisAsyncColorSamplerHelper::endAction()
 {
-    KIS_SAFE_ASSERT_RECOVER_RETURN(m_d->strokeId);
-
-    m_d->strokesFacade()->addJob(m_d->strokeId,
-        new KisColorSamplerStrokeStrategy::FinalizeData());
-
-    m_d->strokesFacade()->endStroke(m_d->strokeId);
-    m_d->strokeId.clear();
+    m_d->samplingStroke.finish();
 }
 
 QRectF KisAsyncColorSamplerHelper::colorPreviewDocRect(const QPointF &docPoint)
@@ -554,7 +541,7 @@ void KisAsyncColorSamplerHelper::slotAddSamplingJob(const QPointF &docPoint)
      * The actual sampling is delayed by a compressor, so we can get this
      * event when the stroke is already closed
      */
-    if (!m_d->strokeId) return;
+    if (!m_d->samplingStroke.isActive()) return;
 
     KisImageSP image = m_d->canvas->image();
 
@@ -580,8 +567,7 @@ void KisAsyncColorSamplerHelper::slotAddSamplingJob(const QPointF &docPoint)
         const KoColor currentColor =
             m_d->canvas->resourceManager()->koColorResource(m_d->sampleResourceId);
 
-        m_d->strokesFacade()->addJob(m_d->strokeId,
-            new KisColorSamplerStrokeStrategy::Data(device, imagePoint, currentColor));
+        m_d->samplingStroke.addSample(device, imagePoint, currentColor);
     } else {
         QString message = i18n("Color sampler does not work on this layer.");
         m_d->canvas->viewManager()->showFloatingMessage(message, koIcon("object-locked"));

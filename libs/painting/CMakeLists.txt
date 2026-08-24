@@ -3,6 +3,7 @@ add_subdirectory(metadata)
 
 set(kritapainting_LIB_SRCS
     KisAsynchronousStrokeUpdateHelper.cpp
+    KisColorSamplerStroke.cpp
     KisStrokeCompatibilityInfo.cpp
     KisStrokeSpeedMonitor.cpp
     kis_figure_painting_stroke.cpp

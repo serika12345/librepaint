@@ -11,9 +11,8 @@
 #include "kis_simple_stroke_strategy.h"
 #include "kis_lod_transform.h"
 #include "KoColor.h"
-#include "kritapainting_export.h"
 
-class KRITAPAINTING_EXPORT KisColorSamplerStrokeStrategy : public QObject, public KisSimpleStrokeStrategy
+class KisColorSamplerStrokeStrategy : public QObject, public KisSimpleStrokeStrategy
 {
     Q_OBJECT
 public:
