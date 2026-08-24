@@ -2,12 +2,12 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 07:38 JST
+- 更新日時: 2026-08-25 08:55 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6g メインウィンドウ画像状態所有境界
+- 現在の検査段階: R1-G6g 作業ビュー画像状態所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: メインウィンドウが調整する画像編集処理を画像、描画、文書状態の具体所有へ接続し、
+- 目的: 作業ビューが調整する画像編集処理を画像、描画、文書状態の具体所有へ接続し、
   アプリケーション調整から描画への逆方向includeを縮小する。
 
 ## 再開環境
@@ -1867,10 +1867,41 @@
 - `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
   文書と図の検査に成功した。
 
+## R1-G6g作業ビュー画像状態所有境界で完了した作業
+
+- `libs/ui/workspace/KisView.cpp`にあった画像状態の取得、信号接続、画像編集を、次の開始箇所と
+  具体所有へ接続した。
+  - 画像信号接続、表示準備、浮動小数点色深度判定から
+    `libs/ui/canvas/KisCanvasImageState.cpp`と`libs/ui/canvas/kis_canvas2.h`。
+  - 色ドロップルーティングから`libs/ui/canvas/KisCanvasColorDrop.cpp`の
+    塗りつぶしストローク。
+  - 内部ノード、画像、URL、参照画像のドロップ処理から
+    `libs/ui/document/KisImageManagerDrop.cpp`と`libs/ui/document/kis_image_manager.{h,cc}`。
+  - 現在レイヤー、マスク、選択範囲、ノード除去後の選択先取得から
+    `libs/ui/nodes/KisNodeManagerImageState.cpp`。
+  - 画像メモリー統計取得と更新通知接続から`libs/ui/document/KisDocumentImageState.cpp`。
+- ドロップ操作の選択肢、修飾キー、塗りつぶしジョブと取り消し命令の順序、画像とノードの
+  共有寿命、ノード通知の直接接続、表示開始時の画像信号接続順、文書タイトルのメモリー表示を
+  維持した。`kis_image_manager.h`の新規操作は通常public面を使い、既存slotのメタオブジェクト面を
+  維持する。
+- アプリケーション調整から描画への確認済み逆方向includeは36件から20件へ縮小した。
+  未確定射影0件、製品ターゲット循環0件を維持する。公開ヘッダー、UIクラス責務、構造依存の
+  各台帳は新しい実利用経路を記録する。
+- 影響する10製品翻訳単位、契約試験、試験用mocはmacOSの製品コンパイル条件でコード生成に
+  成功した。clangd include-cleaner監査は未使用includeと直接include不足が0件であることを
+  確認した。
+  更新した実装オブジェクトを既存ライブラリーへ個別リンクした
+  `KisDocumentReplaceTest::testImageStateDelegation`は3件すべて成功した。
+- `KisView.cpp`は857行となり、標準ソース行数上限内にある。
+  `kis_canvas2.cpp`は1720行、`kis_node_manager.cpp`は1763行を維持し、新しい責務別翻訳単位3件は
+  各標準最大値内にある。
+- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
+  文書と図の検査に成功した。
+
 ## 次の操作
 
-`libs/ui/workspace/KisView.cpp`の画像編集命令、画像状態取得、メモリー統計接続に使う
-16 includeを、画像・描画・文書状態の具体所有面へ接続する。
+`libs/ui/workspace/KisViewManager.cpp`の画像・ノード状態とストローク調整に使う10 includeを、
+画像、描画、文書状態、キャンバス表示の具体所有面へ接続する。
 
 ## R1-G5完了根拠
 

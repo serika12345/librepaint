@@ -472,6 +472,13 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             [],
         )
         self.assertNotIn("KisCanvas2", by_name)
+        self.assertEqual(
+            by_name["KisImageManager"]["implementationPaths"],
+            [
+                "libs/ui/document/KisImageManagerDrop.cpp",
+                "libs/ui/document/kis_image_manager.cc",
+            ],
+        )
 
     def test_ui_tool_class_discovery_is_complete(self) -> None:
         inventory = self.load_inventory()

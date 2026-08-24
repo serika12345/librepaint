@@ -642,7 +642,7 @@ Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資�
 
 再配置計画は`kritaui`、大域C++識別子、UI再配置用includeの4経路に導入段階、R1-G7の所有者、
 最大範囲、削除条件、検証方法を割り当てる。計画検査は9責務と5構成の現行ターゲット、
-1種類36件の逆方向依存、2ヘッダー2件の内部参照を正本へ照合し、最終状態のゼロ上限を確認する。
+1種類20件の逆方向依存、2ヘッダー2件の内部参照を正本へ照合し、最終状態のゼロ上限を確認する。
 
 メインウィンドウの画像状態操作は、次の開始箇所と具体所有へ接続する。
 
@@ -659,6 +659,24 @@ Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資�
 投影完了待機、描画再実行の設定キーを維持する。clangd監査で直接利用0件を確認した
 `KisMainWindow.cpp`の`krita_utils.h`を除去し、同ファイルから描画所有ヘッダー6件への
 直接経路を解消する。
+
+作業ビューの画像状態接続とドロップ編集は、次の開始箇所と具体所有へ接続する。
+
+- `libs/ui/workspace/KisView.cpp`の画像信号接続、表示準備、浮動小数点色深度判定から
+  `libs/ui/canvas/KisCanvasImageState.cpp`と`libs/ui/canvas/kis_canvas2.h`のキャンバス画像状態。
+- 同ファイルの色ドロップルーティングから
+  `libs/ui/canvas/KisCanvasColorDrop.cpp`の塗りつぶしストローク。
+- 同ファイルの内部ノード、画像、URL、参照画像のドロップ処理から
+  `libs/ui/document/KisImageManagerDrop.cpp`と`libs/ui/document/kis_image_manager.{h,cc}`の
+  文書画像取込操作。
+- 同ファイルの現在レイヤー、マスク、選択範囲、ノード除去後の選択先取得から
+  `libs/ui/nodes/KisNodeManagerImageState.cpp`のノード・選択状態。
+- 同ファイルの画像メモリー統計取得と更新通知接続から
+  `libs/ui/document/KisDocumentImageState.cpp`の文書画像状態。
+
+ドロップ操作の選択肢、修飾キー、塗りつぶしジョブと取り消し命令の順序、画像とノードの
+共有寿命、ノード通知の直接接続、表示開始時の画像信号接続順、文書タイトルのメモリー表示を
+維持する。作業ビューのアプリケーション調整から描画への直接include 16件を解消する。
 
 責務の中心は次の五つです。
 

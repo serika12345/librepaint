@@ -12,6 +12,7 @@
 #include <QAction>
 #include <QUrl>
 #include <QColorDialog>
+#include <QTemporaryFile>
 
 #include <klocalizedstring.h>
 
@@ -22,7 +23,9 @@
 #include <kis_image.h>
 #include <kis_icon.h>
 #include <KisImportExportManager.h>
+#include <KisMimeDatabase.h>
 #include "kis_import_catcher.h"
+#include "KisRemoteFileFetcher.h"
 #include "workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "dialogs/kis_dlg_image_properties.h"
@@ -134,6 +137,28 @@ qint32 KisImageManager::importImage(const QUrl &urlArg, const QString &layerType
     return rc;
 }
 
+QString KisImageManager::importFileFormatError(const QString &fileName)
+{
+    const QString mimeType = KisMimeDatabase::mimeTypeForFile(fileName);
+    const QStringList supportedMimeTypes =
+        KisImportExportManager::supportedMimeTypes(KisImportExportManager::Import);
+
+    return supportedMimeTypes.contains(mimeType)
+        ? QString()
+        : KisImportExportErrorCode(ImportExportCodes::FileFormatNotSupported).errorMessage();
+}
+
+bool KisImageManager::fetchRemoteFile(const QUrl &url, QTemporaryFile *destination)
+{
+    KisRemoteFileFetcher fetcher;
+    return fetcher.fetchFile(url, destination);
+}
+
+void KisImageManager::adaptClipToImageColorSpace(KisPaintDeviceSP clip, KisImageWSP image)
+{
+    KisImportCatcher::adaptClipToImageColorSpace(clip, image);
+}
+
 void KisImageManager::resizeCurrentImage(qint32 w, qint32 h, qint32 xOffset, qint32 yOffset)
 {
     if (!m_view->image()) return;
@@ -216,5 +241,3 @@ void KisImageManager::slotImageColor()
         KisLayerUtils::changeImageDefaultProjectionColor(image, oldBgColor);
     }
 }
-
-

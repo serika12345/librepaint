@@ -13,6 +13,9 @@
 #include "kis_types.h"
 #include "kis_base_node.h"
 #include "kis_image.h"
+#include "kis_layer.h"
+#include "kis_mask.h"
+#include "kis_selection.h"
 #include <kritaui_export.h>
 
 class KisKActionCollection;
@@ -69,6 +72,11 @@ public:
 
     /// Convenience function to get the active layer or mask
     KisNodeSP activeNode();
+
+    KisNodeSP nearestNodeAfterRemoval(KisNodeSP node) const;
+    KisLayerSP layerForNode(KisNodeSP node) const;
+    KisMaskSP maskForNode(KisNodeSP node) const;
+    KisSelectionSP selectionForNode(KisNodeSP node, KisImageWSP image) const;
 
     bool activeNodeIsLayer();
     bool activeNodeInherits(const QString &type);

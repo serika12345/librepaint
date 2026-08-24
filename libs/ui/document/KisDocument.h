@@ -620,6 +620,8 @@ public:
 
     bool hasImage() const;
     QString imageObjectName() const;
+    qint64 imageMemorySize() const;
+    void connectImageMemoryStatisticsUpdates(QObject *receiver, const char *method) const;
     bool hasAnimation() const;
     int animationLength() const;
     void setAnimationRange(int firstFrame, int lastFrame);

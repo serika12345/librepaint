@@ -8,6 +8,7 @@
 
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
+#include <kis_memory_statistics_server.h>
 
 bool KisDocument::hasImage() const
 {
@@ -18,6 +19,22 @@ QString KisDocument::imageObjectName() const
 {
     KisImageWSP documentImage = image();
     return documentImage ? documentImage->objectName() : QString();
+}
+
+qint64 KisDocument::imageMemorySize() const
+{
+    KisImageSP documentImage = image();
+    return KisMemoryStatisticsServer::instance()
+        ->fetchMemoryStatistics(documentImage)
+        .imageSize;
+}
+
+void KisDocument::connectImageMemoryStatisticsUpdates(QObject *receiver, const char *method) const
+{
+    QObject::connect(KisMemoryStatisticsServer::instance(),
+                     SIGNAL(sigUpdateMemoryStatistics()),
+                     receiver,
+                     method);
 }
 
 int KisDocument::animationLength() const

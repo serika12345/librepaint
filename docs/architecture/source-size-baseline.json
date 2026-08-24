@@ -80,7 +80,6 @@
     "libs/ui/widgets/gradient/KisSegmentGradientSlider.cpp": 1131,
     "libs/ui/widgets/kis_scratch_pad.cpp": 1218,
     "libs/ui/workspace/KisMainWindow.cpp": 3383,
-    "libs/ui/workspace/KisView.cpp": 1460,
     "libs/ui/workspace/KisViewManager.cpp": 1712,
     "libs/widgets/KoRuler.cpp": 1376,
     "libs/widgetutils/xmlgui/kedittoolbar.cpp": 1765,

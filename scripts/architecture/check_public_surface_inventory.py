@@ -147,6 +147,11 @@ UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH = {
 UI_CLASS_NESTED_HEADER_PATHS = tuple(
     UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH
 )
+UI_CLASS_ADDITIONAL_IMPLEMENTATION_PATHS_BY_NAME = {
+    "KisImageManager": (
+        "libs/ui/document/KisImageManagerDrop.cpp",
+    ),
+}
 UI_PLACEMENT_RELOCATION_PATHS = (
     "docs/architecture/canvas-presentation-ui-relocations.json",
     "docs/architecture/document-state-ui-relocations.json",
@@ -821,6 +826,18 @@ def _discover_ui_classes(
                         source.read_text(encoding="utf-8")
                     ):
                         implementation_paths.append(implementation)
+            for implementation in UI_CLASS_ADDITIONAL_IMPLEMENTATION_PATHS_BY_NAME.get(
+                name, ()
+            ):
+                source = source_files.get(implementation)
+                if source is None or not symbol_pattern.search(
+                    source.read_text(encoding="utf-8")
+                ):
+                    raise PublicSurfaceError(
+                        "additional UI class implementation does not contain "
+                        f"{name} symbols: {implementation}"
+                    )
+                implementation_paths.append(implementation)
             entry = {
                 "name": name,
                 "declarationKind": declaration_kind,
@@ -1018,6 +1035,12 @@ def ui_class_policy() -> dict[str, Any]:
         "exportMacros": ["KRITAUI_EXPORT", "KRITAUI_EXPORT_TEMPLATE"],
         "implementationSuffixes": sorted(SOURCE_SUFFIXES - HEADER_SUFFIXES),
         "privateHeaderImplementationSuffix": "_p",
+        "additionalImplementationPathsByClass": {
+            name: list(paths)
+            for name, paths in sorted(
+                UI_CLASS_ADDITIONAL_IMPLEMENTATION_PATHS_BY_NAME.items()
+            )
+        },
     }
 
 
@@ -1484,7 +1507,17 @@ def validate_ui_placement_relocations(
                 f"implementation paths for {entry.get('name')}",
             )
         )
-    missing_document_paths = sorted(document_class_paths - document_destinations)
+    additional_document_implementations = {
+        path
+        for name, paths in UI_CLASS_ADDITIONAL_IMPLEMENTATION_PATHS_BY_NAME.items()
+        if any(entry.get("name") == name for entry in document_classes)
+        for path in paths
+    }
+    missing_document_paths = sorted(
+        document_class_paths
+        - document_destinations
+        - additional_document_implementations
+    )
     if missing_document_paths:
         raise PublicSurfaceError(
             "document-state UI class evidence is missing from its relocation "

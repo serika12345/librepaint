@@ -299,6 +299,8 @@ set(kritaui_LIB_SRCS
     processing/fill_processing_visitor.cpp
     processing/KisEncloseAndFillProcessingVisitor.cpp
     canvas/kis_mirror_axis.cpp
+    canvas/KisCanvasImageState.cpp
+    canvas/KisCanvasColorDrop.cpp
 
     imagesize/imagesize.cc
     imagesize/dlg_canvassize.cc
@@ -314,6 +316,7 @@ set(kritaui_LIB_SRCS
     workspace/KisDetailsPane.cpp
     document/KisDocument.cpp
     document/KisDocumentImageState.cpp
+    document/KisImageManagerDrop.cpp
     document/KisDocumentTemplate.cpp
     impex/KisImportExportColorSpaceDialog.cpp
     impex/KisImportExportResizeWidget.cpp

@@ -11,11 +11,14 @@
 
 #include <QUrl>
 #include <kritaui_export.h>
+#include <kis_types.h>
 
 class KisViewManager;
 class KisFilterStrategy;
 class KisActionManager;
 class KisView;
+class QDropEvent;
+class QTemporaryFile;
 
 class KRITAUI_EXPORT KisImageManager : public QObject
 {
@@ -48,6 +51,15 @@ public Q_SLOTS:
      * @return the number of layers added
      */
     qint32 importImage(const QUrl &url, const QString &layerType = "KisPaintLayer");
+
+public:
+
+    static QString importFileFormatError(const QString &fileName);
+    static bool fetchRemoteFile(const QUrl &url, QTemporaryFile *destination);
+    static void adaptClipToImageColorSpace(KisPaintDeviceSP clip, KisImageWSP image);
+    void handleImageDrop(KisView *imageView, QDropEvent *event, const QPoint &imagePosition);
+
+public Q_SLOTS:
 
     void resizeCurrentImage(qint32 w, qint32 h, qint32 xOffset, qint32 yOffset);
     void scaleCurrentImage(const QSize &size, qreal xres, qreal yres, KisFilterStrategy *filterStrategy);

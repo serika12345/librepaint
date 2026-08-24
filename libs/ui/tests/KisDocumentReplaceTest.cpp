@@ -172,6 +172,7 @@ void KisDocumentReplaceTest::testImageStateDelegation()
 
     QVERIFY(m_doc->hasImage());
     QCOMPARE(m_doc->imageObjectName(), QStringLiteral("test"));
+    QVERIFY(m_doc->imageMemorySize() >= 0);
 
     m_doc->setAnimationTiming(12, 2, 8);
     QCOMPARE(m_doc->image()->animationInterface()->framerate(), 12);

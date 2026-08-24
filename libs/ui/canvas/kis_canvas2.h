@@ -21,6 +21,7 @@
 #include <animation/kis_animation_frame_cache_fwd.h>
 #include <KoPointerEvent.h>
 #include <KisToolCanvas.h>
+#include <KisNodeAdditionFlags.h>
 
 #include "opengl/kis_opengl.h"
 
@@ -34,6 +35,10 @@
 #include <functional>
 
 class KoToolProxy;
+class KoColorProfile;
+class KoColorSpace;
+class QDropEvent;
+class QIcon;
 class KisDisplayConfig;
 
 
@@ -255,6 +260,13 @@ Q_SIGNALS:
 
     void sigCanvasStateChanged();
 
+    void sigViewImageSizeChanged(const QPointF &oldStillPoint, const QPointF &newStillPoint);
+    void sigViewImageResolutionChanged();
+    void sigViewNodeAddedAsync(KisNodeSP node, KisNodeAdditionFlags flags);
+    void sigViewNodeRemovedAsync(KisNodeSP node);
+    void sigViewImageColorSpaceChanged(const KoColorSpace *colorSpace);
+    void sigViewImageProfileChanged(const KoColorProfile *profile);
+
     // emitted whenever the canvas widget thinks sketch should update
     void updateCanvasRequested(const QRect &rc);
 
@@ -338,6 +350,14 @@ public:
 
     void initializeImage();
     void disconnectImage();
+    void connectViewImageSignals();
+    void prepareImageForDisplay();
+    bool imageUsesFloatingPointColorDepth() const;
+    QString handleColorDrop(QDropEvent *event,
+                            KisViewManager *viewManager,
+                            const KisNodeSP &currentViewNode,
+                            const QPoint &imagePosition,
+                            QIcon *messageIcon);
 
     void setFavoriteResourceManager(KisFavoriteResourceManager* favoriteResourceManager);
 

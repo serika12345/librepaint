@@ -9,6 +9,15 @@
 #include "nodes/KisNodeActivationActionCreatorVisitor.h"
 
 #include <kis_image.h>
+#include <kis_layer.h>
+#include <kis_mask.h>
+#include <kis_selection.h>
+#include <krita_utils.h>
+
+KisNodeSP KisNodeManager::nearestNodeAfterRemoval(KisNodeSP node) const
+{
+    return KritaUtils::nearestNodeAfterRemoval(node);
+}
 
 void KisNodeManager::updateImageNodeSettings(KisImageWSP image)
 {
@@ -23,4 +32,27 @@ void KisNodeManager::createNodeActivationActions(KisImageWSP image, KisKActionCo
         KisNodeActivationActionCreatorVisitor visitor(collection, this);
         image->rootLayer()->accept(visitor);
     }
+}
+
+KisLayerSP KisNodeManager::layerForNode(KisNodeSP node) const
+{
+    KisMaskSP mask = maskForNode(node);
+    if (mask) {
+        node = mask->parent();
+    }
+    return qobject_cast<KisLayer *>(node.data());
+}
+
+KisMaskSP KisNodeManager::maskForNode(KisNodeSP node) const
+{
+    return dynamic_cast<KisMask *>(node.data());
+}
+
+KisSelectionSP KisNodeManager::selectionForNode(KisNodeSP node, KisImageWSP image) const
+{
+    KisLayerSP layer = layerForNode(node);
+    if (layer) {
+        return layer->selection();
+    }
+    return image ? image->globalSelection() : KisSelectionSP();
 }

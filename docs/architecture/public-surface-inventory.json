@@ -856,6 +856,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/ui/canvas/kis_canvas2.h",
             "libs/ui/flake/kis_dummies_facade_base.h",
             "libs/ui/workspace/KisView.h"
           ]
@@ -2003,7 +2004,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
             "plugins/tools/basictools/kis_tool_fill.h",
             "plugins/tools/selectiontools/kis_tool_select_contiguous.h",
             "plugins/tools/selectiontools/kis_tool_select_similar.h",
@@ -2091,7 +2092,7 @@
           ],
           "consumerPaths": [
             "libs/ui/actions/kis_selection_action_factories.cpp",
-            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
             "plugins/tools/basictools/kis_tool_fill.cc",
             "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp"
           ]
@@ -2167,7 +2168,7 @@
           "consumerPaths": [
             "libs/painting/strokes/move_stroke_strategy.cpp",
             "libs/ui/actions/kis_selection_action_factories.cpp",
-            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
             "plugins/tools/basictools/kis_tool_fill.cc",
             "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp"
           ]
@@ -3295,13 +3296,13 @@
           ],
           "consumerPaths": [
             "libs/ui/actions/kis_selection_action_factories.cpp",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/processing/fill_processing_visitor.h",
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_scratch_pad.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "plugins/generators/multigridpattern/multigridpatterngenerator.cpp",
             "plugins/generators/pattern/patterngenerator.cpp",
             "plugins/generators/seexpr/generator.cpp",
@@ -3509,6 +3510,7 @@
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/document/KisDocument.cpp",
             "libs/ui/document/KisDocumentTemplate.cpp",
+            "libs/ui/document/KisImageManagerDrop.cpp",
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/imagesize/imagesize.cc",
             "libs/ui/nodes/KisNodeActivationActionCreatorVisitor.h",
@@ -3519,7 +3521,6 @@
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "plugins/dockers/artisticcolorselector/artisticcolorselector_dock.cpp",
             "plugins/dockers/channeldocker/channelmodel.cpp",
             "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
@@ -3691,6 +3692,8 @@
             "libs/ui/animation/kis_animation_cache_populator.cpp",
             "libs/ui/animation/kis_animation_frame_cache.cpp",
             "libs/ui/canvas/KisCanvasAnimationState.cpp",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
+            "libs/ui/canvas/KisCanvasImageState.cpp",
             "libs/ui/canvas/KisIdleTasksManager.cpp",
             "libs/ui/canvas/KisLayerThumbnailCache.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
@@ -3723,6 +3726,7 @@
             "libs/ui/document/KisDocument.h",
             "libs/ui/document/KisDocumentImageState.cpp",
             "libs/ui/document/KisDocumentTemplate.cpp",
+            "libs/ui/document/KisImageManagerDrop.cpp",
             "libs/ui/document/kis_file_layer.cpp",
             "libs/ui/document/kis_image_manager.cc",
             "libs/ui/flake/kis_dummies_facade.cpp",
@@ -3765,7 +3769,6 @@
             "libs/ui/widgets/kis_preset_live_preview_view.h",
             "libs/ui/widgets/kis_scratch_pad.cpp",
             "libs/ui/widgets/kis_wdg_generator.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/KisViewManager.cpp",
             "plugins/assistants/Assistants/kis_assistant_tool.cc",
             "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
@@ -4230,13 +4233,16 @@
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
             "libs/ui/document/KisDocument.cpp",
+            "libs/ui/document/KisImageManagerDrop.cpp",
             "libs/ui/flake/kis_node_shape.cpp",
             "libs/ui/flake/kis_shape_layer_canvas.cpp",
             "libs/ui/imagesize/imagesize.cc",
+            "libs/ui/nodes/KisNodeManagerImageState.cpp",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_mask_manager.cc",
             "libs/ui/nodes/kis_multinode_property.h",
             "libs/ui/nodes/kis_node_manager.cpp",
+            "libs/ui/nodes/kis_node_manager.h",
             "libs/ui/resources/kis_custom_pattern.cc",
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/tool/kis_selection_tool_helper.h",
@@ -4244,7 +4250,6 @@
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
@@ -4494,10 +4499,11 @@
             "libs/libkis/Document.cpp",
             "libs/tools/kis_tool.cc",
             "libs/ui/flake/kis_shape_controller.cpp",
+            "libs/ui/nodes/KisNodeManagerImageState.cpp",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_mask_manager.h",
             "libs/ui/nodes/kis_node_manager.cpp",
-            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/nodes/kis_node_manager.h",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/impex/libkra/kis_kra_save_visitor.cpp"
           ]
@@ -4539,7 +4545,7 @@
             "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
             "libs/ui/canvas/kis_statusbar.cc",
             "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.cpp",
-            "libs/ui/workspace/KisView.cpp"
+            "libs/ui/document/KisDocumentImageState.cpp"
           ]
         },
         {
@@ -4590,10 +4596,12 @@
             "libs/psd/psd_layer_record.cpp",
             "libs/psd/psd_layer_record.h",
             "libs/psd/psd_layer_section.cpp",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
             "libs/ui/canvas/kis_display_color_converter.cpp",
             "libs/ui/dialogs/kis_dlg_adjustment_layer.cc",
             "libs/ui/dialogs/kis_dlg_file_layer.cpp",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
+            "libs/ui/document/KisImageManagerDrop.cpp",
             "libs/ui/flake/kis_node_dummies_graph.h",
             "libs/ui/flake/kis_node_shape.cpp",
             "libs/ui/flake/kis_node_shapes_graph.h",
@@ -4611,7 +4619,6 @@
             "libs/ui/widgets/kis_color_filter_combo.cpp",
             "libs/ui/widgets/kis_layer_filter_widget.cpp",
             "libs/ui/widgets/kis_paintop_presets_editor.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
@@ -5068,6 +5075,7 @@
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/dialogs/kis_dlg_filter.cpp",
             "libs/ui/document/KisDocument.cpp",
+            "libs/ui/document/KisImageManagerDrop.cpp",
             "libs/ui/nodes/KisNodeActivationActionCreatorVisitor.h",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_mask_manager.cc",
@@ -5081,7 +5089,6 @@
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.h",
             "libs/ui/widgets/kis_scratch_pad.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
             "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
@@ -5808,6 +5815,7 @@
             "libs/tools/kis_tool.cc",
             "libs/tools/kis_tool_select_base.h",
             "libs/ui/actions/KisPasteActionFactories.cpp",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
             "libs/ui/canvas/kis_canvas2.cpp",
             "libs/ui/canvas/kis_canvas_tool_support.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
@@ -5819,10 +5827,12 @@
             "libs/ui/flake/kis_shape_selection.cpp",
             "libs/ui/flake/kis_shape_selection_model.cpp",
             "libs/ui/imagesize/imagesize.cc",
+            "libs/ui/nodes/KisNodeManagerImageState.cpp",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_layer_manager.h",
             "libs/ui/nodes/kis_mask_manager.cc",
             "libs/ui/nodes/kis_node_manager.cpp",
+            "libs/ui/nodes/kis_node_manager.h",
             "libs/ui/nodes/kis_node_model.cpp",
             "libs/ui/processing/KisEncloseAndFillProcessingVisitor.h",
             "libs/ui/processing/fill_processing_visitor.h",
@@ -5833,7 +5843,6 @@
             "libs/ui/tool/kis_selection_tool_helper.h",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_shape.cc",
-            "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/KisViewManager.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/extensions/colorrange/colorrange.cc",
@@ -6124,7 +6133,7 @@
             "libs/painting/strokes/kis_filter_stroke_strategy.h",
             "libs/painting/strokes/move_stroke_strategy.h",
             "libs/ui/actions/kis_selection_action_factories.cpp",
-            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
             "plugins/tools/basictools/kis_tool_fill.cc",
             "plugins/tools/basictools/strokes/move_selection_stroke_strategy.h",
             "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp",
@@ -6500,6 +6509,7 @@
             "libs/ui/document/kis_file_layer.cpp",
             "libs/ui/document/kis_filter_manager.h",
             "libs/ui/document/kis_image_manager.cc",
+            "libs/ui/document/kis_image_manager.h",
             "libs/ui/flake/KisReferenceImagesLayer.h",
             "libs/ui/flake/kis_dummies_facade_base.h",
             "libs/ui/flake/kis_node_dummies_graph.h",
@@ -6900,12 +6910,12 @@
             "libs/ui/canvas/kis_zoom_manager.cc",
             "libs/ui/document/kis_filter_manager.cc",
             "libs/ui/flake/kis_shape_layer_canvas.cpp",
+            "libs/ui/nodes/KisNodeManagerImageState.cpp",
             "libs/ui/nodes/kis_node_manager.cpp",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
             "libs/ui/widgets/gradient/KisSegmentGradientSlider.cpp",
             "libs/ui/widgets/gradient/KisStopGradientSlider.cpp",
             "libs/ui/widgets/kis_color_filter_combo.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "plugins/dockers/animation/KisAnimCurvesChannelDelegate.cpp",
             "plugins/dockers/animation/KisAnimTimelineColors.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
@@ -7693,7 +7703,6 @@
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_node_manager.cpp",
             "libs/ui/workspace/KisMainWindow.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesView.cpp",
             "plugins/extensions/imagesplit/imagesplit.cpp",
             "plugins/extensions/resourcemanager/dlg_create_bundle.cpp",
@@ -7770,7 +7779,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/workspace/KisView.cpp",
+            "libs/ui/document/kis_image_manager.cc",
             "libs/ui/workspace/KisWelcomePageWidget.cpp"
           ]
         },
@@ -7814,12 +7823,12 @@
             "libs/ui/actions/kis_selection_action_factories.cpp",
             "libs/ui/application/kis_action_manager.cpp",
             "libs/ui/document/KisDocument.cpp",
+            "libs/ui/document/KisImageManagerDrop.cpp",
             "libs/ui/nodes/kis_layer_manager.cc",
             "libs/ui/nodes/kis_node_manager.cpp",
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/workspace/KisMainWindow.cpp",
-            "libs/ui/workspace/KisView.cpp",
             "libs/ui/workspace/KisWelcomePageWidget.cpp",
             "plugins/dockers/layerdocker/LayerBox.cpp",
             "plugins/paintops/libpaintop/kis_clipboard_brush_widget.cpp",
@@ -7835,8 +7844,7 @@
           "consumerPaths": [
             "libs/ui/actions/KisPasteActionFactories.cpp",
             "libs/ui/document/kis_image_manager.cc",
-            "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-            "libs/ui/workspace/KisView.cpp"
+            "libs/ui/widgets/kis_image_from_clipboard_widget.cpp"
           ]
         },
         {
@@ -7846,6 +7854,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/ui/document/KisImageManagerDrop.cpp",
             "libs/ui/nodes/kis_node_insertion_adapter.h",
             "libs/ui/nodes/kis_node_manager.cpp",
             "libs/ui/nodes/kis_node_model.cpp",
@@ -8271,9 +8280,9 @@
           ],
           "consumerPaths": [
             "libs/tools/kis_tool.cc",
+            "libs/ui/canvas/KisCanvasColorDrop.cpp",
             "libs/ui/processing/KisEncloseAndFillProcessingVisitor.h",
             "libs/ui/processing/fill_processing_visitor.h",
-            "libs/ui/workspace/KisView.cpp",
             "plugins/tools/basictools/kis_tool_fill.h",
             "plugins/tools/basictools/kis_tool_gradient.cc",
             "plugins/tools/basictools/kis_tool_line.cc",
