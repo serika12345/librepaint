@@ -64,11 +64,11 @@
 #include <KoColorSpaceRegistry.h>
 #include <KisResourceLocator.h>
 
-#include "input/kis_input_manager.h"
+#include "input/ui/kis_input_manager.h"
 #include "canvas/kis_canvas2.h"
 #include "canvas/kis_canvas_controller.h"
 #include "canvas/kis_grid_manager.h"
-#include "input/kis_input_profile_manager.h"
+#include "input/ui/kis_input_profile_manager.h"
 #include "kis_action_manager.h"
 #include "kis_action.h"
 #include "kis_canvas_controls_manager.h"

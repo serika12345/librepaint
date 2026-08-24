@@ -182,7 +182,7 @@ public:
 #include <config-seexpr.h>
 #include <config-safe-asserts.h>
 
-#include <input/KisExtendedModifiersMapperPluginInterface.h>
+#include <input/ui/KisExtendedModifiersMapperPluginInterface.h>
 #include <KisPlatformPluginInterfaceFactory.h>
 
 #include <config-qt-patches-present.h>

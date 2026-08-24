@@ -505,16 +505,18 @@
       "responsibility": "Interprets pointer, keyboard, touch, tablet, and shortcut input as application and tool actions.",
       "sourceDirectories": [
         "libs/input",
-        "libs/ui/input",
+        "libs/input/ui",
         "libs/ui/tool"
       ],
       "ownerTargets": [
         "kritainput",
+        "kritainputui",
         "kritatools",
         "kritaui"
       ],
       "publicHeaderOwnerTargets": [
-        "kritainput"
+        "kritainput",
+        "kritainputui"
       ],
       "reviewedPublicHeaderPaths": [
         "libs/tools/KisStabilizerDelayedPaintHelper.h",
@@ -547,6 +549,15 @@
         "libs/input/kis_single_action_shortcut.h",
         "libs/input/kis_stroke_shortcut.h",
         "libs/input/kis_touch_shortcut.h",
+        "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+        "libs/input/ui/KisQtWidgetsTweaker.h",
+        "libs/input/ui/config/kis_input_configuration_page.h",
+        "libs/input/ui/kis_abstract_input_action.h",
+        "libs/input/ui/kis_extended_modifiers_mapper.h",
+        "libs/input/ui/kis_input_manager.h",
+        "libs/input/ui/kis_input_profile_manager.h",
+        "libs/input/ui/kis_tablet_debugger.h",
+        "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
         "libs/tools/KisStabilizerDelayedPaintHelper.h",
         "libs/tools/kis_stabilized_events_sampler.h",
         "libs/ui/tool/KisAsyncColorSamplerHelper.h",
@@ -1619,6 +1630,7 @@
         "kritaimage"
       ],
       "repositoryConsumers": [
+        "kritainputui",
         "kritatools",
         "kritaui"
       ]
@@ -1745,6 +1757,7 @@
         "kritacanvas",
         "kritadefaulttools_static",
         "kritainput",
+        "kritainputui",
         "kritapsdutils",
         "kritaselectiontools",
         "kritatools",
@@ -1784,6 +1797,7 @@
         "kritahistorydocker",
         "kritaimpex",
         "kritaimpexui",
+        "kritainputui",
         "kritalibbrush",
         "kritalibkis",
         "kritapainting",
@@ -1898,6 +1912,41 @@
         "kritaglobal"
       ],
       "repositoryConsumers": [
+        "kritainputui",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritainputui",
+      "sourceDirectory": "libs/input/ui",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "OBJECT_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritacanvas",
+        "kritaflake",
+        "kritaimage",
+        "kritainput",
+        "kritalibbrush",
+        "kritamacosutils",
+        "kritapainting",
+        "kritaresources",
+        "kritaresourceui",
+        "kritatools",
+        "kritatoolsui",
+        "kritaversion",
+        "kritawidgets",
+        "kritawidgetutils",
+        "kritaxmlserialization"
+      ],
+      "repositoryConsumers": [
         "kritaui"
       ]
     },
@@ -1923,6 +1972,7 @@
         "kritabrushexport",
         "kritabrushimport",
         "kritaimpexui",
+        "kritainputui",
         "kritalibpaintop",
         "kritamypaintop_static",
         "kritaui",
@@ -1951,6 +2001,7 @@
         "kritadefaultpaintops_static",
         "kritadefaulttools_static",
         "kritaimpexui",
+        "kritainputui",
         "kritalibkis",
         "kritalibpaintop",
         "kritaselectiontools",
@@ -2112,6 +2163,7 @@
         "kritaimage",
         "kritaimpex",
         "kritaimpexui",
+        "kritainputui",
         "kritamypaintop_static",
         "kritapigment",
         "kritaresourcemanager",
@@ -2179,6 +2231,7 @@
       "repositoryConsumers": [
         "kritadbexplorer",
         "kritaimpexui",
+        "kritainputui",
         "kritapalettedocker",
         "kritaresourcemanager",
         "kritatoolsui",
@@ -2212,6 +2265,7 @@
       ],
       "repositoryConsumers": [
         "kritadefaulttools_static",
+        "kritainputui",
         "kritaselectiontools",
         "kritatoolencloseandfill",
         "kritatooltransform_static",
@@ -2242,6 +2296,7 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
+        "kritainputui",
         "kritalibpaintop",
         "kritapalettedocker",
         "kritaui"
@@ -2271,6 +2326,7 @@
         "kritaimpex",
         "kritaimpexui",
         "kritainput",
+        "kritainputui",
         "kritalibbrush",
         "kritamacosutils",
         "kritapainting",

@@ -76,7 +76,7 @@
   <customwidget>
    <class>KisInputButton</class>
    <extends>QPushButton</extends>
-   <header>input/config/kis_input_button.h</header>
+   <header>input/ui/config/kis_input_button.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

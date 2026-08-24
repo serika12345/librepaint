@@ -12,11 +12,11 @@
 #include <QDir>
 #include <QMap>
 
-#include "input/kis_input_profile_manager.h"
+#include "input/ui/kis_input_profile_manager.h"
 #include "input/kis_input_profile.h"
 #include "input/kis_shortcut_configuration.h"
-#include "input/kis_abstract_input_action.h"
-#include "input/kis_shortcut_configuration_text.h"
+#include "input/ui/kis_abstract_input_action.h"
+#include "input/ui/kis_shortcut_configuration_text.h"
 #include "kis_edit_profiles_dialog.h"
 #include "kis_input_profile_model.h"
 #include "kis_input_configuration_page_item.h"

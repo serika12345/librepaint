@@ -11,7 +11,7 @@
 #include "NodeToolTip.h"
 #include "NodeView.h"
 #include "KisPart.h"
-#include "input/kis_input_manager.h"
+#include "input/ui/kis_input_manager.h"
 
 #include <QtDebug>
 #include <QApplication>

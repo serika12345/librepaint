@@ -27,7 +27,7 @@
     {
       "name": "FillProcessingVisitorTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/input/ui/tests",
       "dependencies": [
         "kritatestsdk",
         "kritaui"
@@ -4573,6 +4573,34 @@
       ]
     },
     {
+      "name": "kritainputui",
+      "type": "OBJECT_LIBRARY",
+      "sourceDirectory": "libs/input/ui",
+      "dependencies": [
+        "KF5::Completion",
+        "KF5::CoreAddons",
+        "KF5::I18n",
+        "KF5::ItemViews",
+        "Qt5::Concurrent",
+        "Qt5::Network",
+        "Qt5::Widgets",
+        "kritacanvas",
+        "kritaflake",
+        "kritaimage",
+        "kritainput",
+        "kritalibbrush",
+        "kritapainting",
+        "kritaresources",
+        "kritaresourceui",
+        "kritatools",
+        "kritatoolsui",
+        "kritaversion",
+        "kritawidgets",
+        "kritawidgetutils",
+        "kritaxmlserialization"
+      ]
+    },
+    {
       "name": "kritaiptc",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/metadata/iptc",
@@ -5764,6 +5792,7 @@
         "kritaimpex",
         "kritaimpexui",
         "kritainput",
+        "kritainputui",
         "kritalibbrush",
         "kritapainting",
         "kritaresources",

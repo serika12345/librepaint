@@ -80,7 +80,7 @@
 #include <kis_favorite_resource_manager.h>
 #include <kis_popup_palette.h>
 
-#include "input/kis_input_manager.h"
+#include "input/ui/kis_input_manager.h"
 #include "kis_painting_assistants_decoration.h"
 
 #include "kis_canvas_updates_compressor.h"

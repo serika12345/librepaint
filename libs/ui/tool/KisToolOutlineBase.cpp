@@ -18,7 +18,7 @@
 #include <KoCanvasBase.h>
 #include <kis_icon.h>
 #include <kis_canvas2.h>
-#include <input/kis_input_manager.h>
+#include <input/ui/kis_input_manager.h>
 
 #include "KisToolOutlineBase.h"
 #include <KisInputActionGroup.h>

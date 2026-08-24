@@ -13,8 +13,8 @@
 #include <KisInputAction.h>
 #include <kis_single_action_shortcut.h>
 #include <kis_stroke_shortcut.h>
-#include "input/kis_abstract_input_action.h"
-#include "input/kis_input_profile_manager.h"
+#include "input/ui/kis_abstract_input_action.h"
+#include "input/ui/kis_input_profile_manager.h"
 #include <kis_shortcut_matcher.h>
 
 void KisInputManagerTest::testProfileActionResolution()
@@ -384,7 +384,7 @@ void KisInputManagerTest::testMouseMoves()
     m.leaveEvent();
 }
 
-#include "../input/wintab/kis_incremental_average.h"
+#include <input/ui/wintab/kis_incremental_average.h>
 
 void KisInputManagerTest::testIncrementalAverage()
 {

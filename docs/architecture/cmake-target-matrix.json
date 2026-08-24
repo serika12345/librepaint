@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 667,
-    "linux": 682,
-    "ios": 601,
-    "android": 607,
-    "windows": 637
+    "macos": 668,
+    "linux": 683,
+    "ios": 602,
+    "android": 608,
+    "windows": 638
   },
   "commonTargets": [
     "CCSGraph",
@@ -460,6 +460,7 @@
     "kritaimpexui",
     "kritaindexcolors",
     "kritainput",
+    "kritainputui",
     "kritaiptc",
     "kritajp2import",
     "kritajpegexport",
@@ -1469,8 +1470,10 @@
   ],
   "variantTargets": [
     "CCSGraph",
+    "FillProcessingVisitorTest",
     "KisDialogStateSaverTest",
     "KisDocumentReplaceTest",
+    "KisInputManagerTest",
     "KisMimeDatabaseTest",
     "KisMyPaintOpTest",
     "KoColorSpacesBenchmark",
@@ -1605,6 +1608,7 @@
     "kritaimpexui",
     "kritaindexcolors",
     "kritainput",
+    "kritainputui",
     "kritaiptc",
     "kritajp2import",
     "kritajpegexport",

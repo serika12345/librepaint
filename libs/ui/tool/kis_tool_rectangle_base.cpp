@@ -15,7 +15,7 @@
 #include <KoCanvasController.h>
 #include <KoPointerEvent.h>
 #include <KoViewConverter.h>
-#include <input/kis_extended_modifiers_mapper.h>
+#include <input/ui/kis_extended_modifiers_mapper.h>
 #include <kis_icon.h>
 
 #include "kis_rectangle_constraint_widget.h"

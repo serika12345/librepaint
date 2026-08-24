@@ -48,7 +48,7 @@
 #include "kis_input_profile.h"
 #include "kis_input_profile_manager.h"
 
-#include <input/kis_tablet_debugger.h>
+#include <input/ui/kis_tablet_debugger.h>
 #include <kis_signal_compressor.h>
 
 #include "kis_extended_modifiers_mapper.h"

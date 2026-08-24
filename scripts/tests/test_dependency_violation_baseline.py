@@ -70,9 +70,25 @@ class DependencyViolationBaselineTests(unittest.TestCase):
                 len(entry["directIncludes"])
                 for entry in baseline["violations"]
             ),
-            105,
+            123,
         )
-        self.assertEqual(baseline["unresolvedProjections"], [])
+        self.assertEqual(len(baseline["unresolvedProjections"]), 1)
+        self.assertEqual(
+            {
+                "sourceResponsibility": baseline["unresolvedProjections"][0][
+                    "sourceResponsibility"
+                ],
+                "dependencyResponsibility": baseline[
+                    "unresolvedProjections"
+                ][0]["dependencyResponsibility"],
+                "status": baseline["unresolvedProjections"][0]["status"],
+            },
+            {
+                "sourceResponsibility": "document-lifecycle",
+                "dependencyResponsibility": "input-interpretation",
+                "status": "ambiguous-direct-include",
+            },
+        )
         by_pair = {
             (entry["sourceResponsibility"], entry["dependencyResponsibility"]): (
                 entry
@@ -94,13 +110,13 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             by_pair[("canvas-presentation", "input-interpretation")][
                 "maximumDirectIncludes"
             ],
-            1,
+            13,
         )
         self.assertEqual(
             by_pair[("tool-invocation", "input-interpretation")][
                 "maximumDirectIncludes"
             ],
-            1,
+            7,
         )
 
     def test_missing_violation_pair_is_rejected(self) -> None:

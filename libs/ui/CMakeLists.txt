@@ -280,27 +280,6 @@ set(kritaui_LIB_SRCS
     utils/KisRecentDocumentsModelWrapper.cpp
     utils/KisRecentFileIconCache.cpp
 
-    input/kis_input_manager.cpp
-    input/kis_input_manager_p.cpp
-    input/kis_extended_modifiers_mapper.cpp
-    input/KisExtendedModifiersMapperPluginInterface.cpp
-    input/kis_abstract_input_action.cpp
-    input/kis_tool_invocation_action.cpp
-    input/kis_pan_action.cpp
-    input/kis_alternate_invocation_action.cpp
-    input/kis_rotate_canvas_action.cpp
-    input/kis_zoom_action.cpp
-    input/kis_change_frame_action.cpp
-    input/kis_gamma_exposure_action.cpp
-    input/KisPopupWidgetAction.cpp
-    input/kis_change_primary_setting_action.cpp
-    input/kis_select_layer_action.cpp
-    input/KisQtWidgetsTweaker.cpp
-    input/kis_zoom_and_rotate_action.cpp
-    input/KisCanvasOnlyAction.cpp
-    input/KisTouchGestureAction.cpp
-    input/KisInputProfileMigrator.cpp
-
     operations/kis_operation.cpp
     operations/kis_operation_configuration.cpp
     operations/kis_operation_registry.cpp
@@ -313,22 +292,6 @@ set(kritaui_LIB_SRCS
     animation/KisFrameDisplayProxy.cpp
     kis_gui_context_command.cpp
     kis_gui_context_command_p.cpp
-    input/kis_tablet_debugger.cpp
-    input/kis_input_profile_manager.cpp
-    input/kis_shortcut_configuration_text.cpp
-    input/config/kis_input_configuration_page.cpp
-    input/config/kis_edit_profiles_dialog.cpp
-    input/config/kis_input_profile_model.cpp
-    input/config/kis_input_configuration_page_item.cpp
-    input/config/kis_action_shortcuts_model.cpp
-    input/config/kis_input_type_delegate.cpp
-    input/config/kis_input_mode_delegate.cpp
-    input/config/kis_input_button.cpp
-    input/config/kis_input_editor_delegate.cpp
-    input/config/kis_mouse_input_editor.cpp
-    input/config/kis_wheel_input_editor.cpp
-    input/config/kis_key_input_editor.cpp
-    input/config/KisGestureSelector.cpp
     processing/fill_processing_visitor.cpp
     processing/KisEncloseAndFillProcessingVisitor.cpp
     canvas/kis_mirror_axis.cpp
@@ -435,14 +398,11 @@ endif()
         animation/cache/KisAbstractFrameCacheSwapper.cpp
         animation/cache/KisInMemoryFrameCacheSwapper.cpp
 
-        input/wintab/drawpile_tablettester/tablettester.cpp
-        input/wintab/drawpile_tablettester/tablettest.cpp
     )
 
 if(APPLE AND NOT IOS)
     set(kritaui_LIB_SRCS
         ${kritaui_LIB_SRCS}
-        input/kis_extended_modifiers_mapper_osx.mm
         osx.mm
     )
 endif()
@@ -511,12 +471,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     widgets/KisDlgListPicker.ui
     dialogs/kis_delayed_save_dialog.ui
     dialogs/kis_dlg_hlg_import.ui
-    input/config/kis_input_configuration_page.ui
-    input/config/kis_edit_profiles_dialog.ui
-    input/config/kis_input_configuration_page_item.ui
-    input/config/kis_mouse_input_editor.ui
-    input/config/kis_wheel_input_editor.ui
-    input/config/kis_key_input_editor.ui
 
     layerstyles/wdgBevelAndEmboss.ui
     layerstyles/wdgblendingoptions.ui
@@ -534,8 +488,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     layerstyles/wdgKisLayerStyleAngleSelector.ui
 
     wdgsplash.ui
-    input/wintab/drawpile_tablettester/tablettest.ui
-
     imagesize/wdg_imagesize.ui
     imagesize/wdg_layersize.ui
     imagesize/wdg_canvassize.ui
@@ -556,7 +508,6 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
         KisRootSurfaceInfoProxy.cpp
     )
 endif()
-
 
 kis_add_library(kritaui SHARED ${kritaui_HEADERS_MOC} ${kritaui_LIB_SRCS})
 
@@ -611,6 +562,7 @@ target_link_libraries(kritaui
         kritadocumentfiles
         kritadocumentui
         kritaimpexui
+        kritainputui
         kritaresourceui
         kritaxmlserialization
 )
@@ -710,7 +662,7 @@ target_include_directories(kritaui
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/widgets>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/widgets/gradient>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/input/wintab>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/input/ui/wintab>
 )
 
 set_target_properties(kritaui

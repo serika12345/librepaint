@@ -15,7 +15,7 @@
 #include <kis_debug.h>
 #include <KisViewManager.h>
 #include <kis_canvas2.h>
-#include <input/kis_input_manager.h>
+#include <input/ui/kis_input_manager.h>
 #include <kis_config.h>
 #include <KisDocument.h>
 #include <kis_image.h>

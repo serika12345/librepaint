@@ -107,8 +107,8 @@
 #include <kis_cubic_curve.h>
 #include <kis_signals_blocker.h>
 
-#include "input/config/kis_input_configuration_page.h"
-#include "input/wintab/drawpile_tablettester/tablettester.h"
+#include <input/ui/config/kis_input_configuration_page.h>
+#include <input/ui/wintab/drawpile_tablettester/tablettester.h>
 
 #include "KisDlgConfigureCumulativeUndo.h"
 #include <config-qt-patches-present.h>

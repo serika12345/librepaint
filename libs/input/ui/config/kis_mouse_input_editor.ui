@@ -4,8 +4,8 @@
     SPDX-FileCopyrightText: none
     SPDX-License-Identifier: GPL-3.0-or-later
   </author>
- <class>KisWheelInputEditor</class>
- <widget class="QWidget" name="KisWheelInputEditor">
+ <class>KisMouseInputEditor</class>
+ <widget class="QWidget" name="KisMouseInputEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -21,8 +21,8 @@
    </sizepolicy>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item column="1" row="2">
-    <widget class="KisInputButton" name="modifiersButton">
+   <item column="1" row="1">
+    <widget class="KisInputButton" name="mouseButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
        <horstretch>0</horstretch>
@@ -31,37 +31,8 @@
      </property>
     </widget>
    </item>
-   <item column="0" row="1">
-    <widget class="QLabel" name="wheelLabel">
-     <property name="styleSheet">
-      <string notr="true">background: none;</string>
-     </property>
-     <property name="text">
-      <string>Mouse Wheel</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item colspan="3" column="0" row="0">
-    <widget class="QLabel" name="label">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Edit Mouse Wheel Input</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item column="1" row="1">
-    <widget class="KisInputButton" name="wheelButton">
+   <item column="1" row="2">
+    <widget class="KisInputButton" name="modifiersButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
        <horstretch>0</horstretch>
@@ -83,8 +54,37 @@
      </property>
     </widget>
    </item>
-   <item column="2" row="1">
-    <widget class="QPushButton" name="clearWheelButton">
+   <item column="0" row="1">
+    <widget class="QLabel" name="mouseLabel">
+     <property name="styleSheet">
+      <string notr="true">background: none;</string>
+     </property>
+     <property name="text">
+      <string>Mouse Button</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item colspan="4" column="0" row="0">
+    <widget class="QLabel" name="label">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Edit Mouse Input</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item column="3" row="1">
+    <widget class="QPushButton" name="clearMouseButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>
@@ -93,7 +93,7 @@
      </property>
     </widget>
    </item>
-   <item column="2" row="2">
+   <item column="3" row="2">
     <widget class="QPushButton" name="clearModifiersButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -109,7 +109,7 @@
   <customwidget>
    <class>KisInputButton</class>
    <extends>QPushButton</extends>
-   <header>input/config/kis_input_button.h</header>
+   <header>input/ui/config/kis_input_button.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

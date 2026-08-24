@@ -952,6 +952,182 @@
       ]
     },
     {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritacanvas",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritaflake",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritainput",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "input-interpretation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritalibbrush",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritapainting",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "resource-management",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritaresourceui",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "resource-management",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritatools",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritainputui",
+      "dependencyTarget": "kritatoolsui",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "tool-invocation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritalibbrush",
       "dependencyTarget": "kritaimage",
       "sourceResponsibilities": [
@@ -1692,6 +1868,47 @@
     {
       "sourceTarget": "kritaui",
       "dependencyTarget": "kritainput",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "input-interpretation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritainputui",
       "sourceResponsibilities": [
         "application-orchestration",
         "canvas-presentation",

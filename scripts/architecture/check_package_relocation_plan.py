@@ -461,8 +461,12 @@ def _validate_waves(
             wave.get("maximumInternalDirectReferencesAfterWave"),
             f"{wave_id} internal reference maximum",
         )
-        _fields(internal_maximum, {"kritaimage", "kritaui"}, f"{wave_id} internal maximum")
-        for owner in ("kritaimage", "kritaui"):
+        _fields(
+            internal_maximum,
+            {"kritaimage", "kritainputui", "kritaui"},
+            f"{wave_id} internal maximum",
+        )
+        for owner in ("kritaimage", "kritainputui", "kritaui"):
             _integer(internal_maximum.get(owner), f"{wave_id} {owner} maximum")
     expected_migrated = sorted(
         responsibility

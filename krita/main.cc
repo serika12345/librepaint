@@ -49,7 +49,7 @@
 #include "KisDocument.h"
 #include "KisPart.h"
 #include "KisUiFont.h"
-#include "input/KisQtWidgetsTweaker.h"
+#include "input/ui/KisQtWidgetsTweaker.h"
 #include "kis_splash_screen.h"
 #include "config-qt-patches-present.h"
 

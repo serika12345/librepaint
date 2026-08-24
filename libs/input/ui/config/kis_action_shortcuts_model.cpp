@@ -18,11 +18,11 @@
 #include "kis_icon_utils.h"
 #include <QApplication>
 
-#include "input/kis_abstract_input_action.h"
+#include "input/ui/kis_abstract_input_action.h"
 #include "input/kis_input_profile.h"
-#include "input/kis_input_profile_manager.h"
+#include "input/ui/kis_input_profile_manager.h"
 #include "input/kis_shortcut_configuration.h"
-#include "input/kis_shortcut_configuration_text.h"
+#include "input/ui/kis_shortcut_configuration_text.h"
 
 class KisActionShortcutsModel::Private
 {

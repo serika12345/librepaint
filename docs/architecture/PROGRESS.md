@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 22:26 JST
+- 更新日時: 2026-08-25 00:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6g入力解釈所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `master`
-- 目的: タブレット・タッチ入力に伴う合成マウス入力の抑止状態と判定をUI事象フィルターから分離し、
-  入力ターゲットが正規化済み入力列を、UIターゲットがQt接続、設定、診断表示を所有する。
+- ブランチ: `develop`
+- 目的: 入力中核とQt接続、設定表示、診断、プラットフォーム統合を`libs/input`の責務ルートへ
+  集約し、入力UIを独立した所有単位として構築する。
 
 ## 再開環境
 
@@ -1553,13 +1553,25 @@
   リンクし、新しい合成入力抑止契約を含むmacOSの全345件のネイティブ試験に成功した。
   `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
   含む全Nix出力の式評価に成功した。
+- `libs/ui/input`の87ファイルを同名構造の`libs/input/ui`へ、
+  `libs/ui/tests/kis_input_manager_test.{h,cpp}`を`libs/input/ui/tests`へ移した。製品実装と試験は
+  `libs/input`の責務ルートに集約され、利用元は`input/ui/...`のinclude経路を使う。
+- `kritainputui`オブジェクトターゲットが入力UIを一単位として構築し、`kritaui`が既存ABIへ
+  組み込む。公開面台帳は`kritainput`の12ヘッダー、`kritainputui`の9ヘッダー、`kritaui`の
+  217ヘッダーを記録する。
+- CMake台帳はmacOS 668件、Linux 683件、iOS 602件、Android 608件、Windows 638件、共通586件、
+  条件付き119件、構成差268件である。入力UI移設でパッケージ間参照となった内部ヘッダー9件16参照は、
+  所有段階と解消先を構造基準と再配置計画に記録する。
+- `kritainputui`と`kritaui`のmacOS構築、`KisInputManagerTest`は成功した。clangdの厳格な
+  include-cleaner診断は移設した全翻訳単位で不要includeと不足includeを報告していない。
+  `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
 
 ## 次の操作
 
-`libs/ui/input/kis_extended_modifiers_mapper.{h,cpp}`を起点として、Qt修飾キーから照合キー列への
-正規化とShift・Alt・Metaキー事象の補正を`libs/input`へ移す。UI側はOSキー状態の取得、設定読込、
-アプリケーションプラグイン解決を維持する。値入力だけの契約を先に追加する。清浄な同一コミットを
-Darwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6g統合時に実施する。
+入力境界に帰属する48件の逆方向includeを一つの統合単位で除去する。入力列の判定と正規化は
+`kritainput`へ、画像・描画・資源を操作するアクションとQt事象接続は対応するツールまたはUI所有へ
+配置する。`kritainputui`を独立共有ライブラリーとして構築し、Darwinとx86_64 Linuxの清浄な
+同一コミットから5構成の完全一致検査を実施する。
 
 ## R1-G5完了根拠
 

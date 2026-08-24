@@ -15,7 +15,7 @@
 #include <kis_node_manager.h>
 #include <kis_selection.h>
 
-#include "input/kis_input_manager.h"
+#include "input/ui/kis_input_manager.h"
 #include "opengl/kis_opengl_canvas2.h"
 
 KisSelectionSP KisCanvas2::currentSelectionForTool() const

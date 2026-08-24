@@ -393,7 +393,7 @@
     {
       "name": "KisInputManagerTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/input/ui/tests",
       "dependencies": [
         "kritatestsdk",
         "kritaui"
@@ -4960,6 +4960,36 @@
       ]
     },
     {
+      "name": "kritainputui",
+      "type": "OBJECT_LIBRARY",
+      "sourceDirectory": "libs/input/ui",
+      "dependencies": [
+        "KF6::Completion",
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "KF6::ItemViews",
+        "Qt6::Concurrent",
+        "Qt6::Network",
+        "Qt6::OpenGLWidgets",
+        "Qt6::Widgets",
+        "kritacanvas",
+        "kritaflake",
+        "kritaimage",
+        "kritainput",
+        "kritalibbrush",
+        "kritamacosutils",
+        "kritapainting",
+        "kritaresources",
+        "kritaresourceui",
+        "kritatools",
+        "kritatoolsui",
+        "kritaversion",
+        "kritawidgets",
+        "kritawidgetutils",
+        "kritaxmlserialization"
+      ]
+    },
+    {
       "name": "kritaiptc",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/metadata/iptc",
@@ -6227,6 +6257,7 @@
         "kritaimpex",
         "kritaimpexui",
         "kritainput",
+        "kritainputui",
         "kritalibbrush",
         "kritamacosutils",
         "kritapainting",

@@ -52,7 +52,7 @@
   <customwidget>
    <class>TabletTester</class>
    <extends>QWidget</extends>
-   <header>input/wintab/drawpile_tablettester/tablettest.h</header>
+   <header>input/ui/wintab/drawpile_tablettester/tablettest.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

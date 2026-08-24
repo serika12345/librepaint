@@ -21,7 +21,7 @@
 #include "kis_canvas2.h"
 #include "kis_tool_proxy.h"
 #include "kis_signal_compressor.h"
-#include "input/kis_tablet_debugger.h"
+#include "input/ui/kis_tablet_debugger.h"
 #include "kis_timed_signal_threshold.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_latency_tracker.h"

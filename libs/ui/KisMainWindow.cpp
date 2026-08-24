@@ -55,7 +55,7 @@
 #include <klocalizedstring.h>
 #include <kaboutdata.h>
 #include <kis_workspace_resource.h>
-#include <input/kis_input_manager.h>
+#include <input/ui/kis_input_manager.h>
 #include "dialogs/KisDlgCreateNewDocument.h"
 #include "kis_selection_manager.h"
 #include "kis_icon_utils.h"

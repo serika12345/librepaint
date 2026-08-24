@@ -165,7 +165,7 @@ PUBLIC_HEADER_SET_SPECS = (
         "ownerTarget": "kritainput",
         "sourceDirectory": "libs/input",
         "headerDirectories": ["libs/input"],
-        "excludedHeaderDirectories": ["libs/input/tests"],
+        "excludedHeaderDirectories": ["libs/input/tests", "libs/input/ui"],
         "exportMacro": "KRITAINPUT_EXPORT",
         "responsibility": (
             "Records the declared and externally consumed input-sequence surface "
@@ -176,6 +176,23 @@ PUBLIC_HEADER_SET_SPECS = (
             "libs/input/CMakeLists.txt",
             "libs/input/KisInputAction.h",
             "libs/input/kis_shortcut_matcher.h",
+        ],
+    },
+    {
+        "ownerTarget": "kritainputui",
+        "sourceDirectory": "libs/input/ui",
+        "headerDirectories": ["libs/input/ui"],
+        "excludedHeaderDirectories": ["libs/input/ui/tests"],
+        "exportMacro": "KRITAUI_EXPORT",
+        "responsibility": (
+            "Records the declared and externally consumed input UI surface for "
+            "Qt event wiring, shortcut configuration presentation, diagnostics, "
+            "and platform integration."
+        ),
+        "evidence": [
+            "libs/input/ui/CMakeLists.txt",
+            "libs/input/ui/kis_input_manager.h",
+            "libs/input/ui/kis_input_profile_manager.h",
         ],
     },
     {

@@ -7,7 +7,7 @@
 #ifndef KIS_EXTENDED_MODIFIERS_MAPPER_WAYLAND_H
 #define KIS_EXTENDED_MODIFIERS_MAPPER_WAYLAND_H
 
-#include <input/KisExtendedModifiersMapperPluginInterface.h>
+#include <input/ui/KisExtendedModifiersMapperPluginInterface.h>
 #include <KisWaylandKeyboardWatcher.h>
 
 class KisExtendedModifiersMapperWayland : public KisExtendedModifiersMapperPluginInterface

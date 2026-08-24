@@ -26,7 +26,7 @@
 #include "KisView.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas_controller.h"
-#include "input/kis_input_manager.h"
+#include "input/ui/kis_input_manager.h"
 #include "kis_algebra_2d.h"
 
 #include <KisMirrorAxisConfig.h>

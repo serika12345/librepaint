@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <input/KisExtendedModifiersMapperPluginInterface.h>
+#include <input/ui/KisExtendedModifiersMapperPluginInterface.h>
 
 #include <QObject>
 

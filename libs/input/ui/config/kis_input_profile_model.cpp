@@ -7,7 +7,7 @@
 
 #include "kis_input_profile_model.h"
 
-#include "input/kis_input_profile_manager.h"
+#include "input/ui/kis_input_profile_manager.h"
 
 KisInputProfileModel::KisInputProfileModel(QObject *parent)
     : QStringListModel(parent)
@@ -49,4 +49,3 @@ QModelIndex KisInputProfileModel::find(const QString &name)
 
     return QModelIndex();
 }
-

@@ -373,4 +373,3 @@ KisInputActionGroup KisZoomAction::inputActionGroup(int shortcut) const
     Q_UNUSED(shortcut);
     return ViewTransformActionGroup;
 }
-

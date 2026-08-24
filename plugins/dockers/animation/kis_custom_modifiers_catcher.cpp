@@ -8,7 +8,7 @@
 
 #include <QSet>
 
-#include "input/kis_extended_modifiers_mapper.h"
+#include "input/ui/kis_extended_modifiers_mapper.h"
 #include <QDebug>
 #include <QEvent>
 #include <QKeyEvent>

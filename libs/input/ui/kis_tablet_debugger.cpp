@@ -294,4 +294,3 @@ QString KisTabletDebugger::pointerTypeToString(const QTabletEvent &event) {
 #endif
 
 }
-

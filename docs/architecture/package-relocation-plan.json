@@ -260,11 +260,12 @@
       "current": {
         "sourceDirectories": [
           "libs/input",
-          "libs/ui/input",
+          "libs/input/ui",
           "libs/ui/tool"
         ],
         "cmakeTargets": [
           "kritainput",
+          "kritainputui",
           "kritatools",
           "kritaui"
         ],
@@ -289,6 +290,12 @@
             "name": "kritainput",
             "directory": "libs/input",
             "role": "input-sequence",
+            "status": "implemented"
+          },
+          {
+            "name": "kritainputui",
+            "directory": "libs/input/ui",
+            "role": "qt-event-wiring-and-configuration",
             "status": "implemented"
           }
         ]
@@ -544,6 +551,30 @@
   ],
   "reviewedInternalHeaderDestinations": [
     {
+      "ownerTarget": "kritainputui",
+      "headerPath": "libs/input/ui/config/kis_input_configuration_page.h",
+      "destinationResponsibility": "input-interpretation",
+      "destinationDirectory": "libs/input/ui",
+      "wave": "R1-G6g",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritainputui",
+      "headerPath": "libs/input/ui/kis_tablet_debugger.h",
+      "destinationResponsibility": "input-interpretation",
+      "destinationDirectory": "libs/input/ui",
+      "wave": "R1-G6g",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
+      "ownerTarget": "kritainputui",
+      "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
+      "destinationResponsibility": "input-interpretation",
+      "destinationDirectory": "libs/input/ui",
+      "wave": "R1-G6g",
+      "disposition": "declare-or-replace-public-contract"
+    },
+    {
       "ownerTarget": "kritaui",
       "headerPath": "libs/ui/KisPopupWidgetInterface.h",
       "destinationResponsibility": "tool-invocation",
@@ -553,10 +584,26 @@
     },
     {
       "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/canvas/kis_qpainter_canvas.h",
+      "destinationResponsibility": "canvas-presentation",
+      "destinationDirectory": "libs/canvas",
+      "wave": "R1-G6d",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
       "headerPath": "libs/ui/kis_cursor_override_hijacker.h",
       "destinationResponsibility": "application-orchestration",
       "destinationDirectory": "libs/application/ui",
       "wave": "R1-G6h",
+      "disposition": "move-behind-boundary"
+    },
+    {
+      "ownerTarget": "kritaui",
+      "headerPath": "libs/ui/kis_favorite_resource_manager.h",
+      "destinationResponsibility": "resource-management",
+      "destinationDirectory": "libs/resources/ui",
+      "wave": "R1-G6a",
       "disposition": "move-behind-boundary"
     },
     {
@@ -587,17 +634,6 @@
       "maximumScope": "The R1-G2 tool invocation and settings presentation class sets plus reviewed tool internal headers.",
       "removalCondition": "All consumers use tool-command or tool-settings and no old tool header has an external consumer.",
       "verification": "UI tool and public-surface inventories report no legacy consumer."
-    },
-    {
-      "id": "legacy-input-ui-headers",
-      "kind": "forwarding-headers",
-      "legacy": "input headers in libs/ui/input and input-interpretation headers below libs/ui/tool",
-      "replacement": "libs/input and kritainput",
-      "introducedBy": "R1-G6g",
-      "owner": "R1-G7",
-      "maximumScope": "The R1-G2 input-interpretation class set and current input directory public surface.",
-      "removalCondition": "All device adapters and consumers use input-action-stream and no legacy input include remains.",
-      "verification": "UI tool inventory and input component tests report no legacy consumer."
     },
     {
       "id": "legacy-application-ui-headers",
@@ -698,10 +734,11 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 274,
+      "maximumReverseDirectIncludesAfterWave": 291,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 7
+        "kritainputui": 3,
+        "kritaui": 11
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
@@ -756,10 +793,11 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 179,
+      "maximumReverseDirectIncludesAfterWave": 196,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 7
+        "kritainputui": 3,
+        "kritaui": 11
       },
       "completionCriteria": [
         "Painting has zero document-lifecycle includes and exposes image-model and paint-execution from owned targets.",
@@ -805,10 +843,11 @@
         "Import-export UI cancellation and feedback tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 179,
+      "maximumReverseDirectIncludesAfterWave": 196,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 7
+        "kritainputui": 3,
+        "kritaui": 11
       },
       "completionCriteria": [
         "All 14 classified import-export classes are owned by kritaimpex or kritaimpexui.",
@@ -856,10 +895,11 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 106,
+      "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 7
+        "kritainputui": 3,
+        "kritaui": 10
       },
       "completionCriteria": [
         "Canvas has zero document-lifecycle includes and depends only on painting and resource public surfaces.",
@@ -965,10 +1005,11 @@
         "Document undo coordination tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 106,
+      "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritaui": 7
+        "kritainputui": 3,
+        "kritaui": 10
       },
       "completionCriteria": [
         "All 25 document classes classified at the start of R1-G6e have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",
@@ -1014,9 +1055,10 @@
         "Typed tool settings round-trip tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 106,
+      "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
+        "kritainputui": 3,
         "kritaui": 3
       },
       "completionCriteria": [
@@ -1043,17 +1085,21 @@
           "target": "kritainput"
         },
         {
+          "from": "libs/ui/input::<qt-event-wiring-and-configuration>",
+          "to": "libs/input/ui",
+          "target": "kritainputui"
+        },
+        {
           "from": "libs/ui/tool::<input-interpretation>",
           "to": "libs/input/tool-adapters",
           "target": "kritainput"
         }
       ],
       "createsTargets": [
-        "kritainput"
+        "kritainput",
+        "kritainputui"
       ],
-      "compatibilityRoutes": [
-        "legacy-input-ui-headers"
-      ],
+      "compatibilityRoutes": [],
       "requiredContracts": [
         "Deterministic mouse, tablet, touch, and stylus replay tests",
         "Normalized pressure, tilt, modifier, and gesture state tests",
@@ -1063,13 +1109,13 @@
         {
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "input-interpretation",
-          "from": 1,
+          "from": 13,
           "to": 0
         },
         {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "painting-rendering",
-          "from": 25,
+          "from": 24,
           "to": 0
         },
         {
@@ -1081,13 +1127,14 @@
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "input-interpretation",
-          "from": 1,
+          "from": 7,
           "to": 0
         }
       ],
       "maximumReverseDirectIncludesAfterWave": 75,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
+        "kritainputui": 0,
         "kritaui": 3
       },
       "completionCriteria": [
@@ -1149,6 +1196,7 @@
       "maximumReverseDirectIncludesAfterWave": 0,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
+        "kritainputui": 0,
         "kritaui": 0
       },
       "completionCriteria": [

@@ -26,7 +26,7 @@
 #include <kis_config.h>
 #include <kis_icon_utils.h>
 #include <kis_image_config.h>
-#include <input/kis_input_manager.h>
+#include <input/ui/kis_input_manager.h>
 #include <kis_paintop_box.h>
 #include <kis_paintop_presets_chooser_popup.h>
 

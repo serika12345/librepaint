@@ -186,6 +186,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/kis_tool_invocation_action.cpp",
             "libs/libkis/Document.cpp",
             "libs/tools/kis_tool.cc",
             "libs/tools/kis_tool_paint_interaction.cpp",
@@ -201,7 +202,6 @@
             "libs/ui/canvas/kis_guides_decoration.cpp",
             "libs/ui/canvas/kis_guides_manager.cpp",
             "libs/ui/canvas/kis_qpainter_canvas.cpp",
-            "libs/ui/input/kis_tool_invocation_action.cpp",
             "libs/ui/kis_fps_decoration.cpp",
             "libs/ui/kis_painting_assistant.cc",
             "libs/ui/kis_selection_decoration.cc",
@@ -3479,6 +3479,7 @@
             "libs/impex/ui/kis_import_catcher.cc",
             "libs/impex/ui/kis_png_converter.cpp",
             "libs/impex/ui/kis_safe_document_loader.cpp",
+            "libs/input/ui/kis_select_layer_action.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/GroupLayer.cpp",
             "libs/libkis/LibKisUtils.cpp",
@@ -3499,7 +3500,6 @@
             "libs/ui/dialogs/kis_dlg_adj_layer_props.cc",
             "libs/ui/flake/kis_shape_controller.cpp",
             "libs/ui/imagesize/imagesize.cc",
-            "libs/ui/input/kis_select_layer_action.cpp",
             "libs/ui/kis_canvas_resource_provider.cpp",
             "libs/ui/kis_layer_manager.cc",
             "libs/ui/kis_mask_manager.cc",
@@ -3648,6 +3648,9 @@
             "libs/impex/ui/kis_mimedata.h",
             "libs/impex/ui/kis_png_converter.cpp",
             "libs/impex/ui/kis_safe_document_loader.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_select_layer_action.cpp",
+            "libs/input/ui/kis_tool_invocation_action.cpp",
             "libs/libkis/CloneLayer.cpp",
             "libs/libkis/ColorizeMask.cpp",
             "libs/libkis/Document.cpp",
@@ -3717,9 +3720,6 @@
             "libs/ui/flake/kis_shape_selection_model.cpp",
             "libs/ui/flake/kis_take_all_shapes_command.cpp",
             "libs/ui/imagesize/imagesize.cc",
-            "libs/ui/input/kis_input_manager.cpp",
-            "libs/ui/input/kis_select_layer_action.cpp",
-            "libs/ui/input/kis_tool_invocation_action.cpp",
             "libs/ui/kis_canvas_resource_provider.cpp",
             "libs/ui/kis_control_frame.cpp",
             "libs/ui/kis_custom_pattern.cc",
@@ -4568,6 +4568,7 @@
             "libs/impex/ui/KisSaveGroupVisitor.h",
             "libs/impex/ui/kis_mimedata.cpp",
             "libs/impex/ui/kis_mimedata.h",
+            "libs/input/ui/kis_change_frame_action.cpp",
             "libs/libkis/Channel.h",
             "libs/libkis/LibKisUtils.cpp",
             "libs/libkis/Node.cpp",
@@ -4594,7 +4595,6 @@
             "libs/ui/flake/kis_node_shape.cpp",
             "libs/ui/flake/kis_node_shapes_graph.h",
             "libs/ui/flake/kis_shape_controller.cpp",
-            "libs/ui/input/kis_change_frame_action.cpp",
             "libs/ui/kis_multinode_property.h",
             "libs/ui/kis_node_filter_proxy_model.cpp",
             "libs/ui/kis_node_insertion_adapter.h",
@@ -6219,7 +6219,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_input_manager_p.h"
+            "libs/input/ui/kis_input_manager_p.h"
           ]
         },
         {
@@ -6901,6 +6901,7 @@
           ],
           "consumerPaths": [
             "libs/canvas/kis_prescaled_projection.cpp",
+            "libs/input/ui/kis_gamma_exposure_action.cpp",
             "libs/libkis/Filter.cpp",
             "libs/painting/strokes/kis_filter_stroke_strategy.cpp",
             "libs/painting/strokes/move_stroke_strategy.cpp",
@@ -6910,7 +6911,6 @@
             "libs/ui/KisView.cpp",
             "libs/ui/canvas/kis_canvas_controller.cpp",
             "libs/ui/flake/kis_shape_layer_canvas.cpp",
-            "libs/ui/input/kis_gamma_exposure_action.cpp",
             "libs/ui/kis_filter_manager.cc",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_zoom_manager.cc",
@@ -7901,7 +7901,8 @@
         "libs/input"
       ],
       "excludedHeaderDirectories": [
-        "libs/input/tests"
+        "libs/input/tests",
+        "libs/input/ui"
       ],
       "exportMacro": "KRITAINPUT_EXPORT",
       "responsibility": "Records the declared and externally consumed input-sequence surface for shortcut matching, normalized gestures, cancellation, and borrowed input-action commands.",
@@ -7926,7 +7927,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_input_manager_p.cpp"
+            "libs/input/ui/kis_input_manager_p.cpp"
           ]
         },
         {
@@ -7937,8 +7938,8 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/kis_abstract_input_action.h",
             "libs/ui/canvas/kis_canvas2.h",
-            "libs/ui/input/kis_abstract_input_action.h",
             "libs/ui/tool/KisToolOutlineBase.cpp"
           ]
         },
@@ -7949,7 +7950,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_input_manager_p.h"
+            "libs/input/ui/kis_input_manager_p.h"
           ]
         },
         {
@@ -7973,11 +7974,11 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/config/kis_action_shortcuts_model.cpp",
-            "libs/ui/input/config/kis_input_configuration_page.cpp",
-            "libs/ui/input/config/kis_input_editor_delegate.cpp",
-            "libs/ui/input/kis_input_manager.cpp",
-            "libs/ui/input/kis_input_profile_manager.cpp"
+            "libs/input/ui/config/kis_action_shortcuts_model.cpp",
+            "libs/input/ui/config/kis_input_configuration_page.cpp",
+            "libs/input/ui/config/kis_input_editor_delegate.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_input_profile_manager.cpp"
           ]
         },
         {
@@ -7987,7 +7988,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_input_manager_p.cpp"
+            "libs/input/ui/kis_input_manager_p.cpp"
           ]
         },
         {
@@ -7997,17 +7998,17 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/KisInputProfileMigrator.cpp",
-            "libs/ui/input/config/KisGestureSelector.h",
-            "libs/ui/input/config/kis_action_shortcuts_model.cpp",
-            "libs/ui/input/config/kis_input_button.h",
-            "libs/ui/input/config/kis_input_configuration_page.cpp",
-            "libs/ui/input/config/kis_input_configuration_page_item.cpp",
-            "libs/ui/input/config/kis_input_editor_delegate.cpp",
-            "libs/ui/input/config/kis_wheel_input_editor.h",
-            "libs/ui/input/kis_input_manager_p.h",
-            "libs/ui/input/kis_input_profile_manager.cpp",
-            "libs/ui/input/kis_shortcut_configuration_text.h"
+            "libs/input/ui/KisInputProfileMigrator.cpp",
+            "libs/input/ui/config/KisGestureSelector.h",
+            "libs/input/ui/config/kis_action_shortcuts_model.cpp",
+            "libs/input/ui/config/kis_input_button.h",
+            "libs/input/ui/config/kis_input_configuration_page.cpp",
+            "libs/input/ui/config/kis_input_configuration_page_item.cpp",
+            "libs/input/ui/config/kis_input_editor_delegate.cpp",
+            "libs/input/ui/config/kis_wheel_input_editor.h",
+            "libs/input/ui/kis_input_manager_p.h",
+            "libs/input/ui/kis_input_profile_manager.cpp",
+            "libs/input/ui/kis_shortcut_configuration_text.h"
           ]
         },
         {
@@ -8018,9 +8019,9 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_extended_modifiers_mapper_osx.h",
-            "libs/ui/input/kis_input_manager.cpp",
-            "libs/ui/input/kis_input_manager_p.h"
+            "libs/input/ui/kis_extended_modifiers_mapper_osx.h",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_input_manager_p.h"
           ]
         },
         {
@@ -8030,7 +8031,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_input_manager.cpp"
+            "libs/input/ui/kis_input_manager.cpp"
           ]
         },
         {
@@ -8041,8 +8042,8 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_input_manager.cpp",
-            "libs/ui/input/kis_input_manager_p.cpp"
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_input_manager_p.cpp"
           ]
         },
         {
@@ -8052,8 +8053,135 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_input_manager.cpp",
-            "libs/ui/input/kis_input_manager_p.cpp"
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_input_manager_p.cpp"
+          ]
+        }
+      ]
+    },
+    {
+      "ownerTarget": "kritainputui",
+      "sourceDirectory": "libs/input/ui",
+      "headerDirectories": [
+        "libs/input/ui"
+      ],
+      "excludedHeaderDirectories": [
+        "libs/input/ui/tests"
+      ],
+      "exportMacro": "KRITAUI_EXPORT",
+      "responsibility": "Records the declared and externally consumed input UI surface for Qt event wiring, shortcut configuration presentation, diagnostics, and platform integration.",
+      "evidence": [
+        "libs/input/ui/CMakeLists.txt",
+        "libs/input/ui/kis_input_manager.h",
+        "libs/input/ui/kis_input_profile_manager.h"
+      ],
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisApplication.cpp",
+            "libs/ui/KisPlatformPluginInterfaceFactory.cpp",
+            "plugins/platforms/wayland/KisExtendedModifiersMapperWayland.h",
+            "plugins/platforms/xcb/KisExtendedModifiersMapperX11.h"
+          ]
+        },
+        {
+          "path": "libs/input/ui/KisQtWidgetsTweaker.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "krita/main.cc"
+          ]
+        },
+        {
+          "path": "libs/input/ui/config/kis_input_configuration_page.h",
+          "publicationEvidence": [
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/dialogs/kis_dlg_preferences.cc"
+          ]
+        },
+        {
+          "path": "libs/input/ui/kis_abstract_input_action.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/input/ui/kis_extended_modifiers_mapper.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/kis_tool_rectangle_base.cpp",
+            "plugins/dockers/animation/kis_custom_modifiers_catcher.cpp",
+            "plugins/platforms/wayland/KisExtendedModifiersMapperWayland.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/ui/kis_input_manager.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisMainWindow.cpp",
+            "libs/ui/KisView.cpp",
+            "libs/ui/KisViewManager.cpp",
+            "libs/ui/canvas/kis_canvas2.cpp",
+            "libs/ui/canvas/kis_canvas_tool_support.cpp",
+            "libs/ui/canvas/kis_guides_manager.cpp",
+            "libs/ui/canvas/kis_infinity_manager.cpp",
+            "libs/ui/canvas/kis_mirror_axis.cpp",
+            "libs/ui/tool/KisToolOutlineBase.cpp",
+            "libs/ui/tool/kis_tool_polyline_base.cpp",
+            "plugins/dockers/layerdocker/NodeDelegate.cpp",
+            "plugins/extensions/iostouchui/iostouchui.cpp",
+            "plugins/extensions/spensettings/SPenSettings.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/ui/kis_input_profile_manager.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/KisViewManager.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/ui/kis_tablet_debugger.h",
+          "publicationEvidence": [
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_tool_proxy.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
+          "publicationEvidence": [
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/dialogs/kis_dlg_preferences.cc"
           ]
         }
       ]
@@ -8163,7 +8291,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/kis_select_layer_action.cpp",
+            "libs/input/ui/kis_select_layer_action.cpp",
             "libs/ui/widgets/kis_scratch_pad.cpp"
           ]
         },
@@ -8494,7 +8622,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/input/wintab/drawpile_tablettester/tablettest.h"
+            "libs/input/ui/wintab/drawpile_tablettester/tablettest.h"
           ]
         },
         {
@@ -8514,10 +8642,10 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/kis_alternate_invocation_action.h",
+            "libs/input/ui/kis_change_primary_setting_action.h",
+            "libs/input/ui/kis_tool_invocation_action.cpp",
             "libs/ui/canvas/kis_tool_proxy.h",
-            "libs/ui/input/kis_alternate_invocation_action.h",
-            "libs/ui/input/kis_change_primary_setting_action.h",
-            "libs/ui/input/kis_tool_invocation_action.cpp",
             "libs/ui/kis_paintop_box.cc",
             "plugins/assistants/Assistants/kis_assistant_tool.h",
             "plugins/tools/basictools/default_tools.cc",
@@ -8651,6 +8779,7 @@
           ],
           "consumerPaths": [
             "krita/main.cc",
+            "libs/input/ui/kis_extended_modifiers_mapper.cpp",
             "plugins/extensions/pykrita/kritarunner/main.cpp"
           ]
         },
@@ -8871,6 +9000,9 @@
             "libs/impex/animation/KisDlgImportVideoAnimation.cpp",
             "libs/impex/ui/KisImportExportManager.cpp",
             "libs/impex/ui/kis_clipboard.cc",
+            "libs/input/ui/KisCanvasOnlyAction.cpp",
+            "libs/input/ui/KisQtWidgetsTweaker.cpp",
+            "libs/input/ui/KisTouchGestureAction.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/Krita.cpp",
             "libs/libkis/Node.cpp",
@@ -8932,6 +9064,8 @@
             "libs/impex/ui/kis_import_catcher.cc",
             "libs/impex/ui/kis_mimedata.cpp",
             "libs/impex/ui/kis_safe_document_loader.cpp",
+            "libs/input/ui/KisCanvasOnlyAction.cpp",
+            "libs/input/ui/KisTouchGestureAction.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/Filter.cpp",
             "libs/libkis/Krita.cpp",
@@ -9017,6 +9151,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/KisPopupWidgetAction.h",
             "plugins/extensions/iostouchui/iostouchui.cpp",
             "plugins/tools/karbonplugins/tools/CalligraphyTool/KarbonCalligraphyTool.cpp"
           ]
@@ -9163,6 +9298,12 @@
           "consumerPaths": [
             "libs/impex/animation/KisAnimationRender.cpp",
             "libs/impex/ui/kis_import_catcher.cc",
+            "libs/input/ui/kis_change_frame_action.cpp",
+            "libs/input/ui/kis_gamma_exposure_action.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_select_layer_action.cpp",
+            "libs/input/ui/kis_zoom_action.cpp",
+            "libs/input/ui/kis_zoom_and_rotate_action.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/Krita.cpp",
             "libs/libkis/PaintingResources.cpp",
@@ -9453,9 +9594,12 @@
         {
           "path": "libs/ui/canvas/KoCanvasControllerWidget.h",
           "publicationEvidence": [
-            "export-macro"
+            "export-macro",
+            "external-include"
           ],
-          "consumerPaths": []
+          "consumerPaths": [
+            "libs/input/ui/kis_zoom_action.cpp"
+          ]
         },
         {
           "path": "libs/ui/canvas/kis_canvas2.h",
@@ -9464,6 +9608,21 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/KisPopupWidgetAction.cpp",
+            "libs/input/ui/KisPopupWidgetAction.h",
+            "libs/input/ui/kis_abstract_input_action.cpp",
+            "libs/input/ui/kis_alternate_invocation_action.cpp",
+            "libs/input/ui/kis_change_frame_action.cpp",
+            "libs/input/ui/kis_change_primary_setting_action.cpp",
+            "libs/input/ui/kis_gamma_exposure_action.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_input_manager_p.h",
+            "libs/input/ui/kis_pan_action.cpp",
+            "libs/input/ui/kis_rotate_canvas_action.cpp",
+            "libs/input/ui/kis_select_layer_action.cpp",
+            "libs/input/ui/kis_tool_invocation_action.cpp",
+            "libs/input/ui/kis_zoom_action.cpp",
+            "libs/input/ui/kis_zoom_and_rotate_action.cpp",
             "libs/libkis/Canvas.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/Node.cpp",
@@ -9613,6 +9772,9 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/kis_rotate_canvas_action.cpp",
+            "libs/input/ui/kis_zoom_action.cpp",
+            "libs/input/ui/kis_zoom_and_rotate_action.cpp",
             "libs/libkis/Canvas.cpp",
             "plugins/dockers/overview/overviewdocker_page.cpp",
             "plugins/dockers/touchdocker/TouchDockerWidget.cpp",
@@ -9689,6 +9851,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/kis_gamma_exposure_action.cpp",
             "libs/libkis/View.cpp",
             "plugins/dockers/lut/lutdocker_dock.h",
             "plugins/dockers/lut/ocio_display_filter_vfx2021.h"
@@ -9766,6 +9929,15 @@
           "consumerPaths": []
         },
         {
+          "path": "libs/ui/canvas/kis_qpainter_canvas.h",
+          "publicationEvidence": [
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/input/ui/KisQtWidgetsTweaker.cpp"
+          ]
+        },
+        {
           "path": "libs/ui/canvas/kis_qpainter_projection_factory.h",
           "publicationEvidence": [
             "export-macro"
@@ -9779,6 +9951,13 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/KisPopupWidgetAction.cpp",
+            "libs/input/ui/kis_alternate_invocation_action.cpp",
+            "libs/input/ui/kis_change_primary_setting_action.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_input_manager.h",
+            "libs/input/ui/kis_input_manager_p.h",
+            "libs/input/ui/kis_tool_invocation_action.cpp",
             "plugins/dockers/recorder/recorder_writer.cpp"
           ]
         },
@@ -10006,64 +10185,6 @@
           ]
         },
         {
-          "path": "libs/ui/input/KisExtendedModifiersMapperPluginInterface.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/platforms/wayland/KisExtendedModifiersMapperWayland.h",
-            "plugins/platforms/xcb/KisExtendedModifiersMapperX11.h"
-          ]
-        },
-        {
-          "path": "libs/ui/input/KisQtWidgetsTweaker.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "krita/main.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/input/kis_abstract_input_action.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/input/kis_extended_modifiers_mapper.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/animation/kis_custom_modifiers_catcher.cpp",
-            "plugins/platforms/wayland/KisExtendedModifiersMapperWayland.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/input/kis_input_manager.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/layerdocker/NodeDelegate.cpp",
-            "plugins/extensions/iostouchui/iostouchui.cpp",
-            "plugins/extensions/spensettings/SPenSettings.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/input/kis_input_profile_manager.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/kis_abstract_perspective_grid.h",
           "publicationEvidence": [
             "export-macro",
@@ -10083,6 +10204,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/kis_change_frame_action.cpp",
             "libs/libkis/Krita.cpp",
             "libs/libkis/Window.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
@@ -10135,6 +10257,7 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/kis_change_frame_action.cpp",
             "libs/libkis/Window.cpp",
             "plugins/dockers/animation/KisAnimCurvesDocker.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
@@ -10181,6 +10304,7 @@
           ],
           "consumerPaths": [
             "libs/basicflakes/tools/KoCreatePathTool.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
             "libs/libkis/Filter.cpp",
             "libs/libkis/PaintingResources.cpp",
             "libs/libkis/View.cpp",
@@ -10256,6 +10380,14 @@
             "libs/impex/ui/kis_import_catcher.cc",
             "libs/impex/ui/kis_mimedata.cpp",
             "libs/impex/ui/kis_png_converter.cpp",
+            "libs/input/ui/config/kis_input_configuration_page.cpp",
+            "libs/input/ui/kis_extended_modifiers_mapper.cpp",
+            "libs/input/ui/kis_input_manager.cpp",
+            "libs/input/ui/kis_input_manager_p.cpp",
+            "libs/input/ui/kis_input_profile_manager.cpp",
+            "libs/input/ui/kis_tablet_debugger.cpp",
+            "libs/input/ui/kis_zoom_action.cpp",
+            "libs/input/ui/wintab/drawpile_tablettester/tablettest.cpp",
             "libs/libkis/Krita.cpp",
             "libs/libkis/PresetChooser.cpp",
             "libs/libkis/Scratchpad.cpp",
@@ -10345,6 +10477,16 @@
             "plugins/impex/heightmap/kis_heightmap_import.cpp",
             "plugins/impex/libkra/kis_kra_loader.cpp",
             "plugins/impex/pdf/kis_pdf_import.cpp"
+          ]
+        },
+        {
+          "path": "libs/ui/kis_favorite_resource_manager.h",
+          "publicationEvidence": [
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/input/ui/KisPopupWidgetAction.cpp",
+            "libs/input/ui/kis_input_manager.cpp"
           ]
         },
         {
@@ -10464,6 +10606,7 @@
           ],
           "consumerPaths": [
             "libs/impex/ui/kis_import_catcher.cc",
+            "libs/input/ui/kis_select_layer_action.cpp",
             "libs/libkis/Document.cpp",
             "libs/libkis/View.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
@@ -10592,6 +10735,8 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/input/ui/KisPopupWidgetAction.cpp",
+            "libs/input/ui/kis_input_manager_p.cpp",
             "plugins/extensions/spensettings/SPenSettings.cpp"
           ]
         },
@@ -10752,9 +10897,12 @@
         {
           "path": "libs/ui/opengl/kis_opengl_canvas2.h",
           "publicationEvidence": [
-            "export-macro"
+            "export-macro",
+            "external-include"
           ],
-          "consumerPaths": []
+          "consumerPaths": [
+            "libs/input/ui/KisQtWidgetsTweaker.cpp"
+          ]
         },
         {
           "path": "libs/ui/opengl/kis_opengl_image_textures.h",

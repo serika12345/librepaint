@@ -54,7 +54,7 @@
 #include "KisRemoteFileFetcher.h"
 #include "KisSynchronizedConnection.h"
 #include "KisViewManager.h"
-#include "input/kis_input_manager.h"
+#include "input/ui/kis_input_manager.h"
 #include "kis_canvas2.h"
 #include "kis_canvas_controller.h"
 #include "kis_canvas_resource_provider.h"

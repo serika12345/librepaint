@@ -11,7 +11,7 @@
 #include <QMessageBox>
 
 #include "kis_icon_utils.h"
-#include "input/kis_input_profile_manager.h"
+#include "input/ui/kis_input_profile_manager.h"
 #include "kis_input_profile_model.h"
 
 #include "ui_kis_edit_profiles_dialog.h"
