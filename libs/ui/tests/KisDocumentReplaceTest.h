@@ -24,6 +24,7 @@ private Q_SLOTS:
     void testDocumentModificationStateDelegation();
     void testDocumentRecoveryStatusDelegation();
     void testTemplateRootLayerNameTranslation();
+    void testImageStateDelegation();
 
 private:
     KisDocument *m_doc;

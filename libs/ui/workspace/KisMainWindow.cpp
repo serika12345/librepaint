@@ -60,7 +60,6 @@
 #include "selection/kis_selection_manager.h"
 #include "kis_icon_utils.h"
 #include <krecentfilesaction.h>
-#include "krita_utils.h"
 #include <ktoggleaction.h>
 #include <ktoolbar.h>
 #include <kmainwindow.h>
@@ -118,12 +117,9 @@
 #include <KisDlgAnimationRenderer.h>
 #endif
 #include <document/KisDocument.h>
-#include "kis_image.h"
-#include "kis_image_animation_interface.h"
 #include <KisImportExportFilter.h>
 #include "KisImportExportManager.h"
 #include "workspace/kis_mainwindow_observer.h"
-#include "kis_node.h"
 #include "workspace/KisOpenPane.h"
 #include "tool/kis_paintop_box.h"
 #include "application/KisPart.h"
@@ -139,8 +135,6 @@
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
 #include <KisDlgImportVideoAnimation.h>
 #endif
-#include <KisImageConfigNotifier.h>
-#include <kis_image_config.h>
 #include "workspace/KisWindowLayoutManager.h"
 #include <actions/KisUndoActionsUpdateManager.h>
 #include "workspace/KisWelcomePageWidget.h"
@@ -148,7 +142,7 @@
 #include "workspace/KisCanvasWindow.h"
 #include "application/kis_action.h"
 #include <katecommandbar.h>
-#include "nodes/KisNodeActivationActionCreatorVisitor.h"
+#include "nodes/kis_node_manager.h"
 #include "theme/KisUiFont.h"
 #include <KisResourceUserOperations.h>
 #include "KisRecentFilesManager.h"
@@ -857,7 +851,7 @@ void KisMainWindow::slotPreferences()
     if (dlgPreferences->editPreferences(page)) {
         KisConfigNotifier::instance()->notifyConfigChanged();
         KisConfigNotifier::instance()->notifyPixelGridModeChanged();
-        KisImageConfigNotifier::instance()->notifyConfigChanged();
+        KisDlgPreferences::notifyImageSettingsChanged();
 
         // XXX: should this be changed for the views in other windows as well?
         Q_FOREACH (QPointer<KisView> koview, KisPart::instance()->views()) {
@@ -868,10 +862,7 @@ void KisMainWindow::slotPreferences()
                 // compositing, and they don't connect to the config notifier
                 // because nodes are not QObjects (because only one base class
                 // can be a QObject).
-                KisNode* node = dynamic_cast<KisNode*>(view->image()->rootLayer().data());
-                if (node) {
-                    node->updateSettings();
-                }
+                view->nodeManager()->updateImageNodeSettings(view->image());
             }
 
         }
@@ -1207,7 +1198,7 @@ QStringList KisMainWindow::showOpenFileDialog(bool isImporting)
 void KisMainWindow::slotLoadCompleted()
 {
     KisDocument *newdoc = qobject_cast<KisDocument*>(sender());
-    if (newdoc && newdoc->image()) {
+    if (newdoc && newdoc->hasImage()) {
         addViewAndNotifyLoadingCompleted(newdoc);
 
         disconnect(newdoc, SIGNAL(completed()), this, SLOT(slotLoadCompleted()));
@@ -2011,8 +2002,7 @@ void KisMainWindow::openCommandBar()
     if (activeKisView()) {
         KisKActionCollection *layerActionCollection = new KisKActionCollection(0, "layeractions (disposable)");
         layerActionCollection->setComponentDisplayName(i18n("Layers/Masks"));
-        KisNodeActivationActionCreatorVisitor v(layerActionCollection, viewManager()->nodeManager());
-        activeKisView()->image()->rootLayer()->accept(v);
+        viewManager()->nodeManager()->createNodeActivationActions(activeKisView()->image(), layerActionCollection);
         actionCollections.append(layerActionCollection);
         actionsCount += layerActionCollection->count();
     }
@@ -2223,10 +2213,10 @@ void KisMainWindow::importVideoAnimation()
         if ( useCurrentDocument ) {
             document = activeView()->document();
 
-            dbgFile << "Current frames:" << document->image()->animationInterface()->totalLength() << "total frames:" << totalFrames;
-            if ( document->image()->animationInterface()->totalLength() < totalFrames ) {
-                document->image()->animationInterface()->setDocumentRangeStartFrame(0);
-                document->image()->animationInterface()->setDocumentRangeEndFrame(totalFrames);
+            const int currentFrames = document->animationLength();
+            dbgFile << "Current frames:" << currentFrames << "total frames:" << totalFrames;
+            if (currentFrames < totalFrames) {
+                document->setAnimationRange(0, totalFrames);
             }
         } else {
             const int width = documentInfoList[5].toInt();
@@ -2254,9 +2244,7 @@ void KisMainWindow::importVideoAnimation()
                 return;
             }
 
-            document->image()->animationInterface()->setFramerate(fps);
-            document->image()->animationInterface()->setDocumentRangeStartFrame(0);
-            document->image()->animationInterface()->setDocumentRangeEndFrame(totalFrames);
+            document->setAnimationTiming(fps, 0, totalFrames);
 
             this->showDocument(document);
         }
@@ -2273,8 +2261,7 @@ void KisMainWindow::importVideoAnimation()
         }
 
         activeView()->canvasBase()->refetchDataFromImage();
-        document->image()->refreshGraphAsync();
-        document->image()->waitForDone();
+        document->refreshProjectionAndWait();
 
     }
 #endif
@@ -2285,12 +2272,8 @@ void KisMainWindow::renderAnimation()
 #ifndef Q_OS_IOS
     if (!activeView()) return;
 
-    KisImageSP image = viewManager()->image();
-
-    if (!image) return;
-    if (!image->animationInterface()->hasAnimation()) return;
-
     KisDocument *doc = viewManager()->document();
+    if (!doc || !doc->hasAnimation()) return;
 
     KisDlgAnimationRenderer dlgAnimationRenderer(doc, viewManager()->mainWindow());
     dlgAnimationRenderer.setCaption(i18n("Render Animation"));
@@ -2306,17 +2289,10 @@ void KisMainWindow::renderAnimationAgain()
 #ifndef Q_OS_IOS
     if (!activeView()) return;
 
-    KisImageSP image = viewManager()->image();
-
-    if (!image) return;
-    if (!image->animationInterface()->hasAnimation()) return;
-
     KisDocument *doc = viewManager()->document();
+    if (!doc || !doc->hasAnimation()) return;
 
-    KisPropertiesConfigurationSP settings = KisImageConfig(true).exportConfiguration("ANIMATION_EXPORT");
-
-    KisAnimationRenderingOptions encoderOptions;
-    encoderOptions.fromProperties(settings);
+    const KisAnimationRenderingOptions encoderOptions = KisAnimationRenderingOptions::loadLastUsed();
 
     KisAnimationRender::render(doc, viewManager(), encoderOptions);
 #endif
@@ -2680,8 +2656,8 @@ void KisMainWindow::updateWindowMenu()
     Q_FOREACH (QPointer<KisDocument> doc, KisPart::instance()->documents()) {
         if (doc) {
             QString title = fontMetrics.elidedText(doc->path(), Qt::ElideMiddle, fileStringWidth);
-            if (title.isEmpty() && doc->image()) {
-                title = doc->image()->objectName();
+            if (title.isEmpty() && doc->hasImage()) {
+                title = doc->imageObjectName();
             }
             QAction *action = docMenu->addAction(title);
             action->setIcon(qApp->windowIcon());

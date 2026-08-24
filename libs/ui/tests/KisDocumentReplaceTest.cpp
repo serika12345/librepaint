@@ -13,7 +13,9 @@
 #include <QSignalSpy>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <kis_image_animation_interface.h>
 #include <kis_layer_utils.h>
+#include <kis_time_span.h>
 #include <kis_types.h>
 #include <testui.h>
 
@@ -160,6 +162,30 @@ void KisDocumentReplaceTest::testTemplateRootLayerNameTranslation()
     m_doc->translateTemplateRootLayerName(dictionary);
 
     QCOMPARE(layer->name(), QStringLiteral("Translated Background"));
+
+    finalize();
+}
+
+void KisDocumentReplaceTest::testImageStateDelegation()
+{
+    init();
+
+    QVERIFY(m_doc->hasImage());
+    QCOMPARE(m_doc->imageObjectName(), QStringLiteral("test"));
+
+    m_doc->setAnimationTiming(12, 2, 8);
+    QCOMPARE(m_doc->image()->animationInterface()->framerate(), 12);
+    QCOMPARE(m_doc->image()->animationInterface()->documentPlaybackRange(), KisTimeSpan::fromTimeToTime(2, 8));
+
+    QCOMPARE(m_doc->animationLength(), 9);
+    if (m_doc->animationLength() < 4) {
+        m_doc->setAnimationRange(0, 4);
+    }
+    QCOMPARE(m_doc->image()->animationInterface()->documentPlaybackRange(), KisTimeSpan::fromTimeToTime(2, 8));
+    m_doc->setAnimationRange(0, 10);
+    QCOMPARE(m_doc->image()->animationInterface()->documentPlaybackRange(), KisTimeSpan::fromTimeToTime(0, 10));
+
+    m_doc->refreshProjectionAndWait();
 
     finalize();
 }

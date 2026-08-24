@@ -473,6 +473,7 @@ public:
     ~KisDlgPreferences() override;
 
     bool editPreferences(std::optional<PageDesc> page);
+    static void notifyImageSettingsChanged();
 
     void showEvent(QShowEvent *event) override;
 

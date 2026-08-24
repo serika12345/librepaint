@@ -642,7 +642,23 @@ Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資�
 
 再配置計画は`kritaui`、大域C++識別子、UI再配置用includeの4経路に導入段階、R1-G7の所有者、
 最大範囲、削除条件、検証方法を割り当てる。計画検査は9責務と5構成の現行ターゲット、
-1種類42件の逆方向依存、2ヘッダー2件の内部参照を正本へ照合し、最終状態のゼロ上限を確認する。
+1種類36件の逆方向依存、2ヘッダー2件の内部参照を正本へ照合し、最終状態のゼロ上限を確認する。
+
+メインウィンドウの画像状態操作は、次の開始箇所と具体所有へ接続する。
+
+- `libs/ui/workspace/KisMainWindow.cpp`の画像設定通知から
+  `libs/ui/dialogs/KisDlgPreferencesNotifications.cpp`の設定確定通知。
+- 同ファイルのルートノード設定更新とノード選択アクション生成から
+  `libs/ui/nodes/KisNodeManagerImageState.cpp`の現在画像を受け取るノード表示操作。
+- 同ファイルの画像名、アニメーション範囲とフレーム率、投影更新待機から
+  `libs/ui/document/KisDocumentImageState.cpp`の文書画像状態操作。
+- 同ファイルの直前のアニメーション書出し設定読込から
+  `libs/impex/animation/KisAnimationRenderingOptions.cpp`の保存済み設定読込。
+
+設定変更通知、全ビューの走査条件、ノードアクション順、動画取込時の診断と範囲更新条件、
+投影完了待機、描画再実行の設定キーを維持する。clangd監査で直接利用0件を確認した
+`KisMainWindow.cpp`の`krita_utils.h`を除去し、同ファイルから描画所有ヘッダー6件への
+直接経路を解消する。
 
 責務の中心は次の五つです。
 

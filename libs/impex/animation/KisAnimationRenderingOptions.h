@@ -16,6 +16,7 @@ class KRITAUI_EXPORT KisAnimationRenderingOptions
 {
 public:
     KisAnimationRenderingOptions();
+    static KisAnimationRenderingOptions loadLastUsed();
 
     QString lastDocumentPath;
 #ifdef Q_OS_ANDROID

@@ -2,12 +2,12 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 07:13 JST
+- 更新日時: 2026-08-25 07:38 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6g キャンバス状態表示所有境界
+- 現在の検査段階: R1-G6g メインウィンドウ画像状態所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: キャンバス状態を表示する公開部品を表示責務へ配置し、既存の表示契約を維持したまま
+- 目的: メインウィンドウが調整する画像編集処理を画像、描画、文書状態の具体所有へ接続し、
   アプリケーション調整から描画への逆方向includeを縮小する。
 
 ## 再開環境
@@ -1841,10 +1841,36 @@
 - `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
   文書と図の検査に成功した。
 
+## R1-G6gメインウィンドウ画像状態所有境界で完了した作業
+
+- `libs/ui/workspace/KisMainWindow.cpp`にあった描画状態の取得と操作を、次の開始箇所と
+  具体所有へ接続した。
+  - 画像設定変更通知から`libs/ui/dialogs/KisDlgPreferencesNotifications.cpp`。
+  - ルートノード設定更新とノード選択アクション生成から
+    `libs/ui/nodes/KisNodeManagerImageState.cpp`。
+  - 画像の存在と名前、アニメーション長・範囲・フレーム率、投影更新待機から
+    `libs/ui/document/KisDocumentImageState.cpp`。
+  - 保存済みアニメーション書出し設定読込から
+    `libs/impex/animation/KisAnimationRenderingOptions.cpp`。
+- 設定通知の順序と全ビュー走査条件、ノード選択アクションの走査順、動画取込の現在長診断、
+  範囲拡張条件、フレーム率設定、投影完了待機、描画再実行の設定キーを維持した。
+  clangd監査で直接利用0件を確認した`KisMainWindow.cpp`の`krita_utils.h`も除去した。
+- アプリケーション調整から描画への確認済み逆方向includeは42件から36件へ縮小した。
+  未確定射影0件、製品ターゲット循環0件を維持する。
+- 変更した製品翻訳単位と契約試験はmacOSの製品コンパイル条件でコード生成に成功した。
+  clangd include-cleaner監査は未使用includeと直接include不足が0件であることを確認した。
+  更新した実装オブジェクトを既存ライブラリーへ個別リンクした
+  `KisDocumentReplaceTest::testImageStateDelegation`は成功した。
+- `KisMainWindow.cpp`は3354行、`kis_node_manager.cpp`は1763行、
+  `kis_dlg_preferences.cc`は3327行、`KisDlgAnimationRenderer.cpp`は1089行で、
+  各審査済みソース行数上限以内にある。新しい具体所有実装3件は各標準最大値内にある。
+- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
+  文書と図の検査に成功した。
+
 ## 次の操作
 
-`libs/ui/workspace/KisMainWindow.cpp`に残る画像設定通知、画像・ノード・アニメーション状態の
-6 includeを、キャンバス表示と文書状態の具体所有面へ接続する。
+`libs/ui/workspace/KisView.cpp`の画像編集命令、画像状態取得、メモリー統計接続に使う
+16 includeを、画像・描画・文書状態の具体所有面へ接続する。
 
 ## R1-G5完了根拠
 

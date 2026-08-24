@@ -618,7 +618,13 @@ public:
 
     KisImageWSP image() const;
 
+    bool hasImage() const;
+    QString imageObjectName() const;
     bool hasAnimation() const;
+    int animationLength() const;
+    void setAnimationRange(int firstFrame, int lastFrame);
+    void setAnimationTiming(int frameRate, int firstFrame, int lastFrame);
+    void refreshProjectionAndWait();
 
     void translateTemplateRootLayerName(const QMap<QString, QString> &dictionary);
 

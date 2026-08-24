@@ -64,6 +64,8 @@ public:
 
     void setup(KisKActionCollection * collection, KisActionManager* actionManager);
     void updateGUI();
+    void updateImageNodeSettings(KisImageWSP image);
+    void createNodeActivationActions(KisImageWSP image, KisKActionCollection *collection);
 
     /// Convenience function to get the active layer or mask
     KisNodeSP activeNode();

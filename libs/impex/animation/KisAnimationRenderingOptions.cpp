@@ -10,6 +10,7 @@
 #include <QFileInfo>
 
 #include <KisFileUtils.h>
+#include <kis_image_config.h>
 
 #ifdef Q_OS_ANDROID
 #include <QJsonDocument>
@@ -18,6 +19,13 @@
 KisAnimationRenderingOptions::KisAnimationRenderingOptions()
 {
 
+}
+
+KisAnimationRenderingOptions KisAnimationRenderingOptions::loadLastUsed()
+{
+    KisAnimationRenderingOptions options;
+    options.fromProperties(KisImageConfig(true).exportConfiguration(QStringLiteral("ANIMATION_EXPORT")));
+    return options;
 }
 
 #ifndef Q_OS_ANDROID

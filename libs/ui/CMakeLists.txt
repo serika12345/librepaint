@@ -58,6 +58,7 @@ set(kritaui_LIB_SRCS
     dialogs/kis_dlg_image_properties.cc
     dialogs/kis_dlg_layer_properties.cc
     dialogs/kis_dlg_preferences.cc
+    dialogs/KisDlgPreferencesNotifications.cpp
     dialogs/kis_dlg_preferences_input.cpp
     dialogs/slider_and_spin_box_sync.cpp
     dialogs/kis_dlg_layer_style.cpp
@@ -110,6 +111,7 @@ set(kritaui_LIB_SRCS
     nodes/kis_layer_manager.cc
     nodes/kis_mask_manager.cc
     nodes/kis_node_manager.cpp
+    nodes/KisNodeManagerImageState.cpp
     nodes/kis_node_selection_adapter.cpp
     nodes/kis_node_insertion_adapter.cpp
     canvas/KisNodeDisplayModeAdapter.cpp
@@ -311,6 +313,7 @@ set(kritaui_LIB_SRCS
     application/KisApplication.cpp
     workspace/KisDetailsPane.cpp
     document/KisDocument.cpp
+    document/KisDocumentImageState.cpp
     document/KisDocumentTemplate.cpp
     impex/KisImportExportColorSpaceDialog.cpp
     impex/KisImportExportResizeWidget.cpp
