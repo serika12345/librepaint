@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 04:56 JST
+- 更新日時: 2026-08-25 05:10 JST
 - 状態: `planned`
 - 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1750,6 +1750,31 @@
   変更した5公開ヘッダーと1翻訳単位のclangd include-cleaner検査は不要includeと直接include不足を
   報告していない。`nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と
   全統治検査に成功した。
+
+## R1-G6g起動時描画登録所有境界で完了した作業
+
+- 起動時の組込み描画資源登録を次の開始ファイルと所有先へ対応させた。
+  - `libs/ui/application/KisApplication.cpp`のペイントプリセットローダー定義から
+    `libs/image/brushengine/kis_paintop_registry.{h,cc}`の`registerResourceLoader()`。
+  - 同ファイルのGBR、GIH、SVG、PNGブラシローダーと優先度10のブラシメタデータ修復登録から
+    `libs/brush/kis_brush_registry.{h,cpp}`の`registerResourceLoaders()`と
+    `registerResourceCacheFixup()`。
+  - 同ファイルのPSDレイヤースタイルローダー定義から
+    `libs/image/kis_psd_layer_style.{h,cpp}`の`registerResourceLoader()`。
+- `libs/ui/application/KisApplication.cpp`のフィルター、生成器、ペイント操作、メタデータの
+  レジストリー起動は、`libs/koplugin/KoPluginLoader.{h,cpp}`が所有する既存サービス読込面を使う。
+  サービス順序、プラグインの具体レジストリー、プロセス寿命、診断経路を維持する。
+- 資源ローダーの副種別、資源種別、表示名、MIME型、ブラシ修復優先度と登録順序を維持した。
+  `libs/image/tests/TestBuiltInResourceLoaderRegistration.cpp`はペイントプリセット、4ブラシ形式、
+  PSDレイヤースタイルを各MIME型から解決する契約を固定する。
+- `KisApplication.cpp`の描画所有ヘッダーは13件から4件となった。確認済み逆方向includeは
+  1責務対67件から58件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
+- `filter/kis_filter_configuration.h`と`kis_meta_data_io_backend.h`の直接利用を持たないincludeを
+  除去した。変更した4製品翻訳単位と契約試験のinclude-cleaner検査は、直接利用する宣言を各所有者の
+  正規ヘッダーから解決する。
+- macOSで`krita`、`TestBuiltInResourceLoaderRegistration`、
+  `TestApplicationWorkspaceToolUiPublicHeaders`、`kis_filter_registry_test`の構築と試験に成功した。
+  `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
 
 ## 次の操作
 

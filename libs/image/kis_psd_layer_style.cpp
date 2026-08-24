@@ -18,6 +18,9 @@
 #include <KoCanvasResourcesInterface.h>
 #include <KoAbstractGradient.h>
 #include <KisRequiredResourcesOperators.h>
+#include <KisResourceLoader.h>
+#include <KisResourceLoaderRegistry.h>
+#include <KisResourceTypes.h>
 #include <KoMD5Generator.h>
 
 #include "kis_asl_layer_style_serializer.h"
@@ -98,6 +101,15 @@ struct Q_DECL_HIDDEN KisPSDLayerStyle::Private
 
     QList<KoEmbeddedResource> sideLoadedResources;
 };
+
+void KisPSDLayerStyle::registerResourceLoader(KisResourceLoaderRegistry &registry)
+{
+    registry.registerLoader(new KisResourceLoader<KisPSDLayerStyle>(
+        ResourceType::LayerStyles,
+        ResourceType::LayerStyles,
+        i18nc("Resource type name", "Layer styles"),
+        QStringList() << "application/x-photoshop-style"));
+}
 
 KisPSDLayerStyle::KisPSDLayerStyle(const QString &filename, KisResourcesInterfaceSP resourcesInterface)
     : KoResource(filename)

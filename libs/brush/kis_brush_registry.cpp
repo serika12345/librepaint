@@ -11,6 +11,9 @@
 #include <klocalizedstring.h>
 
 #include <KoPluginLoader.h>
+#include <KisResourceLoader.h>
+#include <KisResourceLoaderRegistry.h>
+#include <KisResourceTypes.h>
 
 #include <kis_debug.h>
 
@@ -18,6 +21,11 @@
 #include "kis_auto_brush_factory.h"
 #include "kis_text_brush_factory.h"
 #include "kis_predefined_brush_factory.h"
+#include "KisBrushTypeMetaDataFixup.h"
+#include "kis_gbr_brush.h"
+#include "kis_imagepipe_brush.h"
+#include "kis_png_brush.h"
+#include "kis_svg_brush.h"
 
 Q_GLOBAL_STATIC(KisBrushRegistry, s_instance)
 
@@ -45,6 +53,35 @@ KisBrushRegistry* KisBrushRegistry::instance()
         s_instance->add(new KisPredefinedBrushFactory("svg_brush"));
     }
     return s_instance;
+}
+
+void KisBrushRegistry::registerResourceLoaders(KisResourceLoaderRegistry &registry)
+{
+    registry.registerLoader(new KisResourceLoader<KisGbrBrush>(
+        ResourceSubType::GbrBrushes,
+        ResourceType::Brushes,
+        i18n("Brush tips"),
+        QStringList() << "image/x-gimp-brush"));
+    registry.registerLoader(new KisResourceLoader<KisImagePipeBrush>(
+        ResourceSubType::GihBrushes,
+        ResourceType::Brushes,
+        i18n("Brush tips"),
+        QStringList() << "image/x-gimp-brush-animated"));
+    registry.registerLoader(new KisResourceLoader<KisSvgBrush>(
+        ResourceSubType::SvgBrushes,
+        ResourceType::Brushes,
+        i18n("Brush tips"),
+        QStringList() << "image/svg+xml"));
+    registry.registerLoader(new KisResourceLoader<KisPngBrush>(
+        ResourceSubType::PngBrushes,
+        ResourceType::Brushes,
+        i18n("Brush tips"),
+        QStringList() << "image/png"));
+}
+
+void KisBrushRegistry::registerResourceCacheFixup(KisResourceLoaderRegistry &registry)
+{
+    registry.registerFixup(10, new KisBrushTypeMetaDataFixup());
 }
 
 

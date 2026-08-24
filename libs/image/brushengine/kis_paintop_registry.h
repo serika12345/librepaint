@@ -23,6 +23,7 @@
 
 class KisPaintOp;
 class KisPainter;
+class KisResourceLoaderRegistry;
 
 /**
  * Manages the loading and creating of all paintop plugins.
@@ -74,6 +75,8 @@ public:
 
     static KisPaintOpRegistry* instance();
 
+    static void registerResourceLoader(KisResourceLoaderRegistry &registry);
+
 private:
 
     KisPaintOpRegistry(const KisPaintOpRegistry&);
@@ -92,4 +95,3 @@ private:
 };
 
 #endif // KIS_PAINTOP_REGISTRY_H_
-

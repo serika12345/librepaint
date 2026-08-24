@@ -33,7 +33,7 @@
       "dependencyResponsibility": "painting-rendering",
       "owner": "R1-G6",
       "reason": "The current kritaui target combines process orchestration with image, brush, and color consumers, so application startup and shared services include painting implementation headers directly.",
-      "maximumDirectIncludes": 67,
+      "maximumDirectIncludes": 58,
       "removalCondition": "Application orchestration reaches painting state through document, tool, and resource public surfaces after those responsibilities leave kritaui, reducing this direct-include set to zero.",
       "targetLinks": [
         {
@@ -97,33 +97,6 @@
           "sourcePath": "libs/ui/application/KisApplication.cpp",
           "include": "brushengine/kis_paintop_registry.h",
           "headerPath": "libs/image/brushengine/kis_paintop_registry.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "filter/kis_filter_configuration.h",
-          "headerPath": "libs/image/filter/kis_filter_configuration.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "filter/kis_filter_registry.h",
-          "headerPath": "libs/image/filter/kis_filter_registry.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "generator/kis_generator_registry.h",
-          "headerPath": "libs/image/generator/kis_generator_registry.h",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         },
@@ -599,62 +572,8 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritalibbrush",
           "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "KisBrushTypeMetaDataFixup.h",
-          "headerPath": "libs/brush/KisBrushTypeMetaDataFixup.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritalibbrush",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "kis_gbr_brush.h",
-          "headerPath": "libs/brush/kis_gbr_brush.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritalibbrush",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "kis_imagepipe_brush.h",
-          "headerPath": "libs/brush/kis_imagepipe_brush.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritalibbrush",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "kis_png_brush.h",
-          "headerPath": "libs/brush/kis_png_brush.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritalibbrush",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "kis_svg_brush.h",
-          "headerPath": "libs/brush/kis_svg_brush.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritapainting",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "kis_meta_data_backend_registry.h",
-          "headerPath": "libs/painting/metadata/kis_meta_data_backend_registry.h",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritapainting",
-          "sourcePath": "libs/ui/application/KisApplication.cpp",
-          "include": "kis_meta_data_io_backend.h",
-          "headerPath": "libs/painting/metadata/kis_meta_data_io_backend.h",
+          "include": "kis_brush_registry.h",
+          "headerPath": "libs/brush/kis_brush_registry.h",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         },

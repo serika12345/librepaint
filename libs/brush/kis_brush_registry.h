@@ -19,6 +19,7 @@
 #include "KisBrushModel.h"
 
 class QDomElement;
+class KisResourceLoaderRegistry;
 
 class BRUSH_EXPORT KisBrushRegistry : public QObject, public KoGenericRegistry<KisBrushFactory*>
 {
@@ -30,6 +31,9 @@ public:
     ~KisBrushRegistry() override;
 
     static KisBrushRegistry* instance();
+
+    static void registerResourceLoaders(KisResourceLoaderRegistry &registry);
+    static void registerResourceCacheFixup(KisResourceLoaderRegistry &registry);
 
     KoResourceLoadResult createBrush(const QDomElement& element, KisResourcesInterfaceSP resourcesInterface);
     KoResourceLoadResult createBrush(const KisBrushModel::BrushData &data, KisResourcesInterfaceSP resourcesInterface);

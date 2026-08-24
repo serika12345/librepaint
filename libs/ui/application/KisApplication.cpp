@@ -51,6 +51,7 @@
 #include <KoToolRegistry.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoShapeRegistry.h>
+#include <KoPluginLoader.h>
 #include "KoConfig.h"
 #include <KoResourcePaths.h>
 #include <KoGamutMask.h>
@@ -66,12 +67,7 @@
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "flake/kis_shape_selection.h"
-#include <filter/kis_filter_registry.h>
-#include <filter/kis_filter_configuration.h>
-#include <generator/kis_generator_registry.h>
 #include <brushengine/kis_paintop_registry.h>
-#include <kis_meta_data_io_backend.h>
-#include <kis_meta_data_backend_registry.h>
 #include "application/KisApplicationArguments.h"
 #include <kis_debug.h>
 #include "kis_action_registry.h"
@@ -146,11 +142,7 @@ public:
 #include <KisResourceLoader.h>
 #include <KisResourceLoaderRegistry.h>
 
-#include <KisBrushTypeMetaDataFixup.h>
-#include <kis_gbr_brush.h>
-#include <kis_png_brush.h>
-#include <kis_svg_brush.h>
-#include <kis_imagepipe_brush.h>
+#include <kis_brush_registry.h>
 #include <KoColorSet.h>
 #include <KoSegmentGradient.h>
 #include <KoStopGradient.h>
@@ -459,13 +451,8 @@ bool KisApplication::registerResources()
 {
     KisResourceLoaderRegistry *reg = KisResourceLoaderRegistry::instance();
 
-    reg->add(new KisResourceLoader<KisPaintOpPreset>(ResourceSubType::KritaPaintOpPresets, ResourceType::PaintOpPresets, i18n("Brush presets"),
-                                                     QStringList() << "application/x-krita-paintoppreset"));
-
-    reg->add(new KisResourceLoader<KisGbrBrush>(ResourceSubType::GbrBrushes, ResourceType::Brushes, i18n("Brush tips"), QStringList() << "image/x-gimp-brush"));
-    reg->add(new KisResourceLoader<KisImagePipeBrush>(ResourceSubType::GihBrushes, ResourceType::Brushes, i18n("Brush tips"), QStringList() << "image/x-gimp-brush-animated"));
-    reg->add(new KisResourceLoader<KisSvgBrush>(ResourceSubType::SvgBrushes, ResourceType::Brushes, i18n("Brush tips"), QStringList() << "image/svg+xml"));
-    reg->add(new KisResourceLoader<KisPngBrush>(ResourceSubType::PngBrushes, ResourceType::Brushes, i18n("Brush tips"), QStringList() << "image/png"));
+    KisPaintOpRegistry::registerResourceLoader(*reg);
+    KisBrushRegistry::registerResourceLoaders(*reg);
 
     reg->add(new KisResourceLoader<KoSegmentGradient>(ResourceSubType::SegmentedGradients, ResourceType::Gradients, i18n("Gradients"), QStringList() << "application/x-gimp-gradient"));
     reg->add(new KisResourceLoader<KoStopGradient>(ResourceSubType::StopGradients, ResourceType::Gradients, i18n("Gradients"), QStringList() << "image/svg+xml"));
@@ -492,15 +479,12 @@ bool KisApplication::registerResources()
     reg->add(new KisResourceLoader<KisSeExprScript>(ResourceType::SeExprScripts, ResourceType::SeExprScripts, i18n("SeExpr Scripts"), QStringList() << "application/x-krita-seexpr-script"));
 #endif
     // XXX: this covers only individual styles, not the library itself!
-    reg->add(new KisResourceLoader<KisPSDLayerStyle>(ResourceType::LayerStyles,
-                                                     ResourceType::LayerStyles,
-                                                     i18nc("Resource type name", "Layer styles"),
-                                                     QStringList() << "application/x-photoshop-style"));
+    KisPSDLayerStyle::registerResourceLoader(*reg);
 
     reg->add(new KisResourceLoader<KoFontFamily>(ResourceType::FontFamilies, ResourceType::FontFamilies, i18n("Font Families"), QStringList() << "application/x-font-ttf" << "application/x-font-otf"));
     reg->add(new KisResourceLoader<KoCssStylePreset>(ResourceType::CssStyles, ResourceType::CssStyles, i18n("Style Presets"), QStringList() << "image/svg+xml"));
 
-    reg->registerFixup(10, new KisBrushTypeMetaDataFixup());
+    KisBrushRegistry::registerResourceCacheFixup(*reg);
 
 #ifndef Q_OS_ANDROID
     QString databaseLocation = KoResourcePaths::getAppDataLocation();
@@ -530,12 +514,12 @@ void KisApplication::loadPlugins()
     r->add(new KisShapeSelectionFactory());
     KoColorSpaceRegistry::instance();
     KisActionRegistry::instance();
-    KisFilterRegistry::instance();
-    KisGeneratorRegistry::instance();
-    KisPaintOpRegistry::instance();
+    KoPluginLoader::instance()->load("Krita/Filter");
+    KoPluginLoader::instance()->load("Krita/Generator");
+    KoPluginLoader::instance()->load("Krita/Paintop");
     KoToolRegistry::instance();
     KoDockRegistry::instance();
-    KisMetadataBackendRegistry::instance();
+    KoPluginLoader::instance()->load("Krita/Metadata");
 }
 
 bool KisApplication::start(const KisApplicationArguments &args)

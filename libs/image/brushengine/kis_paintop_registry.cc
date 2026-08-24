@@ -16,6 +16,9 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoCompositeOp.h>
 #include <KoID.h>
+#include <KisResourceLoader.h>
+#include <KisResourceLoaderRegistry.h>
+#include <KisResourceTypes.h>
 
 
 #include "kis_paint_device.h"
@@ -52,6 +55,15 @@ KisPaintOpRegistry* KisPaintOpRegistry::instance()
         s_registryInstance->initRegistry();
     }
     return s_registryInstance;
+}
+
+void KisPaintOpRegistry::registerResourceLoader(KisResourceLoaderRegistry &registry)
+{
+    registry.registerLoader(new KisResourceLoader<KisPaintOpPreset>(
+        ResourceSubType::KritaPaintOpPresets,
+        ResourceType::PaintOpPresets,
+        i18n("Brush presets"),
+        QStringList() << "application/x-krita-paintoppreset"));
 }
 
 #ifdef HAVE_THREADED_TEXT_RENDERING_WORKAROUND
@@ -155,4 +167,3 @@ QList<KoID> KisPaintOpRegistry::listKeys() const
 
     return answer;
 }
-

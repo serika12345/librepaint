@@ -8,6 +8,7 @@
 
 class QIODevice;
 class QUuid;
+class KisResourceLoaderRegistry;
 
 
 #include <psd.h>
@@ -34,6 +35,8 @@ public:
     virtual ~KisPSDLayerStyle();
     KisPSDLayerStyle(const KisPSDLayerStyle& rhs);
     KisPSDLayerStyle operator=(const KisPSDLayerStyle& rhs) = delete;
+
+    static void registerResourceLoader(KisResourceLoaderRegistry &registry);
 
     KoResourceSP clone() const override;
 
