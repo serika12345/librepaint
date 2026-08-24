@@ -1986,6 +1986,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_polyline_base.h",
+          "include": "kis_polyline_interaction.h",
+          "headerPath": "libs/tools/kis_polyline_interaction.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.h",
           "include": "kis_rectangle_interaction.h",
           "headerPath": "libs/tools/kis_rectangle_interaction.h",
@@ -2970,6 +2981,17 @@
           "sourcePath": "libs/ui/tool/kis_tool_paint.h",
           "include": "kis_tool_paint_interaction.h",
           "headerPath": "libs/tools/kis_tool_paint_interaction.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_polyline_base.h",
+          "include": "kis_polyline_interaction.h",
+          "headerPath": "libs/tools/kis_polyline_interaction.h",
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-public-path",

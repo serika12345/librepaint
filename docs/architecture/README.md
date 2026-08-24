@@ -65,7 +65,7 @@
 
 現在は`kritacanvas`の18件、`kritadocument`の5件、`kritadocumentfiles`の3件、
 `kritadocumentui`の6件、`kritaimage`の334件、`kritaimpex`の12件、
-`kritaimpexui`の23件、`kritapainting`の19件、`kritatools`の13件、
+`kritaimpexui`の23件、`kritapainting`の19件、`kritatools`の14件、
 `kritaui`の234件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
@@ -486,8 +486,15 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 操作状態を使用し、制約、固定寸法、正方形化、移動、中央拡張、回転の座標契約を
 `TestToolCoreContract`が固定する。
 
-次は`libs/ui/tool/kis_tool_polyline_base.{h,cpp}`を起点として、多角線の点列と入力状態を
-`libs/tools`へ移し、輪郭表示、キャンバス更新、操作完了の接続をUI所有へ残す。
+多角線ツールの点列、ドラッグ区間、閉路状態、点の取り消し、完了と取消しは
+`libs/tools/kis_polyline_interaction.{h,cpp}`が所有する。
+`libs/ui/tool/kis_tool_polyline_base.{h,cpp}`にはポインター座標変換、画面距離による始点スナップ判定、
+輪郭表示、再描画範囲、右クリックと操作アクションの接続を残した。多角形、多角線、多角形選択は
+同じ操作状態を使用し、単一点終了、複数点、閉路、点の取り消し、全取消しの契約を
+`TestToolCoreContract`が固定する。
+
+次は`libs/ui/tool/KisToolOutlineBase.{h,cpp}`を起点として、自由形状の点列、継続入力、取消し状態を
+`libs/tools`へ移し、入力座標変換、輪郭表示、キャンバス更新、操作完了の接続をUI所有へ残す。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

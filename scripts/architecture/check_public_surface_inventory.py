@@ -192,6 +192,7 @@ PUBLIC_HEADER_SET_SPECS = (
         ),
         "evidence": [
             "libs/tools/CMakeLists.txt",
+            "libs/tools/kis_polyline_interaction.h",
             "libs/tools/kis_rectangle_interaction.h",
             "libs/tools/kis_tool.h",
         ],

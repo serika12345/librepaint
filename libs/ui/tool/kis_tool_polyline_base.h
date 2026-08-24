@@ -9,6 +9,7 @@
 
 #include <kis_tool_shape.h>
 #include <kis_cursor.h>
+#include <kis_polyline_interaction.h>
 
 class KRITAUI_EXPORT KisToolPolylineBase : public KisToolShape
 {
@@ -41,7 +42,7 @@ protected:
     virtual void finishPolyline(const QVector<QPointF>& points) = 0;
 
 private:
-    void endStroke();
+    void endStroke(bool closePolyline = false);
     void cancelStroke();
     void updateArea();
     QRectF dragBoundingRect();
@@ -51,13 +52,8 @@ private Q_SLOTS:
     void undoSelectionOrCancel();
 
 private:
-
-    QPointF m_dragStart;
-    QPointF m_dragEnd;
-    bool m_dragging;
-    vQPointF m_points;
     ToolType m_type;
-    bool m_closeSnappingActivated;
+    KisPolylineInteraction m_polylineInteraction;
 };
 
 #endif // KIS_TOOL_POLYLINE_BASE_H

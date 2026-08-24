@@ -16,6 +16,7 @@
 #include <KisToolPaintFactoryBase.h>
 #include <kis_delegated_tool.h>
 #include <kis_delegated_tool_policies.h>
+#include <kis_polyline_interaction.h>
 #include <kis_selection_modifier_mapping.h>
 #include <kis_rectangle_interaction.h>
 #include <kis_smoothing_options.h>
@@ -58,6 +59,8 @@ private Q_SLOTS:
     void rectangleConstraints();
     void rectangleModifierModes();
     void rectangleRotation();
+    void polylinePointLifecycle();
+    void polylineUndoAndCancel();
 
 private:
     void clearSmoothingSettings();
@@ -254,6 +257,59 @@ void TestToolCoreContract::rectangleRotation()
 
     const qreal expectedAngle = std::atan2(10.0, 0.0) - std::atan2(20.0, 10.0);
     QVERIFY(qAbs(interaction.rotationAngle() - expectedAngle) < 0.000001);
+}
+
+void TestToolCoreContract::polylinePointLifecycle()
+{
+    KisPolylineInteraction interaction;
+    interaction.begin();
+    QVERIFY(interaction.isActive());
+
+    interaction.addPoint(QPointF(10.0, 20.0));
+    interaction.updateCursor(QPointF(30.0, 40.0), false);
+    QCOMPARE(interaction.dragStart(), QPointF(10.0, 20.0));
+    QCOMPARE(interaction.dragEnd(), QPointF(30.0, 40.0));
+
+    interaction.addPoint(QPointF(30.0, 40.0));
+    interaction.updateCursor(QPointF(12.0, 22.0), true);
+    QVERIFY(interaction.closeSnappingActive());
+
+    const QVector<QPointF> closedPoints = interaction.finish(true);
+    QCOMPARE(closedPoints,
+             QVector<QPointF>({QPointF(10.0, 20.0),
+                               QPointF(30.0, 40.0),
+                               QPointF(10.0, 20.0)}));
+    QVERIFY(!interaction.isActive());
+    QVERIFY(interaction.points().isEmpty());
+    QVERIFY(!interaction.closeSnappingActive());
+
+    interaction.begin();
+    interaction.addPoint(QPointF(5.0, 6.0));
+    QCOMPARE(interaction.finish(false), QVector<QPointF>({QPointF(5.0, 6.0)}));
+}
+
+void TestToolCoreContract::polylineUndoAndCancel()
+{
+    KisPolylineInteraction interaction;
+    interaction.begin();
+    interaction.addPoint(QPointF(1.0, 2.0));
+    interaction.addPoint(QPointF(3.0, 4.0));
+    interaction.addPoint(QPointF(5.0, 6.0));
+    interaction.updateCursor(QPointF(8.0, 9.0), true);
+
+    QVERIFY(interaction.canUndoPoint());
+    interaction.undoPoint();
+    QCOMPARE(interaction.points(),
+             QVector<QPointF>({QPointF(1.0, 2.0), QPointF(3.0, 4.0)}));
+    QCOMPARE(interaction.dragStart(), QPointF(3.0, 4.0));
+    QCOMPARE(interaction.dragEnd(), QPointF(8.0, 9.0));
+
+    interaction.undoPoint();
+    QVERIFY(!interaction.canUndoPoint());
+    interaction.cancel();
+    QVERIFY(!interaction.isActive());
+    QVERIFY(interaction.points().isEmpty());
+    QVERIFY(!interaction.closeSnappingActive());
 }
 
 QTEST_MAIN(TestToolCoreContract)
