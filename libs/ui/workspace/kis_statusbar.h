@@ -12,9 +12,13 @@
 #include <QIcon>
 #include <QStatusBar>
 
-#include <kis_types.h>
-#include "workspace/KisView.h"
 #include <boost/operators.hpp>
+
+template<class T>
+class KisWeakSharedPtr;
+
+class KisImage;
+typedef KisWeakSharedPtr<KisImage> KisImageWSP;
 
 class QLabel;
 class QToolButton;
@@ -26,6 +30,7 @@ class KisProgressWidget;
 class KoProgressUpdater;
 class KisMemoryReportButton;
 class KisAngleSelector;
+class KisView;
 
 #include "kritaui_export.h"
 

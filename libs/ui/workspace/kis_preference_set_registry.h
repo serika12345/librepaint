@@ -13,8 +13,6 @@
 
 #include "KoGenericRegistry.h"
 
-#include "kis_types.h"
-
 #include <kritaui_export.h>
 
 class QIcon;

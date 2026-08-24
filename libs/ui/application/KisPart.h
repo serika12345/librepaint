@@ -21,7 +21,12 @@
 #include "kritaui_export.h"
 #include <kconfiggroup.h>
 #include <KoConfig.h>
-#include <kis_types.h>
+
+template<class T>
+class KisSharedPtr;
+
+class KisImage;
+typedef KisSharedPtr<KisImage> KisImageSP;
 
 namespace KIO {
 }

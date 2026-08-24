@@ -14,9 +14,25 @@
 #include <KoToolManager.h>
 
 #include <kritaui_export.h>
-#include <kis_types.h>
 
 #include "kis_floating_message.h"
+
+template<class T>
+class KisSharedPtr;
+template<class T>
+class KisWeakSharedPtr;
+
+class KisImage;
+typedef KisSharedPtr<KisImage> KisImageSP;
+typedef KisWeakSharedPtr<KisImage> KisImageWSP;
+class KisNode;
+typedef KisSharedPtr<KisNode> KisNodeSP;
+class KisLayer;
+typedef KisSharedPtr<KisLayer> KisLayerSP;
+class KisPaintDevice;
+typedef KisSharedPtr<KisPaintDevice> KisPaintDeviceSP;
+class KisSelection;
+typedef KisSharedPtr<KisSelection> KisSelectionSP;
 
 class QPoint;
 class KisView;

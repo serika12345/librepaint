@@ -19,6 +19,8 @@
 #include <QApplication>
 #include <QThread>
 
+#include <kis_debug.h>
+
 #include "application/kis_config.h"
 
 #include "application/KisPart.h"

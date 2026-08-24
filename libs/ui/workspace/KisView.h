@@ -13,13 +13,29 @@
 #include <KoColorSpace.h>
 #include <KoColorProfile.h>
 
-#include <kis_types.h>
 #include "kritaui_export.h"
 #include <KisNodeAdditionFlags.h>
 
 #include "widgets/kis_floating_message.h"
 
 Q_MOC_INCLUDE("kis_node.h")
+
+template<class T>
+class KisSharedPtr;
+template<class T>
+class KisWeakSharedPtr;
+
+class KisImage;
+typedef KisWeakSharedPtr<KisImage> KisImageWSP;
+class KisNode;
+typedef KisSharedPtr<KisNode> KisNodeSP;
+class KisLayer;
+typedef KisSharedPtr<KisLayer> KisLayerSP;
+class KisMask;
+typedef KisSharedPtr<KisMask> KisMaskSP;
+class KisSelection;
+typedef KisSharedPtr<KisSelection> KisSelectionSP;
+class KisPropertiesConfiguration;
 
 class KisDocument;
 class KisMainWindow;

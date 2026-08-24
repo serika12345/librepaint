@@ -33,7 +33,7 @@
       "dependencyResponsibility": "painting-rendering",
       "owner": "R1-G6",
       "reason": "The current kritaui target combines process orchestration with image, brush, and color consumers, so application startup and shared services include painting implementation headers directly.",
-      "maximumDirectIncludes": 72,
+      "maximumDirectIncludes": 67,
       "removalCondition": "Application orchestration reaches painting state through document, tool, and resource public surfaces after those responsibilities leave kritaui, reducing this direct-include set to zero.",
       "targetLinks": [
         {
@@ -215,15 +215,6 @@
           "include": "kis_time_span.h",
           "headerPath": "libs/image/kis_time_span.h",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/application/KisPart.h",
-          "include": "kis_types.h",
-          "headerPath": "libs/image/kis_types.h",
-          "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {
@@ -454,15 +445,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/workspace/KisView.h",
-          "include": "kis_types.h",
-          "headerPath": "libs/image/kis_types.h",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
           "sourcePath": "libs/ui/workspace/KisViewManager.cpp",
           "include": "KisImageBarrierLock.h",
           "headerPath": "libs/image/KisImageBarrierLock.h",
@@ -553,24 +535,6 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/workspace/KisViewManager.h",
-          "include": "kis_types.h",
-          "headerPath": "libs/image/kis_types.h",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/workspace/kis_preference_set_registry.h",
-          "include": "kis_types.h",
-          "headerPath": "libs/image/kis_types.h",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
           "sourcePath": "libs/ui/workspace/kis_statusbar.cc",
           "include": "kis_image.h",
           "headerPath": "libs/image/kis_image.h",
@@ -620,15 +584,6 @@
           "include": "kis_types.h",
           "headerPath": "libs/image/kis_types.h",
           "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "unique-owner-target"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritaimage",
-          "sourcePath": "libs/ui/workspace/kis_statusbar.h",
-          "include": "kis_types.h",
-          "headerPath": "libs/image/kis_types.h",
-          "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {

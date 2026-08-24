@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 04:28 JST
+- 更新日時: 2026-08-25 04:56 JST
 - 状態: `planned`
 - 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1732,6 +1732,24 @@
 - `kritaui`、`TestApplicationWorkspaceToolUiPublicHeaders`、`kis_view_signals_test`は
   macOSで成功した。変更した7翻訳単位の差分はinclude行に限定される。
   `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
+
+## R1-G6gアプリケーション・作業空間include境界の第2単位で完了した作業
+
+- アプリケーション調整から描画への72件を、公開ヘッダーの画像型参照7件、
+  `KisApplication.cpp`の起動時レジストリー登録13件、文書・表示操作52件へ分類した。
+- `libs/ui/application/KisPart.h`、`libs/ui/workspace/KisView.h`、`KisViewManager.h`、
+  `kis_statusbar.h`は、公開関数で使用する画像共有ポインター型を前方宣言する。
+  `libs/ui/workspace/kis_preference_set_registry.h`はUI設定画面の登録型だけを宣言する。
+- `libs/impex/animation/KisFFMpegWrapper.cpp`はファイル入出力診断を宣言する
+  `kis_debug.h`を直接includeする。公開ヘッダーからの推移的な宣言に依存しない。
+- 確認済み逆方向includeは1責務対67件となり、公開ヘッダー型参照2件、起動時
+  レジストリー登録13件、文書・表示操作52件を持つ。公開ヘッダーの2件は、ノード追加
+  フラグ値と作業空間資源の設定基底型を宣言する。未確定射影0件とターゲット循環0件を維持する。
+- `kritaui`、`krita`、`TestApplicationWorkspaceToolUiPublicHeaders`、
+  `kis_view_signals_test`はmacOSで成功した。公開面台帳は`kis_types.h`の利用元を同期し、
+  変更した5公開ヘッダーと1翻訳単位のclangd include-cleaner検査は不要includeと直接include不足を
+  報告していない。`nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と
+  全統治検査に成功した。
 
 ## 次の操作
 
