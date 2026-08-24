@@ -4,19 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_shortcut_matcher.h"
+#include <kis_shortcut_matcher.h>
 
 #include <QEvent>
 #include <QMouseEvent>
 #include <QTabletEvent>
 
 #include "kis_assert.h"
-#include "kis_abstract_input_action.h"
+#include <KisInputAction.h>
 #include "kis_stroke_shortcut.h"
 #include "kis_touch_shortcut.h"
 #include "kis_native_gesture_shortcut.h"
-#include "kis_config.h"
-#include "kis_extended_modifiers_mapper.h"
 #include <KoPointerEvent.h>
 
 //#define DEBUG_MATCHER
@@ -965,7 +963,7 @@ bool KisShortcutMatcher::tryEndRunningShortcut( Qt::MouseButton button, QEvent* 
 
         if (runningShortcut->action()) {
             DEBUG_EVENT_ACTION("Ending running shortcut at event", event);
-            KisAbstractInputAction* action = runningShortcut->action();
+            KisInputAction* action = runningShortcut->action();
             int shortcutIndex = runningShortcut->shortcutIndex();
             action->end(event);
             action->deactivate(shortcutIndex);
@@ -990,7 +988,7 @@ void KisShortcutMatcher::forceEndRunningShortcut(const QPointF &localPos)
 
     if (runningShortcut->action()) {
         DEBUG_ACTION("Forced ending running shortcut at event");
-        KisAbstractInputAction* action = runningShortcut->action();
+        KisInputAction* action = runningShortcut->action();
         int shortcutIndex = runningShortcut->shortcutIndex();
 
         QMouseEvent event = runningShortcut->fakeEndEvent(localPos);

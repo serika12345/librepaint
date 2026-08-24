@@ -11,7 +11,7 @@
 #include <QPoint>
 #include "kritaui_export.h"
 
-#include "KisInputActionGroup.h"
+#include <KisInputActionGroup.h>
 
 class QPointF;
 class QEvent;

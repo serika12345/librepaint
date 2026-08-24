@@ -5,7 +5,7 @@
  *
  */
 
-#include "kis_native_gesture_shortcut.h"
+#include <kis_native_gesture_shortcut.h>
 
 #include <QNativeGestureEvent>
 
@@ -18,7 +18,7 @@ public:
     Qt::NativeGestureType type {Qt::PanNativeGesture};
 };
 
-KisNativeGestureShortcut::KisNativeGestureShortcut(KisAbstractInputAction* action, int index, Qt::NativeGestureType type)
+KisNativeGestureShortcut::KisNativeGestureShortcut(KisInputAction* action, int index, Qt::NativeGestureType type)
 	: KisAbstractShortcut(action, index), d(new Private)
 {
 	d->type = type;

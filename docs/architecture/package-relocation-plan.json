@@ -259,10 +259,12 @@
       "migrationWave": "R1-G6g",
       "current": {
         "sourceDirectories": [
+          "libs/input",
           "libs/ui/input",
           "libs/ui/tool"
         ],
         "cmakeTargets": [
+          "kritainput",
           "kritatools",
           "kritaui"
         ],
@@ -287,7 +289,7 @@
             "name": "kritainput",
             "directory": "libs/input",
             "role": "input-sequence",
-            "status": "new"
+            "status": "implemented"
           }
         ]
       },
@@ -696,7 +698,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 272,
+      "maximumReverseDirectIncludesAfterWave": 274,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -754,7 +756,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 177,
+      "maximumReverseDirectIncludesAfterWave": 179,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -803,7 +805,7 @@
         "Import-export UI cancellation and feedback tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 177,
+      "maximumReverseDirectIncludesAfterWave": 179,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -854,7 +856,7 @@
           "to": 0
         }
       ],
-      "maximumReverseDirectIncludesAfterWave": 104,
+      "maximumReverseDirectIncludesAfterWave": 106,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -963,7 +965,7 @@
         "Document undo coordination tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 104,
+      "maximumReverseDirectIncludesAfterWave": 106,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 7
@@ -1012,7 +1014,7 @@
         "Typed tool settings round-trip tests"
       ],
       "reverseBaselineReductions": [],
-      "maximumReverseDirectIncludesAfterWave": 104,
+      "maximumReverseDirectIncludesAfterWave": 106,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritaui": 3
@@ -1059,6 +1061,12 @@
       ],
       "reverseBaselineReductions": [
         {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "input-interpretation",
+          "from": 1,
+          "to": 0
+        },
+        {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "painting-rendering",
           "from": 25,
@@ -1068,6 +1076,12 @@
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "resource-management",
           "from": 4,
+          "to": 0
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "input-interpretation",
+          "from": 1,
           "to": 0
         }
       ],

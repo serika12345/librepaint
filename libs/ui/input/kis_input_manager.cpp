@@ -1115,7 +1115,7 @@ void KisInputManager::slotTextModeChanged()
 void KisInputManager::profileChanged()
 {
     d->matcher.clearShortcuts();
-
+    d->inputActionAdapters.clear();
     KisInputProfile *profile = KisInputProfileManager::instance()->currentProfile();
     if (profile) {
         const QList<KisShortcutConfiguration*> shortcuts = profile->allShortcuts();

@@ -10,7 +10,10 @@
 #define KISTOUCHSHORTCUT_H
 
 #include "kis_abstract_shortcut.h"
-#include "kis_shortcut_configuration.h"
+
+#include <functional>
+
+#include <KisTouchGestureType.h>
 
 class QTouchEvent;
 /**
@@ -18,12 +21,12 @@ class QTouchEvent;
  * it _does not_ handle tool invocation i.e painting (which is being
  * handled in KisShortcutMatcher).
  */
-class KisTouchShortcut : public KisAbstractShortcut
+class KRITAINPUT_EXPORT KisTouchShortcut : public KisAbstractShortcut
 {
-        using GestureAction = KisShortcutConfiguration::GestureAction;
-
     public:
-        KisTouchShortcut(KisAbstractInputAction* action, int index, GestureAction type);
+        KisTouchShortcut(KisInputAction* action,
+                         int index,
+                         KisTouchGestureType type);
         ~KisTouchShortcut() override;
 
         int priority() const override;
@@ -31,7 +34,8 @@ class KisTouchShortcut : public KisAbstractShortcut
 
         void setMinimumTouchPoints( int min );
         void setMaximumTouchPoints( int max );
-        void setDisableOnTouchPainting(bool disableOnTouchPainting);
+        void setDisabledWhenTouchPaintingActive(bool value);
+        void setTouchPaintingActiveCallback(std::function<bool()> callback);
 
         bool matchTapType(QTouchEvent *event);
         bool matchDragType(QTouchEvent *event);

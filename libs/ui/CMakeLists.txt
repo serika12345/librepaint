@@ -294,14 +294,8 @@ set(kritaui_LIB_SRCS
     input/kis_gamma_exposure_action.cpp
     input/KisPopupWidgetAction.cpp
     input/kis_change_primary_setting_action.cpp
-    input/kis_abstract_shortcut.cpp
-    input/kis_native_gesture_shortcut.cpp
-    input/kis_single_action_shortcut.cpp
-    input/kis_stroke_shortcut.cpp
-    input/kis_shortcut_matcher.cpp
     input/kis_select_layer_action.cpp
     input/KisQtWidgetsTweaker.cpp
-    input/KisInputActionGroup.cpp
     input/kis_zoom_and_rotate_action.cpp
     input/KisCanvasOnlyAction.cpp
     input/KisTouchGestureAction.cpp
@@ -317,7 +311,6 @@ set(kritaui_LIB_SRCS
     actions/KisPasteActionFactories.cpp
     actions/KisTransformToolActivationCommand.cpp
     animation/KisFrameDisplayProxy.cpp
-    input/kis_touch_shortcut.cpp
     kis_gui_context_command.cpp
     kis_gui_context_command_p.cpp
     input/kis_tablet_debugger.cpp
@@ -614,6 +607,7 @@ target_link_libraries(kritaui
         kritatoolsui
         kritacanvas
         kritadocument
+        kritainput
     PRIVATE
         kritadocumentfiles
         kritadocumentui

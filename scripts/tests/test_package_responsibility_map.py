@@ -54,7 +54,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "current-production-package-responsibilities",
         )
         self.assertEqual(len(responsibility_map["responsibilities"]), 9)
-        self.assertEqual(len(responsibility_map["targetRelations"]), 23)
+        self.assertEqual(len(responsibility_map["targetRelations"]), 24)
         by_id = {
             entry["id"]: entry
             for entry in responsibility_map["responsibilities"]
@@ -90,6 +90,14 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         self.assertIn(
             "libs/painting/kis_figure_painting_stroke.h",
             by_id["painting-rendering"]["publicHeaderPaths"],
+        )
+        self.assertIn(
+            "libs/input/KisInputAction.h",
+            by_id["input-interpretation"]["publicHeaderPaths"],
+        )
+        self.assertIn(
+            "kritainput",
+            by_id["input-interpretation"]["publicHeaderOwnerTargets"],
         )
         self.assertIn(
             "kritapainting",
@@ -141,6 +149,9 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         )
         self.assertIn(
             "kritatools", target_by_name["kritaui"]["repositoryDependencies"]
+        )
+        self.assertIn(
+            "kritainput", target_by_name["kritaui"]["repositoryDependencies"]
         )
         self.assertEqual(
             target_by_name["kritadocument"]["repositoryDependencies"], []

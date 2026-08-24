@@ -8,6 +8,8 @@
 #include <QList>
 #include <QPointer>
 #include <QEvent>
+#include <QHash>
+#include <QSharedPointer>
 #include <QTouchEvent>
 #include <QScopedPointer>
 #include <QQueue>
@@ -24,6 +26,8 @@
 #include "kis_latency_tracker.h"
 
 class KisToolInvocationAction;
+class KisAbstractInputAction;
+class KisInputAction;
 
 
 class KisInputManager::Private
@@ -39,6 +43,7 @@ public:
     void addWheelShortcut(KisAbstractInputAction* action, int index, const QList< Qt::Key >& modifiers, KisShortcutConfiguration::MouseWheelMovement wheelAction);
     bool processUnhandledEvent(QEvent *event);
     void setupActions();
+    KisInputAction *inputAction(KisAbstractInputAction *action);
     bool handleCompressedTabletEvent(QEvent *event);
     void fixShortcutMatcherModifiersState();
     void fixShortcutMatcherModifiersState(QVector<Qt::Key> newKeys, Qt::KeyboardModifiers modifiers);
@@ -53,6 +58,7 @@ public:
 
     bool touchHasBlockedPressEvents = false;
 
+    QHash<KisAbstractInputAction*, QSharedPointer<KisInputAction>> inputActionAdapters;
     KisShortcutMatcher matcher;
 
     KisToolInvocationAction *defaultInputAction = 0;

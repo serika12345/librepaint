@@ -4,9 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_stroke_shortcut.h"
+#include <kis_stroke_shortcut.h>
 
-#include "kis_abstract_input_action.h"
+#include <KisInputAction.h>
 
 #include <QMouseEvent>
 
@@ -20,7 +20,7 @@ public:
 };
 
 
-KisStrokeShortcut::KisStrokeShortcut(KisAbstractInputAction *action, int index)
+KisStrokeShortcut::KisStrokeShortcut(KisInputAction *action, int index)
     : KisAbstractShortcut(action, index),
       m_d(new Private)
 {
@@ -76,5 +76,11 @@ bool KisStrokeShortcut::matchBegin(Qt::MouseButton button)
 QMouseEvent KisStrokeShortcut::fakeEndEvent(const QPointF &localPos) const
 {
     Qt::MouseButton button = !m_d->buttons.isEmpty() ? *m_d->buttons.begin() : Qt::NoButton;
-    return QMouseEvent(QEvent::MouseButtonRelease, localPos, button, Qt::NoButton, Qt::NoModifier);
+    return QMouseEvent(QEvent::MouseButtonRelease,
+                       localPos,
+                       localPos,
+                       localPos,
+                       button,
+                       Qt::NoButton,
+                       Qt::NoModifier);
 }

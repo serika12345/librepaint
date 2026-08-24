@@ -1659,466 +1659,6 @@
     },
     {
       "sourceResponsibility": "canvas-presentation",
-      "dependencyResponsibility": "input-interpretation",
-      "status": "disproved-by-direct-include-attribution",
-      "targetLinks": [
-        {
-          "sourceTarget": "kritabasicflakes",
-          "dependencyTarget": "kritaui",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        }
-      ],
-      "actualResponsibilityPairs": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "tool-invocation"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "canvas-presentation"
-        },
-        {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation"
-        },
-        {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation"
-        }
-      ],
-      "directIncludes": [
-        {
-          "sourceTarget": "kritabasicflakes",
-          "dependencyTarget": "kritaui",
-          "sourcePath": "libs/basicflakes/tools/KoCreatePathTool.cpp",
-          "include": "kis_canvas_resource_provider.h",
-          "headerPath": "libs/ui/kis_canvas_resource_provider.h",
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "canvas-presentation",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritabasicflakes",
-          "dependencyTarget": "kritaui",
-          "sourcePath": "libs/basicflakes/tools/KoPencilTool.cpp",
-          "include": "widgets/KoStrokeConfigWidget.h",
-          "headerPath": "libs/ui/widgets/KoStrokeConfigWidget.h",
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "canvas-presentation",
-          "sourceAttribution": "unique-owner-target",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/canvas/kis_tool_proxy.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
-          "include": "KisPaletteEditor.h",
-          "headerPath": "libs/tools/ui/KisPaletteEditor.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_layer_properties.cc",
-          "include": "kis_cmb_composite.h",
-          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_layer_style.cpp",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/input/kis_alternate_invocation_action.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "longest-responsibility-source-directory",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/input/kis_change_primary_setting_action.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "longest-responsibility-source-directory",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/input/kis_tool_invocation_action.cpp",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "longest-responsibility-source-directory",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/input/wintab/drawpile_tablettester/tablettest.h",
-          "include": "kis_speed_smoother.h",
-          "headerPath": "libs/tools/kis_speed_smoother.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "longest-responsibility-source-directory",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "kis_cmb_composite.h",
-          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "kis_paintop_list_widget.h",
-          "headerPath": "libs/tools/ui/kis_paintop_list_widget.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "kis_tool_options_popup.h",
-          "headerPath": "libs/tools/ui/kis_tool_options_popup.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/KisToolOutlineBase.h",
-          "include": "kis_outline_interaction.h",
-          "headerPath": "libs/tools/kis_outline_interaction.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_painting_information_builder_adapters.h",
-          "include": "kis_painting_information_builder.h",
-          "headerPath": "libs/tools/kis_painting_information_builder.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand.cc",
-          "include": "kis_tool_utils.h",
-          "headerPath": "libs/tools/kis_tool_utils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand.h",
-          "include": "kis_smoothing_options.h",
-          "headerPath": "libs/tools/kis_smoothing_options.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
-          "include": "KisStabilizerDelayedPaintHelper.h",
-          "headerPath": "libs/tools/KisStabilizerDelayedPaintHelper.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-class-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
-          "include": "kis_stabilized_events_sampler.h",
-          "headerPath": "libs/tools/kis_stabilized_events_sampler.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-class-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.h",
-          "include": "kis_smoothing_options.h",
-          "headerPath": "libs/tools/kis_smoothing_options.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_paint.cc",
-          "include": "kis_tool_utils.h",
-          "headerPath": "libs/tools/kis_tool_utils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_paint.h",
-          "include": "kis_tool_paint_interaction.h",
-          "headerPath": "libs/tools/kis_tool_paint_interaction.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_polyline_base.h",
-          "include": "kis_polyline_interaction.h",
-          "headerPath": "libs/tools/kis_polyline_interaction.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.cpp",
-          "include": "kis_rectangle_constraint_widget.h",
-          "headerPath": "libs/tools/ui/kis_rectangle_constraint_widget.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.h",
-          "include": "kis_rectangle_interaction.h",
-          "headerPath": "libs/tools/kis_rectangle_interaction.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
-          "include": "kis_selection_options.h",
-          "headerPath": "libs/tools/ui/kis_selection_options.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
-          "include": "kis_selection_tool_config_widget_helper.h",
-          "headerPath": "libs/tools/ui/kis_selection_tool_config_widget_helper.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
-          "include": "kis_tool_select_base.h",
-          "headerPath": "libs/tools/kis_tool_select_base.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_shape.h",
-          "include": "KisSelectionToolFactoryBase.h",
-          "headerPath": "libs/tools/KisSelectionToolFactoryBase.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
-          "include": "kis_cmb_composite.h",
-          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/widgets/kis_paintop_presets_editor.cpp",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/widgets/kis_paintop_presets_editor.h",
-          "include": "kis_paint_ops_model.h",
-          "headerPath": "libs/tools/ui/kis_paint_ops_model.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/widgets/kis_zoom_scrollbar.cpp",
-          "include": "kis_tool_utils.h",
-          "headerPath": "libs/tools/kis_tool_utils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        }
-      ]
-    },
-    {
-      "sourceResponsibility": "canvas-presentation",
       "dependencyResponsibility": "tool-invocation",
       "status": "disproved-by-direct-include-attribution",
       "targetLinks": [
@@ -3311,6 +2851,17 @@
       "targetLinks": [
         {
           "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
           "platforms": [
             "macos",
@@ -3327,6 +2878,10 @@
           "dependencyResponsibility": "tool-invocation"
         },
         {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "input-interpretation"
+        },
+        {
           "sourceResponsibility": "input-interpretation",
           "dependencyResponsibility": "input-interpretation"
         },
@@ -3336,10 +2891,157 @@
         },
         {
           "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "input-interpretation"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation"
         }
       ],
       "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/canvas/kis_canvas2.h",
+          "include": "KisInputActionGroup.h",
+          "headerPath": "libs/input/KisInputActionGroup.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_abstract_input_action.h",
+          "include": "KisInputActionGroup.h",
+          "headerPath": "libs/input/KisInputActionGroup.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_extended_modifiers_mapper_osx.h",
+          "include": "kis_shortcut_matcher.h",
+          "headerPath": "libs/input/kis_shortcut_matcher.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager.cpp",
+          "include": "kis_shortcut_matcher.h",
+          "headerPath": "libs/input/kis_shortcut_matcher.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager.cpp",
+          "include": "kis_single_action_shortcut.h",
+          "headerPath": "libs/input/kis_single_action_shortcut.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager.cpp",
+          "include": "kis_stroke_shortcut.h",
+          "headerPath": "libs/input/kis_stroke_shortcut.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager.cpp",
+          "include": "kis_touch_shortcut.h",
+          "headerPath": "libs/input/kis_touch_shortcut.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager_p.cpp",
+          "include": "KisInputAction.h",
+          "headerPath": "libs/input/KisInputAction.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager_p.cpp",
+          "include": "kis_native_gesture_shortcut.h",
+          "headerPath": "libs/input/kis_native_gesture_shortcut.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager_p.cpp",
+          "include": "kis_stroke_shortcut.h",
+          "headerPath": "libs/input/kis_stroke_shortcut.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager_p.cpp",
+          "include": "kis_touch_shortcut.h",
+          "headerPath": "libs/input/kis_touch_shortcut.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/input/kis_input_manager_p.h",
+          "include": "kis_shortcut_matcher.h",
+          "headerPath": "libs/input/kis_shortcut_matcher.h",
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/tool/KisToolOutlineBase.cpp",
+          "include": "KisInputActionGroup.h",
+          "headerPath": "libs/input/KisInputActionGroup.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "input-interpretation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
@@ -7088,429 +6790,6 @@
           "dependencyAttribution": "unique-owner-target"
         }
       ]
-    },
-    {
-      "sourceResponsibility": "tool-invocation",
-      "dependencyResponsibility": "input-interpretation",
-      "status": "disproved-by-direct-include-attribution",
-      "targetLinks": [
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "platforms": [
-            "macos",
-            "linux",
-            "ios",
-            "android",
-            "windows"
-          ]
-        }
-      ],
-      "actualResponsibilityPairs": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "tool-invocation"
-        },
-        {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation"
-        },
-        {
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation"
-        }
-      ],
-      "directIncludes": [
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/KisMainWindow.cpp",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/canvas/kis_tool_proxy.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
-          "include": "KisPaletteEditor.h",
-          "headerPath": "libs/tools/ui/KisPaletteEditor.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_layer_properties.cc",
-          "include": "kis_cmb_composite.h",
-          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/dialogs/kis_dlg_layer_style.cpp",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/input/kis_alternate_invocation_action.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "longest-responsibility-source-directory",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/input/kis_change_primary_setting_action.h",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "longest-responsibility-source-directory",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/input/kis_tool_invocation_action.cpp",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "longest-responsibility-source-directory",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/input/wintab/drawpile_tablettester/tablettest.h",
-          "include": "kis_speed_smoother.h",
-          "headerPath": "libs/tools/kis_speed_smoother.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "longest-responsibility-source-directory",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_favorite_resource_manager.cpp",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "kis_cmb_composite.h",
-          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "kis_paintop_list_widget.h",
-          "headerPath": "libs/tools/ui/kis_paintop_list_widget.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "kis_tool.h",
-          "headerPath": "libs/tools/kis_tool.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/kis_paintop_box.cc",
-          "include": "kis_tool_options_popup.h",
-          "headerPath": "libs/tools/ui/kis_tool_options_popup.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/KisToolOutlineBase.h",
-          "include": "kis_outline_interaction.h",
-          "headerPath": "libs/tools/kis_outline_interaction.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_painting_information_builder_adapters.h",
-          "include": "kis_painting_information_builder.h",
-          "headerPath": "libs/tools/kis_painting_information_builder.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand.cc",
-          "include": "kis_tool_utils.h",
-          "headerPath": "libs/tools/kis_tool_utils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand.h",
-          "include": "kis_smoothing_options.h",
-          "headerPath": "libs/tools/kis_smoothing_options.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
-          "include": "KisStabilizerDelayedPaintHelper.h",
-          "headerPath": "libs/tools/KisStabilizerDelayedPaintHelper.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-class-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.cpp",
-          "include": "kis_stabilized_events_sampler.h",
-          "headerPath": "libs/tools/kis_stabilized_events_sampler.h",
-          "sourceResponsibility": "input-interpretation",
-          "dependencyResponsibility": "input-interpretation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-class-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_freehand_helper.h",
-          "include": "kis_smoothing_options.h",
-          "headerPath": "libs/tools/kis_smoothing_options.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_paint.cc",
-          "include": "kis_tool_utils.h",
-          "headerPath": "libs/tools/kis_tool_utils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_paint.h",
-          "include": "kis_tool_paint_interaction.h",
-          "headerPath": "libs/tools/kis_tool_paint_interaction.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_polyline_base.h",
-          "include": "kis_polyline_interaction.h",
-          "headerPath": "libs/tools/kis_polyline_interaction.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.cpp",
-          "include": "kis_rectangle_constraint_widget.h",
-          "headerPath": "libs/tools/ui/kis_rectangle_constraint_widget.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_rectangle_base.h",
-          "include": "kis_rectangle_interaction.h",
-          "headerPath": "libs/tools/kis_rectangle_interaction.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
-          "include": "kis_selection_options.h",
-          "headerPath": "libs/tools/ui/kis_selection_options.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
-          "include": "kis_selection_tool_config_widget_helper.h",
-          "headerPath": "libs/tools/ui/kis_selection_tool_config_widget_helper.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
-          "include": "kis_tool_select_base.h",
-          "headerPath": "libs/tools/kis_tool_select_base.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/tool/kis_tool_shape.h",
-          "include": "KisSelectionToolFactoryBase.h",
-          "headerPath": "libs/tools/KisSelectionToolFactoryBase.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-public-path",
-          "dependencyAttribution": "classified-public-path"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/widgets/KisCompositeOpListConnectionHelper.cpp",
-          "include": "kis_cmb_composite.h",
-          "headerPath": "libs/tools/ui/kis_cmb_composite.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/widgets/kis_paintop_presets_editor.cpp",
-          "include": "KisPaintResourceServerProvider.h",
-          "headerPath": "libs/tools/ui/KisPaintResourceServerProvider.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/widgets/kis_paintop_presets_editor.h",
-          "include": "kis_paint_ops_model.h",
-          "headerPath": "libs/tools/ui/kis_paint_ops_model.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "longest-responsibility-source-directory"
-        },
-        {
-          "sourceTarget": "kritaui",
-          "dependencyTarget": "kritatools",
-          "sourcePath": "libs/ui/widgets/kis_zoom_scrollbar.cpp",
-          "include": "kis_tool_utils.h",
-          "headerPath": "libs/tools/kis_tool_utils.h",
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "sourceAttribution": "classified-class-path",
-          "dependencyAttribution": "classified-public-path"
-        }
-      ]
     }
   ],
   "targetCycleBaseline": {
@@ -7553,27 +6832,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 23,
+            "targetCount": 24,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 23,
+            "targetCount": 24,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 23,
+            "targetCount": 24,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 23,
+            "targetCount": 24,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 23,
+            "targetCount": 24,
             "components": []
           }
         ]
@@ -7583,27 +6862,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 223,
+            "targetCount": 224,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 229,
+            "targetCount": 230,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 215,
+            "targetCount": 216,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 215,
+            "targetCount": 216,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 232,
+            "targetCount": 233,
             "components": []
           }
         ]
@@ -7727,6 +7006,23 @@
       "maximumDirectReferences": 0,
       "removalCondition": "Document-facing import-export consumers continue to use declared public contracts.",
       "sourceDirectory": "libs/impex",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": []
+    },
+    {
+      "ownerTarget": "kritainput",
+      "owner": "R1-G6g",
+      "reason": "External packages use the declared input-sequence and borrowed input-action header surface.",
+      "maximumHeaders": 0,
+      "maximumDirectReferences": 0,
+      "removalCondition": "Input consumers continue to use declared public contracts.",
+      "sourceDirectory": "libs/input",
       "platforms": [
         "macos",
         "linux",

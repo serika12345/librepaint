@@ -15,7 +15,7 @@
  * a mouse wheel rotation.
  */
 
-class KRITAUI_EXPORT KisSingleActionShortcut : public KisAbstractShortcut
+class KRITAINPUT_EXPORT KisSingleActionShortcut : public KisAbstractShortcut
 {
 public:
     enum WheelAction {
@@ -26,7 +26,7 @@ public:
         WheelTrackpad, ///< A pan movement on a trackpad.
     };
 
-    KisSingleActionShortcut(KisAbstractInputAction *action, int index);
+    KisSingleActionShortcut(KisInputAction *action, int index);
     ~KisSingleActionShortcut() override;
 
     int priority() const override;

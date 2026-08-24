@@ -504,14 +504,18 @@
       "id": "input-interpretation",
       "responsibility": "Interprets pointer, keyboard, touch, tablet, and shortcut input as application and tool actions.",
       "sourceDirectories": [
+        "libs/input",
         "libs/ui/input",
         "libs/ui/tool"
       ],
       "ownerTargets": [
+        "kritainput",
         "kritatools",
         "kritaui"
       ],
-      "publicHeaderOwnerTargets": [],
+      "publicHeaderOwnerTargets": [
+        "kritainput"
+      ],
       "reviewedPublicHeaderPaths": [
         "libs/tools/KisStabilizerDelayedPaintHelper.h",
         "libs/tools/kis_stabilized_events_sampler.h"
@@ -531,6 +535,15 @@
       "pluginScope": "feature-owners",
       "pluginFeatureOwners": [],
       "publicHeaderPaths": [
+        "libs/input/KisInputAction.h",
+        "libs/input/KisInputActionGroup.h",
+        "libs/input/KisTouchGestureType.h",
+        "libs/input/kis_abstract_shortcut.h",
+        "libs/input/kis_native_gesture_shortcut.h",
+        "libs/input/kis_shortcut_matcher.h",
+        "libs/input/kis_single_action_shortcut.h",
+        "libs/input/kis_stroke_shortcut.h",
+        "libs/input/kis_touch_shortcut.h",
         "libs/tools/KisStabilizerDelayedPaintHelper.h",
         "libs/tools/kis_stabilized_events_sampler.h",
         "libs/ui/tool/KisAsyncColorSamplerHelper.h",
@@ -1728,6 +1741,7 @@
         "kritabasicflakes",
         "kritacanvas",
         "kritadefaulttools_static",
+        "kritainput",
         "kritapsdutils",
         "kritaselectiontools",
         "kritatools",
@@ -1857,6 +1871,28 @@
         "kritawidgets",
         "kritawidgetutils",
         "kritaxmlserialization"
+      ],
+      "repositoryConsumers": [
+        "kritaui"
+      ]
+    },
+    {
+      "name": "kritainput",
+      "sourceDirectory": "libs/input",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaflake",
+        "kritaglobal"
       ],
       "repositoryConsumers": [
         "kritaui"
@@ -2231,6 +2267,7 @@
         "kritaimage",
         "kritaimpex",
         "kritaimpexui",
+        "kritainput",
         "kritalibbrush",
         "kritamacosutils",
         "kritapainting",

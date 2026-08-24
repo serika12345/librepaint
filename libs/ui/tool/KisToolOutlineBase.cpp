@@ -21,7 +21,7 @@
 #include <input/kis_input_manager.h>
 
 #include "KisToolOutlineBase.h"
-#include "input/KisInputActionGroup.h"
+#include <KisInputActionGroup.h>
 
 KisToolOutlineBase::KisToolOutlineBase(KoCanvasBase * canvas, ToolType type, const QCursor & cursor)
     : KisToolShape(canvas, cursor)

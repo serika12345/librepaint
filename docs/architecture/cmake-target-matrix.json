@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 663,
-    "linux": 678,
-    "ios": 597,
-    "android": 603,
-    "windows": 633
+    "macos": 665,
+    "linux": 680,
+    "ios": 599,
+    "android": 605,
+    "windows": 635
   },
   "commonTargets": [
     "CCSGraph",
@@ -113,6 +113,7 @@
     "TestImportExportBoundary",
     "TestImportExportUiBoundary",
     "TestInputDevice",
+    "TestInputShortcutMatcher",
     "TestKUndo2Stack",
     "TestKisPaletteModel",
     "TestKisSwatchGroup",
@@ -456,6 +457,7 @@
     "kritaimpex",
     "kritaimpexui",
     "kritaindexcolors",
+    "kritainput",
     "kritaiptc",
     "kritajp2import",
     "kritajpegexport",
@@ -1482,6 +1484,7 @@
     "TestFolderStorage",
     "TestImportExportBoundary",
     "TestImportExportUiBoundary",
+    "TestInputShortcutMatcher",
     "TestKoChannelInfo",
     "TestKoColor",
     "TestKoColorSet",
@@ -1598,6 +1601,7 @@
     "kritaimpex",
     "kritaimpexui",
     "kritaindexcolors",
+    "kritainput",
     "kritaiptc",
     "kritajp2import",
     "kritajpegexport",

@@ -935,6 +935,23 @@
       ]
     },
     {
+      "sourceTarget": "kritainput",
+      "dependencyTarget": "kritaflake",
+      "sourceResponsibilities": [
+        "input-interpretation"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
       "sourceTarget": "kritalibbrush",
       "dependencyTarget": "kritaimage",
       "sourceResponsibilities": [
@@ -1668,6 +1685,47 @@
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "import-export",
+          "status": "requires-r1-g4-baseline"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaui",
+      "dependencyTarget": "kritainput",
+      "sourceResponsibilities": [
+        "application-orchestration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "input-interpretation",
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "input-interpretation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "allowed"
+        },
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "document-lifecycle",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "requires-r1-g4-baseline"
+        },
+        {
+          "sourceResponsibility": "input-interpretation",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "internal"
+        },
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "input-interpretation",
           "status": "requires-r1-g4-baseline"
         }
       ]

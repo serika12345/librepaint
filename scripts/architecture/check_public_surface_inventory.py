@@ -35,6 +35,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     ),
     "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
     "libs/impex": ("libs/impex/tests/TestImportExportBoundary.cpp",),
+    "libs/input": ("libs/input/tests/TestInputShortcutMatcher.cpp",),
     "libs/painting": ("libs/painting/tests/TestPaintingBoundary.cpp",),
     "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
     "libs/ui": ("libs/ui/tests/TestCanvasUiPublicHeaders.cpp",),
@@ -159,6 +160,23 @@ PUBLIC_HEADER_SET_SPECS = (
             "for document-facing conversion coordination, feedback, and format options."
         ),
         "evidence": ["libs/impex/CMakeLists.txt", "libs/impex/ui/KisImportExportManager.h"],
+    },
+    {
+        "ownerTarget": "kritainput",
+        "sourceDirectory": "libs/input",
+        "headerDirectories": ["libs/input"],
+        "excludedHeaderDirectories": ["libs/input/tests"],
+        "exportMacro": "KRITAINPUT_EXPORT",
+        "responsibility": (
+            "Records the declared and externally consumed input-sequence surface "
+            "for shortcut matching, normalized gestures, cancellation, and "
+            "borrowed input-action commands."
+        ),
+        "evidence": [
+            "libs/input/CMakeLists.txt",
+            "libs/input/KisInputAction.h",
+            "libs/input/kis_shortcut_matcher.h",
+        ],
     },
     {
         "ownerTarget": "kritapainting",

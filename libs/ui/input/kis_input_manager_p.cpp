@@ -17,6 +17,7 @@
 #include "kis_input_manager.h"
 #include "kis_config.h"
 #include "kis_abstract_input_action.h"
+#include <KisInputAction.h>
 #include "kis_tool_invocation_action.h"
 #include "kis_stroke_shortcut.h"
 #include "kis_touch_shortcut.h"
@@ -29,6 +30,72 @@
 #include "config-qt-patches-present.h"
 
 #include <memory>
+
+namespace {
+
+class KisUiInputActionAdapter final : public KisInputAction
+{
+public:
+    explicit KisUiInputActionAdapter(KisAbstractInputAction *action)
+        : m_action(action)
+    {
+    }
+
+    void activate(int shortcut) override
+    {
+        m_action->activate(shortcut);
+    }
+
+    void deactivate(int shortcut) override
+    {
+        m_action->deactivate(shortcut);
+    }
+
+    void begin(int shortcut, QEvent *event) override
+    {
+        m_action->begin(shortcut, event);
+    }
+
+    void end(QEvent *event) override
+    {
+        m_action->end(event);
+    }
+
+    void inputEvent(QEvent *event) override
+    {
+        m_action->inputEvent(event);
+    }
+
+    bool supportsHiResInputEvents(int shortcut) const override
+    {
+        return m_action->supportsHiResInputEvents(shortcut);
+    }
+
+    KisInputActionGroup inputActionGroup(int shortcut) const override
+    {
+        return m_action->inputActionGroup(shortcut);
+    }
+
+    int priority() const override
+    {
+        return m_action->priority();
+    }
+
+    bool canIgnoreModifiers() const override
+    {
+        return m_action->canIgnoreModifiers();
+    }
+
+    bool isAvailable() const override
+    {
+        return m_action->isAvailable();
+    }
+
+private:
+    KisAbstractInputAction *m_action;
+};
+
+}
 
 
 /**
@@ -479,12 +546,25 @@ bool KisInputManager::Private::ProximityNotifier::eventFilter(QObject* object, Q
         buttonSet << Qt::ExtraButton##n; \
     }
 
+KisInputAction *KisInputManager::Private::inputAction(
+    KisAbstractInputAction *action)
+{
+    auto adapter = inputActionAdapters.find(action);
+    if (adapter == inputActionAdapters.end()) {
+        adapter = inputActionAdapters.insert(
+            action,
+            QSharedPointer<KisInputAction>(
+                new KisUiInputActionAdapter(action)));
+    }
+    return adapter.value().data();
+}
+
 void KisInputManager::Private::addStrokeShortcut(KisAbstractInputAction* action, int index,
                                                  const QList<Qt::Key> &modifiers,
                                                  Qt::MouseButtons buttons)
 {
     KisStrokeShortcut *strokeShortcut =
-        new KisStrokeShortcut(action, index);
+        new KisStrokeShortcut(inputAction(action), index);
 
     QSet<Qt::MouseButton> buttonSet;
     if(buttons & Qt::LeftButton) {
@@ -514,7 +594,7 @@ void KisInputManager::Private::addKeyShortcut(KisAbstractInputAction* action, in
     if (keys.size() == 0) return;
 
     KisSingleActionShortcut *keyShortcut =
-        new KisSingleActionShortcut(action, index);
+        new KisSingleActionShortcut(inputAction(action), index);
 
     //Note: Ordering is important here, Shift + V is different from V + Shift,
     //which is the reason we use the last key here since most users will enter
@@ -532,7 +612,7 @@ void KisInputManager::Private::addWheelShortcut(KisAbstractInputAction* action, 
                                                 KisShortcutConfiguration::MouseWheelMovement wheelAction)
 {
     std::unique_ptr<KisSingleActionShortcut> keyShortcut(
-        new KisSingleActionShortcut(action, index));
+        new KisSingleActionShortcut(inputAction(action), index));
 
     KisSingleActionShortcut::WheelAction a;
     switch(wheelAction) {
@@ -560,45 +640,82 @@ void KisInputManager::Private::addWheelShortcut(KisAbstractInputAction* action, 
 
 void KisInputManager::Private::addTouchShortcut(KisAbstractInputAction* action, int index, KisShortcutConfiguration::GestureAction gesture)
 {
-    KisTouchShortcut *shortcut = new KisTouchShortcut(action, index, gesture);
-    dbgKrita << "TouchAction:" << action->name();
+    KisTouchGestureType type = KisTouchGestureType::Unsupported;
+    int touchPoints = 0;
+    bool disabledWhenTouchPaintingActive = false;
+
     switch(gesture) {
 #ifndef Q_OS_MACOS
     case KisShortcutConfiguration::OneFingerTap:
+        type = KisTouchGestureType::Tap;
+        touchPoints = 1;
+        disabledWhenTouchPaintingActive = true;
+        break;
     case KisShortcutConfiguration::OneFingerDrag:
-        // Touch painting takes precedence over one-finger touch shortcuts, so
-        // disable this type of shortcut when touch painting is active. Except
-        // touch hold shortcuts, since touching and holding in one spot does
-        // nothing otherwise and is therefore unambiguous.
-        shortcut->setDisableOnTouchPainting(true);
-        Q_FALLTHROUGH();
+        type = KisTouchGestureType::Drag;
+        touchPoints = 1;
+        disabledWhenTouchPaintingActive = true;
+        break;
     case KisShortcutConfiguration::OneFingerHold:
-        shortcut->setMinimumTouchPoints(1);
-        shortcut->setMaximumTouchPoints(1);
+        type = KisTouchGestureType::Hold;
+        touchPoints = 1;
         break;
     case KisShortcutConfiguration::TwoFingerTap:
+        type = KisTouchGestureType::Tap;
+        touchPoints = 2;
+        break;
     case KisShortcutConfiguration::TwoFingerDrag:
-        shortcut->setMinimumTouchPoints(2);
-        shortcut->setMaximumTouchPoints(2);
+        type = KisTouchGestureType::Drag;
+        touchPoints = 2;
         break;
     case KisShortcutConfiguration::ThreeFingerTap:
+        type = KisTouchGestureType::Tap;
+        touchPoints = 3;
+        break;
     case KisShortcutConfiguration::ThreeFingerDrag:
-        shortcut->setMinimumTouchPoints(3);
-        shortcut->setMaximumTouchPoints(3);
+        type = KisTouchGestureType::Drag;
+        touchPoints = 3;
         break;
     case KisShortcutConfiguration::FourFingerTap:
+        type = KisTouchGestureType::Tap;
+        touchPoints = 4;
+        break;
     case KisShortcutConfiguration::FourFingerDrag:
-        shortcut->setMinimumTouchPoints(4);
-        shortcut->setMaximumTouchPoints(4);
+        type = KisTouchGestureType::Drag;
+        touchPoints = 4;
         break;
     case KisShortcutConfiguration::FiveFingerTap:
+        type = KisTouchGestureType::Tap;
+        touchPoints = 5;
+        break;
     case KisShortcutConfiguration::FiveFingerDrag:
-        shortcut->setMinimumTouchPoints(5);
-        shortcut->setMaximumTouchPoints(5);
+        type = KisTouchGestureType::Drag;
+        touchPoints = 5;
+        break;
 #endif
     default:
         break;
     }
+
+    auto *shortcut = new KisTouchShortcut(inputAction(action), index, type);
+    dbgKrita << "TouchAction:" << action->name();
+
+    if (touchPoints > 0) {
+        shortcut->setMinimumTouchPoints(touchPoints);
+        shortcut->setMaximumTouchPoints(touchPoints);
+    }
+
+    if (disabledWhenTouchPaintingActive) {
+        // Touch painting takes precedence over one-finger touch shortcuts, so
+        // disable this type of shortcut when touch painting is active. Except
+        // touch hold shortcuts, since touching and holding in one spot does
+        // nothing otherwise and is therefore unambiguous.
+        shortcut->setDisabledWhenTouchPaintingActive(true);
+        shortcut->setTouchPaintingActiveCallback([]() {
+            return !KisConfig(true).disableTouchOnCanvas();
+        });
+    }
+
     matcher.addShortcut(shortcut);
 }
 
@@ -625,7 +742,8 @@ bool KisInputManager::Private::addNativeGestureShortcut(KisAbstractInputAction* 
             return false;
     }
 
-    KisNativeGestureShortcut *shortcut = new KisNativeGestureShortcut(action, index, type);
+    KisNativeGestureShortcut *shortcut =
+        new KisNativeGestureShortcut(inputAction(action), index, type);
     matcher.addShortcut(shortcut);
     return true;
 }

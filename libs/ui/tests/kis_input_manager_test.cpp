@@ -10,10 +10,11 @@
 
 #include <QMouseEvent>
 
-#include "input/kis_single_action_shortcut.h"
-#include "input/kis_stroke_shortcut.h"
+#include <KisInputAction.h>
+#include <kis_single_action_shortcut.h>
+#include <kis_stroke_shortcut.h>
 #include "input/kis_abstract_input_action.h"
-#include "input/kis_shortcut_matcher.h"
+#include <kis_shortcut_matcher.h>
 
 
 void KisInputManagerTest::testSingleActionShortcut()
@@ -58,7 +59,7 @@ void KisInputManagerTest::testStrokeShortcut()
     QVERIFY(!s.matchBegin(Qt::RightButton));
 }
 
-struct TestingAction : public KisAbstractInputAction
+struct TestingAction : public KisAbstractInputAction, public KisInputAction
 {
     TestingAction() : KisAbstractInputAction("TestingAction"), m_isHighResolution(false) { reset(); }
     ~TestingAction() {}
@@ -66,6 +67,12 @@ struct TestingAction : public KisAbstractInputAction
     void begin(int shortcut, QEvent *event) override { m_beginIndex = shortcut; m_beginNonNull = event;}
     void end(QEvent *event) override { m_ended = true; m_endNonNull = event; }
     void inputEvent(QEvent* event) override { Q_UNUSED(event); m_gotInput = true; }
+    void activate(int shortcut) override { KisAbstractInputAction::activate(shortcut); }
+    void deactivate(int shortcut) override { KisAbstractInputAction::deactivate(shortcut); }
+    KisInputActionGroup inputActionGroup(int shortcut) const override { return KisAbstractInputAction::inputActionGroup(shortcut); }
+    int priority() const override { return KisAbstractInputAction::priority(); }
+    bool canIgnoreModifiers() const override { return KisAbstractInputAction::canIgnoreModifiers(); }
+    bool isAvailable() const override { return KisAbstractInputAction::isAvailable(); }
 
     void reset() {
         m_beginIndex = -1;
@@ -92,7 +99,7 @@ struct TestingAction : public KisAbstractInputAction
     bool m_isHighResolution;
 };
 
-KisSingleActionShortcut* createKeyShortcut(KisAbstractInputAction *action,
+KisSingleActionShortcut* createKeyShortcut(KisInputAction *action,
                                   int shortcutIndex,
                                   const QSet<Qt::Key> &modifiers,
                                   Qt::Key key)
@@ -102,7 +109,7 @@ KisSingleActionShortcut* createKeyShortcut(KisAbstractInputAction *action,
     return s;
 }
 
-KisStrokeShortcut* createStrokeShortcut(KisAbstractInputAction *action,
+KisStrokeShortcut* createStrokeShortcut(KisInputAction *action,
                                      int shortcutIndex,
                                      const QSet<Qt::Key> &modifiers,
                                      Qt::MouseButton button)

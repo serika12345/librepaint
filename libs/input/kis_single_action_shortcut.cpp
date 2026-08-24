@@ -4,10 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_single_action_shortcut.h"
+#include <kis_single_action_shortcut.h>
 
 #include <QKeySequence>
-#include "kis_abstract_input_action.h"
+#include <KisInputAction.h>
 #include <kis_assert.h>
 
 class Q_DECL_HIDDEN KisSingleActionShortcut::Private
@@ -20,7 +20,7 @@ public:
 };
 
 
-KisSingleActionShortcut::KisSingleActionShortcut(KisAbstractInputAction *action, int index)
+KisSingleActionShortcut::KisSingleActionShortcut(KisInputAction *action, int index)
     : KisAbstractShortcut(action, index),
       m_d(new Private)
 {

@@ -760,6 +760,60 @@
       ]
     },
     {
+      "sourceResponsibility": "canvas-presentation",
+      "dependencyResponsibility": "input-interpretation",
+      "owner": "R1-G6g",
+      "reason": "KisCanvas2 currently exposes the input action-group mask used to coordinate canvas interaction while input ownership is being removed from the shared UI target.",
+      "maximumDirectIncludes": 1,
+      "removalCondition": "The remaining UI input adapter owns the action-group mask and canvas presentation exposes no input package type, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritabasicflakes",
+          "dependencyTarget": "kritaui",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/canvas/kis_canvas2.h",
+          "include": "KisInputActionGroup.h",
+          "headerPath": "libs/input/KisInputActionGroup.h",
+          "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
       "sourceResponsibility": "input-interpretation",
       "dependencyResponsibility": "painting-rendering",
       "owner": "R1-G6",
@@ -1151,6 +1205,49 @@
           "sourcePath": "libs/ui/tool/KisAsyncColorSamplerHelper.cpp",
           "include": "KoCanvasResourcesIds.h",
           "headerPath": "libs/resources/KoCanvasResourcesIds.h",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        }
+      ]
+    },
+    {
+      "sourceResponsibility": "tool-invocation",
+      "dependencyResponsibility": "input-interpretation",
+      "owner": "R1-G6g",
+      "reason": "The outline tool currently scopes the input action-group mask directly while the input manager and tool connection remain inside kritaui.",
+      "maximumDirectIncludes": 1,
+      "removalCondition": "Tool interaction requests action blocking through its canvas command boundary and no tool source includes an input package header, reducing this direct-include set to zero.",
+      "targetLinks": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "platforms": [
+            "macos",
+            "linux",
+            "ios",
+            "android",
+            "windows"
+          ]
+        }
+      ],
+      "directIncludes": [
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritainput",
+          "sourcePath": "libs/ui/tool/KisToolOutlineBase.cpp",
+          "include": "KisInputActionGroup.h",
+          "headerPath": "libs/input/KisInputActionGroup.h",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
         }

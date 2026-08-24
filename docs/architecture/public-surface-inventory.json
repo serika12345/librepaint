@@ -7895,6 +7895,126 @@
       ]
     },
     {
+      "ownerTarget": "kritainput",
+      "sourceDirectory": "libs/input",
+      "headerDirectories": [
+        "libs/input"
+      ],
+      "excludedHeaderDirectories": [
+        "libs/input/tests"
+      ],
+      "exportMacro": "KRITAINPUT_EXPORT",
+      "responsibility": "Records the declared and externally consumed input-sequence surface for shortcut matching, normalized gestures, cancellation, and borrowed input-action commands.",
+      "evidence": [
+        "libs/input/CMakeLists.txt",
+        "libs/input/KisInputAction.h",
+        "libs/input/kis_shortcut_matcher.h"
+      ],
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": [
+        {
+          "path": "libs/input/KisInputAction.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/kis_input_manager_p.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/KisInputActionGroup.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/canvas/kis_canvas2.h",
+            "libs/ui/input/kis_abstract_input_action.h",
+            "libs/ui/tool/KisToolOutlineBase.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/KisTouchGestureType.h",
+          "publicationEvidence": [
+            "compile-contract"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/input/kis_abstract_shortcut.h",
+          "publicationEvidence": [
+            "export-macro"
+          ],
+          "consumerPaths": []
+        },
+        {
+          "path": "libs/input/kis_native_gesture_shortcut.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/kis_input_manager_p.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/kis_shortcut_matcher.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/kis_extended_modifiers_mapper_osx.h",
+            "libs/ui/input/kis_input_manager.cpp",
+            "libs/ui/input/kis_input_manager_p.h"
+          ]
+        },
+        {
+          "path": "libs/input/kis_single_action_shortcut.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/kis_input_manager.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/kis_stroke_shortcut.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/kis_input_manager.cpp",
+            "libs/ui/input/kis_input_manager_p.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/kis_touch_shortcut.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/kis_input_manager.cpp",
+            "libs/ui/input/kis_input_manager_p.cpp"
+          ]
+        }
+      ]
+    },
+    {
       "ownerTarget": "kritapainting",
       "sourceDirectory": "libs/painting",
       "headerDirectories": [
@@ -9870,13 +9990,6 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/input/kis_abstract_shortcut.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
           "path": "libs/ui/input/kis_extended_modifiers_mapper.h",
           "publicationEvidence": [
             "export-macro",
@@ -9901,27 +10014,6 @@
         },
         {
           "path": "libs/ui/input/kis_input_profile_manager.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/input/kis_shortcut_matcher.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/input/kis_single_action_shortcut.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/input/kis_stroke_shortcut.h",
           "publicationEvidence": [
             "export-macro"
           ],

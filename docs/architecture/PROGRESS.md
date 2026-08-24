@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 19:05 JST
+- 更新日時: 2026-08-24 20:41 JST
 - 状態: `in_progress`
-- 現在の検査段階: R1-G6fツール命令所有境界
+- 現在の検査段階: R1-G6g入力解釈所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `r1-g6f-node-manager-boundary`
-- 目的: UI共有ターゲットに混在する画像グラフ変更とツール命令を、画像命令、キャンバス公開面、
-  ツール命令ターゲットへ一括移設し、UIを入力、表示、選択、操作の接続へ限定する。
+- 目的: UI共有ターゲットに混在する入力列の照合と正規化を独立入力ターゲットへ移し、
+  UIを入力アクションの具体実装、設定読込、表示および操作との接続へ限定する。
 
 ## 再開環境
 
@@ -1459,12 +1459,57 @@
   全342件のネイティブ試験に成功した。`nix flake check --no-build --all-systems --no-eval-cache`は
   macOS、iOS、Linux、Android、Windowsを含む全Nix出力の式評価に成功した。
 
+## R1-G6gショートカット照合境界で進行中の作業
+
+- R1-G6fの完了監査で、分類済み22クラスが`kritatools`、`kritatoolsui`、`kritapainting`、
+  `kritaflake`へ移設済みであり、ツール所有に割り当てた17件の`kritaui`内部ヘッダー参照が
+  除去済みであることを照合した。残るUIツール責務台帳15クラスは、入力解釈、ストローク生成、
+  描画実行、表示接続のR1-G6g以降の所有へ分類され、R1-G6fの二つの完了条件を満たした。
+- 次の開始ファイルと移設先を対応させ、旧配置と転送ヘッダーを残さず`kritainput`へ移した。
+  - `libs/ui/input/KisInputActionGroup.{h,cpp}`から`libs/input/KisInputActionGroup.{h,cpp}`。
+  - `libs/ui/input/kis_abstract_shortcut.{h,cpp}`から`libs/input/kis_abstract_shortcut.{h,cpp}`。
+  - `libs/ui/input/kis_single_action_shortcut.{h,cpp}`から`libs/input/kis_single_action_shortcut.{h,cpp}`。
+  - `libs/ui/input/kis_stroke_shortcut.{h,cpp}`から`libs/input/kis_stroke_shortcut.{h,cpp}`。
+  - `libs/ui/input/kis_touch_shortcut.{h,cpp}`から`libs/input/kis_touch_shortcut.{h,cpp}`。
+  - `libs/ui/input/kis_native_gesture_shortcut.{h,cpp}`から
+    `libs/input/kis_native_gesture_shortcut.{h,cpp}`。
+  - `libs/ui/input/kis_shortcut_matcher.{h,cpp}`から`libs/input/kis_shortcut_matcher.{h,cpp}`。
+- `libs/input/KisInputAction.h`は照合器が借用する命令の開始、入力、終了、候補切替、優先度、
+  利用可否を定義する。`libs/ui/input/kis_input_manager_p.cpp`の内部委譲オブジェクトが既存の
+  `KisAbstractInputAction`へ通知し、入力管理器がプロファイルごとの寿命を所有する。公開UI基底の
+  継承構造と仮想関数表を維持しながら、入力ターゲットから`kritaui`への逆向き依存を作らず、
+  `kritaui`から`kritainput`へ一方向に接続する。
+- タッチ設定列挙から`KisTouchGestureType`、接触点数、タッチ描画中の無効化条件への変換は
+  `libs/ui/input/kis_input_manager_p.cpp`へ残した。`KisTouchShortcut`は正規化済み値と動的な状態問い合わせを
+  受け取り、設定実装や描画・リソースヘッダーを参照しない。
+- `libs/input/tests/TestInputShortcutMatcher.cpp`はShiftと左ボタンによるマウス列を決定的に再生し、
+  候補選択、開始、移動、終了、再候補化の通知順を固定する。フォーカス喪失による未完了列の終了と
+  入力アクション群マスクのスコープ復旧も同じ独立ターゲットで固定した。契約追加時は
+  `KisInputAction.h`不在でコンパイルに失敗し、実装後は1件のCTestが成功した。
+- `nix develop .#test --command ./scripts/run-test TestInputShortcutMatcher`、
+  `nix develop .#test --command ./scripts/run-test KisInputManagerTest`、
+  `nix develop .#test --command ./scripts/build-incremental native build kritaui`はmacOSで成功した。
+  既存の非推奨API警告以外に構築失敗はない。
+- `nix develop .#test --command ./scripts/verify`はmacOSの全1827構築工程を完了し、
+  新しい入力照合契約を含む全343件のネイティブ試験に成功した。既知の時間依存試験
+  `KisSafeDocumentLoaderTest`も成功し、この単位に残るmacOS検証失敗はない。
+- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、
+  Windowsを含む全Nix出力の式評価に成功した。
+- macOSとiOSのCMake台帳を実構成から再生成し、Linux、Android、Windowsへ共通ターゲットと依存を
+  同期した。現在はmacOS 665件、Linux 680件、iOS 599件、Android 605件、Windows 635件、
+  共通583件、条件付き119件、構成差266件である。
+- 公開面台帳は`kritainput`の9ヘッダーを追加し、`kritaui`を225ヘッダーから221ヘッダーへ縮小した。
+  中核所有ターゲットは24件、未公開内部参照は従来の4ヘッダー7件を維持し、全製品ターゲットの
+  循環は0件である。移設で可視化されたキャンバス表示とツール呼出しから入力解釈への各1件は、
+  R1-G6g所有、上限1件、除去条件を持つ一時逆方向参照として記録した。確認済み逆方向includeは
+  5責務対105件となり、R1-G6g完了時に両参照を0件へ除去する。
+
 ## 次の操作
 
-色採取ストローク実行の分離をコミットした後、R1-G6fの完了監査として残るUIツールクラス、
-公開面、内部ヘッダー参照、依存方向を照合する。完了条件を満たしたら、`libs/ui/input`と
-`libs/ui/tool`の入力解釈を`libs/input`の`kritainput`へ移すR1-G6gの最初の実装検査段階を定義する。
-清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
+入力プロファイルとショートカット設定値がUI入力アクションへ持つ依存を調査し、識別子、表示名、
+ショートカット索引のうち照合・保存に必要な値を入力所有へ分離する。マウス以外のタブレット、
+タッチ、スタイラス再生契約は各移設単位に先行して追加する。清浄な同一コミットをDarwinと
+x86_64 Linuxへ揃える5構成の完全一致検査はR1-G6g統合時に実施する。
 
 ## R1-G5完了根拠
 

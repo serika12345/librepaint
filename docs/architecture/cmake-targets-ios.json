@@ -997,6 +997,16 @@
       ]
     },
     {
+      "name": "TestInputShortcutMatcher",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/input/tests",
+      "dependencies": [
+        "Qt6::Gui",
+        "Qt6::Test",
+        "kritainput"
+      ]
+    },
+    {
       "name": "TestKUndo2Stack",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/painting/undo/tests",
@@ -4690,6 +4700,17 @@
       ]
     },
     {
+      "name": "kritainput",
+      "type": "STATIC_LIBRARY",
+      "sourceDirectory": "libs/input",
+      "dependencies": [
+        "Qt6::Core",
+        "Qt6::Gui",
+        "kritaflake",
+        "kritaglobal"
+      ]
+    },
+    {
       "name": "kritaiostouchui",
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/extensions/iostouchui",
@@ -5856,6 +5877,7 @@
         "kritaimage",
         "kritaimpex",
         "kritaimpexui",
+        "kritainput",
         "kritalibbrush",
         "kritapainting",
         "kritaresources",

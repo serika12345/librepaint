@@ -4,19 +4,19 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_abstract_shortcut.h"
+#include <kis_abstract_shortcut.h>
 
-#include "kis_abstract_input_action.h"
+#include <KisInputAction.h>
 
 
 class Q_DECL_HIDDEN KisAbstractShortcut::Private
 {
 public:
-    KisAbstractInputAction *action;
+    KisInputAction *action;
     int shortcutIndex;
 };
 
-KisAbstractShortcut::KisAbstractShortcut(KisAbstractInputAction *action, int index)
+KisAbstractShortcut::KisAbstractShortcut(KisInputAction *action, int index)
     : m_d(new Private)
 {
     m_d->action = action;
@@ -28,12 +28,12 @@ KisAbstractShortcut::~KisAbstractShortcut()
     delete m_d;
 }
 
-KisAbstractInputAction* KisAbstractShortcut::action() const
+KisInputAction* KisAbstractShortcut::action() const
 {
     return m_d->action;
 }
 
-void KisAbstractShortcut::setAction(KisAbstractInputAction* action)
+void KisAbstractShortcut::setAction(KisInputAction* action)
 {
     m_d->action = action;
 }

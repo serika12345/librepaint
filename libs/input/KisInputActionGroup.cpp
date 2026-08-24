@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "KisInputActionGroup.h"
+#include <KisInputActionGroup.h>
 
 KisInputActionGroupsMaskInterface::~KisInputActionGroupsMaskInterface() {
 }
@@ -19,5 +19,4 @@ KisInputActionGroupsMaskGuard::KisInputActionGroupsMaskGuard(KisInputActionGroup
 KisInputActionGroupsMaskGuard::~KisInputActionGroupsMaskGuard() {
     m_sharedInterface->setInputActionGroupsMask(m_oldMask);
 }
-
 

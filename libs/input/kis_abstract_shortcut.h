@@ -10,16 +10,16 @@
 
 #include <Qt>
 #include <QSet>
-#include <kritaui_export.h>
+#include <kritainput_export.h>
 #include "KisInputActionGroup.h"
 
-class KisAbstractInputAction;
+class KisInputAction;
 
 
-class KRITAUI_EXPORT KisAbstractShortcut
+class KRITAINPUT_EXPORT KisAbstractShortcut
 {
 public:
-    KisAbstractShortcut(KisAbstractInputAction *action, int index);
+    KisAbstractShortcut(KisInputAction *action, int index);
     virtual ~KisAbstractShortcut();
 
     /**
@@ -31,17 +31,17 @@ public:
     /**
      * The action associated with this shortcut.
      */
-    KisAbstractInputAction* action() const;
+    KisInputAction* action() const;
 
     /**
      * Set the action associated with this shortcut.
      */
-    void setAction(KisAbstractInputAction *action);
+    void setAction(KisInputAction *action);
 
     /**
      * The index of the shortcut.
      *
-     * \see KisAbstractInputAction::begin()
+     * \see KisInputAction::begin()
      */
     int shortcutIndex() const;
 
