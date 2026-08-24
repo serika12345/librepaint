@@ -21,7 +21,7 @@
 #include "kis_icon.h"
 #include "kis_image.h"
 #include "kis_wrapped_rect.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisPart.h"
 #include "KisReferenceImagesLayer.h"
 #include "KisScreenColorSampler.h"

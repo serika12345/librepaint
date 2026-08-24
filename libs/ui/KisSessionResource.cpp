@@ -9,7 +9,7 @@
 
 #include <KisPart.h>
 #include <kis_properties_configuration.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 #include <ksharedconfig.h>
 #include <KisViewManager.h>

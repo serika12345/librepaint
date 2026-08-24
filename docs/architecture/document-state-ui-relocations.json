@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "scope": "r1-g6g-document-state-ui-placement",
+  "purpose": "Place document-state UI implementation under responsibility directories while preserving the kritaui target, public behavior, class names, and ownership lifetime.",
+  "currentOwnerTarget": "kritaui",
+  "currentResponsibilities": {
+    "document-composition": "Document composition, document-facing operations, external file layers, filters, image actions, storyboard state, and text-property coordination.",
+    "node-presentation": "Node-tree models, node operation wiring, layer and mask management, shared-node properties, and node presentation values.",
+    "selection-presentation": "Selection operation wiring and the selection actions panel presentation."
+  },
+  "reviewedResponsibilityOverrides": [],
+  "relocations": [
+    {
+      "from": "libs/ui/KisCloneDocumentStroke.cpp",
+      "to": "libs/ui/document/KisCloneDocumentStroke.cpp",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/KisCloneDocumentStroke.h",
+      "to": "libs/ui/document/KisCloneDocumentStroke.h",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/KisDocument.cpp",
+      "to": "libs/ui/document/KisDocument.cpp",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/KisDocument.h",
+      "to": "libs/ui/document/KisDocument.h",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/KisTextPropertiesManager.cpp",
+      "to": "libs/ui/document/KisTextPropertiesManager.cpp",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/KisTextPropertiesManager.h",
+      "to": "libs/ui/document/KisTextPropertiesManager.h",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/StoryboardItem.cpp",
+      "to": "libs/ui/document/StoryboardItem.cpp",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/StoryboardItem.h",
+      "to": "libs/ui/document/StoryboardItem.h",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/kis_change_file_layer_command.h",
+      "to": "libs/ui/document/kis_change_file_layer_command.h",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/kis_file_layer.cpp",
+      "to": "libs/ui/document/kis_file_layer.cpp",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/kis_file_layer.h",
+      "to": "libs/ui/document/kis_file_layer.h",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/kis_filter_manager.cc",
+      "to": "libs/ui/document/kis_filter_manager.cc",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/kis_filter_manager.h",
+      "to": "libs/ui/document/kis_filter_manager.h",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/kis_image_manager.cc",
+      "to": "libs/ui/document/kis_image_manager.cc",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/kis_image_manager.h",
+      "to": "libs/ui/document/kis_image_manager.h",
+      "placementArea": "document-composition"
+    },
+    {
+      "from": "libs/ui/KisNodeActivationActionCreatorVisitor.cpp",
+      "to": "libs/ui/nodes/KisNodeActivationActionCreatorVisitor.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/KisNodeActivationActionCreatorVisitor.h",
+      "to": "libs/ui/nodes/KisNodeActivationActionCreatorVisitor.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_layer_manager.cc",
+      "to": "libs/ui/nodes/kis_layer_manager.cc",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_layer_manager.h",
+      "to": "libs/ui/nodes/kis_layer_manager.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_mask_manager.cc",
+      "to": "libs/ui/nodes/kis_mask_manager.cc",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_mask_manager.h",
+      "to": "libs/ui/nodes/kis_mask_manager.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_model_index_converter.cpp",
+      "to": "libs/ui/nodes/kis_model_index_converter.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_model_index_converter.h",
+      "to": "libs/ui/nodes/kis_model_index_converter.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_model_index_converter_base.cpp",
+      "to": "libs/ui/nodes/kis_model_index_converter_base.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_model_index_converter_base.h",
+      "to": "libs/ui/nodes/kis_model_index_converter_base.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_model_index_converter_show_all.cpp",
+      "to": "libs/ui/nodes/kis_model_index_converter_show_all.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_model_index_converter_show_all.h",
+      "to": "libs/ui/nodes/kis_model_index_converter_show_all.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_multinode_property.cpp",
+      "to": "libs/ui/nodes/kis_multinode_property.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_multinode_property.h",
+      "to": "libs/ui/nodes/kis_multinode_property.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_filter_proxy_model.cpp",
+      "to": "libs/ui/nodes/kis_node_filter_proxy_model.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_filter_proxy_model.h",
+      "to": "libs/ui/nodes/kis_node_filter_proxy_model.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_insertion_adapter.cpp",
+      "to": "libs/ui/nodes/kis_node_insertion_adapter.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_insertion_adapter.h",
+      "to": "libs/ui/nodes/kis_node_insertion_adapter.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_manager.cpp",
+      "to": "libs/ui/nodes/kis_node_manager.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_manager.h",
+      "to": "libs/ui/nodes/kis_node_manager.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_model.cpp",
+      "to": "libs/ui/nodes/kis_node_model.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_model.h",
+      "to": "libs/ui/nodes/kis_node_model.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_selection_adapter.cpp",
+      "to": "libs/ui/nodes/kis_node_selection_adapter.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_selection_adapter.h",
+      "to": "libs/ui/nodes/kis_node_selection_adapter.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_view_color_scheme.cpp",
+      "to": "libs/ui/nodes/kis_node_view_color_scheme.cpp",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/kis_node_view_color_scheme.h",
+      "to": "libs/ui/nodes/kis_node_view_color_scheme.h",
+      "placementArea": "node-presentation"
+    },
+    {
+      "from": "libs/ui/KisSelectionActionsAdapter.cpp",
+      "to": "libs/ui/selection/KisSelectionActionsAdapter.cpp",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/KisSelectionActionsAdapter.h",
+      "to": "libs/ui/selection/KisSelectionActionsAdapter.h",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_actions_panel.cpp",
+      "to": "libs/ui/selection/kis_selection_actions_panel.cpp",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_actions_panel.h",
+      "to": "libs/ui/selection/kis_selection_actions_panel.h",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_actions_panel_button.cpp",
+      "to": "libs/ui/selection/kis_selection_actions_panel_button.cpp",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_actions_panel_button.h",
+      "to": "libs/ui/selection/kis_selection_actions_panel_button.h",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_actions_panel_handle.cpp",
+      "to": "libs/ui/selection/kis_selection_actions_panel_handle.cpp",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_actions_panel_handle.h",
+      "to": "libs/ui/selection/kis_selection_actions_panel_handle.h",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_manager.cc",
+      "to": "libs/ui/selection/kis_selection_manager.cc",
+      "placementArea": "selection-presentation"
+    },
+    {
+      "from": "libs/ui/kis_selection_manager.h",
+      "to": "libs/ui/selection/kis_selection_manager.h",
+      "placementArea": "selection-presentation"
+    }
+  ]
+}

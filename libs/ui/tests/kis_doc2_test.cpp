@@ -10,7 +10,7 @@
 
 #include <simpletest.h>
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisPart.h"
 #include "kis_image.h"
 #include "kis_undo_store.h"

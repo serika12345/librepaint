@@ -32,7 +32,7 @@
 #include <kis_time_span.h>
 
 // local
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisImportExportManager.h"
 #include "KisMainWindow.h"
 #include "KisMimeDatabase.h"

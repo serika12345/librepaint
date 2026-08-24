@@ -12,7 +12,7 @@
 #include <KoStore.h>
 #include <KoStoreDevice.h>
 #include <KoColorSpaceRegistry.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_open_raster_stack_load_visitor.h>

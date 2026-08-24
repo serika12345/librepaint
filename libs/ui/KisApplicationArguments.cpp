@@ -18,7 +18,7 @@
 #include <KoResourcePaths.h>
 #include <klocalizedstring.h>
 #include <KisPart.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 struct Q_DECL_HIDDEN KisApplicationArguments::Private
 {

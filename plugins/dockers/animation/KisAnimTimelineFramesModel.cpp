@@ -36,15 +36,15 @@
 #include "KisAnimUtils.h"
 #include "KisAnimTimelineColors.h"
 #include "animation/KisPlaybackEngine.h"
-#include "kis_node_model.h"
+#include "nodes/kis_node_model.h"
 #include "kis_projection_leaf.h"
 #include "kis_time_span.h"
 
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 #include <kis_painting_tweaks.h>
 #include "KisPart.h"
 #include <QApplication>
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisViewManager.h"
 #include "kis_processing_applicator.h"
 #include <KisImageBarrierLock.h>

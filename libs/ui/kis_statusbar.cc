@@ -31,11 +31,11 @@
 #include <kis_layer_utils.h>
 #include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_selection_manager.h>
+#include <selection/kis_selection_manager.h>
 #include "kis_memory_statistics_server.h"
 
 #include "KisView.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_progress_widget.h"

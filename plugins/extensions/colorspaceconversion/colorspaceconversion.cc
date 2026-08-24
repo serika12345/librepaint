@@ -22,7 +22,7 @@
 #include <kis_config.h>
 #include <kis_global.h>
 #include <kis_image.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <kis_layer.h>
 #include <kis_types.h>
 

@@ -30,7 +30,7 @@
 #include <kis_canvas2.h>
 #include <KisKineticScroller.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_group_layer.h>
 #include <kis_painter.h>
 #include <kis_paint_layer.h>

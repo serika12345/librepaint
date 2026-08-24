@@ -24,9 +24,9 @@
 #include <kis_action_registry.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <KisViewManager.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisReferenceImagesLayer.h>
 #include <kis_image.h>
 #include "QClipboard"

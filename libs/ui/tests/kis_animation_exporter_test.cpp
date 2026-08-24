@@ -12,7 +12,7 @@
 #include <testutil.h>
 #include "KisPart.h"
 #include "kis_image.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_image_animation_interface.h"
 #include "KoColor.h"
 #include <KoUpdater.h>

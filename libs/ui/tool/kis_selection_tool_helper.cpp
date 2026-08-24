@@ -19,7 +19,7 @@
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
 #include "KisViewManager.h"
-#include "kis_selection_manager.h"
+#include "selection/kis_selection_manager.h"
 #include "kis_transaction.h"
 #include "commands/kis_selection_commands.h"
 #include "kis_shape_controller.h"

@@ -15,7 +15,7 @@
 #include <kis_processing_applicator.h>
 #include <kis_image.h>
 #include <kis_transaction.h>
-#include <kis_selection_manager.h>
+#include <selection/kis_selection_manager.h>
 #include <kis_command_utils.h>
 #include "commands/KisDeselectActiveSelectionCommand.h"
 

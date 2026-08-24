@@ -22,7 +22,7 @@
 #include <KisImportExportManager.h>
 #include <KisExportCheckRegistry.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_properties_configuration.h>

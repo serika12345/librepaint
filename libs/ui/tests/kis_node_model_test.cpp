@@ -10,9 +10,9 @@
 #include <simpletest.h>
 #include <kis_debug.h>
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisPart.h"
-#include "kis_node_model.h"
+#include "nodes/kis_node_model.h"
 #include "kis_name_server.h"
 #include "flake/kis_shape_controller.h"
 

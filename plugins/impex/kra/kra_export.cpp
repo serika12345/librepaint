@@ -17,7 +17,7 @@
 #include <KoColorSpace.h>
 
 #include <KisExportCheckRegistry.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_node.h>
 #include <kis_group_layer.h>

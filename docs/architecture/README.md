@@ -22,7 +22,7 @@
 2. [libs/CMakeLists.txt](../../libs/CMakeLists.txt)と[plugins/CMakeLists.txt](../../plugins/CMakeLists.txt)で、常時リンクするライブラリーと機能単位のプラグインを分けます。
 3. [krita/CMakeLists.txt](../../krita/CMakeLists.txt)で実行形式、Qtリソース、OS別ソース、静的プラグインの最終リンクを確認します。
 4. [krita/main.cc](../../krita/main.cc)から`KisApplication::start()`を追い、[KisApplication.cpp](../../libs/ui/KisApplication.cpp)でグローバル状態、プラグイン、リソース、メインウィンドウの初期化順を確認します。
-5. [KisDocument.h](../../libs/ui/KisDocument.h)と[kis_image.h](../../libs/image/kis_image.h)を読み、文書の寿命・入出力と、画像モデル・描画スケジューラーを分けて捉えます。
+5. [KisDocument.h](../../libs/ui/document/KisDocument.h)と[kis_image.h](../../libs/image/kis_image.h)を読み、文書の寿命・入出力と、画像モデル・描画スケジューラーを分けて捉えます。
 6. 対象機能を[変更内容から見る場所](#変更内容から見る場所)で引き、近傍の`CMakeLists.txt`、プラグインJSON、テストまで範囲を広げます。
 7. 配布や依存関係の変更では、[flake.nix](../../flake.nix)を入口に、該当する`nix/<platform>/`と`packaging/<platform>/`を読みます。
 
@@ -90,17 +90,23 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 `CMakeLists.txt`と実際のターゲットを記録する。
 
 [UIクラス責務台帳](ui-class-responsibilities.json)は、`libs/ui`直下の公開ヘッダーと
-`classPolicy.classifiedNestedHeaderPaths`に固定した24ヘッダーに宣言された現存クラスと構造体
+`classPolicy.classifiedNestedHeaderPaths`に固定した42ヘッダーに宣言された現存クラスと構造体
 79件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ接続する。77件は実装単位を持ち、
 2件は宣言側で完結する。責務領域はアプリケーション調整、キャンバス・表示、文書状態、
 ツール呼出し、ウィンドウ・作業空間の5種類である。キャンバス・表示30件は
-`libs/ui/animation`または`libs/ui/canvas`の責務配置で継続追跡する。
+`libs/ui/animation`または`libs/ui/canvas`、文書状態20件は`libs/ui/document`、
+`libs/ui/nodes`、`libs/ui/selection`の責務配置で継続追跡する。
 
 [キャンバス表示UI再配置台帳](canvas-presentation-ui-relocations.json)は、`libs/ui`直下から
 `libs/ui/animation`へ移した14ファイルと`libs/ui/canvas`へ移した53ファイルについて、
 開始パス、宛先パス、現在の配置責務を全件記録する。所有ターゲットは`kritaui`であり、
 アニメーション書出しを調整する1翻訳単位は`document-lifecycle`の審査済み帰属を維持する。
-[文書境界評価](document-boundary-assessment.json)は、文書状態に分類された残る20クラスと
+[文書状態UI再配置台帳](document-state-ui-relocations.json)は、`libs/ui`直下から
+`libs/ui/document`へ移した15ファイル、`libs/ui/nodes`へ移した26ファイル、
+`libs/ui/selection`へ移した10ファイルについて、開始パス、宛先パス、現在の配置責務を
+全件記録する。所有ターゲットは`kritaui`であり、公開クラス20件を宣言する18ヘッダーは
+分類済み入れ子経路として継続追跡する。
+[文書境界評価](document-boundary-assessment.json)は、文書状態に分類された20クラスと
 `KisDocument.cpp`の129メソッド定義を全件対象とし、現在の関心、具体的な所有先、
 後続検査段階へ接続する。宣言と実装の経路はクラス責務台帳を正本とする。検査器は
 クラス責務台帳との一致、全メソッドの一度限りの分類、

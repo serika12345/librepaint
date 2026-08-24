@@ -19,7 +19,7 @@
 #include <kis_paint_device.h>
 #include <KisViewManager.h>
 #include <kis_image.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_paint_layer.h>
 #include <kis_spacing_selection_widget.h>
 #include <kis_gbr_brush.h>

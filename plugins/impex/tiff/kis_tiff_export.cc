@@ -18,7 +18,7 @@
 #endif
 #include <tiffio.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisExportCheckRegistry.h>
 #include <KoColorModelStandardIds.h>
 #include <metadata/KoDocumentInfo.h>

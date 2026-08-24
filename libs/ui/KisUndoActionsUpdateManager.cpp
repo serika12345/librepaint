@@ -9,7 +9,7 @@
 #include <QAction>
 #include <kundo2stack.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 
 KisUndoActionsUpdateManager::KisUndoActionsUpdateManager(QAction *undoAction, QAction *redoAction, QObject *parent)

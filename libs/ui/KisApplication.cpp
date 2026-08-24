@@ -56,7 +56,7 @@
 #include <KoResourcePaths.h>
 #include <KisMimeDatabase.h>
 #include "thememanager.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisMainWindow.h"
 #include <files/kis_document_autosave_files.h>
 #include <recovery/KisAutoSaveRecoveryDialog.h>
@@ -172,8 +172,8 @@ public:
 
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>
 #include <kis_image_animation_interface.h>
-#include "kis_file_layer.h"
-#include "kis_node_manager.h"
+#include "document/kis_file_layer.h"
+#include "nodes/kis_node_manager.h"
 #include "KisSynchronizedConnection.h"
 #include <QThreadStorage>
 

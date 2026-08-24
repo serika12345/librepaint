@@ -22,7 +22,7 @@
 #include <KoShapeFactoryBase.h>
 
 #if USE_DOCUMENT
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_shape_layer.h"
 #endif /* USE_DOCUMENT */
 

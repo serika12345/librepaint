@@ -4,7 +4,7 @@
   SPDX-License-Identifier: LGPL-2.0-or-later
 */
 #include "NodeToolTip.h"
-#include "kis_node_model.h"
+#include "nodes/kis_node_model.h"
 
 #include <QImage>
 #include <QModelIndex>

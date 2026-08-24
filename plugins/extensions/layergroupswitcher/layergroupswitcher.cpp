@@ -16,7 +16,7 @@
 #include <kis_layer.h>
 #include <kis_group_layer.h>
 #include <kis_node.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <kis_global.h>
 #include <kis_types.h>
 #include <KisViewManager.h>

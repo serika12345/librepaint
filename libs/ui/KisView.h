@@ -19,6 +19,8 @@
 
 #include "widgets/kis_floating_message.h"
 
+Q_MOC_INCLUDE("kis_node.h")
+
 class KisDocument;
 class KisMainWindow;
 class KisCanvasController;

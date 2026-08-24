@@ -11,8 +11,8 @@
 #include <kis_paintop_preset.h>
 #include <KisView.h>
 #include <KisViewManager.h>
-#include <kis_node_manager.h>
-#include <kis_selection_manager.h>
+#include <nodes/kis_node_manager.h>
+#include <selection/kis_selection_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_exposure_gamma_correction_interface.h>
 #include <kis_paintop_box.h>
@@ -21,7 +21,7 @@
 #include <KoToolProxy.h>
 #include <kis_canvas2.h>
 #include <KisResourceTypes.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include "Document.h"
 #include "Canvas.h"
 #include "Window.h"

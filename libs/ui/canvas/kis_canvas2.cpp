@@ -27,7 +27,7 @@
 #include <KisSelectedShapesProxy.h>
 #include <KoColorProfile.h>
 #include <KoCanvasControllerWidget.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KoSelection.h>
 #include <KoShapeController.h>
 #include <KisReferenceImagesLayer.h>
@@ -52,7 +52,7 @@
 #include "kis_qpainter_canvas.h"
 #include "kis_group_layer.h"
 #include "flake/kis_shape_controller.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_selection.h"
 #include "kis_selection_component.h"
 #include "flake/kis_shape_selection.h"

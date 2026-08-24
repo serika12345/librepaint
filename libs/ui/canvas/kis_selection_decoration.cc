@@ -5,7 +5,7 @@
  */
 
 #include "canvas/kis_selection_decoration.h"
-#include "kis_selection_actions_panel.h"
+#include "selection/kis_selection_actions_panel.h"
 
 #include <QPainter>
 #include <QVarLengthArray>
@@ -25,7 +25,7 @@
 #include "flake/kis_shape_selection.h"
 #include "kis_pixel_selection.h"
 #include "kis_update_outline_job.h"
-#include "kis_selection_manager.h"
+#include "selection/kis_selection_manager.h"
 #include "canvas/kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_coordinates_converter.h"

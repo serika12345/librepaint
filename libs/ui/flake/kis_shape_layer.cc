@@ -25,7 +25,7 @@
 #include <kis_icon.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOp.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KoUnit.h>
 #include <KoShapeContainer.h>
 #include <KoShapeLayer.h>

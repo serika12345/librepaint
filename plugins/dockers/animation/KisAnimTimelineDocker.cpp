@@ -24,7 +24,7 @@
 #include <KoIcon.h>
 #include "KisViewManager.h"
 #include "kis_paint_layer.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_dummies_facade.h"
 #include "kis_shape_controller.h"
 #include "kis_action.h"
@@ -46,7 +46,7 @@
 #include <animation/kis_animation_frame_cache.h>
 #include "kis_image_animation_interface.h"
 #include "kis_signal_auto_connection.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_transport_controls.h"
 #include "kis_int_parse_spin_box.h"
 #include "kis_slider_spin_box.h"

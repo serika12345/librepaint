@@ -43,7 +43,7 @@
 
 #include "kis_config.h"
 #include "KisPart.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "widgets/kis_cmb_idlist.h"
 #include <KisSpinBoxI18nHelper.h>
 #include <KisSqueezedComboBox.h>

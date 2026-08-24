@@ -11,14 +11,14 @@
 
 #include <KisPart.h>
 #include <KisMainWindow.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisView.h>
 #include <util.h>
 #include <kis_action.h>
 #include <kis_action_manager.h>
 #include <KisViewManager.h>
 
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include <testui.h>
 
 void KisActionManagerTest::testUpdateGUI()

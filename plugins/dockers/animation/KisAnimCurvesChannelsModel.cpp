@@ -13,7 +13,7 @@
 #include "kis_dummies_facade_base.h"
 #include "kis_node_dummies_graph.h"
 #include "kis_node.h"
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 #include "kis_scalar_keyframe_channel.h"
 #include "kis_signal_auto_connection.h"
 #include <kis_painting_tweaks.h>

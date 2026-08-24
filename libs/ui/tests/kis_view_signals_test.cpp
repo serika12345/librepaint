@@ -11,7 +11,7 @@
 #include <QSignalSpy>
 #include <QTimer>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisMainWindow.h>
 #include <KisPart.h>
 #include <KisView.h>

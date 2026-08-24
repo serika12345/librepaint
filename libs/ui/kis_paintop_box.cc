@@ -50,7 +50,7 @@
 #include <kis_action.h>
 
 #include "kis_canvas2.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include <KisPaintResourceServerProvider.h>

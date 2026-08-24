@@ -24,7 +24,7 @@
 #include "kis_time_span.h"
 #include "kis_signal_compressor.h"
 #include "animation/KisFrameDisplayProxy.h"
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <QFileInfo>
 #include <QThread>
 #include "kis_signal_compressor_with_param.h"

@@ -15,7 +15,7 @@
 #include <KoFileDialog.h>
 #include <QMessageBox>
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisViewManager.h"
 #include "kis_image.h"
 #include "kis_layer.h"

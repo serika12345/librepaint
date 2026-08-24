@@ -10,7 +10,7 @@
 
 #include <kis_canvas2.h>
 #include <kis_image.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KoToolProxy.h>
 #include "kis_tool_proxy.h"
 #include <KisMainWindow.h>

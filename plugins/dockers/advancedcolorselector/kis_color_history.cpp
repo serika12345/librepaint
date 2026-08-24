@@ -16,7 +16,7 @@
 #include <QToolButton>
 #include <QList>
 #include <kis_icon.h>
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_config_notifier.h"
 
 Q_GLOBAL_STATIC(KisColorHistoryNotifier, s_color_history_change_notifier);

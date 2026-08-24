@@ -31,7 +31,7 @@
 #include "KoViewConverter.h"
 
 #include "kis_cursor.h"
-#include "kis_selection_manager.h"
+#include "selection/kis_selection_manager.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_layer.h"

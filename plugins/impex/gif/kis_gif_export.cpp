@@ -15,7 +15,7 @@
 #include <KisExportCheckRegistry.h>
 #include <KisImportExportManager.h>
 #include <kis_paint_device.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
 

@@ -19,7 +19,7 @@
 
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include <kis_image.h>
 #include "kis_signal_compressor.h"
 #include "KisPart.h"

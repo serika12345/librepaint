@@ -14,7 +14,7 @@
 
 #include <kis_signal_compressor.h>
 #include "canvas/kis_canvas_decoration.h"
-#include "kis_selection_actions_panel.h"
+#include "selection/kis_selection_actions_panel.h"
 
 class KisView;
 class QWindow;

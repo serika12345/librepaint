@@ -12,7 +12,7 @@
 #include <QMessageBox>
 #include <QApplication>
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisViewManager.h"
 #include "KisAnimationRenderingOptions.h"
 #include "KisMimeDatabase.h"

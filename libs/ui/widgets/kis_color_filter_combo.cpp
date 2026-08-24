@@ -21,7 +21,7 @@
 
 
 
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 #include "kis_debug.h"
 #include "kis_icon_utils.h"
 #include "krita_utils.h"

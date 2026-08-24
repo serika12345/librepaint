@@ -9,7 +9,7 @@
 
 #include <kis_canvas2.h>
 #include <KisView.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/kis_painting_assistants_decoration.h>

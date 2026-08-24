@@ -16,7 +16,7 @@
 #include <QVBoxLayout>
 
 #include "kis_image_animation_interface.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "canvas/KisNodeDisplayModeAdapter.h"
 #include "KisPart.h"
 #include "kis_name_server.h"

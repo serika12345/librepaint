@@ -9,7 +9,7 @@
 #include <simpletest.h>
 #include <QBitArray>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoShapeContainer.h>

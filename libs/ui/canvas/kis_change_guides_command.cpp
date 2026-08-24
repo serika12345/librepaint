@@ -7,7 +7,7 @@
 #include "kis_change_guides_command.h"
 
 #include "kis_guides_config.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include <kis_image.h>
 
 #include <QList>

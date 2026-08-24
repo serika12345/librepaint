@@ -57,7 +57,7 @@
 #include <kis_workspace_resource.h>
 #include <input/ui/kis_input_manager.h>
 #include "dialogs/KisDlgCreateNewDocument.h"
-#include "kis_selection_manager.h"
+#include "selection/kis_selection_manager.h"
 #include "kis_icon_utils.h"
 #include <krecentfilesaction.h>
 #include "krita_utils.h"
@@ -120,7 +120,7 @@
 #include <KisAnimationRender.h>
 #include <KisDlgAnimationRenderer.h>
 #endif
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include "kis_image_from_clipboard_widget.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
@@ -153,7 +153,7 @@
 #include "KisCanvasWindow.h"
 #include "kis_action.h"
 #include <katecommandbar.h>
-#include "KisNodeActivationActionCreatorVisitor.h"
+#include "nodes/KisNodeActivationActionCreatorVisitor.h"
 #include "KisUiFont.h"
 #include <KisResourceUserOperations.h>
 #include "KisRecentFilesManager.h"

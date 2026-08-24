@@ -23,7 +23,7 @@
 #include "commands/kis_image_layer_add_command.h"
 #include "KisTransformToolActivationCommand.h"
 #include "kis_processing_applicator.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 
 #include <metadata/KoDocumentInfo.h>
 #include <KoSvgPaste.h>
@@ -40,7 +40,7 @@
 #include "kis_raster_keyframe_channel.h"
 #include "kis_painter.h"
 #include <KisPart.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisReferenceImagesLayer.h>
 #include <KoShapeBackgroundCommand.h>
 #include <KoShapeStrokeCommand.h>

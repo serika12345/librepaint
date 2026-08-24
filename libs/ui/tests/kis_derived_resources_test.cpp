@@ -17,7 +17,7 @@
 #include "canvas/kis_canvas_resource_provider.h"
 #include <util.h>
 #include <KisMainWindow.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 #include <KisView.h>
 #include <KisViewManager.h>

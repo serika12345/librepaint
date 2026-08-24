@@ -49,7 +49,7 @@
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisImportExportAsyncFeedback.h"
 #include "KisImportExportErrorCode.h"
 #include "KisImportExportFilter.h"

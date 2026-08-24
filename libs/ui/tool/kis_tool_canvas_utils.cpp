@@ -24,7 +24,7 @@
 #include <kis_assert.h>
 #include <kis_floating_message.h>
 #include <kis_layer_utils.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <kis_shape_layer.h>
 
 #include "kis_canvas2.h"

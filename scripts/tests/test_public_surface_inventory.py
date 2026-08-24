@@ -18,6 +18,12 @@ UI_CLASS_INVENTORY_PATH = (
 UI_TOOL_CLASS_INVENTORY_PATH = (
     REPO_ROOT / "docs/architecture/ui-tool-class-responsibilities.json"
 )
+CANVAS_UI_RELOCATION_INVENTORY_PATH = (
+    REPO_ROOT / "docs/architecture/canvas-presentation-ui-relocations.json"
+)
+DOCUMENT_STATE_UI_RELOCATION_INVENTORY_PATH = (
+    REPO_ROOT / "docs/architecture/document-state-ui-relocations.json"
+)
 GRAPH_DIRECTORY = REPO_ROOT / "docs/architecture"
 SPEC = importlib.util.spec_from_file_location(
     "check_public_surface_inventory", SCRIPT_PATH
@@ -287,7 +293,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "consumerPaths": [
                     "libs/libkis/PaintingResources.h",
                     "libs/ui/actions/kis_selection_action_factories.cpp",
-                    "libs/ui/kis_selection_manager.cc",
+                    "libs/ui/selection/kis_selection_manager.cc",
                     "libs/ui/tool/kis_tool_shape.cc",
                     "plugins/tools/basictools/kis_tool_ellipse.cc",
                     "plugins/tools/basictools/kis_tool_rectangle.cc",
@@ -385,7 +391,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             image_by_path["libs/image/kis_image.h"]["consumerPaths"],
         )
         self.assertIn(
-            "libs/ui/kis_node_manager.cpp",
+            "libs/ui/nodes/kis_node_manager.cpp",
             image_by_path[
                 "libs/image/commands/kis_node_commands_adapter.h"
             ]["consumerPaths"],
@@ -394,7 +400,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             image_by_path[
                 "libs/image/commands/kis_node_operation_batch.h"
             ]["consumerPaths"],
-            ["libs/ui/kis_node_manager.cpp"],
+            ["libs/ui/nodes/kis_node_manager.cpp"],
         )
         self.assertIn(
             "libs/ui/tool/kis_tool_freehand_helper.h",
@@ -567,6 +573,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(
             by_name["KisDocument"]["responsibilityArea"], "document-state"
         )
+        self.assertEqual(
+            by_name["KisDocument"]["header"],
+            "libs/ui/document/KisDocument.h",
+        )
         self.assertNotIn("KisImportExportManager", by_name)
         self.assertNotIn("KisNodeCommandsAdapter", by_name)
         self.assertNotIn("KisNodeJugglerCompressed", by_name)
@@ -574,6 +584,36 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertNotIn(
             "import-export",
             {entry["responsibilityArea"] for entry in inventory["classes"]},
+        )
+
+    def test_ui_placement_relocation_inventories_are_complete(self) -> None:
+        canvas_inventory = (
+            check_public_surface_inventory.load_ui_placement_relocation_inventory(
+                CANVAS_UI_RELOCATION_INVENTORY_PATH
+            )
+        )
+        document_inventory = (
+            check_public_surface_inventory.load_ui_placement_relocation_inventory(
+                DOCUMENT_STATE_UI_RELOCATION_INVENTORY_PATH
+            )
+        )
+
+        check_public_surface_inventory.validate_ui_placement_relocations(
+            repository_root=REPO_ROOT,
+            ui_class_inventory=self.load_ui_class_inventory(),
+        )
+
+        self.assertEqual(len(canvas_inventory["relocations"]), 67)
+        self.assertEqual(len(document_inventory["relocations"]), 51)
+        document_destinations = {
+            entry["to"] for entry in document_inventory["relocations"]
+        }
+        self.assertEqual(
+            set(
+                check_public_surface_inventory.UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS
+            )
+            - document_destinations,
+            set(),
         )
 
     def test_missing_ui_class_responsibility_is_rejected(self) -> None:
@@ -635,7 +675,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             [
                 "libs/image/kis_image.h",
                 "libs/impex/ui/KisImportExportManager.h",
-                "libs/ui/KisDocument.h",
+                "libs/ui/document/KisDocument.h",
             ],
         )
         self.assertEqual(

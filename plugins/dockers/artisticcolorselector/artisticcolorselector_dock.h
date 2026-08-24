@@ -13,7 +13,7 @@
 #include <KoResourceServerProvider.h>
 #include <KoResourceServer.h>
 #include <resources/KoGamutMask.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_types.h>
 #include <KisResourceItemChooser.h>
 

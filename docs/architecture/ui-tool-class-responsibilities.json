@@ -90,7 +90,7 @@
       ],
       "consumerPaths": [
         "libs/ui/actions/kis_selection_action_factories.cpp",
-        "libs/ui/kis_selection_manager.cc",
+        "libs/ui/selection/kis_selection_manager.cc",
         "plugins/extensions/colorrange/colorrange.cc",
         "plugins/extensions/colorrange/dlg_colorrange.cc",
         "plugins/tools/selectiontools/KisToolSelectMagnetic.cc",
@@ -254,7 +254,7 @@
         "libs/ui/tool/kis_tool_shape.cc"
       ],
       "consumerPaths": [
-        "libs/ui/kis_selection_manager.cc",
+        "libs/ui/selection/kis_selection_manager.cc",
         "plugins/tools/basictools/kis_tool_ellipse.h",
         "plugins/tools/basictools/kis_tool_line.h",
         "plugins/tools/basictools/kis_tool_path.h",
@@ -275,7 +275,7 @@
         "libs/ui/tool/kis_tool_shape.cc"
       ],
       "consumerPaths": [
-        "libs/ui/kis_selection_manager.cc",
+        "libs/ui/selection/kis_selection_manager.cc",
         "plugins/tools/basictools/kis_tool_ellipse.h",
         "plugins/tools/basictools/kis_tool_line.h",
         "plugins/tools/basictools/kis_tool_path.h",

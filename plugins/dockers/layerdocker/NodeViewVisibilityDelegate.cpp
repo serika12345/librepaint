@@ -6,7 +6,7 @@
 
 #include "NodeViewVisibilityDelegate.h"
 
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 
 
 NodeViewVisibilityDelegate::NodeViewVisibilityDelegate(QObject *parent)

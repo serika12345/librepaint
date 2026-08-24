@@ -100,31 +100,31 @@ set(kritaui_LIB_SRCS
     kis_control_frame.cpp
     canvas/KisDisplayConfig.cpp
     kis_custom_pattern.cc
-    kis_file_layer.cpp
-    kis_change_file_layer_command.h
+    document/kis_file_layer.cpp
+    document/kis_change_file_layer_command.h
     kis_splash_screen.cpp
-    kis_filter_manager.cc
+    document/kis_filter_manager.cc
     kis_filters_model.cc
-    kis_image_manager.cc
+    document/kis_image_manager.cc
     canvas/kis_image_view_converter.cpp
-    kis_layer_manager.cc
-    kis_mask_manager.cc
-    kis_node_manager.cpp
-    kis_node_selection_adapter.cpp
-    kis_node_insertion_adapter.cpp
+    nodes/kis_layer_manager.cc
+    nodes/kis_mask_manager.cc
+    nodes/kis_node_manager.cpp
+    nodes/kis_node_selection_adapter.cpp
+    nodes/kis_node_insertion_adapter.cpp
     canvas/KisNodeDisplayModeAdapter.cpp
-    kis_node_model.cpp
-    kis_node_filter_proxy_model.cpp
-    kis_model_index_converter_base.cpp
-    kis_model_index_converter.cpp
-    kis_model_index_converter_show_all.cpp
+    nodes/kis_node_model.cpp
+    nodes/kis_node_filter_proxy_model.cpp
+    nodes/kis_model_index_converter_base.cpp
+    nodes/kis_model_index_converter.cpp
+    nodes/kis_model_index_converter_show_all.cpp
     canvas/KisMultiSurfaceStateManager.cpp
     canvas/KisLayerThumbnailCache.cpp
     canvas/kis_painting_assistant.cc
     canvas/kis_painting_assistants_decoration.cpp
-    kis_selection_actions_panel.cpp
-    kis_selection_actions_panel_handle.cpp
-    kis_selection_actions_panel_button.cpp
+    selection/kis_selection_actions_panel.cpp
+    selection/kis_selection_actions_panel_handle.cpp
+    selection/kis_selection_actions_panel_button.cpp
     canvas/KisDecorationsManager.cpp
     kis_paintop_box.cc
     kis_popup_palette.cpp
@@ -132,8 +132,8 @@ set(kritaui_LIB_SRCS
     KisResourceServerProvider.cpp
     KisSelectedShapesProxy.cpp
     canvas/kis_selection_decoration.cc
-    kis_selection_manager.cc
-    KisSelectionActionsAdapter.cpp
+    selection/kis_selection_manager.cc
+    selection/KisSelectionActionsAdapter.cpp
     kis_statusbar.cc
     canvas/kis_zoom_manager.cc
     kis_favorite_resource_manager.cpp
@@ -142,13 +142,13 @@ set(kritaui_LIB_SRCS
     kis_action_manager.cpp
     KisActionPlugin.cpp
     canvas/kis_canvas_controls_manager.cpp
-    kis_multinode_property.cpp
+    nodes/kis_multinode_property.cpp
     KisWelcomePageWidget.cpp
     KisUiFont.cpp
     canvas/KisIdleTasksManager.cpp
     canvas/KisIdleTaskStrokeStrategy.cpp
     canvas/KisImageThumbnailStrokeStrategy.cpp
-    KisTextPropertiesManager.cpp
+    document/KisTextPropertiesManager.cpp
     KisLongPressEventFilter.cpp
 
     opengl/kis_opengl.cpp
@@ -310,11 +310,11 @@ set(kritaui_LIB_SRCS
     KisPlatformPluginInterfaceFactory.cpp
     KisApplication.cpp
     KisDetailsPane.cpp
-    KisDocument.cpp
+    document/KisDocument.cpp
     KisImportExportColorSpaceDialog.cpp
     KisImportExportResizeWidget.cpp
-    KisCloneDocumentStroke.cpp
-    kis_node_view_color_scheme.cpp
+    document/KisCloneDocumentStroke.cpp
+    nodes/kis_node_view_color_scheme.cpp
     kis_async_action_feedback.cpp
     KisMainWindow.cpp
     KisOpenPane.cpp
@@ -353,9 +353,9 @@ set(kritaui_LIB_SRCS
 
     canvas/KisDecorationsWrapperLayer.cpp
 
-    StoryboardItem.cpp
+    document/StoryboardItem.cpp
 
-    KisNodeActivationActionCreatorVisitor.cpp
+    nodes/KisNodeActivationActionCreatorVisitor.cpp
     KisAndroidFileProxy.cpp
 )
 

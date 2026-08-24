@@ -24,7 +24,7 @@
 #include <kis_adjustment_layer.h>
 #include <kis_annotation.h>
 #include <kis_clone_layer.h>
-#include <kis_file_layer.h>
+#include <document/kis_file_layer.h>
 #include <kis_filter_mask.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>

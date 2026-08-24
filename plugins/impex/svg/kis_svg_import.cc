@@ -11,7 +11,7 @@
 #include "kis_config.h"
 
 #include <QInputDialog>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 
 #include <SvgParser.h>

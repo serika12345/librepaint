@@ -24,7 +24,7 @@
 
 #include <kis_cmb_composite.h>
 #include "KoColorProfile.h"
-#include "kis_multinode_property.h"
+#include "nodes/kis_multinode_property.h"
 #include "kis_layer_utils.h"
 #include "kis_image.h"
 #include "kis_layer_properties_icons.h"

@@ -22,7 +22,7 @@
 
 #include <KoUpdater.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_debug.h>
 #include <kis_image.h>
 #include <kis_layer.h>

@@ -50,7 +50,7 @@
 #include <kis_warptransform_worker.h>
 #include <kis_pixel_selection.h>
 #include <kis_shape_selection.h>
-#include <kis_selection_manager.h>
+#include <selection/kis_selection_manager.h>
 #include <krita_utils.h>
 #include <kis_resources_snapshot.h>
 #include <KisOptimizedBrushOutline.h>

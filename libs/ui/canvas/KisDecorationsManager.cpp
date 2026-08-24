@@ -17,7 +17,7 @@
 #include <kguiitem.h>
 #include <ktoggleaction.h>
 #include <kactioncollection.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 
 KisDecorationsManager::KisDecorationsManager(KisViewManager* view)

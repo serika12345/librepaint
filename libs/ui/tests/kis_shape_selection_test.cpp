@@ -23,7 +23,7 @@
 #include <testutil.h>
 #include "testui.h"
 #include <KisPart.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include "kis_transaction.h"
 
 void KisShapeSelectionTest::testAddChild()

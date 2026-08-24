@@ -20,7 +20,7 @@
 #include "kundo2magicstring.h"
 
 #include "KoProperties.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_layer_properties_icons.h"
 
 #include "canvas/kis_canvas_resource_provider.h"

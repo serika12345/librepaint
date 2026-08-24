@@ -19,7 +19,7 @@
 #include <KisPart.h>
 #include <KisView.h>
 #include <KisMainWindow.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>

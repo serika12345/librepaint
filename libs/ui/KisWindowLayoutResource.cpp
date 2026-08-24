@@ -17,7 +17,7 @@
 #include <QScreen>
 
 #include <KisPart.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_dom_utils.h>
 #include <KisMainWindow.h>
 

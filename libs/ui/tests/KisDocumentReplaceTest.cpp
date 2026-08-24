@@ -6,7 +6,7 @@
 
 #include "KisDocumentReplaceTest.h"
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 #include <QScopedPointer>
 #include <QSignalSpy>

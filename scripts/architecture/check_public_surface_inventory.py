@@ -38,9 +38,12 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/input": ("libs/input/tests/TestInputShortcutMatcher.cpp",),
     "libs/painting": ("libs/painting/tests/TestPaintingBoundary.cpp",),
     "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
-    "libs/ui": ("libs/ui/tests/TestCanvasUiPublicHeaders.cpp",),
+    "libs/ui": (
+        "libs/ui/tests/TestCanvasUiPublicHeaders.cpp",
+        "libs/ui/tests/TestDocumentStateUiPublicHeaders.cpp",
+    ),
 }
-UI_CLASS_NESTED_HEADER_PATHS = (
+UI_CANVAS_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/animation/KisAsyncAnimationRendererBase.h",
     "libs/ui/animation/KisPlaybackEngine.h",
     "libs/ui/animation/KisPlaybackEngineMLT.h",
@@ -66,6 +69,57 @@ UI_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/canvas/kis_selection_decoration.h",
     "libs/ui/canvas/kis_zoom_manager.h",
 )
+UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS = (
+    "libs/ui/document/KisDocument.h",
+    "libs/ui/document/KisTextPropertiesManager.h",
+    "libs/ui/document/StoryboardItem.h",
+    "libs/ui/document/kis_file_layer.h",
+    "libs/ui/document/kis_filter_manager.h",
+    "libs/ui/document/kis_image_manager.h",
+    "libs/ui/nodes/kis_model_index_converter.h",
+    "libs/ui/nodes/kis_model_index_converter_base.h",
+    "libs/ui/nodes/kis_model_index_converter_show_all.h",
+    "libs/ui/nodes/kis_multinode_property.h",
+    "libs/ui/nodes/kis_node_filter_proxy_model.h",
+    "libs/ui/nodes/kis_node_manager.h",
+    "libs/ui/nodes/kis_node_model.h",
+    "libs/ui/nodes/kis_node_selection_adapter.h",
+    "libs/ui/nodes/kis_node_view_color_scheme.h",
+    "libs/ui/selection/KisSelectionActionsAdapter.h",
+    "libs/ui/selection/kis_selection_actions_panel.h",
+    "libs/ui/selection/kis_selection_manager.h",
+)
+UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH = {
+    **{path: "canvas-display" for path in UI_CANVAS_CLASS_NESTED_HEADER_PATHS},
+    **{
+        path: "document-state"
+        for path in UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS
+    },
+}
+UI_CLASS_NESTED_HEADER_PATHS = tuple(
+    UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH
+)
+UI_PLACEMENT_RELOCATION_PATHS = (
+    "docs/architecture/canvas-presentation-ui-relocations.json",
+    "docs/architecture/document-state-ui-relocations.json",
+)
+UI_PLACEMENT_RELOCATION_SPECS = {
+    "docs/architecture/canvas-presentation-ui-relocations.json": {
+        "scope": "r1-g6g-canvas-presentation-ui-placement",
+        "placementAreas": {
+            "animation-playback": "animation",
+            "canvas-presentation": "canvas",
+        },
+    },
+    "docs/architecture/document-state-ui-relocations.json": {
+        "scope": "r1-g6g-document-state-ui-placement",
+        "placementAreas": {
+            "document-composition": "document",
+            "node-presentation": "nodes",
+            "selection-presentation": "selection",
+        },
+    },
+}
 INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
 )
@@ -978,6 +1032,10 @@ def load_ui_tool_class_inventory(path: Path) -> dict[str, Any]:
     return _load_json(path, "UI tool class responsibility inventory")
 
 
+def load_ui_placement_relocation_inventory(path: Path) -> dict[str, Any]:
+    return _load_json(path, "UI placement relocation inventory")
+
+
 def _require_object(value: Any, description: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise PublicSurfaceError(f"expected an object for {description}")
@@ -1022,6 +1080,240 @@ def _repository_file(
     if not resolved.is_file():
         raise PublicSurfaceError(f"{description} does not exist: {relative}")
     return relative, resolved
+
+
+def _repository_relative_path(value: Any, description: str) -> str:
+    relative = _require_string(value, description)
+    path = PurePosixPath(relative)
+    if path.is_absolute() or ".." in path.parts or path.as_posix() != relative:
+        raise PublicSurfaceError(
+            f"{description} must be a normalized repository-relative path: {relative}"
+        )
+    return relative
+
+
+def validate_ui_placement_relocations(
+    *, repository_root: Path, ui_class_inventory: dict[str, Any]
+) -> None:
+    all_sources: set[str] = set()
+    all_destinations: set[str] = set()
+    destinations_by_inventory: dict[str, set[str]] = {}
+    cmake_source_list = (repository_root / "libs/ui/CMakeLists.txt").read_text(
+        encoding="utf-8"
+    )
+
+    for inventory_path in UI_PLACEMENT_RELOCATION_PATHS:
+        spec = UI_PLACEMENT_RELOCATION_SPECS[inventory_path]
+        inventory = load_ui_placement_relocation_inventory(
+            repository_root / inventory_path
+        )
+        _require_fields(
+            inventory,
+            {
+                "schemaVersion",
+                "scope",
+                "purpose",
+                "currentOwnerTarget",
+                "currentResponsibilities",
+                "reviewedResponsibilityOverrides",
+                "relocations",
+            },
+            f"UI placement relocation inventory {inventory_path}",
+        )
+        if inventory.get("schemaVersion") != 1:
+            raise PublicSurfaceError(
+                f"schemaVersion must be 1 in {inventory_path}"
+            )
+        if inventory.get("scope") != spec["scope"]:
+            raise PublicSurfaceError(f"unexpected scope in {inventory_path}")
+        _require_string(inventory.get("purpose"), f"purpose in {inventory_path}")
+        if inventory.get("currentOwnerTarget") != "kritaui":
+            raise PublicSurfaceError(
+                f"currentOwnerTarget must be kritaui in {inventory_path}"
+            )
+
+        responsibilities = _require_object(
+            inventory.get("currentResponsibilities"),
+            f"currentResponsibilities in {inventory_path}",
+        )
+        expected_areas = set(spec["placementAreas"])
+        if set(responsibilities) != expected_areas:
+            raise PublicSurfaceError(
+                f"currentResponsibilities do not match placement areas in "
+                f"{inventory_path}"
+            )
+        for area, responsibility in responsibilities.items():
+            _require_string(
+                responsibility,
+                f"current responsibility {area} in {inventory_path}",
+            )
+
+        relocations = _require_array(
+            inventory.get("relocations"), f"relocations in {inventory_path}"
+        )
+        if not relocations:
+            raise PublicSurfaceError(
+                f"relocations must contain at least one entry in {inventory_path}"
+            )
+        inventory_destinations: set[str] = set()
+        for index, relocation_value in enumerate(relocations):
+            relocation = _require_object(
+                relocation_value,
+                f"relocation {index} in {inventory_path}",
+            )
+            _require_fields(
+                relocation,
+                {"from", "to", "placementArea"},
+                f"relocation {index} in {inventory_path}",
+            )
+            source = _repository_relative_path(
+                relocation.get("from"),
+                f"starting path for relocation {index} in {inventory_path}",
+            )
+            destination = _repository_relative_path(
+                relocation.get("to"),
+                f"destination path for relocation {index} in {inventory_path}",
+            )
+            placement_area = _require_string(
+                relocation.get("placementArea"),
+                f"placement area for relocation {index} in {inventory_path}",
+            )
+            if placement_area not in spec["placementAreas"]:
+                raise PublicSurfaceError(
+                    f"unknown placement area {placement_area} in {inventory_path}"
+                )
+            source_path = PurePosixPath(source)
+            destination_path = PurePosixPath(destination)
+            if (
+                len(source_path.parts) != 3
+                or source_path.parts[:2] != ("libs", "ui")
+            ):
+                raise PublicSurfaceError(
+                    f"starting path must be directly under libs/ui: {source}"
+                )
+            expected_directory = spec["placementAreas"][placement_area]
+            if (
+                len(destination_path.parts) != 4
+                or destination_path.parts[:3]
+                != ("libs", "ui", expected_directory)
+                or destination_path.name != source_path.name
+            ):
+                raise PublicSurfaceError(
+                    f"destination does not match {placement_area}: {destination}"
+                )
+            if source_path.suffix not in SOURCE_SUFFIXES:
+                raise PublicSurfaceError(
+                    f"relocation path is not a C/C++ source: {source}"
+                )
+            if source in all_sources or destination in all_destinations:
+                raise PublicSurfaceError(
+                    f"duplicate UI placement relocation: {source} -> {destination}"
+                )
+            if (repository_root / source).exists():
+                raise PublicSurfaceError(
+                    f"starting path still exists after relocation: {source}"
+                )
+            if not (repository_root / destination).is_file():
+                raise PublicSurfaceError(
+                    f"destination path does not exist: {destination}"
+                )
+            if source_path.suffix not in HEADER_SUFFIXES:
+                cmake_path = destination.removeprefix("libs/ui/")
+                if not re.search(
+                    rf"(?<![A-Za-z0-9_./-]){re.escape(cmake_path)}"
+                    rf"(?![A-Za-z0-9_./-])",
+                    cmake_source_list,
+                ):
+                    raise PublicSurfaceError(
+                        f"relocated translation unit is absent from "
+                        f"libs/ui/CMakeLists.txt: {destination}"
+                    )
+            all_sources.add(source)
+            all_destinations.add(destination)
+            inventory_destinations.add(destination)
+        destinations_by_inventory[inventory_path] = inventory_destinations
+
+        overrides = _require_array(
+            inventory.get("reviewedResponsibilityOverrides"),
+            f"reviewedResponsibilityOverrides in {inventory_path}",
+        )
+        override_paths: list[str] = []
+        for index, override_value in enumerate(overrides):
+            override = _require_object(
+                override_value,
+                f"responsibility override {index} in {inventory_path}",
+            )
+            _require_fields(
+                override,
+                {"path", "responsibility", "reason"},
+                f"responsibility override {index} in {inventory_path}",
+            )
+            path = _repository_relative_path(
+                override.get("path"),
+                f"responsibility override path {index} in {inventory_path}",
+            )
+            if path not in inventory_destinations:
+                raise PublicSurfaceError(
+                    f"responsibility override is not a relocated destination: {path}"
+                )
+            _require_string(
+                override.get("responsibility"),
+                f"responsibility override {index} in {inventory_path}",
+            )
+            _require_string(
+                override.get("reason"),
+                f"responsibility override reason {index} in {inventory_path}",
+            )
+            override_paths.append(path)
+        if override_paths != sorted(set(override_paths)):
+            raise PublicSurfaceError(
+                f"reviewedResponsibilityOverrides must be sorted and unique by "
+                f"path in {inventory_path}"
+            )
+
+    missing_classified_paths = sorted(
+        set(UI_CLASS_NESTED_HEADER_PATHS) - all_destinations
+    )
+    if missing_classified_paths:
+        raise PublicSurfaceError(
+            "classified nested UI headers are missing from placement relocation "
+            f"inventories: {missing_classified_paths}"
+        )
+
+    document_destinations = destinations_by_inventory[
+        "docs/architecture/document-state-ui-relocations.json"
+    ]
+    document_classes = [
+        _require_object(entry, "UI document-state class")
+        for entry in _require_array(
+            ui_class_inventory.get("classes"), "UI classes"
+        )
+        if isinstance(entry, dict)
+        and entry.get("responsibilityArea") == "document-state"
+    ]
+    document_class_headers = {
+        _require_string(entry.get("header"), "UI document-state class header")
+        for entry in document_classes
+    }
+    if document_class_headers != set(UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS):
+        raise PublicSurfaceError(
+            "document-state UI class headers do not match their classified "
+            "nested paths"
+        )
+    document_class_paths = set(document_class_headers)
+    for entry in document_classes:
+        document_class_paths.update(
+            _require_array(
+                entry.get("implementationPaths"),
+                f"implementation paths for {entry.get('name')}",
+            )
+        )
+    missing_document_paths = sorted(document_class_paths - document_destinations)
+    if missing_document_paths:
+        raise PublicSurfaceError(
+            "document-state UI class evidence is missing from its relocation "
+            f"inventory: {missing_document_paths}"
+        )
 
 
 def _platforms(value: Any, description: str) -> list[str]:
@@ -1150,9 +1442,15 @@ def _validate_consumer_evidence(
             f"consumer evidence for {description} must not be empty"
         )
     normalized: list[tuple[str, str]] = []
-    header_name = PurePosixPath(header_path).name
+    header = PurePosixPath(header_path)
+    header_name = header.name
+    include_names = {header_name}
+    if len(header.parts) > 2:
+        include_names.add(PurePosixPath(*header.parts[2:]).as_posix())
     include_pattern = re.compile(
-        rf"#[ \t]*include[ \t]*[<\"]{re.escape(header_name)}[>\"]"
+        rf"#[ \t]*include[ \t]*[<\"](?:"
+        + "|".join(re.escape(name) for name in sorted(include_names))
+        + r")[>\"]"
     )
     for index, item in enumerate(entries):
         entry = _require_object(item, f"consumer evidence {index} for {description}")
@@ -2073,6 +2371,10 @@ def validate_ui_class_inventory(
         ),
         include_consumer_paths=False,
         ownership_description="UI root and classified nested public classes",
+    )
+    validate_ui_placement_relocations(
+        repository_root=repository_root,
+        ui_class_inventory=inventory,
     )
 
 

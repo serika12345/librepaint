@@ -15,7 +15,7 @@
 #include "kis_default_bounds.h"
 #include "KisReferenceImagesLayer.h"
 #include "canvas/KisReferenceImage.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include <KoViewConverter.h>
 
 struct AddReferenceImagesCommand : KoShapeCreateCommand

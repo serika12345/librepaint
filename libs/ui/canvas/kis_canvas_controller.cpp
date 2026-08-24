@@ -16,7 +16,7 @@
 #include "kis_coordinates_converter.h"
 #include "kis_canvas2.h"
 #include "opengl/kis_opengl_canvas2.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_image.h"
 #include "KisViewManager.h"
 #include "KisView.h"

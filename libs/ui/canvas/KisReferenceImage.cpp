@@ -30,7 +30,7 @@
 #include <libs/flake/svg/parsers/SvgTransformParser.h>
 #include <libs/brush/kis_qimage_pyramid.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 
 struct KisReferenceImage::Private : public QSharedData

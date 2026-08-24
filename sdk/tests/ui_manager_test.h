@@ -14,12 +14,12 @@
 #include <resources/KoPattern.h>
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_filter_strategy.h"
-#include "kis_selection_manager.h"
-#include "kis_node_manager.h"
+#include "selection/kis_selection_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "KisViewManager.h"
 #include "KisView.h"
 #include "KisPart.h"
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_action_manager.h>
 #include "KisMainWindow.h"
 #include "kis_selection_mask.h"

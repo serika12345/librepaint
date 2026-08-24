@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "FileLayer.h"
-#include <kis_file_layer.h>
+#include <document/kis_file_layer.h>
 #include <kis_image.h>
 #include <QFileInfo>
 #include <QDir>

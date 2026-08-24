@@ -22,7 +22,7 @@
 #include <kis_paint_layer.h>
 #include <kis_node.h>
 #include <kis_group_layer.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisImportExportAdditionalChecks.h>
 
 #include "qgiflibhandler.h"

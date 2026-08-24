@@ -22,7 +22,7 @@
 #endif
 #include <tiffio.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisImportExportAdditionalChecks.h>
 #include <KisViewManager.h>
 #include <KoColorProfile.h>

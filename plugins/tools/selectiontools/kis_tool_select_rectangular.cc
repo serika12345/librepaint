@@ -22,7 +22,7 @@
 #include <kis_default_bounds.h>
 
 #include "KisViewManager.h"
-#include "kis_selection_manager.h"
+#include "selection/kis_selection_manager.h"
 #include <kis_command_utils.h>
 #include <kis_selection_filters.h>
 

@@ -17,7 +17,7 @@
 
 #include <KisImportExportManager.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 #include <kis_image.h>
 #include <KoColorSpace.h>

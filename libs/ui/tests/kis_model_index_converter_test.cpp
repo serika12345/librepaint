@@ -8,11 +8,11 @@
 
 #include <simpletest.h>
 
-#include "kis_node_model.h"
+#include "nodes/kis_node_model.h"
 #include "kis_dummies_facade.h"
 #include "kis_node_dummies_graph.h"
-#include "kis_model_index_converter.h"
-#include "kis_model_index_converter_show_all.h"
+#include "nodes/kis_model_index_converter.h"
+#include "nodes/kis_model_index_converter_show_all.h"
 
 
 void KisModelIndexConverterTest::init()

@@ -18,8 +18,8 @@
 #include <KisPart.h>
 #include <kis_shape_layer.h>
 #include <kis_types.h>
-#include <KisDocument.h>
-#include <kis_node_selection_adapter.h>
+#include <document/KisDocument.h>
+#include <nodes/kis_node_selection_adapter.h>
 #include <kis_group_layer.h>
 #include <KisView.h>
 #include <KisResourceItemChooser.h>

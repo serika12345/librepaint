@@ -33,8 +33,8 @@
 
 #include <KisPart.h>
 #include <KisViewManager.h>
-#include <kis_node_manager.h>
-#include <KisDocument.h>
+#include <nodes/kis_node_manager.h>
+#include <document/KisDocument.h>
 #include <kis_icon.h>
 #include <kis_image_animation_interface.h>
 #include <kis_time_span.h>

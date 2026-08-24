@@ -19,7 +19,7 @@
 
 #include <kconfig.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisResourceLocator.h>
 
 #include <KoColor.h>

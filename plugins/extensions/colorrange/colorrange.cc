@@ -19,7 +19,7 @@
 #include "kis_types.h"
 #include "KisViewManager.h"
 #include "kis_selection.h"
-#include "kis_selection_manager.h"
+#include "selection/kis_selection_manager.h"
 #include "kis_selection_tool_helper.h"
 #include "kis_canvas2.h"
 #include "kis_iterator_ng.h"

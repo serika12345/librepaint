@@ -12,7 +12,7 @@
 #include <commands/KoShapeCreateCommand.h>
 #include <commands/KoShapeGroupCommand.h>
 #include <KoShapeGroup.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_processing_applicator.h>
 #include <kis_group_layer.h>
 

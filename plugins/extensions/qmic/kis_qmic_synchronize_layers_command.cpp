@@ -11,7 +11,7 @@
 #include <tuple>
 #include <utility>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisMainWindow.h>
 #include <KisPart.h>
 #include <KisViewManager.h>
@@ -20,8 +20,8 @@
 #include <kis_command_utils.h>
 #include <kis_image.h>
 #include <kis_layer_utils.h>
-#include <kis_node_manager.h>
-#include <kis_node_selection_adapter.h>
+#include <nodes/kis_node_manager.h>
+#include <nodes/kis_node_selection_adapter.h>
 #include <kis_paint_layer.h>
 #include <kis_selection.h>
 #include <kis_surrogate_undo_adapter.h>

@@ -40,7 +40,7 @@
 #include "KisImportExportDialogs.h"
 #include "kis_clipboard.h"
 #include "kis_undo_stores.h"
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KoColorModelStandardIds.h>
 #include <kis_config.h>
 #include <kis_group_layer.h>

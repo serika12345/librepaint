@@ -17,7 +17,7 @@
 #include <ktoggleaction.h>
 #include <kis_algebra_2d.h>
 #include "kis_debug.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_icon_utils.h"

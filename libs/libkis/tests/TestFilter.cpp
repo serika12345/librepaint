@@ -18,7 +18,7 @@
 #include <KoColorProfile.h>
 #include <KoColor.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_fill_painter.h>
 #include <kis_paint_layer.h>

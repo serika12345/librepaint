@@ -15,7 +15,7 @@
 #include "dialogs/KisAsyncAnimationFramesSaveDialog.h"
 #include "kis_image_animation_interface.h"
 #include "KisPart.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_image_config.h"
 

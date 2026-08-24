@@ -17,7 +17,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 #include <kis_transaction.h>
 #include <kis_paint_device.h>

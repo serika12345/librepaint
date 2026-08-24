@@ -46,7 +46,7 @@
 #endif
 
 #include <KisApplication.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_icon.h>
 #include <KisPart.h>
 #include <KisSpinBoxI18nHelper.h>

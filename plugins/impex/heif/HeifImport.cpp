@@ -16,7 +16,7 @@
 #include <libheif/heif.h>
 #include <libheif/heif_cxx.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisImportExportManager.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>

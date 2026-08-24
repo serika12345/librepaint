@@ -20,7 +20,7 @@
 #include "KoColorProfileQuery.h"
 #include "KoFileDialog.h"
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisMainWindow.h>
 #include <KisImportExportManager.h>
 #include <kis_image.h>

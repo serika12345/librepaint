@@ -36,10 +36,14 @@ def updated_inventory(
         repository_root=REPO_ROOT,
         public_surface_inventory=public_surface_inventory,
     )
-    nested_headers = set(inventory_contract.UI_CLASS_NESTED_HEADER_PATHS)
     for entry in discovered:
-        if entry["header"] in nested_headers:
-            assignments.setdefault(entry["name"], "canvas-display")
+        nested_area = (
+            inventory_contract.UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH.get(
+                entry["header"]
+            )
+        )
+        if nested_area is not None:
+            assignments.setdefault(entry["name"], nested_area)
     discovered_names = {entry["name"] for entry in discovered}
     missing = sorted(discovered_names - set(assignments))
     if missing:

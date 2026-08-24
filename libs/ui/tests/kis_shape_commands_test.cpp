@@ -16,7 +16,7 @@
 #include <testutil.h>
 
 #include <KisPart.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 #include <KoShapeGroup.h>
 #include <KoShapeGroupCommand.h>

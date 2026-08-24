@@ -6,7 +6,7 @@
 #ifndef COMMENT_MODEL
 #define COMMENT_MODEL
 
-#include "StoryboardItem.h"
+#include "document/StoryboardItem.h"
 
 #include <QAbstractListModel>
 #include <QAbstractButton>

@@ -53,7 +53,7 @@
 #include <kis_shape_layer.h>
 #include <kis_transparency_mask.h>
 #include <kis_layer_composition.h>
-#include <kis_file_layer.h>
+#include <document/kis_file_layer.h>
 #include <kis_psd_layer_style.h>
 #include <kis_asl_layer_style_serializer.h>
 #include "kis_keyframe_channel.h"
@@ -62,7 +62,7 @@
 #include "canvas/KisReferenceImage.h"
 #include <KoColorSet.h>
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_config.h"
 #include "kis_kra_tags.h"
 #include "kis_kra_utils.h"
@@ -75,7 +75,7 @@
 #include "kis_image_config.h"
 #include "KisProofingConfiguration.h"
 #include "kis_layer_properties_icons.h"
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 #include "KisMirrorAxisConfig.h"
 #include <kis_cursor_override_hijacker.h>
 

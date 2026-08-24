@@ -30,7 +30,7 @@
 #include <KoChannelInfo.h>
 #include <KoColorModelStandardIds.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
@@ -43,7 +43,7 @@
 #include <KisPart.h>
 #include <KisViewManager.h>
 #include <kis_paint_device.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <commands/kis_node_commands_adapter.h>
 #include <KisMimeDatabase.h>
 #include "KisImageBarrierLock.h"

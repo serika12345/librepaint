@@ -18,7 +18,7 @@
 #include "canvas/kis_zoom_manager.h"
 #include "kis_signal_auto_connection.h"
 #include "KisViewManager.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_algebra_2d.h"
 #include <KoSnapGuide.h>
 #include "kis_snap_line_strategy.h"

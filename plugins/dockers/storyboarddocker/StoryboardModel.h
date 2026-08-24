@@ -6,7 +6,7 @@
 #ifndef STORYBOARD_MODEL
 #define STORYBOARD_MODEL
 
-#include "StoryboardItem.h"
+#include "document/StoryboardItem.h"
 #include "CommentModel.h"
 
 #include <QAbstractListModel>

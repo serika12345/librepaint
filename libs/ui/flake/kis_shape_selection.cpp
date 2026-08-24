@@ -19,7 +19,7 @@
 #include <KoShapeGroup.h>
 #include <KoCompositeOp.h>
 #include <KoShapeManager.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 #include <KoXmlNS.h>
 #include <KoShapeRegistry.h>

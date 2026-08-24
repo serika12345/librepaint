@@ -11,9 +11,9 @@
 #include <kis_filter.h>
 #include <kis_properties_configuration.h>
 #include <kis_filter_configuration.h>
-#include <kis_filter_manager.h>
+#include <document/kis_filter_manager.h>
 #include <kis_filter_registry.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_paint_device.h>
 #include <kis_paint_device_frames_interface.h>
 #include <KisPart.h>

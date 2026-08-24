@@ -7,7 +7,7 @@
 #include "NodePropertyAction_p.h"
 #include "NodeDelegate.h"
 #include "NodeViewVisibilityDelegate.h"
-#include "kis_node_model.h"
+#include "nodes/kis_node_model.h"
 #include "kis_signals_blocker.h"
 
 
@@ -31,7 +31,7 @@
 #include <QScrollBar>
 #include <QScroller>
 
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
 #define QT6_SHIFT_SELECTION_WORKAROUND

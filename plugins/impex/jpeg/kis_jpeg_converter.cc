@@ -38,7 +38,7 @@ extern "C" {
 #include <KoUnit.h>
 #include "KoColorModelStandardIds.h"
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_iterator_ng.h>

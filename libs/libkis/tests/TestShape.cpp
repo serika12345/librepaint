@@ -10,7 +10,7 @@
 #include <kis_image.h>
 #include <kis_shape_layer.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 
 #include <testui.h>

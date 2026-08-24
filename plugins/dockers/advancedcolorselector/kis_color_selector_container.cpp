@@ -20,12 +20,12 @@
 
 #include <kactioncollection.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisGamutMaskToolbar.h>
 #include "KisViewManager.h"
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
 

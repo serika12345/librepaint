@@ -3,8 +3,8 @@
   "scope": "r1-g6e-p4-document-boundary-evaluation",
   "sources": {
     "uiClassInventory": "docs/architecture/ui-class-responsibilities.json",
-    "kisDocumentHeader": "libs/ui/KisDocument.h",
-    "kisDocumentImplementation": "libs/ui/KisDocument.cpp",
+    "kisDocumentHeader": "libs/ui/document/KisDocument.h",
+    "kisDocumentImplementation": "libs/ui/document/KisDocument.cpp",
     "packageRelocationPlan": "docs/architecture/package-relocation-plan.json",
     "startingDocumentClassCount": 25,
     "previouslyResolvedClasses": [
@@ -629,10 +629,10 @@
     "gate": "R1-G6f",
     "purpose": "Separate existing tool commands from action, dialog, canvas, node, and selection presentation before relocating dependent document node models.",
     "startingPaths": [
-      "libs/ui/kis_filter_manager.h",
-      "libs/ui/kis_image_manager.h",
-      "libs/ui/kis_node_manager.h",
-      "libs/ui/kis_selection_manager.h",
+      "libs/ui/document/kis_filter_manager.h",
+      "libs/ui/document/kis_image_manager.h",
+      "libs/ui/nodes/kis_node_manager.h",
+      "libs/ui/selection/kis_selection_manager.h",
       "libs/ui/tool"
     ],
     "prerequisites": [

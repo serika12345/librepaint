@@ -9,7 +9,7 @@
 #include "KisPart.h"
 #include "KisMainWindow.h"
 #include "KisView.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_types.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"

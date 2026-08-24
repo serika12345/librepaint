@@ -36,7 +36,7 @@
 #include <kis_painter.h>
 
 #include <KisCursorOverrideLock.h>
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_clipboard.h"
 #include "kis_import_catcher.h"
 #include "widgets/kis_cmb_idlist.h"

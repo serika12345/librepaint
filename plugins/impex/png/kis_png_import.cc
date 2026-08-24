@@ -10,7 +10,7 @@
 
 #include <KisImportExportManager.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 
 #include <KisViewManager.h>

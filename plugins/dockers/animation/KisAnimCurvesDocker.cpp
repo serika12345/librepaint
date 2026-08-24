@@ -29,12 +29,12 @@
 #include "KisAnimUtils.h"
 #include "kis_image_config.h"
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_canvas2.h"
 #include "kis_shape_controller.h"
 #include "kis_signal_auto_connection.h"
 #include "KisViewManager.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include <animation/kis_animation_frame_cache.h>
 #include "klocalizedstring.h"
 #include "kis_icon_utils.h"

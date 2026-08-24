@@ -25,7 +25,7 @@
 #include <kactioncollection.h>
 #include <KisPart.h>
 #include <KisMainWindow.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_action.h>
 #include <KisViewManager.h>

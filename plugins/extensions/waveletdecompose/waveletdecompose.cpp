@@ -22,7 +22,7 @@
 #include <kis_image.h>
 #include <kis_wavelet_kernel.h>
 #include <kis_action.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_node.h>
 #include <kis_painter.h>
 #include <kis_paint_device.h>
@@ -30,7 +30,7 @@
 #include <kis_group_layer.h>
 #include <kis_random_accessor_ng.h>
 #include "dlg_waveletdecompose.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_undo_adapter.h"
 

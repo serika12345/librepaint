@@ -9,7 +9,7 @@
 #include <simpletest.h>
 
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoShapeContainer.h>
 #include <KoPathShape.h>
@@ -42,7 +42,7 @@
 #include "KritaTransformMaskStubs.h"
 #include "KisDumbTransformMaskParams.h"
 
-#include "StoryboardItem.h"
+#include "document/StoryboardItem.h"
 
 #include <generator/kis_generator_registry.h>
 

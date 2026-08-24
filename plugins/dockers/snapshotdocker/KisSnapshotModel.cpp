@@ -12,10 +12,10 @@
 #include <QPair>
 #include <QString>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisView.h>
 #include <KisViewManager.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <kis_name_server.h>
 #include <kis_image_signal_router.h>
 

@@ -24,7 +24,7 @@
 #include "kis_signal_compressor_with_param.h"
 #include "kis_canvas2.h"
 #include "KisViewManager.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisReferenceImagesLayer.h"
 #include "canvas/KisReferenceImagesDecoration.h"
 #include "kis_display_color_converter.h"

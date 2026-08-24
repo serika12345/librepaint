@@ -5,7 +5,7 @@
  */
 #include "KisSaveGroupVisitor.h"
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_painter.h>
 #include <kis_paint_layer.h>
 #include <KisPart.h>

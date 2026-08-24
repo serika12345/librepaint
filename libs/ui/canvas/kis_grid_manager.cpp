@@ -21,7 +21,7 @@
 #include "kis_grid_decoration.h"
 #include "kis_image.h"
 #include "KisViewManager.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisView.h"
 #include "kis_grid_config.h"
 #include "kis_signals_blocker.h"

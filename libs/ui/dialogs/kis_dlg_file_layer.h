@@ -10,7 +10,7 @@
 #include <QString>
 
 
-#include <kis_file_layer.h>
+#include <document/kis_file_layer.h>
 
 #include "ui_wdgdlgfilelayer.h"
 

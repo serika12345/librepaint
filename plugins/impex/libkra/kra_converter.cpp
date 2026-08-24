@@ -16,7 +16,7 @@
 #include <metadata/KoDocumentInfo.h>
 #include <KoXmlWriter.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KritaVersionWrapper.h>
 #include <kis_clone_layer.h>
 #include <kis_group_layer.h>

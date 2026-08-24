@@ -13,7 +13,7 @@
 #include <kis_processing_applicator.h>
 #include <KisPart.h>
 #include <KisView.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_canvas2.h>
 #include <KisMainWindow.h>
 #include <KoShapeController.h>

@@ -25,7 +25,7 @@
 
 #include "KisApplication.h"
 #include "KisMainWindow.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisView.h"
 #include "KisViewManager.h"
 #include "KisImportExportManager.h"

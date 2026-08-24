@@ -14,7 +14,7 @@
 #include <kis_canvas2.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <kis_painting_utils.h>
 #include <KisViewManager.h>
 

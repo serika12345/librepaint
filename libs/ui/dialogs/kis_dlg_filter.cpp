@@ -22,7 +22,7 @@
 
 #include "kis_selection.h"
 #include <commands/kis_node_commands_adapter.h>
-#include "kis_filter_manager.h"
+#include "document/kis_filter_manager.h"
 #include "ui_wdgfilterdialog.h"
 #include "kis_canvas2.h"
 #include "kis_signal_compressor.h"

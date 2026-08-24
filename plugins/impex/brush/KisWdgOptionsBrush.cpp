@@ -10,7 +10,7 @@
 #include <KisViewManager.h>
 #include <kis_image.h>
 #include <KoProperties.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 KisWdgOptionsBrush::KisWdgOptionsBrush(QWidget *parent)
     : KisConfigWidget(parent)

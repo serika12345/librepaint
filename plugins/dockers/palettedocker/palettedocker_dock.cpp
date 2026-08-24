@@ -30,7 +30,7 @@
 #include <kis_floating_message.h>
 #include <kis_icon.h>
 #include <kis_config.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KisMainWindow.h>
 #include <KisViewManager.h>
@@ -38,7 +38,7 @@
 #include <kis_canvas2.h>
 #include <KoDialog.h>
 #include <kis_color_button.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 #include <KisPaletteEditor.h>
 

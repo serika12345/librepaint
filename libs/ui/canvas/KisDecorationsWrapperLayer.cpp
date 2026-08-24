@@ -6,7 +6,7 @@
 
 #include "canvas/KisDecorationsWrapperLayer.h"
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_grid_config.h"

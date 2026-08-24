@@ -17,7 +17,7 @@
 #include <testutil.h>
 
 #include <KisPart.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_merge_strategy_registry.h>

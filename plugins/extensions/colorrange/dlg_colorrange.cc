@@ -27,7 +27,7 @@
 #include <kis_layer.h>
 #include <kis_paint_device.h>
 #include <kis_selection.h>
-#include <kis_selection_manager.h>
+#include <selection/kis_selection_manager.h>
 #include <kis_default_bounds.h>
 #include <KisImageResolutionProxy.h>
 #include <kis_types.h>

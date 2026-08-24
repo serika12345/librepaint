@@ -11,7 +11,7 @@
 
 #include <KoCompositeOpRegistry.h>
 
-#include "kis_multinode_property.h"
+#include "nodes/kis_multinode_property.h"
 
 
 void KisMultinodePropertyTest::test()

@@ -6,7 +6,7 @@
 
 #include "kis_dlg_import_image_sequence.h"
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisMainWindow.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"

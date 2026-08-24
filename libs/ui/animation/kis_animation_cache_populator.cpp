@@ -14,7 +14,7 @@
 #include "kis_config.h"
 #include "kis_config_notifier.h"
 #include "KisPart.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_canvas2.h"
@@ -23,7 +23,7 @@
 #include "kis_signal_auto_connection.h"
 #include "kis_idle_watcher.h"
 #include "KisViewManager.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_keyframe_channel.h"
 #include "KisMainWindow.h"
 

@@ -21,7 +21,7 @@
 #include <KoCanvasControllerWidget.h>
 #include <KoUnit.h>
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_coordinates_converter.h"

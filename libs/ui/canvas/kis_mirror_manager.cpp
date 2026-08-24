@@ -19,7 +19,7 @@
 #include "kis_canvas2.h"
 #include "kis_mirror_axis.h"
 #include <KisMirrorAxisConfig.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_signals_blocker.h>
 #include <kis_types.h>
 

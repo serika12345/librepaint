@@ -22,7 +22,7 @@
 #include <cstdint>
 #include <cstring>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisExportCheckRegistry.h>
 #include <KisImportExportErrorCode.h>
 #include <libs/global/KoAlwaysInline.h>

@@ -20,7 +20,7 @@
 #include <kpluginfactory.h>
 #include <libheif/heif_cxx.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisExportCheckRegistry.h>
 #include <KisImportExportManager.h>
 #include <KoColorModelStandardIds.h>

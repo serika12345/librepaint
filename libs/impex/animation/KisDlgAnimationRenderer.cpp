@@ -31,7 +31,7 @@
 #include <KisImportExportManager.h>
 #include <kis_config_widget.h>
 #include <kis_signals_blocker.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <QHBoxLayout>
 #include <kis_config.h>
 #include <kis_file_name_requester.h>

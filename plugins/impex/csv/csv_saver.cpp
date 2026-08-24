@@ -15,7 +15,7 @@
 #include <QVector>
 #include <QRegularExpression>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisMimeDatabase.h>
 #include <KisPart.h>
 #include <KoColorModelStandardIds.h>

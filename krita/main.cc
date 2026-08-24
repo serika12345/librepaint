@@ -46,7 +46,7 @@
 #include <opengl/kis_opengl.h>
 
 #include "KisApplicationArguments.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisPart.h"
 #include "KisUiFont.h"
 #include "input/ui/KisQtWidgetsTweaker.h"

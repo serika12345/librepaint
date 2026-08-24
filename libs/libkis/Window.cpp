@@ -11,7 +11,7 @@
 #include <kis_action.h>
 #include <KisMainWindow.h>
 #include <KisPart.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisViewManager.h>
 #include <kis_action_manager.h>
 #include <kis_debug.h>

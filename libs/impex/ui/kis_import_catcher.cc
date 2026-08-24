@@ -12,10 +12,10 @@
 
 #include <KisImportExportManager.h>
 
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_count_visitor.h"
 #include "KisViewManager.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_layer.h"
 #include "kis_painter.h"

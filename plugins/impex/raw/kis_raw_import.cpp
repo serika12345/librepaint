@@ -16,7 +16,7 @@
 #include <kdcraw.h>
 
 #include <KisCursorOverrideLock.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisExiv2IODevice.h>
 #include <KisImportExportErrorCode.h>
 #include <KoColorSpace.h>

@@ -23,7 +23,7 @@
 #include <KoUpdater.h>
 
 #include <kis_debug.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <filter/kis_filter_registry.h>
 #include <kis_global.h>
 #include <kis_image.h>

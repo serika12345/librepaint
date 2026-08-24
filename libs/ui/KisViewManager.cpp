@@ -78,17 +78,17 @@
 #include "kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_control_frame.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_favorite_resource_manager.h"
-#include "kis_filter_manager.h"
+#include "document/kis_filter_manager.h"
 #include <kis_image.h>
-#include "kis_image_manager.h"
+#include "document/kis_image_manager.h"
 #include <kis_layer.h>
 #include "kis_mainwindow_observer.h"
-#include "kis_mask_manager.h"
+#include "nodes/kis_mask_manager.h"
 #include "canvas/kis_mirror_manager.h"
 #include "kis_node.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "canvas/KisDecorationsManager.h"
 #include <kis_paint_layer.h>
 #include "kis_paintop_box.h"
@@ -96,7 +96,7 @@
 #include "KisPart.h"
 #include <KoUpdater.h>
 #include "kis_selection_mask.h"
-#include "kis_selection_manager.h"
+#include "selection/kis_selection_manager.h"
 #include "kis_shape_controller.h"
 #include "kis_shape_layer.h"
 #include <kis_signal_compressor.h>
@@ -119,7 +119,7 @@
 #include <KoToolDocker.h>
 #include <canvas/KisIdleTasksManager.h>
 #include <KisImageBarrierLock.h>
-#include <KisTextPropertiesManager.h>
+#include <document/KisTextPropertiesManager.h>
 #include <kis_selection.h>
 #include <KisUniqueColorSet.h>
 

@@ -16,7 +16,7 @@
 #include <QTemporaryDir>
 #include <QTime>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 #include <kis_time_span.h>

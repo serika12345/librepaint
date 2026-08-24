@@ -31,7 +31,7 @@
 #include <kis_annotation.h>
 #include <kis_types.h>
 #include <kis_paint_layer.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_group_layer.h>
 #include <kis_paint_device.h>

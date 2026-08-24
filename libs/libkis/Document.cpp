@@ -10,15 +10,15 @@
 
 #include <KisSynchronizedConnection.h>
 #include <KoColorSpaceConstants.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <KisPart.h>
 #include <kis_paint_device.h>
 #include <KisMainWindow.h>
-#include <kis_node_manager.h>
-#include <kis_node_selection_adapter.h>
+#include <nodes/kis_node_manager.h>
+#include <nodes/kis_node_selection_adapter.h>
 #include <KisViewManager.h>
-#include <kis_file_layer.h>
+#include <document/kis_file_layer.h>
 #include <kis_adjustment_layer.h>
 #include <kis_mask.h>
 #include <kis_clone_layer.h>

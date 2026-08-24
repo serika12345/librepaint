@@ -7,7 +7,7 @@
 */
 #include "kis_config.h"
 #include "NodeDelegate.h"
-#include "kis_node_model.h"
+#include "nodes/kis_node_model.h"
 #include "NodeToolTip.h"
 #include "NodeView.h"
 #include "KisPart.h"
@@ -27,7 +27,7 @@
 #include <QToolTip>
 
 #include <klocalizedstring.h>
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 #include "kis_icon_utils.h"
 #include "kis_layer_properties_icons.h"
 #include "krita_utils.h"

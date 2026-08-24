@@ -13,7 +13,7 @@
 #include <QApplication>
 
 #include <KisExportCheckRegistry.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 
 #include "qml_converter.h"

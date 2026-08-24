@@ -39,7 +39,7 @@
 #include <kis_icon.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_time_span.h>
 
 #include <kis_types.h>
@@ -60,8 +60,8 @@
 #include <kis_cmb_composite.h>
 #include "kis_slider_spin_box.h"
 #include "KisViewManager.h"
-#include "kis_node_manager.h"
-#include "kis_node_model.h"
+#include "nodes/kis_node_manager.h"
+#include "nodes/kis_node_model.h"
 #include <kis_clipboard.h>
 
 #include "canvas/kis_canvas2.h"
@@ -74,13 +74,13 @@
 #include "kis_color_label_selector_widget.h"
 #include "kis_signals_blocker.h"
 #include "kis_color_filter_combo.h"
-#include "kis_node_filter_proxy_model.h"
+#include "nodes/kis_node_filter_proxy_model.h"
 #include <KisSpinBoxI18nHelper.h>
 
 #include "kis_selection.h"
 #include "kis_processing_applicator.h"
 #include "commands/kis_set_global_selection_command.h"
-#include "KisSelectionActionsAdapter.h"
+#include "selection/KisSelectionActionsAdapter.h"
 #include "canvas/KisIdleTasksManager.h"
 
 #include "kis_layer_utils.h"

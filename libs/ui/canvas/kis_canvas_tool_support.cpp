@@ -13,7 +13,7 @@
 #include <kis_cursor.h>
 #include <kis_icon.h>
 #include <kis_image.h>
-#include <kis_node_manager.h>
+#include <nodes/kis_node_manager.h>
 #include <kis_selection.h>
 
 #include "opengl/kis_opengl_canvas2.h"

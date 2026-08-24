@@ -16,7 +16,7 @@
 #include <KisViewManager.h>
 #include <kis_canvas2.h>
 #include <kis_config.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_canvas_controller.h>
 #include <KisView.h>

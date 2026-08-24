@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 02:16 JST
+- 更新日時: 2026-08-25 02:48 JST
 - 状態: `in_progress`
-- 現在の検査段階: R1-G6gキャンバス表示配置境界
+- 現在の検査段階: R1-G6g文書状態UI配置境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: `libs/ui`直下に混在していたキャンバス表示実装を既存の責務ディレクトリーへ配置し、
-  公開挙動と所有寿命を維持したまま調査入口を明確にする。
+- 目的: `libs/ui`直下に混在していた文書構成、ノード表示と操作接続、選択接続を
+  責務ディレクトリーへ配置し、公開挙動と所有寿命を維持したまま調査入口を明確にする。
 
 ## 再開環境
 
@@ -1641,11 +1641,35 @@
   移設した全33翻訳単位で不要includeと直接include不足を報告していない。
 - `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
 
+## R1-G6g文書状態UI配置境界で完了した作業
+
+- `libs/ui`直下の文書構成と文書調整15ファイルを`libs/ui/document`、ノード表示モデルと
+  ノード操作接続26ファイルを`libs/ui/nodes`、選択操作接続と選択表示部品10ファイルを
+  `libs/ui/selection`へ移した。全51件の正確な開始パスと宛先パスは
+  `docs/architecture/document-state-ui-relocations.json`が一対一で記録する。
+- `KisDocument`、外部ファイル層、画像・フィルター管理、文書テキストと絵コンテ項目は
+  文書構成配置を所有する。ノード表示モデル、レイヤーとマスクの管理、ノード挿入接続は
+  ノード配置を所有し、選択アクション接続と選択パネル部品は選択配置を所有する。
+- `kritaui`のCMake所有、クラス名、公開記号、公開挙動、所有寿命を維持し、製品と試験の
+  includeを`document/...`、`nodes/...`、`selection/...`の正規経路へ更新した。
+  公開ヘッダー試験は移設前に`document/KisDocument.h`不在で失敗し、移設後に成功した。
+- UIクラス責務台帳は79クラスを維持し、文書状態20クラスを18の分類済み入れ子ヘッダーで
+  継続追跡する。再配置台帳の全開始パス消滅、全宛先実在、責務ディレクトリー、翻訳単位の
+  CMake登録、分類済みヘッダーとの対応は公開面検査が継続確認する。
+- `kritaui`、`TestDocumentStateUiPublicHeaders`、`kis_multinode_property_test`、
+  `kis_shape_selection_test`、`KisDocumentReplaceTest`はmacOSで成功した。clangdの
+  include-cleaner検査は移設した全25翻訳単位で不要includeと直接include不足を報告していない。
+- `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
+- `KisSelectedShapesProxy.*`、`KisUndoActionsUpdateManager.*`、`kis_filters_model.*`、
+  `kis_bookmarked_filter_configurations_model.*`はベクター選択、履歴アクション、フィルター一覧の
+  画面接続を含む`libs/ui`直下の候補であり、公開文書状態クラス集合の外側で責務分類を行う。
+
 ## 次の操作
 
-`libs/ui`直下で`document-state`に分類済みの公開クラスと同族実装を、文書構成、ノード表示と
-操作接続、選択接続の責務別サブディレクトリーへ移す。クラス名、公開記号、所有寿命を維持し、
-製品と試験のinclude、CMake、公開面・責務・構造・ソース寸法台帳を正規の入れ子経路へ更新する。
+`libs/ui`直下でアプリケーション調整、ウィンドウ・作業空間、ツール呼出しに分類済みの
+公開クラスと同族実装を、`libs/ui/application`、`libs/ui/workspace`、既存の`libs/ui/tool`へ移す。
+クラス名、公開記号、所有寿命を維持し、製品と試験のinclude、CMake、公開面・責務・構造・
+ソース寸法台帳を正規の入れ子経路へ更新する。
 
 ## R1-G5完了根拠
 

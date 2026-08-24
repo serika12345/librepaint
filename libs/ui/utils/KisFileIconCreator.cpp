@@ -12,7 +12,7 @@
 #include <KoStore.h>
 
 #include <KisMimeDatabase.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 #include <KisPreviewFileDialog.h>
 #include <QFileInfo>

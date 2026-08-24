@@ -12,7 +12,7 @@
 #include <kundo2command.h>
 
 #include <KisMainWindow.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 #include <KoPathShape.h>
 #include <KoShapeController.h>
@@ -42,7 +42,7 @@
 #include "kis_tool_proxy.h"
 #include "kis_canvas2.h"
 #include "kis_canvas_controller.h"
-#include "kis_selection_manager.h"
+#include "selection/kis_selection_manager.h"
 #include "commands_new/kis_transaction_based_command.h"
 #include "kis_selection_filters.h"
 #include "kis_shape_selection.h"
@@ -51,7 +51,7 @@
 #include "kis_image_animation_interface.h"
 #include "kis_time_span.h"
 #include "kis_keyframe_channel.h"
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_layer_utils.h"
 #include <kis_selection_mask.h>
 #include <KisReferenceImagesLayer.h>

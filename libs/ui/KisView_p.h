@@ -7,7 +7,7 @@
 #define KIS_VIEW_P_H
 
 #include "KoUnit.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 
 #include <QActionGroup>
 #include <QAction>

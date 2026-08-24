@@ -14,7 +14,7 @@
 #include "kis_shape_layer.h"
 #include "kis_paint_layer.h"
 #include "kis_clone_layer.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_shape_controller.h"
 #include "KisPart.h"
 #include "kis_layer_utils.h"

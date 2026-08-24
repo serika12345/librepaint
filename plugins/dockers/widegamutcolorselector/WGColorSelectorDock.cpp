@@ -6,7 +6,7 @@
 
 #include "WGColorSelectorDock.h"
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "WGActionManager.h"
 #include "WGColorSelectorSettings.h"
 #include "WGColorPatches.h"

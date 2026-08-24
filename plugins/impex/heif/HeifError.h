@@ -7,7 +7,7 @@
 #ifndef HEIF_ERROR_H_
 #define HEIF_ERROR_H_
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 #include "libheif/heif_cxx.h"
 #include <KisImportExportErrorCode.h>

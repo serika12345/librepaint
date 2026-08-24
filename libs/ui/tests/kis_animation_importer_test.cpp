@@ -8,7 +8,7 @@
 
 #include "KisPart.h"
 #include "kis_animation_importer.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include <testutil.h>
 #include "kis_keyframe_channel.h"
 #include "kis_image_animation_interface.h"

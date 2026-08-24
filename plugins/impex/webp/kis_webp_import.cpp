@@ -16,7 +16,7 @@
 #include <cstdint>
 #include <memory>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisImportExportErrorCode.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>

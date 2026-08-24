@@ -8,7 +8,7 @@
 
 #include <kpluginfactory.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_image.h>
 
 #include "ora_converter.h"

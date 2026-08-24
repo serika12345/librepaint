@@ -7,7 +7,7 @@
 #define TESTVECTORLAYER_H
 
 #include <QObject>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <VectorLayer.h>
 #include <kis_shape_layer.h>
 

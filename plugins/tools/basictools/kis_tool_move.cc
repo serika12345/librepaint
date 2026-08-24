@@ -28,10 +28,10 @@
 #include "krita_utils.h"
 
 #include <KisViewManager.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
-#include "kis_node_manager.h"
-#include "kis_selection_manager.h"
+#include "nodes/kis_node_manager.h"
+#include "selection/kis_selection_manager.h"
 #include "kis_signals_blocker.h"
 #include "KisAnimAutoKey.h"
 #include <boost/operators.hpp>

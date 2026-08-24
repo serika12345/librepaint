@@ -8,7 +8,7 @@
 
 #include <simpletest.h>
 
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>

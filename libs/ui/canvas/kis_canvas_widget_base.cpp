@@ -24,8 +24,8 @@
 #include "kis_config.h"
 #include "kis_canvas2.h"
 #include "KisViewManager.h"
-#include "kis_selection_manager.h"
-#include "KisDocument.h"
+#include "selection/kis_selection_manager.h"
+#include "document/KisDocument.h"
 #include "kis_update_info.h"
 #include "KisQPainterStateSaver.h"
 

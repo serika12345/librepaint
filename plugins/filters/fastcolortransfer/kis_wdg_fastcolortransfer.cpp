@@ -14,7 +14,7 @@
 #include <KisImportExportManager.h>
 
 #include <filter/kis_filter_configuration.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisPart.h>
 #include <kis_image.h>
 #include <kis_iterator_ng.h>

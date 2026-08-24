@@ -27,7 +27,7 @@
 #include <kis_selection.h>
 
 
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 
 #include "kis_open_raster_load_context.h"
 

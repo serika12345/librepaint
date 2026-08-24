@@ -7,7 +7,7 @@
 #ifndef NODE_PROPERTY_ACTION_P_H
 #define NODE_PROPERTY_ACTION_P_H
 
-#include <kis_node_model.h>
+#include <nodes/kis_node_model.h>
 #include <kis_base_node.h>
 
 #include <QPersistentModelIndex>

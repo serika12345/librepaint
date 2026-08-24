@@ -49,7 +49,7 @@
 
 #include <KisSpinBoxI18nHelper.h>
 #include <KisPart.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <kis_dummies_facade.h>
 #include <KoShapeControllerBase.h>
 #include <kis_shape_controller.h>

@@ -28,7 +28,7 @@
 #include "kis_color_filter_combo.h"
 #include "kis_color_label_button.h"
 #include "kis_color_label_selector_widget.h"
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 
 #include "KisMouseClickEater.h"
 #include "KisPopupSelfActivatingLineEdit.h"

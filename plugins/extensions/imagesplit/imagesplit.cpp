@@ -19,7 +19,7 @@
 
 #include <KisImportExportManager.h>
 #include <KoFileDialog.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 #include <KisPart.h>
 #include <kis_debug.h>

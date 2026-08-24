@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <StoryboardItem.h>
+#include <document/StoryboardItem.h>
 #include <kis_time_span.h>
 
 #include "StoryboardModel.h"

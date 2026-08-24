@@ -15,7 +15,7 @@
 #include "kis_image_config.h"
 #include "kis_onion_skin_compositor.h"
 #include "kis_signals_blocker.h"
-#include "kis_node_view_color_scheme.h"
+#include "nodes/kis_node_view_color_scheme.h"
 #include "KisViewManager.h"
 #include "kis_action_manager.h"
 #include "kis_action.h"

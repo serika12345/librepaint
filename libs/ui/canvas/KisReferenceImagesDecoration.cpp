@@ -10,7 +10,7 @@
 #include "KoShapeManager.h"
 
 #include "kis_algebra_2d.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "KisReferenceImagesLayer.h"
 #include "kis_layer_utils.h"
 #include <kis_display_color_converter.h>

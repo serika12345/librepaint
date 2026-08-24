@@ -22,7 +22,7 @@
 #include <commands/KisNodeRenameCommand.h>
 #include <kis_generator_layer.h>
 #include <KisViewManager.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_command_utils.h>
 #include <kis_icon_utils.h>

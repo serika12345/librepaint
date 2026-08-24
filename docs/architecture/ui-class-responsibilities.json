@@ -37,7 +37,25 @@
       "libs/ui/canvas/kis_painting_assistant.h",
       "libs/ui/canvas/kis_painting_assistants_decoration.h",
       "libs/ui/canvas/kis_selection_decoration.h",
-      "libs/ui/canvas/kis_zoom_manager.h"
+      "libs/ui/canvas/kis_zoom_manager.h",
+      "libs/ui/document/KisDocument.h",
+      "libs/ui/document/KisTextPropertiesManager.h",
+      "libs/ui/document/StoryboardItem.h",
+      "libs/ui/document/kis_file_layer.h",
+      "libs/ui/document/kis_filter_manager.h",
+      "libs/ui/document/kis_image_manager.h",
+      "libs/ui/nodes/kis_model_index_converter.h",
+      "libs/ui/nodes/kis_model_index_converter_base.h",
+      "libs/ui/nodes/kis_model_index_converter_show_all.h",
+      "libs/ui/nodes/kis_multinode_property.h",
+      "libs/ui/nodes/kis_node_filter_proxy_model.h",
+      "libs/ui/nodes/kis_node_manager.h",
+      "libs/ui/nodes/kis_node_model.h",
+      "libs/ui/nodes/kis_node_selection_adapter.h",
+      "libs/ui/nodes/kis_node_view_color_scheme.h",
+      "libs/ui/selection/KisSelectionActionsAdapter.h",
+      "libs/ui/selection/kis_selection_actions_panel.h",
+      "libs/ui/selection/kis_selection_manager.h"
     ],
     "declarationKinds": [
       "class",
@@ -234,27 +252,27 @@
     {
       "name": "KisDocument",
       "declarationKind": "class",
-      "header": "libs/ui/KisDocument.h",
+      "header": "libs/ui/document/KisDocument.h",
       "implementationPaths": [
-        "libs/ui/KisDocument.cpp"
+        "libs/ui/document/KisDocument.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisFileLayer",
       "declarationKind": "class",
-      "header": "libs/ui/kis_file_layer.h",
+      "header": "libs/ui/document/kis_file_layer.h",
       "implementationPaths": [
-        "libs/ui/kis_file_layer.cpp"
+        "libs/ui/document/kis_file_layer.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisFilterManager",
       "declarationKind": "class",
-      "header": "libs/ui/kis_filter_manager.h",
+      "header": "libs/ui/document/kis_filter_manager.h",
       "implementationPaths": [
-        "libs/ui/kis_filter_manager.cc"
+        "libs/ui/document/kis_filter_manager.cc"
       ],
       "responsibilityArea": "document-state"
     },
@@ -279,9 +297,9 @@
     {
       "name": "KisImageManager",
       "declarationKind": "class",
-      "header": "libs/ui/kis_image_manager.h",
+      "header": "libs/ui/document/kis_image_manager.h",
       "implementationPaths": [
-        "libs/ui/kis_image_manager.cc"
+        "libs/ui/document/kis_image_manager.cc"
       ],
       "responsibilityArea": "document-state"
     },
@@ -342,27 +360,27 @@
     {
       "name": "KisModelIndexConverter",
       "declarationKind": "class",
-      "header": "libs/ui/kis_model_index_converter.h",
+      "header": "libs/ui/nodes/kis_model_index_converter.h",
       "implementationPaths": [
-        "libs/ui/kis_model_index_converter.cpp"
+        "libs/ui/nodes/kis_model_index_converter.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisModelIndexConverterBase",
       "declarationKind": "class",
-      "header": "libs/ui/kis_model_index_converter_base.h",
+      "header": "libs/ui/nodes/kis_model_index_converter_base.h",
       "implementationPaths": [
-        "libs/ui/kis_model_index_converter_base.cpp"
+        "libs/ui/nodes/kis_model_index_converter_base.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisModelIndexConverterShowAll",
       "declarationKind": "class",
-      "header": "libs/ui/kis_model_index_converter_show_all.h",
+      "header": "libs/ui/nodes/kis_model_index_converter_show_all.h",
       "implementationPaths": [
-        "libs/ui/kis_model_index_converter_show_all.cpp"
+        "libs/ui/nodes/kis_model_index_converter_show_all.cpp"
       ],
       "responsibilityArea": "document-state"
     },
@@ -378,9 +396,9 @@
     {
       "name": "KisMultinodePropertyInterface",
       "declarationKind": "class",
-      "header": "libs/ui/kis_multinode_property.h",
+      "header": "libs/ui/nodes/kis_multinode_property.h",
       "implementationPaths": [
-        "libs/ui/kis_multinode_property.cpp"
+        "libs/ui/nodes/kis_multinode_property.cpp"
       ],
       "responsibilityArea": "document-state"
     },
@@ -396,45 +414,45 @@
     {
       "name": "KisNodeFilterProxyModel",
       "declarationKind": "class",
-      "header": "libs/ui/kis_node_filter_proxy_model.h",
+      "header": "libs/ui/nodes/kis_node_filter_proxy_model.h",
       "implementationPaths": [
-        "libs/ui/kis_node_filter_proxy_model.cpp"
+        "libs/ui/nodes/kis_node_filter_proxy_model.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisNodeManager",
       "declarationKind": "class",
-      "header": "libs/ui/kis_node_manager.h",
+      "header": "libs/ui/nodes/kis_node_manager.h",
       "implementationPaths": [
-        "libs/ui/kis_node_manager.cpp"
+        "libs/ui/nodes/kis_node_manager.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisNodeModel",
       "declarationKind": "class",
-      "header": "libs/ui/kis_node_model.h",
+      "header": "libs/ui/nodes/kis_node_model.h",
       "implementationPaths": [
-        "libs/ui/kis_node_model.cpp"
+        "libs/ui/nodes/kis_node_model.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisNodeSelectionAdapter",
       "declarationKind": "class",
-      "header": "libs/ui/kis_node_selection_adapter.h",
+      "header": "libs/ui/nodes/kis_node_selection_adapter.h",
       "implementationPaths": [
-        "libs/ui/kis_node_selection_adapter.cpp"
+        "libs/ui/nodes/kis_node_selection_adapter.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisNodeViewColorScheme",
       "declarationKind": "class",
-      "header": "libs/ui/kis_node_view_color_scheme.h",
+      "header": "libs/ui/nodes/kis_node_view_color_scheme.h",
       "implementationPaths": [
-        "libs/ui/kis_node_view_color_scheme.cpp"
+        "libs/ui/nodes/kis_node_view_color_scheme.cpp"
       ],
       "responsibilityArea": "document-state"
     },
@@ -601,18 +619,18 @@
     {
       "name": "KisSelectionActionsAdapter",
       "declarationKind": "class",
-      "header": "libs/ui/KisSelectionActionsAdapter.h",
+      "header": "libs/ui/selection/KisSelectionActionsAdapter.h",
       "implementationPaths": [
-        "libs/ui/KisSelectionActionsAdapter.cpp"
+        "libs/ui/selection/KisSelectionActionsAdapter.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "KisSelectionActionsPanel",
       "declarationKind": "class",
-      "header": "libs/ui/kis_selection_actions_panel.h",
+      "header": "libs/ui/selection/kis_selection_actions_panel.h",
       "implementationPaths": [
-        "libs/ui/kis_selection_actions_panel.cpp"
+        "libs/ui/selection/kis_selection_actions_panel.cpp"
       ],
       "responsibilityArea": "document-state"
     },
@@ -628,9 +646,9 @@
     {
       "name": "KisSelectionManager",
       "declarationKind": "class",
-      "header": "libs/ui/kis_selection_manager.h",
+      "header": "libs/ui/selection/kis_selection_manager.h",
       "implementationPaths": [
-        "libs/ui/kis_selection_manager.cc"
+        "libs/ui/selection/kis_selection_manager.cc"
       ],
       "responsibilityArea": "document-state"
     },
@@ -691,9 +709,9 @@
     {
       "name": "KisTextPropertiesManager",
       "declarationKind": "class",
-      "header": "libs/ui/KisTextPropertiesManager.h",
+      "header": "libs/ui/document/KisTextPropertiesManager.h",
       "implementationPaths": [
-        "libs/ui/KisTextPropertiesManager.cpp"
+        "libs/ui/document/KisTextPropertiesManager.cpp"
       ],
       "responsibilityArea": "document-state"
     },
@@ -754,18 +772,18 @@
     {
       "name": "MultinodePropertyBaseConnector",
       "declarationKind": "class",
-      "header": "libs/ui/kis_multinode_property.h",
+      "header": "libs/ui/nodes/kis_multinode_property.h",
       "implementationPaths": [
-        "libs/ui/kis_multinode_property.cpp"
+        "libs/ui/nodes/kis_multinode_property.cpp"
       ],
       "responsibilityArea": "document-state"
     },
     {
       "name": "MultinodePropertyConnectorInterface",
       "declarationKind": "class",
-      "header": "libs/ui/kis_multinode_property.h",
+      "header": "libs/ui/nodes/kis_multinode_property.h",
       "implementationPaths": [
-        "libs/ui/kis_multinode_property.cpp"
+        "libs/ui/nodes/kis_multinode_property.cpp"
       ],
       "responsibilityArea": "document-state"
     },
@@ -781,9 +799,9 @@
     {
       "name": "StoryboardItem",
       "declarationKind": "class",
-      "header": "libs/ui/StoryboardItem.h",
+      "header": "libs/ui/document/StoryboardItem.h",
       "implementationPaths": [
-        "libs/ui/StoryboardItem.cpp"
+        "libs/ui/document/StoryboardItem.cpp"
       ],
       "responsibilityArea": "document-state"
     }

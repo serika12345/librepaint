@@ -67,7 +67,7 @@
 #include <KoColorBackground.h>
 #include <KisResourceModel.h>
 
-#include <KisTextPropertiesManager.h>
+#include <document/KisTextPropertiesManager.h>
 #include <KisViewManager.h>
 #include <KisQQuickWidget.h>
 #include <QQmlError>

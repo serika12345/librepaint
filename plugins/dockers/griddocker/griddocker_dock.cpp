@@ -22,7 +22,7 @@
 #include <kis_guides_manager.h>
 #include <kis_guides_config.h>
 #include <kis_action.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 
 #include "grid_config_widget.h"
 

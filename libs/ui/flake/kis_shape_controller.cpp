@@ -21,14 +21,14 @@
 #include <KoColorSpaceConstants.h>
 #include <KoCanvasController.h>
 
-#include "kis_node_manager.h"
+#include "nodes/kis_node_manager.h"
 #include "kis_shape_selection.h"
 #include "kis_selection.h"
 #include "kis_selection_component.h"
 #include "kis_adjustment_layer.h"
 #include "kis_clone_layer.h"
 #include "canvas/kis_canvas2.h"
-#include "KisDocument.h"
+#include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_group_layer.h"
 #include "kis_node_shape.h"

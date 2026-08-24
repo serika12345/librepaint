@@ -27,7 +27,7 @@
 
 #include <klocalizedstring.h>
 #include <kis_icon.h>
-#include <KisDocument.h>
+#include <document/KisDocument.h>
 #include <KisTemplates.h>
 #include <KisTemplateTree.h>
 #include <KisTemplateGroup.h>

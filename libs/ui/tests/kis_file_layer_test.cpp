@@ -10,7 +10,7 @@
 
 #include <KoColor.h>
 
-#include <kis_file_layer.h>
+#include <document/kis_file_layer.h>
 #include <kis_transform_mask.h>
 #include <kis_transform_mask_params_interface.h>
 
