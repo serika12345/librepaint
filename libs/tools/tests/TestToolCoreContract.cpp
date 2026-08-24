@@ -16,6 +16,7 @@
 #include <KisToolPaintFactoryBase.h>
 #include <kis_delegated_tool.h>
 #include <kis_delegated_tool_policies.h>
+#include <kis_outline_interaction.h>
 #include <kis_polyline_interaction.h>
 #include <kis_selection_modifier_mapping.h>
 #include <kis_rectangle_interaction.h>
@@ -59,6 +60,8 @@ private Q_SLOTS:
     void rectangleConstraints();
     void rectangleModifierModes();
     void rectangleRotation();
+    void outlineInputLifecycle();
+    void outlineContinuedInput();
     void polylinePointLifecycle();
     void polylineUndoAndCancel();
 
@@ -257,6 +260,59 @@ void TestToolCoreContract::rectangleRotation()
 
     const qreal expectedAngle = std::atan2(10.0, 0.0) - std::atan2(20.0, 10.0);
     QVERIFY(qAbs(interaction.rotationAngle() - expectedAngle) < 0.000001);
+}
+
+void TestToolCoreContract::outlineInputLifecycle()
+{
+    KisOutlineInteraction interaction;
+
+    QVERIFY(interaction.beginInput(QPointF(10.0, 20.0)));
+    QVERIFY(interaction.isActive());
+    QVERIFY(interaction.isInputActive());
+
+    interaction.addPoint(QPointF(20.0, 30.0));
+    interaction.updateCursor(QPointF(25.0, 35.0));
+    QCOMPARE(interaction.cursorPosition(), QPointF(25.0, 35.0));
+    interaction.endInput();
+    QVERIFY(!interaction.isInputActive());
+
+    QCOMPARE(interaction.finish(),
+             QVector<QPointF>({QPointF(10.0, 20.0),
+                               QPointF(20.0, 30.0)}));
+    QVERIFY(!interaction.isActive());
+    QVERIFY(interaction.points().isEmpty());
+
+    QVERIFY(interaction.beginInput(QPointF(1.0, 2.0)));
+    interaction.cancel();
+    QVERIFY(!interaction.isActive());
+    QVERIFY(interaction.points().isEmpty());
+}
+
+void TestToolCoreContract::outlineContinuedInput()
+{
+    KisOutlineInteraction interaction;
+    QVERIFY(interaction.beginInput(QPointF(1.0, 2.0)));
+    interaction.addPoint(QPointF(2.0, 3.0));
+    interaction.enableContinuedMode();
+    interaction.endInput();
+
+    QVERIFY(interaction.isContinuedMode());
+    QVERIFY(interaction.isActive());
+    interaction.updateCursor(QPointF(4.0, 5.0));
+    QCOMPARE(interaction.cursorPosition(), QPointF(4.0, 5.0));
+
+    QVERIFY(!interaction.beginInput(QPointF(4.0, 5.0)));
+    interaction.endInput();
+    QVERIFY(interaction.canUndoPoint());
+    interaction.undoPoint();
+    QCOMPARE(interaction.points(),
+             QVector<QPointF>({QPointF(1.0, 2.0), QPointF(2.0, 3.0)}));
+    QVERIFY(!interaction.canUndoPoint());
+
+    interaction.disableContinuedMode();
+    QVERIFY(!interaction.isContinuedMode());
+    QCOMPARE(interaction.finish(),
+             QVector<QPointF>({QPointF(1.0, 2.0), QPointF(2.0, 3.0)}));
 }
 
 void TestToolCoreContract::polylinePointLifecycle()

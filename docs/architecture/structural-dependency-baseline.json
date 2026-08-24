@@ -1931,6 +1931,17 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/KisToolOutlineBase.h",
+          "include": "kis_outline_interaction.h",
+          "headerPath": "libs/tools/kis_outline_interaction.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_tool_freehand.cc",
           "include": "kis_tool_utils.h",
           "headerPath": "libs/tools/kis_tool_utils.h",
@@ -2929,6 +2940,17 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/KisToolOutlineBase.h",
+          "include": "kis_outline_interaction.h",
+          "headerPath": "libs/tools/kis_outline_interaction.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {

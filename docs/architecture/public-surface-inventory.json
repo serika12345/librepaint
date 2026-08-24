@@ -8149,6 +8149,7 @@
       "responsibility": "Records the declared and externally consumed tool-command surface for activation, interaction geometry, settings state, canvas access, and shared tool policies.",
       "evidence": [
         "libs/tools/CMakeLists.txt",
+        "libs/tools/kis_outline_interaction.h",
         "libs/tools/kis_polyline_interaction.h",
         "libs/tools/kis_rectangle_interaction.h",
         "libs/tools/kis_tool.h"
@@ -8244,6 +8245,17 @@
             "compile-contract"
           ],
           "consumerPaths": []
+        },
+        {
+          "path": "libs/tools/kis_outline_interaction.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/tool/KisToolOutlineBase.h"
+          ]
         },
         {
           "path": "libs/tools/kis_polyline_interaction.h",

@@ -155,7 +155,21 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(painting_headers), 19)
-        self.assertEqual(len(tool_headers), 14)
+        self.assertEqual(len(tool_headers), 15)
+        self.assertEqual(
+            tool_by_path["libs/tools/kis_outline_interaction.h"],
+            {
+                "path": "libs/tools/kis_outline_interaction.h",
+                "publicationEvidence": [
+                    "export-macro",
+                    "compile-contract",
+                    "external-include",
+                ],
+                "consumerPaths": [
+                    "libs/ui/tool/KisToolOutlineBase.h",
+                ],
+            },
+        )
         self.assertEqual(
             tool_by_path["libs/tools/kis_polyline_interaction.h"],
             {
@@ -516,7 +530,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
                 "kritapainting": 19,
-                "kritatools": 14,
+                "kritatools": 15,
                 "kritaui": 234,
             },
         )

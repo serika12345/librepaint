@@ -25,10 +25,7 @@
 
 KisToolOutlineBase::KisToolOutlineBase(KoCanvasBase * canvas, ToolType type, const QCursor & cursor)
     : KisToolShape(canvas, cursor)
-    , m_continuedMode(false)
     , m_type(type)
-    , m_numberOfContinuedModePoints(0)
-    , m_hasUserInteractionRunning(false)
 {}
 
 KisToolOutlineBase::~KisToolOutlineBase()
@@ -38,7 +35,7 @@ void KisToolOutlineBase::keyPressEvent(QKeyEvent *event)
 {
     // Allow to enter continued mode only if we started drawing the shape
     if (mode() == PAINT_MODE && event->key() == Qt::Key_Control) {
-        m_continuedMode = true;
+        m_outlineInteraction.enableContinuedMode();
         installBlockActionGuard();
     }
     KisToolShape::keyPressEvent(event);
@@ -48,7 +45,7 @@ void KisToolOutlineBase::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Control ||
         !(event->modifiers() & Qt::ControlModifier)) {
-        m_continuedMode = false;
+        m_outlineInteraction.disableContinuedMode();
         if (mode() != PAINT_MODE) {
             endStroke();
         }
@@ -58,11 +55,11 @@ void KisToolOutlineBase::keyReleaseEvent(QKeyEvent *event)
 
 void KisToolOutlineBase::mouseMoveEvent(KoPointerEvent *event)
 {
-    if (m_continuedMode && mode() != PAINT_MODE) {
+    if (m_outlineInteraction.isContinuedMode() && mode() != PAINT_MODE) {
         updateContinuedMode();
-        m_lastCursorPos = convertToPixelCoordAndSnap(event);
+        m_outlineInteraction.updateCursor(convertToPixelCoordAndSnap(event));
     } else {
-        m_lastCursorPos = convertToPixelCoord(event);
+        m_outlineInteraction.updateCursor(convertToPixelCoord(event));
     }
     if (mode() == PAINT_MODE) {
         KisToolShape::requestUpdateOutline(event->point, event);
@@ -90,7 +87,7 @@ void KisToolOutlineBase::deactivate()
     KIS_ASSERT_RECOVER_RETURN(kisCanvas);
     kisCanvas->updateCanvas();
 
-    m_continuedMode = false;
+    m_outlineInteraction.disableContinuedMode();
 
     KisInputManager *inputManager = kisCanvas->globalInputManager();
     if (inputManager) {
@@ -102,7 +99,9 @@ void KisToolOutlineBase::deactivate()
 
 KisPopupWidgetInterface* KisToolOutlineBase::popupWidget()
 {
-    return !m_points.isEmpty() || m_type == SELECT ? nullptr : KisToolShape::popupWidget();
+    return !m_outlineInteraction.points().isEmpty() || m_type == SELECT
+        ? nullptr
+        : KisToolShape::popupWidget();
 }
 
 // Install an event filter to catch right-click events.
@@ -111,7 +110,7 @@ bool KisToolOutlineBase::eventFilter(QObject *obj, QEvent *event)
 {
     Q_UNUSED(obj);
 
-    if (m_points.isEmpty()) {
+    if (m_outlineInteraction.points().isEmpty()) {
         return false;
     }
     if (event->type() == QEvent::MouseButtonPress ||
@@ -133,20 +132,18 @@ bool KisToolOutlineBase::eventFilter(QObject *obj, QEvent *event)
 
 void KisToolOutlineBase::undoLastPoint()
 {
-    if(!m_points.isEmpty() && m_continuedMode && mode() != PAINT_MODE && m_numberOfContinuedModePoints > 0) {
+    if (m_outlineInteraction.canUndoPoint()) {
         // Initialize with the dragging segment's rect
         QRectF updateRect = dragBoundingRect();
 
-        if (m_points.size() > 1) {
-            // Add the rect for the last segment
-            const QRectF lastSegmentRect =
-                pixelToView(QRectF(m_points.last(), m_points.at(m_points.size() - 2)).normalized())
-                .adjusted(-FEEDBACK_LINE_WIDTH, -FEEDBACK_LINE_WIDTH, FEEDBACK_LINE_WIDTH, FEEDBACK_LINE_WIDTH);
-            updateRect = updateRect.united(lastSegmentRect);
+        const QVector<QPointF> &points = m_outlineInteraction.points();
+        // Add the rect for the last segment
+        const QRectF lastSegmentRect =
+            pixelToView(QRectF(points.last(), points.at(points.size() - 2)).normalized())
+            .adjusted(-FEEDBACK_LINE_WIDTH, -FEEDBACK_LINE_WIDTH, FEEDBACK_LINE_WIDTH, FEEDBACK_LINE_WIDTH);
+        updateRect = updateRect.united(lastSegmentRect);
 
-            m_points.pop_back();
-            --m_numberOfContinuedModePoints;
-        }
+        m_outlineInteraction.undoPoint();
 
         // Add the new dragging segment's rect
         updateRect = updateRect.united(dragBoundingRect());
@@ -177,17 +174,12 @@ void KisToolOutlineBase::beginPrimaryAction(KoPointerEvent *event)
 
     setMode(KisTool::PAINT_MODE);
 
-    if (!m_continuedMode || m_points.isEmpty()) {
-        m_hasUserInteractionRunning = true;
+    const bool continuedMode = m_outlineInteraction.isContinuedMode();
+    const QPointF position = continuedMode
+        ? convertToPixelCoordAndSnap(event)
+        : convertToPixelCoord(event);
+    if (m_outlineInteraction.beginInput(position)) {
         beginShape();
-    }
-
-    if (m_continuedMode) {
-        m_points.append(convertToPixelCoordAndSnap(event));
-        ++m_numberOfContinuedModePoints;
-    } else {
-        m_numberOfContinuedModePoints = 0;
-        m_points.append(convertToPixelCoord(event));
     }
 }
 
@@ -195,8 +187,7 @@ void KisToolOutlineBase::continuePrimaryAction(KoPointerEvent *event)
 {
     CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
 
-    QPointF point = convertToPixelCoord(event);
-    m_points.append(point);
+    m_outlineInteraction.addPoint(convertToPixelCoord(event));
     updateFeedback();
 }
 
@@ -204,7 +195,8 @@ void KisToolOutlineBase::endPrimaryAction(KoPointerEvent *event)
 {
     CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
     setMode(KisTool::HOVER_MODE);
-    if (!m_continuedMode) {
+    m_outlineInteraction.endInput();
+    if (!m_outlineInteraction.isContinuedMode()) {
         // If the event was not originated by the user releasing the button
         // (for example due to the canvas loosing focus), then we just cancel
         // the operation. This prevents some issues with shapes being added
@@ -220,14 +212,16 @@ void KisToolOutlineBase::endPrimaryAction(KoPointerEvent *event)
 
 void KisToolOutlineBase::paint(QPainter& gc, const KoViewConverter &converter)
 {
-    if ((mode() == KisTool::PAINT_MODE || m_continuedMode) && !m_points.isEmpty()) {
+    const QVector<QPointF> &points = m_outlineInteraction.points();
+    if ((mode() == KisTool::PAINT_MODE || m_outlineInteraction.isContinuedMode())
+        && !points.isEmpty()) {
         QPainterPath outline;
-        outline.moveTo(pixelToView(m_points.first()));
-        for (qint32 i = 1; i < m_points.size(); ++i) {
-            outline.lineTo(pixelToView(m_points[i]));
+        outline.moveTo(pixelToView(points.first()));
+        for (qint32 i = 1; i < points.size(); ++i) {
+            outline.lineTo(pixelToView(points[i]));
         }
-        if (m_continuedMode && mode() != KisTool::PAINT_MODE) {
-            outline.lineTo(pixelToView(m_lastCursorPos));
+        if (m_outlineInteraction.isContinuedMode() && mode() != KisTool::PAINT_MODE) {
+            outline.lineTo(pixelToView(m_outlineInteraction.cursorPosition()));
         }
         paintToolOutline(&gc, outline);
     }
@@ -237,10 +231,11 @@ void KisToolOutlineBase::paint(QPainter& gc, const KoViewConverter &converter)
 
 void KisToolOutlineBase::updateFeedback()
 {
-    if (m_points.count() > 1) {
-        qint32 lastPointIndex = m_points.count() - 1;
+    const QVector<QPointF> &points = m_outlineInteraction.points();
+    if (points.count() > 1) {
+        qint32 lastPointIndex = points.count() - 1;
 
-        QRectF updateRect = QRectF(m_points[lastPointIndex - 1], m_points[lastPointIndex]).normalized();
+        QRectF updateRect = QRectF(points[lastPointIndex - 1], points[lastPointIndex]).normalized();
         updateRect = kisGrowRect(updateRect, FEEDBACK_LINE_WIDTH);
 
         updateCanvasPixelRect(updateRect);
@@ -249,21 +244,23 @@ void KisToolOutlineBase::updateFeedback()
 
 QRectF KisToolOutlineBase::dragBoundingRect()
 {
-    QRectF updateRect = pixelToView(QRectF(m_points.last(), m_lastCursorPos).normalized());
+    QRectF updateRect = pixelToView(
+        QRectF(m_outlineInteraction.points().last(),
+               m_outlineInteraction.cursorPosition()).normalized());
     updateRect = kisGrowRect(updateRect, FEEDBACK_LINE_WIDTH);
     return updateRect;
 }
 
 void KisToolOutlineBase::updateContinuedMode()
 {
-    if (!m_points.isEmpty()) {
+    if (!m_outlineInteraction.points().isEmpty()) {
         updateCanvasViewRect(dragBoundingRect());
     }
 }
 
 bool KisToolOutlineBase::hasUserInteractionRunning() const
 {
-    return m_hasUserInteractionRunning;
+    return m_outlineInteraction.isActive();
 }
 
 void KisToolOutlineBase::endStroke()
@@ -273,10 +270,8 @@ void KisToolOutlineBase::endStroke()
     }
     uninstallBlockActionGuard();
     setMode(KisTool::HOVER_MODE);
-    m_hasUserInteractionRunning = false;
 
-    finishOutline(m_points);
-    m_points.clear();
+    finishOutline(m_outlineInteraction.finish());
     endShape();
 }
 
@@ -287,9 +282,8 @@ void KisToolOutlineBase::cancelStroke()
     }
     uninstallBlockActionGuard();
     setMode(KisTool::HOVER_MODE);
-    m_hasUserInteractionRunning = false;
 
-    m_points.clear();
+    m_outlineInteraction.cancel();
     endShape();
 }
 

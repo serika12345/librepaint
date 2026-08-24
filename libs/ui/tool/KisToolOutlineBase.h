@@ -10,10 +10,9 @@
 #ifndef KISTOOLOUTLINEBASE_H
 #define KISTOOLOUTLINEBASE_H
 
-#include <QPainterPath>
-
 #include <kis_tool_shape.h>
 #include <kis_cursor.h>
+#include <kis_outline_interaction.h>
 
 class KisInputActionGroupsMaskGuard;
 
@@ -59,13 +58,8 @@ protected:
 private:
     static constexpr int FEEDBACK_LINE_WIDTH{2};
 
-    QPainterPath m_paintPath;
-    QVector<QPointF> m_points;
-    bool m_continuedMode;
-    QPointF m_lastCursorPos;
     ToolType m_type;
-    int m_numberOfContinuedModePoints;
-    bool m_hasUserInteractionRunning;
+    KisOutlineInteraction m_outlineInteraction;
     QScopedPointer<KisInputActionGroupsMaskGuard> m_blockModifyingActionsGuard;
 
     void updateFeedback();

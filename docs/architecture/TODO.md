@@ -145,6 +145,8 @@ R1-G6e後半は、依存方向を一方向にした後、文書状態、文書�
 - [x] `libs/ui/tool/kis_figure_painting_tool_helper.{h,cpp}`を`libs/painting/kis_figure_painting_stroke.{h,cpp}`へ、`libs/tools/KisToolShapeUtils.h`を`libs/painting/KisFigurePaintingOptions.h`へ移し、図形描画の実行とスタイル値を`kritapainting`へ集約する。旧配置、空の実装ファイル、転送経路を除去する。
 - [x] `libs/ui/tool/kis_tool_rectangle_base.{h,cpp}`の矩形制約、修飾キー、ドラッグ座標、回転、矩形計算を`libs/tools/kis_rectangle_interaction.{h,cpp}`へ移す。UI基底には座標変換、警告と寸法表示、輪郭描画、キャンバス更新、設定部品を残す。
 - [x] `libs/ui/tool/kis_tool_polyline_base.{h,cpp}`の点列、ドラッグ区間、閉路状態、点の取り消し、完了と取消しを`libs/tools/kis_polyline_interaction.{h,cpp}`へ移す。UI基底には座標変換、画面距離による始点スナップ、輪郭表示、キャンバス更新、操作接続を残す。
+- [x] `libs/ui/tool/KisToolOutlineBase.{h,cpp}`の点列、入力中状態、継続入力、点の取り消し、完了と取消しを`libs/tools/kis_outline_interaction.{h,cpp}`へ移す。UI基底には座標変換、編集可否の通知、輪郭表示、キャンバス更新、入力フィルターと操作接続を残す。
+- [ ] `libs/ui/tool/kis_painting_information_builder.{h,cpp}`と`kis_speed_smoother.{h,cpp}`を起点として、圧力、速度、傾き、時間から描画入力値を組み立てる決定処理を`libs/tools`へ移す。UI側には座標変換器と自由描画ツールへの接続、設定変更通知を残す。
 - [ ] `kritaui`のように複数責務を持つ大きなターゲットを、依存方向が一方向となる凝集したライブラリーへ分割する。
 - [ ] UIパッケージには表示、画面状態、ユーザー操作との接続を置き、文書モデル、ファイル入出力、描画ジョブを所有する処理を対応する非UIパッケージへ移す。
 - [ ] 公開APIと内部APIを分離し、別パッケージから内部ヘッダーを直接参照する箇所を解消する。
