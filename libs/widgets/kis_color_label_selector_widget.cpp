@@ -10,6 +10,7 @@
 #include "kis_global.h"
 
 #include <QAction>
+#include <QApplication>
 #include <QMenu>
 #include <QStyleOption>
 
@@ -19,10 +20,36 @@
 #include <QSpacerItem>
 
 #include "kis_color_label_button.h"
-#include "kis_node_view_color_scheme.h"
+#include <kis_painting_tweaks.h>
 
 #include <kis_signals_blocker.h>
 #include <KisWrappableHBoxLayout.h>
+
+namespace {
+const QVector<QColor> &colorLabelPalette()
+{
+    static const QVector<QColor> colors = []() {
+        QVector<QColor> result {
+            Qt::transparent,
+            QColor(91, 173, 220),
+            QColor(151, 202, 63),
+            QColor(247, 229, 61),
+            QColor(255, 170, 63),
+            QColor(177, 102, 63),
+            QColor(238, 50, 51),
+            QColor(191, 106, 209),
+            QColor(118, 119, 114),
+        };
+
+        const QColor highlight = qApp->palette().color(QPalette::Highlight);
+        for (QColor &color : result) {
+            KisPaintingTweaks::dragColor(&color, highlight, 0.35);
+        }
+        return result;
+    }();
+    return colors;
+}
+}
 
 struct KisColorLabelSelectorWidget::Private
 {
@@ -36,8 +63,7 @@ KisColorLabelSelectorWidget::KisColorLabelSelectorWidget(QWidget *parent)
     : QWidget(parent)
     , m_d(new Private)
 {
-    KisNodeViewColorScheme scm;
-    m_d->colors = scm.allColorLabels();
+    m_d->colors = colorLabelPalette();
 
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setAlignment(Qt::AlignLeft);

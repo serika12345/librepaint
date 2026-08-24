@@ -10,10 +10,10 @@
 #include <QScopedPointer>
 #include <QWidget>
 
-#include "kritaui_export.h"
+#include "kritawidgets_export.h"
 
 
-class KRITAUI_EXPORT KisColorLabelSelectorWidget : public QWidget
+class KRITAWIDGETS_EXPORT KisColorLabelSelectorWidget : public QWidget
 {
     Q_OBJECT
 
@@ -123,7 +123,7 @@ private:
 };
 
 
-class KRITAUI_EXPORT KisColorLabelSelectorWidgetMenuWrapper : public QWidget
+class KRITAWIDGETS_EXPORT KisColorLabelSelectorWidgetMenuWrapper : public QWidget
 {
     Q_OBJECT
 

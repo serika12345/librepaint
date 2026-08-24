@@ -11,6 +11,7 @@
 
 #include "kis_adjustment_layer.h"
 #include "kis_generator_layer.h"
+#include "kis_selection.h"
 #include "kis_types.h"
 #include "KisView.h"
 #include <filter/kis_filter_configuration.h>

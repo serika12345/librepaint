@@ -11,9 +11,9 @@
 #include <QAbstractButton>
 #include <QSet>
 
-#include "kritaui_export.h"
+#include "kritawidgets_export.h"
 
-class KRITAUI_EXPORT KisColorLabelButton : public QAbstractButton
+class KRITAWIDGETS_EXPORT KisColorLabelButton : public QAbstractButton
 {
     Q_OBJECT
 public:
@@ -45,7 +45,7 @@ private:
 };
 
 
-class KRITAUI_EXPORT KisColorLabelFilterGroup : public QButtonGroup {
+class KRITAWIDGETS_EXPORT KisColorLabelFilterGroup : public QButtonGroup {
     Q_OBJECT
 public:
     KisColorLabelFilterGroup(QObject* parent);
@@ -74,7 +74,7 @@ private:
 
 };
 
-class KRITAUI_EXPORT KisColorLabelMouseDragFilter : public QObject {
+class KRITAWIDGETS_EXPORT KisColorLabelMouseDragFilter : public QObject {
     enum State{
         Idle,
         WaitingForDragLeave, //Waiting for mouse to exit first clicked while the mouse button is down.

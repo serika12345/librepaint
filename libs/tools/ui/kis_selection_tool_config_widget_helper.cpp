@@ -4,9 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_selection_tool_config_widget_helper.h"
+#include <kis_selection_tool_config_widget_helper.h>
 
-#include "kis_selection_options.h"
+#include <kis_selection_options.h>
 #include <kis_signals_blocker.h>
 
 #include <KConfigGroup>

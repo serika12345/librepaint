@@ -70,6 +70,8 @@ set(kritawidgets_LIB_SRCS
     KisPaletteComboBox.cpp
 
     kis_color_button.cpp
+    kis_color_label_button.cpp
+    kis_color_label_selector_widget.cpp
 
     KisAngleGauge.cpp
     KisAngleSelector.cpp

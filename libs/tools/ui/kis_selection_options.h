@@ -7,14 +7,14 @@
 #ifndef __KIS_SELECTION_OPTIONS_H__
 #define __KIS_SELECTION_OPTIONS_H__
 
-#include "kritaui_export.h"
+#include "kritatoolsui_export.h"
 
 #include <KisOptionCollectionWidget.h>
 #include <KisSelectionTags.h>
 
 class QKeySequence;
 
-class KRITAUI_EXPORT KisSelectionOptions : public KisOptionCollectionWidget
+class KRITATOOLSUI_EXPORT KisSelectionOptions : public KisOptionCollectionWidget
 {
     Q_OBJECT
 
@@ -71,4 +71,3 @@ private:
 };
 
 #endif
-

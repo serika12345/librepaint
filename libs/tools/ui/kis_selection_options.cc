@@ -4,15 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_selection_options.h"
+#include <kis_selection_options.h>
 
 #include <QCheckBox>
 #include <QToolButton>
 
+#include <KLocalizedString>
+
 #include <kis_icon.h>
-#include "kis_config.h"
+#include <kis_assert.h>
 #include "kis_config_notifier.h"
-#include "kis_paint_device.h"
 
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
@@ -21,6 +22,21 @@
 #include <KoGroupButton.h>
 #include <kis_color_label_selector_widget.h>
 #include <kis_slider_spin_box.h>
+
+namespace {
+bool selectionActionBarEnabled()
+{
+    return KSharedConfig::openConfig()->group("").readEntry(
+        "selectionActionBar", true);
+}
+
+void setSelectionActionBarEnabled(bool value)
+{
+    KConfigGroup config = KSharedConfig::openConfig()->group("");
+    config.writeEntry("selectionActionBar", value);
+    config.sync();
+}
+}
 
 class KisSelectionOptions::Private
 {
@@ -176,9 +192,7 @@ KisSelectionOptions::KisSelectionOptions(QWidget *parent)
     m_d->checkBoxSelectionActionsPanel->setToolTip(
         i18n("When enabled, any selections will produce a small floating panel of useful selection-related actions."));
 
-    KisConfig cfg(true);
-
-    if (cfg.selectionActionBar()) {
+    if (selectionActionBarEnabled()) {
         m_d->checkBoxSelectionActionsPanel->setCheckState(Qt::CheckState::Checked);
     } else {
         m_d->checkBoxSelectionActionsPanel->setCheckState(Qt::CheckState::Unchecked);
@@ -506,9 +520,7 @@ void KisSelectionOptions::updateActionButtonToolTip(
 
 void KisSelectionOptions::slotConfigChanged()
 {
-    KisConfig cfg(true);
-
-    if (cfg.selectionActionBar()) {
+    if (selectionActionBarEnabled()) {
         m_d->checkBoxSelectionActionsPanel->setCheckState(Qt::Checked);
     } else {
         m_d->checkBoxSelectionActionsPanel->setCheckState(Qt::Unchecked);
@@ -517,8 +529,7 @@ void KisSelectionOptions::slotConfigChanged()
 
 void KisSelectionOptions::slotSelectionActionsPanelCheckboxToggled(bool value)
 {
-    KisConfig cfg(false);
-    cfg.setSelectionActionBar(value);
+    setSelectionActionBarEnabled(value);
 
     blockSignals(true);
     KisConfigNotifier::instance()->notifyConfigChanged();

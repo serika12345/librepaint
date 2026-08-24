@@ -169,7 +169,6 @@ set(kritaui_LIB_SRCS
     kis_fps_decoration.cpp
 
     tool/kis_selection_tool_helper.cpp
-    tool/kis_selection_tool_config_widget_helper.cpp
     tool/kis_rectangle_constraint_widget.cpp
     tool/kis_shape_tool_helper.cpp
     tool/kis_tool_freehand.cc
@@ -225,7 +224,6 @@ set(kritaui_LIB_SRCS
 
     widgets/kis_preset_chooser.cpp
     widgets/kis_progress_widget.cpp
-    widgets/kis_selection_options.cc
     widgets/kis_scratch_pad.cpp
     widgets/kis_scratch_pad_event_filter.cpp
     widgets/KisSelectionPropertySlider.cpp
@@ -240,8 +238,6 @@ set(kritaui_LIB_SRCS
     widgets/KisLodAvailabilityData.cpp
     widgets/KisLodAvailabilityModel.cpp
     widgets/kis_color_filter_combo.cpp
-    widgets/kis_color_label_selector_widget.cpp
-    widgets/kis_color_label_button.cpp
     widgets/kis_layer_filter_widget.cpp
     widgets/kis_elided_label.cpp
     widgets/kis_preset_live_preview_view.cpp

@@ -508,10 +508,15 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 旧配置と転送ヘッダーは存在せず、設定変更通知、座標変換、圧力曲線、決定論的な速度平滑化、
 キャンバス回転・反転、傾き補正の契約を維持する。
 
-次は選択設定表示を一つの所有先へ集約する。`libs/ui/widgets/kis_selection_options.{h,cc}`と
-`libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を`libs/tools/ui`へ移し、
-`kritatoolsui`から独立構築する。選択ツールのキャンバス接続はUI側へ残し、設定値の読書きと
-表示状態の往復を契約で固定する。
+選択設定表示は`kritatoolsui`が所有する。`libs/ui/widgets/kis_selection_options.{h,cc}`と
+`libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を同名の`libs/tools/ui`へ移した。
+依存していた`libs/ui/widgets/kis_color_label_button.{h,cpp}`と
+`libs/ui/widgets/kis_color_label_selector_widget.{h,cpp}`は汎用表示部品として`libs/widgets`へ移し、
+レイヤーツリーの配色所有者を`kritaui`へ残した。選択方式、結合方法、アンチエイリアス、拡張、
+境界停止、ぼかし、参照レイヤー、色ラベルの保存と再読込は`TestToolSettingsUiContract`が固定する。
+
+次は`libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を起点として、ツール設定のポップアップ表示状態を
+`libs/tools/ui`へ移し、ドッカー、キャンバス、操作アクションへの接続をUI所有へ残す。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

@@ -2042,6 +2042,28 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_selection_options.h",
+          "headerPath": "libs/tools/ui/kis_selection_options.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_selection_tool_config_widget_helper.h",
+          "headerPath": "libs/tools/ui/kis_selection_tool_config_widget_helper.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
           "include": "kis_tool_select_base.h",
           "headerPath": "libs/tools/kis_tool_select_base.h",
           "sourceResponsibility": "tool-invocation",
@@ -2190,6 +2212,28 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatoolsui",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_selection_options.h",
+          "headerPath": "libs/tools/ui/kis_selection_options.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatoolsui",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_selection_tool_config_widget_helper.h",
+          "headerPath": "libs/tools/ui/kis_selection_tool_config_widget_helper.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {
@@ -3078,6 +3122,28 @@
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritatools",
           "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_selection_options.h",
+          "headerPath": "libs/tools/ui/kis_selection_options.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_selection_tool_config_widget_helper.h",
+          "headerPath": "libs/tools/ui/kis_selection_tool_config_widget_helper.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatools",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
           "include": "kis_tool_select_base.h",
           "headerPath": "libs/tools/kis_tool_select_base.h",
           "sourceResponsibility": "tool-invocation",
@@ -3226,6 +3292,28 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatoolsui",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_selection_options.h",
+          "headerPath": "libs/tools/ui/kis_selection_options.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritatoolsui",
+          "sourcePath": "libs/ui/tool/kis_tool_select_ui_base.h",
+          "include": "kis_selection_tool_config_widget_helper.h",
+          "headerPath": "libs/tools/ui/kis_selection_tool_config_widget_helper.h",
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "tool-invocation",
+          "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {

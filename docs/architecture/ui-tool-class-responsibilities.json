@@ -92,20 +92,6 @@
       "responsibilityArea": "settings-presentation"
     },
     {
-      "name": "KisSelectionToolConfigWidgetHelper",
-      "declarationKind": "class",
-      "header": "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
-      "implementationPaths": [
-        "libs/ui/tool/kis_selection_tool_config_widget_helper.cpp"
-      ],
-      "consumerPaths": [
-        "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
-        "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
-        "plugins/tools/selectiontools/kis_tool_select_rectangular.h"
-      ],
-      "responsibilityArea": "settings-presentation"
-    },
-    {
       "name": "KisSelectionToolHelper",
       "declarationKind": "class",
       "header": "libs/ui/tool/kis_selection_tool_helper.h",

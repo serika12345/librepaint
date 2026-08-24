@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 15:52 JST
+- 更新日時: 2026-08-24 16:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6fツール命令所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1333,13 +1333,33 @@
   文書読込、入出力の製品実装には変更がなく、失敗箇所の交替から既知の時間依存試験失敗として
   区別する。`nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、
   Windowsを含む全Nix出力の評価に成功した。
+- `libs/ui/widgets/kis_selection_options.{h,cc}`と
+  `libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を同名の`libs/tools/ui`へ移し、選択方式、
+  結合方法、アンチエイリアス、拡張、境界停止、ぼかし、参照レイヤー、色ラベルの表示と保存を
+  `kritatoolsui`へ集約した。旧配置と転送ヘッダーは残していない。
+- 選択設定が依存する`libs/ui/widgets/kis_color_label_button.{h,cpp}`と
+  `libs/ui/widgets/kis_color_label_selector_widget.{h,cpp}`は同名の`libs/widgets`へ移した。固定9色と
+  現在の強調色から表示色を作る契約を汎用ウィジェット側へ置き、レイヤーツリーの寸法と配色を持つ
+  `libs/ui/kis_node_view_color_scheme.{h,cpp}`はUI所有に維持した。
+- `TestToolSettingsUiContract`は全8設定の保存と別ウィジェットへの再読込を固定する。契約追加直後は
+  `kritatoolsui`に公開ヘッダーがなくコンパイル段階で失敗し、移設後は1件のCTestが成功した。
+  `kritatoolsui`、`kritaui`、選択ツールはmacOSでリンクまで成功した。移設で露出したinclude順依存は、
+  `libs/ui/kis_layer_manager.h`の選択型と`libs/ui/tool/kis_tool_select_ui_base.h`の図形型を直接includeして
+  解消した。
+- 公開面台帳は`kritaui`を234ヘッダーから230ヘッダーへ、UIツール責務台帳を21クラスから20クラスへ
+  縮小した。未解決の責務射影0件、構造射影10件、全製品ターゲットの循環0件を維持する。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、構造、
+  再配置計画、文書、リンク、D2再生成を含めて成功した。
+- `nix develop .#test --command ./scripts/verify`は移動した汎用ウィジェットを使うレイヤードッカー、
+  基本塗りつぶし、囲み塗りつぶしを含めて再構築し、macOSの全342件のネイティブ試験に成功した。
+  `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
+  含む全Nix出力の評価に成功した。
 
 ## 次の操作
 
-描画入力値の決定処理をコミットした後、`libs/ui/widgets/kis_selection_options.{h,cc}`と
-`libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を`libs/tools/ui`へ移す。選択方式、結合方法、
-アンチエイリアス、拡張、境界停止、ぼかし、参照レイヤー、色ラベルの設定往復を契約で固定し、
-`kritatoolsui`が選択設定表示を所有する。キャンバス、選択メニュー、アクションとの接続はUI側へ残す。
+選択設定表示の移設をコミットした後、`libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を起点として、
+ツール設定のポップアップ表示状態を`libs/tools/ui`へ移す。ドッカー、キャンバス、操作アクションとの
+接続はUI側へ残す。
 清浄な同一コミットをDarwinとx86_64 Linuxへ揃える5構成の完全一致検査はR1-G6f統合時に実施する。
 
 ## R1-G5完了根拠

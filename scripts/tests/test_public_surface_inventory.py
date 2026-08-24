@@ -151,7 +151,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 234)
+        self.assertEqual(len(ui_headers), 230)
         self.assertEqual(len(image_headers), 334)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(painting_headers), 19)
@@ -410,7 +410,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 21)
+        self.assertEqual(len(classes), 20)
         self.assertNotIn("Data", by_name)
         self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertNotIn("NoopActivationPolicy", by_name)
@@ -429,7 +429,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 21)
+        self.assertEqual(len(inventory["classes"]), 20)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertNotIn("KisPaintingInformationBuilder", by_name)
         self.assertEqual(
@@ -563,7 +563,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimpexui": 23,
                 "kritapainting": 19,
                 "kritatools": 17,
-                "kritaui": 234,
+                "kritaui": 230,
             },
         )
         self.assertEqual(

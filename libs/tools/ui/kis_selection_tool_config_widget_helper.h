@@ -10,15 +10,10 @@
 #include <QObject>
 #include <QList>
 
-#include "kis_canvas_resource_provider.h"
-#include "kis_image.h"
-#include "kis_selection.h"
-#include "kritaui_export.h"
+#include "kritatoolsui_export.h"
 #include <kis_selection_options.h>
 
-class KoCanvasResourceProvider;
-
-class KRITAUI_EXPORT KisSelectionToolConfigWidgetHelper : public QObject
+class KRITATOOLSUI_EXPORT KisSelectionToolConfigWidgetHelper : public QObject
 {
     Q_OBJECT
 public:

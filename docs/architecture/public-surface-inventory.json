@@ -1013,10 +1013,10 @@
             "external-include"
           ],
           "consumerPaths": [
+            "libs/tools/ui/kis_selection_options.h",
             "libs/ui/KisSelectionActionsAdapter.h",
             "libs/ui/kis_node_model.h",
-            "libs/ui/kis_selection_manager.h",
-            "libs/ui/widgets/kis_selection_options.h"
+            "libs/ui/kis_selection_manager.h"
           ]
         },
         {
@@ -3744,7 +3744,6 @@
             "libs/ui/operations/kis_operation.cpp",
             "libs/ui/processing/KisEncloseAndFillProcessingVisitor.cpp",
             "libs/ui/processing/fill_processing_visitor.cpp",
-            "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
             "libs/ui/tool/kis_tool_freehand_helper.cpp",
             "libs/ui/tool/kis_tool_paint.cc",
@@ -4820,7 +4819,6 @@
             "libs/ui/widgets/kis_filter_selector_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_scratch_pad.cpp",
-            "libs/ui/widgets/kis_selection_options.cc",
             "libs/ui/widgets/kis_wdg_generator.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
@@ -5817,6 +5815,7 @@
             "libs/ui/kis_custom_pattern.cc",
             "libs/ui/kis_filters_model.cc",
             "libs/ui/kis_layer_manager.cc",
+            "libs/ui/kis_layer_manager.h",
             "libs/ui/kis_mask_manager.cc",
             "libs/ui/kis_node_manager.cpp",
             "libs/ui/kis_node_model.cpp",
@@ -5826,7 +5825,6 @@
             "libs/ui/kis_statusbar.cc",
             "libs/ui/processing/KisEncloseAndFillProcessingVisitor.h",
             "libs/ui/processing/fill_processing_visitor.h",
-            "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
             "libs/ui/tool/kis_selection_tool_helper.h",
             "libs/ui/tool/kis_tool_freehand.cc",
             "libs/ui/tool/kis_tool_shape.cc",
@@ -10772,18 +10770,6 @@
           "consumerPaths": []
         },
         {
-          "path": "libs/ui/tool/kis_selection_tool_config_widget_helper.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/tools/selectiontools/kis_tool_select_elliptical.h",
-            "plugins/tools/selectiontools/kis_tool_select_polygonal.h",
-            "plugins/tools/selectiontools/kis_tool_select_rectangular.h"
-          ]
-        },
-        {
           "path": "libs/ui/tool/kis_selection_tool_helper.h",
           "publicationEvidence": [
             "export-macro",
@@ -11304,29 +11290,6 @@
           ]
         },
         {
-          "path": "libs/ui/widgets/kis_color_label_button.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/animation/KisOnionSkinsDocker.cpp"
-          ]
-        },
-        {
-          "path": "libs/ui/widgets/kis_color_label_selector_widget.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/dockers/animation/KisAnimTimelineFramesView.cpp",
-            "plugins/dockers/layerdocker/LayerBox.cpp",
-            "plugins/tools/basictools/kis_tool_fill.cc",
-            "plugins/tools/tool_enclose_and_fill/KisToolEncloseAndFill.cpp"
-          ]
-        },
-        {
           "path": "libs/ui/widgets/kis_color_space_selector.h",
           "publicationEvidence": [
             "export-macro",
@@ -11494,23 +11457,6 @@
             "export-macro"
           ],
           "consumerPaths": []
-        },
-        {
-          "path": "libs/ui/widgets/kis_selection_options.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "plugins/tools/selectiontools/KisToolSelectMagnetic.cc",
-            "plugins/tools/selectiontools/kis_tool_select_contiguous.cc",
-            "plugins/tools/selectiontools/kis_tool_select_elliptical.cc",
-            "plugins/tools/selectiontools/kis_tool_select_outline.cc",
-            "plugins/tools/selectiontools/kis_tool_select_path.cc",
-            "plugins/tools/selectiontools/kis_tool_select_polygonal.cc",
-            "plugins/tools/selectiontools/kis_tool_select_rectangular.cc",
-            "plugins/tools/selectiontools/kis_tool_select_similar.cc"
-          ]
         },
         {
           "path": "libs/ui/widgets/kis_size_group.h",
