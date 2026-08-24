@@ -47,7 +47,6 @@
 
 #include "kis_input_profile.h"
 #include "kis_input_profile_manager.h"
-#include "kis_shortcut_configuration.h"
 
 #include <input/kis_tablet_debugger.h>
 #include <kis_signal_compressor.h>
@@ -1121,25 +1120,7 @@ void KisInputManager::profileChanged()
         const QList<KisShortcutConfiguration*> shortcuts = profile->allShortcuts();
 
         for (KisShortcutConfiguration * const shortcut : shortcuts) {
-            dbgUI << "Adding shortcut" << shortcut->keys() << "for action" << shortcut->action()->name();
-            switch(shortcut->type()) {
-            case KisShortcutConfiguration::KeyCombinationType:
-                d->addKeyShortcut(shortcut->action(), shortcut->mode(), shortcut->keys());
-                break;
-            case KisShortcutConfiguration::MouseButtonType:
-                d->addStrokeShortcut(shortcut->action(), shortcut->mode(), shortcut->keys(), shortcut->buttons());
-                break;
-            case KisShortcutConfiguration::MouseWheelType:
-                d->addWheelShortcut(shortcut->action(), shortcut->mode(), shortcut->keys(), shortcut->wheel());
-                break;
-            case KisShortcutConfiguration::GestureType:
-                if (!d->addNativeGestureShortcut(shortcut->action(), shortcut->mode(), shortcut->gesture())) {
-                    d->addTouchShortcut(shortcut->action(), shortcut->mode(), shortcut->gesture());
-                }
-                break;
-            default:
-                break;
-            }
+            d->installShortcut(*shortcut);
         }
     }
     else {

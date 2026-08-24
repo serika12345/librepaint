@@ -6,6 +6,7 @@
  */
 
 #include "kis_key_input_editor.h"
+#include "input/kis_shortcut_configuration_text.h"
 
 #include <QWidgetAction>
 #include <QMenu>
@@ -65,5 +66,5 @@ void KisKeyInputEditor::setKeys(const QList< Qt::Key > &newKeys)
 
 void KisKeyInputEditor::updateLabel()
 {
-    setText(KisShortcutConfiguration::keysToText(d->ui->keysButton->keys()));
+    setText(KisShortcutConfigurationText::keysToText(d->ui->keysButton->keys()));
 }

@@ -13,6 +13,7 @@ class KisInputManagerTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testProfileActionResolution();
     void testSingleActionShortcut();
     void testStrokeShortcut();
     void testKeyEvents();

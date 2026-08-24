@@ -44,6 +44,7 @@ public:
     bool processUnhandledEvent(QEvent *event);
     void setupActions();
     KisInputAction *inputAction(KisAbstractInputAction *action);
+    void installShortcut(const KisShortcutConfiguration &shortcut);
     bool handleCompressedTabletEvent(QEvent *event);
     void fixShortcutMatcherModifiersState();
     void fixShortcutMatcherModifiersState(QVector<Qt::Key> newKeys, Qt::KeyboardModifiers modifiers);

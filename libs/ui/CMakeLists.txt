@@ -315,8 +315,7 @@ set(kritaui_LIB_SRCS
     kis_gui_context_command_p.cpp
     input/kis_tablet_debugger.cpp
     input/kis_input_profile_manager.cpp
-    input/kis_input_profile.cpp
-    input/kis_shortcut_configuration.cpp
+    input/kis_shortcut_configuration_text.cpp
     input/config/kis_input_configuration_page.cpp
     input/config/kis_edit_profiles_dialog.cpp
     input/config/kis_input_profile_model.cpp

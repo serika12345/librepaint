@@ -5,13 +5,14 @@
  */
 
 #include "KisGestureSelector.h"
+#include "input/kis_shortcut_configuration_text.h"
 
 KisGestureSelector::KisGestureSelector(QWidget *parent)
     : KComboBox(parent)
 {
     QStringList gestures;
     for (int i = 1; i < KisShortcutConfiguration::MaxGesture; i++) {
-        gestures << KisShortcutConfiguration::gestureToText(static_cast<KisShortcutConfiguration::GestureAction>(i));
+        gestures << KisShortcutConfigurationText::gestureToText(static_cast<KisShortcutConfiguration::GestureAction>(i));
     }
     addItems(gestures);
 }

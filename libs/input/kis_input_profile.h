@@ -11,14 +11,15 @@
 #include <QObject>
 #include <QMetaType>
 
-class KisAbstractInputAction;
+#include "kritainput_export.h"
+
 class KisShortcutConfiguration;
 /**
  * \brief A container class for sets of shortcuts associated with an action.
  *
  *
  */
-class KisInputProfile : public QObject
+class KRITAINPUT_EXPORT KisInputProfile : public QObject
 {
     Q_OBJECT
 
@@ -46,7 +47,7 @@ public:
      *
      * \param action The action for which to list the shortcuts.
      */
-    QList<KisShortcutConfiguration *> shortcutsForAction(KisAbstractInputAction *action) const;
+    QList<KisShortcutConfiguration *> shortcutsForAction(const QString &actionId) const;
 
     /**
      * Add a shortcut to this profile.

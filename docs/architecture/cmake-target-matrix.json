@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 665,
-    "linux": 680,
-    "ios": 599,
-    "android": 605,
-    "windows": 635
+    "macos": 666,
+    "linux": 681,
+    "ios": 600,
+    "android": 606,
+    "windows": 636
   },
   "commonTargets": [
     "CCSGraph",
@@ -113,6 +113,7 @@
     "TestImportExportBoundary",
     "TestImportExportUiBoundary",
     "TestInputDevice",
+    "TestInputProfile",
     "TestInputShortcutMatcher",
     "TestKUndo2Stack",
     "TestKisPaletteModel",
@@ -1484,6 +1485,7 @@
     "TestFolderStorage",
     "TestImportExportBoundary",
     "TestImportExportUiBoundary",
+    "TestInputProfile",
     "TestInputShortcutMatcher",
     "TestKoChannelInfo",
     "TestKoColor",

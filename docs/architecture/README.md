@@ -565,8 +565,17 @@ R1-G6gの最初の単位では、`libs/ui/input`のショートカット照合�
 タッチ描画状態の問い合わせだけを受け取る。マウス入力の順序、フォーカス喪失時の取消し、
 入力アクション群マスクの復旧は`TestInputShortcutMatcher`が独立して固定する。
 
-次は入力プロファイルとショートカット設定値からUI入力アクションへの依存を分離し、
-`libs/ui/input`から`libs/input`へ移せる設定所有単位を確定する。
+入力プロファイルの永続値は`kritainput`が所有する。開始元の
+`libs/ui/input/kis_input_profile.{h,cpp}`を`libs/input/kis_input_profile.{h,cpp}`へ移し、
+`libs/ui/input/kis_shortcut_configuration.{h,cpp}`は、直列化される入力値を
+`libs/input/kis_shortcut_configuration.{h,cpp}`へ、翻訳済み表示文字列を
+`libs/ui/input/kis_shortcut_configuration_text.{h,cpp}`へ分けた。ショートカットはUIアクションの
+借用ポインターではなく安定識別子を保持し、UIのプロファイル管理器が表示と照合器への登録時だけ
+具体アクションへ解決する。保存形式と表示文言は維持され、`TestInputProfile`が固定保存列、往復、
+識別子索引を検査する。
+
+次は`libs/ui/input/kis_input_manager_p.{h,cpp}`の合成入力抑止判定を起点として、マウス、
+タブレット、タッチの再生契約を追加し、正規化済み判定状態を`libs/input`へ移す。
 
 共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を

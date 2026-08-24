@@ -559,6 +559,36 @@ KisInputAction *KisInputManager::Private::inputAction(
     return adapter.value().data();
 }
 
+void KisInputManager::Private::installShortcut(const KisShortcutConfiguration &shortcut)
+{
+    KisAbstractInputAction *action =
+        KisInputProfileManager::instance()->action(shortcut.actionId());
+    if (!action) {
+        qWarning() << "Input action is unavailable for shortcut:" << shortcut.actionId();
+        return;
+    }
+
+    dbgUI << "Adding shortcut" << shortcut.keys() << "for action" << action->name();
+    switch (shortcut.type()) {
+    case KisShortcutConfiguration::KeyCombinationType:
+        addKeyShortcut(action, shortcut.mode(), shortcut.keys());
+        break;
+    case KisShortcutConfiguration::MouseButtonType:
+        addStrokeShortcut(action, shortcut.mode(), shortcut.keys(), shortcut.buttons());
+        break;
+    case KisShortcutConfiguration::MouseWheelType:
+        addWheelShortcut(action, shortcut.mode(), shortcut.keys(), shortcut.wheel());
+        break;
+    case KisShortcutConfiguration::GestureType:
+        if (!addNativeGestureShortcut(action, shortcut.mode(), shortcut.gesture())) {
+            addTouchShortcut(action, shortcut.mode(), shortcut.gesture());
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 void KisInputManager::Private::addStrokeShortcut(KisAbstractInputAction* action, int index,
                                                  const QList<Qt::Key> &modifiers,
                                                  Qt::MouseButtons buttons)

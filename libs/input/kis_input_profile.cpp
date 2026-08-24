@@ -9,7 +9,6 @@
 
 #include <QMultiHash>
 
-#include "kis_abstract_input_action.h"
 #include "kis_shortcut_configuration.h"
 
 class KisInputProfile::Private
@@ -22,7 +21,7 @@ public:
     }
 
     QString name;
-    QMultiHash<KisAbstractInputAction *, KisShortcutConfiguration *> shortcuts;
+    QMultiHash<QString, KisShortcutConfiguration *> shortcuts;
 };
 
 KisInputProfile::KisInputProfile(QObject *parent)
@@ -53,10 +52,10 @@ QList< KisShortcutConfiguration * > KisInputProfile::allShortcuts() const
     return d->shortcuts.values();
 }
 
-QList< KisShortcutConfiguration * > KisInputProfile::shortcutsForAction(KisAbstractInputAction *action) const
+QList<KisShortcutConfiguration *> KisInputProfile::shortcutsForAction(const QString &actionId) const
 {
-    if (d->shortcuts.contains(action)) {
-        return d->shortcuts.values(action);
+    if (d->shortcuts.contains(actionId)) {
+        return d->shortcuts.values(actionId);
     }
 
     return QList<KisShortcutConfiguration *>();
@@ -65,13 +64,13 @@ QList< KisShortcutConfiguration * > KisInputProfile::shortcutsForAction(KisAbstr
 void KisInputProfile::addShortcut(KisShortcutConfiguration *shortcut)
 {
     Q_ASSERT(shortcut);
-    Q_ASSERT(shortcut->action());
-    d->shortcuts.insert(shortcut->action(), shortcut);
+    Q_ASSERT(!shortcut->actionId().isEmpty());
+    d->shortcuts.insert(shortcut->actionId(), shortcut);
 }
 
 void KisInputProfile::removeShortcut(KisShortcutConfiguration *shortcut)
 {
     Q_ASSERT(shortcut);
-    Q_ASSERT(shortcut->action());
-    d->shortcuts.remove(shortcut->action(), shortcut);
+    Q_ASSERT(!shortcut->actionId().isEmpty());
+    d->shortcuts.remove(shortcut->actionId(), shortcut);
 }

@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-24 20:41 JST
+- 更新日時: 2026-08-24 21:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G6g入力解釈所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
-- ブランチ: `r1-g6f-node-manager-boundary`
-- 目的: UI共有ターゲットに混在する入力列の照合と正規化を独立入力ターゲットへ移し、
-  UIを入力アクションの具体実装、設定読込、表示および操作との接続へ限定する。
+- ブランチ: `r1-g6g-input-profile-boundary`
+- 目的: 入力プロファイルとショートカットの永続値をUI入力アクションの実体から分離し、
+  入力ターゲットが識別子と正規化済み入力値を、UIターゲットが表示と実行時解決を所有する。
 
 ## 再開環境
 
@@ -1503,13 +1503,41 @@
   循環は0件である。移設で可視化されたキャンバス表示とツール呼出しから入力解釈への各1件は、
   R1-G6g所有、上限1件、除去条件を持つ一時逆方向参照として記録した。確認済み逆方向includeは
   5責務対105件となり、R1-G6g完了時に両参照を0件へ除去する。
+- 入力プロファイル値について、次の開始ファイルと移設先を対応させ、旧配置と転送ヘッダーを
+  残さず所有を移した。
+  - `libs/ui/input/kis_input_profile.{h,cpp}`から`libs/input/kis_input_profile.{h,cpp}`。
+  - `libs/ui/input/kis_shortcut_configuration.{h,cpp}`の永続値と直列化から
+    `libs/input/kis_shortcut_configuration.{h,cpp}`。
+  - `libs/ui/input/kis_shortcut_configuration.{h,cpp}`の翻訳済み表示文字列生成から
+    `libs/ui/input/kis_shortcut_configuration_text.{h,cpp}`。
+- `KisShortcutConfiguration`はUIアクションの借用ポインターに代えて安定識別子を保持し、
+  `KisInputProfile`は同じ識別子でショートカットを索引する。プロファイル管理器は読込時に識別子を
+  設定し、入力管理器と設定画面だけが識別子をUIアクションへ解決する。既存の
+  `{mode;type;[key,key];buttons;wheel;gesture}`保存形式と表示文言を維持する。
+- `libs/input/tests/TestInputProfile.cpp`は保存列の固定値、直列化往復、識別子の保持、識別子ごとの
+  索引を固定する。契約追加時は`kis_input_profile.h`が入力ターゲットに存在せずコンパイルで失敗し、
+  実装後は1件のCTestが成功した。`KisInputManagerTest`は登録済み識別子の解決と未知識別子の拒否を
+  固定し、1件のCTestが成功した。`kritaui`もmacOSでリンクまで成功した。
+- CMake台帳は`TestInputProfile`を5構成の共通ターゲットとして追加した。現在はmacOS 666件、
+  Linux 681件、iOS 600件、Android 606件、Windows 636件、共通584件、条件付き119件、
+  構成差267件である。公開面台帳は`kritainput`を11ヘッダーへ増やし、`kritaui`は221ヘッダーを
+  維持する。全製品ターゲットの循環は0件である。
+- プロファイルから照合器への登録は`KisInputManager::Private`へ集約し、公開入力管理器の実装を
+  1148行から1129行へ縮小した。未知のアクション識別子は警告して登録を省略し、既知の識別子だけを
+  UIアクション実体へ解決する。
+- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
+  `nix develop .#test --command ./scripts/verify`は全893構築工程を完了し、新しいプロファイル契約を
+  含むmacOSの全344件のネイティブ試験に成功した。
+  `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
+  含む全Nix出力の式評価に成功した。
 
 ## 次の操作
 
-入力プロファイルとショートカット設定値がUI入力アクションへ持つ依存を調査し、識別子、表示名、
-ショートカット索引のうち照合・保存に必要な値を入力所有へ分離する。マウス以外のタブレット、
-タッチ、スタイラス再生契約は各移設単位に先行して追加する。清浄な同一コミットをDarwinと
-x86_64 Linuxへ揃える5構成の完全一致検査はR1-G6g統合時に実施する。
+`libs/ui/input/kis_input_manager_p.{h,cpp}`の`EventEater`を起点として、タブレット・タッチ入力に
+伴う合成マウス入力の抑止状態と判定を`libs/input`へ移す。UI側は設定値の読込、事象の診断表示、
+Qt事象フィルターとの接続を維持する。マウス、タブレット、タッチの再生契約を先に追加し、
+右・中ボタン代替設定は構築時の値として渡す。清浄な同一コミットをDarwinとx86_64 Linuxへ
+揃える5構成の完全一致検査はR1-G6g統合時に実施する。
 
 ## R1-G5完了根拠
 

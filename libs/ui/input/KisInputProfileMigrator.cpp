@@ -81,7 +81,7 @@ QList<KisShortcutConfiguration> KisInputProfileMigrator5To6::getShortcutsFromPro
         for (const auto &groupEntry : group.entryMap()) {
             KisShortcutConfiguration shortcut;
 
-            shortcut.setAction(action);
+            shortcut.setActionId(action->id());
             if (shortcut.unserialize(groupEntry)) {
                 shortcuts.append(shortcut);
             }

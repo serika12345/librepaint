@@ -988,6 +988,16 @@
       ]
     },
     {
+      "name": "TestInputProfile",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/input/tests",
+      "dependencies": [
+        "Qt5::Gui",
+        "Qt5::Test",
+        "kritainput"
+      ]
+    },
+    {
       "name": "TestInputShortcutMatcher",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/input/tests",

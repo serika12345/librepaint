@@ -14,6 +14,8 @@
 #include <QGlobalStatic>
 #include <QRegularExpression>
 
+#include <algorithm>
+
 #include <KoResourcePaths.h>
 #include <kconfig.h>
 #include <kconfiggroup.h>
@@ -174,6 +176,16 @@ QList< KisAbstractInputAction * > KisInputProfileManager::actions()
     return d->actions;
 }
 
+KisAbstractInputAction *KisInputProfileManager::action(const QString &id) const
+{
+    const auto found = std::find_if(
+        d->actions.cbegin(), d->actions.cend(),
+        [&id](const KisAbstractInputAction *action) {
+            return action->id() == id;
+        });
+    return found == d->actions.cend() ? nullptr : *found;
+}
+
 void KisInputProfileManager::loadProfiles()
 {
     //Remove any profiles that already exist
@@ -316,7 +328,7 @@ void KisInputProfileManager::loadProfiles()
             //Read the settings for the action and create the appropriate shortcuts.
             Q_FOREACH(const QString & entry, grp.entryMap()) {
                 KisShortcutConfiguration *shortcut = new KisShortcutConfiguration;
-                shortcut->setAction(action);
+                shortcut->setActionId(action->id());
 
                 if (shortcut->unserialize(entry)) {
                     newProfile->addShortcut(shortcut);
@@ -374,7 +386,7 @@ void KisInputProfileManager::saveProfile(KisInputProfile *profile, QString stora
         grp.deleteGroup(); //Clear the group of any existing shortcuts.
 
         int index = 0;
-        QList<KisShortcutConfiguration *> shortcuts = profile->shortcutsForAction(action);
+        QList<KisShortcutConfiguration *> shortcuts = profile->shortcutsForAction(action->id());
         Q_FOREACH(KisShortcutConfiguration * shortcut, shortcuts) {
             grp.writeEntry(QString("%1").arg(index++), shortcut->serialize());
         }

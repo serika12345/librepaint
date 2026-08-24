@@ -6,6 +6,7 @@
  */
 
 #include "kis_mouse_input_editor.h"
+#include "input/kis_shortcut_configuration_text.h"
 
 #include <QWidgetAction>
 #include <QMenu>
@@ -80,7 +81,7 @@ void KisMouseInputEditor::setButtons(Qt::MouseButtons newButtons)
 
 void KisMouseInputEditor::updateLabel()
 {
-    setText(KisShortcutConfiguration::buttonsInputToText(
+    setText(KisShortcutConfigurationText::buttonsInputToText(
         d->ui->modifiersButton->keys(),
         d->ui->mouseButton->buttons()));
 }

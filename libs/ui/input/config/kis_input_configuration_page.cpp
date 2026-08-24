@@ -16,6 +16,7 @@
 #include "input/kis_input_profile.h"
 #include "input/kis_shortcut_configuration.h"
 #include "input/kis_abstract_input_action.h"
+#include "input/kis_shortcut_configuration_text.h"
 #include "kis_edit_profiles_dialog.h"
 #include "kis_input_profile_model.h"
 #include "kis_input_configuration_page_item.h"
@@ -105,27 +106,34 @@ void KisInputConfigurationPage::checkForConflicts()
     QMap<QString, ShortcutInfo> conflictingShortcutsMap;
 
     Q_FOREACH (KisShortcutConfiguration *shortcut, conflictingShortcuts) {
-        if (shortcut->action()) {
-            if (m_d->actionInputConfigurationMap.contains(shortcut->action())) {
-                ShortcutInfo &shortcutInfo = conflictingShortcutsMap[shortcut->getInputText()];
+        KisAbstractInputAction *action =
+            KisInputProfileManager::instance()->action(shortcut->actionId());
+        if (action) {
+            if (m_d->actionInputConfigurationMap.contains(action)) {
+                ShortcutInfo &shortcutInfo =
+                    conflictingShortcutsMap[KisShortcutConfigurationText::inputText(*shortcut)];
                 shortcutInfo.shortcutObjects.append(shortcut);
-                const QString subActionName = shortcut->action()->shortcutIndexes().key(shortcut->mode());
-                shortcutInfo.actionTexts.append(shortcut->action()->name() + " → " + subActionName);
+                const QString subActionName = action->shortcutIndexes().key(shortcut->mode());
+                shortcutInfo.actionTexts.append(action->name() + " → " + subActionName);
             } else {
                 qWarning() << "KisInputConfigurationPageItem does not exist for the specified action:"
-                           << shortcut->action()->name();
+                           << action->name();
             }
         } else {
-            qWarning() << "Action not set for the given shortcut.";
+            qWarning() << "Input action is unavailable for shortcut:" << shortcut->actionId();
         }
     }
 
     QMap<KisAbstractInputAction *, QSet<QString>> infoTexts;
     Q_FOREACH (const ShortcutInfo &shortcutInfo, conflictingShortcutsMap) {
-        const QString text = "<b>" + shortcutInfo.shortcutObjects.first()->getInputText() + "</b>" + "<br>&nbsp;&nbsp;"
+        const QString text = "<b>" + KisShortcutConfigurationText::inputText(*shortcutInfo.shortcutObjects.first()) + "</b>" + "<br>&nbsp;&nbsp;"
             + shortcutInfo.actionTexts.join("<br>&nbsp;&nbsp;");
         Q_FOREACH (KisShortcutConfiguration *shortcut, shortcutInfo.shortcutObjects) {
-            infoTexts[shortcut->action()] << text;
+            KisAbstractInputAction *action =
+                KisInputProfileManager::instance()->action(shortcut->actionId());
+            if (action) {
+                infoTexts[action] << text;
+            }
         }
     }
 

@@ -101,6 +101,11 @@ public:
     QList< KisAbstractInputAction * > actions();
 
     /**
+     * Resolve a persisted action identifier to its UI implementation.
+     */
+    KisAbstractInputAction *action(const QString &id) const;
+
+    /**
      * Load all profiles from the configuration stored on disk.
      */
     void loadProfiles();

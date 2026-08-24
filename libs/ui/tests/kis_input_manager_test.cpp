@@ -14,7 +14,19 @@
 #include <kis_single_action_shortcut.h>
 #include <kis_stroke_shortcut.h>
 #include "input/kis_abstract_input_action.h"
+#include "input/kis_input_profile_manager.h"
 #include <kis_shortcut_matcher.h>
+
+void KisInputManagerTest::testProfileActionResolution()
+{
+    KisInputProfileManager *manager = KisInputProfileManager::instance();
+
+    QVERIFY(!manager->actions().isEmpty());
+    for (KisAbstractInputAction *action : manager->actions()) {
+        QCOMPARE(manager->action(action->id()), action);
+    }
+    QVERIFY(!manager->action(QStringLiteral("unknown-input-action")));
+}
 
 
 void KisInputManagerTest::testSingleActionShortcut()

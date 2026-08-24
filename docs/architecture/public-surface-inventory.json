@@ -7957,6 +7957,20 @@
           "consumerPaths": []
         },
         {
+          "path": "libs/input/kis_input_profile.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/config/kis_action_shortcuts_model.cpp",
+            "libs/ui/input/config/kis_input_configuration_page.cpp",
+            "libs/ui/input/config/kis_input_editor_delegate.cpp",
+            "libs/ui/input/kis_input_manager.cpp",
+            "libs/ui/input/kis_input_profile_manager.cpp"
+          ]
+        },
+        {
           "path": "libs/input/kis_native_gesture_shortcut.h",
           "publicationEvidence": [
             "export-macro",
@@ -7964,6 +7978,26 @@
           ],
           "consumerPaths": [
             "libs/ui/input/kis_input_manager_p.cpp"
+          ]
+        },
+        {
+          "path": "libs/input/kis_shortcut_configuration.h",
+          "publicationEvidence": [
+            "export-macro",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/ui/input/KisInputProfileMigrator.cpp",
+            "libs/ui/input/config/KisGestureSelector.h",
+            "libs/ui/input/config/kis_action_shortcuts_model.cpp",
+            "libs/ui/input/config/kis_input_button.h",
+            "libs/ui/input/config/kis_input_configuration_page.cpp",
+            "libs/ui/input/config/kis_input_configuration_page_item.cpp",
+            "libs/ui/input/config/kis_input_editor_delegate.cpp",
+            "libs/ui/input/config/kis_wheel_input_editor.h",
+            "libs/ui/input/kis_input_manager_p.h",
+            "libs/ui/input/kis_input_profile_manager.cpp",
+            "libs/ui/input/kis_shortcut_configuration_text.h"
           ]
         },
         {

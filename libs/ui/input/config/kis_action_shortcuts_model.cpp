@@ -22,6 +22,7 @@
 #include "input/kis_input_profile.h"
 #include "input/kis_input_profile_manager.h"
 #include "input/kis_shortcut_configuration.h"
+#include "input/kis_shortcut_configuration_text.h"
 
 class KisActionShortcutsModel::Private
 {
@@ -90,21 +91,21 @@ QVariant KisActionShortcutsModel::data(const QModelIndex &index, int role) const
 
             switch (s->type()) {
             case KisShortcutConfiguration::KeyCombinationType:
-                output = KisShortcutConfiguration::keysToText(s->keys());
+                output = KisShortcutConfigurationText::keysToText(s->keys());
                 break;
 
             case KisShortcutConfiguration::MouseButtonType:
-                output = KisShortcutConfiguration::buttonsInputToText(
+                output = KisShortcutConfigurationText::buttonsInputToText(
                     s->keys(), s->buttons());
                 break;
 
             case KisShortcutConfiguration::MouseWheelType:
-                output = KisShortcutConfiguration::wheelInputToText(
+                output = KisShortcutConfigurationText::wheelInputToText(
                     s->keys(), s->wheel());
                 break;
 
             case KisShortcutConfiguration::GestureType:
-                output = KisShortcutConfiguration::gestureToText(s->gesture());
+                output = KisShortcutConfigurationText::gestureToText(s->gesture());
                 break;
 
             default:
@@ -236,7 +237,7 @@ bool KisActionShortcutsModel::setData(const QModelIndex &index, const QVariant &
         }
 
         beginInsertRows(QModelIndex(), d->shortcuts.count(), d->shortcuts.count());
-        d->temporaryShortcut->setAction(d->action);
+        d->temporaryShortcut->setActionId(d->action->id());
         d->profile->addShortcut(d->temporaryShortcut);
         d->shortcuts.append(d->temporaryShortcut);
         d->temporaryShortcut = 0;
@@ -309,7 +310,7 @@ void KisActionShortcutsModel::setAction(KisAbstractInputAction *action)
         d->action = action;
 
         if (d->action && d->profile) {
-            d->shortcuts = d->profile->shortcutsForAction(d->action);
+            d->shortcuts = d->profile->shortcutsForAction(d->action->id());
             beginInsertRows(QModelIndex(), 0, d->shortcuts.count() - 1);
             endInsertRows();
         }
@@ -332,7 +333,7 @@ void KisActionShortcutsModel::setProfile(KisInputProfile *profile)
         d->profile = profile;
 
         if (d->action && d->profile) {
-            d->shortcuts = d->profile->shortcutsForAction(d->action);
+            d->shortcuts = d->profile->shortcutsForAction(d->action->id());
             beginInsertRows(QModelIndex(), 0, d->shortcuts.count() - 1);
             endInsertRows();
         }

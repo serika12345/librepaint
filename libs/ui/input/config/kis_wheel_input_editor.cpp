@@ -6,6 +6,7 @@
  */
 
 #include "kis_wheel_input_editor.h"
+#include "input/kis_shortcut_configuration_text.h"
 
 #include "ui_kis_wheel_input_editor.h"
 #include <QMenu>
@@ -79,7 +80,7 @@ void KisWheelInputEditor::setWheel(KisShortcutConfiguration::MouseWheelMovement 
 
 void KisWheelInputEditor::updateLabel()
 {
-    setText(KisShortcutConfiguration::wheelInputToText(
+    setText(KisShortcutConfigurationText::wheelInputToText(
         d->ui->modifiersButton->keys(),
         d->ui->wheelButton->wheel()));
 }

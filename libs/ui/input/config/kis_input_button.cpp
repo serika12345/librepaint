@@ -14,6 +14,7 @@
 #include <QPushButton>
 
 #include "kis_icon_utils.h"
+#include "input/kis_shortcut_configuration_text.h"
 
 
 class KisInputButton::Private
@@ -194,15 +195,15 @@ void KisInputButton::Private::updateLabel()
 {
     switch (type) {
     case MouseType:
-        q->setText(KisShortcutConfiguration::buttonsToText(buttons));
+        q->setText(KisShortcutConfigurationText::buttonsToText(buttons));
         break;
 
     case KeyType:
-        q->setText(KisShortcutConfiguration::keysToText(keys));
+        q->setText(KisShortcutConfigurationText::keysToText(keys));
         break;
 
     case WheelType:
-        q->setText(KisShortcutConfiguration::wheelToText(wheel));
+        q->setText(KisShortcutConfigurationText::wheelToText(wheel));
         break;
     }
 }

@@ -997,6 +997,16 @@
       ]
     },
     {
+      "name": "TestInputProfile",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/input/tests",
+      "dependencies": [
+        "Qt6::Gui",
+        "Qt6::Test",
+        "kritainput"
+      ]
+    },
+    {
       "name": "TestInputShortcutMatcher",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/input/tests",
