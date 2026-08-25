@@ -7,8 +7,6 @@
 
 #include "commands/kis_node_command.h"
 
-#include "kis_node.h"
-
 KisNodeCommand::KisNodeCommand(const KUndo2MagicString& name, KisNodeSP node)
     : KUndo2Command(name), m_node(node)
 {

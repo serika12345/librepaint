@@ -8,8 +8,10 @@
 #include <simpletest.h>
 
 
+#include "kis_pinned_shared_ptr.h"
 #include "kis_shared_ptr.h"
 #include "kis_shared.h"
+#include "kis_types.h"
 
 namespace {
 
@@ -24,7 +26,36 @@ void copyIncompleteWeakSharedPointer()
 }
 
 static_assert(sizeof(KisWeakSharedPtr<IncompleteTestClass>) == 2 * sizeof(void *));
+static_assert(sizeof(KisSelectionSP) == sizeof(void *));
+static_assert(sizeof(KisSelectionMaskSP) == sizeof(void *));
+static_assert(sizeof(KisNodeSP) == sizeof(void *));
+static_assert(sizeof(KisGroupLayerSP) == sizeof(void *));
+static_assert(sizeof(KisFilterMaskSP) == sizeof(void *));
+static_assert(sizeof(KisPaintOpSettingsSP) == sizeof(void *));
+static_assert(sizeof(KisPropertiesConfigurationSP) == sizeof(void *));
 
+template<typename SharedPointer>
+bool copyIncompleteSharedPointer()
+{
+    SharedPointer source;
+    SharedPointer copy(source);
+    SharedPointer assigned;
+    assigned = copy;
+
+    return source.isNull() && copy.isNull() && assigned.isNull();
+}
+
+}
+
+void KisSharedPtrTest::testIncompleteTypeCopy()
+{
+    QVERIFY(copyIncompleteSharedPointer<KisSelectionSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisSelectionMaskSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisNodeSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisGroupLayerSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisFilterMaskSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisPaintOpSettingsSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisPropertiesConfigurationSP>());
 }
 
 class TestClassWatcher

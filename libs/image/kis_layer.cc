@@ -31,7 +31,6 @@
 #include "kis_filter_mask.h"
 #include "kis_selection_mask.h"
 #include "kis_meta_data_store.h"
-#include "kis_selection.h"
 #include "kis_paint_layer.h"
 #include "kis_raster_keyframe_channel.h"
 

@@ -22,7 +22,6 @@
 #include "KisGlobalResourcesInterface.h"
 #include "kis_filter_configuration.h"
 #include "kis_generator_layer.h"
-#include "kis_selection.h"
 #include "kis_dummies_facade_base.h"
 #include "kis_node_dummies_graph.h"
 #include "KisImportExportManager.h"

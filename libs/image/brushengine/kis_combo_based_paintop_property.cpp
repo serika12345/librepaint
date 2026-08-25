@@ -5,7 +5,6 @@
  */
 
 #include "kis_combo_based_paintop_property.h"
-#include "kis_paintop_settings.h"
 
 #include "QIcon"
 

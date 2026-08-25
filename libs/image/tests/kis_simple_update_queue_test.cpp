@@ -18,8 +18,6 @@
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
-#include "kis_selection.h"
-
 #include "kis_update_job_item.h"
 #include "kis_simple_update_queue.h"
 #include "scheduler_utils.h"

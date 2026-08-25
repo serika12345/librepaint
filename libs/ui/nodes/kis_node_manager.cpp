@@ -5,6 +5,7 @@
  */
 
 #include "nodes/kis_node_manager.h"
+#include "kis_filter_mask.h"
 
 #include <QStandardPaths>
 #include <QMessageBox>
@@ -65,8 +66,6 @@
 #include "kis_layer_utils.h"
 #include "krita_utils.h"
 #include "kis_shape_layer.h"
-#include "kis_filter_mask.h"
-
 #include "processing/kis_mirror_processing_visitor.h"
 #include "workspace/KisView.h"
 

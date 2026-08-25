@@ -6,8 +6,6 @@
 
 #include "kis_slider_based_paintop_property.h"
 
-#include "kis_paintop_settings.h"
-
 template<typename T>
 KisSliderBasedPaintOpProperty<T>::KisSliderBasedPaintOpProperty(Type type,
                                                                 SubType subType,

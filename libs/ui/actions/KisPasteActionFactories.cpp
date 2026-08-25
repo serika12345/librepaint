@@ -6,6 +6,8 @@
 
 #include "KisPasteActionFactories.h"
 
+#include "kis_group_layer.h"
+
 #include "application/kis_config.h"
 #include "kis_image.h"
 #include "workspace/KisViewManager.h"
@@ -13,7 +15,6 @@
 #include "kis_tool.h"
 #include "kis_canvas2.h"
 #include <KoCanvasController.h>
-#include "kis_group_layer.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_shape_layer.h"

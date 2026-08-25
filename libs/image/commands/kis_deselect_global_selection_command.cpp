@@ -6,11 +6,12 @@
 
 #include "kis_deselect_global_selection_command.h"
 
+#include "kis_selection_mask.h"
+
 #include <klocalizedstring.h>
 
 #include "kis_image.h"
 #include "kis_group_layer.h"
-#include "kis_selection_mask.h"
 #include "KisChangeDeselectedMaskCommand.h"
 #include "kis_image_layer_remove_command.h"
 #include "KisNotifySelectionChangedCommand.h"

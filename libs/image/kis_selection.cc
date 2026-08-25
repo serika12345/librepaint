@@ -29,6 +29,19 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 
+void kisSharedPtrAddReference(KisSelection *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisSelection *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
 
 struct Q_DECL_HIDDEN KisSelection::Private {
     Private(KisSelection *q)

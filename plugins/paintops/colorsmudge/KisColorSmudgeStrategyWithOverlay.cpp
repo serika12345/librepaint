@@ -11,7 +11,6 @@
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "kis_fixed_paint_device.h"
-#include "kis_selection.h"
 
 #include "KisOverlayPaintDeviceWrapper.h"
 

@@ -6,7 +6,6 @@
 
 #include "kis_processing_information.h"
 #include "kis_paint_device.h"
-#include "kis_selection.h"
 
 struct Q_DECL_HIDDEN KisConstProcessingInformation::Private {
     Private() : device(0), selection(0) {}

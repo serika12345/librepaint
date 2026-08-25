@@ -17,8 +17,6 @@
 #include "kis_selection_mask.h"
 #include "kis_image.h"
 
-#include "kis_selection.h"
-
 #include "kis_do_something_command.h"
 #include "kis_undo_adapter.h"
 

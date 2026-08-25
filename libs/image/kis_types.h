@@ -83,6 +83,8 @@ typedef KisSharedPtr<KisMask> KisMaskSP;
 typedef KisWeakSharedPtr<KisMask> KisMaskWSP;
 
 class KisNode;
+KRITAIMAGE_EXPORT void kisSharedPtrAddReference(KisNode *pointer);
+KRITAIMAGE_EXPORT bool kisSharedPtrRelease(KisNode *pointer);
 typedef KisSharedPtr<KisNode> KisNodeSP;
 typedef KisWeakSharedPtr<KisNode> KisNodeWSP;
 typedef QVector<KisNodeSP> vKisNodeSP;
@@ -98,6 +100,8 @@ typedef KisSharedPtr<KisEffectMask> KisEffectMaskSP;
 typedef KisWeakSharedPtr<KisEffectMask> KisEffectMaskWSP;
 
 class KisFilterMask;
+KRITAIMAGE_EXPORT void kisSharedPtrAddReference(KisFilterMask *pointer);
+KRITAIMAGE_EXPORT bool kisSharedPtrRelease(KisFilterMask *pointer);
 typedef KisSharedPtr<KisFilterMask> KisFilterMaskSP;
 typedef KisWeakSharedPtr<KisFilterMask> KisFilterMaskWSP;
 
@@ -138,6 +142,8 @@ typedef KisSharedPtr<KisCloneLayer> KisCloneLayerSP;
 typedef KisWeakSharedPtr<KisCloneLayer> KisCloneLayerWSP;
 
 class KisGroupLayer;
+KRITAIMAGE_EXPORT void kisSharedPtrAddReference(KisGroupLayer *pointer);
+KRITAIMAGE_EXPORT bool kisSharedPtrRelease(KisGroupLayer *pointer);
 typedef KisSharedPtr<KisGroupLayer> KisGroupLayerSP;
 typedef KisWeakSharedPtr<KisGroupLayer> KisGroupLayerWSP;
 
@@ -146,6 +152,8 @@ typedef KisSharedPtr<KisFileLayer> KisFileLayerSP;
 typedef KisWeakSharedPtr<KisFileLayer> KisFileLayerWSP;
 
 class KisSelection;
+KRITAIMAGE_EXPORT void kisSharedPtrAddReference(KisSelection *pointer);
+KRITAIMAGE_EXPORT bool kisSharedPtrRelease(KisSelection *pointer);
 typedef KisSharedPtr<KisSelection> KisSelectionSP;
 typedef KisWeakSharedPtr<KisSelection> KisSelectionWSP;
 
@@ -153,6 +161,8 @@ class KisSelectionComponent;
 typedef KisSharedPtr<KisSelectionComponent> KisSelectionComponentSP;
 
 class KisSelectionMask;
+KRITAIMAGE_EXPORT void kisSharedPtrAddReference(KisSelectionMask *pointer);
+KRITAIMAGE_EXPORT bool kisSharedPtrRelease(KisSelectionMask *pointer);
 typedef KisSharedPtr<KisSelectionMask> KisSelectionMaskSP;
 
 class KisPixelSelection;
@@ -235,6 +245,8 @@ template <typename T>
 class KisPinnedSharedPtr;
 
 class KisPaintOpSettings;
+KRITAIMAGE_EXPORT void kisSharedPtrAddReference(KisPaintOpSettings *pointer);
+KRITAIMAGE_EXPORT bool kisSharedPtrRelease(KisPaintOpSettings *pointer);
 typedef KisPinnedSharedPtr<KisPaintOpSettings> KisPaintOpSettingsSP;
 
 template <typename T>
@@ -271,6 +283,8 @@ class KisFilterConfiguration;
 typedef KisPinnedSharedPtr<KisFilterConfiguration> KisFilterConfigurationSP;
 
 class KisPropertiesConfiguration;
+KRITAIMAGE_EXPORT void kisSharedPtrAddReference(KisPropertiesConfiguration *pointer);
+KRITAIMAGE_EXPORT bool kisSharedPtrRelease(KisPropertiesConfiguration *pointer);
 typedef KisPinnedSharedPtr<KisPropertiesConfiguration> KisPropertiesConfigurationSP;
 
 class KisLockedProperties;

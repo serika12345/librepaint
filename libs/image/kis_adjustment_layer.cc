@@ -14,7 +14,6 @@
 #include <KoCompositeOpRegistry.h>
 
 #include "kis_image.h"
-#include "kis_selection.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
 #include "filter/kis_filter.h"

@@ -7,7 +7,6 @@
 #include "KisUpdateCommandEx.h"
 
 #include "kis_image_interfaces.h"
-#include "kis_node.h"
 
 KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData,
                                        KisUpdatesFacade *updatesFacade,

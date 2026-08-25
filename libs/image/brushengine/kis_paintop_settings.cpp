@@ -48,6 +48,20 @@
 #include "kis_random_source.h"
 #endif
 
+void kisSharedPtrAddReference(KisPaintOpSettings *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisPaintOpSettings *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
+
 struct Q_DECL_HIDDEN KisPaintOpSettings::Private {
     Private()
         : settingsWidget(0)

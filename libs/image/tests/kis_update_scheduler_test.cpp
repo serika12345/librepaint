@@ -16,7 +16,6 @@
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
-#include "kis_selection.h"
 
 #include "scheduler_utils.h"
 #include "kis_update_scheduler.h"

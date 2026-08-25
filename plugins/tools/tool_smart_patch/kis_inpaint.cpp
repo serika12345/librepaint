@@ -21,7 +21,6 @@
 
 #include "kis_paint_device.h"
 #include "kis_painter.h"
-#include "kis_selection.h"
 
 #include "kis_paint_device_debug_utils.h"
 //#include "kis_random_accessor_ng.h"

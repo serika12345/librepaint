@@ -20,7 +20,6 @@
 #include <KisInputActionGroup.h>
 #include <application/kis_config.h>
 
-#include "kis_selection.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "document/kis_filter_manager.h"
 #include "ui_wdgfilterdialog.h"

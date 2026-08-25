@@ -39,6 +39,20 @@ typedef KisSafeReadList<KisNodeSP> KisSafeReadNodeList;
 #include "KisRegion.h"
 #include <KisStaticInitializer.h>
 
+void kisSharedPtrAddReference(KisNode *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisNode *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
+
 /**
  * The link between KisProjection and KisImageUpdater
  * uses queued signals with an argument of KisNodeSP type,

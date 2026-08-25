@@ -9,7 +9,9 @@
 #define KIS_CONVOLUTION_WORKER_SPATIAL_H
 
 #include "kis_convolution_worker.h"
+#include "kis_convolution_kernel.h"
 #include "kis_math_toolbox.h"
+#include "kis_selection.h"
 
 template <class _IteratorFactory_>
 class KisConvolutionWorkerSpatial : public KisConvolutionWorker<_IteratorFactory_>

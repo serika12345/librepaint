@@ -20,6 +20,20 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 
+void kisSharedPtrAddReference(KisPropertiesConfiguration *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisPropertiesConfiguration *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
+
 struct Q_DECL_HIDDEN KisPropertiesConfiguration::Private {
     QMap<QString, QVariant> properties;
     QSet<QString> notSavedProperties;

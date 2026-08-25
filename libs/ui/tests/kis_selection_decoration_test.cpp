@@ -12,8 +12,6 @@
 #include "kis_processing_applicator.h"
 #include "commands/kis_deselect_global_selection_command.h"
 #include "commands/kis_set_global_selection_command.h"
-#include "kis_selection.h"
-
 
 void KisSelectionDecorationTest::testConcurrentSelectionFetches()
 {

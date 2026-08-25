@@ -14,7 +14,6 @@
 
 #include <KoIcon.h>
 #include <kis_icon.h>
-#include "kis_selection.h"
 #include "filter/kis_filter_configuration.h"
 #include <kis_processing_visitor.h>
 #include "generator/kis_generator_registry.h"

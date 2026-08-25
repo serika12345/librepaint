@@ -27,8 +27,6 @@
 #include "kis_types.h"
 #include "kis_default_bounds.h"
 
-#include "kis_selection.h"
-
 #include "kis_convolution_worker.h"
 #include "kis_convolution_worker_spatial.h"
 

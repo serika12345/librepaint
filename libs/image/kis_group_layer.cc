@@ -26,6 +26,19 @@
 #include <kis_projection_leaf.h>
 #include <kis_abstract_projection_plane.h>
 
+void kisSharedPtrAddReference(KisGroupLayer *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisGroupLayer *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
 
 struct Q_DECL_HIDDEN KisGroupLayer::Private
 {

@@ -19,6 +19,7 @@ private Q_SLOTS:
     void testCopy();
     void testCopy2();
     void testCopy0();
+    void testIncompleteTypeCopy();
     void testClear();
     void testWeakSP();
     void testBoolOnInvalidWeakPointer();

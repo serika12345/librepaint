@@ -13,7 +13,6 @@
 #include "filter/kis_filter_configuration.h"
 #include "kis_transaction.h"
 #include "kis_paint_device.h"
-#include "kis_selection.h"
 #include "kis_types.h"
 #include <kis_painter.h>
 #include <KoUpdater.h>

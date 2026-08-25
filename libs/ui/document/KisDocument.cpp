@@ -98,7 +98,6 @@
 #include <kis_canvas_widget_base.h>
 #include "KisUniqueColorSet.h"
 #include "kis_layer_utils.h"
-#include "kis_selection_mask.h"
 
 // Local
 #include "workspace/KisViewManager.h"
