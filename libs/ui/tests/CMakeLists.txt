@@ -17,6 +17,7 @@ kis_add_tests(
     TestCanvasUiPublicHeaders.cpp
     TestDocumentStateUiPublicHeaders.cpp
     TestApplicationWorkspaceToolUiPublicHeaders.cpp
+    TestApplicationPaintingResourceRegistration.cpp
     TestRemainingUiRootPublicHeaders.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp

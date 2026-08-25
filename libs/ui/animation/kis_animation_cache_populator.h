@@ -12,6 +12,7 @@
 #include "kis_animation_frame_cache_fwd.h"
 
 class KisPart;
+class KisIdleWatcher;
 
 class KisAnimationCachePopulator : public QObject
 {
@@ -28,6 +29,9 @@ public:
      */
     bool regenerate(KisAnimationFrameCacheSP cache, int frame);
     void requestRegenerationWithPriorityFrame(KisImageSP image, int frameIndex);
+    KisIdleWatcher *idleWatcher() const;
+    void setTrackedImages(const QVector<KisImageSP> &images);
+    void forceImageModified();
 
 public Q_SLOTS:
     void slotRequestRegeneration();

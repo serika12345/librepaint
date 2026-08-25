@@ -8,6 +8,7 @@
 
 #include <document/KisDocument.h>
 #include <application/KisPart.h>
+#include <animation/kis_animation_cache_populator.h>
 #include <QMap>
 #include <QScopedPointer>
 #include <QSignalSpy>
@@ -239,6 +240,14 @@ void KisDocumentReplaceTest::testImageStateDelegation()
     m_doc->refreshProjectionAndWait();
 
     finalize();
+}
+
+void KisDocumentReplaceTest::testApplicationIdleWatcherOwnership()
+{
+    KisPart *part = KisPart::instance();
+
+    QVERIFY(part->idleWatcher());
+    QCOMPARE(part->idleWatcher(), part->cachePopulator()->idleWatcher());
 }
 
 KISTEST_MAIN(KisDocumentReplaceTest)

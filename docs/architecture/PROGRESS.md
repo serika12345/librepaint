@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 09:24 JST
+- 更新日時: 2026-08-25 09:48 JST
 - 状態: `planned`
 - 現在の検査段階: R1-G6g 残存アプリケーション描画所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
@@ -1922,11 +1922,34 @@
 - `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
   文書と図の検査に成功した。
 
+## R1-G6g起動資源・共有監視所有境界で完了した作業
+
+- `libs/ui/application/KisApplication.cpp`にあった組込み描画資源登録を、次の所有先へ接続した。
+  - ペイントプリセットとブラシローダー登録から
+    `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`の組込み描画資源登録。
+  - PSDレイヤースタイルローダー登録から同じ所有先のレイヤースタイル資源登録。
+  - ブラシメタデータ修復登録から同じ所有先のブラシキャッシュ修復登録。
+- `libs/ui/application/KisPart.cpp`の共有状態を、次の所有先へ接続した。
+  - システム色管理初期化から`libs/ui/canvas/KisDisplayConfig.{h,cpp}`の表示色管理初期化。
+  - アプリケーション単位アイドル監視から
+    `libs/ui/animation/kis_animation_cache_populator.{h,cpp}`の文書画像追跡とキャッシュ生成通知。
+- 組込みローダーと修復処理の登録位置、資源種別、MIME型、優先度、色管理singletonの生成時機、
+  アイドル監視の生成・破棄順、文書画像追跡、メモリー統計通知、公開監視ポインターを維持した。
+- アプリケーション調整から描画への確認済み逆方向includeは10件から5件へ縮小した。
+  未確定射影0件と製品ターゲット循環0件を維持する。公開ヘッダー台帳は描画資源登録と
+  アイドル監視の実利用経路を各具体所有へ同期する。
+- 変更した5製品翻訳単位と2契約試験はmacOSの製品コンパイル条件でコード生成に成功した。
+  clangd include-cleaner監査は未使用includeと直接include不足が0件であることを確認した。
+  更新したキャンバス資源所有実装を既存ライブラリーへ個別リンクした
+  `TestApplicationPaintingResourceRegistration`は3件すべて成功した。
+- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
+  文書と図の検査に成功した。
+
 ## 次の操作
 
-`libs/ui/application/KisApplication.cpp`と`libs/ui/application/KisPart.cpp`の起動登録と共有状態に
-使う5 includeを、ペイントプリセット、ブラシ、レイヤースタイル、色管理、アイドル監視の
-具体所有面へ接続する。
+`libs/ui/application/kis_config.cc`、`libs/ui/workspace/KisSessionResource.cpp`、
+`libs/ui/workspace/KisView.h`、`libs/ui/workspace/kis_workspace_resource.h`に残る設定、
+セッション、公開型の5 includeを具体所有面へ接続する。
 
 ## R1-G5完了根拠
 

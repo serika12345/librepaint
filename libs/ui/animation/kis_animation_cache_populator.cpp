@@ -48,6 +48,7 @@ struct KisAnimationCachePopulator::Private
     static const int IDLE_CHECK_INTERVAL = 500;
     static const int BETWEEN_FRAMES_INTERVAL = 10;
 
+    KisIdleWatcher idleWatcher;
     KisAsyncAnimationCacheRenderer regenerator;
     bool calculateAnimationCacheInBackground = true;
 
@@ -66,11 +67,12 @@ struct KisAnimationCachePopulator::Private
     };
 
     Private(KisAnimationCachePopulator *_q, KisPart *_part)
-        : q(_q),
-          part(_part),
-          idleCounter(0),
-          priorityFrames(),
-          state(WaitingForIdle)
+        : q(_q)
+        , part(_part)
+        , idleCounter(0)
+        , priorityFrames()
+        , idleWatcher(2500)
+        , state(WaitingForIdle)
     {
         timer.setSingleShot(true);
     }
@@ -92,7 +94,7 @@ struct KisAnimationCachePopulator::Private
 
     void generateIfIdle()
     {
-        if (part->idleWatcher()->isIdle()) {
+        if (idleWatcher.isIdle()) {
             idleCounter++;
 
             if (idleCounter >= IDLE_COUNT_THRESHOLD) {
@@ -341,6 +343,11 @@ KisAnimationCachePopulator::KisAnimationCachePopulator(KisPart *part)
     connect(&m_d->regenerator, SIGNAL(sigFrameCompleted(int)), SLOT(slotRegeneratorFrameReady()));
 
     connect(KisConfigNotifier::instance(), SIGNAL(configChanged()), SLOT(slotConfigChanged()));
+    connect(&m_d->idleWatcher,
+            &KisIdleWatcher::startedIdleMode,
+            this,
+            &KisAnimationCachePopulator::slotRequestRegeneration);
+    m_d->idleWatcher.connectMemoryStatisticsUpdates();
     slotConfigChanged();
 }
 
@@ -366,6 +373,21 @@ void KisAnimationCachePopulator::requestRegenerationWithPriorityFrame(KisImageSP
     if (m_d->state == Private::NotWaitingForAnything) {
         m_d->generateIfIdle();
     }
+}
+
+KisIdleWatcher *KisAnimationCachePopulator::idleWatcher() const
+{
+    return &m_d->idleWatcher;
+}
+
+void KisAnimationCachePopulator::setTrackedImages(const QVector<KisImageSP> &images)
+{
+    m_d->idleWatcher.setTrackedImages(images);
+}
+
+void KisAnimationCachePopulator::forceImageModified()
+{
+    m_d->idleWatcher.forceImageModified();
 }
 
 void KisAnimationCachePopulator::slotTimer()

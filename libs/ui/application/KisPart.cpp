@@ -45,8 +45,7 @@
 #include "kis_shape_controller.h"
 #include "application/KisResourceServerProvider.h"
 #include <animation/kis_animation_cache_populator.h>
-#include "kis_idle_watcher.h"
-#include "kis_color_manager.h"
+#include <canvas/KisDisplayConfig.h>
 
 #include <KisCursorOverrideLock.h>
 #include "kis_action_registry.h"
@@ -69,7 +68,6 @@ class Q_DECL_HIDDEN KisPart::Private
 public:
     Private(KisPart *_part)
         : part(_part)
-        , idleWatcher(2500)
         , animationCachePopulator(_part)
         , playbackEngine(nullptr)
     {
@@ -84,7 +82,6 @@ public:
     QList<QPointer<KisView> > views;
     QList<QPointer<KisMainWindow> > mainWindows;
     QList<QPointer<KisDocument> > documents;
-    KisIdleWatcher idleWatcher;
     KisAnimationCachePopulator animationCachePopulator;
     std::unique_ptr<KisPlaybackEngine> playbackEngine;
 
@@ -117,7 +114,7 @@ KisPart::KisPart()
     // Preload all the resources in the background
     Q_UNUSED(KoResourceServerProvider::instance());
     Q_UNUSED(KisResourceServerProvider::instance());
-    Q_UNUSED(KisColorManager::instance());
+    KisDisplayConfig::initializeSystemColorManager();
 
     connect(this, SIGNAL(documentOpened(QString)),
             this, SLOT(updateIdleWatcherConnections()));
@@ -127,10 +124,6 @@ KisPart::KisPart()
 
     connect(KisActionRegistry::instance(), SIGNAL(shortcutsUpdated()),
             this, SLOT(updateShortcuts()));
-    connect(&d->idleWatcher, SIGNAL(startedIdleMode()),
-            &d->animationCachePopulator, SLOT(slotRequestRegeneration()));
-    d->idleWatcher.connectMemoryStatisticsUpdates();
-
     // We start by loading the simple QTimer-based anim playback engine first.
     // To save RAM, the MLT-based engine will be loaded later, once the KisImage in question becomes animated.
     setPlaybackEngine(new KisPlaybackEngineQT(this));
@@ -166,12 +159,12 @@ void KisPart::updateIdleWatcherConnections()
         }
     }
 
-    d->idleWatcher.setTrackedImages(images);
+    d->animationCachePopulator.setTrackedImages(images);
 
     /**
      * Update memory stats on changing the amount of images open in Krita
      */
-    d->idleWatcher.forceImageModified();
+    d->animationCachePopulator.forceImageModified();
 }
 
 void KisPart::addDocument(KisDocument *document, bool notify)
@@ -456,7 +449,7 @@ KisMainWindow * KisPart::windowById(QUuid id) const
 
 KisIdleWatcher* KisPart::idleWatcher() const
 {
-    return &d->idleWatcher;
+    return d->animationCachePopulator.idleWatcher();
 }
 
 KisAnimationCachePopulator* KisPart::cachePopulator() const

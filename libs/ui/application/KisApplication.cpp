@@ -64,7 +64,7 @@
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "flake/kis_shape_selection.h"
-#include <brushengine/kis_paintop_registry.h>
+#include "canvas/kis_canvas_resource_provider.h"
 #include "application/KisApplicationArguments.h"
 #include <kis_debug.h>
 #include "kis_action_registry.h"
@@ -139,7 +139,6 @@ public:
 #include <KisResourceLoader.h>
 #include <KisResourceLoaderRegistry.h>
 
-#include <kis_brush_registry.h>
 #include <KoColorSet.h>
 #include <KoSegmentGradient.h>
 #include <KoStopGradient.h>
@@ -157,8 +156,6 @@ public:
 #include "nodes/kis_node_manager.h"
 #include "KisSynchronizedConnection.h"
 #include <QThreadStorage>
-
-#include <kis_psd_layer_style.h>
 
 #include <config-seexpr.h>
 #include <config-safe-asserts.h>
@@ -447,8 +444,7 @@ bool KisApplication::registerResources()
 {
     KisResourceLoaderRegistry *reg = KisResourceLoaderRegistry::instance();
 
-    KisPaintOpRegistry::registerResourceLoader(*reg);
-    KisBrushRegistry::registerResourceLoaders(*reg);
+    KisCanvasResourceProvider::registerPaintOpAndBrushResourceLoaders(*reg);
 
     reg->add(new KisResourceLoader<KoSegmentGradient>(ResourceSubType::SegmentedGradients, ResourceType::Gradients, i18n("Gradients"), QStringList() << "application/x-gimp-gradient"));
     reg->add(new KisResourceLoader<KoStopGradient>(ResourceSubType::StopGradients, ResourceType::Gradients, i18n("Gradients"), QStringList() << "image/svg+xml"));
@@ -475,12 +471,12 @@ bool KisApplication::registerResources()
     reg->add(new KisResourceLoader<KisSeExprScript>(ResourceType::SeExprScripts, ResourceType::SeExprScripts, i18n("SeExpr Scripts"), QStringList() << "application/x-krita-seexpr-script"));
 #endif
     // XXX: this covers only individual styles, not the library itself!
-    KisPSDLayerStyle::registerResourceLoader(*reg);
+    KisCanvasResourceProvider::registerLayerStyleResourceLoader(*reg);
 
     reg->add(new KisResourceLoader<KoFontFamily>(ResourceType::FontFamilies, ResourceType::FontFamilies, i18n("Font Families"), QStringList() << "application/x-font-ttf" << "application/x-font-otf"));
     reg->add(new KisResourceLoader<KoCssStylePreset>(ResourceType::CssStyles, ResourceType::CssStyles, i18n("Style Presets"), QStringList() << "image/svg+xml"));
 
-    KisBrushRegistry::registerResourceCacheFixup(*reg);
+    KisCanvasResourceProvider::registerBrushResourceCacheFixup(*reg);
 
 #ifndef Q_OS_ANDROID
     QString databaseLocation = KoResourcePaths::getAppDataLocation();

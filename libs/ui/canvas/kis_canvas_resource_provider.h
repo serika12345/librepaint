@@ -28,6 +28,7 @@ class KoAbstractGradient;
 struct KoSvgTextPropertyData;
 
 class KoCanvasBase;
+class KisResourceLoaderRegistry;
 class KisViewManager;
 
 class KisFilterConfiguration;
@@ -54,6 +55,10 @@ public:
     static void initializeResourceManager(KoCanvasResourceProvider *resourceManager);
     /// Installs the opacity converter used by the paint-tool integration test seam.
     static void initializeOpacityToPresetResourceConverter(KoCanvasResourceProvider *resourceManager);
+
+    static void registerPaintOpAndBrushResourceLoaders(KisResourceLoaderRegistry &registry);
+    static void registerLayerStyleResourceLoader(KisResourceLoaderRegistry &registry);
+    static void registerBrushResourceCacheFixup(KisResourceLoaderRegistry &registry);
 
     KoCanvasBase * canvas() const;
 

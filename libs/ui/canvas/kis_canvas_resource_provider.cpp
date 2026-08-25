@@ -28,7 +28,11 @@
 #include <kis_image.h>
 #include <kis_group_layer.h>
 #include <brushengine/kis_paintop_preset.h>
+#include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_settings.h>
+#include <kis_brush_registry.h>
+#include <kis_psd_layer_style.h>
+#include <KisResourceLoaderRegistry.h>
 #include "resources/kis_favorite_resource_manager.h"
 #include "resources/kis_derived_resources.h"
 
@@ -131,6 +135,21 @@ void KisCanvasResourceProvider::initializeOpacityToPresetResourceConverter(KoCan
     resourceManager->addDerivedResourceConverter(toQShared(new KisOpacityToPresetOpacityResourceConverter));
 }
 
+void KisCanvasResourceProvider::registerPaintOpAndBrushResourceLoaders(KisResourceLoaderRegistry &registry)
+{
+    KisPaintOpRegistry::registerResourceLoader(registry);
+    KisBrushRegistry::registerResourceLoaders(registry);
+}
+
+void KisCanvasResourceProvider::registerLayerStyleResourceLoader(KisResourceLoaderRegistry &registry)
+{
+    KisPSDLayerStyle::registerResourceLoader(registry);
+}
+
+void KisCanvasResourceProvider::registerBrushResourceCacheFixup(KisResourceLoaderRegistry &registry)
+{
+    KisBrushRegistry::registerResourceCacheFixup(registry);
+}
 
 KoCanvasBase * KisCanvasResourceProvider::canvas() const
 {

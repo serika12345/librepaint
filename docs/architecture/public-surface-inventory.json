@@ -1510,7 +1510,7 @@
             "libs/painting/kis_resources_snapshot.cpp",
             "libs/painting/strokes/kis_painter_based_stroke_strategy.cpp",
             "libs/tools/ui/kis_paint_ops_model.cpp",
-            "libs/ui/application/KisApplication.cpp",
+            "libs/ui/canvas/kis_canvas_resource_provider.cpp",
             "libs/ui/resources/kis_favorite_resource_manager.cpp",
             "libs/ui/tool/kis_paintop_box.cc",
             "libs/ui/tool/kis_tool_shape.cc",
@@ -3610,7 +3610,6 @@
           ],
           "consumerPaths": [
             "libs/ui/animation/kis_animation_cache_populator.cpp",
-            "libs/ui/application/KisPart.cpp",
             "libs/ui/canvas/KisIdleTasksManager.cpp",
             "libs/ui/document/KisDocument.cpp",
             "plugins/dockers/layerdocker/LayerBox.h",
@@ -5631,7 +5630,7 @@
           "consumerPaths": [
             "libs/psd/psd_additional_layer_info_block.h",
             "libs/tools/ui/KisPaintResourceServerProvider.cpp",
-            "libs/ui/application/KisApplication.cpp",
+            "libs/ui/canvas/kis_canvas_resource_provider.cpp",
             "libs/ui/dialogs/kis_dlg_layer_style.cpp",
             "libs/ui/dialogs/kis_dlg_layer_style.h",
             "libs/ui/nodes/kis_layer_manager.cc",

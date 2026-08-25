@@ -40,6 +40,7 @@ public:
     }
 
     static Options optionsFromKisConfig(const KisConfig &cfg);
+    static void initializeSystemColorManager();
     static const KoColorProfile *profileForScreen(int screen);
 
     const KoColorProfile *profile;

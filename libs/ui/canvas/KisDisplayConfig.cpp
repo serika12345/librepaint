@@ -59,6 +59,11 @@ KisDisplayConfig::Options KisDisplayConfig::optionsFromKisConfig(const KisConfig
             conversionFlagsFromConfig(cfg)};
 }
 
+void KisDisplayConfig::initializeSystemColorManager()
+{
+    Q_UNUSED(KisColorManager::instance());
+}
+
 const KoColorProfile *KisDisplayConfig::profileForScreen(int screen)
 {
     if (screen < 0) {
