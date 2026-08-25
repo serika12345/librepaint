@@ -175,7 +175,8 @@ public:
         case KisSelectionOptions::ColorLabeledLayers:
             return SampleColorLabeledLayers;
         }
-        KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(false, SampleAllLayers);
+        KIS_SAFE_ASSERT_RECOVER_NOOP(false);
+        return SampleAllLayers;
     }
 
     KisSelectionOptions *selectionOptionWidget()
