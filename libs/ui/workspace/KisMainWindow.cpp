@@ -40,7 +40,6 @@
 #include <QMimeData>
 #include <QStackedWidget>
 #include <QProxyStyle>
-#include <QScreen>
 #include <QAction>
 #include <QWindow>
 #include <QTemporaryDir>
@@ -85,6 +84,7 @@
 #include <KoDockRegistry.h>
 #include <KoPluginLoader.h>
 #include <KoColorSpaceEngine.h>
+#include <KoUpdater.h>
 #include <KisResourceModel.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceIterator.h>

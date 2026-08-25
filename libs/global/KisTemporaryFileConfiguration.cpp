@@ -7,6 +7,7 @@
 #include "KisTemporaryFileConfiguration.h"
 
 #include <KConfigGroup>
+#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QStandardPaths>

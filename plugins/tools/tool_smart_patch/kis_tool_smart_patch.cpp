@@ -35,6 +35,7 @@
 #include "kis_paint_layer.h"
 #include "kis_algebra_2d.h"
 #include "kis_resources_snapshot.h"
+#include "kis_selection.h"
 
 QRect patchImage(KisPaintDeviceSP imageDev, KisPaintDeviceSP maskDev, int radius, int accuracy, KisSelectionSP selection);
 

@@ -15,6 +15,7 @@
 
 #include <KisResourceModel.h>
 #include <kis_assert.h>
+#include <kis_debug.h>
 #include <KisResourceTypes.h>
 #include <workspace/KisMainWindow.h>
 #include <KisResourceTypeModel.h>

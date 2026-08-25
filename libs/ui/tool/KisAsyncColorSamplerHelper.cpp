@@ -13,6 +13,7 @@
 #include <QPainterPath>
 #include <QPalette>
 #include <QPixmap>
+#include <QtMath>
 #include <QTransform>
 
 #include "KoCanvasResourcesIds.h"

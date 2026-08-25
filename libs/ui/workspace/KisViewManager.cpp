@@ -32,7 +32,6 @@
 #include <QObject>
 #include <QPoint>
 #include <QPushButton>
-#include <QScreen>
 #include <QScrollBar>
 #include <QStatusBar>
 #include <QToolBar>
@@ -49,6 +48,7 @@
 #include <KoCanvasController.h>
 #include <KoCompositeOp.h>
 #include <KoDockWidgetTitleBar.h>
+#include <KoFileDialog.h>
 #include <KisResourceItemChooserSync.h>
 #include <KoStore.h>
 #include <KoToolManager.h>

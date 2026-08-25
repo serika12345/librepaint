@@ -14,15 +14,15 @@
 #include <windows.h>
 #include <tchar.h>
 #endif
-
 #ifdef Q_OS_MACOS
 #include "platform/osx.h"
 #endif
-
 #ifdef Q_OS_ANDROID
 #include "workspace/KisAndroidSplash.h"
 #endif
-
+#ifdef Q_OS_IOS
+#include <KisKineticScroller.h>
+#endif
 #include <QAbstractItemView>
 #include <QAbstractScrollArea>
 #include <QStandardPaths>

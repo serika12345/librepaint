@@ -14,6 +14,7 @@
 #include <KoColorSpaceTraits.h>
 #include <KoColorTransferFunctions.h>
 #include <kis_iterator_ng.h>
+#include <kis_types.h>
 
 namespace Gray
 {

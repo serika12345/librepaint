@@ -20,7 +20,9 @@
 
 #include "widgets/kis_floating_message.h"
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 Q_MOC_INCLUDE("kis_node.h")
+#endif
 
 template<class T>
 class KisSharedPtr;
