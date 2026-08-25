@@ -34,7 +34,6 @@
 #include "kis_gamma_exposure_action.h"
 #include "kis_change_frame_action.h"
 #include "kis_zoom_and_rotate_action.h"
-#include "KisCanvasOnlyAction.h"
 #include "KisTouchGestureAction.h"
 #include "KisInputProfileMigrator.h"
 

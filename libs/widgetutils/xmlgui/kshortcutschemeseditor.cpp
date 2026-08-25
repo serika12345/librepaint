@@ -25,7 +25,6 @@
 #include "KisShortcutsDialog.h"
 #include "kshortcutschemeshelper_p.h"
 #include "kactioncollection.h"
-#include "kxmlguiclient.h"
 
 #include "KoResourcePaths.h"
 

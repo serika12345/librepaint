@@ -16,7 +16,6 @@
 #include "canvas/kis_coordinates_converter.h"
 #include "canvas/kis_display_filter.h"
 #include "canvas/kis_canvas_widget_base.h"
-#include "KisOpenGLModeProber.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "application/kis_config.h"
 #include "kis_debug.h"

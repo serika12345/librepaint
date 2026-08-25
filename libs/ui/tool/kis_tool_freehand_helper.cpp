@@ -34,7 +34,6 @@
 #include "strokes/freehand_stroke.h"
 #include "strokes/KisFreehandStrokeInfo.h"
 #include "KisAsynchronousStrokeUpdateHelper.h"
-#include "canvas/kis_canvas_resource_provider.h"
 #include <KisOptimizedBrushOutline.h>
 
 #include <math.h>

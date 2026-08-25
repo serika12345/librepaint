@@ -7,7 +7,6 @@
 
 #include "canvas/kis_painting_assistants_decoration.h"
 
-#include <cstdint>
 #include <limits>
 
 #include <QList>
@@ -19,8 +18,6 @@
 #include "kis_debug.h"
 #include "document/KisDocument.h"
 #include "kis_canvas2.h"
-#include "canvas/kis_canvas_resource_provider.h"
-#include "kis_icon_utils.h"
 #include "workspace/KisViewManager.h"
 #include <KoCompositeOpRegistry.h>
 #include "kis_tool_proxy.h"

@@ -10,7 +10,6 @@
 
 #include "kis_transform_worker.h"
 #include "kis_filter_strategy.h"
-#include "kis_node_progress_proxy.h"
 #include "kis_node_visitor.h"
 #include "kis_image.h"
 #include "kis_types.h"

@@ -6,8 +6,6 @@
 
 #include "kis_color_label_selector_widget.h"
 
-#include "kis_debug.h"
-#include "kis_global.h"
 
 #include <QAction>
 #include <QApplication>

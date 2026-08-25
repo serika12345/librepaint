@@ -11,7 +11,6 @@
 
 #include "kis_node.h"
 #include "nodes/kis_node_model.h"
-#include "nodes/kis_node_manager.h"
 #include "kis_signal_compressor.h"
 #include "kis_signal_auto_connection.h"
 

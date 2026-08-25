@@ -18,7 +18,6 @@
 #include <QClipboard>
 #include <QMimeData>
 
-#include <memory>
 
 #include <kactioncollection.h>
 #include <klocalizedstring.h>
@@ -60,7 +59,6 @@
 #include <kis_clipboard.h>
 
 #include "application/kis_config.h"
-#include "kis_cursor.h"
 #include "dialogs/kis_dlg_adj_layer_props.h"
 #include "dialogs/kis_dlg_adjustment_layer.h"
 #include "dialogs/kis_dlg_layer_properties.h"
@@ -71,7 +69,6 @@
 #include "document/kis_filter_manager.h"
 #include "kis_node_visitor.h"
 #include "kis_paint_layer.h"
-#include "commands/kis_image_commands.h"
 #include "commands/kis_node_commands.h"
 #include <commands/KisNodeRenameCommand.h>
 #include "document/kis_change_file_layer_command.h"
@@ -79,11 +76,9 @@
 #include "selection/kis_selection_manager.h"
 #include "canvas/kis_statusbar.h"
 #include "workspace/KisViewManager.h"
-#include "canvas/kis_zoom_manager.h"
 #include "canvas/kis_canvas2.h"
 #include "widgets/kis_meta_data_merge_strategy_chooser_widget.h"
 #include "widgets/kis_wdg_generator.h"
-#include "kis_progress_widget.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "nodes/kis_node_manager.h"
 #include "application/kis_action.h"
@@ -97,7 +92,6 @@
 #include "kis_layer_utils.h"
 #include "lazybrush/kis_colorize_mask.h"
 #include "kis_processing_applicator.h"
-#include "kis_projection_leaf.h"
 #include "KisGlobalResourcesInterface.h"
 
 #include "KisSaveGroupVisitor.h"

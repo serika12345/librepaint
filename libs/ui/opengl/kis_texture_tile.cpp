@@ -8,7 +8,6 @@
 #include "kis_texture_tile.h"
 #include "kis_texture_tile_update_info.h"
 #include "KisOpenGLBufferCircularStorage.h"
-#include "KisOpenGLIOSCompat.h"
 
 #include <kis_debug.h>
 #if !defined(QT_OPENGL_ES)
@@ -68,7 +67,6 @@ inline QRectF relativeRect(const QRect &br /* baseRect */,
     return QRectF(x, y, w, h);
 }
 
-#include "kis_debug.h"
 
 KisTextureTile::KisTextureTile(const QRect &imageRect, const KisGLTexturesInfo *texturesInfo,
                                const QByteArray &fillData, KisOpenGL::FilterMode filter,

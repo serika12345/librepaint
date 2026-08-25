@@ -8,7 +8,6 @@
 
 #include <simpletest.h>
 
-#include "kis_global.h"
 
 #include "kis_shape_layer.h"
 #include <KoPathShape.h>

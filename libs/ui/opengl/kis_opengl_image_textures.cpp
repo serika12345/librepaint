@@ -15,7 +15,6 @@
 #endif
 #include <QOpenGLContext>
 
-#include "KisOpenGLIOSCompat.h"
 
 #include <QMessageBox>
 #include <QApplication>

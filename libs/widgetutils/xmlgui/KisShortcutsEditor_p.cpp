@@ -24,7 +24,6 @@
 #endif
 #include <ksharedconfig.h>
 #include <KConfigGroup>
-#include "kis_action_registry.h"
 #include <KisKineticScroller.h>
 
 //---------------------------------------------------------------------

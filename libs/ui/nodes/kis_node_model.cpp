@@ -6,7 +6,6 @@
  */
 #include "nodes/kis_node_model.h"
 
-#include <iostream>
 
 #include <QMimeData>
 #include <QBuffer>
@@ -43,7 +42,6 @@
 #include <canvas/KisNodeDisplayModeAdapter.h>
 
 #include "application/kis_config.h"
-#include "kis_config_notifier.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_signal_compressor.h"
 #include "canvas/KisLayerThumbnailCache.h"

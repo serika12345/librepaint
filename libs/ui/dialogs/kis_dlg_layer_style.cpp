@@ -28,7 +28,6 @@
 #include "KisResourceTypes.h"
 #include "kis_asl_layer_style_serializer.h"
 #include "application/kis_config.h"
-#include "kis_cmb_contour.h"
 #include "kis_cmb_gradient.h"
 #include <KisPaintResourceServerProvider.h>
 #include "kis_psd_layer_style.h"

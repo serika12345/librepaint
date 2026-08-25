@@ -44,7 +44,6 @@
 #include "application/kis_config.h"
 #include "application/KisPart.h"
 #include "document/KisDocument.h"
-#include "widgets/kis_cmb_idlist.h"
 #include <KisSpinBoxI18nHelper.h>
 #include <KisSqueezedComboBox.h>
 #include "kis_signals_blocker.h"

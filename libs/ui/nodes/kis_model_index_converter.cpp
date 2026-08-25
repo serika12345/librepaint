@@ -10,7 +10,6 @@
 #include "kis_node_dummies_graph.h"
 #include "kis_dummies_facade_base.h"
 #include "nodes/kis_node_model.h"
-#include "nodes/kis_node_manager.h"
 #include "KisReferenceImagesLayer.h"
 #include "canvas/KisDecorationsWrapperLayer.h"
 

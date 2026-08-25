@@ -18,7 +18,6 @@
 #ifdef HAVE_DBUS
 #include "kmainwindowiface_p.h"
 #endif
-#include "ktoolbarhandler_p.h"
 #include "khelpmenu.h"
 #include "ktoolbar.h"
 

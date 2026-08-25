@@ -48,7 +48,6 @@
 #include <kconfiggroup.h>
 
 #include <stdlib.h>
-#include <ctype.h>
 
 class KXmlGuiWindowPrivate : public KisKMainWindowPrivate
 {

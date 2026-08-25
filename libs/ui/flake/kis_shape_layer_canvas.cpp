@@ -34,7 +34,6 @@
 #include "krita_utils.h"
 #include "canvas/kis_image_view_converter.h"
 #include "kis_default_bounds.h"
-#include "kis_do_something_command.h"
 
 
 KisShapeLayerCanvasBase::KisShapeLayerCanvasBase(KisShapeLayer *parent)

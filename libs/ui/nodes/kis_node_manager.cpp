@@ -65,9 +65,6 @@
 #include "kis_layer_utils.h"
 #include "krita_utils.h"
 #include "kis_shape_layer.h"
-#include "kis_keyframe_channel.h"
-#include "kis_raster_keyframe_channel.h"
-#include "kis_paint_device_frames_interface.h"
 #include "kis_filter_mask.h"
 
 #include "processing/kis_mirror_processing_visitor.h"

@@ -16,10 +16,8 @@
 #include <kis_icon.h>
 
 #include "kis_canvas2.h"
-#include "kis_coordinates_converter.h"
 #include "application/kis_config.h"
 #include "kis_grid_decoration.h"
-#include "kis_image.h"
 #include "workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "workspace/KisView.h"

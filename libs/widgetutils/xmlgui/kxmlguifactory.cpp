@@ -12,7 +12,6 @@
 #include "kxmlguifactory_p.h"
 #include "kxmlguiclient.h"
 #include "kxmlguibuilder.h"
-#include "KisShortcutsDialog.h"
 #include "kactioncollection.h"
 
 #include <QAction>

@@ -47,7 +47,6 @@
 #include <canvas/kis_painting_assistants_decoration.h>
 #include "kis_painting_information_builder_adapters.h"
 #include "kis_tool_freehand_helper.h"
-#include "strokes/freehand_stroke.h"
 #include "kis_tool_utils.h"
 
 using namespace std::placeholders; // For _1 placeholder

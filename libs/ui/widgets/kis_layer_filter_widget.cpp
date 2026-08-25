@@ -20,17 +20,14 @@
 #include <QStylePainter>
 #include <QGraphicsDropShadowEffect>
 
-#include "kis_debug.h"
 #include "kis_node.h"
 #include "kis_global.h"
 #include "kis_icon_utils.h"
 
 #include "kis_color_filter_combo.h"
 #include "kis_color_label_button.h"
-#include "kis_color_label_selector_widget.h"
 #include "nodes/kis_node_view_color_scheme.h"
 
-#include "events/KisMouseClickEater.h"
 #include "KisPopupSelfActivatingLineEdit.h"
 
 KisLayerFilterWidget::KisLayerFilterWidget(QWidget *parent) : QWidget(parent)

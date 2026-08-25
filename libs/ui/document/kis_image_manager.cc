@@ -29,7 +29,6 @@
 #include "workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "dialogs/kis_dlg_image_properties.h"
-#include "commands/kis_image_commands.h"
 #include "application/kis_action.h"
 #include "application/kis_action_manager.h"
 #include "kis_layer_utils.h"

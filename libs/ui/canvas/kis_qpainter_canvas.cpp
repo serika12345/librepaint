@@ -36,11 +36,7 @@
 #include "kis_projection_update_info.h"
 #include "kis_display_filter.h"
 #include "kis_qpainter_projection_factory.h"
-#include "canvas/kis_canvas_resource_provider.h"
 #include "document/KisDocument.h"
-#include "selection/kis_selection_manager.h"
-#include "kis_selection.h"
-#include "kis_canvas_updates_compressor.h"
 #include "kis_config_notifier.h"
 #include "kis_group_layer.h"
 

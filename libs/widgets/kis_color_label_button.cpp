@@ -13,7 +13,6 @@
 
 
 #include "kis_global.h"
-#include "kis_debug.h"
 #include "krita_container_utils.h"
 
 struct KisColorLabelButton::Private

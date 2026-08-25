@@ -18,9 +18,7 @@
 #include <resources/KoSegmentGradient.h>
 #include <resources/KoStopGradient.h>
 #include "KoColorSpaceRegistry.h"
-#include "KoResourcePaths.h"
 #include "klocalizedstring.h"
-#include <iostream>
 
 using namespace std;
 

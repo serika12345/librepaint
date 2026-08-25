@@ -16,7 +16,6 @@
 #include <QOpenGLFunctions>
 #include <QAction>
 
-#include "opengl/KisOpenGLIOSCompat.h"
 
 #include <kis_icon.h>
 

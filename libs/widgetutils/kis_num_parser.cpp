@@ -14,7 +14,6 @@
 #include <QVariant>
 #include <QLocale>
 
-#include <iostream>
 
 using namespace std;
 

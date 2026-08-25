@@ -15,7 +15,6 @@
 
 #include "kis_debug.h"
 #include "kis_signals_blocker.h"
-#include "kis_algebra_2d.h"
 
 
 struct Q_DECL_HIDDEN KoAnchorSelectionWidget::Private {

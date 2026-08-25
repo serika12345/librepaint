@@ -25,7 +25,6 @@
 #include "kis_input_profile_manager.h"
 #include "kis_extended_modifiers_mapper.h"
 
-#include "kis_zoom_and_rotate_action.h"
 #include "resources/kis_popup_palette.h"
 #include "config-qt-patches-present.h"
 

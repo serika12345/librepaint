@@ -18,14 +18,12 @@
 #include "document/KisDocument.h"
 #include "workspace/KisViewManager.h"
 #include "kis_image.h"
-#include "kis_layer.h"
 #include "kis_paint_device.h"
 #include "kis_selection.h"
 #include "kis_painter.h"
 
 #include <kis_debug.h>
 #include <KisResourceLoaderRegistry.h>
-#include "kis_paint_layer.h"
 #include <KisResourceUserOperations.h>
 
 

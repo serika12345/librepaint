@@ -29,12 +29,10 @@
 #include "commands_new/kis_transaction_based_command.h"
 #include "events/kis_gui_context_command.h"
 #include "kis_command_utils.h"
-#include "commands/kis_deselect_global_selection_command.h"
 
 #include "kis_algebra_2d.h"
 #include "application/kis_config.h"
 #include "application/kis_action_manager.h"
-#include "application/kis_action.h"
 #include <QMenu>
 
 

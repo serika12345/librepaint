@@ -31,13 +31,7 @@
 #include <resources/kis_favorite_resource_manager.h>
 
 #include "kis_abstract_input_action.h"
-#include "kis_tool_invocation_action.h"
-#include "kis_pan_action.h"
-#include "kis_alternate_invocation_action.h"
-#include "kis_rotate_canvas_action.h"
-#include "kis_zoom_action.h"
 #include "KisPopupWidgetAction.h"
-#include "kis_change_primary_setting_action.h"
 
 #include "kis_shortcut_matcher.h"
 #include "kis_stroke_shortcut.h"

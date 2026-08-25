@@ -10,7 +10,6 @@
 #include <QDoubleSpinBox>
 #include <kis_curve_widget.h>
 #include <kis_signals_blocker.h>
-#include "kis_debug.h"
 
 #include <KisSpinBoxSplineUnitConverter.h>
 

@@ -22,8 +22,6 @@
 #include "workspace/KisViewManager.h"
 #include "kis_selection.h"
 #include "kis_image.h"
-#include "flake/kis_shape_selection.h"
-#include "kis_pixel_selection.h"
 #include "kis_update_outline_job.h"
 #include "selection/kis_selection_manager.h"
 #include "canvas/kis_canvas2.h"

@@ -72,7 +72,6 @@
 #include <KisResourceCacheDb.h>
 #include <KisResourceLocator.h>
 
-#include "KisProofingConfiguration.h"
 #include "KisProofingConfigModel.h"
 #include "KoColorConversionTransformation.h"
 #include "kis_action_registry.h"

@@ -106,7 +106,6 @@
 #include "widgets/kis_custom_image_widget.h"
 #include "canvas/kis_canvas2.h"
 #include "flake/kis_shape_controller.h"
-#include "widgets/kis_progress_widget.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "application/KisResourceServerProvider.h"
 #include "nodes/kis_node_manager.h"

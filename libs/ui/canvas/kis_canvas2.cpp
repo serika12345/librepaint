@@ -85,7 +85,6 @@
 #include "kis_canvas_updates_compressor.h"
 
 #include <KisStrokeSpeedMonitor.h>
-#include "opengl/kis_opengl_canvas_debugger.h"
 
 #include "kis_wrapped_rect.h"
 #include "kis_algebra_2d.h"

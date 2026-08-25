@@ -11,7 +11,6 @@
 #include <QLineF>
 #include <QtMath>
 
-#include "kis_debug.h"
 #include "kis_global.h"
 
 #include "resources/KoGamutMask.h"

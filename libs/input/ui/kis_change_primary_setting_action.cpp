@@ -16,7 +16,6 @@
 #include <QEvent>
 #include <QMouseEvent>
 
-#include "kis_cursor.h"
 
 
 KisChangePrimarySettingAction::KisChangePrimarySettingAction()

@@ -13,7 +13,6 @@
 #include "kis_image.h"
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_registry.h"
-#include "filter/kis_filter_configuration.h"
 #include <KisGlobalResourcesInterface.h>
 
 class FilterStrokeTester : public utils::StrokeTester

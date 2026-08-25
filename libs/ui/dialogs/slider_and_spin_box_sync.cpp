@@ -9,8 +9,6 @@
 #include <QSpinBox>
 #include "kis_slider_spin_box.h"
 
-#include "kis_debug.h"
-#include "kis_signals_blocker.h"
 
 
 SliderAndSpinBoxSync::SliderAndSpinBoxSync(KisDoubleSliderSpinBox *slider,

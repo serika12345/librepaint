@@ -10,7 +10,6 @@
 
 #include <QVBoxLayout>
 
-#include "kis_debug.h"
 
 #include <KisTagSelectionWidget.h>
 

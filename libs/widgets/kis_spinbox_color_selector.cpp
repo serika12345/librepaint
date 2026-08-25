@@ -9,7 +9,6 @@
 #include <QLabel>
 #include "kis_double_parse_spin_box.h"
 #include "kis_int_parse_spin_box.h"
-#include "kis_signal_compressor.h"
 
 #include <KoConfig.h>
 #ifdef HAVE_OPENEXR

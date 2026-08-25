@@ -12,9 +12,6 @@
 
 #include "document/KisDocument.h"
 #include "application/KisPart.h"
-#include "kis_image.h"
-#include "kis_undo_store.h"
-#include "util.h"
 #include <workspace/KisView.h>
 #include <workspace/KisViewManager.h>
 #include <application/kis_config.h>

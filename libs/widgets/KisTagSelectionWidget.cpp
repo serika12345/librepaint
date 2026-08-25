@@ -33,7 +33,6 @@
 #include <kis_signals_blocker.h>
 
 
-#include "kis_icon.h"
 
 
 WdgCloseableLabel::WdgCloseableLabel(KoID tag, bool editable, bool semiSelected, QWidget *parent)

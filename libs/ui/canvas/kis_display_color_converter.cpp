@@ -24,7 +24,6 @@
 #include "canvas/KisDisplayConfig.h"
 #include "workspace/KisMainWindow.h"
 #include "application/KisPart.h"
-#include "canvas/kis_canvas_resource_provider.h"
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_node.h"

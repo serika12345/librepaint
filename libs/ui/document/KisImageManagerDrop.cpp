@@ -7,7 +7,6 @@
 
 #include "document/kis_image_manager.h"
 
-#include "KisMimeDatabase.h"
 #include "canvas/KisReferenceImage.h"
 #include "canvas/KisReferenceImagesDecoration.h"
 #include "canvas/kis_canvas2.h"

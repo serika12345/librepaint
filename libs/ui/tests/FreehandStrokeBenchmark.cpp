@@ -22,7 +22,6 @@
 
 #include "testutil.h"
 #include "KisResourceModel.h"
-#include "KisGlobalResourcesInterface.h"
 
 #include <memory>
 

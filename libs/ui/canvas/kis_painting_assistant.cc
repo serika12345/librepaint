@@ -25,7 +25,6 @@
 #include <QDomDocument>
 #include <QPainterPath>
 #include <QDebug>
-#include <memory>
 
 Q_GLOBAL_STATIC(KisPaintingAssistantFactoryRegistry, s_instance)
 

@@ -11,9 +11,7 @@
 #include <KoCanvasBase.h>
 #include <KoCanvasController.h>
 #include <KoViewConverter.h>
-#include "workspace/KisViewManager.h"
 
-#include "kis_canvas2.h"
 
 KisToolEllipseBase::KisToolEllipseBase(KoCanvasBase * canvas, KisToolEllipseBase::ToolType type, const QCursor & cursor)
     : KisToolRectangleBase(canvas, type, cursor)

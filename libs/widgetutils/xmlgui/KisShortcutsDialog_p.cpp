@@ -10,7 +10,6 @@
 #include "kxmlguiclient.h"
 #include <QDomDocument>
 #include "kactioncollection.h"
-#include "kxmlguifactory.h"
 #include <QAction>
 #include <QApplication>
 #include <QDebug>

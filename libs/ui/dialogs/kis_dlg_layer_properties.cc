@@ -27,7 +27,6 @@
 #include "nodes/kis_multinode_property.h"
 #include "kis_layer_utils.h"
 #include "kis_image.h"
-#include "kis_layer_properties_icons.h"
 #include "kis_signal_compressor.h"
 #include "commands_new/kis_saved_commands.h"
 #include "kis_post_execution_undo_adapter.h"

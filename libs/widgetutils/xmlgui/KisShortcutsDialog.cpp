@@ -32,7 +32,6 @@
 #include <kmessagebox.h>
 #include <ksharedconfig.h>
 #include "kxmlguiclient.h"
-#include "kxmlguifactory.h"
 #include "kactioncollection.h"
 
 KisShortcutsDialog::KisShortcutsDialog(KisShortcutsEditor::ActionTypes types,

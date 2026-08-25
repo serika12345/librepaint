@@ -12,7 +12,6 @@
 #include <QLineF>
 #include <QtMath>
 
-#include "kis_debug.h"
 
 KisVisualRectangleSelectorShape::KisVisualRectangleSelectorShape(KisVisualColorSelector *parent,
                                                                  Dimensions dimension,

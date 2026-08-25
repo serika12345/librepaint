@@ -17,19 +17,12 @@
 #include <klocalizedstring.h>
 
 #include <KoColorSpace.h>
-#include "KoColorProfile.h"
-#include "KoColorSpaceRegistry.h"
 #include "KoColor.h"
-#include "KoColorConversionTransformation.h"
 #include "KoColorPopupAction.h"
 #include "kis_icon_utils.h"
-#include "KoID.h"
 #include "kis_image.h"
 #include <kis_image_config.h>
-#include "kis_annotation.h"
 #include "application/kis_config.h"
-#include "kis_signal_compressor.h"
-#include "widgets/kis_cmb_idlist.h"
 #include <KisSqueezedComboBox.h>
 #include "kis_layer_utils.h"
 #include <kis_ls_utils.h>

@@ -40,7 +40,6 @@
 #include "canvas/kis_canvas_resource_provider.h"
 #include "dialogs/kis_dlg_filter.h"
 #include "strokes/kis_filter_stroke_strategy.h"
-#include "krita_utils.h"
 #include "kis_icon_utils.h"
 #include "kis_layer_utils.h"
 #include <KisGlobalResourcesInterface.h>

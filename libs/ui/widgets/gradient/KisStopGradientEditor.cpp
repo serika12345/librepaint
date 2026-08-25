@@ -17,7 +17,6 @@
 #include <KoColorSpace.h>
 #include <resources/KoStopGradient.h>
 
-#include "kis_debug.h"
 #include <kis_signals_blocker.h>
 
 #include <kis_icon_utils.h>

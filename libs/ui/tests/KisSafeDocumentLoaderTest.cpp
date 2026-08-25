@@ -6,7 +6,6 @@
 
 #include "config-limit-long-tests.h"
 #include "kis_safe_document_loader.h"
-#include "kis_debug.h"
 
 namespace {
 void writeToFile(QFile &file, QColor /*color*/)

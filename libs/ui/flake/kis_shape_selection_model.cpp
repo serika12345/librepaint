@@ -5,7 +5,6 @@
  */
 
 #include "kis_shape_selection_model.h"
-#include "kis_debug.h"
 
 #include <KoShapeContainer.h>
 #include <KoShapeBackground.h>
@@ -13,8 +12,6 @@
 
 #include "kis_shape_selection.h"
 #include "kis_selection.h"
-#include "kis_image.h"
-#include "kis_update_selection_job.h"
 
 
 KisShapeSelectionModel::KisShapeSelectionModel(KisImageResolutionProxySP resolutionProxy, KisSelectionWSP selection, KisShapeSelection* shapeSelection)

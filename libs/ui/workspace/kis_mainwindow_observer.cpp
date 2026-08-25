@@ -3,7 +3,6 @@
  */
 
 #include "workspace/kis_mainwindow_observer.h"
-#include "workspace/KisMainWindow.h"
 
 KisMainwindowObserver::KisMainwindowObserver()
 {

@@ -10,7 +10,6 @@
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_paintop_preset.h"
 #include "kis_paintop_settings.h"
-#include "KisPaintOpPresetUpdateProxy.h"
 #include "KisResourceModel.h"
 
 

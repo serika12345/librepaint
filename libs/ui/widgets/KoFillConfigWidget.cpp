@@ -38,7 +38,6 @@
 #include <KoGradientBackground.h>
 #include <KoPatternBackground.h>
 #include <KoResourcePopupAction.h>
-#include "KoZoomHandler.h"
 #include "KoColorPopupButton.h"
 #include "ui_KoFillConfigWidget.h"
 #include <kis_signals_blocker.h>
@@ -53,8 +52,6 @@
 
 #include <KisResourceUserOperations.h>
 
-#include "kis_global.h"
-#include "kis_debug.h"
 
 static const char* const buttonnone[]={
     "16 16 3 1",

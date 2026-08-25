@@ -4,7 +4,6 @@
 #include <QHBoxLayout>
 #include <QAction>
 
-#include "kis_debug.h"
 
 struct KisCollapsibleButtonGroup::Private {
 
