@@ -25,7 +25,7 @@ private Q_SLOTS:
     void testDocumentRecoveryStatusDelegation();
     void testTemplateRootLayerNameTranslation();
     void testImageStateDelegation();
-    void testApplicationIdleWatcherOwnership();
+    void testApplicationIdleWatcherIdentity();
 
 private:
     KisDocument *m_doc;
