@@ -6,7 +6,6 @@
 
 #include "workspace/kis_workspace_resource.h"
 
-#include <QFile>
 #include <QDomDocument>
 #include <QTextStream>
 #include <QBuffer>

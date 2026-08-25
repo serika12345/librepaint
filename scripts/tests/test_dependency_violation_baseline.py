@@ -41,6 +41,45 @@ SPEC.loader.exec_module(check_dependency_violation_baseline)
 
 
 class DependencyViolationBaselineTests(unittest.TestCase):
+    @staticmethod
+    def violation_evidence(count: int):
+        return {
+            "targetLinks": [
+                {
+                    "sourceTarget": "example_source",
+                    "dependencyTarget": "example_dependency",
+                    "platforms": ["macos"],
+                }
+            ],
+            "directIncludes": [
+                {
+                    "sourceTarget": "example_source",
+                    "dependencyTarget": "example_dependency",
+                    "sourcePath": f"libs/ui/example_{index}.cpp",
+                    "include": "example.h",
+                    "headerPath": "libs/image/example.h",
+                    "sourceAttribution": "unique-owner-target",
+                    "dependencyAttribution": "unique-owner-target",
+                }
+                for index in range(count)
+            ],
+        }
+
+    @classmethod
+    def reviewed_violation(cls, maximum: int, observed: int | None = None):
+        evidence = cls.violation_evidence(
+            maximum if observed is None else observed
+        )
+        return {
+            "sourceResponsibility": "application-orchestration",
+            "dependencyResponsibility": "painting-rendering",
+            "owner": "R1-G6",
+            "reason": "Synthetic reviewed violation for governance checks.",
+            "maximumDirectIncludes": maximum,
+            "removalCondition": "The synthetic dependency is removed.",
+            **evidence,
+        }
+
     def load_baseline(self):
         return check_dependency_violation_baseline.load_baseline(BASELINE_PATH)
 
@@ -64,13 +103,13 @@ class DependencyViolationBaselineTests(unittest.TestCase):
             baseline["scope"],
             "r1-g4a-confirmed-reverse-dependency-baseline",
         )
-        self.assertEqual(len(baseline["violations"]), 1)
+        self.assertEqual(len(baseline["violations"]), 0)
         self.assertEqual(
             sum(
                 len(entry["directIncludes"])
                 for entry in baseline["violations"]
             ),
-            5,
+            0,
         )
         self.assertEqual(len(baseline["unresolvedProjections"]), 0)
         by_pair = {
@@ -97,51 +136,68 @@ class DependencyViolationBaselineTests(unittest.TestCase):
 
     def test_missing_violation_pair_is_rejected(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())
-        baseline["violations"].pop(0)
-
-        with self.assertRaisesRegex(
-            check_dependency_violation_baseline.DependencyBaselineError,
-            "confirmed violation pairs do not match discovery",
-        ):
-            self.validate(baseline)
-
-    def test_expanded_violation_exceeds_the_reviewed_maximum(self) -> None:
-        baseline = copy.deepcopy(self.load_baseline())
-        baseline["violations"][0]["maximumDirectIncludes"] -= 1
-
-        with self.assertRaisesRegex(
-            check_dependency_violation_baseline.DependencyBaselineError,
-            "exceeds approved maximum",
-        ):
-            self.validate(baseline)
-
-    def test_reduced_violation_requires_baseline_reduction(self) -> None:
-        baseline = copy.deepcopy(self.load_baseline())
-        baseline["violations"][0]["maximumDirectIncludes"] += 1
-
-        with self.assertRaisesRegex(
-            check_dependency_violation_baseline.DependencyBaselineError,
-            "baseline can be reduced",
-        ):
-            self.validate(baseline)
-
-    def test_updater_prunes_a_resolved_violation_pair(self) -> None:
-        baseline = self.load_baseline()
-        confirmed = {
-            (
-                entry["sourceResponsibility"],
-                entry["dependencyResponsibility"],
-            ): {
-                "targetLinks": entry["targetLinks"],
-                "directIncludes": entry["directIncludes"],
-            }
-            for entry in baseline["violations"][:-1]
-        }
+        evidence = self.violation_evidence(1)
 
         with patch.object(
             check_dependency_violation_baseline,
             "discover_baseline_evidence",
-            return_value=(confirmed, {}),
+            return_value=(
+                {("application-orchestration", "painting-rendering"): evidence},
+                {},
+            ),
+        ):
+            with self.assertRaisesRegex(
+                check_dependency_violation_baseline.DependencyBaselineError,
+                "confirmed violation pairs do not match discovery",
+            ):
+                self.validate(baseline)
+
+    def test_expanded_violation_exceeds_the_reviewed_maximum(self) -> None:
+        baseline = copy.deepcopy(self.load_baseline())
+        baseline["violations"] = [self.reviewed_violation(1)]
+        evidence = self.violation_evidence(2)
+
+        with patch.object(
+            check_dependency_violation_baseline,
+            "discover_baseline_evidence",
+            return_value=(
+                {("application-orchestration", "painting-rendering"): evidence},
+                {},
+            ),
+        ):
+            with self.assertRaisesRegex(
+                check_dependency_violation_baseline.DependencyBaselineError,
+                "exceeds approved maximum",
+            ):
+                self.validate(baseline)
+
+    def test_reduced_violation_requires_baseline_reduction(self) -> None:
+        baseline = copy.deepcopy(self.load_baseline())
+        baseline["violations"] = [self.reviewed_violation(2)]
+        evidence = self.violation_evidence(1)
+
+        with patch.object(
+            check_dependency_violation_baseline,
+            "discover_baseline_evidence",
+            return_value=(
+                {("application-orchestration", "painting-rendering"): evidence},
+                {},
+            ),
+        ):
+            with self.assertRaisesRegex(
+                check_dependency_violation_baseline.DependencyBaselineError,
+                "baseline can be reduced",
+            ):
+                self.validate(baseline)
+
+    def test_updater_prunes_a_resolved_violation_pair(self) -> None:
+        baseline = copy.deepcopy(self.load_baseline())
+        baseline["violations"] = [self.reviewed_violation(1)]
+
+        with patch.object(
+            check_dependency_violation_baseline,
+            "discover_baseline_evidence",
+            return_value=({}, {}),
         ):
             updated = check_dependency_violation_baseline.updated_baseline(
                 baseline,
@@ -155,18 +211,28 @@ class DependencyViolationBaselineTests(unittest.TestCase):
 
         self.assertEqual(
             updated["violations"],
-            baseline["violations"][:-1],
+            [],
         )
 
     def test_stale_direct_include_evidence_is_rejected(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())
-        baseline["violations"][0]["directIncludes"].pop()
+        baseline["violations"] = [self.reviewed_violation(1)]
+        confirmed = self.violation_evidence(1)
+        baseline["violations"][0]["directIncludes"][0]["include"] = "stale.h"
 
-        with self.assertRaisesRegex(
-            check_dependency_violation_baseline.DependencyBaselineError,
-            "dependency violation evidence is stale",
+        with patch.object(
+            check_dependency_violation_baseline,
+            "discover_baseline_evidence",
+            return_value=(
+                {("application-orchestration", "painting-rendering"): confirmed},
+                {},
+            ),
         ):
-            self.validate(baseline)
+            with self.assertRaisesRegex(
+                check_dependency_violation_baseline.DependencyBaselineError,
+                "dependency violation evidence is stale",
+            ):
+                self.validate(baseline)
 
     def test_resolved_projection_cannot_return_to_unresolved(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())

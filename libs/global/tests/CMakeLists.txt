@@ -8,6 +8,6 @@ kis_add_tests(KisSignalAutoConnectionTest.cpp
     KisHistoryListTest.cpp
     KisAdaptedLockTest.cpp
     KisGlobalTest.cpp
+    KisConfigurationValueTypesTest.cpp
     LINK_LIBRARIES kritaglobal kritatestsdk
     )
-

@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 09:48 JST
+- 更新日時: 2026-08-25 11:04 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6g 残存アプリケーション描画所有境界
+- 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: 起動登録、設定、セッション、公開作業空間型に残る描画所有参照を具体所有へ接続し、
-  アプリケーション調整から描画への逆方向includeをゼロへ縮小する。
+- 目的: `kritainputui`を独立共有ライブラリーとして構築し、入力表示を利用する製品ターゲットを
+  その具体所有へ直接接続する。
 
 ## 再開環境
 
@@ -1667,8 +1667,8 @@
 ## R1-G6gアプリケーション・作業空間・ツールUI配置境界で完了した作業
 
 - `libs/ui`直下のアプリケーション調整20ファイルを`libs/ui/application`、ウィンドウ・
-  作業空間44ファイルを`libs/ui/workspace`、ツール呼出し8ファイルを既存の`libs/ui/tool`へ
-  同じ基底名で移した。全72件の正確な開始パスと宛先パスは
+  作業空間42ファイルを`libs/ui/workspace`、ツール呼出し8ファイルを既存の`libs/ui/tool`へ
+  同じ基底名で移した。全70件の正確な開始パスと宛先パスは
   `docs/architecture/application-workspace-tool-ui-relocations.json`が一対一で記録する。
 - アクション、起動、設定、プラグイン、資源提供、Androidファイル接続はアプリケーション調整配置を
   所有する。ウィンドウ、ビュー、セッション、作業空間、テンプレート、環境設定、
@@ -1679,7 +1679,7 @@
   更新した。公開includeは正規経路へ直接接続し、公開ヘッダー試験は移設前に
   `application/KisActionPlugin.h`不在で失敗し、移設後に成功した。
 - UIクラス責務台帳は79クラス、69ヘッダー、実装単位を持つ77クラス、宣言側で完結する2クラスを
-  維持する。今回の28クラスを26の分類済み入れ子ヘッダーで継続追跡し、分類済み公開クラスの
+  維持する。対象の27クラスを25の分類済み入れ子ヘッダーで継続追跡し、分類済み公開クラスの
   `libs/ui`直下配置を0件に固定した。UIツールクラス責務台帳は18クラス、16ヘッダー、利用元56ソースを
   記録する。
 - `kritaui`、`TestApplicationWorkspaceToolUiPublicHeaders`、`kis_derived_resources_test`、
@@ -1945,11 +1945,41 @@
 - `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
   文書と図の検査に成功した。
 
+## R1-G6g残存設定・セッション・作業空間表示所有境界で完了した作業
+
+- 残存する共有値型と一時ファイル方針を、次の開始ファイルと所有先へ対応させた。
+  - `libs/image/KisNodeAdditionFlags.h`から`libs/global/KisNodeAdditionFlags.h`へ、
+    ノード追加通知の値フラグを移した。
+  - `libs/painting/undo/KisCumulativeUndoData.{h,cpp}`から
+    `libs/global/KisCumulativeUndoData.{h,cpp}`へ、取り消し統合の設定値を移した。
+  - `libs/image/kis_image_config.{h,cpp}`の一時ファイルとswap配置方針から
+    `libs/global/KisTemporaryFileConfiguration.{h,cpp}`へ、書込み可能な配置解決を移した。
+    `libs/ui/application/kis_config.cc`と画像設定は同じ具体方針を利用する。
+- `libs/ui/workspace/KisSessionResource.cpp`のビュー表示状態は、同ファイルの値地図直列化と
+  `libs/ui/workspace/KisView.{h,cpp}`の表示状態取得・復元へ接続した。作業空間表示資源は
+  `libs/ui/workspace/kis_workspace_resource.{h,cpp}`から
+  `libs/canvas/workspace/kis_workspace_resource.{h,cpp}`へ移した。
+- `kritaworkspacepresentation`は作業空間表示資源を`canvas-presentation`責務で所有する。
+  `kritaui_EXPORTS`で生成したオブジェクトを`kritaui`へ組み込み、既存の`KRITAUI_EXPORT`公開記号、
+  型名、ABIを維持する。`kritaui`から色、画像、ブラシ、描画の各ターゲットへの直接リンクを解消した。
+- 取り消し統合の設定キーと既定値、一時ファイル設定キーと既定・代替配置、セッションと作業空間の
+  XML形式、Qt信号引数、ノード追加通知を維持する。`KisConfigurationValueTypesTest`は設定値と配置方針、
+  `KisWorkspacePersistenceTest`は作業空間とセッションの直列化往復を固定する。
+- アプリケーション調整から描画への確認済み逆方向includeと審査済み上限は各0件である。
+  未確定射影は0件であり、26中核ターゲットとmacOS 226件、Linux 232件、iOS 218件、
+  Android 218件、Windows 235件の製品ターゲットは各構成で循環0件である。
+- macOSで`kritaimpexui`、`kritaworkspacepresentation`、`kritaui`の構築に成功した。
+  `KisConfigurationValueTypesTest`、`KisWorkspacePersistenceTest`、
+  `TestApplicationWorkspaceToolUiPublicHeaders`、`TestKUndo2Stack`はすべて成功した。
+  clangdのinclude-cleaner監査により、変更した翻訳単位の未使用includeを除去し、実利用する
+  所有ヘッダーを各利用元から直接参照する。
+- 固定Nix環境の`./scripts/verify-quick`は105件の運用試験、生成台帳、依存方向、
+  製品ターゲット循環、移設元消滅、移設先実在、CMake所有、ソース行数、文書と図の検査に成功した。
+
 ## 次の操作
 
-`libs/ui/application/kis_config.cc`、`libs/ui/workspace/KisSessionResource.cpp`、
-`libs/ui/workspace/KisView.h`、`libs/ui/workspace/kis_workspace_resource.h`に残る設定、
-セッション、公開型の5 includeを具体所有面へ接続する。
+`kritainputui`を独立共有ライブラリーとして構築し、入力表示の公開記号を利用する製品ターゲットを
+`kritainputui`へ直接接続する。5構成のCMake台帳は共有ライブラリーの実体と循環0件を記録する。
 
 ## R1-G5完了根拠
 

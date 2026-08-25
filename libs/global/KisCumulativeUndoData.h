@@ -7,12 +7,12 @@
 #define KISCUMULATIVEUNDODATA_H
 
 #include <boost/operators.hpp>
-#include "kritapaintingundo_export.h"
+#include "kritaglobal_export.h"
 
 class KConfigGroup;
 class QDebug;
 
-struct KRITAPAINTINGUNDO_EXPORT KisCumulativeUndoData : boost::equality_comparable<KisCumulativeUndoData>
+struct KRITAGLOBAL_EXPORT KisCumulativeUndoData : boost::equality_comparable<KisCumulativeUndoData>
 {
     inline friend bool operator==(const KisCumulativeUndoData &lhs, const KisCumulativeUndoData &rhs) {
         return lhs.excludeFromMerge == rhs.excludeFromMerge &&
@@ -32,6 +32,6 @@ struct KRITAPAINTINGUNDO_EXPORT KisCumulativeUndoData : boost::equality_comparab
     static const KisCumulativeUndoData defaultValue;
 };
 
-QDebug KRITAPAINTINGUNDO_EXPORT operator<<(QDebug dbg, const KisCumulativeUndoData &data);
+QDebug KRITAGLOBAL_EXPORT operator<<(QDebug dbg, const KisCumulativeUndoData &data);
 
 #endif // KISCUMULATIVEUNDODATA_H

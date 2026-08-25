@@ -178,17 +178,20 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         painting_by_path = {entry["path"]: entry for entry in painting_headers}
         tool_by_path = {entry["path"]: entry for entry in tool_headers}
 
-        self.assertEqual(len(canvas_headers), 19)
+        self.assertEqual(len(canvas_headers), 20)
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 218)
-        self.assertEqual(len(image_headers), 333)
+        self.assertEqual(len(ui_headers), 217)
+        self.assertEqual(len(image_headers), 332)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(input_headers), 12)
         self.assertEqual(len(input_ui_headers), 8)
         self.assertEqual(len(painting_headers), 19)
         self.assertEqual(len(tool_headers), 19)
+        self.assertIn(
+            "libs/canvas/workspace/kis_workspace_resource.h", canvas_by_path
+        )
         self.assertIn("libs/input/KisInputAction.h", input_by_path)
         self.assertIn("libs/input/kis_input_profile.h", input_by_path)
         self.assertIn("libs/input/kis_shortcut_configuration.h", input_by_path)
@@ -613,6 +616,18 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             "libs/ui/tool/kis_paintop_box.h",
         )
         self.assertEqual(
+            by_name["KisWorkspaceResource"],
+            {
+                "name": "KisWorkspaceResource",
+                "declarationKind": "class",
+                "header": "libs/canvas/workspace/kis_workspace_resource.h",
+                "implementationPaths": [
+                    "libs/canvas/workspace/kis_workspace_resource.cpp"
+                ],
+                "responsibilityArea": "canvas-display",
+            },
+        )
+        self.assertEqual(
             {
                 entry["header"]
                 for entry in inventory["classes"]
@@ -656,10 +671,28 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             ui_class_inventory=self.load_ui_class_inventory(),
         )
 
-        self.assertEqual(len(canvas_inventory["relocations"]), 69)
+        self.assertEqual(len(canvas_inventory["relocations"]), 71)
+        canvas_relocations = {
+            (entry["from"], entry["to"])
+            for entry in canvas_inventory["relocations"]
+        }
+        self.assertIn(
+            (
+                "libs/ui/kis_workspace_resource.cpp",
+                "libs/canvas/workspace/kis_workspace_resource.cpp",
+            ),
+            canvas_relocations,
+        )
+        self.assertIn(
+            (
+                "libs/ui/kis_workspace_resource.h",
+                "libs/canvas/workspace/kis_workspace_resource.h",
+            ),
+            canvas_relocations,
+        )
         self.assertEqual(len(document_inventory["relocations"]), 51)
         self.assertEqual(
-            len(application_workspace_tool_inventory["relocations"]), 72
+            len(application_workspace_tool_inventory["relocations"]), 70
         )
         self.assertEqual(len(remaining_root_inventory["relocations"]), 43)
         self.assertEqual(
@@ -748,17 +781,18 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             },
             {
                 "kritacanvas": 19,
+                "kritaworkspacepresentation": 1,
                 "kritadocument": 5,
                 "kritadocumentfiles": 3,
                 "kritadocumentui": 6,
-                "kritaimage": 333,
+                "kritaimage": 332,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
                 "kritainput": 12,
                 "kritainputui": 8,
                 "kritapainting": 19,
                 "kritatools": 19,
-                "kritaui": 218,
+                "kritaui": 217,
             },
         )
         self.assertEqual(

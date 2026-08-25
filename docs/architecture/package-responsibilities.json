@@ -31,7 +31,8 @@
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [
-        "libs/ui/dialogs/kis_dlg_preferences_input.cpp"
+        "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+        "libs/ui/widgets/kis_workspace_chooser.cpp"
       ],
       "uiClassAreas": [
         "application-orchestration",
@@ -67,8 +68,7 @@
         "libs/ui/workspace/KisWindowLayoutResource.h",
         "libs/ui/workspace/kis_mainwindow_observer.h",
         "libs/ui/workspace/kis_preference_set_registry.h",
-        "libs/ui/workspace/kis_splash_screen.h",
-        "libs/ui/workspace/kis_workspace_resource.h"
+        "libs/ui/workspace/kis_splash_screen.h"
       ],
       "classNames": [
         "KisAbstractPreferenceSetFactory",
@@ -94,8 +94,7 @@
         "KisView",
         "KisViewManager",
         "KisWelcomePageWidget",
-        "KisWindowLayoutResource",
-        "KisWorkspaceResource"
+        "KisWindowLayoutResource"
       ],
       "pluginIds": [
         "Buginfo Plugin",
@@ -144,10 +143,12 @@
         "kritabasicflakes",
         "kritacanvas",
         "kritaflake",
-        "kritaui"
+        "kritaui",
+        "kritaworkspacepresentation"
       ],
       "publicHeaderOwnerTargets": [
-        "kritacanvas"
+        "kritacanvas",
+        "kritaworkspacepresentation"
       ],
       "reviewedPublicHeaderPaths": [
         "libs/ui/widgets/KoStrokeConfigWidget.h"
@@ -185,6 +186,7 @@
         "libs/canvas/kis_update_info.h",
         "libs/canvas/tiles/kis_tile_data_buffer.h",
         "libs/canvas/tiles/kis_tile_data_pool.h",
+        "libs/canvas/workspace/kis_workspace_resource.h",
         "libs/ui/animation/KisAsyncAnimationRendererBase.h",
         "libs/ui/animation/KisPlaybackEngine.h",
         "libs/ui/animation/KisPlaybackEngineMLT.h",
@@ -242,6 +244,7 @@
         "KisSRGBSurfaceColorSpaceManager",
         "KisSelectionDecoration",
         "KisStatusBar",
+        "KisWorkspaceResource",
         "KisZoomManager",
         "SetSaturationCommand"
       ],
@@ -627,7 +630,6 @@
         "libs/image/KisInterstrokeDataTransactionWrapperFactory.h",
         "libs/image/KisLevelsCurve.h",
         "libs/image/KisLockFrameGenerationLock.h",
-        "libs/image/KisNodeAdditionFlags.h",
         "libs/image/KisOptimizedByteArray.h",
         "libs/image/KisOverlayPaintDeviceWrapper.h",
         "libs/image/KisProofingConfiguration.h",
@@ -1620,6 +1622,7 @@
         "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
+        "kritacolor",
         "kritaflake",
         "kritaimage"
       ],
@@ -1648,7 +1651,7 @@
         "kritaglobal"
       ],
       "repositoryConsumers": [
-        "kritaui"
+        "kritacanvas"
       ]
     },
     {
@@ -1803,7 +1806,7 @@
         "kritasnapshotdocker",
         "kritatools",
         "kritatoolsui",
-        "kritaui",
+        "kritaworkspacepresentation",
         "python_module_PyKrita_krita"
       ]
     },
@@ -1964,7 +1967,7 @@
         "kritaimpexui",
         "kritalibpaintop",
         "kritamypaintop_static",
-        "kritaui",
+        "kritatoolsui",
         "python_module_PyKrita_krita"
       ]
     },
@@ -2000,8 +2003,7 @@
         "kritatoolpolygon",
         "kritatoolpolyline",
         "kritatools",
-        "kritatooltransform_static",
-        "kritaui"
+        "kritatooltransform_static"
       ]
     },
     {
@@ -2159,7 +2161,8 @@
         "kritatoolsui",
         "kritaui",
         "kritawidgets",
-        "kritawidgetutils"
+        "kritawidgetutils",
+        "kritaworkspacepresentation"
       ]
     },
     {
@@ -2275,6 +2278,7 @@
       "repositoryDependencies": [
         "kritaglobal",
         "kritaimage",
+        "kritalibbrush",
         "kritapigment",
         "kritaresources",
         "kritaresourceui",
@@ -2304,18 +2308,14 @@
       ],
       "repositoryDependencies": [
         "kritacanvas",
-        "kritacolor",
         "kritadocument",
         "kritadocumentfiles",
         "kritadocumentui",
-        "kritaimage",
         "kritaimpex",
         "kritaimpexui",
         "kritainput",
         "kritainputui",
-        "kritalibbrush",
         "kritamacosutils",
-        "kritapainting",
         "kritaresources",
         "kritaresourcestorage",
         "kritaresourceui",
@@ -2497,6 +2497,25 @@
         "pykrita",
         "python_module_PyKrita_krita"
       ]
+    },
+    {
+      "name": "kritaworkspacepresentation",
+      "sourceDirectory": "libs/canvas",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "OBJECT_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaimage",
+        "kritaresources"
+      ],
+      "repositoryConsumers": []
     }
   ]
 }

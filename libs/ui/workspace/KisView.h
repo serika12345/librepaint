@@ -9,6 +9,8 @@
 #define KIS_VIEW_H
 
 #include <QWidget>
+#include <QMap>
+#include <QVariant>
 
 #include <KoColorSpace.h>
 #include <KoColorProfile.h>
@@ -47,6 +49,7 @@ class KisDocument;
 class KisCanvasResourceProvider;
 class KisCoordinatesConverter;
 class KisInputManager;
+class KisSessionResource;
 
 class KoCanvasResourceProvider;
 
@@ -276,6 +279,11 @@ public Q_SLOTS:
 
 
 private:
+    friend class KisSessionResource;
+
+    void saveSessionViewState(QMap<QString, QVariant> &state) const;
+    void restoreSessionViewState(const QMap<QString, QVariant> &state);
+
     bool shouldAcceptDrag(const QDropEvent *event) const;
 
     class Private;

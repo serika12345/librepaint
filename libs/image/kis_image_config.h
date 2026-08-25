@@ -188,8 +188,6 @@ public:
 private:
     Q_DISABLE_COPY(KisImageConfig)
 
-    QString safelyGetWritableTempLocation(const QString &suffix, const QString &configKey, bool requestDefault) const;
-
 private:
     KConfigGroup m_config;
     bool m_readOnly;

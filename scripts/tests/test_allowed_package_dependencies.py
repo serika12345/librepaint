@@ -63,8 +63,8 @@ class AllowedPackageDependencyTests(unittest.TestCase):
             status_counts,
             {
                 "internal": 23,
-                "allowed": 90,
-                "requires-r1-g4-baseline": 25,
+                "allowed": 82,
+                "requires-r1-g4-baseline": 21,
             },
         )
         by_id = {

@@ -30,6 +30,7 @@ set(kritaglobal_LIB_SRCS
     KisDeleteLaterWrapper.cpp
     KisUsageLogger.cpp
     KisFileUtils.cpp
+    KisTemporaryFileConfiguration.cpp
     KisSignalMapper.cpp
     KisRegion.cpp
     KoID.cpp
@@ -43,7 +44,9 @@ set(kritaglobal_LIB_SRCS
     KisBackup.cpp
     KisSampleRectIterator.cpp
     KisCursorOverrideLock.cpp
+    KisCumulativeUndoData.cpp
     kis_random_source.cpp
+    KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
     KisTransformComponents.cpp
 )

@@ -54,7 +54,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "current-production-package-responsibilities",
         )
         self.assertEqual(len(responsibility_map["responsibilities"]), 9)
-        self.assertEqual(len(responsibility_map["targetRelations"]), 25)
+        self.assertEqual(len(responsibility_map["targetRelations"]), 26)
         by_id = {
             entry["id"]: entry
             for entry in responsibility_map["responsibilities"]
@@ -128,6 +128,14 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             by_id["canvas-presentation"]["reviewedPublicHeaderPaths"],
             ["libs/ui/widgets/KoStrokeConfigWidget.h"],
         )
+        self.assertIn(
+            "kritaworkspacepresentation",
+            by_id["canvas-presentation"]["ownerTargets"],
+        )
+        self.assertIn(
+            "libs/canvas/workspace/kis_workspace_resource.h",
+            by_id["canvas-presentation"]["publicHeaderPaths"],
+        )
         self.assertEqual(
             by_id["tool-invocation"]["reviewedSourcePaths"],
             [
@@ -155,7 +163,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             entry["name"]: entry
             for entry in responsibility_map["targetRelations"]
         }
-        self.assertIn(
+        self.assertNotIn(
             "kritaimage", target_by_name["kritaui"]["repositoryDependencies"]
         )
         self.assertIn(
@@ -230,7 +238,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             for entry in responsibility_map["targetRelations"]
             if entry["name"] == "kritaui"
         )
-        relation["repositoryDependencies"].remove("kritaimage")
+        relation["repositoryDependencies"].remove("kritacanvas")
 
         with self.assertRaisesRegex(
             check_package_responsibility_map.ResponsibilityMapError,

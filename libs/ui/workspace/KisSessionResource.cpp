@@ -6,9 +6,10 @@
 #include "workspace/KisSessionResource.h"
 
 #include <QDomElement>
+#include <QMap>
+#include <QVariant>
 
 #include <application/KisPart.h>
-#include <kis_properties_configuration.h>
 #include <document/KisDocument.h>
 
 #include <ksharedconfig.h>
@@ -23,7 +24,7 @@ struct KisSessionResource::Private
         QUuid windowId;
         // NOTE: path of the file without scheme
         QString file;
-        KisPropertiesConfiguration viewConfig;
+        QMap<QString, QVariant> viewState;
 
         KisMainWindow *getWindow() const {
             Q_FOREACH(KisMainWindow *window, KisPart::instance()->mainWindows()) {
@@ -102,7 +103,7 @@ void KisSessionResource::restore()
 
 
             KisView *view = window->newView(document);
-            view->restoreViewState(viewData.viewConfig);
+            view->restoreSessionViewState(viewData.viewState);
         }
     }
 
@@ -131,7 +132,7 @@ void KisSessionResource::storeCurrentWindows()
         auto viewData = Private::View();
         viewData.windowId = view->mainWindow()->id();
         viewData.file = view->document()->path();
-        view->saveViewState(viewData.viewConfig);
+        view->saveSessionViewState(viewData.viewState);
         d->views.append(viewData);
     }
 
@@ -148,7 +149,23 @@ void KisSessionResource::saveXml(QDomDocument &doc, QDomElement &root) const
         elem.setAttribute("window", view.windowId.toString());
         // we convert to QUrl to maintain compatibility with Krita 4.4
         elem.setAttribute("src", QUrl::fromLocalFile(view.file).toString());
-        view.viewConfig.toXML(doc, elem);
+        for (auto it = view.viewState.constBegin(); it != view.viewState.constEnd(); ++it) {
+            QDomElement parameter = doc.createElement("param");
+            parameter.setAttribute("name", it.key());
+
+            if (it->type() == QMetaType::QByteArray) {
+                parameter.setAttribute("type", "bytearray");
+                parameter.appendChild(doc.createTextNode(QString::fromLatin1(it->toByteArray().toBase64())));
+            } else if (it->type() == QMetaType::QString) {
+                parameter.setAttribute("type", "string");
+                parameter.appendChild(doc.createCDATASection(it->toString()));
+            } else {
+                parameter.setAttribute("type", "internal");
+                parameter.appendChild(doc.createTextNode(it->toString()));
+            }
+
+            elem.appendChild(parameter);
+        }
 
         root.appendChild(elem);
 
@@ -176,7 +193,18 @@ void KisSessionResource::loadXml(const QDomElement &root) const
 
         view.file = QUrl(viewElement.attribute("src")).toLocalFile();
         view.windowId = QUuid(viewElement.attribute("window"));
-        view.viewConfig.fromXML(viewElement);
+        for (QDomElement parameter = viewElement.firstChildElement("param");
+             !parameter.isNull();
+             parameter = parameter.nextSiblingElement("param")) {
+            const QString name = parameter.attribute("name");
+            const QString value = parameter.text();
+
+            if (parameter.attribute("type") == "bytearray") {
+                view.viewState.insert(name, QByteArray::fromBase64(value.toLatin1()));
+            } else {
+                view.viewState.insert(name, value);
+            }
+        }
 
         d->views.append(view);
     }

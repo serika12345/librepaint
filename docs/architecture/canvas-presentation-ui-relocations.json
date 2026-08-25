@@ -351,6 +351,16 @@
       "placementArea": "canvas-presentation"
     },
     {
+      "from": "libs/ui/kis_workspace_resource.cpp",
+      "to": "libs/canvas/workspace/kis_workspace_resource.cpp",
+      "placementArea": "canvas-presentation"
+    },
+    {
+      "from": "libs/ui/kis_workspace_resource.h",
+      "to": "libs/canvas/workspace/kis_workspace_resource.h",
+      "placementArea": "canvas-presentation"
+    },
+    {
       "from": "libs/ui/kis_zoom_manager.cc",
       "to": "libs/ui/canvas/kis_zoom_manager.cc",
       "placementArea": "canvas-presentation"

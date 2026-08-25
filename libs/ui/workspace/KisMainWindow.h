@@ -18,7 +18,6 @@
 #include <KoCanvasObserverBase.h>
 #include <KoCanvasSupervisor.h>
 #include "workspace/KisView.h"
-#include <workspace/kis_workspace_resource.h>
 #include <KoResource.h>
 
 class QCloseEvent;

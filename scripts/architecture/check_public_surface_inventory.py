@@ -29,6 +29,9 @@ PRODUCTION_SOURCE_DIRECTORIES = (
 TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
 PUBLICATION_EVIDENCE = ("export-macro", "compile-contract", "external-include")
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
+    "libs/canvas/workspace": (
+        "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
+    ),
     "libs/document/ui": (
         "libs/document/ui/tests/kis_document_autosave_recovery_dialog_test.cpp",
         "libs/document/ui/tests/kis_document_undo_store_test.cpp",
@@ -47,6 +50,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     ),
 }
 UI_CANVAS_CLASS_NESTED_HEADER_PATHS = (
+    "libs/canvas/workspace/kis_workspace_resource.h",
     "libs/ui/animation/KisAsyncAnimationRendererBase.h",
     "libs/ui/animation/KisPlaybackEngine.h",
     "libs/ui/animation/KisPlaybackEngineMLT.h",
@@ -123,7 +127,6 @@ UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/workspace/kis_mainwindow_observer.h",
     "libs/ui/workspace/kis_preference_set_registry.h",
     "libs/ui/workspace/kis_splash_screen.h",
-    "libs/ui/workspace/kis_workspace_resource.h",
 )
 UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH = {
     **{
@@ -163,7 +166,10 @@ UI_PLACEMENT_RELOCATION_SPECS = {
         "scope": "r1-g6g-canvas-presentation-ui-placement",
         "placementAreas": {
             "animation-playback": "animation",
-            "canvas-presentation": "canvas",
+            "canvas-presentation": [
+                "libs/ui/canvas",
+                "libs/canvas/workspace",
+            ],
         },
     },
     "docs/architecture/document-state-ui-relocations.json": {
@@ -216,7 +222,10 @@ PUBLIC_HEADER_SET_SPECS = (
         "ownerTarget": "kritacanvas",
         "sourceDirectory": "libs/canvas",
         "headerDirectories": ["libs/canvas"],
-        "excludedHeaderDirectories": ["libs/canvas/tests"],
+        "excludedHeaderDirectories": [
+            "libs/canvas/tests",
+            "libs/canvas/workspace",
+        ],
         "exportMacro": "KRITACANVAS_EXPORT",
         "responsibility": (
             "Records the declared canvas-view surface for coordinate mapping, "
@@ -227,6 +236,21 @@ PUBLIC_HEADER_SET_SPECS = (
             "libs/canvas/CMakeLists.txt",
             "libs/canvas/KisToolCanvas.h",
             "libs/canvas/kis_coordinates_converter.h",
+        ],
+    },
+    {
+        "ownerTarget": "kritaworkspacepresentation",
+        "sourceDirectory": "libs/canvas",
+        "headerDirectories": ["libs/canvas/workspace"],
+        "excludedHeaderDirectories": [],
+        "exportMacro": "KRITAUI_EXPORT",
+        "responsibility": (
+            "Records the declared workspace resource surface for persisted "
+            "docker and canvas presentation state."
+        ),
+        "evidence": [
+            "libs/canvas/CMakeLists.txt",
+            "libs/canvas/workspace/kis_workspace_resource.h",
         ],
     },
     {
@@ -728,6 +752,7 @@ def _discover_ui_classes(
     source_directory: str,
     recursive: bool,
     include_consumer_paths: bool,
+    public_header_owner: str = "kritaui",
 ) -> list[dict[str, Any]]:
     ui_header_set = next(
         (
@@ -737,12 +762,14 @@ def _discover_ui_classes(
                 "publicHeaderSets",
             )
             if _require_object(entry, "public header set").get("ownerTarget")
-            == "kritaui"
+            == public_header_owner
         ),
         None,
     )
     if ui_header_set is None:
-        raise PublicSurfaceError("publicHeaderSets does not contain kritaui")
+        raise PublicSurfaceError(
+            f"publicHeaderSets does not contain {public_header_owner}"
+        )
 
     all_source_files = _source_files(repository_root)
     source_files = {
@@ -863,6 +890,16 @@ def discover_ui_top_level_classes(
         recursive=True,
         include_consumer_paths=False,
     )
+    discovered.extend(
+        _discover_ui_classes(
+            repository_root=repository_root,
+            public_surface_inventory=public_surface_inventory,
+            source_directory="libs/canvas/workspace",
+            recursive=True,
+            include_consumer_paths=False,
+            public_header_owner="kritaworkspacepresentation",
+        )
+    )
     nested_headers = set(UI_CLASS_NESTED_HEADER_PATHS)
     classes = [
         entry
@@ -878,7 +915,7 @@ def discover_ui_top_level_classes(
         raise PublicSurfaceError(
             f"classified nested UI headers are missing declarations: {missing}"
         )
-    return classes
+    return sorted(classes, key=lambda entry: entry["name"])
 
 
 def discover_ui_tool_classes(
@@ -1027,8 +1064,8 @@ def public_header_policy() -> dict[str, Any]:
 
 def ui_class_policy() -> dict[str, Any]:
     return {
-        "publicHeaderOwner": "kritaui",
-        "sourceDirectory": "libs/ui",
+        "publicHeaderOwners": ["kritaui", "kritaworkspacepresentation"],
+        "sourceDirectories": ["libs/ui", "libs/canvas/workspace"],
         "headerDepth": 1,
         "classifiedNestedHeaderPaths": list(UI_CLASS_NESTED_HEADER_PATHS),
         "declarationKinds": ["class", "struct"],
@@ -1100,7 +1137,7 @@ def build_public_header_sets(repository_root: Path) -> list[dict[str, Any]]:
                 ),
             }
         )
-    return sets
+    return sorted(sets, key=lambda entry: entry["ownerTarget"])
 
 
 def _load_json(path: Path, description: str) -> dict[str, Any]:
@@ -1195,10 +1232,6 @@ def validate_ui_placement_relocations(
     all_sources: set[str] = set()
     all_destinations: set[str] = set()
     destinations_by_inventory: dict[str, set[str]] = {}
-    cmake_source_list = (repository_root / "libs/ui/CMakeLists.txt").read_text(
-        encoding="utf-8"
-    )
-
     for inventory_path in UI_PLACEMENT_RELOCATION_PATHS:
         spec = UI_PLACEMENT_RELOCATION_SPECS[inventory_path]
         inventory = load_ui_placement_relocation_inventory(
@@ -1353,11 +1386,13 @@ def validate_ui_placement_relocations(
                 raise PublicSurfaceError(
                     f"starting path must be directly under libs/ui: {source}"
                 )
-            expected_directory = spec["placementAreas"][placement_area]
+            expected_destination = spec["placementAreas"][placement_area]
+            if isinstance(expected_destination, str):
+                expected_directories = [f"libs/ui/{expected_destination}"]
+            else:
+                expected_directories = expected_destination
             if (
-                len(destination_path.parts) != 4
-                or destination_path.parts[:3]
-                != ("libs", "ui", expected_directory)
+                destination_path.parent.as_posix() not in expected_directories
                 or destination_path.name != source_path.name
             ):
                 raise PublicSurfaceError(
@@ -1380,7 +1415,19 @@ def validate_ui_placement_relocations(
                     f"destination path does not exist: {destination}"
                 )
             if source_path.suffix not in HEADER_SUFFIXES:
-                cmake_path = destination.removeprefix("libs/ui/")
+                cmake_directory = destination_path.parent
+                while cmake_directory.parts:
+                    candidate = repository_root / cmake_directory / "CMakeLists.txt"
+                    if candidate.is_file():
+                        break
+                    cmake_directory = cmake_directory.parent
+                else:
+                    raise PublicSurfaceError(
+                        f"relocated translation unit has no owning CMakeLists.txt: "
+                        f"{destination}"
+                    )
+                cmake_path = destination_path.relative_to(cmake_directory).as_posix()
+                cmake_source_list = candidate.read_text(encoding="utf-8")
                 if not re.search(
                     rf"(?<![A-Za-z0-9_./-]){re.escape(cmake_path)}"
                     rf"(?![A-Za-z0-9_./-])",
@@ -1550,7 +1597,7 @@ def validate_ui_placement_relocations(
         for entry in application_workspace_tool_classes
     }
     if (
-        len(application_workspace_tool_classes) != 28
+        len(application_workspace_tool_classes) != 27
         or application_workspace_tool_headers
         != expected_application_workspace_tool_headers
     ):
@@ -2605,13 +2652,48 @@ def _validate_classified_ui_inventory(
         )
 
     targets_by_platform = _load_target_graphs(graph_directory)
-    _validate_owner(
-        owner_target=owner_target,
-        platforms=platforms,
-        owned_paths=sorted(owned_paths),
-        description=ownership_description,
-        targets_by_platform=targets_by_platform,
-    )
+    public_header_owners = expected_policy.get("publicHeaderOwners")
+    source_directories = expected_policy.get("sourceDirectories")
+    if public_header_owners is not None and source_directories is not None:
+        if len(public_header_owners) != len(source_directories):
+            raise PublicSurfaceError(
+                "UI class public header owners and source directories must align"
+            )
+        attributed_paths: set[str] = set()
+        for path_owner, source_directory in zip(
+            public_header_owners, source_directories
+        ):
+            owner_paths = sorted(
+                path
+                for path in owned_paths
+                if _path_is_within(path, source_directory)
+            )
+            if not owner_paths:
+                raise PublicSurfaceError(
+                    f"UI class owner {path_owner} has no paths below "
+                    f"{source_directory}"
+                )
+            _validate_owner(
+                owner_target=path_owner,
+                platforms=platforms,
+                owned_paths=owner_paths,
+                description=ownership_description,
+                targets_by_platform=targets_by_platform,
+            )
+            attributed_paths.update(owner_paths)
+        if attributed_paths != owned_paths:
+            missing = sorted(owned_paths - attributed_paths)
+            raise PublicSurfaceError(
+                f"UI class paths have no declared public owner: {missing}"
+            )
+    else:
+        _validate_owner(
+            owner_target=owner_target,
+            platforms=platforms,
+            owned_paths=sorted(owned_paths),
+            description=ownership_description,
+            targets_by_platform=targets_by_platform,
+        )
 
 
 def validate_ui_class_inventory(

@@ -397,6 +397,23 @@
     },
     {
       "sourceTarget": "kritacanvas",
+      "dependencyTarget": "kritacolor",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritacanvas",
       "dependencyTarget": "kritaflake",
       "sourceResponsibilities": [
         "canvas-presentation"
@@ -1366,6 +1383,23 @@
     },
     {
       "sourceTarget": "kritatoolsui",
+      "dependencyTarget": "kritalibbrush",
+      "sourceResponsibilities": [
+        "tool-invocation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "tool-invocation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritatoolsui",
       "dependencyTarget": "kritapigment",
       "sourceResponsibilities": [
         "tool-invocation"
@@ -1446,41 +1480,6 @@
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "canvas-presentation",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritacolor",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "painting-rendering"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "painting-rendering",
           "status": "allowed"
         }
       ]
@@ -1586,41 +1585,6 @@
         {
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "document-lifecycle",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritaimage",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "painting-rendering"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "painting-rendering",
           "status": "allowed"
         }
       ]
@@ -1762,76 +1726,6 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "input-interpretation",
           "status": "requires-r1-g4-baseline"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritalibbrush",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "painting-rendering"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritapainting",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "painting-rendering"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "painting-rendering",
-          "status": "allowed"
         }
       ]
     },
@@ -2007,6 +1901,40 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "tool-invocation",
           "status": "internal"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaworkspacepresentation",
+      "dependencyTarget": "kritaimage",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaworkspacepresentation",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "canvas-presentation"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
         }
       ]
     }

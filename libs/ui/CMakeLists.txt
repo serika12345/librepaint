@@ -139,7 +139,6 @@ set(kritaui_LIB_SRCS
     canvas/kis_statusbar.cc
     canvas/kis_zoom_manager.cc
     resources/kis_favorite_resource_manager.cpp
-    workspace/kis_workspace_resource.cpp
     application/kis_action.cpp
     application/kis_action_manager.cpp
     application/KisActionPlugin.cpp
@@ -519,6 +518,7 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
 endif()
 
 kis_add_library(kritaui SHARED ${kritaui_HEADERS_MOC} ${kritaui_LIB_SRCS})
+target_sources(kritaui PRIVATE $<TARGET_OBJECTS:kritaworkspacepresentation>)
 
 if(IOS)
     # Qt 6 exposes the GLES backend through QT_CONFIG(opengles2), while this
@@ -554,10 +554,6 @@ target_link_libraries(kritaui
 
         kritaversion
         kritaimpex
-        kritacolor
-        kritaimage
-        kritapainting
-        kritalibbrush
         kritawidgets
         kritawidgetutils
         kritaresources

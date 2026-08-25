@@ -32,7 +32,7 @@ void KisCumulativeUndoData::write(KConfigGroup *config) const
     config->writeEntry("cumulativeUndoMaxGroupDuration", maxGroupDuration);
 }
 
-QDebug KRITAPAINTINGUNDO_EXPORT operator<<(QDebug dbg, const KisCumulativeUndoData &data)
+QDebug KRITAGLOBAL_EXPORT operator<<(QDebug dbg, const KisCumulativeUndoData &data)
 {
     dbg.nospace() << "KisCumulativeUndoData(";
     dbg.space() << ppVar(data.excludeFromMerge);

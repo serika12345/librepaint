@@ -707,6 +707,54 @@ void KisView::restoreViewState(const KisPropertiesConfiguration &config)
     d->canvasController.restoreCanvasState(config);
 }
 
+void KisView::saveSessionViewState(QMap<QString, QVariant> &state) const
+{
+    state.insert("file", d->document->path());
+    state.insert("window", mainWindow()->windowStateConfig().name());
+
+    if (d->subWindow) {
+        state.insert("geometry", d->subWindow->saveGeometry().toBase64());
+    }
+
+    const KoZoomState zoomState = d->canvasController.zoomState();
+    state.insert("zoomMode", zoomState.mode);
+    state.insert("zoom", zoomState.zoom);
+
+    const QPointF center = d->canvasController.preferredCenter();
+    state.insert("panX", center.x());
+    state.insert("panY", center.y());
+    state.insert("rotation", d->canvasController.rotation());
+    state.insert("mirror", d->canvas.xAxisMirrored());
+    state.insert("wrapAround", d->canvasController.wrapAroundMode());
+    state.insert("wrapAroundAxis", d->canvasController.wrapAroundModeAxis());
+    state.insert("enableInstantPreview", d->canvasController.levelOfDetailMode());
+}
+
+void KisView::restoreSessionViewState(const QMap<QString, QVariant> &state)
+{
+    if (d->subWindow) {
+        const QByteArray geometry = QByteArray::fromBase64(state.value("geometry").toString().toLatin1());
+        d->subWindow->restoreGeometry(QByteArray::fromBase64(geometry));
+    }
+
+    d->canvasController.setZoom(
+        static_cast<KoZoomMode::Mode>(state.value("zoomMode", static_cast<int>(KoZoomMode::ZOOM_PAGE)).toInt()),
+        state.value("zoom", 1.0f).toFloat());
+
+    d->canvasController.mirrorCanvas(state.value("mirror", false).toBool());
+    d->canvasController.rotateCanvas(state.value("rotation", 0.0f).toFloat());
+
+    const QPointF center = d->canvasController.preferredCenter();
+    d->canvasController.setPreferredCenter(
+        QPointF(state.value("panX", center.x()).toFloat(),
+                state.value("panY", center.y()).toFloat()));
+
+    d->canvasController.slotToggleWrapAroundMode(state.value("wrapAround", false).toBool());
+    d->canvasController.slotSetWrapAroundModeAxis(
+        static_cast<WrapAroundAxis>(state.value("wrapAroundAxis", 0).toInt()));
+    d->canvas.setLodPreferredInCanvas(state.value("enableInstantPreview", false).toBool());
+}
+
 void KisView::setCurrentNode(KisNodeSP node)
 {
     d->currentNode = node;

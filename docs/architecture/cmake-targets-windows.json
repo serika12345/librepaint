@@ -4008,6 +4008,7 @@
         "Boost::boost",
         "Qt6::Core",
         "Qt6::Gui",
+        "kritacolor",
         "kritaflake",
         "kritaimage"
       ]
@@ -5945,6 +5946,7 @@
         "Qt6::Widgets",
         "kritaglobal",
         "kritaimage",
+        "kritalibbrush",
         "kritapigment",
         "kritaresources",
         "kritaresourceui",
@@ -6008,17 +6010,13 @@
         "Qt6::SvgWidgets",
         "SDL2::SDL2",
         "kritacanvas",
-        "kritacolor",
         "kritadocument",
         "kritadocumentfiles",
         "kritadocumentui",
-        "kritaimage",
         "kritaimpex",
         "kritaimpexui",
         "kritainput",
         "kritainputui",
-        "kritalibbrush",
-        "kritapainting",
         "kritaresources",
         "kritaresourcestorage",
         "kritaresourceui",
@@ -6130,6 +6128,15 @@
         "Qt6::Xml",
         "kritaglobal",
         "kritaplugin",
+        "kritaresources"
+      ]
+    },
+    {
+      "name": "kritaworkspacepresentation",
+      "type": "OBJECT_LIBRARY",
+      "sourceDirectory": "libs/canvas",
+      "dependencies": [
+        "kritaimage",
         "kritaresources"
       ]
     },

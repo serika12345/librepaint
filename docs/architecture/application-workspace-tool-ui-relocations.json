@@ -111,16 +111,6 @@
       "placementArea": "window-workspace"
     },
     {
-      "from": "libs/ui/kis_workspace_resource.cpp",
-      "to": "libs/ui/workspace/kis_workspace_resource.cpp",
-      "placementArea": "window-workspace"
-    },
-    {
-      "from": "libs/ui/kis_workspace_resource.h",
-      "to": "libs/ui/workspace/kis_workspace_resource.h",
-      "placementArea": "window-workspace"
-    },
-    {
       "from": "libs/ui/KisActionPlugin.cpp",
       "to": "libs/ui/application/KisActionPlugin.cpp",
       "placementArea": "application-orchestration"

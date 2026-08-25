@@ -6,7 +6,6 @@ set(kritapaintingundo_LIB_SRCS
     kis_undo_store.cpp
     kis_undo_stores.cpp
     kis_command_utils.cpp
-    KisCumulativeUndoData.cpp
 )
 
 kis_add_library(kritapaintingundo SHARED ${kritapaintingundo_LIB_SRCS})

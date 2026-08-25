@@ -15,7 +15,6 @@
 #include <QStandardPaths>
 #include <QDebug>
 #include <QFileInfo>
-#include <QScreen>
 
 #include <kconfig.h>
 
@@ -37,8 +36,8 @@
 
 #include <color/KisOcioConfiguration.h>
 #include <KisUsageLogger.h>
-#include <kis_image_config.h>
 #include <KisCumulativeUndoData.h>
+#include <KisTemporaryFileConfiguration.h>
 #include <QSurfaceFormat>
 
 #if defined Q_OS_WIN && QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -73,9 +72,10 @@ KisConfig::~KisConfig()
 
 void KisConfig::logImportantSettings() const
 {
+    const QString swapLocation = KritaUtils::writableSwapFileLocation(m_cfg, false);
     KisUsageLogger::writeSysInfo("Current Settings\n");
-    KisUsageLogger::writeSysInfo(QString("  Current Swap Location: %1").arg(KisImageConfig(true).swapDir()));
-    KisUsageLogger::writeSysInfo(QString("  Current Swap Location writable: %1").arg(QFileInfo(KisImageConfig(true).swapDir()).isWritable() ? "true" : "false"));
+    KisUsageLogger::writeSysInfo(QString("  Current Swap Location: %1").arg(swapLocation));
+    KisUsageLogger::writeSysInfo(QString("  Current Swap Location writable: %1").arg(QFileInfo(swapLocation).isWritable() ? "true" : "false"));
     KisUsageLogger::writeSysInfo(QString("  Undo Enabled: %1").arg(undoEnabled()? "true" : "false"));
     KisUsageLogger::writeSysInfo(QString("  Undo Stack Limit: %1").arg(undoStackLimit()));
     KisUsageLogger::writeSysInfo(QString("  Use OpenGL: %1").arg(useOpenGL() ? "true" : "false"));

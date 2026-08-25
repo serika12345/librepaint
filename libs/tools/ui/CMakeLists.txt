@@ -31,6 +31,7 @@ target_link_libraries(kritatoolsui
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Widgets
         kritaglobal
+        kritalibbrush
         kritawidgetutils
         kritapigment
         kritaimage

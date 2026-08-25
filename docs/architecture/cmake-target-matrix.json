@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 668,
-    "linux": 683,
-    "ios": 602,
-    "android": 608,
-    "windows": 638
+    "macos": 676,
+    "linux": 684,
+    "ios": 603,
+    "android": 609,
+    "windows": 639
   },
   "commonTargets": [
     "CCSGraph",
@@ -583,6 +583,7 @@
     "kritawgcolorselector",
     "kritawidgets",
     "kritawidgetutils",
+    "kritaworkspacepresentation",
     "kritaxcfimport",
     "kritaxmlserialization",
     "kritaxmp",
@@ -622,6 +623,12 @@
       "platforms": [
         "macos",
         "linux"
+      ]
+    },
+    {
+      "name": "KisConfigurationValueTypesTest",
+      "platforms": [
+        "macos"
       ]
     },
     {
@@ -773,6 +780,12 @@
       ]
     },
     {
+      "name": "KisWorkspacePersistenceTest",
+      "platforms": [
+        "macos"
+      ]
+    },
+    {
       "name": "StoryboardModelTest",
       "platforms": [
         "macos",
@@ -800,9 +813,39 @@
       ]
     },
     {
+      "name": "TestApplicationPaintingResourceRegistration",
+      "platforms": [
+        "macos"
+      ]
+    },
+    {
+      "name": "TestApplicationWorkspaceToolUiPublicHeaders",
+      "platforms": [
+        "macos"
+      ]
+    },
+    {
+      "name": "TestBuiltInResourceLoaderRegistration",
+      "platforms": [
+        "macos"
+      ]
+    },
+    {
+      "name": "TestDocumentStateUiPublicHeaders",
+      "platforms": [
+        "macos"
+      ]
+    },
+    {
       "name": "TestIccFromColorimetryConversion",
       "platforms": [
         "linux"
+      ]
+    },
+    {
+      "name": "TestRemainingUiRootPublicHeaders",
+      "platforms": [
+        "macos"
       ]
     },
     {

@@ -10,8 +10,14 @@
     "windows"
   ],
   "classPolicy": {
-    "publicHeaderOwner": "kritaui",
-    "sourceDirectory": "libs/ui",
+    "publicHeaderOwners": [
+      "kritaui",
+      "kritaworkspacepresentation"
+    ],
+    "sourceDirectories": [
+      "libs/ui",
+      "libs/canvas/workspace"
+    ],
     "headerDepth": 1,
     "classifiedNestedHeaderPaths": [
       "libs/ui/application/KisActionPlugin.h",
@@ -23,6 +29,7 @@
       "libs/ui/application/kis_action.h",
       "libs/ui/application/kis_action_manager.h",
       "libs/ui/application/kis_config.h",
+      "libs/canvas/workspace/kis_workspace_resource.h",
       "libs/ui/animation/KisAsyncAnimationRendererBase.h",
       "libs/ui/animation/KisPlaybackEngine.h",
       "libs/ui/animation/KisPlaybackEngineMLT.h",
@@ -81,8 +88,7 @@
       "libs/ui/workspace/KisWindowLayoutResource.h",
       "libs/ui/workspace/kis_mainwindow_observer.h",
       "libs/ui/workspace/kis_preference_set_registry.h",
-      "libs/ui/workspace/kis_splash_screen.h",
-      "libs/ui/workspace/kis_workspace_resource.h"
+      "libs/ui/workspace/kis_splash_screen.h"
     ],
     "declarationKinds": [
       "class",
@@ -787,11 +793,11 @@
     {
       "name": "KisWorkspaceResource",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/kis_workspace_resource.h",
+      "header": "libs/canvas/workspace/kis_workspace_resource.h",
       "implementationPaths": [
-        "libs/ui/workspace/kis_workspace_resource.cpp"
+        "libs/canvas/workspace/kis_workspace_resource.cpp"
       ],
-      "responsibilityArea": "window-workspace"
+      "responsibilityArea": "canvas-display"
     },
     {
       "name": "KisZoomManager",

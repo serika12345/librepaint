@@ -39,6 +39,7 @@ target_link_libraries(kritacanvas
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         kritaflake
+        kritacolor
         kritaimage
 )
 
@@ -53,5 +54,24 @@ set_target_properties(kritacanvas
 )
 
 install(TARGETS kritacanvas ${INSTALL_TARGETS_DEFAULT_ARGS})
+
+# Workspace presentation resources keep their established symbols in kritaui
+# while their source ownership follows the canvas and docker state they persist.
+kis_add_library(kritaworkspacepresentation OBJECT
+    workspace/kis_workspace_resource.cpp
+)
+target_compile_definitions(kritaworkspacepresentation PRIVATE kritaui_EXPORTS)
+target_include_directories(kritaworkspacepresentation
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/ui
+        ${CMAKE_BINARY_DIR}/libs/ui
+)
+target_link_libraries(kritaworkspacepresentation
+    PRIVATE
+        kritaimage
+        kritaresources
+)
 
 add_subdirectory(tests)

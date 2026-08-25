@@ -2467,6 +2467,28 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/application/KisApplication.cpp",
+          "include": "workspace/kis_workspace_resource.h",
+          "headerPath": "libs/canvas/workspace/kis_workspace_resource.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/application/KisResourceServerProvider.cpp",
+          "include": "workspace/kis_workspace_resource.h",
+          "headerPath": "libs/canvas/workspace/kis_workspace_resource.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
           "sourcePath": "libs/ui/application/kis_config.cc",
           "include": "color/KisOcioConfiguration.h",
           "headerPath": "libs/canvas/color/KisOcioConfiguration.h",
@@ -2605,6 +2627,17 @@
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "longest-responsibility-source-directory",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/canvas/kis_canvas_resource_provider.h",
+          "include": "workspace/kis_workspace_resource.h",
+          "headerPath": "libs/canvas/workspace/kis_workspace_resource.h",
+          "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-public-path",
           "dependencyAttribution": "unique-owner-target"
         },
         {
@@ -2999,6 +3032,28 @@
           "include": "kis_image_patch.h",
           "headerPath": "libs/canvas/kis_image_patch.h",
           "sourceResponsibility": "canvas-presentation",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/widgets/kis_workspace_chooser.cpp",
+          "include": "workspace/kis_workspace_resource.h",
+          "headerPath": "libs/canvas/workspace/kis_workspace_resource.h",
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "canvas-presentation",
+          "sourceAttribution": "classified-class-path",
+          "dependencyAttribution": "unique-owner-target"
+        },
+        {
+          "sourceTarget": "kritaui",
+          "dependencyTarget": "kritacanvas",
+          "sourcePath": "libs/ui/workspace/KisMainWindow.cpp",
+          "include": "workspace/kis_workspace_resource.h",
+          "headerPath": "libs/canvas/workspace/kis_workspace_resource.h",
+          "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"
@@ -5182,27 +5237,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 25,
+            "targetCount": 26,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 25,
+            "targetCount": 26,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 25,
+            "targetCount": 26,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 25,
+            "targetCount": 26,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 25,
+            "targetCount": 26,
             "components": []
           }
         ]
@@ -5212,27 +5267,27 @@
         "platforms": [
           {
             "platform": "macos",
-            "targetCount": 225,
+            "targetCount": 226,
             "components": []
           },
           {
             "platform": "linux",
-            "targetCount": 231,
+            "targetCount": 232,
             "components": []
           },
           {
             "platform": "ios",
-            "targetCount": 217,
+            "targetCount": 218,
             "components": []
           },
           {
             "platform": "android",
-            "targetCount": 217,
+            "targetCount": 218,
             "components": []
           },
           {
             "platform": "windows",
-            "targetCount": 234,
+            "targetCount": 235,
             "components": []
           }
         ]
@@ -5475,6 +5530,23 @@
           ]
         }
       ]
+    },
+    {
+      "ownerTarget": "kritaworkspacepresentation",
+      "owner": "R1-G6",
+      "reason": "External packages use the declared workspace presentation resource surface.",
+      "maximumHeaders": 0,
+      "maximumDirectReferences": 0,
+      "removalCondition": "Workspace resource consumers continue to use the declared presentation contract.",
+      "sourceDirectory": "libs/canvas",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "headers": []
     }
   ]
 }

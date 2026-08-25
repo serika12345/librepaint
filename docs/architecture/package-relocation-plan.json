@@ -99,7 +99,8 @@
           "kritabasicflakes",
           "kritacanvas",
           "kritaflake",
-          "kritaui"
+          "kritaui",
+          "kritaworkspacepresentation"
         ],
         "uiClassAreas": [
           "canvas-display"
@@ -135,6 +136,12 @@
             "directory": "libs/flake",
             "role": "vector-model",
             "status": "retained"
+          },
+          {
+            "name": "kritaworkspacepresentation",
+            "directory": "libs/canvas",
+            "role": "workspace-presentation",
+            "status": "implemented"
           }
         ]
       },
@@ -836,7 +843,8 @@
         }
       ],
       "createsTargets": [
-        "kritacanvas"
+        "kritacanvas",
+        "kritaworkspacepresentation"
       ],
       "compatibilityRoutes": [],
       "requiredContracts": [
