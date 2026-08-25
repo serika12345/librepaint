@@ -123,8 +123,7 @@ KisTagChooserWidget *KisResourceTaggingManager::tagChooserWidget()
     return d->tagChooser;
 }
 
-KisTagFilterWidget *KisResourceTaggingManager::tagFilterWidget()
+QWidget *KisResourceTaggingManager::tagFilterWidget()
 {
     return d->tagFilter;
 }
-

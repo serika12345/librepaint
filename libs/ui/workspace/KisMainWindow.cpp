@@ -147,7 +147,6 @@
 #include <KisResourceUserOperations.h>
 #include "KisRecentFilesManager.h"
 #include "KisWidgetConnectionUtils.h"
-#include "KisToolBarStateModel.h"
 #include <config-qmdiarea-always-show-subwindow-title.h>
 #include <config-qt-patches-present.h>
 

@@ -46,7 +46,6 @@
 
 #include "KisResourceItemListView.h"
 #include "KisResourceItemDelegate.h"
-#include "KisTagFilterWidget.h"
 #include "KisTagChooserWidget.h"
 #include "KisResourceItemChooserSync.h"
 #include "KisResourceTaggingManager.h"

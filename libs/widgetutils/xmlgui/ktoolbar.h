@@ -23,7 +23,6 @@ class KConfigGroup;
 class KConfig;
 class KisKMainWindow;
 class KisKXMLGUIClient;
-class KisToolBarStateModel;
 
 /**
  * @short Floatable toolbar with auto resize.
@@ -154,7 +153,7 @@ public:
      */
     static void emitToolbarStyleChanged();
 
-    static KisToolBarStateModel* toolBarStateModel();
+    static QObject *toolBarStateModel();
 
 protected Q_SLOTS:
     virtual void slotMovableChanged(bool movable);
