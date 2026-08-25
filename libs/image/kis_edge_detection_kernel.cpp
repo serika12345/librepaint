@@ -11,7 +11,7 @@
 #include <KoCompositeOpRegistry.h>
 #include <QRect>
 #include <KoColorSpace.h>
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <QVector3D>
 
 KisEdgeDetectionKernel::KisEdgeDetectionKernel()

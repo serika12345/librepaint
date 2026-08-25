@@ -17,7 +17,7 @@
 #include "kis_default_bounds.h"
 #include "kis_pixel_selection.h"
 #include "kis_random_accessor_ng.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 
 #include "kis_convolution_kernel.h"
 #include "kis_convolution_painter.h"

@@ -24,6 +24,7 @@
 #include <kis_fill_painter.h>
 #include <kis_painter.h>
 #include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <kis_fixed_paint_device.h>
 #include "KoMixColorsOp.h"
 #include <strokes/KisMaskingBrushCompositeOpBase.h>

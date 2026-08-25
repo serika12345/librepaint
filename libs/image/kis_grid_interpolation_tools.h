@@ -17,7 +17,7 @@
 #include "kis_algebra_2d.h"
 #include "kis_four_point_interpolator_forward.h"
 #include "kis_four_point_interpolator_backward.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 #include "kis_random_sub_accessor.h"
 #include "kis_painter.h"
 #include "KisRegion.h"

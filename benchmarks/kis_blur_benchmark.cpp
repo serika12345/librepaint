@@ -23,7 +23,7 @@
 #include "kis_processing_information.h"
 
 #include "kis_selection.h"
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <KisGlobalResourcesInterface.h>
 
 #include <KisPortingUtils.h>

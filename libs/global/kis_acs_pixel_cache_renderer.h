@@ -9,7 +9,7 @@
 
 #include "KoColorSpace.h"
 #include "kis_paint_device.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 #include "kis_display_color_converter.h"
 
 

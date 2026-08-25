@@ -9,7 +9,7 @@
 #include <krita_utils.h>
 #include <floodfill/kis_scanline_fill.h>
 #include <kis_selection_filters.h>
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <KoUpdater.h>
 #include <kis_default_bounds.h>
 #include <KisImageResolutionProxy.h>

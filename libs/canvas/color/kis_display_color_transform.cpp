@@ -25,7 +25,7 @@
 #include <kis_assert.h>
 #include <kis_debug.h>
 #include <kis_fixed_paint_device.h>
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <kis_paint_device.h>
 
 #include "kis_display_color_filter.h"

@@ -34,7 +34,7 @@
 #include <kis_painter.h>
 #include <kis_paint_device.h>
 #include <kis_image.h>
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <kis_selection.h>
 
 #include "kis_shape_selection_model.h"

@@ -25,7 +25,7 @@
 #include "kis_fill_painter.h"
 #include <kis_fixed_paint_device.h>
 #include <testutil.h>
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <testimage.h>
 
 void KisPainterTest::allCsApplicator(void (KisPainterTest::* funcPtr)(const KoColorSpace*cs))

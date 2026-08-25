@@ -38,6 +38,7 @@
 #include "widgets/kis_multi_integer_filter_widget.h"
 #include <KoMixColorsOp.h>
 #include <KisSequentialIteratorProgress.h>
+#include <kis_sequential_iterator.h>
 #include "kis_algebra_2d.h"
 #include "kis_lod_transform.h"
 

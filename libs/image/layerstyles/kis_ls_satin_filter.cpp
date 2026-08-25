@@ -19,7 +19,7 @@
 
 #include "kis_pixel_selection.h"
 #include "kis_fill_painter.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 #include "kis_random_accessor_ng.h"
 
 #include "kis_psd_layer_style.h"

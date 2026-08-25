@@ -27,6 +27,7 @@
 #include "kis_fill_painter.h"
 #include "kis_outline_generator.h"
 #include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include "kis_lod_transform.h"
 #include "krita_utils.h"
 #include "kundo2command.h"

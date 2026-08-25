@@ -23,6 +23,7 @@
 
 #include "kis_selection.h"
 #include "kis_pixel_selection.h"
+#include "kis_sequential_iterator.h"
 
 #include "layerstyles/kis_layer_style_projection_plane.h"
 #include "kis_psd_layer_style.h"

@@ -34,7 +34,7 @@
 #include "KisImageBarrierLock.h"
 #include "kis_fill_painter.h"
 #include "kis_transaction.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 #include "kis_processing_applicator.h"
 #include "kis_group_layer.h"
 #include "commands/kis_selection_commands.h"

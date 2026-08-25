@@ -15,7 +15,7 @@
 #include <kis_image.h>
 #include <kis_paint_layer.h>
 #include <kis_fill_painter.h>
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 
 void KisProjectionTest::testDirty()
 {

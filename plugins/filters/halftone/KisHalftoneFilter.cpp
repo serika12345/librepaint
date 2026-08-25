@@ -17,6 +17,7 @@
 #include <generator/kis_generator_registry.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisSequentialIteratorProgress.h>
+#include <kis_sequential_iterator.h>
 #include <kis_processing_information.h>
 #include <kis_selection.h>
 #include <kis_painter.h>

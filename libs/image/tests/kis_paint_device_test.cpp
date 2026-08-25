@@ -1086,6 +1086,7 @@ void KisPaintDeviceTest::testWrappedRandomAccessor()
 }
 
 #include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 
 static bool nextRowGeneral(KisHLineIteratorSP it, int y, const QRect &rc) {
     it->nextRow();

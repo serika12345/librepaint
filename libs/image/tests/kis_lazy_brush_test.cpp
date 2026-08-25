@@ -10,6 +10,7 @@
 #include "kis_debug.h"
 
 #include "kis_fill_painter.h"
+#include "kis_sequential_iterator.h"
 
 #include <QImage>
 #include <QPainter>

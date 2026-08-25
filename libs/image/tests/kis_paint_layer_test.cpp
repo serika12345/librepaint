@@ -24,7 +24,7 @@
 #include "kis_selection.h"
 #include "kis_fill_painter.h"
 #include "kis_pixel_selection.h"
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include "kis_layer_projection_plane.h"
 #include "kis_psd_layer_style.h"
 #include "filter/kis_filter_registry.h"

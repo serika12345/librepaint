@@ -28,6 +28,7 @@
 #include "kis_wdg_fastcolortransfer.h"
 #include "ui_wdgfastcolortransfer.h"
 #include <KisSequentialIteratorProgress.h>
+#include <kis_sequential_iterator.h>
 #include <KoProgressUpdater.h>
 
 

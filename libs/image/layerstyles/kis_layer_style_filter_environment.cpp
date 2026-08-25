@@ -20,7 +20,7 @@
 
 #include <boost/random/mersenne_twister.hpp>
 #include "kis_random_accessor_ng.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 #include "kis_cached_paint_device.h"
 #include "KisLocalStrokeResources.h"
 

@@ -33,6 +33,7 @@
 
 #include "kis_paint_device.h"
 #include "kis_painter.h"
+#include "kis_sequential_iterator.h"
 #include "kis_display_color_converter.h"
 
 inline int sqr(int x);

@@ -44,6 +44,7 @@
 #include "tiles3/kis_hline_iterator.h"
 #include "tiles3/kis_vline_iterator.h"
 #include "tiles3/kis_random_accessor.h"
+#include "kis_sequential_iterator.h"
 
 #include "kis_default_bounds.h"
 
