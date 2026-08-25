@@ -7,6 +7,8 @@
 #include "kis_uniform_paintop_property.h"
 
 #include <QVariant>
+
+#include "KoID.h"
 #include "kis_paintop_settings.h"
 
 struct KisUniformPaintOpProperty::Private
@@ -111,6 +113,11 @@ KisPaintOpSettingsSP KisUniformPaintOpProperty::settings() const
 {
     // correct conversion weak-to-strong shared pointer
     return m_d->settings ? m_d->settings : KisPaintOpSettingsSP();
+}
+
+KisPropertiesConfiguration *KisUniformPaintOpProperty::configuration() const
+{
+    return m_d->settings.data();
 }
 
 bool KisUniformPaintOpProperty::isVisible() const

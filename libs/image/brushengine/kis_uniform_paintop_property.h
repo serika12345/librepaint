@@ -14,6 +14,8 @@
 #include "kis_image_export.h"
 #include "kis_types.h"
 
+class KisPropertiesConfiguration;
+
 class KRITAIMAGE_EXPORT KisUniformPaintOpProperty : public QObject
 {
     Q_OBJECT
@@ -49,6 +51,14 @@ public:
     QWidget *createPropertyWidget();
 
     KisPaintOpSettingsSP settings() const;
+
+    /**
+     * Returns the mutable configuration retained by this property.
+     *
+     * The returned pointer is borrowed and remains valid for the lifetime of
+     * this property. It is null when the property has no settings.
+     */
+    KisPropertiesConfiguration *configuration() const;
 
     virtual bool isVisible() const;
 

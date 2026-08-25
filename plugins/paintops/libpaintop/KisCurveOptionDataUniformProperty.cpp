@@ -7,7 +7,6 @@
 
 
 #include "KisCurveOptionData.h"
-#include "kis_paintop_settings.h"
 
 KisCurveOptionDataUniformProperty::KisCurveOptionDataUniformProperty(const KisCurveOptionData &data, KisPaintOpSettingsRestrictedSP settings, QObject *parent)
     : KisCurveOptionDataUniformProperty(data, data.id, settings, parent)
@@ -34,16 +33,16 @@ KisCurveOptionDataUniformProperty::~KisCurveOptionDataUniformProperty()
 
 void KisCurveOptionDataUniformProperty::readValueImpl()
 {
-    m_data->read(settings().data());
+    m_data->read(configuration());
     setRange(m_data->strengthMinValue, m_data->strengthMaxValue);
     setValue(m_data->strengthValue);
 }
 
 void KisCurveOptionDataUniformProperty::writeValueImpl()
 {
-    m_data->read(settings().data());
+    m_data->read(configuration());
     m_data->strengthValue = value().toReal();
-    m_data->write(settings().data());
+    m_data->write(configuration());
 }
 
 bool KisCurveOptionDataUniformProperty::isVisible() const
