@@ -32,6 +32,7 @@
 #include "KisAnimAutoKey.h"
 
 #include "kis_sequential_iterator.h"
+#include "kis_selection.h"
 #include "kis_selection_mask.h"
 #include "kis_image_config.h"
 #include "kis_layer_utils.h"

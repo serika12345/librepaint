@@ -32,6 +32,7 @@
 #include "kis_image_animation_interface.h"
 #include "KisAnimAutoKey.h"
 #include "kis_sequential_iterator.h"
+#include "kis_selection.h"
 #include "kis_selection_mask.h"
 #include "kis_transparency_mask.h"
 #include "kis_filter_mask.h"
