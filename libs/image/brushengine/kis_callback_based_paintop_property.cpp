@@ -4,10 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef __KIS_CALLBACK_BASED_PAINTOP_PROPERTY_IMPL_H
-#define __KIS_CALLBACK_BASED_PAINTOP_PROPERTY_IMPL_H
+#include "kis_callback_based_paintop_property.h"
 
-#include <functional>
+#include "kis_combo_based_paintop_property.h"
+#include "kis_paintop_settings.h"
+#include "kis_slider_based_paintop_property.h"
+#include "kis_uniform_paintop_property.h"
 
 template<class ParentClass>
 KisCallbackBasedPaintopProperty<ParentClass>::KisCallbackBasedPaintopProperty(typename ParentClass::Type type,
@@ -70,4 +72,11 @@ bool KisCallbackBasedPaintopProperty<ParentClass>::isVisible() const
     return m_visibleFunc ? m_visibleFunc(this) : true;
 }
 
-#endif /* __KIS_CALLBACK_BASED_PAINTOP_PROPERTY_IMPL_H */
+template class KRITAIMAGE_EXPORT_INSTANCE
+    KisCallbackBasedPaintopProperty<KisUniformPaintOpProperty>;
+template class KRITAIMAGE_EXPORT_INSTANCE
+    KisCallbackBasedPaintopProperty<KisComboBasedPaintOpProperty>;
+template class KRITAIMAGE_EXPORT_INSTANCE
+    KisCallbackBasedPaintopProperty<KisSliderBasedPaintOpProperty<int>>;
+template class KRITAIMAGE_EXPORT_INSTANCE
+    KisCallbackBasedPaintopProperty<KisSliderBasedPaintOpProperty<qreal>>;
