@@ -7,7 +7,6 @@
 #include "KisRunnableBasedStrokeStrategy.h"
 
 #include <QRunnable>
-#include <functional>
 
 #include "KisRunnableStrokeJobData.h"
 #include "KisRunnableStrokeJobsInterface.h"

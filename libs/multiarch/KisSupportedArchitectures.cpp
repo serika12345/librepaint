@@ -10,7 +10,6 @@
 #include <KSharedConfig>
 #include <kis_debug.h>
 
-#include "xsimd_extensions/xsimd.hpp"
 
 #include <KoMultiArchBuildSupport.h>
 

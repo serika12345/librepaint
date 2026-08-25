@@ -20,9 +20,7 @@
 
 #include "kis_selection.h"
 #include "kis_pixel_selection.h"
-#include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
-#include "filter/kis_filter.h"
 #include "kis_signal_auto_connection.h"
 
 #include "kis_raster_keyframe_channel.h"

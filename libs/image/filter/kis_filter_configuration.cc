@@ -5,22 +5,16 @@
  */
 
 #include "filter/kis_filter_configuration.h"
-#include "filter/kis_filter.h"
 
 #include <kis_debug.h>
 #include <QDomDocument>
 #include <QString>
 
 #include "filter/kis_filter_registry.h"
-#include "kis_transaction.h"
-#include "kis_undo_adapter.h"
 #include "kis_painter.h"
-#include "kis_selection.h"
-#include "KoID.h"
 #include "kis_types.h"
 #include <KisRequiredResourcesOperators.h>
 
-#include "kis_config_widget.h"
 
 struct Q_DECL_HIDDEN KisFilterConfiguration::Private {
     QString name;

@@ -19,7 +19,6 @@
 #include <KisTag.h>
 
 
-#include "kis_debug.h"
 
 bool isSpecialTag(KisTagSP tag) {
     return !tag.isNull() && tag->id() < 0;

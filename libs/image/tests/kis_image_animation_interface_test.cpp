@@ -14,7 +14,6 @@
 
 #include "kundo2command.h"
 
-#include "kis_debug.h"
 #include "kis_paint_device_debug_utils.h"
 
 #include "kis_image_animation_interface.h"

@@ -7,7 +7,6 @@
 
 #include "KoShapeAlignCommand.h"
 #include "KoShape.h"
-#include "KoShapeGroup.h"
 #include "commands/KoShapeMoveCommand.h"
 
 #include <klocalizedstring.h>

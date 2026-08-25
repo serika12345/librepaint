@@ -11,7 +11,6 @@
 #include <QPointer>
 #include <QMutexLocker>
 
-#include "kis_global.h"
 #include "kis_image.h"
 #include "kis_processing_applicator.h"
 #include "commands/kis_image_layer_move_command.h"
@@ -20,7 +19,6 @@
 #include "kis_command_utils.h"
 #include "kis_layer_utils.h"
 #include "kis_layer.h"
-#include "kis_generator_layer.h"
 #include "kis_selection_mask.h"
 #include "commands/kis_node_group_operations.h"
 

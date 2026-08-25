@@ -13,7 +13,6 @@
 
 #include "kis_types.h"
 #include "kis_count_visitor.h"
-#include "kis_image.h"
 /*
 
   root

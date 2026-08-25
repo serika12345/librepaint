@@ -450,7 +450,6 @@ void KisConvolutionPainterTest::testGaussianDetailsFFTW()
     testGaussianDetails(true);
 }
 
-#include "kis_transaction.h"
 
 void KisConvolutionPainterTest::testDilate()
 {

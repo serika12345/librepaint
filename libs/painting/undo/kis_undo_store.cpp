@@ -6,7 +6,6 @@
 
 #include "kis_undo_store.h"
 
-#include "kis_debug.h"
 
 
 KisUndoStore::KisUndoStore()

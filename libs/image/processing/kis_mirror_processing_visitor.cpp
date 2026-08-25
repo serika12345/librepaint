@@ -7,7 +7,6 @@
 #include "kis_mirror_processing_visitor.h"
 
 #include "kis_paint_device.h"
-#include "kis_transaction.h"
 #include "kis_node.h"
 #include "kis_image.h"
 #include "kis_painter.h"
@@ -18,7 +17,6 @@
 #include "lazybrush/kis_colorize_mask.h"
 #include "processing/kis_transform_processing_visitor.h"
 
-#include "commands_new/kis_transaction_based_command.h"
 #include <functional>
 
 

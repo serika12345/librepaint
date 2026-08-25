@@ -9,9 +9,6 @@
 
 #include <KoMultiArchBuildSupport.h>
 
-#include "kis_brush_mask_applicator_factories.h"
-#include "kis_mask_generator.h"
-#include "kis_brush_mask_applicator_base.h"
 
 #include <cmath>
 #include "kis_fast_math.h"

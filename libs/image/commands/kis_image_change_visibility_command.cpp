@@ -6,7 +6,6 @@
 
 
 #include "kis_image_commands.h"
-#include "kis_image.h"
 #include "kis_node.h"
 
 #include <klocalizedstring.h>

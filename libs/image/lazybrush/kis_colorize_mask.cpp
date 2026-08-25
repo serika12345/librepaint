@@ -29,7 +29,6 @@
 #include "kis_multiway_cut.h"
 #include "kis_image.h"
 #include "kis_layer.h"
-#include "kis_macro_based_undo_store.h"
 #include "kis_post_execution_undo_adapter.h"
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"

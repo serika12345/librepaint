@@ -20,8 +20,6 @@
 
 #include "kis_dom_utils.h"
 #include "kis_paintop_preset.h"
-#include "kis_paint_layer.h"
-#include "kis_image.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_paintop_registry.h"
@@ -30,7 +28,6 @@
 #include "kis_paintop_config_widget.h"
 #include <brushengine/kis_paintop_preset.h>
 #include "KisPaintOpPresetUpdateProxy.h"
-#include <time.h>
 #include <kis_types.h>
 #include <kis_signals_blocker.h>
 

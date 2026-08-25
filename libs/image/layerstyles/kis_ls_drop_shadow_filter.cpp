@@ -14,14 +14,9 @@
 
 #include "psd.h"
 
-#include "kis_convolution_kernel.h"
-#include "kis_convolution_painter.h"
 #include "kis_gaussian_kernel.h"
 
 #include "kis_pixel_selection.h"
-#include "kis_fill_painter.h"
-#include "kis_iterator_ng.h"
-#include "kis_random_accessor_ng.h"
 
 #include "kis_psd_layer_style.h"
 

@@ -15,8 +15,6 @@
 #include "KoColor.h"
 #include "KisTransactionWrapperFactory.h"
 #include "KisInterstrokeDataTransactionWrapperFactory.h"
-#include "kis_raster_keyframe_channel.h"
-#include "kis_image_config.h"
 #include <boost/optional.hpp>
 
 //#define DEBUG_TRANSACTIONS

@@ -11,7 +11,6 @@
 #include <klocalizedstring.h>
 #include "kis_layer.h"
 #include "kis_clone_layer.h"
-#include "kis_paint_layer.h"
 
 struct Q_DECL_HIDDEN KisImageLayerRemoveCommandImpl::Private {
     Private(KisImageLayerRemoveCommandImpl *_q) : q(_q) {}

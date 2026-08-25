@@ -22,7 +22,6 @@
 #include <QPainterPath>
 #include <QPainter>
 
-#include "kis_global.h"
 #include "kis_algebra_2d.h"
 
 class Q_DECL_HIDDEN KoMarker::Private

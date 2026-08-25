@@ -14,11 +14,9 @@
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
 
-#include "kis_pointer_utils.h"
 
 #include "kis_paint_device.h"
 #include "kis_layer_properties_icons.h"
-#include "kis_default_bounds_node_wrapper.h"
 
 #include "kis_scalar_keyframe_channel.h"
 

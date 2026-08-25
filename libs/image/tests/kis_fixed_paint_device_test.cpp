@@ -18,14 +18,10 @@
 #include "kis_types.h"
 #include "kis_paint_device.h"
 #include "kis_fixed_paint_device.h"
-#include "kis_layer.h"
 #include "kis_paint_layer.h"
-#include "kis_selection.h"
 #include "kis_datamanager.h"
-#include "kis_global.h"
 #include <testutil.h>
 #include <testimage.h>
-#include "kis_transaction.h"
 #include "kis_image.h"
 
 void KisFixedPaintDeviceTest::testCreation()

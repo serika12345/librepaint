@@ -16,8 +16,6 @@
 #include <QPainter>
 
 #include <boost/config.hpp>
-#include <iostream>
-#include <string>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 #include <boost/graph/read_dimacs.hpp>

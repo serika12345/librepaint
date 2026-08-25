@@ -14,7 +14,6 @@
 
 #include <QRect>
 #include "kis_pixel_selection.h"
-#include "kis_image.h"
 
 #include <memory>
 

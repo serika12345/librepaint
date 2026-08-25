@@ -9,13 +9,9 @@
 #include "kis_node.h"
 #include "kis_dom_utils.h"
 
-#include "kis_global.h"
 #include "kis_paint_device.h"
 #include "kis_paint_device_frames_interface.h"
-#include "kis_time_span.h"
 #include "kundo2command.h"
-#include "kis_onion_skin_compositor.h"
-#include "kis_layer_utils.h"
 
 KisRasterKeyframe::KisRasterKeyframe(KisPaintDeviceWSP paintDevice)
     : KisKeyframe()

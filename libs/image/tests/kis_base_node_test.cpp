@@ -7,7 +7,6 @@
 #include "kis_base_node_test.h"
 #include "KoColor.h"
 #include "kis_base_node.h"
-#include "kis_global.h"
 #include "kis_image_animation_interface.h"
 #include "kis_paint_device.h"
 #include "kis_scalar_keyframe_channel.h"

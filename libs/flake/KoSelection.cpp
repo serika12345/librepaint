@@ -12,7 +12,6 @@
 #include "KoSelection_p.h"
 #include "KoShapeContainer.h"
 #include "KoShapeGroup.h"
-#include "KoPointerEvent.h"
 #include "kis_algebra_2d.h"
 #include "krita_container_utils.h"
 

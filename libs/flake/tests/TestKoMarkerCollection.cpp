@@ -19,7 +19,6 @@
 #include <qimage_test_util.h>
 #include <testflake.h>
 
-#include <cmath>
 
 
 void initMarkerCollection(KoMarkerCollection *collection)

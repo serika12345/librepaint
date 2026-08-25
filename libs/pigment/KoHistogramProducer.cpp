@@ -11,7 +11,6 @@
 
 #include <KoID.h>
 
-#include "KoBasicHistogramProducers.h"
 
 #include "KoColorSpace.h"
 

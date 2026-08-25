@@ -12,9 +12,7 @@
 
 #include "KoColorModelStandardIds.h"
 
-#include "KoColor.h"
 #include "KoChannelInfo.h"
-#include "DebugPigment.h"
 
 void TestKoChannelInfo::testDisplayPositionToChannelIndex()
 {

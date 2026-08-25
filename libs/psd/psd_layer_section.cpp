@@ -42,7 +42,6 @@
 #include "psd_header.h"
 #include "psd_utils.h"
 
-#include "compression.h"
 
 #include <asl/kis_asl_reader_utils.h>
 #include <asl/kis_asl_writer_utils.h>

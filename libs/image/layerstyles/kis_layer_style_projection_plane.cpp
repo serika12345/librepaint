@@ -6,7 +6,6 @@
 
 #include "kis_layer_style_projection_plane.h"
 
-#include "kis_global.h"
 #include "kis_layer_style_filter_projection_plane.h"
 #include "kis_layer_projection_plane.h"
 #include "KisStrokeLayerStyleFilterProjectionPlane.h"

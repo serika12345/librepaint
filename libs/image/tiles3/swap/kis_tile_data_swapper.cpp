@@ -9,10 +9,8 @@
 
 #include "tiles3/swap/kis_tile_data_swapper.h"
 #include "tiles3/swap/kis_tile_data_swapper_p.h"
-#include "tiles3/kis_tile_data.h"
 #include "tiles3/kis_tile_data_store.h"
 #include "tiles3/kis_tile_data_store_iterators.h"
-#include "kis_debug.h"
 
 #define SEC 1000
 

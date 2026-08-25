@@ -23,7 +23,6 @@
 #include <kis_image.h>
 #include "kis_signal_compressor.h"
 #include "application/KisPart.h"
-#include "KisUsageLogger.h"
 
 #include <kis_layer_utils.h>
 #include <kis_global.h>

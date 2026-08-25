@@ -5,7 +5,6 @@
  */
 #include "KisForestTest.h"
 
-#include "KisCppQuirks.h"
 #include "KisForest.h"
 #include <vector>
 

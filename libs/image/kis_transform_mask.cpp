@@ -14,15 +14,10 @@
 #include "kis_layer.h"
 #include "kis_transform_mask.h"
 #include <kis_group_layer.h>
-#include "filter/kis_filter.h"
-#include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
-#include "kis_selection.h"
-#include "kis_processing_information.h"
 #include "kis_node.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
-#include "kis_node_progress_proxy.h"
 #include "kis_painter.h"
 
 #include "kis_busy_progress_indicator.h"
@@ -35,7 +30,6 @@
 #include "kis_safe_transform.h"
 #include "kis_keyframe_channel.h"
 #include "kis_raster_keyframe_channel.h"
-#include "kis_scalar_keyframe_channel.h"
 
 #include "kis_image_config.h"
 #include "kis_lod_capable_layer_offset.h"

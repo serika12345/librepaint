@@ -5,7 +5,6 @@
  */
 
 #include "kis_meta_data_filter_registry_model.h"
-#include "kis_debug.h"
 #include <QStringList>
 
 using namespace KisMetaData;

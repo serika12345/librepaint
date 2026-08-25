@@ -8,7 +8,6 @@
 
 #include "kis_lazy_fill_tools.h"
 
-#include <numeric>
 #include <boost/limits.hpp>
 
 #include <boost/graph/graph_traits.hpp>

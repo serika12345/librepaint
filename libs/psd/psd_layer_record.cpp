@@ -13,13 +13,10 @@
 #include <QDataStream>
 #include <QIODevice>
 
-#include "kis_iterator_ng.h"
-#include <algorithm>
 #include <kis_debug.h>
 #include <kis_node.h>
 #include <kis_paint_layer.h>
 
-#include "compression.h"
 #include "psd.h"
 #include "psd_header.h"
 #include "psd_utils.h"

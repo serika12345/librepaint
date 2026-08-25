@@ -8,7 +8,6 @@
 
 #include "kis_image_config.h"
 #include "kis_keyframe.h"
-#include "kis_keyframe_channel.h"
 #include "kis_types.h"
 
 

@@ -17,7 +17,6 @@
 #include <KisRunnableStrokeJobUtils.h>
 #include <KisRunnableStrokeJobsInterface.h>
 #include <KoCompositeOpRegistry.h>
-#include "kis_image_config.h"
 #include "kis_image_animation_interface.h"
 #include "kis_painter.h"
 #include "KisAnimAutoKey.h"

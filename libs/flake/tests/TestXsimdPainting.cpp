@@ -7,7 +7,6 @@
 
 #include <QPainter>
 
-#include "KoClipMaskApplicatorBase.h"
 #include "KoClipMaskPainter.h"
 
 #include "kistest.h"

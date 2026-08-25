@@ -11,7 +11,6 @@
 
 #include <KoColorSpaceConstants.h>
 
-#include "kis_fast_math.h"
 
 #include "kis_base_mask_generator.h"
 #include "kis_antialiasing_fade_maker.h"

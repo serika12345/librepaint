@@ -11,7 +11,6 @@
 #include "KoDocumentResourceManager.h"
 #include "KoShapeLoadingContext.h"
 #include <KoIcon.h>
-#include "KoInsets.h"
 
 #include <klocalizedstring.h>
 

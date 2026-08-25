@@ -7,7 +7,6 @@
 #include "kis_image_commands_test.h"
 
 #include <simpletest.h>
-#include "commands/kis_image_commands.h"
 
 void KisImageCommandsTest::testCreation()
 {

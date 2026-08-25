@@ -16,7 +16,6 @@
 
 #include <KoProperties.h>
 
-#include "kis_global.h"
 #include "kis_node_graph_listener.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"

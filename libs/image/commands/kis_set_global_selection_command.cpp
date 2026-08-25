@@ -12,17 +12,13 @@
 #include "kis_default_bounds.h"
 #include "KisImageResolutionProxy.h"
 #include "kis_selection.h"
-#include "kis_undo_adapter.h"
 #include "kis_selection_mask.h"
-#include "kis_pixel_selection.h"
-#include "KisImageGlobalSelectionManagementInterface.h"
 #include "kis_group_layer.h"
 
 #include "kis_image_layer_remove_command.h"
 #include "kis_image_layer_add_command.h"
 #include "kis_selection_mask.h"
 #include "kis_activate_selection_mask_command.h"
-#include "KisChangeValueCommand.h"
 #include "KisChangeDeselectedMaskCommand.h"
 #include "KisNotifySelectionChangedCommand.h"
 

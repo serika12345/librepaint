@@ -22,7 +22,6 @@
 #include "kis_transparency_mask.h"
 #include <testutil.h>
 #include "kis_selection.h"
-#include "kis_fill_painter.h"
 #include "kis_pixel_selection.h"
 #include <kis_sequential_iterator.h>
 #include "kis_layer_projection_plane.h"

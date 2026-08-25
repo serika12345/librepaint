@@ -7,7 +7,6 @@
 
 #include "KoSubpathRemoveCommand.h"
 
-#include "KoPathPointData.h"
 #include "KoPathPoint.h"
 #include "KoPathShape.h"
 #include <klocalizedstring.h>

@@ -6,7 +6,6 @@
 
 #include "kis_acyclic_signal_connector.h"
 
-#include "kis_debug.h"
 
 
 KisAcyclicSignalConnector::KisAcyclicSignalConnector(QObject *parent)

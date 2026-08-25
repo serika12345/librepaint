@@ -7,7 +7,6 @@
 #include "KisBrushModel.h"
 #include "kis_brush_registry.h"
 #include "brushengine/kis_paintop_lod_limitations.h"
-#include "KisGlobalResourcesInterface.h"
 #include <kis_predefined_brush_factory.h>
 
 namespace KisBrushModel {

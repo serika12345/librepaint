@@ -10,9 +10,7 @@
 #include "KisTagResourceModel.h"
 #include "KisResourceMetaDataModel.h"
 
-#include "KoResource.h"
 
-#include <memory>
 #include <optional>
 
 #include <QGlobalStatic>

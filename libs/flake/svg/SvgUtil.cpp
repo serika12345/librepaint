@@ -16,7 +16,6 @@
 #include <QRegularExpression>
 
 #include <math.h>
-#include "kis_debug.h"
 #include "kis_global.h"
 
 #include <KoXmlWriter.h>

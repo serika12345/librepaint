@@ -6,7 +6,6 @@
 
 #include "kis_composite_progress_proxy.h"
 
-#include "kis_debug.h"
 
 void KisCompositeProgressProxy::addProxy(KoProgressProxy *proxy)
 {

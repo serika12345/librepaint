@@ -10,7 +10,6 @@
 #include <numeric>
 #include <QtMath>
 #include "kis_assert.h"
-#include "kis_debug.h"
 
 
 KisFilteredRollingMean::KisFilteredRollingMean(int windowSize, qreal effectivePortion)

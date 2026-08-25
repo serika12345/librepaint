@@ -20,9 +20,7 @@
 #include <KoColor.h>
 
 #include "kis_paint_device.h"
-#include "kis_debug.h"
 #include "kis_selection.h"
-#include "kis_iterator_ng.h"
 #include "kis_random_accessor_ng.h"
 #include "kis_filter_strategy.h"
 #include "kis_painter.h"

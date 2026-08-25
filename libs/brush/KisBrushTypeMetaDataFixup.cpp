@@ -6,7 +6,6 @@
 
 #include "KisBrushTypeMetaDataFixup.h"
 
-#include "kis_debug.h"
 
 #include <QSqlQuery>
 #include <QSqlError>

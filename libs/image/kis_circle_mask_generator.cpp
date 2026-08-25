@@ -6,11 +6,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cmath>
 
 #include <QDomDocument>
 
-#include "kis_fast_math.h"
 #include "kis_circle_mask_generator.h"
 #include "kis_circle_mask_generator_p.h"
 #include "kis_base_mask_generator.h"

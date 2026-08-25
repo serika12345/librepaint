@@ -11,7 +11,6 @@
 #include <QThreadPool>
 
 #include "kis_image_config.h"
-#include "tiles_test_utils.h"
 #include "tiles3/kis_tiled_data_manager.h"
 #include "tiles3/kis_tile_data_store.h"
 #include <kis_debug.h>

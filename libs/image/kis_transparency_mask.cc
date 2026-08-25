@@ -6,7 +6,6 @@
 
 #include "kis_transparency_mask.h"
 
-#include "kis_debug.h"
 
 #include <KoIcon.h>
 #include <kis_icon.h>

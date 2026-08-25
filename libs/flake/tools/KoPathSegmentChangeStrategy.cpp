@@ -13,7 +13,6 @@
 #include "commands/KoPathSegmentTypeCommand.h"
 #include <KoCanvasBase.h>
 #include <klocalizedstring.h>
-#include <limits>
 #include <math.h>
 #include <KisBezierUtils.h>
 #include <kis_command_utils.h>

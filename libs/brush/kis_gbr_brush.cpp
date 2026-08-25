@@ -27,7 +27,6 @@
 
 #include "kis_datamanager.h"
 #include "kis_paint_device.h"
-#include "kis_global.h"
 #include "kis_image.h"
 
 struct GimpBrushV1Header {

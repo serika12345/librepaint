@@ -13,7 +13,6 @@
 #include <QSignalSpy>
 #include <simpletest.h>
 
-#include "kis_debug.h"
 
 void TestResourceManager::koShapeResource()
 {

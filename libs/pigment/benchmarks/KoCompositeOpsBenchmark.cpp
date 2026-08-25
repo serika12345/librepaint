@@ -6,8 +6,6 @@
 
 #include "KoCompositeOpsBenchmark.h"
 
-#include "../compositeops/KoCompositeOpAlphaDarken.h"
-#include "../compositeops/KoCompositeOpOver.h"
 #include <KoOptimizedCompositeOpFactory.h>
 
 #include <KoColorSpaceTraits.h>

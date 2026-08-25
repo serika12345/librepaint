@@ -7,7 +7,6 @@
 
 #include "kis_vline_iterator.h"
 
-#include <iostream>
 
 KisVLineIterator2::KisVLineIterator2(KisDataManager *dataManager, qint32 x, qint32 y, qint32 h, qint32 offsetX, qint32 offsetY, bool writable, KisIteratorCompleteListener *completeListener)
     : KisBaseIterator(dataManager, writable, completeListener),

@@ -16,7 +16,6 @@
 #include <boost/accumulators/statistics/min.hpp>
 #include <boost/accumulators/statistics/max.hpp>
 
-#include <array>
 #include <QVector2D>
 #include <QVector3D>
 

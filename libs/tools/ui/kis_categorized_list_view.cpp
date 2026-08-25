@@ -13,7 +13,6 @@
 #include <kconfig.h>
 #include <klocalizedstring.h>
 #include <kis_icon.h>
-#include "kis_debug.h"
 #include <KisKineticScroller.h>
 
 KisCategorizedListView::KisCategorizedListView(QWidget* parent):

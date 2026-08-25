@@ -6,7 +6,6 @@
 #include "KoSvgTextAddRemoveShapeCommands.h"
 #include "kis_assert.h"
 #include <optional>
-#include "kis_debug.h"
 
 #include <KoShapeBulkActionLock.h>
 #include <KoSvgTextShape.h>

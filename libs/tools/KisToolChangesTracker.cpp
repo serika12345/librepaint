@@ -6,7 +6,6 @@
 
 #include <KisToolChangesTracker.h>
 
-#include "kis_global.h"
 #include <QSharedPointer>
 
 struct KisToolChangesTracker::Private {

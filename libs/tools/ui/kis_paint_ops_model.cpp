@@ -8,7 +8,6 @@
 
 #include "kis_paint_ops_model.h"
 
-#include "kis_debug.h"
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_factory.h>
 #include <KoResourcePaths.h>

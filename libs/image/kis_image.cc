@@ -26,14 +26,11 @@
 #include <KoCompositeOpRegistry.h>
 #include "KisProofingConfiguration.h"
 
-#include "kis_adjustment_layer.h"
 #include "kis_annotation.h"
 #include "kis_count_visitor.h"
 #include "kis_filter_strategy.h"
 #include "kis_group_layer.h"
-#include "commands/kis_image_commands.h"
 #include "kis_layer.h"
-#include "kis_meta_data_merge_strategy_registry.h"
 #include "kis_paint_layer.h"
 #include "kis_projection_leaf.h"
 #include "kis_painter.h"
@@ -65,7 +62,6 @@
 #include "processing/kis_assign_profile_processing_visitor.h"
 #include "commands_new/kis_image_resize_command.h"
 #include "commands_new/kis_image_set_resolution_command.h"
-#include "commands_new/kis_activate_selection_mask_command.h"
 #include "kis_composite_progress_proxy.h"
 #include "kis_layer_composition.h"
 #include "kis_wrapped_rect.h"

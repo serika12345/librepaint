@@ -17,7 +17,6 @@
 #include <KoCompositeOpRegistry.h>
 #include <kis_icon.h>
 
-#include "kis_debug.h"
 
 namespace {
 

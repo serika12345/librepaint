@@ -5,7 +5,6 @@
  */
 
 #include "KoColorBackground.h"
-#include "KoShapeSavingContext.h"
 #include <KoXmlNS.h>
 
 #include <QColor>

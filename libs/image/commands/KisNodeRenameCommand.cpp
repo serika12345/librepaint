@@ -8,7 +8,6 @@
 
 #include <klocalizedstring.h>
 #include "kis_node.h"
-#include "commands/kis_node_commands.h"
 #include "kis_command_ids.h"
 
 KisNodeRenameCommand::KisNodeRenameCommand(KisNodeSP node, const QString &oldName, const QString &newName)

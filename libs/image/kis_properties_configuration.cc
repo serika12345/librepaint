@@ -13,10 +13,7 @@
 #include <QString>
 
 #include "kis_image.h"
-#include "kis_transaction.h"
-#include "kis_undo_adapter.h"
 #include "kis_painter.h"
-#include "kis_selection.h"
 #include "KoID.h"
 #include "kis_types.h"
 #include <KoColor.h>

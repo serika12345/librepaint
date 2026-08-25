@@ -21,7 +21,6 @@
 #include "KoCompositeOpOver.h"
 #include "KoCompositeOpErase.h"
 #include "KoCompositeOpCopy2.h"
-#include "KoCompositeOpAlphaDarken.h"
 #include "KoCompositeOpBase.h"
 #include "KoCompositeOps.h"
 #include <colorprofiles/KoDummyColorProfile.h>

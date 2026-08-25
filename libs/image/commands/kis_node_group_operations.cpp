@@ -8,11 +8,9 @@
 
 #include <KoProperties.h>
 
-#include "kis_global.h"
 #include "kis_group_layer.h"
 #include "kis_image.h"
 #include "kis_layer_utils.h"
-#include "krita_utils.h"
 #include "kis_node_operation_batch.h"
 
 namespace KisNodeGroupOperations

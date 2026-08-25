@@ -13,10 +13,8 @@
 
 #include "kis_painter.h"
 #include <stdlib.h>
-#include <string.h>
 #include <cfloat>
 #include <cmath>
-#include <climits>
 #ifndef Q_OS_WIN
 #include <strings.h>
 #endif
@@ -30,7 +28,6 @@
 #include <klocalizedstring.h>
 
 #include "kis_image.h"
-#include "filter/kis_filter.h"
 #include "kis_layer.h"
 #include "kis_paint_device.h"
 #include "kis_fixed_paint_device.h"
@@ -40,7 +37,6 @@
 #include "kis_sequential_iterator.h"
 #include "kis_random_accessor_ng.h"
 
-#include "filter/kis_filter_configuration.h"
 #include "kis_pixel_selection.h"
 #include <brushengine/kis_paint_information.h>
 #include "kis_paintop_registry.h"

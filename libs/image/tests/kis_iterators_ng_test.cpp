@@ -15,12 +15,10 @@
 #include <KoColorProfile.h>
 
 #include "kis_random_accessor_ng.h"
-#include "kis_random_sub_accessor.h"
 
 #include "kis_paint_device.h"
 #include <kis_iterator_ng.h>
 #include <kis_sequential_iterator.h>
-#include "kis_global.h"
 #include <testutil.h>
 #include <testimage.h>
 

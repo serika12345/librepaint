@@ -27,7 +27,6 @@
 
 #include "kis_external_layer_iface.h"
 
-#include "kis_transaction.h"
 #include "kis_undo_adapter.h"
 #include "kis_transform_worker.h"
 #include "commands_new/kis_node_move_command2.h"

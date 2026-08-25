@@ -5,7 +5,6 @@
  */
 
 #include "kis_count_visitor.h"
-#include "kis_image.h"
 
 bool KisCountVisitor::inList(KisNode* node)
 {

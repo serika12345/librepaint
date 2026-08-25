@@ -7,7 +7,6 @@
 #include "kis_node_commands_test.h"
 
 #include <simpletest.h>
-#include "commands/kis_node_commands.h"
 
 void KisNodeCommandsTest::testCreation()
 {

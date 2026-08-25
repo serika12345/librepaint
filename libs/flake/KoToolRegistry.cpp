@@ -12,9 +12,7 @@
 #include <ksharedconfig.h>
 
 #include "tools/KoPathToolFactory.h"
-#include "tools/KoZoomTool.h"
 #include "tools/KoZoomToolFactory.h"
-#include "KoToolManager.h"
 #include <KoPluginLoader.h>
 
 #include <QGlobalStatic>

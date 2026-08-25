@@ -13,7 +13,6 @@
 
 #include "KoShape.h"
 #include "kis_assert.h"
-#include "kis_debug.h"
 
 void KoResourceManager::slotResourceInternalsChanged(int key)
 {

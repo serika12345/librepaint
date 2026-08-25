@@ -8,8 +8,6 @@
 
 #include "klocalizedstring.h"
 #include "kis_image_config.h"
-#include "kis_merge_walker.h"
-#include "kis_full_refresh_walker.h"
 
 #include "kis_updater_context.h"
 #include "kis_simple_update_queue.h"

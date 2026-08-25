@@ -10,7 +10,6 @@
 #include <KoSelection.h>
 #include <KoToolBase.h>
 #include <KoToolFactoryBase.h>
-#include "kis_action_registry.h"
 
 //   ************ KoToolAction::Private **********
 

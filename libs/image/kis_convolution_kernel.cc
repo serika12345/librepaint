@@ -170,7 +170,6 @@ if (n > 1)
 }
 #endif
 
-#include "kis_debug.h"
 
 QDebug operator<<(QDebug debug, const KisConvolutionKernel &c)
 {

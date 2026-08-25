@@ -6,8 +6,6 @@
 
 #include "kis_asl_xml_parser.h"
 
-#include <stdexcept>
-#include <string>
 
 #include <QBuffer>
 #include <QDomDocument>
@@ -22,9 +20,7 @@
 
 #include "kis_dom_utils.h"
 
-#include "compression.h"
 #include "kis_debug.h"
-#include "psd.h"
 #include "psd_utils.h"
 
 #include "kis_asl_object_catcher.h"

@@ -237,7 +237,6 @@ void TestShapePainting::testPaintOrder()
 #include <KoShapeController.h>
 #include <KoShapeGroupCommand.h>
 #include <KoShapeUngroupCommand.h>
-#include "kis_debug.h"
 void TestShapePainting::testGroupUngroup()
 {
     MockShapeController controller;

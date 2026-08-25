@@ -16,8 +16,6 @@
 #include <KoShapeLayer.h>
 #include <KoShapeReorderCommand.h>
 
-#include <vector>
-#include <memory>
 
 #include <kis_undo_stores.h>
 #include <KoAddRemoveShapeCommands.h>

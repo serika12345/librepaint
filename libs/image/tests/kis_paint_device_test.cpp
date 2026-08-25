@@ -5,7 +5,6 @@
  */
 
 #include "kis_paint_device_test.h"
-#include "kis_image_config.h"
 #include <simpletest.h>
 
 #include <QElapsedTimer>
@@ -20,11 +19,8 @@
 #include "kis_painter.h"
 #include "kis_types.h"
 #include "kis_paint_device.h"
-#include "kis_layer.h"
 #include "kis_paint_layer.h"
-#include "kis_selection.h"
 #include "kis_datamanager.h"
-#include "kis_global.h"
 #include <testutil.h>
 #include "kis_transaction.h"
 #include "kis_image.h"

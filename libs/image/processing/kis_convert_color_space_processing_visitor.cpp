@@ -10,7 +10,6 @@
 
 #include "kis_do_something_command.h"
 #include "kis_paint_device.h"
-#include "kis_transaction.h"
 #include "kis_undo_adapter.h"
 #include "kis_transform_mask.h"
 #include "lazybrush/kis_colorize_mask.h"

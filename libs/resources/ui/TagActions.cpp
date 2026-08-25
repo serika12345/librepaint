@@ -17,7 +17,6 @@
 #include <KisPopupSelfActivatingLineEdit.h>
 #include <KisTag.h>
 
-#include "kis_debug.h"
 
 // ############ Simple Existing Tag Action ##############
 

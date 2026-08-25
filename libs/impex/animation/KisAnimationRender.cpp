@@ -20,7 +20,6 @@
 #include "kis_time_span.h"
 #include "workspace/KisMainWindow.h"
 
-#include "krita_container_utils.h"
 
 #include "KisVideoSaver.h"
 

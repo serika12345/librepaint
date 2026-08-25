@@ -7,7 +7,6 @@
 #include "kis_uniform_paintop_property.h"
 
 #include <QVariant>
-#include "kis_debug.h"
 #include "kis_paintop_settings.h"
 
 struct KisUniformPaintOpProperty::Private

@@ -5,7 +5,6 @@
  */
 
 #include "KisPaintopPropertiesBase.h"
-#include "kis_properties_configuration.h"
 #include <KisResourcesInterface.h>
 
 

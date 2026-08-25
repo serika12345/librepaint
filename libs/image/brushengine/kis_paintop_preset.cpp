@@ -18,17 +18,14 @@
 
 #include <brushengine/kis_paintop_settings.h>
 #include "kis_paintop_registry.h"
-#include "kis_painter.h"
 #include <brushengine/kis_paint_information.h>
 #include "kis_paint_device.h"
-#include "kis_image.h"
 #include "KisPaintOpPresetUpdateProxy.h"
 #include <brushengine/kis_paintop_config_widget.h>
 #include <KisRequiredResourcesOperators.h>
 #include <KoLocalStrokeCanvasResources.h>
 #include <KisLocalStrokeResources.h>
 #include <KisResourceModel.h>
-#include "KisPaintopSettingsIds.h"
 #include <KisResourceTypes.h>
 #include <KisResourceModelProvider.h>
 #include <krita_container_utils.h>

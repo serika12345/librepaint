@@ -17,7 +17,6 @@
 #include "KoColorProfile.h"
 #include "KoColorSpaceRegistry.h"
 #include "DebugPigment.h"
-#include "kis_debug.h"
 
 #include <testpigment.h>
 

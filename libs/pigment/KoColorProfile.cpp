@@ -9,7 +9,6 @@
 #include <cmath>
 
 #include "KoColorProfile.h"
-#include "DebugPigment.h"
 #include "kis_assert.h"
 
 struct Q_DECL_HIDDEN KoColorProfile::Private {

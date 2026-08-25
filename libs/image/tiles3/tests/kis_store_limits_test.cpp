@@ -7,7 +7,6 @@
 #include "kis_store_limits_test.h"
 #include <simpletest.h>
 
-#include "kis_debug.h"
 
 #include "kis_image_config.h"
 #include "tiles3/swap/kis_tile_data_swapper_p.h"

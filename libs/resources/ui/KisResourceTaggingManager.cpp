@@ -29,7 +29,6 @@
 #include "KisTagFilterWidget.h"
 #include "KisTagChooserWidget.h"
 #include "KisResourceItemChooserContextMenu.h"
-#include "kis_debug.h"
 #include "KisTag.h"
 
 class KisResourceTaggingManager::Private

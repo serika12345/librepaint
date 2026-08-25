@@ -8,11 +8,9 @@
 #include "kis_assert.h"
 #include <QtCore/qmath.h>
 #include "kis_lod_transform_base.h"
-#include "kis_global.h"
 #include "kis_algebra_2d.h"
 #include <KisUsageLogger.h>
 
-#include "kis_debug.h"
 
 
 KisRectsGrid::KisRectsGrid(int gridSize)

@@ -19,7 +19,6 @@
 #include <KoIcon.h>
 
 #include <kis_icon.h>
-#include "kis_debug.h"
 
 KisCategorizedItemDelegate::KisCategorizedItemDelegate(QObject *parent)
     : QStyledItemDelegate(parent),

@@ -6,7 +6,6 @@
  */
 
 #include "kis_lzf_compression.h"
-#include "kis_debug.h"
 
 
 #define HASH_LOG  12

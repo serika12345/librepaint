@@ -23,7 +23,6 @@
 
 #include "application/kis_config.h"
 
-#include "application/KisPart.h"
 
 namespace
 {

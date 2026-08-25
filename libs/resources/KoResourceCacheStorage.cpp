@@ -10,7 +10,6 @@
 #include <QVariant>
 
 #include "kis_assert.h"
-#include "kis_debug.h"
 
 struct KoResourceCacheStorage::Private
 {

@@ -7,7 +7,6 @@
 
 #include "kis_node_uuid_info.h"
 
-#include "kis_debug.h"
 
 KisNodeUuidInfo::KisNodeUuidInfo()
 {

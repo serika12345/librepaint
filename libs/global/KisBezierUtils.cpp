@@ -10,10 +10,8 @@
 #include <tuple>
 #include <QStack>
 #include <QDebug>
-#include "kis_debug.h"
 
 #include "KisBezierPatch.h"
-#include <iostream>
 
 #include <config-gsl.h>
 

@@ -36,7 +36,6 @@
 #include <application/kis_config.h>
 #include <kis_file_name_requester.h>
 #include <KoDialog.h>
-#include "kis_slider_spin_box.h"
 #include "kis_acyclic_signal_connector.h"
 #include "KisVideoSaver.h"
 #include "KisAnimationRenderingOptions.h"

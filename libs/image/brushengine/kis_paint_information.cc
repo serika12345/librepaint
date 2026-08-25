@@ -12,7 +12,6 @@
 #include "kis_paintop.h"
 #include "kis_algebra_2d.h"
 #include "kis_lod_transform.h"
-#include "kis_spacing_information.h"
 
 #include <kis_dom_utils.h>
 

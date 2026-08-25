@@ -10,7 +10,6 @@
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QDataStream>
-#include <cmath>
 #include <klocalizedstring.h>
 
 #include <compression.h>

@@ -7,8 +7,6 @@
  */
 
 #include "kis_warptransform_worker.h"
-#include "kis_random_sub_accessor.h"
-#include "kis_iterator_ng.h"
 #include "kis_datamanager.h"
 
 #include <QVector2D>

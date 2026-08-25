@@ -9,7 +9,6 @@
 
 #include <simpletest.h>
 #include <brushengine/kis_paint_information.h>
-#include "kis_debug.h"
 
 
 #include <QDomDocument>

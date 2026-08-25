@@ -8,7 +8,6 @@
 #include "kis_adjustment_layer.h"
 
 #include <klocalizedstring.h>
-#include "kis_debug.h"
 
 #include <KoIcon.h>
 #include <kis_icon.h>

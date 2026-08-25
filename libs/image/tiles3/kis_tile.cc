@@ -7,8 +7,6 @@
 
 
 #include <QMutexLocker>
-#include "kis_tile_data.h"
-#include "kis_tile_data_store.h"
 #include "kis_tile.h"
 #include "kis_memento_manager.h"
 #include "kis_debug.h"

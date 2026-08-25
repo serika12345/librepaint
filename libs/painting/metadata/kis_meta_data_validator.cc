@@ -7,7 +7,6 @@
 #include "kis_meta_data_validator.h"
 
 #include "kis_meta_data_store.h"
-#include "kis_meta_data_value.h"
 #include "kis_meta_data_entry.h"
 #include "kis_meta_data_schema.h"
 #include "kis_meta_data_type_info.h"

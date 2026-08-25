@@ -21,7 +21,6 @@
 
 #include "kis_paint_device.h"
 #include "filter/kis_filter.h"
-#include "kis_filter_configuration.h"
 
 KisFilterRegistry::KisFilterRegistry(QObject *parent)
     : QObject(parent)

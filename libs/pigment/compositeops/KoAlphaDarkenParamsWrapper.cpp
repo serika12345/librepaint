@@ -8,7 +8,6 @@
 
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
-#include "kis_debug.h"
 
 
 bool useCreamyAlphaDarken()

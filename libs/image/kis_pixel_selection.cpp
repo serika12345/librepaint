@@ -21,7 +21,6 @@
 #include <KoIntegerMaths.h>
 #include <KoCompositeOpRegistry.h>
 
-#include "kis_layer.h"
 #include "kis_debug.h"
 #include "kis_image.h"
 #include "kis_fill_painter.h"

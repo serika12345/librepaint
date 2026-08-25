@@ -24,12 +24,10 @@
 #include "filter/kis_filter_registry.h"
 #include "kis_selection.h"
 #include "kis_clone_layer.h"
-#include "kis_processing_information.h"
 #include "kis_busy_progress_indicator.h"
 
 
 #include "kis_merge_walker.h"
-#include "kis_refresh_subtree_walker.h"
 
 #include "kis_abstract_projection_plane.h"
 

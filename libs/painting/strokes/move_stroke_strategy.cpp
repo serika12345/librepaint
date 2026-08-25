@@ -20,13 +20,10 @@
 #include "kis_abstract_projection_plane.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
-#include "kis_raster_keyframe_channel.h"
 #include "KisAnimAutoKey.h"
 
 #include "kis_transform_mask.h"
 #include "kis_transform_mask_params_interface.h"
-#include "kis_keyframe_channel.h"
-#include "kis_scalar_keyframe_channel.h"
 #include "commands_new/KisSimpleModifyTransformMaskCommand.h"
 #include "commands_new/KisLazyCreateTransformMaskKeyframesCommand.h"
 
