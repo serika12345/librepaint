@@ -7,6 +7,8 @@
 #ifndef _KO_RGB_COLORSPACE_TRAITS_H_
 #define _KO_RGB_COLORSPACE_TRAITS_H_
 
+#include "KoColorSpaceTrait.h"
+
 /** 
  * Base class for rgb traits, it provides some convenient functions to
  * access RGB channels through an explicit API.

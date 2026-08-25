@@ -9,7 +9,7 @@
 #include <simpletest.h>
 
 #include "kis_node_dummies_graph.h"
-#include "kis_dummies_facade.h"
+#include "kis_dummies_facade_base.h"
 #include "node_shapes_utils.h"
 
 void KisDummiesFacadeBaseTest::init()

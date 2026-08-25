@@ -1850,12 +1850,12 @@ KisVLineConstIteratorSP KisPaintDevice::createVLineConstIteratorNG(qint32 x, qin
 
 KisRepeatHLineConstIteratorSP KisPaintDevice::createRepeatHLineConstIterator(qint32 x, qint32 y, qint32 w, const QRect& _dataWidth) const
 {
-    return new KisRepeatHLineConstIteratorNG(m_d->dataManager().data(), x, y, w, m_d->x(), m_d->y(), _dataWidth, m_d->cacheInvalidator());
+    return new KisRepeatHLineIteratorPixelBase<KisHLineIterator2>(m_d->dataManager().data(), x, y, w, m_d->x(), m_d->y(), _dataWidth, m_d->cacheInvalidator());
 }
 
 KisRepeatVLineConstIteratorSP KisPaintDevice::createRepeatVLineConstIterator(qint32 x, qint32 y, qint32 h, const QRect& _dataWidth) const
 {
-    return new KisRepeatVLineConstIteratorNG(m_d->dataManager().data(), x, y, h, m_d->x(), m_d->y(), _dataWidth, m_d->cacheInvalidator());
+    return new KisRepeatVLineIteratorPixelBase<KisVLineIterator2>(m_d->dataManager().data(), x, y, h, m_d->x(), m_d->y(), _dataWidth, m_d->cacheInvalidator());
 }
 
 KisRandomAccessorSP KisPaintDevice::createRandomAccessorNG()

@@ -68,10 +68,10 @@ void KisImageAnimationInterfaceTest::testFrameRegeneration()
     i->switchCurrentTimeAsync(10);
     p.image->waitForDone();
 
-    KisKeyframeChannel *channel1 = dev1->keyframeChannel();
+    KisRasterKeyframeChannel *channel1 = dev1->keyframeChannel();
     channel1->addKeyframe(10);
 
-    KisKeyframeChannel *channel2 = dev2->keyframeChannel();
+    KisRasterKeyframeChannel *channel2 = dev2->keyframeChannel();
     channel2->addKeyframe(10);
 
 
@@ -145,7 +145,7 @@ void KisImageAnimationInterfaceTest::testFramesChangedSignal()
     KisPaintDeviceSP dev1 = p.layer->paintDevice();
     KisPaintDeviceSP dev2 = layer2->paintDevice();
 
-    KisKeyframeChannel *channel = dev2->keyframeChannel();
+    KisRasterKeyframeChannel *channel = dev2->keyframeChannel();
     channel->addKeyframe(10);
     channel->addKeyframe(20);
 
@@ -240,7 +240,7 @@ void KisImageAnimationInterfaceTest::testSwitchFrameWithUndo()
     KisImageAnimationInterface *i = p.image->animationInterface();
     KisPaintDeviceSP dev1 = p.layer->paintDevice();
 
-    KisKeyframeChannel *channel = dev1->keyframeChannel();
+    KisRasterKeyframeChannel *channel = dev1->keyframeChannel();
     channel->addKeyframe(10);
     channel->addKeyframe(20);
 
@@ -281,7 +281,7 @@ void KisImageAnimationInterfaceTest::testSwitchFrameHangup()
     KisImageAnimationInterface *i = p.image->animationInterface();
     KisPaintDeviceSP dev1 = p.layer->paintDevice();
 
-    KisKeyframeChannel *channel = dev1->keyframeChannel();
+    KisRasterKeyframeChannel *channel = dev1->keyframeChannel();
     channel->addKeyframe(10);
     channel->addKeyframe(20);
 

@@ -7,7 +7,8 @@
 
 #include "KoOptimizedCompositeOpFactoryPerArch.h"
 
-#include "KoColorSpaceTraits.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoRgbColorSpaceTraits.h"
 #include "KoCompositeOpAlphaDarken.h"
 #include "KoAlphaDarkenParamsWrapper.h"
 #include "KoCompositeOpOver.h"
