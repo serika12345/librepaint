@@ -65,7 +65,6 @@
 #include "application/kis_action.h"
 #include "canvas/kis_canvas_controls_manager.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "kis_composite_progress_proxy.h"
 #include <KoProgressUpdater.h>
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
@@ -73,29 +72,21 @@
 #include "document/KisDocument.h"
 #include "resources/kis_favorite_resource_manager.h"
 #include "document/kis_filter_manager.h"
-#include <kis_image.h>
 #include "document/kis_image_manager.h"
-#include <kis_layer.h>
 #include "workspace/kis_mainwindow_observer.h"
 #include "nodes/kis_mask_manager.h"
 #include "canvas/kis_mirror_manager.h"
-#include "kis_node.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/KisDecorationsManager.h"
-#include <kis_paint_layer.h>
 #include "tool/kis_paintop_box.h"
-#include <brushengine/kis_paintop_preset.h>
 #include "application/KisPart.h"
 #include <KoUpdater.h>
-#include "kis_selection_mask.h"
-#include "kis_selection.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_shape_controller.h"
 #include "kis_shape_layer.h"
 #include <kis_signal_compressor.h>
 #include "canvas/kis_statusbar.h"
 #include <workspace/KisTemplateCreateDia.h>
-#include <kis_undo_adapter.h>
 #include "workspace/KisView.h"
 #include "canvas/kis_zoom_manager.h"
 #include "widgets/kis_floating_message.h"
@@ -110,7 +101,6 @@
 #include "imagesize/imagesize.h"
 #include <KoToolDocker.h>
 #include <canvas/KisIdleTasksManager.h>
-#include <KisImageBarrierLock.h>
 #include <document/KisTextPropertiesManager.h>
 
 class BlockingUserInputEventFilter : public QObject
@@ -354,49 +344,14 @@ KisViewManager::~KisViewManager()
     delete d;
 }
 
-#include <KoActiveCanvasResourceDependencyKoResource.h>
-
 void KisViewManager::initializeResourceManager(KoCanvasResourceProvider *resourceManager)
 {
-    resourceManager->addDerivedResourceConverter(toQShared(new KisCompositeOpResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisEffectiveCompositeOpResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisFlowResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisFadeResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisScatterResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisSizeResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisBrushRotationResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisLodAvailabilityResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisLodSizeThresholdResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisLodSizeThresholdSupportedResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisEraserModeResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisPatternSizeResourceConverter));
-    resourceManager->addDerivedResourceConverter(toQShared(new KisBrushNameResourceConverter));
-    resourceManager->addResourceUpdateMediator(toQShared(new KisPresetUpdateMediator));
-
-    resourceManager->addActiveCanvasResourceDependency(
-        toQShared(new KoActiveCanvasResourceDependencyKoResource<KisPaintOpPreset>(
-                      KoCanvasResource::CurrentPaintOpPreset,
-                      KoCanvasResource::CurrentGradient)));
-
-    resourceManager->addActiveCanvasResourceDependency(
-        toQShared(new KoActiveCanvasResourceDependencyKoResource<KoAbstractGradient>(
-                      KoCanvasResource::CurrentGradient,
-                      KoCanvasResource::ForegroundColor)));
-
-    resourceManager->addActiveCanvasResourceDependency(
-        toQShared(new KoActiveCanvasResourceDependencyKoResource<KoAbstractGradient>(
-                      KoCanvasResource::CurrentGradient,
-                      KoCanvasResource::BackgroundColor)));
-
-    KSharedConfigPtr config =  KSharedConfig::openConfig();
-    KConfigGroup miscGroup = config->group("Misc");
-    const uint handleRadius = miscGroup.readEntry("HandleRadius", 5);
-    resourceManager->setHandleRadius(handleRadius);
+    KisCanvasResourceProvider::initializeResourceManager(resourceManager);
 }
 
 void KisViewManager::testingInitializeOpacityToPresetResourceConverter(KoCanvasResourceProvider *resourceManager)
 {
-    resourceManager->addDerivedResourceConverter(toQShared(new KisOpacityToPresetOpacityResourceConverter));
+    KisCanvasResourceProvider::initializeOpacityToPresetResourceConverter(resourceManager);
 }
 
 KisKActionCollection *KisViewManager::actionCollection() const
@@ -432,7 +387,7 @@ void KisViewManager::setCurrentView(KisView *view)
         d->currentImageView->canvasBase()->setCursor(QCursor(Qt::ArrowCursor));
         KisDocument* doc = d->currentImageView->document();
         if (doc) {
-            doc->image()->compositeProgressProxy()->removeProxy(d->persistentImageProgressUpdater);
+            doc->removeImageProgressProxy(d->persistentImageProgressUpdater);
             doc->disconnect(this);
         }
         d->currentImageView->canvasController()->proxyObject->disconnect(&d->statusBar);
@@ -519,7 +474,7 @@ void KisViewManager::setCurrentView(KisView *view)
         d->viewConnections.addUniqueConnection(d->gamutCheck, SIGNAL(toggled(bool)), view, SLOT(slotGamutCheck(bool)) );
 
         // set up progress reporting
-        doc->image()->compositeProgressProxy()->addProxy(d->persistentImageProgressUpdater);
+        doc->addImageProgressProxy(d->persistentImageProgressUpdater);
         d->viewConnections.addUniqueConnection(&d->statusBar, SIGNAL(sigCancellationRequested()), doc->image(), SLOT(requestStrokeCancellation()));
 
         d->viewConnections.addUniqueConnection(d->showPixelGrid, SIGNAL(toggled(bool)), canvasController, SLOT(slotTogglePixelGrid(bool)));
@@ -633,7 +588,10 @@ KisNodeSP KisViewManager::activeNode()
     return d->nodeManager.activeNode();
 }
 
-bool KisViewManager::activeNodeIsAnimated() { const KisNodeSP node = activeNode(); return node && node->isAnimated(); }
+bool KisViewManager::activeNodeIsAnimated()
+{
+    return d->nodeManager.activeNodeIsAnimated();
+}
 
 KisLayerSP KisViewManager::activeLayer()
 {
@@ -689,25 +647,12 @@ KisSelectionSP KisViewManager::selection()
 
 bool KisViewManager::selectionEditable()
 {
-    KisLayerSP layer = activeLayer();
-    if (layer) {
-        KisSelectionMaskSP mask = layer->selectionMask();
-        if (mask) {
-            return mask->isEditable();
-        }
-    }
-    // global selection is always editable
-    return true;
+    return d->nodeManager.activeSelectionIsEditable();
 }
 
 KisUndoAdapter * KisViewManager::undoAdapter()
 {
-    if (!document()) return 0;
-
-    KisImageWSP image = document()->image();
-    Q_ASSERT(image);
-
-    return image->undoAdapter();
+    return document() ? document()->imageUndoAdapter() : nullptr;
 }
 
 void KisViewManager::createActions()
@@ -903,11 +848,7 @@ void KisViewManager::slotCreateCopy()
 
     if (!this->blockUntilOperationsFinished(srcDoc->image())) return;
 
-    KisDocument *doc = 0;
-    {
-        KisImageReadOnlyBarrierLock l(srcDoc->image());
-        doc = srcDoc->clone(true);
-    }
+    KisDocument *doc = srcDoc->cloneWithImageReadLock();
     KIS_SAFE_ASSERT_RECOVER_RETURN(doc);
 
     QString name = srcDoc->documentInfo()->aboutInfo("name");

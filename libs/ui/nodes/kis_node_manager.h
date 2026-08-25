@@ -72,6 +72,8 @@ public:
 
     /// Convenience function to get the active layer or mask
     KisNodeSP activeNode();
+    bool activeNodeIsAnimated();
+    bool activeSelectionIsEditable();
 
     KisNodeSP nearestNodeAfterRemoval(KisNodeSP node) const;
     KisLayerSP layerForNode(KisNodeSP node) const;

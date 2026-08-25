@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 08:55 JST
+- 更新日時: 2026-08-25 09:24 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6g 作業ビュー画像状態所有境界
+- 現在の検査段階: R1-G6g 残存アプリケーション描画所有境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: 作業ビューが調整する画像編集処理を画像、描画、文書状態の具体所有へ接続し、
-  アプリケーション調整から描画への逆方向includeを縮小する。
+- 目的: 起動登録、設定、セッション、公開作業空間型に残る描画所有参照を具体所有へ接続し、
+  アプリケーション調整から描画への逆方向includeをゼロへ縮小する。
 
 ## 再開環境
 
@@ -1898,10 +1898,35 @@
 - `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
   文書と図の検査に成功した。
 
+## R1-G6g作業ビュー管理画像状態所有境界で完了した作業
+
+- `libs/ui/workspace/KisViewManager.cpp`にあった描画状態の取得と資源初期化を、次の開始箇所と
+  具体所有へ接続した。
+  - キャンバス資源変換器、更新仲介、活動資源依存の初期化から
+    `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`。
+  - 画像進捗表示登録、画像取り消し接続取得、読取障壁ロック中の文書複製から
+    `libs/ui/document/KisDocument.h`と`libs/ui/document/KisDocumentImageState.cpp`。
+  - 活動ノード動画判定と活動レイヤー選択マスク編集可否判定から
+    `libs/ui/nodes/kis_node_manager.h`と`libs/ui/nodes/KisNodeManagerImageState.cpp`。
+- 資源変換器と依存の登録順、進捗表示の借用寿命、画像信号接続順、複製前の操作完了待機、
+  読取障壁ロック、文書保管場所の作成、取り消し接続、活動選択の判定を維持した。
+  `KisViewManager.cpp`の`kis_paint_layer.h`直接includeを除去した。
+- `KisViewManager.cpp`から描画所有ヘッダー10件への直接includeを除去した。アプリケーション調整から
+  描画への確認済み逆方向includeは20件から10件へ縮小し、未確定射影0件、製品ターゲット循環0件を
+  維持する。
+- 変更した4製品翻訳単位と1契約試験はmacOSの製品コンパイル条件でコード生成に成功した。
+  clangd include-cleaner監査は未使用includeと直接include不足が0件であることを確認した。
+  `KisDocumentReplaceTest::testImageStateDelegation`と`KisDerivedResourcesTest`は各3件すべて成功した。
+- `KisViewManager.cpp`は1643行となり、審査済みソース行数上限を同じ値へ縮小した。
+  具体所有へ接続した3実装は各標準最大値内にある。
+- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
+  文書と図の検査に成功した。
+
 ## 次の操作
 
-`libs/ui/workspace/KisViewManager.cpp`の画像・ノード状態とストローク調整に使う10 includeを、
-画像、描画、文書状態、キャンバス表示の具体所有面へ接続する。
+`libs/ui/application/KisApplication.cpp`と`libs/ui/application/KisPart.cpp`の起動登録と共有状態に
+使う5 includeを、ペイントプリセット、ブラシ、レイヤースタイル、色管理、アイドル監視の
+具体所有面へ接続する。
 
 ## R1-G5完了根拠
 

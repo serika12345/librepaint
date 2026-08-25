@@ -47,6 +47,7 @@ class KoDocumentInfo;
 class KoDocumentInfoDlg;
 class KisImportExportManager;
 class KisUndoStore;
+class KisUndoAdapter;
 class KisPart;
 class KisGridConfig;
 class KisGuidesConfig;
@@ -54,6 +55,7 @@ class KisMirrorAxisConfig;
 class QDomDocument;
 class KisReferenceImagesLayer;
 class KisUniqueColorSet;
+class KoProgressProxy;
 
 #include <KisImportExportMimeType.h>
 
@@ -622,6 +624,12 @@ public:
     QString imageObjectName() const;
     qint64 imageMemorySize() const;
     void connectImageMemoryStatisticsUpdates(QObject *receiver, const char *method) const;
+    /// Registers a borrowed progress proxy with the current image.
+    void addImageProgressProxy(KoProgressProxy *proxy) const;
+    /// Releases a previously registered borrowed progress proxy.
+    void removeImageProgressProxy(KoProgressProxy *proxy) const;
+    /// Returns the undo adapter owned by the current image.
+    KisUndoAdapter *imageUndoAdapter() const;
     bool hasAnimation() const;
     int animationLength() const;
     void setAnimationRange(int firstFrame, int lastFrame);
@@ -770,6 +778,9 @@ public:
     KisDocument *lockAndCloneForSaving();
 
     KisDocument *lockAndCreateSnapshot();
+
+    /// Clones the document with its resource storage while holding the image's read barrier lock.
+    KisDocument *cloneWithImageReadLock();
 
     void copyFromDocument(const KisDocument &rhs);
 

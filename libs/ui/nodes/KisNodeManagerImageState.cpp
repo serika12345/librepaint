@@ -12,11 +12,31 @@
 #include <kis_layer.h>
 #include <kis_mask.h>
 #include <kis_selection.h>
+#include <kis_selection_mask.h>
 #include <krita_utils.h>
 
 KisNodeSP KisNodeManager::nearestNodeAfterRemoval(KisNodeSP node) const
 {
     return KritaUtils::nearestNodeAfterRemoval(node);
+}
+
+bool KisNodeManager::activeNodeIsAnimated()
+{
+    KisNodeSP node = activeNode();
+    return node && node->isAnimated();
+}
+
+bool KisNodeManager::activeSelectionIsEditable()
+{
+    KisLayerSP layer = activeLayer();
+    if (layer) {
+        KisSelectionMaskSP mask = layer->selectionMask();
+        if (mask) {
+            return mask->isEditable();
+        }
+    }
+
+    return true;
 }
 
 void KisNodeManager::updateImageNodeSettings(KisImageWSP image)

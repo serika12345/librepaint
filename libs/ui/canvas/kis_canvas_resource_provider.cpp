@@ -7,7 +7,9 @@
 
 #include <QPainter>
 
+#include <KConfigGroup>
 #include <KoCanvasBase.h>
+#include <KoActiveCanvasResourceDependencyKoResource.h>
 #include <KoID.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
@@ -28,8 +30,8 @@
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
 #include "resources/kis_favorite_resource_manager.h"
+#include "resources/kis_derived_resources.h"
 
-#include "application/kis_config.h"
 #include "workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include <KoUnit.h>
@@ -84,6 +86,49 @@ void KisCanvasResourceProvider::setResourceManager(KoCanvasResourceProvider *res
 
     connect(m_resourceManager, SIGNAL(canvasResourceChanged(int,QVariant)),
             &m_presetShadowUpdater, SLOT(slotCanvasResourceChanged(int,QVariant)));
+}
+
+void KisCanvasResourceProvider::initializeResourceManager(KoCanvasResourceProvider *resourceManager)
+{
+    resourceManager->addDerivedResourceConverter(toQShared(new KisCompositeOpResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisEffectiveCompositeOpResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisFlowResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisFadeResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisScatterResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisSizeResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisBrushRotationResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisLodAvailabilityResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisLodSizeThresholdResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisLodSizeThresholdSupportedResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisEraserModeResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisPatternSizeResourceConverter));
+    resourceManager->addDerivedResourceConverter(toQShared(new KisBrushNameResourceConverter));
+    resourceManager->addResourceUpdateMediator(toQShared(new KisPresetUpdateMediator));
+
+    resourceManager->addActiveCanvasResourceDependency(
+        toQShared(new KoActiveCanvasResourceDependencyKoResource<KisPaintOpPreset>(
+                      KoCanvasResource::CurrentPaintOpPreset,
+                      KoCanvasResource::CurrentGradient)));
+
+    resourceManager->addActiveCanvasResourceDependency(
+        toQShared(new KoActiveCanvasResourceDependencyKoResource<KoAbstractGradient>(
+                      KoCanvasResource::CurrentGradient,
+                      KoCanvasResource::ForegroundColor)));
+
+    resourceManager->addActiveCanvasResourceDependency(
+        toQShared(new KoActiveCanvasResourceDependencyKoResource<KoAbstractGradient>(
+                      KoCanvasResource::CurrentGradient,
+                      KoCanvasResource::BackgroundColor)));
+
+    KSharedConfigPtr config = KSharedConfig::openConfig();
+    KConfigGroup miscGroup = config->group("Misc");
+    const uint handleRadius = miscGroup.readEntry("HandleRadius", 5);
+    resourceManager->setHandleRadius(handleRadius);
+}
+
+void KisCanvasResourceProvider::initializeOpacityToPresetResourceConverter(KoCanvasResourceProvider *resourceManager)
+{
+    resourceManager->addDerivedResourceConverter(toQShared(new KisOpacityToPresetOpacityResourceConverter));
 }
 
 

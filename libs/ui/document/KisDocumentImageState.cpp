@@ -8,6 +8,8 @@
 
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
+#include <kis_composite_progress_proxy.h>
+#include <KisImageBarrierLock.h>
 #include <kis_memory_statistics_server.h>
 
 bool KisDocument::hasImage() const
@@ -35,6 +37,29 @@ void KisDocument::connectImageMemoryStatisticsUpdates(QObject *receiver, const c
                      SIGNAL(sigUpdateMemoryStatistics()),
                      receiver,
                      method);
+}
+
+void KisDocument::addImageProgressProxy(KoProgressProxy *proxy) const
+{
+    image()->compositeProgressProxy()->addProxy(proxy);
+}
+
+void KisDocument::removeImageProgressProxy(KoProgressProxy *proxy) const
+{
+    image()->compositeProgressProxy()->removeProxy(proxy);
+}
+
+KisUndoAdapter *KisDocument::imageUndoAdapter() const
+{
+    KisImageWSP documentImage = image();
+    Q_ASSERT(documentImage);
+    return documentImage->undoAdapter();
+}
+
+KisDocument *KisDocument::cloneWithImageReadLock()
+{
+    KisImageReadOnlyBarrierLock lock(image());
+    return clone(true);
 }
 
 int KisDocument::animationLength() const

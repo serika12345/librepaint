@@ -50,6 +50,11 @@ public:
     void setResourceManager(KoCanvasResourceProvider *resourceManager);
     KoCanvasResourceProvider* resourceManager();
 
+    /// Installs the converters, mediators, and dependencies used by a view's resources.
+    static void initializeResourceManager(KoCanvasResourceProvider *resourceManager);
+    /// Installs the opacity converter used by the paint-tool integration test seam.
+    static void initializeOpacityToPresetResourceConverter(KoCanvasResourceProvider *resourceManager);
+
     KoCanvasBase * canvas() const;
 
     KoColor bgColor() const;

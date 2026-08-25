@@ -11,6 +11,8 @@
 #include <QMap>
 #include <QScopedPointer>
 #include <QSignalSpy>
+#include <KoProgressProxy.h>
+#include <kis_composite_progress_proxy.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
@@ -18,6 +20,40 @@
 #include <kis_time_span.h>
 #include <kis_types.h>
 #include <testui.h>
+
+namespace {
+class RecordingProgressProxy : public KoProgressProxy
+{
+public:
+    int maximum() const override
+    {
+        return m_maximum;
+    }
+
+    void setValue(int value) override
+    {
+        m_value = value;
+    }
+
+    void setRange(int, int maximum) override
+    {
+        m_maximum = maximum;
+    }
+
+    void setFormat(const QString &) override
+    {
+    }
+
+    int value() const
+    {
+        return m_value;
+    }
+
+private:
+    int m_maximum = 0;
+    int m_value = 0;
+};
+}
 
 
 void KisDocumentReplaceTest::init()
@@ -173,6 +209,20 @@ void KisDocumentReplaceTest::testImageStateDelegation()
     QVERIFY(m_doc->hasImage());
     QCOMPARE(m_doc->imageObjectName(), QStringLiteral("test"));
     QVERIFY(m_doc->imageMemorySize() >= 0);
+    QCOMPARE(m_doc->imageUndoAdapter(), m_doc->image()->undoAdapter());
+
+    RecordingProgressProxy progressProxy;
+    m_doc->addImageProgressProxy(&progressProxy);
+    m_doc->image()->compositeProgressProxy()->setValue(37);
+    QCOMPARE(progressProxy.value(), 37);
+    m_doc->removeImageProgressProxy(&progressProxy);
+    m_doc->image()->compositeProgressProxy()->setValue(82);
+    QCOMPARE(progressProxy.value(), 37);
+
+    QScopedPointer<KisDocument> lockedClone(m_doc->cloneWithImageReadLock());
+    QVERIFY(lockedClone);
+    QVERIFY(lockedClone->hasImage());
+    QCOMPARE(lockedClone->imageObjectName(), m_doc->imageObjectName());
 
     m_doc->setAnimationTiming(12, 2, 8);
     QCOMPARE(m_doc->image()->animationInterface()->framerate(), 12);
