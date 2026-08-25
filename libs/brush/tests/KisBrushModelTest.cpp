@@ -8,6 +8,7 @@
 
 #include "KisBrushModel.h"
 #include "KisGlobalResourcesInterface.h"
+#include "kis_properties_configuration.h"
 
 #define TESTBRUSH
 #include <kistest.h>
