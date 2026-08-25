@@ -14,11 +14,11 @@
 
 class KisReferenceImagesDecoration;
 class KisReferenceImagesLayer;
+class KisCanvas2;
 typedef KisSharedPtr<KisReferenceImagesDecoration> KisReferenceImagesDecorationSP;
 
 #include <kis_coordinates_converter.h>
 #include <kis_canvas_decoration.h>
-#include <kis_canvas2.h>
 #include <kis_types.h>
 
 /**

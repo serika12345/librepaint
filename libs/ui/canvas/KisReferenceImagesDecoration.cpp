@@ -7,6 +7,7 @@
 #include "canvas/KisReferenceImagesDecoration.h"
 
 #include "canvas/KisDisplayConfig.h"
+#include "canvas/kis_canvas2.h"
 #include "KoShapeManager.h"
 
 #include "kis_algebra_2d.h"
