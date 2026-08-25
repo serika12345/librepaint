@@ -9,11 +9,11 @@
 #include <QRect>
 #include <QPainterPath>
 
+#include "KisSelectionTags.h"
 #include "kis_types.h"
 #include "kis_global.h"
 #include "kis_paint_device.h"
 #include "kis_selection_component.h"
-#include "kis_selection.h"
 #include <kritaimage_export.h>
 
 

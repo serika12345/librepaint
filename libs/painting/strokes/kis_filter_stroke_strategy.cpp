@@ -13,6 +13,7 @@
 #include <kis_raster_keyframe_channel.h>
 #include <kis_transaction.h>
 #include <kis_paint_device_frames_interface.h>
+#include <kis_selection.h>
 #include <KisRunnableStrokeJobUtils.h>
 #include <KisRunnableStrokeJobsInterface.h>
 #include <KoCompositeOpRegistry.h>

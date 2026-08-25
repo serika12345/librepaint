@@ -12,6 +12,7 @@
 #include "kis_image.h"
 #include "kis_painter.h"
 #include "kis_processing_applicator.h"
+#include "kis_selection.h"
 
 #include "kis_transform_worker.h"
 #include "lazybrush/kis_colorize_mask.h"
