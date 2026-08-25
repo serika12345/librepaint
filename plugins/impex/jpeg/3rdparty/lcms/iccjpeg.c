@@ -40,7 +40,6 @@
  */
 
 #include "iccjpeg.h"
-#include <stdlib.h>			/* define malloc() */
 
 
 /*

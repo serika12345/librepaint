@@ -8,7 +8,6 @@
 
 #include "kis_qmic_synchronize_layers_command.h"
 
-#include <tuple>
 #include <utility>
 
 #include <document/KisDocument.h>

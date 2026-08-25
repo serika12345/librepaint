@@ -6,7 +6,6 @@
 #include <simpletest.h>
 
 #include "kis_projection_benchmark.h"
-#include "kis_benchmark_values.h"
 
 #include <KoColor.h>
 

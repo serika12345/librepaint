@@ -33,7 +33,6 @@
 #include "nodes/kis_node_manager.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_signals_blocker.h"
-#include "KisAnimAutoKey.h"
 #include <boost/operators.hpp>
 #include "KisMoveBoundsCalculationJob.h"
 #include <KisOptimizedBrushOutline.h>

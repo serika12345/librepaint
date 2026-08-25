@@ -8,7 +8,6 @@
 
 #include "kis_image.h"
 #include "kis_node.h"
-#include "kis_paint_device.h"
 
 #include <QDialog>
 #include <QDoubleSpinBox>
@@ -31,7 +30,6 @@
 #include "commands/kis_image_layer_add_command.h"
 #include "commands/kis_image_layer_remove_command.h"
 
-#include "kis_double_parse_spin_box.h"
 #include "kis_int_parse_spin_box.h"
 
 #include <testui.h>
@@ -279,8 +277,6 @@ void TimelineModelTest::slotGuiChangedNode(KisNodeSP node)
     qDebug() << "GUI changed active node:" << node->name();
 }
 
-#include "kis_equalizer_column.h"
-#include "kis_equalizer_slider.h"
 #include "kis_equalizer_widget.h"
 
 void TimelineModelTest::testOnionSkins()

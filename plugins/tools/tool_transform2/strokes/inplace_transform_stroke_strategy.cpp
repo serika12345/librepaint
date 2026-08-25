@@ -9,9 +9,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QElapsedTimer>
-#include "kundo2commandextradata.h"
 
-#include "kis_node_progress_proxy.h"
 
 #include <klocalizedstring.h>
 #include <kis_node.h>
@@ -25,21 +23,17 @@
 #include "kis_transform_utils.h"
 #include "kis_convex_hull.h"
 #include "kis_abstract_projection_plane.h"
-#include "kis_recalculate_transform_mask_job.h"
 
 #include "kis_projection_leaf.h"
 #include "commands_new/KisSimpleModifyTransformMaskCommand.h"
 #include "KisAnimAutoKey.h"
 
-#include "kis_sequential_iterator.h"
 #include "kis_selection.h"
 #include "kis_selection_mask.h"
-#include "kis_image_config.h"
 #include "kis_layer_utils.h"
 #include <QQueue>
 #include <KisDeleteLaterWrapper.h>
 #include "transform_transaction_properties.h"
-#include "krita_container_utils.h"
 #include "commands_new/kis_saved_commands.h"
 #include "commands_new/KisLazyCreateTransformMaskKeyframesCommand.h"
 #include "kis_command_ids.h"
@@ -50,12 +44,10 @@
 #include "kis_lod_transform.h"
 #include <boost/optional.hpp>
 #include "kis_selection_mask.h"
-#include "kis_undo_stores.h"
 #include "kis_transparency_mask.h"
 #include "kis_filter_mask.h"
 #include "commands_new/KisDisableDirtyRequestsCommand.h"
 #include <kis_shape_layer.h>
-#include "kis_raster_keyframe_channel.h"
 #include "kis_image_animation_interface.h"
 #include "KisAnimAutoKey.h"
 #include "krita_utils.h"

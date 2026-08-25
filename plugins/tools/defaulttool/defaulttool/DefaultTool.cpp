@@ -49,7 +49,6 @@
 
 #include <KoSnapGuide.h>
 #include <KoStrokeConfigWidget.h>
-#include "kis_action_registry.h"
 #include "kis_node.h"
 #include "nodes/kis_node_manager.h"
 #include "workspace/KisViewManager.h"
@@ -60,7 +59,6 @@
 #include <KoInteractionStrategyFactory.h>
 #include <KisHandlePainterHelper.h>
 
-#include "kis_document_aware_spin_box_unit_manager.h"
 
 #include <KoIcon.h>
 
@@ -80,7 +78,6 @@
 #include <math.h>
 #include "kis_assert.h"
 #include "kis_global.h"
-#include "kis_debug.h"
 #include "krita_utils.h"
 
 #include <QVector2D>

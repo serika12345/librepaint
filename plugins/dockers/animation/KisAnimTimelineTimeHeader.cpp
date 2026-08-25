@@ -24,7 +24,6 @@
 #include "kis_signal_compressor_with_param.h"
 #include "application/kis_config.h"
 
-#include "kis_debug.h"
 
 struct KisAnimTimelineTimeHeader::Private
 {

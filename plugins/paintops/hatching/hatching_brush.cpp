@@ -12,9 +12,7 @@
 
 #include <QVariant>
 
-#include "kis_random_accessor_ng.h"
 #include <cmath>
-#include <time.h>
 
 
 void inline myround(double *x)

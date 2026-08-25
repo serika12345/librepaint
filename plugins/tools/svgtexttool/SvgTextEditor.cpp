@@ -59,7 +59,6 @@
 #include <kis_file_name_requester.h>
 #include <kis_action_registry.h>
 
-#include "kis_signals_blocker.h"
 
 class SvgTextEditor::Private
 {

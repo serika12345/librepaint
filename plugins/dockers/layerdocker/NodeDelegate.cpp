@@ -10,8 +10,6 @@
 #include "nodes/kis_node_model.h"
 #include "NodeToolTip.h"
 #include "NodeView.h"
-#include "application/KisPart.h"
-#include "input/ui/kis_input_manager.h"
 
 #include <QtDebug>
 #include <QApplication>

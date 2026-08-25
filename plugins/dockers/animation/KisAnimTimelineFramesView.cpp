@@ -42,7 +42,6 @@
 #include "kis_color_label_selector_widget.h"
 #include "kis_layer_filter_widget.h"
 #include "kis_keyframe_channel.h"
-#include "kis_slider_spin_box.h"
 #include "kis_signals_blocker.h"
 #include "kis_image_config.h"
 #include "widgets/kis_zoom_scrollbar.h"

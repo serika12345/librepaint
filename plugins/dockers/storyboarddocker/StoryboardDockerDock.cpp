@@ -10,7 +10,6 @@
 #include "StoryboardModel.h"
 #include "StoryboardDelegate.h"
 #include "StoryboardView.h"
-#include "StoryboardUtils.h"
 #include "DlgExportStoryboard.h"
 #include "KisAddRemoveStoryboardCommand.h"
 

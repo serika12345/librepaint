@@ -8,7 +8,6 @@
 
 #include "KisVisualColorSelector.h"
 
-#include "kis_debug.h"
 
 #include <QAction>
 #include <QActionGroup>

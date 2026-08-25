@@ -10,7 +10,6 @@
 
 #include <QIODevice>
 
-#include "kis_debug.h"
 
 namespace
 {

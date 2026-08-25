@@ -8,7 +8,6 @@
 #include "StarShape.h"
 #include "StarShapeConfigCommand.h"
 
-#include "kis_document_aware_spin_box_unit_manager.h"
 
 StarShapeConfigWidget::StarShapeConfigWidget()
 {

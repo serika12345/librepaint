@@ -20,7 +20,6 @@
 #include "xcftools.h"
 #include "pixels.h"
 #include <assert.h>
-#include <string.h>
 
 rgba colormap[256] ;
 unsigned colormapLength=0 ;

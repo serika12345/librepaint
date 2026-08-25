@@ -11,7 +11,6 @@
 #include "KisDabRenderingJob.h"
 #include "KisRenderedDab.h"
 #include "KisRunnableStrokeJobsInterface.h"
-#include "KisRunnableStrokeJobData.h"
 #include <strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
 
 struct KisDabRenderingExecutor::Private

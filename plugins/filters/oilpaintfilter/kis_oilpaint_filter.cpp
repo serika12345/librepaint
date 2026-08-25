@@ -14,7 +14,6 @@
 #include "kis_oilpaint_filter.h"
 
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 #include <QSpinBox>

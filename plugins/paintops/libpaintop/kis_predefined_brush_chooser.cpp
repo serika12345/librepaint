@@ -31,15 +31,11 @@
 #include <KisResourceModelProvider.h>
 
 #include <kis_icon.h>
-#include "KisBrushServerProvider.h"
-#include "kis_algebra_2d.h"
 #include "kis_painting_tweaks.h"
 #include "kis_slider_spin_box.h"
 #include "krita_utils.h"
 #include "kis_spacing_selection_widget.h"
-#include "kis_signals_blocker.h"
 
-#include "kis_imagepipe_brush.h"
 #include "kis_custom_brush_widget.h"
 #include "kis_clipboard_brush_widget.h"
 #include <kis_image_config.h>
@@ -47,8 +43,6 @@
 
 #include "kis_global.h"
 #include "kis_gbr_brush.h"
-#include "kis_png_brush.h"
-#include "kis_debug.h"
 #include "kis_image.h"
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLoaderRegistry.h>

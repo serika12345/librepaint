@@ -16,7 +16,6 @@
 #include <nodes/kis_node_manager.h>
 #include <document/kis_image_manager.h>
 #include <application/kis_action.h>
-#include "kis_selection.h"
 
 #include "dlg_shearimage.h"
 

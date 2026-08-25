@@ -7,7 +7,6 @@
 #include <KisPaintingModeOptionData.h>
 
 #include "kis_grid_paintop_settings.h"
-#include "kis_grid_paintop_settings_widget.h"
 
 #include "KisGridShapeOptionData.h"
 #include "KisGridOpOptionData.h"

@@ -8,7 +8,6 @@
 #include "tool_polygon.h"
 
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 

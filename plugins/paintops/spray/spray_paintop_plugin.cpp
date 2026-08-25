@@ -15,7 +15,6 @@
 #include "kis_spray_paintop.h"
 #include "kis_simple_paintop_factory.h"
 
-#include "kis_global.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(SprayPaintOpPluginFactory, "kritaspraypaintop.json", registerPlugin<SprayPaintOpPlugin>();)
 

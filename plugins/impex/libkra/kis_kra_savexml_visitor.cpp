@@ -37,7 +37,6 @@
 #include <kis_psd_layer_style.h>
 #include <canvas/KisReferenceImage.h>
 #include <KisReferenceImagesLayer.h>
-#include "kis_keyframe_channel.h"
 #include "kis_dom_utils.h"
 
 using namespace KRA;

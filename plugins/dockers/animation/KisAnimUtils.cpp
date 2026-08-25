@@ -13,8 +13,6 @@
 #include "kis_keyframe_channel.h"
 #include "kis_scalar_keyframe_channel.h"
 #include "kis_raster_keyframe_channel.h"
-#include "kis_post_execution_undo_adapter.h"
-#include "kis_global.h"
 #include "kis_tool_utils.h"
 #include "kis_image_animation_interface.h"
 #include "kis_command_utils.h"

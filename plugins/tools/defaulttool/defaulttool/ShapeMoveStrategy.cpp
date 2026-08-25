@@ -23,7 +23,6 @@
 #include <klocalizedstring.h>
 #include <kis_global.h>
 
-#include "kis_debug.h"
 
 ShapeMoveStrategy::ShapeMoveStrategy(KoToolBase *tool, KoSelection *selection, const QPointF &clicked)
     : KoInteractionStrategy(tool)

@@ -14,7 +14,6 @@
 #include "kis_image.h"
 #include "kis_painter.h"
 #include "kis_pixel_selection.h"
-#include "kis_selection_options.h"
 #include "kis_selection_tool_helper.h"
 #include <workspace/KisView.h>
 #include <kis_command_utils.h>

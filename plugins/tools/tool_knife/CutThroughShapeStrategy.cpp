@@ -15,7 +15,6 @@
 #include <KoViewConverter.h>
 #include <KoSelection.h>
 #include <kis_global.h>
-#include "kis_debug.h"
 #include <KoPathShape.h>
 #include <krita_utils.h>
 #include <kis_canvas2.h>

@@ -20,7 +20,6 @@
 #include <QDebug>
 
 #include "DebugPigment.h"
-#include "kis_debug.h"
 #include "kis_dom_utils.h"
 
 #include <KisLazyStorage.h>

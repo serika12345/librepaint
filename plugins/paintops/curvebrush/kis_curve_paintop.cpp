@@ -6,14 +6,12 @@
 
 #include "kis_curve_paintop.h"
 
-#include <cmath>
 
 #include <QPainterPath>
 #include <QRect>
 
 #include <kis_image.h>
 #include <kis_debug.h>
-#include "kis_global.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_types.h"

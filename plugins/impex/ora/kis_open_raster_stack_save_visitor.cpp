@@ -14,7 +14,6 @@
 #include <KoCompositeOpRegistry.h>
 
 #include "kis_adjustment_layer.h"
-#include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
 #include "kis_group_layer.h"
 #include "kis_paint_layer.h"

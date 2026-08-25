@@ -15,7 +15,6 @@
 #include <brushengine/kis_paintop_registry.h>
 
 #include "kis_deform_paintop.h"
-#include "kis_global.h"
 #include "kis_simple_paintop_factory.h"
 #include "kis_deform_paintop_settings_widget.h"
 

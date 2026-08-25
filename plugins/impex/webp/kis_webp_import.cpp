@@ -14,7 +14,6 @@
 
 #include <cmath>
 #include <cstdint>
-#include <memory>
 
 #include <document/KisDocument.h>
 #include <KisImportExportErrorCode.h>

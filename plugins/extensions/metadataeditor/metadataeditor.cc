@@ -14,14 +14,11 @@
 #include <klocalizedstring.h>
 
 #include "application/kis_config.h"
-#include "kis_cursor.h"
-#include "kis_global.h"
 #include "kis_layer.h"
 #include "nodes/kis_node_manager.h"
 #include "kis_types.h"
 #include "workspace/KisViewManager.h"
 #include "application/kis_action.h"
-#include "kis_image.h"
 
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_entry.h>

@@ -18,7 +18,6 @@
 #include <KoSnapGuide.h>
 #include <KisSnapPointStrategy.h>
 
-#include "kis_debug.h"
 
 
 struct ShapeGradientEditStrategy::Private

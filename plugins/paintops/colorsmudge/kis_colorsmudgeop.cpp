@@ -25,7 +25,6 @@
 
 #include "KisColorSmudgeInterstrokeData.h"
 #include "KisColorSmudgeStrategyLightness.h"
-#include "KisColorSmudgeStrategyWithOverlay.h"
 #include "KisColorSmudgeStrategyMask.h"
 #include "KisColorSmudgeStrategyStamp.h"
 #include "KisColorSmudgeStrategyMaskLegacy.h"

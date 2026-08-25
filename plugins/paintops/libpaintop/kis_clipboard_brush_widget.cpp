@@ -22,7 +22,6 @@
 #include "kis_paint_device.h"
 #include "kis_gbr_brush.h"
 #include "KisBrushServerProvider.h"
-#include "kis_icon.h"
 #include <KisResourceUserOperations.h>
 
 #include <kstandardguiitem.h>

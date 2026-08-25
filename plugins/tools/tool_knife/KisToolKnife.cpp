@@ -15,33 +15,22 @@
 #include "kis_canvas2.h"
 #include "kis_cursor.h"
 #include "kis_painter.h"
-#include "kis_paintop_preset.h"
 #include "kis_shape_layer.h"
 
 #include "kundo2magicstring.h"
-#include "kundo2stack.h"
-#include "commands_new/kis_transaction_based_command.h"
-#include "kis_transaction.h"
-#include "KoPathShape.h"
 
-#include "kis_processing_applicator.h"
-#include "kis_datamanager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 
-#include "KoColorSpaceRegistry.h"
 #include <KisCursorOverrideLock.h>
 
 #include "KisToolKnifeOptionsWidget.h"
-#include "libs/image/kis_paint_device_debug_utils.h"
 
 #include <KoSelectedShapesProxy.h>
 
 #include "CutThroughShapeStrategy.h"
 #include "RemoveGutterStrategy.h"
 
-#include "kis_paint_layer.h"
 #include "kis_algebra_2d.h"
-#include "kis_resources_snapshot.h"
 #include <KoSelection.h>
 #include <KoShapeManager.h>
 

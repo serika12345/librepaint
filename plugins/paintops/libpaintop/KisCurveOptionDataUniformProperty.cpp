@@ -8,8 +8,6 @@
 
 #include "KisCurveOptionData.h"
 #include "kis_paintop_settings.h"
-#include "kis_paintop_preset.h"
-#include "KisPaintOpPresetUpdateProxy.h"
 
 KisCurveOptionDataUniformProperty::KisCurveOptionDataUniformProperty(const KisCurveOptionData &data, KisPaintOpSettingsRestrictedSP settings, QObject *parent)
     : KisCurveOptionDataUniformProperty(data, data.id, settings, parent)

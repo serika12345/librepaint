@@ -7,7 +7,6 @@
 #include "KisAnimCurvesValuesHeader.h"
 
 #include <math.h>
-#include "kis_debug.h"
 #include "kis_custom_modifiers_catcher.h"
 
 #include <QPaintEvent>

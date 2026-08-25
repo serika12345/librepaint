@@ -4,13 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cmath>
 
 #include <KisPaintingModeOptionData.h>
 #include <KisColorOptionData.h>
 
 #include "kis_spray_paintop_settings.h"
-#include "KisSprayShapeOptionData.h"
 #include <KisOptimizedBrushOutline.h>
 #include <KisSprayOpOptionData.h>
 

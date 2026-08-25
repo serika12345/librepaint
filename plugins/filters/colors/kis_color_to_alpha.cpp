@@ -14,7 +14,6 @@
 #include <KoConfig.h>
 #include <KoUpdater.h>
 
-#include "kis_progress_update_helper.h"
 #include <kis_paint_device.h>
 #include <kis_selection.h>
 #include <filter/kis_filter_category_ids.h>

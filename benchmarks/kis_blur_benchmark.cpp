@@ -20,9 +20,7 @@
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter.h"
 
-#include "kis_processing_information.h"
 
-#include "kis_selection.h"
 #include <kis_sequential_iterator.h>
 #include <KisGlobalResourcesInterface.h>
 

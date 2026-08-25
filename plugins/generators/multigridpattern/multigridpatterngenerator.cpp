@@ -33,7 +33,6 @@
 #include <KoStopGradient.h>
 
 #include "kis_wdg_multigrid_pattern.h"
-#include "ui_wdgmultigridpatternoptions.h"
 
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaMultigridPatternGeneratorFactory, "kritamultigridpatterngenerator.json", registerPlugin<KritaMultigridPatternGenerator>();)

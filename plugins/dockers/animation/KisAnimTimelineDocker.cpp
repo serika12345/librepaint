@@ -23,9 +23,7 @@
 #include "kis_image.h"
 #include <KoIcon.h>
 #include "workspace/KisViewManager.h"
-#include "kis_paint_layer.h"
 #include "document/KisDocument.h"
-#include "kis_dummies_facade.h"
 #include "kis_shape_controller.h"
 #include "application/kis_action.h"
 #include "application/kis_action_manager.h"

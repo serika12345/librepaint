@@ -17,7 +17,6 @@
 #include <application/KisPart.h>
 
 #include "dlg_bundle_manager.h"
-#include "dlg_create_bundle.h"
 #include "DlgResourceManager.h"
 
 class ResourceManager::Private {

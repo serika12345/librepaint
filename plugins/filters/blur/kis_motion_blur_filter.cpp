@@ -15,7 +15,6 @@
 #include <kis_convolution_kernel.h>
 #include <kis_convolution_painter.h>
 
-#include "ui_wdg_motion_blur.h"
 
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>

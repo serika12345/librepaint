@@ -14,7 +14,6 @@
 
 #include "kis_painter.h"
 #include <brushengine/kis_paintop_registry.h>
-#include "kis_selection_options.h"
 #include "kis_canvas2.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
@@ -22,7 +21,6 @@
 #include <kis_default_bounds.h>
 
 #include "workspace/KisViewManager.h"
-#include "selection/kis_selection_manager.h"
 #include <kis_command_utils.h>
 #include <kis_selection_filters.h>
 

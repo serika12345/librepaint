@@ -27,7 +27,6 @@
 
 #include "kis_image_animation_interface.h"
 #include "KisAnimUtils.h"
-#include "kis_image_config.h"
 
 #include "document/KisDocument.h"
 #include "kis_canvas2.h"

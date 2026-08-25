@@ -5,7 +5,6 @@
  */
 
 #include "kis_texture_chooser.h"
-#include "kis_texture_option.h"
 #include <KoCompositeOpRegistry.h>
 
 #include <KisGradientChooser.h>

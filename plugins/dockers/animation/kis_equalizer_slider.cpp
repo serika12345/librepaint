@@ -13,7 +13,6 @@
 #include <QStyleOptionSlider>
 
 #include "kis_global.h"
-#include "kis_debug.h"
 
 #include "KisAnimTimelineColors.h"
 

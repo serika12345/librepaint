@@ -7,7 +7,6 @@
 
 #include "kis_auto_brush_widget.h"
 
-#include "kis_image_config.h"
 #include <math.h>
 #include <kis_debug.h>
 #include <QSpinBox>

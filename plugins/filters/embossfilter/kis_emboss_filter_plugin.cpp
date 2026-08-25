@@ -10,7 +10,6 @@
 #include <kpluginfactory.h>
 
 #include "kis_emboss_filter.h"
-#include "kis_global.h"
 #include "filter/kis_filter_registry.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisEmbossFilterPluginFactory, "kritaembossfilter.json", registerPlugin<KisEmbossFilterPlugin>();)

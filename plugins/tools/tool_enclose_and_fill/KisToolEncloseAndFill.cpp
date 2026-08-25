@@ -43,7 +43,6 @@
 #include <commands_new/kis_processing_command.h>
 #include <commands_new/kis_update_command.h>
 #include <kis_command_utils.h>
-#include <functional>
 #include <kis_group_layer.h>
 #include <kis_layer_utils.h>
 

@@ -5,7 +5,6 @@
  */
 #include "kis_particle_paintop_settings.h"
 
-#include "kis_particle_paintop_settings_widget.h"
 #include "KisParticleOpOptionData.h"
 
 #include <KisPaintingModeOptionData.h>

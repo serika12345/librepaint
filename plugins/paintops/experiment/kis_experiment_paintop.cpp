@@ -6,7 +6,6 @@
  */
 
 #include "kis_experiment_paintop.h"
-#include "kis_experiment_paintop_settings.h"
 
 #include <cmath>
 

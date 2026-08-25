@@ -30,7 +30,6 @@
 
 #include "wdg_gaussianhighpass.h"
 #include "ui_wdggaussianhighpass.h"
-#include "KoColorSpaceTraits.h"
 #include <KisSequentialIteratorProgress.h>
 
 

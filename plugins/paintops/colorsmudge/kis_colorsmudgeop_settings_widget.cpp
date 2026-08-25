@@ -5,13 +5,11 @@
  */
 
 #include "kis_colorsmudgeop_settings_widget.h"
-#include "kis_brush_based_paintop_settings.h"
 #include "kis_brush_option_widget.h"
 
 #include <kis_properties_configuration.h>
 #include <kis_paintop_settings_widget.h>
 #include "kis_colorsmudgeop_settings.h"
-#include "kis_signals_blocker.h"
 #include <KisAirbrushOptionWidget.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <KisTextureOptionWidget.h>

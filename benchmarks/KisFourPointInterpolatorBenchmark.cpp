@@ -12,7 +12,6 @@
 
 #include "kis_four_point_interpolator_backward.h"
 #include "kis_four_point_interpolator_forward.h"
-#include "kis_debug.h"
 
 
 //#define _CALCULATE_POINTS_OUTSIDE_POLYGON

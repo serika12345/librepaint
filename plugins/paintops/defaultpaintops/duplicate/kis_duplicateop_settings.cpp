@@ -9,7 +9,6 @@
  */
 
 #include "kis_duplicateop_settings.h"
-#include "kis_duplicateop_settings_widget.h"
 #include <KisDuplicateOptionData.h>
 
 #include <QDomElement>

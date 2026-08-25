@@ -13,7 +13,6 @@
 #include <QFont>
 #include <QFontMetrics>
 
-#include "kis_debug.h"
 #include "krita_utils.h"
 
 #include <QGlobalStatic>

@@ -5,7 +5,6 @@
  */
 
 #include "ImageShape.h"
-#include "kis_debug.h"
 
 #include <QPainter>
 #include <SvgLoadingContext.h>

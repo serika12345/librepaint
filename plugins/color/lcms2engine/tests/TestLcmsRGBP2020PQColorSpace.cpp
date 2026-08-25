@@ -9,7 +9,6 @@
 #include <simpletest.h>
 #include <testpigment.h>
 
-#include "kis_debug.h"
 
 #include "KoColorProfile.h"
 #include "KoColorSpaceRegistry.h"

@@ -32,7 +32,6 @@
 #include "kis_tool_smart_patch_options_widget.h"
 #include "libs/image/kis_paint_device_debug_utils.h"
 
-#include "kis_paint_layer.h"
 #include "kis_algebra_2d.h"
 #include "kis_resources_snapshot.h"
 #include "kis_selection.h"

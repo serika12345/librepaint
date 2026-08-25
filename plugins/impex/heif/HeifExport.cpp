@@ -16,7 +16,6 @@
 #include <QScopedPointer>
 #include <QSlider>
 
-#include <algorithm>
 #include <kpluginfactory.h>
 #include <libheif/heif_cxx.h>
 

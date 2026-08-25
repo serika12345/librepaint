@@ -9,7 +9,6 @@
 #include "tool_dyna.h"
 
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 

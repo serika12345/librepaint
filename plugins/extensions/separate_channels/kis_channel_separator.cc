@@ -13,7 +13,6 @@
 
 #include <limits.h>
 #include <stdlib.h>
-#include <vector>
 
 #include <QStandardPaths>
 

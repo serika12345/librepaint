@@ -7,7 +7,6 @@
 #include "kis_constrained_rect.h"
 
 #include <cmath>
-#include "kis_debug.h"
 #include "kis_algebra_2d.h"
 
 

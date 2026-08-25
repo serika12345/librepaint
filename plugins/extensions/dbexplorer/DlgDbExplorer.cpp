@@ -25,7 +25,6 @@
 #include <KisTagModel.h>
 #include <KisTagResourceModel.h>
 
-#include "KisResourceCacheDb.h"
 #include "KisResourceModelProvider.h"
 #include "TableModel.h"
 

@@ -17,9 +17,6 @@
 #include <KoDockFactoryBase.h>
 
 #include "application/kis_config.h"
-#include "kis_cursor.h"
-#include "kis_global.h"
-#include "kis_types.h"
 
 #include "lutdocker_dock.h"
 #include <KoDockRegistry.h>

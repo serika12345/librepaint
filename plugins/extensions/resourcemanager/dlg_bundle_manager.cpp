@@ -23,7 +23,6 @@
 #include <KoFileDialog.h>
 
 #include <kis_icon.h>
-#include "application/kis_action.h"
 #include <KisResourceStorage.h>
 #include <KisStorageModel.h>
 #include <KisStorageFilterProxyModel.h>
@@ -31,7 +30,6 @@
 #include <KisResourceLocator.h>
 #include <KisKineticScroller.h>
 #include <KisCursorOverrideLock.h>
-#include "KisBundleStorage.h"
 
 #include <workspace/KisMainWindow.h>
 #include <application/KisPart.h>

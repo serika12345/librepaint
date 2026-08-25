@@ -6,7 +6,6 @@
  */
 
 #include "kis_sketch_paintop.h"
-#include "kis_sketch_paintop_settings.h"
 
 #include <cmath>
 #include <QRect>

@@ -16,20 +16,15 @@
 #include "kis_layer.h"
 #include "application/kis_config.h"
 
-#include "kis_global.h"
-#include "kis_debug.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
-#include "kis_undo_adapter.h"
 #include "kis_node_dummies_graph.h"
 #include "kis_dummies_facade_base.h"
 #include "canvas/KisNodeDisplayModeAdapter.h"
 #include "kis_signal_compressor.h"
-#include "kis_signal_compressor_with_param.h"
 #include "kis_keyframe_channel.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kundo2command.h"
-#include "kis_post_execution_undo_adapter.h"
 #include <commands/kis_node_property_list_command.h>
 #include <commands_new/kis_switch_current_time_command.h>
 

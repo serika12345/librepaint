@@ -13,7 +13,6 @@
 
 
 #include <math.h>
-#include <limits>
 
 #include <QPainter>
 #include <QPen>
@@ -61,7 +60,6 @@
 
 #include "kis_action_registry.h"
 
-#include "widgets/kis_progress_widget.h"
 
 #include "kis_transform_utils.h"
 #include "kis_warp_transform_strategy.h"
@@ -74,7 +72,6 @@
 #include "kis_transform_mask.h"
 #include "kis_transform_mask_adapter.h"
 
-#include "krita_container_utils.h"
 #include "kis_layer_utils.h"
 #include <KisDelayedUpdateNodeInterface.h>
 #include "kis_config_notifier.h"

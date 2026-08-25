@@ -8,7 +8,6 @@
 #include "histogramdockerwidget.h"
 
 #include <QThread>
-#include <limits>
 #include <algorithm>
 #include <QTime>
 #include <QPainter>

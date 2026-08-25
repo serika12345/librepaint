@@ -27,7 +27,6 @@
 #include <ksharedconfig.h>
 
 #include "KoColorSpace.h"
-#include "KoColorSpaceRegistry.h"
 #include "KoColor.h"
 #include "KoCanvasResourceProvider.h"
 

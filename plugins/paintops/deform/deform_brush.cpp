@@ -18,7 +18,6 @@
 #include <kis_iterator_ng.h>
 #include <kis_cross_device_color_sampler.h>
 
-#include <cmath>
 #include <ctime>
 #include <KoColorSpaceRegistry.h>
 

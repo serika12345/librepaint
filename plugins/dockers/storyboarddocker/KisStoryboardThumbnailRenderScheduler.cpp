@@ -7,7 +7,6 @@
 
 #include "KisStoryboardThumbnailRenderScheduler.h"
 #include "KisAsyncStoryboardThumbnailRenderer.h"
-#include "kis_paint_device.h"
 
 #include <KisLockFrameGenerationLock.h>
 #include <kis_image_animation_interface.h>

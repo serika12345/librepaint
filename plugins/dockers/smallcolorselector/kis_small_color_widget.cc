@@ -12,7 +12,6 @@
 #include <KoColorConversions.h>
 #include <KoColorProfile.h>
 
-#include "kis_debug.h"
 #include "kis_assert.h"
 
 #include <KoColor.h>

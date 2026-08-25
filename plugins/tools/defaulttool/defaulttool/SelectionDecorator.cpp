@@ -15,7 +15,6 @@
 #include <KoResourcePaths.h>
 #include "kis_algebra_2d.h"
 
-#include "kis_debug.h"
 #include <KisHandlePainterHelper.h>
 #include <KoCanvasResourceProvider.h>
 #include <KisQPainterStateSaver.h>
@@ -25,8 +24,6 @@
 #include <KoColorDisplayRendererInterface.h>
 
 #include "kis_painting_tweaks.h"
-#include "kis_coordinates_converter.h"
-#include "kis_icon_utils.h"
 
 
 

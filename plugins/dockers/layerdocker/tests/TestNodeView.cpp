@@ -17,7 +17,6 @@
 #include "application/KisPart.h"
 #include "kis_name_server.h"
 #include "flake/kis_shape_controller.h"
-#include "kis_undo_adapter.h"
 #include "nodes/kis_node_model.h"
 #include "kis_color_filter_combo.h"
 

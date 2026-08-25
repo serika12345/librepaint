@@ -24,7 +24,6 @@
 
 #include "kis_wdg_unsharp.h"
 #include "ui_wdgunsharp.h"
-#include "KoColorSpaceTraits.h"
 #include <KisSequentialIteratorProgress.h>
 
 

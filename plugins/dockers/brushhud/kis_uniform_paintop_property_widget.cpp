@@ -15,7 +15,6 @@
 #include "kis_acyclic_signal_connector.h"
 #include "kis_slider_based_paintop_property.h"
 #include "kis_combo_based_paintop_property.h"
-#include "kis_debug.h"
 
 /****************************************************************/
 /*      KisUniformPaintOpPropertyWidget                         */

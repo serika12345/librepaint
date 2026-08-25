@@ -25,7 +25,6 @@
 #include <QMessageBox>
 
 #include "kis_double_parse_spin_box.h"
-#include "kis_int_parse_spin_box.h"
 
 /*
 Profiles are saved in karboncalligraphyrc

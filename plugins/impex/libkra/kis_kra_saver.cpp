@@ -42,7 +42,6 @@
 #include "kis_keyframe_channel.h"
 #include <kis_time_span.h>
 #include "document/KisDocument.h"
-#include <string>
 #include "kis_dom_utils.h"
 #include "kis_grid_config.h"
 #include "kis_guides_config.h"

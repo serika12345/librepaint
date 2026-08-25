@@ -10,7 +10,6 @@
 #include "kis_tool_crop.h"
 
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 

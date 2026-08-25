@@ -6,7 +6,6 @@
 
 #include "kis_zoom_button.h"
 
-#include <cmath>
 #include <QMouseEvent>
 
 

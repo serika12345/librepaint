@@ -14,9 +14,7 @@
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_image_animation_interface.h"
-#include "kis_raster_keyframe_channel.h"
 #include "kis_transaction.h"
-#include "KisRunnableStrokeJobUtils.h"
 #include <commands_new/kis_selection_move_command2.h>
 #include "kis_lod_transform.h"
 #include "KisAnimAutoKey.h"

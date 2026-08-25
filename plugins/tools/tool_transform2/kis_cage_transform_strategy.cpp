@@ -11,7 +11,6 @@
 #include <QPainter>
 
 #include "kis_painting_tweaks.h"
-#include "kis_cursor.h"
 #include <kis_cage_transform_worker.h>
 
 

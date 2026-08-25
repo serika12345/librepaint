@@ -17,7 +17,6 @@
 #include <KoResourceLoadResult.h>
 
 #include "MyPaintPaintOp.h"
-#include "MyPaintPaintOpPreset.h"
 #include "MyPaintPaintOpSettings.h"
 #include "MyPaintPaintOpSettingsWidget.h"
 

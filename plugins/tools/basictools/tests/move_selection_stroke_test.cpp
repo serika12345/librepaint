@@ -18,7 +18,6 @@
 #include "strokes/move_stroke_strategy.h"
 #include "kis_paint_layer.h"
 #include "KisImageBarrierLock.h"
-#include "kis_paint_device_frames_interface.h"
 #include "kis_paint_device_debug_utils.h"
 
 #include <testui.h>

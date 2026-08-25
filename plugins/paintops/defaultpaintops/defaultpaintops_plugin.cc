@@ -19,10 +19,8 @@
 #include "kis_brushop_settings_widget.h"
 #include "kis_duplicateop.h"
 #include "kis_duplicateop_settings.h"
-#include "kis_global.h"
 #include <brushengine/kis_paintop_registry.h>
 #include "KisBrushOpSettings.h"
-#include "KisBrushServerProvider.h"
 #include "kis_duplicateop_settings_widget.h"
 
 K_PLUGIN_CLASS_WITH_JSON(DefaultPaintOpsPlugin, "kritadefaultpaintops.json")

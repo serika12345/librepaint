@@ -6,7 +6,6 @@
 
 #include "kis_transform_utils.h"
 
-#include <cmath>
 #include <QPainterPath>
 #include <QTransform>
 #include <QVector3D>

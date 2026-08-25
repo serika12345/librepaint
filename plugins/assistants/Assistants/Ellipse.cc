@@ -7,7 +7,6 @@
 #include "Ellipse.h"
 #include <cmath>
 
-#include <iostream>
 
 Ellipse::Ellipse() : a(-1), b(-1)
 {

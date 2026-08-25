@@ -9,9 +9,6 @@
 #include "KisAnimatedTransformMaskParamsHolder.h"
 #include "kis_scalar_keyframe_channel.h"
 #include "tool_transform_args.h"
-#include "kis_time_span.h"
-#include "kis_transform_mask.h"
-#include "kis_image.h"
 #include "kis_transform_utils.h"
 #include <QHash>
 

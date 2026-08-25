@@ -19,13 +19,10 @@
 #include <QAction>
 
 #include "kis_uniform_paintop_property.h"
-#include "kis_slider_based_paintop_property.h"
 #include "kis_uniform_paintop_property_widget.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_paintop_preset.h"
-#include "kis_paintop_settings.h"
 #include "kis_signal_auto_connection.h"
-#include "KisPaintOpPresetUpdateProxy.h"
 #include "kis_icon_utils.h"
 #include "kis_dlg_brush_hud_config.h"
 #include "kis_brush_hud_properties_config.h"
@@ -35,7 +32,6 @@
 #include "workspace/KisViewManager.h"
 #include "kactioncollection.h"
 
-#include "kis_debug.h"
 
 
 struct KisBrushHud::Private

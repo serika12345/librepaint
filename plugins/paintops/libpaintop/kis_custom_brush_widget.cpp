@@ -19,7 +19,6 @@
 #include <KoResourcePaths.h>
 
 #include "kis_image.h"
-#include "kis_layer.h"
 #include "kis_paint_device.h"
 #include "kis_gbr_brush.h"
 #include "kis_imagepipe_brush.h"

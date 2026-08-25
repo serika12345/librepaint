@@ -6,8 +6,6 @@
 
 #include "kis_roundmarkerop.h"
 
-#include <cmath>
-#include <memory>
 #include <QRect>
 
 #include <KoColorSpaceRegistry.h>

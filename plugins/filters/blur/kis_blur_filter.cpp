@@ -14,7 +14,6 @@
 #include <kis_convolution_painter.h>
 
 #include "kis_wdg_blur.h"
-#include "ui_wdgblur.h"
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_selection.h>

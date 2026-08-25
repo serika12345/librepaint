@@ -20,12 +20,8 @@
 #include <kis_fixed_paint_device.h>
 
 #include "kis_brush.h"
-#include "kis_auto_brush.h"
-#include "kis_imagepipe_brush.h"
 #include "kis_predefined_brush_chooser.h"
 #include "kis_auto_brush_widget.h"
-#include "kis_custom_brush_widget.h"
-#include "kis_clipboard_brush_widget.h"
 #include "kis_text_brush_chooser.h"
 #include "KisWidgetConnectionUtils.h"
 #include <KisZug.h>

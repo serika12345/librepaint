@@ -11,7 +11,6 @@
 #include <kpluginfactory.h>
 
 #include "kis_oilpaint_filter.h"
-#include "kis_global.h"
 #include "filter/kis_filter_registry.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisOilPaintFilterPluginFactory, "kritaoilpaintfilter.json", registerPlugin<KisOilPaintFilterPlugin>();)

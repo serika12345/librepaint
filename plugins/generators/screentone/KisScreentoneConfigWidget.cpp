@@ -17,7 +17,6 @@
 #include <KoUnit.h>
 
 #include "KisScreentoneConfigWidget.h"
-#include "KisScreentoneScreentoneFunctions.h"
 #include "KisScreentoneGeneratorConfiguration.h"
 
 KisScreentoneConfigWidget::KisScreentoneConfigWidget(QWidget* parent, const KoColorSpace *cs)

@@ -6,7 +6,6 @@
 
 #include "phong_pixel_processor.h"
 #include <cmath>
-#include <iostream>
 #include <KoChannelInfo.h>
 
 PhongPixelProcessor::PhongPixelProcessor(quint32 pixelArea, const KisPropertiesConfigurationSP config)

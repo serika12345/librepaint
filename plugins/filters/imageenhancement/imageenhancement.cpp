@@ -7,7 +7,6 @@
 
 #include "imageenhancement.h"
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 

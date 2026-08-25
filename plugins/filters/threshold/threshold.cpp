@@ -8,7 +8,6 @@
 
 #include "threshold.h"
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 #include <QTime>
@@ -33,7 +32,6 @@
 #include <kis_signals_blocker.h>
 
 #include <KoBasicHistogramProducers.h>
-#include "KoColorModelStandardIds.h"
 #include <KoColorSpace.h>
 #include <KoColorTransformation.h>
 #include <KoUpdater.h>

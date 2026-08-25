@@ -7,7 +7,6 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <cstdio>
 #include <kis_assistant_tool.h>
 
 #include <kis_debug.h>
@@ -48,7 +47,6 @@
 #include "VanishingPointAssistant.h"
 
 #include <math.h>
-#include <queue>
 
 KisAssistantTool::KisAssistantTool(KoCanvasBase * canvas)
     : KisTool(canvas, KisCursor::arrowCursor())
