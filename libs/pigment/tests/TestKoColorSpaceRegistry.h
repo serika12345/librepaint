@@ -18,6 +18,7 @@ private Q_SLOTS:
     void testLab16();
     void testRgb8();
     void testRgb16();
+    void testComparisonOperators();
     void testProfileByUniqueId();
 
     void testQColorSpaceConversionRoundtrip_data();

@@ -99,6 +99,11 @@ bool KoColorSpace::operator==(const KoColorSpace& rhs) const
     return d->idNumber == rhs.d->idNumber && ((p1 == p2) || (*p1 == *p2));
 }
 
+bool KoColorSpace::operator!=(const KoColorSpace& rhs) const
+{
+    return !(*this == rhs);
+}
+
 QString KoColorSpace::id() const
 {
     return d->id;
