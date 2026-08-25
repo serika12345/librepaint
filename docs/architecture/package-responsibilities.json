@@ -154,8 +154,7 @@
         "libs/ui/widgets/KoStrokeConfigWidget.h"
       ],
       "reviewedSourcePaths": [
-        "libs/ui/canvas/kis_fps_decoration.cpp",
-        "libs/ui/widgets/kis_scratch_pad.cpp"
+        "libs/ui/canvas/kis_fps_decoration.cpp"
       ],
       "uiClassAreas": [
         "canvas-display"
@@ -1350,6 +1349,7 @@
         "libs/ui/tool/kis_bookmarked_configurations_editor.h",
         "libs/ui/tool/kis_bookmarked_configurations_model.h",
         "libs/ui/tool/kis_paintop_box.h",
+        "libs/ui/tool/kis_scratch_pad.h",
         "libs/ui/tool/kis_tool_ellipse_base.h",
         "libs/ui/tool/kis_tool_freehand.h",
         "libs/ui/tool/kis_tool_paint.h",
@@ -1363,6 +1363,7 @@
         "KisBookmarkedConfigurationsEditor",
         "KisBookmarkedConfigurationsModel",
         "KisPaintopBox",
+        "KisScratchPad",
         "KisToolEllipseBase",
         "KisToolFreehand",
         "KisToolOutlineBase",

@@ -3028,10 +3028,10 @@
         {
           "sourceTarget": "kritaui",
           "dependencyTarget": "kritacanvas",
-          "sourcePath": "libs/ui/widgets/kis_scratch_pad.cpp",
+          "sourcePath": "libs/ui/tool/kis_scratch_pad.cpp",
           "include": "kis_image_patch.h",
           "headerPath": "libs/canvas/kis_image_patch.h",
-          "sourceResponsibility": "canvas-presentation",
+          "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "canvas-presentation",
           "sourceAttribution": "classified-class-path",
           "dependencyAttribution": "unique-owner-target"

@@ -261,7 +261,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/widgets/kis_scratch_pad.cpp"
+            "libs/ui/tool/kis_scratch_pad.cpp"
           ]
         },
         {
@@ -1458,7 +1458,7 @@
             "libs/ui/widgets/kis_paintop_presets_editor.cpp",
             "libs/ui/widgets/kis_preset_chooser.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.h",
-            "libs/ui/widgets/kis_scratch_pad.h",
+            "libs/ui/tool/kis_scratch_pad.h",
             "plugins/dockers/brushhud/kis_brush_hud.cpp",
             "plugins/dockers/brushhud/kis_dlg_brush_hud_config.cpp",
             "plugins/dockers/presetdocker/presetdocker_dock.cpp",
@@ -3145,7 +3145,7 @@
             "libs/ui/flake/kis_shape_layer_canvas.cpp",
             "libs/ui/tool/kis_tool_freehand_helper.h",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
-            "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/tool/kis_scratch_pad.cpp",
             "plugins/dockers/channeldocker/channelmodel.cpp",
             "plugins/extensions/colorrange/dlg_colorrange.cc",
             "plugins/generators/seexpr/kis_wdg_seexpr_presets_save.cpp",
@@ -3290,7 +3290,7 @@
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-            "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/tool/kis_scratch_pad.cpp",
             "plugins/generators/multigridpattern/multigridpatterngenerator.cpp",
             "plugins/generators/pattern/patterngenerator.cpp",
             "plugins/generators/seexpr/generator.cpp",
@@ -3437,8 +3437,8 @@
           ],
           "consumerPaths": [
             "libs/libkis/Scratchpad.cpp",
-            "libs/ui/widgets/kis_scratch_pad.cpp",
-            "libs/ui/widgets/kis_scratch_pad.h",
+            "libs/ui/tool/kis_scratch_pad.cpp",
+            "libs/ui/tool/kis_scratch_pad.h",
             "plugins/generators/gradient/KisGradientGenerator.cpp",
             "plugins/generators/gradient/KisGradientGeneratorConfigWidget.cpp",
             "plugins/generators/gradient/KisGradientGeneratorConfiguration.h",
@@ -3754,7 +3754,7 @@
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.h",
-            "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/tool/kis_scratch_pad.cpp",
             "libs/ui/widgets/kis_wdg_generator.cpp",
             "plugins/assistants/Assistants/kis_assistant_tool.cc",
             "plugins/dockers/advancedcolorselector/kis_color_selector_base.cpp",
@@ -4294,7 +4294,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/widgets/kis_scratch_pad.cpp"
+            "libs/ui/tool/kis_scratch_pad.cpp"
           ]
         },
         {
@@ -4666,7 +4666,7 @@
             "external-include"
           ],
           "consumerPaths": [
-            "libs/ui/widgets/kis_scratch_pad.cpp"
+            "libs/ui/tool/kis_scratch_pad.cpp"
           ]
         },
         {
@@ -4808,7 +4808,7 @@
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_filter_selector_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
-            "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/tool/kis_scratch_pad.cpp",
             "libs/ui/widgets/kis_wdg_generator.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_container.cpp",
             "plugins/dockers/advancedcolorselector/kis_color_selector_ng_docker_widget.cpp",
@@ -5064,7 +5064,7 @@
             "libs/ui/widgets/kis_custom_image_widget.cc",
             "libs/ui/widgets/kis_image_from_clipboard_widget.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.h",
-            "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/tool/kis_scratch_pad.cpp",
             "plugins/dockers/animation/KisAnimTimelineDocker.cpp",
             "plugins/dockers/compositiondocker/compositiondocker_dock.cpp",
             "plugins/extensions/imagesplit/imagesplit.cpp",
@@ -5325,7 +5325,7 @@
           "consumerPaths": [
             "libs/ui/dialogs/kis_dlg_layer_properties.cc",
             "libs/ui/nodes/kis_layer_manager.cc",
-            "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/tool/kis_scratch_pad.cpp",
             "plugins/dockers/animation/KisAnimCurvesModel.cpp",
             "plugins/dockers/animation/KisAnimTimelineFramesModel.cpp",
             "plugins/dockers/animation/KisAnimUtils.cpp",
@@ -6258,7 +6258,7 @@
             "libs/ui/selection/kis_selection_manager.cc",
             "libs/ui/tool/kis_selection_tool_helper.cpp",
             "libs/ui/widgets/kis_preset_live_preview_view.cpp",
-            "libs/ui/widgets/kis_scratch_pad.cpp",
+            "libs/ui/tool/kis_scratch_pad.cpp",
             "plugins/dockers/animation/KisAnimUtils.cpp",
             "plugins/extensions/colorrange/dlg_colorrange.cc",
             "plugins/extensions/colorspaceconversion/colorspaceconversion.cc",
@@ -6550,7 +6550,7 @@
             "libs/ui/widgets/kis_layer_filter_widget.h",
             "libs/ui/widgets/kis_paintop_presets_editor.h",
             "libs/ui/widgets/kis_preset_live_preview_view.h",
-            "libs/ui/widgets/kis_scratch_pad.h",
+            "libs/ui/tool/kis_scratch_pad.h",
             "libs/ui/widgets/kis_wdg_generator.h",
             "pch/kis_image_pch.h",
             "plugins/dockers/advancedcolorselector/kis_common_colors.h",
@@ -6822,7 +6822,7 @@
           ],
           "consumerPaths": [
             "libs/libkis/ColorizeMask.cpp",
-            "libs/ui/widgets/kis_scratch_pad.cpp"
+            "libs/ui/tool/kis_scratch_pad.cpp"
           ]
         },
         {
@@ -8266,7 +8266,7 @@
           ],
           "consumerPaths": [
             "libs/ui/actions/KisLayerSelectionAction.cpp",
-            "libs/ui/widgets/kis_scratch_pad.cpp"
+            "libs/ui/tool/kis_scratch_pad.cpp"
           ]
         },
         {
@@ -10735,6 +10735,17 @@
           ]
         },
         {
+          "path": "libs/ui/tool/kis_scratch_pad.h",
+          "publicationEvidence": [
+            "export-macro",
+            "compile-contract",
+            "external-include"
+          ],
+          "consumerPaths": [
+            "libs/libkis/Scratchpad.cpp"
+          ]
+        },
+        {
           "path": "libs/ui/tool/kis_selection_tool_helper.h",
           "publicationEvidence": [
             "export-macro",
@@ -11383,16 +11394,6 @@
             "libs/impex/ui/kis_import_catcher.cc",
             "plugins/extensions/separate_channels/kis_separate_channels_plugin.cc",
             "plugins/tools/tool_transform2/kis_tool_transform.cc"
-          ]
-        },
-        {
-          "path": "libs/ui/widgets/kis_scratch_pad.h",
-          "publicationEvidence": [
-            "export-macro",
-            "external-include"
-          ],
-          "consumerPaths": [
-            "libs/libkis/Scratchpad.cpp"
           ]
         },
         {

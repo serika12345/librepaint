@@ -5,7 +5,7 @@
  */
 
 #include "kis_scratch_pad_event_filter.h"
-#include "kis_scratch_pad.h"
+#include "tool/kis_scratch_pad.h"
 
 #include <QWidget>
 #include <QDebug>
@@ -147,4 +147,3 @@ bool KisScratchPadEventFilter::shouldResetWheelDelta(QEvent * event)
         event->type() == QEvent::TouchCancel ||
         event->type() == QEvent::NativeGesture;
 }
-

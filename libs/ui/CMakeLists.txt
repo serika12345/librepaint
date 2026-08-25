@@ -173,6 +173,7 @@ set(kritaui_LIB_SRCS
     tool/kis_tool_freehand.cc
     tool/kis_painting_information_builder_adapters.cpp
     tool/kis_tool_freehand_helper.cpp
+    tool/kis_scratch_pad.cpp
     tool/kis_tool_multihand_helper.cpp
     tool/kis_tool_paint.cc
     tool/kis_tool_shape.cc
@@ -220,7 +221,6 @@ set(kritaui_LIB_SRCS
 
     widgets/kis_preset_chooser.cpp
     widgets/kis_progress_widget.cpp
-    widgets/kis_scratch_pad.cpp
     widgets/kis_scratch_pad_event_filter.cpp
     widgets/KisSelectionPropertySlider.cpp
     widgets/kis_size_group.cpp

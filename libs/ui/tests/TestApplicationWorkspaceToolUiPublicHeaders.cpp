@@ -20,6 +20,7 @@
 #include <tool/kis_bookmarked_configurations_editor.h>
 #include <tool/kis_bookmarked_configurations_model.h>
 #include <tool/kis_paintop_box.h>
+#include <tool/kis_scratch_pad.h>
 #include <workspace/KisAndroidSplash.h>
 #include <workspace/KisMainWindow.h>
 #include <workspace/KisSessionResource.h>
@@ -38,6 +39,7 @@
 static_assert(std::is_base_of_v<QObject, KisApplication>);
 static_assert(std::is_base_of_v<QObject, KisMainWindow>);
 static_assert(std::is_base_of_v<QObject, KisPaintopBox>);
+static_assert(std::is_base_of_v<QWidget, KisScratchPad>);
 
 class TestApplicationWorkspaceToolUiPublicHeaders : public QObject
 {

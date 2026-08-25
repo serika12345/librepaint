@@ -7,13 +7,12 @@
 #include <KoResource.h>
 #include <application/kis_config.h>
 #include <kis_gradient_painter.h>
-#include "kis_scratch_pad.h"
+#include <tool/kis_scratch_pad.h>
 #include "Resource.h"
 #include "View.h"
 #include "Canvas.h"
 #include <KoCanvasBase.h>
 #include <kis_canvas2.h>
-#include "kis_scratch_pad.h"
 
 #include <QColor>
 #include <QVBoxLayout>
