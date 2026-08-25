@@ -6,7 +6,6 @@
 
 #include "kis_dummies_facade.h"
 
-#include "kis_image.h"
 #include "kis_node_dummies_graph.h"
 
 
@@ -24,7 +23,7 @@ KisDummiesFacade::KisDummiesFacade(QObject *parent)
 
 KisDummiesFacade::~KisDummiesFacade()
 {
-    setImage(0);
+    setImage(KisImageWSP());
     delete m_d;
 }
 

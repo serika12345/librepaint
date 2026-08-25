@@ -5,11 +5,10 @@
  */
 
 #include "canvas/kis_image_view_converter.h"
-#include "kis_image.h"
 #include "kis_pointer_utils.h"
 
 KisImageViewConverter::KisImageViewConverter()
-    : KisImageViewConverter(KisImageSP())
+    : KisImageViewConverter(KisImageWSP())
 {
 }
 

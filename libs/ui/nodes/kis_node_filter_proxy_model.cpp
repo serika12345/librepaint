@@ -14,9 +14,6 @@
 #include "kis_signal_compressor.h"
 #include "kis_signal_auto_connection.h"
 
-#include "kis_image.h"
-
-
 struct KisNodeFilterProxyModel::Private
 {
     Private()
@@ -182,7 +179,7 @@ void KisNodeFilterProxyModel::slotBeforeBeginRemoveRows(const QModelIndex &paren
 
 void KisNodeFilterProxyModel::unsetDummiesFacade()
 {
-    m_d->nodeModel->setDummiesFacade(0, 0, 0, 0, 0);
+    m_d->nodeModel->setDummiesFacade(0, KisImageWSP(), 0, 0, 0);
     m_d->pendingActiveNode = 0;
     m_d->activeNode = 0;
 }

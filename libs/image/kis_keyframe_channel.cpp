@@ -11,7 +11,6 @@
 #include "kis_node.h"
 #include "kis_time_span.h"
 #include "kundo2command.h"
-#include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_keyframe_commands.h"
 #include "kis_command_utils.h"
@@ -105,7 +104,7 @@ KisKeyframeChannel::KisKeyframeChannel(const KoID &id, KisDefaultBoundsBaseSP bo
 }
 
 KisKeyframeChannel::KisKeyframeChannel(const KisKeyframeChannel &rhs)
-    : KisKeyframeChannel(rhs.m_d->id, new KisDefaultBounds(nullptr))
+    : KisKeyframeChannel(rhs.m_d->id, new KisDefaultBounds(KisImageWSP()))
 {
     m_d.reset(new Private(*rhs.m_d));
 }
