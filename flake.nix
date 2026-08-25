@@ -994,7 +994,7 @@
       mkGovernanceCheck =
         packageSet: policySource:
         packageSet.runCommand "librepaint-governance" {
-          nativeBuildInputs = policyTools packageSet;
+          nativeBuildInputs = policyTools packageSet ++ [ packageSet.clang-tools ];
         } ''
           cp -R ${policySource} source
           chmod -R u+w source

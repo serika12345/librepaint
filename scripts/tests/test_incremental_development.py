@@ -48,6 +48,7 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_directory:
             temp_root = pathlib.Path(temp_directory)
             command_log = temp_root / "commands"
+            compile_commands_link = temp_root / "compile_commands.json"
             fake_bin = temp_root / "bin"
             fake_bin.mkdir()
             fake_cmake = fake_bin / "cmake"
@@ -62,6 +63,9 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                     "COMMAND_LOG": str(command_log),
                     "LIBREPAINT_NATIVE_MARKER_PATH": str(
                         temp_root / "native-config"
+                    ),
+                    "LIBREPAINT_COMPILE_COMMANDS_LINK_PATH": str(
+                        compile_commands_link
                     ),
                     "LIBREPAINT_TEST_SHELL": "1",
                     "PATH": f"{fake_bin}:{environment['PATH']}",
@@ -78,6 +82,33 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                 command_log.read_text(encoding="utf-8").strip(),
                 f"--preset tdd-{expected_platform}",
             )
+            self.assertTrue(compile_commands_link.is_symlink())
+            self.assertEqual(
+                compile_commands_link.resolve(strict=False),
+                REPO_ROOT
+                / "build"
+                / f"tdd-{expected_platform}"
+                / "compile_commands.json",
+            )
+
+    def test_clang_tidy_configuration_matches_the_development_toolchain(self):
+        clang_tidy = shutil.which("clang-tidy")
+        self.assertIsNotNone(
+            clang_tidy, "clang-tidy must be available in the test environment"
+        )
+
+        result = subprocess.run(
+            [clang_tidy, "--verify-config"],
+            cwd=REPO_ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+
+        self.assertNotIn("Error parsing", result.stdout)
+        self.assertNotIn("warning:", result.stdout)
+        self.assertIn("No config errors detected.", result.stdout)
 
     def test_native_presets_route_compilers_through_the_shared_cache(self):
         presets = json.loads(

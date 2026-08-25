@@ -11,12 +11,12 @@ Checks:              '
     ,performance-*
     ,readability-*
     ,portability-*
-    ,clang-analyzer-unix
-    ,clang-analyzer-security
-    ,clang-analyzer-deadcode
-    ,clang-analyzer-core
-    ,clang-analyzer-cplusplus
-    ,clang-analyzer-optin
+    ,clang-analyzer-unix.*
+    ,clang-analyzer-security.*
+    ,clang-analyzer-deadcode.*
+    ,clang-analyzer-core.*
+    ,clang-analyzer-cplusplus.*
+    ,clang-analyzer-optin.*
     ,llvm-namespace-comment
     ,readability-static-accessed-through-instance
     ,misc-const-correctness
@@ -35,7 +35,6 @@ Checks:              '
 '
 WarningsAsErrors: ''
 FormatStyle: 'file'
-AnalyzeTemporaryDtors: false
 CheckOptions:
   - key:             cert-dcl16-c.NewSuffixes
     value:           'L;LL;LU;LLU'

@@ -84,6 +84,11 @@ build-incremental windows build krita
 | Android | `build/android/arm64-v8a/<構成指紋>` | `.cache/librepaint/ccache/android` |
 | Windows | `build/windows/x86_64/<構成指紋>/ninja` | `.cache/librepaint/ccache/windows` |
 
+ネイティブの`configure`、`plan`、`build`、`bootstrap`は、ホスト用Ninja木の
+`compile_commands.json`をリポジトリ直下の同名シンボリックリンクへ同期する。
+VS Codeのclangdはこのリンクから実際のコンパイル条件を読み込む。高速検査は、
+`.clang-tidy`をNix開発環境のclangツールで検証する。
+
 依存ライブラリーはNix storeとバイナリーキャッシュから供給する。iOS、Android、
 Windowsは、依存定義の指紋ごとに`build/nix-profiles/`または`build-ios/nix-profiles/`
 へソース非依存の開発環境を固定する。通常のC++編集は同じNinja木と`ccache`を
