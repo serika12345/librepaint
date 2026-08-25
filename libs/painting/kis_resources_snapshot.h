@@ -14,6 +14,7 @@
 #include "kis_painter.h"
 #include "kis_default_bounds.h"
 #include <KoCanvasResourcesInterface.h>
+#include <KoResourceSignature.h>
 
 class KoCompositeOp;
 class KisPainter;
@@ -70,10 +71,13 @@ public:
     QString compositeOpId() const;
 
     KoPatternSP currentPattern() const;
+    KoResourceSignature currentPatternSignature() const;
     KoColor currentFgColor() const;
     KoColor currentBgColor() const;
     KisPaintOpPresetSP currentPaintOpPreset() const;
+    KoResourceSignature currentPaintOpPresetSignature() const;
     KoAbstractGradientSP currentGradient() const;
+    KoResourceSignature currentGradientSignature() const;
     KisFilterConfigurationSP currentGenerator() const;
     bool isUsingOtherColor() const;
 

@@ -382,6 +382,11 @@ KoPatternSP KisResourcesSnapshot::currentPattern() const
     return m_d->currentPattern;
 }
 
+KoResourceSignature KisResourcesSnapshot::currentPatternSignature() const
+{
+    return m_d->currentPattern ? m_d->currentPattern->signature() : KoResourceSignature();
+}
+
 KoColor KisResourcesSnapshot::currentFgColor() const
 {
     if (m_d->isUsingOtherColor) {
@@ -407,6 +412,11 @@ KisPaintOpPresetSP KisResourcesSnapshot::currentPaintOpPreset() const
     return m_d->currentPaintOpPreset;
 }
 
+KoResourceSignature KisResourcesSnapshot::currentPaintOpPresetSignature() const
+{
+    return m_d->currentPaintOpPreset ? m_d->currentPaintOpPreset->signature() : KoResourceSignature();
+}
+
 QTransform KisResourcesSnapshot::fillTransform() const
 {
     return m_d->fillTransform;
@@ -415,6 +425,11 @@ QTransform KisResourcesSnapshot::fillTransform() const
 KoAbstractGradientSP KisResourcesSnapshot::currentGradient() const
 {
     return m_d->currentGradient;
+}
+
+KoResourceSignature KisResourcesSnapshot::currentGradientSignature() const
+{
+    return m_d->currentGradient ? m_d->currentGradient->signature() : KoResourceSignature();
 }
 
 KisFilterConfigurationSP KisResourcesSnapshot::currentGenerator() const

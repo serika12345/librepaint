@@ -7,16 +7,7 @@
 
 #include <kis_resources_snapshot.h>
 
-#include "kis_paintop_preset.h"
 #include "kis_node.h"
-
-namespace {
-
-inline KoResourceSignature lazySignature(KoResourceSP resource) {
-    return resource ? resource->signature() : KoResourceSignature();
-}
-
-} // namespace
 
 KisStrokeCompatibilityInfo::KisStrokeCompatibilityInfo()
 {
@@ -25,9 +16,9 @@ KisStrokeCompatibilityInfo::KisStrokeCompatibilityInfo()
 KisStrokeCompatibilityInfo::KisStrokeCompatibilityInfo(KisResourcesSnapshot &resourcesSnapshot)
     : currentFgColor(resourcesSnapshot.currentFgColor())
     , currentBgColor(resourcesSnapshot.currentBgColor())
-    , currentPattern(lazySignature(resourcesSnapshot.currentPattern()))
-    , currentGradient(lazySignature(resourcesSnapshot.currentGradient()))
-    , currentPreset(lazySignature(resourcesSnapshot.currentPaintOpPreset()))
+    , currentPattern(resourcesSnapshot.currentPatternSignature())
+    , currentGradient(resourcesSnapshot.currentGradientSignature())
+    , currentPreset(resourcesSnapshot.currentPaintOpPresetSignature())
     , currentGeneratorXml(resourcesSnapshot.currentGenerator() ? resourcesSnapshot.currentGenerator()->toXML() : "")
     , currentNode(resourcesSnapshot.currentNode() ? resourcesSnapshot.currentNode()->uuid() : QUuid())
     , opacity(resourcesSnapshot.opacity())
