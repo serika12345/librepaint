@@ -339,6 +339,7 @@ set(kritaui_LIB_SRCS
 
     workspace/kis_mainwindow_observer.cpp
     workspace/KisViewManager.cpp
+    workspace/KisViewManagerToolActivation.cpp
     canvas/kis_mirror_manager.cpp
 
     qtsingleapplication/qtlocalpeer.cpp

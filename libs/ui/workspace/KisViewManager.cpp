@@ -78,7 +78,6 @@
 #include "canvas/kis_mirror_manager.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/KisDecorationsManager.h"
-#include "kis_tool.h"
 #include "tool/kis_paintop_box.h"
 #include "application/KisPart.h"
 #include <KoUpdater.h>
@@ -1568,27 +1567,6 @@ void KisViewManager::slotUpdatePixelGridAction()
 
     KisConfig cfg(true);
     d->showPixelGrid->setChecked(cfg.pixelGridEnabled() && cfg.useOpenGL());
-}
-
-void KisViewManager::slotActivateTransformTool()
-{
-    if(KoToolManager::instance()->activeToolId() == "KisToolTransform") {
-        KoToolBase* tool = KoToolManager::instance()->toolById(canvasBase(), "KisToolTransform");
-
-        QSet<KoShape*> dummy;
-        // Start a new stroke
-        tool->deactivate();
-        tool->activate(dummy);
-    }
-
-    KoToolManager::instance()->switchToolRequested("KisToolTransform");
-}
-
-void KisViewManager::activateTransformToolWithExternalSource(KisPaintDeviceSP externalSource)
-{
-    KisTool *tool = dynamic_cast<KisTool*>(KoToolManager::instance()->toolById(canvasBase(), "KisToolTransform"));
-    KIS_ASSERT(tool);
-    tool->newActivationWithExternalSource(externalSource);
 }
 
 void KisViewManager::slotToggleFgBg()
