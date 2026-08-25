@@ -32,7 +32,8 @@
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [
         "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
-        "libs/ui/widgets/kis_workspace_chooser.cpp"
+        "libs/ui/widgets/kis_workspace_chooser.cpp",
+        "libs/ui/workspace/KisViewManagerToolActivation.cpp"
       ],
       "uiClassAreas": [
         "application-orchestration",

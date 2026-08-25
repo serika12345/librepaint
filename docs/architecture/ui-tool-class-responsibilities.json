@@ -144,7 +144,6 @@
       "consumerPaths": [
         "libs/ui/actions/kis_selection_action_factories.cpp",
         "libs/ui/selection/kis_selection_manager.cc",
-        "plugins/extensions/colorrange/colorrange.cc",
         "plugins/extensions/colorrange/dlg_colorrange.cc",
         "plugins/tools/selectiontools/KisToolSelectMagnetic.cc",
         "plugins/tools/selectiontools/kis_tool_select_contiguous.cc",
@@ -180,7 +179,6 @@
       ],
       "consumerPaths": [
         "plugins/paintops/defaultpaintops/brush/kis_brushop.cpp",
-        "plugins/tools/basictools/default_tools.cc",
         "plugins/tools/basictools/kis_tool_brush.h",
         "plugins/tools/tool_dyna/kis_tool_dyna.h",
         "plugins/tools/tool_lazybrush/kis_tool_lazy_brush.h"
@@ -304,7 +302,6 @@
         "libs/ui/tool/kis_tool_shape.cc"
       ],
       "consumerPaths": [
-        "libs/ui/selection/kis_selection_manager.cc",
         "plugins/tools/basictools/kis_tool_ellipse.h",
         "plugins/tools/basictools/kis_tool_line.h",
         "plugins/tools/basictools/kis_tool_path.h",
@@ -325,7 +322,6 @@
         "libs/ui/tool/kis_tool_shape.cc"
       ],
       "consumerPaths": [
-        "libs/ui/selection/kis_selection_manager.cc",
         "plugins/tools/basictools/kis_tool_ellipse.h",
         "plugins/tools/basictools/kis_tool_line.h",
         "plugins/tools/basictools/kis_tool_path.h",

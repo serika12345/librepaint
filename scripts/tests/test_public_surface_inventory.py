@@ -219,6 +219,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 ],
                 "consumerPaths": [
                     "libs/ui/tool/kis_painting_information_builder_adapters.h",
+                    "libs/ui/tool/kis_scratch_pad.cpp",
+                    "libs/ui/tool/kis_tool_freehand_helper.cpp",
                     "plugins/tools/basictools/kis_tool_line_helper.cpp",
                 ],
             },
@@ -491,7 +493,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         by_name = {entry["name"]: entry for entry in classes}
 
-        self.assertEqual(len(classes), 18)
+        self.assertEqual(len(classes), 19)
         self.assertNotIn("Data", by_name)
         self.assertNotIn("FreehandStrokeStrategy", by_name)
         self.assertNotIn("NoopActivationPolicy", by_name)
@@ -519,7 +521,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.validate_ui_tool_classes(inventory)
 
         self.assertEqual(inventory["scope"], "libs/ui/tool-public-classes")
-        self.assertEqual(len(inventory["classes"]), 18)
+        self.assertEqual(len(inventory["classes"]), 19)
         by_name = {entry["name"]: entry for entry in inventory["classes"]}
         self.assertNotIn("KisPaintingInformationBuilder", by_name)
         self.assertEqual(
