@@ -33,7 +33,7 @@ bool KisParticlePaintOpSettings::paintIncremental()
 
 
 #include <brushengine/kis_slider_based_paintop_property.h>
-#include "kis_paintop_preset.h"
+#include <qpointer.h>
 #include "KisPaintOpPresetUpdateProxy.h"
 #include "kis_standard_uniform_properties_factory.h"
 

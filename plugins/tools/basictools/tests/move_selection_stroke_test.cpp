@@ -14,7 +14,7 @@
 #include "strokes/move_selection_stroke_strategy.h"
 #include "stroke_testing_utils.h"
 #include "kis_selection.h"
-#include "commands/kis_selection_commands.h"
+#include "commands/kis_set_global_selection_command.h"
 #include "strokes/move_stroke_strategy.h"
 #include "kis_paint_layer.h"
 #include "KisImageBarrierLock.h"

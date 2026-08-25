@@ -178,7 +178,7 @@ KisOptimizedBrushOutline KisDuplicateOpSettings::brushOutline(const KisPaintInfo
 
 
 #include <brushengine/kis_uniform_paintop_property.h>
-#include "kis_paintop_preset.h"
+#include <qpointer.h>
 #include "KisPaintOpPresetUpdateProxy.h"
 #include "kis_standard_uniform_properties_factory.h"
 #include <KisDuplicateOptionData.h>

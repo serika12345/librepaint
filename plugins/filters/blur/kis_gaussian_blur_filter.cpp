@@ -22,7 +22,7 @@
 #include <kis_selection.h>
 #include <kis_paint_device.h>
 #include <kis_processing_information.h>
-#include "kis_lod_transform.h"
+#include "kis_lod_transform_base.h"
 
 
 #include <math.h>

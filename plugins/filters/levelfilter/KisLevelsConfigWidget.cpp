@@ -39,7 +39,7 @@
 #include "../colorsfilters/kis_multichannel_utils.h"
 
 #include "KisLevelsConfigWidget.h"
-#include "KisLevelsFilter.h"
+#include "KisLevelsFilterConfiguration.h"
 
 static int deNormalizeValue(qreal value, int min, int max)
 {

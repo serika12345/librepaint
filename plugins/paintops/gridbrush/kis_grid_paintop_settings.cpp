@@ -196,7 +196,7 @@ KisOptimizedBrushOutline KisGridPaintOpSettings::brushOutline(const KisPaintInfo
 
 
 #include <brushengine/kis_slider_based_paintop_property.h>
-#include "kis_paintop_preset.h"
+#include <qpointer.h>
 #include "KisPaintOpPresetUpdateProxy.h"
 
 QList<KisUniformPaintOpPropertySP> KisGridPaintOpSettings::uniformProperties(KisPaintOpSettingsSP settings, QPointer<KisPaintOpPresetUpdateProxy> updateProxy)

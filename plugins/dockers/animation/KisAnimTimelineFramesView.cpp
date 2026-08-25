@@ -46,7 +46,7 @@
 #include "kis_image_config.h"
 #include "widgets/kis_zoom_scrollbar.h"
 #include "KisImportExportManager.h"
-#include "KoFileDialog.h"
+#include <qdir.h>
 #include "KisIconToolTip.h"
 
 typedef QPair<QRect, QModelIndex> QItemViewPaintPair;

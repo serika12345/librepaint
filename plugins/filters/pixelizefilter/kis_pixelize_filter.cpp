@@ -39,7 +39,7 @@
 #include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
 #include "kis_algebra_2d.h"
-#include "kis_lod_transform.h"
+#include "kis_lod_transform_base.h"
 
 
 KisPixelizeFilter::KisPixelizeFilter() : KisFilter(id(), FiltersCategoryArtisticId, i18n("&Pixelize..."))

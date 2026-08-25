@@ -22,7 +22,7 @@
 #include "KoColor.h"
 
 #include "KoViewConverter.h"
-#include "kis_coordinates_converter.h"
+#include "kis_debug.h"
 #include "kis_painting_tweaks.h"
 #include "KoCanvasController.h"
 #include "KoCanvasResourceProvider.h"

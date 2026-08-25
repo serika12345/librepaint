@@ -14,7 +14,9 @@
 
 #include "LcmsRGBP2020PQColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
-#include "compositeops/RgbCompositeOps.h"
+#include "compositeops/RgbCompositeOpBumpmap.h"
+#include "compositeops/RgbCompositeOpIn.h"
+#include "compositeops/RgbCompositeOpOut.h"
 #include "dithering/KisRgbDitherOpFactory.h"
 #include <KoColorConversions.h>
 #include <KoColorSpacePreserveLightnessUtils.h>

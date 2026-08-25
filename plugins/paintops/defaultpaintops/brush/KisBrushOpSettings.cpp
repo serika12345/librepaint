@@ -26,7 +26,7 @@ bool KisBrushOpSettings::needsAsynchronousUpdates() const
     return true;
 }
 
-#include "kis_paintop_preset.h"
+#include <qpointer.h>
 #include "KisPaintOpPresetUpdateProxy.h"
 #include "KisCurveOptionDataUniformProperty.h"
 #include "KisStandardOptionData.h"

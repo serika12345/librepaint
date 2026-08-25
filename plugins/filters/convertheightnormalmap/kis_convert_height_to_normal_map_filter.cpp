@@ -10,7 +10,7 @@
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter_configuration.h>
-#include "kis_lod_transform.h"
+#include "kis_lod_transform_base.h"
 #include <kis_edge_detection_kernel.h>
 
 

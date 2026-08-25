@@ -7,7 +7,8 @@
  */
 #include "dlg_bundle_manager.h"
 
-#include "resourcemanager.h"
+#include "KoResourcePaths.h"
+#include "kis_debug.h"
 #include "dlg_create_bundle.h"
 
 #include <QPainter>

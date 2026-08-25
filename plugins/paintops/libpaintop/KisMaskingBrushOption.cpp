@@ -18,7 +18,6 @@
 #include "kis_brush.h"
 #include "kis_image.h"
 #include "kis_image_config.h"
-#include "kis_brush_option.h"
 
 #include "KisMaskingBrushOptionProperties.h"
 #include <strokes/KisMaskingBrushCompositeOpFactory.h>

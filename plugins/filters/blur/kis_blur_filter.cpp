@@ -19,8 +19,9 @@
 #include <kis_selection.h>
 #include <kis_paint_device.h>
 #include <kis_processing_information.h>
-#include "kis_mask_generator.h"
-#include "kis_lod_transform.h"
+#include "kis_circle_mask_generator.h"
+#include "kis_rect_mask_generator.h"
+#include "kis_lod_transform_base.h"
 
 
 KisBlurFilter::KisBlurFilter() : KisFilter(id(), FiltersCategoryBlurId, i18n("&Blur..."))

@@ -13,7 +13,7 @@
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
 #include <KisGlobalResourcesInterface.h>
-#include "testutil.h"
+#include "qimage_test_util.h"
 #include "testing_timed_default_bounds.h"
 
 void KisUnsharpMaskTest::testUnsharpWithTransparency()

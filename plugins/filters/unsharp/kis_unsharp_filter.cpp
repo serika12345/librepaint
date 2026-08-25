@@ -20,7 +20,7 @@
 #include <KoUpdater.h>
 #include <KoConvolutionOp.h>
 #include <kis_paint_device.h>
-#include "kis_lod_transform.h"
+#include "kis_lod_transform_base.h"
 
 #include "kis_wdg_unsharp.h"
 #include "ui_wdgunsharp.h"

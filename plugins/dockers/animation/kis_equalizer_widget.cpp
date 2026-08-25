@@ -18,7 +18,7 @@
 
 #include "KisAnimTimelineColors.h"
 
-#include "kis_debug.h"
+#include "kis_assert.h"
 
 struct KisEqualizerWidget::Private
 {
