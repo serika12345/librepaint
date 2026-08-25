@@ -8,8 +8,7 @@
 
 #include <simpletest.h>
 
-#include "../KoColorSpaceAbstract.h"
-#include "../KoColorSpaceTraits.h"
+#include "KoConvolutionOpImpl.h"
 #include "../DebugPigment.h"
 
 void TestConvolutionOpImpl::testConvolutionOpImpl()

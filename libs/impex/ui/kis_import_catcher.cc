@@ -13,7 +13,8 @@
 #include <KisImportExportManager.h>
 
 #include "nodes/kis_node_manager.h"
-#include "kis_count_visitor.h"
+#include "kis_paint_layer.h"
+#include <KoProperties.h>
 #include "workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "kis_image.h"

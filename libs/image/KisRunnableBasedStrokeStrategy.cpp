@@ -8,7 +8,7 @@
 
 #include <QRunnable>
 
-#include "KisRunnableStrokeJobData.h"
+#include "KisRunnableStrokeJobDataBase.h"
 #include "KisRunnableStrokeJobsInterface.h"
 
 struct KisRunnableBasedStrokeStrategy::JobsInterface : public KisRunnableStrokeJobsInterface

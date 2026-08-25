@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_selection_commands.h"
+#include "kis_set_global_selection_command.h"
 
 #include <klocalizedstring.h>
 

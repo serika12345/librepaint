@@ -10,7 +10,7 @@
 #include "KoClipMaskPainter.h"
 
 #include "kistest.h"
-#include "SvgParserTestingUtils.h"
+#include <qimage_test_util.h>
 
 void TestXsimdPainting::testKoClipMaskPainting_data()
 {

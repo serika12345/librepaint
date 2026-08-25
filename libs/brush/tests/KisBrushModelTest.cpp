@@ -12,7 +12,7 @@
 #define TESTBRUSH
 #include <kistest.h>
 
-#include "testutil.h"
+#include "qimage_test_util.h"
 #include "KisResourceModel.h"
 #include <KisResourceCacheDb.h>
 

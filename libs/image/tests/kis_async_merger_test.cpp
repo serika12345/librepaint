@@ -27,7 +27,7 @@
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
 
-#include "../../sdk/tests/testutil.h"
+#include "qimage_test_util.h"
 
 #include "kis_image_config.h"
 #include "KisImageConfigNotifier.h"
@@ -498,4 +498,3 @@ void KisAsyncMergerTest::testFilterMaskOnFilterLayer()
 
 
 SIMPLE_TEST_MAIN(KisAsyncMergerTest)
-

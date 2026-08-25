@@ -10,9 +10,10 @@
 #include <simpletest.h>
 #include <testutil.h>
 #include "../kis_auto_brush.h"
-#include "kis_mask_generator.h"
+#include "kis_circle_mask_generator.h"
+#include "kis_rect_mask_generator.h"
 #include "kis_paint_device.h"
-#include "kis_fill_painter.h"
+#include "kis_painter.h"
 #include <KoColor.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>

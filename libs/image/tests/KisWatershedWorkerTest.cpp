@@ -17,7 +17,7 @@
 #include "krita_utils.h"
 
 #include "lazybrush/kis_lazy_fill_tools.h"
-#include "testutil.h"
+#include "qimage_test_util.h"
 #include "testing_timed_default_bounds.h"
 
 

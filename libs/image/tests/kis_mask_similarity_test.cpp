@@ -12,7 +12,12 @@
 #include <testutil.h>
 
 #include "kis_brush_mask_applicator_base.h"
-#include "kis_mask_generator.h"
+#include "kis_circle_mask_generator.h"
+#include "kis_curve_circle_mask_generator.h"
+#include "kis_curve_rect_mask_generator.h"
+#include "kis_gauss_circle_mask_generator.h"
+#include "kis_gauss_rect_mask_generator.h"
+#include "kis_rect_mask_generator.h"
 #include "kis_cubic_curve.h"
 #include "krita_utils.h"
 

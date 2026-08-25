@@ -22,7 +22,7 @@
 #include <kis_gaussian_kernel.h>
 #include <kis_mask_generator.h>
 #include <kistest.h>
-#include "testutil.h"
+#include "qimage_test_util.h"
 #include "testing_timed_default_bounds.h"
 
 KisPaintDeviceSP initAsymTestDevice(QRect &imageRect, int &pixelSize, QByteArray &initialData)

@@ -24,7 +24,7 @@
 #include "kis_update_job_item.h"
 #include <KisGlobalResourcesInterface.h>
 
-#include "../../sdk/tests/testutil.h"
+#include "qimage_test_util.h"
 #include "kistest.h"
 
 
@@ -416,4 +416,3 @@ void KisUpdateSchedulerTest::testLodSync()
 }
 
 KISTEST_MAIN(KisUpdateSchedulerTest)
-

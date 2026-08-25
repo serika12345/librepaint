@@ -10,7 +10,7 @@
 
 #include <QDomElement>
 
-#include "KoColorModelStandardIds.h"
+#include "KoID.h"
 
 #include "KoChannelInfo.h"
 

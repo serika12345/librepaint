@@ -5,7 +5,7 @@
  */
 
 
-#include "kis_image_commands.h"
+#include "kis_image_change_visibility_command.h"
 #include "kis_node.h"
 
 #include <klocalizedstring.h>

@@ -17,7 +17,7 @@
 
 #include <QPainter>
 
-#include "kis_debug.h"
+#include <QDebug>
 KoSelection::KoSelection(QObject *parent)
     : QObject(parent)
     , KoShape()

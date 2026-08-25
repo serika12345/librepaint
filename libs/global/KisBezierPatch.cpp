@@ -10,7 +10,7 @@
 #include <kis_algebra_2d.h>
 #include "KisBezierUtils.h"
 
-#include "kis_debug.h"
+#include <QDebug>
 
 QRectF KisBezierPatch::dstBoundingRect() const {
     QRectF result;

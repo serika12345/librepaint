@@ -142,7 +142,7 @@ void KisCloneLayerTest::testOriginalRefresh()
     QCOMPARE(root->projection()->exactBounds(), expectedRect);
 }
 
-#include "commands/kis_image_commands.h"
+#include "commands/kis_image_layer_remove_command.h"
 
 void KisCloneLayerTest::testRemoveSourceLayer()
 {

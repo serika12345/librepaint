@@ -6,7 +6,7 @@
 #include "KisRegion.h"
 
 #include <QRegion>
-#include "kis_debug.h"
+#include "kis_assert.h"
 
 namespace detail {
 

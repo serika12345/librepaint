@@ -5,7 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_image_commands.h"
+#include "kis_image_layer_move_command.h"
 
 #include <klocalizedstring.h>
 

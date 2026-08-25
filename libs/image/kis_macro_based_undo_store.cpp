@@ -7,7 +7,7 @@
 #include "kis_macro_based_undo_store.h"
 
 #include "kis_saved_commands.h"
-#include "kis_global.h"
+#include "kis_pointer_utils.h"
 
 
 struct KisMacroBasedUndoStore::Private
@@ -63,4 +63,3 @@ void KisMacroBasedUndoStore::purgeRedoState()
 {
     KIS_ASSERT(0 && "Not implemented");
 }
-
