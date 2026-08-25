@@ -69,7 +69,7 @@
 #include "document/kis_filter_manager.h"
 #include "kis_node_visitor.h"
 #include "kis_paint_layer.h"
-#include "commands/kis_node_commands.h"
+#include "commands/kis_change_filter_command.h"
 #include <commands/KisNodeRenameCommand.h>
 #include "document/kis_change_file_layer_command.h"
 #include "canvas/kis_canvas_resource_provider.h"

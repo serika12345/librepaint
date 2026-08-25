@@ -9,7 +9,6 @@
  */
 
 #include <testutil.h>
-#include "qimage_based_test.h"
 #include "kis_canvas2.h"
 
 #include <KoCanvasResourceProvider.h>

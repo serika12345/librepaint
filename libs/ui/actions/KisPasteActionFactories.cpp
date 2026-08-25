@@ -9,9 +9,10 @@
 #include "application/kis_config.h"
 #include "kis_image.h"
 #include "workspace/KisViewManager.h"
-#include "kis_tool_proxy.h"
+#include <KoToolProxy.h>
+#include "kis_tool.h"
 #include "kis_canvas2.h"
-#include "kis_canvas_controller.h"
+#include <KoCanvasController.h>
 #include "kis_group_layer.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
@@ -19,7 +20,7 @@
 #include "kis_import_catcher.h"
 #include "kis_clipboard.h"
 #include "kis_selection.h"
-#include "commands/kis_selection_commands.h"
+#include "commands/KisDeselectActiveSelectionCommand.h"
 #include "commands/kis_image_layer_add_command.h"
 #include "KisTransformToolActivationCommand.h"
 #include "kis_processing_applicator.h"

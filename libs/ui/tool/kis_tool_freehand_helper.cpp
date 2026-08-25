@@ -17,7 +17,7 @@
 
 #include "kis_algebra_2d.h"
 #include "kis_distance_information.h"
-#include "kis_painting_information_builder_adapters.h"
+#include "kis_painting_information_builder.h"
 #include "kis_image.h"
 #include "kis_painter.h"
 #include <brushengine/kis_paintop_preset.h>

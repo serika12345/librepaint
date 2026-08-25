@@ -10,7 +10,7 @@
 #include "kis_canvas2.h"
 #include "KisCanvasAnimationState.h"
 #include "kis_image_animation_interface.h"
-#include "kis_raster_keyframe_channel.h"
+#include "kis_keyframe_channel.h"
 #include "animation/KisFrameDisplayProxy.h"
 #include "workspace/KisViewManager.h"
 #include "application/kis_config.h"

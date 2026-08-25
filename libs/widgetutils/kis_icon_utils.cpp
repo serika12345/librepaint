@@ -18,7 +18,7 @@
 #include <QDebug>
 
 #include <KoIcon.h>
-#include "kis_debug.h"
+#include "kis_assert.h"
 
 namespace KisIconUtils
 {

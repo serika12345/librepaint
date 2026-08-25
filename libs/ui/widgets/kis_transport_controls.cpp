@@ -10,7 +10,7 @@
 #include <QHBoxLayout>
 #include <QToolButton>
 
-#include "kis_icon.h"
+#include "kis_icon_utils.h"
 #include "klocalizedstring.h"
 
 

@@ -7,7 +7,7 @@
 #include "kis_derived_resources.h"
 
 #include "kis_signal_auto_connection.h"
-#include "canvas/kis_canvas_resource_provider.h"
+#include "KoCanvasResourcesIds.h"
 #include "kis_paintop_preset.h"
 #include "kis_paintop_settings.h"
 #include "KisResourceModel.h"

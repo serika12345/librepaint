@@ -13,7 +13,7 @@
 #include <QFontMetrics>
 #include "kis_icon_utils.h"
 
-#include "kis_debug.h"
+#include "kis_assert.h"
 #include "kis_signals_blocker.h"
 
 

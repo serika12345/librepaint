@@ -31,7 +31,7 @@
 #include <resources/kis_favorite_resource_manager.h>
 
 #include "kis_abstract_input_action.h"
-#include "KisPopupWidgetAction.h"
+#include "events/KisPopupWidgetInterface.h"
 
 #include "kis_shortcut_matcher.h"
 #include "kis_stroke_shortcut.h"

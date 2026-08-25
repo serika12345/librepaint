@@ -32,7 +32,7 @@
 #include "canvas/kis_prescaled_projection.h"
 #include "canvas/kis_qpainter_projection_factory.h"
 
-#include "../../sdk/tests/testutil.h"
+#include "qimage_test_util.h"
 
 namespace {
 QSize projectionUpdatePatchSize()

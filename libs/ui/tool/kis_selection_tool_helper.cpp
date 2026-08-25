@@ -21,7 +21,8 @@
 #include "workspace/KisViewManager.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_transaction.h"
-#include "commands/kis_selection_commands.h"
+#include "commands/KisDeselectActiveSelectionCommand.h"
+#include "commands/kis_set_global_selection_command.h"
 #include "kis_shape_controller.h"
 
 #include <kis_icon.h>

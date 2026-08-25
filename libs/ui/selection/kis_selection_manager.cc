@@ -50,7 +50,7 @@
 #include "kis_undo_adapter.h"
 #include "kis_pixel_selection.h"
 #include "flake/kis_shape_selection.h"
-#include "commands/kis_selection_commands.h"
+#include "commands/KisDeselectActiveSelectionCommand.h"
 #include "kis_selection_mask.h"
 #include "flake/kis_shape_layer.h"
 #include "canvas/kis_selection_decoration.h"
