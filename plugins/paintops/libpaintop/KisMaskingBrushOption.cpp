@@ -16,7 +16,6 @@
 
 #include <QDomDocument>
 #include "kis_brush.h"
-#include "kis_image.h"
 #include "kis_image_config.h"
 
 #include "KisMaskingBrushOptionProperties.h"

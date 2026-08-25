@@ -6,7 +6,6 @@
 
 #include "KisReselectActiveSelectionCommand.h"
 
-#include "kis_image.h"
 #include "kis_node.h"
 #include "kis_layer.h"
 #include "kis_selection_mask.h"

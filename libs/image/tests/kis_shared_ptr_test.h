@@ -26,6 +26,9 @@ private Q_SLOTS:
     void testInvalidWeakSPToSPCopy();
     void testWeakSPAssignToWeakSP();
     void testWeakSPToWeakSPCopy();
+    void testWeakSPIncompleteTypeCopy();
+    void testWeakSPCopyLifetime();
+    void testWeakSPSelfAssignment();
     void testRestrictedPointer();
     void testRestrictedPointerNoBackward();
 };

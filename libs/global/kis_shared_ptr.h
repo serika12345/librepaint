@@ -262,13 +262,12 @@ public:
      * Copies a pointer.
      * @param o the pointer to copy
      */
-    inline KisWeakSharedPtr(const KisWeakSharedPtr<T>& o) {
+    inline KisWeakSharedPtr(const KisWeakSharedPtr<T>& o)
+        : d(0), weakReference(0) {
         if (o.isConsistent()) {
-            load(o.d);
-        }
-        else {
-            d = 0;
-            weakReference = 0;
+            d = o.d;
+            weakReference = o.weakReference;
+            refWeakReference();
         }
     }
 
@@ -450,13 +449,28 @@ private:
     }
 
     inline void attach(const KisWeakSharedPtr& o) {
-        detach();
-        if (o.isConsistent()) {
-            load(o.d);
+        if (this != &o) {
+            T *newValue = 0;
+            QAtomicInt *newWeakReference = 0;
+
+            if (o.isConsistent()) {
+                newValue = o.d;
+                newWeakReference = o.weakReference;
+
+                if (newWeakReference) {
+                    newWeakReference->fetchAndAddOrdered(WEAK_REF);
+                }
+            }
+
+            detach();
+            d = newValue;
+            weakReference = newWeakReference;
         }
-        else {
-            d = 0;
-            weakReference = 0;
+    }
+
+    inline void refWeakReference() {
+        if (weakReference) {
+            weakReference->fetchAndAddOrdered(WEAK_REF);
         }
     }
 

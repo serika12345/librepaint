@@ -43,7 +43,6 @@
 
 #include "kis_global.h"
 #include "kis_gbr_brush.h"
-#include "kis_image.h"
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisTagFilterResourceProxyModel.h>
