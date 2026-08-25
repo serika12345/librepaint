@@ -78,6 +78,7 @@
 #include "canvas/kis_mirror_manager.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/KisDecorationsManager.h"
+#include "kis_tool.h"
 #include "tool/kis_paintop_box.h"
 #include "application/KisPart.h"
 #include <KoUpdater.h>
@@ -1581,6 +1582,13 @@ void KisViewManager::slotActivateTransformTool()
     }
 
     KoToolManager::instance()->switchToolRequested("KisToolTransform");
+}
+
+void KisViewManager::activateTransformToolWithExternalSource(KisPaintDeviceSP externalSource)
+{
+    KisTool *tool = dynamic_cast<KisTool*>(KoToolManager::instance()->toolById(canvasBase(), "KisToolTransform"));
+    KIS_ASSERT(tool);
+    tool->newActivationWithExternalSource(externalSource);
 }
 
 void KisViewManager::slotToggleFgBg()

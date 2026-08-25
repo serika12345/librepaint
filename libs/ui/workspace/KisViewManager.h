@@ -220,6 +220,8 @@ public:
     static void initializeResourceManager(KoCanvasResourceProvider *resourceManager);
     static void testingInitializeOpacityToPresetResourceConverter(KoCanvasResourceProvider *resourceManager);
 
+    void activateTransformToolWithExternalSource(KisPaintDeviceSP externalSource);
+
 public Q_SLOTS:
 
     void switchCanvasOnly(bool toggled);

@@ -11,8 +11,8 @@
 #include "application/kis_config.h"
 #include "kis_image.h"
 #include "workspace/KisViewManager.h"
+#include <KoToolManager.h>
 #include <KoToolProxy.h>
-#include "kis_tool.h"
 #include "kis_canvas2.h"
 #include <KoCanvasController.h>
 #include "kis_paint_device.h"
@@ -375,9 +375,7 @@ void KisPasteIntoActionFactory::run(KisViewManager *viewManager)
         KisProcessingApplicator::runSingleCommandStroke(viewManager->image(), deselectCmd);
     }
 
-    KisTool* tool = dynamic_cast<KisTool*>(KoToolManager::instance()->toolById(viewManager->canvasBase(), "KisToolTransform"));
-    KIS_ASSERT(tool);
-    tool->newActivationWithExternalSource(clip);
+    viewManager->activateTransformToolWithExternalSource(clip);
 }
 
 void KisPasteNewActionFactory::run(KisViewManager *viewManager)
