@@ -4,5 +4,5 @@ set(kritaimageenhancement_SOURCES
     kis_wavelet_noise_reduction.cpp
     )
 kis_add_library(kritaimageenhancement MODULE ${kritaimageenhancement_SOURCES})
-target_link_libraries(kritaimageenhancement kritaui)
+target_link_libraries(kritaimageenhancement kritaapplicationui)
 install(TARGETS kritaimageenhancement  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

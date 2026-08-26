@@ -9,5 +9,5 @@ ki18n_wrap_ui(kritagradientgenerator_SOURCES
     )
 
 kis_add_library(kritagradientgenerator MODULE ${kritagradientgenerator_SOURCES})
-target_link_libraries(kritagradientgenerator kritaui)
+target_link_libraries(kritagradientgenerator kritaapplicationui)
 install(TARGETS kritagradientgenerator DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

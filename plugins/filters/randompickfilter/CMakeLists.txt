@@ -10,6 +10,6 @@ ki18n_wrap_ui(kritarandompickfilter_SOURCES
 
 kis_add_library(kritarandompickfilter MODULE ${kritarandompickfilter_SOURCES})
 
-target_link_libraries(kritarandompickfilter kritaui)
+target_link_libraries(kritarandompickfilter kritaapplicationui)
 
 install(TARGETS kritarandompickfilter  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

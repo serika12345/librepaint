@@ -4,5 +4,5 @@ set(kritafastcolortransferfilter_SOURCES
 )
 ki18n_wrap_ui(kritafastcolortransferfilter_SOURCES wdgfastcolortransfer.ui)
 kis_add_library(kritafastcolortransferfilter MODULE ${kritafastcolortransferfilter_SOURCES})
-target_link_libraries(kritafastcolortransferfilter kritaui)
+target_link_libraries(kritafastcolortransferfilter kritaapplicationui)
 install(TARGETS kritafastcolortransferfilter  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

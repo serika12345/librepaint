@@ -7,5 +7,5 @@ set(kritaphongbumpmap_SOURCES
 
 ki18n_wrap_ui(kritaphongbumpmap_SOURCES wdgphongbumpmap.ui)
 kis_add_library(kritaphongbumpmap MODULE ${kritaphongbumpmap_SOURCES})
-target_link_libraries(kritaphongbumpmap kritaui)
+target_link_libraries(kritaphongbumpmap kritaapplicationui)
 install(TARGETS kritaphongbumpmap  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

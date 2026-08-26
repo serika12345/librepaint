@@ -5,7 +5,7 @@ ki18n_wrap_ui(kritathreshold_SOURCES
     )
 
 kis_add_library(kritathreshold MODULE ${kritathreshold_SOURCES})
-target_link_libraries(kritathreshold kritaui)
+target_link_libraries(kritathreshold kritaapplicationui)
 install(TARGETS kritathreshold  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES
     threshold.action

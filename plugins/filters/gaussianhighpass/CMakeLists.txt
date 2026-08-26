@@ -10,7 +10,7 @@ ki18n_wrap_ui(kritahighpassfilter_SOURCES
 
 kis_add_library(kritagaussianhighpassfilter MODULE ${kritahighpassfilter_SOURCES})
 
-target_link_libraries(kritagaussianhighpassfilter kritaui)
+target_link_libraries(kritagaussianhighpassfilter kritaapplicationui)
 
 install(TARGETS kritagaussianhighpassfilter  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES

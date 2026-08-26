@@ -10,6 +10,6 @@ ki18n_wrap_ui(kritamultigridpatterngenerator_SOURCES
 
 kis_add_library(kritamultigridpatterngenerator MODULE ${kritamultigridpatterngenerator_SOURCES})
 
-target_link_libraries(kritamultigridpatterngenerator kritaui)
+target_link_libraries(kritamultigridpatterngenerator kritaapplicationui)
 
 install(TARGETS kritamultigridpatterngenerator  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

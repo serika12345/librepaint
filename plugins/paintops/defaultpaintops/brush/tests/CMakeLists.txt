@@ -7,5 +7,5 @@ kis_add_test(KisDabRenderingQueueTest.cpp
 
 krita_add_broken_unit_test(kis_brushop_test.cpp ../../../../../sdk/tests/stroke_testing_utils.cpp
     TEST_NAME KisBrushOpTest
-    LINK_LIBRARIES kritaui kritalibpaintop kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritalibpaintop kritatestsdk
     )

@@ -23,7 +23,7 @@ ki18n_wrap_ui(kritamypaintop_SOURCES wdgmypaintoptions.ui wdgmypaintcurveoption.
 
 kis_add_library(kritamypaintop_static STATIC ${kritamypaintop_SOURCES})
 
-target_link_libraries(kritamypaintop_static kritalibpaintop LibMyPaint::mypaint kritawidgetutils kritaui kritalibbrush kritaresources)
+target_link_libraries(kritamypaintop_static kritalibpaintop LibMyPaint::mypaint kritawidgetutils kritaapplicationui kritalibbrush kritaresources)
 
 kis_add_library(kritamypaintop MODULE MyPaintPaintOpPlugin.cpp)
 
