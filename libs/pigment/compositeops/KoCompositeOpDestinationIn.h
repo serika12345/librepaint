@@ -9,6 +9,7 @@
 #define _KOCOMPOSITEOPDESTINATIONIN_H_
 
 #include "KoCompositeOpBase.h"
+#include "KoCompositeOpRegistry.h"
 
 /**
  *  Generic implementation of the Destination-in composite op, based off the behind composite op.

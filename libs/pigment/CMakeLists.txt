@@ -119,3 +119,44 @@ set_target_properties(kritapigment PROPERTIES
 )
 
 install(TARGETS kritapigment  ${INSTALL_TARGETS_DEFAULT_ARGS})
+
+if(BUILD_TESTING)
+    file(GLOB_RECURSE kritapigment_header_self_containment_headers
+        CONFIGURE_DEPENDS
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "*.h"
+    )
+    list(FILTER kritapigment_header_self_containment_headers EXCLUDE REGEX
+        "(^|/)[^/]+_p\\.h$"
+    )
+    list(FILTER kritapigment_header_self_containment_headers EXCLUDE REGEX
+        "(^|/)(3rdparty|benchmarks|tests)/"
+    )
+
+    # KoStreamedMath.h selects this version-specific implementation for
+    # xsimd < 10. The current dependency profile validates its xsimd >= 10 path.
+    list(REMOVE_ITEM kritapigment_header_self_containment_headers
+        "compositeops/KoRgbaInterleavers.h"
+    )
+
+    set(kritapigment_header_self_containment_sources)
+    foreach(header IN LISTS kritapigment_header_self_containment_headers)
+        string(REPLACE "/" "__" source_name "${header}")
+        set(source_path
+            "${CMAKE_CURRENT_BINARY_DIR}/header_self_containment/${source_name}.cpp"
+        )
+        file(GENERATE OUTPUT "${source_path}" CONTENT "#include \"${header}\"\n")
+        list(APPEND kritapigment_header_self_containment_sources "${source_path}")
+    endforeach()
+
+    add_library(kritapigment_header_self_containment OBJECT
+        ${kritapigment_header_self_containment_sources}
+    )
+    target_link_libraries(kritapigment_header_self_containment PRIVATE
+        kritapigment
+    )
+    set_target_properties(kritapigment_header_self_containment PROPERTIES
+        AUTOMOC OFF
+        UNITY_BUILD OFF
+    )
+endif()

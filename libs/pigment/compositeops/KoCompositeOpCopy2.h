@@ -11,6 +11,7 @@
 #define KO_COMPOSITEOP_COPY2_H
 
 #include "KoCompositeOpBase.h"
+#include "KoCompositeOpRegistry.h"
 
 /**
  * Generic implementation of the COPY composite op which respects selection.

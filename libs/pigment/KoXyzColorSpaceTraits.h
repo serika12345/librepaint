@@ -7,7 +7,7 @@
 #ifndef _KO_XYZ_COLORSPACE_TRAITS_H_
 #define _KO_XYZ_COLORSPACE_TRAITS_H_
 
-
+#include <KoColorSpaceTrait.h>
 
 /** 
  * Base class for Xyz traits, it provides some convenient functions to

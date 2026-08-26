@@ -10,6 +10,7 @@
 #define KOSIMPLECOLORSPACEFACTORY_H_
 
 #include "KoColorConversionTransformationFactory.h"
+#include "KoColorSpaceFactory.h"
 #include <colorprofiles/KoDummyColorProfile.h>
 
 #include <KoColorModelStandardIds.h>

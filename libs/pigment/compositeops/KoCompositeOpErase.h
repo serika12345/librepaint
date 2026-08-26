@@ -8,7 +8,9 @@
 #define KOCOMPOSITEOPERASE_H_
 
 #include "KoColorSpaceMaths.h"
+#include "KoColorSpaceConstants.h"
 #include "KoCompositeOp.h"
+#include "KoCompositeOpRegistry.h"
 
 #define NATIVE_OPACITY_OPAQUE KoColorSpaceMathsTraits<channels_type>::unitValue
 #define NATIVE_OPACITY_TRANSPARENT KoColorSpaceMathsTraits<channels_type>::zeroValue

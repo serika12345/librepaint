@@ -8,6 +8,7 @@
 #define _KOCOMPOSITEOPBEHIND_H_
 
 #include "KoCompositeOpBase.h"
+#include "KoCompositeOpRegistry.h"
 
 /**
  *  Generic implementation of the Behind composite op, which blends the colors of a foreground layer as if it were in the background instead

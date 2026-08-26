@@ -13,6 +13,9 @@
 #pragma GCC diagnostic ignored "-Wcast-align"
 #endif
 
+#include <QColor>
+
+#include "KoColorSpace.h"
 #include "KoColorTransformation.h"
 
 template<typename _lab_channels_type_>
