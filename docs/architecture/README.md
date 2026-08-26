@@ -155,8 +155,8 @@ include元で解決する。
 R1-G3bで定義する許可依存方向の比較元になる。
 
 `kritaapplicationui`はアプリケーション調整の実所有ターゲットであり、UIクラスの責務分類が
-文書、キャンバス、ツールの概念上の帰属を記録する。`kritaui`は同ターゲットへ転送する
-ソースなしのCMake互換集約である。
+文書、キャンバス、ツールの概念上の帰属を記録する。製品と試験は各機能の実所有ターゲットへ
+直接接続する。
 `plugin-infrastructure`は全172登録の発見機構を所有し、各機能責務は同じ登録を機能領域として
 参照する。機構の所有と機能の所有を、この二つの軸で表現する。
 
@@ -272,36 +272,33 @@ Windows 236件であり、現在の非自明な強連結成分は両範囲、全
 パッケージ外参照が0件であり、`kritainputui`も宣言済み公開面を利用する。
 全15所有ターゲットで内部ヘッダーとパッケージ外直接参照は各0件である。
 
-### パッケージ再配置計画
+### 責務別の所有先
 
-[パッケージ再配置計画](package-relocation-plan.json)は、現在の10責務を目標ディレクトリー、
-C++名前空間、主CMakeターゲット、許可依存、移行段階へ対応付ける。既存の凝集した
-実装ターゲットは保持し、新しい責務接続面と表示部分だけを独立ターゲットとして追加する。
+現在の10責務は、所有ディレクトリー、公開APIの名前空間、主CMakeターゲットを次のように
+対応付ける。新しい公開APIは対応する責務名前空間を使用し、所有ターゲットの公開面へ登録する。
 
-| 責務 | 目標ディレクトリー | 新しいAPIの名前空間 | 主ターゲット | 移行段階 |
-| --- | --- | --- | --- | --- |
-| プラグイン基盤 | `libs/koplugin` | `Krita::Plugin` | `kritaplugin` | 現行境界を保持 |
-| リソース管理 | `libs/resources` | `Krita::Resources` | `kritaresources` | R1-G6a |
-| 描画 | `libs/painting` | `Krita::Painting` | `kritapainting` | R1-G6b |
-| 入出力 | `libs/impex` | `Krita::ImportExport` | `kritaimpex` | R1-G6c |
-| キャンバス表示 | `libs/canvas` | `Krita::Canvas` | `kritacanvas` | R1-G6d |
-| 文書寿命 | `libs/document` | `Krita::Document` | `kritadocument` | R1-G6e |
-| ツール呼出し | `libs/tools` | `Krita::Tools` | `kritatools` | R1-G6f |
-| 入力解釈 | `libs/input` | `Krita::Input` | `kritainput` | R1-G6g |
-| アプリケーション設定 | `libs/application` | `Krita::ApplicationConfiguration` | `kritaapplication` | R1-G6h |
-| アプリケーション調整 | `libs/application/ui` | `Krita::Application` | `kritaapplicationui` | R1-G6h |
+| 責務 | 所有ディレクトリー | 新しいAPIの名前空間 | 主ターゲット |
+| --- | --- | --- | --- |
+| プラグイン基盤 | `libs/koplugin` | `Krita::Plugin` | `kritaplugin` |
+| リソース管理 | `libs/resources` | `Krita::Resources` | `kritaresources` |
+| 描画 | `libs/painting` | `Krita::Painting` | `kritapainting` |
+| 入出力 | `libs/impex` | `Krita::ImportExport` | `kritaimpex` |
+| キャンバス表示 | `libs/canvas` | `Krita::Canvas` | `kritacanvas` |
+| 文書寿命 | `libs/document` | `Krita::Document` | `kritadocument` |
+| ツール呼出し | `libs/tools` | `Krita::Tools` | `kritatools` |
+| 入力解釈 | `libs/input` | `Krita::Input` | `kritainput` |
+| アプリケーション設定 | `libs/application` | `Krita::ApplicationConfiguration` | `kritaapplication` |
+| アプリケーション調整 | `libs/application/ui` | `Krita::Application` | `kritaapplicationui` |
 
-未実装の責務間では許可依存の下位を先行させる。実装済み責務は移行段階を実施履歴として保持し、
-現在の層、許可方向、有向非巡回性を依存方針で検査する。各段階は必要な特性試験、移動元と移動先、
-作成ターゲット、一時互換経路、完了条件、中止条件を持つ。確認済み逆方向includeの
-初期上限と段階別上限は321、274、179、179、106、106、106、75、0と縮小する。内部ヘッダーの
-直接参照は全所有ターゲットで0件である。
+責務地図、許可依存方針、直接依存検査、構造依存検査が、現在の所有、依存方向、
+有向非巡回性、公開ヘッダー境界を継続して確認する。内部ヘッダーのパッケージ外参照は
+全所有ターゲットで0件である。
 
 `libs/ui/tool`の公開ヘッダーは、画面表示、入力、ストローク作成、描画実行を接続する
 `kritaapplicationui`所有の実装である。ツール命令と設定値は`libs/tools`、設定表示は
 `libs/tools/ui`が所有する。既存の公開大域C++識別子は確立済みのAPI・ABI名を維持し、
-新しいAPIは上表の責務名前空間を使用する。再配置計画が追跡する一時互換経路は、
-`kritaui` CMake集約の1件である。
+新しいAPIは上表の責務名前空間を使用する。`kritaapplicationui`が生成する
+`KRITAUI_EXPORT`と生成ヘッダーの`kritaui`基底名は、既存ABIの公開名を維持する。
 
 最初の実装段階R1-G6aは、`libs/store`の書庫保存を`libs/resources/storage`の
 `kritaresourcestorage`へ、XML直列化を`libs/serialization/xml`の
@@ -639,11 +636,10 @@ R1-G6hは、アプリケーション設定、プロセス調整、作業空間�
 `kritaapplicationui`はアプリケーション調整と既存UI実装を所有し、macOS、Linux、Android、
 Windowsでは共有ライブラリー、iOSでは静的ライブラリーとして構築する。
 `kritaapplicationui`から`kritaapplication`への直接依存を5構成で持ち、逆方向依存と循環は0件である。
-`kritaui`はソースを持たない`INTERFACE`互換集約として`kritaapplicationui`へ転送する。
 
 `libs/ui`のrootは`CMakeLists.txt`と`kritaui_export_instance.h`を持つ。CMake定義は現在の
-`kritaapplicationui`へのソース登録と`kritaui`互換集約を所有し、公開記号設定ヘッダーは
-共有ターゲットのテンプレート記号設定を所有する。
+`kritaapplicationui`へのソース、生成UI、条件付き実装の登録を所有し、公開記号設定ヘッダーは
+同ライブラリーのテンプレート記号設定を所有する。
 入出力表示は`impex`、Qt事象接続は`events`、フォントと配色は`theme`、macOS接続と資産は
 `platform`、資源表示は`resources`、図形選択接続は`flake`、履歴アクション接続は`actions`に
 配置する。公開ヘッダーの利用元は責務別の入れ子経路を使い、各翻訳単位とUI資産は
@@ -653,8 +649,7 @@ Windowsでは共有ライブラリー、iOSでは静的ライブラリーとし�
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
 公開根拠として台帳へ記録し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
 
-再配置計画は`kritaui`互換経路に導入段階、R1-G7の所有者、最大範囲、削除条件、
-検証方法を割り当てる。依存検査は10責務と5構成の現行ターゲットから、
+依存検査は10責務と5構成の現行ターゲットから、
 逆方向依存、未確定射影、循環、内部参照が各0件であることを直接確認する。
 
 メインウィンドウの画像状態操作は、次の開始箇所と具体所有へ接続する。
@@ -856,13 +851,17 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 | --- | --- |
 | `krita/` | 実行形式、起動、アプリ資産、OS別のプロセス統合 |
 | `libs/global`、`libs/widgetutils`、`libs/widgets` | 共通基盤、Qt補助部品、再利用画面部品 |
-| `libs/ui` | アプリケーション調整、文書、ウィンドウ、キャンバス、入力、ツール共通部 |
+| `libs/application`、`libs/application/ui` | 設定、スナップ方針、プラットフォーム接続、起動調整、ウィンドウ、作業空間 |
+| `libs/ui` | 文書、キャンバス、資源、図形、入力、ツールの表示と操作接続 |
+| `libs/document` | 文書状態、文書ファイル、文書表示、取り消し履歴との接続 |
+| `libs/canvas` | 座標変換、投影表示、表示色、アニメーションキャッシュ、作業空間表示状態 |
+| `libs/input`、`libs/input/ui` | 入力列の解釈、Qt事象接続、入力設定、プラットフォーム入力統合 |
+| `libs/tools`、`libs/tools/ui` | ツール命令と状態、描画設定、パレット、プリセットの表示 |
 | `libs/image` | 画像・ノード・画素タイル・投影・ストローク・更新処理 |
 | `libs/painting` | 描画ストローク、画像・キャンバス向け取り消し処理、画像メタデータ、描画用資源スナップショット |
 | `libs/brush`、`libs/pigment`、`libs/color` | ブラシ資産、色空間、色変換・合成の基盤 |
 | `libs/flake`、`libs/basicflakes` | ベクター図形、キャンバス、図形ツールの基盤 |
 | `libs/resources`、`libs/resources/ui` | リソース永続化、検索、タグ、バンドルと汎用管理画面 |
-| `libs/tools/ui` | 描画ツールの設定、パレット、プリセットの表示 |
 | `libs/resources/storage`、`libs/serialization/xml` | コンテナーI/OとXML直列化 |
 | `libs/painting/metadata`、`libs/psd*` | 画像メタデータとPSD共通実装 |
 | `libs/koplugin` | プラグイン探索とメタデータ照会 |

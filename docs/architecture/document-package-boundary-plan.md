@@ -45,9 +45,10 @@
 | `libs/document/files` | `kritadocumentfiles` | 文書ファイル、バックアップ、自動保存ファイル、回復ファイルの具体処理 | `kritadocument`、`kritaimpex`、描画、リソースの公開面を利用する |
 | `libs/document/ui` | `kritadocumentui` | 履歴接続と表示、文書情報編集、保存・読込のダイアログ、状態表示、Qt通知 | `kritadocumentfiles`、`kritadocument`、`kritaimpex`を利用する |
 
-`kritadocument`は`kritadocumentfiles`と`kritadocumentui`へ依存しない。
-`kritadocumentfiles`は`kritadocumentui`と`kritaui`へ依存しない。
-`kritadocumentui`が文書の具体機能を呼び出す最上位の文書パッケージとなる。
+文書パッケージは`kritadocument`、`kritadocumentfiles`、`kritadocumentui`の順に上位責務を
+積み上げる。
+`kritadocumentfiles`は`kritadocument`、`kritaimpex`、描画、リソースの公開面を利用する。
+`kritadocumentui`が文書の具体機能を呼び出す最上位の文書パッケージである。
 
 形式選択と形式変換は既存`kritaimpex`と`kritaimpexui`が所有する。文書ファイル保存から
 必要な公開面を直接利用し、同じ処理を包む新しい形式変換接続面は作らない。
@@ -161,7 +162,7 @@
 - 文書パッケージ内の依存が`kritadocumentui`から`kritadocumentfiles`、
   `kritadocumentfiles`から`kritadocument`へ一方向に向く。
 - `kritadocument`の公開リンク閉包がQt Coreだけで構成される。
-- 文書表示と文書ファイル保存が`kritaui`ではなく、具体名を持つ所有ターゲットへ集約される。
+- 文書表示は`kritadocumentui`、文書ファイル保存は`kritadocumentfiles`へ集約される。
 - 形式選択と形式変換が既存の入出力所有に残り、重複する抽象接続面がない。
 - このマイルストーンだけを根拠とする汎用利用事例、汎用永続化、接続面、アダプター、
   サービス探索器、共通基底クラス、空ターゲットが存在しない。

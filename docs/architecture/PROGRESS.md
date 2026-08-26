@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-26 21:27 JST
-- 状態: `in_progress`
-- 現在の検査段階: R1-G7 移行層の削除と文書同期
-- 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
+- 更新日時: 2026-08-27 01:28 JST
+- 状態: `planned`
+- 現在の検査段階: R2 現行挙動の最初の契約棚卸し
+- 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: 移行済みの具体所有へ利用元を直接接続し、ソースを持たない`kritaui`互換集約を
-  責務別のCMakeターゲットへ置き換える。
+- 目的: 入力から表示までの現行経路、観測可能な状態、不変条件、既存の特性試験を棚卸しし、
+  最初の小さな契約検査を定義する。
 
 ## 再開環境
 
@@ -183,7 +183,7 @@
 
 ## R1-G5で完了した作業
 
-- `docs/architecture/package-relocation-plan.json`に9責務の現行所有者と、目標
+- R1-G5再配置計画台帳に9責務の現行所有者と、目標
   ディレクトリー、`Krita`名前空間、主CMakeターゲット、許可依存、完了条件を対応付けた。
 - プラグイン基盤の現行境界を第0層として保持し、リソース、描画、入出力、キャンバス、
   文書、ツール、入力、アプリケーションの順にR1-G6aからR1-G6hまでの8段階を確定した。
@@ -2086,10 +2086,33 @@
 - `nix develop .#test --command ./scripts/verify`は全製品と試験の構築、CTest 354件に
   成功した。
 
+## R1-G7移行層の削除とR1完了同期で完了した作業
+
+- `c5dce85b`から`c7f94355`までに、基盤、入出力、描画、UI、ツール、プラットフォームの
+  製品と試験を責務別の実所有ターゲットへ直接接続した。`c26f2091`で`kritaui` CMake
+  ターゲットを削除し、5構成のターゲット、依存、構築成果物を各0件にした。
+- 汎用のグラデーション編集部品8ファイルを
+  `libs/ui/widgets/gradient/{KisGradientColorEditor,KisGradientWidgetsUtils,KisStopGradientEditor,KisStopGradientSlider}.{cpp,h}`から
+  `libs/widgets/`へ移した。塗りと線の設定部品6ファイルを
+  `libs/ui/widgets/{KoFillConfigWidget,KoStrokeConfigWidget}.{cpp,h,ui}`から`libs/widgets/`へ、
+  `libs/ui/forms/wdgstopgradienteditor.ui`を`libs/widgets/wdgstopgradienteditor.ui`へ移した。
+- 10責務、27中核所有ターゲット、15所有ターゲットの公開境界を現在の責務地図、許可依存方針、
+  公開面台帳へ固定した。macOS 681件、Linux 696件、iOS 614件、Android 620件、Windows
+  650件のCMake台帳は旧ターゲットとその依存を含まず、中核ターゲットと全製品ターゲットの
+  循環は各0件である。5構成の製品構築は各実所有ライブラリーと製品のリンクに成功した。
+- 完了した再配置計画台帳、その専用検査器と単体試験を退役した。高速検査は責務地図、許可依存、
+  公開面、直接依存、構造依存を現在のソースと5構成グラフから直接検査する。
+- `nix develop .#test --command ./scripts/verify-quick`は88件の運用試験、6更新器の決定性、
+  公開面、責務地図、許可依存、直接依存、構造依存、統治、文書、リンク、D2生成物の検査に
+  成功した。文書検査はMarkdown、43リンク、3件のD2と生成済みSVGの一致を確認した。
+  `nix develop .#test --command ./scripts/verify`は全製品と試験の構築、CTest 354件に成功し、
+  `nix flake check --no-build --all-systems --no-eval-cache`は全Nix出力の評価に成功した。
+
 ## 次の操作
 
-R1-G7の`kritaui`移行層削除を開始する。基盤、入出力、描画、UI、ツール、プラットフォームの
-利用元を責務別CMakeターゲットへ直接接続し、5構成の依存グラフとSDKメタデータを更新する。
+入力から表示までの現行経路と分岐、各段階の観測可能な状態と不変条件、既存の特性試験を
+棚卸しする。最初に固定する挙動と観測点を選び、R2最初の小さな検査段階として目的、範囲、
+完了条件、検証階層、中止条件を定義する。
 
 ## R1-G5完了根拠
 
