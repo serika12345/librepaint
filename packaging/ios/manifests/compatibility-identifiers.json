@@ -148,60 +148,60 @@
           "value": "kritadisplayrc"
         },
         {
-          "source": "libs/impex/metadata/KoDocumentInfo.cpp",
-          "value": "kritarc"
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
         },
         {
-          "source": "libs/ui/application/KisApplication.cpp",
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/kis_config.cc",
+          "value": "/kritadisplayrc"
+        },
+        {
+          "source": "libs/application/ui/orchestration/KisApplication.cpp",
           "value": "/kritarc"
         },
         {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
-        },
-        {
-          "source": "libs/ui/application/kis_config.cc",
-          "value": "/kritadisplayrc"
+          "source": "libs/impex/metadata/KoDocumentInfo.cpp",
+          "value": "kritarc"
         },
         {
           "source": "libs/ui/dialogs/KisDlgCustomTabletResolution.cpp",
@@ -237,6 +237,10 @@
       "record_count": 8,
       "records": [
         {
+          "source": "libs/application/ui/orchestration/KisApplication.cpp",
+          "value": "/share/krita"
+        },
+        {
           "source": "libs/resources/KoResourcePaths.cpp",
           "value": "/../share/krita/"
         },
@@ -263,10 +267,6 @@
         {
           "source": "libs/resources/KoResourcePaths.cpp",
           "value": "share/krita/"
-        },
-        {
-          "source": "libs/ui/application/KisApplication.cpp",
-          "value": "/share/krita"
         }
       ]
     }

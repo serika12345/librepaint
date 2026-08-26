@@ -5,8 +5,10 @@ if (ANDROID)
     # See also: https://bugreports.qt.io/browse/QTBUG-64703
     # This is not needed for ARM GNU/Linux environments.
     add_definitions(-DQT_OPENGL_ES_3)
+    target_compile_definitions(kritaapplicationui PRIVATE QT_OPENGL_ES_3)
     if (QT_MAJOR_VERSION STREQUAL "5")
         include_directories (${Qt5AndroidExtras_INCLUDE_DIRS})
+        target_include_directories(kritaapplicationui PRIVATE ${Qt5AndroidExtras_INCLUDE_DIRS})
     endif()
 endif()
 
@@ -387,7 +389,7 @@ if(APPLE AND NOT IOS)
     )
 endif()
 
-ki18n_wrap_ui(kritaui_LIB_SRCS
+ki18n_wrap_ui(kritaui_UI_HEADERS
     widgets/KoFillConfigWidget.ui
     widgets/KoStrokeConfigWidget.ui
     widgets/KisDitherWidget.ui
@@ -464,7 +466,7 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
 )
 
 if(WIN32)
-    ki18n_wrap_ui(kritaui_LIB_SRCS
+    ki18n_wrap_ui(kritaui_UI_HEADERS
         dialogs/KisDlgCustomTabletResolution.ui
     )
 endif()
@@ -479,7 +481,27 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
     )
 endif()
 
-target_sources(kritaapplicationui PRIVATE ${kritaui_HEADERS_MOC} ${kritaui_LIB_SRCS})
+set_source_files_properties(
+    ${kritaui_UI_HEADERS}
+    TARGET_DIRECTORY kritaapplicationui
+    PROPERTIES GENERATED TRUE
+)
+add_custom_target(
+    kritaapplicationui_generated_ui_headers
+    DEPENDS ${kritaui_UI_HEADERS}
+)
+add_dependencies(
+    kritaapplicationui
+    kritaapplicationui_generated_ui_headers
+)
+
+target_sources(
+    kritaapplicationui
+    PRIVATE
+        ${kritaui_UI_HEADERS}
+        ${kritaui_HEADERS_MOC}
+        ${kritaui_LIB_SRCS}
+)
 
 if(IOS)
     # Qt 6 exposes the GLES backend through QT_CONFIG(opengles2), while this
@@ -488,6 +510,7 @@ if(IOS)
         opengl/kis_opengl.cpp
         opengl/kis_opengl_image_textures.cpp
         opengl/kis_texture_tile.cpp
+        TARGET_DIRECTORY kritaapplicationui
         PROPERTIES COMPILE_DEFINITIONS QT_OPENGL_ES_2
     )
 endif()
@@ -552,6 +575,7 @@ if(WIN32)
         dialogs/KisDlgCustomTabletResolution.cpp
         opengl/KisScreenInformationAdapter.cpp
         dialogs/kis_dlg_preferences.cc # for WinTab switching API
+        TARGET_DIRECTORY kritaapplicationui
         PROPERTIES
         INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )
@@ -562,6 +586,7 @@ elseif(ANDROID)
     if(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT)
         set_source_files_properties(
             canvas/KisAndroidScaling.cpp
+            TARGET_DIRECTORY kritaapplicationui
             PROPERTIES
             INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )
@@ -571,6 +596,7 @@ endif()
 if (HAVE_X11)
     set_source_files_properties(
         opengl/KisOpenGLModeProber.cpp
+        TARGET_DIRECTORY kritaapplicationui
         PROPERTIES
         INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )
