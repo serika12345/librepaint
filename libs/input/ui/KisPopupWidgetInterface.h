@@ -11,6 +11,8 @@
 #include <QObject>
 #include <QPoint>
 
+#include <kritainputui_export.h>
+
 /**
  * @brief The PopupWidgetInterface abstract class defines
  * the basic interface that will be used by all popup widgets.
@@ -18,7 +20,7 @@
  * Classes that implement this interface should use `Q_INTERFACES(KisPopupWidgetInterface)`!
  * This is needed in order to include signals in the interface.
  */
-class KisPopupWidgetInterface {
+class KRITAINPUTUI_EXPORT KisPopupWidgetInterface {
 public:
     virtual ~KisPopupWidgetInterface() {}
 

@@ -2,13 +2,14 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 11:04 JST
+- 更新日時: 2026-08-26 14:16 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
+- 現在の検査段階: R1-G6h アプリケーション調整境界
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: `kritainputui`を独立共有ライブラリーとして構築し、入力表示を利用する製品ターゲットを
-  その具体所有へ直接接続する。
+- 目的: 起動、終了、作業空間、ウィンドウ、OSライフサイクルの既存契約を照合し、
+  `libs/ui`のアプリケーション調整と作業空間表示を`libs/application`と
+  `libs/application/ui`の具体所有へ移す最初の検査単位を確定する。
 
 ## 再開環境
 
@@ -1976,10 +1977,79 @@
 - 固定Nix環境の`./scripts/verify-quick`は105件の運用試験、生成台帳、依存方向、
   製品ターゲット循環、移設元消滅、移設先実在、CMake所有、ソース行数、文書と図の検査に成功した。
 
+## R1-G6g入力UI共有ライブラリー境界で完了した作業
+
+- 入力のQt事象接続、設定表示、診断、プラットフォーム統合を`libs/input/ui`に集約し、
+  アプリケーション状態とキャンバス表示を扱う実装を次の所有先へ対応させた。
+  - `libs/input/ui/KisCanvasOnlyAction.{h,cpp}`から
+    `libs/ui/actions/input/KisCanvasOnlyAction.{h,cpp}`。
+  - `libs/input/ui/KisTouchGestureAction.{h,cpp}`から
+    `libs/ui/actions/input/KisTouchGestureAction.{h,cpp}`。
+  - `libs/input/ui/kis_change_frame_action.{h,cpp}`から
+    `libs/ui/actions/input/kis_change_frame_action.{h,cpp}`。
+  - `libs/input/ui/kis_gamma_exposure_action.{h,cpp}`から
+    `libs/ui/actions/input/kis_gamma_exposure_action.{h,cpp}`。
+  - `libs/input/ui/kis_pan_action.{h,cpp}`から`libs/ui/actions/input/kis_pan_action.{h,cpp}`。
+  - `libs/input/ui/kis_rotate_canvas_action.{h,cpp}`から
+    `libs/ui/actions/input/kis_rotate_canvas_action.{h,cpp}`。
+  - `libs/input/ui/kis_select_layer_action.{h,cpp}`から
+    `libs/ui/actions/input/kis_select_layer_action.{h,cpp}`。
+  - `libs/input/ui/kis_zoom_action.{h,cpp}`から`libs/ui/actions/input/kis_zoom_action.{h,cpp}`。
+  - `libs/input/ui/kis_zoom_and_rotate_action.{h,cpp}`から
+    `libs/ui/actions/input/kis_zoom_and_rotate_action.{h,cpp}`。
+  - `libs/input/ui/KisQtWidgetsTweaker.{h,cpp}`から
+    `libs/ui/application/KisQtWidgetsTweaker.{h,cpp}`。
+  - `libs/ui/events/KisPopupWidgetInterface.h`から`libs/input/ui/KisPopupWidgetInterface.h`。
+  - `libs/ui/canvas/kis_tool_proxy.{h,cpp}`から`libs/input/ui/kis_tool_proxy.{h,cpp}`。
+- `libs/input/ui/kis_input_profile_manager.cpp`の入力アクション生成を
+  `libs/ui/actions/input/KisApplicationInputActions.{h,cpp}`へ配置し、`KisApplication`が生成結果を
+  プロファイル管理器へ渡す。入力UIの設定参照は`libs/input/ui/kis_input_config.{h,cpp}`が
+  既存の設定キーと既定値を扱い、入力管理器、プロファイル管理器、設定画面、タブレット診断へ
+  同じ値を提供する。
+- `KisInputManager`のキャンバス参照は`KoCanvasBase`と`KisToolCanvas`の公開面を利用し、入力UIから
+  `KisCanvas2`への具体参照を解消した。`KisPaintingAssistantsDecoration`の活動ツール能力照会は、
+  `libs/ui/canvas/kis_painting_assistants_decoration.cpp`から
+  `libs/ui/canvas/kis_canvas2.{h,cpp}`の入力接続へ集約し、キャンバス表示から入力解釈への
+  逆方向includeを0件に維持する。
+- `kritainputui`は独立したライブラリーとして公開記号、版、導入規則を所有する。
+  `KRITAINPUTUI_EXPORT`を使う13公開ヘッダーは、入力管理、入力アクション、プロファイル、設定表示、
+  タブレット診断、プラットフォーム拡張の公開面を形成する。入力UI内部ヘッダーのパッケージ外参照は
+  0件である。
+- 公開記号を利用する`kritaui`、入力UI契約試験、アニメーションドッカー、記録ドッカー、
+  iOSタッチUI、S Pen設定、Wayland、XCB、Karbonツールは`kritainputui`へ直接リンクする。
+  依存方向は`kritaui`から`kritainputui`へ向かい、`kritainputui`から`kritaui`へのリンクは0件である。
+- 5構成のCMake台帳はmacOS 678件、Linux 693件、iOS 611件、Android 617件、Windows 647件、
+  共通595件、条件付き120件、構成差267件を記録する。`kritainputui`はmacOS、Linux、Android、
+  Windowsで共有ライブラリー、iOSで製品へ静的統合するライブラリーである。26中核ターゲットと
+  macOS 227件、Linux 233件、iOS 218件、Android 218件、Windows 235件の製品ターゲットは、
+  各構成で循環0件である。
+- AndroidのQt 5構築では、`libs/widgetutils/xmlgui/KisShortcutsEditor_p.cpp`の`QAction`利用、
+  `libs/pigment/compositeops/KoAlphaDarkenParamsWrapper.cpp`と
+  `libs/ui/opengl/KisScreenInformationAdapter.cpp`の`QDebug`利用、
+  `libs/input/ui/kis_input_manager_p.cpp`の`KoPointerEvent`利用を各定義ヘッダーへ直接接続した。
+  iOS構築では、`libs/ui/canvas/kis_painting_assistants_decoration.cpp`の
+  キャンバス資源利用を`KoCanvasResourceProvider.h`と`KoCanvasResourcesIds.h`へ直接接続し、
+  `libs/ui/opengl/kis_opengl_image_textures.cpp`と`libs/ui/canvas/kis_mirror_axis.cpp`の
+  GLES拡張定数を既存の`KisOpenGLIOSCompat.h`へ接続した。
+- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`は同一の
+  `c6fdd7504c75447e85200607ce97fff72cd48d3c`を指す清浄作業ツリーでmacOS、iOS、
+  Linux、Android、WindowsのCMake台帳と差分行列を生成し、決定的更新と循環検査に成功した。
+- 最終ソースのmacOSとLinuxは`kritainputui`、`kritaui`、`krita`を共有ライブラリーと
+  実行可能ファイルへリンクした。iOSは`libkritainputui.a`と`libkritaui.a`を
+  `LibrePaint.app/LibrePaint`へ静的統合した。Androidは`libkritainputui_arm64-v8a.so`、
+  `libkritaui_arm64-v8a.so`、`libkrita_arm64-v8a.so`、Windowsは`libkritainputui.dll`、
+  `libkritaui.dll`、`krita.dll`のリンクに成功した。5構成の最終増分`krita`構築も成功した。
+- `nix develop .#test --command ./scripts/verify`は最終ソースで高速検査106件、
+  macOSの全製品と試験の構築、CTest 353件に成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`は全Nix出力の評価に成功した。
+- clangd 21.1.8で変更した9翻訳単位と1公開ヘッダーを照合し、include-cleanerの
+  未使用includeと直接include不足は0件である。
+
 ## 次の操作
 
-`kritainputui`を独立共有ライブラリーとして構築し、入力表示の公開記号を利用する製品ターゲットを
-`kritainputui`へ直接接続する。5構成のCMake台帳は共有ライブラリーの実体と循環0件を記録する。
+R1-G6hのアプリケーション調整境界を開始する。起動、終了、作業空間、ウィンドウ、OSライフサイクルの
+既存契約を照合し、`libs/ui`のアプリケーション調整と作業空間表示を`libs/application`と
+`libs/application/ui`の具体所有へ移す最初の検査単位を確定する。
 
 ## R1-G5完了根拠
 

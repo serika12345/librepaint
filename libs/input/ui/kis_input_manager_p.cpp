@@ -15,6 +15,8 @@
 
 #include <boost/preprocessor/repeat_from_to.hpp>
 
+#include <KoPointerEvent.h>
+
 #include "kis_input_manager.h"
 #include "kis_input_config.h"
 #include "kis_abstract_input_action.h"

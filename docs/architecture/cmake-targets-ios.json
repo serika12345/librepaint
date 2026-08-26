@@ -89,6 +89,17 @@
       ]
     },
     {
+      "name": "KisApplicationInputActionsTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritainputui",
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "KisBrushModelTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/brush/tests",
@@ -151,6 +162,15 @@
       "dependencies": [
         "kritaimage",
         "kritalibpaintop",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisConfigurationValueTypesTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
         "kritatestsdk"
       ]
     },
@@ -304,6 +324,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/input/ui/tests",
       "dependencies": [
+        "kritainputui",
         "kritatestsdk",
         "kritaui"
       ]
@@ -684,6 +705,16 @@
       ]
     },
     {
+      "name": "KisWorkspacePersistenceTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "KoAnchorSelectionWidgetTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/widgets/tests",
@@ -788,6 +819,26 @@
       ]
     },
     {
+      "name": "TestApplicationPaintingResourceRegistration",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "TestApplicationWorkspaceToolUiPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "TestAslStorage",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/image/tests",
@@ -803,6 +854,16 @@
       "sourceDirectory": "plugins/assistants/Assistants/tests",
       "dependencies": [
         "kritaassistanttool_static",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestBuiltInResourceLoaderRegistration",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
         "kritatestsdk"
       ]
     },
@@ -919,6 +980,16 @@
       "dependencies": [
         "kritalibkis",
         "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestDocumentStateUiPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
       ]
     },
     {
@@ -1382,6 +1453,17 @@
       "dependencies": [
         "kritapainting",
         "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestRemainingUiRootPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritainputui",
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
       ]
     },
     {
@@ -3886,6 +3968,7 @@
       "sourceDirectory": "plugins/tools/karbonplugins/tools",
       "dependencies": [
         "KF6::Completion",
+        "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
@@ -3935,6 +4018,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/animation",
       "dependencies": [
+        "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
@@ -4734,14 +4818,17 @@
     },
     {
       "name": "kritainputui",
-      "type": "OBJECT_LIBRARY",
+      "type": "STATIC_LIBRARY",
       "sourceDirectory": "libs/input/ui",
       "dependencies": [
         "KF6::Completion",
+        "KF6::ConfigCore",
         "KF6::CoreAddons",
         "KF6::I18n",
         "KF6::ItemViews",
         "Qt6::Concurrent",
+        "Qt6::Core",
+        "Qt6::Gui",
         "Qt6::Network",
         "Qt6::OpenGLWidgets",
         "Qt6::Widgets",
@@ -4761,6 +4848,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/extensions/iostouchui",
       "dependencies": [
+        "kritainputui",
         "kritaui"
       ]
     },
@@ -5413,6 +5501,7 @@
       "sourceDirectory": "plugins/dockers/recorder",
       "dependencies": [
         "Threads::Threads",
+        "kritainputui",
         "kritaui"
       ]
     },

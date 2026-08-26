@@ -6,6 +6,7 @@
 
 #include "KisScreenInformationAdapter.h"
 
+#include <QDebug>
 #include <QOpenGLContext>
 
 #include <QGuiApplication>

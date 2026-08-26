@@ -25,6 +25,9 @@
 #include "workspace/KisView.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas_controller.h"
+#ifdef Q_OS_IOS
+#include "opengl/KisOpenGLIOSCompat.h"
+#endif
 #include "kis_algebra_2d.h"
 
 #include <KisMirrorAxisConfig.h>

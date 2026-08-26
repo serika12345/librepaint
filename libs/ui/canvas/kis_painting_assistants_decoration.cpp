@@ -19,8 +19,9 @@
 #include "document/KisDocument.h"
 #include "kis_canvas2.h"
 #include "workspace/KisViewManager.h"
+#include <KoCanvasResourceProvider.h>
+#include <KoCanvasResourcesIds.h>
 #include <KoCompositeOpRegistry.h>
-#include <input/ui/kis_tool_proxy.h>
 #include <KoColorDisplayRendererInterface.h>
 
 #include <QPainter>
@@ -312,15 +313,10 @@ void KisPaintingAssistantsDecoration::drawDecoration(QPainter& gc, const QRectF&
 
     // the preview functionality for assistants. do not show while editing
 
-    KoToolProxy *proxy = view()->canvasBase()->toolProxy();
-    KIS_SAFE_ASSERT_RECOVER_RETURN(proxy);
-    KisToolProxy *kritaProxy = dynamic_cast<KisToolProxy*>(proxy);
-    KIS_SAFE_ASSERT_RECOVER_RETURN(kritaProxy);
-
     const bool outlineVisible =
         outlineVisibility() &&
         !d->m_isEditingAssistants &&
-        kritaProxy->supportsPaintingAssistants();
+        canvas->activeToolSupportsPaintingAssistants();
 
     Q_FOREACH (KisPaintingAssistantSP assistant, assistants()) {
         assistant->drawAssistant(gc, updateRect, converter, canvas->displayRendererInterface(), d->useCache, canvas, assistantVisibility(), outlineVisible);

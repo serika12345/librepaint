@@ -65,8 +65,8 @@
 
 現在は`kritacanvas`の19件、`kritaworkspacepresentation`の1件、`kritadocument`の5件、`kritadocumentfiles`の3件、
 `kritadocumentui`の6件、`kritaimage`の331件、`kritaimpex`の12件、
-`kritaimpexui`の23件、`kritainput`の12件、`kritainputui`の8件、
-`kritapainting`の19件、`kritatools`の19件、`kritaui`の217件を全件記録し、
+`kritaimpexui`の23件、`kritainput`の12件、`kritainputui`の13件、
+`kritapainting`の19件、`kritatools`の19件、`kritaui`の216件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -286,15 +286,15 @@ CMakeターゲット循環、公開宣言を持たないヘッダーのパッケ
 ヘッダーを記録し、新たな未帰属候補を診断する。
 
 ターゲット循環は、26の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 226件、Linux 232件、iOS 218件、Android 218件、
+2範囲を検査する。全製品範囲はmacOS 227件、Linux 233件、iOS 218件、Android 218件、
 Windows 235件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
 宣言済み公開面へ移す対象として基準化する。`kritaimage`の29ヘッダー、593参照は公開
 ヘッダー構築契約へ移行して0件となった。`kritaimpex`、`kritaimpexui`、`kritatools`も未宣言の
-パッケージ外参照が0件であり、現在は`kritainputui`の2ヘッダー2参照と
-`kritaui`の2ヘッダー2参照が残る。所有段階、理由、
+パッケージ外参照が0件であり、`kritainputui`も宣言済み公開面を利用する。
+現在は`kritaui`の1ヘッダー1参照が残る。所有段階、理由、
 除去条件、ヘッダー数と参照数の審査済み上限を保持し、増加と縮小可能な上限の両方を
 診断する。
 
@@ -638,13 +638,15 @@ R1-G6gの最初の単位では、`libs/ui/input`のショートカット照合�
 タブレット、タッチ列を入力パッケージ単独で固定する。
 
 入力のQt事象接続、設定表示、診断、プラットフォーム統合は`libs/input/ui`が所有する。
-`kritainputui`オブジェクトターゲットが入力UIを一単位として構築し、`kritaui`がその公開記号を
-提供する。利用元は`input/ui/...`の公開include経路を使い、`libs/input/ui/tests`が入力管理の
-統合契約を検査する。
+`kritainputui`はmacOS、Linux、Android、Windowsで共有ライブラリー、iOSで製品へ静的統合する
+ライブラリーとして入力UIを一単位で構築する。公開クラスは`KRITAINPUTUI_EXPORT`を使い、利用元は
+`input/ui/...`の公開include経路と`kritainputui`への直接リンクを持つ。`kritaui`は
+アプリケーション入力アクションとの接続に同ライブラリーを利用し、`libs/input/ui/tests`が
+入力管理の統合契約を検査する。
 
 `libs/ui`のrootは`CMakeLists.txt`と`kritaui_export_instance.h`を持つ。CMake定義は現在の
 `kritaui`構築を所有し、公開記号設定ヘッダーは共有ターゲットのテンプレート記号設定を所有する。
-残る43ファイルの[UI root再配置台帳](remaining-ui-root-relocations.json)は、入出力表示を`impex`、
+残る42ファイルの[UI root再配置台帳](remaining-ui-root-relocations.json)は、入出力表示を`impex`、
 Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資産を`platform`、プリセット・
 パターン・フィルター・ポップアップ表示を`resources`、図形選択接続を`flake`、履歴アクション接続を
 `actions`へ一対一で配置する。クラス名、公開記号、挙動、所有寿命、`kritaui`所有を維持し、

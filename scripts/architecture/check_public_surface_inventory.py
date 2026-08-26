@@ -366,7 +366,7 @@ PUBLIC_HEADER_SET_SPECS = (
         "sourceDirectory": "libs/input/ui",
         "headerDirectories": ["libs/input/ui"],
         "excludedHeaderDirectories": ["libs/input/ui/tests"],
-        "exportMacro": "KRITAUI_EXPORT",
+        "exportMacro": "KRITAINPUTUI_EXPORT",
         "responsibility": (
             "Records the declared and externally consumed input UI surface for "
             "Qt event wiring, shortcut configuration presentation, diagnostics, "

@@ -322,7 +322,6 @@ KisApplication::KisApplication(const QString &key, int &argc, char **argv)
     qApp->setProperty(currentUnderlyingStyleNameProperty, style()->objectName());
     KisSynchronizedConnectionBase::registerSynchronizedEventBarrier(std::bind(&KisApplication::processPostponedSynchronizationEvents, this));
 
-
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 
     /**
@@ -431,7 +430,6 @@ void KisApplication::addResourceTypes()
     KoResourcePaths::saveLocation("data", "/preset_icons/emblem_icons/", true);
 }
 
-
 bool KisApplication::event(QEvent *event)
 {
 
@@ -444,7 +442,6 @@ bool KisApplication::event(QEvent *event)
     #endif
     return QApplication::event(event);
 }
-
 
 bool KisApplication::registerResources()
 {
@@ -465,7 +462,6 @@ bool KisApplication::registerResources()
                                                << KisMimeDatabase::mimeTypeForSuffix("colors")
                                                << KisMimeDatabase::mimeTypeForSuffix("xml")
                                                << KisMimeDatabase::mimeTypeForSuffix("sbz")));
-
 
     reg->add(new KisResourceLoader<KoPattern>(ResourceType::Patterns, ResourceType::Patterns, i18n("Patterns"), {"application/x-gimp-pattern", "image/x-gimp-pat", "application/x-gimp-pattern", "image/bmp", "image/jpeg", "image/png", "image/tiff"}));
     reg->add(new KisResourceLoader<KisWorkspaceResource>(ResourceType::Workspaces, ResourceType::Workspaces, i18n("Workspaces"), QStringList() << "application/x-krita-workspace"));
@@ -617,7 +613,6 @@ bool KisApplication::start(const KisApplicationArguments &args)
         // show a mainWindow asap, if we want that
         setSplashScreenLoadingText(i18n("Loading Main Window..."));
         processEvents();
-
 
         bool sessionNeeded = true;
         auto sessionMode = cfg.sessionOnStartup();
@@ -953,7 +948,6 @@ void KisApplication::hideSplashScreen()
         d->splashScreen->hide();
     }
 }
-
 
 bool KisApplication::notify(QObject *receiver, QEvent *event)
 {

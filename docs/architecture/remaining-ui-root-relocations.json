@@ -55,11 +55,6 @@
       "placementArea": "event-wiring"
     },
     {
-      "from": "libs/ui/KisPopupWidgetInterface.h",
-      "to": "libs/ui/events/KisPopupWidgetInterface.h",
-      "placementArea": "event-wiring"
-    },
-    {
       "from": "libs/ui/kis_async_action_feedback.cpp",
       "to": "libs/ui/events/kis_async_action_feedback.cpp",
       "placementArea": "event-wiring"

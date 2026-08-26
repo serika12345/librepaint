@@ -6,6 +6,8 @@
 
 #include "KoAlphaDarkenParamsWrapper.h"
 
+#include <QDebug>
+
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 

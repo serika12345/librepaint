@@ -8,11 +8,11 @@
     "windows"
   ],
   "targetCounts": {
-    "macos": 676,
-    "linux": 684,
-    "ios": 603,
-    "android": 609,
-    "windows": 639
+    "macos": 678,
+    "linux": 693,
+    "ios": 611,
+    "android": 617,
+    "windows": 647
   },
   "commonTargets": [
     "CCSGraph",
@@ -24,6 +24,7 @@
     "KisActionManagerTest",
     "KisActionsSnapshotTest",
     "KisAdaptedLockTest",
+    "KisApplicationInputActionsTest",
     "KisBrushModelTest",
     "KisBrushOpTest",
     "KisBrushTest",
@@ -31,6 +32,7 @@
     "KisCategorizedListModelTest",
     "KisClipboardTest",
     "KisColorsmudgeOpTest",
+    "KisConfigurationValueTypesTest",
     "KisCurveOptionDataTest",
     "KisCurveOptionModelTest",
     "KisDabRenderingQueueTest",
@@ -83,6 +85,7 @@
     "KisTgaTest",
     "KisValueCacheTest",
     "KisWatershedWorkerTest",
+    "KisWorkspacePersistenceTest",
     "KoAnchorSelectionWidgetTest",
     "KoColorSpacesBenchmark",
     "KoCompositeOpsBenchmark",
@@ -93,8 +96,11 @@
     "MoveSelectionStrokeTest",
     "MoveStrokeTest",
     "TestAbrStorage",
+    "TestApplicationPaintingResourceRegistration",
+    "TestApplicationWorkspaceToolUiPublicHeaders",
     "TestAslStorage",
     "TestAssistants",
+    "TestBuiltInResourceLoaderRegistration",
     "TestBundleStorage",
     "TestCanvasUiPublicHeaders",
     "TestChannel",
@@ -106,6 +112,7 @@
     "TestConvolutionOpImpl",
     "TestDependentShapes",
     "TestDocument",
+    "TestDocumentStateUiPublicHeaders",
     "TestFallBackColorTransformation",
     "TestFilter",
     "TestFolderStorage",
@@ -152,6 +159,7 @@
     "TestPosition",
     "TestProfileGeneration",
     "TestPublicImageHeaders",
+    "TestRemainingUiRootPublicHeaders",
     "TestRemoveSubpathCommand",
     "TestResourceCacheDb",
     "TestResourceLoaderRegistry",
@@ -626,12 +634,6 @@
       ]
     },
     {
-      "name": "KisConfigurationValueTypesTest",
-      "platforms": [
-        "macos"
-      ]
-    },
-    {
       "name": "KisDatamanagerBenchmark",
       "platforms": [
         "macos",
@@ -780,12 +782,6 @@
       ]
     },
     {
-      "name": "KisWorkspacePersistenceTest",
-      "platforms": [
-        "macos"
-      ]
-    },
-    {
       "name": "StoryboardModelTest",
       "platforms": [
         "macos",
@@ -813,39 +809,9 @@
       ]
     },
     {
-      "name": "TestApplicationPaintingResourceRegistration",
-      "platforms": [
-        "macos"
-      ]
-    },
-    {
-      "name": "TestApplicationWorkspaceToolUiPublicHeaders",
-      "platforms": [
-        "macos"
-      ]
-    },
-    {
-      "name": "TestBuiltInResourceLoaderRegistration",
-      "platforms": [
-        "macos"
-      ]
-    },
-    {
-      "name": "TestDocumentStateUiPublicHeaders",
-      "platforms": [
-        "macos"
-      ]
-    },
-    {
       "name": "TestIccFromColorimetryConversion",
       "platforms": [
         "linux"
-      ]
-    },
-    {
-      "name": "TestRemainingUiRootPublicHeaders",
-      "platforms": [
-        "macos"
       ]
     },
     {
@@ -1320,6 +1286,13 @@
       ]
     },
     {
+      "name": "kritapigment_header_self_containment",
+      "platforms": [
+        "macos",
+        "linux"
+      ]
+    },
+    {
       "name": "kritaplatformpluginwayland",
       "platforms": [
         "linux"
@@ -1513,10 +1486,7 @@
   ],
   "variantTargets": [
     "CCSGraph",
-    "FillProcessingVisitorTest",
     "KisDialogStateSaverTest",
-    "KisDocumentReplaceTest",
-    "KisInputManagerTest",
     "KisMimeDatabaseTest",
     "KisMyPaintOpTest",
     "KoColorSpacesBenchmark",
@@ -1532,6 +1502,7 @@
     "TestFolderStorage",
     "TestImportExportBoundary",
     "TestImportExportUiBoundary",
+    "TestInputEventSuppressor",
     "TestInputProfile",
     "TestInputShortcutMatcher",
     "TestKoChannelInfo",
@@ -1565,7 +1536,6 @@
     "TestXmlWriter",
     "dummytrivialinterface",
     "kis_document_metadata_test",
-    "kis_stabilized_events_sampler_test",
     "krita",
     "krita_colorspaces_extensions",
     "krita_flaketools",

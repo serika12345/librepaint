@@ -21,6 +21,7 @@
       "sourceDirectories": [
         "krita",
         "libs/ui",
+        "libs/ui/actions/input",
         "plugins/extensions",
         "plugins/platforms"
       ],
@@ -31,7 +32,9 @@
       "publicHeaderOwnerTargets": [],
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [
+        "libs/ui/canvas/kis_canvas2.cpp",
         "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
+        "libs/ui/resources/kis_popup_palette.h",
         "libs/ui/widgets/kis_workspace_chooser.cpp",
         "libs/ui/workspace/KisViewManagerToolActivation.cpp"
       ],
@@ -544,12 +547,17 @@
         "libs/input/kis_stroke_shortcut.h",
         "libs/input/kis_touch_shortcut.h",
         "libs/input/ui/KisExtendedModifiersMapperPluginInterface.h",
-        "libs/input/ui/KisQtWidgetsTweaker.h",
+        "libs/input/ui/KisPopupWidgetAction.h",
+        "libs/input/ui/KisPopupWidgetInterface.h",
         "libs/input/ui/config/kis_input_configuration_page.h",
         "libs/input/ui/kis_abstract_input_action.h",
+        "libs/input/ui/kis_alternate_invocation_action.h",
+        "libs/input/ui/kis_change_primary_setting_action.h",
         "libs/input/ui/kis_extended_modifiers_mapper.h",
         "libs/input/ui/kis_input_manager.h",
         "libs/input/ui/kis_input_profile_manager.h",
+        "libs/input/ui/kis_tool_invocation_action.h",
+        "libs/input/ui/kis_tool_proxy.h",
         "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
         "libs/ui/tool/kis_painting_information_builder_adapters.h"
       ],
@@ -1297,7 +1305,6 @@
         "libs/tools/KisStabilizerDelayedPaintHelper.h",
         "libs/tools/kis_stabilized_events_sampler.cpp",
         "libs/tools/kis_stabilized_events_sampler.h",
-        "libs/ui/canvas/kis_tool_proxy.h",
         "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
         "libs/ui/dialogs/kis_dlg_filter.cpp",
         "libs/ui/dialogs/kis_dlg_layer_properties.cc",
@@ -1926,7 +1933,8 @@
         "windows"
       ],
       "types": [
-        "OBJECT_LIBRARY"
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
       ],
       "repositoryDependencies": [
         "kritacanvas",
@@ -1941,6 +1949,13 @@
         "kritaxmlserialization"
       ],
       "repositoryConsumers": [
+        "krita_karbontools",
+        "kritaanimationdocker_static",
+        "kritaiostouchui",
+        "kritaplatformpluginwayland",
+        "kritaplatformpluginxcb",
+        "kritarecorderdocker",
+        "kritaspensettings",
         "kritaui"
       ]
     },
@@ -2094,6 +2109,7 @@
         "kritaimage",
         "kritaimpexui",
         "kritalcmsengine_static",
+        "kritapigment_header_self_containment",
         "kritapsdutils",
         "kritasurfacecolormanagementapi",
         "kritatools",

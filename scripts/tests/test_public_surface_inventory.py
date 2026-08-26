@@ -182,11 +182,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 217)
+        self.assertEqual(len(ui_headers), 216)
         self.assertEqual(len(image_headers), 331)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(input_headers), 12)
-        self.assertEqual(len(input_ui_headers), 8)
+        self.assertEqual(len(input_ui_headers), 13)
         self.assertEqual(len(painting_headers), 19)
         self.assertEqual(len(tool_headers), 19)
         self.assertIn(
@@ -696,7 +696,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(
             len(application_workspace_tool_inventory["relocations"]), 70
         )
-        self.assertEqual(len(remaining_root_inventory["relocations"]), 43)
+        self.assertEqual(len(remaining_root_inventory["relocations"]), 42)
         self.assertEqual(
             remaining_root_inventory["reviewedBuildExceptions"],
             [
@@ -791,10 +791,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
                 "kritainput": 12,
-                "kritainputui": 8,
+                "kritainputui": 13,
                 "kritapainting": 19,
                 "kritatools": 19,
-                "kritaui": 217,
+                "kritaui": 216,
             },
         )
         self.assertEqual(

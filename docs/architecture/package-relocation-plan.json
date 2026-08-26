@@ -26,6 +26,7 @@
         "sourceDirectories": [
           "krita",
           "libs/ui",
+          "libs/ui/actions/input",
           "plugins/extensions",
           "plugins/platforms"
         ],
@@ -555,30 +556,6 @@
   ],
   "reviewedInternalHeaderDestinations": [
     {
-      "ownerTarget": "kritainputui",
-      "headerPath": "libs/input/ui/config/kis_input_configuration_page.h",
-      "destinationResponsibility": "input-interpretation",
-      "destinationDirectory": "libs/input/ui",
-      "wave": "R1-G6g",
-      "disposition": "declare-or-replace-public-contract"
-    },
-    {
-      "ownerTarget": "kritainputui",
-      "headerPath": "libs/input/ui/wintab/drawpile_tablettester/tablettester.h",
-      "destinationResponsibility": "input-interpretation",
-      "destinationDirectory": "libs/input/ui",
-      "wave": "R1-G6g",
-      "disposition": "declare-or-replace-public-contract"
-    },
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/canvas/kis_qpainter_canvas.h",
-      "destinationResponsibility": "canvas-presentation",
-      "destinationDirectory": "libs/canvas",
-      "wave": "R1-G6d",
-      "disposition": "move-behind-boundary"
-    },
-    {
       "ownerTarget": "kritaui",
       "headerPath": "libs/ui/operations/kis_operation_ui_widget_factory.h",
       "destinationResponsibility": "tool-invocation",
@@ -701,8 +678,8 @@
       "maximumReverseDirectIncludesAfterWave": 291,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 2,
-        "kritaui": 2
+        "kritainputui": 0,
+        "kritaui": 1
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
@@ -760,8 +737,8 @@
       "maximumReverseDirectIncludesAfterWave": 196,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 2,
-        "kritaui": 2
+        "kritainputui": 0,
+        "kritaui": 1
       },
       "completionCriteria": [
         "Painting has zero document-lifecycle includes and exposes image-model and paint-execution from owned targets.",
@@ -810,8 +787,8 @@
       "maximumReverseDirectIncludesAfterWave": 196,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 2,
-        "kritaui": 2
+        "kritainputui": 0,
+        "kritaui": 1
       },
       "completionCriteria": [
         "All 14 classified import-export classes are owned by kritaimpex or kritaimpexui.",
@@ -863,7 +840,7 @@
       "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 2,
+        "kritainputui": 0,
         "kritaui": 1
       },
       "completionCriteria": [
@@ -973,7 +950,7 @@
       "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 2,
+        "kritainputui": 0,
         "kritaui": 1
       },
       "completionCriteria": [
@@ -1023,7 +1000,7 @@
       "maximumReverseDirectIncludesAfterWave": 123,
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
-        "kritainputui": 2,
+        "kritainputui": 0,
         "kritaui": 0
       },
       "completionCriteria": [
@@ -1104,7 +1081,8 @@
       },
       "completionCriteria": [
         "All seven classified input classes are owned by kritainput.",
-        "Input has zero painting and resource includes and mutates state only through tool-command."
+        "Input has zero painting and resource includes and mutates state only through tool-command.",
+        "Input UI is built as an independent library, with shared artifacts on macOS, Linux, Android, and Windows and static product integration on iOS; every exported consumer links directly to kritainputui."
       ],
       "stopCondition": "Stop before application migration if device replay, normalization, or cancellation contracts regress."
     },

@@ -27,7 +27,7 @@
     {
       "name": "FillProcessingVisitorTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/input/ui/tests",
+      "sourceDirectory": "libs/ui/tests",
       "dependencies": [
         "kritatestsdk",
         "kritaui"
@@ -86,6 +86,17 @@
       "dependencies": [
         "kritaglobal",
         "kritatestsdk"
+      ]
+    },
+    {
+      "name": "KisApplicationInputActionsTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritainputui",
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
       ]
     },
     {
@@ -155,6 +166,15 @@
       ]
     },
     {
+      "name": "KisConfigurationValueTypesTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "KisCurveOptionDataTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/paintops/libpaintop/tests",
@@ -198,10 +218,11 @@
     {
       "name": "KisDocumentReplaceTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/tools/tests",
+      "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritalibkis",
         "kritatestsdk",
-        "kritatools"
+        "kritaui"
       ]
     },
     {
@@ -292,8 +313,9 @@
     {
       "name": "KisInputManagerTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/input/ui/tests",
       "dependencies": [
+        "kritainputui",
         "kritatestsdk",
         "kritaui"
       ]
@@ -644,6 +666,16 @@
       ]
     },
     {
+      "name": "KisWorkspacePersistenceTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "KoAnchorSelectionWidgetTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/widgets/tests",
@@ -779,6 +811,26 @@
       ]
     },
     {
+      "name": "TestApplicationPaintingResourceRegistration",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "TestApplicationWorkspaceToolUiPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "TestAslStorage",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/image/tests",
@@ -794,6 +846,16 @@
       "sourceDirectory": "plugins/assistants/Assistants/tests",
       "dependencies": [
         "kritaassistanttool_static",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestBuiltInResourceLoaderRegistration",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
         "kritatestsdk"
       ]
     },
@@ -913,6 +975,16 @@
       ]
     },
     {
+      "name": "TestDocumentStateUiPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "TestFallBackColorTransformation",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/pigment/tests",
@@ -992,8 +1064,8 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/input/tests",
       "dependencies": [
-        "Qt6::Gui",
-        "Qt6::Test",
+        "Qt5::Gui",
+        "Qt5::Test",
         "kritainput"
       ]
     },
@@ -1373,6 +1445,17 @@
       "dependencies": [
         "kritapainting",
         "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestRemainingUiRootPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritainputui",
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
       ]
     },
     {
@@ -3450,11 +3533,10 @@
     {
       "name": "kis_stabilized_events_sampler_test",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/tools/tests",
       "dependencies": [
-        "kritalibkis",
         "kritatestsdk",
-        "kritaui"
+        "kritatools"
       ]
     },
     {
@@ -3746,6 +3828,7 @@
       "sourceDirectory": "plugins/tools/karbonplugins/tools",
       "dependencies": [
         "KF5::Completion",
+        "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
@@ -3807,6 +3890,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/animation",
       "dependencies": [
+        "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
@@ -4576,14 +4660,17 @@
     },
     {
       "name": "kritainputui",
-      "type": "OBJECT_LIBRARY",
+      "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/input/ui",
       "dependencies": [
         "KF5::Completion",
+        "KF5::ConfigCore",
         "KF5::CoreAddons",
         "KF5::I18n",
         "KF5::ItemViews",
         "Qt5::Concurrent",
+        "Qt5::Core",
+        "Qt5::Gui",
         "Qt5::Network",
         "Qt5::Widgets",
         "kritacanvas",
@@ -5236,6 +5323,7 @@
       "sourceDirectory": "plugins/dockers/recorder",
       "dependencies": [
         "Threads::Threads",
+        "kritainputui",
         "kritaui"
       ]
     },
@@ -5461,6 +5549,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/spensettings",
       "dependencies": [
+        "kritainputui",
         "kritaui"
       ]
     },

@@ -8,6 +8,7 @@
 
 #ifdef QT_OPENGL_ES_2
 #include <qopengl.h>
+#include "KisOpenGLIOSCompat.h"
 #endif
 
 #ifndef QT_OPENGL_ES_2

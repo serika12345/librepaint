@@ -13,6 +13,7 @@
 
 #include "KisShortcutsEditor.h"
 #include "KisShortcutsEditor_p.h"
+#include <QAction>
 #include <QHeaderView>
 #include <QTreeWidget>
 #include <QDebug>

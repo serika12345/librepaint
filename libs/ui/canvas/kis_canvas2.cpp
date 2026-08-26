@@ -108,7 +108,6 @@
 #include <canvas/KisMultiSurfaceStateManager.h>
 #include <KisCanvasState.h>
 
-
 namespace {
     struct ShapeLifetimeWrapper : KoShape::ShapeChangeListener
     {
@@ -209,7 +208,6 @@ public:
         animationPlayer.reset();
     }
 
-
     KisCanvas2 *q = 0;
     KisCoordinatesConverter *coordinatesConverter = 0;
     QPointer<KisView>view;
@@ -255,7 +253,6 @@ public:
 
     QRect renderingLimit;
     int isBatchUpdateActive = 0;
-
 
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
     QScopedPointer<KisCanvasSurfaceColorSpaceManager> surfaceColorManager;
@@ -1317,8 +1314,6 @@ void KisCanvas2::slotEffectiveZoomChanged(qreal newZoom)
 {
     Q_UNUSED(newZoom)
 
-
-
     notifyLevelOfDetailChange();
 }
 
@@ -1677,6 +1672,11 @@ KisPaintingAssistantsDecorationSP KisCanvas2::paintingAssistantsDecoration() con
 {
     KisCanvasDecorationSP deco = decoration("paintingAssistantsDecoration");
     return qobject_cast<KisPaintingAssistantsDecoration*>(deco.data());
+}
+
+bool KisCanvas2::activeToolSupportsPaintingAssistants() const
+{
+    return m_d->toolProxy.supportsPaintingAssistants();
 }
 
 KisReferenceImagesDecorationSP KisCanvas2::referenceImagesDecoration() const

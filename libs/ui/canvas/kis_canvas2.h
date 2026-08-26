@@ -175,6 +175,7 @@ public: // KoCanvasBase implementation
     KisInputManager* globalInputManager() const;
 
     KisPaintingAssistantsDecorationSP paintingAssistantsDecoration() const;
+    bool activeToolSupportsPaintingAssistants() const;
     KisReferenceImagesDecorationSP referenceImagesDecoration() const;
 
 public: // KisCanvas2 methods

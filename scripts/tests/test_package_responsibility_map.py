@@ -143,7 +143,6 @@ class PackageResponsibilityMapTests(unittest.TestCase):
                 "libs/tools/KisStabilizerDelayedPaintHelper.h",
                 "libs/tools/kis_stabilized_events_sampler.cpp",
                 "libs/tools/kis_stabilized_events_sampler.h",
-                "libs/ui/canvas/kis_tool_proxy.h",
                 "libs/ui/dialogs/KisDlgPaletteEditor.cpp",
                 "libs/ui/dialogs/kis_dlg_filter.cpp",
                 "libs/ui/dialogs/kis_dlg_layer_properties.cc",

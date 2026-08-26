@@ -27,7 +27,7 @@
     {
       "name": "FillProcessingVisitorTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/input/ui/tests",
+      "sourceDirectory": "libs/ui/tests",
       "dependencies": [
         "kritatestsdk",
         "kritaui"
@@ -94,6 +94,17 @@
       "sourceDirectory": "benchmarks",
       "dependencies": [
         "kritaimage",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "KisApplicationInputActionsTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritainputui",
+        "kritalibkis",
         "kritatestsdk",
         "kritaui"
       ]
@@ -183,6 +194,15 @@
       ]
     },
     {
+      "name": "KisConfigurationValueTypesTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/global/tests",
+      "dependencies": [
+        "kritaglobal",
+        "kritatestsdk"
+      ]
+    },
+    {
       "name": "KisCurveOptionDataTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "plugins/paintops/libpaintop/tests",
@@ -235,10 +255,11 @@
     {
       "name": "KisDocumentReplaceTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/tools/tests",
+      "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritalibkis",
         "kritatestsdk",
-        "kritatools"
+        "kritaui"
       ]
     },
     {
@@ -392,8 +413,9 @@
     {
       "name": "KisInputManagerTest",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/input/ui/tests",
       "dependencies": [
+        "kritainputui",
         "kritatestsdk",
         "kritaui"
       ]
@@ -857,6 +879,16 @@
       ]
     },
     {
+      "name": "KisWorkspacePersistenceTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "KoAnchorSelectionWidgetTest",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/widgets/tests",
@@ -992,6 +1024,26 @@
       ]
     },
     {
+      "name": "TestApplicationPaintingResourceRegistration",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
+      "name": "TestApplicationWorkspaceToolUiPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "TestAslStorage",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/image/tests",
@@ -1007,6 +1059,16 @@
       "sourceDirectory": "plugins/assistants/Assistants/tests",
       "dependencies": [
         "kritaassistanttool_static",
+        "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestBuiltInResourceLoaderRegistration",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/image/tests",
+      "dependencies": [
+        "kritaimage",
+        "kritalibbrush",
         "kritatestsdk"
       ]
     },
@@ -1123,6 +1185,16 @@
       "dependencies": [
         "kritalibkis",
         "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestDocumentStateUiPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
       ]
     },
     {
@@ -1596,6 +1668,17 @@
       "dependencies": [
         "kritapainting",
         "kritatestsdk"
+      ]
+    },
+    {
+      "name": "TestRemainingUiRootPublicHeaders",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritainputui",
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
       ]
     },
     {
@@ -3729,11 +3812,10 @@
     {
       "name": "kis_stabilized_events_sampler_test",
       "type": "EXECUTABLE",
-      "sourceDirectory": "libs/ui/tests",
+      "sourceDirectory": "libs/tools/tests",
       "dependencies": [
-        "kritalibkis",
         "kritatestsdk",
-        "kritaui"
+        "kritatools"
       ]
     },
     {
@@ -4169,6 +4251,7 @@
       "sourceDirectory": "plugins/tools/karbonplugins/tools",
       "dependencies": [
         "KF6::Completion",
+        "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
@@ -4249,6 +4332,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/animation",
       "dependencies": [
+        "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
@@ -5037,14 +5121,17 @@
     },
     {
       "name": "kritainputui",
-      "type": "OBJECT_LIBRARY",
+      "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/input/ui",
       "dependencies": [
         "KF6::Completion",
+        "KF6::ConfigCore",
         "KF6::CoreAddons",
         "KF6::I18n",
         "KF6::ItemViews",
         "Qt6::Concurrent",
+        "Qt6::Core",
+        "Qt6::Gui",
         "Qt6::Network",
         "Qt6::OpenGLWidgets",
         "Qt6::Widgets",
@@ -5513,6 +5600,14 @@
       ]
     },
     {
+      "name": "kritapigment_header_self_containment",
+      "type": "OBJECT_LIBRARY",
+      "sourceDirectory": "libs/pigment",
+      "dependencies": [
+        "kritapigment"
+      ]
+    },
+    {
       "name": "kritapixelizefilter",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/filters/pixelizefilter",
@@ -5529,6 +5624,7 @@
         "Qt6::GuiPrivate",
         "Qt6::WaylandClient",
         "kritaglobal",
+        "kritainputui",
         "kritasurfacecolormanagementapi",
         "kritaui"
       ]
@@ -5539,6 +5635,7 @@
       "sourceDirectory": "plugins/platforms/xcb",
       "dependencies": [
         "kritaglobal",
+        "kritainputui",
         "kritaui"
       ]
     },
@@ -5792,6 +5889,7 @@
       "sourceDirectory": "plugins/dockers/recorder",
       "dependencies": [
         "Threads::Threads",
+        "kritainputui",
         "kritaui"
       ]
     },

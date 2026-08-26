@@ -66,7 +66,7 @@
     "libs/resources/KisTagResourceModel.cpp": 1028,
     "libs/ui/application/KisApplication.cpp": 1390,
     "libs/ui/application/kis_config.cc": 2952,
-    "libs/ui/canvas/kis_canvas2.cpp": 1720,
+    "libs/ui/canvas/kis_canvas2.cpp": 1719,
     "libs/ui/canvas/kis_painting_assistant.cc": 1166,
     "libs/ui/dialogs/kis_dlg_layer_style.cpp": 1595,
     "libs/ui/dialogs/kis_dlg_preferences.cc": 3327,

@@ -99,6 +99,17 @@
       ]
     },
     {
+      "name": "KisApplicationInputActionsTest",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/ui/tests",
+      "dependencies": [
+        "kritainputui",
+        "kritalibkis",
+        "kritatestsdk",
+        "kritaui"
+      ]
+    },
+    {
       "name": "KisBContrastBenchmark",
       "type": "EXECUTABLE",
       "sourceDirectory": "benchmarks",
@@ -404,6 +415,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/input/ui/tests",
       "dependencies": [
+        "kritainputui",
         "kritatestsdk",
         "kritaui"
       ]
@@ -1653,6 +1665,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritainputui",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -4163,6 +4176,7 @@
       "sourceDirectory": "plugins/tools/karbonplugins/tools",
       "dependencies": [
         "KF6::Completion",
+        "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
@@ -4243,6 +4257,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/animation",
       "dependencies": [
+        "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
@@ -5032,14 +5047,17 @@
     },
     {
       "name": "kritainputui",
-      "type": "OBJECT_LIBRARY",
+      "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/input/ui",
       "dependencies": [
         "KF6::Completion",
+        "KF6::ConfigCore",
         "KF6::CoreAddons",
         "KF6::I18n",
         "KF6::ItemViews",
         "Qt6::Concurrent",
+        "Qt6::Core",
+        "Qt6::Gui",
         "Qt6::Network",
         "Qt6::OpenGLWidgets",
         "Qt6::Widgets",
@@ -5520,6 +5538,14 @@
       ]
     },
     {
+      "name": "kritapigment_header_self_containment",
+      "type": "OBJECT_LIBRARY",
+      "sourceDirectory": "libs/pigment",
+      "dependencies": [
+        "kritapigment"
+      ]
+    },
+    {
       "name": "kritapixelizefilter",
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/filters/pixelizefilter",
@@ -5769,6 +5795,7 @@
       "sourceDirectory": "plugins/dockers/recorder",
       "dependencies": [
         "Threads::Threads",
+        "kritainputui",
         "kritaui"
       ]
     },
