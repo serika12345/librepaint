@@ -646,6 +646,7 @@ endif()
 target_include_directories(kritaapplicationui
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/impex/ui>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/impex/animation>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/canvas>

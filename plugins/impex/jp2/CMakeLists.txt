@@ -11,7 +11,7 @@ set(kritajp2import_SOURCES
 
 kis_add_library(kritajp2import MODULE ${kritajp2import_SOURCES})
 
-target_link_libraries(kritajp2import kritaui OpenJPEG::openjp2)
+target_link_libraries(kritajp2import kritaapplicationui OpenJPEG::openjp2)
 
 install(TARGETS kritajp2import DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

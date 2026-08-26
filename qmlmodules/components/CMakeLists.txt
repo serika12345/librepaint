@@ -133,7 +133,7 @@ ecm_target_qml_sources(kritaqmlcomponents SOURCES
 if (QT_MAJOR_VERSION STREQUAL "6")
     target_link_libraries(kritaqmlcomponents
         PRIVATE
-        kritaui
+        kritaapplicationui
         kritaqmlwidgets
         Qt::Qml
         Qt::Quick
@@ -143,7 +143,7 @@ if (QT_MAJOR_VERSION STREQUAL "6")
 else ()
     target_link_libraries(kritaqmlcomponents
         PRIVATE
-        kritaui
+        kritaapplicationui
         kritaqmlwidgets
         Qt::Qml
         Qt::Quick
@@ -174,5 +174,4 @@ ecm_finalize_qml_module(kritaqmlcomponents DESTINATION ${KDE_INSTALL_QMLDIR})
 # since all the installation work is done by ecm_finalize_qml_module
 #
 # install(TARGETS kritaqmlcomponents ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
-
 

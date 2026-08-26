@@ -12,5 +12,5 @@ kis_add_test(psd_colormode_block_test.cpp ../psd_colormode_block.cpp
 
 kis_add_test(kis_psd_test.cpp
     TEST_NAME kis_psd_test
-    LINK_LIBRARIES ${PSD_TEST_LIBS} kritaui
+    LINK_LIBRARIES ${PSD_TEST_LIBS} kritaapplicationui
     )

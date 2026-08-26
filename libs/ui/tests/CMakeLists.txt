@@ -21,68 +21,68 @@ kis_add_tests(
     TestApplicationPaintingResourceRegistration.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp
-    LINK_LIBRARIES kritaapplication kritaui kritalibkis kritatestsdk
+    LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk
     )
 
 kis_add_test(
     KisApplicationInputActionsTest.cpp
     TEST_NAME KisApplicationInputActionsTest
-    LINK_LIBRARIES kritainputui kritaui kritalibkis kritatestsdk
+    LINK_LIBRARIES kritainputui kritaapplicationui kritalibkis kritatestsdk
 )
 
 kis_add_test(
     TestRemainingUiRootPublicHeaders.cpp
     TEST_NAME TestRemainingUiRootPublicHeaders
-    LINK_LIBRARIES kritainputui kritaui kritalibkis kritatestsdk
+    LINK_LIBRARIES kritainputui kritaapplicationui kritalibkis kritatestsdk
 )
 
 kis_add_tests(
     kis_doc2_test.cpp
     kis_file_layer_test.cpp
-    LINK_LIBRARIES kritaapplication kritaui kritatransformmaskstubs
+    LINK_LIBRARIES kritaapplication kritaapplicationui kritatransformmaskstubs
     )
 
 kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testing_utils.cpp
     TEST_NAME KisSelectionDecorationTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 kis_add_test( kis_node_shapes_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeShapesGraphTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 kis_add_test( kis_model_index_converter_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisModelIndexConverterTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 
 kis_add_test(
     kis_node_model_test.cpp modeltest.cpp
     TEST_NAME kis_node_model_test
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 kis_add_test( kis_shape_controller_test.cpp kis_dummies_facade_base_test.cpp
     TEST_NAME kis_shape_controller_test
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 kis_add_test( kis_dummies_facade_test.cpp kis_dummies_facade_base_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME kis_dummies_facade_test
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 kis_add_test(
     kis_view_signals_test.cpp ../../../krita/krita.qrc
     TEST_NAME kis_view_signals_test
-    LINK_LIBRARIES kritaui kritalibkis kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritalibkis kritatestsdk
     )
 
 
@@ -92,53 +92,53 @@ kis_add_test(
 krita_add_broken_unit_test(
     kis_painting_assistants_decoration_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisPaintingAssistantsDecorationTest
-    LINK_LIBRARIES kritaapplication kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplication kritaapplicationui kritatestsdk
     )
 
 krita_add_broken_unit_test( kis_clipboard_test.cpp
     TEST_NAME KisClipboardTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 krita_add_broken_unit_test( freehand_stroke_test.cpp  $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
     TEST_NAME FreehandStrokeTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 krita_add_broken_unit_test( FreehandStrokeBenchmark.cpp  $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
     TEST_NAME FreehandStrokeBenchmark
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 krita_add_broken_unit_test( KisPaintOnTransparencyMaskTest.cpp  $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
     TEST_NAME KisPaintOnTransparencyMaskTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 krita_add_broken_unit_test( fill_processing_visitor_test.cpp  $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
     TEST_NAME FillProcessingVisitorTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 krita_add_broken_unit_test( filter_stroke_test.cpp ../../../sdk/tests/stroke_testing_utils.cpp
     TEST_NAME FilterStrokeTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 krita_add_broken_unit_test( kis_selection_manager_test.cpp
     TEST_NAME KisSelectionManagerTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 #set_tests_properties(libs-ui-KisSelectionManagerTest PROPERTIES TIMEOUT 300)
 
 krita_add_broken_unit_test( kis_node_manager_test.cpp
     TEST_NAME KisNodeManagerTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 krita_add_broken_unit_test( kis_action_manager_test.cpp
     TEST_NAME KisActionManagerTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
 if (${INSTALL_BENCHMARKS})

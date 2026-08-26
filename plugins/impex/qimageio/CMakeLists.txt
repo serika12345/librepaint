@@ -9,7 +9,7 @@ ki18n_wrap_ui(kritaqimageioexport_SOURCES )
 
 kis_add_library(kritaqimageioexport MODULE ${kritaqimageioexport_SOURCES})
 
-target_link_libraries(kritaqimageioexport kritaui kritaimpex)
+target_link_libraries(kritaqimageioexport kritaapplicationui kritaimpex)
 
 install(TARGETS kritaqimageioexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -20,7 +20,7 @@ set(kritaqimageioimport_SOURCES
 
 kis_add_library(kritaqimageioimport MODULE ${kritaqimageioimport_SOURCES})
 
-target_link_libraries(kritaqimageioimport kritaui)
+target_link_libraries(kritaqimageioimport kritaapplicationui)
 
 install(TARGETS kritaqimageioimport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

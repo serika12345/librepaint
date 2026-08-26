@@ -14,7 +14,7 @@ endforeach()
 
 kis_add_library(kritaheifimport MODULE ${kritaheifimport_SOURCES} ${__per_arch_heif})
 
-target_link_libraries(kritaheifimport kritaui kritalibkra HEIF::heif)
+target_link_libraries(kritaheifimport kritaapplicationui kritalibkra HEIF::heif)
 
 install(TARGETS kritaheifimport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -28,7 +28,7 @@ ki18n_wrap_ui(kritaheifexport_SOURCES WdgHeifExport.ui)
 
 kis_add_library(kritaheifexport MODULE ${kritaheifexport_SOURCES})
 
-target_link_libraries(kritaheifexport kritaapplication kritaui kritalibkra kritaimpex HEIF::heif)
+target_link_libraries(kritaheifexport kritaapplication kritaapplicationui kritalibkra kritaimpex HEIF::heif)
 
 install(TARGETS kritaheifexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

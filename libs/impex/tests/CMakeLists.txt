@@ -6,5 +6,5 @@ kis_add_tests(
 
 kis_add_tests(
     TestImportExportUiBoundary.cpp
-    LINK_LIBRARIES kritaui Qt${QT_MAJOR_VERSION}::Test Qt${QT_MAJOR_VERSION}::Widgets
+    LINK_LIBRARIES kritaapplicationui Qt${QT_MAJOR_VERSION}::Test Qt${QT_MAJOR_VERSION}::Widgets
 )

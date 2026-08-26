@@ -20,7 +20,7 @@ set(kritapsdimport_SOURCES
 
 kis_add_library(kritapsdimport MODULE ${kritapsdimport_SOURCES})
 
-target_link_libraries(kritapsdimport kritapsd_static kritaglobal kritaui KF${KF_MAJOR}::I18n)
+target_link_libraries(kritapsdimport kritapsd_static kritaglobal kritaapplicationui KF${KF_MAJOR}::I18n)
 
 install(TARGETS kritapsdimport DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -35,7 +35,7 @@ set(kritapsdexport_SOURCES
 
 kis_add_library(kritapsdexport MODULE ${kritapsdexport_SOURCES})
 
-target_link_libraries(kritapsdexport kritapsd_static kritaui kritapsd kritaimpex)
+target_link_libraries(kritapsdexport kritapsd_static kritaapplicationui kritapsd kritaimpex)
 
 install(TARGETS kritapsdexport DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

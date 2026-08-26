@@ -10,7 +10,7 @@ generate_export_header(kritaqmlwidgets)
 
 target_link_libraries(kritaqmlwidgets
     PRIVATE
-        kritaui
+        kritaapplicationui
         Qt::Qml
         Qt::Quick
         Qt::QuickWidgets

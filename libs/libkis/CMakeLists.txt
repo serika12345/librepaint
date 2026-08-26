@@ -53,8 +53,8 @@ set(kritalibkis_LIB_SRCS
 kis_add_library(kritalibkis SHARED ${kritalibkis_LIB_SRCS})
 generate_export_header(kritalibkis)
 
-target_link_libraries(kritalibkis kritaapplication kritaui kritaimage kritapainting kritaversion)
-target_link_libraries(kritalibkis LINK_INTERFACE_LIBRARIES kritaimage kritapainting kritaui)
+target_link_libraries(kritalibkis kritaapplication kritaapplicationui kritaimage kritapainting kritaversion)
+target_link_libraries(kritalibkis LINK_INTERFACE_LIBRARIES kritaimage kritapainting kritaapplicationui)
 
 set_target_properties(kritalibkis PROPERTIES
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}

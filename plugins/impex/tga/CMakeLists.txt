@@ -8,7 +8,7 @@ ki18n_wrap_ui(kritatgaexport_SOURCES )
 
 kis_add_library(kritatgaexport MODULE ${kritatgaexport_SOURCES})
 
-target_link_libraries(kritatgaexport kritaui kritaimpex)
+target_link_libraries(kritatgaexport kritaapplicationui kritaimpex)
 
 install(TARGETS kritatgaexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -20,7 +20,7 @@ ki18n_wrap_ui(kritatgaimport_SOURCES )
 
 kis_add_library(kritatgaimport MODULE ${kritatgaimport_SOURCES})
 
-target_link_libraries(kritatgaimport kritaui)
+target_link_libraries(kritatgaimport kritaapplicationui)
 
 install(TARGETS kritatgaimport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

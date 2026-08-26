@@ -1,10 +1,10 @@
 kis_add_tests(
     kis_kra_loader_test.cpp
-    LINK_LIBRARIES kritaui kritalibkra kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritalibkra kritatestsdk
     )
 
 
 kis_add_test(
     kis_kra_saver_test.cpp
-    LINK_LIBRARIES kritaui kritalibkra kritatransformmaskstubs
+    LINK_LIBRARIES kritaapplicationui kritalibkra kritatransformmaskstubs
     )
