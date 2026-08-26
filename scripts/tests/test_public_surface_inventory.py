@@ -18,19 +18,6 @@ UI_CLASS_INVENTORY_PATH = (
 UI_TOOL_CLASS_INVENTORY_PATH = (
     REPO_ROOT / "docs/architecture/ui-tool-class-responsibilities.json"
 )
-CANVAS_UI_RELOCATION_INVENTORY_PATH = (
-    REPO_ROOT / "docs/architecture/canvas-presentation-ui-relocations.json"
-)
-DOCUMENT_STATE_UI_RELOCATION_INVENTORY_PATH = (
-    REPO_ROOT / "docs/architecture/document-state-ui-relocations.json"
-)
-APPLICATION_WORKSPACE_TOOL_UI_RELOCATION_INVENTORY_PATH = (
-    REPO_ROOT
-    / "docs/architecture/application-workspace-tool-ui-relocations.json"
-)
-REMAINING_UI_ROOT_RELOCATION_INVENTORY_PATH = (
-    REPO_ROOT / "docs/architecture/remaining-ui-root-relocations.json"
-)
 GRAPH_DIRECTORY = REPO_ROOT / "docs/architecture"
 SPEC = importlib.util.spec_from_file_location(
     "check_public_surface_inventory", SCRIPT_PATH
@@ -661,129 +648,10 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             {entry["responsibilityArea"] for entry in inventory["classes"]},
         )
 
-    def test_ui_placement_relocation_inventories_are_complete(self) -> None:
-        canvas_inventory = (
-            check_public_surface_inventory.load_ui_placement_relocation_inventory(
-                CANVAS_UI_RELOCATION_INVENTORY_PATH
-            )
-        )
-        document_inventory = (
-            check_public_surface_inventory.load_ui_placement_relocation_inventory(
-                DOCUMENT_STATE_UI_RELOCATION_INVENTORY_PATH
-            )
-        )
-        application_workspace_tool_inventory = (
-            check_public_surface_inventory.load_ui_placement_relocation_inventory(
-                APPLICATION_WORKSPACE_TOOL_UI_RELOCATION_INVENTORY_PATH
-            )
-        )
-        remaining_root_inventory = (
-            check_public_surface_inventory.load_ui_placement_relocation_inventory(
-                REMAINING_UI_ROOT_RELOCATION_INVENTORY_PATH
-            )
-        )
-
-        check_public_surface_inventory.validate_ui_placement_relocations(
+    def test_ui_package_placement_is_complete(self) -> None:
+        check_public_surface_inventory.validate_ui_package_placement(
             repository_root=REPO_ROOT,
             ui_class_inventory=self.load_ui_class_inventory(),
-        )
-
-        self.assertEqual(len(canvas_inventory["relocations"]), 71)
-        canvas_relocations = {
-            (entry["from"], entry["to"])
-            for entry in canvas_inventory["relocations"]
-        }
-        self.assertIn(
-            (
-                "libs/ui/kis_workspace_resource.cpp",
-                "libs/canvas/workspace/kis_workspace_resource.cpp",
-            ),
-            canvas_relocations,
-        )
-        self.assertIn(
-            (
-                "libs/ui/kis_workspace_resource.h",
-                "libs/canvas/workspace/kis_workspace_resource.h",
-            ),
-            canvas_relocations,
-        )
-        self.assertEqual(len(document_inventory["relocations"]), 51)
-        self.assertEqual(
-            len(application_workspace_tool_inventory["relocations"]), 70
-        )
-        application_relocations = {
-            (entry["from"], entry["to"])
-            for entry in application_workspace_tool_inventory["relocations"]
-        }
-        self.assertIn(
-            ("libs/ui/kis_config.h", "libs/application/kis_config.h"),
-            application_relocations,
-        )
-        self.assertIn(
-            (
-                "libs/ui/KisAndroidFileProxy.cpp",
-                "libs/application/platform-adapters/KisAndroidFileProxy.cpp",
-            ),
-            application_relocations,
-        )
-        self.assertIn(
-            (
-                "libs/ui/KisApplication.cpp",
-                "libs/application/ui/orchestration/KisApplication.cpp",
-            ),
-            application_relocations,
-        )
-        self.assertIn(
-            (
-                "libs/ui/KisMainWindow.cpp",
-                "libs/application/ui/workspace/KisMainWindow.cpp",
-            ),
-            application_relocations,
-        )
-        self.assertEqual(len(remaining_root_inventory["relocations"]), 42)
-        self.assertEqual(
-            remaining_root_inventory["reviewedBuildExceptions"],
-            [
-                {
-                    "path": "libs/ui/resources/kis_md5_generator.cpp",
-                    "reason": "The implementation has no declaration header or consumer in the repository, includes the absent kis_md5_generator.h header, and is not registered in the kritaapplicationui CMake source list; relocation preserves this current orphaned non-build state.",
-                    "owner": "resource-presentation",
-                    "trackedRoadmapItem": "R1-G7",
-                    "maximumFiles": 1,
-                    "removalCondition": "R1-G7 resolves the orphan by establishing a complete declaration and live consumer before CMake registration or by removing the unused implementation.",
-                }
-            ],
-        )
-        self.assertEqual(
-            {
-                path.name
-                for path in (REPO_ROOT / "libs/ui").iterdir()
-                if path.is_file()
-            },
-            {"CMakeLists.txt", "kritaui_export_instance.h"},
-        )
-        document_destinations = {
-            entry["to"] for entry in document_inventory["relocations"]
-        }
-        self.assertEqual(
-            set(
-                check_public_surface_inventory.UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS
-            )
-            - document_destinations,
-            set(),
-        )
-        application_workspace_tool_destinations = {
-            entry["to"]
-            for entry in application_workspace_tool_inventory["relocations"]
-        }
-        self.assertEqual(
-            set(
-                check_public_surface_inventory.UI_APPLICATION_ORCHESTRATION_CLASS_NESTED_HEADER_PATHS
-                + check_public_surface_inventory.UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS
-                + check_public_surface_inventory.UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS
-            )
-            - application_workspace_tool_destinations,
-            set(),
         )
 
     def test_missing_ui_class_responsibility_is_rejected(self) -> None:

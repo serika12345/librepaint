@@ -157,68 +157,25 @@ UI_CLASS_ADDITIONAL_IMPLEMENTATION_PATHS_BY_NAME = {
         "libs/ui/document/KisImageManagerDrop.cpp",
     ),
 }
-UI_PLACEMENT_RELOCATION_PATHS = (
-    "docs/architecture/canvas-presentation-ui-relocations.json",
-    "docs/architecture/document-state-ui-relocations.json",
-    "docs/architecture/application-workspace-tool-ui-relocations.json",
-    "docs/architecture/remaining-ui-root-relocations.json",
-)
-UI_PLACEMENT_RELOCATION_SPECS = {
-    "docs/architecture/canvas-presentation-ui-relocations.json": {
-        "scope": "r1-g6g-canvas-presentation-ui-placement",
-        "ownerTargets": [
-            "kritaapplicationui",
-            "kritaworkspacepresentation",
-        ],
-        "placementAreas": {
-            "animation-playback": "animation",
-            "canvas-presentation": [
-                "libs/ui/canvas",
-                "libs/canvas/workspace",
-            ],
-        },
-    },
-    "docs/architecture/document-state-ui-relocations.json": {
-        "scope": "r1-g6g-document-state-ui-placement",
-        "ownerTargets": ["kritaapplicationui"],
-        "placementAreas": {
-            "document-composition": "document",
-            "node-presentation": "nodes",
-            "selection-presentation": "selection",
-        },
-    },
-    "docs/architecture/application-workspace-tool-ui-relocations.json": {
-        "scope": "r1-g6g-application-workspace-tool-ui-placement",
-        "ownerTargets": ["kritaapplication", "kritaapplicationui"],
-        "placementAreas": {
-            "application-configuration": [
-                "libs/application",
-                "libs/application/platform-adapters",
-            ],
-            "application-orchestration": [
-                "libs/application/ui/orchestration",
-            ],
-            "tool-invocation": "tool",
-            "window-workspace": ["libs/application/ui/workspace"],
-        },
-    },
-    "docs/architecture/remaining-ui-root-relocations.json": {
-        "scope": "r1-g6g-ui-root-placement",
-        "ownerTargets": ["kritaapplicationui"],
-        "placementAreas": {
-            "action-state-wiring": "actions",
-            "event-wiring": "events",
-            "import-export-presentation": "impex",
-            "platform-integration": "platform",
-            "resource-presentation": "resources",
-            "shape-presentation": "flake",
-            "theme-presentation": "theme",
-        },
-        "allowsReviewedBuildExceptions": True,
-    },
-}
 UI_ROOT_EXPECTED_FILES = frozenset(
     {"CMakeLists.txt", "kritaui_export_instance.h"}
+)
+UI_PACKAGE_PLACEMENT_DIRECTORIES = (
+    "libs/application",
+    "libs/canvas/workspace",
+    "libs/ui/actions",
+    "libs/ui/animation",
+    "libs/ui/canvas",
+    "libs/ui/document",
+    "libs/ui/events",
+    "libs/ui/flake",
+    "libs/ui/impex",
+    "libs/ui/nodes",
+    "libs/ui/platform",
+    "libs/ui/resources",
+    "libs/ui/selection",
+    "libs/ui/theme",
+    "libs/ui/tool",
 )
 INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
@@ -1258,10 +1215,6 @@ def load_ui_tool_class_inventory(path: Path) -> dict[str, Any]:
     return _load_json(path, "UI tool class responsibility inventory")
 
 
-def load_ui_placement_relocation_inventory(path: Path) -> dict[str, Any]:
-    return _load_json(path, "UI placement relocation inventory")
-
-
 def _require_object(value: Any, description: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise PublicSurfaceError(f"expected an object for {description}")
@@ -1308,289 +1261,17 @@ def _repository_file(
     return relative, resolved
 
 
-def _repository_relative_path(value: Any, description: str) -> str:
-    relative = _require_string(value, description)
-    path = PurePosixPath(relative)
-    if path.is_absolute() or ".." in path.parts or path.as_posix() != relative:
-        raise PublicSurfaceError(
-            f"{description} must be a normalized repository-relative path: {relative}"
-        )
-    return relative
-
-
-def validate_ui_placement_relocations(
+def validate_ui_package_placement(
     *, repository_root: Path, ui_class_inventory: dict[str, Any]
 ) -> None:
-    all_sources: set[str] = set()
-    all_destinations: set[str] = set()
-    destinations_by_inventory: dict[str, set[str]] = {}
-    for inventory_path in UI_PLACEMENT_RELOCATION_PATHS:
-        spec = UI_PLACEMENT_RELOCATION_SPECS[inventory_path]
-        inventory = load_ui_placement_relocation_inventory(
-            repository_root / inventory_path
-        )
-        expected_inventory_fields = {
-            "schemaVersion",
-            "scope",
-            "purpose",
-            "currentOwnerTargets",
-            "currentResponsibilities",
-            "reviewedResponsibilityOverrides",
-            "relocations",
-        }
-        if spec.get("allowsReviewedBuildExceptions"):
-            expected_inventory_fields.add("reviewedBuildExceptions")
-        _require_fields(
-            inventory,
-            expected_inventory_fields,
-            f"UI placement relocation inventory {inventory_path}",
-        )
-        if inventory.get("schemaVersion") != 2:
-            raise PublicSurfaceError(
-                f"schemaVersion must be 2 in {inventory_path}"
-            )
-        if inventory.get("scope") != spec["scope"]:
-            raise PublicSurfaceError(f"unexpected scope in {inventory_path}")
-        _require_string(inventory.get("purpose"), f"purpose in {inventory_path}")
-        if inventory.get("currentOwnerTargets") != spec["ownerTargets"]:
-            raise PublicSurfaceError(
-                f"currentOwnerTargets must be {spec['ownerTargets']} in "
-                f"{inventory_path}"
-            )
-
-        responsibilities = _require_object(
-            inventory.get("currentResponsibilities"),
-            f"currentResponsibilities in {inventory_path}",
-        )
-        expected_areas = set(spec["placementAreas"])
-        if set(responsibilities) != expected_areas:
-            raise PublicSurfaceError(
-                f"currentResponsibilities do not match placement areas in "
-                f"{inventory_path}"
-            )
-        for area, responsibility in responsibilities.items():
-            _require_string(
-                responsibility,
-                f"current responsibility {area} in {inventory_path}",
-            )
-
-        relocations = _require_array(
-            inventory.get("relocations"), f"relocations in {inventory_path}"
-        )
-        if not relocations:
-            raise PublicSurfaceError(
-                f"relocations must contain at least one entry in {inventory_path}"
-            )
-        reviewed_build_exception_paths: set[str] = set()
-        if spec.get("allowsReviewedBuildExceptions"):
-            reviewed_build_exceptions = _require_array(
-                inventory.get("reviewedBuildExceptions"),
-                f"reviewedBuildExceptions in {inventory_path}",
-            )
-            for index, exception_value in enumerate(reviewed_build_exceptions):
-                exception = _require_object(
-                    exception_value,
-                    f"reviewed build exception {index} in {inventory_path}",
-                )
-                _require_fields(
-                    exception,
-                    {
-                        "path",
-                        "reason",
-                        "owner",
-                        "trackedRoadmapItem",
-                        "maximumFiles",
-                        "removalCondition",
-                    },
-                    f"reviewed build exception {index} in {inventory_path}",
-                )
-                exception_path = _repository_relative_path(
-                    exception.get("path"),
-                    f"reviewed build exception path {index} in {inventory_path}",
-                )
-                for field in (
-                    "reason",
-                    "owner",
-                    "trackedRoadmapItem",
-                    "removalCondition",
-                ):
-                    _require_string(
-                        exception.get(field),
-                        f"{field} for reviewed build exception {index} in "
-                        f"{inventory_path}",
-                    )
-                if exception.get("maximumFiles") != 1:
-                    raise PublicSurfaceError(
-                        f"maximumFiles must be 1 for reviewed build exception "
-                        f"{exception_path}"
-                    )
-                if PurePosixPath(exception_path).suffix not in {
-                    ".c",
-                    ".cc",
-                    ".cpp",
-                    ".cxx",
-                    ".m",
-                    ".mm",
-                }:
-                    raise PublicSurfaceError(
-                        f"reviewed build exception is not a translation unit: "
-                        f"{exception_path}"
-                    )
-                if exception_path in reviewed_build_exception_paths:
-                    raise PublicSurfaceError(
-                        f"duplicate reviewed build exception: {exception_path}"
-                    )
-                reviewed_build_exception_paths.add(exception_path)
-
-        inventory_destinations: set[str] = set()
-        used_build_exception_paths: set[str] = set()
-        for index, relocation_value in enumerate(relocations):
-            relocation = _require_object(
-                relocation_value,
-                f"relocation {index} in {inventory_path}",
-            )
-            _require_fields(
-                relocation,
-                {"from", "to", "placementArea"},
-                f"relocation {index} in {inventory_path}",
-            )
-            source = _repository_relative_path(
-                relocation.get("from"),
-                f"starting path for relocation {index} in {inventory_path}",
-            )
-            destination = _repository_relative_path(
-                relocation.get("to"),
-                f"destination path for relocation {index} in {inventory_path}",
-            )
-            placement_area = _require_string(
-                relocation.get("placementArea"),
-                f"placement area for relocation {index} in {inventory_path}",
-            )
-            if placement_area not in spec["placementAreas"]:
-                raise PublicSurfaceError(
-                    f"unknown placement area {placement_area} in {inventory_path}"
-                )
-            source_path = PurePosixPath(source)
-            destination_path = PurePosixPath(destination)
-            if (
-                len(source_path.parts) != 3
-                or source_path.parts[:2] != ("libs", "ui")
-            ):
-                raise PublicSurfaceError(
-                    f"starting path must be directly under libs/ui: {source}"
-                )
-            expected_destination = spec["placementAreas"][placement_area]
-            if isinstance(expected_destination, str):
-                expected_directories = [f"libs/ui/{expected_destination}"]
-            else:
-                expected_directories = expected_destination
-            if (
-                destination_path.parent.as_posix() not in expected_directories
-                or destination_path.name != source_path.name
-            ):
-                raise PublicSurfaceError(
-                    f"destination does not match {placement_area}: {destination}"
-                )
-            if source_path.suffix not in UI_PLACEMENT_SUFFIXES:
-                raise PublicSurfaceError(
-                    f"relocation path is not a C/C++ source or UI form: {source}"
-                )
-            if source in all_sources or destination in all_destinations:
-                raise PublicSurfaceError(
-                    f"duplicate UI placement relocation: {source} -> {destination}"
-                )
-            if (repository_root / source).exists():
-                raise PublicSurfaceError(
-                    f"starting path still exists after relocation: {source}"
-                )
-            if not (repository_root / destination).is_file():
-                raise PublicSurfaceError(
-                    f"destination path does not exist: {destination}"
-                )
-            if source_path.suffix not in HEADER_SUFFIXES:
-                cmake_directory = destination_path.parent
-                while cmake_directory.parts:
-                    candidate = repository_root / cmake_directory / "CMakeLists.txt"
-                    if candidate.is_file():
-                        break
-                    cmake_directory = cmake_directory.parent
-                else:
-                    raise PublicSurfaceError(
-                        f"relocated translation unit has no owning CMakeLists.txt: "
-                        f"{destination}"
-                    )
-                cmake_path = destination_path.relative_to(cmake_directory).as_posix()
-                cmake_source_list = candidate.read_text(encoding="utf-8")
-                if not re.search(
-                    rf"(?<![A-Za-z0-9_./-]){re.escape(cmake_path)}"
-                    rf"(?![A-Za-z0-9_./-])",
-                    cmake_source_list,
-                ):
-                    if destination not in reviewed_build_exception_paths:
-                        raise PublicSurfaceError(
-                            f"relocated translation unit is absent from "
-                            f"libs/ui/CMakeLists.txt: {destination}"
-                        )
-                    used_build_exception_paths.add(destination)
-            all_sources.add(source)
-            all_destinations.add(destination)
-            inventory_destinations.add(destination)
-        unused_build_exception_paths = sorted(
-            reviewed_build_exception_paths - used_build_exception_paths
-        )
-        if unused_build_exception_paths:
-            raise PublicSurfaceError(
-                "reviewed build exceptions must identify relocated translation "
-                "units absent from libs/ui/CMakeLists.txt: "
-                f"{unused_build_exception_paths}"
-            )
-        destinations_by_inventory[inventory_path] = inventory_destinations
-
-        overrides = _require_array(
-            inventory.get("reviewedResponsibilityOverrides"),
-            f"reviewedResponsibilityOverrides in {inventory_path}",
-        )
-        override_paths: list[str] = []
-        for index, override_value in enumerate(overrides):
-            override = _require_object(
-                override_value,
-                f"responsibility override {index} in {inventory_path}",
-            )
-            _require_fields(
-                override,
-                {"path", "responsibility", "reason"},
-                f"responsibility override {index} in {inventory_path}",
-            )
-            path = _repository_relative_path(
-                override.get("path"),
-                f"responsibility override path {index} in {inventory_path}",
-            )
-            if path not in inventory_destinations:
-                raise PublicSurfaceError(
-                    f"responsibility override is not a relocated destination: {path}"
-                )
-            _require_string(
-                override.get("responsibility"),
-                f"responsibility override {index} in {inventory_path}",
-            )
-            _require_string(
-                override.get("reason"),
-                f"responsibility override reason {index} in {inventory_path}",
-            )
-            override_paths.append(path)
-        if override_paths != sorted(set(override_paths)):
-            raise PublicSurfaceError(
-                f"reviewedResponsibilityOverrides must be sorted and unique by "
-                f"path in {inventory_path}"
-            )
-
-    missing_classified_paths = sorted(
-        set(UI_CLASS_NESTED_HEADER_PATHS) - all_destinations
+    missing_nested_headers = sorted(
+        path
+        for path in UI_CLASS_NESTED_HEADER_PATHS
+        if not (repository_root / path).is_file()
     )
-    if missing_classified_paths:
+    if missing_nested_headers:
         raise PublicSurfaceError(
-            "classified nested UI headers are missing from placement relocation "
-            f"inventories: {missing_classified_paths}"
+            f"classified UI headers are missing: {missing_nested_headers}"
         )
 
     root_class_headers = sorted(
@@ -1620,106 +1301,40 @@ def validate_ui_placement_relocations(
             f"unexpected={sorted(actual_root_files - UI_ROOT_EXPECTED_FILES)}"
         )
 
-    document_destinations = destinations_by_inventory[
-        "docs/architecture/document-state-ui-relocations.json"
-    ]
-    document_classes = [
-        _require_object(entry, "UI document-state class")
-        for entry in _require_array(
-            ui_class_inventory.get("classes"), "UI classes"
-        )
-        if isinstance(entry, dict)
-        and entry.get("responsibilityArea") == "document-state"
-    ]
-    document_class_headers = {
-        _require_string(entry.get("header"), "UI document-state class header")
-        for entry in document_classes
-    }
-    if document_class_headers != set(UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS):
+    unregistered_sources: list[str] = []
+    inspected_paths: set[str] = set()
+    for directory in UI_PACKAGE_PLACEMENT_DIRECTORIES:
+        for path in sorted((repository_root / directory).rglob("*")):
+            relative = path.relative_to(repository_root)
+            relative_path = relative.as_posix()
+            if (
+                not path.is_file()
+                or path.suffix not in UI_PLACEMENT_SUFFIXES - HEADER_SUFFIXES
+                or any(part in TEST_PATH_PARTS for part in relative.parts)
+                or relative_path in inspected_paths
+            ):
+                continue
+            inspected_paths.add(relative_path)
+            cmake_directory = path.parent
+            while cmake_directory != repository_root:
+                cmake_file = cmake_directory / "CMakeLists.txt"
+                if cmake_file.is_file():
+                    break
+                cmake_directory = cmake_directory.parent
+            else:
+                unregistered_sources.append(relative_path)
+                continue
+            cmake_path = path.relative_to(cmake_directory).as_posix()
+            if not re.search(
+                rf"(?<![A-Za-z0-9_./-]){re.escape(cmake_path)}"
+                rf"(?![A-Za-z0-9_./-])",
+                cmake_file.read_text(encoding="utf-8"),
+            ):
+                unregistered_sources.append(relative_path)
+    if unregistered_sources:
         raise PublicSurfaceError(
-            "document-state UI class headers do not match their classified "
-            "nested paths"
-        )
-    document_class_paths = set(document_class_headers)
-    for entry in document_classes:
-        document_class_paths.update(
-            _require_array(
-                entry.get("implementationPaths"),
-                f"implementation paths for {entry.get('name')}",
-            )
-        )
-    additional_document_implementations = {
-        path
-        for name, paths in UI_CLASS_ADDITIONAL_IMPLEMENTATION_PATHS_BY_NAME.items()
-        if any(entry.get("name") == name for entry in document_classes)
-        for path in paths
-    }
-    missing_document_paths = sorted(
-        document_class_paths
-        - document_destinations
-        - additional_document_implementations
-    )
-    if missing_document_paths:
-        raise PublicSurfaceError(
-            "document-state UI class evidence is missing from its relocation "
-            f"inventory: {missing_document_paths}"
-        )
-
-    application_workspace_tool_destinations = destinations_by_inventory[
-        "docs/architecture/application-workspace-tool-ui-relocations.json"
-    ]
-    application_workspace_tool_areas = {
-        "application-configuration",
-        "application-orchestration",
-        "tool-invocation",
-        "window-workspace",
-    }
-    application_workspace_tool_classes = [
-        _require_object(entry, "application, workspace, or tool UI class")
-        for entry in _require_array(ui_class_inventory.get("classes"), "UI classes")
-        if isinstance(entry, dict)
-        and entry.get("responsibilityArea") in application_workspace_tool_areas
-    ]
-    expected_application_workspace_tool_headers = set(
-        UI_APPLICATION_ORCHESTRATION_CLASS_NESTED_HEADER_PATHS
-        + UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS
-        + UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS
-        + ("libs/application/kis_config.h",)
-    )
-    application_workspace_tool_headers = {
-        _require_string(
-            entry.get("header"), "application, workspace, or tool UI class header"
-        )
-        for entry in application_workspace_tool_classes
-    }
-    if (
-        len(application_workspace_tool_classes) != 27
-        or application_workspace_tool_headers
-        != expected_application_workspace_tool_headers
-    ):
-        raise PublicSurfaceError(
-            "application, workspace, and tool UI classes do not match their "
-            "classified nested paths"
-        )
-    application_workspace_tool_class_paths = set(
-        application_workspace_tool_headers
-    )
-    for entry in application_workspace_tool_classes:
-        application_workspace_tool_class_paths.update(
-            _require_array(
-                entry.get("implementationPaths"),
-                f"implementation paths for {entry.get('name')}",
-            )
-        )
-    missing_application_workspace_tool_paths = sorted(
-        application_workspace_tool_class_paths
-        - application_workspace_tool_destinations
-    )
-    if missing_application_workspace_tool_paths:
-        raise PublicSurfaceError(
-            "application, workspace, and tool UI class evidence is missing "
-            "from its relocation inventory: "
-            f"{missing_application_workspace_tool_paths}"
+            "UI package translation units and forms require CMake ownership: "
+            f"{unregistered_sources}"
         )
 
 
@@ -2860,7 +2475,7 @@ def validate_ui_class_inventory(
         include_consumer_paths=False,
         ownership_description="UI root and classified nested public classes",
     )
-    validate_ui_placement_relocations(
+    validate_ui_package_placement(
         repository_root=repository_root,
         ui_class_inventory=inventory,
     )

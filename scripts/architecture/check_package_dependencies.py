@@ -13,7 +13,6 @@ from typing import Any
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIRECTORY.parents[1]
 PLATFORMS = ("macos", "linux", "ios", "android", "windows")
-BASELINE_SCOPE = "r1-g4a-confirmed-reverse-dependency-baseline"
 SOURCE_SUFFIXES = frozenset(
     {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".m", ".mm"}
 )
@@ -45,133 +44,51 @@ AREA_TO_RESPONSIBILITY = {
     "stroke-generation": "painting-rendering",
     "painting-execution": "painting-rendering",
 }
-MANUAL_VIOLATION_FIELDS = {
-    "sourceResponsibility",
-    "dependencyResponsibility",
-    "owner",
-    "reason",
-    "maximumDirectIncludes",
-    "removalCondition",
-}
-DERIVED_VIOLATION_FIELDS = {"targetLinks", "directIncludes"}
-TARGET_LINK_FIELDS = {"sourceTarget", "dependencyTarget", "platforms"}
-DIRECT_INCLUDE_FIELDS = {
-    "sourceTarget",
-    "dependencyTarget",
-    "sourcePath",
-    "include",
-    "headerPath",
-    "sourceAttribution",
-    "dependencyAttribution",
-}
-UNRESOLVED_FIELDS = {
-    "sourceResponsibility",
-    "dependencyResponsibility",
-    "status",
-    "targetLinks",
-    "ambiguousDirectIncludes",
-}
-AMBIGUOUS_INCLUDE_FIELDS = DIRECT_INCLUDE_FIELDS | {
-    "sourceResponsibilities",
-    "dependencyResponsibilities",
-}
 
 
-class DependencyBaselineError(RuntimeError):
-    """Raised when the R1-G4 dependency baseline is inconsistent."""
+class PackageDependencyError(RuntimeError):
+    """Raised when package dependencies violate the responsibility policy."""
 
 
 def _load_json(path: Path, description: str) -> dict[str, Any]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as error:
-        raise DependencyBaselineError(
+        raise PackageDependencyError(
             f"{description} does not exist: {path}"
         ) from error
     except json.JSONDecodeError as error:
-        raise DependencyBaselineError(
+        raise PackageDependencyError(
             f"invalid JSON in {path}: line {error.lineno}, "
             f"column {error.colno}"
         ) from error
     if not isinstance(value, dict):
-        raise DependencyBaselineError(f"expected a JSON object in {path}")
+        raise PackageDependencyError(f"expected a JSON object in {path}")
     return value
-
-
-def load_baseline(path: Path) -> dict[str, Any]:
-    return _load_json(path, "dependency violation baseline")
 
 
 def load_input(path: Path, description: str) -> dict[str, Any]:
     return _load_json(path, description)
 
 
-def baseline_inputs() -> dict[str, str]:
-    return {
-        "allowedDependencyPolicy": (
-            "docs/architecture/allowed-package-dependencies.json"
-        ),
-        "packageResponsibilityMap": (
-            "docs/architecture/package-responsibilities.json"
-        ),
-        "uiClassInventory": (
-            "docs/architecture/ui-class-responsibilities.json"
-        ),
-        "uiToolClassInventory": (
-            "docs/architecture/ui-tool-class-responsibilities.json"
-        ),
-        "cmakeGraphs": "docs/architecture/cmake-targets-<platform>.json",
-    }
-
-
-def attribution_policy() -> dict[str, Any]:
-    return {
-        "sourceScope": "production-files-below-selected-target-source-directory",
-        "excludedPathParts": sorted(TEST_PATH_PARTS),
-        "includeResolution": [
-            "dependency-header-path-suffix",
-            "repository-unique-header-basename",
-        ],
-        "responsibilityAttribution": [
-            "unique-target-owner",
-            "classified-public-or-class-path",
-            "longest-responsibility-source-directory",
-        ],
-        "ambiguousHandling": "record-unresolved-projection",
-        "noEvidenceHandling": "structural-projection-resolution-baseline",
-    }
-
-
 def _require_object(value: Any, description: str) -> dict[str, Any]:
     if not isinstance(value, dict):
-        raise DependencyBaselineError(f"expected an object for {description}")
+        raise PackageDependencyError(f"expected an object for {description}")
     return value
 
 
 def _require_array(value: Any, description: str) -> list[Any]:
     if not isinstance(value, list):
-        raise DependencyBaselineError(f"expected an array for {description}")
+        raise PackageDependencyError(f"expected an array for {description}")
     return value
 
 
 def _require_string(value: Any, description: str) -> str:
     if not isinstance(value, str) or not value.strip():
-        raise DependencyBaselineError(
+        raise PackageDependencyError(
             f"expected a non-empty string for {description}"
         )
     return value
-
-
-def _require_fields(
-    value: dict[str, Any], expected: set[str], description: str
-) -> None:
-    actual = set(value)
-    if actual != expected:
-        raise DependencyBaselineError(
-            f"unexpected fields for {description}; "
-            f"missing={sorted(expected - actual)}, "
-            f"unexpected={sorted(actual - expected)}"
-        )
 
 
 def _string_list(value: Any, description: str) -> list[str]:
@@ -180,48 +97,10 @@ def _string_list(value: Any, description: str) -> list[str]:
         for entry in _require_array(value, description)
     ]
     if entries != sorted(set(entries)):
-        raise DependencyBaselineError(
+        raise PackageDependencyError(
             f"{description} must be sorted and unique"
         )
     return entries
-
-
-def _manual_violation(value: dict[str, Any], index: int) -> dict[str, Any]:
-    expected = MANUAL_VIOLATION_FIELDS
-    actual = set(value)
-    if not expected.issubset(actual):
-        raise DependencyBaselineError(
-            f"missing manual fields for violation {index}: "
-            f"{sorted(expected - actual)}"
-        )
-    source = _require_string(
-        value.get("sourceResponsibility"),
-        f"source responsibility for violation {index}",
-    )
-    dependency = _require_string(
-        value.get("dependencyResponsibility"),
-        f"dependency responsibility for violation {index}",
-    )
-    maximum = value.get("maximumDirectIncludes")
-    if not isinstance(maximum, int) or isinstance(maximum, bool) or maximum < 1:
-        raise DependencyBaselineError(
-            f"maximumDirectIncludes must be positive for {source} -> {dependency}"
-        )
-    return {
-        "sourceResponsibility": source,
-        "dependencyResponsibility": dependency,
-        "owner": _require_string(
-            value.get("owner"), f"owner for {source} -> {dependency}"
-        ),
-        "reason": _require_string(
-            value.get("reason"), f"reason for {source} -> {dependency}"
-        ),
-        "maximumDirectIncludes": maximum,
-        "removalCondition": _require_string(
-            value.get("removalCondition"),
-            f"removal condition for {source} -> {dependency}",
-        ),
-    }
 
 
 def _is_production_source(path: PurePosixPath) -> bool:
@@ -237,7 +116,7 @@ def _files_below(
 ) -> list[tuple[str, Path]]:
     root = repository_root / source_directory
     if not root.is_dir():
-        raise DependencyBaselineError(
+        raise PackageDependencyError(
             f"target source directory does not exist: {source_directory}"
         )
     result: list[tuple[str, Path]] = []
@@ -308,7 +187,7 @@ def _path_classifications(
             try:
                 responsibility = AREA_TO_RESPONSIBILITY[area]
             except KeyError as error:
-                raise DependencyBaselineError(
+                raise PackageDependencyError(
                     f"unknown class responsibility area: {area}"
                 ) from error
             paths = [
@@ -418,7 +297,7 @@ def _target_link_platforms(
         if dependency_target in dependencies:
             result.append(platform)
     if not result:
-        raise DependencyBaselineError(
+        raise PackageDependencyError(
             f"target link is absent from every graph: "
             f"{source_target} -> {dependency_target}"
         )
@@ -433,7 +312,7 @@ def _load_graphs(
         path = graph_directory / f"cmake-targets-{platform}.json"
         graph = _load_json(path, f"{platform} CMake target graph")
         if graph.get("schemaVersion") != 1 or graph.get("platform") != platform:
-            raise DependencyBaselineError(f"invalid CMake target graph: {path}")
+            raise PackageDependencyError(f"invalid CMake target graph: {path}")
         result[platform] = {
             _require_string(entry.get("name"), f"target name in {path}"): entry
             for item in _require_array(graph.get("targets"), f"targets in {path}")
@@ -442,7 +321,7 @@ def _load_graphs(
     return result
 
 
-def discover_baseline_evidence(
+def discover_dependency_evidence(
     *,
     repository_root: Path,
     policy: dict[str, Any],
@@ -459,13 +338,13 @@ def discover_baseline_evidence(
         or policy.get("scope")
         != "r1-package-responsibility-dependency-policy"
     ):
-        raise DependencyBaselineError("invalid allowed dependency policy")
+        raise PackageDependencyError("invalid allowed dependency policy")
     if (
         responsibility_map.get("schemaVersion") != 1
         or responsibility_map.get("scope")
         != "current-production-package-responsibilities"
     ):
-        raise DependencyBaselineError("invalid package responsibility map")
+        raise PackageDependencyError("invalid package responsibility map")
     target_owners, responsibility_directories, target_sources = (
         _responsibility_data(responsibility_map)
     )
@@ -512,7 +391,7 @@ def discover_baseline_evidence(
             projection = _require_object(
                 projection_item, "current edge projection"
             )
-            if projection.get("status") != "requires-r1-g4-baseline":
+            if projection.get("status") != "violates-policy":
                 continue
             pair = (
                 _require_string(
@@ -692,82 +571,7 @@ def discover_baseline_evidence(
     return confirmed, unresolved
 
 
-def updated_baseline(
-    baseline: dict[str, Any],
-    *,
-    repository_root: Path,
-    policy: dict[str, Any],
-    responsibility_map: dict[str, Any],
-    ui_class_inventory: dict[str, Any],
-    ui_tool_class_inventory: dict[str, Any],
-    graph_directory: Path,
-) -> dict[str, Any]:
-    manual_entries = [
-        _manual_violation(
-            _require_object(item, f"violation {index}"), index
-        )
-        for index, item in enumerate(
-            _require_array(baseline.get("violations"), "violations")
-        )
-    ]
-    manual_entries.sort(
-        key=lambda entry: (
-            entry["sourceResponsibility"],
-            entry["dependencyResponsibility"],
-        )
-    )
-    confirmed, unresolved = discover_baseline_evidence(
-        repository_root=repository_root,
-        policy=policy,
-        responsibility_map=responsibility_map,
-        ui_class_inventory=ui_class_inventory,
-        ui_tool_class_inventory=ui_tool_class_inventory,
-        graph_directory=graph_directory,
-    )
-    manual_pairs = {
-        (entry["sourceResponsibility"], entry["dependencyResponsibility"])
-        for entry in manual_entries
-    }
-    missing_pairs = set(confirmed) - manual_pairs
-    if missing_pairs:
-        raise DependencyBaselineError(
-            "confirmed violation pairs are missing manual review data; "
-            f"missing={sorted(missing_pairs)}"
-        )
-    violations = []
-    for manual in manual_entries:
-        pair = (
-            manual["sourceResponsibility"],
-            manual["dependencyResponsibility"],
-        )
-        if pair not in confirmed:
-            continue
-        violations.append({**manual, **confirmed[pair]})
-    unresolved_entries = [
-        {
-            "sourceResponsibility": pair[0],
-            "dependencyResponsibility": pair[1],
-            "status": (
-                "ambiguous-direct-include"
-                if evidence["ambiguousDirectIncludes"]
-                else "no-attributed-direct-include"
-            ),
-            **evidence,
-        }
-        for pair, evidence in sorted(unresolved.items())
-    ]
-    return {
-        "schemaVersion": 1,
-        "scope": BASELINE_SCOPE,
-        "inputs": baseline_inputs(),
-        "attributionPolicy": attribution_policy(),
-        "violations": violations,
-        "unresolvedProjections": unresolved_entries,
-    }
-
-
-def validate_baseline(
-    baseline: dict[str, Any],
+def validate_package_dependencies(
     *,
     repository_root: Path,
     policy_path: Path,
@@ -776,27 +580,6 @@ def validate_baseline(
     ui_tool_class_inventory_path: Path,
     graph_directory: Path,
 ) -> None:
-    _require_fields(
-        baseline,
-        {
-            "schemaVersion",
-            "scope",
-            "inputs",
-            "attributionPolicy",
-            "violations",
-            "unresolvedProjections",
-        },
-        "dependency violation baseline",
-    )
-    if baseline.get("schemaVersion") != 1:
-        raise DependencyBaselineError("baseline schemaVersion must be 1")
-    if baseline.get("scope") != BASELINE_SCOPE:
-        raise DependencyBaselineError("dependency baseline has invalid scope")
-    if baseline.get("inputs") != baseline_inputs():
-        raise DependencyBaselineError("dependency baseline inputs are invalid")
-    if baseline.get("attributionPolicy") != attribution_policy():
-        raise DependencyBaselineError("dependency attribution policy is invalid")
-
     policy = load_input(policy_path, "allowed dependency policy")
     responsibility_map = load_input(
         responsibility_map_path, "package responsibility map"
@@ -805,30 +588,7 @@ def validate_baseline(
     ui_tool_classes = load_input(
         ui_tool_class_inventory_path, "UI tool class inventory"
     )
-    entries = _require_array(baseline.get("violations"), "violations")
-    manual_entries: list[dict[str, Any]] = []
-    pairs: list[tuple[str, str]] = []
-    for index, item in enumerate(entries):
-        entry = _require_object(item, f"violation {index}")
-        _require_fields(
-            entry,
-            MANUAL_VIOLATION_FIELDS | DERIVED_VIOLATION_FIELDS,
-            f"violation {index}",
-        )
-        manual = _manual_violation(entry, index)
-        manual_entries.append(manual)
-        pairs.append(
-            (
-                manual["sourceResponsibility"],
-                manual["dependencyResponsibility"],
-            )
-        )
-    if pairs != sorted(set(pairs)):
-        raise DependencyBaselineError(
-            "violation pairs must be sorted and unique"
-        )
-
-    confirmed, unresolved = discover_baseline_evidence(
+    confirmed, unresolved = discover_dependency_evidence(
         repository_root=repository_root,
         policy=policy,
         responsibility_map=responsibility_map,
@@ -836,87 +596,24 @@ def validate_baseline(
         ui_tool_class_inventory=ui_tool_classes,
         graph_directory=graph_directory,
     )
-    if set(pairs) != set(confirmed):
-        raise DependencyBaselineError(
-            "confirmed violation pairs do not match discovery"
+    if confirmed:
+        counts = {
+            f"{source} -> {dependency}": len(evidence["directIncludes"])
+            for (source, dependency), evidence in confirmed.items()
+        }
+        raise PackageDependencyError(
+            f"package dependency violations must remain empty: {counts}"
         )
-    for entry, manual in zip(entries, manual_entries):
-        pair = (
-            manual["sourceResponsibility"],
-            manual["dependencyResponsibility"],
-        )
-        observed_count = len(confirmed[pair]["directIncludes"])
-        maximum = manual["maximumDirectIncludes"]
-        if observed_count > maximum:
-            raise DependencyBaselineError(
-                f"confirmed violation exceeds approved maximum for "
-                f"{pair[0]} -> {pair[1]}: {observed_count} > {maximum}"
-            )
-        if observed_count < maximum:
-            raise DependencyBaselineError(
-                f"confirmed violation baseline can be reduced for "
-                f"{pair[0]} -> {pair[1]}: {observed_count} < {maximum}"
-            )
-        if (
-            entry.get("targetLinks") != confirmed[pair]["targetLinks"]
-            or entry.get("directIncludes") != confirmed[pair]["directIncludes"]
-        ):
-            raise DependencyBaselineError(
-                "dependency violation evidence is stale; run "
-                "scripts/architecture/update_dependency_violation_baseline.py"
-            )
-
-    expected_unresolved = updated_baseline(
-        baseline,
-        repository_root=repository_root,
-        policy=policy,
-        responsibility_map=responsibility_map,
-        ui_class_inventory=ui_classes,
-        ui_tool_class_inventory=ui_tool_classes,
-        graph_directory=graph_directory,
-    )["unresolvedProjections"]
-    unresolved_entries = _require_array(
-        baseline.get("unresolvedProjections"), "unresolved projections"
-    )
-    for index, item in enumerate(unresolved_entries):
-        entry = _require_object(item, f"unresolved projection {index}")
-        _require_fields(
-            entry, UNRESOLVED_FIELDS, f"unresolved projection {index}"
-        )
-        for ambiguous_index, ambiguous_item in enumerate(
-            _require_array(
-                entry.get("ambiguousDirectIncludes"),
-                f"ambiguous direct includes for unresolved projection {index}",
-            )
-        ):
-            _require_fields(
-                _require_object(
-                    ambiguous_item,
-                    f"ambiguous include {index}/{ambiguous_index}",
-                ),
-                AMBIGUOUS_INCLUDE_FIELDS,
-                f"ambiguous include {index}/{ambiguous_index}",
-            )
-    if unresolved_entries != expected_unresolved:
-        raise DependencyBaselineError(
-            "unresolved dependency projections are stale; run "
-            "scripts/architecture/update_dependency_violation_baseline.py"
+    if unresolved:
+        raise PackageDependencyError(
+            "package dependency projections must be attributable: "
+            f"{sorted(unresolved)}"
         )
 
 
 def _argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=(
-            "Validate confirmed reverse-dependency evidence and reviewed "
-            "maximum scopes."
-        )
-    )
-    parser.add_argument(
-        "--baseline",
-        type=Path,
-        default=(
-            REPO_ROOT / "docs/architecture/dependency-violation-baseline.json"
-        ),
+        description="Require all package dependencies to follow the policy."
     )
     parser.add_argument(
         "--policy",
@@ -957,8 +654,7 @@ def _argument_parser() -> argparse.ArgumentParser:
 def main(arguments: list[str] | None = None) -> int:
     options = _argument_parser().parse_args(arguments)
     try:
-        validate_baseline(
-            load_baseline(options.baseline),
+        validate_package_dependencies(
             repository_root=REPO_ROOT,
             policy_path=options.policy,
             responsibility_map_path=options.responsibility_map,
@@ -966,10 +662,10 @@ def main(arguments: list[str] | None = None) -> int:
             ui_tool_class_inventory_path=options.ui_tool_class_inventory,
             graph_directory=options.graph_directory,
         )
-    except (OSError, DependencyBaselineError) as error:
-        print(f"check-dependency-violation-baseline: {error}", file=sys.stderr)
+    except (OSError, PackageDependencyError) as error:
+        print(f"check-package-dependencies: {error}", file=sys.stderr)
         return 1
-    print(f"dependency violation baseline verified: {options.baseline}")
+    print("package dependency directions verified: 0 violations, 0 unresolved")
     return 0
 
 

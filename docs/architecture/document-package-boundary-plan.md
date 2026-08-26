@@ -142,10 +142,9 @@
 
 状態は`completed`とする。
 
-[文書境界評価](document-boundary-assessment.json)は、P1とP2で所有を移した3クラスと、
-UI直下に残る22クラスを対応付け、R1-G6e開始時の25クラスすべてに具体的な所有先または
-後続検査段階を記録する。残る22クラスは、`KisDocument`、外部ファイル層、操作管理、
-ノード・選択操作接続、Qtモデルと表示状態へ再分類した。
+文書クラスは`KisDocument`、外部ファイル層、操作管理、ノード・選択操作接続、Qtモデルと
+表示状態の具体所有へ接続する。現在の宣言、実装、所有ターゲット、責務は
+`ui-class-responsibilities.json`が記録する。
 
 `KisDocument.cpp`にある130の一意なメソッド定義を8関心へ分類した。文書識別と状態は
 `kritadocument`、具体的なファイル処理は`kritadocumentfiles`、文書表示は`kritadocumentui`、

@@ -4,8 +4,6 @@
   "inputs": {
     "packageResponsibilityMap": "docs/architecture/package-responsibilities.json",
     "allowedDependencyPolicy": "docs/architecture/allowed-package-dependencies.json",
-    "dependencyViolationBaseline": "docs/architecture/dependency-violation-baseline.json",
-    "structuralDependencyBaseline": "docs/architecture/structural-dependency-baseline.json",
     "cmakeGraphs": "docs/architecture/cmake-targets-<platform>.json"
   },
   "principles": {
@@ -590,7 +588,6 @@
       ]
     }
   ],
-  "reviewedInternalHeaderDestinations": [],
   "compatibilityRoutes": [
     {
       "id": "legacy-tool-ui-headers",

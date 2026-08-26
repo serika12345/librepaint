@@ -94,38 +94,20 @@ class PackageRelocationPlanTests(unittest.TestCase):
                 },
             )
 
-    def test_zero_internal_header_baseline_has_no_destinations(self) -> None:
+    def test_internal_header_migration_reaches_zero(self) -> None:
         plan = self.load_plan()
-        structural = check_package_relocation_plan._load_json(
-            REPO_ROOT / "docs/architecture/structural-dependency-baseline.json",
-            "structural dependency baseline",
-        )
 
-        self.assertEqual(plan["reviewedInternalHeaderDestinations"], [])
         self.assertTrue(
             all(
-                item["maximumDirectReferences"] == 0
-                for item in structural["internalHeaderBaseline"]
+                all(
+                    value == 0
+                    for value in wave[
+                        "maximumInternalDirectReferencesAfterWave"
+                    ].values()
+                )
+                for wave in plan["migrationWaves"]
             )
         )
-
-    def test_zero_reference_public_owner_does_not_require_a_migration(self) -> None:
-        structural_path = REPO_ROOT / (
-            "docs/architecture/structural-dependency-baseline.json"
-        )
-        structural = check_package_relocation_plan._load_json(
-            structural_path, "structural dependency baseline"
-        )
-
-        self.assertIn(
-            "kritaimpex",
-            {
-                item["ownerTarget"]
-                for item in structural["internalHeaderBaseline"]
-                if item["maximumDirectReferences"] == 0
-            },
-        )
-        self.validate(self.load_plan())
 
     def test_reverse_baseline_must_reach_each_wave_maximum(self) -> None:
         plan = copy.deepcopy(self.load_plan())

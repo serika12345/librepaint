@@ -20,12 +20,6 @@ PLAN_INPUTS = {
     "allowedDependencyPolicy": (
         "docs/architecture/allowed-package-dependencies.json"
     ),
-    "dependencyViolationBaseline": (
-        "docs/architecture/dependency-violation-baseline.json"
-    ),
-    "structuralDependencyBaseline": (
-        "docs/architecture/structural-dependency-baseline.json"
-    ),
     "cmakeGraphs": "docs/architecture/cmake-targets-<platform>.json",
 }
 ROOT_FIELDS = {
@@ -34,7 +28,6 @@ ROOT_FIELDS = {
     "inputs",
     "principles",
     "packages",
-    "reviewedInternalHeaderDestinations",
     "compatibilityRoutes",
     "migrationWaves",
     "firstImplementationWave",
@@ -64,14 +57,6 @@ TARGET_FIELDS = {
 }
 TARGET_ENTRY_FIELDS = {"name", "directory", "role", "status"}
 TARGET_STATUSES = {"implemented", "retained", "new", "relocated"}
-DESTINATION_FIELDS = {
-    "ownerTarget",
-    "headerPath",
-    "destinationResponsibility",
-    "destinationDirectory",
-    "wave",
-    "disposition",
-}
 ROUTE_FIELDS = {
     "id",
     "kind",
@@ -532,17 +517,7 @@ def _validate_waves(
     return waves, order_by_id
 
 
-def _validate_reverse_reductions(
-    waves: list[dict[str, Any]], baseline: dict[str, Any]
-) -> None:
-    baseline_by_pair = {
-        (
-            _string(item.get("sourceResponsibility"), "violation source"),
-            _string(item.get("dependencyResponsibility"), "violation dependency"),
-        ): _integer(item.get("maximumDirectIncludes"), "violation maximum")
-        for raw in _array(baseline.get("violations"), "dependency violations")
-        for item in [_object(raw, "dependency violation")]
-    }
+def _validate_reverse_reductions(waves: list[dict[str, Any]]) -> None:
     planned_by_pair: dict[tuple[str, str], int] = {}
     for wave in waves:
         for raw in _array(
@@ -585,130 +560,6 @@ def _validate_reverse_reductions(
             )
     if remaining != 0:
         raise RelocationPlanError("reverse dependency reductions do not reach zero")
-    unexpected = set(baseline_by_pair) - set(planned_by_pair)
-    if unexpected:
-        raise RelocationPlanError(
-            f"dependency violation baseline has unplanned pairs: {sorted(unexpected)}"
-        )
-    increased = {
-        pair: (maximum, planned_by_pair[pair])
-        for pair, maximum in baseline_by_pair.items()
-        if maximum > planned_by_pair[pair]
-    }
-    if increased:
-        raise RelocationPlanError(
-            f"dependency violation baseline exceeds planned maxima: {increased}"
-        )
-
-
-def _validate_internal_destinations(
-    plan: dict[str, Any],
-    waves: list[dict[str, Any]],
-    packages: dict[str, dict[str, Any]],
-    structural: dict[str, Any],
-) -> None:
-    baseline_sets = {
-        _string(item.get("ownerTarget"), "internal header owner target"): item
-        for raw in _array(
-            structural.get("internalHeaderBaseline"), "internal header baseline"
-        )
-        for item in [_object(raw, "internal header set")]
-    }
-    baseline_headers = {
-        (owner, _string(header.get("path"), f"{owner} internal header path")): len(
-            _array(header.get("consumerPaths"), f"{owner} internal header consumers")
-        )
-        for owner, item in baseline_sets.items()
-        for raw_header in _array(item.get("headers"), f"{owner} internal headers")
-        for header in [_object(raw_header, f"{owner} internal header")]
-    }
-    destinations = [
-        _object(item, "internal header destination")
-        for item in _array(
-            plan.get("reviewedInternalHeaderDestinations"),
-            "reviewed internal header destinations",
-        )
-    ]
-    covered: dict[tuple[str, str], str] = {}
-    removed_by_wave: dict[str, dict[str, int]] = {
-        wave["id"]: {owner: 0 for owner in baseline_sets} for wave in waves
-    }
-    for destination in destinations:
-        _fields(destination, DESTINATION_FIELDS, "internal header destination")
-        owner = _string(destination.get("ownerTarget"), "destination owner target")
-        header_path = _string(destination.get("headerPath"), "destination header path")
-        responsibility = _string(
-            destination.get("destinationResponsibility"),
-            "destination responsibility",
-        )
-        directory = _string(
-            destination.get("destinationDirectory"), "destination directory"
-        )
-        wave_id = _string(destination.get("wave"), "destination wave")
-        _string(destination.get("disposition"), "destination disposition")
-        if owner not in baseline_sets or responsibility not in packages:
-            raise RelocationPlanError("unknown internal header destination owner")
-        if wave_id != packages[responsibility].get("migrationWave"):
-            raise RelocationPlanError("internal header destination uses the wrong wave")
-        if not _is_below(directory, packages[responsibility]["target"]["rootDirectory"]):
-            raise RelocationPlanError("internal header destination is outside its package root")
-        matches = (
-            [key for key in baseline_headers if key[0] == owner]
-            if header_path == "*"
-            else [(owner, header_path)]
-        )
-        if not matches or any(key not in baseline_headers for key in matches):
-            raise RelocationPlanError("internal header destination is absent from the baseline")
-        for key in matches:
-            if key in covered:
-                raise RelocationPlanError("internal header destination is duplicated")
-            covered[key] = wave_id
-            removed_by_wave[wave_id][owner] += baseline_headers[key]
-    if set(covered) != set(baseline_headers):
-        raise RelocationPlanError(
-            "internal header destinations do not cover the baseline"
-        )
-
-    remaining = {
-        owner: _integer(item.get("maximumDirectReferences"), f"{owner} baseline maximum")
-        for owner, item in baseline_sets.items()
-    }
-    planned_owners = set(
-        _object(
-            waves[0].get("maximumInternalDirectReferencesAfterWave"),
-            "first wave internal header maximum",
-        )
-    )
-    unplanned_nonzero = {
-        owner: maximum
-        for owner, maximum in remaining.items()
-        if owner not in planned_owners and maximum
-    }
-    if unplanned_nonzero:
-        raise RelocationPlanError(
-            f"unplanned internal header baseline owners: {unplanned_nonzero}"
-        )
-    remaining = {owner: remaining[owner] for owner in planned_owners}
-    for wave in waves:
-        wave_maximum = _object(
-            wave.get("maximumInternalDirectReferencesAfterWave"),
-            f"{wave['id']} internal header maximum",
-        )
-        if set(wave_maximum) != planned_owners:
-            raise RelocationPlanError(
-                "internal header maximum owners differ between waves"
-            )
-        for owner, count in removed_by_wave[wave["id"]].items():
-            if owner in remaining:
-                remaining[owner] -= count
-        if wave_maximum != remaining:
-            raise RelocationPlanError(
-                f"internal header reduction does not match wave maximum: {wave['id']}"
-            )
-    if any(remaining.values()):
-        raise RelocationPlanError("internal header reductions do not reach zero")
-
-
 def _validate_application_target_boundary(repository_root: Path) -> None:
     application_cmake = (
         repository_root / "libs/application/CMakeLists.txt"
@@ -863,27 +714,9 @@ def validate_plan(
     )
     _validate_application_target_boundary(repository_root)
     waves, _order_by_id = _validate_waves(plan, packages, new_targets)
-    _validate_reverse_reductions(
-        waves, inputs["dependencyViolationBaseline"]
-    )
-    _validate_internal_destinations(
-        plan, waves, packages, inputs["structuralDependencyBaseline"]
-    )
-    structural = inputs["structuralDependencyBaseline"]
-    if any(
-        item.get("status") != "disproved-by-direct-include-attribution"
-        for item in _array(
-            structural.get("projectionResolutions"), "projection resolutions"
-        )
-    ):
-        raise RelocationPlanError("unresolved structural dependency projection")
-    cycle_baseline = _object(
-        structural.get("targetCycleBaseline"), "target cycle baseline"
-    )
-    if cycle_baseline.get("maximumComponents") != 0:
-        raise RelocationPlanError("target cycle baseline must remain zero")
+    _validate_reverse_reductions(waves)
     if plan.get("finalState") != FINAL_STATE:
-        raise RelocationPlanError("final relocation state must reduce every baseline to zero")
+        raise RelocationPlanError("final relocation state must remain zero")
 
 
 def main() -> int:

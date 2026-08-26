@@ -56,7 +56,7 @@ class AllowedPackageDependencyTests(unittest.TestCase):
             for status in (
                 "internal",
                 "allowed",
-                "requires-r1-g4-baseline",
+                "violates-policy",
             )
         }
         self.assertEqual(
@@ -64,7 +64,7 @@ class AllowedPackageDependencyTests(unittest.TestCase):
             {
                 "internal": 16,
                 "allowed": 72,
-                "requires-r1-g4-baseline": 0,
+                "violates-policy": 0,
             },
         )
         by_id = {

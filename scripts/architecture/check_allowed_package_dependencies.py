@@ -39,7 +39,7 @@ PROJECTION_FIELDS = {
 PROJECTION_STATUSES = {
     "allowed",
     "internal",
-    "requires-r1-g4-baseline",
+    "violates-policy",
 }
 
 
@@ -308,7 +308,7 @@ def build_current_target_edges(
                     ) in allowed_pairs:
                         status = "allowed"
                     else:
-                        status = "requires-r1-g4-baseline"
+                        status = "violates-policy"
                     projections.append(
                         {
                             "sourceResponsibility": source_responsibility,

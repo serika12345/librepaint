@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-26 20:16 JST
-- 状態: `planned`
+- 更新日時: 2026-08-26 21:12 JST
+- 状態: `in_progress`
 - 現在の検査段階: R1-G7 移行層の削除と文書同期
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
@@ -150,8 +150,7 @@
 
 ## R1-G4aで完了した作業
 
-- `docs/architecture/dependency-violation-baseline.json`に、直接includeで一意に帰属できる
-  8種類、305件の確認済み逆方向依存を記録した。
+- 直接includeで一意に帰属できる8種類、305件の確認済み逆方向依存を採取した。
 - アプリケーション調整から描画71件、キャンバス表示から文書寿命73件、描画から
   文書寿命95件などを、元のCMakeターゲット辺と5構成へ接続した。
 - 各確認済み違反にR1-G6の所有段階、現在必要な理由、除去条件、現在件数と等しい
@@ -171,7 +170,7 @@
   全件分類範囲外の公開ヘッダーを責務地図で一意に扱う契約を追加した。
 - 共有ターゲット由来の6未確定射影を、`kritabasicflakes`から`kritaui`への3includeと、
   `kritaui`から`kritaimpex`への4includeの実責務へ帰属させ、逆方向依存ではないことを
-  `docs/architecture/structural-dependency-baseline.json`へ記録した。
+  構造依存検査へ接続した。
 - 15中核ターゲットと全製品構築ターゲットの強連結成分を5構成で採取した。全製品範囲は
   macOS 215件、Linux 221件、iOS 207件、Android 207件、Windows 224件で、両範囲の
   循環上限を0件に固定した。
@@ -1011,9 +1010,8 @@
 ## R1-G6e-P4で完了した作業
 
 - `docs/architecture/ui-class-responsibilities.json`の`document-state`分類22クラスを起点に、
-  `docs/architecture/document-boundary-assessment.json`へ現在の関心、具体的な
-  所有先、後続検査段階を記録した。P1とP2で所有を移した3クラスと合わせ、R1-G6e開始時の
-  25クラスすべてを被覆する。宣言と実装の経路は既存の責務台帳を正本として重複を除いた。
+  現在の関心、具体的な所有先、後続検査段階を評価した。P1とP2で所有を移した3クラスと
+  合わせ、R1-G6e開始時の25クラスすべてを被覆した。
 - 残る22クラスを`KisDocument`1件、外部ファイル層1件、操作管理5件、ノード・選択操作接続
   4件、Qtモデルと表示状態11件へ再分類した。ノード表示モデルから`KisNodeManager`への依存と、
   `KisFileLayer`から`KisPart`への依存を、ファイル移動を先行できない根拠として記録した。
@@ -1023,11 +1021,7 @@
 - 保存I/O差し替え、保存計算、利用事例登録、外部ファイル層の抽象接続面について、現在の
   複数実装、差し替え要求、重複、決定的試験の阻害がないことを確認し、抽象を追加しない
   判断を記録した。
-- `scripts/architecture/check_document_boundary_assessment.py`は、22クラスと責務台帳の一致、
-  130メソッドの欠落と重複、再配置計画にある所有先と後続段階、現在要求を
-  持たない抽象導入を検査する。
-- 専用単体試験の初回実行は、新しい評価検査器が存在しない診断で失敗した。検査器と台帳の
-  実装後は、全件被覆、欠落、陳腐化、重複、抽象化判断の6試験が成功した。
+- 評価結果を文書パッケージ境界計画へ反映し、後続段階の具体的な所有判断へ接続した。
 - `nix develop .#test --command ./scripts/verify-quick`は、新規6件を含む103件の単体試験、
   文書境界評価、既存の公開面、責務、依存、構造、再配置計画、文書、リンク、D2再生成の
   全検査に成功した。製品ソースとCMake境界を変更していないため、構成別構築は実行しない。
@@ -1620,8 +1614,7 @@
 
 - `libs/ui`直下のアニメーション再生と非同期フレーム描画14ファイルを同名の
   `libs/ui/animation`へ、キャンバス表示状態、装飾、座標変換、表示接続55ファイルを同名の
-  `libs/ui/canvas`へ移した。開始パスと宛先パスの全69件は
-  `docs/architecture/canvas-presentation-ui-relocations.json`が一対一で記録する。
+  `libs/ui/canvas`へ移した。
 - `KisAsyncAnimation*`、`KisPlaybackEngine*`、`KisMLTProducerKrita*`はアニメーション再生配置を
   所有する。`KisAsyncAnimationFramesSavingRenderer.cpp`は動画書出し調整として
   `document-lifecycle`の審査済み帰属を維持する。残る移設ファイルはキャンバス表示配置を所有する。
@@ -1645,8 +1638,7 @@
 
 - `libs/ui`直下の文書構成と文書調整15ファイルを`libs/ui/document`、ノード表示モデルと
   ノード操作接続26ファイルを`libs/ui/nodes`、選択操作接続と選択表示部品10ファイルを
-  `libs/ui/selection`へ移した。全51件の正確な開始パスと宛先パスは
-  `docs/architecture/document-state-ui-relocations.json`が一対一で記録する。
+  `libs/ui/selection`へ移した。
 - `KisDocument`、外部ファイル層、画像・フィルター管理、文書テキストと絵コンテ項目は
   文書構成配置を所有する。ノード表示モデル、レイヤーとマスクの管理、ノード挿入接続は
   ノード配置を所有し、選択アクション接続と選択パネル部品は選択配置を所有する。
@@ -1654,8 +1646,8 @@
   includeを`document/...`、`nodes/...`、`selection/...`の正規経路へ更新した。
   公開ヘッダー試験は移設前に`document/KisDocument.h`不在で失敗し、移設後に成功した。
 - UIクラス責務台帳は79クラスを維持し、文書状態20クラスを18の分類済み入れ子ヘッダーで
-  継続追跡する。再配置台帳の全開始パス消滅、全宛先実在、責務ディレクトリー、翻訳単位の
-  CMake登録、分類済みヘッダーとの対応は公開面検査が継続確認する。
+  継続追跡する。責務ディレクトリー、翻訳単位のCMake登録、分類済みヘッダーとの対応は
+  公開面検査が継続確認する。
 - `kritaui`、`TestDocumentStateUiPublicHeaders`、`kis_multinode_property_test`、
   `kis_shape_selection_test`、`KisDocumentReplaceTest`はmacOSで成功した。clangdの
   include-cleaner検査は移設した全25翻訳単位で不要includeと直接include不足を報告していない。
@@ -1668,8 +1660,7 @@
 
 - `libs/ui`直下のアプリケーション調整20ファイルを`libs/ui/application`、ウィンドウ・
   作業空間42ファイルを`libs/ui/workspace`、ツール呼出し8ファイルを既存の`libs/ui/tool`へ
-  同じ基底名で移した。全70件の正確な開始パスと宛先パスは
-  `docs/architecture/application-workspace-tool-ui-relocations.json`が一対一で記録する。
+  同じ基底名で移した。
 - アクション、起動、設定、プラグイン、資源提供、Androidファイル接続はアプリケーション調整配置を
   所有する。ウィンドウ、ビュー、セッション、作業空間、テンプレート、環境設定、
   起動画面は作業空間配置を所有する。ブックマーク済みツール・フィルター設定と描画ツール箱は
@@ -1699,8 +1690,7 @@
   `libs/ui/impex`、事象接続13ファイルは`libs/ui/events`、テーマ表示4ファイルは
   `libs/ui/theme`、macOS接続3ファイルは`libs/ui/platform`、資源表示17ファイルは
   `libs/ui/resources`、図形選択接続2ファイルは`libs/ui/flake`、履歴アクション接続2ファイルは
-  `libs/ui/actions`が所有する。全開始パスと宛先パスは
-  `docs/architecture/remaining-ui-root-relocations.json`が一対一で記録する。
+  `libs/ui/actions`が所有する。
 - `libs/ui`直下には`CMakeLists.txt`と`kritaui_export_instance.h`の2ファイルが存在する。
   前者は`kritaui`の構築定義を、後者はターゲット公開テンプレート記号の設定を所有する。
   再配置検査は旧開始パスの消滅、全宛先の実在、責務ディレクトリー、CMake登録、rootの
@@ -1708,14 +1698,9 @@
 - `KisPopupWidgetInterface.h`、`KisUiFont.h`、`kis_cursor_override_hijacker.h`、
   `kis_favorite_resource_manager.h`、`kis_popup_palette.h`の公開面は責務別の正規入れ子経路を持つ。
   `TestRemainingUiRootPublicHeaders`が5ヘッダーを一つの利用翻訳単位として構築する。
-- `libs/ui/resources/kis_md5_generator.cpp`は宣言ヘッダー、利用元、CMake登録が存在せず、
-  存在しない`kis_md5_generator.h`をincludeする孤立実装である。再配置台帳は現在の非構築状態を
-  `resource-presentation`所有、R1-G7追跡、最大1ファイル、宣言と実利用を確立した登録または
-  未利用実装の除去を完了条件とする審査済み例外へ固定する。
 - `kritaui`、`TestRemainingUiRootPublicHeaders`、`kis_derived_resources_test`はmacOSで成功した。
   clangdのinclude-cleaner検査はCMake登録された移設先20翻訳単位で不要includeと直接include不足を
-  報告していない。`kis_md5_generator.cpp`のテキスト監査は欠落宣言ヘッダー1件、利用元0件、
-  CMake参照0件という現在状態を確認した。
+  報告していない。
 - `nix develop .#test --command ./scripts/verify-quick`は全運用試験と統治検査に成功した。
 
 ## R1-G6gアプリケーション・作業空間include境界で完了した作業
@@ -1827,9 +1812,8 @@
   `KisStatusBar`は画像寸法、選択範囲、色プロファイル、メモリー使用量、キャンバス回転の
   表示と利用者操作との接続をキャンバス表示配置で所有する。
 - `kritaui`のCMake所有、公開クラス名、公開記号、所有寿命を維持し、製品と公開ヘッダー試験の
-  10 include経路を`canvas/kis_statusbar.h`へ同期した。キャンバス表示再配置台帳は
-  14アニメーションファイルと55キャンバスファイル、アプリケーション・作業空間・ツール
-  再配置台帳は20アプリケーションファイル、44作業空間ファイル、8ツールファイルを記録する。
+  10 include経路を`canvas/kis_statusbar.h`へ同期した。公開面検査はキャンバス表示、
+  アプリケーション、作業空間、ツールの現在配置を継続確認する。
 - UIクラス責務台帳は`KisStatusBar`をキャンバス・表示へ分類し、キャンバス・表示31クラス、
   ウィンドウ・作業空間16クラスを記録する。アプリケーション調整から描画への確認済み
   逆方向includeは48件から42件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
@@ -2078,6 +2062,26 @@
   評価に成功した。
 - `nix develop .#test --command ./scripts/verify`は最終ソースで高速検査106件、macOSの
   全製品と試験の構築、CTest 354件に成功した。
+
+## R1-G7移行台帳の退役で完了した作業
+
+- 逆方向依存と構造依存の移行上限が0件へ到達したため、依存違反基準と構造依存基準を
+  退役した。`check_package_dependencies.py`と`check_structural_dependencies.py`が現在の
+  ソース、責務地図、許可依存方針、公開面、5構成グラフからゼロ状態を直接検査する。
+- UI配置の開始パスと宛先パスを記録した4台帳を退役した。公開面検査は`libs/ui`直下の
+  2ファイル、分類済み公開ヘッダー、責務別UIディレクトリーの翻訳単位とUI資産のCMake登録を
+  現在のソースツリーから直接確認する。
+- 文書境界評価は文書責務の実装完了後に退役し、現在の公開クラス所有はUIクラス責務台帳、
+  安定した設計は文書パッケージ境界計画が所有する。
+- 宣言、利用元、CMake所有を持たない`libs/ui/resources/kis_md5_generator.cpp`を削除し、
+  UI配置に残っていた審査済み例外を完了した。
+- パッケージ再配置計画は3互換経路、責務配置、移行段階、完了条件を保持し、完了済みの
+  ゼロ基準への入力参照を除いた。
+- `nix develop .#test --command ./scripts/verify-quick`は95件の運用試験、6更新器の決定性、
+  公開面、責務地図、許可依存、直接依存、構造依存、再配置計画、統治、文書、リンク、
+  D2生成物の検査に成功した。
+- `nix develop .#test --command ./scripts/verify`は全製品と試験の構築、CTest 354件に
+  成功した。
 
 ## 次の操作
 
