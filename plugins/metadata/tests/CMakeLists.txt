@@ -3,5 +3,5 @@
 # Works under Linux but does not work under Windows
 krita_add_broken_unit_test( kis_exif_test.cpp
     TEST_NAME KisExifTest
-    LINK_LIBRARIES kritapaintingmetadata kritaui kritatestsdk
+    LINK_LIBRARIES kritapaintingmetadata kritaapplicationui kritatestsdk
     )

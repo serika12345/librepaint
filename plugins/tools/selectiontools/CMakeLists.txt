@@ -19,7 +19,7 @@ kis_add_library(kritaselectiontools MODULE ${kritaselectiontools_SOURCES})
 generate_export_header(kritaselectiontools BASE_NAME kritaselectiontools)
 
 target_link_libraries(kritaselectiontools
-    kritaui
+    kritaapplicationui
     kritaflake
     kritatools
     kritabasicflakes

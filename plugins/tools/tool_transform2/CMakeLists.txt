@@ -38,7 +38,7 @@ kis_add_library(kritatooltransform MODULE ${kritatooltransform_SOURCES})
 
 target_link_libraries(kritatooltransform_static
   PUBLIC
-    kritaui
+    kritaapplicationui
     kritapainting
     kritatools
 )

@@ -13,7 +13,7 @@ kis_add_library(kritatoolencloseandfill MODULE ${kritatoolencloseandfill_SOURCES
 
 target_link_libraries(kritatoolencloseandfill
     kritaapplication
-    kritaui
+    kritaapplicationui
     kritatools
     kritabasicflakes
     kritapainting

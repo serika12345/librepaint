@@ -30,6 +30,6 @@ krita_ios_add_static_resource(pathshapes)
 
 kis_add_library(krita_shape_paths MODULE ${pathshapes_SOURCES})
 
-target_link_libraries(krita_shape_paths kritaflake kritawidgets kritaui kritaxmlserialization)
+target_link_libraries(krita_shape_paths kritaflake kritawidgets kritaapplicationui kritaxmlserialization)
 
 install(TARGETS krita_shape_paths  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

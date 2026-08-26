@@ -84,7 +84,7 @@ target_link_libraries(kritaplatformpluginwayland
         Qt::WaylandClient
         kritaglobal
         kritainputui
-        kritaui
+        kritaapplicationui
 )
 
 if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)

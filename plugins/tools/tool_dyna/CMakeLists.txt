@@ -6,7 +6,7 @@ set(kritatooldyna_SOURCES
 
 kis_add_library(kritatooldyna MODULE ${kritatooldyna_SOURCES})
 
-target_link_libraries(kritatooldyna kritaui)
+target_link_libraries(kritatooldyna kritaapplicationui)
 
 install(TARGETS kritatooldyna  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

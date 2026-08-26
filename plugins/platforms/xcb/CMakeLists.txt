@@ -7,7 +7,7 @@ set ( kritaplatformpluginxcb_SRCS
 
 kis_add_library(kritaplatformpluginxcb MODULE ${kritaplatformpluginxcb_SRCS})
 
-target_link_libraries(kritaplatformpluginxcb PRIVATE kritaglobal kritainputui kritaui)
+target_link_libraries(kritaplatformpluginxcb PRIVATE kritaglobal kritainputui kritaapplicationui)
 
 if (QT_MAJOR_VERSION STREQUAL "5")
     target_link_libraries(kritaplatformpluginxcb PRIVATE Qt${QT_MAJOR_VERSION}::X11Extras)

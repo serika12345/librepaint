@@ -10,6 +10,6 @@ kis_add_library(kritatoollazybrush MODULE ${kritatoollazybrush_SOURCES})
 
 generate_export_header(kritatoollazybrush BASE_NAME kritatoollazybrush)
 
-target_link_libraries(kritatoollazybrush kritaapplication kritaui)
+target_link_libraries(kritatoollazybrush kritaapplication kritaapplicationui)
 
 install(TARGETS kritatoollazybrush  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
