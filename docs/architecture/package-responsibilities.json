@@ -16,10 +16,43 @@
   },
   "responsibilities": [
     {
+      "id": "application-configuration",
+      "responsibility": "Provides validated application settings, canvas snapping policy, and platform file-exchange services to feature coordinators.",
+      "sourceDirectories": [
+        "libs/application"
+      ],
+      "ownerTargets": [
+        "kritaapplication"
+      ],
+      "publicHeaderOwnerTargets": [
+        "kritaapplication"
+      ],
+      "reviewedPublicHeaderPaths": [],
+      "reviewedSourcePaths": [],
+      "uiClassAreas": [
+        "application-configuration"
+      ],
+      "uiToolClassAreas": [],
+      "majorClasses": [],
+      "pluginScope": "feature-owners",
+      "pluginFeatureOwners": [],
+      "publicHeaderPaths": [
+        "libs/application/kis_config.h",
+        "libs/application/kis_snap_config.h",
+        "libs/application/platform-adapters/KisAndroidFileProxy.h"
+      ],
+      "classNames": [
+        "KisConfig"
+      ],
+      "pluginIds": [],
+      "pluginServiceTypes": []
+    },
+    {
       "id": "application-orchestration",
       "responsibility": "Coordinates process startup, operating-system lifecycle, shared application, window, and workspace services, and application, view, and platform extensions.",
       "sourceDirectories": [
         "krita",
+        "libs/application/ui",
         "libs/ui",
         "libs/ui/actions/input",
         "plugins/extensions",
@@ -27,16 +60,18 @@
       ],
       "ownerTargets": [
         "krita",
-        "kritaui"
+        "kritaapplicationui"
       ],
-      "publicHeaderOwnerTargets": [],
+      "publicHeaderOwnerTargets": [
+        "kritaapplicationui"
+      ],
       "reviewedPublicHeaderPaths": [],
       "reviewedSourcePaths": [
+        "libs/application/ui/workspace/KisViewManagerToolActivation.cpp",
         "libs/ui/canvas/kis_canvas2.cpp",
         "libs/ui/dialogs/kis_dlg_preferences_input.cpp",
         "libs/ui/resources/kis_popup_palette.h",
-        "libs/ui/widgets/kis_workspace_chooser.cpp",
-        "libs/ui/workspace/KisViewManagerToolActivation.cpp"
+        "libs/ui/widgets/kis_workspace_chooser.cpp"
       ],
       "uiClassAreas": [
         "application-orchestration",
@@ -51,28 +86,221 @@
         "view-extension"
       ],
       "publicHeaderPaths": [
-        "libs/ui/application/KisActionPlugin.h",
-        "libs/ui/application/KisApplication.h",
-        "libs/ui/application/KisApplicationArguments.h",
-        "libs/ui/application/KisPart.h",
-        "libs/ui/application/KisPlatformPluginInterfaceFactory.h",
-        "libs/ui/application/KisResourceServerProvider.h",
-        "libs/ui/application/kis_action.h",
-        "libs/ui/application/kis_action_manager.h",
-        "libs/ui/application/kis_config.h",
-        "libs/ui/workspace/KisAndroidSplash.h",
-        "libs/ui/workspace/KisMainWindow.h",
-        "libs/ui/workspace/KisSessionResource.h",
-        "libs/ui/workspace/KisTemplateCreateDia.h",
-        "libs/ui/workspace/KisTemplateGroup.h",
-        "libs/ui/workspace/KisTemplateTree.h",
-        "libs/ui/workspace/KisView.h",
-        "libs/ui/workspace/KisViewManager.h",
-        "libs/ui/workspace/KisWelcomePageWidget.h",
-        "libs/ui/workspace/KisWindowLayoutResource.h",
-        "libs/ui/workspace/kis_mainwindow_observer.h",
-        "libs/ui/workspace/kis_preference_set_registry.h",
-        "libs/ui/workspace/kis_splash_screen.h"
+        "libs/application/ui/orchestration/KisActionPlugin.h",
+        "libs/application/ui/orchestration/KisApplication.h",
+        "libs/application/ui/orchestration/KisApplicationArguments.h",
+        "libs/application/ui/orchestration/KisPart.h",
+        "libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h",
+        "libs/application/ui/orchestration/KisQtWidgetsTweaker.h",
+        "libs/application/ui/orchestration/KisResourceServerProvider.h",
+        "libs/application/ui/orchestration/kis_action.h",
+        "libs/application/ui/orchestration/kis_action_manager.h",
+        "libs/application/ui/workspace/KisAndroidSplash.h",
+        "libs/application/ui/workspace/KisMainWindow.h",
+        "libs/application/ui/workspace/KisSessionResource.h",
+        "libs/application/ui/workspace/KisTemplateCreateDia.h",
+        "libs/application/ui/workspace/KisTemplateGroup.h",
+        "libs/application/ui/workspace/KisTemplateTree.h",
+        "libs/application/ui/workspace/KisView.h",
+        "libs/application/ui/workspace/KisViewManager.h",
+        "libs/application/ui/workspace/KisWelcomePageWidget.h",
+        "libs/application/ui/workspace/KisWindowLayoutResource.h",
+        "libs/application/ui/workspace/kis_mainwindow_observer.h",
+        "libs/application/ui/workspace/kis_preference_set_registry.h",
+        "libs/application/ui/workspace/kis_splash_screen.h",
+        "libs/ui/actions/KisLayerSelectionAction.h",
+        "libs/ui/actions/KisNoParameterActionFactory.h",
+        "libs/ui/actions/KisPasteActionFactories.h",
+        "libs/ui/actions/KisTransformToolActivationCommand.h",
+        "libs/ui/actions/input/KisApplicationInputActions.h",
+        "libs/ui/actions/kis_selection_action_factories.h",
+        "libs/ui/animation/KisAsyncAnimationRendererBase.h",
+        "libs/ui/animation/KisFrameDisplayProxy.h",
+        "libs/ui/animation/KisPlaybackEngine.h",
+        "libs/ui/animation/KisPlaybackEngineMLT.h",
+        "libs/ui/animation/KisPlaybackEngineQT.h",
+        "libs/ui/animation/cache/KisAbstractFrameCacheSwapper.h",
+        "libs/ui/animation/cache/KisFrameCacheSwapper.h",
+        "libs/ui/animation/cache/KisInMemoryFrameCacheSwapper.h",
+        "libs/ui/animation/kis_animation_frame_cache.h",
+        "libs/ui/animation/kis_animation_frame_cache_fwd.h",
+        "libs/ui/canvas/KisAndroidScaling.h",
+        "libs/ui/canvas/KisCanvasAnimationState.h",
+        "libs/ui/canvas/KisCanvasSurfaceColorSpaceManager.h",
+        "libs/ui/canvas/KisDisplayConfig.h",
+        "libs/ui/canvas/KisIdleTaskStrokeStrategy.h",
+        "libs/ui/canvas/KisIdleTasksManager.h",
+        "libs/ui/canvas/KisImageThumbnailStrokeStrategy.h",
+        "libs/ui/canvas/KisLayerThumbnailCache.h",
+        "libs/ui/canvas/KisMirrorAxisConfig.h",
+        "libs/ui/canvas/KisNodeDisplayModeAdapter.h",
+        "libs/ui/canvas/KisReferenceImage.h",
+        "libs/ui/canvas/KisReferenceImagesDecoration.h",
+        "libs/ui/canvas/KisRootSurfaceInfoProxy.h",
+        "libs/ui/canvas/KisSRGBSurfaceColorSpaceManager.h",
+        "libs/ui/canvas/KisSnapPointStrategy.h",
+        "libs/ui/canvas/KisWidgetWithIdleTask.h",
+        "libs/ui/canvas/KoCanvasControllerWidget.h",
+        "libs/ui/canvas/kis_abstract_perspective_grid.h",
+        "libs/ui/canvas/kis_canvas2.h",
+        "libs/ui/canvas/kis_canvas_controller.h",
+        "libs/ui/canvas/kis_canvas_controls_manager.h",
+        "libs/ui/canvas/kis_canvas_decoration.h",
+        "libs/ui/canvas/kis_canvas_resource_provider.h",
+        "libs/ui/canvas/kis_canvas_widget_base.h",
+        "libs/ui/canvas/kis_display_color_converter.h",
+        "libs/ui/canvas/kis_display_filter.h",
+        "libs/ui/canvas/kis_exposure_gamma_correction_interface.h",
+        "libs/ui/canvas/kis_grid_config.h",
+        "libs/ui/canvas/kis_grid_manager.h",
+        "libs/ui/canvas/kis_guides_config.h",
+        "libs/ui/canvas/kis_guides_decoration.h",
+        "libs/ui/canvas/kis_guides_manager.h",
+        "libs/ui/canvas/kis_image_view_converter.h",
+        "libs/ui/canvas/kis_infinity_manager.h",
+        "libs/ui/canvas/kis_painting_assistant.h",
+        "libs/ui/canvas/kis_painting_assistants_decoration.h",
+        "libs/ui/canvas/kis_qpainter_projection_factory.h",
+        "libs/ui/canvas/kis_selection_decoration.h",
+        "libs/ui/canvas/kis_statusbar.h",
+        "libs/ui/canvas/kis_zoom_manager.h",
+        "libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.h",
+        "libs/ui/dialogs/KisAsyncAnimationRenderDialogBase.h",
+        "libs/ui/dialogs/KisColorSpaceConversionDialog.h",
+        "libs/ui/dialogs/KisDlgCustomTabletResolution.h",
+        "libs/ui/dialogs/KisDlgPaletteEditor.h",
+        "libs/ui/dialogs/kis_dlg_hlg_import.h",
+        "libs/ui/dialogs/kis_dlg_preferences.h",
+        "libs/ui/document/KisDocument.h",
+        "libs/ui/document/KisTextPropertiesManager.h",
+        "libs/ui/document/StoryboardItem.h",
+        "libs/ui/document/kis_file_layer.h",
+        "libs/ui/document/kis_filter_manager.h",
+        "libs/ui/document/kis_image_manager.h",
+        "libs/ui/events/kis_cursor_override_hijacker.h",
+        "libs/ui/flake/KisReferenceImagesLayer.h",
+        "libs/ui/flake/kis_dummies_facade.h",
+        "libs/ui/flake/kis_dummies_facade_base.h",
+        "libs/ui/flake/kis_node_dummies_graph.h",
+        "libs/ui/flake/kis_node_shape.h",
+        "libs/ui/flake/kis_node_shapes_graph.h",
+        "libs/ui/flake/kis_shape_controller.h",
+        "libs/ui/flake/kis_shape_layer.h",
+        "libs/ui/flake/kis_shape_selection.h",
+        "libs/ui/kritaui_export_instance.h",
+        "libs/ui/nodes/kis_model_index_converter.h",
+        "libs/ui/nodes/kis_model_index_converter_base.h",
+        "libs/ui/nodes/kis_model_index_converter_show_all.h",
+        "libs/ui/nodes/kis_multinode_property.h",
+        "libs/ui/nodes/kis_node_filter_proxy_model.h",
+        "libs/ui/nodes/kis_node_manager.h",
+        "libs/ui/nodes/kis_node_model.h",
+        "libs/ui/nodes/kis_node_selection_adapter.h",
+        "libs/ui/nodes/kis_node_view_color_scheme.h",
+        "libs/ui/opengl/KisOpenGLContextSwitchLock.h",
+        "libs/ui/opengl/KisOpenGLModeProber.h",
+        "libs/ui/opengl/KisOpenGLUpdateInfoBuilder.h",
+        "libs/ui/opengl/KisScreenInformationAdapter.h",
+        "libs/ui/opengl/kis_opengl.h",
+        "libs/ui/opengl/kis_opengl_canvas2.h",
+        "libs/ui/opengl/kis_opengl_image_textures.h",
+        "libs/ui/opengl/kis_opengl_update_info.h",
+        "libs/ui/operations/kis_filter_selection_operation.h",
+        "libs/ui/operations/kis_operation.h",
+        "libs/ui/operations/kis_operation_configuration.h",
+        "libs/ui/operations/kis_operation_registry.h",
+        "libs/ui/operations/kis_operation_ui_factory.h",
+        "libs/ui/operations/kis_operation_ui_widget.h",
+        "libs/ui/operations/kis_operation_ui_widget_factory.h",
+        "libs/ui/processing/KisEncloseAndFillProcessingVisitor.h",
+        "libs/ui/processing/fill_processing_visitor.h",
+        "libs/ui/qtsingleapplication/qtsingleapplication.h",
+        "libs/ui/resources/kis_favorite_resource_manager.h",
+        "libs/ui/resources/kis_popup_palette.h",
+        "libs/ui/selection/KisSelectionActionsAdapter.h",
+        "libs/ui/selection/kis_selection_actions_panel.h",
+        "libs/ui/selection/kis_selection_manager.h",
+        "libs/ui/theme/KisUiFont.h",
+        "libs/ui/tool/KisAsyncColorSamplerHelper.h",
+        "libs/ui/tool/KisToolOutlineBase.h",
+        "libs/ui/tool/kis_bookmarked_configurations_editor.h",
+        "libs/ui/tool/kis_bookmarked_configurations_model.h",
+        "libs/ui/tool/kis_painting_information_builder_adapters.h",
+        "libs/ui/tool/kis_paintop_box.h",
+        "libs/ui/tool/kis_scratch_pad.h",
+        "libs/ui/tool/kis_selection_tool_helper.h",
+        "libs/ui/tool/kis_tool_canvas_utils.h",
+        "libs/ui/tool/kis_tool_ellipse_base.h",
+        "libs/ui/tool/kis_tool_freehand.h",
+        "libs/ui/tool/kis_tool_freehand_helper.h",
+        "libs/ui/tool/kis_tool_multihand_helper.h",
+        "libs/ui/tool/kis_tool_paint.h",
+        "libs/ui/tool/kis_tool_polyline_base.h",
+        "libs/ui/tool/kis_tool_rectangle_base.h",
+        "libs/ui/tool/kis_tool_select_ui_base.h",
+        "libs/ui/tool/kis_tool_shape.h",
+        "libs/ui/toolbox/KoToolBoxFactory.h",
+        "libs/ui/utils/KisDitherUtil.h",
+        "libs/ui/utils/KisFileIconCreator.h",
+        "libs/ui/utils/KisSpinBoxSplineUnitConverter.h",
+        "libs/ui/utils/kis_document_aware_spin_box_unit_manager.h",
+        "libs/ui/widgets/KisAutoLevelsWidget.h",
+        "libs/ui/widgets/KisColorSamplerPreviewPreview.h",
+        "libs/ui/widgets/KisCompositeOpListConnectionHelper.h",
+        "libs/ui/widgets/KisCurveWidgetConnectionHelper.h",
+        "libs/ui/widgets/KisCurveWidgetControlsManager.h",
+        "libs/ui/widgets/KisDitherWidget.h",
+        "libs/ui/widgets/KisDockerHud.h",
+        "libs/ui/widgets/KisGamutMaskToolbar.h",
+        "libs/ui/widgets/KisGrabKeyboardFocusRecoveryWorkaround.h",
+        "libs/ui/widgets/KisHistogramPainter.h",
+        "libs/ui/widgets/KisHistogramView.h",
+        "libs/ui/widgets/KisLodAvailabilityData.h",
+        "libs/ui/widgets/KisMemoryReportButton.h",
+        "libs/ui/widgets/KisProofingOptionsWidget.h",
+        "libs/ui/widgets/KisScreenColorSampler.h",
+        "libs/ui/widgets/KisSelectionPropertySlider.h",
+        "libs/ui/widgets/KisWarningWidget.h",
+        "libs/ui/widgets/KoBackgroundColour.h",
+        "libs/ui/widgets/KoDualColorButton.h",
+        "libs/ui/widgets/KoFillConfigWidget.h",
+        "libs/ui/widgets/KoForegroundColour.h",
+        "libs/ui/widgets/KoResetBgFgColours.h",
+        "libs/ui/widgets/KoStrokeConfigWidget.h",
+        "libs/ui/widgets/KoSwapBgFgColours.h",
+        "libs/ui/widgets/gradient/KisGenericGradientEditor.h",
+        "libs/ui/widgets/gradient/KisGradientChooser.h",
+        "libs/ui/widgets/gradient/KisGradientColorEditor.h",
+        "libs/ui/widgets/gradient/KisGradientWidgetsUtils.h",
+        "libs/ui/widgets/gradient/KisSegmentGradientEditor.h",
+        "libs/ui/widgets/gradient/KisSegmentGradientSlider.h",
+        "libs/ui/widgets/gradient/KisStopGradientEditor.h",
+        "libs/ui/widgets/kis_advanced_color_space_selector.h",
+        "libs/ui/widgets/kis_cie_tongue_widget.h",
+        "libs/ui/widgets/kis_cmb_idlist.h",
+        "libs/ui/widgets/kis_collapsible_button_group.h",
+        "libs/ui/widgets/kis_color_filter_combo.h",
+        "libs/ui/widgets/kis_color_space_selector.h",
+        "libs/ui/widgets/kis_curve_widget.h",
+        "libs/ui/widgets/kis_elided_label.h",
+        "libs/ui/widgets/kis_floating_message.h",
+        "libs/ui/widgets/kis_iconwidget.h",
+        "libs/ui/widgets/kis_layer_filter_widget.h",
+        "libs/ui/widgets/kis_multi_bool_filter_widget.h",
+        "libs/ui/widgets/kis_multi_double_filter_widget.h",
+        "libs/ui/widgets/kis_multi_integer_filter_widget.h",
+        "libs/ui/widgets/kis_paintop_presets_chooser_popup.h",
+        "libs/ui/widgets/kis_pattern_chooser.h",
+        "libs/ui/widgets/kis_preset_chooser.h",
+        "libs/ui/widgets/kis_progress_widget.h",
+        "libs/ui/widgets/kis_seexpr_script_chooser.h",
+        "libs/ui/widgets/kis_size_group.h",
+        "libs/ui/widgets/kis_tone_curve_widget.h",
+        "libs/ui/widgets/kis_tool_button.h",
+        "libs/ui/widgets/kis_transport_controls.h",
+        "libs/ui/widgets/kis_utility_title_bar.h",
+        "libs/ui/widgets/kis_widget_chooser.h",
+        "libs/ui/widgets/kis_zoom_scrollbar.h"
       ],
       "classNames": [
         "KisAbstractPreferenceSetFactory",
@@ -82,7 +310,6 @@
         "KisAndroidSplash",
         "KisApplication",
         "KisApplicationArguments",
-        "KisConfig",
         "KisMainWindow",
         "KisMainwindowObserver",
         "KisPart",
@@ -147,7 +374,6 @@
         "kritabasicflakes",
         "kritacanvas",
         "kritaflake",
-        "kritaui",
         "kritaworkspacepresentation"
       ],
       "publicHeaderOwnerTargets": [
@@ -297,8 +523,7 @@
       "ownerTargets": [
         "kritadocument",
         "kritadocumentfiles",
-        "kritadocumentui",
-        "kritaui"
+        "kritadocumentui"
       ],
       "publicHeaderOwnerTargets": [
         "kritadocument",
@@ -1293,8 +1518,7 @@
       ],
       "ownerTargets": [
         "kritatools",
-        "kritatoolsui",
-        "kritaui"
+        "kritatoolsui"
       ],
       "publicHeaderOwnerTargets": [
         "kritatools"
@@ -1426,6 +1650,8 @@
         "krita_shape_image",
         "krita_shape_paths",
         "kritaanimationdocker",
+        "kritaapplication",
+        "kritaapplicationui",
         "kritaarrangedocker",
         "kritaartisticcolorselector",
         "kritaasccdl",
@@ -1574,7 +1800,6 @@
         "kritatoolpolyline",
         "kritatooltransform",
         "kritatouchdocker",
-        "kritaui",
         "kritaunsharpfilter",
         "kritawavefilter",
         "kritawaveletdecompose",
@@ -1587,6 +1812,124 @@
       "repositoryConsumers": [
         "krita_windows_stub_com",
         "krita_windows_stub_exe"
+      ]
+    },
+    {
+      "name": "kritaapplication",
+      "sourceDirectory": "libs/application",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritacanvas",
+        "kritaflake",
+        "kritaglobal",
+        "kritapigment",
+        "kritaresources"
+      ],
+      "repositoryConsumers": [
+        "krita",
+        "krita_flaketools",
+        "krita_tool_svgtext_static",
+        "kritaanimationdocker_static",
+        "kritaapplicationui",
+        "kritaartisticcolorselector",
+        "kritaasccdl",
+        "kritabrushexport",
+        "kritabrushhud",
+        "kritachanneldocker",
+        "kritacolorselectorng",
+        "kritacolorspaceconversion",
+        "kritacompositiondocker",
+        "kritadefaulttools_static",
+        "kritaexrexport",
+        "kritagamutmask",
+        "kritagriddocker",
+        "kritaheifexport",
+        "kritaheightmapexport",
+        "kritaheightmapimport",
+        "kritahistorydocker",
+        "kritaimagesplit",
+        "kritaimpexui",
+        "kritaiostouchui",
+        "kritajpegexport",
+        "kritakrzexport",
+        "kritalayerdocker_static",
+        "kritalayersplit",
+        "kritalibkis",
+        "kritalibkra",
+        "kritalogdocker",
+        "kritalutdocker",
+        "kritalutdocker_static",
+        "kritametadataeditor",
+        "kritaoffsetimage",
+        "kritaoverviewdocker",
+        "kritapalettedocker",
+        "kritapngexport",
+        "kritapresethistory",
+        "kritapykrita",
+        "kritarecorderdocker",
+        "kritaresourcemanager",
+        "kritaseexprgenerator",
+        "kritasmallcolorselector",
+        "kritaspecificcolorselector",
+        "kritastoryboarddocker_static",
+        "kritasvgimport",
+        "kritatextproperties",
+        "kritatiffexport",
+        "kritatoolKnife_static",
+        "kritatoolSmartPatch",
+        "kritatoolencloseandfill",
+        "kritatoollazybrush"
+      ]
+    },
+    {
+      "name": "kritaapplicationui",
+      "sourceDirectory": "libs/application",
+      "platforms": [
+        "macos",
+        "linux",
+        "ios",
+        "android",
+        "windows"
+      ],
+      "types": [
+        "SHARED_LIBRARY",
+        "STATIC_LIBRARY"
+      ],
+      "repositoryDependencies": [
+        "kritaapplication",
+        "kritacanvas",
+        "kritadocument",
+        "kritadocumentfiles",
+        "kritadocumentui",
+        "kritaimpex",
+        "kritaimpexui",
+        "kritainput",
+        "kritainputui",
+        "kritamacosutils",
+        "kritaresources",
+        "kritaresourcestorage",
+        "kritaresourceui",
+        "kritasurfacecolormanagementapi",
+        "kritatools",
+        "kritatoolsui",
+        "kritaversion",
+        "kritawidgets",
+        "kritawidgetutils",
+        "kritaworkspacepresentation",
+        "kritaxmlserialization"
+      ],
+      "repositoryConsumers": [
+        "krita"
       ]
     },
     {
@@ -1606,7 +1949,6 @@
       "repositoryDependencies": [
         "kritaflake",
         "kritapigment",
-        "kritaui",
         "kritawidgets"
       ],
       "repositoryConsumers": [
@@ -1635,10 +1977,11 @@
         "kritaimage"
       ],
       "repositoryConsumers": [
+        "kritaapplication",
+        "kritaapplicationui",
         "kritainput",
         "kritainputui",
-        "kritatools",
-        "kritaui"
+        "kritatools"
       ]
     },
     {
@@ -1678,8 +2021,8 @@
       ],
       "repositoryDependencies": [],
       "repositoryConsumers": [
-        "kritadocumentui",
-        "kritaui"
+        "kritaapplicationui",
+        "kritadocumentui"
       ]
     },
     {
@@ -1701,8 +2044,8 @@
         "kritaresourcestorage"
       ],
       "repositoryConsumers": [
-        "kritadocumentui",
-        "kritaui"
+        "kritaapplicationui",
+        "kritadocumentui"
       ]
     },
     {
@@ -1730,7 +2073,7 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
-        "kritaui"
+        "kritaapplicationui"
       ]
     },
     {
@@ -1758,6 +2101,7 @@
         "krita_flaketools",
         "krita_shape_image",
         "krita_shape_paths",
+        "kritaapplication",
         "kritaassistanttool_static",
         "kritabasicflakes",
         "kritacanvas",
@@ -1840,6 +2184,7 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
+        "kritaapplicationui",
         "kritabrushexport",
         "kritacsvexport",
         "kritadocumentui",
@@ -1862,7 +2207,6 @@
         "kritatgaexport",
         "kritatiffexport",
         "kritatiffimport",
-        "kritaui",
         "kritawebpexport"
       ]
     },
@@ -1880,6 +2224,7 @@
         "OBJECT_LIBRARY"
       ],
       "repositoryDependencies": [
+        "kritaapplication",
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",
@@ -1895,7 +2240,7 @@
         "kritaxmlserialization"
       ],
       "repositoryConsumers": [
-        "kritaui"
+        "kritaapplicationui"
       ]
     },
     {
@@ -1918,8 +2263,8 @@
         "kritaglobal"
       ],
       "repositoryConsumers": [
-        "kritainputui",
-        "kritaui"
+        "kritaapplicationui",
+        "kritainputui"
       ]
     },
     {
@@ -1951,12 +2296,12 @@
       "repositoryConsumers": [
         "krita_karbontools",
         "kritaanimationdocker_static",
+        "kritaapplicationui",
         "kritaiostouchui",
         "kritaplatformpluginwayland",
         "kritaplatformpluginxcb",
         "kritarecorderdocker",
-        "kritaspensettings",
-        "kritaui"
+        "kritaspensettings"
       ]
     },
     {
@@ -2104,6 +2449,7 @@
       ],
       "repositoryConsumers": [
         "krita_colorspaces_extensions",
+        "kritaapplication",
         "kritabasicflakes",
         "kritaflake",
         "kritaimage",
@@ -2166,6 +2512,8 @@
         "kritaxmlserialization"
       ],
       "repositoryConsumers": [
+        "kritaapplication",
+        "kritaapplicationui",
         "kritadbexplorer",
         "kritaimage",
         "kritaimpex",
@@ -2176,7 +2524,6 @@
         "kritaresourceui",
         "kritatools",
         "kritatoolsui",
-        "kritaui",
         "kritawidgets",
         "kritawidgetutils",
         "kritaworkspacepresentation"
@@ -2199,6 +2546,7 @@
       "repositoryDependencies": [],
       "repositoryConsumers": [
         "krita_flaketools",
+        "kritaapplicationui",
         "kritadocumentfiles",
         "kritadocumentui",
         "kritaflake",
@@ -2210,8 +2558,7 @@
         "kritaoraexport",
         "kritaoraimport",
         "kritapigment",
-        "kritaresources",
-        "kritaui"
+        "kritaresources"
       ]
     },
     {
@@ -2236,12 +2583,12 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
+        "kritaapplicationui",
         "kritadbexplorer",
         "kritaimpexui",
         "kritapalettedocker",
         "kritaresourcemanager",
         "kritatoolsui",
-        "kritaui",
         "kritawidgets"
       ]
     },
@@ -2270,12 +2617,12 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
+        "kritaapplicationui",
         "kritadefaulttools_static",
         "kritainputui",
         "kritaselectiontools",
         "kritatoolencloseandfill",
-        "kritatooltransform_static",
-        "kritaui"
+        "kritatooltransform_static"
       ]
     },
     {
@@ -2303,216 +2650,10 @@
         "kritawidgetutils"
       ],
       "repositoryConsumers": [
+        "kritaapplicationui",
         "kritainputui",
         "kritalibpaintop",
-        "kritapalettedocker",
-        "kritaui"
-      ]
-    },
-    {
-      "name": "kritaui",
-      "sourceDirectory": "libs/ui",
-      "platforms": [
-        "macos",
-        "linux",
-        "ios",
-        "android",
-        "windows"
-      ],
-      "types": [
-        "SHARED_LIBRARY",
-        "STATIC_LIBRARY"
-      ],
-      "repositoryDependencies": [
-        "kritacanvas",
-        "kritadocument",
-        "kritadocumentfiles",
-        "kritadocumentui",
-        "kritaimpex",
-        "kritaimpexui",
-        "kritainput",
-        "kritainputui",
-        "kritamacosutils",
-        "kritaresources",
-        "kritaresourcestorage",
-        "kritaresourceui",
-        "kritasurfacecolormanagementapi",
-        "kritatools",
-        "kritatoolsui",
-        "kritaversion",
-        "kritawidgets",
-        "kritawidgetutils",
-        "kritaxmlserialization"
-      ],
-      "repositoryConsumers": [
-        "krita",
-        "krita_flaketools",
-        "krita_karbontools",
-        "krita_raw_import",
-        "krita_shape_paths",
-        "krita_tool_svgtext_static",
-        "kritaanimationdocker_static",
-        "kritaarrangedocker",
-        "kritaartisticcolorselector",
-        "kritaasccdl",
-        "kritaassistanttool_static",
-        "kritabasicflakes",
-        "kritablurfilter",
-        "kritabrushexport",
-        "kritabrushhud",
-        "kritabrushimport",
-        "kritabuginfo",
-        "kritachanneldocker",
-        "kritaclonesarray",
-        "kritacolorgenerator",
-        "kritacolorrange",
-        "kritacolorselectorng",
-        "kritacolorsfilters",
-        "kritacolorspaceconversion",
-        "kritacompositiondocker",
-        "kritaconvertheighttonormalmap",
-        "kritaconvolutionfilters",
-        "kritacsvexport",
-        "kritacsvimport",
-        "kritadbexplorer",
-        "kritadefaulttools_static",
-        "kritadeformpaintop",
-        "kritadesignerplugin",
-        "kritadigitalmixer",
-        "kritadodgeburn",
-        "kritaedgedetection",
-        "kritaembossfilter",
-        "kritaexample",
-        "kritaexrcommon",
-        "kritaexrexport",
-        "kritaexrimport",
-        "kritaextensioncolorsfilters",
-        "kritafastcolortransferfilter",
-        "kritagamutmask",
-        "kritagaussianhighpassfilter",
-        "kritagifexport",
-        "kritagifimport",
-        "kritagradientgenerator",
-        "kritagradientmap",
-        "kritagriddocker",
-        "kritahalftone",
-        "kritaheifexport",
-        "kritaheifimport",
-        "kritaheightmapcommon",
-        "kritaheightmapexport",
-        "kritaheightmapimport",
-        "kritahistogramdocker",
-        "kritahistorydocker",
-        "kritaimageenhancement",
-        "kritaimagesplit",
-        "kritaindexcolors",
-        "kritaiostouchui",
-        "kritajp2import",
-        "kritajpegcommon",
-        "kritajpegexport",
-        "kritajpegimport",
-        "kritajxlexport",
-        "kritajxlimport",
-        "kritakraexport",
-        "kritakraimport",
-        "kritakrzexport",
-        "kritalayerdocker",
-        "kritalayerdocker_static",
-        "kritalayergroupswitcher",
-        "kritalayersplit",
-        "kritalevelfilter",
-        "kritalibkis",
-        "kritalibkra",
-        "kritalibpaintop",
-        "kritalogdocker",
-        "kritalutdocker_static",
-        "kritametadataeditor",
-        "kritamodifyselection",
-        "kritamultigridpatterngenerator",
-        "kritamypaintop_static",
-        "kritanoisefilter",
-        "kritanormalize",
-        "kritaoffsetimage",
-        "kritaoilpaintfilter",
-        "kritaoracommon",
-        "kritaoraexport",
-        "kritaoraimport",
-        "kritaoverviewdocker",
-        "kritapalettedocker",
-        "kritapalettize",
-        "kritapatterndocker",
-        "kritapatterngenerator",
-        "kritapdfimport",
-        "kritaphongbumpmap",
-        "kritapixelizefilter",
-        "kritaplatformpluginwayland",
-        "kritaplatformpluginxcb",
-        "kritapngexport",
-        "kritapngimport",
-        "kritaposterize",
-        "kritapresetdocker",
-        "kritapresethistory",
-        "kritapropagatecolors",
-        "kritapsd",
-        "kritapsdexport",
-        "kritapsdimport",
-        "kritaqimageioexport",
-        "kritaqimageioimport",
-        "kritaqmicinterface",
-        "kritaqmlcomponents",
-        "kritaqmlexport",
-        "kritaqmlwidgets",
-        "kritaraindropsfilter",
-        "kritarandompickfilter",
-        "kritarecorderdocker",
-        "kritaresettransparent",
-        "kritaresourcemanager",
-        "kritargbeexport",
-        "kritargbeimport",
-        "kritarotateimage",
-        "kritaroundcornersfilter",
-        "kritasamplescreencolor",
-        "kritascreentonegenerator",
-        "kritaseexprgenerator",
-        "kritaselectiontools",
-        "kritaseparatechannels",
-        "kritashearimage",
-        "kritasimplexnoisegenerator",
-        "kritasmallcolorselector",
-        "kritasmalltilesfilter",
-        "kritasnapshotdocker",
-        "kritaspecificcolorselector",
-        "kritaspensettings",
-        "kritaspriterexport",
-        "kritastoryboarddocker_static",
-        "kritasvgcollectiondocker",
-        "kritasvgimport",
-        "kritatasksetdocker",
-        "kritatextproperties",
-        "kritatgaexport",
-        "kritatgaimport",
-        "kritathreshold",
-        "kritatiffexport",
-        "kritatiffimport",
-        "kritatoolKnife_static",
-        "kritatoolSmartPatch",
-        "kritatoolcrop",
-        "kritatooldyna",
-        "kritatoolencloseandfill",
-        "kritatoollazybrush",
-        "kritatoolpolygon",
-        "kritatoolpolyline",
-        "kritatooltransform_static",
-        "kritatouchdocker",
-        "kritaunsharpfilter",
-        "kritawavefilter",
-        "kritawaveletdecompose",
-        "kritawebpexport",
-        "kritawebpimport",
-        "kritawgcolorselector",
-        "kritaxcfimport",
-        "pykrita",
-        "python_module_PyKrita_krita"
+        "kritapalettedocker"
       ]
     },
     {
@@ -2532,7 +2673,9 @@
         "kritaimage",
         "kritaresources"
       ],
-      "repositoryConsumers": []
+      "repositoryConsumers": [
+        "kritaapplicationui"
+      ]
     }
   ]
 }

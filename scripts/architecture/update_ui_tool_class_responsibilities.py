@@ -61,7 +61,7 @@ def updated_inventory(
     return {
         "schemaVersion": 1,
         "scope": "libs/ui/tool-public-classes",
-        "ownerTarget": "kritaui",
+        "ownerTarget": "kritaapplicationui",
         "platforms": list(inventory_contract.PLATFORMS),
         "classPolicy": inventory_contract.ui_tool_class_policy(),
         "responsibilityAreas": list(

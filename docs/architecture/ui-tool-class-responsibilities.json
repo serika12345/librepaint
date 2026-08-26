@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "scope": "libs/ui/tool-public-classes",
-  "ownerTarget": "kritaui",
+  "ownerTarget": "kritaapplicationui",
   "platforms": [
     "macos",
     "linux",
@@ -10,7 +10,7 @@
     "windows"
   ],
   "classPolicy": {
-    "publicHeaderOwner": "kritaui",
+    "publicHeaderOwner": "kritaapplicationui",
     "sourceDirectory": "libs/ui/tool",
     "recursive": true,
     "declarationKinds": [
@@ -110,11 +110,11 @@
         "libs/ui/tool/kis_paintop_box.cc"
       ],
       "consumerPaths": [
+        "libs/application/ui/workspace/KisMainWindow.cpp",
+        "libs/application/ui/workspace/KisViewManager.cpp",
         "libs/libkis/View.cpp",
         "libs/ui/resources/kis_control_frame.cpp",
         "libs/ui/resources/kis_favorite_resource_manager.cpp",
-        "libs/ui/workspace/KisMainWindow.cpp",
-        "libs/ui/workspace/KisViewManager.cpp",
         "plugins/dockers/presetdocker/presetdocker_dock.cpp",
         "plugins/dockers/presethistory/presethistory_dock.cpp",
         "plugins/extensions/iostouchui/iostouchui.cpp"

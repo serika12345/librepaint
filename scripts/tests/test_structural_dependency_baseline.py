@@ -7,6 +7,7 @@ import importlib.util
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -44,7 +45,7 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
         self.assertEqual(
             baseline["scope"], "r1-g4b-structural-dependency-baseline"
         )
-        self.assertEqual(len(baseline["projectionResolutions"]), 10)
+        self.assertEqual(len(baseline["projectionResolutions"]), 0)
         self.assertEqual(
             baseline["targetCycleBaseline"]["maximumComponents"], 0
         )
@@ -56,9 +57,9 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
             )
         )
         internal = baseline["internalHeaderBaseline"]
-        self.assertEqual(len(internal), 13)
+        self.assertEqual(len(internal), 14)
         self.assertEqual(
-            sum(len(entry["headers"]) for entry in internal), 1
+            sum(len(entry["headers"]) for entry in internal), 0
         )
         self.assertEqual(
             sum(
@@ -66,12 +67,12 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
                 for entry in internal
                 for header in entry["headers"]
             ),
-            1,
+            0,
         )
 
-    def test_projection_resolution_cannot_be_dropped(self) -> None:
+    def test_resolved_projection_cannot_return(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())
-        baseline["projectionResolutions"].pop()
+        baseline["projectionResolutions"].append({"stale": True})
 
         with self.assertRaisesRegex(
             check_structural_dependency_baseline.StructuralBaselineError,
@@ -91,20 +92,21 @@ class StructuralDependencyBaselineTests(unittest.TestCase):
 
     def test_internal_header_growth_exceeds_reviewed_maximum(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())
-        entry = next(
-            entry
-            for entry in baseline["internalHeaderBaseline"]
-            if entry["maximumDirectReferences"] > 0
-        )
-        entry[
-            "maximumDirectReferences"
-        ] -= 1
+        expected = copy.deepcopy(baseline)
+        expected["internalHeaderBaseline"][0]["headers"] = [
+            {"consumerPaths": ["libs/example.cpp"]}
+        ]
 
-        with self.assertRaisesRegex(
-            check_structural_dependency_baseline.StructuralBaselineError,
-            "internal header references exceed approved maximum",
+        with patch.object(
+            check_structural_dependency_baseline,
+            "updated_baseline",
+            return_value=expected,
         ):
-            self.validate(baseline)
+            with self.assertRaisesRegex(
+                check_structural_dependency_baseline.StructuralBaselineError,
+                "internal header references exceed approved maximum",
+            ):
+                self.validate(baseline)
 
     def test_internal_header_reduction_requires_baseline_reduction(self) -> None:
         baseline = copy.deepcopy(self.load_baseline())

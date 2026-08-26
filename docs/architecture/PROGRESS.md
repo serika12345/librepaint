@@ -2,14 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-26 14:16 JST
+- 更新日時: 2026-08-26 20:16 JST
 - 状態: `planned`
-- 現在の検査段階: R1-G6h アプリケーション調整境界
+- 現在の検査段階: R1-G7 移行層の削除と文書同期
 - 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
 - ブランチ: `develop`
-- 目的: 起動、終了、作業空間、ウィンドウ、OSライフサイクルの既存契約を照合し、
-  `libs/ui`のアプリケーション調整と作業空間表示を`libs/application`と
-  `libs/application/ui`の具体所有へ移す最初の検査単位を確定する。
+- 目的: 移行済みの具体所有へ利用元を直接接続し、ツールUI旧ヘッダー、ソースを持たない
+  `kritaui`互換集約、既存の大域C++識別子に記録した削除条件を順に完了する。
 
 ## 再開環境
 
@@ -2045,11 +2044,45 @@
 - clangd 21.1.8で変更した9翻訳単位と1公開ヘッダーを照合し、include-cleanerの
   未使用includeと直接include不足は0件である。
 
+## R1-G6hアプリケーション調整境界で完了した作業
+
+- 設定、スナップ方針、Androidファイル交換、アプリケーション調整、作業空間表示を、
+  次の開始箇所から具体所有へ移した。
+  - `libs/ui/application/kis_config.{h,cc}`から`libs/application/kis_config.{h,cc}`。
+  - `libs/ui/canvas/kis_snap_config.{h,cpp}`から`libs/application/kis_snap_config.{h,cpp}`。
+  - `libs/ui/application/KisAndroidFileProxy.{h,cpp}`から
+    `libs/application/platform-adapters/KisAndroidFileProxy.{h,cpp}`。
+  - `libs/ui/application`の残る18ファイルから`libs/application/ui/orchestration`。
+  - `libs/ui/workspace`の43ファイルから`libs/application/ui/workspace`。
+- `kritaapplication`は設定、スナップ方針、プラットフォームのファイル交換を所有し、
+  `kritaapplicationui`はアプリケーション調整、作業空間表示、既存UI実装を所有する。
+  24分類クラスは`kritaapplication`の1クラスと`kritaapplicationui`の23クラスへ接続し、
+  公開面台帳は各所有者の公開ヘッダー3件と215件を記録する。
+- `kritaapplication`と`kritaapplicationui`はmacOS、Linux、Android、Windowsで共有ライブラリー、
+  iOSで静的ライブラリーとして構築する。`kritaapplicationui`から`kritaapplication`への
+  直接依存を5構成で持ち、逆方向依存は0件である。`kritaui`はソースを持たない
+  `INTERFACE`互換集約として`kritaapplicationui`へ転送する。
+- 10責務、15公開接続面、27中核所有ターゲットを現在の責務地図へ接続した。
+  27ターゲット間の88リンクは同一責務内16件と許可方向72件へ分類され、基準対象、
+  許可方向外の責務対、未確定射影、直接include、内部ヘッダー参照は各0件である。
+  移行段階は実施履歴を記録し、実装済み責務の依存順は現行の責務層と有向非巡回グラフを
+  正本とする。
+- 5構成のCMake台帳はmacOS 681件、Linux 696件、iOS 614件、Android 620件、Windows 650件、
+  共通598件、条件付き120件、構成差269件を記録する。27中核ターゲットとmacOS 228件、
+  Linux 234件、iOS 219件、Android 219件、Windows 236件の全製品構築ターゲットは、
+  各構成で循環0件である。
+- 固定Nix環境の`./scripts/verify-quick`は106件の運用試験、8更新器の決定性、公開面、
+  責務地図、許可依存、再配置計画、ゼロ基準、CMake台帳、文書、リンク、D2生成物の検査に
+  成功した。macOS、iOS、Linux、Android、WindowsのCMake台帳と差分行列は各構成の再生成と
+  差分検査に成功し、`nix flake check --no-build --all-systems --no-eval-cache`は全Nix出力の
+  評価に成功した。
+- `nix develop .#test --command ./scripts/verify`は最終ソースで高速検査106件、macOSの
+  全製品と試験の構築、CTest 354件に成功した。
+
 ## 次の操作
 
-R1-G6hのアプリケーション調整境界を開始する。起動、終了、作業空間、ウィンドウ、OSライフサイクルの
-既存契約を照合し、`libs/ui`のアプリケーション調整と作業空間表示を`libs/application`と
-`libs/application/ui`の具体所有へ移す最初の検査単位を確定する。
+R1-G7の移行層削除を開始する。ツールUI旧ヘッダー、`kritaui`互換集約、既存の大域C++識別子を、
+各互換経路に記録した利用元、公開API・ABI、SDKメタデータの完了条件に従って一単位ずつ終了する。
 
 ## R1-G5完了根拠
 

@@ -1,8 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "scope": "r1-g6g-document-state-ui-placement",
   "purpose": "Place document-state UI implementation under responsibility directories while preserving the kritaui target, public behavior, class names, and ownership lifetime.",
-  "currentOwnerTarget": "kritaui",
+  "currentOwnerTargets": [
+    "kritaapplicationui"
+  ],
   "currentResponsibilities": {
     "document-composition": "Document composition, document-facing operations, external file layers, filters, image actions, storyboard state, and text-property coordination.",
     "node-presentation": "Node-tree models, node operation wiring, layer and mask management, shared-node properties, and node presentation values.",

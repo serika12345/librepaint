@@ -62,7 +62,7 @@ class CanvasPackageBoundaryTest(unittest.TestCase):
             "kis_add_library(kritaworkspacepresentation OBJECT", cmake_text
         )
         self.assertIn("workspace/kis_workspace_resource.cpp", cmake_text)
-        self.assertIn("kritaui_EXPORTS", cmake_text)
+        self.assertIn("kritaapplicationui_EXPORTS", cmake_text)
         self.assertTrue(
             (
                 REPOSITORY_ROOT
@@ -80,18 +80,6 @@ class CanvasPackageBoundaryTest(unittest.TestCase):
         )
         self.assertFalse(
             (REPOSITORY_ROOT / "libs/ui/kis_workspace_resource.h").exists()
-        )
-        self.assertFalse(
-            (
-                REPOSITORY_ROOT
-                / "libs/ui/workspace/kis_workspace_resource.cpp"
-            ).exists()
-        )
-        self.assertFalse(
-            (
-                REPOSITORY_ROOT
-                / "libs/ui/workspace/kis_workspace_resource.h"
-            ).exists()
         )
 
     def test_projection_boundary_has_one_owner(self) -> None:

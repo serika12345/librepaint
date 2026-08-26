@@ -19,12 +19,55 @@
   },
   "packages": [
     {
+      "responsibility": "application-configuration",
+      "layer": 4,
+      "migrationWave": "R1-G6h",
+      "current": {
+        "sourceDirectories": [
+          "libs/application"
+        ],
+        "cmakeTargets": [
+          "kritaapplication"
+        ],
+        "uiClassAreas": [
+          "application-configuration"
+        ],
+        "uiToolClassAreas": [],
+        "publicSurfaces": [
+          "application-configuration"
+        ]
+      },
+      "target": {
+        "rootDirectory": "libs/application",
+        "cppNamespace": "Krita::ApplicationConfiguration",
+        "primaryCmakeTarget": "kritaapplication",
+        "allowedDependencies": [
+          "canvas-presentation",
+          "painting-rendering",
+          "resource-management"
+        ],
+        "cmakeTargets": [
+          {
+            "name": "kritaapplication",
+            "directory": "libs/application",
+            "role": "configuration-snap-and-platform-file-services",
+            "status": "implemented"
+          }
+        ]
+      },
+      "completionCriteria": [
+        "Application configuration, snapping values, and platform file exchange use the declared application-configuration surface.",
+        "Configuration dependencies point toward canvas, painting, and resource contracts while feature coordinators depend on configuration."
+      ]
+    },
+    {
       "responsibility": "application-orchestration",
-      "layer": 7,
+      "layer": 9,
       "migrationWave": "R1-G6h",
       "current": {
         "sourceDirectories": [
           "krita",
+          "libs/application/ui",
           "libs/ui",
           "libs/ui/actions/input",
           "plugins/extensions",
@@ -32,7 +75,7 @@
         ],
         "cmakeTargets": [
           "krita",
-          "kritaui"
+          "kritaapplicationui"
         ],
         "uiClassAreas": [
           "application-orchestration",
@@ -44,10 +87,11 @@
         ]
       },
       "target": {
-        "rootDirectory": "libs/application",
+        "rootDirectory": "libs/application/ui",
         "cppNamespace": "Krita::Application",
-        "primaryCmakeTarget": "kritaapplication",
+        "primaryCmakeTarget": "kritaapplicationui",
         "allowedDependencies": [
+          "application-configuration",
           "canvas-presentation",
           "document-lifecycle",
           "import-export",
@@ -64,16 +108,10 @@
             "status": "retained"
           },
           {
-            "name": "kritaapplication",
-            "directory": "libs/application",
-            "role": "orchestration",
-            "status": "new"
-          },
-          {
             "name": "kritaapplicationui",
             "directory": "libs/application/ui",
-            "role": "presentation",
-            "status": "new"
+            "role": "orchestration-and-presentation",
+            "status": "implemented"
           }
         ]
       },
@@ -100,7 +138,6 @@
           "kritabasicflakes",
           "kritacanvas",
           "kritaflake",
-          "kritaui",
           "kritaworkspacepresentation"
         ],
         "uiClassAreas": [
@@ -153,7 +190,7 @@
     },
     {
       "responsibility": "document-lifecycle",
-      "layer": 4,
+      "layer": 6,
       "migrationWave": "R1-G6e",
       "current": {
         "sourceDirectories": [
@@ -163,8 +200,7 @@
         "cmakeTargets": [
           "kritadocument",
           "kritadocumentfiles",
-          "kritadocumentui",
-          "kritaui"
+          "kritadocumentui"
         ],
         "uiClassAreas": [
           "document-state"
@@ -214,7 +250,7 @@
     },
     {
       "responsibility": "import-export",
-      "layer": 3,
+      "layer": 5,
       "migrationWave": "R1-G6c",
       "current": {
         "sourceDirectories": [
@@ -237,6 +273,7 @@
         "cppNamespace": "Krita::ImportExport",
         "primaryCmakeTarget": "kritaimpex",
         "allowedDependencies": [
+          "application-configuration",
           "painting-rendering",
           "plugin-infrastructure",
           "resource-management"
@@ -263,7 +300,7 @@
     },
     {
       "responsibility": "input-interpretation",
-      "layer": 6,
+      "layer": 8,
       "migrationWave": "R1-G6g",
       "current": {
         "sourceDirectories": [
@@ -497,7 +534,7 @@
     },
     {
       "responsibility": "tool-invocation",
-      "layer": 5,
+      "layer": 7,
       "migrationWave": "R1-G6f",
       "current": {
         "sourceDirectories": [
@@ -508,8 +545,7 @@
         ],
         "cmakeTargets": [
           "kritatools",
-          "kritatoolsui",
-          "kritaui"
+          "kritatoolsui"
         ],
         "uiClassAreas": [
           "tool-invocation"
@@ -554,16 +590,7 @@
       ]
     }
   ],
-  "reviewedInternalHeaderDestinations": [
-    {
-      "ownerTarget": "kritaui",
-      "headerPath": "libs/ui/operations/kis_operation_ui_widget_factory.h",
-      "destinationResponsibility": "tool-invocation",
-      "destinationDirectory": "libs/tools/ui",
-      "wave": "R1-G6f",
-      "disposition": "declare-or-replace-public-contract"
-    }
-  ],
+  "reviewedInternalHeaderDestinations": [],
   "compatibilityRoutes": [
     {
       "id": "legacy-tool-ui-headers",
@@ -575,17 +602,6 @@
       "maximumScope": "The R1-G2 tool invocation and settings presentation class sets plus reviewed tool internal headers.",
       "removalCondition": "All consumers use tool-command or tool-settings and no old tool header has an external consumer.",
       "verification": "UI tool and public-surface inventories report no legacy consumer."
-    },
-    {
-      "id": "legacy-application-ui-headers",
-      "kind": "forwarding-headers",
-      "legacy": "application-orchestration and window-workspace headers in libs/ui",
-      "replacement": "libs/application and libs/application/ui",
-      "introducedBy": "R1-G6h",
-      "owner": "R1-G7",
-      "maximumScope": "The R1-G2 application orchestration and window workspace class sets plus reviewed application internal headers.",
-      "removalCondition": "The process entry and platform adapters use application-lifecycle and no application class remains below libs/ui.",
-      "verification": "UI class inventory and application startup tests report no legacy consumer."
     },
     {
       "id": "legacy-kritaui-target",
@@ -679,7 +695,8 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 1
+        "kritaapplication": 0,
+        "kritaapplicationui": 0
       },
       "completionCriteria": [
         "kritaresources and kritaresourcestorage depend only on plugin infrastructure and external libraries.",
@@ -738,7 +755,8 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 1
+        "kritaapplication": 0,
+        "kritaapplicationui": 0
       },
       "completionCriteria": [
         "Painting has zero document-lifecycle includes and exposes image-model and paint-execution from owned targets.",
@@ -788,7 +806,8 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 1
+        "kritaapplication": 0,
+        "kritaapplicationui": 0
       },
       "completionCriteria": [
         "All 14 classified import-export classes are owned by kritaimpex or kritaimpexui.",
@@ -841,7 +860,8 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 1
+        "kritaapplication": 0,
+        "kritaapplicationui": 0
       },
       "completionCriteria": [
         "Canvas has zero document-lifecycle includes and depends only on painting and resource public surfaces.",
@@ -951,7 +971,8 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 1
+        "kritaapplication": 0,
+        "kritaapplicationui": 0
       },
       "completionCriteria": [
         "All 25 document classes classified at the start of R1-G6e have reviewed destinations; document lifecycle classes are owned by kritadocument or kritadocumentui and operation-specific classes are assigned to their actual owners.",
@@ -1001,7 +1022,8 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 0
+        "kritaapplication": 0,
+        "kritaapplicationui": 0
       },
       "completionCriteria": [
         "All 22 classified tool command and settings classes are owned by kritatools or kritatoolsui.",
@@ -1077,7 +1099,8 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 0
+        "kritaapplication": 0,
+        "kritaapplicationui": 0
       },
       "completionCriteria": [
         "All seven classified input classes are owned by kritainput.",
@@ -1090,6 +1113,7 @@
       "id": "R1-G6h",
       "order": 8,
       "responsibilities": [
+        "application-configuration",
         "application-orchestration"
       ],
       "purpose": "Move process orchestration and workspace presentation out of the kritaui aggregate.",
@@ -1099,17 +1123,27 @@
       ],
       "sourceMoves": [
         {
-          "from": "libs/ui::<application-orchestration>",
+          "from": "libs/ui/application::<application-orchestration>",
+          "to": "libs/application/ui/orchestration",
+          "target": "kritaapplicationui"
+        },
+        {
+          "from": "libs/ui/application::kis_config.*",
           "to": "libs/application",
           "target": "kritaapplication"
         },
         {
-          "from": "libs/ui::<window-workspace>",
-          "to": "libs/application/ui",
+          "from": "libs/ui/canvas::kis_snap_config.*",
+          "to": "libs/application",
+          "target": "kritaapplication"
+        },
+        {
+          "from": "libs/ui/workspace",
+          "to": "libs/application/ui/workspace",
           "target": "kritaapplicationui"
         },
         {
-          "from": "plugins/platforms",
+          "from": "libs/ui/application::KisAndroidFileProxy.*",
           "to": "libs/application/platform-adapters",
           "target": "kritaapplication"
         }
@@ -1119,7 +1153,6 @@
         "kritaapplicationui"
       ],
       "compatibilityRoutes": [
-        "legacy-application-ui-headers",
         "legacy-global-cpp-identifiers",
         "legacy-kritaui-target"
       ],
@@ -1140,7 +1173,8 @@
       "maximumInternalDirectReferencesAfterWave": {
         "kritaimage": 0,
         "kritainputui": 0,
-        "kritaui": 0
+        "kritaapplication": 0,
+        "kritaapplicationui": 0
       },
       "completionCriteria": [
         "All 24 classified application and workspace classes are owned by application targets.",

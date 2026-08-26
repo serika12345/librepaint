@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -463,10 +464,20 @@ def _validate_waves(
         )
         _fields(
             internal_maximum,
-            {"kritaimage", "kritainputui", "kritaui"},
+            {
+                "kritaapplication",
+                "kritaapplicationui",
+                "kritaimage",
+                "kritainputui",
+            },
             f"{wave_id} internal maximum",
         )
-        for owner in ("kritaimage", "kritainputui", "kritaui"):
+        for owner in (
+            "kritaapplication",
+            "kritaapplicationui",
+            "kritaimage",
+            "kritainputui",
+        ):
             _integer(internal_maximum.get(owner), f"{wave_id} {owner} maximum")
     expected_migrated = sorted(
         responsibility
@@ -480,6 +491,14 @@ def _validate_waves(
     if set(referenced_routes) != set(routes) or len(referenced_routes) != len(set(referenced_routes)):
         raise RelocationPlanError("migration waves do not introduce compatibility routes exactly once")
 
+    def migration_is_implemented(package: dict[str, Any]) -> bool:
+        target = _object(package.get("target"), "package target state")
+        entries = _array(target.get("cmakeTargets"), "package targets")
+        return all(
+            _object(entry, "package target").get("status") != "new"
+            for entry in entries
+        )
+
     for responsibility, package in packages.items():
         wave_id = package.get("migrationWave")
         source_order = order_by_id.get(wave_id, 0)
@@ -487,9 +506,15 @@ def _validate_waves(
             dependency_order = order_by_id.get(
                 packages[dependency].get("migrationWave"), 0
             )
-            if dependency_order > source_order:
+            if (
+                dependency_order > source_order
+                and not (
+                    migration_is_implemented(package)
+                    and migration_is_implemented(packages[dependency])
+                )
+            ):
                 raise RelocationPlanError(
-                    "migration wave order violates allowed dependency order: "
+                    "planned migration wave order violates allowed dependency order: "
                     f"{responsibility} precedes {dependency}"
                 )
     actual_wave_by_responsibility = {
@@ -684,6 +709,138 @@ def _validate_internal_destinations(
         raise RelocationPlanError("internal header reductions do not reach zero")
 
 
+def _validate_application_target_boundary(repository_root: Path) -> None:
+    application_cmake = (
+        repository_root / "libs/application/CMakeLists.txt"
+    ).read_text(encoding="utf-8")
+    ui_cmake = (repository_root / "libs/ui/CMakeLists.txt").read_text(
+        encoding="utf-8"
+    )
+    if not re.search(
+        r"\bkis_add_library\s*\(\s*kritaapplication\s+SHARED\b",
+        application_cmake,
+    ):
+        raise RelocationPlanError("kritaapplication real target definition is missing")
+    if not re.search(
+        r"\bkis_add_library\s*\(\s*kritaapplicationui\s+SHARED\b",
+        application_cmake,
+    ):
+        raise RelocationPlanError("kritaapplicationui real target definition is missing")
+    definitions = re.findall(
+        r"\badd_library\s*\(\s*kritaui\b([^)]*)\)", ui_cmake, re.DOTALL
+    )
+    if len(definitions) != 1 or definitions[0].strip() != "INTERFACE":
+        raise RelocationPlanError("kritaui must be a source-free INTERFACE target")
+    if re.search(r"\btarget_sources\s*\(\s*kritaui\b", ui_cmake):
+        raise RelocationPlanError("kritaui must not own sources")
+    if not re.search(
+        r"\btarget_link_libraries\s*\(\s*kritaui\s+INTERFACE\s+"
+        r"kritaapplicationui\s*\)",
+        ui_cmake,
+        re.DOTALL,
+    ):
+        raise RelocationPlanError(
+            "kritaui must forward directly to kritaapplicationui"
+        )
+    if not re.search(
+        r"\btarget_sources\s*\(\s*kritaapplicationui\b", ui_cmake
+    ):
+        raise RelocationPlanError(
+            "kritaapplicationui must own the remaining libs/ui sources"
+        )
+
+    expected_type = {
+        platform: "STATIC_LIBRARY" if platform == "ios" else "SHARED_LIBRARY"
+        for platform in PLATFORMS
+    }
+    for platform in PLATFORMS:
+        graph = _load_json(
+            repository_root / f"docs/architecture/cmake-targets-{platform}.json",
+            f"{platform} CMake graph",
+        )
+        targets = {
+            _string(item.get("name"), f"{platform} target name"): item
+            for raw in _array(graph.get("targets"), f"{platform} targets")
+            for item in [_object(raw, f"{platform} target")]
+        }
+        if "kritaui" in targets:
+            raise RelocationPlanError(
+                f"kritaui must not appear as a build artifact on {platform}"
+            )
+        for name in ("kritaapplication", "kritaapplicationui"):
+            if name not in targets:
+                raise RelocationPlanError(
+                    f"{name} is missing from the {platform} target graph"
+                )
+            if targets[name].get("type") != expected_type[platform]:
+                raise RelocationPlanError(
+                    f"{name} has the wrong {platform} target type"
+                )
+        application_dependencies = _strings(
+            targets["kritaapplication"].get("dependencies"),
+            f"{platform} kritaapplication dependencies",
+        )
+        application_ui_dependencies = _strings(
+            targets["kritaapplicationui"].get("dependencies"),
+            f"{platform} kritaapplicationui dependencies",
+        )
+        if "kritaapplication" not in application_ui_dependencies:
+            raise RelocationPlanError(
+                f"kritaapplicationui must depend on kritaapplication on {platform}"
+            )
+        if "kritaapplicationui" in application_dependencies:
+            raise RelocationPlanError(
+                f"kritaapplication must not depend on kritaapplicationui on {platform}"
+            )
+
+    class_inventory = _load_json(
+        repository_root / "docs/architecture/ui-class-responsibilities.json",
+        "UI class responsibility inventory",
+    )
+    application_classes = [
+        _object(item, "application UI class")
+        for item in _array(class_inventory.get("classes"), "UI classes")
+        if _object(item, "UI class").get("responsibilityArea")
+        in {
+            "application-configuration",
+            "application-orchestration",
+            "window-workspace",
+        }
+    ]
+    expected_counts = {
+        "application-configuration": 1,
+        "application-orchestration": 8,
+        "window-workspace": 15,
+    }
+    actual_counts = {
+        area: sum(
+            entry.get("responsibilityArea") == area
+            for entry in application_classes
+        )
+        for area in expected_counts
+    }
+    if actual_counts != expected_counts:
+        raise RelocationPlanError(
+            "application class ownership must contain the 24 classified classes"
+        )
+    for entry in application_classes:
+        area = entry["responsibilityArea"]
+        header = _string(entry.get("header"), "application UI class header")
+        expected_prefix = (
+            "libs/application/kis_config.h"
+            if area == "application-configuration"
+            else "libs/application/ui/"
+        )
+        if not (
+            header == expected_prefix
+            if area == "application-configuration"
+            else header.startswith(expected_prefix)
+        ):
+            raise RelocationPlanError(
+                f"application class is outside its application target: {header}"
+            )
+
+
 def validate_plan(
     plan: dict[str, Any], *, repository_root: Path = REPO_ROOT
 ) -> None:
@@ -704,6 +861,7 @@ def validate_plan(
     packages, new_targets, _planned_targets = _validate_packages(
         plan, inputs, current_targets
     )
+    _validate_application_target_boundary(repository_root)
     waves, _order_by_id = _validate_waves(plan, packages, new_targets)
     _validate_reverse_reductions(
         waves, inputs["dependencyViolationBaseline"]

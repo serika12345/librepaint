@@ -24,6 +24,26 @@ def updated_inventory(inventory: dict[str, Any]) -> dict[str, Any]:
         raise inventory_contract.PublicSurfaceError(
             "public-surface inventory has no detailed public header records"
         )
+    public_header_sets = inventory_contract.build_public_header_sets(REPO_ROOT)
+    owner_by_path = {
+        header["path"]: {
+            "ownerTarget": header_set["ownerTarget"],
+            "exportMacro": header_set["exportMacro"],
+            "platforms": header_set["platforms"],
+        }
+        for header_set in public_header_sets
+        for header in header_set["headers"]
+    }
+
+    def synchronize_owner(entry: dict[str, Any], path_field: str) -> dict[str, Any]:
+        path = entry.get(path_field)
+        owner = owner_by_path.get(path)
+        if owner is None:
+            raise inventory_contract.PublicSurfaceError(
+                f"recorded public header is absent from complete discovery: {path}"
+            )
+        return {**entry, **owner}
+
     scope = inventory.get("scope", {})
     return {
         "schemaVersion": 3,
@@ -34,9 +54,14 @@ def updated_inventory(inventory: dict[str, Any]) -> dict[str, Any]:
         },
         "platforms": list(inventory_contract.PLATFORMS),
         "publicHeaderPolicy": inventory_contract.public_header_policy(),
-        "publicHeaderSets": inventory_contract.build_public_header_sets(REPO_ROOT),
-        "publicHeaderDetails": header_details,
-        "majorClasses": inventory.get("majorClasses"),
+        "publicHeaderSets": public_header_sets,
+        "publicHeaderDetails": [
+            synchronize_owner(entry, "path") for entry in header_details
+        ],
+        "majorClasses": [
+            synchronize_owner(entry, "header")
+            for entry in inventory.get("majorClasses", [])
+        ],
         "pluginPolicy": inventory_contract.plugin_policy(),
         "pluginServiceTypeOwners": list(
             inventory_contract.PLUGIN_SERVICE_TYPE_OWNERS

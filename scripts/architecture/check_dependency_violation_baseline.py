@@ -33,6 +33,7 @@ INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
 )
 AREA_TO_RESPONSIBILITY = {
+    "application-configuration": "application-configuration",
     "application-orchestration": "application-orchestration",
     "window-workspace": "application-orchestration",
     "canvas-display": "canvas-presentation",

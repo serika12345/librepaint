@@ -21,7 +21,7 @@
 1. [ルートのCMakeLists.txt](../../CMakeLists.txt)末尾で、`libs`、`qmlmodules`、`plugins`、`krita`の構成順とiOS条件を確認します。
 2. [libs/CMakeLists.txt](../../libs/CMakeLists.txt)と[plugins/CMakeLists.txt](../../plugins/CMakeLists.txt)で、常時リンクするライブラリーと機能単位のプラグインを分けます。
 3. [krita/CMakeLists.txt](../../krita/CMakeLists.txt)で実行形式、Qtリソース、OS別ソース、静的プラグインの最終リンクを確認します。
-4. [krita/main.cc](../../krita/main.cc)から`KisApplication::start()`を追い、[KisApplication.cpp](../../libs/ui/application/KisApplication.cpp)でグローバル状態、プラグイン、リソース、メインウィンドウの初期化順を確認します。
+4. [krita/main.cc](../../krita/main.cc)から`KisApplication::start()`を追い、[KisApplication.cpp](../../libs/application/ui/orchestration/KisApplication.cpp)でグローバル状態、プラグイン、リソース、メインウィンドウの初期化順を確認します。
 5. [KisDocument.h](../../libs/ui/document/KisDocument.h)と[kis_image.h](../../libs/image/kis_image.h)を読み、文書の寿命・入出力と、画像モデル・描画スケジューラーを分けて捉えます。
 6. 対象機能を[変更内容から見る場所](#変更内容から見る場所)で引き、近傍の`CMakeLists.txt`、プラグインJSON、テストまで範囲を広げます。
 7. 配布や依存関係の変更では、[flake.nix](../../flake.nix)を入口に、該当する`nix/<platform>/`と`packaging/<platform>/`を読みます。
@@ -66,7 +66,8 @@
 現在は`kritacanvas`の19件、`kritaworkspacepresentation`の1件、`kritadocument`の5件、`kritadocumentfiles`の3件、
 `kritadocumentui`の6件、`kritaimage`の331件、`kritaimpex`の12件、
 `kritaimpexui`の23件、`kritainput`の12件、`kritainputui`の13件、
-`kritapainting`の19件、`kritatools`の19件、`kritaui`の216件を全件記録し、
+`kritapainting`の19件、`kritatools`の19件、`kritaapplication`の3件、
+`kritaapplicationui`の215件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -92,20 +93,21 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 [UIクラス責務台帳](ui-class-responsibilities.json)は、
 `classPolicy.classifiedNestedHeaderPaths`に固定した69ヘッダーに宣言された現存クラスと構造体
 79件を、宣言、実装単位、所有ターゲット、5構成、責務領域へ接続する。77件は実装単位を持ち、
-2件は宣言側で完結する。責務領域はアプリケーション調整、キャンバス・表示、文書状態、
-ツール呼出し、ウィンドウ・作業空間の5種類である。分類済み公開クラスの`libs/ui`直下配置は
+2件は宣言側で完結する。責務領域はアプリケーション設定、アプリケーション調整、
+キャンバス・表示、文書状態、ツール呼出し、ウィンドウ・作業空間の6種類である。分類済み公開クラスの`libs/ui`直下配置は
 0件である。文書状態20件は`libs/ui/document`、`libs/ui/nodes`、`libs/ui/selection`、
-アプリケーション調整9件は`libs/ui/application`、
+アプリケーション設定1件は`libs/application`、アプリケーション調整8件は
+`libs/application/ui/orchestration`、
 キャンバス・表示32件は`libs/ui/animation`、`libs/ui/canvas`、`libs/canvas/workspace`、
-ウィンドウ・作業空間15件は`libs/ui/workspace`、ツール呼出し3件は`libs/ui/tool`の責務配置で
+ウィンドウ・作業空間15件は`libs/application/ui/workspace`、ツール呼出し3件は`libs/ui/tool`の責務配置で
 継続追跡する。
 
 [キャンバス表示UI再配置台帳](canvas-presentation-ui-relocations.json)は、`libs/ui`直下から
 `libs/ui/animation`へ移した14ファイル、`libs/ui/canvas`へ移した55ファイル、
 `libs/canvas/workspace`へ移した2ファイルについて、
-開始パス、宛先パス、現在の配置責務を全件記録する。UI内の69ファイルは`kritaui`、
+開始パス、宛先パス、現在の配置責務を全件記録する。UI内の69ファイルは`kritaapplicationui`、
 作業空間資源の2ファイルは`kritaworkspacepresentation`がソースを所有し、後者のオブジェクトを
-`kritaui`へ組み込む。
+`kritaapplicationui`へ組み込む。
 アニメーション書出しを調整する1翻訳単位は`document-lifecycle`の審査済み帰属を維持する。
 キャンバス状態表示は`libs/ui/workspace/kis_statusbar.{h,cc}`から
 `libs/ui/canvas/kis_statusbar.{h,cc}`へ移り、画像寸法、選択範囲、色プロファイル、
@@ -113,12 +115,13 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 [文書状態UI再配置台帳](document-state-ui-relocations.json)は、`libs/ui`直下から
 `libs/ui/document`へ移した15ファイル、`libs/ui/nodes`へ移した26ファイル、
 `libs/ui/selection`へ移した10ファイルについて、開始パス、宛先パス、現在の配置責務を
-全件記録する。所有ターゲットは`kritaui`であり、公開クラス20件を宣言する18ヘッダーは
+全件記録する。所有ターゲットは`kritaapplicationui`であり、公開クラス20件を宣言する18ヘッダーは
 分類済み入れ子経路として継続追跡する。
 [アプリケーション・作業空間・ツールUI再配置台帳](application-workspace-tool-ui-relocations.json)は、
-`libs/ui`直下から`libs/ui/application`へ移した20ファイル、`libs/ui/workspace`へ移した42ファイル、
-`libs/ui/tool`へ移した8ファイルについて、70件の正確な開始パス、宛先パス、現在の配置責務を
-一対一で記録する。所有ターゲットは`kritaui`であり、対象には27公開クラスを宣言する25ヘッダー、
+`libs/ui`直下から`libs/application`、`libs/application/platform-adapters`、
+`libs/application/ui/orchestration`、`libs/application/ui/workspace`、`libs/ui/tool`へ移した
+70ファイルについて、正確な開始パス、宛先パス、現在の配置責務を一対一で記録する。
+所有ターゲットは`kritaapplication`と`kritaapplicationui`であり、対象には27公開クラスを宣言する25ヘッダー、
 対応する実装、同じ具体責務を持つ内部ヘッダーとUIフォームを含む。
 [文書境界評価](document-boundary-assessment.json)は、文書状態に分類された20クラスと
 `KisDocument.cpp`の130メソッド定義を全件対象とし、現在の関心、具体的な所有先、
@@ -130,7 +133,7 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 対象16ヘッダーの17件が名前に対応する実装単位を持ち、1件は宣言側で完結する。入力解釈2件、
 ツール呼出し12件、ストローク生成2件、描画実行1件、設定表示1件へ分類する。
 
-各ツールクラスは宣言、実装単位、`kritaui`所有者、5構成に加え、`libs/ui/tool`の外から
+各ツールクラスは宣言、実装単位、`kritaapplicationui`所有者、5構成に加え、`libs/ui/tool`の外から
 対象ヘッダーを直接includeする製品ソースへ接続する。利用元は56ソースで、同じヘッダーに
 複数の公開クラスがある場合は各クラスが同じ利用元集合を持つ。この分類は画面表示、入力、
 ストローク作成、描画実行が一つのCMakeターゲットに混在する現在の境界を示し、R1-G3の
@@ -139,7 +142,7 @@ CMake所有ターゲット、対応構成、サービス種別、機能所有領
 ### 現在のパッケージ責務地図
 
 [パッケージ責務地図](package-responsibilities.json)は、R1-G1の5構成のCMakeターゲット台帳と
-R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務台帳を、現在の9責務へ接続する。
+R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務台帳を、現在の10責務へ接続する。
 各責務は説明、所有ソースディレクトリー、所有ターゲット、公開ヘッダー、公開クラス、
 プラグインID、サービス種別を持つ。
 
@@ -155,55 +158,56 @@ include元で解決する。
 
 | 責務ID | 現在の中核所有ターゲット | 対象 |
 | --- | --- | --- |
-| `application-orchestration` | `krita`、`kritaui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
-| `canvas-presentation` | `kritabasicflakes`、`kritacanvas`、`kritaflake`、`kritaui`、`kritaworkspacepresentation` | 座標変換、キャンバス表示、ベクター表示、ドッカー、作業空間表示状態 |
-| `document-lifecycle` | `kritadocument`、`kritadocumentfiles`、`kritadocumentui`、`kritaui` | 文書寿命、変更状態、保存用ファイル、取り消し履歴、文書調整 |
+| `application-configuration` | `kritaapplication` | 設定値、スナップ方針、プラットフォームのファイル交換 |
+| `application-orchestration` | `krita`、`kritaapplicationui` | 起動、OSライフサイクル、アプリケーション、ウィンドウ、作業空間 |
+| `canvas-presentation` | `kritabasicflakes`、`kritacanvas`、`kritaflake`、`kritaworkspacepresentation` | 座標変換、キャンバス表示、ベクター表示、ドッカー、作業空間表示状態 |
+| `document-lifecycle` | `kritadocument`、`kritadocumentfiles`、`kritadocumentui` | 文書寿命、変更状態、保存用ファイル、取り消し履歴、文書調整 |
 | `import-export` | `kritaimpex`、`kritaimpexui` | 形式選択、検証、文書入出力、利用者への結果通知 |
 | `input-interpretation` | `kritainput`、`kritainputui` | ポインター、キーボード、タッチ、タブレット、ショートカット入力 |
 | `painting-rendering` | `kritacolor`、`kritaimage`、`kritalibbrush`、`kritapainting`、`kritapaintingmetadata`、`kritapaintingundo`、`kritapigment` | 色、ブラシ、画像、投影、ストローク、描画処理、画像メタデータ、取り消し処理 |
 | `plugin-infrastructure` | `kritaplugin` | メタデータ探索、ファクトリーとサービス種別の登録 |
 | `resource-management` | `kritaresources`、`kritaresourcestorage`、`kritaresourceui` | リソースの保存、検索、タグ、選択、表示 |
-| `tool-invocation` | `kritatools`、`kritatoolsui`、`kritaui` | ツール命令、描画設定表示、キャンバス状態へのツール呼出し |
+| `tool-invocation` | `kritatools`、`kritatoolsui` | ツール命令、描画設定表示、キャンバス状態へのツール呼出し |
 
-`targetRelations`は26の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
+`targetRelations`は27の中核所有ターゲットについて、5構成に存在する種別と、製品CMake
 ターゲット間の直接依存および利用元を和集合で記録する。この地図は現在の所有関係を表し、
 R1-G3bで定義する許可依存方向の比較元になる。
 
-`kritaui`は9責務中4責務の現所有ターゲットである。UIクラスの責務分類と組み合わせることで、
-文書、キャンバス、入力解釈などを凝集したターゲットへ分割する順序を決められる。
+`kritaapplicationui`はアプリケーション調整の実所有ターゲットであり、UIクラスの責務分類が
+文書、キャンバス、ツールの概念上の帰属を記録する。`kritaui`は同ターゲットへ転送する
+ソースなしのCMake互換集約である。
 `plugin-infrastructure`は全172登録の発見機構を所有し、各機能責務は同じ登録を機能領域として
 参照する。機構の所有と機能の所有を、この二つの軸で表現する。
 
 ### 許可依存方向
 
-[許可依存方針](allowed-package-dependencies.json)は、9責務を8層へ配置し、上位層から下位層の
+[許可依存方針](allowed-package-dependencies.json)は、10責務を10層へ配置し、上位層から下位層の
 公開接続面へ向かう直接依存だけを許可する。各公開接続面は目的、寿命、エラー動作を持ち、
 依存元は利用する接続面IDを指定する。同層または上位層への辺を認めない階層規則により、
 許可グラフは有向非巡回になる。
 
 | 層 | 責務 | 許可する下位責務 |
 | --- | --- | --- |
-| 7 | `application-orchestration` | キャンバス、文書、入出力、入力、プラグイン基盤、リソース、ツール |
-| 6 | `input-interpretation` | キャンバス、ツール |
-| 5 | `tool-invocation` | キャンバス、文書、描画、リソース |
-| 4 | `document-lifecycle` | 入出力、描画、プラグイン基盤、リソース |
+| 9 | `application-orchestration` | アプリケーション設定、キャンバス、文書、入出力、入力、プラグイン基盤、リソース、ツール |
+| 8 | `input-interpretation` | キャンバス、ツール |
+| 7 | `tool-invocation` | キャンバス、文書、描画、リソース |
+| 6 | `document-lifecycle` | 入出力、描画、プラグイン基盤、リソース |
+| 5 | `import-export` | アプリケーション設定、描画、プラグイン基盤、リソース |
+| 4 | `application-configuration` | キャンバス、描画、リソース |
 | 3 | `canvas-presentation` | 描画、リソース |
-| 3 | `import-export` | 描画、プラグイン基盤、リソース |
 | 2 | `painting-rendering` | プラグイン基盤、リソース |
 | 1 | `resource-management` | プラグイン基盤 |
 | 0 | `plugin-infrastructure` | — |
 
 公開接続面はアプリケーション寿命、キャンバス表示、文書セッションと永続化、形式選択と
 直列化、入力動作列、画像モデルと描画実行、プラグイン登録、リソース台帳と保存、
-ツール命令と設定表示の14種類である。プラグイン機能は`plugin-registration`へ依存し、
+ツール命令と設定表示の15種類である。プラグイン機能は`plugin-registration`へ依存し、
 検証済みファクトリーを明示された機能レジストリーへ登録する。このリンク方向と、登録時に
 機能レジストリーへ渡る制御を区別する。
 
-`currentTargetEdges`は26の中核所有ターゲット間にある81の直接リンクを責務へ射影する。
-`kritaui`のような共有ターゲットは、所有する全責務の直積として保守的に扱う。現在は126候補の
-うち23候補が同一責務内、82候補が許可方向、21候補が`requires-r1-g4-baseline`である。
-最後の分類は共有ターゲットが作る曖昧な候補を含むため、R1-G4で実際のincludeと利用箇所を
-根拠に既存違反基準へ確定する。
+`currentTargetEdges`は27の中核所有ターゲット間にある88の直接リンクを責務へ射影する。
+現在は16候補が同一責務内、72候補が許可方向であり、基準化を要する候補は0件である。
+責務層の検査は全依存を下位方向へ固定し、有向非巡回性を明示的に確認する。
 
 ### 確認済み逆方向依存の基準
 
@@ -226,12 +230,12 @@ R1-G3bで定義する許可依存方向の比較元になる。
   `libs/global/KisCumulativeUndoData.{h,cpp}`へ、取り消し統合の設定値と設定キーを移した。
 - `libs/image/kis_image_config.{h,cpp}`の書込み可能な一時ディレクトリー解決から
   `libs/global/KisTemporaryFileConfiguration.{h,cpp}`へ、一時ファイルとswapの配置方針を移した。
-  `libs/ui/application/kis_config.cc`と`libs/image/kis_image_config.cpp`は同じ具体方針を利用する。
-- `libs/ui/workspace/KisSessionResource.cpp`の表示状態格納を同ファイルの`QMap`直列化と
-  `libs/ui/workspace/KisView.{h,cpp}`の表示状態取得・復元へ接続した。
-- `libs/ui/workspace/kis_workspace_resource.{h,cpp}`から
+  `libs/application/kis_config.cc`と`libs/image/kis_image_config.cpp`は同じ具体方針を利用する。
+- `libs/application/ui/workspace/KisSessionResource.cpp`の表示状態格納を同ファイルの`QMap`直列化と
+  `libs/application/ui/workspace/KisView.{h,cpp}`の表示状態取得・復元へ接続した。
+- `libs/ui/kis_workspace_resource.{h,cpp}`から
   `libs/canvas/workspace/kis_workspace_resource.{h,cpp}`へ、ドッカーとキャンバスの表示状態資源を
-  移した。`kritaworkspacepresentation`のオブジェクトは`kritaui`へ組み込まれ、
+  移した。`kritaworkspacepresentation`のオブジェクトは`kritaapplicationui`へ組み込まれ、
   `KRITAUI_EXPORT`の既存公開記号を提供する。
 
 設定キー、既定値、作業空間とセッションのXML要素、公開型名、Qt信号引数を維持する。
@@ -279,28 +283,24 @@ version 5から6への移行、保存、同梱既定プロファイルへの復�
 CMakeターゲット循環、公開宣言を持たないヘッダーのパッケージ外参照を一つの継続検査へ
 接続する。
 
-10射影はすべて`disproved-by-direct-include-attribution`として解決済みである。
-`kritabasicflakes`から`kritaui`、および`kritaui`から`kritatoolsui`への共有ターゲット辺を、
-キャンバス表示とツール呼出しの実際のincludeへ帰属させる。入出力を独立所有ターゲットへ
-移した結果、入出力責務をUI共有ターゲットへ射影する候補は存在しない。各解決は元のターゲット辺、5構成、実際の責務対、ソース、include、
-ヘッダーを記録し、新たな未帰属候補を診断する。
+共有ターゲット由来の未確定射影は0件である。実所有ターゲットを責務へ一意に対応付け、
+新たな未帰属候補を診断する。
 
-ターゲット循環は、26の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
-2範囲を検査する。全製品範囲はmacOS 227件、Linux 233件、iOS 218件、Android 218件、
-Windows 235件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
+ターゲット循環は、27の中核所有ターゲットと、試験経路を除く全製品構築ターゲットの
+2範囲を検査する。全製品範囲はmacOS 228件、Linux 234件、iOS 219件、Android 219件、
+Windows 236件であり、現在の非自明な強連結成分は両範囲、全構成で0件である。
 `maximumComponents`を0に固定し、新しい直接リンク循環を基準拡大として診断する。
 
 公開面台帳で`external-include`だけを公開根拠とし、所有元外から参照されるヘッダーを、
 宣言済み公開面へ移す対象として基準化する。`kritaimage`の29ヘッダー、593参照は公開
 ヘッダー構築契約へ移行して0件となった。`kritaimpex`、`kritaimpexui`、`kritatools`も未宣言の
 パッケージ外参照が0件であり、`kritainputui`も宣言済み公開面を利用する。
-現在は`kritaui`の1ヘッダー1参照が残る。所有段階、理由、
-除去条件、ヘッダー数と参照数の審査済み上限を保持し、増加と縮小可能な上限の両方を
-診断する。
+全14所有ターゲットで内部ヘッダーとパッケージ外直接参照は各0件である。所有段階、理由、
+除去条件、ヘッダー数と参照数のゼロ上限を保持し、増加を診断する。
 
 ### パッケージ再配置計画
 
-[パッケージ再配置計画](package-relocation-plan.json)は、現在の9責務を目標ディレクトリー、
+[パッケージ再配置計画](package-relocation-plan.json)は、現在の10責務を目標ディレクトリー、
 C++名前空間、主CMakeターゲット、許可依存、移行段階へ対応付ける。既存の凝集した
 実装ターゲットは保持し、新しい責務接続面と表示部分だけを独立ターゲットとして追加する。
 
@@ -314,13 +314,14 @@ C++名前空間、主CMakeターゲット、許可依存、移行段階へ対応
 | 文書寿命 | `libs/document` | `Krita::Document` | `kritadocument` | R1-G6e |
 | ツール呼出し | `libs/tools` | `Krita::Tools` | `kritatools` | R1-G6f |
 | 入力解釈 | `libs/input` | `Krita::Input` | `kritainput` | R1-G6g |
-| アプリケーション調整 | `libs/application` | `Krita::Application` | `kritaapplication` | R1-G6h |
+| アプリケーション設定 | `libs/application` | `Krita::ApplicationConfiguration` | `kritaapplication` | R1-G6h |
+| アプリケーション調整 | `libs/application/ui` | `Krita::Application` | `kritaapplicationui` | R1-G6h |
 
-移行は許可依存の下位から上位へ進める。各段階は必要な特性試験、移動元と移動先、
+未実装の責務間では許可依存の下位を先行させる。実装済み責務は移行段階を実施履歴として保持し、
+現在の層、許可方向、有向非巡回性を依存方針で検査する。各段階は必要な特性試験、移動元と移動先、
 作成ターゲット、一時互換経路、完了条件、中止条件を持つ。確認済み逆方向includeの
 初期上限と段階別上限は321、274、179、179、106、106、106、75、0と縮小する。内部ヘッダーの
-直接参照は`kritaimage`が全段階で0件である。`kritainputui`は各段階で
-2、2、2、2、2、2、0、0件、`kritaui`は2、2、2、1、1、0、0、0件へ縮小する。
+直接参照は全所有ターゲットで0件である。
 
 最初の実装段階R1-G6aは、`libs/store`の書庫保存を`libs/resources/storage`の
 `kritaresourcestorage`へ、XML直列化を`libs/serialization/xml`の
@@ -354,12 +355,12 @@ R1-G6cは、`libs/ui/KisImportExportManager.*`、`KisImportExportFilter.*`、
 事前検査、変換フィルターは`libs/impex`の`kritaimpex`が所有する。文書変換の調整、
 利用者通知、クリップボード、ダイアログ、画像読込補助は`libs/impex/ui`、動画符号化調整は
 `libs/impex/animation`に置き、`kritaimpexui`が所有する。`kritaimpexui`は文書・画面型との
-現在のABI接続を保つオブジェクト所有単位として`kritaui`へ組み込む。旧`libs/ui`の入出力ヘッダーと
+現在のABI接続を保つオブジェクト所有単位として`kritaapplicationui`へ組み込む。旧`libs/ui`の入出力ヘッダーと
 転送ヘッダーは存在せず、利用元は正規の所有先を直接参照する。
 
 R1-G6dの最初の独立単位は、`libs/ui/canvas/kis_coordinates_converter.*`と
 `libs/ui/canvas/KisCanvasState.*`を起点として分割した。座標変換と画面状態は
-`libs/canvas`の`kritacanvas`が所有し、`kritaui`は表示設定を明示的に渡して利用する。
+`libs/canvas`の`kritacanvas`が所有し、`kritaapplicationui`は表示設定を明示的に渡して利用する。
 座標変換器は構築元の画像を保持せず、構築時に取り込んだ幾何情報と変換結果を画像の
 解放後も利用できる。旧配置と転送ヘッダーは存在せず、利用元と試験は新しい所有先を
 直接参照する。
@@ -398,7 +399,7 @@ R1-G6eの最初の独立単位は、`libs/ui/kis_document_undo_store.*`を起点
 `libs/document/undo/kis_document_undo_store.*`から
 `libs/document/ui/undo/kis_document_undo_store.*`へ移し、履歴表示も
 `libs/command/{kundo2model,kundo2view}.*`から同じ所有先へ集約した。
-`kritadocumentui`が文書と履歴の接続、Qt Widgets用操作、履歴表示を所有し、`kritaui`が
+`kritadocumentui`が文書と履歴の接続、Qt Widgets用操作、履歴表示を所有し、`kritaapplicationui`が
 直接利用する。汎用状態だけを持つ`kritadocument`は`kritapaintingundo`への依存を除去し、
 Qt Coreだけで公開リンク閉包を構成する。履歴の現在位置、追加、取消し、マクロ、やり直し破棄、
 同一スレッド上の同期通知、非所有の借用寿命に加え、操作名、有効状態、履歴行、選択による
@@ -533,7 +534,7 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 描画ツールの操作状態は`libs/tools/kis_tool_paint_interaction.{h,cpp}`が所有する。
 `libs/ui/tool/kis_tool_paint.{h,cc}`からポインター追跡、ブラシ寸法・回転操作、輪郭状態、
 輪郭生成を移し、UI側には色採取、ポップアップ、設定部品、設定に基づく輪郭表示、描画補助線の
-更新を残した。`kritatools`から`kritaui`への依存はなく、UI側が操作基盤を継承する方向となる。
+更新を残した。`kritatools`から`kritaapplicationui`への依存はなく、UI側が操作基盤を継承する方向となる。
 
 図形を描画装置へ反映する実行は`kritapainting`が所有する。
 `libs/ui/tool/kis_figure_painting_tool_helper.{h,cpp}`を
@@ -575,13 +576,13 @@ R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール
 `libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を同名の`libs/tools/ui`へ移した。
 依存していた`libs/ui/widgets/kis_color_label_button.{h,cpp}`と
 `libs/ui/widgets/kis_color_label_selector_widget.{h,cpp}`は汎用表示部品として`libs/widgets`へ移し、
-レイヤーツリーの配色所有者を`kritaui`へ残した。選択方式、結合方法、アンチエイリアス、拡張、
+レイヤーツリーの配色所有者を`kritaapplicationui`へ残した。選択方式、結合方法、アンチエイリアス、拡張、
 境界停止、ぼかし、参照レイヤー、色ラベルの保存と再読込は`TestToolSettingsUiContract`が固定する。
 
 ツール設定ポップアップは`kritatoolsui`が所有する。開始元の
 `libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を同名の`libs/tools/ui`へ移し、設定部品の見出し、区切り、
 並び替え、退避を下位UIだけで構築できるようにした。ドック用フォントは`libs/ui/tool/kis_paintop_box.cc`が
-値として渡し、ポップアップボタン、キャンバス、操作アクションとの接続は`kritaui`に残る。
+値として渡し、ポップアップボタン、キャンバス、操作アクションとの接続は`kritaapplicationui`に残る。
 
 矩形制約表示は`kritatoolsui`が所有する。開始元の
 `libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`と`libs/ui/forms/wdgrectangleconstraints.ui`を
@@ -640,16 +641,33 @@ R1-G6gの最初の単位では、`libs/ui/input`のショートカット照合�
 入力のQt事象接続、設定表示、診断、プラットフォーム統合は`libs/input/ui`が所有する。
 `kritainputui`はmacOS、Linux、Android、Windowsで共有ライブラリー、iOSで製品へ静的統合する
 ライブラリーとして入力UIを一単位で構築する。公開クラスは`KRITAINPUTUI_EXPORT`を使い、利用元は
-`input/ui/...`の公開include経路と`kritainputui`への直接リンクを持つ。`kritaui`は
+`input/ui/...`の公開include経路と`kritainputui`への直接リンクを持つ。`kritaapplicationui`は
 アプリケーション入力アクションとの接続に同ライブラリーを利用し、`libs/input/ui/tests`が
 入力管理の統合契約を検査する。
 
+R1-G6hは、アプリケーション設定、プロセス調整、作業空間、プラットフォーム接続を
+次の開始位置から正規所有先へ移した。
+
+- `libs/ui/application/kis_config.{h,cc}`から`libs/application/kis_config.{h,cc}`へ移した。
+- `libs/ui/canvas/kis_snap_config.{h,cpp}`から`libs/application/kis_snap_config.{h,cpp}`へ移した。
+- `libs/ui/application/KisAndroidFileProxy.{h,cpp}`から
+  `libs/application/platform-adapters/KisAndroidFileProxy.{h,cpp}`へ移した。
+- `libs/ui/application`の残る18ファイルを`libs/application/ui/orchestration`へ移した。
+- `libs/ui/workspace`の43ファイルを`libs/application/ui/workspace`へ移した。
+
+`kritaapplication`は設定、スナップ方針、プラットフォームのファイル交換を所有する。
+`kritaapplicationui`はアプリケーション調整と既存UI実装を所有し、macOS、Linux、Android、
+Windowsでは共有ライブラリー、iOSでは静的ライブラリーとして構築する。
+`kritaapplicationui`から`kritaapplication`への直接依存を5構成で持ち、逆方向依存と循環は0件である。
+`kritaui`はソースを持たない`INTERFACE`互換集約として`kritaapplicationui`へ転送する。
+
 `libs/ui`のrootは`CMakeLists.txt`と`kritaui_export_instance.h`を持つ。CMake定義は現在の
-`kritaui`構築を所有し、公開記号設定ヘッダーは共有ターゲットのテンプレート記号設定を所有する。
+`kritaapplicationui`へのソース登録と`kritaui`互換集約を所有し、公開記号設定ヘッダーは
+共有ターゲットのテンプレート記号設定を所有する。
 残る42ファイルの[UI root再配置台帳](remaining-ui-root-relocations.json)は、入出力表示を`impex`、
 Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資産を`platform`、プリセット・
 パターン・フィルター・ポップアップ表示を`resources`、図形選択接続を`flake`、履歴アクション接続を
-`actions`へ一対一で配置する。クラス名、公開記号、挙動、所有寿命、`kritaui`所有を維持し、
+`actions`へ一対一で配置する。クラス名、公開記号、挙動、所有寿命を維持し、
 公開ヘッダーの利用元は責務別の入れ子経路を使う。
 
 `libs/ui/resources/kis_md5_generator.cpp`は宣言ヘッダーと利用元を持たず、CMake構築入力にも含まれない
@@ -661,13 +679,13 @@ Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資�
 `libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
 公開根拠として台帳へ記録し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
 
-再配置計画は`kritaui`、大域C++識別子、UI再配置用includeの4経路に導入段階、R1-G7の所有者、
-最大範囲、削除条件、検証方法を割り当てる。計画検査は9責務と5構成の現行ターゲット、
-0種類0件の逆方向依存、2ヘッダー2件のUI内部参照を正本へ照合し、逆方向依存のゼロ上限を確認する。
+再配置計画は`kritaui`と大域C++識別子の互換経路に導入段階、R1-G7の所有者、
+最大範囲、削除条件、検証方法を割り当てる。計画検査は10責務と5構成の現行ターゲット、
+0種類0件の逆方向依存と内部参照を正本へ照合し、ゼロ上限を確認する。
 
 メインウィンドウの画像状態操作は、次の開始箇所と具体所有へ接続する。
 
-- `libs/ui/workspace/KisMainWindow.cpp`の画像設定通知から
+- `libs/application/ui/workspace/KisMainWindow.cpp`の画像設定通知から
   `libs/ui/dialogs/KisDlgPreferencesNotifications.cpp`の設定確定通知。
 - 同ファイルのルートノード設定更新とノード選択アクション生成から
   `libs/ui/nodes/KisNodeManagerImageState.cpp`の現在画像を受け取るノード表示操作。
@@ -683,7 +701,7 @@ Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資�
 
 作業ビューの画像状態接続とドロップ編集は、次の開始箇所と具体所有へ接続する。
 
-- `libs/ui/workspace/KisView.cpp`の画像信号接続、表示準備、浮動小数点色深度判定から
+- `libs/application/ui/workspace/KisView.cpp`の画像信号接続、表示準備、浮動小数点色深度判定から
   `libs/ui/canvas/KisCanvasImageState.cpp`と`libs/ui/canvas/kis_canvas2.h`のキャンバス画像状態。
 - 同ファイルの色ドロップルーティングから
   `libs/ui/canvas/KisCanvasColorDrop.cpp`の塗りつぶしストローク。
@@ -701,7 +719,7 @@ Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資�
 
 作業ビュー管理の画像・資源状態は、次の開始箇所と具体所有へ接続する。
 
-- `libs/ui/workspace/KisViewManager.cpp`のキャンバス資源変換器、更新仲介、活動資源依存の
+- `libs/application/ui/workspace/KisViewManager.cpp`のキャンバス資源変換器、更新仲介、活動資源依存の
   初期化から`libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`の資源管理初期化。
 - 同ファイルの画像進捗表示登録、画像取り消し接続取得、読取障壁ロック中の文書複製から
   `libs/ui/document/KisDocument.h`と`libs/ui/document/KisDocumentImageState.cpp`の文書画像状態。
@@ -714,13 +732,13 @@ Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資�
 
 起動資源登録と共有監視は、次の開始箇所と具体所有へ接続する。
 
-- `libs/ui/application/KisApplication.cpp`のペイントプリセットとブラシローダー登録から
+- `libs/application/ui/orchestration/KisApplication.cpp`のペイントプリセットとブラシローダー登録から
   `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`の組込み描画資源登録。
 - 同ファイルのPSDレイヤースタイルローダー登録から
   `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`のレイヤースタイル資源登録。
 - 同ファイルのブラシメタデータ修復登録から
   `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`のブラシキャッシュ修復登録。
-- `libs/ui/application/KisPart.cpp`のシステム色管理初期化から
+- `libs/application/ui/orchestration/KisPart.cpp`のシステム色管理初期化から
   `libs/ui/canvas/KisDisplayConfig.{h,cpp}`の表示色管理初期化。
 - 同ファイルのアプリケーション単位アイドル監視から
   `libs/ui/animation/kis_animation_cache_populator.{h,cpp}`の文書画像追跡とキャッシュ生成通知。
@@ -733,7 +751,7 @@ Qt事象接続を`events`、フォントと配色を`theme`、macOS接続と資�
 
 - `krita/`はプロセスの入口、アプリケーション資産、OSライフサイクルとの接続を持ちます。主要機能は`libs/`と`plugins/`が所有します。
 - `libs/input`の`kritainput`と`kritainputui`は入力列の解釈、Qt接続、設定表示、プラットフォーム統合をまとめます。
-- `libs/ui`の`kritaui`はアプリケーション、ウィンドウ、文書、キャンバス、ツール共通部をまとめます。
+- `libs/application/ui`の`kritaapplicationui`はアプリケーション、ウィンドウ、文書、キャンバス、ツール共通部をまとめます。
 - `libs/impex`の`kritaimpex`と`kritaimpexui`は形式契約、文書入出力、利用者通知をまとめます。
 - `libs/image`の`kritaimage`はレイヤーツリー、ペイントデバイス、タイル、ストロークキュー、投影更新を扱います。
 - `plugins/`はツール、ブラシエンジン、フィルター、ドッカー、ファイル形式などの機能をレジストリーへ登録します。
@@ -832,12 +850,12 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 
 | 変更内容 | 最初に見る場所 | 次に確認する境界 |
 | --- | --- | --- |
-| 起動順、引数、単一起動 | `krita/main.cc`、`libs/ui/application/KisApplication.*` | `KisPart`、`KisMainWindow`、OS条件 |
+| 起動順、引数、単一起動 | `krita/main.cc`、`libs/application/ui/orchestration/KisApplication.*` | `KisPart`、`KisMainWindow`、OS条件 |
 | Windowsの実行形式だけに関係する起動 | `krita/windows_stub_main.cpp`、`krita/CMakeLists.txt` | DLLの`krita_main`、配布ツリー |
 | iOSライフサイクル、Pencil、メモリー警告 | `krita/KisIOS*.mm`、`krita/main.cc` | `plugins/extensions/iostouchui`、iOS検証文書 |
 | メニュー、ショートカット、アクション | `krita/krita.action`、`krita/krita5.xmlgui`、対象`KisViewManager`機能 | アクションID、プラグイン`*.action` |
 | Qtリソースの追加 | `krita/krita.qrc`、`krita/CMakeLists.txt`の`krita_QRCS` | リソースURL、`Q_INIT_RESOURCE`、iOS静的資産 |
-| ウィンドウ、ドッカー、キャンバス画面 | `libs/ui/workspace`、`libs/ui/canvas`、`plugins/dockers` | `KisMainWindow`、`KisViewManager`、`KisCanvas2` |
+| ウィンドウ、ドッカー、キャンバス画面 | `libs/application/ui/workspace`、`libs/ui/canvas`、`plugins/dockers` | `KisMainWindow`、`KisViewManager`、`KisCanvas2` |
 | 入力割り当て、ジェスチャー | `libs/input`、`libs/input/ui` | 現在ツール、Qtプラットフォームイベント、OS統合 |
 | ツールの操作 | `plugins/tools` | `libs/ui/tool`、`KoToolRegistry`、アクション |
 | ブラシエンジンやプリセット | `plugins/paintops`、`libs/brush` | `libs/painting/strokes`、`libs/resources`、`libs/pigment` |

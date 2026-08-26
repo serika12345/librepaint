@@ -1,8 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "scope": "r1-g6g-ui-root-placement",
   "purpose": "Place every remaining implementation and platform asset directly under libs/ui into its current responsibility directory while preserving kritaui ownership, public behavior, class names, public symbols, and ownership lifetime.",
-  "currentOwnerTarget": "kritaui",
+  "currentOwnerTargets": [
+    "kritaapplicationui"
+  ],
   "currentResponsibilities": {
     "action-state-wiring": "Undo and redo action presentation synchronized with the current document history.",
     "event-wiring": "Qt event filtering, deferred GUI execution, popup interaction contracts, cursor state, and asynchronous action feedback.",
@@ -16,7 +18,7 @@
   "reviewedBuildExceptions": [
     {
       "path": "libs/ui/resources/kis_md5_generator.cpp",
-      "reason": "The implementation has no declaration header or consumer in the repository, includes the absent kis_md5_generator.h header, and is not registered in the kritaui CMake source list; relocation preserves this current orphaned non-build state.",
+      "reason": "The implementation has no declaration header or consumer in the repository, includes the absent kis_md5_generator.h header, and is not registered in the kritaapplicationui CMake source list; relocation preserves this current orphaned non-build state.",
       "owner": "resource-presentation",
       "trackedRoadmapItem": "R1-G7",
       "maximumFiles": 1,

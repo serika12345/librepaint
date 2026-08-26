@@ -257,6 +257,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -332,6 +333,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -577,6 +579,7 @@
       "dependencies": [
         "KF6::I18n",
         "OpenColorIO::OpenColorIO",
+        "kritaapplication",
         "kritalutdocker_static",
         "kritatestsdk",
         "kritaui"
@@ -634,6 +637,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritatestsdk",
         "kritaui"
       ]
@@ -735,6 +739,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -800,6 +805,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -883,6 +889,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -1024,10 +1031,20 @@
       ]
     },
     {
+      "name": "TestApplicationConfiguration",
+      "type": "EXECUTABLE",
+      "sourceDirectory": "libs/application/tests",
+      "dependencies": [
+        "Qt6::Test",
+        "kritaapplication"
+      ]
+    },
+    {
       "name": "TestApplicationPaintingResourceRegistration",
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -1038,6 +1055,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -1093,6 +1111,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -1192,6 +1211,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -2282,6 +2302,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -2301,6 +2322,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -2311,6 +2333,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -2609,6 +2632,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -2619,6 +2643,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -2648,6 +2673,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritatransformmaskstubs",
         "kritaui"
       ]
@@ -2835,6 +2861,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritatransformmaskstubs",
         "kritaui"
       ]
@@ -3013,6 +3040,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -3092,6 +3120,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -3368,6 +3397,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -3584,6 +3614,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -3735,6 +3766,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -3754,6 +3786,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -3764,6 +3797,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -3823,6 +3857,7 @@
       "type": "EXECUTABLE",
       "sourceDirectory": "libs/ui/tests",
       "dependencies": [
+        "kritaapplication",
         "kritalibkis",
         "kritatestsdk",
         "kritaui"
@@ -4074,8 +4109,9 @@
         "Qt6::Svg",
         "Qt6::Widgets",
         "Qt6::Xml",
-        "kritamultiarch",
-        "kritaui"
+        "kritaapplication",
+        "kritaapplicationui",
+        "kritamultiarch"
       ]
     },
     {
@@ -4239,6 +4275,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/defaulttool",
       "dependencies": [
+        "kritaapplication",
         "kritaflake",
         "kritaresourcestorage",
         "kritaui",
@@ -4306,6 +4343,7 @@
         "Qt6::Quick",
         "Qt6::QuickControls2",
         "Qt6::QuickWidgets",
+        "kritaapplication",
         "kritaqmlwidgets",
         "kritaui"
       ]
@@ -4332,10 +4370,77 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/animation",
       "dependencies": [
+        "kritaapplication",
         "kritainputui",
         "kritaui",
         "kritawidgets"
       ]
+    },
+    {
+      "name": "kritaapplication",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/application",
+      "dependencies": [
+        "KF6::ConfigCore",
+        "Qt6::Core",
+        "Qt6::Gui",
+        "Qt6::Widgets",
+        "Qt6::Xml",
+        "kritacanvas",
+        "kritaflake",
+        "kritaglobal",
+        "kritapigment",
+        "kritaresources"
+      ]
+    },
+    {
+      "name": "kritaapplicationui",
+      "type": "SHARED_LIBRARY",
+      "sourceDirectory": "libs/application",
+      "dependencies": [
+        "Boost::boost",
+        "Eigen3::Eigen",
+        "KF6::ColorScheme",
+        "KF6::Completion",
+        "KF6::CoreAddons",
+        "KF6::I18n",
+        "KF6::ItemViews",
+        "Mlt7::mlt",
+        "Mlt7::mlt++",
+        "OpenEXR::OpenEXR",
+        "Qt6::Concurrent",
+        "Qt6::Network",
+        "Qt6::OpenGLWidgets",
+        "Qt6::SvgWidgets",
+        "Qt6::Xml",
+        "SDL2::SDL2",
+        "kritaapplication",
+        "kritacanvas",
+        "kritadocument",
+        "kritadocumentfiles",
+        "kritadocumentui",
+        "kritaimpex",
+        "kritaimpexui",
+        "kritainput",
+        "kritainputui",
+        "kritaresources",
+        "kritaresourcestorage",
+        "kritaresourceui",
+        "kritasurfacecolormanagementapi",
+        "kritatools",
+        "kritatoolsui",
+        "kritaversion",
+        "kritawidgets",
+        "kritawidgetutils",
+        "kritaworkspacepresentation",
+        "kritaxmlserialization"
+      ]
+    },
+    {
+      "name": "kritaapplicationui_generated_ui_headers",
+      "type": "UTILITY",
+      "sourceDirectory": "libs/ui",
+      "dependencies": []
     },
     {
       "name": "kritaarrangedocker",
@@ -4350,6 +4455,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/artisticcolorselector",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -4358,6 +4464,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/filters/asccdl",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -4403,6 +4510,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/brush",
       "dependencies": [
+        "kritaapplication",
         "kritaimpex",
         "kritalibbrush",
         "kritalibpaintop",
@@ -4414,6 +4522,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/brushhud",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -4453,6 +4562,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/channeldocker",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -4494,6 +4604,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/advancedcolorselector",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -4518,6 +4629,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/colorspaceconversion",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -4526,6 +4638,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/compositiondocker",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -4614,6 +4727,7 @@
       "sourceDirectory": "plugins/tools/basictools",
       "dependencies": [
         "Boost::boost",
+        "kritaapplication",
         "kritabasicflakes",
         "kritaflake",
         "kritapainting",
@@ -4785,6 +4899,7 @@
       "sourceDirectory": "plugins/impex/exr",
       "dependencies": [
         "OpenEXR::OpenEXR",
+        "kritaapplication",
         "kritaimpex",
         "kritalibkra",
         "kritaui"
@@ -4855,6 +4970,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/gamutmask",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -4927,6 +5043,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/griddocker",
       "dependencies": [
+        "kritaapplication",
         "kritaui",
         "kritawidgets"
       ]
@@ -4969,6 +5086,7 @@
       "sourceDirectory": "plugins/impex/heif",
       "dependencies": [
         "heif",
+        "kritaapplication",
         "kritaimpex",
         "kritalibkra",
         "kritaui"
@@ -4989,6 +5107,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/heightmap",
       "dependencies": [
+        "kritaapplication",
         "kritaimpex",
         "kritaui"
       ]
@@ -4998,6 +5117,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/heightmap",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5014,6 +5134,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/historydocker",
       "dependencies": [
+        "kritaapplication",
         "kritaimage",
         "kritaui"
       ]
@@ -5053,6 +5174,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/imagesplit",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5084,6 +5206,7 @@
         "Qt6::Concurrent",
         "Qt6::Network",
         "Qt6::Widgets",
+        "kritaapplication",
         "kritaimage",
         "kritaimpex",
         "kritalibbrush",
@@ -5171,6 +5294,7 @@
       "sourceDirectory": "plugins/impex/jpeg",
       "dependencies": [
         "LibExiv2::LibExiv2",
+        "kritaapplication",
         "kritaimpex",
         "kritaui"
       ]
@@ -5232,6 +5356,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/krz",
       "dependencies": [
+        "kritaapplication",
         "kritaimpex",
         "kritalibkra",
         "kritaui"
@@ -5251,6 +5376,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/dockers/layerdocker",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5267,6 +5393,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/layersplit",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5314,6 +5441,7 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "libs/libkis",
       "dependencies": [
+        "kritaapplication",
         "kritaimage",
         "kritapainting",
         "kritaui",
@@ -5325,6 +5453,7 @@
       "type": "SHARED_LIBRARY",
       "sourceDirectory": "plugins/impex/libkra",
       "dependencies": [
+        "kritaapplication",
         "kritaresourcestorage",
         "kritaui",
         "kritaxmlserialization"
@@ -5348,6 +5477,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/logdocker",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5356,6 +5486,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/lut",
       "dependencies": [
+        "kritaapplication",
         "kritalutdocker_static"
       ]
     },
@@ -5365,6 +5496,7 @@
       "sourceDirectory": "plugins/dockers/lut",
       "dependencies": [
         "OpenColorIO::OpenColorIO",
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5373,6 +5505,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/metadataeditor",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5445,6 +5578,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/offsetimage",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5480,6 +5614,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/overview",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5524,6 +5659,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/palettedocker",
       "dependencies": [
+        "kritaapplication",
         "kritaresourceui",
         "kritatoolsui",
         "kritaui"
@@ -5656,6 +5792,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/png",
       "dependencies": [
+        "kritaapplication",
         "kritaimpex",
         "kritaui"
       ]
@@ -5689,6 +5826,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/dockers/presethistory",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -5759,6 +5897,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/pykrita/plugin",
       "dependencies": [
+        "kritaapplication",
         "pykrita"
       ]
     },
@@ -5889,6 +6028,7 @@
       "sourceDirectory": "plugins/dockers/recorder",
       "dependencies": [
         "Threads::Threads",
+        "kritaapplication",
         "kritainputui",
         "kritaui"
       ]
@@ -5906,6 +6046,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/extensions/resourcemanager",
       "dependencies": [
+        "kritaapplication",
         "kritalibpaintop",
         "kritaresources",
         "kritaresourceui",
@@ -6051,6 +6192,7 @@
       "dependencies": [
         "KSeExpr::KSeExpr",
         "KSeExpr::KSeExprUI",
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -6105,6 +6247,7 @@
       "sourceDirectory": "plugins/dockers/smallcolorselector",
       "dependencies": [
         "Qt6::OpenGLWidgets",
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -6131,6 +6274,7 @@
       "sourceDirectory": "plugins/dockers/specificcolorselector",
       "dependencies": [
         "OpenEXR::OpenEXR",
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -6166,6 +6310,7 @@
       "sourceDirectory": "plugins/dockers/storyboarddocker",
       "dependencies": [
         "Qt6::PrintSupport",
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -6192,6 +6337,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/impex/svg",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -6220,6 +6366,7 @@
         "Qt6::Quick",
         "Qt6::QuickControls2",
         "Qt6::QuickWidgets",
+        "kritaapplication",
         "kritaqmlwidgets",
         "kritaui"
       ]
@@ -6256,6 +6403,7 @@
       "dependencies": [
         "LibExiv2::LibExiv2",
         "TIFF::TIFF",
+        "kritaapplication",
         "kritaexifcommon",
         "kritaimpex",
         "kritatiffpsd",
@@ -6299,6 +6447,7 @@
       "type": "STATIC_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_knife",
       "dependencies": [
+        "kritaapplication",
         "kritapainting",
         "kritaui"
       ]
@@ -6308,6 +6457,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_smart_patch",
       "dependencies": [
+        "kritaapplication",
         "kritapainting",
         "kritaui"
       ]
@@ -6334,6 +6484,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_enclose_and_fill",
       "dependencies": [
+        "kritaapplication",
         "kritabasicflakes",
         "kritapainting",
         "kritatools",
@@ -6345,6 +6496,7 @@
       "type": "MODULE_LIBRARY",
       "sourceDirectory": "plugins/tools/tool_lazybrush",
       "dependencies": [
+        "kritaapplication",
         "kritaui"
       ]
     },
@@ -6438,46 +6590,6 @@
       "sourceDirectory": "sdk/tests",
       "dependencies": [
         "kritaimage"
-      ]
-    },
-    {
-      "name": "kritaui",
-      "type": "SHARED_LIBRARY",
-      "sourceDirectory": "libs/ui",
-      "dependencies": [
-        "Boost::boost",
-        "Eigen3::Eigen",
-        "KF6::ColorScheme",
-        "KF6::Completion",
-        "KF6::CoreAddons",
-        "KF6::I18n",
-        "KF6::ItemViews",
-        "Mlt7::mlt",
-        "Mlt7::mlt++",
-        "OpenEXR::OpenEXR",
-        "Qt6::Concurrent",
-        "Qt6::Network",
-        "Qt6::OpenGLWidgets",
-        "Qt6::SvgWidgets",
-        "SDL2::SDL2",
-        "kritacanvas",
-        "kritadocument",
-        "kritadocumentfiles",
-        "kritadocumentui",
-        "kritaimpex",
-        "kritaimpexui",
-        "kritainput",
-        "kritainputui",
-        "kritaresources",
-        "kritaresourcestorage",
-        "kritaresourceui",
-        "kritasurfacecolormanagementapi",
-        "kritatools",
-        "kritatoolsui",
-        "kritaversion",
-        "kritawidgets",
-        "kritawidgetutils",
-        "kritaxmlserialization"
       ]
     },
     {

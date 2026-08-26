@@ -1,8 +1,11 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "scope": "r1-g6g-canvas-presentation-ui-placement",
   "purpose": "Place canvas presentation implementation under responsibility directories while preserving the kritaui target, public behavior, class names, and ownership lifetime.",
-  "currentOwnerTarget": "kritaui",
+  "currentOwnerTargets": [
+    "kritaapplicationui",
+    "kritaworkspacepresentation"
+  ],
   "currentResponsibilities": {
     "animation-playback": "Animation playback and asynchronous frame rendering presentation.",
     "canvas-presentation": "Canvas display state, decorations, view conversion, controls, and presentation wiring."

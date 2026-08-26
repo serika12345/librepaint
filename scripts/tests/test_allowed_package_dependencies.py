@@ -45,8 +45,8 @@ class AllowedPackageDependencyTests(unittest.TestCase):
         self.assertEqual(
             policy["scope"], "r1-package-responsibility-dependency-policy"
         )
-        self.assertEqual(len(policy["responsibilities"]), 9)
-        self.assertEqual(len(policy["currentTargetEdges"]), 81)
+        self.assertEqual(len(policy["responsibilities"]), 10)
+        self.assertEqual(len(policy["currentTargetEdges"]), 88)
         status_counts = {
             status: sum(
                 projection["status"] == status
@@ -62,9 +62,9 @@ class AllowedPackageDependencyTests(unittest.TestCase):
         self.assertEqual(
             status_counts,
             {
-                "internal": 23,
-                "allowed": 82,
-                "requires-r1-g4-baseline": 21,
+                "internal": 16,
+                "allowed": 72,
+                "requires-r1-g4-baseline": 0,
             },
         )
         by_id = {
@@ -141,24 +141,19 @@ class AllowedPackageDependencyTests(unittest.TestCase):
         ):
             self.validate(policy)
 
-    def test_dependency_to_the_same_layer_is_rejected(self) -> None:
+    def test_dependency_to_a_non_lower_layer_is_rejected(self) -> None:
         policy = copy.deepcopy(self.load_policy())
         import_export = next(
             entry
             for entry in policy["responsibilities"]
             if entry["id"] == "import-export"
         )
-        import_export["allowedDependencies"].append(
-            {
-                "responsibility": "canvas-presentation",
-                "surface": "canvas-view",
-            }
+        application_configuration = next(
+            entry
+            for entry in policy["responsibilities"]
+            if entry["id"] == "application-configuration"
         )
-        import_export["allowedDependencies"].sort(
-            key=lambda dependency: (
-                dependency["responsibility"], dependency["surface"]
-            )
-        )
+        import_export["layer"] = application_configuration["layer"]
 
         with self.assertRaisesRegex(
             check_allowed_package_dependencies.DependencyPolicyError,

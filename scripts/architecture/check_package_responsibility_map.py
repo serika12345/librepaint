@@ -26,6 +26,7 @@ PRODUCTION_SOURCE_DIRECTORIES = frozenset(
 )
 TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
 RESPONSIBILITY_IDS = (
+    "application-configuration",
     "application-orchestration",
     "canvas-presentation",
     "document-lifecycle",

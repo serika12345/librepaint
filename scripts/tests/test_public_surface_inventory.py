@@ -82,10 +82,23 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
     def test_public_header_discovery_combines_declared_and_used_surfaces(
         self,
     ) -> None:
+        application_headers = (
+            check_public_surface_inventory.discover_public_headers(
+                repository_root=REPO_ROOT,
+                source_directory="libs/application",
+                export_macro="KRITAAPPLICATION_EXPORT",
+                header_directories=["libs/application"],
+                excluded_header_directories=[
+                    "libs/application/tests",
+                    "libs/application/ui",
+                ],
+            )
+        )
         ui_headers = check_public_surface_inventory.discover_public_headers(
             repository_root=REPO_ROOT,
-            source_directory="libs/ui",
+            source_directory="libs/application",
             export_macro="KRITAUI_EXPORT",
+            header_directories=["libs/application/ui", "libs/ui"],
         )
         canvas_headers = check_public_surface_inventory.discover_public_headers(
             repository_root=REPO_ROOT,
@@ -182,7 +195,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_headers), 5)
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
-        self.assertEqual(len(ui_headers), 216)
+        self.assertEqual(len(application_headers), 3)
+        self.assertEqual(len(ui_headers), 215)
         self.assertEqual(len(image_headers), 331)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(input_headers), 12)
@@ -453,9 +467,9 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             {
                 "name": "KisApplication",
                 "declarationKind": "class",
-                "header": "libs/ui/application/KisApplication.h",
+                "header": "libs/application/ui/orchestration/KisApplication.h",
                 "implementationPaths": [
-                    "libs/ui/application/KisApplication.cpp"
+                    "libs/application/ui/orchestration/KisApplication.cpp"
                 ],
             },
         )
@@ -607,11 +621,11 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         )
         self.assertEqual(
             by_name["KisApplication"]["header"],
-            "libs/ui/application/KisApplication.h",
+            "libs/application/ui/orchestration/KisApplication.h",
         )
         self.assertEqual(
             by_name["KisMainWindow"]["header"],
-            "libs/ui/workspace/KisMainWindow.h",
+            "libs/application/ui/workspace/KisMainWindow.h",
         )
         self.assertEqual(
             by_name["KisPaintopBox"]["header"],
@@ -633,6 +647,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             {
                 entry["header"]
                 for entry in inventory["classes"]
+                if entry["header"].startswith("libs/ui/")
                 if len(Path(entry["header"]).parts) == 3
             },
             set(),
@@ -696,13 +711,42 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(
             len(application_workspace_tool_inventory["relocations"]), 70
         )
+        application_relocations = {
+            (entry["from"], entry["to"])
+            for entry in application_workspace_tool_inventory["relocations"]
+        }
+        self.assertIn(
+            ("libs/ui/kis_config.h", "libs/application/kis_config.h"),
+            application_relocations,
+        )
+        self.assertIn(
+            (
+                "libs/ui/KisAndroidFileProxy.cpp",
+                "libs/application/platform-adapters/KisAndroidFileProxy.cpp",
+            ),
+            application_relocations,
+        )
+        self.assertIn(
+            (
+                "libs/ui/KisApplication.cpp",
+                "libs/application/ui/orchestration/KisApplication.cpp",
+            ),
+            application_relocations,
+        )
+        self.assertIn(
+            (
+                "libs/ui/KisMainWindow.cpp",
+                "libs/application/ui/workspace/KisMainWindow.cpp",
+            ),
+            application_relocations,
+        )
         self.assertEqual(len(remaining_root_inventory["relocations"]), 42)
         self.assertEqual(
             remaining_root_inventory["reviewedBuildExceptions"],
             [
                 {
                     "path": "libs/ui/resources/kis_md5_generator.cpp",
-                    "reason": "The implementation has no declaration header or consumer in the repository, includes the absent kis_md5_generator.h header, and is not registered in the kritaui CMake source list; relocation preserves this current orphaned non-build state.",
+                    "reason": "The implementation has no declaration header or consumer in the repository, includes the absent kis_md5_generator.h header, and is not registered in the kritaapplicationui CMake source list; relocation preserves this current orphaned non-build state.",
                     "owner": "resource-presentation",
                     "trackedRoadmapItem": "R1-G7",
                     "maximumFiles": 1,
@@ -782,6 +826,8 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 for entry in inventory["publicHeaderSets"]
             },
             {
+                "kritaapplication": 3,
+                "kritaapplicationui": 215,
                 "kritacanvas": 19,
                 "kritaworkspacepresentation": 1,
                 "kritadocument": 5,
@@ -794,7 +840,6 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritainputui": 13,
                 "kritapainting": 19,
                 "kritatools": 19,
-                "kritaui": 216,
             },
         )
         self.assertEqual(

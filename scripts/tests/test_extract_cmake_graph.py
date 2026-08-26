@@ -162,8 +162,23 @@ class ExtractCMakeGraphTests(unittest.TestCase):
             sorted(target["name"] for target in targets),
         )
         self.assertEqual(targets_by_name["krita"]["type"], "EXECUTABLE")
-        self.assertEqual(targets_by_name["kritaui"]["sourceDirectory"], "libs/ui")
-        self.assertNotIn("kritaimage", targets_by_name["kritaui"]["dependencies"])
+        self.assertNotIn("kritaui", targets_by_name)
+        self.assertEqual(
+            targets_by_name["kritaapplication"]["sourceDirectory"],
+            "libs/application",
+        )
+        self.assertEqual(
+            targets_by_name["kritaapplicationui"]["sourceDirectory"],
+            "libs/application",
+        )
+        self.assertIn(
+            "kritaapplication",
+            targets_by_name["kritaapplicationui"]["dependencies"],
+        )
+        self.assertNotIn(
+            "kritaapplicationui",
+            targets_by_name["kritaapplication"]["dependencies"],
+        )
         self.assertEqual(
             targets_by_name["kritaworkspacepresentation"],
             {

@@ -53,8 +53,8 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             responsibility_map["scope"],
             "current-production-package-responsibilities",
         )
-        self.assertEqual(len(responsibility_map["responsibilities"]), 9)
-        self.assertEqual(len(responsibility_map["targetRelations"]), 26)
+        self.assertEqual(len(responsibility_map["responsibilities"]), 10)
+        self.assertEqual(len(responsibility_map["targetRelations"]), 27)
         by_id = {
             entry["id"]: entry
             for entry in responsibility_map["responsibilities"]
@@ -62,6 +62,10 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         self.assertIn(
             "KisApplication",
             by_id["application-orchestration"]["classNames"],
+        )
+        self.assertIn(
+            "KisConfig",
+            by_id["application-configuration"]["classNames"],
         )
         self.assertIn(
             "Krita PNG Import Filter",
@@ -122,7 +126,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
                 "kritaui" in entry["ownerTargets"]
                 for entry in responsibility_map["responsibilities"]
             ),
-            4,
+            0,
         )
         self.assertEqual(
             by_id["canvas-presentation"]["reviewedPublicHeaderPaths"],
@@ -163,13 +167,16 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             for entry in responsibility_map["targetRelations"]
         }
         self.assertNotIn(
-            "kritaimage", target_by_name["kritaui"]["repositoryDependencies"]
+            "kritaimage",
+            target_by_name["kritaapplicationui"]["repositoryDependencies"],
         )
         self.assertIn(
-            "kritatools", target_by_name["kritaui"]["repositoryDependencies"]
+            "kritatools",
+            target_by_name["kritaapplicationui"]["repositoryDependencies"],
         )
         self.assertIn(
-            "kritainput", target_by_name["kritaui"]["repositoryDependencies"]
+            "kritainput",
+            target_by_name["kritaapplicationui"]["repositoryDependencies"],
         )
         self.assertEqual(
             target_by_name["kritadocument"]["repositoryDependencies"], []
@@ -193,10 +200,11 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         )
         self.assertIn(
             "kritadocumentui",
-            target_by_name["kritaui"]["repositoryDependencies"],
+            target_by_name["kritaapplicationui"]["repositoryDependencies"],
         )
-        self.assertIn(
-            "kritapngimport", target_by_name["kritaui"]["repositoryConsumers"]
+        self.assertEqual(
+            target_by_name["kritaapplicationui"]["repositoryConsumers"],
+            ["krita"],
         )
 
     def test_missing_responsibility_is_rejected(self) -> None:
@@ -205,7 +213,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             check_package_responsibility_map.ResponsibilityMapError,
-            r"missing=\['application-orchestration'\]",
+            r"missing=\['application-configuration'\]",
         ):
             self.validate(responsibility_map)
 
@@ -226,7 +234,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             check_package_responsibility_map.ResponsibilityMapError,
-            "responsibility has no owner target: application-orchestration",
+            "responsibility has no owner target: application-configuration",
         ):
             self.validate(responsibility_map)
 
@@ -235,7 +243,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         relation = next(
             entry
             for entry in responsibility_map["targetRelations"]
-            if entry["name"] == "kritaui"
+            if entry["name"] == "kritaapplicationui"
         )
         relation["repositoryDependencies"].remove("kritacanvas")
 

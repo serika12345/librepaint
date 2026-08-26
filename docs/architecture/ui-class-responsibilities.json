@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "scope": "libs/ui-root-and-classified-nested-public-classes",
-  "ownerTarget": "kritaui",
+  "ownerTarget": "kritaapplicationui",
   "platforms": [
     "macos",
     "linux",
@@ -11,24 +11,28 @@
   ],
   "classPolicy": {
     "publicHeaderOwners": [
-      "kritaui",
+      "kritaapplicationui",
+      "kritaapplication",
+      "kritaapplicationui",
       "kritaworkspacepresentation"
     ],
     "sourceDirectories": [
+      "libs/application/ui",
+      "libs/application",
       "libs/ui",
       "libs/canvas/workspace"
     ],
     "headerDepth": 1,
     "classifiedNestedHeaderPaths": [
-      "libs/ui/application/KisActionPlugin.h",
-      "libs/ui/application/KisApplication.h",
-      "libs/ui/application/KisApplicationArguments.h",
-      "libs/ui/application/KisPart.h",
-      "libs/ui/application/KisPlatformPluginInterfaceFactory.h",
-      "libs/ui/application/KisResourceServerProvider.h",
-      "libs/ui/application/kis_action.h",
-      "libs/ui/application/kis_action_manager.h",
-      "libs/ui/application/kis_config.h",
+      "libs/application/kis_config.h",
+      "libs/application/ui/orchestration/KisActionPlugin.h",
+      "libs/application/ui/orchestration/KisApplication.h",
+      "libs/application/ui/orchestration/KisApplicationArguments.h",
+      "libs/application/ui/orchestration/KisPart.h",
+      "libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h",
+      "libs/application/ui/orchestration/KisResourceServerProvider.h",
+      "libs/application/ui/orchestration/kis_action.h",
+      "libs/application/ui/orchestration/kis_action_manager.h",
       "libs/canvas/workspace/kis_workspace_resource.h",
       "libs/ui/animation/KisAsyncAnimationRendererBase.h",
       "libs/ui/animation/KisPlaybackEngine.h",
@@ -76,25 +80,27 @@
       "libs/ui/tool/kis_bookmarked_configurations_editor.h",
       "libs/ui/tool/kis_bookmarked_configurations_model.h",
       "libs/ui/tool/kis_paintop_box.h",
-      "libs/ui/workspace/KisAndroidSplash.h",
-      "libs/ui/workspace/KisMainWindow.h",
-      "libs/ui/workspace/KisSessionResource.h",
-      "libs/ui/workspace/KisTemplateCreateDia.h",
-      "libs/ui/workspace/KisTemplateGroup.h",
-      "libs/ui/workspace/KisTemplateTree.h",
-      "libs/ui/workspace/KisView.h",
-      "libs/ui/workspace/KisViewManager.h",
-      "libs/ui/workspace/KisWelcomePageWidget.h",
-      "libs/ui/workspace/KisWindowLayoutResource.h",
-      "libs/ui/workspace/kis_mainwindow_observer.h",
-      "libs/ui/workspace/kis_preference_set_registry.h",
-      "libs/ui/workspace/kis_splash_screen.h"
+      "libs/application/ui/workspace/KisAndroidSplash.h",
+      "libs/application/ui/workspace/KisMainWindow.h",
+      "libs/application/ui/workspace/KisSessionResource.h",
+      "libs/application/ui/workspace/KisTemplateCreateDia.h",
+      "libs/application/ui/workspace/KisTemplateGroup.h",
+      "libs/application/ui/workspace/KisTemplateTree.h",
+      "libs/application/ui/workspace/KisView.h",
+      "libs/application/ui/workspace/KisViewManager.h",
+      "libs/application/ui/workspace/KisWelcomePageWidget.h",
+      "libs/application/ui/workspace/KisWindowLayoutResource.h",
+      "libs/application/ui/workspace/kis_mainwindow_observer.h",
+      "libs/application/ui/workspace/kis_preference_set_registry.h",
+      "libs/application/ui/workspace/kis_splash_screen.h"
     ],
     "declarationKinds": [
       "class",
       "struct"
     ],
     "exportMacros": [
+      "KRITAAPPLICATION_EXPORT",
+      "KRITAAPPLICATION_EXPORT_TEMPLATE",
       "KRITAUI_EXPORT",
       "KRITAUI_EXPORT_TEMPLATE"
     ],
@@ -114,6 +120,10 @@
     }
   },
   "responsibilityAreas": [
+    {
+      "id": "application-configuration",
+      "responsibility": "Provides validated application settings values independently of process and window orchestration."
+    },
     {
       "id": "application-orchestration",
       "responsibility": "Coordinates process startup, application services, actions, plugins, and the shared application object graph."
@@ -148,34 +158,34 @@
     {
       "name": "KisAbstractPreferenceSetFactory",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/kis_preference_set_registry.h",
+      "header": "libs/application/ui/workspace/kis_preference_set_registry.h",
       "implementationPaths": [],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisAction",
       "declarationKind": "class",
-      "header": "libs/ui/application/kis_action.h",
+      "header": "libs/application/ui/orchestration/kis_action.h",
       "implementationPaths": [
-        "libs/ui/application/kis_action.cpp"
+        "libs/application/ui/orchestration/kis_action.cpp"
       ],
       "responsibilityArea": "application-orchestration"
     },
     {
       "name": "KisActionManager",
       "declarationKind": "class",
-      "header": "libs/ui/application/kis_action_manager.h",
+      "header": "libs/application/ui/orchestration/kis_action_manager.h",
       "implementationPaths": [
-        "libs/ui/application/kis_action_manager.cpp"
+        "libs/application/ui/orchestration/kis_action_manager.cpp"
       ],
       "responsibilityArea": "application-orchestration"
     },
     {
       "name": "KisActionPlugin",
       "declarationKind": "class",
-      "header": "libs/ui/application/KisActionPlugin.h",
+      "header": "libs/application/ui/orchestration/KisActionPlugin.h",
       "implementationPaths": [
-        "libs/ui/application/KisActionPlugin.cpp"
+        "libs/application/ui/orchestration/KisActionPlugin.cpp"
       ],
       "responsibilityArea": "application-orchestration"
     },
@@ -191,27 +201,27 @@
     {
       "name": "KisAndroidSplash",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisAndroidSplash.h",
+      "header": "libs/application/ui/workspace/KisAndroidSplash.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisAndroidSplash.cpp"
+        "libs/application/ui/workspace/KisAndroidSplash.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisApplication",
       "declarationKind": "class",
-      "header": "libs/ui/application/KisApplication.h",
+      "header": "libs/application/ui/orchestration/KisApplication.h",
       "implementationPaths": [
-        "libs/ui/application/KisApplication.cpp"
+        "libs/application/ui/orchestration/KisApplication.cpp"
       ],
       "responsibilityArea": "application-orchestration"
     },
     {
       "name": "KisApplicationArguments",
       "declarationKind": "class",
-      "header": "libs/ui/application/KisApplicationArguments.h",
+      "header": "libs/application/ui/orchestration/KisApplicationArguments.h",
       "implementationPaths": [
-        "libs/ui/application/KisApplicationArguments.cpp"
+        "libs/application/ui/orchestration/KisApplicationArguments.cpp"
       ],
       "responsibilityArea": "application-orchestration"
     },
@@ -272,11 +282,11 @@
     {
       "name": "KisConfig",
       "declarationKind": "class",
-      "header": "libs/ui/application/kis_config.h",
+      "header": "libs/application/kis_config.h",
       "implementationPaths": [
-        "libs/ui/application/kis_config.cc"
+        "libs/application/kis_config.cc"
       ],
-      "responsibilityArea": "application-orchestration"
+      "responsibilityArea": "application-configuration"
     },
     {
       "name": "KisDisplayConfig",
@@ -381,18 +391,18 @@
     {
       "name": "KisMainWindow",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisMainWindow.h",
+      "header": "libs/application/ui/workspace/KisMainWindow.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisMainWindow.cpp"
+        "libs/application/ui/workspace/KisMainWindow.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisMainwindowObserver",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/kis_mainwindow_observer.h",
+      "header": "libs/application/ui/workspace/kis_mainwindow_observer.h",
       "implementationPaths": [
-        "libs/ui/workspace/kis_mainwindow_observer.cpp"
+        "libs/application/ui/workspace/kis_mainwindow_observer.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
@@ -552,18 +562,18 @@
     {
       "name": "KisPart",
       "declarationKind": "class",
-      "header": "libs/ui/application/KisPart.h",
+      "header": "libs/application/ui/orchestration/KisPart.h",
       "implementationPaths": [
-        "libs/ui/application/KisPart.cpp"
+        "libs/application/ui/orchestration/KisPart.cpp"
       ],
       "responsibilityArea": "application-orchestration"
     },
     {
       "name": "KisPlatformPluginInterfaceFactory",
       "declarationKind": "class",
-      "header": "libs/ui/application/KisPlatformPluginInterfaceFactory.h",
+      "header": "libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h",
       "implementationPaths": [
-        "libs/ui/application/KisPlatformPluginInterfaceFactory.cpp"
+        "libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.cpp"
       ],
       "responsibilityArea": "application-orchestration"
     },
@@ -597,16 +607,16 @@
     {
       "name": "KisPreferenceSet",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/kis_preference_set_registry.h",
+      "header": "libs/application/ui/workspace/kis_preference_set_registry.h",
       "implementationPaths": [],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisPreferenceSetRegistry",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/kis_preference_set_registry.h",
+      "header": "libs/application/ui/workspace/kis_preference_set_registry.h",
       "implementationPaths": [
-        "libs/ui/workspace/kis_preference_set_registry.cpp"
+        "libs/application/ui/workspace/kis_preference_set_registry.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
@@ -631,9 +641,9 @@
     {
       "name": "KisResourceServerProvider",
       "declarationKind": "class",
-      "header": "libs/ui/application/KisResourceServerProvider.h",
+      "header": "libs/application/ui/orchestration/KisResourceServerProvider.h",
       "implementationPaths": [
-        "libs/ui/application/KisResourceServerProvider.cpp"
+        "libs/application/ui/orchestration/KisResourceServerProvider.cpp"
       ],
       "responsibilityArea": "application-orchestration"
     },
@@ -694,18 +704,18 @@
     {
       "name": "KisSessionResource",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisSessionResource.h",
+      "header": "libs/application/ui/workspace/KisSessionResource.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisSessionResource.cpp"
+        "libs/application/ui/workspace/KisSessionResource.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisSplashScreen",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/kis_splash_screen.h",
+      "header": "libs/application/ui/workspace/kis_splash_screen.h",
       "implementationPaths": [
-        "libs/ui/workspace/kis_splash_screen.cpp"
+        "libs/application/ui/workspace/kis_splash_screen.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
@@ -721,27 +731,27 @@
     {
       "name": "KisTemplateCreateDia",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisTemplateCreateDia.h",
+      "header": "libs/application/ui/workspace/KisTemplateCreateDia.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisTemplateCreateDia.cpp"
+        "libs/application/ui/workspace/KisTemplateCreateDia.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisTemplateGroup",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisTemplateGroup.h",
+      "header": "libs/application/ui/workspace/KisTemplateGroup.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisTemplateGroup.cpp"
+        "libs/application/ui/workspace/KisTemplateGroup.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisTemplateTree",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisTemplateTree.h",
+      "header": "libs/application/ui/workspace/KisTemplateTree.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisTemplateTree.cpp"
+        "libs/application/ui/workspace/KisTemplateTree.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
@@ -757,36 +767,36 @@
     {
       "name": "KisView",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisView.h",
+      "header": "libs/application/ui/workspace/KisView.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisView.cpp"
+        "libs/application/ui/workspace/KisView.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisViewManager",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisViewManager.h",
+      "header": "libs/application/ui/workspace/KisViewManager.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisViewManager.cpp"
+        "libs/application/ui/workspace/KisViewManager.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisWelcomePageWidget",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisWelcomePageWidget.h",
+      "header": "libs/application/ui/workspace/KisWelcomePageWidget.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisWelcomePageWidget.cpp"
+        "libs/application/ui/workspace/KisWelcomePageWidget.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },
     {
       "name": "KisWindowLayoutResource",
       "declarationKind": "class",
-      "header": "libs/ui/workspace/KisWindowLayoutResource.h",
+      "header": "libs/application/ui/workspace/KisWindowLayoutResource.h",
       "implementationPaths": [
-        "libs/ui/workspace/KisWindowLayoutResource.cpp"
+        "libs/application/ui/workspace/KisWindowLayoutResource.cpp"
       ],
       "responsibilityArea": "window-workspace"
     },

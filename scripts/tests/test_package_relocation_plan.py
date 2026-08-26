@@ -39,7 +39,7 @@ class PackageRelocationPlanTests(unittest.TestCase):
         self.assertEqual(
             plan["scope"], "r1-g5-complete-package-relocation-plan"
         )
-        self.assertEqual(len(plan["packages"]), 9)
+        self.assertEqual(len(plan["packages"]), 10)
         self.assertEqual(len(plan["migrationWaves"]), 8)
         self.assertEqual(plan["firstImplementationWave"], "R1-G6a")
         first = plan["migrationWaves"][0]
@@ -71,25 +71,43 @@ class PackageRelocationPlanTests(unittest.TestCase):
             },
         )
 
-    def test_wave_order_must_follow_allowed_dependencies(self) -> None:
+    def test_planned_wave_order_must_follow_allowed_dependencies(self) -> None:
         plan = copy.deepcopy(self.load_plan())
         plan["packages"][0]["migrationWave"] = "R1-G6a"
+        application_configuration = plan["packages"][0]
+        application_configuration["target"]["cmakeTargets"][0]["status"] = "new"
 
         with self.assertRaisesRegex(
             check_package_relocation_plan.RelocationPlanError,
-            "migration wave order violates allowed dependency order",
+            "planned migration wave order violates allowed dependency order",
         ):
-            self.validate(plan)
+            check_package_relocation_plan._validate_waves(
+                plan,
+                {
+                    package["responsibility"]: package
+                    for package in plan["packages"]
+                },
+                {
+                    target
+                    for wave in plan["migrationWaves"]
+                    for target in wave["createsTargets"]
+                },
+            )
 
-    def test_internal_header_destination_cannot_be_dropped(self) -> None:
-        plan = copy.deepcopy(self.load_plan())
-        plan["reviewedInternalHeaderDestinations"].pop()
+    def test_zero_internal_header_baseline_has_no_destinations(self) -> None:
+        plan = self.load_plan()
+        structural = check_package_relocation_plan._load_json(
+            REPO_ROOT / "docs/architecture/structural-dependency-baseline.json",
+            "structural dependency baseline",
+        )
 
-        with self.assertRaisesRegex(
-            check_package_relocation_plan.RelocationPlanError,
-            "internal header destinations do not cover the baseline",
-        ):
-            self.validate(plan)
+        self.assertEqual(plan["reviewedInternalHeaderDestinations"], [])
+        self.assertTrue(
+            all(
+                item["maximumDirectReferences"] == 0
+                for item in structural["internalHeaderBaseline"]
+            )
+        )
 
     def test_zero_reference_public_owner_does_not_require_a_migration(self) -> None:
         structural_path = REPO_ROOT / (

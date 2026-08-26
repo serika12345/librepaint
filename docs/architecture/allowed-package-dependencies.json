@@ -10,8 +10,35 @@
   },
   "responsibilities": [
     {
+      "id": "application-configuration",
+      "layer": 4,
+      "responsibility": "Provides validated application settings, canvas snapping policy, and platform file-exchange services to feature coordinators.",
+      "publicSurfaces": [
+        {
+          "id": "application-configuration",
+          "purpose": "Provides validated process-wide preferences, snapping values, and platform file locations.",
+          "lifetime": "Configuration values are copied for each request while the backing settings and platform sessions follow the process lifetime.",
+          "errorBehavior": "Invalid or unavailable values resolve to validated defaults before they reach document, canvas, or import-export state."
+        }
+      ],
+      "allowedDependencies": [
+        {
+          "responsibility": "canvas-presentation",
+          "surface": "canvas-view"
+        },
+        {
+          "responsibility": "painting-rendering",
+          "surface": "image-model"
+        },
+        {
+          "responsibility": "resource-management",
+          "surface": "resource-catalog"
+        }
+      ]
+    },
+    {
       "id": "application-orchestration",
-      "layer": 7,
+      "layer": 9,
       "responsibility": "Composes process startup, operating-system lifecycle, workspaces, and the top-level application services without becoming a domain-state owner.",
       "publicSurfaces": [
         {
@@ -22,6 +49,10 @@
         }
       ],
       "allowedDependencies": [
+        {
+          "responsibility": "application-configuration",
+          "surface": "application-configuration"
+        },
         {
           "responsibility": "canvas-presentation",
           "surface": "canvas-view"
@@ -85,7 +116,7 @@
     },
     {
       "id": "document-lifecycle",
-      "layer": 4,
+      "layer": 6,
       "responsibility": "Owns document identity, lifetime, modified state, undo coordination, persistence coordination, and the current image reference.",
       "publicSurfaces": [
         {
@@ -126,7 +157,7 @@
     },
     {
       "id": "import-export",
-      "layer": 3,
+      "layer": 5,
       "responsibility": "Owns format selection, external-data validation, codec execution, and serialized document transfer.",
       "publicSurfaces": [
         {
@@ -144,6 +175,10 @@
       ],
       "allowedDependencies": [
         {
+          "responsibility": "application-configuration",
+          "surface": "application-configuration"
+        },
+        {
           "responsibility": "painting-rendering",
           "surface": "image-model"
         },
@@ -159,7 +194,7 @@
     },
     {
       "id": "input-interpretation",
-      "layer": 6,
+      "layer": 8,
       "responsibility": "Converts pointer, keyboard, touch, tablet, and shortcut events into coordinate-aware application and tool actions.",
       "publicSurfaces": [
         {
@@ -250,7 +285,7 @@
     },
     {
       "id": "tool-invocation",
-      "layer": 5,
+      "layer": 7,
       "responsibility": "Owns tool selection, tool settings presentation, and cancellable tool commands against canvas and document state.",
       "publicSurfaces": [
         {
@@ -293,35 +328,357 @@
   "currentTargetEdges": [
     {
       "sourceTarget": "krita",
-      "dependencyTarget": "kritaui",
+      "dependencyTarget": "kritaapplication",
       "sourceResponsibilities": [
         "application-orchestration"
       ],
       "dependencyResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
+        "application-configuration"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "application-configuration",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "krita",
+      "dependencyTarget": "kritaapplicationui",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "application-orchestration"
       ],
       "projections": [
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "application-orchestration",
           "status": "internal"
-        },
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplication",
+      "dependencyTarget": "kritacanvas",
+      "sourceResponsibilities": [
+        "application-configuration"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-configuration",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplication",
+      "dependencyTarget": "kritaflake",
+      "sourceResponsibilities": [
+        "application-configuration"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-configuration",
+          "dependencyResponsibility": "canvas-presentation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplication",
+      "dependencyTarget": "kritapigment",
+      "sourceResponsibilities": [
+        "application-configuration"
+      ],
+      "dependencyResponsibilities": [
+        "painting-rendering"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-configuration",
+          "dependencyResponsibility": "painting-rendering",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplication",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "application-configuration"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-configuration",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritaapplication",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "application-configuration"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "application-configuration",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritacanvas",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "canvas-presentation",
           "status": "allowed"
-        },
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritadocument",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "document-lifecycle",
           "status": "allowed"
-        },
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritadocumentfiles",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritadocumentui",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "document-lifecycle"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "document-lifecycle",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritaimpex",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "import-export",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritaimpexui",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "import-export"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "import-export",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritainput",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "input-interpretation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritainputui",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "input-interpretation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "input-interpretation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritaresources",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritaresourcestorage",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritaresourceui",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "resource-management"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritatools",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "tool-invocation"
+      ],
+      "projections": [
         {
           "sourceResponsibility": "application-orchestration",
           "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritatoolsui",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "tool-invocation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "tool-invocation",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaapplicationui",
+      "dependencyTarget": "kritaworkspacepresentation",
+      "sourceResponsibilities": [
+        "application-orchestration"
+      ],
+      "dependencyResponsibilities": [
+        "canvas-presentation"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "application-orchestration",
+          "dependencyResponsibility": "canvas-presentation",
           "status": "allowed"
         }
       ]
@@ -357,41 +714,6 @@
           "sourceResponsibility": "canvas-presentation",
           "dependencyResponsibility": "painting-rendering",
           "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritabasicflakes",
-      "dependencyTarget": "kritaui",
-      "sourceResponsibilities": [
-        "canvas-presentation"
-      ],
-      "dependencyResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "application-orchestration",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "canvas-presentation",
-          "status": "internal"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "requires-r1-g4-baseline"
         }
       ]
     },
@@ -765,6 +1087,23 @@
         {
           "sourceResponsibility": "import-export",
           "dependencyResponsibility": "resource-management",
+          "status": "allowed"
+        }
+      ]
+    },
+    {
+      "sourceTarget": "kritaimpexui",
+      "dependencyTarget": "kritaapplication",
+      "sourceResponsibilities": [
+        "import-export"
+      ],
+      "dependencyResponsibilities": [
+        "application-configuration"
+      ],
+      "projections": [
+        {
+          "sourceResponsibility": "import-export",
+          "dependencyResponsibility": "application-configuration",
           "status": "allowed"
         }
       ]
@@ -1446,461 +1785,6 @@
           "sourceResponsibility": "tool-invocation",
           "dependencyResponsibility": "resource-management",
           "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritacanvas",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "canvas-presentation"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "canvas-presentation",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "canvas-presentation",
-          "status": "internal"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "canvas-presentation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "canvas-presentation",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritadocument",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "document-lifecycle"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "internal"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritadocumentfiles",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "document-lifecycle"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "internal"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritadocumentui",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "document-lifecycle"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "internal"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "document-lifecycle",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritaimpex",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "import-export"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "import-export",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "import-export",
-          "status": "requires-r1-g4-baseline"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritaimpexui",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "import-export"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "import-export",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "import-export",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "import-export",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "import-export",
-          "status": "requires-r1-g4-baseline"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritainput",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "input-interpretation"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "input-interpretation",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "input-interpretation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "input-interpretation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "input-interpretation",
-          "status": "requires-r1-g4-baseline"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritainputui",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "input-interpretation"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "input-interpretation",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "input-interpretation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "input-interpretation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "input-interpretation",
-          "status": "requires-r1-g4-baseline"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritaresources",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "resource-management"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritaresourcestorage",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "resource-management"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritaresourceui",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "resource-management"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "resource-management",
-          "status": "allowed"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritatools",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "tool-invocation"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "internal"
-        }
-      ]
-    },
-    {
-      "sourceTarget": "kritaui",
-      "dependencyTarget": "kritatoolsui",
-      "sourceResponsibilities": [
-        "application-orchestration",
-        "canvas-presentation",
-        "document-lifecycle",
-        "tool-invocation"
-      ],
-      "dependencyResponsibilities": [
-        "tool-invocation"
-      ],
-      "projections": [
-        {
-          "sourceResponsibility": "application-orchestration",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "allowed"
-        },
-        {
-          "sourceResponsibility": "canvas-presentation",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "document-lifecycle",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "requires-r1-g4-baseline"
-        },
-        {
-          "sourceResponsibility": "tool-invocation",
-          "dependencyResponsibility": "tool-invocation",
-          "status": "internal"
         }
       ]
     },

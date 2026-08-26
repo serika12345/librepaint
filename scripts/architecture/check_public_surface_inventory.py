@@ -29,6 +29,13 @@ PRODUCTION_SOURCE_DIRECTORIES = (
 TEST_PATH_PARTS = frozenset({"benchmarks", "test", "tests"})
 PUBLICATION_EVIDENCE = ("export-macro", "compile-contract", "external-include")
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
+    "libs/application": (
+        "libs/application/tests/TestApplicationConfiguration.cpp",
+        "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
+        "libs/ui/tests/TestCanvasUiPublicHeaders.cpp",
+        "libs/ui/tests/TestDocumentStateUiPublicHeaders.cpp",
+        "libs/ui/tests/TestRemainingUiRootPublicHeaders.cpp",
+    ),
     "libs/canvas/workspace": (
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
     ),
@@ -42,12 +49,6 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/input": ("libs/input/tests/TestInputShortcutMatcher.cpp",),
     "libs/painting": ("libs/painting/tests/TestPaintingBoundary.cpp",),
     "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
-    "libs/ui": (
-        "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
-        "libs/ui/tests/TestCanvasUiPublicHeaders.cpp",
-        "libs/ui/tests/TestDocumentStateUiPublicHeaders.cpp",
-        "libs/ui/tests/TestRemainingUiRootPublicHeaders.cpp",
-    ),
 }
 UI_CANVAS_CLASS_NESTED_HEADER_PATHS = (
     "libs/canvas/workspace/kis_workspace_resource.h",
@@ -98,15 +99,15 @@ UI_DOCUMENT_STATE_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/selection/kis_selection_manager.h",
 )
 UI_APPLICATION_ORCHESTRATION_CLASS_NESTED_HEADER_PATHS = (
-    "libs/ui/application/KisActionPlugin.h",
-    "libs/ui/application/KisApplication.h",
-    "libs/ui/application/KisApplicationArguments.h",
-    "libs/ui/application/KisPart.h",
-    "libs/ui/application/KisPlatformPluginInterfaceFactory.h",
-    "libs/ui/application/KisResourceServerProvider.h",
-    "libs/ui/application/kis_action.h",
-    "libs/ui/application/kis_action_manager.h",
-    "libs/ui/application/kis_config.h",
+    "libs/application/kis_config.h",
+    "libs/application/ui/orchestration/KisActionPlugin.h",
+    "libs/application/ui/orchestration/KisApplication.h",
+    "libs/application/ui/orchestration/KisApplicationArguments.h",
+    "libs/application/ui/orchestration/KisPart.h",
+    "libs/application/ui/orchestration/KisPlatformPluginInterfaceFactory.h",
+    "libs/application/ui/orchestration/KisResourceServerProvider.h",
+    "libs/application/ui/orchestration/kis_action.h",
+    "libs/application/ui/orchestration/kis_action_manager.h",
 )
 UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/tool/kis_bookmarked_configurations_editor.h",
@@ -114,19 +115,19 @@ UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS = (
     "libs/ui/tool/kis_paintop_box.h",
 )
 UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS = (
-    "libs/ui/workspace/KisAndroidSplash.h",
-    "libs/ui/workspace/KisMainWindow.h",
-    "libs/ui/workspace/KisSessionResource.h",
-    "libs/ui/workspace/KisTemplateCreateDia.h",
-    "libs/ui/workspace/KisTemplateGroup.h",
-    "libs/ui/workspace/KisTemplateTree.h",
-    "libs/ui/workspace/KisView.h",
-    "libs/ui/workspace/KisViewManager.h",
-    "libs/ui/workspace/KisWelcomePageWidget.h",
-    "libs/ui/workspace/KisWindowLayoutResource.h",
-    "libs/ui/workspace/kis_mainwindow_observer.h",
-    "libs/ui/workspace/kis_preference_set_registry.h",
-    "libs/ui/workspace/kis_splash_screen.h",
+    "libs/application/ui/workspace/KisAndroidSplash.h",
+    "libs/application/ui/workspace/KisMainWindow.h",
+    "libs/application/ui/workspace/KisSessionResource.h",
+    "libs/application/ui/workspace/KisTemplateCreateDia.h",
+    "libs/application/ui/workspace/KisTemplateGroup.h",
+    "libs/application/ui/workspace/KisTemplateTree.h",
+    "libs/application/ui/workspace/KisView.h",
+    "libs/application/ui/workspace/KisViewManager.h",
+    "libs/application/ui/workspace/KisWelcomePageWidget.h",
+    "libs/application/ui/workspace/KisWindowLayoutResource.h",
+    "libs/application/ui/workspace/kis_mainwindow_observer.h",
+    "libs/application/ui/workspace/kis_preference_set_registry.h",
+    "libs/application/ui/workspace/kis_splash_screen.h",
 )
 UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH = {
     **{
@@ -146,6 +147,7 @@ UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH = {
         path: "window-workspace"
         for path in UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS
     },
+    "libs/application/kis_config.h": "application-configuration",
 }
 UI_CLASS_NESTED_HEADER_PATHS = tuple(
     UI_CLASS_NESTED_HEADER_RESPONSIBILITY_BY_PATH
@@ -164,6 +166,10 @@ UI_PLACEMENT_RELOCATION_PATHS = (
 UI_PLACEMENT_RELOCATION_SPECS = {
     "docs/architecture/canvas-presentation-ui-relocations.json": {
         "scope": "r1-g6g-canvas-presentation-ui-placement",
+        "ownerTargets": [
+            "kritaapplicationui",
+            "kritaworkspacepresentation",
+        ],
         "placementAreas": {
             "animation-playback": "animation",
             "canvas-presentation": [
@@ -174,6 +180,7 @@ UI_PLACEMENT_RELOCATION_SPECS = {
     },
     "docs/architecture/document-state-ui-relocations.json": {
         "scope": "r1-g6g-document-state-ui-placement",
+        "ownerTargets": ["kritaapplicationui"],
         "placementAreas": {
             "document-composition": "document",
             "node-presentation": "nodes",
@@ -182,14 +189,22 @@ UI_PLACEMENT_RELOCATION_SPECS = {
     },
     "docs/architecture/application-workspace-tool-ui-relocations.json": {
         "scope": "r1-g6g-application-workspace-tool-ui-placement",
+        "ownerTargets": ["kritaapplication", "kritaapplicationui"],
         "placementAreas": {
-            "application-orchestration": "application",
+            "application-configuration": [
+                "libs/application",
+                "libs/application/platform-adapters",
+            ],
+            "application-orchestration": [
+                "libs/application/ui/orchestration",
+            ],
             "tool-invocation": "tool",
-            "window-workspace": "workspace",
+            "window-workspace": ["libs/application/ui/workspace"],
         },
     },
     "docs/architecture/remaining-ui-root-relocations.json": {
         "scope": "r1-g6g-ui-root-placement",
+        "ownerTargets": ["kritaapplicationui"],
         "placementAreas": {
             "action-state-wiring": "actions",
             "event-wiring": "events",
@@ -209,7 +224,7 @@ INCLUDE_PATTERN = re.compile(
     r'^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"]', re.MULTILINE
 )
 UI_CLASS_DECLARATION_PATTERN = re.compile(
-    r"\b(class|struct)\s+KRITAUI_EXPORT(?:_TEMPLATE)?\s+"
+    r"\b(class|struct)\s+(?:KRITAUI|KRITAAPPLICATION)_EXPORT(?:_TEMPLATE)?\s+"
     r"([A-Za-z_][A-Za-z0-9_]*)"
 )
 PLUGIN_REGISTRATION_PATTERN = re.compile(
@@ -218,6 +233,41 @@ PLUGIN_REGISTRATION_PATTERN = re.compile(
     re.DOTALL,
 )
 PUBLIC_HEADER_SET_SPECS = (
+    {
+        "ownerTarget": "kritaapplication",
+        "sourceDirectory": "libs/application",
+        "headerDirectories": ["libs/application"],
+        "excludedHeaderDirectories": [
+            "libs/application/tests",
+            "libs/application/ui",
+        ],
+        "exportMacro": "KRITAAPPLICATION_EXPORT",
+        "responsibility": (
+            "Records the declared application configuration and snapping surface "
+            "owned by the application service library."
+        ),
+        "evidence": [
+            "libs/application/CMakeLists.txt",
+            "libs/application/kis_config.h",
+            "libs/application/kis_snap_config.h",
+        ],
+    },
+    {
+        "ownerTarget": "kritaapplicationui",
+        "sourceDirectory": "libs/application",
+        "headerDirectories": ["libs/application/ui", "libs/ui"],
+        "excludedHeaderDirectories": [],
+        "exportMacro": "KRITAUI_EXPORT",
+        "responsibility": (
+            "Records the declared application orchestration, window workspace, "
+            "and shared UI presentation surface owned by the application UI library."
+        ),
+        "evidence": [
+            "libs/application/CMakeLists.txt",
+            "libs/ui/CMakeLists.txt",
+            "libs/ui/kritaui_export_instance.h",
+        ],
+    },
     {
         "ownerTarget": "kritacanvas",
         "sourceDirectory": "libs/canvas",
@@ -416,20 +466,15 @@ PUBLIC_HEADER_SET_SPECS = (
             "libs/tools/kis_tool.h",
         ],
     },
-    {
-        "ownerTarget": "kritaui",
-        "sourceDirectory": "libs/ui",
-        "headerDirectories": ["libs/ui"],
-        "excludedHeaderDirectories": [],
-        "exportMacro": "KRITAUI_EXPORT",
-        "responsibility": (
-            "Records the declared and de facto inter-package header surface "
-            "for application, document, canvas, input, tool, and UI coordination."
-        ),
-        "evidence": ["libs/ui/CMakeLists.txt", "libs/ui/kritaui_export_instance.h"],
-    },
 )
 UI_CLASS_RESPONSIBILITY_AREAS = (
+    {
+        "id": "application-configuration",
+        "responsibility": (
+            "Provides validated application settings values independently of "
+            "process and window orchestration."
+        ),
+    },
     {
         "id": "application-orchestration",
         "responsibility": (
@@ -537,7 +582,7 @@ PLUGIN_SERVICE_TYPE_OWNERS = (
         "serviceType": "Krita/ApplicationPlugin",
         "featureOwner": "application-extension",
         "runtimeConsumer": "KisMainWindow",
-        "evidence": "libs/ui/workspace/KisMainWindow.cpp",
+        "evidence": "libs/application/ui/workspace/KisMainWindow.cpp",
     },
     {
         "serviceType": "Krita/ColorSpace",
@@ -597,7 +642,10 @@ PLUGIN_SERVICE_TYPE_OWNERS = (
         "serviceType": "Krita/PlatformPlugin",
         "featureOwner": "platform-adapter",
         "runtimeConsumer": "KisPlatformPluginInterfaceFactory",
-        "evidence": "libs/ui/application/KisPlatformPluginInterfaceFactory.cpp",
+        "evidence": (
+            "libs/application/ui/orchestration/"
+            "KisPlatformPluginInterfaceFactory.cpp"
+        ),
     },
     {
         "serviceType": "Krita/Shape",
@@ -615,7 +663,7 @@ PLUGIN_SERVICE_TYPE_OWNERS = (
         "serviceType": "Krita/ViewPlugin",
         "featureOwner": "view-extension",
         "runtimeConsumer": "KisMainWindow",
-        "evidence": "libs/ui/workspace/KisMainWindow.cpp",
+        "evidence": "libs/application/ui/workspace/KisMainWindow.cpp",
     },
 )
 
@@ -752,7 +800,7 @@ def _discover_ui_classes(
     source_directory: str,
     recursive: bool,
     include_consumer_paths: bool,
-    public_header_owner: str = "kritaui",
+    public_header_owner: str = "kritaapplicationui",
 ) -> list[dict[str, Any]]:
     ui_header_set = next(
         (
@@ -779,14 +827,17 @@ def _discover_ui_classes(
         and path.suffix in SOURCE_SUFFIXES - HEADER_SUFFIXES
     }
     header_entries = [
-        _require_object(entry, "kritaui public header")
+        _require_object(entry, f"{public_header_owner} public header")
         for entry in _require_array(
-            ui_header_set.get("headers"), "headers for public header set kritaui"
+            ui_header_set.get("headers"),
+            f"headers for public header set {public_header_owner}",
         )
         if _path_is_within(
             _require_string(
-                _require_object(entry, "kritaui public header").get("path"),
-                "path for kritaui public header",
+                _require_object(
+                    entry, f"{public_header_owner} public header"
+                ).get("path"),
+                f"path for {public_header_owner} public header",
             ),
             source_directory,
         )
@@ -795,9 +846,13 @@ def _discover_ui_classes(
     if include_consumer_paths:
         headers_by_name = {
             PurePosixPath(
-                _require_string(entry.get("path"), "path for kritaui public header")
+                _require_string(
+                    entry.get("path"),
+                    f"path for {public_header_owner} public header",
+                )
             ).name: _require_string(
-                entry.get("path"), "path for kritaui public header"
+                entry.get("path"),
+                f"path for {public_header_owner} public header",
             )
             for entry in header_entries
         }
@@ -818,7 +873,7 @@ def _discover_ui_classes(
     names: set[str] = set()
     for header in header_entries:
         header_path = _require_string(
-            header.get("path"), "path for kritaui public header"
+            header.get("path"), f"path for {public_header_owner} public header"
         )
         path = PurePosixPath(header_path)
         if not _path_is_within(header_path, source_directory):
@@ -894,6 +949,25 @@ def discover_ui_top_level_classes(
         _discover_ui_classes(
             repository_root=repository_root,
             public_surface_inventory=public_surface_inventory,
+            source_directory="libs/application",
+            recursive=True,
+            include_consumer_paths=False,
+            public_header_owner="kritaapplication",
+        )
+    )
+    discovered.extend(
+        _discover_ui_classes(
+            repository_root=repository_root,
+            public_surface_inventory=public_surface_inventory,
+            source_directory="libs/application/ui",
+            recursive=True,
+            include_consumer_paths=False,
+        )
+    )
+    discovered.extend(
+        _discover_ui_classes(
+            repository_root=repository_root,
+            public_surface_inventory=public_surface_inventory,
             source_directory="libs/canvas/workspace",
             recursive=True,
             include_consumer_paths=False,
@@ -904,7 +978,10 @@ def discover_ui_top_level_classes(
     classes = [
         entry
         for entry in discovered
-        if len(PurePosixPath(entry["header"]).parts) == 3
+        if (
+            len(PurePosixPath(entry["header"]).parts) == 3
+            and _path_is_within(entry["header"], "libs/ui")
+        )
         or entry["header"] in nested_headers
     ]
     discovered_nested_headers = {
@@ -1064,12 +1141,27 @@ def public_header_policy() -> dict[str, Any]:
 
 def ui_class_policy() -> dict[str, Any]:
     return {
-        "publicHeaderOwners": ["kritaui", "kritaworkspacepresentation"],
-        "sourceDirectories": ["libs/ui", "libs/canvas/workspace"],
+        "publicHeaderOwners": [
+            "kritaapplicationui",
+            "kritaapplication",
+            "kritaapplicationui",
+            "kritaworkspacepresentation",
+        ],
+        "sourceDirectories": [
+            "libs/application/ui",
+            "libs/application",
+            "libs/ui",
+            "libs/canvas/workspace",
+        ],
         "headerDepth": 1,
         "classifiedNestedHeaderPaths": list(UI_CLASS_NESTED_HEADER_PATHS),
         "declarationKinds": ["class", "struct"],
-        "exportMacros": ["KRITAUI_EXPORT", "KRITAUI_EXPORT_TEMPLATE"],
+        "exportMacros": [
+            "KRITAAPPLICATION_EXPORT",
+            "KRITAAPPLICATION_EXPORT_TEMPLATE",
+            "KRITAUI_EXPORT",
+            "KRITAUI_EXPORT_TEMPLATE",
+        ],
         "implementationSuffixes": sorted(SOURCE_SUFFIXES - HEADER_SUFFIXES),
         "privateHeaderImplementationSuffix": "_p",
         "additionalImplementationPathsByClass": {
@@ -1083,7 +1175,7 @@ def ui_class_policy() -> dict[str, Any]:
 
 def ui_tool_class_policy() -> dict[str, Any]:
     return {
-        "publicHeaderOwner": "kritaui",
+        "publicHeaderOwner": "kritaapplicationui",
         "sourceDirectory": "libs/ui/tool",
         "recursive": True,
         "declarationKinds": ["class", "struct"],
@@ -1241,7 +1333,7 @@ def validate_ui_placement_relocations(
             "schemaVersion",
             "scope",
             "purpose",
-            "currentOwnerTarget",
+            "currentOwnerTargets",
             "currentResponsibilities",
             "reviewedResponsibilityOverrides",
             "relocations",
@@ -1253,16 +1345,17 @@ def validate_ui_placement_relocations(
             expected_inventory_fields,
             f"UI placement relocation inventory {inventory_path}",
         )
-        if inventory.get("schemaVersion") != 1:
+        if inventory.get("schemaVersion") != 2:
             raise PublicSurfaceError(
-                f"schemaVersion must be 1 in {inventory_path}"
+                f"schemaVersion must be 2 in {inventory_path}"
             )
         if inventory.get("scope") != spec["scope"]:
             raise PublicSurfaceError(f"unexpected scope in {inventory_path}")
         _require_string(inventory.get("purpose"), f"purpose in {inventory_path}")
-        if inventory.get("currentOwnerTarget") != "kritaui":
+        if inventory.get("currentOwnerTargets") != spec["ownerTargets"]:
             raise PublicSurfaceError(
-                f"currentOwnerTarget must be kritaui in {inventory_path}"
+                f"currentOwnerTargets must be {spec['ownerTargets']} in "
+                f"{inventory_path}"
             )
 
         responsibilities = _require_object(
@@ -1505,6 +1598,7 @@ def validate_ui_placement_relocations(
             _require_string(entry.get("header"), "UI class header")
             for entry in _require_array(ui_class_inventory.get("classes"), "UI classes")
             if isinstance(entry, dict)
+            and _path_is_within(str(entry.get("header", "")), "libs/ui")
             and len(PurePosixPath(str(entry.get("header", ""))).parts) == 3
         }
     )
@@ -1575,6 +1669,7 @@ def validate_ui_placement_relocations(
         "docs/architecture/application-workspace-tool-ui-relocations.json"
     ]
     application_workspace_tool_areas = {
+        "application-configuration",
         "application-orchestration",
         "tool-invocation",
         "window-workspace",
@@ -1589,6 +1684,7 @@ def validate_ui_placement_relocations(
         UI_APPLICATION_ORCHESTRATION_CLASS_NESTED_HEADER_PATHS
         + UI_TOOL_INVOCATION_CLASS_NESTED_HEADER_PATHS
         + UI_WINDOW_WORKSPACE_CLASS_NESTED_HEADER_PATHS
+        + ("libs/application/kis_config.h",)
     )
     application_workspace_tool_headers = {
         _require_string(
@@ -1681,6 +1777,13 @@ def _path_is_within(relative_path: str, source_directory: str) -> bool:
     return True
 
 
+def _public_header_ownership_directories(owner_target: str) -> list[str] | None:
+    for spec in PUBLIC_HEADER_SET_SPECS:
+        if spec["ownerTarget"] == owner_target:
+            return list(spec["headerDirectories"])
+    return None
+
+
 def _validate_owner(
     *,
     owner_target: str,
@@ -1688,6 +1791,7 @@ def _validate_owner(
     owned_paths: list[str],
     description: str,
     targets_by_platform: dict[str, dict[str, dict[str, Any]]],
+    ownership_directories: list[str] | None = None,
 ) -> None:
     available = _available_platforms(owner_target, targets_by_platform)
     if not available:
@@ -1705,10 +1809,14 @@ def _validate_owner(
             f"source directory for {owner_target} on {platform}",
         )
         for owned_path in owned_paths:
-            if not _path_is_within(owned_path, source_directory):
+            accepted_directories = ownership_directories or [source_directory]
+            if not any(
+                _path_is_within(owned_path, directory)
+                for directory in accepted_directories
+            ):
                 raise PublicSurfaceError(
                     f"{description}: {owned_path} is outside {owner_target} "
-                    f"source directory {source_directory} on {platform}"
+                    f"ownership directories {accepted_directories} on {platform}"
                 )
 
 
@@ -1925,7 +2033,14 @@ def _validate_public_header_sets(
             )
             if (
                 PurePosixPath(path).suffix not in HEADER_SUFFIXES
-                or not _path_is_within(path, source_directory)
+                or not any(
+                    _path_is_within(path, directory)
+                    for directory in header_directories
+                )
+                or any(
+                    _path_is_within(path, directory)
+                    for directory in excluded_header_directories
+                )
                 or not _is_production_source_path(PurePosixPath(path))
             ):
                 raise PublicSurfaceError(
@@ -2008,10 +2123,13 @@ def _validate_public_header_sets(
                     "do not match source discovery"
                 )
 
+        owner_validation_paths = [cmake_path, *header_paths]
+        if owner_target == "kritaapplicationui":
+            owner_validation_paths = [cmake_path]
         _validate_owner(
             owner_target=owner_target,
             platforms=platforms,
-            owned_paths=[cmake_path, *header_paths],
+            owned_paths=owner_validation_paths,
             description=description,
             targets_by_platform=targets_by_platform,
         )
@@ -2090,6 +2208,9 @@ def _validate_public_headers(
             owned_paths=[path],
             description=description,
             targets_by_platform=targets_by_platform,
+            ownership_directories=_public_header_ownership_directories(
+                owner_target
+            ),
         )
         complete_header = complete_public_headers.get(path)
         if complete_header is None:
@@ -2178,6 +2299,9 @@ def _validate_major_classes(
             owned_paths=[header, implementation],
             description=description,
             targets_by_platform=targets_by_platform,
+            ownership_directories=_public_header_ownership_directories(
+                owner_target
+            ),
         )
         public_header = public_headers.get(header)
         if public_header is None:
@@ -2541,8 +2665,10 @@ def _validate_classified_ui_inventory(
     owner_target = _require_string(
         inventory.get("ownerTarget"), "UI class owner target"
     )
-    if owner_target != "kritaui":
-        raise PublicSurfaceError("UI class owner target must be kritaui")
+    if owner_target != "kritaapplicationui":
+        raise PublicSurfaceError(
+            "UI class primary owner target must be kritaapplicationui"
+        )
     platforms = _platforms(
         inventory.get("platforms"), "UI class inventory platforms"
     )
@@ -2660,14 +2786,24 @@ def _validate_classified_ui_inventory(
                 "UI class public header owners and source directories must align"
             )
         attributed_paths: set[str] = set()
-        for path_owner, source_directory in zip(
-            public_header_owners, source_directories
-        ):
-            owner_paths = sorted(
-                path
-                for path in owned_paths
-                if _path_is_within(path, source_directory)
-            )
+        ownership_areas = list(zip(public_header_owners, source_directories))
+        paths_by_area: dict[tuple[str, str], list[str]] = {
+            area: [] for area in ownership_areas
+        }
+        for path in owned_paths:
+            matching_areas = [
+                area
+                for area in ownership_areas
+                if _path_is_within(path, area[1])
+            ]
+            if matching_areas:
+                selected_area = max(
+                    matching_areas,
+                    key=lambda area: len(PurePosixPath(area[1]).parts),
+                )
+                paths_by_area[selected_area].append(path)
+        for path_owner, source_directory in ownership_areas:
+            owner_paths = sorted(paths_by_area[(path_owner, source_directory)])
             if not owner_paths:
                 raise PublicSurfaceError(
                     f"UI class owner {path_owner} has no paths below "
@@ -2679,6 +2815,7 @@ def _validate_classified_ui_inventory(
                 owned_paths=owner_paths,
                 description=ownership_description,
                 targets_by_platform=targets_by_platform,
+                ownership_directories=[source_directory],
             )
             attributed_paths.update(owner_paths)
         if attributed_paths != owned_paths:
@@ -2687,12 +2824,17 @@ def _validate_classified_ui_inventory(
                 f"UI class paths have no declared public owner: {missing}"
             )
     else:
+        ownership_directories = None
+        policy_source_directory = expected_policy.get("sourceDirectory")
+        if isinstance(policy_source_directory, str):
+            ownership_directories = [policy_source_directory]
         _validate_owner(
             owner_target=owner_target,
             platforms=platforms,
             owned_paths=sorted(owned_paths),
             description=ownership_description,
             targets_by_platform=targets_by_platform,
+            ownership_directories=ownership_directories,
         )
 
 

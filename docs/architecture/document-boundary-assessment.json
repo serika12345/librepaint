@@ -44,8 +44,8 @@
     {
       "id": "application-composition",
       "responsibility": "application-orchestration",
-      "directory": "libs/application",
-      "target": "kritaapplication",
+      "directory": "libs/application/ui/orchestration",
+      "target": "kritaapplicationui",
       "ownership": "Concrete composition and lifetime after lower responsibility boundaries exist."
     },
     {
