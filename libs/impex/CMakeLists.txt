@@ -89,20 +89,17 @@ if(ANDROID)
     )
 endif()
 
-# These sources are separated as one ownership unit while their established
-# ABI is still published by kritaui. The object library ensures every public
-# implementation is incorporated into kritaui, including entry points used
-# only by dynamically loaded import/export plugins. Later document and
-# application package splits can turn this unit into an independently linked
-# shared library without moving the import-export sources again.
+# Import and export presentation sources form one ownership unit. Their object
+# implementation is incorporated into the application presentation library,
+# including entry points used only by dynamically loaded plugins.
 kis_add_library(kritaimpexui OBJECT ${kritaimpexui_LIB_SRCS})
-target_compile_definitions(kritaimpexui PRIVATE kritaui_EXPORTS)
+target_compile_definitions(kritaimpexui PRIVATE kritaapplicationui_EXPORTS)
 
 target_include_directories(kritaimpexui
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ui>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/animation>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
     PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/ui
         ${CMAKE_SOURCE_DIR}/libs/ui/canvas

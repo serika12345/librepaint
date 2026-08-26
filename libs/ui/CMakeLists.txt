@@ -479,8 +479,7 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
     )
 endif()
 
-kis_add_library(kritaui SHARED ${kritaui_HEADERS_MOC} ${kritaui_LIB_SRCS})
-target_sources(kritaui PRIVATE $<TARGET_OBJECTS:kritaworkspacepresentation>)
+target_sources(kritaapplicationui PRIVATE ${kritaui_HEADERS_MOC} ${kritaui_LIB_SRCS})
 
 if(IOS)
     # Qt 6 exposes the GLES backend through QT_CONFIG(opengles2), while this
@@ -493,14 +492,13 @@ if(IOS)
     )
 endif()
 
-target_sources(kritaui
+target_sources(kritaapplicationui
   PRIVATE
     resources/kis_abstract_resources.h
     resources/kis_abstract_resources.cpp
 )
-generate_export_header(kritaui BASE_NAME kritaui)
 
-target_link_libraries(kritaui
+target_link_libraries(kritaapplicationui
     PUBLIC
         KF${KF_MAJOR}::CoreAddons
         KF${KF_MAJOR}::Completion
@@ -527,24 +525,24 @@ target_link_libraries(kritaui
         kritainput
         kritaapplication
     PRIVATE
-        kritaapplicationui
         kritadocumentfiles
         kritadocumentui
         kritaimpexui
         kritainputui
+        kritaworkspacepresentation
         kritaresourceui
         kritaxmlserialization
 )
 
 if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
-    target_link_libraries(kritaui
+    target_link_libraries(kritaapplicationui
         PRIVATE
             kritasurfacecolormanagementapi
     )
 endif()
 
 if(WIN32)
-    target_link_libraries(kritaui PRIVATE dxgi)
+    target_link_libraries(kritaapplicationui PRIVATE dxgi)
 
     # Private headers are needed for:
     #    * KisDlgCustomTabletResolution
@@ -579,7 +577,7 @@ if (HAVE_X11)
 endif()
 
 if (QT_MAJOR_VERSION STREQUAL "6")
-    target_link_libraries(kritaui
+    target_link_libraries(kritaapplicationui
         PRIVATE
             Qt6::OpenGLWidgets
             Qt6::SvgWidgets
@@ -588,24 +586,24 @@ if (QT_MAJOR_VERSION STREQUAL "6")
 endif()
 
 if (Mlt7_FOUND)
-    target_link_libraries(kritaui PRIVATE SDL2::SDL2 Mlt7::mlt Mlt7::mlt++)
+    target_link_libraries(kritaapplicationui PRIVATE SDL2::SDL2 Mlt7::mlt Mlt7::mlt++)
 endif()
 
 if (ANDROID)
-    target_link_libraries(kritaui PRIVATE GLESv3)
-    target_link_libraries(kritaui PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
-    target_link_libraries(kritaui PRIVATE Qt${QT_MAJOR_VERSION}::AndroidExtras)
+    target_link_libraries(kritaapplicationui PRIVATE GLESv3)
+    target_link_libraries(kritaapplicationui PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+    target_link_libraries(kritaapplicationui PRIVATE Qt${QT_MAJOR_VERSION}::AndroidExtras)
     if(TARGET LibAV)
-        target_link_libraries(kritaui PRIVATE LibAV)
+        target_link_libraries(kritaapplicationui PRIVATE LibAV)
     endif()
 endif()
 
 if (HAIKU)
-  target_link_libraries(kritaui PRIVATE network expat iconv intl)
+  target_link_libraries(kritaapplicationui PRIVATE network expat iconv intl)
 endif()
 
 if(APPLE AND NOT IOS)
-    target_link_libraries(kritaui
+    target_link_libraries(kritaapplicationui
         PUBLIC
         kritamacosutils
 
@@ -616,11 +614,12 @@ if(APPLE AND NOT IOS)
 endif ()
 
 if(OpenEXR_FOUND)
-  target_link_libraries(kritaui PUBLIC ${LINK_OPENEXR_LIB})
+  target_link_libraries(kritaapplicationui PUBLIC ${LINK_OPENEXR_LIB})
 endif()
 
-target_include_directories(kritaui
+target_include_directories(kritaapplicationui
     PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/impex/ui>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/impex/animation>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/canvas>
@@ -633,10 +632,9 @@ target_include_directories(kritaui
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/input/ui/wintab>
 )
 
-set_target_properties(kritaui
-    PROPERTIES VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
-)
-install(TARGETS kritaui  ${INSTALL_TARGETS_DEFAULT_ARGS})
+add_library(kritaui INTERFACE)
+target_link_libraries(kritaui INTERFACE kritaapplicationui)
+install(TARGETS kritaui ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 
 if (APPLE AND NOT IOS)

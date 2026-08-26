@@ -55,18 +55,18 @@ set_target_properties(kritacanvas
 
 install(TARGETS kritacanvas ${INSTALL_TARGETS_DEFAULT_ARGS})
 
-# Workspace presentation resources keep their established symbols in kritaui
-# while their source ownership follows the canvas and docker state they persist.
+# Workspace presentation resources follow the canvas and docker state they
+# persist, and publish their established symbols from the application UI.
 kis_add_library(kritaworkspacepresentation OBJECT
     workspace/kis_workspace_resource.cpp
 )
-target_compile_definitions(kritaworkspacepresentation PRIVATE kritaui_EXPORTS)
+target_compile_definitions(kritaworkspacepresentation PRIVATE kritaapplicationui_EXPORTS)
 target_include_directories(kritaworkspacepresentation
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/ui
-        ${CMAKE_BINARY_DIR}/libs/ui
+        ${CMAKE_BINARY_DIR}/libs/application
 )
 target_link_libraries(kritaworkspacepresentation
     PRIVATE

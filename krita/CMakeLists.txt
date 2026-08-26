@@ -176,7 +176,7 @@ target_link_libraries(krita
     PRIVATE
                       kritamultiarch
                       kritaapplication
-                      kritaui
+                      kritaapplicationui
                       Qt${QT_MAJOR_VERSION}::Core
                       Qt${QT_MAJOR_VERSION}::Gui
                       Qt${QT_MAJOR_VERSION}::Widgets

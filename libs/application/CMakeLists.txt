@@ -123,12 +123,13 @@ if(ANDROID)
     )
 endif()
 
-kis_add_library(kritaapplicationui OBJECT ${kritaapplicationui_LIB_SRCS})
-target_compile_definitions(kritaapplicationui PRIVATE kritaui_EXPORTS)
+kis_add_library(kritaapplicationui SHARED ${kritaapplicationui_LIB_SRCS})
+generate_export_header(kritaapplicationui BASE_NAME kritaui)
 
 target_include_directories(kritaapplicationui
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/impex/ui
         ${CMAKE_SOURCE_DIR}/libs/impex/animation
@@ -142,7 +143,6 @@ target_include_directories(kritaapplicationui
         ${CMAKE_SOURCE_DIR}/libs/ui/widgets/gradient
         ${CMAKE_SOURCE_DIR}/libs/input/ui/wintab
         ${CMAKE_BINARY_DIR}/libs/ui
-        ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 target_link_libraries(kritaapplicationui
@@ -208,5 +208,11 @@ if(APPLE AND NOT IOS)
             ${APPKIT_LIBRARY}
     )
 endif()
+
+set_target_properties(kritaapplicationui
+    PROPERTIES VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
+)
+
+install(TARGETS kritaapplicationui ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 add_subdirectory(tests)
