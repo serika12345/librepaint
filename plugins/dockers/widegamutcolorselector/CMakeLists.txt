@@ -28,7 +28,7 @@ ki18n_wrap_ui(KRITA_WGCOLORSELECTOR_SOURCES
 
 kis_add_library(kritawgcolorselector MODULE ${KRITA_WGCOLORSELECTOR_SOURCES})
 
-target_link_libraries(kritawgcolorselector kritaui)
+target_link_libraries(kritawgcolorselector kritaapplicationui)
 
 install(TARGETS kritawgcolorselector DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES  WGColorSelector.action  DESTINATION ${KDE_INSTALL_DATADIR}/krita/actions)

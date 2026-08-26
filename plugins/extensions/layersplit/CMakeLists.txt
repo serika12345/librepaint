@@ -9,6 +9,6 @@ ki18n_wrap_ui(kritalayersplit_SOURCES
     )
 
 kis_add_library(kritalayersplit MODULE ${kritalayersplit_SOURCES})
-target_link_libraries(kritalayersplit kritaapplication kritaui)
+target_link_libraries(kritalayersplit kritaapplication kritaapplicationui)
 install(TARGETS kritalayersplit  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES  layersplit.xmlgui  DESTINATION ${KDE_INSTALL_DATADIR}/kritaplugins)

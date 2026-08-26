@@ -39,6 +39,6 @@ install(FILES
 )
 
 kis_add_library(kritarecorderdocker MODULE ${KRITA_RECORDERDOCKER_SOURCES})
-target_link_libraries(kritarecorderdocker kritaapplication kritainputui kritaui Threads::Threads)
+target_link_libraries(kritarecorderdocker kritaapplication kritainputui kritaapplicationui Threads::Threads)
 
 install(TARGETS kritarecorderdocker  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

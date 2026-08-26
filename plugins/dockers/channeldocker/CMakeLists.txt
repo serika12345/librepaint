@@ -6,5 +6,5 @@ set(KRITA_CHANNELDOCKER_SOURCES
     KisChannelsThumbnailsStrokeStrategy.cpp
 )
 kis_add_library(kritachanneldocker MODULE ${KRITA_CHANNELDOCKER_SOURCES})
-target_link_libraries(kritachanneldocker kritaapplication kritaui)
+target_link_libraries(kritachanneldocker kritaapplication kritaapplicationui)
 install(TARGETS kritachanneldocker  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

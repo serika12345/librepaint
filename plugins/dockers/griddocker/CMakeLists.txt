@@ -4,5 +4,5 @@ ki18n_wrap_ui(KRITA_GRIDDOCKER_SOURCES
 )
 
 kis_add_library(kritagriddocker MODULE ${KRITA_GRIDDOCKER_SOURCES})
-target_link_libraries(kritagriddocker kritaapplication kritaui kritawidgets)
+target_link_libraries(kritagriddocker kritaapplication kritaapplicationui kritawidgets)
 install(TARGETS kritagriddocker  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

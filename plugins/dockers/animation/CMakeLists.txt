@@ -46,7 +46,7 @@ kis_add_library(kritaanimationdocker_static STATIC ${KRITA_ANIMATIONDOCKER_SOURC
 
 generate_export_header(kritaanimationdocker_static BASE_NAME kritaanimationdocker EXPORT_MACRO_NAME KRITAANIMATIONDOCKER_EXPORT)
 
-target_link_libraries(kritaanimationdocker_static kritaapplication kritainputui kritaui kritawidgets)
+target_link_libraries(kritaanimationdocker_static kritaapplication kritainputui kritaapplicationui kritawidgets)
 
 kis_add_library(kritaanimationdocker MODULE KisAnimDockers.cpp)
 

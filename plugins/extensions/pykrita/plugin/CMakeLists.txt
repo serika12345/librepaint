@@ -22,7 +22,7 @@ target_include_directories(pykrita SYSTEM PUBLIC "${PYTHON_INCLUDE_DIRS}")
 target_link_libraries(
     pykrita
     ${PYTHON_LIBRARY}
-    kritaui
+    kritaapplicationui
     kritalibkis
   )
 

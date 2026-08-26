@@ -5,5 +5,5 @@ set(KRITA_HISTOGRAMDOCKER_SOURCES
     HistogramComputationStrokeStrategy.cpp)
 
 kis_add_library(kritahistogramdocker MODULE ${KRITA_HISTOGRAMDOCKER_SOURCES})
-target_link_libraries(kritahistogramdocker kritaui)
+target_link_libraries(kritahistogramdocker kritaapplicationui)
 install(TARGETS kritahistogramdocker  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

@@ -9,5 +9,5 @@ ki18n_wrap_ui(kritagamutmask_SOURCES
 )
 
 kis_add_library(kritagamutmask MODULE ${kritagamutmask_SOURCES})
-target_link_libraries(kritagamutmask kritaapplication kritaui)
+target_link_libraries(kritagamutmask kritaapplication kritaapplicationui)
 install(TARGETS kritagamutmask DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

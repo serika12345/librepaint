@@ -6,5 +6,5 @@ set(kritasnapshotdocker_SOURCES
   )
 
 kis_add_library(kritasnapshotdocker MODULE ${kritasnapshotdocker_SOURCES})
-target_link_libraries(kritasnapshotdocker kritaimage kritaui)
+target_link_libraries(kritasnapshotdocker kritaimage kritaapplicationui)
 install(TARGETS kritasnapshotdocker DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

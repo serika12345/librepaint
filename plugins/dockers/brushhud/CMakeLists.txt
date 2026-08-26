@@ -13,5 +13,5 @@ ki18n_wrap_ui(KRITA_BRUSHHUD_SOURCES
 )
 
 kis_add_library(kritabrushhud MODULE ${KRITA_BRUSHHUD_SOURCES})
-target_link_libraries(kritabrushhud kritaapplication kritaui)
+target_link_libraries(kritabrushhud kritaapplication kritaapplicationui)
 install(TARGETS kritabrushhud DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

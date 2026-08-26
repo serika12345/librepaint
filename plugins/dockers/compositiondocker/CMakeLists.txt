@@ -5,5 +5,5 @@ ki18n_wrap_ui(KRITA_COMPOSITIONDOCKER_SOURCES
 )
 
 kis_add_library(kritacompositiondocker MODULE ${KRITA_COMPOSITIONDOCKER_SOURCES})
-target_link_libraries(kritacompositiondocker kritaapplication kritaui)
+target_link_libraries(kritacompositiondocker kritaapplication kritaapplicationui)
 install(TARGETS kritacompositiondocker DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

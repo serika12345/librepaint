@@ -10,5 +10,5 @@ set(kritahistorydocker_SOURCES
 )
 
 kis_add_library(kritahistorydocker MODULE ${kritahistorydocker_SOURCES})
-target_link_libraries(kritahistorydocker kritaapplication kritaimage kritaui)
+target_link_libraries(kritahistorydocker kritaapplication kritaimage kritaapplicationui)
 install(TARGETS kritahistorydocker  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

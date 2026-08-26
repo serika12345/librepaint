@@ -12,6 +12,6 @@ ki18n_wrap_ui(calligradockers_SRCS
 
 kis_add_library(kritasvgcollectiondocker MODULE ${calligradockers_SRCS})
 
-target_link_libraries(kritasvgcollectiondocker kritawidgets kritaui)
+target_link_libraries(kritasvgcollectiondocker kritawidgets kritaapplicationui)
 
 install(TARGETS kritasvgcollectiondocker DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

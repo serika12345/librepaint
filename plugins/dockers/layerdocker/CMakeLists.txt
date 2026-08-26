@@ -34,7 +34,7 @@ kis_add_library(kritalayerdocker_static STATIC ${kritalayerdocker_static_SRCS} $
 
 generate_export_header(kritalayerdocker_static BASE_NAME kritalayerdocker)
 
-target_link_libraries(kritalayerdocker_static kritaapplication kritaui)
+target_link_libraries(kritalayerdocker_static kritaapplication kritaapplicationui)
 
 set(kritalayerdocker_SOURCES 
     LayerDocker.cpp
@@ -42,5 +42,5 @@ set(kritalayerdocker_SOURCES
 
 kis_add_library(kritalayerdocker MODULE ${kritalayerdocker_SOURCES})
 
-target_link_libraries(kritalayerdocker kritaui kritalayerdocker_static)
+target_link_libraries(kritalayerdocker kritaapplicationui kritalayerdocker_static)
 install(TARGETS kritalayerdocker  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

@@ -16,6 +16,6 @@ ki18n_wrap_ui(kritamodifyselection_SOURCES
     )
 
 kis_add_library(kritamodifyselection MODULE ${kritamodifyselection_SOURCES})
-target_link_libraries(kritamodifyselection kritaui)
+target_link_libraries(kritamodifyselection kritaapplicationui)
 install(TARGETS kritamodifyselection  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES  modify_selection.xmlgui  DESTINATION ${KDE_INSTALL_DATADIR}/kritaplugins)

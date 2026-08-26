@@ -1,4 +1,4 @@
 kis_add_tests(
     TestNodeView.cpp
-    LINK_LIBRARIES kritaui kritalayerdocker_static kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritalayerdocker_static kritatestsdk
     )

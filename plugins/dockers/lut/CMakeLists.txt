@@ -16,7 +16,7 @@ set(kritalutdocker_static_SRCS
 
 kis_add_library(kritalutdocker_static STATIC ${kritalutdocker_static_SRCS})
 
-target_link_libraries(kritalutdocker_static PUBLIC kritaapplication kritaui OpenColorIO::OpenColorIO)
+target_link_libraries(kritalutdocker_static PUBLIC kritaapplication kritaapplicationui OpenColorIO::OpenColorIO)
 
 if(IOS)
     # Krita's OCIO display filter uses this compatibility define to select its

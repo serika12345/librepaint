@@ -4,5 +4,5 @@ set(KRITA_PRESETHISTORY_SOURCES
 )
 
 kis_add_library(kritapresethistory MODULE ${KRITA_PRESETHISTORY_SOURCES})
-target_link_libraries(kritapresethistory kritaapplication kritaui)
+target_link_libraries(kritapresethistory kritaapplication kritaapplicationui)
 install(TARGETS kritapresethistory  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

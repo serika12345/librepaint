@@ -6,6 +6,6 @@ set(kritaoffsetimage_SOURCES
 
 ki18n_wrap_ui(kritaoffsetimage_SOURCES wdg_offsetimage.ui )
 kis_add_library(kritaoffsetimage MODULE ${kritaoffsetimage_SOURCES})
-target_link_libraries(kritaoffsetimage kritaapplication kritaui)
+target_link_libraries(kritaoffsetimage kritaapplication kritaapplicationui)
 install(TARGETS kritaoffsetimage  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES  offsetimage.xmlgui  DESTINATION ${KDE_INSTALL_DATADIR}/kritaplugins)
