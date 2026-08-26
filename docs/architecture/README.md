@@ -64,7 +64,7 @@
 所有ターゲット、公開マクロ、対応プラットフォーム、全利用ソースを持つ。
 
 現在は`kritacanvas`の19件、`kritaworkspacepresentation`の1件、`kritadocument`の5件、`kritadocumentfiles`の3件、
-`kritadocumentui`の6件、`kritaimage`の332件、`kritaimpex`の12件、
+`kritadocumentui`の6件、`kritaimage`の331件、`kritaimpex`の12件、
 `kritaimpexui`の23件、`kritainput`の12件、`kritainputui`の8件、
 `kritapainting`の19件、`kritatools`の19件、`kritaui`の217件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は

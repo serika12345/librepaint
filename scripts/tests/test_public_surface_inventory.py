@@ -183,7 +183,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
         self.assertEqual(len(ui_headers), 217)
-        self.assertEqual(len(image_headers), 332)
+        self.assertEqual(len(image_headers), 331)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(input_headers), 12)
         self.assertEqual(len(input_ui_headers), 8)
@@ -787,7 +787,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritadocument": 5,
                 "kritadocumentfiles": 3,
                 "kritadocumentui": 6,
-                "kritaimage": 332,
+                "kritaimage": 331,
                 "kritaimpex": 12,
                 "kritaimpexui": 23,
                 "kritainput": 12,

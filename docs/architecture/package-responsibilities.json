@@ -837,7 +837,6 @@
         "libs/image/kis_processing_applicator.h",
         "libs/image/kis_processing_information.h",
         "libs/image/kis_processing_visitor.h",
-        "libs/image/kis_progress_interface.h",
         "libs/image/kis_progress_update_helper.h",
         "libs/image/kis_progress_updater.h",
         "libs/image/kis_projection_leaf.h",

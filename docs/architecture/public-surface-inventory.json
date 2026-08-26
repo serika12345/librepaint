@@ -3577,7 +3577,6 @@
             "libs/canvas/kis_coordinates_converter.cpp",
             "libs/canvas/kis_prescaled_projection.cpp",
             "libs/impex/AnimationCheck.h",
-            "libs/impex/CheckImageSize.h",
             "libs/impex/ColorModelCheck.h",
             "libs/impex/ColorModelHomogenousCheck.h",
             "libs/impex/ColorModelPerLayerCheck.h",
@@ -5330,13 +5329,6 @@
             "plugins/tools/tool_transform2/kis_transform_utils.h",
             "plugins/tools/tool_transform2/strokes/transform_stroke_strategy.h"
           ]
-        },
-        {
-          "path": "libs/image/kis_progress_interface.h",
-          "publicationEvidence": [
-            "export-macro"
-          ],
-          "consumerPaths": []
         },
         {
           "path": "libs/image/kis_progress_update_helper.h",
