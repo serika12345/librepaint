@@ -6,13 +6,17 @@
 
 #include <QPointer>
 
-#include <kis_canvas2.h>
+#include <KoCanvasBase.h>
+#include <KisToolCanvas.h>
 
 #include "kis_input_manager_p.h"
 
-void KisInputManager::addTrackedCanvas(KisCanvas2 *canvas)
+void KisInputManager::addTrackedCanvas(KoCanvasBase *canvas)
 {
-    canvas->setInputEventFilterConnection(
+    auto *toolCanvas = dynamic_cast<KisToolCanvas *>(canvas);
+    KIS_SAFE_ASSERT_RECOVER_RETURN(toolCanvas);
+
+    toolCanvas->setInputEventFilterConnection(
         [guard = QPointer<KisInputManager>(this)](QObject *filter, bool attach, int priority) {
             if (!guard) {
                 return;
@@ -23,7 +27,7 @@ void KisInputManager::addTrackedCanvas(KisCanvas2 *canvas)
                 guard->detachPriorityEventFilter(filter);
             }
         });
-    canvas->setInputCanvasWidgetChangedCallback(
+    toolCanvas->setInputCanvasWidgetChangedCallback(
         [guard = QPointer<KisInputManager>(this), canvas]() {
             if (!guard) {
                 return;
@@ -34,9 +38,11 @@ void KisInputManager::addTrackedCanvas(KisCanvas2 *canvas)
     d->canvasSwitcher.addCanvas(canvas);
 }
 
-void KisInputManager::removeTrackedCanvas(KisCanvas2 *canvas)
+void KisInputManager::removeTrackedCanvas(KoCanvasBase *canvas)
 {
     d->canvasSwitcher.removeCanvas(canvas);
-    canvas->setInputCanvasWidgetChangedCallback({});
-    canvas->setInputEventFilterConnection({});
+    auto *toolCanvas = dynamic_cast<KisToolCanvas *>(canvas);
+    KIS_SAFE_ASSERT_RECOVER_RETURN(toolCanvas);
+    toolCanvas->setInputCanvasWidgetChangedCallback({});
+    toolCanvas->setInputEventFilterConnection({});
 }

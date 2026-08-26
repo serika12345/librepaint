@@ -8,8 +8,8 @@
 #ifndef KISPOPUPWIDGETINTERFACE_H
 #define KISPOPUPWIDGETINTERFACE_H
 
-#include <QWidget>
-#include <QGridLayout>
+#include <QObject>
+#include <QPoint>
 
 /**
  * @brief The PopupWidgetInterface abstract class defines

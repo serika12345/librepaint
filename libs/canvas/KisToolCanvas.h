@@ -7,6 +7,9 @@
 
 #include <kritacanvas_export.h>
 #include <kis_types.h>
+#include <KisInputActionGroup.h>
+
+#include <functional>
 
 class KisCoordinatesConverter;
 class KisOptimizedBrushOutline;
@@ -44,6 +47,10 @@ public:
                                  const KisOptimizedBrushOutline &path,
                                  int thickness) = 0;
     virtual QObject *toolConfigNotifier() const = 0;
+    virtual void setInputEventFilterConnection(
+        std::function<void(QObject *, bool, int)> connection) = 0;
+    virtual void setInputCanvasWidgetChangedCallback(std::function<void()> callback) = 0;
+    virtual KisInputActionGroupsMaskInterface::SharedInterface inputActionGroupsMaskInterface() = 0;
 };
 
 #endif

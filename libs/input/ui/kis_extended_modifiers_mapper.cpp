@@ -7,8 +7,9 @@
 #include "kis_extended_modifiers_mapper.h"
 #include "KisExtendedModifiersMapperPluginInterface.h"
 
-#include <application/KisApplication.h>
+#include <QPointer>
 #include <QKeyEvent>
+#include <QApplication>
 
 #include <krita_container_utils.h>
 
@@ -25,7 +26,7 @@
 #include <winuser.h>
 
 #include "krita_container_utils.h"
-#include "application/kis_config.h"
+#include "kis_input_config.h"
 
 
 QVector<Qt::Key> queryPressedKeysWin()
@@ -33,7 +34,7 @@ QVector<Qt::Key> queryPressedKeysWin()
     QVector<Qt::Key> result;
     BYTE vkeys[256];
 
-    KisConfig cfg(true);
+    KisInputConfig cfg(true);
 
     const int maxFunctionKey = cfg.ignoreHighFunctionKeys() ? VK_F12 : VK_F24;
 
@@ -74,6 +75,11 @@ struct KisExtendedModifiersMapper::Private
 {
 };
 
+namespace
+{
+QPointer<KisExtendedModifiersMapperPluginInterface> s_pluginInterface;
+}
+
 KisExtendedModifiersMapper::KisExtendedModifiersMapper()
     : m_d(new Private)
 {
@@ -94,11 +100,8 @@ void KisExtendedModifiersMapper::setLocalMonitor(bool activate, KisShortcutMatch
 KisExtendedModifiersMapper::ExtendedModifiers
 KisExtendedModifiersMapper::queryExtendedModifiers()
 {
-    KisExtendedModifiersMapperPluginInterface *plugin =
-        static_cast<KisApplication*>(qApp)->extendedModifiersPluginInterface();
-
-    if (plugin) {
-        return plugin->queryExtendedModifiers();
+    if (s_pluginInterface) {
+        return s_pluginInterface->queryExtendedModifiers();
     }
 
     ExtendedModifiers modifiers;
@@ -112,6 +115,12 @@ KisExtendedModifiersMapper::queryExtendedModifiers()
 #endif
 
     return modifiers;
+}
+
+void KisExtendedModifiersMapper::setPluginInterface(
+    KisExtendedModifiersMapperPluginInterface *pluginInterface)
+{
+    s_pluginInterface = pluginInterface;
 }
 
 Qt::KeyboardModifiers KisExtendedModifiersMapper::queryStandardModifiers()

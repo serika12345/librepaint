@@ -5,12 +5,17 @@
  */
 
 #include "kis_tool_proxy.h"
-#include "kis_canvas2.h"
+
+#include <KisToolCanvas.h>
+#include <kis_image.h>
+#include <kis_coordinates_converter.h>
 
 #include <QMouseEvent>
 #include <QTabletEvent>
 #include <QTouchEvent>
+#include <QWidget>
 
+#include <KoCanvasBase.h>
 #include <KoToolProxy_p.h>
 
 
@@ -37,18 +42,18 @@ QPointF KisToolProxy::tabletToDocument(const QPointF &globalPos)
 
 QPointF KisToolProxy::widgetToDocument(const QPointF &widgetPoint) const
 {
-    KisCanvas2 *kritaCanvas = dynamic_cast<KisCanvas2*>(canvas());
-    Q_ASSERT(kritaCanvas);
+    const KisToolCanvas *toolCanvas = dynamic_cast<const KisToolCanvas *>(canvas());
+    Q_ASSERT(toolCanvas);
 
-    return kritaCanvas->coordinatesConverter()->widgetToDocument(widgetPoint);
+    return toolCanvas->coordinatesConverter()->widgetToDocument(widgetPoint);
 }
 
 QPointF KisToolProxy::documentToWidget(const QPointF &documentPoint) const
 {
-    KisCanvas2 *kritaCanvas = dynamic_cast<KisCanvas2*>(canvas());
-    Q_ASSERT(kritaCanvas);
+    const KisToolCanvas *toolCanvas = dynamic_cast<const KisToolCanvas *>(canvas());
+    Q_ASSERT(toolCanvas);
 
-    return kritaCanvas->coordinatesConverter()->documentToWidget(documentPoint);
+    return toolCanvas->coordinatesConverter()->documentToWidget(documentPoint);
 }
 
 KoPointerEvent KisToolProxy::convertEventToPointerEvent(QEvent *event, const QPointF &docPoint, bool *result)

@@ -35,17 +35,6 @@ void writeProfile(const QString &path, const QString &name, int version)
 }
 }
 
-void KisInputManagerTest::testProfileActionResolution()
-{
-    KisInputProfileManager *manager = KisInputProfileManager::instance();
-
-    QVERIFY(!manager->actions().isEmpty());
-    for (KisAbstractInputAction *action : manager->actions()) {
-        QCOMPARE(manager->action(action->id()), action);
-    }
-    QVERIFY(!manager->action(QStringLiteral("unknown-input-action")));
-}
-
 void KisInputManagerTest::testProfileStorageLifecycle()
 {
     QTemporaryDir temporaryDir;

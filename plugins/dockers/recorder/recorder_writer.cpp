@@ -12,7 +12,7 @@
 #include <kis_image.h>
 #include <document/KisDocument.h>
 #include <KoToolProxy.h>
-#include "kis_tool_proxy.h"
+#include <input/ui/kis_tool_proxy.h>
 #include <workspace/KisMainWindow.h>
 
 #include <QDir>

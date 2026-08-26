@@ -307,6 +307,8 @@ KisViewManager::KisViewManager(QWidget *parent, KisKActionCollection *_actionCol
             d->controlFrame.paintopBox(), SLOT(updatePresetConfig()));
 
     connect(KisConfigNotifier::instance(), SIGNAL(configChanged()), SLOT(slotUpdateAuthorProfileActions()));
+    connect(KisConfigNotifier::instance(), &KisConfigNotifier::configChanged,
+            &d->inputManager, &KisInputManager::reloadSettings);
     connect(KisConfigNotifier::instance(), SIGNAL(pixelGridModeChanged()), SLOT(slotUpdatePixelGridAction()));
     connect(KoToolManager::instance(), SIGNAL(createOpacityResource(bool, KoToolBase*)), SLOT(slotCreateOpacityResource(bool, KoToolBase*)));
     KisInputProfileManager::instance()->setProfileLocations(

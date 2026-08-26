@@ -74,6 +74,9 @@
 #include "kis_spin_box_unit_manager.h"
 #include "kis_document_aware_spin_box_unit_manager.h"
 #include "workspace/KisViewManager.h"
+#include "actions/input/KisApplicationInputActions.h"
+#include <input/ui/kis_extended_modifiers_mapper.h>
+#include <input/ui/kis_input_profile_manager.h>
 #include <KisUsageLogger.h>
 
 namespace
@@ -310,7 +313,10 @@ KisApplication::KisApplication(const QString &key, int &argc, char **argv)
      */
     {
         d->extendedModifiersPluginInterface.reset(KisPlatformPluginInterfaceFactory::instance()->createExtendedModifiersMapper());
+        KisExtendedModifiersMapper::setPluginInterface(d->extendedModifiersPluginInterface.data());
     }
+
+    KisInputProfileManager::instance()->setActions(createApplicationInputActions());
 
     // store the style name
     qApp->setProperty(currentUnderlyingStyleNameProperty, style()->objectName());

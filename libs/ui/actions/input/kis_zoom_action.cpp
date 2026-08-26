@@ -5,6 +5,7 @@
  */
 
 #include "kis_zoom_action.h"
+#include "KisApplicationInputActions.h"
 
 #include <QApplication>
 #include <QNativeGestureEvent>
@@ -119,25 +120,25 @@ void KisZoomAction::begin(int shortcut, QEvent *event)
     switch(shortcut) {
         case ZoomModeShortcut:
         case RelativeZoomModeShortcut: {
-            d->startZoom = inputManager()->canvas()->coordinatesConverter()->zoom();
+            d->startZoom = applicationInputCanvas(inputManager())->coordinatesConverter()->zoom();
             d->mode = (Shortcuts)shortcut;
             d->lastPosition = QPoint();
-            d->actionStillPoint = inputManager()->canvas()->coordinatesConverter()->makeWidgetStillPoint(eventPosF(event));
+            d->actionStillPoint = applicationInputCanvas(inputManager())->coordinatesConverter()->makeWidgetStillPoint(eventPosF(event));
             break;
         }
         case DiscreteZoomModeShortcut:
         case RelativeDiscreteZoomModeShortcut:
-            d->startZoom = inputManager()->canvas()->coordinatesConverter()->zoom();
+            d->startZoom = applicationInputCanvas(inputManager())->coordinatesConverter()->zoom();
             d->lastDiscreteZoomDistance = 0;
             d->mode = (Shortcuts)shortcut;
-            d->actionStillPoint = inputManager()->canvas()->coordinatesConverter()->makeWidgetStillPoint(eventPosF(event));
+            d->actionStillPoint = applicationInputCanvas(inputManager())->coordinatesConverter()->makeWidgetStillPoint(eventPosF(event));
             break;
         case ZoomInShortcut:
         case ZoomOutShortcut:
         case ZoomInToCursorShortcut:
         case ZoomOutFromCursorShortcut: {
             KoCanvasControllerWidget *controller =
-                dynamic_cast<KoCanvasControllerWidget *>(inputManager()->canvas()->canvasController());
+                dynamic_cast<KoCanvasControllerWidget *>(applicationInputCanvas(inputManager())->canvasController());
             KIS_SAFE_ASSERT_RECOVER_RETURN(controller);
 
             QPoint pt;
@@ -152,38 +153,38 @@ void KisZoomAction::begin(int shortcut, QEvent *event)
                 if (pt.isNull()) {
                     controller->zoomIn();
                 } else {
-                    controller->zoomIn(inputManager()->canvas()->coordinatesConverter()->makeWidgetStillPoint(pt));
+                    controller->zoomIn(applicationInputCanvas(inputManager())->coordinatesConverter()->makeWidgetStillPoint(pt));
                 }
             } else {
                 if (pt.isNull()) {
                     controller->zoomOut();
                 } else {
-                    controller->zoomOut(inputManager()->canvas()->coordinatesConverter()->makeWidgetStillPoint(pt));
+                    controller->zoomOut(applicationInputCanvas(inputManager())->coordinatesConverter()->makeWidgetStillPoint(pt));
                 }
             }
             break;
         }
         case Zoom100PctShortcut: {
             KoCanvasControllerWidget *controller =
-                dynamic_cast<KoCanvasControllerWidget *>(inputManager()->canvas()->canvasController());
+                dynamic_cast<KoCanvasControllerWidget *>(applicationInputCanvas(inputManager())->canvasController());
             controller->setZoom(KoZoomMode::ZOOM_CONSTANT, 1.0);
             break;
         }
         case FitToViewShortcut: {
             KoCanvasControllerWidget *controller =
-                dynamic_cast<KoCanvasControllerWidget *>(inputManager()->canvas()->canvasController());
+                dynamic_cast<KoCanvasControllerWidget *>(applicationInputCanvas(inputManager())->canvasController());
             controller->setZoom(KoZoomMode::ZOOM_PAGE, 1.0);
             break;
         }
         case FitToWidthShortcut: {
             KoCanvasControllerWidget *controller =
-                dynamic_cast<KoCanvasControllerWidget *>(inputManager()->canvas()->canvasController());
+                dynamic_cast<KoCanvasControllerWidget *>(applicationInputCanvas(inputManager())->canvasController());
             controller->setZoom(KoZoomMode::ZOOM_WIDTH, 1.0);
             break;
         }
         case FitToHeightShortcut: {
             KoCanvasControllerWidget *controller =
-                dynamic_cast<KoCanvasControllerWidget *>(inputManager()->canvas()->canvasController());
+                dynamic_cast<KoCanvasControllerWidget *>(applicationInputCanvas(inputManager())->canvasController());
             controller->setZoom(KoZoomMode::ZOOM_HEIGHT, 1.0);
             break;
         }
@@ -258,7 +259,7 @@ void KisZoomAction::inputEvent( QEvent* event )
                 return;
             }
 
-            KisCanvasController *controller = static_cast<KisCanvasController *>(inputManager()->canvas()->canvasController());
+            KisCanvasController *controller = static_cast<KisCanvasController *>(applicationInputCanvas(inputManager())->canvasController());
             const qreal newZoom = controller->canvas()->viewConverter()->zoom() * delta;
             KoViewTransformStillPoint adjustedStillPoint = d->actionStillPoint;
             adjustedStillPoint.second = p0;
@@ -270,13 +271,13 @@ void KisZoomAction::inputEvent( QEvent* event )
         case QEvent::NativeGesture: {
             QNativeGestureEvent *gevent = static_cast<QNativeGestureEvent*>(event);
             if (gevent->gestureType() == Qt::ZoomNativeGesture) {
-                KisCanvas2 *canvas = inputManager()->canvas();
+                KisCanvas2 *canvas = applicationInputCanvas(inputManager());
                 KisCanvasController *controller = static_cast<KisCanvasController*>(canvas->canvasController());
                 const qreal delta = 1.0f + gevent->value();
                 const qreal newZoom = controller->canvas()->viewConverter()->zoom() * delta;
                 controller->setZoom(KoZoomMode::ZOOM_CONSTANT, newZoom, d->actionStillPoint);
             } else if (gevent->gestureType() == Qt::SmartZoomNativeGesture) {
-                KisCanvas2 *canvas = inputManager()->canvas();
+                KisCanvas2 *canvas = applicationInputCanvas(inputManager());
                 KoCanvasController *controller = canvas->canvasController();
 
                 if (controller->zoomState().mode != KoZoomMode::ZOOM_WIDTH) {
@@ -315,7 +316,7 @@ void KisZoomAction::cursorMovedAbsolute(const QPointF &startPos, const QPointF &
         }
 
         KoCanvasControllerWidget *controller =
-            dynamic_cast<KoCanvasControllerWidget *>(inputManager()->canvas()->canvasController());
+            dynamic_cast<KoCanvasControllerWidget *>(applicationInputCanvas(inputManager())->canvasController());
         KIS_SAFE_ASSERT_RECOVER_RETURN(controller);
 
         if (d->mode == ZoomModeShortcut) {
@@ -328,7 +329,7 @@ void KisZoomAction::cursorMovedAbsolute(const QPointF &startPos, const QPointF &
                d->mode == RelativeDiscreteZoomModeShortcut) {
 
         KoCanvasControllerWidget *controller =
-            dynamic_cast<KoCanvasControllerWidget *>(inputManager()->canvas()->canvasController());
+            dynamic_cast<KoCanvasControllerWidget *>(applicationInputCanvas(inputManager())->canvasController());
         KIS_SAFE_ASSERT_RECOVER_RETURN(controller);
 
         KisConfig cfg(true);

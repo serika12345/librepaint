@@ -5,6 +5,7 @@
  */
 
 #include "kis_pan_action.h"
+#include "KisApplicationInputActions.h"
 
 #include <kis_debug.h>
 #include <QMouseEvent>
@@ -89,26 +90,26 @@ void KisPanAction::begin(int shortcut, QEvent *event)
             // "Wheel events are generated for both mouse wheels and trackpad scroll gestures."
             QWheelEvent *wheelEvent = dynamic_cast<QWheelEvent*>(event);
             if (wheelEvent) {
-                inputManager()->canvas()->canvasController()->pan(-wheelEvent->pixelDelta());
+                applicationInputCanvas(inputManager())->canvasController()->pan(-wheelEvent->pixelDelta());
                 overrideCursor = false;
                 break;
             }
 
-            d->originalPreferredCenter = inputManager()->canvas()->canvasController()->preferredCenter();
+            d->originalPreferredCenter = applicationInputCanvas(inputManager())->canvasController()->preferredCenter();
 
             break;
         }
         case PanLeftShortcut:
-            inputManager()->canvas()->canvasController()->pan(QPoint(d->panDistance, 0));
+            applicationInputCanvas(inputManager())->canvasController()->pan(QPoint(d->panDistance, 0));
             break;
         case PanRightShortcut:
-            inputManager()->canvas()->canvasController()->pan(QPoint(-d->panDistance, 0));
+            applicationInputCanvas(inputManager())->canvasController()->pan(QPoint(-d->panDistance, 0));
             break;
         case PanUpShortcut:
-            inputManager()->canvas()->canvasController()->pan(QPoint(0, d->panDistance));
+            applicationInputCanvas(inputManager())->canvasController()->pan(QPoint(0, d->panDistance));
             break;
         case PanDownShortcut:
-            inputManager()->canvas()->canvasController()->pan(QPoint(0, -d->panDistance));
+            applicationInputCanvas(inputManager())->canvasController()->pan(QPoint(0, -d->panDistance));
             break;
     }
 
@@ -133,7 +134,7 @@ void KisPanAction::inputEvent(QEvent *event)
             QGestureEvent *gevent = static_cast<QGestureEvent*>(event);
             if (gevent->activeGestures().at(0)->gestureType() == Qt::PanGesture) {
                 QPanGesture *pan = static_cast<QPanGesture*>(gevent->activeGestures().at(0));
-                inputManager()->canvas()->canvasController()->pan(-pan->delta().toPoint() * 0.2);
+                applicationInputCanvas(inputManager())->canvasController()->pan(-pan->delta().toPoint() * 0.2);
             }
             return;
         }
@@ -148,7 +149,7 @@ void KisPanAction::inputEvent(QEvent *event)
             // points have not changed.
             if (newTouchPointsCount == d->touchPointsCount) {
                 QPointF delta = newPos - d->lastPosition;
-                inputManager()->canvas()->canvasController()->pan(-delta.toPoint());
+                applicationInputCanvas(inputManager())->canvasController()->pan(-delta.toPoint());
             }
             d->lastPosition = newPos;
             d->touchPointsCount = newTouchPointsCount;
@@ -162,7 +163,7 @@ void KisPanAction::inputEvent(QEvent *event)
 
 void KisPanAction::cursorMovedAbsolute(const QPointF &startPos, const QPointF &pos)
 {
-    inputManager()->canvas()->canvasController()->setPreferredCenter(-pos + startPos + d->originalPreferredCenter);
+    applicationInputCanvas(inputManager())->canvasController()->setPreferredCenter(-pos + startPos + d->originalPreferredCenter);
 }
 
 QPointF KisPanAction::Private::averagePoint( QTouchEvent* event, int *outCount )

@@ -36,7 +36,7 @@
 #include <KisUsageLogger.h>
 
 #include <kis_lod_transform.h>
-#include "kis_tool_proxy.h"
+#include <input/ui/kis_tool_proxy.h>
 #include "kis_coordinates_converter.h"
 #include "kis_prescaled_projection.h"
 #include "kis_qpainter_projection_factory.h"

@@ -7,6 +7,7 @@
 
 #include "kis_input_profile_manager.h"
 #include "kis_input_profile.h"
+#include "kis_abstract_input_action.h"
 
 #include <QMap>
 #include <QStringList>
@@ -21,21 +22,10 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 
-#include "application/kis_config.h"
-#include "kis_alternate_invocation_action.h"
-#include "kis_change_primary_setting_action.h"
-#include "kis_pan_action.h"
-#include "kis_rotate_canvas_action.h"
-#include "KisPopupWidgetAction.h"
-#include "kis_tool_invocation_action.h"
-#include "kis_zoom_action.h"
+#include "kis_input_config.h"
 #include "kis_shortcut_configuration.h"
-#include "kis_select_layer_action.h"
-#include "kis_gamma_exposure_action.h"
-#include "kis_change_frame_action.h"
-#include "kis_zoom_and_rotate_action.h"
-#include "KisTouchGestureAction.h"
 #include "KisInputProfileMigrator.h"
+#include <kis_debug.h>
 
 
 class Q_DECL_HIDDEN KisInputProfileManager::Private
@@ -43,7 +33,6 @@ class Q_DECL_HIDDEN KisInputProfileManager::Private
 public:
     Private() : currentProfile(0) { }
 
-    void createActions();
     QString profileFileName(const QString &profileName);
     QStringList availableProfileFiles() const;
     void rememberProfileFile(const QString &profileFile);
@@ -191,6 +180,16 @@ KisAbstractInputAction *KisInputProfileManager::action(const QString &id) const
     return found == d->actions.cend() ? nullptr : *found;
 }
 
+void KisInputProfileManager::setActions(const QList<KisAbstractInputAction *> &actions)
+{
+    if (d->actions == actions) {
+        return;
+    }
+
+    qDeleteAll(d->actions);
+    d->actions = actions;
+}
+
 void KisInputProfileManager::setProfileLocations(const QStringList &profileFiles,
                                                   const QString &profileStorageDirectory)
 {
@@ -215,7 +214,7 @@ void KisInputProfileManager::loadProfiles()
     QMap<QString, ProfileEntry> profileEntriesToMigrate;
     QMap<QString, QList<ProfileEntry>> profileEntries;
 
-    KisConfig cfg(true);
+    KisInputConfig cfg(true);
 
     // Get only valid entries...
     Q_FOREACH(const QString & p, profiles) {
@@ -379,7 +378,7 @@ void KisInputProfileManager::saveProfiles()
         saveProfile(p, d->profileStorageDirectory);
     }
 
-    KisConfig config(false);
+    KisInputConfig config(false);
     config.setCurrentInputProfile(d->currentProfile->name());
 
     //Force a reload of the current profile in input manager and whatever else uses the profile.
@@ -446,7 +445,6 @@ void KisInputProfileManager::resetAll()
 KisInputProfileManager::KisInputProfileManager(QObject *parent)
     : QObject(parent), d(new Private())
 {
-    d->createActions();
 }
 
 KisInputProfileManager::~KisInputProfileManager()
@@ -454,24 +452,6 @@ KisInputProfileManager::~KisInputProfileManager()
     qDeleteAll(d->profiles);
     qDeleteAll(d->actions);
     delete d;
-}
-
-void KisInputProfileManager::Private::createActions()
-{
-    //TODO: Make this plugin based
-    //Note that the ordering here determines how things show up in the UI
-    actions.append(new KisToolInvocationAction());
-    actions.append(new KisAlternateInvocationAction());
-    actions.append(new KisChangePrimarySettingAction());
-    actions.append(new KisPanAction());
-    actions.append(new KisRotateCanvasAction());
-    actions.append(new KisZoomAction());
-    actions.append(new KisPopupWidgetAction());
-    actions.append(new KisSelectLayerAction());
-    actions.append(new KisGammaExposureAction());
-    actions.append(new KisChangeFrameAction());
-    actions.append(new KisZoomAndRotateAction());
-    actions.append(new KisTouchGestureAction());
 }
 
 QString KisInputProfileManager::Private::profileFileName(const QString &profileName)

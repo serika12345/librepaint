@@ -8,11 +8,12 @@
 
 #include <QPointF>
 #include <QMouseEvent>
+#include <QWidget>
 #include <klocalizedstring.h>
 #include <kis_debug.h>
 
 #include <input/ui/kis_input_manager.h>
-#include <kis_canvas2.h>
+#include <KoCanvasBase.h>
 
 
 class Q_DECL_HIDDEN KisAbstractInputAction::Private
@@ -190,7 +191,7 @@ QPoint KisAbstractInputAction::eventPos(const QEvent *event)
         return static_cast<const QWheelEvent*>(event)->position().toPoint();
 
     case QEvent::NativeGesture: {
-        KisCanvas2 *canvas = d->inputManager->canvas();
+        KoCanvasBase *canvas = d->inputManager->canvas();
         KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(canvas, QPoint());
 
         /**
@@ -239,7 +240,7 @@ QPointF KisAbstractInputAction::eventPosF(const QEvent *event) {
         return static_cast<const QWheelEvent*>(event)->position();
 
     case QEvent::NativeGesture: {
-        KisCanvas2 *canvas = d->inputManager->canvas();
+        KoCanvasBase *canvas = d->inputManager->canvas();
         KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(canvas, QPointF());
 
         /**

@@ -5,6 +5,7 @@
  */
 
 #include "kis_rotate_canvas_action.h"
+#include "KisApplicationInputActions.h"
 
 #include <QApplication>
 #include <QNativeGestureEvent>
@@ -86,7 +87,7 @@ void KisRotateCanvasAction::begin(int shortcut, QEvent *event)
     d->touchRotation = 0;
 
     KisCanvasController *canvasController =
-        dynamic_cast<KisCanvasController*>(inputManager()->canvas()->canvasController());
+        dynamic_cast<KisCanvasController*>(applicationInputCanvas(inputManager())->canvasController());
     KIS_SAFE_ASSERT_RECOVER_RETURN(canvasController);
 
     d->mode = (Shortcut)shortcut;
@@ -97,10 +98,10 @@ void KisRotateCanvasAction::begin(int shortcut, QEvent *event)
             // If the canvas has been rotated to an angle that is not an exact multiple of DISCRETE_ANGLE_STEP,
             // we need to adjust the final discrete rotation by that angle difference.
             // trunc() is used to round the negative numbers towards zero.
-            const qreal startRotation = inputManager()->canvas()->rotationAngle();
+            const qreal startRotation = applicationInputCanvas(inputManager())->rotationAngle();
             d->snapRotation = startRotation - std::trunc(startRotation / DISCRETE_ANGLE_STEP) * DISCRETE_ANGLE_STEP;
             canvasController->beginCanvasRotation();
-            d->actionStillPoint = inputManager()->canvas()->coordinatesConverter()->makeWidgetStillPoint(eventPosF(event));
+            d->actionStillPoint = applicationInputCanvas(inputManager())->coordinatesConverter()->makeWidgetStillPoint(eventPosF(event));
             break;
         }
         case RotateLeftShortcut:
@@ -120,7 +121,7 @@ void KisRotateCanvasAction::end(QEvent *event)
     Q_UNUSED(event);
 
     KisCanvasController *canvasController =
-        dynamic_cast<KisCanvasController*>(inputManager()->canvas()->canvasController());
+        dynamic_cast<KisCanvasController*>(applicationInputCanvas(inputManager())->canvasController());
     KIS_SAFE_ASSERT_RECOVER_RETURN(canvasController);
 
     switch(d->mode) {
@@ -139,7 +140,7 @@ void KisRotateCanvasAction::cursorMovedAbsolute(const QPointF &startPos, const Q
         return;
     }
 
-    const KisCoordinatesConverter *converter = inputManager()->canvas()->coordinatesConverter();
+    const KisCoordinatesConverter *converter = applicationInputCanvas(inputManager())->coordinatesConverter();
     const QPointF centerPoint = converter->flakeToWidget(converter->flakeCenterPoint());
     const QPointF startPoint = startPos - centerPoint;
     const QPointF newPoint = pos - centerPoint;
@@ -160,7 +161,7 @@ void KisRotateCanvasAction::cursorMovedAbsolute(const QPointF &startPos, const Q
     }
 
     KisCanvasController *canvasController =
-        dynamic_cast<KisCanvasController*>(inputManager()->canvas()->canvasController());
+        dynamic_cast<KisCanvasController*>(applicationInputCanvas(inputManager())->canvasController());
     KIS_SAFE_ASSERT_RECOVER_RETURN(canvasController);
     canvasController->rotateCanvas(newRotation);
 }
@@ -174,7 +175,7 @@ void KisRotateCanvasAction::inputEvent(QEvent* event)
     switch (event->type()) {
         case QEvent::NativeGesture: {
             QNativeGestureEvent *gevent = static_cast<QNativeGestureEvent*>(event);
-            KisCanvas2 *canvas = inputManager()->canvas();
+            KisCanvas2 *canvas = applicationInputCanvas(inputManager());
             KisCanvasController *controller = static_cast<KisCanvasController*>(canvas->canvasController());
 
             const float angle = gevent->value();
@@ -230,7 +231,7 @@ void KisRotateCanvasAction::inputEvent(QEvent* event)
                 // Rotate by the effective angle from the beginning of the action.
                 d->touchRotation += delta;
 
-                KisCanvas2 *canvas = inputManager()->canvas();
+                KisCanvas2 *canvas = applicationInputCanvas(inputManager());
                 KisCanvasController *controller = static_cast<KisCanvasController*>(canvas->canvasController());
                 controller->rotateCanvas(d->touchRotation);
             }

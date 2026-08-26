@@ -15,6 +15,7 @@
 #include <kis_algebra_2d.h>
 
 #include "kis_zoom_and_rotate_action.h"
+#include "KisApplicationInputActions.h"
 #include "kis_input_manager.h"
 #include <KoViewTransformStillPoint.h>
 
@@ -73,7 +74,7 @@ void KisZoomAndRotateAction::begin(int shortcut, QEvent *event)
         d->previousAngle = 0;
         d->initialReferenceAngle = 0;
         d->accumRotationAngle = 0;
-        d->actionStillPoint = inputManager()->canvas()->coordinatesConverter()->makeWidgetStillPoint(d->lastPosition);
+        d->actionStillPoint = applicationInputCanvas(inputManager())->coordinatesConverter()->makeWidgetStillPoint(d->lastPosition);
     }
 }
 
@@ -104,7 +105,7 @@ void KisZoomAndRotateAction::inputEvent(QEvent *event)
             const float dist = QLineF(p0, p1).length();
             const float scaleDelta = qFuzzyCompare(1.0f, 1.0f + d->lastDistance) ? 1.f : dist / d->lastDistance;
 
-            KisCanvas2 *canvas = inputManager()->canvas();
+            KisCanvas2 *canvas = applicationInputCanvas(inputManager());
             KisCanvasController *controller = static_cast<KisCanvasController *>(canvas->canvasController());
             const qreal newZoom = canvas->viewConverter()->zoom() * scaleDelta;
             KoViewTransformStillPoint adjustedStillPoint = d->actionStillPoint;
@@ -144,7 +145,7 @@ qreal KisZoomAndRotateAction::canvasRotationAngle(QPointF p0, QPointF p1)
         qreal rotationAngle = (180 / M_PI) * (currentAngle - d->previousAngle);
         d->previousAngle = currentAngle;
 
-        KisCanvas2 *canvas = inputManager()->canvas();
+        KisCanvas2 *canvas = applicationInputCanvas(inputManager());
         KisCanvasController *controller = static_cast<KisCanvasController *>(canvas->canvasController());
         const qreal canvasAnglePostRotation = controller->rotation() + rotationAngle;
         const qreal snapDelta = angleForSnapping(canvasAnglePostRotation);

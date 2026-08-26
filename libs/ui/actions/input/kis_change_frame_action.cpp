@@ -5,6 +5,7 @@
  */
 
 #include "kis_change_frame_action.h"
+#include "KisApplicationInputActions.h"
 
 #include <klocalizedstring.h>
 #include "application/kis_action.h"
@@ -37,7 +38,7 @@ KisChangeFrameAction::~KisChangeFrameAction()
 
 bool KisChangeFrameAction::isAvailable() const
 {
-    return inputManager()->canvas()->viewManager()->activeNodeIsAnimated();
+    return applicationInputCanvas(inputManager())->viewManager()->activeNodeIsAnimated();
 }
 
 void KisChangeFrameAction::begin(int shortcut, QEvent *event)
@@ -46,14 +47,14 @@ void KisChangeFrameAction::begin(int shortcut, QEvent *event)
 
     switch(shortcut) {
     case NextFrameShortcut: {
-        KisAction *action = inputManager()->canvas()->viewManager()->actionManager()->actionByName("next_frame");
+        KisAction *action = applicationInputCanvas(inputManager())->viewManager()->actionManager()->actionByName("next_frame");
         if (action) {
             action->trigger();
         }
         break;
     }
     case PreviousFrameShortcut: {
-        KisAction *action = inputManager()->canvas()->viewManager()->actionManager()->actionByName("previous_frame");
+        KisAction *action = applicationInputCanvas(inputManager())->viewManager()->actionManager()->actionByName("previous_frame");
         if (action) {
             action->trigger();
         }

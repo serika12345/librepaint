@@ -12,17 +12,16 @@
 
 #include <kritaui_export.h>
 
-#include <kis_tool_proxy.h>
+#include <input/ui/kis_tool_proxy.h>
 
 class QPointF;
 class QTouchEvent;
-class KisCanvas2;
+class KoCanvasBase;
+class KisToolCanvas;
 /**
  * \brief Central object to manage canvas input.
  *
- * The Input Manager class manages all canvas input. It is created
- * by KisCanvas2 and processes all events related to input sent to the
- * canvas.
+ * The Input Manager class manages input sent to the tracked canvas.
  *
  * The Input Manager keeps track of a set of actions and a set of
  * shortcuts. The actions are pre-defined while the shortcuts are
@@ -49,8 +48,8 @@ public:
      */
     ~KisInputManager() override;
 
-    void addTrackedCanvas(KisCanvas2 *canvas);
-    void removeTrackedCanvas(KisCanvas2 *canvas);
+    void addTrackedCanvas(KoCanvasBase *canvas);
+    void removeTrackedCanvas(KoCanvasBase *canvas);
 
     void registerPopupWidget(KisPopupWidgetInterface *popupWidget);
 
@@ -87,7 +86,8 @@ public:
     /**
      * Return the canvas this input manager is associated with.
      */
-    KisCanvas2 *canvas() const;
+    KoCanvasBase *canvas() const;
+    KisToolCanvas *toolCanvas() const;
 
     /**
      * The tool proxy of the current application.
@@ -101,7 +101,10 @@ private Q_SLOTS:
     void profileChanged();
     void slotCompressedMoveEvent();
     void deregisterPopupWidget();
-    void slotConfigChanged();
+public Q_SLOTS:
+    void reloadSettings();
+
+private Q_SLOTS:
     void slotTouchHoldTriggered();
 
 private:

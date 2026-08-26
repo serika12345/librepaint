@@ -12,13 +12,8 @@
 #include "kis_abstract_input_action.h"
 
 #include <QObject>
-#include <QMainWindow>
 
-#include "kis_global.h"
-#include "kis_debug.h"
-#include "kis_canvas2.h"
-#include "events/KisPopupWidgetInterface.h"
-class QMenu;
+#include "KisPopupWidgetInterface.h"
 
 
 /**

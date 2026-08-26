@@ -1,28 +1,20 @@
 set(kritainputui_LIB_SRCS
-    KisCanvasOnlyAction.cpp
     KisExtendedModifiersMapperPluginInterface.cpp
     KisInputProfileMigrator.cpp
     KisPopupWidgetAction.cpp
-    KisQtWidgetsTweaker.cpp
-    KisTouchGestureAction.cpp
     kis_abstract_input_action.cpp
     kis_alternate_invocation_action.cpp
-    kis_change_frame_action.cpp
     kis_change_primary_setting_action.cpp
     kis_extended_modifiers_mapper.cpp
-    kis_gamma_exposure_action.cpp
+    kis_input_config.cpp
     kis_input_manager.cpp
     kis_input_manager_canvas.cpp
     kis_input_manager_p.cpp
     kis_input_profile_manager.cpp
-    kis_pan_action.cpp
-    kis_rotate_canvas_action.cpp
-    kis_select_layer_action.cpp
     kis_shortcut_configuration_text.cpp
     kis_tablet_debugger.cpp
+    kis_tool_proxy.cpp
     kis_tool_invocation_action.cpp
-    kis_zoom_action.cpp
-    kis_zoom_and_rotate_action.cpp
     config/KisGestureSelector.cpp
     config/kis_action_shortcuts_model.cpp
     config/kis_edit_profiles_dialog.cpp
@@ -69,18 +61,6 @@ target_include_directories(kritainputui
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/wintab>
     PRIVATE
         ${CMAKE_BINARY_DIR}/libs/ui
-        ${CMAKE_BINARY_DIR}/libs/impex
-        ${CMAKE_SOURCE_DIR}/libs/impex
-        ${CMAKE_SOURCE_DIR}/libs/impex/ui
-        ${CMAKE_SOURCE_DIR}/libs/impex/animation
-        ${CMAKE_SOURCE_DIR}/libs/ui
-        ${CMAKE_SOURCE_DIR}/libs/ui/canvas
-        ${CMAKE_SOURCE_DIR}/libs/ui/flake
-        ${CMAKE_SOURCE_DIR}/libs/ui/ora
-        ${CMAKE_SOURCE_DIR}/libs/ui/tool
-        ${CMAKE_SOURCE_DIR}/libs/ui/utils
-        ${CMAKE_SOURCE_DIR}/libs/ui/widgets
-        ${CMAKE_SOURCE_DIR}/libs/ui/widgets/gradient
 )
 
 target_link_libraries(kritainputui
@@ -95,6 +75,7 @@ target_link_libraries(kritainputui
         kritainput
         kritaxmlserialization
         KF${KF_MAJOR}::Completion
+        KF${KF_MAJOR}::ConfigCore
         KF${KF_MAJOR}::CoreAddons
         KF${KF_MAJOR}::I18n
         KF${KF_MAJOR}::ItemViews

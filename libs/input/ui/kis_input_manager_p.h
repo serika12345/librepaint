@@ -18,7 +18,8 @@
 #include <KisInputEventSuppressor.h>
 #include "kis_shortcut_matcher.h"
 #include "kis_shortcut_configuration.h"
-#include "kis_canvas2.h"
+#include <KoCanvasBase.h>
+#include <KisToolCanvas.h>
 #include "kis_tool_proxy.h"
 #include "kis_signal_compressor.h"
 #include "input/ui/kis_tablet_debugger.h"
@@ -52,7 +53,7 @@ public:
 
     KisInputManager *q;
 
-    QPointer<KisCanvas2> canvas;
+    QPointer<KoCanvasBase> canvas;
     QPointer<KisToolProxy> toolProxy;
 
     bool forwardAllEventsToTool = false;
@@ -132,8 +133,8 @@ public:
     {
     public:
         CanvasSwitcher(Private *_d, QObject *p);
-        void addCanvas(KisCanvas2 *canvas);
-        void removeCanvas(KisCanvas2 *canvas);
+        void addCanvas(KoCanvasBase *canvas);
+        void removeCanvas(KoCanvasBase *canvas);
         bool eventFilter(QObject* object, QEvent* event ) override;
 
     private:
@@ -141,7 +142,7 @@ public:
 
     private:
         KisInputManager::Private *d;
-        QMap<QObject*, QPointer<KisCanvas2>> canvasResolver;
+        QMap<QObject*, QPointer<KoCanvasBase>> canvasResolver;
         int eatOneMouseStroke;
         KisTimedSignalThreshold focusSwitchThreshold;
         KisSignalAutoConnectionsStore thresholdConnections;

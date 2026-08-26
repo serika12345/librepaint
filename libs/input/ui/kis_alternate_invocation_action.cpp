@@ -12,7 +12,6 @@
 #include <klocalizedstring.h>
 
 #include <kis_tool_proxy.h>
-#include <kis_canvas2.h>
 
 #include "kis_input_manager.h"
 

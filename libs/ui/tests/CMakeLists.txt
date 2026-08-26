@@ -19,6 +19,7 @@ kis_add_tests(
     TestApplicationWorkspaceToolUiPublicHeaders.cpp
     KisWorkspacePersistenceTest.cpp
     TestApplicationPaintingResourceRegistration.cpp
+    KisApplicationInputActionsTest.cpp
     TestRemainingUiRootPublicHeaders.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp

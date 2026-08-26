@@ -5,6 +5,7 @@
  */
 
 #include "kis_gamma_exposure_action.h"
+#include "KisApplicationInputActions.h"
 
 #include <QApplication>
 
@@ -37,7 +38,7 @@ public:
 void KisGammaExposureAction::Private::addExposure(qreal diff)
 {
     KisExposureGammaCorrectionInterface *interface =
-        q->inputManager()->canvas()->exposureGammaCorrectionInterface();
+        applicationInputCanvas(q->inputManager())->exposureGammaCorrectionInterface();
 
     if (!interface->canChangeExposureAndGamma()) return;
 
@@ -47,7 +48,7 @@ void KisGammaExposureAction::Private::addExposure(qreal diff)
 void KisGammaExposureAction::Private::addGamma(qreal diff)
 {
     KisExposureGammaCorrectionInterface *interface =
-        q->inputManager()->canvas()->exposureGammaCorrectionInterface();
+        applicationInputCanvas(q->inputManager())->exposureGammaCorrectionInterface();
 
     if (!interface->canChangeExposureAndGamma()) return;
 
@@ -109,7 +110,7 @@ void KisGammaExposureAction::begin(int shortcut, QEvent *event)
     KisAbstractInputAction::begin(shortcut, event);
 
     KisExposureGammaCorrectionInterface *interface =
-        inputManager()->canvas()->exposureGammaCorrectionInterface();
+        applicationInputCanvas(inputManager())->exposureGammaCorrectionInterface();
 
     switch(shortcut) {
     case ExposureShortcut:
@@ -149,7 +150,7 @@ void KisGammaExposureAction::begin(int shortcut, QEvent *event)
 
     case ResetExposureAndGammaShortcut: {
         KisExposureGammaCorrectionInterface *interface =
-            inputManager()->canvas()->exposureGammaCorrectionInterface();
+            applicationInputCanvas(inputManager())->exposureGammaCorrectionInterface();
         if (!interface->canChangeExposureAndGamma()) break;
 
         interface->setCurrentGamma(1.0);
@@ -166,7 +167,7 @@ void KisGammaExposureAction::cursorMovedAbsolute(const QPointF &startPos, const 
     const int step = 200;
 
     KisExposureGammaCorrectionInterface *interface =
-        inputManager()->canvas()->exposureGammaCorrectionInterface();
+        applicationInputCanvas(inputManager())->exposureGammaCorrectionInterface();
 
     if (!interface->canChangeExposureAndGamma()) return;
 

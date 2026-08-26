@@ -5,6 +5,7 @@
  */
 
 #include "kis_select_layer_action.h"
+#include "KisApplicationInputActions.h"
 
 #include <QApplication>
 #include <QTouchEvent>
@@ -118,7 +119,7 @@ void KisSelectLayerAction::inputEvent(QEvent *event)
          selectionOverrideMode == SelectionOverrideMode_Add)
     );
 
-    KisCanvas2 *canvas = inputManager()->canvas();
+    KisCanvas2 *canvas = applicationInputCanvas(inputManager());
     KisLayerSelectionAction::select(
         canvas,
         canvas->coordinatesConverter()->widgetToImage(eventPosF(event)).toPoint(),

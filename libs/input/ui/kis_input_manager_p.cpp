@@ -10,12 +10,13 @@
 #include <QApplication>
 #include <QScopedPointer>
 #include <QTimer>
+#include <QWidget>
 #include <QtGlobal>
 
 #include <boost/preprocessor/repeat_from_to.hpp>
 
 #include "kis_input_manager.h"
-#include "application/kis_config.h"
+#include "kis_input_config.h"
 #include "kis_abstract_input_action.h"
 #include <KisInputAction.h>
 #include "kis_tool_invocation_action.h"
@@ -25,7 +26,6 @@
 #include "kis_input_profile_manager.h"
 #include "kis_extended_modifiers_mapper.h"
 
-#include "resources/kis_popup_palette.h"
 #include "config-qt-patches-present.h"
 
 #include <memory>
@@ -241,10 +241,10 @@ KisInputManager::Private::Private(KisInputManager *qq)
     , popupWidget(nullptr)
     , touchHoldTimer(new QTimer(qq))
     , canvasSwitcher(this, qq)
-    , eventSuppressor(KisConfig(true).useRightMiddleTabletButtonWorkaround(),
+    , eventSuppressor(KisInputConfig(true).useRightMiddleTabletButtonWorkaround(),
                       supportsSyntheticMouseSuppression())
 {
-    KisConfig cfg(true);
+    KisInputConfig cfg(true);
 
     moveEventCompressor.setDelay(cfg.tabletEventsDelay());
     testingAcceptCompressedTabletEvents = cfg.testingAcceptCompressedTabletEvents();
@@ -256,7 +256,10 @@ KisInputManager::Private::Private(KisInputManager *qq)
 
     matcher.setInputActionGroupsMaskCallback(
         [this] () {
-            return this->canvas ? this->canvas->inputActionGroupsMaskInterface()->inputActionGroupsMask() : AllActionGroup;
+            auto *toolCanvas = dynamic_cast<KisToolCanvas *>(this->canvas.data());
+            return toolCanvas
+                ? toolCanvas->inputActionGroupsMaskInterface()->inputActionGroupsMask()
+                : AllActionGroup;
         });
 
     /**
@@ -306,7 +309,7 @@ void KisInputManager::Private::CanvasSwitcher::setupFocusThreshold(QObject* obje
     thresholdConnections.addConnection(&focusSwitchThreshold, SIGNAL(timeout()), widget, SLOT(setFocus()));
 }
 
-void KisInputManager::Private::CanvasSwitcher::addCanvas(KisCanvas2 *canvas)
+void KisInputManager::Private::CanvasSwitcher::addCanvas(KoCanvasBase *canvas)
 {
     if (!canvas) return;
 
@@ -332,7 +335,7 @@ void KisInputManager::Private::CanvasSwitcher::addCanvas(KisCanvas2 *canvas)
     }
 }
 
-void KisInputManager::Private::CanvasSwitcher::removeCanvas(KisCanvas2 *canvas)
+void KisInputManager::Private::CanvasSwitcher::removeCanvas(KoCanvasBase *canvas)
 {
     QObject *widget = canvas->canvasWidget();
 
@@ -379,7 +382,7 @@ bool KisInputManager::Private::CanvasSwitcher::eventFilter(QObject* object, QEve
         switch (event->type()) {
         case QEvent::FocusIn: {
             QFocusEvent *fevent = static_cast<QFocusEvent*>(event);
-            KisCanvas2 *canvas = canvasResolver.value(object);
+            KoCanvasBase *canvas = canvasResolver.value(object);
 
             // only relevant canvases from the same main window should be
             // registered in the switcher
@@ -712,7 +715,7 @@ void KisInputManager::Private::addTouchShortcut(KisAbstractInputAction* action, 
         // nothing otherwise and is therefore unambiguous.
         shortcut->setDisabledWhenTouchPaintingActive(true);
         shortcut->setTouchPaintingActiveCallback([]() {
-            return !KisConfig(true).disableTouchOnCanvas();
+            return !KisInputConfig(true).disableTouchOnCanvas();
         });
     }
 

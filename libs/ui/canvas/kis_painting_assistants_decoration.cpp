@@ -20,7 +20,7 @@
 #include "kis_canvas2.h"
 #include "workspace/KisViewManager.h"
 #include <KoCompositeOpRegistry.h>
-#include "kis_tool_proxy.h"
+#include <input/ui/kis_tool_proxy.h>
 #include <KoColorDisplayRendererInterface.h>
 
 #include <QPainter>

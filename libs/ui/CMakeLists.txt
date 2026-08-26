@@ -26,7 +26,6 @@ set(kritaui_LIB_SRCS
     canvas/kis_display_color_converter.cpp
     canvas/kis_display_filter.cpp
     canvas/kis_exposure_gamma_correction_interface.cpp
-    canvas/kis_tool_proxy.cpp
     canvas/kis_canvas_decoration.cc
     canvas/kis_grid_manager.cpp
     canvas/kis_grid_decoration.cpp
@@ -98,6 +97,7 @@ set(kritaui_LIB_SRCS
     canvas/kis_canvas_resource_provider.cpp
     resources/kis_derived_resources.cpp
     application/kis_config.cc
+    application/KisQtWidgetsTweaker.cpp
     resources/kis_control_frame.cpp
     canvas/KisDisplayConfig.cpp
     resources/kis_custom_pattern.cc
@@ -292,6 +292,16 @@ set(kritaui_LIB_SRCS
     actions/KisPasteActionFactories.cpp
     actions/KisTransformToolActivationCommand.cpp
     actions/KisLayerSelectionAction.cpp
+    actions/input/KisApplicationInputActions.cpp
+    actions/input/KisCanvasOnlyAction.cpp
+    actions/input/KisTouchGestureAction.cpp
+    actions/input/kis_change_frame_action.cpp
+    actions/input/kis_gamma_exposure_action.cpp
+    actions/input/kis_pan_action.cpp
+    actions/input/kis_rotate_canvas_action.cpp
+    actions/input/kis_select_layer_action.cpp
+    actions/input/kis_zoom_action.cpp
+    actions/input/kis_zoom_and_rotate_action.cpp
     animation/KisFrameDisplayProxy.cpp
     events/kis_gui_context_command.cpp
     events/kis_gui_context_command_p.cpp

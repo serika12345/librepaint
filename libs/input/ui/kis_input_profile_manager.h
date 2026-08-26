@@ -107,6 +107,12 @@ public:
     KisAbstractInputAction *action(const QString &id) const;
 
     /**
+     * Replace the application input actions. The manager takes ownership of
+     * every action in the list.
+     */
+    void setActions(const QList<KisAbstractInputAction *> &actions);
+
+    /**
      * Set the resolved profile files and writable directory used by profile operations.
      */
     void setProfileLocations(const QStringList &profileFiles,

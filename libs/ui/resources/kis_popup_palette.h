@@ -11,15 +11,16 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QGraphicsOpacityEffect>
+#include <QSpacerItem>
+#include <QWidget>
 #include "workspace/KisViewManager.h"
 #include "kactioncollection.h"
 #include "kis_tool_button.h"
 #include "KisHighlightedToolButton.h"
 #include "KisColorSelectorInterface.h"
-#include "events/KisPopupWidgetInterface.h"
+#include "input/ui/KisPopupWidgetInterface.h"
 
 class KisFavoriteResourceManager;
-class QWidget;
 class KoColor;
 class KoTriangleColorSelector;
 class KisSignalCompressor;

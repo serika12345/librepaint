@@ -19,7 +19,7 @@
 #include "kis_edit_profiles_dialog.h"
 #include "kis_input_profile_model.h"
 #include "kis_input_configuration_page_item.h"
-#include <application/kis_config.h>
+#include "../kis_input_config.h"
 #include <kis_signals_blocker.h>
 
 
@@ -155,7 +155,7 @@ void KisInputConfigurationPage::setDefaults()
 {
     KisSignalsBlocker(ui->profileComboBox, KisInputProfileManager::instance());
 
-    KisConfig(false).setCurrentInputProfile("LibrePaint Default");
+    KisInputConfig(false).setCurrentInputProfile("LibrePaint Default");
     KisInputProfileManager::instance()->resetAll();
     changeCurrentProfile("LibrePaint Default");
     ui->profileComboBox->setCurrentItem("LibrePaint Default");

@@ -14,6 +14,7 @@
 #include <kritaui_export.h>
 
 class QKeyEvent;
+class KisExtendedModifiersMapperPluginInterface;
 class KisShortcutMatcher;
 
 class KRITAUI_EXPORT KisExtendedModifiersMapper
@@ -38,6 +39,12 @@ public:
 
     static Qt::Key workaroundShiftAltMetaHell(const QKeyEvent *keyEvent);
     static ExtendedModifiers qtModifiersToQtKeys(Qt::KeyboardModifiers standardModifiers);
+
+    /**
+     * Set the application-owned platform implementation used for extended
+     * modifier queries. The mapper borrows the QObject for its lifetime.
+     */
+    static void setPluginInterface(KisExtendedModifiersMapperPluginInterface *pluginInterface);
 
 #ifdef Q_OS_MACOS
     static void setLocalMonitor(bool activate, KisShortcutMatcher *matcher = 0);

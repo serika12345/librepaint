@@ -17,21 +17,18 @@
 
 #include <KoToolManager.h>
 #include <KoPointerEvent.h>
+#include <KoCanvasBase.h>
+#include <KisToolCanvas.h>
 #ifdef Q_OS_IOS
 #include <KoInputDevice.h>
 #endif
 
 #include "kis_tool_proxy.h"
 
-#include <application/kis_config.h>
-#include <kis_config_notifier.h>
-#include <kis_canvas2.h>
-#include <workspace/KisViewManager.h>
-#include <canvas/kis_canvas_resource_provider.h>
-#include <resources/kis_favorite_resource_manager.h>
+#include "kis_input_config.h"
 
 #include "kis_abstract_input_action.h"
-#include "events/KisPopupWidgetInterface.h"
+#include "input/ui/KisPopupWidgetInterface.h"
 
 #include "kis_shortcut_matcher.h"
 #include "kis_stroke_shortcut.h"
@@ -60,8 +57,7 @@ KisInputManager::KisInputManager(QObject *parent)
 {
     d->setupActions();
 
-    connect(KisConfigNotifier::instance(), SIGNAL(configChanged()), SLOT(slotConfigChanged()));
-    slotConfigChanged();
+    reloadSettings();
 
     connect(KoToolManager::instance(), SIGNAL(aboutToChangeTool(KoCanvasController*)), SLOT(slotAboutToChangeTool()));
     connect(KoToolManager::instance(), SIGNAL(changedTool(KoCanvasController*)), SLOT(slotToolChanged()));
@@ -130,10 +126,10 @@ void KisInputManager::deregisterPopupWidget()
     }
 }
 
-void KisInputManager::slotConfigChanged()
+void KisInputManager::reloadSettings()
 {
 #ifdef Q_OS_WIN
-    d->ignoreHighFunctionKeys = KisConfig(true).ignoreHighFunctionKeys();
+    d->ignoreHighFunctionKeys = KisInputConfig(true).ignoreHighFunctionKeys();
     d->fixShortcutMatcherModifiersState();
 #endif
 }
@@ -824,7 +820,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         }
 #endif
         // if the event isn't handled, Qt starts to send MouseEvents
-        if (!KisConfig(true).disableTouchOnCanvas())
+        if (!KisInputConfig(true).disableTouchOnCanvas())
             retval = true;
 
         event->accept();
@@ -850,7 +846,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
             d->previousPos = {0, 0};
             d->touchStrokeStarted = false; // stroke ended
         } else if (!d->touchStrokeBlocked
-                   && !KisConfig(true).disableTouchOnCanvas() && !d->touchHasBlockedPressEvents
+                   && !KisInputConfig(true).disableTouchOnCanvas() && !d->touchHasBlockedPressEvents
                    && touchEvent->touchPoints().count() == 1) {
             // If no stroke has been started while touch painting is enabled,
             // the user tapped with one finger, but didn't make any motion that
@@ -865,7 +861,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->touchStrokeBlocked = false;
 
         // if the event isn't handled, Qt starts to send MouseEvents
-        if (!KisConfig(true).disableTouchOnCanvas())
+        if (!KisInputConfig(true).disableTouchOnCanvas())
             retval = true;
 
         event->accept();
@@ -959,7 +955,7 @@ bool KisInputManager::startTouch(bool &retval)
     Q_UNUSED(retval);
 
     // Touch rejection: if touch is disabled on canvas, no need to block mouse press events
-    if (KisConfig(true).disableTouchOnCanvas()) {
+    if (KisInputConfig(true).disableTouchOnCanvas()) {
         d->eatOneMousePress();
     }
 
@@ -995,7 +991,7 @@ bool KisInputManager::handleTouchUpdate(QTouchEvent *touchEvent)
     QPointF currentPos = touchEvent->touchPoints().at(0).pos();
     if (d->touchStrokeStarted
         || (!d->touchStrokeBlocked
-            && !KisConfig(true).disableTouchOnCanvas() && !d->touchHasBlockedPressEvents
+            && !KisInputConfig(true).disableTouchOnCanvas() && !d->touchHasBlockedPressEvents
             && touchEvent->touchPoints().count() == 1 && touchEvent->touchPointStates() != Qt::TouchPointStationary
             && (qAbs(currentPos.x() - d->previousPos.x()) > 1 // stop wobbliness which Qt sends us
                 || qAbs(currentPos.y() - d->previousPos.y()) > 1))) {
@@ -1032,9 +1028,14 @@ void KisInputManager::slotCompressedMoveEvent()
     }
 }
 
-KisCanvas2* KisInputManager::canvas() const
+KoCanvasBase *KisInputManager::canvas() const
 {
     return d->canvas;
+}
+
+KisToolCanvas *KisInputManager::toolCanvas() const
+{
+    return dynamic_cast<KisToolCanvas *>(d->canvas.data());
 }
 
 QPointer<KisToolProxy> KisInputManager::toolProxy() const

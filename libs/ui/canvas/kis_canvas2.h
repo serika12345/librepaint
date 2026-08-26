@@ -240,10 +240,11 @@ public: // KisCanvas2 methods
 
     KisPopupPalette* popupPalette();
 
-    void setInputEventFilterConnection(std::function<void(QObject *, bool, int)> connection);
-    void setInputCanvasWidgetChangedCallback(std::function<void()> callback);
+    void setInputEventFilterConnection(
+        std::function<void(QObject *, bool, int)> connection) override;
+    void setInputCanvasWidgetChangedCallback(std::function<void()> callback) override;
 
-    KisInputActionGroupsMaskInterface::SharedInterface inputActionGroupsMaskInterface();
+    KisInputActionGroupsMaskInterface::SharedInterface inputActionGroupsMaskInterface() override;
 
     /**
      * Return user-facing information about color management status of the
