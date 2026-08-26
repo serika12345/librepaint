@@ -183,7 +183,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
         self.assertEqual(len(document_file_headers), 3)
         self.assertEqual(len(document_ui_headers), 6)
         self.assertEqual(len(application_headers), 3)
-        self.assertEqual(len(ui_headers), 215)
+        self.assertEqual(len(ui_headers), 210)
         self.assertEqual(len(image_headers), 331)
         self.assertEqual(len(impex_ui_headers), 23)
         self.assertEqual(len(input_headers), 12)
@@ -695,7 +695,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
             },
             {
                 "kritaapplication": 3,
-                "kritaapplicationui": 215,
+                "kritaapplicationui": 210,
                 "kritacanvas": 19,
                 "kritaworkspacepresentation": 1,
                 "kritadocument": 5,
@@ -708,6 +708,7 @@ class PublicSurfaceInventoryTests(unittest.TestCase):
                 "kritainputui": 13,
                 "kritapainting": 19,
                 "kritatools": 19,
+                "kritawidgets": 65,
             },
         )
         self.assertEqual(

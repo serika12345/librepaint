@@ -38,6 +38,12 @@ set(kritawidgets_LIB_SRCS
     KoMarkerSelector.cpp
     KoMarkerModel.cpp
     KoMarkerItemDelegate.cpp
+    KoFillConfigWidget.cpp
+    KoStrokeConfigWidget.cpp
+    KisStopGradientEditor.cpp
+    KisStopGradientSlider.cpp
+    KisGradientColorEditor.cpp
+    KisGradientWidgetsUtils.cpp
 
     WidgetsDebug.cpp
 
@@ -89,6 +95,9 @@ set(kritawidgets_LIB_SRCS
 
 ki18n_wrap_ui( kritawidgets_LIB_SRCS
     KoConfigAuthorPage.ui
+    KoFillConfigWidget.ui
+    KoStrokeConfigWidget.ui
+    wdgstopgradienteditor.ui
     wdg_file_name_requester.ui
     WdgDlgInternalColorSelector.ui
     WdgPaletteListWidget.ui

@@ -14,9 +14,9 @@
 
 #include <KisGradientWidgetsUtils.h>
 #include <KoColor.h>
-#include <kritaui_export.h>
+#include <kritawidgets_export.h>
 
-class KRITAUI_EXPORT KisGradientColorEditor : public QWidget
+class KRITAWIDGETS_EXPORT KisGradientColorEditor : public QWidget
 {
     Q_OBJECT
 

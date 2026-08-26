@@ -15,7 +15,7 @@
 
 #include <KoAbstractGradient.h>
 #include <KoSegmentGradient.h>
-#include <kritaui_export.h>
+#include <kritawidgets_export.h>
 
 namespace KisGradientWidgetsUtils
 {
@@ -31,15 +31,15 @@ struct StopHandleColor
     QColor color;
 };
 
-void KRITAUI_EXPORT paintGradientBox(QPainter &painter, const KoAbstractGradientSP gradient, const QRectF &rect);
-void KRITAUI_EXPORT paintStopHandle(QPainter &painter,
+void KRITAWIDGETS_EXPORT paintGradientBox(QPainter &painter, const KoAbstractGradientSP gradient, const QRectF &rect);
+void KRITAWIDGETS_EXPORT paintStopHandle(QPainter &painter,
                                     const QPointF &position,
                                     const QSizeF &size,
                                     bool isSelected, bool isHovered, bool hasFocus,
                                     const QColor &highlightColor,
                                     const StopHandleColor &color1,
                                     const StopHandleColor &color2 = {});
-void KRITAUI_EXPORT paintMidPointHandle(QPainter &painter,
+void KRITAWIDGETS_EXPORT paintMidPointHandle(QPainter &painter,
                                         const QPointF &position,
                                         qreal size,
                                         bool isSelected, bool isHovered, bool hasFocus,
@@ -47,8 +47,8 @@ void KRITAUI_EXPORT paintMidPointHandle(QPainter &painter,
                                         const QColor &fillColor,
                                         const QColor &highlightColor);
                                         
-KisGradientWidgetsUtils::ColorType KRITAUI_EXPORT segmentEndPointTypeToColorType(KoGradientSegmentEndpointType type);
-KoGradientSegmentEndpointType KRITAUI_EXPORT colorTypeToSegmentEndPointType(KisGradientWidgetsUtils::ColorType type, bool transparent = false);
+KisGradientWidgetsUtils::ColorType KRITAWIDGETS_EXPORT segmentEndPointTypeToColorType(KoGradientSegmentEndpointType type);
+KoGradientSegmentEndpointType KRITAWIDGETS_EXPORT colorTypeToSegmentEndPointType(KisGradientWidgetsUtils::ColorType type, bool transparent = false);
 
 }
 

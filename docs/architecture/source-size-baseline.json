@@ -76,7 +76,7 @@
     "libs/ui/resources/kis_popup_palette.cpp": 1603,
     "libs/ui/tool/kis_paintop_box.cc": 1579,
     "libs/ui/tool/kis_tool_freehand_helper.cpp": 1087,
-    "libs/ui/widgets/KoFillConfigWidget.cpp": 1084,
+    "libs/widgets/KoFillConfigWidget.cpp": 1080,
     "libs/ui/widgets/gradient/KisSegmentGradientSlider.cpp": 1131,
     "libs/ui/tool/kis_scratch_pad.cpp": 1218,
     "libs/application/ui/workspace/KisMainWindow.cpp": 3353,

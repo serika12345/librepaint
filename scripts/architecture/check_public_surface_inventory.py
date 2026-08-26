@@ -226,6 +226,22 @@ PUBLIC_HEADER_SET_SPECS = (
         ],
     },
     {
+        "ownerTarget": "kritawidgets",
+        "sourceDirectory": "libs/widgets",
+        "headerDirectories": ["libs/widgets"],
+        "excludedHeaderDirectories": ["libs/widgets/tests"],
+        "exportMacro": "KRITAWIDGETS_EXPORT",
+        "responsibility": (
+            "Records the declared reusable widget surface for color, gradient, "
+            "shape fill, stroke, and shared desktop control presentation."
+        ),
+        "evidence": [
+            "libs/widgets/CMakeLists.txt",
+            "libs/widgets/KoFillConfigWidget.h",
+            "libs/widgets/KoStrokeConfigWidget.h",
+        ],
+    },
+    {
         "ownerTarget": "kritacanvas",
         "sourceDirectory": "libs/canvas",
         "headerDirectories": ["libs/canvas"],

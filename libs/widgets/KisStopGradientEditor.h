@@ -8,13 +8,13 @@
 #ifndef _KIS_STOP_GRADIENT_EDITOR_H_
 #define _KIS_STOP_GRADIENT_EDITOR_H_
 
-#include "kritaui_export.h"
+#include "kritawidgets_export.h"
 #include "ui_wdgstopgradienteditor.h"
 #include <boost/optional.hpp>
 #include <KoStopGradient.h>
 #include <KisGradientWidgetsUtils.h>
 
-class KRITAUI_EXPORT KisStopGradientEditor : public QWidget, public Ui::KisWdgStopGradientEditor
+class KRITAWIDGETS_EXPORT KisStopGradientEditor : public QWidget, public Ui::KisWdgStopGradientEditor
 {
     Q_OBJECT
 

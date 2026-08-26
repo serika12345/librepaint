@@ -18,7 +18,6 @@
 #include "KoCanvasBase.h"
 #include <KoColor.h>
 #include <KoColorDisplayRendererInterface.h>
-#include "canvas/kis_canvas_resource_provider.h"
 #include <KisHandlePainterHelper.h>
 #include "KoPathPointTypeCommand.h"
 #include <KisAngleSelector.h>

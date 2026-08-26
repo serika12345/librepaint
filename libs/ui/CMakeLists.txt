@@ -230,8 +230,6 @@ set(kritaui_LIB_SRCS
     widgets/KoBackgroundColour.cpp
     widgets/KoSwapBgFgColours.cpp
     widgets/KoResetBgFgColours.cpp
-    widgets/KoStrokeConfigWidget.cpp
-    widgets/KoFillConfigWidget.cpp
     widgets/KisLayerStyleAngleSelector.cpp
     widgets/KisMemoryReportButton.cpp
     widgets/KisDitherWidget.cpp
@@ -248,14 +246,10 @@ set(kritaui_LIB_SRCS
     widgets/KisGrabKeyboardFocusRecoveryWorkaround.cpp
 
     # Gradient related widgets
-    widgets/gradient/KisStopGradientEditor.cpp
     widgets/gradient/KisSegmentGradientEditor.cpp
-    widgets/gradient/KisStopGradientSlider.cpp
     widgets/gradient/KisSegmentGradientSlider.cpp
     widgets/gradient/KisGradientChooser.cpp
     widgets/gradient/KisGenericGradientEditor.cpp
-    widgets/gradient/KisGradientWidgetsUtils.cpp
-    widgets/gradient/KisGradientColorEditor.cpp
 
     dialogs/KisDlgPaletteEditor.cpp
 
@@ -390,8 +384,6 @@ if(APPLE AND NOT IOS)
 endif()
 
 ki18n_wrap_ui(kritaui_UI_HEADERS
-    widgets/KoFillConfigWidget.ui
-    widgets/KoStrokeConfigWidget.ui
     widgets/KisDitherWidget.ui
     widgets/KisAutoLevelsWidget.ui
 
@@ -431,7 +423,6 @@ ki18n_wrap_ui(kritaui_UI_HEADERS
     forms/wdgpreseticonlibrary.ui
     forms/wdgimportimagesequence.ui
     forms/wdgstrokeselectionproperties.ui
-    forms/wdgstopgradienteditor.ui
     forms/wdgsessionmanager.ui
     forms/wdgnewwindowlayout.ui
     forms/WdgDlgPaletteEditor.ui

@@ -10,7 +10,7 @@
 
 #include <QTransform>
 
-class KisVisualEllipticalSelectorShape : public KisVisualColorSelectorShape
+class KRITAWIDGETS_EXPORT KisVisualEllipticalSelectorShape : public KisVisualColorSelectorShape
 {
     Q_OBJECT
 public:

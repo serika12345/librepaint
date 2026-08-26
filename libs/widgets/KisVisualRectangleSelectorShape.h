@@ -8,7 +8,7 @@
 
 #include "KisVisualColorSelectorShape.h"
 
-class KisVisualRectangleSelectorShape : public KisVisualColorSelectorShape
+class KRITAWIDGETS_EXPORT KisVisualRectangleSelectorShape : public KisVisualColorSelectorShape
 {
     Q_OBJECT
 public:

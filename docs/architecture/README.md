@@ -67,7 +67,7 @@
 `kritadocumentui`の6件、`kritaimage`の331件、`kritaimpex`の12件、
 `kritaimpexui`の23件、`kritainput`の12件、`kritainputui`の13件、
 `kritapainting`の19件、`kritatools`の19件、`kritaapplication`の3件、
-`kritaapplicationui`の215件を全件記録し、
+`kritaapplicationui`の210件、`kritawidgets`の65件を全件記録し、
 `scope.publicHeaders`を`complete`とする。入出力領域は
 `libs/impex`直下の形式・検査契約と、`libs/impex/ui`および`libs/impex/animation`の
 文書・利用者接続を別の公開集合として採取する。試験と性能測定だけで共有するヘッダーは製品パッケージ間の公開面を
@@ -129,7 +129,7 @@ R1-G2の公開面台帳、UIクラス責務台帳、UIツールクラス責務�
 
 `reviewedPublicHeaderPaths`は、全件分類済みのUI直下またはUIツールクラスの範囲外にある
 公開ヘッダーを、根拠を確認した責務へ一意に割り当てる。現在は
-`libs/ui/widgets/KoStrokeConfigWidget.h`を、図形線の設定表示とキャンバス選択状態を扱う
+`libs/widgets/KoStrokeConfigWidget.h`を、図形線の設定表示とキャンバス選択状態を扱う
 `canvas-presentation`へ割り当てる。
 
 `reviewedSourcePaths`は、共有ターゲット内に残る表示実装のうち、全件クラス台帳の範囲外に
@@ -270,7 +270,7 @@ Windows 236件であり、現在の非自明な強連結成分は両範囲、全
 宣言済み公開面へ移す対象として基準化する。`kritaimage`の29ヘッダー、593参照は公開
 ヘッダー構築契約へ移行して0件となった。`kritaimpex`、`kritaimpexui`、`kritatools`も未宣言の
 パッケージ外参照が0件であり、`kritainputui`も宣言済み公開面を利用する。
-全14所有ターゲットで内部ヘッダーとパッケージ外直接参照は各0件である。
+全15所有ターゲットで内部ヘッダーとパッケージ外直接参照は各0件である。
 
 ### パッケージ再配置計画
 

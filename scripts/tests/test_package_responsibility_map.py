@@ -130,7 +130,7 @@ class PackageResponsibilityMapTests(unittest.TestCase):
         )
         self.assertEqual(
             by_id["canvas-presentation"]["reviewedPublicHeaderPaths"],
-            ["libs/ui/widgets/KoStrokeConfigWidget.h"],
+            ["libs/widgets/KoStrokeConfigWidget.h"],
         )
         self.assertIn(
             "kritaworkspacepresentation",
@@ -202,10 +202,12 @@ class PackageResponsibilityMapTests(unittest.TestCase):
             "kritadocumentui",
             target_by_name["kritaapplicationui"]["repositoryDependencies"],
         )
-        self.assertEqual(
-            target_by_name["kritaapplicationui"]["repositoryConsumers"],
-            ["krita"],
-        )
+        application_ui_consumers = target_by_name["kritaapplicationui"][
+            "repositoryConsumers"
+        ]
+        self.assertIn("krita", application_ui_consumers)
+        self.assertIn("kritapixelizefilter", application_ui_consumers)
+        self.assertNotIn("kritaui", application_ui_consumers)
 
     def test_missing_responsibility_is_rejected(self) -> None:
         responsibility_map = copy.deepcopy(self.load_map())

@@ -22,7 +22,6 @@
 
 #include <KisGradientWidgetsUtils.h>
 #include "kis_global.h"
-#include "krita_utils.h"
 #include <KoColor.h>
 #include <KisDlgInternalColorSelector.h>
 #include <kconfiggroup.h>

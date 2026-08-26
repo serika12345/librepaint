@@ -17,7 +17,7 @@
 #ifndef STROKECONFIGWIDGET_H
 #define STROKECONFIGWIDGET_H
 
-#include "kritaui_export.h"
+#include "kritawidgets_export.h"
 
 #include <QWidget>
 #include <QLabel>
@@ -34,7 +34,7 @@ class KoShapeStroke;
 class KisSpinBoxUnitManager;
 
 /// A widget for configuring the stroke of a shape
-class KRITAUI_EXPORT KoStrokeConfigWidget : public QWidget
+class KRITAWIDGETS_EXPORT KoStrokeConfigWidget : public QWidget
 {
     Q_OBJECT
 public:
