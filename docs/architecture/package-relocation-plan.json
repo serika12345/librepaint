@@ -11,7 +11,7 @@
     "migrationOrder": "lower-layer-before-dependent-layer",
     "uiOwnership": "presentation-subtargets-own-widgets-screen-state-and-interaction-wiring",
     "domainOwnership": "domain-targets-own-state-jobs-serialization-and-platform-neutral-services",
-    "cppNamespacePolicy": "New APIs use the target Krita namespace; existing public global identifiers remain source-compatible through R1-G7.",
+    "cppNamespacePolicy": "New APIs use the target Krita responsibility namespace. Existing public global identifiers retain their established names as stable API and ABI.",
     "publicCompatibility": "Only the compatibility routes recorded in this plan may preserve old include paths or CMake target names. A wave that updates every repository consumer removes its old paths in the same change.",
     "stableIdentifierPolicy": "MIME and UTI values, plugin IDs and service types, action IDs, settings keys, serialized formats, and scripting names remain stable unless a separately reviewed migration contract exists."
   },
@@ -590,17 +590,6 @@
   ],
   "compatibilityRoutes": [
     {
-      "id": "legacy-tool-ui-headers",
-      "kind": "forwarding-headers",
-      "legacy": "tool-invocation and settings-presentation headers below libs/ui/tool",
-      "replacement": "libs/tools and libs/tools/ui",
-      "introducedBy": "R1-G6f",
-      "owner": "R1-G7",
-      "maximumScope": "The R1-G2 tool invocation and settings presentation class sets plus reviewed tool internal headers.",
-      "removalCondition": "All consumers use tool-command or tool-settings and no old tool header has an external consumer.",
-      "verification": "UI tool and public-surface inventories report no legacy consumer."
-    },
-    {
       "id": "legacy-kritaui-target",
       "kind": "cmake-compatibility-target",
       "legacy": "kritaui",
@@ -610,17 +599,6 @@
       "maximumScope": "One source-free aggregate compatibility target after all responsibility slices move.",
       "removalCondition": "All five CMake graphs contain no repository consumer of kritaui and installed SDK metadata exports only replacement targets.",
       "verification": "CMake target inventories, SDK package tests, and downstream compatibility fixtures contain no kritaui dependency."
-    },
-    {
-      "id": "legacy-global-cpp-identifiers",
-      "kind": "source-compatibility",
-      "legacy": "Existing public global C++ class and function names",
-      "replacement": "Krita responsibility namespaces for new APIs",
-      "introducedBy": "R1-G6h",
-      "owner": "R1-G7",
-      "maximumScope": "Only identifiers present in the R1-G2 public-surface inventories.",
-      "removalCondition": "A separately reviewed API and ABI migration declares downstream compatibility complete for each identifier removed.",
-      "verification": "Public API and ABI fixtures approve every removed alias or forwarding declaration."
     }
   ],
   "migrationWaves": [
@@ -1006,9 +984,7 @@
       "createsTargets": [
         "kritatools"
       ],
-      "compatibilityRoutes": [
-        "legacy-tool-ui-headers"
-      ],
+      "compatibilityRoutes": [],
       "requiredContracts": [
         "Tool activation and interaction lifetime tests",
         "Cancellation and undo-consistent command tests",
@@ -1150,7 +1126,6 @@
         "kritaapplicationui"
       ],
       "compatibilityRoutes": [
-        "legacy-global-cpp-identifiers",
         "legacy-kritaui-target"
       ],
       "requiredContracts": [

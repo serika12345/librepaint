@@ -42,6 +42,26 @@ class PackageRelocationPlanTests(unittest.TestCase):
         self.assertEqual(len(plan["packages"]), 10)
         self.assertEqual(len(plan["migrationWaves"]), 8)
         self.assertEqual(plan["firstImplementationWave"], "R1-G6a")
+        self.assertEqual(
+            [route["id"] for route in plan["compatibilityRoutes"]],
+            ["legacy-kritaui-target"],
+        )
+        self.assertEqual(
+            next(
+                wave
+                for wave in plan["migrationWaves"]
+                if wave["id"] == "R1-G6f"
+            )["compatibilityRoutes"],
+            [],
+        )
+        self.assertEqual(
+            next(
+                wave
+                for wave in plan["migrationWaves"]
+                if wave["id"] == "R1-G6h"
+            )["compatibilityRoutes"],
+            ["legacy-kritaui-target"],
+        )
         first = plan["migrationWaves"][0]
         self.assertEqual(first["responsibilities"], ["resource-management"])
         self.assertIn(
