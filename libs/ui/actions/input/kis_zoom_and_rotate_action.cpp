@@ -11,7 +11,7 @@
 #include <klocalizedstring.h>
 #include <kis_canvas_controller.h>
 #include <kis_canvas2.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_algebra_2d.h>
 
 #include "kis_zoom_and_rotate_action.h"

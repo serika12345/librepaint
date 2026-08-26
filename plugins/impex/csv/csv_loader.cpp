@@ -16,9 +16,9 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 
-#include <application/KisPart.h>
-#include <workspace/KisView.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisView.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <document/KisDocument.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>

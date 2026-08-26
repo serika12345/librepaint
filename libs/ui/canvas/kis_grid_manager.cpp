@@ -18,9 +18,9 @@
 #include "kis_canvas2.h"
 #include "application/kis_config.h"
 #include "kis_grid_decoration.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "document/KisDocument.h"
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "kis_grid_config.h"
 #include "kis_signals_blocker.h"
 #include <kis_signal_auto_connection.h>

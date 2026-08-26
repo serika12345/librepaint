@@ -11,9 +11,9 @@
 #include <klocalizedstring.h>
 #include <kundo2command.h>
 
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <document/KisDocument.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <KoPathShape.h>
 #include <KoShapeController.h>
 #include <KoShapeRegistry.h>
@@ -25,7 +25,7 @@
 #include <metadata/KoDocumentInfo.h>
 #include <KoCanvasBase.h>
 
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_clipboard.h"
 #include "kis_pixel_selection.h"

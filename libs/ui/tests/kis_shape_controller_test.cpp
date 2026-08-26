@@ -8,7 +8,7 @@
 
 #include <simpletest.h>
 
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "document/KisDocument.h"
 #include "kis_name_server.h"
 #include "flake/kis_shape_controller.h"

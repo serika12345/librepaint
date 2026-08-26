@@ -35,10 +35,10 @@
 #include "kis_image_config.h"
 #include <limits>
 
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_icon_utils.h"
 
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "dialogs/KisAsyncAnimationCacheRenderDialog.h"
 
 

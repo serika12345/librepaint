@@ -25,8 +25,8 @@
 #include <KoCanvasBase.h>
 #include <KoFileDialog.h>
 
-#include <application/KisPart.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include <KisKineticScroller.h>
 
@@ -34,8 +34,8 @@
 #include <kis_group_layer.h>
 #include <kis_painter.h>
 #include <kis_paint_layer.h>
-#include <application/kis_action.h>
-#include <application/kis_action_manager.h>
+#include <application/ui/orchestration/kis_action.h>
+#include <application/ui/orchestration/kis_action_manager.h>
 #include <kis_action_registry.h>
 
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>

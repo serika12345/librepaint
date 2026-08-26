@@ -16,11 +16,11 @@
 #include "kis_onion_skin_compositor.h"
 #include "kis_signals_blocker.h"
 #include "nodes/kis_node_view_color_scheme.h"
-#include "workspace/KisViewManager.h"
-#include "application/kis_action_manager.h"
-#include "application/kis_action.h"
+#include "application/ui/workspace/KisViewManager.h"
+#include "application/ui/orchestration/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action.h"
 #include <KoColorSpaceRegistry.h>
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 #include <KisSpinBoxI18nHelper.h>
 
 #include "kis_equalizer_widget.h"

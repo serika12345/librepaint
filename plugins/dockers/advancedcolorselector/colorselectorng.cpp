@@ -14,7 +14,7 @@
 
 #include "kis_color_selector_ng_dock.h"
 #include "kis_color_selector_settings.h"
-#include "workspace/kis_preference_set_registry.h"
+#include "application/ui/workspace/kis_preference_set_registry.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(ColorSelectorNgPluginFactory, "krita_colorselectorng.json", registerPlugin<ColorSelectorNgPlugin>();)
 

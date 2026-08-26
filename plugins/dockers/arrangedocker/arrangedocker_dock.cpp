@@ -8,7 +8,7 @@
 #include <klocalizedstring.h>
 
 #include "kis_canvas2.h"
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include "arrange_docker_widget.h"
 
 #include <KoToolProxy.h>

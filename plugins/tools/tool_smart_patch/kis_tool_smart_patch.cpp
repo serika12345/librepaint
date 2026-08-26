@@ -11,7 +11,7 @@
 
 #include <klocalizedstring.h>
 #include <KoColor.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include "kis_canvas2.h"
 #include "kis_cursor.h"
 #include "kis_painter.h"

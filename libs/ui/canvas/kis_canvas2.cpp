@@ -45,7 +45,7 @@
 #include "kis_undo_adapter.h"
 #include "flake/kis_shape_layer.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_abstract_canvas_widget.h"
@@ -63,10 +63,10 @@
 #include "kis_signal_compressor.h"
 #include "kis_display_color_converter.h"
 #include "kis_exposure_gamma_correction_interface.h"
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "kis_canvas_controller.h"
 #include "kis_grid_config.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 
 #include "KisCanvasAnimationState.h"
 #include <animation/kis_animation_frame_cache.h>
@@ -104,7 +104,7 @@
 
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */
 
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisMultiSurfaceStateManager.h>
 #include <KisCanvasState.h>
 

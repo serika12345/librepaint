@@ -33,8 +33,8 @@
 #include <KoPointerEvent.h>
 #include <KoColorProfile.h>
 #include <KoSelection.h>
-#include <application/KisPart.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisMainWindow.h>
 
 #include <filter/kis_filter_configuration.h>
 #include <filter/kis_filter.h>
@@ -75,14 +75,14 @@
 #include "canvas/kis_canvas_resource_provider.h"
 #include "selection/kis_selection_manager.h"
 #include "canvas/kis_statusbar.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include "widgets/kis_meta_data_merge_strategy_chooser_widget.h"
 #include "widgets/kis_wdg_generator.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "nodes/kis_node_manager.h"
-#include "application/kis_action.h"
-#include "application/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kis_signal_compressor_with_param.h"
 #include "kis_abstract_projection_plane.h"

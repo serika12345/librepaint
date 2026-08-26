@@ -34,9 +34,9 @@
 // local
 #include "document/KisDocument.h"
 #include "KisImportExportManager.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 #include "KisMimeDatabase.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "KisRemoteFileFetcher.h"
 #include "KisImportExportDialogs.h"
 #include "kis_mimedata.h"

@@ -12,11 +12,6 @@ endif()
 
 add_subdirectory( tests )
 
-if (APPLE AND NOT IOS)
-    find_library(FOUNDATION_LIBRARY Foundation)
-    find_library(APPKIT_LIBRARY AppKit)
-endif ()
-
 set(kritaui_LIB_SRCS
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp
@@ -95,13 +90,11 @@ set(kritaui_LIB_SRCS
     resources/KisPresetShadowUpdater.cpp
     canvas/kis_canvas_resource_provider.cpp
     resources/kis_derived_resources.cpp
-    application/KisQtWidgetsTweaker.cpp
     resources/kis_control_frame.cpp
     canvas/KisDisplayConfig.cpp
     resources/kis_custom_pattern.cc
     document/kis_file_layer.cpp
     document/kis_change_file_layer_command.h
-    workspace/kis_splash_screen.cpp
     document/kis_filter_manager.cc
     resources/kis_filters_model.cc
     document/kis_image_manager.cc
@@ -128,8 +121,6 @@ set(kritaui_LIB_SRCS
     canvas/KisDecorationsManager.cpp
     tool/kis_paintop_box.cc
     resources/kis_popup_palette.cpp
-    workspace/kis_preference_set_registry.cpp
-    application/KisResourceServerProvider.cpp
     flake/KisSelectedShapesProxy.cpp
     canvas/kis_selection_decoration.cc
     selection/kis_selection_manager.cc
@@ -137,12 +128,8 @@ set(kritaui_LIB_SRCS
     canvas/kis_statusbar.cc
     canvas/kis_zoom_manager.cc
     resources/kis_favorite_resource_manager.cpp
-    application/kis_action.cpp
-    application/kis_action_manager.cpp
-    application/KisActionPlugin.cpp
     canvas/kis_canvas_controls_manager.cpp
     nodes/kis_multinode_property.cpp
-    workspace/KisWelcomePageWidget.cpp
     theme/KisUiFont.cpp
     canvas/KisIdleTasksManager.cpp
     canvas/KisIdleTaskStrokeStrategy.cpp
@@ -318,9 +305,6 @@ set(kritaui_LIB_SRCS
     canvas/kcanvaspreview.cc
     canvas/kis_abstract_perspective_grid.cpp
 
-    application/KisPlatformPluginInterfaceFactory.cpp
-    application/KisApplication.cpp
-    workspace/KisDetailsPane.cpp
     document/KisDocument.cpp
     document/KisDocumentImageState.cpp
     document/KisImageManagerDrop.cpp
@@ -330,35 +314,15 @@ set(kritaui_LIB_SRCS
     document/KisCloneDocumentStroke.cpp
     nodes/kis_node_view_color_scheme.cpp
     events/kis_async_action_feedback.cpp
-    workspace/KisMainWindow.cpp
-    workspace/KisOpenPane.cpp
-    application/KisPart.cpp
-    workspace/KisTemplate.cpp
-    workspace/KisTemplateCreateDia.cpp
-    workspace/KisTemplateGroup.cpp
-    workspace/KisTemplates.cpp
-    workspace/KisTemplatesPane.cpp
-    workspace/KisTemplateTree.cpp
     actions/KisUndoActionsUpdateManager.cpp
-    workspace/KisView.cpp
-    workspace/KisCanvasWindow.cpp
 
     theme/thememanager.cpp
 
-    workspace/kis_mainwindow_observer.cpp
-    workspace/KisViewManager.cpp
-    workspace/KisViewManagerToolActivation.cpp
     canvas/kis_mirror_manager.cpp
 
     qtsingleapplication/qtlocalpeer.cpp
     qtsingleapplication/qtsingleapplication.cpp
 
-    application/KisApplicationArguments.cpp
-
-
-    workspace/KisWindowLayoutResource.cpp
-    workspace/KisWindowLayoutManager.cpp
-    workspace/KisSessionResource.cpp
 
     canvas/KisReferenceImagesDecoration.cpp
     canvas/KisReferenceImage.cpp
@@ -423,12 +387,6 @@ if(APPLE AND NOT IOS)
     )
 endif()
 
-if(ANDROID)
-    list(APPEND kritaui_LIB_SRCS
-        workspace/KisAndroidSplash.cpp
-    )
-endif()
-
 ki18n_wrap_ui(kritaui_LIB_SRCS
     widgets/KoFillConfigWidget.ui
     widgets/KoStrokeConfigWidget.ui
@@ -471,12 +429,9 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     forms/wdgpreseticonlibrary.ui
     forms/wdgimportimagesequence.ui
     forms/wdgstrokeselectionproperties.ui
-    forms/KisDetailsPaneBase.ui
-    forms/KisOpenPaneBase.ui
     forms/wdgstopgradienteditor.ui
     forms/wdgsessionmanager.ui
     forms/wdgnewwindowlayout.ui
-    forms/KisWelcomePage.ui
     forms/WdgDlgPaletteEditor.ui
     forms/wdgGamutMaskToolbar.ui
     forms/wdgchangeclonesource.ui
@@ -503,7 +458,6 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     layerstyles/wdgTexture.ui
     layerstyles/wdgKisLayerStyleAngleSelector.ui
 
-    workspace/wdgsplash.ui
     imagesize/wdg_imagesize.ui
     imagesize/wdg_layersize.ui
     imagesize/wdg_canvassize.ui
@@ -573,6 +527,7 @@ target_link_libraries(kritaui
         kritainput
         kritaapplication
     PRIVATE
+        kritaapplicationui
         kritadocumentfiles
         kritadocumentui
         kritaimpexui

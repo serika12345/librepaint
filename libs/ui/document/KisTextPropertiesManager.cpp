@@ -11,7 +11,7 @@
 #include <KoSvgTextShape.h>
 #include <KoSvgTextPropertiesInterface.h>
 
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <kis_canvas2.h>
 #include <kis_signal_auto_connection.h>
 

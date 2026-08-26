@@ -9,14 +9,14 @@
 #include <KoPattern.h>
 #include <KoAbstractGradient.h>
 #include <kis_paintop_preset.h>
-#include <workspace/KisView.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisView.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <nodes/kis_node_manager.h>
 #include <selection/kis_selection_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_exposure_gamma_correction_interface.h>
 #include <tool/kis_paintop_box.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <KoCanvasBase.h>
 #include <KoToolProxy.h>
 #include <kis_canvas2.h>

@@ -12,10 +12,10 @@
 #include <QTimer>
 
 #include <document/KisDocument.h>
-#include <workspace/KisMainWindow.h>
-#include <application/KisPart.h>
-#include <workspace/KisView.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisView.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <opengl/kis_opengl.h>
 
 #include <KoInteractionTool.h>

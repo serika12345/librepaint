@@ -10,7 +10,7 @@
 #include <QObject>
 #include <QMap>
 #include <QScopedPointer>
-#include <application/KisActionPlugin.h>
+#include <application/ui/orchestration/KisActionPlugin.h>
 
 class KisAction;
 

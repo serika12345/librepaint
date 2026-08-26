@@ -5,9 +5,9 @@
  */
 
 #include "KisCanvasOnlyAction.h"
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <kactioncollection.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <QAction>
 #include <kis_debug.h>
 

@@ -38,7 +38,7 @@
 #include <canvas/kis_painting_assistants_decoration.h>
 #include <kis_undo_adapter.h>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 
 #include "EditAssistantsCommand.h"
 #include "PerspectiveAssistant.h"

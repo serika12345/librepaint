@@ -13,8 +13,8 @@
 
 #include "kis_types.h"
 #include <kritaui_export.h>
-#include "application/kis_action_manager.h"
-#include "application/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action.h"
 
 class KisGridDecoration;
 class KisViewManager;

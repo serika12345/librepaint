@@ -27,7 +27,7 @@
 #include "kis_action_registry.h"
 #include "krita_utils.h"
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 
 #include "nodes/kis_node_manager.h"

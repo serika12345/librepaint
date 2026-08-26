@@ -50,7 +50,7 @@
 #include <KisScreenMigrationTracker.h>
 #include <kis_config_notifier.h>
 
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 #include <canvas/KisRootSurfaceInfoProxy.h>
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */

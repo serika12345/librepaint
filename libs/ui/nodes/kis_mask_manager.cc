@@ -16,7 +16,7 @@
 #include <kis_undo_adapter.h>
 #include <kis_paint_layer.h>
 #include "document/KisDocument.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include <kis_layer.h>
 #include <kis_clone_layer.h>
 #include <kis_group_layer.h>

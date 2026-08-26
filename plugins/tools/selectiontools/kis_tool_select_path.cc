@@ -15,7 +15,7 @@
 #include "kis_painter.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <kis_command_utils.h>
 #include <kis_selection_filters.h>
 #include <KisOptimizedBrushOutline.h>

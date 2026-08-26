@@ -10,7 +10,7 @@
 
 #include <simpletest.h>
 #include <testutil.h>
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_image.h"
 #include "document/KisDocument.h"
 #include "kis_image_animation_interface.h"

@@ -11,8 +11,8 @@
 #include <kis_debug.h>
 #include <kpluginfactory.h>
 #include <kis_image.h>
-#include <workspace/KisViewManager.h>
-#include <application/kis_action.h>
+#include <application/ui/workspace/KisViewManager.h>
+#include <application/ui/orchestration/kis_action.h>
 
 #include "dlg_clonesarray.h"
 

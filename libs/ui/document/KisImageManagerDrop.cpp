@@ -17,9 +17,9 @@
 #include "kis_mimedata.h"
 #include "kis_shape_controller.h"
 #include "nodes/kis_node_manager.h"
-#include "workspace/KisMainWindow.h"
-#include "workspace/KisView.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisView.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "widgets/kis_canvas_drop.h"
 
 #include <KoToolManager.h>

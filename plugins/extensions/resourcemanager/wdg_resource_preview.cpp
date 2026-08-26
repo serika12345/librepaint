@@ -17,8 +17,8 @@
 #include <QCompleter>
 #include <QLineEdit>
 
-#include <application/kis_action.h>
-#include <application/kis_action_manager.h>
+#include <application/ui/orchestration/kis_action.h>
+#include <application/ui/orchestration/kis_action_manager.h>
 #include <kis_icon.h>
 #include <KisResourceTypeModel.h>
 #include <KisStorageModel.h>

@@ -18,7 +18,7 @@
 #include "KisCanvasAnimationState.h"
 #include "kis_image_animation_interface.h"
 #include "kis_signal_compressor_with_param.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 
 #include <mlt++/Mlt.h>
 #include <mlt++/MltConsumer.h>

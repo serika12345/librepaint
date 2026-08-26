@@ -26,13 +26,13 @@
 #include <kis_layer.h>
 #include <kis_types.h>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_paint_device.h>
-#include <application/kis_action.h>
+#include <application/ui/orchestration/kis_action.h>
 #include <kis_group_layer.h>
 
 #include <dialogs/KisColorSpaceConversionDialog.h>
-#include "application/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(ColorSpaceConversionFactory, "kritacolorspaceconversion.json", registerPlugin<ColorSpaceConversion>();)
 

@@ -33,8 +33,8 @@
 
 #include <kaboutdata.h>
 
-#include <application/KisApplication.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisApplication.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <KisSupportedArchitectures.h>
 #include <KisUsageLogger.h>
 #include <KoConfig.h>
@@ -45,12 +45,12 @@
 #include <kritaversion.h>
 #include <opengl/kis_opengl.h>
 
-#include "application/KisApplicationArguments.h"
+#include "application/ui/orchestration/KisApplicationArguments.h"
 #include "document/KisDocument.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "theme/KisUiFont.h"
-#include "application/KisQtWidgetsTweaker.h"
-#include "workspace/kis_splash_screen.h"
+#include "application/ui/orchestration/KisQtWidgetsTweaker.h"
+#include "application/ui/workspace/kis_splash_screen.h"
 #include "config-qt-patches-present.h"
 
 #ifdef Q_OS_IOS

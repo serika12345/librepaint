@@ -15,7 +15,7 @@
 #include "KisBusyWaitBroker.h"
 #include "kis_image.h"
 #include "kis_composite_progress_proxy.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 
 namespace
 {

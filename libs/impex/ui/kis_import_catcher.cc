@@ -15,7 +15,7 @@
 #include "nodes/kis_node_manager.h"
 #include "kis_paint_layer.h"
 #include <KoProperties.h>
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "kis_image.h"
 #include "kis_layer.h"
@@ -23,7 +23,7 @@
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_group_layer.h"
 #include "application/kis_config.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_shape_layer.h"
 
 struct KisImportCatcher::Private

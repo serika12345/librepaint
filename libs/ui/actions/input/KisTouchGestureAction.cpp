@@ -5,8 +5,8 @@
  */
 
 #include "KisTouchGestureAction.h"
-#include <workspace/KisMainWindow.h>
-#include <application/KisPart.h>
+#include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <QAction>
 #include <kactioncollection.h>
 #include <kis_debug.h>

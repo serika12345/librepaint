@@ -12,8 +12,8 @@
 #include <KisSignalMapper.h>
 #include "kis_liquify_properties.h"
 
-#include "workspace/KisMainWindow.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_transform_utils.h"
 #include <kstandardguiitem.h>
 #include <KisSpinBoxI18nHelper.h>

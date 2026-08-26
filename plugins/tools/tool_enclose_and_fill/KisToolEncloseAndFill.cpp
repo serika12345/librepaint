@@ -26,7 +26,7 @@
 #include <resources/KoPattern.h>
 #include <kis_selection.h>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <kis_slider_spin_box.h>
 #include <kis_cursor.h>
@@ -47,7 +47,7 @@
 #include <kis_layer_utils.h>
 
 #include <KisSpinBoxI18nHelper.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <kis_dummies_facade.h>
 #include <KoShapeControllerBase.h>

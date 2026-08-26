@@ -3,9 +3,9 @@
  */
 #include "canvas/KisAndroidScaling.h"
 
-#include <workspace/KisAndroidSplash.h>
+#include <application/ui/workspace/KisAndroidSplash.h>
 #include <KisAndroidUtils.h>
-#include <application/KisApplication.h>
+#include <application/ui/orchestration/KisApplication.h>
 #include <application/kis_config.h>
 
 #include <QGuiApplication>

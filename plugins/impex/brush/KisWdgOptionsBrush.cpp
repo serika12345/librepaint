@@ -7,7 +7,7 @@
 
 #include "KisWdgOptionsBrush.h"
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <KoProperties.h>
 #include <document/KisDocument.h>

@@ -29,7 +29,7 @@
 #include "canvas/kis_canvas_resource_provider.h"
 #include "KoUnit.h"
 #include "kis_display_color_converter.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 
 #include <kis_signals_blocker.h>
 

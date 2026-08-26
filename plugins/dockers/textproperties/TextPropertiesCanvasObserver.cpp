@@ -7,7 +7,7 @@
 
 #include <KLocalizedContext>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_signal_compressor.h>
 

@@ -27,14 +27,14 @@
 
 #include "kis_image.h"
 #include "application/kis_config.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "KisOpenGLModeProber.h"
 #include "kis_fixed_paint_device.h"
 #include "KisOpenGLSync.h"
 #include <QVector3D>
 #include "kis_painting_tweaks.h"
 #include "KisOpenGLBufferCreationGuard.h"
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <tiles/kis_tile_data_pool.h>
 
 #ifdef HAVE_OPENEXR

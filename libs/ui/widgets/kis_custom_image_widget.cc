@@ -42,7 +42,7 @@
 #include <kis_painter.h>
 
 #include "application/kis_config.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "document/KisDocument.h"
 #include <KisSpinBoxI18nHelper.h>
 #include <KisSqueezedComboBox.h>

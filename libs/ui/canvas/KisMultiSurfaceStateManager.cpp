@@ -6,10 +6,10 @@
 
 #include "canvas/KisMultiSurfaceStateManager.h"
 
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 
 #include <opengl/KisOpenGLModeProber.h>
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 
 #include <canvas/KisRootSurfaceInfoProxy.h>
 

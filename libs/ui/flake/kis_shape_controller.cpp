@@ -14,7 +14,7 @@
 #include <KoShapeManager.h>
 #include <KoCanvasBase.h>
 #include <KoToolManager.h>
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <KoSelection.h>
 #include <KoShapeLayer.h>
 #include <KoPathShape.h>
@@ -33,7 +33,7 @@
 #include "kis_node_shapes_graph.h"
 #include "kis_name_server.h"
 #include "kis_shape_layer.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_node.h"
 
 #include <KoDocumentResourceManager.h>

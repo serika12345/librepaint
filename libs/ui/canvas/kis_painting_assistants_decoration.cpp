@@ -18,7 +18,7 @@
 #include "kis_debug.h"
 #include "document/KisDocument.h"
 #include "kis_canvas2.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoCompositeOpRegistry.h>

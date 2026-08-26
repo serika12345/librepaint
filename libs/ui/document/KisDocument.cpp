@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include "workspace/KisMainWindow.h" // XXX: remove
+#include "application/ui/workspace/KisMainWindow.h" // XXX: remove
 
 #include <KisMimeDatabase.h>
 
@@ -56,7 +56,7 @@
 #include <io/kis_document_io_presentation.h>
 #include <kdesktopfile.h>
 #include <kconfiggroup.h>
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 
 #include <QTextBrowser>
 #include <QApplication>
@@ -100,19 +100,19 @@
 #include "kis_layer_utils.h"
 
 // Local
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_clipboard.h"
 #include "widgets/kis_custom_image_widget.h"
 #include "canvas/kis_canvas2.h"
 #include "flake/kis_shape_controller.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "application/KisResourceServerProvider.h"
+#include "application/ui/orchestration/KisResourceServerProvider.h"
 #include "nodes/kis_node_manager.h"
-#include "application/KisPart.h"
-#include "application/KisApplication.h"
+#include "application/ui/orchestration/KisPart.h"
+#include "application/ui/orchestration/KisApplication.h"
 #include "document/KisDocument.h"
 #include "KisImportExportManager.h"
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "kis_grid_config.h"
 #include "kis_guides_config.h"
 #include "KisImageBarrierLock.h"

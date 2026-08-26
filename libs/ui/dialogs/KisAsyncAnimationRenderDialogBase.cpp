@@ -20,7 +20,7 @@
 
 #include <KisLockFrameGenerationLock.h>
 #include <KisBlockBackgroundFrameGenerationLock.h>
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "animation/KisAsyncAnimationRendererBase.h"
 #include "kis_image.h"
 #include "kis_image_config.h"

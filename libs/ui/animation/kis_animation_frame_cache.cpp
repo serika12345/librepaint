@@ -11,7 +11,7 @@
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_time_span.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 
 #include "animation/cache/KisAbstractFrameCacheSwapper.h"
 #include "animation/cache/KisFrameCacheSwapper.h"

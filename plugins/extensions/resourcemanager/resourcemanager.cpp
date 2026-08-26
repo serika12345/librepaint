@@ -12,9 +12,9 @@
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
 
-#include <application/kis_action.h>
-#include <workspace/KisViewManager.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/kis_action.h>
+#include <application/ui/workspace/KisViewManager.h>
+#include <application/ui/orchestration/KisPart.h>
 
 #include "dlg_bundle_manager.h"
 #include "DlgResourceManager.h"

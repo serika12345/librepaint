@@ -10,7 +10,7 @@
 #ifndef _KO_TOOLBOX_DOCKER_H_
 #define _KO_TOOLBOX_DOCKER_H_
 
-#include <workspace/kis_mainwindow_observer.h>
+#include <application/ui/workspace/kis_mainwindow_observer.h>
 
 #include <QDockWidget>
 

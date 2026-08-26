@@ -9,14 +9,14 @@
 #include "kis_action_manager_test.h"
 #include <kis_debug.h>
 
-#include <application/KisPart.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <document/KisDocument.h>
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <util.h>
-#include <application/kis_action.h>
-#include <application/kis_action_manager.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/orchestration/kis_action.h>
+#include <application/ui/orchestration/kis_action_manager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <opengl/kis_opengl.h>
 
 #include "nodes/kis_node_manager.h"

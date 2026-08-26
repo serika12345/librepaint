@@ -16,7 +16,7 @@
 #include "kis_clone_layer.h"
 #include "document/KisDocument.h"
 #include "kis_shape_controller.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_layer_utils.h"
 #include "kis_generator_registry.h"
 #include "KisGlobalResourcesInterface.h"
@@ -36,7 +36,7 @@
 #include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <canvas/KisDisplayConfig.h>
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <opengl/KisOpenGLModeProber.h>
 
 #include <QApplication>

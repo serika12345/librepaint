@@ -12,7 +12,7 @@
 #include <klocalizedstring.h>
 #include <kis_debug.h>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <QPainter>

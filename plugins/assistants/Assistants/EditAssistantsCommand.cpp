@@ -8,9 +8,9 @@
 
 
 #include <kis_canvas2.h>
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <document/KisDocument.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/kis_painting_assistants_decoration.h>
 

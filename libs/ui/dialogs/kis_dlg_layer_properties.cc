@@ -18,7 +18,7 @@
 #include <KoColorSpace.h>
 
 #include <KisSpinBoxI18nHelper.h>
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include <kis_debug.h>
 #include <kis_global.h>
 

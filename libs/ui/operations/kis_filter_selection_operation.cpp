@@ -8,7 +8,7 @@
 
 #include "kis_filter_selection_operation.h"
 #include <commands_new/kis_transaction_based_command.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_stroke_job_strategy.h>
 #include <kis_selection.h>
 #include <kis_selection_filters.h>

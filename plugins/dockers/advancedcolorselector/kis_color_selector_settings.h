@@ -9,7 +9,7 @@
 
 
 #include <QDialog>
-#include "workspace/kis_preference_set_registry.h"
+#include "application/ui/workspace/kis_preference_set_registry.h"
 
 namespace Ui {
     class KisColorSelectorSettings;

@@ -18,7 +18,7 @@
 #include "kis_shape_selection.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_transaction.h"
 #include "commands/KisDeselectActiveSelectionCommand.h"
@@ -33,7 +33,7 @@
 
 #include "kis_algebra_2d.h"
 #include "application/kis_config.h"
-#include "application/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 #include <QMenu>
 
 

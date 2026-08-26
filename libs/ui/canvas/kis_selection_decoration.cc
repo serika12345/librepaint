@@ -17,9 +17,9 @@
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include "kis_types.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_selection.h"
 #include "kis_image.h"
 #include "kis_update_outline_job.h"
@@ -32,9 +32,9 @@
 #include "kis_image_config.h"
 #include "KisImageConfigNotifier.h"
 #include "kis_painting_tweaks.h"
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "kis_selection_mask.h"
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <KisScreenMigrationTracker.h>
 #include <kis_display_color_converter.h>
 

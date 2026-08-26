@@ -24,7 +24,7 @@
 #include <KoProperties.h>
 #include "KoCanvasController.h"
 #include <document/KisDocument.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <KoSelection.h>
 #include <KoShapeManager.h>
 #include <KoSelectedShapesProxy.h>
@@ -57,16 +57,16 @@
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_iterator_ng.h"
 #include "kis_clipboard.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_selection_filters.h"
 #include <kis_figure_painting_stroke.h>
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 
 #include "actions/kis_selection_action_factories.h"
 #include "actions/KisPasteActionFactories.h"
-#include "application/kis_action.h"
-#include "application/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 //new
 #include "kis_config_notifier.h"
 

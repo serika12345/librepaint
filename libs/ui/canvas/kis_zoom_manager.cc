@@ -14,7 +14,7 @@
 #include <ktoggleaction.h>
 #include <kis_debug.h>
 
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <KoZoomAction.h>
 #include <KoRuler.h>
 #include <KoZoomHandler.h>
@@ -22,7 +22,7 @@
 #include <KoUnit.h>
 
 #include "document/KisDocument.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_coordinates_converter.h"
 #include "kis_image.h"

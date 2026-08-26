@@ -23,7 +23,7 @@
 #include "flake/kis_node_shape.h"
 #include "ui_wdg_tool_crop.h"
 #include "kis_constrained_rect.h"
-#include "application/kis_action.h"
+#include "application/ui/orchestration/kis_action.h"
 #include "kistoolcropconfigwidget.h"
 
 class QRect;

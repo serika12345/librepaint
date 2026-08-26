@@ -8,11 +8,11 @@
 #include "KisApplicationInputActions.h"
 
 #include <klocalizedstring.h>
-#include "application/kis_action.h"
+#include "application/ui/orchestration/kis_action.h"
 #include "kis_input_manager.h"
 #include "kis_canvas2.h"
-#include "workspace/KisViewManager.h"
-#include "application/kis_action_manager.h"
+#include "application/ui/workspace/KisViewManager.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 
 
 struct KisChangeFrameAction::Private

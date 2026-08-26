@@ -9,7 +9,7 @@
 #include <KoDialog.h>
 #include "KisProofingConfiguration.h"
 #include <kis_types.h>
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "KoStrokeConfigWidget.h"
 #include "ui_wdgstrokeselectionproperties.h"
 #include <kis_canvas2.h>

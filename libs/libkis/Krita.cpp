@@ -23,12 +23,12 @@
 
 #include <kis_filter_strategy.h>
 #include <kactioncollection.h>
-#include <application/KisPart.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <application/kis_action.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/orchestration/kis_action.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <KritaVersionWrapper.h>
 #include <kis_filter_registry.h>
 #include <kis_filter.h>
@@ -39,7 +39,7 @@
 #include <brushengine/kis_paintop_preset.h>
 #include <KisBrushServerProvider.h>
 #include <KoResourceServerProvider.h>
-#include <application/KisResourceServerProvider.h>
+#include <application/ui/orchestration/KisResourceServerProvider.h>
 #include <KisPaintResourceServerProvider.h>
 #include <KisBrushServerProvider.h>
 #include <kis_action_registry.h>

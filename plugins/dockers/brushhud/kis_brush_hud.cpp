@@ -29,7 +29,7 @@
 #include "kis_elided_label.h"
 
 #include "kis_canvas2.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kactioncollection.h"
 
 

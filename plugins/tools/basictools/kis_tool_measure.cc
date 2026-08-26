@@ -28,7 +28,7 @@
 #include "krita_utils.h"
 #include "kis_floating_message.h"
 #include "kis_canvas2.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include <KisOptimizedBrushOutline.h>
 
 #define INNER_RADIUS 50

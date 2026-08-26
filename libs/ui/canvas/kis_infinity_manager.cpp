@@ -13,13 +13,13 @@
 #include <KoCanvasController.h>
 
 #include <kis_debug.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include <application/kis_config.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_canvas_controller.h>
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <kis_algebra_2d.h>
 #include <KoColorDisplayRendererInterface.h>
 

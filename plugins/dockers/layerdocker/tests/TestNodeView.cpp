@@ -14,7 +14,7 @@
 #include <NodeView.h>
 
 #include "document/KisDocument.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_name_server.h"
 #include "flake/kis_shape_controller.h"
 #include "nodes/kis_node_model.h"

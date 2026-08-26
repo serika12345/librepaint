@@ -31,7 +31,7 @@
 #include <libs/brush/kis_qimage_pyramid.h>
 
 #include <document/KisDocument.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 
 struct KisReferenceImage::Private : public QSharedData
 {

@@ -6,9 +6,9 @@
 
 #include "kis_document_aware_spin_box_unit_manager.h"
 
-#include "application/KisPart.h"
-#include "workspace/KisMainWindow.h"
-#include "workspace/KisView.h"
+#include "application/ui/orchestration/KisPart.h"
+#include "application/ui/workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisView.h"
 #include "document/KisDocument.h"
 #include "kis_types.h"
 #include "kis_image.h"

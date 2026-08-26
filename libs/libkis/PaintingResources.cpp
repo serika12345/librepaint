@@ -5,11 +5,11 @@
  */
 #include "PaintingResources.h"
 
-#include "workspace/KisView.h"
-#include "application/KisPart.h"
+#include "application/ui/workspace/KisView.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "workspace/KisViewManager.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisViewManager.h"
+#include "application/ui/workspace/KisMainWindow.h"
 #include "kis_image.h"
 #include <KisFigurePaintingOptions.h>
 

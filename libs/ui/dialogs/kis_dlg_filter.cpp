@@ -16,7 +16,7 @@
 #include <kis_node.h>
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <KisInputActionGroup.h>
 #include <application/kis_config.h>
 

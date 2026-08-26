@@ -14,10 +14,10 @@
 
 #include "kis_paint_device.h"
 #include "kis_types.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_canvas2.h"
-#include "application/kis_action.h"
+#include "application/ui/orchestration/kis_action.h"
 
 #include "dlg_colorrange.h"
 #include <KoColorSpace.h>

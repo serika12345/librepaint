@@ -18,7 +18,7 @@
 #include <KisImportExportManager.h>
 
 #include <document/KisDocument.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <kis_image.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>

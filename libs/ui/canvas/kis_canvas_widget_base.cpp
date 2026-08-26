@@ -23,7 +23,7 @@
 #include "kis_canvas_decoration.h"
 #include "application/kis_config.h"
 #include "kis_canvas2.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "kis_update_info.h"
 #include "KisQPainterStateSaver.h"

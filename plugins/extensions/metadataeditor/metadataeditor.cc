@@ -17,8 +17,8 @@
 #include "kis_layer.h"
 #include "nodes/kis_node_manager.h"
 #include "kis_types.h"
-#include "workspace/KisViewManager.h"
-#include "application/kis_action.h"
+#include "application/ui/workspace/KisViewManager.h"
+#include "application/ui/orchestration/kis_action.h"
 
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_entry.h>

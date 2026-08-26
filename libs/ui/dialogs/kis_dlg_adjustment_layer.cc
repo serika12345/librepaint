@@ -22,7 +22,7 @@
 #include "kis_node.h"
 #include "kis_node_filter_interface.h"
 #include <application/kis_config.h>
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include <kis_icon_utils.h>
 
 

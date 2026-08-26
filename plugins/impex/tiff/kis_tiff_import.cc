@@ -24,7 +24,7 @@
 
 #include <document/KisDocument.h>
 #include <KisImportExportAdditionalChecks.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <KoColorProfile.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoUnit.h>

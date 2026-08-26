@@ -24,9 +24,9 @@
 #include <KisResourceLoader.h>
 #include <KisResourceItemListView.h>
 #include <KisResourceLoaderRegistry.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <KisResourceUserOperations.h>
 
 #include "tasksetmodel.h"

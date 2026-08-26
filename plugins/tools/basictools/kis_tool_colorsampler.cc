@@ -17,7 +17,7 @@
 #include <KisSpinBoxI18nHelper.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisResourceTypes.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include "kis_display_color_converter.h"
 #include "kis_tool_utils.h"
 

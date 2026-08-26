@@ -26,11 +26,11 @@
 #include <KisMimeDatabase.h>
 #include "kis_import_catcher.h"
 #include "KisRemoteFileFetcher.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "dialogs/kis_dlg_image_properties.h"
-#include "application/kis_action.h"
-#include "application/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 #include "kis_layer_utils.h"
 #include "kis_canvas2.h"
 

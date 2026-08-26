@@ -32,8 +32,8 @@
 #include <KisKineticScroller.h>
 #include <KisCursorOverrideLock.h>
 
-#include <workspace/KisMainWindow.h>
-#include <application/KisPart.h>
+#include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
 
 DlgBundleManager::ItemDelegate::ItemDelegate(QObject *parent, KisStorageFilterProxyModel* proxy)
     : QStyledItemDelegate(parent)

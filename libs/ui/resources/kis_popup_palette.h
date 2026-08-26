@@ -13,7 +13,7 @@
 #include <QGraphicsOpacityEffect>
 #include <QSpacerItem>
 #include <QWidget>
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kactioncollection.h"
 #include "kis_tool_button.h"
 #include "KisHighlightedToolButton.h"

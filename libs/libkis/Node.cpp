@@ -13,7 +13,7 @@
 
 #include <document/KisDocument.h>
 #include <KisMimeDatabase.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <kis_image.h>
 #include <kis_types.h>
 #include <kis_node.h>
@@ -68,7 +68,7 @@
 #include <kis_layer_utils.h>
 
 #include "PaintingResources.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 #include "kis_canvas2.h"
 #include "KoCanvasResourceProvider.h"
 #include <brushengine/kis_paintop_preset.h>

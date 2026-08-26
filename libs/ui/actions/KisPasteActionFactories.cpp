@@ -10,7 +10,7 @@
 
 #include "application/kis_config.h"
 #include "kis_image.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include <KoToolManager.h>
 #include <KoToolProxy.h>
 #include "kis_canvas2.h"
@@ -41,14 +41,14 @@
 #include "kis_keyframe_channel.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kis_painter.h"
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <KisReferenceImagesLayer.h>
 #include <KoShapeBackgroundCommand.h>
 #include <KoShapeStrokeCommand.h>
 #include <KoShapeBackground.h>
 #include <KoShapeStroke.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <QApplication>
 #include <QClipboard>
 

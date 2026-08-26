@@ -7,11 +7,11 @@
 #include "iostouchui.h"
 
 #include <KisDockerHud.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <input/ui/KisPopupWidgetInterface.h>
 #include <KisResourceModel.h>
 #include <KisResourceTypes.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoColor.h>
@@ -20,7 +20,7 @@
 #include <KoToolManager.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <kactioncollection.h>
-#include <application/kis_action.h>
+#include <application/ui/orchestration/kis_action.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <application/kis_config.h>

@@ -15,13 +15,13 @@
 #include <KoColor.h>
 #include <resources/KoGamutMask.h>
 #include <kis_icon_utils.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <kis_shape_layer.h>
 #include <kis_types.h>
 #include <document/KisDocument.h>
 #include <nodes/kis_node_selection_adapter.h>
 #include <kis_group_layer.h>
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <KisResourceItemChooser.h>
 #include <kis_display_color_converter.h>
 
@@ -29,7 +29,7 @@
 #include <QButtonGroup>
 
 #include "artisticcolorselector_dock.h"
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_arcs_constants.h>
 #include <KisGamutMaskToolbar.h>

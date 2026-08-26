@@ -21,7 +21,7 @@
 #include "KoFileDialog.h"
 
 #include <document/KisDocument.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <KisImportExportManager.h>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>

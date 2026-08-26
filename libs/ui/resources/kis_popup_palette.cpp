@@ -31,7 +31,7 @@
 #include "kis_acyclic_signal_connector.h"
 #include <kis_paintop_preset.h>
 #include "events/KisMouseClickEater.h"
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 
 static const int WIDGET_MARGIN = 16;
 static const qreal BORDER_WIDTH = 3.0;

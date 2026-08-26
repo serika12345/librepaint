@@ -30,7 +30,7 @@
 #include <kis_image.h>
 #include <kis_layer.h>
 
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include "kis_prescaled_projection.h"
 #include "kis_projection_update_info.h"

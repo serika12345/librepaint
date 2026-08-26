@@ -11,7 +11,7 @@
 #include <KoColorSpaceConstants.h>
 
 #include <kis_debug.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <kis_processing_applicator.h>
 #include <commands/kis_image_commands.h>
