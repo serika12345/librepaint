@@ -21,7 +21,7 @@ kis_add_tests(
     TestApplicationPaintingResourceRegistration.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp
-    LINK_LIBRARIES kritaui kritalibkis kritatestsdk
+    LINK_LIBRARIES kritaapplication kritaui kritalibkis kritatestsdk
     )
 
 kis_add_test(
@@ -39,7 +39,7 @@ kis_add_test(
 kis_add_tests(
     kis_doc2_test.cpp
     kis_file_layer_test.cpp
-    LINK_LIBRARIES kritaui kritatransformmaskstubs
+    LINK_LIBRARIES kritaapplication kritaui kritatransformmaskstubs
     )
 
 kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testing_utils.cpp
@@ -92,7 +92,7 @@ kis_add_test(
 krita_add_broken_unit_test(
     kis_painting_assistants_decoration_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisPaintingAssistantsDecorationTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplication kritaui kritatestsdk
     )
 
 krita_add_broken_unit_test( kis_clipboard_test.cpp

@@ -8,9 +8,10 @@
 #define __KISANDROIDFILEPROXY_H_
 
 #include <QString>
+#include "kritaapplication_export.h"
 
 
-class KisAndroidFileProxy {
+class KRITAAPPLICATION_EXPORT KisAndroidFileProxy {
 public:
 
     /**

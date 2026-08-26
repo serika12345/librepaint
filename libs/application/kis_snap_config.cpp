@@ -6,7 +6,7 @@
 
 #include "kis_snap_config.h"
 
-#include "application/kis_config.h"
+#include "kis_config.h"
 
 KisSnapConfig::KisSnapConfig(bool loadValues)
     : m_orthogonal(false),

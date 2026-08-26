@@ -30,7 +30,7 @@
 #include "KisRollingSumAccumulatorWrapper.h"
 
 #ifdef Q_OS_ANDROID
-#include <application/KisAndroidFileProxy.h>
+#include <application/platform-adapters/KisAndroidFileProxy.h>
 #endif
 
 #include "kis_debug.h"
@@ -636,5 +636,4 @@ KisPlaybackEngine::PlaybackStats KisPlaybackEngineMLT::playbackStatistics() cons
 
     return stats;
 }
-
 

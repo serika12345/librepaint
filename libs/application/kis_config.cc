@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "application/kis_config.h"
+#include "kis_config.h"
 
 #include <QtGlobal>
 #include <QApplication>
@@ -18,17 +18,16 @@
 
 #include <kconfig.h>
 
-#include <document/KisDocument.h>
 #include <KisResourceLocator.h>
 
 #include <KoColor.h>
 #include <KoColorProfile.h>
+#include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoPointerEvent.h>
 
 #include <kis_debug.h>
 
-#include "canvas/kis_canvas_resource_provider.h"
 #include "kis_config_notifier.h"
 #include "kis_snap_config.h"
 
@@ -37,6 +36,7 @@
 #include <color/KisOcioConfiguration.h>
 #include <KisUsageLogger.h>
 #include <KisCumulativeUndoData.h>
+#include <kis_cubic_curve.h>
 #include <KisTemporaryFileConfiguration.h>
 #include <QSurfaceFormat>
 

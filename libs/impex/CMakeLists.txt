@@ -116,6 +116,7 @@ target_include_directories(kritaimpexui
 
 target_link_libraries(kritaimpexui
     PUBLIC
+        kritaapplication
         kritaimpex
         kritaimage
         kritapainting

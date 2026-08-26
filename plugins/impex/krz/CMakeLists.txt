@@ -4,7 +4,7 @@ set(kritakrzexport_SOURCES
 
 kis_add_library(kritakrzexport MODULE ${kritakrzexport_SOURCES})
 
-target_link_libraries(kritakrzexport kritaui kritalibkra kritaimpex)
+target_link_libraries(kritakrzexport kritaapplication kritaui kritalibkra kritaimpex)
 
 install(TARGETS kritakrzexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

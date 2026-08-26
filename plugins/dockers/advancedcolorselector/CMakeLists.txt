@@ -33,7 +33,7 @@ ki18n_wrap_ui(KRITA_COLORSELECTORNG_SOURCES
 
 kis_add_library(kritacolorselectorng MODULE ${KRITA_COLORSELECTORNG_SOURCES})
 
-target_link_libraries(kritacolorselectorng kritaui)
+target_link_libraries(kritacolorselectorng kritaapplication kritaui)
 
 install(TARGETS kritacolorselectorng  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

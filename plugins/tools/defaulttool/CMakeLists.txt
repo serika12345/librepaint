@@ -30,5 +30,5 @@ ki18n_wrap_ui(defaulttools_SRCS
 qt_add_resources(defaulttools_SRCS defaulttools.qrc)
 
 kis_add_library(krita_flaketools MODULE ${defaulttools_SRCS})
-target_link_libraries(krita_flaketools kritaflake kritawidgets kritaui kritaresourcestorage)
+target_link_libraries(krita_flaketools kritaapplication kritaflake kritawidgets kritaui kritaresourcestorage)
 install(TARGETS krita_flaketools DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

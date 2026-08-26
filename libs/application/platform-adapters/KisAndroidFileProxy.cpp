@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include "application/KisAndroidFileProxy.h"
+#include "KisAndroidFileProxy.h"
 
 #include <QDebug>
 #include <QDir>

@@ -12,5 +12,5 @@ ki18n_wrap_ui(kritaartisticcolorselector_SOURCES
 )
 
 kis_add_library(kritaartisticcolorselector MODULE ${kritaartisticcolorselector_SOURCES})
-target_link_libraries(kritaartisticcolorselector kritaui)
+target_link_libraries(kritaartisticcolorselector kritaapplication kritaui)
 install(TARGETS kritaartisticcolorselector DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

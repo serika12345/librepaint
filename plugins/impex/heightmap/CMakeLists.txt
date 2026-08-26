@@ -15,10 +15,10 @@ if(IOS)
     target_link_libraries(kritaheightmapcommon PRIVATE kritaui)
 
     kis_add_library(kritaheightmapimport MODULE kis_heightmap_import.cpp)
-    target_link_libraries(kritaheightmapimport PRIVATE kritaui kritaheightmapcommon)
+    target_link_libraries(kritaheightmapimport PRIVATE kritaapplication kritaui kritaheightmapcommon)
 
     kis_add_library(kritaheightmapexport MODULE kis_heightmap_export.cpp)
-    target_link_libraries(kritaheightmapexport PRIVATE kritaui kritaimpex kritaheightmapcommon)
+    target_link_libraries(kritaheightmapexport PRIVATE kritaapplication kritaui kritaimpex kritaheightmapcommon)
 else()
     set(kritaheightmapimport_SOURCES
         kis_heightmap_import.cpp
@@ -27,7 +27,7 @@ else()
         )
     ki18n_wrap_ui(kritaheightmapimport_SOURCES kis_wdg_options_heightmap.ui )
     kis_add_library(kritaheightmapimport MODULE ${kritaheightmapimport_SOURCES})
-    target_link_libraries(kritaheightmapimport kritaui )
+    target_link_libraries(kritaheightmapimport kritaapplication kritaui )
 
     set(kritaheightmapexport_SOURCES
         kis_heightmap_export.cpp
@@ -36,7 +36,7 @@ else()
         )
     ki18n_wrap_ui(kritaheightmapexport_SOURCES kis_wdg_options_heightmap.ui )
     kis_add_library(kritaheightmapexport MODULE ${kritaheightmapexport_SOURCES})
-    target_link_libraries(kritaheightmapexport kritaui kritaimpex)
+    target_link_libraries(kritaheightmapexport kritaapplication kritaui kritaimpex)
 endif()
 
 install(TARGETS kritaheightmapimport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

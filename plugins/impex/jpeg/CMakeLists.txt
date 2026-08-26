@@ -67,7 +67,7 @@ ki18n_wrap_ui(kritajpegexport_SOURCES kis_wdg_options_jpeg.ui )
 
 kis_add_library(kritajpegexport MODULE ${kritajpegexport_SOURCES})
 
-target_link_libraries(kritajpegexport kritaui kritaimpex ${kritajpegcommon_TARGET} ${kritajpeg_LIBRARIES} ${LCMS2_LIBRARIES} LibExiv2::LibExiv2 )
+target_link_libraries(kritajpegexport kritaapplication kritaui kritaimpex ${kritajpegcommon_TARGET} ${kritajpeg_LIBRARIES} ${LCMS2_LIBRARIES} LibExiv2::LibExiv2 )
 
 if (MSVC AND "${CMAKE_CXX_FLAGS}" MATCHES "-EHsc") 
     message(WARNING "The JPEG error catcher requires crossing the C ABI on MSVC. Exceptions need to be patched in.")

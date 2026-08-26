@@ -16,9 +16,9 @@ qt_add_resources(KRITA_smallCOLORSELECTOR_SOURCES ${small_color_selector_QRCS})
 kis_add_library(kritasmallcolorselector MODULE ${KRITA_smallCOLORSELECTOR_SOURCES})
 
 if (QT_MAJOR_VERSION STREQUAL "6")
-    target_link_libraries(kritasmallcolorselector kritaui Qt6::OpenGLWidgets)
+    target_link_libraries(kritasmallcolorselector kritaapplication kritaui Qt6::OpenGLWidgets)
 else()
-    target_link_libraries(kritasmallcolorselector kritaui)
+    target_link_libraries(kritasmallcolorselector kritaapplication kritaui)
 endif()
 
 install(TARGETS kritasmallcolorselector  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

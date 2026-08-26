@@ -35,7 +35,7 @@ ki18n_wrap_ui(kritaexrexport_SOURCES exr_export_widget.ui )
 
 kis_add_library(kritaexrexport MODULE ${kritaexrexport_SOURCES})
 
-target_link_libraries(kritaexrexport kritaui kritalibkra kritaimpex ${kritaexrcommon_TARGET} OpenEXR::IlmImf)
+target_link_libraries(kritaexrexport kritaapplication kritaui kritalibkra kritaimpex ${kritaexrcommon_TARGET} OpenEXR::IlmImf)
 
 install(TARGETS kritaexrexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

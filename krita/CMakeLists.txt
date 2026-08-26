@@ -175,6 +175,7 @@ endif()
 target_link_libraries(krita
     PRIVATE
                       kritamultiarch
+                      kritaapplication
                       kritaui
                       Qt${QT_MAJOR_VERSION}::Core
                       Qt${QT_MAJOR_VERSION}::Gui

@@ -17,7 +17,7 @@
 
 #include <KoColor.h>
 #include <kis_global.h>
-#include "kritaui_export.h"
+#include "kritaapplication_export.h"
 
 class KoColorSpace;
 class KisSnapConfig;
@@ -26,7 +26,7 @@ class KisOcioConfiguration;
 struct KisCumulativeUndoData;
 class QSurfaceFormat;
 
-class KRITAUI_EXPORT KisConfig
+class KRITAAPPLICATION_EXPORT KisConfig
 {
 public:
     /**
@@ -860,8 +860,8 @@ Q_DECLARE_METATYPE(KisConfig::CanvasSurfaceBitDepthMode)
 
 #endif // KIS_CONFIG_H_
 
-KRITAUI_EXPORT
+KRITAAPPLICATION_EXPORT
 QDebug operator<<(QDebug debug, const KisConfig::CanvasSurfaceMode &mode);
 
-KRITAUI_EXPORT
+KRITAAPPLICATION_EXPORT
 QDebug operator<<(QDebug debug, const KisConfig::CanvasSurfaceBitDepthMode &mode);

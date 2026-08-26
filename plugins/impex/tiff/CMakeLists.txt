@@ -61,6 +61,7 @@ ki18n_wrap_ui(kritatiffexport_SOURCES kis_wdg_options_tiff.ui)
 kis_add_library(kritatiffexport MODULE ${kritatiffexport_SOURCES})
 
 target_link_libraries(kritatiffexport
+    kritaapplication
     kritaui
     kritaimpex
     LibExiv2::LibExiv2

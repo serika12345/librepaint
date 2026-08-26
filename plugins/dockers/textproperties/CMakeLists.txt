@@ -16,6 +16,7 @@ qt_add_resources(KRITA_TEXTPROPERTIES_SOURCES textproperties.qrc)
 
 kis_add_library(kritatextproperties MODULE ${KRITA_TEXTPROPERTIES_SOURCES})
 target_link_libraries(kritatextproperties 
+    kritaapplication
     kritaui
     kritaqmlwidgets
     Qt${QT_MAJOR_VERSION}::Quick  

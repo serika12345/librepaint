@@ -38,7 +38,6 @@ set(kritaui_LIB_SRCS
     canvas/kis_guides_decoration.cpp
     canvas/kis_guides_manager.cpp
     canvas/kis_guides_config.cpp
-    canvas/kis_snap_config.cpp
     canvas/kis_snap_line_strategy.cpp
     canvas/KisSnapPointStrategy.cpp
     canvas/KisSnapPixelStrategy.cpp
@@ -96,7 +95,6 @@ set(kritaui_LIB_SRCS
     resources/KisPresetShadowUpdater.cpp
     canvas/kis_canvas_resource_provider.cpp
     resources/kis_derived_resources.cpp
-    application/kis_config.cc
     application/KisQtWidgetsTweaker.cpp
     resources/kis_control_frame.cpp
     canvas/KisDisplayConfig.cpp
@@ -373,7 +371,6 @@ set(kritaui_LIB_SRCS
     document/StoryboardItem.cpp
 
     nodes/KisNodeActivationActionCreatorVisitor.cpp
-    application/KisAndroidFileProxy.cpp
 )
 
 if (KSeExpr_FOUND)
@@ -574,6 +571,7 @@ target_link_libraries(kritaui
         kritacanvas
         kritadocument
         kritainput
+        kritaapplication
     PRIVATE
         kritadocumentfiles
         kritadocumentui
@@ -601,7 +599,6 @@ if(WIN32)
         dialogs/KisDlgCustomTabletResolution.cpp
         opengl/KisScreenInformationAdapter.cpp
         dialogs/kis_dlg_preferences.cc # for WinTab switching API
-        application/kis_config.cc # for logging the WinTab API
         PROPERTIES
         INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )

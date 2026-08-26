@@ -8,7 +8,7 @@ kis_add_library(kritasvgimport MODULE ${kritasvgimport_SOURCES})
 
 add_definitions(${SVG_DEFINITIONS})
 
-target_link_libraries(kritasvgimport kritaui )
+target_link_libraries(kritasvgimport kritaapplication kritaui )
 
 install(TARGETS kritasvgimport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

@@ -7,8 +7,9 @@
 #ifndef __KIS_SNAP_CONFIG_H
 #define __KIS_SNAP_CONFIG_H
 
+#include "kritaapplication_export.h"
 
-class KisSnapConfig
+class KRITAAPPLICATION_EXPORT KisSnapConfig
 {
 public:
     KisSnapConfig(bool loadValues = true);
