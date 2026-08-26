@@ -577,21 +577,9 @@ def _validate_application_target_boundary(repository_root: Path) -> None:
         application_cmake,
     ):
         raise RelocationPlanError("kritaapplicationui real target definition is missing")
-    definitions = re.findall(
-        r"\badd_library\s*\(\s*kritaui\b([^)]*)\)", ui_cmake, re.DOTALL
-    )
-    if len(definitions) != 1 or definitions[0].strip() != "INTERFACE":
-        raise RelocationPlanError("kritaui must be a source-free INTERFACE target")
-    if re.search(r"\btarget_sources\s*\(\s*kritaui\b", ui_cmake):
-        raise RelocationPlanError("kritaui must not own sources")
-    if not re.search(
-        r"\btarget_link_libraries\s*\(\s*kritaui\s+INTERFACE\s+"
-        r"kritaapplicationui\s*\)",
-        ui_cmake,
-        re.DOTALL,
-    ):
+    if re.search(r"\badd_library\s*\(\s*kritaui\b", ui_cmake):
         raise RelocationPlanError(
-            "kritaui must forward directly to kritaapplicationui"
+            "removed compatibility target is still defined: kritaui"
         )
     if not re.search(
         r"\btarget_sources\s*\(\s*kritaapplicationui\b", ui_cmake

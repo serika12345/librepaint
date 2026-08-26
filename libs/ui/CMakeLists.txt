@@ -659,11 +659,6 @@ target_include_directories(kritaapplicationui
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/input/ui/wintab>
 )
 
-add_library(kritaui INTERFACE)
-target_link_libraries(kritaui INTERFACE kritaapplicationui)
-install(TARGETS kritaui ${INSTALL_TARGETS_DEFAULT_ARGS})
-
-
 if (APPLE AND NOT IOS)
     install(FILES platform/osx.stylesheet DESTINATION ${KDE_INSTALL_DATADIR}/krita)
 endif ()
