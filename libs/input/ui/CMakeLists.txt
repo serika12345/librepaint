@@ -48,31 +48,30 @@ ki18n_wrap_ui(kritainputui_LIB_SRCS
     wintab/drawpile_tablettester/tablettest.ui
 )
 
-# This object target keeps input event wiring, configuration presentation,
-# diagnostics, and platform integration in one input-owned build unit while
-# kritaui continues to publish the established ABI.
-kis_add_library(kritainputui OBJECT ${kritainputui_LIB_SRCS})
-target_compile_definitions(kritainputui PRIVATE kritaui_EXPORTS)
+kis_add_library(kritainputui SHARED ${kritainputui_LIB_SRCS})
+generate_export_header(kritainputui BASE_NAME kritainputui)
 
 target_include_directories(kritainputui
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/wintab>
-    PRIVATE
-        ${CMAKE_BINARY_DIR}/libs/ui
 )
 
 target_link_libraries(kritainputui
-    PRIVATE
-        kritaversion
-        kritawidgets
-        kritawidgetutils
-        kritatools
-        kritatoolsui
+    PUBLIC
         kritacanvas
         kritaflake
         kritainput
+        kritatools
+        kritawidgetutils
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        kritaversion
+        kritawidgets
+        kritatoolsui
         kritaxmlserialization
         KF${KF_MAJOR}::Completion
         KF${KF_MAJOR}::ConfigCore
@@ -81,9 +80,14 @@ target_link_libraries(kritainputui
         KF${KF_MAJOR}::ItemViews
         Qt${QT_MAJOR_VERSION}::Concurrent
         Qt${QT_MAJOR_VERSION}::Network
-        Qt${QT_MAJOR_VERSION}::Widgets
         ${PNG_LIBRARIES}
 )
+
+set_target_properties(kritainputui
+    PROPERTIES VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
+)
+
+install(TARGETS kritainputui ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 if (QT_MAJOR_VERSION STREQUAL "6")
     target_link_libraries(kritainputui PRIVATE Qt6::OpenGLWidgets)

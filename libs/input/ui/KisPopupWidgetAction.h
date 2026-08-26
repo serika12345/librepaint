@@ -9,6 +9,8 @@
 #ifndef KIS_POPUP_WIDGET_ACTION_H
 #define KIS_POPUP_WIDGET_ACTION_H
 
+#include <kritainputui_export.h>
+
 #include "kis_abstract_input_action.h"
 
 #include <QObject>
@@ -19,7 +21,7 @@
 /**
  * \brief Get the current tool's popup widget and display it.
  */
-class KisPopupWidgetAction : public QObject, public KisAbstractInputAction
+class KRITAINPUTUI_EXPORT KisPopupWidgetAction : public QObject, public KisAbstractInputAction
 {
     Q_OBJECT
 

@@ -10,7 +10,7 @@
 #include <QObject>
 #include <QPointer>
 
-#include <kritaui_export.h>
+#include <kritainputui_export.h>
 
 #include <input/ui/kis_tool_proxy.h>
 
@@ -33,7 +33,7 @@ class KisToolCanvas;
  *
  * \sa KisAbstractInputAction
  */
-class KRITAUI_EXPORT KisInputManager : public QObject
+class KRITAINPUTUI_EXPORT KisInputManager : public QObject
 {
     Q_OBJECT
 

@@ -7,6 +7,8 @@
 #ifndef KIS_TOOL_INVOCATION_ACTION_H
 #define KIS_TOOL_INVOCATION_ACTION_H
 
+#include <kritainputui_export.h>
+
 #include "kis_abstract_input_action.h"
 
 /**
@@ -15,7 +17,7 @@
  * The Tool Invocation action invokes the current tool, for example,
  * using the brush tool, it will start painting.
  */
-class KisToolInvocationAction : public KisAbstractInputAction
+class KRITAINPUTUI_EXPORT KisToolInvocationAction : public KisAbstractInputAction
 {
 public:
     enum Shortcut {

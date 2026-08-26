@@ -19,12 +19,22 @@ kis_add_tests(
     TestApplicationWorkspaceToolUiPublicHeaders.cpp
     KisWorkspacePersistenceTest.cpp
     TestApplicationPaintingResourceRegistration.cpp
-    KisApplicationInputActionsTest.cpp
-    TestRemainingUiRootPublicHeaders.cpp
     kis_shape_layer_test.cpp
     KisSafeDocumentLoaderTest.cpp
     LINK_LIBRARIES kritaui kritalibkis kritatestsdk
     )
+
+kis_add_test(
+    KisApplicationInputActionsTest.cpp
+    TEST_NAME KisApplicationInputActionsTest
+    LINK_LIBRARIES kritainputui kritaui kritalibkis kritatestsdk
+)
+
+kis_add_test(
+    TestRemainingUiRootPublicHeaders.cpp
+    TEST_NAME TestRemainingUiRootPublicHeaders
+    LINK_LIBRARIES kritainputui kritaui kritalibkis kritatestsdk
+)
 
 kis_add_tests(
     kis_doc2_test.cpp

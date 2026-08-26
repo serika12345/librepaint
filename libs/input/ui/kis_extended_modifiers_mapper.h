@@ -11,13 +11,13 @@
 #include <QVector>
 #include <QScopedPointer>
 
-#include <kritaui_export.h>
+#include <kritainputui_export.h>
 
 class QKeyEvent;
 class KisExtendedModifiersMapperPluginInterface;
 class KisShortcutMatcher;
 
-class KRITAUI_EXPORT KisExtendedModifiersMapper
+class KRITAINPUTUI_EXPORT KisExtendedModifiersMapper
 {
 public:
     KisExtendedModifiersMapper();

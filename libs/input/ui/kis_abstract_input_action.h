@@ -9,7 +9,7 @@
 
 #include <QHash>
 #include <QPoint>
-#include "kritaui_export.h"
+#include <kritainputui_export.h>
 
 #include <KisInputActionGroup.h>
 
@@ -39,7 +39,7 @@ class KisInputManager;
  *    All the mouse move events between begin() and end() will be
  *    redirected to the inputEvent() method.
  */
-class KRITAUI_EXPORT KisAbstractInputAction
+class KRITAINPUTUI_EXPORT KisAbstractInputAction
 {
 public:
     /**

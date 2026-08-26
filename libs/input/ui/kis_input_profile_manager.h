@@ -11,7 +11,7 @@
 #include <QObject>
 #include <QStringList>
 
-#include "kritaui_export.h"
+#include <kritainputui_export.h>
 
 #define PROFILE_VERSION 6
 
@@ -24,7 +24,7 @@ class KisShortcutConfiguration;
  *
  *
  */
-class KRITAUI_EXPORT KisInputProfileManager : public QObject
+class KRITAINPUTUI_EXPORT KisInputProfileManager : public QObject
 {
     Q_OBJECT
 public:

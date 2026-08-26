@@ -8,11 +8,13 @@
 #ifndef TABLETTESTDIALOG_H
 #define TABLETTESTDIALOG_H
 
+#include <kritainputui_export.h>
+
 #include <KoDialog.h>
 
 class Ui_TabletTest;
 
-class TabletTestDialog : public KoDialog
+class KRITAINPUTUI_EXPORT TabletTestDialog : public KoDialog
 {
     Q_OBJECT
 public:

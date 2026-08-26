@@ -8,6 +8,8 @@
 #ifndef KISINPUTCONFIGURATIONPAGE_H
 #define KISINPUTCONFIGURATIONPAGE_H
 
+#include <kritainputui_export.h>
+
 #include <QWidget>
 #include <KisKineticScroller.h>
 
@@ -19,7 +21,7 @@ class KisInputConfigurationPage;
 /**
  * \brief A Configuration Dialog Page to configure the canvas input.
  */
-class KisInputConfigurationPage : public QWidget
+class KRITAINPUTUI_EXPORT KisInputConfigurationPage : public QWidget
 {
     Q_OBJECT
 public:
