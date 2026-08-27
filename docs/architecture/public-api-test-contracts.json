@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28539
+    "expectedMissingApis": 28533
   },
   "contracts": [
     {
@@ -1601,6 +1601,30 @@
         "method:IntegralFrameDurationCheckFactory::create(KisExportCheckBase::Level level,const QString & customWarning=QString ())",
         "method:IntegralFrameDurationCheckFactory::id() const",
         "method:IntegralFrameDurationCheckFactory::~IntegralFrameDurationCheckFactory()"
+      ]
+    },
+    {
+      "target": "kis_store_paintdevice_writer_test",
+      "source": "libs/impex/tests/kis_store_paintdevice_writer_test.cpp",
+      "test": "KisStorePaintDeviceWriterTest::writesByteArraysAndRawRanges",
+      "behavior": "保存領域ライターが格納先を保持し、バイト列とポインター長の2形式を同じ格納項目へ完全に書き込む。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStorePaintDeviceWriter",
+        "member:KisStorePaintDeviceWriter::m_store",
+        "method:KisStorePaintDeviceWriter::KisStorePaintDeviceWriter(KoStore * store)"
+      ]
+    },
+    {
+      "target": "kis_store_paintdevice_writer_test",
+      "source": "libs/impex/tests/kis_store_paintdevice_writer_test.cpp",
+      "test": "KisStorePaintDeviceWriterTest::rejectsWritesWithoutAnOpenStoreEntry",
+      "behavior": "格納項目が開かれていない場合は両書込形式が失敗を返し、ライターを画像側の基底所有から破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorePaintDeviceWriter::write(const QByteArray & data)",
+        "method:KisStorePaintDeviceWriter::write(const char * data,qint64 length)",
+        "method:KisStorePaintDeviceWriter::~KisStorePaintDeviceWriter()"
       ]
     }
   ]

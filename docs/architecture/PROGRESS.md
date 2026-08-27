@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 00:42 JST
+- 更新日時: 2026-08-28 00:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3048,12 +3048,25 @@
   31入力へ縮小した。macOSと`ssh nixos`上のLinuxで対象の構築と既存CTestが成功した。
   製品実装、公開API、実行時挙動は変更しておらず、全ネイティブ検証は実行していない。
 
+## R2-G19b 保存領域ライター public API契約で完了した作業
+
+- `libs/impex/kis_store_paintdevice_writer.h`の6 APIを
+  `libs/impex/tests/kis_store_paintdevice_writer_test.cpp`の2試験関数へ対応付けた。メモリー上のZIP保存領域へ
+  バイト列とポインター長の2形式を連続して書き、読戻し内容、格納先保持、未開始時の失敗、画像側の
+  抽象ライター所有からの破棄を観測する。
+- 専用対象は`kritaresourcestorage`とQt Testだけをリンクし、画像側は抽象ライターヘッダーと生成済み
+  公開マクロの検索経路だけを使う。macOSの変更なし構築閉包は13工程・27入力である。製品実装、
+  公開API、実行時分岐は変更していない。
+- 公開API契約は480件、未対応基準は28,533件になった。macOSで対象の構築、実行、20回反復、
+  直接公開API契約検査、試験ソースのclang-format検査が成功した。Linuxの実機検証、`verify-quick`、
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/impex/kis_store_paintdevice_writer.h`の6 APIを次の入出力単位として扱う。軽量化済みの
-保存領域依存と画像側のヘッダー検索経路だけを専用CTestへ与え、メモリー上の保存領域に対する
-バイト列とポインター長の2書込形式、格納先保持、未開始または終了後の短い書込結果、基底所有からの
-破棄を固定する。
+`libs/impex/KisImportExportFilter.h`の23 APIを次の入出力単位として扱う。既存のプラグイン試験と
+利用元、`KisImportExportFilter.cpp`と`KisImportExportFilterFactory.cpp`の直接依存、変更なし計画、
+空構築閉包を先に監査する。フィルター基底の挙動試験が生成器やプラグイン探索まで構築する場合は
+基底実装を内部所有単位へ分けてから、設定値、進捗通知、対応形式、能力検査の挙動を固定する。
 
 ## R1-G5完了根拠
 

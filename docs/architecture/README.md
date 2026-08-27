@@ -262,6 +262,8 @@ MIME集約とプラグイン探索、エラー表現、文書メタデータ、�
 書き出し前分類は`kis_export_checks_test`へ集約し、画像依存を持つ対象だけで反復する。
 `TestImportExportPublicHeaders`は保存領域とQt Testだけをリンクし、画像側の抽象ライターは
 公開ヘッダー検索経路から構築する。ヘッダーの自己完結性だけを理由に画像実装をリンクしない。
+`kis_store_paintdevice_writer_test`は同じ軽量境界でメモリー上の保存領域へ実データを書き、
+画像実装を介さずに保存領域ライターの挙動を反復する。
 
 最初の検査段階で、文書と取り消し履歴の接続および履歴表示を`kritadocumentui`へ移し、
 `kritadocument`の公開リンク閉包をQt Coreだけへ縮小した。第2段階では

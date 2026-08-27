@@ -21,6 +21,17 @@ target_include_directories(TestImportExportPublicHeaders
 )
 
 kis_add_tests(
+    kis_store_paintdevice_writer_test.cpp
+    LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(kis_store_paintdevice_writer_test
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/image
+        ${CMAKE_BINARY_DIR}/libs/image
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+kis_add_tests(
     kis_import_export_error_code_test.cpp
     LINK_LIBRARIES kritaimpexerrorobjects Qt${QT_MAJOR_VERSION}::Test
 )
