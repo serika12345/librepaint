@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28200
+    "expectedMissingApis": 28198
   },
   "contracts": [
     {
@@ -3050,6 +3050,17 @@
       "classification": "maintained",
       "apis": [
         "function:KisPaintOpOptionUtils::loadOptionData(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KoFlakeTypesContractTest",
+      "source": "libs/flake/tests/KoFlakeTypesContractTest.cpp",
+      "test": "KoFlakeTypesContractTest::sharedStrokeAliasesRetainTheirObjects",
+      "behavior": "図形線と線モデルの共有ポインター型別名は対象型を保持し、複製間で所有権を共有して最後の解放時に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoShapeStrokeModelSP",
+        "alias:KoShapeStrokeSP"
       ]
     }
   ]
