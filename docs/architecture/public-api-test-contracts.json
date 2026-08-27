@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1544,
     "publicHeaderFingerprint": "814b91750b0668df3c54a7b44d4cb6903452476e38225680a86c889ec2e237e7",
-    "publicApiCount": 29013,
-    "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
+    "publicApiCount": 29014,
+    "publicApiFingerprint": "adad650ee6ad3fc29314c8fd2aef1eea9ff9fd385cce4860c92062f06755ae95"
   },
   "migration": {
-    "expectedMissingApis": 28435
+    "expectedMissingApis": 28434
   },
   "contracts": [
     {
@@ -1966,6 +1966,26 @@
       "classification": "maintained",
       "apis": [
         "function:KisFastMath::atan2(qreal y,qreal x)"
+      ]
+    },
+    {
+      "target": "KisDialogStateSaverTest",
+      "source": "libs/widgetutils/tests/KisDialogStateSaverTest.cpp",
+      "test": "KisDialogStateSaverTest::testSave",
+      "behavior": "名前付きの行編集、整数・実数入力、スライダー、チェック状態を指定した設定領域へ保存する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDialogStateSaver::saveState(QWidget * parent,const QString & dialogName)"
+      ]
+    },
+    {
+      "target": "KisDialogStateSaverTest",
+      "source": "libs/widgetutils/tests/KisDialogStateSaverTest.cpp",
+      "test": "KisDialogStateSaverTest::testRestore",
+      "behavior": "保存済みの表示部品状態を復元し、明示した既定値が保存値より優先される。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDialogStateSaver::restoreState(QWidget * parent,const QString & dialogName,const QMap<QString,QVariant> & defaults={})"
       ]
     }
   ]
