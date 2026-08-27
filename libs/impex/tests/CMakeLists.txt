@@ -10,6 +10,35 @@ kis_add_tests(
 )
 
 kis_add_tests(
+    kis_import_export_filter_test.cpp
+    LINK_LIBRARIES
+        kritaimpexfilterstateobjects
+        kritaimpexfilterprogressobjects
+        kritaimpexfilterconfigurationobjects
+        kritaimpexfiltercapabilityobjects
+        kritaimpexfilterverificationobjects
+        kritaimpexexportcheckbaseobjects
+        kritaimpexerrorobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_import_export_filter_test PRIVATE kritaimpex_EXPORTS)
+
+kis_add_tests(
+    kis_import_export_filter_saved_configuration_test.cpp
+    LINK_LIBRARIES
+        kritaimpexfilterstateobjects
+        kritaimpexfilterprogressobjects
+        kritaimpexfilterconfigurationobjects
+        kritaimpexfiltersavedconfigurationobjects
+        kritaimpexfiltercapabilityobjects
+        kritaimpexfilterverificationobjects
+        kritaimpexexportcheckbaseobjects
+        kritaimpexerrorobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_import_export_filter_saved_configuration_test PRIVATE kritaimpex_EXPORTS)
+
+kis_add_tests(
     TestImportExportPublicHeaders.cpp
     LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
 )

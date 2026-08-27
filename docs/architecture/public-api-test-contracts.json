@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28533
+    "expectedMissingApis": 28510
   },
   "contracts": [
     {
@@ -1625,6 +1625,101 @@
         "method:KisStorePaintDeviceWriter::write(const QByteArray & data)",
         "method:KisStorePaintDeviceWriter::write(const char * data,qint64 length)",
         "method:KisStorePaintDeviceWriter::~KisStorePaintDeviceWriter()"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_test",
+      "source": "libs/impex/tests/kis_import_export_filter_test.cpp",
+      "test": "KisImportExportFilterTest::stableCapabilityTagsAndDefaultSupport",
+      "behavior": "入出力フィルター基底が安定した書き出し能力タグを公開し、既定で入出力装置を受理してガイド書き出しを非対応とする。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImportExportFilter",
+        "member:KisImportExportFilter::CICPPrimariesTag",
+        "member:KisImportExportFilter::CICPTransferCharacteristicsTag",
+        "member:KisImportExportFilter::ColorDepthIDTag",
+        "member:KisImportExportFilter::ColorModelIDTag",
+        "member:KisImportExportFilter::HDRTag",
+        "member:KisImportExportFilter::ImageContainsTransparencyTag",
+        "member:KisImportExportFilter::sRGBTag",
+        "method:KisImportExportFilter::exportSupportsGuides() const",
+        "method:KisImportExportFilter::supportsIO() const"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_test",
+      "source": "libs/impex/tests/kis_import_export_filter_test.cpp",
+      "test": "KisImportExportFilterTest::stateSettersPreserveFilterInputs",
+      "behavior": "表示用・実体ファイル名、バッチ状態、MIME型、利用者通知接続面を独立して保持し、派生フィルターから同じ値を取得できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilter::setBatchMode(bool batchmode)",
+        "method:KisImportExportFilter::setFilename(const QString & filename)",
+        "method:KisImportExportFilter::setImportUserFeedBackInterface(KisImportUserFeedbackInterface * interface)",
+        "method:KisImportExportFilter::setMimeType(const QString & mime)",
+        "method:KisImportExportFilter::setRealFilename(const QString & filename)"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_test",
+      "source": "libs/impex/tests/kis_import_export_filter_test.cpp",
+      "test": "KisImportExportFilterTest::convertDispatchesThroughPublicInterface",
+      "behavior": "公開フィルター接続面から文書、入出力装置、設定値を派生実装へ渡し、変換結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilter::convert(KisDocument * document,QIODevice * io,KisPropertiesConfigurationSP configuration=0)"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_test",
+      "source": "libs/impex/tests/kis_import_export_filter_test.cpp",
+      "test": "KisImportExportFilterTest::updaterReceivesProgressAndCompletion",
+      "behavior": "設定した進捗更新器へ変換中の値を通知し、フィルター破棄時に100パーセントの完了を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilter::setUpdater(QPointer<KoUpdater> updater)",
+        "method:KisImportExportFilter::updater()"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_test",
+      "source": "libs/impex/tests/kis_import_export_filter_test.cpp",
+      "test": "KisImportExportFilterTest::defaultConfigurationHooksAreEmpty",
+      "behavior": "基底フィルターの既定設定と設定画面生成が空を返し、形式実装による任意の上書きを許す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilter::createConfigurationWidget(QWidget * parent,const QByteArray & from=\"\",const QByteArray & to=\"\") const",
+        "method:KisImportExportFilter::defaultConfiguration(const QByteArray & from=\"\",const QByteArray & to=\"\") const"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_test",
+      "source": "libs/impex/tests/kis_import_export_filter_test.cpp",
+      "test": "KisImportExportFilterTest::exportChecksReplaceAndOwnCapabilities",
+      "behavior": "能力一覧を要求するたびに形式固有検査を再生成し、旧検査と最終検査をフィルターが破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilter::exportChecks()"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_test",
+      "source": "libs/impex/tests/kis_import_export_filter_test.cpp",
+      "test": "KisImportExportFilterTest::verifiesWrittenFileContent",
+      "behavior": "保存結果について不存在、10バイト未満、先頭1000バイトの全ゼロを拒否し、同範囲に非ゼロ値があるファイルを受理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilter::verify(const QString & fileName) const"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_saved_configuration_test",
+      "source": "libs/impex/tests/kis_import_export_filter_saved_configuration_test.cpp",
+      "test": "KisImportExportFilterSavedConfigurationTest::savedConfigurationOverlaysDefaultsForRequestedFormat",
+      "behavior": "要求した変換元・変換先を既定設定生成へ渡し、変換先形式の保存済み設定だけを既定値へ重ね、未保存形式では既定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilter::lastSavedConfiguration(const QByteArray & from=\"\",const QByteArray & to=\"\") const"
       ]
     }
   ]
