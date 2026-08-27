@@ -179,3 +179,9 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Core
 )
 target_compile_definitions(KisPinnedSharedPtrTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisLazyValueWrapperTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisLazyValueWrapperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

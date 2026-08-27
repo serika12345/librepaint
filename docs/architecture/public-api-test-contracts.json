@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28302
+    "expectedMissingApis": 28291
   },
   "contracts": [
     {
@@ -2631,6 +2631,44 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const KisPinnedSharedPtr<T> & ptr)"
+      ]
+    },
+    {
+      "target": "KisLazyValueWrapperTest",
+      "source": "libs/global/tests/KisLazyValueWrapperTest.cpp",
+      "test": "KisLazyValueWrapperTest::defaultStateAndTypeProperties",
+      "behavior": "既定構築は値を初期化し、公開値と値型を提供する一方、ラッパー自体のコピー構築とコピー代入を禁止する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLazyValueWrapper::value_type",
+        "member:KisLazyValueWrapper::value",
+        "method:KisLazyValueWrapper::KisLazyValueWrapper()",
+        "method:KisLazyValueWrapper::KisLazyValueWrapper(const KisLazyValueWrapper & rhs)",
+        "method:KisLazyValueWrapper::operator =(const KisLazyValueWrapper & rhs)",
+        "struct:KisLazyValueWrapper"
+      ]
+    },
+    {
+      "target": "KisLazyValueWrapperTest",
+      "source": "libs/global/tests/KisLazyValueWrapperTest.cpp",
+      "test": "KisLazyValueWrapperTest::factoryConstructionConvertsToStoredValue",
+      "behavior": "生成関数は構築時に一度だけ実行され、変換演算は格納値そのものへのconst参照を返し、破棄は格納値の所有物を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazyValueWrapper::KisLazyValueWrapper(std::function<value_type ()> func)",
+        "method:KisLazyValueWrapper::operator const value_type&() const",
+        "method:KisLazyValueWrapper::~KisLazyValueWrapper()"
+      ]
+    },
+    {
+      "target": "KisLazyValueWrapperTest",
+      "source": "libs/global/tests/KisLazyValueWrapperTest.cpp",
+      "test": "KisLazyValueWrapperTest::moveTransfersOwnership",
+      "behavior": "ムーブ構築とムーブ代入は格納した単独所有値を新しいラッパーへ移し、移動元を空にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazyValueWrapper::KisLazyValueWrapper(KisLazyValueWrapper && rhs)",
+        "method:KisLazyValueWrapper::operator =(KisLazyValueWrapper && rhs)"
       ]
     }
   ]
