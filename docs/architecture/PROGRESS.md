@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 05:56 JST
+- 更新日時: 2026-08-28 05:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3665,6 +3665,16 @@
   対象実行と20回反復が成功し、公開API契約は689件、未対応基準は28,325件になった。
   製品実装、公開API、ABI、参照数と弱参照標識は変更していない。Linuxと全ネイティブ検証は
   実行していない。
+
+## R2-G19b 移動合計契約前の実装所有分離で完了した作業
+
+- `libs/global/KisRollingSumAccumulatorWrapper.cpp`の実装所有を、`kritaglobal`の一括ソース集合から
+  `kritaglobalrollingsumobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象だけを
+  変更した。公開ヘッダー、クラス、関数、`kritaglobal`のAPIとABIを維持し、`kritaglobal`は新対象の
+  オブジェクトを従来どおり集約する。
+- 新対象は数値型と所有ポインターのQt Core、および集計器を提供するヘッダー専用Boostだけへ直接接続する。
+  変更なし構築閉包はmacOSで1工程・3入力である。macOSで新対象の限定構築が成功した。製品実装、
+  公開API、ABI、移動合計と件数は変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 
