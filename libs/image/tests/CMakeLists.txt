@@ -165,6 +165,13 @@ target_include_directories(KisTimingInformationContractTest PRIVATE
 )
 
 kis_add_test(
+    KisPaintopSettingsIdsContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagepaintopsettingsidsobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     kis_clone_layer_test.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaglobal kritatransformmaskstubs
     )

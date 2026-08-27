@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28132
+    "expectedMissingApis": 28126
   },
   "contracts": [
     {
@@ -3350,6 +3350,21 @@
         "method:KisTimingInformation::KisTimingInformation(qreal interval)",
         "method:KisTimingInformation::isTimedSpacingEnabled() const",
         "method:KisTimingInformation::timedSpacingInterval() const"
+      ]
+    },
+    {
+      "target": "KisPaintopSettingsIdsContractTest",
+      "source": "libs/image/tests/KisPaintopSettingsIdsContractTest.cpp",
+      "test": "KisPaintopSettingsIdsContractTest::maskingBrushIdsPreservePresetCompatibility",
+      "behavior": "マスキング描画の描画操作ID、設定キー、埋込プリセット接頭辞は、既存プリセットが参照する文字列値と区切りを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:KisPaintOpUtils::MaskingBrushCompositeOpTag",
+        "variable:KisPaintOpUtils::MaskingBrushEnabledTag",
+        "variable:KisPaintOpUtils::MaskingBrushMasterSizeCoeffTag",
+        "variable:KisPaintOpUtils::MaskingBrushPaintOpId",
+        "variable:KisPaintOpUtils::MaskingBrushPresetPrefix",
+        "variable:KisPaintOpUtils::MaskingBrushUseMasterSizeTag"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 08:00 JST
+- 更新日時: 2026-08-28 08:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4035,6 +4035,17 @@
   `kritaimage`は変更なし構築閉包が998工程・2,020入力、新対象は1工程・3入力である。macOSで新対象の
   限定構築が成功した。製品挙動、公開API、ABI、設定識別子値は変更していない。Linux、製品ライブラリー
   の再リンク、全ネイティブ検証は実行していない。
+
+## R2-G19b マスキング描画設定識別子 public API契約で完了した作業
+
+- `libs/image/brushengine/KisPaintopSettingsIds.h`の描画操作ID、使用可否、合成方法、親サイズ使用、
+  親サイズ係数、埋込プリセット接頭辞の6変数を、新規
+  `libs/image/tests/KisPaintopSettingsIdsContractTest.cpp`の1試験へ対応付けた。既存プリセット互換性に
+  必要な綴り、大文字小文字、区切り、接頭辞末尾の`/`を観測する。
+- 新試験は`kritaimagepaintopsettingsidsobjects`とQt Testだけへ直接接続し、変更なし構築閉包はmacOSで
+  5工程・11入力である。対象実行と20回反復が成功し、公開API契約は888件、未対応基準は28,126件に
+  なった。製品実装、公開API、ABI、設定識別子値は変更していない。Linuxと全ネイティブ検証は実行して
+  いない。
 
 ## 次の操作
 
