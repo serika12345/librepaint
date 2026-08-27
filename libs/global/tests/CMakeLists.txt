@@ -201,3 +201,11 @@ kis_add_test(
         Threads::Threads
 )
 target_include_directories(KisLocklessStackContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisLagerContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        lager
+)
+target_include_directories(KisLagerContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

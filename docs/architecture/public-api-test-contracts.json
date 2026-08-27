@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28269
+    "expectedMissingApis": 28260
   },
   "contracts": [
     {
@@ -2754,6 +2754,51 @@
       "classification": "maintained",
       "apis": [
         "method:KisLocklessStack::mergeFrom(KisLocklessStack<T> & other)"
+      ]
+    },
+    {
+      "target": "KisLagerContractTest",
+      "source": "libs/global/tests/KisLagerContractTest.cpp",
+      "test": "KisLagerContractTest::foldsPresentOptionalReaders",
+      "behavior": "任意readerの畳み込みは存在するreaderだけを関数で結合し、全reader欠落時だけ空を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:kislager::fold_optional_cursors(const Func & func,Cursors &&...cursors)"
+      ]
+    },
+    {
+      "target": "KisLagerContractTest",
+      "source": "libs/global/tests/KisLagerContractTest.cpp",
+      "test": "KisLagerContractTest::scaleLensesRoundTripValues",
+      "behavior": "汎用倍率、整数から実数、実数から整数の各レンズは指定倍率で読み出し、逆倍率と丸め規則で書き戻す。",
+      "classification": "maintained",
+      "apis": [
+        "variable:kislager::lenses::scale",
+        "variable:kislager::lenses::scale_int_to_real",
+        "variable:kislager::lenses::scale_real_to_int"
+      ]
+    },
+    {
+      "target": "KisLagerContractTest",
+      "source": "libs/global/tests/KisLagerContractTest.cpp",
+      "test": "KisLagerContractTest::conversionLensesRoundTripValues",
+      "behavior": "静的型変換、QVariant格納型、論理反転の各レンズは読み出しと書き戻しの両方向で対応する値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "variable:kislager::lenses::do_static_cast",
+        "variable:kislager::lenses::logical_not",
+        "variable:kislager::lenses::variant_to"
+      ]
+    },
+    {
+      "target": "KisLagerContractTest",
+      "source": "libs/global/tests/KisLagerContractTest.cpp",
+      "test": "KisLagerContractTest::baseLensesPreserveDerivedState",
+      "behavior": "明示派生型と推論派生型の基底レンズは基底部分を読み書きし、派生型固有状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:kislager::lenses::to_base",
+        "variable:kislager::lenses::to_base2"
       ]
     }
   ]
