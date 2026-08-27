@@ -602,6 +602,42 @@ viewport・widget変換、固定QImageへのQPainter転送とする。`paintEven
 複数点タッチ、長押し、ジェスチャー照合、タッチ描画無効時の筆圧置換、`TouchCancel`は、それぞれの
 入力状態と設定値を固定した後続段階で扱う。
 
+### R2-G12a 入力管理器試験の構築範囲縮小
+
+目的は、合成マウス入力の実経路を固定する前に、既存の入力管理器試験から未使用の画像試験補助と
+アプリケーションUI依存を除き、入力UI責務だけを構築する対象へ戻すことである。
+
+対象は`libs/input/ui/tests/CMakeLists.txt`の`KisInputManagerTest`登録だけとする。変更前の直接依存は
+`kritainputui`、`kritaapplicationui`、`kritatestsdk`、試験ソースは
+`libs/input/ui/tests/kis_input_manager_test.cpp`と`sdk/tests/testutil.cpp`で、空のmacOS構築木に対する
+閉包は1,665工程である。試験実装はアプリケーションUIの記号も`TestUtil`も使用していない。
+比較対象の`TestInputEventSuppressor`は1,037工程、`KisToolProxyContractTest`は1,172工程である。
+
+作業順序は次のとおりとする。
+
+1. 変更前の`KisInputManagerTest`を対象限定実行し、既存契約が成功することを確認する。
+2. 未使用の`sdk/tests/testutil.cpp`と`kritaapplicationui`直接依存を対象登録から除く。
+3. CMakeを再構成し、対象限定構築と全既存試験を実行する。
+4. CMake File APIの直接依存、空構築閉包、変更後の増分計画を再計測する。
+5. 高速検査を実行し、R2-G12の合成入力契約に使う最小対象を決定する。
+
+完了条件は次のとおりとする。
+
+- [x] `KisInputManagerTest`の製品依存が`kritainputui`だけ、試験接続面が`kritatestsdk`だけになる。
+- [x] 対象ソースが`libs/input/ui/tests/kis_input_manager_test.cpp`だけになる。
+- [x] 空構築閉包が1,665工程から縮小し、縮小後の値と支配する具体的所有者を記録する。
+- [x] 既存の`KisInputManagerTest`、変更後の反復実行、`verify-quick`がmacOSで成功する。
+- [x] 製品コード、公開面、製品CMake依存、試験挙動を変更しない。
+
+### R2-G12b タブレット後の合成マウス入力抑止契約
+
+目的は、タブレット入力後にQtが生成するマウス事象の事象源と時刻を入力管理器が正規化し、
+`KisInputEventSuppressor`の状態遷移に従ってツール呼出し前に抑止する実経路を固定することである。
+
+R2-G12aの完了後に、縮小した`KisInputManagerTest`と`TestInputEventSuppressor`の責務を比較して対象を
+決定する。Qt事象源の生成可否、入力管理器の外部状態、必要な試験接続面を棚卸しし、構築閉包を広げる
+必要がある場合は契約実装前に分離条件を定義する。
+
 ### タスク
 
 - [x] 入力から表示までの現行経路と分岐を列挙し、各段階で観測可能な状態と不変条件を定義する。

@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 19:00 JST
+- 更新日時: 2026-08-27 19:20 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G12 合成マウス入力抑止の契約選定
+- 現在の検査段階: R2-G12b タブレット後の合成マウス入力抑止契約
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: R2の入力契約として、タブレット事象後の合成マウス事象を入力管理器が識別して抑止する
-  実経路の既存観測範囲と構築境界を確認する。
+- 目的: タブレット入力後にQtが生成するマウス事象の事象源と時刻を入力管理器が正規化し、
+  ツール呼出し前に抑止する実経路を固定する。
 
 ## 再開環境
 
@@ -2450,12 +2450,37 @@
   `TestInputEventSuppressor`、`TestToolCoreContract`、対象契約の20回反復、実装後の対象計画、
   `nix develop .#test --command ./scripts/verify-quick`はmacOSで成功した。
 
+## R2-G12a実装前の構築範囲監査で完了した作業
+
+- `KisInputManagerTest`と`TestInputEventSuppressor`は変更のない対象本体に構築工程がない。空のmacOS
+  構築木に対するNinjaコマンド閉包は前者が1,665工程、後者が1,037工程である。
+- `KisInputManagerTest`は`kritainputui`、`kritaapplicationui`、`kritatestsdk`を直接リンクし、
+  `libs/input/ui/tests/kis_input_manager_test.cpp`と`sdk/tests/testutil.cpp`を構築する。
+- 試験実装は入力プロファイル保存、ショートカット照合、入力操作、増分平均だけを扱い、
+  アプリケーションUIの記号と`sdk/tests/testutil.cpp`が提供する画像・ノード試験補助を使用していない。
+  `kritaapplicationui`と`testutil.cpp`は責務外の閉包を加える不要な構成と判断した。
+- 変更前の`nix develop .#test --command ./scripts/run-test KisInputManagerTest`はmacOSで成功した。
+
+## R2-G12a入力管理器試験の構築範囲縮小で完了した作業
+
+- `libs/input/ui/tests/CMakeLists.txt`の`KisInputManagerTest`登録から、未使用の
+  `sdk/tests/testutil.cpp`と`kritaapplicationui`直接依存を除いた。移動先や代替依存はなく、対象ソースは
+  `libs/input/ui/tests/kis_input_manager_test.cpp`だけ、直接依存は`kritainputui`と`kritatestsdk`だけである。
+- CMake File API応答でアプリケーションUI直接依存と試験補助ソースが消えたことを確認した。
+  空のmacOS構築木に対するNinjaコマンド閉包は1,665工程から1,172工程へ493工程、29.6%縮小した。
+- 残る閉包は入力管理器、入力プロファイル、抽象入力操作を所有する`kritainputui`が支配する。
+  R2-G12bで同じ実製品境界を検査するため、この具体的所有者は分離しない。
+- 明示的なCMake再構成直後の対象構築では生成された版情報、自動MOC、試験本体、リンクを再構築した。
+  続く対象計画は試験本体の構築工程を持たず、兄弟の`KisToolProxyContractTest`も製品再構築なしで成功した。
+- 変更前後の`nix develop .#test --command ./scripts/run-test KisInputManagerTest`、変更後の20回反復、
+  `KisToolProxyContractTest`、`nix develop .#test --command ./scripts/verify-quick`はmacOSで成功した。
+  製品コード、公開面、製品依存、試験挙動は変更していない。
+
 ## 次の操作
 
-R2-G12の実装前監査として、`KisInputManagerTest`と`TestInputEventSuppressor`の増分計画、直接依存、
-空構築閉包を比較し、Qtのマウス事象源を正規化して抑止判定へ渡す実経路の既存試験を棚卸しする。
-`KisInputManagerTest`の`kritaapplicationui`依存が契約範囲に対して過大なら、試験追加より先に対象または
-製品責務を分離する。
+R2-G12bの実装前監査として、縮小後の`KisInputManagerTest`が1,172工程、直接依存が`kritainputui`と
+`kritatestsdk`であることを前提に、`libs/input/ui/kis_input_manager_p.cpp`のQt事象正規化から
+`KisInputEventSuppressor`呼出しまでを読み、既存試験から到達できる最小の観測接続面を決定する。
 
 ## R1-G5完了根拠
 
