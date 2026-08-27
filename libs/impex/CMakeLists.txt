@@ -1,10 +1,17 @@
 set(kritaimpex_LIB_SRCS
-    KisImportExportAdditionalChecks.cpp
     KisImportExportFilter.cpp
-    KisImportExportFilterRegistry.cpp
+    KisImportExportFilterFactory.cpp
     KisExportCheckBase.cpp
     KisPreExportChecker.cpp
     KisExportCheckRegistry.cpp
+)
+
+add_library(kritaimpexadditionalchecksobjects OBJECT
+    KisImportExportAdditionalChecks.cpp
+)
+
+add_library(kritaimpexfilterregistryobjects OBJECT
+    KisImportExportFilterRegistry.cpp
 )
 
 add_library(kritaimpexerrorobjects OBJECT
@@ -16,6 +23,8 @@ add_library(kritaimpexmetadataobjects OBJECT
 )
 
 set(kritaimpex_OBJECT_TARGETS
+    kritaimpexadditionalchecksobjects
+    kritaimpexfilterregistryobjects
     kritaimpexerrorobjects
     kritaimpexmetadataobjects
 )
@@ -29,6 +38,17 @@ foreach(target IN LISTS kritaimpex_OBJECT_TARGETS)
     )
     set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endforeach()
+
+target_link_libraries(kritaimpexadditionalchecksobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+
+target_link_libraries(kritaimpexfilterregistryobjects
+    PUBLIC
+        kritaplugin
+        Qt${QT_MAJOR_VERSION}::Core
+)
 
 target_link_libraries(kritaimpexerrorobjects
     PUBLIC
@@ -49,6 +69,8 @@ target_link_libraries(kritaimpexmetadataobjects
 kis_add_library(kritaimpex SHARED
     ${kritaimpex_HEADERS_MOC}
     ${kritaimpex_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaimpexadditionalchecksobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterregistryobjects>
     $<TARGET_OBJECTS:kritaimpexerrorobjects>
     $<TARGET_OBJECTS:kritaimpexmetadataobjects>
 )

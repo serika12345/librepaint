@@ -10,8 +10,6 @@
 
 #include <KisImportExportAdditionalChecks.h>
 #include <KisImportExportFilterRegistry.h>
-#include <KisImportExportMimeType.h>
-#include <kis_store_paintdevice_writer.h>
 
 class TestImportExportBoundary : public QObject
 {

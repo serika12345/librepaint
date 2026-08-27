@@ -143,7 +143,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
         "libs/document/ui/tests/kis_document_undo_ui_test.cpp",
     ),
     "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
-    "libs/impex": ("libs/impex/tests/TestImportExportBoundary.cpp",),
+    "libs/impex": ("libs/impex/tests/TestImportExportPublicHeaders.cpp",),
     "libs/input": ("libs/input/tests/TestInputShortcutMatcher.cpp",),
     "libs/painting": ("libs/painting/tests/TestPaintingBoundary.cpp",),
     "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),

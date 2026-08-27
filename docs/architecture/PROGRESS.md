@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 23:46 JST
+- 更新日時: 2026-08-27 23:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2943,13 +2943,32 @@
   20回反復、直接公開API契約検査が成功した。Linuxの初回再構築は各対象4工程だった。macOSの
   2試験ソースclang-format検査と`verify-quick`も成功した。全ネイティブ検証は実行していない。
 
+## R2-G19b ファイル検査と形式探索契約前の構築範囲分離で完了した作業
+
+- `libs/impex/KisImportExportAdditionalChecks.cpp`を`kritaimpex`の一括ソースから
+  `kritaimpexadditionalchecksobjects`へ移し、Qt Coreだけを直接依存とした。公開ヘッダーから未使用の
+  エラー表現includeを除き、ファイル属性検査の変更が入出力全体を構築しない所有単位にした。
+- `libs/impex/KisImportExportFilterRegistry.cpp`の`createFilter()`実装を
+  `libs/impex/KisImportExportFilterFactory.cpp`へ移した。元ファイルはMIME集約とプラグイン探索を
+  `kritaimpexfilterregistryobjects`として所有し、実フィルター生成はフィルター本体と同じ
+  `kritaimpex`の一括ソースに維持する。
+- 公開`kritaimpex`は新しい2 object対象を集約し、既存の共有ライブラリー名、6公開メソッドの
+  シンボル、依存方向を維持する。`libs/impex/tests/TestImportExportBoundary.cpp`は未使用の画像側2ヘッダーを
+  除き、新しい2 object対象とQt Testだけへ直接リンクする。外部利用される非exportヘッダー2件は
+  `libs/impex/tests/TestImportExportPublicHeaders.cpp`の構築契約へ移し、挙動試験との責務を分けた。
+- 変更なし空構築閉包は1,018工程・2,057入力から72工程・140入力へ縮小した。画像と保存へ依存する
+  公開ヘッダー構築対象は1,002工程・2,026入力として別に隔離した。macOSで
+  `TestImportExportBoundary`の20回反復、`TestImportExportPublicHeaders`と公開`kritaimpex`の対象構築、
+  公開6メソッドのシンボル確認、触れたC++のclang-format検査、Python構文検査、`verify-quick`が成功した。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
 `libs/impex/KisImportExportAdditionalChecks.h`の未対応4 APIと
-`libs/impex/KisImportExportFilterRegistry.h`の未対応7 APIを次の単位とする。既存
-`TestImportExportBoundary`が観測するファイル事前条件とMIME方向選択を監査し、現在1,018工程・
-2,057入力の空構築閉包を両責務の直接所有単位へ縮小してから、不足する入出力、誤り、登録状態の
-契約だけを追加する。
+`libs/impex/KisImportExportFilterRegistry.h`の未対応7 APIを契約化する。既存
+`TestImportExportBoundary`のファイル事前条件とMIME方向選択が観測済みの9 APIを対応付け、空の固定
+プラグインディレクトリーから両方向の対応MIMEが空になる契約と、未登録形式のフィルター生成が
+nullを返す契約だけを追加する。実フィルター生成試験は対象追加前に個別の空構築閉包を監査する。
 
 ## R1-G5完了根拠
 
