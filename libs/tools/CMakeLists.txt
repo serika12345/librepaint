@@ -22,6 +22,24 @@ set_target_properties(kritatoolsspeedsmootherobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatoolsrectangleinteractionobjects OBJECT
+    kis_rectangle_interaction.cpp
+)
+target_compile_definitions(kritatoolsrectangleinteractionobjects PRIVATE kritatools_EXPORTS)
+target_include_directories(kritatoolsrectangleinteractionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritatoolsrectangleinteractionobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritatoolsrectangleinteractionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritatools_LIB_SRCS
     KisSelectionToolFactoryBase.cpp
     KisStabilizerDelayedPaintHelper.cpp
@@ -32,7 +50,6 @@ set(kritatools_LIB_SRCS
     kis_outline_interaction.cpp
     kis_painting_information_builder.cpp
     kis_polyline_interaction.cpp
-    kis_rectangle_interaction.cpp
     kis_selection_modifier_mapping.cpp
     kis_smoothing_options.cpp
     kis_stabilized_events_sampler.cpp
@@ -44,6 +61,7 @@ set(kritatools_LIB_SRCS
 kis_add_library(kritatools SHARED
     ${kritatools_LIB_SRCS}
     $<TARGET_OBJECTS:kritatoolsspeedsmootherobjects>
+    $<TARGET_OBJECTS:kritatoolsrectangleinteractionobjects>
 )
 generate_export_header(kritatools BASE_NAME kritatools)
 
