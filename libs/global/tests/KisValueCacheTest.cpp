@@ -6,19 +6,24 @@
 
 #include "KisValueCacheTest.h"
 
-#include "simpletest.h"
-
 #include "KisValueCache.h"
+
+#include <QTest>
 
 void KisValueCacheTest::test()
 {
-    struct Initializer
-    {
-        Initializer(int *sourceValue) : m_sourceValue(sourceValue) {}
-        int initialize() { return *m_sourceValue; }
+    struct Initializer {
+        Initializer(int *sourceValue)
+            : m_sourceValue(sourceValue)
+        {
+        }
+        int initialize()
+        {
+            return *m_sourceValue;
+        }
 
     private:
-        int *m_sourceValue {nullptr};
+        int *m_sourceValue{nullptr};
     };
 
     int sourceValue = 1;
@@ -38,6 +43,10 @@ void KisValueCacheTest::test()
     QVERIFY(!cache.isValid());
 
     QCOMPARE(cache.value(), 2);
+
+    const KisValueCache<Initializer> &constCache = cache;
+    const int &convertedValue = constCache;
+    QCOMPARE(convertedValue, 2);
 }
 
-SIMPLE_TEST_MAIN(KisValueCacheTest);
+QTEST_GUILESS_MAIN(KisValueCacheTest)

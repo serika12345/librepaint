@@ -4,7 +4,6 @@ kis_add_tests(KisSignalAutoConnectionTest.cpp
     KisMplTest.cpp
     KisRectsGridTest.cpp
     KisLazyStorageTest.cpp
-    KisValueCacheTest.cpp
     KisHistoryListTest.cpp
     KisConfigurationValueTypesTest.cpp
     LINK_LIBRARIES kritaglobal kritatestsdk
@@ -27,3 +26,9 @@ kis_add_test(
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KisAdaptedLockTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisValueCacheTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisValueCacheTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

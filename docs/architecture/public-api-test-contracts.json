@@ -13,10 +13,10 @@
     "publicHeaderCount": 1544,
     "publicHeaderFingerprint": "814b91750b0668df3c54a7b44d4cb6903452476e38225680a86c889ec2e237e7",
     "publicApiCount": 29014,
-    "publicApiFingerprint": "adad650ee6ad3fc29314c8fd2aef1eea9ff9fd385cce4860c92062f06755ae95"
+    "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28417
+    "expectedMissingApis": 28410
   },
   "contracts": [
     {
@@ -2129,6 +2129,22 @@
       "classification": "maintained",
       "apis": [
         "method:KisAdaptedLock::operator =(KisAdaptedLock && rhs)"
+      ]
+    },
+    {
+      "target": "KisValueCacheTest",
+      "source": "libs/global/tests/KisValueCacheTest.cpp",
+      "test": "KisValueCacheTest::test",
+      "behavior": "初回参照で値を生成し、値を再利用し、消去後に再生成する。const個体の変換演算子からも同じ値を参照できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisValueCache::value_type",
+        "method:KisValueCache::KisValueCache(Args...args)",
+        "method:KisValueCache::clear()",
+        "method:KisValueCache::isValid() const",
+        "method:KisValueCache::operator const value_type&() const",
+        "method:KisValueCache::value() const",
+        "struct:KisValueCache"
       ]
     }
   ]

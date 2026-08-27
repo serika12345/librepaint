@@ -14,7 +14,6 @@ class KisValueCacheTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void test();
-
 };
 
 #endif // KISVALUECACHETEST_H
