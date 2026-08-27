@@ -6,20 +6,20 @@
 #ifndef KISCPPQUIRKS_H
 #define KISCPPQUIRKS_H
 
-#include <type_traits>
-#include <optional>
-#include <version>
 #include <QDebug>
+#include <optional>
+#include <type_traits>
+#include <version>
 
-namespace std {
-
-template <bool is_const, class T>
-struct add_const_if
+namespace std
 {
+
+template<bool is_const, class T>
+struct add_const_if {
     using type = std::conditional_t<is_const, std::add_const_t<T>, T>;
 };
 
-template <bool is_const, class T>
+template<bool is_const, class T>
 using add_const_if_t = typename add_const_if<is_const, T>::type;
 
 /**
@@ -27,21 +27,20 @@ using add_const_if_t = typename add_const_if<is_const, T>::type;
  * as type Src. In other words, it copies "constness" property from
  * type Src to Dst.
  */
-template <typename Src, typename Dst>
+template<typename Src, typename Dst>
 struct copy_const {
     using type = add_const_if_t<std::is_const_v<Src>, std::remove_const_t<Dst>>;
 };
 
-template <typename Src, typename Dst>
+template<typename Src, typename Dst>
 using copy_const_t = typename copy_const<Src, Dst>::type;
 
 } // namespace std
 
-template <typename T>
-[[maybe_unused]]
-QDebug operator<<(QDebug dbg, const std::optional<T> &t)
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+template<typename T>
+[[maybe_unused]] QDebug operator<<(QDebug dbg, const std::optional<T> &t)
 {
-
     if (t) {
         dbg.nospace() << "std::optional(" << *t << ")";
     } else {
@@ -50,6 +49,6 @@ QDebug operator<<(QDebug dbg, const std::optional<T> &t)
 
     return dbg.space();
 }
-
+#endif
 
 #endif // KISCPPQUIRKS_H

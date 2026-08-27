@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28357
+    "expectedMissingApis": 28350
   },
   "contracts": [
     {
@@ -2387,6 +2387,31 @@
         "function:std::isnan(half __x)",
         "function:std::isnormal(half __x)",
         "function:std::signbit(half __x)"
+      ]
+    },
+    {
+      "target": "KisCppQuirksTest",
+      "source": "libs/global/tests/KisCppQuirksTest.cpp",
+      "test": "KisCppQuirksTest::conditionalConstTypes",
+      "behavior": "条件付きconst付与と元型からのconst複製は、構造体経由と短縮型名の両方で同じ型を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:std::add_const_if::type",
+        "alias:std::add_const_if_t",
+        "alias:std::copy_const::type",
+        "alias:std::copy_const_t",
+        "struct:std::add_const_if",
+        "struct:std::copy_const"
+      ]
+    },
+    {
+      "target": "KisCppQuirksTest",
+      "source": "libs/global/tests/KisCppQuirksTest.cpp",
+      "test": "KisCppQuirksTest::optionalDebugOutput",
+      "behavior": "値を持つoptionalは値を、空optionalは空状態を診断文字列へ出力する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const std::optional<T> & t)"
       ]
     }
   ]
