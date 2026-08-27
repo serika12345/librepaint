@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28365
+    "expectedMissingApis": 28362
   },
   "contracts": [
     {
@@ -2361,6 +2361,18 @@
       "classification": "maintained",
       "apis": [
         "function:KisPortingUtils::getScreenNumberForWidget(const QWidget * w)"
+      ]
+    },
+    {
+      "target": "KisQPainterStateSaverTest",
+      "source": "libs/global/tests/KisQPainterStateSaverTest.cpp",
+      "test": "KisQPainterStateSaverTest::restoresPainterState",
+      "behavior": "保護範囲内で変更した描画器の変換、透明度、合成方式、ペン、ブラシ、クリップを破棄時に元の状態へ復元する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisQPainterStateSaver",
+        "method:KisQPainterStateSaver::KisQPainterStateSaver(QPainter * painter)",
+        "method:KisQPainterStateSaver::~KisQPainterStateSaver()"
       ]
     }
   ]

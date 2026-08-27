@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 05:10 JST
+- 更新日時: 2026-08-28 05:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3523,11 +3523,21 @@
   変更なし構築閉包はmacOSで1工程・3入力である。macOSで新対象の限定構築が成功した。製品実装、
   公開API、ABI、描画状態の保存・復元順序は変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 描画器状態保存 public API契約で完了した作業
+
+- `libs/global/KisQPainterStateSaver.h`のクラス、構築、破棄の3 APIを、新規
+  `libs/global/tests/KisQPainterStateSaverTest.cpp`へ対応付けた。`QImage`上の描画器について、保護範囲内で
+  変更した変換、透明度、合成方式、ペン、ブラシ、クリップが破棄時に元の状態へ戻ることを観測する。
+- 新試験は`kritaglobalqpainterstatesaverobjects`、Qt Test、Qt Guiだけへ直接接続する。変更なし構築閉包は
+  macOSで5工程・11入力である。対象実行と20回反復が成功し、公開API契約は652件、未対応基準は
+  28,362件になった。製品実装、公開API、ABI、描画状態は変更していない。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/global/KisQPainterStateSaver.h`のクラス、構築、破棄を専用Qt Test対象へ接続し、`QImage`上の
-描画器について保護範囲内で変更した変換、クリップ、合成状態が破棄時に復元される契約を追加する。
-SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
+次の少数APIヘッダーについて、既存試験、実装所有、直接依存、変更なし構築閉包を調べる。
+構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。SSH鍵エージェントの
+復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 

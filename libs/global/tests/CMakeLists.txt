@@ -79,3 +79,12 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Widgets
 )
 target_include_directories(KisPortingUtilsTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisQPainterStateSaverTest.cpp
+    LINK_LIBRARIES
+        kritaglobalqpainterstatesaverobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+target_compile_definitions(KisQPainterStateSaverTest PRIVATE kritaglobal_EXPORTS)
