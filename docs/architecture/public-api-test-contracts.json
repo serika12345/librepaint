@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28340
+    "expectedMissingApis": 28335
   },
   "contracts": [
     {
@@ -2476,6 +2476,29 @@
       "classification": "maintained",
       "apis": [
         "method:KisBackup::numberedBackupFile(const QString & filename,const QString & backupDir=QString (),const QString & backupExtension=QStringLiteral (\"~\"),const uint maxBackups=10)"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideLockTest",
+      "source": "libs/global/tests/KisCursorOverrideLockTest.cpp",
+      "test": "KisCursorOverrideLockTest::constructionHasNoCursorSideEffect",
+      "behavior": "カーソルアダプターの構築と破棄は、施錠していない上書きカーソル状態を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCursorOverrideLockAdapter",
+        "method:KisCursorOverrideLockAdapter::KisCursorOverrideLockAdapter(const QCursor & cursor)",
+        "method:KisCursorOverrideLockAdapter::~KisCursorOverrideLockAdapter()"
+      ]
+    },
+    {
+      "target": "KisCursorOverrideLockTest",
+      "source": "libs/global/tests/KisCursorOverrideLockTest.cpp",
+      "test": "KisCursorOverrideLockTest::lockAndUnlockRestorePreviousCursor",
+      "behavior": "施錠は指定カーソルを上書きスタックへ積み、解錠は直前の上書きカーソルを復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCursorOverrideLockAdapter::lock()",
+        "method:KisCursorOverrideLockAdapter::unlock()"
       ]
     }
   ]

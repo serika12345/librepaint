@@ -122,3 +122,12 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Core
 )
 target_compile_definitions(KisBackupTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisCursorOverrideLockTest.cpp
+    LINK_LIBRARIES
+        kritaglobalcursoroverridelockobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+target_compile_definitions(KisCursorOverrideLockTest PRIVATE kritaglobal_EXPORTS)
