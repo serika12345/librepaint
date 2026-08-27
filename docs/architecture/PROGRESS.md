@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 05:49 JST
+- 更新日時: 2026-08-28 05:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3632,6 +3632,17 @@
   異常時の安全表明診断は従来どおり`kritaglobal`の集約内で解決する。変更なし構築閉包はmacOSで
   1工程・3入力である。macOSで新対象の限定構築が成功した。製品実装、公開API、ABI、平均値は
   変更していない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 外れ値除外移動平均 public API契約で完了した作業
+
+- `libs/global/KisFilteredRollingMean.h`のクラス、構築、値追加、平均取得、空判定の5 APIを、新規
+  `libs/global/tests/KisFilteredRollingMeanTest.cpp`の2試験へ対応付けた。空から非空への遷移、通常平均、
+  上下の外れ値除外、および窓を越えた最古値の除去を固定値列で観測する。
+- 正常計算をGUI診断実装へ接続せず検査するため、試験内の安全表明代替は呼出し回数だけを記録し、
+  各計算後に0回であることを検査する。新試験は`kritaglobalfilteredrollingmeanobjects`、Qt Test、Qt Core、
+  ヘッダー専用Boostだけへ直接接続し、変更なし構築閉包はmacOSで5工程・11入力である。
+- 対象実行と20回反復が成功し、公開API契約は684件、未対応基準は28,330件になった。製品実装、
+  公開API、ABI、平均値と窓更新結果は変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28335
+    "expectedMissingApis": 28330
   },
   "contracts": [
     {
@@ -2499,6 +2499,29 @@
       "apis": [
         "method:KisCursorOverrideLockAdapter::lock()",
         "method:KisCursorOverrideLockAdapter::unlock()"
+      ]
+    },
+    {
+      "target": "KisFilteredRollingMeanTest",
+      "source": "libs/global/tests/KisFilteredRollingMeanTest.cpp",
+      "test": "KisFilteredRollingMeanTest::emptyStateAndUnfilteredMean",
+      "behavior": "新しい移動平均は空であり、値を追加すると非空へ遷移する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilteredRollingMean",
+        "method:KisFilteredRollingMean::KisFilteredRollingMean(int windowSize,qreal effectivePortion)",
+        "method:KisFilteredRollingMean::isEmpty() const"
+      ]
+    },
+    {
+      "target": "KisFilteredRollingMeanTest",
+      "source": "libs/global/tests/KisFilteredRollingMeanTest.cpp",
+      "test": "KisFilteredRollingMeanTest::filtersExtremesAndRollsWindow",
+      "behavior": "値追加後の平均は上下の外れ値を除外し、窓を越えると最古値を外した現在範囲から算出する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilteredRollingMean::addValue(qreal value)",
+        "method:KisFilteredRollingMean::filteredMean() const"
       ]
     }
   ]

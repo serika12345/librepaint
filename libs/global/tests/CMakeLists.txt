@@ -131,3 +131,13 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Gui
 )
 target_compile_definitions(KisCursorOverrideLockTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisFilteredRollingMeanTest.cpp
+    LINK_LIBRARIES
+        kritaglobalfilteredrollingmeanobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+target_compile_definitions(KisFilteredRollingMeanTest PRIVATE kritaglobal_EXPORTS)
