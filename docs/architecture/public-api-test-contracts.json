@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28158
+    "expectedMissingApis": 28153
   },
   "contracts": [
     {
@@ -3202,6 +3202,38 @@
       "classification": "maintained",
       "apis": [
         "method:KisRunnableStrokeJobData::~KisRunnableStrokeJobData()"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::singleRunnableJobDelegatesAsOneElementBatch",
+      "behavior": "実行可能ジョブ一覧の単体追加入口は、同じジョブポインターを持つ1要素の一覧として仮想一覧入口へ一度委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRunnableStrokeJobsInterface",
+        "method:KisRunnableStrokeJobsInterface::addRunnableJob(KisRunnableStrokeJobDataBase * data)",
+        "method:KisRunnableStrokeJobsInterface::addRunnableJobs(const QVector<KisRunnableStrokeJobDataBase * > & list)"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::derivedRunnableJobListConvertsAndPreservesOrder",
+      "behavior": "派生型の実行可能ジョブ一覧は基底型ポインター一覧へ変換され、要素数とポインター順を保って仮想一覧入口へ渡る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRunnableStrokeJobsInterface::addRunnableJobs(const QVector<T * > & list)"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::jobsInterfaceDeletesThroughBase",
+      "behavior": "実行可能ジョブ一覧インターフェースの基底ポインターからの破棄は派生実体を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRunnableStrokeJobsInterface::~KisRunnableStrokeJobsInterface()"
       ]
     }
   ]

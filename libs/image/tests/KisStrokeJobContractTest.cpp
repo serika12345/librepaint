@@ -5,6 +5,7 @@
 
 #include "KisRunnableStrokeJobData.h"
 #include "KisRunnableStrokeJobDataBase.h"
+#include "KisRunnableStrokeJobsInterface.h"
 #include "kis_stroke_job_strategy.h"
 
 #include <QRunnable>
@@ -93,6 +94,34 @@ public:
     int runCount = 0;
 };
 
+class RecordingJobsInterface : public KisRunnableStrokeJobsInterface
+{
+public:
+    using KisRunnableStrokeJobsInterface::addRunnableJobs;
+
+    explicit RecordingJobsInterface(int *destructionCount = nullptr)
+        : m_destructionCount(destructionCount)
+    {
+    }
+
+    ~RecordingJobsInterface() override
+    {
+        if (m_destructionCount) {
+            ++*m_destructionCount;
+        }
+    }
+
+    void addRunnableJobs(const QVector<KisRunnableStrokeJobDataBase *> &list) override
+    {
+        batches.append(list);
+    }
+
+    QVector<QVector<KisRunnableStrokeJobDataBase *>> batches;
+
+private:
+    int *m_destructionCount;
+};
+
 class RecordingQRunnable : public QRunnable
 {
 public:
@@ -133,6 +162,9 @@ private Q_SLOTS:
     void functionRunnableRunsWithRequestedScheduling();
     void autoDeleteRunnableRunsAndDeletesWithJob();
     void retainedRunnableSurvivesJobDestruction();
+    void singleRunnableJobDelegatesAsOneElementBatch();
+    void derivedRunnableJobListConvertsAndPreservesOrder();
+    void jobsInterfaceDeletesThroughBase();
 };
 
 void KisStrokeJobContractTest::defaultJobDataHasSequentialNormalDefaults()
@@ -274,6 +306,43 @@ void KisStrokeJobContractTest::retainedRunnableSurvivesJobDestruction()
     QCOMPARE(runCount, 1);
     QCOMPARE(destructionCount, 0);
     delete runnable;
+    QCOMPARE(destructionCount, 1);
+}
+
+void KisStrokeJobContractTest::singleRunnableJobDelegatesAsOneElementBatch()
+{
+    RecordingJobsInterface jobs;
+    RunnableJobData job;
+
+    jobs.addRunnableJob(&job);
+
+    QCOMPARE(jobs.batches.size(), 1);
+    QCOMPARE(jobs.batches.constFirst().size(), 1);
+    QCOMPARE(jobs.batches.constFirst().constFirst(), &job);
+}
+
+void KisStrokeJobContractTest::derivedRunnableJobListConvertsAndPreservesOrder()
+{
+    RecordingJobsInterface jobs;
+    RunnableJobData first;
+    RunnableJobData second;
+    const QVector<RunnableJobData *> input{&first, &second};
+
+    jobs.addRunnableJobs(input);
+
+    QCOMPARE(jobs.batches.size(), 1);
+    QCOMPARE(jobs.batches.constFirst().size(), 2);
+    QCOMPARE(jobs.batches.constFirst().at(0), &first);
+    QCOMPARE(jobs.batches.constFirst().at(1), &second);
+}
+
+void KisStrokeJobContractTest::jobsInterfaceDeletesThroughBase()
+{
+    int destructionCount = 0;
+    KisRunnableStrokeJobsInterface *jobs = new RecordingJobsInterface(&destructionCount);
+
+    delete jobs;
+
     QCOMPARE(destructionCount, 1);
 }
 
