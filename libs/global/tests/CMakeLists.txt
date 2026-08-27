@@ -2,7 +2,6 @@ kis_add_tests(KisSignalCompressorTest.cpp
     KisForestTest.cpp
     KisMplTest.cpp
     KisRectsGridTest.cpp
-    KisLazyStorageTest.cpp
     KisHistoryListTest.cpp
     KisConfigurationValueTypesTest.cpp
     LINK_LIBRARIES kritaglobal kritatestsdk
@@ -37,3 +36,9 @@ kis_add_test(
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KisSignalAutoConnectionTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisLazyStorageTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisLazyStorageTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

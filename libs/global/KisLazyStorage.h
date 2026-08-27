@@ -7,12 +7,10 @@
 #ifndef KISLAZYSTORAGE_H
 #define KISLAZYSTORAGE_H
 
-#include <functional>
-#include <memory>
 #include <atomic>
 #include <mutex>
-
-#include "KisMpl.h"
+#include <tuple>
+#include <utility>
 
 /**
  * KisLazyStorage is a special class implementing some kind
@@ -20,11 +18,13 @@
  * pointer type, but creates `T` only on the first trt to
  * dereference this pointer.
  */
-template <typename T, typename... Args>
+template<typename T, typename... Args>
 class KisLazyStorage
 {
 public:
-    struct init_value_tag { explicit init_value_tag() = default; };
+    struct init_value_tag {
+        explicit init_value_tag() = default;
+    };
 
     /**
      * Create a storage with a deferred creation of the object
@@ -32,8 +32,8 @@ public:
      * of `T` on the first dereference operation on the storage.
      */
     explicit KisLazyStorage(Args... args)
-        : m_constructionArgs(std::forward<Args>(args)...),
-          m_data(0)
+        : m_constructionArgs(std::forward<Args>(args)...)
+        , m_data(0)
     {
     }
 
@@ -51,13 +51,15 @@ public:
     }
 
     KisLazyStorage(const KisLazyStorage &rhs) = delete;
-    KisLazyStorage& operator=(const KisLazyStorage &rhs) = delete;
+    KisLazyStorage &operator=(const KisLazyStorage &rhs) = delete;
 
-    KisLazyStorage(KisLazyStorage &&rhs) {
+    KisLazyStorage(KisLazyStorage &&rhs)
+    {
         *this = std::move(rhs);
     }
 
-    KisLazyStorage& operator=(KisLazyStorage &&rhs) {
+    KisLazyStorage &operator=(KisLazyStorage &&rhs)
+    {
         std::scoped_lock lock(m_mutex, rhs.m_mutex);
 
         m_constructionArgs = std::move(rhs.m_constructionArgs);
@@ -68,36 +70,41 @@ public:
         return *this;
     }
 
-    ~KisLazyStorage() {
+    ~KisLazyStorage()
+    {
         delete m_data.load();
     }
 
-    T* operator->() {
+    T *operator->()
+    {
         return getPointer();
     }
 
-    T& operator*() {
+    T &operator*()
+    {
         return *getPointer();
     }
 
 private:
-    T* getPointer() {
-        if(!m_data) {
+    T *getPointer()
+    {
+        if (!m_data) {
             std::unique_lock l(m_mutex);
-            if(!m_data) {
+            if (!m_data) {
                 m_data = std::apply(&constructObject, m_constructionArgs);
             }
         }
         return m_data;
     }
 
-    static inline T* constructObject(Args... args) {
+    static inline T *constructObject(Args... args)
+    {
         return new T(std::forward<Args>(args)...);
     }
 
 private:
     std::tuple<Args...> m_constructionArgs;
-    std::atomic<T*> m_data;
+    std::atomic<T *> m_data{nullptr};
     std::mutex m_mutex;
 };
 

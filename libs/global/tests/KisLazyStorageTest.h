@@ -13,8 +13,10 @@ class KisLazyStorageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void test();
-
+    void testLazyConstructionAndLifetime();
+    void testImmediateConstruction();
+    void testMove();
+    void testCopyDisabled();
 };
 
 #endif // KISLAZYSTORAGETEST_H

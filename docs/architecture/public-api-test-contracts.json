@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28401
+    "expectedMissingApis": 28389
   },
   "contracts": [
     {
@@ -2181,6 +2181,54 @@
       "classification": "maintained",
       "apis": [
         "method:KisSignalAutoConnectionsStore::addUniqueConnection(Sender sender,Signal signal,Receiver receiver,Method method)"
+      ]
+    },
+    {
+      "target": "KisLazyStorageTest",
+      "source": "libs/global/tests/KisLazyStorageTest.cpp",
+      "test": "KisLazyStorageTest::testLazyConstructionAndLifetime",
+      "behavior": "構築時には値を生成せず、最初の矢印・間接参照で一度だけ生成して再利用し、格納先の破棄時に値を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLazyStorage",
+        "method:KisLazyStorage::KisLazyStorage(Args...args)",
+        "method:KisLazyStorage::operator *()",
+        "method:KisLazyStorage::operator ->()",
+        "method:KisLazyStorage::~KisLazyStorage()"
+      ]
+    },
+    {
+      "target": "KisLazyStorageTest",
+      "source": "libs/global/tests/KisLazyStorageTest.cpp",
+      "test": "KisLazyStorageTest::testImmediateConstruction",
+      "behavior": "即時値タグを指定した構築は渡された値を直ちに所有し、最初の参照で同じ値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazyStorage::KisLazyStorage(init_value_tag,T && value)",
+        "method:KisLazyStorage::init_value_tag::init_value_tag()",
+        "struct:KisLazyStorage::init_value_tag"
+      ]
+    },
+    {
+      "target": "KisLazyStorageTest",
+      "source": "libs/global/tests/KisLazyStorageTest.cpp",
+      "test": "KisLazyStorageTest::testMove",
+      "behavior": "移動構築と移動代入は生成済みの値所有権を移し、代入先の以前の値を破棄して移動元との二重所有を避ける。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazyStorage::KisLazyStorage(KisLazyStorage && rhs)",
+        "method:KisLazyStorage::operator =(KisLazyStorage && rhs)"
+      ]
+    },
+    {
+      "target": "KisLazyStorageTest",
+      "source": "libs/global/tests/KisLazyStorageTest.cpp",
+      "test": "KisLazyStorageTest::testCopyDisabled",
+      "behavior": "格納先はコピー構築とコピー代入を型特性上許可せず、一意な値所有権を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazyStorage::KisLazyStorage(const KisLazyStorage & rhs)",
+        "method:KisLazyStorage::operator =(const KisLazyStorage & rhs)"
       ]
     }
   ]
