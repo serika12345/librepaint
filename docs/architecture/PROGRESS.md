@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 07:53 JST
+- 更新日時: 2026-08-28 07:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4013,6 +4013,17 @@
   `KisWraparoundAxisContractTest`だけを限定構築した。各CTestの単発実行と20回反復が成功し、実行可能
   ストロークジョブ、二次元ベクトル、回り込み軸の直近契約と構築分離がmacOSとLinuxで一致した。
   全ネイティブ検証は実行していない。
+
+## R2-G19b 描画タイミング情報 public API契約で完了した作業
+
+- `libs/image/kis_timing_information.h`のクラス、長時間値、2構築、時間間隔有効判定、間隔取得の6 APIを、
+  新規`libs/image/tests/KisTimingInformationContractTest.cpp`の2試験へ対応付けた。既定時の時間間隔配置
+  無効と有限長時間値、指定時の有効化とミリ秒値保持を観測する。
+- 新試験が対象ヘッダーを先頭でincludeした初回構築は`qreal`未宣言で失敗した。宣言元`QtGlobal`を
+  `libs/image/kis_timing_information.h`自身へ追加し、利用側のinclude順依存を除去した。新試験はQt Testと
+  対象ヘッダーだけへ直接接続し、変更なし構築閉包はmacOSで4工程・8入力である。対象実行と20回反復が
+  成功し、公開API契約は882件、未対応基準は28,132件になった。公開API、ABI、タイミング値は変更して
+  いない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 

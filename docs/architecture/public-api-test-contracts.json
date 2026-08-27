@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28138
+    "expectedMissingApis": 28132
   },
   "contracts": [
     {
@@ -3324,6 +3324,32 @@
         "enumerator:WrapAroundAxis::WRAPAROUND_BOTH",
         "enumerator:WrapAroundAxis::WRAPAROUND_HORIZONTAL",
         "enumerator:WrapAroundAxis::WRAPAROUND_VERTICAL"
+      ]
+    },
+    {
+      "target": "KisTimingInformationContractTest",
+      "source": "libs/image/tests/KisTimingInformationContractTest.cpp",
+      "test": "KisTimingInformationContractTest::defaultTimingDisablesTimedSpacing",
+      "behavior": "既定の描画タイミング情報は時間間隔による配置を無効にし、約10年に相当する有限の長時間値を間隔として返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTimingInformation",
+        "method:KisTimingInformation::KisTimingInformation()",
+        "method:KisTimingInformation::isTimedSpacingEnabled() const",
+        "method:KisTimingInformation::timedSpacingInterval() const",
+        "variable:LONG_TIME"
+      ]
+    },
+    {
+      "target": "KisTimingInformationContractTest",
+      "source": "libs/image/tests/KisTimingInformationContractTest.cpp",
+      "test": "KisTimingInformationContractTest::intervalTimingPreservesRequestedDelay",
+      "behavior": "間隔を指定した描画タイミング情報は時間間隔による配置を有効にし、指定されたミリ秒値をそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimingInformation::KisTimingInformation(qreal interval)",
+        "method:KisTimingInformation::isTimedSpacingEnabled() const",
+        "method:KisTimingInformation::timedSpacingInterval() const"
       ]
     }
   ]

@@ -5,6 +5,8 @@
 #ifndef KIS_TIMING_INFORMATION_H
 #define KIS_TIMING_INFORMATION_H
 
+#include <QtGlobal>
+
 #include "kritaimage_export.h"
 
 /**
