@@ -3,16 +3,20 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisFakeRunnableStrokeJobsExecutor.h"
 #include "KisRunnableStrokeJobData.h"
 #include "KisRunnableStrokeJobDataBase.h"
 #include "KisRunnableStrokeJobsInterface.h"
 #include "kis_stroke_job_strategy.h"
 
+#include <QByteArray>
 #include <QRunnable>
 #include <QTest>
 
 namespace
 {
+
+QVector<QByteArray> safeAssertConditions;
 
 class CopyableJobData : public KisStrokeJobData
 {
@@ -94,6 +98,37 @@ public:
     int runCount = 0;
 };
 
+class TrackedRunnableJobData : public KisRunnableStrokeJobDataBase
+{
+public:
+    TrackedRunnableJobData(int id,
+                           QVector<int> *runOrder,
+                           int *destructionCount,
+                           Sequentiality sequentiality = SEQUENTIAL,
+                           Exclusivity exclusivity = NORMAL)
+        : KisRunnableStrokeJobDataBase(sequentiality, exclusivity)
+        , m_id(id)
+        , m_runOrder(runOrder)
+        , m_destructionCount(destructionCount)
+    {
+    }
+
+    ~TrackedRunnableJobData() override
+    {
+        ++*m_destructionCount;
+    }
+
+    void run() override
+    {
+        m_runOrder->append(m_id);
+    }
+
+private:
+    int m_id;
+    QVector<int> *m_runOrder;
+    int *m_destructionCount;
+};
+
 class RecordingJobsInterface : public KisRunnableStrokeJobsInterface
 {
 public:
@@ -148,6 +183,11 @@ private:
 
 } // namespace
 
+void kis_safe_assert_recoverable(const char *assertion, const char *, int)
+{
+    safeAssertConditions.append(assertion);
+}
+
 class KisStrokeJobContractTest : public QObject
 {
     Q_OBJECT
@@ -165,6 +205,10 @@ private Q_SLOTS:
     void singleRunnableJobDelegatesAsOneElementBatch();
     void derivedRunnableJobListConvertsAndPreservesOrder();
     void jobsInterfaceDeletesThroughBase();
+    void fakeExecutorFlagValuesDescribeBarrierOptIn();
+    void defaultFakeExecutorRunsAndDeletesJobsInOrder();
+    void barrierFlagAllowsBarrierJob();
+    void defaultFakeExecutorReportsUnsupportedJobs();
 };
 
 void KisStrokeJobContractTest::defaultJobDataHasSequentialNormalDefaults()
@@ -344,6 +388,68 @@ void KisStrokeJobContractTest::jobsInterfaceDeletesThroughBase()
     delete jobs;
 
     QCOMPARE(destructionCount, 1);
+}
+
+void KisStrokeJobContractTest::fakeExecutorFlagValuesDescribeBarrierOptIn()
+{
+    QCOMPARE(int(KisFakeRunnableStrokeJobsExecutor::None), 0);
+    QCOMPARE(int(KisFakeRunnableStrokeJobsExecutor::AllowBarrierJobs), 1);
+}
+
+void KisStrokeJobContractTest::defaultFakeExecutorRunsAndDeletesJobsInOrder()
+{
+    KisFakeRunnableStrokeJobsExecutor executor;
+    QVector<int> runOrder;
+    int destructionCount = 0;
+    QVector<KisRunnableStrokeJobDataBase *> jobs{
+        new TrackedRunnableJobData(1, &runOrder, &destructionCount),
+        new TrackedRunnableJobData(2, &runOrder, &destructionCount, KisStrokeJobData::CONCURRENT)};
+    safeAssertConditions.clear();
+
+    executor.addRunnableJobs(jobs);
+
+    QCOMPARE(runOrder, QVector<int>({1, 2}));
+    QCOMPARE(destructionCount, 2);
+    QVERIFY(safeAssertConditions.isEmpty());
+}
+
+void KisStrokeJobContractTest::barrierFlagAllowsBarrierJob()
+{
+    KisFakeRunnableStrokeJobsExecutor executor(KisFakeRunnableStrokeJobsExecutor::AllowBarrierJobs);
+    QVector<int> runOrder;
+    int destructionCount = 0;
+    QVector<KisRunnableStrokeJobDataBase *> jobs{
+        new TrackedRunnableJobData(3, &runOrder, &destructionCount, KisStrokeJobData::BARRIER)};
+    safeAssertConditions.clear();
+
+    executor.addRunnableJobs(jobs);
+
+    QCOMPARE(runOrder, QVector<int>({3}));
+    QCOMPARE(destructionCount, 1);
+    QVERIFY(safeAssertConditions.isEmpty());
+}
+
+void KisStrokeJobContractTest::defaultFakeExecutorReportsUnsupportedJobs()
+{
+    KisFakeRunnableStrokeJobsExecutor executor;
+    QVector<int> runOrder;
+    int destructionCount = 0;
+    QVector<KisRunnableStrokeJobDataBase *> jobs{
+        new TrackedRunnableJobData(4, &runOrder, &destructionCount, KisStrokeJobData::BARRIER),
+        new TrackedRunnableJobData(5,
+                                   &runOrder,
+                                   &destructionCount,
+                                   KisStrokeJobData::CONCURRENT,
+                                   KisStrokeJobData::EXCLUSIVE)};
+    safeAssertConditions.clear();
+
+    executor.addRunnableJobs(jobs);
+
+    QCOMPARE(runOrder, QVector<int>({4, 5}));
+    QCOMPARE(destructionCount, 2);
+    QCOMPARE(safeAssertConditions.size(), 2);
+    QVERIFY(safeAssertConditions.at(0).contains("barrier jobs are not supported"));
+    QVERIFY(safeAssertConditions.at(1).contains("exclusive jobs are not supported"));
 }
 
 QTEST_GUILESS_MAIN(KisStrokeJobContractTest)

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28153
+    "expectedMissingApis": 28146
   },
   "contracts": [
     {
@@ -3234,6 +3234,52 @@
       "classification": "maintained",
       "apis": [
         "method:KisRunnableStrokeJobsInterface::~KisRunnableStrokeJobsInterface()"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::fakeExecutorFlagValuesDescribeBarrierOptIn",
+      "behavior": "代替実行可能ジョブ処理のフラグ値は、既定状態を0、障壁ジョブ許可を独立したビット0として表す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisFakeRunnableStrokeJobsExecutor::Flag",
+        "enumerator:KisFakeRunnableStrokeJobsExecutor::Flag::AllowBarrierJobs",
+        "enumerator:KisFakeRunnableStrokeJobsExecutor::Flag::None"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::defaultFakeExecutorRunsAndDeletesJobsInOrder",
+      "behavior": "既定の代替実行可能ジョブ処理は通常ジョブを入力順に実行し、処理後に全ジョブの所有実体を一度ずつ破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFakeRunnableStrokeJobsExecutor",
+        "method:KisFakeRunnableStrokeJobsExecutor::KisFakeRunnableStrokeJobsExecutor()",
+        "method:KisFakeRunnableStrokeJobsExecutor::addRunnableJobs(const QVector<KisRunnableStrokeJobDataBase * > & list)"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::barrierFlagAllowsBarrierJob",
+      "behavior": "障壁許可フラグを指定した代替処理は障壁ジョブを診断なしで実行し、処理後に所有実体を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisFakeRunnableStrokeJobsExecutor::Flag::AllowBarrierJobs",
+        "method:KisFakeRunnableStrokeJobsExecutor::KisFakeRunnableStrokeJobsExecutor(Flags flags)",
+        "method:KisFakeRunnableStrokeJobsExecutor::addRunnableJobs(const QVector<KisRunnableStrokeJobDataBase * > & list)"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::defaultFakeExecutorReportsUnsupportedJobs",
+      "behavior": "既定の代替処理は障壁ジョブと排他ジョブを個別に診断し、診断関数が復帰する構成では入力順の実行と所有実体の破棄を継続する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFakeRunnableStrokeJobsExecutor::addRunnableJobs(const QVector<KisRunnableStrokeJobDataBase * > & list)"
       ]
     }
   ]
