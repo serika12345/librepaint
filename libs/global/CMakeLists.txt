@@ -236,6 +236,26 @@ set_target_properties(kritaglobalrectsgridobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalidobjects OBJECT
+    KoID.cpp
+)
+target_compile_definitions(kritaglobalidobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalidobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalidobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritaglobalidobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -254,7 +274,6 @@ set(kritaglobal_LIB_SRCS
     KisUsageLogger.cpp
     KisSignalMapper.cpp
     KisRegion.cpp
-    KoID.cpp
     KoUnit.cpp
     KisBezierUtils.cpp
     KisBezierPatch.cpp
@@ -294,6 +313,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
     $<TARGET_OBJECTS:kritaglobalsamplerectiteratorobjects>
     $<TARGET_OBJECTS:kritaglobalrectsgridobjects>
+    $<TARGET_OBJECTS:kritaglobalidobjects>
 )
 
 target_sources(kritaglobal
