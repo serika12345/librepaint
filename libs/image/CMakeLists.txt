@@ -64,6 +64,20 @@ set_target_properties(kritaimagestrokejobobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagepaintopsettingsidsobjects OBJECT
+   brushengine/KisPaintopSettingsIds.cpp
+)
+target_compile_definitions(kritaimagepaintopsettingsidsobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagepaintopsettingsidsobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/brushengine>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+set_target_properties(kritaimagepaintopsettingsidsobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -113,7 +127,6 @@ set(kritaimage_LIB_SRCS
    brushengine/kis_slider_based_paintop_property.cpp
    brushengine/kis_standard_uniform_properties_factory.cpp
    brushengine/KisStrokeSpeedMeasurer.cpp
-   brushengine/KisPaintopSettingsIds.cpp
    brushengine/KisOptimizedBrushOutline.cpp
    brushengine/kis_paintop_lod_limitations.cpp
    commands/kis_deselect_global_selection_command.cpp
@@ -409,6 +422,7 @@ kis_add_library(kritaimage SHARED
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
+   $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
