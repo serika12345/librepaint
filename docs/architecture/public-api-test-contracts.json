@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28330
+    "expectedMissingApis": 28325
   },
   "contracts": [
     {
@@ -2522,6 +2522,29 @@
       "apis": [
         "method:KisFilteredRollingMean::addValue(qreal value)",
         "method:KisFilteredRollingMean::filteredMean() const"
+      ]
+    },
+    {
+      "target": "KisSharedTest",
+      "source": "libs/global/tests/KisSharedTest.cpp",
+      "test": "KisSharedTest::referenceCountTransitions",
+      "behavior": "参照数は0から参照・解除に従って増減し、最後の解除だけが参照なしを返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisShared",
+        "method:KisShared::deref()",
+        "method:KisShared::ref()",
+        "method:KisShared::refCount()"
+      ]
+    },
+    {
+      "target": "KisSharedTest",
+      "source": "libs/global/tests/KisSharedTest.cpp",
+      "test": "KisSharedTest::weakReferenceMarkerIsStable",
+      "behavior": "弱参照標識は初回要求時に参照数1で生成され、同じ所有個体からの再要求で同一標識を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShared::sharedWeakReference()"
       ]
     }
   ]

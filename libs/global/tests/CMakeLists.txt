@@ -141,3 +141,12 @@ kis_add_test(
         Boost::boost
 )
 target_compile_definitions(KisFilteredRollingMeanTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisSharedTest.cpp
+    LINK_LIBRARIES
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+)
+target_compile_definitions(KisSharedTest PRIVATE kritaglobal_EXPORTS)
