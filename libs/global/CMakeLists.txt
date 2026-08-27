@@ -94,6 +94,21 @@ set_target_properties(kritaglobaldeletelaterwrapperobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalbackupobjects OBJECT
+    KisBackup.cpp
+)
+target_compile_definitions(kritaglobalbackupobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalbackupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalbackupobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaglobalbackupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -123,7 +138,6 @@ set(kritaglobal_LIB_SRCS
     KisRectsGrid.cpp
     KisSynchronizedConnection.cpp
     KisFilteredRollingMean.cpp
-    KisBackup.cpp
     KisSampleRectIterator.cpp
     KisCursorOverrideLock.cpp
     kis_random_source.cpp
@@ -152,6 +166,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobaltemporaryfileconfigurationobjects>
     $<TARGET_OBJECTS:kritaglobalqpainterstatesaverobjects>
     $<TARGET_OBJECTS:kritaglobaldeletelaterwrapperobjects>
+    $<TARGET_OBJECTS:kritaglobalbackupobjects>
 )
 
 target_sources(kritaglobal
