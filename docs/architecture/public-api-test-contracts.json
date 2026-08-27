@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28196
+    "expectedMissingApis": 28191
   },
   "contracts": [
     {
@@ -3072,6 +3072,20 @@
       "apis": [
         "alias:KisAnimationFrameCacheSP",
         "alias:KisAnimationFrameCacheWSP"
+      ]
+    },
+    {
+      "target": "KisRunnableContractTest",
+      "source": "libs/image/tests/KisRunnableContractTest.cpp",
+      "test": "KisRunnableContractTest::namedRunnableRunsAndDeletesThroughBase",
+      "behavior": "名称付き実行ジョブは名称を返し、基底実行入口を一度呼び出し、基底ポインターからの破棄で派生実体を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRunnable",
+        "class:KisRunnableWithDebugName",
+        "method:KisRunnable::run()",
+        "method:KisRunnable::~KisRunnable()",
+        "method:KisRunnableWithDebugName::debugName() const"
       ]
     }
   ]
