@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 01:35 JST
+- 更新日時: 2026-08-28 01:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3149,13 +3149,25 @@
   CTestはこの表示部品試験に画面なし表示基盤を登録し、変更なし構築閉包は6工程・19入力である。
   製品実装、公開API、ABI、実行時分岐は変更していない。全ネイティブ検証は実行していない。
 
+## R2-G19b アニメーション出力設定契約前の実装所有分離で完了した作業
+
+- `libs/impex/animation/KisAnimationRenderingOptions.cpp`を起点として、初期値、パス解決、
+  出力モード判定を同ファイルに残し、`loadLastUsed()`と`toProperties()`、
+  `fromProperties()`を`libs/impex/animation/KisAnimationRenderingOptionsPersistence.cpp`へ移した。
+  公開ヘッダー、クラス、メソッド、設定キー、実行順序は維持する。
+- 前者を`kritaimpexanimationoptionsstateobjects`、後者を
+  `kritaimpexanimationoptionspersistenceobjects`として個別構築し、従来どおり`kritaimpexui`へ
+  集約した。設定値の状態対象は共通値とQt Core、保存対象だけが画像設定に依存する。
+- macOSの変更なし構築閉包は状態対象が14工程・26入力、保存対象が666工程・
+  1,357入力である。分離前の1実装オブジェクトは1,122工程・2,255入力へ到達していた。
+  macOSで2対象と集約後の`kritaimpexui`の限定構築、触れたC++のclang-format検査が成功した。
+  製品の観測可能な挙動は変更していない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/impex/animation/KisAnimationRenderingOptions.h`の37 APIを次の入出力値オブジェクト
-単位とする。`KisAnimationRenderingOptions.cpp`の現在の`kritaimpexui`所有、変更なし計画、
-直接依存、構築閉包を先に監査する。構築範囲が文書、画像、描画、入出力UI全体へ到達する場合は、
-既存共有ライブラリーへの集約を維持したまま、値の初期値、パス解決、出力モード、設定相互変換を
-独立構築できる実装所有単位へ先に分ける。
+`libs/impex/animation/KisAnimationRenderingOptions.h`の37 APIを2つの専用CTestへ対応付ける。
+軽量対象で全初期値、3出力モード、絶対・相対の映像ファイルとフレーム保存先解決を固定する。
+保存対象で全公開値とフレーム形式設定の往復、不足キーの既定値、最後に使用した設定の読込みを固定する。
 
 ## R1-G5完了根拠
 

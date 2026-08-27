@@ -270,6 +270,39 @@ set_target_properties(kritaimpexuserfeedbackobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+if(NOT IOS)
+    add_library(kritaimpexanimationoptionsstateobjects OBJECT
+        animation/KisAnimationRenderingOptions.cpp
+    )
+    add_library(kritaimpexanimationoptionspersistenceobjects OBJECT
+        animation/KisAnimationRenderingOptionsPersistence.cpp
+    )
+    foreach(target
+            kritaimpexanimationoptionsstateobjects
+            kritaimpexanimationoptionspersistenceobjects)
+        target_compile_definitions(${target} PRIVATE kritaapplicationui_EXPORTS)
+        target_include_directories(${target}
+            PUBLIC
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/animation>
+                $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        )
+        set_target_properties(${target} PROPERTIES
+            AUTOMOC OFF
+            POSITION_INDEPENDENT_CODE ON
+        )
+    endforeach()
+    target_link_libraries(kritaimpexanimationoptionsstateobjects
+        PUBLIC
+            kritaimpexfilterheaders
+            kritaglobal
+    )
+    target_link_libraries(kritaimpexanimationoptionspersistenceobjects
+        PUBLIC
+            kritaimpexfilterheaders
+            kritaimage
+    )
+endif()
+
 set(kritaimpexui_LIB_SRCS
     ui/KisImportExportAsyncFeedback.cpp
     ui/KisImportExportManager.cpp
@@ -298,7 +331,6 @@ if(NOT IOS)
     list(APPEND kritaimpexui_LIB_SRCS
         animation/KisFFMpegWrapper.cpp
         animation/KisVideoSaver.cpp
-        animation/KisAnimationRenderingOptions.cpp
         animation/KisAnimationRender.cpp
         animation/KisDlgAnimationRenderer.cpp
         animation/VideoExportOptionsDialog.cpp
@@ -327,10 +359,15 @@ endif()
 # Import and export presentation sources form one ownership unit. Their object
 # implementation is incorporated into the application presentation library,
 # including entry points used only by dynamically loaded plugins.
-kis_add_library(kritaimpexui OBJECT
-    ${kritaimpexui_LIB_SRCS}
-    $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>
-)
+set(kritaimpexui_OBJECTS $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>)
+if(NOT IOS)
+    list(APPEND kritaimpexui_OBJECTS
+        $<TARGET_OBJECTS:kritaimpexanimationoptionsstateobjects>
+        $<TARGET_OBJECTS:kritaimpexanimationoptionspersistenceobjects>
+    )
+endif()
+
+kis_add_library(kritaimpexui OBJECT ${kritaimpexui_LIB_SRCS} ${kritaimpexui_OBJECTS})
 target_compile_definitions(kritaimpexui PRIVATE kritaapplicationui_EXPORTS)
 
 target_include_directories(kritaimpexui

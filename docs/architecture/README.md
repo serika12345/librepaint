@@ -727,6 +727,11 @@ R2-G3で
 この対象はQt Widgetsだけに依存し、バッチ状態、質問コールバック、親表示部品の寿命を扱う。
 `kritaimpexui`はそのオブジェクトを集約し、文書入出力の調整処理から同じ公開接続面を利用する。
 
+アニメーション出力設定の公開クラスとABIは`kritaimpexui`が所有する。初期値、
+出力モード、パス解決は`KisAnimationRenderingOptions.cpp`、画像設定との保存・復元は
+`KisAnimationRenderingOptionsPersistence.cpp`が実装する。両実装は個別のCMakeオブジェクト対象として
+構築でき、`kritaimpexui`が同じ公開クラスへ集約する。
+
 ## 変更内容から見る場所
 
 | 変更内容 | 最初に見る場所 | 次に確認する境界 |
