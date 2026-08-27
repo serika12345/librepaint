@@ -179,6 +179,14 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisSelectionTagsContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisSelectionTagsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+kis_add_test(
     kis_clone_layer_test.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaglobal kritatransformmaskstubs
     )

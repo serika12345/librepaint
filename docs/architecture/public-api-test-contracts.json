@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28088
+    "expectedMissingApis": 28078
   },
   "contracts": [
     {
@@ -3509,6 +3509,34 @@
       "apis": [
         "function:channelTypeForColorDepthId(const KoID & depthId,Args...args)",
         "function:colorDepthIdForChannelType()"
+      ]
+    },
+    {
+      "target": "KisSelectionTagsContractTest",
+      "source": "libs/image/tests/KisSelectionTagsContractTest.cpp",
+      "test": "KisSelectionTagsContractTest::selectionModesPreserveValues",
+      "behavior": "選択方式は画素選択を0、図形保護を1として永続的に区別する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:SelectionMode",
+        "enumerator:SelectionMode::PIXEL_SELECTION",
+        "enumerator:SelectionMode::SHAPE_PROTECTION"
+      ]
+    },
+    {
+      "target": "KisSelectionTagsContractTest",
+      "source": "libs/image/tests/KisSelectionTagsContractTest.cpp",
+      "test": "KisSelectionTagsContractTest::selectionActionsPreserveValues",
+      "behavior": "選択操作は置換、追加、減算、交差、対称差、既定を0から5の連続値として区別する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:SelectionAction",
+        "enumerator:SelectionAction::SELECTION_ADD",
+        "enumerator:SelectionAction::SELECTION_DEFAULT",
+        "enumerator:SelectionAction::SELECTION_INTERSECT",
+        "enumerator:SelectionAction::SELECTION_REPLACE",
+        "enumerator:SelectionAction::SELECTION_SUBTRACT",
+        "enumerator:SelectionAction::SELECTION_SYMMETRICDIFFERENCE"
       ]
     }
   ]
