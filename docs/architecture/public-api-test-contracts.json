@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28146
+    "expectedMissingApis": 28142
   },
   "contracts": [
     {
@@ -3280,6 +3280,37 @@
       "classification": "maintained",
       "apis": [
         "method:KisFakeRunnableStrokeJobsExecutor::addRunnableJobs(const QVector<KisRunnableStrokeJobDataBase * > & list)"
+      ]
+    },
+    {
+      "target": "kis_vec_test",
+      "source": "libs/image/tests/kis_vec_test.cpp",
+      "test": "KisVecTest::testCreation",
+      "behavior": "画像処理の二次元ベクトル型別名は、Eigenの二要素実数ベクトルとしてゼロ値を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisVector2D"
+      ]
+    },
+    {
+      "target": "kis_vec_test",
+      "source": "libs/image/tests/kis_vec_test.cpp",
+      "test": "KisVecTest::pointsConvertToVectorsWithoutChangingCoordinates",
+      "behavior": "整数点と浮動小数点は、符号と小数値を含むX・Y座標を変えずに画像処理の二次元ベクトルへ変換される。",
+      "classification": "maintained",
+      "apis": [
+        "function:toKisVector2D(const QPoint & p)",
+        "function:toKisVector2D(const QPointF & p)"
+      ]
+    },
+    {
+      "target": "kis_vec_test",
+      "source": "libs/image/tests/kis_vec_test.cpp",
+      "test": "KisVecTest::vectorExpressionsConvertToPoints",
+      "behavior": "評価前の二次元ベクトル式は、計算後のX・Y座標を持つQPointFへ変換される。",
+      "classification": "maintained",
+      "apis": [
+        "function:toQPointF(const ExpressionType & expr)"
       ]
     }
   ]

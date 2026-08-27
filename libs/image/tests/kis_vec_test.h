@@ -13,8 +13,9 @@ class KisVecTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-
     void testCreation();
+    void pointsConvertToVectorsWithoutChangingCoordinates();
+    void vectorExpressionsConvertToPoints();
 };
 
 #endif
