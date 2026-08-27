@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28708
+    "expectedMissingApis": 28652
   },
   "contracts": [
     {
@@ -1027,6 +1027,251 @@
       "classification": "maintained",
       "apis": [
         "method:Krita::Document::KisDocumentAutoSaveFiles::removeForDocument(const QString & autoSaveBaseName,bool wasRecovered,const QString & recoveryDirectory,qint64 processId,const QString & documentObjectName,bool hidden)"
+      ]
+    },
+    {
+      "target": "kis_document_info_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_info_dialog_test.cpp",
+      "test": "KisDocumentInfoDialogTest::testDocumentValuesArePassedWithoutKisDocumentParent",
+      "behavior": "文書情報ダイアログが文書本体を親にせず、渡されたファイルパスとMIME形式の表示値を構築時に反映する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDocumentInfoDlg",
+        "method:KoDocumentInfoDlg::KoDocumentInfoDlg(QWidget * parent,KoDocumentInfo * docInfo,const QString & filePath,const QByteArray & mimeType)"
+      ]
+    },
+    {
+      "target": "kis_document_info_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_info_dialog_test.cpp",
+      "test": "KisDocumentInfoDialogTest::testAcceptUpdatesMetadata",
+      "behavior": "ダイアログの承認が編集した表題を文書メタデータへ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfoDlg::accept()"
+      ]
+    },
+    {
+      "target": "kis_document_info_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_info_dialog_test.cpp",
+      "test": "KisDocumentInfoDialogTest::testAdditionalPagesCanVetoAndApplyAcceptance",
+      "behavior": "標準2ページへ追加ページを登録し、拒否中は承認を抑止し、許可後は追加ページの適用処理を実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfoDlg::addPageItem(KoPageWidgetItem * item)",
+        "method:KoDocumentInfoDlg::pages() const"
+      ]
+    },
+    {
+      "target": "kis_document_info_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_info_dialog_test.cpp",
+      "test": "KisDocumentInfoDialogTest::testReadOnlyStateAppliesToDocumentFields",
+      "behavior": "読取専用設定が全ページの行編集を読取専用にし、ページ内ボタンを無効化し、解除時に元へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfoDlg::setReadOnly(bool ro)"
+      ]
+    },
+    {
+      "target": "kis_document_info_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_info_dialog_test.cpp",
+      "test": "KisDocumentInfoDialogTest::testDocumentSavedFlagRemainsFalseAfterAccept",
+      "behavior": "文書保存状態は構築時とダイアログ承認後のどちらも偽のままであり、保存済みへの遷移経路がない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoDocumentInfoDlg::isDocumentSaved()"
+      ]
+    },
+    {
+      "target": "kis_document_io_presentation_test",
+      "source": "libs/document/ui/tests/kis_document_io_presentation_test.cpp",
+      "test": "KisDocumentIoPresentationTest::testSaveNotificationOrder",
+      "behavior": "保存成功通知が完了、保存先、状態表示の順に同期送出され、渡された保存先を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDocumentIoPresentation",
+        "method:KisDocumentIoPresentation::KisDocumentIoPresentation(QObject * parent=nullptr)",
+        "method:KisDocumentIoPresentation::notifySaveSucceeded(const QString & filePath)",
+        "method:KisDocumentIoPresentation::savingCompleted()",
+        "method:KisDocumentIoPresentation::savingFinished(const QString & filePath)"
+      ]
+    },
+    {
+      "target": "kis_document_io_presentation_test",
+      "source": "libs/document/ui/tests/kis_document_io_presentation_test.cpp",
+      "test": "KisDocumentIoPresentationTest::testCancelledSaveHasNoPresentation",
+      "behavior": "取消し結果は保存失敗表示と状態通知を発生させない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocumentIoPresentation::presentSaveResult(const QString & filePath,const KisImportExportErrorCode & status,const QString & errorMessage,const QString & warningMessage,bool batchMode)"
+      ]
+    },
+    {
+      "target": "kis_document_io_presentation_test",
+      "source": "libs/document/ui/tests/kis_document_io_presentation_test.cpp",
+      "test": "KisDocumentIoPresentationTest::testBatchModeSuppressesLoadDialogs",
+      "behavior": "一括処理では欠落ファイル、読込失敗、読込警告の各対話ダイアログを表示しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocumentIoPresentation::presentLoadFailure(const QString & prettyPath,const KisImportExportErrorCode & status,const QString & errorMessage,const QString & warningMessage,bool batchMode)",
+        "method:KisDocumentIoPresentation::presentLoadWarning(const QString & prettyPath,const QString & warningMessage,bool batchMode)",
+        "method:KisDocumentIoPresentation::presentMissingFile(const QString & filePath,bool batchMode)"
+      ]
+    },
+    {
+      "target": "kis_document_io_presentation_test",
+      "source": "libs/document/ui/tests/kis_document_io_presentation_test.cpp",
+      "test": "KisDocumentIoPresentationTest::testLoadSuccessNotification",
+      "behavior": "読込成功入口が読込完了信号を一度送出する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocumentIoPresentation::loadingFinished()",
+        "method:KisDocumentIoPresentation::notifyLoadSucceeded()"
+      ]
+    },
+    {
+      "target": "kis_document_io_presentation_test",
+      "source": "libs/document/ui/tests/kis_document_io_presentation_test.cpp",
+      "test": "KisDocumentIoPresentationTest::testAutoSaveStatusMessages",
+      "behavior": "自動保存の開始、延期、完了、失敗が順に利用者向け状態文を送出し、失敗理由を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocumentIoPresentation::notifyAutoSaveFailed(const QString & fileName,const KisImportExportErrorCode & status,const QString & errorMessage)",
+        "method:KisDocumentIoPresentation::notifyAutoSaveFinished(const QString & fileName)",
+        "method:KisDocumentIoPresentation::notifyAutoSavePostponed()",
+        "method:KisDocumentIoPresentation::notifyAutoSaveStarted(const QString & filePath)"
+      ]
+    },
+    {
+      "target": "kis_document_autosave_recovery_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_autosave_recovery_dialog_test.cpp",
+      "test": "KisDocumentAutoSaveRecoveryDialogTest::keepsRecoverableFilesSelectedUntilTheyAreDiscarded",
+      "behavior": "回復ダイアログが全候補を初期選択し、一括破棄後は回復対象を空にする。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAutoSaveRecoveryDialog",
+        "method:KisAutoSaveRecoveryDialog::KisAutoSaveRecoveryDialog(const QList<Krita::Document::KisDocumentAutoSaveFile> & files,QWidget * parent=0)",
+        "method:KisAutoSaveRecoveryDialog::recoverableFiles()",
+        "method:KisAutoSaveRecoveryDialog::slotDeleteAll()"
+      ]
+    },
+    {
+      "target": "kis_document_autosave_recovery_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_autosave_recovery_dialog_test.cpp",
+      "test": "KisDocumentAutoSaveRecoveryDialogTest::togglesRecoverableFilesFromVisibleItems",
+      "behavior": "表示候補のチェック状態変更が対応する回復対象の選択状態を更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAutoSaveRecoveryDialog::toggleFileItem(bool toggle)"
+      ]
+    },
+    {
+      "target": "kis_document_named_autosave_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_named_autosave_dialog_test.cpp",
+      "test": "KisDocumentNamedAutosaveDialogTest::testAutosaveIsSelectedByDefault",
+      "behavior": "名前付き自動保存の回復ダイアログが自動保存ファイルを開く選択で構築される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRecoverNamedAutosaveDialog",
+        "method:KisRecoverNamedAutosaveDialog::KisRecoverNamedAutosaveDialog(QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "kis_document_named_autosave_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_named_autosave_dialog_test.cpp",
+      "test": "KisDocumentNamedAutosaveDialogTest::testPreviewIconsAreProvidedAsValues",
+      "behavior": "主ファイルと自動保存ファイルのアイコン値を各選択肢へ設定し、4倍の共通プレビュー寸法を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecoverNamedAutosaveDialog::filePreviewIconSize() const",
+        "method:KisRecoverNamedAutosaveDialog::setAutosaveFileIcon(const QIcon & icon)",
+        "method:KisRecoverNamedAutosaveDialog::setMainFileIcon(const QIcon & icon)"
+      ]
+    },
+    {
+      "target": "kis_document_named_autosave_dialog_test",
+      "source": "libs/document/ui/tests/kis_document_named_autosave_dialog_test.cpp",
+      "test": "KisDocumentNamedAutosaveDialogTest::testDecisionResultsFollowTheSelectedAction",
+      "behavior": "承認時は選択に応じて自動保存または主ファイルを返し、取消し時は取消し結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisRecoverNamedAutosaveDialog::ResultType",
+        "enumerator:KisRecoverNamedAutosaveDialog::ResultType::Cancel",
+        "enumerator:KisRecoverNamedAutosaveDialog::ResultType::OpenAutosave",
+        "enumerator:KisRecoverNamedAutosaveDialog::ResultType::OpenMainFile"
+      ]
+    },
+    {
+      "target": "kis_document_undo_store_test",
+      "source": "libs/document/ui/tests/kis_document_undo_store_test.cpp",
+      "test": "KisDocumentUndoStoreTest::forwardsHistoryOperations",
+      "behavior": "文書履歴保存が命令追加、現在命令取得、空命令無視、直前命令取消しを借用スタックへ同期転送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDocumentUndoStore",
+        "method:KisDocumentUndoStore::KisDocumentUndoStore(KUndo2Stack * undoStack)",
+        "method:KisDocumentUndoStore::addCommand(KUndo2Command * command)",
+        "method:KisDocumentUndoStore::presentCommand()",
+        "method:KisDocumentUndoStore::undoLastCommand()"
+      ]
+    },
+    {
+      "target": "kis_document_undo_store_test",
+      "source": "libs/document/ui/tests/kis_document_undo_store_test.cpp",
+      "test": "KisDocumentUndoStoreTest::groupsMacrosAndPurgesRedoHistory",
+      "behavior": "マクロ内の複数命令を一履歴へまとめ、取消し後のやり直し履歴を明示的に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDocumentUndoStore::beginMacro(const KUndo2MagicString & macroName)",
+        "method:KisDocumentUndoStore::endMacro()",
+        "method:KisDocumentUndoStore::purgeRedoState()"
+      ]
+    },
+    {
+      "target": "kis_document_undo_ui_test",
+      "source": "libs/document/ui/tests/kis_document_undo_ui_test.cpp",
+      "test": "KisDocumentUndoUiTest::connectsDocumentHistoryToActionsAndPresentation",
+      "behavior": "スタック付き履歴表示が命令名、現在位置、取消し・やり直し操作と文書値を同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2View::KUndo2View(KUndo2QStack * stack,QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "kis_document_undo_ui_test",
+      "source": "libs/document/ui/tests/kis_document_undo_ui_test.cpp",
+      "test": "KisDocumentUndoUiTest::switchesObservedStacks",
+      "behavior": "無接続の履歴表示を構築し、観測スタックを設定、取得、解除できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KUndo2View",
+        "method:KUndo2View::KUndo2View(QWidget * parent=0)",
+        "method:KUndo2View::setStack(KUndo2QStack * stack)",
+        "method:KUndo2View::stack() const"
+      ]
+    },
+    {
+      "target": "kis_document_undo_ui_test",
+      "source": "libs/document/ui/tests/kis_document_undo_ui_test.cpp",
+      "test": "KisDocumentUndoUiTest::followsTheActiveUndoGroup",
+      "behavior": "グループ付き履歴表示が能動スタックの切替へ追従し、グループ解除時に観測スタックも解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2View::KUndo2View(KUndo2Group * group,QWidget * parent=0)",
+        "method:KUndo2View::group() const",
+        "method:KUndo2View::setGroup(KUndo2Group * group)"
+      ]
+    },
+    {
+      "target": "kis_document_undo_ui_test",
+      "source": "libs/document/ui/tests/kis_document_undo_ui_test.cpp",
+      "test": "KisDocumentUndoUiTest::storesPresentationProperties",
+      "behavior": "履歴表示が空状態ラベルと保存済み状態アイコンを値として設定・取得する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2View::cleanIcon() const",
+        "method:KUndo2View::emptyLabel() const",
+        "method:KUndo2View::setCleanIcon(const QIcon & icon)",
+        "method:KUndo2View::setEmptyLabel(const QString & label)"
       ]
     }
   ]

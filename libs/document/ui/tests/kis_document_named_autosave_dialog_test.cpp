@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <QPushButton>
 #include <QRadioButton>
 #include <QTest>
 
@@ -16,6 +17,7 @@ class KisDocumentNamedAutosaveDialogTest : public QObject
 private Q_SLOTS:
     void testAutosaveIsSelectedByDefault();
     void testPreviewIconsAreProvidedAsValues();
+    void testDecisionResultsFollowTheSelectedAction();
 };
 
 void KisDocumentNamedAutosaveDialogTest::testAutosaveIsSelectedByDefault()
@@ -49,6 +51,30 @@ void KisDocumentNamedAutosaveDialogTest::testPreviewIconsAreProvidedAsValues()
     QCOMPARE(openMainFile->icon().cacheKey(), mainFileIcon.cacheKey());
     QCOMPARE(openAutosave->iconSize(), dialog.filePreviewIconSize());
     QCOMPARE(openMainFile->iconSize(), dialog.filePreviewIconSize());
+}
+
+void KisDocumentNamedAutosaveDialogTest::testDecisionResultsFollowTheSelectedAction()
+{
+    KisRecoverNamedAutosaveDialog autosaveDialog;
+    QPushButton *autosaveOk = autosaveDialog.findChild<QPushButton *>("btOk");
+    QVERIFY(autosaveOk);
+    autosaveOk->click();
+    QCOMPARE(autosaveDialog.result(), static_cast<int>(KisRecoverNamedAutosaveDialog::OpenAutosave));
+
+    KisRecoverNamedAutosaveDialog mainFileDialog;
+    QRadioButton *openMainFile = mainFileDialog.findChild<QRadioButton *>("rbDiscardAutosave");
+    QPushButton *mainFileOk = mainFileDialog.findChild<QPushButton *>("btOk");
+    QVERIFY(openMainFile);
+    QVERIFY(mainFileOk);
+    openMainFile->setChecked(true);
+    mainFileOk->click();
+    QCOMPARE(mainFileDialog.result(), static_cast<int>(KisRecoverNamedAutosaveDialog::OpenMainFile));
+
+    KisRecoverNamedAutosaveDialog cancelDialog;
+    QPushButton *cancel = cancelDialog.findChild<QPushButton *>("btCancel");
+    QVERIFY(cancel);
+    cancel->click();
+    QCOMPARE(cancelDialog.result(), static_cast<int>(KisRecoverNamedAutosaveDialog::Cancel));
 }
 
 QTEST_MAIN(KisDocumentNamedAutosaveDialogTest)
