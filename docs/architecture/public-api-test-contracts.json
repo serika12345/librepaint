@@ -16,7 +16,7 @@
     "publicApiFingerprint": "adad650ee6ad3fc29314c8fd2aef1eea9ff9fd385cce4860c92062f06755ae95"
   },
   "migration": {
-    "expectedMissingApis": 28430
+    "expectedMissingApis": 28427
   },
   "contracts": [
     {
@@ -2026,6 +2026,18 @@
       "classification": "maintained",
       "apis": [
         "function:KisNumericParser::parseIntegerMathExpr(QString const & expr,bool * noProblem=0)"
+      ]
+    },
+    {
+      "target": "KisDirtyStateSaverTest",
+      "source": "libs/resources/tests/KisDirtyStateSaverTest.cpp",
+      "test": "KisDirtyStateSaverTest::restoresInitialDirtyState",
+      "behavior": "構築時に保存した清浄・変更済み状態を、保護範囲内で反転された後も破棄時に元の値へ復元する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDirtyStateSaver",
+        "method:KisDirtyStateSaver::KisDirtyStateSaver(T resource)",
+        "method:KisDirtyStateSaver::~KisDirtyStateSaver()"
       ]
     }
   ]
