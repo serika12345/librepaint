@@ -196,6 +196,26 @@ set_target_properties(kritaglobalrollingmeanobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalsamplerectiteratorobjects OBJECT
+    KisSampleRectIterator.cpp
+)
+target_compile_definitions(kritaglobalsamplerectiteratorobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalsamplerectiteratorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalsamplerectiteratorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalsamplerectiteratorobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -221,7 +241,6 @@ set(kritaglobal_LIB_SRCS
     KisBezierMesh.cpp
     KisRectsGrid.cpp
     KisSynchronizedConnection.cpp
-    KisSampleRectIterator.cpp
     kis_random_source.cpp
     KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
@@ -254,6 +273,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalsharedobjects>
     $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
     $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
+    $<TARGET_OBJECTS:kritaglobalsamplerectiteratorobjects>
 )
 
 target_sources(kritaglobal

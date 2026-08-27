@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 06:29 JST
+- 更新日時: 2026-08-28 06:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3765,6 +3765,17 @@
   `lager`だけへ直接接続し、変更なし構築閉包はmacOSで4工程・8入力である。対象実行と20回反復が
   成功し、公開API契約は754件、未対応基準は28,260件になった。製品実装、公開API、ABI、状態変換
   規則は変更していない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 矩形サンプラー契約前の実装所有分離で完了した作業
+
+- `libs/global/KisSampleRectIterator.cpp`の実装所有を、`kritaglobal`の一括ソース集合から
+  `kritaglobalsamplerectiteratorobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象
+  だけを変更した。公開ヘッダー、クラス、関数、`kritaglobal`のAPIとABIを維持し、`kritaglobal`は
+  新対象のオブジェクトを従来どおり集約する。
+- 新対象は矩形と共有データのQt Core、座標変換型のQt Gui、ヘッダー専用Boostだけへ直接接続する。
+  従来の`kritaglobal`は変更なし構築閉包が55工程・110入力、新対象は1工程・3入力である。macOSで
+  新対象の限定構築が成功した。製品実装、公開API、ABI、矩形サンプル列は変更していない。Linuxと
+  全ネイティブ検証は実行していない。
 
 ## 次の操作
 
