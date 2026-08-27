@@ -12,11 +12,13 @@
 #include <QQuickItem>
 #include <QQmlFileSelector>
 #include <QFileSelector>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QColorSpace>
+#endif
 
 #include <KLocalizedContext>
 
 #include <KoResourcePaths.h>
-#include <color/KisSurfaceColorSpaceWrapper.h>
 #include <kis_config_notifier.h>
 
 KisQQuickWidget::KisQQuickWidget(QWidget *parent): QQuickWidget(parent)
@@ -34,14 +36,18 @@ KisQQuickWidget::KisQQuickWidget(QWidget *parent): QQuickWidget(parent)
         format.setGreenBufferSize(8);
         format.setBlueBufferSize(8);
         format.setAlphaBufferSize(8);
-        format.setColorSpace(KisSurfaceColorSpaceWrapper::makeSRGBColorSpace());
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        format.setColorSpace(QSurfaceFormat::sRGBColorSpace);
+#else
+        format.setColorSpace(QColorSpace::SRgb);
+#endif
     }
 
     setFormat(format);
 #endif
 
     engine()->rootContext()->setContextProperty("mainWindow", parent);
-    engine()->rootContext()->setContextObject(new KLocalizedContext(parent));
+    engine()->rootContext()->setContextObject(new KLocalizedContext(this));
 
     // Clear color is the 'default background color', which, in qwidget context is the window bg.
     setClearColor(palette().window().color());

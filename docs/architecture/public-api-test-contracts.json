@@ -16,7 +16,7 @@
     "publicApiFingerprint": "dd9a0e6992b8ced00dc200b1fc4d0f1a5a58d85cfdfae7d2b401dce7ca58a08a"
   },
   "migration": {
-    "expectedMissingApis": 29126
+    "expectedMissingApis": 29115
   },
   "contracts": [
     {
@@ -391,6 +391,62 @@
       "classification": "maintained",
       "apis": [
         "method:KisColord::changed(const QString & device)"
+      ]
+    },
+    {
+      "target": "KisQQuickWidgetsPublicApiTest",
+      "source": "qmlmodules/widgets/tests/KisQQuickWidgetsPublicApiTest.cpp",
+      "test": "KisQQuickWidgetsPublicApiTest::widgetConfiguresQuickRendering",
+      "behavior": "QMLウィジェットが親をQML文脈へ公開し、ルート追従寸法と8ビットsRGB描画形式を構成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisQQuickWidget",
+        "method:KisQQuickWidget::KisQQuickWidget(QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisQQuickWidgetsPublicApiTest",
+      "source": "qmlmodules/widgets/tests/KisQQuickWidgetsPublicApiTest.cpp",
+      "test": "KisQQuickWidgetsPublicApiTest::minimumDimensionsFollowRootObject",
+      "behavior": "ルートがない接続要求は最小寸法を変えず、接続後はルートの暗黙寸法とその変更へ追従する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQQuickWidget::connectMinimumHeightToRootObject()",
+        "method:KisQQuickWidget::connectMinimumWidthToRootObject()"
+      ]
+    },
+    {
+      "target": "KisQQuickWidgetsPublicApiTest",
+      "source": "qmlmodules/widgets/tests/KisQQuickWidgetsPublicApiTest.cpp",
+      "test": "KisQQuickWidgetsPublicApiTest::widgetParentedLifetimeIsSafe",
+      "behavior": "QMLウィジェットが翻訳文脈を所有し、親付き個体の明示破棄時に両者を安全に解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQQuickWidget::~KisQQuickWidget()"
+      ]
+    },
+    {
+      "target": "KisQQuickWidgetsPublicApiTest",
+      "source": "qmlmodules/widgets/tests/KisQQuickWidgetsPublicApiTest.cpp",
+      "test": "KisQQuickWidgetsPublicApiTest::popupLoadsRootAndManagesMargins",
+      "behavior": "ポップアップが同梱QMLをルート項目として読み込み、余白の既定値と四辺の往復設定を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisQQuickPopupWidget",
+        "method:KisQQuickPopupWidget::KisQQuickPopupWidget(QWidget * parent=nullptr)",
+        "method:KisQQuickPopupWidget::layoutContentMargins() const",
+        "method:KisQQuickPopupWidget::rootObject() const",
+        "method:KisQQuickPopupWidget::setLayoutMargins(const QMargins margins)"
+      ]
+    },
+    {
+      "target": "KisQQuickWidgetsPublicApiTest",
+      "source": "qmlmodules/widgets/tests/KisQQuickWidgetsPublicApiTest.cpp",
+      "test": "KisQQuickWidgetsPublicApiTest::popupParentedLifetimeIsSafe",
+      "behavior": "親付きQMLポップアップを明示破棄しても内包ウィジェットを含む所有物を安全に解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQQuickPopupWidget::~KisQQuickPopupWidget()"
       ]
     }
   ]

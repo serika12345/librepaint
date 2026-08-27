@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 21:08 JST
+- 更新日時: 2026-08-27 21:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2770,11 +2770,32 @@
 - macOSの共通試験、`ssh nixos`上の標準Linux共通試験と任意colord試験は各20回成功した。
   公開API契約は119件、未対応基準は29,126件になった。全ネイティブ検証は実行していない。
 
+## R2-G19b QMLウィジェットpublic API契約で完了した作業
+
+- `qmlmodules/widgets/KisQQuickWidget.{h,cpp}`と`KisQQuickPopupWidget.{h,cpp}`の11 APIを
+  5試験関数へ対応付けた。QMLエンジン文脈、sRGB描画形式、ルート暗黙寸法への追従、同梱QMLの
+  読み込み、余白設定、親付き個体の破棄を維持契約として観測する。
+- 契約追加前の`kritaqmlwidgets`は、便宜的な`kritaapplicationui`リンクとsRGB形式指定だけに使う
+  `kritacanvas`を経由し、変更なし構築閉包が1,668工程、入力3,335件だった。
+  `qmlmodules/widgets/CMakeLists.txt`は公開ヘッダーが要求するQt Quick依存を公開し、実装専用依存を
+  `kritaglobal`、`kritaresources`、KF I18n、Qt QML、Qt Quick Controlsへ限定した。
+  `KisQQuickWidget.cpp`はQt自身の同値なsRGB型を使う。製品対象は137工程、入力299件、専用試験は
+  141工程、入力306件となり、アプリケーションUIとキャンバスへ到達しない。
+- 最初の試験構築はQtに存在しない背景色getterと不足した完全型だけを診断した。実行時にはNixの
+  分割Qt配置が標準QMLプラグインを自動探索できないことを確認し、専用CTestだけにQt Quick対象から
+  決定したQML配置を設定した。同梱`KisQQuickPopupWidget.qml`を置換せずに読み込む。
+- 所有期間契約は、翻訳文脈の親がQMLウィジェットでなく外側の親であることを診断した。
+  `KisQQuickWidget.cpp`は翻訳文脈を`this`の子として所有し、`parent=nullptr`を含む公開構築経路でも
+  ウィジェット破棄時に解放する。
+- `nix develop .#test --command ./scripts/run-test KisQQuickWidgetsPublicApiTest`と、macOS CTest
+  プリセットによる20回反復は成功した。公開API契約は130件、未対応基準は29,115件になった。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`qmlmodules/widgets`の未対応11 APIについて、既存CTestが観測する挙動、所有対象の変更なし計画、
-直接依存、空構築閉包を確認する。構築範囲がQMLウィジェット責務を越える場合は、契約追加より先に
-所有単位を分ける。
+`libs/koplugin`の未対応36 APIについて、既存の`KoPluginLoaderTest`と`KisMimeDatabaseTest`が
+実際に観測する挙動、所有対象の変更なし計画、直接依存、空構築閉包を確認する。未観測の取引器、
+読み込み器、MIME判定だけへ最小契約を追加する。
 
 ## R1-G5完了根拠
 

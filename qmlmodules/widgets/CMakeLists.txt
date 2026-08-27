@@ -9,11 +9,14 @@ kis_add_library(kritaqmlwidgets SHARED ${kritaqmlwidgets_SRCS})
 generate_export_header(kritaqmlwidgets)
 
 target_link_libraries(kritaqmlwidgets
-    PRIVATE
-        kritaapplicationui
-        Qt::Qml
+    PUBLIC
         Qt::Quick
         Qt::QuickWidgets
+    PRIVATE
+        kritaglobal
+        kritaresources
+        KF${KF_MAJOR}::I18n
+        Qt::Qml
         Qt::QuickControls2
 )
 
@@ -23,3 +26,5 @@ set_target_properties(kritaqmlwidgets PROPERTIES
 )
 
 install(TARGETS kritaqmlwidgets ${INSTALL_TARGETS_DEFAULT_ARGS})
+
+add_subdirectory(tests)
