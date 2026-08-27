@@ -4,6 +4,12 @@ kis_add_tests(
 )
 
 kis_add_tests(
+    kis_import_export_error_code_test.cpp
+    LINK_LIBRARIES kritaimpexerrorobjects Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_import_export_error_code_test PRIVATE kritaimpex_EXPORTS)
+
+kis_add_tests(
     kis_document_metadata_test.cpp
     LINK_LIBRARIES kritaimpexmetadataobjects Qt${QT_MAJOR_VERSION}::Test Qt${QT_MAJOR_VERSION}::Xml
 )

@@ -9,7 +9,6 @@
 #include <QTest>
 
 #include <KisImportExportAdditionalChecks.h>
-#include <KisImportExportErrorCode.h>
 #include <KisImportExportFilterRegistry.h>
 #include <KisImportExportMimeType.h>
 #include <kis_store_paintdevice_writer.h>
@@ -19,23 +18,9 @@ class TestImportExportBoundary : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void resultClassification();
     void filePreconditions();
     void mimeSelectionUsesTheRequestedDirection();
 };
-
-void TestImportExportBoundary::resultClassification()
-{
-    const KisImportExportErrorCode success(ImportExportCodes::OK);
-    const KisImportExportErrorCode cancellation(ImportExportCodes::Cancelled);
-    const KisImportExportErrorCode failure(ImportExportCodes::ErrorWhileWriting);
-
-    QVERIFY(success.isOk());
-    QVERIFY(!success.isCancelled());
-    QVERIFY(!failure.isOk());
-    QVERIFY(!failure.isCancelled());
-    QVERIFY(cancellation.isCancelled());
-}
 
 void TestImportExportBoundary::filePreconditions()
 {
@@ -67,16 +52,10 @@ void TestImportExportBoundary::mimeSelectionUsesTheRequestedDirection()
         {QStringLiteral("X-KDE-Export"), QStringLiteral("image/tiff")},
     });
 
-    QCOMPARE(KisImportExportFilterRegistry::mimeTypesFromMetadata(
-                 metadata, KisImportExportFilterRegistry::Import),
-             QStringList({QStringLiteral("image/png"),
-                          QStringLiteral("image/tiff"),
-                          QStringLiteral("image/webp")}));
-    QCOMPARE(KisImportExportFilterRegistry::mimeTypesFromMetadata(
-                 metadata, KisImportExportFilterRegistry::Export),
-             QStringList({QStringLiteral("image/avif"),
-                          QStringLiteral("image/png"),
-                          QStringLiteral("image/tiff")}));
+    QCOMPARE(KisImportExportFilterRegistry::mimeTypesFromMetadata(metadata, KisImportExportFilterRegistry::Import),
+             QStringList({QStringLiteral("image/png"), QStringLiteral("image/tiff"), QStringLiteral("image/webp")}));
+    QCOMPARE(KisImportExportFilterRegistry::mimeTypesFromMetadata(metadata, KisImportExportFilterRegistry::Export),
+             QStringList({QStringLiteral("image/avif"), QStringLiteral("image/png"), QStringLiteral("image/tiff")}));
 }
 
 QTEST_MAIN(TestImportExportBoundary)

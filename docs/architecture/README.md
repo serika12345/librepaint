@@ -253,6 +253,8 @@ R1-G6e後半は[文書パッケージ境界計画](document-package-boundary-pla
 責務別のCTestは対応する内部実装だけを直接リンクする。文書UIの挙動契約を追加するときは、
 `libs/document/ui/tests/CMakeLists.txt`の対応を保ち、一括した公開共有ライブラリーへのリンクへ
 戻さない。
+入出力エラー分類も`kis_import_export_error_code_test`がエラー表現の内部実装を直接検査し、
+ファイル事前条件とMIME選択を扱う`TestImportExportBoundary`から独立して反復する。
 
 最初の検査段階で、文書と取り消し履歴の接続および履歴表示を`kritadocumentui`へ移し、
 `kritadocument`の公開リンク閉包をQt Coreだけへ縮小した。第2段階では

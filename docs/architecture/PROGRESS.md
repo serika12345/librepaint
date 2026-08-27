@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 23:27 JST
+- 更新日時: 2026-08-27 23:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2913,6 +2913,18 @@
   20回反復が成功し、Linuxの初回再構築は変更した5試験だけの16工程だった。両環境の直接公開API
   契約検査、macOSの5試験ソースclang-format検査と`verify-quick`も成功した。全ネイティブ検証は
   実行していない。
+
+## R2-G19b 入出力エラー契約前の試験分離で完了した作業
+
+- `libs/impex/tests/TestImportExportBoundary.cpp`を起点として、エラー結果分類の1試験関数を
+  `libs/impex/tests/kis_import_export_error_code_test.cpp`へ移した。元の境界試験はファイル事前条件と
+  MIME方向選択を維持し、新しい`kis_import_export_error_code_test`は分離済みの
+  `kritaimpexerrorobjects`とQt Testだけを直接リンクする。
+- エラー契約の変更なし空構築閉包は、3責務を含む元の`TestImportExportBoundary`の1,018工程・
+  2,057入力から62工程・122入力へ縮小した。製品実装、公開API、`kritaimpex`の公開共有ライブラリー、
+  元の2契約の挙動は変更していない。
+- macOSで新旧2対象の構築、実行、20回反復、触れた2試験ソースのclang-format検査、
+  `verify-quick`が成功した。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 
