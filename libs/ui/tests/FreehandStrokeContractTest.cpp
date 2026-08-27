@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QDomDocument>
 #include <QImage>
@@ -39,6 +40,7 @@ constexpr int imageWidth = 500;
 constexpr int imageHeight = 500;
 constexpr int referenceAlphaTolerance = 3;
 constexpr qreal inputPressure = 1.0;
+constexpr qreal halfInputPressure = 0.5;
 constexpr qreal inputTilt = 0.0;
 constexpr qreal inputRotation = 0.0;
 constexpr qreal inputTangentialPressure = 0.0;
@@ -46,11 +48,13 @@ constexpr qreal inputPerspective = 1.0;
 constexpr qreal inputTime = 0.0;
 constexpr qreal inputSpeed = 0.0;
 const QRect maintainedStrokeBounds(50, 50, 385, 385);
+const QRect maintainedHalfPressureStrokeBounds(126, 126, 234, 234);
+const QByteArray maintainedHalfPressureDigest("ffdae59742d86fcfcc3764eeb7d2e82c126cd9cb08fb7c7c97a94e8b46cd5bb9");
 
-KisPaintInformation fixedPaintInformation(const QPointF &position)
+KisPaintInformation fixedPaintInformation(const QPointF &position, qreal pressure = inputPressure)
 {
     KisPaintInformation info(position,
-                             inputPressure,
+                             pressure,
                              inputTilt,
                              inputTilt,
                              inputRotation,
@@ -155,6 +159,17 @@ bool compareImages(const QImage &expected,
     return equal;
 }
 
+QByteArray imageDigest(const QImage &image)
+{
+    const QImage normalized = image.convertToFormat(QImage::Format_RGBA8888);
+    QCryptographicHash hash(QCryptographicHash::Sha256);
+    for (int row = 0; row < normalized.height(); ++row) {
+        hash.addData(QByteArray::fromRawData(reinterpret_cast<const char *>(normalized.constScanLine(row)),
+                                             normalized.width() * 4));
+    }
+    return hash.result().toHex();
+}
+
 class FreehandStrokeFixture
 {
 public:
@@ -187,7 +202,7 @@ public:
         return m_presetPath;
     }
 
-    void runStroke(bool cancel)
+    void runStroke(bool cancel, qreal pressure = inputPressure)
     {
         KisResourcesSnapshotSP resources = new KisResourcesSnapshot(m_image, m_layer);
         resources->setBrush(m_preset);
@@ -201,8 +216,8 @@ public:
             new FreehandStrokeStrategy(resources, new KisFreehandStrokeInfo(), kundo2_noi18n("Freehand Stroke"));
 
         const KisStrokeId strokeId = m_image->startStroke(stroke);
-        const KisPaintInformation start = fixedPaintInformation(QPointF(200.0, 200.0));
-        const KisPaintInformation end = fixedPaintInformation(QPointF(300.0, 300.0));
+        const KisPaintInformation start = fixedPaintInformation(QPointF(200.0, 200.0), pressure);
+        const KisPaintInformation end = fixedPaintInformation(QPointF(300.0, 300.0), pressure);
 
         m_image->addJob(strokeId, new FreehandStrokeStrategy::Data(0, start, end));
         m_image->addJob(strokeId, new KisAsynchronousStrokeUpdateHelper::UpdateData(true));
@@ -270,6 +285,7 @@ private Q_SLOTS:
     void initTestCase();
     void presetAndInputValuesAreFixed();
     void finishedStrokeMatchesMaintainedProjection();
+    void halfPressureStrokeProducesMaintainedPixels();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
 };
@@ -373,6 +389,42 @@ void FreehandStrokeContractTest::finishedStrokeMatchesMaintainedProjection()
                       0,
                       referenceAlphaTolerance),
         qPrintable(QStringLiteral("reference and projection differ at %1,%2").arg(mismatch.x()).arg(mismatch.y())));
+}
+
+void FreehandStrokeContractTest::halfPressureStrokeProducesMaintainedPixels()
+{
+    FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
+    const QImage initialLayer = fixture.layerImage();
+
+    fixture.runStroke(false, halfInputPressure);
+
+    const QImage layer = fixture.layerImage();
+    const QImage projection = fixture.projectionImage();
+    QVERIFY(layer != initialLayer);
+    QVERIFY(!fixture.image()->hasUpdatesRunning());
+    QVERIFY(fixture.image()->isIdle());
+
+    QPoint mismatch;
+    QVERIFY2(
+        compareImages(layer,
+                      projection,
+                      QStringLiteral("freehand-contract-half-pressure-projection-actual.png"),
+                      &mismatch),
+        qPrintable(
+            QStringLiteral("half-pressure layer and projection differ at %1,%2").arg(mismatch.x()).arg(mismatch.y())));
+
+    QCOMPARE(fixture.layerExactBounds(), maintainedHalfPressureStrokeBounds);
+    QCOMPARE(fixture.image()->projection()->exactBounds(), maintainedHalfPressureStrokeBounds);
+    QVERIFY(maintainedHalfPressureStrokeBounds.width() < maintainedStrokeBounds.width());
+    QVERIFY(maintainedHalfPressureStrokeBounds.height() < maintainedStrokeBounds.height());
+
+    const QByteArray digest = imageDigest(layer);
+    if (digest != maintainedHalfPressureDigest) {
+        QDir().mkpath(QStringLiteral(FILES_OUTPUT_DIR));
+        layer.save(QStringLiteral(FILES_OUTPUT_DIR) + QStringLiteral("/freehand-contract-half-pressure-actual.png"));
+    }
+    QCOMPARE(digest, maintainedHalfPressureDigest);
 }
 
 void FreehandStrokeContractTest::cancelledStrokeRestoresInitialImage()
