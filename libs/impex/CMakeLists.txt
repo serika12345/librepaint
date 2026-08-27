@@ -270,6 +270,24 @@ set_target_properties(kritaimpexuserfeedbackobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimpexremotefilefetcherobjects OBJECT
+    ui/KisRemoteFileFetcher.cpp
+)
+target_compile_definitions(kritaimpexremotefilefetcherobjects PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kritaimpexremotefilefetcherobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritaimpexremotefilefetcherobjects
+    PUBLIC
+        kritaglobal
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Network
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritaimpexremotefilefetcherobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 if(NOT IOS)
     add_library(kritaimpexanimationoptionsstateobjects OBJECT
         animation/KisAnimationRenderingOptions.cpp
@@ -307,7 +325,6 @@ set(kritaimpexui_LIB_SRCS
     ui/KisImportExportAsyncFeedback.cpp
     ui/KisImportExportManager.cpp
     ui/KisImportExportUtils.cpp
-    ui/KisRemoteFileFetcher.cpp
     ui/KisSaveGroupVisitor.cpp
     ui/KisImportExportDialogs.cpp
     ui/kis_dlg_missing_color_profile.cpp
@@ -359,7 +376,10 @@ endif()
 # Import and export presentation sources form one ownership unit. Their object
 # implementation is incorporated into the application presentation library,
 # including entry points used only by dynamically loaded plugins.
-set(kritaimpexui_OBJECTS $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>)
+set(kritaimpexui_OBJECTS
+    $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>
+    $<TARGET_OBJECTS:kritaimpexremotefilefetcherobjects>
+)
 if(NOT IOS)
     list(APPEND kritaimpexui_OBJECTS
         $<TARGET_OBJECTS:kritaimpexanimationoptionsstateobjects>

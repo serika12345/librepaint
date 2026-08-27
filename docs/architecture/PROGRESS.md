@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 01:52 JST
+- 更新日時: 2026-08-28 02:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3183,12 +3183,24 @@
   触れたC++のclang-format検査も成功した。Linuxの変更なし構築閉包は軽量試験53工程・
   120入力、保存試験1,048工程・2,109入力である。全ネイティブ検証は実行していない。
 
+## R2-G19b 遠隔ファイル取得契約前の実装所有分離で完了した作業
+
+- `libs/impex/ui/KisRemoteFileFetcher.cpp`の実装所有を、`kritaimpexui`の一括ソース集合から
+  `kritaimpexremotefilefetcherobjects`へ移した。ファイル配置、公開ヘッダー、クラス、メソッド、
+  メタオブジェクト、`kritaapplicationui`のABIを維持し、`kritaimpexui`は新対象のオブジェクトを
+  従来どおり集約する。
+- 新対象はQt Network、Qt Widgets、翻訳、`kritaglobal`の共通メッセージ表示だけへ
+  直接接続する。macOSの変更なし構築閉包は58工程・115入力で、分離前の単一実装オブジェクトが
+  継承していた1,124工程・2,259入力から縮小した。
+- macOSで新対象と集約後の`kritaimpexui`の限定構築が成功した。公開API、ABI、
+  確認表示、応答待機、バイト列書込み、診断の実行時挙動は変更していない。Linuxと
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/impex/ui/KisRemoteFileFetcher.h`の4 APIを次の入出力UI単位とする。現在の
-`KisRemoteFileFetcher.cpp`が属する`kritaimpexui`と単一実装オブジェクトの変更なし構築閉包、
-直接依存を先に監査する。入力がデータURLの場合のバイト列取得を外部ネットワークなしで固定し、
-確認表示、ネットワーク応答、出力装置を含む実装所有を独立構築してから専用契約を追加する。
+`libs/impex/ui/KisRemoteFileFetcher.h`の4 APIを専用CTestへ対応付ける。外部ネットワークを
+使わないデータURLを固定入力とし、実体対象で出力装置を開く処理、バイト列書込み、装置を閉じる処理を観測する。
+静的取得経路は成功応答のバイト列を返さない現行挙動を既知不具合として分類する。
 
 ## R1-G5完了根拠
 

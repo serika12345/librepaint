@@ -732,6 +732,10 @@ R2-G3で
 `KisAnimationRenderingOptionsPersistence.cpp`が実装する。両実装は個別のCMakeオブジェクト対象として
 構築でき、`kritaimpexui`が同じ公開クラスへ集約する。
 
+遠隔ファイル取得は`KisRemoteFileFetcher.cpp`を`kritaimpexremotefilefetcherobjects`で個別構築する。
+この対象はQt Network、Qt Widgets、翻訳、共通メッセージ表示に依存し、データURLを含む
+遠隔URLの応答と出力装置への書込みを所有する。`kritaimpexui`はそのオブジェクトを集約する。
+
 ## 変更内容から見る場所
 
 | 変更内容 | 最初に見る場所 | 次に確認する境界 |
