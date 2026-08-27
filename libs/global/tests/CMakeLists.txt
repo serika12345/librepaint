@@ -160,3 +160,13 @@ kis_add_test(
         Boost::boost
 )
 target_compile_definitions(KisRollingSumAccumulatorWrapperTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisRollingMeanAccumulatorWrapperTest.cpp
+    LINK_LIBRARIES
+        kritaglobalrollingmeanobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+target_compile_definitions(KisRollingMeanAccumulatorWrapperTest PRIVATE kritaglobal_EXPORTS)

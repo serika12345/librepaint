@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28318
+    "expectedMissingApis": 28310
   },
   "contracts": [
     {
@@ -2570,6 +2570,32 @@
       "classification": "maintained",
       "apis": [
         "method:KisRollingSumAccumulatorWrapper::reset(int windowSize)"
+      ]
+    },
+    {
+      "target": "KisRollingMeanAccumulatorWrapperTest",
+      "source": "libs/global/tests/KisRollingMeanAccumulatorWrapperTest.cpp",
+      "test": "KisRollingMeanAccumulatorWrapperTest::distinguishesEmptyAndPopulatedWindow",
+      "behavior": "空窓の通常平均はNaN、安全平均は0を返し、値追加後は窓内の最新値だけから同じ平均を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRollingMeanAccumulatorWrapper",
+        "method:KisRollingMeanAccumulatorWrapper::KisRollingMeanAccumulatorWrapper(int windowSize)",
+        "method:KisRollingMeanAccumulatorWrapper::operator ()(qreal value)",
+        "method:KisRollingMeanAccumulatorWrapper::rollingCount() const",
+        "method:KisRollingMeanAccumulatorWrapper::rollingMean() const",
+        "method:KisRollingMeanAccumulatorWrapper::rollingMeanSafe() const",
+        "method:KisRollingMeanAccumulatorWrapper::~KisRollingMeanAccumulatorWrapper()"
+      ]
+    },
+    {
+      "target": "KisRollingMeanAccumulatorWrapperTest",
+      "source": "libs/global/tests/KisRollingMeanAccumulatorWrapperTest.cpp",
+      "test": "KisRollingMeanAccumulatorWrapperTest::resetStartsAnEmptyWindow",
+      "behavior": "再設定は既存の平均と件数を空にし、指定した新しい窓幅で後続値を平均する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRollingMeanAccumulatorWrapper::reset(int windowSize)"
       ]
     }
   ]
