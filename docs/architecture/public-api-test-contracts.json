@@ -16,7 +16,7 @@
     "publicApiFingerprint": "cb1f4d8ad6df07ef464c5d446c7def87926a4120d036acce3208bba465759069"
   },
   "migration": {
-    "expectedMissingApis": 29153
+    "expectedMissingApis": 29151
   },
   "contracts": [
     {
@@ -245,6 +245,26 @@
         "method:KisPolylineInteraction::canUndoPoint() const",
         "method:KisPolylineInteraction::cancel()",
         "method:KisPolylineInteraction::undoPoint()"
+      ]
+    },
+    {
+      "target": "KritaVersionWrapperTest",
+      "source": "libs/version/tests/KritaVersionWrapperTest.cpp",
+      "test": "KritaVersionWrapperTest::versionStringUsesConfiguredMetadata",
+      "behavior": "構成済みの版文字列を返し、要求時だけ同じ構成のGit識別子を付加する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaVersionWrapper::versionString(bool checkGit=false)"
+      ]
+    },
+    {
+      "target": "KritaVersionWrapperTest",
+      "source": "libs/version/tests/KritaVersionWrapperTest.cpp",
+      "test": "KritaVersionWrapperTest::developerBuildClassification",
+      "behavior": "Qt 6で動作する現在のLibrePaint構成を開発者向けビルドとして分類する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaVersionWrapper::isDevelopersBuild()"
       ]
     }
   ]

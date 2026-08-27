@@ -17,3 +17,4 @@ set_target_properties(kritaversion PROPERTIES
 )
 install(TARGETS kritaversion ${INSTALL_TARGETS_DEFAULT_ARGS} )
 
+add_subdirectory(tests)

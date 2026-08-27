@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 20:25 JST
+- 更新日時: 2026-08-27 20:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2706,11 +2706,27 @@
   macOSで成功した。`nix flake check --no-build --all-systems --no-eval-cache`は全構成の評価に成功した。
   `nix build .#checks.aarch64-darwin.governance --no-link`は独立した方針ソース検査に成功した。
 
+## R2-G19b 版情報public API契約で完了した作業
+
+- `libs/version/KritaVersionWrapper.{h,cpp}`の2 APIには専用試験がなく、既存の資源試験は
+  `versionString()`を別の生成結果との相対比較に使うだけだった。`KritaVersionWrapperTest`を
+  `libs/version/tests/`へ追加し、`libs/version/CMakeLists.txt`から登録した。製品実装は変更していない。
+- 実装前の`kritaversion`は変更なしコマンド閉包5工程、入力9件、直接依存Qt Coreだけだった。
+  追加した試験の直接CMake依存は`kritaversion`だけで、リンクはQt TestとQt Core、空のコマンド閉包は
+  9工程、入力16件であり、アプリケーション、資源、UI対象へ到達しない。
+- 最初の対象実行は`versionString(false)`の実値`6.1.0-prealpha`と、Qt 6構成の開発版判定が真で
+  あることを診断した。維持契約は固定版文字列ではなく、生成された`KRITA_VERSION_STRING`を返し、
+  要求時だけ構成済み`KRITA_GIT_SHA1_STRING`を付加する規則と、Qt 6を開発版とする分類である。
+- 2試験関数を両public APIへ対応付け、公開API契約は95件、未対応基準は29,151件になった。
+  `nix develop .#test --command ./scripts/run-test KritaVersionWrapperTest`、対象CTestの20回反復、
+  変更後の対象計画、直接の公開API契約検査、`verify-quick`はmacOSで成功した。Linuxと全ネイティブ
+  検証は実行していない。
+
 ## 次の操作
 
-R2-G19bの最初の責務単位を選ぶため、未対応29,153 APIの報告を`build/public-api-contracts/`へ生成し、
-所有CMake対象と既存CTestへ分類する。最初の対象は既存契約の対応付けで大きく未対応を減らせる
-小さな所有対象とし、変更なし計画、直接依存、空構築閉包を確認してから不足する挙動試験を追加する。
+`libs/multiarch`の未対応8 APIについて、`kritamultiarch`の変更なし計画、直接依存、空構築閉包と、
+実行時CPU命令集合およびテンプレート生成経路の既存利用元を確認する。ホスト固有値と維持すべき
+選択規則を分離できる場合だけ、最小の専用CTestへ進む。
 
 ## R1-G5完了根拠
 
