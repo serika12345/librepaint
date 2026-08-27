@@ -3,3 +3,9 @@ kis_add_test(
     TEST_NAME KisInputManagerTest
     LINK_LIBRARIES kritainputui kritaapplicationui kritatestsdk
 )
+
+kis_add_test(
+    KisToolProxyContractTest.cpp
+    TEST_NAME KisToolProxyContractTest
+    LINK_LIBRARIES kritainputui kritatestsdk
+)

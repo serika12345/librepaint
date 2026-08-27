@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 16:19 JST
+- 更新日時: 2026-08-27 16:48 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G3 入力列契約の計画
+- 現在の検査段階: R2-G4 段階間契約の選定
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: R2の契約追加に先立ち、指定した試験が必要な製品ライブラリーと実行時成果物だけを
-  構築して実行できる依存範囲をmacOSで確立する。
+- 目的: R2の最適化前基準として、投影生成から画面表示までの既存契約を照合し、次に固定する
+  最小の観測可能な境界を選定する。
 
 ## 再開環境
 
@@ -2212,11 +2212,39 @@
   681ターゲットのパッケージ境界検査と登録済みCTest 355件すべてに成功した。全体検証の実時間は
   387.43秒であり、不足する試験成果物の調査には使用していない。
 
+## R2-G3マウス入力からツール呼出しまでで完了した作業
+
+- `TestInputShortcutMatcher`はQtのマウス列を入力アクションの開始、入力、終了へ変換する順序を固定し、
+  `TestToolCoreContract`は既に生成された`KoPointerEvent`から描画位置、時刻、表示設定を含む
+  `KisPaintInformation`への変換を固定する。`KisInputManagerTest`は入力プロファイルと照合器を扱う。
+- 両契約間の`libs/input/ui/kis_tool_proxy.cpp`は、ウィジェット座標を文書座標へ変換し、Qtのマウス、
+  タブレット、タッチ事象を`KoPointerEvent`として現在ツールへ渡す。このうち固定値が少ない
+  マウスの押下、移動、解放を最初の段階間契約とする。
+- `libs/input/ui/tests/KisToolProxyContractTest.cpp`を`kritainputui`と`kritatestsdk`だけへ直接リンクする
+  独立対象として登録した。固定した具体的キャンバス、座標変換器、画面コントローラー、記録用ツールを
+  試験内に構成し、製品実装と公開接続面は変更していない。
+- ウィジェット位置`(100, 120)`、`(140, 180)`、`(160, 210)`が、固定変換器の中央補正と
+  100 pixels/pointを経て文書位置`(0.5, 0.7)`、`(0.9, 1.3)`、`(1.1, 1.6)`になる現行挙動を固定した。
+  同じ入力列でローカル位置、画面位置、左右ボタン状態、Shift修飾、時刻10、20、30、筆圧1、
+  傾き0、回転0、マウス入力種別を検査する。
+- 押下、移動、解放が主操作の開始、継続、終了へ各1回渡り、操作有効化通知がtrue、falseの順で
+  発生する。開始事象を記録用ツールが無視した場合は`forwardEvent()`がfalseを返す。
+- 最初の実行可能な契約は、文書位置の期待`(1.2, 1.5)`に対して現行変換値`(0.5, 0.7)`を報告した。
+  座標変換器のキャンバス中央補正を含む現行値として分類し、数値を維持基準へ固定した。
+- `nix develop .#test --command ./scripts/run-test KisToolProxyContractTest`、
+  `TestInputShortcutMatcher`、`KisInputManagerTest`、`TestToolCoreContract`はmacOSで成功した。
+  `ctest --preset tdd-macos --tests-regex '^libs-input-ui-KisToolProxyContractTest$' --repeat until-fail:20`
+  と`nix develop .#test --command ./scripts/verify-quick`も成功した。
+- `nix develop .#test --command ./scripts/verify`は356件中355件に成功した。変更範囲外の既知の
+  `KisSafeDocumentLoaderTest`はファイル監視通知が実測1件・0件、期待2件・1件として失敗したが、
+  `nix develop .#test --command ./scripts/run-test KisSafeDocumentLoaderTest`の単独再実行は成功した。
+  R2-G3対象は統合実行でも成功し、入力、ツール、文書監視、文書読込の製品実装に変更はない。
+
 ## 次の操作
 
-R2-G3として、Qtのマウス押下、移動、解放から入力照合と自由描画ツールへ渡る正規化済み入力列の
-所有境界、観測値、固定値、最小の試験対象を計画する。既存の`TestInputShortcutMatcher`、
-`KisInputManagerTest`、`TestToolCoreContract`と製品実装を読み、段階間で不足する一つの契約を選ぶ。
+R2-G4として、`kis_prescaled_projection_contract_test`、`kis_display_color_transform_test`、
+キャンバス描画と更新通知の既存試験を照合する。投影生成から画面表示までで未固定の値と所有者を
+列挙し、製品抽象や実画面依存を追加せずに観測できる最小の段階間契約を計画する。
 
 ## R1-G5完了根拠
 
