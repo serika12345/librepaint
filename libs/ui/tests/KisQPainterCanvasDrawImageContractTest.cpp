@@ -31,6 +31,7 @@ class KisQPainterCanvasDrawImageContractTest : public QObject
 private Q_SLOTS:
     void drawsOnlyRequestedWidgetRegion();
     void mirrorsProjectionHorizontallyWithinKnownSamplingError();
+    void rotatesProjectionClockwise90DegreesWithinKnownSamplingError();
 };
 
 void KisQPainterCanvasDrawImageContractTest::drawsOnlyRequestedWidgetRegion()
@@ -114,6 +115,61 @@ void KisQPainterCanvasDrawImageContractTest::mirrorsProjectionHorizontallyWithin
         for (int x = 0; x < width; ++x) {
             const QColor actual = destination.pixelColor(x, y);
             const QColor expected = projectionColor(width - 1 - x, y);
+            QCOMPARE(actual.alpha(), expected.alpha());
+            QVERIFY(qAbs(actual.red() - expected.red()) <= 1);
+            QVERIFY(qAbs(actual.green() - expected.green()) <= 1);
+            QVERIFY(qAbs(actual.blue() - expected.blue()) <= 2);
+        }
+    }
+}
+
+void KisQPainterCanvasDrawImageContractTest::rotatesProjectionClockwise90DegreesWithinKnownSamplingError()
+{
+    constexpr int width = 8;
+    constexpr int height = 8;
+
+    KisImageSP image = new KisImage(nullptr,
+                                    width,
+                                    height,
+                                    KoColorSpaceRegistry::instance()->rgb8(),
+                                    QStringLiteral("QPainter rotation contract"));
+    image->setResolution(1.0, 1.0);
+
+    KisCoordinatesConverter converter;
+    converter.setResolution(1.0, 1.0);
+    converter.setImage(image);
+    converter.setZoom(1.0);
+    converter.setDocumentOffset(QPoint(0, 0));
+    converter.setCanvasWidgetSize(QSize(width, height));
+    converter.rotate(converter.makeWidgetStillPoint(converter.imageCenterInWidgetPixel()), 90.0);
+
+    QCOMPARE(converter.viewportToWidget(QPointF(0.0, 0.0)), QPointF(width, 0.0));
+    QCOMPARE(converter.viewportToWidget(QPointF(width, 0.0)), QPointF(width, height));
+    QCOMPARE(converter.viewportToWidget(QPointF(width, height)), QPointF(0.0, height));
+    QCOMPARE(converter.viewportToWidget(QPointF(0.0, height)), QPointF(0.0, 0.0));
+
+    QImage projection(width, height, QImage::Format_ARGB32_Premultiplied);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            projection.setPixelColor(x, y, projectionColor(x, y));
+        }
+    }
+
+    QImage destination(width, height, QImage::Format_ARGB32_Premultiplied);
+    destination.fill(Qt::transparent);
+    QPainter painter(&destination);
+    KisQPainterCanvasImage::draw(painter, converter, projection, destination.rect());
+    painter.end();
+
+    if (destination.pixelColor(0, 0) != projectionColor(0, width - 1)) {
+        QEXPECT_FAIL("", "SmoothPixmapTransform samples one pixel inward after 90-degree rotation", Continue);
+        QCOMPARE(destination.pixelColor(0, 0), projectionColor(0, width - 1));
+    }
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const QColor actual = destination.pixelColor(x, y);
+            const QColor expected = projectionColor(y, width - 1 - x);
             QCOMPARE(actual.alpha(), expected.alpha());
             QVERIFY(qAbs(actual.red() - expected.red()) <= 1);
             QVERIFY(qAbs(actual.green() - expected.green()) <= 1);
