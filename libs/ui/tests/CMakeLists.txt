@@ -59,6 +59,12 @@ kis_add_test(
     LINK_LIBRARIES kritacanvas kritatestsdk
     )
 
+kis_add_test(
+    KisQPainterCanvasDrawImageContractTest.cpp
+    TEST_NAME KisQPainterCanvasDrawImageContractTest
+    LINK_LIBRARIES kritacanvas kritatestsdk
+    )
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

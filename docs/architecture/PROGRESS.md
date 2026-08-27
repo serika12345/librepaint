@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 16:58 JST
+- 更新日時: 2026-08-27 17:09 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G5 表示用投影から画面転送までの契約選定
+- 現在の検査段階: R2-G6 変換後のQPainter画面転送契約選定
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: R2の最適化前基準として、表示用投影画像とdirty viewportがQPainter画面へ転送される
-  座標、切抜き範囲、更新通知のうち次に固定する最小境界を選定する。
+- 目的: R2の最適化前基準として、拡大、回転、鏡像後の表示用投影転送で固定すべき
+  変換値、画素補間規則、許容差を選定する。
 
 ## 再開環境
 
@@ -2269,11 +2269,30 @@
   `kis_prescaled_projection_contract_test`、`kis_update_scheduler_test`はmacOSで成功した。
   新契約の20回反復と`nix develop .#test --command ./scripts/verify-quick`も成功した。
 
+## R2-G5 QPainter表示用投影の部分転送契約で完了した作業
+
+- `kis_prescaled_projection_contract_test`はdirty image領域から表示用投影画像とdirty viewportを生成し、
+  R2-G4は投影更新の圧縮順序を固定する。`KisQPainterCanvas::drawImage()`は、その後にdirty widget領域を
+  viewportへ戻し、表示用投影画像の同じ領域をQPainterへ転送するが、この境界は独立契約を持たない。
+- `libs/ui/canvas/kis_qpainter_canvas.cpp`の`KisQPainterCanvas::drawImage()`にあった座標変換、平滑化、
+  SourceOver合成、部分画像転送を、`libs/ui/canvas/kis_qpainter_canvas_draw_image.h`の内部インライン
+  関数へ移した。元の関数は現在の座標変換器、表示用投影画像、更新矩形を同じ処理へ渡す唯一の
+  製品利用元であり、公開記号と実装選択機構は追加していない。
+- `libs/ui/tests/KisQPainterCanvasDrawImageContractTest.cpp`は、位置別の不透明色を持つ8×8投影画像、
+  固定背景色の8×8描画先、恒等変換、更新矩形`(2, 3, 3, 2)`を使用する。矩形内6画素は対応する
+  投影画素へ完全一致し、残る58画素は描画前の背景色を維持する。
+- 最初の対象構築は`kis_qpainter_canvas_draw_image.h`が存在しない診断で失敗した。抽出後の
+  `nix develop .#test --command ./scripts/run-test KisQPainterCanvasDrawImageContractTest`は成功し、
+  `./scripts/build-incremental native build kritaapplicationui`は変更した製品呼出元のコンパイルとリンクに
+  成功した。
+- `kis_prescaled_projection_contract_test`と`kis_coordinates_converter_test`、新契約の20回反復、
+  `nix develop .#test --command ./scripts/verify-quick`はmacOSで成功した。
+
 ## 次の操作
 
-R2-G5として、`KisQPainterCanvas::updateCanvasProjection()`、`drawImage()`、
-`KisCanvas2::slotDoCanvasUpdate()`と既存の画面・座標変換試験を照合する。表示用投影画像から
-画面部品までで、実アプリケーションUIを起動せずに観測できる座標、切抜き、更新領域の境界を選ぶ。
+R2-G6として、`kis_coordinates_converter_test`の拡大、回転、鏡像の観測範囲と、
+`KisQPainterCanvasDrawImageContractTest`へ非恒等変換を与えたQPainter出力を照合する。変換済みの
+座標対応を値で固定できるか、平滑化後の画素にプラットフォーム共通の許容差が必要かを先に分類する。
 
 ## R1-G5完了根拠
 

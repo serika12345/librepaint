@@ -34,6 +34,7 @@
 #include "kis_canvas2.h"
 #include "kis_prescaled_projection.h"
 #include "kis_projection_update_info.h"
+#include "kis_qpainter_canvas_draw_image.h"
 #include "kis_display_filter.h"
 #include "kis_qpainter_projection_factory.h"
 #include "document/KisDocument.h"
@@ -123,17 +124,10 @@ void KisQPainterCanvas::paintEvent(QPaintEvent * ev)
 
 void KisQPainterCanvas::drawImage(QPainter & gc, const QRect &updateWidgetRect) const
 {
-    KisCoordinatesConverter *converter = coordinatesConverter();
-
-    QTransform imageTransform = converter->viewportToWidgetTransform();
-    gc.setTransform(imageTransform);
-    gc.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
-    QRectF viewportRect = converter->widgetToViewport(updateWidgetRect);
-
-    gc.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    gc.drawImage(viewportRect, m_d->prescaledProjection->prescaledQImage(),
-                 viewportRect);
+    KisQPainterCanvasImage::draw(gc,
+                                 *coordinatesConverter(),
+                                 m_d->prescaledProjection->prescaledQImage(),
+                                 updateWidgetRect);
 }
 
 QVariant KisQPainterCanvas::inputMethodQuery(Qt::InputMethodQuery query) const
