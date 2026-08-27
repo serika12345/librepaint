@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 02:37 JST
+- 更新日時: 2026-08-28 02:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3236,11 +3236,24 @@
   直接公開API契約検査、触れたC++のclang-format検査が成功した。製品実装、公開API、ABI、実行時分岐は
   変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b アニメーション寸法契約前の実装所有分離で完了した作業
+
+- `libs/impex/animation/KisAnimationRender.cpp`を起点として、文書、表示、フレーム保存、映像符号化を
+  調整する`render()`を同ファイルに残し、映像形式ごとの偶数寸法要否と縦横寸法の偶奇判定を
+  `libs/impex/animation/KisAnimationRenderDimensions.cpp`へ移した。公開ヘッダー、名前空間、関数、
+  呼出し順序は維持する。
+- 寸法判定を`kritaimpexanimationrenderdimensionsobjects`として個別構築し、従来どおり
+  `kritaimpexui`へ集約した。新対象は共通入出力ヘッダーとQt Coreだけへ接続する。
+- macOSの変更なし構築閉包は1工程・3入力であり、分離前の描画実装オブジェクトが継承していた
+  1,128工程・2,267入力から縮小した。macOSで新対象と集約後の`kritaimpexui`の限定構築が成功した。
+  製品の観測可能な挙動は変更していない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-SSH鍵エージェントの復旧後、未同期の遠隔ファイル取得契約と入出力補助契約を`ssh nixos`上の
-Linuxへ同期し、専用対象だけを構築して各20回反復、直接公開API契約検査、変更なし構築閉包を
-確認する。接続待ちの間は次の未対応入出力public APIを選び、実装前に構築範囲を監査する。
+`KisAnimationRender::mustHaveEvenDimensions()`と`hasEvenDimensions()`を専用CTestへ固定する。
+macOSで対象構築、20回反復、直接公開API契約検査、変更なし構築閉包を確認する。SSH鍵エージェントの
+復旧後、未同期の遠隔ファイル取得、入出力補助、アニメーション寸法契約を`ssh nixos`上のLinuxへ
+同期する。
 
 ## R1-G5完了根拠
 

@@ -40,15 +40,6 @@ bool looksLikeMp4(const QString &videoType)
 #endif
 }
 
-bool looksLikeMatroska(const QString &videoType)
-{
-#ifdef Q_OS_ANDROID
-    return videoType.contains(QStringLiteral("matroska"));
-#else
-    return videoType == QStringLiteral("video/x-matroska");
-#endif
-}
-
 } // namespace
 
 bool KisAnimationRender::render(KisDocument *doc, KisViewManager *viewManager, KisAnimationRenderingOptions encoderOptions) {
@@ -246,16 +237,4 @@ bool KisAnimationRender::render(KisDocument *doc, KisViewManager *viewManager, K
     } 
 
     return delayReturnSuccess;
-}
-
-bool KisAnimationRender::mustHaveEvenDimensions(const QString &videoType,
-                                                KisAnimationRenderingOptions::RenderMode renderMode)
-{
-    return renderMode != KisAnimationRenderingOptions::RENDER_FRAMES_ONLY
-        && (looksLikeMp4(videoType) || looksLikeMatroska(videoType));
-}
-
-bool KisAnimationRender::hasEvenDimensions(int width, int height)
-{
-    return !((width & 0x1) || (height & 0x1));
 }

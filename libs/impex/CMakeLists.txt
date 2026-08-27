@@ -319,9 +319,13 @@ if(NOT IOS)
     add_library(kritaimpexanimationoptionspersistenceobjects OBJECT
         animation/KisAnimationRenderingOptionsPersistence.cpp
     )
+    add_library(kritaimpexanimationrenderdimensionsobjects OBJECT
+        animation/KisAnimationRenderDimensions.cpp
+    )
     foreach(target
             kritaimpexanimationoptionsstateobjects
-            kritaimpexanimationoptionspersistenceobjects)
+            kritaimpexanimationoptionspersistenceobjects
+            kritaimpexanimationrenderdimensionsobjects)
         target_compile_definitions(${target} PRIVATE kritaapplicationui_EXPORTS)
         target_include_directories(${target}
             PUBLIC
@@ -342,6 +346,10 @@ if(NOT IOS)
         PUBLIC
             kritaimpexfilterheaders
             kritaimage
+    )
+    target_link_libraries(kritaimpexanimationrenderdimensionsobjects
+        PUBLIC
+            kritaimpexfilterheaders
     )
 endif()
 
@@ -408,6 +416,7 @@ if(NOT IOS)
     list(APPEND kritaimpexui_OBJECTS
         $<TARGET_OBJECTS:kritaimpexanimationoptionsstateobjects>
         $<TARGET_OBJECTS:kritaimpexanimationoptionspersistenceobjects>
+        $<TARGET_OBJECTS:kritaimpexanimationrenderdimensionsobjects>
     )
 endif()
 
