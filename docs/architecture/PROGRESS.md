@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 18:35 JST
+- 更新日時: 2026-08-27 19:00 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G11 タッチ入力からツール呼出しまでの契約選定
+- 現在の検査段階: R2-G12 合成マウス入力抑止の契約選定
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: R2の入力契約として、Qtタッチ事象から現在ツールへ渡る位置、筆圧、回転、時刻、入力種別の
-  既存観測範囲と構築境界を確認する。
+- 目的: R2の入力契約として、タブレット事象後の合成マウス事象を入力管理器が識別して抑止する
+  実経路の既存観測範囲と構築境界を確認する。
 
 ## 再開環境
 
@@ -2427,11 +2427,35 @@
   `TestInputEventSuppressor`、`TestToolCoreContract`、対象契約の20回反復、
   `nix develop .#test --command ./scripts/verify-quick`はmacOSで成功した。
 
+## R2-G11単点タッチ入力からツール呼出しまでの値転送契約で完了した作業
+
+- R2-G10直後の`KisToolProxyContractTest`は、変更のない対象本体に構築工程がなく、直接製品依存が
+  `kritainputui`と`kritatestsdk`だけ、空のmacOS構築木に対する閉包が1,172工程のままだった。
+- Qt 6の公開`QEventPoint`構築子では任意の筆圧と回転を設定できないため、試験対象だけへ既に構成時に
+  取得済みのQtGui非公開ヘッダー検索路を追加した。タッチ筆圧設定を試験用設定領域へ固定するため
+  `KF6::ConfigCore`を直接リンクした。再構成後も空構築閉包は1,172工程で、製品依存は増えていない。
+- `libs/input/ui/tests/KisToolProxyContractTest.cpp`に固定タッチ画面装置と、単点の`TouchBegin`、
+  `TouchUpdate`、`TouchEnd`を追加した。試験開始時にQtの試験用設定領域でタッチ筆圧を有効にし、
+  終了時に設定項目の元の有無と値を復元する。
+- R2-G3と同じウィジェット位置`(100, 120)`、`(140, 180)`、`(160, 210)`が文書位置
+  `(0.5, 0.7)`、`(0.9, 1.3)`、`(1.1, 1.6)`になること、ローカル・画面位置、Shift修飾、
+  時刻210、220、230が保持されることを固定した。
+- 筆圧0.2、0.6、0.0と回転5、25、45が保持される。3事象は左ボタン押下状態、非タブレットかつ
+  タッチ入力として現在ツールの主操作開始、継続、終了へ各1回渡り、傾き、接線方向筆圧、Z位置は0、
+  操作有効化通知はtrue、falseの順になる。
+- 最初の対象限定実行はR2-G11の未実装診断だけで失敗した。明示的なCMake再構成直後の対象構築では
+  生成された版情報の再構築も一度発生したが、契約実装時の対象構築は自動MOC、変更した試験ソース、
+  試験実行形式のリンクだけを実行し、その後の隣接対象構築は作業なしだった。
+- `nix develop .#test --command ./scripts/run-test KisToolProxyContractTest`、
+  `TestInputEventSuppressor`、`TestToolCoreContract`、対象契約の20回反復、実装後の対象計画、
+  `nix develop .#test --command ./scripts/verify-quick`はmacOSで成功した。
+
 ## 次の操作
 
-R2-G11の実装前監査として、`KisToolProxyContractTest`の増分計画と直接依存がR2-G10から変わっていない
-ことを確認し、Qtタッチ事象の生成、`KoPointerEvent`の圧力設定依存、単点・複数点の既存試験範囲を
-棚卸しする。範囲が過大ならタッチ契約を追加する前に構築構造を修正し、最小なら未観測値を定義する。
+R2-G12の実装前監査として、`KisInputManagerTest`と`TestInputEventSuppressor`の増分計画、直接依存、
+空構築閉包を比較し、Qtのマウス事象源を正規化して抑止判定へ渡す実経路の既存試験を棚卸しする。
+`KisInputManagerTest`の`kritaapplicationui`依存が契約範囲に対して過大なら、試験追加より先に対象または
+製品責務を分離する。
 
 ## R1-G5完了根拠
 

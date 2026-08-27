@@ -9,12 +9,17 @@
 #include <QPointingDevice>
 #include <QScopedPointer>
 #include <QSignalSpy>
+#include <QStandardPaths>
 #include <QTabletEvent>
 #include <QTest>
+#include <QTouchEvent>
 #include <QWidget>
+#include <QtGui/private/qeventpoint_p.h>
 
 #include <memory>
 
+#include <KConfigGroup>
+#include <KSharedConfig>
 #include <KisInputActionGroup.h>
 #include <KisToolCanvas.h>
 #include <KoCanvasBase.h>
@@ -467,6 +472,27 @@ std::unique_ptr<QTabletEvent> tabletEvent(QEvent::Type type,
     return event;
 }
 
+std::unique_ptr<QTouchEvent> touchEvent(QEvent::Type type,
+                                        const QPointingDevice *device,
+                                        QEventPoint::State state,
+                                        const QPointF &localPoint,
+                                        const QPointF &globalPoint,
+                                        qreal pressure,
+                                        qreal rotation,
+                                        ulong timestamp)
+{
+    QEventPoint point(7, state, localPoint, globalPoint);
+    QMutableEventPoint::setDevice(point, device);
+    QMutableEventPoint::setPosition(point, localPoint);
+    QMutableEventPoint::setPressure(point, pressure);
+    QMutableEventPoint::setRotation(point, rotation);
+
+    auto event = std::make_unique<QTouchEvent>(
+        type, device, Qt::ShiftModifier, QList<QEventPoint>{point});
+    event->setTimestamp(timestamp);
+    return event;
+}
+
 void compareSnapshot(const PointerSnapshot &snapshot,
                      const QString &phase,
                      const QPointF &documentPoint,
@@ -526,6 +552,33 @@ void compareTabletSnapshot(const PointerSnapshot &snapshot,
     QVERIFY(snapshot.tablet);
     QVERIFY(!snapshot.touch);
 }
+
+void compareTouchSnapshot(const PointerSnapshot &snapshot,
+                          const QString &phase,
+                          const QPointF &documentPoint,
+                          const QPoint &localPoint,
+                          const QPoint &globalPoint,
+                          ulong timestamp,
+                          qreal pressure,
+                          qreal rotation)
+{
+    QCOMPARE(snapshot.phase, phase);
+    QCOMPARE(snapshot.documentPoint, documentPoint);
+    QCOMPARE(snapshot.localPoint, localPoint);
+    QCOMPARE(snapshot.globalPoint, globalPoint);
+    QCOMPARE(snapshot.button, Qt::LeftButton);
+    QCOMPARE(snapshot.buttons, Qt::MouseButtons(Qt::LeftButton));
+    QCOMPARE(snapshot.modifiers, Qt::KeyboardModifiers(Qt::ShiftModifier));
+    QCOMPARE(snapshot.timestamp, timestamp);
+    QVERIFY(qAbs(snapshot.pressure - pressure) < 0.000001);
+    QCOMPARE(snapshot.xTilt, 0.0);
+    QCOMPARE(snapshot.yTilt, 0.0);
+    QCOMPARE(snapshot.tangentialPressure, 0.0);
+    QCOMPARE(snapshot.rotation, rotation);
+    QCOMPARE(snapshot.z, 0);
+    QVERIFY(!snapshot.tablet);
+    QVERIFY(snapshot.touch);
+}
 } // namespace
 
 class KisToolProxyContractTest : public QObject
@@ -533,10 +586,40 @@ class KisToolProxyContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase();
+    void cleanupTestCase();
     void forwardsMouseStrokeToCurrentTool();
     void forwardsTabletStrokeToCurrentTool();
+    void forwardsSingleTouchStrokeToCurrentTool();
     void reportsIgnoredMousePress();
+
+private:
+    bool m_hadTouchPressureSetting{false};
+    bool m_previousTouchPressureSetting{true};
 };
+
+void KisToolProxyContractTest::initTestCase()
+{
+    QStandardPaths::setTestModeEnabled(true);
+    KConfigGroup config = KSharedConfig::openConfig()->group(QString());
+    m_hadTouchPressureSetting = config.hasKey("useTouchPressureSensitivity");
+    m_previousTouchPressureSetting = config.readEntry("useTouchPressureSensitivity", true);
+    config.writeEntry("useTouchPressureSensitivity", true);
+    config.sync();
+    KisConfigNotifier::instance()->notifyConfigChanged();
+}
+
+void KisToolProxyContractTest::cleanupTestCase()
+{
+    KConfigGroup config = KSharedConfig::openConfig()->group(QString());
+    if (m_hadTouchPressureSetting) {
+        config.writeEntry("useTouchPressureSensitivity", m_previousTouchPressureSetting);
+    } else {
+        config.deleteEntry("useTouchPressureSensitivity");
+    }
+    config.sync();
+    KisConfigNotifier::instance()->notifyConfigChanged();
+}
 
 void KisToolProxyContractTest::forwardsMouseStrokeToCurrentTool()
 {
@@ -715,6 +798,91 @@ void KisToolProxyContractTest::forwardsTabletStrokeToCurrentTool()
                           0.9,
                           60.0,
                           5);
+
+    QCOMPARE(activationSpy.count(), 2);
+    QCOMPARE(activationSpy.at(0).at(0).toBool(), true);
+    QCOMPARE(activationSpy.at(1).at(0).toBool(), false);
+}
+
+void KisToolProxyContractTest::forwardsSingleTouchStrokeToCurrentTool()
+{
+    TestShapeController shapeController;
+    TestToolCanvas canvas(&shapeController);
+    KisToolProxy proxy(&canvas);
+    KisKActionCollection actionCollection(this);
+    TestCanvasController controller(&canvas, &actionCollection);
+    proxy.priv()->controller = &controller;
+    canvas.setToolProxy(&proxy);
+    RecordingTool tool(&canvas);
+    proxy.setActiveTool(&tool);
+    QSignalSpy activationSpy(&proxy, &KisToolProxy::toolPrimaryActionActivated);
+
+    const QInputDevice::Capabilities capabilities =
+        QInputDevice::Capability::Position | QInputDevice::Capability::Pressure
+        | QInputDevice::Capability::Rotation;
+    const QPointingDevice device(QStringLiteral("R2-G11 contract touchscreen"),
+                                 31,
+                                 QInputDevice::DeviceType::TouchScreen,
+                                 QPointingDevice::PointerType::Finger,
+                                 capabilities,
+                                 1,
+                                 0,
+                                 QStringLiteral("contract seat"));
+
+    auto begin = touchEvent(QEvent::TouchBegin,
+                            &device,
+                            QEventPoint::State::Pressed,
+                            QPointF(100.0, 120.0),
+                            QPointF(1000.0, 1200.0),
+                            0.2,
+                            5.0,
+                            210);
+    auto update = touchEvent(QEvent::TouchUpdate,
+                             &device,
+                             QEventPoint::State::Updated,
+                             QPointF(140.0, 180.0),
+                             QPointF(1040.0, 1260.0),
+                             0.6,
+                             25.0,
+                             220);
+    auto end = touchEvent(QEvent::TouchEnd,
+                          &device,
+                          QEventPoint::State::Released,
+                          QPointF(160.0, 210.0),
+                          QPointF(1060.0, 1290.0),
+                          0.0,
+                          45.0,
+                          230);
+
+    QVERIFY(proxy.forwardEvent(KisToolProxy::BEGIN, KisTool::Primary, begin.get(), begin.get()));
+    QVERIFY(proxy.forwardEvent(KisToolProxy::CONTINUE, KisTool::Primary, update.get(), update.get()));
+    QVERIFY(proxy.forwardEvent(KisToolProxy::END, KisTool::Primary, end.get(), end.get()));
+
+    QCOMPARE(tool.snapshots.size(), 3);
+    compareTouchSnapshot(tool.snapshots.at(0),
+                         QStringLiteral("begin"),
+                         QPointF(0.5, 0.7),
+                         QPoint(100, 120),
+                         QPoint(1000, 1200),
+                         210,
+                         0.2,
+                         5.0);
+    compareTouchSnapshot(tool.snapshots.at(1),
+                         QStringLiteral("continue"),
+                         QPointF(0.9, 1.3),
+                         QPoint(140, 180),
+                         QPoint(1040, 1260),
+                         220,
+                         0.6,
+                         25.0);
+    compareTouchSnapshot(tool.snapshots.at(2),
+                         QStringLiteral("end"),
+                         QPointF(1.1, 1.6),
+                         QPoint(160, 210),
+                         QPoint(1060, 1290),
+                         230,
+                         0.0,
+                         45.0);
 
     QCOMPARE(activationSpy.count(), 2);
     QCOMPARE(activationSpy.at(0).at(0).toBool(), true);
