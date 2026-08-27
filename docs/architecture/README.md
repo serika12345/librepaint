@@ -689,7 +689,7 @@ CTestソースとCMake所有の照合は対応先の陳腐化を検出します�
 
 R2-G19aは1,544公開ヘッダー、29,246 APIを採取し、既存ツール契約が観測する93 APIを最初の
 対応として固定しました。R2-G19bは廃止した未定義宣言と非公開入れ子スコープ配下の誤採取を
-公開面から除いた29,013 APIのうち429 APIを対応済みとし、現在の未対応28,584 APIを責務と
+公開面から除いた29,013 APIのうち480 APIを対応済みとし、現在の未対応28,533 APIを責務と
 所有CMake対象ごとにゼロへ縮小します。
 各単位は製品実装前に対象試験の変更なし計画、直接依存、空構築閉包を監査し、構築範囲が責務を
 越える場合は所有単位を先に分けます。ヘッダーをコンパイルするだけの試験は挙動契約数に含めません。
@@ -713,6 +713,12 @@ R2-G3で
 - 画像形式固有の符号化、設定画面、依存ライブラリー接続は`plugins/impex/<format>/`に置きます。
 - 形式探索、結果分類、事前検査は`libs/impex`、非同期エクスポート、警告、原子的保存の調整は`libs/impex/ui`にあります。
 - iOS／Androidの文書選択や内容URIの差は、Qtのファイル機構とプラットフォーム条件を通して共通の`KisDocument`経路へ合流します。
+
+`KisImportExportFilter`の公開クラスとABIは`kritaimpex`が所有する。内部実装は、
+`KisImportExportFilter.cpp`の状態と固定タグ、`KisImportExportFilterProgress.cpp`の進捗、
+`KisImportExportFilterConfiguration.cpp`の設定、`KisImportExportFilterCapabilities.cpp`の
+書き出し能力、`KisImportExportFilterVerification.cpp`の保存結果検証へ分かれる。各実装は
+個別のCMakeオブジェクト対象として構築でき、共有ライブラリーが同じ公開クラスへ集約する。
 
 ## 変更内容から見る場所
 

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 00:47 JST
+- 更新日時: 2026-08-28 01:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3061,12 +3061,34 @@
   実行、20回反復、直接公開API契約検査が成功した。Linuxの変更なし構築閉包は13工程・31入力である。
   macOSの試験ソースのclang-format検査と`verify-quick`も成功した。全ネイティブ検証は実行していない。
 
+## R2-G19b 入出力フィルター契約前の実装所有分離で完了した作業
+
+- `libs/impex/KisImportExportFilter.cpp`に同居していた状態、進捗、設定、書き出し能力、保存結果検証を、
+  公開クラスと共有ライブラリーを維持した内部所有単位へ分けた。状態と固定タグは同ファイルに残し、
+  進捗と破棄時完了通知を`libs/impex/KisImportExportFilterProgress.cpp`、設定の既定値と保存値読込みを
+  `libs/impex/KisImportExportFilterConfiguration.cpp`、能力検査の生成を
+  `libs/impex/KisImportExportFilterCapabilities.cpp`、通常ファイルとZIPの保存結果検証を
+  `libs/impex/KisImportExportFilterVerification.cpp`へ移した。非公開状態は同じ起点から
+  `libs/impex/KisImportExportFilter_p.h`へ移した。
+- 5実装単位を`kritaimpexfilterstateobjects`、`kritaimpexfilterprogressobjects`、
+  `kritaimpexfilterconfigurationobjects`、`kritaimpexfiltercapabilityobjects`、
+  `kritaimpexfilterverificationobjects`として個別構築し、従来どおり`kritaimpex`へ集約した。
+  公開ヘッダーのコンパイル要件は内部の`kritaimpexfilterheaders`に集約し、メタオブジェクト生成は
+  公開クラス名と一致する状態単位だけが担当する。
+- macOSの変更なし構築閉包は状態が3工程・7入力、保存結果検証が2工程・5入力、進捗が134工程・
+  296入力、設定と能力判定が各666工程・1,357入力になった。分割前の`kritaimpex`全体は
+  1,025工程・2,072入力であり、状態と保存結果検証の契約追加は画像処理全体を構築しない。
+- macOSで5内部対象と`kritaimpex`の構築、既存`kis_import_export_filter_factory_test`、触れたC++の
+  clang-format検査が成功した。公開API、ABI、設定キー、診断文、検査順序、実行時分岐は変更していない。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/impex/KisImportExportFilter.h`の23 APIを次の入出力単位として扱う。既存のプラグイン試験と
-利用元、`KisImportExportFilter.cpp`と`KisImportExportFilterFactory.cpp`の直接依存、変更なし計画、
-空構築閉包を先に監査する。フィルター基底の挙動試験が生成器やプラグイン探索まで構築する場合は
-基底実装を内部所有単位へ分けてから、設定値、進捗通知、対応形式、能力検査の挙動を固定する。
+`libs/impex/KisImportExportFilter.h`の23 APIを、分離した内部所有単位へ直接接続する専用CTestで固定する。
+状態と形式タグ、変換仮想入口、進捗通知、既定設定、能力検査、通常ファイルの保存結果検証を最小の
+入力と失敗条件で観測し、画像実装が必要な設定・能力試験だけを重い構築閉包へ分離する。macOSの対象実行、
+20回反復、直接公開API契約検査、高速検査後に構造変更をコミットし、`ssh nixos`の実機へ同期して同じ
+限定対象を検証する。
 
 ## R1-G5完了根拠
 

@@ -1,6 +1,25 @@
 set(kritaimpex_LIB_SRCS
-    KisImportExportFilter.cpp
     KisImportExportFilterFactory.cpp
+)
+
+add_library(kritaimpexfilterstateobjects OBJECT
+    KisImportExportFilter.cpp
+)
+
+add_library(kritaimpexfilterprogressobjects OBJECT
+    KisImportExportFilterProgress.cpp
+)
+
+add_library(kritaimpexfilterconfigurationobjects OBJECT
+    KisImportExportFilterConfiguration.cpp
+)
+
+add_library(kritaimpexfiltercapabilityobjects OBJECT
+    KisImportExportFilterCapabilities.cpp
+)
+
+add_library(kritaimpexfilterverificationobjects OBJECT
+    KisImportExportFilterVerification.cpp
 )
 
 add_library(kritaimpexexportcheckbaseobjects OBJECT
@@ -32,6 +51,11 @@ add_library(kritaimpexmetadataobjects OBJECT
 )
 
 set(kritaimpex_OBJECT_TARGETS
+    kritaimpexfilterstateobjects
+    kritaimpexfilterprogressobjects
+    kritaimpexfilterconfigurationobjects
+    kritaimpexfiltercapabilityobjects
+    kritaimpexfilterverificationobjects
     kritaimpexexportcheckbaseobjects
     kritaimpexexportcheckregistryobjects
     kritaimpexpreexportcheckerobjects
@@ -50,6 +74,64 @@ foreach(target IN LISTS kritaimpex_OBJECT_TARGETS)
     )
     set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endforeach()
+
+set(kritaimpex_FILTER_HEADER_INCLUDE_DIRECTORIES
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+
+add_library(kritaimpexfilterheaders INTERFACE)
+target_include_directories(kritaimpexfilterheaders INTERFACE ${kritaimpex_FILTER_HEADER_INCLUDE_DIRECTORIES})
+target_link_libraries(kritaimpexfilterheaders
+    INTERFACE
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+)
+
+target_link_libraries(kritaimpexfilterstateobjects PUBLIC kritaimpexfilterheaders)
+
+target_link_libraries(kritaimpexfilterprogressobjects
+    PUBLIC
+        kritaimpexfilterheaders
+        kritawidgetutils
+)
+
+target_link_libraries(kritaimpexfilterconfigurationobjects
+    PUBLIC
+        kritaimpexfilterheaders
+        kritaimage
+)
+
+target_link_libraries(kritaimpexfiltercapabilityobjects
+    PUBLIC
+        kritaimpexfilterheaders
+        kritaimage
+        kritapigment
+)
+
+target_link_libraries(kritaimpexfilterverificationobjects
+    PUBLIC
+        kritaimpexfilterheaders
+        kritaresourcestorage
+)
+
+set_target_properties(
+    kritaimpexfilterprogressobjects
+    kritaimpexfilterconfigurationobjects
+    kritaimpexfiltercapabilityobjects
+    kritaimpexfilterverificationobjects
+    PROPERTIES AUTOMOC OFF
+)
 
 target_link_libraries(kritaimpexexportcheckbaseobjects
     PUBLIC
@@ -100,6 +182,11 @@ target_link_libraries(kritaimpexmetadataobjects
 kis_add_library(kritaimpex SHARED
     ${kritaimpex_HEADERS_MOC}
     ${kritaimpex_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaimpexfilterstateobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterprogressobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterconfigurationobjects>
+    $<TARGET_OBJECTS:kritaimpexfiltercapabilityobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterverificationobjects>
     $<TARGET_OBJECTS:kritaimpexexportcheckbaseobjects>
     $<TARGET_OBJECTS:kritaimpexexportcheckregistryobjects>
     $<TARGET_OBJECTS:kritaimpexpreexportcheckerobjects>
