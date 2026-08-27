@@ -143,6 +143,14 @@ kis_add_test(
 target_compile_definitions(KisFilteredRollingMeanTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KoIDContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoIDContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisSharedTest.cpp
     LINK_LIBRARIES
         kritaglobalsharedobjects

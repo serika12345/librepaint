@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28116
+    "expectedMissingApis": 28103
   },
   "contracts": [
     {
@@ -3416,6 +3416,57 @@
       "apis": [
         "method:KisGreenCoordinatesMath::generateTransformedCageNormals(const QVector<QPointF> & transformedCage)",
         "method:KisGreenCoordinatesMath::transformedPoint(int pointIndex,const QVector<QPointF> & transformedCage)"
+      ]
+    },
+    {
+      "target": "KoIDContractTest",
+      "source": "libs/global/tests/KoIDContractTest.cpp",
+      "test": "KoIDContractTest::defaultAndStringValues",
+      "behavior": "識別子値は既定構築で空になり、文字列構築で安定識別子と表示名をそれぞれ保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoID",
+        "method:KoID::KoID()",
+        "method:KoID::KoID(const QString & id,const QString & name=QString ())",
+        "method:KoID::id() const",
+        "method:KoID::name() const"
+      ]
+    },
+    {
+      "target": "KoIDContractTest",
+      "source": "libs/global/tests/KoIDContractTest.cpp",
+      "test": "KoIDContractTest::localizedCopyAndAssignmentPreserveValues",
+      "behavior": "遅延翻訳表示名を持つ識別子値は初回参照で表示名を解決し、複製構築と代入後も識別子と表示名を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoID::KoID(const KoID & rhs)",
+        "method:KoID::KoID(const QString & id,const KLocalizedString & name)",
+        "method:KoID::id() const",
+        "method:KoID::name() const",
+        "method:KoID::operator =(const KoID & rhs)"
+      ]
+    },
+    {
+      "target": "KoIDContractTest",
+      "source": "libs/global/tests/KoIDContractTest.cpp",
+      "test": "KoIDContractTest::comparisonOperatorsUseIdentifierAndDisplayName",
+      "behavior": "識別子値の不一致と大小比較は安定識別子を使い、表示名比較は利用者向け名称の辞書順を使う。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator !=(const KoID & v1,const KoID & v2)",
+        "function:operator <(const KoID & v1,const KoID & v2)",
+        "function:operator >(const KoID & v1,const KoID & v2)",
+        "method:KoID::compareNames(const KoID & id1,const KoID & id2)"
+      ]
+    },
+    {
+      "target": "KoIDContractTest",
+      "source": "libs/global/tests/KoIDContractTest.cpp",
+      "test": "KoIDContractTest::debugOutputContainsNameAndIdentifier",
+      "behavior": "識別子値のデバッグ表現は利用者向け表示名と安定識別子の両方を含む。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoID & id)"
       ]
     }
   ]
