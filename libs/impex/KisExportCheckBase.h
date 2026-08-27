@@ -8,9 +8,12 @@
 
 #include <QString>
 
-#include <kis_types.h>
-
 #include "kritaimpex_export.h"
+
+template<class T>
+class KisSharedPtr;
+class KisImage;
+typedef KisSharedPtr<KisImage> KisImageSP;
 
 /**
  * @brief The KisExportCheckBase class defines the interface
@@ -19,12 +22,11 @@
 class KRITAIMPEX_EXPORT KisExportCheckBase
 {
 public:
-
     /// The level determines the level of support the export
     /// filter has for the given feature.
     enum Level {
-        SUPPORTED,  //< The filter fully supports this
-        PARTIALLY,  //< The filter can handle this, but the user needs to be warned about possible degradation
+        SUPPORTED, //< The filter fully supports this
+        PARTIALLY, //< The filter can handle this, but the user needs to be warned about possible degradation
         UNSUPPORTED //< This cannot be saved using this filter
     };
 
@@ -33,7 +35,10 @@ public:
      * @param level the level of support the filter has for the given feature
      * @param customWarning A custom warning to use instead of the default one
      */
-    KisExportCheckBase(const QString &id, Level level, const QString &customWarning = QString(), bool perLayerCheck = false);
+    KisExportCheckBase(const QString &id,
+                       Level level,
+                       const QString &customWarning = QString(),
+                       bool perLayerCheck = false);
 
     virtual ~KisExportCheckBase();
 
@@ -53,21 +58,20 @@ public:
     QString warning() const;
 
 protected:
-
     QString m_id;
-    Level m_level {UNSUPPORTED};
+    Level m_level{UNSUPPORTED};
     QString m_warning;
-    bool m_perLayerCheck {false};
-
+    bool m_perLayerCheck{false};
 };
 
 class KRITAIMPEX_EXPORT KisExportCheckFactory
 {
 public:
     virtual KisExportCheckBase *create(KisExportCheckBase::Level level, const QString &customWarning = QString()) = 0;
-    virtual ~KisExportCheckFactory() {}
+    virtual ~KisExportCheckFactory()
+    {
+    }
     virtual QString id() const = 0;
 };
-
 
 #endif

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 00:06 JST
+- 更新日時: 2026-08-28 00:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2980,13 +2980,30 @@
   factory対象5工程だった。macOSの2試験ソースclang-format検査と`verify-quick`も成功した。
   全ネイティブ検証は実行していない。
 
+## R2-G19b 書き出し検査契約前の構築範囲分離で完了した作業
+
+- `libs/impex/KisExportCheckBase.cpp`を`kritaimpex`の一括ソースから
+  `kritaimpexexportcheckbaseobjects`へ、`libs/impex/KisExportCheckRegistry.cpp`を
+  `kritaimpexexportcheckregistryobjects`へ、`libs/impex/KisPreExportChecker.cpp`を
+  `kritaimpexpreexportcheckerobjects`へ分けた。公開共有ライブラリー`kritaimpex`は3対象を集約し、
+  既存のライブラリー名と書き出し検査シンボルの所有を維持する。
+- `libs/impex/KisExportCheckBase.h`は画像共有ポインター型を前方宣言し、検査接続面だけを扱う基底実装が
+  画像ライブラリー全体へ依存する経路を除いた。`libs/impex/ImageSizeCheck.h`は登録処理のヘッダーではなく
+  使用する検査基底を直接includeする。公開API、実行時分岐、検査順序は変更していない。
+- macOSの変更なし構築閉包は、検査基底が3工程・7入力、組込み検査登録と書き出し前検査が各1,001工程・
+  2,026入力である。画像状態を読まない16 APIの反復は軽量な基底所有単位へ隔離し、画像と色空間を使う
+  登録・走査の依存は各所有単位に維持する。
+- macOSで3 object対象と公開`kritaimpex`の対象構築、基底・登録・書き出し前検査の公開シンボル確認、
+  触れたヘッダーのclang-format検査、`verify-quick`が成功した。Linuxの実機検証と全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
 `libs/impex/KisExportCheckRegistry.h`の3 API、`libs/impex/KisPreExportChecker.h`の5 API、
-`libs/impex/KisExportCheckBase.h`の16 API、`libs/impex/ImageSizeCheck.h`の12 APIを、書き出し前検査の
-次単位として扱う。既存試験と利用元、4実装の直接依存、変更なし計画、空構築閉包を監査し、現在の
-`kritaimpex`一括リンクが責務を越える場合は検査基底、登録、実行、画像寸法検査の所有単位を先に
-分けてから、判定水準、警告内容、登録と検査順序に不足する契約だけを追加する。
+`libs/impex/KisExportCheckBase.h`の16 API、`libs/impex/ImageSizeCheck.h`の12 APIを、分離済みの
+検査基底、登録、実行の所有単位へ対応するCTestとして追加する。判定水準、識別子、警告、層単位判定、
+寸法境界、組込み登録、対応度に従う警告とエラーの分類を固定し、各対象を20回反復してから公開API契約
+台帳へ36 APIを登録する。
 
 ## R1-G5完了根拠
 
