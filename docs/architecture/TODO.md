@@ -629,14 +629,41 @@ viewport・widget変換、固定QImageへのQPainter転送とする。`paintEven
 - [x] 既存の`KisInputManagerTest`、変更後の反復実行、`verify-quick`がmacOSで成功する。
 - [x] 製品コード、公開面、製品CMake依存、試験挙動を変更しない。
 
-### R2-G12b タブレット後の合成マウス入力抑止契約
+### R2-G12b Qt合成マウス事象の正規化契約
 
-目的は、タブレット入力後にQtが生成するマウス事象の事象源と時刻を入力管理器が正規化し、
-`KisInputEventSuppressor`の状態遷移に従ってツール呼出し前に抑止する実経路を固定することである。
+目的は、Qtのマウス事象を入力管理器が抑止方針へ渡す際の事象種別、ボタン、合成元の正規化を固定し、
+タブレット入力中のマウス遮断と、対応プラットフォームでの合成マウス抑止が実事象から同じ方針へ
+接続されることを検査することである。
 
-R2-G12aの完了後に、縮小した`KisInputManagerTest`と`TestInputEventSuppressor`の責務を比較して対象を
-決定する。Qt事象源の生成可否、入力管理器の外部状態、必要な試験接続面を棚卸しし、構築閉包を広げる
-必要がある場合は契約実装前に分離条件を定義する。
+対象は`libs/input/ui/kis_input_manager_p.cpp`にある既存の`normalizedButton()`と
+`normalizedSuppressionEvent()`、新しい内部ヘッダー`libs/input/ui/kis_input_event_normalizer_p.h`、
+R2-G12aで縮小した`libs/input/ui/tests/kis_input_manager_test.cpp`とする。
+実装前監査で対象の直接依存は`kritainputui`と`kritatestsdk`、空構築閉包は1,172工程であり、内部ヘッダーの
+製品利用元は`kis_input_manager.cpp`、`kis_input_manager_canvas.cpp`、`kis_input_manager_p.cpp`の3本だけで
+あることを確認した。正規化専用ヘッダーをこの大きな内部ヘッダーから分け、利用元を
+`kis_input_manager_p.cpp`と試験だけに限定する。
+
+作業順序は次のとおりとする。
+
+1. マウス移動、押下、解放、二重押下、その他事象を実Qt事象として作り、未公開の正規化関数を参照する
+   契約の最初のコンパイル診断を確認する。
+2. 既存の正規化関数を無名名前空間から専用内部ヘッダーの名前空間へ移し、製品と試験で同じ関数を使う。
+3. 左、無、その他ボタンと、非合成、システム、Qt、アプリケーション合成元の対応を検査する。
+4. 正規化結果を`KisInputEventSuppressor`へ渡し、マウス遮断中と合成抑止有効時の判定を検査する。
+5. 対象限定構築、純粋な抑止方針契約、反復実行、高速検査の順に検証する。
+
+完了条件は次のとおりとする。
+
+- [x] Qtのマウス移動、押下、解放、二重押下が対応する抑止事象種別へ一致する。
+- [x] 左ボタンが`Left`、ボタンなしが`None`、右・中央ボタンが`Other`へ一致する。
+- [x] `MouseEventNotSynthesized`だけが非合成となり、他の3事象源が合成として扱われる。
+- [x] マウス遮断中は全マウス事象、合成抑止有効かつ対応プラットフォームでは合成事象だけが抑止される。
+- [x] その他のQt事象が`Other`となり、抑止されない。
+- [x] 正規化関数の既存処理だけを内部名前空間へ移し、製品挙動、公開面、CMake依存を変更しない。
+- [x] 独立試験の20回反復、`TestInputEventSuppressor`、`verify-quick`がmacOSで成功する。
+
+時刻は合成入力の抑止判定に使用されていないため、R2-G3、R2-G10、R2-G11のポインター転送契約で扱う。
+OSが生成する事象順序と装置別の合成有無はプラットフォーム実機の後続段階で固定する。
 
 ### タスク
 

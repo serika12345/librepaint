@@ -20,6 +20,7 @@
 #include <kis_single_action_shortcut.h>
 #include <kis_stroke_shortcut.h>
 #include "input/ui/kis_abstract_input_action.h"
+#include "input/ui/kis_input_event_normalizer_p.h"
 #include "input/ui/kis_input_profile_manager.h"
 #include <kis_shortcut_matcher.h>
 
@@ -424,6 +425,117 @@ void KisInputManagerTest::testMouseMoves()
     a->reset();
 
     m.leaveEvent();
+}
+
+void KisInputManagerTest::testSuppressionEventNormalization()
+{
+    using Event = KisInputEventSuppressor::Event;
+    using EventType = KisInputEventSuppressor::EventType;
+    using Button = KisInputEventSuppressor::Button;
+    using Reason = KisInputEventSuppressor::SuppressionReason;
+
+    const auto normalizedMouseEvent = [](QEvent::Type type,
+                                         Qt::MouseButton button,
+                                         Qt::MouseButtons buttons,
+                                         Qt::MouseEventSource source) {
+        QMouseEvent event(type,
+                          QPointF(10.0, 20.0),
+                          QPointF(30.0, 40.0),
+                          QPointF(50.0, 60.0),
+                          button,
+                          buttons,
+                          Qt::NoModifier,
+                          source);
+        return KisInputManagerDetail::normalizedSuppressionEvent(&event);
+    };
+
+    const auto compareEvent = [](const Event &event,
+                                 EventType type,
+                                 Button button,
+                                 bool synthesized) {
+        QCOMPARE(event.type, type);
+        QCOMPARE(event.button, button);
+        QCOMPARE(event.synthesized, synthesized);
+    };
+
+    compareEvent(normalizedMouseEvent(QEvent::MouseMove,
+                                      Qt::NoButton,
+                                      Qt::LeftButton,
+                                      Qt::MouseEventNotSynthesized),
+                 EventType::MouseMove,
+                 Button::None,
+                 false);
+    compareEvent(normalizedMouseEvent(QEvent::MouseButtonPress,
+                                      Qt::LeftButton,
+                                      Qt::LeftButton,
+                                      Qt::MouseEventNotSynthesized),
+                 EventType::MousePress,
+                 Button::Left,
+                 false);
+    compareEvent(normalizedMouseEvent(QEvent::MouseButtonRelease,
+                                      Qt::RightButton,
+                                      Qt::NoButton,
+                                      Qt::MouseEventNotSynthesized),
+                 EventType::MouseRelease,
+                 Button::Other,
+                 false);
+    compareEvent(normalizedMouseEvent(QEvent::MouseButtonDblClick,
+                                      Qt::MiddleButton,
+                                      Qt::MiddleButton,
+                                      Qt::MouseEventNotSynthesized),
+                 EventType::MouseDoubleClick,
+                 Button::Other,
+                 false);
+
+    const QList<Qt::MouseEventSource> synthesizedSources{
+        Qt::MouseEventSynthesizedBySystem,
+        Qt::MouseEventSynthesizedByQt,
+        Qt::MouseEventSynthesizedByApplication,
+    };
+    for (Qt::MouseEventSource source : synthesizedSources) {
+        const Event event = normalizedMouseEvent(
+            QEvent::MouseMove, Qt::NoButton, Qt::NoButton, source);
+        QCOMPARE(event.type, EventType::MouseMove);
+        QCOMPARE(event.button, Button::None);
+        QVERIFY(event.synthesized);
+    }
+
+    QEvent otherEvent(QEvent::User);
+    compareEvent(KisInputManagerDetail::normalizedSuppressionEvent(&otherEvent),
+                 EventType::Other,
+                 Button::None,
+                 false);
+
+    KisInputEventSuppressor blocking(false, true);
+    blocking.startBlockingMouseEvents();
+    const QList<QEvent::Type> blockedMouseTypes{
+        QEvent::MouseMove,
+        QEvent::MouseButtonPress,
+        QEvent::MouseButtonRelease,
+        QEvent::MouseButtonDblClick,
+    };
+    for (QEvent::Type type : blockedMouseTypes) {
+        QCOMPARE(blocking.filter(normalizedMouseEvent(type,
+                                                      type == QEvent::MouseMove
+                                                          ? Qt::NoButton
+                                                          : Qt::LeftButton,
+                                                      Qt::LeftButton,
+                                                      Qt::MouseEventNotSynthesized)),
+                 Reason::MouseEvent);
+    }
+
+    KisInputEventSuppressor synthetic(false, true);
+    synthetic.setSuppressSyntheticMouseEvents(true);
+    QCOMPARE(synthetic.filter(normalizedMouseEvent(QEvent::MouseMove,
+                                                   Qt::NoButton,
+                                                   Qt::NoButton,
+                                                   Qt::MouseEventSynthesizedBySystem)),
+             Reason::MouseEvent);
+    QCOMPARE(synthetic.filter(normalizedMouseEvent(QEvent::MouseMove,
+                                                   Qt::NoButton,
+                                                   Qt::NoButton,
+                                                   Qt::MouseEventNotSynthesized)),
+             Reason::None);
 }
 
 #include <input/ui/wintab/kis_incremental_average.h>

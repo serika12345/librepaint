@@ -19,6 +19,7 @@ private Q_SLOTS:
     void testKeyEvents();
     void testReleaseUnnecessaryModifiers();
     void testMouseMoves();
+    void testSuppressionEventNormalization();
 
     void testIncrementalAverage();
 };

@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 19:20 JST
+- 更新日時: 2026-08-27 19:45 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G12b タブレット後の合成マウス入力抑止契約
+- 現在の検査段階: R2-G13 既定自由描画の画素契約選定
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: タブレット入力後にQtが生成するマウス事象の事象源と時刻を入力管理器が正規化し、
-  ツール呼出し前に抑止する実経路を固定する。
+- 目的: R2の描画契約として、固定したブラシ設定と入力列から得るPaintOp画素結果の既存観測範囲と
+  構築境界を確認する。
 
 ## 再開環境
 
@@ -2476,11 +2476,35 @@
   `KisToolProxyContractTest`、`nix develop .#test --command ./scripts/verify-quick`はmacOSで成功した。
   製品コード、公開面、製品依存、試験挙動は変更していない。
 
+## R2-G12b Qt合成マウス事象の正規化契約で完了した作業
+
+- R2-G12a後の`KisInputManagerTest`は、直接依存が`kritainputui`と`kritatestsdk`、空のmacOS構築木に
+  対する閉包が1,172工程である。当初の移動候補`kis_input_manager_p.h`は入力管理器の3実装単位が使うため、
+  正規化専用の内部ヘッダーを分け、変更時の利用元を1製品実装と試験だけに限定した。
+- `normalizedButton()`と`normalizedSuppressionEvent()`を
+  `libs/input/ui/kis_input_manager_p.cpp`の無名名前空間から
+  新規`libs/input/ui/kis_input_event_normalizer_p.h`の`KisInputManagerDetail`内部名前空間へ移した。
+  関数本体と入力管理器の呼出し順は変えず、製品と試験が同じ正規化処理を使う。
+- `libs/input/ui/tests/kis_input_manager_test.cpp`へ実Qtマウス事象の契約を追加した。移動、押下、解放、
+  二重押下が対応する抑止事象となり、左、無、右・中央ボタンが`Left`、`None`、`Other`へ一致する。
+- `MouseEventNotSynthesized`は非合成、システム、Qt、アプリケーション由来の3事象源は合成となる。
+  マウス遮断中は4事象種別すべて、合成抑止を支援する方針では合成事象だけが`MouseEvent`理由で
+  抑止され、その他のQt事象は`Other`として維持される。
+- 最初の対象限定構築は、契約が参照した`KisInputManagerDetail::normalizedSuppressionEvent`の未定義を
+  診断した。専用内部ヘッダーだけを変更した後の対象構築は`kis_input_manager_p.cpp`、`kritainputui`、
+  変更した試験とリンクだけに局限され、`kis_input_manager.cpp`と`kis_input_manager_canvas.cpp`は
+  再構築しなかった。その後の対象計画は試験本体の構築工程を持たない。
+- macOSの製品設定は合成元だけによる抑止を支援しないが、Qt事象から合成フラグへの正規化自体は共通で
+  ある。OSが生成する実際の事象順序と支援有無はプラットフォーム実機の後続段階へ残した。
+- `nix develop .#test --command ./scripts/run-test KisInputManagerTest`、`TestInputEventSuppressor`、
+  新契約の20回反復、実装後の対象計画、`nix develop .#test --command ./scripts/verify-quick`はmacOSで
+  成功した。既存のQt非推奨警告はR6の言語・Qt移行範囲に残し、新規警告はない。
+
 ## 次の操作
 
-R2-G12bの実装前監査として、縮小後の`KisInputManagerTest`が1,172工程、直接依存が`kritainputui`と
-`kritatestsdk`であることを前提に、`libs/input/ui/kis_input_manager_p.cpp`のQt事象正規化から
-`KisInputEventSuppressor`呼出しまでを読み、既存試験から到達できる最小の観測接続面を決定する。
+R2-G13の実装前監査として、`FreehandStrokeContractTest`の増分計画、直接依存、空構築閉包を再計測し、
+既存の固定ブラシ設定、入力列、乱数、並行設定、画素比較範囲を棚卸しする。対象の閉包が契約範囲に対して
+過大なら画素契約を追加する前にPaintOp実行処理と設定UIの依存を分離する。
 
 ## R1-G5完了根拠
 
