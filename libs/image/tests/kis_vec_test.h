@@ -7,7 +7,7 @@
 #ifndef KIS_VEC_TEST_H
 #define KIS_VEC_TEST_H
 
-#include <simpletest.h>
+#include <QObject>
 
 class KisVecTest : public QObject
 {
@@ -15,7 +15,6 @@ class KisVecTest : public QObject
 private Q_SLOTS:
 
     void testCreation();
-
 };
 
 #endif

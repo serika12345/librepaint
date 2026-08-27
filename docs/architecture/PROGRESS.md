@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 07:42 JST
+- 更新日時: 2026-08-28 07:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3977,6 +3977,15 @@
   19入力である。対象実行と20回反復が成功し、公開API契約は868件、未対応基準は28,146件になった。
   製品実装、公開API、ABI、ジョブ実行・破棄・診断の規則は変更していない。Linuxと全ネイティブ検証は
   実行していない。
+
+## R2-G19b 二次元ベクトル契約前の試験分離で完了した作業
+
+- `libs/image/tests/kis_vec_test.cpp`を、`kritaimage`と試験SDKへ接続する一括試験集合から、同じ
+  `libs/image/tests/kis_vec_test.cpp`を所有する単独CTest対象へ移した。`libs/image/tests/kis_vec_test.h`
+  と同実装の試験入口をQt Testへ直接置き換え、既存のゼロベクトル生成契約とCTest名を維持した。
+- 単独対象はQt Gui、Qt Test、Eigen、`libs/image/kis_vec.h`だけへ直接接続する。変更なし構築閉包は
+  1,002工程・2,027入力から4工程・8入力へ縮小した。macOSで対象実行と20回反復が成功した。製品実装、
+  公開API、ABI、二次元ベクトル挙動は変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 

@@ -74,7 +74,6 @@ kis_add_tests(
     kis_warp_transform_worker_test.cpp
     kis_transparency_mask_test.cpp
     kis_types_test.cpp
-    kis_vec_test.cpp
     kis_filter_config_widget_test.cpp
     kis_mask_generator_test.cpp
     kis_cubic_curve_test.cpp
@@ -136,6 +135,17 @@ kis_add_test(
     LINK_LIBRARIES kritaimagefastmathobjects Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(kis_fast_math_test PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
+    kis_vec_test.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Eigen3::Eigen
+)
+target_include_directories(kis_vec_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
 
 kis_add_test(
     kis_clone_layer_test.cpp

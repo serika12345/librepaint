@@ -6,8 +6,8 @@
 
 #include "kis_vec_test.h"
 
-#include <simpletest.h>
 #include "kis_vec.h"
+#include <QTest>
 
 void KisVecTest::testCreation()
 {
@@ -16,5 +16,4 @@ void KisVecTest::testCreation()
     QVERIFY(v2d.y() == 0.0);
 }
 
-
-SIMPLE_TEST_MAIN(KisVecTest)
+QTEST_GUILESS_MAIN(KisVecTest)
