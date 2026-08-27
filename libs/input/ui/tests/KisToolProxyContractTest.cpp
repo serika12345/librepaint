@@ -6,8 +6,10 @@
 #include <QCursor>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPointingDevice>
 #include <QScopedPointer>
 #include <QSignalSpy>
+#include <QTabletEvent>
 #include <QTest>
 #include <QWidget>
 
@@ -359,7 +361,9 @@ struct PointerSnapshot {
     qreal pressure;
     qreal xTilt;
     qreal yTilt;
+    qreal tangentialPressure;
     qreal rotation;
+    int z;
     bool tablet;
     bool touch;
 };
@@ -411,7 +415,9 @@ private:
                           event->pressure(),
                           event->xTilt(),
                           event->yTilt(),
+                          event->tangentialPressure(),
                           event->rotation(),
+                          event->z(),
                           event->isTabletEvent(),
                           event->isTouchEvent()});
     }
@@ -426,6 +432,37 @@ std::unique_ptr<QMouseEvent> mouseEvent(QEvent::Type type,
 {
     auto event =
         std::make_unique<QMouseEvent>(type, localPoint, localPoint, globalPoint, button, buttons, Qt::ShiftModifier);
+    event->setTimestamp(timestamp);
+    return event;
+}
+
+std::unique_ptr<QTabletEvent> tabletEvent(QEvent::Type type,
+                                          const QPointingDevice *device,
+                                          const QPointF &localPoint,
+                                          const QPointF &globalPoint,
+                                          qreal pressure,
+                                          float xTilt,
+                                          float yTilt,
+                                          float tangentialPressure,
+                                          qreal rotation,
+                                          float z,
+                                          Qt::MouseButton button,
+                                          Qt::MouseButtons buttons,
+                                          ulong timestamp)
+{
+    auto event = std::make_unique<QTabletEvent>(type,
+                                                device,
+                                                localPoint,
+                                                globalPoint,
+                                                pressure,
+                                                xTilt,
+                                                yTilt,
+                                                tangentialPressure,
+                                                rotation,
+                                                z,
+                                                Qt::ShiftModifier,
+                                                button,
+                                                buttons);
     event->setTimestamp(timestamp);
     return event;
 }
@@ -450,8 +487,43 @@ void compareSnapshot(const PointerSnapshot &snapshot,
     QCOMPARE(snapshot.pressure, 1.0);
     QCOMPARE(snapshot.xTilt, 0.0);
     QCOMPARE(snapshot.yTilt, 0.0);
+    QCOMPARE(snapshot.tangentialPressure, 0.0);
     QCOMPARE(snapshot.rotation, 0.0);
+    QCOMPARE(snapshot.z, 0);
     QVERIFY(!snapshot.tablet);
+    QVERIFY(!snapshot.touch);
+}
+
+void compareTabletSnapshot(const PointerSnapshot &snapshot,
+                           const QString &phase,
+                           const QPointF &documentPoint,
+                           const QPoint &localPoint,
+                           const QPoint &globalPoint,
+                           Qt::MouseButton button,
+                           Qt::MouseButtons buttons,
+                           ulong timestamp,
+                           qreal pressure,
+                           qreal xTilt,
+                           qreal yTilt,
+                           qreal tangentialPressure,
+                           qreal rotation,
+                           int z)
+{
+    QCOMPARE(snapshot.phase, phase);
+    QCOMPARE(snapshot.documentPoint, documentPoint);
+    QCOMPARE(snapshot.localPoint, localPoint);
+    QCOMPARE(snapshot.globalPoint, globalPoint);
+    QCOMPARE(snapshot.button, button);
+    QCOMPARE(snapshot.buttons, buttons);
+    QCOMPARE(snapshot.modifiers, Qt::KeyboardModifiers(Qt::ShiftModifier));
+    QCOMPARE(snapshot.timestamp, timestamp);
+    QVERIFY(qAbs(snapshot.pressure - pressure) < 0.000001);
+    QCOMPARE(snapshot.xTilt, xTilt);
+    QCOMPARE(snapshot.yTilt, yTilt);
+    QVERIFY(qAbs(snapshot.tangentialPressure - tangentialPressure) < 0.000001);
+    QCOMPARE(snapshot.rotation, rotation);
+    QCOMPARE(snapshot.z, z);
+    QVERIFY(snapshot.tablet);
     QVERIFY(!snapshot.touch);
 }
 } // namespace
@@ -462,6 +534,7 @@ class KisToolProxyContractTest : public QObject
 
 private Q_SLOTS:
     void forwardsMouseStrokeToCurrentTool();
+    void forwardsTabletStrokeToCurrentTool();
     void reportsIgnoredMousePress();
 };
 
@@ -522,6 +595,126 @@ void KisToolProxyContractTest::forwardsMouseStrokeToCurrentTool()
                     Qt::LeftButton,
                     Qt::NoButton,
                     30);
+
+    QCOMPARE(activationSpy.count(), 2);
+    QCOMPARE(activationSpy.at(0).at(0).toBool(), true);
+    QCOMPARE(activationSpy.at(1).at(0).toBool(), false);
+}
+
+void KisToolProxyContractTest::forwardsTabletStrokeToCurrentTool()
+{
+    TestShapeController shapeController;
+    TestToolCanvas canvas(&shapeController);
+    KisToolProxy proxy(&canvas);
+    KisKActionCollection actionCollection(this);
+    TestCanvasController controller(&canvas, &actionCollection);
+    proxy.priv()->controller = &controller;
+    canvas.setToolProxy(&proxy);
+    RecordingTool tool(&canvas);
+    proxy.setActiveTool(&tool);
+    QSignalSpy activationSpy(&proxy, &KisToolProxy::toolPrimaryActionActivated);
+
+    const QInputDevice::Capabilities capabilities = QInputDevice::Capability::Position
+        | QInputDevice::Capability::Pressure | QInputDevice::Capability::Rotation
+        | QInputDevice::Capability::XTilt | QInputDevice::Capability::YTilt
+        | QInputDevice::Capability::TangentialPressure | QInputDevice::Capability::ZPosition;
+    const QPointingDevice device(QStringLiteral("R2-G10 contract stylus"),
+                                 17,
+                                 QInputDevice::DeviceType::Stylus,
+                                 QPointingDevice::PointerType::Pen,
+                                 capabilities,
+                                 1,
+                                 3,
+                                 QStringLiteral("contract seat"),
+                                 QPointingDeviceUniqueId::fromNumericId(23));
+
+    auto press = tabletEvent(QEvent::TabletPress,
+                             &device,
+                             QPointF(100.0, 120.0),
+                             QPointF(1000.0, 1200.0),
+                             0.25,
+                             -15.0F,
+                             20.0F,
+                             -0.6F,
+                             30.0,
+                             3.0F,
+                             Qt::LeftButton,
+                             Qt::LeftButton,
+                             110);
+    auto move = tabletEvent(QEvent::TabletMove,
+                            &device,
+                            QPointF(140.0, 180.0),
+                            QPointF(1040.0, 1260.0),
+                            0.5,
+                            -5.0F,
+                            10.0F,
+                            0.0F,
+                            45.0,
+                            4.0F,
+                            Qt::NoButton,
+                            Qt::LeftButton,
+                            120);
+    auto release = tabletEvent(QEvent::TabletRelease,
+                               &device,
+                               QPointF(160.0, 210.0),
+                               QPointF(1060.0, 1290.0),
+                               0.0,
+                               12.0F,
+                               -8.0F,
+                               0.8F,
+                               60.0,
+                               5.0F,
+                               Qt::LeftButton,
+                               Qt::NoButton,
+                               130);
+
+    QVERIFY(proxy.forwardEvent(KisToolProxy::BEGIN, KisTool::Primary, press.get(), press.get()));
+    QVERIFY(proxy.forwardEvent(KisToolProxy::CONTINUE, KisTool::Primary, move.get(), move.get()));
+    QVERIFY(proxy.forwardEvent(KisToolProxy::END, KisTool::Primary, release.get(), release.get()));
+
+    QCOMPARE(tool.snapshots.size(), 3);
+    compareTabletSnapshot(tool.snapshots.at(0),
+                          QStringLiteral("begin"),
+                          QPointF(0.5, 0.7),
+                          QPoint(100, 120),
+                          QPoint(1000, 1200),
+                          Qt::LeftButton,
+                          Qt::LeftButton,
+                          110,
+                          0.25,
+                          -15.0,
+                          20.0,
+                          0.2,
+                          30.0,
+                          3);
+    compareTabletSnapshot(tool.snapshots.at(1),
+                          QStringLiteral("continue"),
+                          QPointF(0.9, 1.3),
+                          QPoint(140, 180),
+                          QPoint(1040, 1260),
+                          Qt::NoButton,
+                          Qt::LeftButton,
+                          120,
+                          0.5,
+                          -5.0,
+                          10.0,
+                          0.5,
+                          45.0,
+                          4);
+    compareTabletSnapshot(tool.snapshots.at(2),
+                          QStringLiteral("end"),
+                          QPointF(1.1, 1.6),
+                          QPoint(160, 210),
+                          QPoint(1060, 1290),
+                          Qt::LeftButton,
+                          Qt::NoButton,
+                          130,
+                          0.0,
+                          12.0,
+                          -8.0,
+                          0.9,
+                          60.0,
+                          5);
 
     QCOMPARE(activationSpy.count(), 2);
     QCOMPARE(activationSpy.at(0).at(0).toBool(), true);
