@@ -78,6 +78,27 @@ set_target_properties(kritaimagepaintopsettingsidsobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagegreencoordinatesobjects OBJECT
+   kis_green_coordinates_math.cpp
+)
+target_compile_definitions(kritaimagegreencoordinatesobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagegreencoordinatesobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+   PRIVATE
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagegreencoordinatesobjects
+   PUBLIC Qt${QT_MAJOR_VERSION}::Core
+   PRIVATE Qt${QT_MAJOR_VERSION}::Gui Boost::boost
+)
+set_target_properties(kritaimagegreencoordinatesobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -345,7 +366,6 @@ set(kritaimage_LIB_SRCS
    kis_warptransform_worker.cc
    kis_cage_transform_worker.cpp
    kis_liquify_transform_worker.cpp
-   kis_green_coordinates_math.cpp
    kis_transparency_mask.cc
    kis_undo_adapter.cpp
    kis_macro_based_undo_store.cpp
@@ -423,6 +443,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
+   $<TARGET_OBJECTS:kritaimagegreencoordinatesobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
