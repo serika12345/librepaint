@@ -170,3 +170,12 @@ kis_add_test(
         Boost::boost
 )
 target_compile_definitions(KisRollingMeanAccumulatorWrapperTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisPinnedSharedPtrTest.cpp
+    LINK_LIBRARIES
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+)
+target_compile_definitions(KisPinnedSharedPtrTest PRIVATE kritaglobal_EXPORTS)

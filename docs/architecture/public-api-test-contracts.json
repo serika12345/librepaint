@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28310
+    "expectedMissingApis": 28302
   },
   "contracts": [
     {
@@ -2596,6 +2596,41 @@
       "classification": "maintained",
       "apis": [
         "method:KisRollingMeanAccumulatorWrapper::reset(int windowSize)"
+      ]
+    },
+    {
+      "target": "KisPinnedSharedPtrTest",
+      "source": "libs/global/tests/KisPinnedSharedPtrTest.cpp",
+      "test": "KisPinnedSharedPtrTest::nullStateConversions",
+      "behavior": "既定構築したピン留め共有ポインターは空であり、否定演算と制限付き真偽変換が同じ空状態を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPinnedSharedPtr",
+        "method:KisPinnedSharedPtr::KisPinnedSharedPtr()",
+        "method:KisPinnedSharedPtr::operator !() const",
+        "method:KisPinnedSharedPtr::operator RestrictedBool() const"
+      ]
+    },
+    {
+      "target": "KisPinnedSharedPtrTest",
+      "source": "libs/global/tests/KisPinnedSharedPtrTest.cpp",
+      "test": "KisPinnedSharedPtrTest::constructorsShareOwnership",
+      "behavior": "生ポインター、強参照、弱参照からの構築は同じ所有個体を保持し、最後の強参照が外れるまで破棄しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPinnedSharedPtr::KisPinnedSharedPtr(T * other)",
+        "method:KisPinnedSharedPtr::KisPinnedSharedPtr(const KisSharedPtr<X> & other)",
+        "method:KisPinnedSharedPtr::KisPinnedSharedPtr(const KisWeakSharedPtr<X> & other)"
+      ]
+    },
+    {
+      "target": "KisPinnedSharedPtrTest",
+      "source": "libs/global/tests/KisPinnedSharedPtrTest.cpp",
+      "test": "KisPinnedSharedPtrTest::debugOutputMatchesContainedPointer",
+      "behavior": "デバッグ出力はピン留め共有ポインターが保持する生ポインターと同じアドレス表現を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KisPinnedSharedPtr<T> & ptr)"
       ]
     }
   ]
