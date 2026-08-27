@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28226
+    "expectedMissingApis": 28201
   },
   "contracts": [
     {
@@ -2959,6 +2959,87 @@
         "variable:kiszug::foreach_arg",
         "variable:kiszug::foreach_tuple",
         "variable:kiszug::to_functor"
+      ]
+    },
+    {
+      "target": "KoGenericRegistryContractTest",
+      "source": "libs/global/tests/KoGenericRegistryContractTest.cpp",
+      "test": "KoGenericRegistryContractTest::emptyRegistryRejectsNullEntries",
+      "behavior": "空の登録簿は空のキー・値・反復範囲を返し、2種類の追加経路はいずれもnullを診断して登録しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoGenericRegistry",
+        "method:KoGenericRegistry::KoGenericRegistry()",
+        "method:KoGenericRegistry::add(T item)",
+        "method:KoGenericRegistry::add(const QString & id,T item)",
+        "method:KoGenericRegistry::constBegin() const",
+        "method:KoGenericRegistry::constEnd() const",
+        "method:KoGenericRegistry::count() const",
+        "method:KoGenericRegistry::keys() const",
+        "method:KoGenericRegistry::values() const"
+      ]
+    },
+    {
+      "target": "KoGenericRegistryContractTest",
+      "source": "libs/global/tests/KoGenericRegistryContractTest.cpp",
+      "test": "KoGenericRegistryContractTest::itemsAliasesAndIterationExposeRegisteredValues",
+      "behavior": "識別子付き登録、別名、検索、列挙、別名削除、項目削除は同じ登録値を公開し、削除後の検索結果を更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGenericRegistry::addAlias(const QString & alias,const QString & id)",
+        "method:KoGenericRegistry::contains(const QString & id) const",
+        "method:KoGenericRegistry::get(const QString & id) const",
+        "method:KoGenericRegistry::remove(const QString & id)",
+        "method:KoGenericRegistry::removeAlias(const QString & alias)",
+        "method:KoGenericRegistry::value(const QString & id) const"
+      ]
+    },
+    {
+      "target": "KoGenericRegistryContractTest",
+      "source": "libs/global/tests/KoGenericRegistryContractTest.cpp",
+      "test": "KoGenericRegistryContractTest::duplicateIdRetainsPreviousEntryForDiagnosis",
+      "behavior": "同じ識別子の再登録は検索値を新しい項目へ置き換え、以前の項目を重複一覧へ保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGenericRegistry::doubleEntries() const"
+      ]
+    },
+    {
+      "target": "KoGenericRegistryContractTest",
+      "source": "libs/global/tests/KoGenericRegistryContractTest.cpp",
+      "test": "KoGenericRegistryContractTest::registryDoesNotDestroyOwnedRawPointers",
+      "behavior": "登録簿の破棄が、所有すると公開説明された生ポインター項目を破棄しない現行不具合を再現する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoGenericRegistry::~KoGenericRegistry()"
+      ]
+    },
+    {
+      "target": "KoGenericRegistryContractTest",
+      "source": "libs/global/tests/KoGenericRegistryContractTest.cpp",
+      "test": "KoGenericRegistryContractTest::modelReflectsRegistryRowsAndRoles",
+      "behavior": "登録簿一覧モデルはルート行数、各行の登録値、表示・編集名を返し、未対応役割と無効行には無効値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoGenericRegistryModel",
+        "method:KoGenericRegistryModel::KoGenericRegistryModel(KoGenericRegistry<T> * registry)",
+        "method:KoGenericRegistryModel::data(const QModelIndex & index,int role) const",
+        "method:KoGenericRegistryModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const",
+        "method:KoGenericRegistryModel::get(const QModelIndex & index) const",
+        "method:KoGenericRegistryModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KoGenericRegistryModel::rowCount(const QModelIndex &) const",
+        "method:KoGenericRegistryModel::~KoGenericRegistryModel()"
+      ]
+    },
+    {
+      "target": "KoGenericRegistryContractTest",
+      "source": "libs/global/tests/KoGenericRegistryContractTest.cpp",
+      "test": "KoGenericRegistryContractTest::modelReportsRootRowsForValidParent",
+      "behavior": "一覧モデルが有効な親にもルートと同じ行数を返し、Qtの一覧モデル規約に反する現行不具合を再現する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoGenericRegistryModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KoGenericRegistryModel::rowCount(const QModelIndex &) const"
       ]
     }
   ]
