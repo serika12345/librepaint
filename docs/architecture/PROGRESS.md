@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 08:38 JST
+- 更新日時: 2026-08-28 08:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4139,6 +4139,17 @@
 - 新試験は`kritaglobalidobjects`とQt Testだけへ直接接続し、変更なし構築閉包はmacOSで5工程・12入力で
   ある。対象実行と20回反復が成功し、公開API契約は911件、未対応基準は28,103件になった。製品実装、
   公開API、ABI、識別子値は変更していない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 標準色識別子契約前の実装所有分離で完了した作業
+
+- `libs/pigment/KoColorModelStandardIds.cpp`の実装所有を、`kritapigment`の一括ソース集合から
+  `kritapigmentstandardidsobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象だけを
+  変更した。公開ヘッダー、識別子変数、`kritapigment`のAPIとABIを維持し、`kritapigment`は新対象の
+  オブジェクトを従来どおり集約する。
+- 新対象はpigmentとglobalのソース・生成ヘッダー、Qt Core、KF I18n、Boostヘッダーだけへ直接接続する。
+  従来の`kritapigment`は変更なし構築閉包が300工程・630入力、新対象は1工程・3入力である。macOSで
+  新対象の限定構築が成功した。製品挙動、公開API、ABI、標準色識別子値は変更していない。Linux、
+  製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
 
 ## 次の操作
 

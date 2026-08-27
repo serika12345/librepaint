@@ -12,6 +12,29 @@ endforeach()
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
 
+add_library(kritapigmentstandardidsobjects OBJECT
+    KoColorModelStandardIds.cpp
+)
+target_compile_definitions(kritapigmentstandardidsobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentstandardidsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentstandardidsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritapigmentstandardidsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritapigment_SRCS
     DebugPigment.cpp
     KoBasicHistogramProducers.cpp
@@ -27,7 +50,6 @@ set(kritapigment_SRCS
     KoColorConversionTransformation.cpp
     KoColorProofingConversionTransformation.cpp
     KoColorConversionTransformationFactory.cpp
-    KoColorModelStandardIds.cpp
     KoColorProfile.cpp
     KoColorSpace.cpp
     KoColorSpaceEngine.cpp
@@ -80,7 +102,10 @@ if(MSVC OR (WIN32 AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel"))
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBC.LIB")
 endif()
 
-kis_add_library(kritapigment SHARED ${kritapigment_SRCS})
+kis_add_library(kritapigment SHARED
+    ${kritapigment_SRCS}
+    $<TARGET_OBJECTS:kritapigmentstandardidsobjects>
+)
 
 target_sources(kritapigment
   PRIVATE
