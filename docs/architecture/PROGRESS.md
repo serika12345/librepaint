@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 21:27 JST
+- 更新日時: 2026-08-27 21:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2790,6 +2790,16 @@
 - `nix develop .#test --command ./scripts/run-test KisQQuickWidgetsPublicApiTest`と対象CTestの
   20回反復はmacOSと`ssh nixos`上のLinuxで成功した。Linuxの初回増分構築は19工程だった。
   公開API契約は130件、未対応基準は29,115件になった。全ネイティブ検証は実行していない。
+
+## R2-G19b 非公開入れ子スコープ除外で完了した作業
+
+- `libs/koplugin/KisMimeDatabase.h`のprivate入れ子型は型自体が公開面から除かれる一方、そのpublic
+  メンバー3件だけが公開APIとして誤採取されていた。privateまたはprotectedの型・列挙スコープを
+  祖先方向へ照合し、その配下の型、列挙値、型別名、関数、メソッド、データ、変数を除外する。
+- 合成Ctags入力の試験は、private型のpublicメンバーとさらに内側のpublic型が最初の実行で残ることを
+  診断した。修正後は両者を除外し、同じ外側型に属するpublic入れ子型とそのメンバーを維持する。
+- 旧集合との全件比較では非公開入れ子スコープ配下232 APIだけが減り、追加0件、既存130契約の
+  除外0件だった。公開ヘッダー1,544件を維持し、公開APIは29,013件、未対応基準は28,883件になった。
 
 ## 次の操作
 

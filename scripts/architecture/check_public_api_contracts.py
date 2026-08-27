@@ -92,12 +92,22 @@ def _type_name(tag: Mapping[str, Any]) -> str:
     return value.split(":", 1)[1] if ":" in value else value
 
 
-def _enum_access(tags: Iterable[Mapping[str, Any]]) -> dict[str, str]:
+def _non_public_scopes(tags: Iterable[Mapping[str, Any]]) -> set[str]:
     return {
-        _qualified_name(tag): _string(tag, "access")
+        _qualified_name(tag)
         for tag in tags
-        if tag.get("kind") == "enum"
+        if tag.get("kind") in RECORD_KINDS | {"enum"}
+        and _string(tag, "access") in {"private", "protected"}
     }
+
+
+def _is_below_non_public_scope(scope: str, non_public_scopes: set[str]) -> bool:
+    current_scope = scope
+    while current_scope:
+        if current_scope in non_public_scopes:
+            return True
+        current_scope = current_scope.rsplit("::", 1)[0] if "::" in current_scope else ""
+    return False
 
 
 def _canonical_kind(tag: Mapping[str, Any]) -> str | None:
@@ -119,7 +129,7 @@ def extract_public_apis(
     tags: Iterable[Mapping[str, Any]], public_headers: set[str]
 ) -> list[dict[str, str]]:
     tag_list = list(tags)
-    enum_access = _enum_access(tag_list)
+    non_public_scopes = _non_public_scopes(tag_list)
     apis: dict[str, dict[str, str]] = {}
     for tag in tag_list:
         header = _string(tag, "path")
@@ -130,12 +140,9 @@ def extract_public_apis(
             continue
         if access in {"private", "protected"}:
             continue
-        if kind in RECORD_KINDS and "end" not in tag:
+        if _is_below_non_public_scope(_string(tag, "scope"), non_public_scopes):
             continue
-        if kind == "enumerator" and enum_access.get(_string(tag, "scope")) in {
-            "private",
-            "protected",
-        }:
+        if kind in RECORD_KINDS and "end" not in tag:
             continue
         if kind in {"method", "function"} and name in IGNORED_ROUTINE_NAMES:
             continue

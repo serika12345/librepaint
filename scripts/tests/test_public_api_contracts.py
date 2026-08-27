@@ -22,6 +22,89 @@ SPEC.loader.exec_module(check_public_api_contracts)
 
 
 class PublicApiContractTests(unittest.TestCase):
+    def test_excludes_declarations_inside_non_public_records(self) -> None:
+        header = "libs/example/PublicWidget.h"
+        tags = [
+            {
+                "_type": "tag",
+                "name": "PublicWidget",
+                "path": header,
+                "kind": "class",
+                "end": 60,
+            },
+            {
+                "_type": "tag",
+                "name": "PrivateState",
+                "path": header,
+                "kind": "struct",
+                "access": "private",
+                "scope": "PublicWidget",
+                "scopeKind": "class",
+                "end": 20,
+            },
+            {
+                "_type": "tag",
+                "name": "value",
+                "path": header,
+                "kind": "member",
+                "access": "public",
+                "scope": "PublicWidget::PrivateState",
+                "scopeKind": "struct",
+                "typeref": "typename:int",
+            },
+            {
+                "_type": "tag",
+                "name": "NestedState",
+                "path": header,
+                "kind": "struct",
+                "access": "public",
+                "scope": "PublicWidget::PrivateState",
+                "scopeKind": "struct",
+                "end": 18,
+            },
+            {
+                "_type": "tag",
+                "name": "nestedValue",
+                "path": header,
+                "kind": "member",
+                "access": "public",
+                "scope": "PublicWidget::PrivateState::NestedState",
+                "scopeKind": "struct",
+                "typeref": "typename:int",
+            },
+            {
+                "_type": "tag",
+                "name": "VisibleState",
+                "path": header,
+                "kind": "struct",
+                "access": "public",
+                "scope": "PublicWidget",
+                "scopeKind": "class",
+                "end": 40,
+            },
+            {
+                "_type": "tag",
+                "name": "visibleValue",
+                "path": header,
+                "kind": "member",
+                "access": "public",
+                "scope": "PublicWidget::VisibleState",
+                "scopeKind": "struct",
+                "typeref": "typename:int",
+            },
+        ]
+
+        apis = check_public_api_contracts.extract_public_apis(tags, {header})
+
+        self.assertEqual(
+            [
+                "class:PublicWidget",
+                "member:PublicWidget::VisibleState::visibleValue",
+                "struct:PublicWidget::VisibleState",
+            ],
+            [api["id"] for api in apis],
+        )
+
     def test_extracts_only_owned_public_declarations(self) -> None:
         tags = [
             {
