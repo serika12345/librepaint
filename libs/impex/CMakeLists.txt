@@ -1,15 +1,57 @@
 set(kritaimpex_LIB_SRCS
     KisImportExportAdditionalChecks.cpp
-    KisImportExportErrorCode.cpp
     KisImportExportFilter.cpp
     KisImportExportFilterRegistry.cpp
     KisExportCheckBase.cpp
     KisPreExportChecker.cpp
     KisExportCheckRegistry.cpp
+)
+
+add_library(kritaimpexerrorobjects OBJECT
+    KisImportExportErrorCode.cpp
+)
+
+add_library(kritaimpexmetadataobjects OBJECT
     metadata/KoDocumentInfo.cpp
 )
 
-kis_add_library(kritaimpex SHARED ${kritaimpex_HEADERS_MOC} ${kritaimpex_LIB_SRCS})
+set(kritaimpex_OBJECT_TARGETS
+    kritaimpexerrorobjects
+    kritaimpexmetadataobjects
+)
+
+foreach(target IN LISTS kritaimpex_OBJECT_TARGETS)
+    target_compile_definitions(${target} PRIVATE kritaimpex_EXPORTS)
+    target_include_directories(${target}
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+    set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endforeach()
+
+target_link_libraries(kritaimpexerrorobjects
+    PUBLIC
+        kritaglobal
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+)
+
+target_link_libraries(kritaimpexmetadataobjects
+    PUBLIC
+        kritaresources
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+)
+
+kis_add_library(kritaimpex SHARED
+    ${kritaimpex_HEADERS_MOC}
+    ${kritaimpex_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaimpexerrorobjects>
+    $<TARGET_OBJECTS:kritaimpexmetadataobjects>
+)
 
 generate_export_header(kritaimpex BASE_NAME kritaimpex)
 

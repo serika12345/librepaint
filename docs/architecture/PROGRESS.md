@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 22:18 JST
+- 更新日時: 2026-08-27 23:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2865,12 +2865,40 @@
   20回反復が成功し、Linuxの初回対象構築は10工程だった。macOSの直接公開API契約検査と
   `verify-quick`も成功した。全ネイティブ検証は実行していない。
 
+## R2-G19b 文書UI契約前の構築範囲分離で完了した作業
+
+- `libs/document/ui/CMakeLists.txt`で一つの`kritadocumentui`ソース集合に属していた実装を、
+  ファイルを移動せず5つの内部オブジェクト所有単位へ分けた。起点と分割先は、
+  `info/KoDocumentInfoDlg.cpp`と2 UIファイルから`kritadocumentinfoobjects`、
+  `io/kis_document_io_presentation.cpp`から`kritadocumentiopresentationobjects`、
+  `recovery/KisAutoSaveRecoveryDialog.cpp`から`kritadocumentautosaverecoveryobjects`、
+  `recovery/KisRecoverNamedAutosaveDialog.cpp`とUIファイルから`kritadocumentnamedrecoveryobjects`、
+  `undo/{kis_document_undo_store,kundo2model,kundo2view}.cpp`から`kritadocumentundoobjects`である。
+  公開共有ライブラリー`kritadocumentui`は同じ実装を集約し、公開名、版、公開ヘッダー、
+  シンボル所有を維持する。
+- `libs/impex/CMakeLists.txt`で`KisImportExportErrorCode.cpp`を
+  `kritaimpexerrorobjects`へ、`metadata/KoDocumentInfo.cpp`を
+  `kritaimpexmetadataobjects`へ分けた。公開共有ライブラリー`kritaimpex`は両方を集約する。
+  文書入出力表示と文書情報表示の試験は、1クラスのために`kritaimpex`全体を構築せず、
+  対応する内部実装を直接リンクする。文書メタデータ専用試験も同じ所有単位を直接検査する。
+- `libs/document/ui/tests/CMakeLists.txt`は6 CTestを各内部所有単位へ対応付け、
+  `kritadocumentui`、`kritadocument`、`kritaimpex`、`kritatestsdk`の一括リンクを除去した。
+  変更前は各試験が1,044工程・2,103入力だった。変更後は自動保存回復639工程・1,304入力、
+  文書情報637工程・1,302入力、入出力表示65工程・128入力、名前付き回復8工程・17入力、
+  取り消し保存と履歴表示が各234工程・497入力である。メタデータ専用試験は136工程・297入力、
+  エラー表現とメタデータの内部所有単位はそれぞれ58工程・115入力、132工程・290入力である。
+- `KisAutoSaveRecoveryDialog.cpp`から未使用の`kis_debug.h`を除去した。最小構築で表面化した
+  `KisImportExportErrorCode.cpp`の`kis_assert.h`依存は所有元`kritaglobal`へ明示した。
+  新しい公開API、互換経路、実行時分岐は追加していない。
+- macOSで`kritaimpex`と`kritadocumentui`の対象構築、抽出元2 CTestと文書UI 6 CTest、
+  8 CTestの20回反復、公開シンボル確認、`verify-quick`が成功した。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/document/ui`の未対応56 APIへ契約を追加する前に、現在1,040工程・2,096入力の
-`kritadocumentui`を既存の`info`、`io`、`recovery`、`undo`責務に沿って分割する。各ソースの
-直接include、必要なCMake依存、製品利用元、6 CTestの対応を確定し、公開APIと利用側の挙動を
-維持したまま各試験の空構築閉包をR2-G13a上限内へ縮小する。
+`libs/document/ui`の未対応56 APIを既存6 CTestへ対応付ける。各公開メソッド、信号、列挙値について
+現在観測済みの挙動を先に登録し、不足する入力、状態遷移、誤り、所有期間だけを分割済みの対象試験へ
+追加する。各対象をmacOSと`ssh nixos`上のLinuxで実行し、20回反復後に未対応基準を縮小する。
 
 ## R1-G5完了根拠
 
