@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28369
+    "expectedMissingApis": 28365
   },
   "contracts": [
     {
@@ -2330,6 +2330,37 @@
       "classification": "maintained",
       "apis": [
         "method:KisSignalsBlocker::KisSignalsBlocker(QObject * o1,QObject * o2,QObject * o3=0,QObject * o4=0,QObject * o5=0,QObject * o6=0)"
+      ]
+    },
+    {
+      "target": "KisPortingUtilsTest",
+      "source": "libs/global/tests/KisPortingUtilsTest.cpp",
+      "test": "KisPortingUtilsTest::utf8StreamEncoding",
+      "behavior": "文字列ストリームへUTF-8を設定すると、日本語を対応するUTF-8バイト列として書き出す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPortingUtils::setUtf8OnStream(QTextStream & stream)"
+      ]
+    },
+    {
+      "target": "KisPortingUtilsTest",
+      "source": "libs/global/tests/KisPortingUtilsTest.cpp",
+      "test": "KisPortingUtilsTest::stringEndRemoval",
+      "behavior": "文字列の先頭または末尾を一文字除去し、空文字列は空のまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPortingUtils::stringRemoveFirst(QString str)",
+        "function:KisPortingUtils::stringRemoveLast(QString str)"
+      ]
+    },
+    {
+      "target": "KisPortingUtilsTest",
+      "source": "libs/global/tests/KisPortingUtilsTest.cpp",
+      "test": "KisPortingUtilsTest::screenNumberFallback",
+      "behavior": "表示部品を指定しない場合は、現在の画面一覧における主画面の番号を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPortingUtils::getScreenNumberForWidget(const QWidget * w)"
       ]
     }
   ]
