@@ -257,6 +257,9 @@ MIME集約とプラグイン探索、エラー表現、文書メタデータ、�
 戻さない。
 入出力エラー分類も`kis_import_export_error_code_test`がエラー表現の内部実装を直接検査し、
 ファイル事前条件とMIME選択を扱う`TestImportExportBoundary`から独立して反復する。
+書き出し検査基底は`kis_export_check_base_test`が画像実装を構築せずに識別子、対応水準、警告、
+層単位属性、仮想呼出しと破棄を検査する。画像状態と全組込み登録を必要とする寸法・登録・
+書き出し前分類は`kis_export_checks_test`へ集約し、画像依存を持つ対象だけで反復する。
 
 最初の検査段階で、文書と取り消し履歴の接続および履歴表示を`kritadocumentui`へ移し、
 `kritadocument`の公開リンク閉包をQt Coreだけへ縮小した。第2段階では

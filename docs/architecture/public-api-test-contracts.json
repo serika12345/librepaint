@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28584
+    "expectedMissingApis": 28548
   },
   "contracts": [
     {
@@ -1466,6 +1466,114 @@
       "classification": "maintained",
       "apis": [
         "method:KisImportExportFilterRegistry::createFilter(const QString & mimeType,Direction direction)"
+      ]
+    },
+    {
+      "target": "kis_export_check_base_test",
+      "source": "libs/impex/tests/kis_export_check_base_test.cpp",
+      "test": "KisExportCheckBaseTest::defaultPropertiesAndDispatch",
+      "behavior": "検査基底が既定の全体検査属性を保持し、null画像値でも具象検査の必要性と対応水準へ仮想呼出しする。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisExportCheckBase",
+        "enum:KisExportCheckBase::Level",
+        "enumerator:KisExportCheckBase::Level::SUPPORTED",
+        "method:KisExportCheckBase::KisExportCheckBase(const QString & id,Level level,const QString & customWarning=QString (),bool perLayerCheck=false)",
+        "method:KisExportCheckBase::check(KisImageSP image) const",
+        "method:KisExportCheckBase::checkNeeded(KisImageSP image) const",
+        "method:KisExportCheckBase::id() const",
+        "method:KisExportCheckBase::perLayerCheck() const",
+        "method:KisExportCheckBase::warning() const"
+      ]
+    },
+    {
+      "target": "kis_export_check_base_test",
+      "source": "libs/impex/tests/kis_export_check_base_test.cpp",
+      "test": "KisExportCheckBaseTest::customPropertiesAndPartialSupport",
+      "behavior": "部分対応の検査が形式固有の警告と層単位属性を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisExportCheckBase::Level::PARTIALLY"
+      ]
+    },
+    {
+      "target": "kis_export_check_base_test",
+      "source": "libs/impex/tests/kis_export_check_base_test.cpp",
+      "test": "KisExportCheckBaseTest::unsupportedCheckUsesVirtualDestruction",
+      "behavior": "非対応水準を返す具象検査を基底所有から仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisExportCheckBase::Level::UNSUPPORTED",
+        "method:KisExportCheckBase::~KisExportCheckBase()"
+      ]
+    },
+    {
+      "target": "kis_export_check_base_test",
+      "source": "libs/impex/tests/kis_export_check_base_test.cpp",
+      "test": "KisExportCheckBaseTest::factoryCreatesChecksThroughItsInterface",
+      "behavior": "検査ファクトリーが識別子、対応水準、警告を持つ具象検査を生成し、基底所有から仮想破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisExportCheckFactory",
+        "method:KisExportCheckFactory::create(KisExportCheckBase::Level level,const QString & customWarning=QString ())",
+        "method:KisExportCheckFactory::id() const",
+        "method:KisExportCheckFactory::~KisExportCheckFactory()"
+      ]
+    },
+    {
+      "target": "kis_export_checks_test",
+      "source": "libs/impex/tests/kis_export_checks_test.cpp",
+      "test": "KisExportChecksTest::imageSizeUsesBothInclusiveLimits",
+      "behavior": "画像寸法検査が最大幅と最大高を公開値として保持し、両方が境界以上の場合だけ層単位の部分対応検査を必要とする。",
+      "classification": "maintained",
+      "apis": [
+        "class:ImageSizeCheck",
+        "member:ImageSizeCheck::m_maxH",
+        "member:ImageSizeCheck::m_maxW",
+        "method:ImageSizeCheck::ImageSizeCheck(int maxWidth,int maxHeight,const QString & id,Level level,const QString & customWarning=QString ())",
+        "method:ImageSizeCheck::check(KisImageSP) const",
+        "method:ImageSizeCheck::checkNeeded(KisImageSP image) const"
+      ]
+    },
+    {
+      "target": "kis_export_checks_test",
+      "source": "libs/impex/tests/kis_export_checks_test.cpp",
+      "test": "KisExportChecksTest::imageSizeFactoryCreatesConfiguredChecks",
+      "behavior": "画像寸法ファクトリーが標準上限または明示上限、対応水準、既定または形式固有の警告を持つ検査を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:ImageSizeCheckFactory",
+        "method:ImageSizeCheckFactory::ImageSizeCheckFactory()",
+        "method:ImageSizeCheckFactory::create(KisExportCheckBase::Level level,const QString & customWarning=QString ())",
+        "method:ImageSizeCheckFactory::create(int maxWidth,int maxHeight,KisExportCheckBase::Level level,const QString & customWarning=QString ())",
+        "method:ImageSizeCheckFactory::id() const",
+        "method:ImageSizeCheckFactory::~ImageSizeCheckFactory()"
+      ]
+    },
+    {
+      "target": "kis_export_checks_test",
+      "source": "libs/impex/tests/kis_export_checks_test.cpp",
+      "test": "KisExportChecksTest::registryProvidesBuiltInFactories",
+      "behavior": "明示構築した登録器と工程共有の単一登録器が、画像寸法、複数層、アニメーションの組込み検査ファクトリーを提供する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisExportCheckRegistry",
+        "method:KisExportCheckRegistry::KisExportCheckRegistry()",
+        "method:KisExportCheckRegistry::instance()"
+      ]
+    },
+    {
+      "target": "kis_export_checks_test",
+      "source": "libs/impex/tests/kis_export_checks_test.cpp",
+      "test": "KisExportChecksTest::preExportCheckerClassifiesCapabilityLevels",
+      "behavior": "書き出し前検査が未宣言と部分対応を警告、非対応をエラーへ分類し、全対応時だけ成功を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPreExportChecker",
+        "method:KisPreExportChecker::KisPreExportChecker()",
+        "method:KisPreExportChecker::check(KisImageSP image,QMap<QString,KisExportCheckBase * > filterChecks)",
+        "method:KisPreExportChecker::errors() const",
+        "method:KisPreExportChecker::warnings() const"
       ]
     }
   ]

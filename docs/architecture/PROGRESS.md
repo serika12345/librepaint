@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 00:17 JST
+- 更新日時: 2026-08-28 00:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2998,13 +2998,29 @@
   組込み検査登録と書き出し前検査が各1,045工程・2,103入力である。macOSの触れたヘッダーの
   clang-format検査と`verify-quick`も成功した。全ネイティブ検証は実行していない。
 
+## R2-G19b 書き出し検査 public API契約で完了した作業
+
+- `libs/impex/KisExportCheckBase.h`の16 APIを
+  `libs/impex/tests/kis_export_check_base_test.cpp`の4試験関数へ対応付けた。識別子、3対応水準、
+  既定と形式固有の警告、層単位属性、null画像値による具象検査への仮想呼出し、基底所有からの
+  検査とファクトリーの仮想破棄を観測する。
+- `libs/impex/ImageSizeCheck.h`の12 API、`libs/impex/KisExportCheckRegistry.h`の3 API、
+  `libs/impex/KisPreExportChecker.h`の5 APIを`libs/impex/tests/kis_export_checks_test.cpp`の4試験関数へ
+  対応付けた。画像寸法の包括積境界、標準値と明示値による生成、組込み登録と単一登録器、未宣言・
+  部分対応・非対応・全対応の警告、エラー、成功分類を観測する。
+- 基底試験はnull共有ポインターの参照操作だけを試験内で閉じ、画像ライブラリーへリンクしない。
+  macOSの変更なし構築閉包は基底試験が7工程・14入力、実画像と全登録器を使う試験が1,011工程・
+  2,045入力である。製品実装、公開API、検査順序は変更していない。
+- 公開API契約は465件、未対応基準は28,548件になった。macOSで2対象の構築、実行、各20回反復、
+  直接公開API契約検査、触れた2試験ソースのclang-format検査が成功した。Linuxの実機検証、
+  `verify-quick`、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/impex/KisExportCheckRegistry.h`の3 API、`libs/impex/KisPreExportChecker.h`の5 API、
-`libs/impex/KisExportCheckBase.h`の16 API、`libs/impex/ImageSizeCheck.h`の12 APIを、分離済みの
-検査基底、登録、実行の所有単位へ対応するCTestとして追加する。判定水準、識別子、警告、層単位判定、
-寸法境界、組込み登録、対応度に従う警告とエラーの分類を固定し、各対象を20回反復してから公開API契約
-台帳へ36 APIを登録する。
+`libs/impex/IntegralFrameDuration.h`の9 APIを次の書き出し検査単位として扱う。既存利用元と
+インライン実装の直接依存、`kis_export_checks_test`へ追加した場合の変更なし構築閉包を先に監査し、
+画像と登録器の既存閉包を越えない場合は同じ対象で整数・小数フレーム時間の必要性、対応水準、
+識別子、警告、ファクトリー生成を固定する。
 
 ## R1-G5完了根拠
 

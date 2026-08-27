@@ -28,6 +28,27 @@ kis_add_tests(
 target_compile_definitions(kis_document_metadata_test PRIVATE kritaimpex_EXPORTS)
 
 kis_add_tests(
+    kis_export_check_base_test.cpp
+    LINK_LIBRARIES kritaimpexexportcheckbaseobjects Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_export_check_base_test PRIVATE kritaimpex_EXPORTS)
+target_include_directories(kis_export_check_base_test
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_tests(
+    kis_export_checks_test.cpp
+    LINK_LIBRARIES
+        kritaimpexexportcheckbaseobjects
+        kritaimpexexportcheckregistryobjects
+        kritaimpexpreexportcheckerobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_export_checks_test PRIVATE kritaimpex_EXPORTS)
+
+kis_add_tests(
     TestImportExportUiBoundary.cpp
     LINK_LIBRARIES kritaapplicationui Qt${QT_MAJOR_VERSION}::Test Qt${QT_MAJOR_VERSION}::Widgets
 )
