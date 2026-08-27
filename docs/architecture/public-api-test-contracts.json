@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28201
+    "expectedMissingApis": 28200
   },
   "contracts": [
     {
@@ -3040,6 +3040,16 @@
       "apis": [
         "method:KoGenericRegistryModel::rowCount(const QModelIndex & parent=QModelIndex ()) const",
         "method:KoGenericRegistryModel::rowCount(const QModelIndex &) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionUtilsContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintOpOptionUtilsContractTest.cpp",
+      "test": "KisPaintOpOptionUtilsContractTest::loadOptionDataReadsOnceAndReturnsPopulatedValue",
+      "behavior": "描画操作設定の読込補助は新しい値を作り、指定設定をreadへ一度渡して読込済みの値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintOpOptionUtils::loadOptionData(const KisPropertiesConfiguration * setting)"
       ]
     }
   ]

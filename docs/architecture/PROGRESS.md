@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 07:00 JST
+- 更新日時: 2026-08-28 07:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3849,6 +3849,16 @@
   ある。対象実行と20回反復が成功し、公開API契約は813件、未対応基準は28,201件になった。製品実装、
   公開API、ABI、登録簿と一覧モデルの現行挙動は変更していない。Linuxと全ネイティブ検証は実行して
   いない。
+
+## R2-G19b 描画操作設定読込 public API契約で完了した作業
+
+- `plugins/paintops/libpaintop/KisPaintOpOptionUtils.h`の設定読込1 APIを、新規
+  `plugins/paintops/libpaintop/tests/KisPaintOpOptionUtilsContractTest.cpp`の1試験へ対応付けた。新しい
+  データ値を作り、指定設定を`read()`へ一度渡し、その読込結果を値として返すことを観測する。
+- 対象はヘッダー専用で、製品実装の所有分離は不要だった。新試験はQt Testだけへ直接接続し、変更なし
+  構築閉包はmacOSで4工程・8入力である。対象実行と20回反復が成功し、公開API契約は814件、未対応
+  基準は28,200件になった。製品実装、公開API、ABI、設定読込結果は変更していない。Linuxと全
+  ネイティブ検証は実行していない。
 
 ## 次の操作
 
