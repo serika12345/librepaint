@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 19:03 JST
+- 更新日時: 2026-08-27 19:08 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G15 既定画素ブラシの筆圧勾配契約
+- 現在の検査段階: R2-G16 PaintOp乱数経路の決定的契約
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: 開始点を筆圧0.25、終了点を筆圧1.0として、自由描画の補間が既定画素ブラシの寸法・不透明度へ
-  反映される現行画素結果を固定する。
+- 目的: 既定画素ブラシの乱数を使う最小設定について、明示した乱数種と入力から同じ画素結果を生成する
+  境界を固定する。
 
 ## 再開環境
 
@@ -2586,11 +2586,32 @@
   20回反復、`kis_strokes_queue_test`、`kis_update_scheduler_test`、`kis_projection_test`、
   `kis_prescaled_projection_contract_test`はmacOSで成功した。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G15 既定画素ブラシの筆圧勾配契約で完了した作業
+
+- 実装前の`FreehandStrokeContractTest`は変更なし計画に対象コンパイルがなく、直接依存が
+  `kritapixelbrush`、`kritapainting`、`kritalibbrush`、`kritatestsdk`、空のmacOS構築木に対する
+  Ninjaコマンド閉包が1,107工程だった。開始点と終了点の筆圧値を分けても同じ製品経路を使うため、
+  先行する構造変更は行っていない。
+- `libs/ui/tests/FreehandStrokeContractTest.cpp`のストローク実行へ開始筆圧と終了筆圧を個別に渡せるように
+  した。固定筆圧0.5と筆圧勾配を同じデータ駆動契約へまとめ、画像正規化、ハッシュ比較、差異画像保存、
+  領域比較の重複を増やさずに既存契約を維持した。
+- 最初の対象実行は開始筆圧0.25、終了筆圧1.0の採取行だけで失敗し、レイヤーと投影の正確な描画領域
+  `QRect(154, 154, 229, 229)`と、RGBA8888へ正規化した全画素のSHA-256
+  `e9740f2b00ef8670a37aade2c4f96cec8197dfc96eb3e18adcc20f938b5f87c0`を記録した。
+  維持値の追加後は勾配行、固定筆圧0.5行、筆圧1.0の基準画像契約が同じ実行で成功した。
+- 対象実装後の構築は自動MOC、変更した試験ソース、試験実行形式のリンクだけだった。続く計画はglob
+  再検査とCMake再評価だけを示し、対象コンパイルを含まない。直接依存と空構築閉包はR2-G13aの上限を
+  維持した。
+- `nix develop .#test --command ./scripts/run-test FreehandStrokeContractTest`、CTestプリセットによる
+  20回反復、`kis_strokes_queue_test`、`kis_update_scheduler_test`、`kis_projection_test`、
+  `kis_prescaled_projection_contract_test`はmacOSで成功した。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-R2-G15の実装前監査として、`FreehandStrokeContractTest`の変更なし計画、直接依存、1,107工程の
-空構築閉包を再確認する。開始点と終了点へ個別の筆圧を渡せるようにし、既存の筆圧1.0と0.5契約を
-維持したまま、開始筆圧0.25、終了筆圧1.0の画素、投影、正確な描画領域の最初の診断を採取する。
+R2-G16の実装前監査として、`FreehandStrokeContractTest`、`KisStrokeRandomSource`、
+`KisPerStrokeRandomSource`、`FreehandStrokeStrategy`の変更なし計画、直接依存、空構築閉包、利用元を
+確認する。自動ブラシ乱数またはFuzzyセンサーの最小一経路を選び、未固定時の画素差を診断してから、
+既存の乱数所有者へ種を値として渡す最小変更を決める。
 
 ## R1-G5完了根拠
 
