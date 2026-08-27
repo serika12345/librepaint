@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 23:29 JST
+- 更新日時: 2026-08-27 23:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2923,13 +2923,14 @@
 - エラー契約の変更なし空構築閉包は、3責務を含む元の`TestImportExportBoundary`の1,018工程・
   2,057入力から62工程・122入力へ縮小した。製品実装、公開API、`kritaimpex`の公開共有ライブラリー、
   元の2契約の挙動は変更していない。
-- macOSで新旧2対象の構築、実行、20回反復、触れた2試験ソースのclang-format検査、
-  `verify-quick`が成功した。Linuxと全ネイティブ検証は実行していない。
+- macOSと`ssh nixos`上のLinuxで新旧2対象の構築、実行、20回反復が成功した。専用対象の
+  空構築閉包はmacOSで62工程・122入力、Linuxで55工程・118入力である。触れた2試験ソースの
+  macOS clang-format検査と`verify-quick`も成功した。全ネイティブ検証は実行していない。
 
 ## 次の操作
 
 構築範囲を分離済みの`libs/impex/KisImportExportErrorCode.h`の未対応43 APIと
-`libs/impex/metadata/KoDocumentInfo.h`の未対応14 APIを、既存`TestImportExportBoundary`と
+`libs/impex/metadata/KoDocumentInfo.h`の未対応14 APIを、`kis_import_export_error_code_test`と
 `kis_document_metadata_test`へ対応付ける。既存試験の観測範囲を監査し、エラー分類、Qtファイル
 エラー、診断文字列、等値性、文書メタデータの読書き・複製・通知で不足する契約だけを追加する。
 
