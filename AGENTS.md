@@ -123,14 +123,20 @@ Every code, build, script, and policy change follows this sequence:
 
 1. Read the relevant implementation, tests, CMake target, and roadmap gate.
 2. Identify the smallest coherent change within the intended responsibility.
-3. Add or update the smallest meaningful observable contract.
-4. Run the contract and record the expected initial diagnostic.
-5. Implement the minimum production change that satisfies the contract.
-6. Refactor while the relevant contract remains green.
-7. Audit responsibility, dependency direction, ownership, lifetime, public
+3. Before editing implementation or contract code, inspect the target-scoped
+   incremental work plan and direct CMake dependencies. For a new or expanded
+   target, also measure its clean-tree command closure against the nearest
+   existing contract. Narrow an overbroad target or dependency before the
+   behavioral change; record why a remaining large concrete-owner closure is
+   necessary.
+4. Add or update the smallest meaningful observable contract.
+5. Run the contract and record the expected initial diagnostic.
+6. Implement the minimum production change that satisfies the contract.
+7. Refactor while the relevant contract remains green.
+8. Audit responsibility, dependency direction, ownership, lifetime, public
    API, file growth, and platform impact.
-8. Synchronize TODO, progress, architecture, fixed test data, and baselines.
-9. Run the verification tier required by the change scope.
+9. Synchronize TODO, progress, architecture, fixed test data, and baselines.
+10. Run the verification tier required by the change scope.
 
 Compiler options, linters, architecture checks, image comparisons, and
 verification scripts retain or increase their enforcement strength. A reviewed

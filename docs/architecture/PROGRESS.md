@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 17:46 JST
+- 更新日時: 2026-08-27 17:55 JST
 - 状態: `planned`
 - 現在の検査段階: R2-G9 QPainter任意角回転の比較規則選定
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2351,6 +2351,21 @@
 - `nix develop .#test --command ./scripts/run-test KisQPainterCanvasDrawImageContractTest`、
   `kis_coordinates_converter_test`、新契約の20回反復、`nix develop .#test --command ./scripts/verify-quick`は
   macOSで成功した。
+
+## R2-G9実装前の構築範囲監査で完了した作業
+
+- `nix develop .#test --command ./scripts/build-incremental native plan`を
+  `KisQPainterCanvasDrawImageContractTest`対象へ実行し、変更のない対象本体に構築工程がないことを
+  確認した。Ninjaのglob再検査と乾式実行上のCMake再生成表示は対象コンパイルではない。
+- `libs/ui/tests/CMakeLists.txt`とCMake File API応答で、対象の直接依存が具体的所有者`kritacanvas`と、
+  Qt Testおよび試験用定義だけを供給する接続面`kritatestsdk`に限られることを確認した。アプリケーション
+  実行形式、アプリケーションUI、プラグイン集合、`all`への直接依存はない。
+- 空の構築木に対するNinjaコマンド閉包は1,023工程である。支配する`kritacanvas`は座標変換器、画像、
+  QPainter表示用投影転送が属する具体的所有者であり、R2-G9を別対象へ分けても閉包は縮小しない。
+  既存の単一試験ソースへ契約を追加するため、変更後の増分構築は自動MOC、同ソース、リンクに局限できる。
+- 実装前に増分計画、直接依存、新規・拡張対象の空構築閉包を監査し、過大な範囲を挙動変更より先に
+  修正する順序を`AGENTS.md`へ追加した。`docs/architecture/DEVELOPMENT.md`へ監査コマンド、判定条件、
+  縮小できない具体的所有者閉包の記録方法を追加した。
 
 ## 次の操作
 

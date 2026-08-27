@@ -76,6 +76,23 @@ build-incremental android build krita
 build-incremental windows build krita
 ```
 
+### 実装前の構築範囲監査
+
+コードまたは試験契約を編集する前に、変更対象の増分計画、直接CMake依存、空の構築木で必要になる
+コマンド閉包を確認する。既存対象では、変更のない状態の`plan`が対象本体を再構築しないことを確認する。
+新規対象、ソース追加、直接依存追加では、同じ責務を扱う最も近い既存契約と閉包を比較する。
+
+```sh
+build-incremental native plan <target>
+ninja -C "$(build-incremental native path)" -t commands <target> | wc -l
+```
+
+CMakeの対象定義とFile API応答で直接依存を照合する。対象にアプリケーション実行形式、全プラグイン集合、
+`all`、試験が利用しないUI所有者が入る場合は、挙動実装より先に試験対象または製品責務を分離する。
+具体的所有者の公開処理を直接検査するため閉包を縮小できない場合は、直接依存、閉包工程数、縮小に必要な
+製品分割を`PROGRESS.md`へ記録する。実装後は対象指定構築で、変更したソース、自動生成、リンク以外の
+不要な再構築が発生していないことを確認する。
+
 | プラットフォーム | 永続構築木 | コンパイラーキャッシュ |
 | --- | --- | --- |
 | macOS | `build/tdd-macos` | `.cache/librepaint/ccache/native` |
