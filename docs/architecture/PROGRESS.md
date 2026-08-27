@@ -2,12 +2,12 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 19:19 JST
+- 更新日時: 2026-08-27 19:28 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G17 既定画素ブラシの間隔応答契約
+- 現在の検査段階: R2-G18 既定画素ブラシの速度応答契約
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: 既定画素ブラシの間隔だけを変更し、自由描画補間が配置する描点列と最終画素結果を固定する。
+- 目的: 既定画素ブラシの寸法センサーと入力速度だけを変更し、速度に対する画素応答を固定する。
 
 ## 再開環境
 
@@ -2637,11 +2637,34 @@
   成功した。既存の乱数源と自由描画ソースには変更範囲外の書式差分が残る。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G17 既定画素ブラシの間隔応答契約で完了した作業
+
+- 実装前の`FreehandStrokeContractTest`は変更なし計画に対象コンパイルがなく、直接依存が
+  `kritapixelbrush`、`kritapainting`、`kritalibbrush`、`kritatestsdk`、空のmacOS構築木に対する
+  Ninjaコマンド閉包が1,107工程だった。間隔の実行処理は対象が既に使う`KisBrush`と
+  `KisBrushBasedPaintOpSettings`が所有し、設定UI、動的PaintOpモジュール、アプリケーション実行形式へ
+  到達しないため、先行する構造変更は行っていない。
+- `libs/ui/tests/FreehandStrokeContractTest.cpp`は、試験用プリセットの具体的な`KisBrushOpSettings`へ
+  間隔0.25を設定する契約を追加した。sRGB 8ビット、500×500画素、単一レイヤー、固定2入力点、
+  筆圧1、その他の入力値、色、無選択、非ミラー、作業スレッド1本は既定間隔0.1の契約と同じである。
+- 最初の対象実行は新契約の採取診断だけで失敗し、レイヤーと投影の正確な描画領域
+  `QRect(50, 50, 353, 353)`と、RGBA8888全画素SHA-256
+  `8bdf0e95ea7526b6289bf2393397c7bb005b69da6866891c2cb12bf991d7f210`を記録した。
+  維持値の追加後は投影との完全一致と、既定間隔0.1の385×385画素領域より小さいことを固定した。
+  ハッシュ不一致時は実画像を試験出力ディレクトリーへ保存する。
+- 実装後の増分構築は自動MOC、変更した試験ソース、試験実行形式のリンクだけだった。製品ソースの
+  再構築はなく、直接依存とコマンド閉包はR2-G13aの上限を維持した。
+- `nix develop .#test --command ./scripts/run-test FreehandStrokeContractTest`、CTestプリセットによる
+  20回反復、`kis_auto_brush_factory_test`、`KisBrushModelTest`、`kis_distance_information_test`、
+  `KisDabRenderingQueueTest`、`kis_prescaled_projection_contract_test`、変更後の対象計画、
+  `FreehandStrokeContractTest.cpp`の書式検査、`nix develop .#test --command ./scripts/verify-quick`は
+  macOSで成功した。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-R2-G17の実装前監査として、`FreehandStrokeContractTest`の変更なし計画、直接依存、空構築閉包と、
-自動ブラシ間隔設定の所有者・利用元を確認する。R2-G13aの構築上限を維持できる場合だけ、試験用
-プリセットの間隔を値として変更する最小契約へ進む。
+R2-G18の実装前監査として、`FreehandStrokeContractTest`の変更なし計画、直接依存、空構築閉包と、
+Speed寸法センサーの所有者・利用元を確認する。R2-G13aの構築上限を維持できる場合だけ、固定速度を
+入力値として渡す最小契約へ進む。
 
 ## R1-G5完了根拠
 

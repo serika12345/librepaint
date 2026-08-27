@@ -44,6 +44,7 @@ constexpr int referenceAlphaTolerance = 3;
 constexpr qreal inputPressure = 1.0;
 constexpr qreal halfInputPressure = 0.5;
 constexpr qreal gradientStartPressure = 0.25;
+constexpr qreal changedBrushSpacing = 0.25;
 constexpr qreal inputTilt = 0.0;
 constexpr qreal inputRotation = 0.0;
 constexpr qreal inputTangentialPressure = 0.0;
@@ -57,6 +58,8 @@ const QRect maintainedPressureGradientBounds(154, 154, 229, 229);
 const QByteArray maintainedPressureGradientDigest("e9740f2b00ef8670a37aade2c4f96cec8197dfc96eb3e18adcc20f938b5f87c0");
 const QRect maintainedFuzzySeed17Bounds(142, 142, 271, 271);
 const QByteArray maintainedFuzzySeed17Digest("34a090d8b904e9950f2bf7868b2c7b1f78c2d5bb3ddb8a531a90f203721c21d3");
+const QRect maintainedSpacing025Bounds(50, 50, 353, 353);
+const QByteArray maintainedSpacing025Digest("8bdf0e95ea7526b6289bf2393397c7bb005b69da6866891c2cb12bf991d7f210");
 
 KisPaintInformation fixedPaintInformation(const QPointF &position, qreal pressure = inputPressure)
 {
@@ -209,6 +212,11 @@ public:
         return m_presetPath;
     }
 
+    KisBrushOpSettings *brushSettings() const
+    {
+        return dynamic_cast<KisBrushOpSettings *>(m_preset->settings().data());
+    }
+
     void useFuzzyDabSizeSensor()
     {
         m_preset->settings()->setProperty(QStringLiteral("PressureSize"), true);
@@ -310,6 +318,7 @@ private Q_SLOTS:
     void pressureResponseProducesMaintainedPixels_data();
     void pressureResponseProducesMaintainedPixels();
     void fuzzyDabRandomSeedIsDeterministic();
+    void brushSpacingProducesMaintainedPixels();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
 };
@@ -544,6 +553,45 @@ void FreehandStrokeContractTest::fuzzyDabRandomSeedIsDeterministic()
     QVERIFY(!fixture.image()->hasUpdatesRunning());
     QVERIFY(fixture.image()->isIdle());
     QVERIFY(secondSeedDigest != firstDigest);
+}
+
+void FreehandStrokeContractTest::brushSpacingProducesMaintainedPixels()
+{
+    FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
+    KisBrushOpSettings *settings = fixture.brushSettings();
+    QVERIFY(settings);
+    settings->setSpacing(changedBrushSpacing);
+    QCOMPARE(settings->spacing(), changedBrushSpacing);
+    const QImage initialLayer = fixture.layerImage();
+
+    fixture.runStroke(false);
+    const QImage layer = fixture.layerImage();
+    const QImage projection = fixture.projectionImage();
+    const QRect bounds = fixture.layerExactBounds();
+    const QByteArray digest = imageDigest(layer);
+    QVERIFY(layer != initialLayer);
+    QVERIFY(!fixture.image()->hasUpdatesRunning());
+    QVERIFY(fixture.image()->isIdle());
+
+    QPoint mismatch;
+    QVERIFY2(
+        compareImages(layer,
+                      projection,
+                      QStringLiteral("freehand-contract-spacing-025-projection-actual.png"),
+                      &mismatch),
+        qPrintable(
+            QStringLiteral("spacing 0.25 layer and projection differ at %1,%2").arg(mismatch.x()).arg(mismatch.y())));
+
+    QCOMPARE(bounds, maintainedSpacing025Bounds);
+    QCOMPARE(fixture.image()->projection()->exactBounds(), maintainedSpacing025Bounds);
+    QVERIFY(bounds.width() < maintainedStrokeBounds.width());
+    QVERIFY(bounds.height() < maintainedStrokeBounds.height());
+    if (digest != maintainedSpacing025Digest) {
+        QDir().mkpath(QStringLiteral(FILES_OUTPUT_DIR));
+        layer.save(QStringLiteral(FILES_OUTPUT_DIR) + QStringLiteral("/freehand-contract-spacing-025-actual.png"));
+    }
+    QCOMPARE(digest, maintainedSpacing025Digest);
 }
 
 void FreehandStrokeContractTest::cancelledStrokeRestoresInitialImage()
