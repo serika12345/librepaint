@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisRunnableStrokeJobData.h"
 #include "KisRunnableStrokeJobDataBase.h"
 #include "kis_stroke_job_strategy.h"
 
+#include <QRunnable>
 #include <QTest>
 
 namespace
@@ -91,6 +93,30 @@ public:
     int runCount = 0;
 };
 
+class RecordingQRunnable : public QRunnable
+{
+public:
+    RecordingQRunnable(int *runCount, int *destructionCount)
+        : m_runCount(runCount)
+        , m_destructionCount(destructionCount)
+    {
+    }
+
+    ~RecordingQRunnable() override
+    {
+        ++*m_destructionCount;
+    }
+
+    void run() override
+    {
+        ++*m_runCount;
+    }
+
+private:
+    int *m_runCount;
+    int *m_destructionCount;
+};
+
 } // namespace
 
 class KisStrokeJobContractTest : public QObject
@@ -104,6 +130,9 @@ private Q_SLOTS:
     void jobDataDeletesThroughBase();
     void strategyRunsNamedJobsAndDeletesThroughBase();
     void runnableJobUsesDefaultAndRequestedScheduling();
+    void functionRunnableRunsWithRequestedScheduling();
+    void autoDeleteRunnableRunsAndDeletesWithJob();
+    void retainedRunnableSurvivesJobDestruction();
 };
 
 void KisStrokeJobContractTest::defaultJobDataHasSequentialNormalDefaults()
@@ -191,6 +220,61 @@ void KisStrokeJobContractTest::runnableJobUsesDefaultAndRequestedScheduling()
     QCOMPARE(barrier.exclusivity(), KisStrokeJobData::EXCLUSIVE);
     runnable->run();
     QCOMPARE(barrier.runCount, 1);
+}
+
+void KisStrokeJobContractTest::functionRunnableRunsWithRequestedScheduling()
+{
+    int runCount = 0;
+    KisRunnableStrokeJobData data(
+        [&runCount] {
+            ++runCount;
+        },
+        KisStrokeJobData::CONCURRENT,
+        KisStrokeJobData::EXCLUSIVE);
+
+    QCOMPARE(data.sequentiality(), KisStrokeJobData::CONCURRENT);
+    QCOMPARE(data.exclusivity(), KisStrokeJobData::EXCLUSIVE);
+    data.run();
+    QCOMPARE(runCount, 1);
+
+    KisRunnableStrokeJobData emptyFunction{std::function<void()>()};
+    emptyFunction.run();
+    QCOMPARE(runCount, 1);
+}
+
+void KisStrokeJobContractTest::autoDeleteRunnableRunsAndDeletesWithJob()
+{
+    int runCount = 0;
+    int destructionCount = 0;
+
+    {
+        auto *runnable = new RecordingQRunnable(&runCount, &destructionCount);
+        QVERIFY(runnable->autoDelete());
+        KisRunnableStrokeJobData data(runnable, KisStrokeJobData::BARRIER);
+        data.run();
+        QCOMPARE(runCount, 1);
+        QCOMPARE(destructionCount, 0);
+    }
+
+    QCOMPARE(destructionCount, 1);
+}
+
+void KisStrokeJobContractTest::retainedRunnableSurvivesJobDestruction()
+{
+    int runCount = 0;
+    int destructionCount = 0;
+    auto *runnable = new RecordingQRunnable(&runCount, &destructionCount);
+    runnable->setAutoDelete(false);
+
+    {
+        KisRunnableStrokeJobData data(runnable);
+        data.run();
+    }
+
+    QCOMPARE(runCount, 1);
+    QCOMPARE(destructionCount, 0);
+    delete runnable;
+    QCOMPARE(destructionCount, 1);
 }
 
 QTEST_GUILESS_MAIN(KisStrokeJobContractTest)

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28163
+    "expectedMissingApis": 28158
   },
   "contracts": [
     {
@@ -3168,6 +3168,40 @@
       "apis": [
         "class:KisRunnableStrokeJobDataBase",
         "method:KisRunnableStrokeJobDataBase::KisRunnableStrokeJobDataBase(KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::functionRunnableRunsWithRequestedScheduling",
+      "behavior": "関数型の実行可能ストロークジョブは指定された逐次性と排他性を保持し、非空関数を一度実行し、空関数を安全に無視する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRunnableStrokeJobData",
+        "method:KisRunnableStrokeJobData::KisRunnableStrokeJobData(std::function<void ()> func,KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)",
+        "method:KisRunnableStrokeJobData::run()"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::autoDeleteRunnableRunsAndDeletesWithJob",
+      "behavior": "自動破棄が有効なQRunnable型ジョブは一度実行され、ストロークジョブの破棄時に一度破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRunnableStrokeJobData::KisRunnableStrokeJobData(QRunnable * runnable,KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)",
+        "method:KisRunnableStrokeJobData::run()",
+        "method:KisRunnableStrokeJobData::~KisRunnableStrokeJobData()"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::retainedRunnableSurvivesJobDestruction",
+      "behavior": "自動破棄が無効なQRunnable型ジョブは実行後もストロークジョブの破棄では破棄されず、呼出側が寿命を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRunnableStrokeJobData::~KisRunnableStrokeJobData()"
       ]
     }
   ]
