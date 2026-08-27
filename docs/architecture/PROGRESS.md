@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 02:50 JST
+- 更新日時: 2026-08-28 02:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3248,12 +3248,23 @@
   1,128工程・2,267入力から縮小した。macOSで新対象と集約後の`kritaimpexui`の限定構築が成功した。
   製品の観測可能な挙動は変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b アニメーション寸法 public API契約で完了した作業
+
+- `libs/impex/animation/KisAnimationRender.h`の純粋な寸法判定2 APIを、
+  `libs/impex/tests/kis_animation_render_dimensions_test.cpp`の2データ駆動試験へ対応付けた。
+  ゼロ、正負の偶数、片方または両方が奇数の寸法判定を観測する。
+- MP4とMatroskaについて、フレームのみ、映像のみ、フレームと映像の両方という出力モードから
+  偶数寸法の要否を固定し、他の映像形式では要求しないことを観測する。
+- 変更なし構築閉包はmacOSで5工程・17入力である。公開API契約は577件、未対応基準は
+  28,436件になった。macOSで対象の構築、実行、20回反復、直接公開API契約検査、触れたC++の
+  clang-format検査が成功した。文書と表示を伴う`render()`の契約は未対応である。製品実装、公開API、
+  ABI、判定結果は変更していない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`KisAnimationRender::mustHaveEvenDimensions()`と`hasEvenDimensions()`を専用CTestへ固定する。
-macOSで対象構築、20回反復、直接公開API契約検査、変更なし構築閉包を確認する。SSH鍵エージェントの
-復旧後、未同期の遠隔ファイル取得、入出力補助、アニメーション寸法契約を`ssh nixos`上のLinuxへ
-同期する。
+次の未対応入出力public APIについて、製品実装、既存CTest、変更なし構築閉包を監査し、最小の
+責務単位へ分離してから挙動を固定する。SSH鍵エージェントの復旧後、未同期の遠隔ファイル取得、
+入出力補助、アニメーション寸法契約を`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 

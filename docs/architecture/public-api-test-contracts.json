@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28438
+    "expectedMissingApis": 28436
   },
   "contracts": [
     {
@@ -1936,6 +1936,26 @@
       "classification": "maintained",
       "apis": [
         "function:KritaUtils::workaroundUnsuitableImageColorSpace(KisImageSP image,KisImportUserFeedbackInterface * feedbackInterface,KisImageBarrierLock & lock)"
+      ]
+    },
+    {
+      "target": "kis_animation_render_dimensions_test",
+      "source": "libs/impex/tests/kis_animation_render_dimensions_test.cpp",
+      "test": "KisAnimationRenderDimensionsTest::detectsEvenWidthAndHeight",
+      "behavior": "縦横がともに偶数の場合だけ、ゼロと負値を含めて偶数寸法と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAnimationRender::hasEvenDimensions(int width,int height)"
+      ]
+    },
+    {
+      "target": "kis_animation_render_dimensions_test",
+      "source": "libs/impex/tests/kis_animation_render_dimensions_test.cpp",
+      "test": "KisAnimationRenderDimensionsTest::videoFormatAndRenderModeDetermineRequirement",
+      "behavior": "MP4とMatroskaの映像出力だけが偶数寸法を要求し、フレームのみの出力と他の映像形式は要求しない。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAnimationRender::mustHaveEvenDimensions(const QString & videoType,KisAnimationRenderingOptions::RenderMode renderMode)"
       ]
     }
   ]

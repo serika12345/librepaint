@@ -72,6 +72,14 @@ kis_add_tests(
 target_compile_definitions(kis_animation_rendering_options_persistence_test PRIVATE kritaapplicationui_EXPORTS)
 
 kis_add_tests(
+    kis_animation_render_dimensions_test.cpp
+    LINK_LIBRARIES
+        kritaimpexanimationrenderdimensionsobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_animation_render_dimensions_test PRIVATE kritaapplicationui_EXPORTS)
+
+kis_add_tests(
     kis_remote_file_fetcher_test.cpp
     TEST_NAMES_VAR remote_file_fetcher_test_names
     LINK_LIBRARIES
