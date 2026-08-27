@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28239
+    "expectedMissingApis": 28226
   },
   "contracts": [
     {
@@ -2910,6 +2910,55 @@
         "alias:QByteArrayList",
         "alias:QStringList",
         "alias:QVector"
+      ]
+    },
+    {
+      "target": "KisZugContractTest",
+      "source": "libs/global/tests/KisZugContractTest.cpp",
+      "test": "KisZugContractTest::castAndMultiplyMappingsTransformEveryValue",
+      "behavior": "静的型変換と係数乗算の写像は、入力列の各値を指定した型または倍率へ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:kiszug::map_multiply",
+        "variable:kiszug::map_static_cast"
+      ]
+    },
+    {
+      "target": "KisZugContractTest",
+      "source": "libs/global/tests/KisZugContractTest.cpp",
+      "test": "KisZugContractTest::comparisonMappingsHonorStrictAndFuzzyBoundaries",
+      "behavior": "比較写像は整数の厳密な大小境界と、qrealの等価および包含比較におけるQt近似等価境界を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "variable:kiszug::map_equal",
+        "variable:kiszug::map_greater",
+        "variable:kiszug::map_greater_equal",
+        "variable:kiszug::map_less",
+        "variable:kiszug::map_less_equal",
+        "variable:kiszug::map_not_equal"
+      ]
+    },
+    {
+      "target": "KisZugContractTest",
+      "source": "libs/global/tests/KisZugContractTest.cpp",
+      "test": "KisZugContractTest::roundMappingUsesQtRounding",
+      "behavior": "丸め写像は入力列の各実数へQtの整数丸め規則を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:kiszug::map_round"
+      ]
+    },
+    {
+      "target": "KisZugContractTest",
+      "source": "libs/global/tests/KisZugContractTest.cpp",
+      "test": "KisZugContractTest::functorAndTupleMappingsTransformEachInput",
+      "behavior": "空状態、関数化、タプル展開、複数引数展開は、変換器の状態を保持して各入力位置へ同じ写像を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "struct:kiszug::empty_t",
+        "variable:kiszug::foreach_arg",
+        "variable:kiszug::foreach_tuple",
+        "variable:kiszug::to_functor"
       ]
     }
   ]

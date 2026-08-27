@@ -231,3 +231,11 @@ kis_add_test(
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KisQStringListFwdTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisZugContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        zug
+)
+target_include_directories(KisZugContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
