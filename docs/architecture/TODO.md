@@ -434,6 +434,38 @@ viewport・widget変換、固定QImageへのQPainter転送とする。`paintEven
 誤差上限を流用しない。共通入力から許容差を実測し、補間規則を維持契約、既知不具合、未確定事項へ
 分類してから後続契約を追加する。
 
+### R2-G7 2倍拡大時の表示用投影領域契約
+
+目的は、画像の拡大率を表示用投影のviewport画素へ反映する責務が`KisPrescaledProjection`にあり、
+最終QPainter転送は既に拡大された表示用画像を扱う境界を固定することである。R2-G5とR2-G6の
+`KisQPainterCanvasImage::draw()`はviewport・widget間の転送と変換を扱い、画像・viewport間の倍率は
+`KisCoordinatesConverter`と`KisPrescaledProjection`が扱う。
+
+対象は`libs/canvas/tests/kis_prescaled_projection_contract_test.cpp`の既存独立試験、16×16画像、
+16×16画面、2倍の固定倍率、画像のdirty領域`(2, 3, 2, 2)`とする。製品実装、公開記号、QPainter最終転送、
+回転、鏡像、非整数倍率、基準画像ファイルは変更しない。
+
+作業順序は次のとおりとする。
+
+1. 既存投影fixtureを2倍へ変更し、文書原点と画面原点を一致させた画面状態を表示用投影へ通知する。
+2. dirty image領域`(2, 3, 2, 2)`の直接変換がviewport領域`(4, 6, 4, 4)`になることを検査する。
+3. 投影更新が拡大時の境界劣化を避けるため画像側を各辺1画素広げ、実際のdirty viewportを
+   `(2, 4, 8, 8)`へ拡張することを検査する。
+4. 表示用画像が画面と同じ16×16を維持し、拡張更新領域内を新しい色、領域外を直前の色で保持する
+   ことを画素で検査する。
+5. 独立対象、既存の座標変換契約、反復実行、高速検査の順に検証する。
+
+完了条件は次のとおりとする。
+
+- [x] 2倍拡大が画像のdirty領域を幅・高さとも2倍のviewport領域へ直接変換する。
+- [x] 補間安全域として画像側の各辺1画素を含め、実更新領域を8×8のviewport領域へ拡張する。
+- [x] 表示用投影画像が16×16の画面寸法を維持し、拡張後のdirty viewportだけを更新する。
+- [x] 最終QPainter転送と製品コードを変更せず、`kritacanvas`の既存独立対象だけで検査できる。
+- [x] 独立試験の20回反復、`kis_coordinates_converter_test`、`verify-quick`がmacOSで成功する。
+
+90度回転と任意角回転は、拡大済み表示用投影を`viewportToWidgetTransform()`で変換するQPainter境界に
+属する。R2-G7の倍率責務を固定した後、変換済み有効領域と平滑化の許容差を選定する後続段階へ分ける。
+
 ### タスク
 
 - [x] 入力から表示までの現行経路と分岐を列挙し、各段階で観測可能な状態と不変条件を定義する。

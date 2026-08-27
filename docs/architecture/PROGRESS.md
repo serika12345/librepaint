@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 17:20 JST
+- 更新日時: 2026-08-27 17:32 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G7 QPainter変換描画の補間規則選定
+- 現在の検査段階: R2-G8 QPainter回転描画の補間規則選定
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: R2の最適化前基準として、固定倍率と固定回転でQPainter表示用投影に生じる補間結果を実測し、
-  維持契約、既知不具合、未確定事項へ分類する。
+- 目的: R2の最適化前基準として、90度回転と固定の任意角回転でQPainter表示用投影に生じる有効領域、
+  不透明度、色差を実測し、比較規則を選定する。
 
 ## 再開環境
 
@@ -2309,11 +2309,31 @@
   `kis_coordinates_converter_test`、新契約の20回反復、`nix develop .#test --command ./scripts/verify-quick`は
   macOSで成功した。
 
+## R2-G7 2倍拡大時の表示用投影領域契約で完了した作業
+
+- `KisCoordinatesConverter::imageToViewportTransform()`は画像解像度と拡大率を含む一方、
+  `viewportToWidgetTransform()`は画面内の移動、回転、鏡像を扱う。R2-G5の最終QPainter転送へ倍率を
+  直接追加すると、拡大済み表示用投影を二重に拡大する。
+- `libs/canvas/tests/kis_prescaled_projection_contract_test.cpp`の既存fixtureを使い、16×16画像と画面、
+  2倍拡大、原点一致、dirty image領域`(2, 3, 2, 2)`を固定する。期待するdirty viewportは
+  `(4, 6, 4, 4)`であり、表示用画像自体は画面と同じ16×16を維持する計画だった。
+- 最初の対象実装は、直接変換の期待`(4, 6, 4, 4)`に対して実更新領域`(2, 4, 8, 8)`を報告した。
+  `KisPrescaledProjection::fillInUpdateInformation()`は補間境界の劣化を避けるため、直接変換後に
+  画像側の各辺を1画素広げ、2倍変換後の各辺を2画素広げる。これは維持する安全域として分類した。
+- `libs/canvas/tests/kis_prescaled_projection_contract_test.cpp`へ2倍拡大契約を追加した。画像dirty領域の
+  直接変換`(4, 6, 4, 4)`、安全域を含む実更新`(2, 4, 8, 8)`、16×16表示用画像、更新領域の緑、
+  領域外の直前の赤を固定した。
+- 変更先は既存の独立試験だけであり、製品コード、公開面、最終QPainter転送、回転、鏡像、
+  非整数倍率、基準画像ファイルは変更していない。
+- `nix develop .#test --command ./scripts/run-test kis_prescaled_projection_contract_test`、
+  `kis_coordinates_converter_test`、新契約の20回反復、`nix develop .#test --command ./scripts/verify-quick`は
+  macOSで成功した。
+
 ## 次の操作
 
-R2-G7として、`KisQPainterCanvasDrawImageContractTest`へ整数2倍、90度回転、固定の任意角回転を与えた
-出力を順に実測する。変換済みの有効描画領域、完全一致できる標本点、境界の不透明度、色差を先に
-列挙し、Qtの平滑化結果へ適用する比較規則を決めてから契約を追加する。
+R2-G8として、R2-G6と同じ8×8の位置符号画像を十分な余白を持つ描画先へ置き、画像中心を静止点とする
+90度回転と17.3度回転を順に実測する。有効描画領域、完全一致する90度の対応、任意角境界の不透明度と
+色差を列挙し、維持契約と既知不具合を分けてから試験を追加する。
 
 ## R1-G5完了根拠
 
