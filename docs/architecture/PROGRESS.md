@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 08:15 JST
+- 更新日時: 2026-08-28 08:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4070,6 +4070,19 @@
   5工程・11入力である。対象実行と20回反復が成功し、公開API契約は894件、未対応基準は28,120件に
   なった。製品実装、公開API、ABI、ケージ座標計算は変更していない。Linuxと全ネイティブ検証は実行
   していない。
+
+## R2-G19b 速度平滑化契約前の実装所有分離で完了した作業
+
+- `libs/tools/kis_speed_smoother.cpp`の実装所有を、`kritatools`の一括ソース集合から
+  `kritatoolsspeedsmootherobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象だけを
+  変更した。公開ヘッダー、クラス、関数、`kritatools`のAPIとABIを維持し、`kritatools`は新対象の
+  オブジェクトを従来どおり集約する。
+- 実装が距離計算だけに使っていた`libs/global/kis_algebra_2d.h`への広い参照を、同じ`kisDistance()`を
+  所有する`libs/global/kis_global.h`への参照へ狭めた。新対象はQt Core/Gui、Boostヘッダー、toolsと
+  globalの生成・ソースヘッダーだけへ直接接続する。既存`TestToolCoreContract`は変更なし構築閉包が
+  1,067工程・2,149入力、新対象は1工程・3入力である。macOSで新対象の限定構築が成功した。製品挙動、
+  公開API、ABI、速度計算は変更していない。Linux、製品ライブラリーの再リンク、全ネイティブ検証は
+  実行していない。
 
 ## 次の操作
 
