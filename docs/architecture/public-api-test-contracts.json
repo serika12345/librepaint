@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28142
+    "expectedMissingApis": 28138
   },
   "contracts": [
     {
@@ -3311,6 +3311,19 @@
       "classification": "maintained",
       "apis": [
         "function:toQPointF(const ExpressionType & expr)"
+      ]
+    },
+    {
+      "target": "KisWraparoundAxisContractTest",
+      "source": "libs/image/tests/KisWraparoundAxisContractTest.cpp",
+      "test": "KisWraparoundAxisContractTest::axisValuesPreserveStoredSettings",
+      "behavior": "回り込み軸の永続値は両方向を0、水平方向を1、垂直方向を2として区別する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:WrapAroundAxis",
+        "enumerator:WrapAroundAxis::WRAPAROUND_BOTH",
+        "enumerator:WrapAroundAxis::WRAPAROUND_HORIZONTAL",
+        "enumerator:WrapAroundAxis::WRAPAROUND_VERTICAL"
       ]
     }
   ]
