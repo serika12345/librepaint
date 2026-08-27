@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28350
+    "expectedMissingApis": 28344
   },
   "contracts": [
     {
@@ -2412,6 +2412,39 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const std::optional<T> & t)"
+      ]
+    },
+    {
+      "target": "KisDeleteLaterWrapperTest",
+      "source": "libs/global/tests/KisDeleteLaterWrapperTest.cpp",
+      "test": "KisDeleteLaterWrapperTest::directMoveToGuiThread",
+      "behavior": "ワーカースレッドで生成したQObjectをGUIスレッドへ移し、以後の破棄をGUI側で実行できる。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDeleteLaterWrapperPrivate::moveToGuiThread(QObject * object)"
+      ]
+    },
+    {
+      "target": "KisDeleteLaterWrapperTest",
+      "source": "libs/global/tests/KisDeleteLaterWrapperTest.cpp",
+      "test": "KisDeleteLaterWrapperTest::factoryMovesValueWrapperToGuiThread",
+      "behavior": "生成補助から値ラッパーをワーカースレッドで構築すると、ラッパーはGUIスレッドへ所属する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDeleteLaterWrapper",
+        "function:makeKisDeleteLaterWrapper(T value)",
+        "method:KisDeleteLaterWrapper::KisDeleteLaterWrapper(T value)"
+      ]
+    },
+    {
+      "target": "KisDeleteLaterWrapperTest",
+      "source": "libs/global/tests/KisDeleteLaterWrapperTest.cpp",
+      "test": "KisDeleteLaterWrapperTest::pointerWrapperDeletesOwnedValue",
+      "behavior": "ポインターラッパーをGUIスレッドで遅延破棄すると、ラッパーが所有する値も一度破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDeleteLaterWrapper::KisDeleteLaterWrapper(T * value)",
+        "method:KisDeleteLaterWrapper::~KisDeleteLaterWrapper()"
       ]
     }
   ]
