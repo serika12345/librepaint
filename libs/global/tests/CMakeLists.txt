@@ -185,3 +185,11 @@ kis_add_test(
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KisLazyValueWrapperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisReadWriteLockPolicyTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisReadWriteLockPolicyTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

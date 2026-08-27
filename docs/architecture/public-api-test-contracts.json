@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28291
+    "expectedMissingApis": 28278
   },
   "contracts": [
     {
@@ -2669,6 +2669,46 @@
       "apis": [
         "method:KisLazyValueWrapper::KisLazyValueWrapper(KisLazyValueWrapper && rhs)",
         "method:KisLazyValueWrapper::operator =(KisLazyValueWrapper && rhs)"
+      ]
+    },
+    {
+      "target": "KisReadWriteLockPolicyTest",
+      "source": "libs/global/tests/KisReadWriteLockPolicyTest.cpp",
+      "test": "KisReadWriteLockPolicyTest::normalLockersHoldRequestedMode",
+      "behavior": "通常ロック方針はQtの読みロッカーと書きロッカーを公開し、それぞれの生存中に反対モードの取得を遮断する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:NormalLockPolicy::ReadLocker",
+        "alias:NormalLockPolicy::WriteLocker",
+        "struct:NormalLockPolicy"
+      ]
+    },
+    {
+      "target": "KisReadWriteLockPolicyTest",
+      "source": "libs/global/tests/KisReadWriteLockPolicyTest.cpp",
+      "test": "KisReadWriteLockPolicyTest::upgradeReadLockerLeavesLockAvailable",
+      "behavior": "昇格ロック方針の読みロッカーは非コピーの無操作型としてロックを取得せず、書きロッカー型は昇格用ロッカーを指す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:UpgradeLockPolicy::ReadLocker",
+        "alias:UpgradeLockPolicy::WriteLocker",
+        "method:UpgradeLockPolicy::FakeLocker::FakeLocker(QReadWriteLock *)",
+        "struct:UpgradeLockPolicy",
+        "struct:UpgradeLockPolicy::FakeLocker"
+      ]
+    },
+    {
+      "target": "KisReadWriteLockPolicyTest",
+      "source": "libs/global/tests/KisReadWriteLockPolicyTest.cpp",
+      "test": "KisReadWriteLockPolicyTest::noLockLockersLeaveLockAvailable",
+      "behavior": "無ロック方針の読み書きロッカーは同じ非コピーの無操作型であり、生存中も対象ロックを取得可能なまま保つ。",
+      "classification": "maintained",
+      "apis": [
+        "alias:NoLockPolicy::ReadLocker",
+        "alias:NoLockPolicy::WriteLocker",
+        "method:NoLockPolicy::FakeLocker::FakeLocker(QReadWriteLock *)",
+        "struct:NoLockPolicy",
+        "struct:NoLockPolicy::FakeLocker"
       ]
     }
   ]
