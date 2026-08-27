@@ -72,6 +72,23 @@ kis_add_tests(
 target_compile_definitions(kis_animation_rendering_options_persistence_test PRIVATE kritaapplicationui_EXPORTS)
 
 kis_add_tests(
+    kis_remote_file_fetcher_test.cpp
+    TEST_NAMES_VAR remote_file_fetcher_test_names
+    LINK_LIBRARIES
+        kritaimpexremotefilefetcherobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Network
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(kis_remote_file_fetcher_test PRIVATE kritaapplicationui_EXPORTS)
+if(UNIX AND NOT APPLE)
+    set_tests_properties(
+        ${remote_file_fetcher_test_names}
+        PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+    )
+endif()
+
+kis_add_tests(
     TestImportExportPublicHeaders.cpp
     LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
 )

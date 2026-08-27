@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28461
+    "expectedMissingApis": 28457
   },
   "contracts": [
     {
@@ -1850,6 +1850,37 @@
       "classification": "maintained",
       "apis": [
         "method:KisAnimationRenderingOptions::loadLastUsed()"
+      ]
+    },
+    {
+      "target": "kis_remote_file_fetcher_test",
+      "source": "libs/impex/tests/kis_remote_file_fetcher_test.cpp",
+      "test": "KisRemoteFileFetcherTest::parentOwnsFetcherLifetime",
+      "behavior": "遠隔ファイル取得対象がQObjectの親子所有に従い、親の破棄とともに破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRemoteFileFetcher",
+        "method:KisRemoteFileFetcher::KisRemoteFileFetcher(QObject * parent=0)"
+      ]
+    },
+    {
+      "target": "kis_remote_file_fetcher_test",
+      "source": "libs/impex/tests/kis_remote_file_fetcher_test.cpp",
+      "test": "KisRemoteFileFetcherTest::dataUrlWritesAndClosesOutputDevice",
+      "behavior": "確認不要のデータURLを取得し、未開放の出力装置を書込み用に開いて全バイトを書き、完了後に閉じる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRemoteFileFetcher::fetchFile(const QUrl & remote,QIODevice * io)"
+      ]
+    },
+    {
+      "target": "kis_remote_file_fetcher_test",
+      "source": "libs/impex/tests/kis_remote_file_fetcher_test.cpp",
+      "test": "KisRemoteFileFetcherTest::staticSuccessfulFetchReturnsEmptyData",
+      "behavior": "静的取得経路は成功応答の本文を読まず、空のバイト列を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisRemoteFileFetcher::fetchFile(const QUrl & remote)"
       ]
     }
   ]
