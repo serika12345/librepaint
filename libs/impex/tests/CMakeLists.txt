@@ -55,6 +55,23 @@ if(UNIX AND NOT APPLE)
 endif()
 
 kis_add_tests(
+    kis_animation_rendering_options_test.cpp
+    LINK_LIBRARIES
+        kritaimpexanimationoptionsstateobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_animation_rendering_options_test PRIVATE kritaapplicationui_EXPORTS)
+
+kis_add_tests(
+    kis_animation_rendering_options_persistence_test.cpp
+    LINK_LIBRARIES
+        kritaimpexanimationoptionsstateobjects
+        kritaimpexanimationoptionspersistenceobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_animation_rendering_options_persistence_test PRIVATE kritaapplicationui_EXPORTS)
+
+kis_add_tests(
     TestImportExportPublicHeaders.cpp
     LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
 )

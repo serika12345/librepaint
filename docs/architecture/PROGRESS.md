@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 01:39 JST
+- 更新日時: 2026-08-28 01:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3163,11 +3163,28 @@
   macOSで2対象と集約後の`kritaimpexui`の限定構築、触れたC++のclang-format検査が成功した。
   製品の観測可能な挙動は変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b アニメーション出力設定 public API契約で完了した作業
+
+- `libs/impex/animation/KisAnimationRenderingOptions.h`の37 APIを、2つの専用CTestの
+  6試験関数へ対応付けた。全公開値の既定値、フレームのみ・映像のみ・両方の出力モード、
+  文書パスを基準にした映像ファイルとフレーム保存先解決を観測する。
+- `libs/impex/tests/kis_animation_rendering_options_persistence_test.cpp`は、公開値とフレーム
+  形式設定の保存・復元、不足キーの既定値、`ANIMATION_EXPORT`領域から最後に使用した
+  設定の読込みを実画像設定で固定する。実行時の`scaleFilter`は保存値に含まれない。
+- 映像のみモードの`resolveAbsoluteFramesDirectory(documentPath)`が明示引数を使わず、
+  `lastDocumentPath`を使う現行挙動は既知不具合に分類した。大規模再編前の契約として、
+  修正する場合には利用経路と期待パスの再確認を必要とする。
+- 変更なし構築閉包はmacOSで軽量試験60工程・123入力、保存試験1,004工程・
+  2,031入力である。保存試験だけが画像実装を構築し、他の34 APIは入出力UI全体を構築しない。
+- 公開API契約は552件、未対応基準は28,461件になった。macOSで2対象の構築、実行、
+  各20回反復、直接公開API契約検査、触れたC++のclang-format検査が成功した。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/impex/animation/KisAnimationRenderingOptions.h`の37 APIを2つの専用CTestへ対応付ける。
-軽量対象で全初期値、3出力モード、絶対・相対の映像ファイルとフレーム保存先解決を固定する。
-保存対象で全公開値とフレーム形式設定の往復、不足キーの既定値、最後に使用した設定の読込みを固定する。
+macOSで成功した2つのアニメーション出力設定CTestと公開API契約を`ssh nixos`上の
+Linuxへ同期する。状態・保存対象と専用CTestだけを構築し、各20回反復、直接公開API契約検査、
+変更なし構築閉包を確認する。Linux結果を記録した後、次の未対応入出力public APIの構築範囲を監査する。
 
 ## R1-G5完了根拠
 

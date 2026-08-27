@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28498
+    "expectedMissingApis": 28461
   },
   "contracts": [
     {
@@ -1759,6 +1759,97 @@
       "classification": "maintained",
       "apis": [
         "enumerator:KisImportUserFeedbackInterface::Result::SuppressedByBatchMode"
+      ]
+    },
+    {
+      "target": "kis_animation_rendering_options_test",
+      "source": "libs/impex/tests/kis_animation_rendering_options_test.cpp",
+      "test": "KisAnimationRenderingOptionsTest::defaultsDescribeFrameOnlyExport",
+      "behavior": "アニメーション出力設定の全公開値が各構成で確定的な既定値を持ち、既定のフレーム形式とフレームレートを提供する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnimationRenderingOptions",
+        "member:KisAnimationRenderingOptions::basename",
+        "member:KisAnimationRenderingOptions::customFFMpegOptions",
+        "member:KisAnimationRenderingOptions::directory",
+        "member:KisAnimationRenderingOptions::ffmpegPath",
+        "member:KisAnimationRenderingOptions::firstFrame",
+        "member:KisAnimationRenderingOptions::frameExportConfig",
+        "member:KisAnimationRenderingOptions::frameMimeType",
+        "member:KisAnimationRenderingOptions::frameRate",
+        "member:KisAnimationRenderingOptions::height",
+        "member:KisAnimationRenderingOptions::includeAudio",
+        "member:KisAnimationRenderingOptions::lastDocumentPath",
+        "member:KisAnimationRenderingOptions::lastFrame",
+        "member:KisAnimationRenderingOptions::scaleFilter",
+        "member:KisAnimationRenderingOptions::sequenceStart",
+        "member:KisAnimationRenderingOptions::shouldDeleteSequence",
+        "member:KisAnimationRenderingOptions::shouldEncodeVideo",
+        "member:KisAnimationRenderingOptions::videoFileName",
+        "member:KisAnimationRenderingOptions::videoFormatKey",
+        "member:KisAnimationRenderingOptions::videoFormatPreferencesJson",
+        "member:KisAnimationRenderingOptions::videoMimeType",
+        "member:KisAnimationRenderingOptions::wantsOnlyUniqueFrameSequence",
+        "member:KisAnimationRenderingOptions::width",
+        "method:KisAnimationRenderingOptions::KisAnimationRenderingOptions()"
+      ]
+    },
+    {
+      "target": "kis_animation_rendering_options_test",
+      "source": "libs/impex/tests/kis_animation_rendering_options_test.cpp",
+      "test": "KisAnimationRenderingOptionsTest::renderModesFollowEncodingAndSequencePolicy",
+      "behavior": "映像符号化とフレーム列削除の組合せを、フレームのみ、映像のみ、両方の出力モードへ分類する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAnimationRenderingOptions::RenderMode",
+        "enumerator:KisAnimationRenderingOptions::RenderMode::RENDER_FRAMES_AND_VIDEO",
+        "enumerator:KisAnimationRenderingOptions::RenderMode::RENDER_FRAMES_ONLY",
+        "enumerator:KisAnimationRenderingOptions::RenderMode::RENDER_VIDEO_ONLY",
+        "method:KisAnimationRenderingOptions::renderMode() const"
+      ]
+    },
+    {
+      "target": "kis_animation_rendering_options_test",
+      "source": "libs/impex/tests/kis_animation_rendering_options_test.cpp",
+      "test": "KisAnimationRenderingOptionsTest::resolvesDocumentAndOutputPaths",
+      "behavior": "文書パスと保存値を基準に、相対的な映像ファイルとフレームディレクトリーを絶対パスへ解決する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationRenderingOptions::resolveAbsoluteDocumentFilePath(const QString & documentPath) const",
+        "method:KisAnimationRenderingOptions::resolveAbsoluteFramesDirectory() const",
+        "method:KisAnimationRenderingOptions::resolveAbsoluteVideoFilePath() const",
+        "method:KisAnimationRenderingOptions::resolveAbsoluteVideoFilePath(const QString & documentPath) const"
+      ]
+    },
+    {
+      "target": "kis_animation_rendering_options_test",
+      "source": "libs/impex/tests/kis_animation_rendering_options_test.cpp",
+      "test": "KisAnimationRenderingOptionsTest::videoOnlyExplicitFramesDirectoryUsesStoredDocumentPath",
+      "behavior": "映像のみを出力する明示引数付きフレーム保存先解決は、引数の文書パスではなく保存済み文書パスを使う。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisAnimationRenderingOptions::resolveAbsoluteFramesDirectory(const QString & documentPath) const"
+      ]
+    },
+    {
+      "target": "kis_animation_rendering_options_persistence_test",
+      "source": "libs/impex/tests/kis_animation_rendering_options_persistence_test.cpp",
+      "test": "KisAnimationRenderingOptionsPersistenceTest::propertiesRoundTripStoredValuesAndDefaults",
+      "behavior": "公開出力値と接頭辞付きフレーム形式設定をプロパティへ保存・復元し、不足キーに定義済みの既定値を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationRenderingOptions::fromProperties(KisPropertiesConfigurationSP config)",
+        "method:KisAnimationRenderingOptions::toProperties() const"
+      ]
+    },
+    {
+      "target": "kis_animation_rendering_options_persistence_test",
+      "source": "libs/impex/tests/kis_animation_rendering_options_persistence_test.cpp",
+      "test": "KisAnimationRenderingOptionsPersistenceTest::lastUsedReadsAnimationExportConfiguration",
+      "behavior": "画像設定のANIMATION_EXPORT領域から最後に使用した出力値とフレーム形式設定を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationRenderingOptions::loadLastUsed()"
       ]
     }
   ]
