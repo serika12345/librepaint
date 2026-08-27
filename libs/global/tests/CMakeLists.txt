@@ -150,3 +150,13 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Core
 )
 target_compile_definitions(KisSharedTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisRollingSumAccumulatorWrapperTest.cpp
+    LINK_LIBRARIES
+        kritaglobalrollingsumobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+target_compile_definitions(KisRollingSumAccumulatorWrapperTest PRIVATE kritaglobal_EXPORTS)
