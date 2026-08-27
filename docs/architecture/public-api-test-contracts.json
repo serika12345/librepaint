@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28118
+    "expectedMissingApis": 28116
   },
   "contracts": [
     {
@@ -111,9 +111,9 @@
       ]
     },
     {
-      "target": "TestToolCoreContract",
-      "source": "libs/tools/tests/TestToolCoreContract.cpp",
-      "test": "TestToolCoreContract::rectangleConstraints",
+      "target": "KisRectangleInteractionContractTest",
+      "source": "libs/tools/tests/KisRectangleInteractionContractTest.cpp",
+      "test": "KisRectangleInteractionContractTest::constraintsProduceRequestedGeometry",
       "behavior": "矩形操作が縦横比と固定寸法の制約から正確な矩形を生成する。",
       "classification": "maintained",
       "apis": [
@@ -125,9 +125,9 @@
       ]
     },
     {
-      "target": "TestToolCoreContract",
-      "source": "libs/tools/tests/TestToolCoreContract.cpp",
-      "test": "TestToolCoreContract::rectangleModifierModes",
+      "target": "KisRectangleInteractionContractTest",
+      "source": "libs/tools/tests/KisRectangleInteractionContractTest.cpp",
+      "test": "KisRectangleInteractionContractTest::modifiersSwitchInteractionModes",
       "behavior": "Shift、Alt、Controlの変更が正方形化、移動、中心基準の矩形操作へ切り替わる。",
       "classification": "maintained",
       "apis": [
@@ -138,13 +138,24 @@
       ]
     },
     {
-      "target": "TestToolCoreContract",
-      "source": "libs/tools/tests/TestToolCoreContract.cpp",
-      "test": "TestToolCoreContract::rectangleRotation",
+      "target": "KisRectangleInteractionContractTest",
+      "source": "libs/tools/tests/KisRectangleInteractionContractTest.cpp",
+      "test": "KisRectangleInteractionContractTest::rotationModeReportsGeometricAngle",
       "behavior": "中心回転モードが入力点から幾何学的な回転角を返す。",
       "classification": "maintained",
       "apis": [
         "method:KisRectangleInteraction::rotationAngle() const"
+      ]
+    },
+    {
+      "target": "KisRectangleInteractionContractTest",
+      "source": "libs/tools/tests/KisRectangleInteractionContractTest.cpp",
+      "test": "KisRectangleInteractionContractTest::explicitEndpointsAreRoundedAndNormalized",
+      "behavior": "矩形操作は現在の終点を返し、任意の始点と終点を画素座標へ丸め、入力方向によらず正規化した矩形を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRectangleInteraction::end() const",
+        "method:KisRectangleInteraction::rectangle(const QPointF & start,const QPointF & end) const"
       ]
     },
     {

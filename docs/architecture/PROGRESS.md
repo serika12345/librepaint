@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 08:28 JST
+- 更新日時: 2026-08-28 08:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4107,6 +4107,18 @@
   `TestToolCoreContract`は変更なし構築閉包が1,067工程・2,149入力、新対象は1工程・3入力である。
   macOSで新対象の限定構築が成功した。製品挙動、公開API、ABI、矩形計算は変更していない。Linux、
   製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
+
+## R2-G19b 矩形操作 public API契約で完了した作業
+
+- `libs/tools/kis_rectangle_interaction.h`のクラス、制約、修飾キー、開始、更新、2種類の矩形取得、始点、
+  中心、終点、回転角、移動状態の12 APIを、新規
+  `libs/tools/tests/KisRectangleInteractionContractTest.cpp`の4試験へ対応付けた。縦横比・固定寸法、
+  Shift/Alt/Controlによる正方形化・移動・中心基準操作、幾何的回転角、現在の終点、任意の始点と終点を
+  丸めて正規化する矩形を観測する。
+- 新試験は`kritatoolsrectangleinteractionobjects`とQt Testだけへ直接接続し、変更なし構築閉包はmacOSで
+  5工程・11入力である。対象実行と20回反復が成功し、公開API契約は898件、未対応基準は28,116件に
+  なった。製品実装、公開API、ABI、矩形計算は変更していない。Linuxと全ネイティブ検証は実行して
+  いない。
 
 ## 次の操作
 
