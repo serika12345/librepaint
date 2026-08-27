@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28548
+    "expectedMissingApis": 28539
   },
   "contracts": [
     {
@@ -1574,6 +1574,33 @@
         "method:KisPreExportChecker::check(KisImageSP image,QMap<QString,KisExportCheckBase * > filterChecks)",
         "method:KisPreExportChecker::errors() const",
         "method:KisPreExportChecker::warnings() const"
+      ]
+    },
+    {
+      "target": "kis_export_checks_test",
+      "source": "libs/impex/tests/kis_export_checks_test.cpp",
+      "test": "KisExportChecksTest::integralFrameDurationDetection",
+      "behavior": "フレーム時間検査が静止画像と整数ミリ秒のアニメーションを受理し、小数ミリ秒になるアニメーションだけを検査対象とする。",
+      "classification": "maintained",
+      "apis": [
+        "class:IntegralFrameDurationCheck",
+        "method:IntegralFrameDurationCheck::IntegralFrameDurationCheck(const QString & id,Level level,const QString & customWarning=QString ())",
+        "method:IntegralFrameDurationCheck::check(KisImageSP) const",
+        "method:IntegralFrameDurationCheck::checkNeeded(KisImageSP image) const"
+      ]
+    },
+    {
+      "target": "kis_export_checks_test",
+      "source": "libs/impex/tests/kis_export_checks_test.cpp",
+      "test": "KisExportChecksTest::integralFrameDurationFactory",
+      "behavior": "フレーム時間検査ファクトリーが安定識別子、指定対応水準、形式固有の警告を持つ検査を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:IntegralFrameDurationCheckFactory",
+        "method:IntegralFrameDurationCheckFactory::IntegralFrameDurationCheckFactory()",
+        "method:IntegralFrameDurationCheckFactory::create(KisExportCheckBase::Level level,const QString & customWarning=QString ())",
+        "method:IntegralFrameDurationCheckFactory::id() const",
+        "method:IntegralFrameDurationCheckFactory::~IntegralFrameDurationCheckFactory()"
       ]
     }
   ]

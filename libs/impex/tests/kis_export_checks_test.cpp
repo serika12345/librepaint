@@ -6,11 +6,13 @@
 #include <QTest>
 
 #include <ImageSizeCheck.h>
+#include <IntegralFrameDuration.h>
 #include <KisExportCheckRegistry.h>
 #include <KisPreExportChecker.h>
 
 #include <KoColorSpaceRegistry.h>
 #include <kis_image.h>
+#include <kis_paint_layer.h>
 
 #include <memory>
 #include <vector>
@@ -24,6 +26,16 @@ KisImageSP createImage(int width, int height)
                         height,
                         KoColorSpaceRegistry::instance()->rgb8(),
                         QStringLiteral("export check contract"));
+}
+
+KisImageSP createAnimatedImage(int framerate)
+{
+    KisImageSP image = createImage(16, 16);
+    KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("animated layer"), 255);
+    image->addNode(layer);
+    layer->enableAnimation();
+    image->animationInterface()->setFramerate(framerate);
+    return image;
 }
 
 class AlwaysNeededCheck final : public KisExportCheckBase
@@ -95,6 +107,8 @@ class KisExportChecksTest : public QObject
 private Q_SLOTS:
     void imageSizeUsesBothInclusiveLimits();
     void imageSizeFactoryCreatesConfiguredChecks();
+    void integralFrameDurationDetection();
+    void integralFrameDurationFactory();
     void registryProvidesBuiltInFactories();
     void preExportCheckerClassifiesCapabilityLevels();
 };
@@ -140,6 +154,33 @@ void KisExportChecksTest::imageSizeFactoryCreatesConfiguredChecks()
     QCOMPARE(configuredCheck->m_maxH, 256);
     QVERIFY(configuredCheck->warning().contains(QStringLiteral("512 x 256")));
     QCOMPARE(configuredCheck->check(createImage(1, 1)), KisExportCheckBase::UNSUPPORTED);
+}
+
+void KisExportChecksTest::integralFrameDurationDetection()
+{
+    IntegralFrameDurationCheck check(QStringLiteral("FrameDuration"), KisExportCheckBase::PARTIALLY);
+
+    QCOMPARE(check.id(), QStringLiteral("FrameDuration"));
+    QVERIFY(check.warning().contains(QStringLiteral("fractions of a millisecond")));
+    QVERIFY(!check.perLayerCheck());
+    QVERIFY(!check.checkNeeded(createImage(16, 16)));
+    QVERIFY(!check.checkNeeded(createAnimatedImage(25)));
+    QVERIFY(check.checkNeeded(createAnimatedImage(24)));
+    QCOMPARE(check.check(createAnimatedImage(24)), KisExportCheckBase::PARTIALLY);
+}
+
+void KisExportChecksTest::integralFrameDurationFactory()
+{
+    std::unique_ptr<KisExportCheckFactory> factory = std::make_unique<IntegralFrameDurationCheckFactory>();
+
+    QCOMPARE(factory->id(), QStringLiteral("IntegralFrameDurationCheck"));
+    std::unique_ptr<KisExportCheckBase> base(
+        factory->create(KisExportCheckBase::UNSUPPORTED, QStringLiteral("Custom frame warning")));
+    auto *check = dynamic_cast<IntegralFrameDurationCheck *>(base.get());
+    QVERIFY(check);
+    QCOMPARE(check->id(), QStringLiteral("IntegralFrameDurationCheck"));
+    QCOMPARE(check->warning(), QStringLiteral("Custom frame warning"));
+    QCOMPARE(check->check(createAnimatedImage(24)), KisExportCheckBase::UNSUPPORTED);
 }
 
 void KisExportChecksTest::registryProvidesBuiltInFactories()
