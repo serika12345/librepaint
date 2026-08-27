@@ -45,6 +45,7 @@ set_target_properties(kritaimagefastmathobjects PROPERTIES
 add_library(kritaimagestrokejobobjects OBJECT
    kis_stroke_job_strategy.cpp
    KisRunnableStrokeJobDataBase.cpp
+   KisRunnableStrokeJobData.cpp
 )
 target_compile_definitions(kritaimagestrokejobobjects PRIVATE kritaimage_EXPORTS)
 target_include_directories(kritaimagestrokejobobjects
@@ -237,7 +238,6 @@ set(kritaimage_LIB_SRCS
    kis_stroke_strategy_undo_command_based.cpp
    kis_simple_stroke_strategy.cpp
    KisRunnableBasedStrokeStrategy.cpp
-   KisRunnableStrokeJobData.cpp
    KisRunnableStrokeJobsInterface.cpp
    KisFakeRunnableStrokeJobsExecutor.cpp
    kis_stroke_strategy.cpp
