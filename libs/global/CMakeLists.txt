@@ -177,6 +177,25 @@ set_target_properties(kritaglobalrollingsumobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalrollingmeanobjects OBJECT
+    KisRollingMeanAccumulatorWrapper.cpp
+)
+target_compile_definitions(kritaglobalrollingmeanobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalrollingmeanobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalrollingmeanobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalrollingmeanobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -191,7 +210,6 @@ set(kritaglobal_LIB_SRCS
     kis_thread_safe_signal_compressor.cpp
     kis_acyclic_signal_connector.cpp
     kis_latency_tracker.cpp
-    KisRollingMeanAccumulatorWrapper.cpp
     kis_config_notifier.cpp
     KisUsageLogger.cpp
     KisSignalMapper.cpp
@@ -235,6 +253,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalfilteredrollingmeanobjects>
     $<TARGET_OBJECTS:kritaglobalsharedobjects>
     $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
+    $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
 )
 
 target_sources(kritaglobal

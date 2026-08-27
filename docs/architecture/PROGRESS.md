@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 06:01 JST
+- 更新日時: 2026-08-28 06:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3685,6 +3685,16 @@
   変更なし構築閉包はmacOSで5工程・11入力である。対象実行と20回反復が成功し、公開API契約は
   696件、未対応基準は28,318件になった。製品実装、公開API、ABI、移動合計と件数は変更していない。
   Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 移動平均契約前の実装所有分離で完了した作業
+
+- `libs/global/KisRollingMeanAccumulatorWrapper.cpp`の実装所有を、`kritaglobal`の一括ソース集合から
+  `kritaglobalrollingmeanobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象だけを
+  変更した。公開ヘッダー、クラス、関数、`kritaglobal`のAPIとABIを維持し、`kritaglobal`は新対象の
+  オブジェクトを従来どおり集約する。
+- 新対象は数値型と所有ポインターのQt Core、および集計器を提供するヘッダー専用Boostだけへ直接接続する。
+  変更なし構築閉包はmacOSで1工程・3入力である。macOSで新対象の限定構築が成功した。製品実装、
+  公開API、ABI、移動平均と件数は変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 
