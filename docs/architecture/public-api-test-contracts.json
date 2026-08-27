@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28457
+    "expectedMissingApis": 28438
   },
   "contracts": [
     {
@@ -1881,6 +1881,61 @@
       "classification": "known_defect",
       "apis": [
         "method:KisRemoteFileFetcher::fetchFile(const QUrl & remote)"
+      ]
+    },
+    {
+      "target": "kis_import_export_utils_values_test",
+      "source": "libs/impex/tests/kis_import_export_utils_values_test.cpp",
+      "test": "KisImportExportUtilsValuesTest::publicEnumValuesRemainStable",
+      "behavior": "保存方針と非同期保存開始結果の公開列挙値およびフラグ合成を安定した呼出し元契約として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KritaUtils::BackgroudSavingStartResult",
+        "enum:KritaUtils::SaveFlag",
+        "enumerator:KritaUtils::BackgroudSavingStartResult::AnotherSavingInProgress",
+        "enumerator:KritaUtils::BackgroudSavingStartResult::Cancelled",
+        "enumerator:KritaUtils::BackgroudSavingStartResult::Failure",
+        "enumerator:KritaUtils::BackgroudSavingStartResult::ImageLockFailure",
+        "enumerator:KritaUtils::BackgroudSavingStartResult::Success",
+        "enumerator:KritaUtils::SaveFlag::SaveInAutosaveMode",
+        "enumerator:KritaUtils::SaveFlag::SaveIsExporting",
+        "enumerator:KritaUtils::SaveFlag::SaveNone",
+        "enumerator:KritaUtils::SaveFlag::SaveShowWarnings"
+      ]
+    },
+    {
+      "target": "kis_import_export_utils_values_test",
+      "source": "libs/impex/tests/kis_import_export_utils_values_test.cpp",
+      "test": "KisImportExportUtilsValuesTest::defaultExportJobIsInvalid",
+      "behavior": "既定の書き出しジョブは保存先と形式が空で保存フラグを持たず、実行不能と判定される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KritaUtils::ExportFileJob::ExportFileJob()",
+        "method:KritaUtils::ExportFileJob::isValid() const",
+        "struct:KritaUtils::ExportFileJob"
+      ]
+    },
+    {
+      "target": "kis_import_export_utils_values_test",
+      "source": "libs/impex/tests/kis_import_export_utils_values_test.cpp",
+      "test": "KisImportExportUtilsValuesTest::configuredExportJobPreservesValues",
+      "behavior": "書き出しジョブが保存先、形式、合成フラグを保持し、保存先を持つジョブを実行可能と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KritaUtils::ExportFileJob::filePath",
+        "member:KritaUtils::ExportFileJob::flags",
+        "member:KritaUtils::ExportFileJob::mimeType",
+        "method:KritaUtils::ExportFileJob::ExportFileJob(QString _filePath,QByteArray _mimeType,SaveFlags _flags=SaveNone)"
+      ]
+    },
+    {
+      "target": "kis_import_export_utils_test",
+      "source": "libs/impex/tests/kis_import_export_utils_test.cpp",
+      "test": "KisImportExportUtilsTest::editableImageNeedsNoFeedbackOrConversion",
+      "behavior": "編集可能な出力プロファイルを持つ画像は、利用者確認や変換ダイアログを呼ばず、色空間と画像ロックを維持して成功する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::workaroundUnsuitableImageColorSpace(KisImageSP image,KisImportUserFeedbackInterface * feedbackInterface,KisImageBarrierLock & lock)"
       ]
     }
   ]

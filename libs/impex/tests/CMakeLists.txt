@@ -89,6 +89,29 @@ if(UNIX AND NOT APPLE)
 endif()
 
 kis_add_tests(
+    kis_import_export_utils_values_test.cpp
+    LINK_LIBRARIES
+        kritaimpexfilterheaders
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_import_export_utils_values_test PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kis_import_export_utils_values_test
+    PRIVATE
+        ${CMAKE_BINARY_DIR}/libs/application
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ui
+)
+
+kis_add_tests(
+    kis_import_export_utils_test.cpp
+    LINK_LIBRARIES
+        kritaimpexerrorobjects
+        kritaimpexuserfeedbackobjects
+        kritaimpexutilsobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_import_export_utils_test PRIVATE kritaapplicationui_EXPORTS)
+
+kis_add_tests(
     TestImportExportPublicHeaders.cpp
     LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
 )
