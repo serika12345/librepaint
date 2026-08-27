@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 16:48 JST
+- 更新日時: 2026-08-27 16:58 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G4 段階間契約の選定
+- 現在の検査段階: R2-G5 表示用投影から画面転送までの契約選定
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: R2の最適化前基準として、投影生成から画面表示までの既存契約を照合し、次に固定する
-  最小の観測可能な境界を選定する。
+- 目的: R2の最適化前基準として、表示用投影画像とdirty viewportがQPainter画面へ転送される
+  座標、切抜き範囲、更新通知のうち次に固定する最小境界を選定する。
 
 ## 再開環境
 
@@ -2240,11 +2240,40 @@
   `nix develop .#test --command ./scripts/run-test KisSafeDocumentLoaderTest`の単独再実行は成功した。
   R2-G3対象は統合実行でも成功し、入力、ツール、文書監視、文書読込の製品実装に変更はない。
 
+## R2-G4投影更新キューの順序と圧縮契約で完了した作業
+
+- `FreehandStrokeContractTest`は完了したストロークの投影画素、
+  `kis_prescaled_projection_contract_test`はdirty image領域からdirty viewportと表示用画像への変換、
+  `kis_update_scheduler_test`は画像側の更新ジョブ実行を固定する。これらの間で`KisCanvas2`が使う
+  `KisCanvasUpdatesCompressor`の保留列と起動条件は未検査である。
+- 現行圧縮は、新しいdirty領域が包含する、同じ詳細度の圧縮可能な旧更新だけを除去する。
+  部分重複、異なる詳細度、`KisMarkerUpdateInfo`は維持し、新しい更新は常に末尾へ置く。
+  この順序は、新しい投影内容の後に古いタイルを転送しないための維持契約とする。
+- 空のdirty領域、包含、部分重複、詳細度0と1、開始・終了マーカーを固定した具体的な
+  `KisUpdateInfo`として投入し、空から非空になる場合だけtrueを返す起動条件、排出順序、排出後の
+  空状態を観測する。
+- 更新圧縮器は`libs/ui/canvas`内部の非公開クラスであり、製品の公開記号を増やさない。独立試験へ
+  `kis_canvas_updates_compressor.cpp`を直接コンパイルし、`kritacanvas`と試験基盤だけへリンクする。
+  実画面、アプリケーションUI、タイマー、OpenGL転送は後続の観測境界として分離する。
+- `libs/ui/tests/KisCanvasUpdatesCompressorContractTest.cpp`を追加し、非公開の製品実装源
+  `libs/ui/canvas/kis_canvas_updates_compressor.cpp`とともに独立対象へコンパイルした。直接リンクは
+  `kritacanvas`と`kritatestsdk`だけで、製品実装、公開記号、動的成果物は変更していない。
+- 空のdirty領域を最初に投入しても起動要求を返さず、最初の有効更新だけがtrue、後続の保留更新が
+  false、全件排出後の最初の更新が再びtrueになることを固定した。排出は2件を投入順に移し、
+  続く排出を空にする。
+- 詳細度0の`(4, 4, 4, 4)`を後続の`(2, 2, 10, 10)`で置換する一方、部分重複する
+  `(10, 4, 4, 4)`、開始マーカー、同じ領域の詳細度1を維持し、置換更新を列の末尾へ置く順序を
+  固定した。
+- 最初の対象実行は、契約本体が未実装である明示的診断により失敗した。契約実装後の
+  `nix develop .#test --command ./scripts/run-test KisCanvasUpdatesCompressorContractTest`、
+  `kis_prescaled_projection_contract_test`、`kis_update_scheduler_test`はmacOSで成功した。
+  新契約の20回反復と`nix develop .#test --command ./scripts/verify-quick`も成功した。
+
 ## 次の操作
 
-R2-G4として、`kis_prescaled_projection_contract_test`、`kis_display_color_transform_test`、
-キャンバス描画と更新通知の既存試験を照合する。投影生成から画面表示までで未固定の値と所有者を
-列挙し、製品抽象や実画面依存を追加せずに観測できる最小の段階間契約を計画する。
+R2-G5として、`KisQPainterCanvas::updateCanvasProjection()`、`drawImage()`、
+`KisCanvas2::slotDoCanvasUpdate()`と既存の画面・座標変換試験を照合する。表示用投影画像から
+画面部品までで、実アプリケーションUIを起動せずに観測できる座標、切抜き、更新領域の境界を選ぶ。
 
 ## R1-G5完了根拠
 

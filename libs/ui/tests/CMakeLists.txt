@@ -52,6 +52,13 @@ kis_add_test( FreehandStrokeContractTest.cpp
     LINK_LIBRARIES kritapainting kritalibbrush kritatestsdk
     )
 
+kis_add_test(
+    KisCanvasUpdatesCompressorContractTest.cpp
+    ../canvas/kis_canvas_updates_compressor.cpp
+    TEST_NAME KisCanvasUpdatesCompressorContractTest
+    LINK_LIBRARIES kritacanvas kritatestsdk
+    )
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk
