@@ -7,6 +7,7 @@
 #define KISDARKENOPTION_H
 
 #include <KisCurveOption.h>
+#include <KoColor.h>
 
 struct KisDarkenOptionData;
 class KisPainter;

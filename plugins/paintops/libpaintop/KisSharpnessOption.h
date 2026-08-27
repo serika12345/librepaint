@@ -7,6 +7,7 @@
 #define KISSHARPNESSOPTION_H
 
 #include <KisCurveOption.h>
+#include <kis_types.h>
 
 struct KisSharpnessOptionData;
 

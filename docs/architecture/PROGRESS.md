@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 19:45 JST
+- 更新日時: 2026-08-27 18:45 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G13 既定自由描画の画素契約選定
+- 現在の検査段階: R2-G13b 既定自由描画の決定的画素契約
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: R2の描画契約として、固定したブラシ設定と入力列から得るPaintOp画素結果の既存観測範囲と
-  構築境界を確認する。
+- 目的: 固定した既定画素ブラシと描画入力から画素結果を決める値を明示し、R3で維持する決定的契約を
+  縮小済みの対象構築範囲へ追加する。
 
 ## 再開環境
 
@@ -2500,11 +2500,49 @@
   新契約の20回反復、実装後の対象計画、`nix develop .#test --command ./scripts/verify-quick`はmacOSで
   成功した。既存のQt非推奨警告はR6の言語・Qt移行範囲に残し、新規警告はない。
 
+## R2-G13a PaintOp実行対象の構築範囲分離で完了した作業
+
+- 変更前の`FreehandStrokeContractTest`は、直接依存が`kritapainting`、`kritalibbrush`、
+  `kritatestsdk`、順序依存が`kritadefaultpaintops`で、空のmacOS構築木に対するNinjaコマンド閉包が
+  1,816工程だった。閉包は設定画面を含む`kritalibpaintop`と、画素ブラシ・複製ブラシ・各設定画面を
+  含む`kritadefaultpaintops_static`に支配されていた。
+- `plugins/paintops/libpaintop/CMakeLists.txt`で、PaintOp実行に必要な45実装ファイルの構築所有を
+  `kritalibpaintop`から`kritapaintopruntime`へ分けた。既存共有ライブラリーは同じオブジェクトを
+  再集約するため、公開名と公開処理を維持する。
+- `plugins/paintops/defaultpaintops/CMakeLists.txt`で、`brush/kis_brushop.cpp`、
+  `brush/KisBrushOpResources.cpp`、`brush/KisBrushOpSettings.cpp`、`brush/KisDabRenderingQueue.cpp`、
+  `brush/KisDabRenderingQueueCache.cpp`、`brush/KisDabRenderingJob.cpp`、
+  `brush/KisDabRenderingExecutor.cpp`の構築所有を`kritadefaultpaintops_static`から`kritapixelbrush`へ
+  分けた。既存静的ライブラリーと製品モジュールはこの対象を再集約し、設定画面、複製ブラシ、
+  PaintOp識別子と登録経路を維持する。
+- 画面を所有せずPaintOp設定値と資源の読書き接続を担う
+  `libs/tools/ui/KisPaintopPropertiesBase.{h,cpp}`を
+  `libs/image/brushengine/KisPaintopPropertiesBase.{h,cpp}`へ移した。移動先の`kritaimage`が記号を
+  公開し、旧ファイルと転送ヘッダーは残していない。分離で露出した製品実装と既存試験の間接見出し
+  依存は、それぞれが使用する型の直接見出しへ置き換えた。
+- `libs/ui/tests/FreehandStrokeContractTest.cpp`は、実製品の`KisBrushOp`と`KisBrushOpSettings`を生成する
+  具体的ファクトリーを試験内で登録する。アプリケーション生成前に空のプラグイン探索先を固定し、
+  対象から`kritadefaultpaintops`への順序依存と動的モジュール読込みを除いた。最初の実行は探索先を
+  試験初期化後に変更していたため既登録PaintOpを診断し、初期化順を修正した後に既存画素、取消し、
+  アンドゥ、リドゥ契約が成功した。
+- 変更後の直接依存は`kritapixelbrush`、`kritapainting`、`kritalibbrush`、`kritatestsdk`である。
+  `kritapixelbrush`は`kritapaintopruntime`と`kritapainting`、`kritapaintopruntime`は
+  `kritalibbrush`と`kritapainting`だけへ直接依存する。空構築閉包は1,816工程から1,107工程へ
+  709工程、39.0%縮小した。変更なし計画はglob再検査とCMake再評価だけを示し、対象コンパイルを
+  含まない。
+- `nix develop .#test --command ./scripts/run-test FreehandStrokeContractTest`、
+  `KisDabRenderingQueueTest`、`KisCurveOptionDataTest`、`KisCurveOptionModelTest`、対象指定の
+  `kritalibpaintop`、`kritadefaultpaintops`、`kritatoolsui`構築、
+  `nix develop .#test --command ./scripts/verify-quick`はmacOSで成功した。
+  `FreehandStrokeContractTest.cpp`の書式検査も成功した。既存ソースにはQt非推奨警告と既存の
+  全体書式差分が残るが、この変更による新規警告はない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-R2-G13の実装前監査として、`FreehandStrokeContractTest`の増分計画、直接依存、空構築閉包を再計測し、
-既存の固定ブラシ設定、入力列、乱数、並行設定、画素比較範囲を棚卸しする。対象の閉包が契約範囲に対して
-過大なら画素契約を追加する前にPaintOp実行処理と設定UIの依存を分離する。
+R2-G13bの実装前監査として、縮小後の`FreehandStrokeContractTest`の変更なし計画、直接依存、
+1,107工程の空構築閉包を再確認する。既存プリセット、キャンバス、色空間、レイヤー、前景色と背景色、
+入力点、筆圧・傾き・回転・時刻・速度、乱数、作業スレッド、画素比較範囲を棚卸しし、未固定値を明示する
+最小契約から開始する。
 
 ## R1-G5完了根拠
 

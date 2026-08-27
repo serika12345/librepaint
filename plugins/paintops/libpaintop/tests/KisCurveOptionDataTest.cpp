@@ -6,6 +6,7 @@
 #include "KisCurveOptionDataTest.h"
 
 #include <KisCurveOptionData.h>
+#include <kis_properties_configuration.h>
 
 void KisCurveOptionDataTest::testCurveOptionData()
 {

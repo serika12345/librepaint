@@ -5,6 +5,8 @@
  */
 
 #include "KisKritaSensorPack.h"
+
+#include <kis_properties_configuration.h>
 #include "KisCppQuirks.h"
 #include "kis_assert.h"
 

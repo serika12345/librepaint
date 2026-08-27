@@ -9,7 +9,7 @@
 #include <boost/operators.hpp>
 
 #include "kis_assert.h"
-#include "kis_paintop_option.h"
+#include "kis_cubic_curve.h"
 #include "KisDynamicSensorIds.h"
 #include "kritapaintop_export.h"
 

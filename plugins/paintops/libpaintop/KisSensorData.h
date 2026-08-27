@@ -8,9 +8,13 @@
 #define KISSENSORDATA_H
 
 #include <boost/operators.hpp>
+#include <KoID.h>
+#include <QDomDocument>
+#include <QRectF>
+#include <QString>
+
 #include "kritapaintop_export.h"
 #include "kis_assert.h"
-#include "kis_paintop_option.h"
 
 struct PAINTOP_EXPORT KisSensorData : public boost::equality_comparable<KisSensorData>
 {

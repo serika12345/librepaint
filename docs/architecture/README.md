@@ -609,6 +609,12 @@ R2では、この経路を次の観測可能な契約へ分けます。
 | タイル更新と投影 | `libs/image`。dirty領域、更新スケジューラー、レイヤー合成、投影更新へ分岐する。 | レイヤー画素、投影画素、画像更新通知、更新キュー完了を観測する。待機完了後の投影は確定したレイヤー状態と一致する。 | `FreehandStrokeContractTest`、`kis_update_scheduler_test`、`kis_projection_test` |
 | キャンバス転送と表示 | `libs/canvas`、`libs/ui/canvas`。拡大率、回転、鏡像、色変換、CPU・OpenGL表示へ分岐する。 | 投影キャッシュ、更新矩形、座標変換、表示色、最後の有効フレームを観測する。変更領域を表示座標へ変換し、無効な更新では直前の有効フレームを保持する。 | `kis_prescaled_projection_contract_test`、`kis_coordinates_converter_test`、`kis_display_color_transform_test` |
 
+PaintOpの実行処理は`plugins/paintops/libpaintop`の`kritapaintopruntime`、既定画素ブラシの実行処理は
+`plugins/paintops/defaultpaintops`の`kritapixelbrush`として、設定画面から独立して構築できます。
+製品の`kritalibpaintop`共有ライブラリーと`kritadefaultpaintops`モジュールはこれらを集約するため、
+既存の公開面とプラグイン登録は同じ製品経路を使います。PaintOp設定値の読書きを担い画面を所有しない
+`KisPaintopPropertiesBase`は`libs/image/brushengine`が所有します。
+
 最初の維持契約は[FreehandStrokeContractTest.cpp](../../libs/ui/tests/FreehandStrokeContractTest.cpp)です。
 sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autobrush_300px.kpp`、
 `(200, 200)`から`(300, 300)`までの2入力点、作業スレッド1本を固定します。終了結果は
@@ -620,7 +626,7 @@ sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autob
 Qtの生入力事象から自由描画ツールへ渡る値と順序、および最終投影から実画面へ転送される
 フレームは、段階間を接続する後続契約の対象です。単一試験入口は、永続Ninja木で指定した
 試験と宣言済み依存だけを構築します。自由描画契約は画像・描画・ブラシ・試験資源の所有先へ
-直接リンクし、実行時に必要な既定PaintOpモジュールをCMake依存として生成してから実行します。
+直接リンクし、具体的な既定画素ブラシを試験処理内で登録して実行します。
 R2-G3で
 マウスの押下、移動、解放を記録・再生し、入力照合から自由描画ツールへ渡る正規化済み
 入力列を固定します。

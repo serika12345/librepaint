@@ -9,6 +9,7 @@
 #include <KisCurveOption.h>
 
 struct KisRotationOptionData;
+class KisPaintOp;
 
 class PAINTOP_EXPORT KisRotationOption : public KisCurveOption
 {

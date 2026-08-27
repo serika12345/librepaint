@@ -1,6 +1,5 @@
 set(kritatoolsui_LIB_SRCS
     KisPaintResourceServerProvider.cpp
-    KisPaintopPropertiesBase.cpp
     KisPaletteEditor.cpp
     kis_categories_mapper.cpp
     kis_categorized_item_delegate.cpp

@@ -6,14 +6,18 @@
 #include <QDir>
 #include <QImage>
 #include <QSignalSpy>
+#include <QTemporaryDir>
 
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoResourceLoadResult.h>
 #include <simpletest.h>
 
 #include <KisGlobalResourcesInterface.h>
 #include <brushengine/kis_paint_information.h>
+#include <brushengine/kis_paintop_factory.h>
 #include <brushengine/kis_paintop_preset.h>
+#include <brushengine/kis_paintop_registry.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
@@ -22,6 +26,8 @@
 #include <strokes/freehand_stroke.h>
 
 #include "KisAsynchronousStrokeUpdateHelper.h"
+#include "KisBrushOpSettings.h"
+#include "kis_brushop.h"
 #include "testbrush.h"
 #include "testutil.h"
 
@@ -30,6 +36,70 @@ namespace
 constexpr int imageWidth = 500;
 constexpr int imageHeight = 500;
 constexpr int referenceAlphaTolerance = 3;
+
+class PixelBrushFactory final : public KisPaintOpFactory
+{
+public:
+#ifdef HAVE_THREADED_TEXT_RENDERING_WORKAROUND
+    void preinitializePaintOpIfNeeded(const KisPaintOpSettingsSP settings) override
+    {
+        KisBrushOp::preinitializeOpStatically(settings);
+    }
+#endif
+
+    KisPaintOp *
+    createOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image) override
+    {
+        return new KisBrushOp(settings, painter, node, image);
+    }
+
+    QString id() const override
+    {
+        return QStringLiteral("paintbrush");
+    }
+
+    QString name() const override
+    {
+        return QStringLiteral("Pixel");
+    }
+
+    QString category() const override
+    {
+        return KisPaintOpFactory::categoryStable();
+    }
+
+    bool lodSizeThresholdSupported() const override
+    {
+        return true;
+    }
+
+    QList<KoResourceLoadResult> prepareLinkedResources(const KisPaintOpSettingsSP settings,
+                                                       KisResourcesInterfaceSP resourcesInterface) override
+    {
+        return KisBrushOp::prepareLinkedResources(settings, resourcesInterface);
+    }
+
+    QList<KoResourceLoadResult> prepareEmbeddedResources(const KisPaintOpSettingsSP settings,
+                                                         KisResourcesInterfaceSP resourcesInterface) override
+    {
+        return KisBrushOp::prepareEmbeddedResources(settings, resourcesInterface);
+    }
+
+    KisPaintOpSettingsSP createSettings(KisResourcesInterfaceSP resourcesInterface) override
+    {
+        return new KisBrushOpSettings(resourcesInterface);
+    }
+
+    KisPaintOpConfigWidget *createConfigWidget(QWidget *parent,
+                                               KisResourcesInterfaceSP resourcesInterface,
+                                               KoCanvasResourcesInterfaceSP canvasResourcesInterface) override
+    {
+        Q_UNUSED(parent);
+        Q_UNUSED(resourcesInterface);
+        Q_UNUSED(canvasResourcesInterface);
+        return nullptr;
+    }
+};
 
 QImage deviceImage(const KisPaintDeviceSP &device)
 {
@@ -155,10 +225,18 @@ class FreehandStrokeContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase();
     void finishedStrokeMatchesMaintainedProjection();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
 };
+
+void FreehandStrokeContractTest::initTestCase()
+{
+    KisPaintOpRegistry *registry = KisPaintOpRegistry::instance();
+    QVERIFY(!registry->get(QStringLiteral("paintbrush")));
+    registry->add(new PixelBrushFactory());
+}
 
 void FreehandStrokeContractTest::finishedStrokeMatchesMaintainedProjection()
 {
@@ -259,6 +337,28 @@ void FreehandStrokeContractTest::undoRedoRestoresBothStates()
     QVERIFY(fixture.image()->isIdle());
 }
 
-KISTEST_MAIN(FreehandStrokeContractTest)
+int main(int argc, char *argv[])
+{
+    qputenv("LANGUAGE", "en");
+    QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
+    qputenv("QT_LOGGING_RULES", "");
+    QStandardPaths::setTestModeEnabled(true);
+    qputenv("EXTRA_RESOURCE_DIRS", QByteArray(KRITA_RESOURCE_DIRS_FOR_TESTS));
+
+    QTemporaryDir pluginDirectory;
+    if (!pluginDirectory.isValid()) {
+        return 1;
+    }
+    qputenv("KRITA_PLUGIN_PATH", pluginDirectory.path().toUtf8());
+
+    QApplication app(argc, argv);
+    app.setAttribute(Qt::AA_Use96Dpi, true);
+    QTEST_DISABLE_KEYPAD_NAVIGATION
+    registerResources();
+
+    FreehandStrokeContractTest test;
+    QTEST_SET_MAIN_SOURCE_PATH
+    return QTest::qExec(&test, argc, argv);
+}
 
 #include "FreehandStrokeContractTest.moc"

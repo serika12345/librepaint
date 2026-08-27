@@ -107,6 +107,60 @@ set(kritalibpaintop_LIB_SRCS
     KisTextBrushModel.cpp
 )
 
+# Keep the paint-op execution path independently buildable. These objects are
+# incorporated into kritalibpaintop so its public ABI remains unchanged, and
+# can also be reused by focused paint-operation contracts without building the
+# settings UI.
+set(kritapaintopruntime_LIB_SRCS
+    KisAirbrushOptionData.cpp
+    KisColorSourceOptionData.cpp
+    KisCurveOption.cpp
+    KisCurveOptionData.cpp
+    KisCurveOptionDataCommon.cpp
+    KisCurveOptionDataUniformProperty.cpp
+    KisDabCacheUtils.cpp
+    KisDarkenOption.cpp
+    KisEmbeddedTextureData.cpp
+    KisFlowOpacityOption.cpp
+    KisHSVOption.cpp
+    KisKritaSensorPack.cpp
+    KisMirrorOption.cpp
+    KisMirrorOptionData.cpp
+    KisOpacityOption.cpp
+    KisPaintingModeOptionData.cpp
+    KisRotationOption.cpp
+    KisScatterOption.cpp
+    KisScatterOptionData.cpp
+    KisSensorData.cpp
+    KisSensorPackInterface.cpp
+    KisSharpnessOption.cpp
+    KisSharpnessOptionData.cpp
+    KisSizeOptionData.cpp
+    KisSpacingOption.cpp
+    KisSpacingOptionData.cpp
+    KisTextureMaskInfo.cpp
+    KisTextureOptionData.cpp
+    kis_brush_based_paintop.cpp
+    kis_brush_based_paintop_settings.cpp
+    kis_brush_option.cpp
+    kis_color_source.cpp
+    kis_color_source_option.cpp
+    kis_current_outline_fetcher.cpp
+    kis_dab_cache.cpp
+    kis_dab_cache_base.cpp
+    kis_precision_option.cpp
+    kis_texture_option.cpp
+    sensors/KisDynamicSensor.cpp
+    sensors/KisDynamicSensorDistance.cpp
+    sensors/KisDynamicSensorDrawingAngle.cpp
+    sensors/KisDynamicSensorFade.cpp
+    sensors/KisDynamicSensorFuzzy.cpp
+    sensors/KisDynamicSensorTime.cpp
+    sensors/KisDynamicSensors.cpp
+)
+
+list(REMOVE_ITEM kritalibpaintop_LIB_SRCS ${kritapaintopruntime_LIB_SRCS})
+
 ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgautobrush.ui
     forms/wdgBrushSizeOptions.ui
@@ -131,7 +185,18 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
 
 )
 
-kis_add_library(kritalibpaintop SHARED ${kritalibpaintop_LIB_SRCS} )
+kis_add_library(kritapaintopruntime OBJECT ${kritapaintopruntime_LIB_SRCS})
+target_compile_definitions(kritapaintopruntime PRIVATE kritalibpaintop_EXPORTS)
+target_include_directories(kritapaintopruntime INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+target_link_libraries(kritapaintopruntime kritalibbrush kritapainting)
+
+kis_add_library(kritalibpaintop SHARED
+    ${kritalibpaintop_LIB_SRCS}
+    $<TARGET_OBJECTS:kritapaintopruntime>
+)
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 
 target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritawidgets kritawidgetutils)

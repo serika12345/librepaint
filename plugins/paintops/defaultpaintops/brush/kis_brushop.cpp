@@ -11,6 +11,7 @@
 
 #include "kis_brushop.h"
 
+#include <QElapsedTimer>
 #include <QRect>
 
 #include <kis_image.h>
@@ -31,7 +32,6 @@
 #include <KisDabRenderingExecutor.h>
 #include <KisDabCacheUtils.h>
 #include <KisRenderedDab.h>
-#include <kis_tool_freehand.h>
 #include "KisBrushOpResources.h"
 
 #include <KisRunnableStrokeJobData.h>
