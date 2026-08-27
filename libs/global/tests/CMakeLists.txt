@@ -217,3 +217,11 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisSampleRectIteratorTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisRectsGridContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalrectsgridobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisRectsGridContractTest PRIVATE kritaglobal_EXPORTS)

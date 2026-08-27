@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28251
+    "expectedMissingApis": 28242
   },
   "contracts": [
     {
@@ -2844,6 +2844,60 @@
       "apis": [
         "method:KisSampleRectIterator::KisSampleRectIterator(KisSampleRectIterator && rhs)",
         "method:KisSampleRectIterator::operator =(KisSampleRectIterator && rhs)"
+      ]
+    },
+    {
+      "target": "KisRectsGridContractTest",
+      "source": "libs/global/tests/KisRectsGridContractTest.cpp",
+      "test": "KisRectsGridContractTest::constructionAlignsAndInvalidSizeFallsBack",
+      "behavior": "矩形セル管理は指定した2の累乗幅へ矩形を拡張整列し、不正な幅では診断を1件残して幅64へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRectsGrid",
+        "method:KisRectsGrid::KisRectsGrid(int gridSize=64)",
+        "method:KisRectsGrid::alignRect(const QRect & rc) const"
+      ]
+    },
+    {
+      "target": "KisRectsGridContractTest",
+      "source": "libs/global/tests/KisRectsGridContractTest.cpp",
+      "test": "KisRectsGridContractTest::addRectReturnsOnlyNewCellsAndContainsCoverage",
+      "behavior": "非整列矩形の追加は交差する未読込セルだけを返し、追加済み範囲の包含判定を真にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRectsGrid::addRect(const QRect & rc)",
+        "method:KisRectsGrid::contains(const QRect & rc) const"
+      ]
+    },
+    {
+      "target": "KisRectsGridContractTest",
+      "source": "libs/global/tests/KisRectsGridContractTest.cpp",
+      "test": "KisRectsGridContractTest::removeRectRemovesOnlyFullyContainedCells",
+      "behavior": "非整列矩形の削除は完全に包含された読込済みセルだけを返して未読込へ変更する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRectsGrid::removeRect(const QRect & rc)"
+      ]
+    },
+    {
+      "target": "KisRectsGridContractTest",
+      "source": "libs/global/tests/KisRectsGridContractTest.cpp",
+      "test": "KisRectsGridContractTest::alignedOperationsReportChangedCells",
+      "behavior": "整列済み追加と削除は実際に状態が変わったセルだけを格子順で返し、同じ削除の再実行は空を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRectsGrid::addAlignedRect(const QRect & rc)",
+        "method:KisRectsGrid::removeAlignedRect(const QRect & rc)"
+      ]
+    },
+    {
+      "target": "KisRectsGridContractTest",
+      "source": "libs/global/tests/KisRectsGridContractTest.cpp",
+      "test": "KisRectsGridContractTest::boundingRectRetainsAllocatedAreaAfterRemoval",
+      "behavior": "全セル削除後も境界矩形が空にならず、最後に確保した写像領域を返す現行不具合を再現する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisRectsGrid::boundingRect() const"
       ]
     }
   ]
