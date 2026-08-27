@@ -79,6 +79,21 @@ set_target_properties(kritaglobalqpainterstatesaverobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobaldeletelaterwrapperobjects OBJECT
+    KisDeleteLaterWrapper.cpp
+)
+target_compile_definitions(kritaglobaldeletelaterwrapperobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaldeletelaterwrapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaldeletelaterwrapperobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaglobaldeletelaterwrapperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -97,7 +112,6 @@ set(kritaglobal_LIB_SRCS
     KisRollingMeanAccumulatorWrapper.cpp
     KisRollingSumAccumulatorWrapper.cpp
     kis_config_notifier.cpp
-    KisDeleteLaterWrapper.cpp
     KisUsageLogger.cpp
     KisSignalMapper.cpp
     KisRegion.cpp
@@ -137,6 +151,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalcumulativeundodataobjects>
     $<TARGET_OBJECTS:kritaglobaltemporaryfileconfigurationobjects>
     $<TARGET_OBJECTS:kritaglobalqpainterstatesaverobjects>
+    $<TARGET_OBJECTS:kritaglobaldeletelaterwrapperobjects>
 )
 
 target_sources(kritaglobal
