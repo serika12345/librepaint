@@ -13,6 +13,7 @@ fi
 python3 -m unittest discover -s scripts/tests -p 'test_*.py'
 python3 scripts/architecture/check_package_boundaries.py
 python3 scripts/architecture/check_public_contracts.py
+python3 scripts/architecture/check_public_api_contracts.py
 python3 scripts/check_governance.py
 
 shellcheck \

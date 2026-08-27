@@ -950,6 +950,7 @@
           python3
           ripgrep
           shellcheck
+          universal-ctags
         ];
       mkDocsShell =
         packageSet:

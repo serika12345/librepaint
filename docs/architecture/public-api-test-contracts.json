@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "goal": "Every public C++ API declaration has at least one explicit observable behavior contract before large-scale refactoring.",
+  "scope": {
+    "discovery": [
+      "production headers containing an explicit export macro",
+      "headers directly included by a different production component",
+      "headers named by a public-header compile contract"
+    ],
+    "declarations": [
+      "public classes, structs, unions, enums, enumerators, aliases, functions, methods, data members, and variables"
+    ],
+    "publicHeaderCount": 1544,
+    "publicHeaderFingerprint": "814b91750b0668df3c54a7b44d4cb6903452476e38225680a86c889ec2e237e7",
+    "publicApiCount": 29246,
+    "publicApiFingerprint": "cb1f4d8ad6df07ef464c5d446c7def87926a4120d036acce3208bba465759069"
+  },
+  "migration": {
+    "expectedMissingApis": 29153
+  },
+  "contracts": [
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::defaultSmoothingSettings",
+      "behavior": "新規平滑化設定が既定の方式、距離、筆圧、遅延、センサー値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSmoothingOptions",
+        "enum:KisSmoothingOptions::SmoothingType",
+        "enumerator:KisSmoothingOptions::SmoothingType::SIMPLE_SMOOTHING",
+        "method:KisSmoothingOptions::KisSmoothingOptions(bool useSavedSmoothing=true)",
+        "method:KisSmoothingOptions::delayDistance() const",
+        "method:KisSmoothingOptions::finishStabilizedCurve() const",
+        "method:KisSmoothingOptions::smoothPressure() const",
+        "method:KisSmoothingOptions::smoothingType() const",
+        "method:KisSmoothingOptions::smoothnessDistanceKeepAspectRatio() const",
+        "method:KisSmoothingOptions::smoothnessDistanceMax() const",
+        "method:KisSmoothingOptions::smoothnessDistanceMin() const",
+        "method:KisSmoothingOptions::stabilizeSensors() const",
+        "method:KisSmoothingOptions::tailAggressiveness() const",
+        "method:KisSmoothingOptions::useDelayDistance() const",
+        "method:KisSmoothingOptions::useScalableDistance() const"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::smoothingSettingsRoundTrip",
+      "behavior": "変更した平滑化設定を永続化し、新しい設定個体から同じ値として復元する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisSmoothingOptions::SmoothingType::WEIGHTED_SMOOTHING",
+        "method:KisSmoothingOptions::setDelayDistance(qreal value)",
+        "method:KisSmoothingOptions::setFinishStabilizedCurve(bool value)",
+        "method:KisSmoothingOptions::setSmoothPressure(bool value)",
+        "method:KisSmoothingOptions::setSmoothingType(SmoothingType value)",
+        "method:KisSmoothingOptions::setSmoothnessDistanceKeepAspectRatio(bool value)",
+        "method:KisSmoothingOptions::setSmoothnessDistanceMax(qreal value)",
+        "method:KisSmoothingOptions::setSmoothnessDistanceMin(qreal value)",
+        "method:KisSmoothingOptions::setStabilizeSensors(bool value)",
+        "method:KisSmoothingOptions::setTailAggressiveness(qreal value)",
+        "method:KisSmoothingOptions::setUseDelayDistance(bool value)",
+        "method:KisSmoothingOptions::setUseScalableDistance(bool value)"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::standardBrushSizes",
+      "behavior": "標準ブラシ寸法の増減が定義済み段階と上下限に従う。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolUtils::StandardBrushSizes",
+        "method:KisToolUtils::StandardBrushSizes::StandardBrushSizes(int minSize,int maxSize)",
+        "method:KisToolUtils::StandardBrushSizes::decreaseBrushSize(qreal size)",
+        "method:KisToolUtils::StandardBrushSizes::increaseBrushSize(qreal size)"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::factoryActions",
+      "behavior": "描画ツールのファクトリーが標準の寸法変更と回転アクション識別子を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolPaintFactoryBase",
+        "method:KisToolPaintFactoryBase::KisToolPaintFactoryBase(const QString & id)"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::noOpActivationPolicy",
+      "behavior": "無操作の起動方針がnullキャンバスを含む起動要求を副作用なく受理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:NoopActivationPolicy::onActivate(KoCanvasBase * canvas)",
+        "struct:NoopActivationPolicy"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::selectionModifierMapping",
+      "behavior": "選択修飾キーの組合せとmacOSのMetaキーを選択操作へ正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "function:mapSelectionToolModifiers(Qt::KeyboardModifiers modifiers,bool swapControlAndAlt)",
+        "function:normalizedSelectionModifierKey(const QKeyEvent * event)"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::rectangleConstraints",
+      "behavior": "矩形操作が縦横比と固定寸法の制約から正確な矩形を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRectangleInteraction",
+        "method:KisRectangleInteraction::begin(const QPointF & position)",
+        "method:KisRectangleInteraction::rectangle() const",
+        "method:KisRectangleInteraction::setConstraints(bool forceRatio,bool forceWidth,bool forceHeight,qreal ratio,qreal width,qreal height)",
+        "method:KisRectangleInteraction::update(const QPointF & position)"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::rectangleModifierModes",
+      "behavior": "Shift、Alt、Controlの変更が正方形化、移動、中心基準の矩形操作へ切り替わる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRectangleInteraction::center() const",
+        "method:KisRectangleInteraction::isTranslating() const",
+        "method:KisRectangleInteraction::setModifier(Qt::KeyboardModifier modifier,bool active)",
+        "method:KisRectangleInteraction::start() const"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::rectangleRotation",
+      "behavior": "中心回転モードが入力点から幾何学的な回転角を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRectangleInteraction::rotationAngle() const"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::outlineInputLifecycle",
+      "behavior": "輪郭入力の開始、点追加、カーソル更新、終了、完了、取消が一貫した状態と点列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOutlineInteraction",
+        "method:KisOutlineInteraction::addPoint(const QPointF & position)",
+        "method:KisOutlineInteraction::beginInput(const QPointF & position)",
+        "method:KisOutlineInteraction::cancel()",
+        "method:KisOutlineInteraction::cursorPosition() const",
+        "method:KisOutlineInteraction::endInput()",
+        "method:KisOutlineInteraction::finish()",
+        "method:KisOutlineInteraction::isActive() const",
+        "method:KisOutlineInteraction::isInputActive() const",
+        "method:KisOutlineInteraction::points() const",
+        "method:KisOutlineInteraction::updateCursor(const QPointF & position)"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::outlineContinuedInput",
+      "behavior": "継続輪郭入力が入力区間を接続し、点単位の取消と継続終了を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOutlineInteraction::canUndoPoint() const",
+        "method:KisOutlineInteraction::disableContinuedMode()",
+        "method:KisOutlineInteraction::enableContinuedMode()",
+        "method:KisOutlineInteraction::isContinuedMode() const",
+        "method:KisOutlineInteraction::undoPoint()"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::paintingInformationSettings",
+      "behavior": "描画情報設定が筆圧曲線、速度、傾き、時刻と座標変換を開始・ホバー情報へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintingInformationBuilder",
+        "member:KisPaintingInformationSettings::maximumSpeed",
+        "member:KisPaintingInformationSettings::pressureCurve",
+        "member:KisPaintingInformationSettings::speedSmoothingSamples",
+        "member:KisPaintingInformationSettings::tiltDirectionOffset",
+        "member:KisPaintingInformationSettings::useEventTimestamps",
+        "method:KisPaintingInformationBuilder::KisPaintingInformationBuilder()",
+        "method:KisPaintingInformationBuilder::hover(const QPointF & imagePoint,const KoPointerEvent * event,bool isStrokeStarted)",
+        "method:KisPaintingInformationBuilder::pressureToCurve(qreal pressure)",
+        "method:KisPaintingInformationBuilder::setSettings(const KisPaintingInformationSettings & settings)",
+        "method:KisPaintingInformationBuilder::startStroke(KoPointerEvent * event,int timeElapsed,const KoCanvasResourceProvider * manager)",
+        "struct:KisPaintingInformationSettings"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::deterministicSpeedSmoothing",
+      "behavior": "速度平滑化が固定座標と時刻列から決定的な速度を生成し、同時刻移動を有限値へ処理する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpeedSmoother",
+        "method:KisSpeedSmoother::KisSpeedSmoother()",
+        "method:KisSpeedSmoother::clear()",
+        "method:KisSpeedSmoother::getNextSpeed(const QPointF & point,ulong timestamp)",
+        "method:KisSpeedSmoother::setSettings(bool useEventTimestamps,int smoothingSamples)"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::polylinePointLifecycle",
+      "behavior": "折線操作が点追加、カーソル、終端吸着、閉路化、完了後状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPolylineInteraction",
+        "method:KisPolylineInteraction::addPoint(const QPointF & position)",
+        "method:KisPolylineInteraction::begin()",
+        "method:KisPolylineInteraction::closeSnappingActive() const",
+        "method:KisPolylineInteraction::dragEnd() const",
+        "method:KisPolylineInteraction::dragStart() const",
+        "method:KisPolylineInteraction::finish(bool closePolyline)",
+        "method:KisPolylineInteraction::isActive() const",
+        "method:KisPolylineInteraction::points() const",
+        "method:KisPolylineInteraction::updateCursor(const QPointF & position,bool closeSnappingActive)"
+      ]
+    },
+    {
+      "target": "TestToolCoreContract",
+      "source": "libs/tools/tests/TestToolCoreContract.cpp",
+      "test": "TestToolCoreContract::polylineUndoAndCancel",
+      "behavior": "折線操作が末尾点を順に取り消し、取消後に状態と点列を初期化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPolylineInteraction::canUndoPoint() const",
+        "method:KisPolylineInteraction::cancel()",
+        "method:KisPolylineInteraction::undoPoint()"
+      ]
+    }
+  ]
+}

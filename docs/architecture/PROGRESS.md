@@ -2,12 +2,12 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 19:34 JST
-- 状態: `planned`
-- 現在の検査段階: R2-G19 矩形選択による自由描画クリップ契約
+- 更新日時: 2026-08-27 20:25 JST
+- 状態: `in_progress`
+- 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: 固定自由描画を矩形選択へ制限し、選択内の画素結果と選択外の不変性を固定する。
+- 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
 ## 再開環境
 
@@ -2684,11 +2684,33 @@
   `FreehandStrokeContractTest.cpp`の書式検査、`nix develop .#test --command ./scripts/verify-quick`は
   macOSで成功した。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19a 全public API挙動契約の継続検査基盤で完了した作業
+
+- 公開マクロを持つ製品ヘッダー、異なる製品部品から直接includeされるヘッダー、公開ヘッダー構築契約の
+  和集合を公開API採取範囲とし、固定Nix環境の
+  Universal Ctags 6.2.1でpublicの型、列挙値、型別名、関数、メソッド、データ、変数を直接採取する。
+  現在の範囲は1,544ヘッダー、29,246 APIであり、製品のCMake構成やコンパイルを実行しない。
+- `docs/architecture/public-api-test-contracts.json`が公開面の件数と指紋、移行中の正確な未対応件数、
+  CTest対象、試験ソース、具体的な試験関数、観測挙動、分類、API識別子の対応を保持する。
+- `scripts/architecture/check_public_api_contracts.py`が公開面の変更、存在しないAPI、試験ソース・
+  試験関数の欠落、CMake所有不一致、未対応件数の同期漏れを検査する。`--report`は全未対応APIを
+  `build/`以下の作業用JSONへ出力する。
+- `TestToolCoreContract`の平滑化設定、ブラシ寸法、ツールファクトリー、選択修飾、矩形・輪郭・折線
+  操作、描画情報、速度平滑化の15試験関数を監査し、実際に観測する93 APIを維持契約として登録した。
+  ヘッダー構築だけの試験は挙動契約として数えていない。
+- 検査用依存は方針ソースから独立した製品構築を発生させず、Nixバイナリキャッシュから
+  Universal CtagsとJSON依存を取得した。製品ターゲットとCTest実行形式は構築していない。
+- `nix develop .#test --command python3 -m unittest scripts.tests.test_public_api_contracts
+  scripts.tests.test_public_contracts`は7件、直接の公開API契約検査は93件の対応と29,153件の
+  未対応基準、`nix develop .#test --command ./scripts/verify-quick`は39件の方針試験と全統治検査に
+  macOSで成功した。`nix flake check --no-build --all-systems --no-eval-cache`は全構成の評価に成功した。
+  `nix build .#checks.aarch64-darwin.governance --no-link`は独立した方針ソース検査に成功した。
+
 ## 次の操作
 
-R2-G19の実装前監査として、`FreehandStrokeContractTest`の変更なし計画、直接依存、空構築閉包と、
-選択マスクから描画資源までの所有者・利用元を確認する。R2-G13aの構築上限を維持できる場合だけ、
-画像座標に固定した矩形選択を値として渡す最小契約へ進む。
+R2-G19bの最初の責務単位を選ぶため、未対応29,153 APIの報告を`build/public-api-contracts/`へ生成し、
+所有CMake対象と既存CTestへ分類する。最初の対象は既存契約の対応付けで大きく未対応を減らせる
+小さな所有対象とし、変更なし計画、直接依存、空構築閉包を確認してから不足する挙動試験を追加する。
 
 ## R1-G5完了根拠
 

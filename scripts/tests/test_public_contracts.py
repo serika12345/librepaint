@@ -22,6 +22,34 @@ SPEC.loader.exec_module(check_public_contracts)
 
 
 class PublicContractTests(unittest.TestCase):
+    def test_exported_headers_are_in_the_public_api_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            (root / "libs/example").mkdir(parents=True)
+            (root / "libs/example/Public.h").write_text(
+                "class EXAMPLE_EXPORT Public {};\n", encoding="utf-8"
+            )
+            (root / "libs/example/Internal.h").write_text(
+                "class Internal {};\n", encoding="utf-8"
+            )
+            (root / "libs/example/HeaderOnly.h").write_text(
+                "class HeaderOnly {};\n", encoding="utf-8"
+            )
+            (root / "libs/consumer").mkdir(parents=True)
+            (root / "libs/consumer/use.cpp").write_text(
+                '#include "HeaderOnly.h"\n', encoding="utf-8"
+            )
+            with mock.patch.object(
+                check_public_contracts, "PUBLIC_HEADER_COMPILE_CONTRACTS", {}
+            ):
+                self.assertEqual(
+                    [
+                        "libs/example/HeaderOnly.h",
+                        "libs/example/Public.h",
+                    ],
+                    check_public_contracts.discover_public_headers(root),
+                )
+
     def test_external_header_without_publication_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -82,6 +110,7 @@ class PublicContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("check_public_contracts.py", verify_quick)
+        self.assertIn("check_public_api_contracts.py", verify_quick)
 
 
 if __name__ == "__main__":

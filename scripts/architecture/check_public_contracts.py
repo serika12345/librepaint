@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import posixpath
 import re
 import sys
 from pathlib import Path, PurePosixPath
@@ -31,6 +32,10 @@ PLUGIN_REGISTRATION_PATTERN = re.compile(
     r"\b(K_PLUGIN_(?:FACTORY|CLASS)_WITH_JSON)\s*\("
     r'[^,]+,\s*"([^"]+\.json)"',
     re.DOTALL,
+)
+PUBLIC_EXPORT_PATTERN = re.compile(
+    r"\b(?:[A-Z][A-Z0-9]*_)*[A-Z][A-Z0-9]*_EXPORT"
+    r"(?:_TEMPLATE|_INSTANCE)?\b"
 )
 
 PUBLIC_HEADER_OWNERS = (
@@ -242,6 +247,68 @@ def _declared_public_header_names(
             if name in headers_by_name:
                 declared.add(name)
     return declared
+
+
+def discover_public_headers(repository_root: Path) -> list[str]:
+    source_files = _source_files(repository_root)
+    headers_by_name: dict[str, list[str]] = {}
+    paths = {relative for relative, _path in source_files}
+    result: set[str] = set()
+    for relative, path in source_files:
+        if path.suffix not in HEADER_SUFFIXES:
+            continue
+        headers_by_name.setdefault(path.name, []).append(relative)
+        if PUBLIC_EXPORT_PATTERN.search(path.read_text(encoding="utf-8")):
+            result.add(relative)
+
+    def component(path: str) -> str:
+        parts = PurePosixPath(path).parts
+        if not parts:
+            return ""
+        depth = 3 if parts[0] == "plugins" else 2
+        return "/".join(parts[: min(depth, len(parts))])
+
+    def resolve_include(source: str, include: str) -> str | None:
+        candidates: set[str] = set()
+        if include in paths:
+            candidates.add(include)
+        local = posixpath.normpath(
+            str(PurePosixPath(source).parent / include)
+        )
+        if local in paths:
+            candidates.add(local)
+        suffix_matches = {
+            path
+            for path in headers_by_name.get(PurePosixPath(include).name, ())
+            if path == include or path.endswith(f"/{include}")
+        }
+        candidates.update(suffix_matches)
+        basename_matches = headers_by_name.get(PurePosixPath(include).name, ())
+        if not candidates and len(basename_matches) == 1:
+            candidates.add(basename_matches[0])
+        return next(iter(candidates)) if len(candidates) == 1 else None
+
+    for source, path in source_files:
+        source_component = component(source)
+        for include in INCLUDE_PATTERN.findall(path.read_text(encoding="utf-8")):
+            header = resolve_include(source, include)
+            if header is not None and component(header) != source_component:
+                result.add(header)
+
+    for contracts in PUBLIC_HEADER_COMPILE_CONTRACTS.values():
+        for relative in contracts:
+            contract = repository_root / relative
+            if not contract.is_file():
+                raise PublicContractError(
+                    f"public header compile contract is missing: {relative}"
+                )
+            for include in INCLUDE_PATTERN.findall(
+                contract.read_text(encoding="utf-8")
+            ):
+                matches = headers_by_name.get(PurePosixPath(include).name, ())
+                if len(matches) == 1:
+                    result.add(matches[0])
+    return sorted(result)
 
 
 def validate_public_headers(repository_root: Path) -> int:

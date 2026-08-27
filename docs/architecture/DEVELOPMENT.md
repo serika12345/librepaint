@@ -248,6 +248,8 @@ nix develop .#test --command \
   python3 scripts/architecture/check_package_boundaries.py
 nix develop .#test --command \
   python3 scripts/architecture/check_public_contracts.py
+nix develop .#test --command \
+  python3 scripts/architecture/check_public_api_contracts.py
 ```
 
 `docs/architecture/package-boundaries.json`は10責務、27の中核所有ターゲット、責務間で
@@ -258,6 +260,25 @@ nix develop .#test --command \
 公開マクロまたは公開ヘッダー構築契約を確認する。プラグインについては、登録マクロ、
 兄弟JSON、ID、サービス種別、CMake所有者の対応を確認する。公開ヘッダーまたは
 プラグイン登録を変更したときに更新する生成台帳はない。
+
+公開API挙動契約の検査は、公開マクロを持つ製品ヘッダー、異なる製品部品から直接includeされる
+ヘッダー、公開ヘッダー構築契約から対象を決め、
+固定Nix環境のUniversal Ctagsでpublic宣言を採取する。
+`docs/architecture/public-api-test-contracts.json`は、公開面の指紋、移行中の未対応件数、
+CTest対象・試験関数・観測挙動・分類・API識別子の対応を保持する。公開宣言を変更したときは
+公開面の指紋を、挙動契約を追加したときは対応と未対応件数を同じ変更で更新する。
+
+全未対応APIの作業用報告は構築ディレクトリーへ生成する。
+
+```sh
+nix develop .#test --command \
+  python3 scripts/architecture/check_public_api_contracts.py \
+    --report build/public-api-contracts/missing.json
+```
+
+報告は責務と構築対象ごとの次作業を選ぶ入力であり、契約の正本は製品ヘッダー、挙動試験、
+`public-api-test-contracts.json`である。対応追加前に対象CTestの変更なし計画、直接依存、
+空構築閉包を確認し、対象CTestと高速検査の成功後に未対応件数を縮小する。
 
 CMake構成を変更したときは、対象プラットフォームの構成入口を実行する。
 
