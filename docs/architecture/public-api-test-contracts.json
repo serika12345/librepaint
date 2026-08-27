@@ -16,7 +16,7 @@
     "publicApiFingerprint": "adad650ee6ad3fc29314c8fd2aef1eea9ff9fd385cce4860c92062f06755ae95"
   },
   "migration": {
-    "expectedMissingApis": 28427
+    "expectedMissingApis": 28424
   },
   "contracts": [
     {
@@ -2038,6 +2038,36 @@
         "class:KisDirtyStateSaver",
         "method:KisDirtyStateSaver::KisDirtyStateSaver(T resource)",
         "method:KisDirtyStateSaver::~KisDirtyStateSaver()"
+      ]
+    },
+    {
+      "target": "KisFutureUtilsTest",
+      "source": "libs/global/tests/KisFutureUtilsTest.cpp",
+      "test": "KisFutureUtilsTest::readyValueFuture",
+      "behavior": "左辺値から既に完了した値futureを生成し、元の値を取得できる。",
+      "classification": "maintained",
+      "apis": [
+        "function:kismpl::make_ready_future(T && value)"
+      ]
+    },
+    {
+      "target": "KisFutureUtilsTest",
+      "source": "libs/global/tests/KisFutureUtilsTest.cpp",
+      "test": "KisFutureUtilsTest::readyVoidFuture",
+      "behavior": "既に完了したvoid futureを生成し、待機せず正常に完了結果を取得できる。",
+      "classification": "maintained",
+      "apis": [
+        "function:kismpl::make_ready_future()"
+      ]
+    },
+    {
+      "target": "KisFutureUtilsTest",
+      "source": "libs/global/tests/KisFutureUtilsTest.cpp",
+      "test": "KisFutureUtilsTest::deferredContinuation",
+      "behavior": "入力futureの完了後に後続関数を遅延実行し、その戻り値を新しいfutureから取得できる。",
+      "classification": "maintained",
+      "apis": [
+        "function:kismpl::then(std::future<T> && future,Function && func)"
       ]
     }
   ]

@@ -16,3 +16,9 @@ kis_add_test(
     LINK_LIBRARIES kritaglobalfileutilsobjects Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisGlobalTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisFutureUtilsTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisFutureUtilsTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
