@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 07:34 JST
+- 更新日時: 2026-08-28 07:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3955,6 +3955,17 @@
   17入力である。対象実行と20回反復が成功し、公開API契約は861件、未対応基準は28,153件になった。
   製品実装、公開API、ABI、委譲・変換・破棄の規則は変更していない。Linuxと全ネイティブ検証は
   実行していない。
+
+## R2-G19b 代替実行可能ジョブ処理契約前の実装所有分離で完了した作業
+
+- `libs/image/KisFakeRunnableStrokeJobsExecutor.cpp`の実装所有を、`kritaimage`の一括ソース集合から
+  `kritaimagestrokejobobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象だけを
+  変更した。公開ヘッダー、クラス、関数、`kritaimage`のAPIとABIを維持し、`kritaimage`は新対象の
+  オブジェクトを従来どおり集約する。
+- 拡張後の対象はQt Core、`libs/global/kis_pointer_utils.h`、`libs/global/kis_assert.h`と生成済み公開
+  宣言だけへ直接接続し、`kritaglobal`ライブラリーへは接続しない。変更なし構築閉包は5工程・11入力で
+  ある。macOSで対象の限定構築が成功した。製品挙動、公開API、ABI、ジョブ実行・破棄・検査の規則は
+  変更していない。Linux、製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
 
 ## 次の操作
 

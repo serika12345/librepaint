@@ -47,6 +47,7 @@ add_library(kritaimagestrokejobobjects OBJECT
    KisRunnableStrokeJobDataBase.cpp
    KisRunnableStrokeJobData.cpp
    KisRunnableStrokeJobsInterface.cpp
+   KisFakeRunnableStrokeJobsExecutor.cpp
 )
 target_compile_definitions(kritaimagestrokejobobjects PRIVATE kritaimage_EXPORTS)
 target_include_directories(kritaimagestrokejobobjects
@@ -54,6 +55,8 @@ target_include_directories(kritaimagestrokejobobjects
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
       $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+   PRIVATE
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
 )
 target_link_libraries(kritaimagestrokejobobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
 set_target_properties(kritaimagestrokejobobjects PROPERTIES
@@ -240,7 +243,6 @@ set(kritaimage_LIB_SRCS
    kis_stroke_strategy_undo_command_based.cpp
    kis_simple_stroke_strategy.cpp
    KisRunnableBasedStrokeStrategy.cpp
-   KisFakeRunnableStrokeJobsExecutor.cpp
    kis_stroke_strategy.cpp
    kis_stroke.cpp
    kis_strokes_queue.cpp
