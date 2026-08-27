@@ -7,8 +7,7 @@
 
 #include "KisColord.h"
 
-#include <klocalizedstring.h>
-#include <kis_debug.h>
+#include <QDebug>
 
 
 #include "CdInterface.h"
@@ -118,10 +117,9 @@ QByteArray KisColord::deviceProfile(const QString &id, int p)
 
     if (dev) {
         if (dev->profiles.size() > 0) {
-            if (dev->profiles.size() < p) {
+            if (p >= 0 && p < dev->profiles.size()) {
                 profile = dev->profiles[p];
-            }
-            else {
+            } else {
                 profile = dev->profiles[0];
             }
         }
@@ -133,7 +131,7 @@ QByteArray KisColord::deviceProfile(const QString &id, int p)
                 ba = f.readAll();
             }
             else {
-                dbgKrita << "Could not load profile" << profile->title << profile->filename;
+                qWarning() << "Could not load profile" << profile->title << profile->filename;
             }
         }
     }
@@ -160,7 +158,7 @@ void KisColord::gotDevices(QDBusPendingCallWatcher *call)
 
     QDBusPendingReply<QList<QDBusObjectPath> > reply = *call;
     if (reply.isError()) {
-        dbgKrita << "Unexpected message" << reply.error().message();
+        qWarning() << "Unexpected message" << reply.error().message();
     } else {
         QList<QDBusObjectPath> devices = reply.argumentAt<0>();
         Q_FOREACH (const QDBusObjectPath &device, devices) {
@@ -211,7 +209,7 @@ void KisColord::deviceAdded(const QDBusObjectPath &objectPath, bool emitChanged)
                              objectPath.path(),
                              QDBusConnection::systemBus());
     if (!device.isValid()) {
-        dbgKrita << "Got an invalid device" << objectPath.path();
+        qWarning() << "Got an invalid device" << objectPath.path();
         return;
     }
 
@@ -271,4 +269,3 @@ void KisColord::addProfilesToDevice(Device *dev, QList<QDBusObjectPath> profiles
         dev->profiles << p;
     }
 }
-

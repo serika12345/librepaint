@@ -16,7 +16,7 @@
     "publicApiFingerprint": "dd9a0e6992b8ced00dc200b1fc4d0f1a5a58d85cfdfae7d2b401dce7ca58a08a"
   },
   "migration": {
-    "expectedMissingApis": 29143
+    "expectedMissingApis": 29126
   },
   "contracts": [
     {
@@ -308,6 +308,89 @@
       "classification": "maintained",
       "apis": [
         "function:createOptimizedClass(Args &&...param)"
+      ]
+    },
+    {
+      "target": "KisColorManagerPublicApiTest",
+      "source": "libs/color/tests/KisColorManagerPublicApiTest.cpp",
+      "test": "KisColorManagerPublicApiTest::deviceTypeValuesAreStable",
+      "behavior": "色管理装置種別の公開数値を画面、印刷機、カメラ、スキャナーの順で維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisColorManager::DeviceType",
+        "enumerator:KisColorManager::DeviceType::camera",
+        "enumerator:KisColorManager::DeviceType::printer",
+        "enumerator:KisColorManager::DeviceType::scanner",
+        "enumerator:KisColorManager::DeviceType::screen"
+      ]
+    },
+    {
+      "target": "KisColorManagerPublicApiTest",
+      "source": "libs/color/tests/KisColorManagerPublicApiTest.cpp",
+      "test": "KisColorManagerPublicApiTest::singletonAndDirectConstruction",
+      "behavior": "直接構築した色管理器は親を持たず、大域取得は同じ非null個体を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorManager",
+        "method:KisColorManager::KisColorManager()",
+        "method:KisColorManager::instance()"
+      ]
+    },
+    {
+      "target": "KisColorManagerPublicApiTest",
+      "source": "libs/color/tests/KisColorManagerPublicApiTest.cpp",
+      "test": "KisColorManagerPublicApiTest::missingDeviceHasNoNameOrProfile",
+      "behavior": "存在しない装置IDの表示名と任意番号のICCプロファイルを空として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorManager::deviceName(const QString & id)",
+        "method:KisColorManager::displayProfile(const QString & device,int profile=0) const"
+      ]
+    },
+    {
+      "target": "KisColorManagerPublicApiTest",
+      "source": "libs/color/tests/KisColorManagerPublicApiTest.cpp",
+      "test": "KisColorManagerPublicApiTest::deviceEnumerationUsesRequestedType",
+      "behavior": "既定の画面種別と明示した画面種別が一致し、種別別一覧に空IDや重複IDを含めない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorManager::devices(DeviceType type=screen) const"
+      ]
+    },
+    {
+      "target": "KisColordPublicApiTest",
+      "source": "libs/color/tests/KisColordPublicApiTest.cpp",
+      "test": "KisColordPublicApiTest::missingRecordsAreEmpty",
+      "behavior": "親付きcolord接続を構築でき、存在しない種別と装置の一覧、名前、プロファイルを空として返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColord",
+        "method:KisColord::KisColord(QObject * parent=0)"
+      ]
+    },
+    {
+      "target": "KisColordPublicApiTest",
+      "source": "libs/color/tests/KisColordPublicApiTest.cpp",
+      "test": "KisColordPublicApiTest::configuredRecordsReturnNamesAndProfiles",
+      "behavior": "私設DBus上の装置を種別で列挙し、表示名と指定ICCプロファイルを返し、範囲外番号は先頭へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorManager::deviceName(const QString & id)",
+        "method:KisColorManager::devices(DeviceType type=screen) const",
+        "method:KisColorManager::displayProfile(const QString & device,int profile=0) const",
+        "method:KisColord::deviceName(const QString & id) const",
+        "method:KisColord::deviceProfile(const QString & id,int profile)",
+        "method:KisColord::devices(const QString & type) const"
+      ]
+    },
+    {
+      "target": "KisColordPublicApiTest",
+      "source": "libs/color/tests/KisColordPublicApiTest.cpp",
+      "test": "KisColordPublicApiTest::changedSignalCarriesDeviceId",
+      "behavior": "装置変更信号が変更対象の装置IDを一つの文字列引数として通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColord::changed(const QString & device)"
       ]
     }
   ]

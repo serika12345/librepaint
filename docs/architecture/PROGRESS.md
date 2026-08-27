@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 20:46 JST
+- 更新日時: 2026-08-27 21:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2743,10 +2743,38 @@
   変更後の対象計画、直接の公開API契約検査はmacOSで成功した。Linuxと全ネイティブ検証は実行して
   いない。
 
+## R2-G19b 色管理public API契約で完了した作業
+
+- `libs/color/kis_color_manager.h`と`libs/color/colord/KisColord.h`の17 APIを7試験関数へ
+  対応付けた。装置種別の公開数値、直接構築と単一個体、存在しない装置、種別別一覧、DBus装置の
+  表示名と複数ICCプロファイル、装置変更信号を観測する。
+- `KisColorManagerPublicApiTest`を`libs/color/tests/`へ追加し、macOSと標準Linuxのダミー後段を
+  同じ契約で固定した。`KisColordPublicApiTest`は試験プロセス専用のDBusデーモンと
+  `FakeColordService`を起動し、実機のcolordサービス、装置、プロファイルに依存せずLinuxの
+  `-DHAVE_DBUS=ON`後段を検査する。
+- 契約追加前のmacOS `kritacolor`は、使用しない`kritaglobal`と`KF::I18n`を介して
+  `kritaversion`まで到達し、変更なし構築閉包が60工程、入力117件だった。
+  `libs/color/CMakeLists.txt`から不要なリンクを外し、
+  `libs/color/linux/kis_color_manager.cpp`と`libs/color/colord/KisColord.cpp`の不要include・診断依存を
+  Qtへ閉じた。macOS製品対象は5工程、入力9件、共通試験は9工程、入力16件になった。標準Linuxは
+  製品5工程、入力10件、共通試験9工程、入力18件である。
+- 任意colord構成はQt 6で未定義の`qt5_add_dbus_interface`により構成できなかった。
+  `libs/color/colord/CMakeLists.txt`をQt 6のDBus生成命令へ更新し、公開ヘッダーが要求するQt DBusと
+  生成ヘッダーのinclude経路を公開依存として明示した。`kritacolord`は17工程、入力36件、
+  `kritacolor`は22工程、入力44件、私設サービスを含む専用試験は30工程、入力59件で、
+  リポジトリ内依存は色管理責務内に閉じている。
+- 最初の正のDBus契約は、プロファイル1の要求に先頭プロファイルを返す逆条件を診断した。
+  `libs/color/colord/KisColord.cpp`は有効添字の要素を返し、負値と範囲外値を先頭へ安全に戻す。
+  標準Linuxは`HAVE_QT_DBUS`を検出しても`HAVE_DBUS`を自動設定せずダミー後段を維持するため、
+  自動選択の要否はR2-G19bの未確定設計として追跡する。
+- macOSの共通試験、`ssh nixos`上の標準Linux共通試験と任意colord試験は各20回成功した。
+  公開API契約は119件、未対応基準は29,126件になった。全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/color`の未対応17 APIについて、既存CTestが観測する挙動、所有対象の変更なし計画、直接依存、
-空構築閉包を確認する。構築範囲が色管理の責務を越える場合は、契約追加より先に所有単位を分ける。
+`qmlmodules/widgets`の未対応11 APIについて、既存CTestが観測する挙動、所有対象の変更なし計画、
+直接依存、空構築閉包を確認する。構築範囲がQMLウィジェット責務を越える場合は、契約追加より先に
+所有単位を分ける。
 
 ## R1-G5完了根拠
 
