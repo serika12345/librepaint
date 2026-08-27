@@ -14,13 +14,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts/architecture/extract_cmake_graph.py"
 FIXTURE_DIRECTORY = REPO_ROOT / "scripts/tests/fixtures/cmake-file-api"
-PLATFORM_PROFILES = {
-    "macos": "tdd-macos",
-    "linux": "tdd-linux",
-    "ios": "ios-device-incremental",
-    "android": "android-arm64-v8a-incremental",
-    "windows": "windows-x86_64-incremental",
-}
 SPEC = importlib.util.spec_from_file_location("extract_cmake_graph", SCRIPT_PATH)
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError(f"cannot import {SCRIPT_PATH}")
@@ -119,83 +112,6 @@ class ExtractCMakeGraphTests(unittest.TestCase):
                     platform="macos",
                     build_profile="tdd-macos",
                 )
-
-    def test_recorded_graphs_cover_every_platform(self) -> None:
-        for platform, build_profile in PLATFORM_PROFILES.items():
-            with self.subTest(platform=platform):
-                graph_path = (
-                    REPO_ROOT
-                    / "docs/architecture"
-                    / f"cmake-targets-{platform}.json"
-                )
-                graph = json.loads(graph_path.read_text(encoding="utf-8"))
-                targets = graph["targets"]
-
-                self.assertEqual(graph["platform"], platform)
-                self.assertEqual(graph["buildProfile"], build_profile)
-                self.assertEqual(
-                    [target["name"] for target in targets],
-                    sorted(target["name"] for target in targets),
-                )
-                for target in targets:
-                    self.assertNotRegex(
-                        target["name"], r"^(?:pofiles|tsfiles)-[0-9a-f]{32}$"
-                    )
-                    self.assertEqual(
-                        set(target),
-                        {"name", "type", "sourceDirectory", "dependencies"},
-                    )
-                    self.assertEqual(
-                        target["dependencies"], sorted(target["dependencies"])
-                    )
-
-    def test_recorded_macos_graph_contains_the_architecture_entry_points(self) -> None:
-        graph_path = REPO_ROOT / "docs/architecture/cmake-targets-macos.json"
-        graph = json.loads(graph_path.read_text(encoding="utf-8"))
-        targets = graph["targets"]
-        targets_by_name = {target["name"]: target for target in targets}
-
-        self.assertEqual(graph["platform"], "macos")
-        self.assertEqual(graph["buildProfile"], "tdd-macos")
-        self.assertEqual(
-            [target["name"] for target in targets],
-            sorted(target["name"] for target in targets),
-        )
-        self.assertEqual(targets_by_name["krita"]["type"], "EXECUTABLE")
-        self.assertNotIn("kritaui", targets_by_name)
-        self.assertEqual(
-            targets_by_name["kritaapplication"]["sourceDirectory"],
-            "libs/application",
-        )
-        self.assertEqual(
-            targets_by_name["kritaapplicationui"]["sourceDirectory"],
-            "libs/application",
-        )
-        self.assertIn(
-            "kritaapplication",
-            targets_by_name["kritaapplicationui"]["dependencies"],
-        )
-        self.assertNotIn(
-            "kritaapplicationui",
-            targets_by_name["kritaapplication"]["dependencies"],
-        )
-        self.assertEqual(
-            targets_by_name["kritaworkspacepresentation"],
-            {
-                "name": "kritaworkspacepresentation",
-                "type": "OBJECT_LIBRARY",
-                "sourceDirectory": "libs/canvas",
-                "dependencies": ["kritaimage", "kritaresources"],
-            },
-        )
-        self.assertEqual(
-            targets_by_name["kritaimage"]["sourceDirectory"], "libs/image"
-        )
-        self.assertEqual(
-            targets_by_name["krita_colorspaces_extensions"]["type"],
-            "MODULE_LIBRARY",
-        )
-
 
 if __name__ == "__main__":
     unittest.main()

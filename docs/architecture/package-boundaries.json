@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "responsibilities": [
+    {
+      "id": "application-configuration",
+      "ownerTargets": [
+        "kritaapplication"
+      ],
+      "allowedDependencies": [
+        "canvas-presentation",
+        "painting-rendering",
+        "resource-management"
+      ]
+    },
+    {
+      "id": "application-orchestration",
+      "ownerTargets": [
+        "krita",
+        "kritaapplicationui"
+      ],
+      "allowedDependencies": [
+        "application-configuration",
+        "canvas-presentation",
+        "document-lifecycle",
+        "import-export",
+        "input-interpretation",
+        "plugin-infrastructure",
+        "resource-management",
+        "tool-invocation"
+      ]
+    },
+    {
+      "id": "canvas-presentation",
+      "ownerTargets": [
+        "kritabasicflakes",
+        "kritacanvas",
+        "kritaflake",
+        "kritaworkspacepresentation"
+      ],
+      "allowedDependencies": [
+        "painting-rendering",
+        "resource-management"
+      ]
+    },
+    {
+      "id": "document-lifecycle",
+      "ownerTargets": [
+        "kritadocument",
+        "kritadocumentfiles",
+        "kritadocumentui"
+      ],
+      "allowedDependencies": [
+        "import-export",
+        "painting-rendering",
+        "plugin-infrastructure",
+        "resource-management"
+      ]
+    },
+    {
+      "id": "import-export",
+      "ownerTargets": [
+        "kritaimpex",
+        "kritaimpexui"
+      ],
+      "allowedDependencies": [
+        "application-configuration",
+        "painting-rendering",
+        "plugin-infrastructure",
+        "resource-management"
+      ]
+    },
+    {
+      "id": "input-interpretation",
+      "ownerTargets": [
+        "kritainput",
+        "kritainputui"
+      ],
+      "allowedDependencies": [
+        "canvas-presentation",
+        "tool-invocation"
+      ]
+    },
+    {
+      "id": "painting-rendering",
+      "ownerTargets": [
+        "kritacolor",
+        "kritaimage",
+        "kritalibbrush",
+        "kritapainting",
+        "kritapaintingmetadata",
+        "kritapaintingundo",
+        "kritapigment"
+      ],
+      "allowedDependencies": [
+        "plugin-infrastructure",
+        "resource-management"
+      ]
+    },
+    {
+      "id": "plugin-infrastructure",
+      "ownerTargets": [
+        "kritaplugin"
+      ],
+      "allowedDependencies": []
+    },
+    {
+      "id": "resource-management",
+      "ownerTargets": [
+        "kritaresources",
+        "kritaresourcestorage",
+        "kritaresourceui"
+      ],
+      "allowedDependencies": [
+        "plugin-infrastructure"
+      ]
+    },
+    {
+      "id": "tool-invocation",
+      "ownerTargets": [
+        "kritatools",
+        "kritatoolsui"
+      ],
+      "allowedDependencies": [
+        "canvas-presentation",
+        "document-lifecycle",
+        "painting-rendering",
+        "resource-management"
+      ]
+    }
+  ]
+}

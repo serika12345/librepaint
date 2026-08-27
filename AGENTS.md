@@ -258,21 +258,18 @@ their owners and reasons to change align.
 Source edits follow surrounding SPDX, licensing, formatting, and naming
 conventions. Formatting and renaming scope matches the active gate.
 
-## Governance and Baselines
+## Governance
 
 Governance checks encode repository-owned, reproducible contracts. Current
 contracts cover UTF-8 text representation, approved control and formatting
-characters, production-source size, shell scripts, architecture documents,
-links, and generated diagrams.
+characters, the compact package-boundary policy, current public headers and
+plugin registrations, shell scripts, architecture documents, links, and
+generated diagrams.
 
-The source-size baseline records the G0 maximum for each legacy large file.
-Each entry identifies its roadmap owner. Reductions update the recorded maximum
-in the same change. Reviewed exceptions contain a reason, tracked TODO,
-maximum extent, and removal condition.
-
-Architecture dependency contracts derive from CMake targets and actual
-includes. R1 records the current graph, defines the intended graph, and then
-turns each dependency direction and cycle rule into a reproducible contract.
+Architecture dependency contracts derive from the current CMake File API graph.
+Each platform configure checks target ownership, allowed dependency direction,
+and product-target cycles against the compact policy. Generated inventories and
+historical source-size ceilings are not continuing contracts after R1.
 
 ## Documentation
 

@@ -144,8 +144,8 @@
 状態は`completed`とする。
 
 文書クラスは`KisDocument`、外部ファイル層、操作管理、ノード・選択操作接続、Qtモデルと
-表示状態の具体所有へ接続する。現在の宣言、実装、所有ターゲット、責務は
-`ui-class-responsibilities.json`が記録する。
+表示状態の具体所有へ接続する。現在の所有ターゲットと責務は
+`package-boundaries.json`および各責務ディレクトリーのCMake定義が示す。
 
 `KisDocument.cpp`にある130の一意なメソッド定義を8関心へ分類した。文書識別と状態は
 `kritadocument`、具体的なファイル処理は`kritadocumentfiles`、文書表示は`kritadocumentui`、
@@ -173,13 +173,12 @@
 
 各実装検査段階は、対象の特性試験で初期診断を確認してから最小の移動を行う。
 対象CTest、`verify-quick`、macOSとLinuxの全ネイティブ試験を実行する。CMake境界を変更する
-P1からP3ではmacOS、Linux、iOS、Android、Windowsの対象ターゲットを構築し、5構成の
-CMake台帳、依存行列、循環、公開面を同一コミットから再生成する。
-P4は製品ソースとCMake境界を変更せず、評価台帳の全件被覆、実装との一致、抽象化判断を
-専用単体試験と`verify-quick`で検証する。
+P1からP3ではmacOS、Linux、iOS、Android、Windowsの対象ターゲットを構築し、各構成直後の
+CMake File API応答で依存方向と循環を検査する。P4は製品ソースとCMake境界を変更せず、
+実装との一致と抽象化判断を対象試験と`verify-quick`で検証する。
 
 ## 保守
 
-各検査段階の完了時に、この文書、`TODO.md`、`PROGRESS.md`、責務台帳、公開面台帳、
-再配置計画、CMake台帳を同じ変更で更新する。新しいパッケージまたは抽象を提案する場合は、
+各検査段階の完了時に、この文書、`TODO.md`、`PROGRESS.md`、パッケージ境界方針を
+同じ変更で更新する。新しいパッケージまたは抽象を提案する場合は、
 具体的な起点、現在の依存問題、製品利用元、製品実装、完了時に消える依存辺を記録する。

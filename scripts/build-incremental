@@ -86,6 +86,7 @@ esac
 build_dir="$repo_root/build/$preset"
 marker_path="${LIBREPAINT_NATIVE_MARKER_PATH:-$build_dir/.librepaint-incremental-config}"
 compile_commands_link_path="${LIBREPAINT_COMPILE_COMMANDS_LINK_PATH:-$repo_root/compile_commands.json}"
+boundary_checker="$repo_root/scripts/architecture/check_package_boundaries.py"
 native_config_fingerprint="$({
     printf 'schema=1\n'
     printf 'preset=%s\n' "$preset"
@@ -107,12 +108,25 @@ sync_native_compile_commands() {
     ln -sfn "$build_dir/compile_commands.json" "$compile_commands_link_path"
 }
 
+prepare_boundary_query() {
+    python3 "$boundary_checker" --prepare-query "$build_dir"
+}
+
+check_native_boundaries() {
+    python3 "$boundary_checker" \
+        --reply-directory "$build_dir/.cmake/api/v1/reply" \
+        --platform "$platform" \
+        --build-profile "$preset"
+}
+
 configure_native() {
     if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
         echo "native configuration uses the direnv or nix develop .#test environment" >&2
         exit 1
     fi
+    prepare_boundary_query
     cmake --preset "$preset"
+    check_native_boundaries
     mkdir -p "$(dirname -- "$marker_path")"
     {
         printf 'schema=1\n'
@@ -155,6 +169,7 @@ case "$operation" in
         else
             cmake --build --preset "$preset"
         fi
+        check_native_boundaries
         ;;
     bootstrap)
         (( $# <= 1 )) || usage
@@ -164,6 +179,7 @@ case "$operation" in
         else
             cmake --build --preset "$preset"
         fi
+        check_native_boundaries
         ;;
     verify)
         (( $# == 0 )) || usage

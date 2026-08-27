@@ -48,6 +48,7 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_directory:
             temp_root = pathlib.Path(temp_directory)
             command_log = temp_root / "commands"
+            boundary_log = temp_root / "boundaries"
             compile_commands_link = temp_root / "compile_commands.json"
             fake_bin = temp_root / "bin"
             fake_bin.mkdir()
@@ -57,9 +58,16 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                 encoding="utf-8",
             )
             fake_cmake.chmod(0o755)
+            fake_python = fake_bin / "python3"
+            fake_python.write_text(
+                f"#!{BASH}\nprintf '%s\\n' \"$*\" >>\"$BOUNDARY_LOG\"\n",
+                encoding="utf-8",
+            )
+            fake_python.chmod(0o755)
             environment = os.environ.copy()
             environment.update(
                 {
+                    "BOUNDARY_LOG": str(boundary_log),
                     "COMMAND_LOG": str(command_log),
                     "LIBREPAINT_NATIVE_MARKER_PATH": str(
                         temp_root / "native-config"
@@ -81,6 +89,18 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             self.assertEqual(
                 command_log.read_text(encoding="utf-8").strip(),
                 f"--preset tdd-{expected_platform}",
+            )
+            boundary_commands = boundary_log.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(
+                boundary_commands[0],
+                f"{REPO_ROOT / 'scripts/architecture/check_package_boundaries.py'} "
+                f"--prepare-query {REPO_ROOT / 'build' / f'tdd-{expected_platform}'}",
+            )
+            self.assertIn(
+                f"{REPO_ROOT / 'scripts/architecture/check_package_boundaries.py'} "
+                f"--reply-directory {REPO_ROOT / 'build' / f'tdd-{expected_platform}' / '.cmake/api/v1/reply'} "
+                f"--platform {expected_platform} --build-profile tdd-{expected_platform}",
+                boundary_commands[1],
             )
             self.assertTrue(compile_commands_link.is_symlink())
             self.assertEqual(

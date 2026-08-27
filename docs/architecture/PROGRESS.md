@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 01:28 JST
+- 更新日時: 2026-08-27 12:20 JST
 - 状態: `planned`
 - 現在の検査段階: R2 現行挙動の最初の契約棚卸し
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,11 +16,12 @@
   `verify`を読み込む。
 - DarwinホストがmacOSとiOS、`ssh nixos`で接続するx86_64 NixOSホストがLinux、
   Android、Windowsの構成を担当する。
-- 全プラットフォームの実構成差分は、両ホストの清浄な作業ツリーを同じコミットへ
-  揃え、`scripts/architecture/verify_cmake_graphs.py`から5構成を並行検証する。
-- CMake File API `codemodel-v2`の台帳は
-  `docs/architecture/cmake-targets-<platform>.json`、全構成の比較結果は
-  `docs/architecture/cmake-target-matrix.json`に記録する。
+- `docs/architecture/package-boundaries.json`が10責務、27中核所有ターゲット、許可する
+  責務間依存だけを保持する。
+- 各プラットフォームの`build-incremental <platform> configure`は、CMake File APIの
+  問い合わせを作成し、構成直後の実グラフで所有ターゲット、依存方向、製品循環を検査する。
+- `verify-quick`は境界方針と、現在の公開ヘッダー、プラグイン登録、テキスト、スクリプト、
+  文書を検査する。
 
 ## R1-G1で完了した作業
 
@@ -2107,6 +2108,50 @@
   成功した。文書検査はMarkdown、43リンク、3件のD2と生成済みSVGの一致を確認した。
   `nix develop .#test --command ./scripts/verify`は全製品と試験の構築、CTest 354件に成功し、
   `nix flake check --no-build --all-systems --no-eval-cache`は全Nix出力の評価に成功した。
+
+## R1完了後の外部検査整理で完了した作業
+
+- R1の移行状態を複製していた
+  `docs/architecture/{allowed-package-dependencies,package-responsibilities}.json`、
+  `docs/architecture/cmake-target-matrix.json`、
+  `docs/architecture/cmake-targets-{macos,linux,ios,android,windows}.json`を、
+  `docs/architecture/package-boundaries.json`と
+  `scripts/architecture/check_package_boundaries.py`へ置き換えた。生成台帳の保守を廃止し、
+  方針は10責務、27中核所有ターゲット、許可依存だけに縮小した。実依存と全製品循環は
+  各プラットフォームのCMake構成直後にFile API応答から検査する。
+- `docs/architecture/public-surface-inventory.json`、
+  `docs/architecture/ui-class-responsibilities.json`、
+  `docs/architecture/ui-tool-class-responsibilities.json`を、現在の製品ソースとCMake定義を読む
+  `scripts/architecture/check_public_contracts.py`へ置き換えた。公開ヘッダーと172件の
+  プラグイン登録について、生成した全件複製を持たずに同じ公開・登録契約を検査する。
+- `docs/architecture/source-size-baseline.json`と行数上限検査を削除した。R1-G6hを削除条件と
+  していた例外は完了済みであり、履歴上限は製品挙動、現在の構造、再現可能性を保護しない。
+  `scripts/check_governance.py`はUTF-8、制御文字、双方向書式文字の検査だけを保持する。
+- `scripts/architecture/{regenerate_cmake_graph,regenerate_cmake_graph_matrix,verify_cmake_graphs}.py`、
+  `scripts/architecture/{update_allowed_package_dependencies,update_package_responsibility_map}.py`、
+  `scripts/architecture/{update_plugin_inventory,update_public_header_inventory}.py`、
+  `scripts/architecture/{update_ui_class_responsibilities,update_ui_tool_class_responsibilities}.py`、
+  `scripts/architecture/{check_allowed_package_dependencies,check_package_dependencies}.py`、
+  `scripts/architecture/{check_package_responsibility_map,check_public_surface_inventory}.py`、
+  `scripts/architecture/check_structural_dependencies.py`を退役した。
+  `scripts/architecture/extract_cmake_graph.py`はFile API応答の直接検査で再利用し、固定応答の
+  抽出契約を保持した。
+- 退役した検査器専用の8試験を削除し、境界方針、実グラフ、公開ヘッダー、プラグイン登録、
+  テキスト診断を9件の小さいスクリプト試験へ置き換えた。文書検査内でも実行していた
+  `scripts/docs/*.sh`の重複したShellCheck呼出しを`verify-quick`から除いた。
+- `scripts/build-incremental`、iOS、Android、Windowsの増分構築入口へFile APIの問い合わせと
+  実グラフ検査を接続した。`scripts/verify`は同じネイティブ構成入口を利用する。
+- `nix develop .#test --command ./scripts/verify-quick`は、スクリプト試験33件、境界方針10責務、
+  外部利用ヘッダー532件、プラグイン登録172件、テキスト、ShellCheck、Markdown、32リンク、
+  D2生成物の検査に成功した。
+- `nix develop .#test --command ./scripts/verify`は、macOSの実グラフ681ターゲット、全製品と
+  試験の構築、CTest 354件に成功した。`./scripts/build-incremental ios configure`はiOSの
+  実グラフ614ターゲットと既存の配布契約監査に成功した。
+- `nix flake check --no-build --all-systems --no-eval-cache`は全Nix出力の評価に成功した。
+  `nix build --no-link .#checks.aarch64-darwin.governance`は新規ファイルをGit入力へ含めた状態で
+  軽量Nix検査の隔離構築に成功した。
+- Linux、Android、Windowsの実構成はx86_64 Linuxホストへ同じ変更を配置した後に実行する。
+  3入口のShellCheck、接続試験、Nix出力評価は成功している。
 
 ## 次の操作
 

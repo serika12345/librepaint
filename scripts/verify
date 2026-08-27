@@ -25,7 +25,7 @@ case "$(uname -s)" in
         ;;
 esac
 
-cmake --preset "$preset"
+./scripts/build-incremental native configure
 cmake --build --preset "$preset"
 ctest --preset "$preset"
 

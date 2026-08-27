@@ -46,6 +46,7 @@ install_dir="$build_dir/install"
 marker_path="$build_dir/.librepaint-incremental-config"
 cache_root="${LIBREPAINT_CACHE_ROOT:-$repo_root/.cache/librepaint}"
 target="${1:-all}"
+boundary_checker="$repo_root/scripts/architecture/check_package_boundaries.py"
 
 if [[ "$build_dir" != /* ]]; then
     build_dir="$repo_root/$build_dir"
@@ -83,6 +84,7 @@ configure_tree() {
         exit 1
     fi
 
+    python3 "$boundary_checker" --prepare-query "$build_dir"
     mapfile -t cmake_args <"$LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE"
     cmake -S "$repo_root" -B "$build_dir" -G Ninja \
         "${cmake_args[@]}" \
@@ -93,6 +95,11 @@ configure_tree() {
         -DCMAKE_C_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
         -DCMAKE_CXX_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
         -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
+
+    python3 "$boundary_checker" \
+        --reply-directory "$build_dir/.cmake/api/v1/reply" \
+        --platform android \
+        --build-profile android-arm64-v8a-incremental
 
     grep -Fq 'kritawebpimport' "$build_dir/build.ninja"
     grep -Fq 'kritawebpexport' "$build_dir/build.ninja"

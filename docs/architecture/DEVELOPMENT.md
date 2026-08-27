@@ -119,10 +119,10 @@ nix develop .#test --command ./scripts/verify-quick
 
 次を検査する。
 
-- 製品ソースの行数契約と例外
 - UTF-8、制御文字、双方向書式文字のテキスト契約
 - 運用検査スクリプト自身の単体試験
-- 10責務の所有、依存方向、循環、公開ヘッダー境界
+- 10責務の所有と許可依存方針
+- 現在の公開ヘッダーとプラグイン登録
 - シェルスクリプト
 - アーキテクチャ文書、リンク、D2、生成済みSVG
 
@@ -204,214 +204,46 @@ nix build --no-link .#checks.x86_64-linux.governance
 `LIMIT_LONG_TESTS=ON`、`CRASH_ON_SAFE_ASSERTS=ON`を使用する。各BROKEN試験の
 原因、決定性、比較規則を確認し、通常検査へ復旧する。
 
-## CMakeターゲット台帳
+## パッケージ境界と公開契約
 
-macOS、Linux、iOS、Android、Windowsの現在のターゲット、種別、定義場所、直接
-リンク依存は`docs/architecture/cmake-targets-<platform>.json`へ同じ形式で記録する。
-各再生成コマンドはFile APIの`codemodel-v2`問い合わせを対象の永続構築木へ作成し、
-構成を同期して台帳を更新する。macOSとiOSはDarwinホストで実行する。
+高速検査は、手動で保守する最小の方針と現在の製品ソースを検査する。
 
 ```sh
 nix develop .#test --command \
-  ./scripts/architecture/regenerate_cmake_graph.py macos
+  python3 scripts/architecture/check_package_boundaries.py
 nix develop .#test --command \
-  ./scripts/architecture/regenerate_cmake_graph.py ios
+  python3 scripts/architecture/check_public_contracts.py
 ```
 
-Linux、Android、Windowsはx86_64 Linuxホストで実行する。
+`docs/architecture/package-boundaries.json`は10責務、27の中核所有ターゲット、責務間で
+許可する直接リンク方向を保持する。責務や所有ターゲットを変更するときは、この方針を
+同じ変更で更新する。高速検査は所有の一意性、参照整合性、許可方向の非循環性を確認する。
+
+公開契約の検査は製品ソースを直接走査し、所有パッケージの外から利用されるヘッダーの
+公開マクロまたは公開ヘッダー構築契約を確認する。プラグインについては、登録マクロ、
+兄弟JSON、ID、サービス種別、CMake所有者の対応を確認する。公開ヘッダーまたは
+プラグイン登録を変更したときに更新する生成台帳はない。
+
+CMake構成を変更したときは、対象プラットフォームの構成入口を実行する。
 
 ```sh
-for platform in linux android windows; do
-  nix develop .#test --command \
-    ./scripts/architecture/regenerate_cmake_graph.py "$platform"
-done
+build-incremental native configure
+build-incremental ios configure
+build-incremental linux configure
+build-incremental android configure
+build-incremental windows configure
 ```
 
-生成した5台帳を一つの変更へ集約した後、共通ターゲット、条件付きターゲット、
-構成差を持つターゲットの行列を更新する。
+各入口は、CMake File APIの`codemodel-v2`問い合わせを永続構築木へ作成してから構成し、
+生成直後の応答に対して次を検査する。
 
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/regenerate_cmake_graph_matrix.py
-```
+- 方針にある中核所有ターゲットが存在する。
+- 中核所有ターゲットの直接リンクが許可した責務方向へ向かう。
+- 試験ターゲットを除く全製品ターゲットが循環を持たない。
 
-CMakeターゲットまたは`target_link_libraries`を変更したときは5台帳と差分行列を
-同じ変更へ含める。記録済み台帳と各実構成の一致は、同じコミットを指す清浄なDarwin
-作業ツリーとx86_64 Linux作業ツリーを用意し、次のコマンドで同時に確認する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/verify_cmake_graphs.py \
-    --remote-host nixos \
-    --remote-repository /path/to/clean/librepaint
-```
-
-この入口はmacOSとiOSを手元のDarwinホスト、Linux、Android、WindowsをSSH先の
-x86_64 Linuxホストで並行して構成し、5台帳のバイト単位の一致を確認してから差分
-行列を確認する。コミットまたは作業ツリーがホスト間で異なる場合は構成開始前に
-診断する。
-
-`verify-quick`は固定File API応答を使用し、抽出形式、直接依存の選択、決定的な
-整列、差分診断、5台帳と差分行列の形式、同時検証入口のホスト割り当てを検査する。
-実構成との一致は上記の全プラットフォーム同時検証で検査する。
-
-## 公開面台帳
-
-`docs/architecture/public-surface-inventory.json`は、公開ヘッダー、主要クラス、
-プラグインを所有ターゲットと対応プラットフォームへ接続する。次のコマンドは台帳の
-公開ヘッダー集合を製品ソースから再生成する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_public_header_inventory.py
-```
-
-次のコマンドは製品プラグインについて、登録マクロ、兄弟JSONメタデータ、CMake所有者、
-5構成の対応状況、サービス種別の機能所有者を再生成する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_plugin_inventory.py
-```
-
-次のコマンドは`libs/ui`直下の公開クラスについて、記録済みの責務分類を保持しながら
-宣言と実装単位を更新する。新しい公開クラスには責務分類を追加してから実行する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_ui_class_responsibilities.py
-```
-
-次のコマンドは`libs/ui/tool`以下の公開クラスについて、記録済みの責務分類を保持しながら
-宣言、実装単位、ツールディレクトリー外の全利用ソースを更新する。新しい公開クラスには
-責務分類を追加してから実行する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_ui_tool_class_responsibilities.py
-```
-
-次のコマンドは台帳の形式と整列に加え、リポジトリおよび5構成のCMakeターゲット台帳を
-根拠として内容を検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_public_surface_inventory.py
-```
-
-`docs/architecture/package-responsibilities.json`は、記録済みの責務分類を保持しながら、
-公開ヘッダー、クラス、プラグインと、27の中核所有ターゲットの直接依存および利用元を
-各台帳から再生成する。
-全件クラス台帳の範囲外にある共有ターゲット内の実装は、`reviewedSourcePaths`へ
-製品ソースの正規パスを記録し、一つの責務へ帰属させる。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_package_responsibility_map.py
-```
-
-次のコマンドは、10責務の参照と割当て、5構成の対象ターゲット、生成済みの根拠が正本の
-台帳と一致することを検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_package_responsibility_map.py
-```
-
-`docs/architecture/allowed-package-dependencies.json`は、10責務の階層、15公開接続面、
-接続面単位の許可依存を保持する。次のコマンドは、27の中核所有ターゲット間の直接リンクを
-責務候補へ射影し、同一責務内、許可方向、許可方向外へ分類する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_allowed_package_dependencies.py
-```
-
-次のコマンドは責務参照、公開接続面、階層方向、有向非巡回性と、現在リンクの全分類を
-検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_allowed_package_dependencies.py
-```
-
-次のコマンドは、許可方向外の責務対を製品ソースの直接includeへ照合し、確認済み違反と
-未確定射影が各0件であることを検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_package_dependencies.py
-```
-
-次のコマンドは、責務射影が0件であること、27の中核所有ターゲットと全製品ターゲットが
-5構成で有向非巡回グラフを形成すること、パッケージ外から参照されるヘッダーが公開面に
-含まれることを検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_structural_dependencies.py
-```
-
-既存の公開大域C++識別子は確立済みのAPI・ABI名として維持する。新しい公開APIは
-[アーキテクチャガイドの責務別所有先](README.md#責務別の所有先)が示す名前空間へ置き、
-所有ターゲットの公開面へ登録する。`kritaapplicationui`の`KRITAUI_EXPORT`と生成ヘッダーの
-`kritaui`基底名は既存ABIの公開名である。
-
-検査は次の関係を確認する。
-
-- `publicHeaderPolicy`が対象ソース、拡張子、試験経路の除外、公開根拠の種類を固定する。
-- `kritacanvas`、`kritadocument`、`kritadocumentfiles`、`kritadocumentui`、`kritaimage`、
-  `kritaimpex`、`kritaimpexui`、`kritaapplication`、`kritaapplicationui`について、公開マクロまたは
-  公開ヘッダー構築契約を持つ製品ヘッダーと、所有元外から直接includeされる製品ヘッダーの
-  和集合が、欠落と余分な項目なしで記録されている。
-- 所有ターゲットが記録した全プラットフォームに存在し、宣言と実装が所有元の
-  ソースディレクトリーに属する。
-- 公開根拠が公開マクロの宣言、公開ヘッダー構築契約、または所有元外の全利用ソースによる
-  直接includeと一致する。
-- 詳細な利用根拠のソースが利用元ターゲットに属し、対象ヘッダーを実際にincludeする。
-- 主要クラスの宣言、実装、公開ヘッダー、責務根拠が有効な参照を持つ。
-- 分類対象の公開UIクラスが欠落なく記録され、宣言種別、対応する実装単位、
-  所有ターゲット、6種類の責務領域がソースと一致する。
-- `libs/ui/tool`以下の公開クラスが欠落なく記録され、宣言種別、対応する実装単位、
-  ディレクトリー外の全利用ソース、所有ターゲット、5種類の責務領域がソースと一致する。
-- 製品プラグインが欠落なく記録され、ID、実装、兄弟JSON、登録マクロ、CMake所有者、
-  対応構成、サービス種別、機能所有領域、実行時の読込元が一致する。
-- JSONのライブラリー名から決まる157件と、CMakeソース所属で所有者を固定する15件が、
-  記録済みの所有根拠と一致する。
-- パッケージ責務地図の10責務が、UIクラス領域、UIツールクラス領域、主要クラス、
-  プラグイン機能所有領域を各一回割り当てる。
-- UIクラス全件分類の範囲外にある審査済み公開ヘッダーが、一つの責務へ割り当てられる。
-- 27の中核所有ターゲットが5構成のいずれかに存在し、定義場所、種別、製品ターゲットへの
-  直接依存、製品ターゲットからの利用元がCMakeターゲット台帳の和集合と一致する。
-- 全プラグイン登録を所有する発見機構が一つ存在し、各機能責務のプラグインIDと
-  サービス種別が公開面台帳の機能所有領域と一致する。
-- 10責務の15公開接続面が目的、寿命、エラー動作を持ち、許可依存が既知の接続面を参照する。
-- 許可依存が自己参照を持たず、常に下位層へ向かい、有向非巡回グラフを形成する。
-- 27ターゲット間の88リンクが欠落なく射影され、同一責務内16候補、許可方向72候補、
-  許可方向外0候補へ分類される。
-- 許可方向外の責務対、未確定射影、直接includeが各0件である。
-- 27中核ターゲットと全製品構築ターゲットが、5構成すべてで強連結成分0件を維持する。
-- 15所有ターゲットの未宣言内部ヘッダーとパッケージ外参照が各0件である。
-
-公開ヘッダーの追加、削除、公開マクロ、またはパッケージ外includeを変更した場合は更新器を
-実行し、台帳を同じ変更へ含める。`libs/ui`直下の公開クラス、その実装ファイル、または
-責務分類を変更した場合はUIクラス責務台帳の更新器も実行する。共有ターゲット内にあり
-全件クラス台帳の範囲外となるソースの責務を変更した場合は、`reviewedSourcePaths`も更新する。
-`libs/ui/tool`以下の公開
-クラス、実装ファイル、ディレクトリー外の直接include、または責務分類を変更した場合は
-UIツールクラス責務台帳の更新器も実行する。プラグインの登録実装、JSON、CMake所有者、
-サービス種別を変更した場合はプラグイン台帳の更新器も実行する。責務、所有ソース、
-所有ターゲット、公開面またはCMake直接依存を変更した場合は、先行する該当台帳に続けて
-パッケージ責務地図と許可依存方針の更新器を順に実行する。責務層、公開接続面、許可依存を
-変更した場合は方針を編集してから許可依存方針の更新器を実行する。対象ソース、include、
-公開ヘッダー、クラス責務またはCMake直接依存を変更した場合は、先行する台帳更新後に
-パッケージ依存と構造依存の直接検査を実行する。責務の所有、公開面または直接依存が
-変わる場合は、責務地図と許可依存方針を同じ変更で更新する。
-`verify-quick`は6更新器の`--check`、公開面、責務地図、許可依存、直接依存、構造依存、
-統治検査と、欠落、所有者、公開根拠、利用根拠、責務分類、ターゲット関係、
-依存方向、循環、未分類候補の診断例を実行する。
-`scope.publicHeaders`、`scope.plugins`、UI直下クラス、UIツールクラスは全件であり、
-`scope.majorClasses`は3件の詳細な代表記録を維持する。
+`native`はmacOSまたはLinuxの現在ホスト、`ios`はDarwinホスト、
+`android`と`windows`はx86_64 Linuxホストで実行する。構成時の応答をその場で検査するため、
+ホスト間で生成JSONを同期する保守作業は発生しない。
 
 ## テスト駆動開発
 
@@ -427,24 +259,7 @@ UIツールクラス責務台帳の更新器も実行する。プラグインの
 スレッド条件と比較方法を試験データに記録する。基準画像の受け入れ時は、差分を
 維持する契約、既知不具合、設計課題のどれに分類したかを同じ変更で記録する。
 
-## ソース行数基準
-
-`docs/architecture/source-size-baseline.json`は、運用基盤導入時点で1,000行を
-超えていた製品ソースの最大行数を記録する。高速検査は、各ファイルを1,000行の
-標準最大値、記録済み最大値、審査済み例外から該当する契約へ対応付ける。
-
-ファイル縮小時は記録値も縮小し、1,000行以下では基準項目を完了扱いとして
-削除する。新しい例外は、理由、対応TODO、削除条件、最大行数を`exceptions`へ
-記録する。
-
-現状を意図的に再採取する保守コマンドは次のとおりである。
-
-```sh
-nix develop .#test --command \
-  ./scripts/check_governance.py --update-source-size-baseline
-```
-
-R1またはR6で責務分割の基準を再設定する審査時に、このコマンドで現状を採取する。
+## テキスト表現
 
 テキスト契約は、タブ、改行、通常の内容文字、翻訳で使うjoiner、左書き・右書き
 mark、ファイル先頭のUTF-8 BOMを扱う。検査はASCII制御文字と、表示順へ作用する
