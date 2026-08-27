@@ -193,3 +193,11 @@ kis_add_test(
         Boost::boost
 )
 target_include_directories(KisReadWriteLockPolicyTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisLocklessStackContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Threads::Threads
+)
+target_include_directories(KisLocklessStackContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

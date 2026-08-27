@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28278
+    "expectedMissingApis": 28269
   },
   "contracts": [
     {
@@ -2709,6 +2709,51 @@
         "method:NoLockPolicy::FakeLocker::FakeLocker(QReadWriteLock *)",
         "struct:NoLockPolicy",
         "struct:NoLockPolicy::FakeLocker"
+      ]
+    },
+    {
+      "target": "KisLocklessStackContractTest",
+      "source": "libs/global/tests/KisLocklessStackContractTest.cpp",
+      "test": "KisLocklessStackContractTest::startsEmptyAndReleasesStoredValues",
+      "behavior": "新規スタックは件数0の空状態であり、破棄時にはpopされていない格納値を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLocklessStack",
+        "method:KisLocklessStack::KisLocklessStack()",
+        "method:KisLocklessStack::isEmpty() const",
+        "method:KisLocklessStack::size() const",
+        "method:KisLocklessStack::~KisLocklessStack()"
+      ]
+    },
+    {
+      "target": "KisLocklessStackContractTest",
+      "source": "libs/global/tests/KisLocklessStackContractTest.cpp",
+      "test": "KisLocklessStackContractTest::pushAndPopUseLifoOrder",
+      "behavior": "pushした値は後入れ先出し順でpopされ、空スタックのpopは出力値を変えず失敗を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLocklessStack::pop(T & value)",
+        "method:KisLocklessStack::push(T data)"
+      ]
+    },
+    {
+      "target": "KisLocklessStackContractTest",
+      "source": "libs/global/tests/KisLocklessStackContractTest.cpp",
+      "test": "KisLocklessStackContractTest::clearRemovesAllValues",
+      "behavior": "clearは全要素を除去して件数0の空状態にし、空状態への再実行も同じ状態を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLocklessStack::clear()"
+      ]
+    },
+    {
+      "target": "KisLocklessStackContractTest",
+      "source": "libs/global/tests/KisLocklessStackContractTest.cpp",
+      "test": "KisLocklessStackContractTest::mergeMovesTheSourceChainToTheTop",
+      "behavior": "スタック結合は元の鎖を移動先の先頭へ順序を保って移し、移動元を空にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLocklessStack::mergeFrom(KisLocklessStack<T> & other)"
       ]
     }
   ]
