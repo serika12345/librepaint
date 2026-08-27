@@ -254,13 +254,27 @@ set_target_properties(kritaimpex
 
 install(TARGETS kritaimpex  ${INSTALL_TARGETS_DEFAULT_ARGS})
 
+add_library(kritaimpexuserfeedbackobjects OBJECT
+    ui/KisImportUserFeedbackInterface.cpp
+    ui/KisSynchronousImportUserFeedback.cpp
+)
+target_compile_definitions(kritaimpexuserfeedbackobjects PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kritaimpexuserfeedbackobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritaimpexuserfeedbackobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaimpexuserfeedbackobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimpexui_LIB_SRCS
     ui/KisImportExportAsyncFeedback.cpp
     ui/KisImportExportManager.cpp
     ui/KisImportExportUtils.cpp
-    ui/KisImportUserFeedbackInterface.cpp
     ui/KisRemoteFileFetcher.cpp
-    ui/KisSynchronousImportUserFeedback.cpp
     ui/KisSaveGroupVisitor.cpp
     ui/KisImportExportDialogs.cpp
     ui/kis_dlg_missing_color_profile.cpp
@@ -313,7 +327,10 @@ endif()
 # Import and export presentation sources form one ownership unit. Their object
 # implementation is incorporated into the application presentation library,
 # including entry points used only by dynamically loaded plugins.
-kis_add_library(kritaimpexui OBJECT ${kritaimpexui_LIB_SRCS})
+kis_add_library(kritaimpexui OBJECT
+    ${kritaimpexui_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>
+)
 target_compile_definitions(kritaimpexui PRIVATE kritaapplicationui_EXPORTS)
 
 target_include_directories(kritaimpexui

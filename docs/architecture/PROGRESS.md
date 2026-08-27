@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 01:22 JST
+- 更新日時: 2026-08-28 01:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3121,6 +3121,19 @@
   498入力、保存済み設定対象が1,060工程・2,133入力である。macOSの触れた試験ソースのclang-format
   検査と`verify-quick`も成功した。製品実装、公開API、実行時分岐は変更していない。全ネイティブ検証は
   実行していない。
+
+## R2-G19b 利用者確認契約前の実装所有分離で完了した作業
+
+- `libs/impex/ui/KisImportUserFeedbackInterface.cpp`と
+  `libs/impex/ui/KisSynchronousImportUserFeedback.cpp`は、巨大な`kritaimpexui`ソース集合から
+  `kritaimpexuserfeedbackobjects`へ所有対象を移した。ファイル配置、公開ヘッダー、公開識別子、
+  `kritaapplicationui`のABIを維持し、`kritaimpexui`は新対象のオブジェクトを従来どおり集約する。
+- 新対象はQt Widgetsだけを公開依存とし、生成済み`kritaui_export.h`の検索経路と既存の公開マクロを
+  維持する。自動メタオブジェクト生成を使わない2ソースの変更なし構築閉包はmacOSで2工程・5入力である。
+  従来の`kritaimpexui`は1,146工程・2,304入力、既存UI境界試験は1,698工程・3,395入力であり、
+  利用者確認契約は文書、画像、描画、アプリケーションUI全体を構築せずに追加できる。
+- macOSで新対象と集約後の`kritaimpexui`の限定構築が成功した。公開API、ABI、列挙値、バッチ抑止、
+  コールバック実行、親表示部品の所有期間は変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 

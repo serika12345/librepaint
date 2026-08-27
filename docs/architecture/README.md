@@ -722,6 +722,11 @@ R2-G3で
 分かれる。各実装は個別のCMakeオブジェクト対象として構築でき、共有ライブラリーが同じ公開クラスへ
 集約する。
 
+読込み中の利用者確認は`KisImportUserFeedbackInterface.cpp`と
+`KisSynchronousImportUserFeedback.cpp`を一つの`kritaimpexuserfeedbackobjects`として所有する。
+この対象はQt Widgetsだけに依存し、バッチ状態、質問コールバック、親表示部品の寿命を扱う。
+`kritaimpexui`はそのオブジェクトを集約し、文書入出力の調整処理から同じ公開接続面を利用する。
+
 ## 変更内容から見る場所
 
 | 変更内容 | 最初に見る場所 | 次に確認する境界 |
