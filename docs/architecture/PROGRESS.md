@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 03:40 JST
+- 更新日時: 2026-08-28 03:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3332,11 +3332,23 @@
 - macOSで新対象、集約後の`kritawidgetutils`の限定構築、既存の数式解析試験が成功した。
   製品実装、公開API、ABI、式評価結果は変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 数式解析 public API契約で完了した作業
+
+- `libs/widgetutils/kis_num_parser.h`の2 APIを、既存
+  `libs/widgetutils/tests/kis_simple_math_parser_test.cpp`へ対応付けた。浮動小数点式は四則演算、累乗、
+  括弧、三角関数、指数・対数を固定し、整数式は四則演算と丸めを固定する。両関数について成功と
+  失敗の通知も観測する。
+- 既存試験を`kritawidgetutils`、`kritaimage`、試験支援ライブラリーへ接続する共通試験集合から独立させ、
+  `kritawidgetutilsnumericparserobjects`とQt Testだけへ直接接続した。変更なし構築閉包はmacOSで
+  1,002工程・2,027入力から5工程・11入力へ縮小した。
+- 公開API契約は584件、未対応基準は28,430件になった。macOSで対象の構築、実行、20回反復が
+  成功した。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-既存`kis_simple_math_parser_test`を`kritawidgetutilsnumericparserobjects`とQt Testへ直接接続し、
-浮動小数点式と整数式の成功・失敗通知を固定する。2 public APIを契約へ登録し、macOSで各検証を
-行う。SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
+次の少数APIヘッダーについて、既存試験、実装所有、直接依存、変更なし構築閉包を調べる。
+構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。SSH鍵エージェントの
+復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 

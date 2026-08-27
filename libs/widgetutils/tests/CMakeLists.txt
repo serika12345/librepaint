@@ -1,12 +1,17 @@
 kis_add_tests(
     KisActionsSnapshotTest.cpp
     KoPropertiesTest.cpp
-    kis_simple_math_parser_test.cpp # FIXME this test should be in the ui directory
     TestKoProgressUpdater.cpp
     TestSqueezedComboBox.cpp
     kis_parse_spin_boxes_test.cpp
     LINK_LIBRARIES kritawidgetutils kritaimage kritatestsdk
 )
+
+kis_add_test(
+    kis_simple_math_parser_test.cpp
+    LINK_LIBRARIES kritawidgetutilsnumericparserobjects Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_simple_math_parser_test PRIVATE kritawidgetutils_EXPORTS)
 
 ki18n_wrap_ui(DialogStateSaver_SRCS
     dialogsavertestwidget.ui
@@ -18,4 +23,3 @@ kis_add_test(
     TEST_NAME KisDialogStateSaverTest
     LINK_LIBRARIES kritawidgetutils kritatestsdk KF${KF_MAJOR}::ConfigCore
     )
-

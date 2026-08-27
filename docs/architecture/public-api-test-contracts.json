@@ -16,7 +16,7 @@
     "publicApiFingerprint": "adad650ee6ad3fc29314c8fd2aef1eea9ff9fd385cce4860c92062f06755ae95"
   },
   "migration": {
-    "expectedMissingApis": 28432
+    "expectedMissingApis": 28430
   },
   "contracts": [
     {
@@ -2006,6 +2006,26 @@
       "classification": "maintained",
       "apis": [
         "function:KritaUtils::resolveAbsoluteFilePath(const QString & baseDir,const QString & filePath)"
+      ]
+    },
+    {
+      "target": "kis_simple_math_parser_test",
+      "source": "libs/widgetutils/tests/kis_simple_math_parser_test.cpp",
+      "test": "KisSimpleMathParserTest::testDoubleComputation",
+      "behavior": "浮動小数点式の四則演算、累乗、括弧、三角関数、指数・対数を評価し、妥当な式と不正な式を成功通知で区別する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisNumericParser::parseSimpleMathExpr(QString const & expr,bool * noProblem=0)"
+      ]
+    },
+    {
+      "target": "kis_simple_math_parser_test",
+      "source": "libs/widgetutils/tests/kis_simple_math_parser_test.cpp",
+      "test": "KisSimpleMathParserTest::testIntComputation",
+      "behavior": "整数式の加減乗除と丸めを評価し、妥当な式とゼロ除算を成功通知で区別する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisNumericParser::parseIntegerMathExpr(QString const & expr,bool * noProblem=0)"
       ]
     }
   ]
