@@ -88,3 +88,13 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Gui
 )
 target_compile_definitions(KisQPainterStateSaverTest PRIVATE kritaglobal_EXPORTS)
+
+if(OpenEXR_FOUND)
+    kis_add_test(
+        KisHalfTraitsTest.cpp
+        LINK_LIBRARIES
+            Qt${QT_MAJOR_VERSION}::Test
+            ${LINK_OPENEXR_LIB}
+    )
+    target_include_directories(KisHalfTraitsTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+endif()

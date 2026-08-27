@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28362
+    "expectedMissingApis": 28357
   },
   "contracts": [
     {
@@ -2373,6 +2373,20 @@
         "class:KisQPainterStateSaver",
         "method:KisQPainterStateSaver::KisQPainterStateSaver(QPainter * painter)",
         "method:KisQPainterStateSaver::~KisQPainterStateSaver()"
+      ]
+    },
+    {
+      "target": "KisHalfTraitsTest",
+      "source": "libs/global/tests/KisHalfTraitsTest.cpp",
+      "test": "KisHalfTraitsTest::classifiesHalfValues",
+      "behavior": "半精度の通常値、零、負数、無限大、NaNについて有限性、無限性、NaN、正規化、符号を分類する。",
+      "classification": "maintained",
+      "apis": [
+        "function:std::isfinite(half __x)",
+        "function:std::isinf(half __x)",
+        "function:std::isnan(half __x)",
+        "function:std::isnormal(half __x)",
+        "function:std::signbit(half __x)"
       ]
     }
   ]
