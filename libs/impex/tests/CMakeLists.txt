@@ -40,12 +40,19 @@ target_compile_definitions(kis_import_export_filter_saved_configuration_test PRI
 
 kis_add_tests(
     kis_import_user_feedback_test.cpp
+    TEST_NAMES_VAR import_user_feedback_test_names
     LINK_LIBRARIES
         kritaimpexuserfeedbackobjects
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
 )
 target_compile_definitions(kis_import_user_feedback_test PRIVATE kritaapplicationui_EXPORTS)
+if(UNIX AND NOT APPLE)
+    set_tests_properties(
+        ${import_user_feedback_test_names}
+        PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+    )
+endif()
 
 kis_add_tests(
     TestImportExportPublicHeaders.cpp
