@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28198
+    "expectedMissingApis": 28196
   },
   "contracts": [
     {
@@ -3061,6 +3061,17 @@
       "apis": [
         "alias:KoShapeStrokeModelSP",
         "alias:KoShapeStrokeSP"
+      ]
+    },
+    {
+      "target": "KisAnimationFrameCacheFwdContractTest",
+      "source": "libs/ui/tests/KisAnimationFrameCacheFwdContractTest.cpp",
+      "test": "KisAnimationFrameCacheFwdContractTest::strongAndWeakAliasesShareAndTrackCacheLifetime",
+      "behavior": "アニメーション枠キャッシュの強参照と弱参照の型別名は所有を共有し、弱参照から昇格でき、最後の強参照解放後に実体を破棄して弱参照を無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAnimationFrameCacheSP",
+        "alias:KisAnimationFrameCacheWSP"
       ]
     }
   ]
