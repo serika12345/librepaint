@@ -62,6 +62,10 @@ void KisDocumentModificationStateTest::tracksChangesDuringSave()
     state.markImageModifiedWithoutUndo();
     QVERIFY(state.imageModifiedWithoutUndo());
 
+    state.clearImageModifiedWithoutUndo();
+    QVERIFY(!state.imageModifiedWithoutUndo());
+
+    state.markImageModifiedWithoutUndo();
     QVERIFY(state.setModified(false));
     QVERIFY(!state.isModified());
     QVERIFY(!state.wasModifiedWhileSaving());

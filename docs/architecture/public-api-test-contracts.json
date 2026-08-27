@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28796
+    "expectedMissingApis": 28745
   },
   "contracts": [
     {
@@ -714,6 +714,210 @@
       "classification": "maintained",
       "apis": [
         "method:KoXmlWriter::addManifestEntry(const QString & fullPath,const QString & mediaType)"
+      ]
+    },
+    {
+      "target": "kis_document_autosave_state_test",
+      "source": "libs/document/tests/kis_document_autosave_state_test.cpp",
+      "test": "KisDocumentAutoSaveStateTest::startsWithoutOperationProgress",
+      "behavior": "新しい自動保存状態は書出し処理中でなく、複製への切替も要求しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:Krita::Document::AutoSaveState",
+        "method:Krita::Document::AutoSaveState::isExportingAutoSave() const"
+      ]
+    },
+    {
+      "target": "kis_document_autosave_state_test",
+      "source": "libs/document/tests/kis_document_autosave_state_test.cpp",
+      "test": "KisDocumentAutoSaveStateTest::tracksAutoSaveExportLifetime",
+      "behavior": "自動保存書出しの開始と終了が処理中状態を正確に切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::AutoSaveState::markAutoSaveExportFinished()",
+        "method:Krita::Document::AutoSaveState::markAutoSaveExportStarted()"
+      ]
+    },
+    {
+      "target": "kis_document_autosave_state_test",
+      "source": "libs/document/tests/kis_document_autosave_state_test.cpp",
+      "test": "KisDocumentAutoSaveStateTest::requestsCloneFallbackAfterRepeatedFailures",
+      "behavior": "自動保存失敗3回で複製への切替を要求し、失敗消去で要求を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::AutoSaveState::clearFailures()",
+        "method:Krita::Document::AutoSaveState::recordFailure()",
+        "method:Krita::Document::AutoSaveState::shouldUseCloneFallback() const"
+      ]
+    },
+    {
+      "target": "kis_document_identity_test",
+      "source": "libs/document/tests/kis_document_identity_test.cpp",
+      "test": "KisDocumentIdentityTest::startsWithoutAFileOrFormat",
+      "behavior": "新しい文書識別は表示パス、実ファイルパス、MIME型を持たず、自動判定済みでもない。",
+      "classification": "maintained",
+      "apis": [
+        "class:Krita::Document::Identity",
+        "method:Krita::Document::Identity::localFilePath() const",
+        "method:Krita::Document::Identity::mimeType() const",
+        "method:Krita::Document::Identity::mimeTypeWasAutoDetected() const",
+        "method:Krita::Document::Identity::path() const"
+      ]
+    },
+    {
+      "target": "kis_document_identity_test",
+      "source": "libs/document/tests/kis_document_identity_test.cpp",
+      "test": "KisDocumentIdentityTest::tracksDisplayAndLocalPathsIndependently",
+      "behavior": "表示用URIと入出力用実ファイルパスを独立して保持し、表示パス設定は値が変化した場合だけ真を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::Identity::setLocalFilePath(const QString & localFilePath)",
+        "method:Krita::Document::Identity::setPath(const QString & path)"
+      ]
+    },
+    {
+      "target": "kis_document_identity_test",
+      "source": "libs/document/tests/kis_document_identity_test.cpp",
+      "test": "KisDocumentIdentityTest::preservesMimeSelectionAndDetectionStateWhenCopied",
+      "behavior": "MIME型と自動判定状態を複製へ維持し、MIME型の消去は自動判定状態を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::Identity::clearMimeType()",
+        "method:Krita::Document::Identity::setMimeType(const QByteArray & mimeType)",
+        "method:Krita::Document::Identity::setMimeTypeWasAutoDetected(bool autoDetected)"
+      ]
+    },
+    {
+      "target": "kis_document_modification_state_test",
+      "source": "libs/document/tests/kis_document_modification_state_test.cpp",
+      "test": "KisDocumentModificationStateTest::startsWithoutChanges",
+      "behavior": "新しい変更状態は未変更で、自動保存後、保存中、取り消し履歴外の変更を持たない。",
+      "classification": "maintained",
+      "apis": [
+        "class:Krita::Document::ModificationState",
+        "method:Krita::Document::ModificationState::hasChangesAfterAutoSave() const",
+        "method:Krita::Document::ModificationState::imageModifiedWithoutUndo() const",
+        "method:Krita::Document::ModificationState::isModified() const",
+        "method:Krita::Document::ModificationState::wasModifiedWhileSaving() const"
+      ]
+    },
+    {
+      "target": "kis_document_modification_state_test",
+      "source": "libs/document/tests/kis_document_modification_state_test.cpp",
+      "test": "KisDocumentModificationStateTest::tracksChangesSinceAutoSave",
+      "behavior": "変更要求は自動保存後の変更を記録し、自動保存開始で消去した要求を現在の変更状態から復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::ModificationState::markAutoSaveStarted()",
+        "method:Krita::Document::ModificationState::restoreAutoSaveRequirement()",
+        "method:Krita::Document::ModificationState::setModified(bool modified)"
+      ]
+    },
+    {
+      "target": "kis_document_modification_state_test",
+      "source": "libs/document/tests/kis_document_modification_state_test.cpp",
+      "test": "KisDocumentModificationStateTest::tracksChangesDuringSave",
+      "behavior": "保存開始後の変更と取り消し履歴外変更を追跡し、明示消去と未変更化で対応する状態を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::ModificationState::clearImageModifiedWithoutUndo()",
+        "method:Krita::Document::ModificationState::markImageModifiedWithoutUndo()",
+        "method:Krita::Document::ModificationState::markSavingStarted()"
+      ]
+    },
+    {
+      "target": "kis_document_modification_state_test",
+      "source": "libs/document/tests/kis_document_modification_state_test.cpp",
+      "test": "KisDocumentModificationStateTest::snapshotsDocumentStateWithoutOperationProgress",
+      "behavior": "保存用状態複製は文書変更と取り消し履歴外変更を保持し、進行中の保存・自動保存状態を持ち込まない。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::ModificationState::snapshotState() const"
+      ]
+    },
+    {
+      "target": "kis_document_recovery_autosave_state_test",
+      "source": "libs/document/tests/kis_document_recovery_autosave_state_test.cpp",
+      "test": "KisDocumentRecoveryAutoSaveStateTest::startsWithoutRequest",
+      "behavior": "新しい回復用自動保存状態は保留要求と合流先保存パスを持たない。",
+      "classification": "maintained",
+      "apis": [
+        "class:Krita::Document::RecoveryAutoSaveState",
+        "method:Krita::Document::RecoveryAutoSaveState::hasPendingRequest() const",
+        "method:Krita::Document::RecoveryAutoSaveState::joinedSavePath() const"
+      ]
+    },
+    {
+      "target": "kis_document_recovery_autosave_state_test",
+      "source": "libs/document/tests/kis_document_recovery_autosave_state_test.cpp",
+      "test": "KisDocumentRecoveryAutoSaveStateTest::tracksPendingRequestAndJoinedSave",
+      "behavior": "回復要求の開始・取消と利用可能な既存保存への合流を追跡し、明示消去、不利用判定、取消で保存パスを空にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::RecoveryAutoSaveState::beginRequest()",
+        "method:Krita::Document::RecoveryAutoSaveState::cancelRequest()",
+        "method:Krita::Document::RecoveryAutoSaveState::clearJoinedSavePath()",
+        "method:Krita::Document::RecoveryAutoSaveState::recordJoinedSave(const QString & filePath,bool usable)"
+      ]
+    },
+    {
+      "target": "kis_document_recovery_autosave_state_test",
+      "source": "libs/document/tests/kis_document_recovery_autosave_state_test.cpp",
+      "test": "KisDocumentRecoveryAutoSaveStateTest::defersCompletionReportedDuringSaveStart",
+      "behavior": "保存開始中の完了を利用可能な結果として延期し、開始成功後にパスと成否を一度返して要求完了へ移す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:Krita::Document::RecoveryAutoSaveState::CompletionHandling",
+        "enumerator:Krita::Document::RecoveryAutoSaveState::CompletionHandling::Deferred",
+        "enumerator:Krita::Document::RecoveryAutoSaveState::CompletionHandling::Ready",
+        "member:Krita::Document::RecoveryAutoSaveState::Completion::available",
+        "member:Krita::Document::RecoveryAutoSaveState::Completion::filePath",
+        "member:Krita::Document::RecoveryAutoSaveState::Completion::success",
+        "method:Krita::Document::RecoveryAutoSaveState::beginSaveStart()",
+        "method:Krita::Document::RecoveryAutoSaveState::markSaveStartSucceeded()",
+        "method:Krita::Document::RecoveryAutoSaveState::recordCompletion(const QString & filePath,bool success)",
+        "struct:Krita::Document::RecoveryAutoSaveState::Completion"
+      ]
+    },
+    {
+      "target": "kis_document_recovery_autosave_state_test",
+      "source": "libs/document/tests/kis_document_recovery_autosave_state_test.cpp",
+      "test": "KisDocumentRecoveryAutoSaveStateTest::discardsDeferredCompletionWhenSaveDoesNotStart",
+      "behavior": "保存開始失敗は延期した完了を破棄し、回復要求を次の保存開始試行へ維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::RecoveryAutoSaveState::markSaveStartDidNotSucceed()"
+      ]
+    },
+    {
+      "target": "kis_document_recovery_autosave_state_test",
+      "source": "libs/document/tests/kis_document_recovery_autosave_state_test.cpp",
+      "test": "KisDocumentRecoveryAutoSaveStateTest::completesActiveRequestOnce",
+      "behavior": "完了通知は保留要求がある場合だけ受理され、要求を一度完了した後の通知を無視する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:Krita::Document::RecoveryAutoSaveState::CompletionHandling::Ignored"
+      ]
+    },
+    {
+      "target": "kis_document_recovery_status_test",
+      "source": "libs/document/tests/kis_document_recovery_status_test.cpp",
+      "test": "KisDocumentRecoveryStatusTest::startsAsAnOrdinaryDocument",
+      "behavior": "新しい文書回復状態は通常文書として開始する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Krita::Document::RecoveryStatus",
+        "method:Krita::Document::RecoveryStatus::isRecovered() const"
+      ]
+    },
+    {
+      "target": "kis_document_recovery_status_test",
+      "source": "libs/document/tests/kis_document_recovery_status_test.cpp",
+      "test": "KisDocumentRecoveryStatusTest::reportsOnlyRecoveryStatusTransitions",
+      "behavior": "回復状態の設定は真偽双方の実際の遷移だけを変更として報告する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::RecoveryStatus::setRecovered(bool recovered)"
       ]
     }
   ]

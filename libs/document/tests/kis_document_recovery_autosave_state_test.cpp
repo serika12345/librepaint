@@ -39,6 +39,10 @@ void KisDocumentRecoveryAutoSaveStateTest::tracksPendingRequestAndJoinedSave()
     state.recordJoinedSave(QStringLiteral("/tmp/recovery.kra"), true);
     QCOMPARE(state.joinedSavePath(), QStringLiteral("/tmp/recovery.kra"));
 
+    state.clearJoinedSavePath();
+    QVERIFY(state.joinedSavePath().isEmpty());
+
+    state.recordJoinedSave(QStringLiteral("/tmp/recovery.kra"), true);
     state.recordJoinedSave(QStringLiteral("/tmp/failed.kra"), false);
     QVERIFY(state.joinedSavePath().isEmpty());
 
