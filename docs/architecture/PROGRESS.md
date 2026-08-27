@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 12:20 JST
+- 更新日時: 2026-08-27 13:35 JST
 - 状態: `planned`
-- 現在の検査段階: R2 現行挙動の最初の契約棚卸し
+- 現在の検査段階: R2-G2 マウス入力列の記録・再生契約
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: 入力から表示までの現行経路、観測可能な状態、不変条件、既存の特性試験を棚卸しし、
-  最初の小さな契約検査を定義する。
+- 目的: Qtのマウス押下、移動、解放を決定的に再生し、入力照合から自由描画ツールへ渡る
+  正規化済み入力値と順序を固定する。
 
 ## 再開環境
 
@@ -2153,11 +2153,40 @@
 - Linux、Android、Windowsの実構成はx86_64 Linuxホストへ同じ変更を配置した後に実行する。
   3入口のShellCheck、接続試験、Nix出力評価は成功している。
 
+## R2-G1自由描画ストロークの最小契約で完了した作業
+
+- 入力受信、ツール呼出し、ストローク実行、ブラシ画素生成、タイル更新と投影、キャンバス表示の
+  6段階について、所有者、主要分岐、観測する状態、不変条件、既存検査を
+  `docs/architecture/README.md`へ固定した。
+- `libs/ui/tests/freehand_stroke_test.{cpp,h}`を起点として、通常のCTestで実行する
+  `libs/ui/tests/FreehandStrokeContractTest.cpp`へ置き換えた。sRGB 8ビット、500×500画素、
+  単一ペイントレイヤー、`autobrush_300px.kpp`、2入力点、作業スレッド1本を固定し、終了、
+  取消し、アンドゥ、リドゥ、画像更新完了を同じ検査対象にした。
+- `libs/ui/tests/data/freehand`の48基準画像から、同一画素だった終了投影1枚を
+  `libs/ui/tests/data/freehand-contract/autobrush-finished-projection.png`へ移した。RGB完全一致、
+  アルファ値±3を比較規則とし、独立実行5回が同じ結果になることと20回の連続実行を確認した。
+- 無効化された旧検査だけが使用した残り47画像と、ハッチング、色混合、テクスチャー、LOD用の
+  7プリセットを削除した。旧補助処理が生成していた現在無効な間接描画名、内部・外部投影の
+  重複、取消し結果の画像保存を保守対象から外した。
+- `clang-format --dry-run --Werror libs/ui/tests/FreehandStrokeContractTest.cpp`は整形差分0件で
+  成功した。対象CTestの20回反復と、同検査、`kis_strokes_queue_test`、
+  `kis_update_scheduler_test`、`kis_projection_test`、`kis_prescaled_projection_contract_test`の
+  関連5件は成功した。
+- `nix develop .#test --command ./scripts/verify-quick`はスクリプト試験33件、境界方針、
+  公開契約、統治、Markdown 34リンク、D2生成物の検査に成功した。
+  `nix develop .#test --command ./scripts/verify`はmacOSの実グラフ681ターゲット、全製品と
+  試験の構築、CTest 355件に成功した。
+- `nix develop .#test --command ./scripts/build-incremental ios configure`はiOSの資産、ライセンス、
+  互換識別子、配布契約、CMake構成、実グラフ614ターゲットの境界検査に成功した。
+- Linuxでの画素比較と、Qt生入力からツールまで、投影から実画面までの段階間契約は未検証である。
+  R2-G2以降で共通入力データと対象プラットフォーム対応を定義して検証する。
+
 ## 次の操作
 
-入力から表示までの現行経路と分岐、各段階の観測可能な状態と不変条件、既存の特性試験を
-棚卸しする。最初に固定する挙動と観測点を選び、R2最初の小さな検査段階として目的、範囲、
-完了条件、検証階層、中止条件を定義する。
+R2-G2としてQtのマウス押下、移動、解放を記録・再生する最小の統合試験を設計する。
+既存の`TestInputShortcutMatcher`が固定する入力アクション命令列と、`TestToolCoreContract`が
+固定する正規化済み描画入力値の間を接続し、自由描画ツールへ渡る座標、順序、終了を観測する。
+タブレット、タッチ、Pencil、画面転送はマウス経路の接続点が安定してから個別の検査段階にする。
 
 ## R1-G5完了根拠
 

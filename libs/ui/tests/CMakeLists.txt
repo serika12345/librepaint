@@ -47,6 +47,11 @@ kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testin
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
+kis_add_test( FreehandStrokeContractTest.cpp ../../../sdk/tests/stroke_testing_utils.cpp
+    TEST_NAME FreehandStrokeContractTest
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
+    )
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk
@@ -97,11 +102,6 @@ krita_add_broken_unit_test(
 
 krita_add_broken_unit_test( kis_clipboard_test.cpp
     TEST_NAME KisClipboardTest
-    LINK_LIBRARIES kritaapplicationui kritatestsdk
-    )
-
-krita_add_broken_unit_test( freehand_stroke_test.cpp  $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
-    TEST_NAME FreehandStrokeTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
