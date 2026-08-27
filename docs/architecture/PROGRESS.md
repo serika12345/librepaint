@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 21:20 JST
+- 更新日時: 2026-08-27 21:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2787,9 +2787,9 @@
 - 所有期間契約は、翻訳文脈の親がQMLウィジェットでなく外側の親であることを診断した。
   `KisQQuickWidget.cpp`は翻訳文脈を`this`の子として所有し、`parent=nullptr`を含む公開構築経路でも
   ウィジェット破棄時に解放する。
-- `nix develop .#test --command ./scripts/run-test KisQQuickWidgetsPublicApiTest`と、macOS CTest
-  プリセットによる20回反復は成功した。公開API契約は130件、未対応基準は29,115件になった。
-  Linuxと全ネイティブ検証は実行していない。
+- `nix develop .#test --command ./scripts/run-test KisQQuickWidgetsPublicApiTest`と対象CTestの
+  20回反復はmacOSと`ssh nixos`上のLinuxで成功した。Linuxの初回増分構築は19工程だった。
+  公開API契約は130件、未対応基準は29,115件になった。全ネイティブ検証は実行していない。
 
 ## 次の操作
 
