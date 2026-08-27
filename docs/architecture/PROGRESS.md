@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 02:53 JST
+- 更新日時: 2026-08-28 03:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3260,11 +3260,23 @@
   clang-format検査が成功した。文書と表示を伴う`render()`の契約は未対応である。製品実装、公開API、
   ABI、判定結果は変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 高速角度計算契約前の実装所有分離で完了した作業
+
+- `libs/image/kis_fast_math.cpp`の実装所有を、`kritaimage`の一括ソース集合から
+  `kritaimagefastmathobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象だけを
+  変更した。公開ヘッダー、名前空間、関数、`kritaimage`のABIを維持し、`kritaimage`は新対象の
+  オブジェクトを従来どおり集約する。
+- 新対象はQt Coreだけへ直接接続する。macOSの変更なし構築閉包は1工程・3入力であり、既存の
+  `kis_fast_math_test`が`kritaimage`全体から継承する1,002工程・2,027入力から分離した。
+- macOSで新対象と集約後の`kritaimage`の限定構築が成功した。製品実装と角度計算結果は変更していない。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-次の未対応入出力public APIについて、製品実装、既存CTest、変更なし構築閉包を監査し、最小の
-責務単位へ分離してから挙動を固定する。SSH鍵エージェントの復旧後、未同期の遠隔ファイル取得、
-入出力補助、アニメーション寸法契約を`ssh nixos`上のLinuxへ同期する。
+既存`kis_fast_math_test`を`kritaimagefastmathobjects`へ直接接続し、全象限と座標軸に対する
+`KisFastMath::atan2()`の近似精度を公開契約へ登録する。macOSで対象構築、20回反復、直接公開API
+契約検査、変更なし構築閉包を確認する。SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上の
+Linuxへ同期する。
 
 ## R1-G5完了根拠
 
