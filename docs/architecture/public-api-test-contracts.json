@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28850
+    "expectedMissingApis": 28796
   },
   "contracts": [
     {
@@ -579,6 +579,141 @@
         "class:KoPluginLoader",
         "method:KoPluginLoader::KoPluginLoader()",
         "method:KoPluginLoader::load(const QString & serviceType,const PluginsConfig & config=PluginsConfig (),QObject * owner=0,bool cache=true)"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::namespaceUrisAndPrefixes",
+      "behavior": "ODF、W3C、OpenOffice、LibrePaint、変更追跡の名前空間定数が規定URIを保持し、対応済みURIを標準接頭辞へ逆引きする。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoXmlNS",
+        "member:KoXmlNS::VL",
+        "member:KoXmlNS::ac",
+        "member:KoXmlNS::anim",
+        "member:KoXmlNS::calligra",
+        "member:KoXmlNS::chart",
+        "member:KoXmlNS::config",
+        "member:KoXmlNS::dc",
+        "member:KoXmlNS::delta",
+        "member:KoXmlNS::dr3d",
+        "member:KoXmlNS::draw",
+        "member:KoXmlNS::fo",
+        "member:KoXmlNS::form",
+        "member:KoXmlNS::krita",
+        "member:KoXmlNS::manifest",
+        "member:KoXmlNS::math",
+        "member:KoXmlNS::meta",
+        "member:KoXmlNS::number",
+        "member:KoXmlNS::office",
+        "member:KoXmlNS::officeooo",
+        "member:KoXmlNS::ooo",
+        "member:KoXmlNS::presentation",
+        "member:KoXmlNS::script",
+        "member:KoXmlNS::smil",
+        "member:KoXmlNS::sodipodi",
+        "member:KoXmlNS::split",
+        "member:KoXmlNS::style",
+        "member:KoXmlNS::svg",
+        "member:KoXmlNS::table",
+        "member:KoXmlNS::text",
+        "member:KoXmlNS::xhtml",
+        "member:KoXmlNS::xlink",
+        "member:KoXmlNS::xml",
+        "method:KoXmlNS::nsURI2NS(const QString & nsURI)"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::documentHeaderAndDeviceLifetime",
+      "behavior": "書出し器が閉じた装置を開き、UTF-8宣言と公開・システム識別子付き文書型を出力し、破棄後も呼出元所有の装置を開いたまま維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoXmlWriter",
+        "method:KoXmlWriter::KoXmlWriter(QIODevice * dev,int indentLevel=0)",
+        "method:KoXmlWriter::endDocument()",
+        "method:KoXmlWriter::startDocument(const char * rootElemName,const char * publicId=0,const char * systemId=0)",
+        "method:KoXmlWriter::~KoXmlWriter()"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::numericAttributesRemainStable",
+      "behavior": "倍精度と単精度の属性値を現在の最大有効桁数で決定的に直列化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoXmlWriter::addAttribute(const char * attrName,double value)",
+        "method:KoXmlWriter::addAttribute(const char * attrName,float value)"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::scalarAttributesRemainStable",
+      "behavior": "文字列、C文字列、符号付き・符号なし整数、真偽値の各属性入口をXML属性へ変換し、予約文字を置換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoXmlWriter::addAttribute(const char * attrName,bool value)",
+        "method:KoXmlWriter::addAttribute(const char * attrName,const QString & value)",
+        "method:KoXmlWriter::addAttribute(const char * attrName,const char * value)",
+        "method:KoXmlWriter::addAttribute(const char * attrName,int value)",
+        "method:KoXmlWriter::addAttribute(const char * attrName,uint value)"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::contentIsEscaped",
+      "behavior": "バイト列の属性値と本文に含まれるXML予約文字を対応する実体参照へ置換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoXmlWriter::addAttribute(const char * attrName,const QByteArray & value)",
+        "method:KoXmlWriter::addTextNode(const QByteArray & cstr)"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::textOverloadsAndControlsRemainStable",
+      "behavior": "文字列とC文字列の本文入口がUTF-8とXML予約文字を維持し、禁止制御文字を除去して許可制御文字を残す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoXmlWriter::addTextNode(const QString & str)",
+        "method:KoXmlWriter::addTextNode(const char * cstr)"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::indentationCanBeSuppressed",
+      "behavior": "要素の開始と終了が基準字下げ深さを反映し、空白を保持する要素では内部改行と字下げを抑制する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoXmlWriter::endElement()",
+        "method:KoXmlWriter::startElement(const char * tagName,bool indentInside=true)"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::completeElementIsInserted",
+      "behavior": "閉じた入力装置から完成済みXML要素を現在要素へ字下げして挿入し、入力装置を元の閉状態へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoXmlWriter::addCompleteElement(QIODevice * dev)"
+      ]
+    },
+    {
+      "target": "TestXmlWriter",
+      "source": "libs/serialization/xml/tests/TestXmlWriter.cpp",
+      "test": "TestXmlWriter::manifestEntryIsExpanded",
+      "behavior": "manifest項目のパスと媒体型を所定の要素名と二つの属性へ展開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoXmlWriter::addManifestEntry(const QString & fullPath,const QString & mediaType)"
       ]
     }
   ]
