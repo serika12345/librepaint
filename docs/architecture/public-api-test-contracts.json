@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28103
+    "expectedMissingApis": 28088
   },
   "contracts": [
     {
@@ -3467,6 +3467,48 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const KoID & id)"
+      ]
+    },
+    {
+      "target": "KoColorModelStandardIdsContractTest",
+      "source": "libs/pigment/tests/KoColorModelStandardIdsContractTest.cpp",
+      "test": "KoColorModelStandardIdsContractTest::colorModelIdentifiersPreserveSerializedValues",
+      "behavior": "標準色モデル識別子はアルファ、RGBA、XYZA、LABA、CMYKA、グレースケール、透明度なしグレースケール、YCbCrAの永続文字列と表示名を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "variable:AlphaColorModelID",
+        "variable:CMYKAColorModelID",
+        "variable:GrayAColorModelID",
+        "variable:GrayColorModelID",
+        "variable:LABAColorModelID",
+        "variable:RGBAColorModelID",
+        "variable:XYZAColorModelID",
+        "variable:YCbCrAColorModelID"
+      ]
+    },
+    {
+      "target": "KoColorModelStandardIdsContractTest",
+      "source": "libs/pigment/tests/KoColorModelStandardIdsContractTest.cpp",
+      "test": "KoColorModelStandardIdsContractTest::colorDepthIdentifiersPreserveSerializedValues",
+      "behavior": "標準色深度識別子は8・16ビット整数、16・32・64ビット浮動小数点の永続文字列と表示名を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "variable:Float16BitsColorDepthID",
+        "variable:Float32BitsColorDepthID",
+        "variable:Float64BitsColorDepthID",
+        "variable:Integer16BitsColorDepthID",
+        "variable:Integer8BitsColorDepthID"
+      ]
+    },
+    {
+      "target": "KoColorModelStandardIdsContractTest",
+      "source": "libs/pigment/tests/KoColorModelStandardIdsContractTest.cpp",
+      "test": "KoColorModelStandardIdsContractTest::channelTypesMapToAndFromSupportedDepths",
+      "behavior": "画素チャンネル型は対応する標準色深度識別子へ変換され、対応済み識別子は正しい型の処理へ分配され、不明な識別子は例外になる。",
+      "classification": "maintained",
+      "apis": [
+        "function:channelTypeForColorDepthId(const KoID & depthId,Args...args)",
+        "function:colorDepthIdForChannelType()"
       ]
     }
   ]

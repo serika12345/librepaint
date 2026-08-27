@@ -2,6 +2,18 @@ add_executable(CCSGraph CCSGraph.cpp)
 target_link_libraries(CCSGraph kritapigment KF${KF_MAJOR}::I18n)
 ecm_mark_as_test(CCSGraph)
 
+kis_add_test(
+    KoColorModelStandardIdsContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentstandardidsobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        ${LINK_OPENEXR_LIB}
+)
+target_compile_definitions(KoColorModelStandardIdsContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
 
 kis_add_tests(
     TestKoColorSet.cpp
@@ -36,4 +48,3 @@ kis_add_tests(
 
 
 macos_test_fixrpath(CCSGraph)
-

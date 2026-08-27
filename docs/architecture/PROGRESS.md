@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 08:42 JST
+- 更新日時: 2026-08-28 08:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4150,6 +4150,17 @@
   従来の`kritapigment`は変更なし構築閉包が300工程・630入力、新対象は1工程・3入力である。macOSで
   新対象の限定構築が成功した。製品挙動、公開API、ABI、標準色識別子値は変更していない。Linux、
   製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
+
+## R2-G19b 標準色識別子 public API契約で完了した作業
+
+- `libs/pigment/KoColorModelStandardIds.h`の13識別子変数と
+  `libs/pigment/KoColorModelStandardIdsUtils.h`の型から色深度への変換・色深度から型処理への分配の
+  2 APIを、新規`libs/pigment/tests/KoColorModelStandardIdsContractTest.cpp`の3試験へ対応付けた。8色モデルと
+  5色深度の永続文字列・表示名、整数・浮動小数点チャンネル型の対応、不明な色深度の例外を観測する。
+- 新試験は`kritapigmentstandardidsobjects`、`kritaglobalidobjects`、Qt Test、OpenEXRだけへ直接接続し、
+  変更なし構築閉包はmacOSで6工程・19入力である。対象実行と20回反復が成功し、公開API契約は926件、
+  未対応基準は28,088件になった。製品実装、公開API、ABI、標準色識別子値と型対応は変更していない。
+  Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 
