@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28120
+    "expectedMissingApis": 28118
   },
   "contracts": [
     {
@@ -203,17 +203,31 @@
       ]
     },
     {
-      "target": "TestToolCoreContract",
-      "source": "libs/tools/tests/TestToolCoreContract.cpp",
-      "test": "TestToolCoreContract::deterministicSpeedSmoothing",
-      "behavior": "速度平滑化が固定座標と時刻列から決定的な速度を生成し、同時刻移動を有限値へ処理する。",
+      "target": "KisSpeedSmootherContractTest",
+      "source": "libs/tools/tests/KisSpeedSmootherContractTest.cpp",
+      "test": "KisSpeedSmootherContractTest::eventTimestampsProduceDeterministicSpeeds",
+      "behavior": "速度平滑化は固定座標とイベント時刻列から決定的な速度を生成し、最終値を報告し、同一点入力では値を保ったまま局所スコープ終了時に破棄される。",
       "classification": "maintained",
       "apis": [
         "class:KisSpeedSmoother",
         "method:KisSpeedSmoother::KisSpeedSmoother()",
         "method:KisSpeedSmoother::clear()",
         "method:KisSpeedSmoother::getNextSpeed(const QPointF & point,ulong timestamp)",
-        "method:KisSpeedSmoother::setSettings(bool useEventTimestamps,int smoothingSamples)"
+        "method:KisSpeedSmoother::lastSpeed() const",
+        "method:KisSpeedSmoother::setSettings(bool useEventTimestamps,int smoothingSamples)",
+        "method:KisSpeedSmoother::~KisSpeedSmoother()"
+      ]
+    },
+    {
+      "target": "KisSpeedSmootherContractTest",
+      "source": "libs/tools/tests/KisSpeedSmootherContractTest.cpp",
+      "test": "KisSpeedSmootherContractTest::clearResetsReportedSpeed",
+      "behavior": "速度平滑化の消去操作は報告速度をゼロへ戻し、次の座標を新しい系列の先頭として速度ゼロで受理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpeedSmoother::clear()",
+        "method:KisSpeedSmoother::getNextSpeed(const QPointF & point,ulong timestamp)",
+        "method:KisSpeedSmoother::lastSpeed() const"
       ]
     },
     {
