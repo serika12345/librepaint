@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 01:25 JST
+- 更新日時: 2026-08-28 01:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3135,12 +3135,25 @@
 - macOSで新対象と集約後の`kritaimpexui`の限定構築が成功した。公開API、ABI、列挙値、バッチ抑止、
   コールバック実行、親表示部品の所有期間は変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 利用者確認 public API契約で完了した作業
+
+- `libs/impex/ui/KisImportUserFeedbackInterface.h`の9 APIと
+  `libs/impex/ui/KisSynchronousImportUserFeedback.h`の3 APIを、
+  `libs/impex/tests/kis_import_user_feedback_test.cpp`の3試験関数へ対応付けた。非バッチ時の
+  親表示部品付き質問、肯定と取消しの結果分類、バッチ時、親なし、親破棄後の質問抑止、
+  コールバック実行回数、抽象接続面からの破棄を観測する。
+- 専用CTestは`kritaimpexuserfeedbackobjects`とQt Test、Qt Widgetsだけへ接続する。macOSの
+  変更なし構築閉包は6工程・13入力で、新対象の実装所有閉包2工程・5入力を維持する。
+- 公開API契約は515件、未対応基準は28,498件になった。macOSで対象の構築、実行、20回反復、
+  直接公開API契約検査が成功した。製品実装、公開API、ABI、実行時分岐は変更していない。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/impex/ui/KisImportUserFeedbackInterface.h`の9 APIを次の入出力UI単位として扱う。既存利用元、
-`kritaimpexui`内の所有オブジェクト、変更なし計画、空構築閉包を先に監査し、利用者への確認、進捗、取消し、
-所有期間を専用契約で固定する。構築範囲が文書UIやアプリケーション全体へ到達する場合は、試験追加より先に
-利用者通知の実装所有単位を分ける。
+macOSで成功した`kis_import_user_feedback_test`と公開API契約を`ssh nixos`上のLinuxへ
+同期し、対象限定構築、20回反復、変更なし構築閉包を確認する。Linux結果を記録した後、
+未対応の入出力public APIから次の最小責務を選び、試験追加より先に変更なし計画、直接依存、
+構築閉包を監査する。
 
 ## R1-G5完了根拠
 

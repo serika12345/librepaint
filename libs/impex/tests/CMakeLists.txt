@@ -39,6 +39,15 @@ kis_add_tests(
 target_compile_definitions(kis_import_export_filter_saved_configuration_test PRIVATE kritaimpex_EXPORTS)
 
 kis_add_tests(
+    kis_import_user_feedback_test.cpp
+    LINK_LIBRARIES
+        kritaimpexuserfeedbackobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(kis_import_user_feedback_test PRIVATE kritaapplicationui_EXPORTS)
+
+kis_add_tests(
     TestImportExportPublicHeaders.cpp
     LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
 )

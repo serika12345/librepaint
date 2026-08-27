@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28510
+    "expectedMissingApis": 28498
   },
   "contracts": [
     {
@@ -1720,6 +1720,45 @@
       "classification": "maintained",
       "apis": [
         "method:KisImportExportFilter::lastSavedConfiguration(const QByteArray & from=\"\",const QByteArray & to=\"\") const"
+      ]
+    },
+    {
+      "target": "kis_import_user_feedback_test",
+      "source": "libs/impex/tests/kis_import_user_feedback_test.cpp",
+      "test": "KisImportUserFeedbackTest::successfulQuestionUsesParent",
+      "behavior": "同期利用者確認が非バッチ時に親表示部品をboolコールバックへ一度渡し、肯定結果を成功として返し、抽象接続面から安全に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImportUserFeedbackInterface::AskCallback",
+        "class:KisImportUserFeedbackInterface",
+        "class:KisSynchronousImportUserFeedback",
+        "enum:KisImportUserFeedbackInterface::Result",
+        "enumerator:KisImportUserFeedbackInterface::Result::Success",
+        "method:KisImportUserFeedbackInterface::KisImportUserFeedbackInterface()",
+        "method:KisImportUserFeedbackInterface::askUser(AskCallback callback)",
+        "method:KisImportUserFeedbackInterface::~KisImportUserFeedbackInterface()",
+        "method:KisSynchronousImportUserFeedback::KisSynchronousImportUserFeedback(QWidget * parent,bool batchMode)",
+        "method:KisSynchronousImportUserFeedback::askUser(AskCallback callback)"
+      ]
+    },
+    {
+      "target": "kis_import_user_feedback_test",
+      "source": "libs/impex/tests/kis_import_user_feedback_test.cpp",
+      "test": "KisImportUserFeedbackTest::rejectedQuestionReportsCancellation",
+      "behavior": "質問コールバックの否定結果を利用者取消しへ分類する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisImportUserFeedbackInterface::Result::UserCancelled"
+      ]
+    },
+    {
+      "target": "kis_import_user_feedback_test",
+      "source": "libs/impex/tests/kis_import_user_feedback_test.cpp",
+      "test": "KisImportUserFeedbackTest::batchAndExpiredParentSuppressQuestions",
+      "behavior": "バッチ状態、親表示部品なし、親表示部品の破棄後はコールバックを実行せず質問を抑止する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisImportUserFeedbackInterface::Result::SuppressedByBatchMode"
       ]
     }
   ]
