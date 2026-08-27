@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 04:51 JST
+- 更新日時: 2026-08-28 04:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3454,12 +3454,25 @@
   同じ配下に一時設定先を作る試験条件の矛盾を検出した。保持する設定先の試験だけをホーム配下の
   自動削除一時ディレクトリーへ置き、製品方針を変えずに対象実行と20回反復が成功した。
 
+## R2-G19b 一時ファイル配置契約前の実装所有分離で完了した作業
+
+- `libs/global/KisTemporaryFileConfiguration.cpp`の実装所有を、`kritaglobal`の一括ソース集合から
+  `kritaglobaltemporaryfileconfigurationobjects`へ移した。起点と移動先のファイルは同じで、CMake上の
+  所有対象だけを変更した。公開ヘッダー、名前空間、関数、`kritaglobal`のAPIとABIを維持し、
+  `kritaglobal`は新対象のオブジェクトを従来どおり集約する。
+- 新対象はQt CoreとKConfig Coreへ直接接続し、macOSだけはサンドボックス判定の実所有者である
+  `kritamacosutils`へ接続する。`KisUsageLogger.cpp`も同じ所有者を利用するため、`kritaglobal`自身の
+  macOS接続は維持する。
+- 変更なし構築閉包はmacOSで2工程・5入力であり、既存の`KisConfigurationValueTypesTest`が
+  `kritaglobal`と試験支援ライブラリーから継承する59工程・117入力から縮小した。macOSで新対象の
+  限定構築が成功した。製品実装、公開API、ABI、配置選択結果は変更していない。Linuxと全ネイティブ
+  検証は実行していない。
+
 ## 次の操作
 
-`libs/global/KisTemporaryFileConfiguration.h`の3 APIについて、既存試験、実装所有、直接依存、
-変更なし構築閉包を調べる。構築範囲が責務を越える場合は所有対象を先に分け、設定済み、既定、代替、
-macOS正規化の挙動契約を対応付ける。SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ
-同期する。
+`libs/global/tests/KisConfigurationValueTypesTest.cpp`の一時ファイル配置試験を専用対象へ移し、
+設定済み、既定、代替、macOS正規化の挙動を`libs/global/KisTemporaryFileConfiguration.h`の3 APIへ
+対応付ける。SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 
