@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 03:33 JST
+- 更新日時: 2026-08-28 03:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3321,11 +3321,22 @@
 - 公開API契約は582件、未対応基準は28,432件になった。macOSで対象の構築、実行、20回反復が
   成功した。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 数式解析契約前の実装所有分離で完了した作業
+
+- `libs/widgetutils/kis_num_parser.cpp`の実装所有を、`kritawidgetutils`の一括ソース集合から
+  `kritawidgetutilsnumericparserobjects`へ移した。起点と移動先のファイルは同じで、CMake上の
+  所有対象だけを変更した。公開ヘッダー、名前空間、関数、`kritawidgetutils`のABIを維持し、
+  `kritawidgetutils`は新対象のオブジェクトを従来どおり集約する。
+- 新対象はQt Coreだけへ直接接続し、変更なし構築閉包はmacOSで1工程・3入力である。既存の
+  `kis_simple_math_parser_test`は1,002工程・2,027入力だった。
+- macOSで新対象、集約後の`kritawidgetutils`の限定構築、既存の数式解析試験が成功した。
+  製品実装、公開API、ABI、式評価結果は変更していない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-次の少数APIヘッダーについて、既存試験、実装所有、直接依存、変更なし構築閉包を調べる。
-構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。SSH鍵エージェントの
-復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
+既存`kis_simple_math_parser_test`を`kritawidgetutilsnumericparserobjects`とQt Testへ直接接続し、
+浮動小数点式と整数式の成功・失敗通知を固定する。2 public APIを契約へ登録し、macOSで各検証を
+行う。SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 

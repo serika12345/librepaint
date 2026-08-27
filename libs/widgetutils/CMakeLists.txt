@@ -5,7 +5,24 @@ configure_file(xmlgui/config-xmlgui.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-x
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/config)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/xmlgui)
 
+add_library(kritawidgetutilsnumericparserobjects OBJECT
+    kis_num_parser.cpp
+)
+target_compile_definitions(kritawidgetutilsnumericparserobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsnumericparserobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsnumericparserobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritawidgetutilsnumericparserobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
+
+    $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -34,7 +51,6 @@ set(kritawidgetutils_LIB_SRCS
     kis_double_parse_spin_box.cpp
     kis_double_parse_unit_spin_box.cpp
     kis_int_parse_spin_box.cpp
-    kis_num_parser.cpp
     kis_slider_spin_box.cpp
     kis_multipliers_double_slider_spinbox.cpp
     kis_spin_box_unit_manager.cpp
