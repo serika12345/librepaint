@@ -20,7 +20,6 @@ ecm_mark_as_test(KisRandomGenerator2DDemo)
 
 kis_add_tests(
     kis_base_node_test.cpp
-    kis_fast_math_test.cpp
     kis_node_test.cpp
     kis_node_facade_test.cpp
     kis_fixed_paint_device_test.cpp
@@ -131,6 +130,12 @@ kis_add_tests(
     KisGridInterpolationToolsTest.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaresourcestorage
     )
+
+kis_add_test(
+    kis_fast_math_test.cpp
+    LINK_LIBRARIES kritaimagefastmathobjects Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(kis_fast_math_test PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
     kis_clone_layer_test.cpp

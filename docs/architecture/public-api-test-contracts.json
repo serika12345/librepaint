@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28436
+    "expectedMissingApis": 28435
   },
   "contracts": [
     {
@@ -1956,6 +1956,16 @@
       "classification": "maintained",
       "apis": [
         "function:KisAnimationRender::mustHaveEvenDimensions(const QString & videoType,KisAnimationRenderingOptions::RenderMode renderMode)"
+      ]
+    },
+    {
+      "target": "kis_fast_math_test",
+      "source": "libs/image/tests/kis_fast_math_test.cpp",
+      "test": "KisFastMathTest::testAtan2",
+      "behavior": "原点、座標軸、全象限の代表値と第1象限の100万座標で、標準atan2に対する絶対誤差を0.0001未満に保つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisFastMath::atan2(qreal y,qreal x)"
       ]
     }
   ]
