@@ -2,13 +2,13 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 17:09 JST
+- 更新日時: 2026-08-27 17:20 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G6 変換後のQPainter画面転送契約選定
+- 現在の検査段階: R2-G7 QPainter変換描画の補間規則選定
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: R2の最適化前基準として、拡大、回転、鏡像後の表示用投影転送で固定すべき
-  変換値、画素補間規則、許容差を選定する。
+- 目的: R2の最適化前基準として、固定倍率と固定回転でQPainter表示用投影に生じる補間結果を実測し、
+  維持契約、既知不具合、未確定事項へ分類する。
 
 ## 再開環境
 
@@ -2288,11 +2288,32 @@
 - `kis_prescaled_projection_contract_test`と`kis_coordinates_converter_test`、新契約の20回反復、
   `nix develop .#test --command ./scripts/verify-quick`はmacOSで成功した。
 
+## R2-G6 QPainter表示用投影の水平鏡像分類契約で完了した作業
+
+- `kis_coordinates_converter_test`は水平鏡像後の矩形と座標往復、R2-G5は恒等変換での部分画素転送を
+  個別に固定するが、鏡像したviewport変換を通る実際の投映画素順は未検査だった。
+- `libs/ui/tests/KisQPainterCanvasDrawImageContractTest.cpp`へ8×8画像と画面、1:1倍率、原点一致、
+  画像中心を静止点とする水平鏡像を追加した。viewport端点は`(0, 0)`から`(8, 0)`、`(8, 8)`から
+  `(0, 8)`へ移り、座標変換自体は完全な左右反転になる。
+- x位置を赤、y位置を緑、両方を青の変化へ符号化した不透明投影を全画面転送した。最初の完全一致は
+  描画先`(0, 0)`で期待した投影`(7, 0)`に対し、投影`(6, 0)`相当を得て失敗した。行方向の実測でも
+  先頭画素の複製と終端画素の欠落を確認し、QPainter平滑化を伴う変換描画の一画素内側採取を
+  修正対象の既知不具合へ分類した。
+- 理想の完全一致は代表画素の期待失敗として明示した。全64画素では不透明度を完全一致で検査し、
+  理想の左右反転に対する位置符号の差を水平・垂直各1画素、合成値2以内へ制限した。この上限は
+  現行差の悪化を検出し、完全一致への修正も受け入れる。
+- 変更先は既存の独立試験だけであり、R2-G5の内部描画関数、製品コード、公開面、動的成果物は
+  変更していない。最初の対象構築は`KoViewTransformStillPoint`の定義不足で失敗し、必要な所有
+  ヘッダーを追加した後に画素診断へ到達した。
+- `nix develop .#test --command ./scripts/run-test KisQPainterCanvasDrawImageContractTest`、
+  `kis_coordinates_converter_test`、新契約の20回反復、`nix develop .#test --command ./scripts/verify-quick`は
+  macOSで成功した。
+
 ## 次の操作
 
-R2-G6として、`kis_coordinates_converter_test`の拡大、回転、鏡像の観測範囲と、
-`KisQPainterCanvasDrawImageContractTest`へ非恒等変換を与えたQPainter出力を照合する。変換済みの
-座標対応を値で固定できるか、平滑化後の画素にプラットフォーム共通の許容差が必要かを先に分類する。
+R2-G7として、`KisQPainterCanvasDrawImageContractTest`へ整数2倍、90度回転、固定の任意角回転を与えた
+出力を順に実測する。変換済みの有効描画領域、完全一致できる標本点、境界の不透明度、色差を先に
+列挙し、Qtの平滑化結果へ適用する比較規則を決めてから契約を追加する。
 
 ## R1-G5完了根拠
 
