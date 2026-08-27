@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 01:06 JST
+- 更新日時: 2026-08-28 01:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3083,6 +3083,26 @@
   保存結果検証が2工程・5入力、進捗が127工程・294入力、設定と能力判定が各702工程・1,418入力である。
   macOSでは触れたC++のclang-format検査、直接公開API契約検査、`verify-quick`も成功した。公開API、
   ABI、設定キー、診断文、検査順序、実行時分岐は変更していない。全ネイティブ検証は実行していない。
+
+## R2-G19b 入出力フィルター公開挙動の構築範囲縮小で完了した作業
+
+- `libs/impex/KisImportExportFilterConfiguration.cpp`を起点として、既定設定と設定画面生成を同ファイルに
+  残し、画像設定から保存済みXMLを読む処理を`libs/impex/KisImportExportFilterSavedConfiguration.cpp`へ
+  移した。個別対象は`kritaimpexfilterconfigurationobjects`と
+  `kritaimpexfiltersavedconfigurationobjects`である。
+- `libs/impex/KisImportExportFilterCapabilities.cpp`を起点として、一般の能力一覧生成と所有を同ファイルに
+  残し、全色モデルを走査して検査を生成する処理を`libs/impex/KisImportExportFilterColorModels.cpp`へ
+  移した。個別対象は`kritaimpexfiltercapabilityobjects`と`kritaimpexfiltercolormodelobjects`である。
+- `libs/impex/KisImportExportFilterVerification.cpp`を起点として、通常ファイルの存在、大きさ、先頭バイト
+  検証を同ファイルに残し、ZIP構成要素の検証を`libs/impex/KisImportExportFilterZipVerification.cpp`へ
+  移した。個別対象は`kritaimpexfilterverificationobjects`と
+  `kritaimpexfilterzipverificationobjects`である。
+- macOSの変更なし構築閉包は、既定設定、一般能力、通常ファイル検証が各1工程・3入力になった。
+  保存済み設定と全色モデル能力は各666工程・1,357入力、ZIP検証は2工程・5入力である。軽量な
+  public API契約は画像処理と保存領域を構築せず、実際にそれらを使う経路だけが対応所有者へ依存する。
+- macOSで6内部対象と`kritaimpex`の構築、既存`kis_import_export_filter_factory_test`、触れたC++の
+  clang-format検査が成功した。公開API、ABI、設定値、能力検査、診断文、実行時分岐は変更していない。
+  Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 

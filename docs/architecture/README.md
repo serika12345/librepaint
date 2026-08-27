@@ -716,9 +716,11 @@ R2-G3で
 
 `KisImportExportFilter`の公開クラスとABIは`kritaimpex`が所有する。内部実装は、
 `KisImportExportFilter.cpp`の状態と固定タグ、`KisImportExportFilterProgress.cpp`の進捗、
-`KisImportExportFilterConfiguration.cpp`の設定、`KisImportExportFilterCapabilities.cpp`の
-書き出し能力、`KisImportExportFilterVerification.cpp`の保存結果検証へ分かれる。各実装は
-個別のCMakeオブジェクト対象として構築でき、共有ライブラリーが同じ公開クラスへ集約する。
+`KisImportExportFilterConfiguration.cpp`と`KisImportExportFilterSavedConfiguration.cpp`の設定、
+`KisImportExportFilterCapabilities.cpp`と`KisImportExportFilterColorModels.cpp`の書き出し能力、
+`KisImportExportFilterVerification.cpp`と`KisImportExportFilterZipVerification.cpp`の保存結果検証へ
+分かれる。各実装は個別のCMakeオブジェクト対象として構築でき、共有ライブラリーが同じ公開クラスへ
+集約する。
 
 ## 変更内容から見る場所
 

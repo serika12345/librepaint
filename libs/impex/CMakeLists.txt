@@ -14,12 +14,24 @@ add_library(kritaimpexfilterconfigurationobjects OBJECT
     KisImportExportFilterConfiguration.cpp
 )
 
+add_library(kritaimpexfiltersavedconfigurationobjects OBJECT
+    KisImportExportFilterSavedConfiguration.cpp
+)
+
 add_library(kritaimpexfiltercapabilityobjects OBJECT
     KisImportExportFilterCapabilities.cpp
 )
 
+add_library(kritaimpexfiltercolormodelobjects OBJECT
+    KisImportExportFilterColorModels.cpp
+)
+
 add_library(kritaimpexfilterverificationobjects OBJECT
     KisImportExportFilterVerification.cpp
+)
+
+add_library(kritaimpexfilterzipverificationobjects OBJECT
+    KisImportExportFilterZipVerification.cpp
 )
 
 add_library(kritaimpexexportcheckbaseobjects OBJECT
@@ -54,8 +66,11 @@ set(kritaimpex_OBJECT_TARGETS
     kritaimpexfilterstateobjects
     kritaimpexfilterprogressobjects
     kritaimpexfilterconfigurationobjects
+    kritaimpexfiltersavedconfigurationobjects
     kritaimpexfiltercapabilityobjects
+    kritaimpexfiltercolormodelobjects
     kritaimpexfilterverificationobjects
+    kritaimpexfilterzipverificationobjects
     kritaimpexexportcheckbaseobjects
     kritaimpexexportcheckregistryobjects
     kritaimpexpreexportcheckerobjects
@@ -109,10 +124,20 @@ target_link_libraries(kritaimpexfilterprogressobjects
 target_link_libraries(kritaimpexfilterconfigurationobjects
     PUBLIC
         kritaimpexfilterheaders
+)
+
+target_link_libraries(kritaimpexfiltersavedconfigurationobjects
+    PUBLIC
+        kritaimpexfilterheaders
         kritaimage
 )
 
 target_link_libraries(kritaimpexfiltercapabilityobjects
+    PUBLIC
+        kritaimpexfilterheaders
+)
+
+target_link_libraries(kritaimpexfiltercolormodelobjects
     PUBLIC
         kritaimpexfilterheaders
         kritaimage
@@ -122,14 +147,22 @@ target_link_libraries(kritaimpexfiltercapabilityobjects
 target_link_libraries(kritaimpexfilterverificationobjects
     PUBLIC
         kritaimpexfilterheaders
+)
+
+target_link_libraries(kritaimpexfilterzipverificationobjects
+    PUBLIC
+        kritaimpexfilterheaders
         kritaresourcestorage
 )
 
 set_target_properties(
     kritaimpexfilterprogressobjects
     kritaimpexfilterconfigurationobjects
+    kritaimpexfiltersavedconfigurationobjects
     kritaimpexfiltercapabilityobjects
+    kritaimpexfiltercolormodelobjects
     kritaimpexfilterverificationobjects
+    kritaimpexfilterzipverificationobjects
     PROPERTIES AUTOMOC OFF
 )
 
@@ -185,8 +218,11 @@ kis_add_library(kritaimpex SHARED
     $<TARGET_OBJECTS:kritaimpexfilterstateobjects>
     $<TARGET_OBJECTS:kritaimpexfilterprogressobjects>
     $<TARGET_OBJECTS:kritaimpexfilterconfigurationobjects>
+    $<TARGET_OBJECTS:kritaimpexfiltersavedconfigurationobjects>
     $<TARGET_OBJECTS:kritaimpexfiltercapabilityobjects>
+    $<TARGET_OBJECTS:kritaimpexfiltercolormodelobjects>
     $<TARGET_OBJECTS:kritaimpexfilterverificationobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterzipverificationobjects>
     $<TARGET_OBJECTS:kritaimpexexportcheckbaseobjects>
     $<TARGET_OBJECTS:kritaimpexexportcheckregistryobjects>
     $<TARGET_OBJECTS:kritaimpexpreexportcheckerobjects>

@@ -4,14 +4,11 @@
  */
 
 #include "KisImportExportFilter.h"
-#include "KisImportExportMimeType.h"
 
 #include <algorithm>
 
-#include <KoStore.h>
 #include <QFile>
 #include <QFileInfo>
-#include <QScopedPointer>
 #include <klocalizedstring.h>
 
 QString KisImportExportFilter::verify(const QString &fileName) const
@@ -52,25 +49,6 @@ QString KisImportExportFilter::verify(const QString &fileName) const
             "%1 has only zero bytes in the first 1000 bytes, it's probably corrupt. Try saving again under a "
             "different name, in another location.",
             fileName);
-    }
-
-    return QString();
-}
-
-QString KisImportExportFilter::verifyZiPBasedFiles(const QString &fileName, const QStringList &filesToCheck) const
-{
-    QScopedPointer<KoStore> store(KoStore::createStore(fileName, KoStore::Read, KIS_MIME_TYPE, KoStore::Zip));
-
-    if (!store || store->bad()) {
-        return i18n("Could not open the saved file %1. Please try to save again in a different location.", fileName);
-    }
-
-    for (const QString &file : filesToCheck) {
-        if (!store->hasFile(file)) {
-            return i18n("Component %1 is missing in %2. Please try to save again in a different location.",
-                        file,
-                        fileName);
-        }
     }
 
     return QString();
