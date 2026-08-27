@@ -288,6 +288,30 @@ target_link_libraries(kritaimpexremotefilefetcherobjects
 )
 set_target_properties(kritaimpexremotefilefetcherobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritaimpexutilsobjects OBJECT
+    ui/KisImportExportUtils.cpp
+)
+target_compile_definitions(kritaimpexutilsobjects PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kritaimpexutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/ui/impex
+)
+target_link_libraries(kritaimpexutilsobjects
+    PUBLIC
+        kritaimpexerrorobjects
+        kritaimpexuserfeedbackobjects
+        kritaimage
+        kritapigment
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritaimpexutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if(NOT IOS)
     add_library(kritaimpexanimationoptionsstateobjects OBJECT
         animation/KisAnimationRenderingOptions.cpp
@@ -324,7 +348,6 @@ endif()
 set(kritaimpexui_LIB_SRCS
     ui/KisImportExportAsyncFeedback.cpp
     ui/KisImportExportManager.cpp
-    ui/KisImportExportUtils.cpp
     ui/KisSaveGroupVisitor.cpp
     ui/KisImportExportDialogs.cpp
     ui/kis_dlg_missing_color_profile.cpp
@@ -379,6 +402,7 @@ endif()
 set(kritaimpexui_OBJECTS
     $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>
     $<TARGET_OBJECTS:kritaimpexremotefilefetcherobjects>
+    $<TARGET_OBJECTS:kritaimpexutilsobjects>
 )
 if(NOT IOS)
     list(APPEND kritaimpexui_OBJECTS

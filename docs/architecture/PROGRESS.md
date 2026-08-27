@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 02:06 JST
+- 更新日時: 2026-08-28 02:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3210,11 +3210,24 @@
   clang-format検査が成功した。製品実装と外部サービスは変更していない。Linux、直接公開API契約検査、
   全ネイティブ検証は実行していない。
 
+## R2-G19b 入出力補助契約前の実装所有分離で完了した作業
+
+- `libs/impex/ui/KisImportExportUtils.cpp`の実装所有を、`kritaimpexui`の一括ソース集合から
+  `kritaimpexutilsobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象だけを
+  変更した。公開ヘッダー、名前空間、列挙値、構造体、関数、`kritaapplicationui`のABIを維持し、
+  `kritaimpexui`は新対象のオブジェクトを従来どおり集約する。
+- 新対象は入出力エラー、利用者確認、画像、色空間、Qt Widgetsの具体的所有者へ直接接続する。
+  macOSの変更なし構築閉包は667工程・1,359入力であり、分離前に継承していた1,127工程・
+  2,265入力から縮小した。残る閉包の大半は、公開関数が直接操作する`kritaimage`の998工程である。
+- macOSで新対象と集約後の`kritaimpexui`の限定構築が成功した。製品実装と観測可能な挙動は
+  変更していない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-macOSで成功した`kis_remote_file_fetcher_test`と公開API契約を`ssh nixos`上のLinuxへ
-同期する。専用実装対象とCTestだけを構築し、20回反復、直接公開API契約検査、変更なし構築閉包を
-確認する。Linux結果を記録した後、次の未対応入出力public APIの構築範囲を監査する。
+`libs/impex/ui/KisImportExportUtils.h`の19 APIを、列挙値と書き出しジョブの軽量契約、
+適切な色空間を持つ実画像の無変換契約へ分けて固定する。専用対象だけを構築し、macOSで20回反復、
+直接公開API契約検査、変更なし構築閉包を確認する。SSH鍵エージェントの復旧後、未同期の遠隔ファイル
+取得契約と合わせて`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 
