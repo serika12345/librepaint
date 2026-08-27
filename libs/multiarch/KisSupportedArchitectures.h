@@ -18,8 +18,6 @@ public:
 
     static QString bestArchName();
 
-    static unsigned int bestArch();
-
     static QString supportedInstructionSets();
 };
 

@@ -6,11 +6,6 @@
 
 #include "KisSupportedArchitectures.h"
 
-#include <KConfigGroup>
-#include <KSharedConfig>
-#include <kis_debug.h>
-
-
 #include <KoMultiArchBuildSupport.h>
 
 QString KisSupportedArchitectures::baseArchName()

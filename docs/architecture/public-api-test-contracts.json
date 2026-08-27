@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1544,
     "publicHeaderFingerprint": "814b91750b0668df3c54a7b44d4cb6903452476e38225680a86c889ec2e237e7",
-    "publicApiCount": 29246,
-    "publicApiFingerprint": "cb1f4d8ad6df07ef464c5d446c7def87926a4120d036acce3208bba465759069"
+    "publicApiCount": 29245,
+    "publicApiFingerprint": "dd9a0e6992b8ced00dc200b1fc4d0f1a5a58d85cfdfae7d2b401dce7ca58a08a"
   },
   "migration": {
-    "expectedMissingApis": 29151
+    "expectedMissingApis": 29143
   },
   "contracts": [
     {
@@ -265,6 +265,49 @@
       "classification": "maintained",
       "apis": [
         "function:KritaVersionWrapper::isDevelopersBuild()"
+      ]
+    },
+    {
+      "target": "KisMultiArchPublicApiTest",
+      "source": "libs/multiarch/tests/KisMultiArchPublicApiTest.cpp",
+      "test": "KisMultiArchPublicApiTest::defaultVectorizationConfiguration",
+      "behavior": "既定設定が命令セット最適化を有効にし、AVX最適化の抑止を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "function:vectorizationConfiguration()"
+      ]
+    },
+    {
+      "target": "KisMultiArchPublicApiTest",
+      "source": "libs/multiarch/tests/KisMultiArchPublicApiTest.cpp",
+      "test": "KisMultiArchPublicApiTest::reportedArchitecturesAreConsistent",
+      "behavior": "基準、実行時最適、利用可能な命令セットの報告がxsimdの実行環境検出と一致する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSupportedArchitectures",
+        "method:KisSupportedArchitectures::baseArchName()",
+        "method:KisSupportedArchitectures::bestArchName()",
+        "method:KisSupportedArchitectures::supportedInstructionSets()"
+      ]
+    },
+    {
+      "target": "KisMultiArchPublicApiTest",
+      "source": "libs/multiarch/tests/KisMultiArchPublicApiTest.cpp",
+      "test": "KisMultiArchPublicApiTest::scalarFactoryUsesGenericArchitecture",
+      "behavior": "スカラー生成経路がxsimdの汎用命令セットをファクトリーへ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "function:createScalarClass(Args &&...params)"
+      ]
+    },
+    {
+      "target": "KisMultiArchPublicApiTest",
+      "source": "libs/multiarch/tests/KisMultiArchPublicApiTest.cpp",
+      "test": "KisMultiArchPublicApiTest::optimizedFactoryUsesReportedBestArchitecture",
+      "behavior": "最適化生成経路が実行環境で報告された最適命令セットをファクトリーへ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "function:createOptimizedClass(Args &&...param)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 20:37 JST
+- 更新日時: 2026-08-27 20:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2689,7 +2689,7 @@
 - 公開マクロを持つ製品ヘッダー、異なる製品部品から直接includeされるヘッダー、公開ヘッダー構築契約の
   和集合を公開API採取範囲とし、固定Nix環境の
   Universal Ctags 6.2.1でpublicの型、列挙値、型別名、関数、メソッド、データ、変数を直接採取する。
-  現在の範囲は1,544ヘッダー、29,246 APIであり、製品のCMake構成やコンパイルを実行しない。
+  基盤確立時の範囲は1,544ヘッダー、29,246 APIであり、製品のCMake構成やコンパイルを実行しない。
 - `docs/architecture/public-api-test-contracts.json`が公開面の件数と指紋、移行中の正確な未対応件数、
   CTest対象、試験ソース、具体的な試験関数、観測挙動、分類、API識別子の対応を保持する。
 - `scripts/architecture/check_public_api_contracts.py`が公開面の変更、存在しないAPI、試験ソース・
@@ -2722,11 +2722,31 @@
   変更後の対象計画、直接の公開API契約検査、`verify-quick`はmacOSで成功した。Linuxと全ネイティブ
   検証は実行していない。
 
+## R2-G19b 実行時命令セットpublic API契約で完了した作業
+
+- `libs/multiarch/KisSupportedArchitectures.{h,cpp}`と
+  `libs/multiarch/KoMultiArchBuildSupport.{h,cpp}`の公開面を監査した。宣言だけ存在し実装も利用元も
+  なかった`KisSupportedArchitectures::bestArch()`は、リンク可能性を要求する最初の対象実行で
+  未定義シンボルになることを確認し、公開ヘッダーから削除した。代替APIは追加していない。
+- `KisMultiArchPublicApiTest`を`libs/multiarch/tests/`へ追加し、既定のベクトル化設定、基準・最適・
+  利用可能命令セットの整合、スカラー生成経路の汎用命令セット、最適化生成経路の実行時選択を固定した。
+  ホスト固有名は文字列リテラルで固定せず、xsimdが報告する実行環境との対応を検査する。
+- 契約追加前の`kritamultiarch`は、未使用の`kis_debug.h`を介して`kritaglobal`と`kritaversion`まで
+  到達し、変更なし構築閉包が61工程、入力119件だった。`libs/multiarch/CMakeLists.txt`から不要な
+  `kritaglobal`リンクを外し、`libs/multiarch/KisSupportedArchitectures.cpp`と
+  `libs/multiarch/KoMultiArchBuildSupport.cpp`から未使用includeを除いた。製品対象は6工程、入力12件、
+  リポジトリ内製品依存0件へ縮小した。
+- 追加した試験の直接リポジトリ依存は`kritamultiarch`だけで、変更なし構築閉包は10工程、入力19件で
+  ある。7 APIを4試験関数へ対応付け、公開面は1,544ヘッダー、29,245 API、対応済み102 API、
+  未対応29,143 APIになった。
+- `nix develop .#test --command ./scripts/run-test KisMultiArchPublicApiTest`、対象CTestの20回反復、
+  変更後の対象計画、直接の公開API契約検査はmacOSで成功した。Linuxと全ネイティブ検証は実行して
+  いない。
+
 ## 次の操作
 
-`libs/multiarch`の未対応8 APIについて、`kritamultiarch`の変更なし計画、直接依存、空構築閉包と、
-実行時CPU命令集合およびテンプレート生成経路の既存利用元を確認する。ホスト固有値と維持すべき
-選択規則を分離できる場合だけ、最小の専用CTestへ進む。
+`libs/color`の未対応17 APIについて、既存CTestが観測する挙動、所有対象の変更なし計画、直接依存、
+空構築閉包を確認する。構築範囲が色管理の責務を越える場合は、契約追加より先に所有単位を分ける。
 
 ## R1-G5完了根拠
 

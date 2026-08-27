@@ -14,7 +14,6 @@ target_link_libraries(kritamultiarch
         Qt${QT_MAJOR_VERSION}::Core
     PRIVATE
         KF${KF_MAJOR}::ConfigCore
-        kritaglobal
 )
 
 set_target_properties(kritamultiarch PROPERTIES
@@ -28,3 +27,5 @@ target_include_directories(kritamultiarch
 )
 
 install(TARGETS kritamultiarch ${INSTALL_TARGETS_DEFAULT_ARGS})
+
+add_subdirectory(tests)
