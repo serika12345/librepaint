@@ -225,3 +225,9 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisRectsGridContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisQStringListFwdTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisQStringListFwdTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

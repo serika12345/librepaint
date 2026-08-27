@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28242
+    "expectedMissingApis": 28239
   },
   "contracts": [
     {
@@ -2898,6 +2898,18 @@
       "classification": "known_defect",
       "apis": [
         "method:KisRectsGrid::boundingRect() const"
+      ]
+    },
+    {
+      "target": "KisQStringListFwdTest",
+      "source": "libs/global/tests/KisQStringListFwdTest.cpp",
+      "test": "KisQStringListFwdTest::aliasesMatchQtContainersAndPreserveValues",
+      "behavior": "Qt 6互換の文字列列、バイト列、ベクター型別名は対応するQList実体を指し、要素順と更新操作を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:QByteArrayList",
+        "alias:QStringList",
+        "alias:QVector"
       ]
     }
   ]
