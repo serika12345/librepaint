@@ -143,12 +143,26 @@ set_target_properties(kritaglobalfilteredrollingmeanobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalsharedobjects OBJECT
+    kis_shared.cpp
+)
+target_compile_definitions(kritaglobalsharedobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalsharedobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalsharedobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaglobalsharedobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
     kis_algebra_2d.cpp
     kis_memory_leak_tracker.cpp
-    kis_shared.cpp
     kis_dom_utils.cpp
     kis_painting_tweaks.cpp
     KisHandlePainterHelper.cpp
@@ -201,6 +215,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalbackupobjects>
     $<TARGET_OBJECTS:kritaglobalcursoroverridelockobjects>
     $<TARGET_OBJECTS:kritaglobalfilteredrollingmeanobjects>
+    $<TARGET_OBJECTS:kritaglobalsharedobjects>
 )
 
 target_sources(kritaglobal
