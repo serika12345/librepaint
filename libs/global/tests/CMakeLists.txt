@@ -59,3 +59,9 @@ kis_add_test(
         KF${KF_MAJOR}::ConfigCore
 )
 target_compile_definitions(KisTemporaryFileConfigurationTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisNodeAdditionFlagsTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeAdditionFlagsTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28376
+    "expectedMissingApis": 28373
   },
   "contracts": [
     {
@@ -2296,6 +2296,18 @@
       "classification": "maintained",
       "apis": [
         "function:KritaUtils::normalizeSwapFileLocation(KConfigGroup config)"
+      ]
+    },
+    {
+      "target": "KisNodeAdditionFlagsTest",
+      "source": "libs/global/tests/KisNodeAdditionFlagsTest.cpp",
+      "test": "KisNodeAdditionFlagsTest::valuesAndCombination",
+      "behavior": "既定フラグは通知抑止を含まず、通知抑止値を結合すると対応するビットだけを保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisNodeAdditionFlag",
+        "enumerator:KisNodeAdditionFlag::DontActivateNode",
+        "enumerator:KisNodeAdditionFlag::None"
       ]
     }
   ]
