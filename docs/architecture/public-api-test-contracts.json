@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28126
+    "expectedMissingApis": 28120
   },
   "contracts": [
     {
@@ -3365,6 +3365,32 @@
         "variable:KisPaintOpUtils::MaskingBrushPaintOpId",
         "variable:KisPaintOpUtils::MaskingBrushPresetPrefix",
         "variable:KisPaintOpUtils::MaskingBrushUseMasterSizeTag"
+      ]
+    },
+    {
+      "target": "KisGreenCoordinatesContractTest",
+      "source": "libs/image/tests/KisGreenCoordinatesContractTest.cpp",
+      "test": "KisGreenCoordinatesContractTest::identityCageKeepsPointPositions",
+      "behavior": "元ケージを変形先として使うと、事前計算した内部点は許容誤差内で元座標を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGreenCoordinatesMath",
+        "method:KisGreenCoordinatesMath::KisGreenCoordinatesMath()",
+        "method:KisGreenCoordinatesMath::generateTransformedCageNormals(const QVector<QPointF> & transformedCage)",
+        "method:KisGreenCoordinatesMath::precalculateGreenCoordinates(const QVector<QPointF> & originalCage,const QVector<QPointF> & points)",
+        "method:KisGreenCoordinatesMath::transformedPoint(int pointIndex,const QVector<QPointF> & transformedCage)",
+        "method:KisGreenCoordinatesMath::~KisGreenCoordinatesMath()"
+      ]
+    },
+    {
+      "target": "KisGreenCoordinatesContractTest",
+      "source": "libs/image/tests/KisGreenCoordinatesContractTest.cpp",
+      "test": "KisGreenCoordinatesContractTest::translatedCageTranslatesPointPositions",
+      "behavior": "ケージ全頂点を同じ量だけ平行移動すると、複数の事前計算済み内部点も同じ量だけ移動する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGreenCoordinatesMath::generateTransformedCageNormals(const QVector<QPointF> & transformedCage)",
+        "method:KisGreenCoordinatesMath::transformedPoint(int pointIndex,const QVector<QPointF> & transformedCage)"
       ]
     }
   ]

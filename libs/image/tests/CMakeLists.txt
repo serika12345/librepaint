@@ -172,6 +172,13 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisGreenCoordinatesContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagegreencoordinatesobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     kis_clone_layer_test.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaglobal kritatransformmaskstubs
     )
