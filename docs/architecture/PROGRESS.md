@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 03:19 JST
+- 更新日時: 2026-08-28 03:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3297,11 +3297,24 @@
   直接公開API契約検査、触れたC++のclang-format検査が成功した。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G19b ファイル名補助契約前の実装所有分離で完了した作業
+
+- `libs/global/KisFileUtils.cpp`の実装所有を、`kritaglobal`の一括ソース集合から
+  `kritaglobalfileutilsobjects`へ移した。起点と移動先のファイルは同じで、CMake上の所有対象だけを
+  変更した。公開ヘッダー、名前空間、関数、`kritaglobal`のABIを維持し、`kritaglobal`は新対象の
+  オブジェクトを従来どおり集約する。
+- 重複名解析は既存正規表現の第3捕捉から接尾辞を直接取得する。先頭文字の除去だけに使っていた
+  `KisPortingUtils.h`を外し、画面と表示部品への不要なコンパイル依存を除いた。既存の接尾辞、複数ドット、
+  区切り文字を扱う結果は維持する。
+- 新対象はQt Coreだけへ直接接続し、変更なし構築閉包はmacOSで1工程・3入力である。分離前の
+  `KisGlobalTest`は59工程・116入力だった。macOSで新対象、集約後の`kritaglobal`の限定構築、既存
+  `KisGlobalTest`が成功した。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-次の未対応public APIについて、既存CTestと実装所有を照合し、変更なし構築閉包を測定する。既存試験が
-挙動を十分に観測している場合は専用対象へ直接接続して契約へ登録し、不足する場合は最小の挙動を追加する。
-SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
+既存`KisGlobalTest`を`kritaglobalfileutilsobjects`へ直接接続し、絶対パスと基準ディレクトリー、
+基準ファイルからの相対パス解決を追加する。重複名生成と合わせて2 public APIを契約へ登録し、macOSで
+各検証を行う。SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 

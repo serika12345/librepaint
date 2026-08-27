@@ -8,6 +8,21 @@ option(HAVE_MEMORY_LEAK_TRACKER "Enable memory leak tracker (always disabled in 
 option(HAVE_BACKTRACE_SUPPORT "Enable recording of backtrace in memory leak tracker" OFF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config-memory-leak-tracker.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-memory-leak-tracker.h) ### WRONG PLACE???
 
+add_library(kritaglobalfileutilsobjects OBJECT
+    KisFileUtils.cpp
+)
+target_compile_definitions(kritaglobalfileutilsobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalfileutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalfileutilsobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaglobalfileutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -29,7 +44,6 @@ set(kritaglobal_LIB_SRCS
     kis_config_notifier.cpp
     KisDeleteLaterWrapper.cpp
     KisUsageLogger.cpp
-    KisFileUtils.cpp
     KisTemporaryFileConfiguration.cpp
     KisSignalMapper.cpp
     KisRegion.cpp
@@ -64,8 +78,10 @@ if (ANDROID)
     endif()
 endif()
 
-kis_add_library(kritaglobal SHARED ${kritaglobal_LIB_SRCS}
-   )
+kis_add_library(kritaglobal SHARED
+    ${kritaglobal_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaglobalfileutilsobjects>
+)
 
 target_sources(kritaglobal
   PRIVATE
