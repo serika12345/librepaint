@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28191
+    "expectedMissingApis": 28163
   },
   "contracts": [
     {
@@ -3086,6 +3086,88 @@
         "method:KisRunnable::run()",
         "method:KisRunnable::~KisRunnable()",
         "method:KisRunnableWithDebugName::debugName() const"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::defaultJobDataHasSequentialNormalDefaults",
+      "behavior": "既定のストロークジョブデータは逐次・通常・取消可能・詳細度上書きなしで、分類問い合わせと既定の詳細度複製結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeJobData",
+        "method:KisStrokeJobData::KisStrokeJobData(Sequentiality sequentiality=SEQUENTIAL,Exclusivity exclusivity=NORMAL)",
+        "method:KisStrokeJobData::createLodClone(int levelOfDetail)",
+        "method:KisStrokeJobData::exclusivity()",
+        "method:KisStrokeJobData::isBarrier() const",
+        "method:KisStrokeJobData::isCancellable() const",
+        "method:KisStrokeJobData::isExclusive() const",
+        "method:KisStrokeJobData::isSequential() const",
+        "method:KisStrokeJobData::levelOfDetailOverride() const",
+        "method:KisStrokeJobData::sequentiality()"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::jobModesExposeEverySchedulingClassification",
+      "behavior": "全逐次性と排他性の列挙値は、逐次・障壁・排他の分類問い合わせへ定められた結果を与える。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisStrokeJobData::Exclusivity",
+        "enum:KisStrokeJobData::Sequentiality",
+        "enumerator:KisStrokeJobData::Exclusivity::EXCLUSIVE",
+        "enumerator:KisStrokeJobData::Exclusivity::NORMAL",
+        "enumerator:KisStrokeJobData::Sequentiality::BARRIER",
+        "enumerator:KisStrokeJobData::Sequentiality::CONCURRENT",
+        "enumerator:KisStrokeJobData::Sequentiality::SEQUENTIAL",
+        "enumerator:KisStrokeJobData::Sequentiality::UNIQUELY_CONCURRENT"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::jobMutatorsAndCopyPreserveConfiguration",
+      "behavior": "取消可能性と詳細度上書きの変更は読取結果へ反映され、派生データの複製へ逐次性・排他性とともに保持される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeJobData::setCancellable(bool value)",
+        "method:KisStrokeJobData::setLevelOfDetailOverride(int value)"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::jobDataDeletesThroughBase",
+      "behavior": "ストロークジョブデータの基底ポインターからの破棄は派生実体を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeJobData::~KisStrokeJobData()"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::strategyRunsNamedJobsAndDeletesThroughBase",
+      "behavior": "ストローク戦略は診断識別子を返し、指定ジョブを基底入口から一度実行し、基底ポインターから派生実体を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeJobStrategy",
+        "method:KisStrokeJobStrategy::KisStrokeJobStrategy()",
+        "method:KisStrokeJobStrategy::debugId() const",
+        "method:KisStrokeJobStrategy::run(KisStrokeJobData * data)",
+        "method:KisStrokeJobStrategy::~KisStrokeJobStrategy()"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::runnableJobUsesDefaultAndRequestedScheduling",
+      "behavior": "実行可能ストロークジョブは既定または指定された逐次性と排他性を基底データへ渡し、実行入口を呼び出せる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRunnableStrokeJobDataBase",
+        "method:KisRunnableStrokeJobDataBase::KisRunnableStrokeJobDataBase(KisStrokeJobData::Sequentiality sequentiality=KisStrokeJobData::SEQUENTIAL,KisStrokeJobData::Exclusivity exclusivity=KisStrokeJobData::NORMAL)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 07:17 JST
+- 更新日時: 2026-08-28 07:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3900,6 +3900,17 @@
   新対象は2工程・5入力である。macOSで新対象の限定構築が成功した。製品実装、公開API、ABI、
   ストロークジョブ挙動は変更していない。Linux、製品ライブラリーの再リンク、全ネイティブ検証は
   実行していない。
+
+## R2-G19b ストロークジョブ public API契約で完了した作業
+
+- `libs/image/kis_stroke_job_strategy.h`と`libs/image/KisRunnableStrokeJobDataBase.h`のクラス、全逐次性・
+  排他性、構築・破棄、分類、取消可能性、詳細度上書き、複製、戦略実行・診断名の28 APIを、新規
+  `libs/image/tests/KisStrokeJobContractTest.cpp`の6試験へ対応付けた。既定値、全列挙値の分類、状態変更と
+  派生複製、基底ポインターからの破棄、戦略の実行対象、実行可能ジョブの指定値を観測する。
+- 新試験は`kritaimagestrokejobobjects`とQt Testだけへ直接接続し、変更なし構築閉包はmacOSで6工程・
+  13入力である。対象実行と20回反復が成功し、公開API契約は851件、未対応基準は28,163件になった。
+  製品実装、公開API、ABI、ストロークジョブ挙動は変更していない。Linuxと全ネイティブ検証は実行して
+  いない。
 
 ## 次の操作
 

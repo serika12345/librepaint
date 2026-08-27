@@ -174,6 +174,17 @@ target_include_directories(KisRunnableContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 
+kis_add_test(
+    KisStrokeJobContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagestrokejobobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisStrokeJobContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 
