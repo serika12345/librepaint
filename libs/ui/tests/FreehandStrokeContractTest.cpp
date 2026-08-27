@@ -4,6 +4,7 @@
  */
 
 #include <QDir>
+#include <QDomDocument>
 #include <QImage>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -18,6 +19,7 @@
 #include <brushengine/kis_paintop_factory.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_registry.h>
+#include <brushengine/kis_paintop_settings.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
@@ -36,6 +38,33 @@ namespace
 constexpr int imageWidth = 500;
 constexpr int imageHeight = 500;
 constexpr int referenceAlphaTolerance = 3;
+constexpr qreal inputPressure = 1.0;
+constexpr qreal inputTilt = 0.0;
+constexpr qreal inputRotation = 0.0;
+constexpr qreal inputTangentialPressure = 0.0;
+constexpr qreal inputPerspective = 1.0;
+constexpr qreal inputTime = 0.0;
+constexpr qreal inputSpeed = 0.0;
+const QRect maintainedStrokeBounds(50, 50, 385, 385);
+
+KisPaintInformation fixedPaintInformation(const QPointF &position)
+{
+    KisPaintInformation info(position,
+                             inputPressure,
+                             inputTilt,
+                             inputTilt,
+                             inputRotation,
+                             inputTangentialPressure,
+                             inputPerspective,
+                             inputTime,
+                             inputSpeed);
+    info.setCanvasRotation(0.0);
+    info.setCanvasMirroredH(false);
+    info.setCanvasMirroredV(false);
+    info.setTiltDirectionOffset(0.0);
+    info.setLevelOfDetail(0);
+    return info;
+}
 
 class PixelBrushFactory final : public KisPaintOpFactory
 {
@@ -164,13 +193,16 @@ public:
         resources->setBrush(m_preset);
         resources->setFGColorOverride(KoColor(Qt::black, m_image->colorSpace()));
         resources->setBGColorOverride(KoColor(Qt::white, m_image->colorSpace()));
+        resources->setOpacity(1.0);
+        resources->setMirroring(false, false);
+        resources->setSelectionOverride(nullptr);
 
         auto *stroke =
             new FreehandStrokeStrategy(resources, new KisFreehandStrokeInfo(), kundo2_noi18n("Freehand Stroke"));
 
         const KisStrokeId strokeId = m_image->startStroke(stroke);
-        const KisPaintInformation start(QPointF(200.0, 200.0));
-        const KisPaintInformation end(QPointF(300.0, 300.0));
+        const KisPaintInformation start = fixedPaintInformation(QPointF(200.0, 200.0));
+        const KisPaintInformation end = fixedPaintInformation(QPointF(300.0, 300.0));
 
         m_image->addJob(strokeId, new FreehandStrokeStrategy::Data(0, start, end));
         m_image->addJob(strokeId, new KisAsynchronousStrokeUpdateHelper::UpdateData(true));
@@ -200,9 +232,19 @@ public:
         return m_image;
     }
 
+    KisPaintOpPresetSP preset() const
+    {
+        return m_preset;
+    }
+
     QImage layerImage() const
     {
         return deviceImage(m_layer->paintDevice());
+    }
+
+    QRect layerExactBounds() const
+    {
+        return m_layer->paintDevice()->exactBounds();
     }
 
     QImage projectionImage() const
@@ -226,6 +268,7 @@ class FreehandStrokeContractTest : public QObject
 
 private Q_SLOTS:
     void initTestCase();
+    void presetAndInputValuesAreFixed();
     void finishedStrokeMatchesMaintainedProjection();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
@@ -236,6 +279,64 @@ void FreehandStrokeContractTest::initTestCase()
     KisPaintOpRegistry *registry = KisPaintOpRegistry::instance();
     QVERIFY(!registry->get(QStringLiteral("paintbrush")));
     registry->add(new PixelBrushFactory());
+}
+
+void FreehandStrokeContractTest::presetAndInputValuesAreFixed()
+{
+    FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
+
+    KisPaintOpPresetSP preset = fixture.preset();
+    QCOMPARE(fixture.image()->bounds(), QRect(0, 0, imageWidth, imageHeight));
+    QCOMPARE(fixture.image()->colorSpace(), KoColorSpaceRegistry::instance()->rgb8());
+    QCOMPARE(fixture.image()->rootLayer()->childCount(), 1);
+    QCOMPARE(preset->paintOp().id(), QStringLiteral("paintbrush"));
+    KisPaintOpSettingsSP settings = preset->settings();
+    QVERIFY(settings);
+    QCOMPARE(settings->getBool(QStringLiteral("PressureOpacity")), true);
+    QCOMPARE(settings->getBool(QStringLiteral("PressureSize")), true);
+    QCOMPARE(settings->getBool(QStringLiteral("PressureRotation")), false);
+    QCOMPARE(settings->getBool(QStringLiteral("PressureScatter")), false);
+    QCOMPARE(settings->getBool(QStringLiteral("Texture/Pattern/Enabled")), false);
+    QVERIFY(settings->getString(QStringLiteral("OpacitySensor")).contains(QStringLiteral("id=\"pressure\"")));
+    QVERIFY(settings->getString(QStringLiteral("SizeSensor")).contains(QStringLiteral("id=\"pressure\"")));
+
+    QDomDocument brushDocument;
+    QVERIFY(brushDocument.setContent(settings->getString(QStringLiteral("brush_definition"))));
+    const QDomElement brush = brushDocument.documentElement();
+    QCOMPARE(brush.tagName(), QStringLiteral("Brush"));
+    QCOMPARE(brush.attribute(QStringLiteral("type")), QStringLiteral("auto_brush"));
+    QCOMPARE(brush.attribute(QStringLiteral("spacing")).toDouble(), 0.1);
+    QCOMPARE(brush.attribute(QStringLiteral("angle")).toDouble(), 0.0);
+    QCOMPARE(brush.attribute(QStringLiteral("randomness"), QStringLiteral("0.0")).toDouble(), 0.0);
+    QCOMPARE(brush.attribute(QStringLiteral("density"), QStringLiteral("1.0")).toDouble(), 1.0);
+
+    const QDomElement mask = brush.firstChildElement(QStringLiteral("MaskGenerator"));
+    QVERIFY(!mask.isNull());
+    QCOMPARE(mask.attribute(QStringLiteral("type")), QStringLiteral("circle"));
+    QCOMPARE(mask.attribute(QStringLiteral("radius")).toDouble(), 300.0);
+    QCOMPARE(mask.attribute(QStringLiteral("ratio")).toDouble(), 1.0);
+    QCOMPARE(mask.attribute(QStringLiteral("hfade")).toDouble(), 0.25);
+    QCOMPARE(mask.attribute(QStringLiteral("vfade")).toDouble(), 0.25);
+    QCOMPARE(mask.attribute(QStringLiteral("spikes")).toInt(), 2);
+
+    const KisPaintInformation start = fixedPaintInformation(QPointF(200.0, 200.0));
+    const KisPaintInformation end = fixedPaintInformation(QPointF(300.0, 300.0));
+    QCOMPARE(start.pos(), QPointF(200.0, 200.0));
+    QCOMPARE(end.pos(), QPointF(300.0, 300.0));
+    QCOMPARE(start.pressure(), inputPressure);
+    QCOMPARE(end.pressure(), inputPressure);
+    QCOMPARE(start.xTilt(), inputTilt);
+    QCOMPARE(start.yTilt(), inputTilt);
+    QCOMPARE(start.rotation(), inputRotation);
+    QCOMPARE(start.tangentialPressure(), inputTangentialPressure);
+    QCOMPARE(start.perspective(), inputPerspective);
+    QCOMPARE(start.currentTime(), inputTime);
+    QCOMPARE(start.drawingSpeed(), inputSpeed);
+    QCOMPARE(start.canvasRotation(), 0.0);
+    QCOMPARE(start.canvasMirroredH(), false);
+    QCOMPARE(start.canvasMirroredV(), false);
+    QCOMPARE(start.tiltDirectionOffset(), 0.0);
 }
 
 void FreehandStrokeContractTest::finishedStrokeMatchesMaintainedProjection()
@@ -253,6 +354,8 @@ void FreehandStrokeContractTest::finishedStrokeMatchesMaintainedProjection()
     QVERIFY(fixture.image()->isIdle());
     QVERIFY(!updateSpy.isEmpty());
     QVERIFY(layer != initialLayer);
+    QCOMPARE(fixture.layerExactBounds(), maintainedStrokeBounds);
+    QCOMPARE(fixture.image()->projection()->exactBounds(), maintainedStrokeBounds);
 
     QPoint mismatch;
     QVERIFY2(compareImages(layer, projection, QStringLiteral("freehand-contract-projection-actual.png"), &mismatch),

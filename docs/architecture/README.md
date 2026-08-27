@@ -617,9 +617,13 @@ PaintOpの実行処理は`plugins/paintops/libpaintop`の`kritapaintopruntime`�
 
 最初の維持契約は[FreehandStrokeContractTest.cpp](../../libs/ui/tests/FreehandStrokeContractTest.cpp)です。
 sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autobrush_300px.kpp`、
-`(200, 200)`から`(300, 300)`までの2入力点、作業スレッド1本を固定します。終了結果は
+`(200, 200)`から`(300, 300)`までの2入力点、筆圧1、傾き・回転・接線方向筆圧・時刻・速度0、
+遠近1、非ミラー、無選択、不透明度1、作業スレッド1本を固定します。プリセットは直径300、比率1、
+間隔0.1の円形自動ブラシで、筆圧による不透明度と寸法だけが有効です。散布、テクスチャ、Fuzzy
+センサーを使わないため、この契約の画素結果はストローク乱数源を消費しません。終了結果は
 [autobrush-finished-projection.png](../../libs/ui/tests/data/freehand-contract/autobrush-finished-projection.png)を
 維持する契約として比較し、RGBは完全一致、アルファ値は8ビット値で±3以内とします。
+レイヤーと投影の正確な描画領域は`QRect(50, 50, 385, 385)`です。
 取消しとアンドゥは開始前のレイヤーおよび投影への完全一致、リドゥは同一実行内の終了結果への
 完全一致を要求し、各操作後に画像更新が停止して待機状態へ戻ることを確認します。
 
