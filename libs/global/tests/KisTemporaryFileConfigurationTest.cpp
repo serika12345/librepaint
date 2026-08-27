@@ -11,18 +11,19 @@
 
 #include <KisTemporaryFileConfiguration.h>
 
-class KisConfigurationValueTypesTest : public QObject
+class KisTemporaryFileConfigurationTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void configuredTemporaryLocationRemainsStable();
-    void defaultAndFallbackTemporaryLocationsRemainStable();
+    void configuredLocationRemainsStable();
+    void defaultAndFallbackLocationsRemainStable();
+    void temporarySwapLocationNormalization();
 };
 
-void KisConfigurationValueTypesTest::configuredTemporaryLocationRemainsStable()
+void KisTemporaryFileConfigurationTest::configuredLocationRemainsStable()
 {
-    QTemporaryDir directory(QDir::home().filePath(".KisConfigurationValueTypesTest-XXXXXX"));
+    QTemporaryDir directory(QDir::home().filePath(".KisTemporaryFileConfigurationTest-XXXXXX"));
     QVERIFY(directory.isValid());
     KConfig config(directory.filePath("configuration"), KConfig::SimpleConfig);
     KConfigGroup group(&config, QString());
@@ -34,7 +35,7 @@ void KisConfigurationValueTypesTest::configuredTemporaryLocationRemainsStable()
              directory.path());
 }
 
-void KisConfigurationValueTypesTest::defaultAndFallbackTemporaryLocationsRemainStable()
+void KisTemporaryFileConfigurationTest::defaultAndFallbackLocationsRemainStable()
 {
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -51,6 +52,24 @@ void KisConfigurationValueTypesTest::defaultAndFallbackTemporaryLocationsRemainS
     QCOMPARE(KritaUtils::writableSwapFileLocation(group, false), QDir::tempPath());
 }
 
-QTEST_MAIN(KisConfigurationValueTypesTest)
+void KisTemporaryFileConfigurationTest::temporarySwapLocationNormalization()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    KConfig config(directory.filePath("configuration"), KConfig::SimpleConfig);
+    KConfigGroup group(&config, QString());
+    const QString temporaryLocation = QStringLiteral("/var/folders/librepaint-contract");
+    group.writeEntry("swaplocation", temporaryLocation);
 
-#include "KisConfigurationValueTypesTest.moc"
+    KritaUtils::normalizeSwapFileLocation(group);
+
+#ifdef Q_OS_MACOS
+    QVERIFY(!group.hasKey("swaplocation"));
+#else
+    QCOMPARE(group.readEntry("swaplocation", QString()), temporaryLocation);
+#endif
+}
+
+QTEST_GUILESS_MAIN(KisTemporaryFileConfigurationTest)
+
+#include "KisTemporaryFileConfigurationTest.moc"

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28379
+    "expectedMissingApis": 28376
   },
   "contracts": [
     {
@@ -2266,6 +2266,36 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const KisCumulativeUndoData & data)"
+      ]
+    },
+    {
+      "target": "KisTemporaryFileConfigurationTest",
+      "source": "libs/global/tests/KisTemporaryFileConfigurationTest.cpp",
+      "test": "KisTemporaryFileConfigurationTest::configuredLocationRemainsStable",
+      "behavior": "書込み可能な設定済み一時配置を指定すると、汎用一時ファイルは同じ配置を選ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::writableTemporaryFileLocation(KConfigGroup config,const QString & suffix,const QString & configKey,bool requestDefault)"
+      ]
+    },
+    {
+      "target": "KisTemporaryFileConfigurationTest",
+      "source": "libs/global/tests/KisTemporaryFileConfigurationTest.cpp",
+      "test": "KisTemporaryFileConfigurationTest::defaultAndFallbackLocationsRemainStable",
+      "behavior": "swap配置は要求時に既定値を返し、設定先へ書き込めない場合は書込み可能な一時配置へ切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::writableSwapFileLocation(KConfigGroup config,bool requestDefault)"
+      ]
+    },
+    {
+      "target": "KisTemporaryFileConfigurationTest",
+      "source": "libs/global/tests/KisTemporaryFileConfigurationTest.cpp",
+      "test": "KisTemporaryFileConfigurationTest::temporarySwapLocationNormalization",
+      "behavior": "一時領域を指すswap設定はmacOSで削除し、他の構成では設定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::normalizeSwapFileLocation(KConfigGroup config)"
       ]
     }
   ]

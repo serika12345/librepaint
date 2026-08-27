@@ -3,7 +3,6 @@ kis_add_tests(KisSignalCompressorTest.cpp
     KisMplTest.cpp
     KisRectsGridTest.cpp
     KisHistoryListTest.cpp
-    KisConfigurationValueTypesTest.cpp
     LINK_LIBRARIES kritaglobal kritatestsdk
     )
 
@@ -51,3 +50,12 @@ kis_add_test(
         KF${KF_MAJOR}::ConfigCore
 )
 target_compile_definitions(KisCumulativeUndoDataTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisTemporaryFileConfigurationTest.cpp
+    LINK_LIBRARIES
+        kritaglobaltemporaryfileconfigurationobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::ConfigCore
+)
+target_compile_definitions(KisTemporaryFileConfigurationTest PRIVATE kritaglobal_EXPORTS)
