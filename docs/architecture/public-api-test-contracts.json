@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28373
+    "expectedMissingApis": 28369
   },
   "contracts": [
     {
@@ -2308,6 +2308,28 @@
         "enum:KisNodeAdditionFlag",
         "enumerator:KisNodeAdditionFlag::DontActivateNode",
         "enumerator:KisNodeAdditionFlag::None"
+      ]
+    },
+    {
+      "target": "KisSignalsBlockerTest",
+      "source": "libs/global/tests/KisSignalsBlockerTest.cpp",
+      "test": "KisSignalsBlockerTest::singleObjectRestoresPriorState",
+      "behavior": "単一個体の通知を保護範囲内だけ遮断し、破棄時に遮断済み・未遮断の元状態を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSignalsBlocker",
+        "method:KisSignalsBlocker::KisSignalsBlocker(QObject * object)",
+        "method:KisSignalsBlocker::~KisSignalsBlocker()"
+      ]
+    },
+    {
+      "target": "KisSignalsBlockerTest",
+      "source": "libs/global/tests/KisSignalsBlockerTest.cpp",
+      "test": "KisSignalsBlockerTest::multipleObjectsRestoreIndividualStates",
+      "behavior": "複数個体の通知を同時に遮断し、破棄時に各個体が持っていた異なる遮断状態を個別に復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSignalsBlocker::KisSignalsBlocker(QObject * o1,QObject * o2,QObject * o3=0,QObject * o4=0,QObject * o5=0,QObject * o6=0)"
       ]
     }
   ]
