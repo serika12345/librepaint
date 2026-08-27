@@ -23,6 +23,25 @@ set_target_properties(kritaglobalfileutilsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalcumulativeundodataobjects OBJECT
+    KisCumulativeUndoData.cpp
+)
+target_compile_definitions(kritaglobalcumulativeundodataobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalcumulativeundodataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalcumulativeundodataobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritaglobalcumulativeundodataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -58,7 +77,6 @@ set(kritaglobal_LIB_SRCS
     KisBackup.cpp
     KisSampleRectIterator.cpp
     KisCursorOverrideLock.cpp
-    KisCumulativeUndoData.cpp
     kis_random_source.cpp
     KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
@@ -81,6 +99,7 @@ endif()
 kis_add_library(kritaglobal SHARED
     ${kritaglobal_LIB_SRCS}
     $<TARGET_OBJECTS:kritaglobalfileutilsobjects>
+    $<TARGET_OBJECTS:kritaglobalcumulativeundodataobjects>
 )
 
 target_sources(kritaglobal

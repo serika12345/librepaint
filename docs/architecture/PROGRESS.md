@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 04:28 JST
+- 更新日時: 2026-08-28 04:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3425,11 +3425,23 @@
   成功した。公開APIと既存の遅延・即時値結果を維持し、移動時の未初期化読み出しを除いた。Linuxと
   全ネイティブ検証は実行していない。
 
+## R2-G19b 累積取り消し設定契約前の実装所有分離で完了した作業
+
+- `libs/global/KisCumulativeUndoData.cpp`の実装所有を、`kritaglobal`の一括ソース集合から
+  `kritaglobalcumulativeundodataobjects`へ移した。起点と移動先のファイルは同じで、CMake上の
+  所有対象だけを変更した。公開ヘッダー、構造体、関数、`kritaglobal`のAPIとABIを維持し、
+  `kritaglobal`は新対象のオブジェクトを従来どおり集約する。
+- 新対象はQt CoreとKConfig Coreだけへ直接接続する。変更なし構築閉包はmacOSで1工程・3入力であり、
+  既存の`KisConfigurationValueTypesTest`が`kritaglobal`と試験支援ライブラリーから継承する
+  59工程・117入力から分離した。
+- macOSで新対象の限定構築が成功した。製品実装、公開API、ABI、設定の読書き結果は変更していない。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-次の少数APIヘッダーについて、既存試験、実装所有、直接依存、変更なし構築閉包を調べる。
-構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。SSH鍵エージェントの
-復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
+`libs/global/tests/KisConfigurationValueTypesTest.cpp`から累積取り消し設定の試験を専用試験へ移し、
+既定値、等価性、設定の読書き、診断表示を10件のpublic APIへ対応付ける。SSH鍵エージェントの復旧後、
+未同期契約を`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 
