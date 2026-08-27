@@ -16,7 +16,7 @@
     "publicApiFingerprint": "adad650ee6ad3fc29314c8fd2aef1eea9ff9fd385cce4860c92062f06755ae95"
   },
   "migration": {
-    "expectedMissingApis": 28434
+    "expectedMissingApis": 28432
   },
   "contracts": [
     {
@@ -1986,6 +1986,26 @@
       "classification": "maintained",
       "apis": [
         "function:KisDialogStateSaver::restoreState(QWidget * parent,const QString & dialogName,const QMap<QString,QVariant> & defaults={})"
+      ]
+    },
+    {
+      "target": "KisGlobalTest",
+      "source": "libs/global/tests/KisGlobalTest.cpp",
+      "test": "KisGlobalTest::testDeduplicateFileName",
+      "behavior": "利用可能な名前は維持し、重複時は拡張子、既存番号、複数ドット、指定区切り文字を解釈して最初の利用可能な連番名を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::deduplicateFileName(const QString & fileName,const QString & separator,std::function<bool (QString)> fileAllowedCallback)"
+      ]
+    },
+    {
+      "target": "KisGlobalTest",
+      "source": "libs/global/tests/KisGlobalTest.cpp",
+      "test": "KisGlobalTest::testResolveAbsoluteFilePath",
+      "behavior": "絶対パスはそのまま返し、相対パスは基準ディレクトリーまたは基準ファイルの親ディレクトリーから絶対パスへ解決する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::resolveAbsoluteFilePath(const QString & baseDir,const QString & filePath)"
       ]
     }
   ]

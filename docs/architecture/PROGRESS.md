@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 03:25 JST
+- 更新日時: 2026-08-28 03:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3310,11 +3310,22 @@
   `KisGlobalTest`は59工程・116入力だった。macOSで新対象、集約後の`kritaglobal`の限定構築、既存
   `KisGlobalTest`が成功した。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b ファイル名補助 public API契約で完了した作業
+
+- `libs/global/KisFileUtils.h`の2 APIを、`libs/global/tests/KisGlobalTest.cpp`へ対応付けた。
+  重複名生成は競合なし、複数競合、接尾辞なし、既存番号、複数ドット、指定区切り文字を固定し、
+  パス解決は絶対パス、基準ディレクトリー、基準ファイルからの相対パスを固定する。
+- 既存試験を`kritaglobal`と試験支援ライブラリーへ接続する共通試験集合から独立させ、
+  `kritaglobalfileutilsobjects`とQt Testだけへ直接接続した。変更なし構築閉包はmacOSで
+  59工程・116入力から5工程・11入力へ縮小した。
+- 公開API契約は582件、未対応基準は28,432件になった。macOSで対象の構築、実行、20回反復が
+  成功した。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-既存`KisGlobalTest`を`kritaglobalfileutilsobjects`へ直接接続し、絶対パスと基準ディレクトリー、
-基準ファイルからの相対パス解決を追加する。重複名生成と合わせて2 public APIを契約へ登録し、macOSで
-各検証を行う。SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
+次の少数APIヘッダーについて、既存試験、実装所有、直接依存、変更なし構築閉包を調べる。
+構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。SSH鍵エージェントの
+復旧後、未同期契約を`ssh nixos`上のLinuxへ同期する。
 
 ## R1-G5完了根拠
 

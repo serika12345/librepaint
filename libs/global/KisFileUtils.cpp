@@ -6,13 +6,13 @@
 
 #include "KisFileUtils.h"
 
-#include <QString>
-#include <QFileInfo>
 #include <QDir>
+#include <QFileInfo>
 #include <QRegularExpression>
+#include <QString>
 
-
-namespace KritaUtils {
+namespace KritaUtils
+{
 
 QString resolveAbsoluteFilePath(const QString &baseDir, const QString &fileName)
 {
@@ -22,15 +22,14 @@ QString resolveAbsoluteFilePath(const QString &baseDir, const QString &fileName)
 
     QFileInfo fallbackBaseDirInfo(baseDir);
 
-    return QFileInfo(QDir(fallbackBaseDirInfo.isDir() ?
-                              fallbackBaseDirInfo.absoluteFilePath() :
-                              fallbackBaseDirInfo.absolutePath()),
-                     fileName).absoluteFilePath();
+    return QFileInfo(QDir(fallbackBaseDirInfo.isDir() ? fallbackBaseDirInfo.absoluteFilePath()
+                                                      : fallbackBaseDirInfo.absolutePath()),
+                     fileName)
+        .absoluteFilePath();
 }
 
-QString deduplicateFileName(const QString &fileName,
-                            const QString &separator,
-                            std::function<bool(QString)> fileAllowedCallback)
+QString
+deduplicateFileName(const QString &fileName, const QString &separator, std::function<bool(QString)> fileAllowedCallback)
 {
     const QFileInfo fileInfo(fileName);
 
@@ -68,4 +67,4 @@ QString deduplicateFileName(const QString &fileName,
 
     return proposedFileName;
 }
-}
+} // namespace KritaUtils
