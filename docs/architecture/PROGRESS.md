@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 07:49 JST
+- 更新日時: 2026-08-28 07:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4004,6 +4004,15 @@
 - 新試験はQt Testと対象ヘッダーだけへ直接接続し、変更なし構築閉包はmacOSで4工程・8入力である。
   対象実行と20回反復が成功し、公開API契約は876件、未対応基準は28,138件になった。製品実装、
   公開API、ABI、列挙値は変更していない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b Linux同期検証で完了した作業
+
+- macOSの`develop`を`dcf2fdd8`までGit履歴として`ssh nixos`上の
+  `/home/masato/Documents/librepaint`へfast-forwardし、同期後の作業木がクリーンであることを確認した。
+- Linux実機の永続Ninja木で`KisStrokeJobContractTest`、`kis_vec_test`、
+  `KisWraparoundAxisContractTest`だけを限定構築した。各CTestの単発実行と20回反復が成功し、実行可能
+  ストロークジョブ、二次元ベクトル、回り込み軸の直近契約と構築分離がmacOSとLinuxで一致した。
+  全ネイティブ検証は実行していない。
 
 ## 次の操作
 
