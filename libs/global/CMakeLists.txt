@@ -124,6 +124,25 @@ set_target_properties(kritaglobalcursoroverridelockobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalfilteredrollingmeanobjects OBJECT
+    KisFilteredRollingMean.cpp
+)
+target_compile_definitions(kritaglobalfilteredrollingmeanobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalfilteredrollingmeanobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalfilteredrollingmeanobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalfilteredrollingmeanobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -152,7 +171,6 @@ set(kritaglobal_LIB_SRCS
     KisBezierMesh.cpp
     KisRectsGrid.cpp
     KisSynchronizedConnection.cpp
-    KisFilteredRollingMean.cpp
     KisSampleRectIterator.cpp
     kis_random_source.cpp
     KisNodeAdditionFlags.h
@@ -182,6 +200,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobaldeletelaterwrapperobjects>
     $<TARGET_OBJECTS:kritaglobalbackupobjects>
     $<TARGET_OBJECTS:kritaglobalcursoroverridelockobjects>
+    $<TARGET_OBJECTS:kritaglobalfilteredrollingmeanobjects>
 )
 
 target_sources(kritaglobal
