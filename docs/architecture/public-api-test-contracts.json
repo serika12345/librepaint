@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28260
+    "expectedMissingApis": 28251
   },
   "contracts": [
     {
@@ -2799,6 +2799,51 @@
       "apis": [
         "variable:kislager::lenses::to_base",
         "variable:kislager::lenses::to_base2"
+      ]
+    },
+    {
+      "target": "KisSampleRectIteratorTest",
+      "source": "libs/global/tests/KisSampleRectIteratorTest.cpp",
+      "test": "KisSampleRectIteratorTest::defaultIteratorStartsAtEmptyRect",
+      "behavior": "既定構築した矩形サンプラーは空矩形の左上を第1標本として返し、破棄可能な値型として扱える。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSampleRectIterator",
+        "method:KisSampleRectIterator::KisSampleRectIterator()",
+        "method:KisSampleRectIterator::numSamples() const",
+        "method:KisSampleRectIterator::~KisSampleRectIterator()"
+      ]
+    },
+    {
+      "target": "KisSampleRectIteratorTest",
+      "source": "libs/global/tests/KisSampleRectIteratorTest.cpp",
+      "test": "KisSampleRectIteratorTest::samplesLandmarksThenHaltonSequence",
+      "behavior": "矩形構築したサンプラーは四隅、辺中点、中心の9点に続き、固定Halton列を矩形内の絶対座標で返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSampleRectIterator::KisSampleRectIterator(const QRectF & rect)"
+      ]
+    },
+    {
+      "target": "KisSampleRectIteratorTest",
+      "source": "libs/global/tests/KisSampleRectIteratorTest.cpp",
+      "test": "KisSampleRectIteratorTest::copiesPreserveIndependentPosition",
+      "behavior": "コピー構築とコピー代入は現在の標本位置を複製し、その後は共有サンプラー状態を分離して同じ列を独立に進む。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSampleRectIterator::KisSampleRectIterator(const KisSampleRectIterator & rhs)",
+        "method:KisSampleRectIterator::operator =(const KisSampleRectIterator & rhs)"
+      ]
+    },
+    {
+      "target": "KisSampleRectIteratorTest",
+      "source": "libs/global/tests/KisSampleRectIteratorTest.cpp",
+      "test": "KisSampleRectIteratorTest::movesContinueAtTheTransferredPosition",
+      "behavior": "ムーブ構築とムーブ代入は基準点列とHalton列の現在位置を移動先へ引き継ぐ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSampleRectIterator::KisSampleRectIterator(KisSampleRectIterator && rhs)",
+        "method:KisSampleRectIterator::operator =(KisSampleRectIterator && rhs)"
       ]
     }
   ]

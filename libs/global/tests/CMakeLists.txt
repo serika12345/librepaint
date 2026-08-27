@@ -209,3 +209,11 @@ kis_add_test(
         lager
 )
 target_include_directories(KisLagerContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisSampleRectIteratorTest.cpp
+    LINK_LIBRARIES
+        kritaglobalsamplerectiteratorobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisSampleRectIteratorTest PRIVATE kritaglobal_EXPORTS)
