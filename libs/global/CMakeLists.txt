@@ -64,6 +64,21 @@ set_target_properties(kritaglobaltemporaryfileconfigurationobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalqpainterstatesaverobjects OBJECT
+    KisQPainterStateSaver.cpp
+)
+target_compile_definitions(kritaglobalqpainterstatesaverobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalqpainterstatesaverobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalqpainterstatesaverobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaglobalqpainterstatesaverobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_debug.cpp
@@ -79,7 +94,6 @@ set(kritaglobal_LIB_SRCS
     kis_thread_safe_signal_compressor.cpp
     kis_acyclic_signal_connector.cpp
     kis_latency_tracker.cpp
-    KisQPainterStateSaver.cpp
     KisRollingMeanAccumulatorWrapper.cpp
     KisRollingSumAccumulatorWrapper.cpp
     kis_config_notifier.cpp
@@ -122,6 +136,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalfileutilsobjects>
     $<TARGET_OBJECTS:kritaglobalcumulativeundodataobjects>
     $<TARGET_OBJECTS:kritaglobaltemporaryfileconfigurationobjects>
+    $<TARGET_OBJECTS:kritaglobalqpainterstatesaverobjects>
 )
 
 target_sources(kritaglobal
