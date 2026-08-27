@@ -47,9 +47,9 @@ kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testin
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
-kis_add_test( FreehandStrokeContractTest.cpp ../../../sdk/tests/stroke_testing_utils.cpp
+kis_add_test( FreehandStrokeContractTest.cpp
     TEST_NAME FreehandStrokeContractTest
-    LINK_LIBRARIES kritaapplicationui kritatestsdk
+    LINK_LIBRARIES kritapainting kritalibbrush kritatestsdk
     )
 
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp

@@ -133,7 +133,8 @@ nix develop .#test --command ./scripts/run-test kis_strokes_queue_test
 ```
 
 第1引数はCMakeの試験ターゲットである。CTest名を絞る必要がある場合は
-第2引数へ正規表現を指定する。
+第2引数へ正規表現を指定する。`run-test`は`build-incremental native build`
+へ対象名を渡し、構成指紋が有効な間は永続Ninja木の再構成を省略する。
 
 書庫保存境界とXML直列化境界は、次の二つの契約で検査する。
 
@@ -159,9 +160,24 @@ nix develop .#test --command \
 ```
 
 スクリプトはホストOSに対応する`CMakePresets.json`の試験プリセットを
-選び、構成を同期してから対象だけを構築・実行する。ネイティブ試験は対応する
+選び、必要な場合に構成を同期してから対象と宣言済み依存だけを構築・実行する。ネイティブ試験は対応する
 `build/tdd-<platform>`をアプリケーション接頭辞とし、同じ構築木の`bin`から
-製品プラグインを読み込む。
+製品プラグインを読み込む。試験が動的に探索する製品プラグインは、試験実行形式の
+CMake依存として具体的なモジュールターゲットを接続する。試験の対象構築に
+アプリケーション実行形式、全プラグイン集合、`all`を接続しない。
+
+Ninjaが`premature end of file; recovering`を報告し、変更のない対象を再コンパイルする場合は、
+コンパイラーキャッシュではなく永続構築木の`.ninja_deps`破損を確認する。対象構築を停止し、
+`.ninja_deps`と`.ninja_log`を退避してから、Nix開発環境のNinjaで記録を再圧縮する。
+
+```sh
+cp -p build/tdd-macos/.ninja_deps build/tdd-macos/.ninja_deps.backup
+cp -p build/tdd-macos/.ninja_log build/tdd-macos/.ninja_log.backup
+nix develop .#test --command ninja -C build/tdd-macos -t recompact
+```
+
+再圧縮直後の対象構築は不足した依存記録を一度再生成する。続く同一対象の構築で
+`ninja: no work to do.`になることを確認し、退避物は確認完了後に構築木の保守対象から外す。
 
 ### 全ネイティブ検査
 
@@ -172,6 +188,8 @@ nix develop .#test --command ./scripts/verify
 高速検査に続いて、ネイティブ試験構成の全ターゲットを構築し、登録済みの
 通常CTestを実行する。対象コンポーネントが限定できるレッド・グリーン周期
 では単一試験を使用し、統合前または広い共有境界の変更で全検査を使用する。
+全体検証も`build-incremental native build`を使用し、有効な構成指紋と永続Ninja木を
+再利用してから全CTestを実行する。
 
 ### Nix評価
 

@@ -2,9 +2,9 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 15:32 JST
+- 更新日時: 2026-08-27 16:19 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G2 対象試験の構築範囲最適化
+- 現在の検査段階: R2-G3 入力列契約の計画
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: R2の契約追加に先立ち、指定した試験が必要な製品ライブラリーと実行時成果物だけを
@@ -2181,28 +2181,42 @@
 - Linuxでの画素比較と、Qt生入力からツールまで、投影から実画面までの段階間契約は未検証である。
   R2-G3以降で共通入力データと対象プラットフォーム対応を定義して検証する。
 
-## R2-G2対象試験の構築範囲最適化で計画した作業
+## R2-G2対象試験の構築範囲最適化で完了した作業
 
-- `scripts/run-test`は指定した試験実行ファイルだけを構築するが、共通の試験登録関数はリンク依存と
-  CTest登録だけを扱う。試験中に`build/bin`から動的探索するプラグインやQMLモジュールは、現在の
-  試験ターゲットから到達できる依存として表現されていない。
-- `FreehandStrokeContractTest`は`kritaapplicationui`へ直接リンクし、共通の
-  `sdk/tests/stroke_testing_utils.cpp`は資源管理の初期化に`KisViewManager`を使用する。このUI依存が
-  自由描画の画像・状態遷移契約に必要かを、値の設定と実行時プラグイン登録から分けて確認する。
-- 最初に`FreehandStrokeContractTest`、`TestInputShortcutMatcher`、`TestToolCoreContract`、
-  `kis_prescaled_projection_contract_test`のmacOS構築範囲を記録する。既存成果物のない隔離構築木で
-  対象だけを構築・実行し、必要な具体的所有ターゲットと動的成果物だけを依存として接続する。
-- キャッシュ命中率は完了判定に使わない。Ninjaが対象から到達する構築処理、製品ターゲット、
-  実行時成果物と、対象別の経過時間を変更前後で比較する。
-- 入力列の統合契約はR2-G3へ繰り下げる。R2-G2では試験挙動、基準画像、製品の責務境界、
-  配布物を変更しない。
+- `scripts/run-test`は毎回CMakeプリセットを直接構成する経路から、構成指紋を保つ
+  `build-incremental native build <target>`へ対象を渡す経路になった。`scripts/verify`も明示的な
+  再構成と別の全体構築命令を同じ増分構築入口へ統合した。スクリプト契約は単一試験と全体検証の
+  両方で重複する構成・構築命令を発行しないことを固定する。
+- `FreehandStrokeContractTest`は`kritaapplicationui`と`KisViewManager`を使用する共通補助処理から
+  独立し、`kritapainting`、`kritalibbrush`、`kritatestsdk`へ直接リンクする。試験内で固定プリセット、
+  前景色、背景色を画像・描画資源へ設定し、既存の画素、取消し、アンドゥ、リドゥ契約を維持する。
+- 代表4試験の直接所有先は、自由描画が`kritapainting`と`kritalibbrush`、入力照合が`kritainput`、
+  ツール呼出しが`kritatools`、投影転送が`kritacanvas`である。後者3件は動的プラグイン、QML、外部
+  試験データを使用しない。自由描画は`autobrush_300px.kpp`、維持基準画像、実行時にPaintOpを
+  登録する`kritadefaultpaintops`を使用する。
+- `kritadefaultpaintops`を`FreehandStrokeContractTest`のCMake依存として明示した。モジュールを
+  退避した状態の対象構築は同モジュールのリンク1工程だけを再実行し、続くCTestに成功した。
+  アプリケーション実行形式、全プラグイン集合、`all`は対象から到達しない。
+- 空のmacOS構築木に対するNinja全コマンド数は`all`が5,489、自由描画が1,816、入力照合が1,037、
+  ツール呼出しが1,066、投影転送が1,023である。4対象の和集合は1,829工程であり、自由描画が必要な
+  `kritadefaultpaintops`と`kritalibpaintop`の現行閉包が支配する。この閉包をさらに縮小するには
+  PaintOp実行処理と設定UIの製品分割が必要なため、依存数だけを減らす変更は行わない。
+- 永続構築木の`.ninja_deps`破損により、変更のない対象が1,011工程を繰り返す状態を診断した。
+  依存記録の退避と再圧縮後は、最初の対象構築が不足記録を再生成し、次の同一対象構築が
+  `ninja: no work to do.`、対象CTest込み2.77秒で成功した。これはCMake依存範囲や`ccache`の
+  無効化ではなく、Ninja依存記録の局所的な破損である。
+- `nix develop .#test --command ./scripts/verify-quick`は35件の運用試験、責務・公開契約、文書、
+  リンク、D2再生成を含む高速検査に成功した。代表4試験と自由描画契約の20回反復もmacOSで
+  成功した。
+- `nix develop .#test --command ./scripts/verify`は、依存記録修復後に未採取だった2,626工程を構築し、
+  681ターゲットのパッケージ境界検査と登録済みCTest 355件すべてに成功した。全体検証の実時間は
+  387.43秒であり、不足する試験成果物の調査には使用していない。
 
 ## 次の操作
 
-R2-G2として、macOSのCMake File APIとNinja対象別依存グラフ・計画から代表4試験の構築時依存を記録し、
-各試験が実行時に探索するプラグイン、QMLモジュール、試験データと照合する。最初に
-`FreehandStrokeContractTest`について、`kritaapplicationui`および`KisViewManager`経由の初期化が
-契約に必要かを判定し、既存成果物のない対象限定構築で再現する最初の不足診断を固定する。
+R2-G3として、Qtのマウス押下、移動、解放から入力照合と自由描画ツールへ渡る正規化済み入力列の
+所有境界、観測値、固定値、最小の試験対象を計画する。既存の`TestInputShortcutMatcher`、
+`KisInputManagerTest`、`TestToolCoreContract`と製品実装を読み、段階間で不足する一つの契約を選ぶ。
 
 ## R1-G5完了根拠
 

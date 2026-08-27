@@ -11,6 +11,8 @@ import unittest
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 BUILD_SCRIPT = REPO_ROOT / "scripts" / "build-incremental"
+RUN_TEST_SCRIPT = REPO_ROOT / "scripts" / "run-test"
+VERIFY_SCRIPT = REPO_ROOT / "scripts" / "verify"
 BASH = shutil.which("bash")
 
 
@@ -19,6 +21,18 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         self.assertIsNotNone(BASH, "bash must be available in the test environment")
         return subprocess.run(
             [BASH, str(BUILD_SCRIPT), *arguments],
+            cwd=REPO_ROOT,
+            env=environment,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+
+    def run_test_script(self, *arguments: str, environment=None):
+        self.assertIsNotNone(BASH, "bash must be available in the test environment")
+        return subprocess.run(
+            [BASH, str(RUN_TEST_SCRIPT), *arguments],
             cwd=REPO_ROOT,
             env=environment,
             text=True,
@@ -171,6 +185,67 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             '#define KRITA_PLUGINS_DIR_FOR_TESTS "${CMAKE_BINARY_DIR}/bin"',
             test_config,
         )
+
+    def test_run_test_builds_only_the_requested_target_through_the_incremental_entry(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            temp_root = pathlib.Path(temp_directory)
+            command_log = temp_root / "commands"
+            fake_bin = temp_root / "bin"
+            fake_bin.mkdir()
+            fake_build = temp_root / "build-incremental"
+            fake_build.write_text(
+                f"#!{BASH}\nprintf 'build-incremental %s\\n' \"$*\" >>\"$COMMAND_LOG\"\n",
+                encoding="utf-8",
+            )
+            fake_build.chmod(0o755)
+
+            for command in ("cmake", "ctest"):
+                fake_command = fake_bin / command
+                fake_command.write_text(
+                    f"#!{BASH}\nprintf '{command} %s\\n' \"$*\" >>\"$COMMAND_LOG\"\n",
+                    encoding="utf-8",
+                )
+                fake_command.chmod(0o755)
+
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "COMMAND_LOG": str(command_log),
+                    "LIBREPAINT_BUILD_INCREMENTAL_PATH": str(fake_build),
+                    "LIBREPAINT_TEST_SHELL": "1",
+                    "PATH": f"{fake_bin}:{environment['PATH']}",
+                }
+            )
+
+            result = self.run_test_script(
+                "FreehandStrokeContractTest",
+                "^libs-ui-FreehandStrokeContractTest$",
+                environment=environment,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(command_log.exists())
+            expected_preset = "tdd-macos" if os.uname().sysname == "Darwin" else "tdd-linux"
+            self.assertEqual(
+                command_log.read_text(encoding="utf-8").splitlines(),
+                [
+                    "build-incremental native build FreehandStrokeContractTest",
+                    f"ctest --preset {expected_preset} --tests-regex ^libs-ui-FreehandStrokeContractTest$",
+                ],
+            )
+
+    def test_full_native_verification_reuses_the_incremental_build_entry(self):
+        verify_script = VERIFY_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn(
+            './scripts/build-incremental native build',
+            verify_script,
+        )
+        self.assertNotIn(
+            './scripts/build-incremental native configure',
+            verify_script,
+        )
+        self.assertNotIn('cmake --build --preset', verify_script)
 
     def test_every_platform_entry_point_is_executable(self):
         entry_points = [

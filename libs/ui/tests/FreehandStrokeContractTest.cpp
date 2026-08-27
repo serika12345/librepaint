@@ -5,13 +5,15 @@
 
 #include <QDir>
 #include <QImage>
-#include <QScopedPointer>
 #include <QSignalSpy>
 
+#include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
 #include <simpletest.h>
 
+#include <KisGlobalResourcesInterface.h>
 #include <brushengine/kis_paint_information.h>
+#include <brushengine/kis_paintop_preset.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
@@ -20,8 +22,7 @@
 #include <strokes/freehand_stroke.h>
 
 #include "KisAsynchronousStrokeUpdateHelper.h"
-#include "stroke_testing_utils.h"
-#include "testui.h"
+#include "testbrush.h"
 #include "testutil.h"
 
 namespace
@@ -72,13 +73,27 @@ public:
         m_image->initialRefreshGraph();
         m_image->waitForDone();
 
-        m_resourceManager.reset(utils::createResourceManager(m_image, m_layer, QStringLiteral("autobrush_300px.kpp")));
+        m_presetPath = TestUtil::fetchDataFileLazy(QStringLiteral("autobrush_300px.kpp"));
+        m_preset.reset(new KisPaintOpPreset(m_presetPath));
+        m_presetLoaded = m_preset->load(KisGlobalResourcesInterface::instance());
+    }
+
+    bool presetLoaded() const
+    {
+        return m_presetLoaded;
+    }
+
+    QString presetPath() const
+    {
+        return m_presetPath;
     }
 
     void runStroke(bool cancel)
     {
-        KisResourcesSnapshotSP resources =
-            new KisResourcesSnapshot(m_image, m_layer, m_resourceManager->canvasResourcesInterface());
+        KisResourcesSnapshotSP resources = new KisResourcesSnapshot(m_image, m_layer);
+        resources->setBrush(m_preset);
+        resources->setFGColorOverride(KoColor(Qt::black, m_image->colorSpace()));
+        resources->setBGColorOverride(KoColor(Qt::white, m_image->colorSpace()));
 
         auto *stroke =
             new FreehandStrokeStrategy(resources, new KisFreehandStrokeInfo(), kundo2_noi18n("Freehand Stroke"));
@@ -129,7 +144,9 @@ private:
     KisSurrogateUndoStore *m_undoStore;
     KisImageSP m_image;
     KisPaintLayerSP m_layer;
-    QScopedPointer<KoCanvasResourceProvider> m_resourceManager;
+    KisPaintOpPresetSP m_preset;
+    QString m_presetPath;
+    bool m_presetLoaded{false};
 };
 } // namespace
 
@@ -146,6 +163,7 @@ private Q_SLOTS:
 void FreehandStrokeContractTest::finishedStrokeMatchesMaintainedProjection()
 {
     FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
     const QImage initialLayer = fixture.layerImage();
     QSignalSpy updateSpy(fixture.image().data(), &KisImage::sigImageUpdated);
 
@@ -179,6 +197,7 @@ void FreehandStrokeContractTest::finishedStrokeMatchesMaintainedProjection()
 void FreehandStrokeContractTest::cancelledStrokeRestoresInitialImage()
 {
     FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
     const QImage initialLayer = fixture.layerImage();
     const QImage initialProjection = fixture.projectionImage();
 
@@ -202,6 +221,7 @@ void FreehandStrokeContractTest::cancelledStrokeRestoresInitialImage()
 void FreehandStrokeContractTest::undoRedoRestoresBothStates()
 {
     FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
     const QImage initialLayer = fixture.layerImage();
     const QImage initialProjection = fixture.projectionImage();
 

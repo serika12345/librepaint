@@ -32,6 +32,10 @@ kis_add_library(kritadefaultpaintops MODULE defaultpaintops_plugin.cc)
 
 target_link_libraries(kritadefaultpaintops kritadefaultpaintops_static)
 
+if (TARGET FreehandStrokeContractTest)
+    add_dependencies(FreehandStrokeContractTest kritadefaultpaintops)
+endif()
+
 install(TARGETS kritadefaultpaintops  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES
     krita-paintbrush.png
