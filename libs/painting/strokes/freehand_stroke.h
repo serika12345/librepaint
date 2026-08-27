@@ -181,6 +181,12 @@ public:
                            Flags flags = None);
 
     FreehandStrokeStrategy(KisResourcesSnapshotSP resources,
+                           KisFreehandStrokeInfo *strokeInfo,
+                           const KUndo2MagicString &name,
+                           Flags flags,
+                           int dabRandomSeed);
+
+    FreehandStrokeStrategy(KisResourcesSnapshotSP resources,
                            QVector<KisFreehandStrokeInfo*> strokeInfos,
                            const KUndo2MagicString &name,
                            Flags flags = None);

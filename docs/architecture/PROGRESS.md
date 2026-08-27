@@ -2,13 +2,12 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 19:08 JST
+- 更新日時: 2026-08-27 19:19 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G16 PaintOp乱数経路の決定的契約
+- 現在の検査段階: R2-G17 既定画素ブラシの間隔応答契約
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: 既定画素ブラシの乱数を使う最小設定について、明示した乱数種と入力から同じ画素結果を生成する
-  境界を固定する。
+- 目的: 既定画素ブラシの間隔だけを変更し、自由描画補間が配置する描点列と最終画素結果を固定する。
 
 ## 再開環境
 
@@ -2606,12 +2605,43 @@
   20回反復、`kis_strokes_queue_test`、`kis_update_scheduler_test`、`kis_projection_test`、
   `kis_prescaled_projection_contract_test`はmacOSで成功した。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G16 PaintOp乱数経路の決定的契約で完了した作業
+
+- 実装前の`FreehandStrokeContractTest`は変更なし計画に対象コンパイルがなく、直接依存が
+  `kritapixelbrush`、`kritapainting`、`kritalibbrush`、`kritatestsdk`、空のmacOS構築木に対する
+  Ninjaコマンド閉包が1,107工程だった。設定UI、動的PaintOpモジュール、アプリケーション実行形式へ
+  到達しないため、先行する構造変更は行っていない。
+- 乱数を使う最小経路として、既定画素ブラシの寸法センサーだけをFuzzy Dabへ切り替えた。
+  `libs/image/brushengine/kis_stroke_random_source.{h,cpp}`は描点単位の`KisRandomSource`だけを指定種で
+  初期化する構築経路を所有する。`KisPerStrokeRandomSource`と通常の種無指定経路は従来の初期化を
+  維持する。
+- `libs/painting/strokes/freehand_stroke.{h,cpp}`は指定種をストローク所有の乱数源へ渡す既存型の
+  オーバーロードを追加した。最初の対象構築は5引数の構築子が存在しないことだけを診断し、実装後は
+  `kis_stroke_random_source.cpp`、`kritaimage`、`freehand_stroke.cpp`、`kritapainting`、変更した試験と
+  リンクだけを再構築した。
+- `libs/ui/tests/FreehandStrokeContractTest.cpp`は種17の同一入力をアンドゥを挟んで2回実行し、
+  レイヤー、投影、正確な描画領域`QRect(142, 142, 271, 271)`、RGBA8888全画素SHA-256
+  `34a090d8b904e9950f2bf7868b2c7b1f78c2d5bb3ddb8a531a90f203721c21d3`の一致を固定した。
+  種18はSHA-256
+  `dc333677c01755e711027da3b64b8c8f719af1a041bfe4a19750e44ffd04e321`となり、異なる種が異なる
+  画素結果を生成することを確認した。維持対象は種17の完全結果と種間の差であり、種18の内部系列は
+  固定しない。
+- 続く変更なし計画はglob再検査とCMake再評価だけを示し、対象コンパイルを含まない。公開ヘッダー変更後の
+  旧構築経路確認では、実利用元の`kis_tool_freehand_helper.cpp`、`kis_preset_live_preview_view.cpp`と
+  `KisPaintOnTransparencyMaskTest`だけが追加で再構築され、構築範囲の再分割を要する波及はなかった。
+- `nix develop .#test --command ./scripts/run-test FreehandStrokeContractTest`、CTestプリセットによる
+  20回反復、`KisPerStrokeRandomSourceTest`、`kis_strokes_queue_test`、`kis_update_scheduler_test`、
+  `kis_projection_test`、`kis_prescaled_projection_contract_test`、旧構築子を使う
+  `KisPaintOnTransparencyMaskTest`の対象構築はmacOSで成功した。変更行だけを整形し、
+  `FreehandStrokeContractTest.cpp`の全体書式検査と`nix develop .#test --command ./scripts/verify-quick`も
+  成功した。既存の乱数源と自由描画ソースには変更範囲外の書式差分が残る。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-R2-G16の実装前監査として、`FreehandStrokeContractTest`、`KisStrokeRandomSource`、
-`KisPerStrokeRandomSource`、`FreehandStrokeStrategy`の変更なし計画、直接依存、空構築閉包、利用元を
-確認する。自動ブラシ乱数またはFuzzyセンサーの最小一経路を選び、未固定時の画素差を診断してから、
-既存の乱数所有者へ種を値として渡す最小変更を決める。
+R2-G17の実装前監査として、`FreehandStrokeContractTest`の変更なし計画、直接依存、空構築閉包と、
+自動ブラシ間隔設定の所有者・利用元を確認する。R2-G13aの構築上限を維持できる場合だけ、試験用
+プリセットの間隔を値として変更する最小契約へ進む。
 
 ## R1-G5完了根拠
 

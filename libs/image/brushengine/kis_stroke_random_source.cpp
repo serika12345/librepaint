@@ -17,6 +17,15 @@ struct KisStrokeRandomSource::Private
     {
     }
 
+    Private(int dabRandomSeed)
+        : levelOfDetail(0)
+        , lod0RandomSource(new KisRandomSource(dabRandomSeed))
+        , lodNRandomSource(new KisRandomSource(*lod0RandomSource))
+        , lod0PerStrokeRandomSource(new KisPerStrokeRandomSource())
+        , lodNPerStrokeRandomSource(new KisPerStrokeRandomSource(*lod0PerStrokeRandomSource))
+    {
+    }
+
     int levelOfDetail;
     KisRandomSourceSP lod0RandomSource;
     KisRandomSourceSP lodNRandomSource;
@@ -28,6 +37,11 @@ struct KisStrokeRandomSource::Private
 
 KisStrokeRandomSource::KisStrokeRandomSource()
     : m_d(new Private)
+{
+}
+
+KisStrokeRandomSource::KisStrokeRandomSource(int dabRandomSeed)
+    : m_d(new Private(dabRandomSeed))
 {
 }
 

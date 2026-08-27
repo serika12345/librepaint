@@ -10,6 +10,8 @@
 #include <QSignalSpy>
 #include <QTemporaryDir>
 
+#include <optional>
+
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoResourceLoadResult.h>
@@ -53,6 +55,8 @@ const QRect maintainedHalfPressureStrokeBounds(126, 126, 234, 234);
 const QByteArray maintainedHalfPressureDigest("ffdae59742d86fcfcc3764eeb7d2e82c126cd9cb08fb7c7c97a94e8b46cd5bb9");
 const QRect maintainedPressureGradientBounds(154, 154, 229, 229);
 const QByteArray maintainedPressureGradientDigest("e9740f2b00ef8670a37aade2c4f96cec8197dfc96eb3e18adcc20f938b5f87c0");
+const QRect maintainedFuzzySeed17Bounds(142, 142, 271, 271);
+const QByteArray maintainedFuzzySeed17Digest("34a090d8b904e9950f2bf7868b2c7b1f78c2d5bb3ddb8a531a90f203721c21d3");
 
 KisPaintInformation fixedPaintInformation(const QPointF &position, qreal pressure = inputPressure)
 {
@@ -205,7 +209,17 @@ public:
         return m_presetPath;
     }
 
-    void runStroke(bool cancel, qreal startPressure = inputPressure, qreal endPressure = inputPressure)
+    void useFuzzyDabSizeSensor()
+    {
+        m_preset->settings()->setProperty(QStringLiteral("PressureSize"), true);
+        m_preset->settings()->setProperty(QStringLiteral("SizeSensor"),
+                                          QStringLiteral("<!DOCTYPE params><params id=\"fuzzy\"/>"));
+    }
+
+    void runStroke(bool cancel,
+                   qreal startPressure = inputPressure,
+                   qreal endPressure = inputPressure,
+                   std::optional<int> dabRandomSeed = std::nullopt)
     {
         KisResourcesSnapshotSP resources = new KisResourcesSnapshot(m_image, m_layer);
         resources->setBrush(m_preset);
@@ -215,8 +229,13 @@ public:
         resources->setMirroring(false, false);
         resources->setSelectionOverride(nullptr);
 
-        auto *stroke =
-            new FreehandStrokeStrategy(resources, new KisFreehandStrokeInfo(), kundo2_noi18n("Freehand Stroke"));
+        auto *stroke = dabRandomSeed
+            ? new FreehandStrokeStrategy(resources,
+                                         new KisFreehandStrokeInfo(),
+                                         kundo2_noi18n("Freehand Stroke"),
+                                         FreehandStrokeStrategy::None,
+                                         *dabRandomSeed)
+            : new FreehandStrokeStrategy(resources, new KisFreehandStrokeInfo(), kundo2_noi18n("Freehand Stroke"));
 
         const KisStrokeId strokeId = m_image->startStroke(stroke);
         const KisPaintInformation start = fixedPaintInformation(QPointF(200.0, 200.0), startPressure);
@@ -290,6 +309,7 @@ private Q_SLOTS:
     void finishedStrokeMatchesMaintainedProjection();
     void pressureResponseProducesMaintainedPixels_data();
     void pressureResponseProducesMaintainedPixels();
+    void fuzzyDabRandomSeedIsDeterministic();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
 };
@@ -465,6 +485,65 @@ void FreehandStrokeContractTest::pressureResponseProducesMaintainedPixels()
                    + QStringLiteral("/freehand-contract-%1-actual.png").arg(resultName));
     }
     QCOMPARE(actualDigest, expectedDigest);
+}
+
+void FreehandStrokeContractTest::fuzzyDabRandomSeedIsDeterministic()
+{
+    FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
+    fixture.useFuzzyDabSizeSensor();
+    QCOMPARE(fixture.preset()->settings()->getString(QStringLiteral("SizeSensor")),
+             QStringLiteral("<!DOCTYPE params><params id=\"fuzzy\"/>"));
+    const QImage initialLayer = fixture.layerImage();
+
+    fixture.runStroke(false, inputPressure, inputPressure, 17);
+    const QImage firstLayer = fixture.layerImage();
+    const QImage firstProjection = fixture.projectionImage();
+    const QRect firstBounds = fixture.layerExactBounds();
+    const QByteArray firstDigest = imageDigest(firstLayer);
+    QVERIFY(firstLayer != initialLayer);
+    QVERIFY(!fixture.image()->hasUpdatesRunning());
+    QVERIFY(fixture.image()->isIdle());
+
+    QPoint mismatch;
+    QVERIFY2(
+        compareImages(firstLayer,
+                      firstProjection,
+                      QStringLiteral("freehand-contract-fuzzy-seed-17-projection-actual.png"),
+                      &mismatch),
+        qPrintable(
+            QStringLiteral("fuzzy seed 17 layer and projection differ at %1,%2").arg(mismatch.x()).arg(mismatch.y())));
+    QCOMPARE(firstBounds, maintainedFuzzySeed17Bounds);
+    QCOMPARE(fixture.image()->projection()->exactBounds(), maintainedFuzzySeed17Bounds);
+    if (firstDigest != maintainedFuzzySeed17Digest) {
+        QDir().mkpath(QStringLiteral(FILES_OUTPUT_DIR));
+        firstLayer.save(QStringLiteral(FILES_OUTPUT_DIR)
+                        + QStringLiteral("/freehand-contract-fuzzy-seed-17-actual.png"));
+    }
+    QCOMPARE(firstDigest, maintainedFuzzySeed17Digest);
+
+    fixture.undo();
+    QCOMPARE(fixture.layerImage(), initialLayer);
+    fixture.runStroke(false, inputPressure, inputPressure, 17);
+    QCOMPARE(imageDigest(fixture.layerImage()), maintainedFuzzySeed17Digest);
+    QCOMPARE(fixture.projectionImage(), firstProjection);
+    QCOMPARE(fixture.layerExactBounds(), maintainedFuzzySeed17Bounds);
+
+    fixture.undo();
+    QCOMPARE(fixture.layerImage(), initialLayer);
+    fixture.runStroke(false, inputPressure, inputPressure, 18);
+    const QImage secondSeedLayer = fixture.layerImage();
+    const QByteArray secondSeedDigest = imageDigest(secondSeedLayer);
+    QVERIFY2(
+        compareImages(secondSeedLayer,
+                      fixture.projectionImage(),
+                      QStringLiteral("freehand-contract-fuzzy-seed-18-projection-actual.png"),
+                      &mismatch),
+        qPrintable(
+            QStringLiteral("fuzzy seed 18 layer and projection differ at %1,%2").arg(mismatch.x()).arg(mismatch.y())));
+    QVERIFY(!fixture.image()->hasUpdatesRunning());
+    QVERIFY(fixture.image()->isIdle());
+    QVERIFY(secondSeedDigest != firstDigest);
 }
 
 void FreehandStrokeContractTest::cancelledStrokeRestoresInitialImage()
