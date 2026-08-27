@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28652
+    "expectedMissingApis": 28595
   },
   "contracts": [
     {
@@ -1272,6 +1272,153 @@
         "method:KUndo2View::emptyLabel() const",
         "method:KUndo2View::setCleanIcon(const QIcon & icon)",
         "method:KUndo2View::setEmptyLabel(const QString & label)"
+      ]
+    },
+    {
+      "target": "kis_import_export_error_code_test",
+      "source": "libs/impex/tests/kis_import_export_error_code_test.cpp",
+      "test": "KisImportExportErrorCodeTest::resultClassification",
+      "behavior": "既定値、成功、取消し、失敗、内部エラーを分類し、同じ単純結果だけを等値と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImportExportErrorCode",
+        "enum:ImportExportCodes::ErrorCodeID",
+        "method:KisImportExportErrorCode::KisImportExportErrorCode()",
+        "method:KisImportExportErrorCode::KisImportExportErrorCode(ImportExportCodes::ErrorCodeID code)",
+        "method:KisImportExportErrorCode::isCancelled() const",
+        "method:KisImportExportErrorCode::isInternalError() const",
+        "method:KisImportExportErrorCode::isOk() const",
+        "method:KisImportExportErrorCode::operator ==(KisImportExportErrorCode errorCode)"
+      ]
+    },
+    {
+      "target": "kis_import_export_error_code_test",
+      "source": "libs/impex/tests/kis_import_export_error_code_test.cpp",
+      "test": "KisImportExportErrorCodeTest::simpleErrorMessages",
+      "behavior": "全16単純結果が分類ごとに定めた利用者向け診断文を返す。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:ImportExportCodes::ErrorCodeID::Busy",
+        "enumerator:ImportExportCodes::ErrorCodeID::Cancelled",
+        "enumerator:ImportExportCodes::ErrorCodeID::CannotCreateFile",
+        "enumerator:ImportExportCodes::ErrorCodeID::ErrorWhileReading",
+        "enumerator:ImportExportCodes::ErrorCodeID::ErrorWhileWriting",
+        "enumerator:ImportExportCodes::ErrorCodeID::Failure",
+        "enumerator:ImportExportCodes::ErrorCodeID::FileFormatIncorrect",
+        "enumerator:ImportExportCodes::ErrorCodeID::FileFormatNotSupported",
+        "enumerator:ImportExportCodes::ErrorCodeID::FileNotExist",
+        "enumerator:ImportExportCodes::ErrorCodeID::FormatColorSpaceUnsupported",
+        "enumerator:ImportExportCodes::ErrorCodeID::FormatFeaturesUnsupported",
+        "enumerator:ImportExportCodes::ErrorCodeID::InsufficientMemory",
+        "enumerator:ImportExportCodes::ErrorCodeID::InternalError",
+        "enumerator:ImportExportCodes::ErrorCodeID::NoAccessToRead",
+        "enumerator:ImportExportCodes::ErrorCodeID::NoAccessToWrite",
+        "enumerator:ImportExportCodes::ErrorCodeID::OK",
+        "method:KisImportExportErrorCode::errorMessage() const"
+      ]
+    },
+    {
+      "target": "kis_import_export_error_code_test",
+      "source": "libs/impex/tests/kis_import_export_error_code_test.cpp",
+      "test": "KisImportExportErrorCodeTest::customFailureMessage",
+      "behavior": "外部処理が渡した具体的な失敗理由を失敗結果の診断文として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportErrorCode::KisImportExportErrorCode(const QString & message)"
+      ]
+    },
+    {
+      "target": "kis_import_export_error_code_test",
+      "source": "libs/impex/tests/kis_import_export_error_code_test.cpp",
+      "test": "KisImportExportErrorCodeTest::fileErrorsPreserveContext",
+      "behavior": "読込・書込失敗がQtファイルエラーの理由を診断文と等値性へ保持し、基底型経由でも派生診断と破棄を行う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportComplexError::KisImportExportComplexError(QFileDevice::FileError error)",
+        "method:KisImportExportComplexError::errorMessage() const",
+        "method:KisImportExportComplexError::~KisImportExportComplexError()",
+        "method:KisImportExportErrorCannotRead::KisImportExportErrorCannotRead(QFileDevice::FileError error)",
+        "method:KisImportExportErrorCannotRead::errorMessage() const",
+        "method:KisImportExportErrorCannotRead::operator ==(KisImportExportErrorCannotRead other)",
+        "method:KisImportExportErrorCannotRead::~KisImportExportErrorCannotRead()",
+        "method:KisImportExportErrorCannotWrite::KisImportExportErrorCannotWrite(QFileDevice::FileError error)",
+        "method:KisImportExportErrorCannotWrite::errorMessage() const",
+        "method:KisImportExportErrorCannotWrite::operator ==(KisImportExportErrorCannotWrite other)",
+        "method:KisImportExportErrorCannotWrite::~KisImportExportErrorCannotWrite()",
+        "method:KisImportExportErrorCode::KisImportExportErrorCode(KisImportExportErrorCannotRead code)",
+        "method:KisImportExportErrorCode::KisImportExportErrorCode(KisImportExportErrorCannotWrite code)",
+        "struct:KisImportExportComplexError",
+        "struct:KisImportExportErrorCannotRead",
+        "struct:KisImportExportErrorCannotWrite"
+      ]
+    },
+    {
+      "target": "kis_import_export_error_code_test",
+      "source": "libs/impex/tests/kis_import_export_error_code_test.cpp",
+      "test": "KisImportExportErrorCodeTest::diagnosticFormatting",
+      "behavior": "診断出力は書込失敗の分類と正しい利用者向け理由を記録する一方、中間のQtエラー値には読込側の既定値0を誤表示する。",
+      "classification": "known_defect",
+      "apis": [
+        "function:operator <<(QDebug & d,const KisImportExportErrorCode & errorCode)"
+      ]
+    },
+    {
+      "target": "kis_document_metadata_test",
+      "source": "libs/impex/tests/kis_document_metadata_test.cpp",
+      "test": "KisImportExportDocumentMetadataTest::testAboutAndGeneratorValues",
+      "behavior": "文書情報が親所有、初期編集状態、検証済み文書項目の通知、元生成器の値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDocumentInfo",
+        "method:KoDocumentInfo::KoDocumentInfo(QObject * parent=0)",
+        "method:KoDocumentInfo::aboutInfo(const QString & info) const",
+        "method:KoDocumentInfo::originalGenerator() const",
+        "method:KoDocumentInfo::setAboutInfo(const QString & info,const QString & data)",
+        "method:KoDocumentInfo::setOriginalGenerator(const QString & generator)"
+      ]
+    },
+    {
+      "target": "kis_document_metadata_test",
+      "source": "libs/impex/tests/kis_document_metadata_test.cpp",
+      "test": "KisImportExportDocumentMetadataTest::testParameterUpdateUsesExplicitModificationState",
+      "behavior": "明示した作成者上書きを未変更文書では保留し、変更済み文書の更新時に有効値へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfo::authorInfo(const QString & info) const",
+        "method:KoDocumentInfo::setAuthorInfo(const QString & info,const QString & data)",
+        "method:KoDocumentInfo::updateParameters(bool documentModified=true)"
+      ]
+    },
+    {
+      "target": "kis_document_metadata_test",
+      "source": "libs/impex/tests/kis_document_metadata_test.cpp",
+      "test": "KisImportExportDocumentMetadataTest::testLoadAndSaveRoundTrip",
+      "behavior": "文書、作成者、連絡先をXMLから読み込み、自動保存経路で同じ値とCDATA表現を再出力する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfo::authorContactInfo() const",
+        "method:KoDocumentInfo::load(const QDomDocument & doc)",
+        "method:KoDocumentInfo::save(QDomDocument & doc,bool isAutosaving=false,bool documentModified=true)"
+      ]
+    },
+    {
+      "target": "kis_document_metadata_test",
+      "source": "libs/impex/tests/kis_document_metadata_test.cpp",
+      "test": "KisImportExportDocumentMetadataTest::testCopyPreservesDocumentValues",
+      "behavior": "複製した文書情報が指定親へ所属し、文書、作成者、生成器の値を独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfo::KoDocumentInfo(const KoDocumentInfo & rhs,QObject * parent=0)"
+      ]
+    },
+    {
+      "target": "kis_document_metadata_test",
+      "source": "libs/impex/tests/kis_document_metadata_test.cpp",
+      "test": "KisImportExportDocumentMetadataTest::testResetMetadataStartsANewEditingHistory",
+      "behavior": "メタデータ再初期化が編集回数と時間をゼロへ戻し、現在の作成者と新しい作成日時を初期値にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDocumentInfo::resetMetaData()"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 23:34 JST
+- 更新日時: 2026-08-27 23:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2927,12 +2927,29 @@
   空構築閉包はmacOSで62工程・122入力、Linuxで55工程・118入力である。触れた2試験ソースの
   macOS clang-format検査と`verify-quick`も成功した。全ネイティブ検証は実行していない。
 
+## R2-G19b 入出力エラーと文書メタデータ public API契約で完了した作業
+
+- `libs/impex/KisImportExportErrorCode.h`の43 APIを
+  `libs/impex/tests/kis_import_export_error_code_test.cpp`の5試験関数へ対応付けた。既定値と結果分類、
+  全16単純結果の診断文、外部由来の失敗理由、Qtファイルエラーの説明と等値性、基底型経由の
+  派生診断と破棄、診断出力を観測する。
+- `libs/impex/metadata/KoDocumentInfo.h`の14 APIを
+  `libs/impex/tests/kis_document_metadata_test.cpp`の6試験関数へ対応付けた。文書項目と生成器、
+  変更状態に従う作成者上書き、XML読書きと連絡先、独立した値複製、編集履歴の再初期化を観測する。
+- 書込失敗の`operator<<`は利用者向け説明を正しく出力する一方、Qtエラー値に書込側ではなく
+  読込側の既定値0を表示する。診断実装を修正するまで現在値を既知不具合として分類し、残る56 APIは
+  維持契約とした。製品実装、公開ヘッダー、CMake依存は変更していない。
+- 公開API契約は418件、未対応基準は28,595件になった。macOSで2対象の実行と20回反復、直接公開API
+  契約検査、2試験ソースのclang-format検査、`verify-quick`が成功した。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-構築範囲を分離済みの`libs/impex/KisImportExportErrorCode.h`の未対応43 APIと
-`libs/impex/metadata/KoDocumentInfo.h`の未対応14 APIを、`kis_import_export_error_code_test`と
-`kis_document_metadata_test`へ対応付ける。既存試験の観測範囲を監査し、エラー分類、Qtファイル
-エラー、診断文字列、等値性、文書メタデータの読書き・複製・通知で不足する契約だけを追加する。
+`libs/impex/KisImportExportAdditionalChecks.h`の未対応4 APIと
+`libs/impex/KisImportExportFilterRegistry.h`の未対応7 APIを次の単位とする。既存
+`TestImportExportBoundary`が観測するファイル事前条件とMIME方向選択を監査し、現在1,018工程・
+2,057入力の空構築閉包を両責務の直接所有単位へ縮小してから、不足する入出力、誤り、登録状態の
+契約だけを追加する。
 
 ## R1-G5完了根拠
 
