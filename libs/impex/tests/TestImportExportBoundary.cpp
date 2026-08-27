@@ -18,6 +18,7 @@ class TestImportExportBoundary : public QObject
 private Q_SLOTS:
     void filePreconditions();
     void mimeSelectionUsesTheRequestedDirection();
+    void emptyPluginDirectoryHasNoSupportedMimeTypes();
 };
 
 void TestImportExportBoundary::filePreconditions()
@@ -54,6 +55,16 @@ void TestImportExportBoundary::mimeSelectionUsesTheRequestedDirection()
              QStringList({QStringLiteral("image/png"), QStringLiteral("image/tiff"), QStringLiteral("image/webp")}));
     QCOMPARE(KisImportExportFilterRegistry::mimeTypesFromMetadata(metadata, KisImportExportFilterRegistry::Export),
              QStringList({QStringLiteral("image/avif"), QStringLiteral("image/png"), QStringLiteral("image/tiff")}));
+}
+
+void TestImportExportBoundary::emptyPluginDirectoryHasNoSupportedMimeTypes()
+{
+    QTemporaryDir pluginDirectory;
+    QVERIFY(pluginDirectory.isValid());
+    QVERIFY(qputenv("KRITA_PLUGIN_PATH", pluginDirectory.path().toUtf8()));
+
+    QCOMPARE(KisImportExportFilterRegistry::supportedMimeTypes(KisImportExportFilterRegistry::Import), QStringList());
+    QCOMPARE(KisImportExportFilterRegistry::supportedMimeTypes(KisImportExportFilterRegistry::Export), QStringList());
 }
 
 QTEST_MAIN(TestImportExportBoundary)

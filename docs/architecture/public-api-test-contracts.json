@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28595
+    "expectedMissingApis": 28584
   },
   "contracts": [
     {
@@ -1419,6 +1419,53 @@
       "classification": "maintained",
       "apis": [
         "method:KoDocumentInfo::resetMetaData()"
+      ]
+    },
+    {
+      "target": "TestImportExportBoundary",
+      "source": "libs/impex/tests/TestImportExportBoundary.cpp",
+      "test": "TestImportExportBoundary::filePreconditions",
+      "behavior": "欠落パスを存在しないと判定し、作成済みファイルを存在・読込可能・書込可能と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImportExportAdditionalChecks",
+        "method:KisImportExportAdditionalChecks::doesFileExist(QString filepath)",
+        "method:KisImportExportAdditionalChecks::isFileReadable(QString filepath)",
+        "method:KisImportExportAdditionalChecks::isFileWritable(QString filepath)"
+      ]
+    },
+    {
+      "target": "TestImportExportBoundary",
+      "source": "libs/impex/tests/TestImportExportBoundary.cpp",
+      "test": "TestImportExportBoundary::mimeSelectionUsesTheRequestedDirection",
+      "behavior": "複数プラグインのMIME宣言を入力方向と出力方向ごとに重複排除し、整列した一覧へ集約する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImportExportFilterRegistry",
+        "enum:KisImportExportFilterRegistry::Direction",
+        "enumerator:KisImportExportFilterRegistry::Direction::Export",
+        "enumerator:KisImportExportFilterRegistry::Direction::Import",
+        "method:KisImportExportFilterRegistry::mimeTypesFromMetadata(const QList<QJsonObject> & metadata,Direction direction)"
+      ]
+    },
+    {
+      "target": "TestImportExportBoundary",
+      "source": "libs/impex/tests/TestImportExportBoundary.cpp",
+      "test": "TestImportExportBoundary::emptyPluginDirectoryHasNoSupportedMimeTypes",
+      "behavior": "空の固定プラグインディレクトリーでは入力・出力の両方向に対応MIME形式が存在しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilterRegistry::supportedMimeTypes(Direction direction)"
+      ]
+    },
+    {
+      "target": "kis_import_export_filter_factory_test",
+      "source": "libs/impex/tests/kis_import_export_filter_factory_test.cpp",
+      "test": "KisImportExportFilterFactoryTest::unregisteredMimeTypeHasNoFilter",
+      "behavior": "空の固定プラグインディレクトリーでは未登録MIME形式の入力・出力フィルター生成がnullを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImportExportFilterRegistry::createFilter(const QString & mimeType,Direction direction)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 23:59 JST
+- 更新日時: 2026-08-28 00:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2963,13 +2963,29 @@
   `ssh nixos`上のLinuxでも境界試験の構築と20回反復、公開ヘッダー対象、公開`kritaimpex`の構築が
   成功し、境界試験の空構築閉包は65工程・137入力だった。全ネイティブ検証は実行していない。
 
+## R2-G19b ファイル検査と形式探索 public API契約で完了した作業
+
+- `libs/impex/KisImportExportAdditionalChecks.h`の4 APIを、既存
+  `libs/impex/tests/TestImportExportBoundary.cpp`のファイル事前条件試験へ対応付けた。欠落パスと
+  作成済みファイルについて、存在、読込可能、書込可能の判定を観測する。
+- `libs/impex/KisImportExportFilterRegistry.h`の7 APIを、同じ境界試験のMIME方向選択と空探索、
+  `libs/impex/tests/kis_import_export_filter_factory_test.cpp`の未登録形式生成へ対応付けた。複数宣言の
+  重複排除と整列、入力・出力方向の分離、空の固定プラグインディレクトリーにおける対応形式と
+  生成フィルターの不在を観測する。
+- 既存2試験関数が9 APIを観測済みであり、空探索と未登録形式生成の2試験関数だけを追加した。
+  製品実装、公開ヘッダー、依存方向は変更していない。通常の境界試験は72工程・140入力、実際の
+  フィルター基底とプラグイン生成へ依存する専用試験は1,023工程・2,066入力である。
+- 公開API契約は429件、未対応基準は28,584件になった。macOSで2対象の構築、実行、20回反復、
+  直接公開API契約検査、2試験ソースのclang-format検査、`verify-quick`が成功した。Linuxと
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/impex/KisImportExportAdditionalChecks.h`の未対応4 APIと
-`libs/impex/KisImportExportFilterRegistry.h`の未対応7 APIを契約化する。既存
-`TestImportExportBoundary`のファイル事前条件とMIME方向選択が観測済みの9 APIを対応付け、空の固定
-プラグインディレクトリーから両方向の対応MIMEが空になる契約と、未登録形式のフィルター生成が
-nullを返す契約だけを追加する。実フィルター生成試験は対象追加前に個別の空構築閉包を監査する。
+`libs/impex/KisExportCheckRegistry.h`の3 API、`libs/impex/KisPreExportChecker.h`の5 API、
+`libs/impex/KisExportCheckBase.h`の16 API、`libs/impex/ImageSizeCheck.h`の12 APIを、書き出し前検査の
+次単位として扱う。既存試験と利用元、4実装の直接依存、変更なし計画、空構築閉包を監査し、現在の
+`kritaimpex`一括リンクが責務を越える場合は検査基底、登録、実行、画像寸法検査の所有単位を先に
+分けてから、判定水準、警告内容、登録と検査順序に不足する契約だけを追加する。
 
 ## R1-G5完了根拠
 

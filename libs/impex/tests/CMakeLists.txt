@@ -5,6 +5,11 @@ kis_add_tests(
 target_compile_definitions(TestImportExportBoundary PRIVATE kritaimpex_EXPORTS)
 
 kis_add_tests(
+    kis_import_export_filter_factory_test.cpp
+    LINK_LIBRARIES kritaimpex Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_tests(
     TestImportExportPublicHeaders.cpp
     LINK_LIBRARIES kritaimage kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
 )
