@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28410
+    "expectedMissingApis": 28401
   },
   "contracts": [
     {
@@ -2145,6 +2145,42 @@
         "method:KisValueCache::operator const value_type&() const",
         "method:KisValueCache::value() const",
         "struct:KisValueCache"
+      ]
+    },
+    {
+      "target": "KisSignalAutoConnectionTest",
+      "source": "libs/global/tests/KisSignalAutoConnectionTest.cpp",
+      "test": "KisSignalAutoConnectionTest::testDirectConnectionLifetime",
+      "behavior": "共有所有された接続は構築時に通知を接続し、最終所有者の破棄後は同じ通知を受信側へ渡さない。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSignalAutoConnectionSP",
+        "class:KisSignalAutoConnection",
+        "method:KisSignalAutoConnection::KisSignalAutoConnection(Sender sender,Signal signal,Receiver receiver,Method method,Qt::ConnectionType type=Qt::AutoConnection)",
+        "method:KisSignalAutoConnection::~KisSignalAutoConnection()"
+      ]
+    },
+    {
+      "target": "KisSignalAutoConnectionTest",
+      "source": "libs/global/tests/KisSignalAutoConnectionTest.cpp",
+      "test": "KisSignalAutoConnectionTest::testMemberFunctionConnection",
+      "behavior": "接続格納先は空状態から接続を所有し、通知を一度配送し、一括解除後に空へ戻って配送を停止する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSignalAutoConnectionsStore",
+        "method:KisSignalAutoConnectionsStore::addConnection(Sender sender,Signal signal,Receiver receiver,Method method,Qt::ConnectionType type=Qt::AutoConnection)",
+        "method:KisSignalAutoConnectionsStore::clear()",
+        "method:KisSignalAutoConnectionsStore::isEmpty()"
+      ]
+    },
+    {
+      "target": "KisSignalAutoConnectionTest",
+      "source": "libs/global/tests/KisSignalAutoConnectionTest.cpp",
+      "test": "KisSignalAutoConnectionTest::testUniqueConnection",
+      "behavior": "同一の送信元、通知、受信先、処理を二度追加しても、一回の通知を一度だけ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSignalAutoConnectionsStore::addUniqueConnection(Sender sender,Signal signal,Receiver receiver,Method method)"
       ]
     }
   ]

@@ -7,15 +7,18 @@
 #ifndef KIS_SIGNAL_AUTO_CONNECTION_TEST_H_
 #define KIS_SIGNAL_AUTO_CONNECTION_TEST_H_
 
-#include <simpletest.h>
+#include <QObject>
+#include <QString>
 
 class KisSignalAutoConnectionTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
+    void testDirectConnectionLifetime();
     void testMacroConnection();
     void testMemberFunctionConnection();
+    void testUniqueConnection();
     void testOverloadConnection();
     void testSignalToSignalConnection();
     void testDestroyedObject();
@@ -41,6 +44,7 @@ public Q_SLOTS:
 
 public:
     bool m_test1Called;
+    int m_test1CallCount;
     QString m_str1;
     QString m_str2;
     int m_number;

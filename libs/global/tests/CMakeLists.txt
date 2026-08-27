@@ -1,5 +1,4 @@
-kis_add_tests(KisSignalAutoConnectionTest.cpp
-    KisSignalCompressorTest.cpp
+kis_add_tests(KisSignalCompressorTest.cpp
     KisForestTest.cpp
     KisMplTest.cpp
     KisRectsGridTest.cpp
@@ -32,3 +31,9 @@ kis_add_test(
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KisValueCacheTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisSignalAutoConnectionTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisSignalAutoConnectionTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
