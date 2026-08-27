@@ -11,9 +11,14 @@ kis_add_tests(
 
 kis_add_tests(
     TestImportExportPublicHeaders.cpp
-    LINK_LIBRARIES kritaimage kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
+    LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test
 )
-target_include_directories(TestImportExportPublicHeaders PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(TestImportExportPublicHeaders
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/image
+        ${CMAKE_BINARY_DIR}/libs/image
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
 
 kis_add_tests(
     kis_import_export_error_code_test.cpp
