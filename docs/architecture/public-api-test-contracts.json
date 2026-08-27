@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28344
+    "expectedMissingApis": 28340
   },
   "contracts": [
     {
@@ -2445,6 +2445,37 @@
       "apis": [
         "method:KisDeleteLaterWrapper::KisDeleteLaterWrapper(T * value)",
         "method:KisDeleteLaterWrapper::~KisDeleteLaterWrapper()"
+      ]
+    },
+    {
+      "target": "KisBackupTest",
+      "source": "libs/global/tests/KisBackupTest.cpp",
+      "test": "KisBackupTest::defaultBackupReplacesExistingFile",
+      "behavior": "既定バックアップは元ファイルを維持し、既存の波線接尾辞ファイルを現在内容で置き換える。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBackup",
+        "method:KisBackup::backupFile(const QString & filename,const QString & backupDir=QString ())"
+      ]
+    },
+    {
+      "target": "KisBackupTest",
+      "source": "libs/global/tests/KisBackupTest.cpp",
+      "test": "KisBackupTest::simpleBackupUsesRequestedLocation",
+      "behavior": "単純バックアップは指定した配置と接尾辞へ元ファイルと同じ内容を複製する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBackup::simpleBackupFile(const QString & filename,const QString & backupDir=QString (),const QString & backupExtension=QStringLiteral (\"~\"))"
+      ]
+    },
+    {
+      "target": "KisBackupTest",
+      "source": "libs/global/tests/KisBackupTest.cpp",
+      "test": "KisBackupTest::numberedBackupRotatesAndLimitsHistory",
+      "behavior": "番号付きバックアップは最新内容を1番へ置き、旧内容を順に繰り下げ、指定上限以上の履歴を除去する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBackup::numberedBackupFile(const QString & filename,const QString & backupDir=QString (),const QString & backupExtension=QStringLiteral (\"~\"),const uint maxBackups=10)"
       ]
     }
   ]

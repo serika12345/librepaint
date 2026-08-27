@@ -113,3 +113,12 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Widgets
 )
 target_compile_definitions(KisDeleteLaterWrapperTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
+    KisBackupTest.cpp
+    LINK_LIBRARIES
+        kritaglobalbackupobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+)
+target_compile_definitions(KisBackupTest PRIVATE kritaglobal_EXPORTS)
