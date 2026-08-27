@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28745
+    "expectedMissingApis": 28708
   },
   "contracts": [
     {
@@ -918,6 +918,115 @@
       "classification": "maintained",
       "apis": [
         "method:Krita::Document::RecoveryStatus::setRecovered(bool recovered)"
+      ]
+    },
+    {
+      "target": "kis_document_files_test",
+      "source": "libs/document/files/tests/kis_document_files_test.cpp",
+      "test": "KisDocumentFilesTest::classifiesSaveTargets",
+      "behavior": "保存先検査が存在しない、書込み可能、読取り専用の各ファイルについて存在と書込み可能性を返す。",
+      "classification": "maintained",
+      "apis": [
+        "member:Krita::Document::KisDocumentSaveTarget::exists",
+        "member:Krita::Document::KisDocumentSaveTarget::writable",
+        "method:Krita::Document::KisDocumentSaveTarget::inspect(const QString & filePath)",
+        "struct:Krita::Document::KisDocumentSaveTarget"
+      ]
+    },
+    {
+      "target": "kis_document_files_test",
+      "source": "libs/document/files/tests/kis_document_files_test.cpp",
+      "test": "KisDocumentFilesTest::backupOptionsHaveStableDefaults",
+      "behavior": "バックアップ設定が無効、隣接配置、1世代、チルダ接尾辞、強制一時配置なしで開始し、未処理結果と三つの配置選択値を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:Krita::Document::KisDocumentBackupLocation",
+        "enum:Krita::Document::KisDocumentBackupStatus",
+        "enumerator:Krita::Document::KisDocumentBackupLocation::Adjacent",
+        "enumerator:Krita::Document::KisDocumentBackupLocation::Home",
+        "enumerator:Krita::Document::KisDocumentBackupLocation::Temporary",
+        "enumerator:Krita::Document::KisDocumentBackupStatus::NotNeeded",
+        "member:Krita::Document::KisDocumentBackupOptions::enabled",
+        "member:Krita::Document::KisDocumentBackupOptions::forceTemporaryDirectory",
+        "member:Krita::Document::KisDocumentBackupOptions::location",
+        "member:Krita::Document::KisDocumentBackupOptions::numberOfBackups",
+        "member:Krita::Document::KisDocumentBackupOptions::suffix",
+        "member:Krita::Document::KisDocumentBackupResult::directory",
+        "member:Krita::Document::KisDocumentBackupResult::status",
+        "struct:Krita::Document::KisDocumentBackupOptions",
+        "struct:Krita::Document::KisDocumentBackupResult"
+      ]
+    },
+    {
+      "target": "kis_document_files_test",
+      "source": "libs/document/files/tests/kis_document_files_test.cpp",
+      "test": "KisDocumentFilesTest::preservesSimpleAndNumberedBackups",
+      "behavior": "単一バックアップと複数世代バックアップを作成し、最新内容と一つ前の内容を所定の接尾辞で保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Krita::Document::KisDocumentBackupFile",
+        "enumerator:Krita::Document::KisDocumentBackupStatus::Created",
+        "method:Krita::Document::KisDocumentBackupFile::create(const QString & filePath,const KisDocumentBackupOptions & options,const QString & autoSaveDirectory)"
+      ]
+    },
+    {
+      "target": "kis_document_files_test",
+      "source": "libs/document/files/tests/kis_document_files_test.cpp",
+      "test": "KisDocumentFilesTest::reportsBackupFailuresAndTemporaryLocations",
+      "behavior": "作成不能な接尾辞を失敗として返し、一時配置と強制一時配置を一時ディレクトリーへ作成する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:Krita::Document::KisDocumentBackupStatus::Failed"
+      ]
+    },
+    {
+      "target": "kis_document_files_test",
+      "source": "libs/document/files/tests/kis_document_files_test.cpp",
+      "test": "KisDocumentFilesTest::generatesAdjacentAndFallbackAutoSaveNames",
+      "behavior": "書込み可能な既存文書には隣接自動保存名を、パスのない文書には処理IDと文書名を含む回復ディレクトリー名を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:Krita::Document::KisDocumentAutoSaveFiles",
+        "method:Krita::Document::KisDocumentAutoSaveFiles::filePath(const QString & documentPath,const QString & recoveryDirectory,qint64 processId,const QString & documentObjectName,bool hidden)"
+      ]
+    },
+    {
+      "target": "kis_document_files_test",
+      "source": "libs/document/files/tests/kis_document_files_test.cpp",
+      "test": "KisDocumentFilesTest::usesDefaultAutoSaveLocations",
+      "behavior": "既定回復ディレクトリーを絶対パスとして提供し、既定処理情報で隣接自動保存名を生成して文書単位に削除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::KisDocumentAutoSaveFiles::directory()",
+        "method:Krita::Document::KisDocumentAutoSaveFiles::filePath(const QString & documentPath,const QString & documentObjectName,bool hidden)",
+        "method:Krita::Document::KisDocumentAutoSaveFiles::removeForDocument(const QString & autoSaveBaseName,bool wasRecovered,const QString & documentObjectName,bool hidden)"
+      ]
+    },
+    {
+      "target": "kis_document_files_test",
+      "source": "libs/document/files/tests/kis_document_files_test.cpp",
+      "test": "KisDocumentFilesTest::discoversAndRemovesRecoveryFiles",
+      "behavior": "隠し・可視の回復ファイルを列挙し、名前、絶対パス、更新時刻、書庫内プレビューを返し、空ファイルを利用不能として冪等に削除する。",
+      "classification": "maintained",
+      "apis": [
+        "member:Krita::Document::KisDocumentAutoSaveFile::fileName",
+        "member:Krita::Document::KisDocumentAutoSaveFile::lastModified",
+        "member:Krita::Document::KisDocumentAutoSaveFile::path",
+        "member:Krita::Document::KisDocumentAutoSaveFile::previewData",
+        "method:Krita::Document::KisDocumentAutoSaveFiles::isUsable(const QString & filePath)",
+        "method:Krita::Document::KisDocumentAutoSaveFiles::recoverableFiles(const QString & recoveryDirectory=QString ())",
+        "method:Krita::Document::KisDocumentAutoSaveFiles::remove(const QString & filePath)",
+        "struct:Krita::Document::KisDocumentAutoSaveFile"
+      ]
+    },
+    {
+      "target": "kis_document_files_test",
+      "source": "libs/document/files/tests/kis_document_files_test.cpp",
+      "test": "KisDocumentFilesTest::removesEveryAutoSaveForADocument",
+      "behavior": "文書の隣接・回復ディレクトリー両方の自動保存と、回復元として指定した自動保存自身を削除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Krita::Document::KisDocumentAutoSaveFiles::removeForDocument(const QString & autoSaveBaseName,bool wasRecovered,const QString & recoveryDirectory,qint64 processId,const QString & documentObjectName,bool hidden)"
       ]
     }
   ]

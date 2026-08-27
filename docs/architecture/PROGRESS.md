@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 22:08 JST
+- 更新日時: 2026-08-27 22:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2850,12 +2850,26 @@
   各20回反復が成功した。Linuxの初回対象構築は識別試験4工程、残る4試験17工程だった。macOSの
   直接公開API契約検査と`verify-quick`も成功した。全ネイティブ検証は実行していない。
 
+## R2-G19b 文書ファイルpublic API契約で完了した作業
+
+- `libs/document/files/`の保存先、自動保存ファイル、バックアップの3ヘッダーにある37 APIを
+  `kis_document_files_test`の8試験関数へ対応付けた。保存先の存在・書込み可能性、バックアップの
+  既定値・単一・世代・失敗・一時配置、自動保存名、回復ファイル列挙・プレビュー・削除を観測する。
+- 実装前の`kritadocumentfiles`は71工程・139入力、試験は75工程・146入力だった。試験CMakeから
+  `kritatestsdk`の間接依存を外し、書庫生成に使う`kritaresourcestorage`とQt Testを直接宣言して
+  同じ閉包件数を維持した。製品実装は変更していない。
+- 既存5試験へ、既定回復ディレクトリー入口、既定削除入口、削除の冪等性、私設ZIP内の
+  `Thumbnails/thumbnail.png`読出しを追加した。バックアップ設定の既定値、作成失敗、一時配置と
+  強制一時配置を3試験関数で補い、対象実行がmacOSで成功した。
+- 公開API契約は305件、未対応基準は28,708件になった。macOSの対象実行と20回反復、直接の
+  公開API契約検査、`verify-quick`は成功した。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/document/files`の未対応37 APIについて、既存`kis_document_files_test`が実際に観測する
-ファイル状態を対応付ける。製品`kritadocumentfiles`の71工程・139入力、試験の75工程・146入力を
-維持し、試験CMakeの`kritatestsdk`間接依存をQt Testの直接依存へ置き換えてから不足する入口だけを
-追加する。
+`libs/document/ui`の未対応56 APIへ契約を追加する前に、現在1,040工程・2,096入力の
+`kritadocumentui`を既存の`info`、`io`、`recovery`、`undo`責務に沿って分割する。各ソースの
+直接include、必要なCMake依存、製品利用元、6 CTestの対応を確定し、公開APIと利用側の挙動を
+維持したまま各試験の空構築閉包をR2-G13a上限内へ縮小する。
 
 ## R1-G5完了根拠
 
