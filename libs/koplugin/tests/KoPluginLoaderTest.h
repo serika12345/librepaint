@@ -1,5 +1,6 @@
 /*
-*  SPDX-FileCopyrightText: 2025 Dmitry Kazakov <dimula73@gmail.com>
+ * SPDX-FileCopyrightText: 2025 Dmitry Kazakov <dimula73@gmail.com>
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
@@ -16,8 +17,16 @@ class KoPluginLoaderTest : public QObject
 private Q_SLOTS:
     void initTestCase();
 
+    void testPluginConfigValidity();
+    void testTraderQueries();
+    void testEmptyPluginWrapper();
+    void testDynamicPluginWrapper();
+    void testStaticPluginWrapper();
+
     void testLoadSinglePlugin_data();
     void testLoadSinglePlugin();
+    void testLoadSinglePluginPredicates();
+    void testCachedLoad();
 
     void testLoadAll_data();
     void testLoadAll();

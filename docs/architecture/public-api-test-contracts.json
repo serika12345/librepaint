@@ -16,7 +16,7 @@
     "publicApiFingerprint": "6770a6138867e1eec620f063827b96ce2302628a4fc1117cf08fb0333a11ce3f"
   },
   "migration": {
-    "expectedMissingApis": 28883
+    "expectedMissingApis": 28850
   },
   "contracts": [
     {
@@ -447,6 +447,138 @@
       "classification": "maintained",
       "apis": [
         "method:KisQQuickPopupWidget::~KisQQuickPopupWidget()"
+      ]
+    },
+    {
+      "target": "KisMimeDatabaseTest",
+      "source": "libs/koplugin/tests/KisMimeDatabaseTest.cpp",
+      "test": "KisMimeDatabaseTest::nativeDocumentSuffix",
+      "behavior": "LibrePaint文書の大小文字が異なるkra接尾辞を固有MIME型へ判定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMimeDatabase",
+        "method:KisMimeDatabase::mimeTypeForFile(const QString & file,bool checkExistingFiles=true)"
+      ]
+    },
+    {
+      "target": "KisMimeDatabaseTest",
+      "source": "libs/koplugin/tests/KisMimeDatabaseTest.cpp",
+      "test": "KisMimeDatabaseTest::suffixLookupNormalizesInput",
+      "behavior": "kra接尾辞を大小文字とワイルドカード表記にかかわらず固有MIME型へ正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMimeDatabase::mimeTypeForSuffix(const QString & suffix)"
+      ]
+    },
+    {
+      "target": "KisMimeDatabaseTest",
+      "source": "libs/koplugin/tests/KisMimeDatabaseTest.cpp",
+      "test": "KisMimeDatabaseTest::contentAndMetadataLookup",
+      "behavior": "内容からPDFを判定し、固有MIME型の表示説明と優先接尾辞、およびPNGの標準アイコン名を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMimeDatabase::descriptionForMimeType(const QString & mimeType)",
+        "method:KisMimeDatabase::iconNameForMimeType(const QString & mimeType)",
+        "method:KisMimeDatabase::mimeTypeForData(const QByteArray ba)",
+        "method:KisMimeDatabase::suffixesForMimeType(const QString & mimeType)"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testPluginConfigValidity",
+      "behavior": "プラグイン設定は初期状態で両キーを持たず、グループ名と拒否一覧キーが揃った場合だけ有効になる。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoPluginLoader::PluginsConfig::blacklist",
+        "member:KoPluginLoader::PluginsConfig::group",
+        "method:KoPluginLoader::PluginsConfig::PluginsConfig()",
+        "method:KoPluginLoader::PluginsConfig::isValid() const",
+        "struct:KoPluginLoader::PluginsConfig"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testTraderQueries",
+      "behavior": "直接構築と単一個体の取引器が私設配置から対象サービス4候補を返し、異なるサービス型とMIME型を除外する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoJsonTrader",
+        "method:KoJsonTrader::KoJsonTrader()",
+        "method:KoJsonTrader::instance()",
+        "method:KoJsonTrader::query(const QString & servicetype,const QString & mimetype)",
+        "method:KoJsonTrader::~KoJsonTrader()"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testEmptyPluginWrapper",
+      "behavior": "空のプラグインラッパーは個体を持たず、メタデータ、ファイル名、診断を空として安全に返して破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoJsonTrader::Plugin::Plugin()",
+        "method:KoJsonTrader::Plugin::~Plugin()",
+        "struct:KoJsonTrader::Plugin"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testDynamicPluginWrapper",
+      "behavior": "動的プラグインラッパーがローダーと同じファイル名、メタデータ、診断を公開し、ファクトリー個体を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoJsonTrader::Plugin::Plugin(QSharedPointer<QPluginLoader> loader,QMutex * mutex)",
+        "method:KoJsonTrader::Plugin::errorString() const",
+        "method:KoJsonTrader::Plugin::fileName() const",
+        "method:KoJsonTrader::Plugin::instance() const",
+        "method:KoJsonTrader::Plugin::metaData() const"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testStaticPluginWrapper",
+      "behavior": "静的メタデータラッパーが構築元のファイル名と生メタデータを維持し、利用不能なファクトリーを診断する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoJsonTrader::Plugin::Plugin(const KPluginMetaData & metaData,QMutex * mutex)"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testLoadSinglePlugin",
+      "behavior": "単一読込器がIDに一致する候補のうち最高版を選び、整数表記の版情報も読み取る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPluginLoader::instance()",
+        "method:KoPluginLoader::loadSinglePlugin(const QString & id,const QString & serviceType)"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testLoadSinglePluginPredicates",
+      "behavior": "一つまたは複数のメタデータ条件をすべて満たす版を選び、一致候補がなければnullを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPluginLoader::loadSinglePlugin(const std::pair<QString,QString> & predicates,const QString & serviceType)",
+        "method:KoPluginLoader::loadSinglePlugin(const std::vector<std::pair<QString,QString>> & predicates,const QString & serviceType)"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testCachedLoad",
+      "behavior": "直接構築した読込器が対象サービスの最高版3個体を最初の所有者だけへ生成し、同じサービスの再読込を抑止する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPluginLoader",
+        "method:KoPluginLoader::KoPluginLoader()",
+        "method:KoPluginLoader::load(const QString & serviceType,const PluginsConfig & config=PluginsConfig (),QObject * owner=0,bool cache=true)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 21:31 JST
+- 更新日時: 2026-08-27 21:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2801,11 +2801,30 @@
 - 旧集合との全件比較では非公開入れ子スコープ配下232 APIだけが減り、追加0件、既存130契約の
   除外0件だった。公開ヘッダー1,544件を維持し、公開APIは29,013件、未対応基準は28,883件になった。
 
+## R2-G19b プラグイン探索とMIME判定public API契約で完了した作業
+
+- `libs/koplugin/{KoPluginLoader,KoJsonTrader,KisMimeDatabase}.{h,cpp}`の33 APIを既存2 CTestの
+  11試験関数へ対応付けた。プラグイン設定、サービス・MIME条件による候補探索、動的・静的・空の
+  候補ラッパー、IDと複数条件による最高版選択、重複除去、拒否一覧、再読込抑止、MIMEの接尾辞・
+  内容・説明・優先接尾辞・アイコン判定を私設プラグインと固定入力で観測する。
+- 実装前の`kritaplugin`は62工程、入力122件、`KoPluginLoaderTest`は86工程、入力161件、
+  `KisMimeDatabaseTest`は66工程、入力129件だった。いずれもR2-G13aの上限以下であり、
+  アプリケーションUIへ到達しないため製品所有単位は分割していない。
+- `libs/koplugin/KoJsonTrader.h`から、公開宣言に不要だった`kis_pointer_utils.h`のincludeを
+  実利用元`libs/koplugin/KoJsonTrader.cpp`へ移した。プラグイン試験と私設モジュールから未使用の
+  `kritaglobal`、`kritatestsdk`直接リンクを外し、Qt Testを直接宣言した。空構築閉包の件数は
+  製品が元から必要とする`kritaglobal`経路により同じ値を維持する。
+- 最初の取引器試験は、公開default構築した`KoJsonTrader::Plugin`の各取得処理がnullローダーを
+  参照してSIGSEGVになることを診断した。空候補は個体を持たず、メタデータ、ファイル名、診断を
+  空として返すようにし、動的・静的候補の従来経路を維持した。
+- macOSで`KoPluginLoaderTest`と`KisMimeDatabaseTest`の対象実行および各20回反復が成功した。
+  公開API契約は163件、未対応基準は28,850件になった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/koplugin`の未対応36 APIについて、既存の`KoPluginLoaderTest`と`KisMimeDatabaseTest`が
-実際に観測する挙動、所有対象の変更なし計画、直接依存、空構築閉包を確認する。未観測の取引器、
-読み込み器、MIME判定だけへ最小契約を追加する。
+`libs/serialization/xml`の未対応54 APIについて、既存の`TestXmlWriter`が実際に観測する挙動、
+所有対象の変更なし計画、直接依存、空構築閉包を確認する。名前空間定数とXML出力の未観測入口だけへ
+最小契約を追加する。
 
 ## R1-G5完了根拠
 
