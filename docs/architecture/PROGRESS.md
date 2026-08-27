@@ -2,12 +2,12 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 19:28 JST
+- 更新日時: 2026-08-27 19:34 JST
 - 状態: `planned`
-- 現在の検査段階: R2-G18 既定画素ブラシの速度応答契約
+- 現在の検査段階: R2-G19 矩形選択による自由描画クリップ契約
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
-- 目的: 既定画素ブラシの寸法センサーと入力速度だけを変更し、速度に対する画素応答を固定する。
+- 目的: 固定自由描画を矩形選択へ制限し、選択内の画素結果と選択外の不変性を固定する。
 
 ## 再開環境
 
@@ -2660,11 +2660,35 @@
   `FreehandStrokeContractTest.cpp`の書式検査、`nix develop .#test --command ./scripts/verify-quick`は
   macOSで成功した。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G18 既定画素ブラシの速度応答契約で完了した作業
+
+- 実装前の`FreehandStrokeContractTest`は変更なし計画に対象コンパイルがなく、直接依存が
+  `kritapixelbrush`、`kritapainting`、`kritalibbrush`、`kritatestsdk`、空のmacOS構築木に対する
+  Ninjaコマンド閉包が1,107工程だった。速度センサーは`kritapaintopruntime`の
+  `KisDynamicSensorSpeed`が`KisPaintInformation::drawingSpeed()`を読み、既存の画像・PaintOp実行所有だけで
+  完結するため、先行する構造変更は行っていない。
+- `libs/ui/tests/FreehandStrokeContractTest.cpp`は固定入力生成へ速度を値として渡し、寸法センサーを
+  Speedへ切り替えた両入力点へ速度0.5を設定する契約を追加した。sRGB 8ビット、画像、レイヤー、
+  プリセット、2入力点、筆圧、間隔、その他の入力値、色、無選択、非ミラー、作業スレッド1本は
+  R2-G13bと同じである。
+- 最初の対象実行は新契約の採取診断だけで失敗し、レイヤーと投影の正確な描画領域
+  `QRect(125, 125, 235, 235)`と、RGBA8888全画素SHA-256
+  `3c7c2e19b4b91a27b8d1ddb1068db753012e01f98244eb9e6f688026db4f551a`を記録した。
+  維持値の追加後は投影との完全一致と、速度0の既存入力が作る385×385画素領域より小さいことを
+  固定した。ハッシュ不一致時は実画像を試験出力ディレクトリーへ保存する。
+- 実装後の増分構築は自動MOC、変更した試験ソース、試験実行形式のリンクだけだった。製品ソースの
+  再構築はなく、直接依存とコマンド閉包はR2-G13aの上限を維持した。
+- `nix develop .#test --command ./scripts/run-test FreehandStrokeContractTest`、CTestプリセットによる
+  20回反復、`kis_paint_information_test`、`KisCurveOptionDataTest`、`KisCurveOptionModelTest`、
+  `KisDabRenderingQueueTest`、`kis_prescaled_projection_contract_test`、変更後の対象計画、
+  `FreehandStrokeContractTest.cpp`の書式検査、`nix develop .#test --command ./scripts/verify-quick`は
+  macOSで成功した。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-R2-G18の実装前監査として、`FreehandStrokeContractTest`の変更なし計画、直接依存、空構築閉包と、
-Speed寸法センサーの所有者・利用元を確認する。R2-G13aの構築上限を維持できる場合だけ、固定速度を
-入力値として渡す最小契約へ進む。
+R2-G19の実装前監査として、`FreehandStrokeContractTest`の変更なし計画、直接依存、空構築閉包と、
+選択マスクから描画資源までの所有者・利用元を確認する。R2-G13aの構築上限を維持できる場合だけ、
+画像座標に固定した矩形選択を値として渡す最小契約へ進む。
 
 ## R1-G5完了根拠
 

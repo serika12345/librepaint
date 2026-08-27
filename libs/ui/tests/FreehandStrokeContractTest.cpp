@@ -45,6 +45,7 @@ constexpr qreal inputPressure = 1.0;
 constexpr qreal halfInputPressure = 0.5;
 constexpr qreal gradientStartPressure = 0.25;
 constexpr qreal changedBrushSpacing = 0.25;
+constexpr qreal changedInputSpeed = 0.5;
 constexpr qreal inputTilt = 0.0;
 constexpr qreal inputRotation = 0.0;
 constexpr qreal inputTangentialPressure = 0.0;
@@ -60,8 +61,11 @@ const QRect maintainedFuzzySeed17Bounds(142, 142, 271, 271);
 const QByteArray maintainedFuzzySeed17Digest("34a090d8b904e9950f2bf7868b2c7b1f78c2d5bb3ddb8a531a90f203721c21d3");
 const QRect maintainedSpacing025Bounds(50, 50, 353, 353);
 const QByteArray maintainedSpacing025Digest("8bdf0e95ea7526b6289bf2393397c7bb005b69da6866891c2cb12bf991d7f210");
+const QRect maintainedSpeed05Bounds(125, 125, 235, 235);
+const QByteArray maintainedSpeed05Digest("3c7c2e19b4b91a27b8d1ddb1068db753012e01f98244eb9e6f688026db4f551a");
 
-KisPaintInformation fixedPaintInformation(const QPointF &position, qreal pressure = inputPressure)
+KisPaintInformation
+fixedPaintInformation(const QPointF &position, qreal pressure = inputPressure, qreal speed = inputSpeed)
 {
     KisPaintInformation info(position,
                              pressure,
@@ -71,7 +75,7 @@ KisPaintInformation fixedPaintInformation(const QPointF &position, qreal pressur
                              inputTangentialPressure,
                              inputPerspective,
                              inputTime,
-                             inputSpeed);
+                             speed);
     info.setCanvasRotation(0.0);
     info.setCanvasMirroredH(false);
     info.setCanvasMirroredV(false);
@@ -217,16 +221,18 @@ public:
         return dynamic_cast<KisBrushOpSettings *>(m_preset->settings().data());
     }
 
-    void useFuzzyDabSizeSensor()
+    void useSizeSensor(const QString &sensorId)
     {
         m_preset->settings()->setProperty(QStringLiteral("PressureSize"), true);
         m_preset->settings()->setProperty(QStringLiteral("SizeSensor"),
-                                          QStringLiteral("<!DOCTYPE params><params id=\"fuzzy\"/>"));
+                                          QStringLiteral("<!DOCTYPE params><params id=\"%1\"/>").arg(sensorId));
     }
 
     void runStroke(bool cancel,
                    qreal startPressure = inputPressure,
                    qreal endPressure = inputPressure,
+                   qreal startSpeed = inputSpeed,
+                   qreal endSpeed = inputSpeed,
                    std::optional<int> dabRandomSeed = std::nullopt)
     {
         KisResourcesSnapshotSP resources = new KisResourcesSnapshot(m_image, m_layer);
@@ -246,8 +252,8 @@ public:
             : new FreehandStrokeStrategy(resources, new KisFreehandStrokeInfo(), kundo2_noi18n("Freehand Stroke"));
 
         const KisStrokeId strokeId = m_image->startStroke(stroke);
-        const KisPaintInformation start = fixedPaintInformation(QPointF(200.0, 200.0), startPressure);
-        const KisPaintInformation end = fixedPaintInformation(QPointF(300.0, 300.0), endPressure);
+        const KisPaintInformation start = fixedPaintInformation(QPointF(200.0, 200.0), startPressure, startSpeed);
+        const KisPaintInformation end = fixedPaintInformation(QPointF(300.0, 300.0), endPressure, endSpeed);
 
         m_image->addJob(strokeId, new FreehandStrokeStrategy::Data(0, start, end));
         m_image->addJob(strokeId, new KisAsynchronousStrokeUpdateHelper::UpdateData(true));
@@ -319,6 +325,7 @@ private Q_SLOTS:
     void pressureResponseProducesMaintainedPixels();
     void fuzzyDabRandomSeedIsDeterministic();
     void brushSpacingProducesMaintainedPixels();
+    void speedSensorProducesMaintainedPixels();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
 };
@@ -500,12 +507,12 @@ void FreehandStrokeContractTest::fuzzyDabRandomSeedIsDeterministic()
 {
     FreehandStrokeFixture fixture;
     QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
-    fixture.useFuzzyDabSizeSensor();
+    fixture.useSizeSensor(QStringLiteral("fuzzy"));
     QCOMPARE(fixture.preset()->settings()->getString(QStringLiteral("SizeSensor")),
              QStringLiteral("<!DOCTYPE params><params id=\"fuzzy\"/>"));
     const QImage initialLayer = fixture.layerImage();
 
-    fixture.runStroke(false, inputPressure, inputPressure, 17);
+    fixture.runStroke(false, inputPressure, inputPressure, inputSpeed, inputSpeed, 17);
     const QImage firstLayer = fixture.layerImage();
     const QImage firstProjection = fixture.projectionImage();
     const QRect firstBounds = fixture.layerExactBounds();
@@ -533,14 +540,14 @@ void FreehandStrokeContractTest::fuzzyDabRandomSeedIsDeterministic()
 
     fixture.undo();
     QCOMPARE(fixture.layerImage(), initialLayer);
-    fixture.runStroke(false, inputPressure, inputPressure, 17);
+    fixture.runStroke(false, inputPressure, inputPressure, inputSpeed, inputSpeed, 17);
     QCOMPARE(imageDigest(fixture.layerImage()), maintainedFuzzySeed17Digest);
     QCOMPARE(fixture.projectionImage(), firstProjection);
     QCOMPARE(fixture.layerExactBounds(), maintainedFuzzySeed17Bounds);
 
     fixture.undo();
     QCOMPARE(fixture.layerImage(), initialLayer);
-    fixture.runStroke(false, inputPressure, inputPressure, 18);
+    fixture.runStroke(false, inputPressure, inputPressure, inputSpeed, inputSpeed, 18);
     const QImage secondSeedLayer = fixture.layerImage();
     const QByteArray secondSeedDigest = imageDigest(secondSeedLayer);
     QVERIFY2(
@@ -592,6 +599,41 @@ void FreehandStrokeContractTest::brushSpacingProducesMaintainedPixels()
         layer.save(QStringLiteral(FILES_OUTPUT_DIR) + QStringLiteral("/freehand-contract-spacing-025-actual.png"));
     }
     QCOMPARE(digest, maintainedSpacing025Digest);
+}
+
+void FreehandStrokeContractTest::speedSensorProducesMaintainedPixels()
+{
+    FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
+    fixture.useSizeSensor(QStringLiteral("speed"));
+    QCOMPARE(fixture.preset()->settings()->getString(QStringLiteral("SizeSensor")),
+             QStringLiteral("<!DOCTYPE params><params id=\"speed\"/>"));
+    const QImage initialLayer = fixture.layerImage();
+
+    fixture.runStroke(false, inputPressure, inputPressure, changedInputSpeed, changedInputSpeed);
+    const QImage layer = fixture.layerImage();
+    const QImage projection = fixture.projectionImage();
+    const QRect bounds = fixture.layerExactBounds();
+    const QByteArray digest = imageDigest(layer);
+    QVERIFY(layer != initialLayer);
+    QVERIFY(!fixture.image()->hasUpdatesRunning());
+    QVERIFY(fixture.image()->isIdle());
+
+    QPoint mismatch;
+    QVERIFY2(
+        compareImages(layer, projection, QStringLiteral("freehand-contract-speed-05-projection-actual.png"), &mismatch),
+        qPrintable(
+            QStringLiteral("speed 0.5 layer and projection differ at %1,%2").arg(mismatch.x()).arg(mismatch.y())));
+
+    QCOMPARE(bounds, maintainedSpeed05Bounds);
+    QCOMPARE(fixture.image()->projection()->exactBounds(), maintainedSpeed05Bounds);
+    QVERIFY(bounds.width() < maintainedStrokeBounds.width());
+    QVERIFY(bounds.height() < maintainedStrokeBounds.height());
+    if (digest != maintainedSpeed05Digest) {
+        QDir().mkpath(QStringLiteral(FILES_OUTPUT_DIR));
+        layer.save(QStringLiteral(FILES_OUTPUT_DIR) + QStringLiteral("/freehand-contract-speed-05-actual.png"));
+    }
+    QCOMPARE(digest, maintainedSpeed05Digest);
 }
 
 void FreehandStrokeContractTest::cancelledStrokeRestoresInitialImage()
