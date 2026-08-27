@@ -16,7 +16,7 @@
     "publicApiFingerprint": "adad650ee6ad3fc29314c8fd2aef1eea9ff9fd385cce4860c92062f06755ae95"
   },
   "migration": {
-    "expectedMissingApis": 28424
+    "expectedMissingApis": 28417
   },
   "contracts": [
     {
@@ -2068,6 +2068,67 @@
       "classification": "maintained",
       "apis": [
         "function:kismpl::then(std::future<T> && future,Function && func)"
+      ]
+    },
+    {
+      "target": "KisAdaptedLockTest",
+      "source": "libs/global/tests/KisAdaptedLockTest.cpp",
+      "test": "KisAdaptedLockTest::testConstructorDefault",
+      "behavior": "通常構築でアダプターを直ちにロックし、保護範囲の終了時に一度だけ解放する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAdaptedLock",
+        "method:KisAdaptedLock::KisAdaptedLock(Object object)"
+      ]
+    },
+    {
+      "target": "KisAdaptedLockTest",
+      "source": "libs/global/tests/KisAdaptedLockTest.cpp",
+      "test": "KisAdaptedLockTest::testConstructorTryLock",
+      "behavior": "試行ロック構築でアダプターの試行処理を呼び、成功した所有状態を破棄時に解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAdaptedLock::KisAdaptedLock(Object object,std::try_to_lock_t t)"
+      ]
+    },
+    {
+      "target": "KisAdaptedLockTest",
+      "source": "libs/global/tests/KisAdaptedLockTest.cpp",
+      "test": "KisAdaptedLockTest::testConstructorDeferLock",
+      "behavior": "遅延ロック構築は未所有で開始し、明示的なロック後だけ破棄時に解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAdaptedLock::KisAdaptedLock(Object object,std::defer_lock_t t)"
+      ]
+    },
+    {
+      "target": "KisAdaptedLockTest",
+      "source": "libs/global/tests/KisAdaptedLockTest.cpp",
+      "test": "KisAdaptedLockTest::testConstructorAdoptLock",
+      "behavior": "引受ロック構築は既存ロックを再取得せず所有し、破棄時に一度だけ解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAdaptedLock::KisAdaptedLock(Object object,std::adopt_lock_t t)"
+      ]
+    },
+    {
+      "target": "KisAdaptedLockTest",
+      "source": "libs/global/tests/KisAdaptedLockTest.cpp",
+      "test": "KisAdaptedLockTest::testMoveConstructor",
+      "behavior": "移動構築は元のロック所有権を解除せず新しい個体へ移し、最終所有者の破棄時だけ解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAdaptedLock::KisAdaptedLock(KisAdaptedLock && rhs)"
+      ]
+    },
+    {
+      "target": "KisAdaptedLockTest",
+      "source": "libs/global/tests/KisAdaptedLockTest.cpp",
+      "test": "KisAdaptedLockTest::testMoveAssignmentOperator",
+      "behavior": "移動代入は代入先の既存ロックを解放し、代入元の所有権を移して最終破棄時に解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAdaptedLock::operator =(KisAdaptedLock && rhs)"
       ]
     }
   ]
