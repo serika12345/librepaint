@@ -42,6 +42,22 @@ set_target_properties(kritaimagefastmathobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagestrokejobobjects OBJECT
+   kis_stroke_job_strategy.cpp
+   KisRunnableStrokeJobDataBase.cpp
+)
+target_compile_definitions(kritaimagestrokejobobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagestrokejobobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaimagestrokejobobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagestrokejobobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -221,11 +237,9 @@ set(kritaimage_LIB_SRCS
    kis_stroke_strategy_undo_command_based.cpp
    kis_simple_stroke_strategy.cpp
    KisRunnableBasedStrokeStrategy.cpp
-   KisRunnableStrokeJobDataBase.cpp
    KisRunnableStrokeJobData.cpp
    KisRunnableStrokeJobsInterface.cpp
    KisFakeRunnableStrokeJobsExecutor.cpp
-   kis_stroke_job_strategy.cpp
    kis_stroke_strategy.cpp
    kis_stroke.cpp
    kis_strokes_queue.cpp
@@ -391,6 +405,7 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
+   $<TARGET_OBJECTS:kritaimagestrokejobobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
