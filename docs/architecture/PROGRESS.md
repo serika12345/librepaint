@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-27 23:56 JST
+- 更新日時: 2026-08-27 23:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -2960,7 +2960,8 @@
   公開ヘッダー構築対象は1,002工程・2,026入力として別に隔離した。macOSで
   `TestImportExportBoundary`の20回反復、`TestImportExportPublicHeaders`と公開`kritaimpex`の対象構築、
   公開6メソッドのシンボル確認、触れたC++のclang-format検査、Python構文検査、`verify-quick`が成功した。
-  Linuxと全ネイティブ検証は実行していない。
+  `ssh nixos`上のLinuxでも境界試験の構築と20回反復、公開ヘッダー対象、公開`kritaimpex`の構築が
+  成功し、境界試験の空構築閉包は65工程・137入力だった。全ネイティブ検証は実行していない。
 
 ## 次の操作
 
