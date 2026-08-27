@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28389
+    "expectedMissingApis": 28379
   },
   "contracts": [
     {
@@ -2229,6 +2229,43 @@
       "apis": [
         "method:KisLazyStorage::KisLazyStorage(const KisLazyStorage & rhs)",
         "method:KisLazyStorage::operator =(const KisLazyStorage & rhs)"
+      ]
+    },
+    {
+      "target": "KisCumulativeUndoDataTest",
+      "source": "libs/global/tests/KisCumulativeUndoDataTest.cpp",
+      "test": "KisCumulativeUndoDataTest::defaultsAndEquality",
+      "behavior": "既定個体は4項目の既定値を持ち、同じ各項目を持つ個体との等価性と、一項目が異なる個体との非等価性を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisCumulativeUndoData & lhs,const KisCumulativeUndoData & rhs)",
+        "member:KisCumulativeUndoData::defaultValue",
+        "member:KisCumulativeUndoData::excludeFromMerge",
+        "member:KisCumulativeUndoData::maxGroupDuration",
+        "member:KisCumulativeUndoData::maxGroupSeparation",
+        "member:KisCumulativeUndoData::mergeTimeout",
+        "struct:KisCumulativeUndoData"
+      ]
+    },
+    {
+      "target": "KisCumulativeUndoDataTest",
+      "source": "libs/global/tests/KisCumulativeUndoDataTest.cpp",
+      "test": "KisCumulativeUndoDataTest::configurationRoundTrip",
+      "behavior": "4項目を所定の設定キーへ書き出し、新しい個体へ読み戻して同じ値を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCumulativeUndoData::read(const KConfigGroup * config)",
+        "method:KisCumulativeUndoData::write(KConfigGroup * config) const"
+      ]
+    },
+    {
+      "target": "KisCumulativeUndoDataTest",
+      "source": "libs/global/tests/KisCumulativeUndoDataTest.cpp",
+      "test": "KisCumulativeUndoDataTest::debugOutput",
+      "behavior": "診断出力は型名と4項目の名前および現在値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KisCumulativeUndoData & data)"
       ]
     }
   ]

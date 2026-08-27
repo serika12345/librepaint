@@ -42,3 +42,12 @@ kis_add_test(
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KisLazyStorageTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisCumulativeUndoDataTest.cpp
+    LINK_LIBRARIES
+        kritaglobalcumulativeundodataobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::ConfigCore
+)
+target_compile_definitions(KisCumulativeUndoDataTest PRIVATE kritaglobal_EXPORTS)

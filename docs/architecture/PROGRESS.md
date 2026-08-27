@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 04:40 JST
+- 更新日時: 2026-08-28 04:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -3437,11 +3437,29 @@
 - macOSで新対象の限定構築が成功した。製品実装、公開API、ABI、設定の読書き結果は変更していない。
   Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 累積取り消し設定 public API契約で完了した作業
+
+- `libs/global/KisCumulativeUndoData.h`の構造体、既定個体、4公開項目、等価比較、設定の読書き、
+  診断出力の10 APIを、新規`libs/global/tests/KisCumulativeUndoDataTest.cpp`の3試験へ対応付けた。
+  既定値と等価性、4設定キーの往復、型名・項目名・現在値を含む診断文字列を観測する。
+- 累積取り消し設定の試験を`libs/global/tests/KisConfigurationValueTypesTest.cpp`から
+  `libs/global/tests/KisCumulativeUndoDataTest.cpp`へ移し、既存対象には一時ファイル配置の試験だけを
+  残した。CMake所有は`kritaglobal`と試験支援ライブラリーへ接続する共通試験集合から、
+  `kritaglobalcumulativeundodataobjects`、Qt Test、KConfig Coreへ直接接続する専用対象へ移した。
+- 変更なし構築閉包はmacOSで59工程・117入力から5工程・12入力へ縮小した。初回試験は`QDebug`の
+  破棄前に出力文字列を読む試験側の寿命誤りを検出し、出力器を破棄してから既存書式を観測するように
+  修正した。対象実行と20回反復が成功し、公開API契約は635件、未対応基準は28,379件になった。
+  製品実装、公開API、ABI、設定値と診断結果は変更していない。Linuxと全ネイティブ検証は実行していない。
+- 変更した既存試験の限定実行は、macOSで`/var/folders`配下のswap設定を意図的に正規化する製品方針と、
+  同じ配下に一時設定先を作る試験条件の矛盾を検出した。保持する設定先の試験だけをホーム配下の
+  自動削除一時ディレクトリーへ置き、製品方針を変えずに対象実行と20回反復が成功した。
+
 ## 次の操作
 
-`libs/global/tests/KisConfigurationValueTypesTest.cpp`から累積取り消し設定の試験を専用試験へ移し、
-既定値、等価性、設定の読書き、診断表示を10件のpublic APIへ対応付ける。SSH鍵エージェントの復旧後、
-未同期契約を`ssh nixos`上のLinuxへ同期する。
+`libs/global/KisTemporaryFileConfiguration.h`の3 APIについて、既存試験、実装所有、直接依存、
+変更なし構築閉包を調べる。構築範囲が責務を越える場合は所有対象を先に分け、設定済み、既定、代替、
+macOS正規化の挙動契約を対応付ける。SSH鍵エージェントの復旧後、未同期契約を`ssh nixos`上のLinuxへ
+同期する。
 
 ## R1-G5完了根拠
 
