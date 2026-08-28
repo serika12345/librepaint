@@ -28,6 +28,7 @@
 #include "KoMixColorsOp.h"
 
 #include "kis_dom_utils.h"
+#include <KisMpl.h>
 
 #include <KoColorModelStandardIds.h>
 #include <KoXmlNS.h>
