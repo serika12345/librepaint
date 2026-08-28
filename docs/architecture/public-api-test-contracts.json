@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28257
+    "expectedMissingApis": 28247
   },
   "contracts": [
     {
@@ -5407,6 +5407,34 @@
       "apis": [
         "method:KisRegion::translate(int dx,int dy)",
         "method:KisRegion::translated(int x,int y) const"
+      ]
+    },
+    {
+      "target": "KisMemoryLeakTrackerContractTest",
+      "source": "libs/global/tests/KisMemoryLeakTrackerContractTest.cpp",
+      "test": "KisMemoryLeakTrackerContractTest::singletonReturnsStableInstance",
+      "behavior": "メモリー参照追跡器の共有個体は非nullであり、繰り返し照会しても同じ個体を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMemoryLeakTracker",
+        "method:KisMemoryLeakTracker::instance()"
+      ]
+    },
+    {
+      "target": "KisMemoryLeakTrackerContractTest",
+      "source": "libs/global/tests/KisMemoryLeakTrackerContractTest.cpp",
+      "test": "KisMemoryLeakTrackerContractTest::referencePathsFollowConfiguredTrackingMode",
+      "behavior": "生ポインターと型付きポインターの参照登録・解除および個別・全体出力は、追跡構成で診断を生成し、無効構成では無操作になる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryLeakTracker::KisMemoryLeakTracker()",
+        "method:KisMemoryLeakTracker::dereference(const _T_ * what,const void * bywho)",
+        "method:KisMemoryLeakTracker::dereference(const void * what,const void * bywho)",
+        "method:KisMemoryLeakTracker::dumpReferences()",
+        "method:KisMemoryLeakTracker::dumpReferences(const void * what)",
+        "method:KisMemoryLeakTracker::reference(const _T_ * what,const void * bywho)",
+        "method:KisMemoryLeakTracker::reference(const void * what,const void * bywho,const char * whatName=0)",
+        "method:KisMemoryLeakTracker::~KisMemoryLeakTracker()"
       ]
     }
   ]

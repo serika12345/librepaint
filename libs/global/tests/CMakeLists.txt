@@ -337,6 +337,14 @@ kis_add_test(
 target_compile_definitions(KisRegionContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisMemoryLeakTrackerContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalmemoryleaktrackerobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisMemoryLeakTrackerContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisQStringListFwdTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
