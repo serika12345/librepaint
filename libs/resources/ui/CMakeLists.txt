@@ -484,10 +484,76 @@ set_target_properties(kritaresourceuseroperationsrenamesourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatagchooserwidgetobjects OBJECT
+    KisTagChooserWidget.cpp
+)
+target_compile_definitions(kritatagchooserwidgetobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritatagchooserwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritatagchooserwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritatagchooserwidgetobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritatagchooserwidgetconstructionsourceobjects OBJECT
+    KisTagChooserWidgetConstructionSource.cpp
+)
+target_compile_definitions(kritatagchooserwidgetconstructionsourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritatagchooserwidgetconstructionsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritatagchooserwidgetconstructionsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritatagchooserwidgetconstructionsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritatagchooserwidgetoperationsobjects OBJECT
+    KisTagChooserWidgetOperations.cpp
+)
+target_compile_definitions(kritatagchooserwidgetoperationsobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritatagchooserwidgetoperationsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritatagchooserwidgetoperationsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritatagchooserwidgetoperationsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresourceui_LIB_SRCS
     KisResourceItemChooserContextMenu.cpp
     KisResourceItemChooser.cpp
-    KisTagChooserWidget.cpp
     KisTagFilterWidget.cpp
     KisTagToolButton.cpp
     KisResourceTaggingManager.cpp
@@ -520,6 +586,9 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaresourceuseroperationsimportsourceobjects>
     $<TARGET_OBJECTS:kritaresourceuseroperationsrenameobjects>
     $<TARGET_OBJECTS:kritaresourceuseroperationsrenamesourceobjects>
+    $<TARGET_OBJECTS:kritatagchooserwidgetobjects>
+    $<TARGET_OBJECTS:kritatagchooserwidgetconstructionsourceobjects>
+    $<TARGET_OBJECTS:kritatagchooserwidgetoperationsobjects>
 )
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)

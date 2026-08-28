@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 01:43 JST
+- 更新日時: 2026-08-29 02:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6355,12 +6355,38 @@
   未対応25,555件になり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritaresourceui`の
   リンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b タグ選択ウィジェット構築・所有 public API契約と構築所有分離で完了した作業
+
+- 製品`kritaresourceui`の直接ソースだった`libs/resources/ui/KisTagChooserWidget.cpp`から、構築と破棄を
+  同じ開始ファイルと新規`kritatagchooserwidgetobjects`へ移した。資源種別に対応する表示モデル、
+  全タグモデル、タグ操作表示の具象生成を新規
+  `libs/resources/ui/KisTagChooserWidgetConstructionSource.cpp`と
+  `kritatagchooserwidgetconstructionsourceobjects`へ、選択、設定保存、タグ変更、タグ追加、ダイアログを
+  新規`libs/resources/ui/KisTagChooserWidgetOperations.cpp`と
+  `kritatagchooserwidgetoperationsobjects`へ移した。内部状態は新規
+  `libs/resources/ui/KisTagChooserWidget_p.h`に集約し、製品は三つの生成オブジェクトを各1回集約する。
+- `libs/resources/ui/KisTagChooserWidget.h`の型、構築、破棄3 APIを、新規
+  `libs/resources/ui/tests/KisTagChooserWidgetContractTest.cpp`の2試験へ対応付けた。指定親への所属、
+  資源種別の伝達、一覧の挿入・寸法方針、全タグモデルとタグ操作表示の所有、余白のない配置、破棄時の
+  子表示とモデルの解放を固定した。具象タグモデルとタグ操作表示は決定的な内部データ源へ置き換えた。
+- 実装も利用元もなかった`selectedTagIsReadOnly()`宣言は公開面から除去し、転送宣言や旧名の別名は
+  設けていない。最初の試験リンクは、同じ翻訳単位の残存操作を介してタグモデル、タグ操作ボタン、
+  設定保存、タグ資源関連付け、`KoResource`、`KisTag`、安全検査まで要求する診断になった。分割後は
+  自動メタオブジェクトが要求する共有ポインターの診断表示だけを試験内の値実装で満たし、製品資源を
+  リンクしていない。
+- 構築対象を3工程・7入力、具象生成と残存操作を各1工程・3入力に収め、新規試験を7工程・15入力に
+  収めた。製品`kritaresourceui`は288工程・607入力から292工程・615入力になった。三つの対象
+  コンパイル、対象CTestのmacOS単発実行と20回反復、公開API契約検査は成功した。公開面は
+  1,547ヘッダー、29,979 API、対応済み4,428件、未対応25,551件になり、同ヘッダーの未対応は9 APIに
+  なった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisTagChooserWidget.h`の未対応13 APIについて、製品`kritaresourceui`の直接ソース
-`libs/resources/ui/KisTagChooserWidget.cpp`と資源モデル、タグ操作ボタン、設定永続化、ダイアログの
-直接依存および空構築閉包を監査する。構築範囲が表示構成、選択、タグ追加の責務を一括して要求する
-場合は、挙動試験より先に具体所有を分け、選択値・通知・読取り専用判定・追加結果を局所的に固定する。
+`libs/resources/ui/KisTagChooserWidget.h`に残る選択、通知、アイコン更新の6 APIについて、分離済み
+`libs/resources/ui/KisTagChooserWidgetOperations.cpp`から一覧選択と通知を別翻訳単位へ移す。表示モデル
+の役割値、選択したタグ、資源種別ごとの設定保存、タグ操作表示への反映を値と内部効果で再現し、
+`setCurrentItem()`、`currentIndex()`、`currentlySelectedTag()`、`tagChanged()`、`sigTagChosen()`、
+`updateIcons()`を局所契約へ対応付ける。その後、残るタグ追加3 APIを独立単位で固定する。
 
 ## R1-G5完了根拠
 
