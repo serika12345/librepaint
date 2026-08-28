@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25143
+    "expectedMissingApis": 25139
   },
   "contracts": [
     {
@@ -12367,6 +12367,28 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::activeNode()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerAccessorsContractTest",
+      "source": "libs/ui/tests/KisNodeManagerAccessorsContractTest.cpp",
+      "test": "KisNodeManagerAccessorsContractTest::selectedNodesPreserveStoredOrder",
+      "behavior": "選択ノード一覧は空状態を保持し、複数ノードがある場合は管理状態に格納された順序と共有所有を保って返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::selectedNodes()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerAccessorsContractTest",
+      "source": "libs/ui/tests/KisNodeManagerAccessorsContractTest.cpp",
+      "test": "KisNodeManagerAccessorsContractTest::adaptersReturnManagerOwnedObjects",
+      "behavior": "選択、挿入、表示方式の各接続器取得は空値を保持し、管理状態が所有する各接続器と同一のポインターを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::nodeDisplayModeAdapter() const",
+        "method:KisNodeManager::nodeInsertionAdapter() const",
+        "method:KisNodeManager::nodeSelectionAdapter() const"
       ]
     }
   ]

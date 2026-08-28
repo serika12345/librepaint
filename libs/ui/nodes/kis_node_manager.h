@@ -354,6 +354,13 @@ protected:
         static const KoColorSpace *imageColorSpace(KisNodeManager *manager);
     };
 
+    struct KRITAUI_EXPORT AccessorAccess {
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static KisNodeSelectionAdapter *nodeSelectionAdapter(const KisNodeManager *manager);
+        static KisNodeInsertionAdapter *nodeInsertionAdapter(const KisNodeManager *manager);
+        static KisNodeDisplayModeAdapter *nodeDisplayModeAdapter(const KisNodeManager *manager);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

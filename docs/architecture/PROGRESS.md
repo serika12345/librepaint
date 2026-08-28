@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 07:50 JST
+- 更新日時: 2026-08-29 07:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6895,12 +6895,31 @@
   公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,846件、
   未対応25,143件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード管理状態取得 public API契約と取得所有分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった選択ノード一覧、選択接続器、挿入接続器、表示方式接続器の
+  透過返却を、新規`libs/ui/nodes/KisNodeManagerAccessors.cpp`へ移した。`Private`が保持する一覧と
+  所有ポインターへの具体アクセスは移動元の保護境界に残し、製品`kritaapplicationui`は新規
+  `kritauinodemanageraccessorobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`のうち4 APIを、新規
+  `libs/ui/tests/KisNodeManagerAccessorsContractTest.cpp`の2試験へ対応付けた。空の選択状態、複数ノードの
+  格納順序と共有所有、三つの管理下接続器について空値と同一ポインターの返却を固定した。
+- 実装接続前のリンクは`selectedNodes`、`nodeSelectionAdapter`、`nodeInsertionAdapter`、
+  `nodeDisplayModeAdapter`だけを未解決記号として診断した。局所対象の直接CMake依存はQt Core、Gui、
+  Widgets、Xml、KI18n、Boost、Eigen、OpenEXRに限定した。
+- 変更前の既存`KisNodeManagerTest`は1,806工程・3,611入力、直近の専用契約は5工程・17入力だった。
+  取得対象は1工程・3入力、新規試験は5工程・17入力に収めた。製品`kritaapplicationui`閉包は
+  1,802工程・3,604入力から1,803工程・3,606入力、既存試験は1,807工程・3,613入力になった。
+- 取得対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,850件、
+  未対応25,139件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る81 APIのうち、選択ノード一覧と三つのノード接続器取得を
-次の小単位とする。`kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、直接CMake依存、
-空構築閉包を監査し、内部状態の透過返却を既存の現在描画対象所有へまとめられるか確認してから
-挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る77 APIのうち、画像ノード設定更新とノード有効化操作作成を
+次の小単位とする。既存`kritauinodemanagerimagestateobjects`、具体画像効果対象、
+`KisNodeManagerImageStateContractTest`の変更なし計画、直接CMake依存、空構築閉包を再監査し、既に分離済みの
+具体効果へ画像、操作集合、管理元を同一値のまま委譲する契約を追加する。
 
 ## R1-G5完了根拠
 

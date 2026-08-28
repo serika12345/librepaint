@@ -963,24 +963,24 @@ void KisNodeManager::slotSetSelectedNodes(const KisNodeList &nodes)
     Q_EMIT sigUiNeedChangeSelectedNodes(nodes);
 }
 
-KisNodeList KisNodeManager::selectedNodes()
+KisNodeList KisNodeManager::AccessorAccess::selectedNodes(KisNodeManager *manager)
 {
-    return m_d->selectedNodes;
+    return manager->m_d->selectedNodes;
 }
 
-KisNodeSelectionAdapter* KisNodeManager::nodeSelectionAdapter() const
+KisNodeSelectionAdapter *KisNodeManager::AccessorAccess::nodeSelectionAdapter(const KisNodeManager *manager)
 {
-    return m_d->nodeSelectionAdapter.data();
+    return manager->m_d->nodeSelectionAdapter.data();
 }
 
-KisNodeInsertionAdapter* KisNodeManager::nodeInsertionAdapter() const
+KisNodeInsertionAdapter *KisNodeManager::AccessorAccess::nodeInsertionAdapter(const KisNodeManager *manager)
 {
-    return m_d->nodeInsertionAdapter.data();
+    return manager->m_d->nodeInsertionAdapter.data();
 }
 
-KisNodeDisplayModeAdapter *KisNodeManager::nodeDisplayModeAdapter() const
+KisNodeDisplayModeAdapter *KisNodeManager::AccessorAccess::nodeDisplayModeAdapter(const KisNodeManager *manager)
 {
-    return m_d->nodeDisplayModeAdapter.data();
+    return manager->m_d->nodeDisplayModeAdapter.data();
 }
 
 bool KisNodeManager::trySetNodeProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties) const
