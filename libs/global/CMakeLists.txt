@@ -338,6 +338,26 @@ set_target_properties(kritaglobaldebugobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalconfignotifierobjects OBJECT
+    kis_config_notifier.cpp
+    kis_config_notifier.h
+)
+target_compile_definitions(kritaglobalconfignotifierobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalconfignotifierobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalconfignotifierobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        kritaglobalsignalcompressorobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaglobalconfignotifierobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalpaintingtweaksobjects OBJECT
     kis_painting_tweaks.cpp
 )
@@ -480,7 +500,6 @@ set(kritaglobal_LIB_SRCS
     kis_algebra_2d.cpp
     kis_dom_utils.cpp
     KisHandlePainterHelper.cpp
-    kis_config_notifier.cpp
     KisUsageLogger.cpp
     KoUnit.cpp
     KisBezierUtils.cpp
@@ -525,6 +544,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalregionobjects>
     $<TARGET_OBJECTS:kritaglobalmemoryleaktrackerobjects>
     $<TARGET_OBJECTS:kritaglobaldebugobjects>
+    $<TARGET_OBJECTS:kritaglobalconfignotifierobjects>
     $<TARGET_OBJECTS:kritaglobalpaintingtweaksobjects>
     $<TARGET_OBJECTS:kritaglobalhandlestyleobjects>
     $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
