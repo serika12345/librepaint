@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25633
+    "expectedMissingApis": 25630
   },
   "contracts": [
     {
@@ -10522,6 +10522,46 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceItemChooserSync::~KisResourceItemChooserSync()"
+      ]
+    },
+    {
+      "target": "KisKineticScrollerContractTest",
+      "source": "libs/widgetutils/tests/KisKineticScrollerContractTest.cpp",
+      "test": "KisKineticScrollerContractTest::configuredGestureFollowsSetting",
+      "behavior": "運動スクロール操作種別は設定値0から3を接触、左・中央・右マウス操作へ対応させ、不明値を中央マウス操作として扱う。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisKineticScroller::getConfiguredGestureType()"
+      ]
+    },
+    {
+      "target": "KisKineticScrollerContractTest",
+      "source": "libs/widgetutils/tests/KisKineticScrollerContractTest.cpp",
+      "test": "KisKineticScrollerContractTest::disabledConfigurationReturnsNoScroller",
+      "behavior": "運動スクロールが設定で無効な場合は対象領域へスクローラーを構成せず空ポインターを返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisKineticScroller::createPreconfiguredScroller(QAbstractScrollArea * target)"
+      ]
+    },
+    {
+      "target": "KisKineticScrollerContractTest",
+      "source": "libs/widgetutils/tests/KisKineticScrollerContractTest.cpp",
+      "test": "KisKineticScrollerContractTest::enabledConfigurationUsesPixelScrolling",
+      "behavior": "運動スクロールが有効な項目表示では対象スクローラーを返し、縦横の移動を画素単位へ構成する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisKineticScroller::createPreconfiguredScroller(QAbstractScrollArea * target)"
+      ]
+    },
+    {
+      "target": "KisKineticScrollerContractTest",
+      "source": "libs/widgetutils/tests/KisKineticScrollerContractTest.cpp",
+      "test": "KisKineticScrollerContractTest::cursorTracksScrollerState",
+      "behavior": "スクローラーの押下中は開いた手、ドラッグ中は閉じた手、それ以外の状態は矢印カーソルを設定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisKineticScroller::updateCursor(QWidget * source,QScroller::State state)"
       ]
     }
   ]

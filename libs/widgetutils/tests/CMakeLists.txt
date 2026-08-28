@@ -38,6 +38,15 @@ target_include_directories(KColorSchemeEnumContractTest PRIVATE
 )
 target_compile_definitions(KColorSchemeEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
 
+kis_add_test(
+    KisKineticScrollerContractTest.cpp
+    LINK_LIBRARIES
+        kritakineticscrollerobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisKineticScrollerContractTest PRIVATE kritawidgetutils_EXPORTS)
+
 ki18n_wrap_ui(DialogStateSaver_SRCS
     dialogsavertestwidget.ui
 )

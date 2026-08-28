@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 23:42 JST
+- 更新日時: 2026-08-28 23:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6093,11 +6093,29 @@
   1,546ヘッダー、29,981 API、対応済み4,348件、未対応25,633件になり、同ヘッダーのpublic APIは
   全件対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 運動スクロール public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KisKineticScroller.cpp`は同じ配置のまま、`kritawidgetutils`の直接ソース所有から
+  新規`kritakineticscrollerobjects`の所有へ移し、製品`kritawidgetutils`が生成オブジェクトを1回だけ
+  集約する構造にした。直接依存はQt WidgetsとKF ConfigCoreに限定し、外部向けヘッダー、設定解釈、
+  製品ABIは維持した。
+- `libs/widgetutils/KisKineticScroller.h`の設定済み操作種別取得、対象領域へのスクローラー構成、状態別
+  カーソル設定からなる3 APIを、新規`libs/widgetutils/tests/KisKineticScrollerContractTest.cpp`の4試験へ
+  全件対応付けた。設定値0から3と不明値の対応、無効時の空結果、有効な項目表示の縦横画素単位移動、
+  押下・ドラッグ・その他状態のカーソルを固定した。設定はQtの試験用標準パスだけに書き、各試験後に
+  運動スクロール用キーを消去する。
+- 運動スクロール所有対象を自動メタオブジェクト生成込みで3工程・7入力、新規試験を7工程・15入力に
+  収めた。製品ウィジェット補助ライブラリーは独立した自動メタオブジェクト生成に必要な2工程・4入力が
+  加わり、228工程・489入力から230工程・493入力になった。macOSの対象実行と20回反復に成功した。
+  公開面は1,546ヘッダー、29,981 API、対応済み4,351件、未対応25,630件になり、同ヘッダーの
+  public APIは全件対応済みになった。製品`kritawidgetutils`のリンク、Linux、全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/widgetutils/KisKineticScroller.h`の運動スクロール3 APIについて、現在の`kritawidgetutils`直接所有
-から独立させる清浄時構築閉包と設定依存を監査し、設定済み操作種別、スクロール領域への構成、状態別
-カーソルを最小契約で固定する。その軽量所有対象を後続`KisResourceItemView`契約から利用する。
+`libs/resources/ui/KisResourceItemView.h`の資源項目表11 APIについて、分離済み運動スクロールとアイコン
+説明表示を利用する清浄時構築閉包と直接依存を監査し、表示方式、選択・再クリック・文脈メニュー・
+寸法変更の通知、スクロール状態カーソル、QObject寿命を最小契約で固定する。
 
 ## R1-G5完了根拠
 

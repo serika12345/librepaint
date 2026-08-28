@@ -47,11 +47,28 @@ target_include_directories(kritaitemtooltipobjects
 target_link_libraries(kritaitemtooltipobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritaitemtooltipobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritakineticscrollerobjects OBJECT
+    KisKineticScroller.cpp
+)
+target_compile_definitions(kritakineticscrollerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritakineticscrollerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritakineticscrollerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritakineticscrollerobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
     $<TARGET_OBJECTS:kritacheckerboardpainterobjects>
     $<TARGET_OBJECTS:kritaitemtooltipobjects>
+    $<TARGET_OBJECTS:kritakineticscrollerobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -68,7 +85,6 @@ set(kritawidgetutils_LIB_SRCS
     KoProperties.cpp
     KoFileDialog.cpp
     KisPreviewFileDialog.cpp
-    KisKineticScroller.cpp
     KisSqueezedComboBox.cpp
     KisDialogStateSaver.cpp
     KisPopupButton.cpp
