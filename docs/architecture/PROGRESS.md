@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 00:11 JST
+- 更新日時: 2026-08-29 00:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6157,11 +6157,34 @@
   29,981 API、対応済み4,375件、未対応25,606件になり、同ヘッダーのpublic APIは全件対応済みに
   なった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 項目内蔵資源一覧 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisResourceItemListWidget.cpp`は同じ配置のまま、`kritaresourceui`の直接ソース所有
+  から新規`kritaresourceitemlistwidgetobjects`の所有へ移し、製品`kritaresourceui`が生成オブジェクトを
+  1回だけ集約する構造にした。直接コンパイル依存はQt Widgetsとウィジェット補助ヘッダーに限定し、
+  外部向けヘッダー、項目内蔵一覧実装、製品ABIは維持した。
+- `libs/resources/ui/KisResourceItemListWidget.h`の境界、構築・破棄、表示方式・項目寸法・厳格選択・
+  説明表示の4設定、4通知、スクロール状態スロットからなる13 APIを、新規
+  `libs/resources/ui/tests/KisResourceItemListWidgetContractTest.cpp`の11試験へ全件対応付けた。複数選択の
+  既定、格子・横帯・詳細表示、厳格単一選択中の現在項目削除、説明画像の固定寸法とチェッカー背景、
+  選択・クリック・文脈メニュー通知、状態別カーソル、QObject破棄を固定した。
+- 内部説明表示への設定委譲は、既存の`libs/resources/ui/KisIconToolTip.h`の非公開友達から生成文書画像を
+  観測した。privateの寸法変更処理は`libs/resources/ui/KisResourceItemListWidget.h`の非公開友達から
+  決定的な事象を渡した。後者は公開APIとABIを変更しない試験アクセスである。宣言済み
+  `sigSizeChanged()`が寸法処理後も送出されない現行挙動は既知不具合に分類した。
+- 項目内蔵一覧所有対象を自動メタオブジェクト生成込みで3工程・7入力、新規試験を分離済み運動
+  スクロール、説明枠、説明生成、チェッカー描画、サムネイルキャッシュ込みで16工程・35入力に収めた。
+  製品UIライブラリーは独立した自動メタオブジェクト生成に必要な2工程・4入力が加わり、264工程・
+  559入力から266工程・563入力になった。macOSの対象実行と20回反復に成功した。公開面は1,546
+  ヘッダー、29,981 API、対応済み4,388件、未対応25,593件になり、同ヘッダーのpublic APIは全件
+  対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceItemListWidget.h`の項目内蔵資源一覧13 APIについて、直前の一覧契約と同じ
-分離済み所有対象を利用する清浄時構築閉包と直接依存を監査し、複数選択の既定、3表示方式、項目寸法、
-厳格単一選択、説明表示設定、選択・クリック・文脈メニュー通知、未送出の寸法通知を最小契約で分類する。
+`libs/resources/ui/KisStorageChooserWidget.h`の格納場所描画委譲と選択ウィジェット8 APIについて、
+`libs/resources/ui/KisStorageChooserWidget.cpp`に同居する描画責務とモデル更新責務を区別して清浄時構築
+閉包と直接依存を監査する。二つの責務を一つの試験対象へ束ねる構築範囲が過剰なら、描画委譲の実装を
+具体的な所有対象へ先に分離した後、寸法・描画・ポップアップ構成・破棄を最小契約で固定する。
 
 ## R1-G5完了根拠
 
