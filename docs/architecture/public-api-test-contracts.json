@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25630
+    "expectedMissingApis": 25619
   },
   "contracts": [
     {
@@ -10562,6 +10562,89 @@
       "classification": "maintained",
       "apis": [
         "function:KisKineticScroller::updateCursor(QWidget * source,QScroller::State state)"
+      ]
+    },
+    {
+      "target": "KisResourceItemViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemViewContractTest.cpp",
+      "test": "KisResourceItemViewContractTest::constructorUsesFixedColumns",
+      "behavior": "資源項目表は単一選択、非表示見出し、様式最小値以上の行高、固定列向けの縦スクロールで開始する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceItemView",
+        "enum:KisResourceItemView::ViewMode",
+        "enumerator:KisResourceItemView::ViewMode::FIXED_COLUMNS",
+        "method:KisResourceItemView::KisResourceItemView(QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisResourceItemViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemViewContractTest.cpp",
+      "test": "KisResourceItemViewContractTest::fixedRowsSwitchScrollPolicies",
+      "behavior": "固定行表示方式は横スクロールを常時有効、縦スクロールを常時無効にする。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisResourceItemView::ViewMode::FIXED_ROWS"
+      ]
+    },
+    {
+      "target": "KisResourceItemViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemViewContractTest.cpp",
+      "test": "KisResourceItemViewContractTest::selectionEmitsCurrentResourceChanged",
+      "behavior": "資源項目表は選択したモデル索引を通知し、選択解除時は無効索引を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemView::currentResourceChanged(const QModelIndex &)"
+      ]
+    },
+    {
+      "target": "KisResourceItemViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemViewContractTest.cpp",
+      "test": "KisResourceItemViewContractTest::repeatedClickEmitsCurrentResourceClicked",
+      "behavior": "現在項目を再クリックすると、そのモデル索引を資源再クリック通知として送る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemView::currentResourceClicked(const QModelIndex &)"
+      ]
+    },
+    {
+      "target": "KisResourceItemViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemViewContractTest.cpp",
+      "test": "KisResourceItemViewContractTest::contextMenuEmitsGlobalPosition",
+      "behavior": "文脈メニュー事象は要求位置を大域座標のまま通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemView::contextMenuRequested(const QPoint &)"
+      ]
+    },
+    {
+      "target": "KisResourceItemViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemViewContractTest.cpp",
+      "test": "KisResourceItemViewContractTest::resizeEmitsSizeChanged",
+      "behavior": "資源項目表は寸法変更事象ごとに表示寸法の変更を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemView::sigSizeChanged()"
+      ]
+    },
+    {
+      "target": "KisResourceItemViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemViewContractTest.cpp",
+      "test": "KisResourceItemViewContractTest::scrollerStateChangesCursor",
+      "behavior": "スクローラー状態変更スロットは押下、ドラッグ、停止を開いた手、閉じた手、矢印カーソルへ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemView::slotScrollerStateChange(QScroller::State state)"
+      ]
+    },
+    {
+      "target": "KisResourceItemViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemViewContractTest.cpp",
+      "test": "KisResourceItemViewContractTest::destructionInvalidatesGuardedPointer",
+      "behavior": "資源項目表は破棄時にQObjectの監視参照を無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemView::~KisResourceItemView()"
       ]
     }
   ]
