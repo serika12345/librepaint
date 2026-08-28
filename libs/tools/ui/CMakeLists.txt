@@ -73,10 +73,88 @@ set_target_properties(kritatoolsuicompositeopsmodelsourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+set(kritatoolsuipaintopoptionsmodel_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+
+add_library(kritatoolsuipaintopoptionsmodelobjects OBJECT
+    kis_paintop_options_model.cpp
+)
+target_compile_definitions(kritatoolsuipaintopoptionsmodelobjects PRIVATE
+    kritatoolsui_EXPORTS
+)
+target_include_directories(kritatoolsuipaintopoptionsmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritatoolsuipaintopoptionsmodel_INCLUDE_DIRS}
+)
+target_link_libraries(kritatoolsuipaintopoptionsmodelobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritatoolsuipaintopoptionsmodelobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritatoolsuipaintopoptionsmodelsourceobjects OBJECT
+    kis_paintop_options_model_source.cpp
+)
+target_compile_definitions(kritatoolsuipaintopoptionsmodelsourceobjects PRIVATE
+    kritatoolsui_EXPORTS
+)
+target_include_directories(kritatoolsuipaintopoptionsmodelsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritatoolsuipaintopoptionsmodel_INCLUDE_DIRS}
+)
+target_link_libraries(kritatoolsuipaintopoptionsmodelsourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritatoolsuipaintopoptionsmodelsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritatoolsui_LIB_SRCS
     $<TARGET_OBJECTS:kritatoolsuicategorizedmodelobjects>
     $<TARGET_OBJECTS:kritatoolsuicompositeopsmodelobjects>
     $<TARGET_OBJECTS:kritatoolsuicompositeopsmodelsourceobjects>
+    $<TARGET_OBJECTS:kritatoolsuipaintopoptionsmodelobjects>
+    $<TARGET_OBJECTS:kritatoolsuipaintopoptionsmodelsourceobjects>
 
     KisPaintResourceServerProvider.cpp
     KisPaletteEditor.cpp
@@ -86,7 +164,6 @@ set(kritatoolsui_LIB_SRCS
     kis_paint_ops_model.cpp
     kis_paintop_list_widget.cpp
     kis_paintop_option.cpp
-    kis_paintop_options_model.cpp
     kis_paintop_settings_widget.cpp
     kis_rectangle_constraint_widget.cpp
     kis_selection_options.cc

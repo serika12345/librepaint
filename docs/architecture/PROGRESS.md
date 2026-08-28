@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 05:13 JST
+- 更新日時: 2026-08-29 05:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6644,13 +6644,43 @@
   成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,659件、未対応25,330件になり、同ヘッダーの
   public APIは全件対応済みになった。製品`kritatoolsui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 描画選択肢一覧模型 public API契約と状態効果分離で完了した作業
+
+- `libs/tools/ui/kis_paintop_options_model.cpp`は、製品`kritatoolsui`の直接ソース所有から、同じ
+  ファイル位置の新規`kritatoolsuipaintopoptionsmodelobjects`へ移した。製品は模型判断の生成オブジェクトを
+  1回集約する。
+- `libs/tools/ui/kis_paintop_options_model.cpp`にあった`KisPaintOpOption`の名前・分類・検査可否・検査状態・
+  有効状態の取得、検査状態変更、状態通知接続を、新規
+  `libs/tools/ui/kis_paintop_options_model_source.cpp`へ移し、内部境界を新規
+  `libs/tools/ui/kis_paintop_options_model_source_p.h`に置いた。具体効果は新規
+  `kritatoolsuipaintopoptionsmodelsourceobjects`が1回生成し、製品が模型判断とともに集約する。
+  `libs/tools/ui/kis_paintop_options_model.h`の`KisOptionInfo::index`は、未初期化値から無効なウィジェット
+  索引`-1`へ変更し、既定構築と同一性比較を決定的にした。
+- 同ヘッダーの18 APIを、新規`libs/tools/ui/tests/KisPaintOpOptionsModelContractTest.cpp`の5試験へ
+  対応付けた。選択肢情報の既定値・複写・表示変換・同一性、五分類の表示名、項目追加時の分類展開と
+  検査可否・検査状態・有効状態、模型から選択肢への検査状態伝達、選択肢から模型への状態同期、明示的な
+  変更通知を固定した。
+- 同一性比較は、異なる選択肢名を持つ値が分類・検査状態の比較を迂回して同一になる条件分岐の欠陥を
+  検出した。索引が一致した後にnull性、選択肢名、分類、検査可否、検査状態を順に比較する実装へ修正し、
+  表示ラベルと有効状態は一覧内の同一性から独立する契約を維持した。
+- 局所対象の最初のコンパイルは、公開選択肢ヘッダーが推移的に必要とするEigenとKI18nを製品が暗黙供給
+  していたことを診断したため、両外部依存を対象へ明示した。最初の契約リンクは値同一性、模型構築、
+  分類名、追加、データ、検査状態、明示通知と仮想関数表だけを未解決記号として示し、画像・資源製品の
+  記号を含まなかった。
+- 変更前の製品`kritatoolsui`閉包は1,127工程・2,274入力、既存設定UI試験は1,131工程・2,281入力
+  だった。模型判断と具体効果は各1工程・3入力、新規試験は9工程・25入力に収めた。製品閉包は
+  1,128工程・2,276入力である。両局所対象コンパイル、対象CTestのmacOS単発実行と20回反復、公開API
+  契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,677件、未対応
+  25,312件になり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritatoolsui`のリンク、Linux、
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-再生成した公開API作業列の先頭にある`libs/tools/ui/kis_paintop_options_model.h`の18 APIを対象とする。
-製品`kritatoolsui`へ直接所属する`libs/tools/ui/kis_paintop_options_model.cpp`、今回分離した分類模型対象、既存
-`TestToolSettingsUiContract`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査する。
-選択肢情報の値と同一性、分類表示名、追加時の検査・有効状態、選択肢から模型への通知、模型から選択肢への
-検査状態伝達を確認し、過大な製品閉包が必要なら所有単位を先に分ける。
+再生成した公開API作業列の先頭にある`libs/tools/ui/kis_paint_ops_model.h`の20 APIを対象とする。製品
+`kritatoolsui`へ直接所属する`libs/tools/ui/kis_paint_ops_model.cpp`、今回分離した分類模型対象、描画操作
+生成器登録簿について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査する。描画操作情報の
+値と同一性、分類・名前・アイコン・優先度の表示役割、分類展開、安定分類を優先する整列模型を確認し、
+生成器本体の過大な閉包が必要なら状態取得境界と所有単位を先に分ける。
 
 ## R1-G5完了根拠
 

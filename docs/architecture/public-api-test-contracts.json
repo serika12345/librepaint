@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25330
+    "expectedMissingApis": 25312
   },
   "contracts": [
     {
@@ -11838,6 +11838,69 @@
       "apis": [
         "method:KisSortedCompositeOpListModel::KisSortedCompositeOpListModel(bool limitToLayerStyles,QObject * parent)",
         "method:KisSortedCompositeOpListModel::validate(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionsModelContractTest.cpp",
+      "test": "KisPaintOpOptionsModelContractTest::optionInfoHasDeterministicValueAndIdentity",
+      "behavior": "選択肢情報は空ラベル、null選択肢、無効なウィジェット索引で決定的に初期化され、複写で三値を保持する。同一性は索引、選択肢名、分類、検査可否、検査状態で決まり、表示ラベルと有効状態から独立する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:BaseOptionCategorizedListModel",
+        "function:operator ==(const KisOptionInfo & a,const KisOptionInfo & b)",
+        "member:KisOptionInfo::index",
+        "member:KisOptionInfo::label",
+        "member:KisOptionInfo::option",
+        "method:KisOptionInfo::KisOptionInfo()",
+        "method:KisOptionInfo::KisOptionInfo(KisPaintOpOption * o,int i,const QString & label)",
+        "method:KisOptionInfo::KisOptionInfo(const KisOptionInfo &)",
+        "method:OptionInfoToQStringConverter::operator () (const KisOptionInfo & info)",
+        "struct:KisOptionInfo",
+        "struct:OptionInfoToQStringConverter"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionsModelContractTest.cpp",
+      "test": "KisPaintOpOptionsModelContractTest::categoryNamesRemainStable",
+      "behavior": "五つの選択肢分類は設定一覧で使うGeneral、Color、Texture、Filter、Masked Brushの表示名へ対応する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpOptionListModel::categoryName(KisPaintOpOption::PaintopCategory category)"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionsModelContractTest.cpp",
+      "test": "KisPaintOpOptionsModelContractTest::addingOptionsBuildsExpandedObservableRows",
+      "behavior": "選択肢追加はラベルとウィジェット索引を持つ項目を分類へ置き、選択肢の検査可否・検査状態・有効状態を反映して分類を展開し、対応する状態通知を購読する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpOptionListModel",
+        "method:KisPaintOpOptionListModel::KisPaintOpOptionListModel(QObject * parent)",
+        "method:KisPaintOpOptionListModel::addPaintOpOption(KisPaintOpOption * option,int widgetIndex,const QString & label,const QString & category)",
+        "method:KisPaintOpOptionListModel::data(const QModelIndex & idx,int role=Qt::DisplayRole) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionsModelContractTest.cpp",
+      "test": "KisPaintOpOptionsModelContractTest::modelCheckStateUpdatesCheckableOption",
+      "behavior": "模型の検査状態変更は検査可能な選択肢へ真偽値を伝え、模型項目の状態を一致させて変更を通知する。無効索引は変更を拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpOptionListModel::setData(const QModelIndex & idx,const QVariant & value,int role=Qt::EditRole)"
+      ]
+    },
+    {
+      "target": "KisPaintOpOptionsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpOptionsModelContractTest.cpp",
+      "test": "KisPaintOpOptionsModelContractTest::optionStateChangesAndExplicitNotificationReachObservers",
+      "behavior": "選択肢側の検査状態・有効状態変更は対応行へ同期され、明示通知は指定した単一索引を変更範囲として観測者へ送る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpOptionListModel::signalDataChanged(const QModelIndex & index)"
       ]
     }
   ]
