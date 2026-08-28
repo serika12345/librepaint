@@ -5,6 +5,7 @@ kis_add_test(
         kritaresourceitemchooserconstructionobjects
         kritaresourceitemchooserpresentationobjects
         kritaresourceitemchooserselectionobjects
+        kritaresourceitemchooserinputobjects
         kritaresourcestypesobjects
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets

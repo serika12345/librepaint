@@ -173,6 +173,7 @@ private:
 
     void hideEverything();
     void applyVerticalLayout();
+    void applyListViewModeAndNotify(ListViewMode mode);
     void changeLayoutBasedOnSize();
 
     /// Resource for a given model index

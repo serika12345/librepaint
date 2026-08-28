@@ -7,8 +7,10 @@
 
 #include <QPointer>
 #include <QStandardItemModel>
+#include <QWheelEvent>
 
 #include <KisResourceItemChooser.h>
+#include <KisResourceItemChooserInputSource_p.h>
 #include <KisResourceItemChooserPresentationSource_p.h>
 #include <KisResourceItemChooserSelectionSource_p.h>
 #include <KisResourceItemChooser_p.h>
@@ -67,6 +69,18 @@ QList<QModelIndex> previewIndexes;
 bool previewTiled = false;
 bool previewGrayscale = false;
 int buttonStateUpdateCount = 0;
+bool emitListViewModeOnRelayout = false;
+ListViewMode relayoutViewMode = ListViewMode::IconGrid;
+KisResourceItemChooser *expectedInputChooser = nullptr;
+int connectBaseLengthCount = 0;
+int disconnectBaseLengthCount = 0;
+int configuredBaseLength = 50;
+QList<int> itemSizeLengths;
+int setBaseLengthCount = 0;
+int capturedBaseLength = 0;
+int cursorUpdateCount = 0;
+QScroller::State capturedScrollerState = QScroller::Inactive;
+bool inputSourcePointersCorrect = true;
 
 KoResourceSP markerResource(quintptr value)
 {
@@ -119,6 +133,8 @@ void resetPresentationState()
     configuredViewSize = QSize(320, 180);
     viewSizeReceivedMarker = false;
     iconUpdateCount = 0;
+    emitListViewModeOnRelayout = false;
+    relayoutViewMode = ListViewMode::IconGrid;
 }
 
 void resetSelectionState()
@@ -147,6 +163,20 @@ void resetSelectionState()
     previewGrayscale = false;
     buttonStateUpdateCount = 0;
 }
+
+void resetInputState()
+{
+    expectedInputChooser = nullptr;
+    connectBaseLengthCount = 0;
+    disconnectBaseLengthCount = 0;
+    configuredBaseLength = 50;
+    itemSizeLengths.clear();
+    setBaseLengthCount = 0;
+    capturedBaseLength = 0;
+    cursorUpdateCount = 0;
+    capturedScrollerState = QScroller::Inactive;
+    inputSourcePointersCorrect = true;
+}
 }
 
 void KisResourceItemChooser::constructPresentation()
@@ -170,13 +200,12 @@ void KisResourceItemChooser::slotButtonClicked(int)
 {
 }
 
-void KisResourceItemChooser::slotScrollerStateChanged(QScroller::State)
-{
-}
-
 void KisResourceItemChooser::changeLayoutBasedOnSize()
 {
     ++layoutChangeCount;
+    if (emitListViewModeOnRelayout) {
+        applyListViewModeAndNotify(relayoutViewMode);
+    }
 }
 
 void KisResourceItemChooser::scrollBackwards()
@@ -191,21 +220,12 @@ void KisResourceItemChooser::contextMenuRequested(const QPoint &)
 {
 }
 
-void KisResourceItemChooser::baseLengthChanged(int)
-{
-}
-
 void KisResourceItemChooser::afterFilterChanged()
 {
 }
 
 void KisResourceItemChooser::slotSaveSplitterState()
 {
-}
-
-bool KisResourceItemChooser::eventFilter(QObject *, QEvent *)
-{
-    return false;
 }
 
 void KisResourceItemChooser::showEvent(QShowEvent *)
@@ -328,6 +348,46 @@ bool resourceIsValid(KoResourceSP resource)
     ++resourceValidityCount;
     capturedValidityResource = resource;
     return configuredResourceValid;
+}
+}
+
+namespace KisResourceItemChooserInputSource
+{
+void connectBaseLength(KisResourceItemChooser *chooser)
+{
+    inputSourcePointersCorrect &= chooser == expectedInputChooser;
+    ++connectBaseLengthCount;
+}
+
+void disconnectBaseLength(KisResourceItemChooser *chooser)
+{
+    inputSourcePointersCorrect &= chooser == expectedInputChooser;
+    ++disconnectBaseLengthCount;
+}
+
+int baseLength()
+{
+    return configuredBaseLength;
+}
+
+void setBaseLength(int length)
+{
+    ++setBaseLengthCount;
+    capturedBaseLength = length;
+    configuredBaseLength = length;
+}
+
+void setItemSize(KisResourceItemListView *view, int length)
+{
+    inputSourcePointersCorrect &= view == markerView;
+    itemSizeLengths.append(length);
+}
+
+void updateCursor(QWidget *widget, QScroller::State state)
+{
+    inputSourcePointersCorrect &= widget == expectedInputChooser;
+    ++cursorUpdateCount;
+    capturedScrollerState = state;
 }
 }
 
@@ -454,6 +514,10 @@ private Q_SLOTS:
     void nameAndRowSelectionResolveIndexes();
     void previewModesAffectTheNextPreview();
     void clickingSelectedResourceEmitsCurrentResource();
+    void responsiveLayoutForwardsViewModeNotification();
+    void synchronizationTracksBaseLengthWhileEnabled();
+    void controlWheelAdjustsSynchronizedBaseLength();
+    void scrollerStateUpdatesTheChooserCursor();
 };
 
 void TestResourceUiContract::descriptorPreservesCatalogIdentity()
@@ -728,6 +792,109 @@ void TestResourceUiContract::clickingSelectedResourceEmitsCurrentResource()
                                       Q_ARG(QModelIndex, QModelIndex())));
     QCOMPARE(clickedCount, 1);
     QVERIFY(selectionSourcePointersCorrect);
+}
+
+void TestResourceUiContract::responsiveLayoutForwardsViewModeNotification()
+{
+    resetPresentationState();
+    emitListViewModeOnRelayout = true;
+    relayoutViewMode = ListViewMode::IconStripHorizontal;
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+    int notificationCount = 0;
+    ListViewMode notifiedMode = ListViewMode::IconGrid;
+    connect(&chooser,
+            &KisResourceItemChooser::listViewModeChanged,
+            &chooser,
+            [&](ListViewMode mode) {
+                ++notificationCount;
+                notifiedMode = mode;
+            });
+
+    chooser.setResponsiveness(true);
+    QCOMPARE(listViewModeCount, 1);
+    QCOMPARE(capturedListViewMode, ListViewMode::IconStripHorizontal);
+    QCOMPARE(notificationCount, 1);
+    QCOMPARE(notifiedMode, ListViewMode::IconStripHorizontal);
+}
+
+void TestResourceUiContract::synchronizationTracksBaseLengthWhileEnabled()
+{
+    resetInputState();
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+    expectedInputChooser = &chooser;
+    configuredBaseLength = 64;
+
+    chooser.setSynced(true);
+    QCOMPARE(connectBaseLengthCount, 1);
+    QCOMPARE(itemSizeLengths, QList<int> {64});
+    chooser.setSynced(true);
+    QCOMPARE(connectBaseLengthCount, 1);
+    QCOMPARE(itemSizeLengths, QList<int> {64});
+    QVERIFY(QMetaObject::invokeMethod(&chooser,
+                                      "baseLengthChanged",
+                                      Q_ARG(int, 72)));
+    QCOMPARE(itemSizeLengths, (QList<int> {64, 72}));
+
+    chooser.setSynced(false);
+    QCOMPARE(disconnectBaseLengthCount, 1);
+    QVERIFY(QMetaObject::invokeMethod(&chooser,
+                                      "baseLengthChanged",
+                                      Q_ARG(int, 80)));
+    QCOMPARE(itemSizeLengths, (QList<int> {64, 72}));
+    chooser.setSynced(false);
+    QCOMPARE(disconnectBaseLengthCount, 1);
+    QVERIFY(inputSourcePointersCorrect);
+}
+
+void TestResourceUiContract::controlWheelAdjustsSynchronizedBaseLength()
+{
+    resetInputState();
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+    expectedInputChooser = &chooser;
+    chooser.setSynced(true);
+    QWheelEvent controlWheel(QPointF(10, 10),
+                             QPointF(20, 20),
+                             QPoint(),
+                             QPoint(0, 120),
+                             Qt::NoButton,
+                             Qt::ControlModifier,
+                             Qt::NoScrollPhase,
+                             false);
+
+    QVERIFY(chooser.eventFilter(&chooser, &controlWheel));
+    QCOMPARE(setBaseLengthCount, 1);
+    QCOMPARE(capturedBaseLength, 60);
+
+    QWheelEvent plainWheel(QPointF(10, 10),
+                           QPointF(20, 20),
+                           QPoint(),
+                           QPoint(0, 120),
+                           Qt::NoButton,
+                           Qt::NoModifier,
+                           Qt::NoScrollPhase,
+                           false);
+    QVERIFY(!chooser.eventFilter(&chooser, &plainWheel));
+    QCOMPARE(setBaseLengthCount, 1);
+    chooser.setSynced(false);
+    QVERIFY(!chooser.eventFilter(&chooser, &controlWheel));
+    QCOMPARE(setBaseLengthCount, 1);
+    QVERIFY(inputSourcePointersCorrect);
+}
+
+void TestResourceUiContract::scrollerStateUpdatesTheChooserCursor()
+{
+    resetInputState();
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+    expectedInputChooser = &chooser;
+
+    chooser.slotScrollerStateChanged(QScroller::Dragging);
+    QCOMPARE(cursorUpdateCount, 1);
+    QCOMPARE(capturedScrollerState, QScroller::Dragging);
+    QVERIFY(inputSourcePointersCorrect);
 }
 
 QTEST_MAIN(TestResourceUiContract)

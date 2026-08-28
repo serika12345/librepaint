@@ -27,6 +27,12 @@ void KisResourceItemChooser::setListViewMode(ListViewMode newViewMode)
     }
 }
 
+void KisResourceItemChooser::applyListViewModeAndNotify(ListViewMode mode)
+{
+    KisResourceItemChooserPresentationSource::setListViewMode(d->view, mode);
+    Q_EMIT listViewModeChanged(mode);
+}
+
 KisTagFilterResourceProxyModel *KisResourceItemChooser::tagFilterModel() const
 {
     return d->tagFilterProxyModel;

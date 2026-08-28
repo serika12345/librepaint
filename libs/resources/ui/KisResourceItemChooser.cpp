@@ -26,7 +26,6 @@
 #include <QPainter>
 #include <QSplitter>
 #include <QToolButton>
-#include <QWheelEvent>
 #include <QLineEdit>
 #include <QStandardPaths>
 
@@ -35,7 +34,6 @@
 #include <klocalizedstring.h>
 
 #include <KoFileDialog.h>
-#include <KisKineticScroller.h>
 #include "KisPopupButton.h"
 
 #include <KisResourceModel.h>
@@ -175,33 +173,6 @@ void KisResourceItemChooser::contextMenuRequested(const QPoint &pos)
     d->tagManager->contextMenuRequested(currentResource(), pos);
 }
 
-void KisResourceItemChooser::setSynced(bool sync)
-{
-    if (d->synced == sync)
-        return;
-
-    d->synced = sync;
-    KisResourceItemChooserSync *chooserSync = KisResourceItemChooserSync::instance();
-    if (sync) {
-        connect(chooserSync, SIGNAL(baseLengthChanged(int)), SLOT(baseLengthChanged(int)));
-        baseLengthChanged(chooserSync->baseLength());
-    } else {
-        chooserSync->disconnect(this);
-    }
-}
-
-void KisResourceItemChooser::slotScrollerStateChanged(QScroller::State state)
-{
-    KisKineticScroller::updateCursor(this, state);
-}
-
-void KisResourceItemChooser::baseLengthChanged(int length)
-{
-    if (d->synced) {
-        d->view->setItemSize(QSize(length, length));
-    }
-}
-
 void KisResourceItemChooser::afterFilterChanged()
 {
     // Note: Item model reset events silently reset the view's selection model too.
@@ -214,23 +185,6 @@ void KisResourceItemChooser::afterFilterChanged()
 
     updateButtonState();
 }
-
-bool KisResourceItemChooser::eventFilter(QObject *object, QEvent *event)
-{
-    if (d->synced && event->type() == QEvent::Wheel) {
-        KisResourceItemChooserSync *chooserSync = KisResourceItemChooserSync::instance();
-        QWheelEvent *qwheel = static_cast<QWheelEvent *>(event);
-        if (qwheel->modifiers() & Qt::ControlModifier) {
-
-            int degrees = qwheel->angleDelta().y() / 8;
-            int newBaseLength = chooserSync->baseLength() + degrees / 15 * 10;
-            chooserSync->setBaseLength(newBaseLength);
-            return true;
-        }
-    }
-    return QObject::eventFilter(object, event);
-}
-
 
 void KisResourceItemChooser::resizeEvent(QResizeEvent *event)
 {
@@ -267,8 +221,7 @@ void KisResourceItemChooser::applyVerticalLayout()
 
     hideEverything();
 
-    d->view->setListViewMode(d->requestedViewMode);
-    Q_EMIT listViewModeChanged(d->requestedViewMode);
+    applyListViewModeAndNotify(d->requestedViewMode);
 
     // The horizontal layouts size the items based widget height not user configured base length
     // so it needs to be restored when switching back to vertical layout
@@ -311,8 +264,7 @@ void KisResourceItemChooser::changeLayoutBasedOnSize()
 
             hideEverything();
 
-            d->view->setListViewMode(ListViewMode::IconStripHorizontal);
-            Q_EMIT listViewModeChanged(ListViewMode::IconStripHorizontal);
+            applyListViewModeAndNotify(ListViewMode::IconStripHorizontal);
 
             // Left
             QLayout* leftLayout = d->left->layout();
@@ -363,8 +315,7 @@ void KisResourceItemChooser::changeLayoutBasedOnSize()
 
             hideEverything();
 
-            d->view->setListViewMode(ListViewMode::IconStripHorizontal);
-            Q_EMIT listViewModeChanged(ListViewMode::IconStripHorizontal);
+            applyListViewModeAndNotify(ListViewMode::IconStripHorizontal);
 
             QLayout* leftLayout = d->left->layout();
             leftLayout->addWidget(d->resourcesSplitter);

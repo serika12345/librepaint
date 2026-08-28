@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 03:16 JST
+- 更新日時: 2026-08-29 03:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6516,12 +6516,36 @@
   29,979 API、対応済み4,498件、未対応25,481件になり、同ヘッダーの未対応は5 APIになった。製品
   `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源項目選択の同期・入力 public API契約と効果分離で完了した作業
+
+- `libs/resources/ui/KisResourceItemChooser.cpp`にあった寸法同期の有効化、共有基準長変更、Ctrl+ホイール
+  入力、運動スクロール状態処理を、新規`libs/resources/ui/KisResourceItemChooserInput.cpp`へ移した。
+  共有同期個体への接続・切断・値取得更新、一覧寸法、カーソルの具体操作を新規
+  `libs/resources/ui/KisResourceItemChooserInputSource.cpp`へ移し、内部境界を新規
+  `libs/resources/ui/KisResourceItemChooserInputSource_p.h`に置いた。また開始ファイルの三つの応答配置
+  経路に重複していた一覧表示方式の適用と通知を、既存
+  `libs/resources/ui/KisResourceItemChooserPresentation.cpp`の単一処理へ移した。開始ファイルには取込・除去、
+  プレビュー画素生成、除去可否、応答配置の具体的な組替えが残り、製品は新しい入力判断対象と具象効果
+  対象を各1回集約する。
+- `libs/resources/ui/KisResourceItemChooser.h`の同期・入力・表示方式通知4 APIを、既存
+  `libs/resources/ui/tests/TestResourceUiContract.cpp`の4試験へ対応付けた。同期開始時の共有基準長適用、
+  重複接続の抑止、解除後の変更無視、Ctrl付きホイール120単位による基準長10増加と入力消費、修飾なし・
+  同期解除後の非消費、スクロール状態のカーソル伝達、一覧へ適用した表示方式と通知値の一致を固定した。
+- 実装前のリンクは対象3公開操作、表示方式通知を通す新しい内部処理、共有基準長の内部スロットだけを
+  未解決記号として診断した。同期と入力の判断を製品全体から分離して試験へ直接接続し、共有同期個体、
+  一覧、カーソルの具象効果は試験内の決定的な値記録へ置き換えた。
+- 入力判断、具象効果、表示判断、残存操作を各1工程・3入力、記述子、構築、選択判断、資源種別と直接
+  集約する試験を13工程・28入力に収めた。製品`kritaresourceui`は307工程・645入力から309工程・649入力に
+  なった。四つの対象コンパイルと対象CTestのmacOS単発実行、20回反復は成功した。公開面は1,547
+  ヘッダー、29,979 API、対応済み4,502件、未対応25,477件になり、同ヘッダーの未対応は1 APIになった。
+  製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceItemChooser.h`に残る5 APIについて、寸法同期、Ctrl+ホイール入力、運動
-スクロール状態、取込・除去操作、応答配置の表示方式通知を責務別に監査する。まず同期と入力を局所効果へ
-分け、同じ記述子別構築試験へ直接集約する。取込・除去の外部ファイル・資源操作は別の具象効果境界で
-扱う。
+`libs/resources/ui/KisResourceItemChooser.h`に残る`slotButtonClicked(int button)`について、取込のファイル
+選択・可読性・資源登録・置換追跡・並替えと、除去の無効化・前行選択・活性化・除去可否更新を監査する。
+外部ファイルと資源登録を具象効果境界へ分け、ボタン分岐と選択状態遷移だけを記述子別構築試験へ直接
+集約する。
 
 ## R1-G5完了根拠
 
