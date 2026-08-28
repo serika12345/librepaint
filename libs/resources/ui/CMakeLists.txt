@@ -1,5 +1,19 @@
-set(kritaresourceui_LIB_SRCS
+add_library(kritaresourceuidescriptorobjects OBJECT
     KisResourceUiDescriptor.cpp
+)
+target_compile_definitions(kritaresourceuidescriptorobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuidescriptorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaresourceuidescriptorobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaresourceuidescriptorobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritaresourceui_LIB_SRCS
     KisIconToolTip.cpp
     KisResourceItemChooserContextMenu.cpp
     KisResourceItemChooser.cpp
@@ -19,7 +33,10 @@ set(kritaresourceui_LIB_SRCS
     KisResourceUserOperations.cpp
 )
 
-kis_add_library(kritaresourceui SHARED ${kritaresourceui_LIB_SRCS})
+kis_add_library(kritaresourceui SHARED
+    ${kritaresourceui_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaresourceuidescriptorobjects>
+)
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)
 

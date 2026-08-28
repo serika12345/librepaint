@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25676
+    "expectedMissingApis": 25672
   },
   "contracts": [
     {
@@ -10299,6 +10299,19 @@
         "enumerator:ListViewMode::Detail",
         "enumerator:ListViewMode::IconGrid",
         "enumerator:ListViewMode::IconStripHorizontal"
+      ]
+    },
+    {
+      "target": "KisResourceUiDescriptorContractTest",
+      "source": "libs/resources/ui/tests/KisResourceUiDescriptorContractTest.cpp",
+      "test": "KisResourceUiDescriptorContractTest::preservesResourceTypeAndPreviewState",
+      "behavior": "資源UI記述子は構築時の資源種別を保持し、省略時はプレビューを無効、明示時は有効として返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceUiDescriptor",
+        "method:KisResourceUiDescriptor::KisResourceUiDescriptor(QString resourceType,bool previewEnabled=false)",
+        "method:KisResourceUiDescriptor::previewEnabled() const",
+        "method:KisResourceUiDescriptor::resourceType() const"
       ]
     }
   ]
