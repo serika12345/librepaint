@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 10:33 JST
+- 更新日時: 2026-08-28 10:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4366,6 +4366,16 @@
   macOSで4工程・8入力である。対象実行と20回反復が成功し、公開API契約は1,217件、未対応基準は
   27,797件になった。製品実装、公開API、ABI、不透明度端点は変更していない。Linuxと全ネイティブ検証は
   実行していない。
+
+## R2-G19b CMYK尺度定数契約の限定構築で完了した作業
+
+- `libs/pigment/KoCmykColorSpaceMaths.cpp`は同じファイル位置を保ち、
+  `libs/pigment/CMakeLists.txt`の`kritapigment`直接ソースから新規`kritapigmentcmykmathsobjects`の所有へ
+  移した。`kritapigment`は新対象のオブジェクトを集約して従来の公開シンボルを供給する。
+- 従来の実装所有者`kritapigment`は変更なし構築閉包が300工程・630入力、新対象は1工程・3入力である。
+  新対象はQt Core、Qt Gui、OpenEXR、pigmentとglobalの所有・生成ヘッダーだけへ接続し、macOSの限定構築が
+  成功した。製品挙動、公開API、ABI、CMYK尺度定数は変更していない。Linux、製品ライブラリーの再リンク、
+  全ネイティブ検証は実行していない。
 
 ## 次の操作
 
