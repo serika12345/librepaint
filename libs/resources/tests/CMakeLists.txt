@@ -77,6 +77,19 @@ target_include_directories(KoResourceCacheInterfaceContractTest PRIVATE
 target_compile_definitions(KoResourceCacheInterfaceContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KoResourceCachePrefixedStorageWrapperContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourcecacheprefixedwrapperobjects
+        kritaresourcecacheinterfaceobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoResourceCachePrefixedStorageWrapperContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoResourceCachePrefixedStorageWrapperContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
     KoEmbeddedResourceValueContractTest.cpp
     LINK_LIBRARIES
         kritaembeddedresourcevalueobjects

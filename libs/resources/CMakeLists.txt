@@ -53,6 +53,21 @@ set_target_properties(kritaresourcecacheinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourcecacheprefixedwrapperobjects OBJECT
+    KoResourceCachePrefixedStorageWrapper.cpp
+)
+target_compile_definitions(kritaresourcecacheprefixedwrapperobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritaresourcecacheprefixedwrapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaresourcecacheprefixedwrapperobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaresourcecacheprefixedwrapperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaembeddedresourcevalueobjects OBJECT
     KoEmbeddedResource.cpp
     KoMD5Generator.cpp
@@ -221,7 +236,6 @@ set(kritaresources_LIB_SRCS
     KoResourcePaths.cpp
     KisRequiredResourcesOperators.cpp
     KoResourceCacheStorage.cpp
-    KoResourceCachePrefixedStorageWrapper.cpp
 
     KoLocalStrokeCanvasResources.cpp
     KisEmbeddedResourceStorageProxy.cpp
@@ -241,6 +255,7 @@ kis_add_library(kritaresources SHARED
     $<TARGET_OBJECTS:kritaresourcestypesobjects>
     $<TARGET_OBJECTS:kritacanvasresourcesinterfaceobjects>
     $<TARGET_OBJECTS:kritaresourcecacheinterfaceobjects>
+    $<TARGET_OBJECTS:kritaresourcecacheprefixedwrapperobjects>
     $<TARGET_OBJECTS:kritaembeddedresourcevalueobjects>
     $<TARGET_OBJECTS:kritaresourceloadvalueobjects>
     $<TARGET_OBJECTS:kritaresourcesinterfaceobjects>

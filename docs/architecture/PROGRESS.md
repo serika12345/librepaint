@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:05 JST
+- 更新日時: 2026-08-28 22:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5829,10 +5829,26 @@
   1,546ヘッダー、29,981 API、対応済み4,264件、未対応25,717件になり、同ヘッダーのpublic APIは
   全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 接頭辞付き資源キャッシュ public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KoResourceCachePrefixedStorageWrapper.cpp`は同じ配置のまま、`kritaresources`の直接
+  ソース所有から新規`kritaresourcecacheprefixedwrapperobjects`の所有へ移し、製品
+  `kritaresources`が生成オブジェクトを1回だけ集約する構造にした。外部向けヘッダー、実装、
+  製品ABIは維持した。
+- `libs/resources/KoResourceCachePrefixedStorageWrapper.h`の境界、構築、取得、格納からなる1クラス・
+  3メソッドの4 APIを、新規
+  `libs/resources/tests/KoResourceCachePrefixedStorageWrapperContractTest.cpp`の2試験へ全件対応付けた。
+  接頭辞の連結、空接頭辞、取得・格納の配送と値、共有基底キャッシュの所有寿命を固定した。
+- 清浄時の既存資源キャッシュ境界契約5工程・11入力に対し、所有対象を1工程・3入力、新規試験を
+  6工程・13入力に収めた。製品資源ライブラリーは140工程・307入力を維持した。macOSの対象実行と
+  20回反復に成功した。公開面は1,546ヘッダー、29,981 API、対応済み4,268件、未対応25,713件に
+  なり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KoResourceCachePrefixedStorageWrapper.h`の接頭辞付きキャッシュ4 APIについて、既存
-`kritaresourcecacheinterfaceobjects`との清浄時構築閉包を監査し、キー変換と基底所有寿命を固定する。
+`libs/resources/KoResourceCacheStorage.h`の値格納キャッシュ5 APIについて、既存
+`kritaresourcecacheinterfaceobjects`との清浄時構築閉包を監査し、取得・初回格納・同一キー上書きの
+現行挙動と所有寿命を固定する。
 
 ## R1-G5完了根拠
 

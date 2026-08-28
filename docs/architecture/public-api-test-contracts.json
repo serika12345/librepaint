@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25717
+    "expectedMissingApis": 25713
   },
   "contracts": [
     {
@@ -10096,6 +10096,28 @@
       "classification": "maintained",
       "apis": [
         "function:STORE_LOG()"
+      ]
+    },
+    {
+      "target": "KoResourceCachePrefixedStorageWrapperContractTest",
+      "source": "libs/resources/tests/KoResourceCachePrefixedStorageWrapperContractTest.cpp",
+      "test": "KoResourceCachePrefixedStorageWrapperContractTest::prefixesAndForwardsCacheOperations",
+      "behavior": "接頭辞付き資源キャッシュは取得と格納のキー先頭へ指定文字列を連結し、基底キャッシュの値と格納結果をそのまま配送する。空の接頭辞はキーを変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceCachePrefixedStorageWrapper",
+        "method:KoResourceCachePrefixedStorageWrapper::fetch(const QString & key) const",
+        "method:KoResourceCachePrefixedStorageWrapper::put(const QString & key,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KoResourceCachePrefixedStorageWrapperContractTest",
+      "source": "libs/resources/tests/KoResourceCachePrefixedStorageWrapperContractTest.cpp",
+      "test": "KoResourceCachePrefixedStorageWrapperContractTest::retainsBaseInterfaceForItsLifetime",
+      "behavior": "接頭辞付き資源キャッシュは構築時に渡された基底キャッシュの共有所有権を保持し、自身の寿命中は外部参照終了後も取得と格納を継続できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceCachePrefixedStorageWrapper::KoResourceCachePrefixedStorageWrapper(const QString & prefix,KoResourceCacheInterfaceSP baseInterface)"
       ]
     }
   ]
