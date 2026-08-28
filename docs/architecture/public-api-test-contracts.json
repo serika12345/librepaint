@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28247
+    "expectedMissingApis": 28229
   },
   "contracts": [
     {
@@ -5435,6 +5435,78 @@
         "method:KisMemoryLeakTracker::reference(const _T_ * what,const void * bywho)",
         "method:KisMemoryLeakTracker::reference(const void * what,const void * bywho,const char * whatName=0)",
         "method:KisMemoryLeakTracker::~KisMemoryLeakTracker()"
+      ]
+    },
+    {
+      "target": "KisPaintingTweaksContractTest",
+      "source": "libs/global/tests/KisPaintingTweaksContractTest.cpp",
+      "test": "KisPaintingTweaksContractTest::clipHelpersFollowPainterClip",
+      "behavior": "単純変換下の安全な切抜き照会は描画器に設定した複合領域とその外接矩形を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintingTweaks::safeClipBoundingRect(const QPainter & painter)",
+        "function:KisPaintingTweaks::safeClipRegion(const QPainter & painter)"
+      ]
+    },
+    {
+      "target": "KisPaintingTweaksContractTest",
+      "source": "libs/global/tests/KisPaintingTweaksContractTest.cpp",
+      "test": "KisPaintingTweaksContractTest::antsPensUseRequestedPatternAndColors",
+      "behavior": "選択境界用ペンの初期化は指定した点線間隔と前景色を装飾ペンへ、実線と背景色を輪郭ペンへ設定し、双方を装置非依存にする。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintingTweaks::initAntsPen(QPen * antsPen,QPen * outlinePen,int antLength=4,int antSpace=4,QColor black=QColor (Qt::black),QColor white=QColor (Qt::white))"
+      ]
+    },
+    {
+      "target": "KisPaintingTweaksContractTest",
+      "source": "libs/global/tests/KisPaintingTweaksContractTest.cpp",
+      "test": "KisPaintingTweaksContractTest::penBrushSaverRestoresEveryConstructionPath",
+      "behavior": "ペン・ブラシ状態保存器は保存専用と2種類の置換構築で終了時に元状態を復元し、明示・共有の無操作印を渡したnull描画器を安全に受理する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintingTweaks::PenBrushSaver",
+        "member:KisPaintingTweaks::PenBrushSaver::allow_noop",
+        "method:KisPaintingTweaks::PenBrushSaver::PenBrushSaver(QPainter * painter)",
+        "method:KisPaintingTweaks::PenBrushSaver::PenBrushSaver(QPainter * painter,const QPair<QPen,QBrush> & pair)",
+        "method:KisPaintingTweaks::PenBrushSaver::PenBrushSaver(QPainter * painter,const QPair<QPen,QBrush> & pair,allow_noop_t)",
+        "method:KisPaintingTweaks::PenBrushSaver::PenBrushSaver(QPainter * painter,const QPen & pen,const QBrush & brush)",
+        "method:KisPaintingTweaks::PenBrushSaver::allow_noop_t::allow_noop_t()",
+        "method:KisPaintingTweaks::PenBrushSaver::~PenBrushSaver()",
+        "struct:KisPaintingTweaks::PenBrushSaver::allow_noop_t"
+      ]
+    },
+    {
+      "target": "KisPaintingTweaksContractTest",
+      "source": "libs/global/tests/KisPaintingTweaksContractTest.cpp",
+      "test": "KisPaintingTweaksContractTest::colorCalculationsBlendMeasureAndSeparateColors",
+      "behavior": "色補助は指定比率でRGBを混合し、重み付きRGB距離を0から3で測り、閾値未満の色を基準色から離す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintingTweaks::blendColors(const QColor & c1,const QColor & c2,qreal r1)",
+        "function:KisPaintingTweaks::colorDifference(const QColor & c1,const QColor & c2)",
+        "function:KisPaintingTweaks::dragColor(QColor * color,const QColor & baseColor,qreal threshold)"
+      ]
+    },
+    {
+      "target": "KisPaintingTweaksContractTest",
+      "source": "libs/global/tests/KisPaintingTweaksContractTest.cpp",
+      "test": "KisPaintingTweaksContractTest::coarseLuminosityPreservesCurrentQuantization",
+      "behavior": "粗い輝度計算は現在の段階表探索を維持し、sRGB変換を使う黒を0.1、白を1.0、変換を使わない赤を0.2126として返す。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KisPaintingTweaks::luminosityCoarse(const QColor & c,bool sRGBtrc=true)"
+      ]
+    },
+    {
+      "target": "KisPaintingTweaksContractTest",
+      "source": "libs/global/tests/KisPaintingTweaksContractTest.cpp",
+      "test": "KisPaintingTweaksContractTest::rectangleConversionsProduceTwoTriangles",
+      "behavior": "矩形の描画頂点とテクスチャ座標への変換は同じ角順で矩形を覆う2三角形を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisPaintingTweaks::rectToTexCoords(QVector2D * texCoords,const QRectF & rc)",
+        "function:KisPaintingTweaks::rectToVertices(QVector3D * vertices,const QRectF & rc)"
       ]
     }
   ]

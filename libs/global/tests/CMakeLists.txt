@@ -345,6 +345,15 @@ kis_add_test(
 target_compile_definitions(KisMemoryLeakTrackerContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisPaintingTweaksContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalpaintingtweaksobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+target_compile_definitions(KisPaintingTweaksContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisQStringListFwdTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
