@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28041
+    "expectedMissingApis": 27983
   },
   "contracts": [
     {
@@ -3583,6 +3583,73 @@
         "enumerator:KisCommandUtils::CommandId::TransformShapeId",
         "enumerator:KisCommandUtils::CommandId::TransformToolId",
         "enumerator:KisCommandUtils::CommandId::UpdateCommandId"
+      ]
+    },
+    {
+      "target": "KoCanvasResourceIdsContractTest",
+      "source": "libs/resources/tests/KoCanvasResourceIdsContractTest.cpp",
+      "test": "KoCanvasResourceIdsContractTest::resourceIdsPreserveValues",
+      "behavior": "キャンバス資源キーは共通範囲の0から12とLibrePaint固有範囲の6000から6043を使い、各資源を重複なく識別する値を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoCanvasResource::CanvasResourceId",
+        "enumerator:KoCanvasResource::CanvasResourceId::ActiveRange",
+        "enumerator:KoCanvasResource::CanvasResourceId::ActiveStyleType",
+        "enumerator:KoCanvasResource::CanvasResourceId::ApplicationSpeciality",
+        "enumerator:KoCanvasResource::CanvasResourceId::BackgroundColor",
+        "enumerator:KoCanvasResource::CanvasResourceId::BrushRotation",
+        "enumerator:KoCanvasResource::CanvasResourceId::ColorHistoryModel",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentCompositeOp",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentDisplayProfile",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentEffectiveCompositeOp",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentGamutMask",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentGeneratorConfiguration",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentGradient",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentKritaNode",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentPage",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentPaintOpPreset",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentPaintOpPresetCache",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentPaintOpPresetName",
+        "enumerator:KoCanvasResource::CanvasResourceId::CurrentPattern",
+        "enumerator:KoCanvasResource::CanvasResourceId::DecorationThickness",
+        "enumerator:KoCanvasResource::CanvasResourceId::DisablePressure",
+        "enumerator:KoCanvasResource::CanvasResourceId::EffectiveLodAvailability",
+        "enumerator:KoCanvasResource::CanvasResourceId::EffectivePhysicalZoom",
+        "enumerator:KoCanvasResource::CanvasResourceId::EffectiveZoom",
+        "enumerator:KoCanvasResource::CanvasResourceId::EraserMode",
+        "enumerator:KoCanvasResource::CanvasResourceId::Fade",
+        "enumerator:KoCanvasResource::CanvasResourceId::Flow",
+        "enumerator:KoCanvasResource::CanvasResourceId::ForegroundColor",
+        "enumerator:KoCanvasResource::CanvasResourceId::GamutMaskActive",
+        "enumerator:KoCanvasResource::CanvasResourceId::GlobalAlphaLock",
+        "enumerator:KoCanvasResource::CanvasResourceId::HandleRadius",
+        "enumerator:KoCanvasResource::CanvasResourceId::HdrExposure",
+        "enumerator:KoCanvasResource::CanvasResourceId::HdrGamma",
+        "enumerator:KoCanvasResource::CanvasResourceId::KritaStart",
+        "enumerator:KoCanvasResource::CanvasResourceId::LodAvailability",
+        "enumerator:KoCanvasResource::CanvasResourceId::LodSizeThreshold",
+        "enumerator:KoCanvasResource::CanvasResourceId::LodSizeThresholdSupported",
+        "enumerator:KoCanvasResource::CanvasResourceId::MirrorHorizontal",
+        "enumerator:KoCanvasResource::CanvasResourceId::MirrorHorizontalHideDecorations",
+        "enumerator:KoCanvasResource::CanvasResourceId::MirrorHorizontalLock",
+        "enumerator:KoCanvasResource::CanvasResourceId::MirrorVertical",
+        "enumerator:KoCanvasResource::CanvasResourceId::MirrorVerticalHideDecorations",
+        "enumerator:KoCanvasResource::CanvasResourceId::MirrorVerticalLock",
+        "enumerator:KoCanvasResource::CanvasResourceId::Opacity",
+        "enumerator:KoCanvasResource::CanvasResourceId::PageSize",
+        "enumerator:KoCanvasResource::CanvasResourceId::PatternSize",
+        "enumerator:KoCanvasResource::CanvasResourceId::PreviousPaintOpPreset",
+        "enumerator:KoCanvasResource::CanvasResourceId::Scatter",
+        "enumerator:KoCanvasResource::CanvasResourceId::ShowFormattingCharacters",
+        "enumerator:KoCanvasResource::CanvasResourceId::ShowInlineObjectVisualization",
+        "enumerator:KoCanvasResource::CanvasResourceId::ShowSectionBounds",
+        "enumerator:KoCanvasResource::CanvasResourceId::ShowTableBorders",
+        "enumerator:KoCanvasResource::CanvasResourceId::ShowTextShapeOutlines",
+        "enumerator:KoCanvasResource::CanvasResourceId::Size",
+        "enumerator:KoCanvasResource::CanvasResourceId::SvgCharacterTextPropertyData",
+        "enumerator:KoCanvasResource::CanvasResourceId::SvgTextPropertyData",
+        "enumerator:KoCanvasResource::CanvasResourceId::Unit",
+        "enumerator:KoCanvasResource::CanvasResourceId::UsingOtherColor"
       ]
     }
   ]
