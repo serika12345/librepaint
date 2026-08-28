@@ -380,6 +380,7 @@ protected:
         static void showMaskProperties(KisNodeManager *manager);
         static KisNodeSP currentNode(KisNodeManager *manager);
         static void setCurrentNode(KisNodeManager *manager, KisNodeSP node);
+        static void changeCloneSource(KisNodeManager *manager);
     };
 
 private:

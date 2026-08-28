@@ -28,6 +28,7 @@ namespace
 enum Effect {
     ShowLayerProperties,
     ShowMaskProperties,
+    ChangeCloneSource,
     SetCurrentNode,
 };
 
@@ -90,6 +91,11 @@ void KisNodeManager::PropertyDialogAccess::setCurrentNode(KisNodeManager *, KisN
     currentNodeValue = node;
 }
 
+void KisNodeManager::PropertyDialogAccess::changeCloneSource(KisNodeManager *)
+{
+    effects.append(ChangeCloneSource);
+}
+
 class KisNodeManagerPropertyDialogContractTest : public QObject
 {
     Q_OBJECT
@@ -98,6 +104,7 @@ private Q_SLOTS:
     void init();
     void propertiesRouteLayersBeforeMasks();
     void ignoredSelectionRestoresTheCurrentNode();
+    void cloneSourceChangeDelegatesToLayerManager();
 };
 
 void KisNodeManagerPropertyDialogContractTest::init()
@@ -146,6 +153,15 @@ void KisNodeManagerPropertyDialogContractTest::ignoredSelectionRestoresTheCurren
     QCOMPARE(effects, (QList<Effect>{SetCurrentNode, ShowLayerProperties, SetCurrentNode}));
     QCOMPARE(assignedCurrentNodes, (KisNodeList{requested, original}));
     QCOMPARE(currentNodeValue, original);
+}
+
+void KisNodeManagerPropertyDialogContractTest::cloneSourceChangeDelegatesToLayerManager()
+{
+    KisNodeManager manager(nullptr);
+
+    manager.changeCloneSource();
+
+    QCOMPARE(effects, QList<Effect>{ChangeCloneSource});
 }
 
 QTEST_GUILESS_MAIN(KisNodeManagerPropertyDialogContractTest)

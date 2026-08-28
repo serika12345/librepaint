@@ -882,11 +882,6 @@ void KisNodeManager::nodesUpdated()
     }
 }
 
-void KisNodeManager::changeCloneSource()
-{
-    m_d->layerManager.changeCloneSource();
-}
-
 QString KisNodeManager::NodeChangeAccess::name(KisNodeSP node)
 {
     return node->name();
@@ -1003,6 +998,11 @@ KisNodeSP KisNodeManager::PropertyDialogAccess::currentNode(KisNodeManager *mana
 void KisNodeManager::PropertyDialogAccess::setCurrentNode(KisNodeManager *manager, KisNodeSP node)
 {
     manager->m_d->imageView->setCurrentNode(node);
+}
+
+void KisNodeManager::PropertyDialogAccess::changeCloneSource(KisNodeManager *manager)
+{
+    manager->m_d->layerManager.changeCloneSource();
 }
 
 void KisNodeManager::duplicateActiveNode()

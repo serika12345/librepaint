@@ -24,3 +24,8 @@ void KisNodeManager::nodePropertiesIgnoreSelection(KisNodeSP node)
     nodeProperties(node);
     PropertyDialogAccess::setCurrentNode(this, originalNode);
 }
+
+void KisNodeManager::changeCloneSource()
+{
+    PropertyDialogAccess::changeCloneSource(this);
+}

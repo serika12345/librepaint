@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25131
+    "expectedMissingApis": 25130
   },
   "contracts": [
     {
@@ -12460,6 +12460,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::nodePropertiesIgnoreSelection(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerPropertyDialogContractTest",
+      "source": "libs/ui/tests/KisNodeManagerPropertyDialogContractTest.cpp",
+      "test": "KisNodeManagerPropertyDialogContractTest::cloneSourceChangeDelegatesToLayerManager",
+      "behavior": "クローン元変更要求はレイヤー管理のクローン元変更画面へ一度委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::changeCloneSource()"
       ]
     }
   ]
