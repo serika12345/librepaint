@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27786
+    "expectedMissingApis": 27771
   },
   "contracts": [
     {
@@ -4162,6 +4162,48 @@
         "member:KoLabColorSpaceMathsTraits::unitValueL",
         "member:KoLabColorSpaceMathsTraits::zeroValueAB",
         "member:KoLabColorSpaceMathsTraits::zeroValueL"
+      ]
+    },
+    {
+      "target": "KoGrayColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoGrayColorSpaceTraitsContractTest.cpp",
+      "test": "KoGrayColorSpaceTraitsContractTest::pixelLayoutPreservesGrayAndAlphaChannels",
+      "behavior": "灰色画素特性は指定した数値型と2チャンネル基礎特性を公開し、画素の位置0に灰色、位置1に不透明度を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoGrayTraits::channels_type",
+        "alias:KoGrayTraits::parent",
+        "member:KoGrayTraits::Pixel::alpha",
+        "member:KoGrayTraits::Pixel::gray",
+        "member:KoGrayTraits::gray_pos",
+        "struct:KoGrayTraits",
+        "struct:KoGrayTraits::Pixel"
+      ]
+    },
+    {
+      "target": "KoGrayColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoGrayColorSpaceTraitsContractTest.cpp",
+      "test": "KoGrayColorSpaceTraitsContractTest::accessorsReadAndWriteOnlyGrayChannel",
+      "behavior": "灰色チャンネルの取得と設定は画素位置0だけを読み書きし、位置1の不透明度を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoGrayTraits::gray(const quint8 * data)",
+        "method:KoGrayTraits::setGray(quint8 * data,channels_type nv)"
+      ]
+    },
+    {
+      "target": "KoGrayColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoGrayColorSpaceTraitsContractTest.cpp",
+      "test": "KoGrayColorSpaceTraitsContractTest::namedTraitsPreserveChannelTypes",
+      "behavior": "灰色画素の名前付き特性は8・16・32ビット符号なし整数、16・32・64ビット浮動小数点の数値型を対応する基礎特性へ結び付ける。",
+      "classification": "maintained",
+      "apis": [
+        "struct:KoGrayF16Traits",
+        "struct:KoGrayF32Traits",
+        "struct:KoGrayF64Traits",
+        "struct:KoGrayU16Traits",
+        "struct:KoGrayU32Traits",
+        "struct:KoGrayU8Traits"
       ]
     }
   ]

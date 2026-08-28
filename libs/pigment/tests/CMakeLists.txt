@@ -46,6 +46,20 @@ kis_add_test(
 )
 
 kis_add_test(
+    KoGrayColorSpaceTraitsContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        ${LINK_OPENEXR_LIB}
+)
+target_include_directories(KoGrayColorSpaceTraitsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     TestKoIntegerMaths.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
