@@ -28,6 +28,8 @@ set_target_properties(kritaflakeinsetsobjects PROPERTIES
 add_library(kritaflakebehaviorinterfaceobjects OBJECT
     KoCanvasSupervisor.cpp
     KoLoadingShapeUpdater.cpp
+    KoSharedLoadingData.cpp
+    KoSharedSavingData.cpp
     KoShapeUserData.cpp
     KoToolSelection.cpp
 )
@@ -133,8 +135,6 @@ set(kritaflake_SRCS
     KoSnapProxy.cpp
     KoSnapStrategy.cpp
     KoSnapData.cpp
-    KoSharedLoadingData.cpp
-    KoSharedSavingData.cpp
     KoViewConverter.cpp
     KoViewTransformStillPoint.cpp
     KoClipMaskApplicatorBase.cpp

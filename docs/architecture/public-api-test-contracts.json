@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25855
+    "expectedMissingApis": 25849
   },
   "contracts": [
     {
@@ -9530,6 +9530,30 @@
         "method:KoLoadingShapeUpdater::KoLoadingShapeUpdater()",
         "method:KoLoadingShapeUpdater::update(KoShape * shape)",
         "method:KoLoadingShapeUpdater::~KoLoadingShapeUpdater()"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::destroysSharedLoadingDataThroughInterface",
+      "behavior": "共有読込データは構築可能な多態的境界を提供し、基本型を通した破棄で派生実装の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSharedLoadingData",
+        "method:KoSharedLoadingData::KoSharedLoadingData()",
+        "method:KoSharedLoadingData::~KoSharedLoadingData()"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::destroysSharedSavingDataThroughInterface",
+      "behavior": "共有保存データは構築可能な多態的境界を提供し、基本型を通した破棄で派生実装の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSharedSavingData",
+        "method:KoSharedSavingData::KoSharedSavingData()",
+        "method:KoSharedSavingData::~KoSharedSavingData()"
       ]
     }
   ]

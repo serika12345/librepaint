@@ -6,6 +6,8 @@
 #include <KoCanvasSupervisor.h>
 #include <KoLoadingShapeUpdater.h>
 #include <KoShapeBulkActionInterface.h>
+#include <KoSharedLoadingData.h>
+#include <KoSharedSavingData.h>
 #include <KoShapeUserData.h>
 #include <KoToolSelection.h>
 
@@ -98,6 +100,28 @@ public:
     bool *destroyed {nullptr};
     KoShape *updatedShape {nullptr};
 };
+
+class SharedLoadingData final : public KoSharedLoadingData
+{
+public:
+    ~SharedLoadingData() override
+    {
+        *destroyed = true;
+    }
+
+    bool *destroyed {nullptr};
+};
+
+class SharedSavingData final : public KoSharedSavingData
+{
+public:
+    ~SharedSavingData() override
+    {
+        *destroyed = true;
+    }
+
+    bool *destroyed {nullptr};
+};
 }
 
 class KoBehaviorInterfacesContractTest : public QObject
@@ -110,6 +134,8 @@ private Q_SLOTS:
     void preservesDefaultToolSelectionStateAndQObjectLifetime();
     void returnsCanvasObserverListThroughInterface();
     void dispatchesLoadedShapeThroughInterface();
+    void destroysSharedLoadingDataThroughInterface();
+    void destroysSharedSavingDataThroughInterface();
 };
 
 void KoBehaviorInterfacesContractTest::bracketsBulkActionAndReturnsUpdateRect()
@@ -189,6 +215,30 @@ void KoBehaviorInterfacesContractTest::dispatchesLoadedShapeThroughInterface()
 
     QCOMPARE(implementation->updatedShape, shape);
     delete interface;
+    QVERIFY(destroyed);
+}
+
+void KoBehaviorInterfacesContractTest::destroysSharedLoadingDataThroughInterface()
+{
+    bool destroyed = false;
+    auto *implementation = new SharedLoadingData;
+    implementation->destroyed = &destroyed;
+    KoSharedLoadingData *data = implementation;
+
+    delete data;
+
+    QVERIFY(destroyed);
+}
+
+void KoBehaviorInterfacesContractTest::destroysSharedSavingDataThroughInterface()
+{
+    bool destroyed = false;
+    auto *implementation = new SharedSavingData;
+    implementation->destroyed = &destroyed;
+    KoSharedSavingData *data = implementation;
+
+    delete data;
+
     QVERIFY(destroyed);
 }
 

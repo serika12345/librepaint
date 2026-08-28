@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 20:06 JST
+- 更新日時: 2026-08-28 20:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5599,10 +5599,23 @@
   25,855件になり、5ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G19b Flake共有データ寿命 public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoSharedLoadingData.cpp`と`libs/flake/KoSharedSavingData.cpp`は同じ配置のまま、
+  `kritaflake`の直接ソース所有から既存`kritaflakebehaviorinterfaceobjects`の所有へ移し、製品
+  `kritaflake`が各生成オブジェクトを1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは
+  維持した。
+- 対応する2公開ヘッダーの構築と基本型を通した多態的寿命からなる2クラス・4メソッドの6 APIを、
+  拡張した`libs/flake/tests/KoBehaviorInterfacesContractTest.cpp`の2対応試験へ全件対応付けた。
+- 531工程・1,094入力の製品Flakeへ接続せず、専用実装は8工程・17入力、専用試験はmacOSで
+  12工程・24入力に収めた。対象実行と20回反復に成功した。対応済みは4,118件、未対応基準は
+  25,849件になり、2ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/flake/KoSharedLoadingData.h`と`libs/flake/KoSharedSavingData.h`の共有データ寿命について、既存
-試験、直接依存、変更なし構築閉包を監査し、最小の局所契約を追加する。
+`libs/flake/KoGradientHelper.h`の勾配生成・変換・色補間について、既存試験、直接依存、変更なし
+構築閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠
 
