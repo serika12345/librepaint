@@ -29,3 +29,15 @@ void KisNodeManager::changeCloneSource()
 {
     PropertyDialogAccess::changeCloneSource(this);
 }
+
+void KisNodeManager::colorOverlayMaskProperties(KisNodeSP node)
+{
+    Q_ASSERT(node);
+
+    const KisNodeSP mask = PropertyDialogAccess::colorOverlayMask(node);
+    if (!mask) {
+        return;
+    }
+
+    nodePropertiesIgnoreSelection(mask);
+}

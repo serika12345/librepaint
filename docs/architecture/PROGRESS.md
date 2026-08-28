@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 08:34 JST
+- 更新日時: 2026-08-29 08:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7000,12 +7000,29 @@
   公開面は1,549ヘッダー、29,989 API、対応済み4,859件、未対応25,130件になった。製品
   `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 高速カラーオーバーレイ属性画面 public API契約で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった高速カラーオーバーレイ用マスクの存在判定と属性画面呼出しを、
+  既存`libs/ui/nodes/KisNodeManagerPropertyDialog.cpp`へ移した。具体的な`KisLayer`判定とマスク取得は移動元の
+  保護境界に残し、既存`kritauinodemanagerpropertydialogobjects`を拡張して新しいCMake対象や依存を
+  追加していない。
+- `libs/ui/nodes/kis_node_manager.h`の`colorOverlayMaskProperties`を、既存
+  `libs/ui/tests/KisNodeManagerPropertyDialogContractTest.cpp`の1試験へ対応付けた。マスクなしの無操作と、
+  マスクがある場合の一時選択、マスク属性画面表示、元ノード復元の順序を固定した。実装接続前のリンクは
+  `colorOverlayMaskProperties`だけを未解決記号として診断した。
+- 属性画面対象は1工程・3入力、拡張後の試験は5工程・17入力、製品`kritaapplicationui`閉包は
+  1,806工程・3,612入力、既存`KisNodeManagerTest`は1,810工程・3,619入力を維持した。対象CTestのmacOS
+  単発実行と20回反復は成功した。元実装の単体コンパイルで派生・基底共有ポインター間の条件演算子が曖昧に
+  なる診断を検出し、空値を明示的に返す分岐へ修正して成功した。公開API契約検査と高速検査も成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み4,860件、未対応25,129件になった。製品
+  `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る68 APIのうち、高速カラーオーバーレイ用マスクの属性画面を
-次の小単位とする。`kis_node_manager.cpp`の`colorOverlayMaskProperties`について、対象指定の変更なし計画、
-直接CMake依存、空構築閉包を監査し、レイヤー判定とマスク取得、属性画面呼出しを具体ノード効果から分けて
-挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る67 APIのうち、現在ノード変更後の画面状態同期を次の小単位とする。
+`kis_node_manager.cpp`の`nodesUpdated`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、
+現在ノードなしの無操作、レイヤー・マスク・表示・選択の更新順序、時間軸固定状態の同期を具体画面効果から
+分けて挙動契約を追加する。
 
 ## R1-G5完了根拠
 

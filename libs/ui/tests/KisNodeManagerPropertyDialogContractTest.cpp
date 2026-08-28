@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <QHash>
 #include <QObject>
 #include <QSet>
 #include <QTest>
@@ -45,6 +46,7 @@ KisNodeSP nodeToken(quintptr id)
 
 QSet<const KisNode *> layerNodes;
 QSet<const KisNode *> maskNodes;
+QHash<const KisNode *, KisNodeSP> colorOverlayMasks;
 KisNodeSP currentNodeValue;
 QList<Effect> effects;
 KisNodeList assignedCurrentNodes;
@@ -96,6 +98,11 @@ void KisNodeManager::PropertyDialogAccess::changeCloneSource(KisNodeManager *)
     effects.append(ChangeCloneSource);
 }
 
+KisNodeSP KisNodeManager::PropertyDialogAccess::colorOverlayMask(KisNodeSP node)
+{
+    return colorOverlayMasks.value(node.data());
+}
+
 class KisNodeManagerPropertyDialogContractTest : public QObject
 {
     Q_OBJECT
@@ -105,12 +112,14 @@ private Q_SLOTS:
     void propertiesRouteLayersBeforeMasks();
     void ignoredSelectionRestoresTheCurrentNode();
     void cloneSourceChangeDelegatesToLayerManager();
+    void colorOverlayPropertiesRequireAMask();
 };
 
 void KisNodeManagerPropertyDialogContractTest::init()
 {
     layerNodes.clear();
     maskNodes.clear();
+    colorOverlayMasks.clear();
     currentNodeValue.clear();
     effects.clear();
     assignedCurrentNodes.clear();
@@ -162,6 +171,29 @@ void KisNodeManagerPropertyDialogContractTest::cloneSourceChangeDelegatesToLayer
     manager.changeCloneSource();
 
     QCOMPARE(effects, QList<Effect>{ChangeCloneSource});
+}
+
+void KisNodeManagerPropertyDialogContractTest::colorOverlayPropertiesRequireAMask()
+{
+    KisNodeManager manager(nullptr);
+    const KisNodeSP original = nodeToken(1);
+    const KisNodeSP withoutMask = nodeToken(2);
+    currentNodeValue = original;
+
+    manager.colorOverlayMaskProperties(withoutMask);
+
+    QVERIFY(effects.isEmpty());
+
+    const KisNodeSP layer = nodeToken(3);
+    const KisNodeSP mask = nodeToken(4);
+    colorOverlayMasks.insert(layer.data(), mask);
+    maskNodes.insert(mask.data());
+
+    manager.colorOverlayMaskProperties(layer);
+
+    QCOMPARE(effects, (QList<Effect>{SetCurrentNode, ShowMaskProperties, SetCurrentNode}));
+    QCOMPARE(assignedCurrentNodes, (KisNodeList{mask, original}));
+    QCOMPARE(currentNodeValue, original);
 }
 
 QTEST_GUILESS_MAIN(KisNodeManagerPropertyDialogContractTest)

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25130
+    "expectedMissingApis": 25129
   },
   "contracts": [
     {
@@ -12470,6 +12470,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::changeCloneSource()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerPropertyDialogContractTest",
+      "source": "libs/ui/tests/KisNodeManagerPropertyDialogContractTest.cpp",
+      "test": "KisNodeManagerPropertyDialogContractTest::colorOverlayPropertiesRequireAMask",
+      "behavior": "高速カラーオーバーレイ用マスクがないノードでは無作用とし、マスクがある場合はそのマスクの属性画面を一時的な現在ノードとして開いて元の現在ノードを復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::colorOverlayMaskProperties(KisNodeSP node)"
       ]
     }
   ]

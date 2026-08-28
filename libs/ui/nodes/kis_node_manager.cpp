@@ -1005,6 +1005,15 @@ void KisNodeManager::PropertyDialogAccess::changeCloneSource(KisNodeManager *man
     manager->m_d->layerManager.changeCloneSource();
 }
 
+KisNodeSP KisNodeManager::PropertyDialogAccess::colorOverlayMask(KisNodeSP node)
+{
+    const KisLayerSP layer = qobject_cast<KisLayer *>(node.data());
+    if (!layer) {
+        return KisNodeSP();
+    }
+    return layer->colorOverlayMask();
+}
+
 void KisNodeManager::duplicateActiveNode()
 {
     KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
@@ -1472,23 +1481,6 @@ void KisNodeManager::toggleInheritAlpha()
             KisLayerPropertiesIcons::setNodePropertyAutoUndo(node, KisLayerPropertiesIcons::inheritAlpha, !isAlphaDisabled, m_d->view->image());
         }
     }
-}
-
-void KisNodeManager::colorOverlayMaskProperties(KisNodeSP node)
-{
-    Q_ASSERT(node);
-    KisLayerSP layer = qobject_cast<KisLayer*>(node.data());
-    if (!layer) {
-        return;
-    }
-
-    KisFilterMaskSP mask = layer->colorOverlayMask();
-    if (!mask) {
-        // This layer does not use fast color overlay mask.
-        return;
-    }
-
-    nodePropertiesIgnoreSelection(mask);
 }
 
 void KisNodeManager::cutLayersToClipboard()
