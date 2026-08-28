@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25719
+    "expectedMissingApis": 25718
   },
   "contracts": [
     {
@@ -10076,6 +10076,16 @@
       "apis": [
         "class:KisGlobalResourcesInterface",
         "method:KisGlobalResourcesInterface::instance()"
+      ]
+    },
+    {
+      "target": "KisResourceTypesContractTest",
+      "source": "libs/resources/tests/KisResourceTypesContractTest.cpp",
+      "test": "KisResourceTypesContractTest::resourceLogPreservesCategoryAndDefaultSeverity",
+      "behavior": "資源ログ分類は同じ静的個体を返し、krita.lib.resourceという分類名と、デバッグを除く情報・警告・重大の既定有効重要度を持つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:RESOURCE_LOG()"
       ]
     }
   ]

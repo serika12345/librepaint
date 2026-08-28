@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 21:44 JST
+- 更新日時: 2026-08-28 21:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5805,10 +5805,20 @@
   `kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。公開面は1,546ヘッダー、
   29,981 API、対応済み4,262件、未対応25,719件になり、同ヘッダーのpublic APIは全件対応済みになった。
 
+## R2-G19b 資源ログ分類 public API契約で完了した作業
+
+- `libs/resources/ResourceDebug.h`の資源ログ分類関数1 APIを、既存
+  `libs/resources/tests/KisResourceTypesContractTest.cpp`へ追加した1試験に対応付けた。同じ静的個体、
+  `krita.lib.resource`分類名、デバッグ無効・情報以上有効の既定重要度を固定した。
+- 既存`kritaresourcestypesobjects`を再利用し、製品資源ライブラリーへ接続せず、清浄時の専用試験を
+  6工程・14入力、所有対象を2工程・5入力に維持した。macOSの対象実行と20回反復に成功した。公開面は
+  1,546ヘッダー、29,981 API、対応済み4,263件、未対応25,718件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ResourceDebug.h`の資源ログ分類1 APIについて、既存
-`kritaresourcestypesobjects`の変更なし構築閉包を確認し、分類名と既定重要度を局所契約へ固定する。
+`libs/resources/storage/StoreDebug.h`の格納ログ分類1 APIについて、既存格納試験との清浄時構築閉包を
+比較し、製品格納ライブラリー全体へ接続せずに分類名と既定重要度を固定できる所有単位を先に作る。
 
 ## R1-G5完了根拠
 

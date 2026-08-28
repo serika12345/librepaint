@@ -4,6 +4,7 @@
  */
 
 #include "KisResourceTypes.h"
+#include "ResourceDebug.h"
 
 #include <QTest>
 
@@ -18,6 +19,7 @@ private Q_SLOTS:
     void resourceSubTypesPreserveLoaderKeys();
     void resourceNamesMapFromTypes_data();
     void resourceNamesMapFromTypes();
+    void resourceLogPreservesCategoryAndDefaultSeverity();
 };
 
 void KisResourceTypesContractTest::resourceTypesPreserveStorageKeys_data()
@@ -103,6 +105,20 @@ void KisResourceTypesContractTest::resourceNamesMapFromTypes()
 
     QVERIFY(!expectedName.isEmpty());
     QCOMPARE(ResourceName::resourceTypeToName(resourceType), expectedName);
+}
+
+void KisResourceTypesContractTest::resourceLogPreservesCategoryAndDefaultSeverity()
+{
+    QLoggingCategory::setFilterRules(QString());
+
+    const QLoggingCategory &first = RESOURCE_LOG();
+    const QLoggingCategory &second = RESOURCE_LOG();
+    QCOMPARE(&first, &second);
+    QCOMPARE(QString::fromLatin1(first.categoryName()), QStringLiteral("krita.lib.resource"));
+    QVERIFY(!first.isDebugEnabled());
+    QVERIFY(first.isInfoEnabled());
+    QVERIFY(first.isWarningEnabled());
+    QVERIFY(first.isCriticalEnabled());
 }
 
 QTEST_GUILESS_MAIN(KisResourceTypesContractTest)
