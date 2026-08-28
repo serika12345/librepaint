@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25348
+    "expectedMissingApis": 25330
   },
   "contracts": [
     {
@@ -11757,6 +11757,87 @@
         "method:KoSimpleColorSpaceFactory::profileIsCompatible(const KoColorProfile * profile) const",
         "method:KoSimpleColorSpaceFactory::referenceDepth() const",
         "method:KoSimpleColorSpaceFactory::userVisible() const"
+      ]
+    },
+    {
+      "target": "KisCompositeOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpsModelContractTest.cpp",
+      "test": "KisCompositeOpsModelContractTest::sharedInstanceInitializesOnce",
+      "behavior": "共有合成方法模型は最初の参照で通常項目と保存済みお気に入りを一度だけ初期化し、以後は同じ個体を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCompositeOpListModel",
+        "method:KisCompositeOpListModel::sharedInstance()"
+      ]
+    },
+    {
+      "target": "KisCompositeOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpsModelContractTest.cpp",
+      "test": "KisCompositeOpsModelContractTest::identifiersAndDisplayNames",
+      "behavior": "KoID変換器、分類模型別名、通常・整列模型の型関係、項目と分類の表示名、お気に入り識別子、無効索引の中立結果を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:BaseKoIDCategorizedListModel",
+        "class:KisSortedCompositeOpListModel",
+        "method:KisCompositeOpListModel::categoryToString(const KoID & val) const",
+        "method:KisCompositeOpListModel::entryToString(const KoID & val) const",
+        "method:KisCompositeOpListModel::favoriteCategory()",
+        "method:KoIDToQStringConverter::operator () (const KoID & id)",
+        "struct:KoIDToQStringConverter"
+      ]
+    },
+    {
+      "target": "KisCompositeOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpsModelContractTest.cpp",
+      "test": "KisCompositeOpsModelContractTest::normalInitializationBuildsCheckableFavoritesModel",
+      "behavior": "通常初期化は登録済み合成方法を分類し、選択可能な検査項目と展開済みのお気に入り分類を作り、既定お気に入り識別子列を設定読込み境界へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpListModel::initialize()"
+      ]
+    },
+    {
+      "target": "KisCompositeOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpsModelContractTest.cpp",
+      "test": "KisCompositeOpsModelContractTest::layerStyleInitializationBuildsExpandedReadOnlyModel",
+      "behavior": "レイヤースタイル初期化は専用の合成方法だけを読取り専用項目として作り、全分類を展開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpListModel::initializeForLayerStyles()"
+      ]
+    },
+    {
+      "target": "KisCompositeOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpsModelContractTest.cpp",
+      "test": "KisCompositeOpsModelContractTest::favoritesReadWriteAndCheckStateStaySynchronized",
+      "behavior": "お気に入り読込みは通常項目の検査状態とお気に入り分類を同期し、検査状態変更と明示保存は現在のお気に入り識別子列を書き出す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpListModel::readFavoriteCompositeOpsFromConfig()",
+        "method:KisCompositeOpListModel::setData(const QModelIndex & idx,const QVariant & value,int role=Qt::EditRole)",
+        "method:KisCompositeOpListModel::writeFavoriteCompositeOpsToConfig() const"
+      ]
+    },
+    {
+      "target": "KisCompositeOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpsModelContractTest.cpp",
+      "test": "KisCompositeOpsModelContractTest::validationControlsAvailabilityAndWarningDecoration",
+      "behavior": "色空間検証は各合成方法の利用可否を項目状態へ反映し、無効項目の装飾だけに警告画像を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeOpListModel::data(const QModelIndex & idx,int role=Qt::DisplayRole) const",
+        "method:KisCompositeOpListModel::validate(const KoColorSpace * cs)"
+      ]
+    },
+    {
+      "target": "KisCompositeOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisCompositeOpsModelContractTest.cpp",
+      "test": "KisCompositeOpsModelContractTest::sortedModelsPrioritizeFavoritesAndSelectTheirOperationSet",
+      "behavior": "整列模型は通常用とレイヤースタイル用の登録集合を構築時に選び、通常用ではお気に入り項目を先頭へ置き、色空間検証を内部模型へ伝える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSortedCompositeOpListModel::KisSortedCompositeOpListModel(bool limitToLayerStyles,QObject * parent)",
+        "method:KisSortedCompositeOpListModel::validate(const KoColorSpace * cs)"
       ]
     }
   ]

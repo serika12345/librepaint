@@ -6,28 +6,17 @@
  */
 
 #include "kis_composite_ops_model.h"
+#include "kis_composite_ops_model_source_p.h"
 
 #include <QApplication>
 #include <QStyle>
 #include <QStyleOptionButton>
-
-#include <KConfigGroup>
-#include <KSharedConfig>
-#include <KoCompositeOp.h>
-#include <KoCompositeOpRegistry.h>
-#include <kis_icon.h>
-
 
 namespace {
 
 const QStringList defaultFavoriteCompositeOps = QStringLiteral(
     "normal,erase,multiply,burn,darken,add,dodge,screen,overlay,soft_light_svg,luminize,lighten,saturation,color,divide")
                                                     .split(QLatin1Char(','));
-
-KConfigGroup applicationConfig()
-{
-    return KSharedConfig::openConfig()->group(QString());
-}
 
 }
 
@@ -38,7 +27,7 @@ KoID KisCompositeOpListModel::favoriteCategory() {
 
 void KisCompositeOpListModel::initialize()
 {
-    auto ops = KoCompositeOpRegistry::instance().getCompositeOps();
+    auto ops = KisCompositeOpsModelSource::compositeOps();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QMapIterator<KoID, KoID> it(ops);
 #else
@@ -61,7 +50,7 @@ void KisCompositeOpListModel::initialize()
 
 void KisCompositeOpListModel::initializeForLayerStyles()
 {
-    auto ops = KoCompositeOpRegistry::instance().getLayerStylesCompositeOps();
+    auto ops = KisCompositeOpsModelSource::layerStyleCompositeOps();
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QMapIterator<KoID, KoID> it(ops);
 #else
@@ -97,7 +86,7 @@ void KisCompositeOpListModel::validate(const KoColorSpace *cs)
         DataItem *item = categoriesMapper()->itemFromRow(i);
 
         if (!item->isCategory()) {
-            bool value = KoCompositeOpRegistry::instance().colorSpaceHasCompositeOp(cs, *item->data());
+            bool value = KisCompositeOpsModelSource::colorSpaceHasCompositeOp(cs, *item->data());
             item->setEnabled(value);
         }
     }
@@ -138,8 +127,7 @@ QVariant KisCompositeOpListModel::data(const QModelIndex& idx, int role) const
             QStyle *style = QApplication::style();
             QStyleOptionButton so;
             QSize size = style->sizeFromContents(QStyle::CT_CheckBox, &so, QSize(), 0);
-            const QPixmap pixmap = KisIconUtils::loadIcon("warning").pixmap(size);
-            return pixmap;
+            return KisCompositeOpsModelSource::warningPixmap(size);
         }
     }
 
@@ -160,10 +148,10 @@ void KisCompositeOpListModel::removeFavoriteEntry(const KoID &entry)
 void KisCompositeOpListModel::readFavoriteCompositeOpsFromConfig()
 {
     const QStringList favoriteCompositeOps =
-        applicationConfig().readEntry(QStringLiteral("favoriteCompositeOps"), defaultFavoriteCompositeOps);
+        KisCompositeOpsModelSource::favoriteCompositeOps(defaultFavoriteCompositeOps);
 
     Q_FOREACH (const QString &op, favoriteCompositeOps) {
-        KoID entry = KoCompositeOpRegistry::instance().getKoID(op);
+        KoID entry = KisCompositeOpsModelSource::compositeOp(op);
 
         DataItem *item = categoriesMapper()->fetchOneEntry(entry);
         if (item) {
@@ -184,7 +172,5 @@ void KisCompositeOpListModel::writeFavoriteCompositeOpsToConfig() const
         list.append(item->data()->id());
     }
 
-    KConfigGroup config = applicationConfig();
-    config.writeEntry(QStringLiteral("favoriteCompositeOps"), list);
-    config.sync();
+    KisCompositeOpsModelSource::writeFavoriteCompositeOps(list);
 }

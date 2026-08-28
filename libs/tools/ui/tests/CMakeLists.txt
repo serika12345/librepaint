@@ -4,6 +4,22 @@ kis_add_tests(
 )
 
 kis_add_test(
+    KisCompositeOpsModelContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolsuicategorizedmodelobjects
+        kritatoolsuicompositeopsmodelobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+target_compile_definitions(KisCompositeOpsModelContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritatoolsui_EXPORTS
+)
+
+kis_add_test(
     kis_categorized_list_model_test.cpp
     ../../../ui/tests/modeltest.cpp
     TEST_NAME KisCategorizedListModelTest

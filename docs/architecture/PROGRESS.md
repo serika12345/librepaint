@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 04:53 JST
+- 更新日時: 2026-08-29 05:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6616,13 +6616,41 @@
   公開面は1,549ヘッダー、29,989 API、対応済み4,641件、未対応25,348件になり、両対象ヘッダーの
   public APIは全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 合成方法一覧模型 public API契約と外部効果分離で完了した作業
+
+- `libs/tools/ui/kis_categories_mapper.cpp`と`libs/tools/ui/kis_categorized_list_model.cpp`は、製品
+  `kritatoolsui`の直接ソース所有から、同じファイル位置の新規
+  `kritatoolsuicategorizedmodelobjects`へ移した。`libs/tools/ui/kis_composite_ops_model.cc`は、同じ
+  製品の直接ソース所有から、同じファイル位置の新規`kritatoolsuicompositeopsmodelobjects`へ移した。
+  製品は分類模型と合成方法模型の生成オブジェクトを各1回集約する。
+- `libs/tools/ui/kis_composite_ops_model.cc`にあった合成方法登録簿の列挙・照合、設定の読書き、警告
+  アイコン取得を、新規`libs/tools/ui/kis_composite_ops_model_source.cpp`へ移し、内部境界を新規
+  `libs/tools/ui/kis_composite_ops_model_source_p.h`に置いた。具体効果ファイルも新規
+  `kritatoolsuicompositeopsmodelsourceobjects`が1回生成し、製品の既存`kritapigment`、
+  `kritawidgetutils`、設定依存の下で集約する。模型判断は登録集合、保存値、色空間別の利用可否、警告画像を
+  決定的な値として受け取れる。
+- `libs/tools/ui/kis_composite_ops_model.h`の18 APIを、新規
+  `libs/tools/ui/tests/KisCompositeOpsModelContractTest.cpp`の7試験へ対応付けた。KoID表示変換、型関係、
+  共有個体の一度だけの初期化、通常・レイヤースタイル登録集合の選択、分類展開と検査可能性、既定・保存済み
+  お気に入りの同期、色空間による有効化と警告装飾、お気に入り優先整列を固定した。
+- 最初の契約リンクは、対象とした通常模型の初期化、共有個体、お気に入り、検証、データ操作と仮想関数表
+  だけを未解決記号として診断し、外部ライブラリー由来の未解決参照を含まなかった。模型対象を接続した後は、
+  試験内の決定的な登録集合、設定値、色空間判定、警告画像だけで全経路を実行できる。
+- 変更前の製品`kritatoolsui`閉包は1,124工程・2,268入力、既存設定UI試験は1,128工程・2,275入力
+  だった。分類模型は4工程・9入力、模型判断と具体効果は各1工程・3入力、新規試験は10工程・22入力に
+  収めた。製品閉包は1,127工程・2,274入力である。製品所属の具象ソースオブジェクトを直接指定しても
+  製品の順序依存を引くため、具体効果も局所生成対象として維持する。
+- 三つの局所対象コンパイル、対象CTestのmacOS単発実行と20回反復、公開API契約検査、高速検査は
+  成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,659件、未対応25,330件になり、同ヘッダーの
+  public APIは全件対応済みになった。製品`kritatoolsui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-再生成した公開API作業列の先頭にある`libs/tools/ui/kis_composite_ops_model.h`の18 APIを対象とする。
-製品`kritatoolui`へ直接所属する`libs/tools/ui/kis_composite_ops_model.cc`、既存の分類一覧模型試験、設定保存
-経路について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査する。項目・分類の表示名、
-お気に入りの読書き、通常・レイヤースタイル用初期化、色空間による有効性、整列代理模型の既存観測範囲を
-確認し、過大な製品閉包が必要なら所有単位を先に分ける。
+再生成した公開API作業列の先頭にある`libs/tools/ui/kis_paintop_options_model.h`の18 APIを対象とする。
+製品`kritatoolsui`へ直接所属する`libs/tools/ui/kis_paintop_options_model.cpp`、今回分離した分類模型対象、既存
+`TestToolSettingsUiContract`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査する。
+選択肢情報の値と同一性、分類表示名、追加時の検査・有効状態、選択肢から模型への通知、模型から選択肢への
+検査状態伝達を確認し、過大な製品閉包が必要なら所有単位を先に分ける。
 
 ## R1-G5完了根拠
 
