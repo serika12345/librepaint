@@ -265,6 +265,15 @@ kis_add_test(
 target_compile_definitions(KisRectsGridContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisRandomSourceContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalrandomsourceobjects
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisRandomSourceContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisQStringListFwdTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27430
+    "expectedMissingApis": 27418
   },
   "contracts": [
     {
@@ -4968,6 +4968,45 @@
       "classification": "maintained",
       "apis": [
         "method:KisForestDetail::Forest::move(child_iterator subtree,child_iterator newPos)"
+      ]
+    },
+    {
+      "target": "KisRandomSourceContractTest",
+      "source": "libs/global/tests/KisRandomSourceContractTest.cpp",
+      "test": "KisRandomSourceContractTest::seededSourcesReproduceAllGenerationPaths",
+      "behavior": "同じ固定種の乱数源は生の整数、指定閉区間、単位範囲、指定平均・標準偏差の正規分布について同じ列を生成し、各値域を守る。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRandomSource",
+        "method:KisRandomSource::KisRandomSource(int seed)",
+        "method:KisRandomSource::generate() const",
+        "method:KisRandomSource::generate(int min,int max) const",
+        "method:KisRandomSource::generateGaussian(qreal mean,qreal sigma) const",
+        "method:KisRandomSource::generateNormalized() const"
+      ]
+    },
+    {
+      "target": "KisRandomSourceContractTest",
+      "source": "libs/global/tests/KisRandomSourceContractTest.cpp",
+      "test": "KisRandomSourceContractTest::copiesAndAssignmentsForkTheCurrentSequence",
+      "behavior": "複製構築と代入は現在の生成状態を分岐して以後の列を一致させ、自己代入は生成状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRandomSource::KisRandomSource(const KisRandomSource & rhs)",
+        "method:KisRandomSource::operator =(const KisRandomSource & rhs)"
+      ]
+    },
+    {
+      "target": "KisRandomSourceContractTest",
+      "source": "libs/global/tests/KisRandomSourceContractTest.cpp",
+      "test": "KisRandomSourceContractTest::defaultSourceAndPointerAliasesPreserveLifetime",
+      "behavior": "既定種の乱数源は有効な単位範囲値を生成し、名前付き共有・弱参照型は強参照の破棄に合わせて対象寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisRandomSourceSP",
+        "alias:KisRandomSourceWSP",
+        "method:KisRandomSource::KisRandomSource()",
+        "method:KisRandomSource::~KisRandomSource()"
       ]
     }
   ]
