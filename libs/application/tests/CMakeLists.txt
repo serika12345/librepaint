@@ -29,3 +29,20 @@ target_compile_definitions(KisConfigEnumContractTest PRIVATE
     kritaglobal_EXPORTS
     kritapigment_EXPORTS
 )
+
+kis_add_test(
+    KisActionEnumContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisActionEnumContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisActionEnumContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaui_EXPORTS
+)

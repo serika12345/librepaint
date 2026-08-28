@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26237
+    "expectedMissingApis": 26207
   },
   "contracts": [
     {
@@ -8329,6 +8329,54 @@
         "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowActiveStorages",
         "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowAllStorages",
         "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowInactiveStorages"
+      ]
+    },
+    {
+      "target": "KisActionEnumContractTest",
+      "source": "libs/application/tests/KisActionEnumContractTest.cpp",
+      "test": "KisActionEnumContractTest::activationFlagsRemainIndependentBits",
+      "behavior": "操作の画像、ノード、選択、クリップボード状態は相互に独立した20ビットを維持し、公開フラグ型で組み合わせられる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAction::ActivationFlags",
+        "enum:KisAction::ActivationFlag",
+        "enumerator:KisAction::ActivationFlag::ACTIVE_DEVICE",
+        "enumerator:KisAction::ActivationFlag::ACTIVE_IMAGE",
+        "enumerator:KisAction::ActivationFlag::ACTIVE_LAYER",
+        "enumerator:KisAction::ActivationFlag::ACTIVE_NODE",
+        "enumerator:KisAction::ActivationFlag::ACTIVE_SHAPE_LAYER",
+        "enumerator:KisAction::ActivationFlag::ACTIVE_TRANSPARENCY_MASK",
+        "enumerator:KisAction::ActivationFlag::ANY_SELECTION_WITH_PIXELS",
+        "enumerator:KisAction::ActivationFlag::CURRENT_IMAGE_MODIFIED",
+        "enumerator:KisAction::ActivationFlag::IMAGE_CAN_RESELECT",
+        "enumerator:KisAction::ActivationFlag::IMAGE_HAS_ANIMATION",
+        "enumerator:KisAction::ActivationFlag::IMAGE_IS_WRITABLE",
+        "enumerator:KisAction::ActivationFlag::LAYERS_IN_CLIPBOARD",
+        "enumerator:KisAction::ActivationFlag::MULTIPLE_IMAGES",
+        "enumerator:KisAction::ActivationFlag::NEVER_ACTIVATE",
+        "enumerator:KisAction::ActivationFlag::NONE",
+        "enumerator:KisAction::ActivationFlag::PIXELS_IN_CLIPBOARD",
+        "enumerator:KisAction::ActivationFlag::PIXELS_SELECTED",
+        "enumerator:KisAction::ActivationFlag::PIXEL_SELECTION_WITH_PIXELS",
+        "enumerator:KisAction::ActivationFlag::SHAPES_IN_CLIPBOARD",
+        "enumerator:KisAction::ActivationFlag::SHAPES_SELECTED",
+        "enumerator:KisAction::ActivationFlag::SHAPE_SELECTION_WITH_SHAPES"
+      ]
+    },
+    {
+      "target": "KisActionEnumContractTest",
+      "source": "libs/application/tests/KisActionEnumContractTest.cpp",
+      "test": "KisActionEnumContractTest::activationConditionsRemainIndependentBits",
+      "behavior": "操作のノード編集、選択編集、OpenGL条件は相互に独立した4ビットを維持し、公開フラグ型で組み合わせられる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAction::ActivationConditions",
+        "enum:KisAction::ActivationCondition",
+        "enumerator:KisAction::ActivationCondition::ACTIVE_NODE_EDITABLE",
+        "enumerator:KisAction::ActivationCondition::ACTIVE_NODE_EDITABLE_PAINT_DEVICE",
+        "enumerator:KisAction::ActivationCondition::NO_CONDITION",
+        "enumerator:KisAction::ActivationCondition::OPENGL_ENABLED",
+        "enumerator:KisAction::ActivationCondition::SELECTION_EDITABLE"
       ]
     }
   ]
