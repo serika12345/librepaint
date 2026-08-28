@@ -70,6 +70,19 @@ target_include_directories(KoShapeAnchorEnumContractTest PRIVATE
 target_compile_definitions(KoShapeAnchorEnumContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoShapeEnumContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+target_include_directories(KoShapeEnumContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoShapeEnumContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoSvgTextEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui

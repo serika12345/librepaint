@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26207
+    "expectedMissingApis": 26178
   },
   "contracts": [
     {
@@ -8377,6 +8377,62 @@
         "enumerator:KisAction::ActivationCondition::NO_CONDITION",
         "enumerator:KisAction::ActivationCondition::OPENGL_ENABLED",
         "enumerator:KisAction::ActivationCondition::SELECTION_EDITABLE"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::changeTypeValuesRemainStable",
+      "behavior": "図形の幾何、階層、外観、内容に対する20変更通知は監視処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoShape::ChangeType",
+        "enumerator:KoShape::ChangeType::BackgroundChanged",
+        "enumerator:KoShape::ChangeType::BorderChanged",
+        "enumerator:KoShape::ChangeType::ChildChanged",
+        "enumerator:KoShape::ChangeType::ClipMaskChanged",
+        "enumerator:KoShape::ChangeType::ClipPathChanged",
+        "enumerator:KoShape::ChangeType::ConnectionPointChanged",
+        "enumerator:KoShape::ChangeType::ContentChanged",
+        "enumerator:KoShape::ChangeType::Deleted",
+        "enumerator:KoShape::ChangeType::GenericMatrixChange",
+        "enumerator:KoShape::ChangeType::KeepAspectRatioChange",
+        "enumerator:KoShape::ChangeType::ParameterChanged",
+        "enumerator:KoShape::ChangeType::ParentChanged",
+        "enumerator:KoShape::ChangeType::PositionChanged",
+        "enumerator:KoShape::ChangeType::RotationChanged",
+        "enumerator:KoShape::ChangeType::ScaleChanged",
+        "enumerator:KoShape::ChangeType::ShearChanged",
+        "enumerator:KoShape::ChangeType::SizeChanged",
+        "enumerator:KoShape::ChangeType::StrokeChanged",
+        "enumerator:KoShape::ChangeType::TextContourMarginChanged",
+        "enumerator:KoShape::ChangeType::TransparencyChanged"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::paintOrderValuesRemainStable",
+      "behavior": "図形の塗り、輪郭、マーカーは描画処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoShape::PaintOrder",
+        "enumerator:KoShape::PaintOrder::Fill",
+        "enumerator:KoShape::PaintOrder::Markers",
+        "enumerator:KoShape::PaintOrder::Stroke"
+      ]
+    },
+    {
+      "target": "KoShapeEnumContractTest",
+      "source": "libs/flake/tests/KoShapeEnumContractTest.cpp",
+      "test": "KoShapeEnumContractTest::childZOrderValuesRemainStable",
+      "behavior": "通常の親子Z順は既定値の別名を維持し、子通過方式は次の値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoShape::ChildZOrderPolicy",
+        "enumerator:KoShape::ChildZOrderPolicy::ChildZDefault",
+        "enumerator:KoShape::ChildZOrderPolicy::ChildZParentChild",
+        "enumerator:KoShape::ChildZOrderPolicy::ChildZPassThrough"
       ]
     }
   ]
