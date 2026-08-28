@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 06:41 JST
+- 更新日時: 2026-08-29 06:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6753,12 +6753,37 @@
   1,549ヘッダー、29,989 API、対応済み4,822件、未対応25,167件になり、同ヘッダーのpublic APIは
   全件対応済みになった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード管理の画像状態 public API契約と具体画像効果分離で完了した作業
+
+- 製品`kritaapplicationui`が直接所有していた`libs/ui/nodes/KisNodeManagerImageState.cpp`は、同じ
+  ファイル位置の新規`kritauinodemanagerimagestateobjects`へ移した。同ファイルにあった画像グラフ、
+  レイヤー、マスク、選択への具体アクセスは、新規
+  `libs/ui/nodes/KisNodeManagerImageStateSource.cpp`の
+  `kritauinodemanagerimagestatesourceobjects`へ移した。製品は判断と具体アクセスの生成オブジェクトを
+  各1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`のうち6 APIを、新規
+  `libs/ui/tests/KisNodeManagerImageStateContractTest.cpp`の3試験へ対応付けた。削除後の近傍ノード、
+  レイヤーとマスクの分類、マスクから親レイヤーへの解決、現在ノードのアニメーション、選択マスクの
+  編集可能性、所有レイヤーの選択取得を固定した。画像設定更新とノード有効化操作作成は、具体画像を
+  観測する後続契約へ残した。
+- 実装接続前のリンクは、対象とした`nearestNodeAfterRemoval`、`layerForNode`、`maskForNode`、
+  `activeNodeIsAnimated`、`activeSelectionIsEditable`、`selectionForNode`だけを未解決記号として診断し、
+  製品ライブラリー由来の未解決参照を含まなかった。最初の実行は、判断側が派生ノード共有ポインターを
+  保持すると具体型の参照管理まで引き込むことを診断した。判断側は基底ノードと真偽値だけで分岐し、
+  レイヤー、マスク、選択への変換を具体アクセス側の最終返却へ限定した。
+- 変更前の製品`kritaapplicationui`閉包は1,796工程・3,592入力、既存隔離対象
+  `KisNodeManagerTest`は1,800工程・3,599入力だった。判断と具体アクセスは各1工程・3入力、新規試験は
+  5工程・17入力に収めた。製品閉包は1,797工程・3,594入力である。
+- 両局所対象コンパイル、対象CTestのmacOS単発実行と20回反復、公開API契約検査は成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み4,828件、未対応25,161件になった。製品
+  `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じノードUI責務で未対応数が最大の`libs/ui/nodes/kis_node_manager.h`の105 APIを対象とする。製品
-`kritaapplicationui`と既存の隔離対象`KisNodeManagerTest`について、対象指定の変更なし計画、直接CMake依存、
-空構築閉包、隔離理由を監査する。ノード作成・変換・移動・複製・統合・表示操作の判断と、画像、表示管理、操作管理、
-ダイアログへの具体効果を分け、対象契約が製品全体を要求する場合は所有単位を先に分離する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る99 APIのうち、現在ノード・レイヤー・描画装置・色空間の
+取得、編集可能性、名前・不透明度・合成方法の変更を次の小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の
+対象実装について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、画像、表示管理、操作管理へ
+届く具体効果を局所所有へ分離してから挙動契約を追加する。
 
 ## R1-G5完了根拠
 

@@ -295,12 +295,32 @@ public:
     void removeSingleNode(KisNodeSP node);
     KisLayerSP createPaintLayer();
 
+protected:
+    struct KRITAUI_EXPORT ImageStateAccess {
+        static KisNodeSP nearestNodeAfterRemoval(KisNodeSP node);
+        static bool isAnimated(KisNodeSP node);
+        static KisNodeSP activeLayerNode(KisNodeManager *manager);
+        static KisNodeSP selectionMaskNode(KisNodeSP layer);
+        static bool isEditable(KisNodeSP mask);
+        static void updateImageNodeSettings(KisImageWSP image);
+        static void
+        createNodeActivationActions(KisImageWSP image, KisKActionCollection *collection, KisNodeManager *manager);
+        static bool isLayer(KisNodeSP node);
+        static bool isMask(KisNodeSP node);
+        static KisNodeSP parentNode(KisNodeSP mask);
+        static KisLayerSP toLayer(KisNodeSP node);
+        static KisMaskSP toMask(KisNodeSP node);
+        static KisSelectionSP selection(KisNodeSP layer);
+        static KisSelectionSP globalSelection(KisImageWSP image);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1
      * to the integer range 0...255
      */
     qint32 convertOpacityToInt(qreal opacity);
+    KisNodeSP owningLayerNode(KisNodeSP node) const;
     void removeSelectedNodes(KisNodeList selectedNodes);
     void slotSomethingActivatedNodeImpl(KisNodeSP node);
     bool createQuickGroupImpl(KisNodeOperationBatch *batch,

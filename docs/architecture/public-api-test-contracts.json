@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25167
+    "expectedMissingApis": 25161
   },
   "contracts": [
     {
@@ -12199,6 +12199,39 @@
         "method:MultinodePropertyUndoCommand::MultinodePropertyUndoCommand(PropertyAdapter propAdapter,KisNodeList nodes,const QList<ValueType> & oldValues,ValueType newValue,KUndo2Command * parent=0)",
         "method:MultinodePropertyUndoCommand::redo()",
         "method:MultinodePropertyUndoCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerImageStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerImageStateContractTest.cpp",
+      "test": "KisNodeManagerImageStateContractTest::removalAndNodeKindsFollowTheImageGraph",
+      "behavior": "ノード削除後の選択候補は画像グラフが返す近傍ノードに従う。レイヤーは自身を所有レイヤーとして返し、マスクは親レイヤーを返し、その他のノードはどちらにも分類されない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::layerForNode(KisNodeSP node) const",
+        "method:KisNodeManager::maskForNode(KisNodeSP node) const",
+        "method:KisNodeManager::nearestNodeAfterRemoval(KisNodeSP node) const"
+      ]
+    },
+    {
+      "target": "KisNodeManagerImageStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerImageStateContractTest.cpp",
+      "test": "KisNodeManagerImageStateContractTest::activeAnimationAndSelectionEditabilityFollowNodeState",
+      "behavior": "現在ノードのアニメーション状態は画像ノードの状態を反映する。選択マスクがないレイヤーは編集可能とし、選択マスクがある場合はその編集可能性を反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activeNodeIsAnimated()",
+        "method:KisNodeManager::activeSelectionIsEditable()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerImageStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerImageStateContractTest.cpp",
+      "test": "KisNodeManagerImageStateContractTest::selectionUsesTheOwningLayer",
+      "behavior": "レイヤーとその配下のマスクは所有レイヤーの選択を返し、所有レイヤーを持たないノードは画像全体の選択へ委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::selectionForNode(KisNodeSP node,KisImageWSP image) const"
       ]
     }
   ]

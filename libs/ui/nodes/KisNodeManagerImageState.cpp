@@ -6,33 +6,24 @@
 
 #include "nodes/kis_node_manager.h"
 
-#include "nodes/KisNodeActivationActionCreatorVisitor.h"
-
-#include <kis_image.h>
-#include <kis_layer.h>
-#include <kis_mask.h>
-#include <kis_selection.h>
-#include <kis_selection_mask.h>
-#include <krita_utils.h>
-
 KisNodeSP KisNodeManager::nearestNodeAfterRemoval(KisNodeSP node) const
 {
-    return KritaUtils::nearestNodeAfterRemoval(node);
+    return ImageStateAccess::nearestNodeAfterRemoval(node);
 }
 
 bool KisNodeManager::activeNodeIsAnimated()
 {
     KisNodeSP node = activeNode();
-    return node && node->isAnimated();
+    return node && ImageStateAccess::isAnimated(node);
 }
 
 bool KisNodeManager::activeSelectionIsEditable()
 {
-    KisLayerSP layer = activeLayer();
+    KisNodeSP layer = ImageStateAccess::activeLayerNode(this);
     if (layer) {
-        KisSelectionMaskSP mask = layer->selectionMask();
+        KisNodeSP mask = ImageStateAccess::selectionMaskNode(layer);
         if (mask) {
-            return mask->isEditable();
+            return ImageStateAccess::isEditable(mask);
         }
     }
 
@@ -41,38 +32,37 @@ bool KisNodeManager::activeSelectionIsEditable()
 
 void KisNodeManager::updateImageNodeSettings(KisImageWSP image)
 {
-    if (image) {
-        image->rootLayer()->updateSettings();
-    }
+    ImageStateAccess::updateImageNodeSettings(image);
 }
 
 void KisNodeManager::createNodeActivationActions(KisImageWSP image, KisKActionCollection *collection)
 {
-    if (image) {
-        KisNodeActivationActionCreatorVisitor visitor(collection, this);
-        image->rootLayer()->accept(visitor);
-    }
+    ImageStateAccess::createNodeActivationActions(image, collection, this);
 }
 
 KisLayerSP KisNodeManager::layerForNode(KisNodeSP node) const
 {
-    KisMaskSP mask = maskForNode(node);
-    if (mask) {
-        node = mask->parent();
-    }
-    return qobject_cast<KisLayer *>(node.data());
+    return ImageStateAccess::toLayer(owningLayerNode(node));
 }
 
 KisMaskSP KisNodeManager::maskForNode(KisNodeSP node) const
 {
-    return dynamic_cast<KisMask *>(node.data());
+    return ImageStateAccess::toMask(node);
 }
 
 KisSelectionSP KisNodeManager::selectionForNode(KisNodeSP node, KisImageWSP image) const
 {
-    KisLayerSP layer = layerForNode(node);
+    KisNodeSP layer = owningLayerNode(node);
     if (layer) {
-        return layer->selection();
+        return ImageStateAccess::selection(layer);
     }
-    return image ? image->globalSelection() : KisSelectionSP();
+    return ImageStateAccess::globalSelection(image);
+}
+
+KisNodeSP KisNodeManager::owningLayerNode(KisNodeSP node) const
+{
+    if (ImageStateAccess::isMask(node)) {
+        node = ImageStateAccess::parentNode(node);
+    }
+    return ImageStateAccess::isLayer(node) ? node : KisNodeSP();
 }

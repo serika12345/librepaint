@@ -157,6 +157,25 @@ target_compile_definitions(KisMultinodePropertyContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisNodeManagerImageStateContractTest.cpp
+    TEST_NAME KisNodeManagerImageStateContractTest
+    LINK_LIBRARIES
+        kritauinodemanagerimagestateobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+target_include_directories(KisNodeManagerImageStateContractTest PRIVATE
+    ${kritauinodemanagerimagestate_INCLUDE_DIRS}
+)
+target_compile_definitions(KisNodeManagerImageStateContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

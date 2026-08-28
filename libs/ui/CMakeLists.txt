@@ -185,6 +185,91 @@ set_target_properties(kritauimultinodepropertysourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+set(kritauinodemanagerimagestate_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/filter>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/psdutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/psdutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/config>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/xmlgui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgets>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgets>
+)
+
+add_library(kritauinodemanagerimagestateobjects OBJECT
+    nodes/KisNodeManagerImageState.cpp
+)
+target_compile_definitions(kritauinodemanagerimagestateobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerimagestateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanagerimagestate_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerimagestateobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerimagestateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerimagestatesourceobjects OBJECT
+    nodes/KisNodeManagerImageStateSource.cpp
+)
+target_compile_definitions(kritauinodemanagerimagestatesourceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerimagestatesourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanagerimagestate_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerimagestatesourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerimagestatesourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
@@ -205,6 +290,8 @@ set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiselectionactionspanelsourceobjects>
     $<TARGET_OBJECTS:kritauimultinodepropertyobjects>
     $<TARGET_OBJECTS:kritauimultinodepropertysourceobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerimagestateobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerimagestatesourceobjects>
 
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp
@@ -295,7 +382,6 @@ set(kritaui_LIB_SRCS
     nodes/kis_layer_manager.cc
     nodes/kis_mask_manager.cc
     nodes/kis_node_manager.cpp
-    nodes/KisNodeManagerImageState.cpp
     nodes/kis_node_selection_adapter.cpp
     nodes/kis_node_insertion_adapter.cpp
     canvas/KisNodeDisplayModeAdapter.cpp
