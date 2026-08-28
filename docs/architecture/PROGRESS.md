@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 13:41 JST
+- 更新日時: 2026-08-28 13:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4738,6 +4738,16 @@
   `ee8d114ea870ea9c3dc0ebbd656b80ba23158cfe08a87f13471d78a532a9cbb8`へ更新し、公開API契約は
   1,706件、未対応基準は28,266件になった。製品実装、公開API、ABI、構築対象は変更していない。
   Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 非再帰同期接続契約の限定構築で完了した作業
+
+- `libs/global/KisSynchronizedConnection.cpp`は同じファイル位置を保ち、`libs/global/CMakeLists.txt`の
+  `kritaglobal`直接ソースから新規`kritaglobalsynchronizedconnectionobjects`の所有へ移した。
+  `kritaglobal`は新対象のオブジェクトを集約し、従来の公開シンボルを供給する。
+- 新対象はQt CoreとBoostだけへ直接接続し、変更なし構築閉包はmacOSで1工程・3入力である。製品所有者
+  `kritaglobal`は63工程・126入力であり、同期事象、同一スレッド即時配送、待ち行列、信号・コールバック
+  接続の契約試験を製品ライブラリー全体から分離できる。限定構築に成功し、製品挙動、公開API、ABI、
+  配送規則は変更していない。Linux、製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
 
 ## 次の操作
 

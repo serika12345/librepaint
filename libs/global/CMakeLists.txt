@@ -263,6 +263,25 @@ set_target_properties(kritaglobalsignalmapperobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalsynchronizedconnectionobjects OBJECT
+    KisSynchronizedConnection.cpp
+)
+target_compile_definitions(kritaglobalsynchronizedconnectionobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalsynchronizedconnectionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalsynchronizedconnectionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalsynchronizedconnectionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalrollingsumobjects OBJECT
     KisRollingSumAccumulatorWrapper.cpp
 )
@@ -377,7 +396,6 @@ set(kritaglobal_LIB_SRCS
     KisBezierUtils.cpp
     KisBezierPatch.cpp
     KisBezierMesh.cpp
-    KisSynchronizedConnection.cpp
     KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
     KisTransformComponents.cpp
@@ -413,6 +431,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalthreadsafesignalcompressorobjects>
     $<TARGET_OBJECTS:kritaglobalacyclicsignalconnectorobjects>
     $<TARGET_OBJECTS:kritaglobalsignalmapperobjects>
+    $<TARGET_OBJECTS:kritaglobalsynchronizedconnectionobjects>
     $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
     $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
     $<TARGET_OBJECTS:kritaglobalsamplerectiteratorobjects>
