@@ -32,6 +32,13 @@ target_include_directories(KoColorSpaceConstantsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoColorSpacePreserveLightnessUtilsContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentmathsobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     KoCmykColorSpaceMathsContractTest.cpp
     LINK_LIBRARIES
         kritapigmentcmykmathsobjects

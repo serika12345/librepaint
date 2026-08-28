@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27713
+    "expectedMissingApis": 27707
   },
   "contracts": [
     {
@@ -4343,6 +4343,30 @@
         "method:KoCmykF16Traits::normalisedChannelValueText(const quint8 * pixel,quint32 channelIndex)",
         "method:KoCmykF16Traits::normalisedChannelsValue(const quint8 * pixel,QVector<float> & v)",
         "struct:KoCmykF16Traits"
+      ]
+    },
+    {
+      "target": "KoColorSpacePreserveLightnessUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorSpacePreserveLightnessUtilsContractTest.cpp",
+      "test": "KoColorSpacePreserveLightnessUtilsContractTest::grayBrushFillsWithSourceHueAndMaskLightness",
+      "behavior": "灰色ブラシの黒・白マスクは描画色の色相を使って黒・白を生成し、マスクと描画色の小さい方の不透明度を出力する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:fillGrayBrushWithColorPreserveLightnessRGB::RGBPixel",
+        "alias:fillGrayBrushWithColorPreserveLightnessRGB::channels_type",
+        "function:fillGrayBrushWithColorPreserveLightnessRGB(quint8 * pixels,const QRgb * brush,quint8 * brushColor,qreal strength,qint32 nPixels)"
+      ]
+    },
+    {
+      "target": "KoColorSpacePreserveLightnessUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorSpacePreserveLightnessUtilsContractTest.cpp",
+      "test": "KoColorSpacePreserveLightnessUtilsContractTest::grayBrushModulatesExistingLightnessAndPreservesAlpha",
+      "behavior": "灰色ブラシの黒・白マスクは既存画素の色相から黒・白へ明度を変調し、既存の不透明度を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:modulateLightnessByGrayBrushRGB::RGBPixel",
+        "alias:modulateLightnessByGrayBrushRGB::channels_type",
+        "function:modulateLightnessByGrayBrushRGB(quint8 * pixels,const QRgb * brush,qreal strength,qint32 nPixels)"
       ]
     }
   ]
