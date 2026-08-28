@@ -22,6 +22,39 @@ SPEC.loader.exec_module(check_public_api_contracts)
 
 
 class PublicApiContractTests(unittest.TestCase):
+    def test_collects_overridden_public_destructor(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            header = root / "PublicWidget.h"
+            header.write_text(
+                """
+class Base
+{
+public:
+    virtual ~Base();
+};
+
+class PublicWidget : public Base
+{
+public:
+    ~PublicWidget() override;
+};
+""",
+                encoding="utf-8",
+            )
+
+            tags = check_public_api_contracts.collect_ctags(
+                root, ["PublicWidget.h"]
+            )
+            apis = check_public_api_contracts.extract_public_apis(
+                tags, {"PublicWidget.h"}
+            )
+
+            self.assertIn(
+                "method:PublicWidget::~PublicWidget()",
+                [api["id"] for api in apis],
+            )
+
     def test_collects_qt_signals_as_public_after_private_slots(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
