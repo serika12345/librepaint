@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 23:16 JST
+- 更新日時: 2026-08-28 23:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6035,11 +6035,28 @@
   なり、同ヘッダーのpublic APIは全件対応済みになった。両製品ライブラリーのリンク、Linux、
   全ネイティブ検証は実行していない。
 
+## R2-G19b 資源サムネイル描画 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisResourceThumbnailPainter.cpp`は同じ配置のまま、`kritaresourceui`の直接ソース
+  所有から新規`kritaresourcethumbnailpainterobjects`の所有へ移し、製品`kritaresourceui`が生成
+  オブジェクトを1回だけ集約する構造にした。外部向けヘッダー、描画実装、製品ABIは維持した。
+- `libs/resources/ui/KisResourceThumbnailPainter.h`の境界、構築・破棄、準備済み画像生成、直接描画から
+  なる1クラス・4メソッドの5 APIを、新規
+  `libs/resources/ui/tests/KisResourceThumbnailPainterContractTest.cpp`の3試験へ全件対応付けた。QObject
+  親子寿命、指定寸法のパターン画像生成、選択色の外周余白と資源画像の内部描画を固定した。
+- 描画器所有対象を自動メタオブジェクト生成込みで3工程・7入力、新規試験を分離済みキャッシュ、
+  チェッカー描画、資源種別値込みで11工程・24入力に収めた。最初のリンクは描画分岐が参照する
+  3つの`ResourceType`定義不足を診断し、既存`kritaresourcestypesobjects`を契約へ明示接続して解決した。
+  製品UIライブラリーは独立した自動メタオブジェクト生成に必要な2工程・4入力が加わり、252工程・
+  535入力から254工程・539入力になった。macOSの対象実行と20回反復に成功した。公開面は1,546
+  ヘッダー、29,981 API、対応済み4,334件、未対応25,647件になり、同ヘッダーのpublic APIは全件
+  対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceThumbnailPainter.h`のサムネイル描画5 APIについて、分離済みキャッシュと
-チェッカー描画を利用する清浄時構築閉包を監査し、親子寿命、画像生成、選択背景と余白を最小契約で
-固定する。
+`libs/resources/ui/KisResourceItemDelegate.h`の資源項目描画7 APIについて、分離済みサムネイル描画器を
+利用する清浄時構築閉包と`KisResourceModelProvider`による索引変換分岐を監査し、文字表示、寸法、
+選択描画、変換切替を最小契約で固定する。
 
 ## R1-G5完了根拠
 

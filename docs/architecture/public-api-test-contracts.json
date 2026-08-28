@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25652
+    "expectedMissingApis": 25647
   },
   "contracts": [
     {
@@ -10395,6 +10395,38 @@
       "classification": "maintained",
       "apis": [
         "method:KisIconToolTip::~KisIconToolTip()"
+      ]
+    },
+    {
+      "target": "KisResourceThumbnailPainterContractTest",
+      "source": "libs/resources/ui/tests/KisResourceThumbnailPainterContractTest.cpp",
+      "test": "KisResourceThumbnailPainterContractTest::followsParentLifetime",
+      "behavior": "資源サムネイル描画器は指定QObjectを親として構築され、親の破棄時に子として自動破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceThumbnailPainter",
+        "method:KisResourceThumbnailPainter::KisResourceThumbnailPainter(QObject * parent=0)",
+        "method:KisResourceThumbnailPainter::~KisResourceThumbnailPainter()"
+      ]
+    },
+    {
+      "target": "KisResourceThumbnailPainterContractTest",
+      "source": "libs/resources/ui/tests/KisResourceThumbnailPainterContractTest.cpp",
+      "test": "KisResourceThumbnailPainterContractTest::createsReadyThumbnailAtRequestedSize",
+      "behavior": "準備済みサムネイル生成は指定寸法の画像を作り、パターン画像を領域全体へ描画する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceThumbnailPainter::getReadyThumbnail(const QModelIndex & globalIndex,QSize rect,const QPalette & palette) const"
+      ]
+    },
+    {
+      "target": "KisResourceThumbnailPainterContractTest",
+      "source": "libs/resources/ui/tests/KisResourceThumbnailPainterContractTest.cpp",
+      "test": "KisResourceThumbnailPainterContractTest::paintsSelectionMarginAroundThumbnail",
+      "behavior": "サムネイル描画は選択状態と余白指定を受け、外周を選択色、内側を資源画像で描き分ける。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceThumbnailPainter::paint(QPainter * painter,const QModelIndex & index,QRect rect,const QPalette & palette,bool selected,bool addMargin) const"
       ]
     }
   ]

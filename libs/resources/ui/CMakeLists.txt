@@ -53,6 +53,31 @@ set_target_properties(kritaicontooltipobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourcethumbnailpainterobjects OBJECT
+    KisResourceThumbnailPainter.cpp
+)
+target_compile_definitions(kritaresourcethumbnailpainterobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourcethumbnailpainterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaresourcethumbnailpainterobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourcethumbnailpainterobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritaresourceui_LIB_SRCS
     KisResourceItemChooserContextMenu.cpp
     KisResourceItemChooser.cpp
@@ -61,7 +86,6 @@ set(kritaresourceui_LIB_SRCS
     KisResourceItemListView.cpp
     KisResourceItemListWidget.cpp
     KisResourceItemView.cpp
-    KisResourceThumbnailPainter.cpp
     KisTagChooserWidget.cpp
     KisTagFilterWidget.cpp
     KisTagToolButton.cpp
@@ -76,6 +100,7 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaresourceuidescriptorobjects>
     $<TARGET_OBJECTS:kritataglabelobjects>
     $<TARGET_OBJECTS:kritaicontooltipobjects>
+    $<TARGET_OBJECTS:kritaresourcethumbnailpainterobjects>
 )
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)

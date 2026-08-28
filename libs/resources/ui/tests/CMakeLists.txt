@@ -59,3 +59,29 @@ target_compile_definitions(KisIconToolTipContractTest PRIVATE
     kritawidgetutils_EXPORTS
     kritaresources_EXPORTS
 )
+
+kis_add_test(
+    KisResourceThumbnailPainterContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourcethumbnailpainterobjects
+        kritacheckerboardpainterobjects
+        kritaresourcethumbnailcacheobjects
+        kritaresourcestypesobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisResourceThumbnailPainterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisResourceThumbnailPainterContractTest PRIVATE
+    kritaresourceui_EXPORTS
+    kritawidgetutils_EXPORTS
+    kritaresources_EXPORTS
+)
