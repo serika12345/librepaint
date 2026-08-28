@@ -8,6 +8,16 @@
 #include "KisForest.h"
 #include <vector>
 
+void kis_assert_exception(const char *assertion, const char *file, int line)
+{
+    qFatal("Unexpected assertion %s at %s:%d", assertion, file, line);
+}
+
+void kis_safe_assert_recoverable(const char *assertion, const char *file, int line)
+{
+    qFatal("Unexpected safe assertion %s at %s:%d", assertion, file, line);
+}
+
 struct IteratorToValue
 {
     using value_type = int;
@@ -1273,4 +1283,4 @@ void KisForestTest::testConstTailFreeStandingForestFunctions()
     compareConstPair(tailSubtreeBegin(constForest), tailSubtreeEnd(constForest));
 }
 
-SIMPLE_TEST_MAIN(KisForestTest)
+QTEST_GUILESS_MAIN(KisForestTest)

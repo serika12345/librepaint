@@ -1,8 +1,17 @@
 kis_add_tests(KisSignalCompressorTest.cpp
-    KisForestTest.cpp
     KisRectsGridTest.cpp
     LINK_LIBRARIES kritaglobal kritatestsdk
     )
+
+kis_add_test(
+    KisForestTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisForestTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisForestTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
     KisMplTest.cpp
