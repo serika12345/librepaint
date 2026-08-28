@@ -9,7 +9,6 @@
 
 #include <QMap>
 #include <QString>
-#include <psd.h>
 
 #include "kritatiffpsd_export.h"
 
