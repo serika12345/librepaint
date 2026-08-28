@@ -11,7 +11,7 @@
 #import <qmutex.h>
 #import <AppKit/AppKit.h>
 
-#include "krita_container_utils.h"
+#include <algorithm>
 
 class ExtendedModifiers
 {
@@ -121,7 +121,8 @@ QVector<Qt::Key> queryPressedKeysMac()
     }
     mutex.unlock();
 
-    KritaUtils::makeContainerUnique(result);
+    std::sort(result.begin(), result.end());
+    result.erase(std::unique(result.begin(), result.end()), result.end());
 
     return result;
 }

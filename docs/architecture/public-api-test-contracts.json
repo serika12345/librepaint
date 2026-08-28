@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25912
+    "expectedMissingApis": 25902
   },
   "contracts": [
     {
@@ -9329,6 +9329,61 @@
       "classification": "maintained",
       "apis": [
         "method:KisPopupWidgetInterface::~KisPopupWidgetInterface()"
+      ]
+    },
+    {
+      "target": "KisExtendedModifiersMapperContractTest",
+      "source": "libs/input/ui/tests/KisExtendedModifiersMapperContractTest.cpp",
+      "test": "KisExtendedModifiersMapperContractTest::convertsStandardModifiersInStableOrder",
+      "behavior": "標準修飾キーマスクはShift、Control、Alt、Metaの安定順で拡張キー列へ変換され、空マスクは空列になる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisExtendedModifiersMapper::ExtendedModifiers",
+        "method:KisExtendedModifiersMapper::qtModifiersToQtKeys(Qt::KeyboardModifiers standardModifiers)"
+      ]
+    },
+    {
+      "target": "KisExtendedModifiersMapperContractTest",
+      "source": "libs/input/ui/tests/KisExtendedModifiersMapperContractTest.cpp",
+      "test": "KisExtendedModifiersMapperContractTest::appliesShiftMetaCompatibilityRule",
+      "behavior": "Shiftを伴うMetaキー事象だけをAltキーとして補正し、通常のMetaと他の修飾キーは元のキーを保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExtendedModifiersMapper::workaroundShiftAltMetaHell(const QKeyEvent * keyEvent)"
+      ]
+    },
+    {
+      "target": "KisExtendedModifiersMapperContractTest",
+      "source": "libs/input/ui/tests/KisExtendedModifiersMapperContractTest.cpp",
+      "test": "KisExtendedModifiersMapperContractTest::delegatesExtendedModifiersWithoutOwningPlugin",
+      "behavior": "修飾キー写像は借用したプラグイン実装へ取得を委譲し、写像個体の寿命終了後もプラグイン個体を所有しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisExtendedModifiersMapper",
+        "method:KisExtendedModifiersMapper::KisExtendedModifiersMapper()",
+        "method:KisExtendedModifiersMapper::queryExtendedModifiers()",
+        "method:KisExtendedModifiersMapper::setPluginInterface(KisExtendedModifiersMapperPluginInterface * pluginInterface)",
+        "method:KisExtendedModifiersMapper::~KisExtendedModifiersMapper()"
+      ]
+    },
+    {
+      "target": "KisExtendedModifiersMapperContractTest",
+      "source": "libs/input/ui/tests/KisExtendedModifiersMapperContractTest.cpp",
+      "test": "KisExtendedModifiersMapperContractTest::reportsApplicationModifierState",
+      "behavior": "標準修飾キー照会は呼出時のQtアプリケーション修飾キー状態をそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExtendedModifiersMapper::queryStandardModifiers()"
+      ]
+    },
+    {
+      "target": "KisExtendedModifiersMapperContractTest",
+      "source": "libs/input/ui/tests/KisExtendedModifiersMapperContractTest.cpp",
+      "test": "KisExtendedModifiersMapperContractTest::keepsPluginQueriesStableAcrossLocalMonitorChanges",
+      "behavior": "macOSの局所入力監視を有効化・無効化しても、登録済みプラグインによる拡張修飾キー照会が優先される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExtendedModifiersMapper::setLocalMonitor(bool activate,KisShortcutMatcher * matcher=0)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 19:44 JST
+- 更新日時: 2026-08-28 19:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5542,6 +5542,25 @@
   使う専用試験はmacOSで4工程・8入力に収めた。対象実行と20回反復に成功した。対応済みは
   4,055件、未対応基準は25,912件になり、同ヘッダーのpublic APIは全件対応済みになった。
   Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 拡張修飾キー写像 public API契約と構築所有分離で完了した作業
+
+- `libs/input/ui/kis_extended_modifiers_mapper.cpp`とmacOS用
+  `libs/input/ui/kis_extended_modifiers_mapper_osx.mm`は同じ配置のまま、`kritainputui`の直接ソース
+  所有から新規`kritainputuiextendedmodifiersmapperobjects`の所有へ移し、製品`kritainputui`が
+  生成オブジェクトを各1回だけ集約する構造にした。公開ヘッダー、製品ABI、プラットフォーム別の
+  修飾キー取得経路は維持した。
+- macOS用`libs/input/ui/kis_extended_modifiers_mapper_osx.h`から未使用の入力照合ヘッダー依存を
+  除き、2実装の重複除去は全体診断ライブラリーのコンテナー補助ではなく標準ライブラリーで同じ
+  整列・重複除去を行う形にした。
+- `libs/input/ui/kis_extended_modifiers_mapper.h`の構築、破棄、型別名、Qt修飾キー変換、Metaキー補正、
+  アプリケーション状態取得、プラグイン委譲、macOS局所監視からなる1型別名・1クラス・8メソッドの
+  10 APIを、新規`libs/input/ui/tests/KisExtendedModifiersMapperContractTest.cpp`の5試験へ全件
+  対応付けた。
+- 1,185工程・2,379入力の製品入力UIへ接続せず、専用実装は4工程・9入力、専用試験はmacOSで
+  11工程・22入力に収めた。対象実行と20回反復に成功した。対応済みは4,065件、未対応基準は
+  25,902件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
+  実行していない。
 
 ## 次の操作
 

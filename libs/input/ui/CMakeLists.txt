@@ -16,13 +16,49 @@ set_target_properties(kritainputuiextendedmodifiersinterfaceobjects
     PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
 
+set(kritainputuiextendedmodifiersmapper_SRCS
+    kis_extended_modifiers_mapper.cpp
+)
+if(APPLE AND NOT IOS)
+    list(APPEND kritainputuiextendedmodifiersmapper_SRCS
+        kis_extended_modifiers_mapper_osx.mm
+    )
+endif()
+
+add_library(kritainputuiextendedmodifiersmapperobjects OBJECT
+    ${kritainputuiextendedmodifiersmapper_SRCS}
+)
+target_compile_definitions(kritainputuiextendedmodifiersmapperobjects
+    PRIVATE kritainputui_EXPORTS
+)
+target_include_directories(kritainputuiextendedmodifiersmapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritainputuiextendedmodifiersmapperobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+if(APPLE AND NOT IOS)
+    target_link_libraries(kritainputuiextendedmodifiersmapperobjects
+        PUBLIC
+            ${FOUNDATION_LIBRARY}
+            ${APPKIT_LIBRARY}
+    )
+endif()
+set_target_properties(kritainputuiextendedmodifiersmapperobjects
+    PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritainputui_LIB_SRCS
     KisInputProfileMigrator.cpp
     KisPopupWidgetAction.cpp
     kis_abstract_input_action.cpp
     kis_alternate_invocation_action.cpp
     kis_change_primary_setting_action.cpp
-    kis_extended_modifiers_mapper.cpp
     kis_input_config.cpp
     kis_input_manager.cpp
     kis_input_manager_canvas.cpp
@@ -49,12 +85,6 @@ set(kritainputui_LIB_SRCS
     wintab/drawpile_tablettester/tablettester.cpp
 )
 
-if(APPLE AND NOT IOS)
-    list(APPEND kritainputui_LIB_SRCS
-        kis_extended_modifiers_mapper_osx.mm
-    )
-endif()
-
 ki18n_wrap_ui(kritainputui_LIB_SRCS
     config/kis_edit_profiles_dialog.ui
     config/kis_input_configuration_page.ui
@@ -68,6 +98,7 @@ ki18n_wrap_ui(kritainputui_LIB_SRCS
 kis_add_library(kritainputui SHARED
     ${kritainputui_LIB_SRCS}
     $<TARGET_OBJECTS:kritainputuiextendedmodifiersinterfaceobjects>
+    $<TARGET_OBJECTS:kritainputuiextendedmodifiersmapperobjects>
 )
 generate_export_header(kritainputui BASE_NAME kritainputui)
 

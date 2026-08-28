@@ -38,3 +38,15 @@ target_include_directories(KisPopupWidgetInterfaceContractTest
         ${CMAKE_CURRENT_SOURCE_DIR}/..
         ${CMAKE_CURRENT_BINARY_DIR}/..
 )
+
+kis_add_test(
+    KisExtendedModifiersMapperContractTest.cpp
+    TEST_NAME KisExtendedModifiersMapperContractTest
+    LINK_LIBRARIES
+        kritainputuiextendedmodifiersinterfaceobjects
+        kritainputuiextendedmodifiersmapperobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisExtendedModifiersMapperContractTest
+    PRIVATE kritainputui_EXPORTS
+)

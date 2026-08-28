@@ -11,7 +11,7 @@
 #include <QKeyEvent>
 #include <QApplication>
 
-#include <krita_container_utils.h>
+#include <algorithm>
 
 #ifdef Q_OS_MACOS
 
@@ -25,7 +25,6 @@
 #include <commctrl.h>
 #include <winuser.h>
 
-#include "krita_container_utils.h"
 #include "kis_input_config.h"
 
 
@@ -64,7 +63,8 @@ QVector<Qt::Key> queryPressedKeysWin()
         }
     }
 
-    KritaUtils::makeContainerUnique(result);
+    std::sort(result.begin(), result.end());
+    result.erase(std::unique(result.begin(), result.end()), result.end());
 
     return result;
 }
