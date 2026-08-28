@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26627
+    "expectedMissingApis": 26594
   },
   "contracts": [
     {
@@ -7587,6 +7587,66 @@
         "enumerator:KStandardAction::StandardAction::Zoom",
         "enumerator:KStandardAction::StandardAction::ZoomIn",
         "enumerator:KStandardAction::StandardAction::ZoomOut"
+      ]
+    },
+    {
+      "target": "KColorSchemeEnumContractTest",
+      "source": "libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp",
+      "test": "KColorSchemeEnumContractTest::colorSetValuesRemainStable",
+      "behavior": "配色集合は表示領域、ウィンドウ、ボタン、選択、ツールチップに対応する宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KColorScheme::ColorSet",
+        "enumerator:KColorScheme::ColorSet::Button",
+        "enumerator:KColorScheme::ColorSet::Selection",
+        "enumerator:KColorScheme::ColorSet::Tooltip",
+        "enumerator:KColorScheme::ColorSet::View",
+        "enumerator:KColorScheme::ColorSet::Window"
+      ]
+    },
+    {
+      "target": "KColorSchemeEnumContractTest",
+      "source": "libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp",
+      "test": "KColorSchemeEnumContractTest::backgroundAndForegroundRoleValuesRemainStable",
+      "behavior": "背景と前景の配色役割は通常から肯定まで対応する0始まりの識別値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KColorScheme::BackgroundRole",
+        "enum:KColorScheme::ForegroundRole",
+        "enumerator:KColorScheme::BackgroundRole::ActiveBackground",
+        "enumerator:KColorScheme::BackgroundRole::AlternateBackground",
+        "enumerator:KColorScheme::BackgroundRole::LinkBackground",
+        "enumerator:KColorScheme::BackgroundRole::NegativeBackground",
+        "enumerator:KColorScheme::BackgroundRole::NeutralBackground",
+        "enumerator:KColorScheme::BackgroundRole::NormalBackground",
+        "enumerator:KColorScheme::BackgroundRole::PositiveBackground",
+        "enumerator:KColorScheme::BackgroundRole::VisitedBackground",
+        "enumerator:KColorScheme::ForegroundRole::ActiveText",
+        "enumerator:KColorScheme::ForegroundRole::InactiveText",
+        "enumerator:KColorScheme::ForegroundRole::LinkText",
+        "enumerator:KColorScheme::ForegroundRole::NegativeText",
+        "enumerator:KColorScheme::ForegroundRole::NeutralText",
+        "enumerator:KColorScheme::ForegroundRole::NormalText",
+        "enumerator:KColorScheme::ForegroundRole::PositiveText",
+        "enumerator:KColorScheme::ForegroundRole::VisitedText"
+      ]
+    },
+    {
+      "target": "KColorSchemeEnumContractTest",
+      "source": "libs/widgetutils/tests/KColorSchemeEnumContractTest.cpp",
+      "test": "KColorSchemeEnumContractTest::decorationAndShadeRoleValuesRemainStable",
+      "behavior": "装飾と陰影の配色役割は描画規則が参照する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KColorScheme::DecorationRole",
+        "enum:KColorScheme::ShadeRole",
+        "enumerator:KColorScheme::DecorationRole::FocusColor",
+        "enumerator:KColorScheme::DecorationRole::HoverColor",
+        "enumerator:KColorScheme::ShadeRole::DarkShade",
+        "enumerator:KColorScheme::ShadeRole::LightShade",
+        "enumerator:KColorScheme::ShadeRole::MidShade",
+        "enumerator:KColorScheme::ShadeRole::MidlightShade",
+        "enumerator:KColorScheme::ShadeRole::ShadowShade"
       ]
     }
   ]

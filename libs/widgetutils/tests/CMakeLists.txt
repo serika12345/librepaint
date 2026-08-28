@@ -25,6 +25,19 @@ target_include_directories(KStandardActionEnumContractTest PRIVATE
 )
 target_compile_definitions(KStandardActionEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
 
+kis_add_test(
+    KColorSchemeEnumContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::ConfigCore
+)
+target_include_directories(KColorSchemeEnumContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../config
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KColorSchemeEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
+
 ki18n_wrap_ui(DialogStateSaver_SRCS
     dialogsavertestwidget.ui
 )
