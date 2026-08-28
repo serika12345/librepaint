@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26051
+    "expectedMissingApis": 26042
   },
   "contracts": [
     {
@@ -8821,6 +8821,69 @@
       "apis": [
         "method:KisInputActionGroupsMaskInterface::~KisInputActionGroupsMaskInterface()",
         "struct:KisInputActionGroupsMaskInterface"
+      ]
+    },
+    {
+      "target": "KisTimedSignalThresholdContractTest",
+      "source": "libs/input/tests/KisTimedSignalThresholdContractTest.cpp",
+      "test": "KisTimedSignalThresholdContractTest::preservesQObjectLifetime",
+      "behavior": "時間閾値は指定されたQObject親へ所属し、明示的な破棄でQObjectの監視参照から除かれる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTimedSignalThreshold",
+        "method:KisTimedSignalThreshold::KisTimedSignalThreshold(int delay,int cancelDelay=-1,QObject * parent=0)",
+        "method:KisTimedSignalThreshold::~KisTimedSignalThreshold()"
+      ]
+    },
+    {
+      "target": "KisTimedSignalThresholdContractTest",
+      "source": "libs/input/tests/KisTimedSignalThresholdContractTest.cpp",
+      "test": "KisTimedSignalThresholdContractTest::forceDoneEmitsAndResetsThePeriod",
+      "behavior": "強制完了は即座に完了信号を送出して計測期間をリセットし、次の開始を新しい期間として扱う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimedSignalThreshold::forceDone()",
+        "method:KisTimedSignalThreshold::timeout()"
+      ]
+    },
+    {
+      "target": "KisTimedSignalThresholdContractTest",
+      "source": "libs/input/tests/KisTimedSignalThresholdContractTest.cpp",
+      "test": "KisTimedSignalThresholdContractTest::stableStartsEmitAfterTheDelay",
+      "behavior": "継続時間が送出閾値を超え、取消猶予内にある開始列は完了信号を1回送出して次の期間へ移る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimedSignalThreshold::start()"
+      ]
+    },
+    {
+      "target": "KisTimedSignalThresholdContractTest",
+      "source": "libs/input/tests/KisTimedSignalThresholdContractTest.cpp",
+      "test": "KisTimedSignalThresholdContractTest::stopCancelsTheCurrentPeriod",
+      "behavior": "停止は現在の計測期間を破棄し、次の開始から新しい期間を計測する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimedSignalThreshold::stop()"
+      ]
+    },
+    {
+      "target": "KisTimedSignalThresholdContractTest",
+      "source": "libs/input/tests/KisTimedSignalThresholdContractTest.cpp",
+      "test": "KisTimedSignalThresholdContractTest::disabledThresholdIgnoresStarts",
+      "behavior": "無効化は現在の期間を停止して開始要求を無視し、再有効化後は新しい期間から計測する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimedSignalThreshold::setEnabled(bool value)"
+      ]
+    },
+    {
+      "target": "KisTimedSignalThresholdContractTest",
+      "source": "libs/input/tests/KisTimedSignalThresholdContractTest.cpp",
+      "test": "KisTimedSignalThresholdContractTest::updatedThresholdsTakeEffectForTheCurrentPeriod",
+      "behavior": "閾値の更新は進行中の計測期間へ適用され、更新後の送出閾値と取消猶予で次の開始を判定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTimedSignalThreshold::setDelayThreshold(int delay,int cancelDelay=-1)"
       ]
     }
   ]

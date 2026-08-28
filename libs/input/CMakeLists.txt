@@ -49,9 +49,20 @@ set_target_properties(kritainputabstractshortcutobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritainputtimedsignalthresholdobjects OBJECT
+    KisTimedSignalThreshold.cpp
+)
+target_compile_definitions(kritainputtimedsignalthresholdobjects PRIVATE kritainput_EXPORTS)
+target_include_directories(kritainputtimedsignalthresholdobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritainputtimedsignalthresholdobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritainputtimedsignalthresholdobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritainput_LIB_SRCS
     KisInputEventSuppressor.cpp
-    KisTimedSignalThreshold.cpp
     kis_native_gesture_shortcut.cpp
     kis_shortcut_matcher.cpp
     kis_single_action_shortcut.cpp
@@ -64,6 +75,7 @@ kis_add_library(kritainput SHARED
     $<TARGET_OBJECTS:kritainputshortcutconfigurationobjects>
     $<TARGET_OBJECTS:kritainputprofileobjects>
     $<TARGET_OBJECTS:kritainputabstractshortcutobjects>
+    $<TARGET_OBJECTS:kritainputtimedsignalthresholdobjects>
 )
 generate_export_header(kritainput BASE_NAME kritainput)
 

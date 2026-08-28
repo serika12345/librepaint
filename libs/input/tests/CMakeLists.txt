@@ -32,3 +32,11 @@ target_compile_definitions(KisAbstractShortcutContractTest PRIVATE
     kritacanvas_EXPORTS
     kritainput_EXPORTS
 )
+
+kis_add_test(
+    KisTimedSignalThresholdContractTest.cpp
+    LINK_LIBRARIES
+        kritainputtimedsignalthresholdobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisTimedSignalThresholdContractTest PRIVATE kritainput_EXPORTS)

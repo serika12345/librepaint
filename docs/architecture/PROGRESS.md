@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 18:51 JST
+- 更新日時: 2026-08-28 19:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5408,10 +5408,23 @@
   対象実行と20回反復に成功した。対応済みは3,916件、未対応基準は26,051件になり、
   同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 入力継続時間判定 public API契約と構築所有分離で完了した作業
+
+- `libs/input/KisTimedSignalThreshold.cpp`は同じ配置のまま、`kritainput`の直接ソース所有から
+  新規`kritainputtimedsignalthresholdobjects`の所有へ移し、製品`kritainput`が生成オブジェクトを
+  1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは維持した。
+- `libs/input/KisTimedSignalThreshold.h`のQObject寿命、開始、停止、有効状態、閾値更新、強制完了、
+  完了信号からなる1クラス・8メソッドの9 APIを、新規
+  `libs/input/tests/KisTimedSignalThresholdContractTest.cpp`の6対応試験へ全件対応付けた。
+  取消猶予を超えた開始列が現在期間を破棄する挙動も同じ対象の追加試験で固定した。
+- 製品実装は1回だけ集約し、専用実装は3工程・7入力、専用試験はmacOSで7工程・14入力に
+  収めた。対象実行と20回反復に成功した。対応済みは3,925件、未対応基準は26,042件になり、
+  同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/input/KisTimedSignalThreshold.h`の入力継続時間判定APIについて、既存試験、直接依存、
-変更なし構築閉包を監査し、必要なら時間判定実装を先に分離してから局所契約を追加する。
+`libs/input/KisInputEventSuppressor.h`の入力事象抑制APIについて、既存試験、直接依存、
+変更なし構築閉包を監査し、必要なら実装所有を先に分離してから局所契約を追加する。
 
 ## R1-G5完了根拠
 
