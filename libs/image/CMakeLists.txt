@@ -64,6 +64,28 @@ set_target_properties(kritaimagestrokejobobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagebehaviorinterfaceobjects OBJECT
+   KisCroppedOriginalLayerInterface.cpp
+   KisDecoratedNodeInterface.cpp
+   KisDelayedUpdateNodeInterface.cpp
+   KisInterstrokeDataFactory.cpp
+   KisTransactionWrapperFactory.cpp
+   KisTransformMaskTestingInterface.cpp
+)
+target_compile_definitions(kritaimagebehaviorinterfaceobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagebehaviorinterfaceobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagebehaviorinterfaceobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagebehaviorinterfaceobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagepaintopsettingsidsobjects OBJECT
    brushengine/KisPaintopSettingsIds.cpp
 )
@@ -269,9 +291,6 @@ set(kritaimage_LIB_SRCS
    lazybrush/kis_colorize_stroke_strategy.cpp
    KisFrameChangeUpdateRecipe.cpp
    KisAnimAutoKey.cpp
-   KisDelayedUpdateNodeInterface.cpp
-   KisCroppedOriginalLayerInterface.cpp
-   KisDecoratedNodeInterface.cpp
    kis_adjustment_layer.cc
    kis_selection_based_layer.cpp
    kis_node_filter_interface.cpp
@@ -303,7 +322,6 @@ set(kritaimage_LIB_SRCS
    kis_transform_mask_params_interface.cpp
    kis_recalculate_transform_mask_job.cpp
    kis_transform_mask_params_factory_registry.cpp
-   KisTransformMaskTestingInterface.cpp
    kis_safe_transform.cpp
    kis_gradient_painter.cc
    kis_gradient_shape_strategy.cpp
@@ -394,10 +412,8 @@ set(kritaimage_LIB_SRCS
    kis_update_selection_job.cpp
    kis_serializable_configuration.cc
    kis_transaction_data.cpp
-   KisTransactionWrapperFactory.cpp
    KisInterstrokeDataTransactionWrapperFactory.cpp
    KisInterstrokeData.cpp
-   KisInterstrokeDataFactory.cpp
    kis_transform_worker.cc
    kis_perspectivetransform_worker.cpp
    bsplines/kis_bspline_1d.cpp
@@ -482,6 +498,7 @@ kis_add_library(kritaimage SHARED
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
+   $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
    $<TARGET_OBJECTS:kritaimagegreencoordinatesobjects>
    $<TARGET_OBJECTS:kritaimagesignalsobjects>

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 19:51 JST
+- 更新日時: 2026-08-28 20:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5562,9 +5562,31 @@
   25,902件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G19b 画像挙動境界 public API契約と構築所有分離で完了した作業
+
+- 次の開始ファイルは同じ配置のまま、`kritaimage`の直接ソース所有から新規
+  `kritaimagebehaviorinterfaceobjects`の所有へ移し、製品`kritaimage`が各生成オブジェクトを1回だけ
+  集約する構造にした。公開ヘッダー、実装、製品ABIは維持した。
+  - `libs/image/KisCroppedOriginalLayerInterface.cpp`
+  - `libs/image/KisDecoratedNodeInterface.cpp`
+  - `libs/image/KisDelayedUpdateNodeInterface.cpp`
+  - `libs/image/KisInterstrokeDataFactory.cpp`
+  - `libs/image/KisTransactionWrapperFactory.cpp`
+  - `libs/image/KisTransformMaskTestingInterface.cpp`
+- 対応する6公開ヘッダーの隠領域更新、装飾表示、遅延更新、ストローク間データの適合・生成、
+  トランザクション前後命令、5種の変形マスク通知、多態的寿命からなる6クラス・21メソッドの
+  27 APIを、新規`libs/image/tests/KisBehaviorInterfacesContractTest.cpp`の6試験へ全件対応付けた。
+- 最初の試験構築は空の描画装置共有ポインターを呼出側で破棄するための完全型不足を検出した。
+  試験へ`kis_paint_device.h`と必要な色変換ヘッダー探索位置を追加し、製品ライブラリーへのリンクは
+  増やしていない。
+- 1,008工程・2,040入力の製品画像ライブラリーへ接続せず、専用実装は6工程・13入力、専用試験は
+  macOSで10工程・21入力に収めた。対象実行と20回反復に成功した。対応済みは4,092件、未対応基準は
+  25,875件になり、6ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/input/ui/KisPopupWidgetAction.h`のポップアップ操作について、既存試験、直接依存、
+`libs/image/kis_node_filter_interface.h`のフィルター設定所有境界について、既存試験、直接依存、
 変更なし構築閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠

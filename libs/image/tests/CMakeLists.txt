@@ -274,6 +274,18 @@ target_include_directories(KisStrokeJobContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 
+kis_add_test(
+    KisBehaviorInterfacesContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagebehaviorinterfaceobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisBehaviorInterfacesContractTest PRIVATE kritaimage_EXPORTS)
+target_include_directories(KisBehaviorInterfacesContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+)
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25902
+    "expectedMissingApis": 25875
   },
   "contracts": [
     {
@@ -9384,6 +9384,87 @@
       "classification": "maintained",
       "apis": [
         "method:KisExtendedModifiersMapper::setLocalMonitor(bool activate,KisShortcutMatcher * matcher=0)"
+      ]
+    },
+    {
+      "target": "KisBehaviorInterfacesContractTest",
+      "source": "libs/image/tests/KisBehaviorInterfacesContractTest.cpp",
+      "test": "KisBehaviorInterfacesContractTest::updatesCroppedOriginalThroughInterface",
+      "behavior": "切り抜き元レイヤー境界は隠領域の強制更新を実装へ配送し、基本型を通した破棄で実装寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCroppedOriginalLayerInterface",
+        "method:KisCroppedOriginalLayerInterface::forceUpdateHiddenAreaOnOriginal()",
+        "method:KisCroppedOriginalLayerInterface::~KisCroppedOriginalLayerInterface()"
+      ]
+    },
+    {
+      "target": "KisBehaviorInterfacesContractTest",
+      "source": "libs/image/tests/KisBehaviorInterfacesContractTest.cpp",
+      "test": "KisBehaviorInterfacesContractTest::exposesDelayedUpdateStateThroughInterface",
+      "behavior": "遅延更新境界は保留状態を公開し、強制更新を実装へ配送して保留を解消し、基本型を通して破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDelayedUpdateNodeInterface",
+        "method:KisDelayedUpdateNodeInterface::forceUpdateTimedNode()",
+        "method:KisDelayedUpdateNodeInterface::hasPendingTimedUpdates() const",
+        "method:KisDelayedUpdateNodeInterface::~KisDelayedUpdateNodeInterface()"
+      ]
+    },
+    {
+      "target": "KisBehaviorInterfacesContractTest",
+      "source": "libs/image/tests/KisBehaviorInterfacesContractTest.cpp",
+      "test": "KisBehaviorInterfacesContractTest::createsTransactionBoundaryCommandsThroughInterface",
+      "behavior": "トランザクション包装工場は対象描画装置を開始側へ渡し、開始・終了の各命令を基本型経由で返して多態的に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransactionWrapperFactory",
+        "method:KisTransactionWrapperFactory::createBeginTransactionCommand(KisPaintDeviceSP device)",
+        "method:KisTransactionWrapperFactory::createEndTransactionCommand()",
+        "method:KisTransactionWrapperFactory::~KisTransactionWrapperFactory()"
+      ]
+    },
+    {
+      "target": "KisBehaviorInterfacesContractTest",
+      "source": "libs/image/tests/KisBehaviorInterfacesContractTest.cpp",
+      "test": "KisBehaviorInterfacesContractTest::preservesDecoratedNodeVisibilityConvenienceUpdate",
+      "behavior": "装飾ノード境界は表示状態を公開し、簡易設定では更新を要求し、明示設定では指定した更新フラグを実装へ渡して多態的に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDecoratedNodeInterface",
+        "method:KisDecoratedNodeInterface::decorationsVisible() const",
+        "method:KisDecoratedNodeInterface::setDecorationsVisible(bool value)",
+        "method:KisDecoratedNodeInterface::setDecorationsVisible(bool value,bool update)",
+        "method:KisDecoratedNodeInterface::~KisDecoratedNodeInterface()"
+      ]
+    },
+    {
+      "target": "KisBehaviorInterfacesContractTest",
+      "source": "libs/image/tests/KisBehaviorInterfacesContractTest.cpp",
+      "test": "KisBehaviorInterfacesContractTest::checksAndCreatesInterstrokeDataThroughInterface",
+      "behavior": "ストローク間データ工場は既存データの適合判定と描画装置を受けた生成を実装へ配送し、基本型を通して破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInterstrokeDataFactory",
+        "method:KisInterstrokeDataFactory::create(KisPaintDeviceSP device)",
+        "method:KisInterstrokeDataFactory::isCompatible(KisInterstrokeData * data)",
+        "method:KisInterstrokeDataFactory::~KisInterstrokeDataFactory()"
+      ]
+    },
+    {
+      "target": "KisBehaviorInterfacesContractTest",
+      "source": "libs/image/tests/KisBehaviorInterfacesContractTest.cpp",
+      "test": "KisBehaviorInterfacesContractTest::dispatchesTransformMaskNotificationsThroughInterface",
+      "behavior": "変形マスク試験境界は時限更新、スレッド安全更新、遅延更新、装飾矩形更新、静止画像再計算の通知を順に実装へ配送し、多態的に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransformMaskTestingInterface",
+        "method:KisTransformMaskTestingInterface::notifyDecorateRectTriggeredStaticImageUpdate()",
+        "method:KisTransformMaskTestingInterface::notifyForceUpdateTimedNode()",
+        "method:KisTransformMaskTestingInterface::notifyRecalculateStaticImage()",
+        "method:KisTransformMaskTestingInterface::notifySlotDelayedStaticUpdate()",
+        "method:KisTransformMaskTestingInterface::notifyThreadSafeForceStaticImageUpdate()",
+        "method:KisTransformMaskTestingInterface::~KisTransformMaskTestingInterface()"
       ]
     }
   ]
