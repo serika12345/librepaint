@@ -8,9 +8,49 @@
 #include <optional>
 #include <QDebug>
 
+#include <tuple>
+#include <type_traits>
+#include <variant>
+
 #include <KisMpl.h>
 #include <kis_shared.h>
 #include <kis_shared_ptr.h>
+
+void KisMplTest::testTupleAndTypeUtilities()
+{
+    static_assert(std::is_same_v<kismpl::make_index_sequence_from_1<4>, std::index_sequence<1, 2, 3, 4>>);
+    static_assert(std::is_same_v<kismpl::detail::make_index_sequence_from_1_impl<0>::type, std::index_sequence<>>);
+    static_assert(std::is_same_v<kismpl::detail::first_type_impl<int, qreal>::type, int>);
+    static_assert(std::is_same_v<kismpl::first_type<int, qreal>::type, int>);
+    static_assert(std::is_same_v<kismpl::first_type_t<int, qreal>, int>);
+
+    const auto doubled = kismpl::apply_to_tuple([](int value) {
+        return 2 * value;
+    }, std::tuple{1, 3, 5});
+    QCOMPARE(doubled, std::make_tuple(2, 6, 10));
+
+    const auto incremented = kismpl::detail::apply_to_tuple_impl([](int value) {
+        return value + 1;
+    }, std::tuple{2, 4}, std::index_sequence<0, 1>{});
+    QCOMPARE(incremented, std::make_tuple(3, 5));
+
+    const auto addTuple = kismpl::unzip_wrapper([](int lhs, int rhs) {
+        return lhs + rhs;
+    });
+    QCOMPARE(addTuple(std::tuple{7, 11}), 18);
+
+    std::variant<int, QString> value = 13;
+    const auto visitor = kismpl::overloaded{
+        [](int number) {
+            return QString::number(number);
+        },
+        [](const QString &text) {
+            return text;
+        }};
+    QCOMPARE(std::visit(visitor, value), QStringLiteral("13"));
+    value = QStringLiteral("text");
+    QCOMPARE(std::visit(visitor, value), QStringLiteral("text"));
+}
 
 
 void KisMplTest::testFoldOptional()
@@ -373,7 +413,7 @@ void KisMplTest::testMemberOperatorsLessEqual()
     {
         std::vector<StructExplicit> vec({StructExplicit(0),StructExplicit(1),StructExplicit(2),StructExplicit(3),StructExplicit(4)});
 
-        auto it = std::lower_bound(vec.begin(), vec.end(), 2, kismpl::mem_less_equal(&StructExplicit::idConstFunc));
+        auto it = std::lower_bound(vec.begin(), vec.end(), 2, kismpl::mem_less_equal(&StructExplicit::idNoexceptFunc));
         QVERIFY(it != vec.end());
         QCOMPARE(std::distance(vec.begin(), it), 3);
     }
@@ -489,6 +529,47 @@ void KisMplTest::testMemberOperatorsGreaterEqual()
     }
 }
 
+void KisMplTest::testMemberBinaryComparators()
+{
+    Struct lower(1);
+    Struct higher(2);
+
+    const auto verifyAscending = [&lower, &higher](auto comparator) {
+        QVERIFY(comparator(lower, higher));
+        QVERIFY(comparator(lower, 2));
+        QVERIFY(comparator(1, higher));
+    };
+    const auto verifyDescending = [&lower, &higher](auto comparator) {
+        QVERIFY(comparator(higher, lower));
+        QVERIFY(comparator(higher, 1));
+        QVERIFY(comparator(2, lower));
+    };
+
+    verifyAscending(kismpl::mem_less(&Struct::id));
+    verifyAscending(kismpl::mem_less(&Struct::idFunc));
+    verifyAscending(kismpl::mem_less(&Struct::idConstFunc));
+    verifyAscending(kismpl::mem_less(&Struct::idNoexceptFunc));
+    verifyAscending(kismpl::mem_less(&Struct::idConstNoexceptFunc));
+
+    verifyAscending(kismpl::mem_less_equal(&Struct::id));
+    verifyAscending(kismpl::mem_less_equal(&Struct::idFunc));
+    verifyAscending(kismpl::mem_less_equal(&Struct::idConstFunc));
+    verifyAscending(kismpl::mem_less_equal(&Struct::idNoexceptFunc));
+    verifyAscending(kismpl::mem_less_equal(&Struct::idConstNoexceptFunc));
+
+    verifyDescending(kismpl::mem_greater(&Struct::id));
+    verifyDescending(kismpl::mem_greater(&Struct::idFunc));
+    verifyDescending(kismpl::mem_greater(&Struct::idConstFunc));
+    verifyDescending(kismpl::mem_greater(&Struct::idNoexceptFunc));
+    verifyDescending(kismpl::mem_greater(&Struct::idConstNoexceptFunc));
+
+    verifyDescending(kismpl::mem_greater_equal(&Struct::id));
+    verifyDescending(kismpl::mem_greater_equal(&Struct::idFunc));
+    verifyDescending(kismpl::mem_greater_equal(&Struct::idConstFunc));
+    verifyDescending(kismpl::mem_greater_equal(&Struct::idNoexceptFunc));
+    verifyDescending(kismpl::mem_greater_equal(&Struct::idConstNoexceptFunc));
+}
+
 namespace kismpl2 {
 
 template<typename Class, typename MemType>
@@ -555,6 +636,45 @@ void KisMplTest::testMemberOperatorsAccumulateToKisSharedPtr()
         const int result = std::accumulate(vec.begin(), vec.end(), 0, kismpl::mem_bit_xor(&StructWithShared::idConstFunc));
         QCOMPARE(result, 4);
     }
+}
+
+void KisMplTest::testMemberOperatorFactories()
+{
+    Struct lhs(6);
+    Struct rhs(3);
+
+    QCOMPARE(kismpl::mem_bit_or(&Struct::id)(lhs, rhs), 7);
+    QCOMPARE(kismpl::mem_bit_or(&Struct::idConstFunc)(lhs, rhs), 7);
+    QCOMPARE(kismpl::mem_bit_and(&Struct::id)(lhs, rhs), 2);
+    QCOMPARE(kismpl::mem_bit_and(&Struct::idFunc)(lhs, rhs), 2);
+    QCOMPARE(kismpl::mem_bit_xor(&Struct::id)(lhs, rhs), 5);
+    QCOMPARE(kismpl::mem_bit_xor(&Struct::idFunc)(lhs, rhs), 5);
+    QCOMPARE(kismpl::mem_plus(&Struct::id)(lhs, rhs), 9);
+    QCOMPARE(kismpl::mem_plus(&Struct::idFunc)(lhs, rhs), 9);
+    QCOMPARE(kismpl::mem_minus(&Struct::id)(lhs, rhs), 3);
+    QCOMPARE(kismpl::mem_minus(&Struct::idFunc)(lhs, rhs), 3);
+    QCOMPARE(kismpl::mem_multiplies(&Struct::id)(lhs, rhs), 18);
+    QCOMPARE(kismpl::mem_multiplies(&Struct::idFunc)(lhs, rhs), 18);
+    QCOMPARE(kismpl::mem_divides(&Struct::id)(lhs, rhs), 2);
+    QCOMPARE(kismpl::mem_divides(&Struct::idFunc)(lhs, rhs), 2);
+}
+
+void KisMplTest::testFinally()
+{
+    bool called = false;
+    auto cleanup = [&called] {
+        called = true;
+    };
+    using Guard = kismpl::finally<decltype(cleanup)>;
+
+    static_assert(!std::is_copy_constructible_v<Guard>);
+    static_assert(!std::is_move_constructible_v<Guard>);
+
+    {
+        Guard guard(std::move(cleanup));
+        QVERIFY(!called);
+    }
+    QVERIFY(called);
 }
 
 
