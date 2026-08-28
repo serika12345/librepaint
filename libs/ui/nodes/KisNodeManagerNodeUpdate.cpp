@@ -19,3 +19,11 @@ void KisNodeManager::nodesUpdated()
     NodeUpdateAccess::notifySelectionChanged(this);
     NodeUpdateAccess::setTimelinePinned(this, NodeUpdateAccess::isPinnedToTimeline(node));
 }
+
+void KisNodeManager::slotPinToTimeline(bool value)
+{
+    const KisNodeList nodes = NodeUpdateAccess::selectedNodes(this);
+    for (const KisNodeSP &node : nodes) {
+        NodeUpdateAccess::setNodePinnedToTimeline(node, value);
+    }
+}

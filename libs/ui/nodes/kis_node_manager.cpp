@@ -682,13 +682,6 @@ void KisNodeManager::createFromVisible()
     KisLayerUtils::newLayerFromVisible(m_d->view->image(), m_d->view->image()->root()->lastChild());
 }
 
-void KisNodeManager::slotPinToTimeline(bool value)
-{
-    Q_FOREACH (KisNodeSP node, selectedNodes()) {
-        node->setPinnedToTimeline(value);
-    }
-}
-
 KisLayerSP KisNodeManager::createPaintLayer()
 {
     KisNodeSP node = createNode("KisPaintLayer");
@@ -1031,6 +1024,16 @@ void KisNodeManager::NodeUpdateAccess::setTimelinePinned(KisNodeManager *manager
 {
     KisSignalsBlocker blocker(manager->m_d->pinToTimeline);
     manager->m_d->pinToTimeline->setChecked(value);
+}
+
+KisNodeList KisNodeManager::NodeUpdateAccess::selectedNodes(KisNodeManager *manager)
+{
+    return manager->m_d->selectedNodes;
+}
+
+void KisNodeManager::NodeUpdateAccess::setNodePinnedToTimeline(KisNodeSP node, bool value)
+{
+    node->setPinnedToTimeline(value);
 }
 
 void KisNodeManager::duplicateActiveNode()

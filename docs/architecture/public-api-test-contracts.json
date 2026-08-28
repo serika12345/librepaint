@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25128
+    "expectedMissingApis": 25127
   },
   "contracts": [
     {
@@ -12490,6 +12490,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::nodesUpdated()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeUpdateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeUpdateContractTest.cpp",
+      "test": "KisNodeManagerNodeUpdateContractTest::timelinePinningUpdatesEverySelectedNode",
+      "behavior": "時間軸固定状態の設定は空選択では無作用とし、選択一覧の全ノードへ一覧順に指定した真偽値を設定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotPinToTimeline(bool value)"
       ]
     }
   ]

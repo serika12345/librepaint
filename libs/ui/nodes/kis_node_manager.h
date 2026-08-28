@@ -392,6 +392,8 @@ protected:
         static void notifySelectionChanged(KisNodeManager *manager);
         static bool isPinnedToTimeline(KisNodeSP node);
         static void setTimelinePinned(KisNodeManager *manager, bool value);
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static void setNodePinnedToTimeline(KisNodeSP node, bool value);
     };
 
 private:

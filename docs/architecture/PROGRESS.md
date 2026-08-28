@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 08:44 JST
+- 更新日時: 2026-08-29 08:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7035,11 +7035,26 @@
   公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,861件、
   未対応25,128件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 選択ノードの時間軸固定 public API契約で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった選択ノード一覧の時間軸固定状態設定を、既存
+  `libs/ui/nodes/KisNodeManagerNodeUpdate.cpp`へ移した。選択一覧の取得と各ノードへの具体設定は移動元の
+  保護境界に残し、既存`kritauinodemanagernodeupdateobjects`を拡張して新しいCMake対象や依存を追加していない。
+- `libs/ui/nodes/kis_node_manager.h`の`slotPinToTimeline`を、既存
+  `libs/ui/tests/KisNodeManagerNodeUpdateContractTest.cpp`の1試験へ対応付けた。空選択の無操作、複数選択の
+  一覧順、全ノードへの`true`と`false`の設定を固定した。実装接続前のリンクは`slotPinToTimeline`だけを
+  未解決記号として診断した。
+- ノード更新対象は1工程・3入力、拡張後の試験は5工程・17入力、製品`kritaapplicationui`閉包は
+  1,807工程・3,614入力、既存`KisNodeManagerTest`は1,811工程・3,621入力を維持した。対象CTestのmacOS
+  単発実行と20回反復、元の`kis_node_manager.cpp`単体のコンパイル、公開API契約検査、高速検査は成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み4,862件、未対応25,127件になった。
+  製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る66 APIのうち、選択ノードの時間軸固定状態設定を次の小単位とする。
-`kis_node_manager.cpp`の`slotPinToTimeline`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を
-監査し、空選択の無操作と全選択ノードへの指定値設定を具体ノード効果から分けて挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る65 APIのうち、次・前の兄弟ノード有効化を次の小単位とする。
+`kis_node_manager.cpp`の`activateNextSiblingNode`と`activatePreviousSiblingNode`について、対象指定の変更なし計画、
+直接CMake依存、空構築閉包を監査し、兄弟限定指定を実際の前後移動処理から分けて挙動契約を追加する。
 
 ## R1-G5完了根拠
 
