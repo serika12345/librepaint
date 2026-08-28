@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 11:25 JST
+- 更新日時: 2026-08-28 11:27 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4007,7 +4007,7 @@
 
 ## R2-G19b Linux同期検証で完了した作業
 
-- macOSの`develop`を`1513a322`までGit履歴として`ssh nixos`上の
+- macOSの`develop`を`4d4c937b`までGit履歴として`ssh nixos`上の
   `/home/masato/Documents/librepaint`へfast-forwardし、同期後の作業木がクリーンであることを確認した。
 - Linux実機の永続Ninja木で`KisStrokeJobContractTest`、`kis_vec_test`、
   `KisWraparoundAxisContractTest`、`KisTimingInformationContractTest`、
@@ -4019,7 +4019,8 @@
   `KoInsetsContractTest`、`KisSpacingInformationContractTest`、`KisHistoryListTest`、
   `KritaContainerUtilsContractTest`、`TestKoIntegerMaths`、`KoColorSpaceConstantsContractTest`、
   `kritapigmentcmykmathsobjects`、`KoCmykColorSpaceMathsContractTest`、`kritapigmentmathsobjects`、
-  `KoCmykColorSpaceTraitsContractTest`、`kritapigmentlabmathsobjects`、
+  `KoCmykColorSpaceTraitsContractTest`、`KoColorSpacePreserveLightnessUtilsContractTest`、
+  `kritapigmentlabmathsobjects`、
   `KoLabColorSpaceMathsContractTest`、`KoGrayColorSpaceTraitsContractTest`、
   `KoBgrColorSpaceTraitsContractTest`だけを限定構築した。
   各CTestの単発実行と20回反復が成功し、直近の契約と構築分離がmacOSとLinuxで一致した。変更なし構築
@@ -4032,8 +4033,8 @@
   1工程・3入力、図形余白試験は5工程・13入力、描画間隔試験は4工程・13入力、整列履歴試験は4工程・
   10入力、コンテナー補助試験、整数演算試験、不透明度端点試験は各4工程・10入力、CMYK尺度定数とLab
   尺度定数の製品実装対象は各1工程・3入力、各試験は5工程・21入力、基礎色数値特性の製品実装対象は
-  1工程・3入力、CMYK画素特性試験は6工程・23入力、灰色・BGR画素特性試験は各4工程・18入力である。
-  全ネイティブ検証は実行していない。
+  1工程・3入力、CMYK画素特性試験は6工程・23入力、灰色ブラシ明度保持試験は5工程・21入力、灰色・
+  BGR画素特性試験は各4工程・18入力である。全ネイティブ検証は実行していない。
 
 ## R2-G19b 描画タイミング情報 public API契約で完了した作業
 
