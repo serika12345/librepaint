@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26009
+    "expectedMissingApis": 26004
   },
   "contracts": [
     {
@@ -8962,6 +8962,20 @@
         "enumerator:KisInputEventSuppressor::SuppressionReason::TouchBegin",
         "method:KisInputEventSuppressor::startBlockingTouchEvents()",
         "method:KisInputEventSuppressor::stopBlockingTouchEvents()"
+      ]
+    },
+    {
+      "target": "KisTouchGestureTypeContractTest",
+      "source": "libs/input/tests/KisTouchGestureTypeContractTest.cpp",
+      "test": "KisTouchGestureTypeContractTest::valuesRemainStable",
+      "behavior": "未対応、タップ、ドラッグ、長押しのジェスチャー種別は公開された連続識別値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisTouchGestureType",
+        "enumerator:KisTouchGestureType::Drag",
+        "enumerator:KisTouchGestureType::Hold",
+        "enumerator:KisTouchGestureType::Tap",
+        "enumerator:KisTouchGestureType::Unsupported"
       ]
     }
   ]

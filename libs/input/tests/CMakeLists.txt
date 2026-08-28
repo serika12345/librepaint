@@ -47,3 +47,9 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisTimedSignalThresholdContractTest PRIVATE kritainput_EXPORTS)
+
+kis_add_test(
+    KisTouchGestureTypeContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisTouchGestureTypeContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
