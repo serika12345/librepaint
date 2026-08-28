@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25161
+    "expectedMissingApis": 25156
   },
   "contracts": [
     {
@@ -12232,6 +12232,29 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::selectionForNode(KisNodeSP node,KisImageWSP image) const"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeStateContractTest.cpp",
+      "test": "KisNodeManagerNodeStateContractTest::activeNodeClassificationsRequireCurrentNodeState",
+      "behavior": "現在ノードがない場合はレイヤー、指定型、編集可能、編集可能描画装置の各判定を偽とする。現在ノードがある場合は各ノード状態を独立して反映し、型継承は指定した型名を区別する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activeNodeHasEditablePaintDevice()",
+        "method:KisNodeManager::activeNodeInherits(const QString & type)",
+        "method:KisNodeManager::activeNodeIsEditable()",
+        "method:KisNodeManager::activeNodeIsLayer()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeStateContractTest.cpp",
+      "test": "KisNodeManagerNodeStateContractTest::hiddenNodesFollowFakeAndGlobalSelectionState",
+      "behavior": "仮想ノードは常に非表示とし、画像全体の選択を隠す場合は最上位の選択マスクも非表示とする。通常ノード、階層内の選択マスク、画像全体の選択を表示する場合は表示対象に保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::isNodeHidden(KisNodeSP node,bool isGlobalSelectionHidden)"
       ]
     }
   ]

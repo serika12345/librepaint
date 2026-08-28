@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 06:59 JST
+- 更新日時: 2026-08-29 07:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6778,12 +6778,35 @@
   1,549ヘッダー、29,989 API、対応済み4,828件、未対応25,161件になった。製品
   `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード管理の状態分類 public API契約と具体ノードアクセス分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった現在ノードのレイヤー判定、型継承、編集可能性、編集可能な
+  描画装置と、仮想ノード・画像全体の選択マスクの非表示判断を、新規
+  `libs/ui/nodes/KisNodeManagerNodeState.cpp`へ移した。具体ノード型と状態の取得は新規
+  `libs/ui/nodes/KisNodeManagerNodeStateSource.cpp`へ移し、製品`kritaapplicationui`は新規
+  `kritauinodemanagernodestateobjects`と`kritauinodemanagernodestatesourceobjects`を各1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`のうち5 APIを、新規
+  `libs/ui/tests/KisNodeManagerNodeStateContractTest.cpp`の2試験へ対応付けた。現在ノードがない場合の
+  各判定、レイヤー、指定型、編集可能性、編集可能描画装置の独立した状態反映、仮想ノードの常時非表示、
+  画像全体の選択を隠す場合の最上位選択マスク、階層内選択マスクの表示を固定した。
+- 実装接続前のリンクは、対象とした`activeNodeIsLayer`、`activeNodeInherits`、`activeNodeIsEditable`、
+  `activeNodeHasEditablePaintDevice`、`isNodeHidden`だけを未解決記号として診断し、製品ライブラリー由来の
+  未解決参照を含まなかった。
+- 変更前の既存隔離対象`KisNodeManagerTest`は1,801工程・3,601入力だった。判断と具体アクセスは
+  各1工程・3入力、新規試験は5工程・17入力に収めた。製品`kritaapplicationui`閉包は
+  1,797工程・3,594入力から1,799工程・3,598入力になった。
+- 両局所対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,833件、
+  未対応25,156件になった。元オブジェクトのNinja出力は429工程の順序依存を持ち、無関係な既存
+  `kritaresourceui`リンクの未解決記号で停止したため、コンパイルデータベースの1命令だけで検証した。
+  製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る99 APIのうち、現在ノード・レイヤー・描画装置・色空間の
-取得、編集可能性、名前・不透明度・合成方法の変更を次の小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の
-対象実装について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、画像、表示管理、操作管理へ
-届く具体効果を局所所有へ分離してから挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る94 APIのうち、名前、不透明度、合成方法の変更と、現在ノードへ
+不透明度・合成方法を適用するスロットを次の小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の対象実装について、
+対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、変更不要判定と不透明度尺度変換を局所所有へ、
+画像undo命令への具体効果を既存所有側へ分けてから挙動契約を追加する。
 
 ## R1-G5完了根拠
 

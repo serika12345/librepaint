@@ -453,30 +453,6 @@ KisNodeSP KisNodeManager::activeNode()
     return 0;
 }
 
-bool KisNodeManager::activeNodeIsLayer()
-{
-    const KisNodeSP node = activeNode();
-    return node && qobject_cast<const KisLayer *>(node.data());
-}
-
-bool KisNodeManager::activeNodeInherits(const QString &type)
-{
-    const KisNodeSP node = activeNode();
-    return node && node->inherits(type.toLatin1());
-}
-
-bool KisNodeManager::activeNodeIsEditable()
-{
-    const KisNodeSP node = activeNode();
-    return node && node->isEditable(false);
-}
-
-bool KisNodeManager::activeNodeHasEditablePaintDevice()
-{
-    const KisNodeSP node = activeNode();
-    return node && node->hasEditablePaintDevice();
-}
-
 KisLayerSP KisNodeManager::activeLayer()
 {
     return m_d->layerManager.activeLayer();
@@ -1017,20 +993,6 @@ KisNodeInsertionAdapter* KisNodeManager::nodeInsertionAdapter() const
 KisNodeDisplayModeAdapter *KisNodeManager::nodeDisplayModeAdapter() const
 {
     return m_d->nodeDisplayModeAdapter.data();
-}
-
-bool KisNodeManager::isNodeHidden(KisNodeSP node, bool isGlobalSelectionHidden)
-{
-    if (node && node->isFakeNode()) {
-        return true;
-    }
-
-    if (isGlobalSelectionHidden && dynamic_cast<KisSelectionMask *>(node.data()) &&
-            (!node->parent() || !node->parent()->parent())) {
-        return true;
-    }
-
-    return false;
 }
 
 bool KisNodeManager::trySetNodeProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties) const

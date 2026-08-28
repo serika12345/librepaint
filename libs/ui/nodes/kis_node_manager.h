@@ -314,6 +314,16 @@ protected:
         static KisSelectionSP globalSelection(KisImageWSP image);
     };
 
+    struct KRITAUI_EXPORT NodeStateAccess {
+        static bool isLayer(KisNodeSP node);
+        static bool inheritsType(KisNodeSP node, const QString &type);
+        static bool isEditable(KisNodeSP node);
+        static bool hasEditablePaintDevice(KisNodeSP node);
+        static bool isFakeNode(KisNodeSP node);
+        static bool isSelectionMask(KisNodeSP node);
+        static KisNodeSP parentNode(KisNodeSP node);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

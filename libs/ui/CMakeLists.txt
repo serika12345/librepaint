@@ -185,7 +185,7 @@ set_target_properties(kritauimultinodepropertysourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-set(kritauinodemanagerimagestate_INCLUDE_DIRS
+set(kritauinodemanager_INCLUDE_DIRS
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
@@ -223,7 +223,7 @@ target_include_directories(kritauinodemanagerimagestateobjects
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     PRIVATE
-        ${kritauinodemanagerimagestate_INCLUDE_DIRS}
+        ${kritauinodemanager_INCLUDE_DIRS}
 )
 target_link_libraries(kritauinodemanagerimagestateobjects
     PRIVATE
@@ -252,7 +252,7 @@ target_include_directories(kritauinodemanagerimagestatesourceobjects
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     PRIVATE
-        ${kritauinodemanagerimagestate_INCLUDE_DIRS}
+        ${kritauinodemanager_INCLUDE_DIRS}
 )
 target_link_libraries(kritauinodemanagerimagestatesourceobjects
     PRIVATE
@@ -266,6 +266,64 @@ target_link_libraries(kritauinodemanagerimagestatesourceobjects
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritauinodemanagerimagestatesourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagernodestateobjects OBJECT
+    nodes/KisNodeManagerNodeState.cpp
+)
+target_compile_definitions(kritauinodemanagernodestateobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagernodestateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagernodestateobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagernodestateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagernodestatesourceobjects OBJECT
+    nodes/KisNodeManagerNodeStateSource.cpp
+)
+target_compile_definitions(kritauinodemanagernodestatesourceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagernodestatesourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagernodestatesourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagernodestatesourceobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -292,6 +350,8 @@ set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauimultinodepropertysourceobjects>
     $<TARGET_OBJECTS:kritauinodemanagerimagestateobjects>
     $<TARGET_OBJECTS:kritauinodemanagerimagestatesourceobjects>
+    $<TARGET_OBJECTS:kritauinodemanagernodestateobjects>
+    $<TARGET_OBJECTS:kritauinodemanagernodestatesourceobjects>
 
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp

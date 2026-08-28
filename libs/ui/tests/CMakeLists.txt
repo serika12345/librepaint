@@ -170,9 +170,28 @@ kis_add_test(
         ${LINK_OPENEXR_LIB}
 )
 target_include_directories(KisNodeManagerImageStateContractTest PRIVATE
-    ${kritauinodemanagerimagestate_INCLUDE_DIRS}
+    ${kritauinodemanager_INCLUDE_DIRS}
 )
 target_compile_definitions(KisNodeManagerImageStateContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
+    KisNodeManagerNodeStateContractTest.cpp
+    TEST_NAME KisNodeManagerNodeStateContractTest
+    LINK_LIBRARIES
+        kritauinodemanagernodestateobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+target_include_directories(KisNodeManagerNodeStateContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_compile_definitions(KisNodeManagerNodeStateContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
