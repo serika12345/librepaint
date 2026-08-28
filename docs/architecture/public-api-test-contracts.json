@@ -16,7 +16,7 @@
     "publicApiFingerprint": "ee8d114ea870ea9c3dc0ebbd656b80ba23158cfe08a87f13471d78a532a9cbb8"
   },
   "migration": {
-    "expectedMissingApis": 28266
+    "expectedMissingApis": 28244
   },
   "contracts": [
     {
@@ -5270,6 +5270,73 @@
         "class:KisSignalMapper",
         "method:KisSignalMapper::KisSignalMapper(QObject * parent=nullptr)",
         "method:KisSignalMapper::~KisSignalMapper()"
+      ]
+    },
+    {
+      "target": "KisSynchronizedConnectionContractTest",
+      "source": "libs/global/tests/KisSynchronizedConnectionContractTest.cpp",
+      "test": "KisSynchronizedConnectionContractTest::eventCopiesTypeAndTracksDestinationLifetime",
+      "behavior": "同期接続事象とそのコピーは登録済み事象型と宛先弱参照を共有し、宛先の破棄を双方へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSynchronizedConnectionEvent::destination",
+        "method:KisSynchronizedConnectionBase::eventType()",
+        "method:KisSynchronizedConnectionEvent::KisSynchronizedConnectionEvent(QObject * _destination)",
+        "method:KisSynchronizedConnectionEvent::KisSynchronizedConnectionEvent(const KisSynchronizedConnectionEvent & rhs)",
+        "method:KisSynchronizedConnectionEvent::~KisSynchronizedConnectionEvent()",
+        "struct:KisSynchronizedConnectionEvent"
+      ]
+    },
+    {
+      "target": "KisSynchronizedConnectionContractTest",
+      "source": "libs/global/tests/KisSynchronizedConnectionContractTest.cpp",
+      "test": "KisSynchronizedConnectionContractTest::callbackConstructionQueuesAndDeliversInOrder",
+      "behavior": "同期接続は引数組とコールバック型を保持し、同一スレッド自動方式では即時に、通常方式では事象待ち行列の入力順に全引数を配送して保留状態を更新する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSynchronizedConnection::ArgsTuple",
+        "alias:KisSynchronizedConnection::CallbackFunction",
+        "class:KisSynchronizedConnection",
+        "method:KisSynchronizedConnection::KisSynchronizedConnection()",
+        "method:KisSynchronizedConnection::KisSynchronizedConnection(CallbackFunction callback)",
+        "method:KisSynchronizedConnection::hasPendingSignals() const",
+        "method:KisSynchronizedConnection::setCallback(CallbackFunction callback)",
+        "method:KisSynchronizedConnection::start(const Args &...argsTuple)"
+      ]
+    },
+    {
+      "target": "KisSynchronizedConnectionContractTest",
+      "source": "libs/global/tests/KisSynchronizedConnectionContractTest.cpp",
+      "test": "KisSynchronizedConnectionContractTest::inputAndOutputConnectionsForwardArguments",
+      "behavior": "入力Qt信号と出力メンバー関数を個別に接続すると、送出された全引数が出力先へ一度配送される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSynchronizedConnection::connectInputSignal(Dptr object,R (C::* memfn)(MemFnArgs...))",
+        "method:KisSynchronizedConnection::connectOutputSlot(Dptr object,R (C::* memfn)(MemFnArgs...))"
+      ]
+    },
+    {
+      "target": "KisSynchronizedConnectionContractTest",
+      "source": "libs/global/tests/KisSynchronizedConnectionContractTest.cpp",
+      "test": "KisSynchronizedConnectionContractTest::synchronizedConnectionWiresBothEnds",
+      "behavior": "一括接続は入力Qt信号と出力メンバー関数を同時に結び、送出された全引数を出力先へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSynchronizedConnection::connectSync(Dptr1 object1,R1 (C1::* memfn1)(MemFnArgs1...),Dptr2 object2,R2 (C2::* memfn2)(MemFnArgs2...))"
+      ]
+    },
+    {
+      "target": "KisSynchronizedConnectionContractTest",
+      "source": "libs/global/tests/KisSynchronizedConnectionContractTest.cpp",
+      "test": "KisSynchronizedConnectionContractTest::baseConfigurationAndBarrierControlDelivery",
+      "behavior": "同期接続基底は試験用自動方式を設定・照会し、登録した障壁を全同期事象の強制配送時に呼び出す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSynchronizedConnectionBase",
+        "method:KisSynchronizedConnectionBase::forceDeliverAllSynchronizedEvents()",
+        "method:KisSynchronizedConnectionBase::isAutoModeForUnittestsEnabled()",
+        "method:KisSynchronizedConnectionBase::registerSynchronizedEventBarrier(std::function<void ()> callback)",
+        "method:KisSynchronizedConnectionBase::setAutoModeForUnittestsEnabled(bool value)"
       ]
     }
   ]
