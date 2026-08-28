@@ -21,3 +21,14 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisInputProfileContractTest PRIVATE kritainput_EXPORTS)
+
+kis_add_test(
+    KisAbstractShortcutContractTest.cpp
+    LINK_LIBRARIES
+        kritainputabstractshortcutobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisAbstractShortcutContractTest PRIVATE
+    kritacanvas_EXPORTS
+    kritainput_EXPORTS
+)

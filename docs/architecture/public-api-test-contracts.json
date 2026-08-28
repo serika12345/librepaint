@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26086
+    "expectedMissingApis": 26066
   },
   "contracts": [
     {
@@ -8696,6 +8696,89 @@
       "classification": "maintained",
       "apis": [
         "method:KisInputProfile::~KisInputProfile()"
+      ]
+    },
+    {
+      "target": "KisAbstractShortcutContractTest",
+      "source": "libs/input/tests/KisAbstractShortcutContractTest.cpp",
+      "test": "KisAbstractShortcutContractTest::retainsBorrowedActionIndexAndPriority",
+      "behavior": "基本ショートカットは借用した入力操作、操作内索引、および派生種別が定める優先度を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractShortcut",
+        "method:KisAbstractShortcut::KisAbstractShortcut(KisInputAction * action,int index)",
+        "method:KisAbstractShortcut::action() const",
+        "method:KisAbstractShortcut::priority() const",
+        "method:KisAbstractShortcut::shortcutIndex() const"
+      ]
+    },
+    {
+      "target": "KisAbstractShortcutContractTest",
+      "source": "libs/input/tests/KisAbstractShortcutContractTest.cpp",
+      "test": "KisAbstractShortcutContractTest::replacesBorrowedAction",
+      "behavior": "基本ショートカットは借用する入力操作を呼出し側が指定した別の操作へ置き換える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractShortcut::setAction(KisInputAction * action)"
+      ]
+    },
+    {
+      "target": "KisAbstractShortcutContractTest",
+      "source": "libs/input/tests/KisAbstractShortcutContractTest.cpp",
+      "test": "KisAbstractShortcutContractTest::availabilityRequiresMatchingGroupAndAvailableAction",
+      "behavior": "ショートカットは操作内索引の入力グループが許可マスクと交差し、入力操作自体も利用可能な場合だけ利用できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractShortcut::isAvailable(KisInputActionGroupsMask mask) const"
+      ]
+    },
+    {
+      "target": "KisAbstractShortcutContractTest",
+      "source": "libs/input/tests/KisAbstractShortcutContractTest.cpp",
+      "test": "KisAbstractShortcutContractTest::destructionIsPolymorphic",
+      "behavior": "基本ショートカットを指すポインターからの破棄は派生ショートカットの破棄処理まで実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractShortcut::~KisAbstractShortcut()"
+      ]
+    },
+    {
+      "target": "KisAbstractShortcutContractTest",
+      "source": "libs/input/tests/KisAbstractShortcutContractTest.cpp",
+      "test": "KisAbstractShortcutContractTest::inputActionDispatchesLifecycleEvents",
+      "behavior": "入力操作の有効化、開始、入力事象、終了、無効化は基底接続面から具体実装へ索引と事象を渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputAction::activate(int shortcut)",
+        "method:KisInputAction::begin(int shortcut,QEvent * event)",
+        "method:KisInputAction::deactivate(int shortcut)",
+        "method:KisInputAction::end(QEvent * event)",
+        "method:KisInputAction::inputEvent(QEvent * event)"
+      ]
+    },
+    {
+      "target": "KisAbstractShortcutContractTest",
+      "source": "libs/input/tests/KisAbstractShortcutContractTest.cpp",
+      "test": "KisAbstractShortcutContractTest::inputActionReportsMatcherProperties",
+      "behavior": "入力操作は高解像度事象対応、入力グループ、優先度、修飾キー無視、利用可能性を基底接続面から報告する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputAction::canIgnoreModifiers() const",
+        "method:KisInputAction::inputActionGroup(int shortcut) const",
+        "method:KisInputAction::isAvailable() const",
+        "method:KisInputAction::priority() const",
+        "method:KisInputAction::supportsHiResInputEvents(int shortcut) const"
+      ]
+    },
+    {
+      "target": "KisAbstractShortcutContractTest",
+      "source": "libs/input/tests/KisAbstractShortcutContractTest.cpp",
+      "test": "KisAbstractShortcutContractTest::inputActionDestructionIsPolymorphic",
+      "behavior": "入力操作の基底ポインターからの破棄は具体入力操作の破棄処理まで実行する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInputAction",
+        "method:KisInputAction::~KisInputAction()"
       ]
     }
   ]

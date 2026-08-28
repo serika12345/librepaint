@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 18:36 JST
+- 更新日時: 2026-08-28 18:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5379,10 +5379,25 @@
   3,881件、未対応基準は26,086件になり、同ヘッダーのpublic APIは全件対応済みになった。
   Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 基本ショートカット・入力操作 public API契約と構築所有分離で完了した作業
+
+- `libs/input/kis_abstract_shortcut.cpp`は同じ配置のまま、`kritainput`の直接ソース所有から
+  新規`kritainputabstractshortcutobjects`の所有へ移し、製品`kritainput`が生成オブジェクトを
+  1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは維持した。
+- `libs/input/kis_abstract_shortcut.h`の借用操作、操作内索引、優先度、操作置換、入力グループと
+  操作状態による利用可能性からなる1クラス・7メソッドの8 APIと、
+  `libs/input/KisInputAction.h`の入力ライフサイクルと照合特性からなる1クラス・11メソッドの
+  12 APIを、新規`libs/input/tests/KisAbstractShortcutContractTest.cpp`の7対応試験へ全件対応付けた。
+  保護されたキー集合比較の順序非依存性も同じ対象の追加試験で固定した。
+- 1,050工程・2,117入力の既存入力照合試験へ接続せず、専用実装は1工程・3入力、専用試験は
+  macOSで5工程・11入力に収めた。対象実行と20回反復に成功した。対応済みは3,901件、
+  未対応基準は26,066件になり、両ヘッダーのpublic APIは全件対応済みになった。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/input/kis_abstract_shortcut.h`の入力操作、索引、利用可能性APIについて、既存試験、直接依存、
-変更なし構築閉包を監査し、必要なら基本ショートカット実装を先に分離してから局所契約を追加する。
+`libs/canvas/KisInputActionGroup.h`の入力グループ、マスク、期間限定マスクAPIについて、既存試験、
+直接依存、変更なし構築閉包を監査し、必要ならマスク実装を先に分離してから局所契約を追加する。
 
 ## R1-G5完了根拠
 
