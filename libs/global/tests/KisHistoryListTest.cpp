@@ -127,5 +127,32 @@ void KisHistoryListTest::testSortedList()
     QCOMPARE(getState(list), refState({13, 12, 3, 11, 10}));
 }
 
+void KisHistoryListTest::testSortedListAccessAndClear()
+{
+    KisSortedHistoryList<int> list(3);
+
+    QCOMPARE(list.maxSize(), 3);
+    QCOMPARE(list.size(), 0);
+    KisSortedHistoryList<int>::const_iterator begin = list.cbegin();
+    QCOMPARE(begin, list.cend());
+
+    list.append(4);
+    list.append(2);
+    list.append(3);
+    QCOMPARE(list.at(0), 3);
+    QCOMPARE(list.at(1), 2);
+    QCOMPARE(list.at(2), 4);
+
+    list.setCompareLess(std::less<>());
+    QCOMPARE(list.at(0), 2);
+    QCOMPARE(list.at(1), 3);
+    QCOMPARE(list.at(2), 4);
+
+    list.clear();
+    QCOMPARE(list.size(), 0);
+    begin = list.cbegin();
+    QCOMPARE(begin, list.cend());
+}
+
 
 QTEST_GUILESS_MAIN(KisHistoryListTest)

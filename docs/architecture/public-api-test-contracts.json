@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27842
+    "expectedMissingApis": 27830
   },
   "contracts": [
     {
@@ -3953,6 +3953,36 @@
       "apis": [
         "method:KisSpacingInformation::KisSpacingInformation(bool distanceSpacingEnabled,const QPointF & anisotropicSpacing,qreal rotation,bool coordinateSystemFlipped)",
         "method:KisSpacingInformation::KisSpacingInformation(const QPointF & anisotropicSpacing,qreal rotation,bool coordinateSystemFlipped)"
+      ]
+    },
+    {
+      "target": "KisHistoryListTest",
+      "source": "libs/global/tests/KisHistoryListTest.cpp",
+      "test": "KisHistoryListTest::testSortedList",
+      "behavior": "整列履歴は最近使用した値を上限内に保ち、比較関数の設定、変更、解除に応じて表示順を再構成する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSortedHistoryList::compare_less",
+        "class:KisSortedHistoryList",
+        "method:KisSortedHistoryList::KisSortedHistoryList(int size)",
+        "method:KisSortedHistoryList::append(const T & value)",
+        "method:KisSortedHistoryList::setCompareLess(compare_less func)"
+      ]
+    },
+    {
+      "target": "KisHistoryListTest",
+      "source": "libs/global/tests/KisHistoryListTest.cpp",
+      "test": "KisHistoryListTest::testSortedListAccessAndClear",
+      "behavior": "整列履歴は最大件数と現在件数を返し、位置参照と定数反復子で現在順を公開し、消去後に空範囲を返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSortedHistoryList::const_iterator",
+        "method:KisSortedHistoryList::at(int pos) const",
+        "method:KisSortedHistoryList::cbegin() const",
+        "method:KisSortedHistoryList::cend() const",
+        "method:KisSortedHistoryList::clear()",
+        "method:KisSortedHistoryList::maxSize() const",
+        "method:KisSortedHistoryList::size() const"
       ]
     }
   ]
