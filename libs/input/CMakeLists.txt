@@ -138,9 +138,29 @@ set_target_properties(kritainputtouchshortcutobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritainputsingleactionshortcutobjects OBJECT
+    kis_single_action_shortcut.cpp
+)
+target_compile_definitions(kritainputsingleactionshortcutobjects PRIVATE kritainput_EXPORTS)
+target_include_directories(kritainputsingleactionshortcutobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+)
+target_link_libraries(kritainputsingleactionshortcutobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritainputsingleactionshortcutobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritainput_LIB_SRCS
     kis_shortcut_matcher.cpp
-    kis_single_action_shortcut.cpp
 )
 
 kis_add_library(kritainput SHARED
@@ -153,6 +173,7 @@ kis_add_library(kritainput SHARED
     $<TARGET_OBJECTS:kritainputnativegestureshortcutobjects>
     $<TARGET_OBJECTS:kritainputstrokeshortcutobjects>
     $<TARGET_OBJECTS:kritainputtouchshortcutobjects>
+    $<TARGET_OBJECTS:kritainputsingleactionshortcutobjects>
 )
 generate_export_header(kritainput BASE_NAME kritainput)
 

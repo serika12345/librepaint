@@ -8,7 +8,6 @@
 
 #include <QKeySequence>
 #include <KisInputAction.h>
-#include <kis_assert.h>
 
 class Q_DECL_HIDDEN KisSingleActionShortcut::Private
 {
@@ -83,7 +82,7 @@ bool KisSingleActionShortcut::conflictsWith(const QKeySequence &seq)
         seqMainKey &= ~Qt::AltModifier;
     }
 
-    KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(seqMainKey != 0, false);
+    if (seqMainKey == 0) return false;
     sequenceKeys.append(seqMainKey);
     std::sort(sequenceKeys.begin(), sequenceKeys.end());
 

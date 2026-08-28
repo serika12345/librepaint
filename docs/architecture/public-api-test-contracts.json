@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25978
+    "expectedMissingApis": 25963
   },
   "contracts": [
     {
@@ -9101,6 +9101,57 @@
       "apis": [
         "method:KisTouchShortcut::setDisabledWhenTouchPaintingActive(bool value)",
         "method:KisTouchShortcut::setTouchPaintingActiveCallback(std::function<bool ()> callback)"
+      ]
+    },
+    {
+      "target": "KisSingleActionShortcutContractTest",
+      "source": "libs/input/tests/KisSingleActionShortcutContractTest.cpp",
+      "test": "KisSingleActionShortcutContractTest::preservesPolymorphicLifetimeAndSpecificityPriority",
+      "behavior": "単一操作短縮は修飾キー数による具体性を入力操作の優先度へ加え、基本短縮操作の所有を通じて寿命を終了できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSingleActionShortcut",
+        "method:KisSingleActionShortcut::KisSingleActionShortcut(KisInputAction * action,int index)",
+        "method:KisSingleActionShortcut::priority() const",
+        "method:KisSingleActionShortcut::~KisSingleActionShortcut()"
+      ]
+    },
+    {
+      "target": "KisSingleActionShortcutContractTest",
+      "source": "libs/input/tests/KisSingleActionShortcutContractTest.cpp",
+      "test": "KisSingleActionShortcutContractTest::keyConfigurationMatchesExactKeysAndModifiers",
+      "behavior": "キー構成は完全一致する修飾キー集合と主キーだけに一致し、ホイール構成へ切り替えるとキー照合を停止する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSingleActionShortcut::match(const QSet<Qt::Key> & modifiers,Qt::Key key)",
+        "method:KisSingleActionShortcut::setKey(const QSet<Qt::Key> & modifiers,Qt::Key key)"
+      ]
+    },
+    {
+      "target": "KisSingleActionShortcutContractTest",
+      "source": "libs/input/tests/KisSingleActionShortcutContractTest.cpp",
+      "test": "KisSingleActionShortcutContractTest::wheelValuesAndConfigurationRemainStable",
+      "behavior": "5方向のホイール操作は公開識別値を維持し、完全一致する修飾キー集合と構成方向だけに一致する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisSingleActionShortcut::WheelAction",
+        "enumerator:KisSingleActionShortcut::WheelAction::WheelDown",
+        "enumerator:KisSingleActionShortcut::WheelAction::WheelLeft",
+        "enumerator:KisSingleActionShortcut::WheelAction::WheelRight",
+        "enumerator:KisSingleActionShortcut::WheelAction::WheelTrackpad",
+        "enumerator:KisSingleActionShortcut::WheelAction::WheelUp",
+        "method:KisSingleActionShortcut::match(const QSet<Qt::Key> & modifiers,WheelAction wheelAction)",
+        "method:KisSingleActionShortcut::setWheel(const QSet<Qt::Key> & modifiers,WheelAction wheelAction)"
+      ]
+    },
+    {
+      "target": "KisSingleActionShortcutContractTest",
+      "source": "libs/input/tests/KisSingleActionShortcutContractTest.cpp",
+      "test": "KisSingleActionShortcutContractTest::keyConflictsIncludePrefixesAndRejectInvalidSequences",
+      "behavior": "キー競合は構成とキー列の包含関係を検出し、空または修飾キーだけの列を競合なしとして返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSingleActionShortcut::conflictsWith(const QKeySequence & seq)"
       ]
     }
   ]
