@@ -215,6 +215,22 @@ set_target_properties(kritaglobalsignalcompressorobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalthreadsafesignalcompressorobjects OBJECT
+    kis_thread_safe_signal_compressor.cpp
+)
+target_compile_definitions(kritaglobalthreadsafesignalcompressorobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalthreadsafesignalcompressorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalthreadsafesignalcompressorobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritaglobalthreadsafesignalcompressorobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalrollingsumobjects OBJECT
     KisRollingSumAccumulatorWrapper.cpp
 )
@@ -322,7 +338,6 @@ set(kritaglobal_LIB_SRCS
     kis_painting_tweaks.cpp
     KisHandlePainterHelper.cpp
     KisHandleStyle.cpp
-    kis_thread_safe_signal_compressor.cpp
     kis_acyclic_signal_connector.cpp
     kis_config_notifier.cpp
     KisUsageLogger.cpp
@@ -365,6 +380,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalrandomsourceobjects>
     $<TARGET_OBJECTS:kritagloballatencytrackerobjects>
     $<TARGET_OBJECTS:kritaglobalsignalcompressorobjects>
+    $<TARGET_OBJECTS:kritaglobalthreadsafesignalcompressorobjects>
     $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
     $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
     $<TARGET_OBJECTS:kritaglobalsamplerectiteratorobjects>
