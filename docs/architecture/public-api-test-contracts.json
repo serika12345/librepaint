@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26426
+    "expectedMissingApis": 26361
   },
   "contracts": [
     {
@@ -7977,6 +7977,116 @@
       "classification": "maintained",
       "apis": [
         "method:KisTextureOptionData::lodLimitations() const"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::inputAndSamplerValuesRemainStable",
+      "behavior": "タッチ描画方針と色採取プレビュー形状は設定保存で共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisConfig::ColorSamplerPreviewStyle",
+        "enum:KisConfig::TouchPainting",
+        "enumerator:KisConfig::ColorSamplerPreviewStyle::Circle",
+        "enumerator:KisConfig::ColorSamplerPreviewStyle::Count",
+        "enumerator:KisConfig::ColorSamplerPreviewStyle::None",
+        "enumerator:KisConfig::ColorSamplerPreviewStyle::RectangleAbove",
+        "enumerator:KisConfig::ColorSamplerPreviewStyle::RectangleLeft",
+        "enumerator:KisConfig::ColorSamplerPreviewStyle::RectangleRight",
+        "enumerator:KisConfig::TouchPainting::TOUCH_PAINTING_AUTO",
+        "enumerator:KisConfig::TouchPainting::TOUCH_PAINTING_DISABLED",
+        "enumerator:KisConfig::TouchPainting::TOUCH_PAINTING_ENABLED"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::canvasSurfaceValuesRemainStable",
+      "behavior": "キャンバス表面の色空間方式とビット深度方式は表示設定が参照する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisConfig::CanvasSurfaceBitDepthMode",
+        "enum:KisConfig::CanvasSurfaceMode",
+        "enumerator:KisConfig::CanvasSurfaceBitDepthMode::Depth10Bit",
+        "enumerator:KisConfig::CanvasSurfaceBitDepthMode::Depth8Bit",
+        "enumerator:KisConfig::CanvasSurfaceBitDepthMode::DepthAuto",
+        "enumerator:KisConfig::CanvasSurfaceMode::Preferred",
+        "enumerator:KisConfig::CanvasSurfaceMode::Rec2020pq",
+        "enumerator:KisConfig::CanvasSurfaceMode::Rec709g10",
+        "enumerator:KisConfig::CanvasSurfaceMode::Rec709g22",
+        "enumerator:KisConfig::CanvasSurfaceMode::Unmanaged"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::sessionAndColorConfigurationValuesRemainStable",
+      "behavior": "起動セッション、メニューアイコン、OCIO管理、既定背景の設定方式は保存値に対応する宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisConfig::BackgroundStyle",
+        "enum:KisConfig::IconsInMenu",
+        "enum:KisConfig::OcioColorManagementMode",
+        "enum:KisConfig::SessionOnStartup",
+        "enumerator:KisConfig::BackgroundStyle::CANVAS_COLOR",
+        "enumerator:KisConfig::BackgroundStyle::FILL_LAYER",
+        "enumerator:KisConfig::BackgroundStyle::RASTER_LAYER",
+        "enumerator:KisConfig::IconsInMenu::IIM_Default",
+        "enumerator:KisConfig::IconsInMenu::IIM_No",
+        "enumerator:KisConfig::IconsInMenu::IIM_Yes",
+        "enumerator:KisConfig::OcioColorManagementMode::INTERNAL",
+        "enumerator:KisConfig::OcioColorManagementMode::OCIO_CONFIG",
+        "enumerator:KisConfig::OcioColorManagementMode::OCIO_ENVIRONMENT",
+        "enumerator:KisConfig::SessionOnStartup::SOS_BlankSession",
+        "enumerator:KisConfig::SessionOnStartup::SOS_PreviousSession",
+        "enumerator:KisConfig::SessionOnStartup::SOS_ShowSessionManager"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::selectionActionBarValuesRemainStable",
+      "behavior": "選択操作バーの挙動、8配置、向きは画面配置設定が参照する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisConfig::SelectionActionsBarBehavior",
+        "enum:KisConfig::SelectionActionsBarOrientation",
+        "enum:KisConfig::SelectionActionsBarPosition",
+        "enumerator:KisConfig::SelectionActionsBarBehavior::Fixed",
+        "enumerator:KisConfig::SelectionActionsBarBehavior::FreeFloating",
+        "enumerator:KisConfig::SelectionActionsBarOrientation::Horizontal",
+        "enumerator:KisConfig::SelectionActionsBarOrientation::Vertical",
+        "enumerator:KisConfig::SelectionActionsBarPosition::Bottom",
+        "enumerator:KisConfig::SelectionActionsBarPosition::BottomLeft",
+        "enumerator:KisConfig::SelectionActionsBarPosition::BottomRight",
+        "enumerator:KisConfig::SelectionActionsBarPosition::Left",
+        "enumerator:KisConfig::SelectionActionsBarPosition::Right",
+        "enumerator:KisConfig::SelectionActionsBarPosition::Top",
+        "enumerator:KisConfig::SelectionActionsBarPosition::TopLeft",
+        "enumerator:KisConfig::SelectionActionsBarPosition::TopRight"
+      ]
+    },
+    {
+      "target": "KisConfigEnumContractTest",
+      "source": "libs/application/tests/KisConfigEnumContractTest.cpp",
+      "test": "KisConfigEnumContractTest::displayAndAssistantValuesRemainStable",
+      "behavior": "ルート表面形式、レイヤー情報量、描画補助線キャッシュ方式は表示処理が参照する宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisConfig::AssistantsDrawMode",
+        "enum:KisConfig::LayerInfoTextStyle",
+        "enum:KisConfig::RootSurfaceFormat",
+        "enumerator:KisConfig::AssistantsDrawMode::ASSISTANTS_DRAW_MODE_DIRECT",
+        "enumerator:KisConfig::AssistantsDrawMode::ASSISTANTS_DRAW_MODE_LARGE_PIXMAP_CACHE",
+        "enumerator:KisConfig::AssistantsDrawMode::ASSISTANTS_DRAW_MODE_PIXMAP_CACHE",
+        "enumerator:KisConfig::LayerInfoTextStyle::INFOTEXT_BALANCED",
+        "enumerator:KisConfig::LayerInfoTextStyle::INFOTEXT_DETAILED",
+        "enumerator:KisConfig::LayerInfoTextStyle::INFOTEXT_NONE",
+        "enumerator:KisConfig::LayerInfoTextStyle::INFOTEXT_SIMPLE",
+        "enumerator:KisConfig::RootSurfaceFormat::BT2020_PQ",
+        "enumerator:KisConfig::RootSurfaceFormat::BT709_G10",
+        "enumerator:KisConfig::RootSurfaceFormat::BT709_G22"
       ]
     }
   ]
