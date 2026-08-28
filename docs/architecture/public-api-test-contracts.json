@@ -16,7 +16,7 @@
     "publicApiFingerprint": "062f37b66122600b650b62480acf43e6dc06ee55a551e313aeb87a1820068f78"
   },
   "migration": {
-    "expectedMissingApis": 25489
+    "expectedMissingApis": 25481
   },
   "contracts": [
     {
@@ -11362,6 +11362,59 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceItemChooser::updateView()"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::currentResourceTracksVisibleAndHiddenSelections",
+      "behavior": "資源個体による選択は対応索引を一覧へ渡し、索引が絞込みで非表示なら資源を記憶し、通常取得では表示中の選択だけ、明示取得では記憶した資源を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::currentResource(bool includeHidden=false) const",
+        "method:KisResourceItemChooser::setCurrentResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::activationSelectsValidResourcesAndBlocksReentry",
+      "behavior": "有効な別資源の活性化は現在資源を更新して一度通知し、通知中の再入選択を抑止してからプレビューと除去可否を更新し、無効資源は通知しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::resourceSelected(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::nameAndRowSelectionResolveIndexes",
+      "behavior": "名前選択は資源模型を走査して一致資源の索引を一覧とプレビューへ渡し、行選択は0列の有効索引だけを一覧とプレビューへ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::setCurrentItem(int row)",
+        "method:KisResourceItemChooser::setCurrentResource(QString resourceName)"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::previewModesAffectTheNextPreview",
+      "behavior": "タイル表示とグレースケール表示の指定は保持され、次の資源選択で更新するプレビューへ現在値を反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::setGrayscalePreview(bool grayscale)",
+        "method:KisResourceItemChooser::setPreviewTiled(bool tiled)"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::clickingSelectedResourceEmitsCurrentResource",
+      "behavior": "表示中の現在資源を再クリックするとその資源を一度通知し、選択が表示されていない場合は通知しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::resourceClicked(KoResourceSP resource)"
       ]
     }
   ]

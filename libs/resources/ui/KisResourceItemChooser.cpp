@@ -96,82 +96,6 @@ void KisResourceItemChooser::slotButtonClicked(int button)
     updateButtonState();
 }
 
-KoResourceSP KisResourceItemChooser::currentResource(bool includeHidden) const
-{
-    if (includeHidden || d->view->selectionModel()->isSelected(d->view->currentIndex())) {
-        return d->currentResource;
-    }
-
-    return nullptr;
-}
-
-void KisResourceItemChooser::setCurrentResource(KoResourceSP resource)
-{
-    // don't update if the change came from the same chooser
-    if (d->updatesBlocked) {
-        return;
-    }
-    QModelIndex index = d->tagFilterProxyModel->indexForResource(resource);
-    d->view->setCurrentIndex(index);
-
-    // The resource may currently be filtered out, but we want to be able
-    // to select it if the filter changes and includes the resource.
-    // Otherwise, activate() already took care of setting the current resource.
-    if (!index.isValid()) {
-        d->currentResource = resource;
-    }
-    updatePreview(index);
-}
-
-void KisResourceItemChooser::setCurrentResource(QString resourceName)
-{
-    // don't update if the change came from the same chooser
-    if (d->updatesBlocked) {
-        return;
-    }
-
-    for (int row = 0; row < d->tagFilterProxyModel->rowCount(); row++) {
-        for (int col = 0; col < d->tagFilterProxyModel->columnCount(); col++) {
-            QModelIndex index = d->tagFilterProxyModel->index(row, col);
-            KoResourceSP resource = d->tagFilterProxyModel->resourceForIndex(index);
-
-            if (resource->name() == resourceName) {
-                d->view->setCurrentIndex(index);
-
-                // The resource may currently be filtered out, but we want to be able
-                // to select it if the filter changes and includes the resource.
-                // Otherwise, activate() already took care of setting the current resource.
-                if (!index.isValid()) {
-                    d->currentResource = resource;
-                }
-                updatePreview(index);
-            }
-        }
-    }
-}
-
-void KisResourceItemChooser::setPreviewTiled(bool tiled)
-{
-    d->tiledPreview = tiled;
-}
-
-void KisResourceItemChooser::setGrayscalePreview(bool grayscale)
-{
-    d->grayscalePreview = grayscale;
-}
-
-void KisResourceItemChooser::setCurrentItem(int row)
-{
-    QModelIndex index = d->view->model()->index(row, 0);
-    if (!index.isValid())
-        return;
-
-    d->view->setCurrentIndex(index);
-    if (index.isValid()) {
-        updatePreview(index);
-    }
-}
-
 void KisResourceItemChooser::scrollBackwards()
 {
     QScrollBar* bar = d->view->horizontalScrollBar();
@@ -182,38 +106,6 @@ void KisResourceItemChooser::scrollForwards()
 {
     QScrollBar* bar = d->view->horizontalScrollBar();
     bar->setValue(bar->value() + d->view->gridSize().width());
-}
-
-void KisResourceItemChooser::activate(const QModelIndex &index)
-{
-    if (!index.isValid())
-    {
-        updateButtonState();
-        return;
-    }
-
-    KoResourceSP resource = resourceFromModelIndex(index);
-
-    if (resource && resource->valid()) {
-        if (resource != d->currentResource) {
-            d->currentResource = resource;
-            d->updatesBlocked = true;
-            Q_EMIT resourceSelected(resource);
-            d->updatesBlocked = false;
-        }
-        updatePreview(index);
-        updateButtonState();
-    }
-}
-
-void KisResourceItemChooser::clicked(const QModelIndex &index)
-{
-    Q_UNUSED(index);
-
-    KoResourceSP resource = currentResource();
-    if (resource) {
-        Q_EMIT resourceClicked(resource);
-    }
 }
 
 void KisResourceItemChooser::updateButtonState()
@@ -276,15 +168,6 @@ void KisResourceItemChooser::updatePreview(const QModelIndex &idx)
     }
     image.setDevicePixelRatio(devicePixelRatioF());
     d->previewLabel->setPixmap(QPixmap::fromImage(image));
-}
-
-KoResourceSP KisResourceItemChooser::resourceFromModelIndex(const QModelIndex &index) const
-{
-    if (!index.isValid()) {
-        return 0;
-    }
-    KoResourceSP r = d->tagFilterProxyModel->resourceForIndex(index);
-    return r;
 }
 
 void KisResourceItemChooser::contextMenuRequested(const QPoint &pos)

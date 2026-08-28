@@ -6,9 +6,11 @@
 #include <QTest>
 
 #include <QPointer>
+#include <QStandardItemModel>
 
 #include <KisResourceItemChooser.h>
 #include <KisResourceItemChooserPresentationSource_p.h>
+#include <KisResourceItemChooserSelectionSource_p.h>
 #include <KisResourceItemChooser_p.h>
 #include <KisResourceTypes.h>
 #include <KisResourceUiDescriptor.h>
@@ -42,6 +44,40 @@ Qt::Orientation capturedPreviewOrientation = Qt::Horizontal;
 QSize configuredViewSize;
 bool viewSizeReceivedMarker = false;
 int iconUpdateCount = 0;
+bool configuredCurrentIndexSelected = false;
+QStandardItemModel *configuredSelectionModel = nullptr;
+QModelIndex configuredResourceIndex;
+int currentIndexSelectionCount = 0;
+int resourceIndexCount = 0;
+int setCurrentIndexCount = 0;
+QModelIndex capturedCurrentIndex;
+int rowCountCount = 0;
+int columnCountCount = 0;
+int indexCount = 0;
+int resourceForIndexCount = 0;
+int resourceNameCount = 0;
+int indexForRowCount = 0;
+int capturedRow = -1;
+int resourceValidityCount = 0;
+bool configuredResourceValid = false;
+bool selectionSourcePointersCorrect = true;
+KoResourceSP capturedIndexedResource;
+KoResourceSP capturedValidityResource;
+QList<QModelIndex> previewIndexes;
+bool previewTiled = false;
+bool previewGrayscale = false;
+int buttonStateUpdateCount = 0;
+
+KoResourceSP markerResource(quintptr value)
+{
+    return KoResourceSP(reinterpret_cast<KoResource *>(value),
+                        [](KoResource *) {});
+}
+
+const KoResourceSP firstResource = markerResource(0xb0);
+const KoResourceSP secondResource = markerResource(0xc0);
+const KoResourceSP thirdResource = markerResource(0xd0);
+const KoResourceSP reentrantResource = markerResource(0xe0);
 
 auto *const markerFilter =
     reinterpret_cast<KisTagFilterResourceProxyModel *>(quintptr(0x10));
@@ -84,6 +120,33 @@ void resetPresentationState()
     viewSizeReceivedMarker = false;
     iconUpdateCount = 0;
 }
+
+void resetSelectionState()
+{
+    configuredCurrentIndexSelected = false;
+    configuredSelectionModel = nullptr;
+    configuredResourceIndex = QModelIndex();
+    currentIndexSelectionCount = 0;
+    resourceIndexCount = 0;
+    setCurrentIndexCount = 0;
+    capturedCurrentIndex = QModelIndex();
+    rowCountCount = 0;
+    columnCountCount = 0;
+    indexCount = 0;
+    resourceForIndexCount = 0;
+    resourceNameCount = 0;
+    indexForRowCount = 0;
+    capturedRow = -1;
+    resourceValidityCount = 0;
+    configuredResourceValid = false;
+    selectionSourcePointersCorrect = true;
+    capturedIndexedResource.clear();
+    capturedValidityResource.clear();
+    previewIndexes.clear();
+    previewTiled = false;
+    previewGrayscale = false;
+    buttonStateUpdateCount = 0;
+}
 }
 
 void KisResourceItemChooser::constructPresentation()
@@ -124,14 +187,6 @@ void KisResourceItemChooser::scrollForwards()
 {
 }
 
-void KisResourceItemChooser::activate(const QModelIndex &)
-{
-}
-
-void KisResourceItemChooser::clicked(const QModelIndex &)
-{
-}
-
 void KisResourceItemChooser::contextMenuRequested(const QPoint &)
 {
 }
@@ -161,6 +216,18 @@ void KisResourceItemChooser::resizeEvent(QResizeEvent *)
 {
 }
 
+void KisResourceItemChooser::updateButtonState()
+{
+    ++buttonStateUpdateCount;
+}
+
+void KisResourceItemChooser::updatePreview(const QModelIndex &index)
+{
+    previewIndexes.append(index);
+    previewTiled = d->tiledPreview;
+    previewGrayscale = d->grayscalePreview;
+}
+
 namespace KisResourceItemChooserPresentationSource
 {
 void setListViewMode(KisResourceItemListView *view, ListViewMode mode)
@@ -169,7 +236,103 @@ void setListViewMode(KisResourceItemListView *view, ListViewMode mode)
     ++listViewModeCount;
     capturedListViewMode = mode;
 }
+}
 
+namespace KisResourceItemChooserSelectionSource
+{
+bool currentIndexIsSelected(KisResourceItemListView *view)
+{
+    selectionSourcePointersCorrect &= view == markerView;
+    ++currentIndexSelectionCount;
+    return configuredCurrentIndexSelected;
+}
+
+QModelIndex indexForResource(KisTagFilterResourceProxyModel *model,
+                             KoResourceSP resource)
+{
+    selectionSourcePointersCorrect &= model == markerFilter;
+    ++resourceIndexCount;
+    capturedIndexedResource = resource;
+    return configuredResourceIndex;
+}
+
+void setCurrentIndex(KisResourceItemListView *view, const QModelIndex &index)
+{
+    QCOMPARE(view, markerView);
+    ++setCurrentIndexCount;
+    capturedCurrentIndex = index;
+}
+
+int rowCount(KisTagFilterResourceProxyModel *model)
+{
+    selectionSourcePointersCorrect &= model == markerFilter;
+    ++rowCountCount;
+    return configuredSelectionModel ? configuredSelectionModel->rowCount() : 0;
+}
+
+int columnCount(KisTagFilterResourceProxyModel *model)
+{
+    selectionSourcePointersCorrect &= model == markerFilter;
+    ++columnCountCount;
+    return configuredSelectionModel ? configuredSelectionModel->columnCount()
+                                    : 0;
+}
+
+QModelIndex index(KisTagFilterResourceProxyModel *model, int row, int column)
+{
+    selectionSourcePointersCorrect &= model == markerFilter;
+    ++indexCount;
+    return configuredSelectionModel
+        ? configuredSelectionModel->index(row, column)
+        : QModelIndex();
+}
+
+KoResourceSP resourceForIndex(KisTagFilterResourceProxyModel *model,
+                              const QModelIndex &index)
+{
+    selectionSourcePointersCorrect &= model == markerFilter;
+    ++resourceForIndexCount;
+    if (index.row() == 0 && index.column() == 0) {
+        return firstResource;
+    }
+    if (index.row() == 0 && index.column() == 1) {
+        return secondResource;
+    }
+    return thirdResource;
+}
+
+QString resourceName(KoResourceSP resource)
+{
+    ++resourceNameCount;
+    if (resource == firstResource) {
+        return QStringLiteral("first");
+    }
+    if (resource == secondResource) {
+        return QStringLiteral("second");
+    }
+    return QStringLiteral("third");
+}
+
+QModelIndex indexForRow(KisResourceItemListView *view, int row)
+{
+    selectionSourcePointersCorrect &= view == markerView;
+    ++indexForRowCount;
+    capturedRow = row;
+    return configuredSelectionModel
+        ? configuredSelectionModel->index(row, 0)
+        : QModelIndex();
+}
+
+bool resourceIsValid(KoResourceSP resource)
+{
+    ++resourceValidityCount;
+    capturedValidityResource = resource;
+    return configuredResourceValid;
+}
+}
+
+namespace KisResourceItemChooserPresentationSource
+{
 void showTaggingBar(KisResourceTaggingManager *manager, bool visible)
 {
     QCOMPARE(manager, markerManager);
@@ -286,6 +449,11 @@ private Q_SLOTS:
     void listAndTagPresentationDelegateToOwnedComponents();
     void buttonAndPreviewControlsPreserveRequestedState();
     void updateViewRefreshesOwnedIcons();
+    void currentResourceTracksVisibleAndHiddenSelections();
+    void activationSelectsValidResourcesAndBlocksReentry();
+    void nameAndRowSelectionResolveIndexes();
+    void previewModesAffectTheNextPreview();
+    void clickingSelectedResourceEmitsCurrentResource();
 };
 
 void TestResourceUiContract::descriptorPreservesCatalogIdentity()
@@ -417,6 +585,149 @@ void TestResourceUiContract::updateViewRefreshesOwnedIcons()
 
     chooser.updateView();
     QCOMPARE(iconUpdateCount, 1);
+}
+
+void TestResourceUiContract::currentResourceTracksVisibleAndHiddenSelections()
+{
+    resetSelectionState();
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+
+    chooser.setCurrentResource(firstResource);
+    QCOMPARE(resourceIndexCount, 1);
+    QVERIFY(capturedIndexedResource == firstResource);
+    QCOMPARE(setCurrentIndexCount, 1);
+    QVERIFY(!capturedCurrentIndex.isValid());
+    QCOMPARE(previewIndexes, QList<QModelIndex> {QModelIndex()});
+    QVERIFY(!chooser.currentResource());
+    QVERIFY(chooser.currentResource(true) == firstResource);
+
+    configuredCurrentIndexSelected = true;
+    QVERIFY(chooser.currentResource() == firstResource);
+    QCOMPARE(currentIndexSelectionCount, 2);
+    QVERIFY(selectionSourcePointersCorrect);
+}
+
+void TestResourceUiContract::activationSelectsValidResourcesAndBlocksReentry()
+{
+    resetSelectionState();
+    QStandardItemModel model(1, 1);
+    configuredSelectionModel = &model;
+    configuredResourceValid = true;
+    configuredCurrentIndexSelected = true;
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+    KoResourceSP selectedResource;
+    int selectedCount = 0;
+    connect(&chooser,
+            &KisResourceItemChooser::resourceSelected,
+            &chooser,
+            [&](KoResourceSP resource) {
+                ++selectedCount;
+                selectedResource = resource;
+                chooser.setCurrentResource(reentrantResource);
+            });
+
+    QVERIFY(QMetaObject::invokeMethod(&chooser,
+                                      "activate",
+                                      Q_ARG(QModelIndex, model.index(0, 0))));
+    QCOMPARE(resourceValidityCount, 1);
+    QVERIFY(capturedValidityResource == firstResource);
+    QCOMPARE(selectedCount, 1);
+    QVERIFY(selectionSourcePointersCorrect);
+    QVERIFY(selectedResource == firstResource);
+    QCOMPARE(resourceIndexCount, 0);
+    QCOMPARE(previewIndexes, QList<QModelIndex> {model.index(0, 0)});
+    QCOMPARE(buttonStateUpdateCount, 1);
+    QVERIFY(chooser.currentResource() == firstResource);
+
+    configuredResourceValid = false;
+    QVERIFY(QMetaObject::invokeMethod(&chooser,
+                                      "activate",
+                                      Q_ARG(QModelIndex, model.index(0, 0))));
+    QCOMPARE(selectedCount, 1);
+}
+
+void TestResourceUiContract::nameAndRowSelectionResolveIndexes()
+{
+    resetSelectionState();
+    QStandardItemModel model(2, 2);
+    configuredSelectionModel = &model;
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+
+    chooser.setCurrentResource(QStringLiteral("second"));
+    QCOMPARE(setCurrentIndexCount, 1);
+    QCOMPARE(capturedCurrentIndex, model.index(0, 1));
+    QCOMPARE(previewIndexes, QList<QModelIndex> {model.index(0, 1)});
+
+    chooser.setCurrentItem(1);
+    QCOMPARE(indexForRowCount, 1);
+    QCOMPARE(capturedRow, 1);
+    QCOMPARE(setCurrentIndexCount, 2);
+    QCOMPARE(capturedCurrentIndex, model.index(1, 0));
+    QCOMPARE(previewIndexes.last(), model.index(1, 0));
+
+    chooser.setCurrentItem(5);
+    QCOMPARE(indexForRowCount, 2);
+    QCOMPARE(setCurrentIndexCount, 2);
+    QCOMPARE(previewIndexes.size(), 2);
+    QVERIFY(selectionSourcePointersCorrect);
+}
+
+void TestResourceUiContract::previewModesAffectTheNextPreview()
+{
+    resetSelectionState();
+    QStandardItemModel model(1, 1);
+    configuredSelectionModel = &model;
+    configuredResourceIndex = model.index(0, 0);
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+
+    chooser.setPreviewTiled(true);
+    chooser.setGrayscalePreview(true);
+    chooser.setCurrentResource(firstResource);
+    QVERIFY(previewTiled);
+    QVERIFY(previewGrayscale);
+
+    chooser.setPreviewTiled(false);
+    chooser.setGrayscalePreview(false);
+    chooser.setCurrentResource(secondResource);
+    QVERIFY(!previewTiled);
+    QVERIFY(!previewGrayscale);
+    QVERIFY(capturedIndexedResource == secondResource);
+    QVERIFY(selectionSourcePointersCorrect);
+}
+
+void TestResourceUiContract::clickingSelectedResourceEmitsCurrentResource()
+{
+    resetSelectionState();
+    configuredCurrentIndexSelected = true;
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+    chooser.setCurrentResource(firstResource);
+    KoResourceSP clickedResource;
+    int clickedCount = 0;
+    connect(&chooser,
+            &KisResourceItemChooser::resourceClicked,
+            &chooser,
+            [&](KoResourceSP resource) {
+                ++clickedCount;
+                clickedResource = resource;
+            });
+
+    QVERIFY(QMetaObject::invokeMethod(&chooser,
+                                      "clicked",
+                                      Q_ARG(QModelIndex, QModelIndex())));
+    QCOMPARE(clickedCount, 1);
+    QVERIFY(clickedResource == firstResource);
+
+    configuredCurrentIndexSelected = false;
+    QVERIFY(QMetaObject::invokeMethod(&chooser,
+                                      "clicked",
+                                      Q_ARG(QModelIndex, QModelIndex())));
+    QCOMPARE(clickedCount, 1);
+    QVERIFY(selectionSourcePointersCorrect);
 }
 
 QTEST_MAIN(TestResourceUiContract)
