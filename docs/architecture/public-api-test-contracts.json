@@ -16,7 +16,7 @@
     "publicApiFingerprint": "062f37b66122600b650b62480acf43e6dc06ee55a551e313aeb87a1820068f78"
   },
   "migration": {
-    "expectedMissingApis": 25504
+    "expectedMissingApis": 25489
   },
   "contracts": [
     {
@@ -11311,6 +11311,57 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceItemChooser::~KisResourceItemChooser()"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::responsivenessRelayoutsOnlyOnEnableTransitions",
+      "behavior": "応答配置は無効状態から有効状態へ移るときだけ直ちに再配置し、重複した有効化と無効化では再配置しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::setResponsiveness(bool isResponsive)"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::listAndTagPresentationDelegateToOwnedComponents",
+      "behavior": "資源一覧の表示方式は未設定または縦配置でだけ一覧へ反映され、タグ欄、行列寸法、描画委譲を所有部品へ伝え、タグ絞込み模型、表示寸法、一覧を同一の所有部品から返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::itemView() const",
+        "method:KisResourceItemChooser::setColumnWidth(int columnWidth)",
+        "method:KisResourceItemChooser::setItemDelegate(QAbstractItemDelegate * delegate)",
+        "method:KisResourceItemChooser::setListViewMode(ListViewMode viewMode)",
+        "method:KisResourceItemChooser::setRowHeight(int rowHeight)",
+        "method:KisResourceItemChooser::showTaggingBar(bool show)",
+        "method:KisResourceItemChooser::tagFilterModel() const",
+        "method:KisResourceItemChooser::viewSize() const"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::buttonAndPreviewControlsPreserveRequestedState",
+      "behavior": "表示方式、格納場所、取込・除去の表示状態とプレビュー方向を所有部品へ伝え、表示方式ボタン取得は同じ所有部品を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::setPreviewOrientation(Qt::Orientation orientation)",
+        "method:KisResourceItemChooser::showImportExportBtns(bool show)",
+        "method:KisResourceItemChooser::showStorageBtn(bool visible)",
+        "method:KisResourceItemChooser::showViewModeBtn(bool visible)",
+        "method:KisResourceItemChooser::viewModeButton() const"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::updateViewRefreshesOwnedIcons",
+      "behavior": "表示更新は表示方式、取込、除去、格納場所、タグ選択の各所有部品へ現在の主題アイコン更新を一度伝える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::updateView()"
       ]
     }
   ]

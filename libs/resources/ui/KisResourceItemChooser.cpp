@@ -34,7 +34,6 @@
 #include "kconfiggroup.h"
 #include <klocalizedstring.h>
 
-#include <KoIcon.h>
 #include <KoFileDialog.h>
 #include <KisKineticScroller.h>
 #include "KisPopupButton.h"
@@ -52,36 +51,6 @@
 
 #include "KisStorageChooserWidget.h"
 
-
-void KisResourceItemChooser::setResponsiveness(bool isResponsive)
-{
-    if (isResponsive) {
-
-        if (d->isResponsive == false) {
-            d->isResponsive = true;
-            changeLayoutBasedOnSize();
-        }
-        else {
-            d->isResponsive = true;
-        }
-    }
-    else {
-        d->isResponsive = false;
-    }
-}
-
-void KisResourceItemChooser::setListViewMode(ListViewMode newViewMode)
-{
-    d->requestedViewMode = newViewMode;
-    if (d->layout == Layout::NotSet || d->layout == Layout::Vertical) {
-        d->view->setListViewMode(newViewMode);
-    }
-}
-
-KisTagFilterResourceProxyModel *KisResourceItemChooser::tagFilterModel() const
-{
-    return d->tagFilterProxyModel;
-}
 
 void KisResourceItemChooser::slotButtonClicked(int button)
 {
@@ -125,37 +94,6 @@ void KisResourceItemChooser::slotButtonClicked(int button)
         activate(d->tagFilterProxyModel->index(row, index.column()));
     }
     updateButtonState();
-}
-
-void KisResourceItemChooser::showImportExportBtns(bool show)
-{
-    // assert(show == false);
-    if (show) {
-        d->importExportBtns->show();
-    }
-    else {
-        d->importExportBtns->hide();
-    }
-}
-
-void KisResourceItemChooser::showTaggingBar(bool show)
-{
-    d->tagManager->showTaggingBar(show);
-}
-
-void KisResourceItemChooser::setRowHeight(int rowHeight)
-{
-    d->view->setItemSize(QSize(d->view->gridSize().width(), rowHeight));
-}
-
-void KisResourceItemChooser::setColumnWidth(int columnWidth)
-{
-    d->view->setItemSize(QSize(columnWidth, d->view->gridSize().height()));
-}
-
-void KisResourceItemChooser::setItemDelegate(QAbstractItemDelegate *delegate)
-{
-    d->view->setItemDelegate(delegate);
 }
 
 KoResourceSP KisResourceItemChooser::currentResource(bool includeHidden) const
@@ -210,11 +148,6 @@ void KisResourceItemChooser::setCurrentResource(QString resourceName)
             }
         }
     }
-}
-
-void KisResourceItemChooser::setPreviewOrientation(Qt::Orientation orientation)
-{
-    d->resourcesSplitter->setOrientation(orientation);
 }
 
 void KisResourceItemChooser::setPreviewTiled(bool tiled)
@@ -354,36 +287,9 @@ KoResourceSP KisResourceItemChooser::resourceFromModelIndex(const QModelIndex &i
     return r;
 }
 
-QSize KisResourceItemChooser::viewSize() const
-{
-    return d->view->size();
-}
-
-KisResourceItemListView *KisResourceItemChooser::itemView() const
-{
-    return d->view;
-}
-
 void KisResourceItemChooser::contextMenuRequested(const QPoint &pos)
 {
     d->tagManager->contextMenuRequested(currentResource(), pos);
-}
-
-void KisResourceItemChooser::showStorageBtn(bool visible)
-{
-    d->storagePopupButton->setVisible(visible);
-    d->showStoragePopupBtn = visible;
-}
-
-void KisResourceItemChooser::showViewModeBtn(bool visible)
-{
-    d->viewModeButton->setVisible(visible);
-    d->showViewModeBtn = visible;
-}
-
-KisPopupButton *KisResourceItemChooser::viewModeButton() const
-{
-    return d->viewModeButton;
 }
 
 void KisResourceItemChooser::setSynced(bool sync)
@@ -648,14 +554,4 @@ void KisResourceItemChooser::slotSaveSplitterState()
 
         group.writeEntry(key, state);
     }
-}
-
-void KisResourceItemChooser::updateView()
-{
-    /// helps to set icons here in case the theme is changed
-    d->viewModeButton->setIcon(KisIconUtils::loadIcon("view-choose"));
-    d->importButton->setIcon(koIcon("document-import-16"));
-    d->deleteButton->setIcon(koIcon("edit-delete"));
-    d->storagePopupButton->setIcon(koIcon("bundle_archive"));
-    d->tagManager->tagChooserWidget()->updateIcons();
 }

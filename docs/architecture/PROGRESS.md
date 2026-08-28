@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 02:46 JST
+- 更新日時: 2026-08-29 03:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6472,12 +6472,33 @@
   成功した。公開面は1,547ヘッダー、29,979 API、対応済み4,475件、未対応25,504件になり、同ヘッダーの
   未対応は28 APIになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源項目選択の表示制御 public API契約と効果分離で完了した作業
+
+- `libs/resources/ui/KisResourceItemChooser.cpp`にあった応答配置の有効化判断、表示方式の適用判断、タグ欄、
+  行列寸法、描画委譲、操作ボタン、プレビュー方向、公開子表示取得、アイコン更新を、新規
+  `libs/resources/ui/KisResourceItemChooserPresentation.cpp`へ移した。そこから呼ぶ具体的な一覧、タグ管理、
+  ボタン、分割表示、アイコンの操作を新規`libs/resources/ui/KisResourceItemChooserPresentationSource.cpp`へ
+  移し、内部境界を新規`libs/resources/ui/KisResourceItemChooserPresentationSource_p.h`に置いた。開始
+  ファイルには資源選択、プレビュー生成、同期、入力、応答配置の具体的な組替えが残り、製品は新しい
+  判断対象と具象効果対象を各1回集約する。
+- `libs/resources/ui/KisResourceItemChooser.h`の表示制御15 APIを、既存
+  `libs/resources/ui/tests/TestResourceUiContract.cpp`の4試験へ対応付けた。応答配置を無効から有効へ移す
+  ときだけ再配置する状態遷移、縦系配置だけに表示方式を反映する条件、タグ欄、行列寸法、描画委譲、
+  操作ボタン、プレビュー方向の伝達、所有する模型・子表示の取得、全アイコンの更新を固定した。
+- 最初の契約構築は、対象とした15公開メソッドだけを未解決記号として診断した。判断を製品全体から
+  分離して試験へ直接接続し、具象効果は試験内の決定的な記録処理へ置き換えた。具象効果対象の最初の
+  コンパイルで資源型が必要とする国際化ヘッダーの直接依存不足を検出し、対象へ明示した。
+- 表示判断と具象効果を各1工程・3入力、記述子、構築、資源種別と直接集約する試験を11工程・24入力に
+  収めた。製品`kritaresourceui`は303工程・637入力から305工程・641入力になった。表示判断、具象効果、
+  残存操作の対象コンパイルと対象CTestのmacOS単発実行、20回反復は成功した。公開面は1,547ヘッダー、
+  29,979 API、対応済み4,490件、未対応25,489件になり、同ヘッダーの未対応は13 APIになった。製品
+  `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceItemChooser.h`に残る28 APIについて、分離済み
-`kritaresourceitemchooseroperationsobjects`の表示設定、資源選択、寸法同期、入力、通知、取込・除去を
-責務別に監査する。まずタグ欄、表示方式・格納場所ボタン、行列寸法、描画委譲、プレビュー設定、公開
-子表示取得を局所効果へ分け、同じ記述子別構築試験へ直接集約して挙動契約へ対応付ける。
+`libs/resources/ui/KisResourceItemChooser.h`に残る13 APIについて、資源選択とプレビュー方針を先に
+局所効果へ分け、現在資源、行選択、資源個体・名前選択、タイル・グレースケール指定、選択・クリック
+通知を同じ記述子別構築試験へ直接集約する。その後に寸法同期、ホイール入力、取込・除去操作を扱う。
 
 ## R1-G5完了根拠
 

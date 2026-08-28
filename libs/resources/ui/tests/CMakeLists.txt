@@ -3,6 +3,7 @@ kis_add_test(
     LINK_LIBRARIES
         kritaresourceuidescriptorobjects
         kritaresourceitemchooserconstructionobjects
+        kritaresourceitemchooserpresentationobjects
         kritaresourcestypesobjects
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets

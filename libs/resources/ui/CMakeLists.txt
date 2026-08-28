@@ -163,6 +163,54 @@ set_target_properties(kritaresourceitemchooserconstructionsourceobjects PROPERTI
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourceitemchooserpresentationobjects OBJECT
+    KisResourceItemChooserPresentation.cpp
+)
+target_compile_definitions(kritaresourceitemchooserpresentationobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceitemchooserpresentationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritaresourceitemchooserpresentationobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceitemchooserpresentationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceitemchooserpresentationsourceobjects OBJECT
+    KisResourceItemChooserPresentationSource.cpp
+)
+target_compile_definitions(kritaresourceitemchooserpresentationsourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceitemchooserpresentationsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaresourceitemchooserpresentationsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceitemchooserpresentationsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaresourceitemchooseroperationsobjects OBJECT
     KisResourceItemChooser.cpp
 )
@@ -769,6 +817,8 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaresourceitemchoosersyncobjects>
     $<TARGET_OBJECTS:kritaresourceitemchooserconstructionobjects>
     $<TARGET_OBJECTS:kritaresourceitemchooserconstructionsourceobjects>
+    $<TARGET_OBJECTS:kritaresourceitemchooserpresentationobjects>
+    $<TARGET_OBJECTS:kritaresourceitemchooserpresentationsourceobjects>
     $<TARGET_OBJECTS:kritaresourceitemchooseroperationsobjects>
     $<TARGET_OBJECTS:kritaresourceitemviewobjects>
     $<TARGET_OBJECTS:kritaresourceitemlistviewobjects>
