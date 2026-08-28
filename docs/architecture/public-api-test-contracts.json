@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27705
+    "expectedMissingApis": 27690
   },
   "contracts": [
     {
@@ -4378,6 +4378,66 @@
       "apis": [
         "class:KisNodeCommand",
         "method:KisNodeCommand::KisNodeCommand(const KUndo2MagicString & name,KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisPointerUtilsContractTest",
+      "source": "libs/global/tests/KisPointerUtilsContractTest.cpp",
+      "test": "KisPointerUtilsContractTest::rawPointerConversionsTransferOwnershipAndPreserveOrder",
+      "behavior": "生ポインターの単体および一覧変換は各ポインターの所有権をQt共有ポインターへ移し、一覧の順序と値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:listToQShared(const List<A * > list)",
+        "function:toQShared(T * ptr)"
+      ]
+    },
+    {
+      "target": "KisPointerUtilsContractTest",
+      "source": "libs/global/tests/KisPointerUtilsContractTest.cpp",
+      "test": "KisPointerUtilsContractTest::weakListConversionsPreserveLiveEntriesAndAllOrNothingRule",
+      "behavior": "強参照一覧から作った弱参照一覧は順序を保持し、復元時は既定で全要素が有効な場合だけ全件を返し、部分復元指定では有効な要素だけを返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:listStrongToWeak(const Container<QSharedPointer<T>> & container)",
+        "function:listWeakToStrong(const Container<QWeakPointer<T>> & container,bool allOrNothing=true)"
+      ]
+    },
+    {
+      "target": "KisPointerUtilsContractTest",
+      "source": "libs/global/tests/KisPointerUtilsContractTest.cpp",
+      "test": "KisPointerUtilsContractTest::implicitListConversionPreservesValues",
+      "behavior": "暗黙変換可能な要素一覧は各値と順序を保持した変換先一覧になる。",
+      "classification": "maintained",
+      "apis": [
+        "function:implicitCastList(const Container<T> & list)"
+      ]
+    },
+    {
+      "target": "KisPointerUtilsContractTest",
+      "source": "libs/global/tests/KisPointerUtilsContractTest.cpp",
+      "test": "KisPointerUtilsContractTest::sharedPointerRemovalReturnsContainedPointer",
+      "behavior": "生ポインター、Qt共有ポインター、Krita共有ポインター、固定共有ポインターからの除包は同じ格納ポインターを返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:removeSharedPointer(KisPinnedSharedPtr<T> value)",
+        "function:removeSharedPointer(KisSharedPtr<T> value)",
+        "function:removeSharedPointer(QSharedPointer<T> value)",
+        "function:removeSharedPointer(T * value)"
+      ]
+    },
+    {
+      "target": "KisPointerUtilsContractTest",
+      "source": "libs/global/tests/KisPointerUtilsContractTest.cpp",
+      "test": "KisPointerUtilsContractTest::sharedPointerTraitsPreserveTypesAndDynamicCasts",
+      "behavior": "共有ポインター特性はQt・Krita・固定共有ポインターの値型と同系統の変換先型を示し、実行時型が一致する場合だけ同じ個体を指す派生型共有ポインターを返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSharedPointerTraits::SharedPointerType",
+        "alias:KisSharedPointerTraits::ValueType",
+        "method:KisSharedPointerTraits::dynamicCastSP(KisPinnedSharedPtr<S> src)",
+        "method:KisSharedPointerTraits::dynamicCastSP(KisSharedPtr<S> src)",
+        "method:KisSharedPointerTraits::dynamicCastSP(QSharedPointer<S> src)",
+        "struct:KisSharedPointerTraits"
       ]
     }
   ]
