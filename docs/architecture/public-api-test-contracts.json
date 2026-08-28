@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27983
+    "expectedMissingApis": 27943
   },
   "contracts": [
     {
@@ -3650,6 +3650,73 @@
         "enumerator:KoCanvasResource::CanvasResourceId::SvgTextPropertyData",
         "enumerator:KoCanvasResource::CanvasResourceId::Unit",
         "enumerator:KoCanvasResource::CanvasResourceId::UsingOtherColor"
+      ]
+    },
+    {
+      "target": "KisResourceTypesContractTest",
+      "source": "libs/resources/tests/KisResourceTypesContractTest.cpp",
+      "test": "KisResourceTypesContractTest::resourceTypesPreserveStorageKeys",
+      "behavior": "資源種別は格納場所とデータベース照合に使う15個の永続文字列を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "variable:ResourceType::Brushes",
+        "variable:ResourceType::CssStyles",
+        "variable:ResourceType::FontFamilies",
+        "variable:ResourceType::GamutMasks",
+        "variable:ResourceType::Gradients",
+        "variable:ResourceType::LayerStyles",
+        "variable:ResourceType::PaintOpPresets",
+        "variable:ResourceType::Palettes",
+        "variable:ResourceType::Patterns",
+        "variable:ResourceType::SeExprScripts",
+        "variable:ResourceType::Sessions",
+        "variable:ResourceType::Symbols",
+        "variable:ResourceType::TaskSets",
+        "variable:ResourceType::WindowLayouts",
+        "variable:ResourceType::Workspaces"
+      ]
+    },
+    {
+      "target": "KisResourceTypesContractTest",
+      "source": "libs/resources/tests/KisResourceTypesContractTest.cpp",
+      "test": "KisResourceTypesContractTest::resourceSubTypesPreserveLoaderKeys",
+      "behavior": "資源下位種別は筆先、グラデーション、描画プリセットの読込器選択に使う9個の永続文字列を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "variable:ResourceSubType::AbrBrushes",
+        "variable:ResourceSubType::GbrBrushes",
+        "variable:ResourceSubType::GihBrushes",
+        "variable:ResourceSubType::KritaPaintOpPresets",
+        "variable:ResourceSubType::MyPaintPaintOpPresets",
+        "variable:ResourceSubType::PngBrushes",
+        "variable:ResourceSubType::SegmentedGradients",
+        "variable:ResourceSubType::StopGradients",
+        "variable:ResourceSubType::SvgBrushes"
+      ]
+    },
+    {
+      "target": "KisResourceTypesContractTest",
+      "source": "libs/resources/tests/KisResourceTypesContractTest.cpp",
+      "test": "KisResourceTypesContractTest::resourceNamesMapFromTypes",
+      "behavior": "15個の資源種別は地域化された空でない表示名へ対応する。",
+      "classification": "maintained",
+      "apis": [
+        "function:ResourceName::resourceTypeToName(const QString & resourceType)",
+        "variable:ResourceName::Brushes",
+        "variable:ResourceName::CssStyles",
+        "variable:ResourceName::FontFamilies",
+        "variable:ResourceName::GamutMasks",
+        "variable:ResourceName::Gradients",
+        "variable:ResourceName::LayerStyles",
+        "variable:ResourceName::PaintOpPresets",
+        "variable:ResourceName::Palettes",
+        "variable:ResourceName::Patterns",
+        "variable:ResourceName::SeExprScripts",
+        "variable:ResourceName::Sessions",
+        "variable:ResourceName::Symbols",
+        "variable:ResourceName::TaskSets",
+        "variable:ResourceName::WindowLayouts",
+        "variable:ResourceName::Workspaces"
       ]
     }
   ]

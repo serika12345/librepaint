@@ -29,3 +29,11 @@ kis_add_test(
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KoCanvasResourceIdsContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
+    KisResourceTypesContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourcestypesobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisResourceTypesContractTest PRIVATE kritaresources_EXPORTS)
