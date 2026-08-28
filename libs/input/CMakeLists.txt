@@ -159,12 +159,33 @@ set_target_properties(kritainputsingleactionshortcutobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-set(kritainput_LIB_SRCS
+add_library(kritainputshortcutmatcherobjects OBJECT
     kis_shortcut_matcher.cpp
+)
+target_compile_definitions(kritainputshortcutmatcherobjects PRIVATE kritainput_EXPORTS)
+target_include_directories(kritainputshortcutmatcherobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritainputshortcutmatcherobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        kritaglobal
+)
+set_target_properties(kritainputshortcutmatcherobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
 )
 
 kis_add_library(kritainput SHARED
-    ${kritainput_LIB_SRCS}
     $<TARGET_OBJECTS:kritainputshortcutconfigurationobjects>
     $<TARGET_OBJECTS:kritainputprofileobjects>
     $<TARGET_OBJECTS:kritainputabstractshortcutobjects>
@@ -174,6 +195,7 @@ kis_add_library(kritainput SHARED
     $<TARGET_OBJECTS:kritainputstrokeshortcutobjects>
     $<TARGET_OBJECTS:kritainputtouchshortcutobjects>
     $<TARGET_OBJECTS:kritainputsingleactionshortcutobjects>
+    $<TARGET_OBJECTS:kritainputshortcutmatcherobjects>
 )
 generate_export_header(kritainput BASE_NAME kritainput)
 

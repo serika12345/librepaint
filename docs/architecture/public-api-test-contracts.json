@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25963
+    "expectedMissingApis": 25922
   },
   "contracts": [
     {
@@ -9152,6 +9152,128 @@
       "classification": "maintained",
       "apis": [
         "method:KisSingleActionShortcut::conflictsWith(const QKeySequence & seq)"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::replaysMouseStroke",
+      "behavior": "修飾キーとボタンで開始するマウスストロークは準備、有効化、開始、移動、終了、再準備の順で入力操作へ配送される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisShortcutMatcher",
+        "method:KisShortcutMatcher::KisShortcutMatcher()",
+        "method:KisShortcutMatcher::addShortcut(KisStrokeShortcut * shortcut)",
+        "method:KisShortcutMatcher::buttonPressed(Qt::MouseButton button,QEvent * event)",
+        "method:KisShortcutMatcher::buttonReleased(Qt::MouseButton button,QEvent * event)",
+        "method:KisShortcutMatcher::enterEvent()",
+        "method:KisShortcutMatcher::keyPressed(Qt::Key key)",
+        "method:KisShortcutMatcher::keyReleased(Qt::Key key)",
+        "method:KisShortcutMatcher::pointerMoved(QEvent * event)",
+        "method:KisShortcutMatcher::~KisShortcutMatcher()"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::cancelsIncompleteMouseStrokeOnFocusLoss",
+      "behavior": "焦点喪失は実行中のマウスストロークへ合成終了を送り、実行状態と準備状態を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutMatcher::hasRunningShortcut() const",
+        "method:KisShortcutMatcher::lostFocusEvent(const QPointF & localPos)"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::dispatchesAtomicKeyAndWheelActionsWithSuppressions",
+      "behavior": "単発キーとホイール操作は一致時に開始・終了を配送し、反復、全操作、キー操作、競合短縮の抑制と登録解除を反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutMatcher::addShortcut(KisSingleActionShortcut * shortcut)",
+        "method:KisShortcutMatcher::autoRepeatedKeyPressed(Qt::Key key)",
+        "method:KisShortcutMatcher::clearShortcuts()",
+        "method:KisShortcutMatcher::suppressAllActions(bool value)",
+        "method:KisShortcutMatcher::suppressAllKeyboardActions(bool value)",
+        "method:KisShortcutMatcher::suppressConflictingKeyActions(const QVector<QKeySequence> & shortcuts)",
+        "method:KisShortcutMatcher::wheelEvent(KisSingleActionShortcut::WheelAction wheelAction,QWheelEvent * event)"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::synchronizesAndReinitializesModifierState",
+      "behavior": "修飾キー状態は押下値、Qt修飾マスク、外部取得キーを同期し、再初期化と外部取得キー解放で空状態へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutMatcher::debugPressedKeys() const",
+        "method:KisShortcutMatcher::handlePolledKeys(const QVector<Qt::Key> & keys)",
+        "method:KisShortcutMatcher::hasPolledKeys()",
+        "method:KisShortcutMatcher::reinitialize()",
+        "method:KisShortcutMatcher::sanityCheckModifiersCorrectness(Qt::KeyboardModifiers modifiers) const"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::reinitializesTrackedButtons",
+      "behavior": "ボタン状態の再初期化は準備中の複数ボタンストロークを解除し、次の単一ボタンを新しい入力列として扱う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutMatcher::reinitializeButtons()"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::toolActivationReevaluatesSuppressionAndMaskGatesRunning",
+      "behavior": "ツール有効化は全操作抑制解除後の準備状態を再評価し、操作群マスクはストローク実行開始を拒否または許可する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutMatcher::leaveEvent()",
+        "method:KisShortcutMatcher::setInputActionGroupsMaskCallback(std::function<KisInputActionGroupsMask ()> func)",
+        "method:KisShortcutMatcher::toolHasBeenActivated()"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::replaysTouchHoldLifecycle",
+      "behavior": "1点長押しは開始、長押し確定、更新、終了を入力操作へ配送し、実行状態と高解像度対応を期間中だけ報告する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisShortcutMatcher::TOUCH_SLOP_SQUARED",
+        "method:KisShortcutMatcher::addShortcut(KisTouchShortcut * shortcut)",
+        "method:KisShortcutMatcher::hasTouchHoldShortcut() const",
+        "method:KisShortcutMatcher::supportsHiResInputEvents()",
+        "method:KisShortcutMatcher::touchBeginEvent(QTouchEvent * event)",
+        "method:KisShortcutMatcher::touchEndEvent(QTouchEvent * event)",
+        "method:KisShortcutMatcher::touchHoldBeginEvent(QTouchEvent * event)",
+        "method:KisShortcutMatcher::touchUpdateEvent(QTouchEvent * event)"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::cancelsTouchHoldLifecycle",
+      "behavior": "タッチ取消は長押し操作へ最後のタッチ点を含む終了を送り、操作を無効化して実行状態を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutMatcher::touchCancelEvent(QTouchEvent * event)"
+      ]
+    },
+    {
+      "target": "TestInputShortcutMatcher",
+      "source": "libs/input/tests/TestInputShortcutMatcher.cpp",
+      "test": "TestInputShortcutMatcher::replaysNativeGestureLifecycle",
+      "behavior": "ネイティブジェスチャーは開始通知、一致種別の開始・更新、不一致終端による終了を入力操作へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutMatcher::addShortcut(KisNativeGestureShortcut * shortcut)",
+        "method:KisShortcutMatcher::nativeGestureBeginEvent(QNativeGestureEvent * event)",
+        "method:KisShortcutMatcher::nativeGestureEndEvent(QNativeGestureEvent * event)",
+        "method:KisShortcutMatcher::nativeGestureEvent(QNativeGestureEvent * event)"
       ]
     }
   ]

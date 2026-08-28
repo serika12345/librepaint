@@ -1,7 +1,24 @@
 kis_add_tests(
     TestInputProfile.cpp
-    TestInputShortcutMatcher.cpp
     LINK_LIBRARIES kritainput Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
+    TestInputShortcutMatcher.cpp
+    LINK_LIBRARIES
+        kritainputshortcutmatcherobjects
+        kritainputsingleactionshortcutobjects
+        kritainputstrokeshortcutobjects
+        kritainputtouchshortcutobjects
+        kritainputnativegestureshortcutobjects
+        kritainputabstractshortcutobjects
+        kritacanvasinputactiongroupobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(TestInputShortcutMatcher PRIVATE
+    kritacanvas_EXPORTS
+    kritainput_EXPORTS
 )
 
 kis_add_test(
