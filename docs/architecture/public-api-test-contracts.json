@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26872
+    "expectedMissingApis": 26841
   },
   "contracts": [
     {
@@ -7189,6 +7189,46 @@
         "variable:COMPOSITE_VIVID_LIGHT_HDR",
         "variable:COMPOSITE_XNOR",
         "variable:COMPOSITE_XOR"
+      ]
+    },
+    {
+      "target": "KisGlobalValuesContractTest",
+      "source": "libs/global/tests/KisGlobalValuesContractTest.cpp",
+      "test": "KisGlobalValuesContractTest::androidExitCodesMatchPlatformContract",
+      "behavior": "Androidの終了理由とプロセス重要度はOS APIと対応する固定数値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAndroidExitInfo::Importance",
+        "enum:KisAndroidExitInfo::Reason",
+        "enumerator:KisAndroidExitInfo::Importance::Cached",
+        "enumerator:KisAndroidExitInfo::Importance::CantSaveState",
+        "enumerator:KisAndroidExitInfo::Importance::Empty",
+        "enumerator:KisAndroidExitInfo::Importance::Foreground",
+        "enumerator:KisAndroidExitInfo::Importance::ForegroundService",
+        "enumerator:KisAndroidExitInfo::Importance::Gone",
+        "enumerator:KisAndroidExitInfo::Importance::Perceptible",
+        "enumerator:KisAndroidExitInfo::Importance::PerceptiblePre26",
+        "enumerator:KisAndroidExitInfo::Importance::Service",
+        "enumerator:KisAndroidExitInfo::Importance::TopSleeping",
+        "enumerator:KisAndroidExitInfo::Importance::TopSleepingPre28",
+        "enumerator:KisAndroidExitInfo::Importance::Visible",
+        "enumerator:KisAndroidExitInfo::Reason::Anr",
+        "enumerator:KisAndroidExitInfo::Reason::Crash",
+        "enumerator:KisAndroidExitInfo::Reason::CrashNative",
+        "enumerator:KisAndroidExitInfo::Reason::DependencyDied",
+        "enumerator:KisAndroidExitInfo::Reason::ExcessiveResourceUsage",
+        "enumerator:KisAndroidExitInfo::Reason::ExitSelf",
+        "enumerator:KisAndroidExitInfo::Reason::Freezer",
+        "enumerator:KisAndroidExitInfo::Reason::InitializationFailure",
+        "enumerator:KisAndroidExitInfo::Reason::LowMemory",
+        "enumerator:KisAndroidExitInfo::Reason::Other",
+        "enumerator:KisAndroidExitInfo::Reason::PackageStateChange",
+        "enumerator:KisAndroidExitInfo::Reason::PackageUpdated",
+        "enumerator:KisAndroidExitInfo::Reason::PermissionChange",
+        "enumerator:KisAndroidExitInfo::Reason::Signaled",
+        "enumerator:KisAndroidExitInfo::Reason::Unknown",
+        "enumerator:KisAndroidExitInfo::Reason::UserRequested",
+        "enumerator:KisAndroidExitInfo::Reason::UserStopped"
       ]
     }
   ]

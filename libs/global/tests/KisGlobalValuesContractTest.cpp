@@ -4,6 +4,7 @@
  */
 
 #include "kis_global.h"
+#include "KisAndroidExitInfo.h"
 
 #include <QTest>
 
@@ -19,6 +20,7 @@ private Q_SLOTS:
     void angleAndPowerHelpersNormalizeValues();
     void geometryHelpersTransformValues();
     void trimmingHelpersSplitAndAdvanceRectangles();
+    void androidExitCodesMatchPlatformContract();
 };
 
 void KisGlobalValuesContractTest::numericLimitsAndSelectionConstantsRemainStable()
@@ -141,6 +143,42 @@ void KisGlobalValuesContractTest::trimmingHelpersSplitAndAdvanceRectangles()
     QRect integerTopSource(0, 0, 10, 8);
     QCOMPARE(kisTrimTop(2, integerTopSource), QRect(0, 0, 10, 2));
     QCOMPARE(integerTopSource, QRect(0, 2, 10, 6));
+}
+
+void KisGlobalValuesContractTest::androidExitCodesMatchPlatformContract()
+{
+    using Reason = KisAndroidExitInfo::Reason;
+    QCOMPARE(static_cast<int>(Reason::Unknown), 0);
+    QCOMPARE(static_cast<int>(Reason::ExitSelf), 1);
+    QCOMPARE(static_cast<int>(Reason::Signaled), 2);
+    QCOMPARE(static_cast<int>(Reason::LowMemory), 3);
+    QCOMPARE(static_cast<int>(Reason::Crash), 4);
+    QCOMPARE(static_cast<int>(Reason::CrashNative), 5);
+    QCOMPARE(static_cast<int>(Reason::Anr), 6);
+    QCOMPARE(static_cast<int>(Reason::InitializationFailure), 7);
+    QCOMPARE(static_cast<int>(Reason::PermissionChange), 8);
+    QCOMPARE(static_cast<int>(Reason::ExcessiveResourceUsage), 9);
+    QCOMPARE(static_cast<int>(Reason::UserRequested), 10);
+    QCOMPARE(static_cast<int>(Reason::UserStopped), 11);
+    QCOMPARE(static_cast<int>(Reason::DependencyDied), 12);
+    QCOMPARE(static_cast<int>(Reason::Other), 13);
+    QCOMPARE(static_cast<int>(Reason::Freezer), 14);
+    QCOMPARE(static_cast<int>(Reason::PackageStateChange), 15);
+    QCOMPARE(static_cast<int>(Reason::PackageUpdated), 16);
+
+    using Importance = KisAndroidExitInfo::Importance;
+    QCOMPARE(static_cast<int>(Importance::Foreground), 100);
+    QCOMPARE(static_cast<int>(Importance::ForegroundService), 125);
+    QCOMPARE(static_cast<int>(Importance::PerceptiblePre26), 130);
+    QCOMPARE(static_cast<int>(Importance::TopSleepingPre28), 150);
+    QCOMPARE(static_cast<int>(Importance::Visible), 200);
+    QCOMPARE(static_cast<int>(Importance::Perceptible), 230);
+    QCOMPARE(static_cast<int>(Importance::Service), 300);
+    QCOMPARE(static_cast<int>(Importance::TopSleeping), 325);
+    QCOMPARE(static_cast<int>(Importance::CantSaveState), 350);
+    QCOMPARE(static_cast<int>(Importance::Cached), 400);
+    QCOMPARE(static_cast<int>(Importance::Empty), 500);
+    QCOMPARE(static_cast<int>(Importance::Gone), 1000);
 }
 
 QTEST_GUILESS_MAIN(KisGlobalValuesContractTest)

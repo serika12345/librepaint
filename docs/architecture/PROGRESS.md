@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 16:28 JST
+- 更新日時: 2026-08-28 16:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5104,6 +5104,19 @@
 - 公開ヘッダーは1,546件、API総数は29,966件となり、宣言識別子集合を維持した。対応済みは3,094件、
   未対応基準は26,872件になった。製品API、ABI、合成方式値、登録処理は変更していない。Linuxと
   全ネイティブ検証は実行していない。
+
+## R2-G19b Android終了情報識別子 public API契約で完了した作業
+
+- `libs/global/KisAndroidExitInfo.h`の終了理由1列挙・17列挙値と、プロセス重要度1列挙・12列挙値の
+  31 APIを、既存`libs/global/tests/KisGlobalValuesContractTest.cpp`の
+  `androidExitCodesMatchPlatformContract`へ対応付けた。
+- 試験はAndroid `ApplicationExitInfo`の理由0から16と、`RunningAppProcessInfo`の重要度100から
+  1,000を全件で比較する。既存のヘッダー専用対象を再利用し、製品ライブラリーとAndroid実装を
+  接続していない。変更なし構築閉包はmacOSで4工程・8入力のままであり、対象実行と20回反復に
+  成功した。
+- 対応済みは3,125件、未対応基準は26,841件になった。終了情報の取得・妥当性・診断文字列を扱う
+  残り8 APIはAndroid実機で観測する後続契約へ残した。製品実装、公開API、ABI、OS対応値は
+  変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 
