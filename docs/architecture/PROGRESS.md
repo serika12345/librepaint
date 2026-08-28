@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 05:37 JST
+- 更新日時: 2026-08-29 06:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6699,12 +6699,39 @@
   同ヘッダーのpublic APIは全件対応済みになった。製品`kritatoolsui`のリンク、Linux、全ネイティブ検証は
   実行していない。
 
+## R2-G19b 選択操作パネル public API契約と外部効果分離で完了した作業
+
+- `libs/ui/selection/kis_selection_actions_panel.cpp`に混在していた表示可否、配置、入力事象、描画順の判断は同ファイルに
+  残し、表示管理、選択管理、設定、設定画面、アイコン、色変換、具体ボタンとハンドルへの接続を新規
+  `libs/ui/selection/kis_selection_actions_panel_source.cpp`へ移した。両者の内部境界は新規
+  `libs/ui/selection/kis_selection_actions_panel_source_p.h`が所有する。
+- `libs/ui/CMakeLists.txt`の製品直接ソース`libs/ui/selection/kis_selection_actions_panel.cpp`は、新規
+  `kritauiselectionactionspanelobjects`と`kritauiselectionactionspanelsourceobjects`へ移り、製品
+  `kritaapplicationui`が両生成物を各1回集約する。無効化操作はパネルを親に持ち、従来の所有者なし生成による
+  寿命漏れを解消した。
+- `libs/ui/selection/kis_selection_actions_panel.h`は、公開値に必要な設定型とQt基底だけを直接含み、キャンバス装飾、
+  入力補助、描画補助、具体ボタンとハンドルの実装ヘッダーを内部実装側へ移した。
+- 同ヘッダーの16 APIを、新規`libs/ui/tests/KisSelectionActionsPanelContractTest.cpp`の5試験へ対応付けた。公開型、
+  既定構築禁止、構築と8操作登録、表示・有効・選択状態、方向・ハンドル・表示領域交換、描画条件、左ボタンによる
+  移動と移動量保存を固定した。`KisSelectionActionsPanelSP`は侵入型参照数基底を持たないパネルを指して実体を保持
+  できず、利用元もないため、既知不具合として後続の公開面整理対象に分類した。
+- 最初の契約リンクは、パネルのコンストラクタ、デストラクタ、表示、有効化、方向、ハンドル、表示領域交換、描画、
+  入力事象、位置更新だけを未解決記号として診断し、文書・画像・操作管理製品の記号を含まなかった。試験は検証用の
+  選択状態、設定値、表示領域、操作、描画先、移動量だけをパネル判断へ渡す。
+- 変更前の製品`kritaapplicationui`閉包は1,790工程・3,580入力、既存公開ヘッダー試験は1,842工程・3,681入力、
+  既存選択装飾試験は1,795工程・3,589入力だった。パネル判断は3工程・7入力、具体効果は1工程・3入力、新規試験は
+  7工程・21入力に収めた。製品閉包は1,793工程・3,586入力である。両局所対象コンパイル、対象CTestのmacOS単発
+  実行と20回反復、公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,713件、
+  未対応25,276件になり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritaapplicationui`のリンク、Linux、
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-再生成した公開API作業列の先頭にある`libs/ui/selection/kis_selection_actions_panel.h`の16 APIを対象とする。
-製品所有対象、既存の選択操作試験、直接CMake依存について、対象指定の変更なし計画と空構築閉包を監査する。
-選択操作の列挙・型別名、パネル構築と所有、操作登録、項目活性化、選択状態追従を確認し、文書・画像・操作管理の
-過大な閉包が必要なら、パネル判断と具体効果の所有単位を先に分ける。
+再生成した公開API作業列の先頭にある`libs/ui/nodes/kis_multinode_property.h`の109 APIを対象とする。
+製品所有対象と既存`libs/ui/tests/kis_multinode_property_test.cpp`について、対象指定の変更なし計画、直接CMake依存、
+空構築閉包を監査する。複数ノードの値集約、無視状態、値変更通知、UI接続、変更前後の取り消し・再実行、各ノード
+特性アダプターを観測可能な単位へ分け、画像・文書・UI製品の過大な閉包が必要なら判断、接続、具体ノード効果の
+所有単位を先に分ける。
 
 ## R1-G5完了根拠
 

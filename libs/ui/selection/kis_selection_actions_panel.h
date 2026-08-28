@@ -8,23 +8,26 @@
 #define _KIS_SELECTION_ACTIONS_PANEL_H_
 
 #include "application/kis_config.h"
-#include "kis_types.h"
-#include <QColor>
 #include <QObject>
-#include <QPointF>
-#include <QPushButton>
+#include <QScopedPointer>
 
-#include "KoPointerEvent.h"
-#include "KoSnapGuide.h"
-#include "canvas/kis_canvas_decoration.h"
-#include "kis_icon_utils.h"
-#include "canvas/kis_painting_assistant.h"
 #include <kritaui_export.h>
 
+template<class T> class KisSharedPtr;
+
 class KisCanvas2;
+class KisCanvasWidgetBase;
 class KisCoordinatesConverter;
 class KisViewManager;
 class KoColorDisplayRendererInterface;
+class QEvent;
+class QMouseEvent;
+class QPainter;
+class QPoint;
+class QRectF;
+class QTabletEvent;
+class QTouchEvent;
+class QWidget;
 
 class KisSelectionActionsPanel;
 typedef KisSharedPtr<KisSelectionActionsPanel> KisSelectionActionsPanelSP;

@@ -117,6 +117,31 @@ target_include_directories(KisAnimationFrameCacheFwdContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
 )
 
+kis_add_test(
+    KisSelectionActionsPanelContractTest.cpp
+    LINK_LIBRARIES
+        kritauiselectionactionspanelobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+target_include_directories(KisSelectionActionsPanelContractTest PRIVATE
+    ${kritauiselectionactionspanel_INCLUDE_DIRS}
+)
+target_compile_definitions(KisSelectionActionsPanelContractTest PRIVATE
+    kritaapplication_EXPORTS
+    kritaapplicationui_EXPORTS
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

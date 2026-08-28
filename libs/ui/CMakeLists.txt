@@ -1,4 +1,104 @@
 
+set(kritauiselectionactionspanel_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/application>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/canvas>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/flake>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/ora>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/tool>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/utils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/widgets>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/widgets/gradient>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/config>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/xmlgui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgets>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgets>
+)
+
+add_library(kritauiselectionactionspanelobjects OBJECT
+    selection/kis_selection_actions_panel.cpp
+)
+target_compile_definitions(kritauiselectionactionspanelobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiselectionactionspanelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauiselectionactionspanel_INCLUDE_DIRS}
+)
+target_link_libraries(kritauiselectionactionspanelobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauiselectionactionspanelobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiselectionactionspanelsourceobjects OBJECT
+    selection/kis_selection_actions_panel_source.cpp
+)
+target_compile_definitions(kritauiselectionactionspanelsourceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiselectionactionspanelsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauiselectionactionspanel_INCLUDE_DIRS}
+)
+target_link_libraries(kritauiselectionactionspanelsourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::ConfigGui
+        KF${KF_MAJOR}::Completion
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::WidgetsAddons
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauiselectionactionspanelsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
@@ -15,6 +115,9 @@ endif()
 add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
+    $<TARGET_OBJECTS:kritauiselectionactionspanelobjects>
+    $<TARGET_OBJECTS:kritauiselectionactionspanelsourceobjects>
+
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp
     canvas/kis_canvas_tool_support.cpp
@@ -117,7 +220,6 @@ set(kritaui_LIB_SRCS
     canvas/KisLayerThumbnailCache.cpp
     canvas/kis_painting_assistant.cc
     canvas/kis_painting_assistants_decoration.cpp
-    selection/kis_selection_actions_panel.cpp
     selection/kis_selection_actions_panel_handle.cpp
     selection/kis_selection_actions_panel_button.cpp
     canvas/KisDecorationsManager.cpp

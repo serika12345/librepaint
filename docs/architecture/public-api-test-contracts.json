@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25292
+    "expectedMissingApis": 25276
   },
   "contracts": [
     {
@@ -11957,6 +11957,76 @@
         "class:KisSortedPaintOpListModel",
         "method:KisSortedPaintOpListModel::KisSortedPaintOpListModel(QObject * parent)",
         "method:KisSortedPaintOpListModel::fill(const QList<KisPaintOpFactory * > & list)"
+      ]
+    },
+    {
+      "target": "KisSelectionActionsPanelContractTest",
+      "source": "libs/ui/tests/KisSelectionActionsPanelContractTest.cpp",
+      "test": "KisSelectionActionsPanelContractTest::publicTypesAndConstructionRegisterStableActions",
+      "behavior": "選択操作パネルの公開型は設定値の列挙型を保ち、既定構築を禁止する。表示領域を伴う構築は8操作とドラッグ用ハンドルを安定した順序、識別名、大きさ、ピン操作の検査可能性で登録し、パネルの寿命終了を安全に観測できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:Behavior",
+        "alias:Orientation",
+        "alias:Position",
+        "class:KisSelectionActionsPanel",
+        "method:KisSelectionActionsPanel::KisSelectionActionsPanel()",
+        "method:KisSelectionActionsPanel::KisSelectionActionsPanel(KisViewManager * viewManager)",
+        "method:KisSelectionActionsPanel::~KisSelectionActionsPanel()"
+      ]
+    },
+    {
+      "target": "KisSelectionActionsPanelContractTest",
+      "source": "libs/ui/tests/KisSelectionActionsPanelContractTest.cpp",
+      "test": "KisSelectionActionsPanelContractTest::publicTypesAndConstructionRegisterStableActions",
+      "behavior": "共有ポインター型別名は選択操作パネル用のKisSharedPtrを指す一方、対象クラスが必須の侵入型参照数基底を持たないため、実体を保持するとコンパイルできない既知不具合である。リポジトリ内の利用元はなく、後続の公開面整理で削除可否を判断する。",
+      "classification": "known_defect",
+      "apis": [
+        "alias:KisSelectionActionsPanelSP"
+      ]
+    },
+    {
+      "target": "KisSelectionActionsPanelContractTest",
+      "source": "libs/ui/tests/KisSelectionActionsPanelContractTest.cpp",
+      "test": "KisSelectionActionsPanelContractTest::visibilityAndEnablementFollowSelectionState",
+      "behavior": "パネルの表示と有効状態は全操作、ハンドル、設定操作へ一貫して反映され、選択が存在しない場合は再有効化しても操作群を表示しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionActionsPanel::setEnabled(bool enabled)",
+        "method:KisSelectionActionsPanel::setVisible(bool visible)"
+      ]
+    },
+    {
+      "target": "KisSelectionActionsPanelContractTest",
+      "source": "libs/ui/tests/KisSelectionActionsPanelContractTest.cpp",
+      "test": "KisSelectionActionsPanelContractTest::orientationHandleAndCanvasChangesRelayoutWidgets",
+      "behavior": "方向変更は操作群とハンドルの配置軸を切り替え、ハンドル状態変更と位置更新は寸法へ反映される。表示領域の交換は全操作とハンドルの親を新しい領域へ移し、表示状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionActionsPanel::canvasWidgetChanged(KisCanvasWidgetBase * canvas)",
+        "method:KisSelectionActionsPanel::setHandleEnabled(bool enabled)",
+        "method:KisSelectionActionsPanel::setOrientation(Orientation orientation)",
+        "method:KisSelectionActionsPanel::updatePositioning()"
+      ]
+    },
+    {
+      "target": "KisSelectionActionsPanelContractTest",
+      "source": "libs/ui/tests/KisSelectionActionsPanelContractTest.cpp",
+      "test": "KisSelectionActionsPanelContractTest::drawDispatchesOnlyForVisibleEnabledSelections",
+      "behavior": "描画は選択がありパネルが表示かつ有効な場合だけ背景と8操作を描き、有効なハンドルだけを追加で描画する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionActionsPanel::draw(QPainter & painter,const KoColorDisplayRendererInterface * displayRendererInterface)"
+      ]
+    },
+    {
+      "target": "KisSelectionActionsPanelContractTest",
+      "source": "libs/ui/tests/KisSelectionActionsPanelContractTest.cpp",
+      "test": "KisSelectionActionsPanelContractTest::pointerEventsMoveAndPersistThePanel",
+      "behavior": "入力事象の選別は左ボタンの押下、移動、解放を消費してパネルを移動し、ハンドルの保持状態と最終移動量を保存する。対象外事象と右ボタン押下は消費しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionActionsPanel::eventFilter(QObject * obj,QEvent * event)"
       ]
     }
   ]
