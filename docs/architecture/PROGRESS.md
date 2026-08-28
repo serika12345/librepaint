@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 12:56 JST
+- 更新日時: 2026-08-28 12:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4619,6 +4619,18 @@
 - 新試験は遅延追跡と共有参照の専用実装対象、Qt Testだけへ直接接続し、変更なし構築閉包はmacOSで
   6工程・13入力である。対象実行と20回反復が成功し、公開API契約は1,607件、未対応基準は27,407件に
   なった。製品実装、公開API、ABI、集計規則は変更していない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 信号圧縮契約の限定構築で完了した作業
+
+- `libs/global/kis_signal_compressor.cpp`と`libs/global/kis_signal_compressor_with_param.cpp`は同じファイル
+  位置を保ち、`libs/global/CMakeLists.txt`の`kritaglobal`直接ソースから新規
+  `kritaglobalsignalcompressorobjects`の所有へ移した。`kritaglobal`は新対象のオブジェクトを集約し、
+  従来の公開シンボルとQtメタオブジェクトを供給する。
+- 新対象はQt CoreとBoostだけへ直接接続し、自動メタオブジェクト生成を含む変更なし構築閉包はmacOSで
+  4工程・9入力である。製品所有者`kritaglobal`は57工程・114入力であり、短い信号圧縮契約は製品
+  ライブラリー全体と既存の長時間試験を構築せずに実装2ソースへ接続できる。限定構築に成功し、製品挙動、
+  公開API、ABI、タイマー規則は変更していない。Linux、製品ライブラリーの再リンク、全ネイティブ検証は
+  実行していない。
 
 ## 次の操作
 
