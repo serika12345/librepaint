@@ -20,8 +20,6 @@
 #include <KoShapeBackground.h>
 #include <KoShapeStrokeModel.h>
 
-#include <QDomDocument>
-
 #include <kritaflake_export.h>
 
 class SvgLoadingContext;
