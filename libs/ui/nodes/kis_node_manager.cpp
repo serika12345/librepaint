@@ -972,24 +972,35 @@ KisNodeDisplayModeAdapter *KisNodeManager::AccessorAccess::nodeDisplayModeAdapte
     return manager->m_d->nodeDisplayModeAdapter.data();
 }
 
-bool KisNodeManager::trySetNodeProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties) const
+bool KisNodeManager::PropertyAccess::isPaintLayer(KisNodeSP node)
 {
-    const KisPaintLayer *paintLayer = dynamic_cast<KisPaintLayer*>(node.data());
-    if (paintLayer) {
-        const auto onionSkinOn = KisLayerPropertiesIcons::getProperty(KisLayerPropertiesIcons::onionSkins, true);
+    return dynamic_cast<KisPaintLayer *>(node.data());
+}
 
-        if (properties.contains(onionSkinOn)) {
-            const KisPaintDeviceSP &paintDevice = paintLayer->paintDevice();
-            if (paintDevice && paintDevice->defaultPixel().opacityU8() == 255) {
-                m_d->view->showFloatingMessage(i18n("Onion skins require a layer with transparent background."), QIcon());
-                return false;
-            }
-        }
-    }
+bool KisNodeManager::PropertyAccess::containsOnionSkin(const KisBaseNode::PropertyList &properties)
+{
+    const auto onionSkinOn = KisLayerPropertiesIcons::getProperty(KisLayerPropertiesIcons::onionSkins, true);
+    return properties.contains(onionSkinOn);
+}
 
+bool KisNodeManager::PropertyAccess::hasOpaqueBackground(KisNodeSP node)
+{
+    const KisPaintLayer *paintLayer = dynamic_cast<KisPaintLayer *>(node.data());
+    Q_ASSERT(paintLayer);
+    const KisPaintDeviceSP &paintDevice = paintLayer->paintDevice();
+    return paintDevice && paintDevice->defaultPixel().opacityU8() == 255;
+}
+
+void KisNodeManager::PropertyAccess::showOnionSkinTransparencyWarning(const KisNodeManager *manager)
+{
+    manager->m_d->view->showFloatingMessage(i18n("Onion skins require a layer with transparent background."), QIcon());
+}
+
+void KisNodeManager::PropertyAccess::applyProperties(KisNodeSP node,
+                                                     KisImageSP image,
+                                                     KisBaseNode::PropertyList properties)
+{
     KisNodePropertyListCommand::setNodePropertiesAutoUndo(node, image, properties);
-
-    return true;
 }
 
 void KisNodeManager::duplicateActiveNode()

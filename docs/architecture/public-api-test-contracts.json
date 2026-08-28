@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25134
+    "expectedMissingApis": 25133
   },
   "contracts": [
     {
@@ -12430,6 +12430,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode,const KisNodeList & selectedNodes)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerPropertiesContractTest",
+      "source": "libs/ui/tests/KisNodeManagerPropertiesContractTest.cpp",
+      "test": "KisNodeManagerPropertiesContractTest::onionSkinRequiresTransparentBackgroundBeforeUndo",
+      "behavior": "描画レイヤーへのオニオンスキン有効化は背景が完全不透明な場合だけ警告して拒否し、その他の条件では指定ノード、画像、属性一覧を自動undo適用へ一度渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::trySetNodeProperties(KisNodeSP node,KisImageSP image,KisBaseNode::PropertyList properties) const"
       ]
     }
   ]

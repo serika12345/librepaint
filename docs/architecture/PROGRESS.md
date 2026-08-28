@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 08:11 JST
+- 更新日時: 2026-08-29 08:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6948,12 +6948,32 @@
   公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,855件、
   未対応25,134件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード属性適用 public API契約と拒否判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった描画レイヤー、オニオンスキン属性、完全不透明背景の組合せによる
+  属性適用可否判断を、新規`libs/ui/nodes/KisNodeManagerProperties.cpp`へ移した。具体ノード型、属性識別、
+  画素状態、画面警告、自動undo適用は移動元の保護境界に残し、製品`kritaapplicationui`は新規
+  `kritauinodemanagerpropertiesobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`の`trySetNodeProperties`を、新規
+  `libs/ui/tests/KisNodeManagerPropertiesContractTest.cpp`の1試験へ対応付けた。三条件がすべて成立するときだけ
+  警告して拒否する真理値表と、その他の場合に指定ノード、空画像、属性名・状態を自動undo適用へ渡す規則を
+  固定した。
+- 実装接続前のリンクは`trySetNodeProperties`だけを未解決記号として診断した。最初の緑化リンクは属性一覧の
+  診断比較が画像製品の出力演算子を要求したため、件数・名前・状態の個別比較へ狭めた。非nullの偽画像は
+  製品側の汎用参照操作に適さないため空画像で委譲を検査し、具体画像の構築依存を追加していない。
+- 変更前の既存`KisNodeManagerTest`は1,808工程・3,615入力、直近の専用契約は5工程・17入力だった。
+  属性判断対象は1工程・3入力、新規試験は5工程・17入力に収めた。製品`kritaapplicationui`閉包は
+  1,804工程・3,608入力から1,805工程・3,610入力、既存試験は1,809工程・3,617入力になった。
+- 属性判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,856件、
+  未対応25,133件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る72 APIのうち、ノード属性一覧の適用可否を次の小単位とする。
-`kis_node_manager.cpp`の`trySetNodeProperties`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を
-監査し、透明背景を必要とするオニオンスキン属性の拒否判断と、それ以外の自動undo適用を具体ノード・画面効果から
-分けてから挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る71 APIのうち、選択を使うノード属性画面と一時的に選択を置換する
+属性画面を次の小単位とする。`kis_node_manager.cpp`の`nodeProperties`と`nodePropertiesIgnoreSelection`について、
+対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、レイヤー・マスクの画面選択と現在ノードの
+一時置換・復元を具体表示効果から分けてから挙動契約を追加する。
 
 ## R1-G5完了根拠
 

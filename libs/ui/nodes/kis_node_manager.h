@@ -365,6 +365,14 @@ protected:
         static void setSelectedNodes(KisNodeManager *manager, const KisNodeList &nodes);
     };
 
+    struct KRITAUI_EXPORT PropertyAccess {
+        static bool isPaintLayer(KisNodeSP node);
+        static bool containsOnionSkin(const KisBaseNode::PropertyList &properties);
+        static bool hasOpaqueBackground(KisNodeSP node);
+        static void showOnionSkinTransparencyWarning(const KisNodeManager *manager);
+        static void applyProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

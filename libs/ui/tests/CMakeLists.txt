@@ -290,6 +290,25 @@ target_compile_definitions(KisNodeManagerSelectionStateContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisNodeManagerPropertiesContractTest.cpp
+    TEST_NAME KisNodeManagerPropertiesContractTest
+    LINK_LIBRARIES
+        kritauinodemanagerpropertiesobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+target_include_directories(KisNodeManagerPropertiesContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_compile_definitions(KisNodeManagerPropertiesContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk
