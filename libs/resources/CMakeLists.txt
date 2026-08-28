@@ -132,6 +132,21 @@ set_target_properties(kritatemporaryresourcestoragelocatorobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourcesearchboxfilterobjects OBJECT
+    KisResourceSearchBoxFilter.cpp
+)
+target_compile_definitions(kritaresourcesearchboxfilterobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritaresourcesearchboxfilterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaresourcesearchboxfilterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaresourcesearchboxfilterobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaresourcecacheinterfaceobjects OBJECT
     KoResourceCacheInterface.cpp
 )
@@ -331,7 +346,6 @@ set(kritaresources_LIB_SRCS
     KisStorageModel.cpp
     KisStorageFilterProxyModel.cpp
     KisResourceIterator.cpp
-    KisResourceSearchBoxFilter.cpp
     KisResourceQueryMapper.cpp
     KisStoragePlugin.cpp
     KisBundleStorage.cpp
@@ -366,6 +380,7 @@ kis_add_library(kritaresources SHARED
     $<TARGET_OBJECTS:kritadatabasetransactionlockobjects>
     $<TARGET_OBJECTS:kritatemporaryresourcestoragelockobjects>
     $<TARGET_OBJECTS:kritatemporaryresourcestoragelocatorobjects>
+    $<TARGET_OBJECTS:kritaresourcesearchboxfilterobjects>
     $<TARGET_OBJECTS:kritaresourcecacheinterfaceobjects>
     $<TARGET_OBJECTS:kritaresourcecacheprefixedwrapperobjects>
     $<TARGET_OBJECTS:kritaresourcecachestorageobjects>

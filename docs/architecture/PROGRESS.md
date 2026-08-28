@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:57 JST
+- 更新日時: 2026-08-28 23:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5977,11 +5977,27 @@
   ヘッダー、29,981 API、対応済み4,313件、未対応25,668件になり、同ヘッダーのpublic APIは全件
   対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源検索条件 public API契約と試験構築範囲分離で完了した作業
+
+- `libs/resources/KisResourceSearchBoxFilter.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有
+  から新規`kritaresourcesearchboxfilterobjects`の所有へ移し、製品`kritaresources`が生成
+  オブジェクトを1回だけ集約する構造にした。使われていなかった`kis_debug.h`のincludeを除き、
+  直接依存をQt Coreだけにした。外部向けヘッダー、検索実装、製品ABIは維持した。
+- 既存`libs/resources/tests/TestResourceSearchBoxFilter.cpp`を全資源試験の共通リンク集合から独立させ、
+  `simpletest.h`のアプリケーション・試験資源初期化をQtのGUIなし試験入口へ置き換えた。名前の部分一致・
+  完全一致、複数条件、タグの包含・除外、大文字小文字非依存、空条件を検査する既存試験内容は維持した。
+- `libs/resources/KisResourceSearchBoxFilter.h`の境界、構築・破棄、条件更新、空状態、資源照合からなる
+  1クラス・5メソッドの6 APIを、既存`TestResourceSearchBoxFilter::testResourceSearch`へ全件対応付けた。
+  645工程・1,318入力だった試験を5工程・11入力、所有対象を1工程・3入力に縮め、製品資源
+  ライブラリーは141工程・309入力を維持した。macOSの対象実行と20回反復に成功した。公開面は
+  1,546ヘッダー、29,981 API、対応済み4,319件、未対応25,662件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KisResourceSearchBoxFilter.h`の資源検索条件6 APIについて、既存
-`TestResourceSearchBoxFilter`の清浄時構築閉包と直接依存を監査し、純Qt Core実装の所有範囲を
-先に最適化してから既存の検索・除外挙動をpublic API契約へ対応付ける。
+`libs/resources/KisResourceThumbnailCache.h`のサムネイルキャッシュ5 APIについて、格納場所正規化の
+`KisResourceLocator`依存と清浄時構築閉包を監査し、直接構築・共有個体・画像取得を小さい契約で
+固定できる内部境界へ先に整える。
 
 ## R1-G5完了根拠
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25668
+    "expectedMissingApis": 25662
   },
   "contracts": [
     {
@@ -10325,6 +10325,21 @@
         "method:KisTagLabel::KisTagLabel(QString string,QWidget * parent=nullptr)",
         "method:KisTagLabel::getText()",
         "method:KisTagLabel::~KisTagLabel()"
+      ]
+    },
+    {
+      "target": "TestResourceSearchBoxFilter",
+      "source": "libs/resources/tests/TestResourceSearchBoxFilter.cpp",
+      "test": "TestResourceSearchBoxFilter::testResourceSearch",
+      "behavior": "資源検索条件は空状態を公開し、条件更新後は名前とタグを大文字小文字を区別せず部分一致・完全一致・包含・除外で照合し、空条件へ戻すと全資源を許可する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceSearchBoxFilter",
+        "method:KisResourceSearchBoxFilter::KisResourceSearchBoxFilter()",
+        "method:KisResourceSearchBoxFilter::isEmpty()",
+        "method:KisResourceSearchBoxFilter::matchesResource(const QString & resourceName,const QStringList & tagList) const",
+        "method:KisResourceSearchBoxFilter::setFilter(const QString & filter)",
+        "method:KisResourceSearchBoxFilter::~KisResourceSearchBoxFilter()"
       ]
     }
   ]
