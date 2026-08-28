@@ -43,6 +43,7 @@ CTAGS_IGNORED_TOKENS = (
 )
 CTAGS_MACRO_DEFINITIONS = (
     "Q_DECLARE_FLAGS(Name,Enum)=typedef QFlags<Enum> Name;",
+    "Q_ENUMS(Name)=",
 )
 CONTRACT_CLASSIFICATIONS = frozenset(
     {"maintained", "known_defect", "open_design_question"}

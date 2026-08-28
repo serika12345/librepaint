@@ -396,11 +396,6 @@ void KisTool::setCursor(const QCursor &cursor)
     d->cursor = cursor;
 }
 
-KisTool::AlternateAction KisTool::actionToAlternateAction(ToolAction action) {
-    KIS_ASSERT_RECOVER_RETURN_VALUE(action != Primary, Secondary);
-    return (AlternateAction)action;
-}
-
 void KisTool::activatePrimaryAction()
 {
     resetCursorStyle();

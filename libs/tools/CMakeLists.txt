@@ -40,6 +40,52 @@ set_target_properties(kritatoolsrectangleinteractionobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatoolactionmappingobjects OBJECT
+    kis_tool_action_mapping.cpp
+)
+target_compile_definitions(kritatoolactionmappingobjects PRIVATE
+    kritaflake_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+    kritaresources_EXPORTS
+    kritatools_EXPORTS
+)
+target_include_directories(kritatoolactionmappingobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritatoolactionmappingobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritatoolactionmappingobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritatools_LIB_SRCS
     KisSelectionToolFactoryBase.cpp
     KisStabilizerDelayedPaintHelper.cpp
@@ -62,6 +108,7 @@ kis_add_library(kritatools SHARED
     ${kritatools_LIB_SRCS}
     $<TARGET_OBJECTS:kritatoolsspeedsmootherobjects>
     $<TARGET_OBJECTS:kritatoolsrectangleinteractionobjects>
+    $<TARGET_OBJECTS:kritatoolactionmappingobjects>
 )
 generate_export_header(kritatools BASE_NAME kritatools)
 

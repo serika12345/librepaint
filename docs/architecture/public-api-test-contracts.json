@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1546,
     "publicHeaderFingerprint": "cbc0b91d501fb2180e4a2a4807d6459babf7d9a0a50814bad6d030caf8b4285d",
-    "publicApiCount": 29966,
-    "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
+    "publicApiCount": 29967,
+    "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26328
+    "expectedMissingApis": 26292
   },
   "contracts": [
     {
@@ -8138,6 +8138,88 @@
         "enumerator:SvgTextCursor::TypeSettingModeHandle::LineHeightTop",
         "enumerator:SvgTextCursor::TypeSettingModeHandle::NoHandle",
         "enumerator:SvgTextCursor::TypeSettingModeHandle::StartPos"
+      ]
+    },
+    {
+      "target": "KisToolActionContractTest",
+      "source": "libs/tools/tests/KisToolActionContractTest.cpp",
+      "test": "KisToolActionContractTest::customSettingFlagsRemainIndependentBits",
+      "behavior": "ツール固有のプリセット、合成方式、寸法を示すフラグは相互に独立した下位3ビットを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisTool::__anon257e37380103",
+        "enumerator:KisTool::__anon257e37380103::FLAG_USES_CUSTOM_COMPOSITEOP",
+        "enumerator:KisTool::__anon257e37380103::FLAG_USES_CUSTOM_PRESET",
+        "enumerator:KisTool::__anon257e37380103::FLAG_USES_CUSTOM_SIZE"
+      ]
+    },
+    {
+      "target": "KisToolActionContractTest",
+      "source": "libs/tools/tests/KisToolActionContractTest.cpp",
+      "test": "KisToolActionContractTest::toolActionValuesRemainStable",
+      "behavior": "主操作と10種類の代替操作は入力設定が共有する0始まりの宣言順を維持し、無操作は10000を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisTool::ToolAction",
+        "enumerator:KisTool::ToolAction::AlternateChangeSize",
+        "enumerator:KisTool::ToolAction::AlternateChangeSizeSnap",
+        "enumerator:KisTool::ToolAction::AlternateFifth",
+        "enumerator:KisTool::ToolAction::AlternateFourth",
+        "enumerator:KisTool::ToolAction::AlternateSampleBgImage",
+        "enumerator:KisTool::ToolAction::AlternateSampleBgNode",
+        "enumerator:KisTool::ToolAction::AlternateSampleFgImage",
+        "enumerator:KisTool::ToolAction::AlternateSampleFgNode",
+        "enumerator:KisTool::ToolAction::AlternateSecondary",
+        "enumerator:KisTool::ToolAction::AlternateThird",
+        "enumerator:KisTool::ToolAction::Alternate_NONE",
+        "enumerator:KisTool::ToolAction::Primary"
+      ]
+    },
+    {
+      "target": "KisToolActionContractTest",
+      "source": "libs/tools/tests/KisToolActionContractTest.cpp",
+      "test": "KisToolActionContractTest::alternateActionsRemainToolActionAliases",
+      "behavior": "代替操作の公開別名と変換関数は入力側の各ツール操作を同じ数値の代替操作へ対応付ける。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisTool::AlternateAction",
+        "enumerator:KisTool::AlternateAction::ChangeSize",
+        "enumerator:KisTool::AlternateAction::ChangeSizeSnap",
+        "enumerator:KisTool::AlternateAction::Fifth",
+        "enumerator:KisTool::AlternateAction::Fourth",
+        "enumerator:KisTool::AlternateAction::NONE",
+        "enumerator:KisTool::AlternateAction::SampleBgImage",
+        "enumerator:KisTool::AlternateAction::SampleBgNode",
+        "enumerator:KisTool::AlternateAction::SampleFgImage",
+        "enumerator:KisTool::AlternateAction::SampleFgNode",
+        "enumerator:KisTool::AlternateAction::Secondary",
+        "enumerator:KisTool::AlternateAction::Third",
+        "method:KisTool::actionToAlternateAction(ToolAction action)"
+      ]
+    },
+    {
+      "target": "KisToolActionContractTest",
+      "source": "libs/tools/tests/KisToolActionContractTest.cpp",
+      "test": "KisToolActionContractTest::nodePaintAbilityValuesRemainStable",
+      "behavior": "ベクター、複製、描画可能、描画不能のノード能力はツール分岐が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisTool::NodePaintAbility",
+        "enumerator:KisTool::NodePaintAbility::CLONE",
+        "enumerator:KisTool::NodePaintAbility::MYPAINTBRUSH_UNPAINTABLE",
+        "enumerator:KisTool::NodePaintAbility::PAINT",
+        "enumerator:KisTool::NodePaintAbility::UNPAINTABLE",
+        "enumerator:KisTool::NodePaintAbility::VECTOR"
+      ]
+    },
+    {
+      "target": "KisToolActionContractTest",
+      "source": "libs/tools/tests/KisToolActionContractTest.cpp",
+      "test": "KisToolActionContractTest::activationIdentifierRemainsStable",
+      "behavior": "Kritaツールの常時有効化識別子は図形ツール登録が共有するflake/alwaysを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:KRITA_TOOL_ACTIVATION_ID"
       ]
     }
   ]

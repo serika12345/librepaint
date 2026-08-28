@@ -168,6 +168,39 @@ Q_SIGNALS:
                 [api["id"] for api in apis],
             )
 
+    def test_qt_enum_registration_does_not_consume_following_method(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            header = root / "PublicWidget.h"
+            header.write_text(
+                """
+class PublicWidget
+{
+public:
+    enum Mode {
+        First,
+        Second
+    };
+    Q_ENUMS(Mode)
+
+    static Mode modeFor(int value);
+};
+""",
+                encoding="utf-8",
+            )
+
+            tags = check_public_api_contracts.collect_ctags(
+                root, ["PublicWidget.h"]
+            )
+            apis = check_public_api_contracts.extract_public_apis(
+                tags, {"PublicWidget.h"}
+            )
+
+            self.assertIn(
+                "method:PublicWidget::modeFor(int value)",
+                [api["id"] for api in apis],
+            )
+
     def test_excludes_declarations_inside_non_public_records(self) -> None:
         header = "libs/example/PublicWidget.h"
         tags = [
