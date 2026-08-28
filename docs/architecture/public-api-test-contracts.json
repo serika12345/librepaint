@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1544,
     "publicHeaderFingerprint": "814b91750b0668df3c54a7b44d4cb6903452476e38225680a86c889ec2e237e7",
-    "publicApiCount": 29014,
-    "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
+    "publicApiCount": 29401,
+    "publicApiFingerprint": "7f973237db2d71edce1325ce4470c0b2c870c8cb44ee91a8e1635adf62084517"
   },
   "migration": {
-    "expectedMissingApis": 27342
+    "expectedMissingApis": 27713
   },
   "contracts": [
     {
@@ -5069,7 +5069,8 @@
         "method:KisSignalCompressor::setDelay(int delay)",
         "method:KisSignalCompressor::setMode(Mode mode)",
         "method:KisSignalCompressor::start()",
-        "method:KisSignalCompressor::stop()"
+        "method:KisSignalCompressor::stop()",
+        "method:KisSignalCompressor::timeout()"
       ]
     },
     {
@@ -5131,7 +5132,8 @@
         "method:KisThreadSafeSignalCompressor::internalStopSignal()",
         "method:KisThreadSafeSignalCompressor::isActive() const",
         "method:KisThreadSafeSignalCompressor::setDelay(int delay)",
-        "method:KisThreadSafeSignalCompressor::stop()"
+        "method:KisThreadSafeSignalCompressor::stop()",
+        "method:KisThreadSafeSignalCompressor::timeout()"
       ]
     },
     {
@@ -5157,7 +5159,14 @@
         "method:KisAcyclicSignalConnector::connectForwardKoColor(QObject * sender,const char * signal,QObject * receiver,const char * method)",
         "method:KisAcyclicSignalConnector::connectForwardResourcePair(QObject * sender,const char * signal,QObject * receiver,const char * method)",
         "method:KisAcyclicSignalConnector::connectForwardVariant(QObject * sender,const char * signal,QObject * receiver,const char * method)",
-        "method:KisAcyclicSignalConnector::connectForwardVoid(QObject * sender,const char * signal,QObject * receiver,const char * method)"
+        "method:KisAcyclicSignalConnector::connectForwardVoid(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::forwardSignalBool(bool value)",
+        "method:KisAcyclicSignalConnector::forwardSignalDouble(double value)",
+        "method:KisAcyclicSignalConnector::forwardSignalInt(int value)",
+        "method:KisAcyclicSignalConnector::forwardSignalKoColor(const KoColor & value)",
+        "method:KisAcyclicSignalConnector::forwardSignalResourcePair(int key,const QVariant & value)",
+        "method:KisAcyclicSignalConnector::forwardSignalVariant(const QVariant & value)",
+        "method:KisAcyclicSignalConnector::forwardSignalVoid()"
       ]
     },
     {
@@ -5167,6 +5176,13 @@
       "behavior": "逆方向の接続はdouble、int、bool、void、QVariant、資源キーと値、色の各入力を同じ値で一度配送する。",
       "classification": "maintained",
       "apis": [
+        "method:KisAcyclicSignalConnector::backwardSignalBool(bool value)",
+        "method:KisAcyclicSignalConnector::backwardSignalDouble(double value)",
+        "method:KisAcyclicSignalConnector::backwardSignalInt(int value)",
+        "method:KisAcyclicSignalConnector::backwardSignalKoColor(const KoColor & value)",
+        "method:KisAcyclicSignalConnector::backwardSignalResourcePair(int key,const QVariant & value)",
+        "method:KisAcyclicSignalConnector::backwardSignalVariant(const QVariant & value)",
+        "method:KisAcyclicSignalConnector::backwardSignalVoid()",
         "method:KisAcyclicSignalConnector::connectBackwardBool(QObject * sender,const char * signal,QObject * receiver,const char * method)",
         "method:KisAcyclicSignalConnector::connectBackwardDouble(QObject * sender,const char * signal,QObject * receiver,const char * method)",
         "method:KisAcyclicSignalConnector::connectBackwardInt(QObject * sender,const char * signal,QObject * receiver,const char * method)",

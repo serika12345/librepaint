@@ -22,6 +22,45 @@ SPEC.loader.exec_module(check_public_api_contracts)
 
 
 class PublicApiContractTests(unittest.TestCase):
+    def test_collects_qt_signals_as_public_after_private_slots(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            header = root / "PublicWidget.h"
+            header.write_text(
+                """
+class PublicWidget
+{
+public:
+    void visible();
+
+private Q_SLOTS:
+    void internalUpdate();
+
+Q_SIGNALS:
+    void changed(int value);
+    void reset();
+};
+""",
+                encoding="utf-8",
+            )
+
+            tags = check_public_api_contracts.collect_ctags(
+                root, ["PublicWidget.h"]
+            )
+            apis = check_public_api_contracts.extract_public_apis(
+                tags, {"PublicWidget.h"}
+            )
+
+            self.assertEqual(
+                [
+                    "class:PublicWidget",
+                    "method:PublicWidget::changed(int value)",
+                    "method:PublicWidget::reset()",
+                    "method:PublicWidget::visible()",
+                ],
+                [api["id"] for api in apis],
+            )
+
     def test_excludes_declarations_inside_non_public_records(self) -> None:
         header = "libs/example/PublicWidget.h"
         tags = [

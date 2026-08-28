@@ -35,6 +35,7 @@ CTAGS_IGNORED_TOKENS = (
     "Q_GADGET",
     "Q_OBJECT",
     "Q_PROPERTY",
+    "Q_SIGNALS=public",
 )
 CONTRACT_CLASSIFICATIONS = frozenset(
     {"maintained", "known_defect", "open_design_question"}
