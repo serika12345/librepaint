@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25151
+    "expectedMissingApis": 25149
   },
   "contracts": [
     {
@@ -12287,6 +12287,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::nodeCompositeOpChanged(const KoCompositeOp * op)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerModificationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerModificationContractTest.cpp",
+      "test": "KisNodeManagerModificationContractTest::multipleNodesStopAtFirstLockedNode",
+      "behavior": "空集合と全編集可能ノードは変更可能とし、複数ノードでは最初の編集不可ノードで停止して、その名前を含む警告を一度表示する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::canModifyLayers(KisNodeList nodes,bool showWarning=true)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerModificationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerModificationContractTest.cpp",
+      "test": "KisNodeManagerModificationContractTest::singleNodeDelegatesAndCanSuppressWarning",
+      "behavior": "単一ノードの変更可否は複数ノード判定へ委譲し、編集不可の場合は一般警告を表示する。警告抑止指定は戻り値を保ったまま通知を省く。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::canModifyLayer(KisNodeSP node,bool showWarning=true)"
       ]
     }
   ]

@@ -333,6 +333,12 @@ protected:
         static void setCompositeOp(KisNodeManager *manager, KisNodeSP node, const KoCompositeOp *compositeOp);
     };
 
+    struct KRITAUI_EXPORT ModificationAccess {
+        static bool isEditable(KisNodeSP node);
+        static QString name(KisNodeSP node);
+        static void showWarning(KisNodeManager *manager, const QString &message);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

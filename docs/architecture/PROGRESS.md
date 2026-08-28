@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 07:21 JST
+- 更新日時: 2026-08-29 07:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6824,11 +6824,30 @@
   公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,838件、
   未対応25,151件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード変更可否 public API契約と画面通知分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった複数ノードから最初の編集不可ノードを選ぶ判断、単一ノードの
+  委譲、警告文の選択を、新規`libs/ui/nodes/KisNodeManagerModification.cpp`の
+  `kritauinodemanagermodificationobjects`へ移した。具体ノード状態の取得と画面通知は、同じ公開クラスの
+  既存具体所有として`libs/ui/nodes/kis_node_manager.cpp`に残し、製品`kritaapplicationui`は判断生成物を
+  1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`のうち2 APIを、新規
+  `libs/ui/tests/KisNodeManagerModificationContractTest.cpp`の2試験へ対応付けた。空集合と全編集可能集合、
+  最初の編集不可ノードでの停止と名前付き警告、単一ノード向け一般警告、警告抑止を固定した。
+- 実装接続前のリンクは`canModifyLayers`と`canModifyLayer`だけを未解決記号として診断し、具体ノードや
+  製品ライブラリー由来の未解決参照を含まなかった。
+- 変更前の既存隔離対象`KisNodeManagerTest`は1,804工程・3,607入力だった。判断は1工程・3入力、
+  新規試験は5工程・17入力に収めた。製品`kritaapplicationui`閉包は1,800工程・3,600入力から
+  1,801工程・3,602入力になった。
+- 判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,840件、
+  未対応25,149件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る89 APIのうち、複数ノードと単一ノードの変更可否を次の
+同じ`libs/ui/nodes/kis_node_manager.h`に残る87 APIのうち、複数ノードと単一ノードの移動可否を次の
 小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、直接CMake依存、
-空構築閉包を監査し、最初の編集不可ノードを選ぶ判断と警告文の選択を局所所有へ、画面通知を既存具体所有へ
+空構築閉包を監査し、親ノードの編集可能性と最初の移動不可親を選ぶ判断を局所所有へ、画面通知を既存具体所有へ
 分けてから挙動契約を追加する。
 
 ## R1-G5完了根拠

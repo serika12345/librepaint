@@ -471,34 +471,19 @@ const KoColorSpace* KisNodeManager::activeColorSpace()
     }
 }
 
-bool KisNodeManager::canModifyLayers(KisNodeList nodes, bool showWarning)
+bool KisNodeManager::ModificationAccess::isEditable(KisNodeSP node)
 {
-    KisNodeSP lockedNode;
-    Q_FOREACH (KisNodeSP node, nodes) {
-        if (!node->isEditable(false)) {
-            lockedNode = node;
-            break;
-        }
-    }
-
-    if (lockedNode && showWarning) {
-        QString errorMessage;
-
-        if (nodes.size() <= 1) {
-            errorMessage = i18n("Layer is locked");
-        } else {
-            errorMessage = i18n("Layer \"%1\" is locked", lockedNode->name());
-        }
-
-        m_d->view->showFloatingMessage(errorMessage, QIcon());
-    }
-
-    return !lockedNode;
+    return node->isEditable(false);
 }
 
-bool KisNodeManager::canModifyLayer(KisNodeSP node, bool showWarning)
+QString KisNodeManager::ModificationAccess::name(KisNodeSP node)
 {
-    return canModifyLayers({node}, showWarning);
+    return node->name();
+}
+
+void KisNodeManager::ModificationAccess::showWarning(KisNodeManager *manager, const QString &message)
+{
+    manager->m_d->view->showFloatingMessage(message, QIcon());
 }
 
 bool KisNodeManager::canMoveLayers(KisNodeList nodes, bool showWarning)
