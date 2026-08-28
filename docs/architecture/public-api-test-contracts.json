@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27771
+    "expectedMissingApis": 27748
   },
   "contracts": [
     {
@@ -4204,6 +4204,56 @@
         "struct:KoGrayU16Traits",
         "struct:KoGrayU32Traits",
         "struct:KoGrayU8Traits"
+      ]
+    },
+    {
+      "target": "KoBgrColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoBgrColorSpaceTraitsContractTest.cpp",
+      "test": "KoBgrColorSpaceTraitsContractTest::pixelLayoutPreservesBlueGreenRedAndAlphaChannels",
+      "behavior": "BGR画素特性は指定した数値型と4チャンネル基礎特性を公開し、画素の位置0から青、緑、赤、不透明度の順で保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoBgrTraits::channels_type",
+        "alias:KoBgrTraits::parent",
+        "member:KoBgrTraits::Pixel::alpha",
+        "member:KoBgrTraits::Pixel::blue",
+        "member:KoBgrTraits::Pixel::green",
+        "member:KoBgrTraits::Pixel::red",
+        "member:KoBgrTraits::blue_pos",
+        "member:KoBgrTraits::green_pos",
+        "member:KoBgrTraits::red_pos",
+        "struct:KoBgrTraits",
+        "struct:KoBgrTraits::Pixel"
+      ]
+    },
+    {
+      "target": "KoBgrColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoBgrColorSpaceTraitsContractTest.cpp",
+      "test": "KoBgrColorSpaceTraitsContractTest::accessorsReadAndWriteOnlyTheirColorChannel",
+      "behavior": "青、緑、赤チャンネルの取得と設定は各チャンネル位置だけを読み書きし、他の色と不透明度を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoBgrTraits::blue(const quint8 * data)",
+        "method:KoBgrTraits::green(const quint8 * data)",
+        "method:KoBgrTraits::red(const quint8 * data)",
+        "method:KoBgrTraits::setBlue(quint8 * data,channels_type nv)",
+        "method:KoBgrTraits::setGreen(quint8 * data,channels_type nv)",
+        "method:KoBgrTraits::setRed(quint8 * data,channels_type nv)"
+      ]
+    },
+    {
+      "target": "KoBgrColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoBgrColorSpaceTraitsContractTest.cpp",
+      "test": "KoBgrColorSpaceTraitsContractTest::namedTraitsPreserveChannelTypes",
+      "behavior": "BGR画素の名前付き特性は8・16・32ビット符号なし整数、16・32・64ビット浮動小数点の数値型を対応する基礎特性へ結び付ける。",
+      "classification": "maintained",
+      "apis": [
+        "struct:KoBgrF16Traits",
+        "struct:KoBgrF32Traits",
+        "struct:KoBgrF64Traits",
+        "struct:KoBgrU16Traits",
+        "struct:KoBgrU32Traits",
+        "struct:KoBgrU8Traits"
       ]
     }
   ]
