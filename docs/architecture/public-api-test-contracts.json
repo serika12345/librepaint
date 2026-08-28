@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25147
+    "expectedMissingApis": 25144
   },
   "contracts": [
     {
@@ -12327,6 +12327,36 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::canMoveLayer(KisNodeSP node,bool showWarning=true)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActiveContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActiveContractTest.cpp",
+      "test": "KisNodeManagerActiveContractTest::activeLayerUsesLayerManagerValue",
+      "behavior": "現在レイヤーの取得はレイヤー管理が返す値をそのまま返し、現在レイヤーがない状態も空の共有ポインターとして保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activeLayer()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActiveContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActiveContractTest.cpp",
+      "test": "KisNodeManagerActiveContractTest::activePaintDevicePrefersTheMaskDevice",
+      "behavior": "現在マスクがある場合はその描画装置を現在レイヤーの描画装置より優先し、マスクがない場合は現在レイヤーの描画装置を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activePaintDevice()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActiveContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActiveContractTest.cpp",
+      "test": "KisNodeManagerActiveContractTest::activeColorSpacePrefersMaskThenParentThenImage",
+      "behavior": "合成用色空間は現在マスクの描画装置、現在レイヤーの親、画像の順に取得元を選び、利用可能な最初の色空間を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activeColorSpace()"
       ]
     }
   ]

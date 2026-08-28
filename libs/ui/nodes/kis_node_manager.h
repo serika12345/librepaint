@@ -340,6 +340,19 @@ protected:
         static void showWarning(KisNodeManager *manager, const QString &message);
     };
 
+    struct KRITAUI_EXPORT ActiveAccess {
+        static KisLayerSP activeLayer(KisNodeManager *manager);
+        static bool hasActiveMask(KisNodeManager *manager);
+        static KisPaintDeviceSP activeMaskDevice(KisNodeManager *manager);
+        static KisPaintDeviceSP activeLayerDevice(KisNodeManager *manager);
+        static bool hasActiveMaskDevice(KisNodeManager *manager);
+        static const KoColorSpace *activeMaskColorSpace(KisNodeManager *manager);
+        static bool hasActiveLayer(KisNodeManager *manager);
+        static bool activeLayerHasParent(KisNodeManager *manager);
+        static const KoColorSpace *activeLayerParentColorSpace(KisNodeManager *manager);
+        static const KoColorSpace *imageColorSpace(KisNodeManager *manager);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

@@ -453,22 +453,54 @@ KisNodeSP KisNodeManager::activeNode()
     return 0;
 }
 
-KisLayerSP KisNodeManager::activeLayer()
+KisLayerSP KisNodeManager::ActiveAccess::activeLayer(KisNodeManager *manager)
 {
-    return m_d->layerManager.activeLayer();
+    return manager->m_d->layerManager.activeLayer();
 }
 
-const KoColorSpace* KisNodeManager::activeColorSpace()
+bool KisNodeManager::ActiveAccess::hasActiveMask(KisNodeManager *manager)
 {
-    if (m_d->maskManager.activeDevice()) {
-        return m_d->maskManager.activeDevice()->colorSpace();
-    } else {
-        Q_ASSERT(m_d->layerManager.activeLayer());
-        if (m_d->layerManager.activeLayer()->parentLayer())
-            return m_d->layerManager.activeLayer()->parentLayer()->colorSpace();
-        else
-            return m_d->view->image()->colorSpace();
-    }
+    return manager->m_d->maskManager.activeMask();
+}
+
+KisPaintDeviceSP KisNodeManager::ActiveAccess::activeMaskDevice(KisNodeManager *manager)
+{
+    return manager->m_d->maskManager.activeDevice();
+}
+
+KisPaintDeviceSP KisNodeManager::ActiveAccess::activeLayerDevice(KisNodeManager *manager)
+{
+    return manager->m_d->layerManager.activeDevice();
+}
+
+bool KisNodeManager::ActiveAccess::hasActiveMaskDevice(KisNodeManager *manager)
+{
+    return manager->m_d->maskManager.activeDevice();
+}
+
+const KoColorSpace *KisNodeManager::ActiveAccess::activeMaskColorSpace(KisNodeManager *manager)
+{
+    return manager->m_d->maskManager.activeDevice()->colorSpace();
+}
+
+bool KisNodeManager::ActiveAccess::hasActiveLayer(KisNodeManager *manager)
+{
+    return manager->m_d->layerManager.activeLayer();
+}
+
+bool KisNodeManager::ActiveAccess::activeLayerHasParent(KisNodeManager *manager)
+{
+    return manager->m_d->layerManager.activeLayer()->parentLayer();
+}
+
+const KoColorSpace *KisNodeManager::ActiveAccess::activeLayerParentColorSpace(KisNodeManager *manager)
+{
+    return manager->m_d->layerManager.activeLayer()->parentLayer()->colorSpace();
+}
+
+const KoColorSpace *KisNodeManager::ActiveAccess::imageColorSpace(KisNodeManager *manager)
+{
+    return manager->m_d->view->image()->colorSpace();
 }
 
 bool KisNodeManager::ModificationAccess::isEditable(KisNodeSP node)
@@ -848,13 +880,6 @@ void KisNodeManager::nodesUpdated()
         KisSignalsBlocker b(m_d->pinToTimeline);
         m_d->pinToTimeline->setChecked(node->isPinnedToTimeline());
     }
-}
-
-KisPaintDeviceSP KisNodeManager::activePaintDevice()
-{
-    return m_d->maskManager.activeMask() ?
-                m_d->maskManager.activeDevice() :
-                m_d->layerManager.activeDevice();
 }
 
 void KisNodeManager::nodeProperties(KisNodeSP node)

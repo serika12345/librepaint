@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 07:34 JST
+- 更新日時: 2026-08-29 07:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6859,12 +6859,33 @@
   公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,842件、
   未対応25,147件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 現在描画対象 public API契約と取得優先順位分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった現在レイヤー、描画装置、合成用色空間の取得実装のうち、
+  マスク、レイヤー、親レイヤー、画像を選ぶ優先順位判断を、新規
+  `libs/ui/nodes/KisNodeManagerActive.cpp`へ移した。レイヤー管理、マスク管理、画像への具体アクセスは
+  移動元の保護境界に残し、製品`kritaapplicationui`は新規`kritauinodemanageractiveobjects`の生成物を
+  1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`のうち3 APIを、新規
+  `libs/ui/tests/KisNodeManagerActiveContractTest.cpp`の3試験へ対応付けた。現在レイヤー値の透過返却、
+  現在マスクの描画装置をレイヤーの描画装置より優先する規則、マスク描画装置、親レイヤー、画像の順に
+  合成用色空間を選ぶ規則を固定した。
+- 実装接続前のリンクは`activeLayer`、`activePaintDevice`、`activeColorSpace`だけを未解決記号として診断し、
+  具体管理や製品ライブラリー由来の未解決参照を含まなかった。判断対象の直接CMake依存はQt Core、Gui、
+  Widgets、Xml、KI18n、Boost、Eigen、OpenEXRに限定し、試験は決定的な共有ポインターと色空間識別値を
+  保護境界へ渡して全分岐を実行する。
+- 変更前の既存隔離対象`KisNodeManagerTest`は1,805工程・3,609入力だった。判断は1工程・3入力、
+  新規試験は5工程・17入力に収めた。製品`kritaapplicationui`閉包は1,801工程・3,602入力から
+  1,802工程・3,604入力になった。
+- 判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,845件、
+  未対応25,144件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る85 APIのうち、現在レイヤー、描画装置、合成用色空間の取得を
-次の小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、
-直接CMake依存、空構築閉包を監査し、マスク優先、親レイヤー優先、画像色空間へのフォールバック判断を
-局所所有へ、レイヤー・マスク管理と画像への具体アクセスを既存所有へ分けてから挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る82 APIのうち、現在ビューの現在ノード取得を次の小単位とする。
+既存`kritauinodemanageractiveobjects`と`KisNodeManagerActiveContractTest`の変更なし計画、直接CMake依存、
+空構築閉包を再監査し、ビュー未設定時の空値と現在ノード値の透過返却を既存の現在描画対象契約へ追加する。
 
 ## R1-G5完了根拠
 
