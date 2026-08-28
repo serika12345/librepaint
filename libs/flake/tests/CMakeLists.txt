@@ -110,6 +110,14 @@ kis_add_test(
 )
 target_compile_definitions(KoBehaviorInterfacesContractTest PRIVATE kritaflake_EXPORTS)
 
+kis_add_test(
+    KoGradientHelperContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakegradienthelperobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoGradientHelperContractTest PRIVATE kritaflake_EXPORTS)
+
 ############## broken tests ###############
 
 kis_add_test(TestPointMergeCommand.cpp

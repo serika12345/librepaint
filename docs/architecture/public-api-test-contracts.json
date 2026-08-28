@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25849
+    "expectedMissingApis": 25846
   },
   "contracts": [
     {
@@ -9554,6 +9554,36 @@
         "class:KoSharedSavingData",
         "method:KoSharedSavingData::KoSharedSavingData()",
         "method:KoSharedSavingData::~KoSharedSavingData()"
+      ]
+    },
+    {
+      "target": "KoGradientHelperContractTest",
+      "source": "libs/flake/tests/KoGradientHelperContractTest.cpp",
+      "test": "KoGradientHelperContractTest::createsRequestedDefaultGradient",
+      "behavior": "既定勾配生成は線形・放射・円錐の指定型、物体境界座標、広がり、停止点を持つ勾配を返し、無勾配指定では空を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoGradientHelper::defaultGradient(QGradient::Type type,QGradient::Spread spread,const QGradientStops & stops)"
+      ]
+    },
+    {
+      "target": "KoGradientHelperContractTest",
+      "source": "libs/flake/tests/KoGradientHelperContractTest.cpp",
+      "test": "KoGradientHelperContractTest::convertsGradientGeometryAndAppearance",
+      "behavior": "勾配型変換は開始位置と距離、広がり、停止点を保持して物体境界座標の新型を返し、無勾配指定では空を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoGradientHelper::convertGradient(const QGradient * gradient,QGradient::Type newType)"
+      ]
+    },
+    {
+      "target": "KoGradientHelperContractTest",
+      "source": "libs/flake/tests/KoGradientHelperContractTest.cpp",
+      "test": "KoGradientHelperContractTest::interpolatesAndPreservesCurrentExactStopSelection",
+      "behavior": "停止点色取得は空・単一・範囲外・中間補間を処理する一方、停止点と完全一致する位置では一致色を除外し、先頭で末尾色、末尾で先頭色を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KoGradientHelper::colorAt(qreal position,const QGradientStops & stops)"
       ]
     }
   ]

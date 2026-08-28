@@ -33,6 +33,21 @@ add_library(kritaflakebehaviorinterfaceobjects OBJECT
     KoShapeUserData.cpp
     KoToolSelection.cpp
 )
+
+add_library(kritaflakegradienthelperobjects OBJECT
+    KoGradientHelper.cpp
+)
+target_compile_definitions(kritaflakegradienthelperobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakegradienthelperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakegradienthelperobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaflakegradienthelperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -66,7 +81,6 @@ else()
 endif()
 
 set(kritaflake_SRCS
-    KoGradientHelper.cpp
     KoFlake.cpp
     KoCanvasBase.cpp
     KoResourceManager_p.cpp
@@ -282,6 +296,7 @@ set(kritaflake_SRCS
 
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
+    $<TARGET_OBJECTS:kritaflakegradienthelperobjects>
 
 )
 
