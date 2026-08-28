@@ -16,6 +16,7 @@ from typing import Any
 
 RECORD_KINDS = frozenset({"class", "struct", "union"})
 ROUTINE_KINDS = frozenset({"function", "prototype", "slot"})
+ROUTINE_SCOPE_KINDS = ROUTINE_KINDS | frozenset({"method"})
 IGNORED_ROUTINE_NAMES = frozenset(
     {
         "Q_ENUM",
@@ -108,6 +109,14 @@ def _non_public_scopes(tags: Iterable[Mapping[str, Any]]) -> set[str]:
     }
 
 
+def _routine_local_scopes(tags: Iterable[Mapping[str, Any]]) -> set[str]:
+    return {
+        _qualified_name(tag)
+        for tag in tags
+        if _string(tag, "scopeKind") in ROUTINE_SCOPE_KINDS
+    }
+
+
 def _is_below_non_public_scope(scope: str, non_public_scopes: set[str]) -> bool:
     current_scope = scope
     while current_scope:
@@ -137,6 +146,7 @@ def extract_public_apis(
 ) -> list[dict[str, str]]:
     tag_list = list(tags)
     non_public_scopes = _non_public_scopes(tag_list)
+    routine_local_scopes = _routine_local_scopes(tag_list)
     apis: dict[str, dict[str, str]] = {}
     for tag in tag_list:
         header = _string(tag, "path")
@@ -147,7 +157,11 @@ def extract_public_apis(
             continue
         if access in {"private", "protected"}:
             continue
+        if _string(tag, "scopeKind") in ROUTINE_SCOPE_KINDS:
+            continue
         if _is_below_non_public_scope(_string(tag, "scope"), non_public_scopes):
+            continue
+        if _is_below_non_public_scope(_string(tag, "scope"), routine_local_scopes):
             continue
         if kind in RECORD_KINDS and "end" not in tag:
             continue

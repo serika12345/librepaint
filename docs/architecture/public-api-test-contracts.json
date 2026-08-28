@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1544,
     "publicHeaderFingerprint": "814b91750b0668df3c54a7b44d4cb6903452476e38225680a86c889ec2e237e7",
-    "publicApiCount": 30010,
-    "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
+    "publicApiCount": 29966,
+    "publicApiFingerprint": "e602e23a1ace3754529e60b0a3b0f4d4606843ba1b4e686295c9602542045ea2"
   },
   "migration": {
-    "expectedMissingApis": 28004
+    "expectedMissingApis": 27966
   },
   "contracts": [
     {
@@ -4356,8 +4356,6 @@
       "behavior": "灰色ブラシの黒・白マスクは描画色の色相を使って黒・白を生成し、マスクと描画色の小さい方の不透明度を出力する。",
       "classification": "maintained",
       "apis": [
-        "alias:fillGrayBrushWithColorPreserveLightnessRGB::RGBPixel",
-        "alias:fillGrayBrushWithColorPreserveLightnessRGB::channels_type",
         "function:fillGrayBrushWithColorPreserveLightnessRGB(quint8 * pixels,const QRgb * brush,quint8 * brushColor,qreal strength,qint32 nPixels)"
       ]
     },
@@ -4368,8 +4366,6 @@
       "behavior": "灰色ブラシの黒・白マスクは既存画素の色相から黒・白へ明度を変調し、既存の不透明度を保持する。",
       "classification": "maintained",
       "apis": [
-        "alias:modulateLightnessByGrayBrushRGB::RGBPixel",
-        "alias:modulateLightnessByGrayBrushRGB::channels_type",
         "function:modulateLightnessByGrayBrushRGB(quint8 * pixels,const QRgb * brush,qreal strength,qint32 nPixels)"
       ]
     },
@@ -4896,8 +4892,6 @@
       "behavior": "自由関数の可変・const森オーバーロードと各反復子変換は、根、子、兄弟、親、階層、合成、先行・後行部分木の境界と要素を一貫して返す。",
       "classification": "maintained",
       "apis": [
-        "alias:KisForestDetail::parent::NodeType",
-        "alias:KisForestDetail::siblingBegin::RootNodeType",
         "function:KisForestDetail::childBegin(Forest<T> & forest)",
         "function:KisForestDetail::childBegin(Iterator it)",
         "function:KisForestDetail::childBegin(const ChildIterator<value_type,is_const> & it)",

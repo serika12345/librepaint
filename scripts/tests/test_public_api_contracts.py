@@ -251,6 +251,54 @@ Q_SIGNALS:
             [api["id"] for api in apis],
         )
 
+    def test_excludes_declarations_inside_routines(self) -> None:
+        header = "libs/example/PublicValues.h"
+        tags = [
+            {
+                "_type": "tag",
+                "name": "nextValue",
+                "path": header,
+                "kind": "function",
+                "signature": "(int value)",
+                "typeref": "typename:int",
+            },
+            {
+                "_type": "tag",
+                "name": "value_type",
+                "path": header,
+                "kind": "typedef",
+                "scope": "nextValue",
+                "scopeKind": "function",
+                "typeref": "typename:int",
+            },
+            {
+                "_type": "tag",
+                "name": "LocalState",
+                "path": header,
+                "kind": "struct",
+                "scope": "nextValue",
+                "scopeKind": "function",
+                "end": 20,
+            },
+            {
+                "_type": "tag",
+                "name": "value",
+                "path": header,
+                "kind": "member",
+                "access": "public",
+                "scope": "nextValue::LocalState",
+                "scopeKind": "struct",
+                "typeref": "typename:int",
+            },
+        ]
+
+        apis = check_public_api_contracts.extract_public_apis(tags, {header})
+
+        self.assertEqual(
+            ["function:nextValue(int value)"],
+            [api["id"] for api in apis],
+        )
+
     def test_extracts_only_owned_public_declarations(self) -> None:
         tags = [
             {
