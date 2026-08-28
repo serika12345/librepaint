@@ -6,6 +6,9 @@
 #include "KisForestTest.h"
 
 #include "KisForest.h"
+
+#include <memory>
+#include <type_traits>
 #include <vector>
 
 void kis_assert_exception(const char *assertion, const char *file, int line)
@@ -1281,6 +1284,258 @@ void KisForestTest::testConstTailFreeStandingForestFunctions()
 
     comparePair(tailSubtreeBegin(forest), tailSubtreeEnd(forest));
     compareConstPair(tailSubtreeBegin(constForest), tailSubtreeEnd(constForest));
+}
+
+namespace
+{
+class BaseIteratorProbe
+    : public KisForestDetail::BaseIterator<BaseIteratorProbe,
+                                           int,
+                                           boost::forward_traversal_tag,
+                                           false>
+{
+    using Base = KisForestDetail::BaseIterator<BaseIteratorProbe,
+                                                int,
+                                                boost::forward_traversal_tag,
+                                                false>;
+
+public:
+    using Base::Base;
+};
+}
+
+void KisForestTest::testPublicNodeAndIteratorTypes()
+{
+    using namespace KisForestDetail;
+
+    RootNode<int> root;
+    Node<int> first(42);
+    Node<int> second(84);
+    BaseNode<Node<int>> detached;
+
+    QVERIFY(root.isRoot());
+    QVERIFY(detached.isRoot());
+    QCOMPARE(root.parent, nullptr);
+    QCOMPARE(root.firstChild, nullptr);
+    QCOMPARE(root.lastChild, nullptr);
+    QCOMPARE(detached.nextSibling, nullptr);
+    QCOMPARE(detached.prevSibling, nullptr);
+
+    root.firstChild = &first;
+    root.lastChild = &second;
+    first.parent = &root;
+    first.nextSibling = &second;
+    second.parent = &root;
+    second.prevSibling = &first;
+
+    QVERIFY(!first.isRoot());
+    QCOMPARE(first.value, 42);
+    QCOMPARE(first.nextSibling, &second);
+    QCOMPARE(second.prevSibling, &first);
+
+    static_assert(std::is_same_v<BaseIteratorProbe::value_type, int>);
+    static_assert(std::is_same_v<BaseIteratorProbe::NodeType, Node<int>>);
+    BaseIteratorProbe baseIterator(&first);
+    QCOMPARE(baseIterator.node(), &first);
+
+    using MutableChild = ChildIterator<int, false>;
+    using ConstChild = ChildIterator<int, true>;
+    static_assert(std::is_same_v<MutableChild::RootNodeType, RootNode<int>>);
+    static_assert(std::is_same_v<MutableChild::NodeType, Node<int>>);
+    MutableChild child(&first, &root, 0);
+    ConstChild constChild = child;
+    QCOMPARE(child.node(), &first);
+    QCOMPARE(constChild.node(), &first);
+
+    QString debugText;
+    {
+        QDebug debug(&debugText);
+        debug << child;
+    }
+    QVERIFY(debugText.contains("ChildIterator("));
+    QVERIFY(debugText.contains("42"));
+
+    using MutableHierarchy = HierarchyIterator<int, false>;
+    static_assert(std::is_same_v<MutableHierarchy::RootNodeType, RootNode<int>>);
+    static_assert(std::is_same_v<MutableHierarchy::NodeType, Node<int>>);
+    MutableHierarchy hierarchy(&first);
+    HierarchyIterator<int, true> constHierarchy = hierarchy;
+    QCOMPARE(hierarchy.node(), &first);
+    QCOMPARE(constHierarchy.node(), &first);
+
+    using MutableComposition = CompositionIterator<int, false>;
+    static_assert(std::is_same_v<MutableComposition::traversal_state, TraversalState>);
+    static_assert(std::is_same_v<MutableComposition::RootNodeType, RootNode<int>>);
+    static_assert(std::is_same_v<MutableComposition::NodeType, Node<int>>);
+    MutableComposition composition(&first, Leave);
+    CompositionIterator<int, true> constComposition = composition;
+    QCOMPARE(composition.node(), &first);
+    QCOMPARE(composition.state(), Leave);
+    QCOMPARE(constComposition.node(), &first);
+    QCOMPARE(constComposition.state(), Leave);
+
+    using MutableDepth = DepthFirstIterator<int, Enter, false>;
+    static_assert(std::is_same_v<MutableDepth::traversal_state, TraversalState>);
+    static_assert(std::is_same_v<MutableDepth::RootNodeType, RootNode<int>>);
+    static_assert(std::is_same_v<MutableDepth::NodeType, Node<int>>);
+    MutableDepth depthFirst(&first, Enter, false);
+    DepthFirstIterator<int, Enter, true> constDepthFirst = depthFirst;
+    QCOMPARE(depthFirst.node(), &first);
+    QCOMPARE(constDepthFirst.node(), &first);
+
+    DepthFirstIterator<int, Leave, false> tailFirst(&first, Enter, true);
+    QCOMPARE(tailFirst.node(), &first);
+
+    QCOMPARE(Enter, TraversalState::Enter);
+    QCOMPARE(Leave, TraversalState::Leave);
+}
+
+void KisForestTest::testPublicForestSurface()
+{
+    using Forest = KisForestDetail::Forest<int>;
+
+    static_assert(std::is_same_v<KisForest<int>, Forest>);
+    static_assert(std::is_same_v<Forest::value_type, int>);
+    static_assert(std::is_same_v<Forest::child_iterator,
+                                 KisForestDetail::ChildIterator<int, false>>);
+    static_assert(std::is_same_v<Forest::const_child_iterator,
+                                 KisForestDetail::ChildIterator<int, true>>);
+    static_assert(std::is_same_v<Forest::composition_iterator,
+                                 KisForestDetail::CompositionIterator<int, false>>);
+    static_assert(std::is_same_v<Forest::const_composition_iterator,
+                                 KisForestDetail::CompositionIterator<int, true>>);
+    static_assert(std::is_same_v<Forest::hierarchy_iterator,
+                                 KisForestDetail::HierarchyIterator<int, false>>);
+    static_assert(std::is_same_v<Forest::const_hierarchy_iterator,
+                                 KisForestDetail::HierarchyIterator<int, true>>);
+    static_assert(std::is_same_v<Forest::iterator,
+                                 KisForestDetail::DepthFirstIterator<int, KisForestDetail::Enter, false>>);
+    static_assert(std::is_same_v<Forest::const_iterator,
+                                 KisForestDetail::DepthFirstIterator<int, KisForestDetail::Enter, true>>);
+    static_assert(std::is_same_v<Forest::depth_first_tail_iterator,
+                                 KisForestDetail::DepthFirstIterator<int, KisForestDetail::Leave, false>>);
+    static_assert(std::is_same_v<Forest::const_depth_first_tail_iterator,
+                                 KisForestDetail::DepthFirstIterator<int, KisForestDetail::Leave, true>>);
+
+    Forest forest;
+    QVERIFY(forest.empty());
+    auto root = forest.insert(forest.childEnd(), 1);
+    forest.insert(KisForestDetail::childEnd(root), 2);
+
+    QCOMPARE(*forest.begin(), 1);
+    QVERIFY(forest.begin() != forest.end());
+    QCOMPARE(*forest.depthFirstTailBegin(), 2);
+    QVERIFY(forest.depthFirstTailBegin() != forest.depthFirstTailEnd());
+    QCOMPARE(*forest.childBegin(), 1);
+    QVERIFY(forest.childBegin() != forest.childEnd());
+    QCOMPARE(forest.parentEnd(), KisForestDetail::parent(root));
+    QCOMPARE(*forest.compositionBegin(), 1);
+    QVERIFY(forest.compositionBegin() != forest.compositionEnd());
+
+    const Forest &constForest = forest;
+    QCOMPARE(*constForest.begin(), 1);
+    QVERIFY(constForest.begin() != constForest.end());
+    QCOMPARE(*constForest.constBegin(), 1);
+    QVERIFY(constForest.constBegin() != constForest.constEnd());
+    QCOMPARE(*constForest.depthFirstTailBegin(), 2);
+    QVERIFY(constForest.depthFirstTailBegin() != constForest.depthFirstTailEnd());
+    QCOMPARE(*constForest.constDepthFirstTailBegin(), 2);
+    QVERIFY(constForest.constDepthFirstTailBegin() != constForest.constDepthFirstTailEnd());
+    QCOMPARE(*constForest.childBegin(), 1);
+    QVERIFY(constForest.childBegin() != constForest.childEnd());
+    QCOMPARE(*constForest.constChildBegin(), 1);
+    QVERIFY(constForest.constChildBegin() != constForest.constChildEnd());
+    QCOMPARE(constForest.parentEnd(), constForest.constParentEnd());
+    QCOMPARE(*constForest.compositionBegin(), 1);
+    QVERIFY(constForest.compositionBegin() != constForest.compositionEnd());
+    QCOMPARE(*constForest.constCompositionBegin(), 1);
+    QVERIFY(constForest.constCompositionBegin() != constForest.constCompositionEnd());
+
+    Forest copy(forest);
+    Forest assigned;
+    assigned = forest;
+    QCOMPARE(KisForestDetail::size(copy), 2);
+    QCOMPARE(KisForestDetail::size(assigned), 2);
+
+    Forest other;
+    other.insert(other.childEnd(), 9);
+    forest.swap(other);
+    QCOMPARE(*forest.begin(), 9);
+    QCOMPARE(*other.begin(), 1);
+
+    std::weak_ptr<int> weakValue;
+    {
+        KisForest<std::shared_ptr<int>> ownedForest;
+        auto value = std::make_shared<int>(7);
+        weakValue = value;
+        ownedForest.insert(ownedForest.childEnd(), std::move(value));
+        QVERIFY(!weakValue.expired());
+    }
+    QVERIFY(weakValue.expired());
+}
+
+void KisForestTest::testFreeIteratorFunctions()
+{
+    using namespace KisForestDetail;
+
+    KisForest<int> forest;
+    auto root = forest.insert(childEnd(forest), 1);
+    auto child = forest.insert(childEnd(root), 2);
+    const KisForest<int> &constForest = forest;
+
+    QCOMPARE(*childBegin(forest), 1);
+    QVERIFY(childBegin(forest) != childEnd(forest));
+    QCOMPARE(*childBegin(constForest), 1);
+    QVERIFY(childBegin(constForest) != childEnd(constForest));
+    QCOMPARE(*compositionBegin(forest), 1);
+    QVERIFY(compositionBegin(forest) != compositionEnd(forest));
+    QCOMPARE(*compositionBegin(constForest), 1);
+    QVERIFY(compositionBegin(constForest) != compositionEnd(constForest));
+    QCOMPARE(*tailSubtreeBegin(forest), 2);
+    QVERIFY(tailSubtreeBegin(forest) != tailSubtreeEnd(forest));
+    QCOMPARE(*tailSubtreeBegin(constForest), 2);
+    QVERIFY(tailSubtreeBegin(constForest) != tailSubtreeEnd(constForest));
+
+    QCOMPARE(siblingCurrent(root), root);
+    QCOMPARE(siblingBegin(root), root);
+    QCOMPARE(siblingEnd(root), childEnd(forest));
+    QCOMPARE(childBegin(root), child);
+    QCOMPARE(childEnd(root), std::next(child));
+    QCOMPARE(KisForestDetail::parent(child), root);
+    QVERIFY(isEnd(childEnd(root)));
+
+    auto depthIterator = forest.begin();
+    QCOMPARE(siblingCurrent(depthIterator), root);
+    QCOMPARE(siblingBegin(depthIterator), root);
+    QCOMPARE(siblingEnd(depthIterator), childEnd(forest));
+    QCOMPARE(childBegin(depthIterator), child);
+    QCOMPARE(childEnd(depthIterator), childEnd(root));
+    QCOMPARE(*hierarchyBegin(child), 2);
+    QVERIFY(hierarchyBegin(child) != hierarchyEnd(child));
+    QCOMPARE(*compositionBegin(root), 1);
+    QVERIFY(compositionBegin(root) != compositionEnd(root));
+    QCOMPARE(*subtreeBegin(root), 1);
+    QVERIFY(subtreeBegin(root) != subtreeEnd(root));
+    QCOMPARE(*tailSubtreeBegin(root), 2);
+    QVERIFY(tailSubtreeBegin(root) != tailSubtreeEnd(root));
+}
+
+void KisForestTest::testDepthAndSize()
+{
+    KisForest<int> forest;
+    QCOMPARE(KisForestDetail::size(forest), 0);
+    QCOMPARE(KisForestDetail::depth(forest), 0);
+
+    auto firstRoot = forest.insert(KisForestDetail::childEnd(forest), 1);
+    auto child = forest.insert(KisForestDetail::childEnd(firstRoot), 2);
+    forest.insert(KisForestDetail::childEnd(child), 3);
+    forest.insert(KisForestDetail::childEnd(forest), 4);
+
+    QCOMPARE(KisForestDetail::size(forest), 4);
+    QCOMPARE(KisForestDetail::depth(forest), 3);
+    QCOMPARE(KisForestDetail::depth<int>(KisForestDetail::childBegin(forest),
+                                         KisForestDetail::childEnd(forest)),
+             3);
 }
 
 QTEST_GUILESS_MAIN(KisForestTest)
