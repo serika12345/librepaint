@@ -89,6 +89,6 @@ void TestInputEventSuppressor::replaysTouchSuppression()
     QCOMPARE(suppressor.filter({EventType::TouchBegin}), Reason::None);
 }
 
-QTEST_MAIN(TestInputEventSuppressor)
+QTEST_GUILESS_MAIN(TestInputEventSuppressor)
 
 #include "TestInputEventSuppressor.moc"

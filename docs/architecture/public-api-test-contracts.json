@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26042
+    "expectedMissingApis": 26009
   },
   "contracts": [
     {
@@ -8884,6 +8884,84 @@
       "classification": "maintained",
       "apis": [
         "method:KisTimedSignalThreshold::setDelayThreshold(int delay,int cancelDelay=-1)"
+      ]
+    },
+    {
+      "target": "TestInputEventSuppressor",
+      "source": "libs/input/tests/TestInputEventSuppressor.cpp",
+      "test": "TestInputEventSuppressor::replaysTabletMouseSuppression",
+      "behavior": "マウス入力の遮断期間は移動、押下、解放、二重押下を同じ理由で抑制し、停止後は通常処理へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInputEventSuppressor",
+        "enum:KisInputEventSuppressor::Button",
+        "enum:KisInputEventSuppressor::EventType",
+        "enum:KisInputEventSuppressor::SuppressionReason",
+        "enumerator:KisInputEventSuppressor::Button::Left",
+        "enumerator:KisInputEventSuppressor::Button::None",
+        "enumerator:KisInputEventSuppressor::EventType::MouseDoubleClick",
+        "enumerator:KisInputEventSuppressor::EventType::MouseMove",
+        "enumerator:KisInputEventSuppressor::EventType::MousePress",
+        "enumerator:KisInputEventSuppressor::EventType::MouseRelease",
+        "enumerator:KisInputEventSuppressor::SuppressionReason::MouseEvent",
+        "enumerator:KisInputEventSuppressor::SuppressionReason::None",
+        "member:KisInputEventSuppressor::Event::button",
+        "member:KisInputEventSuppressor::Event::synthesized",
+        "member:KisInputEventSuppressor::Event::type",
+        "method:KisInputEventSuppressor::KisInputEventSuppressor(bool useSecondaryButtonsWorkaround,bool supportsSyntheticMouseSuppression)",
+        "method:KisInputEventSuppressor::filter(const Event & event)",
+        "method:KisInputEventSuppressor::isBlockingMouseEvents() const",
+        "method:KisInputEventSuppressor::startBlockingMouseEvents()",
+        "method:KisInputEventSuppressor::stopBlockingMouseEvents()",
+        "struct:KisInputEventSuppressor::Event"
+      ]
+    },
+    {
+      "target": "TestInputEventSuppressor",
+      "source": "libs/input/tests/TestInputEventSuppressor.cpp",
+      "test": "TestInputEventSuppressor::suppressesOneDelayedMousePress",
+      "behavior": "次の左ボタン押下だけを遅延押下として抑制し、他ボタンや移動では予約を消費しない。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisInputEventSuppressor::Button::Other",
+        "enumerator:KisInputEventSuppressor::SuppressionReason::DelayedMousePress",
+        "method:KisInputEventSuppressor::suppressNextLeftMousePress()"
+      ]
+    },
+    {
+      "target": "TestInputEventSuppressor",
+      "source": "libs/input/tests/TestInputEventSuppressor.cpp",
+      "test": "TestInputEventSuppressor::appliesSyntheticMousePolicy",
+      "behavior": "合成マウス入力の抑制設定は対応プラットフォームだけで有効になり、実入力は通過させる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputEventSuppressor::setSuppressSyntheticMouseEvents(bool value)"
+      ]
+    },
+    {
+      "target": "TestInputEventSuppressor",
+      "source": "libs/input/tests/TestInputEventSuppressor.cpp",
+      "test": "TestInputEventSuppressor::preservesSecondaryButtonWorkaround",
+      "behavior": "副ボタン対策はタブレット副ボタンを抑制し、対応するマウス副ボタンを通常処理へ通す。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisInputEventSuppressor::EventType::TabletPress",
+        "enumerator:KisInputEventSuppressor::EventType::TabletRelease",
+        "enumerator:KisInputEventSuppressor::SuppressionReason::SecondaryTabletButton"
+      ]
+    },
+    {
+      "target": "TestInputEventSuppressor",
+      "source": "libs/input/tests/TestInputEventSuppressor.cpp",
+      "test": "TestInputEventSuppressor::replaysTouchSuppression",
+      "behavior": "タッチ入力の遮断期間は開始事象だけを抑制し、停止後は通常処理へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisInputEventSuppressor::EventType::Other",
+        "enumerator:KisInputEventSuppressor::EventType::TouchBegin",
+        "enumerator:KisInputEventSuppressor::SuppressionReason::TouchBegin",
+        "method:KisInputEventSuppressor::startBlockingTouchEvents()",
+        "method:KisInputEventSuppressor::stopBlockingTouchEvents()"
       ]
     }
   ]
