@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1546,
     "publicHeaderFingerprint": "cbc0b91d501fb2180e4a2a4807d6459babf7d9a0a50814bad6d030caf8b4285d",
-    "publicApiCount": 29986,
-    "publicApiFingerprint": "7bcb39f93618431f58096964ad617e62516f3d06f2adefa928141a573f2c5364"
+    "publicApiCount": 29985,
+    "publicApiFingerprint": "1e80483c9aa577062475a13d4895ee62375b4df8923fa7c32555e4339eb315f8"
   },
   "migration": {
-    "expectedMissingApis": 25810
+    "expectedMissingApis": 25754
   },
   "contracts": [
     {
@@ -9801,6 +9801,142 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug debug,const KoResourceLoadResult & result)"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::preservesDefaultAndMutableState",
+      "behavior": "資源基底型は識別子・有効性・活性・永続性・変更状態・名前・保存名・保存場所・メタデータ・画像の既定値を持ち、各設定値を保持して返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResource",
+        "method:KoResource::KoResource()",
+        "method:KoResource::active() const",
+        "method:KoResource::addMetaData(QString key,QVariant value)",
+        "method:KoResource::filename() const",
+        "method:KoResource::image() const",
+        "method:KoResource::isDirty() const",
+        "method:KoResource::metadata() const",
+        "method:KoResource::name() const",
+        "method:KoResource::permanent() const",
+        "method:KoResource::resourceId() const",
+        "method:KoResource::setActive(bool active)",
+        "method:KoResource::setDirty(bool value)",
+        "method:KoResource::setFilename(const QString & filename)",
+        "method:KoResource::setImage(const QImage & image)",
+        "method:KoResource::setName(const QString & name)",
+        "method:KoResource::setPermanent(bool permanent)",
+        "method:KoResource::setResourceId(int id)",
+        "method:KoResource::setStorageLocation(const QString & location)",
+        "method:KoResource::setValid(bool valid)",
+        "method:KoResource::setVersion(int version)",
+        "method:KoResource::storageLocation() const",
+        "method:KoResource::valid() const",
+        "method:KoResource::version() const"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::constructsFromFilenameAndCopiesState",
+      "behavior": "ファイル名構築は指定経路と末尾名を保持し、コピー構築は資源状態を複製する一方、基底型のコピー代入は型特性上利用不能である。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResource::KoResource(const KoResource & rhs)",
+        "method:KoResource::KoResource(const QString & filename)",
+        "method:KoResource::operator =(const KoResource & rhs)"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::loadsExistingFileThroughVirtualBoundary",
+      "behavior": "資源読込は存在する非空ファイルを装置として開き、資源供給境界の共有ポインター同一性を保って派生実装へ配送し、その成否を返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisResourcesInterfaceSP",
+        "method:KoResource::load(KisResourcesInterfaceSP resourcesInterface)",
+        "method:KoResource::loadFromDevice(QIODevice * dev,KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::savesThroughVirtualBoundary",
+      "behavior": "資源保存は設定済み経路を切り詰めて派生実装へ装置を配送し、経路なしでは失敗する一方、派生保存が失敗を返しても成功を返す。基底の装置保存は成功して内容を変更しない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoResource::save()",
+        "method:KoResource::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::generatesAndOverridesMd5",
+      "behavior": "資源MD5は要求なしでは空を保持し、要求時に保存内容から生成され、明示値で置換でき、資源種別・MD5・保存名・表示名から署名を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResource::md5Sum(bool generateIfEmpty=true) const",
+        "method:KoResource::setMD5Sum(const QString & md5sum)",
+        "method:KoResource::signature() const"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::preservesDefaultVirtualBehavior",
+      "behavior": "資源基底の仮想既定は画像を縮小画像として返し、空の縮小画像経路・拡張子・関連資源・キャンバス資源、非一時かつ直列化可能な状態を返して、更新と消去を副作用なしで処理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResource::clearSideLoadedResources()",
+        "method:KoResource::defaultFileExtension() const",
+        "method:KoResource::embeddedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KoResource::isEphemeral() const",
+        "method:KoResource::isSerializable() const",
+        "method:KoResource::linkedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KoResource::requiredCanvasResources() const",
+        "method:KoResource::resourceType() const",
+        "method:KoResource::sideLoadedResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KoResource::thumbnail() const",
+        "method:KoResource::thumbnailPath() const",
+        "method:KoResource::updateThumbnail()"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::aggregatesAndClearsRelatedResources",
+      "behavior": "必要資源は連結資源の後に埋込み資源を並べ、横持ち資源の取得は結果を返して保持一覧を消去し、供給境界を各派生処理へ同一性を保って渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResource::requiredResources(KisResourcesInterfaceSP globalResourcesInterface) const",
+        "method:KoResource::takeSideLoadedResources(KisResourcesInterfaceSP globalResourcesInterface)"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::comparesHashesAndFormatsSharedPointers",
+      "behavior": "資源はMD5だけで等価性とハッシュを決め、共有ポインターのデバッグ表示は資源状態を引用符付きで表示し、空ポインターではNULL表記と末尾2空白を返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoResourceSP",
+        "function:operator <<(QDebug dbg,const KoResourceSP res)",
+        "function:operator ==(const KoResource & resource1,const KoResource & resource2)",
+        "function:qHash(const KoResource & resource)"
+      ]
+    },
+    {
+      "target": "KoResourceContractTest",
+      "source": "libs/resources/tests/KoResourceContractTest.cpp",
+      "test": "KoResourceContractTest::clonesAndDestroysPolymorphically",
+      "behavior": "資源の複製は状態を保持した独立個体を返し、基本共有ポインターの最後の参照終了で派生個体を多態的に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResource::clone() const",
+        "method:KoResource::~KoResource()"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 20:55 JST
+- 更新日時: 2026-08-28 21:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5722,10 +5722,27 @@
   未対応基準は25,810件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ
   検証は実行していない。
 
+## R2-G19b 資源基底型 public API契約と未定義試験宣言除去で完了した作業
+
+- `libs/resources/KoResource.h`から、製品定義と製品利用がなく、実装と利用が
+  `libs/resources/tests/ResourceTestHelper.h`内だけに閉じる
+  `ResourceTestHelper::overrideResourceVersion`宣言を除いた。試験補助は試験所有の定義を維持し、
+  製品の公開面から未定義関数1件を除去した。
+- 残る`KoResource.h`の構築、コピー代入禁止、状態、ファイル入出力、MD5・署名、仮想既定、関連資源、
+  等価性・ハッシュ・デバッグ表示、複製・寿命からなる1クラス・3関数・49メソッドの53 APIと、
+  重複宣言を別ヘッダーへ代表配置する2共有ポインター型別名を、新規
+  `libs/resources/tests/KoResourceContractTest.cpp`の9対応試験へ全件対応付けた。存在しない・空ファイル
+  の拒否も独立試験で固定した。派生`saveToDevice()`が失敗を返しても`save()`が成功を返す現行挙動は、
+  既知不具合として固定した。
+- 既存`kritaresourceloadvalueobjects`を再利用し、139工程・305入力の製品資源ライブラリーへ接続せず、
+  専用試験をmacOSで12工程・26入力に収めた。対象実行と20回反復に成功した。公開面は
+  1,546ヘッダー、29,985 API、対応済み4,231件、未対応25,754件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KoResource.h`の資源基底型54 APIについて、既存試験を再利用できる挙動と未固定の
-挙動を分類し、既存`kritaresourceloadvalueobjects`を用いた最小の局所契約へ分割する。
+`libs/resources/KisResourcesInterface.h`の資源供給境界20 APIについて、既存試験、直接依存、変更なし
+構築閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠
 
