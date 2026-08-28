@@ -63,12 +63,27 @@ target_link_libraries(kritakineticscrollerobjects
 )
 set_target_properties(kritakineticscrollerobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritapopupbuttonobjects OBJECT
+    KisPopupButton.cpp
+)
+target_compile_definitions(kritapopupbuttonobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritapopupbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapopupbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritapopupbuttonobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
     $<TARGET_OBJECTS:kritacheckerboardpainterobjects>
     $<TARGET_OBJECTS:kritaitemtooltipobjects>
     $<TARGET_OBJECTS:kritakineticscrollerobjects>
+    $<TARGET_OBJECTS:kritapopupbuttonobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -87,7 +102,6 @@ set(kritawidgetutils_LIB_SRCS
     KisPreviewFileDialog.cpp
     KisSqueezedComboBox.cpp
     KisDialogStateSaver.cpp
-    KisPopupButton.cpp
     kis_cursor.cc
     kis_cursor_cache.cpp
 

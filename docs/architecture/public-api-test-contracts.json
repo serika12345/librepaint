@@ -16,7 +16,7 @@
     "publicApiFingerprint": "fa2f8764e4ebc82e8ae7fc8f9cdeb0fb34fc8b4db4e44f545f9cf7d68be4e063"
   },
   "migration": {
-    "expectedMissingApis": 25588
+    "expectedMissingApis": 25575
   },
   "contracts": [
     {
@@ -10901,6 +10901,73 @@
       "classification": "maintained",
       "apis": [
         "method:KisStorageChooserDelegate::paint(QPainter * painter,const QStyleOptionViewItem & option,const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisPopupButtonContractTest",
+      "source": "libs/widgetutils/tests/KisPopupButtonContractTest.cpp",
+      "test": "KisPopupButtonContractTest::constructorUsesParentAndDestroysOwnedPopup",
+      "behavior": "ポップアップボタンは指定した親、安定したオブジェクト名、設定したポップアップの寿命を所有し、ボタン破棄時に監視参照を無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPopupButton",
+        "method:KisPopupButton::KisPopupButton(QWidget * parent)",
+        "method:KisPopupButton::setPopupWidget(QWidget * widget)",
+        "method:KisPopupButton::~KisPopupButton()"
+      ]
+    },
+    {
+      "target": "KisPopupButtonContractTest",
+      "source": "libs/widgetutils/tests/KisPopupButtonContractTest.cpp",
+      "test": "KisPopupButtonContractTest::popupVisibilityAndSignalFollowCommands",
+      "behavior": "ポップアップ表示、非表示、明示的な可視性設定、ボタン解放は表示状態を切り替え、表示のたびに通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupButton::hidePopupWidget()",
+        "method:KisPopupButton::isPopupWidgetVisible()",
+        "method:KisPopupButton::setPopupWidgetVisible(bool visible)",
+        "method:KisPopupButton::showPopupWidget()",
+        "method:KisPopupButton::sigPopupWidgetShown()"
+      ]
+    },
+    {
+      "target": "KisPopupButtonContractTest",
+      "source": "libs/widgetutils/tests/KisPopupButtonContractTest.cpp",
+      "test": "KisPopupButtonContractTest::popupWidthControlsFrame",
+      "behavior": "ポップアップ幅設定は内部表示枠を指定幅へ変更する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupButton::setPopupWidgetWidth(int w)"
+      ]
+    },
+    {
+      "target": "KisPopupButtonContractTest",
+      "source": "libs/widgetutils/tests/KisPopupButtonContractTest.cpp",
+      "test": "KisPopupButtonContractTest::detachedModeChangesFrameWindowType",
+      "behavior": "分離設定は内部表示枠のウィンドウ種別をポップアップとダイアログの間で切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupButton::setPopupWidgetDetached(bool detach)"
+      ]
+    },
+    {
+      "target": "KisPopupButtonContractTest",
+      "source": "libs/widgetutils/tests/KisPopupButtonContractTest.cpp",
+      "test": "KisPopupButtonContractTest::adjustPositionKeepsFrameOnScreen",
+      "behavior": "位置調整はポップアップ表示枠全体を利用可能な画面領域内へ収める。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupButton::adjustPosition()"
+      ]
+    },
+    {
+      "target": "KisPopupButtonContractTest",
+      "source": "libs/widgetutils/tests/KisPopupButtonContractTest.cpp",
+      "test": "KisPopupButtonContractTest::arrowVisibilityControlsIndicatorPainting",
+      "behavior": "矢印表示設定はボタン右下の下向き矢印描画を無効化し、再び有効化できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupButton::setArrowVisible(bool v)"
       ]
     }
   ]

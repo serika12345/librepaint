@@ -47,6 +47,21 @@ kis_add_test(
 )
 target_compile_definitions(KisKineticScrollerContractTest PRIVATE kritawidgetutils_EXPORTS)
 
+kis_add_test(
+    KisPopupButtonContractTest.cpp
+    LINK_LIBRARIES
+        kritapopupbuttonobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisPopupButtonContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisPopupButtonContractTest PRIVATE kritawidgetutils_EXPORTS)
+
 ki18n_wrap_ui(DialogStateSaver_SRCS
     dialogsavertestwidget.ui
 )
