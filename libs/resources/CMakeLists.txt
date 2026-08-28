@@ -37,6 +37,22 @@ set_target_properties(kritacanvasresourcesinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourcecacheinterfaceobjects OBJECT
+    KoResourceCacheInterface.cpp
+)
+target_compile_definitions(kritaresourcecacheinterfaceobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritaresourcecacheinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+)
+target_link_libraries(kritaresourcecacheinterfaceobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaresourcecacheinterfaceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresources_LIB_SRCS
     KisResourceCacheDb.cpp
     KisResourceLoader.cpp
@@ -75,7 +91,6 @@ set(kritaresources_LIB_SRCS
     KisResourcesInterface.cpp
     KisLocalStrokeResources.cpp
     KisGlobalResourcesInterface.cpp
-    KoResourceCacheInterface.cpp
     KoResourceCacheStorage.cpp
     KoResourceCachePrefixedStorageWrapper.cpp
 
@@ -96,6 +111,7 @@ kis_add_library(kritaresources SHARED
     ${kritaresources_LIB_SRCS}
     $<TARGET_OBJECTS:kritaresourcestypesobjects>
     $<TARGET_OBJECTS:kritacanvasresourcesinterfaceobjects>
+    $<TARGET_OBJECTS:kritaresourcecacheinterfaceobjects>
 )
 
 generate_export_header(kritaresources BASE_NAME kritaresources)

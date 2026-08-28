@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25837
+    "expectedMissingApis": 25830
   },
   "contracts": [
     {
@@ -9620,6 +9620,31 @@
         "class:KoCanvasResourcesInterface",
         "method:KoCanvasResourcesInterface::resource(int key) const",
         "method:KoCanvasResourcesInterface::~KoCanvasResourcesInterface()"
+      ]
+    },
+    {
+      "target": "KoResourceCacheInterfaceContractTest",
+      "source": "libs/resources/tests/KoResourceCacheInterfaceContractTest.cpp",
+      "test": "KoResourceCacheInterfaceContractTest::dispatchesCacheOperationsAndSupportsPolymorphicLifetime",
+      "behavior": "共有資源キャッシュ境界は取得キー、格納キーと値を同一性を保って実装へ配送し、取得結果を基本型経由で返して、基本型から多態的に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceCacheInterface",
+        "method:KoResourceCacheInterface::fetch(const QString & key) const",
+        "method:KoResourceCacheInterface::put(const QString & key,const QVariant & value)",
+        "method:KoResourceCacheInterface::~KoResourceCacheInterface()"
+      ]
+    },
+    {
+      "target": "KoResourceCacheInterfaceContractTest",
+      "source": "libs/resources/tests/KoResourceCacheInterfaceContractTest.cpp",
+      "test": "KoResourceCacheInterfaceContractTest::preservesRelatedResourceCookie",
+      "behavior": "関連資源識別子は符号なしポインター幅の値型として既定値ゼロを持ち、設定した値を同じキャッシュ境界から返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoResourceCacheInterface::RelatedResourceCookie",
+        "method:KoResourceCacheInterface::relatedResourceCookie() const",
+        "method:KoResourceCacheInterface::setRelatedResourceCookie(RelatedResourceCookie cookie)"
       ]
     }
   ]
