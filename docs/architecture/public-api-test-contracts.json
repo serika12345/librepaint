@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26841
+    "expectedMissingApis": 26800
   },
   "contracts": [
     {
@@ -7229,6 +7229,74 @@
         "enumerator:KisAndroidExitInfo::Reason::Unknown",
         "enumerator:KisAndroidExitInfo::Reason::UserRequested",
         "enumerator:KisAndroidExitInfo::Reason::UserStopped"
+      ]
+    },
+    {
+      "target": "KisColorSelectorConfigurationContractTest",
+      "source": "libs/widgets/tests/KisColorSelectorConfigurationContractTest.cpp",
+      "test": "KisColorSelectorConfigurationContractTest::enumValuesRemainStable",
+      "behavior": "色選択器の主形状・副形状と色成分パラメーターは保存文字列に使う宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisColorSelectorConfiguration::Parameters",
+        "enum:KisColorSelectorConfiguration::Type",
+        "enumerator:KisColorSelectorConfiguration::Parameters::H",
+        "enumerator:KisColorSelectorConfiguration::Parameters::Hluma",
+        "enumerator:KisColorSelectorConfiguration::Parameters::I",
+        "enumerator:KisColorSelectorConfiguration::Parameters::IH",
+        "enumerator:KisColorSelectorConfiguration::Parameters::L",
+        "enumerator:KisColorSelectorConfiguration::Parameters::LH",
+        "enumerator:KisColorSelectorConfiguration::Parameters::SI",
+        "enumerator:KisColorSelectorConfiguration::Parameters::SL",
+        "enumerator:KisColorSelectorConfiguration::Parameters::SV",
+        "enumerator:KisColorSelectorConfiguration::Parameters::SV2",
+        "enumerator:KisColorSelectorConfiguration::Parameters::SY",
+        "enumerator:KisColorSelectorConfiguration::Parameters::V",
+        "enumerator:KisColorSelectorConfiguration::Parameters::VH",
+        "enumerator:KisColorSelectorConfiguration::Parameters::Y",
+        "enumerator:KisColorSelectorConfiguration::Parameters::YH",
+        "enumerator:KisColorSelectorConfiguration::Parameters::hsiS",
+        "enumerator:KisColorSelectorConfiguration::Parameters::hsiSH",
+        "enumerator:KisColorSelectorConfiguration::Parameters::hslS",
+        "enumerator:KisColorSelectorConfiguration::Parameters::hslSH",
+        "enumerator:KisColorSelectorConfiguration::Parameters::hsvS",
+        "enumerator:KisColorSelectorConfiguration::Parameters::hsvSH",
+        "enumerator:KisColorSelectorConfiguration::Parameters::hsyS",
+        "enumerator:KisColorSelectorConfiguration::Parameters::hsySH",
+        "enumerator:KisColorSelectorConfiguration::Type::Ring",
+        "enumerator:KisColorSelectorConfiguration::Type::Slider",
+        "enumerator:KisColorSelectorConfiguration::Type::Square",
+        "enumerator:KisColorSelectorConfiguration::Type::Triangle",
+        "enumerator:KisColorSelectorConfiguration::Type::Wheel"
+      ]
+    },
+    {
+      "target": "KisColorSelectorConfigurationContractTest",
+      "source": "libs/widgets/tests/KisColorSelectorConfigurationContractTest.cpp",
+      "test": "KisColorSelectorConfigurationContractTest::defaultsAndRoundTripPreserveFields",
+      "behavior": "色選択器構成は既定状態、4つの公開状態値、文字列化、値の等価性を一貫して維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorSelectorConfiguration",
+        "member:KisColorSelectorConfiguration::mainType",
+        "member:KisColorSelectorConfiguration::mainTypeParameter",
+        "member:KisColorSelectorConfiguration::subType",
+        "member:KisColorSelectorConfiguration::subTypeParameter",
+        "method:KisColorSelectorConfiguration::KisColorSelectorConfiguration(Type mainT=Triangle,Type subT=Ring,Parameters mainTP=SL,Parameters subTP=H)",
+        "method:KisColorSelectorConfiguration::operator ==(const KisColorSelectorConfiguration & rhs) const",
+        "method:KisColorSelectorConfiguration::toString() const"
+      ]
+    },
+    {
+      "target": "KisColorSelectorConfigurationContractTest",
+      "source": "libs/widgets/tests/KisColorSelectorConfigurationContractTest.cpp",
+      "test": "KisColorSelectorConfigurationContractTest::stringConstructionAndFactoryHandleInput",
+      "behavior": "色選択器構成は有効な保存文字列を復元し、範囲外または不完全な入力では既存状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSelectorConfiguration::KisColorSelectorConfiguration(QString string)",
+        "method:KisColorSelectorConfiguration::fromString(QString string)",
+        "method:KisColorSelectorConfiguration::readString(QString string)"
       ]
     }
   ]
