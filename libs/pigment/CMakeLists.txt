@@ -43,7 +43,6 @@ target_include_directories(kritapigmentcmykmathsobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
 )

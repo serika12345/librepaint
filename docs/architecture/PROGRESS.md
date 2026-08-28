@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 10:37 JST
+- 更新日時: 2026-08-28 10:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4376,6 +4376,17 @@
   新対象はQt Core、Qt Gui、OpenEXR、pigmentとglobalの所有・生成ヘッダーだけへ接続し、macOSの限定構築が
   成功した。製品挙動、公開API、ABI、CMYK尺度定数は変更していない。Linux、製品ライブラリーの再リンク、
   全ネイティブ検証は実行していない。
+
+## R2-G19b CMYK尺度定数 public API契約で完了した作業
+
+- `libs/pigment/KoCmykColorSpaceMaths.h`の数値特性とCMYK用ゼロ・半分・単位値からなる4 APIを、新規
+  `libs/pigment/tests/KoCmykColorSpaceMathsContractTest.cpp`の2試験へ対応付けた。整数型が基礎色空間の
+  数値範囲を継承することと、単精度・倍精度型が0、50、100の百分率尺度を持つことを観測する。
+- 初回構築は公開ヘッダーが必要とする`kis_global.h`の検索経路が試験へ伝播せず失敗した。globalのソース・
+  生成ヘッダー経路を`kritapigmentcmykmathsobjects`の公開使用条件へ移し、製品ライブラリーへの接続を追加せず
+  解消した。試験は専用実装対象とQt Testだけへ直接接続し、変更なし構築閉包はmacOSで5工程・16入力で
+  ある。対象実行と20回反復が成功し、公開API契約は1,221件、未対応基準は27,793件になった。製品実装、
+  公開API、ABI、CMYK尺度定数は変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 

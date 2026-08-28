@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27797
+    "expectedMissingApis": 27793
   },
   "contracts": [
     {
@@ -4115,6 +4115,28 @@
       "apis": [
         "variable:OPACITY_OPAQUE_F",
         "variable:OPACITY_TRANSPARENT_F"
+      ]
+    },
+    {
+      "target": "KoCmykColorSpaceMathsContractTest",
+      "source": "libs/pigment/tests/KoCmykColorSpaceMathsContractTest.cpp",
+      "test": "KoCmykColorSpaceMathsContractTest::integerTraitsUseNativeRange",
+      "behavior": "整数CMYK数値特性は各整数型の基礎色空間数値特性を継承し、8ビット型では0から255の尺度を使う。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCmykColorSpaceMathsTraits"
+      ]
+    },
+    {
+      "target": "KoCmykColorSpaceMathsContractTest",
+      "source": "libs/pigment/tests/KoCmykColorSpaceMathsContractTest.cpp",
+      "test": "KoCmykColorSpaceMathsContractTest::floatingTraitsUseCmykPercentageRange",
+      "behavior": "単精度と倍精度のCMYK数値特性はゼロ、半分、単位値を0、50、100の百分率尺度で表す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoCmykColorSpaceMathsTraits::halfValueCMYK",
+        "member:KoCmykColorSpaceMathsTraits::unitValueCMYK",
+        "member:KoCmykColorSpaceMathsTraits::zeroValueCMYK"
       ]
     }
   ]
