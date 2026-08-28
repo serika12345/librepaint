@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 15:04 JST
+- 更新日時: 2026-08-28 15:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4944,6 +4944,17 @@
   変更なし構築閉包はmacOSで12工程・25入力である。公開API契約は1,851件、未対応基準は28,159件に
   なった。製品実装、公開API、ABI、構成変更通知規則は変更していない。Linuxと全ネイティブ検証は
   実行していない。
+
+## R2-G19b 代替ジョブ実行フラグ型別名の挙動契約で完了した作業
+
+- `libs/image/KisFakeRunnableStrokeJobsExecutor.h`の`Flags`型別名を、既存
+  `libs/image/tests/KisStrokeJobContractTest.cpp`の`fakeExecutorFlagValuesDescribeBarrierOptIn`へ
+  対応付けた。試験は既定フラグが障壁許可を持たず、型別名に同フラグを設定すると照会できることを
+  明示して、列挙値だけでなく`QFlags`としての公開契約を観測する。
+- 既存試験はストロークジョブ専用実装対象とQt Testだけへ直接接続し、変更なし構築閉包はmacOSで
+  9工程・19入力である。対象実行と20回反復に成功し、公開API契約は1,852件、未対応基準は
+  28,158件になった。製品実装、公開API、ABI、ジョブ実行規則、構築対象は変更していない。Linuxと
+  全ネイティブ検証は実行していない。
 
 ## 次の操作
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28159
+    "expectedMissingApis": 28158
   },
   "contracts": [
     {
@@ -3269,6 +3269,7 @@
       "behavior": "代替実行可能ジョブ処理のフラグ値は、既定状態を0、障壁ジョブ許可を独立したビット0として表す。",
       "classification": "maintained",
       "apis": [
+        "alias:KisFakeRunnableStrokeJobsExecutor::Flags",
         "enum:KisFakeRunnableStrokeJobsExecutor::Flag",
         "enumerator:KisFakeRunnableStrokeJobsExecutor::Flag::AllowBarrierJobs",
         "enumerator:KisFakeRunnableStrokeJobsExecutor::Flag::None"

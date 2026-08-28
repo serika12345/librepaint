@@ -394,6 +394,11 @@ void KisStrokeJobContractTest::fakeExecutorFlagValuesDescribeBarrierOptIn()
 {
     QCOMPARE(int(KisFakeRunnableStrokeJobsExecutor::None), 0);
     QCOMPARE(int(KisFakeRunnableStrokeJobsExecutor::AllowBarrierJobs), 1);
+
+    KisFakeRunnableStrokeJobsExecutor::Flags flags = KisFakeRunnableStrokeJobsExecutor::None;
+    QVERIFY(!flags.testFlag(KisFakeRunnableStrokeJobsExecutor::AllowBarrierJobs));
+    flags.setFlag(KisFakeRunnableStrokeJobsExecutor::AllowBarrierJobs);
+    QVERIFY(flags.testFlag(KisFakeRunnableStrokeJobsExecutor::AllowBarrierJobs));
 }
 
 void KisStrokeJobContractTest::defaultFakeExecutorRunsAndDeletesJobsInOrder()
