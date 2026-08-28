@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 12:40 JST
+- 更新日時: 2026-08-28 12:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4576,6 +4576,16 @@
 - 限定構築閉包はmacOSで4工程・8入力を保ち、31試験の対象実行と20回反復が成功した。公開API契約は
   1,584件、未対応基準は27,430件になり、`libs/global/KisForest.h`の未対応は0件になった。Linuxと全
   ネイティブ検証は実行していない。
+
+## R2-G19b 乱数源契約の限定構築で完了した作業
+
+- `libs/global/kis_random_source.cpp`は同じファイル位置を保ち、`libs/global/CMakeLists.txt`の
+  `kritaglobal`直接ソースから新規`kritaglobalrandomsourceobjects`の所有へ移した。`kritaglobal`は新対象の
+  オブジェクトを集約し、従来の公開シンボルを供給する。
+- 新対象はQt CoreとBoostだけへ直接接続し、変更なし構築閉包はmacOSで1工程・3入力である。製品所有者
+  `kritaglobal`の構築閉包は55工程・110入力であり、乱数源の契約試験は製品ライブラリー全体を構築せずに
+  実装1ソースへ接続できる。限定構築に成功し、製品挙動、公開API、ABI、乱数列は変更していない。Linux、
+  製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
 
 ## 次の操作
 

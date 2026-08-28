@@ -158,6 +158,25 @@ set_target_properties(kritaglobalsharedobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalrandomsourceobjects OBJECT
+    kis_random_source.cpp
+)
+target_compile_definitions(kritaglobalrandomsourceobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalrandomsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalrandomsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalrandomsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalrollingsumobjects OBJECT
     KisRollingSumAccumulatorWrapper.cpp
 )
@@ -279,7 +298,6 @@ set(kritaglobal_LIB_SRCS
     KisBezierPatch.cpp
     KisBezierMesh.cpp
     KisSynchronizedConnection.cpp
-    kis_random_source.cpp
     KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
     KisTransformComponents.cpp
@@ -309,6 +327,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalcursoroverridelockobjects>
     $<TARGET_OBJECTS:kritaglobalfilteredrollingmeanobjects>
     $<TARGET_OBJECTS:kritaglobalsharedobjects>
+    $<TARGET_OBJECTS:kritaglobalrandomsourceobjects>
     $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
     $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
     $<TARGET_OBJECTS:kritaglobalsamplerectiteratorobjects>
