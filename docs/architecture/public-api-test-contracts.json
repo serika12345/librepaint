@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26292
+    "expectedMissingApis": 26264
   },
   "contracts": [
     {
@@ -8220,6 +8220,61 @@
       "classification": "maintained",
       "apis": [
         "variable:KRITA_TOOL_ACTIVATION_ID"
+      ]
+    },
+    {
+      "target": "KoDialogEnumContractTest",
+      "source": "libs/widgets/tests/KoDialogEnumContractTest.cpp",
+      "test": "KoDialogEnumContractTest::buttonCodesRemainStableFlags",
+      "behavior": "標準ダイアログの16ボタン識別子は各役割に割り当てたビット値を維持し、公開フラグ型で組み合わせられる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoDialog::ButtonCodes",
+        "enum:KoDialog::ButtonCode",
+        "enumerator:KoDialog::ButtonCode::Apply",
+        "enumerator:KoDialog::ButtonCode::Cancel",
+        "enumerator:KoDialog::ButtonCode::Close",
+        "enumerator:KoDialog::ButtonCode::Default",
+        "enumerator:KoDialog::ButtonCode::Details",
+        "enumerator:KoDialog::ButtonCode::Help",
+        "enumerator:KoDialog::ButtonCode::No",
+        "enumerator:KoDialog::ButtonCode::NoDefault",
+        "enumerator:KoDialog::ButtonCode::None",
+        "enumerator:KoDialog::ButtonCode::Ok",
+        "enumerator:KoDialog::ButtonCode::Reset",
+        "enumerator:KoDialog::ButtonCode::Try",
+        "enumerator:KoDialog::ButtonCode::User1",
+        "enumerator:KoDialog::ButtonCode::User2",
+        "enumerator:KoDialog::ButtonCode::User3",
+        "enumerator:KoDialog::ButtonCode::Yes"
+      ]
+    },
+    {
+      "target": "KoDialogEnumContractTest",
+      "source": "libs/widgets/tests/KoDialogEnumContractTest.cpp",
+      "test": "KoDialogEnumContractTest::popupModesRemainStableFlags",
+      "behavior": "ボタンメニューの即時・遅延表示方式は0と1を維持し、公開フラグ型で表現できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoDialog::ButtonPopupModes",
+        "enum:KoDialog::ButtonPopupMode",
+        "enumerator:KoDialog::ButtonPopupMode::DelayedPopup",
+        "enumerator:KoDialog::ButtonPopupMode::InstantPopup"
+      ]
+    },
+    {
+      "target": "KoDialogEnumContractTest",
+      "source": "libs/widgets/tests/KoDialogEnumContractTest.cpp",
+      "test": "KoDialogEnumContractTest::captionFlagsRemainStableAliases",
+      "behavior": "題名のアプリケーション名と変更状態は独立したビットを維持し、HIG準拠値はアプリケーション名値の別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoDialog::CaptionFlags",
+        "enum:KoDialog::CaptionFlag",
+        "enumerator:KoDialog::CaptionFlag::AppNameCaption",
+        "enumerator:KoDialog::CaptionFlag::HIGCompliantCaption",
+        "enumerator:KoDialog::CaptionFlag::ModifiedCaption",
+        "enumerator:KoDialog::CaptionFlag::NoCaptionFlags"
       ]
     }
   ]
