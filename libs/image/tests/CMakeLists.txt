@@ -187,6 +187,14 @@ target_include_directories(KisSelectionTagsContractTest PRIVATE
 )
 
 kis_add_test(
+    KisImageSignalsContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagesignalsobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisImageSignalsContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
     kis_clone_layer_test.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaglobal kritatransformmaskstubs
     )

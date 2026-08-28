@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27905
+    "expectedMissingApis": 27872
   },
   "contracts": [
     {
@@ -3773,6 +3773,75 @@
         "enumerator:TransferCharacteristics::TRC_SMPTE_240M",
         "enumerator:TransferCharacteristics::TRC_SMPTE_ST_428_1",
         "enumerator:TransferCharacteristics::TRC_UNSPECIFIED"
+      ]
+    },
+    {
+      "target": "KisImageSignalsContractTest",
+      "source": "libs/image/tests/KisImageSignalsContractTest.cpp",
+      "test": "KisImageSignalsContractTest::signalTypesPreserveValues",
+      "behavior": "画像変更通知の7種類が層変更からノード再選択要求までの安定した識別値を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisImageSignalTypeEnum",
+        "enumerator:KisImageSignalTypeEnum::ColorSpaceChangedSignal",
+        "enumerator:KisImageSignalTypeEnum::LayersChangedSignal",
+        "enumerator:KisImageSignalTypeEnum::ModifiedWithoutUndoSignal",
+        "enumerator:KisImageSignalTypeEnum::NodeReselectionRequestSignal",
+        "enumerator:KisImageSignalTypeEnum::ProfileChangedSignal",
+        "enumerator:KisImageSignalTypeEnum::ResolutionChangedSignal",
+        "enumerator:KisImageSignalTypeEnum::SizeChangedSignal"
+      ]
+    },
+    {
+      "target": "KisImageSignalsContractTest",
+      "source": "libs/image/tests/KisImageSignalsContractTest.cpp",
+      "test": "KisImageSignalsContractTest::sizeChangesPreserveStillPoints",
+      "behavior": "画像寸法変更が変更前後の静止点を保持し、矩形中心から画像中心への対応と逆変換を返す。",
+      "classification": "maintained",
+      "apis": [
+        "member:ComplexSizeChangedSignal::newStillPoint",
+        "member:ComplexSizeChangedSignal::oldStillPoint",
+        "method:ComplexSizeChangedSignal::ComplexSizeChangedSignal()",
+        "method:ComplexSizeChangedSignal::ComplexSizeChangedSignal(QPointF _oldStillPoint,QPointF _newStillPoint)",
+        "method:ComplexSizeChangedSignal::ComplexSizeChangedSignal(const QRect & portionOfOldImage,const QSize & transformedIntoImageOfSize)",
+        "method:ComplexSizeChangedSignal::inverted() const",
+        "struct:ComplexSizeChangedSignal"
+      ]
+    },
+    {
+      "target": "KisImageSignalsContractTest",
+      "source": "libs/image/tests/KisImageSignalsContractTest.cpp",
+      "test": "KisImageSignalsContractTest::nodeReselectionPreservesBeforeAndAfterState",
+      "behavior": "ノード再選択要求が変更前後の活動ノードと選択列を保持し、逆変換で両状態を交換する。",
+      "classification": "maintained",
+      "apis": [
+        "member:ComplexNodeReselectionSignal::newActiveNode",
+        "member:ComplexNodeReselectionSignal::newSelectedNodes",
+        "member:ComplexNodeReselectionSignal::oldActiveNode",
+        "member:ComplexNodeReselectionSignal::oldSelectedNodes",
+        "method:ComplexNodeReselectionSignal::ComplexNodeReselectionSignal()",
+        "method:ComplexNodeReselectionSignal::ComplexNodeReselectionSignal(KisNodeSP _newActiveNode,KisNodeList _newSelectedNodes,KisNodeSP _oldActiveNode=KisNodeSP (),KisNodeList _oldSelectedNodes=KisNodeList ())",
+        "method:ComplexNodeReselectionSignal::inverted() const",
+        "struct:ComplexNodeReselectionSignal"
+      ]
+    },
+    {
+      "target": "KisImageSignalsContractTest",
+      "source": "libs/image/tests/KisImageSignalsContractTest.cpp",
+      "test": "KisImageSignalsContractTest::signalWrappersPreservePayloadAndOrder",
+      "behavior": "画像信号包みが種類に対応する寸法変更またはノード再選択の値を保持し、反転と信号列の順序を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImageSignalVector",
+        "member:KisImageSignalType::id",
+        "member:KisImageSignalType::nodeReselectionSignal",
+        "member:KisImageSignalType::sizeChangedSignal",
+        "method:KisImageSignalType::KisImageSignalType()",
+        "method:KisImageSignalType::KisImageSignalType(ComplexNodeReselectionSignal signal)",
+        "method:KisImageSignalType::KisImageSignalType(ComplexSizeChangedSignal signal)",
+        "method:KisImageSignalType::KisImageSignalType(KisImageSignalTypeEnum _id)",
+        "method:KisImageSignalType::inverted() const",
+        "struct:KisImageSignalType"
       ]
     }
   ]
