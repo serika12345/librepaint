@@ -9,6 +9,19 @@
 
 #include <QTest>
 
+#include <type_traits>
+
+void TestKoIntegerMaths::clampAndAliasTests()
+{
+    static_assert(std::is_same_v<uint, unsigned int>);
+
+    uint value = 42;
+    QCOMPARE(value, 42u);
+    QCOMPARE(CLAMP(5, 10, 20), 10);
+    QCOMPARE(CLAMP(15, 10, 20), 15);
+    QCOMPARE(CLAMP(25, 10, 20), 20);
+}
+
 void TestKoIntegerMaths::UINT8Tests()
 {
     QCOMPARE((int)UINT8_MULT(0, 255), 0);
@@ -39,6 +52,18 @@ void TestKoIntegerMaths::UINT8Tests()
     QCOMPARE((int)UINT8_BLEND(128, 64, 255), 128);
 }
 
+void TestKoIntegerMaths::UINT8ScaleAndTripleTests()
+{
+    QCOMPARE(UINT8_SCALEBY(0, 0), 128u);
+    QCOMPARE(UINT8_SCALEBY(128, 255), 32896u);
+    QCOMPARE(UINT8_SCALEBY(255, 255), 65407u);
+
+    QCOMPARE(UINT8_MULT3(0, 255, 255), 0u);
+    QCOMPARE(UINT8_MULT3(64, 128, 255), 32u);
+    QCOMPARE(UINT8_MULT3(128, 128, 255), 64u);
+    QCOMPARE(UINT8_MULT3(255, 255, 255), 255u);
+}
+
 void TestKoIntegerMaths::UINT16Tests()
 {
     QCOMPARE((int)UINT16_MULT(0, 65535), 0);
@@ -64,6 +89,18 @@ void TestKoIntegerMaths::UINT16Tests()
     QCOMPARE((int)UINT16_BLEND(65535, 0, 32768), 32767);
     QCOMPARE((int)UINT16_BLEND(65535, 32768, 32768), 49151);
     QCOMPARE((int)UINT16_BLEND(32768, 16384, 65535), 32767);
+}
+
+void TestKoIntegerMaths::INT16Tests()
+{
+    QCOMPARE(INT16_MULT(0, 32767), 0);
+    QCOMPARE(INT16_MULT(16384, 16384), 8192);
+    QCOMPARE(INT16_MULT(32767, 32767), 32767);
+    QCOMPARE(INT16_MULT(-32768, 32767), -32768);
+
+    QCOMPARE(INT16_BLEND(32767, 0, 0), 0);
+    QCOMPARE(INT16_BLEND(32767, 0, 32768), 16383);
+    QCOMPARE(INT16_BLEND(32767, 0, 65535), 32766);
 }
 
 void TestKoIntegerMaths::conversionTests()

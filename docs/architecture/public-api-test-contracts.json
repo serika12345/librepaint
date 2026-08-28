@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27815
+    "expectedMissingApis": 27801
   },
   "contracts": [
     {
@@ -4025,6 +4025,74 @@
         "method:KritaUtils::is_container::test(...)",
         "struct:KritaUtils::is_appendable_container",
         "struct:KritaUtils::is_container"
+      ]
+    },
+    {
+      "target": "TestKoIntegerMaths",
+      "source": "libs/pigment/tests/TestKoIntegerMaths.cpp",
+      "test": "TestKoIntegerMaths::clampAndAliasTests",
+      "behavior": "公開整数型はunsigned intを表し、範囲制限は下限未満を下限、範囲内を元の値、上限超過を上限へ写す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:uint",
+        "function:CLAMP(_T_ x,_T2_ l,_T3_ u)"
+      ]
+    },
+    {
+      "target": "TestKoIntegerMaths",
+      "source": "libs/pigment/tests/TestKoIntegerMaths.cpp",
+      "test": "TestKoIntegerMaths::UINT8Tests",
+      "behavior": "8ビット尺度の積、除算、線形混合は255を単位値として整数の丸め規則を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "function:UINT8_BLEND(uint a,uint b,uint alpha)",
+        "function:UINT8_DIVIDE(uint a,uint b)",
+        "function:UINT8_MULT(uint a,uint b)"
+      ]
+    },
+    {
+      "target": "TestKoIntegerMaths",
+      "source": "libs/pigment/tests/TestKoIntegerMaths.cpp",
+      "test": "TestKoIntegerMaths::UINT8ScaleAndTripleTests",
+      "behavior": "8ビット尺度の拡大積は最終桁移動前の丸め済み整数を返し、三項積は255を単位値として丸めた積を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:UINT8_MULT3(uint a,uint b,uint c)",
+        "function:UINT8_SCALEBY(uint a,uint b)"
+      ]
+    },
+    {
+      "target": "TestKoIntegerMaths",
+      "source": "libs/pigment/tests/TestKoIntegerMaths.cpp",
+      "test": "TestKoIntegerMaths::UINT16Tests",
+      "behavior": "16ビット符号なし尺度の積、除算、線形混合は65535を単位値として現行の丸めと切り捨てを適用する。",
+      "classification": "maintained",
+      "apis": [
+        "function:UINT16_BLEND(uint a,uint b,uint alpha)",
+        "function:UINT16_DIVIDE(uint a,uint b)",
+        "function:UINT16_MULT(uint a,uint b)"
+      ]
+    },
+    {
+      "target": "TestKoIntegerMaths",
+      "source": "libs/pigment/tests/TestKoIntegerMaths.cpp",
+      "test": "TestKoIntegerMaths::INT16Tests",
+      "behavior": "16ビット符号付き尺度の積は32767、線形混合は65536を分母とする整数の切り捨て結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:INT16_BLEND(int a,int b,uint alpha)",
+        "function:INT16_MULT(int a,int b)"
+      ]
+    },
+    {
+      "target": "TestKoIntegerMaths",
+      "source": "libs/pigment/tests/TestKoIntegerMaths.cpp",
+      "test": "TestKoIntegerMaths::conversionTests",
+      "behavior": "8ビット値の16ビット化は各バイトへ同じ値を複製し、逆変換は丸めて元の8ビット値を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:UINT16_TO_UINT8(uint c)",
+        "function:UINT8_TO_UINT16(uint c)"
       ]
     }
   ]
