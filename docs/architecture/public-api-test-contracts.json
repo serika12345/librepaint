@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26140
+    "expectedMissingApis": 26096
   },
   "contracts": [
     {
@@ -8534,6 +8534,113 @@
         "enumerator:KisDlgPreferences::PerformaceTabs::AnimationCache",
         "enumerator:KisDlgPreferences::PerformaceTabs::GeneralPerformance",
         "enumerator:KisDlgPreferences::PerformaceTabs::InstantPreview"
+      ]
+    },
+    {
+      "target": "KisShortcutConfigurationContractTest",
+      "source": "libs/input/tests/KisShortcutConfigurationContractTest.cpp",
+      "test": "KisShortcutConfigurationContractTest::enumValuesRemainStable",
+      "behavior": "ショートカット種別、ホイール方向、macOSジェスチャーは保存形式と入力照合が共有する0始まりの識別値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisShortcutConfiguration::GestureAction",
+        "enum:KisShortcutConfiguration::MouseWheelMovement",
+        "enum:KisShortcutConfiguration::ShortcutType",
+        "enumerator:KisShortcutConfiguration::GestureAction::MaxGesture",
+        "enumerator:KisShortcutConfiguration::GestureAction::NoGesture",
+        "enumerator:KisShortcutConfiguration::GestureAction::PanGesture",
+        "enumerator:KisShortcutConfiguration::GestureAction::PinchGesture",
+        "enumerator:KisShortcutConfiguration::GestureAction::RotateGesture",
+        "enumerator:KisShortcutConfiguration::GestureAction::SmartZoomGesture",
+        "enumerator:KisShortcutConfiguration::MouseWheelMovement::NoMovement",
+        "enumerator:KisShortcutConfiguration::MouseWheelMovement::WheelDown",
+        "enumerator:KisShortcutConfiguration::MouseWheelMovement::WheelLeft",
+        "enumerator:KisShortcutConfiguration::MouseWheelMovement::WheelRight",
+        "enumerator:KisShortcutConfiguration::MouseWheelMovement::WheelTrackpad",
+        "enumerator:KisShortcutConfiguration::MouseWheelMovement::WheelUp",
+        "enumerator:KisShortcutConfiguration::ShortcutType::GestureType",
+        "enumerator:KisShortcutConfiguration::ShortcutType::KeyCombinationType",
+        "enumerator:KisShortcutConfiguration::ShortcutType::MacOSGestureType",
+        "enumerator:KisShortcutConfiguration::ShortcutType::MouseButtonType",
+        "enumerator:KisShortcutConfiguration::ShortcutType::MouseWheelType",
+        "enumerator:KisShortcutConfiguration::ShortcutType::UnknownType"
+      ]
+    },
+    {
+      "target": "KisShortcutConfigurationContractTest",
+      "source": "libs/input/tests/KisShortcutConfigurationContractTest.cpp",
+      "test": "KisShortcutConfigurationContractTest::defaultConfigurationIsNoOp",
+      "behavior": "新規ショートカットは入力を持たない値として生成・破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisShortcutConfiguration",
+        "method:KisShortcutConfiguration::KisShortcutConfiguration()",
+        "method:KisShortcutConfiguration::~KisShortcutConfiguration()"
+      ]
+    },
+    {
+      "target": "KisShortcutConfigurationContractTest",
+      "source": "libs/input/tests/KisShortcutConfigurationContractTest.cpp",
+      "test": "KisShortcutConfigurationContractTest::storesAllPublicValues",
+      "behavior": "操作ID、種別、方式、キー、ボタン、ホイール、ジェスチャーの設定値は同じショートカットから取得できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutConfiguration::actionId() const",
+        "method:KisShortcutConfiguration::buttons() const",
+        "method:KisShortcutConfiguration::gesture() const",
+        "method:KisShortcutConfiguration::keys() const",
+        "method:KisShortcutConfiguration::mode() const",
+        "method:KisShortcutConfiguration::setActionId(const QString & actionId)",
+        "method:KisShortcutConfiguration::setButtons(Qt::MouseButtons newButtons)",
+        "method:KisShortcutConfiguration::setGesture(GestureAction type)",
+        "method:KisShortcutConfiguration::setKeys(const QList<Qt::Key> & newKeys)",
+        "method:KisShortcutConfiguration::setMode(uint newMode)",
+        "method:KisShortcutConfiguration::setType(ShortcutType newType)",
+        "method:KisShortcutConfiguration::setWheel(MouseWheelMovement type)",
+        "method:KisShortcutConfiguration::type() const",
+        "method:KisShortcutConfiguration::wheel() const"
+      ]
+    },
+    {
+      "target": "KisShortcutConfigurationContractTest",
+      "source": "libs/input/tests/KisShortcutConfigurationContractTest.cpp",
+      "test": "KisShortcutConfigurationContractTest::copiesAndAssignsIndependentValues",
+      "behavior": "複製構築と代入は全ショートカット値を独立した保存先へ複製する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutConfiguration::KisShortcutConfiguration(const KisShortcutConfiguration & other)",
+        "method:KisShortcutConfiguration::operator =(const KisShortcutConfiguration & other)"
+      ]
+    },
+    {
+      "target": "KisShortcutConfigurationContractTest",
+      "source": "libs/input/tests/KisShortcutConfigurationContractTest.cpp",
+      "test": "KisShortcutConfigurationContractTest::equalityUsesPhysicalInputOnly",
+      "behavior": "ショートカット等価性は操作IDと方式を除く物理入力の一致で決まり、異なる物理入力を区別する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutConfiguration::operator ==(const KisShortcutConfiguration & other) const"
+      ]
+    },
+    {
+      "target": "KisShortcutConfigurationContractTest",
+      "source": "libs/input/tests/KisShortcutConfigurationContractTest.cpp",
+      "test": "KisShortcutConfigurationContractTest::serializesAndRestoresProfileValues",
+      "behavior": "ショートカットの方式と物理入力は16進数のプロファイル表現を往復し、操作IDはプロファイル側の所有に留まる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutConfiguration::serialize() const",
+        "method:KisShortcutConfiguration::unserialize(const QString & serialized)"
+      ]
+    },
+    {
+      "target": "KisShortcutConfigurationContractTest",
+      "source": "libs/input/tests/KisShortcutConfigurationContractTest.cpp",
+      "test": "KisShortcutConfigurationContractTest::noOpReflectsSelectedInputType",
+      "behavior": "無操作判定は選択した入力種別に必要なキー、ボタン、ホイール方向、または有効なジェスチャーの有無を反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisShortcutConfiguration::isNoOp() const"
       ]
     }
   ]
