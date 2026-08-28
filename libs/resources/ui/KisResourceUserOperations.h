@@ -28,9 +28,10 @@ public:
     static bool addResourceWithUserInput(QWidget* widgetParent, KoResourceSP resource, QString storageLocation = "");
     static bool updateResourceWithUserInput(QWidget* widgetParent, KoResourceSP resource);
 
-
-
-
+private:
+    static bool resourceFilenameIsAlreadyUsed(KoResourceSP resource,
+                                              const QString &storageLocation);
+    static KoResourceSP prepareExternalResource(KoResourceSP resource);
 };
 
 #endif // KIS_RESOURCE_OVERWRITE_DIALOG_H

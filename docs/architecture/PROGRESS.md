@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 01:23 JST
+- 更新日時: 2026-08-29 01:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6325,12 +6325,42 @@
   29,980 API、対応済み4,423件、未対応25,557件になり、同ヘッダーの未対応は2 APIになった。製品
   `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源追加・更新 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisResourceUserOperations.cpp`に残っていた資源追加の判断を新規
+  `libs/resources/ui/KisResourceUserOperationsAdd.cpp`と
+  `kritaresourceuseroperationsaddobjects`へ、資源DB照合、追加、確認・警告を新規
+  `libs/resources/ui/KisResourceUserOperationsAddSource.cpp`と
+  `kritaresourceuseroperationsaddsourceobjects`へ移した。資源更新の判断は新規
+  `libs/resources/ui/KisResourceUserOperationsUpdate.cpp`と
+  `kritaresourceuseroperationsupdateobjects`へ、保存先変換、登録済み資源への直列化、名前照合、更新、
+  確認・警告は新規`libs/resources/ui/KisResourceUserOperationsUpdateSource.cpp`と
+  `kritaresourceuseroperationsupdatesourceobjects`へ移した。空になった開始ファイルと
+  `kritaresourceuseroperationsobjects`は削除し、製品`kritaresourceui`は四つの生成オブジェクトを
+  各1回集約する。
+- `libs/resources/ui/KisResourceUserOperations.h`の追加と更新2 APIを、既存
+  `libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp`の2試験へ対応付けた。既存
+  ファイル名の上書き取消しと更新への委譲、重複名の取消しと追加許可、追加失敗警告、外部資源の
+  登録済み個体への移送と移送失敗、変更名の重複取消しと更新許可、更新失敗警告を固定した。判断試験は
+  DB、保存先、直列化、モデル、ダイアログを決定的な内部境界へ置き換え、実データベースを構築しない。
+- 最初の試験リンクは、追加・更新と具象効果が同じオブジェクトにあったため、`KoResource`、
+  `KisResourceModel`、資源DB、資源配置、全体資源インターフェース、直列化の未解決参照を診断した。
+  分割後の具象DB照合の単体コンパイルでは、資源DBの私有検索を既存の友達クラス以外から呼ぶ診断が
+  出たため、DB検索と外部資源移送を`KisResourceUserOperations`の私有補助に維持した。DB検索失敗時の
+  出力IDは`-1`で初期化し、失敗後に未初期化値を参照する未定義状態を除いた。
+- 追加判断、追加効果、更新判断、更新効果を各1工程・3入力に収め、上書き確認、名前重複、取込、
+  名前変更の既存対象も直接集約する試験を10工程・22入力に収めた。製品`kritaresourceui`は
+  285工程・601入力から288工程・607入力になった。各対象コンパイル、対象CTestのmacOS単発実行と
+  20回反復、公開API契約検査は成功した。公開面は1,547ヘッダー、29,980 API、対応済み4,425件、
+  未対応25,555件になり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritaresourceui`の
+  リンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceUserOperations.h`に残る追加と更新の2 APIについて、分離済み
-`kritaresourceuseroperationsobjects`内の資源DB照合、保存先変換、直列化、既存資源への上書き、名前
-重複確認を監査する。追加判断と更新判断を別翻訳単位へ分け、現在の分岐を値で再現できる内部境界へ
-具象モデル・DB・直列化効果を集約し、追加・上書き・取消し・外部資源移送・失敗警告を固定する。
+`libs/resources/ui/KisTagChooserWidget.h`の未対応13 APIについて、製品`kritaresourceui`の直接ソース
+`libs/resources/ui/KisTagChooserWidget.cpp`と資源モデル、タグ操作ボタン、設定永続化、ダイアログの
+直接依存および空構築閉包を監査する。構築範囲が表示構成、選択、タグ追加の責務を一括して要求する
+場合は、挙動試験より先に具体所有を分け、選択値・通知・読取り専用判定・追加結果を局所的に固定する。
 
 ## R1-G5完了根拠
 

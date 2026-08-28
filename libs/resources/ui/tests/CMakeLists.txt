@@ -262,6 +262,8 @@ kis_add_test(
         kritaresourceuseroperationsnameusageobjects
         kritaresourceuseroperationsimportobjects
         kritaresourceuseroperationsrenameobjects
+        kritaresourceuseroperationsaddobjects
+        kritaresourceuseroperationsupdateobjects
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
 )

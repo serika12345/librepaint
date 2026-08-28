@@ -244,27 +244,90 @@ set_target_properties(kritastoragechooserwidgetmodelsourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-add_library(kritaresourceuseroperationsobjects OBJECT
-    KisResourceUserOperations.cpp
+add_library(kritaresourceuseroperationsaddobjects OBJECT
+    KisResourceUserOperationsAdd.cpp
 )
-target_compile_definitions(kritaresourceuseroperationsobjects PRIVATE kritaresourceui_EXPORTS)
-target_include_directories(kritaresourceuseroperationsobjects
+target_compile_definitions(kritaresourceuseroperationsaddobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuseroperationsaddobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
 )
-target_link_libraries(kritaresourceuseroperationsobjects
+target_link_libraries(kritaresourceuseroperationsaddobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
-set_target_properties(kritaresourceuseroperationsobjects PROPERTIES
+set_target_properties(kritaresourceuseroperationsaddobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceuseroperationsaddsourceobjects OBJECT
+    KisResourceUserOperationsAddSource.cpp
+)
+target_compile_definitions(kritaresourceuseroperationsaddsourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuseroperationsaddsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritaresourceuseroperationsaddsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceuseroperationsaddsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceuseroperationsupdateobjects OBJECT
+    KisResourceUserOperationsUpdate.cpp
+)
+target_compile_definitions(kritaresourceuseroperationsupdateobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuseroperationsupdateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaresourceuseroperationsupdateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceuseroperationsupdateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceuseroperationsupdatesourceobjects OBJECT
+    KisResourceUserOperationsUpdateSource.cpp
+)
+target_compile_definitions(kritaresourceuseroperationsupdatesourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuseroperationsupdatesourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritaresourceuseroperationsupdatesourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceuseroperationsupdatesourceobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -446,7 +509,10 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritastoragechooserwidgetobjects>
     $<TARGET_OBJECTS:kritastoragechooserwidgetactivationobjects>
     $<TARGET_OBJECTS:kritastoragechooserwidgetmodelsourceobjects>
-    $<TARGET_OBJECTS:kritaresourceuseroperationsobjects>
+    $<TARGET_OBJECTS:kritaresourceuseroperationsaddobjects>
+    $<TARGET_OBJECTS:kritaresourceuseroperationsaddsourceobjects>
+    $<TARGET_OBJECTS:kritaresourceuseroperationsupdateobjects>
+    $<TARGET_OBJECTS:kritaresourceuseroperationsupdatesourceobjects>
     $<TARGET_OBJECTS:kritaresourceuseroperationsoverwriteobjects>
     $<TARGET_OBJECTS:kritaresourceuseroperationsnameusageobjects>
     $<TARGET_OBJECTS:kritaresourceuseroperationsnamesourceobjects>

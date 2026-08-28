@@ -16,7 +16,7 @@
     "publicApiFingerprint": "02a2ba5fa81fe7de5ed695b939677058c656df441e157a423c32477eca21a53c"
   },
   "migration": {
-    "expectedMissingApis": 25557
+    "expectedMissingApis": 25555
   },
   "contracts": [
     {
@@ -11095,6 +11095,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceUserOperations::renameResourceWithUserInput(QWidget * widgetParent,KoResourceSP resource,QString resourceName)"
+      ]
+    },
+    {
+      "target": "KisResourceUserOperationsContractTest",
+      "source": "libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp",
+      "test": "KisResourceUserOperationsContractTest::addChoosesOverwriteDuplicateAndFailurePaths",
+      "behavior": "資源追加は既存ファイル名の取消しと更新への委譲、重複名の取消しと許可、追加結果と失敗警告を一貫して返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceUserOperations::addResourceWithUserInput(QWidget * widgetParent,KoResourceSP resource,QString storageLocation=\"\")"
+      ]
+    },
+    {
+      "target": "KisResourceUserOperationsContractTest",
+      "source": "libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp",
+      "test": "KisResourceUserOperationsContractTest::updatePreparesExternalResourceAndHandlesRename",
+      "behavior": "資源更新は外部資源を登録済み個体へ移し、移送失敗、重複名の取消しと許可、更新結果と失敗警告を一貫して返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceUserOperations::updateResourceWithUserInput(QWidget * widgetParent,KoResourceSP resource)"
       ]
     }
   ]
