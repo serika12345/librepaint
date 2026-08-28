@@ -112,3 +112,13 @@ target_compile_definitions(KisResourceItemDelegateContractTest PRIVATE
     kritawidgetutils_EXPORTS
     kritaresources_EXPORTS
 )
+
+kis_add_test(
+    KisResourceItemChooserSyncContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourceitemchoosersyncobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisResourceItemChooserSyncContractTest PRIVATE
+    kritaresourceui_EXPORTS
+)

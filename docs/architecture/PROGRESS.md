@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 23:34 JST
+- 更新日時: 2026-08-28 23:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6076,11 +6076,28 @@
   4,341件、未対応25,640件になり、同ヘッダーのpublic APIは全件対応済みになった。製品
   `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源選択項目寸法同期 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisResourceItemChooserSync.cpp`は同じ配置のまま、`kritaresourceui`の直接ソース
+  所有から新規`kritaresourceitemchoosersyncobjects`の所有へ移し、製品`kritaresourceui`が生成
+  オブジェクトを1回だけ集約する構造にした。直接依存はQt Coreだけとし、外部向けヘッダー、同期実装、
+  製品ABIは維持した。
+- `libs/resources/ui/KisResourceItemChooserSync.h`の境界、構築・破棄、共有個体取得、基準長取得・設定・
+  変更通知からなる1クラス・6メソッドの7 APIを、新規
+  `libs/resources/ui/tests/KisResourceItemChooserSyncContractTest.cpp`の4試験へ全件対応付けた。既定値50、
+  25から100への丸め、同じ実効値を再設定した場合を含む毎回の変更通知、共有個体の同一性、直接構築
+  個体のQObject破棄を固定した。
+- 寸法同期所有対象を自動メタオブジェクト生成込みで3工程・7入力、新規試験を7工程・14入力に収めた。
+  製品UIライブラリーは独立した自動メタオブジェクト生成に必要な2工程・4入力が加わり、256工程・
+  543入力から258工程・547入力になった。macOSの対象実行と20回反復に成功した。公開面は
+  1,546ヘッダー、29,981 API、対応済み4,348件、未対応25,633件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceItemChooserSync.h`の資源選択項目寸法同期7 APIについて、現在の
-`kritaresourceui`直接所有から独立させる清浄時構築閉包と直接依存を監査し、既定寸法、上下限への
-丸め、変更通知、共有個体、QObject寿命を最小契約で固定する。
+`libs/widgetutils/KisKineticScroller.h`の運動スクロール3 APIについて、現在の`kritawidgetutils`直接所有
+から独立させる清浄時構築閉包と設定依存を監査し、設定済み操作種別、スクロール領域への構成、状態別
+カーソルを最小契約で固定する。その軽量所有対象を後続`KisResourceItemView`契約から利用する。
 
 ## R1-G5完了根拠
 

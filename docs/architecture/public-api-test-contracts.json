@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25640
+    "expectedMissingApis": 25633
   },
   "contracts": [
     {
@@ -10479,6 +10479,49 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceItemDelegate::setNeedIndexConversion(bool value)"
+      ]
+    },
+    {
+      "target": "KisResourceItemChooserSyncContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemChooserSyncContractTest.cpp",
+      "test": "KisResourceItemChooserSyncContractTest::startsAtDefaultBaseLength",
+      "behavior": "直接構築した資源選択項目寸法同期は基準長50で開始する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceItemChooserSync",
+        "method:KisResourceItemChooserSync::KisResourceItemChooserSync()",
+        "method:KisResourceItemChooserSync::baseLength()"
+      ]
+    },
+    {
+      "target": "KisResourceItemChooserSyncContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemChooserSyncContractTest.cpp",
+      "test": "KisResourceItemChooserSyncContractTest::clampsAndEmitsEffectiveBaseLength",
+      "behavior": "基準長設定は入力を25から100へ丸め、実効値が前回と同じ場合を含む毎回の設定で実効値を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooserSync::baseLengthChanged(int length)",
+        "method:KisResourceItemChooserSync::setBaseLength(int length)"
+      ]
+    },
+    {
+      "target": "KisResourceItemChooserSyncContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemChooserSyncContractTest.cpp",
+      "test": "KisResourceItemChooserSyncContractTest::instanceReturnsStableSharedObject",
+      "behavior": "共有資源選択項目寸法同期の取得は有効な同一個体を繰り返し返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooserSync::instance()"
+      ]
+    },
+    {
+      "target": "KisResourceItemChooserSyncContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemChooserSyncContractTest.cpp",
+      "test": "KisResourceItemChooserSyncContractTest::destructionInvalidatesGuardedPointer",
+      "behavior": "直接構築した資源選択項目寸法同期は破棄時にQObjectの監視参照を無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooserSync::~KisResourceItemChooserSync()"
       ]
     }
   ]

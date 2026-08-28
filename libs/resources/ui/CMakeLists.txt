@@ -103,10 +103,21 @@ target_link_libraries(kritaresourceitemdelegateobjects
 )
 set_target_properties(kritaresourceitemdelegateobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritaresourceitemchoosersyncobjects OBJECT
+    KisResourceItemChooserSync.cpp
+)
+target_compile_definitions(kritaresourceitemchoosersyncobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceitemchoosersyncobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaresourceitemchoosersyncobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaresourceitemchoosersyncobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritaresourceui_LIB_SRCS
     KisResourceItemChooserContextMenu.cpp
     KisResourceItemChooser.cpp
-    KisResourceItemChooserSync.cpp
     KisResourceItemListView.cpp
     KisResourceItemListWidget.cpp
     KisResourceItemView.cpp
@@ -126,6 +137,7 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaicontooltipobjects>
     $<TARGET_OBJECTS:kritaresourcethumbnailpainterobjects>
     $<TARGET_OBJECTS:kritaresourceitemdelegateobjects>
+    $<TARGET_OBJECTS:kritaresourceitemchoosersyncobjects>
 )
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)
