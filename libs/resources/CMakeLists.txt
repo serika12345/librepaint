@@ -92,6 +92,46 @@ set_target_properties(kritadatabasetransactionlockobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatemporaryresourcestoragelockobjects OBJECT
+    KisTemporaryResourceStorageLock.cpp
+)
+target_compile_definitions(kritatemporaryresourcestoragelockobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritatemporaryresourcestoragelockobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritatemporaryresourcestoragelockobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritatemporaryresourcestoragelockobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritatemporaryresourcestoragelocatorobjects OBJECT
+    KisTemporaryResourceStorageLocator.cpp
+)
+target_compile_definitions(kritatemporaryresourcestoragelocatorobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritatemporaryresourcestoragelocatorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritatemporaryresourcestoragelocatorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritatemporaryresourcestoragelocatorobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaresourcecacheinterfaceobjects OBJECT
     KoResourceCacheInterface.cpp
 )
@@ -312,7 +352,6 @@ set(kritaresources_LIB_SRCS
 
     KisResourceThumbnailCache.cpp
     KisSqlQueryLoader.cpp
-    KisTemporaryResourceStorageLock.cpp
 )
 
 qt_add_resources(kritaresources_LIB_SRCS sql.qrc)
@@ -325,6 +364,8 @@ kis_add_library(kritaresources SHARED
     $<TARGET_OBJECTS:kritalocalstrokecanvasresourcesobjects>
     $<TARGET_OBJECTS:kritaresourcemetadatamodelobjects>
     $<TARGET_OBJECTS:kritadatabasetransactionlockobjects>
+    $<TARGET_OBJECTS:kritatemporaryresourcestoragelockobjects>
+    $<TARGET_OBJECTS:kritatemporaryresourcestoragelocatorobjects>
     $<TARGET_OBJECTS:kritaresourcecacheinterfaceobjects>
     $<TARGET_OBJECTS:kritaresourcecacheprefixedwrapperobjects>
     $<TARGET_OBJECTS:kritaresourcecachestorageobjects>

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:35 JST
+- 更新日時: 2026-08-28 22:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5909,11 +5909,34 @@
   1,546ヘッダー、29,981 API、対応済み4,293件、未対応25,688件になり、同ヘッダーのpublic APIは
   全件対応済みになった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 一時資源格納ロック public API契約と外部境界分離で完了した作業
+
+- `libs/resources/KisTemporaryResourceStorageLock.cpp`に同居していた格納名選択・RAIIと、実ロケーター
+  操作を分けた。格納名選択・RAIIは同じファイルに残して`kritaresources`の直接ソース所有から新規
+  `kritatemporaryresourcestoragelockobjects`へ移した。`KisResourceLocator`への存在確認・メモリー格納
+  登録・除去は新規`libs/resources/KisTemporaryResourceStorageLocator.{h,cpp}`へ抽出し、新規
+  `kritatemporaryresourcestoragelocatorobjects`の所有とした。製品`kritaresources`は両生成オブジェクトを
+  1回ずつ集約する。外部向けヘッダーと製品ABIは維持した。
+- 宣言だけで製品定義と利用がなかった`KisTemporaryResourceStorageLockAdapter::try_lock()`は、既存名を
+  避ける通常施錠を実行して成功を返すように実装し、継承済み非待機構築経路を利用可能にした。
+  外部ロケーター操作を内部の具体的な橋渡しへ置いたため、試験は格納名集合を供給しつつ製品と同じ
+  格納名選択・RAII実装を直接検査する。
+- `libs/resources/KisTemporaryResourceStorageLock.h`のアダプターと包装型、構築、施錠・非待機施錠・
+  解錠、現在名、基底型別名からなる2クラス・1型別名・5メソッドの8 APIを、新規
+  `libs/resources/tests/KisTemporaryResourceStorageLockContractTest.cpp`の3対応試験へ全件対応付けた。
+  基本名と連番による衝突回避、登録・除去、現在名、非待機成功、スコープ終了時の自動除去を固定した。
+- 642工程・1,312入力のロケーター試験へ接続せず、4工程・8入力の既存汎用ロック試験を比較対象に
+  した。実装を接続しない最初の試験構築は4工程・8入力で、未定義`try_lock()`を含む5メソッドを
+  リンク診断した。分離後はロック本体と実ロケーター橋渡しを各1工程・3入力、新規試験を5工程・
+  11入力に収めた。製品資源ライブラリーは外部境界分離により140工程・307入力から141工程・309入力に
+  なった。macOSで両実装をコンパイルし、対象実行と20回反復に成功した。公開面は1,546ヘッダー、
+  29,981 API、対応済み4,301件、未対応25,680件になり、同ヘッダーのpublic APIは全件対応済みに
+  なった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KisTemporaryResourceStorageLock.h`の一時資源格納ロック8 APIについて、既存利用と
-清浄時構築閉包を監査し、未定義の`try_lock()`を含む格納名の衝突回避、登録、スコープ終了時の除去を
-固定する。
+`libs/resources/ui/ResourceListViewModes.h`の一覧表示方式4 APIについて、ヘッダーだけの清浄時構築
+閉包を監査し、列挙値の識別性と既定順序を固定する。
 
 ## R1-G5完了根拠
 

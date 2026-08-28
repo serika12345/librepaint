@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25688
+    "expectedMissingApis": 25680
   },
   "contracts": [
     {
@@ -10251,6 +10251,41 @@
       "classification": "maintained",
       "apis": [
         "method:KisDatabaseTransactionLock::rollback()"
+      ]
+    },
+    {
+      "target": "KisTemporaryResourceStorageLockContractTest",
+      "source": "libs/resources/tests/KisTemporaryResourceStorageLockContractTest.cpp",
+      "test": "KisTemporaryResourceStorageLockContractTest::adapterRegistersAndRemovesStorage",
+      "behavior": "一時資源格納アダプターは初期状態で格納名を持たず、施錠時に指定名のメモリー格納を登録して名前を公開し、解錠時に格納を除去して名前を消去する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTemporaryResourceStorageLockAdapter",
+        "method:KisTemporaryResourceStorageLockAdapter::KisTemporaryResourceStorageLockAdapter(const QString & temporaryStorageLocationTemplate)",
+        "method:KisTemporaryResourceStorageLockAdapter::lock()",
+        "method:KisTemporaryResourceStorageLockAdapter::storageLocation() const",
+        "method:KisTemporaryResourceStorageLockAdapter::unlock()"
+      ]
+    },
+    {
+      "target": "KisTemporaryResourceStorageLockContractTest",
+      "source": "libs/resources/tests/KisTemporaryResourceStorageLockContractTest.cpp",
+      "test": "KisTemporaryResourceStorageLockContractTest::tryLockRegistersAUniqueStorage",
+      "behavior": "一時資源格納アダプターの非待機施錠は既存名を避けた代替名で格納を登録し、成功を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTemporaryResourceStorageLockAdapter::try_lock()"
+      ]
+    },
+    {
+      "target": "KisTemporaryResourceStorageLockContractTest",
+      "source": "libs/resources/tests/KisTemporaryResourceStorageLockContractTest.cpp",
+      "test": "KisTemporaryResourceStorageLockContractTest::wrapperOwnsStorageForItsScope",
+      "behavior": "一時資源格納ロック包装は構築時から格納を所有して名前を公開し、スコープ終了時に自動的に格納を除去する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTemporaryResourceStorageLock::BaseClass",
+        "class:KisTemporaryResourceStorageLock"
       ]
     }
   ]
