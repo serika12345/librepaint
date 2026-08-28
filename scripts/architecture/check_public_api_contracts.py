@@ -35,6 +35,8 @@ CTAGS_IGNORED_TOKENS = (
     "Q_GADGET",
     "Q_OBJECT",
     "Q_PROPERTY",
+    "Q_DECLARE_METATYPE+",
+    "Q_DECLARE_OPERATORS_FOR_FLAGS+",
     "Q_SIGNALS=public",
     "override=",
 )

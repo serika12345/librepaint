@@ -22,6 +22,40 @@ SPEC.loader.exec_module(check_public_api_contracts)
 
 
 class PublicApiContractTests(unittest.TestCase):
+    def test_qt_registration_macros_do_not_consume_following_declarations(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            header = root / "PublicFlags.h"
+            header.write_text(
+                """
+template<typename Enum>
+class QFlags;
+
+enum class PublicFlag
+{
+    First = 1
+};
+
+Q_DECLARE_FLAGS(PublicFlags, PublicFlag)
+Q_DECLARE_METATYPE(PublicFlags)
+Q_DECLARE_OPERATORS_FOR_FLAGS(PublicFlags)
+
+void firstFunction();
+void secondFunction();
+""",
+                encoding="utf-8",
+            )
+
+            tags = check_public_api_contracts.collect_ctags(
+                root, ["PublicFlags.h"]
+            )
+            apis = check_public_api_contracts.extract_public_apis(
+                tags, {"PublicFlags.h"}
+            )
+
+            self.assertIn("function:firstFunction()", [api["id"] for api in apis])
+            self.assertIn("function:secondFunction()", [api["id"] for api in apis])
+
     def test_collects_qt_flag_declarations_as_aliases(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
