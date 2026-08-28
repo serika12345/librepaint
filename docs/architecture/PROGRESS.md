@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 21:08 JST
+- 更新日時: 2026-08-28 21:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5739,10 +5739,26 @@
   1,546ヘッダー、29,985 API、対応済み4,231件、未対応25,754件になり、同ヘッダーのpublic APIは
   全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 資源供給境界 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KisResourcesInterface.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有から
+  新規`kritaresourcesinterfaceobjects`の所有へ移し、製品`kritaresources`がその生成オブジェクトを
+  1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは維持した。分離によって露出した
+  `KF::I18n`への直接ヘッダー依存を専用対象へ明示した。
+- `libs/resources/KisResourcesInterface.h`の境界と基底・型付き供給元、種類別の遅延生成とキャッシュ、
+  並行初回取得、所有寿命、MD5候補順位、保存名・表示名による旧形式検索、厳密一致、結果付き検索、
+  型付き動的変換からなる3クラス・17メソッドの20 APIを、新規
+  `libs/resources/tests/KisResourcesInterfaceContractTest.cpp`の6試験へ全件対応付けた。
+- 実装を接続しない最初の試験構築は対象境界の未解決参照をリンク診断した。139工程・305入力の製品
+  資源ライブラリーへ接続せず、専用実装は1工程・3入力、専用試験はmacOSで13工程・28入力に
+  収めた。対象実行と並行キャッシュを含む20回反復に成功した。公開面は1,546ヘッダー、29,985 API、
+  対応済み4,251件、未対応25,734件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KisResourcesInterface.h`の資源供給境界20 APIについて、既存試験、直接依存、変更なし
-構築閉包を監査し、最小の局所契約を追加する。
+`libs/resources/KisResourcesInterface_p.h`に公開採取される内部キャッシュ状態6 APIについて、公開面に
+残すべき宣言と試験対象を分類し、現行の検索・所有・ロック挙動を最小契約へ固定する。
 
 ## R1-G5完了根拠
 

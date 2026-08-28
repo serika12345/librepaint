@@ -16,7 +16,7 @@
     "publicApiFingerprint": "1e80483c9aa577062475a13d4895ee62375b4df8923fa7c32555e4339eb315f8"
   },
   "migration": {
-    "expectedMissingApis": 25754
+    "expectedMissingApis": 25734
   },
   "contracts": [
     {
@@ -9937,6 +9937,80 @@
       "apis": [
         "method:KoResource::clone() const",
         "method:KoResource::~KoResource()"
+      ]
+    },
+    {
+      "target": "KisResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KisResourcesInterfaceContractTest.cpp",
+      "test": "KisResourcesInterfaceContractTest::cachesSourcesAndOwnsTheirLifetime",
+      "behavior": "資源供給境界は種類ごとの供給元を遅延生成して同一個体として再利用し、並行初回取得でも一度だけ生成し、基底共有ポインターの寿命終了時に供給元と派生境界を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourcesInterface",
+        "method:KisResourcesInterface::KisResourcesInterface()",
+        "method:KisResourcesInterface::source(const QString & type) const",
+        "method:KisResourcesInterface::~KisResourcesInterface()"
+      ]
+    },
+    {
+      "target": "KisResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KisResourcesInterfaceContractTest.cpp",
+      "test": "KisResourcesInterfaceContractTest::exposesResourceQueriesAndFallback",
+      "behavior": "資源供給元は保存名・表示名・MD5ごとの候補一覧と既定資源を派生実装からそのまま公開し、基底ポインター経由で派生個体を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourcesInterface::ResourceSourceAdapter",
+        "method:KisResourcesInterface::ResourceSourceAdapter::ResourceSourceAdapter(const QString & type)",
+        "method:KisResourcesInterface::ResourceSourceAdapter::fallbackResource() const",
+        "method:KisResourcesInterface::ResourceSourceAdapter::resourcesForFilename(const QString & filename) const",
+        "method:KisResourcesInterface::ResourceSourceAdapter::resourcesForMD5(const QString & md5) const",
+        "method:KisResourcesInterface::ResourceSourceAdapter::resourcesForName(const QString & name) const",
+        "method:KisResourcesInterface::ResourceSourceAdapter::~ResourceSourceAdapter()"
+      ]
+    },
+    {
+      "target": "KisResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KisResourcesInterfaceContractTest.cpp",
+      "test": "KisResourcesInterfaceContractTest::ranksMd5CandidatesAndUsesLegacyFallbacks",
+      "behavior": "最良一致はMD5候補で活性を最優先し、次に保存名、表示名の一致を順位付けし、MD5候補がなければ保存名、保存名指定がなければ表示名で旧形式を検索する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourcesInterface::ResourceSourceAdapter::bestMatch(const QString md5,const QString filename,const QString name)"
+      ]
+    },
+    {
+      "target": "KisResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KisResourcesInterfaceContractTest.cpp",
+      "test": "KisResourcesInterfaceContractTest::distinguishesExactMatchingFromBestMatching",
+      "behavior": "厳密一致は指定MD5が見つからない場合に旧形式検索へ移らず空を返し、MD5指定がない場合は保存名による検索を許す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourcesInterface::ResourceSourceAdapter::exactMatch(const QString md5,const QString filename,const QString name)"
+      ]
+    },
+    {
+      "target": "KisResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KisResourcesInterfaceContractTest.cpp",
+      "test": "KisResourcesInterfaceContractTest::returnsExistingOrFailedLoadResults",
+      "behavior": "結果付き最良一致は候補を既存資源結果として返し、候補がなければ供給元種別と要求署名を保持した失敗結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourcesInterface::ResourceSourceAdapter::bestMatchLoadResult(const QString md5,const QString filename,const QString name)"
+      ]
+    },
+    {
+      "target": "KisResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KisResourcesInterfaceContractTest.cpp",
+      "test": "KisResourcesInterfaceContractTest::preservesTypedAdapterResults",
+      "behavior": "型付き供給元は基底供給元の最良一致・厳密一致・既定資源を要求型へ動的変換し、結果付き検索を保持し、境界から型付き供給元を構築する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourcesInterface::TypedResourceSourceAdapter",
+        "method:KisResourcesInterface::TypedResourceSourceAdapter::TypedResourceSourceAdapter(ResourceSourceAdapter * adapter)",
+        "method:KisResourcesInterface::TypedResourceSourceAdapter::bestMatch(const QString md5,const QString filename,const QString name)",
+        "method:KisResourcesInterface::TypedResourceSourceAdapter::bestMatchLoadResult(const QString md5,const QString filename,const QString name)",
+        "method:KisResourcesInterface::TypedResourceSourceAdapter::exactMatch(const QString md5,const QString filename,const QString name)",
+        "method:KisResourcesInterface::TypedResourceSourceAdapter::fallbackResource() const"
       ]
     }
   ]

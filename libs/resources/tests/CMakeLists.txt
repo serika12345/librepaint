@@ -124,3 +124,22 @@ target_include_directories(KoResourceContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KoResourceContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
+    KisResourcesInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourcesinterfaceobjects
+        kritaresourceloadvalueobjects
+        kritaembeddedresourcevalueobjects
+        kritaresourcestypesobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Boost::boost
+)
+target_include_directories(KisResourcesInterfaceContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisResourcesInterfaceContractTest PRIVATE kritaresources_EXPORTS)
