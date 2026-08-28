@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:20 JST
+- 更新日時: 2026-08-28 22:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5859,11 +5859,27 @@
   1,546ヘッダー、29,981 API、対応済み4,273件、未対応25,708件になり、同ヘッダーのpublic APIは
   全件対応済みになった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 局所キャンバス資源 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KoLocalStrokeCanvasResources.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有
+  から新規`kritalocalstrokecanvasresourcesobjects`の所有へ移し、製品`kritaresources`が生成
+  オブジェクトを1回だけ集約する構造にした。外部向けヘッダー、実装、製品ABIは維持した。
+- `libs/resources/KoLocalStrokeCanvasResources.h`の共有ポインター型、境界、構築・複製・代入・破棄、
+  取得・格納からなる1型別名・1クラス・6メソッドの8 APIを、新規
+  `libs/resources/tests/KoLocalStrokeCanvasResourcesContractTest.cpp`の4試験へ全件対応付けた。空状態、
+  型付き値の格納・置換、コピーと代入後の容器独立性、代入戻り値と自己代入、共有所有寿命を固定した。
+- 既存の描画境界試験は1,037工程・2,095入力であるため接続せず、5工程・11入力の基底境界契約を
+  比較対象にした。実装を接続しない最初の試験構築は同じ5工程・11入力で全メソッドと型情報の
+  未解決参照をリンク診断した。分離後は所有対象を1工程・3入力、新規試験を6工程・13入力に収め、
+  製品資源ライブラリーは140工程・307入力を維持した。macOSの対象実行と20回反復に成功した。
+  公開面は1,546ヘッダー、29,981 API、対応済み4,281件、未対応25,700件になり、同ヘッダーの
+  public APIは全件対応済みになった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/resources/KoLocalStrokeCanvasResources.h`の局所キャンバス資源8 APIについて、既存
-`kritacanvasresourcesinterfaceobjects`との清浄時構築閉包を監査し、空状態、値格納、複製・代入、
-共有所有寿命を固定する。
+`libs/resources/KisResourceMetaDataModel.h`の資源メタデータ取得4 APIについて、Qt SQLだけで完結する
+清浄時構築閉包を監査し、表名・資源ID・キーによる値取得と欠落時の無効値を固定する。
 
 ## R1-G5完了根拠
 

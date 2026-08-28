@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25708
+    "expectedMissingApis": 25700
   },
   "contracts": [
     {
@@ -10150,6 +10150,50 @@
       "classification": "maintained",
       "apis": [
         "method:KoResourceCacheStorage::put(const QString & key,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KoLocalStrokeCanvasResourcesContractTest",
+      "source": "libs/resources/tests/KoLocalStrokeCanvasResourcesContractTest.cpp",
+      "test": "KoLocalStrokeCanvasResourcesContractTest::startsEmptyAndSupportsSharedPolymorphicLifetime",
+      "behavior": "局所キャンバス資源は空で構築され、具象共有ポインターから基底共有ポインターへ所有を移しても個体を保持し、最後の参照終了時に多態的に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoLocalStrokeCanvasResourcesSP",
+        "class:KoLocalStrokeCanvasResources",
+        "method:KoLocalStrokeCanvasResources::KoLocalStrokeCanvasResources()",
+        "method:KoLocalStrokeCanvasResources::~KoLocalStrokeCanvasResources()"
+      ]
+    },
+    {
+      "target": "KoLocalStrokeCanvasResourcesContractTest",
+      "source": "libs/resources/tests/KoLocalStrokeCanvasResourcesContractTest.cpp",
+      "test": "KoLocalStrokeCanvasResourcesContractTest::storesAndReplacesValues",
+      "behavior": "局所キャンバス資源は整数キーごとにQVariantの型と値を保持し、同じキーへの格納で値を置換し、未知キーには無効値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoLocalStrokeCanvasResources::resource(int key) const",
+        "method:KoLocalStrokeCanvasResources::storeResource(int key,const QVariant & resource)"
+      ]
+    },
+    {
+      "target": "KoLocalStrokeCanvasResourcesContractTest",
+      "source": "libs/resources/tests/KoLocalStrokeCanvasResourcesContractTest.cpp",
+      "test": "KoLocalStrokeCanvasResourcesContractTest::copiesIndependentState",
+      "behavior": "局所キャンバス資源のコピー構築は現在値を複製した独立容器を作り、以後の一方への格納が他方へ伝播しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoLocalStrokeCanvasResources::KoLocalStrokeCanvasResources(const KoLocalStrokeCanvasResources & rhs)"
+      ]
+    },
+    {
+      "target": "KoLocalStrokeCanvasResourcesContractTest",
+      "source": "libs/resources/tests/KoLocalStrokeCanvasResourcesContractTest.cpp",
+      "test": "KoLocalStrokeCanvasResourcesContractTest::assignmentReplacesWithIndependentStateAndReturnsSelf",
+      "behavior": "局所キャンバス資源の代入は代入先の旧状態を置換して独立した値容器を作り、代入先自身への参照を返し、自己代入でも状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoLocalStrokeCanvasResources::operator =(const KoLocalStrokeCanvasResources & rhs)"
       ]
     }
   ]

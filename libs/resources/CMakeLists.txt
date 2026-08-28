@@ -37,6 +37,21 @@ set_target_properties(kritacanvasresourcesinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritalocalstrokecanvasresourcesobjects OBJECT
+    KoLocalStrokeCanvasResources.cpp
+)
+target_compile_definitions(kritalocalstrokecanvasresourcesobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritalocalstrokecanvasresourcesobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritalocalstrokecanvasresourcesobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritalocalstrokecanvasresourcesobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaresourcecacheinterfaceobjects OBJECT
     KoResourceCacheInterface.cpp
 )
@@ -253,7 +268,6 @@ set(kritaresources_LIB_SRCS
     KoResourcePaths.cpp
     KisRequiredResourcesOperators.cpp
 
-    KoLocalStrokeCanvasResources.cpp
     KisEmbeddedResourceStorageProxy.cpp
 
     KisResourceThumbnailCache.cpp
@@ -270,6 +284,7 @@ kis_add_library(kritaresources SHARED
     ${kritaresources_LIB_SRCS}
     $<TARGET_OBJECTS:kritaresourcestypesobjects>
     $<TARGET_OBJECTS:kritacanvasresourcesinterfaceobjects>
+    $<TARGET_OBJECTS:kritalocalstrokecanvasresourcesobjects>
     $<TARGET_OBJECTS:kritaresourcecacheinterfaceobjects>
     $<TARGET_OBJECTS:kritaresourcecacheprefixedwrapperobjects>
     $<TARGET_OBJECTS:kritaresourcecachestorageobjects>
