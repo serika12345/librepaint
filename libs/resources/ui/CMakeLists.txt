@@ -635,13 +635,55 @@ set_target_properties(kritatagchooserwidgetselectionsourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatagactionsobjects OBJECT
+    TagActions.cpp
+    TagActions.h
+)
+target_compile_definitions(kritatagactionsobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritatagactionsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritatagactionsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritatagactionsobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritatagactionssourceobjects OBJECT
+    TagActionsSource.cpp
+)
+target_compile_definitions(kritatagactionssourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritatagactionssourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritatagactionssourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritatagactionssourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresourceui_LIB_SRCS
     KisResourceItemChooserContextMenu.cpp
     KisResourceItemChooser.cpp
     KisTagFilterWidget.cpp
     KisTagToolButton.cpp
     KisResourceTaggingManager.cpp
-    TagActions.cpp
 )
 
 kis_add_library(kritaresourceui SHARED
@@ -677,6 +719,8 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritatagchooserwidgetaddsourceobjects>
     $<TARGET_OBJECTS:kritatagchooserwidgetselectionobjects>
     $<TARGET_OBJECTS:kritatagchooserwidgetselectionsourceobjects>
+    $<TARGET_OBJECTS:kritatagactionsobjects>
+    $<TARGET_OBJECTS:kritatagactionssourceobjects>
 )
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)

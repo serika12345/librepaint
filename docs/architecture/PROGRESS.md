@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 02:23 JST
+- 更新日時: 2026-08-29 02:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6425,12 +6425,34 @@
   なり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritaresourceui`のリンク、Linux、全
   ネイティブ検証は実行していない。
 
+## R2-G19b タグUI操作 public API契約と構築所有分離で完了した作業
+
+- 製品`kritaresourceui`の直接ソースだった`libs/resources/ui/TagActions.cpp`を同じファイル位置のまま
+  新規`kritatagactionsobjects`へ移した。同ファイルにあった自己起動入力欄とアイコンの具象生成を新規
+  `libs/resources/ui/TagActionsSource.cpp`と`kritatagactionssourceobjects`へ移し、内部境界の宣言を
+  新規`libs/resources/ui/TagActionsSource_p.h`に置いた。製品は二つの生成オブジェクトを各1回集約する。
+- `libs/resources/ui/TagActions.h`の既存タグ操作、文字入力操作、利用者入力タグ操作、資源付き新規タグ
+  操作、タグ比較器からなる26 APIを、新規`libs/resources/ui/tests/TagActionsContractTest.cpp`の5試験へ
+  対応付けた。親所有と破棄、タグ名表示、タグ・資源通知、入力欄とアイコンの構成、表示状態、親を閉じる
+  方針、入力通知と消去、資源差替え、nullを含むタグURL比較を固定した。入力欄とアイコン生成は決定的な
+  内部データ源へ置き換えた。
+- 変更前の`TagActions.cpp`は製品`kritaresourceui`の公開依存であるQt Core、Qt Widgets、資源、
+  ウィジェット補助と、非公開依存であるQt SQL、版、全体補助、プラグイン、KDE Frameworks各部を含む
+  296工程・623入力の閉包に所属していた。新規試験の最初のコンパイルは公開ヘッダーが直接必要とする
+  国際化ヘッダーの不足を診断した。依存を明示した後の最初のリンクは、全公開操作、通知、メタ
+  オブジェクトと資源診断表示の未解決参照を示し、製品全体ではなく分離した操作対象だけを接続した。
+- タグ操作対象を自動メタオブジェクト生成込みで3工程・7入力、具象生成を1工程・3入力、新規試験を
+  7工程・15入力に収めた。製品`kritaresourceui`は296工程・623入力から299工程・629入力になった。
+  二つの対象コンパイル、対象CTestのmacOS単発実行と20回反復は成功した。公開面は1,547ヘッダー、
+  29,979 API、対応済み4,463件、未対応25,516件になり、同ヘッダーのpublic APIは全件対応済みになった。
+  製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/TagActions.h`に残る26 APIについて、製品`kritaresourceui`の直接ソースである
-`libs/resources/ui/TagActions.cpp`の変更なし計画、直接依存、空構築閉包を監査する。タグ比較値処理、
-既存タグ操作、文字入力表示の所有単位を確認し、直接所属による製品全体への展開を先に分離してから、
-親所有、表示状態、入力通知、タグと資源の通知、URL比較を局所契約へ対応付ける。
+`libs/resources/ui/KisResourceItemChooser.h`に残る40 APIについて、分離済みの寸法同期対象と、製品
+`kritaresourceui`へ直接所属する`libs/resources/ui/KisResourceItemChooser.cpp`、文脈メニュー処理の
+変更なし計画、直接依存、空構築閉包を監査する。既存の所有対象で局所契約が成立しない処理を先に
+責務別の生成対象へ分けてから、構築・破棄、資源選択、表示設定、タグ絞り込み、通知を対応付ける。
 
 ## R1-G5完了根拠
 
