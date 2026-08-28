@@ -24,6 +24,14 @@ target_include_directories(KoColorProfileConstantsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoColorSpaceConstantsContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoColorSpaceConstantsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+kis_add_test(
     TestKoIntegerMaths.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

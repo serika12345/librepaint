@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27801
+    "expectedMissingApis": 27797
   },
   "contracts": [
     {
@@ -4093,6 +4093,28 @@
       "apis": [
         "function:UINT16_TO_UINT8(uint c)",
         "function:UINT8_TO_UINT16(uint c)"
+      ]
+    },
+    {
+      "target": "KoColorSpaceConstantsContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceConstantsContractTest.cpp",
+      "test": "KoColorSpaceConstantsContractTest::integerOpacityUsesByteEndpoints",
+      "behavior": "8ビット不透明度は透明を0、不透明を255で表す。",
+      "classification": "maintained",
+      "apis": [
+        "variable:OPACITY_OPAQUE_U8",
+        "variable:OPACITY_TRANSPARENT_U8"
+      ]
+    },
+    {
+      "target": "KoColorSpaceConstantsContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceConstantsContractTest.cpp",
+      "test": "KoColorSpaceConstantsContractTest::floatingOpacityUsesUnitInterval",
+      "behavior": "浮動小数点不透明度は透明を0.0、不透明を1.0で表す。",
+      "classification": "maintained",
+      "apis": [
+        "variable:OPACITY_OPAQUE_F",
+        "variable:OPACITY_TRANSPARENT_F"
       ]
     }
   ]
