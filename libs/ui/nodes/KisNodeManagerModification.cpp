@@ -32,3 +32,26 @@ bool KisNodeManager::canModifyLayer(KisNodeSP node, bool showWarning)
 {
     return canModifyLayers({node}, showWarning);
 }
+
+bool KisNodeManager::canMoveLayers(KisNodeList nodes, bool showWarning)
+{
+    KisNodeSP lockedParent;
+    for (KisNodeSP node : nodes) {
+        const KisNodeSP parent = ModificationAccess::parentNode(node);
+        if (parent && !ModificationAccess::isEditable(parent)) {
+            lockedParent = parent;
+            break;
+        }
+    }
+
+    if (lockedParent && showWarning) {
+        ModificationAccess::showWarning(this, i18n("Layer \"%1\" is locked", ModificationAccess::name(lockedParent)));
+    }
+
+    return !lockedParent;
+}
+
+bool KisNodeManager::canMoveLayer(KisNodeSP node, bool showWarning)
+{
+    return canMoveLayers({node}, showWarning);
+}

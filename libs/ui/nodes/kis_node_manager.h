@@ -336,6 +336,7 @@ protected:
     struct KRITAUI_EXPORT ModificationAccess {
         static bool isEditable(KisNodeSP node);
         static QString name(KisNodeSP node);
+        static KisNodeSP parentNode(KisNodeSP node);
         static void showWarning(KisNodeManager *manager, const QString &message);
     };
 

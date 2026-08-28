@@ -481,32 +481,14 @@ QString KisNodeManager::ModificationAccess::name(KisNodeSP node)
     return node->name();
 }
 
+KisNodeSP KisNodeManager::ModificationAccess::parentNode(KisNodeSP node)
+{
+    return node->parent();
+}
+
 void KisNodeManager::ModificationAccess::showWarning(KisNodeManager *manager, const QString &message)
 {
     manager->m_d->view->showFloatingMessage(message, QIcon());
-}
-
-bool KisNodeManager::canMoveLayers(KisNodeList nodes, bool showWarning)
-{
-    KisNodeSP lockedNode;
-    Q_FOREACH (KisNodeSP node, nodes) {
-        if (node->parent() && !node->parent()->isEditable(false)) {
-            lockedNode = node->parent();
-            break;
-        }
-    }
-
-    if (lockedNode && showWarning) {
-        QString errorMessage = i18n("Layer \"%1\" is locked", lockedNode->name());
-        m_d->view->showFloatingMessage(errorMessage, QIcon());
-    }
-
-    return !lockedNode;
-}
-
-bool KisNodeManager::canMoveLayer(KisNodeSP node, bool showWarning)
-{
-    return canMoveLayers({node}, showWarning);
 }
 
 void KisNodeManager::moveNodeAt(KisNodeSP node, KisNodeSP parent, int index)

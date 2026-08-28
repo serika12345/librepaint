@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 07:28 JST
+- 更新日時: 2026-08-29 07:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6843,12 +6843,28 @@
   公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,840件、
   未対応25,149件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード移動可否 public API契約で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった親ノードの編集可能性と最初の移動不可親を選ぶ判断、
+  単一ノードの委譲、警告文の選択を、既存`libs/ui/nodes/KisNodeManagerModification.cpp`へ移した。
+  具体的な親ノード、編集可能性、名前、画面通知は既存の保護境界を拡張して利用し、新しいCMake対象や
+  製品依存を追加していない。
+- `libs/ui/nodes/kis_node_manager.h`のうち2 APIを、既存
+  `libs/ui/tests/KisNodeManagerModificationContractTest.cpp`の2試験へ対応付けた。親なしノード、編集可能な親、
+  最初の編集不可親での停止と名前付き警告、単一ノードの委譲、警告抑止を固定した。
+- 実装接続前のリンクは`canMoveLayers`と`canMoveLayer`だけを未解決記号として診断した。既存判断対象は
+  1工程・3入力、拡張後の試験も5工程・17入力を維持し、製品`kritaapplicationui`閉包は
+  1,801工程・3,602入力のままである。
+- 対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,842件、
+  未対応25,147件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る87 APIのうち、複数ノードと単一ノードの移動可否を次の
-小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、直接CMake依存、
-空構築閉包を監査し、親ノードの編集可能性と最初の移動不可親を選ぶ判断を局所所有へ、画面通知を既存具体所有へ
-分けてから挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る85 APIのうち、現在レイヤー、描画装置、合成用色空間の取得を
+次の小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、
+直接CMake依存、空構築閉包を監査し、マスク優先、親レイヤー優先、画像色空間へのフォールバック判断を
+局所所有へ、レイヤー・マスク管理と画像への具体アクセスを既存所有へ分けてから挙動契約を追加する。
 
 ## R1-G5完了根拠
 

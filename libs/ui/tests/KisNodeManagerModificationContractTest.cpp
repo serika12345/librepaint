@@ -33,6 +33,7 @@ KisNodeSP nodeToken(quintptr id)
 
 QSet<const KisNode *> editableNodes;
 QHash<const KisNode *, QString> names;
+QHash<const KisNode *, KisNodeSP> parents;
 QStringList warnings;
 
 } // namespace
@@ -55,6 +56,11 @@ QString KisNodeManager::ModificationAccess::name(KisNodeSP node)
     return names.value(node.data());
 }
 
+KisNodeSP KisNodeManager::ModificationAccess::parentNode(KisNodeSP node)
+{
+    return parents.value(node.data());
+}
+
 void KisNodeManager::ModificationAccess::showWarning(KisNodeManager *, const QString &message)
 {
     warnings.append(message);
@@ -68,12 +74,15 @@ private Q_SLOTS:
     void init();
     void multipleNodesStopAtFirstLockedNode();
     void singleNodeDelegatesAndCanSuppressWarning();
+    void movingNodesChecksTheirFirstLockedParent();
+    void movingOneNodeDelegatesAndCanSuppressWarning();
 };
 
 void KisNodeManagerModificationContractTest::init()
 {
     editableNodes.clear();
     names.clear();
+    parents.clear();
     warnings.clear();
 }
 
@@ -109,6 +118,41 @@ void KisNodeManagerModificationContractTest::singleNodeDelegatesAndCanSuppressWa
 
     warnings.clear();
     QVERIFY(!manager.canModifyLayer(locked, false));
+    QVERIFY(warnings.isEmpty());
+}
+
+void KisNodeManagerModificationContractTest::movingNodesChecksTheirFirstLockedParent()
+{
+    KisNodeManager manager(nullptr);
+    const KisNodeSP rootNode = nodeToken(1);
+    const KisNodeSP movableNode = nodeToken(2);
+    const KisNodeSP editableParent = nodeToken(3);
+    const KisNodeSP blockedNode = nodeToken(4);
+    const KisNodeSP lockedParent = nodeToken(5);
+    parents.insert(movableNode.data(), editableParent);
+    parents.insert(blockedNode.data(), lockedParent);
+    editableNodes.insert(editableParent.data());
+    names.insert(lockedParent.data(), QStringLiteral("Locked group"));
+
+    QVERIFY(manager.canMoveLayers({rootNode, movableNode}));
+    QVERIFY(warnings.isEmpty());
+    QVERIFY(!manager.canMoveLayers({rootNode, movableNode, blockedNode}));
+    QCOMPARE(warnings, QStringList({QStringLiteral("Layer \"Locked group\" is locked")}));
+}
+
+void KisNodeManagerModificationContractTest::movingOneNodeDelegatesAndCanSuppressWarning()
+{
+    KisNodeManager manager(nullptr);
+    const KisNodeSP node = nodeToken(1);
+    const KisNodeSP lockedParent = nodeToken(2);
+    parents.insert(node.data(), lockedParent);
+    names.insert(lockedParent.data(), QStringLiteral("Locked parent"));
+
+    QVERIFY(!manager.canMoveLayer(node));
+    QCOMPARE(warnings, QStringList({QStringLiteral("Layer \"Locked parent\" is locked")}));
+
+    warnings.clear();
+    QVERIFY(!manager.canMoveLayer(node, false));
     QVERIFY(warnings.isEmpty());
 }
 

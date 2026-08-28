@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25149
+    "expectedMissingApis": 25147
   },
   "contracts": [
     {
@@ -12307,6 +12307,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::canModifyLayer(KisNodeSP node,bool showWarning=true)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerModificationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerModificationContractTest.cpp",
+      "test": "KisNodeManagerModificationContractTest::movingNodesChecksTheirFirstLockedParent",
+      "behavior": "親を持たないノードと編集可能な親を持つノードは移動可能とし、複数ノードでは最初の編集不可親で停止して、その名前を含む警告を一度表示する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::canMoveLayers(KisNodeList nodes,bool showWarning=true)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerModificationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerModificationContractTest.cpp",
+      "test": "KisNodeManagerModificationContractTest::movingOneNodeDelegatesAndCanSuppressWarning",
+      "behavior": "単一ノードの移動可否は複数ノード判定へ委譲し、編集不可親の名前を警告する。警告抑止指定は戻り値を保ったまま通知を省く。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::canMoveLayer(KisNodeSP node,bool showWarning=true)"
       ]
     }
   ]
