@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 20:28 JST
+- 更新日時: 2026-08-28 20:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5672,10 +5672,26 @@
   対応済みは4,137件、未対応基準は25,830件になり、同ヘッダーのpublic APIは全件対応済みに
   なった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 埋込み資源値 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KoEmbeddedResource.cpp`、`libs/resources/KoMD5Generator.cpp`、
+  `libs/resources/KoResourceSignature.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有から
+  新規`kritaembeddedresourcevalueobjects`の所有へ移し、製品`kritaresources`が各生成オブジェクトを
+  1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは維持した。
+- 対応する3公開ヘッダーの構築、公開署名項目、デバッグ書式、バイト列・装置・ファイルのMD5生成、
+  埋込みデータ・署名・妥当性からなる3クラス・1関数・4メンバー・11メソッドの19 APIを、新規
+  `libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp`の6試験へ全件対応付けた。署名の等価
+  判定が種別を比較しないことと、デバッグ書式が末尾空白を持つことも現行挙動として固定した。
+- 製品へ接続しない最初の試験構築が3実装群の未接続をリンク診断した後、139工程・305入力の製品
+  資源ライブラリーへ接続せず、専用実装は3工程・7入力、専用試験はmacOSで7工程・15入力に
+  収めた。対象実行と20回反復に成功した。対応済みは4,156件、未対応基準は25,811件になり、
+  3ヘッダーの採取済みpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KoEmbeddedResource.h`、`KoResourceSignature.h`、`KoMD5Generator.h`の埋込み資源値境界に
-ついて、既存試験、直接依存、変更なし構築閉包を監査し、最小の局所契約を追加する。
+公開API採取で同一型別名の代表ヘッダーだけを調べると対応を見落とす問題と、クラス内friend関数を
+採取できない問題を再現試験で固定する。既存の共有ポインター型別名と
+`KoResourceSignature::operator==`を起点に、台帳が全公開宣言を数えるよう是正する。
 
 ## R1-G5完了根拠
 

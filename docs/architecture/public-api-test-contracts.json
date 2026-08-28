@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25830
+    "expectedMissingApis": 25811
   },
   "contracts": [
     {
@@ -9645,6 +9645,79 @@
         "alias:KoResourceCacheInterface::RelatedResourceCookie",
         "method:KoResourceCacheInterface::relatedResourceCookie() const",
         "method:KoResourceCacheInterface::setRelatedResourceCookie(RelatedResourceCookie cookie)"
+      ]
+    },
+    {
+      "target": "KoEmbeddedResourceValueContractTest",
+      "source": "libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp",
+      "test": "KoEmbeddedResourceValueContractTest::constructsAndComparesResourceSignatures",
+      "behavior": "資源署名は空の既定値または指定した種別・MD5・ファイル名・表示名を保持し、MD5・ファイル名・表示名が等しければ種別にかかわらず等価と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceSignature",
+        "member:KoResourceSignature::filename",
+        "member:KoResourceSignature::md5sum",
+        "member:KoResourceSignature::name",
+        "member:KoResourceSignature::type",
+        "method:KoResourceSignature::KoResourceSignature()",
+        "method:KoResourceSignature::KoResourceSignature(const QString & type,const QString & md5sum,const QString & filename,const QString & name)"
+      ]
+    },
+    {
+      "target": "KoEmbeddedResourceValueContractTest",
+      "source": "libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp",
+      "test": "KoEmbeddedResourceValueContractTest::formatsResourceSignature",
+      "behavior": "資源署名のデバッグ出力は4項目を引用符付きで定義順に並べ、閉じ括弧の後に空白を付ける。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoResourceSignature & sig)"
+      ]
+    },
+    {
+      "target": "KoEmbeddedResourceValueContractTest",
+      "source": "libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp",
+      "test": "KoEmbeddedResourceValueContractTest::hashesByteArrays",
+      "behavior": "MD5生成器は空バイト列で空文字列を返し、非空バイト列で小文字16進MD5文字列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMD5Generator",
+        "method:KoMD5Generator::generateHash(const QByteArray & array)"
+      ]
+    },
+    {
+      "target": "KoEmbeddedResourceValueContractTest",
+      "source": "libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp",
+      "test": "KoEmbeddedResourceValueContractTest::hashesDevices",
+      "behavior": "装置のMD5生成は現在位置から末尾までを読み、小文字16進MD5文字列を返して装置位置を末尾へ進める。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMD5Generator::generateHash(QIODevice * device)"
+      ]
+    },
+    {
+      "target": "KoEmbeddedResourceValueContractTest",
+      "source": "libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp",
+      "test": "KoEmbeddedResourceValueContractTest::hashesFiles",
+      "behavior": "ファイルのMD5生成は存在する内容から小文字16進MD5文字列を返し、存在しない経路では空文字列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMD5Generator::generateHash(const QString & filename)"
+      ]
+    },
+    {
+      "target": "KoEmbeddedResourceValueContractTest",
+      "source": "libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp",
+      "test": "KoEmbeddedResourceValueContractTest::representsEmbeddedResourceAndChecksDigest",
+      "behavior": "埋込み資源は既定で空かつ無効になり、指定した署名とデータを保持して、非空データの妥当性と空・一致・不一致MD5を判定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoEmbeddedResource",
+        "method:KoEmbeddedResource::KoEmbeddedResource()",
+        "method:KoEmbeddedResource::KoEmbeddedResource(const KoResourceSignature & sig,const QByteArray & data)",
+        "method:KoEmbeddedResource::data() const",
+        "method:KoEmbeddedResource::isValid() const",
+        "method:KoEmbeddedResource::sanityCheckMd5() const",
+        "method:KoEmbeddedResource::signature() const"
       ]
     }
   ]

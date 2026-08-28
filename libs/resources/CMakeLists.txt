@@ -53,6 +53,27 @@ set_target_properties(kritaresourcecacheinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaembeddedresourcevalueobjects OBJECT
+    KoEmbeddedResource.cpp
+    KoMD5Generator.cpp
+    KoResourceSignature.cpp
+)
+target_compile_definitions(kritaembeddedresourcevalueobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritaembeddedresourcevalueobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaembeddedresourcevalueobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaembeddedresourcevalueobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresources_LIB_SRCS
     KisResourceCacheDb.cpp
     KisResourceLoader.cpp
@@ -81,10 +102,7 @@ set(kritaresources_LIB_SRCS
     KoResource.cpp
     KoResourceBundle.cpp
     KoResourceBundleManifest.cpp
-    KoMD5Generator.cpp
     KoResourcePaths.cpp
-    KoResourceSignature.cpp
-    KoEmbeddedResource.cpp
     KoResourceLoadResult.cpp
 
     KisRequiredResourcesOperators.cpp
@@ -112,6 +130,7 @@ kis_add_library(kritaresources SHARED
     $<TARGET_OBJECTS:kritaresourcestypesobjects>
     $<TARGET_OBJECTS:kritacanvasresourcesinterfaceobjects>
     $<TARGET_OBJECTS:kritaresourcecacheinterfaceobjects>
+    $<TARGET_OBJECTS:kritaembeddedresourcevalueobjects>
 )
 
 generate_export_header(kritaresources BASE_NAME kritaresources)
