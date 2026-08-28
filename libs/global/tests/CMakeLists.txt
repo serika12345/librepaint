@@ -1,9 +1,16 @@
 kis_add_tests(KisSignalCompressorTest.cpp
     KisForestTest.cpp
-    KisMplTest.cpp
     KisRectsGridTest.cpp
     LINK_LIBRARIES kritaglobal kritatestsdk
     )
+
+kis_add_test(
+    KisMplTest.cpp
+    LINK_LIBRARIES
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisMplTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
     KisHistoryListTest.cpp

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 12:12 JST
+- 更新日時: 2026-08-28 12:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4531,6 +4531,16 @@
   試験内の連結継ぎ目を持つ。変更なし構築閉包はmacOSで4工程・8入力である。対象実行と20回反復が成功し、
   公開API契約は1,359件、未対応基準は27,655件になった。公開API、ABI、詳細度座標計算は変更していない。
   Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b メタ処理契約の限定構築で完了した作業
+
+- `libs/global/tests/KisMplTest.cpp`は同じファイル位置を保ち、`libs/global/tests/CMakeLists.txt`の
+  `KisSignalCompressorTest`・`KisForestTest`・`KisRectsGridTest`との一括試験対象から、共有参照実装対象と
+  Qt Testだけへ接続する独立対象`KisMplTest`の所有へ移した。試験入口は共通試験支援からQt Testの直接
+  入口へ置き換え、自動moc生成を一経路にした。
+- 変更なし構築閉包はmacOSで59工程・117入力から5工程・11入力へ縮小した。既存13試験の対象実行と20回
+  反復が成功した。製品実装、公開API、ABI、メタ処理の挙動は変更していない。Linuxと全ネイティブ検証は
+  実行していない。
 
 ## 次の操作
 

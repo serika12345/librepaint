@@ -5,8 +5,6 @@
  */
 #include "KisMplTest.h"
 
-#include <simpletest.h>
-
 #include <optional>
 #include <QDebug>
 
@@ -560,4 +558,4 @@ void KisMplTest::testMemberOperatorsAccumulateToKisSharedPtr()
 }
 
 
-SIMPLE_TEST_MAIN(KisMplTest)
+QTEST_GUILESS_MAIN(KisMplTest)
