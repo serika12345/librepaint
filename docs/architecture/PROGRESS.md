@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 21:33 JST
+- 更新日時: 2026-08-28 21:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5785,10 +5785,30 @@
   未対応25,721件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G19b 大域資源供給 public API契約とモデル依存分離で完了した作業
+
+- `libs/resources/KisGlobalResourcesInterface.cpp`に同居していた単一個体管理とモデル供給元を分けた。
+  単一個体管理と`createSourceImpl()`は同じファイルに残して、`kritaresources`の直接ソース所有から
+  新規`kritaglobalresourcesinstanceobjects`へ移した。`GlobalResourcesSource`と資源モデル取得は新規
+  `libs/resources/KisGlobalResourcesInterfaceSource.cpp`へ抽出し、新規
+  `kritaglobalresourcesmodelsourceobjects`の所有とした。製品`kritaresources`は両生成オブジェクトを
+  1回ずつ集約する。
+- `createSourceImpl()`からモデル供給元生成だけを内部関数境界にし、製品では
+  `KisResourceModelProvider`実装、局所試験では空供給元を接続した。これにより製品の仮想メソッド実装を
+  試験でも共通に保ち、データベース初期化を単一個体契約から分離した。
+- `libs/resources/KisGlobalResourcesInterface.h`の大域境界と単一個体取得の2 APIを、新規
+  `libs/resources/tests/KisGlobalResourcesInterfaceContractTest.cpp`の1試験へ全件対応付けた。並行初回
+  取得を含む共有ポインター同一性、具象型、種類別供給元の一度だけの生成と再利用を固定した。
+- 641工程・1,310入力の既存大域利用試験へ接続せず、専用試験は14工程・30入力、単一個体とモデル
+  供給元の各実装は1工程・3入力に収めた。製品閉包は翻訳単位の分割により139工程・305入力から
+  140工程・307入力になった。macOSで両実装をコンパイルし、対象実行と20回反復に成功した。製品
+  `kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。公開面は1,546ヘッダー、
+  29,981 API、対応済み4,262件、未対応25,719件になり、同ヘッダーのpublic APIは全件対応済みになった。
+
 ## 次の操作
 
-`libs/resources/KisGlobalResourcesInterface.h`の大域資源供給2 APIについて、資源モデルへの直接依存と
-変更なし構築閉包を監査し、単一個体と種類別供給元の最小契約を追加する。
+`libs/resources/ResourceDebug.h`の資源ログ分類1 APIについて、既存
+`kritaresourcestypesobjects`の変更なし構築閉包を確認し、分類名と既定重要度を局所契約へ固定する。
 
 ## R1-G5完了根拠
 

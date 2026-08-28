@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25721
+    "expectedMissingApis": 25719
   },
   "contracts": [
     {
@@ -10065,6 +10065,17 @@
       "classification": "maintained",
       "apis": [
         "method:KisLocalStrokeResources::KisLocalStrokeResources(const QList<KoResourceSP> & localResources)"
+      ]
+    },
+    {
+      "target": "KisGlobalResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KisGlobalResourcesInterfaceContractTest.cpp",
+      "test": "KisGlobalResourcesInterfaceContractTest::returnsOneTypedInstanceAcrossThreads",
+      "behavior": "大域資源供給は並行する最初の取得を含めて同じ非空の具象境界共有ポインターを返し、その境界は種類別供給元を一度だけ生成して再利用する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGlobalResourcesInterface",
+        "method:KisGlobalResourcesInterface::instance()"
       ]
     }
   ]

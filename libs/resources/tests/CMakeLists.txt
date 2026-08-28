@@ -163,3 +163,23 @@ target_include_directories(KisLocalStrokeResourcesContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KisLocalStrokeResourcesContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
+    KisGlobalResourcesInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalresourcesinstanceobjects
+        kritaresourcesinterfaceobjects
+        kritaresourceloadvalueobjects
+        kritaembeddedresourcevalueobjects
+        kritaresourcestypesobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Boost::boost
+)
+target_include_directories(KisGlobalResourcesInterfaceContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisGlobalResourcesInterfaceContractTest PRIVATE kritaresources_EXPORTS)
