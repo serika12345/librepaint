@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 07:58 JST
+- 更新日時: 2026-08-29 08:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6914,12 +6914,26 @@
   公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,850件、
   未対応25,139件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 画像ノード効果委譲 public API契約で完了した作業
+
+- 既存`libs/ui/nodes/KisNodeManagerImageState.cpp`が所有する画像ノード設定更新とノード有効化操作作成の
+  透過委譲を、既存`libs/ui/tests/KisNodeManagerImageStateContractTest.cpp`の2試験へ対応付けた。
+  空画像を含む指定画像の一度だけの委譲と、操作集合、呼出元ノード管理の同一値での引渡しを固定した。
+- 最初の実行は、観測値をまだ記録しない試験境界に対して両効果の呼出回数0を診断し、既存3試験は成功した。
+  具体効果を所有する`libs/ui/nodes/KisNodeManagerImageStateSource.cpp`や製品挙動は変更せず、既存の保護境界で
+  呼出回数と引数を記録して緑化した。
+- 判断対象と具体効果対象は各1工程・3入力、拡張後の試験は5工程・17入力、製品
+  `kritaapplicationui`閉包は1,803工程・3,606入力を維持した。判断対象、具体効果対象、対象CTestの
+  macOS構築、単発実行と20回反復、公開API契約検査、高速検査は成功した。
+- 公開面は1,549ヘッダー、29,989 API、対応済み4,852件、未対応25,137件になった。製品
+  `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る77 APIのうち、画像ノード設定更新とノード有効化操作作成を
-次の小単位とする。既存`kritauinodemanagerimagestateobjects`、具体画像効果対象、
-`KisNodeManagerImageStateContractTest`の変更なし計画、直接CMake依存、空構築閉包を再監査し、既に分離済みの
-具体効果へ画像、操作集合、管理元を同一値のまま委譲する契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る75 APIのうち、選択ノードの状態更新、再選択要求、選択変更通知を
+次の小単位とする。`kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、直接CMake依存、
+空構築閉包を監査し、選択状態の保存と通知、空値を除く現在ノード・選択一覧の再適用判断を局所所有へ
+分けてから挙動契約を追加する。
 
 ## R1-G5完了根拠
 

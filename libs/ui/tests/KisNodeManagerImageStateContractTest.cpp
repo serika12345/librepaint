@@ -89,6 +89,12 @@ QHash<const KisNode *, KisLayerSP> layers;
 QHash<const KisNode *, KisMaskSP> masks;
 QHash<const KisNode *, KisNodeSP> parents;
 QHash<const KisNode *, KisSelectionSP> selections;
+int imageSettingsUpdateCount;
+bool imageSettingsUpdateReceivedNullImage;
+int activationActionCreationCount;
+bool activationActionCreationReceivedNullImage;
+KisKActionCollection *activationActionCollectionValue;
+KisNodeManager *activationActionManagerValue;
 
 } // namespace
 
@@ -130,14 +136,20 @@ bool KisNodeManager::ImageStateAccess::isEditable(KisNodeSP mask)
     return editableSelectionMasks.value(mask.data());
 }
 
-void KisNodeManager::ImageStateAccess::updateImageNodeSettings(KisImageWSP)
+void KisNodeManager::ImageStateAccess::updateImageNodeSettings(KisImageWSP image)
 {
+    imageSettingsUpdateCount++;
+    imageSettingsUpdateReceivedNullImage = image.isNull();
 }
 
-void KisNodeManager::ImageStateAccess::createNodeActivationActions(KisImageWSP,
-                                                                   KisKActionCollection *,
-                                                                   KisNodeManager *)
+void KisNodeManager::ImageStateAccess::createNodeActivationActions(KisImageWSP image,
+                                                                   KisKActionCollection *collection,
+                                                                   KisNodeManager *manager)
 {
+    activationActionCreationCount++;
+    activationActionCreationReceivedNullImage = image.isNull();
+    activationActionCollectionValue = collection;
+    activationActionManagerValue = manager;
 }
 
 bool KisNodeManager::ImageStateAccess::isLayer(KisNodeSP node)
@@ -181,6 +193,8 @@ class KisNodeManagerImageStateContractTest : public QObject
 
 private Q_SLOTS:
     void init();
+    void imageSettingsUpdatesDelegateToImageState();
+    void activationActionsUseCollectionAndManager();
     void removalAndNodeKindsFollowTheImageGraph();
     void activeAnimationAndSelectionEditabilityFollowNodeState();
     void selectionUsesTheOwningLayer();
@@ -198,6 +212,31 @@ void KisNodeManagerImageStateContractTest::init()
     masks.clear();
     parents.clear();
     selections.clear();
+    imageSettingsUpdateCount = 0;
+    imageSettingsUpdateReceivedNullImage = false;
+    activationActionCreationCount = 0;
+    activationActionCreationReceivedNullImage = false;
+    activationActionCollectionValue = nullptr;
+    activationActionManagerValue = nullptr;
+}
+
+void KisNodeManagerImageStateContractTest::imageSettingsUpdatesDelegateToImageState()
+{
+    KisNodeManager manager(nullptr);
+    manager.updateImageNodeSettings(KisImageWSP());
+    QCOMPARE(imageSettingsUpdateCount, 1);
+    QVERIFY(imageSettingsUpdateReceivedNullImage);
+}
+
+void KisNodeManagerImageStateContractTest::activationActionsUseCollectionAndManager()
+{
+    KisNodeManager manager(nullptr);
+    KisKActionCollection *const collection = token<KisKActionCollection>(1);
+    manager.createNodeActivationActions(KisImageWSP(), collection);
+    QCOMPARE(activationActionCreationCount, 1);
+    QVERIFY(activationActionCreationReceivedNullImage);
+    QCOMPARE(activationActionCollectionValue, collection);
+    QCOMPARE(activationActionManagerValue, &manager);
 }
 
 void KisNodeManagerImageStateContractTest::removalAndNodeKindsFollowTheImageGraph()

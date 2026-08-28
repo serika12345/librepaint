@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25139
+    "expectedMissingApis": 25137
   },
   "contracts": [
     {
@@ -12389,6 +12389,26 @@
         "method:KisNodeManager::nodeDisplayModeAdapter() const",
         "method:KisNodeManager::nodeInsertionAdapter() const",
         "method:KisNodeManager::nodeSelectionAdapter() const"
+      ]
+    },
+    {
+      "target": "KisNodeManagerImageStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerImageStateContractTest.cpp",
+      "test": "KisNodeManagerImageStateContractTest::imageSettingsUpdatesDelegateToImageState",
+      "behavior": "画像ノード設定更新は空画像を含む指定画像を具体画像効果へ一度委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::updateImageNodeSettings(KisImageWSP image)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerImageStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerImageStateContractTest.cpp",
+      "test": "KisNodeManagerImageStateContractTest::activationActionsUseCollectionAndManager",
+      "behavior": "ノード有効化操作作成は空画像を含む指定画像、操作集合、呼出元ノード管理を具体画像効果へ一度委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createNodeActivationActions(KisImageWSP image,KisKActionCollection * collection)"
       ]
     }
   ]
