@@ -91,6 +91,21 @@ target_include_directories(KisResourceMetaDataModelContractTest PRIVATE
 target_compile_definitions(KisResourceMetaDataModelContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KisDatabaseTransactionLockContractTest.cpp
+    LINK_LIBRARIES
+        kritadatabasetransactionlockobjects
+        Qt${QT_MAJOR_VERSION}::Sql
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisDatabaseTransactionLockContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisDatabaseTransactionLockContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
     KoResourceCacheInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritaresourcecacheinterfaceobjects

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:30 JST
+- 更新日時: 2026-08-28 22:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5892,10 +5892,27 @@
   なり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritaresources`のリンク、Linux、
   全ネイティブ検証は実行していない。
 
+## R2-G19b データベース取引ロック public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KisDatabaseTransactionLock.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有
+  から新規`kritadatabasetransactionlockobjects`の所有へ移し、製品`kritaresources`が生成
+  オブジェクトを1回だけ集約する構造にした。外部向けヘッダー、実装、製品ABIは維持した。
+- `libs/resources/KisDatabaseTransactionLock.h`のアダプター境界・構築・施錠・解錠・確定、包装型・
+  基底型別名・明示取消しからなる1構造体・1クラス・1型別名・5メソッドの8 APIを、新規
+  `libs/resources/tests/KisDatabaseTransactionLockContractTest.cpp`の3対応試験へ全件対応付けた。メモリー
+  SQLite上でスコープ終了時の自動取消し、明示確定、明示取消しと所有解除、取引終了後の無操作を
+  固定した。
+- 4工程・8入力の既存`KisAdaptedLockTest`を比較対象とし、642工程・1,312入力の資源DB試験へは
+  接続しなかった。実装を接続しない最初の試験構築は4工程・8入力でアダプター4メソッドの未解決
+  参照をリンク診断した。分離後は所有対象を1工程・3入力、新規試験を5工程・11入力に収め、製品
+  資源ライブラリーは140工程・307入力を維持した。macOSの対象実行と20回反復に成功した。公開面は
+  1,546ヘッダー、29,981 API、対応済み4,293件、未対応25,688件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KisDatabaseTransactionLock.h`のデータベース取引ロック8 APIについて、Qt SQLと
-`KisAdaptedLock`だけで完結する清浄時構築閉包を監査し、スコープ終了時の取消し、明示確定、明示取消しを
+`libs/resources/KisTemporaryResourceStorageLock.h`の一時資源格納ロック8 APIについて、既存利用と
+清浄時構築閉包を監査し、未定義の`try_lock()`を含む格納名の衝突回避、登録、スコープ終了時の除去を
 固定する。
 
 ## R1-G5完了根拠

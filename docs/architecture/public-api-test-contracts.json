@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25696
+    "expectedMissingApis": 25688
   },
   "contracts": [
     {
@@ -10216,6 +10216,41 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceMetaDataModel::~KisResourceMetaDataModel()"
+      ]
+    },
+    {
+      "target": "KisDatabaseTransactionLockContractTest",
+      "source": "libs/resources/tests/KisDatabaseTransactionLockContractTest.cpp",
+      "test": "KisDatabaseTransactionLockContractTest::adapterStartsRollsBackAndCommitsTransactions",
+      "behavior": "データベース取引アダプターは明示施錠で取引を開始し、解錠で取消し、確定で変更を永続化し、取引終了後の解錠と確定を副作用なく処理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:detail::KisDatabaseTransactionLockAdapter::KisDatabaseTransactionLockAdapter(QSqlDatabase database)",
+        "method:detail::KisDatabaseTransactionLockAdapter::commit()",
+        "method:detail::KisDatabaseTransactionLockAdapter::lock()",
+        "method:detail::KisDatabaseTransactionLockAdapter::unlock()",
+        "struct:detail::KisDatabaseTransactionLockAdapter"
+      ]
+    },
+    {
+      "target": "KisDatabaseTransactionLockContractTest",
+      "source": "libs/resources/tests/KisDatabaseTransactionLockContractTest.cpp",
+      "test": "KisDatabaseTransactionLockContractTest::lockRollsBackOnScopeExit",
+      "behavior": "データベース取引ロックは構築時に取引を所有し、明示確定されないままスコープを離れると変更を自動的に取り消す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDatabaseTransactionLock::BaseClass",
+        "class:KisDatabaseTransactionLock"
+      ]
+    },
+    {
+      "target": "KisDatabaseTransactionLockContractTest",
+      "source": "libs/resources/tests/KisDatabaseTransactionLockContractTest.cpp",
+      "test": "KisDatabaseTransactionLockContractTest::rollbackCancelsAndRelinquishesOwnership",
+      "behavior": "データベース取引ロックの明示取消しは未確定変更を破棄し、包装ロックの所有状態も解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDatabaseTransactionLock::rollback()"
       ]
     }
   ]
