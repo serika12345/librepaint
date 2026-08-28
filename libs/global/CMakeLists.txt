@@ -320,6 +320,25 @@ set_target_properties(kritaglobalmemoryleaktrackerobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalpaintingtweaksobjects OBJECT
+    kis_painting_tweaks.cpp
+)
+target_compile_definitions(kritaglobalpaintingtweaksobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalpaintingtweaksobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalpaintingtweaksobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaglobalpaintingtweaksobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalrollingsumobjects OBJECT
     KisRollingSumAccumulatorWrapper.cpp
 )
@@ -423,7 +442,6 @@ set(kritaglobal_LIB_SRCS
     kis_debug.cpp
     kis_algebra_2d.cpp
     kis_dom_utils.cpp
-    kis_painting_tweaks.cpp
     KisHandlePainterHelper.cpp
     KisHandleStyle.cpp
     kis_config_notifier.cpp
@@ -470,6 +488,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalsynchronizedconnectionobjects>
     $<TARGET_OBJECTS:kritaglobalregionobjects>
     $<TARGET_OBJECTS:kritaglobalmemoryleaktrackerobjects>
+    $<TARGET_OBJECTS:kritaglobalpaintingtweaksobjects>
     $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
     $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
     $<TARGET_OBJECTS:kritaglobalsamplerectiteratorobjects>
