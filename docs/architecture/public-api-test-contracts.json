@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26739
+    "expectedMissingApis": 26695
   },
   "contracts": [
     {
@@ -7439,6 +7439,77 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug,const KoUnit &)"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorEnumContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorEnumContractTest.cpp",
+      "test": "KoShapeAnchorEnumContractTest::horizontalPlacementValuesRemainStable",
+      "behavior": "図形アンカーの水平位置と基準はODF配置規則に対応する宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoShapeAnchor::HorizontalPos",
+        "enum:KoShapeAnchor::HorizontalRel",
+        "enumerator:KoShapeAnchor::HorizontalPos::HCenter",
+        "enumerator:KoShapeAnchor::HorizontalPos::HFromInside",
+        "enumerator:KoShapeAnchor::HorizontalPos::HFromLeft",
+        "enumerator:KoShapeAnchor::HorizontalPos::HInside",
+        "enumerator:KoShapeAnchor::HorizontalPos::HLeft",
+        "enumerator:KoShapeAnchor::HorizontalPos::HOutside",
+        "enumerator:KoShapeAnchor::HorizontalPos::HRight",
+        "enumerator:KoShapeAnchor::HorizontalRel::HChar",
+        "enumerator:KoShapeAnchor::HorizontalRel::HFrame",
+        "enumerator:KoShapeAnchor::HorizontalRel::HFrameContent",
+        "enumerator:KoShapeAnchor::HorizontalRel::HFrameEndMargin",
+        "enumerator:KoShapeAnchor::HorizontalRel::HFrameStartMargin",
+        "enumerator:KoShapeAnchor::HorizontalRel::HPage",
+        "enumerator:KoShapeAnchor::HorizontalRel::HPageContent",
+        "enumerator:KoShapeAnchor::HorizontalRel::HPageEndMargin",
+        "enumerator:KoShapeAnchor::HorizontalRel::HPageStartMargin",
+        "enumerator:KoShapeAnchor::HorizontalRel::HParagraph",
+        "enumerator:KoShapeAnchor::HorizontalRel::HParagraphContent",
+        "enumerator:KoShapeAnchor::HorizontalRel::HParagraphEndMargin",
+        "enumerator:KoShapeAnchor::HorizontalRel::HParagraphStartMargin"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorEnumContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorEnumContractTest.cpp",
+      "test": "KoShapeAnchorEnumContractTest::verticalPlacementValuesRemainStable",
+      "behavior": "図形アンカーの垂直位置と基準はODF配置規則に対応する宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoShapeAnchor::VerticalPos",
+        "enum:KoShapeAnchor::VerticalRel",
+        "enumerator:KoShapeAnchor::VerticalPos::VBelow",
+        "enumerator:KoShapeAnchor::VerticalPos::VBottom",
+        "enumerator:KoShapeAnchor::VerticalPos::VFromTop",
+        "enumerator:KoShapeAnchor::VerticalPos::VMiddle",
+        "enumerator:KoShapeAnchor::VerticalPos::VTop",
+        "enumerator:KoShapeAnchor::VerticalRel::VBaseline",
+        "enumerator:KoShapeAnchor::VerticalRel::VChar",
+        "enumerator:KoShapeAnchor::VerticalRel::VFrame",
+        "enumerator:KoShapeAnchor::VerticalRel::VFrameContent",
+        "enumerator:KoShapeAnchor::VerticalRel::VLine",
+        "enumerator:KoShapeAnchor::VerticalRel::VPage",
+        "enumerator:KoShapeAnchor::VerticalRel::VPageContent",
+        "enumerator:KoShapeAnchor::VerticalRel::VParagraph",
+        "enumerator:KoShapeAnchor::VerticalRel::VParagraphContent",
+        "enumerator:KoShapeAnchor::VerticalRel::VText"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorEnumContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorEnumContractTest.cpp",
+      "test": "KoShapeAnchorEnumContractTest::anchorTypeValuesRemainStable",
+      "behavior": "図形アンカー方式は文字内、文字、段落、ページの固定順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoShapeAnchor::AnchorType",
+        "enumerator:KoShapeAnchor::AnchorType::AnchorAsCharacter",
+        "enumerator:KoShapeAnchor::AnchorType::AnchorPage",
+        "enumerator:KoShapeAnchor::AnchorType::AnchorParagraph",
+        "enumerator:KoShapeAnchor::AnchorType::AnchorToCharacter"
       ]
     }
   ]
