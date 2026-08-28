@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25991
+    "expectedMissingApis": 25978
   },
   "contracts": [
     {
@@ -9043,6 +9043,64 @@
       "classification": "maintained",
       "apis": [
         "method:KisStrokeShortcut::fakeEndEvent(const QPointF & localPos) const"
+      ]
+    },
+    {
+      "target": "KisTouchShortcutContractTest",
+      "source": "libs/input/tests/KisTouchShortcutContractTest.cpp",
+      "test": "KisTouchShortcutContractTest::preservesPolymorphicLifetimeAndActionPriority",
+      "behavior": "タッチ短縮操作は入力操作の優先度を維持し、基本短縮操作の所有を通じて寿命を終了できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTouchShortcut",
+        "method:KisTouchShortcut::KisTouchShortcut(KisInputAction * action,int index,KisTouchGestureType type)",
+        "method:KisTouchShortcut::priority() const",
+        "method:KisTouchShortcut::~KisTouchShortcut()"
+      ]
+    },
+    {
+      "target": "KisTouchShortcutContractTest",
+      "source": "libs/input/tests/KisTouchShortcutContractTest.cpp",
+      "test": "KisTouchShortcutContractTest::reportsHoldGestureType",
+      "behavior": "タッチ短縮操作は長押し種別だけを長押しとして報告する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTouchShortcut::isHoldType() const"
+      ]
+    },
+    {
+      "target": "KisTouchShortcutContractTest",
+      "source": "libs/input/tests/KisTouchShortcutContractTest.cpp",
+      "test": "KisTouchShortcutContractTest::gesturePredicatesMatchOnlyTheirConfiguredType",
+      "behavior": "タップ、ドラッグ、長押しの各判定は点数範囲を満たす事象のうち構築時のジェスチャー種別だけに一致する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTouchShortcut::matchDragType(QTouchEvent * event)",
+        "method:KisTouchShortcut::matchHoldType(QTouchEvent * event)",
+        "method:KisTouchShortcut::matchTapType(QTouchEvent * event)"
+      ]
+    },
+    {
+      "target": "KisTouchShortcutContractTest",
+      "source": "libs/input/tests/KisTouchShortcutContractTest.cpp",
+      "test": "KisTouchShortcutContractTest::touchPointRangeIsInclusive",
+      "behavior": "タッチ点数判定は設定した最小値と最大値を両端を含む範囲として扱う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTouchShortcut::matchTouchPoint(QTouchEvent * event)",
+        "method:KisTouchShortcut::setMaximumTouchPoints(int max)",
+        "method:KisTouchShortcut::setMinimumTouchPoints(int min)"
+      ]
+    },
+    {
+      "target": "KisTouchShortcutContractTest",
+      "source": "libs/input/tests/KisTouchShortcutContractTest.cpp",
+      "test": "KisTouchShortcutContractTest::touchPaintingStateCanDisableMatching",
+      "behavior": "タッチ描画中の無効化方針はコールバックの現在値で照合を止め、空コールバックは非描画状態へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTouchShortcut::setDisabledWhenTouchPaintingActive(bool value)",
+        "method:KisTouchShortcut::setTouchPaintingActiveCallback(std::function<bool ()> callback)"
       ]
     }
   ]

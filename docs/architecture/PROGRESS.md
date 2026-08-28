@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 19:13 JST
+- 更新日時: 2026-08-28 19:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5473,9 +5473,22 @@
   未対応基準は25,991件になり、同ヘッダーのpublic APIは全件対応済みになった。
   Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b タッチジェスチャー照合 public API契約と構築所有分離で完了した作業
+
+- `libs/input/kis_touch_shortcut.cpp`は同じ配置のまま、`kritainput`の直接ソース所有から
+  新規`kritainputtouchshortcutobjects`の所有へ移し、製品`kritainput`が生成オブジェクトを
+  1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは維持した。
+- `libs/input/kis_touch_shortcut.h`の構築、基本型を通した寿命、優先度、ジェスチャー種別、
+  タッチ点数範囲、タッチ描画中の無効化からなる1クラス・12メソッドの13 APIを、新規
+  `libs/input/tests/KisTouchShortcutContractTest.cpp`の5試験へ全件対応付けた。
+- 1,052工程・2,121入力の既存入力照合試験へ接続せず、専用実装は1工程・3入力、専用試験は
+  macOSで6工程・13入力に収めた。対象実行と20回反復に成功した。対応済みは3,989件、
+  未対応基準は25,978件になり、同ヘッダーのpublic APIは全件対応済みになった。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/input/kis_touch_shortcut.h`のタッチジェスチャー照合APIについて、既存試験、直接依存、
+`libs/input/kis_single_action_shortcut.h`の単一キー・ホイール照合APIについて、既存試験、直接依存、
 変更なし構築閉包を監査し、必要なら実装所有を先に分離してから局所契約を追加する。
 
 ## R1-G5完了根拠
