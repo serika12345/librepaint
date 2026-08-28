@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27748
+    "expectedMissingApis": 27713
   },
   "contracts": [
     {
@@ -4254,6 +4254,95 @@
         "struct:KoBgrU16Traits",
         "struct:KoBgrU32Traits",
         "struct:KoBgrU8Traits"
+      ]
+    },
+    {
+      "target": "KoCmykColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoCmykColorSpaceTraitsContractTest.cpp",
+      "test": "KoCmykColorSpaceTraitsContractTest::pixelLayoutPreservesCmykAndAlphaChannels",
+      "behavior": "CMYK画素特性は指定した数値型と5チャンネル基礎特性を公開し、画素の位置0からシアン、マゼンタ、黄、黒、不透明度の順で保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoCmykTraits::channels_type",
+        "alias:KoCmykTraits::parent",
+        "member:KoCmykTraits::Pixel::alpha",
+        "member:KoCmykTraits::Pixel::black",
+        "member:KoCmykTraits::Pixel::cyan",
+        "member:KoCmykTraits::Pixel::magenta",
+        "member:KoCmykTraits::Pixel::yellow",
+        "member:KoCmykTraits::c_pos",
+        "member:KoCmykTraits::k_pos",
+        "member:KoCmykTraits::m_pos",
+        "member:KoCmykTraits::y_pos",
+        "struct:KoCmykTraits",
+        "struct:KoCmykTraits::Pixel"
+      ]
+    },
+    {
+      "target": "KoCmykColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoCmykColorSpaceTraitsContractTest.cpp",
+      "test": "KoCmykColorSpaceTraitsContractTest::accessorsReadAndWriteOnlyTheirColorChannel",
+      "behavior": "シアン、マゼンタ、黄、黒の取得と設定は各チャンネル位置だけを読み書きし、不透明度を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCmykTraits::C(quint8 * data)",
+        "method:KoCmykTraits::M(quint8 * data)",
+        "method:KoCmykTraits::Y(quint8 * data)",
+        "method:KoCmykTraits::k(quint8 * data)",
+        "method:KoCmykTraits::setC(quint8 * data,channels_type nv)",
+        "method:KoCmykTraits::setK(quint8 * data,channels_type nv)",
+        "method:KoCmykTraits::setM(quint8 * data,channels_type nv)",
+        "method:KoCmykTraits::setY(quint8 * data,channels_type nv)"
+      ]
+    },
+    {
+      "target": "KoCmykColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoCmykColorSpaceTraitsContractTest.cpp",
+      "test": "KoCmykColorSpaceTraitsContractTest::integerNamedTraitsPreserveChannelTypes",
+      "behavior": "整数CMYK画素の名前付き特性は8・16ビット符号なし整数の数値型を対応する基礎特性へ結び付ける。",
+      "classification": "maintained",
+      "apis": [
+        "struct:KoCmykU16Traits",
+        "struct:KoCmykU8Traits"
+      ]
+    },
+    {
+      "target": "KoCmykColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoCmykColorSpaceTraitsContractTest.cpp",
+      "test": "KoCmykColorSpaceTraitsContractTest::float32NormalisationUsesCmykPercentAndUnitAlpha",
+      "behavior": "32ビット浮動小数点CMYK特性は百分率の色値と単位範囲の不透明度を文字列および正規化配列と双方向変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCmykF32Traits::fromNormalisedChannelsValue(quint8 * pixel,const QVector<float> & values)",
+        "method:KoCmykF32Traits::normalisedChannelValueText(const quint8 * pixel,quint32 channelIndex)",
+        "method:KoCmykF32Traits::normalisedChannelsValue(const quint8 * pixel,QVector<float> & v)",
+        "struct:KoCmykF32Traits"
+      ]
+    },
+    {
+      "target": "KoCmykColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoCmykColorSpaceTraitsContractTest.cpp",
+      "test": "KoCmykColorSpaceTraitsContractTest::float64NormalisationUsesCmykPercentAndUnitAlpha",
+      "behavior": "64ビット浮動小数点CMYK特性は百分率の色値と単位範囲の不透明度を文字列および正規化配列と双方向変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCmykF64Traits::fromNormalisedChannelsValue(quint8 * pixel,const QVector<float> & values)",
+        "method:KoCmykF64Traits::normalisedChannelValueText(const quint8 * pixel,quint32 channelIndex)",
+        "method:KoCmykF64Traits::normalisedChannelsValue(const quint8 * pixel,QVector<float> & v)",
+        "struct:KoCmykF64Traits"
+      ]
+    },
+    {
+      "target": "KoCmykColorSpaceTraitsContractTest",
+      "source": "libs/pigment/tests/KoCmykColorSpaceTraitsContractTest.cpp",
+      "test": "KoCmykColorSpaceTraitsContractTest::float16NormalisationUsesCmykPercentAndUnitAlpha",
+      "behavior": "16ビット浮動小数点CMYK特性は百分率の色値と単位範囲の不透明度を文字列および正規化配列と双方向変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCmykF16Traits::fromNormalisedChannelsValue(quint8 * pixel,const QVector<float> & values)",
+        "method:KoCmykF16Traits::normalisedChannelValueText(const quint8 * pixel,quint32 channelIndex)",
+        "method:KoCmykF16Traits::normalisedChannelsValue(const quint8 * pixel,QVector<float> & v)",
+        "struct:KoCmykF16Traits"
       ]
     }
   ]

@@ -39,6 +39,14 @@ kis_add_test(
 )
 
 kis_add_test(
+    KoCmykColorSpaceTraitsContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentmathsobjects
+        kritapigmentcmykmathsobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     KoLabColorSpaceMathsContractTest.cpp
     LINK_LIBRARIES
         kritapigmentlabmathsobjects
