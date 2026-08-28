@@ -6,9 +6,14 @@
 
 #include "KisHistoryListTest.h"
 
-#include <simpletest.h>
+#include <QTest>
+
 #include "KisHistoryList.h"
 #include "KisSortedHistoryList.h"
+
+void kis_safe_assert_recoverable(const char *, const char *, int)
+{
+}
 
 
 namespace {
@@ -123,4 +128,4 @@ void KisHistoryListTest::testSortedList()
 }
 
 
-SIMPLE_TEST_MAIN(KisHistoryListTest)
+QTEST_GUILESS_MAIN(KisHistoryListTest)
