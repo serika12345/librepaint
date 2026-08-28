@@ -122,6 +122,29 @@ set_target_properties(kritaresourcesinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritalocalstrokeresourcesobjects OBJECT
+    KisLocalStrokeResources.cpp
+)
+target_compile_definitions(kritalocalstrokeresourcesobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritalocalstrokeresourcesobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritalocalstrokeresourcesobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritalocalstrokeresourcesobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresources_LIB_SRCS
     KisResourceCacheDb.cpp
     KisResourceLoader.cpp
@@ -151,7 +174,6 @@ set(kritaresources_LIB_SRCS
     KoResourceBundleManifest.cpp
     KoResourcePaths.cpp
     KisRequiredResourcesOperators.cpp
-    KisLocalStrokeResources.cpp
     KisGlobalResourcesInterface.cpp
     KoResourceCacheStorage.cpp
     KoResourceCachePrefixedStorageWrapper.cpp
@@ -177,6 +199,7 @@ kis_add_library(kritaresources SHARED
     $<TARGET_OBJECTS:kritaembeddedresourcevalueobjects>
     $<TARGET_OBJECTS:kritaresourceloadvalueobjects>
     $<TARGET_OBJECTS:kritaresourcesinterfaceobjects>
+    $<TARGET_OBJECTS:kritalocalstrokeresourcesobjects>
 )
 
 generate_export_header(kritaresources BASE_NAME kritaresources)

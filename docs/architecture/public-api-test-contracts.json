@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25728
+    "expectedMissingApis": 25721
   },
   "contracts": [
     {
@@ -10022,6 +10022,49 @@
       "apis": [
         "class:KisResourcesInterfacePrivate",
         "method:KisResourcesInterfacePrivate::~KisResourcesInterfacePrivate()"
+      ]
+    },
+    {
+      "target": "KisLocalStrokeResourcesContractTest",
+      "source": "libs/resources/tests/KisLocalStrokeResourcesContractTest.cpp",
+      "test": "KisLocalStrokeResourcesContractTest::startsEmptyAndSanitizesInitialResources",
+      "behavior": "局所資源格納は空で構築でき、初期一覧の順序と共有ポインター同一性を保持しつつ、空資源を安全表明付きで除去して現在一覧を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLocalStrokeResources",
+        "method:KisLocalStrokeResources::KisLocalStrokeResources()",
+        "method:KisLocalStrokeResources::resources() const"
+      ]
+    },
+    {
+      "target": "KisLocalStrokeResourcesContractTest",
+      "source": "libs/resources/tests/KisLocalStrokeResourcesContractTest.cpp",
+      "test": "KisLocalStrokeResourcesContractTest::addsAndRemovesResources",
+      "behavior": "局所資源格納への追加は順序と重複を保持し、削除は同一共有ポインターを全件除き、空資源の追加は安全表明を記録して一覧を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLocalStrokeResources::addResource(KoResourceSP resource)",
+        "method:KisLocalStrokeResources::removeResource(KoResourceSP resource)"
+      ]
+    },
+    {
+      "target": "KisLocalStrokeResourcesContractTest",
+      "source": "libs/resources/tests/KisLocalStrokeResourcesContractTest.cpp",
+      "test": "KisLocalStrokeResourcesContractTest::clonesAnIndependentContainerWithSharedResources",
+      "behavior": "局所資源格納の複製は資源共有ポインターを保った独立容器を呼出元所有の個体として返し、一方の追加・削除は他方を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLocalStrokeResources::clone() const"
+      ]
+    },
+    {
+      "target": "KisLocalStrokeResourcesContractTest",
+      "source": "libs/resources/tests/KisLocalStrokeResourcesContractTest.cpp",
+      "test": "KisLocalStrokeResourcesContractTest::providesLiveTypeFilteredSources",
+      "behavior": "初期一覧で構築した局所資源格納は種類別にMD5・保存名・表示名と既定資源を検索し、供給元生成後の追加・削除を同じ供給元へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLocalStrokeResources::KisLocalStrokeResources(const QList<KoResourceSP> & localResources)"
       ]
     }
   ]

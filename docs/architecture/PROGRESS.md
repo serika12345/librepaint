@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 21:25 JST
+- 更新日時: 2026-08-28 21:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5769,10 +5769,26 @@
   1,546ヘッダー、29,981 API、対応済み4,253件、未対応25,728件になり、同ヘッダーのpublic APIは
   全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 局所ストローク資源 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KisLocalStrokeResources.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有から
+  新規`kritalocalstrokeresourcesobjects`の所有へ移し、製品`kritaresources`がその生成オブジェクトを
+  1回だけ集約する構造にした。外部向けヘッダー、実装、製品ABIは維持した。
+- `libs/resources/KisLocalStrokeResources.h`の空・初期一覧構築、現在一覧、追加、全一致削除、複製から
+  なる1クラス・6メソッドの7 APIを、新規
+  `libs/resources/tests/KisLocalStrokeResourcesContractTest.cpp`の4試験へ全件対応付けた。初期値と追加時の
+  空資源拒否、順序と重複、共有資源を持つ独立容器への複製、種類別検索、供給元生成後の一覧変更反映も
+  固定した。
+- 実装を接続しない最初の試験構築は局所格納7 APIの未解決参照をリンク診断した。139工程・305入力の
+  製品資源ライブラリーへ接続せず、専用実装は1工程・3入力、専用試験はmacOSで14工程・30入力に
+  収めた。対象実行と20回反復に成功した。公開面は1,546ヘッダー、29,981 API、対応済み4,260件、
+  未対応25,721件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/resources/KisLocalStrokeResources.h`の局所資源供給7 APIについて、実装所有と変更なし構築閉包を
-監査し、追加・削除・複製と種類別検索を最小契約へ固定する。
+`libs/resources/KisGlobalResourcesInterface.h`の大域資源供給2 APIについて、資源モデルへの直接依存と
+変更なし構築閉包を監査し、単一個体と種類別供給元の最小契約を追加する。
 
 ## R1-G5完了根拠
 
