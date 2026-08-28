@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 11:27 JST
+- 更新日時: 2026-08-28 11:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4469,6 +4469,18 @@
 - 試験は基礎色数値特性の専用実装対象とQt Testだけへ直接接続し、変更なし構築閉包はmacOSで5工程・
   16入力である。対象実行と20回反復が成功し、公開API契約は1,307件、未対応基準は27,707件になった。
   製品実装、公開API、ABI、明度保持計算は変更していない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b ノードコマンド契約の限定構築で完了した作業
+
+- `libs/image/commands/kis_node_command.cpp`は同じファイル位置を保ち、`libs/image/CMakeLists.txt`の
+  `kritaimage`直接ソースから新規`kritaimagenodecommandobjects`の所有へ移した。`kritaimage`は新対象の
+  オブジェクトを集約し、従来の公開シンボルを供給する。
+- `libs/image/tests/kis_node_commands_test.cpp`は同じファイル位置を保ち、
+  `libs/image/tests/CMakeLists.txt`の`kritaimage`・`kritatestsdk`一括試験群から、ノードコマンド実装対象、
+  取り消しコマンド実装、Qt Testだけへ接続する独立試験へ移した。変更なし構築閉包は1,002工程・2,027
+  入力から230工程・490入力へ縮小し、新しい製品実装対象は1工程・3入力、`kritaimage`は998工程・2,020
+  入力である。macOSの限定構築に成功し、製品挙動、公開API、ABI、コマンドシンボルは変更していない。
+  Linux、製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
 
 ## 次の操作
 

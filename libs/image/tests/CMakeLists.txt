@@ -61,7 +61,6 @@ kis_add_tests(
     kis_mask_test.cpp
     kis_math_toolbox_test.cpp
     kis_name_server_test.cpp
-    kis_node_commands_test.cpp
     kis_node_graph_listener_test.cpp
     kis_node_visitor_test.cpp
     kis_paint_information_test.cpp
@@ -129,6 +128,14 @@ kis_add_tests(
     KisGridInterpolationToolsTest.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaresourcestorage
     )
+
+kis_add_test(
+    kis_node_commands_test.cpp
+    LINK_LIBRARIES
+        kritaimagenodecommandobjects
+        kritapaintingundo
+        Qt${QT_MAJOR_VERSION}::Test
+)
 
 kis_add_test(
     kis_fast_math_test.cpp

@@ -116,6 +116,31 @@ set_target_properties(kritaimagesignalsobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagenodecommandobjects OBJECT
+   commands/kis_node_command.cpp
+)
+target_compile_definitions(kritaimagenodecommandobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagenodecommandobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagenodecommandobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Widgets
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagenodecommandobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -179,7 +204,6 @@ set(kritaimage_LIB_SRCS
    commands/kis_node_commands_adapter.cpp
    commands/kis_node_group_operations.cpp
    commands/kis_node_operation_batch.cpp
-   commands/kis_node_command.cpp
    commands/kis_node_compositeop_command.cpp
    commands/kis_node_opacity_command.cpp
    commands/kis_node_property_list_command.cpp
@@ -461,6 +485,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
    $<TARGET_OBJECTS:kritaimagegreencoordinatesobjects>
    $<TARGET_OBJECTS:kritaimagesignalsobjects>
+   $<TARGET_OBJECTS:kritaimagenodecommandobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
