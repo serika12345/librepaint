@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25657
+    "expectedMissingApis": 25652
   },
   "contracts": [
     {
@@ -10363,6 +10363,38 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceThumbnailCache::instance()"
+      ]
+    },
+    {
+      "target": "KisIconToolTipContractTest",
+      "source": "libs/resources/ui/tests/KisIconToolTipContractTest.cpp",
+      "test": "KisIconToolTipContractTest::fixedThumbnailSizeControlsDocumentImage",
+      "behavior": "アイコン説明表示は固定サムネイル寸法を受け取り、元画像の縦横比を保った論理寸法の画像資源を説明文書へ格納する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisIconToolTip",
+        "method:KisIconToolTip::KisIconToolTip()",
+        "method:KisIconToolTip::setFixedToolTipThumbnailSize(const QSize & size)"
+      ]
+    },
+    {
+      "target": "KisIconToolTipContractTest",
+      "source": "libs/resources/ui/tests/KisIconToolTipContractTest.cpp",
+      "test": "KisIconToolTipContractTest::checkerRenderingCanBeEnabledAndDisabled",
+      "behavior": "アイコン説明表示はチェッカー背景を有効にすると透明サムネイルの背後を不透明な格子で描き、無効へ戻すと透明画像をそのまま文書へ格納する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIconToolTip::setToolTipShouldRenderCheckers(bool value)"
+      ]
+    },
+    {
+      "target": "KisIconToolTipContractTest",
+      "source": "libs/resources/ui/tests/KisIconToolTipContractTest.cpp",
+      "test": "KisIconToolTipContractTest::destructionReleasesOwnedDocument",
+      "behavior": "アイコン説明表示が生成した説明文書は表示個体を親として所有され、表示個体の破棄時に解放される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIconToolTip::~KisIconToolTip()"
       ]
     }
   ]

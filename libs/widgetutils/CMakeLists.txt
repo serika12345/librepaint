@@ -20,9 +20,38 @@ set_target_properties(kritawidgetutilsnumericparserobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritacheckerboardpainterobjects OBJECT
+    KoCheckerBoardPainter.cpp
+)
+target_compile_definitions(kritacheckerboardpainterobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritacheckerboardpainterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritacheckerboardpainterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritacheckerboardpainterobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaitemtooltipobjects OBJECT
+    KoItemToolTip.cpp
+)
+target_compile_definitions(kritaitemtooltipobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritaitemtooltipobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaitemtooltipobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaitemtooltipobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
+    $<TARGET_OBJECTS:kritacheckerboardpainterobjects>
+    $<TARGET_OBJECTS:kritaitemtooltipobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -40,8 +69,6 @@ set(kritawidgetutils_LIB_SRCS
     KoFileDialog.cpp
     KisPreviewFileDialog.cpp
     KisKineticScroller.cpp
-    KoCheckerBoardPainter.cpp
-    KoItemToolTip.cpp
     KisSqueezedComboBox.cpp
     KisDialogStateSaver.cpp
     KisPopupButton.cpp

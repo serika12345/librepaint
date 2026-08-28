@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 23:09 JST
+- 更新日時: 2026-08-28 23:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6014,11 +6014,32 @@
   対応済み4,324件、未対応25,657件になり、同ヘッダーのpublic APIは全件対応済みになった。製品
   `kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b アイコン説明表示 public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KoCheckerBoardPainter.cpp`は同じ配置のまま、`kritawidgetutils`の直接ソース所有から
+  新規`kritacheckerboardpainterobjects`へ移した。`libs/widgetutils/KoItemToolTip.cpp`も同じ配置のまま
+  新規`kritaitemtooltipobjects`へ移し、製品`kritawidgetutils`が両生成オブジェクトを1回ずつ集約する
+  構造にした。チェッカー描画はQt Gui、基底説明枠はQt Widgetsだけを直接依存とする。
+- `libs/resources/ui/KisIconToolTip.cpp`は同じ配置のまま、`kritaresourceui`の直接ソース所有から新規
+  `kritaicontooltipobjects`へ移し、製品`kritaresourceui`が生成オブジェクトを1回だけ集約する構造に
+  した。外部向けヘッダー、説明文書生成、両製品ABIは維持した。
+- `libs/resources/ui/KisIconToolTip.h`の境界、構築・破棄、固定寸法設定、チェッカー背景設定からなる
+  1クラス・4メソッドの5 APIを、新規`libs/resources/ui/tests/KisIconToolTipContractTest.cpp`の3試験へ
+  全件対応付けた。サムネイルの縦横比を保つ固定論理寸法、透明画像に対するチェッカー背景の有効・
+  無効切替、生成文書の親子所有と破棄を固定した。
+- チェッカー描画は1工程・3入力、基底説明枠は3工程・7入力、アイコン説明生成は1工程・3入力、
+  新規試験は分離済みキャッシュを含め10工程・22入力に収めた。基底説明枠の独立した自動
+  メタオブジェクト生成により、製品`kritawidgetutils`は226工程・485入力から228工程・489入力、
+  その下流の`kritaresourceui`は250工程・531入力から252工程・535入力になった。macOSの対象実行と
+  20回反復に成功した。公開面は1,546ヘッダー、29,981 API、対応済み4,329件、未対応25,652件に
+  なり、同ヘッダーのpublic APIは全件対応済みになった。両製品ライブラリーのリンク、Linux、
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisIconToolTip.h`のアイコン説明表示5 APIについて、分離済みサムネイルキャッシュを
-利用した清浄時構築閉包と`KoItemToolTip`・チェッカー描画の直接依存を監査し、固定寸法と背景切替の
-文書出力を最小契約で固定する。
+`libs/resources/ui/KisResourceThumbnailPainter.h`のサムネイル描画5 APIについて、分離済みキャッシュと
+チェッカー描画を利用する清浄時構築閉包を監査し、親子寿命、画像生成、選択背景と余白を最小契約で
+固定する。
 
 ## R1-G5完了根拠
 
