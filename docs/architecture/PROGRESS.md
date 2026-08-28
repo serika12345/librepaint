@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 09:20 JST
+- 更新日時: 2026-08-28 09:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4007,20 +4007,21 @@
 
 ## R2-G19b Linux同期検証で完了した作業
 
-- macOSの`develop`を`70344058`までGit履歴として`ssh nixos`上の
+- macOSの`develop`を`c2cfe213`までGit履歴として`ssh nixos`上の
   `/home/masato/Documents/librepaint`へfast-forwardし、同期後の作業木がクリーンであることを確認した。
 - Linux実機の永続Ninja木で`KisStrokeJobContractTest`、`kis_vec_test`、
   `KisWraparoundAxisContractTest`、`KisTimingInformationContractTest`、
   `KisPaintopSettingsIdsContractTest`、`KisGreenCoordinatesContractTest`、
   `KisSpeedSmootherContractTest`、`KisRectangleInteractionContractTest`、`KoIDContractTest`、
   `KoColorModelStandardIdsContractTest`、`KisSelectionTagsContractTest`、`KisCommandIdsContractTest`、
-  `KoCanvasResourceIdsContractTest`、`KisResourceTypesContractTest`だけを限定構築した。各CTestの単発実行と
-  20回反復が成功し、直近の
+  `KoCanvasResourceIdsContractTest`、`KisResourceTypesContractTest`、
+  `KoColorProfileConstantsContractTest`だけを限定構築した。各CTestの単発実行と20回反復が成功し、直近の
   契約と構築分離がmacOSとLinuxで一致した。変更なし構築閉包はLinuxでケージ座標試験が5工程・16入力、
   速度平滑化試験が6工程・18入力、矩形操作試験が5工程・16入力、識別子値試験が5工程・14入力、標準色
   識別子試験が6工程・21入力、選択方式・操作値試験が4工程・10入力、取り消しコマンドID試験が4工程・
   10入力、キャンバス資源ID試験が4工程・10入力、資源種別試験が6工程・16入力である。資源種別の製品
-  実装対象は2工程・5入力である。全ネイティブ検証は実行していない。
+  実装対象は2工程・5入力、色プロファイル標準コード試験は4工程・10入力である。全ネイティブ検証は
+  実行していない。
 
 ## R2-G19b 描画タイミング情報 public API契約で完了した作業
 
