@@ -37,3 +37,17 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisResourceTypesContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
+    KisResourceModelEnumContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+target_include_directories(KisResourceModelEnumContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisResourceModelEnumContractTest PRIVATE kritaresources_EXPORTS)

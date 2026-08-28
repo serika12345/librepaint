@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26264
+    "expectedMissingApis": 26237
   },
   "contracts": [
     {
@@ -8275,6 +8275,60 @@
         "enumerator:KoDialog::CaptionFlag::HIGCompliantCaption",
         "enumerator:KoDialog::CaptionFlag::ModifiedCaption",
         "enumerator:KoDialog::CaptionFlag::NoCaptionFlags"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::columnValuesRemainStable",
+      "behavior": "資源表モデルの18列はデータ取得と役割対応が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAbstractResourceModel::Columns",
+        "enumerator:KisAbstractResourceModel::Columns::BrokenStatus",
+        "enumerator:KisAbstractResourceModel::Columns::BrokenStatusMessage",
+        "enumerator:KisAbstractResourceModel::Columns::Dirty",
+        "enumerator:KisAbstractResourceModel::Columns::Filename",
+        "enumerator:KisAbstractResourceModel::Columns::Id",
+        "enumerator:KisAbstractResourceModel::Columns::LargeThumbnail",
+        "enumerator:KisAbstractResourceModel::Columns::Location",
+        "enumerator:KisAbstractResourceModel::Columns::MD5",
+        "enumerator:KisAbstractResourceModel::Columns::MetaData",
+        "enumerator:KisAbstractResourceModel::Columns::Name",
+        "enumerator:KisAbstractResourceModel::Columns::ResourceActive",
+        "enumerator:KisAbstractResourceModel::Columns::ResourceType",
+        "enumerator:KisAbstractResourceModel::Columns::Status",
+        "enumerator:KisAbstractResourceModel::Columns::StorageActive",
+        "enumerator:KisAbstractResourceModel::Columns::StorageId",
+        "enumerator:KisAbstractResourceModel::Columns::Tags",
+        "enumerator:KisAbstractResourceModel::Columns::Thumbnail",
+        "enumerator:KisAbstractResourceModel::Columns::Tooltip"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::resourceFilterValuesRemainStable",
+      "behavior": "無効・有効・全件の資源表示フィルターは問い合わせ処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAbstractResourceFilterInterface::ResourceFilter",
+        "enumerator:KisAbstractResourceFilterInterface::ResourceFilter::ShowActiveResources",
+        "enumerator:KisAbstractResourceFilterInterface::ResourceFilter::ShowAllResources",
+        "enumerator:KisAbstractResourceFilterInterface::ResourceFilter::ShowInactiveResources"
+      ]
+    },
+    {
+      "target": "KisResourceModelEnumContractTest",
+      "source": "libs/resources/tests/KisResourceModelEnumContractTest.cpp",
+      "test": "KisResourceModelEnumContractTest::storageFilterValuesRemainStable",
+      "behavior": "無効・有効・全件の保管場所表示フィルターは問い合わせ処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAbstractResourceFilterInterface::StorageFilter",
+        "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowActiveStorages",
+        "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowAllStorages",
+        "enumerator:KisAbstractResourceFilterInterface::StorageFilter::ShowInactiveStorages"
       ]
     }
   ]
