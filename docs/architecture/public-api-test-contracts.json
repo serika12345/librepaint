@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27854
+    "expectedMissingApis": 27842
   },
   "contracts": [
     {
@@ -3914,6 +3914,45 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug,const KoInsets &)"
+      ]
+    },
+    {
+      "target": "KisSpacingInformationContractTest",
+      "source": "libs/image/tests/KisSpacingInformationContractTest.cpp",
+      "test": "KisSpacingInformationContractTest::defaultSpacingIsEnabledAndZero",
+      "behavior": "既定の描画間隔は距離間隔を有効とし、等方なゼロ間隔、ゼロ回転、通常の座標系を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpacingInformation",
+        "method:KisSpacingInformation::KisSpacingInformation()",
+        "method:KisSpacingInformation::coordinateSystemFlipped() const",
+        "method:KisSpacingInformation::distanceSpacing() const",
+        "method:KisSpacingInformation::isDistanceSpacingEnabled() const",
+        "method:KisSpacingInformation::isIsotropic() const",
+        "method:KisSpacingInformation::rotation() const",
+        "method:KisSpacingInformation::scalarApprox() const"
+      ]
+    },
+    {
+      "target": "KisSpacingInformationContractTest",
+      "source": "libs/image/tests/KisSpacingInformationContractTest.cpp",
+      "test": "KisSpacingInformationContractTest::isotropicConstructorsPreserveSpacingAndState",
+      "behavior": "等方な描画間隔は指定値を両軸とスカラー近似へ保持し、距離間隔の有効状態を個別に保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpacingInformation::KisSpacingInformation(bool distanceSpacingEnabled,qreal isotropicSpacing)",
+        "method:KisSpacingInformation::KisSpacingInformation(qreal isotropicSpacing)"
+      ]
+    },
+    {
+      "target": "KisSpacingInformationContractTest",
+      "source": "libs/image/tests/KisSpacingInformationContractTest.cpp",
+      "test": "KisSpacingInformationContractTest::anisotropicConstructorsPreserveSpacingAndState",
+      "behavior": "異方的な描画間隔は両軸、ベクトル長によるスカラー近似、回転、座標系反転、距離間隔の有効状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpacingInformation::KisSpacingInformation(bool distanceSpacingEnabled,const QPointF & anisotropicSpacing,qreal rotation,bool coordinateSystemFlipped)",
+        "method:KisSpacingInformation::KisSpacingInformation(const QPointF & anisotropicSpacing,qreal rotation,bool coordinateSystemFlipped)"
       ]
     }
   ]

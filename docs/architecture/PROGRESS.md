@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 09:52 JST
+- 更新日時: 2026-08-28 09:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4285,6 +4285,18 @@
   接続し、変更なし構築閉包はmacOSで5工程・11入力である。対象実行と20回反復が成功し、公開API契約は
   1,160件、未対応基準は27,854件になった。製品実装、公開API、ABI、余白値とデバッグ表現は変更して
   いない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 描画間隔 public API契約で完了した作業
+
+- `libs/image/kis_spacing_information.h`のクラス、5構築、距離間隔の有効状態、両軸値、等方判定、スカラー
+  近似、回転、座標系反転からなる12 APIを、新規`libs/image/tests/KisSpacingInformationContractTest.cpp`の
+  3試験へ対応付けた。既定値、等方間隔、異方間隔とベクトル長、有効状態、回転、座標系を観測する。
+- ヘッダーを先頭で読む初回構築は`qreal`、`QPointF`、`QVector2D`の宣言元がなく失敗した。
+  `libs/image/kis_spacing_information.h`へ実際に使う`QPointF`と`QVector2D`の宣言元を追加し、利用側のinclude順
+  依存を除去した。既存関連試験は変更なし構築閉包が1,002工程・2,027入力、新試験はQt GuiとQt Testだけへ
+  直接接続して4工程・8入力である。macOSの対象実行と20回反復が成功し、公開API契約は1,172件、未対応
+  基準は27,842件になった。公開API、ABI、描画間隔の計算は変更していない。Linuxと全ネイティブ検証は
+  実行していない。
 
 ## 次の操作
 

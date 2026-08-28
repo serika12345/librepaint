@@ -5,6 +5,9 @@
 #ifndef KIS_SPACING_INFORMATION_H
 #define KIS_SPACING_INFORMATION_H
 
+#include <QPointF>
+#include <QVector2D>
+
 #include "kritaimage_export.h"
 
 /**
