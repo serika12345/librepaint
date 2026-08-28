@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27830
+    "expectedMissingApis": 27815
   },
   "contracts": [
     {
@@ -3983,6 +3983,48 @@
         "method:KisSortedHistoryList::clear()",
         "method:KisSortedHistoryList::maxSize() const",
         "method:KisSortedHistoryList::size() const"
+      ]
+    },
+    {
+      "target": "KritaContainerUtilsContractTest",
+      "source": "libs/global/tests/KritaContainerUtilsContractTest.cpp",
+      "test": "KritaContainerUtilsContractTest::unorderedComparisonPreservesMembershipRule",
+      "behavior": "順不同の一覧比較は件数と左辺各要素の右辺への包含を照合する一方、同じ件数に含まれる重複要素の個数差を区別しない。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KritaUtils::compareListsUnordered(const QList<T> & a,const QList<T> & b)"
+      ]
+    },
+    {
+      "target": "KritaContainerUtilsContractTest",
+      "source": "libs/global/tests/KritaContainerUtilsContractTest.cpp",
+      "test": "KritaContainerUtilsContractTest::algorithmsPreserveUniqueAndFilteredValues",
+      "behavior": "コンテナーの一意化は整列済みの重複なし値を残し、絞り込みは条件を満たす値だけを元の順序で残す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::filterContainer(C & container,KeepIfFunction keepIf)",
+        "function:KritaUtils::makeContainerUnique(C & container)"
+      ]
+    },
+    {
+      "target": "KritaContainerUtilsContractTest",
+      "source": "libs/global/tests/KritaContainerUtilsContractTest.cpp",
+      "test": "KritaContainerUtilsContractTest::traitsClassifySupportedContainers",
+      "behavior": "コンテナー特性は標準ベクターの反復子、定数反復子、値型と末尾追加能力を検出し、整数をコンテナーまたは末尾追加可能として扱わない。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KritaUtils::is_appendable_container::test_type",
+        "alias:KritaUtils::is_container::const_iterator",
+        "alias:KritaUtils::is_container::iterator",
+        "alias:KritaUtils::is_container::test_type",
+        "alias:KritaUtils::is_container::value_type",
+        "member:KritaUtils::is_appendable_container::value",
+        "member:KritaUtils::is_container::value",
+        "method:KritaUtils::is_appendable_container::test(...)",
+        "method:KritaUtils::is_appendable_container::test(A *)",
+        "method:KritaUtils::is_container::test(...)",
+        "struct:KritaUtils::is_appendable_container",
+        "struct:KritaUtils::is_container"
       ]
     }
   ]

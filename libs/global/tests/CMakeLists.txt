@@ -15,6 +15,12 @@ target_include_directories(KisHistoryListTest PRIVATE
 )
 
 kis_add_test(
+    KritaContainerUtilsContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KritaContainerUtilsContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+kis_add_test(
     KisGlobalTest.cpp
     LINK_LIBRARIES kritaglobalfileutilsobjects Qt${QT_MAJOR_VERSION}::Test
 )
