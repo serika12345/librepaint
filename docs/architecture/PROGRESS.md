@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 01:02 JST
+- 更新日時: 2026-08-29 01:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6273,13 +6273,38 @@
   1,547ヘッダー、29,981 API、対応済み4,418件、未対応25,563件になり、同ヘッダーのpublic APIは
   全件対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源上書き確認・名前重複 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisResourceUserOperations.cpp`は製品`kritaresourceui`の直接ソース所有から同じ
+  配置の`kritaresourceuseroperationsobjects`へ移し、残る取込・名前変更・追加・更新を所有する。
+  上書き確認を元ファイルから新規`libs/resources/ui/KisResourceUserOperationsOverwrite.cpp`と
+  `kritaresourceuseroperationsoverwriteobjects`へ、名前重複判定を新規
+  `libs/resources/ui/KisResourceUserOperationsNameUsage.cpp`と
+  `kritaresourceuseroperationsnameusageobjects`へ移した。具象モデルから資源IDを取得する処理は新規
+  `libs/resources/ui/KisResourceUserOperationsNameSource.cpp`と
+  `kritaresourceuseroperationsnamesourceobjects`が所有し、内部ヘッダーを介して呼ぶ。製品は四つの
+  生成オブジェクトを各1回集約する。
+- `libs/resources/ui/KisResourceUserOperations.h`のクラス、上書き確認、名前重複判定からなる3 APIを、
+  新規`libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp`の2試験へ対応付けた。上書き
+  確認の基底ファイル名、はいと取消し、取消しの既定選択と戻り値、完全一致名と空白を下線へ置換した
+  名前の検索順、指定資源IDだけの除外を固定した。実装も利用元もなかった`userAllowsRename()`宣言は
+  公開面から除去し、転送宣言や旧名の別名は設けていない。
+- 最初の試験リンクは同じオブジェクトに残る取込・追加・更新処理を介して資源モデル、資源DB、保存先
+  変換、全体資源インターフェースまで要求する診断になった。分割後の最初のmacOS実行は標準
+  ダイアログの題名を英語と仮定した検査を診断し、翻訳文言ではなく標準ボタンと既定選択を検査する
+  形へ修正した。対象試験の単発実行と20回反復は成功した。
+- 製品直接所属時に246工程・524入力まで展開した元実装を1工程・3入力に縮め、上書き確認、名前重複、
+  具象名前検索も各1工程・3入力、新規試験を6工程・14入力に収めた。製品`kritaresourceui`は
+  278工程・587入力から281工程・593入力になった。公開面は未定義宣言の除去により1,547ヘッダー、
+  29,980 APIとなり、対応済み4,421件、未対応25,559件になった。製品`kritaresourceui`のリンク、
+  Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceUserOperations.h`の資源利用者操作8 APIについて、製品
-`kritaresourceui`への直接所属で広がる清浄時構築閉包と、削除・更新・追加・書出しの各操作が使う
-画面、資源モデル、保存先の直接依存を監査する。個別操作を直接検証できないほど閉包が広がる場合は、
-同じ具象操作名前空間の実装単位を責務ごとに先に分け、決定的な取消し・確認結果を渡す境界が現在の
-挙動固定に必要な範囲だけ整える。
+`libs/resources/ui/KisResourceUserOperations.h`に残る取込、名前変更、追加、更新の4 APIについて、
+分離済み`kritaresourceuseroperationsobjects`の各メソッドが要求する資源モデル、資源DB、保存先変換、
+直列化、確認・警告の効果を監査する。各操作を別翻訳単位へ分け、決定的なモデル結果と利用者回答を
+渡す内部境界を現在の分岐に必要な範囲だけ設け、失敗・取消し・成功・上書き経路を個別契約へ固定する。
 
 ## R1-G5完了根拠
 

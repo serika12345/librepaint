@@ -23,12 +23,6 @@ public:
     static bool userAllowsOverwrite(QWidget* widgetParent, QString resourceFilepath);
     static bool resourceNameIsAlreadyUsed(KisResourceModel* resourceModel, QString resourceName, int resourceIdToIgnore = -1);
 
-    // used when the user tries to rename a resource to a name that already exists
-    // (it's permitted but can confuse the user later)
-    static bool userAllowsRename(QWidget* widgetParent, QString name);
-
-
-
     static KoResourceSP importResourceFileWithUserInput(QWidget *widgetParent, QString storageLocation, QString resourceType, QString resourceFilepath);
     static bool renameResourceWithUserInput(QWidget* widgetParent, KoResourceSP resource, QString resourceName);
     static bool addResourceWithUserInput(QWidget* widgetParent, KoResourceSP resource, QString storageLocation = "");

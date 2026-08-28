@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1547,
     "publicHeaderFingerprint": "8836c62cba82d36336f853f5cb8fd71d37863c07c2027201579967a77612f449",
-    "publicApiCount": 29981,
-    "publicApiFingerprint": "fa2f8764e4ebc82e8ae7fc8f9cdeb0fb34fc8b4db4e44f545f9cf7d68be4e063"
+    "publicApiCount": 29980,
+    "publicApiFingerprint": "02a2ba5fa81fe7de5ed695b939677058c656df441e157a423c32477eca21a53c"
   },
   "migration": {
-    "expectedMissingApis": 25563
+    "expectedMissingApis": 25559
   },
   "contracts": [
     {
@@ -11054,6 +11054,27 @@
       "classification": "maintained",
       "apis": [
         "method:KisStorageChooserWidget::~KisStorageChooserWidget()"
+      ]
+    },
+    {
+      "target": "KisResourceUserOperationsContractTest",
+      "source": "libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp",
+      "test": "KisResourceUserOperationsContractTest::overwriteQuestionUsesFileNameAndAnswer",
+      "behavior": "資源ファイルの上書き確認は対象の基底ファイル名、はいと取消し、取消しの既定選択を示し、押した標準ボタンを真偽値で返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceUserOperations",
+        "method:KisResourceUserOperations::userAllowsOverwrite(QWidget * widgetParent,QString resourceFilepath)"
+      ]
+    },
+    {
+      "target": "KisResourceUserOperationsContractTest",
+      "source": "libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp",
+      "test": "KisResourceUserOperationsContractTest::nameUsageChecksExactUnderscoreAndIgnoredId",
+      "behavior": "資源名の重複判定は完全一致と空白を下線へ置換した名前を順に調べ、指定した資源IDだけを除外する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceUserOperations::resourceNameIsAlreadyUsed(KisResourceModel * resourceModel,QString resourceName,int resourceIdToIgnore=-1)"
       ]
     }
   ]

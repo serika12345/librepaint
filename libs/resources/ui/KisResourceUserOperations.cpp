@@ -20,47 +20,6 @@
 #include <KisGlobalResourcesInterface.h>
 
 
-bool KisResourceUserOperations::userAllowsOverwrite(QWidget* widgetParent, QString resourceFilepath)
-{
-    return QMessageBox::question(widgetParent, i18nc("Dialog title", "Overwrite the file?"),
-                          i18nc("Question in a dialog/messagebox", "This resource file already exists in the resource folder. "
-                                                                   "Do you want to overwrite it?\nResource filename: %1", QFileInfo(resourceFilepath).fileName()),
-                                 QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Cancel;
-}
-
-bool KisResourceUserOperations::resourceNameIsAlreadyUsed(KisResourceModel *resourceModel, QString resourceName, int resourceIdToIgnore)
-{
-    auto sizeFilteredById = [resourceIdToIgnore] (QVector<KoResourceSP> list) {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-        int sumHere = 0;
-#else
-        qsizetype sumHere = 0;
-#endif
-        if (resourceIdToIgnore < 0) {
-            return list.size();
-        }
-
-        for (int i = 0; i < list.size(); i++) {
-            if (list[i]->resourceId() != resourceIdToIgnore) {
-                sumHere++;
-            }
-        }
-        return sumHere;
-    };
-
-    QVector<KoResourceSP> resourcesWithTheSameExactName = resourceModel->resourcesForName(resourceName);
-    if (sizeFilteredById(resourcesWithTheSameExactName) > 0) {
-        return true;
-    }
-
-    QVector<KoResourceSP> resourcesWithSpacesReplacedByUnderlines = resourceModel->resourcesForName(resourceName.replace(" ", "_"));
-    if (sizeFilteredById(resourcesWithSpacesReplacedByUnderlines) > 0) {
-        return true;
-    }
-
-    return false;
-}
-
 KoResourceSP KisResourceUserOperations::importResourceFileWithUserInput(QWidget *widgetParent, QString storageLocation, QString resourceType, QString resourceFilepath)
 {
     KisResourceModel resourceModel(resourceType);

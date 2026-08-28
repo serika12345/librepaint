@@ -254,3 +254,27 @@ target_compile_definitions(KisStorageChooserWidgetContractTest PRIVATE
     kritawidgetutils_EXPORTS
     kritaresources_EXPORTS
 )
+
+kis_add_test(
+    KisResourceUserOperationsContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourceuseroperationsoverwriteobjects
+        kritaresourceuseroperationsnameusageobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisResourceUserOperationsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisResourceUserOperationsContractTest PRIVATE
+    kritaresourceui_EXPORTS
+    kritawidgetutils_EXPORTS
+    kritaresources_EXPORTS
+)
