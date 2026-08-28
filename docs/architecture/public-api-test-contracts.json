@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25647
+    "expectedMissingApis": 25640
   },
   "contracts": [
     {
@@ -10427,6 +10427,58 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceThumbnailPainter::paint(QPainter * painter,const QModelIndex & index,QRect rect,const QPalette & palette,bool selected,bool addMargin) const"
+      ]
+    },
+    {
+      "target": "KisResourceItemDelegateContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemDelegateContractTest.cpp",
+      "test": "KisResourceItemDelegateContractTest::followsParentLifetime",
+      "behavior": "資源項目描画委譲は指定QObjectを親として構築され、親の破棄時に子として自動破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceItemDelegate",
+        "method:KisResourceItemDelegate::KisResourceItemDelegate(QObject * parent=0)",
+        "method:KisResourceItemDelegate::~KisResourceItemDelegate()"
+      ]
+    },
+    {
+      "target": "KisResourceItemDelegateContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemDelegateContractTest.cpp",
+      "test": "KisResourceItemDelegateContractTest::sizeHintUsesDecorationSize",
+      "behavior": "資源項目描画委譲の推奨寸法は表示選択肢の装飾寸法をそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemDelegate::sizeHint(const QStyleOptionViewItem &,const QModelIndex &) const"
+      ]
+    },
+    {
+      "target": "KisResourceItemDelegateContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemDelegateContractTest.cpp",
+      "test": "KisResourceItemDelegateContractTest::showTextControlsThumbnailLayout",
+      "behavior": "文字表示を有効にするとサムネイル領域を項目高の正方形へ制限し、無効時は項目幅全体へ描画する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemDelegate::setShowText(bool)"
+      ]
+    },
+    {
+      "target": "KisResourceItemDelegateContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemDelegateContractTest.cpp",
+      "test": "KisResourceItemDelegateContractTest::selectionStateReachesThumbnailPainter",
+      "behavior": "選択状態の項目描画は選択色の外周と資源サムネイルの内側を描き分ける。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemDelegate::paint(QPainter *,const QStyleOptionViewItem &,const QModelIndex &) const"
+      ]
+    },
+    {
+      "target": "KisResourceItemDelegateContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemDelegateContractTest.cpp",
+      "test": "KisResourceItemDelegateContractTest::indexConversionUsesResolvedGlobalIndex",
+      "behavior": "索引変換を有効にすると局所索引の資源種別と識別番号から全体索引を解決し、その全体索引のサムネイルを描画する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemDelegate::setNeedIndexConversion(bool value)"
       ]
     }
   ]

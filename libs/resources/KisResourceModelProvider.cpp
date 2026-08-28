@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisResourceModelProvider.h"
+#include "KisResourceModelIndexResolver.h"
 
 #include "KisResourceModel.h"
 #include "KisTagModel.h"
@@ -16,6 +17,11 @@
 #include <QGlobalStatic>
 
 Q_GLOBAL_STATIC(KisResourceModelProvider, s_instance)
+
+QModelIndex KisResourceModelIndexResolver::resourceIndex(const QString &resourceType, int resourceId)
+{
+    return KisResourceModelProvider::resourceModel(resourceType)->indexForResourceId(resourceId);
+}
 
 struct KisResourceModelProvider::Private
 {

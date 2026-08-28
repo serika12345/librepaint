@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 23:21 JST
+- 更新日時: 2026-08-28 23:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6052,11 +6052,35 @@
   ヘッダー、29,981 API、対応済み4,334件、未対応25,647件になり、同ヘッダーのpublic APIは全件
   対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源項目描画 public API契約と索引解決境界分離で完了した作業
+
+- `libs/resources/ui/KisResourceItemDelegate.cpp`は同じ配置のまま、`kritaresourceui`の直接ソース
+  所有から新規`kritaresourceitemdelegateobjects`の所有へ移し、製品`kritaresourceui`が生成
+  オブジェクトを1回だけ集約する構造にした。使われていなかったデバッグ、サムネイルキャッシュ、
+  アイコンのincludeを除き、外部向けヘッダー、描画実装、製品ABIは維持した。
+- `libs/resources/ui/KisResourceItemDelegate.cpp`から`KisResourceModelProvider`を直接呼ぶ索引解決経路は、
+  新規内部宣言`libs/resources/KisResourceModelIndexResolver.h`へ接続した。製品定義は既存
+  `libs/resources/KisResourceModelProvider.cpp`へ置き、資源種別と識別番号から全体索引を得る責務と
+  製品翻訳単位数を維持し、試験では決定的な全体索引だけを置換できる構造にした。
+- `libs/resources/ui/KisResourceItemDelegate.h`の境界、構築・破棄、描画、文字表示切替、索引変換切替、
+  推奨寸法からなる1クラス・6メソッドの7 APIを、新規
+  `libs/resources/ui/tests/KisResourceItemDelegateContractTest.cpp`の5試験へ全件対応付けた。QObject親子寿命、
+  装飾寸法、文字有無によるサムネイル領域、選択色の外周、局所索引から解決した全体索引の画像を
+  固定した。
+- 委譲描画所有対象を自動メタオブジェクト生成込みで3工程・7入力、新規試験を分離済みサムネイル
+  描画器、キャッシュ、チェッカー描画、資源種別値込みで14工程・30入力に収めた。直接依存監査では
+  国際化依存を外した構築が`KisResourceTypes.h`の`klocalizedstring.h`不足を診断したため、同依存を
+  必須として維持した。製品UIライブラリーは独立した自動メタオブジェクト生成に必要な2工程・4入力が
+  加わり、254工程・539入力から256工程・543入力になった。macOSで資源モデル提供元の単一生成物を
+  コンパイルし、対象実行と20回反復に成功した。公開面は1,546ヘッダー、29,981 API、対応済み
+  4,341件、未対応25,640件になり、同ヘッダーのpublic APIは全件対応済みになった。製品
+  `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceItemDelegate.h`の資源項目描画7 APIについて、分離済みサムネイル描画器を
-利用する清浄時構築閉包と`KisResourceModelProvider`による索引変換分岐を監査し、文字表示、寸法、
-選択描画、変換切替を最小契約で固定する。
+`libs/resources/ui/KisResourceItemChooserSync.h`の資源選択項目寸法同期7 APIについて、現在の
+`kritaresourceui`直接所有から独立させる清浄時構築閉包と直接依存を監査し、既定寸法、上下限への
+丸め、変更通知、共有個体、QObject寿命を最小契約で固定する。
 
 ## R1-G5完了根拠
 
