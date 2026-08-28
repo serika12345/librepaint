@@ -882,34 +882,6 @@ void KisNodeManager::nodesUpdated()
     }
 }
 
-void KisNodeManager::nodeProperties(KisNodeSP node)
-{
-    if ((selectedNodes().size() > 1 && node->inherits("KisLayer")) || node->inherits("KisLayer")) {
-        m_d->layerManager.layerProperties();
-    }
-    else if (node->inherits("KisMask")) {
-        m_d->maskManager.maskProperties();
-    }
-}
-
-void KisNodeManager::nodePropertiesIgnoreSelection(KisNodeSP node)
-{
-    Q_ASSERT(node);
-
-    // Change the current node temporarily
-    KisNodeSP originalNode = m_d->imageView->currentNode();
-    m_d->imageView->setCurrentNode(node);
-
-    if (node->inherits("KisLayer")) {
-        m_d->layerManager.layerProperties();
-    }
-    else if (node->inherits("KisMask")) {
-        m_d->maskManager.maskProperties();
-    }
-
-    m_d->imageView->setCurrentNode(originalNode);
-}
-
 void KisNodeManager::changeCloneSource()
 {
     m_d->layerManager.changeCloneSource();
@@ -1001,6 +973,36 @@ void KisNodeManager::PropertyAccess::applyProperties(KisNodeSP node,
                                                      KisBaseNode::PropertyList properties)
 {
     KisNodePropertyListCommand::setNodePropertiesAutoUndo(node, image, properties);
+}
+
+bool KisNodeManager::PropertyDialogAccess::isLayer(KisNodeSP node)
+{
+    return node->inherits("KisLayer");
+}
+
+bool KisNodeManager::PropertyDialogAccess::isMask(KisNodeSP node)
+{
+    return node->inherits("KisMask");
+}
+
+void KisNodeManager::PropertyDialogAccess::showLayerProperties(KisNodeManager *manager)
+{
+    manager->m_d->layerManager.layerProperties();
+}
+
+void KisNodeManager::PropertyDialogAccess::showMaskProperties(KisNodeManager *manager)
+{
+    manager->m_d->maskManager.maskProperties();
+}
+
+KisNodeSP KisNodeManager::PropertyDialogAccess::currentNode(KisNodeManager *manager)
+{
+    return manager->m_d->imageView->currentNode();
+}
+
+void KisNodeManager::PropertyDialogAccess::setCurrentNode(KisNodeManager *manager, KisNodeSP node)
+{
+    manager->m_d->imageView->setCurrentNode(node);
 }
 
 void KisNodeManager::duplicateActiveNode()

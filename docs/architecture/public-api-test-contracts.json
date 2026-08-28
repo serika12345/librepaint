@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25133
+    "expectedMissingApis": 25131
   },
   "contracts": [
     {
@@ -12440,6 +12440,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::trySetNodeProperties(KisNodeSP node,KisImageSP image,KisBaseNode::PropertyList properties) const"
+      ]
+    },
+    {
+      "target": "KisNodeManagerPropertyDialogContractTest",
+      "source": "libs/ui/tests/KisNodeManagerPropertyDialogContractTest.cpp",
+      "test": "KisNodeManagerPropertyDialogContractTest::propertiesRouteLayersBeforeMasks",
+      "behavior": "ノード属性画面はレイヤーをマスクより優先して該当する属性画面を一度開き、どちらでもないノードでは画面効果を発生させない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::nodeProperties(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerPropertyDialogContractTest",
+      "source": "libs/ui/tests/KisNodeManagerPropertyDialogContractTest.cpp",
+      "test": "KisNodeManagerPropertyDialogContractTest::ignoredSelectionRestoresTheCurrentNode",
+      "behavior": "選択状態を無視するノード属性画面は現在ノードを指定ノードへ一時変更し、属性画面の処理後に元の現在ノードを復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::nodePropertiesIgnoreSelection(KisNodeSP node)"
       ]
     }
   ]

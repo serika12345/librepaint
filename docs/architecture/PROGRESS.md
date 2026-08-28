@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 08:20 JST
+- 更新日時: 2026-08-29 08:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6968,12 +6968,29 @@
   公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,856件、
   未対応25,133件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード属性画面 public API契約と画面選択分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`に混在していたノード種別による属性画面の選択と、現在ノードの
+  一時置換・復元を、新規`libs/ui/nodes/KisNodeManagerPropertyDialog.cpp`へ移した。具体的な型判定、
+  レイヤー・マスク属性画面の表示、現在ノードの取得・設定は移動元の保護境界に残し、製品
+  `kritaapplicationui`は新規`kritauinodemanagerpropertydialogobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`の2 APIを、新規
+  `libs/ui/tests/KisNodeManagerPropertyDialogContractTest.cpp`の2試験へ対応付けた。レイヤーをマスクより
+  優先する画面選択、該当種別がない場合の無操作、指定ノードへの一時変更、画面処理後の元ノード復元を
+  固定した。レイヤー判断前に選択一覧を取得する冗長な内部経路を除き、観測可能な画面選択は維持した。
+- 実装接続前のリンクは`nodeProperties`と`nodePropertiesIgnoreSelection`だけを未解決記号として診断した。
+  変更前の既存`KisNodeManagerTest`は1,809工程・3,617入力だった。画面選択対象は1工程・3入力、新規試験は
+  5工程・17入力に収めた。製品`kritaapplicationui`閉包は1,805工程・3,610入力から1,806工程・3,612入力、
+  既存試験は1,810工程・3,619入力になった。
+- 画面選択対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,858件、
+  未対応25,131件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る71 APIのうち、選択を使うノード属性画面と一時的に選択を置換する
-属性画面を次の小単位とする。`kis_node_manager.cpp`の`nodeProperties`と`nodePropertiesIgnoreSelection`について、
-対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、レイヤー・マスクの画面選択と現在ノードの
-一時置換・復元を具体表示効果から分けてから挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る69 APIのうち、クローン元変更の透過委譲を次の小単位とする。
+`kis_node_manager.cpp`の`changeCloneSource`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を
+監査し、具体レイヤー管理効果から分けて挙動契約を追加する。
 
 ## R1-G5完了根拠
 

@@ -373,6 +373,15 @@ protected:
         static void applyProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties);
     };
 
+    struct KRITAUI_EXPORT PropertyDialogAccess {
+        static bool isLayer(KisNodeSP node);
+        static bool isMask(KisNodeSP node);
+        static void showLayerProperties(KisNodeManager *manager);
+        static void showMaskProperties(KisNodeManager *manager);
+        static KisNodeSP currentNode(KisNodeManager *manager);
+        static void setCurrentNode(KisNodeManager *manager, KisNodeSP node);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1
