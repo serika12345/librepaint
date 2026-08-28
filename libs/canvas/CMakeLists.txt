@@ -1,3 +1,18 @@
+add_library(kritacanvasinputactiongroupobjects OBJECT
+    KisInputActionGroup.cpp
+)
+target_compile_definitions(kritacanvasinputactiongroupobjects PRIVATE kritacanvas_EXPORTS)
+target_include_directories(kritacanvasinputactiongroupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritacanvasinputactiongroupobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritacanvasinputactiongroupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritacanvas_LIB_SRCS
     animation/kis_animation_frame_cache_index.h
     animation/kis_animation_frame_cache_index.cpp
@@ -26,11 +41,13 @@ set(kritacanvas_LIB_SRCS
     kis_update_info.h
     kis_update_info.cpp
     KisToolCanvas.h
-    KisInputActionGroup.cpp
     KisCanvasState.cpp
 )
 
-kis_add_library(kritacanvas SHARED ${kritacanvas_LIB_SRCS})
+kis_add_library(kritacanvas SHARED
+    ${kritacanvas_LIB_SRCS}
+    $<TARGET_OBJECTS:kritacanvasinputactiongroupobjects>
+)
 generate_export_header(kritacanvas BASE_NAME kritacanvas)
 
 target_link_libraries(kritacanvas

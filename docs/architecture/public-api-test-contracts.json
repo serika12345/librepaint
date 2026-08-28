@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26066
+    "expectedMissingApis": 26051
   },
   "contracts": [
     {
@@ -8779,6 +8779,48 @@
       "apis": [
         "class:KisInputAction",
         "method:KisInputAction::~KisInputAction()"
+      ]
+    },
+    {
+      "target": "KisInputActionGroupContractTest",
+      "source": "libs/canvas/tests/KisInputActionGroupContractTest.cpp",
+      "test": "KisInputActionGroupContractTest::groupBitsRemainStable",
+      "behavior": "表示変換、編集、ツール呼出しの入力グループは独立したビットを維持し、全入力グループ値はその和を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisInputActionGroupsMask",
+        "enum:KisInputActionGroup",
+        "enumerator:KisInputActionGroup::AllActionGroup",
+        "enumerator:KisInputActionGroup::ModifyingActionGroup",
+        "enumerator:KisInputActionGroup::NoActionGroup",
+        "enumerator:KisInputActionGroup::ToolInvoactionActionGroup",
+        "enumerator:KisInputActionGroup::ViewTransformActionGroup"
+      ]
+    },
+    {
+      "target": "KisInputActionGroupContractTest",
+      "source": "libs/canvas/tests/KisInputActionGroupContractTest.cpp",
+      "test": "KisInputActionGroupContractTest::guardRestoresPreviousMask",
+      "behavior": "期間限定入力マスクは構築時に指定値を設定し、入れ子の各寿命終了時に直前のマスクを復元する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisInputActionGroupsMaskInterface::SharedInterface",
+        "class:KisInputActionGroupsMaskGuard",
+        "method:KisInputActionGroupsMaskGuard::KisInputActionGroupsMaskGuard(KisInputActionGroupsMaskInterface::SharedInterface sharedInterface,KisInputActionGroupsMask mask)",
+        "method:KisInputActionGroupsMaskGuard::~KisInputActionGroupsMaskGuard()",
+        "method:KisInputActionGroupsMaskInterface::inputActionGroupsMask() const",
+        "method:KisInputActionGroupsMaskInterface::setInputActionGroupsMask(KisInputActionGroupsMask mask)"
+      ]
+    },
+    {
+      "target": "KisInputActionGroupContractTest",
+      "source": "libs/canvas/tests/KisInputActionGroupContractTest.cpp",
+      "test": "KisInputActionGroupContractTest::interfaceDestructionIsPolymorphic",
+      "behavior": "入力マスク接続面の共有所有が終了すると具体状態の破棄処理まで実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputActionGroupsMaskInterface::~KisInputActionGroupsMaskInterface()",
+        "struct:KisInputActionGroupsMaskInterface"
       ]
     }
   ]
