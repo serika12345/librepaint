@@ -35,10 +35,24 @@ kis_add_test(
         ${LINK_OPENEXR_LIB}
 )
 target_include_directories(KisPaintOpOptionsModelContractTest PRIVATE
-    ${kritatoolsuipaintopoptionsmodel_INCLUDE_DIRS}
+    ${kritatoolsuipaintopmodel_INCLUDE_DIRS}
 )
 target_compile_definitions(KisPaintOpOptionsModelContractTest PRIVATE
     kritaglobal_EXPORTS
+    kritatoolsui_EXPORTS
+)
+
+kis_add_test(
+    KisPaintOpsModelContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolsuicategorizedmodelobjects
+        kritatoolsuipaintopsmodelobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisPaintOpsModelContractTest PRIVATE
     kritatoolsui_EXPORTS
 )
 

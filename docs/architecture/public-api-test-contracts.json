@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25312
+    "expectedMissingApis": 25292
   },
   "contracts": [
     {
@@ -11901,6 +11901,62 @@
       "classification": "maintained",
       "apis": [
         "method:KisPaintOpOptionListModel::signalDataChanged(const QModelIndex & index)"
+      ]
+    },
+    {
+      "target": "KisPaintOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpsModelContractTest.cpp",
+      "test": "KisPaintOpsModelContractTest::paintOpInfoHasStableValueSemantics",
+      "behavior": "描画方式情報は空値または識別子だけで決定的に初期化でき、完全構築では名前、分類、アイコン、優先度を保持する。同一性は識別子だけで決まり、表示名変換は名前を返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:BasePaintOpCategorizedListModel",
+        "member:KisPaintOpInfo::category",
+        "member:KisPaintOpInfo::icon",
+        "member:KisPaintOpInfo::id",
+        "member:KisPaintOpInfo::name",
+        "member:KisPaintOpInfo::priority",
+        "method:KisPaintOpInfo::KisPaintOpInfo()",
+        "method:KisPaintOpInfo::KisPaintOpInfo(const QString & _id)",
+        "method:KisPaintOpInfo::KisPaintOpInfo(const QString & _id,const QString & _name,const QString & _category,const QIcon & _icon,qint32 _priority)",
+        "method:KisPaintOpInfo::operator ==(const KisPaintOpInfo info) const",
+        "method:PaintOpInfoToQStringConverter::operator () (const KisPaintOpInfo & info)",
+        "struct:KisPaintOpInfo",
+        "struct:PaintOpInfoToQStringConverter"
+      ]
+    },
+    {
+      "target": "KisPaintOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpsModelContractTest.cpp",
+      "test": "KisPaintOpsModelContractTest::listModelBuildsExpandedRows",
+      "behavior": "描画方式一覧模型は工場ごとの識別子、名前、分類、アイコン、優先度を項目へ写し、各分類を展開して識別子から項目を取得できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpListModel",
+        "method:KisPaintOpListModel::KisPaintOpListModel(QObject * parent)",
+        "method:KisPaintOpListModel::fill(const QList<KisPaintOpFactory * > & list)"
+      ]
+    },
+    {
+      "target": "KisPaintOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpsModelContractTest.cpp",
+      "test": "KisPaintOpsModelContractTest::itemRolesExposeNameIconAndSortKey",
+      "behavior": "一覧項目は表示名とアイコンを返し、分類名、幅4の優先度、表示名を連結した整列キーを返す。分類行と無効索引は項目アイコンを返さない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpListModel::data(const QModelIndex & idx,int role=Qt::DisplayRole) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpsModelContractTest",
+      "source": "libs/tools/ui/tests/KisPaintOpsModelContractTest.cpp",
+      "test": "KisPaintOpsModelContractTest::sortedModelPrioritizesStableCategoryAndPriority",
+      "behavior": "整列模型は安定描画方式分類を他分類より先へ置き、分類内を優先度と表示名で並べ、代理模型から識別子による項目取得を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSortedPaintOpListModel",
+        "method:KisSortedPaintOpListModel::KisSortedPaintOpListModel(QObject * parent)",
+        "method:KisSortedPaintOpListModel::fill(const QList<KisPaintOpFactory * > & list)"
       ]
     }
   ]

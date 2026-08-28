@@ -7,12 +7,9 @@
  */
 
 #include "kis_paint_ops_model.h"
+#include "kis_paint_ops_model_source_p.h"
 
-#include <brushengine/kis_paintop_registry.h>
-#include <brushengine/kis_paintop_factory.h>
-#include <KoResourcePaths.h>
-
-
+namespace Source = KisPaintOpsModelSource;
 
 KisPaintOpListModel::KisPaintOpListModel(QObject *parent)
     : BasePaintOpCategorizedListModel(parent)
@@ -44,13 +41,32 @@ QVariant KisPaintOpListModel::data(const QModelIndex& idx, int role) const
 void KisPaintOpListModel::fill(const QList<KisPaintOpFactory*>& list)
 {
     Q_FOREACH (KisPaintOpFactory *factory, list) {
+        const Source::PaintOpState state = Source::paintOpState(factory);
 
-        categoriesMapper()->addEntry(factory->category(),
-                                     KisPaintOpInfo(factory->id(),
-                                                    factory->name(),
-                                                    factory->category(),
-                                                    factory->icon(),
-                                                    factory->priority()));
+        categoriesMapper()->addEntry(state.category,
+                                     KisPaintOpInfo(state.id,
+                                                    state.name,
+                                                    state.category,
+                                                    state.icon,
+                                                    state.priority));
     }
     categoriesMapper()->expandAllCategories();
+}
+
+KisSortedPaintOpListModel::KisSortedPaintOpListModel(QObject *parent)
+    : KisSortedCategorizedListModel<KisPaintOpListModel>(parent)
+    , m_model(new KisPaintOpListModel(this))
+{
+    initializeModel(m_model);
+}
+
+void KisSortedPaintOpListModel::fill(const QList<KisPaintOpFactory*> &list)
+{
+    m_model->fill(list);
+}
+
+bool KisSortedPaintOpListModel::lessThan(const QModelIndex &left,
+                                         const QModelIndex &right) const
+{
+    return lessThanPriority(left, right, Source::stableCategory());
 }

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 05:27 JST
+- 更新日時: 2026-08-29 05:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6674,13 +6674,37 @@
   25,312件になり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritatoolsui`のリンク、Linux、
   全ネイティブ検証は実行していない。
 
+## R2-G19b 描画方式一覧模型 public API契約と状態取得分離で完了した作業
+
+- `libs/tools/ui/kis_paint_ops_model.cpp`は、製品`kritatoolsui`の直接ソース所有から、同じファイル位置の
+  新規`kritatoolsuipaintopsmodelobjects`へ移した。製品は分類模型と描画方式一覧模型の生成オブジェクトを
+  各1回集約する。
+- `libs/tools/ui/kis_paint_ops_model.cpp`にあった`KisPaintOpFactory`の識別子、名前、分類、アイコン、優先度の
+  取得と安定分類の取得を、新規`libs/tools/ui/kis_paint_ops_model_source.cpp`へ移し、内部境界を新規
+  `libs/tools/ui/kis_paint_ops_model_source_p.h`に置いた。具体的な状態取得元は新規
+  `kritatoolsuipaintopsmodelsourceobjects`が1回生成し、製品が模型本体とともに集約する。
+- `libs/tools/ui/kis_paint_ops_model.h`にあった整列模型の構築、一覧充足、比較処理は
+  `libs/tools/ui/kis_paint_ops_model.cpp`へ移した。公開ヘッダーは描画方式工場の実装ヘッダーに代えて前方宣言を
+  持ち、公開値に必要な`QIcon`だけを明示的に含む。
+- 同ヘッダーの20 APIを、新規`libs/tools/ui/tests/KisPaintOpsModelContractTest.cpp`の4試験へ対応付けた。
+  描画方式情報の決定的な既定値・完全値・識別子同一性・名前変換、工場状態からの分類済み行構築と全分類展開、
+  表示名・アイコン・整列キー、安定分類優先と分類内優先度順を固定した。
+- 最初の契約リンクは、通常模型と整列模型の構築、`fill`、`data`だけを未解決記号として診断し、画像・資源・
+  プラグイン製品の記号を含まなかった。試験は決定的な工場状態値だけを模型本体へ渡し、具体的な描画方式工場を
+  連結せずに全契約を実行する。
+- 変更前の製品`kritatoolsui`閉包は1,128工程・2,276入力、既存設定UI試験は1,132工程・2,283入力
+  だった。模型判断と具体状態取得は各1工程・3入力、新規試験は9工程・19入力に収めた。製品閉包は
+  1,129工程・2,278入力である。両局所対象コンパイル、対象CTestのmacOS単発実行と20回反復、公開API
+  契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,697件、未対応25,292件になり、
+  同ヘッダーのpublic APIは全件対応済みになった。製品`kritatoolsui`のリンク、Linux、全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-再生成した公開API作業列の先頭にある`libs/tools/ui/kis_paint_ops_model.h`の20 APIを対象とする。製品
-`kritatoolsui`へ直接所属する`libs/tools/ui/kis_paint_ops_model.cpp`、今回分離した分類模型対象、描画操作
-生成器登録簿について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査する。描画操作情報の
-値と同一性、分類・名前・アイコン・優先度の表示役割、分類展開、安定分類を優先する整列模型を確認し、
-生成器本体の過大な閉包が必要なら状態取得境界と所有単位を先に分ける。
+再生成した公開API作業列の先頭にある`libs/ui/selection/kis_selection_actions_panel.h`の16 APIを対象とする。
+製品所有対象、既存の選択操作試験、直接CMake依存について、対象指定の変更なし計画と空構築閉包を監査する。
+選択操作の列挙・型別名、パネル構築と所有、操作登録、項目活性化、選択状態追従を確認し、文書・画像・操作管理の
+過大な閉包が必要なら、パネル判断と具体効果の所有単位を先に分ける。
 
 ## R1-G5完了根拠
 
