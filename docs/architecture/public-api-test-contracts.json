@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28259
+    "expectedMissingApis": 28258
   },
   "contracts": [
     {
@@ -5098,6 +5098,7 @@
         "class:FunctionToSignalProxy",
         "class:SignalToFunctionProxy",
         "method:FunctionToSignalProxy::start()",
+        "method:FunctionToSignalProxy::timeout()",
         "method:SignalToFunctionProxy::SignalToFunctionProxy(TrivialFunction function)",
         "method:SignalToFunctionProxy::start()"
       ]

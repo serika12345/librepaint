@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 14:19 JST
+- 更新日時: 2026-08-28 14:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4808,6 +4808,16 @@
   5工程・11入力である。対象実行と20回反復が成功し、公開API契約は1,751件、未対応基準は28,259件に
   なった。製品挙動、公開API、ABI、矩形領域規則は変更していない。Linux実機は接続応答がなく、
   Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 関数信号変換器の既存観測対応で完了した作業
+
+- `libs/global/tests/KisSignalCompressorContractTest.cpp`の既存
+  `functionAndSignalProxiesForwardCalls`は`FunctionToSignalProxy::start()`から
+  `FunctionToSignalProxy::timeout()`が一度送出されることを`QSignalSpy`で既に観測していたため、
+  Qt信号採取後に未対応となっていた同信号APIを既存契約へ対応付けた。
+- 専用試験対象の変更なし構築閉包はmacOSで8工程・16入力であり、対象実行に成功した。公開API契約は
+  1,752件、未対応基準は28,258件になった。試験、製品実装、公開API、ABI、信号変換挙動、構築対象は
+  変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 
