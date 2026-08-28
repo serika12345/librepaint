@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25276
+    "expectedMissingApis": 25167
   },
   "contracts": [
     {
@@ -12027,6 +12027,178 @@
       "classification": "maintained",
       "apis": [
         "method:KisSelectionActionsPanel::eventFilter(QObject * obj,QEvent * event)"
+      ]
+    },
+    {
+      "target": "KisMultinodePropertyContractTest",
+      "source": "libs/ui/tests/kis_multinode_property_test.cpp",
+      "test": "KisMultinodePropertyTest::baseAndScalarAdaptersRoundTrip",
+      "behavior": "複数ノード用の基底処理と合成方式、名前、色ラベル、不透明度の各変換は公開する値型と接続型を維持し、ノード数に応じた名前付与と百分率変換を含めて値を往復する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:ColorLabelAdapter::ConnectorType",
+        "alias:ColorLabelAdapter::ValueType",
+        "alias:CompositeOpAdapter::ConnectorType",
+        "alias:CompositeOpAdapter::ValueType",
+        "alias:NameAdapter::ConnectorType",
+        "alias:NameAdapter::ValueType",
+        "alias:OpacityAdapter::ConnectorType",
+        "alias:OpacityAdapter::ValueType",
+        "member:BaseAdapter::m_numNodes",
+        "member:ColorLabelAdapter::forceIgnoreByDefault",
+        "member:CompositeOpAdapter::forceIgnoreByDefault",
+        "member:NameAdapter::forceIgnoreByDefault",
+        "member:OpacityAdapter::forceIgnoreByDefault",
+        "method:BaseAdapter::filterNodes(KisNodeList nodes)",
+        "method:BaseAdapter::setNumNodes(int numNodes)",
+        "method:ColorLabelAdapter::propForNode(KisNodeSP node)",
+        "method:ColorLabelAdapter::setPropForNode(KisNodeSP node,const ValueType & value,int index)",
+        "method:CompositeOpAdapter::propForNode(KisNodeSP node)",
+        "method:CompositeOpAdapter::setPropForNode(KisNodeSP node,const ValueType & value,int index)",
+        "method:NameAdapter::propForNode(KisNodeSP node)",
+        "method:NameAdapter::setPropForNode(KisNodeSP node,const ValueType & value,int index)",
+        "method:OpacityAdapter::propForNode(KisNodeSP node)",
+        "method:OpacityAdapter::setPropForNode(KisNodeSP node,const ValueType & value,int index)",
+        "struct:BaseAdapter",
+        "struct:ColorLabelAdapter",
+        "struct:CompositeOpAdapter",
+        "struct:NameAdapter",
+        "struct:OpacityAdapter"
+      ]
+    },
+    {
+      "target": "KisMultinodePropertyContractTest",
+      "source": "libs/ui/tests/kis_multinode_property_test.cpp",
+      "test": "KisMultinodePropertyTest::layerPropertyAdaptersDiscoverAndChangeBooleanProperties",
+      "behavior": "レイヤー属性変換は真偽値属性だけを識別子ごとに集約し、元の表示優先度を保って公開し、存在する属性だけを変更する。属性ハッシュは表示名に対して安定する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:LayerPropertyAdapter::ConnectorType",
+        "alias:LayerPropertyAdapter::ValueType",
+        "function:qHash(const KisBaseNode::Property & prop,uint seed=0)",
+        "member:LayerPropertyAdapter::forceIgnoreByDefault",
+        "method:LayerPropertyAdapter::LayerPropertyAdapter(const QString & propName)",
+        "method:LayerPropertyAdapter::adaptersList(KisNodeList nodes)",
+        "method:LayerPropertyAdapter::name() const",
+        "method:LayerPropertyAdapter::propForNode(KisNodeSP node)",
+        "method:LayerPropertyAdapter::setPropForNode(KisNodeSP node,const ValueType & value,int index)",
+        "struct:LayerPropertyAdapter"
+      ]
+    },
+    {
+      "target": "KisMultinodePropertyContractTest",
+      "source": "libs/ui/tests/kis_multinode_property_test.cpp",
+      "test": "KisMultinodePropertyTest::channelFlagAdaptersRequireCompatibleLayers",
+      "behavior": "チャンネル属性変換は同じ色空間のレイヤー群から順序付き名称を公開し、未設定フラグを全チャンネル有効として扱って個別フラグを往復し、非レイヤーと色空間不一致を除外する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:ChannelFlagAdapter::ConnectorType",
+        "alias:ChannelFlagAdapter::PropertyList",
+        "alias:ChannelFlagAdapter::ValueType",
+        "member:ChannelFlagAdapter::Property::channelIndex",
+        "member:ChannelFlagAdapter::Property::name",
+        "member:ChannelFlagAdapter::forceIgnoreByDefault",
+        "method:ChannelFlagAdapter::ChannelFlagAdapter(const Property & prop)",
+        "method:ChannelFlagAdapter::Property::Property(QString _name,int _channelIndex)",
+        "method:ChannelFlagAdapter::adaptersList(KisNodeList nodes)",
+        "method:ChannelFlagAdapter::filterNodes(KisNodeList nodes)",
+        "method:ChannelFlagAdapter::name() const",
+        "method:ChannelFlagAdapter::propForNode(KisNodeSP node)",
+        "method:ChannelFlagAdapter::setPropForNode(KisNodeSP node,const ValueType & value,int index)",
+        "struct:ChannelFlagAdapter",
+        "struct:ChannelFlagAdapter::Property"
+      ]
+    },
+    {
+      "target": "KisMultinodePropertyContractTest",
+      "source": "libs/ui/tests/kis_multinode_property_test.cpp",
+      "test": "KisMultinodePropertyTest::multinodePropertyTracksUniformIgnoredAndRereadStates",
+      "behavior": "複数ノード属性は初期値の一致状態と単一ノード状態を保持し、無視状態の切替で保存値を復元または現在値を適用する。公開インターフェースは値変更通知、UI接続、再読込、事後undo生成を具体属性へ転送する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisMultinodeColorLabelProperty",
+        "alias:KisMultinodeCompositeOpProperty",
+        "alias:KisMultinodeNameProperty",
+        "alias:KisMultinodeOpacityProperty",
+        "alias:KisMultinodeProperty::ConnectorType",
+        "alias:KisMultinodeProperty::ValueType",
+        "alias:KisMultinodePropertyInterfaceSP",
+        "class:KisMultinodeProperty",
+        "class:KisMultinodePropertyInterface",
+        "method:KisMultinodeProperty::KisMultinodeProperty(KisNodeList nodes,PropertyAdapter adapter=PropertyAdapter ())",
+        "method:KisMultinodeProperty::connectAutoEnableWidget(QWidget * widget)",
+        "method:KisMultinodeProperty::connectIgnoreCheckBox(QCheckBox * ignoreBox)",
+        "method:KisMultinodeProperty::connectValueChangedSignal(const QObject * receiver,const char * method,Qt::ConnectionType type=Qt::AutoConnection)",
+        "method:KisMultinodeProperty::createPostExecutionUndoCommand()",
+        "method:KisMultinodeProperty::haveTheOnlyNode() const",
+        "method:KisMultinodeProperty::isIgnored() const",
+        "method:KisMultinodeProperty::rereadCurrentValue()",
+        "method:KisMultinodeProperty::savedValuesDiffer() const",
+        "method:KisMultinodeProperty::setIgnored(bool value)",
+        "method:KisMultinodeProperty::setValue(const ValueType & value)",
+        "method:KisMultinodeProperty::value() const",
+        "method:KisMultinodeProperty::~KisMultinodeProperty()",
+        "method:KisMultinodePropertyInterface::KisMultinodePropertyInterface()",
+        "method:KisMultinodePropertyInterface::connectAutoEnableWidget(QWidget * widget)",
+        "method:KisMultinodePropertyInterface::connectIgnoreCheckBox(QCheckBox * ignoreBox)",
+        "method:KisMultinodePropertyInterface::connectValueChangedSignal(const QObject * receiver,const char * method,Qt::ConnectionType type=Qt::AutoConnection)",
+        "method:KisMultinodePropertyInterface::createPostExecutionUndoCommand()",
+        "method:KisMultinodePropertyInterface::haveTheOnlyNode() const",
+        "method:KisMultinodePropertyInterface::isIgnored() const",
+        "method:KisMultinodePropertyInterface::rereadCurrentValue()",
+        "method:KisMultinodePropertyInterface::savedValuesDiffer() const",
+        "method:KisMultinodePropertyInterface::setIgnored(bool value)",
+        "method:KisMultinodePropertyInterface::~KisMultinodePropertyInterface()"
+      ]
+    },
+    {
+      "target": "KisMultinodePropertyContractTest",
+      "source": "libs/ui/tests/kis_multinode_property_test.cpp",
+      "test": "KisMultinodePropertyTest::connectorWidgetsAndSignalsFollowIgnoreState",
+      "behavior": "標準接続器は値変更を接続直後と明示通知時に配送し、複数値の無視状態をチェックボックスへ同期する。入力開始時は無視状態を解除し、一致値と単一ノードでは操作可能性と表示を制限する。",
+      "classification": "maintained",
+      "apis": [
+        "class:MultinodePropertyBaseConnector",
+        "class:MultinodePropertyConnectorInterface",
+        "method:MultinodePropertyBaseConnector::MultinodePropertyBaseConnector(KisMultinodePropertyInterface * parent)",
+        "method:MultinodePropertyBaseConnector::connectAutoEnableWidget(QWidget * widget)",
+        "method:MultinodePropertyBaseConnector::connectIgnoreCheckBox(QCheckBox * ignoreBox)",
+        "method:MultinodePropertyBaseConnector::notifyIgnoreChanged()",
+        "method:MultinodePropertyConnectorInterface::connectAutoEnableWidget(QWidget * widget)",
+        "method:MultinodePropertyConnectorInterface::connectIgnoreCheckBox(QCheckBox * ignoreBox)",
+        "method:MultinodePropertyConnectorInterface::connectValueChangedSignal(const QObject * receiver,const char * method,Qt::ConnectionType type=Qt::AutoConnection)",
+        "method:MultinodePropertyConnectorInterface::notifyIgnoreChanged()",
+        "method:MultinodePropertyConnectorInterface::notifyValueChanged()",
+        "method:MultinodePropertyConnectorInterface::sigValueChanged()",
+        "method:MultinodePropertyConnectorInterface::~MultinodePropertyConnectorInterface()"
+      ]
+    },
+    {
+      "target": "KisMultinodePropertyContractTest",
+      "source": "libs/ui/tests/kis_multinode_property_test.cpp",
+      "test": "KisMultinodePropertyTest::boolConnectorMapsTriStateToProperty",
+      "behavior": "真偽値接続器は値不一致を中間状態として表示し、チェック状態の変更を無視解除と全ノードの真偽値へ変換する。明示的な無視通知は表示値を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:MultinodePropertyBoolConnector",
+        "method:MultinodePropertyBoolConnector::MultinodePropertyBoolConnector(PropertyType * parent)",
+        "method:MultinodePropertyBoolConnector::connectIgnoreCheckBox(QCheckBox * ignoreBox)",
+        "method:MultinodePropertyBoolConnector::notifyIgnoreChanged()",
+        "method:MultinodePropertyBoolConnector::notifyValueChanged()"
+      ]
+    },
+    {
+      "target": "KisMultinodePropertyContractTest",
+      "source": "libs/ui/tests/kis_multinode_property_test.cpp",
+      "test": "KisMultinodePropertyTest::undoCommandsRestoreAndReapplyPerNodeValues",
+      "behavior": "複数ノード属性のundo命令は各ノード固有の旧値を復元し、redoで共通の新値を順序付きで再適用する。属性から生成した事後命令も変更前の不一致値と変更後の共通値を往復する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:MultinodePropertyUndoCommand::ValueType",
+        "class:MultinodePropertyUndoCommand",
+        "method:MultinodePropertyUndoCommand::MultinodePropertyUndoCommand(PropertyAdapter propAdapter,KisNodeList nodes,const QList<ValueType> & oldValues,ValueType newValue,KUndo2Command * parent=0)",
+        "method:MultinodePropertyUndoCommand::redo()",
+        "method:MultinodePropertyUndoCommand::undo()"
       ]
     }
   ]

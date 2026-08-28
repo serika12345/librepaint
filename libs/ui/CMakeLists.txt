@@ -99,6 +99,92 @@ set_target_properties(kritauiselectionactionspanelsourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+set(kritauimultinodeproperty_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/psdutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/psdutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/config>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/xmlgui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgets>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgets>
+)
+
+add_library(kritauimultinodepropertyobjects OBJECT
+    nodes/kis_multinode_property.cpp
+)
+target_compile_definitions(kritauimultinodepropertyobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauimultinodepropertyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauimultinodeproperty_INCLUDE_DIRS}
+)
+target_link_libraries(kritauimultinodepropertyobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauimultinodepropertyobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauimultinodepropertysourceobjects OBJECT
+    nodes/kis_multinode_property_source.cpp
+)
+target_compile_definitions(kritauimultinodepropertysourceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauimultinodepropertysourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauimultinodeproperty_INCLUDE_DIRS}
+)
+target_link_libraries(kritauimultinodepropertysourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauimultinodepropertysourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
@@ -117,6 +203,8 @@ add_subdirectory( tests )
 set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiselectionactionspanelobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelsourceobjects>
+    $<TARGET_OBJECTS:kritauimultinodepropertyobjects>
+    $<TARGET_OBJECTS:kritauimultinodepropertysourceobjects>
 
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp
@@ -233,7 +321,6 @@ set(kritaui_LIB_SRCS
     canvas/kis_zoom_manager.cc
     resources/kis_favorite_resource_manager.cpp
     canvas/kis_canvas_controls_manager.cpp
-    nodes/kis_multinode_property.cpp
     theme/KisUiFont.cpp
     canvas/KisIdleTasksManager.cpp
     canvas/KisIdleTaskStrokeStrategy.cpp

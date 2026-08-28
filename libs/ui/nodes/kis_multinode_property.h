@@ -7,21 +7,20 @@
 #ifndef __KIS_MULTINODE_PROPERTY_H
 #define __KIS_MULTINODE_PROPERTY_H
 
-#include <QObject>
+#include <QBitArray>
 #include <QCheckBox>
+#include <QObject>
 #include <QPointer>
 #include <QRegularExpression>
-#include <QBitArray>
+#include <QStringList>
 
 #include <kundo2command.h>
-#include <KoColorSpace.h>
-#include <KoChannelInfo.h>
 
 #include "kis_node.h"
-#include "kis_layer.h"
-#include "kis_layer_utils.h"
 
 #include "kritaui_export.h"
+
+class KoColorSpace;
 
 class KisMultinodePropertyInterface;
 class MultinodePropertyBaseConnector;
@@ -37,6 +36,26 @@ struct BaseAdapter {
 
     void setNumNodes(int numNodes) { m_numNodes = numNodes; }
     int m_numNodes = 0;
+
+protected:
+    struct KRITAUI_EXPORT NodeAccess {
+        static QString compositeOpId(KisNodeSP node);
+        static void setCompositeOpId(KisNodeSP node, const QString &value);
+        static QString name(KisNodeSP node);
+        static void setName(KisNodeSP node, const QString &value);
+        static int colorLabelIndex(KisNodeSP node);
+        static void setColorLabelIndex(KisNodeSP node, int value);
+        static quint8 opacity(KisNodeSP node);
+        static void setOpacity(KisNodeSP node, quint8 value);
+        static KisBaseNode::PropertyList sectionModelProperties(KisNodeSP node);
+        static void setSectionModelProperties(KisNodeSP node, const KisBaseNode::PropertyList &properties);
+        static bool isLayer(KisNodeSP node);
+        static const KoColorSpace *colorSpace(KisNodeSP node);
+        static QStringList channelNames(KisNodeSP node);
+        static int channelCount(KisNodeSP node);
+        static QBitArray channelFlags(KisNodeSP node);
+        static void setChannelFlags(KisNodeSP node, const QBitArray &flags);
+    };
 };
 
 struct CompositeOpAdapter : public BaseAdapter {
@@ -45,12 +64,12 @@ struct CompositeOpAdapter : public BaseAdapter {
     static const bool forceIgnoreByDefault = false;
 
     static ValueType propForNode(KisNodeSP node) {
-        return node->compositeOpId();
+        return NodeAccess::compositeOpId(node);
     }
 
     static void setPropForNode(KisNodeSP node, const ValueType &value, int index) {
         Q_UNUSED(index);
-        node->setCompositeOpId(value);
+        NodeAccess::setCompositeOpId(node, value);
     }
 };
 
@@ -60,7 +79,8 @@ struct NameAdapter : public BaseAdapter {
     static const bool forceIgnoreByDefault = true;
 
     ValueType propForNode(KisNodeSP node) {
-        return m_numNodes == 1 ? node->name() : stripName(node->name());
+        const QString nodeName = NodeAccess::name(node);
+        return m_numNodes == 1 ? nodeName : stripName(nodeName);
     }
 
     void setPropForNode(KisNodeSP node, const ValueType &value, int index) {
@@ -72,7 +92,7 @@ struct NameAdapter : public BaseAdapter {
             name = QString("%1 %2").arg(stripName(value)).arg(index);
         }
 
-        node->setName(name);
+        NodeAccess::setName(node, name);
     }
 
 private:
@@ -93,12 +113,12 @@ struct ColorLabelAdapter : public BaseAdapter {
     static const bool forceIgnoreByDefault = false;
 
     static ValueType propForNode(KisNodeSP node) {
-        return node->colorLabelIndex();
+        return NodeAccess::colorLabelIndex(node);
     }
 
     static void setPropForNode(KisNodeSP node, const ValueType &value, int index) {
         Q_UNUSED(index);
-        node->setColorLabelIndex(value);
+        NodeAccess::setColorLabelIndex(node, value);
     }
 };
 
@@ -108,12 +128,12 @@ struct OpacityAdapter : public BaseAdapter {
     static const bool forceIgnoreByDefault = false;
 
     static ValueType propForNode(KisNodeSP node) {
-        return qRound(node->opacity() / 255.0 * 100);
+        return qRound(NodeAccess::opacity(node) / 255.0 * 100);
     }
 
     static void setPropForNode(KisNodeSP node, const ValueType &value, int index) {
         Q_UNUSED(index);
-        node->setOpacity(qRound(value * 255.0 / 100));
+        NodeAccess::setOpacity(node, qRound(value * 255.0 / 100));
     }
 };
 
@@ -129,7 +149,7 @@ struct LayerPropertyAdapter : public BaseAdapter {
     LayerPropertyAdapter(const QString &propName) : m_propName(propName) {}
 
     ValueType propForNode(KisNodeSP node) {
-        KisBaseNode::PropertyList props = node->sectionModelProperties();
+        KisBaseNode::PropertyList props = NodeAccess::sectionModelProperties(node);
         Q_FOREACH (const KisBaseNode::Property &prop, props) {
             if (prop.name == m_propName) {
                 return prop.state.toBool();
@@ -143,7 +163,7 @@ struct LayerPropertyAdapter : public BaseAdapter {
         Q_UNUSED(index);
         bool stateChanged = false;
 
-        KisBaseNode::PropertyList props = node->sectionModelProperties();
+        KisBaseNode::PropertyList props = NodeAccess::sectionModelProperties(node);
         KisBaseNode::PropertyList::iterator it = props.begin();
         KisBaseNode::PropertyList::iterator end = props.end();
         for (; it != end; ++it) {
@@ -155,7 +175,7 @@ struct LayerPropertyAdapter : public BaseAdapter {
         }
 
         if (stateChanged) {
-            node->setSectionModelProperties(props);
+            NodeAccess::setSectionModelProperties(node, props);
         }
     }
 
@@ -168,9 +188,15 @@ struct LayerPropertyAdapter : public BaseAdapter {
 
         Q_FOREACH (KisNodeSP node, nodes) {
             int sortingIndex = 0;
-            KisBaseNode::PropertyList props = node->sectionModelProperties();
+            KisBaseNode::PropertyList props = NodeAccess::sectionModelProperties(node);
             Q_FOREACH (const KisBaseNode::Property &prop, props) {
-                if (prop.state.type() != QMetaType::Bool) continue;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                if (prop.state.metaType().id() != QMetaType::Bool)
+                    continue;
+#else
+                if (prop.state.type() != QVariant::Bool)
+                    continue;
+#endif
 
                 if (!adapters.contains(prop.id)) {
                     adapters.insert(prop.id, std::make_pair(prop, sortingIndex));
@@ -214,10 +240,9 @@ struct ChannelFlagAdapter : public BaseAdapter {
     ChannelFlagAdapter(const Property &prop) : m_prop(prop) {}
 
     ValueType propForNode(KisNodeSP node) {
-        KisLayerSP layer = toLayer(node);
-        Q_ASSERT(layer);
+        Q_ASSERT(NodeAccess::isLayer(node));
 
-        QBitArray flags = layer->channelFlags();
+        QBitArray flags = NodeAccess::channelFlags(node);
         if (flags.isEmpty()) return true;
 
         return flags.testBit(m_prop.channelIndex);
@@ -225,17 +250,16 @@ struct ChannelFlagAdapter : public BaseAdapter {
 
     void setPropForNode(KisNodeSP node, const ValueType &value, int index) {
         Q_UNUSED(index);
-        KisLayerSP layer = toLayer(node);
-        Q_ASSERT(layer);
+        Q_ASSERT(NodeAccess::isLayer(node));
 
-        QBitArray flags = layer->channelFlags();
+        QBitArray flags = NodeAccess::channelFlags(node);
         if (flags.isEmpty()) {
-            flags = QBitArray(layer->colorSpace()->channelCount(), true);
+            flags = QBitArray(NodeAccess::channelCount(node), true);
         }
 
         if (flags.testBit(m_prop.channelIndex) != value) {
             flags.setBit(m_prop.channelIndex, value);
-            layer->setChannelFlags(flags);
+            NodeAccess::setChannelFlags(node, flags);
         }
     }
 
@@ -247,19 +271,18 @@ struct ChannelFlagAdapter : public BaseAdapter {
         PropertyList props;
 
         {
-            bool nodesDiffer = KisLayerUtils::checkNodesDiffer<const KoColorSpace*>(nodes, [](KisNodeSP node) { return node->colorSpace(); });
-
-            if (nodesDiffer) {
-                return props;
+            const KoColorSpace *firstColorSpace = NodeAccess::colorSpace(nodes.first());
+            for (const KisNodeSP &node : nodes) {
+                if (NodeAccess::colorSpace(node) != firstColorSpace) {
+                    return props;
+                }
             }
         }
 
-
-        const QList<KoChannelInfo*> channels = nodes.first()->colorSpace()->channels();
-
+        const QStringList channels = NodeAccess::channelNames(nodes.first());
         int index = 0;
-        Q_FOREACH (KoChannelInfo *info, channels) {
-            props << Property(info->name(), index);
+        for (const QString &name : channels) {
+            props << Property(name, index);
             index++;
         }
 
@@ -269,16 +292,13 @@ struct ChannelFlagAdapter : public BaseAdapter {
     static KisNodeList filterNodes(KisNodeList nodes) {
         KisNodeList filteredNodes;
         Q_FOREACH (KisNodeSP node, nodes) {
-            if (toLayer(node)) {
+            if (NodeAccess::isLayer(node)) {
                 filteredNodes << node;
             }
         }
         return filteredNodes;
     }
-private:
-    static KisLayerSP toLayer(KisNodeSP node) {
-        return qobject_cast<KisLayer*>(node.data());
-    }
+
 private:
     Property m_prop;
 };

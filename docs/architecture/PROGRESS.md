@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 06:06 JST
+- 更新日時: 2026-08-29 06:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6725,13 +6725,40 @@
   未対応25,276件になり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritaapplicationui`のリンク、Linux、
   全ネイティブ検証は実行していない。
 
+## R2-G19b 複数ノード属性 public API契約とノード効果分離で完了した作業
+
+- `libs/ui/nodes/kis_multinode_property.h`にインラインで混在していた、合成方法、名前、色ラベル、
+  不透明度、レイヤー属性、色空間、チャンネルフラグの具体ノード取得・変更を、新規
+  `libs/ui/nodes/kis_multinode_property_source.cpp`へ移した。公開アダプターの値集約、無視状態、UI接続、
+  undo判断は既存ヘッダーと`libs/ui/nodes/kis_multinode_property.cpp`が所有し、保護されたノード接続境界を
+  通して同じ具体効果を利用する。
+- 製品`kritaapplicationui`が直接所有していた`libs/ui/nodes/kis_multinode_property.cpp`は、同じファイル位置の
+  新規`kritauimultinodepropertyobjects`へ移した。新しい具体ノード効果は
+  `kritauimultinodepropertysourceobjects`が所有し、製品は両生成オブジェクトを各1回集約する。
+  `libs/ui/tests/kis_multinode_property_test.h`の試験宣言は
+  `libs/ui/tests/kis_multinode_property_test.cpp`へ統合し、旧試験ヘッダーを除去した。
+- `libs/ui/nodes/kis_multinode_property.h`の109 APIを、専用
+  `KisMultinodePropertyContractTest`の7試験へ対応付けた。基底と四つの単純属性変換、真偽値レイヤー属性の
+  集約と変更、同じ色空間に限定したチャンネル属性、複数値と単一値の初期状態、無視状態による保存値の
+  復元と現在値の適用、値変更通知、チェックボックスと入力による有効化、三状態真偽値接続、ノード別旧値と
+  共通新値のundo・redoを固定した。同順位項目間の順序は未規定とし、異なる表示優先度の前後関係を検査する。
+- 実装接続前のリンクは複数ノード属性の接続器とインターフェースだけを未解決記号として診断した。Qtの
+  `KisBaseNode::Property`診断表示が要求した画像製品への参照は、値の等価性を直接検査して除去した。
+  試験は決定的なノード状態を保護された接続境界へ渡し、画像、文書、UI製品を連結せずに全契約を実行する。
+- 変更前の製品`kritaapplicationui`閉包は1,793工程・3,586入力、既存試験は1,845工程・3,687入力だった。
+  属性判断は3工程・7入力、具体ノード効果は1工程・3入力、専用試験は253工程・541入力に収めた。残る
+  `kritapaintingundo`直接依存は公開`KUndo2Command`の構築、破棄、仮想undo・redoを実行するために必要である。
+  製品閉包は1,796工程・3,592入力になった。
+- 両局所対象コンパイル、対象CTestのmacOS単発実行と20回反復、公開API契約検査、高速検査は成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み4,822件、未対応25,167件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-再生成した公開API作業列の先頭にある`libs/ui/nodes/kis_multinode_property.h`の109 APIを対象とする。
-製品所有対象と既存`libs/ui/tests/kis_multinode_property_test.cpp`について、対象指定の変更なし計画、直接CMake依存、
-空構築閉包を監査する。複数ノードの値集約、無視状態、値変更通知、UI接続、変更前後の取り消し・再実行、各ノード
-特性アダプターを観測可能な単位へ分け、画像・文書・UI製品の過大な閉包が必要なら判断、接続、具体ノード効果の
-所有単位を先に分ける。
+同じノードUI責務で未対応数が最大の`libs/ui/nodes/kis_node_manager.h`の105 APIを対象とする。製品
+`kritaapplicationui`と既存の隔離対象`KisNodeManagerTest`について、対象指定の変更なし計画、直接CMake依存、
+空構築閉包、隔離理由を監査する。ノード作成・変換・移動・複製・統合・表示操作の判断と、画像、表示管理、操作管理、
+ダイアログへの具体効果を分け、対象契約が製品全体を要求する場合は所有単位を先に分離する。
 
 ## R1-G5完了根拠
 

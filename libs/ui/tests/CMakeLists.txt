@@ -4,7 +4,6 @@ kis_add_tests(
     kis_grid_config_test.cpp
     kis_shape_commands_test.cpp
     kis_stop_gradient_editor_test.cpp
-    kis_multinode_property_test.cpp
     KisFrameCacheSwapperTest.cpp
     kis_animation_exporter_test.cpp
     kis_prescaled_projection_test.cpp
@@ -140,6 +139,22 @@ target_compile_definitions(KisSelectionActionsPanelContractTest PRIVATE
     kritaapplicationui_EXPORTS
     kritaglobal_EXPORTS
     kritapigment_EXPORTS
+)
+
+kis_add_test(
+    kis_multinode_property_test.cpp
+    TEST_NAME KisMultinodePropertyContractTest
+    LINK_LIBRARIES
+        kritauimultinodepropertyobjects
+        kritapaintingundo
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisMultinodePropertyContractTest PRIVATE
+    ${kritauimultinodeproperty_INCLUDE_DIRS}
+)
+target_compile_definitions(KisMultinodePropertyContractTest PRIVATE
+    kritaapplicationui_EXPORTS
 )
 
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
