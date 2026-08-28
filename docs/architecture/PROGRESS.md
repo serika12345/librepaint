@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 10:18 JST
+- 更新日時: 2026-08-28 10:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4334,6 +4334,16 @@
 - 既存の専用試験はない。新試験はQt Testとglobal所有ヘッダーだけへ直接接続し、変更なし構築閉包はmacOSで
   4工程・8入力である。対象実行と20回反復が成功し、公開API契約は1,199件、未対応基準は27,815件になった。
   製品実装、公開API、ABI、コンテナー補助の挙動は変更していない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 整数演算契約の限定構築で完了した作業
+
+- `libs/pigment/tests/TestKoIntegerMaths.cpp`と`libs/pigment/tests/TestKoIntegerMaths.h`は同じファイル位置と
+  CTest名を保ち、`libs/pigment/tests/CMakeLists.txt`の色管理ライブラリー・共通試験支援へ接続する一括試験
+  対象から、Qt Testと`libs/pigment/KoIntegerMaths.h`だけへ接続する独立対象`TestKoIntegerMaths`の所有へ移した。
+  試験入口は共通試験支援の包含をQt Testの直接包含へ置き換えた。
+- 従来の`TestKoIntegerMaths`は変更なし構築閉包が304工程・637入力、新対象は4工程・8入力である。macOSで
+  既存対象の限定構築、単発実行、20回反復が成功した。製品実装、公開API、ABI、整数演算の挙動は変更して
+  いない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 
