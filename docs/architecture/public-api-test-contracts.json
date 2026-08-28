@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27364
+    "expectedMissingApis": 27342
   },
   "contracts": [
     {
@@ -5142,6 +5142,64 @@
       "classification": "maintained",
       "apis": [
         "method:KisThreadSafeSignalCompressor::start()"
+      ]
+    },
+    {
+      "target": "KisAcyclicSignalConnectorContractTest",
+      "source": "libs/global/tests/KisAcyclicSignalConnectorContractTest.cpp",
+      "test": "KisAcyclicSignalConnectorContractTest::forwardsEverySupportedPayloadWithoutDuplicateConnections",
+      "behavior": "前方向の接続はdouble、int、bool、void、QVariant、資源キーと値、色の各入力を同じ値で一度だけ配送し、同一接続の重複登録を抑止する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAcyclicSignalConnector::connectForwardBool(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectForwardDouble(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectForwardInt(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectForwardKoColor(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectForwardResourcePair(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectForwardVariant(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectForwardVoid(QObject * sender,const char * signal,QObject * receiver,const char * method)"
+      ]
+    },
+    {
+      "target": "KisAcyclicSignalConnectorContractTest",
+      "source": "libs/global/tests/KisAcyclicSignalConnectorContractTest.cpp",
+      "test": "KisAcyclicSignalConnectorContractTest::backwardsEverySupportedPayload",
+      "behavior": "逆方向の接続はdouble、int、bool、void、QVariant、資源キーと値、色の各入力を同じ値で一度配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAcyclicSignalConnector::connectBackwardBool(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectBackwardDouble(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectBackwardInt(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectBackwardKoColor(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectBackwardResourcePair(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectBackwardVariant(QObject * sender,const char * signal,QObject * receiver,const char * method)",
+        "method:KisAcyclicSignalConnector::connectBackwardVoid(QObject * sender,const char * signal,QObject * receiver,const char * method)"
+      ]
+    },
+    {
+      "target": "KisAcyclicSignalConnectorContractTest",
+      "source": "libs/global/tests/KisAcyclicSignalConnectorContractTest.cpp",
+      "test": "KisAcyclicSignalConnectorContractTest::manualAndScopedLocksSuppressDelivery",
+      "behavior": "手動ロックは入れ子深度がゼロへ戻るまで配送を抑止し、範囲付きロック型は生成と破棄に合わせて同じロック状態を管理する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAcyclicSignalConnector::Blocker",
+        "method:KisAcyclicSignalConnector::isLocked() const",
+        "method:KisAcyclicSignalConnector::lock()",
+        "method:KisAcyclicSignalConnector::unlock()"
+      ]
+    },
+    {
+      "target": "KisAcyclicSignalConnectorContractTest",
+      "source": "libs/global/tests/KisAcyclicSignalConnectorContractTest.cpp",
+      "test": "KisAcyclicSignalConnectorContractTest::coordinatedConnectorsShareLocksAndLifetime",
+      "behavior": "協調接続器は親接続器に所有され、どちらからのロックでも組全体の配送を抑止し、親の破棄とともに寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAcyclicSignalConnector",
+        "method:KisAcyclicSignalConnector::KisAcyclicSignalConnector(QObject * parent=0)",
+        "method:KisAcyclicSignalConnector::createCoordinatedConnector()",
+        "method:KisAcyclicSignalConnector::~KisAcyclicSignalConnector()"
       ]
     }
   ]
