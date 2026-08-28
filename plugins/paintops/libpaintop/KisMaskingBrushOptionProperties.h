@@ -10,7 +10,7 @@
 #include "kritapaintop_export.h"
 #include <kis_types.h>
 #include <KisBrushModel.h>
-#include <KoCompositeOpRegistry.h>
+#include <KoCompositeOpIds.h>
 
 class KisResourcesInterface;
 using KisResourcesInterfaceSP = QSharedPointer<KisResourcesInterface>;

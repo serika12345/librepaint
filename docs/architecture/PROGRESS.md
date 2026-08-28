@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 16:17 JST
+- 更新日時: 2026-08-28 16:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5087,10 +5087,28 @@
   変更した製品翻訳単位はオブジェクト指定でも`kritapsdutils`側533工程、PSD/TIFF側1,710工程超の
   順序依存を持つため構築しておらず、後続の製品対象分割に残す。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 合成方式識別子の所有分離とpublic API契約で完了した作業
+
+- `libs/pigment/KoCompositeOpRegistry.h`に登録処理と同居していた148の合成方式文字列を、
+  新規`libs/pigment/KoCompositeOpIds.h`へ移した。旧ヘッダーは新所有先をincludeし、既存利用元への
+  公開と文字列値を維持する。
+- 値だけを使う公開利用元を次のように軽量所有先へ向け、登録クラス、`KoID`、翻訳基盤への推移依存を
+  除いた。
+  - `libs/painting/KisStrokeCompatibilityInfo.h`から`libs/pigment/KoCompositeOpIds.h`
+  - `plugins/paintops/libpaintop/KisMaskingBrushOptionProperties.h`から`libs/pigment/KoCompositeOpIds.h`
+  - `plugins/tools/basictools/kis_tool_fill.h`から`libs/pigment/KoCompositeOpIds.h`
+- 最初の対象構築は旧ヘッダーから`KoID.h`を経て`klocalizedstring.h`を要求する診断で停止した。
+  分離後の新規`libs/pigment/tests/KoCompositeOpIdsContractTest.cpp`は製品ライブラリーへ接続せず、
+  148識別子と共有文字列を一対一で観測する。変更なし構築閉包はmacOSで4工程・8入力であり、
+  対象実行と20回反復に成功した。
+- 公開ヘッダーは1,546件、API総数は29,966件となり、宣言識別子集合を維持した。対応済みは3,094件、
+  未対応基準は26,872件になった。製品API、ABI、合成方式値、登録処理は変更していない。Linuxと
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-次の高密度な基礎値ヘッダーについて、既存試験、実装所有、直接依存、変更なし構築閉包を調べる。
-構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。
+未対応報告から次の高密度な基礎値ヘッダーを選び、既存試験、実装所有、直接依存、変更なし構築閉包を
+調べる。構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。
 
 ## R1-G5完了根拠
 
