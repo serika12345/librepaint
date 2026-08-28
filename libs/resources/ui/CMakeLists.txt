@@ -550,6 +550,48 @@ set_target_properties(kritatagchooserwidgetoperationsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatagchooserwidgetaddobjects OBJECT
+    KisTagChooserWidgetAdd.cpp
+)
+target_compile_definitions(kritatagchooserwidgetaddobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritatagchooserwidgetaddobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritatagchooserwidgetaddobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritatagchooserwidgetaddobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritatagchooserwidgetaddsourceobjects OBJECT
+    KisTagChooserWidgetAddSource.cpp
+)
+target_compile_definitions(kritatagchooserwidgetaddsourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritatagchooserwidgetaddsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritatagchooserwidgetaddsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritatagchooserwidgetaddsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritatagchooserwidgetselectionobjects OBJECT
     KisTagChooserWidgetSelection.cpp
 )
@@ -631,6 +673,8 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritatagchooserwidgetobjects>
     $<TARGET_OBJECTS:kritatagchooserwidgetconstructionsourceobjects>
     $<TARGET_OBJECTS:kritatagchooserwidgetoperationsobjects>
+    $<TARGET_OBJECTS:kritatagchooserwidgetaddobjects>
+    $<TARGET_OBJECTS:kritatagchooserwidgetaddsourceobjects>
     $<TARGET_OBJECTS:kritatagchooserwidgetselectionobjects>
     $<TARGET_OBJECTS:kritatagchooserwidgetselectionsourceobjects>
 )

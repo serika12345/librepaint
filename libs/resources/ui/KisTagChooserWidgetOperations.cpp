@@ -18,8 +18,6 @@
 #include <klocalizedstring.h>
 #include <kis_assert.h>
 
-#include <KisTagResourceModel.h>
-
 #include "KisTagChooserWidget_p.h"
 #include "KisTagToolButton.h"
 
@@ -140,102 +138,6 @@ void KisTagChooserWidget::slotTagModelDataChanged(const QModelIndex &topLeft,
             }
         }
     }
-}
-
-void KisTagChooserWidget::addTag(const QString &tag)
-{
-    addTag(tag, nullptr);
-}
-
-QMessageBox::ButtonRole KisTagChooserWidget::overwriteTagDialog(
-    KisTagChooserWidget *parent,
-    bool tagIsActive)
-{
-    QString undeleteOption =
-        !tagIsActive
-        ? i18nc("Option in a dialog to undelete (reactivate) existing tag with its old assigned resources", "Restore previous tag")
-        : i18nc("Option in a dialog to use existing tag with its old assigned resources", "Use existing tag");
-    QMessageBox question(QMessageBox::Question,
-                         i18nc("Dialog title", "Overwrite tag?"),
-                         i18nc("Question to the user in a dialog about creating a tag",
-                               "A tag with this unique name already exists. Do you want to replace it?"));
-    question.setParent(parent);
-    question.addButton(
-        i18nc("Option in a dialog to discard the previously existing tag and creating a new one in its place", "Replace (overwrite) tag"),
-        QMessageBox::DestructiveRole);
-    question.addButton(undeleteOption, QMessageBox::AcceptRole);
-    question.addButton(QMessageBox::Cancel);
-    question.exec();
-    return question.buttonRole(question.clickedButton());
-}
-
-void KisTagChooserWidget::addTag(const QString &tagName, KoResourceSP resource)
-{
-    if (tagName == KisAllTagsModel::urlAll()
-        || tagName == KisAllTagsModel::urlAllUntagged()) {
-        QMessageBox::information(this,
-                                 i18nc("Dialog title", "Can't create the tag"),
-                                 i18nc("Dialog message", "You can't use this name for your custom tags."),
-                                 QMessageBox::Ok);
-        return;
-    }
-    if (tagName.isEmpty()) {
-        return;
-    }
-
-    KisTagSP tagForUrl = d->model->tagForUrl(tagName);
-    if (!tagForUrl.isNull()) {
-        int response = overwriteTagDialog(this, tagForUrl->active());
-        if (response == QMessageBox::AcceptRole) {
-            d->model->setTagActive(tagForUrl);
-            if (!resource.isNull()) {
-                KisTagResourceModel(d->resourceType)
-                    .tagResources(tagForUrl, {resource->resourceId()});
-            }
-            d->model->sort(KisAllTagsModel::Name);
-            return;
-        } else if (response == QMessageBox::RejectRole) {
-            return;
-        }
-    }
-    QVector<KoResourceSP> resources = resource.isNull()
-        ? QVector<KoResourceSP>()
-        : QVector<KoResourceSP>{resource};
-    d->model->addTag(tagName, true, resources);
-    d->model->sort(KisAllTagsModel::Name);
-}
-
-void KisTagChooserWidget::addTag(KisTagSP tag, KoResourceSP resource)
-{
-    if (tag->name() == KisAllTagsModel::urlAll()
-        || tag->name() == KisAllTagsModel::urlAllUntagged()) {
-        QMessageBox::information(this,
-                                 i18nc("Dialog title", "Can't rename the tag"),
-                                 i18nc("Dialog message", "You can't use this name for your custom tags."),
-                                 QMessageBox::Ok);
-        return;
-    }
-
-    KisTagSP tagForUrl = d->model->tagForUrl(tag->url());
-    if (!tagForUrl.isNull()) {
-        int response = overwriteTagDialog(this, tagForUrl->active());
-        if (response == QMessageBox::AcceptRole) {
-            d->model->setTagActive(tagForUrl);
-            if (!resource.isNull()) {
-                KisTagResourceModel(d->resourceType)
-                    .tagResources(tagForUrl, {resource->resourceId()});
-            }
-            d->model->sort(KisAllTagsModel::Name);
-            return;
-        } else if (response == QMessageBox::RejectRole) {
-            return;
-        }
-    }
-    QVector<KoResourceSP> resources = resource.isNull()
-        ? QVector<KoResourceSP>()
-        : QVector<KoResourceSP>{resource};
-    d->model->addTag(tag, true, resources);
-    d->model->sort(KisAllTagsModel::Name);
 }
 
 void KisTagChooserWidget::tagToolContextMenuAboutToShow()

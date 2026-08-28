@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 02:12 JST
+- 更新日時: 2026-08-29 02:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6402,13 +6402,35 @@
   1,547ヘッダー、29,979 API、対応済み4,434件、未対応25,545件になり、同ヘッダーの未対応は3 APIに
   なった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b タグ追加 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisTagChooserWidgetOperations.cpp`に残っていた三つのタグ追加入口と既存名の確認処理を
+  新規`libs/resources/ui/KisTagChooserWidgetAdd.cpp`と`kritatagchooserwidgetaddobjects`へ移した。
+  タグ値の名前・URL取得、モデル照合、予約名警告、既存タグと資源の復元、新規追加、名前順整列、
+  確認ダイアログを新規`libs/resources/ui/KisTagChooserWidgetAddSource.cpp`と
+  `kritatagchooserwidgetaddsourceobjects`へ移し、内部境界の宣言を新規
+  `libs/resources/ui/KisTagChooserWidgetAddSource_p.h`に置いた。製品`kritaresourceui`は二つの生成
+  オブジェクトを各1回集約し、残存操作対象は非公開タグ操作だけを所有する。
+- `libs/resources/ui/KisTagChooserWidget.h`のタグ追加3 APIを、既存
+  `libs/resources/ui/tests/KisTagChooserWidgetContractTest.cpp`の3試験へ対応付けた。文字列入口のnull資源
+  委譲、予約名と空名の拒否、一意な名前とタグ値の追加、任意資源の伝達、URLによる既存タグ照合、
+  復元・取消し・置換の分岐、資源種別の伝達を固定した。タグモデル、資源関連付け、ダイアログは
+  決定的な内部効果へ置き換えた。
+- 最初の赤試験は追加入口が無操作だったため、予約名警告、既存名確認、タグ値の予約名警告がいずれも
+  期待1回に対して実績0回と診断した。判断と具象効果の分離後、追加判断、追加効果、残存操作をそれぞれ
+  対象指定でコンパイルし、既存の製品処理を具象効果へそのまま維持した。
+- 追加判断と具象効果を各1工程・3入力に収め、構築・選択の既存対象と直接集約する試験を9工程・20入力に
+  収めた。製品`kritaresourceui`は294工程・619入力から296工程・623入力になった。対象CTestのmacOS
+  単発実行と20回反復は成功した。公開面は1,547ヘッダー、29,979 API、対応済み4,437件、未対応25,542件に
+  なり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritaresourceui`のリンク、Linux、全
+  ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisTagChooserWidget.h`に残るタグ追加3 APIについて、分離済み
-`libs/resources/ui/KisTagChooserWidgetOperations.cpp`の予約名・空名拒否、既存タグの復元・取消し・置換、
-任意資源への関連付け、新規タグ追加、名前順整列を監査する。文字列入力とタグ値入力の共通判断を
-別翻訳単位へ移し、タグモデル、確認ダイアログ、タグ資源関連付けを内部効果へ集約して局所契約へ
-対応付ける。完了後、同ヘッダーのpublic APIを全件対応済みにする。
+`libs/resources/ui/TagActions.h`に残る26 APIについて、製品`kritaresourceui`の直接ソースである
+`libs/resources/ui/TagActions.cpp`の変更なし計画、直接依存、空構築閉包を監査する。タグ比較値処理、
+既存タグ操作、文字入力表示の所有単位を確認し、直接所属による製品全体への展開を先に分離してから、
+親所有、表示状態、入力通知、タグと資源の通知、URL比較を局所契約へ対応付ける。
 
 ## R1-G5完了根拠
 

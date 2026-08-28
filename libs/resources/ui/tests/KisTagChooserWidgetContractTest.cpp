@@ -4,6 +4,7 @@
  */
 
 #include <KisTagChooserWidget.h>
+#include <KisTagChooserWidgetAddSource_p.h>
 #include <KisTagChooserWidgetConstructionSource_p.h>
 #include <KisTagChooserWidgetSelectionSource_p.h>
 
@@ -43,10 +44,60 @@ KisTagSP currentToolTag;
 QString persistedResourceType;
 KisTagSP persistedTag;
 int iconRefreshCount = 0;
+QString addTagName;
+QString addTagUrl;
+KisTagSP addExistingTag;
+bool addExistingTagActive = false;
+QMessageBox::ButtonRole addNextChoice = QMessageBox::RejectRole;
+int addReservedWarningCount = 0;
+int addLookupCount = 0;
+int addQuestionCount = 0;
+int addReactivateCount = 0;
+int addNameCount = 0;
+int addValueCount = 0;
+QString capturedAddLookupUrl;
+QString capturedAddName;
+QString capturedAddResourceType;
+QPointer<QWidget> capturedReservedParent;
+bool capturedReservedTagValueInput = false;
+QPointer<KisTagChooserWidget> capturedQuestionParent;
+bool capturedQuestionTagActive = false;
+KisTagSP capturedAddTag;
+KoResourceSP capturedAddResource;
 
 KisTagSP markerTag(quintptr value)
 {
     return KisTagSP(reinterpret_cast<KisTag *>(value), [](KisTag *) {});
+}
+
+KoResourceSP markerResource(quintptr value)
+{
+    return KoResourceSP(reinterpret_cast<KoResource *>(value),
+                        [](KoResource *) {});
+}
+
+void resetAddState()
+{
+    addTagName = QStringLiteral("Fresh");
+    addTagUrl = QStringLiteral("fresh");
+    addExistingTag.clear();
+    addExistingTagActive = false;
+    addNextChoice = QMessageBox::RejectRole;
+    addReservedWarningCount = 0;
+    addLookupCount = 0;
+    addQuestionCount = 0;
+    addReactivateCount = 0;
+    addNameCount = 0;
+    addValueCount = 0;
+    capturedAddLookupUrl.clear();
+    capturedAddName.clear();
+    capturedAddResourceType.clear();
+    capturedReservedParent.clear();
+    capturedReservedTagValueInput = false;
+    capturedQuestionParent.clear();
+    capturedQuestionTagActive = false;
+    capturedAddTag.clear();
+    capturedAddResource.clear();
 }
 
 void configurePresentationModel()
@@ -106,6 +157,66 @@ QAbstractItemModel *createAllTagsModel(const QString &resourceType,
 void connectTagToolButton(QWidget *, KisTagChooserWidget *)
 {
     ++toolConnectionCount;
+}
+}
+
+namespace KisTagChooserWidgetAddSource
+{
+QString tagName(KisTagSP)
+{
+    return addTagName;
+}
+
+QString tagUrl(KisTagSP)
+{
+    return addTagUrl;
+}
+
+KisTagSP tagForUrl(KisTagModel *, const QString &url)
+{
+    ++addLookupCount;
+    capturedAddLookupUrl = url;
+    return addExistingTag;
+}
+
+bool tagIsActive(KisTagSP tag)
+{
+    capturedAddTag = tag;
+    return addExistingTagActive;
+}
+
+void warnReservedName(QWidget *parent, bool tagValueInput)
+{
+    ++addReservedWarningCount;
+    capturedReservedParent = parent;
+    capturedReservedTagValueInput = tagValueInput;
+}
+
+void reactivateTag(KisTagModel *,
+                   const QString &resourceType,
+                   KisTagSP tag,
+                   KoResourceSP resource)
+{
+    ++addReactivateCount;
+    capturedAddResourceType = resourceType;
+    capturedAddTag = tag;
+    capturedAddResource = resource;
+}
+
+void addNewTag(KisTagModel *,
+               const QString &tagName,
+               KoResourceSP resource)
+{
+    ++addNameCount;
+    capturedAddName = tagName;
+    capturedAddResource = resource;
+}
+
+void addNewTag(KisTagModel *, KisTagSP tag, KoResourceSP resource)
+{
+    ++addValueCount;
+    capturedAddTag = tag;
+    capturedAddResource = resource;
 }
 }
 
@@ -183,16 +294,14 @@ QString KisTag::comment(bool) const
     return {};
 }
 
-void KisTagChooserWidget::addTag(const QString &)
+QMessageBox::ButtonRole KisTagChooserWidget::overwriteTagDialog(
+    KisTagChooserWidget *parent,
+    bool tagIsActive)
 {
-}
-
-void KisTagChooserWidget::addTag(const QString &, KoResourceSP)
-{
-}
-
-void KisTagChooserWidget::addTag(KisTagSP, KoResourceSP)
-{
+    ++addQuestionCount;
+    capturedQuestionParent = parent;
+    capturedQuestionTagActive = tagIsActive;
+    return addNextChoice;
 }
 
 void KisTagChooserWidget::tagToolRenameCurrentTag(const QString &)
@@ -235,6 +344,9 @@ private Q_SLOTS:
     void selectionFindsExactUrlAndReturnsTag();
     void tagChangePersistsSortsAndEmitsSelection();
     void iconUpdateRefreshesTagToolButton();
+    void nameAddRejectsInvalidAndAddsNewValues();
+    void existingNameChoiceRestoresCancelsOrReplaces();
+    void tagValueUsesNameUrlAndExistingChoice();
 };
 
 void KisTagChooserWidgetContractTest::constructorOwnsPresentationUnderParent()
@@ -369,6 +481,126 @@ void KisTagChooserWidgetContractTest::iconUpdateRefreshesTagToolButton()
     iconRefreshCount = 0;
     widget.updateIcons();
     QCOMPARE(iconRefreshCount, 1);
+}
+
+void KisTagChooserWidgetContractTest::nameAddRejectsInvalidAndAddsNewValues()
+{
+    configurePresentationModel();
+    KisTagChooserWidget widget(
+        reinterpret_cast<KisTagModel *>(quintptr(1)),
+        QStringLiteral("brushes"),
+        nullptr);
+
+    resetAddState();
+    widget.addTag(KisAllTagsModel::urlAll());
+    QCOMPARE(addReservedWarningCount, 1);
+    QCOMPARE(capturedReservedParent.data(), &widget);
+    QVERIFY(!capturedReservedTagValueInput);
+    QCOMPARE(addLookupCount, 0);
+    QCOMPARE(addNameCount, 0);
+
+    resetAddState();
+    widget.addTag(QString());
+    QCOMPARE(addReservedWarningCount, 0);
+    QCOMPARE(addLookupCount, 0);
+    QCOMPARE(addNameCount, 0);
+
+    resetAddState();
+    widget.addTag(QStringLiteral("fresh"));
+    QCOMPARE(addLookupCount, 1);
+    QCOMPARE(capturedAddLookupUrl, QStringLiteral("fresh"));
+    QCOMPARE(addNameCount, 1);
+    QCOMPARE(capturedAddName, QStringLiteral("fresh"));
+    QVERIFY(capturedAddResource.isNull());
+
+    resetAddState();
+    const KoResourceSP resource = markerResource(0x30);
+    widget.addTag(QStringLiteral("with-resource"), resource);
+    QCOMPARE(addNameCount, 1);
+    QCOMPARE(capturedAddLookupUrl, QStringLiteral("with-resource"));
+    QCOMPARE(capturedAddName, QStringLiteral("with-resource"));
+    QVERIFY(capturedAddResource == resource);
+}
+
+void KisTagChooserWidgetContractTest::existingNameChoiceRestoresCancelsOrReplaces()
+{
+    configurePresentationModel();
+    KisTagChooserWidget widget(
+        reinterpret_cast<KisTagModel *>(quintptr(1)),
+        QStringLiteral("patterns"),
+        nullptr);
+    const KisTagSP existing = markerTag(0x40);
+    const KoResourceSP resource = markerResource(0x50);
+
+    resetAddState();
+    addExistingTag = existing;
+    addNextChoice = QMessageBox::AcceptRole;
+    widget.addTag(QStringLiteral("existing"), resource);
+    QCOMPARE(addQuestionCount, 1);
+    QCOMPARE(capturedQuestionParent.data(), &widget);
+    QVERIFY(!capturedQuestionTagActive);
+    QCOMPARE(addReactivateCount, 1);
+    QCOMPARE(addNameCount, 0);
+    QCOMPARE(capturedAddResourceType, QStringLiteral("patterns"));
+    QVERIFY(capturedAddTag == existing);
+    QVERIFY(capturedAddResource == resource);
+
+    resetAddState();
+    addExistingTag = existing;
+    addNextChoice = QMessageBox::RejectRole;
+    widget.addTag(QStringLiteral("existing"), resource);
+    QCOMPARE(addQuestionCount, 1);
+    QCOMPARE(addReactivateCount, 0);
+    QCOMPARE(addNameCount, 0);
+
+    resetAddState();
+    addExistingTag = existing;
+    addNextChoice = QMessageBox::DestructiveRole;
+    widget.addTag(QStringLiteral("existing"), resource);
+    QCOMPARE(addQuestionCount, 1);
+    QCOMPARE(addReactivateCount, 0);
+    QCOMPARE(addNameCount, 1);
+    QVERIFY(capturedAddResource == resource);
+}
+
+void KisTagChooserWidgetContractTest::tagValueUsesNameUrlAndExistingChoice()
+{
+    configurePresentationModel();
+    KisTagChooserWidget widget(
+        reinterpret_cast<KisTagModel *>(quintptr(1)),
+        QStringLiteral("patterns"),
+        nullptr);
+    const KisTagSP tag = markerTag(0x60);
+    const KoResourceSP resource = markerResource(0x70);
+
+    resetAddState();
+    addTagName = KisAllTagsModel::urlAllUntagged();
+    widget.addTag(tag, resource);
+    QCOMPARE(addReservedWarningCount, 1);
+    QCOMPARE(capturedReservedParent.data(), &widget);
+    QVERIFY(capturedReservedTagValueInput);
+    QCOMPARE(addLookupCount, 0);
+    QCOMPARE(addValueCount, 0);
+
+    resetAddState();
+    widget.addTag(tag, resource);
+    QCOMPARE(addLookupCount, 1);
+    QCOMPARE(capturedAddLookupUrl, QStringLiteral("fresh"));
+    QCOMPARE(addValueCount, 1);
+    QVERIFY(capturedAddTag == tag);
+    QVERIFY(capturedAddResource == resource);
+
+    resetAddState();
+    addExistingTag = markerTag(0x80);
+    addExistingTagActive = true;
+    addNextChoice = QMessageBox::AcceptRole;
+    widget.addTag(tag, resource);
+    QCOMPARE(addQuestionCount, 1);
+    QCOMPARE(capturedQuestionParent.data(), &widget);
+    QVERIFY(capturedQuestionTagActive);
+    QCOMPARE(addReactivateCount, 1);
+    QVERIFY(capturedAddTag == addExistingTag);
+    QVERIFY(capturedAddResource == resource);
 }
 
 QTEST_MAIN(KisTagChooserWidgetContractTest)
