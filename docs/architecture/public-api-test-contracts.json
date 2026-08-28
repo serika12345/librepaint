@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e602e23a1ace3754529e60b0a3b0f4d4606843ba1b4e686295c9602542045ea2"
   },
   "migration": {
-    "expectedMissingApis": 27966
+    "expectedMissingApis": 27897
   },
   "contracts": [
     {
@@ -5915,6 +5915,120 @@
       "apis": [
         "enum:KoFlake::CanvasResource",
         "enumerator:KoFlake::CanvasResource::HotPosition"
+      ]
+    },
+    {
+      "target": "KisGlobalValuesContractTest",
+      "source": "libs/global/tests/KisGlobalValuesContractTest.cpp",
+      "test": "KisGlobalValuesContractTest::numericLimitsAndSelectionConstantsRemainStable",
+      "behavior": "整数限界、選択範囲、筆圧範囲・閾値、基底画面様式プロパティー名は公開された固定値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:MAX_SELECTED",
+        "variable:MIN_SELECTED",
+        "variable:PRESSURE_DEFAULT",
+        "variable:PRESSURE_MAX",
+        "variable:PRESSURE_MIN",
+        "variable:PRESSURE_THRESHOLD",
+        "variable:SELECTION_THRESHOLD",
+        "variable:currentUnderlyingStyleNameProperty",
+        "variable:qint16_MAX",
+        "variable:qint16_MIN",
+        "variable:qint32_MAX",
+        "variable:qint32_MIN",
+        "variable:quint16_MAX",
+        "variable:quint8_MAX"
+      ]
+    },
+    {
+      "target": "KisGlobalValuesContractTest",
+      "source": "libs/global/tests/KisGlobalValuesContractTest.cpp",
+      "test": "KisGlobalValuesContractTest::outlineAndCursorValuesRemainStable",
+      "behavior": "輪郭、現行カーソル、旧カーソルの各様式は設定互換性に必要な宣言順と要素数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:CursorStyle",
+        "enum:OldCursorStyle",
+        "enum:OutlineStyle",
+        "enumerator:CursorStyle::CURSOR_STYLE_BLACK_PIXEL",
+        "enumerator:CursorStyle::CURSOR_STYLE_CROSSHAIR",
+        "enumerator:CursorStyle::CURSOR_STYLE_ERASER",
+        "enumerator:CursorStyle::CURSOR_STYLE_NO_CURSOR",
+        "enumerator:CursorStyle::CURSOR_STYLE_POINTER",
+        "enumerator:CursorStyle::CURSOR_STYLE_SMALL_ROUND",
+        "enumerator:CursorStyle::CURSOR_STYLE_TOOLICON",
+        "enumerator:CursorStyle::CURSOR_STYLE_TRIANGLE_LEFTHANDED",
+        "enumerator:CursorStyle::CURSOR_STYLE_TRIANGLE_RIGHTHANDED",
+        "enumerator:CursorStyle::CURSOR_STYLE_WHITE_PIXEL",
+        "enumerator:CursorStyle::N_CURSOR_STYLE_SIZE",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_CROSSHAIR",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_NO_CURSOR",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_OUTLINE",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_OUTLINE_CENTER_CROSS",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_OUTLINE_CENTER_DOT",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_OUTLINE_TRIANGLE_LEFTHANDED",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_OUTLINE_TRIANGLE_RIGHTHANDED",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_POINTER",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_SMALL_ROUND",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_TOOLICON",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_TRIANGLE_LEFTHANDED",
+        "enumerator:OldCursorStyle::OLD_CURSOR_STYLE_TRIANGLE_RIGHTHANDED",
+        "enumerator:OutlineStyle::N_OUTLINE_STYLE_SIZE",
+        "enumerator:OutlineStyle::OUTLINE_CIRCLE",
+        "enumerator:OutlineStyle::OUTLINE_FULL",
+        "enumerator:OutlineStyle::OUTLINE_NONE",
+        "enumerator:OutlineStyle::OUTLINE_TILT"
+      ]
+    },
+    {
+      "target": "KisGlobalValuesContractTest",
+      "source": "libs/global/tests/KisGlobalValuesContractTest.cpp",
+      "test": "KisGlobalValuesContractTest::angleAndPowerHelpersNormalizeValues",
+      "behavior": "角度の正規化・距離・二等分、度とラジアンの変換、二乗・三乗、次の2冪計算は境界を含む安定値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:bisectorAngle(qreal a,qreal b)",
+        "function:incrementInDirection(qreal a,qreal inc,qreal direction)",
+        "function:kisDegreesToRadians(T degrees)",
+        "function:kisRadiansToDegrees(T radians)",
+        "function:nextPowerOfTwo(T v)",
+        "function:normalizeAngle(T a)",
+        "function:normalizeAngleDegrees(T a)",
+        "function:pow2(const T & x)",
+        "function:pow3(const T & x)",
+        "function:shortestAngularDistance(qreal a,qreal b)"
+      ]
+    },
+    {
+      "target": "KisGlobalValuesContractTest",
+      "source": "libs/global/tests/KisGlobalValuesContractTest.cpp",
+      "test": "KisGlobalValuesContractTest::geometryHelpersTransformValues",
+      "behavior": "値の範囲制限、点・線距離、矩形拡張・範囲内移動、ベクトル射影、軸・角度吸着は指定値へ決定的に変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:kisBoundFast(const T & min,const T & val,const T & max)",
+        "function:kisDistance(const QPointF & pt1,const QPointF & pt2)",
+        "function:kisDistanceToLine(const QPointF & m,const QLineF & line)",
+        "function:kisEnsureInRect(QRect rc,const QRect & bounds)",
+        "function:kisGrowRect(const T & rect,U offset)",
+        "function:kisProjectOnVector(const QPointF & base,const QPointF & v)",
+        "function:kisSquareDistance(const QPointF & pt1,const QPointF & pt2)",
+        "function:kisSquareDistanceToLine(const QPointF & m,const QLineF & line)",
+        "function:snapToClosestAxis(PointType P)",
+        "function:snapToClosestNiceAngle(PointType point,PointType startPoint,qreal angle=(2* M_PI)/24)"
+      ]
+    },
+    {
+      "target": "KisGlobalValuesContractTest",
+      "source": "libs/global/tests/KisGlobalValuesContractTest.cpp",
+      "test": "KisGlobalValuesContractTest::trimmingHelpersSplitAndAdvanceRectangles",
+      "behavior": "整数・浮動小数点矩形の左端と上端の切出しは指定寸法を返し、元矩形を残り領域へ進める。",
+      "classification": "maintained",
+      "apis": [
+        "function:kisTrimLeft(int width,QRect & toTakeFrom)",
+        "function:kisTrimLeft(int width,QRectF & toTakeFrom)",
+        "function:kisTrimTop(int height,QRect & toTakeFrom)",
+        "function:kisTrimTop(int height,QRectF & toTakeFrom)"
       ]
     }
   ]

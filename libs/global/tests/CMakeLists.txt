@@ -43,6 +43,18 @@ kis_add_test(
 target_compile_definitions(KisGlobalTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisGlobalValuesContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisGlobalValuesContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisGlobalValuesContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisFutureUtilsTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
