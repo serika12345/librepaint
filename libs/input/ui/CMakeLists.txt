@@ -1,5 +1,22 @@
-set(kritainputui_LIB_SRCS
+add_library(kritainputuiextendedmodifiersinterfaceobjects OBJECT
     KisExtendedModifiersMapperPluginInterface.cpp
+)
+target_compile_definitions(kritainputuiextendedmodifiersinterfaceobjects
+    PRIVATE kritainputui_EXPORTS
+)
+target_include_directories(kritainputuiextendedmodifiersinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritainputuiextendedmodifiersinterfaceobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritainputuiextendedmodifiersinterfaceobjects
+    PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritainputui_LIB_SRCS
     KisInputProfileMigrator.cpp
     KisPopupWidgetAction.cpp
     kis_abstract_input_action.cpp
@@ -48,7 +65,10 @@ ki18n_wrap_ui(kritainputui_LIB_SRCS
     wintab/drawpile_tablettester/tablettest.ui
 )
 
-kis_add_library(kritainputui SHARED ${kritainputui_LIB_SRCS})
+kis_add_library(kritainputui SHARED
+    ${kritainputui_LIB_SRCS}
+    $<TARGET_OBJECTS:kritainputuiextendedmodifiersinterfaceobjects>
+)
 generate_export_header(kritainputui BASE_NAME kritainputui)
 
 target_include_directories(kritainputui

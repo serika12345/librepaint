@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25922
+    "expectedMissingApis": 25918
   },
   "contracts": [
     {
@@ -9274,6 +9274,28 @@
         "method:KisShortcutMatcher::nativeGestureBeginEvent(QNativeGestureEvent * event)",
         "method:KisShortcutMatcher::nativeGestureEndEvent(QNativeGestureEvent * event)",
         "method:KisShortcutMatcher::nativeGestureEvent(QNativeGestureEvent * event)"
+      ]
+    },
+    {
+      "target": "KisExtendedModifiersMapperPluginInterfaceContractTest",
+      "source": "libs/input/ui/tests/KisExtendedModifiersMapperPluginInterfaceContractTest.cpp",
+      "test": "KisExtendedModifiersMapperPluginInterfaceContractTest::returnsPluginProvidedModifierSequence",
+      "behavior": "拡張修飾キー・プラグイン境界は、実装が返す修飾キー列と順序を基本型経由でそのまま公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisExtendedModifiersMapperPluginInterface::ExtendedModifiers",
+        "class:KisExtendedModifiersMapperPluginInterface",
+        "method:KisExtendedModifiersMapperPluginInterface::queryExtendedModifiers()"
+      ]
+    },
+    {
+      "target": "KisExtendedModifiersMapperPluginInterfaceContractTest",
+      "source": "libs/input/ui/tests/KisExtendedModifiersMapperPluginInterfaceContractTest.cpp",
+      "test": "KisExtendedModifiersMapperPluginInterfaceContractTest::preservesQObjectAndPolymorphicLifetime",
+      "behavior": "拡張修飾キー・プラグインはQObjectの親子関係を保持し、基本型を通した破棄で派生実装とQObject監視を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExtendedModifiersMapperPluginInterface::~KisExtendedModifiersMapperPluginInterface()"
       ]
     }
   ]

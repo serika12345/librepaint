@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 19:34 JST
+- 更新日時: 2026-08-28 19:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5517,10 +5517,25 @@
   対応済みは4,045件、未対応基準は25,922件になり、同ヘッダーのpublic APIは全件対応済みに
   なった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 拡張修飾キー・プラグイン境界 public API契約と構築所有分離で完了した作業
+
+- `libs/input/ui/KisExtendedModifiersMapperPluginInterface.cpp`は同じ配置のまま、`kritainputui`の
+  直接ソース所有から新規`kritainputuiextendedmodifiersinterfaceobjects`の所有へ移し、製品
+  `kritainputui`が生成オブジェクトを1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは
+  維持した。
+- `libs/input/ui/KisExtendedModifiersMapperPluginInterface.h`の型別名、基本型を通したQObject寿命、
+  修飾キー列の取得からなる1型別名・1クラス・2メソッドの4 APIを、新規
+  `libs/input/ui/tests/KisExtendedModifiersMapperPluginInterfaceContractTest.cpp`の2試験へ全件
+  対応付けた。
+- 1,183工程・2,375入力の製品入力UIへ接続せず、専用実装は3工程・7入力、専用試験はmacOSで
+  7工程・14入力に収めた。対象実行と20回反復に成功した。対応済みは4,049件、未対応基準は
+  25,918件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/input/ui/KisExtendedModifiersMapperPluginInterface.h`の拡張修飾キー取得APIについて、既存試験、
-直接依存、変更なし構築閉包を監査し、最小の局所契約を追加する。
+`libs/input/ui/KisPopupWidgetInterface.h`のポップアップ表示境界について、既存試験、直接依存、
+変更なし構築閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠
 
