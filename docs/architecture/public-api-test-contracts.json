@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27418
+    "expectedMissingApis": 27407
   },
   "contracts": [
     {
@@ -5007,6 +5007,44 @@
         "alias:KisRandomSourceWSP",
         "method:KisRandomSource::KisRandomSource()",
         "method:KisRandomSource::~KisRandomSource()"
+      ]
+    },
+    {
+      "target": "KisLatencyTrackerContractTest",
+      "source": "libs/global/tests/KisLatencyTrackerContractTest.cpp",
+      "test": "KisLatencyTrackerContractTest::rollingMaximumReportsEmptyStateAndCurrentWindow",
+      "behavior": "移動最大値は空状態で例外を返し、窓幅2では3件目まで最初の値を保持して4件目の追加時に初めて除外する現行の1件過剰な窓境界を再現する。",
+      "classification": "known_defect",
+      "apis": [
+        "class:KisRollingMax",
+        "method:KisRollingMax::KisRollingMax(int windowSize)",
+        "method:KisRollingMax::max() const",
+        "method:KisRollingMax::push(T value)"
+      ]
+    },
+    {
+      "target": "KisLatencyTrackerContractTest",
+      "source": "libs/global/tests/KisLatencyTrackerContractTest.cpp",
+      "test": "KisLatencyTrackerContractTest::scalarTrackerAggregatesAtTheWindowBoundaryAndDestroysVirtually",
+      "behavior": "スカラー追跡は指定件数ごとに平均・分散・最大値を整形して一度出力し、基底ポインターから派生個体を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScalarTracker",
+        "method:KisScalarTracker::KisScalarTracker(const QString & name,int windowSize=500)",
+        "method:KisScalarTracker::push(T value)",
+        "method:KisScalarTracker::~KisScalarTracker()"
+      ]
+    },
+    {
+      "target": "KisLatencyTrackerContractTest",
+      "source": "libs/global/tests/KisLatencyTrackerContractTest.cpp",
+      "test": "KisLatencyTrackerContractTest::latencyTrackerPushesTheDifferenceFromCurrentTime",
+      "behavior": "遅延追跡は現在時刻から到着イベント時刻を引いた値をスカラー集計へ渡し、窓境界で出力する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLatencyTracker",
+        "method:KisLatencyTracker::KisLatencyTracker(int windowSize=500)",
+        "method:KisLatencyTracker::push(qint64 timestamp)"
       ]
     }
   ]
