@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28179
+    "expectedMissingApis": 28159
   },
   "contracts": [
     {
@@ -5629,6 +5629,62 @@
       "classification": "maintained",
       "apis": [
         "function:kisBacktrace()"
+      ]
+    },
+    {
+      "target": "KisConfigNotifierContractTest",
+      "source": "libs/global/tests/KisConfigNotifierContractTest.cpp",
+      "test": "KisConfigNotifierContractTest::singletonAndLocalLifetimeAreStable",
+      "behavior": "構成変更通知器は照会間で同じ共有個体を返し、独立した局所個体の構築と破棄を受理する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisConfigNotifier",
+        "method:KisConfigNotifier::KisConfigNotifier()",
+        "method:KisConfigNotifier::instance()",
+        "method:KisConfigNotifier::~KisConfigNotifier()"
+      ]
+    },
+    {
+      "target": "KisConfigNotifierContractTest",
+      "source": "libs/global/tests/KisConfigNotifierContractTest.cpp",
+      "test": "KisConfigNotifierContractTest::immediateNotificationsEmitOnce",
+      "behavior": "引数を持たない一般、画素格子、色履歴、接触描画、採色器表示の各通知は対応する信号を同期的に一度送出する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigNotifier::colorHistoryModeChanged()",
+        "method:KisConfigNotifier::configChanged(void)",
+        "method:KisConfigNotifier::notifyColorHistoryModeChanged()",
+        "method:KisConfigNotifier::notifyColorSamplerPreviewStyleChanged()",
+        "method:KisConfigNotifier::notifyConfigChanged(void)",
+        "method:KisConfigNotifier::notifyPixelGridModeChanged()",
+        "method:KisConfigNotifier::notifyTouchPaintingChanged()",
+        "method:KisConfigNotifier::pixelGridModeChanged()",
+        "method:KisConfigNotifier::sigColorSamplerPreviewStyleChanged()",
+        "method:KisConfigNotifier::touchPaintingChanged()"
+      ]
+    },
+    {
+      "target": "KisConfigNotifierContractTest",
+      "source": "libs/global/tests/KisConfigNotifierContractTest.cpp",
+      "test": "KisConfigNotifierContractTest::valueNotificationsForwardArguments",
+      "behavior": "配色テーマと長押しの通知は指定したファイル名と有効値を対応する信号へそのまま転送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigNotifier::notifyColorThemeChanged(const QString & filename)",
+        "method:KisConfigNotifier::notifyLongPressChanged(bool enabled)",
+        "method:KisConfigNotifier::sigLongPressChanged(bool enabled)",
+        "method:KisConfigNotifier::signalColorThemeChanged(const QString & filename)"
+      ]
+    },
+    {
+      "target": "KisConfigNotifierContractTest",
+      "source": "libs/global/tests/KisConfigNotifierContractTest.cpp",
+      "test": "KisConfigNotifierContractTest::dropFramesNotificationUsesFirstActiveCompression",
+      "behavior": "フレーム欠落方式の通知は最初の信号を同期的に送出し、直後の通知を圧縮時間経過後の一信号へまとめる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigNotifier::dropFramesModeChanged()",
+        "method:KisConfigNotifier::notifyDropFramesModeChanged()"
       ]
     }
   ]
