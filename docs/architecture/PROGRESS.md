@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 03:40 JST
+- 更新日時: 2026-08-29 03:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6564,12 +6564,33 @@
   `libs/resources/ui/KisResourceItemChooser.h`と資源UI責務の公開APIは全件対応済みになった。製品
   `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ASL値捕捉・購読配送 public API契約と構築所有分離で完了した作業
+
+- `libs/psdutils/asl/kis_asl_object_catcher.cpp`と
+  `libs/psdutils/asl/kis_asl_callback_object_catcher.cpp`は、製品`kritapsdutils`の直接ソース所有から、
+  同じファイル位置の新規`kritaaslobjectcatcherobjects`へ移した。製品はこの生成オブジェクトを1回
+  集約する。基底の未処理値診断と派生の購読配送を一つのASL値捕捉責務として局所構築できる。
+- 両ヘッダーの72 APIを、新規
+  `libs/psdutils/tests/KisAslObjectCatcherContractTest.cpp`の6試験へ対応付けた。基底捕捉器の配列状態付き
+  未処理診断、数値・文字列・真偽値・生データ、色・点・変換・矩形、曲線・模様・グラデーション・
+  新規スタイル開始の値保持、列挙型識別子と単位の一致条件、同じパスの再購読による置換、破棄時の
+  コールバック所有解放を固定した。
+- 局所対象の最初のコンパイルは`KoColor.h`が直接必要とする半精度数値ヘッダーの不足を診断し、
+  OpenEXRの既存依存を対象へ明示した。試験の最初のリンクは、製品全体が暗黙に供給していたログ分類、
+  色の診断表示、資源の表示用取得関数だけを未解決参照として示したため、試験内の値境界で満たし、
+  `kritapigment`、`kritaresources`、`kritaglobal`を試験へ接続していない。
+- ASL値捕捉対象を2工程・5入力、新規試験を6工程・19入力に収めた。製品`kritapsdutils`の閉包は
+  561工程・1,152入力であり、対象CTestのmacOS単発実行と20回反復、公開API契約検査は成功した。
+  公開面は1,547ヘッダー、29,979 API、対応済み4,575件、未対応25,404件になり、両ASL値捕捉
+  ヘッダーのpublic APIは全件対応済みになった。製品`kritapsdutils`のリンク、Linux、全ネイティブ
+  検証は実行していない。
+
 ## 次の操作
 
-再生成した公開API作業列の先頭にある`libs/psdutils/asl/kis_asl_callback_object_catcher.h`の51 APIを
-対象とする。製品`kritapsdutils`へ直接所属する
-`libs/psdutils/asl/kis_asl_callback_object_catcher.cpp`について、対象指定の変更なし計画、直接CMake依存、
-空構築閉包を監査し、購読経路と値・単位・列挙型の照合を局所契約へ分けてから実装する。
+再生成した公開API作業列の先頭にある`libs/pigment/colorspaces/KoAlphaColorSpace.h`の52 APIを対象とする。
+製品`kritapigment`へ直接所属する`libs/pigment/colorspaces/KoAlphaColorSpace.cpp`と既存の色空間試験について、
+対象指定の変更なし計画、直接CMake依存、空構築閉包を監査する。アルファ画素特性、色空間情報、画素変換、
+XML往復、調整・畳込み、生成工場の既存観測範囲を確認し、過大な製品閉包が必要なら所有単位を先に分ける。
 
 ## R1-G5完了根拠
 

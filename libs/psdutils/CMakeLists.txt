@@ -4,8 +4,6 @@ set(kritapsdutils_LIB_SRCS
 
     asl/kis_asl_reader.cpp
     asl/kis_asl_xml_parser.cpp
-    asl/kis_asl_object_catcher.cpp
-    asl/kis_asl_callback_object_catcher.cpp
     asl/kis_asl_xml_writer.cpp
     asl/kis_asl_patterns_writer.cpp
     asl/kis_asl_writer.cpp
@@ -16,7 +14,41 @@ set(kritapsdutils_LIB_SRCS
     cos/psd_text_data_converter.cpp
 )
 
-kis_add_library(kritapsdutils SHARED ${kritapsdutils_LIB_SRCS})
+add_library(kritaaslobjectcatcherobjects OBJECT
+    asl/kis_asl_object_catcher.cpp
+    asl/kis_asl_callback_object_catcher.cpp
+)
+target_compile_definitions(kritaaslobjectcatcherobjects PRIVATE kritapsdutils_EXPORTS)
+target_include_directories(kritaaslobjectcatcherobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/asl>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+)
+target_link_libraries(kritaaslobjectcatcherobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritaaslobjectcatcherobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_library(kritapsdutils SHARED
+    ${kritapsdutils_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaaslobjectcatcherobjects>
+)
 generate_export_header(kritapsdutils BASE_NAME kritapsdutils)
 
 target_link_libraries(kritapsdutils
