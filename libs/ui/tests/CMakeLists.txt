@@ -36,6 +36,48 @@ kis_add_test(
     LINK_LIBRARIES kritainputui kritaapplicationui kritalibkis kritatestsdk
 )
 
+kis_add_test(
+    KisDlgPreferencesEnumContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::Completion
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::WidgetsAddons
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+target_include_directories(KisDlgPreferencesEnumContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs
+    ${CMAKE_BINARY_DIR}/libs
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../widgets
+    ${CMAKE_SOURCE_DIR}/libs/application
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils/xmlgui
+    ${CMAKE_SOURCE_DIR}/libs/widgets
+    ${CMAKE_BINARY_DIR}/libs/widgets
+)
+target_compile_definitions(KisDlgPreferencesEnumContractTest PRIVATE
+    kritaapplication_EXPORTS
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+    kritaui_EXPORTS
+    kritawidgets_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
 kis_add_tests(
     kis_doc2_test.cpp
     kis_file_layer_test.cpp

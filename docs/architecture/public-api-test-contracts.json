@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26178
+    "expectedMissingApis": 26140
   },
   "contracts": [
     {
@@ -8433,6 +8433,107 @@
         "enumerator:KoShape::ChildZOrderPolicy::ChildZDefault",
         "enumerator:KoShape::ChildZOrderPolicy::ChildZParentChild",
         "enumerator:KoShape::ChildZOrderPolicy::ChildZPassThrough"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::preferredSpaceValuesRemainStable",
+      "behavior": "優先色空間と基準色空間の選択値は環境設定画面が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:ColorSettingsTab::PreferredSpaceType",
+        "enumerator:ColorSettingsTab::PreferredSpaceType::MasteringSpace",
+        "enumerator:ColorSettingsTab::PreferredSpaceType::PreferredSpace"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::canvasSurfaceAliasesRemainStable",
+      "behavior": "色設定画面のキャンバス表面方式とビット深度方式はアプリケーション設定が所有する型の別名を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:ColorSettingsTab::CanvasSurfaceBitDepthMode",
+        "alias:ColorSettingsTab::CanvasSurfaceMode"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::pageValuesRemainStable",
+      "behavior": "環境設定の9ページはページ切替処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDlgPreferences::Page",
+        "enumerator:KisDlgPreferences::Page::Color",
+        "enumerator:KisDlgPreferences::Page::Display",
+        "enumerator:KisDlgPreferences::Page::Fullscreen",
+        "enumerator:KisDlgPreferences::Page::General",
+        "enumerator:KisDlgPreferences::Page::Input",
+        "enumerator:KisDlgPreferences::Page::Performance",
+        "enumerator:KisDlgPreferences::Page::PopupPalette",
+        "enumerator:KisDlgPreferences::Page::Shortucts",
+        "enumerator:KisDlgPreferences::Page::Tablet"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::generalTabValuesRemainStable",
+      "behavior": "一般設定の8タブはタブ切替処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDlgPreferences::GeneralTabs",
+        "enumerator:KisDlgPreferences::GeneralTabs::Animation",
+        "enumerator:KisDlgPreferences::GeneralTabs::Cursor",
+        "enumerator:KisDlgPreferences::GeneralTabs::File",
+        "enumerator:KisDlgPreferences::GeneralTabs::MiscellaneousGeneral",
+        "enumerator:KisDlgPreferences::GeneralTabs::Pasting",
+        "enumerator:KisDlgPreferences::GeneralTabs::Resources",
+        "enumerator:KisDlgPreferences::GeneralTabs::Tools",
+        "enumerator:KisDlgPreferences::GeneralTabs::Window"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::colorTabValuesRemainStable",
+      "behavior": "色設定の3タブはタブ切替処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDlgPreferences::ColorTabs",
+        "enumerator:KisDlgPreferences::ColorTabs::DisplayTab",
+        "enumerator:KisDlgPreferences::ColorTabs::GeneralColor",
+        "enumerator:KisDlgPreferences::ColorTabs::SoftProofing"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::displayTabValuesRemainStable",
+      "behavior": "表示設定の4タブはタブ切替処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDlgPreferences::DisplayTabs",
+        "enumerator:KisDlgPreferences::DisplayTabs::CanvasAcceleration",
+        "enumerator:KisDlgPreferences::DisplayTabs::CanvasDecoration",
+        "enumerator:KisDlgPreferences::DisplayTabs::HDR",
+        "enumerator:KisDlgPreferences::DisplayTabs::MiscellaneousDisplay"
+      ]
+    },
+    {
+      "target": "KisDlgPreferencesEnumContractTest",
+      "source": "libs/ui/tests/KisDlgPreferencesEnumContractTest.cpp",
+      "test": "KisDlgPreferencesEnumContractTest::performanceTabValuesRemainStable",
+      "behavior": "性能設定の4タブはタブ切替処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisDlgPreferences::PerformaceTabs",
+        "enumerator:KisDlgPreferences::PerformaceTabs::Advanced",
+        "enumerator:KisDlgPreferences::PerformaceTabs::AnimationCache",
+        "enumerator:KisDlgPreferences::PerformaceTabs::GeneralPerformance",
+        "enumerator:KisDlgPreferences::PerformaceTabs::InstantPreview"
       ]
     }
   ]
