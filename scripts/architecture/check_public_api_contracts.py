@@ -38,6 +38,9 @@ CTAGS_IGNORED_TOKENS = (
     "Q_SIGNALS=public",
     "override=",
 )
+CTAGS_MACRO_DEFINITIONS = (
+    "Q_DECLARE_FLAGS(Name,Enum)=typedef QFlags<Enum> Name;",
+)
 CONTRACT_CLASSIFICATIONS = frozenset(
     {"maintained", "known_defect", "open_design_question"}
 )
@@ -198,10 +201,10 @@ def collect_ctags(
         "--extras=-F",
         "-I",
         ",".join(CTAGS_IGNORED_TOKENS),
-        "-o",
-        "-",
-        *public_headers,
     ]
+    for definition in CTAGS_MACRO_DEFINITIONS:
+        command.extend(["-D", definition])
+    command.extend(["-o", "-", *public_headers])
     completed = subprocess.run(
         command,
         cwd=repository_root,

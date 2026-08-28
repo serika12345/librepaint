@@ -22,6 +22,46 @@ SPEC.loader.exec_module(check_public_api_contracts)
 
 
 class PublicApiContractTests(unittest.TestCase):
+    def test_collects_qt_flag_declarations_as_aliases(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            header = root / "PublicFlags.h"
+            header.write_text(
+                """
+template<typename Enum>
+class QFlags;
+
+enum class PublicFlag
+{
+    First = 1,
+    Second = 2
+};
+
+Q_DECLARE_FLAGS(PublicFlags, PublicFlag)
+""",
+                encoding="utf-8",
+            )
+
+            tags = check_public_api_contracts.collect_ctags(
+                root, ["PublicFlags.h"]
+            )
+            apis = check_public_api_contracts.extract_public_apis(
+                tags, {"PublicFlags.h"}
+            )
+
+            self.assertIn(
+                {
+                    "header": "PublicFlags.h",
+                    "id": "alias:PublicFlags",
+                    "kind": "alias",
+                    "symbol": "PublicFlags: QFlags<PublicFlag>",
+                },
+                apis,
+            )
+            self.assertFalse(
+                any("Q_DECLARE_FLAGS" in api["id"] for api in apis)
+            )
+
     def test_collects_overridden_public_destructor(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

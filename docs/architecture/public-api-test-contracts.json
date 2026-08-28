@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1544,
     "publicHeaderFingerprint": "814b91750b0668df3c54a7b44d4cb6903452476e38225680a86c889ec2e237e7",
-    "publicApiCount": 29972,
-    "publicApiFingerprint": "ee8d114ea870ea9c3dc0ebbd656b80ba23158cfe08a87f13471d78a532a9cbb8"
+    "publicApiCount": 30012,
+    "publicApiFingerprint": "421efe1139c87d97ec40853421fe5161f8bd7f2ed8203904b0fc5def7c3cde44"
   },
   "migration": {
-    "expectedMissingApis": 28244
+    "expectedMissingApis": 28283
   },
   "contracts": [
     {
@@ -2330,6 +2330,7 @@
       "behavior": "既定フラグは通知抑止を含まず、通知抑止値を結合すると対応するビットだけを保持する。",
       "classification": "maintained",
       "apis": [
+        "alias:KisNodeAdditionFlags",
         "enum:KisNodeAdditionFlag",
         "enumerator:KisNodeAdditionFlag::DontActivateNode",
         "enumerator:KisNodeAdditionFlag::None"
