@@ -12,3 +12,12 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisShortcutConfigurationContractTest PRIVATE kritainput_EXPORTS)
+
+kis_add_test(
+    KisInputProfileContractTest.cpp
+    LINK_LIBRARIES
+        kritainputprofileobjects
+        kritainputshortcutconfigurationobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisInputProfileContractTest PRIVATE kritainput_EXPORTS)

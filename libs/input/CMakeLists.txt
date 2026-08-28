@@ -17,10 +17,21 @@ set_target_properties(kritainputshortcutconfigurationobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritainputprofileobjects OBJECT
+    kis_input_profile.cpp
+)
+target_compile_definitions(kritainputprofileobjects PRIVATE kritainput_EXPORTS)
+target_include_directories(kritainputprofileobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritainputprofileobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritainputprofileobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritainput_LIB_SRCS
     KisInputEventSuppressor.cpp
     KisTimedSignalThreshold.cpp
-    kis_input_profile.cpp
     kis_abstract_shortcut.cpp
     kis_native_gesture_shortcut.cpp
     kis_shortcut_matcher.cpp
@@ -32,6 +43,7 @@ set(kritainput_LIB_SRCS
 kis_add_library(kritainput SHARED
     ${kritainput_LIB_SRCS}
     $<TARGET_OBJECTS:kritainputshortcutconfigurationobjects>
+    $<TARGET_OBJECTS:kritainputprofileobjects>
 )
 generate_export_header(kritainput BASE_NAME kritainput)
 

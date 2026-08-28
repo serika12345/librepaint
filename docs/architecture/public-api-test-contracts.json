@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26096
+    "expectedMissingApis": 26086
   },
   "contracts": [
     {
@@ -8641,6 +8641,61 @@
       "classification": "maintained",
       "apis": [
         "method:KisShortcutConfiguration::isNoOp() const"
+      ]
+    },
+    {
+      "target": "KisInputProfileContractTest",
+      "source": "libs/input/tests/KisInputProfileContractTest.cpp",
+      "test": "KisInputProfileContractTest::defaultProfileUsesQObjectParent",
+      "behavior": "新規入力プロファイルは指定したQObject親に所属し、空の名前とショートカット集合を持つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInputProfile",
+        "method:KisInputProfile::KisInputProfile(QObject * parent=0)"
+      ]
+    },
+    {
+      "target": "KisInputProfileContractTest",
+      "source": "libs/input/tests/KisInputProfileContractTest.cpp",
+      "test": "KisInputProfileContractTest::nameChangesOnlyForDistinctValues",
+      "behavior": "入力プロファイル名は設定値を返し、値が実際に変化した場合だけ変更通知を発行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputProfile::name() const",
+        "method:KisInputProfile::nameChanged()",
+        "method:KisInputProfile::setName(const QString & name)"
+      ]
+    },
+    {
+      "target": "KisInputProfileContractTest",
+      "source": "libs/input/tests/KisInputProfileContractTest.cpp",
+      "test": "KisInputProfileContractTest::indexesOwnedShortcutsByActionId",
+      "behavior": "追加したショートカットは全件一覧に現れ、同じ操作IDを持つ複数入力を操作別一覧から取得できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputProfile::addShortcut(KisShortcutConfiguration * shortcut)",
+        "method:KisInputProfile::allShortcuts() const",
+        "method:KisInputProfile::shortcutsForAction(const QString & actionId) const"
+      ]
+    },
+    {
+      "target": "KisInputProfileContractTest",
+      "source": "libs/input/tests/KisInputProfileContractTest.cpp",
+      "test": "KisInputProfileContractTest::removedShortcutRemainsCallerOwned",
+      "behavior": "削除したショートカットはプロファイルの索引から外れ、呼出し側が引き続き所有して利用できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputProfile::removeShortcut(KisShortcutConfiguration * shortcut)"
+      ]
+    },
+    {
+      "target": "KisInputProfileContractTest",
+      "source": "libs/input/tests/KisInputProfileContractTest.cpp",
+      "test": "KisInputProfileContractTest::destroysOwnedShortcuts",
+      "behavior": "入力プロファイルの破棄は索引に残るショートカットの所有権を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputProfile::~KisInputProfile()"
       ]
     }
   ]
