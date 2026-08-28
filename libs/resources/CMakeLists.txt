@@ -2,6 +2,26 @@ include_directories(${QUAZIP_INCLUDE_DIRS})
 
 add_subdirectory(tests)
 
+add_library(kritaresourcestypesobjects OBJECT
+    KisResourceTypes.cpp
+    ResourceDebug.cpp
+)
+target_compile_definitions(kritaresourcestypesobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritaresourcestypesobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaresourcestypesobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourcestypesobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresources_LIB_SRCS
     KisResourceCacheDb.cpp
     KisResourceLoader.cpp
@@ -17,8 +37,6 @@ set(kritaresources_LIB_SRCS
     KisResourceIterator.cpp
     KisResourceSearchBoxFilter.cpp
     KisResourceQueryMapper.cpp
-    KisResourceTypes.cpp
-
     KisStoragePlugin.cpp
     KisBundleStorage.cpp
     KisFolderStorage.cpp
@@ -37,8 +55,6 @@ set(kritaresources_LIB_SRCS
     KoResourceSignature.cpp
     KoEmbeddedResource.cpp
     KoResourceLoadResult.cpp
-
-    ResourceDebug.cpp
 
     KisRequiredResourcesOperators.cpp
     KisResourcesInterface.cpp
@@ -62,7 +78,10 @@ set(kritaresources_LIB_SRCS
 qt_add_resources(kritaresources_LIB_SRCS sql.qrc)
 krita_ios_add_static_resource(sql)
 
-kis_add_library(kritaresources SHARED ${kritaresources_LIB_SRCS})
+kis_add_library(kritaresources SHARED
+    ${kritaresources_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaresourcestypesobjects>
+)
 
 generate_export_header(kritaresources BASE_NAME kritaresources)
 
