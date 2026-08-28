@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28158
+    "expectedMissingApis": 28157
   },
   "contracts": [
     {
@@ -1915,6 +1915,7 @@
       "behavior": "保存方針と非同期保存開始結果の公開列挙値およびフラグ合成を安定した呼出し元契約として維持する。",
       "classification": "maintained",
       "apis": [
+        "alias:KritaUtils::SaveFlags",
         "enum:KritaUtils::BackgroudSavingStartResult",
         "enum:KritaUtils::SaveFlag",
         "enumerator:KritaUtils::BackgroudSavingStartResult::AnotherSavingInProgress",
