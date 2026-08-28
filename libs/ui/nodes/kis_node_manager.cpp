@@ -445,10 +445,10 @@ void KisNodeManager::updateGUI()
     m_d->maskManager.updateGUI();
 }
 
-KisNodeSP KisNodeManager::activeNode()
+KisNodeSP KisNodeManager::ActiveAccess::activeNode(KisNodeManager *manager)
 {
-    if (m_d->imageView) {
-        return m_d->imageView->currentNode();
+    if (manager->m_d->imageView) {
+        return manager->m_d->imageView->currentNode();
     }
     return 0;
 }

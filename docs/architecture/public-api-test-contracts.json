@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25144
+    "expectedMissingApis": 25143
   },
   "contracts": [
     {
@@ -12357,6 +12357,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::activeColorSpace()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActiveContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActiveContractTest.cpp",
+      "test": "KisNodeManagerActiveContractTest::activeNodeUsesCurrentViewValue",
+      "behavior": "現在ビューがない場合は空のノードを返し、現在ビューがある場合はその現在ノードをそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activeNode()"
       ]
     }
   ]

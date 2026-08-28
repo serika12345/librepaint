@@ -341,6 +341,7 @@ protected:
     };
 
     struct KRITAUI_EXPORT ActiveAccess {
+        static KisNodeSP activeNode(KisNodeManager *manager);
         static KisLayerSP activeLayer(KisNodeManager *manager);
         static bool hasActiveMask(KisNodeManager *manager);
         static KisPaintDeviceSP activeMaskDevice(KisNodeManager *manager);

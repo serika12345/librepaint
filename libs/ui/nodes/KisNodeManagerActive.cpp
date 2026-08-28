@@ -6,6 +6,11 @@
 
 #include "nodes/kis_node_manager.h"
 
+KisNodeSP KisNodeManager::activeNode()
+{
+    return ActiveAccess::activeNode(this);
+}
+
 KisLayerSP KisNodeManager::activeLayer()
 {
     return ActiveAccess::activeLayer(this);

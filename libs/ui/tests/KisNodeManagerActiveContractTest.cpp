@@ -30,6 +30,15 @@ bool kisSharedPtrRelease(KisPaintDevice *)
     return true;
 }
 
+void kisSharedPtrAddReference(KisNode *)
+{
+}
+
+bool kisSharedPtrRelease(KisNode *)
+{
+    return true;
+}
+
 namespace
 {
 
@@ -40,6 +49,7 @@ T *token(quintptr id)
 }
 
 KisLayerSP activeLayerValue;
+KisNodeSP activeNodeValue;
 bool activeMaskValue;
 KisPaintDeviceSP activeMaskDeviceValue;
 KisPaintDeviceSP activeLayerDeviceValue;
@@ -59,6 +69,11 @@ KisNodeManager::KisNodeManager(KisViewManager *)
 }
 
 KisNodeManager::~KisNodeManager() = default;
+
+KisNodeSP KisNodeManager::ActiveAccess::activeNode(KisNodeManager *)
+{
+    return activeNodeValue;
+}
 
 KisLayerSP KisNodeManager::ActiveAccess::activeLayer(KisNodeManager *)
 {
@@ -116,6 +131,7 @@ class KisNodeManagerActiveContractTest : public QObject
 
 private Q_SLOTS:
     void init();
+    void activeNodeUsesCurrentViewValue();
     void activeLayerUsesLayerManagerValue();
     void activePaintDevicePrefersTheMaskDevice();
     void activeColorSpacePrefersMaskThenParentThenImage();
@@ -124,6 +140,7 @@ private Q_SLOTS:
 void KisNodeManagerActiveContractTest::init()
 {
     activeLayerValue.clear();
+    activeNodeValue.clear();
     activeMaskValue = false;
     activeMaskDeviceValue.clear();
     activeLayerDeviceValue.clear();
@@ -133,6 +150,14 @@ void KisNodeManagerActiveContractTest::init()
     activeMaskColorSpaceValue = nullptr;
     activeLayerParentColorSpaceValue = nullptr;
     imageColorSpaceValue = nullptr;
+}
+
+void KisNodeManagerActiveContractTest::activeNodeUsesCurrentViewValue()
+{
+    KisNodeManager manager(nullptr);
+    QVERIFY(manager.activeNode().isNull());
+    activeNodeValue = KisNodeSP(token<KisNode>(1));
+    QCOMPARE(manager.activeNode(), activeNodeValue);
 }
 
 void KisNodeManagerActiveContractTest::activeLayerUsesLayerManagerValue()

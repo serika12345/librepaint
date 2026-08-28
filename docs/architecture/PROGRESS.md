@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 07:46 JST
+- 更新日時: 2026-08-29 07:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6881,11 +6881,26 @@
   公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,845件、
   未対応25,144件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 現在ノード public API契約で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった現在ビューの有無と現在ノードの取得を、既存の保護された
+  具体アクセス境界へ移し、公開`activeNode`の透過返却を既存`libs/ui/nodes/KisNodeManagerActive.cpp`へ
+  移した。既存`kritauinodemanageractiveobjects`を拡張し、新しいCMake対象や依存を追加していない。
+- `libs/ui/nodes/kis_node_manager.h`のうち1 APIを、既存
+  `libs/ui/tests/KisNodeManagerActiveContractTest.cpp`の1試験へ対応付けた。現在ビューがない場合の空値と、
+  現在ビューが返す現在ノードの透過返却を固定した。
+- 実装接続前のリンクは`activeNode`だけを未解決記号として診断した。判断対象は1工程・3入力、拡張後の
+  試験も5工程・17入力、製品`kritaapplicationui`閉包も1,802工程・3,604入力を維持した。
+- 判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,846件、
+  未対応25,143件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る82 APIのうち、現在ビューの現在ノード取得を次の小単位とする。
-既存`kritauinodemanageractiveobjects`と`KisNodeManagerActiveContractTest`の変更なし計画、直接CMake依存、
-空構築閉包を再監査し、ビュー未設定時の空値と現在ノード値の透過返却を既存の現在描画対象契約へ追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る81 APIのうち、選択ノード一覧と三つのノード接続器取得を
+次の小単位とする。`kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、直接CMake依存、
+空構築閉包を監査し、内部状態の透過返却を既存の現在描画対象所有へまとめられるか確認してから
+挙動契約を追加する。
 
 ## R1-G5完了根拠
 
