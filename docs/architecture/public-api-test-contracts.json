@@ -10,13 +10,13 @@
     "declarations": [
       "public classes, structs, unions, enums, enumerators, aliases, functions, methods, data members, and variables"
     ],
-    "publicHeaderCount": 1544,
-    "publicHeaderFingerprint": "814b91750b0668df3c54a7b44d4cb6903452476e38225680a86c889ec2e237e7",
+    "publicHeaderCount": 1545,
+    "publicHeaderFingerprint": "9fb01cbeb537b0ba32281bf16e409c17858094ce93cd93e744aa9bf7bf50f679",
     "publicApiCount": 29966,
-    "publicApiFingerprint": "e602e23a1ace3754529e60b0a3b0f4d4606843ba1b4e686295c9602542045ea2"
+    "publicApiFingerprint": "737e9a6ef7db2e0c7a4e7f2c748febf9b6a47405fd48d10b95b40c895ad94130"
   },
   "migration": {
-    "expectedMissingApis": 27105
+    "expectedMissingApis": 27020
   },
   "contracts": [
     {
@@ -6920,6 +6920,118 @@
         "variable:Exif::Iop::RelatedImageFileFormat",
         "variable:Exif::Iop::RelatedImageLength",
         "variable:Exif::Iop::RelatedImageWidth"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable",
+      "behavior": "PSDの寸法・チャンネル上限、固定小数型、バイト順、圧縮方式、色方式は外部形式と対応する型と数値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:Fixed",
+        "enum:psd_byte_order",
+        "enum:psd_color_mode",
+        "enum:psd_compression_type",
+        "enumerator:psd_byte_order::psdBigEndian",
+        "enumerator:psd_byte_order::psdInvalidByteOrder",
+        "enumerator:psd_byte_order::psdLittleEndian",
+        "enumerator:psd_color_mode::Bitmap",
+        "enumerator:psd_color_mode::CMYK",
+        "enumerator:psd_color_mode::CMYK64",
+        "enumerator:psd_color_mode::COLORMODE_UNKNOWN",
+        "enumerator:psd_color_mode::DeepMultichannel",
+        "enumerator:psd_color_mode::DuoTone",
+        "enumerator:psd_color_mode::Duotone16",
+        "enumerator:psd_color_mode::Gray16",
+        "enumerator:psd_color_mode::Grayscale",
+        "enumerator:psd_color_mode::Indexed",
+        "enumerator:psd_color_mode::Lab",
+        "enumerator:psd_color_mode::Lab48",
+        "enumerator:psd_color_mode::MultiChannel",
+        "enumerator:psd_color_mode::RGB",
+        "enumerator:psd_color_mode::RGB48",
+        "enumerator:psd_compression_type::RLE",
+        "enumerator:psd_compression_type::Uncompressed",
+        "enumerator:psd_compression_type::Unknown",
+        "enumerator:psd_compression_type::ZIP",
+        "enumerator:psd_compression_type::ZIPWithPrediction",
+        "variable:MAX_CHANNELS",
+        "variable:MAX_PSD_SIZE"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::colorSamplerIdentifiersRemainStable",
+      "behavior": "PSD色採取方式はPhotoshop資源と対応する連続値およびANPA固定値3000を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:psd_color_sampler::PSDColorSamplers",
+        "enumerator:psd_color_sampler::PSDColorSamplers::ANPA",
+        "enumerator:psd_color_sampler::PSDColorSamplers::CMYK",
+        "enumerator:psd_color_sampler::PSDColorSamplers::DIC",
+        "enumerator:psd_color_sampler::PSDColorSamplers::DUOTONE",
+        "enumerator:psd_color_sampler::PSDColorSamplers::FOCOLTONE",
+        "enumerator:psd_color_sampler::PSDColorSamplers::GRAYSCALE",
+        "enumerator:psd_color_sampler::PSDColorSamplers::HKS",
+        "enumerator:psd_color_sampler::PSDColorSamplers::HSB",
+        "enumerator:psd_color_sampler::PSDColorSamplers::LAB",
+        "enumerator:psd_color_sampler::PSDColorSamplers::MONITOR_RGB",
+        "enumerator:psd_color_sampler::PSDColorSamplers::OPACITY",
+        "enumerator:psd_color_sampler::PSDColorSamplers::PANTONE",
+        "enumerator:psd_color_sampler::PSDColorSamplers::RGB",
+        "enumerator:psd_color_sampler::PSDColorSamplers::TOTAL_INK",
+        "enumerator:psd_color_sampler::PSDColorSamplers::TOYO",
+        "enumerator:psd_color_sampler::PSDColorSamplers::TRUMATCH"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::layerEffectEnumsRemainStable",
+      "behavior": "PSDレイヤー効果の勾配、色停止、技法、線位置、塗り、発光、ベベル、方向、区画方式は宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:psd_bevel_style",
+        "enum:psd_color_stop_type",
+        "enum:psd_direction",
+        "enum:psd_fill_type",
+        "enum:psd_glow_source",
+        "enum:psd_gradient_style",
+        "enum:psd_section_type",
+        "enum:psd_stroke_position",
+        "enum:psd_technique_type",
+        "enumerator:psd_bevel_style::psd_bevel_emboss",
+        "enumerator:psd_bevel_style::psd_bevel_inner_bevel",
+        "enumerator:psd_bevel_style::psd_bevel_outer_bevel",
+        "enumerator:psd_bevel_style::psd_bevel_pillow_emboss",
+        "enumerator:psd_bevel_style::psd_bevel_stroke_emboss",
+        "enumerator:psd_color_stop_type::psd_color_stop_type_background_Color",
+        "enumerator:psd_color_stop_type::psd_color_stop_type_foreground_color",
+        "enumerator:psd_color_stop_type::psd_color_stop_type_user_stop",
+        "enumerator:psd_direction::psd_direction_down",
+        "enumerator:psd_direction::psd_direction_up",
+        "enumerator:psd_fill_type::psd_fill_gradient",
+        "enumerator:psd_fill_type::psd_fill_pattern",
+        "enumerator:psd_fill_type::psd_fill_solid_color",
+        "enumerator:psd_glow_source::psd_glow_center",
+        "enumerator:psd_glow_source::psd_glow_edge",
+        "enumerator:psd_gradient_style::psd_gradient_style_angle",
+        "enumerator:psd_gradient_style::psd_gradient_style_diamond",
+        "enumerator:psd_gradient_style::psd_gradient_style_linear",
+        "enumerator:psd_gradient_style::psd_gradient_style_radial",
+        "enumerator:psd_gradient_style::psd_gradient_style_reflected",
+        "enumerator:psd_section_type::psd_bounding_divider",
+        "enumerator:psd_section_type::psd_closed_folder",
+        "enumerator:psd_section_type::psd_open_folder",
+        "enumerator:psd_section_type::psd_other",
+        "enumerator:psd_stroke_position::psd_stroke_center",
+        "enumerator:psd_stroke_position::psd_stroke_inside",
+        "enumerator:psd_stroke_position::psd_stroke_outside",
+        "enumerator:psd_technique_type::psd_technique_precise",
+        "enumerator:psd_technique_type::psd_technique_slope_limit",
+        "enumerator:psd_technique_type::psd_technique_softer"
       ]
     }
   ]

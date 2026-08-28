@@ -8,9 +8,9 @@
 #define COMPRESSION_H
 
 #include "kritapsdutils_export.h"
+#include "psd_types.h"
 
 #include <QByteArray>
-#include <psd.h>
 
 class KRITAPSDUTILS_EXPORT Compression
 {

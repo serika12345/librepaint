@@ -11,7 +11,7 @@
 
 #include <cstdint>
 #include <memory>
-#include <psd.h>
+#include <psd_types.h>
 #include <psd_layer_section.h>
 
 #include "kritatiffpsd_export.h"

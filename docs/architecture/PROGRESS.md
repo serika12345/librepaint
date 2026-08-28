@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 16:06 JST
+- 更新日時: 2026-08-28 16:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5067,10 +5067,30 @@
   未対応基準は27,105件になった。公開API、ABI、タグ値、メタデータ実装は変更していない。Linuxと
   全ネイティブ検証は実行していない。
 
+## R2-G19b PSD形式型の所有分離とpublic API契約で完了した作業
+
+- `libs/psdutils/psd.h`先頭に同居していた寸法・チャンネル上限、固定小数型、バイト順、圧縮、色、
+  色採取、レイヤー効果の85 APIを、新規`libs/psdutils/psd_types.h`へ移した。`psd.h`は新所有先を
+  includeして既存利用元への公開を維持する。
+- 軽量利用元のincludeを次のように新所有先へ向け、色・資源・描画効果クラスの宣言を不要にした。
+  - `libs/psdutils/compression.h`から`libs/psdutils/psd_types.h`
+  - `libs/psd/psd_header.h`から`libs/psdutils/psd_types.h`
+  - `plugins/impex/psd/psd_colormode_block.h`から`libs/psdutils/psd_types.h`
+  - `plugins/impex/psd/psd_image_data.h`から`libs/psdutils/psd_types.h`
+  - `plugins/impex/tiff/kis_tiff_psd_layer_record.h`から`libs/psdutils/psd_types.h`
+  - `plugins/impex/tiff/kis_tiff_converter.cc`から`libs/psdutils/psd_types.h`
+- 新規`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`は形式上限・格納方式29 API、色採取17 API、
+  レイヤー効果39 APIの型と固定値を観測する。製品ライブラリーへ接続しない変更なし構築閉包はmacOSで
+  4工程・8入力であり、対象実行と20回反復に成功した。
+- 宣言所有の移動により公開ヘッダーは1,545件になり、API総数29,966件と識別子集合は維持した。
+  対応済みは2,946件、未対応基準は27,020件になった。製品API、ABI、形式値は変更していない。
+  変更した製品翻訳単位はオブジェクト指定でも`kritapsdutils`側533工程、PSD/TIFF側1,710工程超の
+  順序依存を持つため構築しておらず、後続の製品対象分割に残す。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/psdutils/psd.h`の形式識別子と列挙について、既存試験、実装所有、直接依存、変更なし構築閉包を
-調べる。構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。
+次の高密度な基礎値ヘッダーについて、既存試験、実装所有、直接依存、変更なし構築閉包を調べる。
+構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。
 
 ## R1-G5完了根拠
 

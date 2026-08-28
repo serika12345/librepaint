@@ -11,7 +11,7 @@
 #include <kis_paint_device.h>
 #include <kis_types.h>
 
-#include <psd.h>
+#include <psd_types.h>
 #include <psd_header.h>
 #include <compression.h>
 #include <psd_layer_record.h>
