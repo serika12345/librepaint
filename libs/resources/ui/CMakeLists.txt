@@ -157,6 +157,46 @@ target_include_directories(kritaresourceitemlistwidgetobjects
 target_link_libraries(kritaresourceitemlistwidgetobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritaresourceitemlistwidgetobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritastoragechooserdelegateobjects OBJECT
+    KisStorageChooserDelegate.cpp
+)
+target_compile_definitions(kritastoragechooserdelegateobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritastoragechooserdelegateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritastoragechooserdelegateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritastoragechooserdelegateobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritastoragechooserwidgetobjects OBJECT
+    KisStorageChooserWidget.cpp
+)
+target_compile_definitions(kritastoragechooserwidgetobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritastoragechooserwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritastoragechooserwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritastoragechooserwidgetobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritaresourceui_LIB_SRCS
     KisResourceItemChooserContextMenu.cpp
     KisResourceItemChooser.cpp
@@ -164,7 +204,6 @@ set(kritaresourceui_LIB_SRCS
     KisTagFilterWidget.cpp
     KisTagToolButton.cpp
     KisResourceTaggingManager.cpp
-    KisStorageChooserWidget.cpp
     TagActions.cpp
     KisResourceUserOperations.cpp
 )
@@ -180,6 +219,8 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaresourceitemviewobjects>
     $<TARGET_OBJECTS:kritaresourceitemlistviewobjects>
     $<TARGET_OBJECTS:kritaresourceitemlistwidgetobjects>
+    $<TARGET_OBJECTS:kritastoragechooserdelegateobjects>
+    $<TARGET_OBJECTS:kritastoragechooserwidgetobjects>
 )
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)

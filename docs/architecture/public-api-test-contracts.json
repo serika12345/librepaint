@@ -10,13 +10,13 @@
     "declarations": [
       "public classes, structs, unions, enums, enumerators, aliases, functions, methods, data members, and variables"
     ],
-    "publicHeaderCount": 1546,
-    "publicHeaderFingerprint": "cbc0b91d501fb2180e4a2a4807d6459babf7d9a0a50814bad6d030caf8b4285d",
+    "publicHeaderCount": 1547,
+    "publicHeaderFingerprint": "8836c62cba82d36336f853f5cb8fd71d37863c07c2027201579967a77612f449",
     "publicApiCount": 29981,
-    "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
+    "publicApiFingerprint": "fa2f8764e4ebc82e8ae7fc8f9cdeb0fb34fc8b4db4e44f545f9cf7d68be4e063"
   },
   "migration": {
-    "expectedMissingApis": 25593
+    "expectedMissingApis": 25588
   },
   "contracts": [
     {
@@ -10869,6 +10869,38 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceItemListWidget::~KisResourceItemListWidget()"
+      ]
+    },
+    {
+      "target": "KisStorageChooserDelegateContractTest",
+      "source": "libs/resources/ui/tests/KisStorageChooserDelegateContractTest.cpp",
+      "test": "KisStorageChooserDelegateContractTest::constructorUsesParentOwnership",
+      "behavior": "格納場所描画委譲は指定したQObjectを親として保持され、親の破棄とともに監視参照を無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStorageChooserDelegate",
+        "method:KisStorageChooserDelegate::KisStorageChooserDelegate(QObject * parent=0)",
+        "method:KisStorageChooserDelegate::~KisStorageChooserDelegate()"
+      ]
+    },
+    {
+      "target": "KisStorageChooserDelegateContractTest",
+      "source": "libs/resources/ui/tests/KisStorageChooserDelegateContractTest.cpp",
+      "test": "KisStorageChooserDelegateContractTest::sizeHintUsesFixedWidthAndDecorationHeight",
+      "behavior": "格納場所描画委譲は幅200、装飾画像高へ8を加えた高さを項目寸法として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageChooserDelegate::sizeHint(const QStyleOptionViewItem &,const QModelIndex &) const"
+      ]
+    },
+    {
+      "target": "KisStorageChooserDelegateContractTest",
+      "source": "libs/resources/ui/tests/KisStorageChooserDelegateContractTest.cpp",
+      "test": "KisStorageChooserDelegateContractTest::paintSkipsInvalidIndexesAndDrawsStorageState",
+      "behavior": "格納場所描画委譲は無効索引を描かず、有効索引では画像、押下状態、オン・オフ状態を格納場所のデータへ合わせて描く。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageChooserDelegate::paint(QPainter * painter,const QStyleOptionViewItem & option,const QModelIndex & index) const"
       ]
     }
   ]

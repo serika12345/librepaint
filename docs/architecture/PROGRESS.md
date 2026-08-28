@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 00:20 JST
+- 更新日時: 2026-08-29 00:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6179,12 +6179,40 @@
   ヘッダー、29,981 API、対応済み4,388件、未対応25,593件になり、同ヘッダーのpublic APIは全件
   対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 格納場所描画委譲 public API契約と構築所有分離で完了した作業
+
+- 描画と格納場所モデル更新が一つの翻訳単位にあり、`KisStorageChooserWidget.cpp`のオブジェクトだけを
+  指定しても製品依存が239工程・510入力まで展開していた。宣言は
+  `libs/resources/ui/KisStorageChooserWidget.h`から新規
+  `libs/resources/ui/KisStorageChooserDelegate.h`へ、実装は
+  `libs/resources/ui/KisStorageChooserWidget.cpp`から新規
+  `libs/resources/ui/KisStorageChooserDelegate.cpp`へ移した。描画実装を新規
+  `kritastoragechooserdelegateobjects`が所有し、製品`kritaresourceui`は生成オブジェクトを1回だけ
+  集約する。残る`libs/resources/ui/KisStorageChooserWidget.cpp`も製品の直接ソース所有から新規
+  `kritastoragechooserwidgetobjects`へ移し、次の契約追加で製品全体を構築せず検証できるようにした。
+  元のウィジェットヘッダーは公開include互換を維持するため新ヘッダーを取り込む。
+- `libs/resources/ui/KisStorageChooserDelegate.h`の境界、構築・破棄、描画、寸法からなる5 APIを、
+  新規`libs/resources/ui/tests/KisStorageChooserDelegateContractTest.cpp`の3試験へ全件対応付けた。
+  QObjectの親所有、固定幅と装飾高に基づく寸法、無効索引の無描画、有効索引の画像、押下状態、
+  チェック状態を固定した。試験はFusion様式の描画呼出しを記録し、アイコン読込を空の決定的な
+  外部境界へ置き換えるため、製品のアイコン資源やモデルデータベースを構築しない。
+- 最初の分離対象コンパイルは`KisStorageModel.h`の推移的な翻訳文字列ヘッダー要求を診断し、直接依存へ
+  KF I18nだけを追加した。最初の試験コンパイルは`Q_OBJECT`を持たない記録様式への`qobject_cast`を
+  診断し、通常のC++実行時型検査へ修正した。分離後の選択ウィジェットコンパイルは、描画側とともに
+  除いた`QApplication`が`qApp`に必要であることを診断し、利用元へ明示的に戻した。最初の試験実行と
+  20回反復は成功した。
+- 描画委譲所有対象と選択ウィジェット所有対象を各3工程・7入力、新規試験を7工程・15入力に収めた。
+  製品UIライブラリーは二つの独立実装と自動メタオブジェクト生成を集約し、266工程・563入力から
+  271工程・573入力になった。公開面は1,547ヘッダー、29,981 API、対応済み4,393件、未対応25,588件に
+  なり、描画委譲のpublic APIは全件対応済みになった。製品`kritaresourceui`のリンク、Linux、
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisStorageChooserWidget.h`の格納場所描画委譲と選択ウィジェット8 APIについて、
-`libs/resources/ui/KisStorageChooserWidget.cpp`に同居する描画責務とモデル更新責務を区別して清浄時構築
-閉包と直接依存を監査する。二つの責務を一つの試験対象へ束ねる構築範囲が過剰なら、描画委譲の実装を
-具体的な所有対象へ先に分離した後、寸法・描画・ポップアップ構成・破棄を最小契約で固定する。
+`libs/resources/ui/KisStorageChooserWidget.h`に残る選択ウィジェット3 APIについて、分離後の
+`libs/resources/ui/KisStorageChooserWidget.cpp`が持つポップアップ構成、格納場所型の絞り込み、モデル
+更新の直接依存と清浄時構築閉包を監査する。製品対象への直接所属が過剰なら具体的なウィジェット所有
+対象へ先に分離し、資源種別ごとの一覧構成、親所有、破棄を最小契約で固定する。
 
 ## R1-G5完了根拠
 
