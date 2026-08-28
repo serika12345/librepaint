@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25680
+    "expectedMissingApis": 25676
   },
   "contracts": [
     {
@@ -10286,6 +10286,19 @@
       "apis": [
         "alias:KisTemporaryResourceStorageLock::BaseClass",
         "class:KisTemporaryResourceStorageLock"
+      ]
+    },
+    {
+      "target": "ResourceListViewModesContractTest",
+      "source": "libs/resources/ui/tests/ResourceListViewModesContractTest.cpp",
+      "test": "ResourceListViewModesContractTest::valuesHaveStableIdentityAndOrder",
+      "behavior": "資源一覧の表示方式は格子、横方向帯、詳細を相異なる列挙値として公開し、宣言順に0、1、2の識別値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:ListViewMode",
+        "enumerator:ListViewMode::Detail",
+        "enumerator:ListViewMode::IconGrid",
+        "enumerator:ListViewMode::IconStripHorizontal"
       ]
     }
   ]

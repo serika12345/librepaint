@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:42 JST
+- 更新日時: 2026-08-28 22:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5933,10 +5933,22 @@
   29,981 API、対応済み4,301件、未対応25,680件になり、同ヘッダーのpublic APIは全件対応済みに
   なった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源一覧表示方式 public API契約で完了した作業
+
+- `libs/resources/ui/ResourceListViewModes.h`の表示方式と格子・横方向帯・詳細の列挙値からなる
+  1列挙型・3列挙値の4 APIを、新規
+  `libs/resources/ui/tests/ResourceListViewModesContractTest.cpp`の1試験へ全件対応付けた。各値の
+  識別性と宣言順に対応する値0、1、2を固定した。ヘッダーだけの既存挙動を対象とするため、製品
+  実装と製品CMake所有に変更はない。
+- 252工程・534入力の既存UI契約へ接続せず、4工程・8入力の既存最小Qt契約を比較対象にした。
+  新規試験も4工程・8入力に収まり、最初の構築と実行で既存挙動を確認した。macOSの対象実行と
+  20回反復に成功した。公開面は1,546ヘッダー、29,981 API、対応済み4,305件、未対応25,676件に
+  なり、同ヘッダーのpublic APIは全件対応済みになった。Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/ResourceListViewModes.h`の一覧表示方式4 APIについて、ヘッダーだけの清浄時構築
-閉包を監査し、列挙値の識別性と既定順序を固定する。
+`libs/resources/ui/KisResourceUiDescriptor.h`の資源UI記述子4 APIについて、252工程・534入力の既存
+UI契約から実装所有を分離できるか監査し、資源種別とプレビュー可否の値保持を最小構築閉包で固定する。
 
 ## R1-G5完了根拠
 
