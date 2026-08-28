@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 11:08 JST
+- 更新日時: 2026-08-28 11:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4433,6 +4433,17 @@
   pigmentとglobalの所有・生成ヘッダーだけへ直接接続し、変更なし構築閉包はmacOSで4工程・13入力で
   ある。対象実行と20回反復が成功し、公開API契約は1,266件、未対応基準は27,748件になった。製品実装、
   公開API、ABI、BGR画素配置と操作は変更していない。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 基礎色数値特性の限定構築で完了した作業
+
+- `libs/pigment/KoColorSpaceMaths.cpp`は同じファイル位置を保ち、`libs/pigment/CMakeLists.txt`の
+  `kritapigment`直接ソースから新規`kritapigmentmathsobjects`の所有へ移した。`kritapigment`は新対象の
+  オブジェクトを集約し、従来の公開シンボルを供給する。
+- CMYK画素特性試験の初回リンクは、浮動小数点の基礎数値特性実体が不足して失敗した。製品ライブラリー
+  全体への接続を避けるため、実体を持つ1ソースだけをQt Core、Qt Gui、OpenEXR、pigmentとglobalの
+  所有・生成ヘッダーへ接続した。従来の実装所有者`kritapigment`は変更なし構築閉包が300工程・630入力を
+  保ち、新対象は1工程・3入力でmacOSの限定構築に成功した。製品挙動、公開API、ABI、色数値特性は変更
+  していない。Linux、製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
 
 ## 次の操作
 
