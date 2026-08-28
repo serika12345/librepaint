@@ -5,11 +5,9 @@
  */
 #include "KisStorageFilterProxyModel.h"
 
-#include <QDebug>
 #include <KisResourceModel.h>
-#include <kis_debug.h>
-#include <KisResourceSearchBoxFilter.h>
-#include <KisResourceLocator.h>
+
+#include "KisStorageFilterProxyModelSource_p.h"
 
 struct KisStorageFilterProxyModel::Private
 {
@@ -31,11 +29,7 @@ KisStorageFilterProxyModel::~KisStorageFilterProxyModel()
 
 KisResourceStorageSP KisStorageFilterProxyModel::storageForIndex(QModelIndex index) const
 {
-    KisStorageModel *source = dynamic_cast<KisStorageModel*>(sourceModel());
-    if (source) {
-        return source->storageForIndex(mapToSource(index));
-    }
-    return 0;
+    return KisStorageFilterProxyModelSource::storageForIndex(sourceModel(), mapToSource(index));
 }
 
 void KisStorageFilterProxyModel::setFilter(KisStorageFilterProxyModel::FilterType filterType, QVariant filter)

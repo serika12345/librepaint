@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 00:44 JST
+- 更新日時: 2026-08-29 00:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6227,12 +6227,34 @@
   1,547ヘッダー、29,981 API、対応済み4,406件、未対応25,575件になり、同ヘッダーのpublic APIは
   全件対応済みになった。製品`kritawidgetutils`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 格納場所絞り込み public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KisStorageFilterProxyModel.cpp`は同じ配置のまま、製品`kritaresources`の直接ソース
+  所有から新規`kritastoragefilterproxymodelobjects`へ移し、製品は生成オブジェクトを1回だけ集約する。
+  格納場所取得の具象モデル依存は元実装から新規`libs/resources/KisStorageFilterProxyModelSource.cpp`へ
+  分け、新規内部ヘッダー`libs/resources/KisStorageFilterProxyModelSource_p.h`を介して呼び出す。
+  この実装は`kritastoragefilterproxymodelsourceobjects`が所有し、製品が生成オブジェクトを1回だけ
+  集約する。外部向けヘッダーと製品ABIは維持した。
+- `libs/resources/KisStorageFilterProxyModel.h`の型、絞り込み種別、構築・破棄、条件設定、格納場所
+  取得からなる9 APIを、新規`libs/resources/tests/KisStorageFilterProxyModelContractTest.cpp`の5試験へ
+  全件対応付けた。列挙値、QObject親所有、最初の評価前に設定するファイル名・格納場所型・有効状態、
+  代理索引から元索引への変換と取得委譲を維持契約として固定した。評価後の条件変更が選別済み行を
+  再評価しない現状は既知不具合として分離した。
+- 最初の分離対象コンパイルは、公開格納場所型が推移的に要求する`QImage`を診断し、利用する二つの
+  所有対象へQt Guiを直接依存として追加した。対象試験の最初の実行と20回反復はmacOSで成功した。
+- 製品直接所属時に112工程・252入力まで展開した絞り込み実装を、自動メタオブジェクト生成込みで
+  3工程・7入力、格納場所取得実装を1工程・3入力、新規試験を7工程・15入力に収めた。製品
+  `kritaresources`は141工程・309入力から144工程・315入力になった。公開面は1,547ヘッダー、
+  29,981 API、対応済み4,415件、未対応25,566件になり、同ヘッダーのpublic APIは全件対応済みに
+  なった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KisStorageFilterProxyModel.h`の格納場所絞り込み9 APIについて、製品`kritaresources`への
-直接所属で広がる清浄時構築閉包と、ファイル名・格納場所型・有効状態の各絞り込み、並び順、格納場所
-取得の直接依存を監査する。格納場所取得だけがデータベース所有へ依存して試験範囲を広げる場合は、
-同じ具象クラス内で実装単位を先に分けてから最小契約を固定する。
+`libs/resources/ui/KisStorageChooserWidget.h`に残る選択ウィジェット3 APIについて、分離済みの
+`kritapopupbuttonobjects`、`kritastoragechooserdelegateobjects`、
+`kritastoragefilterproxymodelobjects`を使う対象計画と清浄時構築閉包を監査する。構築処理と非公開の
+選択通知が同じ翻訳単位にあるため、格納場所モデル生成または通知処理が製品データベースまで閉包を
+広げる場合は、具象ウィジェット内の実装単位を先に分けてから構築・親所有・破棄契約を固定する。
 
 ## R1-G5完了根拠
 

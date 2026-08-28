@@ -356,6 +356,47 @@ set_target_properties(kritaglobalresourcesmodelsourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritastoragefilterproxymodelobjects OBJECT
+    KisStorageFilterProxyModel.cpp
+)
+target_compile_definitions(kritastoragefilterproxymodelobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritastoragefilterproxymodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritastoragefilterproxymodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritastoragefilterproxymodelobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritastoragefilterproxymodelsourceobjects OBJECT
+    KisStorageFilterProxyModelSource.cpp
+)
+target_compile_definitions(kritastoragefilterproxymodelsourceobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritastoragefilterproxymodelsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritastoragefilterproxymodelsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritastoragefilterproxymodelsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresources_LIB_SRCS
     KisResourceCacheDb.cpp
     KisResourceLoader.cpp
@@ -367,7 +408,6 @@ set(kritaresources_LIB_SRCS
     KisResourceModelProvider.cpp
     KisResourceTypeModel.cpp
     KisStorageModel.cpp
-    KisStorageFilterProxyModel.cpp
     KisResourceIterator.cpp
     KisResourceQueryMapper.cpp
     KisStoragePlugin.cpp
@@ -413,6 +453,8 @@ kis_add_library(kritaresources SHARED
     $<TARGET_OBJECTS:kritalocalstrokeresourcesobjects>
     $<TARGET_OBJECTS:kritaglobalresourcesinstanceobjects>
     $<TARGET_OBJECTS:kritaglobalresourcesmodelsourceobjects>
+    $<TARGET_OBJECTS:kritastoragefilterproxymodelobjects>
+    $<TARGET_OBJECTS:kritastoragefilterproxymodelsourceobjects>
 )
 
 generate_export_header(kritaresources BASE_NAME kritaresources)

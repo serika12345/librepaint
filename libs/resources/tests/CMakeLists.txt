@@ -289,3 +289,18 @@ target_include_directories(KisGlobalResourcesInterfaceContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KisGlobalResourcesInterfaceContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
+    KisStorageFilterProxyModelContractTest.cpp
+    LINK_LIBRARIES
+        kritastoragefilterproxymodelobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+target_include_directories(KisStorageFilterProxyModelContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisStorageFilterProxyModelContractTest PRIVATE kritaresources_EXPORTS)

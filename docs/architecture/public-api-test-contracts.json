@@ -16,7 +16,7 @@
     "publicApiFingerprint": "fa2f8764e4ebc82e8ae7fc8f9cdeb0fb34fc8b4db4e44f545f9cf7d68be4e063"
   },
   "migration": {
-    "expectedMissingApis": 25575
+    "expectedMissingApis": 25566
   },
   "contracts": [
     {
@@ -10968,6 +10968,61 @@
       "classification": "maintained",
       "apis": [
         "method:KisPopupButton::setArrowVisible(bool v)"
+      ]
+    },
+    {
+      "target": "KisStorageFilterProxyModelContractTest",
+      "source": "libs/resources/tests/KisStorageFilterProxyModelContractTest.cpp",
+      "test": "KisStorageFilterProxyModelContractTest::filterTypeValuesAreStable",
+      "behavior": "格納場所の絞り込み種別はファイル名0、格納場所型1、有効状態2の安定した値を持つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisStorageFilterProxyModel::FilterType",
+        "enumerator:KisStorageFilterProxyModel::FilterType::ByActive",
+        "enumerator:KisStorageFilterProxyModel::FilterType::ByFileName",
+        "enumerator:KisStorageFilterProxyModel::FilterType::ByStorageType"
+      ]
+    },
+    {
+      "target": "KisStorageFilterProxyModelContractTest",
+      "source": "libs/resources/tests/KisStorageFilterProxyModelContractTest.cpp",
+      "test": "KisStorageFilterProxyModelContractTest::constructorUsesParentOwnership",
+      "behavior": "格納場所絞り込みモデルは指定したQObject親へ所属し、明示破棄後に監視参照を無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStorageFilterProxyModel",
+        "method:KisStorageFilterProxyModel::KisStorageFilterProxyModel(QObject * parent=0)",
+        "method:KisStorageFilterProxyModel::~KisStorageFilterProxyModel()"
+      ]
+    },
+    {
+      "target": "KisStorageFilterProxyModelContractTest",
+      "source": "libs/resources/tests/KisStorageFilterProxyModelContractTest.cpp",
+      "test": "KisStorageFilterProxyModelContractTest::initialFiltersUseConfiguredCriterion",
+      "behavior": "最初の評価前に設定したファイル名、格納場所型、有効状態、無指定の各条件が表示行を選別する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageFilterProxyModel::setFilter(FilterType filterType,QVariant filter)"
+      ]
+    },
+    {
+      "target": "KisStorageFilterProxyModelContractTest",
+      "source": "libs/resources/tests/KisStorageFilterProxyModelContractTest.cpp",
+      "test": "KisStorageFilterProxyModelContractTest::changingFilterDoesNotInvalidateEvaluatedRows",
+      "behavior": "一度評価したモデルの絞り込み条件を変更しても、現在は選別済みの行が再評価されない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisStorageFilterProxyModel::setFilter(FilterType filterType,QVariant filter)"
+      ]
+    },
+    {
+      "target": "KisStorageFilterProxyModelContractTest",
+      "source": "libs/resources/tests/KisStorageFilterProxyModelContractTest.cpp",
+      "test": "KisStorageFilterProxyModelContractTest::storageLookupMapsProxyIndexToSource",
+      "behavior": "格納場所取得は代理モデルの索引を元モデルの索引へ変換し、元モデルへ委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageFilterProxyModel::storageForIndex(QModelIndex index=QModelIndex ()) const"
       ]
     }
   ]
