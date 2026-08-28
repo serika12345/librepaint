@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28053
+    "expectedMissingApis": 28004
   },
   "contracts": [
     {
@@ -5827,6 +5827,100 @@
         "enum:KisThumbnailBoundsMode",
         "enumerator:KisThumbnailBoundsMode::Coarse",
         "enumerator:KisThumbnailBoundsMode::Precise"
+      ]
+    },
+    {
+      "target": "KoFlakeTypesContractTest",
+      "source": "libs/flake/tests/KoFlakeTypesContractTest.cpp",
+      "test": "KoFlakeTypesContractTest::fillMarkerAndStyleEnumsRemainOrdered",
+      "behavior": "図形の塗り変種、塗り方式、マーカー位置、前景・背景様式は宣言順に対応する安定した整数値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoFlake::FillType",
+        "enum:KoFlake::FillVariant",
+        "enum:KoFlake::MarkerPosition",
+        "enum:KoFlake::StyleType",
+        "enumerator:KoFlake::FillType::Gradient",
+        "enumerator:KoFlake::FillType::MeshGradient",
+        "enumerator:KoFlake::FillType::None",
+        "enumerator:KoFlake::FillType::Pattern",
+        "enumerator:KoFlake::FillType::Solid",
+        "enumerator:KoFlake::FillVariant::Fill",
+        "enumerator:KoFlake::FillVariant::StrokeFill",
+        "enumerator:KoFlake::MarkerPosition::EndMarker",
+        "enumerator:KoFlake::MarkerPosition::MidMarker",
+        "enumerator:KoFlake::MarkerPosition::StartMarker",
+        "enumerator:KoFlake::StyleType::Background",
+        "enumerator:KoFlake::StyleType::Foreground"
+      ]
+    },
+    {
+      "target": "KoFlakeTypesContractTest",
+      "source": "libs/flake/tests/KoFlakeTypesContractTest.cpp",
+      "test": "KoFlakeTypesContractTest::selectionEnumsRemainOrdered",
+      "behavior": "図形の選択一覧方式と選択状態による形状探索方式は宣言順に対応する安定した整数値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoFlake::SelectionType",
+        "enum:KoFlake::ShapeSelection",
+        "enumerator:KoFlake::SelectionType::FullSelection",
+        "enumerator:KoFlake::SelectionType::StrippedSelection",
+        "enumerator:KoFlake::SelectionType::TopLevelSelection",
+        "enumerator:KoFlake::ShapeSelection::NextUnselected",
+        "enumerator:KoFlake::ShapeSelection::Selected",
+        "enumerator:KoFlake::ShapeSelection::ShapeOnTop",
+        "enumerator:KoFlake::ShapeSelection::Unselected"
+      ]
+    },
+    {
+      "target": "KoFlakeTypesContractTest",
+      "source": "libs/flake/tests/KoFlakeTypesContractTest.cpp",
+      "test": "KoFlakeTypesContractTest::selectionHandleValuesFollowClockwiseOrder",
+      "behavior": "選択ハンドルは上中央から時計回りに0から7を割り当て、ハンドルなしを8として維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoFlake::SelectionHandle",
+        "enumerator:KoFlake::SelectionHandle::BottomLeftHandle",
+        "enumerator:KoFlake::SelectionHandle::BottomMiddleHandle",
+        "enumerator:KoFlake::SelectionHandle::BottomRightHandle",
+        "enumerator:KoFlake::SelectionHandle::LeftMiddleHandle",
+        "enumerator:KoFlake::SelectionHandle::NoHandle",
+        "enumerator:KoFlake::SelectionHandle::RightMiddleHandle",
+        "enumerator:KoFlake::SelectionHandle::TopLeftHandle",
+        "enumerator:KoFlake::SelectionHandle::TopMiddleHandle",
+        "enumerator:KoFlake::SelectionHandle::TopRightHandle"
+      ]
+    },
+    {
+      "target": "KoFlakeTypesContractTest",
+      "source": "libs/flake/tests/KoFlakeTypesContractTest.cpp",
+      "test": "KoFlakeTypesContractTest::anchorValuesFollowGridOrder",
+      "behavior": "図形アンカーは上段から下段への3掛ける3格子順に0から8を割り当て、アンカーなしと位置数を9と10で表す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoFlake::AnchorPosition",
+        "enumerator:KoFlake::AnchorPosition::Bottom",
+        "enumerator:KoFlake::AnchorPosition::BottomLeft",
+        "enumerator:KoFlake::AnchorPosition::BottomRight",
+        "enumerator:KoFlake::AnchorPosition::Center",
+        "enumerator:KoFlake::AnchorPosition::Left",
+        "enumerator:KoFlake::AnchorPosition::NoAnchor",
+        "enumerator:KoFlake::AnchorPosition::NumAnchorPositions",
+        "enumerator:KoFlake::AnchorPosition::Right",
+        "enumerator:KoFlake::AnchorPosition::Top",
+        "enumerator:KoFlake::AnchorPosition::TopLeft",
+        "enumerator:KoFlake::AnchorPosition::TopRight"
+      ]
+    },
+    {
+      "target": "KoFlakeTypesContractTest",
+      "source": "libs/flake/tests/KoFlakeTypesContractTest.cpp",
+      "test": "KoFlakeTypesContractTest::canvasResourceIdentifierRemainsStable",
+      "behavior": "キャンバスのホット位置資源は設定・資源交換で使用する固定識別値1410100299を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoFlake::CanvasResource",
+        "enumerator:KoFlake::CanvasResource::HotPosition"
       ]
     }
   ]
