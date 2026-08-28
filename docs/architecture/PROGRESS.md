@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:14 JST
+- 更新日時: 2026-08-28 22:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5844,11 +5844,26 @@
   20回反復に成功した。公開面は1,546ヘッダー、29,981 API、対応済み4,268件、未対応25,713件に
   なり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 値格納資源キャッシュ public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KoResourceCacheStorage.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有から
+  新規`kritaresourcecachestorageobjects`の所有へ移し、製品`kritaresources`が生成オブジェクトを
+  1回だけ集約する構造にした。外部向けヘッダー、実装、製品ABIは維持した。
+- `libs/resources/KoResourceCacheStorage.h`の境界、構築・破棄、取得、格納からなる1クラス・4メソッドの
+  5 APIを、新規`libs/resources/tests/KoResourceCacheStorageContractTest.cpp`の3試験へ全件対応付けた。
+  空状態と未知キー、異なるキーの型付き値、同一キー再格納時の安全表明と置換、多態的所有寿命を
+  固定した。
+- 実装を接続しない最初の試験構築は5工程・11入力に収まり、対象5 APIと型情報の未解決参照を
+  リンク診断した。分離後は所有対象を1工程・3入力、新規試験を6工程・13入力に収め、製品資源
+  ライブラリーは140工程・307入力を維持した。macOSの対象実行と20回反復に成功した。公開面は
+  1,546ヘッダー、29,981 API、対応済み4,273件、未対応25,708件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KoResourceCacheStorage.h`の値格納キャッシュ5 APIについて、既存
-`kritaresourcecacheinterfaceobjects`との清浄時構築閉包を監査し、取得・初回格納・同一キー上書きの
-現行挙動と所有寿命を固定する。
+`libs/resources/KoLocalStrokeCanvasResources.h`の局所キャンバス資源8 APIについて、既存
+`kritacanvasresourcesinterfaceobjects`との清浄時構築閉包を監査し、空状態、値格納、複製・代入、
+共有所有寿命を固定する。
 
 ## R1-G5完了根拠
 

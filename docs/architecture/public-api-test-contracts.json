@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25713
+    "expectedMissingApis": 25708
   },
   "contracts": [
     {
@@ -10118,6 +10118,38 @@
       "classification": "maintained",
       "apis": [
         "method:KoResourceCachePrefixedStorageWrapper::KoResourceCachePrefixedStorageWrapper(const QString & prefix,KoResourceCacheInterfaceSP baseInterface)"
+      ]
+    },
+    {
+      "target": "KoResourceCacheStorageContractTest",
+      "source": "libs/resources/tests/KoResourceCacheStorageContractTest.cpp",
+      "test": "KoResourceCacheStorageContractTest::startsEmptyAndDestroysPolymorphically",
+      "behavior": "値格納キャッシュは空で構築されて未知キーに無効値を返し、基底キャッシュからの削除で派生個体まで多態的に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceCacheStorage",
+        "method:KoResourceCacheStorage::KoResourceCacheStorage()",
+        "method:KoResourceCacheStorage::~KoResourceCacheStorage()"
+      ]
+    },
+    {
+      "target": "KoResourceCacheStorageContractTest",
+      "source": "libs/resources/tests/KoResourceCacheStorageContractTest.cpp",
+      "test": "KoResourceCacheStorageContractTest::storesDistinctValues",
+      "behavior": "値格納キャッシュは異なるキーに格納した整数と文字列のQVariant型と値を保って取得する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceCacheStorage::fetch(const QString & key) const"
+      ]
+    },
+    {
+      "target": "KoResourceCacheStorageContractTest",
+      "source": "libs/resources/tests/KoResourceCacheStorageContractTest.cpp",
+      "test": "KoResourceCacheStorageContractTest::replacesValueAfterDuplicateKeyDiagnostic",
+      "behavior": "値格納キャッシュは初回値を格納し、同じキーへの再格納ではキー重複の安全表明を1回通知した後に新しい値へ置換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceCacheStorage::put(const QString & key,const QVariant & value)"
       ]
     }
   ]
