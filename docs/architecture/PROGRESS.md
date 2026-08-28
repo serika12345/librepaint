@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 21:59 JST
+- 更新日時: 2026-08-28 22:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5815,10 +5815,24 @@
   1,546ヘッダー、29,981 API、対応済み4,263件、未対応25,718件になり、同ヘッダーのpublic APIは
   全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 格納ログ分類 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/storage/StoreDebug.cpp`は同じ配置のまま、`kritaresourcestorage`の直接ソース所有から
+  新規`kritaresourcestoragelogobjects`の所有へ移し、製品`kritaresourcestorage`が生成オブジェクトを
+  1回だけ集約する構造にした。外部向けヘッダー、実装、製品ABIは維持した。
+- `libs/resources/storage/StoreDebug.h`の格納ログ分類関数1 APIを、新規
+  `libs/resources/storage/tests/StoreDebugContractTest.cpp`の1試験へ対応付けた。同じ静的個体、
+  `krita.lib.store`分類名、デバッグ無効・情報以上有効の既定重要度を固定した。
+- 清浄時の既存格納契約13工程・27入力に対し、新規試験を5工程・11入力、所有対象を1工程・3入力に
+  収めた。製品格納ライブラリーは9工程を維持し、対象入力は20件から21件になった。macOSで製品
+  `kritaresourcestorage`をリンクし、既存アーカイブ契約、対象実行、20回反復に成功した。公開面は
+  1,546ヘッダー、29,981 API、対応済み4,264件、未対応25,717件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/storage/StoreDebug.h`の格納ログ分類1 APIについて、既存格納試験との清浄時構築閉包を
-比較し、製品格納ライブラリー全体へ接続せずに分類名と既定重要度を固定できる所有単位を先に作る。
+`libs/resources/KoResourceCachePrefixedStorageWrapper.h`の接頭辞付きキャッシュ4 APIについて、既存
+`kritaresourcecacheinterfaceobjects`との清浄時構築閉包を監査し、キー変換と基底所有寿命を固定する。
 
 ## R1-G5完了根拠
 

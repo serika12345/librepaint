@@ -1,14 +1,31 @@
 include_directories(${QUAZIP_INCLUDE_DIRS})
 
+add_library(kritaresourcestoragelogobjects OBJECT
+    StoreDebug.cpp
+)
+target_compile_definitions(kritaresourcestoragelogobjects PRIVATE kritaresourcestorage_EXPORTS)
+target_include_directories(kritaresourcestoragelogobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaresourcestoragelogobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaresourcestoragelogobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresourcestorage_LIB_SRCS
     KoDirectoryStore.cpp
     KoStoreDevice.cpp
     KoStore.cpp
     KoQuaZipStore.cpp
-    StoreDebug.cpp
 )
 
-kis_add_library(kritaresourcestorage SHARED ${kritaresourcestorage_LIB_SRCS})
+kis_add_library(kritaresourcestorage SHARED
+    ${kritaresourcestorage_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaresourcestoragelogobjects>
+)
 generate_export_header(kritaresourcestorage BASE_NAME kritaresourcestorage)
 
 target_link_libraries(kritaresourcestorage
