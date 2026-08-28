@@ -25,6 +25,26 @@ set_target_properties(kritaflakeinsetsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakebehaviorinterfaceobjects OBJECT
+    KoCanvasSupervisor.cpp
+    KoLoadingShapeUpdater.cpp
+    KoShapeUserData.cpp
+    KoToolSelection.cpp
+)
+target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakebehaviorinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakebehaviorinterfaceobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+    Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaflakebehaviorinterfaceobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_subdirectory(styles)
 add_subdirectory(tests)
 add_subdirectory(resources/tests)
@@ -55,7 +75,6 @@ set(kritaflake_SRCS
     KoCanvasResourceProvider.cpp
     KoDocumentResourceManager.cpp
     KoCanvasObserverBase.cpp
-    KoCanvasSupervisor.cpp
     KoDockFactoryBase.cpp
     KoDockRegistry.cpp
     KoPathShape.cpp
@@ -84,11 +103,9 @@ set(kritaflake_SRCS
     KoPathShapeFactory.cpp
     KoBasicShapeFactory.cpp
     KoShapeFactoryBase.cpp
-    KoShapeUserData.cpp
     KoParameterShape.cpp
     KoPointerEvent.cpp
     KoShapeController.cpp
-    KoToolSelection.cpp
     KoShapeLayer.cpp
     KoInputDevice.cpp
     KoToolManager_p.cpp
@@ -97,7 +114,6 @@ set(kritaflake_SRCS
     KoToolProxy.cpp
     KoShapeSavingContext.cpp
     KoShapeLoadingContext.cpp
-    KoLoadingShapeUpdater.cpp
     KoPathShapeLoader.cpp
     KoShapeStrokeModel.cpp
     KoShapeStroke.cpp
@@ -265,6 +281,7 @@ set(kritaflake_SRCS
     tests/MockShapes.cpp
 
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
+    $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
 
 )
 

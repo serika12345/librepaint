@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 20:00 JST
+- 更新日時: 2026-08-28 20:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5584,10 +5584,25 @@
   25,875件になり、6ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G19b Flake挙動境界 public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoCanvasSupervisor.cpp`、`libs/flake/KoLoadingShapeUpdater.cpp`、
+  `libs/flake/KoShapeUserData.cpp`、`libs/flake/KoToolSelection.cpp`は同じ配置のまま、`kritaflake`の
+  直接ソース所有から新規`kritaflakebehaviorinterfaceobjects`の所有へ移し、製品`kritaflake`が
+  各生成オブジェクトを1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは維持した。
+- 対応する4公開ヘッダーと`libs/flake/KoShapeBulkActionInterface.h`の大量操作開始・終了、形状付加
+  データ複製、既定ツール選択、キャンバス監視一覧、読込済み形状通知、QObjectと多態的寿命からなる
+  1構造体・4クラス・15メソッドの20 APIを、新規
+  `libs/flake/tests/KoBehaviorInterfacesContractTest.cpp`の5試験へ全件対応付けた。
+- 531工程・1,094入力の製品Flakeへ接続せず、専用実装は6工程・13入力、専用試験はmacOSで
+  10工程・20入力に収めた。対象実行と20回反復に成功した。対応済みは4,112件、未対応基準は
+  25,855件になり、5ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/image/kis_node_filter_interface.h`のフィルター設定所有境界について、既存試験、直接依存、
-変更なし構築閉包を監査し、最小の局所契約を追加する。
+`libs/flake/KoSharedLoadingData.h`と`libs/flake/KoSharedSavingData.h`の共有データ寿命について、既存
+試験、直接依存、変更なし構築閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠
 

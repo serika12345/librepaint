@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25875
+    "expectedMissingApis": 25855
   },
   "contracts": [
     {
@@ -9465,6 +9465,71 @@
         "method:KisTransformMaskTestingInterface::notifySlotDelayedStaticUpdate()",
         "method:KisTransformMaskTestingInterface::notifyThreadSafeForceStaticImageUpdate()",
         "method:KisTransformMaskTestingInterface::~KisTransformMaskTestingInterface()"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::bracketsBulkActionAndReturnsUpdateRect",
+      "behavior": "形状の大量操作境界は開始状態へ入り、終了時に状態を解除して再描画矩形を返し、基本型を通して破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeBulkActionInterface::endBulkAction()",
+        "method:KoShapeBulkActionInterface::startBulkAction()",
+        "method:KoShapeBulkActionInterface::~KoShapeBulkActionInterface()",
+        "struct:KoShapeBulkActionInterface"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::clonesQObjectUserDataWithoutParent",
+      "behavior": "形状付加データはQObjectの親子寿命を保持し、複製値を親なしの新個体へ渡し、基本型を通して破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeUserData",
+        "method:KoShapeUserData::KoShapeUserData(QObject * parent=0)",
+        "method:KoShapeUserData::clone() const",
+        "method:KoShapeUserData::~KoShapeUserData()"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::preservesDefaultToolSelectionStateAndQObjectLifetime",
+      "behavior": "新しいツール選択は選択なしを返し、QObjectの親子関係と監視可能な破棄を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoToolSelection",
+        "method:KoToolSelection::KoToolSelection(QObject * parent=0)",
+        "method:KoToolSelection::hasSelection()",
+        "method:KoToolSelection::~KoToolSelection()"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::returnsCanvasObserverListThroughInterface",
+      "behavior": "キャンバス監督境界は実装が所有する監視対象一覧を基本型経由で返し、多態的に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCanvasSupervisor",
+        "method:KoCanvasSupervisor::KoCanvasSupervisor()",
+        "method:KoCanvasSupervisor::canvasObservers() const",
+        "method:KoCanvasSupervisor::~KoCanvasSupervisor()"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::dispatchesLoadedShapeThroughInterface",
+      "behavior": "形状読込更新境界は読込完了した形状を実装へそのまま配送し、基本型を通して破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoLoadingShapeUpdater",
+        "method:KoLoadingShapeUpdater::KoLoadingShapeUpdater()",
+        "method:KoLoadingShapeUpdater::update(KoShape * shape)",
+        "method:KoLoadingShapeUpdater::~KoLoadingShapeUpdater()"
       ]
     }
   ]

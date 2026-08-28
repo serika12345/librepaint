@@ -102,6 +102,14 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 
+kis_add_test(
+    KoBehaviorInterfacesContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakebehaviorinterfaceobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoBehaviorInterfacesContractTest PRIVATE kritaflake_EXPORTS)
+
 ############## broken tests ###############
 
 kis_add_test(TestPointMergeCommand.cpp
