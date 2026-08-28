@@ -396,6 +396,11 @@ protected:
         static void setNodePinnedToTimeline(KisNodeSP node, bool value);
     };
 
+    struct KRITAUI_EXPORT NavigationAccess {
+        static void activateNextNode(KisNodeManager *manager, bool siblingsOnly);
+        static void activatePreviousNode(KisNodeManager *manager, bool siblingsOnly);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

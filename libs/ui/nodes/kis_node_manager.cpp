@@ -1036,6 +1036,16 @@ void KisNodeManager::NodeUpdateAccess::setNodePinnedToTimeline(KisNodeSP node, b
     node->setPinnedToTimeline(value);
 }
 
+void KisNodeManager::NavigationAccess::activateNextNode(KisNodeManager *manager, bool siblingsOnly)
+{
+    manager->activateNextNode(siblingsOnly);
+}
+
+void KisNodeManager::NavigationAccess::activatePreviousNode(KisNodeManager *manager, bool siblingsOnly)
+{
+    manager->activatePreviousNode(siblingsOnly);
+}
+
 void KisNodeManager::duplicateActiveNode()
 {
     KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
@@ -1174,11 +1184,6 @@ void KisNodeManager::activateNextNode(bool siblingsOnly)
     }
 }
 
-void KisNodeManager::activateNextSiblingNode()
-{
-    activateNextNode(true);
-}
-
 void KisNodeManager::activatePreviousNode(bool siblingsOnly)
 {
     KisNodeSP activeNode = this->activeNode();
@@ -1207,11 +1212,6 @@ void KisNodeManager::activatePreviousNode(bool siblingsOnly)
     if (nextNode && nextNode->parent()) {
         slotNonUiActivatedNode(nextNode);
     }
-}
-
-void KisNodeManager::activatePreviousSiblingNode()
-{
-    activatePreviousNode(true);
 }
 
 void KisNodeManager::switchToPreviouslyActiveNode()

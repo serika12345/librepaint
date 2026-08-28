@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25127
+    "expectedMissingApis": 25125
   },
   "contracts": [
     {
@@ -12500,6 +12500,17 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::slotPinToTimeline(bool value)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNavigationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNavigationContractTest.cpp",
+      "test": "KisNodeManagerNavigationContractTest::siblingNavigationKeepsDirectionAndScope",
+      "behavior": "次・前の兄弟ノード有効化要求は各方向の移動処理へ兄弟限定値を指定して一度ずつ委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activateNextSiblingNode()",
+        "method:KisNodeManager::activatePreviousSiblingNode()"
       ]
     }
   ]
