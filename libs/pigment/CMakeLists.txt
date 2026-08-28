@@ -35,6 +35,26 @@ set_target_properties(kritapigmentstandardidsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapigmentcolorimetryobjects OBJECT
+    KoColorimetryUtils.cpp
+)
+target_compile_definitions(kritapigmentcolorimetryobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolorimetryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentcolorimetryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritapigmentcolorimetryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapigmentcmykmathsobjects OBJECT
     KoCmykColorSpaceMaths.cpp
 )
@@ -120,7 +140,6 @@ set(kritapigment_SRCS
     KoColorSpace.cpp
     KoColorSpaceEngine.cpp
     KoColorSpaceFactory.cpp
-    KoColorimetryUtils.cpp
     KoColorProfileQuery.h
     KoColorSpaceRegistry.cpp
     KoColorProfileStorage.cpp
@@ -171,6 +190,7 @@ kis_add_library(kritapigment SHARED
     $<TARGET_OBJECTS:kritapigmentcmykmathsobjects>
     $<TARGET_OBJECTS:kritapigmentlabmathsobjects>
     $<TARGET_OBJECTS:kritapigmentstandardidsobjects>
+    $<TARGET_OBJECTS:kritapigmentcolorimetryobjects>
 )
 
 target_sources(kritapigment

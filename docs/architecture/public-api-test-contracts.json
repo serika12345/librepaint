@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26594
+    "expectedMissingApis": 26533
   },
   "contracts": [
     {
@@ -7647,6 +7647,130 @@
         "enumerator:KColorScheme::ShadeRole::MidShade",
         "enumerator:KColorScheme::ShadeRole::MidlightShade",
         "enumerator:KColorScheme::ShadeRole::ShadowShade"
+      ]
+    },
+    {
+      "target": "KoColorimetryUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorimetryUtilsContractTest.cpp",
+      "test": "KoColorimetryUtilsContractTest::chromaticityValuesConvertToTristimulusValues",
+      "behavior": "xyおよびxyY色度値は公開座標を保持し、Y成分を含むXYZ三刺激値へ変換し、ゼロ除算を有限なゼロ値として扱う。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoColorimetryUtils::xy::x",
+        "member:KoColorimetryUtils::xy::y",
+        "member:KoColorimetryUtils::xyY::Y",
+        "member:KoColorimetryUtils::xyY::x",
+        "member:KoColorimetryUtils::xyY::y",
+        "method:KoColorimetryUtils::xy::asVector() const",
+        "method:KoColorimetryUtils::xy::operator ==(const xy & other) const",
+        "method:KoColorimetryUtils::xy::toXYZ() const",
+        "method:KoColorimetryUtils::xyY::operator ==(const xyY & other) const",
+        "method:KoColorimetryUtils::xyY::toXYZ() const",
+        "struct:KoColorimetryUtils::xy",
+        "struct:KoColorimetryUtils::xyY"
+      ]
+    },
+    {
+      "target": "KoColorimetryUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorimetryUtilsContractTest.cpp",
+      "test": "KoColorimetryUtilsContractTest::tristimulusValuesPreserveVectorArithmetic",
+      "behavior": "XYZ三刺激値は公開成分、色度変換、ベクトル変換、四則演算、近似等価性を一貫して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoColorimetryUtils::XYZ::X",
+        "member:KoColorimetryUtils::XYZ::Y",
+        "member:KoColorimetryUtils::XYZ::Z",
+        "method:KoColorimetryUtils::XYZ::asVector() const",
+        "method:KoColorimetryUtils::XYZ::fromVector(const QVector3D & vector)",
+        "method:KoColorimetryUtils::XYZ::operator *(double factor) const",
+        "method:KoColorimetryUtils::XYZ::operator +(const XYZ & other) const",
+        "method:KoColorimetryUtils::XYZ::operator /(double factor) const",
+        "method:KoColorimetryUtils::XYZ::operator ==(const XYZ & other) const",
+        "method:KoColorimetryUtils::XYZ::toxy() const",
+        "method:KoColorimetryUtils::XYZ::toxyY() const",
+        "struct:KoColorimetryUtils::XYZ"
+      ]
+    },
+    {
+      "target": "KoColorimetryUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorimetryUtilsContractTest.cpp",
+      "test": "KoColorimetryUtilsContractTest::matricesAndConstructorsPreserveColorCoordinates",
+      "behavior": "色度定義はxy、xyY、XYZの各入力経路で同じ原色と白色点を表し、RGBとXYZの変換行列を相互逆変換として構築する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorimetryUtils::Colorimetry",
+        "function:KoColorimetryUtils::matrixFromColumns(const QVector3D & first,const QVector3D & second,const QVector3D & third)",
+        "method:KoColorimetryUtils::Colorimetry::Colorimetry(XYZ red,XYZ green,XYZ blue,XYZ white)",
+        "method:KoColorimetryUtils::Colorimetry::Colorimetry(xy red,xy green,xy blue,xy white)",
+        "method:KoColorimetryUtils::Colorimetry::Colorimetry(xyY red,xyY green,xyY blue,xyY white)",
+        "method:KoColorimetryUtils::Colorimetry::blue() const",
+        "method:KoColorimetryUtils::Colorimetry::calculateToXYZMatrix(XYZ red,XYZ green,XYZ blue,XYZ white)",
+        "method:KoColorimetryUtils::Colorimetry::fromXYZ() const",
+        "method:KoColorimetryUtils::Colorimetry::green() const",
+        "method:KoColorimetryUtils::Colorimetry::operator ==(const Colorimetry & other) const",
+        "method:KoColorimetryUtils::Colorimetry::red() const",
+        "method:KoColorimetryUtils::Colorimetry::toXYZ() const",
+        "method:KoColorimetryUtils::Colorimetry::white() const"
+      ]
+    },
+    {
+      "target": "KoColorimetryUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorimetryUtilsContractTest.cpp",
+      "test": "KoColorimetryUtilsContractTest::namedColorimetriesPreservePublishedPrimaries",
+      "behavior": "標準色度定義はBT.709からAdobe RGBまで公開規格に対応する原色と白色点を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoColorimetryUtils::Colorimetry::AdobeRGB",
+        "member:KoColorimetryUtils::Colorimetry::BT2020",
+        "member:KoColorimetryUtils::Colorimetry::BT709",
+        "member:KoColorimetryUtils::Colorimetry::CIEXYZ",
+        "member:KoColorimetryUtils::Colorimetry::DCIP3",
+        "member:KoColorimetryUtils::Colorimetry::DisplayP3",
+        "member:KoColorimetryUtils::Colorimetry::GenericFilm",
+        "member:KoColorimetryUtils::Colorimetry::NTSC",
+        "member:KoColorimetryUtils::Colorimetry::PAL",
+        "member:KoColorimetryUtils::Colorimetry::PAL_M"
+      ]
+    },
+    {
+      "target": "KoColorimetryUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorimetryUtilsContractTest.cpp",
+      "test": "KoColorimetryUtilsContractTest::validationDistinguishesUsableAndPhysicalGamuts",
+      "behavior": "色域検証は面積と白色点包含により利用可能性を判定し、XYZ範囲外の原色を物理表示不能として区別する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorimetryUtils::Colorimetry::isReal(xy red,xy green,xy blue,xy white)",
+        "method:KoColorimetryUtils::Colorimetry::isValid(xy red,xy green,xy blue,xy white)"
+      ]
+    },
+    {
+      "target": "KoColorimetryUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorimetryUtilsContractTest.cpp",
+      "test": "KoColorimetryUtilsContractTest::colorTransformsPreserveWhitepointRules",
+      "behavior": "色域補間、白色点置換、色順応、相対・絶対測色、LMS変換は原色と白色点の各規則および逆変換を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorimetryUtils::Colorimetry::absoluteColorimetricTo(const Colorimetry & other) const",
+        "method:KoColorimetryUtils::Colorimetry::adaptedTo(xyY newWhitepoint) const",
+        "method:KoColorimetryUtils::Colorimetry::chromaticAdaptationMatrix(XYZ sourceWhitepoint,XYZ destinationWhitepoint)",
+        "method:KoColorimetryUtils::Colorimetry::fromLMS() const",
+        "method:KoColorimetryUtils::Colorimetry::interpolateGamutTo(const Colorimetry & one,double factor) const",
+        "method:KoColorimetryUtils::Colorimetry::relativeColorimetricTo(const Colorimetry & other) const",
+        "method:KoColorimetryUtils::Colorimetry::toLMS() const",
+        "method:KoColorimetryUtils::Colorimetry::withWhitepoint(xyY newWhitePoint) const"
+      ]
+    },
+    {
+      "target": "KoColorimetryUtilsContractTest",
+      "source": "libs/pigment/tests/KoColorimetryUtilsContractTest.cpp",
+      "test": "KoColorimetryUtilsContractTest::debugOutputIdentifiesValueTypes",
+      "behavior": "色度、三刺激値、色度定義の診断出力は型名と公開座標を判読可能な文字列として返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoColorimetryUtils::operator <<(QDebug debug,const Colorimetry & value)",
+        "function:KoColorimetryUtils::operator <<(QDebug debug,const XYZ & value)",
+        "function:KoColorimetryUtils::operator <<(QDebug debug,const xy & value)",
+        "function:KoColorimetryUtils::operator <<(QDebug debug,const xyY & value)"
       ]
     }
   ]

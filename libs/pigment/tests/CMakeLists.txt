@@ -16,6 +16,14 @@ target_compile_definitions(KoColorModelStandardIdsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoColorimetryUtilsContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentcolorimetryobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoColorimetryUtilsContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoColorProfileConstantsContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

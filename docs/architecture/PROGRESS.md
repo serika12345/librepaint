@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 17:03 JST
+- 更新日時: 2026-08-28 17:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5186,10 +5186,25 @@
   扱う残り19 APIは実装を接続する後続契約へ残した。製品実装、公開API、ABI、配色識別値は
   変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 色度計算 public API契約と構築所有分離で完了した作業
+
+- 色度計算だけを検証しても`kritapigment`全体の310工程・650入力へ接続する構造だったため、
+  `libs/pigment/KoColorimetryUtils.cpp`の構築所有を`kritapigment_SRCS`から新規
+  `kritapigmentcolorimetryobjects`へ移した。ファイル位置と製品APIは維持し、生成オブジェクトを
+  `kritapigment`へ1回だけ集約する。
+- 新規`libs/pigment/tests/KoColorimetryUtilsContractTest.cpp`の7試験が、xy・xyY・XYZ値、
+  行列構築、3入力形式の色度構築、10標準色度、色域検証、白色点と色順応、測色・LMS変換、
+  診断出力からなる`libs/pigment/KoColorimetryUtils.h`の全61 APIを観測する。
+- 専用実装対象はQt Core、Qt Gui、Boostだけへ接続し、変更なし構築閉包は1工程・3入力、試験は
+  macOSで5工程・11入力である。対象実行と20回反復に成功し、`kritapigment`全体は構築していない。
+  対応済みは3,433件、未対応基準は26,533件になった。製品挙動、公開API、ABI、ファイル位置は
+  変更していない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-未対応報告から次の高密度な基礎値ヘッダーを選び、既存試験、実装所有、直接依存、変更なし構築閉包を
-調べる。構築範囲が責務を越える場合は所有対象を先に分け、最小の挙動契約を追加する。
+`libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorimetry.h`の63 APIについて、
+`KisSurfaceColorimetry.cpp`を専用構築対象へ分け、局所化した色度計算対象と組み合わせて全宣言の
+挙動契約を追加する。
 
 ## R1-G5完了根拠
 
