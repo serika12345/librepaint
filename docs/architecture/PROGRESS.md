@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 23:01 JST
+- 更新日時: 2026-08-28 23:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5993,11 +5993,32 @@
   1,546ヘッダー、29,981 API、対応済み4,319件、未対応25,662件になり、同ヘッダーのpublic APIは
   全件対応済みになった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源サムネイルキャッシュ public API契約と外部境界分離で完了した作業
+
+- `libs/resources/KisResourceThumbnailCache.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有から
+  新規`kritaresourcethumbnailcacheobjects`の所有へ移し、製品`kritaresources`が生成オブジェクトを
+  1回だけ集約する構造にした。外部向けヘッダー、キャッシュ実装、製品ABIは維持した。
+- `libs/resources/KisResourceThumbnailCache.cpp`から`KisResourceLocator`の非公開格納場所正規化を直接
+  呼ぶ経路は、新規内部宣言`libs/resources/KisResourceThumbnailStorageLocation.h`へ移した。製品定義は
+  既存`libs/resources/KisResourceLocator.cpp`へ置き、`libs/resources/KisResourceLocator.h`の友達指定を
+  キャッシュ本体から内部橋渡しへ移した。格納場所の所有責務と製品翻訳単位数を維持し、試験では
+  正規化結果だけを置換できる構造にした。
+- `libs/resources/KisResourceThumbnailCache.h`の境界、構築・破棄、共有個体取得、画像取得からなる
+  1クラス・4メソッドの5 APIを、新規
+  `libs/resources/tests/KisResourceThumbnailCacheContractTest.cpp`の2試験へ全件対応付けた。製品の問い合わせ
+  写像と同じ友達経路で原画像を投入し、格納場所正規化、原寸取得、縦横比を保つ縮小、返却画像の
+  キャッシュ破棄後寿命、共有個体の同一性を固定した。
+- 642工程・1,312入力の既存ロケーター試験へ接続せず、キャッシュ所有対象を1工程・3入力、新規試験を
+  5工程・12入力に収め、製品資源ライブラリーは141工程・309入力を維持した。macOSでロケーターの
+  単一生成物をコンパイルし、対象実行と20回反復に成功した。公開面は1,546ヘッダー、29,981 API、
+  対応済み4,324件、未対応25,657件になり、同ヘッダーのpublic APIは全件対応済みになった。製品
+  `kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KisResourceThumbnailCache.h`のサムネイルキャッシュ5 APIについて、格納場所正規化の
-`KisResourceLocator`依存と清浄時構築閉包を監査し、直接構築・共有個体・画像取得を小さい契約で
-固定できる内部境界へ先に整える。
+`libs/resources/ui/KisIconToolTip.h`のアイコン説明表示5 APIについて、分離済みサムネイルキャッシュを
+利用した清浄時構築閉包と`KoItemToolTip`・チェッカー描画の直接依存を監査し、固定寸法と背景切替の
+文書出力を最小契約で固定する。
 
 ## R1-G5完了根拠
 

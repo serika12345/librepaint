@@ -16,6 +16,7 @@
 
 #include <KisResourceStorage.h>
 
+class KisResourceThumbnailStorageLocation;
 
 /**
  * The KisResourceLocator class locates all resource storages (folders,
@@ -174,7 +175,7 @@ private:
     friend class KisResourceQueryMapper;
     friend class KisResourceUserOperations;
     friend class KisBrushTypeMetaDataFixup;
-    friend class KisResourceThumbnailCache;
+    friend class KisResourceThumbnailStorageLocation;
 
     /// @return true if the resource is present in the cache, false if it hasn't been loaded
     bool resourceCached(QString storageLocation, const QString &resourceType, const QString &filename) const;

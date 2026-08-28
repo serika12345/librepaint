@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25662
+    "expectedMissingApis": 25657
   },
   "contracts": [
     {
@@ -10340,6 +10340,29 @@
         "method:KisResourceSearchBoxFilter::matchesResource(const QString & resourceName,const QStringList & tagList) const",
         "method:KisResourceSearchBoxFilter::setFilter(const QString & filter)",
         "method:KisResourceSearchBoxFilter::~KisResourceSearchBoxFilter()"
+      ]
+    },
+    {
+      "target": "KisResourceThumbnailCacheContractTest",
+      "source": "libs/resources/tests/KisResourceThumbnailCacheContractTest.cpp",
+      "test": "KisResourceThumbnailCacheContractTest::directCacheScalesSeededImageAndPreservesReturnedValue",
+      "behavior": "直接構築したサムネイルキャッシュは正規化済み格納場所・資源種別・ファイル名で原画像を取得し、指定寸法へ縦横比を保って縮小し、返した画像はキャッシュ破棄後も有効である。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceThumbnailCache",
+        "method:KisResourceThumbnailCache::KisResourceThumbnailCache()",
+        "method:KisResourceThumbnailCache::getImage(const QModelIndex & index,const QSize size=QSize (-1,-1),Qt::AspectRatioMode aspectMode=Qt::IgnoreAspectRatio,Qt::TransformationMode transformMode=Qt::FastTransformation)",
+        "method:KisResourceThumbnailCache::~KisResourceThumbnailCache()"
+      ]
+    },
+    {
+      "target": "KisResourceThumbnailCacheContractTest",
+      "source": "libs/resources/tests/KisResourceThumbnailCacheContractTest.cpp",
+      "test": "KisResourceThumbnailCacheContractTest::instanceReturnsStableSharedCache",
+      "behavior": "共有サムネイルキャッシュ取得は有効な同一個体を繰り返し返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceThumbnailCache::instance()"
       ]
     }
   ]

@@ -39,7 +39,12 @@
 #include <KoMD5Generator.h>
 #include <KoResourceLoadResult.h>
 #include <KisResourceThumbnailCache.h>
+#include "KisResourceThumbnailStorageLocation.h"
 
+QString KisResourceThumbnailStorageLocation::makeAbsolute(const QString &storageLocation)
+{
+    return KisResourceLocator::instance()->makeStorageLocationAbsolute(storageLocation);
+}
 
 const QString KisResourceLocator::resourceLocationKey {"ResourceDirectory"};
 
