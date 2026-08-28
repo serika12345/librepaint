@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 03:28 JST
+- 更新日時: 2026-08-29 03:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6540,12 +6540,36 @@
   ヘッダー、29,979 API、対応済み4,502件、未対応25,477件になり、同ヘッダーの未対応は1 APIになった。
   製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源項目選択の取込・除去 public API契約と外部効果分離で完了した作業
+
+- `libs/resources/ui/KisResourceItemChooser.cpp`に残っていた取込・除去ボタン分岐を、新規
+  `libs/resources/ui/KisResourceItemChooserButton.cpp`へ移した。MIME型取得、ファイル選択、可読性検査、
+  資源登録、絞込み模型の索引取得・無効化・並替えを新規
+  `libs/resources/ui/KisResourceItemChooserButtonSource.cpp`へ移し、内部境界を新規
+  `libs/resources/ui/KisResourceItemChooserButtonSource_p.h`に置いた。開始ファイルにはプレビュー画素生成、
+  除去可否、応答配置と表示事象の具体操作が残り、製品は新しいボタン判断対象と外部効果対象を各1回
+  集約する。
+- `libs/resources/ui/KisResourceItemChooser.h`の最後の1 APIを、既存
+  `libs/resources/ui/tests/TestResourceUiContract.cpp`の取込・除去2試験へ対応付けた。資源種別に対応する
+  MIME型、不可読ファイルの除外、置換で消えた選択の新資源への復元、模型が追跡した選択のプレビュー
+  更新、取込後の並替え、除去資源の無効化、前行の選択・活性化、先頭行での行0維持を固定した。
+- 実装前のリンクは`slotButtonClicked(int)`だけを未解決記号として診断した。ボタン判断を製品全体から
+  分離して既存の選択判断とともに試験へ直接接続し、ファイル、登録、模型の具象効果は試験内の決定的な
+  ファイル列、可読性、資源同一性、模型索引へ置き換えた。具象効果の最初のコンパイルで資源読込登録簿が
+  必要とする全体補助ヘッダーの直接include経路を検出し、同対象へ明示した。
+- ボタン判断、具象効果、残存操作を各1工程・3入力、記述子、構築、表示・選択・入力判断、資源種別と
+  直接集約する試験を14工程・30入力に収めた。製品`kritaresourceui`は309工程・649入力から311工程・
+  653入力になった。三つの対象コンパイルと対象CTestのmacOS単発実行、20回反復は成功した。公開面は
+  1,547ヘッダー、29,979 API、対応済み4,503件、未対応25,476件になり、
+  `libs/resources/ui/KisResourceItemChooser.h`と資源UI責務の公開APIは全件対応済みになった。製品
+  `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceItemChooser.h`に残る`slotButtonClicked(int button)`について、取込のファイル
-選択・可読性・資源登録・置換追跡・並替えと、除去の無効化・前行選択・活性化・除去可否更新を監査する。
-外部ファイルと資源登録を具象効果境界へ分け、ボタン分岐と選択状態遷移だけを記述子別構築試験へ直接
-集約する。
+再生成した公開API作業列の先頭にある`libs/psdutils/asl/kis_asl_callback_object_catcher.h`の51 APIを
+対象とする。製品`kritapsdutils`へ直接所属する
+`libs/psdutils/asl/kis_asl_callback_object_catcher.cpp`について、対象指定の変更なし計画、直接CMake依存、
+空構築閉包を監査し、購読経路と値・単位・列挙型の照合を局所契約へ分けてから実装する。
 
 ## R1-G5完了根拠
 

@@ -303,6 +303,54 @@ set_target_properties(kritaresourceitemchooserinputsourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourceitemchooserbuttonobjects OBJECT
+    KisResourceItemChooserButton.cpp
+)
+target_compile_definitions(kritaresourceitemchooserbuttonobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceitemchooserbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritaresourceitemchooserbuttonobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceitemchooserbuttonobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceitemchooserbuttonsourceobjects OBJECT
+    KisResourceItemChooserButtonSource.cpp
+)
+target_compile_definitions(kritaresourceitemchooserbuttonsourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceitemchooserbuttonsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaresourceitemchooserbuttonsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceitemchooserbuttonsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaresourceitemchooseroperationsobjects OBJECT
     KisResourceItemChooser.cpp
 )
@@ -915,6 +963,8 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaresourceitemchooserselectionsourceobjects>
     $<TARGET_OBJECTS:kritaresourceitemchooserinputobjects>
     $<TARGET_OBJECTS:kritaresourceitemchooserinputsourceobjects>
+    $<TARGET_OBJECTS:kritaresourceitemchooserbuttonobjects>
+    $<TARGET_OBJECTS:kritaresourceitemchooserbuttonsourceobjects>
     $<TARGET_OBJECTS:kritaresourceitemchooseroperationsobjects>
     $<TARGET_OBJECTS:kritaresourceitemviewobjects>
     $<TARGET_OBJECTS:kritaresourceitemlistviewobjects>

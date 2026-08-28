@@ -10,6 +10,7 @@
 #include <QWheelEvent>
 
 #include <KisResourceItemChooser.h>
+#include <KisResourceItemChooserButtonSource_p.h>
 #include <KisResourceItemChooserInputSource_p.h>
 #include <KisResourceItemChooserPresentationSource_p.h>
 #include <KisResourceItemChooserSelectionSource_p.h>
@@ -81,6 +82,24 @@ int capturedBaseLength = 0;
 int cursorUpdateCount = 0;
 QScroller::State capturedScrollerState = QScroller::Inactive;
 bool inputSourcePointersCorrect = true;
+KisResourceItemChooser *expectedButtonChooser = nullptr;
+QString requestedMimeResourceType;
+QStringList configuredMimeTypes;
+QStringList capturedDialogMimeTypes;
+QStringList configuredImportFilenames;
+QStringList readabilityChecks;
+QStringList importedFilenames;
+QStringList importedResourceTypes;
+int buttonResourceIndexCount = 0;
+QModelIndex configuredButtonResourceIndex;
+QModelIndex configuredButtonCurrentIndex;
+QList<QModelIndex> inactiveIndexes;
+int buttonIndexCount = 0;
+int capturedButtonIndexRow = -1;
+int capturedButtonIndexColumn = -1;
+int sortCount = 0;
+int capturedSortRole = -1;
+bool buttonSourcePointersCorrect = true;
 
 KoResourceSP markerResource(quintptr value)
 {
@@ -177,6 +196,28 @@ void resetInputState()
     capturedScrollerState = QScroller::Inactive;
     inputSourcePointersCorrect = true;
 }
+
+void resetButtonState()
+{
+    expectedButtonChooser = nullptr;
+    requestedMimeResourceType.clear();
+    configuredMimeTypes = {QStringLiteral("image/pattern")};
+    capturedDialogMimeTypes.clear();
+    configuredImportFilenames.clear();
+    readabilityChecks.clear();
+    importedFilenames.clear();
+    importedResourceTypes.clear();
+    buttonResourceIndexCount = 0;
+    configuredButtonResourceIndex = QModelIndex();
+    configuredButtonCurrentIndex = QModelIndex();
+    inactiveIndexes.clear();
+    buttonIndexCount = 0;
+    capturedButtonIndexRow = -1;
+    capturedButtonIndexColumn = -1;
+    sortCount = 0;
+    capturedSortRole = -1;
+    buttonSourcePointersCorrect = true;
+}
 }
 
 void KisResourceItemChooser::constructPresentation()
@@ -194,10 +235,6 @@ void KisResourceItemChooser::constructPresentation()
     d->resourcesSplitter = markerSplitter;
     d->importButton = markerImportButton;
     d->deleteButton = markerDeleteButton;
-}
-
-void KisResourceItemChooser::slotButtonClicked(int)
-{
 }
 
 void KisResourceItemChooser::changeLayoutBasedOnSize()
@@ -391,6 +428,83 @@ void updateCursor(QWidget *widget, QScroller::State state)
 }
 }
 
+namespace KisResourceItemChooserButtonSource
+{
+QStringList mimeTypes(const QString &resourceType)
+{
+    requestedMimeResourceType = resourceType;
+    return configuredMimeTypes;
+}
+
+QStringList importFilenames(const QStringList &mimeTypes)
+{
+    capturedDialogMimeTypes = mimeTypes;
+    return configuredImportFilenames;
+}
+
+bool fileIsReadable(const QString &filename)
+{
+    readabilityChecks.append(filename);
+    return filename != QStringLiteral("missing.resource");
+}
+
+KoResourceSP importResource(QWidget *parent,
+                            const QString &resourceType,
+                            const QString &filename)
+{
+    buttonSourcePointersCorrect &= parent == expectedButtonChooser;
+    importedResourceTypes.append(resourceType);
+    importedFilenames.append(filename);
+    if (filename == QStringLiteral("override.resource")) {
+        configuredCurrentIndexSelected = false;
+        configuredResourceIndex = QModelIndex();
+        return secondResource;
+    }
+    configuredCurrentIndexSelected = true;
+    return secondResource;
+}
+
+QModelIndex indexForResource(KisTagFilterResourceProxyModel *model,
+                             KoResourceSP resource)
+{
+    buttonSourcePointersCorrect &= model == markerFilter;
+    buttonSourcePointersCorrect &= resource == secondResource;
+    ++buttonResourceIndexCount;
+    return configuredButtonResourceIndex;
+}
+
+QModelIndex currentIndex(KisResourceItemListView *view)
+{
+    buttonSourcePointersCorrect &= view == markerView;
+    return configuredButtonCurrentIndex;
+}
+
+void setResourceInactive(KisTagFilterResourceProxyModel *model,
+                         const QModelIndex &index)
+{
+    buttonSourcePointersCorrect &= model == markerFilter;
+    inactiveIndexes.append(index);
+}
+
+QModelIndex index(KisTagFilterResourceProxyModel *model, int row, int column)
+{
+    buttonSourcePointersCorrect &= model == markerFilter;
+    ++buttonIndexCount;
+    capturedButtonIndexRow = row;
+    capturedButtonIndexColumn = column;
+    return configuredSelectionModel
+        ? configuredSelectionModel->index(row, column)
+        : QModelIndex();
+}
+
+void sort(KisTagFilterResourceProxyModel *model, int role)
+{
+    buttonSourcePointersCorrect &= model == markerFilter;
+    ++sortCount;
+    capturedSortRole = role;
+}
+}
+
 namespace KisResourceItemChooserPresentationSource
 {
 void showTaggingBar(KisResourceTaggingManager *manager, bool visible)
@@ -518,6 +632,8 @@ private Q_SLOTS:
     void synchronizationTracksBaseLengthWhileEnabled();
     void controlWheelAdjustsSynchronizedBaseLength();
     void scrollerStateUpdatesTheChooserCursor();
+    void importButtonRestoresAndRefreshesResourceSelection();
+    void removeButtonDeactivatesAndSelectsThePreviousRow();
 };
 
 void TestResourceUiContract::descriptorPreservesCatalogIdentity()
@@ -895,6 +1011,86 @@ void TestResourceUiContract::scrollerStateUpdatesTheChooserCursor()
     QCOMPARE(cursorUpdateCount, 1);
     QCOMPARE(capturedScrollerState, QScroller::Dragging);
     QVERIFY(inputSourcePointersCorrect);
+}
+
+void TestResourceUiContract::importButtonRestoresAndRefreshesResourceSelection()
+{
+    resetSelectionState();
+    resetButtonState();
+    QStandardItemModel model(1, 1);
+    configuredSelectionModel = &model;
+    configuredButtonResourceIndex = model.index(0, 0);
+    configuredImportFilenames = {QStringLiteral("missing.resource"),
+                                 QStringLiteral("override.resource"),
+                                 QStringLiteral("tracked.resource")};
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::Patterns, false));
+    expectedButtonChooser = &chooser;
+    chooser.setCurrentResource(firstResource);
+    resetSelectionState();
+    configuredSelectionModel = &model;
+    configuredCurrentIndexSelected = true;
+
+    chooser.slotButtonClicked(KisResourceItemChooser::Button_Import);
+
+    QCOMPARE(requestedMimeResourceType, ResourceType::Patterns);
+    QCOMPARE(capturedDialogMimeTypes, configuredMimeTypes);
+    QCOMPARE(readabilityChecks, configuredImportFilenames);
+    QCOMPARE(importedFilenames,
+             (QStringList {QStringLiteral("override.resource"),
+                           QStringLiteral("tracked.resource")}));
+    QCOMPARE(importedResourceTypes,
+             (QStringList {ResourceType::Patterns, ResourceType::Patterns}));
+    QCOMPARE(resourceIndexCount, 1);
+    QVERIFY(capturedIndexedResource == secondResource);
+    QCOMPARE(buttonResourceIndexCount, 1);
+    QCOMPARE(previewIndexes,
+             (QList<QModelIndex> {QModelIndex(), model.index(0, 0)}));
+    QVERIFY(chooser.currentResource(true) == secondResource);
+    QCOMPARE(sortCount, 1);
+    QCOMPARE(capturedSortRole, int(Qt::DisplayRole));
+    QCOMPARE(buttonStateUpdateCount, 1);
+    QVERIFY(selectionSourcePointersCorrect);
+    QVERIFY(buttonSourcePointersCorrect);
+}
+
+void TestResourceUiContract::removeButtonDeactivatesAndSelectsThePreviousRow()
+{
+    QStandardItemModel model(3, 2);
+    const QList<QPair<int, int>> rows {{2, 1}, {0, 0}};
+
+    for (const auto &row : rows) {
+        resetSelectionState();
+        resetButtonState();
+        configuredSelectionModel = &model;
+        configuredResourceValid = true;
+        configuredCurrentIndexSelected = true;
+        configuredButtonCurrentIndex = model.index(row.first, 1);
+        KisResourceItemChooser chooser(
+            KisResourceUiDescriptor(ResourceType::Patterns, false));
+        expectedButtonChooser = &chooser;
+
+        chooser.slotButtonClicked(KisResourceItemChooser::Button_Remove);
+
+        QCOMPARE(inactiveIndexes,
+                 QList<QModelIndex> {model.index(row.first, 1)});
+        QCOMPARE(indexForRowCount, 1);
+        QCOMPARE(capturedRow, row.second);
+        QCOMPARE(setCurrentIndexCount, 1);
+        QCOMPARE(capturedCurrentIndex, model.index(row.second, 0));
+        QCOMPARE(buttonIndexCount, 1);
+        QCOMPARE(capturedButtonIndexRow, row.second);
+        QCOMPARE(capturedButtonIndexColumn, 1);
+        QCOMPARE(previewIndexes,
+                 (QList<QModelIndex> {model.index(row.second, 0),
+                                      model.index(row.second, 1)}));
+        QCOMPARE(buttonStateUpdateCount, 2);
+        const KoResourceSP expectedResource =
+            row.second == 0 ? secondResource : thirdResource;
+        QVERIFY(chooser.currentResource(true) == expectedResource);
+        QVERIFY(selectionSourcePointersCorrect);
+        QVERIFY(buttonSourcePointersCorrect);
+    }
 }
 
 QTEST_MAIN(TestResourceUiContract)

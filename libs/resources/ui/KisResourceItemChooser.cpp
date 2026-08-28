@@ -27,72 +27,23 @@
 #include <QSplitter>
 #include <QToolButton>
 #include <QLineEdit>
-#include <QStandardPaths>
 
 #include "ksharedconfig.h"
 #include "kconfiggroup.h"
-#include <klocalizedstring.h>
 
-#include <KoFileDialog.h>
 #include "KisPopupButton.h"
 
 #include <KisResourceModel.h>
 #include <KisTagFilterResourceProxyModel.h>
-#include <KisResourceLoaderRegistry.h>
 
 #include "KisResourceItemListView.h"
 #include "KisResourceItemDelegate.h"
 #include "KisTagChooserWidget.h"
 #include "KisResourceItemChooserSync.h"
 #include "KisResourceTaggingManager.h"
-#include <KisResourceUserOperations.h>
 
 #include "KisStorageChooserWidget.h"
 
-
-void KisResourceItemChooser::slotButtonClicked(int button)
-{
-    if (button == Button_Import) {
-        QStringList mimeTypes = KisResourceLoaderRegistry::instance()->mimeTypes(d->resourceType);
-        KoFileDialog dialog(0, KoFileDialog::OpenFiles, "OpenDocument");
-        dialog.setMimeTypeFilters(mimeTypes);
-        dialog.setDefaultDir(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation));
-        dialog.setCaption(i18nc("@title:window", "Choose File to Add"));
-        Q_FOREACH(const QString &filename, dialog.filenames()) {
-            if (QFileInfo(filename).exists() && QFileInfo(filename).isReadable()) {
-
-                KoResourceSP previousResource = this->currentResource();
-                KoResourceSP newResource = KisResourceUserOperations::importResourceFileWithUserInput(this, "", d->resourceType, filename);
-
-                if (previousResource && newResource && !currentResource()) {
-                    /// We have overridden the currently selected resource and
-                    /// nothing is selected now
-                    setCurrentResource(newResource);
-                } else if (currentResource() == newResource) {
-                    /// We have overridden the currently selected resource and
-                    /// the model has managed to track the selection under it
-                    /// (that is not possible right now, but can theoretically
-                    /// happen under some circumstances)
-                    const QModelIndex index = d->tagFilterProxyModel->indexForResource(newResource);
-                    updatePreview(index);
-                }
-            }
-        }
-        tagFilterModel()->sort(Qt::DisplayRole);
-    }
-    else if (button == Button_Remove) {
-        QModelIndex index = d->view->currentIndex();
-        if (index.isValid()) {
-            d->tagFilterProxyModel->setResourceInactive(index);
-        }
-        int row = index.row();
-        int rowMin = --row;
-        row = qBound(0, rowMin, row);
-        setCurrentItem(row);
-        activate(d->tagFilterProxyModel->index(row, index.column()));
-    }
-    updateButtonState();
-}
 
 void KisResourceItemChooser::scrollBackwards()
 {

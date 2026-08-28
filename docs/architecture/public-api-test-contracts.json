@@ -16,7 +16,7 @@
     "publicApiFingerprint": "062f37b66122600b650b62480acf43e6dc06ee55a551e313aeb87a1820068f78"
   },
   "migration": {
-    "expectedMissingApis": 25477
+    "expectedMissingApis": 25476
   },
   "contracts": [
     {
@@ -11455,6 +11455,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceItemChooser::slotScrollerStateChanged(QScroller::State state)"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::importButtonRestoresAndRefreshesResourceSelection",
+      "behavior": "取込操作は資源種別のMIME型で選んだ可読ファイルだけを登録し、置換で失われた選択を新資源へ戻すか、模型が選択を追跡できた場合は対応索引のプレビューを更新してから一覧を並べ替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::slotButtonClicked(int button)"
+      ]
+    },
+    {
+      "target": "TestResourceUiContract",
+      "source": "libs/resources/ui/tests/TestResourceUiContract.cpp",
+      "test": "TestResourceUiContract::removeButtonDeactivatesAndSelectsThePreviousRow",
+      "behavior": "除去操作は現在索引の資源を無効化し、直前の行を選択・活性化して除去可否を更新し、先頭行では行0を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemChooser::slotButtonClicked(int button)"
       ]
     }
   ]
