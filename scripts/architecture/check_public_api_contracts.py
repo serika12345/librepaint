@@ -9,6 +9,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -50,6 +51,10 @@ CONTRACT_CLASSIFICATIONS = frozenset(
 )
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = REPO_ROOT / "docs/architecture/public-api-test-contracts.json"
+CPP_COMMENT_OR_LITERAL_PATTERN = re.compile(
+    r"//[^\n]*|/\*.*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'",
+    re.DOTALL,
+)
 
 
 class PublicApiContractError(RuntimeError):
@@ -204,7 +209,7 @@ def discover_public_headers(repository_root: Path) -> list[str]:
     return module.discover_public_headers(repository_root)
 
 
-def collect_ctags(
+def _run_ctags(
     repository_root: Path, public_headers: list[str]
 ) -> list[dict[str, Any]]:
     command = [
@@ -241,6 +246,69 @@ def collect_ctags(
             ) from error
         if isinstance(value, dict) and value.get("_type") == "tag":
             tags.append(value)
+    return tags
+
+
+def _mask_cpp_comments_and_literals(text: str) -> str:
+    return CPP_COMMENT_OR_LITERAL_PATTERN.sub(
+        lambda match: "".join(
+            "\n" if character == "\n" else " " for character in match.group()
+        ),
+        text,
+    )
+
+
+def _friend_declarations_with_empty_bodies(text: str) -> str:
+    masked_text = _mask_cpp_comments_and_literals(text)
+    semicolons: list[int] = []
+    for match in re.finditer(r"\bfriend\b", masked_text):
+        has_parameter_list = False
+        for index in range(match.end(), len(masked_text)):
+            character = masked_text[index]
+            if character == "(":
+                has_parameter_list = True
+            elif character in "{}":
+                break
+            elif character == ";":
+                if has_parameter_list:
+                    semicolons.append(index)
+                break
+
+    transformed = text
+    for index in reversed(semicolons):
+        transformed = transformed[:index] + " {}" + transformed[index + 1 :]
+    return transformed
+
+
+def _collect_friend_declaration_tags(
+    repository_root: Path, public_headers: list[str]
+) -> list[dict[str, Any]]:
+    with tempfile.TemporaryDirectory(
+        prefix="librepaint-public-api-friends-"
+    ) as temporary_directory:
+        temporary_root = Path(temporary_directory)
+        transformed_headers: list[str] = []
+        for header in public_headers:
+            source = repository_root / header
+            text = source.read_text(encoding="utf-8")
+            transformed = _friend_declarations_with_empty_bodies(text)
+            if transformed == text:
+                continue
+            destination = temporary_root / header
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(transformed, encoding="utf-8")
+            transformed_headers.append(header)
+
+        if not transformed_headers:
+            return []
+        return _run_ctags(temporary_root, transformed_headers)
+
+
+def collect_ctags(
+    repository_root: Path, public_headers: list[str]
+) -> list[dict[str, Any]]:
+    tags = _run_ctags(repository_root, public_headers)
+    tags.extend(_collect_friend_declaration_tags(repository_root, public_headers))
     return tags
 
 

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 20:34 JST
+- 更新日時: 2026-08-28 20:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5687,11 +5687,26 @@
   収めた。対象実行と20回反復に成功した。対応済みは4,156件、未対応基準は25,811件になり、
   3ヘッダーの採取済みpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b friend関数採取と重複型別名契約で完了した作業
+
+- `scripts/architecture/check_public_api_contracts.py`は、Universal Ctagsが省略するセミコロン終端の
+  friend関数宣言を、原文のコメントと文字列を保護した一時コピーで空本文付きに変換し、既存の
+  名前空間関数一覧へ統合するようにした。本文付きfriend関数と通常宣言は既存採取結果を維持する。
+- `scripts/tests/test_public_api_contracts.py`へ、公開・非公開節のfriend関数、複数行宣言、名前空間、
+  friend class除外、コメント・文字列・既存本文の保持を追加し、全12試験に成功した。公開面には
+  19関数が追加され、1,546公開ヘッダー、29,986 APIになった。
+- 既存`libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp`の署名等価試験を新規採取した
+  `KoResourceSignature::operator==`へ対応付けた。重複宣言を一つの識別子へ統合して別ヘッダーを
+  代表元にする共有ポインター型別名は、既存資源キャッシュのメタ型試験と、拡張した
+  `libs/resources/tests/KoCanvasResourcesInterfaceContractTest.cpp`の所有寿命試験へ対応付けた。
+- キャンバス資源試験は製品資源ライブラリーへ接続せず、5工程・11入力のまま対象実行と20回反復に
+  成功した。対応済みは4,159件、未対応基準は25,827件になった。追加採取した残り18 friend関数は
+  通常の未対応作業列へ入り、Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-公開API採取で同一型別名の代表ヘッダーだけを調べると対応を見落とす問題と、クラス内friend関数を
-採取できない問題を再現試験で固定する。既存の共有ポインター型別名と
-`KoResourceSignature::operator==`を起点に、台帳が全公開宣言を数えるよう是正する。
+`libs/resources/KoResourceLoadResult.h`の資源読込結果値について、既存試験、直接依存、変更なし構築
+閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠
 

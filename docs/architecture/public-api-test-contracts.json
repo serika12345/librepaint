@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1546,
     "publicHeaderFingerprint": "cbc0b91d501fb2180e4a2a4807d6459babf7d9a0a50814bad6d030caf8b4285d",
-    "publicApiCount": 29967,
-    "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
+    "publicApiCount": 29986,
+    "publicApiFingerprint": "7bcb39f93618431f58096964ad617e62516f3d06f2adefa928141a573f2c5364"
   },
   "migration": {
-    "expectedMissingApis": 25811
+    "expectedMissingApis": 25827
   },
   "contracts": [
     {
@@ -9623,6 +9623,16 @@
       ]
     },
     {
+      "target": "KoCanvasResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KoCanvasResourcesInterfaceContractTest.cpp",
+      "test": "KoCanvasResourcesInterfaceContractTest::sharedPointerAliasOwnsImplementation",
+      "behavior": "キャンバス資源境界の共有ポインター型は実装を所有し、最後の参照が終了した時点で多態的に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoCanvasResourcesInterfaceSP"
+      ]
+    },
+    {
       "target": "KoResourceCacheInterfaceContractTest",
       "source": "libs/resources/tests/KoResourceCacheInterfaceContractTest.cpp",
       "test": "KoResourceCacheInterfaceContractTest::dispatchesCacheOperationsAndSupportsPolymorphicLifetime",
@@ -9648,6 +9658,16 @@
       ]
     },
     {
+      "target": "KoResourceCacheInterfaceContractTest",
+      "source": "libs/resources/tests/KoResourceCacheInterfaceContractTest.cpp",
+      "test": "KoResourceCacheInterfaceContractTest::registersSharedPointerMetaType",
+      "behavior": "共有資源キャッシュ境界の共有ポインター型はQtメタ型名から同じ型として解決できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoResourceCacheInterfaceSP"
+      ]
+    },
+    {
       "target": "KoEmbeddedResourceValueContractTest",
       "source": "libs/resources/tests/KoEmbeddedResourceValueContractTest.cpp",
       "test": "KoEmbeddedResourceValueContractTest::constructsAndComparesResourceSignatures",
@@ -9655,6 +9675,7 @@
       "classification": "maintained",
       "apis": [
         "class:KoResourceSignature",
+        "function:operator ==(const KoResourceSignature & lhs,const KoResourceSignature & rhs)",
         "member:KoResourceSignature::filename",
         "member:KoResourceSignature::md5sum",
         "member:KoResourceSignature::name",

@@ -42,6 +42,7 @@ class KoCanvasResourcesInterfaceContractTest : public QObject
 
 private Q_SLOTS:
     void dispatchesResourceLookupAndSupportsPolymorphicLifetime();
+    void sharedPointerAliasOwnsImplementation();
 };
 
 void KoCanvasResourcesInterfaceContractTest::dispatchesResourceLookupAndSupportsPolymorphicLifetime()
@@ -54,6 +55,20 @@ void KoCanvasResourcesInterfaceContractTest::dispatchesResourceLookupAndSupports
     QCOMPARE(resources->resource(173), QVariant(QStringLiteral("canvas-resource")));
     QCOMPARE(requestedKey, 173);
     delete resources;
+    QVERIFY(destroyed);
+}
+
+void KoCanvasResourcesInterfaceContractTest::sharedPointerAliasOwnsImplementation()
+{
+    int requestedKey = -1;
+    bool destroyed = false;
+    {
+        KoCanvasResourcesInterfaceSP resources(
+            new RecordingCanvasResources(&requestedKey, &destroyed));
+        QCOMPARE(resources->resource(271), QVariant(QStringLiteral("canvas-resource")));
+        QCOMPARE(requestedKey, 271);
+        QVERIFY(!destroyed);
+    }
     QVERIFY(destroyed);
 }
 

@@ -129,6 +129,71 @@ public:
                 [api["id"] for api in apis],
             )
 
+    def test_collects_friend_function_declarations_as_namespace_functions(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            header = root / "PublicValue.h"
+            header.write_text(
+                """
+namespace Example
+{
+class PublicValue
+{
+public:
+    friend bool operator==(const PublicValue &lhs, const PublicValue &rhs);
+
+private:
+    friend int inspect(
+        const PublicValue &value,
+        int detail);
+    friend class Helper;
+};
+}
+""",
+                encoding="utf-8",
+            )
+
+            tags = check_public_api_contracts.collect_ctags(
+                root, ["PublicValue.h"]
+            )
+            apis = check_public_api_contracts.extract_public_apis(
+                tags, {"PublicValue.h"}
+            )
+
+            self.assertIn(
+                "function:Example::operator ==(const PublicValue & lhs,const PublicValue & rhs)",
+                [api["id"] for api in apis],
+            )
+            self.assertIn(
+                "function:Example::inspect(const PublicValue & value,int detail)",
+                [api["id"] for api in apis],
+            )
+            self.assertFalse(any("Helper" in api["id"] for api in apis))
+
+    def test_friend_declaration_transform_preserves_non_declarations(self) -> None:
+        source = """
+// friend bool commentedOut(int value);
+const char *description = "friend bool textOnly(int value);";
+friend class Helper;
+friend bool declared(int value);
+inline friend bool defined(int value) { return value > 0; }
+"""
+
+        transformed = (
+            check_public_api_contracts._friend_declarations_with_empty_bodies(
+                source
+            )
+        )
+
+        self.assertIn("// friend bool commentedOut(int value);", transformed)
+        self.assertIn('"friend bool textOnly(int value);"', transformed)
+        self.assertIn("friend class Helper;", transformed)
+        self.assertIn("friend bool declared(int value) {}", transformed)
+        self.assertIn(
+            "inline friend bool defined(int value) { return value > 0; }",
+            transformed,
+        )
+
     def test_collects_qt_signals_as_public_after_private_slots(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
