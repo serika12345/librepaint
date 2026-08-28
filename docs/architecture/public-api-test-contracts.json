@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25999
+    "expectedMissingApis": 25991
   },
   "contracts": [
     {
@@ -8999,6 +8999,50 @@
       "classification": "maintained",
       "apis": [
         "method:KisNativeGestureShortcut::match(QNativeGestureEvent * event)"
+      ]
+    },
+    {
+      "target": "KisStrokeShortcutContractTest",
+      "source": "libs/input/tests/KisStrokeShortcutContractTest.cpp",
+      "test": "KisStrokeShortcutContractTest::preservesPolymorphicLifetimeAndActionPriority",
+      "behavior": "未構成のストローク短縮操作は入力操作の優先度を維持し、基本短縮操作の所有を通じて寿命を終了できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeShortcut",
+        "method:KisStrokeShortcut::KisStrokeShortcut(KisInputAction * action,int index)",
+        "method:KisStrokeShortcut::~KisStrokeShortcut()"
+      ]
+    },
+    {
+      "target": "KisStrokeShortcutContractTest",
+      "source": "libs/input/tests/KisStrokeShortcutContractTest.cpp",
+      "test": "KisStrokeShortcutContractTest::configuredButtonsDefineReadyAndBeginTransitions",
+      "behavior": "修飾キーと複数ボタンの構成は、最後のボタンを待つ準備状態と構成ボタンによる開始状態を決定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeShortcut::matchBegin(Qt::MouseButton button)",
+        "method:KisStrokeShortcut::matchReady(const QSet<Qt::Key> & modifiers,const QSet<Qt::MouseButton> & buttons)",
+        "method:KisStrokeShortcut::setButtons(const QSet<Qt::Key> & modifiers,const QSet<Qt::MouseButton> & buttons)"
+      ]
+    },
+    {
+      "target": "KisStrokeShortcutContractTest",
+      "source": "libs/input/tests/KisStrokeShortcutContractTest.cpp",
+      "test": "KisStrokeShortcutContractTest::priorityCombinesConfigurationAndActionPriority",
+      "behavior": "ストローク短縮操作の優先度は入力構成の具体性へ入力操作の優先度を加算して追従する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeShortcut::priority() const"
+      ]
+    },
+    {
+      "target": "KisStrokeShortcutContractTest",
+      "source": "libs/input/tests/KisStrokeShortcutContractTest.cpp",
+      "test": "KisStrokeShortcutContractTest::fakeEndEventUsesTheConfiguredButtonAndPosition",
+      "behavior": "合成終了事象は構成ボタンを解放ボタンとし、指定位置を局所・場面・大域位置へ保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeShortcut::fakeEndEvent(const QPointF & localPos) const"
       ]
     }
   ]

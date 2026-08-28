@@ -63,3 +63,13 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisNativeGestureShortcutContractTest PRIVATE kritainput_EXPORTS)
+
+kis_add_test(
+    KisStrokeShortcutContractTest.cpp
+    LINK_LIBRARIES
+        kritainputstrokeshortcutobjects
+        kritainputabstractshortcutobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisStrokeShortcutContractTest PRIVATE kritainput_EXPORTS)
