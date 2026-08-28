@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 28078
+    "expectedMissingApis": 28041
   },
   "contracts": [
     {
@@ -3537,6 +3537,52 @@
         "enumerator:SelectionAction::SELECTION_REPLACE",
         "enumerator:SelectionAction::SELECTION_SUBTRACT",
         "enumerator:SelectionAction::SELECTION_SYMMETRICDIFFERENCE"
+      ]
+    },
+    {
+      "target": "KisCommandIdsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandIdsContractTest.cpp",
+      "test": "KisCommandIdsContractTest::commandIdsPreserveValues",
+      "behavior": "取り消しコマンドIDは図形移動の9999からSVG文字経路情報変更の10034まで、各操作を重複なく識別する連続値を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisCommandUtils::CommandId",
+        "enumerator:KisCommandUtils::CommandId::ChangeCurrentTimeId",
+        "enumerator:KisCommandUtils::CommandId::ChangeCurrentTimeToKeyId",
+        "enumerator:KisCommandUtils::CommandId::ChangeEllipseShapeId",
+        "enumerator:KisCommandUtils::CommandId::ChangeNodeCompositeOpId",
+        "enumerator:KisCommandUtils::CommandId::ChangeNodeNameId",
+        "enumerator:KisCommandUtils::CommandId::ChangeNodeOpacityId",
+        "enumerator:KisCommandUtils::CommandId::ChangePaintOrderCommand",
+        "enumerator:KisCommandUtils::CommandId::ChangePaletteId",
+        "enumerator:KisCommandUtils::CommandId::ChangePathShapeControlPointId",
+        "enumerator:KisCommandUtils::CommandId::ChangePathShapePointId",
+        "enumerator:KisCommandUtils::CommandId::ChangeProjectionColorCommand",
+        "enumerator:KisCommandUtils::CommandId::ChangeRectangleShapeId",
+        "enumerator:KisCommandUtils::CommandId::ChangeShapeBackgroundId",
+        "enumerator:KisCommandUtils::CommandId::ChangeShapeMarkersId",
+        "enumerator:KisCommandUtils::CommandId::ChangeShapeParameterId",
+        "enumerator:KisCommandUtils::CommandId::ChangeShapeStrokeId",
+        "enumerator:KisCommandUtils::CommandId::ChangeShapeTransparencyId",
+        "enumerator:KisCommandUtils::CommandId::ChangeStoryboardChild",
+        "enumerator:KisCommandUtils::CommandId::ChangeTransformMaskCommand",
+        "enumerator:KisCommandUtils::CommandId::DisableUIUpdatesCommandId",
+        "enumerator:KisCommandUtils::CommandId::EmitImageSignalsCommandId",
+        "enumerator:KisCommandUtils::CommandId::ImageAnimSettingCommandId",
+        "enumerator:KisCommandUtils::CommandId::KoShapeMergeTextPropertiesCommandId",
+        "enumerator:KisCommandUtils::CommandId::MoveShapeId",
+        "enumerator:KisCommandUtils::CommandId::NodePropertyListCommandId",
+        "enumerator:KisCommandUtils::CommandId::ResizeShapeId",
+        "enumerator:KisCommandUtils::CommandId::SvgInlineSizeChangeCommand",
+        "enumerator:KisCommandUtils::CommandId::SvgInsertTextCommand",
+        "enumerator:KisCommandUtils::CommandId::SvgMoveTextCommand",
+        "enumerator:KisCommandUtils::CommandId::SvgRemoveTextCommand",
+        "enumerator:KisCommandUtils::CommandId::SvgTextChangeTransformsOnRangeCommandId",
+        "enumerator:KisCommandUtils::CommandId::SvgTextMergePropertiesRangeCommand",
+        "enumerator:KisCommandUtils::CommandId::SvgTextPathInfoChangeCommandId",
+        "enumerator:KisCommandUtils::CommandId::TransformShapeId",
+        "enumerator:KisCommandUtils::CommandId::TransformToolId",
+        "enumerator:KisCommandUtils::CommandId::UpdateCommandId"
       ]
     }
   ]
