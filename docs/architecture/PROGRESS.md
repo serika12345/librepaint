@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 16:41 JST
+- 更新日時: 2026-08-28 16:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5131,6 +5131,22 @@
   macOSで4工程・8入力であり、修正後の対象実行と20回反復に成功した。対応済みは3,166件、
   未対応基準は26,800件になった。公開API、ABI、保存形式、有効入力の動作は変更していない。
   Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 長さ単位実装の限定構築とpublic API契約で完了した作業
+
+- `libs/global/KoUnit.cpp`はファイル位置を維持し、65工程・130入力の`kritaglobal`直接ソースから、
+  新規`kritaglobalunitobjects`の1工程・3入力へ実装所有を分けた。`kritaglobal`は同じオブジェクトを
+  集約し、製品リンク、公開API、ABIを維持する。
+- CMakeから外れていた試験を次のように所有元へ移し、宣言と実装を局所検証できるようにした。
+  - `libs/flake/tests/TestKoUnit.cpp`から`libs/global/tests/KoUnitContractTest.cpp`
+  - `libs/flake/tests/TestKoUnit.h`から`libs/global/tests/KoUnitContractTest.cpp`内の試験クラス
+- 新試験は14換算係数、7丸め係数、2列挙・12列挙値・フラグ型、構築と等価性、記号、UI一覧、
+  利用者値換算、解析、画素変換、診断出力からなる全61 APIを9試験へ対応付けた。最初の実行は
+  ラジアン入力の生成精度が期待許容差を下回る試験入力を診断し、17桁の入力へ固定した。製品実装は
+  変更していない。
+- 専用試験は単位実装対象、Qt Test、Qt Core、Qt Gui、翻訳基盤だけへ接続し、変更なし構築閉包は
+  macOSで5工程・12入力である。対象実行と20回反復に成功し、`kritaglobal`全体は構築していない。
+  対応済みは3,227件、未対応基準は26,739件になった。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 

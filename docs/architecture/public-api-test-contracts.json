@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26800
+    "expectedMissingApis": 26739
   },
   "contracts": [
     {
@@ -7297,6 +7297,148 @@
         "method:KisColorSelectorConfiguration::KisColorSelectorConfiguration(QString string)",
         "method:KisColorSelectorConfiguration::fromString(QString string)",
         "method:KisColorSelectorConfiguration::readString(QString string)"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::conversionConstantsRemainStable",
+      "behavior": "ポイントを基準にする14単位換算係数と7表示丸め係数は既存文書・画面換算値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:CC_TO_POINT(qreal cc)",
+        "function:CM_TO_POINT(qreal cm)",
+        "function:DM_TO_POINT(qreal dm)",
+        "function:INCH_TO_MM(qreal inch)",
+        "function:INCH_TO_POINT(qreal inch)",
+        "function:MM_TO_INCH(qreal mm)",
+        "function:MM_TO_POINT(qreal mm)",
+        "function:PI_TO_POINT(qreal pi)",
+        "function:POINT_TO_CC(qreal px)",
+        "function:POINT_TO_CM(qreal px)",
+        "function:POINT_TO_DM(qreal px)",
+        "function:POINT_TO_INCH(qreal px)",
+        "function:POINT_TO_MM(qreal px)",
+        "function:POINT_TO_PI(qreal px)",
+        "variable:CC_ROUNDING",
+        "variable:CM_ROUNDING",
+        "variable:DM_ROUNDING",
+        "variable:IN_ROUNDING",
+        "variable:MM_ROUNDING",
+        "variable:PI_ROUNDING",
+        "variable:PT_ROUNDING"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::unitAndOptionIdentifiersRemainStable",
+      "behavior": "長さ単位、UI一覧選択肢、画素非表示フラグは保存・一覧順に使う固定値と型を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoUnit::ListOptions",
+        "enum:KoUnit::ListOption",
+        "enum:KoUnit::Type",
+        "enumerator:KoUnit::ListOption::HideMask",
+        "enumerator:KoUnit::ListOption::HidePixel",
+        "enumerator:KoUnit::ListOption::ListAll",
+        "enumerator:KoUnit::Type::Centimeter",
+        "enumerator:KoUnit::Type::Cicero",
+        "enumerator:KoUnit::Type::Decimeter",
+        "enumerator:KoUnit::Type::Inch",
+        "enumerator:KoUnit::Type::Millimeter",
+        "enumerator:KoUnit::Type::Pica",
+        "enumerator:KoUnit::Type::Pixel",
+        "enumerator:KoUnit::Type::Point",
+        "enumerator:KoUnit::Type::TypeCount"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::constructionAssignmentAndEqualityPreserveTypeAndFactor",
+      "behavior": "単位値は既定単位、画素係数、型代入、型と係数に基づく等価性を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoUnit",
+        "method:KoUnit::KoUnit(Type unit=Point,qreal factor=1.0)",
+        "method:KoUnit::operator =(Type unit)",
+        "method:KoUnit::operator ==(const KoUnit & other) const",
+        "method:KoUnit::setFactor(qreal factor)",
+        "method:KoUnit::type() const"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::symbolsAndDescriptionsRemainStable",
+      "behavior": "全長さ単位は固定記号から往復でき、互換inch記号と未知記号の成否、表示説明を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUnit::fromSymbol(const QString & symbol,bool * ok=0)",
+        "method:KoUnit::symbol() const",
+        "method:KoUnit::toString() const",
+        "method:KoUnit::unitDescription(KoUnit::Type type)"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::uiListsRoundTripAndHidePixels",
+      "behavior": "UI単位一覧は全8単位の順序、画素除外、索引往復、画素係数を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUnit::fromListForUi(int index,ListOptions listOptions=ListAll,qreal factor=1.0)",
+        "method:KoUnit::indexInListForUi(ListOptions listOptions=ListAll) const",
+        "method:KoUnit::listOfUnitNameForUi(ListOptions listOptions=ListAll)"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::userConversionsRoundTripAndRound",
+      "behavior": "単位間換算、精密値、表示丸め値、地域依存文字列、利用者値からの復元は一貫する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUnit::convertFromUnitToUnit(const qreal value,const KoUnit & fromUnit,const KoUnit & toUnit,qreal factor=1.0)",
+        "method:KoUnit::fromUserValue(const QString & value,bool * ok=0) const",
+        "method:KoUnit::fromUserValue(qreal value) const",
+        "method:KoUnit::toUserStringValue(qreal ptValue) const",
+        "method:KoUnit::toUserValue(qreal ptValue,bool rounding=true) const",
+        "method:KoUnit::toUserValuePrecise(const qreal ptValue) const",
+        "method:KoUnit::toUserValueRounded(const qreal value) const"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::parsersHandleUnitsAnglesAndFallbacks",
+      "behavior": "長さと角度の解析は既知接尾辞を換算し、未知接尾辞では指定された既定値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUnit::parseAngle(const QString & value,qreal defaultVal=0.0)",
+        "method:KoUnit::parseValue(const QString & value,qreal defaultVal=0.0)"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::pixelTransformUpdatesScale",
+      "behavior": "画素単位は変換行列式の平方根を尺度として画素係数へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUnit::adjustByPixelTransform(const QTransform & t)",
+        "method:KoUnit::approxTransformScale(const QTransform & t)"
+      ]
+    },
+    {
+      "target": "KoUnitContractTest",
+      "source": "libs/global/tests/KoUnitContractTest.cpp",
+      "test": "KoUnitContractTest::debugStreamUsesUnitSymbol",
+      "behavior": "デバッグ構成の単位出力は単位記号を含み、非デバッグ構成では値を出力しない。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug,const KoUnit &)"
       ]
     }
   ]

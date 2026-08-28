@@ -55,6 +55,14 @@ target_include_directories(KisGlobalValuesContractTest PRIVATE
 target_compile_definitions(KisGlobalValuesContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KoUnitContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalunitobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoUnitContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisFutureUtilsTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
