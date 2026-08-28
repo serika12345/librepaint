@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27872
+    "expectedMissingApis": 27863
   },
   "contracts": [
     {
@@ -3842,6 +3842,42 @@
         "method:KisImageSignalType::KisImageSignalType(KisImageSignalTypeEnum _id)",
         "method:KisImageSignalType::inverted() const",
         "struct:KisImageSignalType"
+      ]
+    },
+    {
+      "target": "KisDabShapeContractTest",
+      "source": "libs/brush/tests/KisDabShapeContractTest.cpp",
+      "test": "KisDabShapeContractTest::defaultShapeIsUnscaledAndUnrotated",
+      "behavior": "既定の描画点形状は等倍かつ縦横比1で回転していない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDabShape",
+        "method:KisDabShape::KisDabShape()"
+      ]
+    },
+    {
+      "target": "KisDabShapeContractTest",
+      "source": "libs/brush/tests/KisDabShapeContractTest.cpp",
+      "test": "KisDabShapeContractTest::shapePreservesScaleRatioAndRotation",
+      "behavior": "描画点形状が倍率、縦横比、回転を保持し、横倍率を基準倍率、縦倍率を基準倍率と縦横比の積として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabShape::KisDabShape(qreal scale,qreal ratio,qreal rotation)",
+        "method:KisDabShape::ratio() const",
+        "method:KisDabShape::rotation() const",
+        "method:KisDabShape::scale() const",
+        "method:KisDabShape::scaleX() const",
+        "method:KisDabShape::scaleY() const"
+      ]
+    },
+    {
+      "target": "KisDabShapeContractTest",
+      "source": "libs/brush/tests/KisDabShapeContractTest.cpp",
+      "test": "KisDabShapeContractTest::equalityUsesFuzzyComponentComparison",
+      "behavior": "描画点形状の等価比較は倍率、縦横比、回転の各成分を浮動小数点の近似比較で判定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDabShape::operator ==(const KisDabShape & rhs) const"
       ]
     }
   ]
