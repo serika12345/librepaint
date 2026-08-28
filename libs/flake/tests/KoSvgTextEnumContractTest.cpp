@@ -4,10 +4,12 @@
  */
 
 #include "text/KoSvgText.h"
+#include "text/KoSvgTextProperties.h"
 
 #include <QFlags>
 #include <QTest>
 
+#include <array>
 #include <type_traits>
 
 class KoSvgTextEnumContractTest : public QObject
@@ -20,6 +22,7 @@ private Q_SLOTS:
     void fontVariantEnumsRemainOrdered();
     void flagAliasesPreserveIndependentOptions();
     void fontKeywordTablesRemainStable();
+    void propertyIdentifiersRemainContiguous();
 };
 
 void KoSvgTextEnumContractTest::layoutEnumsRemainOrdered()
@@ -258,6 +261,78 @@ void KoSvgTextEnumContractTest::fontKeywordTablesRemainStable()
     QCOMPARE(QByteArray(KoSvgText::fontSizeNames[4]), QByteArray("large"));
     QCOMPARE(QByteArray(KoSvgText::fontSizeNames[5]), QByteArray("x-large"));
     QCOMPARE(QByteArray(KoSvgText::fontSizeNames[6]), QByteArray("xx-large"));
+}
+
+void KoSvgTextEnumContractTest::propertyIdentifiersRemainContiguous()
+{
+    const std::array<int, 62> identifiers = {
+        int(KoSvgTextProperties::WritingModeId),
+        int(KoSvgTextProperties::DirectionId),
+        int(KoSvgTextProperties::UnicodeBidiId),
+        int(KoSvgTextProperties::TextAnchorId),
+        int(KoSvgTextProperties::DominantBaselineId),
+        int(KoSvgTextProperties::AlignmentBaselineId),
+        int(KoSvgTextProperties::BaselineShiftModeId),
+        int(KoSvgTextProperties::BaselineShiftValueId),
+        int(KoSvgTextProperties::KerningId),
+        int(KoSvgTextProperties::TextOrientationId),
+        int(KoSvgTextProperties::LetterSpacingId),
+        int(KoSvgTextProperties::WordSpacingId),
+        int(KoSvgTextProperties::FontFamiliesId),
+        int(KoSvgTextProperties::FontStyleId),
+        int(KoSvgTextProperties::FontStretchId),
+        int(KoSvgTextProperties::FontWeightId),
+        int(KoSvgTextProperties::FontSizeId),
+        int(KoSvgTextProperties::FontSizeAdjustId),
+        int(KoSvgTextProperties::FontVariantLigatureId),
+        int(KoSvgTextProperties::FontVariantPositionId),
+        int(KoSvgTextProperties::FontVariantCapsId),
+        int(KoSvgTextProperties::FontVariantNumericId),
+        int(KoSvgTextProperties::FontVariantEastAsianId),
+        int(KoSvgTextProperties::FontFeatureSettingsId),
+        int(KoSvgTextProperties::FontOpticalSizingId),
+        int(KoSvgTextProperties::FontVariationSettingsId),
+        int(KoSvgTextProperties::TextDecorationLineId),
+        int(KoSvgTextProperties::TextDecorationStyleId),
+        int(KoSvgTextProperties::TextDecorationColorId),
+        int(KoSvgTextProperties::TextDecorationPositionId),
+        int(KoSvgTextProperties::FillId),
+        int(KoSvgTextProperties::StrokeId),
+        int(KoSvgTextProperties::Opacity),
+        int(KoSvgTextProperties::PaintOrder),
+        int(KoSvgTextProperties::Visibility),
+        int(KoSvgTextProperties::TextLanguage),
+        int(KoSvgTextProperties::TextCollapseId),
+        int(KoSvgTextProperties::TextWrapId),
+        int(KoSvgTextProperties::TextTrimId),
+        int(KoSvgTextProperties::LineBreakId),
+        int(KoSvgTextProperties::WordBreakId),
+        int(KoSvgTextProperties::TextAlignAllId),
+        int(KoSvgTextProperties::TextAlignLastId),
+        int(KoSvgTextProperties::TextTransformId),
+        int(KoSvgTextProperties::TextOverFlowId),
+        int(KoSvgTextProperties::OverflowWrapId),
+        int(KoSvgTextProperties::InlineSizeId),
+        int(KoSvgTextProperties::LineHeightId),
+        int(KoSvgTextProperties::TextIndentId),
+        int(KoSvgTextProperties::HangingPunctuationId),
+        int(KoSvgTextProperties::TabSizeId),
+        int(KoSvgTextProperties::ShapePaddingId),
+        int(KoSvgTextProperties::ShapeMarginId),
+        int(KoSvgTextProperties::FontSynthesisBoldId),
+        int(KoSvgTextProperties::FontSynthesisItalicId),
+        int(KoSvgTextProperties::FontSynthesisSmallCapsId),
+        int(KoSvgTextProperties::FontSynthesisSuperSubId),
+        int(KoSvgTextProperties::TextRenderingId),
+        int(KoSvgTextProperties::KraTextVersionId),
+        int(KoSvgTextProperties::KraTextStyleType),
+        int(KoSvgTextProperties::KraTextStyleResolution),
+        int(KoSvgTextProperties::LastPropertyId),
+    };
+
+    for (size_t i = 0; i < identifiers.size(); ++i) {
+        QCOMPARE(identifiers[i], int(i));
+    }
 }
 
 QTEST_GUILESS_MAIN(KoSvgTextEnumContractTest)

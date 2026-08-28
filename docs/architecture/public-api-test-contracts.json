@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e602e23a1ace3754529e60b0a3b0f4d4606843ba1b4e686295c9602542045ea2"
   },
   "migration": {
-    "expectedMissingApis": 27528
+    "expectedMissingApis": 27465
   },
   "contracts": [
     {
@@ -6452,6 +6452,78 @@
       "apis": [
         "variable:KoSvgText::fontSizeNames",
         "variable:KoSvgText::fontStretchNames"
+      ]
+    },
+    {
+      "target": "KoSvgTextEnumContractTest",
+      "source": "libs/flake/tests/KoSvgTextEnumContractTest.cpp",
+      "test": "KoSvgTextEnumContractTest::propertyIdentifiersRemainContiguous",
+      "behavior": "SVG文字プロパティ識別子はWritingModeIdからLastPropertyIdまで0起点の連続した宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoSvgTextProperties::PropertyId",
+        "enumerator:KoSvgTextProperties::PropertyId::AlignmentBaselineId",
+        "enumerator:KoSvgTextProperties::PropertyId::BaselineShiftModeId",
+        "enumerator:KoSvgTextProperties::PropertyId::BaselineShiftValueId",
+        "enumerator:KoSvgTextProperties::PropertyId::DirectionId",
+        "enumerator:KoSvgTextProperties::PropertyId::DominantBaselineId",
+        "enumerator:KoSvgTextProperties::PropertyId::FillId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontFamiliesId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontFeatureSettingsId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontOpticalSizingId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontSizeAdjustId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontSizeId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontStretchId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontStyleId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontSynthesisBoldId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontSynthesisItalicId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontSynthesisSmallCapsId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontSynthesisSuperSubId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontVariantCapsId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontVariantEastAsianId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontVariantLigatureId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontVariantNumericId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontVariantPositionId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontVariationSettingsId",
+        "enumerator:KoSvgTextProperties::PropertyId::FontWeightId",
+        "enumerator:KoSvgTextProperties::PropertyId::HangingPunctuationId",
+        "enumerator:KoSvgTextProperties::PropertyId::InlineSizeId",
+        "enumerator:KoSvgTextProperties::PropertyId::KerningId",
+        "enumerator:KoSvgTextProperties::PropertyId::KraTextStyleResolution",
+        "enumerator:KoSvgTextProperties::PropertyId::KraTextStyleType",
+        "enumerator:KoSvgTextProperties::PropertyId::KraTextVersionId",
+        "enumerator:KoSvgTextProperties::PropertyId::LastPropertyId",
+        "enumerator:KoSvgTextProperties::PropertyId::LetterSpacingId",
+        "enumerator:KoSvgTextProperties::PropertyId::LineBreakId",
+        "enumerator:KoSvgTextProperties::PropertyId::LineHeightId",
+        "enumerator:KoSvgTextProperties::PropertyId::Opacity",
+        "enumerator:KoSvgTextProperties::PropertyId::OverflowWrapId",
+        "enumerator:KoSvgTextProperties::PropertyId::PaintOrder",
+        "enumerator:KoSvgTextProperties::PropertyId::ShapeMarginId",
+        "enumerator:KoSvgTextProperties::PropertyId::ShapePaddingId",
+        "enumerator:KoSvgTextProperties::PropertyId::StrokeId",
+        "enumerator:KoSvgTextProperties::PropertyId::TabSizeId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextAlignAllId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextAlignLastId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextAnchorId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextCollapseId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextDecorationColorId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextDecorationLineId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextDecorationPositionId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextDecorationStyleId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextIndentId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextLanguage",
+        "enumerator:KoSvgTextProperties::PropertyId::TextOrientationId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextOverFlowId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextRenderingId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextTransformId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextTrimId",
+        "enumerator:KoSvgTextProperties::PropertyId::TextWrapId",
+        "enumerator:KoSvgTextProperties::PropertyId::UnicodeBidiId",
+        "enumerator:KoSvgTextProperties::PropertyId::Visibility",
+        "enumerator:KoSvgTextProperties::PropertyId::WordBreakId",
+        "enumerator:KoSvgTextProperties::PropertyId::WordSpacingId",
+        "enumerator:KoSvgTextProperties::PropertyId::WritingModeId"
       ]
     }
   ]
