@@ -16,7 +16,7 @@
     "publicApiFingerprint": "02a2ba5fa81fe7de5ed695b939677058c656df441e157a423c32477eca21a53c"
   },
   "migration": {
-    "expectedMissingApis": 25559
+    "expectedMissingApis": 25557
   },
   "contracts": [
     {
@@ -11075,6 +11075,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceUserOperations::resourceNameIsAlreadyUsed(KisResourceModel * resourceModel,QString resourceName,int resourceIdToIgnore=-1)"
+      ]
+    },
+    {
+      "target": "KisResourceUserOperationsContractTest",
+      "source": "libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp",
+      "test": "KisResourceUserOperationsContractTest::importUsesOverwriteDecisionAndWarnsOnFailure",
+      "behavior": "資源取込は通常取込を先に試し、既定保存先の上書き候補だけを確認し、承認時に上書きで再試行し、取消し時は警告せず、最終失敗時は警告する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceUserOperations::importResourceFileWithUserInput(QWidget * widgetParent,QString storageLocation,QString resourceType,QString resourceFilepath)"
+      ]
+    },
+    {
+      "target": "KisResourceUserOperationsContractTest",
+      "source": "libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp",
+      "test": "KisResourceUserOperationsContractTest::renameUsesDuplicateDecisionAndReportsFailure",
+      "behavior": "資源名前変更は重複名を確認し、取消し時は変更せず、承認または一意名では変更結果を返し、変更失敗時に警告する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceUserOperations::renameResourceWithUserInput(QWidget * widgetParent,KoResourceSP resource,QString resourceName)"
       ]
     }
   ]

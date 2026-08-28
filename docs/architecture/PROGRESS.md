@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 01:15 JST
+- 更新日時: 2026-08-29 01:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6299,12 +6299,38 @@
   29,980 APIとなり、対応済み4,421件、未対応25,559件になった。製品`kritaresourceui`のリンク、
   Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源取込・名前変更 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisResourceUserOperations.cpp`に残っていた取込を新規
+  `libs/resources/ui/KisResourceUserOperationsImport.cpp`と
+  `kritaresourceuseroperationsimportobjects`へ、名前変更を新規
+  `libs/resources/ui/KisResourceUserOperationsRename.cpp`と
+  `kritaresourceuseroperationsrenameobjects`へ移した。具象資源モデルと確認・警告を使う取込効果は新規
+  `libs/resources/ui/KisResourceUserOperationsImportSource.cpp`と
+  `kritaresourceuseroperationsimportsourceobjects`、名前変更効果は新規
+  `libs/resources/ui/KisResourceUserOperationsRenameSource.cpp`と
+  `kritaresourceuseroperationsrenamesourceobjects`が所有する。各高水準処理は対応する内部ヘッダーを介し、
+  製品`kritaresourceui`が四つの生成オブジェクトを各1回集約する。
+- `libs/resources/ui/KisResourceUserOperations.h`の取込と名前変更2 APIを、既存
+  `libs/resources/ui/tests/KisResourceUserOperationsContractTest.cpp`の2試験へ対応付けた。通常取込の
+  成功、既定保存先だけの上書き確認、取消し、承認後の再試行、保存先指定時の確認抑止、最終失敗警告、
+  重複名の取消し・承認、一意名の直接変更、変更失敗警告を固定した。資源モデルの結果と警告効果は
+  決定的な内部境界へ置き換え、実データベースを構築しない。
+- 最初の試験リンクは、同じオブジェクトに残る追加・更新を介して安全検査、資源DB、保存先変換、
+  直列化まで要求する診断になった。分割後の各対象コンパイル、対象試験のmacOS単発実行と20回反復は
+  成功した。
+- 追加・更新を所有する元対象、取込判断、取込効果、名前変更判断、名前変更効果を各1工程・3入力に
+  収め、上書き確認と名前重複の既存対象も直接集約する試験を8工程・18入力に収めた。製品
+  `kritaresourceui`は281工程・593入力から285工程・601入力になった。公開面は1,547ヘッダー、
+  29,980 API、対応済み4,423件、未対応25,557件になり、同ヘッダーの未対応は2 APIになった。製品
+  `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceUserOperations.h`に残る取込、名前変更、追加、更新の4 APIについて、
-分離済み`kritaresourceuseroperationsobjects`の各メソッドが要求する資源モデル、資源DB、保存先変換、
-直列化、確認・警告の効果を監査する。各操作を別翻訳単位へ分け、決定的なモデル結果と利用者回答を
-渡す内部境界を現在の分岐に必要な範囲だけ設け、失敗・取消し・成功・上書き経路を個別契約へ固定する。
+`libs/resources/ui/KisResourceUserOperations.h`に残る追加と更新の2 APIについて、分離済み
+`kritaresourceuseroperationsobjects`内の資源DB照合、保存先変換、直列化、既存資源への上書き、名前
+重複確認を監査する。追加判断と更新判断を別翻訳単位へ分け、現在の分岐を値で再現できる内部境界へ
+具象モデル・DB・直列化効果を集約し、追加・上書き・取消し・外部資源移送・失敗警告を固定する。
 
 ## R1-G5完了根拠
 

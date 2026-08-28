@@ -20,48 +20,6 @@
 #include <KisGlobalResourcesInterface.h>
 
 
-KoResourceSP KisResourceUserOperations::importResourceFileWithUserInput(QWidget *widgetParent, QString storageLocation, QString resourceType, QString resourceFilepath)
-{
-    KisResourceModel resourceModel(resourceType);
-    resourceModel.setResourceFilter(KisResourceModel::ShowActiveResources); // inactive don't count here
-
-    KoResourceSP resource = resourceModel.importResourceFile(resourceFilepath, false, storageLocation);
-    if (resource.isNull() && storageLocation == "" && resourceModel.importWillOverwriteResource(resourceFilepath, storageLocation)) {
-        if (KisResourceUserOperations::userAllowsOverwrite(widgetParent, resourceFilepath)) {
-            resource = resourceModel.importResourceFile(resourceFilepath, true, storageLocation);
-        } else {
-            return nullptr; // the user doesn't want to import the file anymore because they don't want to overwrite it
-        }
-    }
-    if (!resource) {
-        QMessageBox::warning(widgetParent, i18nc("@title:window", "Failed to import the resource"), i18nc("Warning message", "Failed to import the resource."));
-    }
-    return resource;
-}
-
-bool KisResourceUserOperations::renameResourceWithUserInput(QWidget *widgetParent, KoResourceSP resource, QString resourceName)
-{
-    KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(resource, false);
-    KisResourceModel resourceModel(resource->resourceType().first);
-    resourceModel.setResourceFilter(KisResourceModel::ShowActiveResources); // inactive don't count here
-
-    if (resourceNameIsAlreadyUsed(&resourceModel, resourceName, resource->resourceId())) {
-        bool userWantsRename = QMessageBox::question(widgetParent, i18nc("@title:window", "Rename the resource?"),
-                              i18nc("Question in a dialog/messagebox", "This name is already used for another resource. "
-                                                                       "Do you want to use the same name for multiple resources?"
-                                                                       "(If you decline now, the resource won't be renamed)."),
-                                     QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Cancel;
-        if (!userWantsRename) {
-            return false;
-        }
-    }
-    bool res = resourceModel.renameResource(resource, resourceName);
-    if (!res) {
-        QMessageBox::warning(widgetParent, i18nc("@title:window", "Failed to rename the resource"), i18nc("Warning message", "Failed to rename the resource."));
-    }
-    return res;
-}
-
 bool KisResourceUserOperations::addResourceWithUserInput(QWidget *widgetParent, KoResourceSP resource, QString storageLocation)
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(resource, false);

@@ -333,6 +333,94 @@ set_target_properties(kritaresourceuseroperationsnamesourceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourceuseroperationsimportobjects OBJECT
+    KisResourceUserOperationsImport.cpp
+)
+target_compile_definitions(kritaresourceuseroperationsimportobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuseroperationsimportobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaresourceuseroperationsimportobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceuseroperationsimportobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceuseroperationsimportsourceobjects OBJECT
+    KisResourceUserOperationsImportSource.cpp
+)
+target_compile_definitions(kritaresourceuseroperationsimportsourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuseroperationsimportsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritaresourceuseroperationsimportsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceuseroperationsimportsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceuseroperationsrenameobjects OBJECT
+    KisResourceUserOperationsRename.cpp
+)
+target_compile_definitions(kritaresourceuseroperationsrenameobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuseroperationsrenameobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaresourceuseroperationsrenameobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceuseroperationsrenameobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceuseroperationsrenamesourceobjects OBJECT
+    KisResourceUserOperationsRenameSource.cpp
+)
+target_compile_definitions(kritaresourceuseroperationsrenamesourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceuseroperationsrenamesourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritaresourceuseroperationsrenamesourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceuseroperationsrenamesourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresourceui_LIB_SRCS
     KisResourceItemChooserContextMenu.cpp
     KisResourceItemChooser.cpp
@@ -362,6 +450,10 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaresourceuseroperationsoverwriteobjects>
     $<TARGET_OBJECTS:kritaresourceuseroperationsnameusageobjects>
     $<TARGET_OBJECTS:kritaresourceuseroperationsnamesourceobjects>
+    $<TARGET_OBJECTS:kritaresourceuseroperationsimportobjects>
+    $<TARGET_OBJECTS:kritaresourceuseroperationsimportsourceobjects>
+    $<TARGET_OBJECTS:kritaresourceuseroperationsrenameobjects>
+    $<TARGET_OBJECTS:kritaresourceuseroperationsrenamesourceobjects>
 )
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)
