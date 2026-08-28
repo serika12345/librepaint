@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27863
+    "expectedMissingApis": 27854
   },
   "contracts": [
     {
@@ -3878,6 +3878,42 @@
       "classification": "maintained",
       "apis": [
         "method:KisDabShape::operator ==(const KisDabShape & rhs) const"
+      ]
+    },
+    {
+      "target": "KoInsetsContractTest",
+      "source": "libs/flake/tests/KoInsetsContractTest.cpp",
+      "test": "KoInsetsContractTest::defaultAndClearPreserveZeroSides",
+      "behavior": "図形余白は既定時と消去後に上下左右の値をすべて0として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoInsets::bottom",
+        "member:KoInsets::left",
+        "member:KoInsets::right",
+        "member:KoInsets::top",
+        "method:KoInsets::KoInsets()",
+        "method:KoInsets::clear()",
+        "struct:KoInsets"
+      ]
+    },
+    {
+      "target": "KoInsetsContractTest",
+      "source": "libs/flake/tests/KoInsetsContractTest.cpp",
+      "test": "KoInsetsContractTest::constructionPreservesAllSides",
+      "behavior": "図形余白は構築時に指定された上、左、下、右の値を対応する辺へ保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoInsets::KoInsets(qreal top,qreal left,qreal bottom,qreal right)"
+      ]
+    },
+    {
+      "target": "KoInsetsContractTest",
+      "source": "libs/flake/tests/KoInsetsContractTest.cpp",
+      "test": "KoInsetsContractTest::debugStreamPreservesSideOrder",
+      "behavior": "図形余白のデバッグ出力は診断構成で上、左、下、右の順に値を表し、製品構成で終端空白だけを返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug,const KoInsets &)"
       ]
     }
   ]

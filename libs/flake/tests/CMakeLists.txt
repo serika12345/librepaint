@@ -57,6 +57,13 @@ kis_add_test(
 )
 target_include_directories(KoFlakeTypesContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+kis_add_test(
+    KoInsetsContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeinsetsobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
 ############## broken tests ###############
 
 kis_add_test(TestPointMergeCommand.cpp
