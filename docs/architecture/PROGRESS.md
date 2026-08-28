@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 21:18 JST
+- 更新日時: 2026-08-28 21:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5755,10 +5755,24 @@
   対応済み4,251件、未対応25,734件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと
   全ネイティブ検証は実行していない。
 
+## R2-G19b 資源供給private状態の公開面縮小と寿命契約で完了した作業
+
+- `libs/resources/KisResourcesInterface_p.h`から、最低Qt 5.15の対応範囲では到達不能なQt 5.13以前用
+  `std::hash<QString>`特殊化を除いた。内部キャッシュ、読書きロック、検索関数はprivate節へ移し、
+  `KisResourcesInterface`だけをfriendとして公開採取対象から除いた。実利用は
+  `libs/resources/KisResourcesInterface.cpp`と`libs/resources/KisLocalStrokeResources.cpp`内に閉じ、
+  外部向け`libs/resources/KisResourcesInterface.h`と製品ABI、資源供給挙動は維持した。
+- 公開面に残るprivate状態クラスと仮想デストラクターの2 APIは、拡張した
+  `libs/resources/tests/KisResourcesInterfaceContractTest.cpp`で、注入した派生private状態が境界の
+  所有終了時に多態的に破棄される挙動へ対応付けた。
+- 既存の専用試験13工程・28入力を維持し、macOSの対象実行と20回反復に成功した。公開面は
+  1,546ヘッダー、29,981 API、対応済み4,253件、未対応25,728件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KisResourcesInterface_p.h`に公開採取される内部キャッシュ状態6 APIについて、公開面に
-残すべき宣言と試験対象を分類し、現行の検索・所有・ロック挙動を最小契約へ固定する。
+`libs/resources/KisLocalStrokeResources.h`の局所資源供給7 APIについて、実装所有と変更なし構築閉包を
+監査し、追加・削除・複製と種類別検索を最小契約へ固定する。
 
 ## R1-G5完了根拠
 

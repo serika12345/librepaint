@@ -6,7 +6,9 @@
 #include "KisResourcesInterface.h"
 
 
+#include <QReadLocker>
 #include <QString>
+#include <QWriteLocker>
 #include "kis_assert.h"
 #include "KisResourcesInterface_p.h"
 

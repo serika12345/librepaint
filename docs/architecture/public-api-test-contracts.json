@@ -12,11 +12,11 @@
     ],
     "publicHeaderCount": 1546,
     "publicHeaderFingerprint": "cbc0b91d501fb2180e4a2a4807d6459babf7d9a0a50814bad6d030caf8b4285d",
-    "publicApiCount": 29985,
-    "publicApiFingerprint": "1e80483c9aa577062475a13d4895ee62375b4df8923fa7c32555e4339eb315f8"
+    "publicApiCount": 29981,
+    "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25734
+    "expectedMissingApis": 25728
   },
   "contracts": [
     {
@@ -10011,6 +10011,17 @@
         "method:KisResourcesInterface::TypedResourceSourceAdapter::bestMatchLoadResult(const QString md5,const QString filename,const QString name)",
         "method:KisResourcesInterface::TypedResourceSourceAdapter::exactMatch(const QString md5,const QString filename,const QString name)",
         "method:KisResourcesInterface::TypedResourceSourceAdapter::fallbackResource() const"
+      ]
+    },
+    {
+      "target": "KisResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KisResourcesInterfaceContractTest.cpp",
+      "test": "KisResourcesInterfaceContractTest::destroysInjectedPrivateStatePolymorphically",
+      "behavior": "資源供給境界へ注入した派生private状態は、境界の基底ポインター所有が終了すると仮想デストラクターを通して破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourcesInterfacePrivate",
+        "method:KisResourcesInterfacePrivate::~KisResourcesInterfacePrivate()"
       ]
     }
   ]

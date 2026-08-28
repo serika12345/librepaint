@@ -4,6 +4,7 @@
  */
 
 #include <KisResourcesInterface.h>
+#include <KisResourcesInterface_p.h>
 
 #include <QTest>
 
@@ -151,6 +152,47 @@ private:
     Factory m_factory;
     bool *m_destroyed;
 };
+
+class ObservedPrivate final : public KisResourcesInterfacePrivate
+{
+public:
+    explicit ObservedPrivate(bool *destroyed)
+        : m_destroyed(destroyed)
+    {
+    }
+
+    ~ObservedPrivate() override
+    {
+        *m_destroyed = true;
+    }
+
+private:
+    bool *m_destroyed;
+};
+
+class PrivateStateInterface final : public KisResourcesInterface
+{
+public:
+    PrivateStateInterface(KisResourcesInterfacePrivate *privateData, bool *destroyed)
+        : KisResourcesInterface(privateData)
+        , m_destroyed(destroyed)
+    {
+    }
+
+    ~PrivateStateInterface() override
+    {
+        *m_destroyed = true;
+    }
+
+protected:
+    ResourceSourceAdapter *createSourceImpl(const QString &type) const override
+    {
+        return new RecordingSource(type);
+    }
+
+private:
+    bool *m_destroyed;
+};
 }
 
 class KisResourcesInterfaceContractTest : public QObject
@@ -159,6 +201,7 @@ class KisResourcesInterfaceContractTest : public QObject
 
 private Q_SLOTS:
     void cachesSourcesAndOwnsTheirLifetime();
+    void destroysInjectedPrivateStatePolymorphically();
     void exposesResourceQueriesAndFallback();
     void ranksMd5CandidatesAndUsesLegacyFallbacks();
     void distinguishesExactMatchingFromBestMatching();
@@ -212,6 +255,20 @@ void KisResourcesInterfaceContractTest::cachesSourcesAndOwnsTheirLifetime()
         QVERIFY(!interfaceDestroyed);
     }
     QVERIFY(adapterDestroyed);
+    QVERIFY(interfaceDestroyed);
+}
+
+void KisResourcesInterfaceContractTest::destroysInjectedPrivateStatePolymorphically()
+{
+    bool privateDestroyed = false;
+    bool interfaceDestroyed = false;
+    {
+        QSharedPointer<KisResourcesInterface> resourcesInterface(
+            new PrivateStateInterface(new ObservedPrivate(&privateDestroyed), &interfaceDestroyed));
+        QVERIFY(!privateDestroyed);
+        QVERIFY(!interfaceDestroyed);
+    }
+    QVERIFY(privateDestroyed);
     QVERIFY(interfaceDestroyed);
 }
 
