@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7f973237db2d71edce1325ce4470c0b2c870c8cb44ee91a8e1635adf62084517"
   },
   "migration": {
-    "expectedMissingApis": 27713
+    "expectedMissingApis": 27695
   },
   "contracts": [
     {
@@ -5216,6 +5216,60 @@
         "method:KisAcyclicSignalConnector::KisAcyclicSignalConnector(QObject * parent=0)",
         "method:KisAcyclicSignalConnector::createCoordinatedConnector()",
         "method:KisAcyclicSignalConnector::~KisAcyclicSignalConnector()"
+      ]
+    },
+    {
+      "target": "KisSignalMapperContractTest",
+      "source": "libs/global/tests/KisSignalMapperContractTest.cpp",
+      "test": "KisSignalMapperContractTest::explicitMapEmitsEveryMappingAndSupportsReverseLookup",
+      "behavior": "明示した送信元は整数、文字列、ウィジェット、オブジェクトの各値から逆引きでき、明示配送は設定済みの4シグナルを同じ値で送出する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSignalMapper::map(QObject * sender)",
+        "method:KisSignalMapper::mapped(QObject *)",
+        "method:KisSignalMapper::mapped(QWidget *)",
+        "method:KisSignalMapper::mapped(const QString &)",
+        "method:KisSignalMapper::mapped(int)",
+        "method:KisSignalMapper::mapping(QObject * object) const",
+        "method:KisSignalMapper::mapping(QWidget * widget) const",
+        "method:KisSignalMapper::mapping(const QString & text) const",
+        "method:KisSignalMapper::mapping(int id) const",
+        "method:KisSignalMapper::setMapping(QObject * sender,QObject * object)",
+        "method:KisSignalMapper::setMapping(QObject * sender,QWidget * widget)",
+        "method:KisSignalMapper::setMapping(QObject * sender,const QString & text)",
+        "method:KisSignalMapper::setMapping(QObject * sender,int id)"
+      ]
+    },
+    {
+      "target": "KisSignalMapperContractTest",
+      "source": "libs/global/tests/KisSignalMapperContractTest.cpp",
+      "test": "KisSignalMapperContractTest::senderDrivenMapUsesTheEmittingObject",
+      "behavior": "引数なし配送はQtの送信元を識別し、その送信元に対応する値を送出する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSignalMapper::map()"
+      ]
+    },
+    {
+      "target": "KisSignalMapperContractTest",
+      "source": "libs/global/tests/KisSignalMapperContractTest.cpp",
+      "test": "KisSignalMapperContractTest::removalAndSenderDestructionClearMappings",
+      "behavior": "明示除去と送信元の破棄は全値種別の対応を消去し、以後の逆引きと配送から除外する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSignalMapper::removeMappings(QObject * sender)"
+      ]
+    },
+    {
+      "target": "KisSignalMapperContractTest",
+      "source": "libs/global/tests/KisSignalMapperContractTest.cpp",
+      "test": "KisSignalMapperContractTest::parentOwnsMapperLifetime",
+      "behavior": "信号値対応付け器は指定したQObject親に所有され、親の破棄とともに寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSignalMapper",
+        "method:KisSignalMapper::KisSignalMapper(QObject * parent=nullptr)",
+        "method:KisSignalMapper::~KisSignalMapper()"
       ]
     }
   ]

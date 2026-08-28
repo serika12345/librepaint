@@ -310,6 +310,15 @@ kis_add_test(
 target_compile_definitions(KisAcyclicSignalConnectorContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisSignalMapperContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalsignalmapperobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+)
+target_compile_definitions(KisSignalMapperContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisQStringListFwdTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
