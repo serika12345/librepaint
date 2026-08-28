@@ -361,6 +361,10 @@ protected:
         static KisNodeDisplayModeAdapter *nodeDisplayModeAdapter(const KisNodeManager *manager);
     };
 
+    struct KRITAUI_EXPORT SelectionStateAccess {
+        static void setSelectedNodes(KisNodeManager *manager, const KisNodeList &nodes);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

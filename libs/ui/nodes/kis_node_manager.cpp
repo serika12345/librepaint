@@ -947,20 +947,9 @@ void KisNodeManager::NodeChangeAccess::setCompositeOp(KisNodeManager *manager,
     manager->m_d->commandsAdapter.setCompositeOp(node, compositeOp);
 }
 
-void KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode, const KisNodeList &selectedNodes)
+void KisNodeManager::SelectionStateAccess::setSelectedNodes(KisNodeManager *manager, const KisNodeList &nodes)
 {
-    if (activeNode) {
-        slotNonUiActivatedNode(activeNode);
-    }
-    if (!selectedNodes.isEmpty()) {
-        slotSetSelectedNodes(selectedNodes);
-    }
-}
-
-void KisNodeManager::slotSetSelectedNodes(const KisNodeList &nodes)
-{
-    m_d->selectedNodes = nodes;
-    Q_EMIT sigUiNeedChangeSelectedNodes(nodes);
+    manager->m_d->selectedNodes = nodes;
 }
 
 KisNodeList KisNodeManager::AccessorAccess::selectedNodes(KisNodeManager *manager)

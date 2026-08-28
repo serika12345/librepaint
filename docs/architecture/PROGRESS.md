@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 08:05 JST
+- 更新日時: 2026-08-29 08:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6928,11 +6928,31 @@
 - 公開面は1,549ヘッダー、29,989 API、対応済み4,852件、未対応25,137件になった。製品
   `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 選択ノード状態 public API契約と通知判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった画像からの再選択要求に対する空値除外と、選択ノード一覧の
+  保存・通知順序を、新規`libs/ui/nodes/KisNodeManagerSelectionState.cpp`へ移した。`Private`の選択一覧への
+  具体書込みは移動元の保護境界に残し、製品`kritaapplicationui`は新規
+  `kritauinodemanagerselectionstateobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`のうち3 APIを、新規
+  `libs/ui/tests/KisNodeManagerSelectionStateContractTest.cpp`の2試験へ対応付けた。空集合を含む明示設定の
+  状態保存、保存後の同一一覧通知、画像再選択要求での空の現在ノードと空の選択一覧の独立した除外を
+  固定した。
+- 実装接続前のリンクは`slotSetSelectedNodes`と`slotImageRequestNodeReselection`だけを未解決記号として
+  診断し、通知シグナルや製品記号を含まなかった。局所対象の直接CMake依存はQt Core、Gui、Widgets、
+  Xml、KI18n、Boost、Eigen、OpenEXRに限定した。
+- 変更前の既存`KisNodeManagerTest`は1,807工程・3,613入力、直近の専用契約は5工程・17入力だった。
+  選択状態対象は1工程・3入力、新規試験は5工程・17入力に収めた。製品`kritaapplicationui`閉包は
+  1,803工程・3,606入力から1,804工程・3,608入力、既存試験は1,808工程・3,615入力になった。
+- 選択状態対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,855件、
+  未対応25,134件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る75 APIのうち、選択ノードの状態更新、再選択要求、選択変更通知を
-次の小単位とする。`kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、直接CMake依存、
-空構築閉包を監査し、選択状態の保存と通知、空値を除く現在ノード・選択一覧の再適用判断を局所所有へ
+同じ`libs/ui/nodes/kis_node_manager.h`に残る72 APIのうち、ノード属性一覧の適用可否を次の小単位とする。
+`kis_node_manager.cpp`の`trySetNodeProperties`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を
+監査し、透明背景を必要とするオニオンスキン属性の拒否判断と、それ以外の自動undo適用を具体ノード・画面効果から
 分けてから挙動契約を追加する。
 
 ## R1-G5完了根拠

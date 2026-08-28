@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25137
+    "expectedMissingApis": 25134
   },
   "contracts": [
     {
@@ -12409,6 +12409,27 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::createNodeActivationActions(KisImageWSP image,KisKActionCollection * collection)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSelectionStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSelectionStateContractTest.cpp",
+      "test": "KisNodeManagerSelectionStateContractTest::selectionUpdatesStateBeforeNotification",
+      "behavior": "選択ノードの明示設定は空集合を含む指定一覧を管理状態へ先に保存し、同じ一覧を選択変更通知として毎回一度送る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::sigUiNeedChangeSelectedNodes(const QList<KisNodeSP> & nodes)",
+        "method:KisNodeManager::slotSetSelectedNodes(const KisNodeList & nodes)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSelectionStateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSelectionStateContractTest.cpp",
+      "test": "KisNodeManagerSelectionStateContractTest::imageReselectionSkipsEmptyInputs",
+      "behavior": "画像からの再選択要求は空の現在ノードと空の選択一覧を独立して無視し、値がある現在ノードと選択一覧だけを各更新処理へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode,const KisNodeList & selectedNodes)"
       ]
     }
   ]
