@@ -11,6 +11,7 @@
 #include <QtCore/qmath.h>
 #include <QTransform>
 
+#include "kis_assert.h"
 
 #include <kritaglobal_export.h>
 

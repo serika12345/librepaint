@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27675
+    "expectedMissingApis": 27655
   },
   "contracts": [
     {
@@ -4516,6 +4516,80 @@
       "classification": "maintained",
       "apis": [
         "function:KisBezierUtils::calcTightSrcRectRangeInParamSpace1D(const Range & searchParamRange,const Range & searchSrcRange,const Range & rect,Func func,qreal srcPrecision,std::optional<Range> squeezeRange=std::nullopt)"
+      ]
+    },
+    {
+      "target": "KisLodTransformBaseContractTest",
+      "source": "libs/global/tests/KisLodTransformBaseContractTest.cpp",
+      "test": "KisLodTransformBaseContractTest::lodScaleConversionsClampAndRoundDown",
+      "behavior": "詳細度と尺度の変換は負の詳細度を等倍へ制限し、縮小尺度を二の累乗段階へ切り下げ、指定した最大詳細度を上限とする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodTransformBase::lodToInvScale(int levelOfDetail)",
+        "method:KisLodTransformBase::lodToScale(int levelOfDetail)",
+        "method:KisLodTransformBase::scaleToLod(qreal scale,int maxLod)"
+      ]
+    },
+    {
+      "target": "KisLodTransformBaseContractTest",
+      "source": "libs/global/tests/KisLodTransformBaseContractTest.cpp",
+      "test": "KisLodTransformBaseContractTest::deviceLevelOfDetailSelectsScale",
+      "behavior": "描画装置を受け取る尺度変換とスカラー変換は既定境界が返す現在の詳細度を使用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodTransformBase::lodToScale(PaintDeviceTypeSP device)",
+        "method:KisLodTransformScalar::KisLodTransformScalar(PaintDeviceTypeSP device)"
+      ]
+    },
+    {
+      "target": "KisLodTransformBaseContractTest",
+      "source": "libs/global/tests/KisLodTransformBaseContractTest.cpp",
+      "test": "KisLodTransformBaseContractTest::transformMapsAndInvertsRectanglesAndPoints",
+      "behavior": "詳細度変換は対応する等方縮小行列を保持し、整数・浮動小数点矩形と一般の点を縮小し、矩形の逆変換で元の座標へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLodTransformBase",
+        "method:KisLodTransformBase::KisLodTransformBase(int levelOfDetail)",
+        "method:KisLodTransformBase::map(const QRect & rc) const",
+        "method:KisLodTransformBase::map(const QRectF & rc) const",
+        "method:KisLodTransformBase::map(const T & object) const",
+        "method:KisLodTransformBase::mapInverted(const QRect & rc) const",
+        "method:KisLodTransformBase::mapInverted(const QRectF & rc) const",
+        "method:KisLodTransformBase::transform() const"
+      ]
+    },
+    {
+      "target": "KisLodTransformBaseContractTest",
+      "source": "libs/global/tests/KisLodTransformBaseContractTest.cpp",
+      "test": "KisLodTransformBaseContractTest::alignedRectExpandsToLodBoundaries",
+      "behavior": "整数矩形の整列は指定詳細度の画素ブロック境界まで左上を切り下げ、右下を切り上げる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodTransformBase::alignedRect(const QRect & srcRect,int lod)"
+      ]
+    },
+    {
+      "target": "KisLodTransformBaseContractTest",
+      "source": "libs/global/tests/KisLodTransformBaseContractTest.cpp",
+      "test": "KisLodTransformBaseContractTest::integerRectScalingRoundTripsAlignedCoordinates",
+      "behavior": "境界整列済み整数矩形は詳細度座標への縮小と拡大を往復し、単一座標は正負ともゼロ方向へ二の累乗除算される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodTransformBase::coordToLodCoord(int x,int lod)",
+        "method:KisLodTransformBase::scaledRect(const QRect & srcRect,int lod)",
+        "method:KisLodTransformBase::upscaledRect(const QRect & srcRect,int lod)"
+      ]
+    },
+    {
+      "target": "KisLodTransformBaseContractTest",
+      "source": "libs/global/tests/KisLodTransformBaseContractTest.cpp",
+      "test": "KisLodTransformBaseContractTest::scalarTransformScalesValues",
+      "behavior": "スカラー詳細度変換は指定詳細度に対応する二の累乗縮小率を値へ適用する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLodTransformScalar",
+        "method:KisLodTransformScalar::KisLodTransformScalar(int lod)",
+        "method:KisLodTransformScalar::scale(qreal value) const"
       ]
     }
   ]
