@@ -13,6 +13,18 @@ kis_add_test(
 )
 target_compile_definitions(kis_simple_math_parser_test PRIVATE kritawidgetutils_EXPORTS)
 
+kis_add_test(
+    KStandardActionEnumContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::ConfigGui
+)
+target_include_directories(KStandardActionEnumContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../config
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KStandardActionEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
+
 ki18n_wrap_ui(DialogStateSaver_SRCS
     dialogsavertestwidget.ui
 )
