@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25619
+    "expectedMissingApis": 25606
   },
   "contracts": [
     {
@@ -10645,6 +10645,118 @@
       "classification": "maintained",
       "apis": [
         "method:KisResourceItemView::~KisResourceItemView()"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::constructorUsesIconGridDefaults",
+      "behavior": "資源項目一覧は単一選択、追随寸法、均一項目、56角のアイコン格子表示で開始する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceItemListView",
+        "method:KisResourceItemListView::KisResourceItemListView(QWidget * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::listModesAndItemSizeControlLayout",
+      "behavior": "項目寸法と表示方式は格子の指定寸法、横帯の表示高に合う正方形、詳細表示の指定高と一覧幅を構成し、格子へ戻すと指定寸法を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::setItemSize(QSize size)",
+        "method:KisResourceItemListView::setListViewMode(ListViewMode layout)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::strictSelectionPreventsDeselectAndClearsRemovedItem",
+      "behavior": "厳格単一選択では現在項目の行が削除される前に選択を消去し、別項目へ選択を移さない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::setStrictSelectionMode(bool enable)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::fixedToolTipSizeControlsDocumentThumbnail",
+      "behavior": "一覧の固定説明画像寸法設定は内部説明表示へ伝わり、画像の縦横比を保った論理寸法へ反映される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::setFixedToolTipThumbnailSize(const QSize & size)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::checkerToolTipSettingControlsTransparency",
+      "behavior": "一覧のチェッカー説明設定は内部説明表示へ伝わり、透明画像の背景を不透明な格子と透明の間で切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::setToolTipShouldRenderCheckers(bool value)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::selectionEmitsCurrentResourceChanged",
+      "behavior": "資源項目一覧は選択したモデル索引を通知し、選択解除時は無効索引を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::currentResourceChanged(const QModelIndex &)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::clickEmitsCurrentResourceClicked",
+      "behavior": "Qt一覧の項目クリック通知は同じモデル索引を現在資源クリック通知へ転送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::currentResourceClicked(const QModelIndex &)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::contextMenuEmitsGlobalPosition",
+      "behavior": "一覧の文脈メニュー事象は要求位置を大域座標のまま通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::contextMenuRequested(const QPoint &)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::resizeDoesNotEmitDeclaredSizeSignal",
+      "behavior": "一覧は寸法変更処理後も宣言済み寸法変更通知を送出しない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisResourceItemListView::sigSizeChanged()"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::scrollerStateChangesCursor",
+      "behavior": "一覧のスクローラー状態変更スロットは押下、ドラッグ、停止を開いた手、閉じた手、矢印カーソルへ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::slotScrollerStateChange(QScroller::State state)"
+      ]
+    },
+    {
+      "target": "KisResourceItemListViewContractTest",
+      "source": "libs/resources/ui/tests/KisResourceItemListViewContractTest.cpp",
+      "test": "KisResourceItemListViewContractTest::destructionInvalidatesGuardedPointer",
+      "behavior": "資源項目一覧は破棄時にQObjectの監視参照を無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceItemListView::~KisResourceItemListView()"
       ]
     }
   ]

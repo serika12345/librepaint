@@ -150,3 +150,31 @@ target_compile_definitions(KisResourceItemViewContractTest PRIVATE
     kritawidgetutils_EXPORTS
     kritaresources_EXPORTS
 )
+
+kis_add_test(
+    KisResourceItemListViewContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourceitemlistviewobjects
+        kritakineticscrollerobjects
+        kritaicontooltipobjects
+        kritaitemtooltipobjects
+        kritacheckerboardpainterobjects
+        kritaresourcethumbnailcacheobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisResourceItemListViewContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisResourceItemListViewContractTest PRIVATE
+    kritaresourceui_EXPORTS
+    kritawidgetutils_EXPORTS
+    kritaresources_EXPORTS
+)

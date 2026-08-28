@@ -29,6 +29,8 @@ protected:
     QTextDocument *createDocument( const QModelIndex &index ) override;
 
 private:
+    friend class KisIconToolTipContractAccess;
+
     QSize m_fixedToolTipThumbnailSize;
     QScopedPointer<KoCheckerBoardPainter> m_checkersPainter;
 };

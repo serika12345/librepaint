@@ -72,6 +72,8 @@ protected:
     bool viewportEvent(QEvent *event) override;
 
 private:
+    friend class KisResourceItemListViewContractAccess;
+
     void resizeEvent(QResizeEvent *event) override;
 
 private:
