@@ -16,6 +16,28 @@ target_compile_definitions(KoColorModelStandardIdsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoAlphaColorSpaceTypeContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentstandardidsobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
+        ${LINK_OPENEXR_LIB}
+)
+target_compile_definitions(KoAlphaColorSpaceTypeContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
+    KoAlphaColorSpaceContractTest.cpp
+    LINK_LIBRARIES
+        kritapigment
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     KoColorimetryUtilsContractTest.cpp
     LINK_LIBRARIES
         kritapigmentcolorimetryobjects

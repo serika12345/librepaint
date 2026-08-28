@@ -129,6 +129,34 @@ public:
                 [api["id"] for api in apis],
             )
 
+    def test_excludes_extern_template_instantiations_from_variables(self) -> None:
+        header = "libs/example/PublicTemplate.h"
+        tags = [
+            {
+                "_type": "tag",
+                "name": "PublicTemplate",
+                "path": header,
+                "pattern": "/^extern template class EXAMPLE_EXPORT PublicTemplate<int>;$/",
+                "kind": "externvar",
+                "typeref": "class:EXAMPLE_EXPORT",
+            },
+            {
+                "_type": "tag",
+                "name": "publicValue",
+                "path": header,
+                "pattern": "/^extern int publicValue;$/",
+                "kind": "externvar",
+                "typeref": "typename:int",
+            },
+        ]
+
+        apis = check_public_api_contracts.extract_public_apis(tags, {header})
+
+        self.assertEqual(
+            ["variable:publicValue"],
+            [api["id"] for api in apis],
+        )
+
     def test_collects_friend_function_declarations_as_namespace_functions(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 03:57 JST
+- 更新日時: 2026-08-29 04:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6585,12 +6585,44 @@
   ヘッダーのpublic APIは全件対応済みになった。製品`kritapsdutils`のリンク、Linux、全ネイティブ
   検証は実行していない。
 
+## R2-G19b アルファ色空間 public API契約と構築所有分離で完了した作業
+
+- `libs/pigment/colorspaces/KoAlphaColorSpace.cpp`は、製品`kritapigment`の直接ソース所有から、同じ
+  ファイル位置の新規`kritaalphacolorspaceobjects`へ移した。製品はこの生成オブジェクトを1回集約し、
+  アルファ色空間の実体生成を1工程・3入力で局所構築できる。型、別名、チャネル識別子だけを検査する
+  `KoAlphaColorSpaceTypeContractTest`は製品へ接続せず6工程・19入力に収めた。
+- `libs/pigment/colorspaces/KoSimpleColorSpaceFactory.h`にインラインであったプロファイル適合判定を新規
+  `libs/pigment/colorspaces/KoSimpleColorSpaceFactory.cpp`へ移し、内部`KoDummyColorProfile`型への参照を
+  製品内に閉じた。アルファ色空間と生成器の明示的テンプレート実体は新規
+  `libs/pigment/kritapigment_export_instance.h`のプラットフォーム別規則で共有ライブラリから公開し、
+  公開生成器基底`KoSimpleColorSpaceFactory`は利用側から構築できる境界になった。
+- `libs/pigment/colorspaces/KoAlphaColorSpace.h`の52 APIと、境界修正で公開面へ加わった
+  `libs/pigment/colorspaces/KoSimpleColorSpaceFactory.h`の14 APIを、新規
+  `libs/pigment/tests/KoAlphaColorSpaceTypeContractTest.cpp`と
+  `libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp`の10試験へ対応付けた。画素特性・具象型の対応、
+  深度別識別子、構築情報、複製、QColor・表示画像・LabA16・RGBA16変換、文字列表現、畳込み、未定義
+  操作の中立結果、生成器情報、GrayA四深度との双方向変換経路を固定した。
+- 製品へ接続した最初の試験リンクは、macOS共有ライブラリがアルファ色空間テンプレートの構築、破棄、
+  複製を公開していないことを診断した。生成器の構築は、公開基底のインライン判定が内部プロファイル型の
+  型情報を利用側へ漏らしていたことを追加で診断した。書き出し規則と判定実装の移動後は製品経由で
+  構築できる。画素差契約の最初の実行は、引数順序を逆にした8ビット差が符号なし減算の縮退により
+  64ではなく192になる不具合を検出し、比較後の非負差を尺度変換する実装へ修正した。
+- 具象色空間は`KoColorSpace`の仮想関数表、合成演算、変換経路、プロファイルを実所有者から利用するため、
+  実体契約は`kritapigment`へ接続する。製品閉包は321工程・672入力から、単純生成器判定の実装単位追加に
+  より322工程・674入力、実体契約は326工程・681入力である。この具体所有者を分解せず値変換と生成器の
+  実挙動を検査する最小の残存閉包として記録する。
+- 公開API採取器はCtagsが`extern template class`を変数として返す誤採取を除外し、実変数の採取を維持する
+  回帰試験を追加した。二つの対象構築、対象CTestのmacOS単発実行と20回反復、公開API契約検査は成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み4,641件、未対応25,348件になり、両対象ヘッダーの
+  public APIは全件対応済みになった。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-再生成した公開API作業列の先頭にある`libs/pigment/colorspaces/KoAlphaColorSpace.h`の52 APIを対象とする。
-製品`kritapigment`へ直接所属する`libs/pigment/colorspaces/KoAlphaColorSpace.cpp`と既存の色空間試験について、
-対象指定の変更なし計画、直接CMake依存、空構築閉包を監査する。アルファ画素特性、色空間情報、画素変換、
-XML往復、調整・畳込み、生成工場の既存観測範囲を確認し、過大な製品閉包が必要なら所有単位を先に分ける。
+再生成した公開API作業列の先頭にある`libs/tools/ui/kis_composite_ops_model.h`の18 APIを対象とする。
+製品`kritatoolui`へ直接所属する`libs/tools/ui/kis_composite_ops_model.cc`、既存の分類一覧模型試験、設定保存
+経路について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査する。項目・分類の表示名、
+お気に入りの読書き、通常・レイヤースタイル用初期化、色空間による有効性、整列代理模型の既存観測範囲を
+確認し、過大な製品閉包が必要なら所有単位を先に分ける。
 
 ## R1-G5完了根拠
 

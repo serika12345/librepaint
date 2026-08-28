@@ -106,7 +106,9 @@ void KoAlphaColorSpaceImpl<_CSTrait>::toQColor(const quint8 * src, QColor *c) co
 template <class _CSTrait>
 quint8 KoAlphaColorSpaceImpl<_CSTrait>::difference(const quint8 *src1, const quint8 *src2) const
 {
-    return qAbs(_MathsToU8::scaleToA(_CSTrait::nativeArray(src2)[0] - _CSTrait::nativeArray(src1)[0]));
+    const channels_type first = _CSTrait::nativeArray(src1)[0];
+    const channels_type second = _CSTrait::nativeArray(src2)[0];
+    return _MathsToU8::scaleToA(first < second ? second - first : first - second);
 }
 
 template <class _CSTrait>
@@ -249,12 +251,12 @@ bool KoAlphaColorSpaceImpl<_CSTrait>::preferCompositionInSourceColorSpace() cons
     return true;
 }
 
-template class KoAlphaColorSpaceImpl<AlphaU8Traits>;
-template class KoAlphaColorSpaceImpl<AlphaU16Traits>;
+template class KRITAPIGMENT_EXPORT_INSTANCE KoAlphaColorSpaceImpl<AlphaU8Traits>;
+template class KRITAPIGMENT_EXPORT_INSTANCE KoAlphaColorSpaceImpl<AlphaU16Traits>;
 #ifdef HAVE_OPENEXR
-template class KoAlphaColorSpaceImpl<AlphaF16Traits>;
+template class KRITAPIGMENT_EXPORT_INSTANCE KoAlphaColorSpaceImpl<AlphaF16Traits>;
 #endif
-template class KoAlphaColorSpaceImpl<AlphaF32Traits>;
+template class KRITAPIGMENT_EXPORT_INSTANCE KoAlphaColorSpaceImpl<AlphaF32Traits>;
 
 /*********************************************************************************************/
 /*              KoAlphaColorSpaceFactoryImpl                                                  */
@@ -287,9 +289,9 @@ QList<KoColorConversionTransformationFactory *> KoAlphaColorSpaceFactoryImpl<_CS
     return factories;
 }
 
-template class KoAlphaColorSpaceFactoryImpl<AlphaU8Traits>;
-template class KoAlphaColorSpaceFactoryImpl<AlphaU16Traits>;
+template class KRITAPIGMENT_EXPORT_INSTANCE KoAlphaColorSpaceFactoryImpl<AlphaU8Traits>;
+template class KRITAPIGMENT_EXPORT_INSTANCE KoAlphaColorSpaceFactoryImpl<AlphaU16Traits>;
 #ifdef HAVE_OPENEXR
-template class KoAlphaColorSpaceFactoryImpl<AlphaF16Traits>;
+template class KRITAPIGMENT_EXPORT_INSTANCE KoAlphaColorSpaceFactoryImpl<AlphaF16Traits>;
 #endif
-template class KoAlphaColorSpaceFactoryImpl<AlphaF32Traits>;
+template class KRITAPIGMENT_EXPORT_INSTANCE KoAlphaColorSpaceFactoryImpl<AlphaF32Traits>;

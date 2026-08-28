@@ -10,13 +10,13 @@
     "declarations": [
       "public classes, structs, unions, enums, enumerators, aliases, functions, methods, data members, and variables"
     ],
-    "publicHeaderCount": 1547,
-    "publicHeaderFingerprint": "8836c62cba82d36336f853f5cb8fd71d37863c07c2027201579967a77612f449",
-    "publicApiCount": 29979,
-    "publicApiFingerprint": "062f37b66122600b650b62480acf43e6dc06ee55a551e313aeb87a1820068f78"
+    "publicHeaderCount": 1549,
+    "publicHeaderFingerprint": "f9bb686b01e8043483c842e2f180558c86b434cfd739b076f28825a42ff236d7",
+    "publicApiCount": 29989,
+    "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25404
+    "expectedMissingApis": 25348
   },
   "contracts": [
     {
@@ -11601,6 +11601,162 @@
         "class:KisAslCallbackObjectCatcher",
         "method:KisAslCallbackObjectCatcher::KisAslCallbackObjectCatcher()",
         "method:KisAslCallbackObjectCatcher::~KisAslCallbackObjectCatcher()"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceTypeContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceTypeContractTest.cpp",
+      "test": "KoAlphaColorSpaceTypeContractTest::aliasesSelectTheExpectedTraitsAndImplementations",
+      "behavior": "各アルファチャネル型の画素特性、色空間、生成器の別名が対応する具象テンプレートを選び、色空間と生成器の継承関係が一致する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:AlphaF16Traits",
+        "alias:AlphaF32Traits",
+        "alias:AlphaU16Traits",
+        "alias:AlphaU8Traits",
+        "alias:KoAlphaColorSpace",
+        "alias:KoAlphaColorSpaceFactory",
+        "alias:KoAlphaF16ColorSpace",
+        "alias:KoAlphaF16ColorSpaceFactory",
+        "alias:KoAlphaF32ColorSpace",
+        "alias:KoAlphaF32ColorSpaceFactory",
+        "alias:KoAlphaU16ColorSpace",
+        "alias:KoAlphaU16ColorSpaceFactory",
+        "class:KoAlphaColorSpaceFactoryImpl",
+        "class:KoAlphaColorSpaceImpl"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceTypeContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceTypeContractTest.cpp",
+      "test": "KoAlphaColorSpaceTypeContractTest::channelTypesProvideStableAlphaIdentifiers",
+      "behavior": "8・16ビット整数、16・32ビット浮動小数点のチャネル型を永続的なアルファ色空間識別子へ対応付ける。",
+      "classification": "maintained",
+      "apis": [
+        "function:alphaIdFromChannelType()"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp",
+      "test": "KoAlphaColorSpaceContractTest::channelImplementationsExposeStableIdentifiers",
+      "behavior": "各具象アルファ色空間がチャネル深度に対応する永続的な色空間識別子を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaColorSpaceImpl::colorSpaceId()"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp",
+      "test": "KoAlphaColorSpaceContractTest::constructionProvidesAlphaMetadata",
+      "behavior": "8ビットアルファ色空間の構築、複製、破棄と、色モデル、深度、チャネル数、動的範囲、プロファイルの公開情報が一致する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaColorSpaceImpl::KoAlphaColorSpaceImpl()",
+        "method:KoAlphaColorSpaceImpl::clone() const",
+        "method:KoAlphaColorSpaceImpl::colorChannelCount() const",
+        "method:KoAlphaColorSpaceImpl::colorDepthId() const",
+        "method:KoAlphaColorSpaceImpl::colorModelId() const",
+        "method:KoAlphaColorSpaceImpl::colorSpaceType() const",
+        "method:KoAlphaColorSpaceImpl::hasHighDynamicRange() const",
+        "method:KoAlphaColorSpaceImpl::profile() const",
+        "method:KoAlphaColorSpaceImpl::profileIsCompatible(const KoColorProfile *) const",
+        "method:KoAlphaColorSpaceImpl::willDegrade(ColorSpaceIndependence independence) const",
+        "method:KoAlphaColorSpaceImpl::~KoAlphaColorSpaceImpl()"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp",
+      "test": "KoAlphaColorSpaceContractTest::qColorAndDisplayConversionsPreserveAlpha",
+      "behavior": "QColorとの相互変換、表示画像化、文字列表現がアルファ値を保持し、画素差が引数順序によらない絶対差を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaColorSpaceImpl::channelValueText(const quint8 * pixel,quint32 channelIndex) const",
+        "method:KoAlphaColorSpaceImpl::convertToQImage(const quint8 * data,qint32 width,qint32 height,const KoColorProfile * dstProfile,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const",
+        "method:KoAlphaColorSpaceImpl::difference(const quint8 * src1,const quint8 * src2) const",
+        "method:KoAlphaColorSpaceImpl::differenceA(const quint8 * src1,const quint8 * src2) const",
+        "method:KoAlphaColorSpaceImpl::fromQColor(const QColor & color,quint8 * dst) const",
+        "method:KoAlphaColorSpaceImpl::normalisedChannelValueText(const quint8 * pixel,quint32 channelIndex) const",
+        "method:KoAlphaColorSpaceImpl::toQColor(const quint8 * src,QColor * c) const"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp",
+      "test": "KoAlphaColorSpaceContractTest::sixteenBitInterchangeUsesAlphaAsGray",
+      "behavior": "LabA16とRGBA16への書出しはアルファを灰色成分へ写し、最大不透明度からの読戻しで元のアルファ値を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaColorSpaceImpl::fromLabA16(const quint8 * src,quint8 * dst,quint32 nPixels) const",
+        "method:KoAlphaColorSpaceImpl::fromRgbA16(const quint8 * src,quint8 * dst,quint32 nPixels) const",
+        "method:KoAlphaColorSpaceImpl::toLabA16(const quint8 * src,quint8 * dst,quint32 nPixels) const",
+        "method:KoAlphaColorSpaceImpl::toRgbA16(const quint8 * src,quint8 * dst,quint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp",
+      "test": "KoAlphaColorSpaceContractTest::convolutionHonorsAlphaChannelSelection",
+      "behavior": "畳込みは重み、係数、オフセットからアルファを算出し、空または選択済みチャネルだけを書き換える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaColorSpaceImpl::convolveColors(quint8 ** colors,qreal * kernelValues,quint8 * dst,qreal factor,qreal offset,qint32 nColors,const QBitArray & channelFlags) const"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp",
+      "test": "KoAlphaColorSpaceContractTest::unsupportedColorOperationsReturnNeutralResults",
+      "behavior": "アルファ色空間で未定義の調整、反転、XML、HSY、YUV操作は入力を変更せず、nullまたはゼロの中立結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaColorSpaceImpl::colorFromXML(quint8 *,const QDomElement &) const",
+        "method:KoAlphaColorSpaceImpl::colorToXML(const quint8 *,QDomDocument &,QDomElement &) const",
+        "method:KoAlphaColorSpaceImpl::createBrightnessContrastAdjustment(const quint16 * transferValues) const",
+        "method:KoAlphaColorSpaceImpl::createDarkenAdjustment(qint32,bool,qreal) const",
+        "method:KoAlphaColorSpaceImpl::createPerChannelAdjustment(const quint16 * const *) const",
+        "method:KoAlphaColorSpaceImpl::fromHSY(qreal *,qreal *,qreal *) const",
+        "method:KoAlphaColorSpaceImpl::fromYUV(qreal *,qreal *,qreal *) const",
+        "method:KoAlphaColorSpaceImpl::invertColor(quint8 *,qint32) const",
+        "method:KoAlphaColorSpaceImpl::toHSY(const QVector<double> &,qreal *,qreal *,qreal *) const",
+        "method:KoAlphaColorSpaceImpl::toYUV(const QVector<double> &,qreal *,qreal *,qreal *) const"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp",
+      "test": "KoAlphaColorSpaceContractTest::factoryCreatesMatchingColorSpaceAndConversionLinks",
+      "behavior": "8ビットアルファ生成器が対応色空間を生成し、四つのGrayA深度それぞれとの双方向変換経路を一つずつ提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaColorSpaceFactoryImpl::KoAlphaColorSpaceFactoryImpl()",
+        "method:KoAlphaColorSpaceFactoryImpl::colorConversionLinks() const",
+        "method:KoAlphaColorSpaceFactoryImpl::createColorSpace(const KoColorProfile *) const"
+      ]
+    },
+    {
+      "target": "KoAlphaColorSpaceContractTest",
+      "source": "libs/pigment/tests/KoAlphaColorSpaceContractTest.cpp",
+      "test": "KoAlphaColorSpaceContractTest::simpleFactoryExposesConfiguredMetadata",
+      "behavior": "単純色空間生成器は構築時の識別子、表示名、可視性、色モデル、深度、基準深度、経路費用を保持し、既定の機関名、プロファイル、動的範囲、変換経路を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSimpleColorSpaceFactory",
+        "method:KoSimpleColorSpaceFactory::KoSimpleColorSpaceFactory(const QString & id,const QString & name,bool userVisible,const KoID & colorModelId,const KoID & colorDepthId,int referenceDepth=-1,int crossingCost=1)",
+        "method:KoSimpleColorSpaceFactory::colorConversionLinks() const",
+        "method:KoSimpleColorSpaceFactory::colorDepthId() const",
+        "method:KoSimpleColorSpaceFactory::colorModelId() const",
+        "method:KoSimpleColorSpaceFactory::colorSpaceEngine() const",
+        "method:KoSimpleColorSpaceFactory::crossingCost() const",
+        "method:KoSimpleColorSpaceFactory::defaultProfile() const",
+        "method:KoSimpleColorSpaceFactory::id() const",
+        "method:KoSimpleColorSpaceFactory::isHdr() const",
+        "method:KoSimpleColorSpaceFactory::name() const",
+        "method:KoSimpleColorSpaceFactory::profileIsCompatible(const KoColorProfile * profile) const",
+        "method:KoSimpleColorSpaceFactory::referenceDepth() const",
+        "method:KoSimpleColorSpaceFactory::userVisible() const"
       ]
     }
   ]

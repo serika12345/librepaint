@@ -153,10 +153,10 @@ set(kritapigment_SRCS
     KoFallBackColorTransformation.cpp
     KoHistogramProducer.cpp
     KoMultipleColorConversionTransformation.cpp
-    colorspaces/KoAlphaColorSpace.cpp
     colorspaces/KoLabColorSpace.cpp
     colorspaces/KoRgbU16ColorSpace.cpp
     colorspaces/KoRgbU8ColorSpace.cpp
+    colorspaces/KoSimpleColorSpaceFactory.cpp
     colorspaces/KoSimpleColorSpaceEngine.cpp
     compositeops/KoOptimizedCompositeOpFactory.cpp
     compositeops/KoOptimizedCompositeOpFactoryPerArch_Scalar.cpp
@@ -179,6 +179,33 @@ set(kritapigment_SRCS
     resources/KisUniqueColorSet.cpp
 )
 
+add_library(kritaalphacolorspaceobjects OBJECT
+    colorspaces/KoAlphaColorSpace.cpp
+)
+target_compile_definitions(kritaalphacolorspaceobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritaalphacolorspaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/colorspaces>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compositeops>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaalphacolorspaceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritaalphacolorspaceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if(MSVC OR (WIN32 AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel"))
   # avoid "cannot open file 'LIBC.lib'" error
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBC.LIB")
@@ -191,6 +218,7 @@ kis_add_library(kritapigment SHARED
     $<TARGET_OBJECTS:kritapigmentlabmathsobjects>
     $<TARGET_OBJECTS:kritapigmentstandardidsobjects>
     $<TARGET_OBJECTS:kritapigmentcolorimetryobjects>
+    $<TARGET_OBJECTS:kritaalphacolorspaceobjects>
 )
 
 target_sources(kritapigment

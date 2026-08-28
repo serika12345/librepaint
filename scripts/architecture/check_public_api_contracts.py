@@ -55,6 +55,9 @@ CPP_COMMENT_OR_LITERAL_PATTERN = re.compile(
     r"//[^\n]*|/\*.*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'",
     re.DOTALL,
 )
+EXTERN_TEMPLATE_PATTERN = re.compile(
+    r"^/\^\s*extern\s+template\s+(?:class|struct)\b"
+)
 
 
 class PublicApiContractError(RuntimeError):
@@ -172,6 +175,10 @@ def extract_public_apis(
         if kind in RECORD_KINDS and "end" not in tag:
             continue
         if kind in {"method", "function"} and name in IGNORED_ROUTINE_NAMES:
+            continue
+        if kind == "variable" and EXTERN_TEMPLATE_PATTERN.match(
+            _string(tag, "pattern")
+        ):
             continue
 
         qualified = _qualified_name(tag)

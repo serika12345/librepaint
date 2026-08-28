@@ -9,7 +9,7 @@
 #include <QColor>
 
 #include "DebugPigment.h"
-#include "kritapigment_export.h"
+#include "kritapigment_export_instance.h"
 
 #include "KoColorSpaceAbstract.h"
 #include "KoColorSpaceTraits.h"
@@ -48,7 +48,7 @@ class QBitArray;
  * alpha value with a color common to the mask. The default color is white.
  */
 template <class _CSTrait>
-class KRITAPIGMENT_EXPORT KoAlphaColorSpaceImpl : public KoColorSpaceAbstract<_CSTrait>
+class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceImpl : public KoColorSpaceAbstract<_CSTrait>
 {
     typedef typename _CSTrait::channels_type channels_type;
     typedef KoColorSpaceMaths<channels_type> _Maths;
@@ -190,7 +190,7 @@ typedef KoAlphaColorSpaceImpl<AlphaF16Traits> KoAlphaF16ColorSpace;
 typedef KoAlphaColorSpaceImpl<AlphaF32Traits> KoAlphaF32ColorSpace;
 
 template <class _CSTrait>
-class KoAlphaColorSpaceFactoryImpl : public KoSimpleColorSpaceFactory
+class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceFactoryImpl : public KoSimpleColorSpaceFactory
 {
     typedef typename _CSTrait::channels_type channels_type;
 
@@ -219,5 +219,16 @@ typedef KoAlphaColorSpaceFactoryImpl<AlphaU16Traits> KoAlphaU16ColorSpaceFactory
 typedef KoAlphaColorSpaceFactoryImpl<AlphaF16Traits> KoAlphaF16ColorSpaceFactory;
 #endif
 typedef KoAlphaColorSpaceFactoryImpl<AlphaF32Traits> KoAlphaF32ColorSpaceFactory;
+
+extern template class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceImpl<AlphaU8Traits>;
+extern template class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceImpl<AlphaU16Traits>;
+extern template class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceImpl<AlphaF32Traits>;
+extern template class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceFactoryImpl<AlphaU8Traits>;
+extern template class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceFactoryImpl<AlphaU16Traits>;
+extern template class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceFactoryImpl<AlphaF32Traits>;
+#ifdef HAVE_OPENEXR
+extern template class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceImpl<AlphaF16Traits>;
+extern template class KRITAPIGMENT_EXPORT_TEMPLATE KoAlphaColorSpaceFactoryImpl<AlphaF16Traits>;
+#endif
 
 #endif

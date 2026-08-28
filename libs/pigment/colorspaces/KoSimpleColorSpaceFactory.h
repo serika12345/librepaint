@@ -11,11 +11,11 @@
 
 #include "KoColorConversionTransformationFactory.h"
 #include "KoColorSpaceFactory.h"
-#include <colorprofiles/KoDummyColorProfile.h>
+#include "kritapigment_export.h"
 
 #include <KoColorModelStandardIds.h>
 
-class KoSimpleColorSpaceFactory : public KoColorSpaceFactory
+class KRITAPIGMENT_EXPORT KoSimpleColorSpaceFactory : public KoColorSpaceFactory
 {
 
 public:
@@ -71,9 +71,7 @@ public:
         return m_colorDepthId;
     }
 
-    bool profileIsCompatible(const KoColorProfile* profile) const override {
-        return dynamic_cast<const KoDummyColorProfile*>(profile);
-    }
+    bool profileIsCompatible(const KoColorProfile* profile) const override;
 
     QString colorSpaceEngine() const override {
         return "simple";

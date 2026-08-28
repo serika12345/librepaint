@@ -1,0 +1,25 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ */
+
+#ifndef KRITAPIGMENT_EXPORT_INSTANCE_H
+#define KRITAPIGMENT_EXPORT_INSTANCE_H
+
+#include "kritapigment_export.h"
+
+/* See https://reviews.llvm.org/D61118 */
+
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#define KRITAPIGMENT_EXPORT_TEMPLATE KRITAPIGMENT_EXPORT
+#define KRITAPIGMENT_EXPORT_INSTANCE
+#elif defined(_MSC_VER)
+#define KRITAPIGMENT_EXPORT_TEMPLATE
+#define KRITAPIGMENT_EXPORT_INSTANCE KRITAPIGMENT_EXPORT
+#else
+#define KRITAPIGMENT_EXPORT_TEMPLATE KRITAPIGMENT_EXPORT
+#define KRITAPIGMENT_EXPORT_INSTANCE KRITAPIGMENT_EXPORT
+#endif
+
+#endif // KRITAPIGMENT_EXPORT_INSTANCE_H
