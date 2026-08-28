@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 10:46 JST
+- 更新日時: 2026-08-28 10:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4397,6 +4397,17 @@
   新対象はQt Core、Qt Gui、OpenEXR、pigmentとglobalの所有・生成ヘッダーだけへ接続し、macOSの限定構築が
   成功した。製品挙動、公開API、ABI、Lab尺度定数は変更していない。Linux、製品ライブラリーの再リンク、
   全ネイティブ検証は実行していない。
+
+## R2-G19b Lab尺度定数 public API契約で完了した作業
+
+- `libs/pigment/KoLabColorSpaceMaths.h`の数値特性とL・a/b各軸のゼロ・半分・単位値からなる7 APIを、新規
+  `libs/pigment/tests/KoLabColorSpaceMathsContractTest.cpp`の2試験へ対応付けた。整数表現のL範囲とa/b符号化
+  中心値、単精度・倍精度表現のL=0/50/100とa/b=-128/0/127を観測する。
+- 初回リンクはヘッダー内で初期化された整数`static const`をQt比較が参照実体として要求し、別実体がない
+  ため失敗した。各宣言型の値へ変換して定数式として観測し、製品定義を追加せず解消した。試験は専用実装
+  対象とQt Testだけへ直接接続し、変更なし構築閉包はmacOSで5工程・16入力である。対象実行と20回反復が
+  成功し、公開API契約は1,228件、未対応基準は27,786件になった。製品実装、公開API、ABI、Lab尺度定数は
+  変更していない。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 

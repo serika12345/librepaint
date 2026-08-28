@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27793
+    "expectedMissingApis": 27786
   },
   "contracts": [
     {
@@ -4137,6 +4137,31 @@
         "member:KoCmykColorSpaceMathsTraits::halfValueCMYK",
         "member:KoCmykColorSpaceMathsTraits::unitValueCMYK",
         "member:KoCmykColorSpaceMathsTraits::zeroValueCMYK"
+      ]
+    },
+    {
+      "target": "KoLabColorSpaceMathsContractTest",
+      "source": "libs/pigment/tests/KoLabColorSpaceMathsContractTest.cpp",
+      "test": "KoLabColorSpaceMathsContractTest::integerTraitsUseEncodedLabRanges",
+      "behavior": "整数Lab数値特性は各整数型の基礎数値特性を継承し、Lの中間値とa/bの符号化中心値を型ごとの整数表現で保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoLabColorSpaceMathsTraits",
+        "member:KoLabColorSpaceMathsTraits::halfValueAB",
+        "member:KoLabColorSpaceMathsTraits::halfValueL"
+      ]
+    },
+    {
+      "target": "KoLabColorSpaceMathsContractTest",
+      "source": "libs/pigment/tests/KoLabColorSpaceMathsContractTest.cpp",
+      "test": "KoLabColorSpaceMathsContractTest::floatingTraitsUseLabCoordinateRanges",
+      "behavior": "単精度と倍精度のLab数値特性はLを0から100、a/bを-128から127の範囲とし、それぞれの中間値を50と0で表す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoLabColorSpaceMathsTraits::unitValueAB",
+        "member:KoLabColorSpaceMathsTraits::unitValueL",
+        "member:KoLabColorSpaceMathsTraits::zeroValueAB",
+        "member:KoLabColorSpaceMathsTraits::zeroValueL"
       ]
     }
   ]
