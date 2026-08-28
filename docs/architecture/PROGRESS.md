@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 19:41 JST
+- 更新日時: 2026-08-28 19:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5532,9 +5532,20 @@
   25,918件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G19b ポップアップ表示境界 public API契約で完了した作業
+
+- `libs/input/ui/KisPopupWidgetInterface.h`の指定位置表示、表示状態、破棄、完了通知、Qtの
+  インターフェース変換、基本型を通した寿命からなる1クラス・5メソッドの6 APIを、新規
+  `libs/input/ui/tests/KisPopupWidgetInterfaceContractTest.cpp`の3試験へ全件対応付けた。製品実装と
+  公開面は変更していない。
+- 1,767工程・3,531入力の既存公開ヘッダー集約試験へ挙動確認を接続せず、Qt CoreとQt Testだけを
+  使う専用試験はmacOSで4工程・8入力に収めた。対象実行と20回反復に成功した。対応済みは
+  4,055件、未対応基準は25,912件になり、同ヘッダーのpublic APIは全件対応済みになった。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/input/ui/KisPopupWidgetInterface.h`のポップアップ表示境界について、既存試験、直接依存、
+`libs/input/ui/KisPopupWidgetAction.h`のポップアップ操作について、既存試験、直接依存、
 変更なし構築閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠

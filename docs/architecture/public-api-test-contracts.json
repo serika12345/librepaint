@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25918
+    "expectedMissingApis": 25912
   },
   "contracts": [
     {
@@ -9296,6 +9296,39 @@
       "classification": "maintained",
       "apis": [
         "method:KisExtendedModifiersMapperPluginInterface::~KisExtendedModifiersMapperPluginInterface()"
+      ]
+    },
+    {
+      "target": "KisPopupWidgetInterfaceContractTest",
+      "source": "libs/input/ui/tests/KisPopupWidgetInterfaceContractTest.cpp",
+      "test": "KisPopupWidgetInterfaceContractTest::transitionsVisibilityAtRequestedPosition",
+      "behavior": "ポップアップ表示境界は指定位置を実装へ渡し、表示開始と破棄による表示状態の遷移を基本型経由で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPopupWidgetInterface",
+        "method:KisPopupWidgetInterface::dismiss()",
+        "method:KisPopupWidgetInterface::onScreen()",
+        "method:KisPopupWidgetInterface::popup(const QPoint & position)"
+      ]
+    },
+    {
+      "target": "KisPopupWidgetInterfaceContractTest",
+      "source": "libs/input/ui/tests/KisPopupWidgetInterfaceContractTest.cpp",
+      "test": "KisPopupWidgetInterfaceContractTest::emitsCompletionThroughInterface",
+      "behavior": "ポップアップ表示境界の完了通知は基本型を通して呼び出せ、QObjectの完了シグナルとして観測できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupWidgetInterface::finished()"
+      ]
+    },
+    {
+      "target": "KisPopupWidgetInterfaceContractTest",
+      "source": "libs/input/ui/tests/KisPopupWidgetInterfaceContractTest.cpp",
+      "test": "KisPopupWidgetInterfaceContractTest::supportsQtInterfaceAndPolymorphicLifetime",
+      "behavior": "ポップアップ実装はQtのインターフェース変換で取得でき、基本型を通した破棄で実装とQObject監視を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPopupWidgetInterface::~KisPopupWidgetInterface()"
       ]
     }
   ]
