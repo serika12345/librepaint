@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27373
+    "expectedMissingApis": 27364
   },
   "contracts": [
     {
@@ -5115,6 +5115,33 @@
         "method:KisSignalCompressorWithParam::start(T param)",
         "method:KisSignalCompressorWithParam::stop()",
         "method:KisSignalCompressorWithParam::~KisSignalCompressorWithParam()"
+      ]
+    },
+    {
+      "target": "KisThreadSafeSignalCompressorContractTest",
+      "source": "libs/global/tests/KisThreadSafeSignalCompressorContractTest.cpp",
+      "test": "KisThreadSafeSignalCompressorContractTest::controlMethodsEmitRequestsAndManagePendingState",
+      "behavior": "スレッド安全な信号圧縮器はアプリケーションスレッドへ所属し、遅延・開始・停止を内部制御信号へ変換して、即時配送と保留状態を通常の信号圧縮器へ委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisThreadSafeSignalCompressor",
+        "method:KisThreadSafeSignalCompressor::KisThreadSafeSignalCompressor(int delay,KisSignalCompressor::Mode mode)",
+        "method:KisThreadSafeSignalCompressor::internalRequestSignal()",
+        "method:KisThreadSafeSignalCompressor::internalSetDelay(int delay)",
+        "method:KisThreadSafeSignalCompressor::internalStopSignal()",
+        "method:KisThreadSafeSignalCompressor::isActive() const",
+        "method:KisThreadSafeSignalCompressor::setDelay(int delay)",
+        "method:KisThreadSafeSignalCompressor::stop()"
+      ]
+    },
+    {
+      "target": "KisThreadSafeSignalCompressorContractTest",
+      "source": "libs/global/tests/KisThreadSafeSignalCompressorContractTest.cpp",
+      "test": "KisThreadSafeSignalCompressorContractTest::workerThreadStartDeliversOnTheApplicationThread",
+      "behavior": "作業スレッドからの開始要求はQtの事象処理を介してアプリケーションスレッドで配送される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisThreadSafeSignalCompressor::start()"
       ]
     }
   ]

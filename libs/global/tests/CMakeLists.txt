@@ -291,6 +291,16 @@ kis_add_test(
 target_compile_definitions(KisSignalCompressorContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisThreadSafeSignalCompressorContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalthreadsafesignalcompressorobjects
+        kritaglobalsignalcompressorobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisThreadSafeSignalCompressorContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisQStringListFwdTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
