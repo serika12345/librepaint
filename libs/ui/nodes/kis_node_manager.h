@@ -324,6 +324,15 @@ protected:
         static KisNodeSP parentNode(KisNodeSP node);
     };
 
+    struct KRITAUI_EXPORT NodeChangeAccess {
+        static QString name(KisNodeSP node);
+        static qint32 opacity(KisNodeSP node);
+        static const KoCompositeOp *compositeOp(KisNodeSP node);
+        static void setName(KisNodeManager *manager, KisNodeSP node, const QString &name);
+        static void setOpacity(KisNodeManager *manager, KisNodeSP node, qint32 opacity);
+        static void setCompositeOp(KisNodeManager *manager, KisNodeSP node, const KoCompositeOp *compositeOp);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

@@ -923,40 +923,36 @@ void KisNodeManager::changeCloneSource()
     m_d->layerManager.changeCloneSource();
 }
 
-qint32 KisNodeManager::convertOpacityToInt(qreal opacity)
+QString KisNodeManager::NodeChangeAccess::name(KisNodeSP node)
 {
-    /**
-     * Scales opacity from the range 0...100
-     * to the integer range 0...255
-     */
-
-    return qMin(255, int(opacity * 2.55 + 0.5));
+    return node->name();
 }
 
-void KisNodeManager::setNodeName(KisNodeSP node, const QString &name)
+qint32 KisNodeManager::NodeChangeAccess::opacity(KisNodeSP node)
 {
-    if (!node) return;
-    if (node->name() == name) return;
-
-    m_d->commandsAdapter.setNodeName(node, name);
-
+    return node->opacity();
 }
 
-void KisNodeManager::setNodeOpacity(KisNodeSP node, qint32 opacity)
+const KoCompositeOp *KisNodeManager::NodeChangeAccess::compositeOp(KisNodeSP node)
 {
-    if (!node) return;
-    if (node->opacity() == opacity) return;
-
-    m_d->commandsAdapter.setOpacity(node, opacity);
+    return node->compositeOp();
 }
 
-void KisNodeManager::setNodeCompositeOp(KisNodeSP node,
-                                        const KoCompositeOp* compositeOp)
+void KisNodeManager::NodeChangeAccess::setName(KisNodeManager *manager, KisNodeSP node, const QString &name)
 {
-    if (!node) return;
-    if (node->compositeOp() == compositeOp) return;
+    manager->m_d->commandsAdapter.setNodeName(node, name);
+}
 
-    m_d->commandsAdapter.setCompositeOp(node, compositeOp);
+void KisNodeManager::NodeChangeAccess::setOpacity(KisNodeManager *manager, KisNodeSP node, qint32 opacity)
+{
+    manager->m_d->commandsAdapter.setOpacity(node, opacity);
+}
+
+void KisNodeManager::NodeChangeAccess::setCompositeOp(KisNodeManager *manager,
+                                                      KisNodeSP node,
+                                                      const KoCompositeOp *compositeOp)
+{
+    manager->m_d->commandsAdapter.setCompositeOp(node, compositeOp);
 }
 
 void KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode, const KisNodeList &selectedNodes)
@@ -1013,20 +1009,6 @@ bool KisNodeManager::trySetNodeProperties(KisNodeSP node, KisImageSP image, KisB
     KisNodePropertyListCommand::setNodePropertiesAutoUndo(node, image, properties);
 
     return true;
-}
-
-void KisNodeManager::nodeOpacityChanged(qreal opacity)
-{
-    KisNodeSP node = activeNode();
-
-    setNodeOpacity(node, convertOpacityToInt(opacity));
-}
-
-void KisNodeManager::nodeCompositeOpChanged(const KoCompositeOp* op)
-{
-    KisNodeSP node = activeNode();
-
-    setNodeCompositeOp(node, op);
 }
 
 void KisNodeManager::duplicateActiveNode()

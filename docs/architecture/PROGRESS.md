@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 07:12 JST
+- 更新日時: 2026-08-29 07:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6801,12 +6801,35 @@
   `kritaresourceui`リンクの未解決記号で停止したため、コンパイルデータベースの1命令だけで検証した。
   製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード属性変更 public API契約とundo効果分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった名前、不透明度、合成方法の変更不要判定、百分率不透明度の
+  尺度変換、現在ノードへの変更適用を、新規`libs/ui/nodes/KisNodeManagerNodeChange.cpp`の
+  `kritauinodemanagernodechangeobjects`へ移した。具体ノード値の取得と画像undo命令の発行は、同じ公開クラスの
+  既存具体所有として`libs/ui/nodes/kis_node_manager.cpp`に残し、製品`kritaapplicationui`は判断生成物を
+  1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`のうち5 APIを、新規
+  `libs/ui/tests/KisNodeManagerNodeChangeContractTest.cpp`の3試験へ対応付けた。対象なしと同値変更の無操作、
+  名前・不透明度・合成方法の差分適用、現在ノードへの不透明度と合成方法の適用を固定した。
+- 最初の実行は、50%の不透明度が`int(50 * 2.55 + 0.5)`の二進浮動小数点誤差により128ではなく127になる
+  既存挙動を診断した。0%は0、100%以上は255へ変換する上限制限とともに既知不具合として固定し、製品挙動は
+  変更していない。
+- 実装接続前のリンクは、対象とした`setNodeName`、`setNodeOpacity`、`setNodeCompositeOp`、
+  `nodeOpacityChanged`、`nodeCompositeOpChanged`だけを未解決記号として診断し、具体undoや製品ライブラリー
+  由来の未解決参照を含まなかった。
+- 変更前の既存隔離対象`KisNodeManagerTest`は1,803工程・3,605入力だった。判断は1工程・3入力、
+  新規試験は5工程・17入力に収めた。製品`kritaapplicationui`閉包は1,799工程・3,598入力から
+  1,800工程・3,600入力になった。
+- 判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復、
+  公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,838件、
+  未対応25,151件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る94 APIのうち、名前、不透明度、合成方法の変更と、現在ノードへ
-不透明度・合成方法を適用するスロットを次の小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の対象実装について、
-対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、変更不要判定と不透明度尺度変換を局所所有へ、
-画像undo命令への具体効果を既存所有側へ分けてから挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る89 APIのうち、複数ノードと単一ノードの変更可否を次の
+小単位とする。`libs/ui/nodes/kis_node_manager.cpp`の対象実装について、対象指定の変更なし計画、直接CMake依存、
+空構築閉包を監査し、最初の編集不可ノードを選ぶ判断と警告文の選択を局所所有へ、画面通知を既存具体所有へ
+分けてから挙動契約を追加する。
 
 ## R1-G5完了根拠
 

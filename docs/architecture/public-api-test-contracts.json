@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25156
+    "expectedMissingApis": 25151
   },
   "contracts": [
     {
@@ -12255,6 +12255,38 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::isNodeHidden(KisNodeSP node,bool isGlobalSelectionHidden)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeChangeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeChangeContractTest.cpp",
+      "test": "KisNodeManagerNodeChangeContractTest::settersSkipMissingAndUnchangedNodes",
+      "behavior": "名前、不透明度、合成方法の変更は対象ノードがない場合と現在値に一致する場合にundo命令を作らず、異なる値だけを対象ノードへ一度適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setNodeCompositeOp(KisNodeSP node,const KoCompositeOp * compositeOp)",
+        "method:KisNodeManager::setNodeName(KisNodeSP node,const QString & name)",
+        "method:KisNodeManager::setNodeOpacity(KisNodeSP node,qint32 opacity)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeChangeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeChangeContractTest.cpp",
+      "test": "KisNodeManagerNodeChangeContractTest::activeOpacityChangesUseCurrentNodeAndExistingScale",
+      "behavior": "現在ノードの百分率不透明度は0を0、50を既存の浮動小数点丸めによる127、100以上を255へ変換し、変換後の値が変わる場合だけ適用する。50%が127になる丸め誤差を既知不具合として固定する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisNodeManager::nodeOpacityChanged(qreal opacity)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeChangeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeChangeContractTest.cpp",
+      "test": "KisNodeManagerNodeChangeContractTest::activeCompositeOpChangesUseCurrentNode",
+      "behavior": "現在ノードがない場合は合成方法を変更せず、現在ノードがある場合は同じ合成方法を無操作とし、異なる合成方法だけを適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::nodeCompositeOpChanged(const KoCompositeOp * op)"
       ]
     }
   ]
