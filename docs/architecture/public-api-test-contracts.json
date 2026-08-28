@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25840
+    "expectedMissingApis": 25837
   },
   "contracts": [
     {
@@ -9608,6 +9608,18 @@
         "alias:KisCurveOptionRangeControlsStrategyFactory",
         "class:KisCurveOptionRangeControlsStrategyInterface",
         "method:KisCurveOptionRangeControlsStrategyInterface::~KisCurveOptionRangeControlsStrategyInterface()"
+      ]
+    },
+    {
+      "target": "KoCanvasResourcesInterfaceContractTest",
+      "source": "libs/resources/tests/KoCanvasResourcesInterfaceContractTest.cpp",
+      "test": "KoCanvasResourcesInterfaceContractTest::dispatchesResourceLookupAndSupportsPolymorphicLifetime",
+      "behavior": "キャンバス資源参照境界は指定キーを同一性を保って実装へ配送し、その戻り値を基本型経由で返して、基本型から多態的に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCanvasResourcesInterface",
+        "method:KoCanvasResourcesInterface::resource(int key) const",
+        "method:KoCanvasResourcesInterface::~KoCanvasResourcesInterface()"
       ]
     }
   ]

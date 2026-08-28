@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 20:17 JST
+- 更新日時: 2026-08-28 20:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5642,9 +5642,24 @@
   25,840件になり、2ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G19b キャンバス資源参照 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KoCanvasResourcesInterface.cpp`は同じ配置のまま、`kritaresources`の直接ソース
+  所有から新規`kritacanvasresourcesinterfaceobjects`の所有へ移し、製品`kritaresources`が生成
+  オブジェクトを1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは維持した。
+- `libs/resources/KoCanvasResourcesInterface.h`の基本境界、キー指定の資源参照、多態的寿命からなる
+  1クラス・2メソッドの3 APIを、新規
+  `libs/resources/tests/KoCanvasResourcesInterfaceContractTest.cpp`の1試験へ全件対応付けた。指定キーの
+  配送、戻り値の保持、基本型からの破棄を固定した。
+- 製品へ接続しない最初の試験構築が、基本型デストラクターと型情報の未接続をリンク診断した後、
+  139工程・305入力の製品資源ライブラリーへ接続せず、専用実装は1工程・3入力、専用試験はmacOSで
+  5工程・11入力に収めた。対象実行と20回反復に成功した。対応済みは4,130件、未対応基準は
+  25,837件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`libs/resources/KoCanvasResourcesInterface.h`のキャンバス資源参照境界について、既存試験、直接依存、
+`libs/resources/KoResourceCacheInterface.h`の共有資源キャッシュ境界について、既存試験、直接依存、
 変更なし構築閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠

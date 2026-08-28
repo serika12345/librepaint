@@ -22,6 +22,21 @@ set_target_properties(kritaresourcestypesobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritacanvasresourcesinterfaceobjects OBJECT
+    KoCanvasResourcesInterface.cpp
+)
+target_compile_definitions(kritacanvasresourcesinterfaceobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritacanvasresourcesinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritacanvasresourcesinterfaceobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritacanvasresourcesinterfaceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresources_LIB_SRCS
     KisResourceCacheDb.cpp
     KisResourceLoader.cpp
@@ -64,7 +79,6 @@ set(kritaresources_LIB_SRCS
     KoResourceCacheStorage.cpp
     KoResourceCachePrefixedStorageWrapper.cpp
 
-    KoCanvasResourcesInterface.cpp
     KoLocalStrokeCanvasResources.cpp
     KisEmbeddedResourceStorageProxy.cpp
 
@@ -81,6 +95,7 @@ krita_ios_add_static_resource(sql)
 kis_add_library(kritaresources SHARED
     ${kritaresources_LIB_SRCS}
     $<TARGET_OBJECTS:kritaresourcestypesobjects>
+    $<TARGET_OBJECTS:kritacanvasresourcesinterfaceobjects>
 )
 
 generate_export_header(kritaresources BASE_NAME kritaresources)
