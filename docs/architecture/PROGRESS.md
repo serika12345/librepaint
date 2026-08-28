@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 17:25 JST
+- 更新日時: 2026-08-28 17:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5231,11 +5231,26 @@
   3,539件、未対応基準は26,427件になった。製品実装、公開API、ABI、既定値は変更していない。
   Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b ブラシテクスチャLOD制約契約と構築所有分離で完了した作業
+
+- `KisTextureOptionData::lodLimitations()`の実装を
+  `plugins/paintops/libpaintop/KisTextureOptionData.cpp`から新規
+  `plugins/paintops/libpaintop/KisTextureOptionLodLimitations.cpp`へ移した。新規
+  `kritapaintoptexturelodobjects`が実装を所有し、`kritapaintopruntime`と`kritalibpaintop`へ
+  生成オブジェクトを1回だけ集約する。公開ヘッダーとメソッド宣言は維持した。
+- 新規`plugins/paintops/libpaintop/tests/KisTextureOptionLodContractTest.cpp`は、無効な設定が
+  制約を返さず、有効な設定が`texture-pattern`識別子の低品質プレビュー制約を1件返すことを
+  観測する。
+- 1,103工程・2,226入力の描画実行対象へ接続せず、専用実装は1工程・3入力、試験はmacOSで
+  6工程・14入力に収めた。対象実行と20回反復に成功し、対応済みは3,540件、未対応基準は
+  26,426件になった。`KisTextureOptionData.h`の未対応は設定読込・書込の2 APIである。
+  製品全体は構築していない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`KisTextureOptionData.h`に残る読込、書込、LOD制約の3 APIについて、
-`KisTextureOptionData.cpp`と`KisEmbeddedTextureData.cpp`の設定値処理を資源読込処理から分離し、
-製品描画実行対象を構築しない局所契約を追加する。
+`KisTextureOptionData.h`に残る読込・書込の2 APIについて、非仮想の値変換を所有する
+`KisPropertiesConfiguration`の構築閉包を調べる。局所化に設定基盤全体の分割が必要な場合は、
+独立した完了条件を持つ後続構造単位として計画し、次の高密度な値型契約を先に進める。
 
 ## R1-G5完了根拠
 

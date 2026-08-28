@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26427
+    "expectedMissingApis": 26426
   },
   "contracts": [
     {
@@ -7967,6 +7967,16 @@
       "classification": "maintained",
       "apis": [
         "function:operator ==(const KisTextureOptionData & lhs,const KisTextureOptionData & rhs)"
+      ]
+    },
+    {
+      "target": "KisTextureOptionLodContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionLodContractTest.cpp",
+      "test": "KisTextureOptionLodContractTest::enabledTextureReportsInstantPreviewLimitation",
+      "behavior": "無効なテクスチャはLOD制約を持たず、有効なテクスチャはtexture-pattern識別子の低品質プレビュー制約を1件返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextureOptionData::lodLimitations() const"
       ]
     }
   ]

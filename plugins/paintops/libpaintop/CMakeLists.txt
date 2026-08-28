@@ -185,7 +185,46 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
 
 )
 
-kis_add_library(kritapaintopruntime OBJECT ${kritapaintopruntime_LIB_SRCS})
+add_library(kritapaintoptexturelodobjects OBJECT
+    KisTextureOptionLodLimitations.cpp
+)
+target_compile_definitions(kritapaintoptexturelodobjects PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoptexturelodobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritapaintoptexturelodobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+        kritaglobalidobjects
+)
+set_target_properties(kritapaintoptexturelodobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_library(kritapaintopruntime OBJECT
+    ${kritapaintopruntime_LIB_SRCS}
+    $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
+)
 target_compile_definitions(kritapaintopruntime PRIVATE kritalibpaintop_EXPORTS)
 target_include_directories(kritapaintopruntime INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
