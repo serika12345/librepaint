@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 14:04 JST
+- 更新日時: 2026-08-28 14:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -4784,6 +4784,16 @@
   更新し、公開API契約は1,729件、未対応基準は28,281件になった。製品実装、公開API、ABI、構築対象は
   変更していない。容量確保のため追跡外の`build/tdd-macos/plugins`生成物だけを削除し、`libs/global`の
   増分構築木を保持した。Linuxと全ネイティブ検証は実行していない。
+
+## R2-G19b 矩形領域契約の限定構築で完了した作業
+
+- `libs/global/KisRegion.cpp`は同じファイル位置を保ち、`libs/global/CMakeLists.txt`の`kritaglobal`
+  直接ソースから新規`kritaglobalregionobjects`の所有へ移した。`kritaglobal`は新対象のオブジェクトを
+  集約し、従来の公開シンボルを供給する。
+- 新対象はQt Core、Qt Gui、Boostだけへ直接接続し、変更なし構築閉包はmacOSで1工程・3入力である。
+  製品所有者`kritaglobal`は63工程・126入力であり、疎矩形結合、重複近似、構築・比較・交差、Qt領域変換、
+  平行移動の契約試験を製品ライブラリー全体から分離できる。限定構築に成功し、製品挙動、公開API、ABI、
+  矩形領域規則は変更していない。Linux、製品ライブラリーの再リンク、全ネイティブ検証は実行していない。
 
 ## 次の操作
 

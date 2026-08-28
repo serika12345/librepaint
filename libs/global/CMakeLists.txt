@@ -282,6 +282,26 @@ set_target_properties(kritaglobalsynchronizedconnectionobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalregionobjects OBJECT
+    KisRegion.cpp
+)
+target_compile_definitions(kritaglobalregionobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalregionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalregionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalregionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalrollingsumobjects OBJECT
     KisRollingSumAccumulatorWrapper.cpp
 )
@@ -391,7 +411,6 @@ set(kritaglobal_LIB_SRCS
     KisHandleStyle.cpp
     kis_config_notifier.cpp
     KisUsageLogger.cpp
-    KisRegion.cpp
     KoUnit.cpp
     KisBezierUtils.cpp
     KisBezierPatch.cpp
@@ -432,6 +451,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalacyclicsignalconnectorobjects>
     $<TARGET_OBJECTS:kritaglobalsignalmapperobjects>
     $<TARGET_OBJECTS:kritaglobalsynchronizedconnectionobjects>
+    $<TARGET_OBJECTS:kritaglobalregionobjects>
     $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
     $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
     $<TARGET_OBJECTS:kritaglobalsamplerectiteratorobjects>
