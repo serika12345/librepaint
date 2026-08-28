@@ -328,6 +328,15 @@ kis_add_test(
 target_compile_definitions(KisSynchronizedConnectionContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisRegionContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalregionobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+target_compile_definitions(KisRegionContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisQStringListFwdTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

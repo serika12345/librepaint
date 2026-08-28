@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28281
+    "expectedMissingApis": 28259
   },
   "contracts": [
     {
@@ -5338,6 +5338,73 @@
         "method:KisSynchronizedConnectionBase::isAutoModeForUnittestsEnabled()",
         "method:KisSynchronizedConnectionBase::registerSynchronizedEventBarrier(std::function<void ()> callback)",
         "method:KisSynchronizedConnectionBase::setAutoModeForUnittestsEnabled(bool value)"
+      ]
+    },
+    {
+      "target": "KisRegionContractTest",
+      "source": "libs/global/tests/KisRegionContractTest.cpp",
+      "test": "KisRegionContractTest::constructorsMergeSparseRectsAndReportGeometry",
+      "behavior": "矩形領域の各構築経路は空領域、単一矩形、列挙順、疎矩形結合を保持し、コピー、代入、比較と形状照会から同じ状態を観測できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRegion",
+        "function:operator ==(const KisRegion & lhs,const KisRegion & rhs)",
+        "method:KisRegion::KisRegion()",
+        "method:KisRegion::KisRegion(QVector<QRect> && rects)",
+        "method:KisRegion::KisRegion(const KisRegion & rhs)",
+        "method:KisRegion::KisRegion(const QRect & rect)",
+        "method:KisRegion::KisRegion(const QVector<QRect> & rects)",
+        "method:KisRegion::KisRegion(std::initializer_list<QRect> rects)",
+        "method:KisRegion::boundingRect() const",
+        "method:KisRegion::isEmpty() const",
+        "method:KisRegion::operator =(const KisRegion & rhs)",
+        "method:KisRegion::rectCount() const",
+        "method:KisRegion::rects() const"
+      ]
+    },
+    {
+      "target": "KisRegionContractTest",
+      "source": "libs/global/tests/KisRegionContractTest.cpp",
+      "test": "KisRegionContractTest::mergeSparseRectsMergesHorizontalAndVerticalNeighbors",
+      "behavior": "疎矩形結合は空範囲を保持し、縦横に隣接する同寸法のタイルを一つの外接矩形へ結合する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRegion::mergeSparseRects(QVector<QRect>::iterator beginIt,QVector<QRect>::iterator endIt)"
+      ]
+    },
+    {
+      "target": "KisRegionContractTest",
+      "source": "libs/global/tests/KisRegionContractTest.cpp",
+      "test": "KisRegionContractTest::overlappingApproximationAndGridUniquenessCoverInputs",
+      "behavior": "格子状矩形の重複除去と重複矩形の近似は、出力矩形同士を分離しながら入力領域全体を覆う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRegion::approximateOverlappingRects(QVector<QRect> & rects,int gridSize)",
+        "method:KisRegion::fromOverlappingRects(const QVector<QRect> & rects,int gridSize)",
+        "method:KisRegion::makeGridLikeRectsUnique(QVector<QRect> & rects)"
+      ]
+    },
+    {
+      "target": "KisRegionContractTest",
+      "source": "libs/global/tests/KisRegionContractTest.cpp",
+      "test": "KisRegionContractTest::qRegionRoundTripAndIntersectionPreserveArea",
+      "behavior": "Qt領域との往復は画素領域を保持し、矩形との積は自身を更新してQt領域の積と同じ領域を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRegion::fromQRegion(const QRegion & region)",
+        "method:KisRegion::operator &=(const QRect & rect)",
+        "method:KisRegion::toQRegion() const"
+      ]
+    },
+    {
+      "target": "KisRegionContractTest",
+      "source": "libs/global/tests/KisRegionContractTest.cpp",
+      "test": "KisRegionContractTest::translationReturnsCopyAndMutatesInPlace",
+      "behavior": "複製平行移動は元領域を保持し、直接平行移動は同じ移動量の複製結果と一致する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRegion::translate(int dx,int dy)",
+        "method:KisRegion::translated(int x,int y) const"
       ]
     }
   ]
