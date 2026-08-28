@@ -16,7 +16,7 @@
     "publicApiFingerprint": "7bcb39f93618431f58096964ad617e62516f3d06f2adefa928141a573f2c5364"
   },
   "migration": {
-    "expectedMissingApis": 25827
+    "expectedMissingApis": 25810
   },
   "contracts": [
     {
@@ -9739,6 +9739,68 @@
         "method:KoEmbeddedResource::isValid() const",
         "method:KoEmbeddedResource::sanityCheckMd5() const",
         "method:KoEmbeddedResource::signature() const"
+      ]
+    },
+    {
+      "target": "KoResourceLoadResultContractTest",
+      "source": "libs/resources/tests/KoResourceLoadResultContractTest.cpp",
+      "test": "KoResourceLoadResultContractTest::representsExistingResourceAndTypedAccess",
+      "behavior": "既存資源結果は基本型または派生共有ポインターから既存種別になり、基本型・指定派生型の同一資源、空の埋込み値、資源由来の署名を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceLoadResult",
+        "enum:KoResourceLoadResult::Type",
+        "enumerator:KoResourceLoadResult::Type::ExistingResource",
+        "method:KoResourceLoadResult::KoResourceLoadResult(KoResourceSP resource)",
+        "method:KoResourceLoadResult::KoResourceLoadResult(QSharedPointer<T> resource)",
+        "method:KoResourceLoadResult::resource() const",
+        "method:KoResourceLoadResult::signature() const",
+        "method:KoResourceLoadResult::type() const"
+      ]
+    },
+    {
+      "target": "KoResourceLoadResultContractTest",
+      "source": "libs/resources/tests/KoResourceLoadResultContractTest.cpp",
+      "test": "KoResourceLoadResultContractTest::representsEmbeddedResource",
+      "behavior": "埋込み資源結果は埋込み種別、空の既存資源、保持した埋込みデータと署名を返す。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoResourceLoadResult::Type::EmbeddedResource",
+        "method:KoResourceLoadResult::KoResourceLoadResult(KoEmbeddedResource embeddedRresource)",
+        "method:KoResourceLoadResult::embeddedResource() const"
+      ]
+    },
+    {
+      "target": "KoResourceLoadResultContractTest",
+      "source": "libs/resources/tests/KoResourceLoadResultContractTest.cpp",
+      "test": "KoResourceLoadResultContractTest::representsFailedLink",
+      "behavior": "リンク失敗結果は失敗種別、空の既存・埋込み資源、保持した署名を返す。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KoResourceLoadResult::Type::FailedLink",
+        "method:KoResourceLoadResult::KoResourceLoadResult(KoResourceSignature signature)"
+      ]
+    },
+    {
+      "target": "KoResourceLoadResultContractTest",
+      "source": "libs/resources/tests/KoResourceLoadResultContractTest.cpp",
+      "test": "KoResourceLoadResultContractTest::copiesAssignsAndReleasesResource",
+      "behavior": "読込結果のコピー構築と代入は同じ共有資源を保持し、全結果の破棄後に資源の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceLoadResult::KoResourceLoadResult(const KoResourceLoadResult & rhs)",
+        "method:KoResourceLoadResult::operator =(const KoResourceLoadResult & rhs)",
+        "method:KoResourceLoadResult::~KoResourceLoadResult()"
+      ]
+    },
+    {
+      "target": "KoResourceLoadResultContractTest",
+      "source": "libs/resources/tests/KoResourceLoadResultContractTest.cpp",
+      "test": "KoResourceLoadResultContractTest::formatsAllResultTypes",
+      "behavior": "読込結果のデバッグ出力は既存・埋込み・失敗の種別名と対応する署名を表示する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KoResourceLoadResult & result)"
       ]
     }
   ]

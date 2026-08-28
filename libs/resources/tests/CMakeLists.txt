@@ -88,3 +88,21 @@ target_include_directories(KoEmbeddedResourceValueContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KoEmbeddedResourceValueContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
+    KoResourceLoadResultContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourceloadvalueobjects
+        kritaembeddedresourcevalueobjects
+        kritaresourcestypesobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Boost::boost
+)
+target_include_directories(KoResourceLoadResultContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoResourceLoadResultContractTest PRIVATE kritaresources_EXPORTS)

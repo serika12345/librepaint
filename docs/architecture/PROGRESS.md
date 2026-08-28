@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 20:44 JST
+- 更新日時: 2026-08-28 20:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5703,10 +5703,29 @@
   成功した。対応済みは4,159件、未対応基準は25,827件になった。追加採取した残り18 friend関数は
   通常の未対応作業列へ入り、Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 資源読込結果 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KoResource.cpp`と`libs/resources/KoResourceLoadResult.cpp`は同じ配置のまま、
+  `kritaresources`の直接ソース所有から新規`kritaresourceloadvalueobjects`の所有へ移し、製品
+  `kritaresources`が各生成オブジェクトを1回だけ集約する構造にした。公開ヘッダー、実装、製品ABIは
+  維持した。この対象は後続の資源基底型契約でも再利用する。
+- `libs/resources/KoResourceLoadResult.h`の3結果種別、基本・派生共有ポインター、埋込み値、失敗署名、
+  コピー・代入・破棄、型付き取得、署名取得、デバッグ表示からなる1クラス・1列挙・3列挙値・
+  1関数・11メソッドの17 APIを、新規`libs/resources/tests/KoResourceLoadResultContractTest.cpp`の
+  5試験へ全件対応付けた。
+- 製品へ接続しない最初の試験構築が資源基底と読込結果の未接続をリンク診断した後、専用対象へ
+  `KF::I18n`と生成済みglobalヘッダーの直接依存を明示した。安全アサートの画面表示・利用記録実装は
+  引き込まず、有効値で呼ばれた場合に停止する試験診断へ置換し、ログ分類だけ既存
+  `kritaglobaldebugobjects`から取得した。
+- 139工程・305入力の製品資源ライブラリーへ接続せず、専用資源基底・読込結果は2工程・5入力、
+  専用試験はmacOSで12工程・26入力に収めた。対象実行と20回反復に成功した。対応済みは4,176件、
+  未対応基準は25,810件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ
+  検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KoResourceLoadResult.h`の資源読込結果値について、既存試験、直接依存、変更なし構築
-閉包を監査し、最小の局所契約を追加する。
+`libs/resources/KoResource.h`の資源基底型54 APIについて、既存試験を再利用できる挙動と未固定の
+挙動を分類し、既存`kritaresourceloadvalueobjects`を用いた最小の局所契約へ分割する。
 
 ## R1-G5完了根拠
 
