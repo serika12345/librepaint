@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28258
+    "expectedMissingApis": 28257
   },
   "contracts": [
     {
@@ -3456,6 +3456,7 @@
       "apis": [
         "function:operator !=(const KoID & v1,const KoID & v2)",
         "function:operator <(const KoID & v1,const KoID & v2)",
+        "function:operator ==(const KoID & v1,const KoID & v2)",
         "function:operator >(const KoID & v1,const KoID & v2)",
         "method:KoID::compareNames(const KoID & id1,const KoID & id2)"
       ]
