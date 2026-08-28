@@ -16,7 +16,7 @@
     "publicApiFingerprint": "fa2f8764e4ebc82e8ae7fc8f9cdeb0fb34fc8b4db4e44f545f9cf7d68be4e063"
   },
   "migration": {
-    "expectedMissingApis": 25566
+    "expectedMissingApis": 25563
   },
   "contracts": [
     {
@@ -11023,6 +11023,37 @@
       "classification": "maintained",
       "apis": [
         "method:KisStorageFilterProxyModel::storageForIndex(QModelIndex index=QModelIndex ()) const"
+      ]
+    },
+    {
+      "target": "KisStorageChooserWidgetContractTest",
+      "source": "libs/resources/ui/tests/KisStorageChooserWidgetContractTest.cpp",
+      "test": "KisStorageChooserWidgetContractTest::constructorBuildsSingleSelectionPopup",
+      "behavior": "格納場所選択ウィジェットは指定した親へ所属し、64画素画像の単一選択一覧、絞り込みモデル、描画委譲、クリック通知を構成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStorageChooserWidget",
+        "method:KisStorageChooserWidget::KisStorageChooserWidget(const QString & resourceType,QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisStorageChooserWidgetContractTest",
+      "source": "libs/resources/ui/tests/KisStorageChooserWidgetContractTest.cpp",
+      "test": "KisStorageChooserWidgetContractTest::resourceTypeSelectsCompatibleStorages",
+      "behavior": "格納場所選択ウィジェットは束を常に表示し、ブラシではブラシライブラリー、層様式では様式ライブラリーを加える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageChooserWidget::KisStorageChooserWidget(const QString & resourceType,QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisStorageChooserWidgetContractTest",
+      "source": "libs/resources/ui/tests/KisStorageChooserWidgetContractTest.cpp",
+      "test": "KisStorageChooserWidgetContractTest::destructorReleasesOwnedPresentation",
+      "behavior": "格納場所選択ウィジェットの破棄は所有する一覧、絞り込みモデル、描画委譲を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStorageChooserWidget::~KisStorageChooserWidget()"
       ]
     }
   ]

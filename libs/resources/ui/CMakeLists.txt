@@ -197,6 +197,53 @@ target_link_libraries(kritastoragechooserwidgetobjects
 )
 set_target_properties(kritastoragechooserwidgetobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritastoragechooserwidgetactivationobjects OBJECT
+    KisStorageChooserWidgetActivation.cpp
+)
+target_compile_definitions(kritastoragechooserwidgetactivationobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritastoragechooserwidgetactivationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritastoragechooserwidgetactivationobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritastoragechooserwidgetactivationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritastoragechooserwidgetmodelsourceobjects OBJECT
+    KisStorageChooserWidgetModelSource.cpp
+)
+target_compile_definitions(kritastoragechooserwidgetmodelsourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritastoragechooserwidgetmodelsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritastoragechooserwidgetmodelsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritastoragechooserwidgetmodelsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaresourceui_LIB_SRCS
     KisResourceItemChooserContextMenu.cpp
     KisResourceItemChooser.cpp
@@ -221,6 +268,8 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaresourceitemlistwidgetobjects>
     $<TARGET_OBJECTS:kritastoragechooserdelegateobjects>
     $<TARGET_OBJECTS:kritastoragechooserwidgetobjects>
+    $<TARGET_OBJECTS:kritastoragechooserwidgetactivationobjects>
+    $<TARGET_OBJECTS:kritastoragechooserwidgetmodelsourceobjects>
 )
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)

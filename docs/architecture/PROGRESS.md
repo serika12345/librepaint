@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 00:52 JST
+- 更新日時: 2026-08-29 01:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6248,13 +6248,38 @@
   29,981 API、対応済み4,415件、未対応25,566件になり、同ヘッダーのpublic APIは全件対応済みに
   なった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 格納場所選択ウィジェット public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisStorageChooserWidget.cpp`に同居していた表示構成、製品モデル取得、クリック後の
+  有効状態更新と警告判定を分けた。表示構成と自動メタオブジェクト生成は同じファイルと既存
+  `kritastoragechooserwidgetobjects`に維持し、クリック後の処理を新規
+  `libs/resources/ui/KisStorageChooserWidgetActivation.cpp`と
+  `kritastoragechooserwidgetactivationobjects`へ移した。製品の格納場所モデル取得を新規
+  `libs/resources/ui/KisStorageChooserWidgetModelSource.cpp`と
+  `kritastoragechooserwidgetmodelsourceobjects`へ移した。モデル取得は内部ヘッダーを介して呼び、
+  製品`kritaresourceui`は三つの生成オブジェクトを各1回集約する。外部向けヘッダー、クラス配置、
+  製品ABIを維持した。
+- `libs/resources/ui/KisStorageChooserWidget.h`の型、構築、破棄からなる3 APIを、新規
+  `libs/resources/ui/tests/KisStorageChooserWidgetContractTest.cpp`の3試験へ全件対応付けた。親所有、
+  64画素画像の単一選択一覧、絞り込みモデルと描画委譲、資源種別に応じた束・ブラシライブラリー・
+  様式ライブラリーの選別、クリック通知の配線、所有する表示物の破棄を固定した。試験は製品の
+  単一実体モデルとクリック後処理を決定的な内部境界へ置き換え、実データベースを構築しない。
+- 最初の試験リンクは、同じ翻訳単位の非公開クリック処理を介して`KisStorageModel::instance()`、
+  `KisResourceModel`の構築・破棄・絞り込み設定まで要求する診断になった。責務分割後、表示構成、
+  クリック処理、モデル取得の各対象コンパイル、対象試験の単発実行と20回反復はmacOSで成功した。
+- 表示構成対象は3工程・7入力を維持し、クリック処理とモデル取得を各1工程・3入力に収めた。必要な
+  既存のポップアップ、格納場所絞り込み、描画委譲、資源型を直接集約する新規試験は18工程・38入力に
+  収めた。製品`kritaresourceui`は276工程・583入力から278工程・587入力になった。公開面は
+  1,547ヘッダー、29,981 API、対応済み4,418件、未対応25,563件になり、同ヘッダーのpublic APIは
+  全件対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisStorageChooserWidget.h`に残る選択ウィジェット3 APIについて、分離済みの
-`kritapopupbuttonobjects`、`kritastoragechooserdelegateobjects`、
-`kritastoragefilterproxymodelobjects`を使う対象計画と清浄時構築閉包を監査する。構築処理と非公開の
-選択通知が同じ翻訳単位にあるため、格納場所モデル生成または通知処理が製品データベースまで閉包を
-広げる場合は、具象ウィジェット内の実装単位を先に分けてから構築・親所有・破棄契約を固定する。
+`libs/resources/ui/KisResourceUserOperations.h`の資源利用者操作8 APIについて、製品
+`kritaresourceui`への直接所属で広がる清浄時構築閉包と、削除・更新・追加・書出しの各操作が使う
+画面、資源モデル、保存先の直接依存を監査する。個別操作を直接検証できないほど閉包が広がる場合は、
+同じ具象操作名前空間の実装単位を責務ごとに先に分け、決定的な取消し・確認結果を渡す境界が現在の
+挙動固定に必要な範囲だけ整える。
 
 ## R1-G5完了根拠
 
