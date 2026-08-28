@@ -37,9 +37,6 @@ void KisTagLabel::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
 
-    QColor backGroundColor = qApp->palette().light().color();
-    QColor foregroundColor = qApp->palette().windowText().color();
-
     QWidget::paintEvent(event);
     painter.setRenderHint(QPainter::Antialiasing);
     QPainterPath path;

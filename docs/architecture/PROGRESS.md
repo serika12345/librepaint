@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:52 JST
+- 更新日時: 2026-08-28 22:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5960,10 +5960,28 @@
   4,309件、未対応25,672件になり、同ヘッダーのpublic APIは全件対応済みになった。製品
   `kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b タグ表示 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisTagLabel.cpp`は同じ配置のまま、`kritaresourceui`の直接ソース所有から新規
+  `kritataglabelobjects`の所有へ移し、製品`kritaresourceui`が生成オブジェクトを1回だけ集約する
+  構造にした。自動メタオブジェクト生成は新しい所有対象が担当する。外部向けヘッダー、実装、
+  製品ABIは維持した。分離コンパイルで検出した未使用の色取得2件は、描画結果に寄与しない死んだ
+  計算として`libs/resources/ui/KisTagLabel.cpp`から除いた。
+- `libs/resources/ui/KisTagLabel.h`の境界、構築、破棄、文字列取得からなる1クラス・3メソッドの4 APIを、
+  新規`libs/resources/ui/tests/KisTagLabelContractTest.cpp`の1試験へ全件対応付けた。構築時文字列、
+  QWidget親子関係、親の終了に伴う子の自動破棄を固定した。
+- 252工程・534入力の既存UI契約へ接続せず、Qt Widgetsと自動メタオブジェクト生成を含む所有対象を
+  3工程・7入力、新規試験を7工程・14入力に収めた。製品UIライブラリーは独立した自動
+  メタオブジェクト生成に必要な2工程・4入力が加わり、248工程・527入力から250工程・531入力に
+  なった。macOSの対象実行と20回反復、死んだ計算の除去後の再実行に成功した。公開面は1,546
+  ヘッダー、29,981 API、対応済み4,313件、未対応25,668件になり、同ヘッダーのpublic APIは全件
+  対応済みになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisTagLabel.h`のタグ表示4 APIについて、Qt Widgetsと自動メタオブジェクト生成を
-含む清浄時構築閉包を監査し、表示文字列、親子所有、破棄を最小構築閉包で固定する。
+`libs/resources/KisResourceSearchBoxFilter.h`の資源検索条件6 APIについて、既存
+`TestResourceSearchBoxFilter`の清浄時構築閉包と直接依存を監査し、純Qt Core実装の所有範囲を
+先に最適化してから既存の検索・除外挙動をpublic API契約へ対応付ける。
 
 ## R1-G5完了根拠
 

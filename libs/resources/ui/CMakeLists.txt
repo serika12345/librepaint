@@ -13,6 +13,18 @@ set_target_properties(kritaresourceuidescriptorobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritataglabelobjects OBJECT
+    KisTagLabel.cpp
+)
+target_compile_definitions(kritataglabelobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritataglabelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritataglabelobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritataglabelobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritaresourceui_LIB_SRCS
     KisIconToolTip.cpp
     KisResourceItemChooserContextMenu.cpp
@@ -24,7 +36,6 @@ set(kritaresourceui_LIB_SRCS
     KisResourceItemView.cpp
     KisResourceThumbnailPainter.cpp
     KisTagChooserWidget.cpp
-    KisTagLabel.cpp
     KisTagFilterWidget.cpp
     KisTagToolButton.cpp
     KisResourceTaggingManager.cpp
@@ -36,6 +47,7 @@ set(kritaresourceui_LIB_SRCS
 kis_add_library(kritaresourceui SHARED
     ${kritaresourceui_LIB_SRCS}
     $<TARGET_OBJECTS:kritaresourceuidescriptorobjects>
+    $<TARGET_OBJECTS:kritataglabelobjects>
 )
 
 generate_export_header(kritaresourceui BASE_NAME kritaresourceui)

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25672
+    "expectedMissingApis": 25668
   },
   "contracts": [
     {
@@ -10312,6 +10312,19 @@
         "method:KisResourceUiDescriptor::KisResourceUiDescriptor(QString resourceType,bool previewEnabled=false)",
         "method:KisResourceUiDescriptor::previewEnabled() const",
         "method:KisResourceUiDescriptor::resourceType() const"
+      ]
+    },
+    {
+      "target": "KisTagLabelContractTest",
+      "source": "libs/resources/ui/tests/KisTagLabelContractTest.cpp",
+      "test": "KisTagLabelContractTest::preservesTextAndFollowsParentLifetime",
+      "behavior": "タグ表示は構築時の文字列とQWidget親を保持し、親の破棄時に子として自動破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTagLabel",
+        "method:KisTagLabel::KisTagLabel(QString string,QWidget * parent=nullptr)",
+        "method:KisTagLabel::getText()",
+        "method:KisTagLabel::~KisTagLabel()"
       ]
     }
   ]
