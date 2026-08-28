@@ -10,6 +10,21 @@ include_directories(
     ${CMAKE_BINARY_DIR}/libs/flake
 )
 
+add_library(kritaflakeinsetsobjects OBJECT
+    KoInsets.cpp
+)
+target_compile_definitions(kritaflakeinsetsobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeinsetsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeinsetsobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakeinsetsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_subdirectory(styles)
 add_subdirectory(tests)
 add_subdirectory(resources/tests)
@@ -43,7 +58,6 @@ set(kritaflake_SRCS
     KoCanvasSupervisor.cpp
     KoDockFactoryBase.cpp
     KoDockRegistry.cpp
-    KoInsets.cpp
     KoPathShape.cpp
     KoPathPoint.cpp
     KoPathSegment.cpp
@@ -249,6 +263,8 @@ set(kritaflake_SRCS
 
     FlakeDebug.cpp
     tests/MockShapes.cpp
+
+    $<TARGET_OBJECTS:kritaflakeinsetsobjects>
 
 )
 
