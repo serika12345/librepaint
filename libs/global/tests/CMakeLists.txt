@@ -279,3 +279,15 @@ target_include_directories(KisPointerUtilsContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
+
+kis_add_test(
+    KisBezierPatchParamSpaceUtilsContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+target_include_directories(KisBezierPatchParamSpaceUtilsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)

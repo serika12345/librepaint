@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27690
+    "expectedMissingApis": 27675
   },
   "contracts": [
     {
@@ -4438,6 +4438,84 @@
         "method:KisSharedPointerTraits::dynamicCastSP(KisSharedPtr<S> src)",
         "method:KisSharedPointerTraits::dynamicCastSP(QSharedPointer<S> src)",
         "struct:KisSharedPointerTraits"
+      ]
+    },
+    {
+      "target": "KisBezierPatchParamSpaceUtilsContractTest",
+      "source": "libs/global/tests/KisBezierPatchParamSpaceUtilsContractTest.cpp",
+      "test": "KisBezierPatchParamSpaceUtilsContractTest::rangeGeometryReportsEndpointsLengthAndMidpoint",
+      "behavior": "パラメーター区間は開始値と終了値を保持し、両端差を長さ、両端平均を中点として返し、両端が等しい区間を空と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisBezierUtils::Range::end",
+        "member:KisBezierUtils::Range::start",
+        "method:KisBezierUtils::Range::isEmpty() const",
+        "method:KisBezierUtils::Range::length() const",
+        "method:KisBezierUtils::Range::mid() const",
+        "struct:KisBezierUtils::Range"
+      ]
+    },
+    {
+      "target": "KisBezierPatchParamSpaceUtilsContractTest",
+      "source": "libs/global/tests/KisBezierPatchParamSpaceUtilsContractTest.cpp",
+      "test": "KisBezierPatchParamSpaceUtilsContractTest::containsRequiresFuzzyEqualityWithBothEnds",
+      "behavior": "現行の区間内判定は値が両端の内側にあるだけでは偽となり、両端の双方と近似一致する極めて狭い相対区間でだけ真となる。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisBezierUtils::Range::contains(qreal value) const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchParamSpaceUtilsContractTest",
+      "source": "libs/global/tests/KisBezierPatchParamSpaceUtilsContractTest.cpp",
+      "test": "KisBezierPatchParamSpaceUtilsContractTest::squeezingMapsRelativeEndpoints",
+      "behavior": "相対区間による絞り込みは元区間上の線形補間位置へ両端を移し、値返却とその場更新で同じ結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierUtils::Range::squeezeRange(const Range & alphaRange)",
+        "method:KisBezierUtils::Range::squeezedRange(const Range & alphaRange) const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchParamSpaceUtilsContractTest",
+      "source": "libs/global/tests/KisBezierPatchParamSpaceUtilsContractTest.cpp",
+      "test": "KisBezierPatchParamSpaceUtilsContractTest::forwardDistanceDistinguishesLeftRightAndOverlap",
+      "behavior": "区間間の前向き距離は右側を正、左側を負として返し、接触または重複時は未定義値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierUtils::Range::forwardDistanceTo(const Range & rhs)"
+      ]
+    },
+    {
+      "target": "KisBezierPatchParamSpaceUtilsContractTest",
+      "source": "libs/global/tests/KisBezierPatchParamSpaceUtilsContractTest.cpp",
+      "test": "KisBezierPatchParamSpaceUtilsContractTest::rectangleConversionsPreserveAxes",
+      "behavior": "矩形と区間の変換は左右をX区間、上下をY区間として保持し、両区間から元の矩形を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierUtils::Range::fromRectX(const QRectF & rc)",
+        "method:KisBezierUtils::Range::fromRectY(const QRectF & rc)",
+        "method:KisBezierUtils::Range::makeRectF(const Range & xRange,const Range & yRange)"
+      ]
+    },
+    {
+      "target": "KisBezierPatchParamSpaceUtilsContractTest",
+      "source": "libs/global/tests/KisBezierPatchParamSpaceUtilsContractTest.cpp",
+      "test": "KisBezierPatchParamSpaceUtilsContractTest::debugOutputReportsEndpoints",
+      "behavior": "区間の診断出力はRange表記の中に開始値と終了値を順番に示す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierUtils::operator <<(QDebug dbg,const Range & r)"
+      ]
+    },
+    {
+      "target": "KisBezierPatchParamSpaceUtilsContractTest",
+      "source": "libs/global/tests/KisBezierPatchParamSpaceUtilsContractTest.cpp",
+      "test": "KisBezierPatchParamSpaceUtilsContractTest::tightRangeSearchBoundsTheRequestedSourceInterval",
+      "behavior": "一次元パラメーター探索は指定した元空間区間を外側から覆う区間と内側に収まる区間を所定精度で返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierUtils::calcTightSrcRectRangeInParamSpace1D(const Range & searchParamRange,const Range & searchSrcRange,const Range & rect,Func func,qreal srcPrecision,std::optional<Range> squeezeRange=std::nullopt)"
       ]
     }
   ]
