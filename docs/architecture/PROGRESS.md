@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 02:34 JST
+- 更新日時: 2026-08-29 02:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6447,12 +6447,37 @@
   29,979 API、対応済み4,463件、未対応25,516件になり、同ヘッダーのpublic APIは全件対応済みになった。
   製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 資源項目選択の型・構築 public API契約と構築所有分離で完了した作業
+
+- 製品`kritaresourceui`の直接ソースだった`libs/resources/ui/KisResourceItemChooser.cpp`から内部状態を
+  新規`libs/resources/ui/KisResourceItemChooser_p.h`へ、構築、破棄、記述子取得を新規
+  `libs/resources/ui/KisResourceItemChooserConstruction.cpp`と
+  `kritaresourceitemchooserconstructionobjects`へ移した。具体的なタグモデル、タグ管理、一覧、描画委譲、
+  表示方式・格納場所ボタン、プレビュー、取込・除去ボタン、応答配置の生成を新規
+  `libs/resources/ui/KisResourceItemChooserConstructionSource.cpp`と
+  `kritaresourceitemchooserconstructionsourceobjects`へ移した。開始ファイルの残存操作は同じファイル位置の
+  まま新規`kritaresourceitemchooseroperationsobjects`へ移し、製品は三つの生成オブジェクトを各1回
+  集約する。
+- `libs/resources/ui/KisResourceItemChooser.h`の型、二つの列挙、六つの列挙値、構築、破棄、記述子取得
+  からなる12 APIを、既存`libs/resources/ui/tests/TestResourceUiContract.cpp`の3試験へ対応付けた。
+  ボタンと応答配置の数値、指定親への所属、資源種別とプレビュー方針の保持、具象表示構築への単一委譲、
+  破棄後の監視参照無効化を固定した。
+- 既存`TestResourceUiContract`は製品`kritaresourceui`全体へ直接リンクしていた。局所対象への変更後、
+  最初のリンクは資源種別定数と資源診断表示の未解決参照を示したため、それぞれ既存の資源種別対象と
+  試験内の値実装へ接続した。試験のメタオブジェクトが参照する未対象のスロットと保護仮想関数は、
+  挙動契約として数えず試験内の無操作実装で満たした。
+- 構築対象を自動メタオブジェクト生成込みで3工程・7入力、具象構築と残存操作を各1工程・3入力、
+  記述子・資源種別と直接集約する試験を10工程・22入力に収めた。製品`kritaresourceui`は299工程・
+  629入力から303工程・637入力になった。三つの対象コンパイル、対象CTestのmacOS単発実行と20回反復は
+  成功した。公開面は1,547ヘッダー、29,979 API、対応済み4,475件、未対応25,504件になり、同ヘッダーの
+  未対応は28 APIになった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisResourceItemChooser.h`に残る40 APIについて、分離済みの寸法同期対象と、製品
-`kritaresourceui`へ直接所属する`libs/resources/ui/KisResourceItemChooser.cpp`、文脈メニュー処理の
-変更なし計画、直接依存、空構築閉包を監査する。既存の所有対象で局所契約が成立しない処理を先に
-責務別の生成対象へ分けてから、構築・破棄、資源選択、表示設定、タグ絞り込み、通知を対応付ける。
+`libs/resources/ui/KisResourceItemChooser.h`に残る28 APIについて、分離済み
+`kritaresourceitemchooseroperationsobjects`の表示設定、資源選択、寸法同期、入力、通知、取込・除去を
+責務別に監査する。まずタグ欄、表示方式・格納場所ボタン、行列寸法、描画委譲、プレビュー設定、公開
+子表示取得を局所効果へ分け、同じ記述子別構築試験へ直接集約して挙動契約へ対応付ける。
 
 ## R1-G5完了根拠
 

@@ -1,6 +1,25 @@
-kis_add_tests(
+kis_add_test(
     TestResourceUiContract.cpp
-    LINK_LIBRARIES kritaresourceui Qt${QT_MAJOR_VERSION}::Test
+    LINK_LIBRARIES
+        kritaresourceuidescriptorobjects
+        kritaresourceitemchooserconstructionobjects
+        kritaresourcestypesobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+target_include_directories(TestResourceUiContract PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_compile_definitions(TestResourceUiContract PRIVATE
+    kritaresourceui_EXPORTS
+    kritaresources_EXPORTS
+    kritawidgetutils_EXPORTS
 )
 
 kis_add_test(

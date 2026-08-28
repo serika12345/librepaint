@@ -115,6 +115,80 @@ target_include_directories(kritaresourceitemchoosersyncobjects
 target_link_libraries(kritaresourceitemchoosersyncobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
 set_target_properties(kritaresourceitemchoosersyncobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritaresourceitemchooserconstructionobjects OBJECT
+    KisResourceItemChooserConstruction.cpp
+    KisResourceItemChooser.h
+)
+target_compile_definitions(kritaresourceitemchooserconstructionobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceitemchooserconstructionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritaresourceitemchooserconstructionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceitemchooserconstructionobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceitemchooserconstructionsourceobjects OBJECT
+    KisResourceItemChooserConstructionSource.cpp
+)
+target_compile_definitions(kritaresourceitemchooserconstructionsourceobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceitemchooserconstructionsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaresourceitemchooserconstructionsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceitemchooserconstructionsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaresourceitemchooseroperationsobjects OBJECT
+    KisResourceItemChooser.cpp
+)
+target_compile_definitions(kritaresourceitemchooseroperationsobjects PRIVATE kritaresourceui_EXPORTS)
+target_include_directories(kritaresourceitemchooseroperationsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaresourceitemchooseroperationsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaresourceitemchooseroperationsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaresourceitemviewobjects OBJECT
     KisResourceItemView.cpp
 )
@@ -680,7 +754,6 @@ set_target_properties(kritatagactionssourceobjects PROPERTIES
 
 set(kritaresourceui_LIB_SRCS
     KisResourceItemChooserContextMenu.cpp
-    KisResourceItemChooser.cpp
     KisTagFilterWidget.cpp
     KisTagToolButton.cpp
     KisResourceTaggingManager.cpp
@@ -694,6 +767,9 @@ kis_add_library(kritaresourceui SHARED
     $<TARGET_OBJECTS:kritaresourcethumbnailpainterobjects>
     $<TARGET_OBJECTS:kritaresourceitemdelegateobjects>
     $<TARGET_OBJECTS:kritaresourceitemchoosersyncobjects>
+    $<TARGET_OBJECTS:kritaresourceitemchooserconstructionobjects>
+    $<TARGET_OBJECTS:kritaresourceitemchooserconstructionsourceobjects>
+    $<TARGET_OBJECTS:kritaresourceitemchooseroperationsobjects>
     $<TARGET_OBJECTS:kritaresourceitemviewobjects>
     $<TARGET_OBJECTS:kritaresourceitemlistviewobjects>
     $<TARGET_OBJECTS:kritaresourceitemlistwidgetobjects>

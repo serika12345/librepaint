@@ -17,10 +17,9 @@
 #include <QWidget>
 
 #include <QModelIndex>
-#include <QListView>
+#include <QScroller>
 
 #include <KoResource.h>
-#include <KisKineticScroller.h>
 #include "KisPopupButton.h"
 #include "ResourceListViewModes.h"
 #include "KisResourceUiDescriptor.h"
@@ -150,7 +149,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void slotButtonClicked(int button);
-    void slotScrollerStateChanged(QScroller::State state){ KisKineticScroller::updateCursor(this, state); }
+    void slotScrollerStateChanged(QScroller::State state);
     void updateView();
 
 private Q_SLOTS:
@@ -168,6 +167,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
+    void constructPresentation();
     void updateButtonState();
     void updatePreview(const QModelIndex &idx);
 
