@@ -28,6 +28,11 @@ add_subdirectory( libkis )
 add_subdirectory( psd )
 add_subdirectory( multiarch )
 
+add_subdirectory( surfacecolormanagementapi/colorimetry EXCLUDE_FROM_ALL )
+if (BUILD_TESTING)
+   add_subdirectory( surfacecolormanagementapi/tests )
+endif()
+
 if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
    add_subdirectory( surfacecolormanagementapi )
 endif()

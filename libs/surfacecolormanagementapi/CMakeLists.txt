@@ -1,13 +1,14 @@
 set(kritasurfacecolormanagementapi_LIB_SRCS
     surfacecolormanagement/KisOutputColorInfoInterface.cpp
-    surfacecolormanagement/KisSurfaceColorimetry.cpp
     surfacecolormanagement/KisSurfaceColorimetryIccUtils.cpp
     surfacecolormanagement/KisSurfaceColorManagerInterface.cpp
     surfacecolormanagement/KisSurfaceColorManagementInfo.cpp
 )
 
-kis_add_library(kritasurfacecolormanagementapi SHARED ${kritasurfacecolormanagementapi_LIB_SRCS})
-generate_export_header(kritasurfacecolormanagementapi BASE_NAME kritasurfacecolormanagementapi)
+kis_add_library(kritasurfacecolormanagementapi SHARED
+    ${kritasurfacecolormanagementapi_LIB_SRCS}
+    $<TARGET_OBJECTS:kritasurfacecolorimetryobjects>
+)
 
 target_link_libraries(kritasurfacecolormanagementapi
     PRIVATE
@@ -20,4 +21,3 @@ set_target_properties(kritasurfacecolormanagementapi PROPERTIES
 )
 
 install(TARGETS kritasurfacecolormanagementapi  ${INSTALL_TARGETS_DEFAULT_ARGS})
-

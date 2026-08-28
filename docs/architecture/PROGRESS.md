@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 17:10 JST
+- 更新日時: 2026-08-28 17:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5200,11 +5200,29 @@
   対応済みは3,433件、未対応基準は26,533件になった。製品挙動、公開API、ABI、ファイル位置は
   変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b 表面色管理 public API契約と条件付き構築分離で完了した作業
+
+- macOS既定では表面色管理機能が無効であり、既存の条件付き製品ディレクトリー内では契約試験を
+  構成できなかった。`libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorimetry.cpp`の
+  構築所有を`kritasurfacecolormanagementapi_LIB_SRCS`から新規
+  `libs/surfacecolormanagementapi/colorimetry/CMakeLists.txt`の
+  `kritasurfacecolorimetryobjects`へ移した。ファイル位置と生成exportヘッダーの従来出力位置を維持し、
+  機能有効時は生成オブジェクトを`kritasurfacecolormanagementapi`へ1回だけ集約する。
+- 新規`libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryContractTest.cpp`の6試験が、
+  原色・伝達関数・描画意図の識別値、表示・マスタリング輝度、HDR判定、任意メタデータ、等価性、
+  診断・表面報告からなる`KisSurfaceColorimetry.h`の全63 APIを観測する。報告は空白と引用符を
+  正規化し、原色、伝達関数、CLL、FALLの意味内容を固定する。
+- 専用実装対象はQt Core、Qt Gui、Boostだけへ接続し、通常構築から除外した。変更なし構築閉包は
+  1工程・3入力、色度計算対象と組み合わせた試験はmacOSで6工程・13入力であり、対象実行と20回
+  反復に成功した。機能有効の別構築木は製品閉包319工程・666入力を計画し、表面色度実装が1回だけ
+  集約されることを確認して削除した。製品全体は構築していない。
+- 対応済みは3,496件、未対応基準は26,470件になった。製品挙動、公開API、ABI、ファイル位置は
+  変更していない。Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorimetry.h`の63 APIについて、
-`KisSurfaceColorimetry.cpp`を専用構築対象へ分け、局所化した色度計算対象と組み合わせて全宣言の
-挙動契約を追加する。
+`plugins/paintops/libpaintop/KisTextureOptionData.h`の未対応APIについて、値型の宣言、既存実装、
+直接依存、変更なし構築閉包を監査し、依存が責務を越える場合は所有対象を先に分ける。
 
 ## R1-G5完了根拠
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26533
+    "expectedMissingApis": 26470
   },
   "contracts": [
     {
@@ -7771,6 +7771,123 @@
         "function:KoColorimetryUtils::operator <<(QDebug debug,const XYZ & value)",
         "function:KoColorimetryUtils::operator <<(QDebug debug,const xy & value)",
         "function:KoColorimetryUtils::operator <<(QDebug debug,const xyY & value)"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryContractTest.cpp",
+      "test": "KisSurfaceColorimetryContractTest::protocolIdentifiersRemainStable",
+      "behavior": "表面色管理の原色、伝達関数、描画意図は外部表示プロトコルと共有する規定識別値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisSurfaceColorimetry::NamedPrimaries",
+        "enum:KisSurfaceColorimetry::NamedTransferFunction",
+        "enum:KisSurfaceColorimetry::RenderIntent",
+        "enumerator:KisSurfaceColorimetry::NamedPrimaries::primaries_adobe_rgb",
+        "enumerator:KisSurfaceColorimetry::NamedPrimaries::primaries_bt2020",
+        "enumerator:KisSurfaceColorimetry::NamedPrimaries::primaries_dci_p3",
+        "enumerator:KisSurfaceColorimetry::NamedPrimaries::primaries_display_p3",
+        "enumerator:KisSurfaceColorimetry::NamedPrimaries::primaries_srgb",
+        "enumerator:KisSurfaceColorimetry::NamedPrimaries::primaries_unknown",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_bt1886",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_ext_linear",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_ext_srgb",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_gamma22",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_gamma28",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_srgb",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_st2084_pq",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_st428",
+        "enumerator:KisSurfaceColorimetry::NamedTransferFunction::transfer_function_unknown",
+        "enumerator:KisSurfaceColorimetry::RenderIntent::render_intent_absolute",
+        "enumerator:KisSurfaceColorimetry::RenderIntent::render_intent_perceptual",
+        "enumerator:KisSurfaceColorimetry::RenderIntent::render_intent_relative",
+        "enumerator:KisSurfaceColorimetry::RenderIntent::render_intent_relative_bpc",
+        "enumerator:KisSurfaceColorimetry::RenderIntent::render_intent_saturation"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryContractTest.cpp",
+      "test": "KisSurfaceColorimetryContractTest::luminancePreservesDisplayRange",
+      "behavior": "表示輝度値は最小、最大、基準輝度を保持し、SDR制限時に最大値を基準輝度へ切り詰める。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSurfaceColorimetry::Luminance::maxLuminance",
+        "member:KisSurfaceColorimetry::Luminance::minLuminance",
+        "member:KisSurfaceColorimetry::Luminance::referenceLuminance",
+        "method:KisSurfaceColorimetry::Luminance::Luminance()",
+        "method:KisSurfaceColorimetry::Luminance::Luminance(uint32_t minLuminanceArg,uint32_t maxLuminanceArg,uint32_t referenceLuminanceArg)",
+        "method:KisSurfaceColorimetry::Luminance::clipToSdr() const",
+        "method:KisSurfaceColorimetry::Luminance::operator ==(const Luminance & other) const",
+        "struct:KisSurfaceColorimetry::Luminance"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryContractTest.cpp",
+      "test": "KisSurfaceColorimetryContractTest::masteringLuminancePreservesContentRange",
+      "behavior": "マスタリング輝度値は既定範囲と指定範囲を保持し、表示輝度から最小値と最大値を抽出する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSurfaceColorimetry::MasteringLuminance::maxLuminance",
+        "member:KisSurfaceColorimetry::MasteringLuminance::minLuminance",
+        "method:KisSurfaceColorimetry::MasteringLuminance::MasteringLuminance()",
+        "method:KisSurfaceColorimetry::MasteringLuminance::MasteringLuminance(uint32_t minLuminanceArg,uint32_t maxLuminanceArg)",
+        "method:KisSurfaceColorimetry::MasteringLuminance::fromLuminance(const Luminance & rhs)",
+        "method:KisSurfaceColorimetry::MasteringLuminance::operator ==(const MasteringLuminance & other) const",
+        "struct:KisSurfaceColorimetry::MasteringLuminance"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryContractTest.cpp",
+      "test": "KisSurfaceColorimetryContractTest::colorSpaceDetectsHdrLuminance",
+      "behavior": "色空間記述は原色、伝達関数、任意の輝度を保持し、最大輝度が基準輝度を超える場合だけHDRと判定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSurfaceColorimetry::ColorSpace::luminance",
+        "member:KisSurfaceColorimetry::ColorSpace::primaries",
+        "member:KisSurfaceColorimetry::ColorSpace::transferFunction",
+        "method:KisSurfaceColorimetry::ColorSpace::isHDR() const",
+        "method:KisSurfaceColorimetry::ColorSpace::operator ==(const ColorSpace & other) const",
+        "struct:KisSurfaceColorimetry::ColorSpace"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryContractTest.cpp",
+      "test": "KisSurfaceColorimetryContractTest::masteringAndSurfaceDescriptionsPreserveOptionalMetadata",
+      "behavior": "マスタリング情報と表面記述は既定のBT.709色度、輝度、任意のCLL・FALL・マスタリング情報を値として比較する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSurfaceColorimetry::MasteringInfo::luminance",
+        "member:KisSurfaceColorimetry::MasteringInfo::maxCll",
+        "member:KisSurfaceColorimetry::MasteringInfo::maxFall",
+        "member:KisSurfaceColorimetry::MasteringInfo::primaries",
+        "member:KisSurfaceColorimetry::SurfaceDescription::colorSpace",
+        "member:KisSurfaceColorimetry::SurfaceDescription::masteringInfo",
+        "method:KisSurfaceColorimetry::MasteringInfo::operator ==(const MasteringInfo & other) const",
+        "method:KisSurfaceColorimetry::SurfaceDescription::operator ==(const SurfaceDescription & other) const",
+        "struct:KisSurfaceColorimetry::MasteringInfo",
+        "struct:KisSurfaceColorimetry::SurfaceDescription"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryContractTest.cpp",
+      "test": "KisSurfaceColorimetryContractTest::debugAndTextReportsDescribeAllMetadata",
+      "behavior": "各表面色管理値の診断出力と表面報告は原色、伝達関数、輝度、マスタリング情報、描画意図を判読可能な内容として返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSurfaceColorimetry::operator <<(QDebug debug,const ColorSpace & value)",
+        "function:KisSurfaceColorimetry::operator <<(QDebug debug,const Luminance & value)",
+        "function:KisSurfaceColorimetry::operator <<(QDebug debug,const MasteringInfo & value)",
+        "function:KisSurfaceColorimetry::operator <<(QDebug debug,const MasteringLuminance & value)",
+        "function:KisSurfaceColorimetry::operator <<(QDebug debug,const NamedPrimaries & value)",
+        "function:KisSurfaceColorimetry::operator <<(QDebug debug,const NamedTransferFunction & value)",
+        "function:KisSurfaceColorimetry::operator <<(QDebug debug,const RenderIntent & value)",
+        "function:KisSurfaceColorimetry::operator <<(QDebug debug,const SurfaceDescription & value)",
+        "method:KisSurfaceColorimetry::SurfaceDescription::makeTextReport() const"
       ]
     }
   ]
