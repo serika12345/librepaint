@@ -384,6 +384,16 @@ protected:
         static KisNodeSP colorOverlayMask(KisNodeSP node);
     };
 
+    struct KRITAUI_EXPORT NodeUpdateAccess {
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static void updateLayers(KisNodeManager *manager);
+        static void updateMasks(KisNodeManager *manager);
+        static void updateView(KisNodeManager *manager);
+        static void notifySelectionChanged(KisNodeManager *manager);
+        static bool isPinnedToTimeline(KisNodeSP node);
+        static void setTimelinePinned(KisNodeManager *manager, bool value);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

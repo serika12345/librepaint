@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 08:39 JST
+- 更新日時: 2026-08-29 08:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7017,12 +7017,29 @@
   公開面は1,549ヘッダー、29,989 API、対応済み4,860件、未対応25,129件になった。製品
   `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード変更後の画面同期 public API契約と画面効果分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`に混在していた現在ノードの有無による更新判断、レイヤー、マスク、表示、
+  選択、時間軸固定状態の同期順序を、新規`libs/ui/nodes/KisNodeManagerNodeUpdate.cpp`へ移した。現在ノードと
+  固定状態の取得、各管理器と画面への具体効果は移動元の保護境界に残し、製品`kritaapplicationui`は新規
+  `kritauinodemanagernodeupdateobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`の`nodesUpdated`を、新規
+  `libs/ui/tests/KisNodeManagerNodeUpdateContractTest.cpp`の1試験へ対応付けた。現在ノードなしの無操作、
+  各更新効果の順序、未固定・固定の両方の時間軸状態同期を固定した。実装接続前のリンクは`nodesUpdated`だけを
+  未解決記号として診断した。
+- 変更前の既存`KisNodeManagerTest`は1,810工程・3,619入力、直近の専用試験は5工程・17入力だった。製品未接続の
+  赤試験は4工程・14入力、判断対象は1工程・3入力、緑化後の試験は5工程・17入力に収めた。製品
+  `kritaapplicationui`閉包は1,806工程・3,612入力から1,807工程・3,614入力、既存試験は1,811工程・3,621入力に
+  なった。
+- 判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,861件、
+  未対応25,128件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る67 APIのうち、現在ノード変更後の画面状態同期を次の小単位とする。
-`kis_node_manager.cpp`の`nodesUpdated`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、
-現在ノードなしの無操作、レイヤー・マスク・表示・選択の更新順序、時間軸固定状態の同期を具体画面効果から
-分けて挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る66 APIのうち、選択ノードの時間軸固定状態設定を次の小単位とする。
+`kis_node_manager.cpp`の`slotPinToTimeline`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を
+監査し、空選択の無操作と全選択ノードへの指定値設定を具体ノード効果から分けて挙動契約を追加する。
 
 ## R1-G5完了根拠
 

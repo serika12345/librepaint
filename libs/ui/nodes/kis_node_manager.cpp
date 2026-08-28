@@ -865,23 +865,6 @@ void KisNodeManager::slotUiActivatedNode(KisNodeSP node)
     slotSomethingActivatedNodeImpl(node);
 }
 
-void KisNodeManager::nodesUpdated()
-{
-    KisNodeSP node = activeNode();
-    if (!node) return;
-
-    m_d->layerManager.layersUpdated();
-    m_d->maskManager.masksUpdated();
-
-    m_d->view->updateGUI();
-    m_d->view->selectionManager()->selectionChanged();
-
-    {
-        KisSignalsBlocker b(m_d->pinToTimeline);
-        m_d->pinToTimeline->setChecked(node->isPinnedToTimeline());
-    }
-}
-
 QString KisNodeManager::NodeChangeAccess::name(KisNodeSP node)
 {
     return node->name();
@@ -1012,6 +995,42 @@ KisNodeSP KisNodeManager::PropertyDialogAccess::colorOverlayMask(KisNodeSP node)
         return KisNodeSP();
     }
     return layer->colorOverlayMask();
+}
+
+KisNodeSP KisNodeManager::NodeUpdateAccess::activeNode(KisNodeManager *manager)
+{
+    return manager->activeNode();
+}
+
+void KisNodeManager::NodeUpdateAccess::updateLayers(KisNodeManager *manager)
+{
+    manager->m_d->layerManager.layersUpdated();
+}
+
+void KisNodeManager::NodeUpdateAccess::updateMasks(KisNodeManager *manager)
+{
+    manager->m_d->maskManager.masksUpdated();
+}
+
+void KisNodeManager::NodeUpdateAccess::updateView(KisNodeManager *manager)
+{
+    manager->m_d->view->updateGUI();
+}
+
+void KisNodeManager::NodeUpdateAccess::notifySelectionChanged(KisNodeManager *manager)
+{
+    manager->m_d->view->selectionManager()->selectionChanged();
+}
+
+bool KisNodeManager::NodeUpdateAccess::isPinnedToTimeline(KisNodeSP node)
+{
+    return node->isPinnedToTimeline();
+}
+
+void KisNodeManager::NodeUpdateAccess::setTimelinePinned(KisNodeManager *manager, bool value)
+{
+    KisSignalsBlocker blocker(manager->m_d->pinToTimeline);
+    manager->m_d->pinToTimeline->setChecked(value);
 }
 
 void KisNodeManager::duplicateActiveNode()

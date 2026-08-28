@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25129
+    "expectedMissingApis": 25128
   },
   "contracts": [
     {
@@ -12480,6 +12480,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::colorOverlayMaskProperties(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeUpdateContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeUpdateContractTest.cpp",
+      "test": "KisNodeManagerNodeUpdateContractTest::nodeUpdatesSynchronizeUiInOrder",
+      "behavior": "現在ノードがない更新要求は無作用とし、現在ノードがある場合はレイヤー、マスク、表示、選択を順に更新して時間軸固定状態を現在ノードへ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::nodesUpdated()"
       ]
     }
   ]
