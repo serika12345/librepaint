@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28202
+    "expectedMissingApis": 28179
   },
   "contracts": [
     {
@@ -5579,6 +5579,56 @@
         "method:KisHandleStyle::highlightedPrimaryHandlesWithSolidOutline(KisHandlePalette palette=KisHandlePalette ())",
         "method:KisHandleStyle::partiallyHighlightedPrimaryHandles(KisHandlePalette palette=KisHandlePalette ())",
         "method:KisHandleStyle::selectedPrimaryHandles(KisHandlePalette palette=KisHandlePalette ())"
+      ]
+    },
+    {
+      "target": "KisDebugContractTest",
+      "source": "libs/global/tests/KisDebugContractTest.cpp",
+      "test": "KisDebugContractTest::loggingCategoriesExposeStableNames",
+      "behavior": "資源、データベース移行、一般処理、画像、登録、ツール、タイル、フィルター、プラグイン、画面、ファイル、数式、描画、スクリプト、入力、操作、タブレット、OpenGL、メタデータ、Android、ロケールの診断カテゴリが安定名称を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:_30009()",
+        "function:_30010()",
+        "function:_41000()",
+        "function:_41001()",
+        "function:_41002()",
+        "function:_41003()",
+        "function:_41004()",
+        "function:_41005()",
+        "function:_41006()",
+        "function:_41007()",
+        "function:_41008()",
+        "function:_41009()",
+        "function:_41010()",
+        "function:_41011()",
+        "function:_41012()",
+        "function:_41013()",
+        "function:_41014()",
+        "function:_41015()",
+        "function:_41016()",
+        "function:_41017()",
+        "function:_41018()"
+      ]
+    },
+    {
+      "target": "KisDebugContractTest",
+      "source": "libs/global/tests/KisDebugContractTest.cpp",
+      "test": "KisDebugContractTest::methodNameRemovesReturnTypeAndArguments",
+      "behavior": "GCC互換の関数表現整形は戻り値型と引数列を除き、名前空間・クラスを含む関数名へ空の丸括弧を付ける。",
+      "classification": "maintained",
+      "apis": [
+        "function:__methodName(const char * prettyFunction)"
+      ]
+    },
+    {
+      "target": "KisDebugContractTest",
+      "source": "libs/global/tests/KisDebugContractTest.cpp",
+      "test": "KisDebugContractTest::backtraceFollowsConfiguredFormat",
+      "behavior": "バックトレース照会は対応構成で角括弧と改行に囲まれたフレーム列を返し、非対応構成では空文字列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:kisBacktrace()"
       ]
     }
   ]

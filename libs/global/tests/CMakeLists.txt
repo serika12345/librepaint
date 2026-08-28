@@ -364,6 +364,14 @@ kis_add_test(
 target_compile_definitions(KisHandleStyleContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisDebugContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisDebugContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisQStringListFwdTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
