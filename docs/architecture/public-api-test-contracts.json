@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27707
+    "expectedMissingApis": 27705
   },
   "contracts": [
     {
@@ -4367,6 +4367,17 @@
         "alias:modulateLightnessByGrayBrushRGB::RGBPixel",
         "alias:modulateLightnessByGrayBrushRGB::channels_type",
         "function:modulateLightnessByGrayBrushRGB(quint8 * pixels,const QRgb * brush,qreal strength,qint32 nPixels)"
+      ]
+    },
+    {
+      "target": "kis_node_commands_test",
+      "source": "libs/image/tests/kis_node_commands_test.cpp",
+      "test": "KisNodeCommandsTest::constructorPreservesTextAndNullNode",
+      "behavior": "ノード変更コマンド基底は指定された表示名を取り消しコマンドへ渡し、nullノードを有効な所有状態として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeCommand",
+        "method:KisNodeCommand::KisNodeCommand(const KUndo2MagicString & name,KisNodeSP node)"
       ]
     }
   ]

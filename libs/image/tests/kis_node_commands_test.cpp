@@ -6,11 +6,39 @@
 
 #include "kis_node_commands_test.h"
 
-#include <simpletest.h>
+#include <QTest>
 
-void KisNodeCommandsTest::testCreation()
+#include <commands/kis_node_command.h>
+
+void kisSharedPtrAddReference(KisNode *)
 {
 }
 
+bool kisSharedPtrRelease(KisNode *)
+{
+    return false;
+}
 
-SIMPLE_TEST_MAIN(KisNodeCommandsTest)
+namespace
+{
+class InspectableNodeCommand : public KisNodeCommand
+{
+public:
+    using KisNodeCommand::KisNodeCommand;
+
+    bool hasNode() const
+    {
+        return !m_node.isNull();
+    }
+};
+}
+
+void KisNodeCommandsTest::constructorPreservesTextAndNullNode()
+{
+    InspectableNodeCommand command(kundo2_noi18n(QStringLiteral("Node Contract")), KisNodeSP());
+
+    QCOMPARE(command.text().toString(), QStringLiteral("Node Contract"));
+    QVERIFY(!command.hasNode());
+}
+
+QTEST_GUILESS_MAIN(KisNodeCommandsTest)
