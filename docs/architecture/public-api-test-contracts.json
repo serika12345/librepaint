@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27943
+    "expectedMissingApis": 27905
   },
   "contracts": [
     {
@@ -3717,6 +3717,62 @@
         "variable:ResourceName::TaskSets",
         "variable:ResourceName::WindowLayouts",
         "variable:ResourceName::Workspaces"
+      ]
+    },
+    {
+      "target": "KoColorProfileConstantsContractTest",
+      "source": "libs/pigment/tests/KoColorProfileConstantsContractTest.cpp",
+      "test": "KoColorProfileConstantsContractTest::colorPrimariesPreserveStandardValues",
+      "behavior": "色原色コードはITU H.273の標準範囲とAdobe RGB・ProPhotoの拡張範囲に対応する番号を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:ColorPrimaries",
+        "enumerator:ColorPrimaries::PRIMARIES_ADOBE_RGB_1998",
+        "enumerator:ColorPrimaries::PRIMARIES_EBU_Tech_3213_E",
+        "enumerator:ColorPrimaries::PRIMARIES_GENERIC_FILM",
+        "enumerator:ColorPrimaries::PRIMARIES_ITU_R_BT_2020_2_AND_2100_0",
+        "enumerator:ColorPrimaries::PRIMARIES_ITU_R_BT_470_6_SYSTEM_B_G",
+        "enumerator:ColorPrimaries::PRIMARIES_ITU_R_BT_470_6_SYSTEM_M",
+        "enumerator:ColorPrimaries::PRIMARIES_ITU_R_BT_601_6",
+        "enumerator:ColorPrimaries::PRIMARIES_ITU_R_BT_709_5",
+        "enumerator:ColorPrimaries::PRIMARIES_PROPHOTO",
+        "enumerator:ColorPrimaries::PRIMARIES_SMPTE_240M",
+        "enumerator:ColorPrimaries::PRIMARIES_SMPTE_EG_432_1",
+        "enumerator:ColorPrimaries::PRIMARIES_SMPTE_RP_431_2",
+        "enumerator:ColorPrimaries::PRIMARIES_SMPTE_ST_428_1",
+        "enumerator:ColorPrimaries::PRIMARIES_UNSPECIFIED"
+      ]
+    },
+    {
+      "target": "KoColorProfileConstantsContractTest",
+      "source": "libs/pigment/tests/KoColorProfileConstantsContractTest.cpp",
+      "test": "KoColorProfileConstantsContractTest::transferCharacteristicsPreserveStandardValues",
+      "behavior": "伝達特性コードはITU H.273の標準範囲とガンマ・ProPhoto・Adobe RGB・Labの拡張範囲に対応する番号を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "enum:TransferCharacteristics",
+        "enumerator:TransferCharacteristics::TRC_A98",
+        "enumerator:TransferCharacteristics::TRC_GAMMA_1_8",
+        "enumerator:TransferCharacteristics::TRC_GAMMA_2_4",
+        "enumerator:TransferCharacteristics::TRC_IEC_61966_2_1",
+        "enumerator:TransferCharacteristics::TRC_IEC_61966_2_4",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_1361",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_2020_2_10bit",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_2020_2_12bit",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_2100_0_HLG",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_2100_0_PQ",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_470_6_SYSTEM_B_G",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_470_6_SYSTEM_M",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_601_6",
+        "enumerator:TransferCharacteristics::TRC_ITU_R_BT_709_5",
+        "enumerator:TransferCharacteristics::TRC_LAB_L",
+        "enumerator:TransferCharacteristics::TRC_LINEAR",
+        "enumerator:TransferCharacteristics::TRC_LOGARITHMIC_100",
+        "enumerator:TransferCharacteristics::TRC_LOGARITHMIC_100_sqrt10",
+        "enumerator:TransferCharacteristics::TRC_PROPHOTO",
+        "enumerator:TransferCharacteristics::TRC_SMPTE_240M",
+        "enumerator:TransferCharacteristics::TRC_SMPTE_ST_428_1",
+        "enumerator:TransferCharacteristics::TRC_UNSPECIFIED"
       ]
     }
   ]
