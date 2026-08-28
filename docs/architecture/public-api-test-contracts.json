@@ -16,7 +16,7 @@
     "publicApiFingerprint": "3b897bcfd43fdcba7781d0c3db89f0e5a4a30560156b6f1e3f63c6dc6bfb03c1"
   },
   "migration": {
-    "expectedMissingApis": 27407
+    "expectedMissingApis": 27373
   },
   "contracts": [
     {
@@ -5045,6 +5045,76 @@
         "class:KisLatencyTracker",
         "method:KisLatencyTracker::KisLatencyTracker(int windowSize=500)",
         "method:KisLatencyTracker::push(qint64 timestamp)"
+      ]
+    },
+    {
+      "target": "KisSignalCompressorContractTest",
+      "source": "libs/global/tests/KisSignalCompressorContractTest.cpp",
+      "test": "KisSignalCompressorContractTest::constructionConfigurationAndImmediateMode",
+      "behavior": "信号圧縮器は既定・親付き・低速処理方式付きで構築でき、遅延と方式を更新し、即時方式の初回を同期配送して次回を保留し、停止で保留状態を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSignalCompressor",
+        "enum:KisSignalCompressor::Mode",
+        "enum:KisSignalCompressor::SlowHandlerMode",
+        "enumerator:KisSignalCompressor::Mode::FIRST_ACTIVE",
+        "enumerator:KisSignalCompressor::Mode::UNDEFINED",
+        "enumerator:KisSignalCompressor::SlowHandlerMode::ADDITIVE_INTERVAL",
+        "enumerator:KisSignalCompressor::SlowHandlerMode::PRECISE_INTERVAL",
+        "method:KisSignalCompressor::KisSignalCompressor()",
+        "method:KisSignalCompressor::KisSignalCompressor(int delay,Mode mode,QObject * parent=0)",
+        "method:KisSignalCompressor::KisSignalCompressor(int delay,Mode mode,SlowHandlerMode slowHandlerMode,QObject * parent=0)",
+        "method:KisSignalCompressor::delay() const",
+        "method:KisSignalCompressor::isActive() const",
+        "method:KisSignalCompressor::setDelay(int delay)",
+        "method:KisSignalCompressor::setMode(Mode mode)",
+        "method:KisSignalCompressor::start()",
+        "method:KisSignalCompressor::stop()"
+      ]
+    },
+    {
+      "target": "KisSignalCompressorContractTest",
+      "source": "libs/global/tests/KisSignalCompressorContractTest.cpp",
+      "test": "KisSignalCompressorContractTest::deferredModesAndIdleCallbackDeliver",
+      "behavior": "延期、初回即時後延期、初回待機の各方式は対応する時点で配送し、待機判定が真なら通常の間隔より早く保留信号を配送する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisSignalCompressor::Mode::FIRST_ACTIVE_POSTPONE_NEXT",
+        "enumerator:KisSignalCompressor::Mode::FIRST_INACTIVE",
+        "enumerator:KisSignalCompressor::Mode::POSTPONE",
+        "method:KisSignalCompressor::setDelay(std::function<bool ()> idleCallback,int idleDelay,int timeout)"
+      ]
+    },
+    {
+      "target": "KisSignalCompressorContractTest",
+      "source": "libs/global/tests/KisSignalCompressorContractTest.cpp",
+      "test": "KisSignalCompressorContractTest::functionAndSignalProxiesForwardCalls",
+      "behavior": "関数変換は開始呼出しを保持関数へ渡し、信号変換は開始呼出しをQt信号として一度送出する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:SignalToFunctionProxy::TrivialFunction",
+        "class:FunctionToSignalProxy",
+        "class:SignalToFunctionProxy",
+        "method:FunctionToSignalProxy::start()",
+        "method:SignalToFunctionProxy::SignalToFunctionProxy(TrivialFunction function)",
+        "method:SignalToFunctionProxy::start()"
+      ]
+    },
+    {
+      "target": "KisSignalCompressorContractTest",
+      "source": "libs/global/tests/KisSignalCompressorContractTest.cpp",
+      "test": "KisSignalCompressorContractTest::parameterCompressorDeliversLatestValueAndStops",
+      "behavior": "引数付き圧縮器は延期中の最新値だけを関数へ渡し、遅延更新、保留照会、停止、破棄後の配送抑止と既定の初回即時配送を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSignalCompressorWithParam::CallbackFunction",
+        "class:KisSignalCompressorWithParam",
+        "method:KisSignalCompressorWithParam::KisSignalCompressorWithParam(int delay,CallbackFunction function,KisSignalCompressor::Mode mode=KisSignalCompressor::FIRST_ACTIVE)",
+        "method:KisSignalCompressorWithParam::isActive() const",
+        "method:KisSignalCompressorWithParam::setDelay(int value)",
+        "method:KisSignalCompressorWithParam::start(T param)",
+        "method:KisSignalCompressorWithParam::stop()",
+        "method:KisSignalCompressorWithParam::~KisSignalCompressorWithParam()"
       ]
     }
   ]
