@@ -15,9 +15,6 @@
 #include <QComboBox>
 #include <QMessageBox>
 
-#include <kconfig.h>
-#include <kconfiggroup.h>
-#include <ksharedconfig.h>
 #include <klocalizedstring.h>
 #include <kis_assert.h>
 
@@ -33,21 +30,6 @@ void KisTagChooserWidget::tagToolDeleteCurrentTag()
         d->model->setTagInactive(currentTag);
         setCurrentIndex(0);
         d->model->sort(KisAllTagsModel::Name);
-    }
-}
-
-void KisTagChooserWidget::tagChanged(int tagIndex)
-{
-    auto *tagToolButton = static_cast<KisTagToolButton *>(d->tagToolButton);
-    if (tagIndex >= 0) {
-        KisTagSP tag = currentlySelectedTag();
-        tagToolButton->setCurrentTag(tag);
-        KConfigGroup group = KSharedConfig::openConfig()->group("SelectedTags");
-        group.writeEntry(d->resourceType, currentlySelectedTag()->url());
-        d->model->sort(KisAllTagsModel::Name);
-        Q_EMIT sigTagChosen(tag);
-    } else {
-        setCurrentIndex(0);
     }
 }
 
@@ -160,28 +142,6 @@ void KisTagChooserWidget::slotTagModelDataChanged(const QModelIndex &topLeft,
     }
 }
 
-void KisTagChooserWidget::setCurrentIndex(int index)
-{
-    d->comboBox->setCurrentIndex(index);
-}
-
-int KisTagChooserWidget::currentIndex() const
-{
-    return d->comboBox->currentIndex();
-}
-
-void KisTagChooserWidget::setCurrentItem(const QString &tag)
-{
-    for (int i = 0; i < d->model->rowCount(); ++i) {
-        QModelIndex index = d->model->index(i, 0);
-        QString currentRowTag =
-            d->model->data(index, Qt::UserRole + KisAllTagsModel::Url).toString();
-        if (currentRowTag == tag) {
-            setCurrentIndex(i);
-        }
-    }
-}
-
 void KisTagChooserWidget::addTag(const QString &tag)
 {
     addTag(tag, nullptr);
@@ -276,20 +236,6 @@ void KisTagChooserWidget::addTag(KisTagSP tag, KoResourceSP resource)
         : QVector<KoResourceSP>{resource};
     d->model->addTag(tag, true, resources);
     d->model->sort(KisAllTagsModel::Name);
-}
-
-KisTagSP KisTagChooserWidget::currentlySelectedTag()
-{
-    int row = d->comboBox->currentIndex();
-    if (row < 0) {
-        return nullptr;
-    }
-    return d->model->tagForIndex(d->model->index(row, 0));
-}
-
-void KisTagChooserWidget::updateIcons()
-{
-    static_cast<KisTagToolButton *>(d->tagToolButton)->loadIcon();
 }
 
 void KisTagChooserWidget::tagToolContextMenuAboutToShow()

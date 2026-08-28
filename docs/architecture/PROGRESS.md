@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 02:02 JST
+- 更新日時: 2026-08-29 02:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -6380,13 +6380,35 @@
   1,547ヘッダー、29,979 API、対応済み4,428件、未対応25,551件になり、同ヘッダーの未対応は9 APIに
   なった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b タグ選択・通知 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/ui/KisTagChooserWidgetOperations.cpp`に同居していたURL選択、現在索引、現在タグ、
+  選択変更、選択通知、アイコン更新を新規`libs/resources/ui/KisTagChooserWidgetSelection.cpp`と
+  `kritatagchooserwidgetselectionobjects`へ移した。タグ操作表示への反映、資源種別別の設定保存、
+  アイコン再読込みは新規`libs/resources/ui/KisTagChooserWidgetSelectionSource.cpp`と
+  `kritatagchooserwidgetselectionsourceobjects`へ移した。製品`kritaresourceui`は二つの生成オブジェクトを
+  各1回集約し、残存操作対象は非公開タグ操作と公開タグ追加だけを所有する。
+- `libs/resources/ui/KisTagChooserWidget.h`の選択、通知、アイコン更新6 APIを、既存
+  `libs/resources/ui/tests/KisTagChooserWidgetContractTest.cpp`の3試験へ対応付けた。URL完全一致への移動、
+  不一致時の選択維持、現在索引、タグ役割値、未選択時のnull、タグ操作表示と資源種別別設定への反映、
+  名前順の整列、同じタグの通知、負の索引から先頭への復帰、アイコン再読込みを固定した。
+- 最初の試験リンクは、分離前の試験対象に選択実装がなく、`setCurrentItem()`、`currentIndex()`、
+  `currentlySelectedTag()`、`updateIcons()`の未解決参照を診断した。選択対象の分離後、具象効果の
+  コンパイルはタグ操作表示の私有操作を友達クラス以外から呼ぶ診断になったため、操作表示への反映と
+  アイコン再読込みは`KisTagChooserWidget`の私有補助として具象効果対象に維持し、外部公開しなかった。
+- 選択判断と具象効果を各1工程・3入力に収め、構築対象と直接集約する試験を8工程・18入力に収めた。
+  製品`kritaresourceui`は292工程・615入力から294工程・619入力になった。選択判断、具象効果、残存操作
+  の対象コンパイル、対象CTestのmacOS単発実行と20回反復、公開API契約検査は成功した。公開面は
+  1,547ヘッダー、29,979 API、対応済み4,434件、未対応25,545件になり、同ヘッダーの未対応は3 APIに
+  なった。製品`kritaresourceui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/ui/KisTagChooserWidget.h`に残る選択、通知、アイコン更新の6 APIについて、分離済み
-`libs/resources/ui/KisTagChooserWidgetOperations.cpp`から一覧選択と通知を別翻訳単位へ移す。表示モデル
-の役割値、選択したタグ、資源種別ごとの設定保存、タグ操作表示への反映を値と内部効果で再現し、
-`setCurrentItem()`、`currentIndex()`、`currentlySelectedTag()`、`tagChanged()`、`sigTagChosen()`、
-`updateIcons()`を局所契約へ対応付ける。その後、残るタグ追加3 APIを独立単位で固定する。
+`libs/resources/ui/KisTagChooserWidget.h`に残るタグ追加3 APIについて、分離済み
+`libs/resources/ui/KisTagChooserWidgetOperations.cpp`の予約名・空名拒否、既存タグの復元・取消し・置換、
+任意資源への関連付け、新規タグ追加、名前順整列を監査する。文字列入力とタグ値入力の共通判断を
+別翻訳単位へ移し、タグモデル、確認ダイアログ、タグ資源関連付けを内部効果へ集約して局所契約へ
+対応付ける。完了後、同ヘッダーのpublic APIを全件対応済みにする。
 
 ## R1-G5完了根拠
 

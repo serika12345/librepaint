@@ -16,7 +16,7 @@
     "publicApiFingerprint": "062f37b66122600b650b62480acf43e6dc06ee55a551e313aeb87a1820068f78"
   },
   "migration": {
-    "expectedMissingApis": 25551
+    "expectedMissingApis": 25545
   },
   "contracts": [
     {
@@ -11136,6 +11136,39 @@
       "classification": "maintained",
       "apis": [
         "method:KisTagChooserWidget::~KisTagChooserWidget()"
+      ]
+    },
+    {
+      "target": "KisTagChooserWidgetContractTest",
+      "source": "libs/resources/ui/tests/KisTagChooserWidgetContractTest.cpp",
+      "test": "KisTagChooserWidgetContractTest::selectionFindsExactUrlAndReturnsTag",
+      "behavior": "タグ選択はURLの完全一致へ移り、現在索引とタグ役割値を返し、不一致では選択を維持し、未選択ではnullを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagChooserWidget::currentIndex() const",
+        "method:KisTagChooserWidget::currentlySelectedTag()",
+        "method:KisTagChooserWidget::setCurrentItem(const QString & tag)"
+      ]
+    },
+    {
+      "target": "KisTagChooserWidgetContractTest",
+      "source": "libs/resources/ui/tests/KisTagChooserWidgetContractTest.cpp",
+      "test": "KisTagChooserWidgetContractTest::tagChangePersistsSortsAndEmitsSelection",
+      "behavior": "タグ変更は選択タグを操作表示と資源種別別設定へ反映し、名前順に整列して同じタグを通知し、負の索引では先頭へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagChooserWidget::sigTagChosen(const KisTagSP tag)",
+        "method:KisTagChooserWidget::tagChanged(int index)"
+      ]
+    },
+    {
+      "target": "KisTagChooserWidgetContractTest",
+      "source": "libs/resources/ui/tests/KisTagChooserWidgetContractTest.cpp",
+      "test": "KisTagChooserWidgetContractTest::iconUpdateRefreshesTagToolButton",
+      "behavior": "アイコン更新は所有するタグ操作表示へ再読込みを1回委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTagChooserWidget::updateIcons()"
       ]
     }
   ]

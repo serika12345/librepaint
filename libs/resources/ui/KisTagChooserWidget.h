@@ -109,6 +109,8 @@ private Q_SLOTS:
 private:
 
     static QWidget *createTagToolButton(QWidget *parent);
+    static void setTagToolButtonCurrentTag(QWidget *toolButton, KisTagSP tag);
+    static void refreshTagToolButtonIcons(QWidget *toolButton);
 
     /// \brief setCurrentIndex sets the current index in the combobox
     /// \param index index is the index of the tag in the combobox

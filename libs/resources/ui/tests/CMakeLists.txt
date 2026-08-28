@@ -287,6 +287,7 @@ kis_add_test(
     KisTagChooserWidgetContractTest.cpp
     LINK_LIBRARIES
         kritatagchooserwidgetobjects
+        kritatagchooserwidgetselectionobjects
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
 )

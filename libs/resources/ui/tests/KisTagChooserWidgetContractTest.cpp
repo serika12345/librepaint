@@ -5,21 +5,86 @@
 
 #include <KisTagChooserWidget.h>
 #include <KisTagChooserWidgetConstructionSource_p.h>
+#include <KisTagChooserWidgetSelectionSource_p.h>
 
 #include <QComboBox>
 #include <QGridLayout>
 #include <QPointer>
+#include <QSignalBlocker>
+#include <QSignalSpy>
 #include <QStandardItemModel>
 #include <QTest>
 
 namespace
 {
-QStandardItemModel presentationModel;
+class TrackingItemModel : public QStandardItemModel
+{
+public:
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override
+    {
+        ++sortCount;
+        lastSortColumn = column;
+        lastSortOrder = order;
+        QStandardItemModel::sort(column, order);
+    }
+
+    int sortCount = 0;
+    int lastSortColumn = -1;
+    Qt::SortOrder lastSortOrder = Qt::DescendingOrder;
+};
+
+TrackingItemModel presentationModel;
 KisTagModel *capturedModel = nullptr;
 QString capturedResourceType;
 QPointer<QAbstractItemModel> allTagsModel;
 QPointer<QWidget> tagToolButton;
 int toolConnectionCount = 0;
+KisTagSP currentToolTag;
+QString persistedResourceType;
+KisTagSP persistedTag;
+int iconRefreshCount = 0;
+
+KisTagSP markerTag(quintptr value)
+{
+    return KisTagSP(reinterpret_cast<KisTag *>(value), [](KisTag *) {});
+}
+
+void configurePresentationModel()
+{
+    presentationModel.clear();
+    presentationModel.sortCount = 0;
+    presentationModel.lastSortColumn = -1;
+    presentationModel.lastSortOrder = Qt::DescendingOrder;
+    presentationModel.setRowCount(2);
+    presentationModel.setColumnCount(1);
+    presentationModel.setData(presentationModel.index(0, 0),
+                              QStringLiteral("Alpha"),
+                              Qt::DisplayRole);
+    presentationModel.setData(presentationModel.index(0, 0),
+                              QStringLiteral("alpha"),
+                              Qt::UserRole + KisAllTagsModel::Url);
+    presentationModel.setData(presentationModel.index(0, 0),
+                              QVariant::fromValue(markerTag(0x10)),
+                              Qt::UserRole + KisAllTagsModel::KisTagRole);
+    presentationModel.setData(presentationModel.index(1, 0),
+                              QStringLiteral("Beta"),
+                              Qt::DisplayRole);
+    presentationModel.setData(presentationModel.index(1, 0),
+                              QStringLiteral("beta"),
+                              Qt::UserRole + KisAllTagsModel::Url);
+    presentationModel.setData(presentationModel.index(1, 0),
+                              QVariant::fromValue(markerTag(0x20)),
+                              Qt::UserRole + KisAllTagsModel::KisTagRole);
+}
+}
+
+namespace KisTagChooserWidgetSelectionSource
+{
+void persistSelectedTag(const QString &resourceType, KisTagSP tag)
+{
+    persistedResourceType = resourceType;
+    persistedTag = tag;
+}
 }
 
 namespace KisTagChooserWidgetConstructionSource
@@ -48,6 +113,19 @@ QWidget *KisTagChooserWidget::createTagToolButton(QWidget *parent)
 {
     tagToolButton = new QWidget(parent);
     return tagToolButton;
+}
+
+void KisTagChooserWidget::setTagToolButtonCurrentTag(QWidget *toolButton,
+                                                      KisTagSP tag)
+{
+    QCOMPARE(toolButton, tagToolButton.data());
+    currentToolTag = tag;
+}
+
+void KisTagChooserWidget::refreshTagToolButtonIcons(QWidget *toolButton)
+{
+    QCOMPARE(toolButton, tagToolButton.data());
+    ++iconRefreshCount;
 }
 
 QString KoResource::storageLocation() const
@@ -105,10 +183,6 @@ QString KisTag::comment(bool) const
     return {};
 }
 
-void KisTagChooserWidget::tagChanged(int)
-{
-}
-
 void KisTagChooserWidget::addTag(const QString &)
 {
 }
@@ -158,11 +232,14 @@ class KisTagChooserWidgetContractTest : public QObject
 private Q_SLOTS:
     void constructorOwnsPresentationUnderParent();
     void destructorReleasesOwnedPresentation();
+    void selectionFindsExactUrlAndReturnsTag();
+    void tagChangePersistsSortsAndEmitsSelection();
+    void iconUpdateRefreshesTagToolButton();
 };
 
 void KisTagChooserWidgetContractTest::constructorOwnsPresentationUnderParent()
 {
-    presentationModel.clear();
+    configurePresentationModel();
     capturedModel = nullptr;
     capturedResourceType.clear();
     allTagsModel = nullptr;
@@ -201,7 +278,7 @@ void KisTagChooserWidgetContractTest::constructorOwnsPresentationUnderParent()
 
 void KisTagChooserWidgetContractTest::destructorReleasesOwnedPresentation()
 {
-    presentationModel.clear();
+    configurePresentationModel();
     allTagsModel = nullptr;
     tagToolButton = nullptr;
     QPointer<KisTagChooserWidget> widget = new KisTagChooserWidget(
@@ -219,6 +296,79 @@ void KisTagChooserWidgetContractTest::destructorReleasesOwnedPresentation()
     QVERIFY(comboBox.isNull());
     QVERIFY(allTagsModel.isNull());
     QVERIFY(tagToolButton.isNull());
+}
+
+void KisTagChooserWidgetContractTest::selectionFindsExactUrlAndReturnsTag()
+{
+    configurePresentationModel();
+    KisTagChooserWidget widget(
+        reinterpret_cast<KisTagModel *>(quintptr(1)),
+        QStringLiteral("brushes"),
+        nullptr);
+
+    widget.setCurrentItem(QStringLiteral("beta"));
+    QCOMPARE(widget.currentIndex(), 1);
+    QVERIFY(widget.currentlySelectedTag() == markerTag(0x20));
+
+    widget.setCurrentItem(QStringLiteral("missing"));
+    QCOMPARE(widget.currentIndex(), 1);
+
+    auto *comboBox = widget.findChild<QComboBox *>();
+    QVERIFY(comboBox);
+    {
+        QSignalBlocker blocker(comboBox);
+        comboBox->setCurrentIndex(-1);
+    }
+    QVERIFY(widget.currentlySelectedTag().isNull());
+}
+
+void KisTagChooserWidgetContractTest::tagChangePersistsSortsAndEmitsSelection()
+{
+    configurePresentationModel();
+    KisTagChooserWidget widget(
+        reinterpret_cast<KisTagModel *>(quintptr(1)),
+        QStringLiteral("patterns"),
+        nullptr);
+    auto *comboBox = widget.findChild<QComboBox *>();
+    QVERIFY(comboBox);
+    {
+        QSignalBlocker blocker(comboBox);
+        comboBox->setCurrentIndex(1);
+    }
+    presentationModel.sortCount = 0;
+    currentToolTag.clear();
+    persistedResourceType.clear();
+    persistedTag.clear();
+    QSignalSpy chosenSpy(&widget, &KisTagChooserWidget::sigTagChosen);
+
+    widget.tagChanged(1);
+
+    QCOMPARE(chosenSpy.count(), 1);
+    QVERIFY(qvariant_cast<KisTagSP>(chosenSpy.takeFirst().at(0))
+            == markerTag(0x20));
+    QCOMPARE(presentationModel.sortCount, 1);
+    QCOMPARE(presentationModel.lastSortColumn,
+             int(KisAllTagsModel::Name));
+    QCOMPARE(presentationModel.lastSortOrder, Qt::AscendingOrder);
+    QVERIFY(currentToolTag == markerTag(0x20));
+    QCOMPARE(persistedResourceType, QStringLiteral("patterns"));
+    QVERIFY(persistedTag == markerTag(0x20));
+
+    widget.tagChanged(-1);
+    QCOMPARE(widget.currentIndex(), 0);
+}
+
+void KisTagChooserWidgetContractTest::iconUpdateRefreshesTagToolButton()
+{
+    configurePresentationModel();
+    KisTagChooserWidget widget(
+        reinterpret_cast<KisTagModel *>(quintptr(1)),
+        QStringLiteral("patterns"),
+        nullptr);
+
+    iconRefreshCount = 0;
+    widget.updateIcons();
+    QCOMPARE(iconRefreshCount, 1);
 }
 
 QTEST_MAIN(KisTagChooserWidgetContractTest)
