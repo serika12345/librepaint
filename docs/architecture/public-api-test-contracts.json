@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26361
+    "expectedMissingApis": 26328
   },
   "contracts": [
     {
@@ -8087,6 +8087,57 @@
         "enumerator:KisConfig::RootSurfaceFormat::BT2020_PQ",
         "enumerator:KisConfig::RootSurfaceFormat::BT709_G10",
         "enumerator:KisConfig::RootSurfaceFormat::BT709_G22"
+      ]
+    },
+    {
+      "target": "SvgTextCursorEnumContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp",
+      "test": "SvgTextCursorEnumContractTest::movementValuesRemainStable",
+      "behavior": "文字カーソルの文字・単語・行・段落移動方式は操作処理が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:SvgTextCursor::MoveMode",
+        "enumerator:SvgTextCursor::MoveMode::MoveDown",
+        "enumerator:SvgTextCursor::MoveMode::MoveLeft",
+        "enumerator:SvgTextCursor::MoveMode::MoveLineEnd",
+        "enumerator:SvgTextCursor::MoveMode::MoveLineStart",
+        "enumerator:SvgTextCursor::MoveMode::MoveNextChar",
+        "enumerator:SvgTextCursor::MoveMode::MoveNextLine",
+        "enumerator:SvgTextCursor::MoveMode::MoveNone",
+        "enumerator:SvgTextCursor::MoveMode::MovePreviousChar",
+        "enumerator:SvgTextCursor::MoveMode::MovePreviousLine",
+        "enumerator:SvgTextCursor::MoveMode::MoveRight",
+        "enumerator:SvgTextCursor::MoveMode::MoveUp",
+        "enumerator:SvgTextCursor::MoveMode::MoveWordEnd",
+        "enumerator:SvgTextCursor::MoveMode::MoveWordLeft",
+        "enumerator:SvgTextCursor::MoveMode::MoveWordRight",
+        "enumerator:SvgTextCursor::MoveMode::MoveWordStart",
+        "enumerator:SvgTextCursor::MoveMode::ParagraphEnd",
+        "enumerator:SvgTextCursor::MoveMode::ParagraphStart"
+      ]
+    },
+    {
+      "target": "SvgTextCursorEnumContractTest",
+      "source": "plugins/tools/svgtexttool/tests/SvgTextCursorEnumContractTest.cpp",
+      "test": "SvgTextCursorEnumContractTest::typeSettingHandleValuesRemainStable",
+      "behavior": "文字組版操作の位置、行寸法、基準線ハンドルは画面操作が共有する0始まりの宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:SvgTextCursor::TypeSettingModeHandle",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::Ascender",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::BaselineAlphabetic",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::BaselineCentral",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::BaselineHanging",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::BaselineIdeographic",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::BaselineMathematical",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::BaselineMiddle",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::BaselineShift",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::Descender",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::EndPos",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::LineHeightBottom",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::LineHeightTop",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::NoHandle",
+        "enumerator:SvgTextCursor::TypeSettingModeHandle::StartPos"
       ]
     }
   ]
