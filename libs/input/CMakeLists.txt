@@ -75,8 +75,28 @@ set_target_properties(kritainputeventsuppressorobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-set(kritainput_LIB_SRCS
+add_library(kritainputnativegestureshortcutobjects OBJECT
     kis_native_gesture_shortcut.cpp
+)
+target_compile_definitions(kritainputnativegestureshortcutobjects PRIVATE kritainput_EXPORTS)
+target_include_directories(kritainputnativegestureshortcutobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+)
+target_link_libraries(kritainputnativegestureshortcutobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritainputnativegestureshortcutobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritainput_LIB_SRCS
     kis_shortcut_matcher.cpp
     kis_single_action_shortcut.cpp
     kis_stroke_shortcut.cpp
@@ -90,6 +110,7 @@ kis_add_library(kritainput SHARED
     $<TARGET_OBJECTS:kritainputabstractshortcutobjects>
     $<TARGET_OBJECTS:kritainputtimedsignalthresholdobjects>
     $<TARGET_OBJECTS:kritainputeventsuppressorobjects>
+    $<TARGET_OBJECTS:kritainputnativegestureshortcutobjects>
 )
 generate_export_header(kritainput BASE_NAME kritainput)
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 26004
+    "expectedMissingApis": 25999
   },
   "contracts": [
     {
@@ -8976,6 +8976,29 @@
         "enumerator:KisTouchGestureType::Hold",
         "enumerator:KisTouchGestureType::Tap",
         "enumerator:KisTouchGestureType::Unsupported"
+      ]
+    },
+    {
+      "target": "KisNativeGestureShortcutContractTest",
+      "source": "libs/input/tests/KisNativeGestureShortcutContractTest.cpp",
+      "test": "KisNativeGestureShortcutContractTest::retainsNeutralPriorityThroughPolymorphicLifetime",
+      "behavior": "ネイティブジェスチャー短縮操作は優先度0を報告し、基本短縮操作の所有を通じて寿命を終了できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNativeGestureShortcut",
+        "method:KisNativeGestureShortcut::KisNativeGestureShortcut(KisInputAction * action,int index,Qt::NativeGestureType type)",
+        "method:KisNativeGestureShortcut::priority() const",
+        "method:KisNativeGestureShortcut::~KisNativeGestureShortcut()"
+      ]
+    },
+    {
+      "target": "KisNativeGestureShortcutContractTest",
+      "source": "libs/input/tests/KisNativeGestureShortcutContractTest.cpp",
+      "test": "KisNativeGestureShortcutContractTest::matchesOnlyTheConfiguredGestureType",
+      "behavior": "ネイティブジェスチャー短縮操作は構築時に指定したQtジェスチャー種別だけに一致する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNativeGestureShortcut::match(QNativeGestureEvent * event)"
       ]
     }
   ]
