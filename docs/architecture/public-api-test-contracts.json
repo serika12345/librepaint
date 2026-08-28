@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e735c0c494ac85e517915a573efbf355fc0e63579c7132e89f49becc5730bf8d"
   },
   "migration": {
-    "expectedMissingApis": 28229
+    "expectedMissingApis": 28202
   },
   "contracts": [
     {
@@ -5507,6 +5507,78 @@
       "apis": [
         "function:KisPaintingTweaks::rectToTexCoords(QVector2D * texCoords,const QRectF & rc)",
         "function:KisPaintingTweaks::rectToVertices(QVector3D * vertices,const QRectF & rc)"
+      ]
+    },
+    {
+      "target": "KisHandleStyleContractTest",
+      "source": "libs/global/tests/KisHandleStyleContractTest.cpp",
+      "test": "KisHandleStyleContractTest::paletteProvidesStableDefaultColors",
+      "behavior": "操作ハンドルの既定配色は主・副輪郭、グラデーション、強調、選択、白黒の各役割へ固定RGBA色を割り当てる。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisHandlePalette::black",
+        "member:KisHandlePalette::gradientFillColor",
+        "member:KisHandlePalette::highlightColor",
+        "member:KisHandlePalette::highlightOutlineColor",
+        "member:KisHandlePalette::primaryColor",
+        "member:KisHandlePalette::secondaryColor",
+        "member:KisHandlePalette::selectionColor",
+        "member:KisHandlePalette::white",
+        "method:KisHandlePalette::KisHandlePalette()",
+        "struct:KisHandlePalette"
+      ]
+    },
+    {
+      "target": "KisHandleStyleContractTest",
+      "source": "libs/global/tests/KisHandleStyleContractTest.cpp",
+      "test": "KisHandleStyleContractTest::iterationStylesDistinguishInheritanceFromPainting",
+      "behavior": "既定の反復様式は無効として描画状態を継承し、ペンとブラシを指定した反復様式は有効になって両値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisHandleStyle::IterationStyle::isValid",
+        "member:KisHandleStyle::IterationStyle::stylePair",
+        "method:KisHandleStyle::IterationStyle::IterationStyle()",
+        "method:KisHandleStyle::IterationStyle::IterationStyle(const QPen & pen,const QBrush & brush)",
+        "struct:KisHandleStyle::IterationStyle"
+      ]
+    },
+    {
+      "target": "KisHandleStyleContractTest",
+      "source": "libs/global/tests/KisHandleStyleContractTest.cpp",
+      "test": "KisHandleStyleContractTest::inheritStyleUsesInvalidIterationsAndStableStorage",
+      "behavior": "継承様式は同じ共有個体を返し、ハンドルと線に一つずつ無効な反復要素を持って描画器の現在状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHandleStyle",
+        "member:KisHandleStyle::handleIterations",
+        "member:KisHandleStyle::lineIterations",
+        "method:KisHandleStyle::inheritStyle()"
+      ]
+    },
+    {
+      "target": "KisHandleStyleContractTest",
+      "source": "libs/global/tests/KisHandleStyleContractTest.cpp",
+      "test": "KisHandleStyleContractTest::standardStylesUsePaletteRolesAndSharedGradientArrows",
+      "behavior": "主選択、副選択、グラデーションハンドルは対応する配色役割で破線と塗りを構成し、グラデーション矢印は主選択様式を共有する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHandleStyle::gradientArrows(KisHandlePalette palette=KisHandlePalette ())",
+        "method:KisHandleStyle::gradientHandles(KisHandlePalette palette=KisHandlePalette ())",
+        "method:KisHandleStyle::primarySelection(KisHandlePalette palette=KisHandlePalette ())",
+        "method:KisHandleStyle::secondarySelection(KisHandlePalette palette=KisHandlePalette ())"
+      ]
+    },
+    {
+      "target": "KisHandleStyleContractTest",
+      "source": "libs/global/tests/KisHandleStyleContractTest.cpp",
+      "test": "KisHandleStyleContractTest::highlightedStylesUseHighlightAndSelectionRoles",
+      "behavior": "強調、実線強調、部分強調、選択済みの各様式は強調輪郭、強調塗り、選択塗り、主輪郭を定義済みの組合せで使用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHandleStyle::highlightedPrimaryHandles(KisHandlePalette palette=KisHandlePalette ())",
+        "method:KisHandleStyle::highlightedPrimaryHandlesWithSolidOutline(KisHandlePalette palette=KisHandlePalette ())",
+        "method:KisHandleStyle::partiallyHighlightedPrimaryHandles(KisHandlePalette palette=KisHandlePalette ())",
+        "method:KisHandleStyle::selectedPrimaryHandles(KisHandlePalette palette=KisHandlePalette ())"
       ]
     }
   ]
