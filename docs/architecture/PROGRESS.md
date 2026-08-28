@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 20:12 JST
+- 更新日時: 2026-08-28 20:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5626,10 +5626,25 @@
   25,846件になり、同ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
   実行していない。
 
+## R2-G19b 曲線制御戦略工場 public API契約と構築所有分離で完了した作業
+
+- `plugins/paintops/libpaintop/KisCurveOptionInputControlsStrategyInterface.cpp`と
+  `plugins/paintops/libpaintop/KisCurveOptionRangeControlsStrategyInterface.cpp`は同じ配置のまま、
+  `kritalibpaintop`の直接ソース所有から新規`kritapaintopcurvecontrolinterfaceobjects`の所有へ
+  移し、製品`kritalibpaintop`が各生成オブジェクトを1回だけ集約する構造にした。公開ヘッダー、
+  実装、製品ABIは維持した。
+- 対応する2公開ヘッダーの制御部品工場型、基本境界、多態的寿命からなる2型別名・2クラス・
+  2メソッドの6 APIを、新規
+  `plugins/paintops/libpaintop/tests/KisCurveControlStrategyInterfacesContractTest.cpp`の2試験へ
+  全件対応付けた。工場へ渡す模型と部品の順序・同一性、および基本型からの破棄を固定した。
+- 1,852工程・3,702入力の製品描画処理ライブラリーへ接続せず、専用実装は2工程・5入力、専用試験は
+  macOSで6工程・13入力に収めた。対象実行と20回反復に成功した。対応済みは4,127件、未対応基準は
+  25,840件になり、2ヘッダーのpublic APIは全件対応済みになった。Linuxと全ネイティブ検証は
+  実行していない。
+
 ## 次の操作
 
-`plugins/paintops/libpaintop/KisCurveOptionInputControlsStrategyInterface.h`と
-`KisCurveOptionRangeControlsStrategyInterface.h`の制御部品工場境界について、既存試験、直接依存、
+`libs/resources/KoCanvasResourcesInterface.h`のキャンバス資源参照境界について、既存試験、直接依存、
 変更なし構築閉包を監査し、最小の局所契約を追加する。
 
 ## R1-G5完了根拠

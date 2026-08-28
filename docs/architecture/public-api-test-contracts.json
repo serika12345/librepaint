@@ -16,7 +16,7 @@
     "publicApiFingerprint": "11e0681b77945a5e66eb0df415a4c8843829c57f2e6b4c1227982fd8b7c6b064"
   },
   "migration": {
-    "expectedMissingApis": 25846
+    "expectedMissingApis": 25840
   },
   "contracts": [
     {
@@ -9584,6 +9584,30 @@
       "classification": "known_defect",
       "apis": [
         "function:KoGradientHelper::colorAt(qreal position,const QGradientStops & stops)"
+      ]
+    },
+    {
+      "target": "KisCurveControlStrategyInterfacesContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveControlStrategyInterfacesContractTest.cpp",
+      "test": "KisCurveControlStrategyInterfacesContractTest::createsInputControlsWithForwardedArguments",
+      "behavior": "入力制御部品工場は範囲模型、曲線部品、入出力部品を順序と同一性を保って生成処理へ渡し、返した実装を基本型から多態的に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCurveOptionInputControlsStrategyFactory",
+        "class:KisCurveOptionInputControlsStrategyInterface",
+        "method:KisCurveOptionInputControlsStrategyInterface::~KisCurveOptionInputControlsStrategyInterface()"
+      ]
+    },
+    {
+      "target": "KisCurveControlStrategyInterfacesContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveControlStrategyInterfacesContractTest.cpp",
+      "test": "KisCurveControlStrategyInterfacesContractTest::createsRangeControlsWithForwardedArguments",
+      "behavior": "範囲制御部品工場は範囲模型と配置先部品を順序と同一性を保って生成処理へ渡し、返した実装を基本型から多態的に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCurveOptionRangeControlsStrategyFactory",
+        "class:KisCurveOptionRangeControlsStrategyInterface",
+        "method:KisCurveOptionRangeControlsStrategyInterface::~KisCurveOptionRangeControlsStrategyInterface()"
       ]
     }
   ]

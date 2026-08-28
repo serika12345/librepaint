@@ -53,3 +53,13 @@ target_compile_definitions(KisTextureOptionLodContractTest PRIVATE
     kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
+
+kis_add_test(
+    KisCurveControlStrategyInterfacesContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcurvecontrolinterfaceobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisCurveControlStrategyInterfacesContractTest PRIVATE
+    kritalibpaintop_EXPORTS
+)

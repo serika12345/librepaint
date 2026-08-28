@@ -18,9 +18,7 @@ set(kritalibpaintop_LIB_SRCS
     KisKritaSensorPack.cpp
     KisCurveOptionDataCommon.cpp
     KisCurveOptionData.cpp
-    KisCurveOptionInputControlsStrategyInterface.cpp
     KisCurveOptionInputControlsStrategy.cpp
-    KisCurveOptionRangeControlsStrategyInterface.cpp
     KisCurveRangeModelInterface.cpp
     KisCurveRangeModel.cpp
     KisCurveOptionModel.cpp
@@ -221,6 +219,23 @@ set_target_properties(kritapaintoptexturelodobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopcurvecontrolinterfaceobjects OBJECT
+    KisCurveOptionInputControlsStrategyInterface.cpp
+    KisCurveOptionRangeControlsStrategyInterface.cpp
+)
+target_compile_definitions(kritapaintopcurvecontrolinterfaceobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcurvecontrolinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+set_target_properties(kritapaintopcurvecontrolinterfaceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
@@ -235,6 +250,7 @@ target_link_libraries(kritapaintopruntime kritalibbrush kritapainting)
 kis_add_library(kritalibpaintop SHARED
     ${kritalibpaintop_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopruntime>
+    $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
 )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 
