@@ -78,6 +78,19 @@ target_include_directories(KoLocalStrokeCanvasResourcesContractTest PRIVATE
 target_compile_definitions(KoLocalStrokeCanvasResourcesContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KisResourceMetaDataModelContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourcemetadatamodelobjects
+        Qt${QT_MAJOR_VERSION}::Sql
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisResourceMetaDataModelContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisResourceMetaDataModelContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
     KoResourceCacheInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritaresourcecacheinterfaceobjects

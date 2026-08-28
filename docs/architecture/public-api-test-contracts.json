@@ -16,7 +16,7 @@
     "publicApiFingerprint": "4e757ce33a462fd607e882859608c359a6ce8b83aa4751a0ecb74a4eb52df650"
   },
   "migration": {
-    "expectedMissingApis": 25700
+    "expectedMissingApis": 25696
   },
   "contracts": [
     {
@@ -10194,6 +10194,28 @@
       "classification": "maintained",
       "apis": [
         "method:KoLocalStrokeCanvasResources::operator =(const KoLocalStrokeCanvasResources & rhs)"
+      ]
+    },
+    {
+      "target": "KisResourceMetaDataModelContractTest",
+      "source": "libs/resources/tests/KisResourceMetaDataModelContractTest.cpp",
+      "test": "KisResourceMetaDataModelContractTest::filtersSerializedValuesByTableResourceAndKey",
+      "behavior": "資源メタデータ取得は構築時の表名、呼出しごとの資源IDとキーをすべて適用し、Base64化されたQVariantの型と値を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisResourceMetaDataModel",
+        "method:KisResourceMetaDataModel::KisResourceMetaDataModel(const QString & tableName)",
+        "method:KisResourceMetaDataModel::metaDataValue(int resourceId,const QString & key)"
+      ]
+    },
+    {
+      "target": "KisResourceMetaDataModelContractTest",
+      "source": "libs/resources/tests/KisResourceMetaDataModelContractTest.cpp",
+      "test": "KisResourceMetaDataModelContractTest::releasesPreparedQueryBeforeSchemaReplacement",
+      "behavior": "資源メタデータ取得個体の破棄は保持する準備済み問い合わせを解放し、直後に同じ接続上のメタデータ表を置換できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisResourceMetaDataModel::~KisResourceMetaDataModel()"
       ]
     }
   ]

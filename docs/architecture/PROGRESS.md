@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 22:25 JST
+- 更新日時: 2026-08-28 22:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5876,10 +5876,27 @@
   public APIは全件対応済みになった。製品`kritaresources`のリンク、Linux、全ネイティブ検証は
   実行していない。
 
+## R2-G19b 資源メタデータ取得 public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KisResourceMetaDataModel.cpp`は同じ配置のまま、`kritaresources`の直接ソース所有から
+  新規`kritaresourcemetadatamodelobjects`の所有へ移し、製品`kritaresources`が生成オブジェクトを
+  1回だけ集約する構造にした。外部向けヘッダー、実装、製品ABIは維持した。
+- `libs/resources/KisResourceMetaDataModel.h`の境界、構築・破棄、値取得からなる1クラス・3メソッドの
+  4 APIを、新規`libs/resources/tests/KisResourceMetaDataModelContractTest.cpp`の2対応試験へ全件
+  対応付けた。メモリーSQLite上で表名・資源ID・キーの絞り込み、Base64化された整数・文字列の
+  QVariant復元、欠落・空データの無効値、破棄後の準備済み問い合わせ解放を固定した。
+- 642工程・1,312入力の既存資源DB試験へ接続せず、実装を接続しない最初の試験構築は4工程・8入力で
+  構築・破棄・取得の未解決参照をリンク診断した。分離後は所有対象を1工程・3入力、新規試験を
+  5工程・11入力に収め、製品資源ライブラリーは140工程・307入力を維持した。macOSの対象実行と
+  20回反復に成功した。公開面は1,546ヘッダー、29,981 API、対応済み4,285件、未対応25,696件に
+  なり、同ヘッダーのpublic APIは全件対応済みになった。製品`kritaresources`のリンク、Linux、
+  全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/resources/KisResourceMetaDataModel.h`の資源メタデータ取得4 APIについて、Qt SQLだけで完結する
-清浄時構築閉包を監査し、表名・資源ID・キーによる値取得と欠落時の無効値を固定する。
+`libs/resources/KisDatabaseTransactionLock.h`のデータベース取引ロック8 APIについて、Qt SQLと
+`KisAdaptedLock`だけで完結する清浄時構築閉包を監査し、スコープ終了時の取消し、明示確定、明示取消しを
+固定する。
 
 ## R1-G5完了根拠
 

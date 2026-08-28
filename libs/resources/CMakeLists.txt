@@ -52,6 +52,25 @@ set_target_properties(kritalocalstrokecanvasresourcesobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaresourcemetadatamodelobjects OBJECT
+    KisResourceMetaDataModel.cpp
+)
+target_compile_definitions(kritaresourcemetadatamodelobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritaresourcemetadatamodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaresourcemetadatamodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Sql
+)
+set_target_properties(kritaresourcemetadatamodelobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaresourcecacheinterfaceobjects OBJECT
     KoResourceCacheInterface.cpp
 )
@@ -271,7 +290,6 @@ set(kritaresources_LIB_SRCS
     KisEmbeddedResourceStorageProxy.cpp
 
     KisResourceThumbnailCache.cpp
-    KisResourceMetaDataModel.cpp
     KisSqlQueryLoader.cpp
     KisDatabaseTransactionLock.cpp
     KisTemporaryResourceStorageLock.cpp
@@ -285,6 +303,7 @@ kis_add_library(kritaresources SHARED
     $<TARGET_OBJECTS:kritaresourcestypesobjects>
     $<TARGET_OBJECTS:kritacanvasresourcesinterfaceobjects>
     $<TARGET_OBJECTS:kritalocalstrokecanvasresourcesobjects>
+    $<TARGET_OBJECTS:kritaresourcemetadatamodelobjects>
     $<TARGET_OBJECTS:kritaresourcecacheinterfaceobjects>
     $<TARGET_OBJECTS:kritaresourcecacheprefixedwrapperobjects>
     $<TARGET_OBJECTS:kritaresourcecachestorageobjects>
