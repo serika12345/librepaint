@@ -16,7 +16,7 @@
     "publicApiFingerprint": "e6d7c67a424aaeb3f4a743579b9bce0a0d2eee541ee432f4a20bc44b9ee721c3"
   },
   "migration": {
-    "expectedMissingApis": 26470
+    "expectedMissingApis": 26427
   },
   "contracts": [
     {
@@ -7888,6 +7888,85 @@
         "function:KisSurfaceColorimetry::operator <<(QDebug debug,const RenderIntent & value)",
         "function:KisSurfaceColorimetry::operator <<(QDebug debug,const SurfaceDescription & value)",
         "method:KisSurfaceColorimetry::SurfaceDescription::makeTextReport() const"
+      ]
+    },
+    {
+      "target": "KisTextureOptionDataValueContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionDataValueContractTest.cpp",
+      "test": "KisTextureOptionDataValueContractTest::supportedFeatureFlagsRemainStable",
+      "behavior": "ブラシテクスチャ機能フラグは光度方式とグラデーション方式を独立したビットとして合成できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBrushTextureFlags",
+        "enum:KisBrushTextureFlag",
+        "enumerator:KisBrushTextureFlag::None",
+        "enumerator:KisBrushTextureFlag::SupportsGradientMode",
+        "enumerator:KisBrushTextureFlag::SupportsLightnessMode"
+      ]
+    },
+    {
+      "target": "KisTextureOptionDataValueContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionDataValueContractTest.cpp",
+      "test": "KisTextureOptionDataValueContractTest::texturingModeValuesRemainStable",
+      "behavior": "ブラシテクスチャ合成方式は乗算からPhotoshop互換線形高さまで16方式の宣言順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisTextureOptionData::TexturingMode",
+        "enumerator:KisTextureOptionData::TexturingMode::COLOR_BURN",
+        "enumerator:KisTextureOptionData::TexturingMode::COLOR_DODGE",
+        "enumerator:KisTextureOptionData::TexturingMode::DARKEN",
+        "enumerator:KisTextureOptionData::TexturingMode::GRADIENT",
+        "enumerator:KisTextureOptionData::TexturingMode::HARD_MIX_PHOTOSHOP",
+        "enumerator:KisTextureOptionData::TexturingMode::HARD_MIX_SOFTER_PHOTOSHOP",
+        "enumerator:KisTextureOptionData::TexturingMode::HEIGHT",
+        "enumerator:KisTextureOptionData::TexturingMode::HEIGHT_PHOTOSHOP",
+        "enumerator:KisTextureOptionData::TexturingMode::LIGHTNESS",
+        "enumerator:KisTextureOptionData::TexturingMode::LINEAR_BURN",
+        "enumerator:KisTextureOptionData::TexturingMode::LINEAR_DODGE",
+        "enumerator:KisTextureOptionData::TexturingMode::LINEAR_HEIGHT",
+        "enumerator:KisTextureOptionData::TexturingMode::LINEAR_HEIGHT_PHOTOSHOP",
+        "enumerator:KisTextureOptionData::TexturingMode::MULTIPLY",
+        "enumerator:KisTextureOptionData::TexturingMode::OVERLAY",
+        "enumerator:KisTextureOptionData::TexturingMode::SUBTRACT"
+      ]
+    },
+    {
+      "target": "KisTextureOptionDataValueContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionDataValueContractTest.cpp",
+      "test": "KisTextureOptionDataValueContractTest::defaultsDescribeDisabledMultiplication",
+      "behavior": "新規テクスチャ設定は無効な乗算方式、等倍・中立の補正値、ゼロ位置、全濃度範囲を既定値として持つ。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisTextureOptionData::autoInvertOnErase",
+        "member:KisTextureOptionData::brightness",
+        "member:KisTextureOptionData::contrast",
+        "member:KisTextureOptionData::cutOffLeft",
+        "member:KisTextureOptionData::cutOffPolicy",
+        "member:KisTextureOptionData::cutOffRight",
+        "member:KisTextureOptionData::invert",
+        "member:KisTextureOptionData::isEnabled",
+        "member:KisTextureOptionData::isRandomOffsetX",
+        "member:KisTextureOptionData::isRandomOffsetY",
+        "member:KisTextureOptionData::maximumOffsetX",
+        "member:KisTextureOptionData::maximumOffsetY",
+        "member:KisTextureOptionData::neutralPoint",
+        "member:KisTextureOptionData::offsetX",
+        "member:KisTextureOptionData::offsetY",
+        "member:KisTextureOptionData::scale",
+        "member:KisTextureOptionData::textureData",
+        "member:KisTextureOptionData::texturingMode",
+        "member:KisTextureOptionData::useSoftTexturing",
+        "struct:KisTextureOptionData"
+      ]
+    },
+    {
+      "target": "KisTextureOptionDataValueContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionDataValueContractTest.cpp",
+      "test": "KisTextureOptionDataValueContractTest::equalityObservesEveryOptionValue",
+      "behavior": "テクスチャ設定の値等価性は埋込み資源と18個の描画設定の各差分を検出する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisTextureOptionData & lhs,const KisTextureOptionData & rhs)"
       ]
     }
   ]

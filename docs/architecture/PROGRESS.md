@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-28 17:19 JST
+- 更新日時: 2026-08-28 17:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -5219,10 +5219,23 @@
 - 対応済みは3,496件、未対応基準は26,470件になった。製品挙動、公開API、ABI、ファイル位置は
   変更していない。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b ブラシテクスチャ値 public API契約で完了した作業
+
+- `plugins/paintops/libpaintop/KisTextureOptionData.h`の機能フラグ、16合成方式、19公開メンバー、
+  値等価性、構造体からなる43 APIを、新規
+  `plugins/paintops/libpaintop/tests/KisTextureOptionDataValueContractTest.cpp`の4試験へ対応付けた。
+- 試験は機能ビットの合成、合成方式の宣言順、無効な乗算方式と等倍・中立補正・全濃度範囲から
+  なる既定値、埋込み資源と全18描画設定の各差分を検出する等価性を観測する。
+- 製品描画実行対象へ接続せず、対象ヘッダー、Qt Test、Qt Gui、外部KDE翻訳ヘッダーだけを使い、
+  変更なし構築閉包をmacOSで4工程・9入力に保った。対象実行と20回反復に成功し、対応済みは
+  3,539件、未対応基準は26,427件になった。製品実装、公開API、ABI、既定値は変更していない。
+  Linuxと全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`plugins/paintops/libpaintop/KisTextureOptionData.h`の未対応APIについて、値型の宣言、既存実装、
-直接依存、変更なし構築閉包を監査し、依存が責務を越える場合は所有対象を先に分ける。
+`KisTextureOptionData.h`に残る読込、書込、LOD制約の3 APIについて、
+`KisTextureOptionData.cpp`と`KisEmbeddedTextureData.cpp`の設定値処理を資源読込処理から分離し、
+製品描画実行対象を構築しない局所契約を追加する。
 
 ## R1-G5完了根拠
 
