@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23841
+    "expectedMissingApis": 23800
   },
   "contracts": [
     {
@@ -18005,6 +18005,119 @@
       "apis": [
         "function:operator <<(QDebug debug,const KisMetaData::Value & v)",
         "method:KisMetaData::Value::toString() const"
+      ]
+    },
+    {
+      "target": "SvgMeshPatchContractTest",
+      "source": "libs/flake/tests/SvgMeshPatchContractTest.cpp",
+      "test": "SvgMeshPatchContractTest::stopAndTypeStateIsStable",
+      "behavior": "メッシュ停止点の型別名、辺列挙順、既定無効状態、色と位置の値構築、および新規パッチの未設定停止点を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:SvgMeshPath",
+        "class:SvgMeshPatch",
+        "enum:SvgMeshPatch::Type",
+        "enumerator:SvgMeshPatch::Type::Bottom",
+        "enumerator:SvgMeshPatch::Type::Left",
+        "enumerator:SvgMeshPatch::Type::Right",
+        "enumerator:SvgMeshPatch::Type::Size",
+        "enumerator:SvgMeshPatch::Type::Top",
+        "member:SvgMeshStop::color",
+        "member:SvgMeshStop::point",
+        "method:SvgMeshPatch::SvgMeshPatch(QPointF startingPoint)",
+        "method:SvgMeshPatch::getStop(Type type) const",
+        "method:SvgMeshStop::SvgMeshStop()",
+        "method:SvgMeshStop::SvgMeshStop(QColor color,QPointF point)",
+        "method:SvgMeshStop::isValid() const",
+        "struct:SvgMeshStop"
+      ]
+    },
+    {
+      "target": "SvgMeshPatchContractTest",
+      "source": "libs/flake/tests/SvgMeshPatchContractTest.cpp",
+      "test": "SvgMeshPatchContractTest::edgeBuildersCreateObservablePathsAndBounds",
+      "behavior": "線分と三次曲線の各構築経路は4辺の制御点、停止点、13要素の描画経路、境界矩形、寸法へ一貫して反映される。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshPatch::addStop(const std::array<QPointF,4> & pathPoints,QColor color,Type edge)",
+        "method:SvgMeshPatch::addStopLinear(const std::array<QPointF,2> & pathPoints,QColor color,Type edge)",
+        "method:SvgMeshPatch::boundingRect() const",
+        "method:SvgMeshPatch::curveTo(const QPointF & c1,const QPointF & c2,const QPointF & p)",
+        "method:SvgMeshPatch::getPath() const",
+        "method:SvgMeshPatch::getSegment(Type type) const",
+        "method:SvgMeshPatch::lineTo(const QPointF & p)",
+        "method:SvgMeshPatch::moveTo(const QPointF & p)",
+        "method:SvgMeshPatch::size() const"
+      ]
+    },
+    {
+      "target": "SvgMeshPatchContractTest",
+      "source": "libs/flake/tests/SvgMeshPatchContractTest.cpp",
+      "test": "SvgMeshPatchContractTest::stringPathsHonorCoordinatesAndIncompleteEndpoints",
+      "behavior": "文字列による絶対・相対の線分と三次曲線は現在位置を基準に構築され、不完全経路では指定された最終点へ正規化される。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshPatch::addStop(const QString & pathStr,QColor color,Type edge,bool pathIncomplete=false,QPointF lastPoint=QPointF ())"
+      ]
+    },
+    {
+      "target": "SvgMeshPatchContractTest",
+      "source": "libs/flake/tests/SvgMeshPatchContractTest.cpp",
+      "test": "SvgMeshPatchContractTest::deCasteljauSamplingAndSplittingKeepContinuity",
+      "behavior": "De Casteljau評価は端点と中点を返し、分割された二曲線は分割点で連続し、中央曲線と正規化パラメーター中点を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshPatch::getMidCurve(bool isVertical) const",
+        "method:SvgMeshPatch::getMidpointParametric(Type type) const",
+        "method:SvgMeshPatch::segmentPointAt(Type type,qreal t) const",
+        "method:SvgMeshPatch::segmentSplitAt(Type type,qreal t) const"
+      ]
+    },
+    {
+      "target": "SvgMeshPatchContractTest",
+      "source": "libs/flake/tests/SvgMeshPatchContractTest.cpp",
+      "test": "SvgMeshPatchContractTest::transformationsAndModificationsDeliverEveryValue",
+      "behavior": "辺置換、角移動、停止色変更、座標変換は対応する制御点、隣接辺、停止点、境界矩形へ正確に配送される。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshPatch::modifyCorner(SvgMeshPatch::Type type,const QPointF & delta)",
+        "method:SvgMeshPatch::modifyPath(SvgMeshPatch::Type type,std::array<QPointF,4> newPath)",
+        "method:SvgMeshPatch::setStopColor(SvgMeshPatch::Type type,const QColor & color)",
+        "method:SvgMeshPatch::setTransform(const QTransform & matrix)"
+      ]
+    },
+    {
+      "target": "SvgMeshPatchContractTest",
+      "source": "libs/flake/tests/SvgMeshPatchContractTest.cpp",
+      "test": "SvgMeshPatchContractTest::subdivisionKeepsGeometryColorsAndParametricSpace",
+      "behavior": "十分な大きさの完成パッチは水平・垂直・四分割され、子パッチの境界、共有色、正規化パラメーターが連続し、小寸法パッチは分割不能となる。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshPatch::isDivisibleHorizontally() const",
+        "method:SvgMeshPatch::isDivisibleVertically() const",
+        "method:SvgMeshPatch::subdivide(QVector<SvgMeshPatch * > & subdivided,const QVector<QColor> & colors) const",
+        "method:SvgMeshPatch::subdivideHorizontally(QVector<SvgMeshPatch * > & subdivided,const QVector<QColor> & colors) const",
+        "method:SvgMeshPatch::subdivideVertically(QVector<SvgMeshPatch * > & subdivided,const QVector<QColor> & colors) const"
+      ]
+    },
+    {
+      "target": "SvgMeshPatchContractTest",
+      "source": "libs/flake/tests/SvgMeshPatchContractTest.cpp",
+      "test": "SvgMeshPatchContractTest::pointCountReportsCapacityInsteadOfValidStops",
+      "behavior": "停止点数取得は有効停止点が0個または1個でも、実際の有効数ではなく固定配列容量4を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:SvgMeshPatch::countPoints() const"
+      ]
+    },
+    {
+      "target": "SvgMeshPatchContractTest",
+      "source": "libs/flake/tests/SvgMeshPatchContractTest.cpp",
+      "test": "SvgMeshPatchContractTest::copyingSubdivisionResetsParametricCoordinates",
+      "behavior": "分割済みパッチのコピーは辺形状と停止色を保持して独立に変更できる一方、分割後のパラメーター座標をコピーせず標準正方形へ戻す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:SvgMeshPatch::SvgMeshPatch(const SvgMeshPatch & other)"
       ]
     }
   ]

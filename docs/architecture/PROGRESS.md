@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 01:38 JST
+- 更新日時: 2026-08-30 01:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,7 +22,7 @@
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-metadata-value`であり、
   `libs/painting/metadata/tests/CMakeLists.txt`と新規`KisMetaDataValueContractTest.cpp`だけを所有する。既存の製品非依存生成物を
   7工程・15入力のまま再利用し、有理数、値種別、複合値、コピー、資格子、変更、加算、文字列表現の全41 APIを対象とする。
-- 実装担当`svg-mesh-patch`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`svg-mesh-patch`は`integrated`、担当先端は`fa552138f2`、統合コミットは`60a95e0330`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-svg-mesh-patch`であり、
   `libs/flake/svg/SvgMeshPatch.{h,cpp}`、Flake製品・試験CMake、新規`SvgMeshPatchContractTest.cpp`を所有する。既存試験の
   564工程・1,159入力から実装を専用生成物へ分離し、辺・停止点・経路・境界・変換・分割の全41 APIを対象とする。
@@ -9043,9 +9043,26 @@
   等価とする現行挙動を既知不具合として分類した。構造の文字列化、分母ゼロ、負の配列添字、不正な配列種別、資格子不足の
   言語配列、Rational更新、代入時の旧payload解放、Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b SVGメッシュパッチの全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/svg/SvgMeshPatch.h`の全41 APIを、新規`libs/flake/tests/SvgMeshPatchContractTest.cpp`の8試験へ対応付けた。
+  停止点、辺列挙、線分・三次曲線・文字列経路、境界と寸法、De Casteljau評価と分割、中央曲線、座標変換、辺・角・色変更、
+  水平・垂直・四分割を固定した。
+- 開始ファイル`libs/flake/svg/SvgMeshPatch.cpp`を製品`kritaflake`の直接ソースから
+  `kritaflakesvgmeshpatchobjects`へ移し、製品は同生成物を1回だけ再集約する。`SvgMeshPatch.h`は未使用の`QMap`と広い
+  `KoPathShape.h`を除き、公開マクロ、描画経路、変換の実所有ヘッダーを直接宣言する。限定試験は同生成物とQt Gui・Testだけへ
+  接続し、製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力、実装生成物は1工程・3入力であり、
+  従来`TestSvgParser`の564工程・1,159入力から縮小した。製品`kritaflake`の計画は560工程・1,152入力である。対象CTest単発と
+  20回反復、最近傍の`KoGradientHelperContractTest`、生成物記号、製品への1回再集約、製品共有ライブラリー非接続、
+  パッケージ境界検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み6,189件、未対応23,800件になった。
+  停止点数が有効数ではなく固定容量4を返すことと、分割済みパッチのコピーが正規化座標を標準正方形へ戻すことを既知不具合として
+  分類した。分割結果のraw pointerは呼出側所有である。色不足、不正な辺列挙、5辺目、範囲外パラメーター、不正経路文字列、
+  コピー後の内部追記位置、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第22並列便の`svg-mesh-patch`引渡しを統合順に取り込み、限定検証と中央台帳更新を行う。
+第22並列便の`levels-slider`引渡しを統合順に取り込み、限定検証と中央台帳更新を行う。
 
 ## R1-G5完了根拠
 
