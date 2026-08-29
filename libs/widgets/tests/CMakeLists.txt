@@ -52,6 +52,15 @@ kis_add_test(
 target_compile_definitions(KisColorLabelButtonContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KisStretchedIconButtonContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetsstretchediconbuttonobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisStretchedIconButtonContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KisColorLabelSelectorWidgetContractTest.cpp
     LINK_LIBRARIES
         kritawidgetscolorlabelselectorobjects

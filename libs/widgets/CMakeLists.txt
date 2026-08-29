@@ -14,6 +14,23 @@ target_include_directories(kritawidgetstitledtabobjects
 target_link_libraries(kritawidgetstitledtabobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritawidgetstitledtabobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetsstretchediconbuttonobjects OBJECT
+    KisStretchedIconButton.cpp
+)
+target_compile_definitions(kritawidgetsstretchediconbuttonobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsstretchediconbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetsstretchediconbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsstretchediconbuttonobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetsanglegaugeobjects OBJECT
     KisAngleGauge.cpp
 )
@@ -177,7 +194,6 @@ set(kritawidgets_LIB_SRCS
     kis_spacing_selection_widget.cpp
     kis_stacked_widget.cpp
 
-    KisStretchedIconButton.cpp
 )
 
 ki18n_wrap_ui( kritawidgets_LIB_SRCS
@@ -210,6 +226,7 @@ kis_add_library(kritawidgets SHARED
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
     $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
     $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
+    $<TARGET_OBJECTS:kritawidgetsstretchediconbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsanglegaugeobjects>
     $<TARGET_OBJECTS:kritawidgetscolorlabelbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetscolorlabelselectorobjects>
