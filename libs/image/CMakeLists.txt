@@ -49,6 +49,29 @@ set_target_properties(kritaimagefilterstrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageperstrokerandomsourceobjects OBJECT
+   brushengine/KisPerStrokeRandomSource.cpp
+)
+target_compile_definitions(kritaimageperstrokerandomsourceobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageperstrokerandomsourceobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/brushengine>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageperstrokerandomsourceobjects
+   PUBLIC
+      kritaglobalsharedobjects
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimageperstrokerandomsourceobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagebusywaitbrokerobjects OBJECT
    KisBusyWaitBroker.cpp
 )
@@ -662,7 +685,6 @@ set(kritaimage_LIB_SRCS
    kis_progress_updater.cpp
    KisAnimatedOpacityProperty.cpp
    brushengine/kis_paint_information.cc
-   brushengine/KisPerStrokeRandomSource.cpp
    brushengine/kis_stroke_random_source.cpp
    brushengine/kis_paintop.cc
    brushengine/kis_paintop_factory.cpp
@@ -947,6 +969,7 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
+   $<TARGET_OBJECTS:kritaimageperstrokerandomsourceobjects>
    $<TARGET_OBJECTS:kritaimagebusywaitbrokerobjects>
    $<TARGET_OBJECTS:kritaimagesafeblockingqueueconnectionproxyobjects>
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
