@@ -15,8 +15,6 @@
 #include <boost/accumulators/statistics/min.hpp>
 #include <boost/accumulators/statistics/max.hpp>
 
-#include <QVector2D>
-
 #include <QtMath>
 
 #include <config-gsl.h>
@@ -104,24 +102,6 @@ QPointF transformAsBase(const QPointF &pt, const QPointF &base1, const QPointF &
     result.ry() = scaleD * (pt.x() * sinD + pt.y() * cosD);
 
     return result;
-}
-
-qreal angleBetweenVectors(const QPointF &v1, const QPointF &v2)
-{
-    qreal a1 = std::atan2(v1.y(), v1.x());
-    qreal a2 = std::atan2(v2.y(), v2.x());
-
-    return a2 - a1;
-}
-
-qreal directionBetweenPoints(const QPointF &p1, const QPointF &p2, qreal defaultAngle)
-{
-    if (fuzzyPointCompare(p1, p2)) {
-        return defaultAngle;
-    }
-
-    const QVector2D diff(p2 - p1);
-    return std::atan2(diff.y(), diff.x());
 }
 
 QPainterPath smallArrow()
@@ -751,18 +731,6 @@ bool fuzzyMatrixCompare(const QTransform &t1, const QTransform &t2, qreal delta)
             qAbs(t1.m32() - t2.m32()) < delta &&
             qAbs(t1.m33() - t2.m33()) < delta;
 }
-
-bool fuzzyPointCompare(const QPointF &p1, const QPointF &p2)
-{
-    return qFuzzyCompare(p1.x(), p2.x()) && qFuzzyCompare(p1.y(), p2.y());
-}
-
-
-bool fuzzyPointCompare(const QPointF &p1, const QPointF &p2, qreal delta)
-{
-    return qAbs(p1.x() - p2.x()) < delta && qAbs(p1.y() - p2.y()) < delta;
-}
-
 
 inline QTransform toQTransformStraight(const Eigen::Matrix3d &m)
 {

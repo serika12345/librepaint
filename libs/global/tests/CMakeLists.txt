@@ -55,6 +55,20 @@ target_include_directories(KisGlobalValuesContractTest PRIVATE
 target_compile_definitions(KisGlobalValuesContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisAlgebraGeometryPrimitivesContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalalgebradirectionobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisAlgebraGeometryPrimitivesContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisAlgebraGeometryPrimitivesContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KoUnitContractTest.cpp
     LINK_LIBRARIES
         kritaglobalunitobjects

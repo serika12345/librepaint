@@ -8,6 +8,25 @@ option(HAVE_MEMORY_LEAK_TRACKER "Enable memory leak tracker (always disabled in 
 option(HAVE_BACKTRACE_SUPPORT "Enable recording of backtrace in memory leak tracker" OFF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config-memory-leak-tracker.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-memory-leak-tracker.h) ### WRONG PLACE???
 
+add_library(kritaglobalalgebradirectionobjects OBJECT
+    kis_algebra_2d_direction.cpp
+)
+target_compile_definitions(kritaglobalalgebradirectionobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalalgebradirectionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalalgebradirectionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaglobalalgebradirectionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalfileutilsobjects OBJECT
     KisFileUtils.cpp
 )
@@ -607,6 +626,7 @@ endif()
 
 kis_add_library(kritaglobal SHARED
     ${kritaglobal_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaglobalalgebradirectionobjects>
     $<TARGET_OBJECTS:kritaglobalfileutilsobjects>
     $<TARGET_OBJECTS:kritaglobalcumulativeundodataobjects>
     $<TARGET_OBJECTS:kritaglobaltemporaryfileconfigurationobjects>
