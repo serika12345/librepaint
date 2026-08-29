@@ -6,6 +6,7 @@
 #include "KisFakeRunnableStrokeJobsExecutor.h"
 #include "KisRunnableStrokeJobData.h"
 #include "KisRunnableStrokeJobDataBase.h"
+#include "KisRunnableStrokeJobUtils.h"
 #include "KisRunnableStrokeJobsInterface.h"
 #include "kis_stroke_job_strategy.h"
 
@@ -13,10 +14,33 @@
 #include <QRunnable>
 #include <QTest>
 
+#include <functional>
+#include <memory>
+
 namespace
 {
 
 QVector<QByteArray> safeAssertConditions;
+
+enum RunnableJobBuilder {
+    Sequential,
+    SequentialExclusive,
+    Concurrent,
+    Barrier,
+    BarrierExclusive,
+    UniquelyConcurrent,
+    SequentialWithLod,
+    SequentialExclusiveWithLod,
+    ConcurrentWithLod,
+    BarrierWithLod,
+    UniquelyConcurrentWithLod,
+    SequentialNoCancel,
+    SequentialExclusiveNoCancel,
+    ConcurrentNoCancel,
+    BarrierNoCancel,
+    BarrierExclusiveNoCancel,
+    UniquelyConcurrentNoCancel
+};
 
 class CopyableJobData : public KisStrokeJobData
 {
@@ -209,6 +233,8 @@ private Q_SLOTS:
     void defaultFakeExecutorRunsAndDeletesJobsInOrder();
     void barrierFlagAllowsBarrierJob();
     void defaultFakeExecutorReportsUnsupportedJobs();
+    void runnableJobBuildersAddConfiguredExecutableJobs_data();
+    void runnableJobBuildersAddConfiguredExecutableJobs();
 };
 
 void KisStrokeJobContractTest::defaultJobDataHasSequentialNormalDefaults()
@@ -455,6 +481,129 @@ void KisStrokeJobContractTest::defaultFakeExecutorReportsUnsupportedJobs()
     QCOMPARE(safeAssertConditions.size(), 2);
     QVERIFY(safeAssertConditions.at(0).contains("barrier jobs are not supported"));
     QVERIFY(safeAssertConditions.at(1).contains("exclusive jobs are not supported"));
+}
+
+void KisStrokeJobContractTest::runnableJobBuildersAddConfiguredExecutableJobs_data()
+{
+    QTest::addColumn<int>("builder");
+    QTest::addColumn<int>("sequentiality");
+    QTest::addColumn<int>("exclusivity");
+    QTest::addColumn<int>("lod");
+    QTest::addColumn<bool>("cancellable");
+
+    const int normal = int(KisStrokeJobData::NORMAL);
+    const int exclusive = int(KisStrokeJobData::EXCLUSIVE);
+
+    QTest::newRow("sequential") << int(Sequential) << int(KisStrokeJobData::SEQUENTIAL) << normal << -1 << true;
+    QTest::newRow("sequential-exclusive")
+        << int(SequentialExclusive) << int(KisStrokeJobData::SEQUENTIAL) << exclusive << -1 << true;
+    QTest::newRow("concurrent") << int(Concurrent) << int(KisStrokeJobData::CONCURRENT) << normal << -1 << true;
+    QTest::newRow("barrier") << int(Barrier) << int(KisStrokeJobData::BARRIER) << normal << -1 << true;
+    QTest::newRow("barrier-exclusive") << int(BarrierExclusive) << int(KisStrokeJobData::BARRIER) << exclusive << -1
+                                       << true;
+    QTest::newRow("uniquely-concurrent") << int(UniquelyConcurrent) << int(KisStrokeJobData::UNIQUELY_CONCURRENT)
+                                         << normal << -1 << true;
+    QTest::newRow("sequential-lod") << int(SequentialWithLod) << int(KisStrokeJobData::SEQUENTIAL) << normal << 3
+                                    << true;
+    QTest::newRow("sequential-exclusive-lod")
+        << int(SequentialExclusiveWithLod) << int(KisStrokeJobData::SEQUENTIAL) << exclusive << 4 << true;
+    QTest::newRow("concurrent-lod") << int(ConcurrentWithLod) << int(KisStrokeJobData::CONCURRENT) << normal << 5
+                                    << true;
+    QTest::newRow("barrier-lod") << int(BarrierWithLod) << int(KisStrokeJobData::BARRIER) << normal << 6 << true;
+    QTest::newRow("uniquely-concurrent-lod")
+        << int(UniquelyConcurrentWithLod) << int(KisStrokeJobData::UNIQUELY_CONCURRENT) << normal << 7 << true;
+    QTest::newRow("sequential-no-cancel")
+        << int(SequentialNoCancel) << int(KisStrokeJobData::SEQUENTIAL) << normal << -1 << false;
+    QTest::newRow("sequential-exclusive-no-cancel")
+        << int(SequentialExclusiveNoCancel) << int(KisStrokeJobData::SEQUENTIAL) << exclusive << -1 << false;
+    QTest::newRow("concurrent-no-cancel")
+        << int(ConcurrentNoCancel) << int(KisStrokeJobData::CONCURRENT) << normal << -1 << false;
+    QTest::newRow("barrier-no-cancel") << int(BarrierNoCancel) << int(KisStrokeJobData::BARRIER) << normal << -1
+                                       << false;
+    QTest::newRow("barrier-exclusive-no-cancel")
+        << int(BarrierExclusiveNoCancel) << int(KisStrokeJobData::BARRIER) << exclusive << -1 << false;
+    QTest::newRow("uniquely-concurrent-no-cancel")
+        << int(UniquelyConcurrentNoCancel) << int(KisStrokeJobData::UNIQUELY_CONCURRENT) << normal << -1 << false;
+}
+
+void KisStrokeJobContractTest::runnableJobBuildersAddConfiguredExecutableJobs()
+{
+    QFETCH(int, builder);
+    QFETCH(int, sequentiality);
+    QFETCH(int, exclusivity);
+    QFETCH(int, lod);
+    QFETCH(bool, cancellable);
+
+    QVector<KisRunnableStrokeJobDataBase *> jobs;
+    int runCount = 0;
+    const std::function<void()> function = [&runCount] {
+        ++runCount;
+    };
+
+    switch (RunnableJobBuilder(builder)) {
+    case Sequential:
+        KritaUtils::addJobSequential(jobs, function);
+        break;
+    case SequentialExclusive:
+        KritaUtils::addJobSequentialExclusive(jobs, function);
+        break;
+    case Concurrent:
+        KritaUtils::addJobConcurrent(jobs, function);
+        break;
+    case Barrier:
+        KritaUtils::addJobBarrier(jobs, function);
+        break;
+    case BarrierExclusive:
+        KritaUtils::addJobBarrierExclusive(jobs, function);
+        break;
+    case UniquelyConcurrent:
+        KritaUtils::addJobUniquelyConcurrent(jobs, function);
+        break;
+    case SequentialWithLod:
+        KritaUtils::addJobSequential(jobs, lod, function);
+        break;
+    case SequentialExclusiveWithLod:
+        KritaUtils::addJobSequentialExclusive(jobs, lod, function);
+        break;
+    case ConcurrentWithLod:
+        KritaUtils::addJobConcurrent(jobs, lod, function);
+        break;
+    case BarrierWithLod:
+        KritaUtils::addJobBarrier(jobs, lod, function);
+        break;
+    case UniquelyConcurrentWithLod:
+        KritaUtils::addJobUniquelyConcurrent(jobs, lod, function);
+        break;
+    case SequentialNoCancel:
+        KritaUtils::addJobSequentialNoCancel(jobs, function);
+        break;
+    case SequentialExclusiveNoCancel:
+        KritaUtils::addJobSequentialExclusiveNoCancel(jobs, function);
+        break;
+    case ConcurrentNoCancel:
+        KritaUtils::addJobConcurrentNoCancel(jobs, function);
+        break;
+    case BarrierNoCancel:
+        KritaUtils::addJobBarrierNoCancel(jobs, function);
+        break;
+    case BarrierExclusiveNoCancel:
+        KritaUtils::addJobBarrierExclusiveNoCancel(jobs, function);
+        break;
+    case UniquelyConcurrentNoCancel:
+        KritaUtils::addJobUniquelyConcurrentNoCancel(jobs, function);
+        break;
+    }
+
+    QCOMPARE(jobs.size(), 1);
+    std::unique_ptr<KisRunnableStrokeJobDataBase> job(jobs.takeFirst());
+    QVERIFY(jobs.isEmpty());
+    QCOMPARE(int(job->sequentiality()), sequentiality);
+    QCOMPARE(int(job->exclusivity()), exclusivity);
+    QCOMPARE(job->levelOfDetailOverride(), lod);
+    QCOMPARE(job->isCancellable(), cancellable);
+
+    job->run();
+    QCOMPARE(runCount, 1);
 }
 
 QTEST_GUILESS_MAIN(KisStrokeJobContractTest)
