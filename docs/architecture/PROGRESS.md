@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 16:32 JST
+- 更新日時: 2026-08-29 16:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,15 +15,15 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`painting-metadata-parser`は`in_progress`である。`libs/painting/metadata/kis_meta_data_parser.{h,cc}`、
+- 統合担当`painting-metadata-parser`は`implemented`である。`libs/painting/metadata/kis_meta_data_parser.{h,cc}`、
   値実装、Metadata CMake、新規限定試験を所有し、解析接続面の3 APIを対象とする。
 - 実装担当`psdutils-offset-exit-verifier`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/psdutils/asl/kis_offset_on_exit_verifier.h`と新規限定試験を所有し、
   読取り終了位置補正の3 APIを対象とする。
-- 実装担当`psdutils-compression`は`running`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`psdutils-compression`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/psdutils/compression.{h,cpp}`、PSD Utils CMake、既存または新規限定試験を所有し、
   圧縮と展開の3 APIを対象とする。
-- 実装担当`tools-deselect-shapes-policy`は`running`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`tools-deselect-shapes-policy`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。`libs/tools/kis_delegated_tool_policies.{h,cpp}`、Tools CMake、新規限定試験を所有し、
   図形選択解除方針の2 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -8024,9 +8024,29 @@
   現在無効な診断文、シーク不能な装置、
   復元失敗、負の許容余白は後続の外部結果契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b メタデータ解析接続面の全public API契約と小構築対象で完了した作業
+
+- メタデータ解析の接続面を固定するたびに、ウィジェット群を含む製品試験全体を要求していた。`libs/painting/metadata/kis_meta_data_parser.cc`と
+  `libs/painting/metadata/kis_meta_data_value.cc`を`kritapaintingmetadata_LIB_SRCS`から新規`kritapaintingmetadataparserobjects`へ移し、
+  同じ製品へ各生成物を一度再集約した。公開ヘッダーと実装ファイルの位置を維持しながら、解析と結果値だけを独立して構築できる
+  所有単位にした。
+- `libs/painting/metadata/kis_meta_data_parser.h`の全3 APIを、新規
+  `libs/painting/metadata/tests/KisMetaDataParserContractTest.cpp`の1試験へ対応付けた。公開基底からの`parse()`が派生解析器へ一度
+  委譲されて値を返すこと、基底所有権から破棄すると派生デストラクターが一度呼ばれることを固定した。実装接続前のリンクは
+  解析基底デストラクター、型情報、値の構築・破棄・取得だけを未解決記号として診断した。
+- 既存`kis_meta_data_test`は261工程・552入力、製品`kritapaintingmetadata`は257工程・545入力である。新規専用対象は2工程・5入力、
+  契約対象は7工程・16入力である。専用対象の直接依存はQt Core、KF I18n、Boostヘッダーで、契約対象は専用対象、既存の
+  `kritaglobaldebugobjects`、Qt Testを使用する。値実装が持つ安全確認効果は試験内の決定的な空実装へ接続した。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、解析基底デストラクターと4具象解析関数を専用生成物が定義すること、
+  製品の構築命令が解析と値の各生成物を一度だけ再集約することを確認した。対象CTestの単発実行と20回反復、1,158対象の
+  パッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,099件、
+  未対応24,890件になった。
+  各具象解析器の文字列表現規則は既存`kis_meta_data_test`が維持し、個別APIとして公開された場合に台帳へ接続する。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第7並列便のメタデータ解析、PSD圧縮、図形選択解除方針の限定契約を実装・統合する。
+第7並列便のPSD圧縮と図形選択解除方針の限定契約を順に統合する。
 
 ## R1-G5完了根拠
 

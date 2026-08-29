@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24893
+    "expectedMissingApis": 24890
   },
   "contracts": [
     {
@@ -14295,6 +14295,18 @@
         "class:KisOffsetOnExitVerifier",
         "method:KisOffsetOnExitVerifier::KisOffsetOnExitVerifier(QIODevice & device,qint64 expectedOffset,int maxPadding,const QString & objectName=\"\",const QString & domain=\"\")",
         "method:KisOffsetOnExitVerifier::~KisOffsetOnExitVerifier()"
+      ]
+    },
+    {
+      "target": "KisMetaDataParserContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataParserContractTest.cpp",
+      "test": "KisMetaDataParserContractTest::publicBaseDispatchesParsingAndDestruction",
+      "behavior": "公開解析基底を通じたparse呼出しが派生解析器へ一度委譲されて値を返し、基底所有権からの破棄が派生デストラクターを一度呼ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::Parser",
+        "method:KisMetaData::Parser::parse(const QString &) const",
+        "method:KisMetaData::Parser::~Parser()"
       ]
     }
   ]
