@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24868
+    "expectedMissingApis": 24864
   },
   "contracts": [
     {
@@ -14448,6 +14448,28 @@
       "classification": "maintained",
       "apis": [
         "method:KisHighlightedToolButton::changeEvent(QEvent * event)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceWriterContractTest",
+      "source": "libs/image/tests/KisPaintDeviceWriterContractTest.cpp",
+      "test": "KisPaintDeviceWriterContractTest::virtualWritesPreservePayloadsLengthsAndResults",
+      "behavior": "基底接続面から両writeオーバーロードを呼ぶと、QByteArrayの全バイトとraw入力の明示長範囲を派生実装へ正確に1回渡し、派生実装の戻り値をそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintDeviceWriter",
+        "method:KisPaintDeviceWriter::write(const QByteArray & data)",
+        "method:KisPaintDeviceWriter::write(const char * data,qint64 length)"
+      ]
+    },
+    {
+      "target": "KisPaintDeviceWriterContractTest",
+      "source": "libs/image/tests/KisPaintDeviceWriterContractTest.cpp",
+      "test": "KisPaintDeviceWriterContractTest::baseOwnershipDestroysDerivedExactlyOnce",
+      "behavior": "基底型が所有する派生writerを破棄すると、仮想デストラクター経由で派生デストラクターを正確に1回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintDeviceWriter::~KisPaintDeviceWriter()"
       ]
     }
   ]

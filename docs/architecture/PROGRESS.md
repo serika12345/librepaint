@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:06 JST
+- 更新日時: 2026-08-29 18:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,7 +18,7 @@
 - 統合担当`psdutils-cos-writer`は`verified`である。`libs/psdutils/cos/kis_cos_writer.{h,cpp}`、
   `libs/psdutils/{CMakeLists.txt,tests/CMakeLists.txt}`、新規限定試験を所有し、COSとTxt2の直列化3 APIを対象とする。
   最も近い既存契約は`psd_cos_parser_test`、対象はmacOS、統合順は1である。
-- 実装担当`image-device-writer`は`ready`、搬送コミットは`77fe9842c8`、構築実行許可は`granted`、
+- 実装担当`image-device-writer`は`integrated`、統合コミットは`5d8c3e25ad`、構築実行許可は`granted`、
   Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_paint_device_writer.h`、
@@ -8196,10 +8196,25 @@
   主Ninja木、参照中の開発環境は保持した。共有ccache上限は容量回復時の256 MiBを維持し、並列便完了後に利用率を
   再評価する。
 
+## R2-G19b 画素装置writer接続面の全public API契約で完了した作業
+
+- `libs/image/kis_paint_device_writer.h`の全4 APIを、新規
+  `libs/image/tests/KisPaintDeviceWriterContractTest.cpp`の2試験へ対応付けた。基底接続面から
+  `QByteArray`版へ埋込みNULを含む全バイトを渡すこと、raw版へ明示長の範囲だけを渡すこと、両経路が
+  派生実装を正確に1回呼び出して戻り値を透過すること、基底所有から派生デストラクターを正確に1回
+  実行することを固定した。
+- 製品実装、公開ヘッダー、所有ファイル位置は変更していない。新規試験はヘッダーだけで派生writerを定義し、
+  Image製品1,081工程・2,186入力へ接続しない。最近傍のヘッダー限定契約と新規対象はいずれも4工程・8入力、
+  直接の内部対象依存は自動生成処理だけで、外部依存はQt CoreとQt Testに限定される。初回診断は未登録対象を
+  `unknown target`として報告し、CMake接続後の動的ライブラリー監査では`libkrita*`依存がないことを確認した。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復に成功し、統合側のパッケージ境界検査は
+  1,170対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,125件、未対応24,864件になった。
+  具体的な保存先への書込みは既存`KisStorePaintDeviceWriterTest`が担当する。Linux、全ネイティブ検証、製品全体構築は
+  実行していない。
+
 ## 次の操作
 
-`image-device-writer`を統合し、続いて`surface-color-query`、`widget-menu-alt-style`の順に
-各担当差分を一件ずつ検査・統合する。
+`surface-color-query`を統合し、続いて`widget-menu-alt-style`の差分を検査・統合する。
 
 ## R1-G5完了根拠
 
