@@ -100,6 +100,19 @@ target_include_directories(KisPopupSelfActivatingLineEditContractTest PRIVATE
 )
 target_compile_definitions(KisPopupSelfActivatingLineEditContractTest PRIVATE kritawidgetutils_EXPORTS)
 
+kis_add_test(
+    KisSpinBoxI18nHelperContractTest.cpp
+    LINK_LIBRARIES
+        kritaspinboxi18nhelperobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisSpinBoxI18nHelperContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisSpinBoxI18nHelperContractTest PRIVATE kritawidgetutils_EXPORTS)
+
 ki18n_wrap_ui(DialogStateSaver_SRCS
     dialogsavertestwidget.ui
 )

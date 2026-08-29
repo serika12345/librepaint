@@ -104,6 +104,21 @@ target_include_directories(kritapopupselfactivatinglineeditobjects
 target_link_libraries(kritapopupselfactivatinglineeditobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritapopupselfactivatinglineeditobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritaspinboxi18nhelperobjects OBJECT
+    KisSpinBoxI18nHelper.cpp
+)
+target_compile_definitions(kritaspinboxi18nhelperobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritaspinboxi18nhelperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaspinboxi18nhelperobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaspinboxi18nhelperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -113,6 +128,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritapopupbuttonobjects>
     $<TARGET_OBJECTS:kritamenustyledontcloseonaltobjects>
     $<TARGET_OBJECTS:kritapopupselfactivatinglineeditobjects>
+    $<TARGET_OBJECTS:kritaspinboxi18nhelperobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -147,7 +163,6 @@ set(kritawidgetutils_LIB_SRCS
     KisOptionCollectionWidget.cpp
     KisOptionButtonStrip.cpp
     KisRepaintDebugger.cpp
-    KisSpinBoxI18nHelper.cpp
     KisScreenMigrationTracker.cpp
     KisRootSurfaceTrackerBase.cpp
 
