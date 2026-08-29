@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:24 JST
+- 更新日時: 2026-08-29 19:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,22 +15,22 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`properties-serialization`は`preparing`、統合順は1である。
+- 統合担当`properties-serialization`は`implementing`、統合順は1である。
   `libs/widgetutils/KoProperties.{h,cpp}`、既存`libs/widgetutils/tests/KoPropertiesTest.{h,cpp}`、Widget Utils製品・
   試験CMakeを所有する。既存試験を巨大な共有試験群から専用対象へ分け、値の設定・取得・型変換・反復・コピー・
   XML保存復元・失敗時保持・等値・破棄の全20 APIを対象とする。
-- 実装担当`resource-bundle-manifest`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`resource-bundle-manifest`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-resource-bundle-manifest`であり、
   `libs/resources/KoResourceBundleManifest.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。参照値、
   型・タグ・全件と型別の列挙、追加・削除、XML保存復元、無効入力の全20 APIを対象とする。
-- 実装担当`runnable-stroke-job-builders`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`runnable-stroke-job-builders`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-runnable-stroke-job-builders`であり、
   `libs/image/KisRunnableStrokeJobUtils.h`、既存`libs/image/tests/KisStrokeJobContractTest.cpp`とImage試験CMakeを所有する。
   既存`kritaimagestrokejobobjects`を再利用し、順次・排他・並行・障壁・一意並行、詳細度指定、取消不能の
   全17 APIが生成するジョブ属性と実行を対象とする。
-- 実装担当`algebra-geometry-primitives`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`algebra-geometry-primitives`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-algebra-geometry-primitives`であり、`libs/global/kis_algebra_2d.h`、
   Global試験CMake、新規限定試験を所有する。ヘッダー内で完結する半平面・外円・Halton列の20 APIと、積・長さ・
