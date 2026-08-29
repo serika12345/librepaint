@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 16:20 JST
+- 更新日時: 2026-08-29 16:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,7 +23,7 @@
 - 実装担当`pigment-debug-category`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/pigment/DebugPigment.cpp`、Pigment CMake、新規限定試験を所有し、
   色管理診断カテゴリの1 APIを対象とする。
-- 実装担当`widgets-debug-category`は`running`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`widgets-debug-category`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。`libs/widgets/WidgetsDebug.cpp`、Widgets CMake、新規限定試験を所有し、
   ウィジェット診断カテゴリの1 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -7993,9 +7993,25 @@
   対応済み5,092件、未対応24,897件になった。Qtの診断フィルターは処理全体の状態であり、本試験は専用実行形式で規則を空にして
   観測する。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b ウィジェット診断カテゴリのpublic API契約と小構築対象で完了した作業
+
+- ウィジェットの診断分類だけを変更した際に製品全体の構築閉包を要求していた。`libs/widgets/WidgetsDebug.cpp`を
+  `kritawidgets_LIB_SRCS`から新規`kritawidgetsdebugobjects`へ移し、同じ製品へ生成物を一度再集約した。公開ヘッダー、
+  実装内容、実装ファイルの位置を維持しながら、診断カテゴリだけを独立して構築・検査できる所有単位にした。
+- `libs/widgets/WidgetsDebug.h`の`WIDGETS_LOG()`を、新規`libs/widgets/tests/WidgetsDebugContractTest.cpp`の1試験へ
+  対応付けた。処理中に同じカテゴリ実体を返すこと、カテゴリ名`krita.lib.widgets`、debugを無効にして
+  info・warning・criticalを有効にする既定重大度を固定した。実装接続前のリンクは`WIDGETS_LOG()`だけを未解決記号として診断した。
+- 変更前後の製品`kritawidgets`は706工程・1,441入力で不変である。専用対象は1工程・3入力、契約対象は5工程・11入力であり、
+  直接依存は専用対象がQt Core、契約対象が専用対象とQt Testだけである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、専用生成物だけが`WIDGETS_LOG()`を定義することを確認した。
+  対象CTestの単発実行と20回反復、1,155対象のパッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は
+  1,549ヘッダー、29,989 API、
+  対応済み5,093件、未対応24,896件になった。Qtの診断フィルターは処理全体の状態であり、本試験は専用実行形式で規則を空にして
+  観測する。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第6並列便のウィジェット診断の限定契約を統合し、公開API台帳へ反映する。
+最新の公開API報告から構築範囲が重ならない第7並列便を選び、限定契約の実装を継続する。
 
 ## R1-G5完了根拠
 

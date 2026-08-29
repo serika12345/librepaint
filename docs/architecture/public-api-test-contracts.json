@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24897
+    "expectedMissingApis": 24896
   },
   "contracts": [
     {
@@ -14273,6 +14273,16 @@
       "classification": "maintained",
       "apis": [
         "function:PIGMENT_log()"
+      ]
+    },
+    {
+      "target": "WidgetsDebugContractTest",
+      "source": "libs/widgets/tests/WidgetsDebugContractTest.cpp",
+      "test": "WidgetsDebugContractTest::categoryHasStableIdentityAndDefaultSeverity",
+      "behavior": "ウィジェット層の診断カテゴリは同一実体と安定名krita.lib.widgetsを返し、既定ではdebugを無効、info・warning・criticalを有効にする。",
+      "classification": "maintained",
+      "apis": [
+        "function:WIDGETS_LOG()"
       ]
     }
   ]
