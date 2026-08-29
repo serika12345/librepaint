@@ -357,6 +357,29 @@ set_target_properties(kritaglobaldebugobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobaldomutilsobjects OBJECT
+    kis_dom_utils.cpp
+)
+target_compile_definitions(kritaglobaldomutilsobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaldomutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaldomutilsobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaglobaldomutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalconfignotifierobjects OBJECT
     kis_config_notifier.cpp
     kis_config_notifier.h
@@ -644,7 +667,6 @@ set_target_properties(kritaglobalhandlepainterhelperobjects PROPERTIES
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_algebra_2d.cpp
-    kis_dom_utils.cpp
     KisUsageLogger.cpp
     KisBezierUtils.cpp
     KisBezierMesh.cpp
@@ -687,6 +709,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalregionobjects>
     $<TARGET_OBJECTS:kritaglobalmemoryleaktrackerobjects>
     $<TARGET_OBJECTS:kritaglobaldebugobjects>
+    $<TARGET_OBJECTS:kritaglobaldomutilsobjects>
     $<TARGET_OBJECTS:kritaglobalconfignotifierobjects>
     $<TARGET_OBJECTS:kritaglobalpaintingtweaksobjects>
     $<TARGET_OBJECTS:kritaglobalhandlestyleobjects>

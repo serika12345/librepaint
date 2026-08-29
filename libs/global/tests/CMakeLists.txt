@@ -453,6 +453,19 @@ kis_add_test(
 target_compile_definitions(KisDebugContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisDomUtilsContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobaldomutilsobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
+)
+target_compile_definitions(KisDomUtilsContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisQStringListFwdTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
