@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 16:12 JST
+- 更新日時: 2026-08-29 16:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,7 +17,7 @@
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
 - 統合担当`painting-magic-string`は`implemented`である。`libs/painting/undo/kundo2magicstring.h`、Painting試験CMake、
   新規限定試験を所有し、undo操作名の文字列表現と書式化31 APIを対象とする。
-- 実装担当`psdutils-offset-keeper`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`psdutils-offset-keeper`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/psdutils/asl/kis_offset_keeper.h`と新規限定試験を所有し、
   装置位置のスコープ復元3 APIを対象とする。
 - 実装担当`pigment-debug-category`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -7962,9 +7962,24 @@
   1,549ヘッダー、29,989 API、対応済み5,088件、未対応24,901件になった。
   翻訳済みカタログを導入した場合の各言語表示は別の地域化契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 装置位置のスコープ復元の全public API契約で完了した作業
+
+- `libs/psdutils/asl/kis_offset_keeper.h`のヘッダー内実装と`kritapsdutils`の製品所有を維持した。新規
+  `libs/psdutils/tests/KisOffsetKeeperContractTest.cpp`は製品ライブラリーへリンクせず、公開ヘッダーとQtだけで検査する。
+  製品コードのファイル移動と公開面の変更はない。
+- 同ヘッダーの全3 APIを2試験へ対応付けた。構築時の`QIODevice`位置を保存し、スコープ内で位置が変わった場合は破棄時に
+  元位置へ正確に1回復元すること、位置が変わっていない場合は不要な`seek()`を呼ばないことを固定した。CMake接続前の赤段階は
+  対象が未定義であることを診断した。
+- 製品`kritapsdutils`は565工程・1,160入力、最近傍の値契約は4工程・8入力である。新規対象も4工程・8入力で、直接依存は
+  Qt Core、Qt Test、macOS基盤だけであり、製品ライブラリーを接続しない。
+- 統合担当のmacOS構築木で限定対象を構築し、対象CTestの単発実行と20回反復、1,151対象のパッケージ境界検査、
+  公開API契約検査、高速検査に成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,091件、未対応24,898件になった。シーク不能な装置と復元失敗時の扱いは、
+  その外部結果を公開する後続契約の対象とする。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第6並列便の装置位置復元、色管理診断、ウィジェット診断の限定契約を順に統合し、公開API台帳へ反映する。
+第6並列便の色管理診断、ウィジェット診断の限定契約を順に統合し、公開API台帳へ反映する。
 
 ## R1-G5完了根拠
 

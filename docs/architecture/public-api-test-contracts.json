@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24901
+    "expectedMissingApis": 24898
   },
   "contracts": [
     {
@@ -14242,6 +14242,27 @@
         "function:kundo2_i18ncp(const char * ctxt,const char * sing,const char * plur,const A1 & a1,const A2 & a2)",
         "function:kundo2_i18ncp(const char * ctxt,const char * sing,const char * plur,const A1 & a1,const A2 & a2,const A3 & a3)",
         "function:kundo2_i18ncp(const char * ctxt,const char * sing,const char * plur,const A1 & a1,const A2 & a2,const A3 & a3,const A4 & a4)"
+      ]
+    },
+    {
+      "target": "KisOffsetKeeperContractTest",
+      "source": "libs/psdutils/tests/KisOffsetKeeperContractTest.cpp",
+      "test": "KisOffsetKeeperContractTest::changedPositionIsRestoredOnDestruction",
+      "behavior": "構築時の装置位置を保存し、スコープ内で位置が変わった場合は破棄時に元位置へ正確に1回seekして復元する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOffsetKeeper",
+        "method:KisOffsetKeeper::KisOffsetKeeper(QIODevice & device)"
+      ]
+    },
+    {
+      "target": "KisOffsetKeeperContractTest",
+      "source": "libs/psdutils/tests/KisOffsetKeeperContractTest.cpp",
+      "test": "KisOffsetKeeperContractTest::unchangedPositionDoesNotSeekOnDestruction",
+      "behavior": "装置位置が構築時から変わっていない場合、破棄時にseekを呼ばず同じ位置を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOffsetKeeper::~KisOffsetKeeper()"
       ]
     }
   ]
