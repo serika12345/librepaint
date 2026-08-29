@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 06:21 JST
+- 更新日時: 2026-08-30 06:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,25 +14,25 @@
 - 第31並列便の共通基準コミットは`8814a2d1c1`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g31-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`fake-progress`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`fake-progress`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/widgetutils/KoFakeProgressProxy.cpp`、WidgetUtils製品・試験CMake、新規`KoFakeProgressProxyContractTest.cpp`を所有する。
   開始ファイルを製品`kritawidgetutils`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の248工程・529入力に代えて、
   既存`kritawidgetutilsprogressupdaterobjects`を直接再利用する12工程・24入力以内で、固定最大値、無状態の更新入口、singleton同一性と
   複数threadからの取得の全7 APIを固定する。既存進捗基底生成物は9工程・18入力の最近傍契約でも所有単位として使われており、限定閉包が
   十分小さいため追加分割しない。
-- 実装担当`derived-resource-converter`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`derived-resource-converter`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g31-derived-resource-converter`で
   `libs/flake/KoDerivedResourceConverter.cpp`、Flake製品・試験CMake、新規`KoDerivedResourceConverterContractTest.cpp`を所有する。
   開始ファイルを製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の566工程・1,164入力と従来
   `TestResourceManager`の570工程・1,171入力に代えて6工程・13入力以内で、key、共有寿命、読取り・通知のcache状態、書込み変換と
   `changed`規約の全9 APIを固定する。
-- 実装担当`composite-progress`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`composite-progress`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g31-composite-progress`で
   `libs/image/kis_composite_progress_proxy.cpp`、Image製品・試験CMake、新規`KisCompositeProgressProxyContractTest.cpp`を所有する。
   開始ファイルを製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の1,109工程・2,242入力に代えて、
   既存進捗基底生成物を直接再利用する12工程・24入力以内で、空状態、先頭maximum、重複登録の一重配送、追加順、重複回数を消費する除去、
   値・範囲・書式・自動入れ子名配送の全8 APIを固定する。
-- 実装担当`stretched-icon-button`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`stretched-icon-button`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリー`/Users/masato/Documents/librepaint-r2-g31-stretched-icon-button`で
   `libs/widgets/KisStretchedIconButton.cpp`、Widgets製品・試験CMake、新規`KisStretchedIconButtonContractTest.cpp`を所有する。
   開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC不要の専用生成物へ移し、製品へ1回だけ再集約する。製品の734工程・
@@ -9562,8 +9562,8 @@
 
 ## 次の操作
 
-第31並列便の専用作業木を共通基準コミットから作り、各限定対象が未知で失敗する初回診断を記録する。統合担当が各実装担当へ構築実行を
-許可した後、記録済みの停止上限と直接依存を再確認し、許可パス内だけで最小契約を追加する。
+第31並列便の4担当が、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認してから、許可パス内だけで
+最小契約を追加する。各担当は対象単発・20回反復、軽量隣接試験、必要な製品への1回再集約、製品共有ライブラリー非接続を確認する。
 
 ## R1-G5完了根拠
 
