@@ -1,87 +1,14 @@
 #include "kis_convex_hull.h"
 
+#include "kis_convex_hull_p.h"
+
 #include "kis_paint_device.h"
 #include "kis_random_accessor_ng.h"
 #include "KoColorSpace.h"
 #include "KoColor.h"
 #include "KoColorModelStandardIds.h"
 
-#include <boost/geometry.hpp>
-
-#include <QElapsedTimer>
-
-namespace boost
-{
-    namespace geometry
-    {
-        namespace traits
-        {
-            // Adapt QPoint to Boost.Geometry
-
-            template<> struct tag<QPoint>
-            { typedef point_tag type; };
-
-            template<> struct coordinate_type<QPoint>
-            { typedef int type; };
-
-            template<> struct coordinate_system<QPoint>
-            { typedef cs::cartesian type; };
-
-            template<> struct dimension<QPoint> : boost::mpl::int_<2> {};
-
-            template<>
-            struct access<QPoint, 0>
-            {
-                static int get(QPoint const& p)
-                {
-                    return p.x();
-                }
-
-                static void set(QPoint& p, int const& value)
-                {
-                    p.rx() = value;
-                }
-            };
-
-            template<>
-            struct access<QPoint, 1>
-            {
-                static int get(QPoint const& p)
-                {
-                    return p.y();
-                }
-
-                static void set(QPoint& p, int const& value)
-                {
-                    p.ry() = value;
-                }
-            };
-
-            // Adapt QPolygon to Boost.Geometry as Linestring
-
-            template<> struct tag<QPolygon>
-            { typedef linestring_tag type; };
-            
-        }
-    }
-
-    template <>
-    struct range_iterator<QPolygon>
-    { typedef QPolygon::iterator type; };
-
-    template<>
-    struct range_const_iterator<QPolygon>
-    { typedef QPolygon::const_iterator type; };
-} // namespace boost::geometry::traits
-
 namespace {
-
-QPolygon convexHull(const QVector<QPoint> &points)
-{
-    QPolygon hull;
-    boost::geometry::convex_hull(QPolygon(points), hull);
-    return hull;
-}
 
 // From libs/image/kis_paint_device.cc
 struct CheckFullyTransparent {
@@ -254,30 +181,14 @@ QVector<QPoint> retrieveAllBoundaryPointsSelectionLike(const KisPaintDevice *dev
 
 }
 
-namespace KisConvexHull {
-
-QPolygon findConvexHull(const QVector<QPoint> &points)
+namespace KisConvexHullPrivate
 {
-    QPolygon hull = convexHull(points);
-    return hull;
-}
 
-QPolygon findConvexHull(KisPaintDeviceSP device)
+QVector<QPoint> retrieveBoundaryPoints(const KisPaintDeviceSP &device, BoundaryMode mode)
 {
-    QElapsedTimer timer;
-    timer.start();
-    auto ps = retrieveAllBoundaryPoints(device);
-    auto p = findConvexHull(ps);
-    return p;
+    return mode == BoundaryMode::SelectionLike
+        ? retrieveAllBoundaryPointsSelectionLike(device.data())
+        : retrieveAllBoundaryPoints(device.data());
 }
 
-QPolygon findConvexHullSelectionLike(KisPaintDeviceSP device)
-{
-    QElapsedTimer timer;
-    timer.start();
-    auto ps = retrieveAllBoundaryPointsSelectionLike(device);
-    auto p = findConvexHull(ps);
-    return p;
-}
-
-}
+} // namespace KisConvexHullPrivate

@@ -212,6 +212,73 @@ set_target_properties(kritaimagenodecommandobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageconvexhullpointsobjects OBJECT
+   kis_convex_hull_points.cpp
+)
+target_compile_definitions(kritaimageconvexhullpointsobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageconvexhullpointsobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageconvexhullpointsobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      Boost::boost
+)
+set_target_properties(kritaimageconvexhullpointsobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimageconvexhulldeviceobjects OBJECT
+   kis_convex_hull_device.cpp
+)
+target_compile_definitions(kritaimageconvexhulldeviceobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageconvexhulldeviceobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageconvexhulldeviceobjects
+   PUBLIC
+      kritaimageconvexhullpointsobjects
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaimageconvexhulldeviceobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimageconvexhulldevicereaderobjects OBJECT
+   kis_convex_hull.cpp
+)
+target_compile_definitions(kritaimageconvexhulldevicereaderobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageconvexhulldevicereaderobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageconvexhulldevicereaderobjects
+   PUBLIC
+      kritapigment
+      kritaglobal
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaimageconvexhulldevicereaderobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -525,7 +592,6 @@ set(kritaimage_LIB_SRCS
    KisBezierTransformMesh.cpp
 
    KisEncloseAndFillPainter.cpp
-   kis_convex_hull.cpp
    KisSpatialContainer.cpp
 )
 
@@ -551,6 +617,9 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagebackgroundframegenerationlockobjects>
    $<TARGET_OBJECTS:kritaimageframegenerationlockobjects>
    $<TARGET_OBJECTS:kritaimagenodecommandobjects>
+   $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>
+   $<TARGET_OBJECTS:kritaimageconvexhulldeviceobjects>
+   $<TARGET_OBJECTS:kritaimageconvexhulldevicereaderobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
