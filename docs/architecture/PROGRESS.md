@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 10:49 JST
+- 更新日時: 2026-08-29 10:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7301,12 +7301,32 @@
   公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,911件、
   未対応25,078件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 表示結果・既定ペイントレイヤー作成 public API契約と画像グラフ効果分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった表示結果からのレイヤー作成入口と既定ペイントレイヤー作成入口を、
+  新規`libs/ui/nodes/KisNodeManagerLayerCreation.cpp`へ移した。具体的な現在画像、ルート最終子、表示結果レイヤー
+  作成、一般ノード作成、レイヤー型変換へのアクセスは移動元の保護境界に残し、製品`kritaapplicationui`は新規
+  `kritauinodemanagerlayercreationobjects`の生成物を1回集約する。画像とノードは具体所有側が保持し、新しい入口は
+  処理期間だけ借用する。
+- `libs/ui/nodes/kis_node_manager.h`のレイヤー作成補助2 APIを、新規
+  `libs/ui/tests/KisNodeManagerLayerCreationContractTest.cpp`の2試験へ対応付けた。現在画像とルート最終子の引渡し、
+  `KisPaintLayer`型の指定、一般作成結果をレイヤー所有値として返す規則を固定した。実装接続前のリンクは対象2 API
+  だけを未解決記号として診断した。
+- 変更前の既存`KisNodeManagerTest`は1,823工程・3,645入力、直近の専用試験は5工程・17入力だった。製品未接続の
+  赤試験は4工程・14入力、レイヤー作成入口対象は1工程・3入力、緑化後の試験は5工程・17入力に収めた。製品
+  `kritaapplicationui`閉包は1,819工程・3,638入力から1,820工程・3,640入力、既存試験は1,824工程・3,647入力に
+  なった。
+- レイヤー作成入口対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復は
+  成功した。公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,913件、
+  未対応25,076件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る16 APIのうち、表示結果からのレイヤー作成と既定ペイントレイヤー作成を
-担う2 APIを次の小単位とする。`kis_node_manager.cpp`の`createFromVisible()`と`createPaintLayer()`について、対象指定の
-変更なし計画、直接CMake依存、空構築閉包を監査し、表示画像・ルート最終子の引渡し、ペイントレイヤー型の指定、
-作成結果のレイヤー型判定を具体的な画像グラフ・レイヤー管理から分けて挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る14 APIのうち、文字列で指定したノード型の作成と活動ノードの型変換を
+担う2 APIを次の小単位とする。`kis_node_manager.cpp`の`createNode()`と`convertNode()`について、対象指定の変更なし
+計画、直接CMake依存、空構築閉包を監査し、保留中操作の完了、活動ノードまたはルートの選択、レイヤー・マスク・
+複製ノードの型別作成、変換前の変更可否、マスク変換のUndo範囲と失敗復旧、未対応型の拒否を具体的なレイヤー・
+マスク管理とUndo効果から分けて挙動契約を追加する。
 
 ## R1-G5完了根拠
 

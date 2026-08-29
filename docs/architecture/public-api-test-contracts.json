@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25078
+    "expectedMissingApis": 25076
   },
   "contracts": [
     {
@@ -12864,6 +12864,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::createReferenceImage(bool fromLayer)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerLayerCreationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerLayerCreationContractTest.cpp",
+      "test": "KisNodeManagerLayerCreationContractTest::visibleLayerUsesCurrentImageAndLastRootChild",
+      "behavior": "表示結果からのレイヤー作成は現在画像とルートの最終子を取得し、その最終子の後へ新しい表示結果レイヤーを作る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createFromVisible()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerLayerCreationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerLayerCreationContractTest.cpp",
+      "test": "KisNodeManagerLayerCreationContractTest::paintLayerUsesConcreteNodeTypeAndReturnsLayer",
+      "behavior": "既定ペイントレイヤー作成はKisPaintLayer型を一般ノード作成へ指定し、作成結果をレイヤー所有値として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createPaintLayer()"
       ]
     },
     {

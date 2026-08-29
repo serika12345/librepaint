@@ -692,15 +692,25 @@ KisNodeSP  KisNodeManager::createNode(const QString & nodeType, bool quiet, KisP
     return 0;
 }
 
-void KisNodeManager::createFromVisible()
+KisImage *KisNodeManager::LayerCreationAccess::image(KisNodeManager *manager)
 {
-    KisLayerUtils::newLayerFromVisible(m_d->view->image(), m_d->view->image()->root()->lastChild());
+    return manager->m_d->view->image().data();
 }
 
-KisLayerSP KisNodeManager::createPaintLayer()
+KisNode *KisNodeManager::LayerCreationAccess::rootLastChild(KisImage *image)
 {
-    KisNodeSP node = createNode("KisPaintLayer");
-    return dynamic_cast<KisLayer*>(node.data());
+    return image->root()->lastChild().data();
+}
+
+void KisNodeManager::LayerCreationAccess::createFromVisible(KisImage *image, KisNode *putAfter)
+{
+    KisLayerUtils::newLayerFromVisible(KisImageSP(image), KisNodeSP(putAfter));
+}
+
+KisLayerSP KisNodeManager::LayerCreationAccess::createPaintLayer(KisNodeManager *manager, const QString &nodeType)
+{
+    KisNodeSP node = manager->createNode(nodeType);
+    return dynamic_cast<KisLayer *>(node.data());
 }
 
 void KisNodeManager::convertNode(const QString &nodeType)

@@ -586,6 +586,13 @@ protected:
                                         bool singleLine);
     };
 
+    struct KRITAUI_EXPORT LayerCreationAccess {
+        static KisImage *image(KisNodeManager *manager);
+        static KisNode *rootLastChild(KisImage *image);
+        static void createFromVisible(KisImage *image, KisNode *putAfter);
+        static KisLayerSP createPaintLayer(KisNodeManager *manager, const QString &nodeType);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1
