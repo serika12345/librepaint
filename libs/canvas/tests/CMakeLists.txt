@@ -11,6 +11,26 @@ kis_add_test(
 )
 target_compile_definitions(KisInputActionGroupContractTest PRIVATE kritacanvas_EXPORTS)
 
+kis_add_test(
+    KisTileDataPoolContractTest.cpp
+    LINK_LIBRARIES
+        kritacanvastiledatapoolobjects
+        kritaglobalsignalcompressorobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisTileDataPoolContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisTileDataPoolContractTest PRIVATE
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+)
+
 kis_add_tests(
     kis_prescaled_projection_contract_test.cpp
     LINK_LIBRARIES kritacanvas kritatestsdk

@@ -13,6 +13,28 @@ set_target_properties(kritacanvasinputactiongroupobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritacanvastiledatapoolobjects OBJECT
+    tiles/kis_tile_data_pool.h
+    tiles/kis_tile_data_pool.cpp
+)
+target_compile_definitions(kritacanvastiledatapoolobjects PRIVATE kritacanvas_EXPORTS)
+target_include_directories(kritacanvastiledatapoolobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritacanvastiledatapoolobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritacanvastiledatapoolobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritacanvas_LIB_SRCS
     animation/kis_animation_frame_cache_index.h
     animation/kis_animation_frame_cache_index.cpp
@@ -21,8 +43,6 @@ set(kritacanvas_LIB_SRCS
     animation/kis_frame_cache_store.h
     animation/kis_frame_cache_store.cpp
     tiles/kis_tile_data_buffer.h
-    tiles/kis_tile_data_pool.h
-    tiles/kis_tile_data_pool.cpp
     color/KisOcioConfiguration.h
     color/KisSurfaceColorSpaceWrapper.h
     color/kis_display_color_filter.h
@@ -47,6 +67,7 @@ set(kritacanvas_LIB_SRCS
 kis_add_library(kritacanvas SHARED
     ${kritacanvas_LIB_SRCS}
     $<TARGET_OBJECTS:kritacanvasinputactiongroupobjects>
+    $<TARGET_OBJECTS:kritacanvastiledatapoolobjects>
 )
 generate_export_header(kritacanvas BASE_NAME kritacanvas)
 
