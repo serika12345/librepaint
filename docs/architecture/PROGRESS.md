@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 05:26 JST
+- 更新日時: 2026-08-30 05:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,32 +11,13 @@
 
 ### 現在の並列担当票
 
-- 第29並列便の共通基準コミットは`1adc541c3a`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g29-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-  共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`figure-painting-options`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/painting/KisFigurePaintingOptions.h`、Painting試験CMake、新規`KisFigurePaintingOptionsContractTest.cpp`を所有する。実装は
-  header内の列挙値だけであり、従来`TestPaintingBoundary`の1,129工程・2,279入力に代えて4工程・8入力前後で、塗りと輪郭の全9 APIを
-  安定した序数と異なる型として固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`abstract-canvas-resource`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g29-abstract-canvas-resource`を予定し、
-  `libs/flake/KoAbstractCanvasResourceInterface.cpp`、Flake製品・試験CMake、新規`KoAbstractCanvasResourceInterfaceContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存試験の566工程・
-  1,162入力に代えて8工程・16入力以内で、キー、値の仮想配送、外部変更通知、共有所有、基底寿命の全7 APIを固定する。
-- 実装担当`perspective-math`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
-  作業ツリーは`/Users/masato/Documents/librepaint-r2-g29-perspective-math`を予定し、`libs/image/kis_perspective_math.cpp`、Image製品・試験CMake、
-  新規`KisPerspectiveMathContractTest.cpp`を所有する。開始ファイルを製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ
-  再集約する。製品の1,103工程・2,230入力に代えて6工程・13入力以内で、行列別名、点変換、四辺形と矩形の双方向写像の全9 APIを固定する。
-- 実装担当`wrappable-hbox-layout`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g29-wrappable-hbox-layout`を予定し、
-  `libs/widgetutils/KisWrappableHBoxLayout.cpp`、WidgetUtils製品・試験CMake、新規`KisWrappableHBoxLayoutContractTest.cpp`を所有する。開始ファイルを
-  製品`kritawidgetutils`の直接ソースからAUTOMOC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の246工程・525入力に代えて
-  8工程・16入力以内で、配置itemの順序・所有移管、折返し幾何、高さ、最小寸法、margin・spacing、親所有の全12 APIを固定する。
-- 第29並列便の完了時は合計37 APIを追加し、公開面の対応済み7,000件、未対応22,989件を見込む。各担当は公開面と製品挙動を
-  維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
+- 第29並列便は統合済みで、活動中の実装担当はない。共通基準`1adc541c3a`から主担当`7e47f6cc8b`、
+  Flake担当`1ad7d8fa23`、Image担当`a625339609`、WidgetUtils担当`4c7a97598a`を`develop`へ順番に統合した。
+- 次の永続操作は第30並列便の候補監査である。公開API未対応一覧`/tmp/librepaint-g29-missing.json`から、既存の軽量生成物を
+  再利用できるか、または製品直収容の実装を専用生成物へ分離できる候補を4件選び、編集前に対象の直接依存と構築閉包上限を記録する。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
-  `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
-  巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
+  `docs/architecture/public-api-test-contracts.json`を変更する。次便の実装担当は専用Git作業ツリーと専用Ninja木を使用し、許可パス外の変更、
+  公開面変更、担当外依存、巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
 
 ## 再開環境
 
@@ -9442,10 +9423,62 @@
   各担当の引渡しを統合順に取り込み、主作業ツリーで4限定対象の同時構築・CTest、必要な製品への1回再集約、公開API契約検査を
   再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,963件、未対応23,026件になった。
 
+## R2-G19b 図形描画様式識別子の全public API契約で完了した作業
+
+- `libs/painting/KisFigurePaintingOptions.h`の全9 APIを、新規
+  `libs/painting/tests/KisFigurePaintingOptionsContractTest.cpp`の2試験へ対応付けた。塗りと輪郭が異なる列挙型であること、なし、前景色、
+  背景色、模様の共有序数を固定した。実装はheader内に留まり、製品実装と製品CMakeは変更していない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は4工程・8入力で、従来`TestPaintingBoundary`の1,129工程・
+  2,279入力から縮小した。対象CTest単発と20回反復、最近傍`KisCommandIdsContractTest`、製品共有ライブラリー非接続、整形検査、
+  パッケージ境界検査に成功した。定義外列挙値、保存形式との統合、Linux、全ネイティブ検証は実行していない。
+
+## R2-G19b 外部キャンバス資源接続の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoAbstractCanvasResourceInterface.h`の全7 APIを、新規
+  `libs/flake/tests/KoAbstractCanvasResourceInterfaceContractTest.cpp`の3試験へ対応付けた。資源キー、値取得・設定の仮想配送、外部変更通知の
+  引数と順序、公開共有ポインター別名による基底所有と派生寿命を固定した。
+- 開始ファイル`libs/flake/KoAbstractCanvasResourceInterface.cpp`の構築所有を`libs/flake/CMakeLists.txt`の
+  `kritaflake_SRCS`直接収容から新規AUTOMOC/PIC対応`kritaflakeabstractcanvasresourceinterfaceobjects`へ移し、製品`kritaflake`は同生成物を
+  1回だけ再集約する。実装内容と公開ヘッダーは維持し、限定試験は同生成物とQt Core・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。主作業木の限定対象は7工程・14入力で、従来`TestResourceManager`の566工程・
+  1,162入力から縮小した。対象CTest単発と担当作業木の20回反復、最近傍`KoBehaviorInterfacesContractTest`、公開記号、一重再集約、
+  製品共有ライブラリー非接続、整形検査、パッケージ境界検査に成功した。観測手段のないdebug tag内容、queued通知、実資源管理器との統合、
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 射影点写像の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_perspective_math.h`の全9 APIを、新規`libs/image/tests/KisPerspectiveMathContractTest.cpp`の4試験へ対応付けた。
+  公開行列・ベクトル・直線別名の型と寸法、恒等・平行移動・射影項を含む点変換、非退化四辺形間の四隅写像、矩形と四辺形の双方向写像を
+  係数表現ではなく観測可能な変換点で固定した。
+- 開始ファイル`libs/image/kis_perspective_math.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  PIC対応`kritaimageperspectivemathobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。実装内容と公開ヘッダーは維持し、
+  限定試験は同生成物、Eigen、Qt Core・Gui・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力、専用生成物は1工程・3入力で、製品`kritaimage`の
+  1,103工程・2,230入力から縮小した。対象CTest単発と担当作業木の20回反復、最近傍`KisDefaultBoundsBaseContractTest`、公開記号、
+  一重再集約、製品共有ライブラリー非接続、整形検査、パッケージ境界検査に成功した。重複頂点、自己交差、特異・退化四辺形、非有限座標、
+  同次分母0、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 折返し横配置の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KisWrappableHBoxLayout.h`の全12 APIを、新規
+  `libs/widgetutils/tests/KisWrappableHBoxLayoutContractTest.cpp`の4試験へ対応付けた。親所有と保持要素の破棄、追加順、範囲外照会、
+  `takeAt()`の所有移管、幅に応じた折返し幾何と高さ、最小寸法と寸法候補を固定した。
+- 開始ファイル`libs/widgetutils/KisWrappableHBoxLayout.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の
+  `kritawidgetutils_LIB_SRCS`直接収容から新規PIC対応`kritawidgetutilswrappablehboxlayoutobjects`へ移し、製品`kritawidgetutils`は同生成物を
+  1回だけ再集約する。実装内容と公開ヘッダーは維持し、限定試験は同生成物とQt Widgets・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で、製品`kritawidgetutils`の246工程・525入力から
+  縮小した。対象CTest単発と担当作業木の20回反復、最近傍`KisOptionCollectionWidgetContractTest`、公開記号、一重再集約、製品共有
+  ライブラリー非接続、整形検査、パッケージ境界検査に成功した。配置後の`minimumSize()`が左右余白を落とし、`sizeHint()`が上下余白を
+  二重加算する現行挙動は既知不具合として固定した。null要素、負値・極端値、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第29並列便は図形描画様式9 API、外部キャンバス資源7 API、射影点写像9 API、折返し横配置12 APIの合計37 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,000件、未対応22,989件になった。
+
 ## 次の操作
 
-第29並列便の4担当が、記録した閉包上限を先に確認して限定契約を赤から開始する。各実装担当は許可パスだけを変更し、限定対象の
-単発・20回反復、軽量隣接試験、製品への1回再集約、製品共有ライブラリー非接続を確認して引き渡す。
+第30並列便の候補を`/tmp/librepaint-g29-missing.json`から監査する。各候補について現在の所有ソース、最近傍契約、変更前の構築閉包、
+限定対象の停止上限、直接依存、観測する安定挙動、除外する危険入力を記録し、中央計画コミット後に専用作業ツリーへ割り当てる。
 
 ## R1-G5完了根拠
 

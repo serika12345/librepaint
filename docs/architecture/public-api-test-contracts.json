@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23026
+    "expectedMissingApis": 22989
   },
   "contracts": [
     {
@@ -20266,6 +20266,160 @@
         "method:KisOptionCollectionWidgetWithHeader::removeWidget(int index)",
         "method:KisOptionCollectionWidgetWithHeader::takeWidget(const QString & id)",
         "method:KisOptionCollectionWidgetWithHeader::takeWidget(int index)"
+      ]
+    },
+    {
+      "target": "KisFigurePaintingOptionsContractTest",
+      "source": "libs/painting/tests/KisFigurePaintingOptionsContractTest.cpp",
+      "test": "KisFigurePaintingOptionsContractTest::fillStylesKeepTheirSharedOrdinals",
+      "behavior": "図形塗り様式は輪郭様式とは異なる列挙型を保ち、なし、前景色、背景色、模様を0から3の安定した序数で表す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisFigurePaintingOptions::FillStyle",
+        "enumerator:KisFigurePaintingOptions::FillStyle::FillStyleBackgroundColor",
+        "enumerator:KisFigurePaintingOptions::FillStyle::FillStyleForegroundColor",
+        "enumerator:KisFigurePaintingOptions::FillStyle::FillStyleNone",
+        "enumerator:KisFigurePaintingOptions::FillStyle::FillStylePattern"
+      ]
+    },
+    {
+      "target": "KisFigurePaintingOptionsContractTest",
+      "source": "libs/painting/tests/KisFigurePaintingOptionsContractTest.cpp",
+      "test": "KisFigurePaintingOptionsContractTest::strokeStylesKeepTheirSharedOrdinals",
+      "behavior": "図形輪郭様式はなし、前景色、背景色を0から2の安定した序数で表す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisFigurePaintingOptions::StrokeStyle",
+        "enumerator:KisFigurePaintingOptions::StrokeStyle::StrokeStyleBackground",
+        "enumerator:KisFigurePaintingOptions::StrokeStyle::StrokeStyleForeground",
+        "enumerator:KisFigurePaintingOptions::StrokeStyle::StrokeStyleNone"
+      ]
+    },
+    {
+      "target": "KoAbstractCanvasResourceInterfaceContractTest",
+      "source": "libs/flake/tests/KoAbstractCanvasResourceInterfaceContractTest.cpp",
+      "test": "KoAbstractCanvasResourceInterfaceContractTest::storesKeyAndDispatchesValueAccess",
+      "behavior": "外部キャンバス資源は既定または明示デバッグタグで構築したキーを保持し、基底接続面経由の値取得・設定を派生実装へ配送してQVariantの型と値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoAbstractCanvasResourceInterface",
+        "method:KoAbstractCanvasResourceInterface::KoAbstractCanvasResourceInterface(int key,const QString debugTag=QString ())",
+        "method:KoAbstractCanvasResourceInterface::key() const",
+        "method:KoAbstractCanvasResourceInterface::setValue(const QVariant value)",
+        "method:KoAbstractCanvasResourceInterface::value() const"
+      ]
+    },
+    {
+      "target": "KoAbstractCanvasResourceInterfaceContractTest",
+      "source": "libs/flake/tests/KoAbstractCanvasResourceInterfaceContractTest.cpp",
+      "test": "KoAbstractCanvasResourceInterfaceContractTest::deliversExternalChangeSignalArgumentsInOrder",
+      "behavior": "外部変更通知は負値を含む資源キーと異なる型の値を発行順に配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAbstractCanvasResourceInterface::sigResourceChangedExternal(int key,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KoAbstractCanvasResourceInterfaceContractTest",
+      "source": "libs/flake/tests/KoAbstractCanvasResourceInterfaceContractTest.cpp",
+      "test": "KoAbstractCanvasResourceInterfaceContractTest::sharedAliasOwnsThroughBaseLifetime",
+      "behavior": "公開共有ポインター別名は基底型として資源個体を共有所有し、途中の参照解放では保持し、最後の参照解放で派生個体を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoAbstractCanvasResourceInterfaceSP"
+      ]
+    },
+    {
+      "target": "KisPerspectiveMathContractTest",
+      "source": "libs/image/tests/KisPerspectiveMathContractTest.cpp",
+      "test": "KisPerspectiveMathContractTest::aliasesDescribeProjectiveStorage",
+      "behavior": "射影計算の公開別名はqrealを要素とする3x3行列、9x9行列、9x1ベクトル、2次元直線を表し、射影計算型は外部から既定構築できない静的操作の所有者である。",
+      "classification": "maintained",
+      "apis": [
+        "alias:LineEquation",
+        "alias:Matrix3qreal",
+        "alias:Matrix9qreal",
+        "alias:Vector9qreal",
+        "class:KisPerspectiveMath"
+      ]
+    },
+    {
+      "target": "KisPerspectiveMathContractTest",
+      "source": "libs/image/tests/KisPerspectiveMathContractTest.cpp",
+      "test": "KisPerspectiveMathContractTest::matProductAppliesAffineAndProjectiveTerms",
+      "behavior": "点と3x3行列の積は恒等写像と平行移動を保持し、射影項を含む場合は同次座標の分母で両座標を除算する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPerspectiveMath::matProd(const Matrix3qreal & m,const QPointF & p)"
+      ]
+    },
+    {
+      "target": "KisPerspectiveMathContractTest",
+      "source": "libs/image/tests/KisPerspectiveMathContractTest.cpp",
+      "test": "KisPerspectiveMathContractTest::mapsNondegenerateQuadrilateralCorners",
+      "behavior": "非退化四辺形間の射影変換は入力四隅を対応する出力四隅へ許容誤差内で写像する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPerspectiveMath::computeMatrixTransfo(const QPointF & topLeft1,const QPointF & topRight1,const QPointF & bottomLeft1,const QPointF & bottomRight1,const QPointF & topLeft2,const QPointF & topRight2,const QPointF & bottomLeft2,const QPointF & bottomRight2)"
+      ]
+    },
+    {
+      "target": "KisPerspectiveMathContractTest",
+      "source": "libs/image/tests/KisPerspectiveMathContractTest.cpp",
+      "test": "KisPerspectiveMathContractTest::mapsRectangleAndQuadrilateralInBothDirections",
+      "behavior": "矩形と非退化四辺形の専用変換は四隅を双方向に対応付け、矩形内部点を四辺形へ写して戻した結果を許容誤差内で保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPerspectiveMath::computeMatrixTransfoFromPerspective(const QRect & r,const QPointF & topLeft,const QPointF & topRight,const QPointF & bottomLeft,const QPointF & bottomRight)",
+        "method:KisPerspectiveMath::computeMatrixTransfoToPerspective(const QPointF & topLeft,const QPointF & topRight,const QPointF & bottomLeft,const QPointF & bottomRight,const QRect & r)"
+      ]
+    },
+    {
+      "target": "KisWrappableHBoxLayoutContractTest",
+      "source": "libs/widgetutils/tests/KisWrappableHBoxLayoutContractTest.cpp",
+      "test": "KisWrappableHBoxLayoutContractTest::defaultStateAndParentLifetime",
+      "behavior": "折返し横配置は左右上下余白が0で親所有された空配置として構築され、親破棄時には配置と保持中の配置要素を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWrappableHBoxLayout",
+        "method:KisWrappableHBoxLayout::KisWrappableHBoxLayout(QWidget * parent=nullptr)",
+        "method:KisWrappableHBoxLayout::~KisWrappableHBoxLayout()"
+      ]
+    },
+    {
+      "target": "KisWrappableHBoxLayoutContractTest",
+      "source": "libs/widgetutils/tests/KisWrappableHBoxLayoutContractTest.cpp",
+      "test": "KisWrappableHBoxLayoutContractTest::itemSequenceAndTransfer",
+      "behavior": "追加した配置要素は挿入順で数えられ照会され、範囲外indexはnullを返し、takeAtは指定要素を破棄せず呼出元へ移管して残りの順序を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWrappableHBoxLayout::addItem(QLayoutItem * item)",
+        "method:KisWrappableHBoxLayout::count() const",
+        "method:KisWrappableHBoxLayout::itemAt(int) const",
+        "method:KisWrappableHBoxLayout::takeAt(int)"
+      ]
+    },
+    {
+      "target": "KisWrappableHBoxLayoutContractTest",
+      "source": "libs/widgetutils/tests/KisWrappableHBoxLayoutContractTest.cpp",
+      "test": "KisWrappableHBoxLayoutContractTest::geometryWrapsItemsDeterministically",
+      "behavior": "折返し横配置は幅依存高さを提供し、固定寸法要素を十分な幅では間隔付き横一列へ、狭い幅では行高と間隔に従う次行へ配置し、同じ計算高さを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWrappableHBoxLayout::hasHeightForWidth() const",
+        "method:KisWrappableHBoxLayout::heightForWidth(int width) const",
+        "method:KisWrappableHBoxLayout::setGeometry(const QRect & rect)"
+      ]
+    },
+    {
+      "target": "KisWrappableHBoxLayoutContractTest",
+      "source": "libs/widgetutils/tests/KisWrappableHBoxLayoutContractTest.cpp",
+      "test": "KisWrappableHBoxLayoutContractTest::sizeHintsPreserveCurrentMarginRules",
+      "behavior": "配置前は最大要素の最小寸法へ余白を加えるが、配置後のminimumSizeは左右余白を含まず、sizeHintはgeometry幅へ左右余白を加え、heightForWidthが既に含む上下余白をさらに加える現行寸法規則を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisWrappableHBoxLayout::minimumSize() const",
+        "method:KisWrappableHBoxLayout::sizeHint() const"
       ]
     }
   ]
