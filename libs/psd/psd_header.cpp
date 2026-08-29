@@ -8,7 +8,37 @@
 
 #include <QIODevice>
 #include <QtEndian>
-#include <psd_utils.h>
+
+namespace
+{
+bool writeString(QIODevice &device, const QString &value)
+{
+    const QByteArray bytes = value.toLatin1();
+    return device.write(bytes.constData(), bytes.size()) == bytes.size();
+}
+
+bool writeBigEndian(QIODevice &device, quint16 value)
+{
+    const quint16 encoded = qToBigEndian(value);
+    return device.write(reinterpret_cast<const char *>(&encoded), sizeof(encoded)) == sizeof(encoded);
+}
+
+bool writeBigEndian(QIODevice &device, quint32 value)
+{
+    const quint32 encoded = qToBigEndian(value);
+    return device.write(reinterpret_cast<const char *>(&encoded), sizeof(encoded)) == sizeof(encoded);
+}
+
+bool writePadding(QIODevice &device, quint32 size)
+{
+    for (quint32 i = 0; i < size; ++i) {
+        if (!device.putChar('\0')) {
+            return false;
+        }
+    }
+    return true;
+}
+} // namespace
 
 struct Header {
     char signature[4]; // 8PBS
@@ -63,21 +93,21 @@ bool PSDHeader::write(QIODevice &device)
 {
     if (!valid())
         return false;
-    if (!psdwrite(device, signature))
+    if (!writeString(device, signature))
         return false;
-    if (!psdwrite(device, version))
+    if (!writeBigEndian(device, version))
         return false;
-    if (!psdpad(device, 6))
+    if (!writePadding(device, 6))
         return false;
-    if (!psdwrite(device, nChannels))
+    if (!writeBigEndian(device, nChannels))
         return false;
-    if (!psdwrite(device, height))
+    if (!writeBigEndian(device, height))
         return false;
-    if (!psdwrite(device, width))
+    if (!writeBigEndian(device, width))
         return false;
-    if (!psdwrite(device, channelDepth))
+    if (!writeBigEndian(device, channelDepth))
         return false;
-    if (!psdwrite(device, (quint16)colormode))
+    if (!writeBigEndian(device, static_cast<quint16>(colormode)))
         return false;
     return true;
 }
