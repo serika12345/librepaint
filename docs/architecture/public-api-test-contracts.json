@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25057
+    "expectedMissingApis": 25038
   },
   "contracts": [
     {
@@ -13274,6 +13274,43 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::hasDummiesFacade()"
+      ]
+    },
+    {
+      "target": "KisNodeModelItemDataRoleContractTest",
+      "source": "libs/ui/tests/KisNodeModelItemDataRoleContractTest.cpp",
+      "test": "KisNodeModelItemDataRoleContractTest::standardRolesRemainSequential",
+      "behavior": "通常の項目データ役割16値はQt利用者役割の直後から宣言順に連続し、モデルと表示部品の値規約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisNodeModel::ItemDataRole",
+        "enumerator:KisNodeModel::ItemDataRole::ActiveRole",
+        "enumerator:KisNodeModel::ItemDataRole::AlternateActiveRole",
+        "enumerator:KisNodeModel::ItemDataRole::AspectRatioRole",
+        "enumerator:KisNodeModel::ItemDataRole::ColorLabelIndexRole",
+        "enumerator:KisNodeModel::ItemDataRole::DropEnabled",
+        "enumerator:KisNodeModel::ItemDataRole::DropReasonRole",
+        "enumerator:KisNodeModel::ItemDataRole::FilterMaskColorRole",
+        "enumerator:KisNodeModel::ItemDataRole::FilterMaskPropertiesRole",
+        "enumerator:KisNodeModel::ItemDataRole::InfoTextRole",
+        "enumerator:KisNodeModel::ItemDataRole::IsAnimatedRole",
+        "enumerator:KisNodeModel::ItemDataRole::LayerColorOverlayColorRole",
+        "enumerator:KisNodeModel::ItemDataRole::LayerColorOverlayPropertiesRole",
+        "enumerator:KisNodeModel::ItemDataRole::ProgressRole",
+        "enumerator:KisNodeModel::ItemDataRole::PropertiesRole",
+        "enumerator:KisNodeModel::ItemDataRole::SelectOpaqueRole",
+        "enumerator:KisNodeModel::ItemDataRole::ShouldGrayOutRole"
+      ]
+    },
+    {
+      "target": "KisNodeModelItemDataRoleContractTest",
+      "source": "libs/ui/tests/KisNodeModelItemDataRoleContractTest.cpp",
+      "test": "KisNodeModelItemDataRoleContractTest::thumbnailRolesKeepReservedRange",
+      "behavior": "将来拡張用の予約役割はQt利用者役割から99、サムネイル寸法を加算する開始役割は100の位置を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisNodeModel::ItemDataRole::BeginThumbnailRole",
+        "enumerator:KisNodeModel::ItemDataRole::ReservedRole"
       ]
     }
   ]
