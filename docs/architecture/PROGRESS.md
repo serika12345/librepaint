@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 08:05 JST
+- 更新日時: 2026-08-30 08:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -13,23 +13,23 @@
 
 - 第34並列便の共通基準コミットは`8f30845164`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g34-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`repaint-debugger`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`repaint-debugger`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/widgetutils/KisRepaintDebugger.cpp`、WidgetUtils製品・試験CMake、新規`KisRepaintDebuggerContractTest.cpp`を所有する。開始ファイルを
   製品`kritawidgetutils`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。未使用I18n・Widgets依存を除き、
   製品の250工程・533入力に代えて6工程・14入力以内で、有効化、矩形・矩形列・paint event・全面塗装、色周期、値寿命の全8 APIを固定する。
-- 実装担当`shape-keep-aspect-ratio`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2で
+- 実装担当`shape-keep-aspect-ratio`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2で
   ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-shape-keep-aspect-ratio`で
   `libs/flake/commands/KoShapeKeepAspectRatioCommand.cpp`、Flake製品・試験CMake、新規`KoShapeKeepAspectRatioCommandContractTest.cpp`を所有する。
   開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。試験時限定の非公開shape
   accessを使い、製品の569工程・1,170入力に代えて6工程・14入力以内で、複数shapeの個別元値、redo・undo・再redo、親命令、借用寿命の
   全5 APIを固定する。
-- 実装担当`per-stroke-random-source`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
+- 実装担当`per-stroke-random-source`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
   3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-per-stroke-random-source`で
   `libs/image/brushengine/KisPerStrokeRandomSource.cpp`、Image製品・試験CMake、新規`KisPerStrokeRandomSourceContractTest.cpp`を所有する。
   開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存Global共有生成物を
   再利用し、製品の1,117工程・2,258入力に代えて7工程・15入力以内で、keyごとの決定値、整数・正規化範囲、複製状態、強・弱参照寿命の
   全8 APIを固定する。
-- 実装担当`dock-title-bar-button`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4で
+- 実装担当`dock-title-bar-button`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4で
   ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-dock-title-bar-button`で
   `libs/widgets/KoDockWidgetTitleBarButton.cpp`、Widgets製品・試験CMake、新規`KoDockWidgetTitleBarButtonContractTest.cpp`を所有する。
   開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約し、未使用debug依存を除く。
@@ -9724,8 +9724,8 @@
 
 ## 次の操作
 
-第34並列便の専用作業木を共通基準コミットから作り、各限定対象が未知で失敗する初回診断を記録する。統合担当が構築実行を許可した後、
-各担当は記録済みの停止上限と直接依存を再確認し、許可パス内だけで最小契約を追加する。
+第34並列便の4担当は、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認する。許可パス内だけで
+最小契約を追加し、単発・20回反復・軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡す。
 
 ## R1-G5完了根拠
 
