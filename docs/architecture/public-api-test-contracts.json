@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24522
+    "expectedMissingApis": 24507
   },
   "contracts": [
     {
@@ -15670,6 +15670,57 @@
       "classification": "maintained",
       "apis": [
         "method:KoCheckerBoardPainter::paint(QPainter & painter,const QRectF & rect) const"
+      ]
+    },
+    {
+      "target": "KoMixColorsOpContractTest",
+      "source": "libs/pigment/tests/KoMixColorsOpContractTest.cpp",
+      "test": "KoMixColorsOpContractTest::mixOverloadsPreserveArgumentsAndWrites",
+      "behavior": "混色接続面の4呼出し形式は、配列形式、重み、色数、出力先、明示値または既定値の重み合計を派生実装へ保持して配送し、その書込み結果を呼出し側へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMixColorsOp",
+        "method:KoMixColorsOp::mixColors(const quint8 * colors,const qint16 * weights,int nColors,quint8 * dst,int weightSum=255) const",
+        "method:KoMixColorsOp::mixColors(const quint8 * colors,int nColors,quint8 * dst) const",
+        "method:KoMixColorsOp::mixColors(const quint8 * const * colors,const qint16 * weights,int nColors,quint8 * dst,int weightSum=255) const",
+        "method:KoMixColorsOp::mixColors(const quint8 * const * colors,int nColors,quint8 * dst) const"
+      ]
+    },
+    {
+      "target": "KoMixColorsOpContractTest",
+      "source": "libs/pigment/tests/KoMixColorsOpContractTest.cpp",
+      "test": "KoMixColorsOpContractTest::arrayMixingPreservesArgumentsAndWrites",
+      "behavior": "配列対配列および配列対単色の混色接続面は、全入力ポインター、色数、混合重み、出力先を派生実装へ保持して配送し、その書込み結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMixColorsOp::mixArrayWithColor(const quint8 * colorArray,const quint8 * color,int nColors,qreal weight,quint8 * dst) const",
+        "method:KoMixColorsOp::mixTwoColorArrays(const quint8 * colorsA,const quint8 * colorsB,int nColors,qreal weight,quint8 * dst) const"
+      ]
+    },
+    {
+      "target": "KoMixColorsOpContractTest",
+      "source": "libs/pigment/tests/KoMixColorsOpContractTest.cpp",
+      "test": "KoMixColorsOpContractTest::mixerPreservesArgumentsStateAndWrites",
+      "behavior": "混色操作はMixerを生成し、Mixer接続面は重み付き累積、平均累積、現在の重み合計、混合色出力について全入力を派生実装へ配送して状態と書込み結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoMixColorsOp::Mixer",
+        "method:KoMixColorsOp::Mixer::accumulate(const quint8 * data,const qint16 * weights,int weightSum,int nPixels)",
+        "method:KoMixColorsOp::Mixer::accumulateAverage(const quint8 * data,int nPixels)",
+        "method:KoMixColorsOp::Mixer::computeMixedColor(quint8 * data)",
+        "method:KoMixColorsOp::Mixer::currentWeightsSum() const",
+        "method:KoMixColorsOp::createMixer() const"
+      ]
+    },
+    {
+      "target": "KoMixColorsOpContractTest",
+      "source": "libs/pigment/tests/KoMixColorsOpContractTest.cpp",
+      "test": "KoMixColorsOpContractTest::baseOwnershipDestroysDerivedObjectsExactlyOnce",
+      "behavior": "混色操作とMixerをそれぞれ基底型で所有して破棄すると、対応する派生デストラクターを正確に1回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoMixColorsOp::Mixer::~Mixer()",
+        "method:KoMixColorsOp::~KoMixColorsOp()"
       ]
     }
   ]

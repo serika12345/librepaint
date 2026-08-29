@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:42 JST
+- 更新日時: 2026-08-29 20:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,7 +24,7 @@
   `/Users/masato/Documents/librepaint-r2-g19b-checkerboard-painter`であり、
   `libs/widgetutils/KoCheckerBoardPainter.h`、Widget Utils試験CMake、新規限定試験を所有する。既存の1工程・3入力の
   `kritacheckerboardpainterobjects`を再利用し、既定・指定色、周期、原点位相、描画範囲の全6 APIを対象とする。
-- 実装担当`mix-colors-operation`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`mix-colors-operation`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-mix-colors-operation`であり、`libs/pigment/KoMixColorsOp.h`、Pigment試験CMake、
   新規限定試験を所有する。製品実装を追加せず、外側と入れ子の具象probeにより、6混色操作、混色器生成、累積、平均、
@@ -8582,9 +8582,23 @@
   整数座標、不透明色、固定画素形式を使用する。0以下の市松寸法、Linux、全ネイティブ検証、製品全体構築は
   実行していない。
 
+## R2-G19b 混色接続面の全public API契約で完了した作業
+
+- `libs/pigment/KoMixColorsOp.h`の全15 APIを、新規`libs/pigment/tests/KoMixColorsOpContractTest.cpp`の4試験へ
+  対応付けた。4つの混色呼出し形式、配列対配列、配列対単色、混色器生成、重み付き・平均累積、重み合計、出力について、
+  全ポインター、個数、重み、出力先と派生実装の書込みを固定した。外側操作と入れ子混色器は基底所有から一度だけ
+  派生実装を破棄する。
+- 公開接続面はヘッダー内で完結するため、製品実装と構築所有は変更していない。限定試験はQt Core・Testだけへ接続し、
+  製品`kritapigment`と具体混色実装をリンクしない。既存の具体実装試験は333工程・694入力である一方、限定試験は
+  4工程・8入力である。
+- 統合側の対象CTest単発実行と20回反復、最近傍の`KoAlphaMaskApplicatorBaseContractTest`に成功した。パッケージ境界
+  検査は1,205対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,482件、未対応24,507件になった。
+  本契約は抽象接続面の配送と寿命を所有し、具体的な色計算は既存の製品試験が所有する。Linux、全ネイティブ検証、
+  製品全体構築は実行していない。
+
 ## 次の操作
 
-混色接続面、画像接続面の順に、担当差分、限定構築、挙動、台帳を統合検証する。
+画像接続面の担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 
