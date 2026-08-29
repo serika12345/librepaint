@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:42 JST
+- 更新日時: 2026-08-29 15:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,22 +11,26 @@
 
 ### 現在の並列担当票
 
-- 共通基準コミットは`d12ddb2b`である。統合担当は`develop`の主作業ツリー、実装担当は
+- 第5並列便の共通基準コミットは`d12ddb2b`、後続の命令付加データ担当の基準は`dbc300f0`である。統合担当は`develop`の
+  主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
 - 統合担当`ui-node-model-data`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
   `libs/ui/nodes/KisNodeModelData.cpp`、UI CMake、新規限定試験を所有し、模型の役割別データ取得1 APIを対象とする。
 - 統合担当`flake-debug-category`は`implemented`である。`libs/flake/FlakeDebug.cpp`、Flake CMake、新規限定試験を所有し、
   Flake診断カテゴリの1 APIを対象とする。
-- 実装担当`image-convex-hull`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`image-convex-hull`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/image/kis_convex_hull.h`と関連実装、Image CMake、新規限定試験を所有し、
   凸包計算の3 APIを対象とする。
 - 実装担当`flake-curve-fit`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/flake/KoCurveFit.h`と関連実装、Flake CMake、新規限定試験を所有し、
   ベジェ曲線近似の1 APIを対象とする。
-- 実装担当`paintops-texture-option-io`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`paintops-texture-option-io`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。`plugins/paintops/libpaintop/KisTextureOptionData.h`と関連実装、CMake、新規限定試験を
   所有し、テクスチャー設定の読書き2 APIを対象とする。
+- 実装担当`painting-command-extra-data`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は4である。`libs/painting/undo/kundo2commandextradata.{h,cpp}`と新規限定試験を所有し、
+  命令付加データの3 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -7893,6 +7897,25 @@
 - 統合担当のmacOS構築木で専用対象と契約対象を構築し、専用生成物だけが`FLAKE_LOG()`を定義することを確認した。対象CTestの
   単発実行と20回反復、1,141対象のパッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は1,549ヘッダー、
   29,989 API、対応済み5,049件、未対応24,940件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b テクスチャー設定I/Oの全public API契約と小構築対象で完了した作業
+
+- `plugins/paintops/libpaintop/KisEmbeddedTextureData.cpp`にあった埋込み参照の読書きを、新規
+  `plugins/paintops/libpaintop/KisEmbeddedTextureDataIO.cpp`へ移した。`KisTextureOptionData.cpp`を
+  `kritapaintopruntime`の直接ソースから新規`kritapaintoptextureoptionioobjects`へ移し、両I/O翻訳単位を同対象が所有する。
+  生成物は実行時paintop対象の利用者へ伝播し、製品`kritalibpaintop`へも一度直接再集約する。公開ヘッダーは維持する。
+- `plugins/paintops/libpaintop/KisTextureOptionData.h`の`read()`と`write()`を、新規
+  `plugins/paintops/libpaintop/tests/KisTextureOptionDataIOContractTest.cpp`の4試験へ対応付けた。有効設定20項目の読書き、
+  埋込み本体と最大オフセットの非保存、最大オフセットの読込前値維持、無効設定の無変更、欠落項目の既定値、埋込み本体の読込と
+  ファイル末尾名への正規化を固定した。実装接続前のリンクは対象2メソッドだけを未解決記号として診断した。
+- 最近傍の値契約は4工程・9入力である。専用対象は2工程・5入力、新規契約は6工程・19入力である。主作業ツリーの
+  `kritapaintopruntime`は1,176工程・2,372入力になり、変更前基準に対してI/O翻訳単位の1工程・2入力だけ増えた。直接依存は専用対象が
+  Qt Core、Qt Gui、KF I18n、Eigen、OpenEXR、契約対象が専用対象とQt Testであり、製品ライブラリーへリンクしない。
+- 統合担当のmacOS構築木で対象CTestの単発実行と20回反復、元`KisEmbeddedTextureData.cpp`の製品設定による単体コンパイル、
+  4つのI/O記号の所有、`kritalibpaintop`と`kritapixelbrush`への各生成物1回の再接続、1,143対象のパッケージ境界検査に成功した。
+  公開API契約検査と高速検査にも成功し、公開面は1,549ヘッダー、29,989 API、対応済み5,051件、未対応24,938件になった。設定具象の
+  XML処理と内部記憶は対象外であり、製品全体リンクは基準側の`KisResourceModelIndexResolver`記号不整合と全体構築禁止により
+  実行していない。Linuxと全ネイティブ検証も実行していない。
 
 ## 次の操作
 

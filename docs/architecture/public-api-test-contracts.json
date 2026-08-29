@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24940
+    "expectedMissingApis": 24938
   },
   "contracts": [
     {
@@ -14065,6 +14065,47 @@
       "classification": "maintained",
       "apis": [
         "function:FLAKE_LOG()"
+      ]
+    },
+    {
+      "target": "KisTextureOptionDataIOContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionDataIOContractTest.cpp",
+      "test": "KisTextureOptionDataIOContractTest::enabledWriteRoundTripsEveryPersistedProperty",
+      "behavior": "有効なブラシテクスチャ設定は埋込み参照4項目と描画設定16項目を保存して読戻し、埋込み本体と最大オフセットを永続化しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextureOptionData::read(const KisPropertiesConfiguration * setting)",
+        "method:KisTextureOptionData::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisTextureOptionDataIOContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionDataIOContractTest.cpp",
+      "test": "KisTextureOptionDataIOContractTest::disabledWriteLeavesConfigurationUntouched",
+      "behavior": "無効なブラシテクスチャ設定の書込は、保存先に既に存在する項目を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextureOptionData::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisTextureOptionDataIOContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionDataIOContractTest.cpp",
+      "test": "KisTextureOptionDataIOContractTest::missingPropertiesRestoreDocumentedDefaults",
+      "behavior": "欠落したテクスチャ項目の読込は現行既定値を復元して成功を返し、最大オフセットは読込前の値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextureOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisTextureOptionDataIOContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisTextureOptionDataIOContractTest.cpp",
+      "test": "KisTextureOptionDataIOContractTest::readLoadsEmbeddedPayloadAndNormalizesFileName",
+      "behavior": "テクスチャ読込は埋込みパターン本体を受け取り、パターンファイル名を末尾名へ正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTextureOptionData::read(const KisPropertiesConfiguration * setting)"
       ]
     }
   ]
