@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25072
+    "expectedMissingApis": 25068
   },
   "contracts": [
     {
@@ -13024,6 +13024,80 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::saveVectorLayerAsImage()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActivationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActivationContractTest.cpp",
+      "test": "KisNodeManagerActivationContractTest::detachedNodeBecomesNullBeforeActivation",
+      "behavior": "非UI由来の起動要求は画像グラフから外れたノードをnullへ置き換え、現在の活動ノードがある場合は活動解除として同じ通知経路へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotNonUiActivatedNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActivationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActivationContractTest.cpp",
+      "test": "KisNodeManagerActivationContractTest::sameNonUiNodeIsIgnored",
+      "behavior": "非UI由来の起動要求が現在の活動ノードを指す場合は、ダミー木と活動状態を変更せず通知も発行しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotNonUiActivatedNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActivationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActivationContractTest.cpp",
+      "test": "KisNodeManagerActivationContractTest::uiActivationKeepsToolCompatible",
+      "behavior": "UI由来の起動要求は図形編集可能ノードで画素ツールが活動中なら図形操作ツールへ、画素ノードで図形ツールが活動中なら画筆へ切り替え、互換な組合せを維持する。ツール整合は同一ノード拒否より先に行う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotUiActivatedNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActivationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActivationContractTest.cpp",
+      "test": "KisNodeManagerActivationContractTest::unavailableFacadeAndHiddenNodeRejectActivation",
+      "behavior": "ダミー木が利用できない場合、または表示方針上の非表示ノードである場合は、活動状態と通知を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotNonUiActivatedNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActivationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActivationContractTest.cpp",
+      "test": "KisNodeManagerActivationContractTest::failedActivationPublishesNothing",
+      "behavior": "具体的な活動状態の変更が失敗した場合は、最後の活動ノード、UI向け通知、一般通知、ノード画面状態を更新しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotNonUiActivatedNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActivationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActivationContractTest.cpp",
+      "test": "KisNodeManagerActivationContractTest::successfulUiActivationPublishesBothNotifications",
+      "behavior": "UI由来のノード起動が成功すると、最後の活動ノードを保存した後、UI選択同期通知、一般の活動通知、ノード画面更新の順で発行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::sigNodeActivated(KisNodeSP node)",
+        "method:KisNodeManager::sigUiNeedChangeActiveNode(KisNodeSP node)",
+        "method:KisNodeManager::slotUiActivatedNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerActivationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerActivationContractTest.cpp",
+      "test": "KisNodeManagerActivationContractTest::successfulActivationOrdersStateAndNotifications",
+      "behavior": "非UI由来のノード起動が成功すると、最後の活動ノード、UI選択同期通知、一般の活動通知、ノード画面更新を順に反映し、キャンバス限定表示中はノード名を表示する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::sigNodeActivated(KisNodeSP node)",
+        "method:KisNodeManager::sigUiNeedChangeActiveNode(KisNodeSP node)",
+        "method:KisNodeManager::slotNonUiActivatedNode(KisNodeSP node)"
       ]
     },
     {

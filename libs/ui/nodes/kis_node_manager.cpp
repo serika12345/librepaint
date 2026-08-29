@@ -860,92 +860,83 @@ void KisNodeManager::ReferenceImageAccess::showFloatingMessage(KisNodeManager *m
     manager->m_d->view->showFloatingMessage(message, QIcon(), timeout, priority, alignment);
 }
 
-void KisNodeManager::slotSomethingActivatedNodeImpl(KisNodeSP node)
+bool KisNodeManager::ActivationAccess::hasGraphListener(KisNodeSP node)
 {
-    KisDummiesFacadeBase *dummiesFacade = dynamic_cast<KisDummiesFacadeBase*>(m_d->imageView->document()->shapeController());
-    KIS_SAFE_ASSERT_RECOVER_RETURN(dummiesFacade);
-
-    const bool nodeVisible = !isNodeHidden(node, !m_d->nodeDisplayModeAdapter->showGlobalSelectionMask());
-    if (!nodeVisible) {
-        return;
-    }
-
-    KIS_ASSERT_RECOVER_RETURN(node != activeNode());
-    if (m_d->activateNodeImpl(node)) {
-        if (node) {
-            /**
-             * Notify the dummies facade about the lastly
-             * activated node. This information may be used
-             * when a new view is created for the image.
-             */
-            dummiesFacade->setLastActivatedNode(node);
-        }
-        Q_EMIT sigUiNeedChangeActiveNode(node);
-        Q_EMIT sigNodeActivated(node);
-        nodesUpdated();
-        if (node) {
-            bool toggled =  m_d->view->actionCollection()->action("view_show_canvas_only")->isChecked();
-            if (toggled) {
-                m_d->view->showFloatingMessage( node->name(), QIcon(), 1600, KisFloatingMessage::Medium, Qt::TextSingleLine);
-            }
-        }
-    }
+    return node->graphListener();
 }
 
-void KisNodeManager::slotNonUiActivatedNode(KisNodeSP node)
+KisNodeSP KisNodeManager::ActivationAccess::activeNode(KisNodeManager *manager)
 {
-    // the node must still be in the graph, some asynchronous
-    // signals may easily break this requirement
-    if (node && !node->graphListener()) {
-        node = 0;
-    }
-
-    if (node == activeNode()) return;
-
-    slotSomethingActivatedNodeImpl(node);
+    return manager->activeNode();
 }
 
-void KisNodeManager::slotUiActivatedNode(KisNodeSP node)
+bool KisNodeManager::ActivationAccess::nodeHasVectorAbilities(KisNodeSP node)
 {
-    // the node must still be in the graph, some asynchronous
-    // signals may easily break this requirement
-    if (node && !node->graphListener()) {
-        node = 0;
-    }
+    KisSelectionMask *selectionMask = dynamic_cast<KisSelectionMask *>(node.data());
+    return node->inherits("KisShapeLayer") || (selectionMask && selectionMask->selection()->hasShapeSelection());
+}
 
-    if (node) {
-        QStringList vectorTools = QStringList()
-                << "InteractionTool"
-                << "KarbonGradientTool"
-                << "KarbonCalligraphyTool"
-                << "PathTool";
+QString KisNodeManager::ActivationAccess::activeToolId()
+{
+    return KoToolManager::instance()->activeToolId();
+}
 
-        QStringList pixelTools = QStringList()
-                << "KritaShape/KisToolBrush"
-                << "KritaShape/KisToolDyna"
-                << "KritaShape/KisToolMultiBrush"
-                << "KritaFill/KisToolFill"
-                << "KritaFill/KisToolGradient";
+void KisNodeManager::ActivationAccess::switchTool(const QString &toolId)
+{
+    KoToolManager::instance()->switchToolRequested(toolId);
+}
 
-        KisSelectionMask *selectionMask = dynamic_cast<KisSelectionMask*>(node.data());
-        const bool nodeHasVectorAbilities = node->inherits("KisShapeLayer") ||
-                (selectionMask && selectionMask->selection()->hasShapeSelection());
+KisDummiesFacadeBase *KisNodeManager::ActivationAccess::dummiesFacade(KisNodeManager *manager)
+{
+    KisDummiesFacadeBase *facade =
+        dynamic_cast<KisDummiesFacadeBase *>(manager->m_d->imageView->document()->shapeController());
+    KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(facade, nullptr);
+    return facade;
+}
 
-        if (nodeHasVectorAbilities) {
-            if (pixelTools.contains(KoToolManager::instance()->activeToolId())) {
-                KoToolManager::instance()->switchToolRequested("InteractionTool");
-            }
-        }
-        else {
-            if (vectorTools.contains(KoToolManager::instance()->activeToolId())) {
-                KoToolManager::instance()->switchToolRequested("KritaShape/KisToolBrush");
-            }
-        }
-    }
+bool KisNodeManager::ActivationAccess::isNodeVisible(KisNodeManager *manager, KisNodeSP node)
+{
+    return !manager->isNodeHidden(node, !manager->m_d->nodeDisplayModeAdapter->showGlobalSelectionMask());
+}
 
-    if (node == activeNode()) return;
+bool KisNodeManager::ActivationAccess::activateNode(KisNodeManager *manager, KisNodeSP node)
+{
+    return manager->m_d->activateNodeImpl(node);
+}
 
-    slotSomethingActivatedNodeImpl(node);
+void KisNodeManager::ActivationAccess::setLastActivatedNode(KisDummiesFacadeBase *facade, KisNodeSP node)
+{
+    facade->setLastActivatedNode(node);
+}
+
+void KisNodeManager::ActivationAccess::notifyUiNodeChange(KisNodeManager *manager, KisNodeSP node)
+{
+    Q_EMIT manager->sigUiNeedChangeActiveNode(node);
+}
+
+void KisNodeManager::ActivationAccess::notifyNodeActivated(KisNodeManager *manager, KisNodeSP node)
+{
+    Q_EMIT manager->sigNodeActivated(node);
+}
+
+void KisNodeManager::ActivationAccess::nodesUpdated(KisNodeManager *manager)
+{
+    manager->nodesUpdated();
+}
+
+bool KisNodeManager::ActivationAccess::canvasOnly(KisNodeManager *manager)
+{
+    return manager->m_d->view->actionCollection()->action("view_show_canvas_only")->isChecked();
+}
+
+QString KisNodeManager::ActivationAccess::nodeName(KisNodeSP node)
+{
+    return node->name();
+}
+
+void KisNodeManager::ActivationAccess::showNodeName(KisNodeManager *manager, const QString &name)
+{
+    manager->m_d->view->showFloatingMessage(name, QIcon(), 1600, KisFloatingMessage::Medium, Qt::TextSingleLine);
 }
 
 QString KisNodeManager::NodeChangeAccess::name(KisNodeSP node)

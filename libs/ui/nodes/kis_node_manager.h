@@ -40,6 +40,7 @@ class KoProperties;
 class KisProcessingApplicator;
 class KisReferenceImage;
 class KisShapeLayer;
+class KisDummiesFacadeBase;
 
 /**
  * The node manager passes requests for new layers or masks on to the mask and layer
@@ -154,9 +155,9 @@ public Q_SLOTS:
     void slotNonUiActivatedNode(KisNodeSP node);
 
     /**
-     * Activates \p node.
-     * All non-ui listeners are notified with sigNodeActivated,
-     * sigUiNeedChangeActiveNode is *not* emitted.
+     * Activates \p node in response to a UI selection and selects a compatible
+     * vector or pixel tool when necessary. After the active node changes, both
+     * sigNodeActivated and sigUiNeedChangeActiveNode are emitted.
      *
      * \see activateNode
      */
@@ -669,6 +670,24 @@ protected:
         static void sortShapes(QList<KoShape *> *shapes);
         static bool saveSvg(const QString &filename, const QSizeF &sizeInPoints, const QList<KoShape *> &shapes);
         static void showSvgFailure(const QString &filename);
+    };
+
+    struct KRITAUI_EXPORT ActivationAccess {
+        static bool hasGraphListener(KisNodeSP node);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static bool nodeHasVectorAbilities(KisNodeSP node);
+        static QString activeToolId();
+        static void switchTool(const QString &toolId);
+        static KisDummiesFacadeBase *dummiesFacade(KisNodeManager *manager);
+        static bool isNodeVisible(KisNodeManager *manager, KisNodeSP node);
+        static bool activateNode(KisNodeManager *manager, KisNodeSP node);
+        static void setLastActivatedNode(KisDummiesFacadeBase *facade, KisNodeSP node);
+        static void notifyUiNodeChange(KisNodeManager *manager, KisNodeSP node);
+        static void notifyNodeActivated(KisNodeManager *manager, KisNodeSP node);
+        static void nodesUpdated(KisNodeManager *manager);
+        static bool canvasOnly(KisNodeManager *manager);
+        static QString nodeName(KisNodeSP node);
+        static void showNodeName(KisNodeManager *manager, const QString &name);
     };
 
 private:
