@@ -6,10 +6,11 @@
  */
 #include "SvgMeshPatch.h"
 
+#include <algorithm>
 #include <array>
 #include <math.h>
 #include <QDebug>
-#include <kis_global.h>
+#include <kis_assert.h>
 
 
 inline QPointF lerp(const QPointF& p1, const QPointF& p2, qreal t)

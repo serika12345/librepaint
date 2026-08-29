@@ -112,6 +112,24 @@ set_target_properties(kritaflakesvgtransformparserobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakesvgmeshpatchobjects OBJECT
+    svg/SvgMeshPatch.cpp
+)
+target_compile_definitions(kritaflakesvgmeshpatchobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakesvgmeshpatchobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritaflakesvgmeshpatchobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaflakesvgmeshpatchobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakebehaviorinterfaceobjects OBJECT
     KoCanvasSupervisor.cpp
     KoLoadingShapeUpdater.cpp
@@ -418,7 +436,6 @@ set(kritaflake_SRCS
     svg/SvgClipPathHelper.cpp
     svg/SvgLoadingContext.cpp
     svg/SvgMeshGradient.cpp
-    svg/SvgMeshPatch.cpp
     svg/SvgMeshArray.cpp
 
     text/KisTofuGlyph.cpp
@@ -470,6 +487,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeviewconverterobjects>
     $<TARGET_OBJECTS:kritaflakeinputdeviceobjects>
     $<TARGET_OBJECTS:kritaflakesvgtransformparserobjects>
+    $<TARGET_OBJECTS:kritaflakesvgmeshpatchobjects>
     $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakegradienthelperobjects>
     $<TARGET_OBJECTS:kritaflakecurvefitobjects>
