@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24898
+    "expectedMissingApis": 24897
   },
   "contracts": [
     {
@@ -14263,6 +14263,16 @@
       "classification": "maintained",
       "apis": [
         "method:KisOffsetKeeper::~KisOffsetKeeper()"
+      ]
+    },
+    {
+      "target": "DebugPigmentContractTest",
+      "source": "libs/pigment/tests/DebugPigmentContractTest.cpp",
+      "test": "DebugPigmentContractTest::categoryHasStableIdentityNameAndSeverity",
+      "behavior": "PIGMENT_log()が同一のカテゴリ実体、安定したkrita.lib.pigment名、debug無効かつinfo・warning・critical有効の既定重大度を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:PIGMENT_log()"
       ]
     }
   ]
