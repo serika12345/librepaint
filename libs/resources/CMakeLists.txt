@@ -22,6 +22,28 @@ set_target_properties(kritaresourcestypesobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatagobjects OBJECT
+    KisTag.cpp
+)
+target_compile_definitions(kritatagobjects PRIVATE kritaresources_EXPORTS)
+target_include_directories(kritatagobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritatagobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritatagobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaresourcebundlemanifestobjects OBJECT
     KoResourceBundleManifest.cpp
 )
@@ -437,7 +459,6 @@ set(kritaresources_LIB_SRCS
     KisFolderStorage.cpp
     KisMemoryStorage.cpp
 
-    KisTag.cpp
     KisTagModel.cpp
 
     KisTagResourceModel.cpp
@@ -457,6 +478,7 @@ krita_ios_add_static_resource(sql)
 kis_add_library(kritaresources SHARED
     ${kritaresources_LIB_SRCS}
     $<TARGET_OBJECTS:kritaresourcestypesobjects>
+    $<TARGET_OBJECTS:kritatagobjects>
     $<TARGET_OBJECTS:kritaresourcebundlemanifestobjects>
     $<TARGET_OBJECTS:kritacanvasresourcesinterfaceobjects>
     $<TARGET_OBJECTS:kritalocalstrokecanvasresourcesobjects>

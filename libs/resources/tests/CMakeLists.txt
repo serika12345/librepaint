@@ -5,7 +5,6 @@ kis_add_tests(
     TestResourceStorage.cpp
     TestFolderStorage.cpp
     TestMemoryStorage.cpp
-    TestTag.cpp
     TestBundleStorage.cpp
     TestResourceModel.cpp
     TestTagFilterResourceProxyModel.cpp
@@ -16,6 +15,21 @@ kis_add_tests(
     TestTagResourceModel.cpp
     LINK_LIBRARIES kritaglobal kritapigment kritaplugin kritaresources kritawidgets kritaversion KF${KF_MAJOR}::ConfigCore Qt${QT_MAJOR_VERSION}::Sql kritatestsdk
     )
+
+kis_add_test(
+    TestTag.cpp
+    LINK_LIBRARIES
+        kritatagobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
+)
+target_include_directories(TestTag PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(TestTag PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
     TestResourceSearchBoxFilter.cpp
