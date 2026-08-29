@@ -1497,51 +1497,67 @@ void KisNodeManager::ToggleAccess::setProperty(KisNodeManager *manager,
     Q_UNREACHABLE();
 }
 
-void KisNodeManager::cutLayersToClipboard()
+KisNodeList KisNodeManager::ClipboardAccess::selectedNodes(KisNodeManager *manager)
 {
-    KisNodeList nodes = this->selectedNodes();
-    if (nodes.isEmpty()) return;
-
-    KisNodeList::Iterator it = nodes.begin();
-    while (it != nodes.end()) {
-        // make sure the deleted nodes aren't referenced here again
-        if (!it->data()->parent()) {
-            nodes.erase(it);
-        }
-        it++;
-    }
-
-    KisClipboard::instance()->setLayers(nodes, m_d->view->image(), false);
-
-    if (canModifyLayers(nodes)) {
-        KUndo2MagicString actionName = kundo2_i18n("Cut Nodes");
-        KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-        batch->removeNode(nodes, activeNode());
-    }
+    return manager->selectedNodes();
 }
 
-void KisNodeManager::copyLayersToClipboard()
+KisNodeSP KisNodeManager::ClipboardAccess::parentNode(KisNodeSP node)
 {
-    KisNodeList nodes = this->selectedNodes();
-    KisClipboard::instance()->setLayers(nodes, m_d->view->image(), true);
+    return node->parent();
 }
 
-void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset, KisProcessingApplicator *applicator)
+void KisNodeManager::ClipboardAccess::setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy)
 {
-    const QMimeData *data = KisClipboard::instance()->layersMimeData();
-    if (!data) return;
+    KisClipboard::instance()->setLayers(nodes, manager->m_d->view->image(), copy);
+}
 
-    KisNodeSP activeNode = this->activeNode();
+bool KisNodeManager::ClipboardAccess::canModifyLayers(KisNodeManager *manager, const KisNodeList &nodes)
+{
+    return manager->canModifyLayers(nodes);
+}
 
-    KisShapeController *shapeController = dynamic_cast<KisShapeController*>(m_d->imageView->document()->shapeController());
+void KisNodeManager::ClipboardAccess::removeNodes(KisNodeManager *manager,
+                                                  const KisNodeList &nodes,
+                                                  const KUndo2MagicString &actionName)
+{
+    KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
+    batch->removeNode(nodes, manager->activeNode());
+}
+
+const QMimeData *KisNodeManager::ClipboardAccess::layersMimeData()
+{
+    return KisClipboard::instance()->layersMimeData();
+}
+
+KisNodeSP KisNodeManager::ClipboardAccess::activeNode(KisNodeManager *manager)
+{
+    return manager->activeNode();
+}
+
+KisNodeSP KisNodeManager::ClipboardAccess::rootNode(KisNodeManager *manager)
+{
+    return manager->m_d->view->image()->root();
+}
+
+void KisNodeManager::ClipboardAccess::insertMimeLayersAsLastChild(KisNodeManager *manager,
+                                                                  const QMimeData *data,
+                                                                  KisNodeSP targetNode,
+                                                                  bool copyNode,
+                                                                  bool changeOffset,
+                                                                  QPointF offset,
+                                                                  KisProcessingApplicator *applicator)
+{
+    KisShapeController *shapeController =
+        dynamic_cast<KisShapeController *>(manager->m_d->imageView->document()->shapeController());
     Q_ASSERT(shapeController);
 
-    KisDummiesFacadeBase *dummiesFacade = dynamic_cast<KisDummiesFacadeBase*>(m_d->imageView->document()->shapeController());
+    KisDummiesFacadeBase *dummiesFacade =
+        dynamic_cast<KisDummiesFacadeBase *>(manager->m_d->imageView->document()->shapeController());
     Q_ASSERT(dummiesFacade);
 
-    const bool copyNode = false;
-    KisImageSP image = m_d->view->image();
-    KisNodeDummy *parentDummy = dummiesFacade->dummyForNode(activeNode ? activeNode : image->root());
+    KisImageSP image = manager->m_d->view->image();
+    KisNodeDummy *parentDummy = dummiesFacade->dummyForNode(targetNode);
     KisNodeDummy *aboveThisDummy = parentDummy ? parentDummy->lastChild() : 0;
 
     KisMimeData::insertMimeLayers(data,
@@ -1550,7 +1566,7 @@ void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset,
                                   parentDummy,
                                   aboveThisDummy,
                                   copyNode,
-                                  nodeInsertionAdapter(),
+                                  manager->nodeInsertionAdapter(),
                                   changeOffset,
                                   offset,
                                   applicator);

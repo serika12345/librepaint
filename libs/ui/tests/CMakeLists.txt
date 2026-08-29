@@ -501,6 +501,27 @@ target_compile_definitions(KisNodeManagerMirrorContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisNodeManagerClipboardContractTest.cpp
+    TEST_NAME KisNodeManagerClipboardContractTest
+    LINK_LIBRARIES
+        kritauinodemanagerclipboardobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+target_include_directories(KisNodeManagerClipboardContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KisNodeManagerClipboardContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

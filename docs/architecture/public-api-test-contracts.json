@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25090
+    "expectedMissingApis": 25087
   },
   "contracts": [
     {
@@ -12753,6 +12753,36 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::mirrorNodes(KisNodeList nodes,const KUndo2MagicString & commandName,Qt::Orientation orientation,KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerClipboardContractTest",
+      "source": "libs/ui/tests/KisNodeManagerClipboardContractTest.cpp",
+      "test": "KisNodeManagerClipboardContractTest::cutFiltersParentlessNodesAndChecksModification",
+      "behavior": "切取りは空選択では無作用とし、親なしノードを除いた順序付き一覧を切取り指定でクリップボードへ保存してから変更可否を判定し、許可時だけCut NodesのUndo名で同じ一覧を除去する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::cutLayersToClipboard()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerClipboardContractTest",
+      "source": "libs/ui/tests/KisNodeManagerClipboardContractTest.cpp",
+      "test": "KisNodeManagerClipboardContractTest::copyPreservesEntireSelection",
+      "behavior": "複写は現在選択の全ノードを順序と内容を保ったまま複写指定でクリップボードへ保存する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::copyLayersToClipboard()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerClipboardContractTest",
+      "source": "libs/ui/tests/KisNodeManagerClipboardContractTest.cpp",
+      "test": "KisNodeManagerClipboardContractTest::pasteUsesActiveNodeOrRootAndPreservesArguments",
+      "behavior": "貼付けはレイヤーMIMEデータがある場合だけ、活動ノードまたは画像ルートを貼付け先として末尾へ挿入し、複製指定を偽として位置変更、座標、適用器をそのまま渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::pasteLayersFromClipboard(bool changeOffset=false,QPointF offset=QPointF (),KisProcessingApplicator * applicator=nullptr)"
       ]
     }
   ]

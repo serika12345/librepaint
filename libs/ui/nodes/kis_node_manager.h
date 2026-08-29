@@ -23,6 +23,7 @@ class KisKActionCollection;
 class KoCompositeOp;
 class KoColorSpace;
 class KUndo2MagicString;
+class QMimeData;
 
 class KisFilterStrategy;
 class KisViewManager;
@@ -507,6 +508,24 @@ protected:
                                  KisSelectionSP selection,
                                  const KUndo2MagicString &actionName);
         static void nodesUpdated(KisNodeManager *manager);
+    };
+
+    struct KRITAUI_EXPORT ClipboardAccess {
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static KisNodeSP parentNode(KisNodeSP node);
+        static void setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy);
+        static bool canModifyLayers(KisNodeManager *manager, const KisNodeList &nodes);
+        static void removeNodes(KisNodeManager *manager, const KisNodeList &nodes, const KUndo2MagicString &actionName);
+        static const QMimeData *layersMimeData();
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static KisNodeSP rootNode(KisNodeManager *manager);
+        static void insertMimeLayersAsLastChild(KisNodeManager *manager,
+                                                const QMimeData *data,
+                                                KisNodeSP targetNode,
+                                                bool copyNode,
+                                                bool changeOffset,
+                                                QPointF offset,
+                                                KisProcessingApplicator *applicator);
     };
 
 private:
