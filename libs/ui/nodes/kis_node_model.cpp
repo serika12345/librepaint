@@ -847,16 +847,6 @@ bool KisNodeModel::dropMimeData(const QMimeData * data, Qt::DropAction action, i
                                          m_d->nodeInsertionAdapter);
 }
 
-bool KisNodeModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const {
-    if (parent.isValid()) {
-        // drop occurred on an item. always return true as returning false will mess up
-        // QT5's drag handling (see KisNodeModel::setDropEnabled).
-        return true;
-    } else {
-        return QAbstractItemModel::canDropMimeData(data, action, row, column, parent);
-    }
-}
-
 void KisNodeModel::setDropEnabled(const QMimeData *data) {
     // what happens here should really happen in KisNodeModel::canDropMimeData(), but QT5
     // will mess up if an item's Qt::ItemIsDropEnabled does not match what is returned by

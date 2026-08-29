@@ -2,12 +2,38 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 13:37 JST
+- 更新日時: 2026-08-29 13:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 現在の並列担当票
+
+- 共通基準コミットは`ad8f738d`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+  共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
+- 統合担当`ui-node-model-drag`は`implementing`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、同責務の新規
+  `KisNodeModel*.cpp`、`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、同責務の新規試験を所有する。
+  `canDropMimeData()`、`mimeData()`、`dropMimeData()`を対象とし、項目操作契約を最も近い契約とする。
+- 実装担当`global-forest`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は1である。`libs/global/tests/KisForestTest.{h,cpp}`と`libs/global/tests/CMakeLists.txt`を所有し、
+  `KisForestTest`を最も近い契約とする。対象は`KisForest.h`の`childBegin(ChildIterator)`、`childEnd(ChildIterator)`、
+  `operator<<(QDebug, ChildIterator)`、`parent(ChildIterator)`、`siblingBegin(ChildIterator)`、
+  `siblingEnd(ChildIterator)`の6 APIである。
+- 実装担当`image-frame-lock`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は2である。`libs/image/KisBlockBackgroundFrameGenerationLock.{h,cpp}`、
+  `libs/image/CMakeLists.txt`、`libs/image/tests/KisBlockBackgroundFrameGenerationLockContractTest.cpp`、
+  `libs/image/tests/CMakeLists.txt`を所有し、`KisAdaptedLockTest`を隣接契約とする。対象はアダプタークラス、構築、
+  `lock()`、`unlock()`の4 APIである。
+- 実装担当`flake-zoom-state`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は3である。`libs/flake/KoZoomState.{h,cpp}`、`libs/flake/CMakeLists.txt`、
+  `libs/flake/tests/KoZoomStateContractTest.cpp`、`libs/flake/tests/CMakeLists.txt`を所有する。対象はクラス、既定構築、
+  値構築、`mode`、`zoom`、`minZoom`、`maxZoom`、等値比較の8 APIである。
+- 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
+  `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
+  巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
 
 ## 再開環境
 
@@ -7577,12 +7603,28 @@
 - この基盤は運用文書だけを変更し、製品コード、試験、CMake、公開面、対応済み4,967件、未対応25,022件を維持する。
   文書と高速検査をmacOSで実行し、Linuxと全ネイティブ検証は実行しない。
 
+## R2-G19b ノードモデルのドロップ受理 public API契約と判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_model.cpp`にあった`canDropMimeData()`本体を、新規
+  `libs/ui/nodes/KisNodeModelDropAcceptance.cpp`へ移した。有効な親項目を常に受理する判断と、ルートをQt基底模型へ
+  委譲する判断はQt Coreだけの`kritauinodemodeldropacceptanceobjects`が所有し、製品`kritaapplicationui`が生成物を
+  1回集約する。
+- `libs/ui/nodes/kis_node_model.h`の`canDropMimeData()`を、新規
+  `libs/ui/tests/KisNodeModelDropAcceptanceContractTest.cpp`の2試験へ対応付けた。親項目上ではMIME形式、操作、位置に
+  かかわらず受理し、ルートでは対応MIME形式と許可操作をQt基底判定へ委譲する規約を固定した。製品未接続の赤試験は
+  対象メソッドだけを未解決記号として診断した。
+- 変更前の項目操作契約と緑化後のドロップ受理契約はいずれも5工程・11入力、専用製品対象は1工程・3入力である。
+  製品`kritaapplicationui`閉包は1,833工程・3,666入力から1,834工程・3,668入力、既存`kis_node_model_test`は
+  1,838工程・3,675入力から1,839工程・3,677入力になった。
+- ドロップ受理対象と元の`kis_node_model.cpp`単体コンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,968件、未対応25,021件に
+  なった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-未コミットの並列作業基盤をレビューし、明示的なコミット指示後に同じ基準コミットから三つの非重複担当票と専用Git作業ツリーを
-作成する。統合担当は`libs/ui/nodes/kis_node_model.h`のドラッグ＆ドロップ責務を所有し、最初の実装担当は別の公開ヘッダー、
-製品実装、試験CMakeファイルを持つ所有単位から選ぶ。各担当の構築実行前に、対象試験の変更なし計画、直接依存、空構築閉包を
-比較する。
+準備完了した並列担当を統合順に一件ずつ取り込み、中央契約台帳と進捗を同期して対象CTestと高速検査を再実行する。担当の準備中は
+統合担当が`libs/ui/nodes/kis_node_model.h`の`mimeData()`を次の小単位とし、ドロップ受理契約と既存モデル試験の変更なし計画、
+直接依存、空構築閉包を比較する。ノード収集とMIME生成が具体画像所有を引き込む場合は、挙動契約より先に値判断と効果を分離する。
 
 ## R1-G5完了根拠
 

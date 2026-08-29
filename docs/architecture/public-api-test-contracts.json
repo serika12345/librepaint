@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25022
+    "expectedMissingApis": 25021
   },
   "contracts": [
     {
@@ -13566,6 +13566,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::flags(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelDropAcceptanceContractTest",
+      "source": "libs/ui/tests/KisNodeModelDropAcceptanceContractTest.cpp",
+      "test": "KisNodeModelDropAcceptanceContractTest::validParentAlwaysAcceptsDrop",
+      "behavior": "有効な親項目上へのドロップは、MIME形式、操作、挿入位置にかかわらず項目フラグと整合するよう受理される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::canDropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelDropAcceptanceContractTest",
+      "source": "libs/ui/tests/KisNodeModelDropAcceptanceContractTest.cpp",
+      "test": "KisNodeModelDropAcceptanceContractTest::rootUsesQtBaseAcceptance",
+      "behavior": "ルートへのドロップはQt基底模型の対応MIME形式と許可操作の判定結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::canDropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent) const"
       ]
     }
   ]

@@ -1236,6 +1236,28 @@ set_target_properties(kritauinodemodelitemflagsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauinodemodeldropacceptanceobjects OBJECT
+    nodes/KisNodeModelDropAcceptance.cpp
+)
+target_compile_definitions(kritauinodemodeldropacceptanceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodeldropacceptanceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodeldropacceptanceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodeldropacceptanceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritauinodemodelfacadesetupobjects OBJECT
     nodes/KisNodeModelFacadeSetup.cpp
 )
@@ -1357,6 +1379,7 @@ set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauinodemodelindexmappingobjects>
     $<TARGET_OBJECTS:kritauinodemodelisolationmembershipobjects>
     $<TARGET_OBJECTS:kritauinodemodelitemflagsobjects>
+    $<TARGET_OBJECTS:kritauinodemodeldropacceptanceobjects>
     $<TARGET_OBJECTS:kritauinodemodelfacadesetupobjects>
     $<TARGET_OBJECTS:kritauinodemodellifecycleobjects>
     $<TARGET_OBJECTS:kritauinodemodelstructureobjects>
