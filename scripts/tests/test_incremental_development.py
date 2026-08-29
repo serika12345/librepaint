@@ -75,7 +75,8 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             fake_nix.write_text(
                 f"#!{BASH}\n"
                 "printf '%s\\n' \"$*\" >\"$COMMAND_LOG\"\n"
-                "printf '%s\\n' 'export LIBREPAINT_TEST_SHELL=1'\n",
+                "printf '%s\\n' 'export LIBREPAINT_TEST_SHELL=1' "
+                f"'export PATH={fake_bin}:/usr/bin:/bin'\n",
                 encoding="utf-8",
             )
             fake_nix.chmod(0o755)
@@ -97,9 +98,12 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                     str(SHARED_TEST_ENV_SCRIPT),
                     BASH,
                     "-c",
+                    "set -euo pipefail; "
+                    "build_entry=\"$(command -v build-incremental)\"; "
                     "printf '%s\\n' \"$PWD\" \"$CCACHE_BASEDIR\" "
                     "\"$CCACHE_DIR\" \"$LIBREPAINT_REPO_ROOT\" "
-                    "\"$LIBREPAINT_BUILD_ROOT\" >\"$ENVIRONMENT_LOG\"",
+                    "\"$LIBREPAINT_BUILD_ROOT\" \"$build_entry\" "
+                    ">\"$ENVIRONMENT_LOG\"",
                 ],
                 cwd=REPO_ROOT,
                 env=environment,
@@ -122,6 +126,7 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                     str(shared_cache),
                     str(REPO_ROOT),
                     str(REPO_ROOT / "build"),
+                    str(REPO_ROOT / "scripts" / "build-incremental"),
                 ],
             )
 

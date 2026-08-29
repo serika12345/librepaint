@@ -49,6 +49,7 @@ exec "$BASH" -c '
 
     cd "$repo_root"
     eval "$("$nix_command" print-dev-env "$profile")"
+    export PATH="$repo_root/scripts:$PATH"
     export CCACHE_BASEDIR="$repo_root"
     export CCACHE_DIR="$shared_cache"
     export LIBREPAINT_REPO_ROOT="$repo_root"
