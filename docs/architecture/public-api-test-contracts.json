@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24980
+    "expectedMissingApis": 24976
   },
   "contracts": [
     {
@@ -13821,6 +13821,40 @@
       "classification": "maintained",
       "apis": [
         "method:KisRandomGenerator2D::doubleRandomAt(qint64 x,qint64 y)"
+      ]
+    },
+    {
+      "target": "SvgTransformParserContractTest",
+      "source": "libs/flake/tests/SvgTransformParserContractTest.cpp",
+      "test": "SvgTransformParserContractTest::parsesEverySupportedTransformType",
+      "behavior": "SVG変換解析はmatrix、translate、scale、rotate、skewX、skewYと各省略形を受理し、対応する変換行列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgTransformParser",
+        "method:SvgTransformParser::SvgTransformParser(const QString & str)",
+        "method:SvgTransformParser::isValid() const",
+        "method:SvgTransformParser::transform() const"
+      ]
+    },
+    {
+      "target": "SvgTransformParserContractTest",
+      "source": "libs/flake/tests/SvgTransformParserContractTest.cpp",
+      "test": "SvgTransformParserContractTest::composesTransformsInSourceOrder",
+      "behavior": "SVG変換解析は複数の非可換な変換を記述順に連結し、後続変換を既存行列の左側へ合成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTransformParser::transform() const"
+      ]
+    },
+    {
+      "target": "SvgTransformParserContractTest",
+      "source": "libs/flake/tests/SvgTransformParserContractTest.cpp",
+      "test": "SvgTransformParserContractTest::rejectsMalformedTransforms",
+      "behavior": "SVG変換解析は空入力、括弧欠落、未知命令、末尾ごみ、引数不足を不正と判定し、既定変換を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgTransformParser::isValid() const",
+        "method:SvgTransformParser::transform() const"
       ]
     }
   ]

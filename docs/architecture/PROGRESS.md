@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:42 JST
+- 更新日時: 2026-08-29 14:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,7 +23,7 @@
 - 実装担当`image-random-generator-2d`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/image/KisRandomGenerator2D.{h,cpp}`、画像CMakeと新規限定試験を所有し、
   型、構築、破棄、整数乱数、正規化乱数の5 APIを対象とする。
-- 実装担当`flake-svg-transform-parser`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`flake-svg-transform-parser`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。`libs/flake/svg/parsers/SvgTransformParser.{h,cpp}`、Flake CMakeと新規限定試験を
   所有し、型、構築、妥当性、変換結果の4 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -7750,10 +7750,27 @@
   対応済み5,009件、未対応24,980件になった。黄金値は現行のsalt表、座標混合、IEEE 754倍精度変換を維持契約とする。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b SVG変換解析の全public API契約と小構築対象で完了した作業
+
+- `libs/flake/svg/parsers/SvgTransformParser.cpp`を、製品`kritaflake`による直接コンパイルから新規
+  `kritaflakesvgtransformparserobjects`の所有ソースへ移し、その生成物を同じ製品へ1回再集約した。物理ファイルと公開宣言は
+  維持し、SVG変換文字列の解析だけを独立して構築できる境界にした。
+- `libs/flake/svg/parsers/SvgTransformParser.h`の型、構築、`isValid()`、`transform()`の全4 APIを、新規
+  `libs/flake/tests/SvgTransformParserContractTest.cpp`の3試験へ対応付けた。6種類の変換と省略形、非可換な複数変換の
+  記述順合成、空入力・括弧欠落・未知命令・末尾ごみ・引数不足の拒否と既定変換を固定した。製品実装接続前のリンクは対象3
+  メソッドだけを未解決記号として診断した。
+- 既存`TestSvgParser`は549工程・1,129入力である。新規の専用対象は1工程・3入力、契約対象は5工程・11入力で、製品
+  `kritaflake`閉包は変更前後とも545工程・1,122入力である。直接依存は専用対象がBoostヘッダーとQt Gui、契約対象が
+  専用対象とQt Testである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、対象CTestの単発実行と20回反復を成功させた。構成時の
+  パッケージ境界検査も1,125対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、
+  対応済み5,013件、未対応24,976件になった。非ASCII入力は未固定の危険として残る。Linux、全ネイティブ検証、製品全体
+  リンクは実行していない。
+
 ## 次の操作
 
-第3便のBezierパラメーター標本化とSVG変換解析を順に統合する。各統合後に対象限定CTestと公開API検査を再実行し、
-中央台帳と対応件数を一意に同期する。
+第3便のBezierパラメーター標本化を統合する。対象限定CTestと公開API検査を再実行し、中央台帳と対応件数を同期した後、
+次の非重複担当群を新しい共通基準から開始する。
 
 ## R1-G5完了根拠
 

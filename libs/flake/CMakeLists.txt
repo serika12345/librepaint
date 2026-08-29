@@ -44,6 +44,25 @@ set_target_properties(kritaflakezoomstateobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakesvgtransformparserobjects OBJECT
+    svg/parsers/SvgTransformParser.cpp
+)
+target_compile_definitions(kritaflakesvgtransformparserobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakesvgtransformparserobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakesvgtransformparserobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaflakesvgtransformparserobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakebehaviorinterfaceobjects OBJECT
     KoCanvasSupervisor.cpp
     KoLoadingShapeUpdater.cpp
@@ -262,7 +281,6 @@ set(kritaflake_SRCS
     svg/SvgCssHelper.cpp
     svg/SvgClipPathHelper.cpp
     svg/SvgLoadingContext.cpp
-    svg/parsers/SvgTransformParser.cpp
     svg/SvgMeshGradient.cpp
     svg/SvgMeshPatch.cpp
     svg/SvgMeshArray.cpp
@@ -314,6 +332,7 @@ set(kritaflake_SRCS
 
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakezoomstateobjects>
+    $<TARGET_OBJECTS:kritaflakesvgtransformparserobjects>
     $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakegradienthelperobjects>
 
