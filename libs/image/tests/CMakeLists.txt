@@ -372,6 +372,29 @@ target_include_directories(KisLockFrameGenerationLockContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
 )
 
+kis_add_test(
+    KisProgressUpdateHelperContractTest.cpp
+    ../../widgetutils/KoProgressProxy.cpp
+    ../../widgetutils/KoUpdater.cpp
+    ../../widgetutils/KoUpdaterPrivate_p.cpp
+    TEST_NAME KisProgressUpdateHelperContractTest
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisProgressUpdateHelperContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_compile_definitions(KisProgressUpdateHelperContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 
