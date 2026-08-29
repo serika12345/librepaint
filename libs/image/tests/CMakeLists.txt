@@ -341,6 +341,29 @@ kis_add_test(
 target_compile_definitions(KisImageInterfacesContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisSafeBlockingQueueConnectionProxyContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagesafeblockingqueueconnectionproxyobjects
+        kritaimagebusywaitbrokerobjects
+        kritaglobalsignalcompressorobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisSafeBlockingQueueConnectionProxyContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_compile_definitions(KisSafeBlockingQueueConnectionProxyContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisLevelsCurveContractTest.cpp
     LINK_LIBRARIES
         kritaimagelevelscurveobjects

@@ -49,6 +49,56 @@ set_target_properties(kritaimagefilterstrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagebusywaitbrokerobjects OBJECT
+   KisBusyWaitBroker.cpp
+)
+target_compile_definitions(kritaimagebusywaitbrokerobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagebusywaitbrokerobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+   PRIVATE
+      $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritaimagebusywaitbrokerobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Widgets
+      Boost::boost
+)
+set_target_properties(kritaimagebusywaitbrokerobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimagesafeblockingqueueconnectionproxyobjects OBJECT
+   KisSafeBlockingQueueConnectionProxy.cpp
+)
+target_compile_definitions(kritaimagesafeblockingqueueconnectionproxyobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagesafeblockingqueueconnectionproxyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagesafeblockingqueueconnectionproxyobjects
+   PUBLIC
+      kritaimagebusywaitbrokerobjects
+      kritaglobalsignalcompressorobjects
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Widgets
+      Boost::boost
+)
+set_target_properties(kritaimagesafeblockingqueueconnectionproxyobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagefastmathobjects OBJECT
    kis_fast_math.cpp
 )
@@ -719,9 +769,7 @@ set(kritaimage_LIB_SRCS
    kis_base_node.cpp
    kis_base_processor.cpp
    kis_bookmarked_configuration_manager.cc
-   KisBusyWaitBroker.cpp
    KisBatchNodeUpdate.cpp
-   KisSafeBlockingQueueConnectionProxy.cpp
    kis_node_uuid_info.cpp
    kis_clone_layer.cpp
    kis_config_widget.cpp
@@ -899,6 +947,8 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
+   $<TARGET_OBJECTS:kritaimagebusywaitbrokerobjects>
+   $<TARGET_OBJECTS:kritaimagesafeblockingqueueconnectionproxyobjects>
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimageperspectivemathobjects>
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
