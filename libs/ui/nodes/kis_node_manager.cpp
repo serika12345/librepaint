@@ -1328,15 +1328,37 @@ void KisNodeManager::saveVectorLayerAsImage()
     }
 }
 
-void KisNodeManager::slotSplitAlphaIntoMask()
+KisNodeSP KisNodeManager::SplitAlphaAccess::activeNode(KisNodeManager *manager)
 {
-    KisNodeSP node = activeNode();
-    if (!canModifyLayer(node)) return;
+    return manager->activeNode();
+}
 
-    // guaranteed by KisActionManager
-    KIS_ASSERT_RECOVER_RETURN(node->hasEditablePaintDevice());
+bool KisNodeManager::SplitAlphaAccess::canModifyLayer(KisNodeManager *manager, KisNodeSP node)
+{
+    return manager->canModifyLayer(node);
+}
 
-    KisLayerUtils::splitAlphaToMask(node->image(), node, m_d->maskManager.createMaskNameCommon(node, "KisTransparencyMask",  i18n("Transparency Mask")));
+bool KisNodeManager::SplitAlphaAccess::hasEditablePaintDevice(KisNodeSP node)
+{
+    return node->hasEditablePaintDevice();
+}
+
+QString KisNodeManager::SplitAlphaAccess::createMaskName(KisNodeManager *manager,
+                                                         KisNodeSP node,
+                                                         const QString &maskType,
+                                                         const QString &defaultName)
+{
+    return manager->m_d->maskManager.createMaskNameCommon(node, maskType, defaultName);
+}
+
+void KisNodeManager::SplitAlphaAccess::splitAlphaToMask(KisNodeSP node, const QString &maskName)
+{
+    KisLayerUtils::splitAlphaToMask(node->image(), node, maskName);
+}
+
+void KisNodeManager::SplitAlphaAccess::mergeTransparencyMaskAsAlpha(KisNodeManager *manager, bool writeToLayers)
+{
+    manager->m_d->mergeTransparencyMaskAsAlpha(writeToLayers);
 }
 
 void KisNodeManager::Private::mergeTransparencyMaskAsAlpha(bool writeToLayers)
@@ -1409,18 +1431,6 @@ void KisNodeManager::Private::mergeTransparencyMaskAsAlpha(bool writeToLayers)
                           OPACITY_OPAQUE_U8);
     }
 }
-
-
-void KisNodeManager::slotSplitAlphaWrite()
-{
-    m_d->mergeTransparencyMaskAsAlpha(true);
-}
-
-void KisNodeManager::slotSplitAlphaSaveMerged()
-{
-    m_d->mergeTransparencyMaskAsAlpha(false);
-}
-
 KisNodeList KisNodeManager::ToggleAccess::selectedNodes(KisNodeManager *manager)
 {
     return manager->selectedNodes();

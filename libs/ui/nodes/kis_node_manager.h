@@ -528,6 +528,16 @@ protected:
                                                 KisProcessingApplicator *applicator);
     };
 
+    struct KRITAUI_EXPORT SplitAlphaAccess {
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static bool canModifyLayer(KisNodeManager *manager, KisNodeSP node);
+        static bool hasEditablePaintDevice(KisNodeSP node);
+        static QString
+        createMaskName(KisNodeManager *manager, KisNodeSP node, const QString &maskType, const QString &defaultName);
+        static void splitAlphaToMask(KisNodeSP node, const QString &maskName);
+        static void mergeTransparencyMaskAsAlpha(KisNodeManager *manager, bool writeToLayers);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25087
+    "expectedMissingApis": 25084
   },
   "contracts": [
     {
@@ -12783,6 +12783,27 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::pasteLayersFromClipboard(bool changeOffset=false,QPointF offset=QPointF (),KisProcessingApplicator * applicator=nullptr)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSplitAlphaContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSplitAlphaContractTest.cpp",
+      "test": "KisNodeManagerSplitAlphaContractTest::splitUsesTransparencyMaskName",
+      "behavior": "アルファのマスク分離は活動ノードが変更可能で編集可能画素を持つことを前提とし、透明度マスク型と翻訳済み既定名から生成した一意名を使って同じノードのアルファを分離する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotSplitAlphaIntoMask()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSplitAlphaContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSplitAlphaContractTest.cpp",
+      "test": "KisNodeManagerSplitAlphaContractTest::mergeEntryPointsChooseWriteOrSave",
+      "behavior": "透明度マスクの書込み入口は親レイヤーへの統合を選び、統合画像の保存入口は親レイヤーを変更しない保存用統合を選ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::slotSplitAlphaSaveMerged()",
+        "method:KisNodeManager::slotSplitAlphaWrite()"
       ]
     }
   ]
