@@ -14,6 +14,18 @@ target_include_directories(kritawidgetstitledtabobjects
 target_link_libraries(kritawidgetstitledtabobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritawidgetstitledtabobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetsanglegaugeobjects OBJECT
+    KisAngleGauge.cpp
+)
+target_compile_definitions(kritawidgetsanglegaugeobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsanglegaugeobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsanglegaugeobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsanglegaugeobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 add_library(kritawidgetszoomhandlerobjects OBJECT
     KoZoomHandler.cpp
 )
@@ -125,7 +137,6 @@ set(kritawidgets_LIB_SRCS
     kis_color_label_button.cpp
     kis_color_label_selector_widget.cpp
 
-    KisAngleGauge.cpp
     KisAngleSelector.cpp
     kis_aspect_ratio_locker.cpp
 
@@ -169,6 +180,7 @@ kis_add_library(kritawidgets SHARED
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
     $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
     $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
+    $<TARGET_OBJECTS:kritawidgetsanglegaugeobjects>
     $<TARGET_OBJECTS:kritawidgetszoomhandlerobjects>
 )
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
