@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24992
+    "expectedMissingApis": 24986
   },
   "contracts": [
     {
@@ -13755,6 +13755,39 @@
       "apis": [
         "method:KisLockFrameGenerationLockAdapter::lock()",
         "method:KisLockFrameGenerationLockAdapter::unlock()"
+      ]
+    },
+    {
+      "target": "KoPathPointDataContractTest",
+      "source": "libs/flake/tests/KoPathPointDataContractTest.cpp",
+      "test": "KoPathPointDataContractTest::constructionPreservesShapeAndPointIndex",
+      "behavior": "経路点データは構築時に指定された借用形状ポインターと部分経路・点番号の組を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathPointData",
+        "member:KoPathPointData::pathShape",
+        "member:KoPathPointData::pointIndex",
+        "method:KoPathPointData::KoPathPointData(KoPathShape * path,const KoPathPointIndex & pointIndex)"
+      ]
+    },
+    {
+      "target": "KoPathPointDataContractTest",
+      "source": "libs/flake/tests/KoPathPointDataContractTest.cpp",
+      "test": "KoPathPointDataContractTest::equalityRequiresMatchingShapeAndBothIndices",
+      "behavior": "経路点データの等値比較は形状ポインター、部分経路番号、点番号のすべてが一致する場合だけ真を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPointData::operator ==(const KoPathPointData & other) const"
+      ]
+    },
+    {
+      "target": "KoPathPointDataContractTest",
+      "source": "libs/flake/tests/KoPathPointDataContractTest.cpp",
+      "test": "KoPathPointDataContractTest::orderingUsesShapeThenLexicographicPointIndex",
+      "behavior": "経路点データの順序比較は形状ポインターを優先し、同一形状では部分経路番号、点番号の順に辞書比較する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathPointData::operator <(const KoPathPointData & other) const"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:23 JST
+- 更新日時: 2026-08-29 14:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,7 +24,7 @@
   `transport-commit`、追加委任は`forbidden`、統合順は2である。`libs/image/KisLockFrameGenerationLock.{h,cpp}`、
   `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`と新規専用試験を所有し、型、構築、`try_lock()`、
   `lock()`、`unlock()`の5 APIを対象とする。
-- 実装担当`flake-path-point-data`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`flake-path-point-data`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。`libs/flake/KoPathPointData.h`の型、構築、公開値2件、同値、順序の6 APIを対象とし、
   `libs/flake/tests/CMakeLists.txt`と新規専用試験だけを所有する。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -7721,10 +7721,23 @@
   パッケージ境界検査も1,118対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、
   対応済み4,997件、未対応24,992件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 経路点データの全public API契約と小試験対象で完了した作業
+
+- `libs/flake/KoPathPointData.h`のヘッダー内実装は維持し、既存`libs/flake/tests/TestPathShape.cpp`の広い並べ替え試験に
+  加えて、新規`libs/flake/tests/KoPathPointDataContractTest.cpp`を製品ライブラリー非依存の限定契約として追加した。
+- 型、構築、借用形状ポインター、2要素索引、同値、順序の全6 APIを3試験へ対応付けた。構築値の保持、3値すべてを使う
+  同値条件、形状ポインターを優先して同一形状内を部分経路番号・点番号の順に比較する辞書順を固定した。
+- 既存`TestPathShape`は549工程・1,129入力と12生成依存を持つため、新規対象を4工程・8入力へ分離した。直接依存は
+  Boostヘッダー、Qt Gui、Qt Test、Qt Xmlで、製品ライブラリー依存はない。
+- 統合担当のmacOS構築木で対象を構築し、対象CTestの単発実行と20回反復を成功させた。構成時のパッケージ境界検査も
+  1,119対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、対応済み5,003件、
+  未対応24,986件になった。異なる形状の順序は現行の組み込みポインター比較を観測し、macOSで`std::less`の全順序と
+  一致した。Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-準備完了した`flake-path-point-data`を統合順3として取り込み、中央台帳と進捗を同期して対象CTest、公開API契約検査、高速検査を
-再実行する。統合後は第2便の共通基準を更新し、次の非重複担当群を選ぶ。
+第2便を統合した新しい共通基準コミットから、次の非重複担当群を選ぶ。統合担当は公開API報告を責務・所有対象ごとに再集計し、
+既存の小試験で直接観測済みのAPIを優先して次の担当票を作る。
 
 ## R1-G5完了根拠
 
