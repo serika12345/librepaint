@@ -37,6 +37,16 @@ kis_add_test(
 target_compile_definitions(KoAlphaMaskApplicatorBaseContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoChannelInfoContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoChannelInfoContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+kis_add_test(
     KoMixColorsOpContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
