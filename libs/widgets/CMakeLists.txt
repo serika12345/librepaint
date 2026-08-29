@@ -2,6 +2,21 @@ add_subdirectory( tests )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_library(kritawidgetsdocktitlebarbuttonobjects OBJECT
+    KoDockWidgetTitleBarButton.cpp
+)
+target_compile_definitions(kritawidgetsdocktitlebarbuttonobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsdocktitlebarbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsdocktitlebarbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsdocktitlebarbuttonobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetsvboxobjects OBJECT
     KoVBox.cpp
 )
@@ -171,7 +186,6 @@ set(kritawidgets_LIB_SRCS
     KoLineStyleModel.cpp
 
     KoDockWidgetTitleBar.cpp
-    KoDockWidgetTitleBarButton.cpp
     
     KoToolDocker.cpp
     
@@ -251,6 +265,7 @@ set_target_properties(kritawidgetsdebugobjects PROPERTIES
 
 kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
+    $<TARGET_OBJECTS:kritawidgetsdocktitlebarbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsvboxobjects>
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
     $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
