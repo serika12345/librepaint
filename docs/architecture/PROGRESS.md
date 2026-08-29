@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:07 JST
+- 更新日時: 2026-08-29 14:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,7 +27,7 @@
   `libs/image/CMakeLists.txt`、`libs/image/tests/KisBlockBackgroundFrameGenerationLockContractTest.cpp`、
   `libs/image/tests/CMakeLists.txt`を所有し、`KisAdaptedLockTest`を隣接契約とする。対象はアダプタークラス、構築、
   `lock()`、`unlock()`の4 APIである。
-- 実装担当`flake-zoom-state`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`flake-zoom-state`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。`libs/flake/KoZoomState.{h,cpp}`、`libs/flake/CMakeLists.txt`、
   `libs/flake/tests/KoZoomStateContractTest.cpp`、`libs/flake/tests/CMakeLists.txt`を所有する。対象はクラス、既定構築、
   値構築、`mode`、`zoom`、`minZoom`、`maxZoom`、等値比較の8 APIである。
@@ -7665,11 +7665,26 @@
   パッケージ境界検査も1,112対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、
   対応済み4,979件、未対応25,010件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b ズーム状態の全public API契約と小構築対象で完了した作業
+
+- `libs/flake/KoZoomState.cpp`を、製品`kritaflake`による直接コンパイルから新規`kritaflakezoomstateobjects`の
+  所有ソースへ移し、その生成物を同じ製品へ1回再集約した。物理ファイルと公開宣言は維持し、ズーム状態の等値判断だけを
+  独立して構築できる境界にした。
+- `libs/flake/KoZoomState.h`の型、既定構築、値構築、モード、倍率、下限、上限、等値比較の全8 APIを、新規
+  `libs/flake/tests/KoZoomStateContractTest.cpp`の4試験へ対応付けた。正規の既定範囲、指定値の保持、正の隣接浮動小数点値に
+  対するQtの近似等値、各状態値の有意差による非等値を固定した。製品実装接続前のリンクは等値メソッドだけを未解決記号として
+  診断した。
+- 変更前後の製品`kritaflake`閉包は545工程・1,122入力で不変である。専用対象は1工程・3入力、契約対象は
+  5工程・11入力であり、直接依存は専用対象がBoostヘッダーとQt Core、契約対象が専用対象とQt Testだけである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、対象CTestの単発実行と20回反復を成功させた。構成時の
+  パッケージ境界検査も1,114対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、
+  対応済み4,987件、未対応25,002件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-準備完了した`flake-zoom-state`を統合順3として取り込み、中央契約台帳と進捗を同期して対象CTest、公開API契約検査、高速検査を
-再実行する。独立したレビュー可能コミットに固定した後、統合担当は`libs/ui/nodes/kis_node_model.h`の`dropMimeData()`について
-変更なし計画、直接依存、空構築閉包を先に監査する。
+統合担当は`libs/ui/nodes/kis_node_model.h`の`dropMimeData()`について変更なし計画、直接依存、空構築閉包を先に監査する。
+ノード挿入位置の値判断と画像・形状制御・挿入アダプターへの効果委譲が同じ具象所有を要求する場合は、契約実装前に小構築対象へ
+分離する。次の並列担当群は新しい共通基準コミットから重ならない所有単位を選ぶ。
 
 ## R1-G5完了根拠
 

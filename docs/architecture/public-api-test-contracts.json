@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25010
+    "expectedMissingApis": 25002
   },
   "contracts": [
     {
@@ -13634,6 +13634,51 @@
       "apis": [
         "method:KisBlockBackgroundFrameGenerationLockAdapter::lock()",
         "method:KisBlockBackgroundFrameGenerationLockAdapter::unlock()"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::defaultStateKeepsCanonicalRange",
+      "behavior": "ズーム状態は既定構築でモードを固定倍率、倍率を1.0、下限を0.1、上限を90.0として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoZoomState",
+        "member:KoZoomState::maxZoom",
+        "member:KoZoomState::minZoom",
+        "member:KoZoomState::mode",
+        "member:KoZoomState::zoom",
+        "method:KoZoomState::KoZoomState()"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::constructionPreservesAllStateValues",
+      "behavior": "ズーム状態は値構築で指定したモード、倍率、下限、上限を対応する公開状態値へ保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomState::KoZoomState(KoZoomMode::Mode mode,qreal zoom,qreal minZoom,qreal maxZoom)"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::fuzzyEqualityAcceptsEquivalentPositiveValues",
+      "behavior": "ズーム状態の等値比較は同じモードと、qFuzzyCompareが同値と判定する正の倍率、下限、上限を等しいと扱い、非等値比較も反転結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomState::operator ==(const KoZoomState & other) const"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::comparisonRejectsEachDifferentStateValue",
+      "behavior": "ズーム状態の比較はモード、倍率、下限、上限のいずれか一つが有意に異なる場合を非等値と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomState::operator ==(const KoZoomState & other) const"
       ]
     }
   ]

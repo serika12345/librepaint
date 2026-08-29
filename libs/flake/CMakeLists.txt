@@ -25,6 +25,25 @@ set_target_properties(kritaflakeinsetsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakezoomstateobjects OBJECT
+    KoZoomState.cpp
+)
+target_compile_definitions(kritaflakezoomstateobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakezoomstateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakezoomstateobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaflakezoomstateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakebehaviorinterfaceobjects OBJECT
     KoCanvasSupervisor.cpp
     KoLoadingShapeUpdater.cpp
@@ -112,7 +131,6 @@ set(kritaflake_SRCS
     KoToolBase.cpp
     KoCanvasController.cpp
     KoZoomMode.cpp
-    KoZoomState.cpp
     KoShapeRegistry.cpp
     KoDeferredShapeFactoryBase.cpp
     KoToolFactoryBase.cpp
@@ -295,6 +313,7 @@ set(kritaflake_SRCS
     tests/MockShapes.cpp
 
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
+    $<TARGET_OBJECTS:kritaflakezoomstateobjects>
     $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakegradienthelperobjects>
 

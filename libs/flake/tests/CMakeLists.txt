@@ -103,6 +103,18 @@ kis_add_test(
 )
 
 kis_add_test(
+    KoZoomStateContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakezoomstateobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoZoomStateContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoZoomStateContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoBehaviorInterfacesContractTest.cpp
     LINK_LIBRARIES
         kritaflakebehaviorinterfaceobjects
