@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 22:38 JST
+- 更新日時: 2026-08-29 22:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,10 +27,11 @@
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-snap-config`であり、
   `libs/application/kis_snap_config.{h,cpp}`、Application製品・試験CMake、新規限定試験を所有する。従来試験の
   1,123工程・2,262入力を縮小し、8値の既定・変更・読込み・保存委譲・寿命の全21 APIを`ec8aec724c`で固定した。
-- 実装担当`sensor-data`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`sensor-data`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-sensor-data`であり、
   `plugins/paintops/libpaintop/KisSensorData.{h,cpp}`、PaintOp製品・試験CMake、新規限定試験を所有する。描画実行生成物に
-  混在する1翻訳単位を専用生成物へ分け、基底・長さ・描画角度センサーの既定、範囲、初期化、XML、同値性、寿命の全30 APIを対象とする。
+  混在する1翻訳単位を専用生成物へ分け、基底・長さ・描画角度センサーの既定、範囲、初期化、XML、同値性、寿命の全30 APIを
+  `2b4a88b8e4`で固定した。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8775,9 +8776,29 @@
   未対応24,210件になった。実際の設定キーと永続化は既存構成試験の責務に残り、GUIスレッド上の書込みは実行していない。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b センサー設定値の全public API契約と構築所有分離で完了した作業
+
+- `plugins/paintops/libpaintop/KisSensorData.h`の全30 APIを、新規
+  `plugins/paintops/libpaintop/tests/KisSensorDataContractTest.cpp`の6試験へ対応付けた。基底、長さ付き、描画角度センサーの
+  識別子別既定値、曲線範囲、安全診断、初期化、同値判定、仮想破棄、XMLの省略・往復・欠落時復元を固定した。
+- 開始ファイル`plugins/paintops/libpaintop/KisSensorData.cpp`の構築所有を
+  `plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopruntime_LIB_SRCS`から、同ファイル内の新規
+  `kritapaintopsensordataobjects`へ移した。製品`kritalibpaintop`は生成物を1回だけ直接再集約し、描画実行生成物の利用側には
+  接続面ソースとして1回だけ伝播する。製品`kritalibpaintop`と`kritapixelbrush`の各最終集約命令で同じ翻訳単位が1回だけ現れることを
+  確認した。新規試験は専用生成物、既存KoID生成物、Qt Core・Xml・Test、KF I18n、Eigenだけへ接続する。ファイル位置、公開ヘッダー、
+  製品ABI、センサー処理は維持した。
+- 不要な曲線ヘッダー参照を除去した後、実装未接続の初回限定リンクは3型の構築・破棄・初期化・XML・仮想表の未定義記号で失敗した。
+  macOSの専用生成物は1工程・3入力、限定試験は6工程・14入力であり、描画実行生成物の1,185工程・2,390入力から縮小した。
+  主作業ツリーで対象CTestの単発実行と20回反復、最近傍の`KisCurveControlStrategyInterfacesContractTest`、パッケージ境界検査に
+  成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,809件、未対応24,180件になった。不正識別子、XML識別子不一致、
+  異常・範囲外数値は実行していない。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第18並列便は色モデル変換27 API、Bezier曲面23 API、スナップ設定21 API、センサー設定値30 APIの合計101 APIを固定した。
+  各実装担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
+
 ## 次の操作
 
-第18並列便の`sensor-data`引渡し`e0b7055156`を統合し、限定対象、20回反復、軽量隣接試験、公開API契約を主作業ツリーで再検証する。
+5,809件対応済みの公開API報告から、重ならない所有単位と最小構築閉包を監査し、第19並列便の4担当票を確定する。
 
 ## R1-G5完了根拠
 

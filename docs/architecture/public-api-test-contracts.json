@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24210
+    "expectedMissingApis": 24180
   },
   "contracts": [
     {
@@ -16704,6 +16704,90 @@
       "classification": "maintained",
       "apis": [
         "method:KisSnapConfig::saveStaticData() const"
+      ]
+    },
+    {
+      "target": "KisSensorDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorDataContractTest.cpp",
+      "test": "KisSensorDataContractTest::baseDefaultsRangeResetAndEquality",
+      "behavior": "基底センサーデータは識別子を保持して既定曲線、非アクティブ状態、単位矩形範囲で初期化・リセットされ、同値性は表示名ではなく識別子、曲線、アクティブ状態を比較する。未対応の範囲変更は安全診断を発生させて範囲を変えず、基底ポインターから仮想破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisSensorData & lhs,const KisSensorData & rhs)",
+        "member:KisSensorData::curve",
+        "member:KisSensorData::id",
+        "member:KisSensorData::isActive",
+        "method:KisSensorData::KisSensorData(const KoID & sensorId)",
+        "method:KisSensorData::baseCurveRange() const",
+        "method:KisSensorData::reset()",
+        "method:KisSensorData::setBaseCurveRange(const QRectF & rect)",
+        "method:KisSensorData::~KisSensorData()",
+        "struct:KisSensorData"
+      ]
+    },
+    {
+      "target": "KisSensorDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorDataContractTest.cpp",
+      "test": "KisSensorDataContractTest::baseXmlStoresIdentityAndNonDefaultCurve",
+      "behavior": "基底センサーデータのXMLは識別子を常に保存し、既定曲線を省略して変更曲線だけを保存・復元する。アクティブ状態はXML対象外で、基底readは既存状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSensorData::read(const QDomElement & e)",
+        "method:KisSensorData::write(QDomDocument & doc,QDomElement & e) const"
+      ]
+    },
+    {
+      "target": "KisSensorDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorDataContractTest.cpp",
+      "test": "KisSensorDataContractTest::lengthSensorsUseIdentifierSpecificDefaultsAndEquality",
+      "behavior": "長さ付きセンサーはfadeを1000、distanceとtimeを30で初期化し、非周期状態へリセットする。同値性は基底状態、長さ、周期性、構築時のXML属性名を比較する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisSensorWithLengthData & lhs,const KisSensorWithLengthData & rhs)",
+        "member:KisSensorWithLengthData::isPeriodic",
+        "member:KisSensorWithLengthData::length",
+        "method:KisSensorWithLengthData::KisSensorWithLengthData(const KoID & sensorId,const QLatin1String & lengthTag={})",
+        "method:KisSensorWithLengthData::reset()",
+        "struct:KisSensorWithLengthData"
+      ]
+    },
+    {
+      "target": "KisSensorDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorDataContractTest.cpp",
+      "test": "KisSensorDataContractTest::lengthSensorXmlUsesConfiguredTagAndResetsMissingValues",
+      "behavior": "長さ付きセンサーのXMLは構築時に指定した長さ属性名、周期性、変更曲線を往復し、属性欠落時は識別子固有の既定値、非周期、既定曲線、非アクティブ状態へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSensorWithLengthData::read(const QDomElement & e)",
+        "method:KisSensorWithLengthData::write(QDomDocument & doc,QDomElement & e) const"
+      ]
+    },
+    {
+      "target": "KisSensorDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorDataContractTest.cpp",
+      "test": "KisSensorDataContractTest::drawingAngleDefaultsResetAndEqualityCoverDerivedValues",
+      "behavior": "描画角度センサーは角補間無効、30度刻み、オフセット0、角度固定無効で初期化・リセットされ、同値性は基底状態と4つの派生値をすべて比較する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisDrawingAngleSensorData & lhs,const KisDrawingAngleSensorData & rhs)",
+        "member:KisDrawingAngleSensorData::angleOffset",
+        "member:KisDrawingAngleSensorData::fanCornersEnabled",
+        "member:KisDrawingAngleSensorData::fanCornersStep",
+        "member:KisDrawingAngleSensorData::lockedAngleMode",
+        "method:KisDrawingAngleSensorData::KisDrawingAngleSensorData()",
+        "method:KisDrawingAngleSensorData::reset()",
+        "struct:KisDrawingAngleSensorData"
+      ]
+    },
+    {
+      "target": "KisSensorDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorDataContractTest.cpp",
+      "test": "KisSensorDataContractTest::drawingAngleXmlRoundTripsDerivedValuesAndResetsMissingValues",
+      "behavior": "描画角度センサーのXMLは4つの派生値と変更曲線を往復し、属性欠落時は派生値、曲線、アクティブ状態を既定値へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDrawingAngleSensorData::read(const QDomElement & e)",
+        "method:KisDrawingAngleSensorData::write(QDomDocument & doc,QDomElement & e) const"
       ]
     }
   ]
