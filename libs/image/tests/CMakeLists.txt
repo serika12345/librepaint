@@ -261,6 +261,16 @@ target_include_directories(KisRunnableContractTest PRIVATE
 )
 
 kis_add_test(
+    KisSpontaneousJobContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisSpontaneousJobContractTest PRIVATE kritaimage_EXPORTS)
+target_include_directories(KisSpontaneousJobContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+
+kis_add_test(
     KisImageTypesContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
