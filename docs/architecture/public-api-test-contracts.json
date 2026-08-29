@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24721
+    "expectedMissingApis": 24701
   },
   "contracts": [
     {
@@ -15029,6 +15029,64 @@
         "method:KoProperties::stringProperty(const QString & name,const QString & defaultValue=QString ()) const",
         "method:KoProperties::value(const QString & key) const",
         "method:KoProperties::~KoProperties()"
+      ]
+    },
+    {
+      "target": "KoResourceBundleManifestContractTest",
+      "source": "libs/resources/tests/KoResourceBundleManifestContractTest.cpp",
+      "test": "KoResourceBundleManifestContractTest::resourceReferencePreservesDefaultsAndConstructorValues",
+      "behavior": "資源参照の既定構築が空の文字列・タグ値を持ち、指定構築が6公開値を保持し、省略した資源IDを-1、束内名を資源経路にする。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoResourceBundleManifest::ResourceReference::fileTypeName",
+        "member:KoResourceBundleManifest::ResourceReference::filenameInBundle",
+        "member:KoResourceBundleManifest::ResourceReference::md5sum",
+        "member:KoResourceBundleManifest::ResourceReference::resourceId",
+        "member:KoResourceBundleManifest::ResourceReference::resourcePath",
+        "member:KoResourceBundleManifest::ResourceReference::tagList",
+        "method:KoResourceBundleManifest::ResourceReference::ResourceReference()",
+        "method:KoResourceBundleManifest::ResourceReference::ResourceReference(const QString & _resourcePath,const QList<QString> & _tagList,const QString & _fileTypeName,const QString & _md5,const int _resourceId=-1,const QString _filenameInBundle=\"\")",
+        "struct:KoResourceBundleManifest::ResourceReference"
+      ]
+    },
+    {
+      "target": "KoResourceBundleManifestContractTest",
+      "source": "libs/resources/tests/KoResourceBundleManifestContractTest.cpp",
+      "test": "KoResourceBundleManifestContractTest::mutationsExposeTypesTagsAndFiles",
+      "behavior": "manifestが空状態から資源を追加して型・タグ・全件・型別一覧を返し、資源単位および全型を横断するファイル名単位で削除でき、基底ポインターから仮想破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceBundleManifest",
+        "method:KoResourceBundleManifest::KoResourceBundleManifest()",
+        "method:KoResourceBundleManifest::addResource(const QString & fileType,const QString & fileName,const QStringList & tagFileList,const QString & md5,const int resourceId=-1,const QString filenameInBundle=\"\")",
+        "method:KoResourceBundleManifest::files(const QString & type=QString ()) const",
+        "method:KoResourceBundleManifest::removeFile(QString fileName)",
+        "method:KoResourceBundleManifest::removeResource(ResourceReference & resource)",
+        "method:KoResourceBundleManifest::tags() const",
+        "method:KoResourceBundleManifest::types() const",
+        "method:KoResourceBundleManifest::~KoResourceBundleManifest()"
+      ]
+    },
+    {
+      "target": "KoResourceBundleManifestContractTest",
+      "source": "libs/resources/tests/KoResourceBundleManifestContractTest.cpp",
+      "test": "KoResourceBundleManifestContractTest::saveAndLoadPreserveManifestSerializationRules",
+      "behavior": "未開封装置を適切な方向で開き、ODF manifestの束ルート、接頭辞除去済み型、束内名、タグ、MD5を保存し、完全経路・タグ・十六進MD5復号値として読み戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceBundleManifest::load(QIODevice * device)",
+        "method:KoResourceBundleManifest::save(QIODevice * device)"
+      ]
+    },
+    {
+      "target": "KoResourceBundleManifestContractTest",
+      "source": "libs/resources/tests/KoResourceBundleManifestContractTest.cpp",
+      "test": "KoResourceBundleManifestContractTest::invalidOrUnavailableDevicesReportCurrentResults",
+      "behavior": "読込が既存内容を消去し、不正XML・異なる名前空間・開けない入力を失敗として返し、属性不足の項目を読み飛ばし、開けない出力を失敗として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceBundleManifest::load(QIODevice * device)",
+        "method:KoResourceBundleManifest::save(QIODevice * device)"
       ]
     }
   ]

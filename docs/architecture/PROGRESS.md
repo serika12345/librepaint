@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:35 JST
+- 更新日時: 2026-08-29 19:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,7 +19,7 @@
   `libs/widgetutils/KoProperties.{h,cpp}`、既存`libs/widgetutils/tests/KoPropertiesTest.{h,cpp}`、Widget Utils製品・
   試験CMakeを所有する。既存試験を巨大な共有試験群から専用対象へ分け、値の設定・取得・型変換・反復・コピー・
   XML保存復元・失敗時保持・等値・破棄の全20 APIを対象とする。
-- 実装担当`resource-bundle-manifest`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`resource-bundle-manifest`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-resource-bundle-manifest`であり、
   `libs/resources/KoResourceBundleManifest.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。参照値、
@@ -8445,10 +8445,25 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,268件、未対応24,721件になった。Linux、全ネイティブ検証、
   製品全体構築は実行していない。
 
+## R2-G19b 資源束目録の全public API契約で完了した作業
+
+- `libs/resources/KoResourceBundleManifest.h`の全20 APIを、新規
+  `libs/resources/tests/KoResourceBundleManifestContractTest.cpp`の4試験へ対応付けた。資源参照値、空状態、追加、
+  型・タグ・全件と型別の列挙、資源単位とファイル名単位の削除、仮想破棄、ODF manifestの保存復元、接頭辞除去、
+  XMLエスケープ、十六進MD5復号、不正入力と開けない入出力装置の結果を固定した。
+- 開始ファイル`libs/resources/KoResourceBundleManifest.cpp`の構築所有を`kritaresources_LIB_SRCS`から新規
+  `kritaresourcebundlemanifestobjects`へ移し、製品`kritaresources`が生成物を1回だけ再集約する。限定試験は製品
+  `kritaresources`へリンクせず、資源種別とデバッグの既存生成物、XML直列化、Qt Core・Xml・Testだけへ接続する。
+  公開ヘッダー、実装位置、製品ABIは維持した。
+- macOS統合側の限定試験は14工程・28入力であり、対象CTestの単発実行と20回反復、最近傍の
+  `KisResourceTypesContractTest`に成功した。製品への一重集約を確認し、統合時のパッケージ境界検査は1,195対象で
+  成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,288件、未対応24,701件になった。既定構築した
+  `ResourceReference::resourceId`は現行実装で未初期化のため読み取らず、指定構築と復元結果で公開値を固定した。
+  Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-`resource-bundle-manifest`、`runnable-stroke-job-builders`、`algebra-geometry-primitives`の順に、担当差分、限定構築、
-挙動、台帳を統合検証する。
+`runnable-stroke-job-builders`、`algebra-geometry-primitives`の順に、担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 
