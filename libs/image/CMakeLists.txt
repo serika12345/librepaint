@@ -386,6 +386,27 @@ set_target_properties(kritaimagecompressionobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagelodcapablelayeroffsetobjects OBJECT
+   kis_lod_capable_layer_offset.cpp
+)
+target_compile_definitions(kritaimagelodcapablelayeroffsetobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagelodcapablelayeroffsetobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagelodcapablelayeroffsetobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaimagelodcapablelayeroffsetobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -565,7 +586,6 @@ set(kritaimage_LIB_SRCS
    kis_queues_progress_updater.cpp
    kis_composite_progress_proxy.cpp
    kis_sync_lod_cache_stroke_strategy.cpp
-   kis_lod_capable_layer_offset.cpp
    kis_update_time_monitor.cpp
    KisImageConfigNotifier.cpp
    kis_group_layer.cc
@@ -726,6 +746,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageconvexhulldeviceobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldevicereaderobjects>
    $<TARGET_OBJECTS:kritaimagecompressionobjects>
+   $<TARGET_OBJECTS:kritaimagelodcapablelayeroffsetobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)

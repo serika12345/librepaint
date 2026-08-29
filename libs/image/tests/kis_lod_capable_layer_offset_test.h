@@ -13,7 +13,11 @@ class KisLodCapableLayerOffsetTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void test();
+    void testSynchronizationRules();
+    void testDefaultConstructionAndAccess();
+    void testValueConstructionAndBounds();
+    void testCopyAndAssignment();
+    void testLodState();
 };
 
 #endif /* __KIS_LOD_CAPABLE_LAYER_OFFSET_TEST_H */

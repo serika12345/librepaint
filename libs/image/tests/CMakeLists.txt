@@ -85,7 +85,6 @@ kis_add_tests(
     kis_scanline_fill_test.cpp
     kis_psd_layer_style_test.cpp
     kis_layer_style_projection_plane_test.cpp
-    kis_lod_capable_layer_offset_test.cpp
     kis_algebra_2d_test.cpp
     kis_marker_painter_test.cpp
     kis_lazy_brush_test.cpp
@@ -127,6 +126,26 @@ kis_add_tests(
     KisGridInterpolationToolsTest.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaresourcestorage
     )
+
+kis_add_test(
+    kis_lod_capable_layer_offset_test.cpp
+    LINK_LIBRARIES
+        kritaimagelodcapablelayeroffsetobjects
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(kis_lod_capable_layer_offset_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(kis_lod_capable_layer_offset_test PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
 
 kis_add_test(
     kis_node_commands_test.cpp
