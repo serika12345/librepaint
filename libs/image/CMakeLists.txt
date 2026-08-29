@@ -294,6 +294,22 @@ set_target_properties(kritaimageconvexhulldevicereaderobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagecompressionobjects OBJECT
+   tiles3/swap/kis_abstract_compression.cpp
+   tiles3/swap/kis_lzf_compression.cpp
+)
+target_compile_definitions(kritaimagecompressionobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagecompressionobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaimagecompressionobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagecompressionobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -305,8 +321,6 @@ set(kritaimage_LIB_SRCS
    tiles3/kis_hline_iterator.cpp
    tiles3/kis_vline_iterator.cpp
    tiles3/kis_random_accessor.cc
-   tiles3/swap/kis_abstract_compression.cpp
-   tiles3/swap/kis_lzf_compression.cpp
    tiles3/swap/kis_abstract_tile_compressor.cpp
    tiles3/swap/kis_legacy_tile_compressor.cpp
    tiles3/swap/kis_tile_compressor_2.cpp
@@ -635,6 +649,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldeviceobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldevicereaderobjects>
+   $<TARGET_OBJECTS:kritaimagecompressionobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)

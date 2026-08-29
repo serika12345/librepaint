@@ -12,3 +12,15 @@ kis_add_tests(
     )
 
 set_tests_properties(libs-image-tiles3-kis_low_memory_tests PROPERTIES TIMEOUT 180)
+
+kis_add_test(
+    ImageLzfCompressionContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagecompressionobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(ImageLzfCompressionContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+)
+target_compile_definitions(ImageLzfCompressionContractTest PRIVATE kritaimage_EXPORTS)
