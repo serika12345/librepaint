@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 16:46 JST
+- 更新日時: 2026-08-29 16:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,7 +23,7 @@
 - 実装担当`psdutils-compression`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/psdutils/compression.{h,cpp}`、PSD Utils CMake、既存または新規限定試験を所有し、
   圧縮と展開の3 APIを対象とする。
-- 実装担当`tools-deselect-shapes-policy`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`tools-deselect-shapes-policy`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。`libs/tools/kis_delegated_tool_policies.{h,cpp}`、Tools CMake、新規限定試験を所有し、
   図形選択解除方針の2 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -8063,9 +8063,28 @@
   現在の差分列と展開結果を既知不具合として固定した。修正時は意図した可逆変換の契約へ置き換える。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 図形選択解除方針の全public API契約と構築所有分離で完了した作業
+
+- ツール有効化時の図形選択解除だけを固定する際にも、Tools製品全体の構築を要求していた。
+  `libs/tools/kis_delegated_tool_policies.cpp`を`kritatools_LIB_SRCS`から新規`kritatoolsdelegatedtoolpolicyobjects`へ移し、
+  同じ製品へ生成物を一度再集約した。公開ヘッダー、実装内容、実装ファイルの位置を維持しながら、方針だけを独立して構築できる
+  所有単位にした。
+- `libs/tools/kis_delegated_tool_policies.h`の未対応2 APIを、新規
+  `libs/tools/tests/DeselectShapesActivationPolicyContractTest.cpp`の1試験へ対応付けた。ツール有効化時に
+  `KoCanvasBase`の形状管理から全選択を解除し、キャンバスウィジェットの再描画を予約することを固定した。実装接続前のリンクは
+  `DeselectShapesActivationPolicy::onActivate()`だけを未解決記号として診断した。
+- 既存`TestToolCoreContract`は1,151工程・2,317入力、製品`kritatools`は1,147工程・2,310入力である。新規専用対象は
+  345工程・719入力、契約対象は553工程・1,137入力であり、必須の具象所有者`kritaflake`は548工程・1,128入力である。
+  直接依存は専用対象が`kritaflake`とQt Widgets、契約対象が専用対象、`kritaflake`、Qt Test、Qt Widgetsである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、専用生成物が公開方針を定義して形状管理、選択解除、画面更新を参照すること、
+  製品の構築命令が生成物を一度再集約することを確認した。対象CTestの単発実行と20回反復、1,161対象のパッケージ境界検査に
+  成功した。公開API契約検査と`./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,104件、
+  未対応24,885件になった。実在する形状選択管理を観測するためFlake具体所有閉包は残るが、Tools製品全体の構築は不要になった。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第7並列便の図形選択解除方針の限定契約を統合する。
+最新の公開API報告から構築範囲が重ならない第8並列便を選び、限定契約の実装を継続する。
 
 ## R1-G5完了根拠
 

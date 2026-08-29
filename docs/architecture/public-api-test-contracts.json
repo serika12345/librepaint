@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24887
+    "expectedMissingApis": 24885
   },
   "contracts": [
     {
@@ -14357,6 +14357,17 @@
       "classification": "maintained",
       "apis": [
         "method:Compression::uncompress(int unpacked_len,QByteArray bytes,psd_compression_type compressionType,int row_size=0,int color_depth=0)"
+      ]
+    },
+    {
+      "target": "DeselectShapesActivationPolicyContractTest",
+      "source": "libs/tools/tests/DeselectShapesActivationPolicyContractTest.cpp",
+      "test": "DeselectShapesActivationPolicyContractTest::activationClearsShapeSelectionAndSchedulesCanvasUpdate",
+      "behavior": "ツール有効化時にキャンバスの形状選択を全解除し、キャンバスウィジェットの再描画を予約する。",
+      "classification": "maintained",
+      "apis": [
+        "method:DeselectShapesActivationPolicy::onActivate(KoCanvasBase * canvas)",
+        "struct:DeselectShapesActivationPolicy"
       ]
     }
   ]
