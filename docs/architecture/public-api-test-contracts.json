@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24164
+    "expectedMissingApis": 24142
   },
   "contracts": [
     {
@@ -16849,6 +16849,101 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const PSDHeader & header)"
+      ]
+    },
+    {
+      "target": "KoWritingSystemUtilsContractTest",
+      "source": "libs/flake/tests/KoWritingSystemUtilsContractTest.cpp",
+      "test": "KoWritingSystemUtilsContractTest::writingSystemMappings",
+      "behavior": "QFontDatabase文字体系はISO 15924タグへ対応し、VietnameseはLatnへ対応する。逆引きLatnはLatinを返し、未登録値は空文字列またはAnyを返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoWritingSystemUtils",
+        "method:KoWritingSystemUtils::scriptTagForWritingSystem(QFontDatabase::WritingSystem system)",
+        "method:KoWritingSystemUtils::writingSystemForScriptTag(const QString & tag)"
+      ]
+    },
+    {
+      "target": "KoWritingSystemUtilsContractTest",
+      "source": "libs/flake/tests/KoWritingSystemUtilsContractTest.cpp",
+      "test": "KoWritingSystemUtilsContractTest::localeScriptMappings",
+      "behavior": "QLocale文字体系とISO 15924タグは正逆変換され、未登録値は空文字列またはAnyScriptへ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoWritingSystemUtils::scriptForScriptTag(const QString & tag)",
+        "method:KoWritingSystemUtils::scriptTagForQLocaleScript(QLocale::Script script)"
+      ]
+    },
+    {
+      "target": "KoWritingSystemUtilsContractTest",
+      "source": "libs/flake/tests/KoWritingSystemUtilsContractTest.cpp",
+      "test": "KoWritingSystemUtilsContractTest::characterScriptMappings",
+      "behavior": "QChar文字体系とISO 15924タグは正逆変換され、未登録値は空文字列またはScript_Unknownへ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoWritingSystemUtils::qCharScriptForScriptTag(const QString & tag)",
+        "method:KoWritingSystemUtils::scriptTagForQCharScript(QChar::Script script)"
+      ]
+    },
+    {
+      "target": "KoWritingSystemUtilsContractTest",
+      "source": "libs/flake/tests/KoWritingSystemUtilsContractTest.cpp",
+      "test": "KoWritingSystemUtilsContractTest::samplesAndLocaleTags",
+      "behavior": "文字見本はLatin、絵文字、数学、記号の代表値とs_/l_タグ規約を提供し、localeの文字体系またはVietnamese言語に対応するタグを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoWritingSystemUtils::sampleTagForQLocale(const QLocale & locale)",
+        "method:KoWritingSystemUtils::samples()"
+      ]
+    },
+    {
+      "target": "KoWritingSystemUtilsContractTest",
+      "source": "libs/flake/tests/KoWritingSystemUtilsContractTest.cpp",
+      "test": "KoWritingSystemUtilsContractTest::bcp47ValueFormatting",
+      "behavior": "Bcp47Localeは6種類の公開値を保持し、言語欠落時は無効となる。BCP 47文字列は全値を順序通り連結し、POSIX形式は先頭言語、script、regionへ縮約する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoWritingSystemUtils::Bcp47Locale::extensionTags",
+        "member:KoWritingSystemUtils::Bcp47Locale::languageTags",
+        "member:KoWritingSystemUtils::Bcp47Locale::privateUseTags",
+        "member:KoWritingSystemUtils::Bcp47Locale::regionTag",
+        "member:KoWritingSystemUtils::Bcp47Locale::scriptTag",
+        "member:KoWritingSystemUtils::Bcp47Locale::variantTags",
+        "method:KoWritingSystemUtils::Bcp47Locale::isValid() const",
+        "method:KoWritingSystemUtils::Bcp47Locale::toPosixLocaleFormat() const",
+        "method:KoWritingSystemUtils::Bcp47Locale::toString() const",
+        "struct:KoWritingSystemUtils::Bcp47Locale"
+      ]
+    },
+    {
+      "target": "KoWritingSystemUtilsContractTest",
+      "source": "libs/flake/tests/KoWritingSystemUtilsContractTest.cpp",
+      "test": "KoWritingSystemUtilsContractTest::parseBcp47Locale",
+      "behavior": "BCP 47解析は言語、拡張言語、script、英字・数字region、variant、extension、private-useを分解・正規化し、grandfatheredタグを現在の代替値へ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoWritingSystemUtils::parseBcp47Locale(const QString & locale)"
+      ]
+    },
+    {
+      "target": "KoWritingSystemUtilsContractTest",
+      "source": "libs/flake/tests/KoWritingSystemUtilsContractTest.cpp",
+      "test": "KoWritingSystemUtilsContractTest::numericPrimaryLanguageIsAccepted",
+      "behavior": "主言語の長さ判定が論理和であるため、数字だけの主言語も有効なBCP 47値として保持・整形される。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoWritingSystemUtils::parseBcp47Locale(const QString & locale)"
+      ]
+    },
+    {
+      "target": "KoWritingSystemUtilsContractTest",
+      "source": "libs/flake/tests/KoWritingSystemUtilsContractTest.cpp",
+      "test": "KoWritingSystemUtilsContractTest::localeConversions",
+      "behavior": "Bcp47Locale値とBCP 47文字列の両入口は、同じlanguage、script、territoryを持つQLocaleへ変換される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoWritingSystemUtils::localeFromBcp47Locale(const Bcp47Locale & locale)",
+        "method:KoWritingSystemUtils::localeFromBcp47Locale(const QString & locale)"
       ]
     }
   ]

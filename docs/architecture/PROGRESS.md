@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 23:12 JST
+- 更新日時: 2026-08-29 23:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,10 +20,11 @@
   `kritapsdheaderobjects`へ移し、製品`kritapsd`へ一度だけ再集約した。開始試験
   `plugins/impex/psd/tests/psd_header_test.{h,cpp}`は同じパスのまま外部試験データ・製品・共通試験補助への接続を除き、
   専用生成物とメモリー内入出力へ移した。既定値、検証、読込み、書込み、診断表示の全16 APIを固定した。
-- 実装担当`writing-system`は`ready`、担当先端は`5e2b5f9118`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-writing-system`であり、
-  `libs/flake/text/KoWritingSystemUtils.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。557工程・1,145入力の既存
-  broken試験から分離し、文字体系列挙対応、見本、BCP 47解析・整形、QLocale変換の全22 APIを対象とする。
+- 実装担当`writing-system`は`integrated`、担当先端は`5e2b5f9118`、統合コミットは`df27b687ae`、統合順は2である。
+  開始ファイル`libs/flake/text/KoWritingSystemUtils.cpp`の構築所有を`libs/flake/CMakeLists.txt`の製品ソース列挙から
+  同ファイルの`kritaflakewritingsystemutilsobjects`へ移し、製品`kritaflake`へ一度だけ再集約した。新規限定試験
+  `libs/flake/tests/KoWritingSystemUtilsContractTest.cpp`は専用生成物とQt Gui・Testだけへ接続し、文字体系列挙対応、見本、
+  BCP 47解析・整形、QLocale変換の全22 APIを固定した。
 - 実装担当`frame-cache-index`は`ready`、担当先端は`93c9848208`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-frame-cache-index`であり、
   `libs/canvas/animation/kis_animation_frame_cache_index.{h,cpp}`、Canvas製品・試験CMake、既存限定化試験を所有する。既存試験の
@@ -8815,9 +8816,24 @@
   パッケージ境界検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,825件、未対応24,164件になった。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 文字体系・言語タグ変換の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/text/KoWritingSystemUtils.h`の全22 APIを、新規
+  `libs/flake/tests/KoWritingSystemUtilsContractTest.cpp`の8試験へ対応付けた。QFontDatabase・QLocale・QCharの文字体系と
+  ISO 15924タグの正逆変換、代表見本、BCP 47値の保持・解析・整形、grandfatheredタグ、QLocale変換を固定した。
+  数字だけの主言語を有効値として保持する現行挙動は、主言語長の論理和判定に由来する既知不具合として分離した。
+- 開始ファイル`libs/flake/text/KoWritingSystemUtils.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`から
+  同ファイル内の新規`kritaflakewritingsystemutilsobjects`へ移し、製品`kritaflake`が生成物を1回だけ再集約する。
+  新規限定試験は専用生成物とQt Gui・Testだけへ接続する。公開ヘッダー、実装位置、製品ABI、変換処理は維持した。
+- 実装未接続の初回限定リンクは文字体系変換、BCP 47解析・整形、QLocale変換の未定義記号で失敗した。macOSの専用生成物は
+  1工程・3入力、限定試験は5工程・11入力であり、既存のSVG文字試験は557工程・1,145入力を要求する。製品`kritaflake`は
+  553工程・1,138入力を維持する。主作業ツリーで対象CTest単発と20回反復、最近傍の`KoSvgTextEnumContractTest`、
+  パッケージ境界検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,847件、未対応24,142件になった。
+  見本全文とQLocale内部データ、grandfatheredタグの大小文字非依存性、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第19並列便の文字体系・言語タグ契約を統合し、限定対象、20回反復、軽量隣接試験、中央台帳を主作業ツリーで監査する。
+第19並列便のフレームキャッシュ範囲索引契約を統合し、限定対象、20回反復、軽量隣接試験、中央台帳を主作業ツリーで監査する。
 
 ## R1-G5完了根拠
 
