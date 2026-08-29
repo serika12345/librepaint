@@ -28,6 +28,15 @@ target_include_directories(DebugPigmentContractTest PRIVATE
 target_compile_definitions(DebugPigmentContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoAlphaMaskApplicatorBaseContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentalphamaskapplicatorbaseobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoAlphaMaskApplicatorBaseContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoAlphaColorSpaceTypeContractTest.cpp
     LINK_LIBRARIES
         kritapigmentstandardidsobjects

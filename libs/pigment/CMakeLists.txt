@@ -12,6 +12,21 @@ endforeach()
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
 
+add_library(kritapigmentalphamaskapplicatorbaseobjects OBJECT
+    KoAlphaMaskApplicatorBase.cpp
+)
+target_compile_definitions(kritapigmentalphamaskapplicatorbaseobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentalphamaskapplicatorbaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentalphamaskapplicatorbaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritapigmentalphamaskapplicatorbaseobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapigmentstandardidsobjects OBJECT
     KoColorModelStandardIds.cpp
 )
@@ -138,7 +153,6 @@ set_target_properties(kritapigmentdebugobjects PROPERTIES
 
 set(kritapigment_SRCS
     KoBasicHistogramProducers.cpp
-    KoAlphaMaskApplicatorBase.cpp
     KoOptimizedPixelDataScalerU8ToU16Base.cpp
     KoOptimizedPixelDataScalerU8ToU16Factory.cpp
     KoColor.cpp
@@ -227,6 +241,7 @@ endif()
 
 kis_add_library(kritapigment SHARED
     ${kritapigment_SRCS}
+    $<TARGET_OBJECTS:kritapigmentalphamaskapplicatorbaseobjects>
     $<TARGET_OBJECTS:kritapigmentmathsobjects>
     $<TARGET_OBJECTS:kritapigmentcmykmathsobjects>
     $<TARGET_OBJECTS:kritapigmentlabmathsobjects>
