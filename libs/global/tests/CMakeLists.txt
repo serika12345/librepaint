@@ -276,6 +276,16 @@ kis_add_test(
 target_compile_definitions(KisPinnedSharedPtrTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisSharedPtrContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalsharedobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+)
+target_compile_definitions(KisSharedPtrContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisLazyValueWrapperTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
