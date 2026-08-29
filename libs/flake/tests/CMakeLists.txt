@@ -158,6 +158,18 @@ target_include_directories(KoOpenTypeFeatureInfoFactoryContractTest PRIVATE
 target_compile_definitions(KoOpenTypeFeatureInfoFactoryContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoUnicodeBlockDataContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeunicodeblockdataobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoUnicodeBlockDataContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoUnicodeBlockDataContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoInsetsContractTest.cpp
     LINK_LIBRARIES
         kritaflakeinsetsobjects

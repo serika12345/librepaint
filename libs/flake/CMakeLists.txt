@@ -273,6 +273,26 @@ set_target_properties(kritaflakeopentypefeatureinfoobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeunicodeblockdataobjects OBJECT
+    text/data/KoUnicodeBlockData.cpp
+)
+target_compile_definitions(kritaflakeunicodeblockdataobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeunicodeblockdataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeunicodeblockdataobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaflakeunicodeblockdataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakepathfillrulecommandobjects OBJECT
     commands/KoPathFillRuleCommand.cpp
 )
@@ -523,7 +543,6 @@ set(kritaflake_SRCS
     text/KoFFWWSConverter.cpp
     text/KoFontChangeTracker.cpp
     text/KoFontGlyphModel.cpp
-    text/data/KoUnicodeBlockData.cpp
     text/KoSvgTextShapeOutlineHelper.cpp
 
     resources/KoSvgSymbolCollectionResource.cpp
@@ -549,6 +568,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakecurvefitpathshapeobjects>
     $<TARGET_OBJECTS:kritaflakedebugobjects>
     $<TARGET_OBJECTS:kritaflakeopentypefeatureinfoobjects>
+    $<TARGET_OBJECTS:kritaflakeunicodeblockdataobjects>
     $<TARGET_OBJECTS:kritaflakewritingsystemutilsobjects>
     $<TARGET_OBJECTS:kritaflakepathfillrulecommandobjects>
 
