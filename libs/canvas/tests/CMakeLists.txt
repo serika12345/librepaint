@@ -43,8 +43,27 @@ kis_add_tests(
 )
 
 kis_add_tests(
-    kis_animation_frame_cache_index_test.cpp
     kis_frame_cache_store_test.cpp
     KisFrameSerializerTest.cpp
     LINK_LIBRARIES kritacanvas kritatestsdk
+)
+
+kis_add_test(
+    kis_animation_frame_cache_index_test.cpp
+    LINK_LIBRARIES
+        kritacanvasanimationframecacheindexobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(kis_animation_frame_cache_index_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+)
+target_compile_definitions(kis_animation_frame_cache_index_test PRIVATE
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
 )

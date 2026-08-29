@@ -13,6 +13,34 @@ set_target_properties(kritacanvasinputactiongroupobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritacanvasanimationframecacheindexobjects OBJECT
+    animation/kis_animation_frame_cache_index.cpp
+)
+target_compile_definitions(kritacanvasanimationframecacheindexobjects PRIVATE kritacanvas_EXPORTS)
+target_include_directories(kritacanvasanimationframecacheindexobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+)
+target_link_libraries(kritacanvasanimationframecacheindexobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritacanvasanimationframecacheindexobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritacanvastiledatapoolobjects OBJECT
     tiles/kis_tile_data_pool.h
     tiles/kis_tile_data_pool.cpp
@@ -37,7 +65,6 @@ set_target_properties(kritacanvastiledatapoolobjects PROPERTIES
 
 set(kritacanvas_LIB_SRCS
     animation/kis_animation_frame_cache_index.h
-    animation/kis_animation_frame_cache_index.cpp
     animation/kis_frame_data_serializer.h
     animation/kis_frame_data_serializer.cpp
     animation/kis_frame_cache_store.h
@@ -67,6 +94,7 @@ set(kritacanvas_LIB_SRCS
 kis_add_library(kritacanvas SHARED
     ${kritacanvas_LIB_SRCS}
     $<TARGET_OBJECTS:kritacanvasinputactiongroupobjects>
+    $<TARGET_OBJECTS:kritacanvasanimationframecacheindexobjects>
     $<TARGET_OBJECTS:kritacanvastiledatapoolobjects>
 )
 generate_export_header(kritacanvas BASE_NAME kritacanvas)
