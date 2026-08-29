@@ -302,6 +302,22 @@ kis_add_test(
 target_compile_definitions(KisImageInterfacesContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisLevelsCurveContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagelevelscurveobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisLevelsCurveContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisLevelsCurveContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisOptimizedByteArrayContractTest.cpp
     LINK_LIBRARIES
         kritaimageoptimizedbytearrayobjects

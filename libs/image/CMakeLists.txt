@@ -108,6 +108,31 @@ set_target_properties(kritaimageoptimizedbytearrayobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagelevelscurveobjects OBJECT
+   KisLevelsCurve.cpp
+)
+target_compile_definitions(kritaimagelevelscurveobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagelevelscurveobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagelevelscurveobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+   PRIVATE
+      Qt${QT_MAJOR_VERSION}::Gui
+      Qt${QT_MAJOR_VERSION}::Widgets
+      Qt${QT_MAJOR_VERSION}::Xml
+      KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaimagelevelscurveobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagestrokejobobjects OBJECT
    kis_stroke_job_strategy.cpp
    KisRunnableStrokeJobDataBase.cpp
@@ -505,7 +530,6 @@ set(kritaimage_LIB_SRCS
    kis_gaussian_kernel.cpp
    kis_edge_detection_kernel.cpp
    kis_cubic_curve.cpp
-   KisLevelsCurve.cpp
    KisAutoLevels.cpp
    kis_default_bounds.cpp
    kis_default_bounds_node_wrapper.cpp
@@ -688,6 +712,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
    $<TARGET_OBJECTS:kritaimageoptimizedbytearrayobjects>
+   $<TARGET_OBJECTS:kritaimagelevelscurveobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
