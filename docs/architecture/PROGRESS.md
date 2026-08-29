@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:43 JST
+- 更新日時: 2026-08-29 19:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,7 +24,7 @@
   `/Users/masato/Documents/librepaint-r2-g19b-resource-bundle-manifest`であり、
   `libs/resources/KoResourceBundleManifest.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。参照値、
   型・タグ・全件と型別の列挙、追加・削除、XML保存復元、無効入力の全20 APIを対象とする。
-- 実装担当`runnable-stroke-job-builders`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`runnable-stroke-job-builders`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-runnable-stroke-job-builders`であり、
   `libs/image/KisRunnableStrokeJobUtils.h`、既存`libs/image/tests/KisStrokeJobContractTest.cpp`とImage試験CMakeを所有する。
@@ -8461,9 +8461,22 @@
   `ResourceReference::resourceId`は現行実装で未初期化のため読み取らず、指定構築と復元結果で公開値を固定した。
   Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 実行ジョブ生成補助の全public API契約で完了した作業
+
+- `libs/image/KisRunnableStrokeJobUtils.h`の全17 APIを、既存
+  `libs/image/tests/KisStrokeJobContractTest.cpp`の表駆動試験へ対応付けた。各生成補助が実行可能なlambdaを持つ
+  ジョブを正確に1件追加し、順次・並行・障壁・一意並行の実行分類、通常・排他、指定LOD、取消可否を名称どおり
+  設定することを17データ行で固定した。
+- 全APIは公開ヘッダー内で完結し、既存`kritaimagestrokejobobjects`とQt Testだけへ接続する限定対象が存在したため、
+  製品実装とCMakeは変更していない。macOSの対象閉包は変更前後とも9工程・19入力であり、依存拡大はない。
+- 対象CTestの単発実行と20回反復、試験実行ファイルによる17データ行の個別実行に成功した。既存対象内のジョブ値、
+  lambda、実行器の近傍契約も各反復で成功し、統合時のパッケージ境界検査は1,195対象で成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み5,305件、未対応24,684件になった。Linux、全ネイティブ検証、製品全体構築は
+  実行していない。
+
 ## 次の操作
 
-`runnable-stroke-job-builders`、`algebra-geometry-primitives`の順に、担当差分、限定構築、挙動、台帳を統合検証する。
+`algebra-geometry-primitives`の担当差分、限定構築、挙動、台帳を統合検証し、第14並列便の担当票を確定する。
 
 ## R1-G5完了根拠
 

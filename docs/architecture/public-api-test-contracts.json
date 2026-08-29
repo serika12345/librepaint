@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24701
+    "expectedMissingApis": 24684
   },
   "contracts": [
     {
@@ -15087,6 +15087,32 @@
       "apis": [
         "method:KoResourceBundleManifest::load(QIODevice * device)",
         "method:KoResourceBundleManifest::save(QIODevice * device)"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::runnableJobBuildersAddConfiguredExecutableJobs",
+      "behavior": "17種の実行ジョブbuilderはそれぞれlambdaを保持するジョブを1件追加し、名称に対応する実行分類、排他性、LOD上書き、取消可否を設定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KritaUtils::addJobBarrier(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobBarrier(QVector<Job * > & jobs,int lod,Func func)",
+        "function:KritaUtils::addJobBarrierExclusive(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobBarrierExclusiveNoCancel(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobBarrierNoCancel(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobConcurrent(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobConcurrent(QVector<Job * > & jobs,int lod,Func func)",
+        "function:KritaUtils::addJobConcurrentNoCancel(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobSequential(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobSequential(QVector<Job * > & jobs,int lod,Func func)",
+        "function:KritaUtils::addJobSequentialExclusive(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobSequentialExclusive(QVector<Job * > & jobs,int lod,Func func)",
+        "function:KritaUtils::addJobSequentialExclusiveNoCancel(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobSequentialNoCancel(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobUniquelyConcurrent(QVector<Job * > & jobs,Func func)",
+        "function:KritaUtils::addJobUniquelyConcurrent(QVector<Job * > & jobs,int lod,Func func)",
+        "function:KritaUtils::addJobUniquelyConcurrentNoCancel(QVector<Job * > & jobs,Func func)"
       ]
     }
   ]
