@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24572
+    "expectedMissingApis": 24542
   },
   "contracts": [
     {
@@ -15458,6 +15458,102 @@
         "method:KoColorTransferFunctions::removeSMPTE_ST_428Curve(float_v & x)",
         "method:KoColorTransferFunctions::removeSmpte2048Curve(float_v & x,float_v refWhite=203.0)",
         "struct:KoColorTransferFunctions"
+      ]
+    },
+    {
+      "target": "TestTag",
+      "source": "libs/resources/tests/TestTag.cpp",
+      "test": "TestTag::defaultStateAndValueProperties",
+      "behavior": "資源タグは無効、識別子-1、有効化済みで構築され、ファイル名、URL、名称、説明、資源種別、既定資源の設定値を返し、基底所有から仮想破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTag",
+        "method:KisTag::KisTag()",
+        "method:KisTag::active() const",
+        "method:KisTag::defaultResources() const",
+        "method:KisTag::filename()",
+        "method:KisTag::id() const",
+        "method:KisTag::resourceType() const",
+        "method:KisTag::setDefaultResources(const QStringList & defaultResources)",
+        "method:KisTag::setFilename(const QString & fileName)",
+        "method:KisTag::setResourceType(const QString & resourceType)",
+        "method:KisTag::setUrl(const QString & url)",
+        "method:KisTag::url() const",
+        "method:KisTag::valid() const",
+        "method:KisTag::~KisTag()"
+      ]
+    },
+    {
+      "target": "TestTag",
+      "source": "libs/resources/tests/TestTag.cpp",
+      "test": "TestTag::localizedNamesCommentsAndLocaleSelection",
+      "behavior": "資源タグの名称と説明は無変換値と翻訳表を保持し、明示された言語の先頭値、または既定ロケールを選び、翻訳がない場合は無変換値へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTag::comment(bool translated=true) const",
+        "method:KisTag::comments() const",
+        "method:KisTag::currentLocale()",
+        "method:KisTag::name(bool translated=true) const",
+        "method:KisTag::names() const",
+        "method:KisTag::setComment(const QString comment)",
+        "method:KisTag::setComments(const QMap<QString,QString> & comments)",
+        "method:KisTag::setName(const QString & name)",
+        "method:KisTag::setNames(const QMap<QString,QString> & names)"
+      ]
+    },
+    {
+      "target": "TestTag",
+      "source": "libs/resources/tests/TestTag.cpp",
+      "test": "TestTag::copyAssignmentAndCloneOwnIndependentValues",
+      "behavior": "コピー構築、代入、複製は全公開値を複写し、その後に各実体を変更しても元と他の複写へ影響しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTag::KisTag(const KisTag & rhs)",
+        "method:KisTag::clone() const",
+        "method:KisTag::operator =(const KisTag & rhs)"
+      ]
+    },
+    {
+      "target": "TestTag",
+      "source": "libs/resources/tests/TestTag.cpp",
+      "test": "TestTag::saveLoadUtf8AndAutomaticOpen",
+      "behavior": "資源タグの保存と読込みは未開封の入出力装置を適切な方式で開き、無変換のUTF-8値と既定資源を復元し、読込み結果を有効にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTag::load(QIODevice & io)",
+        "method:KisTag::save(QIODevice & io)"
+      ]
+    },
+    {
+      "target": "TestTag",
+      "source": "libs/resources/tests/TestTag.cpp",
+      "test": "TestTag::localizedValuesAreNotPreservedBySerialization",
+      "behavior": "翻訳済み名称と説明の保存は翻訳文を言語キーとして空値を書き出し、復元後も元の言語キーと翻訳文を保持しない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisTag::load(QIODevice & io)",
+        "method:KisTag::save(QIODevice & io)"
+      ]
+    },
+    {
+      "target": "TestTag",
+      "source": "libs/resources/tests/TestTag.cpp",
+      "test": "TestTag::incompleteAndInvalidInputReportCurrentResults",
+      "behavior": "不足行と不正見出しの読込みは警告して無効な失敗結果を返し、等号のない中間行は警告して読み飛ばし、残りの有効値を読み込む。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTag::load(QIODevice & io)"
+      ]
+    },
+    {
+      "target": "TestTag",
+      "source": "libs/resources/tests/TestTag.cpp",
+      "test": "TestTag::diagnosticStreamingDescribesTagsAndNullPointers",
+      "behavior": "共有資源タグの診断表示は名称、URL、説明、既定資源を引用符付きで示し、空ポインターをNULLとして示す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTagSP",
+        "function:operator <<(QDebug dbg,const KisTagSP tag)"
       ]
     }
   ]

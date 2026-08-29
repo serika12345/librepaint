@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:14 JST
+- 更新日時: 2026-08-29 20:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -30,7 +30,7 @@
   `/Users/masato/Documents/librepaint-r2-g19b-color-transfer-functions`であり、`libs/pigment/KoColorTransferFunctions.h`、
   Pigment試験CMake、新規限定試験を所有する。定数、方針列挙、PQ・HLG・SMPTE 428曲線、OOTF、複数要素の除去関数の
   全29 APIを対象とし、現行で未使用の`nominalPeak`引数は既知不具合として分類する。
-- 実装担当`resource-tags`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`resource-tags`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-resource-tags`であり、
   `libs/resources/KisTag.{h,cpp}`、既存`libs/resources/tests/TestTag.{h,cpp}`、Resources製品・試験CMakeを所有する。
   既存試験を限定対象へ分け、既定状態、全値、翻訳選択、コピー・代入・clone、UTF-8保存復元、無効入力、診断表示、
@@ -8537,9 +8537,27 @@
   未対応24,572件になった。ベクトル契約はmacOS arm64の現在のxsimdアーキテクチャーで固定した。Linux、
   全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 資源タグの全public API契約で完了した作業
+
+- `libs/resources/KisTag.h`の全30 APIを、既存`libs/resources/tests/TestTag.{h,cpp}`の7試験へ対応付けた。既定状態、
+  全公開値、ロケールによる翻訳選択と無変換値への復帰、コピー・代入・複製の独立性、UTF-8保存復元、未開封装置の
+  自動開封、不完全・不正入力、共有ポインターの診断表示、基底所有からの仮想破棄を固定した。
+- 開始ファイル`libs/resources/KisTag.cpp`の構築所有を`kritaresources_LIB_SRCS`から新規`kritatagobjects`へ移し、製品
+  `kritaresources`が生成物を1回だけ再集約する。試験ソース`libs/resources/tests/TestTag.{h,cpp}`は、`kritaglobal`、
+  `kritapigment`、`kritaplugin`、`kritaresources`、`kritawidgets`、`kritaversion`、`kritatestsdk`へ接続する共有試験群から
+  専用`TestTag`対象へ移し、生成物、Qt Test、KF I18nだけへ直接接続した。公開ヘッダー、実装位置、製品ABIは維持した。
+- macOSの限定試験閉包は720工程・1,463入力から5工程・12入力へ縮小し、生成物は1工程・3入力である。製品
+  `kritaresources`の現在の閉包は147工程・321入力であり、タグ実装の具体的所有者を1回だけ含む。
+- 保存処理が翻訳表のキーではなく値を反復するため、翻訳文を言語キーとして空値を書き出し、復元時に元の言語キーと
+  翻訳文を失う現行挙動を既知不具合として分類した。製品修正は後続の挙動変更として契約更新とともに行う。
+- 対象CTestの単発実行と20回反復、最近傍の`KisResourceTypesContractTest`と
+  `KoResourceBundleManifestContractTest`に成功した。統合時のパッケージ境界検査は1,201対象で成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み5,447件、未対応24,542件になった。Linux、全ネイティブ検証、製品全体構築は
+  実行していない。
+
 ## 次の操作
 
-資源タグの担当差分、限定構築、挙動、台帳を統合検証する。
+第15並列便の未対応APIと構築閉包を調査し、互いに独立した4担当票を確定する。
 
 ## R1-G5完了根拠
 
