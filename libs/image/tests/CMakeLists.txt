@@ -443,6 +443,18 @@ target_include_directories(KisRunnableContractTest PRIVATE
 )
 
 kis_add_test(
+    KisImageBarrierLockContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisImageBarrierLockContractTest PRIVATE kritaimage_EXPORTS)
+target_include_directories(KisImageBarrierLockContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KisSpontaneousJobContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
