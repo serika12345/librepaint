@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 00:30 JST
+- 更新日時: 2026-08-30 00:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,7 +15,7 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g21-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`handle-painter-helper`は`implementing`、統合順は1である。主作業ツリーで
+- 統合担当`handle-painter-helper`は`integrated`、実装コミットは`9bd35d2121`、統合順は1である。主作業ツリーで
   `libs/global/KisHandlePainterHelper.{h,cpp}`、Global製品・試験CMake、新規限定試験を所有する。製品`kritaglobal`の
   68工程・136入力から専用生成物へ分離し、画家変換の復元、移動所有、様式適用、矩形・円・勾配ハンドル、線、経路、画像の
   全24 APIを対象とする。
@@ -8932,9 +8932,25 @@
 - 第20並列便は進捗接続面・通知30 API、表示座標変換22 API、資源保管基底21 API、LOD対応位置20 APIの合計93 APIを固定した。
   各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
 
+## R2-G19b ハンドル描画補助の全public API契約と構築所有分離で完了した作業
+
+- `libs/global/KisHandlePainterHelper.h`の全24 APIを、新規
+  `libs/global/tests/KisHandlePainterHelperContractTest.cpp`の5試験へ対応付けた。描画器変換の退避・復元、非複製と移動所有、
+  様式適用、指定・既定半径の矩形・円・小円・勾配形状、表示座標での変位、線・囲み・経路・勾配矢印の座標変換、画像の固定変位を
+  決定的なメモリー内画素へ固定した。
+- 開始ファイル`libs/global/KisHandlePainterHelper.cpp`の構築所有を`libs/global/CMakeLists.txt`の`kritaglobal_LIB_SRCS`から、
+  同ファイル内の新規`kritaglobalhandlepainterhelperobjects`へ移し、製品`kritaglobal`へ1回だけ再集約した。新規限定試験は専用生成物、
+  既存の行列分解・ハンドル様式・描画状態生成物、Qt Core・Gui・Testだけへ接続し、製品共有ライブラリーを含まない。公開ヘッダーと
+  製品ABIを維持し、宣言済みながら実装記号がなかった2引数`drawHandleRect()`は3引数版への委譲として接続した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。対象登録後の初回リンクは3専用依存と2引数`drawHandleRect()`の未定義記号を
+  診断し、限定依存の明示と公開実装の接続後に成功した。macOSの専用生成物は1工程・3入力、限定試験は8工程・17入力であり、
+  製品`kritaglobal`は変更前後とも68工程・136入力である。対象CTest単発と20回反復、最近傍の`KisHandleStyleContractTest`、
+  パッケージ境界検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み6,008件、未対応23,981件になった。
+  null描画器、特異・非有限変換、負半径、負寸法画像、高DPI画像、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第21並列便のハンドル描画補助実装を進め、並行する3実装担当の引渡しを統合順に監査する。
+第21並列便の3実装担当を監視し、空間コンテナー、パイプブラシ付加情報、undo保存の引渡しを統合順に監査する。
 
 ## R1-G5完了根拠
 

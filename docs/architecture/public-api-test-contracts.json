@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24005
+    "expectedMissingApis": 23981
   },
   "contracts": [
     {
@@ -5513,6 +5513,75 @@
       "apis": [
         "function:KisPaintingTweaks::rectToTexCoords(QVector2D * texCoords,const QRectF & rc)",
         "function:KisPaintingTweaks::rectToVertices(QVector3D * vertices,const QRectF & rc)"
+      ]
+    },
+    {
+      "target": "KisHandlePainterHelperContractTest",
+      "source": "libs/global/tests/KisHandlePainterHelperContractTest.cpp",
+      "test": "KisHandlePainterHelperContractTest::constructionMoveAndRestoration",
+      "behavior": "ハンドル描画補助は構築中だけ描画器の変換を恒等へ退避し、明示または取得した元変換を所有個体の破棄時に復元し、移動元から復元責務を移す一方で複製を許さない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHandlePainterHelper",
+        "method:KisHandlePainterHelper::KisHandlePainterHelper(KisHandlePainterHelper & rhs)",
+        "method:KisHandlePainterHelper::KisHandlePainterHelper(KisHandlePainterHelper && rhs)",
+        "method:KisHandlePainterHelper::KisHandlePainterHelper(QPainter * _painter,const QTransform & originalPainterTransform,qreal handleRadius,int decorationThickness=1)",
+        "method:KisHandlePainterHelper::KisHandlePainterHelper(QPainter * _painter,qreal handleRadius=0.0,int decorationThickness=1)",
+        "method:KisHandlePainterHelper::~KisHandlePainterHelper()"
+      ]
+    },
+    {
+      "target": "KisHandlePainterHelperContractTest",
+      "source": "libs/global/tests/KisHandlePainterHelperContractTest.cpp",
+      "test": "KisHandlePainterHelperContractTest::rectangularHandlesUseRadiusOffsetAndStyle",
+      "behavior": "矩形ハンドルは指定または構築時の半径、表示座標で加える変位、選択した輪郭・塗り様式を反映し、塗り専用矩形は指定色を使用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHandlePainterHelper::drawHandleRect(const QPointF & center)",
+        "method:KisHandlePainterHelper::drawHandleRect(const QPointF & center,qreal radius)",
+        "method:KisHandlePainterHelper::drawHandleRect(const QPointF & center,qreal radius,QPoint offset)",
+        "method:KisHandlePainterHelper::fillHandleRect(const QPointF & center,qreal radius,QColor fillColor,QPoint offset)",
+        "method:KisHandlePainterHelper::setHandleStyle(const KisHandleStyle & style)"
+      ]
+    },
+    {
+      "target": "KisHandlePainterHelperContractTest",
+      "source": "libs/global/tests/KisHandlePainterHelperContractTest.cpp",
+      "test": "KisHandlePainterHelperContractTest::circularAndGradientHandlesUseConfiguredGeometry",
+      "behavior": "円と菱形のハンドルは文書位置を表示位置へ移し、指定半径、構築時半径、小円比率、既定勾配比率と交差形状を画素寸法へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHandlePainterHelper::drawGradientCrossHandle(const QPointF & center,qreal radius)",
+        "method:KisHandlePainterHelper::drawGradientHandle(const QPointF & center)",
+        "method:KisHandlePainterHelper::drawGradientHandle(const QPointF & center,qreal radius)",
+        "method:KisHandlePainterHelper::drawHandleCircle(const QPointF & center)",
+        "method:KisHandlePainterHelper::drawHandleCircle(const QPointF & center,qreal radius)",
+        "method:KisHandlePainterHelper::drawHandleSmallCircle(const QPointF & center)"
+      ]
+    },
+    {
+      "target": "KisHandlePainterHelperContractTest",
+      "source": "libs/global/tests/KisHandlePainterHelperContractTest.cpp",
+      "test": "KisHandlePainterHelperContractTest::linePrimitivesTransformDocumentCoordinates",
+      "behavior": "ハンドル線、囲み線、接続線、任意経路、勾配矢印は文書座標を構築時の描画変換で表示座標へ移し、線様式と破線設定を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHandlePainterHelper::drawConnectionLine(const QLineF & line)",
+        "method:KisHandlePainterHelper::drawConnectionLine(const QPointF & p1,const QPointF & p2)",
+        "method:KisHandlePainterHelper::drawGradientArrow(const QPointF & start,const QPointF & end,qreal radius)",
+        "method:KisHandlePainterHelper::drawHandleLine(const QLineF & line,qreal width=1.0,QVector<qreal> dashPattern={},qreal dashOffset=0.0)",
+        "method:KisHandlePainterHelper::drawPath(const QPainterPath & path)",
+        "method:KisHandlePainterHelper::drawRubberLine(const QPolygonF & poly)"
+      ]
+    },
+    {
+      "target": "KisHandlePainterHelperContractTest",
+      "source": "libs/global/tests/KisHandlePainterHelperContractTest.cpp",
+      "test": "KisHandlePainterHelperContractTest::pixmapUsesTransformedPositionAndFixedOffset",
+      "behavior": "画像ハンドルは文書位置を表示位置へ変換し、固定40画素の垂直変位と指定寸法で元領域を描画する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHandlePainterHelper::drawPixmap(const QPixmap & pixmap,QPointF position,int size,QRectF sourceRect)"
       ]
     },
     {
