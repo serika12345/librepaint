@@ -99,6 +99,22 @@ target_include_directories(KisRepaintDebuggerContractTest PRIVATE
 target_compile_definitions(KisRepaintDebuggerContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisOptionButtonStripContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsoptionbuttonstripobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+target_include_directories(KisOptionButtonStripContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisOptionButtonStripContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     kis_simple_math_parser_test.cpp
     LINK_LIBRARIES kritawidgetutilsnumericparserobjects Qt${QT_MAJOR_VERSION}::Test
 )

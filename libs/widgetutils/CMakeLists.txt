@@ -247,6 +247,25 @@ target_include_directories(kritawidgetutilswrappablehboxlayoutobjects
 target_link_libraries(kritawidgetutilswrappablehboxlayoutobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritawidgetutilswrappablehboxlayoutobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetutilsoptionbuttonstripobjects OBJECT
+    KisOptionButtonStrip.cpp
+    KoGroupButton.cpp
+)
+target_compile_definitions(kritawidgetutilsoptionbuttonstripobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsoptionbuttonstripobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetutilsoptionbuttonstripobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritawidgetutilsoptionbuttonstripobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -265,13 +284,13 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritawidgetutilsrepaintdebuggerobjects>
     $<TARGET_OBJECTS:kritawidgetutilsoptioncollectionobjects>
     $<TARGET_OBJECTS:kritawidgetutilswrappablehboxlayoutobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsoptionbuttonstripobjects>
 
     WidgetUtilsDebug.cpp
 
     kis_icon_utils.cpp
     kis_action_registry.cpp
     KisActionsSnapshot.cpp
-    KoGroupButton.cpp
     KoProgressUpdater.cpp
     KoFileDialog.cpp
     KisPreviewFileDialog.cpp
@@ -288,7 +307,6 @@ set(kritawidgetutils_LIB_SRCS
     kis_font_family_combo_box.cpp
     KisFontFamilyValidator.cpp
     KisRecentFilesManager.cpp
-    KisOptionButtonStrip.cpp
     KisScreenMigrationTracker.cpp
     KisRootSurfaceTrackerBase.cpp
 
