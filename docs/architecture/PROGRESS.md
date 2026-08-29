@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 02:43 JST
+- 更新日時: 2026-08-30 02:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,33 +11,29 @@
 
 ### 現在の並列担当票
 
-- 第23並列便の共通基準コミットは`141eefb38c`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g23-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+- 第24並列便の共通基準コミットは`0678f19c10`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g24-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`psd-byte-io`は`integrated`、実装コミットは`26f9d306ae`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/psdutils/psd_utils.h`、PSDUtils試験CMake、新規`PsdByteIoContractTest.cpp`を所有する。既存試験の581工程・
-  1,191入力から製品共有ライブラリーを除き、整数・列挙・固定小数点、文字列、余白、混合方式の大小エンディアン入出力にある
-  全44 APIを対象とする。
-- 実装担当`opentype-feature-info`は`integrated`、引渡しコミットは`f4900f7dbd`、統合コミットは`9acb7e55e3`、
-  構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g23-opentype-feature-info`で、
-  `libs/flake/text/KoOpenTypeFeatureInfoFactory.{h,cpp}`、Flake製品・試験CMake、新規
-  `KoOpenTypeFeatureInfoFactoryContractTest.cpp`を所有する。製品の560工程・1,152入力から実装を専用生成物へ分離し、
-  OpenType表、機能情報値、既知・未知タグ検索、タグ一覧の全34 APIを対象とする。
-- 実装担当`filter-strategy`は`integrated`、引渡しコミットは`af00bd63ee`、統合コミットは`27b67eb6bf`、
-  構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 統合担当`command-utils`は`audited`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/painting/undo/kis_command_utils.{h,cpp}`、Painting Undo製品・試験CMake、新規`KisCommandUtilsContractTest.cpp`を
+  所有する。製品`kritapaintingundo`の260工程・551入力から実装を専用生成物へ分離し、遅延集約、ラムダ生成、初回再実行省略、
+  状態往復、複合命令、合成と累積統合の全36 APIを対象とする。
+- 実装担当`shape-anchor`は`audited`、構築実行許可は`pending`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g24-shape-anchor`を予定し、
+  `libs/flake/KoShapeAnchor.cpp`、Flake製品・試験CMake、新規`KoShapeAnchorContractTest.cpp`を所有する。製品の364工程・756入力から
+  実装を専用生成物へ分離し、既存の列挙44 APIに続く状態、正規化、借用位置、所有配置戦略、寿命の残り33 APIを対象とする。
+- 実装担当`transform-mask-interface`は`audited`、構築実行許可は`pending`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g23-filter-strategy`で、`libs/image/kis_filter_strategy.{h,cc}`、
-  Image製品・試験CMake、新規`KisFilterStrategyContractTest.cpp`を所有する。既存試験の1,101工程・2,224正規化入力から
-  実装を専用生成物へ分離し、基底と8種類の補間核、登録、説明、自動選択の全58 APIを対象とする。
-- 実装担当`zoom-handler`は`integrated`、引渡しコミットは`d599464914`、統合コミットは`14c562b4a4`、
-  構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は4である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g23-zoom-handler`で、`libs/widgets/KoZoomHandler.{h,cpp}`、
-  Widgets製品・試験CMake、新規`KoZoomHandlerContractTest.cpp`を所有する。既存試験の726工程・1,480入力から実装を
-  専用生成物へ分離し、解像度、拡大率、余白、方式、軸・点・矩形・寸法変換、寿命の全33 APIを対象とする。
-- 第23並列便の完了時は合計169 APIを追加し、公開面の対応済み6,402件、未対応23,587件を見込む。各担当は公開面と製品挙動を
+  `/Users/masato/Documents/librepaint-r2-g24-transform-mask-interface`を予定し、
+  `libs/image/kis_transform_mask_params_interface.{h,cpp}`、Image製品・試験CMake、新規
+  `KisTransformMaskParamsInterfaceContractTest.cpp`を所有する。既存試験の1,107工程・2,236入力から空の仮想破棄実装を
+  専用生成物へ分離し、変形値、矩形、XML、画像参照、複製、比較、キーフレーム、既定境界、寿命の全31 APIを対象とする。
+- 実装担当`shared-ptr`は`audited`、構築実行許可は`pending`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g24-shared-ptr`を予定し、
+  `libs/global/kis_shared_ptr.h`、Global試験CMake、新規`KisSharedPtrContractTest.cpp`を所有する。既存の
+  `kritaglobalsharedobjects`と`kritaglobaldebugobjects`を再利用し、強参照、弱参照、参照数、型変換、失効、寿命の全55 APIを
+  6工程・14入力以内の限定対象で固定する。製品実装と製品CMakeは変更しない。
+- 第24並列便の完了時は合計155 APIを追加し、公開面の対応済み6,557件、未対応23,432件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
@@ -9151,8 +9147,8 @@
 
 ## 次の操作
 
-最新の未対応公開API報告から第24並列便の候補を監査する。各候補は公開面全体を一つの観測可能な責務として固定できるか確認し、
-既存対象の命令・入力閉包と製品の直接CMake依存を測定してから、必要な構築所有分離を先行する担当票を確定する。
+第24並列便の3専用作業ツリーと専用Ninja木を作成し、各限定対象が未知で失敗する初回診断を記録する。担当ごとの構築実行許可を
+`granted`へ更新してから並列実装を開始し、統合担当は`command-utils`の構築所有分離を先行する。
 
 ## R1-G5完了根拠
 
