@@ -1061,6 +1061,46 @@ void KisNodeManager::NavigationAccess::activateNode(KisNodeManager *manager, Kis
     manager->slotNonUiActivatedNode(node);
 }
 
+KisNodeSP KisNodeManager::NavigationAccess::activeNode(KisNodeManager *manager)
+{
+    return manager->activeNode();
+}
+
+KisNodeSP KisNodeManager::NavigationAccess::nextSibling(KisNodeSP node)
+{
+    return node->nextSibling();
+}
+
+KisNodeSP KisNodeManager::NavigationAccess::previousSibling(KisNodeSP node)
+{
+    return node->prevSibling();
+}
+
+bool KisNodeManager::NavigationAccess::hasChildren(KisNodeSP node)
+{
+    return node->childCount() > 0;
+}
+
+KisNodeSP KisNodeManager::NavigationAccess::firstChild(KisNodeSP node)
+{
+    return node->firstChild();
+}
+
+KisNodeSP KisNodeManager::NavigationAccess::lastChild(KisNodeSP node)
+{
+    return node->lastChild();
+}
+
+KisNodeSP KisNodeManager::NavigationAccess::parentNode(KisNodeSP node)
+{
+    return node->parent();
+}
+
+bool KisNodeManager::NavigationAccess::isHidden(KisNodeManager *manager, KisNodeSP node)
+{
+    return KisNodeManager::isNodeHidden(node, manager->m_d->nodeDisplayModeAdapter->showGlobalSelectionMask());
+}
+
 void KisNodeManager::duplicateActiveNode()
 {
     KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
@@ -1167,66 +1207,6 @@ void KisNodeManager::mirrorAllNodesY()
     KisNodeSP node = m_d->view->image()->root();
     mirrorNode(node, kundo2_i18n("Mirror All Layers Vertically"),
                Qt::Vertical, m_d->view->selection());
-}
-
-void KisNodeManager::activateNextNode(bool siblingsOnly)
-{
-    KisNodeSP activeNode = this->activeNode();
-    if (!activeNode) return;
-
-    KisNodeSP nextNode = activeNode->nextSibling();
-
-    if (!siblingsOnly) {
-        // Recurse groups...
-        while (nextNode && nextNode->childCount() > 0) {
-            nextNode = nextNode->firstChild();
-        }
-
-        // Out of nodes? Back out of group...
-        if (!nextNode && activeNode->parent()) {
-            nextNode = activeNode->parent();
-        }
-    }
-
-    // Skip nodes hidden from tree view..
-    while (nextNode && isNodeHidden(nextNode, m_d->nodeDisplayModeAdapter->showGlobalSelectionMask())) {
-        nextNode = nextNode->nextSibling();
-    }
-
-    // Select node, unless root..
-    if (nextNode && nextNode->parent()) {
-        slotNonUiActivatedNode(nextNode);
-    }
-}
-
-void KisNodeManager::activatePreviousNode(bool siblingsOnly)
-{
-    KisNodeSP activeNode = this->activeNode();
-    if (!activeNode) return;
-
-    KisNodeSP nextNode = activeNode->prevSibling();
-
-    if (!siblingsOnly) {
-        // Enter groups..
-        if (activeNode->childCount() > 0) {
-            nextNode = activeNode->lastChild();
-        }
-
-        // Out of nodes? Back out of group...
-        if (!nextNode && activeNode->parent()) {
-            nextNode = activeNode->parent()->prevSibling();
-        }
-    }
-
-    // Skip nodes hidden from tree view..
-    while (nextNode && isNodeHidden(nextNode, m_d->nodeDisplayModeAdapter->showGlobalSelectionMask())) {
-        nextNode = nextNode->prevSibling();
-    }
-
-    // Select node, unless root..
-    if (nextNode && nextNode->parent()) {
-        slotNonUiActivatedNode(nextNode);
-    }
 }
 
 void KisNodeManager::mirrorNode(KisNodeSP node,

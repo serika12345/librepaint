@@ -402,6 +402,14 @@ protected:
         static KisNodeSP previouslyActiveNode(KisNodeManager *manager);
         static bool hasParent(KisNodeSP node);
         static void activateNode(KisNodeManager *manager, KisNodeSP node);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static KisNodeSP nextSibling(KisNodeSP node);
+        static KisNodeSP previousSibling(KisNodeSP node);
+        static bool hasChildren(KisNodeSP node);
+        static KisNodeSP firstChild(KisNodeSP node);
+        static KisNodeSP lastChild(KisNodeSP node);
+        static KisNodeSP parentNode(KisNodeSP node);
+        static bool isHidden(KisNodeManager *manager, KisNodeSP node);
     };
 
 private:

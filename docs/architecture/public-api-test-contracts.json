@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25124
+    "expectedMissingApis": 25122
   },
   "contracts": [
     {
@@ -12521,6 +12521,26 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::switchToPreviouslyActiveNode()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNavigationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNavigationContractTest.cpp",
+      "test": "KisNodeManagerNavigationContractTest::nextNavigationTraversesVisibleHierarchy",
+      "behavior": "次ノード有効化は現在ノードなしでは無作用とし、通常移動では次兄弟の最初の子孫または親へ進み、兄弟限定移動では階層を保ち、非表示ノードを前方へ飛ばしてルートを有効化しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activateNextNode(bool siblingsOnly=false)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNavigationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNavigationContractTest.cpp",
+      "test": "KisNodeManagerNavigationContractTest::previousNavigationTraversesVisibleHierarchy",
+      "behavior": "前ノード有効化は現在ノードなしでは無作用とし、通常移動では現在ノードの末子または親の前兄弟へ進み、兄弟限定移動では階層を保ち、非表示ノードを後方へ飛ばしてルートを有効化しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::activatePreviousNode(bool siblingsOnly=false)"
       ]
     }
   ]

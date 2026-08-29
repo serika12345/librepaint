@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 08:59 JST
+- 更新日時: 2026-08-29 09:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7083,11 +7083,27 @@
   公開面は1,549ヘッダー、29,989 API、対応済み4,865件、未対応25,124件になった。
   製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 前後ノード探索 public API契約と階層判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった前後ノードの階層探索、兄弟限定、非表示飛越し、ルート除外を、
+  既存`libs/ui/nodes/KisNodeManagerNavigation.cpp`へ移した。現在ノード、隣接・親子関係、表示状態の具体取得と
+  非UI有効化効果は移動元の保護境界に残し、既存`kritauinodemanageravigationobjects`を拡張して新しいCMake
+  対象や依存を追加していない。
+- `libs/ui/nodes/kis_node_manager.h`の`activateNextNode`と`activatePreviousNode`を、既存
+  `libs/ui/tests/KisNodeManagerNavigationContractTest.cpp`の2試験へ対応付けた。現在ノードなし、次方向の入れ子への
+  降下と親への退出、前方向の末子への進入と親の前兄弟への退出、兄弟限定、両方向の非表示飛越し、ルート
+  除外を固定した。実装接続前のリンクは対象2 APIだけを未解決記号として診断した。
+- ナビゲーション対象は1工程・3入力、拡張後の試験は5工程・17入力、製品`kritaapplicationui`閉包は
+  1,808工程・3,616入力、既存`KisNodeManagerTest`は1,812工程・3,623入力を維持した。対象CTestのmacOS
+  単発実行と20回反復、元の`kis_node_manager.cpp`単体のコンパイル、公開API契約検査、高速検査は成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み4,867件、未対応25,122件になった。
+  製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る62 APIのうち、通常の次・前ノード有効化を次の小単位とする。
-`kis_node_manager.cpp`の`activateNextNode`と`activatePreviousNode`について、対象指定の変更なし計画、直接CMake依存、
-空構築閉包を監査し、階層の出入り、兄弟限定、非表示ノード除外、ルート除外を具体ノード探索効果から分けて
+同じ`libs/ui/nodes/kis_node_manager.h`に残る60 APIのうち、選択ノードの前後順序変更を次の小単位とする。
+`kis_node_manager.cpp`の`raiseNode`と`lowerNode`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を
+監査し、移動不可時の無操作と移動可能時の選択一覧・現在ノードを使う一括順序変更を具体undo効果から分けて
 挙動契約を追加する。
 
 ## R1-G5完了根拠
