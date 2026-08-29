@@ -190,6 +190,11 @@ void KisOptionCollectionWidgetContractTest::collectionAppliesVisibilitySeparator
     QCOMPARE(boxLayout(&collection)->direction(), QBoxLayout::LeftToRight);
     QCOMPARE(wrapperLayout(first)->direction(), QBoxLayout::LeftToRight);
     QCOMPARE(boxLayout(nested)->direction(), QBoxLayout::LeftToRight);
+
+    collection.setOrientation(Qt::Vertical);
+    QCOMPARE(boxLayout(&collection)->direction(), QBoxLayout::TopToBottom);
+    QCOMPARE(wrapperLayout(first)->direction(), QBoxLayout::TopToBottom);
+    QCOMPARE(boxLayout(nested)->direction(), QBoxLayout::LeftToRight);
 }
 
 void KisOptionCollectionWidgetContractTest::headerManagesPrimaryWidgetOwnershipAndSizing()
@@ -266,6 +271,9 @@ void KisOptionCollectionWidgetContractTest::headerDelegatesCollectionOperations(
     header.setOrientation(Qt::Horizontal, false);
     QCOMPARE(boxLayout(&header)->direction(), QBoxLayout::LeftToRight);
     QCOMPARE(wrapperLayout(first)->direction(), QBoxLayout::LeftToRight);
+    header.setOrientation(Qt::Vertical);
+    QCOMPARE(boxLayout(&header)->direction(), QBoxLayout::TopToBottom);
+    QCOMPARE(wrapperLayout(first)->direction(), QBoxLayout::TopToBottom);
 
     header.removeWidget(0);
     QVERIFY(first.isNull());
