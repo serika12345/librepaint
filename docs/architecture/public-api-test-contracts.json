@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24879
+    "expectedMissingApis": 24874
   },
   "contracts": [
     {
@@ -14392,6 +14392,20 @@
         "method:KisProgressUpdateHelper::KisProgressUpdateHelper(KoUpdaterPtr progressUpdater,int portion,int numSteps)",
         "method:KisProgressUpdateHelper::step()",
         "method:KisProgressUpdateHelper::~KisProgressUpdateHelper()"
+      ]
+    },
+    {
+      "target": "KoPathFillRuleCommandContractTest",
+      "source": "libs/flake/tests/KoPathFillRuleCommandContractTest.cpp",
+      "test": "KoPathFillRuleCommandContractTest::preservesPerShapeRulesAcrossUndoRedoCycles",
+      "behavior": "塗り規則変更命令は構築時に複数経路図形それぞれの規則を保持し、redoで指定規則を設定して更新を要求し、undoで図形ごとの元規則へ戻し、再redoできる。操作表示は「Set fill rule」を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathFillRuleCommand",
+        "method:KoPathFillRuleCommand::KoPathFillRuleCommand(const QList<KoPathShape * > & shapes,Qt::FillRule fillRule,KUndo2Command * parent=0)",
+        "method:KoPathFillRuleCommand::redo()",
+        "method:KoPathFillRuleCommand::undo()",
+        "method:KoPathFillRuleCommand::~KoPathFillRuleCommand()"
       ]
     }
   ]

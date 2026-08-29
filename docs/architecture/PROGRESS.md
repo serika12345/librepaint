@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 17:14 JST
+- 更新日時: 2026-08-29 17:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,7 +23,7 @@
   `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_progress_update_helper.h`、
   Image試験CMake、新規限定試験を所有する。進捗区間の開始値、段階更新、完了値を担う4 APIを対象とし、
   最も近い既存契約はImageの限定Qt Test、対象はmacOSである。
-- 実装担当`flake-fill-rule`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`flake-fill-rule`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、`libs/flake/commands/KoPathFillRuleCommand.{h,cpp}`、
   Flake製品集約CMake、試験CMake、新規限定試験を所有する。複数図形のfill rule変更とundo/redoを担う5 APIを対象とし、
@@ -8124,9 +8124,30 @@
   成功した。公開API契約検査と`./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,110件、
   未対応24,879件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 図形fill rule操作の全public API契約と構築所有分離で完了した作業
+
+- 図形の塗り規則変更だけを固定する既存`TestPathShape`と`TestShapeBackgroundCommand`は、Flake製品を通じて各552工程・
+  1,135入力を要求していた。`libs/flake/commands/KoPathFillRuleCommand.cpp`を`kritaflake_SRCS`から新規
+  `kritaflakepathfillrulecommandobjects`へ移し、製品`kritaflake`へ生成物を一度再集約した。公開ヘッダーとファイル位置を
+  維持し、塗り規則命令だけを独立して構築できる所有単位にした。
+- `libs/flake/commands/KoPathFillRuleCommand.h`の未対応5 APIを、新規
+  `libs/flake/tests/KoPathFillRuleCommandContractTest.cpp`へ対応付けた。複数経路図形それぞれの構築時規則を保持し、redoで
+  指定規則を設定して更新を要求し、undoで図形ごとの元規則へ戻し、再redoできることと操作表示`Set fill rule`を固定した。
+  実装接続前のリンクは構築子、デストラクター、redo、undoと非公開試験協調記号だけを未解決として診断した。
+- 実`KoPathShape`とKUndo2製品を構築する552工程の経路を避けるため、試験構成でだけ設定できる非公開図形操作協調点を実装内に置いた。
+  値だけでは仮想`update()`を観測できないために必要な決定的試験接続であり、公開面、通常の具体所有者、所有期間を変えない。
+  既定の読取り、書込み、更新関数は命令構築時に固定され、製品経路では従来どおり`KoPathShape`を直接操作する。
+- 変更前の製品オブジェクト閉包は345工程・718入力、製品`kritaflake`は548工程・1,128入力である。新規専用対象は1工程・3入力、
+  契約対象は5工程・12入力で、製品閉包は不変である。直接依存は専用対象がBoost headers、KF I18n、Qt Core、Gui、Xml、
+  契約対象が専用対象、Boost headers、KF I18n、Qt Core、Gui、Testである。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復に成功し、統合側のパッケージ境界検査は1,166対象で
+  成功した。専用生成物が対象記号を定義し、製品の構築命令が生成物を一度再集約することを確認した。公開API契約検査と
+  `./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,115件、未対応24,874件になった。
+  Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-第8並列便の図形fill rule操作契約を統合する。
+第8並列便の強調ボタン表示契約を統合する。
 
 ## R1-G5完了根拠
 
