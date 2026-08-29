@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:50 JST
+- 更新日時: 2026-08-29 19:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,30 +11,30 @@
 
 ### 現在の並列担当票
 
-- 第13並列便の共通基準コミットは`9f1a2c7be3`である。統合担当は`develop`の
+- 第14並列便の共通基準コミットは`e71d5216bd`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`properties-serialization`は`integrated`、統合順は1である。
-  `libs/widgetutils/KoProperties.{h,cpp}`、既存`libs/widgetutils/tests/KoPropertiesTest.{h,cpp}`、Widget Utils製品・
-  試験CMakeを所有する。既存試験を巨大な共有試験群から専用対象へ分け、値の設定・取得・型変換・反復・コピー・
-  XML保存復元・失敗時保持・等値・破棄の全20 APIを対象とする。
-- 実装担当`resource-bundle-manifest`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-resource-bundle-manifest`であり、
-  `libs/resources/KoResourceBundleManifest.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。参照値、
-  型・タグ・全件と型別の列挙、追加・削除、XML保存復元、無効入力の全20 APIを対象とする。
-- 実装担当`runnable-stroke-job-builders`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-runnable-stroke-job-builders`であり、
-  `libs/image/KisRunnableStrokeJobUtils.h`、既存`libs/image/tests/KisStrokeJobContractTest.cpp`とImage試験CMakeを所有する。
-  既存`kritaimagestrokejobobjects`を再利用し、順次・排他・並行・障壁・一意並行、詳細度指定、取消不能の
-  全17 APIが生成するジョブ属性と実行を対象とする。
-- 実装担当`algebra-geometry-primitives`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は4である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-algebra-geometry-primitives`であり、`libs/global/kis_algebra_2d.h`、
-  Global試験CMake、新規限定試験を所有する。ヘッダー内で完結する半平面・外円・Halton列の20 APIと、積・長さ・
-  正規化・法線・角度・符号の13 API、計33 APIを対象とする。
+- 統合担当`squeezed-combo-box`は`preparing`、統合順は1である。
+  `libs/widgetutils/KisSqueezedComboBox.{h,cpp}`、既存`libs/widgetutils/tests/TestSqueezedComboBox.{h,cpp}`、Widget Utils製品・
+  試験CMakeを所有する。既存試験を巨大な共有試験群から専用対象へ分け、親所有、原文と省略表示、追加・挿入・削除、
+  検索、選択、利用者データ、再計算、寸法の全16 APIを対象とする。中央挿入・削除後の現行添字ずれは既知不具合として
+  分類する。
+- 実装担当`lazy-shared-cache`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は2である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-lazy-shared-cache`であり、`libs/global/KisLazySharedCacheStorage.h`、Global
+  試験CMake、新規限定試験を所有する。型別名、既定状態、factory引数、遅延構築、初期化、reset、localとlinkedの
+  コピー共有規則、複数スレッドからの一重構築の全34 APIを対象とする。
+- 実装担当`color-transfer-functions`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は3である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-color-transfer-functions`であり、`libs/pigment/KoColorTransferFunctions.h`、
+  Pigment試験CMake、新規限定試験を所有する。定数、方針列挙、PQ・HLG・SMPTE 428曲線、OOTF、複数lane除去関数の
+  全29 APIを対象とし、現行で未使用の`nominalPeak`引数は既知不具合として分類する。
+- 実装担当`resource-tags`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-resource-tags`であり、
+  `libs/resources/KisTag.{h,cpp}`、既存`libs/resources/tests/TestTag.{h,cpp}`、Resources製品・試験CMakeを所有する。
+  既存試験を限定対象へ分け、既定状態、全値、翻訳選択、コピー・代入・clone、UTF-8保存復元、無効入力、診断表示、
+  仮想破棄の全30 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
