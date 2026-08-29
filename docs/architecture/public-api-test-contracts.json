@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24858
+    "expectedMissingApis": 24853
   },
   "contracts": [
     {
@@ -14531,6 +14531,31 @@
       "classification": "maintained",
       "apis": [
         "method:KisMenuStyleDontCloseOnAlt::styleHint(QStyle::StyleHint hint,const QStyleOption * option,const QWidget * widget,QStyleHintReturn * returnData) const"
+      ]
+    },
+    {
+      "target": "kis_name_server_test",
+      "source": "libs/image/tests/kis_name_server_test.cpp",
+      "test": "KisNameServerTest::defaultSequenceBeginsAtOne",
+      "behavior": "既定の採番器は現在値1から始まり、最初の採番で1を返して現在値を2へ進める。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNameServer",
+        "method:KisNameServer::KisNameServer(qint32 seed=1)",
+        "method:KisNameServer::currentSeed() const",
+        "method:KisNameServer::number()"
+      ]
+    },
+    {
+      "target": "kis_name_server_test",
+      "source": "libs/image/tests/kis_name_server_test.cpp",
+      "test": "KisNameServerTest::customSeedAdvancesAndRollsBack",
+      "behavior": "指定した初期値から連続採番し、巻戻しは現在値を1減らして直前に発行した番号を次の採番で再利用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNameServer::currentSeed() const",
+        "method:KisNameServer::number()",
+        "method:KisNameServer::rollback()"
       ]
     }
   ]

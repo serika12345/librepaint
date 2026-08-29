@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:19 JST
+- 更新日時: 2026-08-29 18:26 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,7 +15,7 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`image-name-sequence`は`implementing`である。`libs/image/kis_name_server.{h,cpp}`、Image試験CMake、
+- 統合担当`image-name-sequence`は`verified`、実装コミットは`e892be7055`である。`libs/image/kis_name_server.{h,cpp}`、Image試験CMake、
   新規限定試験を所有し、初期番号、採番、現在値、巻戻しの5 APIを対象とする。最も近い限定契約と製品対象の
   変更なし構築閉包を測定してから所有単位を決定し、macOSで検証する。統合順は1である。
 - 実装担当`surface-management-info`は`implementing`、構築実行許可は`granted`、Git操作権限は
@@ -8238,9 +8238,26 @@
   一重集約を確認し、パッケージ境界検査は1,173対象で成功した。公開面は1,549ヘッダー、29,989 API、
   対応済み5,131件、未対応24,858件になった。Linux、全ネイティブ検証、製品全体のリンクは実行していない。
 
+## R2-G19b 画像内の連続採番器の全public API契約で完了した作業
+
+- `libs/image/kis_name_server.h`の全5 APIを、既存`libs/image/tests/kis_name_server_test.{h,cpp}`の2試験へ
+  対応付けた。既定値1と指定初期値からの現在値、採番ごとの後置増分、巻戻し後に直前の番号を再利用する
+  現行挙動を固定した。
+- 開始ファイル`libs/image/kis_name_server.cpp`の構築所有を`kritaimage_LIB_SRCS`から新規
+  `kritaimagenameserverobjects`へ移し、製品`kritaimage`が生成オブジェクトを1回だけ集約する。試験は
+  `kritaimage`、`kritatestsdk`、資源保管層への接続を除き、この生成オブジェクトとQt Testだけへ接続した。
+- 変更前の既存試験は1,085工程・2,193入力、製品は1,081工程・2,186入力だった。分離後の試験は
+  5工程・11入力、生成オブジェクトは1工程・3入力で、製品の工程数と入力数は不変である。初回限定リンクは
+  構築、採番、現在値、巻戻しの4記号を未定義として失敗した。
+- macOSで対象CTestの単発実行と20回反復、最近傍の`KisPaintDeviceWriterContractTest`に成功した。試験の
+  動的リンクに`libkrita*`がないこと、公開記号4種、製品への一重集約を確認し、パッケージ境界検査は
+  1,174対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,136件、未対応24,853件になった。
+  Linux、全ネイティブ検証、製品全体のリンクは実行していない。
+
 ## 次の操作
 
-第10並列便の4担当を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
+`surface-management-info`、`popup-line-edit-lifecycle`、`titled-tab-title-sync`を並行実装し、統合順に差分、
+限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
