@@ -399,6 +399,9 @@ protected:
     struct KRITAUI_EXPORT NavigationAccess {
         static void activateNextNode(KisNodeManager *manager, bool siblingsOnly);
         static void activatePreviousNode(KisNodeManager *manager, bool siblingsOnly);
+        static KisNodeSP previouslyActiveNode(KisNodeManager *manager);
+        static bool hasParent(KisNodeSP node);
+        static void activateNode(KisNodeManager *manager, KisNodeSP node);
     };
 
 private:

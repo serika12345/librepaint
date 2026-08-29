@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25125
+    "expectedMissingApis": 25124
   },
   "contracts": [
     {
@@ -12511,6 +12511,16 @@
       "apis": [
         "method:KisNodeManager::activateNextSiblingNode()",
         "method:KisNodeManager::activatePreviousSiblingNode()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNavigationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNavigationContractTest.cpp",
+      "test": "KisNodeManagerNavigationContractTest::previousNodeRequiresAParent",
+      "behavior": "直前に有効だったノードがない場合と親を失った場合は無作用とし、親がある直前ノードだけを非UI有効化処理へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::switchToPreviouslyActiveNode()"
       ]
     }
   ]

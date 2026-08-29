@@ -15,3 +15,11 @@ void KisNodeManager::activatePreviousSiblingNode()
 {
     NavigationAccess::activatePreviousNode(this, true);
 }
+
+void KisNodeManager::switchToPreviouslyActiveNode()
+{
+    const KisNodeSP node = NavigationAccess::previouslyActiveNode(this);
+    if (node && NavigationAccess::hasParent(node)) {
+        NavigationAccess::activateNode(this, node);
+    }
+}

@@ -1046,6 +1046,21 @@ void KisNodeManager::NavigationAccess::activatePreviousNode(KisNodeManager *mana
     manager->activatePreviousNode(siblingsOnly);
 }
 
+KisNodeSP KisNodeManager::NavigationAccess::previouslyActiveNode(KisNodeManager *manager)
+{
+    return manager->m_d->previouslyActiveNode;
+}
+
+bool KisNodeManager::NavigationAccess::hasParent(KisNodeSP node)
+{
+    return bool(node->parent());
+}
+
+void KisNodeManager::NavigationAccess::activateNode(KisNodeManager *manager, KisNodeSP node)
+{
+    manager->slotNonUiActivatedNode(node);
+}
+
 void KisNodeManager::duplicateActiveNode()
 {
     KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
@@ -1211,13 +1226,6 @@ void KisNodeManager::activatePreviousNode(bool siblingsOnly)
     // Select node, unless root..
     if (nextNode && nextNode->parent()) {
         slotNonUiActivatedNode(nextNode);
-    }
-}
-
-void KisNodeManager::switchToPreviouslyActiveNode()
-{
-    if (m_d->previouslyActiveNode && m_d->previouslyActiveNode->parent()) {
-        slotNonUiActivatedNode(m_d->previouslyActiveNode);
     }
 }
 
