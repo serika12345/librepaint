@@ -186,6 +186,17 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisRandomGenerator2DContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagerandomgenerator2dobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisRandomGenerator2DContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+
+kis_add_test(
     KisSelectionTagsContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:39 JST
+- 更新日時: 2026-08-29 14:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,7 +20,7 @@
 - 実装担当`global-bezier-param-sampler`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/global/KisBezierPatchParamToSourceSampler.h`と新規限定試験を所有し、
   型、構築、公開値、範囲、点変換の12 APIを対象とする。
-- 実装担当`image-random-generator-2d`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`image-random-generator-2d`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/image/KisRandomGenerator2D.{h,cpp}`、画像CMakeと新規限定試験を所有し、
   型、構築、破棄、整数乱数、正規化乱数の5 APIを対象とする。
 - 実装担当`flake-svg-transform-parser`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -7733,10 +7733,27 @@
   未対応24,986件になった。異なる形状の順序は現行の組み込みポインター比較を観測し、macOSで`std::less`の全順序と
   一致した。Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 二次元乱数生成の全public API契約と小構築対象で完了した作業
+
+- `libs/image/KisRandomGenerator2D.cpp`を、製品`kritaimage`による直接コンパイルから新規
+  `kritaimagerandomgenerator2dobjects`の所有ソースへ移し、その生成物を同じ製品へ1回再集約した。物理ファイルと公開宣言は
+  維持し、seedと座標からの決定的な値生成だけを独立して構築できる境界にした。
+- `libs/image/KisRandomGenerator2D.h`の型、構築、破棄、`randomAt()`、`doubleRandomAt()`の全5 APIを、新規
+  `libs/image/tests/KisRandomGenerator2DContractTest.cpp`の2試験へ対応付けた。seed 0と最大64bit seed、負座標を含む6組の
+  黄金値、個体の寿命を越えた再現性、64bit整数値と0以上1以下の正規化値の対応を固定した。製品実装接続前のリンクは対象4
+  実体メソッドだけを未解決記号として診断した。
+- 既存`KisRandomGenerator2DTest`は`kritaimage`などへ接続され1,080工程・2,183入力であり、自己比較と約2,500万回規模の
+  近傍探索を含む。新規の専用対象は1工程・3入力、契約対象は5工程・11入力で、製品`kritaimage`閉包は変更前後とも
+  1,076工程・2,176入力である。直接依存は専用対象がQt Core、契約対象が専用対象とQt Testだけである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、対象CTestの単発実行と20回反復を成功させた。構成時の
+  パッケージ境界検査も1,123対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、
+  対応済み5,009件、未対応24,980件になった。黄金値は現行のsalt表、座標混合、IEEE 754倍精度変換を維持契約とする。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-ノードモデル除去通知の契約をコミットし、第3便のBezierパラメーター標本化、二次元乱数生成、SVG変換解析を順に統合する。
-各統合後に対象限定CTestと公開API検査を再実行し、中央台帳と対応件数を一意に同期する。
+第3便のBezierパラメーター標本化とSVG変換解析を順に統合する。各統合後に対象限定CTestと公開API検査を再実行し、
+中央台帳と対応件数を一意に同期する。
 
 ## R1-G5完了根拠
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24985
+    "expectedMissingApis": 24980
   },
   "contracts": [
     {
@@ -13798,6 +13798,29 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::sigBeforeBeginRemoveRows(const QModelIndex & parent,int start,int end)"
+      ]
+    },
+    {
+      "target": "KisRandomGenerator2DContractTest",
+      "source": "libs/image/tests/KisRandomGenerator2DContractTest.cpp",
+      "test": "KisRandomGenerator2DContractTest::fixedSeedsAndCoordinatesPreserveReferenceValues",
+      "behavior": "seed 0、最大64bit seed、負座標を含む固定seed・座標の組合せが定義済み64bit値を返し、個体を破棄して同じseedで再構築した後も同じ座標対応を再現する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRandomGenerator2D",
+        "method:KisRandomGenerator2D::KisRandomGenerator2D(quint64 seed)",
+        "method:KisRandomGenerator2D::randomAt(qint64 x,qint64 y)",
+        "method:KisRandomGenerator2D::~KisRandomGenerator2D()"
+      ]
+    },
+    {
+      "target": "KisRandomGenerator2DContractTest",
+      "source": "libs/image/tests/KisRandomGenerator2DContractTest.cpp",
+      "test": "KisRandomGenerator2DContractTest::normalizedValuesPreserveIntegerMapping",
+      "behavior": "固定seed・座標の正規化乱数値が対応する64bit整数値をUINT64_MAXで割った定義済み値と一致し、0以上1以下を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRandomGenerator2D::doubleRandomAt(qint64 x,qint64 y)"
       ]
     }
   ]

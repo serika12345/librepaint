@@ -121,6 +121,21 @@ set_target_properties(kritaimagegreencoordinatesobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagerandomgenerator2dobjects OBJECT
+   KisRandomGenerator2D.cpp
+)
+target_compile_definitions(kritaimagerandomgenerator2dobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagerandomgenerator2dobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaimagerandomgenerator2dobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagerandomgenerator2dobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagesignalsobjects OBJECT
    KisImageSignals.cpp
 )
@@ -436,7 +451,6 @@ set(kritaimage_LIB_SRCS
    kis_processing_information.cpp
    kis_properties_configuration.cc
    kis_random_accessor_ng.cpp
-   KisRandomGenerator2D.cpp
    kis_random_sub_accessor.cpp
    kis_wrapped_random_accessor.cpp
    kis_selection.cc
@@ -532,6 +546,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
    $<TARGET_OBJECTS:kritaimagegreencoordinatesobjects>
+   $<TARGET_OBJECTS:kritaimagerandomgenerator2dobjects>
    $<TARGET_OBJECTS:kritaimagesignalsobjects>
    $<TARGET_OBJECTS:kritaimagebackgroundframegenerationlockobjects>
    $<TARGET_OBJECTS:kritaimageframegenerationlockobjects>
