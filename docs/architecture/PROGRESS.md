@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 17:28 JST
+- 更新日時: 2026-08-29 17:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,27 +11,27 @@
 
 ### 現在の並列担当票
 
-- 第8並列便の共通基準コミットは`1be61011a5`である。統合担当は`develop`の
+- 第9並列便の共通基準コミットは`d732798773`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`psdutils-cos-parser`は`integrated`である。`libs/psdutils/cos/kis_cos_parser.{h,cpp}`、
-  `libs/psdutils/tests/{KisCosParserContractTest.cpp,CMakeLists.txt}`とPSD Utils製品集約CMakeを所有し、
-  COSオブジェクト解析の2 APIを対象とする。最も近い既存契約は`psd_cos_parser_test`、対象はmacOS、統合順は1である。
-- 実装担当`image-progress-helper`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 統合担当`psdutils-cos-writer`は`verified`である。`libs/psdutils/cos/kis_cos_writer.{h,cpp}`、
+  `libs/psdutils/{CMakeLists.txt,tests/CMakeLists.txt}`、新規限定試験を所有し、COSとTxt2の直列化3 APIを対象とする。
+  最も近い既存契約は`psd_cos_parser_test`、対象はmacOS、統合順は1である。
+- 実装担当`image-device-writer`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_progress_update_helper.h`、
-  Image試験CMake、新規限定試験を所有する。進捗区間の開始値、段階更新、完了値を担う4 APIを対象とし、
-  最も近い既存契約はImageの限定Qt Test、対象はmacOSである。
-- 実装担当`flake-fill-rule`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_paint_device_writer.h`、
+  Image試験CMake、新規限定試験を所有する。2種類の書込み仮想呼出しと基底所有破棄の4 APIを対象とし、
+  最も近い既存契約は`kis_paint_device_test`、対象はmacOSである。
+- 実装担当`surface-color-query`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、`libs/flake/commands/KoPathFillRuleCommand.{h,cpp}`、
-  Flake製品集約CMake、試験CMake、新規限定試験を所有する。複数図形のfill rule変更とundo/redoを担う5 APIを対象とし、
-  最も近い既存契約はFlakeのコマンド試験、対象はmacOSである。
-- 実装担当`widget-highlight`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、Surface Color ManagementのICC変換実装、
+  製品集約CMake、試験CMake、新規限定試験を所有する。名前付き色域、伝達関数、色空間要求変換の3 APIを対象とし、
+  最も近い既存契約は`KisSurfaceColorimetryContractTest`、対象はmacOSである。
+- 実装担当`widget-menu-alt-style`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisHighlightedToolButton.h`、
-  Widget Utils試験CMake、新規限定試験を所有する。チェック状態とパレット変更に応じた表示色の3 APIを対象とし、
+  `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisMenuStyleDontCloseOnAlt.{h,cpp}`、
+  Widget Utils製品集約CMake、試験CMake、新規限定試験を所有する。Altメニュー移動抑止と他のstyle hint委譲の3 APIを対象とし、
   最も近い既存契約はWidget Utilsの限定Qt Test、対象はmacOSである。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
@@ -8160,9 +8160,29 @@
   成功した。公開API契約検査と`./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,118件、
   未対応24,871件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b COS書出しの全public API契約と構築所有分離で完了した作業
+
+- COS書出しだけを固定する場合も、実装を直接所有するPSD Utils製品が565工程・1,160入力を要求していた。
+  `libs/psdutils/cos/kis_cos_writer.cpp`の構築所有を`kritapsdutils`の直接ソース一覧から新規
+  `kritapsdcoswriterobjects`へ移し、同じファイルの生成物を製品`kritapsdutils`へ一度再集約した。公開ヘッダー、実装内容、
+  実装ファイル位置は維持しながら、COS書出しだけを構築できる所有単位にした。
+- `libs/psdutils/cos/kis_cos_writer.h`の全3 APIを、新規`libs/psdutils/tests/KisCosWriterContractTest.cpp`の2試験へ
+  対応付けた。真偽値、整数、実数、同型配列、空配列、name、COSエスケープ文字列、入れ子オブジェクトを含む辞書が
+  既存解析器で型を保って往復することと、Txt2経路がルート囲みと改行を持たない簡潔な表現を返すことを固定した。
+  実装接続前のリンクは`writeCosFromVariantHash()`と`writeTxt2FromVariantHash()`だけを未解決記号として診断した。
+- 変更前の書出し製品オブジェクトは550工程・1,131入力、既存`psd_cos_parser_test`は569工程・1,167入力だった。
+  新規専用対象は1工程・3入力、契約対象は6工程・13入力である。直接の内部対象依存は既存解析器と新規書出しの
+  2オブジェクト対象だけであり、外部依存はQt Core、Qt Core5Compat、Qt Testである。製品`kritapsdutils`は
+  565工程・1,160入力、既存解析試験は569工程・1,167入力を維持する。
+- 統合担当のmacOS構築木で対象CTestの単発実行と20回反復、既存`psd_cos_parser_test`、専用生成物の公開記号、製品への
+  一重集約、1,169対象のパッケージ境界検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,121件、
+  未対応24,868件になった。既存書出し実装のQt 6非推奨警告は挙動を変えず後続のC++更新対象として残す。
+  Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-統合済み担当の再生成可能な専用構築木を整理して空き容量を回復し、第9並列便を選定する。
+空き容量を監視しながら`image-device-writer`を再開し、完了後に`surface-color-query`、
+`widget-menu-alt-style`を順次再開して各担当差分を一件ずつ統合する。
 
 ## R1-G5完了根拠
 

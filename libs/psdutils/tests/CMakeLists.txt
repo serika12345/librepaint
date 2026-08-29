@@ -82,3 +82,20 @@ target_include_directories(KisCosParserContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KisCosParserContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
+    KisCosWriterContractTest.cpp
+    LINK_LIBRARIES
+        kritapsdcosparserobjects
+        kritapsdcoswriterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+if (TARGET Qt6::Core5Compat)
+    target_link_libraries(KisCosWriterContractTest Qt6::Core5Compat)
+endif()
+target_include_directories(KisCosWriterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisCosWriterContractTest PRIVATE kritapsdutils_EXPORTS)

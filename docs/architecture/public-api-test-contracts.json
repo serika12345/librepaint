@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24871
+    "expectedMissingApis": 24868
   },
   "contracts": [
     {
@@ -14379,6 +14379,27 @@
       "apis": [
         "class:KisCosParser",
         "method:KisCosParser::parseCosToJson(QByteArray * ba)"
+      ]
+    },
+    {
+      "target": "KisCosWriterContractTest",
+      "source": "libs/psdutils/tests/KisCosWriterContractTest.cpp",
+      "test": "KisCosWriterContractTest::writesTypedCosObjectThatRoundTrips",
+      "behavior": "COS書出しは真偽値、整数、実数、同型配列、空配列、name、エスケープ文字列、入れ子オブジェクトを型付き辞書として囲み、既存解析器で元のQVariantHashへ復元できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCosWriter",
+        "method:KisCosWriter::writeCosFromVariantHash(const QVariantHash doc)"
+      ]
+    },
+    {
+      "target": "KisCosWriterContractTest",
+      "source": "libs/psdutils/tests/KisCosWriterContractTest.cpp",
+      "test": "KisCosWriterContractTest::writesRootlessCompactTxt2Object",
+      "behavior": "Txt2書出しはルート辞書の囲みと改行を付けず、先頭空白に続くキーと整数値の簡潔な直列化を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCosWriter::writeTxt2FromVariantHash(const QVariantHash doc)"
       ]
     },
     {
