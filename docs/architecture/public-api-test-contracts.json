@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25024
+    "expectedMissingApis": 25023
   },
   "contracts": [
     {
@@ -13496,6 +13496,36 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::~KisNodeModel()"
+      ]
+    },
+    {
+      "target": "KisNodeModelFacadeSetupContractTest",
+      "source": "libs/ui/tests/KisNodeModelFacadeSetupContractTest.cpp",
+      "test": "KisNodeModelFacadeSetupContractTest::firstTreeAssignmentResetsModel",
+      "behavior": "最初のダミー木設定は協力対象と表示方式を設定して新しい木へ接続し、モデルリセットを1回通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::setDummiesFacade(KisDummiesFacadeBase * dummiesFacade,KisImageWSP image,KisShapeController * shapeController,KisSelectionActionsAdapter * selectionActionsAdapter,KisNodeManager * nodeManager)"
+      ]
+    },
+    {
+      "target": "KisNodeModelFacadeSetupContractTest",
+      "source": "libs/ui/tests/KisNodeModelFacadeSetupContractTest.cpp",
+      "test": "KisNodeModelFacadeSetupContractTest::sameTreeReconnectsWithoutReset",
+      "behavior": "同じダミー木と図形制御対象の再設定は旧接続を切って新接続を作り直し、木形状が変わらないためモデルリセットを通知しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::setDummiesFacade(KisDummiesFacadeBase * dummiesFacade,KisImageWSP image,KisShapeController * shapeController,KisSelectionActionsAdapter * selectionActionsAdapter,KisNodeManager * nodeManager)"
+      ]
+    },
+    {
+      "target": "KisNodeModelFacadeSetupContractTest",
+      "source": "libs/ui/tests/KisNodeModelFacadeSetupContractTest.cpp",
+      "test": "KisNodeModelFacadeSetupContractTest::clearingTreeDisconnectsAndResetsModel",
+      "behavior": "ダミー木の解除は旧木を切断して空状態へ置換し、新木へ接続せずモデルリセットを1回通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::setDummiesFacade(KisDummiesFacadeBase * dummiesFacade,KisImageWSP image,KisShapeController * shapeController,KisSelectionActionsAdapter * selectionActionsAdapter,KisNodeManager * nodeManager)"
       ]
     }
   ]

@@ -184,6 +184,22 @@ protected Q_SLOTS:
     void slotLayerThumbnailUpdated(KisNodeSP node);
 
 protected:
+    struct KRITAUI_EXPORT FacadeSetupAccess {
+        static KisDummiesFacadeBase *currentFacade(const KisNodeModel *model);
+        static KisShapeController *currentShapeController(const KisNodeModel *model);
+        static bool hasImage(const KisNodeModel *model);
+        static void configureCollaborators(KisNodeModel *model,
+                                           KisShapeController *shapeController,
+                                           KisSelectionActionsAdapter *selectionActionsAdapter,
+                                           KisNodeManager *nodeManager);
+        static void configureDisplayMode(KisNodeModel *model, KisNodeManager *nodeManager);
+        static void disconnectCurrentTree(KisNodeModel *model, KisDummiesFacadeBase *oldFacade);
+        static void replaceTree(KisNodeModel *model,
+                                KisDummiesFacadeBase *dummiesFacade,
+                                const KisImageWSP &image);
+        static void connectCurrentTree(KisNodeModel *model);
+    };
+
     struct KRITAUI_EXPORT LifecycleAccess {
         static void *createPrivateState(int clonedColumns);
         static void connectUpdateCompressor(KisNodeModel *model, void *privateState);

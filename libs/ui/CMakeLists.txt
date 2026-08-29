@@ -1214,6 +1214,28 @@ set_target_properties(kritauinodemodelisolationmembershipobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauinodemodelfacadesetupobjects OBJECT
+    nodes/KisNodeModelFacadeSetup.cpp
+)
+target_compile_definitions(kritauinodemodelfacadesetupobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelfacadesetupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelfacadesetupobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelfacadesetupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritauinodemodellifecycleobjects OBJECT
     nodes/KisNodeModelLifecycle.cpp
 )
@@ -1312,6 +1334,7 @@ set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauinodemodeltransferprotocolobjects>
     $<TARGET_OBJECTS:kritauinodemodelindexmappingobjects>
     $<TARGET_OBJECTS:kritauinodemodelisolationmembershipobjects>
+    $<TARGET_OBJECTS:kritauinodemodelfacadesetupobjects>
     $<TARGET_OBJECTS:kritauinodemodellifecycleobjects>
     $<TARGET_OBJECTS:kritauinodemodelstructureobjects>
 

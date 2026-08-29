@@ -109,6 +109,109 @@ void KisNodeModel::LifecycleAccess::destroyPrivateState(void *privateState)
     delete data;
 }
 
+KisDummiesFacadeBase *KisNodeModel::FacadeSetupAccess::currentFacade(const KisNodeModel *model)
+{
+    return model->m_d->dummiesFacade;
+}
+
+KisShapeController *KisNodeModel::FacadeSetupAccess::currentShapeController(const KisNodeModel *model)
+{
+    return model->m_d->shapeController;
+}
+
+bool KisNodeModel::FacadeSetupAccess::hasImage(const KisNodeModel *model)
+{
+    return model->m_d->image.isValid();
+}
+
+void KisNodeModel::FacadeSetupAccess::configureCollaborators(
+    KisNodeModel *model,
+    KisShapeController *shapeController,
+    KisSelectionActionsAdapter *selectionActionsAdapter,
+    KisNodeManager *nodeManager)
+{
+    model->m_d->shapeController = shapeController;
+    model->m_d->nodeManager = nodeManager;
+    model->m_d->nodeSelectionAdapter = nodeManager ? nodeManager->nodeSelectionAdapter() : nullptr;
+    model->m_d->nodeInsertionAdapter = nodeManager ? nodeManager->nodeInsertionAdapter() : nullptr;
+    model->m_d->selectionActionsAdapter = selectionActionsAdapter;
+}
+
+void KisNodeModel::FacadeSetupAccess::configureDisplayMode(KisNodeModel *model,
+                                                          KisNodeManager *nodeManager)
+{
+    model->m_d->nodeDisplayModeAdapterConnections.clear();
+    model->m_d->nodeDisplayModeAdapter = nodeManager ? nodeManager->nodeDisplayModeAdapter() : nullptr;
+    if (model->m_d->nodeDisplayModeAdapter) {
+        model->m_d->nodeDisplayModeAdapterConnections.addConnection(
+            model->m_d->nodeDisplayModeAdapter,
+            SIGNAL(sigNodeDisplayModeChanged(bool, bool)),
+            model,
+            SLOT(slotNodeDisplayModeChanged(bool, bool)));
+
+        model->m_d->showGlobalSelection = model->m_d->nodeDisplayModeAdapter->showGlobalSelectionMask();
+        model->m_d->showRootLayer = false;
+    }
+}
+
+void KisNodeModel::FacadeSetupAccess::disconnectCurrentTree(KisNodeModel *model,
+                                                           KisDummiesFacadeBase *oldFacade)
+{
+    model->m_d->image->disconnect(model);
+    oldFacade->disconnect(model);
+    KisNodeDummy *oldRootDummy = oldFacade->rootDummy();
+    if (oldRootDummy) {
+        model->connectDummies(oldRootDummy, false);
+    }
+}
+
+void KisNodeModel::FacadeSetupAccess::replaceTree(KisNodeModel *model,
+                                                 KisDummiesFacadeBase *dummiesFacade,
+                                                 const KisImageWSP &image)
+{
+    model->m_d->image = image;
+    model->m_d->dummiesFacade = dummiesFacade;
+    model->m_d->parentOfRemovedNode = nullptr;
+    model->m_d->thumbnalCache.setImage(image);
+    model->resetIndexConverter();
+}
+
+void KisNodeModel::FacadeSetupAccess::connectCurrentTree(KisNodeModel *model)
+{
+    KisNodeDummy *rootDummy = model->m_d->dummiesFacade->rootDummy();
+    if (rootDummy) {
+        model->connectDummies(rootDummy, true);
+    }
+
+    QObject::connect(model->m_d->dummiesFacade,
+                     SIGNAL(sigBeginInsertDummy(KisNodeDummy *, int, QString)),
+                     model,
+                     SLOT(slotBeginInsertDummy(KisNodeDummy *, int, QString)));
+    QObject::connect(model->m_d->dummiesFacade,
+                     SIGNAL(sigEndInsertDummy(KisNodeDummy *)),
+                     model,
+                     SLOT(slotEndInsertDummy(KisNodeDummy *)));
+    QObject::connect(model->m_d->dummiesFacade,
+                     SIGNAL(sigBeginRemoveDummy(KisNodeDummy *)),
+                     model,
+                     SLOT(slotBeginRemoveDummy(KisNodeDummy *)));
+    QObject::connect(model->m_d->dummiesFacade,
+                     SIGNAL(sigEndRemoveDummy()),
+                     model,
+                     SLOT(slotEndRemoveDummy()));
+    QObject::connect(model->m_d->dummiesFacade,
+                     SIGNAL(sigDummyChanged(KisNodeDummy *)),
+                     model,
+                     SLOT(slotDummyChanged(KisNodeDummy *)));
+
+    if (model->m_d->image.isValid()) {
+        QObject::connect(model->m_d->image,
+                         SIGNAL(sigIsolatedModeChanged()),
+                         model,
+                         SLOT(slotIsolatedModeChanged()));
+    }
+}
+
 bool KisNodeModel::DisplayStateAccess::hasDisplayModeAdapter(const KisNodeModel *model)
 {
     return model->m_d->nodeDisplayModeAdapter != nullptr;
@@ -337,77 +440,6 @@ void KisNodeModel::connectDummies(KisNodeDummy *dummy, bool needConnect)
     while(dummy) {
         connectDummies(dummy, needConnect);
         dummy = dummy->nextSibling();
-    }
-}
-
-void KisNodeModel::setDummiesFacade(KisDummiesFacadeBase *dummiesFacade,
-                                    KisImageWSP image,
-                                    KisShapeController *shapeController,
-                                    KisSelectionActionsAdapter *selectionActionsAdapter,
-                                    KisNodeManager *nodeManager)
-{
-    QPointer<KisDummiesFacadeBase> oldDummiesFacade(m_d->dummiesFacade);
-    KisShapeController  *oldShapeController = m_d->shapeController;
-
-    m_d->shapeController = shapeController;
-    m_d->nodeManager = nodeManager;
-    m_d->nodeSelectionAdapter = nodeManager ? nodeManager->nodeSelectionAdapter() : nullptr;
-    m_d->nodeInsertionAdapter = nodeManager ? nodeManager->nodeInsertionAdapter() : nullptr;
-    m_d->selectionActionsAdapter = selectionActionsAdapter;
-
-    m_d->nodeDisplayModeAdapterConnections.clear();
-    m_d->nodeDisplayModeAdapter = nodeManager ? nodeManager->nodeDisplayModeAdapter() : nullptr;
-    if (m_d->nodeDisplayModeAdapter) {
-        m_d->nodeDisplayModeAdapterConnections.addConnection(
-            m_d->nodeDisplayModeAdapter, SIGNAL(sigNodeDisplayModeChanged(bool,bool)),
-            this, SLOT(slotNodeDisplayModeChanged(bool,bool)));
-
-        // cold initialization
-        m_d->showGlobalSelection = m_d->nodeDisplayModeAdapter->showGlobalSelectionMask();
-        m_d->showRootLayer = false;
-    }
-
-    if (oldDummiesFacade && m_d->image) {
-        m_d->image->disconnect(this);
-        oldDummiesFacade->disconnect(this);
-        KisNodeDummy *oldRootDummy = m_d->dummiesFacade->rootDummy();
-        if (oldRootDummy) {
-            connectDummies(oldRootDummy, false);
-        }
-    }
-
-    m_d->image = image;
-    m_d->dummiesFacade = dummiesFacade;
-    m_d->parentOfRemovedNode = 0;
-    m_d->thumbnalCache.setImage(image);
-    resetIndexConverter();
-
-    if (m_d->dummiesFacade) {
-        KisNodeDummy *rootDummy = m_d->dummiesFacade->rootDummy();
-        if (rootDummy) {
-            connectDummies(rootDummy, true);
-        }
-
-        connect(m_d->dummiesFacade, SIGNAL(sigBeginInsertDummy(KisNodeDummy*,int,QString)),
-                SLOT(slotBeginInsertDummy(KisNodeDummy*,int,QString)));
-        connect(m_d->dummiesFacade, SIGNAL(sigEndInsertDummy(KisNodeDummy*)),
-                SLOT(slotEndInsertDummy(KisNodeDummy*)));
-        connect(m_d->dummiesFacade, SIGNAL(sigBeginRemoveDummy(KisNodeDummy*)),
-                SLOT(slotBeginRemoveDummy(KisNodeDummy*)));
-        connect(m_d->dummiesFacade, SIGNAL(sigEndRemoveDummy()),
-                SLOT(slotEndRemoveDummy()));
-
-        connect(m_d->dummiesFacade, SIGNAL(sigDummyChanged(KisNodeDummy*)),
-                SLOT(slotDummyChanged(KisNodeDummy*)));
-
-        if (m_d->image.isValid()) {
-            connect(m_d->image, SIGNAL(sigIsolatedModeChanged()), SLOT(slotIsolatedModeChanged()));
-        }
-    }
-
-    if (m_d->dummiesFacade != oldDummiesFacade || m_d->shapeController != oldShapeController) {
-        beginResetModel();
-        endResetModel();
     }
 }
 
