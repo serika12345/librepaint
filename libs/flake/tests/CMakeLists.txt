@@ -151,6 +151,20 @@ target_include_directories(KoViewTransformStillPointContractTest PRIVATE
 target_compile_definitions(KoViewTransformStillPointContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoViewConverterContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeviewconverterobjects
+        kritaflakeviewtransformstillpointobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoViewConverterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoViewConverterContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoPathPointDataContractTest.cpp
     LINK_LIBRARIES
         Boost::boost

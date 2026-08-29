@@ -59,6 +59,21 @@ set_target_properties(kritaflakeviewtransformstillpointobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeviewconverterobjects OBJECT
+    KoViewConverter.cpp
+)
+target_compile_definitions(kritaflakeviewconverterobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeviewconverterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeviewconverterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaflakeviewconverterobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeinputdeviceobjects OBJECT
     KoInputDevice.cpp
 )
@@ -312,7 +327,6 @@ set(kritaflake_SRCS
     KoSnapProxy.cpp
     KoSnapStrategy.cpp
     KoSnapData.cpp
-    KoViewConverter.cpp
     KoClipMaskApplicatorBase.cpp
     ${__per_arch_alpha_applicator_factory_objs}
     KoClipMaskPainter.cpp
@@ -453,6 +467,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakezoomstateobjects>
     $<TARGET_OBJECTS:kritaflakeviewtransformstillpointobjects>
+    $<TARGET_OBJECTS:kritaflakeviewconverterobjects>
     $<TARGET_OBJECTS:kritaflakeinputdeviceobjects>
     $<TARGET_OBJECTS:kritaflakesvgtransformparserobjects>
     $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
