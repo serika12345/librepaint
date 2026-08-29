@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:16 JST
+- 更新日時: 2026-08-29 18:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,30 +11,27 @@
 
 ### 現在の並列担当票
 
-- 第9並列便の共通基準コミットは`d732798773`である。統合担当は`develop`の
+- 第10並列便の共通基準コミットは`269e78c2af`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`psdutils-cos-writer`は`verified`である。`libs/psdutils/cos/kis_cos_writer.{h,cpp}`、
-  `libs/psdutils/{CMakeLists.txt,tests/CMakeLists.txt}`、新規限定試験を所有し、COSとTxt2の直列化3 APIを対象とする。
-  最も近い既存契約は`psd_cos_parser_test`、対象はmacOS、統合順は1である。
-- 実装担当`image-device-writer`は`integrated`、統合コミットは`5d8c3e25ad`、構築実行許可は`granted`、
-  Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_paint_device_writer.h`、
-  Image試験CMake、新規限定試験を所有する。2種類の書込み仮想呼出しと基底所有破棄の4 APIを対象とし、
-  最も近い既存契約は`kis_paint_device_test`、対象はmacOSである。
-- 実装担当`surface-color-query`は`integrated`、統合コミットは`509a0efae5`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、Surface Color ManagementのICC変換実装、
-  製品集約CMake、試験CMake、新規限定試験を所有する。名前付き色域、伝達関数、色空間要求変換の3 APIを対象とし、
-  最も近い既存契約は`KisSurfaceColorimetryContractTest`、対象はmacOSである。
-- 実装担当`widget-menu-alt-style`は`integrated`、統合コミットは`b86b4b7e74`、構築実行許可は`granted`、
-  Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は4である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisMenuStyleDontCloseOnAlt.{h,cpp}`、
-  Widget Utils製品集約CMake、試験CMake、新規限定試験を所有する。Altメニュー移動抑止と他のstyle hint委譲の3 APIを対象とし、
-  最も近い既存契約はWidget Utilsの限定Qt Test、対象はmacOSである。
+- 統合担当`image-name-sequence`は`implementing`である。`libs/image/kis_name_server.{h,cpp}`、Image試験CMake、
+  新規限定試験を所有し、初期番号、採番、現在値、巻戻しの5 APIを対象とする。最も近い限定契約と製品対象の
+  変更なし構築閉包を測定してから所有単位を決定し、macOSで検証する。統合順は1である。
+- 実装担当`surface-management-info`は`implementing`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`、統合順は2である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、
+  `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorManagementInfo.{h,cpp}`、同パッケージの
+  製品・試験CMake、新規限定試験を所有する。親所有、基底破棄、OS管理判断、非同期診断の5 APIを対象とする。
+- 実装担当`popup-line-edit-lifecycle`は`implementing`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`、統合順は3である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、
+  `libs/widgetutils/KisPopupSelfActivatingLineEdit.{h,cpp}`、Widget Utils製品・試験CMake、新規限定試験を所有する。
+  親所有、構築、破棄の3 APIと、ポップアップ内のフォーカス取得時に現れる公開挙動を対象とする。
+- 実装担当`titled-tab-title-sync`は`implementing`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`、統合順は4である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/widgets/KoTitledTabWidget.{h,cpp}`、
+  Widgets製品・試験CMake、新規限定試験を所有する。構築と現在タブの題名同期からなる2 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8194,7 +8191,7 @@
   偽`nix print-dev-env`で検査する。
   実環境の反復プローブでは追加使用量が0.1 MiB未満だった。未参照Nix store経路はGCで回収し、ソース、Git差分、
   主Ninja木、参照中の開発環境は保持した。共有ccache上限は容量回復時の256 MiBを維持し、並列便完了後に利用率を
-  再評価する。
+  再評価した。未参照経路の回収後は上限を1 GiBへ戻し、第10並列便の再利用余地を確保した。
 
 ## R2-G19b 画素装置writer接続面の全public API契約で完了した作業
 
@@ -8243,7 +8240,7 @@
 
 ## 次の操作
 
-未対応API一覧から所有範囲が重ならない次の並列便を選び、対象ごとの構築閉包を測定して契約を追加する。
+第10並列便の4担当を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
