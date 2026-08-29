@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 23:42 JST
+- 更新日時: 2026-08-29 23:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,7 +15,7 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g20-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`updater`は`implementing`、統合順は1である。主作業ツリーで`libs/widgetutils/KoUpdater.{h,cpp}`、
+- 統合担当`updater`は`integrated`、実装コミットは`a45a2b9cb8`、統合順は1である。主作業ツリーで`libs/widgetutils/KoUpdater.{h,cpp}`、
   `libs/widgetutils/KoUpdaterPrivate_p.{h,cpp}`、`libs/widgetutils/KoProgressProxy.{h,cpp}`、WidgetUtils製品・試験CMake、
   新規限定試験を所有する。既存試験の1,092工程・2,207入力を専用生成物へ縮小し、進捗接続面、進捗、範囲、割込み、通知、
   無処理updater、寿命の全30 APIを対象とする。
@@ -8863,9 +8863,26 @@
   合計82 APIを固定した。各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、
   公開API契約検査を再実行した。
 
+## R2-G19b 進捗接続面と進捗通知の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KoProgressProxy.h`の全7 APIと`libs/widgetutils/KoUpdater.h`の全23 APIを、新規
+  `libs/widgetutils/tests/KoUpdaterContractTest.cpp`の6試験へ対応付けた。入れ子名の書式化、既定進捗、任意範囲の写像、
+  同値通知の抑止と端点再通知、取消し・名前・有効範囲通知、割込み、仮想破棄、無処理更新器の遅延破棄を固定した。
+- 開始ファイル`libs/widgetutils/KoProgressProxy.cpp`、`libs/widgetutils/KoUpdater.cpp`、
+  `libs/widgetutils/KoUpdaterPrivate_p.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の`kritawidgetutils_LIB_SRCS`から、
+  同ファイル内の新規`kritawidgetutilsprogressupdaterobjects`へ移した。製品`kritawidgetutils`は生成物を1回だけ再集約し、
+  新規限定試験は専用生成物とQt Core・Testだけへ接続する。物理ファイル、公開ヘッダー、製品ABI、通知処理は維持した。
+- 実装未接続の初回限定リンクは進捗接続面、進捗更新器、GUI側状態、無処理保持器の未定義記号で失敗した。2更新器実装を
+  接続した時点で進捗接続面の型情報不足を検出し、同じ責務にある未対応7 APIを対象へ加えて直接依存を完結させた。
+  macOSの専用生成物は5工程・11入力、限定試験は9工程・18入力であり、従来試験の1,092工程・2,207入力から縮小した。
+  Qtメタオブジェクトを専用所有へ分けたため製品計画は242工程・517入力から244工程・521入力になり、3翻訳単位は製品リンク行に
+  それぞれ1回だけ現れる。対象CTest単発と20回反復、最近傍の`KoPropertiesTest`、パッケージ境界検査、高速検査に成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,921件、未対応24,068件になった。負の進捗範囲、最大整数付近、別スレッドからの
+  配送、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第20並列便の進捗通知実装を進め、並行する3実装担当の引渡しを統合順に監査する。
+第20並列便の表示座標変換引渡しを公開API契約台帳へ記録し、残る2実装担当の引渡しを統合順に監査する。
 
 ## R1-G5完了根拠
 

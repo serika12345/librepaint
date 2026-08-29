@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24098
+    "expectedMissingApis": 24068
   },
   "contracts": [
     {
@@ -17087,6 +17087,90 @@
       "classification": "maintained",
       "apis": [
         "method:KisWrappedRect::multiplyWrappedRect(const QRect & rc,const QRect & wrapRect,const QRect & limitRect,WrapAroundAxis wrapAxis)"
+      ]
+    },
+    {
+      "target": "KoUpdaterContractTest",
+      "source": "libs/widgetutils/tests/KoUpdaterContractTest.cpp",
+      "test": "KoUpdaterContractTest::progressProxyFormatsNestedNames",
+      "behavior": "進捗接続面は最大値、値、範囲、書式の仮想配送を維持し、入れ子名を空名、進捗範囲あり、進捗範囲なしの各書式へ変換して基底所有から破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoProgressProxy",
+        "method:KoProgressProxy::maximum() const",
+        "method:KoProgressProxy::setAutoNestedName(const QString & name)",
+        "method:KoProgressProxy::setFormat(const QString & format)",
+        "method:KoProgressProxy::setRange(int minimum,int maximum)",
+        "method:KoProgressProxy::setValue(int value)",
+        "method:KoProgressProxy::~KoProgressProxy()"
+      ]
+    },
+    {
+      "target": "KoUpdaterContractTest",
+      "source": "libs/widgetutils/tests/KoUpdaterContractTest.cpp",
+      "test": "KoUpdaterContractTest::defaultsExposeProgressState",
+      "behavior": "新しい進捗更新器は所有するGUI側状態を公開参照で保持し、未割込み、進捗0、範囲0から100を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoUpdater",
+        "member:KoUpdater::d",
+        "member:KoUpdater::max",
+        "member:KoUpdater::min",
+        "member:KoUpdater::range",
+        "method:KoUpdater::interrupted() const",
+        "method:KoUpdater::maximum() const",
+        "method:KoUpdater::progress() const"
+      ]
+    },
+    {
+      "target": "KoUpdaterContractTest",
+      "source": "libs/widgetutils/tests/KoUpdaterContractTest.cpp",
+      "test": "KoUpdaterContractTest::progressAndRangeMapToSignals",
+      "behavior": "進捗の変更は同値を抑止しつつ端点を再通知し、任意範囲の値を0から100へ切り詰めて写像する。ゼロ幅範囲は無効通知と範囲端値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUpdater::setProgress(int percent)",
+        "method:KoUpdater::setRange(int minimum,int maximum)",
+        "method:KoUpdater::setValue(int value)",
+        "method:KoUpdater::sigHasValidRangeChanged(bool value)",
+        "method:KoUpdater::sigProgress(int percent)"
+      ]
+    },
+    {
+      "target": "KoUpdaterContractTest",
+      "source": "libs/widgetutils/tests/KoUpdaterContractTest.cpp",
+      "test": "KoUpdaterContractTest::namesAndCancellationAreForwarded",
+      "behavior": "書式と自動入れ子名は名前変更通知へそのまま配送され、取消しは公開通知からGUI側取消し通知へ伝播し、GUI側割込みは更新器から観測できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUpdater::cancel()",
+        "method:KoUpdater::setAutoNestedName(const QString & name)",
+        "method:KoUpdater::setFormat(const QString & format)",
+        "method:KoUpdater::sigCancel()",
+        "method:KoUpdater::sigNestedNameChanged(const QString & value)"
+      ]
+    },
+    {
+      "target": "KoUpdaterContractTest",
+      "source": "libs/widgetutils/tests/KoUpdaterContractTest.cpp",
+      "test": "KoUpdaterContractTest::virtualLifetimeUsesThePublicBase",
+      "behavior": "進捗更新器は公開進捗接続面から破棄したとき派生デストラクターまで配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoUpdater::~KoUpdater()"
+      ]
+    },
+    {
+      "target": "KoUpdaterContractTest",
+      "source": "libs/widgetutils/tests/KoUpdaterContractTest.cpp",
+      "test": "KoUpdaterContractTest::dummyHolderOwnsANoopUpdater",
+      "behavior": "無処理更新器保持器は寿命中に同じ既定更新器を返し、保持器破棄後の遅延削除で更新器も破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDummyUpdaterHolder",
+        "method:KoDummyUpdaterHolder::KoDummyUpdaterHolder()",
+        "method:KoDummyUpdaterHolder::updater()",
+        "method:KoDummyUpdaterHolder::~KoDummyUpdaterHolder()"
       ]
     }
   ]
