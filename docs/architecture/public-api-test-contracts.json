@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24231
+    "expectedMissingApis": 24210
   },
   "contracts": [
     {
@@ -16638,6 +16638,72 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const KisBezierPatch & p)"
+      ]
+    },
+    {
+      "target": "KisSnapConfigContractTest",
+      "source": "libs/application/tests/KisSnapConfigContractTest.cpp",
+      "test": "KisSnapConfigContractTest::explicitConstructionUsesStableDefaultsAndHasLocalLifetime",
+      "behavior": "設定読込みを無効にした構築は、画像境界だけを有効とする既定の8スナップ値を生成する。構築と破棄は設定接続面へアクセスせず、状態を局所的な寿命に閉じる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSnapConfig::KisSnapConfig(bool loadValues=true)",
+        "method:KisSnapConfig::~KisSnapConfig()"
+      ]
+    },
+    {
+      "target": "KisSnapConfigContractTest",
+      "source": "libs/application/tests/KisSnapConfigContractTest.cpp",
+      "test": "KisSnapConfigContractTest::settersKeepEachSnapStrategyIndependent",
+      "behavior": "直交、ノード、延長、交点、境界箱、画像境界、画像中心、画素の8スナップ設定は、各setterから対応するgetterへ真偽値を保持し、他の設定へ干渉しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSnapConfig::boundingBox() const",
+        "method:KisSnapConfig::extension() const",
+        "method:KisSnapConfig::imageBounds() const",
+        "method:KisSnapConfig::imageCenter() const",
+        "method:KisSnapConfig::intersection() const",
+        "method:KisSnapConfig::node() const",
+        "method:KisSnapConfig::orthogonal() const",
+        "method:KisSnapConfig::setBoundingBox(bool value)",
+        "method:KisSnapConfig::setExtension(bool value)",
+        "method:KisSnapConfig::setImageBounds(bool value)",
+        "method:KisSnapConfig::setImageCenter(bool value)",
+        "method:KisSnapConfig::setIntersection(bool value)",
+        "method:KisSnapConfig::setNode(bool value)",
+        "method:KisSnapConfig::setOrthogonal(bool value)",
+        "method:KisSnapConfig::setToPixel(bool value)",
+        "method:KisSnapConfig::toPixel() const"
+      ]
+    },
+    {
+      "target": "KisSnapConfigContractTest",
+      "source": "libs/application/tests/KisSnapConfigContractTest.cpp",
+      "test": "KisSnapConfigContractTest::defaultConstructionLoadsThroughReadOnlyConfiguration",
+      "behavior": "既定構築は読取り専用の設定接続面を正確に1回構築し、8スナップ値を正確に1回読み込んで構築結果へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSnapConfig"
+      ]
+    },
+    {
+      "target": "KisSnapConfigContractTest",
+      "source": "libs/application/tests/KisSnapConfigContractTest.cpp",
+      "test": "KisSnapConfigContractTest::explicitLoadReplacesCurrentValues",
+      "behavior": "明示的な再読込みは読取り専用の設定接続面を正確に1回使用し、現在の8スナップ値を供給された値ですべて置き換える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSnapConfig::loadStaticData()"
+      ]
+    },
+    {
+      "target": "KisSnapConfigContractTest",
+      "source": "libs/application/tests/KisSnapConfigContractTest.cpp",
+      "test": "KisSnapConfigContractTest::saveDeliversCurrentValuesThroughWritableConfiguration",
+      "behavior": "保存は書込み可能な設定接続面を正確に1回構築し、現在の8スナップ値を変更せず正確に1回配送して接続面を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSnapConfig::saveStaticData() const"
       ]
     }
   ]
