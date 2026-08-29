@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24883
+    "expectedMissingApis": 24879
   },
   "contracts": [
     {
@@ -14379,6 +14379,19 @@
       "apis": [
         "class:KisCosParser",
         "method:KisCosParser::parseCosToJson(QByteArray * ba)"
+      ]
+    },
+    {
+      "target": "KisProgressUpdateHelperContractTest",
+      "source": "libs/image/tests/KisProgressUpdateHelperContractTest.cpp",
+      "test": "KisProgressUpdateHelperContractTest::reportsDistinctStepsAndFinalEndpoint",
+      "behavior": "既存進捗値を区間基点として保持し、整数丸めで重なる段階値を重複通知せず、破棄時に基点とportionの和である区間終端を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProgressUpdateHelper",
+        "method:KisProgressUpdateHelper::KisProgressUpdateHelper(KoUpdaterPtr progressUpdater,int portion,int numSteps)",
+        "method:KisProgressUpdateHelper::step()",
+        "method:KisProgressUpdateHelper::~KisProgressUpdateHelper()"
       ]
     }
   ]

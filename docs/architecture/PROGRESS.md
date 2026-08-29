@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 17:10 JST
+- 更新日時: 2026-08-29 17:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,7 +18,7 @@
 - 統合担当`psdutils-cos-parser`は`integrated`である。`libs/psdutils/cos/kis_cos_parser.{h,cpp}`、
   `libs/psdutils/tests/{KisCosParserContractTest.cpp,CMakeLists.txt}`とPSD Utils製品集約CMakeを所有し、
   COSオブジェクト解析の2 APIを対象とする。最も近い既存契約は`psd_cos_parser_test`、対象はmacOS、統合順は1である。
-- 実装担当`image-progress-helper`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`image-progress-helper`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_progress_update_helper.h`、
   Image試験CMake、新規限定試験を所有する。進捗区間の開始値、段階更新、完了値を担う4 APIを対象とし、
@@ -8107,9 +8107,26 @@
   成功した。公開API契約検査と`./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,106件、
   未対応24,883件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 進捗区間通知の全public API契約で完了した作業
+
+- Image公開ヘッダーの進捗補助を固定するためにImage製品1,081工程・2,186入力やWidget Utils製品237工程・507入力へ
+  接続する必要はなかった。`libs/image/tests/KisProgressUpdateHelperContractTest.cpp`が、具体的な進捗所有者である
+  `libs/widgetutils/{KoProgressProxy.cpp,KoUpdater.cpp,KoUpdaterPrivate_p.cpp}`だけを試験内で直接構築し、製品ライブラリーを
+  経由せず公開ヘッダーの現行挙動を観測する限定対象を追加した。製品コード、公開面、所有ファイル位置は変更していない。
+- `libs/image/kis_progress_update_helper.h`の未対応4 APIを、区間基点37、portion 5、8段階の固定入力へ対応付けた。
+  整数丸めが作る重複を除いた通知列38、39、40と、破棄時の区間終端42を固定した。null更新器での構築、段階更新、破棄が
+  安全な無動作になることも補助契約で確認した。初回コンパイルは必要なGlobalヘッダー探索路を診断し、その接続後のリンクは
+  `KoUpdater`と`KoDummyUpdaterHolder`の具体的な進捗記号だけを未解決として診断した。
+- 変更前の最近傍`KisImageTypesContractTest`と新規赤状態は4工程・8入力、進捗実装接続後の限定対象は7工程・14入力である。
+  直接の内部対象依存は自動MOCだけで、リンクはQt CoreとQt Testに限定される。動的ライブラリー監査でも`libkrita*`への依存が
+  ないことを確認した。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復に成功し、統合側のパッケージ境界検査は1,164対象で
+  成功した。公開API契約検査と`./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,110件、
+  未対応24,879件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-第8並列便の進捗区間通知契約を統合する。
+第8並列便の図形fill rule操作契約を統合する。
 
 ## R1-G5完了根拠
 
