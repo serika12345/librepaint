@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:17 JST
+- 更新日時: 2026-08-29 19:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -29,8 +29,8 @@
   `/Users/masato/Documents/librepaint-r2-g19b-node-graph-listener`であり、`libs/image/kis_node_graph_listener.{h,cpp}`、
   Image製品・試験CMake、新規限定試験を所有する。階層変更の連番更新、既定通知動作、仮想配送、破棄の20 APIを
   対象とする。既存`libs/image/tests/kis_node_graph_listener_test.cpp`は読取り専用の最近傍契約とする。
-- 実装担当`exposure-gamma-interface`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は4である。作業ツリーは
+- 実装担当`exposure-gamma-interface`は`verified`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は4、統合コミットは`78a71b4be7`である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-exposure-gamma-interface`であり、
   `libs/ui/canvas/kis_exposure_gamma_correction_interface.{h,cpp}`、UI製品・試験CMake、新規限定試験を所有する。
   抽象接続面の仮想配送と破棄、無処理具象の単一実体・既定値・設定後不変性の14 APIを対象とする。
@@ -8413,9 +8413,24 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,234件、未対応24,755件になった。Linux、全ネイティブ検証、
   製品全体構築は実行していない。
 
+## R2-G19b 露出・ガンマ補正接続面の全public API契約で完了した作業
+
+- `libs/ui/canvas/kis_exposure_gamma_correction_interface.h`の全14 APIを、新規
+  `libs/ui/tests/KisExposureGammaCorrectionInterfaceContractTest.cpp`の3試験へ対応付けた。抽象接続面5操作の
+  仮想配送と引数・返値、基底所有からの仮想破棄、無処理具象が返す同一の静的実体、変更不能・露出0・ガンマ1の
+  中立値、setter後にも値を保持する無処理動作を固定した。
+- 開始ファイル`libs/ui/canvas/kis_exposure_gamma_correction_interface.cpp`の構築所有を`kritaui_LIB_SRCS`から新規
+  `kritauiexposuregammacorrectionobjects`へ移し、製品`kritaapplicationui`が生成物を1回だけ再集約する。公開ヘッダー、
+  実装位置、製品ABIは維持した。変更前後の製品閉包は1,848工程・3,696入力で不変、限定試験は5工程・11入力、
+  生成オブジェクトは1工程・3入力で、Qt CoreとQt Testだけへ接続する。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復、最近傍の
+  `KisAnimationFrameCacheFwdContractTest`に成功した。静的実体は非所有ポインターからだけ観測し、製品への一重集約を
+  確認した。統合時のパッケージ境界検査は1,192対象で成功した。公開面は1,549ヘッダー、29,989 API、
+  対応済み5,248件、未対応24,741件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-`exposure-gamma-interface`の差分、限定構築、挙動、台帳を検証する。
+第13並列便の対象を未対応報告から選び、構築閉包とCMake所有が重ならない担当票を確定する。
 
 ## R1-G5完了根拠
 

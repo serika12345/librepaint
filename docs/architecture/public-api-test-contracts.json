@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24755
+    "expectedMissingApis": 24741
   },
   "contracts": [
     {
@@ -14902,6 +14902,47 @@
         "method:KisNodeGraphListener::notifySelectionChanged()",
         "method:KisNodeGraphListener::requestProjectionUpdate(KisNode * node,const QVector<QRect> & rects,KisProjectionUpdateFlags flags)",
         "method:KisNodeGraphListener::requestTimeSwitch(int time)"
+      ]
+    },
+    {
+      "target": "KisExposureGammaCorrectionInterfaceContractTest",
+      "source": "libs/ui/tests/KisExposureGammaCorrectionInterfaceContractTest.cpp",
+      "test": "KisExposureGammaCorrectionInterfaceContractTest::abstractInterfaceDispatchesValuesAndResults",
+      "behavior": "露出・ガンマ接続面の5メソッドを基底型から呼ぶと、各呼出しが派生実装へ正確に1回配送され、照会結果とsetter引数がそのまま伝わる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExposureGammaCorrectionInterface::canChangeExposureAndGamma() const",
+        "method:KisExposureGammaCorrectionInterface::currentExposure() const",
+        "method:KisExposureGammaCorrectionInterface::currentGamma() const",
+        "method:KisExposureGammaCorrectionInterface::setCurrentExposure(qreal value)",
+        "method:KisExposureGammaCorrectionInterface::setCurrentGamma(qreal value)",
+        "struct:KisExposureGammaCorrectionInterface"
+      ]
+    },
+    {
+      "target": "KisExposureGammaCorrectionInterfaceContractTest",
+      "source": "libs/ui/tests/KisExposureGammaCorrectionInterfaceContractTest.cpp",
+      "test": "KisExposureGammaCorrectionInterfaceContractTest::baseOwnershipDestroysDerivedExactlyOnce",
+      "behavior": "基底型が所有する派生露出・ガンマ接続面を破棄すると、仮想デストラクター経由で派生デストラクターが正確に1回実行される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisExposureGammaCorrectionInterface::~KisExposureGammaCorrectionInterface()"
+      ]
+    },
+    {
+      "target": "KisExposureGammaCorrectionInterfaceContractTest",
+      "source": "libs/ui/tests/KisExposureGammaCorrectionInterfaceContractTest.cpp",
+      "test": "KisExposureGammaCorrectionInterfaceContractTest::dumbInstanceKeepsNeutralValuesAndIgnoresSetters",
+      "behavior": "無処理実装は同一の静的実体を返し、変更不能、露出0、ガンマ1を維持し、setter呼出し後も中立値を変えない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDumbExposureGammaCorrectionInterface::canChangeExposureAndGamma() const",
+        "method:KisDumbExposureGammaCorrectionInterface::currentExposure() const",
+        "method:KisDumbExposureGammaCorrectionInterface::currentGamma() const",
+        "method:KisDumbExposureGammaCorrectionInterface::instance()",
+        "method:KisDumbExposureGammaCorrectionInterface::setCurrentExposure(qreal value)",
+        "method:KisDumbExposureGammaCorrectionInterface::setCurrentGamma(qreal value)",
+        "struct:KisDumbExposureGammaCorrectionInterface"
       ]
     }
   ]
