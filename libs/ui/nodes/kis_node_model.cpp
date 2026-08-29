@@ -212,6 +212,16 @@ void KisNodeModel::FacadeSetupAccess::connectCurrentTree(KisNodeModel *model)
     }
 }
 
+bool KisNodeModel::ItemFlagsAccess::hasDummiesFacade(const KisNodeModel *model)
+{
+    return model->m_d->dummiesFacade != nullptr;
+}
+
+bool KisNodeModel::ItemFlagsAccess::isDropEnabled(const KisNodeModel *model, quintptr itemId)
+{
+    return model->m_d->dropEnabled.contains(itemId);
+}
+
 bool KisNodeModel::DisplayStateAccess::hasDisplayModeAdapter(const KisNodeModel *model)
 {
     return model->m_d->nodeDisplayModeAdapter != nullptr;
@@ -685,23 +695,6 @@ QVariant KisNodeModel::data(const QModelIndex &index, int role) const
     }
 
     return QVariant();
-}
-
-Qt::ItemFlags KisNodeModel::flags(const QModelIndex &index) const
-{
-    if(!m_d->dummiesFacade || !index.isValid()) return Qt::ItemIsDropEnabled;
-
-    Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsEditable;
-    // currently dummy columns are neither selectable nor drag&drop enabled
-    if (index.column() == 0) {
-        flags |=  Qt::ItemIsDragEnabled | Qt::ItemIsSelectable;
-        if (m_d->dropEnabled.contains(index.internalId())) {
-            flags |= Qt::ItemIsDropEnabled;
-        }
-
-    }
-
-    return flags;
 }
 
 bool KisNodeModel::setData(const QModelIndex &index, const QVariant &value, int role)

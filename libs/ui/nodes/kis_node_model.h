@@ -184,6 +184,11 @@ protected Q_SLOTS:
     void slotLayerThumbnailUpdated(KisNodeSP node);
 
 protected:
+    struct KRITAUI_EXPORT ItemFlagsAccess {
+        static bool hasDummiesFacade(const KisNodeModel *model);
+        static bool isDropEnabled(const KisNodeModel *model, quintptr itemId);
+    };
+
     struct KRITAUI_EXPORT FacadeSetupAccess {
         static KisDummiesFacadeBase *currentFacade(const KisNodeModel *model);
         static KisShapeController *currentShapeController(const KisNodeModel *model);

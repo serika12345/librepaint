@@ -817,6 +817,20 @@ target_compile_definitions(KisNodeModelFacadeSetupContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisNodeModelItemFlagsContractTest.cpp
+    TEST_NAME KisNodeModelItemFlagsContractTest
+    LINK_LIBRARIES
+        kritauinodemodelitemflagsobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeModelItemFlagsContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_compile_definitions(KisNodeModelItemFlagsContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

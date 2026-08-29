@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25023
+    "expectedMissingApis": 25022
   },
   "contracts": [
     {
@@ -13526,6 +13526,46 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::setDummiesFacade(KisDummiesFacadeBase * dummiesFacade,KisImageWSP image,KisShapeController * shapeController,KisSelectionActionsAdapter * selectionActionsAdapter,KisNodeManager * nodeManager)"
+      ]
+    },
+    {
+      "target": "KisNodeModelItemFlagsContractTest",
+      "source": "libs/ui/tests/KisNodeModelItemFlagsContractTest.cpp",
+      "test": "KisNodeModelItemFlagsContractTest::missingTreeOrIndexExposesDropTarget",
+      "behavior": "ダミー木がない状態または無効索引は、外側から項目を受け入れるドロップ先だけを公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::flags(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelItemFlagsContractTest",
+      "source": "libs/ui/tests/KisNodeModelItemFlagsContractTest.cpp",
+      "test": "KisNodeModelItemFlagsContractTest::primaryColumnSupportsEditingSelectionAndDrag",
+      "behavior": "主列の有効項目は有効化、編集、選択、ドラッグを許可する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::flags(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelItemFlagsContractTest",
+      "source": "libs/ui/tests/KisNodeModelItemFlagsContractTest.cpp",
+      "test": "KisNodeModelItemFlagsContractTest::dropEnabledPrimaryItemAcceptsDrop",
+      "behavior": "ドロップ許可集合にある主列項目は項目上へのドロップも許可する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::flags(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelItemFlagsContractTest",
+      "source": "libs/ui/tests/KisNodeModelItemFlagsContractTest.cpp",
+      "test": "KisNodeModelItemFlagsContractTest::cloneColumnOnlySupportsEditing",
+      "behavior": "複製列は有効化と編集だけを許可し、同じ項目がドロップ許可済みでも選択、ドラッグ、ドロップを公開しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::flags(const QModelIndex & index) const"
       ]
     }
   ]
