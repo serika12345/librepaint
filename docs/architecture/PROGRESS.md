@@ -14,21 +14,21 @@
 - 第28並列便の共通基準コミットは`8682bee9af`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g28-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`change-value-command`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`change-value-command`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/undo/KisChangeValueCommand.h`、Painting Undo試験CMake、新規`KisChangeValueCommandContractTest.cpp`を所有する。
   実装はheader内にあり、既存`kritapaintingundokundo2coreobjects`を再利用して製品CMakeを変更しない。10工程・21入力以内で、直接値と
   間接値の構築時旧値、再実行・取消、変換可能な新値、間接先の再解決、factoryの型と親所有の全10 APIを固定する。
-- 実装担当`shape-background`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`shape-background`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g28-shape-background`を予定し、
   `libs/flake/KoShapeBackground.cpp`、Flake製品・試験CMake、新規`KoShapeBackgroundContractTest.cpp`を所有する。開始ファイル
   `KoShapeBackground.cpp`を製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。変更前実装の
   367工程・762入力に代えて5工程・10入力以内で、基底既定値、描画と比較の仮想配送、上書き状態、基底寿命の全7 APIを固定する。
-- 実装担当`default-bounds-base`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`default-bounds-base`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g28-default-bounds-base`を予定し、
   `libs/image/kis_default_bounds_base.cpp`、Image製品・試験CMake、新規`KisDefaultBoundsBaseContractTest.cpp`を所有する。開始ファイル
   `kis_default_bounds_base.cpp`を製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。従来近傍試験の
   6工程・13入力以内で、7純仮想関数、既定境界転送、共有所有、opaque cookie、基底寿命の全11 APIを製品実装へ直接固定する。
-- 実装担当`option-collection-widget`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`option-collection-widget`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g28-option-collection-widget`を予定し、
   `libs/widgetutils/KisOptionCollectionWidget.cpp`、WidgetUtils製品・試験CMake、新規`KisOptionCollectionWidgetContractTest.cpp`を所有する。
   開始ファイル`KisOptionCollectionWidget.cpp`を製品`kritawidgetutils`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。
@@ -9392,8 +9392,8 @@
 
 ## 次の操作
 
-第28並列便の計画基準をコミットし、3担当の専用Git作業ツリーと専用Ninja木を作る。構築実行許可を付与した後、統合担当は値変更
-undoの限定対象を開始し、各担当は製品共有ライブラリーを接続しない最小契約を赤から開始する。
+第28並列便の4担当が、記録した閉包上限を先に確認して限定契約を赤から開始する。各実装担当は許可パスだけを変更し、限定対象の
+単発・20回反復、軽量隣接試験、製品への1回再集約、製品共有ライブラリー非接続を確認して引き渡す。
 
 ## R1-G5完了根拠
 
