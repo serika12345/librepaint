@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22902
+    "expectedMissingApis": 22871
   },
   "contracts": [
     {
@@ -20801,6 +20801,164 @@
       "apis": [
         "method:KisStretchedIconButton::associatedAction() const",
         "method:KisStretchedIconButton::setAssociatedAction(QAction * action)"
+      ]
+    },
+    {
+      "target": "KoProgressBarContractTest",
+      "source": "libs/widgetutils/tests/KoProgressBarContractTest.cpp",
+      "test": "KoProgressBarContractTest::parentOwnsTheProgressBar",
+      "behavior": "進捗表示部品は既定範囲0から100で指定親に所有され、親の破棄に従って自身を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoProgressBar",
+        "method:KoProgressBar::KoProgressBar(QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KoProgressBarContractTest",
+      "source": "libs/widgetutils/tests/KoProgressBarContractTest.cpp",
+      "test": "KoProgressBarContractTest::rangeFormatAndActiveValuesUseTheWidgetState",
+      "behavior": "進捗proxyの範囲、最大値、書式、範囲内の値はQProgressBar状態へ反映され、範囲内または不定範囲の更新中は表示される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProgressBar::maximum() const",
+        "method:KoProgressBar::setFormat(const QString & format)",
+        "method:KoProgressBar::setRange(int minimum,int maximum)",
+        "method:KoProgressBar::setValue(int value)"
+      ]
+    },
+    {
+      "target": "KoProgressBarContractTest",
+      "source": "libs/widgetutils/tests/KoProgressBarContractTest.cpp",
+      "test": "KoProgressBarContractTest::terminalValuesEmitDoneAndHideTheWidget",
+      "behavior": "進捗表示部品は最大値到達で完了通知して非表示になり、下限未満の値でも同じ完了通知と非表示を行う現行挙動を保つ。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoProgressBar::done()"
+      ]
+    },
+    {
+      "target": "KoProgressBarContractTest",
+      "source": "libs/widgetutils/tests/KoProgressBarContractTest.cpp",
+      "test": "KoProgressBarContractTest::progressProxyProvidesVirtualLifetime",
+      "behavior": "進捗proxy基底から進捗表示部品を破棄すると、具象widgetを含む寿命を安全に終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProgressBar::~KoProgressBar()"
+      ]
+    },
+    {
+      "target": "KoResourceUpdateMediatorContractTest",
+      "source": "libs/flake/tests/KoResourceUpdateMediatorContractTest.cpp",
+      "test": "KoResourceUpdateMediatorContractTest::storesKeyAndDispatchesResourceConnections",
+      "behavior": "資源更新仲介は構築キーを保持し、初期QObject親を持たず、基底入口へ渡されたQVariantを派生connectResourceへ入力順どおり仮想配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoResourceUpdateMediator",
+        "method:KoResourceUpdateMediator::KoResourceUpdateMediator(int key)",
+        "method:KoResourceUpdateMediator::connectResource(QVariant sourceResource)",
+        "method:KoResourceUpdateMediator::key() const"
+      ]
+    },
+    {
+      "target": "KoResourceUpdateMediatorContractTest",
+      "source": "libs/flake/tests/KoResourceUpdateMediatorContractTest.cpp",
+      "test": "KoResourceUpdateMediatorContractTest::deliversChangeSignalArgumentsInOrder",
+      "behavior": "資源変更signalは発火された各key引数を欠落や並べ替えなく接続先へ通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoResourceUpdateMediator::sigResourceChanged(int key)"
+      ]
+    },
+    {
+      "target": "KoResourceUpdateMediatorContractTest",
+      "source": "libs/flake/tests/KoResourceUpdateMediatorContractTest.cpp",
+      "test": "KoResourceUpdateMediatorContractTest::sharedAliasKeepsVirtualLifetime",
+      "behavior": "公開共有ポインター別名は途中の参照解放後も仲介個体を保持し、最後の解放で派生個体を一度だけ仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoResourceUpdateMediatorSP",
+        "method:KoResourceUpdateMediator::~KoResourceUpdateMediator()"
+      ]
+    },
+    {
+      "target": "KisSequentialIteratorProgressContractTest",
+      "source": "libs/image/tests/KisSequentialIteratorProgressContractTest.cpp",
+      "test": "KisSequentialIteratorProgressContractTest::borrowedProxyReceivesProgressOperationsInOrder",
+      "behavior": "進捗policyは明示指定されたproxyを借用し、範囲と値を指定順に配送し、完了時にはmaximumを正確に1回取得してその値を配送する。policyの破棄は借用proxyの寿命を終了しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:ProxyBasedProgressPolicy::ProxyBasedProgressPolicy(KoProgressProxy * proxy)",
+        "method:ProxyBasedProgressPolicy::setFinished()",
+        "method:ProxyBasedProgressPolicy::setRange(int minimum,int maximum)",
+        "method:ProxyBasedProgressPolicy::setValue(int value)",
+        "struct:ProxyBasedProgressPolicy"
+      ]
+    },
+    {
+      "target": "KisSequentialIteratorProgressContractTest",
+      "source": "libs/image/tests/KisSequentialIteratorProgressContractTest.cpp",
+      "test": "KisSequentialIteratorProgressContractTest::nullProxyUsesTheSafeFallback",
+      "behavior": "null proxyで構築した進捗policyは共有された無状態の代替proxyを利用し、範囲、値、完了の各操作を安全に受け付け、代替実体の寿命と既定maximumを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:ProxyBasedProgressPolicy::ProxyBasedProgressPolicy(KoProgressProxy * proxy)"
+      ]
+    },
+    {
+      "target": "KisSequentialIteratorProgressContractTest",
+      "source": "libs/image/tests/KisSequentialIteratorProgressContractTest.cpp",
+      "test": "KisSequentialIteratorProgressContractTest::aliasesSelectTheExpectedPoliciesAndAcceptAProxy",
+      "behavior": "読取専用別名はReadOnlyIteratorPolicyを、書込可能別名はWritableIteratorPolicyを選択し、両方がDevicePolicyとProxyBasedProgressPolicyを組み合わせ、source、矩形、proxyの3引数で構築可能である。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSequentialConstIteratorProgress",
+        "alias:KisSequentialIteratorProgress"
+      ]
+    },
+    {
+      "target": "KisWarningBlockContractTest",
+      "source": "libs/widgets/tests/KisWarningBlockContractTest.cpp",
+      "test": "KisWarningBlockContractTest::copyOperationsRemainDisabled",
+      "behavior": "警告表示部品は複製構築と複製代入を型特性として禁止し、Qt widgetの単一所有状態を共有しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWarningBlock::KisWarningBlock(const KisWarningBlock &)",
+        "method:KisWarningBlock::operator =(const KisWarningBlock &)"
+      ]
+    },
+    {
+      "target": "KisWarningBlockContractTest",
+      "source": "libs/widgets/tests/KisWarningBlockContractTest.cpp",
+      "test": "KisWarningBlockContractTest::forwardsTextLabelLinksExactly",
+      "behavior": "文字列labelのlinkActivatedは同じlinkを警告表示部品のsignalへ正確に1回転送し、画像labelの同名通知は転送しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWarningBlock::linkActivated(const QString & link)"
+      ]
+    },
+    {
+      "target": "KisWarningBlockContractTest",
+      "source": "libs/widgets/tests/KisWarningBlockContractTest.cpp",
+      "test": "KisWarningBlockContractTest::ownsLabelsAndFollowsParentLifetime",
+      "behavior": "警告表示部品は指定親に所有され、画像用とrich text用の2 labelを直接所有し、親の破棄で自身と両labelを破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWarningBlock",
+        "method:KisWarningBlock::~KisWarningBlock()"
+      ]
+    },
+    {
+      "target": "KisWarningBlockContractTest",
+      "source": "libs/widgets/tests/KisWarningBlockContractTest.cpp",
+      "test": "KisWarningBlockContractTest::textAndPixmapRoundTripThroughQtProperties",
+      "behavior": "文字列と画像のsetter/getterは初期空値と設定値を保持し、同じ値をQtのtext/pixmap property経由でも双方向に読み書きする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWarningBlock::pixmap() const",
+        "method:KisWarningBlock::setPixmap(const QPixmap &)",
+        "method:KisWarningBlock::setText(const QString &)",
+        "method:KisWarningBlock::text() const"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 06:51 JST
+- 更新日時: 2026-08-30 07:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,32 +11,9 @@
 
 ### 現在の並列担当票
 
-- 第32並列便の共通基準コミットは`fb24ffa804`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g32-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`progress-bar`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで`libs/widgetutils/KoProgressBar.cpp`、
-  WidgetUtils製品・試験CMake、新規`KoProgressBarContractTest.cpp`を所有する。開始ファイルを製品`kritawidgetutils`の直接ソースから
-  AUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の248工程・529入力に代えて、既存進捗基底生成物を直接再利用する
-  13工程・27入力以内で、親所有、range・書式・最大値、進捗中の表示、完了通知、下限未満値の現行通知の全8 APIを固定する。
-- 実装担当`resource-update-mediator`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g32-resource-update-mediator`で
-  `libs/flake/KoResourceUpdateMediator.cpp`、Flake製品・試験CMake、新規`KoResourceUpdateMediatorContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の566工程・
-  1,164入力と従来`TestResourceManager`の570工程・1,171入力に代えて8工程・16入力以内で、key、資源接続の仮想配送、変更通知、共有所有と
-  仮想寿命の全7 APIを固定する。
-- 実装担当`sequential-iterator-progress`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g32-sequential-iterator-progress`でImage試験CMakeと新規
-  `KisSequentialIteratorProgressContractTest.cpp`だけを所有する。header内実装と2型別名を既存の無状態進捗・進捗基底生成物へ直接接続し、
-  従来`kis_iterators_ng_test`の1,113工程・2,249入力に代えて12工程・24入力以内で、明示proxyとnull fallback、range・value・finish配送、
-  read-only・writable policy構成と3引数構築能力の全7 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`warning-block`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g32-warning-block`で`libs/widgets/kis_warning_block.cpp`、Widgets製品・試験CMake、新規
-  `KisWarningBlockContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、
-  製品へ1回だけ再集約する。製品の734工程・1,497入力に代えて8工程・16入力以内で、親・label所有、copy禁止、text・pixmap値、
-  Qt property、link通知の全9未対応APIを固定する。
-- 第32並列便の完了時は合計31 APIを追加し、公開面の対応済み7,118件、未対応22,871件を見込む。各担当は限定対象の単発・20回反復、
-  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
-  挙動を発見した時点で`blocked`として引き渡す。
+- 第32並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
+- 次は第33並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
+  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
 
 ## 再開環境
 
@@ -9613,10 +9590,62 @@
   統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を再実行した。公開面は
   1,549ヘッダー、29,989 API、対応済み7,087件、未対応22,902件になった。
 
+## R2-G19b 進捗表示完了境界の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KoProgressBar.h`の全8 APIを、新規`libs/widgetutils/tests/KoProgressBarContractTest.cpp`の4試験へ対応付けた。親所有、
+  既定範囲、範囲・最大値・書式・値の状態反映、範囲内と不定範囲での表示、完了通知、進捗proxy基底からの仮想寿命を固定した。下限未満の
+  値でも完了通知して非表示になる現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/widgetutils/KoProgressBar.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の`kritawidgetutils_LIB_SRCS`直接収容から
+  新規AUTOMOC/PIC対応`kritawidgetutilsprogressbarobjects`へ移し、製品`kritawidgetutils`は同生成物を1回だけ再集約する。限定試験は
+  同生成物、既存`kritawidgetutilsprogressupdaterobjects`、Qt Widgets・Testへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は12工程・24入力で、製品の248工程・529入力から縮小した。対象CTest
+  単発と20回反復、最近傍`KoFakeProgressProxyContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査に成功した。
+  親非表示時の画面上の可視性、事象再入、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 資源更新仲介の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoResourceUpdateMediator.h`の全7 APIを、新規`libs/flake/tests/KoResourceUpdateMediatorContractTest.cpp`の3試験へ
+  対応付けた。構築key、QVariant資源接続の仮想配送、変更通知の引数と順序、共有ポインター別名による所有、基底からの仮想寿命を固定した。
+- 開始ファイル`libs/flake/KoResourceUpdateMediator.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC/PIC対応`kritaflakeresourceupdatemediatorobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。限定試験は同生成物と
+  Qt Core・Testだけへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。主作業木の限定対象は7工程・14入力で、製品と従来`TestResourceManager`の広い
+  閉包から縮小した。対象CTest単発と担当作業木の20回反復、最近傍`KoAbstractCanvasResourceInterfaceContractTest`、公開記号、一重再集約、
+  製品共有ライブラリー非接続、整形検査に成功した。通知引数と保存keyの一致、QObject親と共有所有の併用、thread間配送、実資源管理器の
+  再帰通知、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 逐次反復進捗policyの全public API契約で完了した作業
+
+- `libs/image/KisSequentialIteratorProgress.h`の全7 APIを、新規
+  `libs/image/tests/KisSequentialIteratorProgressContractTest.cpp`の3試験へ対応付けた。明示proxyの借用寿命、範囲・値の順序配送、完了時の
+  最大値取得と配送、null時の無状態proxy退避、読取専用・書込可能のpolicy構成、proxyを含む3引数構築能力を固定した。
+- header内実装と製品CMakeは維持し、開始ファイル`libs/image/tests/CMakeLists.txt`から新規限定試験へ、既存
+  `kritawidgetutilsfakeprogressproxyobjects`、`kritawidgetutilsprogressupdaterobjects`、Qt Core・Testを直接接続した。公開ヘッダーが参照する
+  Pigment宣言にはsource・binary探索経路だけを与え、製品共有ライブラリーは追加していない。
+- 対象未登録の初回限定構築は未知の対象、最初のコンパイルはPigment宣言の探索経路不足として失敗した。限定対象は10工程・20入力で、従来
+  `kis_iterators_ng_test`の1,113工程・2,249入力から縮小した。対象CTest単発と20回反復、最近傍`KoFakeProgressProxyContractTest`、記号、
+  製品共有ライブラリー非接続、整形検査に成功した。実画像反復、借用proxyの先行破棄、null退避先の配送回数、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 警告表示部品の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/kis_warning_block.h`の全9未対応APIを、新規`libs/widgets/tests/KisWarningBlockContractTest.cpp`の4試験へ対応付けた。
+  親と2 labelの所有、複製禁止、文字列・画像の初期値と設定値、Qt property経由の双方向値、文字列labelだけからのlink通知を固定した。
+- 開始ファイル`libs/widgets/kis_warning_block.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から新規
+  AUTOMOC/PIC対応`kritawidgetswarningblockobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。限定試験は同生成物、
+  Qt Widgets・Testだけへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で、製品の734工程・1,497入力から縮小した。対象CTest
+  単発と20回反復、最近傍`KoTitledTabWidgetContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査に成功した。
+  外部URLの起動、OS固有描画像素、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第32並列便は進捗表示8 API、資源更新仲介7 API、逐次反復進捗7 API、警告表示部品9 APIの合計31 APIを固定した。各担当の引渡しを
+  統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を再実行した。公開面は
+  1,549ヘッダー、29,989 API、対応済み7,118件、未対応22,871件になった。
+
 ## 次の操作
 
-第32並列便の4担当は、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認する。許可パス内だけで
-最小契約を追加し、単発・20回反復・軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡す。
+公開API未対応列を再生成し、第33並列便の候補について公開API集合、既存契約、製品所有、直接依存を監査する。各候補の製品と最近傍試験の
+構築閉包を測定し、限定対象の停止上限と必要な所有分離を確定してから担当票を記録する。
 
 ## R1-G5完了根拠
 
