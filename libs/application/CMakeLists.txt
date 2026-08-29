@@ -3,10 +3,42 @@ if(APPLE AND NOT IOS)
     find_library(APPKIT_LIBRARY AppKit)
 endif()
 
+add_library(kritaapplicationsnapconfigobjects OBJECT
+    kis_snap_config.cpp
+)
+target_compile_definitions(kritaapplicationsnapconfigobjects PRIVATE
+    kritaapplication_EXPORTS
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritaapplicationsnapconfigobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+)
+target_link_libraries(kritaapplicationsnapconfigobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritaapplicationsnapconfigobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaapplication_LIB_SRCS
     kis_config.cc
-    kis_snap_config.cpp
     platform-adapters/KisAndroidFileProxy.cpp
+    $<TARGET_OBJECTS:kritaapplicationsnapconfigobjects>
 )
 
 kis_add_library(kritaapplication SHARED ${kritaapplication_LIB_SRCS})

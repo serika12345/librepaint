@@ -5,6 +5,19 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisSnapConfigContractTest.cpp
+    TEST_NAME KisSnapConfigContractTest
+    LINK_LIBRARIES
+        kritaapplicationsnapconfigobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisSnapConfigContractTest PRIVATE
+    kritaapplication_EXPORTS
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisConfigEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
