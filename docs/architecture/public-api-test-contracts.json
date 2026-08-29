@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24409
+    "expectedMissingApis": 24386
   },
   "contracts": [
     {
@@ -16040,6 +16040,74 @@
       "classification": "maintained",
       "apis": [
         "method:KisQImagePyramid::KisQImagePyramid(const QImage & baseImage,bool useSmoothingForEnlarging=true)"
+      ]
+    },
+    {
+      "target": "KisTileDataPoolContractTest",
+      "source": "libs/canvas/tests/KisTileDataPoolContractTest.cpp",
+      "test": "KisTileDataPoolContractTest::poolAllocatesSizedChunksAndRequestsPurgeAtHighWatermark",
+      "behavior": "タイル寸法と画素寸法から一定長の領域を確保して返却でき、返却済み領域がしきい値を超えると画素寸法と返却数を伴う解放要求を通知し、指定集合を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTileDataPool",
+        "method:KisTileDataPool::KisTileDataPool(int tileWidth,int tileHeight)",
+        "method:KisTileDataPool::allocate(int pixelSize)",
+        "method:KisTileDataPool::chunkSize(int pixelSize) const",
+        "method:KisTileDataPool::purgeRequested(int pixelSize,int releaseCount)",
+        "method:KisTileDataPool::release(quint8 * data,int pixelSize)",
+        "method:KisTileDataPool::tryPurge(int pixelSize,int releaseCount)",
+        "method:KisTileDataPool::~KisTileDataPool()"
+      ]
+    },
+    {
+      "target": "KisTileDataPoolContractTest",
+      "source": "libs/canvas/tests/KisTileDataPoolContractTest.cpp",
+      "test": "KisTileDataPoolContractTest::registrySharesPoolsByTileDimensions",
+      "behavior": "寸法別台帳は同じ幅と高さへ同じ共有プールを返し、幅と高さを入れ替えた寸法を別プールとして扱い、最後の所有者消滅後は新しいプールを生成する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisTileDataPoolSP",
+        "class:KisTileDataPoolRegistry",
+        "method:KisTileDataPoolRegistry::poolForTileSize(int tileWidth,int tileHeight)"
+      ]
+    },
+    {
+      "target": "KisTileDataPoolContractTest",
+      "source": "libs/canvas/tests/KisTileDataPoolContractTest.cpp",
+      "test": "KisTileDataPoolContractTest::bufferConstructionAndAllocationExposeOwnedStorage",
+      "behavior": "所有バッファーは共有プールだけを保持する遅延確保と画素寸法を伴う即時確保を提供し、確保後の領域、画素寸法、総バイト数、プールを一貫して返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTileDataBuffer",
+        "method:KisTileDataBuffer::KisTileDataBuffer(KisTileDataPoolSP pool)",
+        "method:KisTileDataBuffer::KisTileDataBuffer(int pixelSize,KisTileDataPoolSP pool)",
+        "method:KisTileDataBuffer::allocate(int pixelSize)",
+        "method:KisTileDataBuffer::data() const",
+        "method:KisTileDataBuffer::pixelSize() const",
+        "method:KisTileDataBuffer::pool() const",
+        "method:KisTileDataBuffer::size() const"
+      ]
+    },
+    {
+      "target": "KisTileDataPoolContractTest",
+      "source": "libs/canvas/tests/KisTileDataPoolContractTest.cpp",
+      "test": "KisTileDataPoolContractTest::moveAndSwapTransferCompleteBufferState",
+      "behavior": "移動構築は領域とプールを移して移動元を空にし、交換は領域・画素寸法・プールを一組で入れ替え、移動代入は代入先の旧状態を移動元へ渡して自身を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileDataBuffer::KisTileDataBuffer(KisTileDataBuffer && other)",
+        "method:KisTileDataBuffer::operator =(KisTileDataBuffer && other)",
+        "method:KisTileDataBuffer::swap(KisTileDataBuffer & other)"
+      ]
+    },
+    {
+      "target": "KisTileDataPoolContractTest",
+      "source": "libs/canvas/tests/KisTileDataPoolContractTest.cpp",
+      "test": "KisTileDataPoolContractTest::bufferDestructionReleasesStorageAndPoolOwnership",
+      "behavior": "所有バッファーは外部の共有所有が消滅してもプールを生存させ、破棄時に領域を返却して最後のプール所有権を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileDataBuffer::~KisTileDataBuffer()"
       ]
     }
   ]

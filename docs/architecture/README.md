@@ -166,6 +166,13 @@ UI設定反映契約が同じ結果と通知回数を検査する。旧値型フ
 `libs/ui/KisWidgetWithIdleTask.h`は表示部品として`libs/ui/canvas`へ移し、別ターゲットの
 ドッカーが利用する公開ヘッダーを構築契約で固定した。
 
+タイル転送領域の確保・返却と寸法別プールは
+`libs/canvas/tiles/kis_tile_data_pool.{h,cpp}`が所有し、所有バッファーは
+`libs/canvas/tiles/kis_tile_data_buffer.h`が領域、画素寸法、共有プールを一組で管理する。
+実装は`kritacanvastiledatapoolobjects`として限定構築でき、`kritacanvas`が同じ生成物を
+製品へ集約する。`KisTileDataPoolContractTest`は寸法、解放要求、寸法別共有、移動、交換、
+破棄を製品共有ライブラリーへ接続せずに検査する。
+
 R1-G6eの最初の独立単位は、`libs/ui/kis_document_undo_store.*`を起点として文書全体への
 参照を取り消し履歴の直接借用へ狭めた。R1-G6e-P1では、その接続を
 `libs/document/undo/kis_document_undo_store.*`から

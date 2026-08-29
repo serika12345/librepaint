@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:32 JST
+- 更新日時: 2026-08-29 21:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,21 +15,21 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`tile-data-pool-buffer`は`implementing`、統合順は1である。主作業ツリーで
+- 統合担当`tile-data-pool-buffer`は`integrated`、統合順は1である。主作業ツリーで
   `libs/canvas/tiles/kis_tile_data_pool.{h,cpp}`、`libs/canvas/tiles/kis_tile_data_buffer.h`、Canvas製品・試験CMake、
   新規限定試験を所有する。
   1,095工程・2,211入力の翻訳単位を専用生成物へ分け、寸法別の割当・返却・解放要求、寸法別共有台帳、所有バッファーの
   確保・移動・交換・破棄の全23 APIを対象とする。
-- 実装担当`levels-curve`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`levels-curve`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-levels-curve`であり、
   `libs/image/KisLevelsCurve.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の翻訳単位を
   専用生成物へ分け、既定・設定値、評価、変更・初期化、値意味論、転送表、文字列表現の全33 APIを対象とする。
-- 実装担当`input-device`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`input-device`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-input-device`であり、
   `libs/flake/KoInputDevice.{h,cpp}`、既存`libs/flake/tests/TestInputDevice.{h,cpp}`、Flake製品・試験CMakeを所有する。
   352工程・732入力の翻訳単位を専用生成物へ分け、全分類値、QTabletEvent変換、構築・比較・ハッシュ、既定生成、
   診断表示、寿命の全37 APIを対象とする。
-- 実装担当`channel-info`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`channel-info`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-channel-info`であり、
   `libs/pigment/KoChannelInfo.h`、Pigment試験CMake、新規限定試験を所有する。製品実装を追加せず、数値型と格納寸法・範囲、
   チャンネル属性、画素順と表示順、バイト位置比較、既定部分状態の全35 APIを対象とする。
@@ -8671,9 +8671,24 @@
   Linux、全ネイティブ検証、製品全体リンクは実行していない。空の初期画像、倍率の空ポインター、Qt版に依存する
   非単位変換の厳密な補間画素値は公開契約に含めていない。
 
+## R2-G19b タイル転送プールと所有バッファーの全public API契約で完了した作業
+
+- `libs/canvas/tiles/kis_tile_data_pool.h`と`libs/canvas/tiles/kis_tile_data_buffer.h`の全23 APIを、新規
+  `libs/canvas/tests/KisTileDataPoolContractTest.cpp`の5試験へ対応付けた。タイル寸法と画素寸法による領域確保、返却数に基づく
+  解放要求、寸法別共有台帳、遅延・即時確保、領域とプールの移動・交換・破棄を固定した。
+- 開始ファイル`libs/canvas/tiles/kis_tile_data_pool.{h,cpp}`の構築所有を`kritacanvas_LIB_SRCS`から新規
+  `kritacanvastiledatapoolobjects`へ移し、製品`kritacanvas`が生成物を1回だけ再集約する。開始ファイル
+  `libs/canvas/tiles/kis_tile_data_buffer.h`はヘッダー内実装のままCanvas製品所有を維持する。公開ヘッダー、製品ABI、割当・返却処理は
+  維持した。限定試験は製品共有ライブラリーへ接続せず、専用生成物、既存の信号圧縮生成物、Qt Core、Test、Boostだけを使用する。
+- 実装未接続の初回限定リンクはプールの確保・返却・解放、寸法別台帳、メタオブジェクトの未定義記号で失敗した。macOSの
+  専用生成物は3工程・7入力、限定試験は11工程・22入力である。製品`kritacanvas`は1,110工程・2,240入力から
+  1,112工程・2,244入力となり、信号のメタ情報を専用所有する自動生成2工程だけが増えた。対象CTestの単発実行と20回反復、
+  最近傍の`KisInputActionGroupContractTest`、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,603件、
+  未対応24,386件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第17並列便の4担当を専用作業ツリーで開始し、タイル転送バッファー契約から実装する。
+第17並列便の`levels-curve`引渡しを監査して統合し、限定構築、対象試験、反復、隣接試験、公開API契約検査を再実行する。
 
 ## R1-G5完了根拠
 
