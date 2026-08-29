@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 07:29 JST
+- 更新日時: 2026-08-30 07:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,9 +11,35 @@
 
 ### 現在の並列担当票
 
-- 第32並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
-- 次は第33並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
-  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
+- 第33並列便の共通基準コミットは`2d695ced04`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g33-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+- 統合担当`item-tooltip`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/widgetutils/tests/CMakeLists.txt`と新規`KoItemToolTipContractTest.cpp`だけを所有する。既存AUTOMOC/PIC対応
+  `kritaitemtooltipobjects`を再利用し、製品の250工程・533入力に代えて8工程・16入力以内で、tooltip窓構成、文書生成と所有、表示、
+  同一内容の再利用、寸法、仮想寿命の全5 APIを固定する。製品実装と製品CMakeは変更しない。
+- 実装担当`shape-rename-command`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
+  2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g33-shape-rename-command`で
+  `libs/flake/commands/KoShapeRenameCommand.cpp`、Flake製品・試験CMake、新規`KoShapeRenameCommandContractTest.cpp`を所有する。開始ファイルを
+  製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存命令契約と同じ試験時限定の
+  非公開shapeアクセスを使い、製品の569工程・1,170入力に代えて6工程・14入力以内で、元名保存、redo・undo・再redo、親命令、借用寿命の
+  全5 APIを固定する。
+- 実装担当`safe-blocking-queue`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3で
+  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g33-safe-blocking-queue`で`libs/image/KisSafeBlockingQueueConnectionProxy.cpp`、
+  `libs/image/KisBusyWaitBroker.cpp`、Image製品・試験CMake、新規`KisSafeBlockingQueueConnectionProxyContractTest.cpp`を所有する。開始2ファイルを
+  製品`kritaimage`の直接ソースから2つのAUTOMOC不要/PIC対応専用生成物へ移し、製品へ各1回だけ再集約する。既存signal compressor生成物を
+  再利用し、製品の1,115工程・2,254入力に代えて12工程・24入力以内で、型付き・voidの同期配送、GUI thread帰属、worker遮断、GUI待機中の
+  直接配送、型構成の全6 APIを固定する。
+- 実装担当`vbox`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g33-vbox`で`libs/widgets/KoVBox.cpp`、Widgets製品・試験CMake、新規
+  `KoVBoxContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ
+  再集約する。製品の740工程・1,509入力に代えて8工程・16入力以内で、親・子所有、縦配置、margin・spacing・stretch、推奨・最小寸法の
+  全8 APIを固定する。
+- 第33並列便の完了時は合計24 APIを追加し、公開面の対応済み7,142件、未対応22,847件を見込む。各担当は限定対象の単発・20回反復、
+  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
+- `KisPaletteComboBox`は実palette配送の観測に未分離のview・model・Pigment実装を要するため、第33並列便から除外した。先にそれらの構築
+  所有を責務別に分離できる段階で再評価する。
+- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
+  挙動を発見した時点で`blocked`として引き渡す。
 
 ## 再開環境
 
@@ -9644,8 +9670,8 @@
 
 ## 次の操作
 
-公開API未対応列を再生成し、第33並列便の候補について公開API集合、既存契約、製品所有、直接依存を監査する。各候補の製品と最近傍試験の
-構築閉包を測定し、限定対象の停止上限と必要な所有分離を確定してから担当票を記録する。
+第33並列便の専用作業木を共通基準コミットから作り、各限定対象が未知で失敗する初回診断を記録する。統合担当が構築実行を許可した後、
+各担当は記録済みの停止上限と直接依存を再確認し、許可パス内だけで最小契約を追加する。
 
 ## R1-G5完了根拠
 
