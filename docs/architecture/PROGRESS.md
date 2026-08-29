@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 07:57 JST
+- 更新日時: 2026-08-30 08:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,9 +11,36 @@
 
 ### 現在の並列担当票
 
-- 第33並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
-- 次は第34並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
-  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
+- 第34並列便の共通基準コミットは`8f30845164`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g34-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+- 統合担当`repaint-debugger`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/widgetutils/KisRepaintDebugger.cpp`、WidgetUtils製品・試験CMake、新規`KisRepaintDebuggerContractTest.cpp`を所有する。開始ファイルを
+  製品`kritawidgetutils`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。未使用I18n・Widgets依存を除き、
+  製品の250工程・533入力に代えて6工程・14入力以内で、有効化、矩形・矩形列・paint event・全面塗装、色周期、値寿命の全8 APIを固定する。
+- 実装担当`shape-keep-aspect-ratio`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2で
+  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-shape-keep-aspect-ratio`で
+  `libs/flake/commands/KoShapeKeepAspectRatioCommand.cpp`、Flake製品・試験CMake、新規`KoShapeKeepAspectRatioCommandContractTest.cpp`を所有する。
+  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。試験時限定の非公開shape
+  accessを使い、製品の569工程・1,170入力に代えて6工程・14入力以内で、複数shapeの個別元値、redo・undo・再redo、親命令、借用寿命の
+  全5 APIを固定する。
+- 実装担当`per-stroke-random-source`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
+  3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-per-stroke-random-source`で
+  `libs/image/brushengine/KisPerStrokeRandomSource.cpp`、Image製品・試験CMake、新規`KisPerStrokeRandomSourceContractTest.cpp`を所有する。
+  開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存Global共有生成物を
+  再利用し、製品の1,117工程・2,258入力に代えて7工程・15入力以内で、keyごとの決定値、整数・正規化範囲、複製状態、強・弱参照寿命の
+  全8 APIを固定する。
+- 実装担当`dock-title-bar-button`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4で
+  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-dock-title-bar-button`で
+  `libs/widgets/KoDockWidgetTitleBarButton.cpp`、Widgets製品・試験CMake、新規`KoDockWidgetTitleBarButtonContractTest.cpp`を所有する。
+  開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約し、未使用debug依存を除く。
+  製品の742工程・1,513入力に代えて8工程・16入力以内で、親所有、focus方針、仮想寿命、iconなし寸法、固定style metricによる寸法の全5 APIを
+  固定する。
+- 第34並列便の完了時は合計26 APIを追加し、公開面の対応済み7,168件、未対応22,821件を見込む。各担当は限定対象の単発・20回反復、
+  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
+- `KisActionsSnapshot`は実action registryとcollectionの未分離実装、interstroke transaction factoryは実paint deviceを要するため、第34並列便
+  から除外した。実責務の所有を小生成物へ分離できる段階で再評価する。
+- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
+  挙動を発見した時点で`blocked`として引き渡す。
 
 ## 再開環境
 
@@ -9697,8 +9724,8 @@
 
 ## 次の操作
 
-公開API未対応列を再生成し、第34並列便の候補について公開API集合、既存契約、製品所有、直接依存を監査する。各候補の製品と最近傍試験の
-構築閉包を測定し、限定対象の停止上限と必要な所有分離を確定してから担当票を記録する。
+第34並列便の専用作業木を共通基準コミットから作り、各限定対象が未知で失敗する初回診断を記録する。統合担当が構築実行を許可した後、
+各担当は記録済みの停止上限と直接依存を再確認し、許可パス内だけで最小契約を追加する。
 
 ## R1-G5完了根拠
 
