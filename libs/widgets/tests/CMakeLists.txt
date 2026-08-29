@@ -43,6 +43,15 @@ kis_add_test(
 target_compile_definitions(KisAngleGaugeContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KisColorLabelButtonContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetscolorlabelbuttonobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisColorLabelButtonContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KisLevelsSliderContractTest.cpp
     LINK_LIBRARIES
         kritaglobalpaintingtweaksobjects
