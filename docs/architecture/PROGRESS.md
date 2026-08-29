@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:35 JST
+- 更新日時: 2026-08-29 18:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,28 +11,27 @@
 
 ### 現在の並列担当票
 
-- 第10並列便の共通基準コミットは`269e78c2af`である。統合担当は`develop`の
+- 第11並列便の共通基準コミットは`9351f9f029`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`image-name-sequence`は`verified`、実装コミットは`e892be7055`である。`libs/image/kis_name_server.{h,cpp}`、Image試験CMake、
-  新規限定試験を所有し、初期番号、採番、現在値、巻戻しの5 APIを対象とする。最も近い限定契約と製品対象の
-  変更なし構築閉包を測定してから所有単位を決定し、macOSで検証する。統合順は1である。
-- 実装担当`surface-management-info`は`integrated`、統合コミットは`83a456f285`、構築実行許可は`granted`、
-  Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。作業ツリーは
+- 統合担当`paintop-lod-limitations`は`implementing`である。
+  `libs/image/brushengine/kis_paintop_lod_limitations.h`、Image試験CMake、新規限定試験を所有する。制限・阻害要因の
+  集合、等値、和集合、`KoID`ハッシュの6 APIを対象とし、既存`kritaglobalidobjects`を再利用する。統合順は1である。
+- 実装担当`image-lzf-compression`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、
-  `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorManagementInfo.{h,cpp}`、同パッケージの
-  製品・試験CMake、新規限定試験を所有する。親所有、基底破棄、OS管理判断、非同期診断の5 APIを対象とする。
-- 実装担当`popup-line-edit-lifecycle`は`integrated`、統合コミットは`23c6fc2d9a`、安定化コミットは
-  `4da2631fe8`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は3である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、
-  `libs/widgetutils/KisPopupSelfActivatingLineEdit.{h,cpp}`、Widget Utils製品・試験CMake、新規限定試験を所有する。
-  親所有、構築、破棄の3 APIと、ポップアップ内のフォーカス取得時に現れる公開挙動を対象とする。
-- 実装担当`titled-tab-title-sync`は`integrated`、統合コミットは`b8e37a1bb0`、構築実行許可は`granted`、
-  Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/widgets/KoTitledTabWidget.{h,cpp}`、
-  Widgets製品・試験CMake、新規限定試験を所有する。構築と現在タブの題名同期からなる2 APIを対象とする。
+  `libs/image/tiles3/swap/kis_{abstract,lzf}_compression.{h,cpp}`、Image製品CMake、Tiles3試験CMake、新規限定試験を
+  所有する。抽象圧縮接続面9 APIとLZF実装6 APIの計15 APIを対象とする。
+- 実装担当`spinbox-i18n-formatting`は`implementing`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`、統合順は3である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisSpinBoxI18nHelper.{h,cpp}`、
+  Widget Utils製品・試験CMake、新規限定試験を所有する。整数・実数表示の接頭辞と接尾辞、値変更時の複数形更新、
+  手動更新、選択属性スライダー向け削除済みオーバーロードの5 APIを対象とする。
+- 実装担当`alpha-mask-applicator-interface`は`implementing`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`、統合順は4である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/pigment/KoAlphaMaskApplicatorBase.{h,cpp}`、
+  Pigment製品・試験CMake、新規限定試験を所有する。3種類の画素処理の仮想配送と基底破棄の5 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8306,7 +8305,7 @@
 
 ## 次の操作
 
-未対応API一覧を更新し、所有範囲が重ならない第11並列便を選定する。
+第11並列便の4担当を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
