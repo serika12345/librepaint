@@ -92,6 +92,18 @@ set_target_properties(kritamenustyledontcloseonaltobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapopupselfactivatinglineeditobjects OBJECT
+    KisPopupSelfActivatingLineEdit.cpp
+)
+target_compile_definitions(kritapopupselfactivatinglineeditobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritapopupselfactivatinglineeditobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapopupselfactivatinglineeditobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritapopupselfactivatinglineeditobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -100,6 +112,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritakineticscrollerobjects>
     $<TARGET_OBJECTS:kritapopupbuttonobjects>
     $<TARGET_OBJECTS:kritamenustyledontcloseonaltobjects>
+    $<TARGET_OBJECTS:kritapopupselfactivatinglineeditobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -130,7 +143,6 @@ set(kritawidgetutils_LIB_SRCS
     kis_font_family_combo_box.cpp
     KisFontFamilyValidator.cpp
     KisWrappableHBoxLayout.cpp
-    KisPopupSelfActivatingLineEdit.cpp
     KisRecentFilesManager.cpp
     KisOptionCollectionWidget.cpp
     KisOptionButtonStrip.cpp
