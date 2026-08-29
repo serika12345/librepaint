@@ -252,6 +252,20 @@ target_include_directories(SvgMeshPatchContractTest PRIVATE
 target_compile_definitions(SvgMeshPatchContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    SvgMeshArrayContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakesvgmesharrayobjects
+        kritaflakesvgmeshpatchobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(SvgMeshArrayContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(SvgMeshArrayContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoBehaviorInterfacesContractTest.cpp
     LINK_LIBRARIES
         kritaflakebehaviorinterfaceobjects
