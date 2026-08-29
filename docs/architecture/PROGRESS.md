@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:04 JST
+- 更新日時: 2026-08-29 20:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,7 +20,7 @@
   試験CMakeを所有する。既存試験を巨大な共有試験群から専用対象へ分け、親所有、原文と省略表示、追加・挿入・削除、
   検索、選択、利用者データ、再計算、寸法の全16 APIを対象とする。中央挿入・削除後の現行添字ずれは既知不具合として
   分類する。
-- 実装担当`lazy-shared-cache`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`lazy-shared-cache`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-lazy-shared-cache`であり、`libs/global/KisLazySharedCacheStorage.h`、Global
   試験CMake、新規限定試験を所有する。型別名、既定状態、factory引数、遅延構築、初期化、reset、localとlinkedの
@@ -8509,9 +8509,21 @@
   1,549ヘッダー、29,989 API、対応済み5,354件、未対応24,635件になった。Linux、全ネイティブ検証、製品全体構築は
   実行していない。
 
+## R2-G19b 遅延共有キャッシュの全public API契約で完了した作業
+
+- `libs/global/KisLazySharedCacheStorage.h`の全34 APIを、新規
+  `libs/global/tests/KisLazySharedCacheStorageContractTest.cpp`の6試験へ対応付けた。9型別名、既定の空状態、直接値と
+  factoryによる一重遅延構築、引数転送、明示初期化、reset、局所キャッシュとリンクキャッシュの構築前後のコピー・
+  代入・分離規則、8スレッド同時参照時の一重構築と同一値共有を固定した。
+- 全APIは公開ヘッダー内で完結するため、製品実装と構築所有は変更していない。限定試験はQt Core・Testだけへ接続し、
+  製品ライブラリーをリンクしない。macOSの対象閉包は最近傍と同じ4工程・8入力である。
+- 対象CTestの単発実行と20回反復、最近傍の`KisLazyStorageTest`、高速検査に成功した。統合時のパッケージ境界検査は
+  1,199対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,388件、未対応24,601件になった。複数スレッド
+  契約はmacOSのC++17環境と8スレッド反復で固定した。Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-遅延共有キャッシュ、色転送関数、資源タグの順に、担当差分、限定構築、挙動、台帳を統合検証する。
+色転送関数、資源タグの順に、担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 

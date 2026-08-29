@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24635
+    "expectedMissingApis": 24601
   },
   "contracts": [
     {
@@ -15276,6 +15276,94 @@
         "method:KisSqueezedComboBox::originalTexts() const",
         "method:KisSqueezedComboBox::removeSqueezedItem(int index)",
         "method:KisSqueezedComboBox::setCurrent(const QString & itemText)"
+      ]
+    },
+    {
+      "target": "KisLazySharedCacheStorageContractTest",
+      "source": "libs/global/tests/KisLazySharedCacheStorageContractTest.cpp",
+      "test": "KisLazySharedCacheStorageContractTest::typeAliasesDescribeStoragePolicies",
+      "behavior": "局所値・共有値・基底キャッシュの公開型別名が、const値、factory関数、局所コピー、リンクコピーの各方針を表す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLazySharedCacheStorage",
+        "alias:KisLazySharedCacheStorageBase::ConstType",
+        "alias:KisLazySharedCacheStorageBase::FactoryType",
+        "alias:KisLazySharedCacheStorageDetail::DataStorage::ConstType",
+        "alias:KisLazySharedCacheStorageDetail::DataStorage::FactoryType",
+        "alias:KisLazySharedCacheStorageDetail::DataWrapperLocal",
+        "alias:KisLazySharedCacheStorageDetail::DataWrapperShared::ConstType",
+        "alias:KisLazySharedCacheStorageDetail::DataWrapperShared::FactoryType",
+        "alias:KisLazySharedCacheStorageLinked"
+      ]
+    },
+    {
+      "target": "KisLazySharedCacheStorageContractTest",
+      "source": "libs/global/tests/KisLazySharedCacheStorageContractTest.cpp",
+      "test": "KisLazySharedCacheStorageContractTest::localDataStorageCopiesValuesAndDetachesReset",
+      "behavior": "局所データ格納は既定で空であり、直接ポインターまたはfactoryで一度だけ値を所有し、コピーと代入は既存値を共有する一方、resetは対象格納だけを空にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazySharedCacheStorageDetail::DataStorage::DataStorage()",
+        "method:KisLazySharedCacheStorageDetail::DataStorage::DataStorage(T * value)",
+        "method:KisLazySharedCacheStorageDetail::DataStorage::DataStorage(const DataStorage & rhs)",
+        "method:KisLazySharedCacheStorageDetail::DataStorage::hasValue() const",
+        "method:KisLazySharedCacheStorageDetail::DataStorage::lazyInitialize(const std::function<FactoryType> & factory,Args...args)",
+        "method:KisLazySharedCacheStorageDetail::DataStorage::operator =(const DataStorage & rhs)",
+        "method:KisLazySharedCacheStorageDetail::DataStorage::reset()",
+        "struct:KisLazySharedCacheStorageDetail::DataStorage"
+      ]
+    },
+    {
+      "target": "KisLazySharedCacheStorageContractTest",
+      "source": "libs/global/tests/KisLazySharedCacheStorageContractTest.cpp",
+      "test": "KisLazySharedCacheStorageContractTest::sharedDataWrapperSharesInitializationUntilReset",
+      "behavior": "共有データ包装は構築前のコピーと代入を同じ遅延状態へ結び、いずれかの初期化を全コピーへ反映し、resetした包装だけを新しい遅延状態へ分離する。直接ポインター構築も同じ共有規則に従う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazySharedCacheStorageDetail::DataWrapperShared::DataWrapperShared()",
+        "method:KisLazySharedCacheStorageDetail::DataWrapperShared::DataWrapperShared(T * value)",
+        "method:KisLazySharedCacheStorageDetail::DataWrapperShared::DataWrapperShared(const DataWrapperShared & rhs)",
+        "method:KisLazySharedCacheStorageDetail::DataWrapperShared::hasValue() const",
+        "method:KisLazySharedCacheStorageDetail::DataWrapperShared::lazyInitialize(const std::function<FactoryType> & factory,Args...args)",
+        "method:KisLazySharedCacheStorageDetail::DataWrapperShared::operator =(const DataWrapperShared & rhs)",
+        "method:KisLazySharedCacheStorageDetail::DataWrapperShared::reset()",
+        "struct:KisLazySharedCacheStorageDetail::DataWrapperShared"
+      ]
+    },
+    {
+      "target": "KisLazySharedCacheStorageContractTest",
+      "source": "libs/global/tests/KisLazySharedCacheStorageContractTest.cpp",
+      "test": "KisLazySharedCacheStorageContractTest::cacheLifecycleForwardsArgumentsAndBuildsOnce",
+      "behavior": "基底キャッシュは既定で空であり、設定または構築時に受けたfactoryへ初期化引数を転送して値を一度だけ生成し、initialize後の再参照では再生成せず、reset後に次の引数で再生成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLazySharedCacheStorageBase",
+        "method:KisLazySharedCacheStorageBase::KisLazySharedCacheStorageBase()",
+        "method:KisLazySharedCacheStorageBase::KisLazySharedCacheStorageBase(std::function<FactoryType> factory)",
+        "method:KisLazySharedCacheStorageBase::initialize(Args...args)",
+        "method:KisLazySharedCacheStorageBase::isNull() const",
+        "method:KisLazySharedCacheStorageBase::reset()",
+        "method:KisLazySharedCacheStorageBase::setFactory(std::function<FactoryType> factory)"
+      ]
+    },
+    {
+      "target": "KisLazySharedCacheStorageContractTest",
+      "source": "libs/global/tests/KisLazySharedCacheStorageContractTest.cpp",
+      "test": "KisLazySharedCacheStorageContractTest::localAndLinkedCachesPreserveCopyContracts",
+      "behavior": "基底コピー構築は局所キャッシュでは構築前の遅延状態を独立させ構築済み値を共有し、リンクキャッシュでは構築前後とも遅延状態と構築済み値を共有する。resetはいずれも対象だけを分離する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazySharedCacheStorageBase::KisLazySharedCacheStorageBase(const KisLazySharedCacheStorageBase & rhs)"
+      ]
+    },
+    {
+      "target": "KisLazySharedCacheStorageContractTest",
+      "source": "libs/global/tests/KisLazySharedCacheStorageContractTest.cpp",
+      "test": "KisLazySharedCacheStorageContractTest::concurrentAccessConstructsOnce",
+      "behavior": "局所キャッシュへの同時参照と、相互にリンクしたキャッシュへの同時参照は、factoryを一度だけ実行して全呼出元へ同一値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLazySharedCacheStorageBase::value(Args...args)"
       ]
     }
   ]
