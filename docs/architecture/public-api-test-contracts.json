@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24938
+    "expectedMissingApis": 24935
   },
   "contracts": [
     {
@@ -14106,6 +14106,36 @@
       "classification": "maintained",
       "apis": [
         "method:KisTextureOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisConvexHullPointsContractTest",
+      "source": "libs/image/tests/KisConvexHullPointsContractTest.cpp",
+      "test": "KisConvexHullPointsContractTest::unorderedPointsProduceClosedOuterBoundary",
+      "behavior": "順不同、重複、内部点を含む点集合から、内部点を除いた閉じた外周凸包を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisConvexHull::findConvexHull(const QVector<QPoint> & points)"
+      ]
+    },
+    {
+      "target": "KisConvexHullDeviceContractTest",
+      "source": "libs/image/tests/KisConvexHullDeviceContractTest.cpp",
+      "test": "KisConvexHullDeviceContractTest::opaquePixelsProducePixelEdgeBoundary",
+      "behavior": "通常画素の境界取得方式を選び、取得した画素端座標から閉じた凸包境界を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisConvexHull::findConvexHull(KisPaintDeviceSP device)"
+      ]
+    },
+    {
+      "target": "KisConvexHullDeviceContractTest",
+      "source": "libs/image/tests/KisConvexHullDeviceContractTest.cpp",
+      "test": "KisConvexHullDeviceContractTest::selectionLikeHullUsesSelectionBoundaryMode",
+      "behavior": "選択類似画素の境界取得方式を選び、取得した画素端座標から閉じた凸包境界を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisConvexHull::findConvexHullSelectionLike(KisPaintDeviceSP device)"
       ]
     }
   ]

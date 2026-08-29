@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:50 JST
+- 更新日時: 2026-08-29 15:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,7 +19,7 @@
   `libs/ui/nodes/KisNodeModelData.cpp`、UI CMake、新規限定試験を所有し、模型の役割別データ取得1 APIを対象とする。
 - 統合担当`flake-debug-category`は`implemented`である。`libs/flake/FlakeDebug.cpp`、Flake CMake、新規限定試験を所有し、
   Flake診断カテゴリの1 APIを対象とする。
-- 実装担当`image-convex-hull`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`image-convex-hull`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/image/kis_convex_hull.h`と関連実装、Image CMake、新規限定試験を所有し、
   凸包計算の3 APIを対象とする。
 - 実装担当`flake-curve-fit`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -7917,9 +7917,28 @@
   XML処理と内部記憶は対象外であり、製品全体リンクは基準側の`KisResourceModelIndexResolver`記号不整合と全体構築禁止により
   実行していない。Linuxと全ネイティブ検証も実行していない。
 
+## R2-G19b 凸包境界の全public API契約と構築責務分離で完了した作業
+
+- `libs/image/kis_convex_hull.cpp`にあった点集合のBoost.Geometry適合処理と凸包計算を、新規
+  `libs/image/kis_convex_hull_points.cpp`へ移した。画素デバイスを受け取る2公開入口は新規`libs/image/kis_convex_hull_device.cpp`へ
+  移し、具体的な画素走査は元ファイルに残して新規`libs/image/kis_convex_hull_p.h`の私有接続面を実装する。3翻訳単位をそれぞれ
+  `kritaimageconvexhullpointsobjects`、`kritaimageconvexhulldeviceobjects`、`kritaimageconvexhulldevicereaderobjects`が所有し、製品
+  `kritaimage`へ各一度再集約する。公開ヘッダーは維持する。
+- `libs/image/kis_convex_hull.h`の全3 APIを、新規`libs/image/tests/KisConvexHullPointsContractTest.cpp`と
+  `libs/image/tests/KisConvexHullDeviceContractTest.cpp`へ対応付けた。順不同・重複・内部点を含む点集合から閉じた外周だけを返すこと、
+  通常画素と選択類似画素で異なる境界取得方式を選び、取得点を閉じた凸包へ変換することを固定した。赤段階では点集合APIだけが
+  未解決記号となり、広い実デバイス契約案は1,083工程と基準側の資源索引記号不整合を検出したため私有接続面へ縮小した。
+- 点集合対象と公開デバイス対象は各1工程・3入力、対応契約は5工程・11入力と6工程・13入力である。具体的画素読取り対象は
+  `kritapigment`と`kritaglobal`を必要とする具体的所有者であり、261工程・549入力を維持する。主作業ツリーの製品`kritaimage`は
+  1,081工程・2,186入力である。
+- 統合担当のmacOS構築木で2対象CTestの単発実行と各20回反復、3生成物の記号所有、具体的画素読取り対象の構築、1,148対象の
+  パッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,054件、
+  未対応24,935件になった。具体的な`KisPaintDevice`走査の動的試験は、基準側の`KisResourceModelIndexResolver`記号不整合が解消するまで
+  残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第5並列便の残り2 transport commitを一件ずつ検証して統合し、各契約の中央台帳と件数を同期する。
+命令付加データのtransport commitを検証して統合し、中央台帳と件数を同期する。
 
 ## R1-G5完了根拠
 

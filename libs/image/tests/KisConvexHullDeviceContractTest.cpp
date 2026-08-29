@@ -88,7 +88,7 @@ class KisConvexHullDeviceContractTest : public QObject
 
 private Q_SLOTS:
     void opaquePixelsProducePixelEdgeBoundary();
-    void selectionLikeHullIgnoresOpaqueDeselectedPixels();
+    void selectionLikeHullUsesSelectionBoundaryMode();
 };
 
 void KisConvexHullDeviceContractTest::opaquePixelsProducePixelEdgeBoundary()
@@ -100,14 +100,13 @@ void KisConvexHullDeviceContractTest::opaquePixelsProducePixelEdgeBoundary()
     compareClosedHull(hull, {QPoint(2, 3), QPoint(5, 3), QPoint(5, 5), QPoint(2, 5)});
 }
 
-void KisConvexHullDeviceContractTest::selectionLikeHullIgnoresOpaqueDeselectedPixels()
+void KisConvexHullDeviceContractTest::selectionLikeHullUsesSelectionBoundaryMode()
 {
     const QPolygon hull = KisConvexHull::findConvexHullSelectionLike(KisPaintDeviceSP());
 
     QVERIFY(receivedNullDevice);
     QCOMPARE(requestedMode, KisConvexHullPrivate::BoundaryMode::SelectionLike);
     compareClosedHull(hull, {QPoint(6, 7), QPoint(8, 7), QPoint(8, 10), QPoint(6, 10)});
-    QVERIFY(!hull.contains(QPoint(-10, -10)));
 }
 
 QTEST_GUILESS_MAIN(KisConvexHullDeviceContractTest)
