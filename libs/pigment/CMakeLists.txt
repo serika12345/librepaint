@@ -121,8 +121,22 @@ set_target_properties(kritapigmentlabmathsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-set(kritapigment_SRCS
+add_library(kritapigmentdebugobjects OBJECT
     DebugPigment.cpp
+)
+target_compile_definitions(kritapigmentdebugobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentdebugobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentdebugobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentdebugobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritapigment_SRCS
     KoBasicHistogramProducers.cpp
     KoAlphaMaskApplicatorBase.cpp
     KoOptimizedPixelDataScalerU8ToU16Base.cpp
@@ -219,6 +233,7 @@ kis_add_library(kritapigment SHARED
     $<TARGET_OBJECTS:kritapigmentstandardidsobjects>
     $<TARGET_OBJECTS:kritapigmentcolorimetryobjects>
     $<TARGET_OBJECTS:kritaalphacolorspaceobjects>
+    $<TARGET_OBJECTS:kritapigmentdebugobjects>
 )
 
 target_sources(kritapigment
