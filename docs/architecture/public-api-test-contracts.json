@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24942
+    "expectedMissingApis": 24941
   },
   "contracts": [
     {
@@ -14025,6 +14025,36 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const"
+      ]
+    },
+    {
+      "target": "KoCurveFitContractTest",
+      "source": "libs/flake/tests/KoCurveFitContractTest.cpp",
+      "test": "KoCurveFitContractTest::emptyAndMinimumInputsProduceExpectedPathCommands",
+      "behavior": "空または1点の入力は空の経路を返し、2点の最小入力は両端を結ぶ3分割制御点を持つ単一三次ベジェ区間を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "function:bezierFit(const QList<QPointF> & points,float error)"
+      ]
+    },
+    {
+      "target": "KoCurveFitContractTest",
+      "source": "libs/flake/tests/KoCurveFitContractTest.cpp",
+      "test": "KoCurveFitContractTest::straightSamplesProduceSingleCubicSegment",
+      "behavior": "一直線上の標本点は始点と終点を保存し、直線上の制御点を持つ単一三次ベジェ区間へ近似される。",
+      "classification": "maintained",
+      "apis": [
+        "function:bezierFit(const QList<QPointF> & points,float error)"
+      ]
+    },
+    {
+      "target": "KoCurveFitContractTest",
+      "source": "libs/flake/tests/KoCurveFitContractTest.cpp",
+      "test": "KoCurveFitContractTest::errorThresholdControlsCurvedSegmentCount",
+      "behavior": "曲線標本の始点と終点を保存し、厳しい誤差閾値は緩い閾値より多いベジェ区間へ分割し、同じ入力と閾値から同じ経路命令列を再現する。",
+      "classification": "maintained",
+      "apis": [
+        "function:bezierFit(const QList<QPointF> & points,float error)"
       ]
     }
   ]

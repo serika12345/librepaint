@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:31 JST
+- 更新日時: 2026-08-29 15:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,7 +19,7 @@
 - 実装担当`image-convex-hull`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/image/kis_convex_hull.h`と関連実装、Image CMake、新規限定試験を所有し、
   凸包計算の3 APIを対象とする。
-- 実装担当`flake-curve-fit`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`flake-curve-fit`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/flake/KoCurveFit.h`と関連実装、Flake CMake、新規限定試験を所有し、
   ベジェ曲線近似の1 APIを対象とする。
 - 実装担当`paintops-texture-option-io`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -7843,10 +7843,6 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,046件、未対応24,943件になった。無効・特異変換の診断は別契約として残る。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
-## 次の操作
-
-第5並列便の3 transport commitを一件ずつ検証して統合し、各契約の中央台帳と件数を同期する。
-
 ## R2-G19b ノード模型データ取得のpublic API契約と小構築対象で完了した作業
 
 - `libs/ui/nodes/kis_node_model.cpp`にあった`KisNodeModel::data()`の公開役割振り分けを、新規
@@ -7865,6 +7861,27 @@
   公開API契約検査と高速検査にも成功し、公開面は1,549ヘッダー、29,989 API、対応済み5,047件、未対応24,942件になった。
   各役割の具象ノード値は既存実装に残り、所有責務を分ける後続変更では本契約の役割対応を維持する。Linux、全ネイティブ検証、
   製品全体リンクは実行していない。
+
+## R2-G19b ベジェ曲線近似のpublic API契約と小構築対象で完了した作業
+
+- `libs/flake/KoCurveFit.cpp`を製品`kritaflake`の直接ソース一覧から新規`kritaflakecurvefitobjects`へ移し、数値近似と公開関数の
+  所有単位にした。同ファイルにあった具象`KoPathShape`の生成と命令書込みは、新規`libs/flake/KoCurveFitPathShapeWriter.cpp`と
+  `libs/flake/KoCurveFitPathShapeWriter_p.h`へ移し、新規`kritaflakecurvefitpathshapeobjects`が所有する。製品は両生成物を各一度
+  再集約し、公開ヘッダーは維持する。
+- `libs/flake/KoCurveFit.h`の`bezierFit()`を、新規`libs/flake/tests/KoCurveFitContractTest.cpp`の3試験へ対応付けた。空・1点入力の
+  空経路、2点入力の単一三次ベジェ区間、直線標本の端点と直線上制御点、曲線標本に対する誤差閾値と区間数の関係、同じ条件での
+  決定的な命令列を固定した。実装接続前のリンクは`bezierFit()`だけを未解決記号として診断した。
+- 変更前の製品`kritaflake`は546工程・1,124入力、変更後は548工程・1,128入力である。数値対象と具象書込み対象は各1工程・3入力、
+  契約対象は5工程・11入力である。直接依存は数値対象がQt Gui、具象書込み対象がQt GuiとQt Xml、契約対象が数値対象、Qt Gui、
+  Qt Testであり、製品ライブラリーへリンクしない。
+- 統合担当のmacOS構築木で両製品対象と契約対象を構築し、数値対象が公開関数を定義して私有書込み3関数だけを参照し、具象対象が
+  その3関数を定義することを確認した。対象CTestの単発実行と20回反復、1,139対象のパッケージ境界検査、公開API契約検査、高速検査に
+  成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,048件、未対応24,941件になった。空・1点入力は従来の範囲外参照を
+  安全な空経路へ定義した。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## 次の操作
+
+第5並列便の残り2 transport commitを一件ずつ検証して統合し、各契約の中央台帳と件数を同期する。
 
 ## R1-G5完了根拠
 
