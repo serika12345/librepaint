@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25032
+    "expectedMissingApis": 25027
   },
   "contracts": [
     {
@@ -13412,6 +13412,59 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::belongsToIsolatedGroup(KisImageSP image,KisNodeSP node,KisDummiesFacadeBase * dummiesFacade)"
+      ]
+    },
+    {
+      "target": "KisNodeModelStructureContractTest",
+      "source": "libs/ui/tests/KisNodeModelStructureContractTest.cpp",
+      "test": "KisNodeModelStructureContractTest::missingFacadeSuppressesTree",
+      "behavior": "ダミー木が接続されていないモデルは行、子索引、親索引を公開せず、変換器へ問い合わせない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::index(int row,int column,const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisNodeModel::parent(const QModelIndex & index) const",
+        "method:KisNodeModel::rowCount(const QModelIndex & parent=QModelIndex ()) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelStructureContractTest",
+      "source": "libs/ui/tests/KisNodeModelStructureContractTest.cpp",
+      "test": "KisNodeModelStructureContractTest::cloneColumnsStayOnPrimaryColumn",
+      "behavior": "ルートは主列と指定された複製列を公開し、複製列を親とする子の行と列は空になる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::columnCount(const QModelIndex & parent=QModelIndex ()) const",
+        "method:KisNodeModel::rowCount(const QModelIndex & parent=QModelIndex ()) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelStructureContractTest",
+      "source": "libs/ui/tests/KisNodeModelStructureContractTest.cpp",
+      "test": "KisNodeModelStructureContractTest::indexMapsRowsAndCloneColumns",
+      "behavior": "有効範囲の行はダミーから得た主列索引の内部項目を保って要求列へ写し、範囲外の行は無効索引になる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::index(int row,int column,const QModelIndex & parent=QModelIndex ()) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelStructureContractTest",
+      "source": "libs/ui/tests/KisNodeModelStructureContractTest.cpp",
+      "test": "KisNodeModelStructureContractTest::parentMapsDummyParent",
+      "behavior": "子索引は対応するダミーの親を索引へ変換した結果を親索引として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::parent(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelStructureContractTest",
+      "source": "libs/ui/tests/KisNodeModelStructureContractTest.cpp",
+      "test": "KisNodeModelStructureContractTest::siblingPreservesItemsAndMapsOtherRows",
+      "behavior": "同じ行の兄弟列は内部項目を保ち、別行の兄弟は親索引を経て対象行のダミーへ変換される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::sibling(int row,int column,const QModelIndex & idx) const"
       ]
     }
   ]

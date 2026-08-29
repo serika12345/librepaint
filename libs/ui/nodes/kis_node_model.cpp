@@ -126,6 +126,51 @@ bool KisNodeModel::DisplayStateAccess::hasDummiesFacade(const KisNodeModel *mode
     return model->m_d->dummiesFacade != nullptr;
 }
 
+bool KisNodeModel::StructureAccess::hasDummiesFacade(const KisNodeModel *model)
+{
+    return model->m_d->dummiesFacade != nullptr;
+}
+
+KisNodeDummy *KisNodeModel::StructureAccess::dummyFromRow(const KisNodeModel *model,
+                                                         int row,
+                                                         const QModelIndex &parent)
+{
+    return model->m_d->indexConverter->dummyFromRow(row, parent);
+}
+
+KisNodeDummy *KisNodeModel::StructureAccess::dummyFromIndex(const KisNodeModel *model,
+                                                           const QModelIndex &index)
+{
+    return model->m_d->indexConverter->dummyFromIndex(index);
+}
+
+KisNodeDummy *KisNodeModel::StructureAccess::parentDummy(KisNodeDummy *dummy)
+{
+    return dummy->parent();
+}
+
+QModelIndex KisNodeModel::StructureAccess::indexFromDummy(const KisNodeModel *model,
+                                                         KisNodeDummy *dummy)
+{
+    return model->m_d->indexConverter->indexFromDummy(dummy);
+}
+
+int KisNodeModel::StructureAccess::rowCount(const KisNodeModel *model, const QModelIndex &parent)
+{
+    return model->m_d->indexConverter->rowCount(parent);
+}
+
+int KisNodeModel::StructureAccess::dummyColumns(const KisNodeModel *model)
+{
+    return model->m_d->dummyColumns;
+}
+
+bool KisNodeModel::StructureAccess::hasMatchingModel(const KisNodeModel *model, const QModelIndex &index)
+{
+    KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(index.model() == model, false);
+    return true;
+}
+
 KisNodeDummy *KisNodeModel::IndexMappingAccess::dummyFromIndex(const KisNodeModel *model,
                                                               const QModelIndex &index)
 {
@@ -449,70 +494,6 @@ void KisNodeModel::processUpdateQueue()
     }
 
     m_d->updateQueue.clear();
-}
-
-QModelIndex KisNodeModel::index(int row, int col, const QModelIndex &parent) const
-{
-    if(!m_d->dummiesFacade || !hasIndex(row, col, parent)) return QModelIndex();
-
-    QModelIndex itemIndex;
-
-    KisNodeDummy *dummy = m_d->indexConverter->dummyFromRow(row, parent);
-    if(dummy) {
-        itemIndex = m_d->indexConverter->indexFromDummy(dummy);
-    }
-
-    if (itemIndex.isValid() && itemIndex.column() != col) {
-        itemIndex = createIndex(itemIndex.row(), col, itemIndex.internalPointer());
-    }
-
-    return itemIndex;
-}
-
-int KisNodeModel::rowCount(const QModelIndex &parent) const
-{
-    if(!m_d->dummiesFacade) return 0;
-    if (parent.column() > 0) {
-        return 0;
-    }
-    return m_d->indexConverter->rowCount(parent);
-}
-
-int KisNodeModel::columnCount(const QModelIndex &parent) const
-{
-    if (parent.column() > 0) {
-        return 0;
-    }
-    return 1 + m_d->dummyColumns;
-}
-
-QModelIndex KisNodeModel::parent(const QModelIndex &index) const
-{
-    if(!m_d->dummiesFacade || !index.isValid()) return QModelIndex();
-
-    KisNodeDummy *dummy = m_d->indexConverter->dummyFromIndex(index);
-    KisNodeDummy *parentDummy = dummy->parent();
-
-    QModelIndex parentIndex;
-
-    if(parentDummy) {
-        parentIndex = m_d->indexConverter->indexFromDummy(parentDummy);
-    }
-
-    return parentIndex;
-}
-
-QModelIndex KisNodeModel::sibling(int row, int column, const QModelIndex &idx) const
-{
-    // if it's just a different clone column, there's no need to lookup anything
-    if (row == idx.row()) {
-        if (column == idx.column()) {
-            return idx;
-        }
-        KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(idx.model() == this, QModelIndex());
-        return createIndex(row, column, idx.internalPointer());
-    }
-    return index(row, column, parent(idx));
 }
 
 QVariant KisNodeModel::data(const QModelIndex &index, int role) const
