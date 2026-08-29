@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24890
+    "expectedMissingApis": 24887
   },
   "contracts": [
     {
@@ -14307,6 +14307,56 @@
         "class:KisMetaData::Parser",
         "method:KisMetaData::Parser::parse(const QString &) const",
         "method:KisMetaData::Parser::~Parser()"
+      ]
+    },
+    {
+      "target": "compression_test",
+      "source": "libs/psdutils/tests/compression_test.cpp",
+      "test": "CompressionTest::emptyInputProducesEmptyOutput",
+      "behavior": "PSD圧縮器型は静的な圧縮・展開入口を提供し、空入力では圧縮方式や行情報にかかわらず空のバイト列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:Compression"
+      ]
+    },
+    {
+      "target": "compression_test",
+      "source": "libs/psdutils/tests/compression_test.cpp",
+      "test": "CompressionTest::rleUsesPackBitsAndRoundTripsBinaryInput",
+      "behavior": "RLE圧縮はPackBits互換列を生成し、128バイト境界を越える実行長と埋込みNULを含む入力を展開可能な列へ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Compression::compress(QByteArray bytes,psd_compression_type compressionType,int row_size=0,int color_depth=0)"
+      ]
+    },
+    {
+      "target": "compression_test",
+      "source": "libs/psdutils/tests/compression_test.cpp",
+      "test": "CompressionTest::zipPredictionPreservesCurrentEightBitTransform",
+      "behavior": "8-bit予測圧縮は既に差分化した直前値を後続計算へ使うため3点以上の行で逆変換にならず、現在の差分列と展開結果を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:Compression::compress(QByteArray bytes,psd_compression_type compressionType,int row_size=0,int color_depth=0)"
+      ]
+    },
+    {
+      "target": "compression_test",
+      "source": "libs/psdutils/tests/compression_test.cpp",
+      "test": "CompressionTest::zipPredictionPreservesCurrentSixteenBitTransform",
+      "behavior": "16-bit予測圧縮は既に差分化した直前値を後続計算へ使うため3点以上の行で逆変換にならず、現在の差分列と展開結果を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:Compression::compress(QByteArray bytes,psd_compression_type compressionType,int row_size=0,int color_depth=0)"
+      ]
+    },
+    {
+      "target": "compression_test",
+      "source": "libs/psdutils/tests/compression_test.cpp",
+      "test": "CompressionTest::zipRoundTripsBinaryInputAndRejectsMalformedData",
+      "behavior": "ZIP展開は埋込みNULを含む有効列を元入力へ復元し、不正なzlib列を空として拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:Compression::uncompress(int unpacked_len,QByteArray bytes,psd_compression_type compressionType,int row_size=0,int color_depth=0)"
       ]
     }
   ]

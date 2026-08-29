@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 16:42 JST
+- 更新日時: 2026-08-29 16:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,7 +20,7 @@
 - 実装担当`psdutils-offset-exit-verifier`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/psdutils/asl/kis_offset_on_exit_verifier.h`と新規限定試験を所有し、
   読取り終了位置補正の3 APIを対象とする。
-- 実装担当`psdutils-compression`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`psdutils-compression`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/psdutils/compression.{h,cpp}`、PSD Utils CMake、既存または新規限定試験を所有し、
   圧縮と展開の3 APIを対象とする。
 - 実装担当`tools-deselect-shapes-policy`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -8044,9 +8044,28 @@
   各具象解析器の文字列表現規則は既存`kis_meta_data_test`が維持し、個別APIとして公開された場合に台帳へ接続する。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b PSD圧縮・展開の全public API契約と小構築対象で完了した作業
+
+- PSD圧縮の挙動を固定する既存試験が製品と試験支援全体へ接続されていた。`libs/psdutils/compression.cpp`を
+  `kritapsdutils_LIB_SRCS`から新規`kritapsdcompressionobjects`へ移し、同じ製品へ生成物を一度再集約した。
+  `libs/psdutils/tests/compression_test.cpp`は一括製品試験から単独対象へ移し、未使用だったQt入出力とPSD補助includeを除いた。
+  公開ヘッダーと実装ファイルの位置、製品の圧縮所有は維持する。
+- `libs/psdutils/compression.h`の全3 APIを、決定的なバイナリー入力を使う10試験へ対応付けた。空入力、非圧縮、PackBits RLE、
+  ZIP、8/16-bit予測、非対応色深度、切断列、不正zlib列、短いRLE列のNUL補完、未知方式の致命診断を固定した。実装接続前のリンクは
+  `Compression::compress()`と`Compression::uncompress()`だけを未解決記号として診断した。
+- 変更前の既存試験は569工程・1,167入力、圧縮製品オブジェクトは550工程・1,131入力だった。新規専用対象は1工程・3入力、
+  契約対象は6工程・14入力である。直接依存は専用対象がQt Coreとzlib、契約対象が専用対象、既存`kritaglobaldebugobjects`、
+  Qt Core、Qt Testである。製品`kritapsdutils`は変更前後とも565工程・1,160入力を維持する。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、専用生成物が圧縮・展開の2公開記号を定義すること、製品の構築命令が
+  生成物を一度再集約することを確認した。対象CTestの単発実行と20回反復、1,159対象のパッケージ境界検査に成功した。公開面は
+  公開API契約検査と高速検査にも成功し、1,549ヘッダー、29,989 API、対応済み5,102件、未対応24,887件になった。
+- `ZIPWithPrediction`圧縮は既に差分化した直前値を次の計算へ使うため、3点以上の8/16-bit行を元入力へ逆変換できない。
+  現在の差分列と展開結果を既知不具合として固定した。修正時は意図した可逆変換の契約へ置き換える。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第7並列便のPSD圧縮と図形選択解除方針の限定契約を順に統合する。
+第7並列便の図形選択解除方針の限定契約を統合する。
 
 ## R1-G5完了根拠
 
