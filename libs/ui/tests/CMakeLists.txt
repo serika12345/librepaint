@@ -845,6 +845,20 @@ target_compile_definitions(KisNodeModelDropAcceptanceContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisNodeModelMimeDataContractTest.cpp
+    TEST_NAME KisNodeModelMimeDataContractTest
+    LINK_LIBRARIES
+        kritauinodemodelmimedataobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeModelMimeDataContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_compile_definitions(KisNodeModelMimeDataContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

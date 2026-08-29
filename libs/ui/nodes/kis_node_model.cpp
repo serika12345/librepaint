@@ -222,6 +222,28 @@ bool KisNodeModel::ItemFlagsAccess::isDropEnabled(const KisNodeModel *model, qui
     return model->m_d->dropEnabled.contains(itemId);
 }
 
+KisNodeSP KisNodeModel::MimeDataAccess::nodeFromIndex(const KisNodeModel *model, const QModelIndex &index)
+{
+    return model->nodeFromIndex(index);
+}
+
+bool KisNodeModel::MimeDataAccess::isEditable(const KisNodeSP &node, bool checkVisibility)
+{
+    return node->isEditable(checkVisibility);
+}
+
+KisImage *KisNodeModel::MimeDataAccess::image(const KisNodeModel *model)
+{
+    return model->m_d->image.data();
+}
+
+QMimeData *KisNodeModel::MimeDataAccess::createMimeData(const KisNodeList &nodes,
+                                                        KisImage *image,
+                                                        bool forceCopy)
+{
+    return KisMimeData::mimeForLayers(nodes, KisImageSP(image), forceCopy);
+}
+
 bool KisNodeModel::DisplayStateAccess::hasDisplayModeAdapter(const KisNodeModel *model)
 {
     return model->m_d->nodeDisplayModeAdapter != nullptr;
@@ -796,26 +818,6 @@ bool KisNodeModel::setData(const QModelIndex &index, const QVariant &value, int 
     }
 
     return result;
-}
-
-QMimeData * KisNodeModel::mimeData(const QModelIndexList &indexes) const
-{
-    bool hasLockedLayer = false;
-    KisNodeList nodes;
-    Q_FOREACH (const QModelIndex &idx, indexes) {
-        // Although clone columns should not be selectable, make sure we only use column 0,
-        // because nodeFromIndex doesn't like duplicate list entries.
-        if (idx.column() != 0) {
-            continue;
-        }
-
-        KisNodeSP node = nodeFromIndex(idx);
-
-        nodes << node;
-        hasLockedLayer |= !node->isEditable(false);
-    }
-
-    return KisMimeData::mimeForLayers(nodes, m_d->image, hasLockedLayer);
 }
 
 bool KisNodeModel::dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent)

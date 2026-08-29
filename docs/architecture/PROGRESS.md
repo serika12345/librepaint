@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 13:53 JST
+- 更新日時: 2026-08-29 14:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,12 +22,12 @@
   `KisForestTest`を最も近い契約とする。対象は`KisForest.h`の`childBegin(ChildIterator)`、`childEnd(ChildIterator)`、
   `operator<<(QDebug, ChildIterator)`、`parent(ChildIterator)`、`siblingBegin(ChildIterator)`、
   `siblingEnd(ChildIterator)`の6 APIである。
-- 実装担当`image-frame-lock`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`image-frame-lock`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。`libs/image/KisBlockBackgroundFrameGenerationLock.{h,cpp}`、
   `libs/image/CMakeLists.txt`、`libs/image/tests/KisBlockBackgroundFrameGenerationLockContractTest.cpp`、
   `libs/image/tests/CMakeLists.txt`を所有し、`KisAdaptedLockTest`を隣接契約とする。対象はアダプタークラス、構築、
   `lock()`、`unlock()`の4 APIである。
-- 実装担当`flake-zoom-state`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`flake-zoom-state`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。`libs/flake/KoZoomState.{h,cpp}`、`libs/flake/CMakeLists.txt`、
   `libs/flake/tests/KoZoomStateContractTest.cpp`、`libs/flake/tests/CMakeLists.txt`を所有する。対象はクラス、既定構築、
   値構築、`mode`、`zoom`、`minZoom`、`maxZoom`、等値比較の8 APIである。
@@ -7630,11 +7630,30 @@
 - 統合担当は既存試験を再実行し、中央公開API契約検査と高速検査を成功させた。公開面は1,549ヘッダー、29,989 API、
   対応済み4,974件、未対応25,015件になった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b ノードモデルのMIME生成 public API契約と値判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_model.cpp`にあった`mimeData()`本体を、新規
+  `libs/ui/nodes/KisNodeModelMimeData.cpp`へ移した。主列だけから索引順にノードを収集し、編集不能ノードの有無から
+  強制複製を決める値判断はQt Coreだけの`kritauinodemodelmimedataobjects`が所有する。索引からの具象ノード取得、
+  編集可否判定、現在画像の借用、`KisMimeData`による生成は移動元の保護境界に残し、製品`kritaapplicationui`が
+  新規生成物を1回集約する。
+- `libs/ui/nodes/kis_node_model.h`の`mimeData()`を、新規
+  `libs/ui/tests/KisNodeModelMimeDataContractTest.cpp`の2試験へ対応付けた。複製列を除いたノード順と現在画像の引渡し、
+  全ノードが編集可能な場合の通常移動、可視性を除外して編集不能なノードを含む場合の強制複製を固定した。
+  製品実装接続前のリンクは対象メソッドだけを未解決記号として診断した。
+- 直近のドロップ受理契約と緑化後のMIME生成契約はいずれも5工程・11入力、専用製品対象は1工程・3入力である。
+  完全型ヘッダーがGUIと国際化のコンパイル条件を要求することを診断し、画像共有所有を効果側に残して選択側を
+  借用値だけへ縮小した。製品`kritaapplicationui`閉包は1,834工程・3,668入力から1,835工程・3,670入力、既存
+  `kis_node_model_test`は1,839工程・3,677入力から1,840工程・3,679入力になった。
+- MIME生成対象と元の`kis_node_model.cpp`単体コンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,975件、未対応25,014件に
+  なった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-準備完了した並列担当を統合順に一件ずつ取り込み、中央契約台帳と進捗を同期して対象CTestと高速検査を再実行する。担当の準備中は
-統合担当が`libs/ui/nodes/kis_node_model.h`の`mimeData()`を次の小単位とし、ドロップ受理契約と既存モデル試験の変更なし計画、
-直接依存、空構築閉包を比較する。ノード収集とMIME生成が具体画像所有を引き込む場合は、挙動契約より先に値判断と効果を分離する。
+準備完了した`image-frame-lock`を統合順2として取り込み、中央契約台帳と進捗を同期して対象CTest、公開API契約検査、高速検査を
+再実行する。続いて`flake-zoom-state`を統合順3として同じ手順で取り込む。各統合を独立したレビュー可能コミットに固定した後、
+統合担当は`libs/ui/nodes/kis_node_model.h`の`dropMimeData()`について変更なし計画、直接依存、空構築閉包を先に監査する。
 
 ## R1-G5完了根拠
 

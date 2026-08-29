@@ -184,6 +184,13 @@ protected Q_SLOTS:
     void slotLayerThumbnailUpdated(KisNodeSP node);
 
 protected:
+    struct KRITAUI_EXPORT MimeDataAccess {
+        static KisNodeSP nodeFromIndex(const KisNodeModel *model, const QModelIndex &index);
+        static bool isEditable(const KisNodeSP &node, bool checkVisibility);
+        static KisImage *image(const KisNodeModel *model);
+        static QMimeData *createMimeData(const KisNodeList &nodes, KisImage *image, bool forceCopy);
+    };
+
     struct KRITAUI_EXPORT ItemFlagsAccess {
         static bool hasDummiesFacade(const KisNodeModel *model);
         static bool isDropEnabled(const KisNodeModel *model, quintptr itemId);
