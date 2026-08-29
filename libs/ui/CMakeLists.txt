@@ -1435,6 +1435,27 @@ set_target_properties(kritauinodemodelsetdataobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiexposuregammacorrectionobjects OBJECT
+    canvas/kis_exposure_gamma_correction_interface.cpp
+)
+target_compile_definitions(kritauiexposuregammacorrectionobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiexposuregammacorrectionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauiexposuregammacorrectionobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauiexposuregammacorrectionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
@@ -1451,6 +1472,7 @@ endif()
 add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
+    $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelsourceobjects>
     $<TARGET_OBJECTS:kritauimultinodepropertyobjects>
@@ -1507,7 +1529,6 @@ set(kritaui_LIB_SRCS
     canvas/kis_canvas_controller.cpp
     canvas/kis_display_color_converter.cpp
     canvas/kis_display_filter.cpp
-    canvas/kis_exposure_gamma_correction_interface.cpp
     canvas/kis_canvas_decoration.cc
     canvas/kis_grid_manager.cpp
     canvas/kis_grid_decoration.cpp

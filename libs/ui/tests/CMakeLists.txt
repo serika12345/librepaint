@@ -117,6 +117,17 @@ target_include_directories(KisAnimationFrameCacheFwdContractTest PRIVATE
 )
 
 kis_add_test(
+    KisExposureGammaCorrectionInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        kritauiexposuregammacorrectionobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisExposureGammaCorrectionInterfaceContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisSelectionActionsPanelContractTest.cpp
     LINK_LIBRARIES
         kritauiselectionactionspanelobjects
