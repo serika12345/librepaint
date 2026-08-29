@@ -16,10 +16,11 @@ class KoPropertiesTest : public QObject
 private Q_SLOTS:
 
     void testDeserialization();
+    void testDomElementRoundTrip();
     void testRoundTrip();
     void testProperties();
     void testPassAround();
+    void testTypedDefaultsAndEquality();
 };
 
 #endif
-

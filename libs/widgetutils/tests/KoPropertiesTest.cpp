@@ -6,8 +6,11 @@
 
 #include "KoPropertiesTest.h"
 
-#include <simpletest.h>
 #include <KoProperties.h>
+#include <QDomDocument>
+#include <QTest>
+
+#include <memory>
 
 void KoPropertiesTest::testDeserialization()
 {
@@ -28,7 +31,27 @@ void KoPropertiesTest::testDeserialization()
     QVERIFY(!props.load(test));
     QVERIFY(!props.isEmpty());
     QVERIFY(props.stringProperty("bla") == "bla");
+}
 
+void KoPropertiesTest::testDomElementRoundTrip()
+{
+    KoProperties properties;
+    properties.setProperty("name", QStringLiteral("brush"));
+    properties.setProperty("size", 42);
+
+    QDomDocument document(QStringLiteral("properties"));
+    QDomElement root = document.createElement(QStringLiteral("properties"));
+    document.appendChild(root);
+    properties.save(root);
+
+    QCOMPARE(root.elementsByTagName(QStringLiteral("property")).count(), 2);
+
+    KoProperties restored;
+    restored.setProperty("stale", true);
+    restored.load(root);
+
+    QVERIFY(restored == properties);
+    QVERIFY(!restored.contains(QStringLiteral("stale")));
 }
 
 void KoPropertiesTest::testRoundTrip()
@@ -39,8 +62,8 @@ void KoPropertiesTest::testRoundTrip()
     props.setProperty("xmlstring2", "<xml>&adsa</xml>");
     props.setProperty("cdata", "<![CDATA[blabla]]>");
     props.setProperty("int", 10);
-    props.setProperty("bool",  false);
-    props.setProperty("qreal",  1.38);
+    props.setProperty("bool", false);
+    props.setProperty("qreal", 1.38);
 
     QString stored = props.store("KoPropertiesTest");
     KoProperties restored;
@@ -53,7 +76,6 @@ void KoPropertiesTest::testRoundTrip()
     QVERIFY(restored.intProperty("int") == 10);
     QVERIFY(restored.boolProperty("bool") == false);
     QVERIFY(restored.doubleProperty("qreal") == 1.38);
-
 }
 
 void KoPropertiesTest::testProperties()
@@ -68,19 +90,19 @@ void KoPropertiesTest::testProperties()
     QVERIFY(props.value("visible") == "bla");
     QVERIFY(props.stringProperty("visible", "blabla") == "bla");
 
-    props.setProperty("bool",  true);
+    props.setProperty("bool", true);
     QVERIFY(props.boolProperty("bool", false) == true);
-    props.setProperty("bool",  false);
+    props.setProperty("bool", false);
     QVERIFY(props.boolProperty("bool", true) == false);
 
-    props.setProperty("qreal",  1.0);
+    props.setProperty("qreal", 1.0);
     QVERIFY(props.doubleProperty("qreal", 2.0) == 1.0);
-    props.setProperty("qreal",  2.0);
+    props.setProperty("qreal", 2.0);
     QVERIFY(props.doubleProperty("qreal", 1.0) == 2.0);
 
-    props.setProperty("int",  1);
+    props.setProperty("int", 1);
     QVERIFY(props.intProperty("int", 2) == 1);
-    props.setProperty("int",  2);
+    props.setProperty("int", 2);
     QVERIFY(props.intProperty("int", 1) == 2);
 
     QVariant v;
@@ -102,10 +124,9 @@ void KoPropertiesTest::testProperties()
         count++;
     }
     QVERIFY(count == 4);
-
 }
 
-bool checkProps(const KoProperties & props)
+bool checkProps(const KoProperties &props)
 {
     return (props.value("bla") == 1);
 }
@@ -126,7 +147,38 @@ void KoPropertiesTest::testPassAround()
 
     QVERIFY(checkProps(props));
     QVERIFY(checkProps(props2));
+}
 
+void KoPropertiesTest::testTypedDefaultsAndEquality()
+{
+    KoProperties empty;
+    KoProperties anotherEmpty;
+
+    QVERIFY(empty == anotherEmpty);
+    QVERIFY(empty.isEmpty());
+    QCOMPARE(empty.intProperty("missing", 17), 17);
+    QCOMPARE(empty.doubleProperty("missing", 2.5), 2.5);
+    QCOMPARE(empty.boolProperty("missing", true), true);
+    QCOMPARE(empty.stringProperty("missing", QStringLiteral("fallback")), QStringLiteral("fallback"));
+    QVERIFY(!empty.property("missing").isValid());
+    QVERIFY(!empty.value("missing").isValid());
+
+    QVariant unchanged = QStringLiteral("unchanged");
+    QVERIFY(!empty.property("missing", unchanged));
+    QCOMPARE(unchanged, QVariant(QStringLiteral("unchanged")));
+
+    std::unique_ptr<KoProperties> copy;
+    {
+        KoProperties source;
+        source.setProperty("number", 9);
+        copy.reset(new KoProperties(source));
+        QVERIFY(*copy == source);
+
+        source.setProperty("number", 10);
+        QVERIFY(!(*copy == source));
+    }
+
+    QCOMPARE(copy->intProperty("number"), 9);
 }
 
 QTEST_GUILESS_MAIN(KoPropertiesTest)

@@ -1,11 +1,23 @@
 kis_add_tests(
     KisActionsSnapshotTest.cpp
-    KoPropertiesTest.cpp
     TestKoProgressUpdater.cpp
     TestSqueezedComboBox.cpp
     kis_parse_spin_boxes_test.cpp
     LINK_LIBRARIES kritawidgetutils kritaimage kritatestsdk
 )
+
+kis_add_test(
+    KoPropertiesTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilspropertiesobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+target_include_directories(KoPropertiesTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoPropertiesTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
     kis_simple_math_parser_test.cpp

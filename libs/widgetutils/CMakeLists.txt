@@ -20,6 +20,25 @@ set_target_properties(kritawidgetutilsnumericparserobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetutilspropertiesobjects OBJECT
+    KoProperties.cpp
+)
+target_compile_definitions(kritawidgetutilspropertiesobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilspropertiesobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilspropertiesobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritawidgetutilspropertiesobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritacheckerboardpainterobjects OBJECT
     KoCheckerBoardPainter.cpp
 )
@@ -122,6 +141,7 @@ set_target_properties(kritaspinboxi18nhelperobjects PROPERTIES
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
+    $<TARGET_OBJECTS:kritawidgetutilspropertiesobjects>
     $<TARGET_OBJECTS:kritacheckerboardpainterobjects>
     $<TARGET_OBJECTS:kritaitemtooltipobjects>
     $<TARGET_OBJECTS:kritakineticscrollerobjects>
@@ -142,7 +162,6 @@ set(kritawidgetutils_LIB_SRCS
     KoProgressUpdater.cpp
     KoUpdater.cpp
     KoUpdaterPrivate_p.cpp
-    KoProperties.cpp
     KoFileDialog.cpp
     KisPreviewFileDialog.cpp
     KisSqueezedComboBox.cpp
