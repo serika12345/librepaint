@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 02:56 JST
+- 更新日時: 2026-08-30 03:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,21 +14,24 @@
 - 第24並列便の共通基準コミットは`0678f19c10`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g24-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`command-utils`は`implementing`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`command-utils`は`integrated`、実装コミットは`d6719d14e5`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/undo/kis_command_utils.{h,cpp}`、Painting Undo製品・試験CMake、新規`KisCommandUtilsContractTest.cpp`を
   所有する。製品`kritapaintingundo`の260工程・551入力から実装を専用生成物へ分離し、遅延集約、ラムダ生成、初回再実行省略、
   状態往復、複合命令、合成と累積統合の全36 APIを対象とする。
-- 実装担当`shape-anchor`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`shape-anchor`は`integrated`、引渡しコミットは`73a7061dba`、統合コミットは`f2941c27fa`、
+  構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g24-shape-anchor`を予定し、
   `libs/flake/KoShapeAnchor.cpp`、Flake製品・試験CMake、新規`KoShapeAnchorContractTest.cpp`を所有する。製品の364工程・756入力から
   実装を専用生成物へ分離し、既存の列挙44 APIに続く状態、正規化、借用位置、所有配置戦略、寿命の残り33 APIを対象とする。
-- 実装担当`transform-mask-interface`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`transform-mask-interface`は`integrated`、引渡しコミットは`885c1babc1`、統合コミットは`88cc38427e`、
+  構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g24-transform-mask-interface`を予定し、
   `libs/image/kis_transform_mask_params_interface.{h,cpp}`、Image製品・試験CMake、新規
   `KisTransformMaskParamsInterfaceContractTest.cpp`を所有する。既存試験の1,107工程・2,236入力から空の仮想破棄実装を
   専用生成物へ分離し、変形値、矩形、XML、画像参照、複製、比較、キーフレーム、既定境界、寿命の全31 APIを対象とする。
-- 実装担当`shared-ptr`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`shared-ptr`は`integrated`、引渡しコミットは`3f0b37de86`、統合コミットは`38f37e236f`、
+  構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g24-shared-ptr`を予定し、
   `libs/global/kis_shared_ptr.h`、Global試験CMake、新規`KisSharedPtrContractTest.cpp`を所有する。既存の
   `kritaglobalsharedobjects`と`kritaglobaldebugobjects`を再利用し、強参照、弱参照、参照数、型変換、失効、寿命の全55 APIを
@@ -9145,10 +9148,73 @@
   固定した。各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、製品への1回再集約、
   公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,402件、未対応23,587件になった。
 
+## R2-G19b undo命令補助の全public API契約と構築所有分離で完了した作業
+
+- `libs/painting/undo/kis_command_utils.h`の全36 APIを、新規
+  `libs/painting/undo/tests/KisCommandUtilsContractTest.cpp`の9試験へ対応付けた。遅延集約、ラムダ生成、初回再実行省略、
+  状態往復、複合命令、合成、累積統合の生成回数、配送順、名称、親子関係、所有、寿命を固定した。統合を拒否された後続命令を
+  診断後に破棄するため、その変更が取消対象から落ちる現行挙動は既知不具合として分類した。
+- 開始ファイル`libs/painting/undo/kis_command_utils.cpp`の構築所有を`libs/painting/undo/CMakeLists.txt`の
+  `kritapaintingundo_LIB_SRCS`から同ファイル内の新規`kritapaintingundocommandutilsobjects`へ移し、製品
+  `kritapaintingundo`は生成物を1回だけ再集約する。開始ヘッダー`libs/painting/undo/kis_command_utils.h`は同じパスと公開面を
+  維持する。新規限定試験は専用生成物、既存のKUndo2中核・undo保存生成物、Qt Core・Widgets・Test、KF I18nだけへ接続し、
+  製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は15工程・31入力、専用生成物と必要な中核・保存生成物は
+  3工程・7入力であり、製品`kritapaintingundo`の260工程・551入力から縮小した。対象CTest単発と20回反復、最近傍
+  `KisUndoStoresContractTest`、公開記号、製品への1回再集約、製品共有ライブラリー非接続、パッケージ境界検査、高速検査に成功した。
+  null累積命令、不正な親付き命令の合成、異なる統合識別子、入れ子複合命令、並行実行、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b 形状アンカーの全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoShapeAnchor.h`の未対応33 APIを、新規`libs/flake/tests/KoShapeAnchorContractTest.cpp`の6試験へ
+  対応付けた。既存`KoShapeAnchorEnumContractTest.cpp`の列挙44 APIと合わせ、同ヘッダー全77 APIの契約を完了した。借用形状、
+  初期状態、位置と相対基準の設定、文字内アンカー正規化、位置差、借用テキスト位置、所有配置戦略、仮想配送と寿命を固定した。
+  公開更新経路のない配置影響、テキスト追従、ページ番号が構築時値から変わらない現行挙動は既知不具合として分類した。
+- 開始ファイル`libs/flake/KoShapeAnchor.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`から同ファイル内の
+  新規`kritaflakeshapeanchorobjects`へ移し、製品`kritaflake`は生成物を1回だけ再集約する。開始実装から未使用の形状コンテナー、
+  XML保存・読込み、診断依存と死んだ`Private::printDebug()`を除いた。開始ヘッダー`libs/flake/KoShapeAnchor.h`は同じパスと
+  公開面を維持し、新規限定試験は専用生成物とQt Test・Xmlだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11生入力、生成物重複を除く10入力、専用生成物は
+  1工程・3入力であり、変更前翻訳単位の364工程・756入力から縮小した。対象CTest単発と20回反復、既存列挙契約、公開記号、
+  製品への1回再集約、製品共有ライブラリー非接続に成功した。暗黙コピーのPIMPL二重破棄、複数アンカーによる同一配置戦略所有、
+  借用形状の実処理、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 変形マスクパラメーター接続面の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_transform_mask_params_interface.h`の全31 APIを、新規
+  `libs/image/tests/KisTransformMaskParamsInterfaceContractTest.cpp`の4試験へ対応付けた。強弱参照別名、仮想寿命、変形値、
+  表示状態、ノード・描画装置・XML・矩形・比較の引数と返値、複製、アニメーション、キーフレーム、既定境界、LOD同期を固定した。
+- 開始ファイル`libs/image/kis_transform_mask_params_interface.cpp`の構築所有を`libs/image/CMakeLists.txt`の
+  `kritaimage_LIB_SRCS`から同ファイル内の新規`kritaimagetransformmaskparamsinterfaceobjects`へ移し、製品`kritaimage`は
+  生成物を1回だけ再集約する。開始実装と開始ヘッダー`libs/image/kis_transform_mask_params_interface.h`の内容と公開面は維持した。
+  新規限定試験は専用生成物、既存の共有寿命生成物、Qt Core・Gui・Xml・Testだけへ接続し、製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は6工程・13入力、専用生成物は1工程・3入力であり、従来
+  `kis_transform_mask_test`の1,107工程・2,236入力と変更前翻訳単位の763工程・1,550入力から縮小した。対象CTest単発と
+  20回反復、最近傍`KisImageInterfacesContractTest`、仮想破棄記号、製品への1回再集約、製品共有ライブラリー非接続に成功した。
+  null XML・比較対象、画像・キーフレーム・undo命令の具象処理、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 侵入型共有参照の全public API契約で完了した作業
+
+- `libs/global/kis_shared_ptr.h`の全55 APIを、新規`libs/global/tests/KisSharedPtrContractTest.cpp`の5試験へ対応付けた。
+  強参照・弱参照の型別名、null状態、侵入型参照数、構築、コピー、代入、取付け、消去、比較、参照・ポインターアクセス、
+  派生型変換、最終破棄、弱参照失効と強参照化拒否を固定した。
+- 開始ヘッダー`libs/global/kis_shared_ptr.h`は同じパス、インライン実装、公開面を維持した。既存の
+  `kritaglobalsharedobjects`と`kritaglobaldebugobjects`が寿命と診断実装を所有するため、製品実装と製品CMakeの移動はない。
+  新規限定試験は両生成物とQt Core・Testだけへ接続し、製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は6工程・13入力であり、対象CTest単発と20回反復、最近傍
+  `KisPinnedSharedPtrTest`、製品共有ライブラリー非接続、パッケージ境界検査に成功した。失効弱参照は無効判定と変換ではnullを
+  返すが内部に古い生ポインターを保持するため、失効後の`isNull()`、比較、逆参照は実行していない。多重継承・無関係型変換、
+  不正参照数操作、並行失効、メモリー漏れ追跡有効構成、Linux、全ネイティブ検証は対象外である。
+
+- 第24並列便はundo命令補助36 API、形状アンカー33 API、変形マスクパラメーター接続面31 API、侵入型共有参照55 APIの
+  合計155 APIを固定した。各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、必要な製品への
+  1回再集約、公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,557件、未対応23,432件になった。
+
 ## 次の操作
 
-第24並列便の各担当は限定対象が未知で失敗する初回診断を記録し、必要な構築所有分離を先行して全public API契約を実装する。
-統合担当は`command-utils`を完成後にコミットし、引渡しを統合順に取り込んで中央台帳と完了記録を更新する。
+最新の未対応公開API報告から第25並列便の候補を監査する。各候補の全公開面を一つの観測可能な責務として固定できるか確認し、
+既存対象の命令・入力閉包と製品の直接CMake依存を測定して、必要な構築所有分離を先行する担当票を確定する。
 
 ## R1-G5完了根拠
 

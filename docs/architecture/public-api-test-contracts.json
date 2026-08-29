@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23587
+    "expectedMissingApis": 23432
   },
   "contracts": [
     {
@@ -18681,6 +18681,378 @@
         "method:KoZoomHandler::documentToView(const QSizeF & documentSize) const",
         "method:KoZoomHandler::viewToDocument(const QRectF & viewRect) const",
         "method:KoZoomHandler::viewToDocument(const QSizeF & viewSize) const"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::aggregatePopulatesOnceAndReplaysInUndoOrder",
+      "behavior": "遅延集約命令は初回再実行時だけ子命令を生成して正順に実行し、取消時は逆順、その後の再実行時は同じ子を正順に配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCommandUtils::AggregateCommand::AggregateCommand(KUndo2Command * parent=0)",
+        "method:KisCommandUtils::AggregateCommand::AggregateCommand(const KUndo2MagicString & text,KUndo2Command * parent=0)",
+        "method:KisCommandUtils::AggregateCommand::redo()",
+        "method:KisCommandUtils::AggregateCommand::undo()",
+        "struct:KisCommandUtils::AggregateCommand"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::lambdaConstructorsPopulateOnceAndReleaseFactories",
+      "behavior": "ラムダ命令の4構築入口は名称と親子関係を保持し、生成関数を初回再実行時だけ呼び、生成後は捕捉資源を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCommandUtils::LambdaCommand::LambdaCommand(KUndo2Command * parent,std::function<KUndo2Command * ()> createCommandFunc)",
+        "method:KisCommandUtils::LambdaCommand::LambdaCommand(const KUndo2MagicString & text,KUndo2Command * parent,std::function<KUndo2Command * ()> createCommandFunc)",
+        "method:KisCommandUtils::LambdaCommand::LambdaCommand(const KUndo2MagicString & text,std::function<KUndo2Command * ()> createCommandFunc)",
+        "method:KisCommandUtils::LambdaCommand::LambdaCommand(std::function<KUndo2Command * ()> createCommandFunc)",
+        "struct:KisCommandUtils::LambdaCommand"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::wrapperSkipsTheAlreadyAppliedFirstRedo",
+      "behavior": "初回再実行省略ラッパーは既に適用済みの子命令を最初の再実行では配送せず、取消と次の再実行を配送し、null子を安全な無名命令として扱う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCommandUtils::SkipFirstRedoWrapper::SkipFirstRedoWrapper(KUndo2Command * child=0,KUndo2Command * parent=0)",
+        "method:KisCommandUtils::SkipFirstRedoWrapper::redo()",
+        "method:KisCommandUtils::SkipFirstRedoWrapper::undo()",
+        "struct:KisCommandUtils::SkipFirstRedoWrapper"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::skipBaseControlsOneRedoAtATime",
+      "behavior": "初回再実行省略基底は構築値と後続設定に従って再実行実装を一度だけ省略し、取消は常に取消実装へ配送し、名称を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCommandUtils::SkipFirstRedoBase::SkipFirstRedoBase(bool skipFirstRedo,KUndo2Command * parent=0)",
+        "method:KisCommandUtils::SkipFirstRedoBase::SkipFirstRedoBase(bool skipFirstRedo,const KUndo2MagicString & text,KUndo2Command * parent=0)",
+        "method:KisCommandUtils::SkipFirstRedoBase::redo()",
+        "method:KisCommandUtils::SkipFirstRedoBase::setSkipOneRedo(bool value)",
+        "method:KisCommandUtils::SkipFirstRedoBase::undo()",
+        "struct:KisCommandUtils::SkipFirstRedoBase"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::flipFlopDispatchesByItsStableInitialState",
+      "behavior": "往復命令は初期化・終了処理の安定した2状態を保持し、初期状態に応じて再実行と取消を互いに反対の処理へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisCommandUtils::FlipFlopCommand::State",
+        "enumerator:KisCommandUtils::FlipFlopCommand::State::FINALIZING",
+        "enumerator:KisCommandUtils::FlipFlopCommand::State::INITIALIZING",
+        "method:KisCommandUtils::FlipFlopCommand::FlipFlopCommand(State initialState,KUndo2Command * parent=0)",
+        "method:KisCommandUtils::FlipFlopCommand::FlipFlopCommand(bool finalizing=false,KUndo2Command * parent=0)",
+        "method:KisCommandUtils::FlipFlopCommand::redo()",
+        "method:KisCommandUtils::FlipFlopCommand::undo()",
+        "struct:KisCommandUtils::FlipFlopCommand"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::compositeOwnsAndOrdersItsCommands",
+      "behavior": "複合命令は非null子命令を所有し、再実行を追加順、取消を逆順に配送し、破棄時に各子を一度だけ解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCommandUtils::CompositeCommand::CompositeCommand(KUndo2Command * parent=0)",
+        "method:KisCommandUtils::CompositeCommand::addCommand(KUndo2Command * cmd)",
+        "method:KisCommandUtils::CompositeCommand::redo()",
+        "method:KisCommandUtils::CompositeCommand::undo()",
+        "method:KisCommandUtils::CompositeCommand::~CompositeCommand()",
+        "struct:KisCommandUtils::CompositeCommand"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::compositionHandlesEmptySimpleAndExistingParents",
+      "behavior": "命令合成は空の親へ子を直接返し、単純な親と子を名称保持した複合命令へ包み、既存複合命令へ追記し、null子を診断して代替命令へ回復する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisCommandUtils::composeCommands(KUndo2Command * parent,KUndo2Command * cmd)"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::accumulationRedoesMergesAndOwnsCommands",
+      "behavior": "累積統合は受け取った命令を即時再実行し、最初の命令を所有し、後続命令を既存命令へ統合して一つの命令として取消・再実行する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisCommandUtils::redoAndMergeIntoAccumulatingCommand(KUndo2Command * cmd,std::unique_ptr<KUndo2Command> & accumulatingCommand)"
+      ]
+    },
+    {
+      "target": "KisCommandUtilsContractTest",
+      "source": "libs/painting/undo/tests/KisCommandUtilsContractTest.cpp",
+      "test": "KisCommandUtilsContractTest::failedAccumulationDropsUndoCoverageDefect",
+      "behavior": "累積統合が後続命令を拒否すると診断後に後続命令を破棄するため、既存累積命令の取消では拒否された変更が残る。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KisCommandUtils::redoAndMergeIntoAccumulatingCommand(KUndo2Command * cmd,std::unique_ptr<KUndo2Command> & accumulatingCommand)"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorContractTest.cpp",
+      "test": "KoShapeAnchorContractTest::constructionRetainsBorrowedShapeAndDefaultState",
+      "behavior": "形状アンカーは借用した形状ポインターを保持して構築時のアンカー状態を設定し、基底ポインター経由で派生型を仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeAnchor",
+        "method:KoShapeAnchor::KoShapeAnchor(KoShape * shape)",
+        "method:KoShapeAnchor::shape() const",
+        "method:KoShapeAnchor::~KoShapeAnchor()"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorContractTest.cpp",
+      "test": "KoShapeAnchorContractTest::anchorAndPositionStateRoundTrips",
+      "behavior": "アンカー種別と水平・垂直の位置および相対基準は設定値を保持し、文字内アンカーへの変更は水平状態をHLeftおよびHCharへ正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeAnchor::anchorType() const",
+        "method:KoShapeAnchor::horizontalPos() const",
+        "method:KoShapeAnchor::horizontalRel() const",
+        "method:KoShapeAnchor::setAnchorType(AnchorType type)",
+        "method:KoShapeAnchor::setHorizontalPos(HorizontalPos)",
+        "method:KoShapeAnchor::setHorizontalRel(HorizontalRel)",
+        "method:KoShapeAnchor::setVerticalPos(VerticalPos)",
+        "method:KoShapeAnchor::setVerticalRel(VerticalRel)",
+        "method:KoShapeAnchor::verticalPos() const",
+        "method:KoShapeAnchor::verticalRel() const"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorContractTest.cpp",
+      "test": "KoShapeAnchorContractTest::offsetKeepsReferenceBackedState",
+      "behavior": "アンカー位置差は設定値を保持し、後続更新後も同じ内部値へのconst参照を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeAnchor::offset() const",
+        "method:KoShapeAnchor::setOffset(const QPointF & offset)"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorContractTest.cpp",
+      "test": "KoShapeAnchorContractTest::textLocationIsBorrowedAndVirtuallyDispatched",
+      "behavior": "テキスト位置は非所有ポインターとして保持され、文書と位置の問い合わせを派生実装へ仮想配送し、アンカー破棄後も呼出し側の所有期間を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeAnchor::TextLocation",
+        "method:KoShapeAnchor::TextLocation::TextLocation()",
+        "method:KoShapeAnchor::TextLocation::document() const",
+        "method:KoShapeAnchor::TextLocation::position() const",
+        "method:KoShapeAnchor::TextLocation::~TextLocation()",
+        "method:KoShapeAnchor::setTextLocation(TextLocation * textLocation)",
+        "method:KoShapeAnchor::textLocation() const"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorContractTest.cpp",
+      "test": "KoShapeAnchorContractTest::placementStrategyIsOwnedAndVirtuallyDispatched",
+      "behavior": "配置戦略は仮想操作を派生実装へ配送し、同一ポインター再設定では保持され、交換、null設定、アンカー破棄で現在の戦略だけを一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeAnchor::PlacementStrategy",
+        "method:KoShapeAnchor::PlacementStrategy::PlacementStrategy()",
+        "method:KoShapeAnchor::PlacementStrategy::detachFromModel()",
+        "method:KoShapeAnchor::PlacementStrategy::updateContainerModel()",
+        "method:KoShapeAnchor::PlacementStrategy::~PlacementStrategy()",
+        "method:KoShapeAnchor::placementStrategy() const",
+        "method:KoShapeAnchor::setPlacementStrategy(PlacementStrategy * placementStrategy)"
+      ]
+    },
+    {
+      "target": "KoShapeAnchorContractTest",
+      "source": "libs/flake/tests/KoShapeAnchorContractTest.cpp",
+      "test": "KoShapeAnchorContractTest::getterOnlyLayoutMetadataRemainsAtLegacyDefaults",
+      "behavior": "公開更新経路のない配置影響、テキスト追従、ページ番号は他の公開状態を変更しても空文字列、true、-1の構築時値から変化しない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoShapeAnchor::flowWithText() const",
+        "method:KoShapeAnchor::pageNumber() const",
+        "method:KoShapeAnchor::wrapInfluenceOnPosition() const"
+      ]
+    },
+    {
+      "target": "KisTransformMaskParamsInterfaceContractTest",
+      "source": "libs/image/tests/KisTransformMaskParamsInterfaceContractTest.cpp",
+      "test": "KisTransformMaskParamsInterfaceContractTest::aliasesAndBaseOwnershipArePreserved",
+      "behavior": "変形パラメーターとアニメーション保持接続面の強参照・弱参照別名は対象基底型を維持し、基底所有から派生実装を破棄すると各仮想デストラクターを実行する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAnimatedTransformParamsHolderInterfaceSP",
+        "alias:KisAnimatedTransformParamsHolderInterfaceWSP",
+        "alias:KisTransformMaskParamsInterfaceSP",
+        "alias:KisTransformMaskParamsInterfaceWSP",
+        "class:KisAnimatedTransformParamsHolderInterface",
+        "class:KisTransformMaskParamsInterface",
+        "method:KisAnimatedTransformParamsHolderInterface::~KisAnimatedTransformParamsHolderInterface()",
+        "method:KisTransformMaskParamsInterface::~KisTransformMaskParamsInterface()"
+      ]
+    },
+    {
+      "target": "KisTransformMaskParamsInterfaceContractTest",
+      "source": "libs/image/tests/KisTransformMaskParamsInterfaceContractTest.cpp",
+      "test": "KisTransformMaskParamsInterfaceContractTest::transformStateAndValuesAreDispatched",
+      "behavior": "変形パラメーター基底接続面は最終アフィン行列、アフィン判定、表示抑止状態、識別子を派生実装から返し、表示抑止値を派生実装へ正確に配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMaskParamsInterface::finalAffineTransform() const",
+        "method:KisTransformMaskParamsInterface::id() const",
+        "method:KisTransformMaskParamsInterface::isAffine() const",
+        "method:KisTransformMaskParamsInterface::isHidden() const",
+        "method:KisTransformMaskParamsInterface::setHidden(bool value)"
+      ]
+    },
+    {
+      "target": "KisTransformMaskParamsInterfaceContractTest",
+      "source": "libs/image/tests/KisTransformMaskParamsInterfaceContractTest.cpp",
+      "test": "KisTransformMaskParamsInterfaceContractTest::transformOperationsPreserveArgumentsAndResults",
+      "behavior": "変形パラメーター基底接続面はノード、入出力装置、サブピクセル指定、XML要素、移動量、変形行列、変更・必要矩形と元範囲、比較対象を派生実装へ配送し、矩形・比較・複製結果を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransformMaskParamsInterface::clone() const",
+        "method:KisTransformMaskParamsInterface::compareTransform(KisTransformMaskParamsInterfaceSP rhs) const",
+        "method:KisTransformMaskParamsInterface::nonAffineChangeRect(const QRect & rc)",
+        "method:KisTransformMaskParamsInterface::nonAffineNeedRect(const QRect & rc,const QRect & srcBounds)",
+        "method:KisTransformMaskParamsInterface::toXML(QDomElement * e) const",
+        "method:KisTransformMaskParamsInterface::transformDevice(KisNodeSP node,KisPaintDeviceSP src,KisPaintDeviceSP dst,bool forceSubPixelTranslation) const",
+        "method:KisTransformMaskParamsInterface::transformSrcAndDst(const QTransform & t)",
+        "method:KisTransformMaskParamsInterface::translateDstSpace(const QPointF & offset)",
+        "method:KisTransformMaskParamsInterface::translateSrcAndDst(const QPointF & offset)"
+      ]
+    },
+    {
+      "target": "KisTransformMaskParamsInterfaceContractTest",
+      "source": "libs/image/tests/KisTransformMaskParamsInterfaceContractTest.cpp",
+      "test": "KisTransformMaskParamsInterfaceContractTest::animatedHolderPreservesArgumentsResultsAndBounds",
+      "behavior": "アニメーション保持接続面は状態、キーフレーム識別子と借用結果、焼込み・複製結果、現在位置のパラメーターと親命令を配送し、非null既定境界を保持して返し、LODキャッシュ同期を呼出し回数どおり委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimatedTransformParamsHolderInterface::bakeIntoParams() const",
+        "method:KisAnimatedTransformParamsHolderInterface::clone() const",
+        "method:KisAnimatedTransformParamsHolderInterface::defaultBounds() const",
+        "method:KisAnimatedTransformParamsHolderInterface::getKeyframeChannel(const QString & id) const",
+        "method:KisAnimatedTransformParamsHolderInterface::isAnimated() const",
+        "method:KisAnimatedTransformParamsHolderInterface::requestKeyframeChannel(const QString & id)",
+        "method:KisAnimatedTransformParamsHolderInterface::setDefaultBounds(KisDefaultBoundsBaseSP bounds)",
+        "method:KisAnimatedTransformParamsHolderInterface::setParamsAtCurrentPosition(const KisTransformMaskParamsInterface * params,KUndo2Command * parentCommand)",
+        "method:KisAnimatedTransformParamsHolderInterface::syncLodCache()"
+      ]
+    },
+    {
+      "target": "KisSharedPtrContractTest",
+      "source": "libs/global/tests/KisSharedPtrContractTest.cpp",
+      "test": "KisSharedPtrContractTest::typeAliasesAndNullState",
+      "behavior": "強参照・弱参照の公開型別名は格納型と対応する弱参照型を表し、既定構築した両参照はnullを保持して生ポインター変換でもnullを返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSharedPtr::element_type",
+        "alias:KisSharedPtr::weak_type",
+        "alias:KisWeakSharedPtr::element_type",
+        "class:KisSharedPtr",
+        "class:KisWeakSharedPtr",
+        "method:KisSharedPtr::KisSharedPtr()",
+        "method:KisSharedPtr::isNull() const",
+        "method:KisSharedPtr::operator const T*() const",
+        "method:KisWeakSharedPtr::KisWeakSharedPtr()",
+        "method:KisWeakSharedPtr::isNull() const"
+      ]
+    },
+    {
+      "target": "KisSharedPtrContractTest",
+      "source": "libs/global/tests/KisSharedPtrContractTest.cpp",
+      "test": "KisSharedPtrContractTest::referenceHooksControlLifetime",
+      "behavior": "自由関数と強参照の公開静的参照操作は侵入型参照数を一つずつ増減し、残存参照の有無を返して最後の解放時だけ個体を破棄し、null操作を安全に完了する。",
+      "classification": "maintained",
+      "apis": [
+        "function:kisSharedPtrAddReference(T * pointer)",
+        "function:kisSharedPtrRelease(T * pointer)",
+        "method:KisSharedPtr::deref(const KisSharedPtr<T> * sp,T * t)",
+        "method:KisSharedPtr::ref(const KisSharedPtr<T> * sp,T * t)"
+      ]
+    },
+    {
+      "target": "KisSharedPtrContractTest",
+      "source": "libs/global/tests/KisSharedPtrContractTest.cpp",
+      "test": "KisSharedPtrContractTest::strongPointersShareAccessAndAssignment",
+      "behavior": "強参照は生ポインター、コピー、代入、取付けで同じ侵入型参照数を共有し、const・非constアクセスと比較で同一個体を返し、消去と各デストラクターが参照を解放して各個体を一度だけ破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSharedPtr::KisSharedPtr(T * p)",
+        "method:KisSharedPtr::KisSharedPtr(const KisSharedPtr<T> & o)",
+        "method:KisSharedPtr::attach(T * p)",
+        "method:KisSharedPtr::clear()",
+        "method:KisSharedPtr::constData() const",
+        "method:KisSharedPtr::data()",
+        "method:KisSharedPtr::data() const",
+        "method:KisSharedPtr::operator !=(const KisSharedPtr & o) const",
+        "method:KisSharedPtr::operator !=(const T * p) const",
+        "method:KisSharedPtr::operator *()",
+        "method:KisSharedPtr::operator *() const",
+        "method:KisSharedPtr::operator ->()",
+        "method:KisSharedPtr::operator ->() const",
+        "method:KisSharedPtr::operator =(T * p)",
+        "method:KisSharedPtr::operator =(const KisSharedPtr & o)",
+        "method:KisSharedPtr::operator ==(const KisSharedPtr & o) const",
+        "method:KisSharedPtr::operator ==(const T * p) const",
+        "method:KisSharedPtr::~KisSharedPtr()"
+      ]
+    },
+    {
+      "target": "KisSharedPtrContractTest",
+      "source": "libs/global/tests/KisSharedPtrContractTest.cpp",
+      "test": "KisSharedPtrContractTest::strongAndWeakConversionsPreserveIdentity",
+      "behavior": "生存中個体からの生・強参照・弱参照コピー構築と単純継承の派生型から基底型への強弱変換は、同じ個体と参照制御情報を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSharedPtr::operator KisSharedPtr<T2>() const",
+        "method:KisWeakSharedPtr::KisWeakSharedPtr(T * p)",
+        "method:KisWeakSharedPtr::KisWeakSharedPtr(const KisSharedPtr<T> & o)",
+        "method:KisWeakSharedPtr::KisWeakSharedPtr(const KisWeakSharedPtr<T> & o)",
+        "method:KisWeakSharedPtr::operator KisWeakSharedPtr<T2>() const"
+      ]
+    },
+    {
+      "target": "KisSharedPtrContractTest",
+      "source": "libs/global/tests/KisSharedPtrContractTest.cpp",
+      "test": "KisSharedPtrContractTest::weakPointersObserveLiveAndExpiredObjects",
+      "behavior": "弱参照は強参照の寿命中だけconst・非constアクセス、比較、代入、昇格で同一個体を返し、最後の強参照解放後は無効となって生変換、弱参照からの強参照構築、強参照化がnullを返し、個体を延命しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSharedPtr::KisSharedPtr(const KisWeakSharedPtr<T> & o)",
+        "method:KisWeakSharedPtr::constData() const",
+        "method:KisWeakSharedPtr::data()",
+        "method:KisWeakSharedPtr::data() const",
+        "method:KisWeakSharedPtr::isValid() const",
+        "method:KisWeakSharedPtr::operator !=(const KisWeakSharedPtr & o) const",
+        "method:KisWeakSharedPtr::operator !=(const T * p) const",
+        "method:KisWeakSharedPtr::operator *()",
+        "method:KisWeakSharedPtr::operator *() const",
+        "method:KisWeakSharedPtr::operator ->()",
+        "method:KisWeakSharedPtr::operator ->() const",
+        "method:KisWeakSharedPtr::operator =(T * p)",
+        "method:KisWeakSharedPtr::operator =(const KisWeakSharedPtr & o)",
+        "method:KisWeakSharedPtr::operator ==(const KisWeakSharedPtr & o) const",
+        "method:KisWeakSharedPtr::operator ==(const T * p) const",
+        "method:KisWeakSharedPtr::operator const T*() const",
+        "method:KisWeakSharedPtr::toStrongRef() const",
+        "method:KisWeakSharedPtr::~KisWeakSharedPtr()"
       ]
     }
   ]
