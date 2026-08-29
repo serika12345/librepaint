@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24962
+    "expectedMissingApis": 24958
   },
   "contracts": [
     {
@@ -13896,6 +13896,37 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::toggleIsolateActiveNode()"
+      ]
+    },
+    {
+      "target": "KisSpontaneousJobContractTest",
+      "source": "libs/image/tests/KisSpontaneousJobContractTest.cpp",
+      "test": "KisSpontaneousJobContractTest::runsThroughTheNamedJobBoundary",
+      "behavior": "具象化した自発ジョブを名前付き実行境界から実行してデバッグ名と実行回数を取得でき、新規ジョブは非排他状態で開始する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpontaneousJob"
+      ]
+    },
+    {
+      "target": "KisSpontaneousJobContractTest",
+      "source": "libs/image/tests/KisSpontaneousJobContractTest.cpp",
+      "test": "KisSpontaneousJobContractTest::protectedSetterControlsExclusiveState",
+      "behavior": "自発ジョブは既定で非排他となり、派生型が保護設定面から有効化または無効化した排他状態を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpontaneousJob::isExclusive() const"
+      ]
+    },
+    {
+      "target": "KisSpontaneousJobContractTest",
+      "source": "libs/image/tests/KisSpontaneousJobContractTest.cpp",
+      "test": "KisSpontaneousJobContractTest::dispatchesOverrideAndLodPolicies",
+      "behavior": "自発ジョブ境界は比較対象に応じた置換判断と具象ジョブの詳細度を基本型経由で配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpontaneousJob::levelOfDetail() const",
+        "method:KisSpontaneousJob::overrides(const KisSpontaneousJob * otherJob)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:01 JST
+- 更新日時: 2026-08-29 15:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,7 +19,7 @@
 - 実装担当`global-transform-components`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/global/KisTransformComponents.h`と関連する代数実装、Global CMake、新規限定試験を
   所有し、変換成分の12 APIを対象とする。
-- 実装担当`image-spontaneous-job`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`image-spontaneous-job`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/image/kis_spontaneous_job.h`と新規限定試験を所有し、自発ジョブの4 APIを対象とする。
 - 実装担当`flake-utils`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。`libs/flake/KoFlakeUtils.h`と新規限定試験を所有し、形状属性比較とstroke変更の3 APIを
@@ -7802,9 +7802,21 @@
   残り、後続の小所有分離候補とする。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 自発ジョブ方針の全public API契約で完了した作業
+
+- `libs/image/kis_spontaneous_job.h`の実装と公開面を維持したまま、新規
+  `libs/image/tests/KisSpontaneousJobContractTest.cpp`をQt Testだけに接続した。既存`kis_simple_update_queue_test`は
+  1,080工程・2,183入力で製品群へ直結する一方、新契約は4工程・8入力で製品`kritaimage`へリンクしない。
+- 自発ジョブの型、排他状態、置換判断、詳細度の全4 APIを3試験へ対応付けた。名前付き実行境界からの実行とデバッグ名、
+  既定の非排他状態と保護設定面による切替、比較対象別の置換判断、基本型経由の詳細度配送を固定した。新対象追加前の構築は
+  対象不存在を赤診断とした。
+- 統合担当のmacOS構築木で対象を構築し、対象CTestの単発実行と20回反復、1,130対象のパッケージ境界検査、公開API契約検査、
+  高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,031件、未対応24,958件になった。各製品具象ジョブの
+  個別置換方針は別契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-ノード模型データ設定契約をコミットし、第4並列便を一件ずつ統合して対象CTest、公開API契約検査、高速検査を再実行する。
+第4並列便のFlake形状補助契約を統合し、変換成分担当の完了後に対象CTest、公開API契約検査、高速検査を再実行する。
 
 ## R1-G5完了根拠
 
