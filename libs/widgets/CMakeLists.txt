@@ -2,6 +2,21 @@ add_subdirectory( tests )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_library(kritawidgetsvboxobjects OBJECT
+    KoVBox.cpp
+)
+target_compile_definitions(kritawidgetsvboxobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsvboxobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsvboxobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsvboxobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetstitledtabobjects OBJECT
     KoTitledTabWidget.cpp
 )
@@ -132,7 +147,6 @@ target_link_libraries(kritawidgetslevelssliderobjects
 set_target_properties(kritawidgetslevelssliderobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set(kritawidgets_LIB_SRCS
-    KoVBox.cpp
     KoDialog.cpp
     KoZoomWidget.cpp
     KoAspectButton.cpp
@@ -237,6 +251,7 @@ set_target_properties(kritawidgetsdebugobjects PROPERTIES
 
 kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
+    $<TARGET_OBJECTS:kritawidgetsvboxobjects>
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
     $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
     $<TARGET_OBJECTS:kritawidgetstitledtabobjects>

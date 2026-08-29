@@ -34,6 +34,15 @@ kis_add_test(
 target_compile_definitions(KoTitledTabWidgetContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KoVBoxContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetsvboxobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KoVBoxContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KisWarningBlockContractTest.cpp
     LINK_LIBRARIES
         kritawidgetswarningblockobjects
