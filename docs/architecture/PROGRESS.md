@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 08:08 JST
+- 更新日時: 2026-08-30 08:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,36 +11,9 @@
 
 ### 現在の並列担当票
 
-- 第34並列便の共通基準コミットは`8f30845164`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g34-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`repaint-debugger`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/widgetutils/KisRepaintDebugger.cpp`、WidgetUtils製品・試験CMake、新規`KisRepaintDebuggerContractTest.cpp`を所有する。開始ファイルを
-  製品`kritawidgetutils`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。未使用I18n・Widgets依存を除き、
-  製品の250工程・533入力に代えて6工程・14入力以内で、有効化、矩形・矩形列・paint event・全面塗装、色周期、値寿命の全8 APIを固定する。
-- 実装担当`shape-keep-aspect-ratio`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2で
-  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-shape-keep-aspect-ratio`で
-  `libs/flake/commands/KoShapeKeepAspectRatioCommand.cpp`、Flake製品・試験CMake、新規`KoShapeKeepAspectRatioCommandContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。試験時限定の非公開shape
-  accessを使い、製品の569工程・1,170入力に代えて6工程・14入力以内で、複数shapeの個別元値、redo・undo・再redo、親命令、借用寿命の
-  全5 APIを固定する。
-- 実装担当`per-stroke-random-source`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
-  3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-per-stroke-random-source`で
-  `libs/image/brushengine/KisPerStrokeRandomSource.cpp`、Image製品・試験CMake、新規`KisPerStrokeRandomSourceContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存Global共有生成物を
-  再利用し、製品の1,117工程・2,258入力に代えて7工程・15入力以内で、keyごとの決定値、整数・正規化範囲、複製状態、強・弱参照寿命の
-  全8 APIを固定する。
-- 実装担当`dock-title-bar-button`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4で
-  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g34-dock-title-bar-button`で
-  `libs/widgets/KoDockWidgetTitleBarButton.cpp`、Widgets製品・試験CMake、新規`KoDockWidgetTitleBarButtonContractTest.cpp`を所有する。
-  開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約し、未使用debug依存を除く。
-  製品の742工程・1,513入力に代えて8工程・16入力以内で、親所有、focus方針、仮想寿命、iconなし寸法、固定style metricによる寸法の全5 APIを
-  固定する。
-- 第34並列便の完了時は合計26 APIを追加し、公開面の対応済み7,168件、未対応22,821件を見込む。各担当は限定対象の単発・20回反復、
-  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- `KisActionsSnapshot`は実action registryとcollectionの未分離実装、interstroke transaction factoryは実paint deviceを要するため、第34並列便
-  から除外した。実責務の所有を小生成物へ分離できる段階で再評価する。
-- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
-  挙動を発見した時点で`blocked`として引き渡す。
+- 第34並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
+- 次は第35並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
+  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
 
 ## 再開環境
 
@@ -9722,10 +9695,66 @@
   統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を再実行した。公開面は
   1,549ヘッダー、29,989 API、対応済み7,142件、未対応22,847件になった。
 
+## R2-G19b 再描画診断塗装の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KisRepaintDebugger.h`の全8 APIを、新規
+  `libs/widgetutils/tests/KisRepaintDebuggerContractTest.cpp`の5試験へ対応付けた。環境変数値1による全体有効化、値寿命、単一矩形・矩形列・
+  paint eventの更新領域、paint device全面、領域外画素の維持、不透明度63の6色周期を固定した。
+- 開始ファイル`libs/widgetutils/KisRepaintDebugger.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の
+  `kritawidgetutils_LIB_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritawidgetutilsrepaintdebuggerobjects`へ移し、製品
+  `kritawidgetutils`は同生成物を1回だけ再集約する。未使用I18n・Widgets依存を除き、限定試験は同生成物とQt Gui・Testだけへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力で、製品の250工程・533入力から縮小した。対象CTest
+  単発と20回反復、最近傍`KoCheckerBoardPainterContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。無効化値、最初の照会後の環境変更、null device・event、装置画素比、並行呼出し、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 図形縦横比保持命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/commands/KoShapeKeepAspectRatioCommand.h`の全5 APIを、新規
+  `libs/flake/tests/KoShapeKeepAspectRatioCommandContractTest.cpp`の2試験へ対応付けた。重複を含む複数shapeの構築時元値、入力順の配送、
+  redo・undo・再redo、同一値、空一覧、親命令と操作名、shape借用所有、基底からの仮想寿命を固定した。
+- 開始ファイル`libs/flake/commands/KoShapeKeepAspectRatioCommand.cpp`の構築所有を`libs/flake/CMakeLists.txt`の
+  `kritaflake_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritaflakeshapekeepaspectratiocommandobjects`へ移し、製品`kritaflake`は同生成物を
+  1回だけ再集約する。図形名変更命令と同じ試験時限定の非公開shape accessを実装内に設け、製品時は従来の図形APIへ配送する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。主作業木の限定対象は5工程・12入力で、製品の569工程・1,170入力から縮小した。
+  対象CTest単発と担当作業木の20回反復、最近傍`KoShapeRenameCommandContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査、`verify-quick`に成功した。null shape、命令より先の借用shape破棄、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b ストローク単位乱数源の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/brushengine/KisPerStrokeRandomSource.h`の全8 APIを、新規
+  `libs/image/tests/KisPerStrokeRandomSourceContractTest.cpp`の3試験へ対応付けた。同一keyの決定値、整数半開区間と正規化範囲、照会済みと
+  未照会keyを含む複製状態、強・弱参照別名による共有と破棄寿命を固定した。
+- 開始ファイル`libs/image/brushengine/KisPerStrokeRandomSource.cpp`の構築所有を`libs/image/CMakeLists.txt`の
+  `kritaimage_LIB_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritaimageperstrokerandomsourceobjects`へ移し、製品`kritaimage`は同生成物を
+  1回だけ再集約する。限定試験は同生成物、既存`kritaglobalsharedobjects`、Boost、Qt Core・Testへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は6工程・13入力で、従来の製品接続試験1,121工程・2,265入力から縮小した。
+  対象CTest単発と担当作業木の20回反復、最近傍`KisSharedTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。逆転・空整数範囲、減算overflow、異なるkey間の値関係、具体seed、並行利用、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b dock表題button寸法の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KoDockWidgetTitleBarButton.h`の全5 APIを、新規
+  `libs/widgets/tests/KoDockWidgetTitleBarButtonContractTest.cpp`の4試験へ対応付けた。親所有、NoFocus方針、基底からの仮想寿命、iconなしの
+  18x18寸法、固定style metricとmarginによる寸法、style切替時の再計算を固定した。small-icon metricが同じままmarginまたはiconだけを
+  変更すると寸法cacheが残る現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/widgets/KoDockWidgetTitleBarButton.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の
+  `kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応`kritawidgetsdocktitlebarbuttonobjects`へ移し、製品`kritawidgets`は同生成物を
+  1回だけ再集約する。未使用debug依存を除き、限定試験は同生成物とQt Widgets・Testだけへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で、製品の742工程・1,513入力から縮小した。対象CTest
+  単発と担当作業木の20回反復、最近傍`KisColorLabelButtonContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。OS実styleの絶対値、非標準icon engine、高画素密度固有pixmap、保護描画事象、Qt 5、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+- 第34並列便は再描画診断8 API、図形縦横比保持命令5 API、ストローク単位乱数源8 API、dock表題button 5 APIの合計26 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,168件、未対応22,821件になった。
+
 ## 次の操作
 
-第34並列便の4担当は、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認する。許可パス内だけで
-最小契約を追加し、単発・20回反復・軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡す。
+第35並列便の候補を公開API未対応列から選び、各候補の製品と最近傍試験の依存閉包を編集前に測定する。限定対象の停止上限、直接依存、
+所有パス、統合順を担当票へ固定し、必要な構築所有分離を挙動契約より先に行う。
 
 ## R1-G5完了根拠
 

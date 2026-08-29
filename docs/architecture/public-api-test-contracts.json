@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22847
+    "expectedMissingApis": 22821
   },
   "contracts": [
     {
@@ -21103,6 +21103,163 @@
       "apis": [
         "method:KoVBox::minimumSizeHint() const",
         "method:KoVBox::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisRepaintDebuggerContractTest",
+      "source": "libs/widgetutils/tests/KisRepaintDebuggerContractTest.cpp",
+      "test": "KisRepaintDebuggerContractTest::enabledStateAndValueLifetime",
+      "behavior": "環境変数KRITA_DEBUG_REPAINTの値1は再描画診断を全体で有効化し、診断個体は既定構築と値としての破棄ができる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRepaintDebugger",
+        "method:KisRepaintDebugger::KisRepaintDebugger()",
+        "method:KisRepaintDebugger::enabled()",
+        "method:KisRepaintDebugger::~KisRepaintDebugger()"
+      ]
+    },
+    {
+      "target": "KisRepaintDebuggerContractTest",
+      "source": "libs/widgetutils/tests/KisRepaintDebuggerContractTest.cpp",
+      "test": "KisRepaintDebuggerContractTest::rectangleOverloadsPaintOnlyRequestedAreas",
+      "behavior": "単一矩形と矩形列の描画入口は指定領域だけを現在の半透明色で塗り、矩形列の全領域へ同じ色を適用して領域外を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRepaintDebugger::paint(QPaintDevice * paintDevice,const QRect & widgetRect)",
+        "method:KisRepaintDebugger::paint(QPaintDevice * paintDevice,const QVector<QRect> & widgetRects)"
+      ]
+    },
+    {
+      "target": "KisRepaintDebuggerContractTest",
+      "source": "libs/widgetutils/tests/KisRepaintDebuggerContractTest.cpp",
+      "test": "KisRepaintDebuggerContractTest::paintEventUsesItsUpdateRectangle",
+      "behavior": "paint eventの描画入口は事象の更新矩形だけを塗り、矩形外の画素を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRepaintDebugger::paint(QPaintDevice * paintDevice,const QPaintEvent * event)"
+      ]
+    },
+    {
+      "target": "KisRepaintDebuggerContractTest",
+      "source": "libs/widgetutils/tests/KisRepaintDebuggerContractTest.cpp",
+      "test": "KisRepaintDebuggerContractTest::paintFullCoversTheDevice",
+      "behavior": "全面描画入口はpaint deviceの四隅を含む全領域を現在の診断色で覆う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRepaintDebugger::paintFull(QPaintDevice * paintDevice)"
+      ]
+    },
+    {
+      "target": "KisRepaintDebuggerContractTest",
+      "source": "libs/widgetutils/tests/KisRepaintDebuggerContractTest.cpp",
+      "test": "KisRepaintDebuggerContractTest::colorsRepeatAfterSixPaintOperations",
+      "behavior": "診断色は不透明度63の異なる色を描画操作ごとに進め、6回で同じ色へ循環する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRepaintDebugger::paintFull(QPaintDevice * paintDevice)"
+      ]
+    },
+    {
+      "target": "KoShapeKeepAspectRatioCommandContractTest",
+      "source": "libs/flake/tests/KoShapeKeepAspectRatioCommandContractTest.cpp",
+      "test": "KoShapeKeepAspectRatioCommandContractTest::preservesPerShapeValues",
+      "behavior": "縦横比保持命令は重複を含む複数shapeの個別元値を構築時に入力順で保存し、親命令とKeep Aspect Ratioの操作名を基底へ渡す。redoは基底処理後に指定値を入力順で書き、undoは図形ごとの元値、再redoは指定値へ戻す。同一値もsetterへ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeKeepAspectRatioCommand",
+        "method:KoShapeKeepAspectRatioCommand::KoShapeKeepAspectRatioCommand(const QList<KoShape * > & shapes,bool newKeepAspectRatio,KUndo2Command * parent=0)",
+        "method:KoShapeKeepAspectRatioCommand::redo()",
+        "method:KoShapeKeepAspectRatioCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeKeepAspectRatioCommandContractTest",
+      "source": "libs/flake/tests/KoShapeKeepAspectRatioCommandContractTest.cpp",
+      "test": "KoShapeKeepAspectRatioCommandContractTest::keepsBorrowedShapesAndVirtualLifetime",
+      "behavior": "縦横比保持命令はshapeを借用し、基底ポインターから破棄してもshape状態を変更・所有破棄せず、派生から基底までの仮想破棄連鎖を一度実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeKeepAspectRatioCommand::~KoShapeKeepAspectRatioCommand()"
+      ]
+    },
+    {
+      "target": "KisPerStrokeRandomSourceContractTest",
+      "source": "libs/image/tests/KisPerStrokeRandomSourceContractTest.cpp",
+      "test": "KisPerStrokeRandomSourceContractTest::sameKeyIsStableAndValuesStayInRequestedRanges",
+      "behavior": "ストローク単位乱数源は同一キーへ同一値を返し、整数生成値を指定した半開区間内、正規化値を0以上1以下に保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPerStrokeRandomSource",
+        "method:KisPerStrokeRandomSource::KisPerStrokeRandomSource()",
+        "method:KisPerStrokeRandomSource::generate(const QString & key,int min,int max) const",
+        "method:KisPerStrokeRandomSource::generateNormalized(const QString & key) const"
+      ]
+    },
+    {
+      "target": "KisPerStrokeRandomSourceContractTest",
+      "source": "libs/image/tests/KisPerStrokeRandomSourceContractTest.cpp",
+      "test": "KisPerStrokeRandomSourceContractTest::copyPreservesCachedAndFutureKeyValues",
+      "behavior": "複製した乱数源は複製前に照会済みのキーと複製後に初めて照会するキーの双方について元の乱数源と同じ値を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPerStrokeRandomSource::KisPerStrokeRandomSource(const KisPerStrokeRandomSource & rhs)"
+      ]
+    },
+    {
+      "target": "KisPerStrokeRandomSourceContractTest",
+      "source": "libs/image/tests/KisPerStrokeRandomSourceContractTest.cpp",
+      "test": "KisPerStrokeRandomSourceContractTest::strongAndWeakAliasesShareAndReleaseLifetime",
+      "behavior": "強参照別名は同一の乱数源を共有し、弱参照別名は最後の強参照による実体破棄後に無効となる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisPerStrokeRandomSourceSP",
+        "alias:KisPerStrokeRandomSourceWSP",
+        "method:KisPerStrokeRandomSource::~KisPerStrokeRandomSource()"
+      ]
+    },
+    {
+      "target": "KoDockWidgetTitleBarButtonContractTest",
+      "source": "libs/widgets/tests/KoDockWidgetTitleBarButtonContractTest.cpp",
+      "test": "KoDockWidgetTitleBarButtonContractTest::followsParentOwnershipAndHasVirtualLifetime",
+      "behavior": "dock title bar buttonは指定親に所有され、初期focus policyをNoFocusに設定し、親またはQAbstractButton基底経由の破棄で仮想破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDockWidgetTitleBarButton",
+        "method:KoDockWidgetTitleBarButton::KoDockWidgetTitleBarButton(QWidget * parent=0)",
+        "method:KoDockWidgetTitleBarButton::~KoDockWidgetTitleBarButton()"
+      ]
+    },
+    {
+      "target": "KoDockWidgetTitleBarButtonContractTest",
+      "source": "libs/widgets/tests/KoDockWidgetTitleBarButtonContractTest.cpp",
+      "test": "KoDockWidgetTitleBarButtonContractTest::iconlessHintsRemainFixedAndEqual",
+      "behavior": "iconを持たないdock title bar buttonは推奨寸法を18x18に固定し、最小推奨寸法を同じ値として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDockWidgetTitleBarButton::minimumSizeHint() const",
+        "method:KoDockWidgetTitleBarButton::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KoDockWidgetTitleBarButtonContractTest",
+      "source": "libs/widgets/tests/KoDockWidgetTitleBarButtonContractTest.cpp",
+      "test": "KoDockWidgetTitleBarButtonContractTest::iconHintsFollowDeterministicStyleMetrics",
+      "behavior": "iconを持つ場合の推奨寸法はstyleのsmall-icon寸法で取得したpixmapにdock-button marginを加え、small-icon metricが変わるstyle切替後に再計算され、最小推奨寸法も一致する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDockWidgetTitleBarButton::minimumSizeHint() const",
+        "method:KoDockWidgetTitleBarButton::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KoDockWidgetTitleBarButtonContractTest",
+      "source": "libs/widgets/tests/KoDockWidgetTitleBarButtonContractTest.cpp",
+      "test": "KoDockWidgetTitleBarButtonContractTest::marginAndIconOnlyChangesRetainTheCachedHint",
+      "behavior": "small-icon metricが同じままstyle marginまたはicon内容だけを変更すると、推奨寸法と最小推奨寸法は変更前のキャッシュ値を保持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoDockWidgetTitleBarButton::minimumSizeHint() const",
+        "method:KoDockWidgetTitleBarButton::sizeHint() const"
       ]
     }
   ]
