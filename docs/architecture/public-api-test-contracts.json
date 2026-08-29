@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24386
+    "expectedMissingApis": 24353
   },
   "contracts": [
     {
@@ -16108,6 +16108,84 @@
       "classification": "maintained",
       "apis": [
         "method:KisTileDataBuffer::~KisTileDataBuffer()"
+      ]
+    },
+    {
+      "target": "KisLevelsCurveContractTest",
+      "source": "libs/image/tests/KisLevelsCurveContractTest.cpp",
+      "test": "KisLevelsCurveContractTest::defaultsAndParameterizedCurveEvaluateLevels",
+      "behavior": "既定値と既定構築は恒等写像を形成し、明示した入力・出力点とガンマは範囲外を出力端点へ固定しつつ範囲内を正規化したべき乗曲線として評価する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLevelsCurve",
+        "method:KisLevelsCurve::KisLevelsCurve()",
+        "method:KisLevelsCurve::KisLevelsCurve(qreal inputBlackPoint,qreal inputWhitePoint,qreal inputGamma,qreal outputBlackPoint,qreal outputWhitePoint)",
+        "method:KisLevelsCurve::defaultInputBlackPoint()",
+        "method:KisLevelsCurve::defaultInputGamma()",
+        "method:KisLevelsCurve::defaultInputWhitePoint()",
+        "method:KisLevelsCurve::defaultOutputBlackPoint()",
+        "method:KisLevelsCurve::defaultOutputWhitePoint()",
+        "method:KisLevelsCurve::inputBlackPoint() const",
+        "method:KisLevelsCurve::inputGamma() const",
+        "method:KisLevelsCurve::inputWhitePoint() const",
+        "method:KisLevelsCurve::isIdentity() const",
+        "method:KisLevelsCurve::outputBlackPoint() const",
+        "method:KisLevelsCurve::outputWhitePoint() const",
+        "method:KisLevelsCurve::value(qreal x) const"
+      ]
+    },
+    {
+      "target": "KisLevelsCurveContractTest",
+      "source": "libs/image/tests/KisLevelsCurveContractTest.cpp",
+      "test": "KisLevelsCurveContractTest::settersAndResetsUpdateOnlyTheirLevelGroups",
+      "behavior": "各設定操作は対応するレベル値と転送表を更新し、入力・出力の個別初期化は他方を保ち、全初期化は既定の恒等写像と転送表へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLevelsCurve::resetAll()",
+        "method:KisLevelsCurve::resetInputLevels()",
+        "method:KisLevelsCurve::resetOutputLevels()",
+        "method:KisLevelsCurve::setInputBlackPoint(qreal newInputBlackPoint)",
+        "method:KisLevelsCurve::setInputGamma(qreal newInputGamma)",
+        "method:KisLevelsCurve::setInputWhitePoint(qreal newInputWhitePoint)",
+        "method:KisLevelsCurve::setOutputBlackPoint(qreal newOutputBlackPoint)",
+        "method:KisLevelsCurve::setOutputWhitePoint(qreal newOutputWhitePoint)"
+      ]
+    },
+    {
+      "target": "KisLevelsCurveContractTest",
+      "source": "libs/image/tests/KisLevelsCurveContractTest.cpp",
+      "test": "KisLevelsCurveContractTest::copyAssignmentAndEqualityPreserveValueSemantics",
+      "behavior": "コピーと代入は数値パラメーター、名前、生成済み転送表を独立した値として保持し、同値判定は表示用の名前を除く数値パラメーターだけを比較する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLevelsCurve::KisLevelsCurve(const KisLevelsCurve & rhs)",
+        "method:KisLevelsCurve::name() const",
+        "method:KisLevelsCurve::operator =(const KisLevelsCurve & rhs)",
+        "method:KisLevelsCurve::operator ==(const KisLevelsCurve & rhs) const",
+        "method:KisLevelsCurve::setName(const QString & newName)"
+      ]
+    },
+    {
+      "target": "KisLevelsCurveContractTest",
+      "source": "libs/image/tests/KisLevelsCurveContractTest.cpp",
+      "test": "KisLevelsCurveContractTest::transferTablesSampleEndpointsAndInvalidateAfterMutation",
+      "behavior": "転送表は既定256または明示寸法で0と1を含む等間隔入力を評価し、浮動小数値と0から65535へ丸めた16ビット値を返し、パラメーター変更後に再計算する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLevelsCurve::floatTransfer(int size=256) const",
+        "method:KisLevelsCurve::uint16Transfer(int size=256) const"
+      ]
+    },
+    {
+      "target": "KisLevelsCurveContractTest",
+      "source": "libs/image/tests/KisLevelsCurveContractTest.cpp",
+      "test": "KisLevelsCurveContractTest::serializationRoundTripsAndRejectsMalformedText",
+      "behavior": "5数値のセミコロン形式は構築、読取り、書出しの間で往復し、ピリオドおよび既存のコンマ小数を読み、不正形式は失敗結果と回復可能診断を配送して数値状態を恒等写像へ戻し、表示名は直列化対象外かつ既存名を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLevelsCurve::KisLevelsCurve(const QString & text)",
+        "method:KisLevelsCurve::fromString(const QString & text,bool * ok=nullptr)",
+        "method:KisLevelsCurve::toString() const"
       ]
     }
   ]

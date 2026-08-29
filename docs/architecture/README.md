@@ -578,6 +578,11 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 - `KisUpdateScheduler`、`KisStrokesQueue`、更新キュー
 - アンドゥ可能なストロークと画像変更通知
 
+レベル補正の数値状態と転送表は`libs/image/KisLevelsCurve.{h,cpp}`が所有する。実装は
+`kritaimagelevelscurveobjects`として限定構築でき、`kritaimage`が同じ生成物を製品へ集約する。
+`KisLevelsCurveContractTest`は恒等写像、入出力点とガンマ、値意味論、転送表、文字列表現を
+製品共有ライブラリーへ接続せずに検査する。
+
 画像状態だけで完結する処理は`libs/image`側、ファイル名やダイアログ、
 ウィンドウと連携する処理は`libs/ui`側から検討します。
 

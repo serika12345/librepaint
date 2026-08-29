@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:43 JST
+- 更新日時: 2026-08-29 21:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,7 +20,7 @@
   新規限定試験を所有する。
   1,095工程・2,211入力の翻訳単位を専用生成物へ分け、寸法別の割当・返却・解放要求、寸法別共有台帳、所有バッファーの
   確保・移動・交換・破棄の全23 APIを対象とする。
-- 実装担当`levels-curve`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`levels-curve`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-levels-curve`であり、
   `libs/image/KisLevelsCurve.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の翻訳単位を
   専用生成物へ分け、既定・設定値、評価、変更・初期化、値意味論、転送表、文字列表現の全33 APIを対象とする。
@@ -8686,9 +8686,22 @@
   最近傍の`KisInputActionGroupContractTest`、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,603件、
   未対応24,386件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b レベル補正曲線の全public API契約で完了した作業
+
+- `libs/image/KisLevelsCurve.h`の全33 APIを、新規`libs/image/tests/KisLevelsCurveContractTest.cpp`の5試験へ対応付けた。
+  既定の恒等写像、入出力点とガンマによる評価、設定と初期化、コピー・代入・同値判定、浮動小数・16ビット転送表、文字列表現を
+  固定した。16ビット転送表は現行実装の0から65,535の尺度を維持契約とした。
+- 開始ファイル`libs/image/KisLevelsCurve.cpp`の構築所有を`kritaimage_LIB_SRCS`から新規
+  `kritaimagelevelscurveobjects`へ移し、製品`kritaimage`が生成物を1回だけ再集約する。公開ヘッダー、実装位置、製品ABI、評価・転送処理は
+  維持した。限定試験は製品共有ライブラリーへ接続せず、専用生成物とQt Core、Testを中心とする直接依存だけを使用する。
+- 実装未接続の初回限定リンクは構築、評価、設定、転送表、直列化の未定義記号で失敗した。macOSの専用生成物は1工程・3入力、
+  限定試験は5工程・12入力である。対象CTestの単発実行と20回反復、最近傍の`KisImageInterfacesContractTest`、パッケージ境界検査に
+  成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,636件、未対応24,353件になった。Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。転送表寸法1以下、不正な数値パラメーター、非数値、並行キャッシュは実行していない。
+
 ## 次の操作
 
-第17並列便の`levels-curve`引渡しを監査して統合し、限定構築、対象試験、反復、隣接試験、公開API契約検査を再実行する。
+第17並列便の`input-device`引渡しを監査して統合し、限定構築、対象試験、反復、隣接試験、公開API契約検査を再実行する。
 
 ## R1-G5完了根拠
 
