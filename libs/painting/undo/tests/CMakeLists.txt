@@ -28,3 +28,23 @@ target_include_directories(KisUndoStoresContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
 )
 target_compile_definitions(KisUndoStoresContractTest PRIVATE kritapaintingundo_EXPORTS)
+
+kis_add_test(
+    KisCommandUtilsContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintingundocommandutilsobjects
+        kritapaintingundokundo2coreobjects
+        kritapaintingundostoreobjects
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisCommandUtilsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisCommandUtilsContractTest PRIVATE kritapaintingundo_EXPORTS)

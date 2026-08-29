@@ -71,11 +71,36 @@ set_target_properties(kritapaintingundostackactionobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintingundocommandutilsobjects OBJECT
+    kis_command_utils.cpp
+)
+target_compile_definitions(kritapaintingundocommandutilsobjects PRIVATE kritapaintingundo_EXPORTS)
+target_include_directories(kritapaintingundocommandutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintingundocommandutilsobjects
+    PUBLIC
+        kritapaintingundokundo2coreobjects
+        kritapaintingundostoreobjects
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Boost::boost
+)
+set_target_properties(kritapaintingundocommandutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritapaintingundo_LIB_SRCS
     $<TARGET_OBJECTS:kritapaintingundokundo2coreobjects>
     $<TARGET_OBJECTS:kritapaintingundostoreobjects>
     $<TARGET_OBJECTS:kritapaintingundostackactionobjects>
-    kis_command_utils.cpp
+    $<TARGET_OBJECTS:kritapaintingundocommandutilsobjects>
 )
 
 kis_add_library(kritapaintingundo SHARED ${kritapaintingundo_LIB_SRCS})
