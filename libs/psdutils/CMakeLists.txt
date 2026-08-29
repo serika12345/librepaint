@@ -7,10 +7,30 @@ set(kritapsdutils_LIB_SRCS
     asl/kis_asl_patterns_writer.cpp
     asl/kis_asl_writer.cpp
 
-    cos/kis_cos_parser.cpp
     cos/kis_cos_writer.cpp
     cos/kis_txt2_utls.cpp
     cos/psd_text_data_converter.cpp
+)
+
+add_library(kritapsdcosparserobjects OBJECT
+    cos/kis_cos_parser.cpp
+)
+target_compile_definitions(kritapsdcosparserobjects PRIVATE kritapsdutils_EXPORTS)
+target_include_directories(kritapsdcosparserobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapsdcosparserobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+if (TARGET Qt6::Core5Compat)
+    target_link_libraries(kritapsdcosparserobjects PUBLIC Qt6::Core5Compat)
+endif()
+set_target_properties(kritapsdcosparserobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
 )
 
 add_library(kritapsdcompressionobjects OBJECT
@@ -67,6 +87,7 @@ set_target_properties(kritaaslobjectcatcherobjects PROPERTIES
 
 kis_add_library(kritapsdutils SHARED
     ${kritapsdutils_LIB_SRCS}
+    $<TARGET_OBJECTS:kritapsdcosparserobjects>
     $<TARGET_OBJECTS:kritapsdcompressionobjects>
     $<TARGET_OBJECTS:kritaaslobjectcatcherobjects>
 )

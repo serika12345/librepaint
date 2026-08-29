@@ -66,3 +66,19 @@ target_include_directories(KisOffsetOnExitVerifierContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/global
 )
 target_compile_definitions(KisOffsetOnExitVerifierContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
+    KisCosParserContractTest.cpp
+    LINK_LIBRARIES
+        kritapsdcosparserobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+if (TARGET Qt6::Core5Compat)
+    target_link_libraries(KisCosParserContractTest Qt6::Core5Compat)
+endif()
+target_include_directories(KisCosParserContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisCosParserContractTest PRIVATE kritapsdutils_EXPORTS)

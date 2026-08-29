@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 16:51 JST
+- 更新日時: 2026-08-29 17:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,21 +11,28 @@
 
 ### 現在の並列担当票
 
-- 第7並列便の共通基準コミットは`07a35ab7`である。統合担当は`develop`の
+- 第8並列便の共通基準コミットは`1be61011a5`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`painting-metadata-parser`は`implemented`である。`libs/painting/metadata/kis_meta_data_parser.{h,cc}`、
-  値実装、Metadata CMake、新規限定試験を所有し、解析接続面の3 APIを対象とする。
-- 実装担当`psdutils-offset-exit-verifier`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は1である。`libs/psdutils/asl/kis_offset_on_exit_verifier.h`と新規限定試験を所有し、
-  読取り終了位置補正の3 APIを対象とする。
-- 実装担当`psdutils-compression`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。`libs/psdutils/compression.{h,cpp}`、PSD Utils CMake、既存または新規限定試験を所有し、
-  圧縮と展開の3 APIを対象とする。
-- 実装担当`tools-deselect-shapes-policy`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。`libs/tools/kis_delegated_tool_policies.{h,cpp}`、Tools CMake、新規限定試験を所有し、
-  図形選択解除方針の2 APIを対象とする。
+- 統合担当`psdutils-cos-parser`は`integrated`である。`libs/psdutils/cos/kis_cos_parser.{h,cpp}`、
+  `libs/psdutils/tests/{KisCosParserContractTest.cpp,CMakeLists.txt}`とPSD Utils製品集約CMakeを所有し、
+  COSオブジェクト解析の2 APIを対象とする。最も近い既存契約は`psd_cos_parser_test`、対象はmacOS、統合順は1である。
+- 実装担当`image-progress-helper`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_progress_update_helper.h`、
+  Image試験CMake、新規限定試験を所有する。進捗区間の開始値、段階更新、完了値を担う4 APIを対象とし、
+  最も近い既存契約はImageの限定Qt Test、対象はmacOSである。
+- 実装担当`flake-fill-rule`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、`libs/flake/commands/KoPathFillRuleCommand.{h,cpp}`、
+  Flake製品集約CMake、試験CMake、新規限定試験を所有する。複数図形のfill rule変更とundo/redoを担う5 APIを対象とし、
+  最も近い既存契約はFlakeのコマンド試験、対象はmacOSである。
+- 実装担当`widget-highlight`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は4である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisHighlightedToolButton.h`、
+  Widget Utils試験CMake、新規限定試験を所有する。チェック状態とパレット変更に応じた表示色の3 APIを対象とし、
+  最も近い既存契約はWidget Utilsの限定Qt Test、対象はmacOSである。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8082,9 +8089,27 @@
   未対応24,885件になった。実在する形状選択管理を観測するためFlake具体所有閉包は残るが、Tools製品全体の構築は不要になった。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b COS解析器の全public API契約と構築所有分離で完了した作業
+
+- COS解析だけを固定する既存`psd_cos_parser_test`は、解析器を直接所有するPSD Utils製品へ依存し、569工程・1,167入力を
+  要求していた。`libs/psdutils/cos/kis_cos_parser.cpp`を`kritapsdutils_LIB_SRCS`から新規
+  `kritapsdcosparserobjects`へ移し、製品`kritapsdutils`へ生成物を一度再集約した。公開ヘッダー、実装内容、実装ファイル位置を
+  維持しながら、COS解析器だけを構築できる所有単位にした。
+- `libs/psdutils/cos/kis_cos_parser.h`の未対応2 APIを、新規
+  `libs/psdutils/tests/KisCosParserContractTest.cpp`へ対応付けた。真偽値、整数、実数、name、16進文字列、配列、null、
+  入れ子オブジェクトを型を保つ`QVariantHash`へ変換すること、UTF-16BEとCOSエスケープ文字列を復号することを固定した。
+  実装接続前のリンクは`KisCosParser::parseCosToJson(QByteArray*)`だけを未解決記号として診断した。
+- 変更前の既存試験は569工程・1,167入力、製品`kritapsdutils`は565工程・1,160入力だった。新規専用対象は1工程・3入力、
+  契約対象は5工程・11入力である。直接の内部対象依存は`kritapsdcosparserobjects`だけであり、外部依存はQt Core、
+  Qt Core5Compat、Qt Testである。製品閉包は変更後も565工程・1,160入力を維持し、既存試験の閉包も変わらない。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、専用生成物が公開解析記号を定義すること、製品の構築命令が生成物を
+  一度再集約することを確認した。対象CTestの単発実行と20回反復、既存`psd_cos_parser_test`、1,163対象のパッケージ境界検査に
+  成功した。公開API契約検査と`./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,106件、
+  未対応24,883件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-最新の公開API報告から構築範囲が重ならない第8並列便を選び、限定契約の実装を継続する。
+第8並列便の進捗区間通知契約を統合する。
 
 ## R1-G5完了根拠
 

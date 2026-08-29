@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24885
+    "expectedMissingApis": 24883
   },
   "contracts": [
     {
@@ -14368,6 +14368,17 @@
       "apis": [
         "method:DeselectShapesActivationPolicy::onActivate(KoCanvasBase * canvas)",
         "struct:DeselectShapesActivationPolicy"
+      ]
+    },
+    {
+      "target": "KisCosParserContractTest",
+      "source": "libs/psdutils/tests/KisCosParserContractTest.cpp",
+      "test": "KisCosParserContractTest::parsesTypedNestedObject",
+      "behavior": "COS解析器は真偽値、整数、実数、name、16進文字列、配列、null、入れ子オブジェクトを型を保つQVariantHashへ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCosParser",
+        "method:KisCosParser::parseCosToJson(QByteArray * ba)"
       ]
     }
   ]
