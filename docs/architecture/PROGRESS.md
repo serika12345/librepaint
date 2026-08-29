@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 05:46 JST
+- 更新日時: 2026-08-30 05:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,21 +14,24 @@
 - 第30並列便の共通基準コミットは`a43f394d28`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g30-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`image-barrier-lock`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`image-barrier-lock`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/image/KisImageBarrierLock.h`、Image試験CMake、新規`KisImageBarrierLockContractTest.cpp`を所有する。実装はheader内のadapterだけであり、
   既存`KisAdaptedLockTest`と同じ4工程・8入力を上限として、共有・生ポインター別名、読み書き別のlock・try_lock・unlock配送の全9 APIを
   fake画像値で固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`active-canvas-dependency`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。`libs/flake/KoActiveCanvasResourceDependency.cpp`、Flake製品・試験CMake、新規
+- 実装担当`active-canvas-dependency`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g30-active-canvas-dependency`で
+  `libs/flake/KoActiveCanvasResourceDependency.cpp`、Flake製品・試験CMake、新規
   `KoActiveCanvasResourceDependencyContractTest.cpp`を所有する。開始ファイルを製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ
   1回だけ再集約する。従来`TestResourceManager`の570工程・1,171入力に代えて6工程・13入力以内で、source・target key、更新判定の
   仮想配送とsource変更、共有所有、基底寿命の全7 APIを固定する。
-- 実装担当`annotation`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
-  `libs/image/kis_annotation.h`、Image試験CMake、新規`KisAnnotationContractTest.cpp`を所有する。header内実装を既存
+- 実装担当`annotation`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g30-annotation`で`libs/image/kis_annotation.h`、Image試験CMake、新規
+  `KisAnnotationContractTest.cpp`を所有する。header内実装を既存
   `kritaglobalsharedobjects`とQt Core・Testだけで検査し、従来`kis_annotation_test`の1,111工程・2,245入力に代えて6工程・13入力以内で、
   型・説明・binary値、値置換、UTF-8表示、cloneの値独立性、派生clone配送、基底寿命の全9 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`color-label-selector`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は4である。`libs/widgets/kis_color_label_selector_widget.cpp`、Widgets製品・試験CMake、新規
+- 実装担当`color-label-selector`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は4である。作業ツリー`/Users/masato/Documents/librepaint-r2-g30-color-label-selector`で
+  `libs/widgets/kis_color_label_selector_widget.cpp`、Widgets製品・試験CMake、新規
   `KisColorLabelSelectorWidgetContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC対応の専用生成物へ移し、
   製品へ1回だけ再集約する。製品の732工程・1,493入力に代えて15工程・30入力以内で、既存の色ラベルbutton、折返し配置、描画色調整の
   各生成物を直接再利用し、既定値、単一・複数選択、通知、折返し、drag、表示様式、寸法、menu配置の全31 APIを固定する。
@@ -9496,8 +9499,8 @@
 
 ## 次の操作
 
-第30並列便の計画をコミットし、共通基準から3つの専用作業ツリーを作成する。各担当は限定対象が未知で失敗する初回診断を記録し、
-記録済みの停止上限と直接依存を先に確認してから、許可パス内だけで最小契約を追加する。
+第30並列便の4担当が、限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を先に確認してから、許可パス内だけで
+最小契約を追加する。各担当は対象単発・20回反復、軽量隣接試験、必要な製品への1回再集約、製品共有ライブラリー非接続を確認する。
 
 ## R1-G5完了根拠
 
