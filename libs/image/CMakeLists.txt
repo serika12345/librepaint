@@ -133,6 +133,40 @@ set_target_properties(kritaimagelevelscurveobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagespatialcontainerobjects OBJECT
+   KisSpatialContainer.cpp
+)
+target_compile_definitions(kritaimagespatialcontainerobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagespatialcontainerobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+   PRIVATE
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment/resources>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagespatialcontainerobjects
+   PUBLIC
+      Boost::boost
+      Eigen3::Eigen
+      Imath::Imath
+      KF${KF_MAJOR}::I18n
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaimagespatialcontainerobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagestrokejobobjects OBJECT
    kis_stroke_job_strategy.cpp
    KisRunnableStrokeJobDataBase.cpp
@@ -712,7 +746,6 @@ set(kritaimage_LIB_SRCS
    KisBezierTransformMesh.cpp
 
    KisEncloseAndFillPainter.cpp
-   KisSpatialContainer.cpp
 )
 
 set(einspline_SRCS
@@ -733,6 +766,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
    $<TARGET_OBJECTS:kritaimageoptimizedbytearrayobjects>
    $<TARGET_OBJECTS:kritaimagelevelscurveobjects>
+   $<TARGET_OBJECTS:kritaimagespatialcontainerobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>

@@ -7,17 +7,13 @@
 #ifndef __KIS_SPATIAL_CONTAINER_H
 #define __KIS_SPATIAL_CONTAINER_H
 
-#include <QPoint>
 #include <QPointF>
+#include <QRectF>
 #include <QVector>
-#include <QPolygonF>
-#include <QTransform>
-#include <QDebug>
-#include <cmath>
-#include <kis_global.h>
 #include <kritaimage_export.h>
-#include <boost/optional.hpp>
 #include <optional>
+
+class QString;
 
 
 class KRITAIMAGE_EXPORT KisSpatialContainer

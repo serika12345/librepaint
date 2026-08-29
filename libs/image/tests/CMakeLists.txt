@@ -337,6 +337,25 @@ target_compile_definitions(KisLevelsCurveContractTest PRIVATE
 )
 
 kis_add_test(
+    KisSpatialContainerContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagespatialcontainerobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisSpatialContainerContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisSpatialContainerContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisOptimizedByteArrayContractTest.cpp
     LINK_LIBRARIES
         kritaimageoptimizedbytearrayobjects

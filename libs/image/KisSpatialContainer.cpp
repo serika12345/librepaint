@@ -6,36 +6,14 @@
 
 #include "KisSpatialContainer.h"
 
-#include <QTransform>
-#include <QPainterPath>
-#include <kis_debug.h>
 #include <kis_algebra_2d.h>
-
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/min.hpp>
-#include <boost/accumulators/statistics/max.hpp>
-
-#include <QVector2D>
-#include <QVector3D>
+#include <kis_debug.h>
 
 #include <QtMath>
 
-#include <config-gsl.h>
-
-#ifdef HAVE_GSL
-#include <gsl/gsl_multimin.h>
-#endif /*HAVE_GSL*/
-
-#include <Eigen/Eigenvalues>
-
-#define SANITY_CHECKS
-
 #include <kis_grid_interpolation_tools.h>
 
-
 struct KisSpatialContainer::SpatialNode {
-
 public:
     struct SpatialNodeData {
         int index;
@@ -70,10 +48,7 @@ public:
     QRectF maximumArea;
 
     int nodeId {-1};
-
 };
-
-
 
 typedef KisSpatialContainer::SpatialNode::SpatialNodeData SpatialNodeData;
 
@@ -723,4 +698,3 @@ int KisSpatialContainer::SpatialNode::childIndexForPoint(QPointF position)
         return 3;
     }
 }
-
