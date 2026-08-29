@@ -184,6 +184,18 @@ target_include_directories(kritawidgetutilsoptioncollectionobjects
 target_link_libraries(kritawidgetutilsoptioncollectionobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritawidgetutilsoptioncollectionobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetutilswrappablehboxlayoutobjects OBJECT
+    KisWrappableHBoxLayout.cpp
+)
+target_compile_definitions(kritawidgetutilswrappablehboxlayoutobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilswrappablehboxlayoutobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilswrappablehboxlayoutobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetutilswrappablehboxlayoutobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -198,6 +210,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritaspinboxi18nhelperobjects>
     $<TARGET_OBJECTS:kritawidgetutilsprogressupdaterobjects>
     $<TARGET_OBJECTS:kritawidgetutilsoptioncollectionobjects>
+    $<TARGET_OBJECTS:kritawidgetutilswrappablehboxlayoutobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -222,7 +235,6 @@ set(kritawidgetutils_LIB_SRCS
     kis_spin_box_unit_manager.cpp
     kis_font_family_combo_box.cpp
     KisFontFamilyValidator.cpp
-    KisWrappableHBoxLayout.cpp
     KisRecentFilesManager.cpp
     KisOptionButtonStrip.cpp
     KisRepaintDebugger.cpp

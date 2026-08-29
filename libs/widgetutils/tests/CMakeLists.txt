@@ -140,6 +140,19 @@ target_include_directories(KisOptionCollectionWidgetContractTest PRIVATE
 target_compile_definitions(KisOptionCollectionWidgetContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisWrappableHBoxLayoutContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilswrappablehboxlayoutobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisWrappableHBoxLayoutContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisWrappableHBoxLayoutContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KisMenuStyleDontCloseOnAltContractTest.cpp
     LINK_LIBRARIES
         kritamenustyledontcloseonaltobjects
