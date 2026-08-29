@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 01:15 JST
+- 更新日時: 2026-08-30 01:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,20 +14,20 @@
 - 第22並列便の共通基準コミットは`89c19b806a`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g22-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`dom-values`は`preparing`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は
+- 統合担当`dom-values`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は1である。主作業ツリーで`libs/global/kis_dom_utils.{h,cpp}`、Global製品・試験CMake、
   新規`KisDomUtilsContractTest.cpp`を所有する。既存試験の1,099工程・2,221入力から`kis_dom_utils.cpp`を専用生成物へ分離し、
   数値・色・幾何値・配列のXML往復、型検査、要素検索・除去、ロケール互換変換の全39 APIを対象とする。
-- 実装担当`metadata-value`は`preparing`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-metadata-value`であり、
+- 実装担当`metadata-value`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-metadata-value`であり、
   `libs/painting/metadata/tests/CMakeLists.txt`と新規`KisMetaDataValueContractTest.cpp`だけを所有する。既存の製品非依存生成物を
   7工程・15入力のまま再利用し、有理数、値種別、複合値、コピー、資格子、変更、加算、文字列表現の全41 APIを対象とする。
-- 実装担当`svg-mesh-patch`は`preparing`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-svg-mesh-patch`であり、
+- 実装担当`svg-mesh-patch`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-svg-mesh-patch`であり、
   `libs/flake/svg/SvgMeshPatch.{h,cpp}`、Flake製品・試験CMake、新規`SvgMeshPatchContractTest.cpp`を所有する。既存試験の
   564工程・1,159入力から実装を専用生成物へ分離し、辺・停止点・経路・境界・変換・分割の全41 APIを対象とする。
-- 実装担当`levels-slider`は`preparing`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-levels-slider`であり、
+- 実装担当`levels-slider`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-levels-slider`であり、
   `libs/widgets/KisLevelsSlider.{h,cpp}`、Widgets製品・試験CMake、新規`KisLevelsSliderContractTest.cpp`を所有する。
   製品の720工程・1,469入力から実装を専用生成物へ分離し、基底・入力・ガンマ・出力・しきい値の値、制約、通知、寿命の
   全44 APIを対象とする。
@@ -9012,7 +9012,7 @@
 
 ## 次の操作
 
-第22並列便の専用作業ツリーを共通基準から作成し、構築実行を許可して4担当の限定契約実装を開始する。
+第22並列便の4担当で限定契約と必要な生成物所有分離を実装し、準備が完了した担当から統合順に取り込む。
 
 ## R1-G5完了根拠
 
