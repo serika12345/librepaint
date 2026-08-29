@@ -9,13 +9,10 @@
 
 #include "compression.h"
 
-#include <QBuffer>
-#include <QtEndian>
 #include <algorithm>
 #include <zlib.h>
 
 #include <kis_debug.h>
-#include <psd_utils.h>
 
 namespace KisRLE
 {

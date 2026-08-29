@@ -1,6 +1,5 @@
 set(kritapsdutils_LIB_SRCS
     psd.cpp
-    compression.cpp
 
     asl/kis_asl_reader.cpp
     asl/kis_asl_xml_parser.cpp
@@ -12,6 +11,27 @@ set(kritapsdutils_LIB_SRCS
     cos/kis_cos_writer.cpp
     cos/kis_txt2_utls.cpp
     cos/psd_text_data_converter.cpp
+)
+
+add_library(kritapsdcompressionobjects OBJECT
+    compression.cpp
+)
+target_compile_definitions(kritapsdcompressionobjects PRIVATE kritapsdutils_EXPORTS)
+target_include_directories(kritapsdcompressionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapsdcompressionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        ZLIB::ZLIB
+)
+set_target_properties(kritapsdcompressionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
 )
 
 add_library(kritaaslobjectcatcherobjects OBJECT
@@ -47,6 +67,7 @@ set_target_properties(kritaaslobjectcatcherobjects PROPERTIES
 
 kis_add_library(kritapsdutils SHARED
     ${kritapsdutils_LIB_SRCS}
+    $<TARGET_OBJECTS:kritapsdcompressionobjects>
     $<TARGET_OBJECTS:kritaaslobjectcatcherobjects>
 )
 generate_export_header(kritapsdutils BASE_NAME kritapsdutils)
