@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 03:20 JST
+- 更新日時: 2026-08-30 03:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,32 +11,32 @@
 
 ### 現在の並列担当票
 
-- 第24並列便の共通基準コミットは`0678f19c10`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g24-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+- 第25並列便の共通基準コミットは`8e6919a62a`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g25-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`command-utils`は`integrated`、実装コミットは`d6719d14e5`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/painting/undo/kis_command_utils.{h,cpp}`、Painting Undo製品・試験CMake、新規`KisCommandUtilsContractTest.cpp`を
-  所有する。製品`kritapaintingundo`の260工程・551入力から実装を専用生成物へ分離し、遅延集約、ラムダ生成、初回再実行省略、
-  状態往復、複合命令、合成と累積統合の全36 APIを対象とする。
-- 実装担当`shape-anchor`は`integrated`、引渡しコミットは`73a7061dba`、統合コミットは`f2941c27fa`、
-  構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g24-shape-anchor`を予定し、
-  `libs/flake/KoShapeAnchor.cpp`、Flake製品・試験CMake、新規`KoShapeAnchorContractTest.cpp`を所有する。製品の364工程・756入力から
-  実装を専用生成物へ分離し、既存の列挙44 APIに続く状態、正規化、借用位置、所有配置戦略、寿命の残り33 APIを対象とする。
-- 実装担当`transform-mask-interface`は`integrated`、引渡しコミットは`885c1babc1`、統合コミットは`88cc38427e`、
-  構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g24-transform-mask-interface`を予定し、
-  `libs/image/kis_transform_mask_params_interface.{h,cpp}`、Image製品・試験CMake、新規
-  `KisTransformMaskParamsInterfaceContractTest.cpp`を所有する。既存試験の1,107工程・2,236入力から空の仮想破棄実装を
-  専用生成物へ分離し、変形値、矩形、XML、画像参照、複製、比較、キーフレーム、既定境界、寿命の全31 APIを対象とする。
-- 実装担当`shared-ptr`は`integrated`、引渡しコミットは`3f0b37de86`、統合コミットは`38f37e236f`、
-  構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g24-shared-ptr`を予定し、
-  `libs/global/kis_shared_ptr.h`、Global試験CMake、新規`KisSharedPtrContractTest.cpp`を所有する。既存の
-  `kritaglobalsharedobjects`と`kritaglobaldebugobjects`を再利用し、強参照、弱参照、参照数、型変換、失効、寿命の全55 APIを
-  6工程・14入力以内の限定対象で固定する。製品実装と製品CMakeは変更しない。
-- 第24並列便の完了時は合計155 APIを追加し、公開面の対応済み6,557件、未対応23,432件を見込む。各担当は公開面と製品挙動を
+- 統合担当`metadata-type-info`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/painting/metadata/kis_meta_data_{type_info,schema}.{h,cc}`、`kis_meta_data_type_info_p.h`、Painting Metadata製品・試験CMake、
+  新規`KisMetaDataTypeInfoContractTest.cpp`を所有する。開始ファイル`kis_meta_data_type_info.cc`と相互参照する
+  `kis_meta_data_schema.cc`を製品`kritapaintingmetadata`の直接ソースから型・スキーマ専用生成物へ移し、製品へ1回だけ再集約する。
+  従来`kis_meta_data_test`の268工程・566入力に代えて、基本型、配列型、言語配列、選択肢、値検査、解析器、構造情報の全50 APIを
+  固定する。試験追加前に新規生成物と空の限定対象を構成して命令・入力閉包を実測し、15工程・32入力を超える場合は停止する。
+- 実装担当`svg-mesh-array`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-svg-mesh-array`を予定し、
+  `libs/flake/svg/SvgMeshArray.{h,cpp}`、Flake製品・試験CMake、新規`SvgMeshArrayContractTest.cpp`を所有する。開始ファイル
+  `SvgMeshArray.cpp`を製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。変更前翻訳単位の
+  365工程・758入力から6工程・12入力前後へ縮小し、正規メッシュの構築、取得、共有辺・角・色の伝播、変換、深いコピーの全27 APIを
+  固定する。
+- 実装担当`node-visitor`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-node-visitor`を予定し、
+  `libs/image/tests/CMakeLists.txt`と新規`KisNodeVisitorContractTest.cpp`だけを所有する。既存`kis_node_visitor_test`の
+  1,101工程・2,225入力に代えて、Qt Testだけの4工程・8入力前後で12ノード型の仮想配送、返値、ポインター同一性、仮想寿命の
+  全15 APIを固定する。製品実装と製品CMakeは変更しない。
+- 実装担当`angle-gauge`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-angle-gauge`を予定し、
+  `libs/widgets/KisAngleGauge.{h,cpp}`、Widgets製品・試験CMake、新規`KisAngleGaugeContractTest.cpp`を所有する。開始ファイル
+  `KisAngleGauge.cpp`を製品`kritawidgets`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の
+  722工程・1,473入力から7工程・14入力前後へ縮小し、既定状態、設定値、変更通知、リセット、親所有、寿命の全16 APIを固定する。
+- 第25並列便の完了時は合計108 APIを追加し、公開面の対応済み6,665件、未対応23,324件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
@@ -9213,8 +9213,8 @@
 
 ## 次の操作
 
-最新の未対応公開API報告から第25並列便の候補を監査する。各候補の全公開面を一つの観測可能な責務として固定できるか確認し、
-既存対象の命令・入力閉包と製品の直接CMake依存を測定して、必要な構築所有分離を先行する担当票を確定する。
+第25並列便の計画基準をコミットし、3担当の専用Git作業ツリーと専用Ninja木を作る。構築実行許可を付与した後、統合担当は
+メタデータ型・スキーマ生成物の限定閉包を先に実測し、各担当は製品共有ライブラリーを接続しない最小契約を赤から開始する。
 
 ## R1-G5完了根拠
 
