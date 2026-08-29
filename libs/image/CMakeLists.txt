@@ -64,6 +64,26 @@ set_target_properties(kritaimagefastmathobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageperspectivemathobjects OBJECT
+   kis_perspective_math.cpp
+)
+target_compile_definitions(kritaimageperspectivemathobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageperspectivemathobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaimageperspectivemathobjects
+   PUBLIC
+      Eigen3::Eigen
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaimageperspectivemathobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagenameserverobjects OBJECT
    kis_name_server.cpp
 )
@@ -771,7 +791,6 @@ set(kritaimage_LIB_SRCS
    kis_paint_device_debug_utils.cpp
    kis_fixed_paint_device.cpp
    kis_paint_layer.cc
-   kis_perspective_math.cpp
    kis_pixel_selection.cpp
    kis_processing_information.cpp
    kis_properties_configuration.cc
@@ -865,6 +884,7 @@ kis_add_library(kritaimage SHARED
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
+   $<TARGET_OBJECTS:kritaimageperspectivemathobjects>
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>

@@ -482,6 +482,21 @@ target_include_directories(KisDefaultBoundsBaseContractTest PRIVATE
 )
 
 kis_add_test(
+    KisPerspectiveMathContractTest.cpp
+    LINK_LIBRARIES
+        kritaimageperspectivemathobjects
+        Eigen3::Eigen
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisPerspectiveMathContractTest PRIVATE kritaimage_EXPORTS)
+target_include_directories(KisPerspectiveMathContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+
+kis_add_test(
     KisSelectionComponentContractTest.cpp
     LINK_LIBRARIES
         kritaimageselectioncomponentobjects
