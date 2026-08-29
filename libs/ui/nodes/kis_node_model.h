@@ -184,6 +184,25 @@ protected Q_SLOTS:
     void slotLayerThumbnailUpdated(KisNodeSP node);
 
 protected:
+    struct KRITAUI_EXPORT DropMimeDataAccess {
+        struct Context {
+            KisImage *image;
+            KisShapeController *shapeController;
+            KisNodeInsertionAdapter *nodeInsertionAdapter;
+        };
+
+        static KisNodeDummy *parentDummy(const KisNodeModel *model, const QModelIndex &parent);
+        static KisNodeDummy *lastChild(KisNodeDummy *dummy);
+        static int rowCount(const KisNodeModel *model, const QModelIndex &parent);
+        static KisNodeDummy *dummyFromRow(const KisNodeModel *model, int row, const QModelIndex &parent);
+        static Context context(const KisNodeModel *model);
+        static bool insertMimeLayers(const QMimeData *data,
+                                     const Context &context,
+                                     KisNodeDummy *parentDummy,
+                                     KisNodeDummy *aboveThisDummy,
+                                     bool copyNode);
+    };
+
     struct KRITAUI_EXPORT MimeDataAccess {
         static KisNodeSP nodeFromIndex(const KisNodeModel *model, const QModelIndex &index);
         static bool isEditable(const KisNodeSP &node, bool checkVisibility);

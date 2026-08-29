@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25002
+    "expectedMissingApis": 25001
   },
   "contracts": [
     {
@@ -13679,6 +13679,46 @@
       "classification": "maintained",
       "apis": [
         "method:KoZoomState::operator ==(const KoZoomState & other) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelDropInsertionContractTest",
+      "source": "libs/ui/tests/KisNodeModelDropInsertionContractTest.cpp",
+      "test": "KisNodeModelDropInsertionContractTest::validParentAppendUsesLastChildAndCopy",
+      "behavior": "有効な親項目への末尾複製ドロップは親の最終子を直前項目とし、現在の画像・形状制御・挿入協力対象を使った結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)"
+      ]
+    },
+    {
+      "target": "KisNodeModelDropInsertionContractTest",
+      "source": "libs/ui/tests/KisNodeModelDropInsertionContractTest.cpp",
+      "test": "KisNodeModelDropInsertionContractTest::rootAppendUsesRootWithoutLastChild",
+      "behavior": "ルートへの末尾移動ドロップはダミー木のルートを親、空の直前項目として挿入する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)"
+      ]
+    },
+    {
+      "target": "KisNodeModelDropInsertionContractTest",
+      "source": "libs/ui/tests/KisNodeModelDropInsertionContractTest.cpp",
+      "test": "KisNodeModelDropInsertionContractTest::boundedRowSelectsRowDummy",
+      "behavior": "子数の範囲内にある挿入行は同じ行のダミーを直前項目として選び、列値と複製以外の操作を挿入判断から除外する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)"
+      ]
+    },
+    {
+      "target": "KisNodeModelDropInsertionContractTest",
+      "source": "libs/ui/tests/KisNodeModelDropInsertionContractTest.cpp",
+      "test": "KisNodeModelDropInsertionContractTest::rowAtEndUsesNullPredecessor",
+      "behavior": "子数と等しい挿入行は行ダミーを解決せず、空の直前項目を使って末端へ挿入する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)"
       ]
     }
   ]

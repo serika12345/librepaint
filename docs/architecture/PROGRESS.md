@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:10 JST
+- 更新日時: 2026-08-29 14:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,26 +11,22 @@
 
 ### 現在の並列担当票
 
-- 共通基準コミットは`ad8f738d`である。統合担当は`develop`の主作業ツリー、実装担当は
+- 共通基準コミットは`5d2981a7`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`ui-node-model-drag`は`implementing`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、同責務の新規
+- 統合担当`ui-node-model-drop-insertion`は`integrated`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、同責務の新規
   `KisNodeModel*.cpp`、`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、同責務の新規試験を所有する。
-  `canDropMimeData()`、`mimeData()`、`dropMimeData()`を対象とし、項目操作契約を最も近い契約とする。
-- 実装担当`global-forest`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は1である。`libs/global/tests/KisForestTest.{h,cpp}`と`libs/global/tests/CMakeLists.txt`を所有し、
-  `KisForestTest`を最も近い契約とする。対象は`KisForest.h`の`childBegin(ChildIterator)`、`childEnd(ChildIterator)`、
-  `operator<<(QDebug, ChildIterator)`、`parent(ChildIterator)`、`siblingBegin(ChildIterator)`、
-  `siblingEnd(ChildIterator)`の6 APIである。
-- 実装担当`image-frame-lock`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は2である。`libs/image/KisBlockBackgroundFrameGenerationLock.{h,cpp}`、
-  `libs/image/CMakeLists.txt`、`libs/image/tests/KisBlockBackgroundFrameGenerationLockContractTest.cpp`、
-  `libs/image/tests/CMakeLists.txt`を所有し、`KisAdaptedLockTest`を隣接契約とする。対象はアダプタークラス、構築、
-  `lock()`、`unlock()`の4 APIである。
-- 実装担当`flake-zoom-state`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は3である。`libs/flake/KoZoomState.{h,cpp}`、`libs/flake/CMakeLists.txt`、
-  `libs/flake/tests/KoZoomStateContractTest.cpp`、`libs/flake/tests/CMakeLists.txt`を所有する。対象はクラス、既定構築、
-  値構築、`mode`、`zoom`、`minZoom`、`maxZoom`、等値比較の8 APIである。
+  `dropMimeData()`を対象とし、直前のMIME生成契約を最も近い契約とする。
+- 実装担当`global-koid-comparison`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は1である。`libs/global/KoID.h`と既存`libs/global/tests/KoIDContractTest.cpp`を監査し、
+  4比較演算子を既存の識別子比較契約へ対応付ける。
+- 実装担当`image-frame-generation-lock`は`ready`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`、統合順は2である。`libs/image/KisLockFrameGenerationLock.{h,cpp}`、
+  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`と新規専用試験を所有し、型、構築、`try_lock()`、
+  `lock()`、`unlock()`の5 APIを対象とする。
+- 実装担当`flake-path-point-data`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は3である。`libs/flake/KoPathPointData.h`の型、構築、公開値2件、同値、順序の6 APIを対象とし、
+  `libs/flake/tests/CMakeLists.txt`と新規専用試験だけを所有する。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -7680,11 +7676,28 @@
   パッケージ境界検査も1,114対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、
   対応済み4,987件、未対応25,002件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b ノードモデルのドロップ挿入 public API契約と位置判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_model.cpp`にあった`dropMimeData()`本体を、新規
+  `libs/ui/nodes/KisNodeModelDropInsertion.cpp`へ移した。親と直前項目の選択、複製操作の判定はQt Coreだけの
+  `kritauinodemodeldropinsertionobjects`が所有する。ダミー木と索引変換器への具象アクセス、現在画像・形状制御・
+  挿入協力対象の取得、`KisMimeData`による実挿入は移動元の保護境界に残し、製品`kritaapplicationui`が新規生成物を
+  1回集約する。
+- `libs/ui/nodes/kis_node_model.h`の`dropMimeData()`を、新規
+  `libs/ui/tests/KisNodeModelDropInsertionContractTest.cpp`の4試験へ対応付けた。有効な親への末尾複製、ルートへの末尾移動、
+  子数範囲内の行挿入、子数と等しい末端挿入について、親・直前項目・複製指定・協力対象・結果の引渡しを固定した。
+  製品実装接続前のリンクは対象メソッドだけを未解決記号として診断した。
+- 変更前の既存`kis_node_model_test`は1,840工程・3,679入力、直近のMIME生成契約は5工程・11入力だった。赤試験は
+  4工程・8入力、専用対象は1工程・3入力、緑化後の契約は5工程・11入力である。製品`kritaapplicationui`閉包は
+  1,835工程・3,670入力から1,836工程・3,672入力、既存試験は1,841工程・3,681入力になった。
+- 専用対象と元の`kis_node_model.cpp`単体コンパイル、対象CTestのmacOS単発実行と20回反復は成功した。公開API契約検査と
+  高速検査も成功し、公開面は1,549ヘッダー、29,989 API、対応済み4,988件、未対応25,001件になった。製品
+  `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-統合担当は`libs/ui/nodes/kis_node_model.h`の`dropMimeData()`について変更なし計画、直接依存、空構築閉包を先に監査する。
-ノード挿入位置の値判断と画像・形状制御・挿入アダプターへの効果委譲が同じ具象所有を要求する場合は、契約実装前に小構築対象へ
-分離する。次の並列担当群は新しい共通基準コミットから重ならない所有単位を選ぶ。
+準備完了した`global-koid-comparison`を統合順1として既存契約へ対応付け、対象CTest、公開API契約検査、高速検査を再実行する。
+続いて準備完了した実装担当を一件ずつ取り込み、各統合を独立したレビュー可能コミットへ固定する。
 
 ## R1-G5完了根拠
 

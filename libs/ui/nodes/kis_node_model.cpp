@@ -244,6 +244,50 @@ QMimeData *KisNodeModel::MimeDataAccess::createMimeData(const KisNodeList &nodes
     return KisMimeData::mimeForLayers(nodes, KisImageSP(image), forceCopy);
 }
 
+KisNodeDummy *KisNodeModel::DropMimeDataAccess::parentDummy(const KisNodeModel *model,
+                                                           const QModelIndex &parent)
+{
+    return parent.isValid() ? model->m_d->indexConverter->dummyFromIndex(parent)
+                            : model->m_d->dummiesFacade->rootDummy();
+}
+
+KisNodeDummy *KisNodeModel::DropMimeDataAccess::lastChild(KisNodeDummy *dummy)
+{
+    return dummy->lastChild();
+}
+
+int KisNodeModel::DropMimeDataAccess::rowCount(const KisNodeModel *model, const QModelIndex &parent)
+{
+    return model->m_d->indexConverter->rowCount(parent);
+}
+
+KisNodeDummy *KisNodeModel::DropMimeDataAccess::dummyFromRow(const KisNodeModel *model,
+                                                            int row,
+                                                            const QModelIndex &parent)
+{
+    return model->m_d->indexConverter->dummyFromRow(row, parent);
+}
+
+KisNodeModel::DropMimeDataAccess::Context KisNodeModel::DropMimeDataAccess::context(const KisNodeModel *model)
+{
+    return {model->m_d->image.data(), model->m_d->shapeController, model->m_d->nodeInsertionAdapter};
+}
+
+bool KisNodeModel::DropMimeDataAccess::insertMimeLayers(const QMimeData *data,
+                                                        const Context &context,
+                                                        KisNodeDummy *parentDummy,
+                                                        KisNodeDummy *aboveThisDummy,
+                                                        bool copyNode)
+{
+    return KisMimeData::insertMimeLayers(data,
+                                         KisImageSP(context.image),
+                                         context.shapeController,
+                                         parentDummy,
+                                         aboveThisDummy,
+                                         copyNode,
+                                         context.nodeInsertionAdapter);
+}
+
 bool KisNodeModel::DisplayStateAccess::hasDisplayModeAdapter(const KisNodeModel *model)
 {
     return model->m_d->nodeDisplayModeAdapter != nullptr;
@@ -818,35 +862,6 @@ bool KisNodeModel::setData(const QModelIndex &index, const QVariant &value, int 
     }
 
     return result;
-}
-
-bool KisNodeModel::dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent)
-{
-    Q_UNUSED(column);
-
-    bool copyNode = (action == Qt::CopyAction);
-
-    KisNodeDummy *parentDummy = 0;
-    KisNodeDummy *aboveThisDummy = 0;
-
-    parentDummy = parent.isValid() ?
-        m_d->indexConverter->dummyFromIndex(parent) :
-        m_d->dummiesFacade->rootDummy();
-
-    if (row == -1) {
-        aboveThisDummy = parent.isValid() ? parentDummy->lastChild() : 0;
-    }
-    else {
-        aboveThisDummy = row < m_d->indexConverter->rowCount(parent) ? m_d->indexConverter->dummyFromRow(row, parent) : 0;
-    }
-
-    return KisMimeData::insertMimeLayers(data,
-                                         m_d->image,
-                                         m_d->shapeController,
-                                         parentDummy,
-                                         aboveThisDummy,
-                                         copyNode,
-                                         m_d->nodeInsertionAdapter);
 }
 
 void KisNodeModel::setDropEnabled(const QMimeData *data) {
