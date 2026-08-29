@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:00 JST
+- 更新日時: 2026-08-29 19:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,7 +15,7 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`color-profile-query`は`implementing`、統合順は1である。
+- 統合担当`color-profile-query`は`verified`、統合順は1、実装コミットは`0d92c616df`である。
   `libs/pigment/KoColorProfileQuery.h`、Pigment試験CMake、新規限定試験を所有する。色特性問い合わせ値の構築、
   コピー・移動、妥当性分類、等値、診断表示、公開データの17 APIを対象とする。
 - 実装担当`surface-color-interfaces`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -8366,10 +8366,23 @@
   1,186対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,177件、未対応24,812件になった。
   Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 色特性問い合わせ値の全public API契約で完了した作業
+
+- `libs/pigment/KoColorProfileQuery.h`の全17 APIを、新規
+  `libs/pigment/tests/KoColorProfileQueryContractTest.cpp`の3試験へ対応付けた。既定と指定付きの構築、公開する
+  5条件、名前付きRGB・任意RGB・グレースケール・無効値の分類、コピーと移動による条件保持、全条件を用いる
+  等値、分類結果を含む診断表示を固定した。
+- 全APIが公開ヘッダー内で完結するため、製品実装と構築所有は変更していない。限定試験は白色点の比較と診断表示を
+  提供する既存`kritapigmentcolorimetryobjects`とQt Testだけへ接続し、対象閉包は5工程・11入力である。初回監査では
+  Ninja対象が未登録であることを確認した。
+- macOSで対象CTestの単発実行と20回反復、最近傍の`KoColorimetryUtilsContractTest`に成功した。パッケージ境界検査は
+  1,187対象で成功し、高速検査にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,194件、
+  未対応24,795件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-`color-profile-query`、`surface-color-interfaces`、`node-graph-listener`、`exposure-gamma-interface`を並行実装し、
-統合順に差分、限定構築、挙動、台帳を検証する。
+`surface-color-interfaces`、`node-graph-listener`、`exposure-gamma-interface`を並行実装し、統合順に差分、限定構築、
+挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 

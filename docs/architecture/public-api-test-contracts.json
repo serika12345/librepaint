@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24812
+    "expectedMissingApis": 24795
   },
   "contracts": [
     {
@@ -14746,6 +14746,50 @@
       "classification": "maintained",
       "apis": [
         "function:KisSpinBoxI18nHelper::setText(KisSelectionPropertySliderBase * spinBox,const QStringView textTemplate)"
+      ]
+    },
+    {
+      "target": "KoColorProfileQueryContractTest",
+      "source": "libs/pigment/tests/KoColorProfileQueryContractTest.cpp",
+      "test": "KoColorProfileQueryContractTest::constructionAndPublicValuesClassifyProfiles",
+      "behavior": "色特性問い合わせ値は既定で未指定かつ無効になり、指定済み原色と伝達特性、白色点と色成分の組合せから、名前付きRGB、任意RGB、グレースケールを区別して妥当性を判定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoColorProfileQuery::hdrReferenceWhite",
+        "member:KoColorProfileQuery::primaries",
+        "member:KoColorProfileQuery::rgbColorants",
+        "member:KoColorProfileQuery::transfer",
+        "member:KoColorProfileQuery::whitePoint",
+        "method:KoColorProfileQuery::KoColorProfileQuery(ColorPrimaries primaries=PRIMARIES_UNSPECIFIED,TransferCharacteristics transfer=TRC_UNSPECIFIED,std::optional<qreal> hdrReferenceWhite=std::nullopt)",
+        "method:KoColorProfileQuery::isGrayscale() const",
+        "method:KoColorProfileQuery::isRgb() const",
+        "method:KoColorProfileQuery::isValid() const",
+        "struct:KoColorProfileQuery"
+      ]
+    },
+    {
+      "target": "KoColorProfileQueryContractTest",
+      "source": "libs/pigment/tests/KoColorProfileQueryContractTest.cpp",
+      "test": "KoColorProfileQueryContractTest::copyMoveAndEqualityPreserveEveryCriterion",
+      "behavior": "コピー・移動の構築と代入は問い合わせ条件をすべて保持し、等値と非等値は白色点、色成分、原色、伝達特性、HDR基準白の各差を判別する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorProfileQuery::KoColorProfileQuery(KoColorProfileQuery && rhs)",
+        "method:KoColorProfileQuery::KoColorProfileQuery(const KoColorProfileQuery & rhs)",
+        "method:KoColorProfileQuery::operator !=(const KoColorProfileQuery & rhs) const",
+        "method:KoColorProfileQuery::operator =(KoColorProfileQuery && rhs)",
+        "method:KoColorProfileQuery::operator =(const KoColorProfileQuery & rhs)",
+        "method:KoColorProfileQuery::operator ==(const KoColorProfileQuery & rhs) const"
+      ]
+    },
+    {
+      "target": "KoColorProfileQueryContractTest",
+      "source": "libs/pigment/tests/KoColorProfileQueryContractTest.cpp",
+      "test": "KoColorProfileQueryContractTest::debugOutputReportsClassification",
+      "behavior": "診断表示は問い合わせ型、白色点、色成分とグレースケール・RGB・妥当性の判定結果を含む。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KoColorProfileQuery & value)"
       ]
     }
   ]
