@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24651
+    "expectedMissingApis": 24635
   },
   "contracts": [
     {
@@ -15209,6 +15209,73 @@
         "function:KisAlgebra2D::copysign(T x,T y)",
         "function:KisAlgebra2D::signPZ(T x)",
         "function:KisAlgebra2D::signZZ(T x)"
+      ]
+    },
+    {
+      "target": "TestSqueezedComboBox",
+      "source": "libs/widgetutils/tests/TestSqueezedComboBox.cpp",
+      "test": "TestSqueezedComboBox::constructorPreservesParentNameAndOwnership",
+      "behavior": "省略表示コンボボックスは指定した親とobject name、最低幅100を持ち、有効な寸法ヒントを返し、親の破棄で子として破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSqueezedComboBox",
+        "method:KisSqueezedComboBox::KisSqueezedComboBox(QWidget * parent=0,const char * name=0)",
+        "method:KisSqueezedComboBox::sizeHint() const",
+        "method:KisSqueezedComboBox::~KisSqueezedComboBox()"
+      ]
+    },
+    {
+      "target": "TestSqueezedComboBox",
+      "source": "libs/widgetutils/tests/TestSqueezedComboBox.cpp",
+      "test": "TestSqueezedComboBox::textItemsPreserveOriginalValuesSelectionAndReset",
+      "behavior": "文字列項目の追加は原文、利用者データ、tooltipを保持し、原文の存在・位置・現在値を照会して選択でき、原文一覧を指定値へ再設定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSqueezedComboBox::addSqueezedItem(const QString & newItem,QVariant userData=QVariant ())",
+        "method:KisSqueezedComboBox::contains(const QString & text) const",
+        "method:KisSqueezedComboBox::currentUnsqueezedText()",
+        "method:KisSqueezedComboBox::findOriginalText(const QString & text) const",
+        "method:KisSqueezedComboBox::originalTexts() const",
+        "method:KisSqueezedComboBox::resetOriginalTexts(const QStringList & texts)",
+        "method:KisSqueezedComboBox::setCurrent(const QString & itemText)"
+      ]
+    },
+    {
+      "target": "TestSqueezedComboBox",
+      "source": "libs/widgetutils/tests/TestSqueezedComboBox.cpp",
+      "test": "TestSqueezedComboBox::iconAndTextInsertionPreserveMetadataAtTheEnd",
+      "behavior": "末尾へのicon付き追加と文字列・icon付き挿入は原文順、icon、利用者データ、tooltipを各項目へ保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSqueezedComboBox::addSqueezedItem(const QIcon & icon,const QString & newItem,QVariant userData=QVariant ())",
+        "method:KisSqueezedComboBox::insertSqueezedItem(const QIcon & icon,const QString & newItem,int index,QVariant userData=QVariant ())",
+        "method:KisSqueezedComboBox::insertSqueezedItem(const QString & newItem,int index,QVariant userData=QVariant ())"
+      ]
+    },
+    {
+      "target": "TestSqueezedComboBox",
+      "source": "libs/widgetutils/tests/TestSqueezedComboBox.cpp",
+      "test": "TestSqueezedComboBox::squeezingPreservesTheRightmostVisibleSuffix",
+      "behavior": "十分な幅では原文を表示し、狭い幅では先頭に省略記号を付けた原文末尾を表示し、拡大時に原文へ戻してtooltipの原文を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSqueezedComboBox::squeezeText(const QString & original,const QWidget * widget)"
+      ]
+    },
+    {
+      "target": "TestSqueezedComboBox",
+      "source": "libs/widgetutils/tests/TestSqueezedComboBox.cpp",
+      "test": "TestSqueezedComboBox::middleInsertionAndRemovalExposeCurrentIndexMismatch",
+      "behavior": "中央への挿入と削除は実項目だけを再配置して原文添字を再配置せず、原文の欠落、表示項目と現在原文の不一致、残存原文の検索失敗を生じる。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisSqueezedComboBox::contains(const QString & text) const",
+        "method:KisSqueezedComboBox::currentUnsqueezedText()",
+        "method:KisSqueezedComboBox::findOriginalText(const QString & text) const",
+        "method:KisSqueezedComboBox::insertSqueezedItem(const QString & newItem,int index,QVariant userData=QVariant ())",
+        "method:KisSqueezedComboBox::originalTexts() const",
+        "method:KisSqueezedComboBox::removeSqueezedItem(int index)",
+        "method:KisSqueezedComboBox::setCurrent(const QString & itemText)"
       ]
     }
   ]
