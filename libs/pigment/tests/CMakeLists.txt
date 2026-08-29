@@ -67,6 +67,18 @@ kis_add_test(
 target_compile_definitions(KoColorimetryUtilsContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoColorProfileQueryContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentcolorimetryobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoColorProfileQueryContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoColorProfileQueryContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoColorProfileConstantsContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
