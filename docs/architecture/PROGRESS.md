@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:39 JST
+- 更新日時: 2026-08-29 20:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,7 +19,7 @@
   `libs/ui/widgets/kis_size_group.{h,cpp}`、`libs/ui/widgets/kis_size_group_p.{h,cpp}`、UI製品・試験CMake、新規限定試験を
   所有する。製品`kritaapplicationui`の1,851工程・3,702入力から実装2単位を専用生成物へ分け、親所有、方向列挙、
   方向・非表示除外設定、box・grid・form配置での寸法同期、非表示と除去後の再計算、仮想破棄の全14 APIを対象とする。
-- 実装担当`checkerboard-painter`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`checkerboard-painter`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-checkerboard-painter`であり、
   `libs/widgetutils/KoCheckerBoardPainter.h`、Widget Utils試験CMake、新規限定試験を所有する。既存の1工程・3入力の
@@ -8568,9 +8568,23 @@
   成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,461件、未対応24,528件になった。Linux、
   全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 市松模様描画の全public API契約で完了した作業
+
+- `libs/widgetutils/KoCheckerBoardPainter.h`の全6 APIを、新規
+  `libs/widgetutils/tests/KoCheckerBoardPainterContractTest.cpp`の5試験へ対応付けた。既定・指定色、指定寸法の周期、
+  原点省略とゼロ原点の同値性、指定原点による位相移動、描画矩形外の画素保持を固定した。
+- 製品実装は既存`kritacheckerboardpainterobjects`が所有し、製品`kritawidgetutils`へ1回だけ再集約する経路を維持した。
+  限定試験は生成物とQt Gui・Testだけへ接続し、製品ライブラリーをリンクしない。生成物は1工程・3入力、限定試験は
+  5工程・11入力である。
+- 担当側で実座標を使う描画矩形内の位相を確認して期待値を現行の全体座標基準へ合わせ、製品挙動は変更していない。
+  統合側の対象CTest単発実行と20回反復、最近傍の`KColorSchemeEnumContractTest`に成功した。パッケージ境界検査は
+  1,204対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,467件、未対応24,522件になった。契約画像は
+  整数座標、不透明色、固定画素形式を使用する。0以下の市松寸法、Linux、全ネイティブ検証、製品全体構築は
+  実行していない。
+
 ## 次の操作
 
-市松模様描画、混色接続面、画像接続面の順に、担当差分、限定構築、挙動、台帳を統合検証する。
+混色接続面、画像接続面の順に、担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 

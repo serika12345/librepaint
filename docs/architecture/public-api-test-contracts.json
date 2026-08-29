@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24528
+    "expectedMissingApis": 24522
   },
   "contracts": [
     {
@@ -15616,6 +15616,60 @@
       "apis": [
         "method:KisSizeGroup::addWidget(QWidget * widget)",
         "method:KisSizeGroup::setIgnoreHidden(bool ignoreHidden)"
+      ]
+    },
+    {
+      "target": "KoCheckerBoardPainterContractTest",
+      "source": "libs/widgetutils/tests/KoCheckerBoardPainterContractTest.cpp",
+      "test": "KoCheckerBoardPainterContractTest::constructorPaintsDefaultColorsAtRequestedPeriod",
+      "behavior": "指定した市松寸法で構築すると、既定の明灰色と暗灰色が指定周期で交互に描画される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCheckerBoardPainter",
+        "method:KoCheckerBoardPainter::KoCheckerBoardPainter(int checkerSize)",
+        "method:KoCheckerBoardPainter::paint(QPainter & painter,const QRectF & rect) const"
+      ]
+    },
+    {
+      "target": "KoCheckerBoardPainterContractTest",
+      "source": "libs/widgetutils/tests/KoCheckerBoardPainterContractTest.cpp",
+      "test": "KoCheckerBoardPainterContractTest::settersRebuildThePatternWithNewColorsAndSize",
+      "behavior": "市松色と寸法を変更すると、新しい色と周期を持つ描画模様へ再構築される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCheckerBoardPainter::setCheckerColors(const QColor & lightColor,const QColor & darkColor)",
+        "method:KoCheckerBoardPainter::setCheckerSize(int checkerSize)"
+      ]
+    },
+    {
+      "target": "KoCheckerBoardPainterContractTest",
+      "source": "libs/widgetutils/tests/KoCheckerBoardPainterContractTest.cpp",
+      "test": "KoCheckerBoardPainterContractTest::zeroOriginMatchesConvenienceOverload",
+      "behavior": "原点を省略した描画とゼロ原点を明示した描画は同一画像を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCheckerBoardPainter::paint(QPainter & painter,const QRectF & rect) const",
+        "method:KoCheckerBoardPainter::paint(QPainter & painter,const QRectF & rect,const QPointF & patternOrigin) const"
+      ]
+    },
+    {
+      "target": "KoCheckerBoardPainterContractTest",
+      "source": "libs/widgetutils/tests/KoCheckerBoardPainterContractTest.cpp",
+      "test": "KoCheckerBoardPainterContractTest::patternOriginMovesTheCheckerPhase",
+      "behavior": "指定した模様原点の移動量に従って市松模様の位相が移動する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCheckerBoardPainter::paint(QPainter & painter,const QRectF & rect,const QPointF & patternOrigin) const"
+      ]
+    },
+    {
+      "target": "KoCheckerBoardPainterContractTest",
+      "source": "libs/widgetutils/tests/KoCheckerBoardPainterContractTest.cpp",
+      "test": "KoCheckerBoardPainterContractTest::paintingPreservesPixelsOutsideTheRectangle",
+      "behavior": "指定矩形だけに市松模様を描画し、矩形外の既存画素を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCheckerBoardPainter::paint(QPainter & painter,const QRectF & rect) const"
       ]
     }
   ]
