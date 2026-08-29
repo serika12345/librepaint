@@ -14,26 +14,26 @@
 - 第27並列便の共通基準コミットは`d2606d5ab3`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g27-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`undo-stack`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`undo-stack`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/undo/kundo2stack.h`、Painting Undo試験CMake、新規`KUndo2StackContractTest.cpp`を所有する。開始実装
   `kundo2stack.cpp`と`kundo2stack_actions.cpp`は既に`kritapaintingundokundo2coreobjects`と
   `kritapaintingundostackactionobjects`が所有するため製品CMakeを変更しない。従来`TestKUndo2Stack`の264工程・558入力に代えて
   15工程・32入力以内で、命令階層、時刻・統合情報、追加データ、履歴操作、通知、清浄位置、macro、上限、累積取消、操作生成の
   全73 APIを固定する。操作生成のWidgetUtils参照は試験内の局所協調定義で閉じ、上限超過または製品共有ライブラリー接続を要する
   場合は停止する。
-- 実装担当`unicode-block-data`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`unicode-block-data`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g27-unicode-block-data`を予定し、
   `libs/flake/text/data/KoUnicodeBlockData.cpp`、Flake製品・試験CMake、新規`KoUnicodeBlockDataContractTest.cpp`を所有する。
   開始ファイル`KoUnicodeBlockData.cpp`を製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。既存実装の
   366工程・760入力に代えて5工程・11入力前後で、値保持、両端を含む範囲判定、名前を除外する等値規約、BMP・補助面・未割当領域の
   検索、未所属値の全12 APIを固定する。
-- 実装担当`selection-component`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`selection-component`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g27-selection-component`を予定し、
   `libs/image/kis_selection_component.cc`、Image製品・試験CMake、新規`KisSelectionComponentContractTest.cpp`を所有する。開始ファイル
   `kis_selection_component.cc`を製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。従来
   `kis_selection_test`の1,103工程・2,229入力に代えて5工程・13入力以内で、複製・描画・移動・変換・空判定・輪郭・解像度接続の
   仮想配送、既定無処理、返値、借用値、基底寿命の全15 APIを固定する。
-- 実装担当`color-label-button`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`color-label-button`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g27-color-label-button`を予定し、
   `libs/widgets/kis_color_label_button.cpp`、Widgets製品・試験CMake、新規`KisColorLabelButtonContractTest.cpp`を所有する。開始ファイル
   `kis_color_label_button.cpp`を製品`kritawidgets`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の
@@ -9337,8 +9337,8 @@
 
 ## 次の操作
 
-第27並列便の計画基準をコミットし、3担当の専用Git作業ツリーと専用Ninja木を作る。構築実行許可を付与した後、統合担当はundo
-stackの限定対象を開始し、各担当は製品共有ライブラリーを接続しない最小契約を赤から開始する。
+第27並列便の4担当が、記録した閉包上限を先に確認して限定契約を赤から開始する。各実装担当は許可パスだけを変更し、限定対象の
+単発・20回反復、軽量隣接試験、製品への1回再集約、製品共有ライブラリー非接続を確認して引き渡す。
 
 ## R1-G5完了根拠
 
