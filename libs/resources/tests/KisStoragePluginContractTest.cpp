@@ -332,7 +332,15 @@ class KisStoragePluginContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void preservesLocationTimestampAndVirtualLifetime()
+    void preservesLocationTimestampAndVirtualLifetime();
+    void parsesResourceUrlAndLoadsVersionedResource();
+    void dispatchesPureVirtualStorageOperations();
+    void providesStableBaseDefaults();
+    void resourceMd5UsesVirtualResourceLookup();
+    void dispatchesAllOptionalVirtualOperations();
+
+private:
+    void preservesLocationTimestampAndVirtualLifetimeImpl()
     {
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
@@ -371,7 +379,7 @@ private Q_SLOTS:
         QCOMPARE(existingStorage.timestamp(), QFileInfo(existingPath).lastModified());
     }
 
-    void parsesResourceUrlAndLoadsVersionedResource()
+    void parsesResourceUrlAndLoadsVersionedResourceImpl()
     {
         QTemporaryDir directory;
         StorageProbe storage(directory.filePath(QStringLiteral("storage")));
@@ -412,7 +420,7 @@ private Q_SLOTS:
         QVERIFY(!storage.resource(QStringLiteral("patterns/unregistered.test")));
     }
 
-    void dispatchesPureVirtualStorageOperations()
+    void dispatchesPureVirtualStorageOperationsImpl()
     {
         StorageProbe probe(QStringLiteral("contract-storage"));
         KisStoragePlugin *storage = &probe;
@@ -439,7 +447,7 @@ private Q_SLOTS:
         QCOMPARE(probe.tagsType, QStringLiteral("patterns"));
     }
 
-    void providesStableBaseDefaults()
+    void providesStableBaseDefaultsImpl()
     {
         StorageProbe storage(QStringLiteral("contract-storage"));
         KoResourceSP resource(new ObservedResource(QStringLiteral("resource.test")));
@@ -471,7 +479,7 @@ private Q_SLOTS:
         QVERIFY(storage.isValid());
     }
 
-    void resourceMd5UsesVirtualResourceLookup()
+    void resourceMd5UsesVirtualResourceLookupImpl()
     {
         DispatchProbe probe(QStringLiteral("contract-storage"));
         KisStoragePlugin *storage = &probe;
@@ -491,7 +499,7 @@ private Q_SLOTS:
         QCOMPARE(probe.resourceMd5Url, QStringLiteral("override-url"));
     }
 
-    void dispatchesAllOptionalVirtualOperations()
+    void dispatchesAllOptionalVirtualOperationsImpl()
     {
         DispatchProbe probe(QStringLiteral("contract-storage"));
         KisStoragePlugin *storage = &probe;
@@ -531,6 +539,36 @@ private Q_SLOTS:
         QCOMPARE(probe.isValidCalls, 1);
     }
 };
+
+void KisStoragePluginContractTest::preservesLocationTimestampAndVirtualLifetime()
+{
+    preservesLocationTimestampAndVirtualLifetimeImpl();
+}
+
+void KisStoragePluginContractTest::parsesResourceUrlAndLoadsVersionedResource()
+{
+    parsesResourceUrlAndLoadsVersionedResourceImpl();
+}
+
+void KisStoragePluginContractTest::dispatchesPureVirtualStorageOperations()
+{
+    dispatchesPureVirtualStorageOperationsImpl();
+}
+
+void KisStoragePluginContractTest::providesStableBaseDefaults()
+{
+    providesStableBaseDefaultsImpl();
+}
+
+void KisStoragePluginContractTest::resourceMd5UsesVirtualResourceLookup()
+{
+    resourceMd5UsesVirtualResourceLookupImpl();
+}
+
+void KisStoragePluginContractTest::dispatchesAllOptionalVirtualOperations()
+{
+    dispatchesAllOptionalVirtualOperationsImpl();
+}
 
 QTEST_GUILESS_MAIN(KisStoragePluginContractTest)
 

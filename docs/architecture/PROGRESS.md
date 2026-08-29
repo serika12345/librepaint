@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 23:56 JST
+- 更新日時: 2026-08-30 00:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,8 +23,8 @@
   作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-view-converter`であり、
   `libs/flake/KoViewConverter.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。553工程・1,138入力の製品接続から分離し、
   ズーム状態、座標・矩形・寸法・行列変換、静止点合成、寿命の全22 APIを対象とする。
-- 実装担当`storage-plugin`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-storage-plugin`であり、
+- 実装担当`storage-plugin`は`integrated`、担当先端は`8bee6c77ab`、統合コミットは`9ba4f88cec`、統合順は3である。
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-storage-plugin`であり、
   `libs/resources/KisStoragePlugin.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。717工程・1,461入力の統合試験から
   分離し、構築、時刻、URL読込み配送、MD5、資源情報、既定非対応操作、純仮想接続面、寿命の全21 APIを対象とする。
 - 実装担当`lod-layer-offset`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
@@ -8896,9 +8896,25 @@
   未対応24,046件になった。nullの軸別出力先、負・非有限尺度、非有限座標、負寸法、派生型のゼロ尺度、Linux、
   全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 資源保管基底の全public API契約と構築所有分離で完了した作業
+
+- `libs/resources/KisStoragePlugin.h`の全21 APIを、新規`libs/resources/tests/KisStoragePluginContractTest.cpp`の
+  6試験へ対応付けた。保存場所と時刻、仮想破棄、URLの資源種別・ファイル名分割、MIME・読込み器・版読込みへの配送、
+  不正URLと読込み失敗、純粋仮想操作、MD5検索、既定の非対応操作、版管理、有効性、縮小画像、メタデータを固定した。
+- 開始ファイル`libs/resources/KisStoragePlugin.cpp`の構築所有を`libs/resources/CMakeLists.txt`の
+  `kritaresources_LIB_SRCS`から同ファイル内の新規`kritastoragepluginobjects`へ移し、製品`kritaresources`へ1回だけ
+  再集約した。新規限定試験は専用生成物、既存の資源値生成物、Global診断生成物、Qt Gui・Xml・Test、KF I18n、Boostだけへ
+  接続し、製品共有ライブラリーを含まない。物理ファイル、公開ヘッダー、製品ABI、資源読込み処理は維持した。
+- 対象未登録時の初回限定構築は未知の対象として失敗した。macOSの限定試験は13工程・27入力であり、既存の5資源保管統合試験の
+  各717工程・1,461入力から縮小した。製品リンク計画で旧直接オブジェクトが消え、専用生成物が1回だけ現れることを確認した。
+  主作業ツリーで対象CTest単発と20回反復、最近傍の`KoResourceContractTest`、パッケージ境界検査に成功し、担当作業ツリーの
+  高速検査にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,964件、未対応24,025件になった。限定試験内の
+  MIME・登録簿代替はURL分割と読込み器配送だけを観測し、実登録・実MIME統合は既存統合試験に残した。null装置・資源、経路遡行、
+  問合せ文字列・符号化、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第20並列便の残る2実装担当の引渡しを統合順に監査し、限定対象を主作業ツリーで再検証する。
+第20並列便のLOD対応位置引渡しを統合し、限定対象を主作業ツリーで再検証する。
 
 ## R1-G5完了根拠
 

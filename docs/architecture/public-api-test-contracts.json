@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24046
+    "expectedMissingApis": 24025
   },
   "contracts": [
     {
@@ -17238,6 +17238,72 @@
       "apis": [
         "method:KoViewConverter::makeDocStillPoint(const QPointF & docPoint) const",
         "method:KoViewConverter::makeWidgetStillPoint(const QPointF & viewPoint) const"
+      ]
+    },
+    {
+      "target": "KisStoragePluginContractTest",
+      "source": "libs/resources/tests/KisStoragePluginContractTest.cpp",
+      "test": "KisStoragePluginContractTest::preservesLocationTimestampAndVirtualLifetime",
+      "behavior": "資源保管基底は構築時の場所を保持し、存在しない保存先では構築時刻を固定し、存在する保存先では更新時刻を返して基底所有から派生個体を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStoragePlugin",
+        "method:KisStoragePlugin::KisStoragePlugin(const QString & location)",
+        "method:KisStoragePlugin::timestamp()",
+        "method:KisStoragePlugin::~KisStoragePlugin()"
+      ]
+    },
+    {
+      "target": "KisStoragePluginContractTest",
+      "source": "libs/resources/tests/KisStoragePluginContractTest.cpp",
+      "test": "KisStoragePluginContractTest::parsesResourceUrlAndLoadsVersionedResource",
+      "behavior": "資源URLは先頭部分を資源種別、残りをファイル名としてMIME検索と読込み器へ配送し、生成資源を版読込みへ渡して成功時だけ返す。不正URL、読込み器不在、版読込み失敗では空を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStoragePlugin::loadVersionedResource(KoResourceSP resource)",
+        "method:KisStoragePlugin::resource(const QString & url)"
+      ]
+    },
+    {
+      "target": "KisStoragePluginContractTest",
+      "source": "libs/resources/tests/KisStoragePluginContractTest.cpp",
+      "test": "KisStoragePluginContractTest::dispatchesPureVirtualStorageOperations",
+      "behavior": "資源項目、資源反復子、タグ反復子の抽象接続面はURLまたは資源種別を派生保管実装へ正確に配送し、その結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStoragePlugin::resourceItem(const QString & url)",
+        "method:KisStoragePlugin::resources(const QString & resourceType)",
+        "method:KisStoragePlugin::tags(const QString & resourceType)"
+      ]
+    },
+    {
+      "target": "KisStoragePluginContractTest",
+      "source": "libs/resources/tests/KisStoragePluginContractTest.cpp",
+      "test": "KisStoragePluginContractTest::providesStableBaseDefaults",
+      "behavior": "資源保管基底の任意操作は保存、取込み、書出し、追加を非対応として返し、空経路、版管理対応、警告付き有効状態、空縮小画像と空メタデータを副作用なく提供する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStoragePlugin::addResource(const QString & resourceType,KoResourceSP resource)",
+        "method:KisStoragePlugin::exportResource(const QString & url,QIODevice * device)",
+        "method:KisStoragePlugin::importResource(const QString & url,QIODevice * device)",
+        "method:KisStoragePlugin::isValid() const",
+        "method:KisStoragePlugin::metaData(const QString & key) const",
+        "method:KisStoragePlugin::metaDataKeys() const",
+        "method:KisStoragePlugin::resourceFilePath(const QString & url)",
+        "method:KisStoragePlugin::saveAsNewVersion(const QString & resourceType,KoResourceSP resource)",
+        "method:KisStoragePlugin::setMetaData(const QString & key,const QVariant & value)",
+        "method:KisStoragePlugin::supportsVersioning() const",
+        "method:KisStoragePlugin::thumbnail() const"
+      ]
+    },
+    {
+      "target": "KisStoragePluginContractTest",
+      "source": "libs/resources/tests/KisStoragePluginContractTest.cpp",
+      "test": "KisStoragePluginContractTest::resourceMd5UsesVirtualResourceLookup",
+      "behavior": "資源MD5検索は同じURLを仮想資源検索へ配送し、取得資源の設定済みMD5を返し、資源不在では空文字列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStoragePlugin::resourceMd5(const QString & url)"
       ]
     }
   ]
