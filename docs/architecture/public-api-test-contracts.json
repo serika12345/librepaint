@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25081
+    "expectedMissingApis": 25078
   },
   "contracts": [
     {
@@ -12823,6 +12823,47 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::quickUngroup()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerReferenceImageContractTest",
+      "source": "libs/ui/tests/KisNodeManagerReferenceImageContractTest.cpp",
+      "test": "KisNodeManagerReferenceImageContractTest::entryPointsChooseLayerOrVisibleProjection",
+      "behavior": "活動レイヤー用入口は活動レイヤーの投影を、表示画像用入口は現在画像の投影を選び、それぞれ変換した画像から参照画像を作る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createReferenceImageFromLayer()",
+        "method:KisNodeManager::createReferenceImageFromVisible()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerReferenceImageContractTest",
+      "source": "libs/ui/tests/KisNodeManagerReferenceImageContractTest.cpp",
+      "test": "KisNodeManagerReferenceImageContractTest::successfulCreationAppendsAndSwitchesTool",
+      "behavior": "参照画像の作成に成功した場合は既存参照画像数を重なり順に設定し、文書へ追加して参照画像ツールへ切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createReferenceImage(bool fromLayer)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerReferenceImageContractTest",
+      "source": "libs/ui/tests/KisNodeManagerReferenceImageContractTest.cpp",
+      "test": "KisNodeManagerReferenceImageContractTest::firstReferenceKeepsDefaultZIndex",
+      "behavior": "参照画像レイヤーがまだない場合は新しい参照画像の既定重なり順を維持したまま追加し、参照画像ツールへ切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createReferenceImage(bool fromLayer)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerReferenceImageContractTest",
+      "source": "libs/ui/tests/KisNodeManagerReferenceImageContractTest.cpp",
+      "test": "KisNodeManagerReferenceImageContractTest::failedCreationReportsInputSpecificMessage",
+      "behavior": "参照画像を作れずキャンバス部品がある場合は、活動レイヤーと表示画像の入力を区別した高優先度の単一行メッセージを5秒間表示する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createReferenceImage(bool fromLayer)"
       ]
     },
     {

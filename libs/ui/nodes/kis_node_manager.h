@@ -24,6 +24,7 @@ class KoCompositeOp;
 class KoColorSpace;
 class KUndo2MagicString;
 class QMimeData;
+class QImage;
 
 class KisFilterStrategy;
 class KisViewManager;
@@ -35,6 +36,7 @@ class KisNodeDisplayModeAdapter;
 class KisNodeOperationBatch;
 class KoProperties;
 class KisProcessingApplicator;
+class KisReferenceImage;
 
 /**
  * The node manager passes requests for new layers or masks on to the mask and layer
@@ -564,6 +566,24 @@ protected:
         static KisNodeSP parentNode(KisNodeSP node);
         static QString nodeName(KisNodeSP node);
         static void showFloatingMessage(KisNodeManager *manager, const QString &message);
+    };
+
+    struct KRITAUI_EXPORT ReferenceImageAccess {
+        static KisPaintDevice *activeLayerProjection(KisNodeManager *manager);
+        static KisPaintDevice *visibleProjection(KisNodeManager *manager);
+        static QImage convertToImage(KisPaintDevice *device);
+        static KisReferenceImage *createReferenceImage(KisNodeManager *manager, const QImage &image);
+        static void deleteReferenceImage(KisReferenceImage *reference);
+        static int referenceImageCount(KisNodeManager *manager);
+        static void setZIndex(KisReferenceImage *reference, int index);
+        static void addReferenceImage(KisNodeManager *manager, KisReferenceImage *reference);
+        static void switchTool(const QString &toolId);
+        static bool hasCanvasWidget(KisNodeManager *manager);
+        static void showFloatingMessage(KisNodeManager *manager,
+                                        const QString &message,
+                                        int timeout,
+                                        bool highPriority,
+                                        bool singleLine);
     };
 
 private:

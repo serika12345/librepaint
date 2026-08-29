@@ -748,41 +748,70 @@ void KisNodeManager::convertNode(const QString &nodeType)
     }
 }
 
-void KisNodeManager::createReferenceImage(bool fromLayer) {
-    KisViewManager* m_view = m_d->view;
-    KisDocument *document = m_view->document();
-    KisCanvas2 *canvas = m_view->canvasBase();
-    
-    const KisPaintDeviceSP paintDevice = fromLayer ? m_view->activeLayer()->projection()
-                                                  : canvas->currentImage()->projection();
-    const QImage image = paintDevice->convertToQImage(0, KoColorConversionTransformation::internalRenderingIntent(),
-        KoColorConversionTransformation::internalConversionFlags());
-    std::unique_ptr<KisReferenceImage> reference(KisReferenceImage::fromQImage(*canvas->coordinatesConverter(), image));
-    KIS_SAFE_ASSERT_RECOVER_RETURN(canvas);
-    if (reference) {
-        if (document->referenceImagesLayer()) {
-            reference->setZIndex(document->referenceImagesLayer()->shapes().size());
-        }
-        canvas->addCommand(KisReferenceImagesLayer::addReferenceImages(document, {reference.release()}));
-
-        KoToolManager::instance()->switchToolRequested("ToolReferenceImages");
-
-    } else {
-        if (canvas->canvasWidget()) {
-            QString strMessage = fromLayer ? i18nc("error dialog from the reference tool", "Could not create a reference image from the active layer.")
-                : i18nc("error dialog from the reference tool", "Could not create a reference image from the visible canvas.");
-
-            m_d->view->showFloatingMessage(strMessage, QIcon(), 5000, KisFloatingMessage::High, Qt::TextSingleLine);
-        }
-    }
+KisPaintDevice *KisNodeManager::ReferenceImageAccess::activeLayerProjection(KisNodeManager *manager)
+{
+    return manager->m_d->view->activeLayer()->projection().data();
 }
 
-void KisNodeManager::createReferenceImageFromLayer() {
-    createReferenceImage(true);
+KisPaintDevice *KisNodeManager::ReferenceImageAccess::visibleProjection(KisNodeManager *manager)
+{
+    return manager->m_d->view->canvasBase()->currentImage()->projection().data();
 }
 
-void KisNodeManager::createReferenceImageFromVisible() {
-    createReferenceImage(false);
+QImage KisNodeManager::ReferenceImageAccess::convertToImage(KisPaintDevice *device)
+{
+    return device->convertToQImage(0,
+                                   KoColorConversionTransformation::internalRenderingIntent(),
+                                   KoColorConversionTransformation::internalConversionFlags());
+}
+
+KisReferenceImage *KisNodeManager::ReferenceImageAccess::createReferenceImage(KisNodeManager *manager,
+                                                                              const QImage &image)
+{
+    return KisReferenceImage::fromQImage(*manager->m_d->view->canvasBase()->coordinatesConverter(), image);
+}
+
+void KisNodeManager::ReferenceImageAccess::deleteReferenceImage(KisReferenceImage *reference)
+{
+    delete reference;
+}
+
+int KisNodeManager::ReferenceImageAccess::referenceImageCount(KisNodeManager *manager)
+{
+    KisReferenceImagesLayerSP layer = manager->m_d->view->document()->referenceImagesLayer();
+    return layer ? layer->shapes().size() : -1;
+}
+
+void KisNodeManager::ReferenceImageAccess::setZIndex(KisReferenceImage *reference, int index)
+{
+    reference->setZIndex(index);
+}
+
+void KisNodeManager::ReferenceImageAccess::addReferenceImage(KisNodeManager *manager, KisReferenceImage *reference)
+{
+    KisViewManager *view = manager->m_d->view;
+    view->canvasBase()->addCommand(KisReferenceImagesLayer::addReferenceImages(view->document(), {reference}));
+}
+
+void KisNodeManager::ReferenceImageAccess::switchTool(const QString &toolId)
+{
+    KoToolManager::instance()->switchToolRequested(toolId);
+}
+
+bool KisNodeManager::ReferenceImageAccess::hasCanvasWidget(KisNodeManager *manager)
+{
+    return manager->m_d->view->canvasBase()->canvasWidget();
+}
+
+void KisNodeManager::ReferenceImageAccess::showFloatingMessage(KisNodeManager *manager,
+                                                               const QString &message,
+                                                               int timeout,
+                                                               bool highPriority,
+                                                               bool singleLine)
+{
+    const KisFloatingMessage::Priority priority = highPriority ? KisFloatingMessage::High : KisFloatingMessage::Medium;
+    const int alignment = singleLine ? Qt::TextSingleLine : Qt::AlignCenter | Qt::TextWordWrap;
+    manager->m_d->view->showFloatingMessage(message, QIcon(), timeout, priority, alignment);
 }
 
 void KisNodeManager::slotSomethingActivatedNodeImpl(KisNodeSP node)
