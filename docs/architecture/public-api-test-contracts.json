@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25021
+    "expectedMissingApis": 25015
   },
   "contracts": [
     {
@@ -4802,6 +4802,7 @@
         "enum:KisForestDetail::TraversalState",
         "enumerator:KisForestDetail::TraversalState::Enter",
         "enumerator:KisForestDetail::TraversalState::Leave",
+        "function:KisForestDetail::operator <<(QDebug dbg,const ChildIterator<X,c> & it)",
         "function:KisForestDetail::operator <<(QDebug dbg,const ChildIterator<value_type,is_const> & it)",
         "member:KisForestDetail::BaseNode::nextSibling",
         "member:KisForestDetail::BaseNode::prevSibling",
@@ -4894,10 +4895,12 @@
       "apis": [
         "function:KisForestDetail::childBegin(Forest<T> & forest)",
         "function:KisForestDetail::childBegin(Iterator it)",
+        "function:KisForestDetail::childBegin(const ChildIterator<X,c> & it)",
         "function:KisForestDetail::childBegin(const ChildIterator<value_type,is_const> & it)",
         "function:KisForestDetail::childBegin(const Forest<T> & forest)",
         "function:KisForestDetail::childEnd(Forest<T> & forest)",
         "function:KisForestDetail::childEnd(Iterator it)",
+        "function:KisForestDetail::childEnd(const ChildIterator<X,c> & it)",
         "function:KisForestDetail::childEnd(const ChildIterator<value_type,is_const> & it)",
         "function:KisForestDetail::childEnd(const Forest<T> & forest)",
         "function:KisForestDetail::compositionBegin(Forest<T> & forest)",
@@ -4909,12 +4912,15 @@
         "function:KisForestDetail::hierarchyBegin(Iterator it)",
         "function:KisForestDetail::hierarchyEnd(Iterator it)",
         "function:KisForestDetail::isEnd(const ChildIterator<T,is_const> & it)",
+        "function:KisForestDetail::parent(const ChildIterator<X,c> & it)",
         "function:KisForestDetail::parent(const ChildIterator<value_type,is_const> & it)",
         "function:KisForestDetail::siblingBegin(Iterator it)",
+        "function:KisForestDetail::siblingBegin(const ChildIterator<X,c> & it)",
         "function:KisForestDetail::siblingBegin(const ChildIterator<value_type,is_const> & it)",
         "function:KisForestDetail::siblingCurrent(ChildIterator<value_type,is_const> it)",
         "function:KisForestDetail::siblingCurrent(Iterator it)",
         "function:KisForestDetail::siblingEnd(Iterator it)",
+        "function:KisForestDetail::siblingEnd(const ChildIterator<X,c> & it)",
         "function:KisForestDetail::siblingEnd(const ChildIterator<value_type,is_const> & it)",
         "function:KisForestDetail::subtreeBegin(Iterator it)",
         "function:KisForestDetail::subtreeEnd(Iterator it)",

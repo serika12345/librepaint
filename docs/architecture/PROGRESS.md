@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 13:50 JST
+- 更新日時: 2026-08-29 13:53 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,7 +17,7 @@
 - 統合担当`ui-node-model-drag`は`implementing`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、同責務の新規
   `KisNodeModel*.cpp`、`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、同責務の新規試験を所有する。
   `canDropMimeData()`、`mimeData()`、`dropMimeData()`を対象とし、項目操作契約を最も近い契約とする。
-- 実装担当`global-forest`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`global-forest`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は1である。`libs/global/tests/KisForestTest.{h,cpp}`と`libs/global/tests/CMakeLists.txt`を所有し、
   `KisForestTest`を最も近い契約とする。対象は`KisForest.h`の`childBegin(ChildIterator)`、`childEnd(ChildIterator)`、
   `operator<<(QDebug, ChildIterator)`、`parent(ChildIterator)`、`siblingBegin(ChildIterator)`、
@@ -7619,6 +7619,16 @@
 - ドロップ受理対象と元の`kis_node_model.cpp`単体コンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
   公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,968件、未対応25,021件に
   なった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
+## R2-G19b 森林反復子の既存public API契約対応で完了した作業
+
+- `libs/global/KisForest.h`を起点として、既存`libs/global/tests/KisForestTest.cpp`の公開型・反復子試験と自由関数試験を
+  監査した。子反復子の診断表示は型名と保持値を、子・兄弟・親の自由関数は先頭、終端、親への復帰を具体的に観測していたため、
+  製品、試験、CMakeを変更せず既存2契約へ6 API識別子を対応付けた。
+- 実装担当`global-forest`の専用Git作業ツリーでは、`KisForestTest`の直接依存をQt Testだけ、空構築閉包を4工程・8入力と
+  確認した。対象CTestと対象2試験関数の20回反復、公開API基準を維持した高速検査がmacOSで成功した。
+- 統合担当は既存試験を再実行し、中央公開API契約検査と高速検査を成功させた。公開面は1,549ヘッダー、29,989 API、
+  対応済み4,974件、未対応25,015件になった。Linuxと全ネイティブ検証は実行していない。
 
 ## 次の操作
 
