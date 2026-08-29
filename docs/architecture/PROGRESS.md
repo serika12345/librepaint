@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 08:31 JST
+- 更新日時: 2026-08-30 08:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,33 +11,9 @@
 
 ### 現在の並列担当票
 
-- 第35並列便の共通基準コミットは`76907b1fc4`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g35-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`option-button-strip`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/widgetutils/KoGroupButton.cpp`、`libs/widgetutils/KisOptionButtonStrip.cpp`、WidgetUtils製品・試験CMake、新規
-  `KisOptionButtonStripContractTest.cpp`を所有する。2開始ファイルを製品`kritawidgetutils`の直接ソースから1つのAUTOMOC/PIC対応専用生成物へ
-  移し、製品へ1回だけ再集約する。製品の250工程・533入力に代えて9工程・19入力以内で、group位置列挙、構築・寿命、追加overload、
-  配置順、排他選択、照会、2変更通知の全25 APIを固定する。
-- 実装担当`path-reverse-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2で
-  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g35-path-reverse-command`で`libs/flake/commands/KoPathReverseCommand.cpp`、
-  Flake製品・試験CMake、新規`KoPathReverseCommandContractTest.cpp`を所有する。開始ファイルを製品`kritaflake`の直接ソースから
-  AUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。試験時限定の非公開path accessを使い、製品の569工程・1,170入力に
-  代えて6工程・14入力以内で、複数pathのsubpath反転順、redo・undo・再redo、空入力、親命令、借用寿命の全5 APIを固定する。
-- 実装担当`stroke-speed-measurer`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3で
-  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g35-stroke-speed-measurer`で
-  `libs/image/brushengine/KisStrokeSpeedMeasurer.cpp`、Image製品・試験CMake、新規`KisStrokeSpeedMeasurerContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。試験内の診断記録だけで
-  安全assert経路を閉じ、製品の1,119工程・2,262入力に代えて6工程・13入力以内で、標本追加、集合追加、平均・現在・最大速度、平滑窓、
-  reset、値寿命の全9 APIを固定する。
-- 実装担当`stacked-widget`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g35-stacked-widget`で`libs/widgets/kis_stacked_widget.cpp`、Widgets製品・試験CMake、新規
-  `KisStackedWidgetContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、
-  製品へ1回だけ再集約する。製品の744工程・1,517入力に代えて6工程・13入力以内で、親所有、仮想寿命、複製・移動禁止、現在pageの最小寸法と
-  推奨寸法の全8 APIを固定する。
-- 第35並列便の完了時は合計47 APIを追加し、公開面の対応済み7,215件、未対応22,774件を見込む。各担当は限定対象の単発・20回反復、
-  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
-  挙動を発見した時点で`blocked`として引き渡す。
+- 第35並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
+- 次は第36並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
+  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
 
 ## 再開環境
 
@@ -9775,10 +9751,66 @@
   各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
   再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,168件、未対応22,821件になった。
 
+## R2-G19b 連続選択button帯の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KoGroupButton.h`の全11 APIと`libs/widgetutils/KisOptionButtonStrip.h`の全14 APIを、新規
+  `libs/widgetutils/tests/KisOptionButtonStripContractTest.cpp`の4試験へ対応付けた。group位置列挙、2構築と仮想寿命、位置property、帯の親・
+  配置・button所有、3追加入口、順序と範囲外照会、左・中央・右配置、排他・非排他選択、pointer・index変更通知を固定した。
+- 開始ファイル`libs/widgetutils/KoGroupButton.cpp`と`libs/widgetutils/KisOptionButtonStrip.cpp`の構築所有を
+  `libs/widgetutils/CMakeLists.txt`の`kritawidgetutils_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応
+  `kritawidgetutilsoptionbuttonstripobjects`へ移し、製品`kritawidgetutils`は同生成物を1回だけ再集約する。限定試験は同生成物、Qt Widgets・
+  Test、KF I18nへ直接接続し、安全assert記号は試験内の予期しない診断として閉じる。
+- 対象未登録の初回限定構築は未知の対象、最初のCTestはpointer型の試験用meta type未登録として失敗し、試験開始時の登録を追加した。
+  限定対象は8工程・17入力で、製品の250工程・533入力から縮小した。対象CTest単発と20回反復、最近傍
+  `KisHighlightedToolButtonContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。
+  保護描画事象の画素、CJK tooltip翻訳、範囲外負index以外の極端値、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 経路反転命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/commands/KoPathReverseCommand.h`の全5 APIを、新規`libs/flake/tests/KoPathReverseCommandContractTest.cpp`の2試験へ
+  対応付けた。複数pathの入力順、全subpathの添字順、redo・undo・再redo、基底呼出し順、0 subpathと空一覧、親命令と操作名、path借用所有、
+  基底からの仮想寿命を固定した。
+- 開始ファイル`libs/flake/commands/KoPathReverseCommand.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakepathreversecommandobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。試験時限定の非公開path
+  accessを実装内に設け、製品時は従来の経路APIへ配送する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。主作業木の限定対象は5工程・12入力で、製品の569工程・1,170入力から縮小した。
+  対象CTest単発と担当作業木の20回反復、最近傍`KoShapeKeepAspectRatioCommandContractTest`、公開記号、一重再集約、製品共有ライブラリー
+  非接続、整形検査、`verify-quick`に成功した。null path、命令間の外部subpath構造変更、重複path、反転失敗結果の非通知、Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b ストローク速度計測の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/brushengine/KisStrokeSpeedMeasurer.h`の全9 APIを、新規
+  `libs/image/tests/KisStrokeSpeedMeasurerContractTest.cpp`の4試験へ対応付けた。初期・単一標本の停止値、個別・等間隔一括追加の平均速度、
+  平滑窓内の現在速度、履歴最大速度、reset後の再開始、値寿命を固定した。
+- 開始ファイル`libs/image/brushengine/KisStrokeSpeedMeasurer.cpp`の構築所有を`libs/image/CMakeLists.txt`の
+  `kritaimage_LIB_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritaimagestrokespeedmeasurerobjects`へ移し、製品`kritaimage`は同生成物を
+  1回だけ再集約する。限定試験は同生成物とQt Core・Testへ直接接続し、安全assert記号は試験内で発生を記録する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力で、製品の1,119工程・2,262入力から縮小した。対象CTest
+  単発と担当作業木の20回反復、最近傍`KisPerStrokeRandomSourceContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査、`verify-quick`に成功した。空の一括追加、非正の平滑窓、逆行時刻、時刻差の桁あふれ、製品診断表示、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 現在page積層寸法の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/kis_stacked_widget.h`の全8 APIを、新規`libs/widgets/tests/KisStackedWidgetContractTest.cpp`の4試験へ対応付けた。親とpageの
+  所有、基底からの仮想寿命、複製・移動禁止、空状態の基底fallback、現在pageだけを使う最小推奨寸法を固定した。`sizeHint()`が公開説明の
+  page推奨寸法ではなく現在pageの最小推奨寸法を返す現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/widgets/kis_stacked_widget.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritawidgetsstackedwidgetobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。限定試験は同生成物と
+  Qt Widgets・Testだけへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力で、製品の744工程・1,517入力から縮小した。対象CTest
+  単発と担当作業木の20回反復、最近傍`KoVBoxContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。Qt 5.12以下の条件分岐、無効寸法、OS表示様式の絶対値、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第35並列便は連続選択button帯25 API、経路反転命令5 API、ストローク速度計測9 API、現在page積層寸法8 APIの合計47 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,215件、未対応22,774件になった。
+
 ## 次の操作
 
-第35並列便の4担当は、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認する。許可パス内だけで
-最小契約を追加し、単発・20回反復・軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡す。
+第36並列便の候補を公開API未対応列から選び、各候補の製品と最近傍試験の依存閉包を編集前に測定する。限定対象の停止上限、直接依存、
+所有パス、統合順を担当票へ固定し、必要な構築所有分離を挙動契約より先に行う。
 
 ## R1-G5完了根拠
 

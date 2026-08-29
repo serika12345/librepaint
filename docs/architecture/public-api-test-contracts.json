@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22821
+    "expectedMissingApis": 22774
   },
   "contracts": [
     {
@@ -21260,6 +21260,181 @@
       "apis": [
         "method:KoDockWidgetTitleBarButton::minimumSizeHint() const",
         "method:KoDockWidgetTitleBarButton::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisOptionButtonStripContractTest",
+      "source": "libs/widgetutils/tests/KisOptionButtonStripContractTest.cpp",
+      "test": "KisOptionButtonStripContractTest::groupButtonPositionsConstructionAndLifetime",
+      "behavior": "group buttonの位置列挙は非所属・左・右・中央の序数を保持し、既定構築は非所属、位置指定構築は指定値と親を保持する。位置はsetterとQt propertyから更新でき、基底経由の破棄で仮想寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoGroupButton",
+        "enum:KoGroupButton::GroupPosition",
+        "enumerator:KoGroupButton::GroupPosition::GroupCenter",
+        "enumerator:KoGroupButton::GroupPosition::GroupLeft",
+        "enumerator:KoGroupButton::GroupPosition::GroupRight",
+        "enumerator:KoGroupButton::GroupPosition::NoGroup",
+        "method:KoGroupButton::KoGroupButton(GroupPosition position,QWidget * parent=0)",
+        "method:KoGroupButton::KoGroupButton(QWidget * parent=0)",
+        "method:KoGroupButton::groupPosition() const",
+        "method:KoGroupButton::setGroupPosition(KoGroupButton::GroupPosition groupPosition)",
+        "method:KoGroupButton::~KoGroupButton()"
+      ]
+    },
+    {
+      "target": "KisOptionButtonStripContractTest",
+      "source": "libs/widgetutils/tests/KisOptionButtonStripContractTest.cpp",
+      "test": "KisOptionButtonStripContractTest::stripOwnsItsLayoutAndButtons",
+      "behavior": "選択肢帯は指定親に所有され、余白と間隔0の横配置と末尾伸縮要素を持ち、追加buttonを所有して親の破棄時に帯とbuttonの仮想寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOptionButtonStrip",
+        "method:KisOptionButtonStrip::KisOptionButtonStrip(QWidget * parent=nullptr)",
+        "method:KisOptionButtonStrip::~KisOptionButtonStrip()"
+      ]
+    },
+    {
+      "target": "KisOptionButtonStripContractTest",
+      "source": "libs/widgetutils/tests/KisOptionButtonStripContractTest.cpp",
+      "test": "KisOptionButtonStripContractTest::addOverloadsPreserveOrderContentAndGrouping",
+      "behavior": "icon・文字列・引数なしの追加入口は内容と追加順を保持するcheckable buttonを返し、照会は同じ順序と範囲外nullを返す。3件追加時は左・中央・右のgroup位置へ更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptionButtonStrip::addButton()",
+        "method:KisOptionButtonStrip::addButton(const QIcon & icon,const QString & text=QString ())",
+        "method:KisOptionButtonStrip::addButton(const QString & text)",
+        "method:KisOptionButtonStrip::button(int index) const",
+        "method:KisOptionButtonStrip::buttons() const"
+      ]
+    },
+    {
+      "target": "KisOptionButtonStripContractTest",
+      "source": "libs/widgetutils/tests/KisOptionButtonStripContractTest.cpp",
+      "test": "KisOptionButtonStripContractTest::exclusiveSelectionForwardsPointerAndIndexSignals",
+      "behavior": "選択肢帯は既定で排他選択を使い、選択buttonとindexを返す。選択変更をbutton pointer版とindex版の両通知へ同じ真偽値で配送し、非排他化後は複数選択を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptionButtonStrip::buttonToggled(KoGroupButton * button,bool checked)",
+        "method:KisOptionButtonStrip::buttonToggled(int index,bool checked)",
+        "method:KisOptionButtonStrip::checkedButton() const",
+        "method:KisOptionButtonStrip::checkedButtonIndex() const",
+        "method:KisOptionButtonStrip::exclusive() const",
+        "method:KisOptionButtonStrip::setExclusive(bool exclusive)"
+      ]
+    },
+    {
+      "target": "KoPathReverseCommandContractTest",
+      "source": "libs/flake/tests/KoPathReverseCommandContractTest.cpp",
+      "test": "KoPathReverseCommandContractTest::reversesEverySubpathAcrossUndoCycles",
+      "behavior": "経路反転命令は親命令とReverse pathsの操作名を保持し、複数pathを入力順に走査して各pathの全subpathを添字順に反転する。redo、undo、再redoはいずれも基底処理後に同じ順序で反転し、0 subpathのpathでは反転を行わない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathReverseCommand",
+        "method:KoPathReverseCommand::KoPathReverseCommand(const QList<KoPathShape * > & paths,KUndo2Command * parent=0)",
+        "method:KoPathReverseCommand::redo()",
+        "method:KoPathReverseCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoPathReverseCommandContractTest",
+      "source": "libs/flake/tests/KoPathReverseCommandContractTest.cpp",
+      "test": "KoPathReverseCommandContractTest::keepsBorrowedPathsAndVirtualLifetime",
+      "behavior": "経路反転命令はpathを借用し、基底ポインターから破棄してもpathを変更・所有破棄せず、派生から基底までの仮想破棄連鎖を一度実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathReverseCommand::~KoPathReverseCommand()"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMeasurerContractTest",
+      "source": "libs/image/tests/KisStrokeSpeedMeasurerContractTest.cpp",
+      "test": "KisStrokeSpeedMeasurerContractTest::initialAndSingleSampleAreStationary",
+      "behavior": "速度計測器は構築直後と最初の位置標本だけを受け取った状態で平均・現在・最大速度をゼロとして報告し、スコープ終了時に所有状態を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeSpeedMeasurer",
+        "method:KisStrokeSpeedMeasurer::KisStrokeSpeedMeasurer(int timeSmoothWindow)",
+        "method:KisStrokeSpeedMeasurer::~KisStrokeSpeedMeasurer()"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMeasurerContractTest",
+      "source": "libs/image/tests/KisStrokeSpeedMeasurerContractTest.cpp",
+      "test": "KisStrokeSpeedMeasurerContractTest::singleAndBatchSamplesReportDistancePerMillisecond",
+      "behavior": "個別追加と等間隔の一括追加は、固定座標と時刻から同じ累積移動距離毎ミリ秒の平均速度を算出する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeSpeedMeasurer::addSample(const QPointF & pt,int time)",
+        "method:KisStrokeSpeedMeasurer::addSamples(const QVector<QPointF> & points,int time)",
+        "method:KisStrokeSpeedMeasurer::averageSpeed() const"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMeasurerContractTest",
+      "source": "libs/image/tests/KisStrokeSpeedMeasurerContractTest.cpp",
+      "test": "KisStrokeSpeedMeasurerContractTest::smoothingWindowPreservesPeakAndTracksRecentMotion",
+      "behavior": "現在速度は平滑窓内の最近の移動へ追従し、最大速度は後続の停止標本によって低下せず観測済みの最高値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeSpeedMeasurer::currentSpeed() const",
+        "method:KisStrokeSpeedMeasurer::maxSpeed() const"
+      ]
+    },
+    {
+      "target": "KisStrokeSpeedMeasurerContractTest",
+      "source": "libs/image/tests/KisStrokeSpeedMeasurerContractTest.cpp",
+      "test": "KisStrokeSpeedMeasurerContractTest::resetClearsAllReportedSpeeds",
+      "behavior": "リセットは標本履歴と平均・現在・最大速度を消去し、次の標本を新しい計測開始点として扱う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeSpeedMeasurer::reset()"
+      ]
+    },
+    {
+      "target": "KisStackedWidgetContractTest",
+      "source": "libs/widgets/tests/KisStackedWidgetContractTest.cpp",
+      "test": "KisStackedWidgetContractTest::followsParentOwnershipAndDisablesValueTransfer",
+      "behavior": "stacked widgetは指定親に所有され、追加pageを所有し、親またはQStackedWidget基底経由で仮想破棄される。複製構築・複製代入・移動構築・移動代入は型特性として禁止される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStackedWidget",
+        "method:KisStackedWidget::KisStackedWidget(KisStackedWidget &&)",
+        "method:KisStackedWidget::KisStackedWidget(QWidget * parent=nullptr)",
+        "method:KisStackedWidget::Q_DISABLE_COPY_MOVE(KisStackedWidget)",
+        "method:KisStackedWidget::operator =(KisStackedWidget &&)",
+        "method:KisStackedWidget::~KisStackedWidget()"
+      ]
+    },
+    {
+      "target": "KisStackedWidgetContractTest",
+      "source": "libs/widgets/tests/KisStackedWidgetContractTest.cpp",
+      "test": "KisStackedWidgetContractTest::emptyStackUsesBaseMinimumFallbacks",
+      "behavior": "pageを持たないstacked widgetの推奨寸法は自身のminimumSizeを返し、最小推奨寸法はQStackedWidgetの基底実装へ委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStackedWidget::minimumSizeHint() const",
+        "method:KisStackedWidget::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisStackedWidgetContractTest",
+      "source": "libs/widgets/tests/KisStackedWidgetContractTest.cpp",
+      "test": "KisStackedWidgetContractTest::minimumHintTracksOnlyTheCurrentPage",
+      "behavior": "最小推奨寸法は非表示pageの寸法を無視し、現在pageを切り替えるたびにそのpageのminimumSizeHintだけを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStackedWidget::minimumSizeHint() const"
+      ]
+    },
+    {
+      "target": "KisStackedWidgetContractTest",
+      "source": "libs/widgets/tests/KisStackedWidgetContractTest.cpp",
+      "test": "KisStackedWidgetContractTest::preferredHintUsesTheCurrentPageMinimumHint",
+      "behavior": "pageのsizeHintとminimumSizeHintが異なる場合も、stacked widgetのsizeHintは説明にある推奨寸法ではなく現在pageのminimumSizeHintを返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisStackedWidget::sizeHint() const"
       ]
     }
   ]
