@@ -120,6 +120,19 @@ target_include_directories(KoSvgTextEnumContractTest PRIVATE
 target_compile_definitions(KoSvgTextEnumContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoCSSFontInfoContractTest.cpp
+    LINK_LIBRARIES
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoCSSFontInfoContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoCSSFontInfoContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoWritingSystemUtilsContractTest.cpp
     LINK_LIBRARIES
         kritaflakewritingsystemutilsobjects
