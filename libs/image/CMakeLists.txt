@@ -72,6 +72,27 @@ set_target_properties(kritaimageperstrokerandomsourceobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagestrokespeedmeasurerobjects OBJECT
+   brushengine/KisStrokeSpeedMeasurer.cpp
+)
+target_compile_definitions(kritaimagestrokespeedmeasurerobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagestrokespeedmeasurerobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/brushengine>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagestrokespeedmeasurerobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaimagestrokespeedmeasurerobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagebusywaitbrokerobjects OBJECT
    KisBusyWaitBroker.cpp
 )
@@ -704,7 +725,6 @@ set(kritaimage_LIB_SRCS
    brushengine/kis_combo_based_paintop_property.cpp
    brushengine/kis_slider_based_paintop_property.cpp
    brushengine/kis_standard_uniform_properties_factory.cpp
-   brushengine/KisStrokeSpeedMeasurer.cpp
    brushengine/KisOptimizedBrushOutline.cpp
    brushengine/kis_paintop_lod_limitations.cpp
    commands/kis_deselect_global_selection_command.cpp
@@ -970,6 +990,7 @@ kis_add_library(kritaimage SHARED
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
    $<TARGET_OBJECTS:kritaimageperstrokerandomsourceobjects>
+   $<TARGET_OBJECTS:kritaimagestrokespeedmeasurerobjects>
    $<TARGET_OBJECTS:kritaimagebusywaitbrokerobjects>
    $<TARGET_OBJECTS:kritaimagesafeblockingqueueconnectionproxyobjects>
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
