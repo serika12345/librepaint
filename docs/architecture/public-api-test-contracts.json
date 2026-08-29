@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25122
+    "expectedMissingApis": 25120
   },
   "contracts": [
     {
@@ -12541,6 +12541,17 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::activatePreviousNode(bool siblingsOnly=false)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerOrderingContractTest",
+      "source": "libs/ui/tests/KisNodeManagerOrderingContractTest.cpp",
+      "test": "KisNodeManagerOrderingContractTest::orderingRequiresMovableSelection",
+      "behavior": "選択ノードの前後順序変更は移動不可の場合に無作用とし、移動可能な場合は検査後に再取得した選択一覧と現在ノードを各方向の一括順序変更へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::lowerNode()",
+        "method:KisNodeManager::raiseNode()"
       ]
     }
   ]

@@ -412,6 +412,14 @@ protected:
         static bool isHidden(KisNodeManager *manager, KisNodeSP node);
     };
 
+    struct KRITAUI_EXPORT OrderingAccess {
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static bool canMoveLayers(KisNodeManager *manager, const KisNodeList &nodes);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static void raiseNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode);
+        static void lowerNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

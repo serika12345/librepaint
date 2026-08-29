@@ -1101,6 +1101,35 @@ bool KisNodeManager::NavigationAccess::isHidden(KisNodeManager *manager, KisNode
     return KisNodeManager::isNodeHidden(node, manager->m_d->nodeDisplayModeAdapter->showGlobalSelectionMask());
 }
 
+KisNodeList KisNodeManager::OrderingAccess::selectedNodes(KisNodeManager *manager)
+{
+    return manager->m_d->selectedNodes;
+}
+
+bool KisNodeManager::OrderingAccess::canMoveLayers(KisNodeManager *manager, const KisNodeList &nodes)
+{
+    return manager->canMoveLayers(nodes);
+}
+
+KisNodeSP KisNodeManager::OrderingAccess::activeNode(KisNodeManager *manager)
+{
+    return manager->activeNode();
+}
+
+void KisNodeManager::OrderingAccess::raiseNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
+{
+    const KUndo2MagicString actionName = kundo2_i18n("Raise Nodes");
+    KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
+    batch->raiseNode(nodes, activeNode);
+}
+
+void KisNodeManager::OrderingAccess::lowerNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
+{
+    const KUndo2MagicString actionName = kundo2_i18n("Lower Nodes");
+    KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
+    batch->lowerNode(nodes, activeNode);
+}
+
 void KisNodeManager::duplicateActiveNode()
 {
     KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
@@ -1122,24 +1151,6 @@ KisNodeOperationBatch* KisNodeManager::Private::lazyGetNodeOperationBatch(const 
     }
 
     return nodeOperationBatch;
-}
-
-void KisNodeManager::raiseNode()
-{
-    if (!canMoveLayers(selectedNodes())) return;
-
-    KUndo2MagicString actionName = kundo2_i18n("Raise Nodes");
-    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-    batch->raiseNode(selectedNodes(), activeNode());
-}
-
-void KisNodeManager::lowerNode()
-{
-    if (!canMoveLayers(selectedNodes())) return;
-
-    KUndo2MagicString actionName = kundo2_i18n("Lower Nodes");
-    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-    batch->lowerNode(selectedNodes(), activeNode());
 }
 
 void KisNodeManager::removeSingleNode(KisNodeSP node)

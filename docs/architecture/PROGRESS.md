@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 09:04 JST
+- 更新日時: 2026-08-29 09:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7099,12 +7099,30 @@
   公開面は1,549ヘッダー、29,989 API、対応済み4,867件、未対応25,122件になった。
   製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード前後順序変更 public API契約と実行判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった選択ノードの移動可否判断と前後順序変更の接続から、判断部分を
+  新規`libs/ui/nodes/KisNodeManagerOrdering.cpp`へ移した。選択一覧と現在ノードの取得、移動可否の具体判定、
+  undo名と一括順序変更効果は移動元の保護境界に残し、製品`kritaapplicationui`は新規
+  `kritauinodemanagerorderingobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`の`raiseNode`と`lowerNode`を、新規
+  `libs/ui/tests/KisNodeManagerOrderingContractTest.cpp`の1試験へ対応付けた。移動不可時の無作用と、移動可能時に
+  検査後の選択一覧を再取得し、現在ノードとともに各方向の一括順序変更へ渡す規則を固定した。実装接続前の
+  リンクは対象2 APIだけを未解決記号として診断した。
+- 変更前の既存`KisNodeManagerTest`は1,812工程・3,623入力、直近の専用試験は5工程・17入力だった。製品未接続の
+  赤試験は4工程・14入力、順序判断対象は1工程・3入力、緑化後の試験は5工程・17入力に収めた。製品
+  `kritaapplicationui`閉包は1,808工程・3,616入力から1,809工程・3,618入力、既存試験は1,813工程・3,625入力に
+  なった。
+- 順序判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,869件、
+  未対応25,120件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る60 APIのうち、選択ノードの前後順序変更を次の小単位とする。
-`kis_node_manager.cpp`の`raiseNode`と`lowerNode`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を
-監査し、移動不可時の無操作と移動可能時の選択一覧・現在ノードを使う一括順序変更を具体undo効果から分けて
-挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る58 APIのうち、単一指定と現在選択によるノード削除を次の小単位とする。
+`kis_node_manager.cpp`の`removeSingleNode`と`removeNode`について、対象指定の変更なし計画、直接CMake依存、空構築
+閉包を監査し、空値・親なしの拒否、単一ノード一覧への変換、現在選択の取得と削除処理への委譲を、具体undo効果
+から分けて挙動契約を追加する。
 
 ## R1-G5完了根拠
 
