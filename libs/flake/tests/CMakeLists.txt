@@ -11,7 +11,6 @@ kis_add_tests(
     TestResourceManager.cpp
     TestShapeBackgroundCommand.cpp
     TestShapeStrokeCommand.cpp
-    TestInputDevice.cpp
     TestSnapStrategy.cpp
     TestPathShape.cpp
     TestControlPointMoveCommand.cpp
@@ -30,6 +29,18 @@ kis_add_tests(
 
     LINK_LIBRARIES kritaflake kritatestsdk kritaxmlserialization
     )
+
+kis_add_test(
+    TestInputDevice.cpp
+    LINK_LIBRARIES
+        kritaflakeinputdeviceobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(TestInputDevice PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(TestInputDevice PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     TestSvgParser.cpp

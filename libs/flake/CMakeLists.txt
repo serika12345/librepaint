@@ -59,6 +59,25 @@ set_target_properties(kritaflakeviewtransformstillpointobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeinputdeviceobjects OBJECT
+    KoInputDevice.cpp
+)
+target_compile_definitions(kritaflakeinputdeviceobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeinputdeviceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeinputdeviceobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaflakeinputdeviceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakesvgtransformparserobjects OBJECT
     svg/parsers/SvgTransformParser.cpp
 )
@@ -253,7 +272,6 @@ set(kritaflake_SRCS
     KoPointerEvent.cpp
     KoShapeController.cpp
     KoShapeLayer.cpp
-    KoInputDevice.cpp
     KoToolManager_p.cpp
     KoToolManager.cpp
     KoToolRegistry.cpp
@@ -421,6 +439,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakezoomstateobjects>
     $<TARGET_OBJECTS:kritaflakeviewtransformstillpointobjects>
+    $<TARGET_OBJECTS:kritaflakeinputdeviceobjects>
     $<TARGET_OBJECTS:kritaflakesvgtransformparserobjects>
     $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakegradienthelperobjects>
