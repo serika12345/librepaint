@@ -5,15 +5,18 @@
 #ifndef SQUEEZEDCOMBOBOX_TEST_H
 #define SQUEEZEDCOMBOBOX_TEST_H
 
-#include <simpletest.h>
+#include <QObject>
 
 class TestSqueezedComboBox : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void testContains();
+    void constructorPreservesParentNameAndOwnership();
+    void textItemsPreserveOriginalValuesSelectionAndReset();
+    void iconAndTextInsertionPreserveMetadataAtTheEnd();
+    void squeezingPreservesTheRightmostVisibleSuffix();
+    void middleInsertionAndRemovalExposeCurrentIndexMismatch();
 };
 
 #endif
-

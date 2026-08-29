@@ -39,6 +39,18 @@ set_target_properties(kritawidgetutilspropertiesobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritasqueezedcomboboxobjects OBJECT
+    KisSqueezedComboBox.cpp
+)
+target_compile_definitions(kritasqueezedcomboboxobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritasqueezedcomboboxobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritasqueezedcomboboxobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritasqueezedcomboboxobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 add_library(kritacheckerboardpainterobjects OBJECT
     KoCheckerBoardPainter.cpp
 )
@@ -142,6 +154,7 @@ set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
     $<TARGET_OBJECTS:kritawidgetutilspropertiesobjects>
+    $<TARGET_OBJECTS:kritasqueezedcomboboxobjects>
     $<TARGET_OBJECTS:kritacheckerboardpainterobjects>
     $<TARGET_OBJECTS:kritaitemtooltipobjects>
     $<TARGET_OBJECTS:kritakineticscrollerobjects>
@@ -164,7 +177,6 @@ set(kritawidgetutils_LIB_SRCS
     KoUpdaterPrivate_p.cpp
     KoFileDialog.cpp
     KisPreviewFileDialog.cpp
-    KisSqueezedComboBox.cpp
     KisDialogStateSaver.cpp
     kis_cursor.cc
     kis_cursor_cache.cpp
