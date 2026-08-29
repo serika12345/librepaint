@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 00:28 JST
+- 更新日時: 2026-08-30 00:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,19 +15,19 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g21-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`handle-painter-helper`は`planned`、統合順は1である。主作業ツリーで
+- 統合担当`handle-painter-helper`は`implementing`、統合順は1である。主作業ツリーで
   `libs/global/KisHandlePainterHelper.{h,cpp}`、Global製品・試験CMake、新規限定試験を所有する。製品`kritaglobal`の
   68工程・136入力から専用生成物へ分離し、画家変換の復元、移動所有、様式適用、矩形・円・勾配ハンドル、線、経路、画像の
   全24 APIを対象とする。
-- 実装担当`spatial-container`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+- 実装担当`spatial-container`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-spatial-container`であり、
   `libs/image/KisSpatialContainer.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。既存試験の1,094工程・2,211入力を
   専用生成物へ縮小し、構築、初期化、追加、移動、検索、境界、複製、除去、消去、診断と既知の件数不整合の全18 APIを対象とする。
-- 実装担当`pipebrush-parasite`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+- 実装担当`pipebrush-parasite`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-pipebrush-parasite`であり、
   `libs/brush/kis_pipebrush_parasite.{h,cpp}`、Brush製品・試験CMake、新規限定試験を所有する。既存試験の1,120工程・2,260入力を
   専用生成物へ縮小し、次元解析、選択方式、衛生化、ブラシ数、保存と、未定義だった装置読込みメンバーの全21 APIを対象とする。
-- 実装担当`undo-stores`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+- 実装担当`undo-stores`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-undo-stores`であり、
   `libs/painting/undo/kundo2stack.cpp`、Undo製品・試験CMake、新規限定試験を所有する。259工程・548入力の既存試験接続から
   KUndo2中核と操作生成を分け、代理・破棄型保存の追加、undo/redo、マクロ、枝破棄、全消去、通知、寿命の全21 APIを対象とする。
@@ -8934,7 +8934,7 @@
 
 ## 次の操作
 
-共通基準`30a4f93f3b`から3専用作業ツリーを作成し、第21並列便の構築実行とtransport commitを許可して4担当を開始する。
+第21並列便のハンドル描画補助実装を進め、並行する3実装担当の引渡しを統合順に監査する。
 
 ## R1-G5完了根拠
 
