@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25096
+    "expectedMissingApis": 25090
   },
   "contracts": [
     {
@@ -12702,6 +12702,57 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::toggleInheritAlpha()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerMirrorContractTest",
+      "source": "libs/ui/tests/KisNodeManagerMirrorContractTest.cpp",
+      "test": "KisNodeManagerMirrorContractTest::horizontalSelectedMirrorUsesMaskCommand",
+      "behavior": "選択ノードの水平反転は現在の選択範囲を使い、単一マスクにはマスク専用のUndo名、その他にはノード数に応じたレイヤー用Undo名を付ける。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::mirrorNodeX()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerMirrorContractTest",
+      "source": "libs/ui/tests/KisNodeManagerMirrorContractTest.cpp",
+      "test": "KisNodeManagerMirrorContractTest::verticalSelectedMirrorUsesLayerCount",
+      "behavior": "選択ノードの垂直反転は現在の選択範囲を使い、単一マスクにはマスク専用のUndo名、その他にはノード数に応じたレイヤー用Undo名を付ける。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::mirrorNodeY()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerMirrorContractTest",
+      "source": "libs/ui/tests/KisNodeManagerMirrorContractTest.cpp",
+      "test": "KisNodeManagerMirrorContractTest::wholeImageMirrorsUseRootNode",
+      "behavior": "全ノードの水平・垂直反転は画像のルートを単一対象とし、現在の選択範囲、各向き、全レイヤー用Undo名を保って反転する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::mirrorAllNodesX()",
+        "method:KisNodeManager::mirrorAllNodesY()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerMirrorContractTest",
+      "source": "libs/ui/tests/KisNodeManagerMirrorContractTest.cpp",
+      "test": "KisNodeManagerMirrorContractTest::singleNodeMirrorPreservesArguments",
+      "behavior": "単一ノード反転は指定ノードを一要素一覧へ変換し、指定されたUndo名、向き、選択範囲を変更せず複数ノード反転へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::mirrorNode(KisNodeSP node,const KUndo2MagicString & commandName,Qt::Orientation orientation,KisSelectionSP selection)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerMirrorContractTest",
+      "source": "libs/ui/tests/KisNodeManagerMirrorContractTest.cpp",
+      "test": "KisNodeManagerMirrorContractTest::multipleNodeMirrorRequiresEveryNodeToBeModifiable",
+      "behavior": "複数ノード反転は指定順で全対象の変更可否を確認し、一つでも変更不可なら処理と更新通知を行わず、全対象が変更可能な場合だけ指定引数で反転して更新を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::mirrorNodes(KisNodeList nodes,const KUndo2MagicString & commandName,Qt::Orientation orientation,KisSelectionSP selection)"
       ]
     }
   ]

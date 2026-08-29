@@ -495,6 +495,20 @@ protected:
         static void setProperty(KisNodeManager *manager, KisNodeSP node, ToggleProperty property, bool value);
     };
 
+    struct KRITAUI_EXPORT MirrorAccess {
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static bool isMask(KisNodeSP node);
+        static KisSelectionSP selection(KisNodeManager *manager);
+        static KisNodeSP rootNode(KisNodeManager *manager);
+        static bool canModifyLayer(KisNodeManager *manager, KisNodeSP node);
+        static void applyToNodes(KisNodeManager *manager,
+                                 const KisNodeList &nodes,
+                                 Qt::Orientation orientation,
+                                 KisSelectionSP selection,
+                                 const KUndo2MagicString &actionName);
+        static void nodesUpdated(KisNodeManager *manager);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1
