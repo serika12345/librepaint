@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 02:31 JST
+- 更新日時: 2026-08-30 02:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,20 +18,23 @@
   `libs/psdutils/psd_utils.h`、PSDUtils試験CMake、新規`PsdByteIoContractTest.cpp`を所有する。既存試験の581工程・
   1,191入力から製品共有ライブラリーを除き、整数・列挙・固定小数点、文字列、余白、混合方式の大小エンディアン入出力にある
   全44 APIを対象とする。
-- 実装担当`opentype-feature-info`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`opentype-feature-info`は`integrated`、引渡しコミットは`f4900f7dbd`、統合コミットは`9acb7e55e3`、
+  構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g23-opentype-feature-info`を予定し、
+  `/Users/masato/Documents/librepaint-r2-g23-opentype-feature-info`で、
   `libs/flake/text/KoOpenTypeFeatureInfoFactory.{h,cpp}`、Flake製品・試験CMake、新規
   `KoOpenTypeFeatureInfoFactoryContractTest.cpp`を所有する。製品の560工程・1,152入力から実装を専用生成物へ分離し、
   OpenType表、機能情報値、既知・未知タグ検索、タグ一覧の全34 APIを対象とする。
-- 実装担当`filter-strategy`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`filter-strategy`は`integrated`、引渡しコミットは`af00bd63ee`、統合コミットは`27b67eb6bf`、
+  構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g23-filter-strategy`を予定し、`libs/image/kis_filter_strategy.{h,cc}`、
+  `/Users/masato/Documents/librepaint-r2-g23-filter-strategy`で、`libs/image/kis_filter_strategy.{h,cc}`、
   Image製品・試験CMake、新規`KisFilterStrategyContractTest.cpp`を所有する。既存試験の1,101工程・2,224正規化入力から
   実装を専用生成物へ分離し、基底と8種類の補間核、登録、説明、自動選択の全58 APIを対象とする。
-- 実装担当`zoom-handler`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`zoom-handler`は`integrated`、引渡しコミットは`d599464914`、統合コミットは`14c562b4a4`、
+  構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g23-zoom-handler`を予定し、`libs/widgets/KoZoomHandler.{h,cpp}`、
+  `/Users/masato/Documents/librepaint-r2-g23-zoom-handler`で、`libs/widgets/KoZoomHandler.{h,cpp}`、
   Widgets製品・試験CMake、新規`KoZoomHandlerContractTest.cpp`を所有する。既存試験の726工程・1,480入力から実装を
   専用生成物へ分離し、解像度、拡大率、余白、方式、軸・点・矩形・寸法変換、寿命の全33 APIを対象とする。
 - 第23並列便の完了時は合計169 APIを追加し、公開面の対応済み6,402件、未対応23,587件を見込む。各担当は公開面と製品挙動を
@@ -9099,10 +9102,57 @@
   埋込みNULと複数末尾空白、固定小数点の宣言範囲外・非有限値、seek不能装置、Linux、全ネイティブ検証、製品利用元の再コンパイル、
   製品全体リンクは実行していない。
 
+## R2-G19b OpenType機能情報の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/text/KoOpenTypeFeatureInfoFactory.h`の全34 APIを、新規
+  `libs/flake/tests/KoOpenTypeFeatureInfoFactoryContractTest.cpp`の6試験へ対応付けた。置換表・位置決め表の分類値、機能情報値、
+  既知・未知タグ検索、返却値の独立性、整列済みタグ一覧、連番タグ範囲を固定した。重複した`chws`登録で後の説明が先の説明を
+  上書きする現行挙動は既知不具合として分類した。
+- 開始ファイル`libs/flake/text/KoOpenTypeFeatureInfoFactory.cpp`の構築所有を`libs/flake/CMakeLists.txt`の
+  `kritaflake_LIB_SRCS`から同ファイル内の新規`kritaflakeopentypefeatureinfoobjects`へ移し、製品`kritaflake`は生成物を
+  1回だけ再集約する。開始ヘッダー`libs/flake/text/KoOpenTypeFeatureInfoFactory.h`は同じパスと公開面を維持する。新規限定試験は
+  専用生成物、Qt Core・Test、KF I18nだけへ接続し、製品共有ライブラリーを使用しない。
+- 限定対象は5工程・12入力、実装生成物は1工程・3入力であり、製品`kritaflake`の560工程・1,152入力から縮小した。対象CTest単発と
+  20回反復、最近傍`KoWritingSystemUtilsContractTest`、製品への1回再集約、製品共有ライブラリー非接続に成功した。既定構築時に
+  未初期化の`maxValue`は読み取らず、安全に初期化される他の公開値だけを固定した。未知タグの異常長、登録値の翻訳環境差、Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 画像補間戦略の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_filter_strategy.h`の全58 APIを、新規`libs/image/tests/KisFilterStrategyContractTest.cpp`の12試験へ
+  対応付けた。基底とHermite、Bicubic、Box、Bilinear、Bell、Bスプライン、Lanczos3、Mitchellの核、対応範囲、説明、寿命、
+  戦略台帳、自動選択を固定した。Bicubicの実数入口が基底の0を返すことと、Mitchellの固定小数対応範囲が実数核より狭いことを
+  既知不具合として分類した。
+- 開始ファイル`libs/image/kis_filter_strategy.cc`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`から
+  同ファイル内の新規`kritaimagefilterstrategyobjects`へ移し、製品`kritaimage`は生成物を1回だけ再集約する。開始ヘッダー
+  `libs/image/kis_filter_strategy.h`は同じパスと公開面を維持する。新規限定試験は専用生成物、既存の直接所有生成物、Qt Core・
+  Gui・Testだけへ接続し、製品共有ライブラリーを使用しない。
+- 限定対象は7工程・16生入力、生成物重複を除く15入力であり、従来`kis_filter_strategy_test`の1,101工程・
+  2,224正規化入力から縮小した。対象CTest単発と20回反復、最近傍`KisPaintopLodLimitationsContractTest`、製品への1回再集約、
+  製品共有ライブラリー非接続に成功した。非正値・非有限の尺度、極端な座標、戦略台帳の並行初期化、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 表示倍率処理の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KoZoomHandler.h`の全33 APIを、新規`libs/widgets/tests/KoZoomHandlerContractTest.cpp`の4試験へ
+  対応付けた。既定値、DPI、解像度、倍率、余白、表示方式、軸・点・矩形・寸法の正逆変換、仮想寿命を固定した。
+- 開始ファイル`libs/widgets/KoZoomHandler.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`から
+  同ファイル内の新規`kritawidgetszoomhandlerobjects`へ移し、製品`kritawidgets`は生成物を1回だけ再集約する。開始ヘッダー
+  `libs/widgets/KoZoomHandler.h`は同じパスと公開面を維持し、開始実装から未使用の`WidgetsDebug.h`依存を除いた。新規限定試験は
+  専用生成物、既存の表示変換生成物、Qt Core・Gui・Testだけへ接続し、製品共有ライブラリーを使用しない。
+- 限定対象は7工程・15入力、実装生成物は1工程・3入力であり、従来`zoomhandler_test`の726工程・1,480入力から縮小した。
+  対象CTest単発と20回反復、最近傍`KoViewConverterContractTest`、製品への1回再集約、製品共有ライブラリー非接続に成功した。
+  ゼロ・負値・非有限値、`zoom()`のnull出力、極端な百分率、1近傍における直接解像度指定との差、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+- 第23並列便はPSDバイト入出力44 API、OpenType機能情報34 API、画像補間戦略58 API、表示倍率処理33 APIの合計169 APIを
+  固定した。各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、製品への1回再集約、
+  公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,402件、未対応23,587件になった。
+
 ## 次の操作
 
-第23並列便の`opentype-feature-info`、`filter-strategy`、`zoom-handler`引渡しを統合順に主作業ツリーへ取り込み、各限定対象を
-再検証して中央台帳と完了記録を更新する。
+最新の未対応公開API報告から第24並列便の候補を監査する。各候補は公開面全体を一つの観測可能な責務として固定できるか確認し、
+既存対象の命令・入力閉包と製品の直接CMake依存を測定してから、必要な構築所有分離を先行する担当票を確定する。
 
 ## R1-G5完了根拠
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23712
+    "expectedMissingApis": 23587
   },
   "contracts": [
     {
@@ -18352,6 +18352,335 @@
       "apis": [
         "function:psdreadFixedPoint(QIODevice & io)",
         "function:psdwriteFixedPoint(QIODevice & io,double val)"
+      ]
+    },
+    {
+      "target": "KoOpenTypeFeatureInfoFactoryContractTest",
+      "source": "libs/flake/tests/KoOpenTypeFeatureInfoFactoryContractTest.cpp",
+      "test": "KoOpenTypeFeatureInfoFactoryContractTest::openTypeTableValuesAreStable",
+      "behavior": "OpenType置換表と位置決め表の分類値は、対応する検索種別を表す連続した安定値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoOpenTypeFeatureInfo::OpenTypeTable",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS1",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS2",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS3",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS4",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS5",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS6",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS7",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS8",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GPOS9",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GSUB1",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GSUB2",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GSUB3",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GSUB4",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GSUB5",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GSUB6",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GSUB7",
+        "enumerator:KoOpenTypeFeatureInfo::OpenTypeTable::GSUB8"
+      ]
+    },
+    {
+      "target": "KoOpenTypeFeatureInfoFactoryContractTest",
+      "source": "libs/flake/tests/KoOpenTypeFeatureInfoFactoryContractTest.cpp",
+      "test": "KoOpenTypeFeatureInfoFactoryContractTest::defaultAndValueConstructionRetainMetadata",
+      "behavior": "機能情報の既定構築は安全に初期化される公開値を保持し、値構築はタグ、表示情報、表分類、グリフパレット、最大値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoOpenTypeFeatureInfo::description",
+        "member:KoOpenTypeFeatureInfo::glyphPalette",
+        "member:KoOpenTypeFeatureInfo::maxValue",
+        "member:KoOpenTypeFeatureInfo::name",
+        "member:KoOpenTypeFeatureInfo::namedParameters",
+        "member:KoOpenTypeFeatureInfo::sample",
+        "member:KoOpenTypeFeatureInfo::tables",
+        "member:KoOpenTypeFeatureInfo::tag",
+        "method:KoOpenTypeFeatureInfo::KoOpenTypeFeatureInfo()",
+        "method:KoOpenTypeFeatureInfo::KoOpenTypeFeatureInfo(const QByteArray & tag,const QString & name,const QString & description,const QVector<OpenTypeTable> & tables,const bool glyphPalette=false,const int maxValue=1)",
+        "struct:KoOpenTypeFeatureInfo"
+      ]
+    },
+    {
+      "target": "KoOpenTypeFeatureInfoFactoryContractTest",
+      "source": "libs/flake/tests/KoOpenTypeFeatureInfoFactoryContractTest.cpp",
+      "test": "KoOpenTypeFeatureInfoFactoryContractTest::factoryReturnsKnownAndIndependentMetadata",
+      "behavior": "機能情報工場は既知タグの完全な値を返し、返却値の変更から内部登録値を独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoOpenTypeFeatureInfoFactory",
+        "method:KoOpenTypeFeatureInfoFactory::KoOpenTypeFeatureInfoFactory()",
+        "method:KoOpenTypeFeatureInfoFactory::infoByTag(const QByteArray & tag) const",
+        "method:KoOpenTypeFeatureInfoFactory::~KoOpenTypeFeatureInfoFactory()"
+      ]
+    },
+    {
+      "target": "KoOpenTypeFeatureInfoFactoryContractTest",
+      "source": "libs/flake/tests/KoOpenTypeFeatureInfoFactoryContractTest.cpp",
+      "test": "KoOpenTypeFeatureInfoFactoryContractTest::unknownTagReturnsGenericMetadata",
+      "behavior": "未知の機能タグは入力タグを保持した汎用情報へ変換され、置換表と位置決め表の全分類を候補として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoOpenTypeFeatureInfoFactory::infoByTag(const QByteArray & tag) const"
+      ]
+    },
+    {
+      "target": "KoOpenTypeFeatureInfoFactoryContractTest",
+      "source": "libs/flake/tests/KoOpenTypeFeatureInfoFactoryContractTest.cpp",
+      "test": "KoOpenTypeFeatureInfoFactoryContractTest::tagsAreSortedUniqueAndContainGeneratedRanges",
+      "behavior": "登録タグ一覧は辞書順かつ重複なしで返り、連番機能の生成範囲と既知タグを含む。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoOpenTypeFeatureInfoFactory::tags() const"
+      ]
+    },
+    {
+      "target": "KoOpenTypeFeatureInfoFactoryContractTest",
+      "source": "libs/flake/tests/KoOpenTypeFeatureInfoFactoryContractTest.cpp",
+      "test": "KoOpenTypeFeatureInfoFactoryContractTest::duplicateChwsKeepsLaterRegistrationDefect",
+      "behavior": "重複登録されたchwsタグは一覧に1件だけ現れ、後から登録された説明が先の説明を上書きする。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoOpenTypeFeatureInfoFactory::infoByTag(const QByteArray & tag) const",
+        "method:KoOpenTypeFeatureInfoFactory::tags() const"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::baseStrategyPreservesIdentityDefaultsAndVirtualLifetime",
+      "behavior": "基底戦略は識別子と表示名を保持し、既定の核、対応範囲、説明を返す。整数入口は固定小数座標を実数座標へ変換して派生核へ配送し、基底所有から派生を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilterStrategy",
+        "method:KisFilterStrategy::KisFilterStrategy(KoID id)",
+        "method:KisFilterStrategy::description()",
+        "method:KisFilterStrategy::id()",
+        "method:KisFilterStrategy::intSupport(qreal weightsPositionScale)",
+        "method:KisFilterStrategy::intValueAt(qint32 t,qreal weightsPositionScale) const",
+        "method:KisFilterStrategy::name()",
+        "method:KisFilterStrategy::support(qreal weightsPositionScale)",
+        "method:KisFilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const",
+        "method:KisFilterStrategy::~KisFilterStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::hermiteUsesSymmetricCubicKernel",
+      "behavior": "Hermite戦略は原点を1、単位距離以上を0とする対称三次核を実数・固定小数入口で返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHermiteFilterStrategy",
+        "method:KisHermiteFilterStrategy::KisHermiteFilterStrategy()",
+        "method:KisHermiteFilterStrategy::intValueAt(qint32 t,qreal weightsPositionScale) const",
+        "method:KisHermiteFilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const",
+        "method:KisHermiteFilterStrategy::~KisHermiteFilterStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::bicubicUsesFixedPointCubicKernel",
+      "behavior": "Bicubic戦略は固定小数入口で原点を最大重み、単位距離を0とする対称三次核と説明を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBicubicFilterStrategy",
+        "method:KisBicubicFilterStrategy::KisBicubicFilterStrategy()",
+        "method:KisBicubicFilterStrategy::description()",
+        "method:KisBicubicFilterStrategy::intValueAt(qint32 t,qreal weightsPositionScale) const",
+        "method:KisBicubicFilterStrategy::~KisBicubicFilterStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::bicubicRealKernelRemainsBaseZero",
+      "behavior": "Bicubic戦略の実数入口は派生核を提供せず、基底実装の0を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisFilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::boxUsesScaledHalfOpenSupport",
+      "behavior": "Box戦略は倍率に応じた半開区間の対応範囲内を1、外側を0とし、実数と固定小数の対応範囲と説明を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBoxFilterStrategy",
+        "method:KisBoxFilterStrategy::KisBoxFilterStrategy()",
+        "method:KisBoxFilterStrategy::description()",
+        "method:KisBoxFilterStrategy::intSupport(qreal weightsPositionScale)",
+        "method:KisBoxFilterStrategy::intValueAt(qint32 t,qreal weightsPositionScale) const",
+        "method:KisBoxFilterStrategy::support(qreal weightsPositionScale)",
+        "method:KisBoxFilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const",
+        "method:KisBoxFilterStrategy::~KisBoxFilterStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::bilinearUsesLinearFloatAndFixedPointKernels",
+      "behavior": "Bilinear戦略は原点から単位距離まで線形に減衰する対称核を実数・固定小数入口と説明で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBilinearFilterStrategy",
+        "method:KisBilinearFilterStrategy::KisBilinearFilterStrategy()",
+        "method:KisBilinearFilterStrategy::description()",
+        "method:KisBilinearFilterStrategy::intValueAt(qint32 t,qreal weightsPositionScale) const",
+        "method:KisBilinearFilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const",
+        "method:KisBilinearFilterStrategy::~KisBilinearFilterStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::bellAndBSplineUseSymmetricPiecewiseKernels",
+      "behavior": "BellとBスプライン戦略は各区間の境界で連続する対称区分多項式核を返し、対応範囲外を0にする。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBSplineFilterStrategy",
+        "class:KisBellFilterStrategy",
+        "method:KisBSplineFilterStrategy::KisBSplineFilterStrategy()",
+        "method:KisBSplineFilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const",
+        "method:KisBSplineFilterStrategy::~KisBSplineFilterStrategy()",
+        "method:KisBellFilterStrategy::KisBellFilterStrategy()",
+        "method:KisBellFilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const",
+        "method:KisBellFilterStrategy::~KisBellFilterStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::lanczosUsesSymmetricThreePixelWindow",
+      "behavior": "Lanczos3戦略は原点を1、3画素窓の端と外側を0とする対称sinc積核と説明を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLanczos3FilterStrategy",
+        "method:KisLanczos3FilterStrategy::KisLanczos3FilterStrategy()",
+        "method:KisLanczos3FilterStrategy::description()",
+        "method:KisLanczos3FilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const",
+        "method:KisLanczos3FilterStrategy::~KisLanczos3FilterStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::mitchellUsesSymmetricPiecewiseKernel",
+      "behavior": "Mitchell戦略は原点から2画素まで定義された対称区分三次核を返し、対応範囲外を0にする。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMitchellFilterStrategy",
+        "method:KisMitchellFilterStrategy::KisMitchellFilterStrategy()",
+        "method:KisMitchellFilterStrategy::valueAt(qreal t,qreal weightsPositionScale) const",
+        "method:KisMitchellFilterStrategy::~KisMitchellFilterStrategy()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::mitchellKeepsNarrowFixedPointSupport",
+      "behavior": "Mitchell戦略の固定小数対応範囲は実数核の2画素窓より狭い既定値256を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisFilterStrategy::intSupport(qreal weightsPositionScale)",
+        "method:KisFilterStrategy::support(qreal weightsPositionScale)"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::registryOwnsStableStrategiesAndDescriptions",
+      "behavior": "戦略台帳は単一個体として安定した全戦略を所有し、識別子一覧と表示用説明を同じ順序で返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFilterStrategyRegistry",
+        "method:KisFilterStrategyRegistry::KisFilterStrategyRegistry()",
+        "method:KisFilterStrategyRegistry::formattedDescriptions() const",
+        "method:KisFilterStrategyRegistry::instance()",
+        "method:KisFilterStrategyRegistry::listKeys() const",
+        "method:KisFilterStrategyRegistry::~KisFilterStrategyRegistry()"
+      ]
+    },
+    {
+      "target": "KisFilterStrategyContractTest",
+      "source": "libs/image/tests/KisFilterStrategyContractTest.cpp",
+      "test": "KisFilterStrategyContractTest::registrySelectsPixelArtAndScaledImages",
+      "behavior": "自動選択は整数倍の画素絵拡大へBox戦略、それ以外の拡大縮小へBicubic戦略を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterStrategyRegistry::autoFilterStrategy(QSize originalSize,QSize desiredSize) const"
+      ]
+    },
+    {
+      "target": "KoZoomHandlerContractTest",
+      "source": "libs/widgets/tests/KoZoomHandlerContractTest.cpp",
+      "test": "KoZoomHandlerContractTest::defaultStateAndVirtualLifetime",
+      "behavior": "表示倍率処理器は既定で72dpi相当の単位尺度、100%表示、固定倍率方式、余白0を保持し、表示変換基底から破棄したとき派生デストラクターまで配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoZoomHandler",
+        "method:KoZoomHandler::KoZoomHandler()",
+        "method:KoZoomHandler::resolutionX() const",
+        "method:KoZoomHandler::resolutionY() const",
+        "method:KoZoomHandler::zoomFactorX() const",
+        "method:KoZoomHandler::zoomFactorY() const",
+        "method:KoZoomHandler::zoomInPercent() const",
+        "method:KoZoomHandler::zoomMarginSize() const",
+        "method:KoZoomHandler::zoomMode() const",
+        "method:KoZoomHandler::zoomedResolutionX() const",
+        "method:KoZoomHandler::zoomedResolutionY() const",
+        "method:KoZoomHandler::~KoZoomHandler()"
+      ]
+    },
+    {
+      "target": "KoZoomHandlerContractTest",
+      "source": "libs/widgets/tests/KoZoomHandlerContractTest.cpp",
+      "test": "KoZoomHandlerContractTest::settingsUpdateAxisScale",
+      "behavior": "有限正値のDPI、解像度、倍率は軸別尺度へ反映され、直接指定した異方的尺度、表示方式、余白と両軸出力を保持し、1近傍の倍率は正確な100%へ正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomHandler::setDpi(int dpiX,int dpiY)",
+        "method:KoZoomHandler::setResolution(qreal resolutionX,qreal resolutionY)",
+        "method:KoZoomHandler::setZoom(qreal zoom)",
+        "method:KoZoomHandler::setZoomMarginSize(int size)",
+        "method:KoZoomHandler::setZoomMode(KoZoomMode::Mode zoomMode)",
+        "method:KoZoomHandler::setZoomedResolution(qreal zoomedResolutionX,qreal zoomedResolutionY)",
+        "method:KoZoomHandler::zoom(qreal * zoomX,qreal * zoomY) const"
+      ]
+    },
+    {
+      "target": "KoZoomHandlerContractTest",
+      "source": "libs/widgets/tests/KoZoomHandlerContractTest.cpp",
+      "test": "KoZoomHandlerContractTest::axisAndPointConversionsRoundTrip",
+      "behavior": "有限の軸座標と点は、解像度と倍率を合成した軸別尺度で文書空間と表示空間の間を乗除算し、正逆往復で元値へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomHandler::documentToView(const QPointF & documentPoint) const",
+        "method:KoZoomHandler::documentToViewX(qreal documentX) const",
+        "method:KoZoomHandler::documentToViewY(qreal documentY) const",
+        "method:KoZoomHandler::unzoomItX(qreal x) const",
+        "method:KoZoomHandler::unzoomItY(qreal y) const",
+        "method:KoZoomHandler::viewToDocument(const QPointF & viewPoint) const",
+        "method:KoZoomHandler::viewToDocumentX(qreal viewX) const",
+        "method:KoZoomHandler::viewToDocumentY(qreal viewY) const",
+        "method:KoZoomHandler::zoomItX(qreal z) const",
+        "method:KoZoomHandler::zoomItY(qreal z) const"
+      ]
+    },
+    {
+      "target": "KoZoomHandlerContractTest",
+      "source": "libs/widgets/tests/KoZoomHandlerContractTest.cpp",
+      "test": "KoZoomHandlerContractTest::rectangleAndSizeConversionsRoundTrip",
+      "behavior": "有限で正寸法の矩形と寸法は、位置と幅、高さを軸別尺度で文書空間と表示空間の間に変換し、正逆往復で元値へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomHandler::documentToView(const QRectF & documentRect) const",
+        "method:KoZoomHandler::documentToView(const QSizeF & documentSize) const",
+        "method:KoZoomHandler::viewToDocument(const QRectF & viewRect) const",
+        "method:KoZoomHandler::viewToDocument(const QSizeF & viewSize) const"
       ]
     }
   ]
