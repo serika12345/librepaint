@@ -32,6 +32,18 @@ target_include_directories(PsdFormatValuesContractTest PRIVATE
 target_compile_definitions(PsdFormatValuesContractTest PRIVATE kritapsdutils_EXPORTS)
 
 kis_add_test(
+    PsdByteIoContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(PsdByteIoContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(PsdByteIoContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
     KisAslObjectCatcherContractTest.cpp
     LINK_LIBRARIES
         kritaaslobjectcatcherobjects
