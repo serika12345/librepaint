@@ -694,6 +694,27 @@ target_compile_definitions(KisProgressUpdateHelperContractTest PRIVATE
 )
 
 kis_add_test(
+    KisSequentialIteratorProgressContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsfakeprogressproxyobjects
+        kritawidgetutilsprogressupdaterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisSequentialIteratorProgressContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_compile_definitions(KisSequentialIteratorProgressContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
+kis_add_test(
     KisCompositeProgressProxyContractTest.cpp
     LINK_LIBRARIES
         kritaimagecompositeprogressproxyobjects
