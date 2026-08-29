@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:53 JST
+- 更新日時: 2026-08-29 19:55 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,22 +15,22 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`squeezed-combo-box`は`preparing`、統合順は1である。
+- 統合担当`squeezed-combo-box`は`implementing`、統合順は1である。
   `libs/widgetutils/KisSqueezedComboBox.{h,cpp}`、既存`libs/widgetutils/tests/TestSqueezedComboBox.{h,cpp}`、Widget Utils製品・
   試験CMakeを所有する。既存試験を巨大な共有試験群から専用対象へ分け、親所有、原文と省略表示、追加・挿入・削除、
   検索、選択、利用者データ、再計算、寸法の全16 APIを対象とする。中央挿入・削除後の現行添字ずれは既知不具合として
   分類する。
-- 実装担当`lazy-shared-cache`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`lazy-shared-cache`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-lazy-shared-cache`であり、`libs/global/KisLazySharedCacheStorage.h`、Global
   試験CMake、新規限定試験を所有する。型別名、既定状態、factory引数、遅延構築、初期化、reset、localとlinkedの
   コピー共有規則、複数スレッドからの一重構築の全34 APIを対象とする。
-- 実装担当`color-transfer-functions`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`color-transfer-functions`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-color-transfer-functions`であり、`libs/pigment/KoColorTransferFunctions.h`、
   Pigment試験CMake、新規限定試験を所有する。定数、方針列挙、PQ・HLG・SMPTE 428曲線、OOTF、複数lane除去関数の
   全29 APIを対象とし、現行で未使用の`nominalPeak`引数は既知不具合として分類する。
-- 実装担当`resource-tags`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`resource-tags`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-resource-tags`であり、
   `libs/resources/KisTag.{h,cpp}`、既存`libs/resources/tests/TestTag.{h,cpp}`、Resources製品・試験CMakeを所有する。
   既存試験を限定対象へ分け、既定状態、全値、翻訳選択、コピー・代入・clone、UTF-8保存復元、無効入力、診断表示、
