@@ -113,6 +113,23 @@ set_target_properties(kritaimageinterfacesobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagedefaultboundsbaseobjects OBJECT
+   kis_default_bounds_base.cpp
+)
+target_compile_definitions(kritaimagedefaultboundsbaseobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagedefaultboundsbaseobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagedefaultboundsbaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagedefaultboundsbaseobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageselectioncomponentobjects OBJECT
    kis_selection_component.cc
 )
@@ -679,7 +696,6 @@ set(kritaimage_LIB_SRCS
    KisAutoLevels.cpp
    kis_default_bounds.cpp
    kis_default_bounds_node_wrapper.cpp
-   kis_default_bounds_base.cpp
    kis_effect_mask.cc
    kis_fill_painter.cc
    kis_filter_mask.cpp
@@ -852,6 +868,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
+   $<TARGET_OBJECTS:kritaimagedefaultboundsbaseobjects>
    $<TARGET_OBJECTS:kritaimageselectioncomponentobjects>
    $<TARGET_OBJECTS:kritaimageprojectionplaneobjects>
    $<TARGET_OBJECTS:kritaimagetransformmaskparamsinterfaceobjects>

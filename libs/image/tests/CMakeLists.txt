@@ -463,6 +463,25 @@ target_include_directories(KisNodeVisitorContractTest PRIVATE
 )
 
 kis_add_test(
+    KisDefaultBoundsBaseContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagedefaultboundsbaseobjects
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisDefaultBoundsBaseContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+target_include_directories(KisDefaultBoundsBaseContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KisSelectionComponentContractTest.cpp
     LINK_LIBRARIES
         kritaimageselectioncomponentobjects
