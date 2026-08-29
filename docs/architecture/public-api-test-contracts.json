@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24935
+    "expectedMissingApis": 24932
   },
   "contracts": [
     {
@@ -14136,6 +14136,27 @@
       "classification": "maintained",
       "apis": [
         "function:KisConvexHull::findConvexHullSelectionLike(KisPaintDeviceSP device)"
+      ]
+    },
+    {
+      "target": "KUndo2CommandExtraDataContractTest",
+      "source": "libs/painting/tests/KUndo2CommandExtraDataContractTest.cpp",
+      "test": "KUndo2CommandExtraDataContractTest::clonePreservesDynamicValueWithoutAliasing",
+      "behavior": "公開基底参照からclone()を呼ぶと動的型と値を保持した別個の所有対象が返り、複製側の変更は元の対象へ伝播しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KUndo2CommandExtraData",
+        "method:KUndo2CommandExtraData::clone() const"
+      ]
+    },
+    {
+      "target": "KUndo2CommandExtraDataContractTest",
+      "source": "libs/painting/tests/KUndo2CommandExtraDataContractTest.cpp",
+      "test": "KUndo2CommandExtraDataContractTest::baseDestructionDispatchesExactlyOnce",
+      "behavior": "基底ポインターから派生オブジェクトを破棄すると派生デストラクターが正確に1回呼ばれる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2CommandExtraData::~KUndo2CommandExtraData()"
       ]
     }
   ]

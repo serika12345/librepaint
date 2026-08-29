@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:54 JST
+- 更新日時: 2026-08-29 15:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -28,7 +28,7 @@
 - 実装担当`paintops-texture-option-io`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。`plugins/paintops/libpaintop/KisTextureOptionData.h`と関連実装、CMake、新規限定試験を
   所有し、テクスチャー設定の読書き2 APIを対象とする。
-- 実装担当`painting-command-extra-data`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`painting-command-extra-data`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。`libs/painting/undo/kundo2commandextradata.{h,cpp}`と新規限定試験を所有し、
   命令付加データの3 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -7936,9 +7936,23 @@
   未対応24,935件になった。具体的な`KisPaintDevice`走査の動的試験は、基準側の`KisResourceModelIndexResolver`記号不整合が解消するまで
   残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 命令付加データの全public API契約と小試験対象で完了した作業
+
+- `libs/painting/undo/kundo2commandextradata.cpp`の製品所有は`kritapaintingundo`に維持した。新規
+  `libs/painting/tests/KUndo2CommandExtraDataContractTest.cpp`が同じ翻訳単位を直接コンパイルし、広い製品ライブラリーへリンクせず
+  基底接続面だけを検査する限定経路を追加した。公開ヘッダーと製品実装は変更していない。
+- `libs/painting/undo/kundo2commandextradata.h`の型、仮想`clone()`、仮想デストラクターの全3 APIを2試験へ対応付けた。公開基底参照
+  からの複製が動的型と値を保持する別所有対象を返すこと、複製変更が元へ伝播しないこと、基底ポインターからの破棄が派生
+  デストラクターを一度だけ呼ぶことを固定した。実装接続前のリンクは基底デストラクターと型情報だけを未解決記号として診断した。
+- 製品`kritapaintingundo`は248工程・527入力、既存`TestKUndo2Stack`は252工程・534入力である。新規対象は5工程・10入力で、
+  直接依存はQt Testだけであり、製品ライブラリーを接続しない。
+- 統合担当のmacOS構築木で対象CTestの単発実行と20回反復、実装生成物のデストラクター、型情報、仮想表記号、1,149対象の
+  パッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,057件、
+  未対応24,932件になった。各製品派生型の複製内容は個別契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-命令付加データのtransport commitを検証して統合し、中央台帳と件数を同期する。
+最新の公開API報告から構築範囲が重ならない第6並列便を選び、限定契約の実装を継続する。
 
 ## R1-G5完了根拠
 
