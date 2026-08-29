@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 04:02 JST
+- 更新日時: 2026-08-30 04:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,23 +14,23 @@
 - 第26並列便の共通基準コミットは`ce4dc198ab`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g26-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`undo-group`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`undo-group`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/undo/kundo2group.h`、Painting Undo試験CMake、新規`KUndo2GroupContractTest.cpp`を所有する。開始実装
   `kundo2group.cpp`は既に`kritapaintingundokundo2coreobjects`が所有するため製品CMakeを変更せず、従来`TestKUndo2Stack`の
   264工程・558入力に代えて12工程・26入力以内で、群の初期状態、所属移動、活動対象、通知転送、取消・再実行、操作生成、寿命の
   全24 APIを固定する。
-- 実装担当`css-font-info`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`css-font-info`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-css-font-info`を予定し、
   `libs/flake/tests/CMakeLists.txt`と新規`KoCSSFontInfoContractTest.cpp`だけを所有する。開始ヘッダー
   `libs/flake/text/KoCSSFontInfo.h`のインライン実装を維持し、従来`TestSvgText`の564工程・1,158入力に代えて4工程・7入力以内で、
   既定値、標準軸と独自軸、傾斜、自動光学寸法、等値規約の全13 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`projection-plane`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`projection-plane`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-projection-plane`を予定し、
   `libs/image/kis_abstract_projection_plane.cpp`、Image製品・試験CMake、新規`KisAbstractProjectionPlaneContractTest.cpp`を所有する。
   開始ファイル`kis_abstract_projection_plane.cpp`を製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。
   従来`kis_paint_layer_test`の1,103工程・2,229入力に代えて5工程・11入力前後で、9仮想処理の配送と借用値、基底寿命、単純実装の
   矩形透過・無処理・空結果の全22 APIを固定する。
-- 実装担当`bezier-utils`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`bezier-utils`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-bezier-utils`を予定し、
   `libs/global/KisBezierUtils.{h,cpp}`、Global製品・試験CMake、新規`KisBezierUtilsContractTest.cpp`を所有する。開始ファイル
   `KisBezierUtils.cpp`を製品`kritaglobal`の直接ソースから専用生成物へ移し、既存の曲線長生成物とともに限定試験へ接続し、製品へ
@@ -9275,8 +9275,8 @@
 
 ## 次の操作
 
-第26並列便の計画基準をコミットし、3担当の専用Git作業ツリーと専用Ninja木を作る。構築実行許可を付与した後、統合担当はundo群の
-限定対象を開始し、各担当は製品共有ライブラリーを接続しない最小契約を赤から開始する。
+第26並列便を4担当で実装する。統合担当は既存のKUndo2中核生成物だけへ接続する限定対象を赤から開始し、各実装担当は専用Git
+作業ツリーと専用Ninja木で構築所有分離と最小契約を完了する。引渡し後は統合順に限定検証して取り込む。
 
 ## R1-G5完了根拠
 
