@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 08:46 JST
+- 更新日時: 2026-08-30 08:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,9 +11,31 @@
 
 ### 現在の並列担当票
 
-- 第35並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
-- 次は第36並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
-  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
+- 第36並列便の共通基準コミットは`5a82a47dd2`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g36-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+- 統合担当`toolbar-state-model`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/widgetutils/xmlgui/KisToolBarStateModel.cpp`、WidgetUtils製品・試験CMake、新規`KisToolBarStateModelContractTest.cpp`を所有する。
+  開始ファイルを製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の252工程・
+  537入力に代えて8工程・16入力以内で、初期lock状態、直接・Qt property経由の読書き、変更通知、QObject所有の全3 APIを固定する。
+- 実装担当`shape-size-command`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g36-shape-size-command`で`libs/flake/commands/KoShapeSizeCommand.cpp`、Flake製品・試験CMake、
+  新規`KoShapeSizeCommandContractTest.cpp`を所有する。開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ
+  移し、製品へ1回だけ再集約する。製品の571工程・1,174入力に代えて6工程・14入力以内で、複数shapeの寸法値保持、更新順、redo・undo・
+  再redo、空入力、親命令、借用寿命の全5 APIを固定する。
+- 実装担当`filter-category-ids`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g36-filter-category-ids`で`libs/image/filter/kis_filter_category_ids.cpp`、Image製品・試験CMake、
+  新規`KisFilterCategoryIdsContractTest.cpp`を所有する。開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ
+  移し、製品へ1回だけ再集約する。既存`kritaglobalidobjects`を再利用し、製品の1,121工程・2,266入力に代えて7工程・16入力以内で、9カテゴリの
+  安定識別子、一意性、空でない表示名の全9 APIを固定する。
+- 実装担当`color-popup-button`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g36-color-popup-button`で`libs/widgets/KoColorPopupButton.cpp`、Widgets製品・試験CMake、新規
+  `KoColorPopupButtonContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、
+  製品へ1回だけ再集約する。製品の746工程・1,521入力に代えて8工程・16入力以内で、親所有、初期表示様式、仮想寿命、固定表示様式による
+  寸法助言、幅変更時のicon寸法と通知の全5 APIを固定する。
+- 第36並列便の完了時は合計22 APIを追加し、公開面の対応済み7,237件、未対応22,752件を見込む。各担当は限定対象の単発・20回反復、
+  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
+- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
+  挙動を発見した時点で`blocked`として引き渡す。
 
 ## 再開環境
 
@@ -9809,8 +9831,8 @@
 
 ## 次の操作
 
-第36並列便の候補を公開API未対応列から選び、各候補の製品と最近傍試験の依存閉包を編集前に測定する。限定対象の停止上限、直接依存、
-所有パス、統合順を担当票へ固定し、必要な構築所有分離を挙動契約より先に行う。
+第36並列便の専用作業木を共通基準コミットから作り、各限定対象が未知で失敗する初回診断を記録する。統合担当が構築実行を許可した後、
+各担当は記録済みの停止上限と直接依存を再確認し、許可パス内だけで最小契約を追加する。
 
 ## R1-G5完了根拠
 
