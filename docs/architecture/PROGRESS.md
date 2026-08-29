@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 01:57 JST
+- 更新日時: 2026-08-30 02:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,20 +14,23 @@
 - 第23並列便の共通基準コミットは`141eefb38c`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g23-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`psd-byte-io`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`psd-byte-io`は`implementing`、構築実行許可は`granted`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/psdutils/psd_utils.h`、PSDUtils試験CMake、新規`PsdByteIoContractTest.cpp`を所有する。既存試験の581工程・
   1,191入力から製品共有ライブラリーを除き、整数・列挙・固定小数点、文字列、余白、混合方式の大小エンディアン入出力にある
   全44 APIを対象とする。
-- 実装担当`opentype-feature-info`は`planned`、追加委任は`forbidden`、統合順は2である。作業ツリーは
+- 実装担当`opentype-feature-info`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g23-opentype-feature-info`を予定し、
   `libs/flake/text/KoOpenTypeFeatureInfoFactory.{h,cpp}`、Flake製品・試験CMake、新規
   `KoOpenTypeFeatureInfoFactoryContractTest.cpp`を所有する。製品の560工程・1,152入力から実装を専用生成物へ分離し、
   OpenType表、機能情報値、既知・未知タグ検索、タグ一覧の全34 APIを対象とする。
-- 実装担当`filter-strategy`は`planned`、追加委任は`forbidden`、統合順は3である。作業ツリーは
+- 実装担当`filter-strategy`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g23-filter-strategy`を予定し、`libs/image/kis_filter_strategy.{h,cc}`、
   Image製品・試験CMake、新規`KisFilterStrategyContractTest.cpp`を所有する。既存試験の1,101工程・2,224正規化入力から
   実装を専用生成物へ分離し、基底と8種類の補間核、登録、説明、自動選択の全58 APIを対象とする。
-- 実装担当`zoom-handler`は`planned`、追加委任は`forbidden`、統合順は4である。作業ツリーは
+- 実装担当`zoom-handler`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は4である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g23-zoom-handler`を予定し、`libs/widgets/KoZoomHandler.{h,cpp}`、
   Widgets製品・試験CMake、新規`KoZoomHandlerContractTest.cpp`を所有する。既存試験の726工程・1,480入力から実装を
   専用生成物へ分離し、解像度、拡大率、余白、方式、軸・点・矩形・寸法変換、寿命の全33 APIを対象とする。
@@ -9082,7 +9085,8 @@
 
 ## 次の操作
 
-第23並列便の3専用作業ツリーとNinja木を共通基準から作成し、担当票を`implementing`へ遷移して4対象の契約実装を開始する。
+第23並列便の4対象を担当票に従って実装し、各限定対象の単発・20回反復、軽量隣接試験、構築閉包、製品共有ライブラリー非接続を
+確認する。完了した引渡しを統合順に主作業ツリーへ取り込む。
 
 ## R1-G5完了根拠
 
