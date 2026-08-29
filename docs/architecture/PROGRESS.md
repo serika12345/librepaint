@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 16:24 JST
+- 更新日時: 2026-08-29 16:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,21 +11,21 @@
 
 ### 現在の並列担当票
 
-- 第6並列便の共通基準コミットは`d2ce296b`である。統合担当は`develop`の
+- 第7並列便の共通基準コミットは`07a35ab7`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`painting-magic-string`は`implemented`である。`libs/painting/undo/kundo2magicstring.h`、Painting試験CMake、
-  新規限定試験を所有し、undo操作名の文字列表現と書式化31 APIを対象とする。
-- 実装担当`psdutils-offset-keeper`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は1である。`libs/psdutils/asl/kis_offset_keeper.h`と新規限定試験を所有し、
-  装置位置のスコープ復元3 APIを対象とする。
-- 実装担当`pigment-debug-category`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。`libs/pigment/DebugPigment.cpp`、Pigment CMake、新規限定試験を所有し、
-  色管理診断カテゴリの1 APIを対象とする。
-- 実装担当`widgets-debug-category`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。`libs/widgets/WidgetsDebug.cpp`、Widgets CMake、新規限定試験を所有し、
-  ウィジェット診断カテゴリの1 APIを対象とする。
+- 統合担当`painting-metadata-parser`は`in_progress`である。`libs/painting/metadata/kis_meta_data_parser.{h,cc}`、
+  値実装、Metadata CMake、新規限定試験を所有し、解析接続面の3 APIを対象とする。
+- 実装担当`psdutils-offset-exit-verifier`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は1である。`libs/psdutils/asl/kis_offset_on_exit_verifier.h`と新規限定試験を所有し、
+  読取り終了位置補正の3 APIを対象とする。
+- 実装担当`psdutils-compression`は`running`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。`libs/psdutils/compression.{h,cpp}`、PSD Utils CMake、既存または新規限定試験を所有し、
+  圧縮と展開の3 APIを対象とする。
+- 実装担当`tools-deselect-shapes-policy`は`running`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。`libs/tools/kis_delegated_tool_policies.{h,cpp}`、Tools CMake、新規限定試験を所有し、
+  図形選択解除方針の2 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8009,9 +8009,24 @@
   対応済み5,093件、未対応24,896件になった。Qtの診断フィルターは処理全体の状態であり、本試験は専用実行形式で規則を空にして
   観測する。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b PSD読取り終了位置補正の全public API契約で完了した作業
+
+- `libs/psdutils/asl/kis_offset_on_exit_verifier.h`のヘッダー内実装と`kritapsdutils`の製品所有を維持した。新規
+  `libs/psdutils/tests/KisOffsetOnExitVerifierContractTest.cpp`は製品ライブラリーへリンクせず、公開ヘッダーとQtだけで検査する。
+  製品コードのファイル移動と公開面の変更はない。
+- 同ヘッダーの全3 APIを1試験へ対応付けた。期待位置を構築時位置と指定オフセットの和とし、終了位置が
+  `[期待位置 - maxPadding, 期待位置]`の閉区間内なら位置を保持すること、下限未満または上限超過なら破棄時に期待位置へ
+  正確に1回補正することを5境界条件で固定した。CMake接続前の赤段階は対象が未定義であることを診断した。
+- 製品`kritapsdutils`は565工程・1,160入力である。直近の位置復元契約と新規対象はいずれも4工程・8入力で、直接依存は
+  Qt Core、Qt Test、macOS基盤だけであり、製品ライブラリーを接続しない。
+- 統合担当のmacOS構築木で限定対象を構築し、対象CTestの単発実行と20回反復、1,156対象のパッケージ境界検査に成功した。
+  公開API契約検査と高速検査にも成功し、公開面は1,549ヘッダー、29,989 API、対応済み5,096件、未対応24,893件になった。
+  現在無効な診断文、シーク不能な装置、
+  復元失敗、負の許容余白は後続の外部結果契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-最新の公開API報告から構築範囲が重ならない第7並列便を選び、限定契約の実装を継続する。
+第7並列便のメタデータ解析、PSD圧縮、図形選択解除方針の限定契約を実装・統合する。
 
 ## R1-G5完了根拠
 

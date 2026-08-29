@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24896
+    "expectedMissingApis": 24893
   },
   "contracts": [
     {
@@ -14283,6 +14283,18 @@
       "classification": "maintained",
       "apis": [
         "function:WIDGETS_LOG()"
+      ]
+    },
+    {
+      "target": "KisOffsetOnExitVerifierContractTest",
+      "source": "libs/psdutils/tests/KisOffsetOnExitVerifierContractTest.cpp",
+      "test": "KisOffsetOnExitVerifierContractTest::exitPositionPolicy",
+      "behavior": "構築時位置とexpectedOffsetの和を期待位置とし、終了位置が期待位置からmaxPaddingまでの閉区間内なら保持し、下限未満または期待位置超過なら破棄時に期待位置へ正確に1回seekして補正する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOffsetOnExitVerifier",
+        "method:KisOffsetOnExitVerifier::KisOffsetOnExitVerifier(QIODevice & device,qint64 expectedOffset,int maxPadding,const QString & objectName=\"\",const QString & domain=\"\")",
+        "method:KisOffsetOnExitVerifier::~KisOffsetOnExitVerifier()"
       ]
     }
   ]
