@@ -1456,6 +1456,28 @@ set_target_properties(kritauiexposuregammacorrectionobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauisizegroupobjects OBJECT
+    widgets/kis_size_group.cpp
+    widgets/kis_size_group.h
+    widgets/kis_size_group_p.cpp
+    widgets/kis_size_group_p.h
+)
+target_compile_definitions(kritauisizegroupobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauisizegroupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritauisizegroupobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritauisizegroupobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
@@ -1473,6 +1495,7 @@ add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
+    $<TARGET_OBJECTS:kritauisizegroupobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelsourceobjects>
     $<TARGET_OBJECTS:kritauimultinodepropertyobjects>
@@ -1713,8 +1736,6 @@ set(kritaui_LIB_SRCS
     widgets/kis_progress_widget.cpp
     widgets/kis_scratch_pad_event_filter.cpp
     widgets/KisSelectionPropertySlider.cpp
-    widgets/kis_size_group.cpp
-    widgets/kis_size_group_p.cpp
     widgets/kis_wdg_generator.cpp
     widgets/kis_workspace_chooser.cpp
     widgets/kis_widget_chooser.cpp

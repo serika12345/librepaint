@@ -128,6 +128,17 @@ target_compile_definitions(KisExposureGammaCorrectionInterfaceContractTest PRIVA
 )
 
 kis_add_test(
+    KisSizeGroupContractTest.cpp
+    LINK_LIBRARIES
+        kritauisizegroupobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisSizeGroupContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisSelectionActionsPanelContractTest.cpp
     LINK_LIBRARIES
         kritauiselectionactionspanelobjects
