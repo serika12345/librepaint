@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:17 JST
+- 更新日時: 2026-08-29 21:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -31,7 +31,7 @@
   `libs/flake/KoViewTransformStillPoint.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。351工程・730入力の
   翻訳単位を専用生成物へ分け、既定・2点・組構築、コピー・移動、文書点・表示点参照、デバッグ出力の全11 APIを
   対象とする。
-- 実装担当`qimage-pyramid`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`qimage-pyramid`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-qimage-pyramid`であり、
   `libs/brush/kis_qimage_pyramid.{h,cpp}`、Brush製品・試験CMake、新規限定試験を所有する。1,090工程・2,203入力の
   翻訳単位を専用生成物へ分け、空状態、画像生成、幾何寸法、最寄り階層、回避境界、補間方式、返却画像寿命の全9 APIを
@@ -8658,9 +8658,25 @@
   29,989 API、対応済み5,571件、未対応24,418件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
   `fill(value)`の既定寸法`-1`と負の寸法変更は未定義動作の危険があるため実行せず、安全な明示寸法の現行挙動を固定した。
 
+## R2-G19b ブラシ画像ピラミッドの全public API契約で完了した作業
+
+- `libs/brush/kis_qimage_pyramid.h`の全9 APIを、新規
+  `libs/brush/tests/KisQImagePyramidContractTest.cpp`の4試験へ対応付けた。空状態、元画像から独立した生成画像と寿命、
+  拡大率・縦横比・回転・画素未満移動による寸法、最寄り階層、QPainter回避境界、平滑・高速拡大の補間差を固定した。
+- 開始ファイル`libs/brush/kis_qimage_pyramid.cpp`の構築所有を`kritalibbrush_LIB_SRCS`から新規
+  `kritabrushqimagepyramidobjects`へ移し、製品`kritalibbrush`が生成物を1回だけ再集約する。公開ヘッダー、実装位置、製品ABI、
+  画像生成処理は維持した。`libs/brush/CMakeLists.txt`先頭の`add_subdirectory(tests)`は、限定試験が定義済み生成物を参照するため、
+  同ファイル内の製品・生成物定義後へ移した。
+- 実装未接続の初回限定リンクは画像生成・寸法・階層取得操作の未定義記号で失敗した。macOSの製品`kritalibbrush`は
+  1,114工程を維持し、明示した生成物所有依存により入力が2,249件から2,250件になった。専用生成物は1工程・3入力、
+  限定試験は5工程・11入力である。対象CTestの単発実行と20回反復、最近傍の`KisDabShapeContractTest`に成功し、
+  パッケージ境界検査は1,215対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,580件、未対応24,409件になった。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。空の初期画像、倍率の空ポインター、Qt版に依存する
+  非単位変換の厳密な補間画素値は公開契約に含めていない。
+
 ## 次の操作
 
-ブラシ画像ピラミッドの担当差分、限定構築、挙動、台帳を統合検証する。
+第17並列便の未対応APIと構築閉包を調査し、互いに独立した4担当票を確定する。
 
 ## R1-G5完了根拠
 

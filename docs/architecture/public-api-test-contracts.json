@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24418
+    "expectedMissingApis": 24409
   },
   "contracts": [
     {
@@ -15994,6 +15994,52 @@
         "method:KisOptimizedByteArray::PooledMemoryAllocator::free(MemoryChunk chunk)",
         "method:KisOptimizedByteArray::PooledMemoryAllocator::~PooledMemoryAllocator()",
         "struct:KisOptimizedByteArray::PooledMemoryAllocator"
+      ]
+    },
+    {
+      "target": "KisQImagePyramidContractTest",
+      "source": "libs/brush/tests/KisQImagePyramidContractTest.cpp",
+      "test": "KisQImagePyramidContractTest::defaultAndConstructedImagesHaveIndependentLifetimes",
+      "behavior": "既定構築した画像ピラミッドは空の生成画像を返し、初期画像から構築したピラミッドは元画像の後続変更から独立したARGB32画像を生成し、その生成画像はピラミッド破棄後も内容を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisQImagePyramid",
+        "method:KisQImagePyramid::KisQImagePyramid()",
+        "method:KisQImagePyramid::KisQImagePyramid(const QImage & baseImage,bool useSmoothingForEnlarging=true)",
+        "method:KisQImagePyramid::createImage(KisDabShape const &,qreal subPixelX,qreal subPixelY) const",
+        "method:KisQImagePyramid::~KisQImagePyramid()"
+      ]
+    },
+    {
+      "target": "KisQImagePyramidContractTest",
+      "source": "libs/brush/tests/KisQImagePyramidContractTest.cpp",
+      "test": "KisQImagePyramidContractTest::geometryTracksShapeAndSubpixelOffset",
+      "behavior": "画像ピラミッドの幾何計算は元寸法、拡大率、縦横比、回転、画素未満の移動から決定的な特性寸法と出力画像寸法を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQImagePyramid::characteristicSize(const QSize & originalSize,KisDabShape const &)",
+        "method:KisQImagePyramid::imageSize(const QSize & originalSize,KisDabShape const &,qreal subPixelX,qreal subPixelY)"
+      ]
+    },
+    {
+      "target": "KisQImagePyramidContractTest",
+      "source": "libs/brush/tests/KisQImagePyramidContractTest.cpp",
+      "test": "KisQImagePyramidContractTest::closestLevelReportsScaleAndWorkaroundBorder",
+      "behavior": "最寄り階層の取得は選択した倍率を書き戻し、通常版は各辺1画素の透明なQPainter回避境界を含み、境界除去版は元寸法と画素を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQImagePyramid::getClosest(QTransform transform,qreal * scale) const",
+        "method:KisQImagePyramid::getClosestWithoutWorkaroundBorder(QTransform transform,qreal * scale) const"
+      ]
+    },
+    {
+      "target": "KisQImagePyramidContractTest",
+      "source": "libs/brush/tests/KisQImagePyramidContractTest.cpp",
+      "test": "KisQImagePyramidContractTest::enlargementModeChangesInterpolationWithoutChangingGeometry",
+      "behavior": "構築時の平滑拡大指定は高速拡大と同じ階層倍率および画像寸法を保ちながら、非一様画像に異なる補間結果を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisQImagePyramid::KisQImagePyramid(const QImage & baseImage,bool useSmoothingForEnlarging=true)"
       ]
     }
   ]
