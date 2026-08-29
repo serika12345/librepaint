@@ -87,6 +87,22 @@ target_include_directories(KoColorProfileConstantsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoColorTransferFunctionsContractTest.cpp
+    LINK_LIBRARIES
+        kritamultiarch
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        ${LINK_OPENEXR_LIB}
+)
+target_include_directories(KoColorTransferFunctionsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../compositeops
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KoColorSpaceConstantsContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
