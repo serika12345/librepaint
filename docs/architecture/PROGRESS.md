@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 03:29 JST
+- 更新日時: 2026-08-30 03:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,24 +14,24 @@
 - 第25並列便の共通基準コミットは`8e6919a62a`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g25-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`metadata-type-info`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`metadata-type-info`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/metadata/kis_meta_data_{type_info,schema}.{h,cc}`、`kis_meta_data_type_info_p.h`、Painting Metadata製品・試験CMake、
   新規`KisMetaDataTypeInfoContractTest.cpp`を所有する。開始ファイル`kis_meta_data_type_info.cc`と相互参照する
   `kis_meta_data_schema.cc`を製品`kritapaintingmetadata`の直接ソースから型・スキーマ専用生成物へ移し、製品へ1回だけ再集約する。
   従来`kis_meta_data_test`の268工程・566入力に代えて、基本型、配列型、言語配列、選択肢、値検査、解析器、構造情報の全50 APIを
   固定する。試験追加前に新規生成物と空の限定対象を構成して命令・入力閉包を実測し、15工程・32入力を超える場合は停止する。
-- 実装担当`svg-mesh-array`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`svg-mesh-array`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-svg-mesh-array`を予定し、
   `libs/flake/svg/SvgMeshArray.{h,cpp}`、Flake製品・試験CMake、新規`SvgMeshArrayContractTest.cpp`を所有する。開始ファイル
   `SvgMeshArray.cpp`を製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。変更前翻訳単位の
   365工程・758入力から6工程・12入力前後へ縮小し、正規メッシュの構築、取得、共有辺・角・色の伝播、変換、深いコピーの全27 APIを
   固定する。
-- 実装担当`node-visitor`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`node-visitor`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-node-visitor`を予定し、
   `libs/image/tests/CMakeLists.txt`と新規`KisNodeVisitorContractTest.cpp`だけを所有する。既存`kis_node_visitor_test`の
   1,101工程・2,225入力に代えて、Qt Testだけの4工程・8入力前後で12ノード型の仮想配送、返値、ポインター同一性、仮想寿命の
   全15 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`angle-gauge`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`angle-gauge`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-angle-gauge`を予定し、
   `libs/widgets/KisAngleGauge.{h,cpp}`、Widgets製品・試験CMake、新規`KisAngleGaugeContractTest.cpp`を所有する。開始ファイル
   `KisAngleGauge.cpp`を製品`kritawidgets`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の
@@ -9213,8 +9213,8 @@
 
 ## 次の操作
 
-第25並列便の計画基準をコミットし、3担当の専用Git作業ツリーと専用Ninja木を作る。構築実行許可を付与した後、統合担当は
-メタデータ型・スキーマ生成物の限定閉包を先に実測し、各担当は製品共有ライブラリーを接続しない最小契約を赤から開始する。
+第25並列便を4担当で実装する。統合担当はメタデータ型・スキーマ生成物の限定閉包を先に実測し、各実装担当は専用Git作業ツリーと
+専用Ninja木で製品共有ライブラリーを接続しない最小契約を赤から開始する。引渡し後は統合順に限定検証して取り込む。
 
 ## R1-G5完了根拠
 
