@@ -2,6 +2,21 @@ add_subdirectory( tests )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_library(kritawidgetsstackedwidgetobjects OBJECT
+    kis_stacked_widget.cpp
+)
+target_compile_definitions(kritawidgetsstackedwidgetobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsstackedwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsstackedwidgetobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsstackedwidgetobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetsdocktitlebarbuttonobjects OBJECT
     KoDockWidgetTitleBarButton.cpp
 )
@@ -234,7 +249,6 @@ set(kritawidgets_LIB_SRCS
 
     KisWidgetConnectionUtils.cpp
     kis_spacing_selection_widget.cpp
-    kis_stacked_widget.cpp
 
 )
 
@@ -265,6 +279,7 @@ set_target_properties(kritawidgetsdebugobjects PROPERTIES
 
 kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
+    $<TARGET_OBJECTS:kritawidgetsstackedwidgetobjects>
     $<TARGET_OBJECTS:kritawidgetsdocktitlebarbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsvboxobjects>
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>

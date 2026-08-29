@@ -34,6 +34,15 @@ kis_add_test(
 target_compile_definitions(KoTitledTabWidgetContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KisStackedWidgetContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetsstackedwidgetobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisStackedWidgetContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KoDockWidgetTitleBarButtonContractTest.cpp
     LINK_LIBRARIES
         kritawidgetsdocktitlebarbuttonobjects
