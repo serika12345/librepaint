@@ -19,6 +19,20 @@ target_include_directories(KoUpdaterContractTest PRIVATE
 target_compile_definitions(KoUpdaterContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KoFakeProgressProxyContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsfakeprogressproxyobjects
+        kritawidgetutilsprogressupdaterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoFakeProgressProxyContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoFakeProgressProxyContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KoPropertiesTest.cpp
     LINK_LIBRARIES
         kritawidgetutilspropertiesobjects

@@ -169,6 +169,25 @@ set_target_properties(kritawidgetutilsprogressupdaterobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetutilsfakeprogressproxyobjects OBJECT
+    KoFakeProgressProxy.cpp
+)
+target_compile_definitions(kritawidgetutilsfakeprogressproxyobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsfakeprogressproxyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsfakeprogressproxyobjects
+    PUBLIC
+        kritawidgetutilsprogressupdaterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritawidgetutilsfakeprogressproxyobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetutilsoptioncollectionobjects OBJECT
     KisOptionCollectionWidget.cpp
 )
@@ -209,6 +228,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritapopupselfactivatinglineeditobjects>
     $<TARGET_OBJECTS:kritaspinboxi18nhelperobjects>
     $<TARGET_OBJECTS:kritawidgetutilsprogressupdaterobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsfakeprogressproxyobjects>
     $<TARGET_OBJECTS:kritawidgetutilsoptioncollectionobjects>
     $<TARGET_OBJECTS:kritawidgetutilswrappablehboxlayoutobjects>
 
@@ -218,7 +238,6 @@ set(kritawidgetutils_LIB_SRCS
     kis_action_registry.cpp
     KisActionsSnapshot.cpp
     KoGroupButton.cpp
-    KoFakeProgressProxy.cpp
     KoProgressBar.cpp
     KoProgressUpdater.cpp
     KoFileDialog.cpp
