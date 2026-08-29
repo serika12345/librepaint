@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:28 JST
+- 更新日時: 2026-08-29 18:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,8 +23,9 @@
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、
   `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorManagementInfo.{h,cpp}`、同パッケージの
   製品・試験CMake、新規限定試験を所有する。親所有、基底破棄、OS管理判断、非同期診断の5 APIを対象とする。
-- 実装担当`popup-line-edit-lifecycle`は`implementing`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`、統合順は3である。作業ツリーは
+- 実装担当`popup-line-edit-lifecycle`は`integrated`、統合コミットは`23c6fc2d9a`、安定化コミットは
+  `4da2631fe8`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、
   `libs/widgetutils/KisPopupSelfActivatingLineEdit.{h,cpp}`、Widget Utils製品・試験CMake、新規限定試験を所有する。
   親所有、構築、破棄の3 APIと、ポップアップ内のフォーカス取得時に現れる公開挙動を対象とする。
@@ -8269,9 +8270,26 @@
   1,175対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,141件、未対応24,848件になった。
   Linux、全ネイティブ検証、機能有効構成の製品リンクは実行していない。
 
+## R2-G19b ポップアップ入力欄の全public API契約で完了した作業
+
+- `libs/widgetutils/KisPopupSelfActivatingLineEdit.h`の全3 APIを、新規
+  `libs/widgetutils/tests/KisPopupSelfActivatingLineEditContractTest.cpp`へ対応付けた。構築時に指定した親表示部品への
+  所属、親破棄による正確に1回の破棄、監視ポインターの無効化を固定した。
+- 開始ファイル`libs/widgetutils/KisPopupSelfActivatingLineEdit.cpp`の構築所有を`kritawidgetutils_LIB_SRCS`から新規
+  `kritapopupselfactivatinglineeditobjects`へ移し、製品`kritawidgetutils`がメタオブジェクトを含む生成物を1回だけ
+  集約する。公開ヘッダー、実装位置、製品ABIは維持した。
+- 変更前の製品は237工程・507入力、限定契約は7工程・14入力である。分離したQObjectの自動メタオブジェクト生成により
+  製品は239工程・511入力になった。初回限定リンクは構築と破棄の記号を未定義として失敗した。画面システムによる
+  ウィンドウ有効化状態は20回反復中にmacOSから非決定的な状態を返したため、公開APIではない保護フォーカス処理の
+  承認条件には使用していない。
+- 担当作業ツリーと統合担当のmacOS構築木で決定的な対象CTestの単発実行と20回反復、最近傍の
+  `KisMenuStyleDontCloseOnAltContractTest`に成功し、パッケージ境界検査は1,177対象で成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み5,144件、未対応24,845件になった。Linux、全ネイティブ検証、
+  製品全体のリンクは実行していない。
+
 ## 次の操作
 
-`popup-line-edit-lifecycle`と`titled-tab-title-sync`を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
+`titled-tab-title-sync`の差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24848
+    "expectedMissingApis": 24845
   },
   "contracts": [
     {
@@ -14570,6 +14570,18 @@
         "method:KisSurfaceColorManagementInfo::debugReport()",
         "method:KisSurfaceColorManagementInfo::surfaceColorManagedByOS()",
         "method:KisSurfaceColorManagementInfo::~KisSurfaceColorManagementInfo()"
+      ]
+    },
+    {
+      "target": "KisPopupSelfActivatingLineEditContractTest",
+      "source": "libs/widgetutils/tests/KisPopupSelfActivatingLineEditContractTest.cpp",
+      "test": "KisPopupSelfActivatingLineEditContractTest::parentOwnsAndDestroysLineEdit",
+      "behavior": "入力欄は構築時に指定した親表示部品へ所有され、親の破棄時にちょうど1回破棄されて監視ポインターを無効化する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPopupSelfActivatingLineEdit",
+        "method:KisPopupSelfActivatingLineEdit::KisPopupSelfActivatingLineEdit(QWidget * parent=nullptr)",
+        "method:KisPopupSelfActivatingLineEdit::~KisPopupSelfActivatingLineEdit()"
       ]
     }
   ]
