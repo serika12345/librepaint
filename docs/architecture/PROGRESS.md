@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:20 JST
+- 更新日時: 2026-08-29 14:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,7 +20,7 @@
 - 実装担当`global-koid-comparison`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は1である。`libs/global/KoID.h`と既存`libs/global/tests/KoIDContractTest.cpp`を監査し、
   4比較演算子を既存の識別子比較契約へ対応付ける。
-- 実装担当`image-frame-generation-lock`は`ready`、構築実行許可は`granted`、Git操作権限は
+- 実装担当`image-frame-generation-lock`は`integrated`、構築実行許可は`granted`、Git操作権限は
   `transport-commit`、追加委任は`forbidden`、統合順は2である。`libs/image/KisLockFrameGenerationLock.{h,cpp}`、
   `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`と新規専用試験を所有し、型、構築、`try_lock()`、
   `lock()`、`unlock()`の5 APIを対象とする。
@@ -7705,10 +7705,26 @@
 - 公開API契約検査と高速検査は成功し、公開面は1,549ヘッダー、29,989 API、対応済み4,992件、未対応24,997件になった。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 排他フレーム生成ロックの全public API契約と小構築対象で完了した作業
+
+- `libs/image/KisLockFrameGenerationLock.cpp`を、製品`kritaimage`による直接コンパイルから新規
+  `kritaimageframegenerationlockobjects`の所有ソースへ移し、その生成物を同じ製品へ1回再集約した。物理ファイルと
+  公開宣言は維持し、排他フレーム生成ロックの委譲だけを独立して構築できる境界にした。
+- `libs/image/KisLockFrameGenerationLock.h`の型、構築、`try_lock()`、`lock()`、`unlock()`の全5 APIを、新規
+  `libs/image/tests/KisLockFrameGenerationLockContractTest.cpp`の3試験へ対応付けた。構築時の借用先保持、試行取得の
+  成否透過、同じ接続面への取得・解放の順序と各1回の委譲を固定した。製品実装接続前のリンクは対象4メソッドだけを
+  未解決記号として診断した。
+- 変更前後の製品`kritaimage`閉包は1,076工程・2,176入力で不変である。既存の具象画像アニメーション試験は
+  1,080工程・2,183入力だったため、専用対象を1工程・3入力、契約対象を5工程・11入力へ分離した。直接依存は専用対象が
+  Qt Core、契約対象が専用対象とQt Testだけである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、対象CTestの単発実行と20回反復を成功させた。構成時の
+  パッケージ境界検査も1,118対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、
+  対応済み4,997件、未対応24,992件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-準備完了した`image-frame-generation-lock`を統合順2として取り込み、中央台帳と進捗を同期して対象CTest、公開API契約検査、
-高速検査を再実行する。続いて準備完了した実装担当を一件ずつ取り込み、各統合を独立したレビュー可能コミットへ固定する。
+準備完了した`flake-path-point-data`を統合順3として取り込み、中央台帳と進捗を同期して対象CTest、公開API契約検査、高速検査を
+再実行する。統合後は第2便の共通基準を更新し、次の非重複担当群を選ぶ。
 
 ## R1-G5完了根拠
 

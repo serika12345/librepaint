@@ -303,6 +303,23 @@ target_include_directories(KisBlockBackgroundFrameGenerationLockContractTest PRI
     ${CMAKE_BINARY_DIR}/libs/global
 )
 
+kis_add_test(
+    KisLockFrameGenerationLockContractTest.cpp
+    LINK_LIBRARIES
+        kritaimageframegenerationlockobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_sources(KisLockFrameGenerationLockContractTest PRIVATE
+    ../kis_image_animation_interface.h
+)
+target_compile_definitions(KisLockFrameGenerationLockContractTest PRIVATE kritaimage_EXPORTS)
+target_include_directories(KisLockFrameGenerationLockContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 

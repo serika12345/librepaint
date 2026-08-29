@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24997
+    "expectedMissingApis": 24992
   },
   "contracts": [
     {
@@ -13723,6 +13723,38 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::dropMimeData(const QMimeData * data,Qt::DropAction action,int row,int column,const QModelIndex & parent)"
+      ]
+    },
+    {
+      "target": "KisLockFrameGenerationLockContractTest",
+      "source": "libs/image/tests/KisLockFrameGenerationLockContractTest.cpp",
+      "test": "KisLockFrameGenerationLockContractTest::retainsBorrowedAnimationInterface",
+      "behavior": "構築時に受け取った借用アニメーション接続面を保持し、呼出側のポインター変数が変わっても元の借用先へ排他フレーム生成ロックを委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLockFrameGenerationLockAdapter",
+        "method:KisLockFrameGenerationLockAdapter::KisLockFrameGenerationLockAdapter(KisImageAnimationInterface * interface)"
+      ]
+    },
+    {
+      "target": "KisLockFrameGenerationLockContractTest",
+      "source": "libs/image/tests/KisLockFrameGenerationLockContractTest.cpp",
+      "test": "KisLockFrameGenerationLockContractTest::returnsTryLockResultUnchanged",
+      "behavior": "try_lock()は借用アニメーション接続面の試行取得を呼び出し、失敗と成功の結果を変更せず返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLockFrameGenerationLockAdapter::try_lock()"
+      ]
+    },
+    {
+      "target": "KisLockFrameGenerationLockContractTest",
+      "source": "libs/image/tests/KisLockFrameGenerationLockContractTest.cpp",
+      "test": "KisLockFrameGenerationLockContractTest::delegatesExclusiveFrameGenerationControlExactlyOnce",
+      "behavior": "lock()は排他フレーム生成ロック取得を、unlock()は解放を、同じ借用アニメーション接続面へこの順でそれぞれ正確に1回委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLockFrameGenerationLockAdapter::lock()",
+        "method:KisLockFrameGenerationLockAdapter::unlock()"
       ]
     }
   ]
