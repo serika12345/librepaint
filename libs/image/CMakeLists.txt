@@ -27,6 +27,28 @@ foreach(_obj IN LISTS __per_arch_circle_mask_generator_objs _per_arch_processor_
   message("    * ${_obj}")
 endforeach()
 
+add_library(kritaimagefilterstrategyobjects OBJECT
+   kis_filter_strategy.cc
+)
+target_compile_definitions(kritaimagefilterstrategyobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagefilterstrategyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagefilterstrategyobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagefilterstrategyobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagefastmathobjects OBJECT
    kis_fast_math.cpp
 )
@@ -592,7 +614,6 @@ set(kritaimage_LIB_SRCS
    kis_effect_mask.cc
    kis_fill_painter.cc
    kis_filter_mask.cpp
-   kis_filter_strategy.cc
    kis_transform_mask.cpp
    kis_transform_mask_params_interface.cpp
    kis_recalculate_transform_mask_job.cpp
@@ -760,6 +781,7 @@ set(einspline_SRCS
 kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
+   $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
