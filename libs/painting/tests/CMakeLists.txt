@@ -5,6 +5,14 @@ kis_add_tests(
 )
 
 kis_add_test(
+    KisFigurePaintingOptionsContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisFigurePaintingOptionsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+kis_add_test(
     KUndo2CommandExtraDataContractTest.cpp
     ../undo/kundo2commandextradata.cpp
     TEST_NAME KUndo2CommandExtraDataContractTest
