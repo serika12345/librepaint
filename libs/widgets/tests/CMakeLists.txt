@@ -24,6 +24,14 @@ target_include_directories(KoDialogEnumContractTest PRIVATE
 )
 target_compile_definitions(KoDialogEnumContractTest PRIVATE kritawidgets_EXPORTS)
 
+kis_add_test(
+    WidgetsDebugContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetsdebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(WidgetsDebugContractTest PRIVATE kritawidgets_EXPORTS)
+
 kis_add_tests(
     zoomhandler_test.cpp
     KoAnchorSelectionWidgetTest.cpp

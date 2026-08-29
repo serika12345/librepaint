@@ -45,8 +45,6 @@ set(kritawidgets_LIB_SRCS
     KisGradientColorEditor.cpp
     KisGradientWidgetsUtils.cpp
 
-    WidgetsDebug.cpp
-
     kis_file_name_requester.cpp
 
     KisColorSelectorInterface.cpp
@@ -103,7 +101,25 @@ ki18n_wrap_ui( kritawidgets_LIB_SRCS
     WdgPaletteListWidget.ui
 )
 
-kis_add_library(kritawidgets SHARED ${kritawidgets_LIB_SRCS})
+add_library(kritawidgetsdebugobjects OBJECT
+    WidgetsDebug.cpp
+)
+target_compile_definitions(kritawidgetsdebugobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsdebugobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsdebugobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritawidgetsdebugobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_library(kritawidgets SHARED
+    ${kritawidgets_LIB_SRCS}
+    $<TARGET_OBJECTS:kritawidgetsdebugobjects>
+)
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
 target_link_libraries(kritawidgets
     PUBLIC
