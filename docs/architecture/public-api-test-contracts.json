@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25076
+    "expectedMissingApis": 25074
   },
   "contracts": [
     {
@@ -12884,6 +12884,96 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::createPaintLayer()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::creationRequiresFinishedOperationsAndUsesRootFallback",
+      "behavior": "ノード作成は保留中操作の完了を前提とし、活動ノードがない場合は画像ルートを作成位置に使い、両方ない不整合では回復可能な表明を記録してnullを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createNode(const QString & nodeType,bool quiet=false,KisPaintDeviceSP copyFrom=0)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::creationTypes",
+      "behavior": "ノード作成は公開された13種の文字列識別子を対応するレイヤーまたはマスク作成へ写像し、活動ノード、quiet指定、作成結果を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createNode(const QString & nodeType,bool quiet=false,KisPaintDeviceSP copyFrom=0)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::cloneCreationFallsBackToActiveNode",
+      "behavior": "複製レイヤー作成は現在選択を複製元に使い、選択が空なら活動ノードだけを複製元にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createNode(const QString & nodeType,bool quiet=false,KisPaintDeviceSP copyFrom=0)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::unsupportedCreationReturnsNull",
+      "behavior": "未対応のノード型識別子は具体的な作成処理を呼ばずnullを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createNode(const QString & nodeType,bool quiet=false,KisPaintDeviceSP copyFrom=0)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::conversionRequiresFinishedOperationsAndModifiableNode",
+      "behavior": "ノード変換は保留中操作が完了し、活動ノードが存在して変更可能な場合だけ具体的な変換へ進む。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::convertNode(const QString & nodeType)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::directConversionTypes",
+      "behavior": "ペイントレイヤーとファイルレイヤーへの変換は活動ノードを対応する直接変換へ渡し、マスク用Undo範囲を作らない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::convertNode(const QString & nodeType)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::maskConversionTypes",
+      "behavior": "選択・フィルター・透明度マスクへの変換は活動ノードの画素装置を優先し、Convert to a Selection MaskのUndo範囲内で対応するマスク変換を完了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::convertNode(const QString & nodeType)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::failedMaskConversionUsesProjectionAndUndo",
+      "behavior": "マスク変換は活動ノードに画素装置がない場合に投影を使い、変換失敗時はUndo範囲を閉じた後に操作完了を強制して最後の命令を取り消す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::convertNode(const QString & nodeType)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerNodeTypeContractTest",
+      "source": "libs/ui/tests/KisNodeManagerNodeTypeContractTest.cpp",
+      "test": "KisNodeManagerNodeTypeContractTest::unsupportedConversionIsReported",
+      "behavior": "未対応の変換型識別子は具体的な変換を呼ばず診断対象として報告する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::convertNode(const QString & nodeType)"
       ]
     },
     {

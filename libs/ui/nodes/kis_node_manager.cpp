@@ -638,58 +638,63 @@ void KisNodeManager::IsolationAccess::setGroupActionChecked(KisNodeManager *mana
     manager->m_d->view->actionManager()->actionByName("isolate_active_group")->setChecked(checked);
 }
 
-KisNodeSP  KisNodeManager::createNode(const QString & nodeType, bool quiet, KisPaintDeviceSP copyFrom)
+bool KisNodeManager::NodeTypeAccess::finishPendingOperations(KisNodeManager *manager)
 {
-    if (!m_d->view->blockUntilOperationsFinished(m_d->view->image())) {
-        return 0;
+    return manager->m_d->view->blockUntilOperationsFinished(manager->m_d->view->image());
+}
+
+KisNodeSP KisNodeManager::NodeTypeAccess::activeNode(KisNodeManager *manager)
+{
+    return manager->activeNode();
+}
+
+KisNodeSP KisNodeManager::NodeTypeAccess::rootNode(KisNodeManager *manager)
+{
+    return manager->m_d->view->image()->root();
+}
+
+KisNodeList KisNodeManager::NodeTypeAccess::selectedNodes(KisNodeManager *manager)
+{
+    return manager->selectedNodes();
+}
+
+KisNodeSP KisNodeManager::NodeTypeAccess::createNode(KisNodeManager *manager,
+                                                     NodeCreationKind kind,
+                                                     KisNodeSP activeNode,
+                                                     const KisNodeList &selectedNodes,
+                                                     KisPaintDevice *copyFrom,
+                                                     bool quiet)
+{
+    const KisPaintDeviceSP copyDevice(copyFrom);
+    switch (kind) {
+    case NodeCreationKind::PaintLayer:
+        return manager->m_d->layerManager.addPaintLayer(activeNode);
+    case NodeCreationKind::GroupLayer:
+        return manager->m_d->layerManager.addGroupLayer(activeNode);
+    case NodeCreationKind::AdjustmentLayer:
+        return manager->m_d->layerManager.addAdjustmentLayer(activeNode);
+    case NodeCreationKind::GeneratorLayer:
+        return manager->m_d->layerManager.addGeneratorLayer(activeNode);
+    case NodeCreationKind::ShapeLayer:
+        return manager->m_d->layerManager.addShapeLayer(activeNode);
+    case NodeCreationKind::CloneLayer:
+        return manager->m_d->layerManager.addCloneLayer(selectedNodes);
+    case NodeCreationKind::TransparencyMask:
+        return manager->m_d->maskManager.createTransparencyMask(activeNode, copyDevice, false);
+    case NodeCreationKind::FilterMask:
+        return manager->m_d->maskManager.createFilterMask(activeNode, copyDevice, quiet, false);
+    case NodeCreationKind::FastColorOverlayMask:
+        return manager->m_d->maskManager.createFastColorOverlayMask(activeNode);
+    case NodeCreationKind::ColorizeMask:
+        return manager->m_d->maskManager.createColorizeMask(activeNode);
+    case NodeCreationKind::TransformMask:
+        return manager->m_d->maskManager.createTransformMask(activeNode);
+    case NodeCreationKind::SelectionMask:
+        return manager->m_d->maskManager.createSelectionMask(activeNode, copyDevice, false);
+    case NodeCreationKind::FileLayer:
+        return manager->m_d->layerManager.addFileLayer(activeNode);
     }
-
-    KisNodeSP activeNode = this->activeNode();
-    if (!activeNode) {
-        activeNode = m_d->view->image()->root();
-    }
-
-    KIS_ASSERT_RECOVER_RETURN_VALUE(activeNode, 0);
-
-    /// the check for editability happens inside the functions
-    /// themselves, because layers can be created anyway (in a
-    /// different position), but masks cannot.
-
-    // XXX: make factories for this kind of stuff,
-    //      with a registry
-
-    if (nodeType == "KisPaintLayer") {
-        return m_d->layerManager.addPaintLayer(activeNode);
-    } else if (nodeType == "KisGroupLayer") {
-        return m_d->layerManager.addGroupLayer(activeNode);
-    } else if (nodeType == "KisAdjustmentLayer") {
-        return m_d->layerManager.addAdjustmentLayer(activeNode);
-    } else if (nodeType == "KisGeneratorLayer") {
-        return m_d->layerManager.addGeneratorLayer(activeNode);
-    } else if (nodeType == "KisShapeLayer") {
-        return m_d->layerManager.addShapeLayer(activeNode);
-    } else if (nodeType == "KisCloneLayer") {
-        KisNodeList nodes = selectedNodes();
-        if (nodes.isEmpty()) {
-            nodes.append(activeNode);
-        }
-        return m_d->layerManager.addCloneLayer(nodes);
-    } else if (nodeType == "KisTransparencyMask") {
-        return m_d->maskManager.createTransparencyMask(activeNode, copyFrom, false);
-    } else if (nodeType == "KisFilterMask") {
-        return m_d->maskManager.createFilterMask(activeNode, copyFrom, quiet, false);
-    } else if (nodeType == "FastColorOverlayFilterMask") {
-        return m_d->maskManager.createFastColorOverlayMask(activeNode);
-    } else if (nodeType == "KisColorizeMask") {
-        return m_d->maskManager.createColorizeMask(activeNode);
-    } else if (nodeType == "KisTransformMask") {
-        return m_d->maskManager.createTransformMask(activeNode);
-    } else if (nodeType == "KisSelectionMask") {
-        return m_d->maskManager.createSelectionMask(activeNode, copyFrom, false);
-    } else if (nodeType == "KisFileLayer") {
-        return m_d->layerManager.addFileLayer(activeNode);
-    }
-    return 0;
+    return KisNodeSP();
 }
 
 KisImage *KisNodeManager::LayerCreationAccess::image(KisNodeManager *manager)
@@ -713,49 +718,80 @@ KisLayerSP KisNodeManager::LayerCreationAccess::createPaintLayer(KisNodeManager 
     return dynamic_cast<KisLayer *>(node.data());
 }
 
-void KisNodeManager::convertNode(const QString &nodeType)
+bool KisNodeManager::NodeTypeAccess::canModifyLayer(KisNodeManager *manager, KisNodeSP node)
 {
-    if (!m_d->view->blockUntilOperationsFinished(m_d->view->image())) {
-        return;
+    return manager->canModifyLayer(node);
+}
+
+KisPaintDevice *KisNodeManager::NodeTypeAccess::paintDevice(KisNodeSP node)
+{
+    return node->paintDevice().data();
+}
+
+KisPaintDevice *KisNodeManager::NodeTypeAccess::projection(KisNodeSP node)
+{
+    return node->projection().data();
+}
+
+void KisNodeManager::NodeTypeAccess::beginConversion(KisNodeManager *manager, const KUndo2MagicString &actionName)
+{
+    manager->m_d->commandsAdapter.beginMacro(actionName);
+}
+
+bool KisNodeManager::NodeTypeAccess::convertToMask(KisNodeManager *manager,
+                                                   NodeConversionKind kind,
+                                                   KisNodeSP node,
+                                                   KisPaintDevice *copyFrom)
+{
+    const KisPaintDeviceSP copyDevice(copyFrom);
+    switch (kind) {
+    case NodeConversionKind::SelectionMask:
+        return !manager->m_d->maskManager.createSelectionMask(node, copyDevice, true).isNull();
+    case NodeConversionKind::FilterMask:
+        return !manager->m_d->maskManager.createFilterMask(node, copyDevice, false, true).isNull();
+    case NodeConversionKind::TransparencyMask:
+        return !manager->m_d->maskManager.createTransparencyMask(node, copyDevice, true).isNull();
+    case NodeConversionKind::PaintLayer:
+    case NodeConversionKind::FileLayer:
+        break;
     }
+    return false;
+}
 
-    KisNodeSP activeNode = this->activeNode();
-    if (!activeNode) return;
+void KisNodeManager::NodeTypeAccess::endConversion(KisNodeManager *manager)
+{
+    manager->m_d->commandsAdapter.endMacro();
+}
 
-    if (!canModifyLayer(activeNode)) return;
-
-    if (nodeType == "KisPaintLayer") {
-        m_d->layerManager.convertNodeToPaintLayer(activeNode);
-    } else if (nodeType == "KisSelectionMask" ||
-               nodeType == "KisFilterMask" ||
-               nodeType == "KisTransparencyMask") {
-
-        KisPaintDeviceSP copyFrom = activeNode->paintDevice() ?
-                    activeNode->paintDevice() : activeNode->projection();
-
-        m_d->commandsAdapter.beginMacro(kundo2_i18n("Convert to a Selection Mask"));
-
-        bool result = false;
-
-        if (nodeType == "KisSelectionMask") {
-            result = !m_d->maskManager.createSelectionMask(activeNode, copyFrom, true).isNull();
-        } else if (nodeType == "KisFilterMask") {
-            result = !m_d->maskManager.createFilterMask(activeNode, copyFrom, false, true).isNull();
-        } else if (nodeType == "KisTransparencyMask") {
-            result = !m_d->maskManager.createTransparencyMask(activeNode, copyFrom, true).isNull();
-        }
-
-        m_d->commandsAdapter.endMacro();
-
-        if (!result) {
-            m_d->view->blockUntilOperationsFinishedForced(m_d->imageView->image());
-            m_d->commandsAdapter.undoLastCommand();
-        }
-    } else if (nodeType == "KisFileLayer") {
-        m_d->layerManager.convertLayerToFileLayer(activeNode);
-    } else {
-        warnKrita << "Unsupported node conversion type:" << nodeType;
+void KisNodeManager::NodeTypeAccess::convertNode(KisNodeManager *manager, NodeConversionKind kind, KisNodeSP node)
+{
+    switch (kind) {
+    case NodeConversionKind::PaintLayer:
+        manager->m_d->layerManager.convertNodeToPaintLayer(node);
+        break;
+    case NodeConversionKind::FileLayer:
+        manager->m_d->layerManager.convertLayerToFileLayer(node);
+        break;
+    case NodeConversionKind::SelectionMask:
+    case NodeConversionKind::FilterMask:
+    case NodeConversionKind::TransparencyMask:
+        break;
     }
+}
+
+void KisNodeManager::NodeTypeAccess::finishPendingOperationsForced(KisNodeManager *manager)
+{
+    manager->m_d->view->blockUntilOperationsFinishedForced(manager->m_d->imageView->image());
+}
+
+void KisNodeManager::NodeTypeAccess::undoLastConversion(KisNodeManager *manager)
+{
+    manager->m_d->commandsAdapter.undoLastCommand();
+}
+
+void KisNodeManager::NodeTypeAccess::reportUnsupportedNodeType(const QString &nodeType)
+{
+    warnKrita << "Unsupported node conversion type:" << nodeType;
 }
 
 KisPaintDevice *KisNodeManager::ReferenceImageAccess::activeLayerProjection(KisNodeManager *manager)

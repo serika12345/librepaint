@@ -593,6 +593,54 @@ protected:
         static KisLayerSP createPaintLayer(KisNodeManager *manager, const QString &nodeType);
     };
 
+    enum class NodeCreationKind {
+        PaintLayer,
+        GroupLayer,
+        AdjustmentLayer,
+        GeneratorLayer,
+        ShapeLayer,
+        CloneLayer,
+        TransparencyMask,
+        FilterMask,
+        FastColorOverlayMask,
+        ColorizeMask,
+        TransformMask,
+        SelectionMask,
+        FileLayer,
+    };
+
+    enum class NodeConversionKind {
+        PaintLayer,
+        SelectionMask,
+        FilterMask,
+        TransparencyMask,
+        FileLayer,
+    };
+
+    struct KRITAUI_EXPORT NodeTypeAccess {
+        static bool finishPendingOperations(KisNodeManager *manager);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static KisNodeSP rootNode(KisNodeManager *manager);
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static KisNodeSP createNode(KisNodeManager *manager,
+                                    NodeCreationKind kind,
+                                    KisNodeSP activeNode,
+                                    const KisNodeList &selectedNodes,
+                                    KisPaintDevice *copyFrom,
+                                    bool quiet);
+        static bool canModifyLayer(KisNodeManager *manager, KisNodeSP node);
+        static KisPaintDevice *paintDevice(KisNodeSP node);
+        static KisPaintDevice *projection(KisNodeSP node);
+        static void beginConversion(KisNodeManager *manager, const KUndo2MagicString &actionName);
+        static bool
+        convertToMask(KisNodeManager *manager, NodeConversionKind kind, KisNodeSP node, KisPaintDevice *copyFrom);
+        static void endConversion(KisNodeManager *manager);
+        static void convertNode(KisNodeManager *manager, NodeConversionKind kind, KisNodeSP node);
+        static void finishPendingOperationsForced(KisNodeManager *manager);
+        static void undoLastConversion(KisNodeManager *manager);
+        static void reportUnsupportedNodeType(const QString &nodeType);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1
