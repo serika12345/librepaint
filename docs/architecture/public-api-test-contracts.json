@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25068
+    "expectedMissingApis": 25063
   },
   "contracts": [
     {
@@ -13098,6 +13098,68 @@
         "method:KisNodeManager::sigNodeActivated(KisNodeSP node)",
         "method:KisNodeManager::sigUiNeedChangeActiveNode(KisNodeSP node)",
         "method:KisNodeManager::slotNonUiActivatedNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerLifecycleContractTest.cpp",
+      "test": "KisNodeManagerLifecycleContractTest::constructionOwnsStateUntilDestruction",
+      "behavior": "ノード管理器は生成時に表示管理器に対応する私有状態を所有して画像再選択の出力接続を確立し、破棄時に同じ私有状態を1回解放する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeManager",
+        "method:KisNodeManager::KisNodeManager(KisViewManager * view)",
+        "method:KisNodeManager::~KisNodeManager()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerLifecycleContractTest.cpp",
+      "test": "KisNodeManagerLifecycleContractTest::replacingViewRewiresConnectionsInOrder",
+      "behavior": "表示差替えはレイヤー・マスク管理器を更新し、旧表示のノード起動・画像・再選択接続を外してから新表示と命令画像を割り当て、ノード起動・再選択・分離表示の接続と資源提供者通知を確立する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setView(QPointer<KisView> imageView)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerLifecycleContractTest.cpp",
+      "test": "KisNodeManagerLifecycleContractTest::emptyViewRestoresLastActivatedNode",
+      "behavior": "新しい表示に活動ノードがない場合は、ダミー木に保存された最後の活動ノードを再度確認して起動する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setView(QPointer<KisView> imageView)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerLifecycleContractTest.cpp",
+      "test": "KisNodeManagerLifecycleContractTest::detachedCurrentNodeFallsBackToLastRootChild",
+      "behavior": "新しい表示の現在ノードが画像グラフから外れている場合は、画像ルートの最後の子を起動候補にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setView(QPointer<KisView> imageView)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerLifecycleContractTest.cpp",
+      "test": "KisNodeManagerLifecycleContractTest::clearingViewLeavesExternalConnectionsDetached",
+      "behavior": "表示を解除すると旧表示の外部接続を外して命令画像を更新し、新しい表示向け接続と活動通知を作成しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setView(QPointer<KisView> imageView)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerLifecycleContractTest.cpp",
+      "test": "KisNodeManagerLifecycleContractTest::guiUpdateDelegatesToLayerAndMaskManagers",
+      "behavior": "ノード画面状態の更新はレイヤー管理器、マスク管理器の順で各画面状態更新へ委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::updateGUI()"
       ]
     },
     {

@@ -690,6 +690,31 @@ protected:
         static void showNodeName(KisNodeManager *manager, const QString &name);
     };
 
+    struct KRITAUI_EXPORT LifecycleAccess {
+        static void *createPrivateState(KisNodeManager *manager, KisViewManager *view);
+        static void connectReselectionOutput(KisNodeManager *manager);
+        static void destroyPrivateState(void *state);
+        static void setMaskView(KisNodeManager *manager, QPointer<KisView> imageView);
+        static void setLayerView(KisNodeManager *manager, QPointer<KisView> imageView);
+        static bool hasImageView(KisNodeManager *manager);
+        static void disconnectNodeActivation(KisNodeManager *manager);
+        static void disconnectImageSignals(KisNodeManager *manager);
+        static void disconnectReselectionInput(KisNodeManager *manager);
+        static void assignImageView(KisNodeManager *manager, QPointer<KisView> imageView);
+        static void assignCommandImage(KisNodeManager *manager);
+        static void connectNodeActivation(KisNodeManager *manager);
+        static KisNodeSP currentNode(KisNodeManager *manager);
+        static KisNodeSP lastActivatedNode(KisNodeManager *manager);
+        static bool hasGraphListener(KisNodeSP node);
+        static KisNodeSP lastRootChild(KisNodeManager *manager);
+        static void activateNode(KisNodeManager *manager, KisNodeSP node);
+        static void connectReselectionInput(KisNodeManager *manager);
+        static void notifyResourceProvider(KisNodeManager *manager, KisNodeSP node);
+        static void connectIsolation(KisNodeManager *manager);
+        static void updateLayerGui(KisNodeManager *manager);
+        static void updateMaskGui(KisNodeManager *manager);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

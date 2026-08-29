@@ -182,66 +182,127 @@ bool KisNodeManager::Private::activateNodeImpl(KisNodeSP node)
 
 //=====================================================================================
 
-KisNodeManager::KisNodeManager(KisViewManager *view)
-    : m_d(new Private(this, view))
+void *KisNodeManager::LifecycleAccess::createPrivateState(KisNodeManager *manager, KisViewManager *view)
 {
-    m_d->activateNodeConnection.connectOutputSlot(this, &KisNodeManager::slotImageRequestNodeReselection);
+    return new Private(manager, view);
 }
 
-KisNodeManager::~KisNodeManager()
+void KisNodeManager::LifecycleAccess::connectReselectionOutput(KisNodeManager *manager)
 {
-    delete m_d;
+    manager->m_d->activateNodeConnection.connectOutputSlot(manager, &KisNodeManager::slotImageRequestNodeReselection);
 }
 
-void KisNodeManager::setView(QPointer<KisView>imageView)
+void KisNodeManager::LifecycleAccess::destroyPrivateState(void *state)
 {
-    m_d->maskManager.setView(imageView);
-    m_d->layerManager.setView(imageView);
+    delete static_cast<Private *>(state);
+}
 
-    if (m_d->imageView) {
-        KisShapeController *shapeController = dynamic_cast<KisShapeController*>(m_d->imageView->document()->shapeController());
-        Q_ASSERT(shapeController);
-        shapeController->disconnect(SIGNAL(sigActivateNode(KisNodeSP)), this);
-        m_d->imageView->image()->disconnect(this);
-        m_d->imageView->image()->disconnect(&m_d->activateNodeConnection);
-    }
+void KisNodeManager::LifecycleAccess::setMaskView(KisNodeManager *manager, QPointer<KisView> imageView)
+{
+    manager->m_d->maskManager.setView(imageView);
+}
 
-    m_d->imageView = imageView;
-    m_d->commandsAdapter.setImage(imageView ? imageView->image() : KisImageWSP());
+void KisNodeManager::LifecycleAccess::setLayerView(KisNodeManager *manager, QPointer<KisView> imageView)
+{
+    manager->m_d->layerManager.setView(imageView);
+}
 
-    if (m_d->imageView) {
-        KisShapeController *shapeController = dynamic_cast<KisShapeController*>(m_d->imageView->document()->shapeController());
-        Q_ASSERT(shapeController);
-        connect(shapeController, SIGNAL(sigActivateNode(KisNodeSP)), SLOT(slotNonUiActivatedNode(KisNodeSP)));
+bool KisNodeManager::LifecycleAccess::hasImageView(KisNodeManager *manager)
+{
+    return manager->m_d->imageView;
+}
 
-        if (!m_d->imageView->currentNode()) {
-            /**
-             * The view has not been initialized yet, so we should try to initialize it with
-             * the node saved in KisDummiesFacadeBase (or just wait for a signal from it)
-             */
-            if (shapeController->lastActivatedNode() && !m_d->imageView->currentNode()) {
-                slotNonUiActivatedNode(shapeController->lastActivatedNode());
-            } else {
-                // if last activated node is null, most probably, it means that the shape controller
-                // is going to Q_EMIT the activation signal very soon
-            }
-        } else {
-            /**
-             * If the view is initialized, we should check if the layer still belongs
-             * to the actual image, since it could have been removed. And since the
-             * forwarding happens via KisNodeManager, the could have missed this
-             * update.
-             */
-            if (!m_d->imageView->currentNode()->graphListener()) {
-                slotNonUiActivatedNode(m_d->imageView->image()->root()->lastChild());
-            }
-        }
+void KisNodeManager::LifecycleAccess::disconnectNodeActivation(KisNodeManager *manager)
+{
+    KisShapeController *shapeController =
+        dynamic_cast<KisShapeController *>(manager->m_d->imageView->document()->shapeController());
+    Q_ASSERT(shapeController);
+    shapeController->disconnect(SIGNAL(sigActivateNode(KisNodeSP)), manager);
+}
 
-        m_d->activateNodeConnection.connectInputSignal(m_d->imageView->image(), &KisImage::sigRequestNodeReselection);
-        m_d->imageView->resourceProvider()->slotNodeActivated(m_d->imageView->currentNode());
-        connect(m_d->imageView->image(), SIGNAL(sigIsolatedModeChanged()), this, SLOT(handleExternalIsolationChange()));
-    }
+void KisNodeManager::LifecycleAccess::disconnectImageSignals(KisNodeManager *manager)
+{
+    manager->m_d->imageView->image()->disconnect(manager);
+}
 
+void KisNodeManager::LifecycleAccess::disconnectReselectionInput(KisNodeManager *manager)
+{
+    manager->m_d->imageView->image()->disconnect(&manager->m_d->activateNodeConnection);
+}
+
+void KisNodeManager::LifecycleAccess::assignImageView(KisNodeManager *manager, QPointer<KisView> imageView)
+{
+    manager->m_d->imageView = imageView;
+}
+
+void KisNodeManager::LifecycleAccess::assignCommandImage(KisNodeManager *manager)
+{
+    manager->m_d->commandsAdapter.setImage(manager->m_d->imageView ? manager->m_d->imageView->image() : KisImageWSP());
+}
+
+void KisNodeManager::LifecycleAccess::connectNodeActivation(KisNodeManager *manager)
+{
+    KisShapeController *shapeController =
+        dynamic_cast<KisShapeController *>(manager->m_d->imageView->document()->shapeController());
+    Q_ASSERT(shapeController);
+    manager->connect(shapeController, SIGNAL(sigActivateNode(KisNodeSP)), SLOT(slotNonUiActivatedNode(KisNodeSP)));
+}
+
+KisNodeSP KisNodeManager::LifecycleAccess::currentNode(KisNodeManager *manager)
+{
+    return manager->m_d->imageView->currentNode();
+}
+
+KisNodeSP KisNodeManager::LifecycleAccess::lastActivatedNode(KisNodeManager *manager)
+{
+    KisShapeController *shapeController =
+        dynamic_cast<KisShapeController *>(manager->m_d->imageView->document()->shapeController());
+    Q_ASSERT(shapeController);
+    return shapeController->lastActivatedNode();
+}
+
+bool KisNodeManager::LifecycleAccess::hasGraphListener(KisNodeSP node)
+{
+    return node->graphListener();
+}
+
+KisNodeSP KisNodeManager::LifecycleAccess::lastRootChild(KisNodeManager *manager)
+{
+    return manager->m_d->imageView->image()->root()->lastChild();
+}
+
+void KisNodeManager::LifecycleAccess::activateNode(KisNodeManager *manager, KisNodeSP node)
+{
+    manager->slotNonUiActivatedNode(node);
+}
+
+void KisNodeManager::LifecycleAccess::connectReselectionInput(KisNodeManager *manager)
+{
+    manager->m_d->activateNodeConnection.connectInputSignal(manager->m_d->imageView->image(),
+                                                            &KisImage::sigRequestNodeReselection);
+}
+
+void KisNodeManager::LifecycleAccess::notifyResourceProvider(KisNodeManager *manager, KisNodeSP node)
+{
+    manager->m_d->imageView->resourceProvider()->slotNodeActivated(node);
+}
+
+void KisNodeManager::LifecycleAccess::connectIsolation(KisNodeManager *manager)
+{
+    manager->connect(manager->m_d->imageView->image(),
+                     SIGNAL(sigIsolatedModeChanged()),
+                     manager,
+                     SLOT(handleExternalIsolationChange()));
+}
+
+void KisNodeManager::LifecycleAccess::updateLayerGui(KisNodeManager *manager)
+{
+    manager->m_d->layerManager.updateGUI();
+}
+
+void KisNodeManager::LifecycleAccess::updateMaskGui(KisNodeManager *manager)
+{
+    manager->m_d->maskManager.updateGUI();
 }
 
 #define NEW_LAYER_ACTION(id, layerType)                                 \
@@ -436,13 +497,6 @@ void KisNodeManager::setup(KisKActionCollection * actionCollection, KisActionMan
     // HINT: we can save even when the nodes are not editable
     action  = actionManager->createAction("split_alpha_save_merged");
     connect(action, SIGNAL(triggered()), this, SLOT(slotSplitAlphaSaveMerged()));
-}
-
-void KisNodeManager::updateGUI()
-{
-    // enable/disable all relevant actions
-    m_d->layerManager.updateGUI();
-    m_d->maskManager.updateGUI();
 }
 
 KisNodeSP KisNodeManager::ActiveAccess::activeNode(KisNodeManager *manager)
