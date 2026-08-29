@@ -59,6 +59,21 @@ set_target_properties(kritaflakeshapebackgroundobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeabstractcanvasresourceinterfaceobjects OBJECT
+    KoAbstractCanvasResourceInterface.cpp
+)
+target_compile_definitions(kritaflakeabstractcanvasresourceinterfaceobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeabstractcanvasresourceinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeabstractcanvasresourceinterfaceobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakeabstractcanvasresourceinterfaceobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakezoomstateobjects OBJECT
     KoZoomState.cpp
 )
@@ -375,7 +390,6 @@ set(kritaflake_SRCS
     KoResourceManager_p.cpp
     KoDerivedResourceConverter.cpp
     KoActiveCanvasResourceDependency.cpp
-    KoAbstractCanvasResourceInterface.cpp
     KoResourceUpdateMediator.cpp
     KoCanvasResourceProvider.cpp
     KoDocumentResourceManager.cpp
@@ -570,6 +584,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakeshapeanchorobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
+    $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakezoomstateobjects>
     $<TARGET_OBJECTS:kritaflakeviewtransformstillpointobjects>
     $<TARGET_OBJECTS:kritaflakeviewconverterobjects>
