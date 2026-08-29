@@ -15,9 +15,7 @@
 #include <boost/accumulators/statistics/min.hpp>
 #include <boost/accumulators/statistics/max.hpp>
 
-#include <array>
 #include <QVector2D>
-#include <QVector3D>
 
 #include <QtMath>
 
@@ -783,132 +781,6 @@ inline Eigen::Matrix3d fromQTransformStraight(const QTransform &t)
 
     return m;
 }
-
-/********************************************************/
-/*             DecomposedMatrix                         */
-/********************************************************/
-
-DecomposedMatrix::DecomposedMatrix()
-{
-}
-
-DecomposedMatrix::DecomposedMatrix(const QTransform &t0)
-{
-    QTransform t(t0);
-
-    QTransform projMatrix;
-
-    if (t.m33() == 0.0 || t0.determinant() == 0.0) {
-        qWarning() << "Cannot decompose matrix!" << t;
-        valid = false;
-        return;
-    }
-
-    if (t.type() == QTransform::TxProject) {
-        QTransform affineTransform(
-            t.m11(), t.m12(), 0,
-            t.m21(), t.m22(), 0,
-            t.m31(), t.m32(), 1
-        );
-        projMatrix = affineTransform.inverted() * t;
-
-        t = affineTransform;
-        proj[0] = projMatrix.m13();
-        proj[1] = projMatrix.m23();
-        proj[2] = projMatrix.m33();
-    }
-
-    // can't use QVector3D, because they have too little accuracy for ellipse in perspective calculations
-    std::array<Eigen::Vector3d, 3> rows;
-
-
-    //  << t.m11() << t.m12() << t.m13())
-    rows[0] = Eigen::Vector3d(t.m11(), t.m12(), t.m13());
-    rows[1] = Eigen::Vector3d(t.m21(), t.m22(), t.m23());
-    rows[2] = Eigen::Vector3d(t.m31(), t.m32(), t.m33());
-
-    if (!qFuzzyCompare(t.m33(), 1.0)) {
-        const qreal invM33 = 1.0 / t.m33();
-
-        for (auto &row : rows) {
-            row *= invM33;
-        }
-    }
-
-    dx = rows[2].x();
-    dy = rows[2].y();
-
-    rows[2] = Eigen::Vector3d(0,0,1);
-
-
-    scaleX = rows[0].norm();
-    rows[0] *= 1.0 / scaleX;
-
-    shearXY = rows[0].dot(rows[1]);
-    rows[1] = rows[1] - shearXY * rows[0];
-
-    scaleY = rows[1].norm();
-    rows[1] *= 1.0 / scaleY;
-    shearXY *= 1.0 / scaleY;
-
-    // If determinant is negative, one axis was flipped.
-    qreal determinant = rows[0].x() * rows[1].y() - rows[0].y() * rows[1].x();
-    if (determinant < 0) {
-        // Flip axis with minimum unit vector dot product.
-        if (rows[0].x() < rows[1].y()) {
-            scaleX = -scaleX;
-            rows[0] = -rows[0];
-        } else {
-            scaleY = -scaleY;
-            rows[1] = -rows[1];
-        }
-        shearXY = - shearXY;
-    }
-
-    angle = kisRadiansToDegrees(std::atan2(rows[0].y(), rows[0].x()));
-
-    if (angle != 0.0) {
-        // Rotate(-angle) = [cos(angle), sin(angle), -sin(angle), cos(angle)]
-        //                = [row0x, -row0y, row0y, row0x]
-        // Thanks to the normalization above.
-
-        qreal sn = -rows[0].y();
-        qreal cs = rows[0].x();
-        qreal m11 = rows[0].x();
-        qreal m12 = rows[0].y();
-        qreal m21 = rows[1].x();
-        qreal m22 = rows[1].y();
-        rows[0][0] = (cs * m11 + sn * m21);
-        rows[0][1] = (cs * m12 + sn * m22);
-        rows[1][0] = (-sn * m11 + cs * m21);
-        rows[1][1] = (-sn * m12 + cs * m22);
-    }
-
-    QTransform leftOver(
-                rows[0].x(), rows[0].y(), rows[0].z(),
-            rows[1].x(), rows[1].y(), rows[1].z(),
-            rows[2].x(), rows[2].y(), rows[2].z());
-
-    if (/*true || */!fuzzyMatrixCompare(leftOver, QTransform(), 1e-4)) {
-        // what's wrong?
-        ENTER_FUNCTION() << "FAILING THE ASSERT BELOW!";
-        ENTER_FUNCTION() << ppVar(leftOver);
-        ENTER_FUNCTION() << "matrix to decompose was: " << ppVar(t0);
-        ENTER_FUNCTION() << ppVar(t.m33()) << ppVar(t0.determinant());
-        Eigen::Matrix3d mat1 = fromQTransformStraight(QTransform());
-        Eigen::Matrix3d mat2 = fromQTransformStraight(leftOver);
-        Eigen::Matrix3d mat3 = mat2 - mat1;
-        ENTER_FUNCTION() << mat3(0, 0) << mat3(0, 1) << mat3(0, 2);
-        ENTER_FUNCTION() << mat3(1, 0) << mat3(1, 1) << mat3(1, 2);
-        ENTER_FUNCTION() << mat3(2, 0) << mat3(2, 1) << mat3(2, 2);
-        //ENTER_FUNCTION() << ppVar(mat1 - mat2);
-    }
-
-
-    KIS_SAFE_ASSERT_RECOVER_NOOP(fuzzyMatrixCompare(leftOver, QTransform(), 1e-4));
-    KIS_ASSERT(fuzzyMatrixCompare(leftOver, QTransform(), 1e-4));
-}
-
 
 std::pair<QPointF, QTransform> transformEllipse(const QPointF &axes, const QTransform &fullLocalToGlobal)
 {

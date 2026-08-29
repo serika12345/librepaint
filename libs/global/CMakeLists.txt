@@ -536,6 +536,49 @@ set_target_properties(kritaglobalbeziercurvelengthobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobaldecomposedmatrixobjects OBJECT
+    KisDecomposedMatrix.cpp
+)
+target_compile_definitions(kritaglobaldecomposedmatrixobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaldecomposedmatrixobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaldecomposedmatrixobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+    PRIVATE
+        Eigen3::Eigen
+)
+set_target_properties(kritaglobaldecomposedmatrixobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobaltransformcomponentsobjects OBJECT
+    KisTransformComponents.cpp
+)
+target_compile_definitions(kritaglobaltransformcomponentsobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaltransformcomponentsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaltransformcomponentsobjects
+    PUBLIC
+        kritaglobaldecomposedmatrixobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobaltransformcomponentsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_algebra_2d.cpp
@@ -547,7 +590,6 @@ set(kritaglobal_LIB_SRCS
     KisBezierMesh.cpp
     KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
-    KisTransformComponents.cpp
 )
 
 if (ANDROID)
@@ -594,6 +636,8 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalidobjects>
     $<TARGET_OBJECTS:kritaglobalunitobjects>
     $<TARGET_OBJECTS:kritaglobalbeziercurvelengthobjects>
+    $<TARGET_OBJECTS:kritaglobaldecomposedmatrixobjects>
+    $<TARGET_OBJECTS:kritaglobaltransformcomponentsobjects>
 )
 
 target_sources(kritaglobal
