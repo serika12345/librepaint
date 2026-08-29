@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 01:42 JST
+- 更新日時: 2026-08-30 01:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,7 +26,7 @@
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-svg-mesh-patch`であり、
   `libs/flake/svg/SvgMeshPatch.{h,cpp}`、Flake製品・試験CMake、新規`SvgMeshPatchContractTest.cpp`を所有する。既存試験の
   564工程・1,159入力から実装を専用生成物へ分離し、辺・停止点・経路・境界・変換・分割の全41 APIを対象とする。
-- 実装担当`levels-slider`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`levels-slider`は`integrated`、担当先端は`5c093471a1`、統合コミットは`febb404c40`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-levels-slider`であり、
   `libs/widgets/KisLevelsSlider.{h,cpp}`、Widgets製品・試験CMake、新規`KisLevelsSliderContractTest.cpp`を所有する。
   製品の720工程・1,469入力から実装を専用生成物へ分離し、基底・入力・ガンマ・出力・しきい値の値、制約、通知、寿命の
@@ -9060,9 +9060,30 @@
   分類した。分割結果のraw pointerは呼出側所有である。色不足、不正な辺列挙、5辺目、範囲外パラメーター、不正経路文字列、
   コピー後の内部追記位置、Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b レベルスライダーの全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KisLevelsSlider.h`の全44 APIを、新規`libs/widgets/tests/KisLevelsSliderContractTest.cpp`の8試験へ
+  対応付けた。基底、入力、ガンマ付き入力、出力、しきい値の値、位置制約、再設定、変更通知、親所有、仮想破棄を固定した。
+- 開始ファイル`libs/widgets/KisLevelsSlider.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の
+  `kritawidgets_LIB_SRCS`から同ファイル内の新規`kritawidgetslevelssliderobjects`へ移し、製品`kritawidgets`は生成物を
+  1回だけ再集約する。開始ヘッダー`libs/widgets/KisLevelsSlider.h`は同じパスと公開面を維持する。新規限定試験は専用生成物、
+  既存`kritaglobalpaintingtweaksobjects`、Qt Core・Gui・Widgets・Testだけへ接続し、製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗し、登録後の初回リンクは`KisPaintingTweaks::blendColors()`の未定義記号を
+  診断した。既存の小生成物を直接接続して依存を完結させた。macOSの限定試験は8工程・17入力、実装生成物は4工程・10入力で、
+  従来製品直接所有時の649工程・1,327入力から縮小した。最近傍`KoTitledTabWidgetContractTest`は7工程・14入力、製品計画は
+  722工程・1,473入力であり、製品リンク行に実装が1回だけ現れる。対象CTest単発と20回反復、最近傍契約、製品共有ライブラリー
+  非接続、パッケージ境界検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み6,233件、未対応23,756件になった。
+  逆転範囲の一括設定が黒点0.999と白点1.0へ偏ること、端点変更後に中央ハンドルの実位置ではなく端点位置を通知することを
+  既知不具合として分類した。不正なハンドル索引、非有限値、小寸法配置、保護された入力イベント、Qt 6で非推奨の
+  `QMouseEvent::x()`、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第22並列便はXML値変換39 API、メタデータ値41 API、SVGメッシュパッチ41 API、レベルスライダー44 APIの合計165 APIを
+  固定した。各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
+
 ## 次の操作
 
-第22並列便の`levels-slider`引渡しを統合順に取り込み、限定検証と中央台帳更新を行う。
+公開API未対応報告を再生成し、第23並列便について互いに独立した4候補の直接依存と限定構築計画を監査する。巨大な製品閉包を
+必要とする候補は実装前に専用生成物へ分離し、全APIの観測可能な挙動を小さい契約対象へ固定する。
 
 ## R1-G5完了根拠
 

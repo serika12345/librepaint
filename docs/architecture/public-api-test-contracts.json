@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23800
+    "expectedMissingApis": 23756
   },
   "contracts": [
     {
@@ -18118,6 +18118,124 @@
       "classification": "known_defect",
       "apis": [
         "method:SvgMeshPatch::SvgMeshPatch(const SvgMeshPatch & other)"
+      ]
+    },
+    {
+      "target": "KisLevelsSliderContractTest",
+      "source": "libs/widgets/tests/KisLevelsSliderContractTest.cpp",
+      "test": "KisLevelsSliderContractTest::parentOwnsAllSliderTypesAndDestructionIsVirtual",
+      "behavior": "基底、入力、ガンマ、しきい値の各スライダーはQObject親に所有され、親の破棄で消滅し、基底の仮想デストラクターは派生型の破棄を実行する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisInputLevelsSlider",
+        "class:KisInputLevelsSliderWithGamma",
+        "class:KisLevelsSlider",
+        "class:KisThresholdSlider",
+        "method:KisInputLevelsSlider::KisInputLevelsSlider(QWidget * parent=nullptr)",
+        "method:KisInputLevelsSlider::~KisInputLevelsSlider()",
+        "method:KisInputLevelsSliderWithGamma::KisInputLevelsSliderWithGamma(QWidget * parent=nullptr)",
+        "method:KisInputLevelsSliderWithGamma::~KisInputLevelsSliderWithGamma()",
+        "method:KisLevelsSlider::KisLevelsSlider(QWidget * parent)",
+        "method:KisLevelsSlider::~KisLevelsSlider()",
+        "method:KisThresholdSlider::KisThresholdSlider(QWidget * parent=nullptr)",
+        "method:KisThresholdSlider::~KisThresholdSlider()"
+      ]
+    },
+    {
+      "target": "KisLevelsSliderContractTest",
+      "source": "libs/widgets/tests/KisLevelsSliderContractTest.cpp",
+      "test": "KisLevelsSliderContractTest::baseMaintainsGeometryValuesAndNotifications",
+      "behavior": "基底スライダーは寸法と勾配領域、ハンドルの位置・色を返し、位置制約と同値通知抑止を適用して変更を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLevelsSlider::gradientRect() const",
+        "method:KisLevelsSlider::handleColor(int handleIndex) const",
+        "method:KisLevelsSlider::handleColorChanged(int handleIndex,const QColor & color)",
+        "method:KisLevelsSlider::handlePosition(int handleIndex) const",
+        "method:KisLevelsSlider::handlePositionChanged(int handleIndex,qreal position)",
+        "method:KisLevelsSlider::minimumSizeHint() const",
+        "method:KisLevelsSlider::setHandleColor(int handleIndex,const QColor & newColor)",
+        "method:KisLevelsSlider::setHandlePosition(int handleIndex,qreal newPosition)",
+        "method:KisLevelsSlider::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisLevelsSliderContractTest",
+      "source": "libs/widgets/tests/KisLevelsSliderContractTest.cpp",
+      "test": "KisLevelsSliderContractTest::inputLevelsMaintainValuesConstraintsAndNotifications",
+      "behavior": "入力レベルは黒点と白点の既定値、色、最小間隔制約、個別設定と一括再設定、値別通知と同値通知抑止を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputLevelsSlider::blackPoint() const",
+        "method:KisInputLevelsSlider::blackPointChanged(qreal newBlackPoint)",
+        "method:KisInputLevelsSlider::reset(qreal newBlackPoint,qreal newWhitePoint)",
+        "method:KisInputLevelsSlider::setBlackPoint(qreal newBlackPoint)",
+        "method:KisInputLevelsSlider::setWhitePoint(qreal newWhitePoint)",
+        "method:KisInputLevelsSlider::whitePoint() const",
+        "method:KisInputLevelsSlider::whitePointChanged(qreal newWhitePoint)"
+      ]
+    },
+    {
+      "target": "KisLevelsSliderContractTest",
+      "source": "libs/widgets/tests/KisLevelsSliderContractTest.cpp",
+      "test": "KisLevelsSliderContractTest::inputResetPreservesReversedRangeDefect",
+      "behavior": "入力レベルへ逆転した範囲を一括設定すると黒点が0.999、白点が1.0へ偏る現行不具合を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisInputLevelsSlider::reset(qreal newBlackPoint,qreal newWhitePoint)"
+      ]
+    },
+    {
+      "target": "KisLevelsSliderContractTest",
+      "source": "libs/widgets/tests/KisLevelsSliderContractTest.cpp",
+      "test": "KisLevelsSliderContractTest::gammaMaintainsValuePositionAndResets",
+      "behavior": "ガンマ付き入力レベルはガンマと中央ハンドル位置を相互変換し、範囲再設定でガンマを保持し、三値再設定と0.1から10.0の制約を適用して変更を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisInputLevelsSliderWithGamma::gamma() const",
+        "method:KisInputLevelsSliderWithGamma::gammaChanged(qreal newGamma)",
+        "method:KisInputLevelsSliderWithGamma::reset(qreal newBlackPoint,qreal newWhitePoint)",
+        "method:KisInputLevelsSliderWithGamma::reset(qreal newBlackPoint,qreal newWhitePoint,qreal newGamma)",
+        "method:KisInputLevelsSliderWithGamma::setGamma(qreal newGamma)",
+        "method:KisInputLevelsSliderWithGamma::setHandlePosition(int handleIndex,qreal newPosition)"
+      ]
+    },
+    {
+      "target": "KisLevelsSliderContractTest",
+      "source": "libs/widgets/tests/KisLevelsSliderContractTest.cpp",
+      "test": "KisLevelsSliderContractTest::gammaEndpointNotificationPreservesReportedPositionDefect",
+      "behavior": "端点移動で中央ガンマ位置を再計算した際、中央ハンドルの実位置0.6ではなく端点位置0.2を通知する現行不具合を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisInputLevelsSliderWithGamma::setHandlePosition(int handleIndex,qreal newPosition)"
+      ]
+    },
+    {
+      "target": "KisLevelsSliderContractTest",
+      "source": "libs/widgets/tests/KisLevelsSliderContractTest.cpp",
+      "test": "KisLevelsSliderContractTest::outputLevelsAllowCrossedPositions",
+      "behavior": "出力レベルは親所有と仮想破棄を備え、黒点と白点の交差を許しながら範囲外の個別位置を0から1へ制約する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOutputLevelsSlider",
+        "method:KisOutputLevelsSlider::KisOutputLevelsSlider(QWidget * parent=nullptr)",
+        "method:KisOutputLevelsSlider::~KisOutputLevelsSlider()"
+      ]
+    },
+    {
+      "target": "KisLevelsSliderContractTest",
+      "source": "libs/widgets/tests/KisLevelsSliderContractTest.cpp",
+      "test": "KisLevelsSliderContractTest::thresholdMaintainsUnifiedValueAndNotifications",
+      "behavior": "しきい値スライダーは黒点、白点、基底ハンドル操作を一つのしきい値へ統合し、範囲制約、再設定、変更通知と同値通知抑止を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisThresholdSlider::reset(qreal newBlackPoint,qreal newWhitePoint)",
+        "method:KisThresholdSlider::setBlackPoint(qreal newBlackPoint)",
+        "method:KisThresholdSlider::setHandlePosition(int handleIndex,qreal newPosition)",
+        "method:KisThresholdSlider::setThreshold(qreal newGamma)",
+        "method:KisThresholdSlider::setWhitePoint(qreal newWhitePoint)",
+        "method:KisThresholdSlider::threshold() const",
+        "method:KisThresholdSlider::thresholdChanged(qreal newThreshold)"
       ]
     }
   ]
