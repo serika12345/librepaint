@@ -409,6 +409,16 @@ target_include_directories(KisImageTypesContractTest PRIVATE
 target_compile_definitions(KisImageTypesContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisWrappedRectContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisWrappedRectContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+kis_add_test(
     KisPaintDeviceWriterContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
