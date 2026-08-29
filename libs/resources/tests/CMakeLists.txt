@@ -276,6 +276,36 @@ target_include_directories(KoResourceContractTest PRIVATE
 target_compile_definitions(KoResourceContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KisStoragePluginContractTest.cpp
+    LINK_LIBRARIES
+        kritastoragepluginobjects
+        kritaresourceloadvalueobjects
+        kritaembeddedresourcevalueobjects
+        kritaresourcestypesobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+)
+target_sources(KisStoragePluginContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../KisResourceLoaderRegistry.h
+)
+target_include_directories(KisStoragePluginContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/koplugin
+    ${CMAKE_BINARY_DIR}/libs/koplugin
+)
+target_compile_definitions(KisStoragePluginContractTest PRIVATE
+    kritaplugin_EXPORTS
+    kritaresources_EXPORTS
+)
+
+kis_add_test(
     KisResourcesInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritaresourcesinterfaceobjects
