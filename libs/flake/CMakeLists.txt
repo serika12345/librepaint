@@ -427,6 +427,36 @@ set_target_properties(kritaflakeshaperenamecommandobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakeshapekeepaspectratiocommandobjects OBJECT
+    commands/KoShapeKeepAspectRatioCommand.cpp
+)
+target_compile_definitions(kritaflakeshapekeepaspectratiocommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshapekeepaspectratiocommandobjects PRIVATE KRITAFLAKE_SHAPE_KEEP_ASPECT_RATIO_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshapekeepaspectratiocommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshapekeepaspectratiocommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapekeepaspectratiocommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -539,7 +569,6 @@ set(kritaflake_SRCS
     commands/KoShapeStrokeCommand.cpp
     commands/KoShapeUngroupCommand.cpp
     commands/KoShapeReorderCommand.cpp
-    commands/KoShapeKeepAspectRatioCommand.cpp
     commands/KoPathBaseCommand.cpp
     commands/KoPathPointMoveCommand.cpp
     commands/KoPathControlPointMoveCommand.cpp
@@ -676,6 +705,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakewritingsystemutilsobjects>
     $<TARGET_OBJECTS:kritaflakepathfillrulecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshaperenamecommandobjects>
+    $<TARGET_OBJECTS:kritaflakeshapekeepaspectratiocommandobjects>
 
 )
 
