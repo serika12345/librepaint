@@ -147,24 +147,20 @@ QModelIndex KisNodeModel::IndexMappingAccess::indexFromDummy(const KisNodeModel 
     return model->m_d->indexConverter->indexFromDummy(dummy);
 }
 
-bool KisNodeModel::belongsToIsolatedGroup(KisImageSP image, KisNodeSP node, KisDummiesFacadeBase *dummiesFacade)
+KisNodeSP KisNodeModel::IsolationMembershipAccess::isolationRoot(const KisImageSP &image)
 {
-    KisNodeSP isolatedRoot = image->isolationRootNode();
-    if (!isolatedRoot) return true;
+    return image->isolationRootNode();
+}
 
-    KisNodeDummy *isolatedRootDummy =
-        dummiesFacade->dummyForNode(isolatedRoot);
-    KisNodeDummy *dummy =
-        dummiesFacade->dummyForNode(node);
+KisNodeDummy *KisNodeModel::IsolationMembershipAccess::dummyForNode(KisDummiesFacadeBase *dummiesFacade,
+                                                                   const KisNodeSP &node)
+{
+    return dummiesFacade->dummyForNode(node);
+}
 
-    while (dummy) {
-        if (dummy == isolatedRootDummy) {
-            return true;
-        }
-        dummy = dummy->parent();
-    }
-
-    return false;
+KisNodeDummy *KisNodeModel::IsolationMembershipAccess::parentDummy(KisNodeDummy *dummy)
+{
+    return dummy->parent();
 }
 
 bool KisNodeModel::belongsToIsolatedGroup(KisNodeSP node) const

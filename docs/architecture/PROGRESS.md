@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 12:35 JST
+- 更新日時: 2026-08-29 12:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7478,11 +7478,28 @@
   公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,956件、未対応25,033件に
   なった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノードモデル分離所属 public API契約と親列判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_model.cpp`にあった分離表示の静的所属判定を、新規
+  `libs/ui/nodes/KisNodeModelIsolationMembership.cpp`へ移した。画像の分離ルート、ダミー対応、ダミー親への具象アクセスは
+  移動元の保護境界に残し、共有所有値を定数参照で受ける。製品`kritaapplicationui`は新規
+  `kritauinodemodelisolationmembershipobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_model.h`の1 APIを、新規`libs/ui/tests/KisNodeModelIsolationMembershipContractTest.cpp`の4試験へ
+  対応付けた。分離ルートなし、分離ルート自身、子孫、別部分木の所属結果と親方向の探索を固定した。実装接続前のリンクは
+  対象メソッドだけを未解決記号として診断した。
+- 変更前の既存`kis_node_model_test`は1,833工程・3,665入力、直近の索引変換契約は5工程・11入力だった。製品未接続の
+  赤試験は4工程・8入力、分離所属対象は1工程・3入力、緑化後の試験は5工程・11入力に収めた。製品
+  `kritaapplicationui`閉包は1,828工程・3,656入力から1,829工程・3,658入力、既存試験は1,834工程・3,667入力に
+  なった。
+- 分離所属対象と元の`kis_node_model.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,957件、未対応25,032件に
+  なった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/ui/nodes/kis_node_model.h`の静的`belongsToIsolatedGroup()`を次の小単位とする。現在の索引変換契約の変更なし計画、
-直接依存、空構築閉包を基準に、分離ルートとダミー親子列の判断を専用生成物へ分ける。分離ルートがない場合、対象ノードが
-分離ルート自身または子孫の場合、別部分木の場合を固定する。
+`libs/ui/nodes/kis_node_model.h`の`index()`、`rowCount()`、`columnCount()`、`parent()`、`sibling()`を次の小単位とする。
+現在の分離所属契約と既存モデル試験の変更なし計画、直接依存、空構築閉包を比較し、Qtモデル木の索引構成判断を専用生成物へ
+分ける。ダミー木欠落、複製列、親子変換、同じ項目内の兄弟列、別行への移動を固定する。
 
 ## R1-G5完了根拠
 

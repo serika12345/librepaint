@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25033
+    "expectedMissingApis": 25032
   },
   "contracts": [
     {
@@ -13372,6 +13372,46 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::indexFromNode(KisNodeSP node) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelIsolationMembershipContractTest",
+      "source": "libs/ui/tests/KisNodeModelIsolationMembershipContractTest.cpp",
+      "test": "KisNodeModelIsolationMembershipContractTest::noIsolationRootIncludesEveryNode",
+      "behavior": "画像に分離ルートがない場合は、ダミー木を調べずすべてのノードを所属対象とする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::belongsToIsolatedGroup(KisImageSP image,KisNodeSP node,KisDummiesFacadeBase * dummiesFacade)"
+      ]
+    },
+    {
+      "target": "KisNodeModelIsolationMembershipContractTest",
+      "source": "libs/ui/tests/KisNodeModelIsolationMembershipContractTest.cpp",
+      "test": "KisNodeModelIsolationMembershipContractTest::isolationRootIncludesItself",
+      "behavior": "分離ルートのノード自身は分離表示の所属対象とする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::belongsToIsolatedGroup(KisImageSP image,KisNodeSP node,KisDummiesFacadeBase * dummiesFacade)"
+      ]
+    },
+    {
+      "target": "KisNodeModelIsolationMembershipContractTest",
+      "source": "libs/ui/tests/KisNodeModelIsolationMembershipContractTest.cpp",
+      "test": "KisNodeModelIsolationMembershipContractTest::isolationRootIncludesDescendants",
+      "behavior": "対象ノードのダミー親列に分離ルートのダミーがある場合は分離表示の所属対象とする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::belongsToIsolatedGroup(KisImageSP image,KisNodeSP node,KisDummiesFacadeBase * dummiesFacade)"
+      ]
+    },
+    {
+      "target": "KisNodeModelIsolationMembershipContractTest",
+      "source": "libs/ui/tests/KisNodeModelIsolationMembershipContractTest.cpp",
+      "test": "KisNodeModelIsolationMembershipContractTest::isolationRootExcludesOtherBranches",
+      "behavior": "対象ノードのダミー親列が分離ルートのダミーへ到達しない場合は分離表示から除外する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::belongsToIsolatedGroup(KisImageSP image,KisNodeSP node,KisDummiesFacadeBase * dummiesFacade)"
       ]
     }
   ]

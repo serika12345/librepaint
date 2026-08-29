@@ -184,6 +184,12 @@ protected Q_SLOTS:
     void slotLayerThumbnailUpdated(KisNodeSP node);
 
 protected:
+    struct KRITAUI_EXPORT IsolationMembershipAccess {
+        static KisNodeSP isolationRoot(const KisImageSP &image);
+        static KisNodeDummy *dummyForNode(KisDummiesFacadeBase *dummiesFacade, const KisNodeSP &node);
+        static KisNodeDummy *parentDummy(KisNodeDummy *dummy);
+    };
+
     struct KRITAUI_EXPORT IndexMappingAccess {
         static KisNodeDummy *dummyFromIndex(const KisNodeModel *model, const QModelIndex &index);
         static KisNodeSP nodeForDummy(KisNodeDummy *dummy);
