@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 22:29 JST
+- 更新日時: 2026-08-29 22:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,15 +19,15 @@
   `libs/pigment/KoColorConversions.{h,cpp}`、既存`libs/pigment/tests/TestColorConversion.{h,cpp}`、Pigment製品・試験CMakeを
   所有する。266工程・558入力の翻訳単位を専用生成物へ分け、整数・浮動小数HSV/HSL、HSI/HSY/HCI/HCY、YUV、Lab/LCH、
   XYZ/xyY、CMY/CMYKの全27 APIを`efa2ca096e`で固定した。
-- 実装担当`bezier-patch`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`bezier-patch`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-bezier-patch`であり、
   `libs/global/KisBezierPatch.{h,cpp}`、Global製品・試験CMake、新規限定試験を所有する。23工程・44入力の翻訳単位を
-  専用生成物へ分け、制御点規約、境界、座標変換配送、通常・SVG2格子採取、診断表示の全23 APIを対象とする。
+  専用生成物へ分け、制御点規約、境界、座標変換配送、通常・SVG2格子採取、診断表示の全23 APIを`be366bc64c`で固定した。
 - 実装担当`snap-config`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-snap-config`であり、
   `libs/application/kis_snap_config.{h,cpp}`、Application製品・試験CMake、新規限定試験を所有する。従来試験の
   1,123工程・2,262入力を縮小し、8値の既定・変更・読込み・保存委譲・寿命の全21 APIを対象とする。
-- 実装担当`sensor-data`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`sensor-data`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-sensor-data`であり、
   `plugins/paintops/libpaintop/KisSensorData.{h,cpp}`、PaintOp製品・試験CMake、新規限定試験を所有する。描画実行生成物に
   混在する1翻訳単位を専用生成物へ分け、基底・長さ・描画角度センサーの既定、範囲、初期化、XML、同値性、寿命の全30 APIを対象とする。
@@ -8742,9 +8742,25 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,735件、未対応24,254件になった。null出力、範囲外・非有限成分、
   XYZの成分和0、xyYのy=0は実行していない。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b Bezier曲面の全public API契約と構築所有分離で完了した作業
+
+- `libs/global/KisBezierPatch.h`の全23 APIを、新規`libs/global/tests/KisBezierPatchContractTest.cpp`の8試験へ対応付けた。
+  制御点の公開配置、元・変換先境界、座標変換への配送、通常・SVG2格子の線形・曲線標本、診断表示を固定した。
+  要求間隔と同じ長さの範囲から端点を含む3点ではなく2点だけを生成する格子点数不足は、両算法の既知不具合として記録した。
+- 開始ファイル`libs/global/KisBezierPatch.cpp`の構築所有を`libs/global/CMakeLists.txt`の`kritaglobal_LIB_SRCS`から
+  同ファイル内の新規`kritaglobalbezierpatchobjects`へ移し、製品`kritaglobal`が生成物を1回だけ再集約する。
+  新規試験は専用生成物、既存の代数方向・Bezier曲線長生成物、Qt Gui・Test、Boostだけへ接続する。ファイル位置、公開ヘッダー、
+  製品ABI、曲面処理は維持した。
+- 実装未接続の初回限定リンクは境界、座標変換、両格子採取、診断表示の未定義記号で失敗した。macOSの専用生成物は
+  1工程・3入力、限定試験は7工程・15入力であり、従来翻訳単位の23工程・44入力から縮小した。製品`kritaglobal`は
+  68工程・136入力を維持する。主作業ツリーで対象CTestの単発実行と20回反復、最近傍の
+  `KisBezierPatchParamToSourceSamplerContractTest`、パッケージ境界検査に成功した。公開面は1,549ヘッダー、29,989 API、
+  対応済み5,758件、未対応24,231件になった。実座標変換算法、ゼロ・負の格子間隔、退化曲面、非有限制御点は実行していない。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第18並列便の`bezier-patch`引渡し`b17b6a280e`を統合し、限定対象、20回反復、軽量隣接試験、公開API契約を主作業ツリーで再検証する。
+第18並列便の`snap-config`引渡し`fd56170030`を統合し、限定対象、20回反復、軽量隣接試験、公開API契約を主作業ツリーで再検証する。
 
 ## R1-G5完了根拠
 

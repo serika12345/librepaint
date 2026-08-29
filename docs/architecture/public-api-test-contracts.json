@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24254
+    "expectedMissingApis": 24231
   },
   "contracts": [
     {
@@ -16539,6 +16539,105 @@
       "apis": [
         "function:CMYKToCMY(qreal * c,qreal * m,qreal * y,qreal * k)",
         "function:CMYToCMYK(qreal * c,qreal * m,qreal * y,qreal * k)"
+      ]
+    },
+    {
+      "target": "KisBezierPatchContractTest",
+      "source": "libs/global/tests/KisBezierPatchContractTest.cpp",
+      "test": "KisBezierPatchContractTest::valueInitializationAndControlPointIndicesPreserveLayout",
+      "behavior": "値初期化したBezierパッチは空の元矩形と12個の原点を保持し、制御点列挙値はTLからBR_VCまで公開配列の位置に対応する0から11の順序を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBezierPatch",
+        "enum:KisBezierPatch::ControlPointType",
+        "enumerator:KisBezierPatch::ControlPointType::BL",
+        "enumerator:KisBezierPatch::ControlPointType::BL_HC",
+        "enumerator:KisBezierPatch::ControlPointType::BL_VC",
+        "enumerator:KisBezierPatch::ControlPointType::BR",
+        "enumerator:KisBezierPatch::ControlPointType::BR_HC",
+        "enumerator:KisBezierPatch::ControlPointType::BR_VC",
+        "enumerator:KisBezierPatch::ControlPointType::TL",
+        "enumerator:KisBezierPatch::ControlPointType::TL_HC",
+        "enumerator:KisBezierPatch::ControlPointType::TL_VC",
+        "enumerator:KisBezierPatch::ControlPointType::TR",
+        "enumerator:KisBezierPatch::ControlPointType::TR_HC",
+        "enumerator:KisBezierPatch::ControlPointType::TR_VC",
+        "member:KisBezierPatch::originalRect",
+        "member:KisBezierPatch::points"
+      ]
+    },
+    {
+      "target": "KisBezierPatchContractTest",
+      "source": "libs/global/tests/KisBezierPatchContractTest.cpp",
+      "test": "KisBezierPatchContractTest::boundingRectanglesPreserveSourceAndAllDestinationControls",
+      "behavior": "元境界は設定した元矩形をそのまま返し、変換先境界は角だけでなく外側へ張り出したハンドルを含む全12制御点の最小矩形を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierPatch::dstBoundingRect() const",
+        "method:KisBezierPatch::srcBoundingRect() const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchContractTest",
+      "source": "libs/global/tests/KisBezierPatchContractTest.cpp",
+      "test": "KisBezierPatchContractTest::mappingMethodsForwardControlPointsAndInput",
+      "behavior": "局所・大域座標変換は12制御点と入力点を対応する計算関数へ正確に1回配送し、その結果を変更せず返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierPatch::globalToLocal(const QPointF & pt) const",
+        "method:KisBezierPatch::localToGlobal(const QPointF & pt) const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchContractTest",
+      "source": "libs/global/tests/KisBezierPatchContractTest.cpp",
+      "test": "KisBezierPatchContractTest::regularGridAppendsLinearSamplesInRowMajorOrder",
+      "behavior": "通常格子採取は線形矩形パッチを3行3列で採取し、既存要素を保持したまま元座標と変換座標を行優先順で追記する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierPatch::sampleRegularGrid(QSize & gridSize,QVector<QPointF> & origPoints,QVector<QPointF> & transfPoints,const QPointF & dstStep) const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchContractTest",
+      "source": "libs/global/tests/KisBezierPatchContractTest.cpp",
+      "test": "KisBezierPatchContractTest::svg2GridAppendsLinearSamplesInRowMajorOrder",
+      "behavior": "SVG2格子採取は線形矩形パッチを3行3列で採取し、既存要素を保持したまま元座標と変換座標を行優先順で追記する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierPatch::sampleRegularGridSVG2(QSize & gridSize,QVector<QPointF> & origPoints,QVector<QPointF> & transfPoints,const QPointF & dstStep) const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchContractTest",
+      "source": "libs/global/tests/KisBezierPatchContractTest.cpp",
+      "test": "KisBezierPatchContractTest::curvedPatchAlgorithmsKeepDistinctCenterSamples",
+      "behavior": "非対称曲線パッチの4行4列採取は両方式で同じ元座標を生成する一方、通常方式とSVG2方式は内部点にそれぞれ固有の変換座標を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierPatch::sampleRegularGrid(QSize & gridSize,QVector<QPointF> & origPoints,QVector<QPointF> & transfPoints,const QPointF & dstStep) const",
+        "method:KisBezierPatch::sampleRegularGridSVG2(QSize & gridSize,QVector<QPointF> & origPoints,QVector<QPointF> & transfPoints,const QPointF & dstStep) const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchContractTest",
+      "source": "libs/global/tests/KisBezierPatchContractTest.cpp",
+      "test": "KisBezierPatchContractTest::requestedStepUndercountsBothGridVariants",
+      "behavior": "両格子採取は120×60の範囲と要求間隔60×30から2×2点だけを生成し、実際の点間隔が要求値を超える現行の格子点数不足を再現する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisBezierPatch::sampleRegularGrid(QSize & gridSize,QVector<QPointF> & origPoints,QVector<QPointF> & transfPoints,const QPointF & dstStep) const",
+        "method:KisBezierPatch::sampleRegularGridSVG2(QSize & gridSize,QVector<QPointF> & origPoints,QVector<QPointF> & transfPoints,const QPointF & dstStep) const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchContractTest",
+      "source": "libs/global/tests/KisBezierPatchContractTest.cpp",
+      "test": "KisBezierPatchContractTest::debugOutputReportsBoundsAndCornersInOrder",
+      "behavior": "診断表示は元境界、変換先境界、TL・TR・BL・BRの角をこの順序で示す。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KisBezierPatch & p)"
       ]
     }
   ]
