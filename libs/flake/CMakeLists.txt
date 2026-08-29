@@ -25,6 +25,25 @@ set_target_properties(kritaflakeinsetsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapeanchorobjects OBJECT
+    KoShapeAnchor.cpp
+)
+target_compile_definitions(kritaflakeshapeanchorobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeshapeanchorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeshapeanchorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapeanchorobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakezoomstateobjects OBJECT
     KoZoomState.cpp
 )
@@ -317,7 +336,6 @@ set(kritaflake_SRCS
     KoSelectedShapesProxy.cpp
     KoSelectedShapesProxySimple.cpp
     KoShape.cpp
-    KoShapeAnchor.cpp
     KoShapeBulkActionLock.cpp
     KoShapeControllerBase.cpp
     KoShapeContainer.cpp
@@ -500,6 +518,7 @@ set(kritaflake_SRCS
     tests/MockShapes.cpp
 
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
+    $<TARGET_OBJECTS:kritaflakeshapeanchorobjects>
     $<TARGET_OBJECTS:kritaflakezoomstateobjects>
     $<TARGET_OBJECTS:kritaflakeviewtransformstillpointobjects>
     $<TARGET_OBJECTS:kritaflakeviewconverterobjects>
