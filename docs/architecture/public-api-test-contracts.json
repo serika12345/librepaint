@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23432
+    "expectedMissingApis": 23324
   },
   "contracts": [
     {
@@ -19053,6 +19053,303 @@
         "method:KisWeakSharedPtr::operator const T*() const",
         "method:KisWeakSharedPtr::toStrongRef() const",
         "method:KisWeakSharedPtr::~KisWeakSharedPtr()"
+      ]
+    },
+    {
+      "target": "KisMetaDataTypeInfoContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp",
+      "test": "KisMetaDataTypeInfoContractTest::propertyTypeOrdinalsRemainStable",
+      "behavior": "メタデータ型情報は型記述クラスと13種の属性型について直列化や分岐で利用される安定した列挙値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::TypeInfo",
+        "enum:KisMetaData::TypeInfo::PropertyType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::AlternativeArrayType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::BooleanType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::ClosedChoice",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::DateType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::GPSCoordinateType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::IntegerType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::LangArrayType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::OpenedChoice",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::OrderedArrayType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::RationalType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::StructureType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::TextType",
+        "enumerator:KisMetaData::TypeInfo::PropertyType::UnorderedArrayType"
+      ]
+    },
+    {
+      "target": "KisMetaDataTypeInfoContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp",
+      "test": "KisMetaDataTypeInfoContractTest::privateStateStartsEmpty",
+      "behavior": "型情報の内部状態はBoolean型と空の埋込み型・選択肢・構造スキーマ・構造名・解析器で初期化される。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMetaData::TypeInfo::Private::choices",
+        "member:KisMetaData::TypeInfo::Private::embeddedTypeInfo",
+        "member:KisMetaData::TypeInfo::Private::parser",
+        "member:KisMetaData::TypeInfo::Private::propertyType",
+        "member:KisMetaData::TypeInfo::Private::structureName",
+        "member:KisMetaData::TypeInfo::Private::structureSchema",
+        "method:KisMetaData::TypeInfo::Private::Private()",
+        "struct:KisMetaData::TypeInfo::Private"
+      ]
+    },
+    {
+      "target": "KisMetaDataTypeInfoContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp",
+      "test": "KisMetaDataTypeInfoContractTest::primitiveTypesDescribeValidateAndParseValues",
+      "behavior": "真偽、整数、日時、文字列、有理数、GPS座標の共有型記述は対応する値種別だけを受理し、埋込み型と選択肢を持たず、解析可能な型だけが対応解析器を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMetaData::TypeInfo::Private::Boolean",
+        "member:KisMetaData::TypeInfo::Private::Date",
+        "member:KisMetaData::TypeInfo::Private::GPSCoordinate",
+        "member:KisMetaData::TypeInfo::Private::Integer",
+        "member:KisMetaData::TypeInfo::Private::Rational",
+        "member:KisMetaData::TypeInfo::Private::Text",
+        "method:KisMetaData::TypeInfo::choices() const",
+        "method:KisMetaData::TypeInfo::embeddedPropertyType() const",
+        "method:KisMetaData::TypeInfo::hasCorrectType(const Value & value) const",
+        "method:KisMetaData::TypeInfo::hasCorrectValue(const Value & value) const",
+        "method:KisMetaData::TypeInfo::parser() const",
+        "method:KisMetaData::TypeInfo::propertyType() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataTypeInfoContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp",
+      "test": "KisMetaDataTypeInfoContractTest::languageArrayAcceptsQualifiedTextEntries",
+      "behavior": "言語配列型は文字列を埋込み型として持ち、言語修飾子付き文字列の配列と空配列を受理し、通常配列を拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMetaData::TypeInfo::Private::LangArray"
+      ]
+    },
+    {
+      "target": "KisMetaDataTypeInfoContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp",
+      "test": "KisMetaDataTypeInfoContractTest::arrayFactoriesCacheAndValidateElementKinds",
+      "behavior": "順序付き、順序なし、代替の配列型生成は埋込み型ごとに同じ型記述を再利用し、配列種別と各要素型が一致する値だけを受理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::TypeInfo::Private::alternativeArray(const TypeInfo *)",
+        "method:KisMetaData::TypeInfo::Private::orderedArray(const TypeInfo *)",
+        "method:KisMetaData::TypeInfo::Private::unorderedArray(const TypeInfo *)"
+      ]
+    },
+    {
+      "target": "KisMetaDataTypeInfoContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp",
+      "test": "KisMetaDataTypeInfoContractTest::choiceValuesCopyAssignAndExposeFields",
+      "behavior": "型選択肢は値と表示補助を保持し、コピー構築と代入で同じ内容を独立した選択肢寿命へ複製する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::TypeInfo::Choice",
+        "method:KisMetaData::TypeInfo::Choice::Choice(const Choice &)",
+        "method:KisMetaData::TypeInfo::Choice::Choice(const Value &,const QString & hint)",
+        "method:KisMetaData::TypeInfo::Choice::hint() const",
+        "method:KisMetaData::TypeInfo::Choice::operator =(const Choice &)",
+        "method:KisMetaData::TypeInfo::Choice::value() const",
+        "method:KisMetaData::TypeInfo::Choice::~Choice()"
+      ]
+    },
+    {
+      "target": "KisMetaDataTypeInfoContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp",
+      "test": "KisMetaDataTypeInfoContractTest::choiceFactoriesDifferentiateOpenAndClosedValues",
+      "behavior": "開放選択肢と閉鎖選択肢は埋込み整数型、解析器、候補一覧を共有し、開放側は候補外整数を許可し、閉鎖側は候補値だけを許可する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::TypeInfo::Private::createChoice(PropertyType _propertiesType,const TypeInfo * _embedded,const QList<Choice> &)"
+      ]
+    },
+    {
+      "target": "KisMetaDataTypeInfoContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp",
+      "test": "KisMetaDataTypeInfoContractTest::structureFactoryPreservesBorrowedSchemaAndName",
+      "behavior": "構造型生成は借用スキーマの同一性と構造名を保持し、埋込み型・選択肢・解析器を持たない構造型記述を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::TypeInfo::Private::createStructure(Schema * _structureSchema,const QString & name)",
+        "method:KisMetaData::TypeInfo::structureName() const",
+        "method:KisMetaData::TypeInfo::structureSchema() const"
+      ]
+    },
+    {
+      "target": "SvgMeshArrayContractTest",
+      "source": "libs/flake/tests/SvgMeshArrayContractTest.cpp",
+      "test": "SvgMeshArrayContractTest::positionAndEmptyArrayStateAreStable",
+      "behavior": "メッシュ位置は既定構築で負の行列番号と辺番兵値を持つ無効状態になり、指定構築では行、列、辺を保持する。メッシュ配列は空で始まり、新しい行を追加すると行数だけが増える。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgMeshArray",
+        "member:SvgMeshPosition::col",
+        "member:SvgMeshPosition::row",
+        "member:SvgMeshPosition::segmentType",
+        "method:SvgMeshArray::SvgMeshArray()",
+        "method:SvgMeshArray::newRow()",
+        "method:SvgMeshArray::numColumns() const",
+        "method:SvgMeshArray::numRows() const",
+        "method:SvgMeshPosition::SvgMeshPosition()",
+        "method:SvgMeshPosition::SvgMeshPosition(int row,int col,SvgMeshPatch::Type type)",
+        "method:SvgMeshPosition::isValid() const",
+        "struct:SvgMeshPosition"
+      ]
+    },
+    {
+      "target": "SvgMeshArrayContractTest",
+      "source": "libs/flake/tests/SvgMeshArrayContractTest.cpp",
+      "test": "SvgMeshArrayContractTest::defaultMeshProvidesNormalizedTopology",
+      "behavior": "既定メッシュ構築は指定した行列数を持つ正規化OBBを生成し、交互色、停止点、辺経路、パッチ参照、および全体境界を二つの取得入口から一貫して返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshArray::boundingRect() const",
+        "method:SvgMeshArray::createDefaultMesh(const int nrows,const int ncols,const QColor color,const QSizeF size)",
+        "method:SvgMeshArray::getPatch(const int row,const int col) const",
+        "method:SvgMeshArray::getPath(const SvgMeshPatch::Type edge,const int row,const int col) const",
+        "method:SvgMeshArray::getPath(const SvgMeshPosition & pos) const",
+        "method:SvgMeshArray::getStop(const SvgMeshPatch::Type edge,const int row,const int col) const",
+        "method:SvgMeshArray::getStop(const SvgMeshPosition & pos) const"
+      ]
+    },
+    {
+      "target": "SvgMeshArrayContractTest",
+      "source": "libs/flake/tests/SvgMeshArrayContractTest.cpp",
+      "test": "SvgMeshArrayContractTest::completePatchDescriptionsAreAcceptedAndInvalidCountsAreRejected",
+      "behavior": "パッチ追加は四辺を記述した完全な停止点列を受理して色と単位境界を構築し、1個または5個の停止点列を配列変更なしで拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshArray::addPatch(QList<QPair<QString,QColor>> stops,const QPointF initialPoint)"
+      ]
+    },
+    {
+      "target": "SvgMeshArrayContractTest",
+      "source": "libs/flake/tests/SvgMeshArrayContractTest.cpp",
+      "test": "SvgMeshArrayContractTest::connectedPathsDescribeAnInteriorCorner",
+      "behavior": "内部角に接続する辺の取得は、左隣、左上、上隣、現在パッチの直前辺、現在辺を安定した順序で返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshArray::getConnectedPaths(const SvgMeshPosition & position) const"
+      ]
+    },
+    {
+      "target": "SvgMeshArrayContractTest",
+      "source": "libs/flake/tests/SvgMeshArrayContractTest.cpp",
+      "test": "SvgMeshArrayContractTest::mutationsPropagateAcrossSharedTopology",
+      "behavior": "共有辺のハンドル変更は隣接パッチへ逆順で反映され、内部角の位置変更と色変更はその角を共有する四つの停止点すべてへ伝播する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshArray::modifyColor(const SvgMeshPosition & position,const QColor & color)",
+        "method:SvgMeshArray::modifyCorner(const SvgMeshPosition & position,const QPointF & newPos)",
+        "method:SvgMeshArray::modifyHandle(const SvgMeshPosition & position,const std::array<QPointF,4> & newPath)"
+      ]
+    },
+    {
+      "target": "SvgMeshArrayContractTest",
+      "source": "libs/flake/tests/SvgMeshArrayContractTest.cpp",
+      "test": "SvgMeshArrayContractTest::transformAndCopyKeepIndependentArrays",
+      "behavior": "コピー構築はパッチ形状を保持した別所有の配列を作り、コピー側の色変更と座標変換を元配列から独立させ、各配列の寿命終了時に所有パッチを破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshArray::SvgMeshArray(const SvgMeshArray & other)",
+        "method:SvgMeshArray::setTransform(const QTransform & matrix)",
+        "method:SvgMeshArray::~SvgMeshArray()"
+      ]
+    },
+    {
+      "target": "KisNodeVisitorContractTest",
+      "source": "libs/image/tests/KisNodeVisitorContractTest.cpp",
+      "test": "KisNodeVisitorContractTest::constructsAndDestroysThroughBase",
+      "behavior": "ノードvisitorは公開コンストラクターを通じて具象実装を構築でき、基底ポインターから破棄すると派生デストラクターを正確に1回呼び出す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeVisitor",
+        "method:KisNodeVisitor::KisNodeVisitor()",
+        "method:KisNodeVisitor::~KisNodeVisitor()"
+      ]
+    },
+    {
+      "target": "KisNodeVisitorContractTest",
+      "source": "libs/image/tests/KisNodeVisitorContractTest.cpp",
+      "test": "KisNodeVisitorContractTest::dispatchesNodeAndLayerVisits",
+      "behavior": "基底visitor接続面のノードおよび各レイヤー用オーバーロードは対応する派生実装を正確に1回選択し、借用ポインターの同一性を維持して派生実装の真偽値を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeVisitor::visit(KisAdjustmentLayer * layer)",
+        "method:KisNodeVisitor::visit(KisCloneLayer * layer)",
+        "method:KisNodeVisitor::visit(KisExternalLayer * layer)",
+        "method:KisNodeVisitor::visit(KisGeneratorLayer * layer)",
+        "method:KisNodeVisitor::visit(KisGroupLayer * layer)",
+        "method:KisNodeVisitor::visit(KisNode * node)",
+        "method:KisNodeVisitor::visit(KisPaintLayer * layer)"
+      ]
+    },
+    {
+      "target": "KisNodeVisitorContractTest",
+      "source": "libs/image/tests/KisNodeVisitorContractTest.cpp",
+      "test": "KisNodeVisitorContractTest::dispatchesMaskVisits",
+      "behavior": "基底visitor接続面の各マスク用オーバーロードは対応する派生実装を正確に1回選択し、借用ポインターの同一性を維持して派生実装の真偽値を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeVisitor::visit(KisColorizeMask * mask)",
+        "method:KisNodeVisitor::visit(KisFilterMask * mask)",
+        "method:KisNodeVisitor::visit(KisSelectionMask * mask)",
+        "method:KisNodeVisitor::visit(KisTransformMask * mask)",
+        "method:KisNodeVisitor::visit(KisTransparencyMask * mask)"
+      ]
+    },
+    {
+      "target": "KisAngleGaugeContractTest",
+      "source": "libs/widgets/tests/KisAngleGaugeContractTest.cpp",
+      "test": "KisAngleGaugeContractTest::defaultStateEnumsAndParentLifetime",
+      "behavior": "角度ゲージは反時計回り・時計回りの安定した列挙値を持ち、既定で角度0度、スナップ15度、リセット角0度、反時計回り、ホイールフォーカスを保持し、親ウィジェットの破棄で子として破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAngleGauge",
+        "enum:KisAngleGauge::IncreasingDirection",
+        "enumerator:KisAngleGauge::IncreasingDirection::IncreasingDirection_Clockwise",
+        "enumerator:KisAngleGauge::IncreasingDirection::IncreasingDirection_CounterClockwise",
+        "method:KisAngleGauge::KisAngleGauge(QWidget * parent=0)",
+        "method:KisAngleGauge::angle() const",
+        "method:KisAngleGauge::increasingDirection() const",
+        "method:KisAngleGauge::resetAngle() const",
+        "method:KisAngleGauge::snapAngle() const",
+        "method:KisAngleGauge::~KisAngleGauge()"
+      ]
+    },
+    {
+      "target": "KisAngleGaugeContractTest",
+      "source": "libs/widgets/tests/KisAngleGaugeContractTest.cpp",
+      "test": "KisAngleGaugeContractTest::settersPreserveFiniteConfiguration",
+      "behavior": "有限で正のスナップ角、有限なリセット角、時計回りの増加方向を設定すると、それぞれの構成値を正確に保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleGauge::setIncreasingDirection(IncreasingDirection newIncreasingDirection)",
+        "method:KisAngleGauge::setResetAngle(qreal newResetAngle)",
+        "method:KisAngleGauge::setSnapAngle(qreal newSnapAngle)"
+      ]
+    },
+    {
+      "target": "KisAngleGaugeContractTest",
+      "source": "libs/widgets/tests/KisAngleGaugeContractTest.cpp",
+      "test": "KisAngleGaugeContractTest::setAngleEmitsOnlyForMeaningfulChanges",
+      "behavior": "有限な角度を設定すると値をそのまま保持して新値を1回通知し、同一値の再設定では通知を追加しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleGauge::angleChanged(qreal angle)",
+        "method:KisAngleGauge::setAngle(qreal newAngle)"
+      ]
+    },
+    {
+      "target": "KisAngleGaugeContractTest",
+      "source": "libs/widgets/tests/KisAngleGaugeContractTest.cpp",
+      "test": "KisAngleGaugeContractTest::resetUsesConfiguredAngle",
+      "behavior": "リセットは設定済みのリセット角を現在角へ適用して1回通知し、既に同値なら通知を追加しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAngleGauge::reset()"
       ]
     }
   ]

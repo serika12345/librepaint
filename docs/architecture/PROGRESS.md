@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 03:32 JST
+- 更新日時: 2026-08-30 03:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,24 +14,27 @@
 - 第25並列便の共通基準コミットは`8e6919a62a`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g25-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`metadata-type-info`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`metadata-type-info`は`integrated`、実装コミットは`7e3c3350bc`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/metadata/kis_meta_data_{type_info,schema}.{h,cc}`、`kis_meta_data_type_info_p.h`、Painting Metadata製品・試験CMake、
   新規`KisMetaDataTypeInfoContractTest.cpp`を所有する。開始ファイル`kis_meta_data_type_info.cc`と相互参照する
   `kis_meta_data_schema.cc`を製品`kritapaintingmetadata`の直接ソースから型・スキーマ専用生成物へ移し、製品へ1回だけ再集約する。
   従来`kis_meta_data_test`の268工程・566入力に代えて、基本型、配列型、言語配列、選択肢、値検査、解析器、構造情報の全50 APIを
   固定する。試験追加前に新規生成物と空の限定対象を構成して命令・入力閉包を実測し、15工程・32入力を超える場合は停止する。
-- 実装担当`svg-mesh-array`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`svg-mesh-array`は`integrated`、引渡しコミットは`bb6dcbc39c`、統合コミットは`56b26b76c6`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-svg-mesh-array`を予定し、
   `libs/flake/svg/SvgMeshArray.{h,cpp}`、Flake製品・試験CMake、新規`SvgMeshArrayContractTest.cpp`を所有する。開始ファイル
   `SvgMeshArray.cpp`を製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。変更前翻訳単位の
   365工程・758入力から6工程・12入力前後へ縮小し、正規メッシュの構築、取得、共有辺・角・色の伝播、変換、深いコピーの全27 APIを
   固定する。
-- 実装担当`node-visitor`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`node-visitor`は`integrated`、引渡しコミットは`2dbc33a050`、統合コミットは`08332db25c`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-node-visitor`を予定し、
   `libs/image/tests/CMakeLists.txt`と新規`KisNodeVisitorContractTest.cpp`だけを所有する。既存`kis_node_visitor_test`の
   1,101工程・2,225入力に代えて、Qt Testだけの4工程・8入力前後で12ノード型の仮想配送、返値、ポインター同一性、仮想寿命の
   全15 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`angle-gauge`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`angle-gauge`は`integrated`、引渡しコミットは`27091f08df`、統合コミットは`228fb1d29e`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-angle-gauge`を予定し、
   `libs/widgets/KisAngleGauge.{h,cpp}`、Widgets製品・試験CMake、新規`KisAngleGaugeContractTest.cpp`を所有する。開始ファイル
   `KisAngleGauge.cpp`を製品`kritawidgets`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の
@@ -9211,10 +9214,73 @@
   合計155 APIを固定した。各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、必要な製品への
   1回再集約、公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,557件、未対応23,432件になった。
 
+## R2-G19b メタデータ型情報の全public API契約と構築所有分離で完了した作業
+
+- `libs/painting/metadata/kis_meta_data_type_info.h`と`kis_meta_data_type_info_p.h`の全50 APIを、新規
+  `libs/painting/metadata/tests/KisMetaDataTypeInfoContractTest.cpp`の8試験へ対応付けた。13型の識別値、内部初期状態、基本型と解析器、
+  言語配列、3配列型の再利用と要素検査、選択肢の値・コピー・許容値、構造型の借用スキーマと名称を固定した。
+- 開始ファイル`libs/painting/metadata/kis_meta_data_type_info.cc`と、構造型の値検査で相互参照する開始ファイル
+  `libs/painting/metadata/kis_meta_data_schema.cc`の構築所有を、`libs/painting/metadata/CMakeLists.txt`の
+  `kritapaintingmetadata_LIB_SRCS`直接収容から新規`kritapaintingmetadatatypeschemaobjects`へ移し、製品
+  `kritapaintingmetadata`は両実装を1回ずつ再集約する。限定試験は同生成物、既存の解析器・値・Global診断生成物、Qt Core・Xml・
+  Testだけへ接続し、製品共有ライブラリーを使用しない。
+- 試験内容追加前に測定した限定対象は9工程・20入力、専用生成物は2工程・5入力であり、従来`kis_meta_data_test`の268工程・
+  566入力から縮小した。製品計画は264工程・559入力を維持する。初回限定リンクは値実装が要求する安全表明記号の不足を診断し、
+  既存のメタデータ限定試験と同じ試験協調定義で外部依存を増やさずに完結させた。その後の赤試験は未実装契約の明示診断で失敗した。
+  対象CTest単発と20回反復、最近傍`KisMetaDataValueContractTest`、公開記号、製品への1回再集約、製品共有ライブラリー非接続、
+  パッケージ境界検査、高速検査に成功した。言語配列の欠落または文字列でない`xml:lang`修飾子は決定的に拒否されず、診断用の
+  中間値観測では`SIGSEGV`にもなる既知不具合として維持契約から除外した。有効な構造値のスキーマ検査、null埋込み型、並行する
+  型台帳初期化、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b SVGメッシュ配列の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/svg/SvgMeshArray.h`の全27 APIを、新規`libs/flake/tests/SvgMeshArrayContractTest.cpp`の6試験へ対応付けた。
+  位置の有効性、空状態と行追加、正規メッシュと取得入口、完全なパッチ追加、内部角の接続順、共有辺・角・色の変更伝播、座標変換、
+  深いコピーと所有寿命を固定した。
+- 開始ファイル`libs/flake/svg/SvgMeshArray.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から
+  新規`kritaflakesvgmesharrayobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。開始実装から未使用の
+  `KoPathSegment.h`依存を除いた。限定試験は同生成物、既存`kritaflakesvgmeshpatchobjects`、Qt Gui・Testだけへ接続し、
+  製品共有ライブラリーを使用しない。
+- 限定対象は6工程・13生入力、生成物重複を除く12入力、専用生成物は1工程・2入力であり、変更前翻訳単位の365工程・758入力から
+  縮小した。対象CTest単発と20回反復、最近傍`SvgMeshPatchContractTest`、製品への1回再集約、製品共有ライブラリー非接続、
+  パッケージ境界検査に成功した。空配列の境界、不揃いな行、文脈不適合な2・3停止点、0行列・ゼロ寸法、暗黙コピー代入、
+  辺番兵値を持つ非負位置、変更可能ポインターを返すconst取得、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b ノード訪問接続面の全public API契約で完了した作業
+
+- `libs/image/kis_node_visitor.h`の全15 APIを、新規`libs/image/tests/KisNodeVisitorContractTest.cpp`の3試験へ対応付けた。
+  公開構築と仮想寿命、ノードと6レイヤー、5マスクの各オーバーロードについて、仮想配送先、借用ポインター同一性、呼出回数、
+  真偽返値の透過を固定した。
+- 開始ヘッダー`libs/image/kis_node_visitor.h`は同じパス、抽象接続面、公開面を維持した。今回のpublic APIは宣言側で完結し、
+  `libs/image/kis_node_visitor.cpp`が所有する保護走査処理を必要としないため、製品実装と製品CMakeの移動はない。限定試験はQt Testだけへ
+  接続し、製品共有ライブラリーを使用しない。
+- 限定対象は4工程・8入力であり、従来`kis_node_visitor_test`の1,101工程・2,225入力から縮小した。対象CTest単発と20回反復、
+  最近傍`KisImageInterfacesContractTest`、製品共有ライブラリー非接続、パッケージ境界検査に成功した。null引数の意味、保護された
+  `visitAll()`と`visitAllInverse()`、実ノードの`accept()`による子走査順、Linux、全ネイティブ検証は実行していない。
+
+## R2-G19b 角度ゲージの全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KisAngleGauge.h`の全16 APIを、新規`libs/widgets/tests/KisAngleGaugeContractTest.cpp`の4試験へ対応付けた。
+  増加方向の識別値、既定角度・スナップ・リセット・方向・焦点方針、親所有、有限設定値、実値変更時だけの通知、設定角へのリセットを
+  固定した。
+- 開始ファイル`libs/widgets/KisAngleGauge.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から
+  新規`kritawidgetsanglegaugeobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。限定試験は同生成物とQt Widgets・
+  Testだけへ接続し、製品共有ライブラリーを使用しない。統合時に公開API台帳検査がクラス内定義の試験関数を追跡不能と診断したため、
+  試験内容を維持してクラス外定義へ整理した。
+- 限定対象は7工程・14入力、専用生成物は3工程・7入力であり、製品`kritawidgets`の722工程・1,473入力から縮小した。対象CTest単発と
+  クラス外定義整理後の20回反復、最近傍`KoTitledTabWidgetContractTest`、製品への1回再集約、製品共有ライブラリー非接続、
+  パッケージ境界検査に成功した。0・負・非有限のスナップ角は入力処理の除算を危険にする既知不具合候補である。非有限角度、
+  定義外方向値、保護入力事象、Qt 6で非推奨の`QMouseEvent::x()`・`y()`、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第25並列便はメタデータ型情報50 API、SVGメッシュ配列27 API、ノード訪問15 API、角度ゲージ16 APIの合計108 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、必要な製品への1回再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,665件、未対応23,324件になった。
+
 ## 次の操作
 
-第25並列便を4担当で実装する。統合担当はメタデータ型・スキーマ生成物の限定閉包を先に実測し、各実装担当は専用Git作業ツリーと
-専用Ninja木で製品共有ライブラリーを接続しない最小契約を赤から開始する。引渡し後は統合順に限定検証して取り込む。
+最新の未対応公開API報告`/tmp/librepaint-g25-missing.json`から第26並列便の候補を監査する。各候補の全公開面を一つの観測可能な
+責務として固定できるか確認し、既存対象の命令・入力閉包と製品の直接CMake依存を測定して、必要な構築所有分離を先行する担当票を
+確定する。
 
 ## R1-G5完了根拠
 
