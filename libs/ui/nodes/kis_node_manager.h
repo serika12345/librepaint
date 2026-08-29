@@ -480,6 +480,21 @@ protected:
         static void reselectNodes(KisNodeManager *manager, KisNodeSP activeNode, const KisNodeList &nodes);
     };
 
+    enum class ToggleProperty {
+        Locked,
+        Visible,
+        AlphaLocked,
+        InheritAlpha,
+    };
+
+    struct KRITAUI_EXPORT ToggleAccess {
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static bool supportsProperty(KisNodeSP node, ToggleProperty property);
+        static bool propertyState(KisNodeSP node, ToggleProperty property);
+        static void setProperty(KisNodeManager *manager, KisNodeSP node, ToggleProperty property, bool value);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1
@@ -494,6 +509,7 @@ private:
                               KisNodeSP *newGroup,
                               KisNodeSP *newLastChild);
     void selectLayersImpl(SelectionProperty property, bool value, bool invertedValue);
+    void toggleNodeProperty(ToggleProperty property);
 
     struct Private;
     Private * const m_d;

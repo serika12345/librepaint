@@ -1448,70 +1448,80 @@ void KisNodeManager::slotSplitAlphaSaveMerged()
     m_d->mergeTransparencyMaskAsAlpha(false);
 }
 
-void KisNodeManager::toggleLock()
+KisNodeList KisNodeManager::ToggleAccess::selectedNodes(KisNodeManager *manager)
 {
-    KisNodeList nodes = this->selectedNodes();
-    KisNodeSP active = activeNode();
-    if (nodes.isEmpty() || !active) return;
-
-    bool isLocked = active->userLocked();
-
-    for (auto &node : nodes) {
-        KisLayerPropertiesIcons::setNodePropertyAutoUndo(node, KisLayerPropertiesIcons::locked, !isLocked, m_d->view->image());
-    }
+    return manager->selectedNodes();
 }
 
-void KisNodeManager::toggleVisibility()
+KisNodeSP KisNodeManager::ToggleAccess::activeNode(KisNodeManager *manager)
 {
-    KisNodeList nodes = this->selectedNodes();
-    KisNodeSP active = activeNode();
-    if (nodes.isEmpty() || !active) return;
-
-    bool isVisible = active->visible();
-
-    for (auto &node : nodes) {
-        KisLayerPropertiesIcons::setNodePropertyAutoUndo(node, KisLayerPropertiesIcons::visible, !isVisible, m_d->view->image());
-    }
+    return manager->activeNode();
 }
 
-void KisNodeManager::toggleAlphaLock()
+bool KisNodeManager::ToggleAccess::supportsProperty(KisNodeSP node, ToggleProperty property)
 {
-    KisNodeList nodes = this->selectedNodes();
-    KisNodeSP active = activeNode();
-    if (nodes.isEmpty() || !active) return;
+    switch (property) {
+    case ToggleProperty::Locked:
+    case ToggleProperty::Visible:
+        return true;
+    case ToggleProperty::AlphaLocked:
+        return qobject_cast<KisPaintLayer *>(node.data());
+    case ToggleProperty::InheritAlpha:
+        return qobject_cast<KisLayer *>(node.data());
+    }
 
-    auto layer = qobject_cast<KisPaintLayer*>(active.data());
-    if (!layer) {
+    Q_UNREACHABLE_RETURN(false);
+}
+
+bool KisNodeManager::ToggleAccess::propertyState(KisNodeSP node, ToggleProperty property)
+{
+    switch (property) {
+    case ToggleProperty::Locked:
+        return node->userLocked();
+    case ToggleProperty::Visible:
+        return node->visible();
+    case ToggleProperty::AlphaLocked:
+        return qobject_cast<KisPaintLayer *>(node.data())->alphaLocked();
+    case ToggleProperty::InheritAlpha:
+        return qobject_cast<KisLayer *>(node.data())->alphaChannelDisabled();
+    }
+
+    Q_UNREACHABLE_RETURN(false);
+}
+
+void KisNodeManager::ToggleAccess::setProperty(KisNodeManager *manager,
+                                               KisNodeSP node,
+                                               ToggleProperty property,
+                                               bool value)
+{
+    switch (property) {
+    case ToggleProperty::Locked:
+        KisLayerPropertiesIcons::setNodePropertyAutoUndo(node,
+                                                         KisLayerPropertiesIcons::locked,
+                                                         value,
+                                                         manager->m_d->view->image());
+        return;
+    case ToggleProperty::Visible:
+        KisLayerPropertiesIcons::setNodePropertyAutoUndo(node,
+                                                         KisLayerPropertiesIcons::visible,
+                                                         value,
+                                                         manager->m_d->view->image());
+        return;
+    case ToggleProperty::AlphaLocked:
+        KisLayerPropertiesIcons::setNodePropertyAutoUndo(node,
+                                                         KisLayerPropertiesIcons::alphaLocked,
+                                                         value,
+                                                         manager->m_d->view->image());
+        return;
+    case ToggleProperty::InheritAlpha:
+        KisLayerPropertiesIcons::setNodePropertyAutoUndo(node,
+                                                         KisLayerPropertiesIcons::inheritAlpha,
+                                                         value,
+                                                         manager->m_d->view->image());
         return;
     }
 
-    bool isAlphaLocked = layer->alphaLocked();
-    for (auto &node : nodes) {
-        auto layer = qobject_cast<KisPaintLayer*>(node.data());
-        if (layer) {
-            KisLayerPropertiesIcons::setNodePropertyAutoUndo(node, KisLayerPropertiesIcons::alphaLocked, !isAlphaLocked, m_d->view->image());
-        }
-    }
-}
-
-void KisNodeManager::toggleInheritAlpha()
-{
-    KisNodeList nodes = this->selectedNodes();
-    KisNodeSP active = activeNode();
-    if (nodes.isEmpty() || !active) return;
-
-    auto layer = qobject_cast<KisLayer*>(active.data());
-    if (!layer) {
-        return;
-    }
-
-    bool isAlphaDisabled = layer->alphaChannelDisabled();
-    for (auto &node : nodes) {
-        auto layer = qobject_cast<KisLayer*>(node.data());
-        if (layer) {
-            KisLayerPropertiesIcons::setNodePropertyAutoUndo(node, KisLayerPropertiesIcons::inheritAlpha, !isAlphaDisabled, m_d->view->image());
-        }
-    }
+    Q_UNREACHABLE();
 }
 
 void KisNodeManager::cutLayersToClipboard()

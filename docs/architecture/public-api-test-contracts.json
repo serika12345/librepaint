@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25100
+    "expectedMissingApis": 25096
   },
   "contracts": [
     {
@@ -12671,6 +12671,37 @@
         "method:KisNodeManager::selectLockedNodes()",
         "method:KisNodeManager::selectUnlockedNodes()",
         "method:KisNodeManager::selectVisibleNodes()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerToggleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerToggleContractTest.cpp",
+      "test": "KisNodeManagerToggleContractTest::lockAndVisibilityUseActiveStateForAllNodes",
+      "behavior": "施錠と表示の切替えは選択一覧と活動ノードを必要とし、活動ノードの現在値を反転して選択中の全ノードへ同じ値を適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::toggleLock()",
+        "method:KisNodeManager::toggleVisibility()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerToggleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerToggleContractTest.cpp",
+      "test": "KisNodeManagerToggleContractTest::alphaLockRequiresPaintLayers",
+      "behavior": "アルファ施錠の切替えは活動ノードがペイントレイヤーの場合だけ、その現在値を反転して選択中のペイントレイヤーへ適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::toggleAlphaLock()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerToggleContractTest",
+      "source": "libs/ui/tests/KisNodeManagerToggleContractTest.cpp",
+      "test": "KisNodeManagerToggleContractTest::inheritAlphaRequiresLayers",
+      "behavior": "継承アルファの切替えは活動ノードがレイヤーの場合だけ、現在のアルファ無効状態を反転して選択中のレイヤーへ継承アルファ値として適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::toggleInheritAlpha()"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 09:40 JST
+- 更新日時: 2026-08-29 09:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7189,11 +7189,28 @@
   公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,889件、
   未対応25,100件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード状態切替え public API契約と状態判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった施錠、表示、アルファ施錠、継承アルファの切替え入口と反転判断を、
+  新規`libs/ui/nodes/KisNodeManagerToggle.cpp`へ移した。具体的なノード型判定、現在値の取得、画像を伴うUndo適用は
+  移動元の保護境界に残し、製品`kritaapplicationui`は新規`kritauinodemanagertoggleobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`の状態切替え4 APIを、新規
+  `libs/ui/tests/KisNodeManagerToggleContractTest.cpp`の4試験へ対応付けた。選択一覧と活動ノードの前提、活動ノードの
+  現在値を基準にした全対象の同値反転、アルファ施錠のペイントレイヤー限定、継承アルファのレイヤー限定を固定した。
+  実装接続前のリンクは対象4 APIだけを未解決記号として診断した。
+- 変更前の既存`KisNodeManagerTest`は1,817工程・3,633入力、直近の専用試験は5工程・17入力だった。製品未接続の
+  赤試験は4工程・14入力、状態切替え対象は1工程・3入力、緑化後の試験は5工程・17入力に収めた。製品
+  `kritaapplicationui`閉包は1,813工程・3,626入力から1,814工程・3,628入力、既存試験は1,818工程・3,635入力に
+  なった。
+- 状態切替え対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,893件、
+  未対応25,096件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る38 APIのうち、施錠、表示、アルファ施錠、継承アルファの切替えを
-次の小単位とする。`kis_node_manager.cpp`の4つの状態切替え入口について、対象指定の変更なし計画、直接CMake
-依存、空構築閉包を監査し、選択一覧、適用可否、各属性の反転値、undo適用を具体ノード状態から分けて挙動契約を
+同じ`libs/ui/nodes/kis_node_manager.h`に残る34 APIのうち、現在ノードと全選択ノードの水平・垂直反転を担う
+6 APIを次の小単位とする。`kis_node_manager.cpp`の反転入口と具体処理について、対象指定の変更なし計画、直接
+CMake依存、空構築閉包を監査し、対象一覧、向き、選択範囲、undo名の決定を具体的な反転処理から分けて挙動契約を
 追加する。
 
 ## R1-G5完了根拠
