@@ -4,6 +4,26 @@ kis_add_tests(
 )
 
 kis_add_test(
+    DeselectShapesActivationPolicyContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolsdelegatedtoolpolicyobjects
+        kritaflake
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(DeselectShapesActivationPolicyContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+    ${CMAKE_SOURCE_DIR}/libs/flake/tests
+)
+target_compile_definitions(DeselectShapesActivationPolicyContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritatools_EXPORTS
+)
+
+kis_add_test(
     KisToolActionContractTest.cpp
     LINK_LIBRARIES
         kritatoolactionmappingobjects

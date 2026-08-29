@@ -86,13 +86,31 @@ set_target_properties(kritatoolactionmappingobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatoolsdelegatedtoolpolicyobjects OBJECT
+    kis_delegated_tool_policies.cpp
+)
+target_compile_definitions(kritatoolsdelegatedtoolpolicyobjects PRIVATE kritatools_EXPORTS)
+target_include_directories(kritatoolsdelegatedtoolpolicyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritatoolsdelegatedtoolpolicyobjects
+    PUBLIC
+        kritaflake
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritatoolsdelegatedtoolpolicyobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritatools_LIB_SRCS
     KisSelectionToolFactoryBase.cpp
     KisStabilizerDelayedPaintHelper.cpp
     KisToolPaintFactoryBase.cpp
     KisToolChangesTracker.cpp
     KisToolChangesTrackerData.cpp
-    kis_delegated_tool_policies.cpp
     kis_outline_interaction.cpp
     kis_painting_information_builder.cpp
     kis_polyline_interaction.cpp
@@ -109,6 +127,7 @@ kis_add_library(kritatools SHARED
     $<TARGET_OBJECTS:kritatoolsspeedsmootherobjects>
     $<TARGET_OBJECTS:kritatoolsrectangleinteractionobjects>
     $<TARGET_OBJECTS:kritatoolactionmappingobjects>
+    $<TARGET_OBJECTS:kritatoolsdelegatedtoolpolicyobjects>
 )
 generate_export_header(kritatools BASE_NAME kritatools)
 
