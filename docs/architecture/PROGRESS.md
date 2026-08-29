@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:30 JST
+- 更新日時: 2026-08-29 20:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,21 +15,21 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`size-group`は`preparing`、統合順は1である。主作業ツリーで
+- 統合担当`size-group`は`implementing`、統合順は1である。主作業ツリーで
   `libs/ui/widgets/kis_size_group.{h,cpp}`、`libs/ui/widgets/kis_size_group_p.{h,cpp}`、UI製品・試験CMake、新規限定試験を
   所有する。製品`kritaapplicationui`の1,851工程・3,702入力から実装2単位を専用生成物へ分け、親所有、方向列挙、
   方向・非表示除外設定、box・grid・form配置での寸法同期、非表示と除去後の再計算、仮想破棄の全14 APIを対象とする。
-- 実装担当`checkerboard-painter`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`checkerboard-painter`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-checkerboard-painter`であり、
   `libs/widgetutils/KoCheckerBoardPainter.h`、Widget Utils試験CMake、新規限定試験を所有する。既存の1工程・3入力の
   `kritacheckerboardpainterobjects`を再利用し、既定・指定色、周期、原点位相、描画範囲の全6 APIを対象とする。
-- 実装担当`mix-colors-operation`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`mix-colors-operation`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-mix-colors-operation`であり、`libs/pigment/KoMixColorsOp.h`、Pigment試験CMake、
   新規限定試験を所有する。製品実装を追加せず、外側と入れ子の具象probeにより、6混色操作、混色器生成、累積、平均、
   重み合計、出力、基底所有からの仮想破棄の全15 APIを対象とする。
-- 実装担当`image-interfaces`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`image-interfaces`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-image-interfaces`であり、
   `libs/image/kis_image_interfaces.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。製品`kritaimage`から小さな
   実装単位を専用生成物へ分け、4接続面の全仮想操作、返値・引数配送、更新便宜関数の最終QVector形式への正規化、
