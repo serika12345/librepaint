@@ -52,6 +52,22 @@ kis_add_test(
 target_compile_definitions(KisColorLabelButtonContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KisColorLabelSelectorWidgetContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetscolorlabelselectorobjects
+        kritawidgetscolorlabelbuttonobjects
+        kritawidgetutilswrappablehboxlayoutobjects
+        kritaglobalpaintingtweaksobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisColorLabelSelectorWidgetContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritawidgets_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
+kis_add_test(
     KisLevelsSliderContractTest.cpp
     LINK_LIBRARIES
         kritaglobalpaintingtweaksobjects

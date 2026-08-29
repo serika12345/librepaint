@@ -41,6 +41,23 @@ target_include_directories(kritawidgetscolorlabelbuttonobjects
 target_link_libraries(kritawidgetscolorlabelbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritawidgetscolorlabelbuttonobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetscolorlabelselectorobjects OBJECT
+    kis_color_label_selector_widget.cpp
+)
+target_compile_definitions(kritawidgetscolorlabelselectorobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetscolorlabelselectorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/widgetutils
+        ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_link_libraries(kritawidgetscolorlabelselectorobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetscolorlabelselectorobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 add_library(kritawidgetszoomhandlerobjects OBJECT
     KoZoomHandler.cpp
 )
@@ -149,7 +166,6 @@ set(kritawidgets_LIB_SRCS
     KisPaletteComboBox.cpp
 
     kis_color_button.cpp
-    kis_color_label_selector_widget.cpp
 
     KisAngleSelector.cpp
     kis_aspect_ratio_locker.cpp
@@ -196,6 +212,7 @@ kis_add_library(kritawidgets SHARED
     $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
     $<TARGET_OBJECTS:kritawidgetsanglegaugeobjects>
     $<TARGET_OBJECTS:kritawidgetscolorlabelbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetscolorlabelselectorobjects>
     $<TARGET_OBJECTS:kritawidgetszoomhandlerobjects>
 )
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
