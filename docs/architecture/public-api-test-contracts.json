@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24281
+    "expectedMissingApis": 24254
   },
   "contracts": [
     {
@@ -16395,6 +16395,150 @@
       "classification": "maintained",
       "apis": [
         "method:KoChannelInfo::KoChannelInfo()"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testIntegerRGBHSV",
+      "behavior": "8ビット整数RGBの純赤は色相0、彩度255、明度255へ変換され、そのHSV値から元の純赤へ復元される。",
+      "classification": "maintained",
+      "apis": [
+        "function:hsv_to_rgb(int H,int S,int V,int * R,int * G,int * B)",
+        "function:rgb_to_hsv(int R,int G,int B,int * H,int * S,int * V)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testRGBHSV",
+      "behavior": "浮動小数RGBとHSVの変換は6原色、無彩色、代表中間色について現在の色相角と成分値を相互に保持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:HSVToRGB(float h,float s,float v,float * r,float * g,float * b)",
+        "function:RGBToHSV(float r,float g,float b,float * h,float * s,float * v)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testRGBHSL",
+      "behavior": "浮動小数RGBとHSLの変換は6原色、無彩色、代表中間色について現在の色相角と成分値を相互に保持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:HSLToRGB(float h,float sl,float l,float * r,float * g,float * b)",
+        "function:RGBToHSL(float r,float g,float b,float * h,float * s,float * l)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testFloatingHLS",
+      "behavior": "8ビット純赤と浮動小数HLSの変換は色相0、明度0.5、彩度1を介して元の値を保持し、色相補間は360度を越えた角度を正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "function:hls_to_rgb(float h,float l,float s,quint8 * r,quint8 * g,quint8 * b)",
+        "function:hue_value(float n1,float n2,float hue)",
+        "function:rgb_to_hls(quint8 r,quint8 g,quint8 b,float * h,float * l,float * s)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testIntegerHLS",
+      "behavior": "8ビット中間灰色と整数HLSの変換は色相0、明度128、彩度0を介して128の等しいRGB成分を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:hls_to_rgb(int h,int l,int s,quint8 * r,quint8 * g,quint8 * b)",
+        "function:rgb_to_hls(quint8 r,quint8 g,quint8 b,int * h,int * l,int * s)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testHSI",
+      "behavior": "RGBと円柱型の色相・彩度・強度の相互変換は代表中間色の三成分を許容誤差内で復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:HSIToRGB(const qreal h,const qreal s,const qreal i,qreal * red,qreal * green,qreal * blue)",
+        "function:RGBToHSI(qreal r,qreal g,qreal b,qreal * h,qreal * s,qreal * i)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testHSY",
+      "behavior": "RGBと既定輝度重みを使う円柱型の色相・彩度・輝度の相互変換は代表中間色の三成分を許容誤差内で復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:HSYToRGB(const qreal h,const qreal s,const qreal y,qreal * red,qreal * green,qreal * blue,qreal R=0.299,qreal G=0.587,qreal B=0.114)",
+        "function:RGBToHSY(qreal r,qreal g,qreal b,qreal * h,qreal * s,qreal * y,qreal R=0.299,qreal G=0.587,qreal B=0.114)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testHCI",
+      "behavior": "純赤と円錐型の色相・彩度・強度の相互変換は色相0、彩度1、強度3分の1を介して元の三成分を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:HCIToRGB(const qreal h,const qreal s,const qreal i,qreal * red,qreal * green,qreal * blue)",
+        "function:RGBToHCI(const qreal r,const qreal g,const qreal b,qreal * h,qreal * c,qreal * i)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testHCY",
+      "behavior": "RGBと既定輝度重みを使う円錐型の色相・彩度・輝度の相互変換は代表中間色の三成分を許容誤差内で復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:HCYToRGB(const qreal h,const qreal s,const qreal y,qreal * red,qreal * green,qreal * blue,qreal R=0.299,qreal G=0.587,qreal B=0.114)",
+        "function:RGBToHCY(const qreal r,const qreal g,const qreal b,qreal * h,qreal * c,qreal * y,qreal R=0.299,qreal G=0.587,qreal B=0.114)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testYUV",
+      "behavior": "RGBと既定輝度重みを使うYUVの相互変換は代表中間色の三成分を許容誤差内で復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:RGBToYUV(qreal r,qreal g,qreal b,qreal * y,qreal * cb,qreal * cr,qreal R=0.299,qreal G=0.587,qreal B=0.114)",
+        "function:YUVToRGB(const qreal y,const qreal cb,const qreal cr,qreal * r,qreal * g,qreal * b,qreal R=0.299,qreal G=0.587,qreal B=0.114)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testLabLCH",
+      "behavior": "正規化LabとLCHの相互変換は範囲内の明度および二つの色成分を許容誤差内で復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:LCHToLab(const qreal L,const qreal C,const qreal H,qreal * l,qreal * a,qreal * b)",
+        "function:LabToLCH(const qreal l,const qreal a,const qreal b,qreal * L,qreal * C,qreal * H)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testXYZxyY",
+      "behavior": "非零の三刺激値とxyY色度の相互変換はX、Y、Zの三成分を許容誤差内で復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:XYZToxyY(const qreal X,const qreal Y,const qreal Z,qreal * x,qreal * y,qreal * yY)",
+        "function:xyYToXYZ(const qreal x,const qreal y,const qreal yY,qreal * X,qreal * Y,qreal * Z)"
+      ]
+    },
+    {
+      "target": "TestColorConversion",
+      "source": "libs/pigment/tests/TestColorConversion.cpp",
+      "test": "TestColorConversion::testCMYCMYK",
+      "behavior": "CMYとCMYKの相互変換は最小CMY成分を黒版として分離し、元の三つのCMY成分を許容誤差内で復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:CMYKToCMY(qreal * c,qreal * m,qreal * y,qreal * k)",
+        "function:CMYToCMYK(qreal * c,qreal * m,qreal * y,qreal * k)"
       ]
     }
   ]

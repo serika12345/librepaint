@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 22:17 JST
+- 更新日時: 2026-08-29 22:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,15 +15,15 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`color-conversions`は`implementing`、統合順は1である。主作業ツリーで
+- 統合担当`color-conversions`は`integrated`、統合順は1である。主作業ツリーで
   `libs/pigment/KoColorConversions.{h,cpp}`、既存`libs/pigment/tests/TestColorConversion.{h,cpp}`、Pigment製品・試験CMakeを
   所有する。266工程・558入力の翻訳単位を専用生成物へ分け、整数・浮動小数HSV/HSL、HSI/HSY/HCI/HCY、YUV、Lab/LCH、
-  XYZ/xyY、CMY/CMYKの全27 APIを対象とする。
-- 実装担当`bezier-patch`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  XYZ/xyY、CMY/CMYKの全27 APIを`efa2ca096e`で固定した。
+- 実装担当`bezier-patch`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-bezier-patch`であり、
   `libs/global/KisBezierPatch.{h,cpp}`、Global製品・試験CMake、新規限定試験を所有する。23工程・44入力の翻訳単位を
   専用生成物へ分け、制御点規約、境界、座標変換配送、通常・SVG2格子採取、診断表示の全23 APIを対象とする。
-- 実装担当`snap-config`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`snap-config`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-snap-config`であり、
   `libs/application/kis_snap_config.{h,cpp}`、Application製品・試験CMake、新規限定試験を所有する。従来試験の
   1,123工程・2,262入力を縮小し、8値の既定・変更・読込み・保存委譲・寿命の全21 APIを対象とする。
@@ -8727,9 +8727,24 @@
 - 第17並列便はタイル転送プール23 API、レベル補正曲線33 API、入力装置分類37 API、色チャンネル記述35 APIの合計128 APIを
   固定した。各実装担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
 
+## R2-G19b 色モデル変換の全public API契約と構築所有分離で完了した作業
+
+- `libs/pigment/KoColorConversions.h`の全27 APIを、既存
+  `libs/pigment/tests/TestColorConversion.{h,cpp}`の13試験へ対応付けた。整数・浮動小数のRGBとHSV・HSL、二つのHLS表現、
+  HSI・HSY・HCI・HCY、YUV、Lab・LCH、XYZ・xyY、CMY・CMYKについて、原色、無彩色、代表中間色の成分値または往復結果を固定した。
+- 開始ファイル`libs/pigment/KoColorConversions.cpp`の構築所有を`libs/pigment/CMakeLists.txt`の`kritapigment_SRCS`から
+  同ファイル内の新規`kritapigmentcolorconversionsobjects`へ移し、製品`kritapigment`が生成物を1回だけ再集約する。
+  開始試験`libs/pigment/tests/TestColorConversion.{h,cpp}`は`libs/pigment/tests/CMakeLists.txt`の製品・共通試験補助へ接続する
+  共通試験群から、専用生成物とQt Core・Testへ接続する限定対象へ移した。ファイル位置、公開ヘッダー、製品ABI、色変換処理は維持した。
+- 実装未接続の初回限定リンクはHSV・HSL変換の未定義記号で失敗した。macOSの専用生成物は1工程・3入力、限定試験は
+  5工程・11入力であり、従来試験の333工程・695入力から縮小した。製品`kritapigment`は329工程・688入力を維持する。
+  対象CTestの単発実行と20回反復、最近傍の`KoColorimetryUtilsContractTest`、パッケージ境界検査、高速検査に成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,735件、未対応24,254件になった。null出力、範囲外・非有限成分、
+  XYZの成分和0、xyYのy=0は実行していない。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第18並列便の色変換実装を進め、並行する3実装担当の引渡しを統合順に監査する。
+第18並列便の`bezier-patch`引渡し`b17b6a280e`を統合し、限定対象、20回反復、軽量隣接試験、公開API契約を主作業ツリーで再検証する。
 
 ## R1-G5完了根拠
 
