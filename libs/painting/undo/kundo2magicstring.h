@@ -104,6 +104,8 @@ private:
     friend KUndo2MagicString kundo2_i18nc(const char *ctxt, const char *text, const A1 &a1, const A2 &a2);
     template <typename A1, typename A2, typename A3>
     friend KUndo2MagicString kundo2_i18nc(const char *ctxt, const char *text, const A1 &a1, const A2 &a2, const A3 &a3);
+    template <typename A1, typename A2, typename A3, typename A4>
+    friend KUndo2MagicString kundo2_i18nc(const char *ctxt, const char *text, const A1 &a1, const A2 &a2, const A3 &a3, const A4 &a4);
 
 
     template <typename A1>
@@ -112,6 +114,8 @@ private:
     friend KUndo2MagicString kundo2_i18np(const char *sing, const char *plur, const A1 &a1, const A2 &a2);
     template <typename A1, typename A2, typename A3>
     friend KUndo2MagicString kundo2_i18np(const char *sing, const char *plur, const A1 &a1, const A2 &a2, const A3 &a3);
+    template <typename A1, typename A2, typename A3, typename A4>
+    friend KUndo2MagicString kundo2_i18np(const char *sing, const char *plur, const A1 &a1, const A2 &a2, const A3 &a3, const A4 &a4);
 
 
     template <typename A1>
@@ -120,6 +124,8 @@ private:
     friend KUndo2MagicString kundo2_i18ncp(const char *ctxt, const char *sing, const char *plur, const A1 &a1, const A2 &a2);
     template <typename A1, typename A2, typename A3>
     friend KUndo2MagicString kundo2_i18ncp(const char *ctxt, const char *sing, const char *plur, const A1 &a1, const A2 &a2, const A3 &a3);
+    template <typename A1, typename A2, typename A3, typename A4>
+    friend KUndo2MagicString kundo2_i18ncp(const char *ctxt, const char *sing, const char *plur, const A1 &a1, const A2 &a2, const A3 &a3, const A4 &a4);
 
 private:
     QString m_text;
@@ -258,19 +264,19 @@ inline KUndo2MagicString kundo2_i18np(const char *sing, const char *plur, const 
 template <typename A1, typename A2>
 inline KUndo2MagicString kundo2_i18np(const char *sing, const char *plur, const A1 &a1, const A2 &a2)
 {
-    return i18ncp("(qtundo-format)", sing, plur, a1, a2);
+    return KUndo2MagicString(i18ncp("(qtundo-format)", sing, plur, a1, a2));
 }
 
 template <typename A1, typename A2, typename A3>
 inline KUndo2MagicString kundo2_i18np(const char *sing, const char *plur, const A1 &a1, const A2 &a2, const A3 &a3)
 {
-    return i18ncp("(qtundo-format)", sing, plur, a1, a2, a3);
+    return KUndo2MagicString(i18ncp("(qtundo-format)", sing, plur, a1, a2, a3));
 }
 
 template <typename A1, typename A2, typename A3, typename A4>
 inline KUndo2MagicString kundo2_i18np(const char *sing, const char *plur, const A1 &a1, const A2 &a2, const A3 &a3, const A4 &a4)
 {
-    return i18ncp("(qtundo-format)", sing, plur, a1, a2, a3, a4);
+    return KUndo2MagicString(i18ncp("(qtundo-format)", sing, plur, a1, a2, a3, a4));
 }
 
 
@@ -287,19 +293,19 @@ inline KUndo2MagicString kundo2_i18ncp(const char *ctxt, const char *sing, const
 template <typename A1, typename A2>
 inline KUndo2MagicString kundo2_i18ncp(const char *ctxt, const char *sing, const char *plur, const A1 &a1, const A2 &a2)
 {
-    return i18ncp(prependContext(ctxt).toLatin1().data(), sing, plur, a1, a2);
+    return KUndo2MagicString(i18ncp(prependContext(ctxt).toLatin1().data(), sing, plur, a1, a2));
 }
 
 template <typename A1, typename A2, typename A3>
 inline KUndo2MagicString kundo2_i18ncp(const char *ctxt, const char *sing, const char *plur, const A1 &a1, const A2 &a2, const A3 &a3)
 {
-    return i18ncp(prependContext(ctxt).toLatin1().data(), sing, plur, a1, a2, a3);
+    return KUndo2MagicString(i18ncp(prependContext(ctxt).toLatin1().data(), sing, plur, a1, a2, a3));
 }
 
 template <typename A1, typename A2, typename A3, typename A4>
 inline KUndo2MagicString kundo2_i18ncp(const char *ctxt, const char *sing, const char *plur, const A1 &a1, const A2 &a2, const A3 &a3, const A4 &a4)
 {
-    return i18ncp(prependContext(ctxt).toLatin1().data(), sing, plur, a1, a2, a3, a4);
+    return KUndo2MagicString(i18ncp(prependContext(ctxt).toLatin1().data(), sing, plur, a1, a2, a3, a4));
 }
 
 #endif /* KUNDO2MAGICSTRING_H */

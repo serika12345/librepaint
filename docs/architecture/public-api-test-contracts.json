@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24932
+    "expectedMissingApis": 24901
   },
   "contracts": [
     {
@@ -14157,6 +14157,91 @@
       "classification": "maintained",
       "apis": [
         "method:KUndo2CommandExtraData::~KUndo2CommandExtraData()"
+      ]
+    },
+    {
+      "target": "KUndo2MagicStringContractTest",
+      "source": "libs/painting/tests/KUndo2MagicStringContractTest.cpp",
+      "test": "KUndo2MagicStringContractTest::defaultAndRawStringsExposeStableRepresentations",
+      "behavior": "既定値、翻訳不要文字列、主表示と副表示の分割、等値比較、空判定、診断出力が安定した表現を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KUndo2MagicString",
+        "function:kundo2_noi18n(const QString & text)",
+        "function:operator <<(QDebug dbg,const KUndo2MagicString & v)",
+        "method:KUndo2MagicString::KUndo2MagicString()",
+        "method:KUndo2MagicString::isEmpty() const",
+        "method:KUndo2MagicString::operator ==(const KUndo2MagicString & rhs) const",
+        "method:KUndo2MagicString::toSecondaryString() const",
+        "method:KUndo2MagicString::toString() const"
+      ]
+    },
+    {
+      "target": "KUndo2MagicStringContractTest",
+      "source": "libs/painting/tests/KUndo2MagicStringContractTest.cpp",
+      "test": "KUndo2MagicStringContractTest::nonTranslatableFormattingSupportsEveryArgumentCount",
+      "behavior": "翻訳不要の書式化は1個から4個の引数を順番どおり置換し、操作履歴の表示文字列として返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:kundo2_noi18n(const char * text,const A1 & a1)",
+        "function:kundo2_noi18n(const char * text,const A1 & a1,const A2 & a2)",
+        "function:kundo2_noi18n(const char * text,const A1 & a1,const A2 & a2,const A3 & a3)",
+        "function:kundo2_noi18n(const char * text,const A1 & a1,const A2 & a2,const A3 & a3,const A4 & a4)"
+      ]
+    },
+    {
+      "target": "KUndo2MagicStringContractTest",
+      "source": "libs/painting/tests/KUndo2MagicStringContractTest.cpp",
+      "test": "KUndo2MagicStringContractTest::translatedFormattingSupportsEveryArgumentCount",
+      "behavior": "翻訳対象の操作名は0個から4個の引数を受け取り、翻訳文脈を隠した表示文字列として返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:kundo2_i18n(const char * text)",
+        "function:kundo2_i18n(const char * text,const A1 & a1)",
+        "function:kundo2_i18n(const char * text,const A1 & a1,const A2 & a2)",
+        "function:kundo2_i18n(const char * text,const A1 & a1,const A2 & a2,const A3 & a3)",
+        "function:kundo2_i18n(const char * text,const A1 & a1,const A2 & a2,const A3 & a3,const A4 & a4)"
+      ]
+    },
+    {
+      "target": "KUndo2MagicStringContractTest",
+      "source": "libs/painting/tests/KUndo2MagicStringContractTest.cpp",
+      "test": "KUndo2MagicStringContractTest::contextualFormattingSupportsEveryArgumentCount",
+      "behavior": "任意の翻訳文脈をundo書式文脈へ合成し、0個から4個の引数を持つ操作名を表示文字列へ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:kundo2_i18nc(const char * ctxt,const char * text)",
+        "function:kundo2_i18nc(const char * ctxt,const char * text,const A1 & a1)",
+        "function:kundo2_i18nc(const char * ctxt,const char * text,const A1 & a1,const A2 & a2)",
+        "function:kundo2_i18nc(const char * ctxt,const char * text,const A1 & a1,const A2 & a2,const A3 & a3)",
+        "function:kundo2_i18nc(const char * ctxt,const char * text,const A1 & a1,const A2 & a2,const A3 & a3,const A4 & a4)",
+        "function:prependContext(const char * ctxt)"
+      ]
+    },
+    {
+      "target": "KUndo2MagicStringContractTest",
+      "source": "libs/painting/tests/KUndo2MagicStringContractTest.cpp",
+      "test": "KUndo2MagicStringContractTest::pluralFormattingSupportsEveryArgumentCount",
+      "behavior": "単数形と複数形を持つ操作名は数量を含む1個から4個の引数を受け取り、数量に合う表示文字列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:kundo2_i18np(const char * sing,const char * plur,const A1 & a1)",
+        "function:kundo2_i18np(const char * sing,const char * plur,const A1 & a1,const A2 & a2)",
+        "function:kundo2_i18np(const char * sing,const char * plur,const A1 & a1,const A2 & a2,const A3 & a3)",
+        "function:kundo2_i18np(const char * sing,const char * plur,const A1 & a1,const A2 & a2,const A3 & a3,const A4 & a4)"
+      ]
+    },
+    {
+      "target": "KUndo2MagicStringContractTest",
+      "source": "libs/painting/tests/KUndo2MagicStringContractTest.cpp",
+      "test": "KUndo2MagicStringContractTest::contextualPluralFormattingSupportsEveryArgumentCount",
+      "behavior": "文脈付きの単数形と複数形を持つ操作名は数量を含む1個から4個の引数を受け取り、数量に合う表示文字列を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:kundo2_i18ncp(const char * ctxt,const char * sing,const char * plur,const A1 & a1)",
+        "function:kundo2_i18ncp(const char * ctxt,const char * sing,const char * plur,const A1 & a1,const A2 & a2)",
+        "function:kundo2_i18ncp(const char * ctxt,const char * sing,const char * plur,const A1 & a1,const A2 & a2,const A3 & a3)",
+        "function:kundo2_i18ncp(const char * ctxt,const char * sing,const char * plur,const A1 & a1,const A2 & a2,const A3 & a3,const A4 & a4)"
       ]
     }
   ]

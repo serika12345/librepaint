@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:57 JST
+- 更新日時: 2026-08-29 16:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,26 +11,21 @@
 
 ### 現在の並列担当票
 
-- 第5並列便の共通基準コミットは`d12ddb2b`、後続の命令付加データ担当の基準は`dbc300f0`である。統合担当は`develop`の
+- 第6並列便の共通基準コミットは`d2ce296b`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`ui-node-model-data`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
-  `libs/ui/nodes/KisNodeModelData.cpp`、UI CMake、新規限定試験を所有し、模型の役割別データ取得1 APIを対象とする。
-- 統合担当`flake-debug-category`は`implemented`である。`libs/flake/FlakeDebug.cpp`、Flake CMake、新規限定試験を所有し、
-  Flake診断カテゴリの1 APIを対象とする。
-- 実装担当`image-convex-hull`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は1である。`libs/image/kis_convex_hull.h`と関連実装、Image CMake、新規限定試験を所有し、
-  凸包計算の3 APIを対象とする。
-- 実装担当`flake-curve-fit`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。`libs/flake/KoCurveFit.h`と関連実装、Flake CMake、新規限定試験を所有し、
-  ベジェ曲線近似の1 APIを対象とする。
-- 実装担当`paintops-texture-option-io`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。`plugins/paintops/libpaintop/KisTextureOptionData.h`と関連実装、CMake、新規限定試験を
-  所有し、テクスチャー設定の読書き2 APIを対象とする。
-- 実装担当`painting-command-extra-data`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は4である。`libs/painting/undo/kundo2commandextradata.{h,cpp}`と新規限定試験を所有し、
-  命令付加データの3 APIを対象とする。
+- 統合担当`painting-magic-string`は`implemented`である。`libs/painting/undo/kundo2magicstring.h`、Painting試験CMake、
+  新規限定試験を所有し、undo操作名の文字列表現と書式化31 APIを対象とする。
+- 実装担当`psdutils-offset-keeper`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は1である。`libs/psdutils/asl/kis_offset_keeper.h`と新規限定試験を所有し、
+  装置位置のスコープ復元3 APIを対象とする。
+- 実装担当`pigment-debug-category`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。`libs/pigment/DebugPigment.cpp`、Pigment CMake、新規限定試験を所有し、
+  色管理診断カテゴリの1 APIを対象とする。
+- 実装担当`widgets-debug-category`は`running`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。`libs/widgets/WidgetsDebug.cpp`、Widgets CMake、新規限定試験を所有し、
+  ウィジェット診断カテゴリの1 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -7950,9 +7945,26 @@
   パッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,057件、
   未対応24,932件になった。各製品派生型の複製内容は個別契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b undo操作名の全public API契約と小試験対象で完了した作業
+
+- `libs/painting/undo/kundo2magicstring.{h,cpp}`の製品所有は`kritapaintingundo`に維持した。新規
+  `libs/painting/tests/KUndo2MagicStringContractTest.cpp`が実装翻訳単位を直接コンパイルし、広い製品ライブラリーへリンクせず
+  undo操作名だけを検査する限定経路を追加した。製品コードのファイル移動と公開面の変更はない。
+- `libs/painting/undo/kundo2magicstring.h`の全31 APIを6試験へ対応付けた。既定値、主表示と副表示、空判定、等値比較、診断出力、
+  翻訳不要、翻訳対象、文脈付き、複数形、文脈付き複数形の各書式について、0個から4個の引数を持つ公開経路を固定した。
+  初回コンパイルは4引数文脈付き関数の私有構築子アクセス不足と、複数引数の複数形関数が`QString`を私有構築子へ暗黙変換できない
+  7箇所を診断した。公開テンプレートに不足していたfriend宣言と明示構築を補った後、実装接続前のリンクは構築子、表示取得、
+  空判定、等値比較だけを未解決記号として診断した。
+- 製品`kritapaintingundo`は248工程・527入力である。新規対象は5工程・11入力で、直接依存はKF I18n、Qt Test、Qt Core、
+  macOS基盤だけであり、製品ライブラリーを接続しない。
+- 統合担当のmacOS構築木で限定対象を構築し、直接コンパイルした生成物が構築子、表示取得、空判定、等値比較を定義することを
+  確認した。対象CTestの単発実行と20回反復、1,150対象のパッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み5,088件、未対応24,901件になった。
+  翻訳済みカタログを導入した場合の各言語表示は別の地域化契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-最新の公開API報告から構築範囲が重ならない第6並列便を選び、限定契約の実装を継続する。
+第6並列便の装置位置復元、色管理診断、ウィジェット診断の限定契約を順に統合し、公開API台帳へ反映する。
 
 ## R1-G5完了根拠
 

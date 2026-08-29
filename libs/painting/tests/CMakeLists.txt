@@ -15,3 +15,17 @@ target_include_directories(KUndo2CommandExtraDataContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/painting/undo
 )
 target_compile_definitions(KUndo2CommandExtraDataContractTest PRIVATE kritapaintingundo_EXPORTS)
+
+kis_add_test(
+    KUndo2MagicStringContractTest.cpp
+    ../undo/kundo2magicstring.cpp
+    TEST_NAME KUndo2MagicStringContractTest
+    LINK_LIBRARIES
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KUndo2MagicStringContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KUndo2MagicStringContractTest PRIVATE kritapaintingundo_EXPORTS)
