@@ -77,6 +77,21 @@ target_include_directories(kritapopupbuttonobjects
 target_link_libraries(kritapopupbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritapopupbuttonobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritamenustyledontcloseonaltobjects OBJECT
+    KisMenuStyleDontCloseOnAlt.cpp
+)
+target_compile_definitions(kritamenustyledontcloseonaltobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritamenustyledontcloseonaltobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritamenustyledontcloseonaltobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritamenustyledontcloseonaltobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -84,6 +99,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritaitemtooltipobjects>
     $<TARGET_OBJECTS:kritakineticscrollerobjects>
     $<TARGET_OBJECTS:kritapopupbuttonobjects>
+    $<TARGET_OBJECTS:kritamenustyledontcloseonaltobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -119,7 +135,6 @@ set(kritawidgetutils_LIB_SRCS
     KisOptionCollectionWidget.cpp
     KisOptionButtonStrip.cpp
     KisRepaintDebugger.cpp
-    KisMenuStyleDontCloseOnAlt.cpp
     KisSpinBoxI18nHelper.cpp
     KisScreenMigrationTracker.cpp
     KisRootSurfaceTrackerBase.cpp

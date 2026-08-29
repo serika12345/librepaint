@@ -74,6 +74,19 @@ target_include_directories(KisHighlightedToolButtonContractTest PRIVATE
 )
 target_compile_definitions(KisHighlightedToolButtonContractTest PRIVATE kritawidgetutils_EXPORTS)
 
+kis_add_test(
+    KisMenuStyleDontCloseOnAltContractTest.cpp
+    LINK_LIBRARIES
+        kritamenustyledontcloseonaltobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisMenuStyleDontCloseOnAltContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisMenuStyleDontCloseOnAltContractTest PRIVATE kritawidgetutils_EXPORTS)
+
 ki18n_wrap_ui(DialogStateSaver_SRCS
     dialogsavertestwidget.ui
 )
