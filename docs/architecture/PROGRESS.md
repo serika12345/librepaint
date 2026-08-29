@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:02 JST
+- 更新日時: 2026-08-29 21:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,7 +15,7 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`sql-query-loader`は`implementing`、統合順は1である。主作業ツリーで
+- 統合担当`sql-query-loader`は`integrated`、統合順は1である。主作業ツリーで
   `libs/resources/KisSqlQueryLoader.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。製品`kritaresources`の
   147工程・321入力からSQL読込実装を専用生成物へ分け、ファイル・文字列からの単一文と複数文、値束縛、逐次実行、
   一括実行、問合せ参照、ファイル・SQL例外の全22 APIを対象とする。
@@ -8614,9 +8614,24 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,515件、未対応24,474件になった。Linux、全ネイティブ検証、
   製品全体リンクは実行していない。
 
+## R2-G19b SQL問合せ読込の全public API契約で完了した作業
+
+- `libs/resources/KisSqlQueryLoader.h`の全22 APIを、新規
+  `libs/resources/tests/KisSqlQueryLoaderContractTest.cpp`の5試験へ対応付けた。ファイル・文字列からの単一文と複数文の
+  読込み、コメント除去と実行順、準備済み問合せへの値束縛、値一覧の一括実行、問合せ参照、読込器の破棄、
+  ファイル・SQL例外が保持する診断値を固定した。
+- 開始ファイル`libs/resources/KisSqlQueryLoader.cpp`の構築所有を`kritaresources_LIB_SRCS`から新規
+  `kritasqlqueryloaderobjects`へ移し、製品`kritaresources`が生成物を1回だけ再集約する。公開ヘッダー、実装位置、製品ABI、
+  SQL分割・実行処理は維持した。限定試験は製品共有ライブラリーへ接続せず、Qt Core、Sql、Testと専用生成物だけを使用する。
+- 実装未接続の初回限定リンクは全読込器操作の未定義記号で失敗した。macOSの製品`kritaresources`は変更前後とも
+  147工程・321入力、専用生成物は1工程・3入力、限定試験は5工程・11入力である。対象CTestの単発実行と20回反復、
+  最近傍の`KisDatabaseTransactionLockContractTest`に成功し、パッケージ境界検査は1,209対象、迅速検証は全項目で成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,537件、未対応24,452件になった。Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
 ## 次の操作
 
-第16並列便の4担当を専用作業ツリーで開始し、SQL問合せ読込契約から実装する。
+表示変換静止点の担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24474
+    "expectedMissingApis": 24452
   },
   "contracts": [
     {
@@ -15799,6 +15799,75 @@
         "method:KisStrokeUndoFacade::lastExecutedCommand() const",
         "method:KisStrokeUndoFacade::postExecutionUndoAdapter() const",
         "method:KisStrokeUndoFacade::~KisStrokeUndoFacade()"
+      ]
+    },
+    {
+      "target": "KisSqlQueryLoaderContractTest",
+      "source": "libs/resources/tests/KisSqlQueryLoaderContractTest.cpp",
+      "test": "KisSqlQueryLoaderContractTest::exceptionValuesPreserveDiagnostics",
+      "behavior": "単一文方式の目印型と定数は空の値として利用でき、ファイル例外とSQL例外は構築時に受けた診断文、経路、文番号、下位エラーを公開値へ保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisSqlQueryLoader::FileException::fileErrorString",
+        "member:KisSqlQueryLoader::FileException::filePath",
+        "member:KisSqlQueryLoader::FileException::message",
+        "member:KisSqlQueryLoader::SQLException::filePath",
+        "member:KisSqlQueryLoader::SQLException::message",
+        "member:KisSqlQueryLoader::SQLException::sqlError",
+        "member:KisSqlQueryLoader::SQLException::statementIndex",
+        "member:KisSqlQueryLoader::single_statement_mode",
+        "method:KisSqlQueryLoader::FileException::FileException(QString _message,QString _filePath,QString _fileErrorString)",
+        "method:KisSqlQueryLoader::SQLException::SQLException(QString _message,QString _filePath,int _statementIndex,QSqlError _sqlError)",
+        "struct:KisSqlQueryLoader::FileException",
+        "struct:KisSqlQueryLoader::SQLException",
+        "struct:KisSqlQueryLoader::single_statement_mode_t"
+      ]
+    },
+    {
+      "target": "KisSqlQueryLoaderContractTest",
+      "source": "libs/resources/tests/KisSqlQueryLoaderContractTest.cpp",
+      "test": "KisSqlQueryLoaderContractTest::inlineMultiStatementExecutesInOrderAndReportsFailures",
+      "behavior": "文字列から読み込んだ複数SQL文はコメントと空文を除いて順番に実行され、問合せ参照を維持し、失敗時は読込元と失敗した文番号を報告する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSqlQueryLoader",
+        "method:KisSqlQueryLoader::KisSqlQueryLoader(const QString & scriptName,const QString & script)",
+        "method:KisSqlQueryLoader::exec()",
+        "method:KisSqlQueryLoader::query()"
+      ]
+    },
+    {
+      "target": "KisSqlQueryLoaderContractTest",
+      "source": "libs/resources/tests/KisSqlQueryLoaderContractTest.cpp",
+      "test": "KisSqlQueryLoaderContractTest::inlineSingleStatementBindsAndExecutes",
+      "behavior": "文字列から読み込んだ単一SQL文は準備済み問合せへの値束縛を受けて実行され、制約違反を読込元と文番号0のSQL例外として報告する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSqlQueryLoader::KisSqlQueryLoader(const QString & scriptName,const QString & script,single_statement_mode_t)",
+        "method:KisSqlQueryLoader::exec()",
+        "method:KisSqlQueryLoader::query()"
+      ]
+    },
+    {
+      "target": "KisSqlQueryLoaderContractTest",
+      "source": "libs/resources/tests/KisSqlQueryLoaderContractTest.cpp",
+      "test": "KisSqlQueryLoaderContractTest::batchExecutesBoundValueLists",
+      "behavior": "単一SQL文へ束縛した値の一覧は一括実行され、各値に対応する行を順番どおり追加する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSqlQueryLoader::execBatch()"
+      ]
+    },
+    {
+      "target": "KisSqlQueryLoaderContractTest",
+      "source": "libs/resources/tests/KisSqlQueryLoaderContractTest.cpp",
+      "test": "KisSqlQueryLoaderContractTest::fileConstructorsLoadScriptsAndReportOpenFailures",
+      "behavior": "ファイルから読み込む複数文方式と単一文方式は内容を実行し、存在しない経路は経路と下位ファイル診断を持つ例外を返し、読込器は作用範囲の終了時に破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSqlQueryLoader::KisSqlQueryLoader(const QString & fileName)",
+        "method:KisSqlQueryLoader::KisSqlQueryLoader(const QString & fileName,single_statement_mode_t)",
+        "method:KisSqlQueryLoader::~KisSqlQueryLoader()"
       ]
     }
   ]
