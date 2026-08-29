@@ -143,6 +143,18 @@ target_include_directories(KoDerivedResourceConverterContractTest PRIVATE
 target_compile_definitions(KoDerivedResourceConverterContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoResourceUpdateMediatorContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeresourceupdatemediatorobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoResourceUpdateMediatorContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoResourceUpdateMediatorContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoShapeEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test

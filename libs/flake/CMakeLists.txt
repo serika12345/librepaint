@@ -104,6 +104,21 @@ set_target_properties(kritaflakederivedresourceconverterobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeresourceupdatemediatorobjects OBJECT
+    KoResourceUpdateMediator.cpp
+)
+target_compile_definitions(kritaflakeresourceupdatemediatorobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeresourceupdatemediatorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeresourceupdatemediatorobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakeresourceupdatemediatorobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakezoomstateobjects OBJECT
     KoZoomState.cpp
 )
@@ -418,7 +433,6 @@ set(kritaflake_SRCS
     KoFlake.cpp
     KoCanvasBase.cpp
     KoResourceManager_p.cpp
-    KoResourceUpdateMediator.cpp
     KoCanvasResourceProvider.cpp
     KoDocumentResourceManager.cpp
     KoCanvasObserverBase.cpp
@@ -615,6 +629,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
     $<TARGET_OBJECTS:kritaflakederivedresourceconverterobjects>
+    $<TARGET_OBJECTS:kritaflakeresourceupdatemediatorobjects>
     $<TARGET_OBJECTS:kritaflakezoomstateobjects>
     $<TARGET_OBJECTS:kritaflakeviewtransformstillpointobjects>
     $<TARGET_OBJECTS:kritaflakeviewconverterobjects>
