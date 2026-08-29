@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:48 JST
+- 更新日時: 2026-08-29 20:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,29 +11,31 @@
 
 ### 現在の並列担当票
 
-- 第15並列便の共通基準コミットは`fa8a43b84a`である。統合担当は`develop`の
+- 第16並列便の共通基準コミットは`019ad07262`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`size-group`は`integrated`、統合順は1である。主作業ツリーで
-  `libs/ui/widgets/kis_size_group.{h,cpp}`、`libs/ui/widgets/kis_size_group_p.{h,cpp}`、UI製品・試験CMake、新規限定試験を
-  所有する。製品`kritaapplicationui`の1,851工程・3,702入力から実装2単位を専用生成物へ分け、親所有、方向列挙、
-  方向・非表示除外設定、box・grid・form配置での寸法同期、非表示と除去後の再計算、仮想破棄の全14 APIを対象とする。
-- 実装担当`checkerboard-painter`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 統合担当`sql-query-loader`は`planned`、統合順は1である。主作業ツリーで
+  `libs/resources/KisSqlQueryLoader.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。製品`kritaresources`の
+  147工程・321入力からSQL読込実装を専用生成物へ分け、ファイル・文字列からの単一文と複数文、値束縛、逐次実行、
+  一括実行、問合せ参照、ファイル・SQL例外の全22 APIを対象とする。
+- 実装担当`optimized-byte-array`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-checkerboard-painter`であり、
-  `libs/widgetutils/KoCheckerBoardPainter.h`、Widget Utils試験CMake、新規限定試験を所有する。既存の1工程・3入力の
-  `kritacheckerboardpainterobjects`を再利用し、既定・指定色、周期、原点位相、描画範囲の全6 APIを対象とする。
-- 実装担当`mix-colors-operation`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `/Users/masato/Documents/librepaint-r2-g19b-optimized-byte-array`であり、
+  `libs/image/KisOptimizedByteArray.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の
+  翻訳単位を専用生成物へ分け、割当接続面、既定・独自割当器、明示寸法の充填と寸法変更、共有と書込み時分離、
+  再利用割当器の全23 APIを対象とする。
+- 実装担当`view-transform-still-point`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-mix-colors-operation`であり、`libs/pigment/KoMixColorsOp.h`、Pigment試験CMake、
-  新規限定試験を所有する。製品実装を追加せず、外側と入れ子の具象probeにより、6混色操作、混色器生成、累積、平均、
-  重み合計、出力、基底所有からの仮想破棄の全15 APIを対象とする。
-- 実装担当`image-interfaces`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-image-interfaces`であり、
-  `libs/image/kis_image_interfaces.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。製品`kritaimage`から小さな
-  実装単位を専用生成物へ分け、4接続面の全仮想操作、返値・引数配送、更新便宜関数の最終QVector形式への正規化、
-  基底所有からの仮想破棄の全33 APIを対象とする。
+  `/Users/masato/Documents/librepaint-r2-g19b-view-transform-still-point`であり、
+  `libs/flake/KoViewTransformStillPoint.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。351工程・730入力の
+  翻訳単位を専用生成物へ分け、既定・2点・組構築、コピー・移動、文書点・表示点参照、デバッグ出力の全11 APIを
+  対象とする。
+- 実装担当`qimage-pyramid`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-qimage-pyramid`であり、
+  `libs/brush/kis_qimage_pyramid.{h,cpp}`、Brush製品・試験CMake、新規限定試験を所有する。1,090工程・2,203入力の
+  翻訳単位を専用生成物へ分け、空状態、画像生成、幾何寸法、最寄り階層、回避境界、補間方式、返却画像寿命の全9 APIを
+  対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8614,7 +8616,7 @@
 
 ## 次の操作
 
-第16並列便の未対応APIと構築閉包を調査し、互いに独立した4担当票を確定する。
+第16並列便の4担当を専用作業ツリーで開始し、SQL問合せ読込契約から実装する。
 
 ## R1-G5完了根拠
 
