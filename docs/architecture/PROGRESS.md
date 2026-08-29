@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 17:23 JST
+- 更新日時: 2026-08-29 17:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -28,7 +28,7 @@
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、`libs/flake/commands/KoPathFillRuleCommand.{h,cpp}`、
   Flake製品集約CMake、試験CMake、新規限定試験を所有する。複数図形のfill rule変更とundo/redoを担う5 APIを対象とし、
   最も近い既存契約はFlakeのコマンド試験、対象はmacOSである。
-- 実装担当`widget-highlight`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`widget-highlight`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisHighlightedToolButton.h`、
   Widget Utils試験CMake、新規限定試験を所有する。チェック状態とパレット変更に応じた表示色の3 APIを対象とし、
@@ -8145,9 +8145,24 @@
   `./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,115件、未対応24,874件になった。
   Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 強調ボタン表示の全public API契約で完了した作業
+
+- `libs/widgetutils/KisHighlightedToolButton.h`の未対応3 APIを、新規
+  `libs/widgetutils/tests/KisHighlightedToolButtonContractTest.cpp`の2試験へ対応付けた。親paletteを基準に、未チェック時は
+  `Button`色、チェック時は`Highlight`色をボタンの`Button`役へ反映することと、ボタン自身の`PaletteChange`後に現在の
+  チェック状態に対応する親色へ戻すことを固定した。
+- 現行公開実装が契約を満たしていたため、製品コードと公開面は変更していない。親ウィジェットのpaletteを後から変更した場合の
+  自動追従は現行公開APIの観測対象へ含めず、R2で新しい表示挙動を追加するためのイベント監視も導入していない。
+- 変更前の製品`kritawidgetutils`は237工程・507入力、最近傍Qt限定契約は4工程・10入力である。新規限定対象は4工程・8入力、
+  直接依存はQt TestとQt Widgetsだけで、製品ライブラリーへリンクしない。既存の唯一の直接利用元
+  `libs/widgetutils/KoGroupButton.cpp`は翻訳単位だけを再コンパイルして成功した。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復に成功し、統合側のパッケージ境界検査は1,167対象で
+  成功した。公開API契約検査と`./scripts/verify-quick`にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,118件、
+  未対応24,871件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-第8並列便の強調ボタン表示契約を統合する。
+統合済み担当の再生成可能な専用構築木を整理して空き容量を回復し、第9並列便を選定する。
 
 ## R1-G5完了根拠
 

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24874
+    "expectedMissingApis": 24871
   },
   "contracts": [
     {
@@ -14406,6 +14406,27 @@
         "method:KoPathFillRuleCommand::redo()",
         "method:KoPathFillRuleCommand::undo()",
         "method:KoPathFillRuleCommand::~KoPathFillRuleCommand()"
+      ]
+    },
+    {
+      "target": "KisHighlightedToolButtonContractTest",
+      "source": "libs/widgetutils/tests/KisHighlightedToolButtonContractTest.cpp",
+      "test": "KisHighlightedToolButtonContractTest::checkStateSelectsParentPaletteColor",
+      "behavior": "親paletteを基準に、未チェック時はButton色、チェック時はHighlight色をボタンのButton roleへ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisHighlightedToolButton",
+        "method:KisHighlightedToolButton::KisHighlightedToolButton(QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisHighlightedToolButtonContractTest",
+      "source": "libs/widgetutils/tests/KisHighlightedToolButtonContractTest.cpp",
+      "test": "KisHighlightedToolButtonContractTest::ownPaletteChangeRestoresCurrentParentColor",
+      "behavior": "ボタン自身のpalette変更時に、親paletteから現在のチェック状態に対応するButton色を再適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisHighlightedToolButton::changeEvent(QEvent * event)"
       ]
     }
   ]
