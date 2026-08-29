@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 03:52 JST
+- 更新日時: 2026-08-30 04:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,35 +11,32 @@
 
 ### 現在の並列担当票
 
-- 第25並列便の共通基準コミットは`8e6919a62a`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g25-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+- 第26並列便の共通基準コミットは`ce4dc198ab`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g26-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`metadata-type-info`は`integrated`、実装コミットは`7e3c3350bc`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/painting/metadata/kis_meta_data_{type_info,schema}.{h,cc}`、`kis_meta_data_type_info_p.h`、Painting Metadata製品・試験CMake、
-  新規`KisMetaDataTypeInfoContractTest.cpp`を所有する。開始ファイル`kis_meta_data_type_info.cc`と相互参照する
-  `kis_meta_data_schema.cc`を製品`kritapaintingmetadata`の直接ソースから型・スキーマ専用生成物へ移し、製品へ1回だけ再集約する。
-  従来`kis_meta_data_test`の268工程・566入力に代えて、基本型、配列型、言語配列、選択肢、値検査、解析器、構造情報の全50 APIを
-  固定する。試験追加前に新規生成物と空の限定対象を構成して命令・入力閉包を実測し、15工程・32入力を超える場合は停止する。
-- 実装担当`svg-mesh-array`は`integrated`、引渡しコミットは`bb6dcbc39c`、統合コミットは`56b26b76c6`、構築実行許可は`granted`、
-  Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-svg-mesh-array`を予定し、
-  `libs/flake/svg/SvgMeshArray.{h,cpp}`、Flake製品・試験CMake、新規`SvgMeshArrayContractTest.cpp`を所有する。開始ファイル
-  `SvgMeshArray.cpp`を製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。変更前翻訳単位の
-  365工程・758入力から6工程・12入力前後へ縮小し、正規メッシュの構築、取得、共有辺・角・色の伝播、変換、深いコピーの全27 APIを
-  固定する。
-- 実装担当`node-visitor`は`integrated`、引渡しコミットは`2dbc33a050`、統合コミットは`08332db25c`、構築実行許可は`granted`、
-  Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-node-visitor`を予定し、
-  `libs/image/tests/CMakeLists.txt`と新規`KisNodeVisitorContractTest.cpp`だけを所有する。既存`kis_node_visitor_test`の
-  1,101工程・2,225入力に代えて、Qt Testだけの4工程・8入力前後で12ノード型の仮想配送、返値、ポインター同一性、仮想寿命の
-  全15 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`angle-gauge`は`integrated`、引渡しコミットは`27091f08df`、統合コミットは`228fb1d29e`、構築実行許可は`granted`、
-  Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g25-angle-gauge`を予定し、
-  `libs/widgets/KisAngleGauge.{h,cpp}`、Widgets製品・試験CMake、新規`KisAngleGaugeContractTest.cpp`を所有する。開始ファイル
-  `KisAngleGauge.cpp`を製品`kritawidgets`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の
-  722工程・1,473入力から7工程・14入力前後へ縮小し、既定状態、設定値、変更通知、リセット、親所有、寿命の全16 APIを固定する。
-- 第25並列便の完了時は合計108 APIを追加し、公開面の対応済み6,665件、未対応23,324件を見込む。各担当は公開面と製品挙動を
+- 統合担当`undo-group`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/painting/undo/kundo2group.h`、Painting Undo試験CMake、新規`KUndo2GroupContractTest.cpp`を所有する。開始実装
+  `kundo2group.cpp`は既に`kritapaintingundokundo2coreobjects`が所有するため製品CMakeを変更せず、従来`TestKUndo2Stack`の
+  264工程・558入力に代えて12工程・26入力以内で、群の初期状態、所属移動、活動対象、通知転送、取消・再実行、操作生成、寿命の
+  全24 APIを固定する。
+- 実装担当`css-font-info`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-css-font-info`を予定し、
+  `libs/flake/tests/CMakeLists.txt`と新規`KoCSSFontInfoContractTest.cpp`だけを所有する。開始ヘッダー
+  `libs/flake/text/KoCSSFontInfo.h`のインライン実装を維持し、従来`TestSvgText`の564工程・1,158入力に代えて4工程・7入力以内で、
+  既定値、標準軸と独自軸、傾斜、自動光学寸法、等値規約の全13 APIを固定する。製品実装と製品CMakeは変更しない。
+- 実装担当`projection-plane`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-projection-plane`を予定し、
+  `libs/image/kis_abstract_projection_plane.cpp`、Image製品・試験CMake、新規`KisAbstractProjectionPlaneContractTest.cpp`を所有する。
+  開始ファイル`kis_abstract_projection_plane.cpp`を製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。
+  従来`kis_paint_layer_test`の1,103工程・2,229入力に代えて5工程・11入力前後で、9仮想処理の配送と借用値、基底寿命、単純実装の
+  矩形透過・無処理・空結果の全22 APIを固定する。
+- 実装担当`bezier-utils`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-bezier-utils`を予定し、
+  `libs/global/KisBezierUtils.{h,cpp}`、Global製品・試験CMake、新規`KisBezierUtilsContractTest.cpp`を所有する。開始ファイル
+  `KisBezierUtils.cpp`を製品`kritaglobal`の直接ソースから専用生成物へ移し、既存の曲線長生成物とともに限定試験へ接続し、製品へ
+  1回だけ再集約する。製品の68工程・136入力に代えて7工程・16入力以内で、評価、微分、分割、線形化、曲線長、弧長変換、最近点、
+  交差、パッチ座標変換、制御点編集の全25 APIを固定する。
+- 第26並列便の完了時は合計84 APIを追加し、公開面の対応済み6,749件、未対応23,240件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
@@ -9278,9 +9275,8 @@
 
 ## 次の操作
 
-最新の未対応公開API報告`/tmp/librepaint-g25-missing.json`から第26並列便の候補を監査する。各候補の全公開面を一つの観測可能な
-責務として固定できるか確認し、既存対象の命令・入力閉包と製品の直接CMake依存を測定して、必要な構築所有分離を先行する担当票を
-確定する。
+第26並列便の計画基準をコミットし、3担当の専用Git作業ツリーと専用Ninja木を作る。構築実行許可を付与した後、統合担当はundo群の
+限定対象を開始し、各担当は製品共有ライブラリーを接続しない最小契約を赤から開始する。
 
 ## R1-G5完了根拠
 
