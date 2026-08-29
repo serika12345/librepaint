@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:59 JST
+- 更新日時: 2026-08-29 21:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,23 +15,23 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`sql-query-loader`は`planned`、統合順は1である。主作業ツリーで
+- 統合担当`sql-query-loader`は`implementing`、統合順は1である。主作業ツリーで
   `libs/resources/KisSqlQueryLoader.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。製品`kritaresources`の
   147工程・321入力からSQL読込実装を専用生成物へ分け、ファイル・文字列からの単一文と複数文、値束縛、逐次実行、
   一括実行、問合せ参照、ファイル・SQL例外の全22 APIを対象とする。
-- 実装担当`optimized-byte-array`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`optimized-byte-array`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-optimized-byte-array`であり、
   `libs/image/KisOptimizedByteArray.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の
   翻訳単位を専用生成物へ分け、割当接続面、既定・独自割当器、明示寸法の充填と寸法変更、共有と書込み時分離、
   再利用割当器の全23 APIを対象とする。
-- 実装担当`view-transform-still-point`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`view-transform-still-point`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-view-transform-still-point`であり、
   `libs/flake/KoViewTransformStillPoint.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。351工程・730入力の
   翻訳単位を専用生成物へ分け、既定・2点・組構築、コピー・移動、文書点・表示点参照、デバッグ出力の全11 APIを
   対象とする。
-- 実装担当`qimage-pyramid`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`qimage-pyramid`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-qimage-pyramid`であり、
   `libs/brush/kis_qimage_pyramid.{h,cpp}`、Brush製品・試験CMake、新規限定試験を所有する。1,090工程・2,203入力の
   翻訳単位を専用生成物へ分け、空状態、画像生成、幾何寸法、最寄り階層、回避境界、補間方式、返却画像寿命の全9 APIを
