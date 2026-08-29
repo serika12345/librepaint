@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 22:44 JST
+- 更新日時: 2026-08-29 22:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,27 +11,27 @@
 
 ### 現在の並列担当票
 
-- 第18並列便の共通基準コミットは`53adc80bb2`である。統合担当は`develop`の
+- 第19並列便の共通基準コミットは`afaa7ef412`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`color-conversions`は`integrated`、統合順は1である。主作業ツリーで
-  `libs/pigment/KoColorConversions.{h,cpp}`、既存`libs/pigment/tests/TestColorConversion.{h,cpp}`、Pigment製品・試験CMakeを
-  所有する。266工程・558入力の翻訳単位を専用生成物へ分け、整数・浮動小数HSV/HSL、HSI/HSY/HCI/HCY、YUV、Lab/LCH、
-  XYZ/xyY、CMY/CMYKの全27 APIを`efa2ca096e`で固定した。
-- 実装担当`bezier-patch`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-bezier-patch`であり、
-  `libs/global/KisBezierPatch.{h,cpp}`、Global製品・試験CMake、新規限定試験を所有する。23工程・44入力の翻訳単位を
-  専用生成物へ分け、制御点規約、境界、座標変換配送、通常・SVG2格子採取、診断表示の全23 APIを`be366bc64c`で固定した。
-- 実装担当`snap-config`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-snap-config`であり、
-  `libs/application/kis_snap_config.{h,cpp}`、Application製品・試験CMake、新規限定試験を所有する。従来試験の
-  1,123工程・2,262入力を縮小し、8値の既定・変更・読込み・保存委譲・寿命の全21 APIを`ec8aec724c`で固定した。
-- 実装担当`sensor-data`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-sensor-data`であり、
-  `plugins/paintops/libpaintop/KisSensorData.{h,cpp}`、PaintOp製品・試験CMake、新規限定試験を所有する。描画実行生成物に
-  混在する1翻訳単位を専用生成物へ分け、基底・長さ・描画角度センサーの既定、範囲、初期化、XML、同値性、寿命の全30 APIを
-  `2b4a88b8e4`で固定した。
+- 統合担当`psd-header`は`planned`、統合順は1である。主作業ツリーで`libs/psd/psd_header.{h,cpp}`、
+  `libs/psd/CMakeLists.txt`、既存`plugins/impex/psd/tests/psd_header_test.{h,cpp}`と試験CMakeを所有する。既存試験の
+  1,875工程・3,746入力を専用生成物とメモリー内入出力へ縮小し、既定値、検証、読込み、書込み、診断表示の全16 APIを対象とする。
+- 実装担当`writing-system`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-writing-system`であり、
+  `libs/flake/text/KoWritingSystemUtils.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。557工程・1,145入力の既存
+  broken試験から分離し、文字体系列挙対応、見本、BCP 47解析・整形、QLocale変換の全22 APIを対象とする。
+- 実装担当`frame-cache-index`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-frame-cache-index`であり、
+  `libs/canvas/animation/kis_animation_frame_cache_index.{h,cpp}`、Canvas製品・試験CMake、既存限定化試験を所有する。既存試験の
+  1,116工程・2,250入力を縮小し、操作値、有限・無限範囲、挿入、無効化、結合、交差、長さ、削除の全22 APIを対象とする。
+- 実装担当`wrapped-rect`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-wrapped-rect`であり、
+  `libs/image/kis_wrapped_rect.h`、Image試験CMake、新規限定試験を所有する。既存試験の1,092工程・2,207入力をQt限定対象へ縮小し、
+  座標正規化、切取り、包含、複製原点、4象限分割、周期複製の全22 APIを対象とする。
+- 第19並列便の完了時は合計82 APIを追加し、公開面の対応済み5,891件、未対応24,098件を見込む。各担当は公開面と製品挙動を
+  維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8798,7 +8798,7 @@
 
 ## 次の操作
 
-5,809件対応済みの公開API報告から、重ならない所有単位と最小構築閉包を監査し、第19並列便の4担当票を確定する。
+共通基準`afaa7ef412`から3専用作業ツリーを作成し、第19並列便の構築実行とtransport commitを許可して4担当を開始する。
 
 ## R1-G5完了根拠
 
