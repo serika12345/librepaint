@@ -44,6 +44,21 @@ set_target_properties(kritaflakezoomstateobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeviewtransformstillpointobjects OBJECT
+    KoViewTransformStillPoint.cpp
+)
+target_compile_definitions(kritaflakeviewtransformstillpointobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeviewtransformstillpointobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeviewtransformstillpointobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakeviewtransformstillpointobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakesvgtransformparserobjects OBJECT
     svg/parsers/SvgTransformParser.cpp
 )
@@ -265,7 +280,6 @@ set(kritaflake_SRCS
     KoSnapStrategy.cpp
     KoSnapData.cpp
     KoViewConverter.cpp
-    KoViewTransformStillPoint.cpp
     KoClipMaskApplicatorBase.cpp
     ${__per_arch_alpha_applicator_factory_objs}
     KoClipMaskPainter.cpp
@@ -406,6 +420,7 @@ set(kritaflake_SRCS
 
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakezoomstateobjects>
+    $<TARGET_OBJECTS:kritaflakeviewtransformstillpointobjects>
     $<TARGET_OBJECTS:kritaflakesvgtransformparserobjects>
     $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakegradienthelperobjects>
