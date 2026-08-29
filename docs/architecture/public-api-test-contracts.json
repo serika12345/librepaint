@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24843
+    "expectedMissingApis": 24837
   },
   "contracts": [
     {
@@ -14593,6 +14593,32 @@
       "apis": [
         "class:KoTitledTabWidget",
         "method:KoTitledTabWidget::KoTitledTabWidget(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisPaintopLodLimitationsContractTest",
+      "source": "libs/image/tests/KisPaintopLodLimitationsContractTest.cpp",
+      "test": "KisPaintopLodLimitationsContractTest::equalityAndHashingUseIdentifierCollections",
+      "behavior": "新規の詳細度制約値は制限集合と阻害要因集合が空で等しく、両集合の内容で等値を判定する。KoIDのハッシュは表示名ではなく識別子のQStringハッシュをuint幅で用いる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintopLodLimitations",
+        "function:operator ==(const KisPaintopLodLimitations & lhs,const KisPaintopLodLimitations & rhs)",
+        "function:qHash(const KoID & id)",
+        "member:KisPaintopLodLimitations::blockers",
+        "member:KisPaintopLodLimitations::limitations"
+      ]
+    },
+    {
+      "target": "KisPaintopLodLimitationsContractTest",
+      "source": "libs/image/tests/KisPaintopLodLimitationsContractTest.cpp",
+      "test": "KisPaintopLodLimitationsContractTest::mergeUnitesLimitationsAndBlockers",
+      "behavior": "詳細度制約値への合成は自身を返し、既存要素を保持しながら制限集合と阻害要因集合をそれぞれ重複なしで和集合にする。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPaintopLodLimitations::blockers",
+        "member:KisPaintopLodLimitations::limitations",
+        "method:KisPaintopLodLimitations::operator |=(const KisPaintopLodLimitations & rhs)"
       ]
     }
   ]

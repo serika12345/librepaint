@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:38 JST
+- 更新日時: 2026-08-29 18:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,7 +15,7 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`paintop-lod-limitations`は`implementing`である。
+- 統合担当`paintop-lod-limitations`は`verified`、実装コミットは`74eb14829c`である。
   `libs/image/brushengine/kis_paintop_lod_limitations.h`、Image試験CMake、新規限定試験を所有する。制限・阻害要因の
   集合、等値、和集合、`KoID`ハッシュの6 APIを対象とし、既存`kritaglobalidobjects`を再利用する。統合順は1である。
 - 実装担当`image-lzf-compression`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -8303,9 +8303,23 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,146件、未対応24,843件になった。Linux、全ネイティブ検証、
   製品全体のリンクは実行していない。
 
+## R2-G19b 描画操作の詳細度制約集合の全public API契約で完了した作業
+
+- `libs/image/brushengine/kis_paintop_lod_limitations.h`の全6 APIを、新規
+  `libs/image/tests/KisPaintopLodLimitationsContractTest.cpp`の2試験へ対応付けた。空の制限・阻害要因集合、両集合を
+  用いる等値判定、表示名に依存しない`KoID`識別子ハッシュ、既存値を保持する集合別の合成を固定した。
+- 全APIが公開ヘッダー内で完結するため製品実装と構築所有を変更していない。限定試験は既存の
+  `kritaglobalidobjects`とQt Testだけへ接続し、`kritaimage`を含む動的`libkrita*`依存を持たない。変更前の
+  最近傍`KoIDContractTest`と新規対象はいずれも5工程・12入力、再利用するKoID生成対象は1工程・3入力である。
+- 初回は未登録対象を`unknown target`として診断した。契約追加後にQStringハッシュの64ビット値と公開`qHash`の
+  `uint`値の差を観測し、現行の32ビット幅変換を期待値として明示した。macOSで対象CTestの単発実行と20回反復、
+  最近傍契約に成功し、パッケージ境界検査は1,180対象で成功した。公開面は1,549ヘッダー、29,989 API、
+  対応済み5,152件、未対応24,837件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-第11並列便の4担当を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
+`image-lzf-compression`、`spinbox-i18n-formatting`、`alpha-mask-applicator-interface`を並行実装し、統合順に
+差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
