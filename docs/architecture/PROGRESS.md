@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:48 JST
+- 更新日時: 2026-08-29 21:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,7 +24,7 @@
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-levels-curve`であり、
   `libs/image/KisLevelsCurve.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の翻訳単位を
   専用生成物へ分け、既定・設定値、評価、変更・初期化、値意味論、転送表、文字列表現の全33 APIを対象とする。
-- 実装担当`input-device`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`input-device`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-input-device`であり、
   `libs/flake/KoInputDevice.{h,cpp}`、既存`libs/flake/tests/TestInputDevice.{h,cpp}`、Flake製品・試験CMakeを所有する。
   352工程・732入力の翻訳単位を専用生成物へ分け、全分類値、QTabletEvent変換、構築・比較・ハッシュ、既定生成、
@@ -8699,9 +8699,23 @@
   成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,636件、未対応24,353件になった。Linux、全ネイティブ検証、
   製品全体リンクは実行していない。転送表寸法1以下、不正な数値パラメーター、非数値、並行キャッシュは実行していない。
 
+## R2-G19b 入力装置分類値の全public API契約で完了した作業
+
+- `libs/flake/KoInputDevice.h`の全37 APIを、既存`libs/flake/tests/TestInputDevice.{h,cpp}`の9試験へ対応付けた。
+  Qt6の全装置・ポインター分類、タブレット事象変換、構築・取得・コピー・代入・同値判定、標準装置、ハッシュ、診断表示、寿命を固定した。
+  明示したMouse/Genericが`isMouse()`で偽になることと、Qt6追加分類の診断名不足は既知不具合として記録した。
+- 開始ファイル`libs/flake/KoInputDevice.cpp`の構築所有を`kritaflake_SRCS`から新規
+  `kritaflakeinputdeviceobjects`へ移し、製品`kritaflake`が生成物を1回だけ再集約する。開始試験
+  `libs/flake/tests/TestInputDevice.{h,cpp}`は製品、共通試験補助、XML直列化へ接続する共通試験群から、専用生成物とQt Testへ接続する
+  限定対象へ移した。公開ヘッダー、製品ABI、入力分類処理は維持した。
+- 実装未接続の初回限定リンクは構築・破棄、取得、比較、代入、標準装置、診断表示の未定義記号で失敗した。macOSの専用生成物は
+  1工程・3入力、限定試験は5工程・11入力であり、従来試験の557工程・1,145入力から縮小した。対象CTestの単発実行と20回反復、
+  最近傍の`KoViewTransformStillPointContractTest`、パッケージ境界検査に成功した。公開面は1,549ヘッダー、29,989 API、
+  対応済み5,673件、未対応24,316件になった。Qt5条件分岐、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第17並列便の`input-device`引渡しを監査して統合し、限定構築、対象試験、反復、隣接試験、公開API契約検査を再実行する。
+第17並列便の`channel-info`引渡しを監査して統合し、限定構築、対象試験、反復、隣接試験、公開API契約検査を再実行する。
 
 ## R1-G5完了根拠
 

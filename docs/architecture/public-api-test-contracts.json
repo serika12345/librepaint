@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24353
+    "expectedMissingApis": 24316
   },
   "contracts": [
     {
@@ -16186,6 +16186,126 @@
         "method:KisLevelsCurve::KisLevelsCurve(const QString & text)",
         "method:KisLevelsCurve::fromString(const QString & text,bool * ok=nullptr)",
         "method:KisLevelsCurve::toString() const"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::enumValuesMatchQtInputClassifications",
+      "behavior": "入力装置とポインターの全公開列挙値は対応するQt6分類値と一致する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoInputDevice",
+        "enum:KoInputDevice::InputDevice",
+        "enum:KoInputDevice::Pointer",
+        "enumerator:KoInputDevice::InputDevice::Airbrush",
+        "enumerator:KoInputDevice::InputDevice::AllDevices",
+        "enumerator:KoInputDevice::InputDevice::Keyboard",
+        "enumerator:KoInputDevice::InputDevice::Mouse",
+        "enumerator:KoInputDevice::InputDevice::Puck",
+        "enumerator:KoInputDevice::InputDevice::Stylus",
+        "enumerator:KoInputDevice::InputDevice::TouchPad",
+        "enumerator:KoInputDevice::InputDevice::TouchScreen",
+        "enumerator:KoInputDevice::InputDevice::Unknown",
+        "enumerator:KoInputDevice::Pointer::AllPointerTypes",
+        "enumerator:KoInputDevice::Pointer::Cursor",
+        "enumerator:KoInputDevice::Pointer::Eraser",
+        "enumerator:KoInputDevice::Pointer::Finger",
+        "enumerator:KoInputDevice::Pointer::Generic",
+        "enumerator:KoInputDevice::Pointer::Pen",
+        "enumerator:KoInputDevice::Pointer::Unknown"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::tabletEventsMapQtDeviceAndPointerTypes",
+      "behavior": "有効期間を保持したQt6タブレット事象から、全装置種別と全ポインター種別を対応する公開分類へ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoInputDevice::convertDeviceType(QTabletEvent * event)",
+        "method:KoInputDevice::convertPointerType(QTabletEvent * event)"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::constructionAndMouseFallbackPreserveState",
+      "behavior": "既定構築は不明装置・不明ポインター・識別子-1のマウス代替状態となり、値構築は64ビット識別子を含む全状態を保持する。不明な装置またはポインターはマウスとして扱う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoInputDevice::KoInputDevice()",
+        "method:KoInputDevice::KoInputDevice(InputDevice device,Pointer pointer,qint64 uniqueTabletId=-1)",
+        "method:KoInputDevice::device() const",
+        "method:KoInputDevice::isMouse() const",
+        "method:KoInputDevice::pointer() const",
+        "method:KoInputDevice::uniqueTabletId() const"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::copyAssignmentEqualityAndLifetime",
+      "behavior": "コピー構築と代入は隠れたマウス状態を含む値を保持し、代入は自身を返す。等値比較は装置、ポインター、識別子、マウス状態の全てを区別し、コピーは元の寿命から独立して破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoInputDevice::KoInputDevice(const KoInputDevice & other)",
+        "method:KoInputDevice::operator =(const KoInputDevice &)",
+        "method:KoInputDevice::operator ==(const KoInputDevice &) const",
+        "method:KoInputDevice::~KoInputDevice()"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::factoriesExposeCanonicalDevices",
+      "behavior": "標準生成関数は、不明な無効入力、既定マウス、Stylus/Pen、Stylus/Eraserという各既定状態を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoInputDevice::eraser()",
+        "method:KoInputDevice::invalid()",
+        "method:KoInputDevice::mouse()",
+        "method:KoInputDevice::stylus()"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::equalDevicesProduceEqualHashes",
+      "behavior": "等しい入力装置値は同じハッシュ値を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "function:qHash(const KoInputDevice & key)"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::debugOutputKeepsCurrentLabels",
+      "behavior": "診断表示はマウス、ペン、消しゴム、カーソルおよび対応する従来装置名と識別子を現在の語彙で出力する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KoInputDevice & device)"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::concreteMouseDeviceIsNotReportedAsMouse",
+      "behavior": "Mouse装置とGenericポインターを明示構築した値は、公開分類がマウスであるにもかかわらずisMouseで偽を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoInputDevice::isMouse() const"
+      ]
+    },
+    {
+      "target": "TestInputDevice",
+      "source": "libs/flake/tests/TestInputDevice.cpp",
+      "test": "TestInputDevice::qt6AdditionalTypesUseUnsupportedDebugLabels",
+      "behavior": "Qt6で追加されたFingerポインターとTouchScreen装置の診断表示は、具体的な分類名ではなくUnsupported pointer typeとUnsupported device typeを出力する。",
+      "classification": "known_defect",
+      "apis": [
+        "function:operator <<(QDebug debug,const KoInputDevice & device)"
       ]
     }
   ]
