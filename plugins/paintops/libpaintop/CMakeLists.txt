@@ -129,7 +129,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisRotationOption.cpp
     KisScatterOption.cpp
     KisScatterOptionData.cpp
-    KisSensorData.cpp
     KisSensorPackInterface.cpp
     KisSharpnessOption.cpp
     KisSharpnessOptionData.cpp
@@ -158,6 +157,7 @@ set(kritapaintopruntime_LIB_SRCS
 
 list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     ${kritapaintopruntime_LIB_SRCS}
+    KisSensorData.cpp
     KisTextureOptionData.cpp
 )
 
@@ -274,6 +274,34 @@ set_target_properties(kritapaintoptextureoptionioobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopsensordataobjects OBJECT
+    KisSensorData.cpp
+)
+target_compile_definitions(kritapaintopsensordataobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopsensordataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+)
+target_link_libraries(kritapaintopsensordataobjects
+    PUBLIC
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Eigen3::Eigen
+)
+set_target_properties(kritapaintopsensordataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
@@ -285,10 +313,12 @@ target_include_directories(kritapaintopruntime INTERFACE
 )
 target_sources(kritapaintopruntime INTERFACE
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
+    $<TARGET_OBJECTS:kritapaintopsensordataobjects>
 )
 target_link_libraries(kritapaintopruntime
     kritalibbrush
     kritapainting
+    kritapaintopsensordataobjects
     kritapaintoptextureoptionioobjects
 )
 
@@ -296,6 +326,7 @@ kis_add_library(kritalibpaintop SHARED
     ${kritalibpaintop_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopruntime>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintopsensordataobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
 )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)

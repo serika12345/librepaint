@@ -75,3 +75,16 @@ kis_add_test(
 target_compile_definitions(KisCurveControlStrategyInterfacesContractTest PRIVATE
     kritalibpaintop_EXPORTS
 )
+
+kis_add_test(
+    KisSensorDataContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopsensordataobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisSensorDataContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+)
