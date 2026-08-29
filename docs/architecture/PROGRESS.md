@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:05 JST
+- 更新日時: 2026-08-29 14:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -22,7 +22,7 @@
   `KisForestTest`を最も近い契約とする。対象は`KisForest.h`の`childBegin(ChildIterator)`、`childEnd(ChildIterator)`、
   `operator<<(QDebug, ChildIterator)`、`parent(ChildIterator)`、`siblingBegin(ChildIterator)`、
   `siblingEnd(ChildIterator)`の6 APIである。
-- 実装担当`image-frame-lock`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`image-frame-lock`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。`libs/image/KisBlockBackgroundFrameGenerationLock.{h,cpp}`、
   `libs/image/CMakeLists.txt`、`libs/image/tests/KisBlockBackgroundFrameGenerationLockContractTest.cpp`、
   `libs/image/tests/CMakeLists.txt`を所有し、`KisAdaptedLockTest`を隣接契約とする。対象はアダプタークラス、構築、
@@ -7649,11 +7649,27 @@
   公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,975件、未対応25,014件に
   なった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 背景フレーム生成ロックのpublic API契約と小構築対象で完了した作業
+
+- `libs/image/KisBlockBackgroundFrameGenerationLock.cpp`を、製品`kritaimage`による直接コンパイルから新規
+  `kritaimagebackgroundframegenerationlockobjects`の所有ソースへ移し、その生成物を同じ製品へ1回再集約した。
+  物理ファイルと公開宣言は維持し、背景フレーム生成の停止・再開委譲だけを独立して構築できる境界にした。
+- `libs/image/KisBlockBackgroundFrameGenerationLock.h`のアダプター型、構築、`lock()`、`unlock()`を、新規
+  `libs/image/tests/KisBlockBackgroundFrameGenerationLockContractTest.cpp`の2試験へ対応付けた。構築時の借用先保持と、
+  同じアニメーション接続面への停止・再開の順序および各1回の委譲を固定した。製品実装接続前のリンクは対象3メソッドだけを
+  未解決記号として診断した。
+- 変更前後の製品`kritaimage`閉包は1,076工程・2,176入力で不変である。既存の具象画像アニメーション試験は
+  1,080工程・2,183入力だったため、専用対象を1工程・3入力、契約対象を5工程・11入力へ分離した。直接依存は専用対象が
+  Qt Core、契約対象が専用対象とQt Testだけである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、対象CTestの単発実行と20回反復を成功させた。構成時の
+  パッケージ境界検査も1,112対象で成功した。公開API契約検査と高速検査も成功し、公開面は1,549ヘッダー、29,989 API、
+  対応済み4,979件、未対応25,010件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-準備完了した`image-frame-lock`を統合順2として取り込み、中央契約台帳と進捗を同期して対象CTest、公開API契約検査、高速検査を
-再実行する。続いて`flake-zoom-state`を統合順3として同じ手順で取り込む。各統合を独立したレビュー可能コミットに固定した後、
-統合担当は`libs/ui/nodes/kis_node_model.h`の`dropMimeData()`について変更なし計画、直接依存、空構築閉包を先に監査する。
+準備完了した`flake-zoom-state`を統合順3として取り込み、中央契約台帳と進捗を同期して対象CTest、公開API契約検査、高速検査を
+再実行する。独立したレビュー可能コミットに固定した後、統合担当は`libs/ui/nodes/kis_node_model.h`の`dropMimeData()`について
+変更なし計画、直接依存、空構築閉包を先に監査する。
 
 ## R1-G5完了根拠
 

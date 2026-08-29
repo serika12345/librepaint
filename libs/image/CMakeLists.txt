@@ -138,6 +138,23 @@ set_target_properties(kritaimagesignalsobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagebackgroundframegenerationlockobjects OBJECT
+   KisBlockBackgroundFrameGenerationLock.cpp
+)
+target_compile_definitions(kritaimagebackgroundframegenerationlockobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagebackgroundframegenerationlockobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagebackgroundframegenerationlockobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagebackgroundframegenerationlockobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagenodecommandobjects OBJECT
    commands/kis_node_command.cpp
 )
@@ -477,7 +494,6 @@ set(kritaimage_LIB_SRCS
    KisBezierTransformMesh.cpp
 
    KisEncloseAndFillPainter.cpp
-   KisBlockBackgroundFrameGenerationLock.cpp
    KisLockFrameGenerationLock.cpp
 
    kis_convex_hull.cpp
@@ -502,6 +518,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
    $<TARGET_OBJECTS:kritaimagegreencoordinatesobjects>
    $<TARGET_OBJECTS:kritaimagesignalsobjects>
+   $<TARGET_OBJECTS:kritaimagebackgroundframegenerationlockobjects>
    $<TARGET_OBJECTS:kritaimagenodecommandobjects>
 )
 

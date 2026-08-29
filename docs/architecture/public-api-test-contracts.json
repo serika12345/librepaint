@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25014
+    "expectedMissingApis": 25010
   },
   "contracts": [
     {
@@ -13612,6 +13612,28 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::mimeData(const QModelIndexList & indexes) const"
+      ]
+    },
+    {
+      "target": "KisBlockBackgroundFrameGenerationLockContractTest",
+      "source": "libs/image/tests/KisBlockBackgroundFrameGenerationLockContractTest.cpp",
+      "test": "KisBlockBackgroundFrameGenerationLockContractTest::retainsBorrowedAnimationInterface",
+      "behavior": "構築時に受け取った借用アニメーション接続面を保持し、呼出側のポインター変数が変わっても元の借用先へ背景フレーム生成停止を委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBlockBackgroundFrameGenerationLockAdapter",
+        "method:KisBlockBackgroundFrameGenerationLockAdapter::KisBlockBackgroundFrameGenerationLockAdapter(KisImageAnimationInterface * interface)"
+      ]
+    },
+    {
+      "target": "KisBlockBackgroundFrameGenerationLockContractTest",
+      "source": "libs/image/tests/KisBlockBackgroundFrameGenerationLockContractTest.cpp",
+      "test": "KisBlockBackgroundFrameGenerationLockContractTest::delegatesBackgroundGenerationControlExactlyOnce",
+      "behavior": "lock()は背景フレーム生成停止を、unlock()は再開を、同じ借用アニメーション接続面へこの順でそれぞれ正確に1回委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBlockBackgroundFrameGenerationLockAdapter::lock()",
+        "method:KisBlockBackgroundFrameGenerationLockAdapter::unlock()"
       ]
     }
   ]

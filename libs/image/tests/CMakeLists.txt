@@ -286,6 +286,23 @@ target_include_directories(KisBehaviorInterfacesContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/pigment
 )
 
+kis_add_test(
+    KisBlockBackgroundFrameGenerationLockContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagebackgroundframegenerationlockobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_sources(KisBlockBackgroundFrameGenerationLockContractTest PRIVATE
+    ../kis_image_animation_interface.h
+)
+target_compile_definitions(KisBlockBackgroundFrameGenerationLockContractTest PRIVATE kritaimage_EXPORTS)
+target_include_directories(KisBlockBackgroundFrameGenerationLockContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 
