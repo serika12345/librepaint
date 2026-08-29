@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 22:59 JST
+- 更新日時: 2026-08-29 23:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,18 +15,20 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`psd-header`は`implementing`、統合順は1である。主作業ツリーで`libs/psd/psd_header.{h,cpp}`、
-  `libs/psd/CMakeLists.txt`、既存`plugins/impex/psd/tests/psd_header_test.{h,cpp}`と試験CMakeを所有する。既存試験の
-  1,875工程・3,746入力を専用生成物とメモリー内入出力へ縮小し、既定値、検証、読込み、書込み、診断表示の全16 APIを対象とする。
-- 実装担当`writing-system`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 統合担当`psd-header`は`integrated`、実装コミットは`aafaf80523`、統合順は1である。開始ファイル
+  `libs/psd/psd_header.cpp`の構築所有を`libs/psd/CMakeLists.txt`の製品ソース列挙から同ファイルの
+  `kritapsdheaderobjects`へ移し、製品`kritapsd`へ一度だけ再集約した。開始試験
+  `plugins/impex/psd/tests/psd_header_test.{h,cpp}`は同じパスのまま外部試験データ・製品・共通試験補助への接続を除き、
+  専用生成物とメモリー内入出力へ移した。既定値、検証、読込み、書込み、診断表示の全16 APIを固定した。
+- 実装担当`writing-system`は`ready`、担当先端は`5e2b5f9118`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-writing-system`であり、
   `libs/flake/text/KoWritingSystemUtils.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。557工程・1,145入力の既存
   broken試験から分離し、文字体系列挙対応、見本、BCP 47解析・整形、QLocale変換の全22 APIを対象とする。
-- 実装担当`frame-cache-index`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`frame-cache-index`は`ready`、担当先端は`93c9848208`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-frame-cache-index`であり、
   `libs/canvas/animation/kis_animation_frame_cache_index.{h,cpp}`、Canvas製品・試験CMake、既存限定化試験を所有する。既存試験の
   1,116工程・2,250入力を縮小し、操作値、有限・無限範囲、挿入、無効化、結合、交差、長さ、削除の全22 APIを対象とする。
-- 実装担当`wrapped-rect`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`wrapped-rect`は`ready`、担当先端は`90e23c4e07`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-wrapped-rect`であり、
   `libs/image/kis_wrapped_rect.h`、Image試験CMake、新規限定試験を所有する。既存試験の1,092工程・2,207入力をQt限定対象へ縮小し、
   座標正規化、切取り、包含、複製原点、4象限分割、周期複製の全22 APIを対象とする。
@@ -8796,9 +8798,26 @@
 - 第18並列便は色モデル変換27 API、Bezier曲面23 API、スナップ設定21 API、センサー設定値30 APIの合計101 APIを固定した。
   各実装担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
 
+## R2-G19b PSDヘッダーの全public API契約と構築所有分離で完了した作業
+
+- `libs/psd/psd_header.h`の全16 APIを、既存`plugins/impex/psd/tests/psd_header_test.{h,cpp}`の5試験へ
+  対応付けた。既定値、PSD・PSBの版別妥当性、ビッグエンディアン読込み、標準バイト列への書込み、不正入力診断、
+  診断表示を固定した。外部PSDファイルへの依存を除き、固定バイト列と`QBuffer`で入出力を再現する。
+- 開始ファイル`libs/psd/psd_header.cpp`の構築所有を`libs/psd/CMakeLists.txt`の`kritapsd_SRCS`から同ファイル内の新規
+  `kritapsdheaderobjects`へ移し、製品`kritapsd`が生成物を1回だけ再集約する。開始試験
+  `plugins/impex/psd/tests/psd_header_test.{h,cpp}`は同じパスのまま、製品`kritapsd`、`kritatestsdk`、外部試験データから
+  専用生成物とQt Core・Testへ接続先を移した。書込み実装は過大な`psd_utils.h`参照を除き、必要な文字列、整数の
+  ビッグエンディアン化、ゼロ詰めを`libs/psd/psd_header.cpp`内で所有する。公開ヘッダー、製品ABI、バイト列は維持した。
+- 実装未接続の初回限定リンクは構築、読込み、書込み、妥当性、診断表示の未定義記号で失敗した。分離直後に
+  `psd_utils.h`から色管理・資源・翻訳まで連鎖する過大な直接参照を検出し、局所書込み処理への変更後は専用生成物が
+  1工程・3入力、限定試験が5工程・11入力となった。従来試験は1,875工程・3,746入力、製品`kritapsd`は変更前後とも
+  1,866工程・3,730入力である。macOSで対象CTest単発と20回反復、最近傍の`PsdFormatValuesContractTest`、
+  パッケージ境界検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,825件、未対応24,164件になった。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第19並列便のPSDヘッダー実装を進め、並行する3実装担当の引渡しを統合順に監査する。
+第19並列便の文字体系・言語タグ契約を統合し、限定対象、20回反復、軽量隣接試験、中央台帳を主作業ツリーで監査する。
 
 ## R1-G5完了根拠
 

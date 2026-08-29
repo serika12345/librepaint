@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24180
+    "expectedMissingApis": 24164
   },
   "contracts": [
     {
@@ -16788,6 +16788,67 @@
       "apis": [
         "method:KisDrawingAngleSensorData::read(const QDomElement & e)",
         "method:KisDrawingAngleSensorData::write(QDomDocument & doc,QDomElement & e) const"
+      ]
+    },
+    {
+      "target": "psd_header_test",
+      "source": "plugins/impex/psd/tests/psd_header_test.cpp",
+      "test": "PSDHeaderTest::defaultsExposeInvalidEmptyHeader",
+      "behavior": "PSDヘッダーは空の署名、ゼロの寸法・チャンネル値、未知の色モデル、ビッグエンディアン、非TIFFレイヤー形式、空の診断で初期化され、署名不一致の診断を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:PSDHeader",
+        "member:PSDHeader::byteOrder",
+        "member:PSDHeader::channelDepth",
+        "member:PSDHeader::colormode",
+        "member:PSDHeader::error",
+        "member:PSDHeader::height",
+        "member:PSDHeader::nChannels",
+        "member:PSDHeader::signature",
+        "member:PSDHeader::tiffStyleLayerBlock",
+        "member:PSDHeader::version",
+        "member:PSDHeader::width",
+        "method:PSDHeader::PSDHeader()"
+      ]
+    },
+    {
+      "target": "psd_header_test",
+      "source": "plugins/impex/psd/tests/psd_header_test.cpp",
+      "test": "PSDHeaderTest::validationEnforcesFormatSpecificRanges",
+      "behavior": "PSDとPSBの版別寸法上限、チャンネル数、チャンネル深度、色モデルの範囲を検証し、不正値には具体的な診断を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PSDHeader::valid()"
+      ]
+    },
+    {
+      "target": "psd_header_test",
+      "source": "plugins/impex/psd/tests/psd_header_test.cpp",
+      "test": "PSDHeaderTest::readDecodesBigEndianHeaderAndRejectsTruncation",
+      "behavior": "メモリー上の標準PSDヘッダーをビッグエンディアンで復号し、全公開値を保持する。入力が1バイト不足する場合は状態変更前に読取不足の診断で失敗する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PSDHeader::read(QIODevice & device)"
+      ]
+    },
+    {
+      "target": "psd_header_test",
+      "source": "plugins/impex/psd/tests/psd_header_test.cpp",
+      "test": "PSDHeaderTest::writeProducesCanonicalHeaderBytes",
+      "behavior": "妥当なPSDヘッダーは署名、版、ゼロ詰め、各数値を標準のビッグエンディアン列へ書き出し、不正なヘッダーは出力を変更せず失敗する。",
+      "classification": "maintained",
+      "apis": [
+        "method:PSDHeader::write(QIODevice & device)"
+      ]
+    },
+    {
+      "target": "psd_header_test",
+      "source": "plugins/impex/psd/tests/psd_header_test.cpp",
+      "test": "PSDHeaderTest::debugOutputDescribesValidatedHeader",
+      "behavior": "診断表示は妥当性、署名、版、チャンネル数、寸法、深度、色モデル名を含む。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const PSDHeader & header)"
       ]
     }
   ]
