@@ -51,6 +51,20 @@ kis_add_test(
 )
 target_compile_definitions(WidgetsDebugContractTest PRIVATE kritawidgets_EXPORTS)
 
+kis_add_test(
+    KoZoomHandlerContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetszoomhandlerobjects
+        kritaflakeviewconverterobjects
+        kritaflakeviewtransformstillpointobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoZoomHandlerContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritawidgets_EXPORTS
+)
+
 kis_add_tests(
     zoomhandler_test.cpp
     KoAnchorSelectionWidgetTest.cpp

@@ -14,6 +14,31 @@ target_include_directories(kritawidgetstitledtabobjects
 target_link_libraries(kritawidgetstitledtabobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritawidgetstitledtabobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetszoomhandlerobjects OBJECT
+    KoZoomHandler.cpp
+)
+target_compile_definitions(kritawidgetszoomhandlerobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetszoomhandlerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritawidgetszoomhandlerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        Boost::boost
+)
+set_target_properties(kritawidgetszoomhandlerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetslevelssliderobjects OBJECT
     KisLevelsSlider.cpp
 )
@@ -42,7 +67,6 @@ set(kritawidgets_LIB_SRCS
     KoZoomAction.cpp
     KoZoomActionState.cpp
     KoZoomInput.cpp
-    KoZoomHandler.cpp
     KoColorPatch.cpp
     KoColorPopupAction.cpp
     KoColorSetWidget.cpp
@@ -145,6 +169,7 @@ kis_add_library(kritawidgets SHARED
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
     $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
     $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
+    $<TARGET_OBJECTS:kritawidgetszoomhandlerobjects>
 )
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
 target_link_libraries(kritawidgets
