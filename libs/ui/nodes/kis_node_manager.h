@@ -451,6 +451,22 @@ protected:
         static void duplicateNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode);
     };
 
+    struct KRITAUI_EXPORT IsolationAccess {
+        static bool imageAvailable(KisNodeManager *manager);
+        static bool isIsolatingLayer(KisNodeManager *manager);
+        static bool isIsolatingGroup(KisNodeManager *manager);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static bool startIsolatedMode(KisNodeManager *manager,
+                                      KisNodeSP isolationRoot,
+                                      bool isolateActiveLayer,
+                                      bool isolateActiveGroup);
+        static void stopIsolatedMode(KisNodeManager *manager);
+        static bool isActiveWindow(KisNodeManager *manager);
+        static void toggleLayerAction(KisNodeManager *manager);
+        static void setLayerActionChecked(KisNodeManager *manager, bool checked);
+        static void setGroupActionChecked(KisNodeManager *manager, bool checked);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

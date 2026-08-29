@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 09:27 JST
+- 更新日時: 2026-08-29 09:33 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7153,12 +7153,29 @@
   公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,877件、
   未対応25,112件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード隔離表示 public API契約と状態判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`に混在していたレイヤー・グループ隔離状態、隔離ルート、活動ウィンドウ、
+  操作チェック状態の判断を、新規`libs/ui/nodes/KisNodeManagerIsolation.cpp`へ移した。具体的な画像、メイン
+  ウィンドウ、操作管理器へのアクセスは移動元の保護境界に残し、製品`kritaapplicationui`は新規
+  `kritauinodemanagerisolationobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`の隔離表示7 APIを、新規
+  `libs/ui/tests/KisNodeManagerIsolationContractTest.cpp`の7試験へ対応付けた。画像・現在ノード・活動ウィンドウの
+  前提、片方の隔離設定変更時に他方を保つ規則、開始と停止、開始失敗時の操作状態復元、外部状態同期を固定した。
+  実装接続前のリンクは対象7 APIだけを未解決記号として診断した。
+- 外部変更反映で結果を利用していなかった現在ノード取得を除去した。変更前の既存`KisNodeManagerTest`は
+  1,815工程・3,629入力、直近の専用試験は5工程・17入力だった。製品未接続の赤試験は4工程・14入力、隔離判断
+  対象は1工程・3入力、緑化後の試験は5工程・17入力に収めた。製品`kritaapplicationui`閉包は
+  1,811工程・3,622入力から1,812工程・3,624入力、既存試験は1,816工程・3,631入力になった。
+- 隔離判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,884件、
+  未対応25,105件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る50 APIのうち、活動レイヤー・グループの隔離表示状態を次の小単位と
-する。`kis_node_manager.cpp`の`toggleIsolateActiveNode`、二つの設定入口、状態変更、ルート変更、外部変更反映、
-操作群再初期化について、対象指定の変更なし計画、直接CMake依存、空構築閉包を監査し、画像状態と画面操作の
-具体効果から判断を分けて挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る43 APIのうち、全ノード、可視・非表示、施錠・未施錠の選択を次の
+小単位とする。`kis_node_manager.cpp`の5つの選択入口について、対象指定の変更なし計画、直接CMake依存、空構築
+閉包を監査し、各属性条件と反転条件による選択要求を具体ノード走査・画面選択効果から分けて挙動契約を追加する。
 
 ## R1-G5完了根拠
 

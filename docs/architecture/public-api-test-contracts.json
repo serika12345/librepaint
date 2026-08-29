@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25112
+    "expectedMissingApis": 25105
   },
   "contracts": [
     {
@@ -12587,6 +12587,76 @@
         "method:KisNodeManager::duplicateActiveNode()",
         "method:KisNodeManager::moveNodeAt(KisNodeSP node,KisNodeSP parent,int index)",
         "method:KisNodeManager::moveNodesDirect(KisNodeList nodes,KisNodeSP parent,KisNodeSP aboveThis)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerIsolationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerIsolationContractTest.cpp",
+      "test": "KisNodeManagerIsolationContractTest::toggleRequestsTheLayerAction",
+      "behavior": "活動ノードの隔離切替え要求はレイヤー隔離操作の切替えへ一度だけ委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::toggleIsolateActiveNode()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerIsolationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerIsolationContractTest.cpp",
+      "test": "KisNodeManagerIsolationContractTest::layerModePreservesGroupState",
+      "behavior": "レイヤー隔離設定は画像なしでは無作用とし、画像がある場合は現在のグループ隔離状態を保って隔離モードを変更する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setIsolateActiveLayerMode(bool checked)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerIsolationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerIsolationContractTest.cpp",
+      "test": "KisNodeManagerIsolationContractTest::groupModePreservesLayerState",
+      "behavior": "グループ隔離設定は画像なしでは無作用とし、画像がある場合は現在のレイヤー隔離状態を保って隔離モードを変更する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setIsolateActiveGroupMode(bool checked)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerIsolationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerIsolationContractTest.cpp",
+      "test": "KisNodeManagerIsolationContractTest::isolationModeRequiresImageAndNode",
+      "behavior": "隔離モード変更は画像または現在ノードがなければ無作用とし、両隔離値が偽なら停止し、それ以外は現在ノードで開始する。開始失敗時は両操作のチェックを解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::changeIsolationMode(bool isolateActiveLayer,bool isolateActiveGroup)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerIsolationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerIsolationContractTest.cpp",
+      "test": "KisNodeManagerIsolationContractTest::isolationRootPreservesMode",
+      "behavior": "隔離ルート変更は画像と指定ルートを必要とし、現在のレイヤー・グループ隔離状態を保って新ルートで再開する。開始失敗時は両操作のチェックを解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::changeIsolationRoot(KisNodeSP isolationRoot)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerIsolationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerIsolationContractTest.cpp",
+      "test": "KisNodeManagerIsolationContractTest::externalChangeRequiresActiveWindow",
+      "behavior": "外部の隔離状態変更は活動ウィンドウだけが反映し、画像のレイヤー・グループ隔離状態を各操作のチェック状態へ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::handleExternalIsolationChange()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerIsolationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerIsolationContractTest.cpp",
+      "test": "KisNodeManagerIsolationContractTest::reinitializeClearsActions",
+      "behavior": "隔離操作群の再初期化はレイヤー・グループ両操作のチェック状態を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::reinitializeIsolationActionGroup()"
       ]
     }
   ]
