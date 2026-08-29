@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24958
+    "expectedMissingApis": 24955
   },
   "contracts": [
     {
@@ -13927,6 +13927,46 @@
       "apis": [
         "method:KisSpontaneousJob::levelOfDetail() const",
         "method:KisSpontaneousJob::overrides(const KisSpontaneousJob * otherJob)"
+      ]
+    },
+    {
+      "target": "KoFlakeUtilsContractTest",
+      "source": "libs/flake/tests/KoFlakeUtilsContractTest.cpp",
+      "test": "KoFlakeUtilsContractTest::emptyAndSingleShapePropertiesAreEqualWithoutFetching",
+      "behavior": "形状属性比較は空または単一の形状一覧をPolicyへ問い合わせず同値と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoFlake::compareShapePropertiesEqual(const QList<KoShape * > shapes,const Policy & policy)"
+      ]
+    },
+    {
+      "target": "KoFlakeUtilsContractTest",
+      "source": "libs/flake/tests/KoFlakeUtilsContractTest.cpp",
+      "test": "KoFlakeUtilsContractTest::multipleShapePropertiesRespectNullAndValueEquality",
+      "behavior": "複数形状の属性比較は全属性がnullの場合とPolicyが同値とする非null値を同値とし、null混在または値不一致を非同値と判定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoFlake::compareShapePropertiesEqual(const QList<KoShape * > shapes,const Policy & policy)"
+      ]
+    },
+    {
+      "target": "KoFlakeUtilsContractTest",
+      "source": "libs/flake/tests/KoFlakeUtilsContractTest.cpp",
+      "test": "KoFlakeUtilsContractTest::defaultPolicyEntryConstructsAndUsesThePolicy",
+      "behavior": "既定Policy入口はPolicyを一度既定構築し、その取得値と比較規約を形状一覧へ適用する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoFlake::compareShapePropertiesEqual(const QList<KoShape * > shapes)"
+      ]
+    },
+    {
+      "target": "KoFlakeUtilsContractTest",
+      "source": "libs/flake/tests/KoFlakeUtilsContractTest.cpp",
+      "test": "KoFlakeUtilsContractTest::emptyStrokeModificationReturnsNullWithoutCallingModifier",
+      "behavior": "空の形状一覧に対するstroke変更は変更関数を呼び出さずnullのUndo命令を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KoFlake::modifyShapesStrokes(QList<KoShape * > shapes,ModifyFunction modifyFunction)"
       ]
     }
   ]

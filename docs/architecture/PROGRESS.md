@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:07 JST
+- 更新日時: 2026-08-29 15:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,7 +21,7 @@
   所有し、変換成分の12 APIを対象とする。
 - 実装担当`image-spontaneous-job`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。`libs/image/kis_spontaneous_job.h`と新規限定試験を所有し、自発ジョブの4 APIを対象とする。
-- 実装担当`flake-utils`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`flake-utils`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。`libs/flake/KoFlakeUtils.h`と新規限定試験を所有し、形状属性比較とstroke変更の3 APIを
   対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -7814,9 +7814,20 @@
   高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,031件、未対応24,958件になった。各製品具象ジョブの
   個別置換方針は別契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 形状属性比較とstroke変更の全public API契約で完了した作業
+
+- `libs/flake/KoFlakeUtils.h`のヘッダー実装と新規`libs/flake/tests/KoFlakeUtilsContractTest.cpp`を直接接続し、製品
+  `kritaflake`へリンクしない契約対象を追加した。既存`TestShapeStrokeCommand`は550工程・1,131入力、新契約は4工程・9入力である。
+- 2種類の形状属性比較入口とstroke変更入口の全3 APIを4試験へ対応付けた。空・単一一覧を属性取得なしで同値とする規約、
+  複数一覧のnull混在と値比較、既定Policyの構築、空一覧のstroke変更が変更関数を呼ばずnull命令を返す挙動を固定した。赤段階で
+  空一覧の属性比較がnull参照により異常終了したため、早期終了条件を空一覧まで含めて修正した。
+- 統合担当のmacOS構築木で対象を構築し、対象CTestの単発実行と20回反復、1,131対象のパッケージ境界検査、公開API契約検査、
+  高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,034件、未対応24,955件になった。実形状を使う複数strokeの
+  redo・undoは製品所有閉包の分離後に追加する契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第4並列便のFlake形状補助契約を統合し、変換成分担当の完了後に対象CTest、公開API契約検査、高速検査を再実行する。
+第4並列便の変換成分契約を統合し、対象CTest、公開API契約検査、高速検査を再実行して新しい共通基準を作る。
 
 ## R1-G5完了根拠
 
