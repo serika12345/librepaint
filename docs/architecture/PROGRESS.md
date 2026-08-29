@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 23:39 JST
+- 更新日時: 2026-08-29 23:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,18 +15,18 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g20-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`updater`は`planned`、統合順は1である。主作業ツリーで`libs/widgetutils/KoUpdater.{h,cpp}`、
+- 統合担当`updater`は`implementing`、統合順は1である。主作業ツリーで`libs/widgetutils/KoUpdater.{h,cpp}`、
   `libs/widgetutils/KoUpdaterPrivate_p.{h,cpp}`、WidgetUtils製品・試験CMake、新規限定試験を所有する。既存試験の
   1,092工程・2,207入力を専用生成物へ縮小し、進捗、範囲、割込み、通知、無処理updater、寿命の全23 APIを対象とする。
-- 実装担当`view-converter`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+- 実装担当`view-converter`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-view-converter`であり、
   `libs/flake/KoViewConverter.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。553工程・1,138入力の製品接続から分離し、
   ズーム状態、座標・矩形・寸法・行列変換、静止点合成、寿命の全22 APIを対象とする。
-- 実装担当`storage-plugin`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+- 実装担当`storage-plugin`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-storage-plugin`であり、
   `libs/resources/KisStoragePlugin.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。717工程・1,461入力の統合試験から
   分離し、構築、時刻、URL読込み配送、MD5、資源情報、既定非対応操作、純仮想接続面、寿命の全21 APIを対象とする。
-- 実装担当`lod-layer-offset`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+- 実装担当`lod-layer-offset`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-lod-layer-offset`であり、
   `libs/image/kis_lod_capable_layer_offset.{h,cpp}`、Image製品・試験CMake、既存試験の限定化を所有する。1,092工程・2,206入力の
   製品接続から分離し、QPoint特化、汎用値同期、LOD切替、コピー・代入、状態交換の全20 APIを対象とする。
@@ -8864,7 +8864,7 @@
 
 ## 次の操作
 
-共通基準`90ec8717a5`から3専用作業ツリーを作成し、第20並列便の構築実行とtransport commitを許可して4担当を開始する。
+第20並列便の進捗通知実装を進め、並行する3実装担当の引渡しを統合順に監査する。
 
 ## R1-G5完了根拠
 
