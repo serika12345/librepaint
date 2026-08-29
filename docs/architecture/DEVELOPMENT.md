@@ -280,6 +280,109 @@ nix develop .#test --command \
 `public-api-test-contracts.json`である。対応追加前に対象CTestの変更なし計画、直接依存、
 空構築閉包を確認し、対象CTestと高速検査の成功後に未対応件数を縮小する。
 
+### 公開API契約の並列実装
+
+公開API契約を並列実装するときは、一人の統合担当と最大三つの実装担当を使う。統合担当は
+未対応報告から、公開ヘッダー、製品実装、試験ソース、CMake定義が重ならない責務単位を選ぶ。
+同じ試験ディレクトリーの単一`CMakeLists.txt`、同じ製品集約対象、同じ公開クラスを必要とする
+作業は一つの担当へまとめる。これにより、実装中の差分とCMake再生成を担当単位で判断できる。
+
+統合担当は、各担当を開始する前に次の担当票を確定する。担当識別子は`[a-z0-9-]+`とし、
+基準コミットは全担当で同じ値を使用する。
+
+```text
+担当識別子:
+基準コミット:
+作業ツリー絶対パス:
+目的と観測する挙動:
+対象公開ヘッダー:
+対象public API識別子:
+変更許可パス:
+担当CMakeファイルと対象:
+最も近い既存契約:
+対象プラットフォーム:
+共有コンパイラーキャッシュ:
+構築実行許可: waiting | granted
+Git操作権限: uncommitted | transport-commit
+追加委任: forbidden | authorized
+統合順:
+固有の停止条件:
+```
+
+統合担当は担当票と`preparing`、`implementing`、`ready`、`blocked`、`integrated`の状態を、
+実装担当の起動前に`docs/architecture/PROGRESS.md`の現在スナップショットへ記録する。再開時は
+Git作業ツリー、担当ブランチ、基準コミット、許可パスを実体と照合してから各担当を継続する。
+実装担当は担当票を現在作業の範囲として扱い、統合担当の次の操作を選び直さない。追加の
+エージェントへの委任は、担当票の`追加委任`が`authorized`の場合だけ行う。
+
+`AGENTS.md`、`docs/architecture/TODO.md`、`docs/architecture/PROGRESS.md`、
+`docs/architecture/README.md`、`docs/architecture/DEVELOPMENT.md`、
+`docs/architecture/public-api-test-contracts.json`は統合担当が所有する。公開面や運用検査の
+共通処理も、担当票で明示的に移管した場合だけ実装担当が変更する。この中央所有により、
+未対応基準と現在の再開地点を一つの順序で更新できる。
+
+明示的なブランチ作成権限がある場合、統合担当は基準コミットから担当ごとのGit作業ツリーを
+作成する。作業ツリーはリポジトリーの兄弟ディレクトリーとし、既存パスがないことを確認して
+から追加する。
+
+```sh
+task_primary_root="$(pwd -P)"
+task_base_commit="$(git rev-parse HEAD)"
+task_lane="<担当識別子>"
+task_worktree="$(dirname "$task_primary_root")/librepaint-r2-g19b-$task_lane"
+test ! -e "$task_worktree"
+git worktree add -b "work/r2-g19b-$task_lane" \
+  "$task_worktree" "$task_base_commit"
+```
+
+各作業ツリーは自身の`build/tdd-macos`または`build/tdd-linux`を使用する。CMakeキャッシュは
+ソース絶対パスを保持するため、別の作業ツリーからNinja木を複製して使用する構成にはしない。
+コンパイラーキャッシュだけを共有し、対象限定構築の再コンパイルを削減する。共有先の絶対パスは
+担当票から受け取る。
+
+```sh
+task_shared_ccache="<共有コンパイラーキャッシュの絶対パス>"
+nix develop .#test --command env CCACHE_DIR="$task_shared_ccache" \
+  ./scripts/run-test <target> [ctest-regex]
+```
+
+実装担当は、変更前の計画、直接CMake依存、空構築閉包を測定してから担当範囲を編集する。
+構築実行許可が`waiting`の間は、ソース調査、既存試験監査、契約設計を進める。統合担当が
+`granted`を通知した後に、担当の作業ツリーで構成、構築、CTest、反復実行、高速検査を行う。
+Linux検証はLinux担当票を受けた担当だけが`ssh nixos`の実機で実行し、接続不能時はmacOS結果と
+未実施理由を引渡しに記録する。
+
+実装担当は中央所有ファイルを変更せず、完了時に次の情報を統合担当へ返す。
+
+```text
+状態: ready | blocked
+基準コミットと担当先端:
+変更パス:
+構造変更の移動元と移動先:
+固定した挙動と分類:
+契約台帳へ追加する target/source/test/behavior/classification/apis:
+期待した最初の診断:
+変更前後の計画、直接依存、コマンド数、入力数:
+対象CTest、反復、影響範囲、高速検査の結果:
+未実施プラットフォームと理由:
+残る危険と次の操作:
+```
+
+`Git操作権限`が`transport-commit`の場合、実装担当は担当票の許可パスだけを一つの引渡しコミットにまとめる。
+`uncommitted`の場合は担当作業ツリーを未コミットのまま保持し、`ready`または`blocked`で止める。
+引渡しコミットは中央台帳と進捗を含まないため、`develop`へ直接入れる完成変更ではない。
+
+統合担当は担当の差分が許可パス内に収まることと、基準コミット以後の統合済み変更との非重複を
+確認する。準備済みの担当を一つずつ現在の統合作業ツリーへ取り込み、契約台帳、README、TODO、
+PROGRESSを同じ差分へ追加する。その後、対象CTest、必要な隣接CTest、公開API契約報告、
+`verify-quick`を実行し、未対応件数の純減を確認する。一つの担当を一つのレビュー可能な変更として
+完了してから、次の担当を統合する。
+
+担当は、許可パス外の変更、別担当との重複、新しい公開API、未割当て依存、巨大な構築閉包、
+分類できない現行挙動を発見した時点で停止する。統合担当は担当票を分け直すか、構造改善だけの
+先行担当を作成する。作業ツリーの強制初期化、清掃、除去、作業ブランチ削除は統合処理に含めず、
+保存すべき差分と利用者権限を確認した独立操作として扱う。
+
 CMake構成を変更したときは、対象プラットフォームの構成入口を実行する。
 
 ```sh

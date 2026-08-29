@@ -147,6 +147,52 @@ Each reviewable change groups one feature or one structural concern.
 Structural preparation receives its own gate when it has an independent
 verification boundary.
 
+## Parallel Agent Work
+
+Parallel implementation uses one coordinator and non-overlapping worker
+lanes. The coordinator records one base commit and gives every lane a task
+packet containing the exact public headers and API identifiers, allowed paths,
+owned CMake files and targets, nearest contract, platform scope, build
+permission, Git authority, integration order, and stop conditions. The active
+lane packets and their states are recorded in `docs/architecture/PROGRESS.md`
+before workers start. Two active lanes never share a production header,
+implementation file, test source, CMake file, or generated artifact.
+
+Each worker lane uses a dedicated Git worktree and a worktree-local Ninja
+build tree. Native compiler-cache storage may be shared, while build trees and
+configuration markers remain isolated. The coordinator controls concurrent
+configure, build, test, and verification capacity so that host load does not
+turn target-scoped validation into an accidental full build.
+
+The coordinator exclusively owns `AGENTS.md`, the architecture roadmap and
+progress documents, `docs/architecture/public-api-test-contracts.json`, and
+shared generated inventories unless a task packet explicitly transfers one of
+those files. A worker changes only its assigned production, test, fixture, and
+package-local CMake paths. It reports registry entries and documentation facts
+as structured handoff data instead of editing coordinator-owned files.
+
+Workers follow the complete implementation workflow within their lane,
+including the unchanged build plan, direct dependencies, clean command
+closure, expected first diagnostic, target test, repetition, and platform
+result. A lane task packet is the worker's scoped continuation of the global
+progress snapshot; the worker does not select the coordinator's next action or
+delegate further work unless its packet explicitly authorizes that action. A
+worker stops and reports when required work crosses its allowed paths, overlaps
+another lane, changes an unassigned public API, needs an unassigned dependency,
+or exposes an ambiguous behavior classification.
+
+The coordinator inspects and integrates one ready lane at a time, synchronizes
+the central contract registry and architecture documents in the integrated
+change, reruns the affected contract and governance checks, and advances the
+missing-API baseline only after those checks pass. Lane commits are transport
+artifacts rather than completed `develop` changes. Commits, branch creation,
+integration, worktree removal, and branch deletion still require the authority
+defined by the user and the Completion section below.
+
+The task-packet, worktree, handoff, and integration procedures live in the
+"公開API契約の並列実装" section of
+`docs/architecture/DEVELOPMENT.md`.
+
 ## Test-Driven Development
 
 Tests protect behavior and governance checks protect structure.
