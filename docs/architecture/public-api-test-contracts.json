@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24316
+    "expectedMissingApis": 24281
   },
   "contracts": [
     {
@@ -16306,6 +16306,95 @@
       "classification": "known_defect",
       "apis": [
         "function:operator <<(QDebug debug,const KoInputDevice & device)"
+      ]
+    },
+    {
+      "target": "KoChannelInfoContractTest",
+      "source": "libs/pigment/tests/KoChannelInfoContractTest.cpp",
+      "test": "KoChannelInfoContractTest::rangesDescribeValidityAndCustomBounds",
+      "behavior": "倍精度範囲は既定の0対0を無効範囲として表し、増加する境界を有効範囲として保持する。チャンネルへ渡した有効な独自範囲は最小値、最大値、両者の差である単位値として保持される。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoChannelInfo::DoubleRange::maxVal",
+        "member:KoChannelInfo::DoubleRange::minVal",
+        "method:KoChannelInfo::DoubleRange::DoubleRange(qreal _minVal,qreal _maxVal)",
+        "method:KoChannelInfo::DoubleRange::DoubleRange(void)",
+        "method:KoChannelInfo::DoubleRange::isValid(void) const",
+        "method:KoChannelInfo::getUIMax(void) const",
+        "method:KoChannelInfo::getUIMin(void) const",
+        "method:KoChannelInfo::getUIUnitValue(void) const",
+        "struct:KoChannelInfo::DoubleRange"
+      ]
+    },
+    {
+      "target": "KoChannelInfoContractTest",
+      "source": "libs/pigment/tests/KoChannelInfoContractTest.cpp",
+      "test": "KoChannelInfoContractTest::valueTypesDeriveStorageAndDefaultUiRanges",
+      "behavior": "全9値型は構築時に型を保持し、整数・浮動小数点の表現幅から既定バイト数を導出する。整数型は各数値型の全範囲、浮動小数点型と明示幅のその他型は0対1を既定UI範囲とする。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoChannelInfo::enumChannelValueType",
+        "enumerator:KoChannelInfo::enumChannelValueType::FLOAT16",
+        "enumerator:KoChannelInfo::enumChannelValueType::FLOAT32",
+        "enumerator:KoChannelInfo::enumChannelValueType::FLOAT64",
+        "enumerator:KoChannelInfo::enumChannelValueType::INT16",
+        "enumerator:KoChannelInfo::enumChannelValueType::INT8",
+        "enumerator:KoChannelInfo::enumChannelValueType::OTHER",
+        "enumerator:KoChannelInfo::enumChannelValueType::UINT16",
+        "enumerator:KoChannelInfo::enumChannelValueType::UINT32",
+        "enumerator:KoChannelInfo::enumChannelValueType::UINT8",
+        "method:KoChannelInfo::KoChannelInfo(const QString & name,qint32 npos,qint32 displayPosition,enumChannelType channelType,enumChannelValueType channelValueType,qint32 size=-1,const QColor & color=QColor (0,0,0),const DoubleRange & uiMinMax=DoubleRange ())",
+        "method:KoChannelInfo::channelValueType() const",
+        "method:KoChannelInfo::size() const"
+      ]
+    },
+    {
+      "target": "KoChannelInfoContractTest",
+      "source": "libs/pigment/tests/KoChannelInfoContractTest.cpp",
+      "test": "KoChannelInfoContractTest::channelMetadataPreservesPixelAndPresentationIdentity",
+      "behavior": "色およびアルファのチャンネル記述は、表示名、画素内バイト位置、表示位置、チャンネル種別、表示色を構築時の値どおり保持し、省略された表示色には黒を使用する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoChannelInfo",
+        "enum:KoChannelInfo::enumChannelType",
+        "enumerator:KoChannelInfo::enumChannelType::ALPHA",
+        "enumerator:KoChannelInfo::enumChannelType::COLOR",
+        "method:KoChannelInfo::channelType() const",
+        "method:KoChannelInfo::color() const",
+        "method:KoChannelInfo::displayPosition() const",
+        "method:KoChannelInfo::name() const",
+        "method:KoChannelInfo::pos() const"
+      ]
+    },
+    {
+      "target": "KoChannelInfoContractTest",
+      "source": "libs/pigment/tests/KoChannelInfoContractTest.cpp",
+      "test": "KoChannelInfoContractTest::displayOrderMapsPixelStorageToPresentation",
+      "behavior": "画素内順序で与えた密なチャンネル順列は、表示位置から元の索引を解決し、不存在位置にはマイナス1を返す。表示順への変換は元リストを変更せず、同じチャンネル実体を表示位置順に並べる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoChannelInfo::displayOrderSorted(const QList<KoChannelInfo * > & channels)",
+        "method:KoChannelInfo::displayPositionToChannelIndex(int displayPosition,const QList<KoChannelInfo * > & channels)"
+      ]
+    },
+    {
+      "target": "KoChannelInfoContractTest",
+      "source": "libs/pigment/tests/KoChannelInfoContractTest.cpp",
+      "test": "KoChannelInfoContractTest::bytePositionComparisonOrdersChannelsIndependentlyOfDisplayOrder",
+      "behavior": "チャンネル比較は表示位置ではなく画素内の開始バイト位置を基準に、小さい位置を小さいチャンネルとして判定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoChannelInfo::operator <(const KoChannelInfo & info)"
+      ]
+    },
+    {
+      "target": "KoChannelInfoContractTest",
+      "source": "libs/pigment/tests/KoChannelInfoContractTest.cpp",
+      "test": "KoChannelInfoContractTest::defaultConstructionProvidesSafePartialState",
+      "behavior": "既定構築されたチャンネル記述は、空の名前、無効な表示色、0対0のUI範囲という安全に観測可能な部分状態を持つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoChannelInfo::KoChannelInfo()"
       ]
     }
   ]

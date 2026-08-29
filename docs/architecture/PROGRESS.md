@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:52 JST
+- 更新日時: 2026-08-29 21:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -29,7 +29,7 @@
   `libs/flake/KoInputDevice.{h,cpp}`、既存`libs/flake/tests/TestInputDevice.{h,cpp}`、Flake製品・試験CMakeを所有する。
   352工程・732入力の翻訳単位を専用生成物へ分け、全分類値、QTabletEvent変換、構築・比較・ハッシュ、既定生成、
   診断表示、寿命の全37 APIを対象とする。
-- 実装担当`channel-info`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`channel-info`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-channel-info`であり、
   `libs/pigment/KoChannelInfo.h`、Pigment試験CMake、新規限定試験を所有する。製品実装を追加せず、数値型と格納寸法・範囲、
   チャンネル属性、画素順と表示順、バイト位置比較、既定部分状態の全35 APIを対象とする。
@@ -8713,9 +8713,25 @@
   最近傍の`KoViewTransformStillPointContractTest`、パッケージ境界検査に成功した。公開面は1,549ヘッダー、29,989 API、
   対応済み5,673件、未対応24,316件になった。Qt5条件分岐、Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 色チャンネル記述の全public API契約で完了した作業
+
+- `libs/pigment/KoChannelInfo.h`の全35 APIを、新規`libs/pigment/tests/KoChannelInfoContractTest.cpp`の6試験へ対応付けた。
+  数値型ごとの格納寸法と既定UI範囲、独自範囲、名前・画素内位置・表示位置・種別・表示色、画素順から表示順への変換、
+  バイト位置比較、既定構築の安全に観測可能な部分状態を固定した。
+- ヘッダー内実装は製品所有のまま維持し、新規限定試験をQt Gui、Testだけへ接続した。製品コード、公開面、製品CMake依存、
+  色処理は変更していない。既存`TestKoChannelInfo`は333工程・694入力であるのに対し、限定試験は4工程・7入力であり、
+  製品共有ライブラリーを動的リンクしない。
+- 対象未登録時の初回限定構築は未知の対象として失敗した。macOSで対象CTestの単発実行と20回反復、最近傍の
+  `KoMixColorsOpContractTest`、パッケージ境界検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,708件、
+  未対応24,281件になった。既定構築で未初期化の整数・列挙値、不正な表示順、nullポインター、`OTHER`の既定寸法は実行していない。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第17並列便はタイル転送プール23 API、レベル補正曲線33 API、入力装置分類37 API、色チャンネル記述35 APIの合計128 APIを
+  固定した。各実装担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
+
 ## 次の操作
 
-第17並列便の`channel-info`引渡しを監査して統合し、限定構築、対象試験、反復、隣接試験、公開API契約検査を再実行する。
+未対応台帳から第18並列便の候補を選び、各候補の直接CMake依存と空構築閉包を測定して、過大な対象は契約追加より先に分離する。
 
 ## R1-G5完了根拠
 

@@ -591,6 +591,12 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 画像状態だけで完結する処理は`libs/image`側、ファイル名やダイアログ、
 ウィンドウと連携する処理は`libs/ui`側から検討します。
 
+### 色チャンネル記述
+
+画素内チャンネルの名前、格納位置、表示順、数値型、格納寸法、表示範囲、表示色は
+`libs/pigment/KoChannelInfo.h`が値として保持する。`KoChannelInfoContractTest`は数値型からの
+寸法・範囲導出、画素順と表示順の対応、バイト位置比較をQtだけの限定対象で検査する。
+
 ### プラグインとレジストリー
 
 プラグインはJSONメタデータのサービス種別、ID、対応MIME型などで発見され、コンストラクターからレジストリーへファクトリーを登録します。[KoJsonTrader.cpp](../../libs/koplugin/KoJsonTrader.cpp)が候補を列挙し、[KoPluginLoader.cpp](../../libs/koplugin/KoPluginLoader.cpp)が重複版と無効化設定を処理します。
