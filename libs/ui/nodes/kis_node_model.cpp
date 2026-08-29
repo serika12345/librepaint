@@ -126,23 +126,25 @@ bool KisNodeModel::DisplayStateAccess::hasDummiesFacade(const KisNodeModel *mode
     return model->m_d->dummiesFacade != nullptr;
 }
 
-KisNodeSP KisNodeModel::nodeFromIndex(const QModelIndex &index) const
+KisNodeDummy *KisNodeModel::IndexMappingAccess::dummyFromIndex(const KisNodeModel *model,
+                                                              const QModelIndex &index)
 {
-    Q_ASSERT(index.isValid());
-
-    KisNodeDummy *dummy = m_d->indexConverter->dummyFromIndex(index);
-    if (dummy) {
-        return dummy->node();
-    }
-    return 0;
+    return model->m_d->indexConverter->dummyFromIndex(index);
 }
 
-QModelIndex KisNodeModel::indexFromNode(KisNodeSP node) const
+KisNodeSP KisNodeModel::IndexMappingAccess::nodeForDummy(KisNodeDummy *dummy)
 {
-    KisNodeDummy *dummy = m_d->dummiesFacade->dummyForNode(node);
-    if(dummy)
-        return m_d->indexConverter->indexFromDummy(dummy);
-    return QModelIndex();
+    return dummy->node();
+}
+
+KisNodeDummy *KisNodeModel::IndexMappingAccess::dummyForNode(const KisNodeModel *model, KisNodeSP node)
+{
+    return model->m_d->dummiesFacade->dummyForNode(node);
+}
+
+QModelIndex KisNodeModel::IndexMappingAccess::indexFromDummy(const KisNodeModel *model, KisNodeDummy *dummy)
+{
+    return model->m_d->indexConverter->indexFromDummy(dummy);
 }
 
 bool KisNodeModel::belongsToIsolatedGroup(KisImageSP image, KisNodeSP node, KisDummiesFacadeBase *dummiesFacade)

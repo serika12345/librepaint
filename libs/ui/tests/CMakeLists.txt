@@ -743,6 +743,20 @@ target_compile_definitions(KisNodeModelTransferProtocolContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisNodeModelIndexMappingContractTest.cpp
+    TEST_NAME KisNodeModelIndexMappingContractTest
+    LINK_LIBRARIES
+        kritauinodemodelindexmappingobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeModelIndexMappingContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_compile_definitions(KisNodeModelIndexMappingContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

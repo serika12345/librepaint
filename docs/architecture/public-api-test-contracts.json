@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25035
+    "expectedMissingApis": 25033
   },
   "contracts": [
     {
@@ -13332,6 +13332,46 @@
       "apis": [
         "method:KisNodeModel::supportedDragActions() const",
         "method:KisNodeModel::supportedDropActions() const"
+      ]
+    },
+    {
+      "target": "KisNodeModelIndexMappingContractTest",
+      "source": "libs/ui/tests/KisNodeModelIndexMappingContractTest.cpp",
+      "test": "KisNodeModelIndexMappingContractTest::indexWithoutDummyReturnsNullNode",
+      "behavior": "有効なモデル索引に対応するダミーがない場合は空ノードを返し、ダミーからノードへの変換を行わない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::nodeFromIndex(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelIndexMappingContractTest",
+      "source": "libs/ui/tests/KisNodeModelIndexMappingContractTest.cpp",
+      "test": "KisNodeModelIndexMappingContractTest::indexWithDummyReturnsMappedNode",
+      "behavior": "有効なモデル索引に対応するダミーがある場合は、そのダミーが保持するノードを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::nodeFromIndex(const QModelIndex & index) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelIndexMappingContractTest",
+      "source": "libs/ui/tests/KisNodeModelIndexMappingContractTest.cpp",
+      "test": "KisNodeModelIndexMappingContractTest::nodeWithoutDummyReturnsInvalidIndex",
+      "behavior": "ノードに対応するダミーがない場合は無効なモデル索引を返し、索引変換器を呼ばない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::indexFromNode(KisNodeSP node) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelIndexMappingContractTest",
+      "source": "libs/ui/tests/KisNodeModelIndexMappingContractTest.cpp",
+      "test": "KisNodeModelIndexMappingContractTest::nodeWithDummyReturnsMappedIndex",
+      "behavior": "ノードに対応するダミーがある場合は、そのダミーを索引変換器へ渡して得たモデル索引を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::indexFromNode(KisNodeSP node) const"
       ]
     }
   ]
