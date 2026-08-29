@@ -14,6 +14,22 @@ target_include_directories(kritawidgetstitledtabobjects
 target_link_libraries(kritawidgetstitledtabobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritawidgetstitledtabobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetslevelssliderobjects OBJECT
+    KisLevelsSlider.cpp
+)
+target_compile_definitions(kritawidgetslevelssliderobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetslevelssliderobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetslevelssliderobjects
+    PUBLIC
+        kritaglobalpaintingtweaksobjects
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetslevelssliderobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritawidgets_LIB_SRCS
     KoVBox.cpp
     KoDialog.cpp
@@ -59,8 +75,6 @@ set(kritawidgets_LIB_SRCS
 
     KisColorSelectorInterface.cpp
     KoAnchorSelectionWidget.cpp
-
-    KisLevelsSlider.cpp
 
     kis_color_input.cpp
 
@@ -129,6 +143,7 @@ set_target_properties(kritawidgetsdebugobjects PROPERTIES
 kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
+    $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
     $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
 )
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
