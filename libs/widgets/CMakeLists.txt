@@ -2,6 +2,18 @@ add_subdirectory( tests )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_library(kritawidgetstitledtabobjects OBJECT
+    KoTitledTabWidget.cpp
+)
+target_compile_definitions(kritawidgetstitledtabobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetstitledtabobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetstitledtabobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetstitledtabobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set(kritawidgets_LIB_SRCS
     KoVBox.cpp
     KoDialog.cpp
@@ -31,8 +43,6 @@ set(kritawidgets_LIB_SRCS
     KoDockWidgetTitleBar.cpp
     KoDockWidgetTitleBarButton.cpp
     
-    KoTitledTabWidget.cpp
-
     KoToolDocker.cpp
     
     KoMarkerSelector.cpp
@@ -119,6 +129,7 @@ set_target_properties(kritawidgetsdebugobjects PROPERTIES
 kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
+    $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
 )
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
 target_link_libraries(kritawidgets

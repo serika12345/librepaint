@@ -25,6 +25,15 @@ target_include_directories(KoDialogEnumContractTest PRIVATE
 target_compile_definitions(KoDialogEnumContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KoTitledTabWidgetContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetstitledtabobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KoTitledTabWidgetContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     WidgetsDebugContractTest.cpp
     LINK_LIBRARIES
         kritawidgetsdebugobjects
