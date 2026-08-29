@@ -90,3 +90,21 @@ target_include_directories(KUndo2StackContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/widgetutils/config
 )
 target_compile_definitions(KUndo2StackContractTest PRIVATE kritapaintingundo_EXPORTS)
+
+kis_add_test(
+    KisChangeValueCommandContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintingundokundo2coreobjects
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisChangeValueCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisChangeValueCommandContractTest PRIVATE kritapaintingundo_EXPORTS)
