@@ -15,21 +15,21 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`color-profile-query`は`preparing`、統合順は1である。
+- 統合担当`color-profile-query`は`implementing`、統合順は1である。
   `libs/pigment/KoColorProfileQuery.h`、Pigment試験CMake、新規限定試験を所有する。色特性問い合わせ値の構築、
   コピー・移動、妥当性分類、等値、診断表示、公開データの17 APIを対象とする。
-- 実装担当`surface-color-interfaces`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`surface-color-interfaces`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-surface-color-interfaces`であり、
   `libs/surfacecolormanagementapi/surfacecolormanagement/Kis{OutputColorInfo,SurfaceColorManager}Interface.{h,cpp}`、
   Surface Color Management製品・試験CMake、新規限定試験を所有する。画面情報7 APIと表面管理13 APIの仮想配送、
   QObject・QWindow寿命、状態信号を対象とする。
-- 実装担当`node-graph-listener`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`node-graph-listener`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-node-graph-listener`であり、`libs/image/kis_node_graph_listener.{h,cpp}`、
   Image製品・試験CMake、新規限定試験を所有する。階層変更の連番更新、既定通知動作、仮想配送、破棄の20 APIを
   対象とする。既存`libs/image/tests/kis_node_graph_listener_test.cpp`は読取り専用の最近傍契約とする。
-- 実装担当`exposure-gamma-interface`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`exposure-gamma-interface`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-exposure-gamma-interface`であり、
   `libs/ui/canvas/kis_exposure_gamma_correction_interface.{h,cpp}`、UI製品・試験CMake、新規限定試験を所有する。
