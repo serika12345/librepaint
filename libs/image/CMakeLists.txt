@@ -113,6 +113,27 @@ set_target_properties(kritaimageinterfacesobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageselectioncomponentobjects OBJECT
+   kis_selection_component.cc
+)
+target_compile_definitions(kritaimageselectioncomponentobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageselectioncomponentobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageselectioncomponentobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaimageselectioncomponentobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageprojectionplaneobjects OBJECT
    kis_abstract_projection_plane.cpp
 )
@@ -772,7 +793,6 @@ set(kritaimage_LIB_SRCS
    kis_selection_filters.cpp
    KisProofingConfiguration.h
    KisRecycleProjectionsJob.cpp
-   kis_selection_component.cc
 
    kis_keyframe.cpp
    kis_keyframe_channel.cpp
@@ -832,6 +852,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
+   $<TARGET_OBJECTS:kritaimageselectioncomponentobjects>
    $<TARGET_OBJECTS:kritaimageprojectionplaneobjects>
    $<TARGET_OBJECTS:kritaimagetransformmaskparamsinterfaceobjects>
    $<TARGET_OBJECTS:kritaimageoptimizedbytearrayobjects>
