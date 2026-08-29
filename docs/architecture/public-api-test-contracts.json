@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24025
+    "expectedMissingApis": 24005
   },
   "contracts": [
     {
@@ -17304,6 +17304,71 @@
       "classification": "maintained",
       "apis": [
         "method:KisStoragePlugin::resourceMd5(const QString & url)"
+      ]
+    },
+    {
+      "target": "kis_lod_capable_layer_offset_test",
+      "source": "libs/image/tests/kis_lod_capable_layer_offset_test.cpp",
+      "test": "KisLodCapableLayerOffsetTest::testSynchronizationRules",
+      "behavior": "LOD対応位置の公開型別名はQPoint用の二状態ラッパーを表し、QPoint特化はLODに応じて正負座標を現行のゼロ方向丸めで縮小し、汎用入口は値型自身の同期処理へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLodCapableLayerOffset",
+        "alias:KisLodSwitchingWrapper::LodState",
+        "class:KisLodSwitchingWrapper",
+        "function:KisLodSwitchingWrapperDetail::syncLodNValue(const QPoint & value,int lod)",
+        "function:KisLodSwitchingWrapperDetail::syncLodNValue(const T & value,int lod)"
+      ]
+    },
+    {
+      "target": "kis_lod_capable_layer_offset_test",
+      "source": "libs/image/tests/kis_lod_capable_layer_offset_test.cpp",
+      "test": "KisLodCapableLayerOffsetTest::testDefaultConstructionAndAccess",
+      "behavior": "既定構築はLOD 0値とLOD Nキャッシュを既定値にし、constと非constの参照・ポインター入口は現在LODの状態を返し、再同期はLOD 0の原値からLOD N値を再生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodSwitchingWrapper::KisLodSwitchingWrapper(KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisLodSwitchingWrapper::operator *()",
+        "method:KisLodSwitchingWrapper::operator *() const",
+        "method:KisLodSwitchingWrapper::operator ->()",
+        "method:KisLodSwitchingWrapper::operator ->() const",
+        "method:KisLodSwitchingWrapper::syncLodCache()"
+      ]
+    },
+    {
+      "target": "kis_lod_capable_layer_offset_test",
+      "source": "libs/image/tests/kis_lod_capable_layer_offset_test.cpp",
+      "test": "KisLodCapableLayerOffsetTest::testValueConstructionAndBounds",
+      "behavior": "値構築は原値を保持して現在LOD用キャッシュを生成し、境界参照を強く保持する。境界交換は旧参照を解放し、新しい境界の現在LODに対応する保持済み状態を選択する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodSwitchingWrapper::KisLodSwitchingWrapper(T && initialValue,KisDefaultBoundsBaseSP defaultBounds)",
+        "method:KisLodSwitchingWrapper::defaultBounds() const",
+        "method:KisLodSwitchingWrapper::setDefaultBounds(KisDefaultBoundsBaseSP defaultBounds)"
+      ]
+    },
+    {
+      "target": "kis_lod_capable_layer_offset_test",
+      "source": "libs/image/tests/kis_lod_capable_layer_offset_test.cpp",
+      "test": "KisLodCapableLayerOffsetTest::testCopyAndAssignment",
+      "behavior": "コピー構築とコピー代入は境界参照、LOD 0値、LOD N値を複製し、コピー後の値変更は元のラッパーへ伝播せず、自己代入は状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodSwitchingWrapper::KisLodSwitchingWrapper(const KisLodSwitchingWrapper & rhs)",
+        "method:KisLodSwitchingWrapper::operator =(const KisLodSwitchingWrapper & rhs)"
+      ]
+    },
+    {
+      "target": "kis_lod_capable_layer_offset_test",
+      "source": "libs/image/tests/kis_lod_capable_layer_offset_test.cpp",
+      "test": "KisLodCapableLayerOffsetTest::testLodState",
+      "behavior": "LodStateの設定と代入はLOD 0なら原値、正のLODならLOD N値を更新し、取得と変換は境界の現在LOD番号と現在選択値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodSwitchingWrapper::lodState() const",
+        "method:KisLodSwitchingWrapper::operator =(const LodState & rhs)",
+        "method:KisLodSwitchingWrapper::operator LodState() const",
+        "method:KisLodSwitchingWrapper::setLodState(const LodState & state)"
       ]
     }
   ]

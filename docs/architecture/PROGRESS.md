@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 00:01 JST
+- 更新日時: 2026-08-30 00:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,8 +27,8 @@
   作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-storage-plugin`であり、
   `libs/resources/KisStoragePlugin.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。717工程・1,461入力の統合試験から
   分離し、構築、時刻、URL読込み配送、MD5、資源情報、既定非対応操作、純仮想接続面、寿命の全21 APIを対象とする。
-- 実装担当`lod-layer-offset`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-lod-layer-offset`であり、
+- 実装担当`lod-layer-offset`は`integrated`、担当先端は`bdc13301b9`、統合コミットは`60d49e680a`、統合順は4である。
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-lod-layer-offset`であり、
   `libs/image/kis_lod_capable_layer_offset.{h,cpp}`、Image製品・試験CMake、既存試験の限定化を所有する。1,092工程・2,206入力の
   製品接続から分離し、QPoint特化、汎用値同期、LOD切替、コピー・代入、状態交換の全20 APIを対象とする。
 - 第20並列便の完了時は合計93 APIを追加し、公開面の対応済み5,984件、未対応24,005件を見込む。各担当は公開面と製品挙動を
@@ -8912,9 +8912,29 @@
   MIME・登録簿代替はURL分割と読込み器配送だけを観測し、実登録・実MIME統合は既存統合試験に残した。null装置・資源、経路遡行、
   問合せ文字列・符号化、Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b LOD対応位置の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_lod_capable_layer_offset.h`の全20 APIを、既存
+  `libs/image/tests/kis_lod_capable_layer_offset_test.{h,cpp}`の5試験へ対応付けた。QPoint特化の正負座標縮小、汎用値同期、
+  既定・値構築、const・非constアクセス、境界参照の保持と交換、LOD 0・N切替と再同期、コピー・自己代入、LodStateの
+  取得・変換・設定を固定した。
+- 開始ファイル`libs/image/kis_lod_capable_layer_offset.cpp`の構築所有を`libs/image/CMakeLists.txt`の
+  `kritaimage_LIB_SRCS`から同ファイル内の新規`kritaimagelodcapablelayeroffsetobjects`へ移し、製品`kritaimage`へ1回だけ
+  再集約した。開始試験は同じパスのまま一括製品試験から単独試験へ移し、専用生成物、既存`kritaglobalsharedobjects`、
+  Qt Core・Gui・Testだけへ接続する。実装includeは使用する計算だけを持つ`kis_lod_transform_base.h`へ狭めた。公開ヘッダー、
+  製品ABI、座標計算は維持した。
+- 実装未接続の初回限定リンクはQPoint特化同期の未定義記号で失敗した。macOSの専用生成物は1工程・2入力、限定試験は
+  6工程・12入力であり、従来試験の1,092工程・2,206入力から縮小した。製品集約計画で専用生成物が1回だけ現れることを確認した。
+  主作業ツリーで対象CTest単発と20回反復、最近傍の`KisWrappedRectContractTest`、パッケージ境界検査に成功し、担当作業ツリーの
+  高速検査にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,984件、未対応24,005件になった。null境界、負LOD、
+  整数ビット幅付近のLOD、並行利用、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第20並列便は進捗接続面・通知30 API、表示座標変換22 API、資源保管基底21 API、LOD対応位置20 APIの合計93 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
+
 ## 次の操作
 
-第20並列便のLOD対応位置引渡しを統合し、限定対象を主作業ツリーで再検証する。
+未対応24,005 APIの最新報告から第21並列便の候補を選び、各候補の直接依存と清浄木の構築範囲を監査して担当票を確定する。
 
 ## R1-G5完了根拠
 
