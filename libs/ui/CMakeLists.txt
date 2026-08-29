@@ -1091,6 +1091,35 @@ set_target_properties(kritauinodemanagerlifecyclecontractobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauinodemanagersetupobjects OBJECT
+    nodes/KisNodeManagerSetup.cpp
+)
+target_compile_definitions(kritauinodemanagersetupobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagersetupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagersetupobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagersetupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
@@ -1140,6 +1169,7 @@ set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauinodemanagerexportobjects>
     $<TARGET_OBJECTS:kritauinodemanageractivationobjects>
     $<TARGET_OBJECTS:kritauinodemanagerlifecycleobjects>
+    $<TARGET_OBJECTS:kritauinodemanagersetupobjects>
 
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp

@@ -715,6 +715,34 @@ protected:
         static void updateMaskGui(KisNodeManager *manager);
     };
 
+    struct KRITAUI_EXPORT SetupAccess {
+        static void setupLayerManager(KisNodeManager *manager, KisActionManager *actionManager);
+        static void setupMaskManager(KisNodeManager *manager,
+                                     KisKActionCollection *actionCollection,
+                                     KisActionManager *actionManager);
+        static void registerAction(KisNodeManager *manager,
+                                   KisActionManager *actionManager,
+                                   const char *actionId,
+                                   const char *signal,
+                                   const char *slot,
+                                   bool checkable,
+                                   bool shapeLayerOnly,
+                                   bool storePinAction);
+        static void registerNodeCreation(KisNodeManager *manager,
+                                         KisActionManager *actionManager,
+                                         const char *actionId,
+                                         const char *nodeType);
+        static bool deferNodeCreation();
+        static void connectNodeCreation(KisNodeManager *manager, bool deferred);
+        static void registerNodeConversion(KisNodeManager *manager,
+                                           KisActionManager *actionManager,
+                                           const char *actionId,
+                                           const char *nodeType,
+                                           const QStringList &excludedNodeTypes);
+        static void connectNodeConversion(KisNodeManager *manager);
+        static void connectNodeActivationToIsolation(KisNodeManager *manager);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

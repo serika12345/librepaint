@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25063
+    "expectedMissingApis": 25062
   },
   "contracts": [
     {
@@ -13160,6 +13160,56 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::updateGUI()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSetupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSetupContractTest.cpp",
+      "test": "KisNodeManagerSetupContractTest::ownerSetupPrecedesActionRegistration",
+      "behavior": "ノード操作登録はレイヤー管理器、マスク管理器の設定を先に完了してから個別操作を登録する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setup(KisKActionCollection * collection,KisActionManager * actionManager)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSetupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSetupContractTest.cpp",
+      "test": "KisNodeManagerSetupContractTest::commandActionsPreserveRoutesAndFlags",
+      "behavior": "36種の通常操作は安定した識別子と信号・処理先の組を保持し、タイムライン固定は確認可能操作として所有され、SVG保存は図形レイヤー時だけ有効になる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setup(KisKActionCollection * collection,KisActionManager * actionManager)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSetupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSetupContractTest.cpp",
+      "test": "KisNodeManagerSetupContractTest::nodeCreationMappingsPreserveDelivery",
+      "behavior": "13種のノード作成操作は安定した識別子を具体的なノード型へ対応付け、プラットフォーム方針に従って直接または遅延実行で作成入口へ接続する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setup(KisKActionCollection * collection,KisActionManager * actionManager)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSetupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSetupContractTest.cpp",
+      "test": "KisNodeManagerSetupContractTest::nodeConversionsPreserveExclusions",
+      "behavior": "5種のノード変換操作は変換先型と、同型または互換しない型の除外集合を保持して変換入口へ接続する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setup(KisKActionCollection * collection,KisActionManager * actionManager)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSetupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSetupContractTest.cpp",
+      "test": "KisNodeManagerSetupContractTest::mapperAndIsolationConnectionsFollowRegistration",
+      "behavior": "通常操作、作成型、作成接続、変換型、変換接続、分離表示操作、ノード起動通知、残りの切替・アルファ操作をこの順で登録する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::setup(KisKActionCollection * collection,KisActionManager * actionManager)"
       ]
     },
     {

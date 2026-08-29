@@ -305,200 +305,99 @@ void KisNodeManager::LifecycleAccess::updateMaskGui(KisNodeManager *manager)
     manager->m_d->maskManager.updateGUI();
 }
 
-#define NEW_LAYER_ACTION(id, layerType)                                 \
-{                                                                   \
-    action = actionManager->createAction(id);                       \
-    m_d->nodeCreationSignalMapper.setMapping(action, layerType);    \
-    connect(action, SIGNAL(triggered()),                            \
-    &m_d->nodeCreationSignalMapper, SLOT(map()));           \
-    }
-
-#define CONVERT_NODE_ACTION_2(id, layerType, exclude)                   \
-{                                                                   \
-    action = actionManager->createAction(id);                       \
-    action->setExcludedNodeTypes(QStringList(exclude));             \
-    actionManager->addAction(id, action);                           \
-    m_d->nodeConversionSignalMapper.setMapping(action, layerType);  \
-    connect(action, SIGNAL(triggered()),                            \
-    &m_d->nodeConversionSignalMapper, SLOT(map()));         \
-    }
-
-#define CONVERT_NODE_ACTION(id, layerType)              \
-    CONVERT_NODE_ACTION_2(id, layerType, layerType)
-
-void KisNodeManager::setup(KisKActionCollection * actionCollection, KisActionManager* actionManager)
+void KisNodeManager::SetupAccess::setupLayerManager(KisNodeManager *manager, KisActionManager *actionManager)
 {
-    m_d->layerManager.setup(actionManager);
-    m_d->maskManager.setup(actionCollection, actionManager);
-
-    KisAction * action = 0;
-
-    action = actionManager->createAction("mirrorNodeX");
-    connect(action, SIGNAL(triggered()), this, SLOT(mirrorNodeX()));
-
-    action  = actionManager->createAction("mirrorNodeY");
-    connect(action, SIGNAL(triggered()), this, SLOT(mirrorNodeY()));
-
-    action = actionManager->createAction("mirrorAllNodesX");
-    connect(action, SIGNAL(triggered()), this, SLOT(mirrorAllNodesX()));
-
-    action  = actionManager->createAction("mirrorAllNodesY");
-    connect(action, SIGNAL(triggered()), this, SLOT(mirrorAllNodesY()));
-
-    action = actionManager->createAction("activateNextLayer");
-    connect(action, SIGNAL(triggered()), this, SLOT(activateNextNode()));
-
-    action = actionManager->createAction("activateNextSiblingLayer");
-    connect(action, SIGNAL(triggered()), this, SLOT(activateNextSiblingNode()));
-
-    action = actionManager->createAction("activatePreviousLayer");
-    connect(action, SIGNAL(triggered()), this, SLOT(activatePreviousNode()));
-
-    action = actionManager->createAction("activatePreviousSiblingLayer");
-    connect(action, SIGNAL(triggered()), this, SLOT(activatePreviousSiblingNode()));
-
-    action = actionManager->createAction("switchToPreviouslyActiveNode");
-    connect(action, SIGNAL(triggered()), this, SLOT(switchToPreviouslyActiveNode()));
-
-    action  = actionManager->createAction("save_node_as_image");
-    connect(action, SIGNAL(triggered()), this, SLOT(saveNodeAsImage()));
-
-    action  = actionManager->createAction("save_vector_node_to_svg");
-    connect(action, SIGNAL(triggered()), this, SLOT(saveVectorLayerAsImage()));
-    action->setActivationFlags(KisAction::ACTIVE_SHAPE_LAYER);
-
-    action = actionManager->createAction("duplicatelayer");
-    connect(action, SIGNAL(triggered()), this, SLOT(duplicateActiveNode()));
-
-    action = actionManager->createAction("copy_layer_clipboard");
-    connect(action, SIGNAL(triggered()), this, SLOT(copyLayersToClipboard()));
-
-    action = actionManager->createAction("cut_layer_clipboard");
-    connect(action, SIGNAL(triggered()), this, SLOT(cutLayersToClipboard()));
-
-    action = actionManager->createAction("paste_layer_from_clipboard");
-    connect(action, SIGNAL(triggered()), this, SLOT(pasteLayersFromClipboard()));
-
-    action = actionManager->createAction("create_quick_group");
-    connect(action, SIGNAL(triggered()), this, SLOT(createQuickGroup()));
-
-    action = actionManager->createAction("create_quick_clipping_group");
-    connect(action, SIGNAL(triggered()), this, SLOT(createQuickClippingGroup()));
-
-    action = actionManager->createAction("quick_ungroup");
-    connect(action, SIGNAL(triggered()), this, SLOT(quickUngroup()));
-
-    action = actionManager->createAction("select_all_layers");
-    connect(action, SIGNAL(triggered()), this, SLOT(selectAllNodes()));
-
-    action = actionManager->createAction("select_visible_layers");
-    connect(action, SIGNAL(triggered()), this, SLOT(selectVisibleNodes()));
-
-    action = actionManager->createAction("select_locked_layers");
-    connect(action, SIGNAL(triggered()), this, SLOT(selectLockedNodes()));
-
-    action = actionManager->createAction("select_invisible_layers");
-    connect(action, SIGNAL(triggered()), this, SLOT(selectInvisibleNodes()));
-
-    action = actionManager->createAction("select_unlocked_layers");
-    connect(action, SIGNAL(triggered()), this, SLOT(selectUnlockedNodes()));
-
-    action = actionManager->createAction("new_from_visible");
-    connect(action, SIGNAL(triggered()), this, SLOT(createFromVisible()));
-    
-    action = actionManager->createAction("create_reference_image_from_active_layer");
-    connect(action, SIGNAL(triggered()), this, SLOT(createReferenceImageFromLayer()));
-    
-    action = actionManager->createAction("create_reference_image_from_visible_canvas");
-    connect(action, SIGNAL(triggered()), this, SLOT(createReferenceImageFromVisible()));
-
-    action = actionManager->createAction("pin_to_timeline");
-    action->setCheckable(true);
-    connect(action, SIGNAL(toggled(bool)), this, SLOT(slotPinToTimeline(bool)));
-    m_d->pinToTimeline = action;
-
-    NEW_LAYER_ACTION("add_new_paint_layer", "KisPaintLayer");
-
-    NEW_LAYER_ACTION("add_new_group_layer", "KisGroupLayer");
-
-    NEW_LAYER_ACTION("add_new_clone_layer", "KisCloneLayer");
-
-    NEW_LAYER_ACTION("add_new_shape_layer", "KisShapeLayer");
-
-    NEW_LAYER_ACTION("add_new_adjustment_layer", "KisAdjustmentLayer");
-
-    NEW_LAYER_ACTION("add_new_fill_layer", "KisGeneratorLayer");
-
-    NEW_LAYER_ACTION("add_new_file_layer", "KisFileLayer");
-
-    NEW_LAYER_ACTION("add_new_transparency_mask", "KisTransparencyMask");
-
-    NEW_LAYER_ACTION("add_new_filter_mask", "KisFilterMask");
-
-    // NOTE: FastColorOverlayFilterMask is just an identifier, not an actual class name
-    NEW_LAYER_ACTION("add_new_fast_color_overlay_mask", "FastColorOverlayFilterMask");
-
-    NEW_LAYER_ACTION("add_new_colorize_mask", "KisColorizeMask");
-
-    NEW_LAYER_ACTION("add_new_transform_mask", "KisTransformMask");
-
-    NEW_LAYER_ACTION("add_new_selection_mask", "KisSelectionMask");
-
-#ifdef Q_OS_IOS
-    // Pencil actions can arrive through a synthesized mouse release. Defer
-    // node and UI mutation until Qt has finished that tablet/mouse delivery;
-    // otherwise QGestureManager may retain a context destroyed by the action.
-    connect(&m_d->nodeCreationSignalMapper, SIGNAL(mapped(QString)),
-            this, SLOT(createNode(QString)), Qt::QueuedConnection);
-#else
-    connect(&m_d->nodeCreationSignalMapper, SIGNAL(mapped(QString)),
-            this, SLOT(createNode(QString)));
-#endif
-
-    CONVERT_NODE_ACTION("convert_to_paint_layer", "KisPaintLayer");
-
-    CONVERT_NODE_ACTION_2("convert_to_selection_mask", "KisSelectionMask", QStringList() << "KisSelectionMask" << "KisColorizeMask");
-
-    CONVERT_NODE_ACTION_2("convert_to_filter_mask", "KisFilterMask", QStringList() << "KisFilterMask" << "KisColorizeMask");
-
-    CONVERT_NODE_ACTION_2("convert_to_transparency_mask", "KisTransparencyMask", QStringList() << "KisTransparencyMask" << "KisColorizeMask");
-
-    CONVERT_NODE_ACTION_2("convert_to_file_layer", "KisFileLayer", QStringList() << "KisFileLayer" << "KisCloneLayer");
-
-    connect(&m_d->nodeConversionSignalMapper, SIGNAL(mapped(QString)),
-            this, SLOT(convertNode(QString)));
-
-    // Isolation Modes...
-    // Post Qt5.14 this can be replaced with QActionGroup + ExclusionPolicy::ExclusiveOptional.
-    action = actionManager->createAction("isolate_active_layer");
-    connect(action, SIGNAL(toggled(bool)), this, SLOT(setIsolateActiveLayerMode(bool)));
-    action = actionManager->createAction("isolate_active_group");
-    connect(action, SIGNAL(triggered(bool)), this, SLOT(setIsolateActiveGroupMode(bool)));
-    connect(this, SIGNAL(sigNodeActivated(KisNodeSP)), SLOT(changeIsolationRoot(KisNodeSP)));
-
-    action = actionManager->createAction("toggle_layer_visibility");
-    connect(action, SIGNAL(triggered()), this, SLOT(toggleVisibility()));
-
-    action = actionManager->createAction("toggle_layer_lock");
-    connect(action, SIGNAL(triggered()), this, SLOT(toggleLock()));
-
-    action = actionManager->createAction("toggle_layer_inherit_alpha");
-    connect(action, SIGNAL(triggered()), this, SLOT(toggleInheritAlpha()));
-
-    action = actionManager->createAction("toggle_layer_alpha_lock");
-    connect(action, SIGNAL(triggered()), this, SLOT(toggleAlphaLock()));
-
-    action  = actionManager->createAction("split_alpha_into_mask");
-    connect(action, SIGNAL(triggered()), this, SLOT(slotSplitAlphaIntoMask()));
-
-    action  = actionManager->createAction("split_alpha_write");
-    connect(action, SIGNAL(triggered()), this, SLOT(slotSplitAlphaWrite()));
-
-    // HINT: we can save even when the nodes are not editable
-    action  = actionManager->createAction("split_alpha_save_merged");
-    connect(action, SIGNAL(triggered()), this, SLOT(slotSplitAlphaSaveMerged()));
+    manager->m_d->layerManager.setup(actionManager);
 }
 
+void KisNodeManager::SetupAccess::setupMaskManager(KisNodeManager *manager,
+                                                   KisKActionCollection *actionCollection,
+                                                   KisActionManager *actionManager)
+{
+    manager->m_d->maskManager.setup(actionCollection, actionManager);
+}
+
+void KisNodeManager::SetupAccess::registerAction(KisNodeManager *manager,
+                                                 KisActionManager *actionManager,
+                                                 const char *actionId,
+                                                 const char *signal,
+                                                 const char *slot,
+                                                 bool checkable,
+                                                 bool shapeLayerOnly,
+                                                 bool storePinAction)
+{
+    const QString id = QString::fromLatin1(actionId);
+    KisAction *action = actionManager->createAction(id);
+    if (checkable) {
+        action->setCheckable(true);
+    }
+
+    const QByteArray encodedSignal = QByteArray("2") + signal;
+    const QByteArray encodedSlot = QByteArray("1") + slot;
+    QObject::connect(action, encodedSignal.constData(), manager, encodedSlot.constData());
+    if (shapeLayerOnly) {
+        action->setActivationFlags(KisAction::ACTIVE_SHAPE_LAYER);
+    }
+    if (storePinAction) {
+        manager->m_d->pinToTimeline = action;
+    }
+}
+
+void KisNodeManager::SetupAccess::registerNodeCreation(KisNodeManager *manager,
+                                                       KisActionManager *actionManager,
+                                                       const char *actionId,
+                                                       const char *nodeType)
+{
+    KisAction *action = actionManager->createAction(QString::fromLatin1(actionId));
+    manager->m_d->nodeCreationSignalMapper.setMapping(action, QString::fromLatin1(nodeType));
+    QObject::connect(action, SIGNAL(triggered()), &manager->m_d->nodeCreationSignalMapper, SLOT(map()));
+}
+
+bool KisNodeManager::SetupAccess::deferNodeCreation()
+{
+#ifdef Q_OS_IOS
+    return true;
+#else
+    return false;
+#endif
+}
+
+void KisNodeManager::SetupAccess::connectNodeCreation(KisNodeManager *manager, bool deferred)
+{
+    const Qt::ConnectionType type = deferred ? Qt::QueuedConnection : Qt::AutoConnection;
+    QObject::connect(&manager->m_d->nodeCreationSignalMapper,
+                     SIGNAL(mapped(QString)),
+                     manager,
+                     SLOT(createNode(QString)),
+                     type);
+}
+
+void KisNodeManager::SetupAccess::registerNodeConversion(KisNodeManager *manager,
+                                                         KisActionManager *actionManager,
+                                                         const char *actionId,
+                                                         const char *nodeType,
+                                                         const QStringList &excludedNodeTypes)
+{
+    const QString id = QString::fromLatin1(actionId);
+    KisAction *action = actionManager->createAction(id);
+    action->setExcludedNodeTypes(excludedNodeTypes);
+    actionManager->addAction(id, action);
+    manager->m_d->nodeConversionSignalMapper.setMapping(action, QString::fromLatin1(nodeType));
+    QObject::connect(action, SIGNAL(triggered()), &manager->m_d->nodeConversionSignalMapper, SLOT(map()));
+}
+
+void KisNodeManager::SetupAccess::connectNodeConversion(KisNodeManager *manager)
+{
+    QObject::connect(&manager->m_d->nodeConversionSignalMapper,
+                     SIGNAL(mapped(QString)),
+                     manager,
+                     SLOT(convertNode(QString)));
+}
+
+void KisNodeManager::SetupAccess::connectNodeActivationToIsolation(KisNodeManager *manager)
+{
+    QObject::connect(manager, SIGNAL(sigNodeActivated(KisNodeSP)), manager, SLOT(changeIsolationRoot(KisNodeSP)));
+}
 KisNodeSP KisNodeManager::ActiveAccess::activeNode(KisNodeManager *manager)
 {
     if (manager->m_d->imageView) {
