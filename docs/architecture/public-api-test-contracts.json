@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22933
+    "expectedMissingApis": 22902
   },
   "contracts": [
     {
@@ -20649,6 +20649,158 @@
       "classification": "maintained",
       "apis": [
         "method:KisColorLabelSelectorWidgetMenuWrapper::showEvent(QShowEvent * e)"
+      ]
+    },
+    {
+      "target": "KoFakeProgressProxyContractTest",
+      "source": "libs/widgetutils/tests/KoFakeProgressProxyContractTest.cpp",
+      "test": "KoFakeProgressProxyContractTest::instanceIsStableAcrossThreads",
+      "behavior": "無状態進捗proxyの共有instanceは複数threadから同時に取得しても、同じ具体型の個体を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoFakeProgressProxy",
+        "method:KoFakeProgressProxy::instance()"
+      ]
+    },
+    {
+      "target": "KoFakeProgressProxyContractTest",
+      "source": "libs/widgetutils/tests/KoFakeProgressProxyContractTest.cpp",
+      "test": "KoFakeProgressProxyContractTest::updatesLeaveInstancesStateless",
+      "behavior": "無状態進捗proxyは範囲、値、書式、自動入れ子名の更新を受けても個体間で状態を持たず、固定最大値100を返し続ける。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoFakeProgressProxy::maximum() const",
+        "method:KoFakeProgressProxy::setAutoNestedName(const QString & name)",
+        "method:KoFakeProgressProxy::setFormat(const QString & format)",
+        "method:KoFakeProgressProxy::setRange(int minimum,int maximum)",
+        "method:KoFakeProgressProxy::setValue(int value)"
+      ]
+    },
+    {
+      "target": "KoDerivedResourceConverterContractTest",
+      "source": "libs/flake/tests/KoDerivedResourceConverterContractTest.cpp",
+      "test": "KoDerivedResourceConverterContractTest::sharedAliasPreservesKeysAndVirtualLifetime",
+      "behavior": "派生資源変換器は構築時の派生キーとsourceキーを保持し、公開共有ポインター別名は途中の参照解放で個体を保持し、最後の解放で派生個体を一度だけ仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoDerivedResourceConverterSP",
+        "class:KoDerivedResourceConverter",
+        "method:KoDerivedResourceConverter::KoDerivedResourceConverter(int key,int sourceKey)",
+        "method:KoDerivedResourceConverter::key() const",
+        "method:KoDerivedResourceConverter::sourceKey() const",
+        "method:KoDerivedResourceConverter::~KoDerivedResourceConverter()"
+      ]
+    },
+    {
+      "target": "KoDerivedResourceConverterContractTest",
+      "source": "libs/flake/tests/KoDerivedResourceConverterContractTest.cpp",
+      "test": "KoDerivedResourceConverterContractTest::tracksReadAndNotifyCacheTransitions",
+      "behavior": "source通知は初回または不可視な読み取り変更後だけ変化を報告し、同一値の反復通知を抑制する。読み取りは派生変換結果を返してcacheし、notifyの派生上書きへ仮想配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDerivedResourceConverter::notifySourceChanged(const QVariant & sourceValue)",
+        "method:KoDerivedResourceConverter::readFromSource(const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KoDerivedResourceConverterContractTest",
+      "source": "libs/flake/tests/KoDerivedResourceConverterContractTest.cpp",
+      "test": "KoDerivedResourceConverterContractTest::writesSourceAndReportsCachedValueChanges",
+      "behavior": "派生値の書込みは必要時だけsource変換を行い、cache済み派生値との差をchangedへ返す。source補正時はchanged=falseになり得て、null出力と不変sourceを安全に処理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDerivedResourceConverter::writeToSource(const QVariant & value,const QVariant & sourceValue,bool * changed)"
+      ]
+    },
+    {
+      "target": "KisCompositeProgressProxyContractTest",
+      "source": "libs/image/tests/KisCompositeProgressProxyContractTest.cpp",
+      "test": "KisCompositeProgressProxyContractTest::emptyStateAndBorrowedLifetime",
+      "behavior": "空の複合進捗は最大値0を返し、複合側の破棄は登録された借用proxyを破棄しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCompositeProgressProxy"
+      ]
+    },
+    {
+      "target": "KisCompositeProgressProxyContractTest",
+      "source": "libs/image/tests/KisCompositeProgressProxyContractTest.cpp",
+      "test": "KisCompositeProgressProxyContractTest::distinctProxiesReceiveEachUpdateOnceInRegistrationOrder",
+      "behavior": "重複登録を保持しつつ、値、範囲、表示書式、自動入れ子名を各distinct proxyへ初回登録順で正確に1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeProgressProxy::addProxy(KoProgressProxy * proxy)",
+        "method:KisCompositeProgressProxy::setAutoNestedName(const QString & name)",
+        "method:KisCompositeProgressProxy::setFormat(const QString & format)",
+        "method:KisCompositeProgressProxy::setRange(int minimum,int maximum)",
+        "method:KisCompositeProgressProxy::setValue(int value)"
+      ]
+    },
+    {
+      "target": "KisCompositeProgressProxyContractTest",
+      "source": "libs/image/tests/KisCompositeProgressProxyContractTest.cpp",
+      "test": "KisCompositeProgressProxyContractTest::removeBalancesDuplicateRegistrationsAndChangesMaximumSource",
+      "behavior": "removeは同一pointerの登録を1件ずつ消費し、最後の登録が消えるまで配送対象と先頭maximumを維持し、その後は次のproxyまたは0へ切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCompositeProgressProxy::maximum() const",
+        "method:KisCompositeProgressProxy::removeProxy(KoProgressProxy * proxy)"
+      ]
+    },
+    {
+      "target": "KisStretchedIconButtonContractTest",
+      "source": "libs/widgets/tests/KisStretchedIconButtonContractTest.cpp",
+      "test": "KisStretchedIconButtonContractTest::parentOwnsInitialDisabledButton",
+      "behavior": "伸縮icon buttonは指定された親widgetに所有され、中央配置された内部labelを所有し、関連操作なしでは空表示かつ利用不能・非表示で開始し、親の破棄に従って破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStretchedIconButton",
+        "method:KisStretchedIconButton::KisStretchedIconButton(QWidget * parent)",
+        "method:KisStretchedIconButton::~KisStretchedIconButton()"
+      ]
+    },
+    {
+      "target": "KisStretchedIconButtonContractTest",
+      "source": "libs/widgets/tests/KisStretchedIconButtonContractTest.cpp",
+      "test": "KisStretchedIconButtonContractTest::stretchedIconIsStoredAndRequestedAgainOnResize",
+      "behavior": "設定されたiconを同一内容で保持して内部labelへ要求し、寸法変更時には新しいlabel寸法でicon画像を再要求する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStretchedIconButton::setStretchedIcon(const QIcon & icon)",
+        "method:KisStretchedIconButton::stretchedIcon() const"
+      ]
+    },
+    {
+      "target": "KisStretchedIconButtonContractTest",
+      "source": "libs/widgets/tests/KisStretchedIconButtonContractTest.cpp",
+      "test": "KisStretchedIconButtonContractTest::associatedActionSynchronizesPresentationAndTrigger",
+      "behavior": "関連操作の同一実体を保持し、icon、説明、利用可能性、可視性とその後の変更を同期し、button押下を関連操作のtriggerへ正確に1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStretchedIconButton::associatedAction() const",
+        "method:KisStretchedIconButton::setAssociatedAction(QAction * action)"
+      ]
+    },
+    {
+      "target": "KisStretchedIconButtonContractTest",
+      "source": "libs/widgets/tests/KisStretchedIconButtonContractTest.cpp",
+      "test": "KisStretchedIconButtonContractTest::reassociationDisconnectsOldActionAndNullClearsState",
+      "behavior": "関連操作を置換すると旧操作との変更・起動接続を解除して新操作だけへ接続し、null設定では関連付けと表示状態を消去して利用不能・非表示へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStretchedIconButton::associatedAction() const",
+        "method:KisStretchedIconButton::setAssociatedAction(QAction * action)"
+      ]
+    },
+    {
+      "target": "KisStretchedIconButtonContractTest",
+      "source": "libs/widgets/tests/KisStretchedIconButtonContractTest.cpp",
+      "test": "KisStretchedIconButtonContractTest::destroyedActionLeavesStalePresentation",
+      "behavior": "関連操作が先に破棄されると借用ポインターはnull化するが、最後に同期したicon、説明、利用可能性、可視性が残存する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisStretchedIconButton::associatedAction() const",
+        "method:KisStretchedIconButton::setAssociatedAction(QAction * action)"
       ]
     }
   ]

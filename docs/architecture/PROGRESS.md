@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 06:23 JST
+- 更新日時: 2026-08-30 06:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,38 +11,9 @@
 
 ### 現在の並列担当票
 
-- 第31並列便の共通基準コミットは`8814a2d1c1`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g31-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-  共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`fake-progress`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/widgetutils/KoFakeProgressProxy.cpp`、WidgetUtils製品・試験CMake、新規`KoFakeProgressProxyContractTest.cpp`を所有する。
-  開始ファイルを製品`kritawidgetutils`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の248工程・529入力に代えて、
-  既存`kritawidgetutilsprogressupdaterobjects`を直接再利用する12工程・24入力以内で、固定最大値、無状態の更新入口、singleton同一性と
-  複数threadからの取得の全7 APIを固定する。既存進捗基底生成物は9工程・18入力の最近傍契約でも所有単位として使われており、限定閉包が
-  十分小さいため追加分割しない。
-- 実装担当`derived-resource-converter`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g31-derived-resource-converter`で
-  `libs/flake/KoDerivedResourceConverter.cpp`、Flake製品・試験CMake、新規`KoDerivedResourceConverterContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の566工程・1,164入力と従来
-  `TestResourceManager`の570工程・1,171入力に代えて6工程・13入力以内で、key、共有寿命、読取り・通知のcache状態、書込み変換と
-  `changed`規約の全9 APIを固定する。
-- 実装担当`composite-progress`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g31-composite-progress`で
-  `libs/image/kis_composite_progress_proxy.cpp`、Image製品・試験CMake、新規`KisCompositeProgressProxyContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。製品の1,109工程・2,242入力に代えて、
-  既存進捗基底生成物を直接再利用する12工程・24入力以内で、空状態、先頭maximum、重複登録の一重配送、追加順、重複回数を消費する除去、
-  値・範囲・書式・自動入れ子名配送の全8 APIを固定する。
-- 実装担当`stretched-icon-button`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は4である。作業ツリー`/Users/masato/Documents/librepaint-r2-g31-stretched-icon-button`で
-  `libs/widgets/KisStretchedIconButton.cpp`、Widgets製品・試験CMake、新規`KisStretchedIconButtonContractTest.cpp`を所有する。
-  開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC不要の専用生成物へ移し、製品へ1回だけ再集約する。製品の734工程・
-  1,497入力に代えて6工程・13入力以内で、親所有、伸縮icon、action状態同期・trigger・再接続・解除、action先行破棄後の現行表示状態の
-  全7 APIを固定する。
-- 第31並列便の完了時は合計31 APIを追加し、公開面の対応済み7,087件、未対応22,902件を見込む。各担当は公開面と製品挙動を維持し、
-  限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
-  `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、
-  分類できない挙動を発見した時点で`blocked`として引き渡す。
+- 第31並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
+- 次は第32並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
+  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
 
 ## 再開環境
 
@@ -9560,10 +9531,69 @@
   作業ディレクトリー、キャッシュ経路に加えて`build-incremental`が担当作業木の絶対パスへ解決されることを確認する。修正前の限定試験は
   終了値1、修正後は限定1試験と増分開発スクリプト全15試験が成功した。
 
+## R2-G19b 無状態進捗受け口の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KoFakeProgressProxy.h`の全7 APIを、新規
+  `libs/widgetutils/tests/KoFakeProgressProxyContractTest.cpp`の2試験へ対応付けた。固定最大値100、範囲・値・書式・自動入れ子名を保持しない
+  更新入口、直接個体間の状態独立性、複数threadから取得する共有instanceの個体同一性を固定した。
+- 開始ファイル`libs/widgetutils/KoFakeProgressProxy.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の
+  `kritawidgetutils_LIB_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritawidgetutilsfakeprogressproxyobjects`へ移し、製品
+  `kritawidgetutils`は同生成物を1回だけ再集約する。限定試験は同生成物、既存`kritawidgetutilsprogressupdaterobjects`、Qt Core・Testへ
+  直接接続する。既存進捗生成物は基底型情報と具体的更新器を一緒に所有するが、10工程・20入力の限定閉包が停止上限内であるため追加分割しない。
+- 対象未登録の初回限定構築は未知の対象、最初のリンクは`KoProgressProxy`型情報未解決として失敗し、基底実装の既存生成物を試験へ明示した。
+  限定対象は10工程・20入力で、製品の248工程・529入力から縮小した。対象CTest単発と20回反復、最近傍`KoUpdaterContractTest`、公開記号、
+  一重再集約、製品共有ライブラリー非接続、整形検査に成功した。処理終了時のsingleton破棄順、thread sanitizer、setter中の並行呼出し、
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 派生資源変換状態の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoDerivedResourceConverter.h`の全9 APIを、新規
+  `libs/flake/tests/KoDerivedResourceConverterContractTest.cpp`の3試験へ対応付けた。派生・source key、共有所有と仮想寿命、読取りと通知の
+  cache遷移、同一値通知の抑制、書込み変換、cache差を表す`changed`、null出力、不変sourceを固定した。
+- 開始ファイル`libs/flake/KoDerivedResourceConverter.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakederivedresourceconverterobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。実装内容と
+  公開ヘッダーは維持し、限定試験は同生成物とQt Core・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。主作業木の限定対象は5工程・11入力で、製品の566工程・1,164入力、従来
+  `TestResourceManager`の570工程・1,171入力から縮小した。対象CTest単発と担当作業木の20回反復、最近傍
+  `KoActiveCanvasResourceDependencyContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査に成功した。
+  変換不能な`QVariant`、副作用または非決定的な派生変換、並行利用、実資源管理器の再帰通知順、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b 複合進捗配送の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_composite_progress_proxy.h`の全8 APIを、新規
+  `libs/image/tests/KisCompositeProgressProxyContractTest.cpp`の3試験へ対応付けた。空状態の最大値0、借用寿命、重複登録の一重配送、
+  初回登録順、値・範囲・書式・自動入れ子名の引数、登録回数を1件ずつ消費する除去、先頭proxy由来の最大値を固定した。
+- 開始ファイル`libs/image/kis_composite_progress_proxy.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaimagecompositeprogressproxyobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。限定試験は
+  同生成物、既存`kritawidgetutilsprogressupdaterobjects`、Qt Core・Testへ直接接続し、進捗基底の追加分割を行わない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は10工程・21入力で、製品の1,109工程・2,242入力から縮小した。
+  対象CTest単発と担当作業木の20回反復、最近傍`KisProgressUpdateHelperContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査に成功した。null登録、借用先の先行破棄、並行変更、callback中の再入、proxy間で異なるrange、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 伸縮icon操作buttonの全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KisStretchedIconButton.h`の全7 APIを、新規`libs/widgets/tests/KisStretchedIconButtonContractTest.cpp`の5試験へ
+  対応付けた。親と内部labelの所有、icon保持と寸法変更時の再要求、関連`QAction`の表示状態同期とtrigger、関連先の置換・解除、null復帰を
+  固定した。関連操作が先に破棄されると借用ポインターだけがnull化し、最後のicon・説明・利用可能性・可視性が残る現行挙動は既知不具合に
+  分類した。
+- 開始ファイル`libs/widgets/KisStretchedIconButton.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から
+  新規AUTOMOC不要/PIC対応`kritawidgetsstretchediconbuttonobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。実装から
+  未使用の`QWindow`と`kis_debug.h`依存を除き、限定試験は同生成物とQt Core・Gui・Widgets・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象、試験用icon engineの初回コンパイルは純仮想`paint()`未実装として失敗し、試験用具象型内で
+  補完した。限定対象は5工程・11入力で、製品の734工程・1,497入力から縮小した。対象CTest単発と担当作業木の20回反復、最近傍
+  `WidgetsDebugContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、製品生成物のMOCなし、整形検査に成功した。装置画素比、
+  icon補間後の厳密画素、style余白、別threadの操作、巨大icon、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第31並列便は無状態進捗7 API、派生資源変換9 API、複合進捗8 API、伸縮icon操作button 7 APIの合計31 APIを固定した。各担当の引渡しを
+  統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を再実行した。公開面は
+  1,549ヘッダー、29,989 API、対応済み7,087件、未対応22,902件になった。
+
 ## 次の操作
 
-第31並列便の4担当が、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認してから、許可パス内だけで
-最小契約を追加する。各担当は対象単発・20回反復、軽量隣接試験、必要な製品への1回再集約、製品共有ライブラリー非接続を確認する。
+第32並列便の候補を`/tmp/librepaint-g31-missing.json`から選び、公開API集合、既存契約、製品所有、直接依存を監査する。各候補について製品と
+最近傍試験の構築閉包を測定し、限定対象の停止上限と必要な所有分離を確定してから担当票を記録する。
 
 ## R1-G5完了根拠
 
