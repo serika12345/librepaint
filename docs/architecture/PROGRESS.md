@@ -16,8 +16,9 @@
   `/Users/masato/Documents/librepaint-r2-g20-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
 - 統合担当`updater`は`implementing`、統合順は1である。主作業ツリーで`libs/widgetutils/KoUpdater.{h,cpp}`、
-  `libs/widgetutils/KoUpdaterPrivate_p.{h,cpp}`、WidgetUtils製品・試験CMake、新規限定試験を所有する。既存試験の
-  1,092工程・2,207入力を専用生成物へ縮小し、進捗、範囲、割込み、通知、無処理updater、寿命の全23 APIを対象とする。
+  `libs/widgetutils/KoUpdaterPrivate_p.{h,cpp}`、`libs/widgetutils/KoProgressProxy.{h,cpp}`、WidgetUtils製品・試験CMake、
+  新規限定試験を所有する。既存試験の1,092工程・2,207入力を専用生成物へ縮小し、進捗接続面、進捗、範囲、割込み、通知、
+  無処理updater、寿命の全30 APIを対象とする。
 - 実装担当`view-converter`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-view-converter`であり、
   `libs/flake/KoViewConverter.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。553工程・1,138入力の製品接続から分離し、
@@ -30,7 +31,7 @@
   `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-lod-layer-offset`であり、
   `libs/image/kis_lod_capable_layer_offset.{h,cpp}`、Image製品・試験CMake、既存試験の限定化を所有する。1,092工程・2,206入力の
   製品接続から分離し、QPoint特化、汎用値同期、LOD切替、コピー・代入、状態交換の全20 APIを対象とする。
-- 第20並列便の完了時は合計86 APIを追加し、公開面の対応済み5,977件、未対応24,012件を見込む。各担当は公開面と製品挙動を
+- 第20並列便の完了時は合計93 APIを追加し、公開面の対応済み5,984件、未対応24,005件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、

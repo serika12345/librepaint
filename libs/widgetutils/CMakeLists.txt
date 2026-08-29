@@ -150,6 +150,25 @@ set_target_properties(kritaspinboxi18nhelperobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetutilsprogressupdaterobjects OBJECT
+    KoProgressProxy.cpp
+    KoProgressProxy.h
+    KoUpdater.cpp
+    KoUpdater.h
+    KoUpdaterPrivate_p.cpp
+    KoUpdaterPrivate_p.h
+)
+target_compile_definitions(kritawidgetutilsprogressupdaterobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsprogressupdaterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsprogressupdaterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritawidgetutilsprogressupdaterobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -162,6 +181,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritamenustyledontcloseonaltobjects>
     $<TARGET_OBJECTS:kritapopupselfactivatinglineeditobjects>
     $<TARGET_OBJECTS:kritaspinboxi18nhelperobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsprogressupdaterobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -169,12 +189,9 @@ set(kritawidgetutils_LIB_SRCS
     kis_action_registry.cpp
     KisActionsSnapshot.cpp
     KoGroupButton.cpp
-    KoProgressProxy.cpp
     KoFakeProgressProxy.cpp
     KoProgressBar.cpp
     KoProgressUpdater.cpp
-    KoUpdater.cpp
-    KoUpdaterPrivate_p.cpp
     KoFileDialog.cpp
     KisPreviewFileDialog.cpp
     KisDialogStateSaver.cpp

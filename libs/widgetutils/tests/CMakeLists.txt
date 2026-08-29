@@ -6,6 +6,19 @@ kis_add_tests(
 )
 
 kis_add_test(
+    KoUpdaterContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsprogressupdaterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoUpdaterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoUpdaterContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KoPropertiesTest.cpp
     LINK_LIBRARIES
         kritawidgetutilspropertiesobjects
