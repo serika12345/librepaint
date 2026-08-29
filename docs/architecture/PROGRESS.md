@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 23:16 JST
+- 更新日時: 2026-08-29 23:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -25,10 +25,11 @@
   同ファイルの`kritaflakewritingsystemutilsobjects`へ移し、製品`kritaflake`へ一度だけ再集約した。新規限定試験
   `libs/flake/tests/KoWritingSystemUtilsContractTest.cpp`は専用生成物とQt Gui・Testだけへ接続し、文字体系列挙対応、見本、
   BCP 47解析・整形、QLocale変換の全22 APIを固定した。
-- 実装担当`frame-cache-index`は`ready`、担当先端は`93c9848208`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-frame-cache-index`であり、
-  `libs/canvas/animation/kis_animation_frame_cache_index.{h,cpp}`、Canvas製品・試験CMake、既存限定化試験を所有する。既存試験の
-  1,116工程・2,250入力を縮小し、操作値、有限・無限範囲、挿入、無効化、結合、交差、長さ、削除の全22 APIを対象とする。
+- 実装担当`frame-cache-index`は`integrated`、担当先端は`93c9848208`、統合コミットは`f3b1dc79c1`、統合順は3である。
+  開始ファイル`libs/canvas/animation/kis_animation_frame_cache_index.cpp`の構築所有を`libs/canvas/CMakeLists.txt`の製品ソース列挙から
+  同ファイルの`kritacanvasanimationframecacheindexobjects`へ移し、製品`kritacanvas`へ一度だけ再集約した。開始試験
+  `libs/canvas/tests/kis_animation_frame_cache_index_test.cpp`は同じパスのまま、Canvas製品・共通試験補助から専用生成物と
+  Qt Testへ接続先を移し、操作値、有限・無限範囲、挿入、無効化、結合、交差、長さ、削除の全22 APIを固定した。
 - 実装担当`wrapped-rect`は`ready`、担当先端は`90e23c4e07`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-wrapped-rect`であり、
   `libs/image/kis_wrapped_rect.h`、Image試験CMake、新規限定試験を所有する。既存試験の1,092工程・2,207入力をQt限定対象へ縮小し、
@@ -8831,9 +8832,27 @@
   パッケージ境界検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,847件、未対応24,142件になった。
   見本全文とQLocale内部データ、grandfatheredタグの大小文字非依存性、Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b フレームキャッシュ範囲索引の全public API契約と構築所有分離で完了した作業
+
+- `libs/canvas/animation/kis_animation_frame_cache_index.h`の全22 APIを、既存
+  `libs/canvas/tests/kis_animation_frame_cache_index_test.cpp`の7試験へ対応付けた。保存操作と変更集合の既定値、空状態、
+  有限・無限範囲の挿入・参照・包含・再アップロード判断、無効化と結合が通知する順序付きMove・Forget、交差範囲、
+  フレーム長、削除、不存在フレームの安全診断を固定した。
+- 開始ファイル`libs/canvas/animation/kis_animation_frame_cache_index.cpp`の構築所有を
+  `libs/canvas/CMakeLists.txt`の`kritacanvas_LIB_SRCS`から同ファイル内の新規
+  `kritacanvasanimationframecacheindexobjects`へ移し、製品`kritacanvas`が生成物を1回だけ再集約する。開始試験
+  `libs/canvas/tests/kis_animation_frame_cache_index_test.cpp`は同じパスのまま、製品`kritacanvas`と`kritatestsdk`から
+  専用生成物とQt Testへ接続先を移した。公開ヘッダー、製品実装、製品ABI、範囲処理は維持した。
+- 限定化直後はヘッダー連鎖上のQt Widgets不足を診断し、直接依存の明示後に全11実装メソッドの未定義記号で意図した初回
+  リンク失敗を確認した。macOSの専用生成物は1工程・3入力、主作業ツリーの限定試験は5工程・12入力であり、従来試験の
+  1,116工程・2,250入力から縮小した。製品`kritacanvas`は1,112工程・2,244入力である。対象CTest単発と20回反復、
+  最近傍の`KisInputActionGroupContractTest`、パッケージ境界検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、
+  対応済み5,869件、未対応24,120件になった。負の有限開始時刻、整数上限付近、区間中央だけの無効化、Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。Qt Widgets依存は時刻範囲ヘッダーの現在の連鎖に由来する。
+
 ## 次の操作
 
-第19並列便のフレームキャッシュ範囲索引契約を統合し、限定対象、20回反復、軽量隣接試験、中央台帳を主作業ツリーで監査する。
+第19並列便の周期矩形契約を統合し、限定対象、20回反復、軽量隣接試験、中央台帳を主作業ツリーで監査する。
 
 ## R1-G5完了根拠
 

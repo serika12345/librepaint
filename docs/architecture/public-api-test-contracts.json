@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24142
+    "expectedMissingApis": 24120
   },
   "contracts": [
     {
@@ -16944,6 +16944,82 @@
       "apis": [
         "method:KoWritingSystemUtils::localeFromBcp47Locale(const Bcp47Locale & locale)",
         "method:KoWritingSystemUtils::localeFromBcp47Locale(const QString & locale)"
+      ]
+    },
+    {
+      "target": "kis_animation_frame_cache_index_test",
+      "source": "libs/canvas/tests/kis_animation_frame_cache_index_test.cpp",
+      "test": "KisAnimationFrameCacheIndexTest::defaultRecordsDescribeNoChange",
+      "behavior": "フレーム保存操作はMove=0、Forget=1を維持し、既定操作はForgetと未指定の送信元・送信先を、既定変更集合は無変更と空の操作列を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisAnimationFrameCacheIndex::StorageOperation::Type",
+        "enumerator:KisAnimationFrameCacheIndex::StorageOperation::Type::Forget",
+        "enumerator:KisAnimationFrameCacheIndex::StorageOperation::Type::Move",
+        "member:KisAnimationFrameCacheIndex::ChangeSet::changed",
+        "member:KisAnimationFrameCacheIndex::ChangeSet::storageOperations",
+        "member:KisAnimationFrameCacheIndex::StorageOperation::destinationFrameId",
+        "member:KisAnimationFrameCacheIndex::StorageOperation::sourceFrameId",
+        "member:KisAnimationFrameCacheIndex::StorageOperation::type",
+        "struct:KisAnimationFrameCacheIndex::ChangeSet",
+        "struct:KisAnimationFrameCacheIndex::StorageOperation"
+      ]
+    },
+    {
+      "target": "kis_animation_frame_cache_index_test",
+      "source": "libs/canvas/tests/kis_animation_frame_cache_index_test.cpp",
+      "test": "KisAnimationFrameCacheIndexTest::emptyInvalidRangesAndClearAreStable",
+      "behavior": "新しいフレーム索引は空であり、不正範囲は状態を変更せず、clearは登録済み範囲を空状態へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnimationFrameCacheIndex",
+        "method:KisAnimationFrameCacheIndex::clear()",
+        "method:KisAnimationFrameCacheIndex::isEmpty() const"
+      ]
+    },
+    {
+      "target": "kis_animation_frame_cache_index_test",
+      "source": "libs/canvas/tests/kis_animation_frame_cache_index_test.cpp",
+      "test": "KisAnimationFrameCacheIndexTest::finiteAndInfiniteRangesDriveLookupAndUpload",
+      "behavior": "有限・無限フレーム範囲の挿入は始端をフレーム識別子として保持し、境界参照、包含、同一範囲内の再利用と範囲を跨ぐ再アップロード判断を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationFrameCacheIndex::contains(int time) const",
+        "method:KisAnimationFrameCacheIndex::frameIdAtTime(int time) const",
+        "method:KisAnimationFrameCacheIndex::insert(const KisTimeSpan & range)",
+        "method:KisAnimationFrameCacheIndex::shouldUploadNewFrame(int newTime,int oldTime) const"
+      ]
+    },
+    {
+      "target": "kis_animation_frame_cache_index_test",
+      "source": "libs/canvas/tests/kis_animation_frame_cache_index_test.cpp",
+      "test": "KisAnimationFrameCacheIndexTest::invalidationReportsOrderedStorageOperations",
+      "behavior": "複数フレームに跨る無効化は完全に覆われたフレームのForgetを先に、後端が残るフレームのMoveを次に通知し、影響外範囲を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationFrameCacheIndex::invalidate(const KisTimeSpan & range)"
+      ]
+    },
+    {
+      "target": "kis_animation_frame_cache_index_test",
+      "source": "libs/canvas/tests/kis_animation_frame_cache_index_test.cpp",
+      "test": "KisAnimationFrameCacheIndexTest::glueReportsStorageChanges",
+      "behavior": "フレーム範囲の結合は先頭フレームを有限または無限終端まで延長し、覆われたフレームのForgetと部分的に残るフレームのMoveを順序付きで通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationFrameCacheIndex::glue(const KisTimeSpan & range)"
+      ]
+    },
+    {
+      "target": "kis_animation_frame_cache_index_test",
+      "source": "libs/canvas/tests/kis_animation_frame_cache_index_test.cpp",
+      "test": "KisAnimationFrameCacheIndexTest::intersectionsRemovalAndSafetyDiagnostics",
+      "behavior": "有限・無限検索範囲は交差する登録範囲を始端順に返し、登録フレームは一度だけ削除でき、不存在フレームの長さ取得は安全診断を1回通知して0へ回復する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnimationFrameCacheIndex::frameLength(int frameId) const",
+        "method:KisAnimationFrameCacheIndex::rangesIntersecting(const KisTimeSpan & range) const",
+        "method:KisAnimationFrameCacheIndex::removeFrame(int frameId)"
       ]
     }
   ]
