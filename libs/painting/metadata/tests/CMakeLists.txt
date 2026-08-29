@@ -38,3 +38,19 @@ target_include_directories(KisMetaDataValueContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KisMetaDataValueContractTest PRIVATE kritapaintingmetadata_EXPORTS)
+
+kis_add_test(
+    KisMetaDataTypeInfoContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintingmetadataparserobjects
+        kritapaintingmetadatatypeschemaobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisMetaDataTypeInfoContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisMetaDataTypeInfoContractTest PRIVATE kritapaintingmetadata_EXPORTS)
