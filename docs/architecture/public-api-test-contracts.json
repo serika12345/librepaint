@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24795
+    "expectedMissingApis": 24775
   },
   "contracts": [
     {
@@ -14790,6 +14790,44 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug debug,const KoColorProfileQuery & value)"
+      ]
+    },
+    {
+      "target": "SurfaceColorInterfacesContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/SurfaceColorInterfacesContractTest.cpp",
+      "test": "SurfaceColorInterfacesContractTest::outputInterfacePreservesOwnershipDispatchAndSignalSequence",
+      "behavior": "出力色情報インターフェースはQObject親に所有され、基底経由でready状態と画面別説明を配送し、未知画面には値を返さず、説明変更とready変更を指定引数で同期的に順序どおり通知し、親破棄時に派生デストラクターを実行する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOutputColorInfoInterface",
+        "method:KisOutputColorInfoInterface::KisOutputColorInfoInterface(QObject * parent=nullptr)",
+        "method:KisOutputColorInfoInterface::isReady() const",
+        "method:KisOutputColorInfoInterface::outputDescription(const QScreen * screen) const",
+        "method:KisOutputColorInfoInterface::sigOutputDescriptionChanged(QScreen * screen,const KisSurfaceColorimetry::SurfaceDescription & desc)",
+        "method:KisOutputColorInfoInterface::sigReadyChanged(bool isReady)",
+        "method:KisOutputColorInfoInterface::~KisOutputColorInfoInterface()"
+      ]
+    },
+    {
+      "target": "SurfaceColorInterfacesContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/SurfaceColorInterfacesContractTest.cpp",
+      "test": "SurfaceColorInterfacesContractTest::surfaceManagerPreservesWindowDispatchFutureAndSignalSequence",
+      "behavior": "表面色管理インターフェースは借用QWindowポインターとQObject親所有を保持し、状態、説明、render intent、対応可否、set/unsetを基底経由で配送し、set引数を保持して非同期future結果を完了し、ready変更と推奨説明変更を指定引数で順序どおり通知して仮想破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSurfaceColorManagerInterface",
+        "method:KisSurfaceColorManagerInterface::KisSurfaceColorManagerInterface(QWindow * window,QObject * parent=nullptr)",
+        "method:KisSurfaceColorManagerInterface::isReady() const",
+        "method:KisSurfaceColorManagerInterface::preferredSurfaceDescription() const",
+        "method:KisSurfaceColorManagerInterface::renderingIntent() const",
+        "method:KisSurfaceColorManagerInterface::setSurfaceDescription(const KisSurfaceColorimetry::SurfaceDescription & desc,KisSurfaceColorimetry::RenderIntent intent)",
+        "method:KisSurfaceColorManagerInterface::sigPreferredSurfaceDescriptionChanged(const KisSurfaceColorimetry::SurfaceDescription & desc)",
+        "method:KisSurfaceColorManagerInterface::sigReadyChanged(bool value)",
+        "method:KisSurfaceColorManagerInterface::supportsRenderIntent(const KisSurfaceColorimetry::RenderIntent & intent)",
+        "method:KisSurfaceColorManagerInterface::supportsSurfaceDescription(const KisSurfaceColorimetry::SurfaceDescription & desc)",
+        "method:KisSurfaceColorManagerInterface::surfaceDescription() const",
+        "method:KisSurfaceColorManagerInterface::unsetSurfaceDescription()",
+        "method:KisSurfaceColorManagerInterface::~KisSurfaceColorManagerInterface()"
       ]
     }
   ]

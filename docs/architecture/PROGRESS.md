@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:08 JST
+- 更新日時: 2026-08-29 19:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,8 +18,8 @@
 - 統合担当`color-profile-query`は`verified`、統合順は1、実装コミットは`0d92c616df`である。
   `libs/pigment/KoColorProfileQuery.h`、Pigment試験CMake、新規限定試験を所有する。色特性問い合わせ値の構築、
   コピー・移動、妥当性分類、等値、診断表示、公開データの17 APIを対象とする。
-- 実装担当`surface-color-interfaces`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。作業ツリーは
+- 実装担当`surface-color-interfaces`は`verified`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2、統合コミットは`1974a1151d`である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-surface-color-interfaces`であり、
   `libs/surfacecolormanagementapi/surfacecolormanagement/Kis{OutputColorInfo,SurfaceColorManager}Interface.{h,cpp}`、
   Surface Color Management製品・試験CMake、新規限定試験を所有する。画面情報7 APIと表面管理13 APIの仮想配送、
@@ -8379,10 +8379,26 @@
   1,187対象で成功し、高速検査にも成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,194件、
   未対応24,795件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 表面色管理接続面の全public API契約で完了した作業
+
+- `libs/surfacecolormanagementapi/surfacecolormanagement/KisOutputColorInfoInterface.h`の全7 APIと
+  `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorManagerInterface.h`の全13 APIを、新規
+  `libs/surfacecolormanagementapi/tests/SurfaceColorInterfacesContractTest.cpp`の2試験へ対応付けた。QObject親所有、
+  借用する画面と窓の同一性、状態・色説明・描画意図・対応可否・設定と解除の仮想配送、未完了から完了へ移る
+  `QFuture<bool>`、4信号の引数と同期通知順、親破棄による派生実装までの仮想破棄を固定した。
+- 標準macOSでは表面色管理製品対象が機能条件で存在しないため、開始ファイル
+  `KisOutputColorInfoInterface.cpp`と`KisSurfaceColorManagerInterface.cpp`を元の製品所有に保ち、限定試験へそれぞれ
+  1回だけ直接組み込んだ。公開ヘッダーと製品CMakeは変更していない。限定試験は8工程・17入力で、既存の
+  Surface色度・Pigment色度生成物とQt Gui・Testだけへ接続し、動的なLibrePaint製品ライブラリー依存を持たない。
+- 初回限定リンクでは両接続面の構築・破棄・信号・メタ情報・型情報を未定義として確認した。担当作業ツリーと
+  統合担当のmacOS構築木で対象CTestの単発実行と20回反復、最近傍の
+  `KisSurfaceColorManagementInfoContractTest`に成功した。統合時のパッケージ境界検査は1,192対象で成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,214件、未対応24,775件になった。Linux、全ネイティブ検証、
+  機能有効構成の製品リンクは実行していない。
+
 ## 次の操作
 
-`surface-color-interfaces`、`node-graph-listener`、`exposure-gamma-interface`を並行実装し、統合順に差分、限定構築、
-挙動、台帳を検証する。
+`node-graph-listener`と`exposure-gamma-interface`を統合順に差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
