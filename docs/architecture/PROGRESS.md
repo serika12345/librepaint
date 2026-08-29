@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:08 JST
+- 更新日時: 2026-08-29 19:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,8 +23,8 @@
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、
   `libs/image/tiles3/swap/kis_{abstract,lzf}_compression.{h,cpp}`、Image製品CMake、Tiles3試験CMake、新規限定試験を
   所有する。抽象圧縮接続面9 APIとLZF実装6 APIの計15 APIを対象とする。
-- 実装担当`spinbox-i18n-formatting`は`implementing`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`、統合順は3である。作業ツリーは
+- 実装担当`spinbox-i18n-formatting`は`verified`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`、統合順は3、統合コミットは`0eda89abbd`である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisSpinBoxI18nHelper.{h,cpp}`、
   Widget Utils製品・試験CMake、新規限定試験を所有する。整数・実数表示の接頭辞と接尾辞、値変更時の複数形更新、
   手動更新、選択属性スライダー向け削除済みオーバーロードの5 APIを対象とする。
@@ -8349,9 +8349,24 @@
   パッケージ境界検査は1,186対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,172件、
   未対応24,817件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 局所化スピンボックス表示の全public API契約で完了した作業
+
+- `libs/widgetutils/KisSpinBoxI18nHelper.h`の全5 APIを、新規
+  `libs/widgetutils/tests/KisSpinBoxI18nHelperContractTest.cpp`の6試験へ対応付けた。整数・倍精度スピンボックスで
+  局所化文字列の`{n}`前後を接頭辞と接尾辞へ分ける表示、プレースホルダーがない場合の全文接尾辞、導入直後と
+  値変更時の更新、シグナル遮断中の手動更新、不正な保存属性の拒否、削除済みオーバーロードの呼出不能性を固定した。
+- 開始ファイル`libs/widgetutils/KisSpinBoxI18nHelper.cpp`の構築所有を`kritawidgetutils_LIB_SRCS`から新規
+  `kritaspinboxi18nhelperobjects`へ移し、製品`kritawidgetutils`が生成物を1回だけ再集約する。公開ヘッダー、実装位置、
+  製品ABIは維持した。変更前後の製品閉包は239工程・511入力で不変、限定試験は5工程・11入力、生成オブジェクトは
+  1工程・3入力で、試験はQt WidgetsとQt Testだけへ接続する。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復、最近傍の
+  `KisPopupSelfActivatingLineEditContractTest`に成功した。製品への一重集約を確認し、統合時のパッケージ境界検査は
+  1,186対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,177件、未対応24,812件になった。
+  Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-`spinbox-i18n-formatting`の差分、限定構築、挙動、台帳を検証する。
+第12並列便の対象を未対応報告から選び、構築閉包とCMake所有が重ならない担当票を確定する。
 
 ## R1-G5完了根拠
 

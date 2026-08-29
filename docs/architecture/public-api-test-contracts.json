@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24817
+    "expectedMissingApis": 24812
   },
   "contracts": [
     {
@@ -14684,6 +14684,68 @@
         "method:KisLzfCompression::decompress(const quint8 * input,qint32 inputLength,quint8 * output,qint32 outputLength)",
         "method:KisLzfCompression::outputBufferSize(qint32 dataSize)",
         "method:KisLzfCompression::~KisLzfCompression()"
+      ]
+    },
+    {
+      "target": "KisSpinBoxI18nHelperContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxI18nHelperContractTest.cpp",
+      "test": "KisSpinBoxI18nHelperContractTest::spinBoxTemplatesSplitAroundPlaceholder",
+      "behavior": "整数および倍精度スピンボックスは、局所化文字列の{n}より前をprefix、後をsuffixとして設定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSpinBoxI18nHelper::setText(QDoubleSpinBox * spinBox,QStringView textTemplate)",
+        "function:KisSpinBoxI18nHelper::setText(QSpinBox * spinBox,QStringView textTemplate)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxI18nHelperContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxI18nHelperContractTest.cpp",
+      "test": "KisSpinBoxI18nHelperContractTest::templateWithoutPlaceholderBecomesSuffix",
+      "behavior": "プレースホルダーのない文字列は整数および倍精度スピンボックスのprefixを消去し、全文をsuffixとして設定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSpinBoxI18nHelper::setText(QDoubleSpinBox * spinBox,QStringView textTemplate)",
+        "function:KisSpinBoxI18nHelper::setText(QSpinBox * spinBox,QStringView textTemplate)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxI18nHelperContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxI18nHelperContractTest.cpp",
+      "test": "KisSpinBoxI18nHelperContractTest::installUpdatesImmediatelyAndWhenValueChanges",
+      "behavior": "installは現在値の局所化表示を直ちに設定し、その後の値変更にも追従する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSpinBoxI18nHelper::install(QSpinBox * spinBox,std::function<QString (int)> messageFn)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxI18nHelperContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxI18nHelperContractTest.cpp",
+      "test": "KisSpinBoxI18nHelperContractTest::manualUpdateUsesCurrentValueWhileSignalsAreBlocked",
+      "behavior": "updateはシグナルを遮断して変更した現在値から局所化表示を手動更新する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSpinBoxI18nHelper::update(QSpinBox * spinBox)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxI18nHelperContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxI18nHelperContractTest.cpp",
+      "test": "KisSpinBoxI18nHelperContractTest::updateRejectsMissingAndInvalidHandlerProperty",
+      "behavior": "updateは補助処理が未導入または保存propertyが不正なスピンボックスを警告付きのfalseで拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSpinBoxI18nHelper::update(QSpinBox * spinBox)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxI18nHelperContractTest",
+      "source": "libs/widgetutils/tests/KisSpinBoxI18nHelperContractTest.cpp",
+      "test": "KisSpinBoxI18nHelperContractTest::selectionPropertySliderOverloadRemainsDeleted",
+      "behavior": "選択属性スライダー向けsetText overloadはC++17のコンパイル時検出で呼び出せない。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSpinBoxI18nHelper::setText(KisSelectionPropertySliderBase * spinBox,const QStringView textTemplate)"
       ]
     }
   ]
