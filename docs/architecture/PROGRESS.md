@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:16 JST
+- 更新日時: 2026-08-29 19:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,27 +11,29 @@
 
 ### 現在の並列担当票
 
-- 第11並列便の共通基準コミットは`9351f9f029`である。統合担当は`develop`の
+- 第12並列便の共通基準コミットは`a0add16420`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`paintop-lod-limitations`は`verified`、実装コミットは`74eb14829c`である。
-  `libs/image/brushengine/kis_paintop_lod_limitations.h`、Image試験CMake、新規限定試験を所有する。制限・阻害要因の
-  集合、等値、和集合、`KoID`ハッシュの6 APIを対象とし、既存`kritaglobalidobjects`を再利用する。統合順は1である。
-- 実装担当`image-lzf-compression`は`verified`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2、統合コミットは`296a79fdef`である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、
-  `libs/image/tiles3/swap/kis_{abstract,lzf}_compression.{h,cpp}`、Image製品CMake、Tiles3試験CMake、新規限定試験を
-  所有する。抽象圧縮接続面9 APIとLZF実装6 APIの計15 APIを対象とする。
-- 実装担当`spinbox-i18n-formatting`は`verified`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`、統合順は3、統合コミットは`0eda89abbd`である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisSpinBoxI18nHelper.{h,cpp}`、
-  Widget Utils製品・試験CMake、新規限定試験を所有する。整数・実数表示の接頭辞と接尾辞、値変更時の複数形更新、
-  手動更新、選択属性スライダー向け削除済みオーバーロードの5 APIを対象とする。
-- 実装担当`alpha-mask-applicator-interface`は`verified`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`、統合順は4、統合コミットは`28f93a5979`である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/pigment/KoAlphaMaskApplicatorBase.{h,cpp}`、
-  Pigment製品・試験CMake、新規限定試験を所有する。3種類の画素処理の仮想配送と基底破棄の5 APIを対象とする。
+- 統合担当`color-profile-query`は`preparing`、統合順は1である。
+  `libs/pigment/KoColorProfileQuery.h`、Pigment試験CMake、新規限定試験を所有する。色特性問い合わせ値の構築、
+  コピー・移動、妥当性分類、等値、診断表示、公開データの17 APIを対象とする。
+- 実装担当`surface-color-interfaces`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-surface-color-interfaces`であり、
+  `libs/surfacecolormanagementapi/surfacecolormanagement/Kis{OutputColorInfo,SurfaceColorManager}Interface.{h,cpp}`、
+  Surface Color Management製品・試験CMake、新規限定試験を所有する。画面情報7 APIと表面管理13 APIの仮想配送、
+  QObject・QWindow寿命、状態信号を対象とする。
+- 実装担当`node-graph-listener`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-node-graph-listener`であり、`libs/image/kis_node_graph_listener.{h,cpp}`、
+  Image製品・試験CMake、新規限定試験を所有する。階層変更の連番更新、既定通知動作、仮想配送、破棄の20 APIを
+  対象とする。既存`libs/image/tests/kis_node_graph_listener_test.cpp`は読取り専用の最近傍契約とする。
+- 実装担当`exposure-gamma-interface`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は4である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-exposure-gamma-interface`であり、
+  `libs/ui/canvas/kis_exposure_gamma_correction_interface.{h,cpp}`、UI製品・試験CMake、新規限定試験を所有する。
+  抽象接続面の仮想配送と破棄、無処理具象の単一実体・既定値・設定後不変性の14 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8366,7 +8368,8 @@
 
 ## 次の操作
 
-第12並列便の対象を未対応報告から選び、構築閉包とCMake所有が重ならない担当票を確定する。
+`color-profile-query`、`surface-color-interfaces`、`node-graph-listener`、`exposure-gamma-interface`を並行実装し、
+統合順に差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
