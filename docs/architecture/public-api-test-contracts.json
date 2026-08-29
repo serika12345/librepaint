@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25074
+    "expectedMissingApis": 25072
   },
   "contracts": [
     {
@@ -12974,6 +12974,56 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::convertNode(const QString & nodeType)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerExportContractTest",
+      "source": "libs/ui/tests/KisNodeManagerExportContractTest.cpp",
+      "test": "KisNodeManagerExportContractTest::pixelExportRequiresActiveNodeAndProjection",
+      "behavior": "画素ノードの書き出しは活動ノードを要求し、活動ノードがない場合は不整合を診断し、画素投影がない場合は画素データなしを通知して保存を行わない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::saveNodeAsImage()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerExportContractTest",
+      "source": "libs/ui/tests/KisNodeManagerExportContractTest.cpp",
+      "test": "KisNodeManagerExportContractTest::pixelExportUsesCombinedBoundsAndImageProperties",
+      "behavior": "画素ノードの書き出しは画像範囲とノード正確範囲の和集合を保存範囲とし、投影、ノード名、画像解像度、ノード不透明度を保存処理へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::saveNodeAsImage()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerExportContractTest",
+      "source": "libs/ui/tests/KisNodeManagerExportContractTest.cpp",
+      "test": "KisNodeManagerExportContractTest::svgExportRequiresShapeLayerAndFilename",
+      "behavior": "SVG書き出しは活動ノードが図形レイヤーの場合だけファイルを選択し、選択が取り消された場合は図形取得と保存を行わない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::saveVectorLayerAsImage()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerExportContractTest",
+      "source": "libs/ui/tests/KisNodeManagerExportContractTest.cpp",
+      "test": "KisNodeManagerExportContractTest::svgExportSortsShapesAndUsesPointSize",
+      "behavior": "SVG書き出しは図形をZ順に並べ、画像画素寸法を各軸の解像度で割ったポイント寸法と選択ファイル名を保存処理へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::saveVectorLayerAsImage()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerExportContractTest",
+      "source": "libs/ui/tests/KisNodeManagerExportContractTest.cpp",
+      "test": "KisNodeManagerExportContractTest::svgFailureReportsFilename",
+      "behavior": "SVG保存に失敗した場合は選択したファイル名を失敗通知へ含める。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::saveVectorLayerAsImage()"
       ]
     },
     {

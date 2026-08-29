@@ -1343,64 +1343,111 @@ void KisNodeManager::Private::saveDeviceAsImage(KisPaintDeviceSP device,
     }
 }
 
-void KisNodeManager::saveNodeAsImage()
+KisNodeSP KisNodeManager::NodeExportAccess::activeNode(KisNodeManager *manager)
 {
-    KisNodeSP node = activeNode();
+    return manager->activeNode();
+}
 
-    if (!node) {
-        warnKrita << "BUG: Save Node As Image was called without any node selected";
-        return;
-    }
+KisPaintDevice *KisNodeManager::NodeExportAccess::projection(KisNodeSP node)
+{
+    return node->projection().data();
+}
 
-    KisPaintDeviceSP saveDevice = node->projection();
+void KisNodeManager::NodeExportAccess::reportNoActiveNode()
+{
+    warnKrita << "BUG: Save Node As Image was called without any node selected";
+}
 
-    if (!saveDevice) {
-        m_d->view->showFloatingMessage(i18nc("warning message when trying to export a transform mask", "Layer has no pixel data"), QIcon());
-        return;
-    }
+void KisNodeManager::NodeExportAccess::showFloatingMessage(KisNodeManager *manager, const QString &message)
+{
+    manager->m_d->view->showFloatingMessage(message, QIcon());
+}
 
-    KisImageSP image = m_d->view->image();
-    QRect saveRect = image->bounds() | node->exactBounds();
+QRect KisNodeManager::NodeExportAccess::imageBounds(KisNodeManager *manager)
+{
+    return manager->m_d->view->image()->bounds();
+}
 
-    m_d->saveDeviceAsImage(saveDevice,
-                           node->name(),
-                           saveRect,
-                           image->xRes(), image->yRes(),
-                           node->opacity());
+QRect KisNodeManager::NodeExportAccess::nodeBounds(KisNodeSP node)
+{
+    return node->exactBounds();
+}
+
+QString KisNodeManager::NodeExportAccess::nodeName(KisNodeSP node)
+{
+    return node->name();
+}
+
+qreal KisNodeManager::NodeExportAccess::imageXResolution(KisNodeManager *manager)
+{
+    return manager->m_d->view->image()->xRes();
+}
+
+qreal KisNodeManager::NodeExportAccess::imageYResolution(KisNodeManager *manager)
+{
+    return manager->m_d->view->image()->yRes();
+}
+
+quint8 KisNodeManager::NodeExportAccess::nodeOpacity(KisNodeSP node)
+{
+    return node->opacity();
+}
+
+void KisNodeManager::NodeExportAccess::saveDevice(KisNodeManager *manager,
+                                                  KisPaintDevice *device,
+                                                  const QString &defaultName,
+                                                  const QRect &bounds,
+                                                  qreal xResolution,
+                                                  qreal yResolution,
+                                                  quint8 opacity)
+{
+    manager->m_d->saveDeviceAsImage(KisPaintDeviceSP(device), defaultName, bounds, xResolution, yResolution, opacity);
 }
 
 #include "SvgWriter.h"
 
-void KisNodeManager::saveVectorLayerAsImage()
+KisShapeLayer *KisNodeManager::NodeExportAccess::shapeLayer(KisNodeSP node)
 {
-    KisShapeLayerSP shapeLayer = qobject_cast<KisShapeLayer*>(activeNode().data());
-    if (!shapeLayer) {
-        return;
-    }
+    return qobject_cast<KisShapeLayer *>(node.data());
+}
 
-    KoFileDialog dialog(m_d->view->mainWindowAsQWidget(), KoFileDialog::SaveFile, "savenodeasimage");
+QString KisNodeManager::NodeExportAccess::chooseSvgFilename(KisNodeManager *manager)
+{
+    KoFileDialog dialog(manager->m_d->view->mainWindowAsQWidget(), KoFileDialog::SaveFile, "savenodeasimage");
     dialog.setCaption(i18nc("@title:window", "Export to SVG"));
     dialog.setDefaultDir(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation));
     dialog.setMimeTypeFilters(QStringList() << "image/svg+xml", "image/svg+xml");
-    QString filename = dialog.filename();
+    return dialog.filename();
+}
 
-    if (filename.isEmpty()) return;
+QSizeF KisNodeManager::NodeExportAccess::imagePixelSize(KisNodeManager *manager)
+{
+    return manager->m_d->view->image()->bounds().size();
+}
 
-    QUrl url = QUrl::fromLocalFile(filename);
+QList<KoShape *> KisNodeManager::NodeExportAccess::shapes(KisShapeLayer *layer)
+{
+    return layer->shapes();
+}
 
-    if (url.isEmpty()) return;
+void KisNodeManager::NodeExportAccess::sortShapes(QList<KoShape *> *shapes)
+{
+    std::sort(shapes->begin(), shapes->end(), KoShape::compareShapeZIndex);
+}
 
-    const QSizeF sizeInPx = m_d->view->image()->bounds().size();
-    const QSizeF sizeInPt(sizeInPx.width() / m_d->view->image()->xRes(),
-                          sizeInPx.height() / m_d->view->image()->yRes());
-
-    QList<KoShape*> shapes = shapeLayer->shapes();
-    std::sort(shapes.begin(), shapes.end(), KoShape::compareShapeZIndex);
-
+bool KisNodeManager::NodeExportAccess::saveSvg(const QString &filename,
+                                               const QSizeF &sizeInPoints,
+                                               const QList<KoShape *> &shapes)
+{
     SvgWriter writer(shapes);
-    if (!writer.save(filename, sizeInPt, true)) {
-        QMessageBox::warning(qApp->activeWindow(), i18nc("@title:window", "LibrePaint"), i18n("Could not save to svg: %1", filename));
-    }
+    return writer.save(filename, sizeInPoints, true);
+}
+
+void KisNodeManager::NodeExportAccess::showSvgFailure(const QString &filename)
+{
+    QMessageBox::warning(qApp->activeWindow(),
+                         i18nc("@title:window", "LibrePaint"),
+                         i18n("Could not save to svg: %1", filename));
 }
 
 KisNodeSP KisNodeManager::SplitAlphaAccess::activeNode(KisNodeManager *manager)

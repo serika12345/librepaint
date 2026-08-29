@@ -22,9 +22,11 @@ class KisKActionCollection;
 
 class KoCompositeOp;
 class KoColorSpace;
+class KoShape;
 class KUndo2MagicString;
 class QMimeData;
 class QImage;
+class QSizeF;
 
 class KisFilterStrategy;
 class KisViewManager;
@@ -37,6 +39,7 @@ class KisNodeOperationBatch;
 class KoProperties;
 class KisProcessingApplicator;
 class KisReferenceImage;
+class KisShapeLayer;
 
 /**
  * The node manager passes requests for new layers or masks on to the mask and layer
@@ -639,6 +642,33 @@ protected:
         static void finishPendingOperationsForced(KisNodeManager *manager);
         static void undoLastConversion(KisNodeManager *manager);
         static void reportUnsupportedNodeType(const QString &nodeType);
+    };
+
+    struct KRITAUI_EXPORT NodeExportAccess {
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static KisPaintDevice *projection(KisNodeSP node);
+        static void reportNoActiveNode();
+        static void showFloatingMessage(KisNodeManager *manager, const QString &message);
+        static QRect imageBounds(KisNodeManager *manager);
+        static QRect nodeBounds(KisNodeSP node);
+        static QString nodeName(KisNodeSP node);
+        static qreal imageXResolution(KisNodeManager *manager);
+        static qreal imageYResolution(KisNodeManager *manager);
+        static quint8 nodeOpacity(KisNodeSP node);
+        static void saveDevice(KisNodeManager *manager,
+                               KisPaintDevice *device,
+                               const QString &defaultName,
+                               const QRect &bounds,
+                               qreal xResolution,
+                               qreal yResolution,
+                               quint8 opacity);
+        static KisShapeLayer *shapeLayer(KisNodeSP node);
+        static QString chooseSvgFilename(KisNodeManager *manager);
+        static QSizeF imagePixelSize(KisNodeManager *manager);
+        static QList<KoShape *> shapes(KisShapeLayer *layer);
+        static void sortShapes(QList<KoShape *> *shapes);
+        static bool saveSvg(const QString &filename, const QSizeF &sizeInPoints, const QList<KoShape *> &shapes);
+        static void showSvgFailure(const QString &filename);
     };
 
 private:
