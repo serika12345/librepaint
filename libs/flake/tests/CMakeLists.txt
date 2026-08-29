@@ -464,6 +464,30 @@ target_compile_definitions(KoShapeKeepAspectRatioCommandContractTest PRIVATE
     kritapaintingundo_EXPORTS
 )
 
+kis_add_test(
+    KoPathReverseCommandContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakepathreversecommandobjects
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoPathReverseCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../commands
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KoPathReverseCommandContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
 ############## broken tests ###############
 
 kis_add_test(TestPointMergeCommand.cpp
