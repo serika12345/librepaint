@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:29 JST
+- 更新日時: 2026-08-29 21:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,21 +15,21 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`tile-data-pool-buffer`は`planned`、統合順は1である。主作業ツリーで
+- 統合担当`tile-data-pool-buffer`は`implementing`、統合順は1である。主作業ツリーで
   `libs/canvas/tiles/kis_tile_data_pool.{h,cpp}`、`libs/canvas/tiles/kis_tile_data_buffer.h`、Canvas製品・試験CMake、
   新規限定試験を所有する。
   1,095工程・2,211入力の翻訳単位を専用生成物へ分け、寸法別の割当・返却・解放要求、寸法別共有台帳、所有バッファーの
   確保・移動・交換・破棄の全23 APIを対象とする。
-- 実装担当`levels-curve`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`levels-curve`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-levels-curve`であり、
   `libs/image/KisLevelsCurve.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の翻訳単位を
   専用生成物へ分け、既定・設定値、評価、変更・初期化、値意味論、転送表、文字列表現の全33 APIを対象とする。
-- 実装担当`input-device`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`input-device`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-input-device`であり、
   `libs/flake/KoInputDevice.{h,cpp}`、既存`libs/flake/tests/TestInputDevice.{h,cpp}`、Flake製品・試験CMakeを所有する。
   352工程・732入力の翻訳単位を専用生成物へ分け、全分類値、QTabletEvent変換、構築・比較・ハッシュ、既定生成、
   診断表示、寿命の全37 APIを対象とする。
-- 実装担当`channel-info`は`planned`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`channel-info`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-channel-info`であり、
   `libs/pigment/KoChannelInfo.h`、Pigment試験CMake、新規限定試験を所有する。製品実装を追加せず、数値型と格納寸法・範囲、
   チャンネル属性、画素順と表示順、バイト位置比較、既定部分状態の全35 APIを対象とする。
