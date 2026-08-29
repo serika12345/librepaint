@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23882
+    "expectedMissingApis": 23841
   },
   "contracts": [
     {
@@ -17834,6 +17834,177 @@
       "classification": "known_defect",
       "apis": [
         "function:KisDomUtils::removeElements(QDomElement & parent,const QString & tag)"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::rationalStoresSignedComponentsAndCompares",
+      "behavior": "有理数は既定の0/1と指定された符号付き分子・分母を保持し、分子と分母の両方が一致する場合だけ等価になる。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMetaData::Rational::denominator",
+        "member:KisMetaData::Rational::numerator",
+        "method:KisMetaData::Rational::Rational(qint32 n=0,qint32 d=1)",
+        "method:KisMetaData::Rational::operator ==(const Rational & ur) const",
+        "struct:KisMetaData::Rational"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::constructsEveryValueCategory",
+      "behavior": "ValueTypeの8値と順序を維持し、既定値、変種、3種の通常配列、言語配列、構造、有理数の各構築入口が対応する値種別を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::Value",
+        "enum:KisMetaData::Value::ValueType",
+        "enumerator:KisMetaData::Value::ValueType::AlternativeArray",
+        "enumerator:KisMetaData::Value::ValueType::Invalid",
+        "enumerator:KisMetaData::Value::ValueType::LangArray",
+        "enumerator:KisMetaData::Value::ValueType::OrderedArray",
+        "enumerator:KisMetaData::Value::ValueType::Rational",
+        "enumerator:KisMetaData::Value::ValueType::Structure",
+        "enumerator:KisMetaData::Value::ValueType::UnorderedArray",
+        "enumerator:KisMetaData::Value::ValueType::Variant",
+        "method:KisMetaData::Value::Value()",
+        "method:KisMetaData::Value::Value(const KisMetaData::Rational & rational)",
+        "method:KisMetaData::Value::Value(const QList<Value> & array,ValueType type=OrderedArray)",
+        "method:KisMetaData::Value::Value(const QMap<QString,Value> & structure)",
+        "method:KisMetaData::Value::Value(const QVariant & value)",
+        "method:KisMetaData::Value::type() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::leavesOwnedVariantPayloadAliveAfterDestruction",
+      "behavior": "Valueの破棄後も所有していたQVariant payloadの破棄回数が増えず、payloadを解放しない現行の寿命不具合を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisMetaData::Value::~Value()"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::convertsScalarAndCompositeValues",
+      "behavior": "変種と有理数は数値・変種・有理数へ現在の規則で変換され、通常配列と構造だけが対応する複合値を返し、非対応種別は空またはゼロを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Value::asArray() const",
+        "method:KisMetaData::Value::asDouble() const",
+        "method:KisMetaData::Value::asInteger() const",
+        "method:KisMetaData::Value::asRational() const",
+        "method:KisMetaData::Value::asStructure() const",
+        "method:KisMetaData::Value::asVariant() const",
+        "method:KisMetaData::Value::isArray() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::copiesAssignsAndComparesIndependentValues",
+      "behavior": "コピー構築と代入は値と資格子を複製し、コピー側の同型変種を変更しても元値を変えず、等価比較がその差を観測する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Value::Value(const Value & v)",
+        "method:KisMetaData::Value::operator =(const Value & v)",
+        "method:KisMetaData::Value::operator ==(const Value &) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::mapsQualifiedLanguageEntries",
+      "behavior": "xml:lang資格子を付けた言語配列要素は資格子を保持し、言語コードをキーとして対応する値へ変換される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Value::addPropertyQualifier(const QString & _name,const Value &)",
+        "method:KisMetaData::Value::asLangArray() const",
+        "method:KisMetaData::Value::propertyQualifiers() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::updatesVariantsAndStructureFields",
+      "behavior": "無効値と同型変種は指定変種へ更新され、構造フィールドは存在しない場合も追加して値を配送し、非構造値へのフィールド更新は失敗する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Value::setStructureVariant(const QString & fieldNAme,const QVariant & variant)",
+        "method:KisMetaData::Value::setVariant(const QVariant & variant)"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::reportsSuccessForRejectedVariantType",
+      "behavior": "異なるQVariant型への更新は成功を返す一方、保持値を変更しない現行不具合を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisMetaData::Value::setVariant(const QVariant & variant)"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::reportsFailureAfterUpdatingArray",
+      "behavior": "配列更新は不足要素をInvalidで補って指定位置を書き換える一方で失敗を返し、非配列は変更せず失敗する現行挙動を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisMetaData::Value::setArrayVariant(int index,const QVariant & variant)"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::addsVariantsArraysAndRationals",
+      "behavior": "加算は変種整数を加算し、通常配列へ値または配列要素を追記し、有理数を通分して加算し、変更対象自身を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::Value::operator +=(const Value &)"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::collapsesDateTimeAdditionToDate",
+      "behavior": "日時変種の加算は新しい方の日付だけをQDateとして保持し、時刻と日時型を失う現行不具合を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisMetaData::Value::operator +=(const Value &)"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::usesOffByOneMillisecondCarryWhenAddingTimes",
+      "behavior": "時刻変種のミリ秒繰上げが1000ではなく999を減算し、700msと500msの和を1秒201msにする現行不具合を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisMetaData::Value::operator +=(const Value &)"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::treatsDistinctLanguageArraysAsEqual",
+      "behavior": "内容と言語資格子が異なる言語配列でも通常配列として取得できないため等価と判定する現行不具合を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisMetaData::Value::operator ==(const Value &) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataValueContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp",
+      "test": "KisMetaDataValueContractTest::formatsSafeValueCategoriesAndDebugOutput",
+      "behavior": "無効値、変種、配列、有理数は安定した文字列表現を返し、QDebug出力は構造名・フィールド名・値を観測可能な形で配送する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug debug,const KisMetaData::Value & v)",
+        "method:KisMetaData::Value::toString() const"
       ]
     }
   ]

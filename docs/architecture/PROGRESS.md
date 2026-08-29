@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 01:32 JST
+- 更新日時: 2026-08-30 01:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,7 +18,7 @@
   主作業ツリーで`libs/global/kis_dom_utils.{h,cpp}`、Global製品・試験CMake、
   新規`KisDomUtilsContractTest.cpp`を所有する。既存試験の1,099工程・2,221入力から`kis_dom_utils.cpp`を専用生成物へ分離し、
   数値・色・幾何値・配列のXML往復、型検査、要素検索・除去、ロケール互換変換の全39 APIを対象とする。
-- 実装担当`metadata-value`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`metadata-value`は`integrated`、担当先端は`cac04c1cfb`、統合コミットは`267b523f47`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-metadata-value`であり、
   `libs/painting/metadata/tests/CMakeLists.txt`と新規`KisMetaDataValueContractTest.cpp`だけを所有する。既存の製品非依存生成物を
   7工程・15入力のまま再利用し、有理数、値種別、複合値、コピー、資格子、変更、加算、文字列表現の全41 APIを対象とする。
@@ -9027,9 +9027,25 @@
   既定空環境は型を推論できず引数省略で呼び出せない。色文字列の不足成分、null出力、複数または入れ子要素の除去、Linux、
   全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b メタデータ値の全public API契約で完了した作業
+
+- `libs/painting/metadata/kis_meta_data_value.h`の全41 APIを、新規
+  `libs/painting/metadata/tests/KisMetaDataValueContractTest.cpp`の14試験へ対応付けた。有理数、8値種別、変種・通常配列・
+  言語配列・構造、コピーと代入、資格子、値変更、加算、文字列・診断出力を固定した。
+- 既存`kritapaintingmetadataparserobjects`が所有する`libs/painting/metadata/kis_meta_data_value.cc`を再利用したため、
+  製品実装と所有CMakeの移動はない。限定試験は同生成物、`kritaglobaldebugobjects`、Qt Core・Testだけへ直接接続し、
+  製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・16生入力、生成物重複を除く15入力であり、
+  最近傍`KisMetaDataParserContractTest`と同じ範囲を維持し、従来`kis_meta_data_test`の268工程・566生入力から縮小した。
+  対象CTest単発と20回反復、最近傍契約、製品共有ライブラリー非接続、パッケージ境界検査に成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み6,148件、未対応23,841件になった。所有payloadを解放しない破棄、異なる変種型の
+  更新拒否を成功として返す、配列更新後に失敗を返す、日時加算が日付へ縮退する、時刻のミリ秒繰上げが1ずれる、異なる言語配列を
+  等価とする現行挙動を既知不具合として分類した。構造の文字列化、分母ゼロ、負の配列添字、不正な配列種別、資格子不足の
+  言語配列、Rational更新、代入時の旧payload解放、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第22並列便の`metadata-value`引渡しを統合順に取り込み、限定検証と中央台帳更新を行う。
+第22並列便の`svg-mesh-patch`引渡しを統合順に取り込み、限定検証と中央台帳更新を行う。
 
 ## R1-G5完了根拠
 
