@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:45 JST
+- 更新日時: 2026-08-29 20:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -29,7 +29,7 @@
   `/Users/masato/Documents/librepaint-r2-g19b-mix-colors-operation`であり、`libs/pigment/KoMixColorsOp.h`、Pigment試験CMake、
   新規限定試験を所有する。製品実装を追加せず、外側と入れ子の具象probeにより、6混色操作、混色器生成、累積、平均、
   重み合計、出力、基底所有からの仮想破棄の全15 APIを対象とする。
-- 実装担当`image-interfaces`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`image-interfaces`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-image-interfaces`であり、
   `libs/image/kis_image_interfaces.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。製品`kritaimage`から小さな
   実装単位を専用生成物へ分け、4接続面の全仮想操作、返値・引数配送、更新便宜関数の最終QVector形式への正規化、
@@ -8596,9 +8596,25 @@
   本契約は抽象接続面の配送と寿命を所有し、具体的な色計算は既存の製品試験が所有する。Linux、全ネイティブ検証、
   製品全体構築は実行していない。
 
+## R2-G19b 画像処理接続面の全public API契約で完了した作業
+
+- `libs/image/kis_image_interfaces.h`の全33 APIを、新規`libs/image/tests/KisImageInterfacesContractTest.cpp`の5試験へ
+  対応付けた。ストローク開始・ジョブ追加・終了・取消、更新抑止、UI更新、変更領域要求、一括通知、完了矩形、範囲、
+  投影更新フィルター、投影通知、後処理取消接続器と最終コマンドについて、全引数・返値の仮想配送と基底所有からの破棄を
+  固定した。グラフ更新の4呼出し形式は、単一矩形を矩形列へ変換し、既定範囲または明示切抜き矩形と更新フラグを最終形式へ
+  配送する。
+- 開始ファイル`libs/image/kis_image_interfaces.cpp`の構築所有を`kritaimage_LIB_SRCS`から新規
+  `kritaimageinterfacesobjects`へ移し、製品`kritaimage`が生成物を1回だけ再集約する。公開ヘッダー、実装位置、製品ABI、
+  処理順序は維持した。実装から不要な`kis_node.h`参照を除き、必要な`QRect`だけを直接参照する。
+- macOSの製品`kritaimage`は変更前に1,088工程・2,200入力を要求した。分離後の生成物は1工程・3入力、限定試験は
+  5工程・11入力であり、製品ライブラリーをリンクしない。意図した初回失敗、対象CTestの単発実行と20回反復、
+  最近傍の`KisImageSignalsContractTest`に成功し、製品への一重集約を確認した。パッケージ境界検査は1,207対象で成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,515件、未対応24,474件になった。Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
 ## 次の操作
 
-画像接続面の担当差分、限定構築、挙動、台帳を統合検証する。
+第16並列便の未対応APIと構築閉包を調査し、互いに独立した4担当票を確定する。
 
 ## R1-G5完了根拠
 

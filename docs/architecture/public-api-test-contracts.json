@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24507
+    "expectedMissingApis": 24474
   },
   "contracts": [
     {
@@ -15721,6 +15721,84 @@
       "apis": [
         "method:KoMixColorsOp::Mixer::~Mixer()",
         "method:KoMixColorsOp::~KoMixColorsOp()"
+      ]
+    },
+    {
+      "target": "KisImageInterfacesContractTest",
+      "source": "libs/image/tests/KisImageInterfacesContractTest.cpp",
+      "test": "KisImageInterfacesContractTest::strokeFacadeDispatchesJobsAndCancellation",
+      "behavior": "ストローク接続面は開始方針、ストローク識別子、ジョブデータを派生実装へ正確に配送し、開始識別子と取消結果を返し、基底所有で派生実装を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokesFacade",
+        "method:KisStrokesFacade::addJob(KisStrokeId id,KisStrokeJobData * data)",
+        "method:KisStrokesFacade::cancelStroke(KisStrokeId id)",
+        "method:KisStrokesFacade::endStroke(KisStrokeId id)",
+        "method:KisStrokesFacade::startStroke(KisStrokeStrategy * strokeStrategy)",
+        "method:KisStrokesFacade::~KisStrokesFacade()"
+      ]
+    },
+    {
+      "target": "KisImageInterfacesContractTest",
+      "source": "libs/image/tests/KisImageInterfacesContractTest.cpp",
+      "test": "KisImageInterfacesContractTest::updateFacadeDispatchesLifecycleAndFilters",
+      "behavior": "更新接続面は更新・UI・変更領域要求・一括通知の全操作と完了矩形を派生実装へ配送し、実行状態、範囲、フィルターと識別子の戻り値を維持して基底所有で破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUpdatesFacade",
+        "method:KisUpdatesFacade::addProjectionUpdatesFilter(KisProjectionUpdatesFilterSP filter)",
+        "method:KisUpdatesFacade::blockUpdates()",
+        "method:KisUpdatesFacade::bounds() const",
+        "method:KisUpdatesFacade::currentProjectionUpdatesFilter() const",
+        "method:KisUpdatesFacade::disableDirtyRequests()",
+        "method:KisUpdatesFacade::disableUIUpdates()",
+        "method:KisUpdatesFacade::enableDirtyRequests()",
+        "method:KisUpdatesFacade::enableUIUpdates()",
+        "method:KisUpdatesFacade::hasUpdatesRunning() const",
+        "method:KisUpdatesFacade::notifyBatchUpdateEnded()",
+        "method:KisUpdatesFacade::notifyBatchUpdateStarted()",
+        "method:KisUpdatesFacade::notifyUIUpdateCompleted(const QRect & rc)",
+        "method:KisUpdatesFacade::removeProjectionUpdatesFilter(KisProjectionUpdatesFilterCookie cookie)",
+        "method:KisUpdatesFacade::unblockUpdates()",
+        "method:KisUpdatesFacade::~KisUpdatesFacade()"
+      ]
+    },
+    {
+      "target": "KisImageInterfacesContractTest",
+      "source": "libs/image/tests/KisImageInterfacesContractTest.cpp",
+      "test": "KisImageInterfacesContractTest::refreshOverloadsNormalizeRectsAndFlags",
+      "behavior": "グラフ更新の便宜呼出しはルートと更新フラグを維持し、既定範囲または明示した切抜き矩形を選び、単一矩形をQVectorへ正規化して最終呼出しへ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdatesFacade::refreshGraphAsync(KisNodeSP root,const QRect & rc,KisProjectionUpdateFlags flags=KisProjectionUpdateFlag::None)",
+        "method:KisUpdatesFacade::refreshGraphAsync(KisNodeSP root,const QRect & rc,const QRect & cropRect,KisProjectionUpdateFlags flags=KisProjectionUpdateFlag::None)",
+        "method:KisUpdatesFacade::refreshGraphAsync(KisNodeSP root,const QVector<QRect> & rc,const QRect & cropRect,KisProjectionUpdateFlags flags=KisProjectionUpdateFlag::None)",
+        "method:KisUpdatesFacade::refreshGraphAsync(KisNodeSP root=nullptr,KisProjectionUpdateFlags flags=KisProjectionUpdateFlag::None)"
+      ]
+    },
+    {
+      "target": "KisImageInterfacesContractTest",
+      "source": "libs/image/tests/KisImageInterfacesContractTest.cpp",
+      "test": "KisImageInterfacesContractTest::projectionListenerDispatchesRectAndDestroysVirtually",
+      "behavior": "投影更新の受信接続面は更新矩形を派生実装へ正確に配送し、基底所有で派生実装を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProjectionUpdateListener",
+        "method:KisProjectionUpdateListener::notifyProjectionUpdated(const QRect & rc)",
+        "method:KisProjectionUpdateListener::~KisProjectionUpdateListener()"
+      ]
+    },
+    {
+      "target": "KisImageInterfacesContractTest",
+      "source": "libs/image/tests/KisImageInterfacesContractTest.cpp",
+      "test": "KisImageInterfacesContractTest::strokeUndoFacadeDispatchesPointersAndDestroysVirtually",
+      "behavior": "ストローク取消接続面は後処理取り消し接続器と最終コマンドの借用ポインターを派生実装から返し、基底所有で派生実装を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeUndoFacade",
+        "method:KisStrokeUndoFacade::lastExecutedCommand() const",
+        "method:KisStrokeUndoFacade::postExecutionUndoAdapter() const",
+        "method:KisStrokeUndoFacade::~KisStrokeUndoFacade()"
       ]
     }
   ]
