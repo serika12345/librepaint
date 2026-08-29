@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25062
+    "expectedMissingApis": 25057
   },
   "contracts": [
     {
@@ -13231,6 +13231,49 @@
       "apis": [
         "method:KisNodeManager::slotSplitAlphaSaveMerged()",
         "method:KisNodeManager::slotSplitAlphaWrite()"
+      ]
+    },
+    {
+      "target": "KisNodeModelDisplayStateContractTest",
+      "source": "libs/ui/tests/KisNodeModelDisplayStateContractTest.cpp",
+      "test": "KisNodeModelDisplayStateContractTest::globalSelectionDefaultsOffWithoutAdapter",
+      "behavior": "全体選択の表示方式が未接続のモデルは表示を偽として返し、表示設定要求を外部へ送らない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::setShowGlobalSelection(bool value)",
+        "method:KisNodeModel::showGlobalSelection() const"
+      ]
+    },
+    {
+      "target": "KisNodeModelDisplayStateContractTest",
+      "source": "libs/ui/tests/KisNodeModelDisplayStateContractTest.cpp",
+      "test": "KisNodeModelDisplayStateContractTest::globalSelectionDelegatesToDisplayMode",
+      "behavior": "全体選択の表示方式が接続済みのモデルは現在値を取得して返し、変更値を同じ表示方式へ委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::setShowGlobalSelection(bool value)",
+        "method:KisNodeModel::showGlobalSelection() const"
+      ]
+    },
+    {
+      "target": "KisNodeModelDisplayStateContractTest",
+      "source": "libs/ui/tests/KisNodeModelDisplayStateContractTest.cpp",
+      "test": "KisNodeModelDisplayStateContractTest::thumbnailPreferencesReachCache",
+      "behavior": "サムネイルの推奨寸法と待機作業管理器は、モデルが所有するサムネイルキャッシュへそのまま委譲する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::setIdleTaskManager(KisIdleTasksManager * idleTasksManager)",
+        "method:KisNodeModel::setPreferredThumnalSize(int preferredSize) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelDisplayStateContractTest",
+      "source": "libs/ui/tests/KisNodeModelDisplayStateContractTest.cpp",
+      "test": "KisNodeModelDisplayStateContractTest::facadeAvailabilityReflectsState",
+      "behavior": "ダミー木の有無は、モデル私有状態にダミー木が接続されているかを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::hasDummiesFacade()"
       ]
     }
   ]

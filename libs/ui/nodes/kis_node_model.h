@@ -184,6 +184,15 @@ protected Q_SLOTS:
     void slotLayerThumbnailUpdated(KisNodeSP node);
 
 protected:
+    struct KRITAUI_EXPORT DisplayStateAccess {
+        static bool hasDisplayModeAdapter(const KisNodeModel *model);
+        static bool showGlobalSelectionMask(const KisNodeModel *model);
+        static void setShowGlobalSelectionMask(KisNodeModel *model, bool value);
+        static void setPreferredThumbnailSize(const KisNodeModel *model, int preferredSize);
+        static void setIdleTaskManager(KisNodeModel *model, KisIdleTasksManager *idleTasksManager);
+        static bool hasDummiesFacade(const KisNodeModel *model);
+    };
+
     virtual KisModelIndexConverterBase *createIndexConverter();
     KisModelIndexConverterBase *indexConverter() const;
     KisDummiesFacadeBase *dummiesFacade() const;

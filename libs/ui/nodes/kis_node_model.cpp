@@ -95,6 +95,37 @@ KisNodeModel::~KisNodeModel()
     delete m_d;
 }
 
+bool KisNodeModel::DisplayStateAccess::hasDisplayModeAdapter(const KisNodeModel *model)
+{
+    return model->m_d->nodeDisplayModeAdapter != nullptr;
+}
+
+bool KisNodeModel::DisplayStateAccess::showGlobalSelectionMask(const KisNodeModel *model)
+{
+    return model->m_d->nodeDisplayModeAdapter->showGlobalSelectionMask();
+}
+
+void KisNodeModel::DisplayStateAccess::setShowGlobalSelectionMask(KisNodeModel *model, bool value)
+{
+    model->m_d->nodeDisplayModeAdapter->setShowGlobalSelectionMask(value);
+}
+
+void KisNodeModel::DisplayStateAccess::setPreferredThumbnailSize(const KisNodeModel *model, int preferredSize)
+{
+    model->m_d->thumbnalCache.setMaxSize(preferredSize);
+}
+
+void KisNodeModel::DisplayStateAccess::setIdleTaskManager(KisNodeModel *model,
+                                                         KisIdleTasksManager *idleTasksManager)
+{
+    model->m_d->thumbnalCache.setIdleTaskManager(idleTasksManager);
+}
+
+bool KisNodeModel::DisplayStateAccess::hasDummiesFacade(const KisNodeModel *model)
+{
+    return model->m_d->dummiesFacade != nullptr;
+}
+
 KisNodeSP KisNodeModel::nodeFromIndex(const QModelIndex &index) const
 {
     Q_ASSERT(index.isValid());
@@ -176,25 +207,6 @@ void KisNodeModel::slotIsolatedModeChanged()
     if (!rootDummy) return;
 
     regenerateItems(rootDummy);
-}
-
-bool KisNodeModel::showGlobalSelection() const
-{
-    return m_d->nodeDisplayModeAdapter ?
-        m_d->nodeDisplayModeAdapter->showGlobalSelectionMask() :
-        false;
-}
-
-void KisNodeModel::setPreferredThumnalSize(int preferredSize) const
-{
-    m_d->thumbnalCache.setMaxSize(preferredSize);
-}
-
-void KisNodeModel::setShowGlobalSelection(bool value)
-{
-    if (m_d->nodeDisplayModeAdapter) {
-        m_d->nodeDisplayModeAdapter->setShowGlobalSelectionMask(value);
-    }
 }
 
 void KisNodeModel::slotNodeDisplayModeChanged(bool showRootNode, bool showGlobalSelectionMask)
@@ -340,11 +352,6 @@ void KisNodeModel::setDummiesFacade(KisDummiesFacadeBase *dummiesFacade,
         beginResetModel();
         endResetModel();
     }
-}
-
-void KisNodeModel::setIdleTaskManager(KisIdleTasksManager *idleTasksManager)
-{
-    m_d->thumbnalCache.setIdleTaskManager(idleTasksManager);
 }
 
 void KisNodeModel::slotBeginInsertDummy(KisNodeDummy *parent, int index, const QString &metaObjectType)
@@ -781,11 +788,6 @@ Qt::DropActions KisNodeModel::supportedDragActions() const
 Qt::DropActions KisNodeModel::supportedDropActions() const
 {
     return Qt::MoveAction | Qt::CopyAction;
-}
-
-bool KisNodeModel::hasDummiesFacade()
-{
-    return m_d->dummiesFacade != 0;
 }
 
 QStringList KisNodeModel::mimeTypes() const
