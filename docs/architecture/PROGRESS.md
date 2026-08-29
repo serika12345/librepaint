@@ -14,20 +14,20 @@
 - 第29並列便の共通基準コミットは`1adc541c3a`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g29-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`figure-painting-options`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`figure-painting-options`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/KisFigurePaintingOptions.h`、Painting試験CMake、新規`KisFigurePaintingOptionsContractTest.cpp`を所有する。実装は
   header内の列挙値だけであり、従来`TestPaintingBoundary`の1,129工程・2,279入力に代えて4工程・8入力前後で、塗りと輪郭の全9 APIを
   安定した序数と異なる型として固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`abstract-canvas-resource`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`abstract-canvas-resource`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g29-abstract-canvas-resource`を予定し、
   `libs/flake/KoAbstractCanvasResourceInterface.cpp`、Flake製品・試験CMake、新規`KoAbstractCanvasResourceInterfaceContractTest.cpp`を所有する。
   開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存試験の566工程・
   1,162入力に代えて8工程・16入力以内で、キー、値の仮想配送、外部変更通知、共有所有、基底寿命の全7 APIを固定する。
-- 実装担当`perspective-math`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
+- 実装担当`perspective-math`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
   作業ツリーは`/Users/masato/Documents/librepaint-r2-g29-perspective-math`を予定し、`libs/image/kis_perspective_math.cpp`、Image製品・試験CMake、
   新規`KisPerspectiveMathContractTest.cpp`を所有する。開始ファイルを製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ
   再集約する。製品の1,103工程・2,230入力に代えて6工程・13入力以内で、行列別名、点変換、四辺形と矩形の双方向写像の全9 APIを固定する。
-- 実装担当`wrappable-hbox-layout`は`planned`、構築実行許可は`withheld`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`wrappable-hbox-layout`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g29-wrappable-hbox-layout`を予定し、
   `libs/widgetutils/KisWrappableHBoxLayout.cpp`、WidgetUtils製品・試験CMake、新規`KisWrappableHBoxLayoutContractTest.cpp`を所有する。開始ファイルを
   製品`kritawidgetutils`の直接ソースからAUTOMOC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の246工程・525入力に代えて
@@ -9444,8 +9444,8 @@
 
 ## 次の操作
 
-第29並列便の計画基準をコミットし、3担当の専用Git作業ツリーと専用Ninja木を作る。構築実行許可を付与した後、統合担当は図形描画
-列挙の限定対象を開始し、各担当は製品共有ライブラリーを接続しない最小契約を赤から開始する。
+第29並列便の4担当が、記録した閉包上限を先に確認して限定契約を赤から開始する。各実装担当は許可パスだけを変更し、限定対象の
+単発・20回反復、軽量隣接試験、製品への1回再集約、製品共有ライブラリー非接続を確認して引き渡す。
 
 ## R1-G5完了根拠
 
