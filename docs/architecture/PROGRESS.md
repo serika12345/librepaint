@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:19 JST
+- 更新日時: 2026-08-29 19:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,29 +11,30 @@
 
 ### 現在の並列担当票
 
-- 第12並列便の共通基準コミットは`a0add16420`である。統合担当は`develop`の
+- 第13並列便の共通基準コミットは`9f1a2c7be3`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`color-profile-query`は`verified`、統合順は1、実装コミットは`0d92c616df`である。
-  `libs/pigment/KoColorProfileQuery.h`、Pigment試験CMake、新規限定試験を所有する。色特性問い合わせ値の構築、
-  コピー・移動、妥当性分類、等値、診断表示、公開データの17 APIを対象とする。
-- 実装担当`surface-color-interfaces`は`verified`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2、統合コミットは`1974a1151d`である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-surface-color-interfaces`であり、
-  `libs/surfacecolormanagementapi/surfacecolormanagement/Kis{OutputColorInfo,SurfaceColorManager}Interface.{h,cpp}`、
-  Surface Color Management製品・試験CMake、新規限定試験を所有する。画面情報7 APIと表面管理13 APIの仮想配送、
-  QObject・QWindow寿命、状態信号を対象とする。
-- 実装担当`node-graph-listener`は`verified`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3、統合コミットは`f59314f936`である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-node-graph-listener`であり、`libs/image/kis_node_graph_listener.{h,cpp}`、
-  Image製品・試験CMake、新規限定試験を所有する。階層変更の連番更新、既定通知動作、仮想配送、破棄の20 APIを
-  対象とする。既存`libs/image/tests/kis_node_graph_listener_test.cpp`は読取り専用の最近傍契約とする。
-- 実装担当`exposure-gamma-interface`は`verified`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は4、統合コミットは`78a71b4be7`である。作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g19b-exposure-gamma-interface`であり、
-  `libs/ui/canvas/kis_exposure_gamma_correction_interface.{h,cpp}`、UI製品・試験CMake、新規限定試験を所有する。
-  抽象接続面の仮想配送と破棄、無処理具象の単一実体・既定値・設定後不変性の14 APIを対象とする。
+- 統合担当`properties-serialization`は`preparing`、統合順は1である。
+  `libs/widgetutils/KoProperties.{h,cpp}`、既存`libs/widgetutils/tests/KoPropertiesTest.{h,cpp}`、Widget Utils製品・
+  試験CMakeを所有する。既存試験を巨大な共有試験群から専用対象へ分け、値の設定・取得・型変換・反復・コピー・
+  XML保存復元・失敗時保持・等値・破棄の全20 APIを対象とする。
+- 実装担当`resource-bundle-manifest`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-resource-bundle-manifest`であり、
+  `libs/resources/KoResourceBundleManifest.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。参照値、
+  型・タグ・全件と型別の列挙、追加・削除、XML保存復元、無効入力の全20 APIを対象とする。
+- 実装担当`runnable-stroke-job-builders`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-runnable-stroke-job-builders`であり、
+  `libs/image/KisRunnableStrokeJobUtils.h`、既存`libs/image/tests/KisStrokeJobContractTest.cpp`とImage試験CMakeを所有する。
+  既存`kritaimagestrokejobobjects`を再利用し、順次・排他・並行・障壁・一意並行、詳細度指定、取消不能の
+  全17 APIが生成するジョブ属性と実行を対象とする。
+- 実装担当`algebra-geometry-primitives`は`preparing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は4である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-algebra-geometry-primitives`であり、`libs/global/kis_algebra_2d.h`、
+  Global試験CMake、新規限定試験を所有する。ヘッダー内で完結する半平面・外円・Halton列の20 APIと、積・長さ・
+  正規化・法線・角度・符号の13 API、計33 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8430,7 +8431,8 @@
 
 ## 次の操作
 
-第13並列便の対象を未対応報告から選び、構築閉包とCMake所有が重ならない担当票を確定する。
+`properties-serialization`、`resource-bundle-manifest`、`runnable-stroke-job-builders`、
+`algebra-geometry-primitives`を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
