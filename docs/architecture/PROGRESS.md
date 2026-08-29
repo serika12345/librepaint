@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:08 JST
+- 更新日時: 2026-08-29 18:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,7 +24,7 @@
   `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_paint_device_writer.h`、
   Image試験CMake、新規限定試験を所有する。2種類の書込み仮想呼出しと基底所有破棄の4 APIを対象とし、
   最も近い既存契約は`kis_paint_device_test`、対象はmacOSである。
-- 実装担当`surface-color-query`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`surface-color-query`は`integrated`、統合コミットは`509a0efae5`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、Surface Color ManagementのICC変換実装、
   製品集約CMake、試験CMake、新規限定試験を所有する。名前付き色域、伝達関数、色空間要求変換の3 APIを対象とし、
@@ -8212,9 +8212,23 @@
   具体的な保存先への書込みは既存`KisStorePaintDeviceWriterTest`が担当する。Linux、全ネイティブ検証、製品全体構築は
   実行していない。
 
+## R2-G19b 表面色空間からPigment照会への全public API契約で完了した作業
+
+- `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorimetryIccUtils.h`の全3 APIを、新規
+  `libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryIccUtilsContractTest.cpp`の3試験へ対応付けた。
+  名前付き色域と伝達関数のPigment定数への対応、未定義値の安全な分類、gamma値、xy色度、BT.2020/PQと
+  基準白輝度の有効な組合せ、未対応PQ構成からの伝達特性と色成分列の除去を固定した。
+- macOS標準構成では`KRITA_USE_SURFACE_COLOR_MANAGEMENT_API=OFF`で製品対象が存在しない。試験は開始ファイル
+  `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorimetryIccUtils.cpp`を同じ位置から直接1回構築し、
+  `kritapigmentcolorimetryobjects`とQt Testだけへ接続する。新規対象は6工程・13入力で、最近傍の
+  `KisSurfaceColorimetryContractTest`も6工程・13入力である。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復、最近傍契約に成功し、統合側の
+  パッケージ境界検査は1,171対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,128件、
+  未対応24,861件になった。Linux、全ネイティブ検証、機能有効構成の製品リンクは実行していない。
+
 ## 次の操作
 
-`surface-color-query`を統合し、続いて`widget-menu-alt-style`の差分を検査・統合する。
+`widget-menu-alt-style`の差分を検査・統合する。
 
 ## R1-G5完了根拠
 

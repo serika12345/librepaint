@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24864
+    "expectedMissingApis": 24861
   },
   "contracts": [
     {
@@ -14470,6 +14470,36 @@
       "classification": "maintained",
       "apis": [
         "method:KisPaintDeviceWriter::~KisPaintDeviceWriter()"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryIccUtilsContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryIccUtilsContractTest.cpp",
+      "test": "KisSurfaceColorimetryIccUtilsContractTest::namedPrimariesMapToPigmentConstants",
+      "behavior": "名前付き色域はsRGB、BT.2020、DCI-P3、Display P3、Adobe RGBを対応するPigment色域定数へ変換し、unknownおよび未定義値をPRIMARIES_UNSPECIFIEDへ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSurfaceColorimetry::namedPrimariesToPigmentPrimaries(NamedPrimaries primaries)"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryIccUtilsContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryIccUtilsContractTest.cpp",
+      "test": "KisSurfaceColorimetryIccUtilsContractTest::namedTransferFunctionsMapToPigmentConstants",
+      "behavior": "名前付き伝達関数はBT.1886、gamma 2.2、gamma 2.8、線形、sRGB、PQ、ST 428を対応するPigment定数へ変換し、unknown、未対応の拡張sRGB、未定義値をTRC_UNSPECIFIEDへ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSurfaceColorimetry::namedTransferFunctionToPigmentTransferFunction(NamedTransferFunction transfer)"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorimetryIccUtilsContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorimetryIccUtilsContractTest.cpp",
+      "test": "KisSurfaceColorimetryIccUtilsContractTest::colorSpacesMapToProfileQueries",
+      "behavior": "表面色空間は名前付き色域またはxy白色点とRGB色度をプロファイル照会へ移し、認識済みgamma値を対応する伝達特性へ変換する。PQは名前付きBT.2020と輝度情報の組合せだけを受理して基準白輝度を保持し、それ以外ではPQ伝達特性と色成分列を除去する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSurfaceColorimetry::colorSpaceToRequest(ColorSpace cs)"
       ]
     }
   ]
