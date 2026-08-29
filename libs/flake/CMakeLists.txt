@@ -86,6 +86,39 @@ set_target_properties(kritaflakegradienthelperobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakecurvefitobjects OBJECT
+    KoCurveFit.cpp
+)
+target_compile_definitions(kritaflakecurvefitobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakecurvefitobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakecurvefitobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaflakecurvefitobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaflakecurvefitpathshapeobjects OBJECT
+    KoCurveFitPathShapeWriter.cpp
+)
+target_compile_definitions(kritaflakecurvefitpathshapeobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakecurvefitpathshapeobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakecurvefitpathshapeobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Gui
+    Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakecurvefitpathshapeobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -193,8 +226,6 @@ set(kritaflake_SRCS
     KoClipMaskPainter.cpp
     KoClipPath.cpp
     KoClipMask.cpp
-    KoCurveFit.cpp
-
     commands/KoShapeGroupCommand.cpp
     commands/KoShapeAlignCommand.cpp
     commands/KoShapeBackgroundCommand.cpp
@@ -335,6 +366,8 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakesvgtransformparserobjects>
     $<TARGET_OBJECTS:kritaflakebehaviorinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakegradienthelperobjects>
+    $<TARGET_OBJECTS:kritaflakecurvefitobjects>
+    $<TARGET_OBJECTS:kritaflakecurvefitpathshapeobjects>
 
 )
 

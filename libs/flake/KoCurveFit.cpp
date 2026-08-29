@@ -6,7 +6,7 @@
 */
 
 #include "KoCurveFit.h"
-#include <KoPathShape.h>
+#include "KoCurveFitPathShapeWriter_p.h"
 #include <QVector>
 #include <math.h>
 
@@ -542,6 +542,12 @@ QPointF *FitCubic(const QList<QPointF> &points, int first, int last, FitVector t
 
 KoPathShape * bezierFit(const QList<QPointF> &points, float error)
 {
+    KoPathShape *path = KoCurveFitPathShapeWriter::createPath();
+
+    if (points.size() < 2) {
+        return path;
+    }
+
     FitVector tHat1, tHat2;
 
     tHat1 = ComputeLeftTangent(points, 0);
@@ -551,17 +557,14 @@ KoPathShape * bezierFit(const QList<QPointF> &points, float error)
     QPointF *curve;
     curve = FitCubic(points, 0, points.count() - 1, tHat1, tHat2, error, width);
 
-    KoPathShape * path = new KoPathShape();
-
     if (width > 3) {
-        path->moveTo(curve[0]);
-        path->curveTo(curve[1], curve[2], curve[3]);
+        KoCurveFitPathShapeWriter::moveTo(path, curve[0]);
+        KoCurveFitPathShapeWriter::curveTo(path, curve[1], curve[2], curve[3]);
         for (int i = 4; i < width; i += 4) {
-            path->curveTo(curve[i+1], curve[i+2], curve[i+3]);
+            KoCurveFitPathShapeWriter::curveTo(path, curve[i+1], curve[i+2], curve[i+3]);
         }
     }
 
     delete[] curve;
     return path;
 }
-

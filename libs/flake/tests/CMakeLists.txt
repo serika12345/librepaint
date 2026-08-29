@@ -179,6 +179,19 @@ kis_add_test(
 )
 target_compile_definitions(KoGradientHelperContractTest PRIVATE kritaflake_EXPORTS)
 
+kis_add_test(
+    KoCurveFitContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakecurvefitobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoCurveFitContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoCurveFitContractTest PRIVATE kritaflake_EXPORTS)
+
 ############## broken tests ###############
 
 kis_add_test(TestPointMergeCommand.cpp
