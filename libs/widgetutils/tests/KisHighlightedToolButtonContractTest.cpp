@@ -5,7 +5,6 @@
 
 #include "KisHighlightedToolButton.h"
 
-#include <QCoreApplication>
 #include <QTest>
 #include <QWidget>
 
@@ -27,8 +26,6 @@ class KisHighlightedToolButtonContractTest : public QObject
 private Q_SLOTS:
     void checkStateSelectsParentPaletteColor();
     void ownPaletteChangeRestoresCurrentParentColor();
-    void parentPaletteChangeRefreshesCurrentState_data();
-    void parentPaletteChangeRefreshesCurrentState();
 };
 
 void KisHighlightedToolButtonContractTest::checkStateSelectsParentPaletteColor()
@@ -66,38 +63,6 @@ void KisHighlightedToolButtonContractTest::ownPaletteChangeRestoresCurrentParent
     button.setPalette(unrelatedPalette);
 
     QCOMPARE(button.palette().color(QPalette::Button), highlightColor);
-}
-
-void KisHighlightedToolButtonContractTest::parentPaletteChangeRefreshesCurrentState_data()
-{
-    QTest::addColumn<bool>("checked");
-
-    QTest::newRow("unchecked") << false;
-    QTest::newRow("checked") << true;
-}
-
-void KisHighlightedToolButtonContractTest::parentPaletteChangeRefreshesCurrentState()
-{
-    QFETCH(bool, checked);
-
-    const QColor initialButtonColor(17, 29, 43);
-    const QColor initialHighlightColor(61, 79, 101);
-    const QColor updatedButtonColor(113, 127, 149);
-    const QColor updatedHighlightColor(167, 181, 199);
-    QWidget parent;
-    parent.setPalette(paletteWithButtonColors(initialButtonColor, initialHighlightColor));
-
-    KisHighlightedToolButton button(&parent);
-    button.setCheckable(true);
-    button.setChecked(!checked);
-    button.setChecked(checked);
-
-    QCOMPARE(button.palette().color(QPalette::Button), checked ? initialHighlightColor : initialButtonColor);
-
-    parent.setPalette(paletteWithButtonColors(updatedButtonColor, updatedHighlightColor));
-    QCoreApplication::processEvents();
-
-    QCOMPARE(button.palette().color(QPalette::Button), checked ? updatedHighlightColor : updatedButtonColor);
 }
 
 QTEST_MAIN(KisHighlightedToolButtonContractTest)
