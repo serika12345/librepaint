@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24542
+    "expectedMissingApis": 24528
   },
   "contracts": [
     {
@@ -15554,6 +15554,68 @@
       "apis": [
         "alias:KisTagSP",
         "function:operator <<(QDebug dbg,const KisTagSP tag)"
+      ]
+    },
+    {
+      "target": "KisSizeGroupContractTest",
+      "source": "libs/ui/tests/KisSizeGroupContractTest.cpp",
+      "test": "KisSizeGroupContractTest::defaultModeEnumsParentAndVirtualLifetime",
+      "behavior": "寸法同期グループは水平方向・非表示を含む設定で構築され、4方向値を安定して保持し、QObject親所有と基底所有のどちらからも一度だけ破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSizeGroup",
+        "enum:KisSizeGroup::mode",
+        "enumerator:KisSizeGroup::mode::KIS_SIZE_GROUP_BOTH",
+        "enumerator:KisSizeGroup::mode::KIS_SIZE_GROUP_HORIZONTAL",
+        "enumerator:KisSizeGroup::mode::KIS_SIZE_GROUP_NONE",
+        "enumerator:KisSizeGroup::mode::KIS_SIZE_GROUP_VERTICAL",
+        "method:KisSizeGroup::KisSizeGroup(QObject * parent=0,KisSizeGroup::mode mode=KisSizeGroup::KIS_SIZE_GROUP_HORIZONTAL,bool ignoreHidden=false)",
+        "method:KisSizeGroup::getMode() const",
+        "method:KisSizeGroup::isIgnoreHidden() const",
+        "method:KisSizeGroup::~KisSizeGroup()"
+      ]
+    },
+    {
+      "target": "KisSizeGroupContractTest",
+      "source": "libs/ui/tests/KisSizeGroupContractTest.cpp",
+      "test": "KisSizeGroupContractTest::settersReturnConfiguredModeAndHiddenPolicy",
+      "behavior": "寸法同期グループは方向と非表示除外の設定変更を直後の取得結果へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSizeGroup::setIgnoreHidden(bool ignoreHidden)",
+        "method:KisSizeGroup::setMode(KisSizeGroup::mode mode)"
+      ]
+    },
+    {
+      "target": "KisSizeGroupContractTest",
+      "source": "libs/ui/tests/KisSizeGroupContractTest.cpp",
+      "test": "KisSizeGroupContractTest::boxLayoutSynchronizesAxesAndRestoresRemovedWidget",
+      "behavior": "box配置へ追加した部品は方向に応じて最大寸法を共有し、方向なしでは元寸法を保ち、除去した部品は固有の寸法へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSizeGroup::addWidget(QWidget * widget)",
+        "method:KisSizeGroup::removeWidget(QWidget * widget)"
+      ]
+    },
+    {
+      "target": "KisSizeGroupContractTest",
+      "source": "libs/ui/tests/KisSizeGroupContractTest.cpp",
+      "test": "KisSizeGroupContractTest::gridAndFormLayoutsPreservePositionsWhileSynchronizing",
+      "behavior": "grid配置とform配置へ追加した部品は行・列・役割を維持したまま、指定方向の最大寸法を共有する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSizeGroup::addWidget(QWidget * widget)"
+      ]
+    },
+    {
+      "target": "KisSizeGroupContractTest",
+      "source": "libs/ui/tests/KisSizeGroupContractTest.cpp",
+      "test": "KisSizeGroupContractTest::hiddenWidgetsAreExcludedAndReincluded",
+      "behavior": "非表示除外を有効にした寸法同期グループは、隠した部品を最大寸法の計算から除き、再表示した部品を計算へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSizeGroup::addWidget(QWidget * widget)",
+        "method:KisSizeGroup::setIgnoreHidden(bool ignoreHidden)"
       ]
     }
   ]

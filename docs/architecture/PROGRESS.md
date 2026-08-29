@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:33 JST
+- 更新日時: 2026-08-29 20:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,7 +15,7 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`size-group`は`implementing`、統合順は1である。主作業ツリーで
+- 統合担当`size-group`は`integrated`、統合順は1である。主作業ツリーで
   `libs/ui/widgets/kis_size_group.{h,cpp}`、`libs/ui/widgets/kis_size_group_p.{h,cpp}`、UI製品・試験CMake、新規限定試験を
   所有する。製品`kritaapplicationui`の1,851工程・3,702入力から実装2単位を専用生成物へ分け、親所有、方向列挙、
   方向・非表示除外設定、box・grid・form配置での寸法同期、非表示と除去後の再計算、仮想破棄の全14 APIを対象とする。
@@ -8554,9 +8554,23 @@
   1,549ヘッダー、29,989 API、対応済み5,447件、未対応24,542件になった。Linux、全ネイティブ検証、製品全体構築は
   実行していない。
 
+## R2-G19b 寸法同期グループの全public API契約で完了した作業
+
+- `libs/ui/widgets/kis_size_group.h`の全14 APIを、新規`libs/ui/tests/KisSizeGroupContractTest.cpp`の5試験へ対応付けた。
+  4方向値、既定と指定設定、QObject親所有と基底所有からの破棄、box配置の方向別最大寸法、gridの行・列範囲、formの
+  欄役割、除去後の固有寸法復元、非表示部品の除外と再表示時の再計算を固定した。
+- 開始ファイル`libs/ui/widgets/kis_size_group.cpp`と`libs/ui/widgets/kis_size_group_p.cpp`の構築所有を
+  `kritaui_LIB_SRCS`から新規`kritauisizegroupobjects`へ移し、製品`kritaapplicationui`が生成物を1回だけ再集約する。
+  公開・内部ヘッダーと実装位置、製品ABIは維持した。限定試験は生成物とQt Widgets・Testだけへ接続する。
+- macOSの製品`kritaapplicationui`は変更前に1,851工程・3,702入力を要求した。分離後の生成物は4工程・9入力、限定試験は
+  8工程・16入力であり、対象外のUI実装を構築しない。意図した初回失敗、対象CTestの単発実行と20回反復、最近傍の
+  `KisExposureGammaCorrectionInterfaceContractTest`、高速検査に成功した。統合時のパッケージ境界検査は1,203対象で
+  成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,461件、未対応24,528件になった。Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第15並列便の4担当を開始し、限定構築と挙動契約を並列実装する。
+市松模様描画、混色接続面、画像接続面の順に、担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 
