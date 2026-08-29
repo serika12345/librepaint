@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 17:42 JST
+- 更新日時: 2026-08-29 18:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,7 +18,8 @@
 - 統合担当`psdutils-cos-writer`は`verified`である。`libs/psdutils/cos/kis_cos_writer.{h,cpp}`、
   `libs/psdutils/{CMakeLists.txt,tests/CMakeLists.txt}`、新規限定試験を所有し、COSとTxt2の直列化3 APIを対象とする。
   最も近い既存契約は`psd_cos_parser_test`、対象はmacOS、統合順は1である。
-- 実装担当`image-device-writer`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`image-device-writer`は`ready`、搬送コミットは`77fe9842c8`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/image/kis_paint_device_writer.h`、
   Image試験CMake、新規限定試験を所有する。2種類の書込み仮想呼出しと基底所有破棄の4 APIを対象とし、
@@ -28,7 +29,8 @@
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、Surface Color ManagementのICC変換実装、
   製品集約CMake、試験CMake、新規限定試験を所有する。名前付き色域、伝達関数、色空間要求変換の3 APIを対象とし、
   最も近い既存契約は`KisSurfaceColorimetryContractTest`、対象はmacOSである。
-- 実装担当`widget-menu-alt-style`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`widget-menu-alt-style`は`ready`、搬送コミットは`e0924f6d72`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisMenuStyleDontCloseOnAlt.{h,cpp}`、
   Widget Utils製品集約CMake、試験CMake、新規限定試験を所有する。Altメニュー移動抑止と他のstyle hint委譲の3 APIを対象とし、
@@ -8179,10 +8181,25 @@
   未対応24,868件になった。既存書出し実装のQt 6非推奨警告は挙動を変えず後続のC++更新対象として残す。
   Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b 並列作業ツリーのNix入力縮小で完了した作業
+
+- 各担当の専用作業ツリーで`nix develop .#test`を評価すると、CMakeの対象閉包へ進む前に作業ツリー全体を
+  独立したNix store入力として複製していた。1入力は約563 MiBから795 MiBで、過去のコミットと並列担当から残った
+  未参照205経路が80,434.79 MiBを占有し、専用Ninja木が10 MiB未満でも構成中に空き容量が枯渇していた。
+- `scripts/run-shared-test-env`を追加し、Git共通ディレクトリーから主作業ツリーを決定して、許可済み`.direnv`の
+  開発道具環境と共有コンパイラーキャッシュを再利用する。コマンドの作業ディレクトリー、`CCACHE_BASEDIR`、
+  `LIBREPAINT_REPO_ROOT`、`LIBREPAINT_BUILD_ROOT`は担当作業ツリーへ固定するため、各担当のNinja木とコンパイル
+  データベースは分離を維持する。
+- 新しい運用契約は、主`.direnv`プロファイルの選択、担当作業ツリーの5環境値、共有キャッシュ経路を
+  偽`nix print-dev-env`で検査する。
+  実環境の反復プローブでは追加使用量が0.1 MiB未満だった。未参照Nix store経路はGCで回収し、ソース、Git差分、
+  主Ninja木、参照中の開発環境は保持した。共有ccache上限は容量回復時の256 MiBを維持し、並列便完了後に利用率を
+  再評価する。
+
 ## 次の操作
 
-空き容量を監視しながら`image-device-writer`を再開し、完了後に`surface-color-query`、
-`widget-menu-alt-style`を順次再開して各担当差分を一件ずつ統合する。
+`image-device-writer`を統合し、続いて`surface-color-query`、`widget-menu-alt-style`の順に
+各担当差分を一件ずつ検査・統合する。
 
 ## R1-G5完了根拠
 

@@ -338,13 +338,20 @@ git worktree add -b "work/r2-g19b-$task_lane" \
 各作業ツリーは自身の`build/tdd-macos`または`build/tdd-linux`を使用する。CMakeキャッシュは
 ソース絶対パスを保持するため、別の作業ツリーからNinja木を複製して使用する構成にはしない。
 コンパイラーキャッシュだけを共有し、対象限定構築の再コンパイルを削減する。共有先の絶対パスは
-担当票から受け取る。
+担当票から受け取る。主作業ツリーで許可済みの`.direnv`開発環境は`run-shared-test-env`で再利用し、
+担当作業ツリーのリポジトリールート、Ninja木、コンパイラーキャッシュ基準パスを保つ。
 
 ```sh
 task_shared_ccache="<共有コンパイラーキャッシュの絶対パス>"
-nix develop .#test --command env CCACHE_DIR="$task_shared_ccache" \
+LIBREPAINT_SHARED_CCACHE="$task_shared_ccache" \
+  ./scripts/run-shared-test-env \
   ./scripts/run-test <target> [ctest-regex]
 ```
+
+担当作業ツリーを入力とする`nix develop .#test`は、担当ごとの完全なソース写像をNix storeへ
+追加するため、並列の通常実装周期には使用しない。Nix開発環境自体を変更する作業は担当票で
+主作業ツリーを所有し、その変更後の環境を検査する。`run-shared-test-env`はGit共通ディレクトリーから
+主作業ツリーを決定し、主`.direnv`の評価済み環境と共有コンパイラーキャッシュだけを再利用する。
 
 実装担当は、変更前の計画、直接CMake依存、空構築閉包を測定してから担当範囲を編集する。
 構築実行許可が`waiting`の間は、ソース調査、既存試験監査、契約設計を進める。統合担当が

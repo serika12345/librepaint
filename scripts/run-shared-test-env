@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+    cat >&2 <<'EOF'
+usage: run-shared-test-env <command> [arguments...]
+
+Run a command for the current Git worktree with the primary worktree's cached
+test development profile and compiler cache.
+EOF
+    exit 2
+}
+
+(( $# > 0 )) || usage
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+primary_root="${LIBREPAINT_PRIMARY_WORKTREE:-}"
+
+if [[ -z "$primary_root" ]]; then
+    common_git_dir="$(git -C "$repo_root" rev-parse --path-format=absolute --git-common-dir)"
+    primary_root="$(cd -- "$(dirname -- "$common_git_dir")" && pwd -P)"
+else
+    primary_root="$(cd -- "$primary_root" && pwd -P)"
+fi
+
+shared_cache="${LIBREPAINT_SHARED_CCACHE:-$primary_root/.cache/librepaint/ccache/native}"
+profile="$primary_root/.direnv/flake-profile"
+
+if [[ ! -e "$profile" ]]; then
+    echo "primary test environment is unavailable; run direnv allow and enter: $primary_root" >&2
+    exit 1
+fi
+
+nix_command="$(command -v nix)"
+
+cd "$repo_root"
+# The inner Bash receives paths as positional arguments; its single-quoted body
+# must expand them only after the cached development profile is loaded.
+# shellcheck disable=SC2016
+exec "$BASH" -c '
+    set -euo pipefail
+    repo_root="$1"
+    primary_root="$2"
+    shared_cache="$3"
+    profile="$4"
+    nix_command="$5"
+    shift 5
+
+    cd "$repo_root"
+    eval "$("$nix_command" print-dev-env "$profile")"
+    export CCACHE_BASEDIR="$repo_root"
+    export CCACHE_DIR="$shared_cache"
+    export LIBREPAINT_REPO_ROOT="$repo_root"
+    export LIBREPAINT_BUILD_ROOT="$repo_root/build"
+    export LIBREPAINT_CACHE_ROOT="$primary_root/.cache/librepaint"
+    exec "$@"
+' run-shared-test-env \
+    "$repo_root" "$primary_root" "$shared_cache" "$profile" "$nix_command" "$@"

@@ -13,6 +13,7 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 BUILD_SCRIPT = REPO_ROOT / "scripts" / "build-incremental"
 RUN_TEST_SCRIPT = REPO_ROOT / "scripts" / "run-test"
 VERIFY_SCRIPT = REPO_ROOT / "scripts" / "verify"
+SHARED_TEST_ENV_SCRIPT = REPO_ROOT / "scripts" / "run-shared-test-env"
 BASH = shutil.which("bash")
 
 
@@ -57,6 +58,72 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             result.stdout.strip(),
             str(REPO_ROOT / "build" / f"tdd-{expected_platform}"),
         )
+
+    def test_shared_test_environment_reuses_primary_profile_for_current_worktree(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            temp_root = pathlib.Path(temp_directory)
+            primary_root = temp_root / "primary"
+            profile = primary_root / ".direnv" / "flake-profile"
+            profile.parent.mkdir(parents=True)
+            profile.write_text("cached development environment", encoding="utf-8")
+            shared_cache = temp_root / "ccache"
+            command_log = temp_root / "commands"
+            environment_log = temp_root / "environment"
+            fake_bin = temp_root / "bin"
+            fake_bin.mkdir()
+            fake_nix = fake_bin / "nix"
+            fake_nix.write_text(
+                f"#!{BASH}\n"
+                "printf '%s\\n' \"$*\" >\"$COMMAND_LOG\"\n"
+                "printf '%s\\n' 'export LIBREPAINT_TEST_SHELL=1'\n",
+                encoding="utf-8",
+            )
+            fake_nix.chmod(0o755)
+
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "COMMAND_LOG": str(command_log),
+                    "ENVIRONMENT_LOG": str(environment_log),
+                    "LIBREPAINT_PRIMARY_WORKTREE": str(primary_root),
+                    "LIBREPAINT_SHARED_CCACHE": str(shared_cache),
+                    "PATH": f"{fake_bin}:{environment['PATH']}",
+                }
+            )
+
+            result = subprocess.run(
+                [
+                    BASH,
+                    str(SHARED_TEST_ENV_SCRIPT),
+                    BASH,
+                    "-c",
+                    "printf '%s\\n' \"$PWD\" \"$CCACHE_BASEDIR\" "
+                    "\"$CCACHE_DIR\" \"$LIBREPAINT_REPO_ROOT\" "
+                    "\"$LIBREPAINT_BUILD_ROOT\" >\"$ENVIRONMENT_LOG\"",
+                ],
+                cwd=REPO_ROOT,
+                env=environment,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(
+                command_log.read_text(encoding="utf-8").strip(),
+                f"print-dev-env {profile.resolve()}",
+            )
+            self.assertEqual(
+                environment_log.read_text(encoding="utf-8").splitlines(),
+                [
+                    str(REPO_ROOT),
+                    str(REPO_ROOT),
+                    str(shared_cache),
+                    str(REPO_ROOT),
+                    str(REPO_ROOT / "build"),
+                ],
+            )
 
     def test_native_configure_uses_the_host_preset(self):
         with tempfile.TemporaryDirectory() as temp_directory:

@@ -164,6 +164,15 @@ configuration markers remain isolated. The coordinator controls concurrent
 configure, build, test, and verification capacity so that host load does not
 turn target-scoped validation into an accidental full build.
 
+Worker lanes enter the primary worktree's cached test environment through
+`./scripts/run-shared-test-env` and execute the lane-local script path. The
+helper preserves the lane repository root, build tree, compiler-cache base,
+and compilation database while sharing the primary tool environment and
+compiler-cache storage. A lane does not evaluate `nix develop .#test` against
+its own full source tree because each distinct worktree revision would create
+another large Nix store source path. Work that changes the Nix development
+environment uses an explicitly assigned primary-worktree lane instead.
+
 The coordinator exclusively owns `AGENTS.md`, the architecture roadmap and
 progress documents, `docs/architecture/public-api-test-contracts.json`, and
 shared generated inventories unless a task packet explicitly transfers one of
