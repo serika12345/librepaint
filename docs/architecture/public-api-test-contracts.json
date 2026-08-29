@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24861
+    "expectedMissingApis": 24858
   },
   "contracts": [
     {
@@ -14500,6 +14500,37 @@
       "classification": "maintained",
       "apis": [
         "function:KisSurfaceColorimetry::colorSpaceToRequest(ColorSpace cs)"
+      ]
+    },
+    {
+      "target": "KisMenuStyleDontCloseOnAltContractTest",
+      "source": "libs/widgetutils/tests/KisMenuStyleDontCloseOnAltContractTest.cpp",
+      "test": "KisMenuStyleDontCloseOnAltContractTest::constructorClonesNamedBaseStyle",
+      "behavior": "構築時に渡した様式の名前から独立した基底様式を生成し、元の様式を所有せずに同じ名前の表示規則を使う。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMenuStyleDontCloseOnAlt",
+        "method:KisMenuStyleDontCloseOnAlt::KisMenuStyleDontCloseOnAlt(QStyle * baseStyle)"
+      ]
+    },
+    {
+      "target": "KisMenuStyleDontCloseOnAltContractTest",
+      "source": "libs/widgetutils/tests/KisMenuStyleDontCloseOnAltContractTest.cpp",
+      "test": "KisMenuStyleDontCloseOnAltContractTest::altNavigationHintIsDisabled",
+      "behavior": "メニューバーのAltキー移動照会は無効を返し、基底様式へ照会しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMenuStyleDontCloseOnAlt::styleHint(QStyle::StyleHint hint,const QStyleOption * option,const QWidget * widget,QStyleHintReturn * returnData) const"
+      ]
+    },
+    {
+      "target": "KisMenuStyleDontCloseOnAltContractTest",
+      "source": "libs/widgetutils/tests/KisMenuStyleDontCloseOnAltContractTest.cpp",
+      "test": "KisMenuStyleDontCloseOnAltContractTest::otherHintsDelegateToBaseStyle",
+      "behavior": "Altキー移動以外の様式照会は種類、選択肢、表示部品、返却領域を基底様式へそのまま渡し、基底様式の結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMenuStyleDontCloseOnAlt::styleHint(QStyle::StyleHint hint,const QStyleOption * option,const QWidget * widget,QStyleHintReturn * returnData) const"
       ]
     }
   ]

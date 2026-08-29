@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:12 JST
+- 更新日時: 2026-08-29 18:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -29,7 +29,7 @@
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、Surface Color ManagementのICC変換実装、
   製品集約CMake、試験CMake、新規限定試験を所有する。名前付き色域、伝達関数、色空間要求変換の3 APIを対象とし、
   最も近い既存契約は`KisSurfaceColorimetryContractTest`、対象はmacOSである。
-- 実装担当`widget-menu-alt-style`は`ready`、搬送コミットは`e0924f6d72`、構築実行許可は`granted`、
+- 実装担当`widget-menu-alt-style`は`integrated`、統合コミットは`b86b4b7e74`、構築実行許可は`granted`、
   Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisMenuStyleDontCloseOnAlt.{h,cpp}`、
@@ -8226,9 +8226,24 @@
   パッケージ境界検査は1,171対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,128件、
   未対応24,861件になった。Linux、全ネイティブ検証、機能有効構成の製品リンクは実行していない。
 
+## R2-G19b Alt入力を保持するメニュー様式の全public API契約で完了した作業
+
+- `libs/widgetutils/KisMenuStyleDontCloseOnAlt.h`の全3 APIを、新規
+  `libs/widgetutils/tests/KisMenuStyleDontCloseOnAltContractTest.cpp`の3試験へ対応付けた。構築元と同名の独立した
+  基底様式を生成すること、メニューバーのAltキー移動照会を基底へ渡さず無効にすること、その他の照会では
+  全引数と戻り値を基底へ透過することを固定した。
+- 開始ファイル`libs/widgetutils/KisMenuStyleDontCloseOnAlt.cpp`の構築所有を`kritawidgetutils`の直接ソース集合から
+  新規`kritamenustyledontcloseonaltobjects`へ移し、製品は生成オブジェクトを1回だけ集約する。公開ヘッダー、
+  実装位置、製品ABIは維持した。限定契約は5工程・11入力であり、製品`kritawidgetutils`は変更前後とも
+  237工程・507入力である。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復、最近傍の
+  `KisHighlightedToolButtonContractTest`に成功した。実行ファイルの記号と製品リンク命令で構築・照会実装と
+  一重集約を確認し、パッケージ境界検査は1,173対象で成功した。公開面は1,549ヘッダー、29,989 API、
+  対応済み5,131件、未対応24,858件になった。Linux、全ネイティブ検証、製品全体のリンクは実行していない。
+
 ## 次の操作
 
-`widget-menu-alt-style`の差分を検査・統合する。
+未対応API一覧から所有範囲が重ならない次の並列便を選び、対象ごとの構築閉包を測定して契約を追加する。
 
 ## R1-G5完了根拠
 
