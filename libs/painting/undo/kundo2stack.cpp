@@ -1288,6 +1288,13 @@ QString KUndo2QStack::text(int idx) const
     return m_command_list.at(idx)->text().toString();
 }
 
+QString KUndo2QStack::actionText(int idx) const
+{
+    if (idx < 0 || idx >= m_command_list.size())
+        return QString();
+    return m_command_list.at(idx)->actionText();
+}
+
 /*!
     \property KUndo2QStack::undoLimit
     \brief the maximum number of commands on this stack.
