@@ -250,6 +250,21 @@ protected:
         static void notifyNodeRemoved(KisNodeModel *model, KisNodeDummy *dummy);
     };
 
+    struct KRITAUI_EXPORT SetDataAccess {
+        static void setDropEnabled(KisNodeModel *model, const QMimeData *data);
+        static QModelIndex takeParentOfRemovedNode(KisNodeModel *model);
+        static KisNodeSP nodeFromIndex(const KisNodeModel *model, const QModelIndex &index);
+        static QModelIndex indexFromNode(const KisNodeModel *model, const KisNodeSP &node);
+        static QModelIndex activeNodeIndex(const KisNodeModel *model);
+        static void setActiveNodeIndex(KisNodeModel *model, const QModelIndex &index);
+        static void setSelectionAdapterActiveNode(KisNodeModel *model, const KisNodeSP &node);
+        static int dummyColumns(const KisNodeModel *model);
+        static bool setRemainingData(KisNodeModel *model,
+                                     const QModelIndex &index,
+                                     const QVariant &value,
+                                     int role);
+    };
+
     struct KRITAUI_EXPORT StructureAccess {
         static bool hasDummiesFacade(const KisNodeModel *model);
         static KisNodeDummy *dummyFromRow(const KisNodeModel *model, int row, const QModelIndex &parent);

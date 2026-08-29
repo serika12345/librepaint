@@ -769,87 +769,94 @@ QVariant KisNodeModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-bool KisNodeModel::setData(const QModelIndex &index, const QVariant &value, int role)
+void KisNodeModel::SetDataAccess::setDropEnabled(KisNodeModel *model, const QMimeData *data)
 {
-    if (role == KisNodeModel::DropEnabled) {
-        const QMimeData *mimeData = static_cast<const QMimeData*>(value.value<void*>());
-        setDropEnabled(mimeData);
-        return true;
+    model->setDropEnabled(data);
+}
+
+QModelIndex KisNodeModel::SetDataAccess::takeParentOfRemovedNode(KisNodeModel *model)
+{
+    if (model->m_d->parentOfRemovedNode && model->m_d->dummiesFacade && model->m_d->indexConverter) {
+        const QModelIndex parentIndex =
+            model->m_d->indexConverter->indexFromDummy(model->m_d->parentOfRemovedNode);
+        model->m_d->parentOfRemovedNode = nullptr;
+        return parentIndex;
     }
 
-    if (role == KisNodeModel::ActiveRole || role == KisNodeModel::AlternateActiveRole) {
-        QModelIndex parentIndex;
-        if (!index.isValid() && m_d->parentOfRemovedNode && m_d->dummiesFacade && m_d->indexConverter) {
-            parentIndex = m_d->indexConverter->indexFromDummy(m_d->parentOfRemovedNode);
-            m_d->parentOfRemovedNode = 0;
-        }
+    return {};
+}
 
-        KisNodeSP activatedNode;
+KisNodeSP KisNodeModel::SetDataAccess::nodeFromIndex(const KisNodeModel *model, const QModelIndex &index)
+{
+    return model->nodeFromIndex(index);
+}
 
-        if (index.isValid() && value.toBool()) {
-            activatedNode = nodeFromIndex(index);
-        }
-        else if (parentIndex.isValid() && value.toBool()) {
-            activatedNode = nodeFromIndex(parentIndex);
-        }
-        else {
-            activatedNode = 0;
-        }
+QModelIndex KisNodeModel::SetDataAccess::indexFromNode(const KisNodeModel *model, const KisNodeSP &node)
+{
+    return model->indexFromNode(node);
+}
 
-        QModelIndex newActiveNode = activatedNode ? indexFromNode(activatedNode) : QModelIndex();
-        if (role == KisNodeModel::ActiveRole && value.toBool() &&
-            m_d->activeNodeIndex == newActiveNode) {
+QModelIndex KisNodeModel::SetDataAccess::activeNodeIndex(const KisNodeModel *model)
+{
+    return model->m_d->activeNodeIndex;
+}
 
-            return true;
-        }
+void KisNodeModel::SetDataAccess::setActiveNodeIndex(KisNodeModel *model, const QModelIndex &index)
+{
+    model->m_d->activeNodeIndex = index;
+}
 
-        m_d->activeNodeIndex = newActiveNode;
-
-        if (m_d->nodeSelectionAdapter) {
-            m_d->nodeSelectionAdapter->setActiveNode(activatedNode);
-        }
-
-        if (role == KisNodeModel::AlternateActiveRole) {
-            Q_EMIT toggleIsolateActiveNode();
-        }
-
-        Q_EMIT dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(m_d->dummyColumns));
-        return true;
+void KisNodeModel::SetDataAccess::setSelectionAdapterActiveNode(KisNodeModel *model,
+                                                                const KisNodeSP &node)
+{
+    if (model->m_d->nodeSelectionAdapter) {
+        model->m_d->nodeSelectionAdapter->setActiveNode(node);
     }
+}
 
-    if(!m_d->dummiesFacade || !index.isValid()) return false;
+int KisNodeModel::SetDataAccess::dummyColumns(const KisNodeModel *model)
+{
+    return model->m_d->dummyColumns;
+}
+
+bool KisNodeModel::SetDataAccess::setRemainingData(KisNodeModel *model,
+                                                   const QModelIndex &index,
+                                                   const QVariant &value,
+                                                   int role)
+{
+    if (!model->m_d->dummiesFacade || !index.isValid()) {
+        return false;
+    }
 
     bool result = true;
     bool shouldUpdate = true;
     bool shouldUpdateRecursively = false;
-    KisNodeSP node = nodeFromIndex(index);
+    KisNodeSP node = model->nodeFromIndex(index);
 
     switch (role) {
     case Qt::DisplayRole:
     case Qt::EditRole:
-        m_d->nodeManager->setNodeName(node, value.toString());
+        model->m_d->nodeManager->setNodeName(node, value.toString());
         break;
-    case KisNodeModel::PropertiesRole:
-        {
-            // don't record undo/redo for visibility, locked or alpha locked changes
-            KisBaseNode::PropertyList proplist = value.value<KisBaseNode::PropertyList>();
-            m_d->nodeManager->trySetNodeProperties(node, m_d->image, proplist);
-            shouldUpdateRecursively = true;
-
-            break;
-        }
+    case KisNodeModel::PropertiesRole: {
+        // don't record undo/redo for visibility, locked or alpha locked changes
+        KisBaseNode::PropertyList proplist = value.value<KisBaseNode::PropertyList>();
+        model->m_d->nodeManager->trySetNodeProperties(node, model->m_d->image, proplist);
+        shouldUpdateRecursively = true;
+        break;
+    }
     case KisNodeModel::SelectOpaqueRole:
-        if (node && m_d->selectionActionsAdapter) {
+        if (node && model->m_d->selectionActionsAdapter) {
             SelectionAction action = SelectionAction(value.toInt());
-            m_d->selectionActionsAdapter->selectOpaqueOnNode(node, action);
+            model->m_d->selectionActionsAdapter->selectOpaqueOnNode(node, action);
         }
         shouldUpdate = false;
         break;
     case FilterMaskPropertiesRole:
-        m_d->nodeManager->nodePropertiesIgnoreSelection(node);
+        model->m_d->nodeManager->nodePropertiesIgnoreSelection(node);
         break;
     case LayerColorOverlayPropertiesRole:
-        m_d->nodeManager->colorOverlayMaskProperties(node);
+        model->m_d->nodeManager->colorOverlayMaskProperties(node);
         break;
     default:
         result = false;
@@ -860,10 +867,12 @@ bool KisNodeModel::setData(const QModelIndex &index, const QVariant &value, int 
             QSet<QModelIndex> indexes;
             addChangedIndex(index, &indexes);
             Q_FOREACH (const QModelIndex &idx, indexes) {
-                Q_EMIT dataChanged(idx.siblingAtColumn(0), idx.siblingAtColumn(m_d->dummyColumns));
+                Q_EMIT model->dataChanged(idx.siblingAtColumn(0),
+                                          idx.siblingAtColumn(model->m_d->dummyColumns));
             }
         } else {
-            Q_EMIT dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(m_d->dummyColumns));
+            Q_EMIT model->dataChanged(index.siblingAtColumn(0),
+                                      index.siblingAtColumn(model->m_d->dummyColumns));
         }
     }
 

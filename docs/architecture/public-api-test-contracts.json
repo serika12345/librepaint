@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24964
+    "expectedMissingApis": 24962
   },
   "contracts": [
     {
@@ -13876,6 +13876,26 @@
         "method:KisBezierPatchParamToSourceSampler::xRange(qreal xParam) const",
         "method:KisBezierPatchParamToSourceSampler::yRange(qreal yParam) const",
         "struct:KisBezierPatchParamToSourceSampler"
+      ]
+    },
+    {
+      "target": "KisNodeModelSetDataContractTest",
+      "source": "libs/ui/tests/KisNodeModelSetDataContractTest.cpp",
+      "test": "KisNodeModelSetDataContractTest::activeRoleUpdatesSelectionAndChangedColumns",
+      "behavior": "ノード模型の活性化役割は指定索引から活性ノードを解決し、選択アダプターへ反映した後、主列から複製列までの表示更新を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::setData(const QModelIndex & index,const QVariant & value,int role=Qt::EditRole)"
+      ]
+    },
+    {
+      "target": "KisNodeModelSetDataContractTest",
+      "source": "libs/ui/tests/KisNodeModelSetDataContractTest.cpp",
+      "test": "KisNodeModelSetDataContractTest::alternateActiveRoleRequestsIsolation",
+      "behavior": "代替活性化役割は活性ノードと選択状態を更新し、隔離表示切替を一度通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::toggleIsolateActiveNode()"
       ]
     }
   ]

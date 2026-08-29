@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:48 JST
+- 更新日時: 2026-08-29 15:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,21 +11,19 @@
 
 ### 現在の並列担当票
 
-- 共通基準コミットは`8498234b`である。統合担当は`develop`の主作業ツリー、実装担当は
+- 共通基準コミットは`47a10e94`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`ui-node-model-removal`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
-  `libs/ui/nodes/KisNodeModelRemoval.cpp`、`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、新規除去契約試験を所有し、
-  行除去開始前の公開通知を対象とする。
-- 実装担当`global-bezier-param-sampler`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は1である。`libs/global/KisBezierPatchParamToSourceSampler.h`と新規限定試験を所有し、
-  型、構築、公開値、範囲、点変換の12 APIを対象とする。
-- 実装担当`image-random-generator-2d`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。`libs/image/KisRandomGenerator2D.{h,cpp}`、画像CMakeと新規限定試験を所有し、
-  型、構築、破棄、整数乱数、正規化乱数の5 APIを対象とする。
-- 実装担当`flake-svg-transform-parser`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。`libs/flake/svg/parsers/SvgTransformParser.{h,cpp}`、Flake CMakeと新規限定試験を
-  所有し、型、構築、妥当性、変換結果の4 APIを対象とする。
+- 統合担当`ui-node-model-set-data`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
+  `libs/ui/nodes/KisNodeModelSetData.cpp`、UI CMake、新規限定試験を所有し、模型のデータ設定と隔離切替通知の2 APIを対象とする。
+- 実装担当`global-transform-components`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は1である。`libs/global/KisTransformComponents.h`と関連する代数実装、Global CMake、新規限定試験を
+  所有し、変換成分の12 APIを対象とする。
+- 実装担当`image-spontaneous-job`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。`libs/image/kis_spontaneous_job.h`と新規限定試験を所有し、自発ジョブの4 APIを対象とする。
+- 実装担当`flake-utils`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。`libs/flake/KoFlakeUtils.h`と新規限定試験を所有し、形状属性比較とstroke変更の3 APIを
+  対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -7785,9 +7783,28 @@
   29,989 API、対応済み5,025件、未対応24,964件になった。一般曲線の長さ精度は曲線長計算側の別契約として残る。
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b ノード模型データ設定のpublic API契約と小構築対象で完了した作業
+
+- `libs/ui/nodes/kis_node_model.cpp`にあった`KisNodeModel::setData()`の公開振り分けを、新規
+  `libs/ui/nodes/KisNodeModelSetData.cpp`へ移した。新規`kritauinodemodelsetdataobjects`がデータ設定の役割振り分け、活性ノード更新、
+  選択反映、隔離切替通知、表示更新通知を所有し、具象協調処理は元翻訳単位の保護された接続面を通して実行する。製品
+  `kritaapplicationui`は新生成物を一度再集約する。
+- `libs/ui/nodes/kis_node_model.h`の`setData()`と`toggleIsolateActiveNode()`を、新規
+  `libs/ui/tests/KisNodeModelSetDataContractTest.cpp`の6試験へ対応付けた。ドロップ情報の配送、通常活性化、同一活性化の通知抑制、
+  代替活性化と隔離通知、除去済みノードの親への復帰、その他役割の具象処理への配送を固定した。実装接続前のリンクは
+  `KisNodeModel::setData()`だけを未解決記号として診断した。
+- 既存`kis_node_model_test`は1,842工程・3,683入力、製品`kritaapplicationui`は現在1,839工程・3,678入力である。新規の専用対象は
+  1工程・3入力、契約対象は7工程・15入力であり、直接依存は専用対象がQt Core、契約対象が模型の寿命・構造・データ設定対象と
+  Qt Testである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、元`kis_node_model.cpp`を製品設定で単体コンパイルした。対象CTestの
+  単発実行と20回反復、1,129対象のパッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は1,549ヘッダー、
+  29,989 API、対応済み5,027件、未対応24,962件になった。具象ノード管理器が処理する名称、属性、選択操作は既存の広い契約に
+  残り、後続の小所有分離候補とする。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第3並列便を統合した新しい共通基準から公開API報告を再集計し、小構築対象で直接観測できる非重複担当群を開始する。
+ノード模型データ設定契約をコミットし、第4並列便を一件ずつ統合して対象CTest、公開API契約検査、高速検査を再実行する。
 
 ## R1-G5完了根拠
 
