@@ -32,3 +32,34 @@ target_include_directories(KisQImagePyramidContractTest PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
 target_compile_definitions(KisQImagePyramidContractTest PRIVATE kritalibbrush_EXPORTS)
+
+kis_add_test(
+    KisPipeBrushParasiteContractTest.cpp
+    LINK_LIBRARIES
+        kritabrushpipeparasiteobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::CoreAddons
+        KF${KF_MAJOR}::I18n
+        Imath::Imath
+        Boost::boost
+)
+target_include_directories(KisPipeBrushParasiteContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/psdutils
+    ${CMAKE_BINARY_DIR}/libs/psdutils
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+)
+target_compile_definitions(KisPipeBrushParasiteContractTest PRIVATE kritalibbrush_EXPORTS)

@@ -7,6 +7,7 @@
 #include "kis_pipebrush_parasite.h"
 
 #include <KisPortingUtils.h>
+#include <kis_debug.h>
 
 KisPipeBrushParasite::KisPipeBrushParasite(QStringView source)
 {
@@ -157,7 +158,7 @@ bool KisPipeBrushParasite::saveToDevice(QIODevice* dev) const
     return true;
 }
 
-bool loadFromDevice(QIODevice */*dev*/)
+bool KisPipeBrushParasite::loadFromDevice(QIODevice * /*dev*/)
 {
     // XXX: implement...
     return true;

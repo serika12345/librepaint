@@ -10,7 +10,6 @@ set(kritalibbrush_LIB_SRCS
     kis_abr_brush.cpp
     kis_abr_brush_collection.cpp
     kis_imagepipe_brush.cpp
-    kis_pipebrush_parasite.cpp
     kis_png_brush.cpp
     kis_svg_brush.cpp
     kis_text_brush.cpp
@@ -22,7 +21,46 @@ set(kritalibbrush_LIB_SRCS
     KisBrushModel.cpp
 )
 
-kis_add_library(kritalibbrush SHARED ${kritalibbrush_LIB_SRCS})
+add_library(kritabrushpipeparasiteobjects OBJECT
+    kis_pipebrush_parasite.cpp
+)
+target_compile_definitions(kritabrushpipeparasiteobjects PRIVATE kritalibbrush_EXPORTS)
+target_include_directories(kritabrushpipeparasiteobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/psdutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/psdutils>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritabrushpipeparasiteobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::CoreAddons
+        KF${KF_MAJOR}::I18n
+        Imath::Imath
+        Boost::boost
+)
+set_target_properties(kritabrushpipeparasiteobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_library(kritalibbrush SHARED
+    ${kritalibbrush_LIB_SRCS}
+    $<TARGET_OBJECTS:kritabrushpipeparasiteobjects>
+)
 generate_export_header(kritalibbrush BASE_NAME kritabrush EXPORT_MACRO_NAME BRUSH_EXPORT)
 
 add_library(kritabrushqimagepyramidobjects OBJECT
