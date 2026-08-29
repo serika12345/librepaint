@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 01:48 JST
+- 更新日時: 2026-08-30 01:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,27 +11,27 @@
 
 ### 現在の並列担当票
 
-- 第22並列便の共通基準コミットは`89c19b806a`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g22-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+- 第23並列便の共通基準コミットは`141eefb38c`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g23-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`dom-values`は`integrated`、実装コミットは`f89858ba85`、追加委任は`forbidden`、統合順は1である。
-  主作業ツリーで`libs/global/kis_dom_utils.{h,cpp}`、Global製品・試験CMake、
-  新規`KisDomUtilsContractTest.cpp`を所有する。既存試験の1,099工程・2,221入力から`kis_dom_utils.cpp`を専用生成物へ分離し、
-  数値・色・幾何値・配列のXML往復、型検査、要素検索・除去、ロケール互換変換の全39 APIを対象とする。
-- 実装担当`metadata-value`は`integrated`、担当先端は`cac04c1cfb`、統合コミットは`267b523f47`、追加委任は
-  `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-metadata-value`であり、
-  `libs/painting/metadata/tests/CMakeLists.txt`と新規`KisMetaDataValueContractTest.cpp`だけを所有する。既存の製品非依存生成物を
-  7工程・15入力のまま再利用し、有理数、値種別、複合値、コピー、資格子、変更、加算、文字列表現の全41 APIを対象とする。
-- 実装担当`svg-mesh-patch`は`integrated`、担当先端は`fa552138f2`、統合コミットは`60a95e0330`、追加委任は
-  `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-svg-mesh-patch`であり、
-  `libs/flake/svg/SvgMeshPatch.{h,cpp}`、Flake製品・試験CMake、新規`SvgMeshPatchContractTest.cpp`を所有する。既存試験の
-  564工程・1,159入力から実装を専用生成物へ分離し、辺・停止点・経路・境界・変換・分割の全41 APIを対象とする。
-- 実装担当`levels-slider`は`integrated`、担当先端は`5c093471a1`、統合コミットは`febb404c40`、追加委任は
-  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g22-levels-slider`であり、
-  `libs/widgets/KisLevelsSlider.{h,cpp}`、Widgets製品・試験CMake、新規`KisLevelsSliderContractTest.cpp`を所有する。
-  製品の720工程・1,469入力から実装を専用生成物へ分離し、基底・入力・ガンマ・出力・しきい値の値、制約、通知、寿命の
+- 統合担当`psd-byte-io`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/psdutils/psd_utils.h`、PSDUtils試験CMake、新規`PsdByteIoContractTest.cpp`を所有する。既存試験の581工程・
+  1,191入力から製品共有ライブラリーを除き、整数・列挙・固定小数点、文字列、余白、混合方式の大小エンディアン入出力にある
   全44 APIを対象とする。
-- 第22並列便の完了時は合計165 APIを追加し、公開面の対応済み6,233件、未対応23,756件を見込む。各担当は公開面と製品挙動を
+- 実装担当`opentype-feature-info`は`planned`、追加委任は`forbidden`、統合順は2である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g23-opentype-feature-info`を予定し、
+  `libs/flake/text/KoOpenTypeFeatureInfoFactory.{h,cpp}`、Flake製品・試験CMake、新規
+  `KoOpenTypeFeatureInfoFactoryContractTest.cpp`を所有する。製品の560工程・1,152入力から実装を専用生成物へ分離し、
+  OpenType表、機能情報値、既知・未知タグ検索、タグ一覧の全34 APIを対象とする。
+- 実装担当`filter-strategy`は`planned`、追加委任は`forbidden`、統合順は3である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g23-filter-strategy`を予定し、`libs/image/kis_filter_strategy.{h,cc}`、
+  Image製品・試験CMake、新規`KisFilterStrategyContractTest.cpp`を所有する。既存試験の1,101工程・2,224正規化入力から
+  実装を専用生成物へ分離し、基底と8種類の補間核、登録、説明、自動選択の全58 APIを対象とする。
+- 実装担当`zoom-handler`は`planned`、追加委任は`forbidden`、統合順は4である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g23-zoom-handler`を予定し、`libs/widgets/KoZoomHandler.{h,cpp}`、
+  Widgets製品・試験CMake、新規`KoZoomHandlerContractTest.cpp`を所有する。既存試験の726工程・1,480入力から実装を
+  専用生成物へ分離し、解像度、拡大率、余白、方式、軸・点・矩形・寸法変換、寿命の全33 APIを対象とする。
+- 第23並列便の完了時は合計169 APIを追加し、公開面の対応済み6,402件、未対応23,587件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
@@ -9082,8 +9082,7 @@
 
 ## 次の操作
 
-公開API未対応報告を再生成し、第23並列便について互いに独立した4候補の直接依存と限定構築計画を監査する。巨大な製品閉包を
-必要とする候補は実装前に専用生成物へ分離し、全APIの観測可能な挙動を小さい契約対象へ固定する。
+第23並列便の3専用作業ツリーとNinja木を共通基準から作成し、担当票を`implementing`へ遷移して4対象の契約実装を開始する。
 
 ## R1-G5完了根拠
 
