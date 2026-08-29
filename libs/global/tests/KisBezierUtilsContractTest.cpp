@@ -8,7 +8,6 @@
 #include <QLineF>
 #include <QTest>
 
-#include <algorithm>
 #include <array>
 
 void kis_safe_assert_recoverable(const char *, const char *, int)
@@ -208,17 +207,17 @@ private Q_SLOTS:
 
     void findsAllLineIntersectionsAndNearestAnchor()
     {
-        const QPointF p0(0.0, -1.0);
-        const QPointF p1(1.0, 2.0);
-        const QPointF p2(2.0, -2.0);
-        const QPointF p3(3.0, 1.0);
+        const QPointF p0(0.0, -24.0);
+        const QPointF p1(1.0, 46.0);
+        const QPointF p2(2.0, -59.0);
+        const QPointF p3(3.0, 36.0);
         const QLineF axis(QPointF(-1.0, 0.0), QPointF(4.0, 0.0));
         const QVector<qreal> intersections = KisBezierUtils::intersectWithLine(p0, p1, p2, p3, axis, 1e-4);
 
-        QVERIFY(intersections.size() >= 3);
-        QVERIFY(std::any_of(intersections.begin(), intersections.end(), [](qreal t) {
-            return qAbs(t - 0.5) < 1e-3;
-        }));
+        QCOMPARE(intersections.size(), 3);
+        QVERIFY(closeScalar(intersections[0], 0.2, 1e-3));
+        QVERIFY(closeScalar(intersections[1], 0.4, 1e-3));
+        QVERIFY(closeScalar(intersections[2], 0.8, 1e-3));
 
         const auto leftIntersection =
             KisBezierUtils::intersectWithLineNearest(p0, p1, p2, p3, axis, QPointF(0.0, 0.0), 1e-4);
