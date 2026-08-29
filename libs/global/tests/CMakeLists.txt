@@ -547,6 +547,16 @@ target_include_directories(KisBezierPatchContractTest PRIVATE
 target_compile_definitions(KisBezierPatchContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisBezierUtilsContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalbeziercurvelengthobjects
+        kritaglobalbezierutilsobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisBezierUtilsContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisLodTransformBaseContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test

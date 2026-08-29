@@ -578,6 +578,32 @@ set_target_properties(kritaglobalbeziercurvelengthobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalbezierutilsobjects OBJECT
+    KisBezierUtils.cpp
+)
+target_compile_definitions(kritaglobalbezierutilsobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalbezierutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalbezierutilsobjects
+    PUBLIC
+        kritaglobalbeziercurvelengthobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+    PRIVATE
+        Eigen3::Eigen
+)
+if(GSL_FOUND)
+    target_link_libraries(kritaglobalbezierutilsobjects PRIVATE GSL::gsl)
+endif()
+set_target_properties(kritaglobalbezierutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalbezierpatchobjects OBJECT
     KisBezierPatch.cpp
 )
@@ -668,7 +694,6 @@ set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_algebra_2d.cpp
     KisUsageLogger.cpp
-    KisBezierUtils.cpp
     KisBezierMesh.cpp
     KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
@@ -720,6 +745,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalidobjects>
     $<TARGET_OBJECTS:kritaglobalunitobjects>
     $<TARGET_OBJECTS:kritaglobalbeziercurvelengthobjects>
+    $<TARGET_OBJECTS:kritaglobalbezierutilsobjects>
     $<TARGET_OBJECTS:kritaglobalbezierpatchobjects>
     $<TARGET_OBJECTS:kritaglobaldecomposedmatrixobjects>
     $<TARGET_OBJECTS:kritaglobaltransformcomponentsobjects>
