@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:56 JST
+- 更新日時: 2026-08-29 22:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,28 +11,26 @@
 
 ### 現在の並列担当票
 
-- 第17並列便の共通基準コミットは`87c6df7bd9`である。統合担当は`develop`の
+- 第18並列便の共通基準コミットは`53adc80bb2`である。統合担当は`develop`の
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`tile-data-pool-buffer`は`integrated`、統合順は1である。主作業ツリーで
-  `libs/canvas/tiles/kis_tile_data_pool.{h,cpp}`、`libs/canvas/tiles/kis_tile_data_buffer.h`、Canvas製品・試験CMake、
-  新規限定試験を所有する。
-  1,095工程・2,211入力の翻訳単位を専用生成物へ分け、寸法別の割当・返却・解放要求、寸法別共有台帳、所有バッファーの
-  確保・移動・交換・破棄の全23 APIを対象とする。
-- 実装担当`levels-curve`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-levels-curve`であり、
-  `libs/image/KisLevelsCurve.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の翻訳単位を
-  専用生成物へ分け、既定・設定値、評価、変更・初期化、値意味論、転送表、文字列表現の全33 APIを対象とする。
-- 実装担当`input-device`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-input-device`であり、
-  `libs/flake/KoInputDevice.{h,cpp}`、既存`libs/flake/tests/TestInputDevice.{h,cpp}`、Flake製品・試験CMakeを所有する。
-  352工程・732入力の翻訳単位を専用生成物へ分け、全分類値、QTabletEvent変換、構築・比較・ハッシュ、既定生成、
-  診断表示、寿命の全37 APIを対象とする。
-- 実装担当`channel-info`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-channel-info`であり、
-  `libs/pigment/KoChannelInfo.h`、Pigment試験CMake、新規限定試験を所有する。製品実装を追加せず、数値型と格納寸法・範囲、
-  チャンネル属性、画素順と表示順、バイト位置比較、既定部分状態の全35 APIを対象とする。
+- 統合担当`color-conversions`は`planned`、統合順は1である。主作業ツリーで
+  `libs/pigment/KoColorConversions.{h,cpp}`、既存`libs/pigment/tests/TestColorConversion.{h,cpp}`、Pigment製品・試験CMakeを
+  所有する。266工程・558入力の翻訳単位を専用生成物へ分け、整数・浮動小数HSV/HSL、HSI/HSY/HCI/HCY、YUV、Lab/LCH、
+  XYZ/xyY、CMY/CMYKの全27 APIを対象とする。
+- 実装担当`bezier-patch`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-bezier-patch`であり、
+  `libs/global/KisBezierPatch.{h,cpp}`、Global製品・試験CMake、新規限定試験を所有する。23工程・44入力の翻訳単位を
+  専用生成物へ分け、制御点規約、境界、座標変換配送、通常・SVG2格子採取、診断表示の全23 APIを対象とする。
+- 実装担当`snap-config`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-snap-config`であり、
+  `libs/application/kis_snap_config.{h,cpp}`、Application製品・試験CMake、新規限定試験を所有する。従来試験の
+  1,123工程・2,262入力を縮小し、8値の既定・変更・読込み・保存委譲・寿命の全21 APIを対象とする。
+- 実装担当`sensor-data`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は
+  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-sensor-data`であり、
+  `plugins/paintops/libpaintop/KisSensorData.{h,cpp}`、PaintOp製品・試験CMake、新規限定試験を所有する。描画実行生成物に
+  混在する1翻訳単位を専用生成物へ分け、基底・長さ・描画角度センサーの既定、範囲、初期化、XML、同値性、寿命の全30 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -8731,7 +8729,7 @@
 
 ## 次の操作
 
-未対応台帳から第18並列便の候補を選び、各候補の直接CMake依存と空構築閉包を測定して、過大な対象は契約追加より先に分離する。
+第18並列便の専用作業ツリーを共通基準から作成し、色変換契約と3実装担当を開始する。
 
 ## R1-G5完了根拠
 
