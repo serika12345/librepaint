@@ -1130,6 +1130,33 @@ void KisNodeManager::OrderingAccess::lowerNodes(KisNodeManager *manager, const K
     batch->lowerNode(nodes, activeNode);
 }
 
+KisNodeList KisNodeManager::RemovalAccess::selectedNodes(KisNodeManager *manager)
+{
+    return manager->selectedNodes();
+}
+
+KisNodeSP KisNodeManager::RemovalAccess::parentNode(KisNodeSP node)
+{
+    return node->parent();
+}
+
+bool KisNodeManager::RemovalAccess::canModifyLayers(KisNodeManager *manager, const KisNodeList &nodes)
+{
+    return manager->canModifyLayers(nodes);
+}
+
+KisNodeSP KisNodeManager::RemovalAccess::activeNode(KisNodeManager *manager)
+{
+    return manager->activeNode();
+}
+
+void KisNodeManager::RemovalAccess::removeNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
+{
+    const KUndo2MagicString actionName = kundo2_i18n("Remove Nodes");
+    KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
+    batch->removeNode(nodes, activeNode);
+}
+
 void KisNodeManager::duplicateActiveNode()
 {
     KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
@@ -1151,31 +1178,6 @@ KisNodeOperationBatch* KisNodeManager::Private::lazyGetNodeOperationBatch(const 
     }
 
     return nodeOperationBatch;
-}
-
-void KisNodeManager::removeSingleNode(KisNodeSP node)
-{
-    if (!node || !node->parent()) {
-        return;
-    }
-
-    KisNodeList nodes;
-    nodes << node;
-    removeSelectedNodes(nodes);
-}
-
-void KisNodeManager::removeSelectedNodes(KisNodeList nodes)
-{
-    if (!canModifyLayers(nodes)) return;
-
-    KUndo2MagicString actionName = kundo2_i18n("Remove Nodes");
-    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-    batch->removeNode(nodes, activeNode());
-}
-
-void KisNodeManager::removeNode()
-{
-    removeSelectedNodes(selectedNodes());
 }
 
 void KisNodeManager::mirrorNodeX()

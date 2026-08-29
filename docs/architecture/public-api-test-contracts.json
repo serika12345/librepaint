@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25120
+    "expectedMissingApis": 25118
   },
   "contracts": [
     {
@@ -12552,6 +12552,26 @@
       "apis": [
         "method:KisNodeManager::lowerNode()",
         "method:KisNodeManager::raiseNode()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerRemovalContractTest",
+      "source": "libs/ui/tests/KisNodeManagerRemovalContractTest.cpp",
+      "test": "KisNodeManagerRemovalContractTest::singleRemovalRequiresParentAndPermission",
+      "behavior": "単一ノード削除は空値と親のないノードを拒否し、親のあるノードも変更不可の場合は無作用とする。許可された場合だけ一要素の一覧と現在ノードを一括削除へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::removeSingleNode(KisNodeSP node)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerRemovalContractTest",
+      "source": "libs/ui/tests/KisNodeManagerRemovalContractTest.cpp",
+      "test": "KisNodeManagerRemovalContractTest::selectedRemovalUsesCurrentSelection",
+      "behavior": "現在選択の削除は選択一覧を変更可否検査へ渡し、許可された場合だけ同じ一覧と現在ノードを一括削除へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::removeNode()"
       ]
     }
   ]

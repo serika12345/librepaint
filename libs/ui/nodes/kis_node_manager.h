@@ -420,6 +420,14 @@ protected:
         static void lowerNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode);
     };
 
+    struct KRITAUI_EXPORT RemovalAccess {
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static KisNodeSP parentNode(KisNodeSP node);
+        static bool canModifyLayers(KisNodeManager *manager, const KisNodeList &nodes);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static void removeNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

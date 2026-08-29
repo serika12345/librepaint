@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 09:11 JST
+- 更新日時: 2026-08-29 09:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7117,12 +7117,29 @@
   公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,869件、
   未対応25,120件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b ノード削除 public API契約と実行判断分離で完了した作業
+
+- `libs/ui/nodes/kis_node_manager.cpp`にあった単一指定と現在選択によるノード削除判断を、新規
+  `libs/ui/nodes/KisNodeManagerRemoval.cpp`へ移した。具体的な親取得、変更可否判定、現在ノード取得、undo名と
+  一括削除効果は移動元の保護境界に残し、製品`kritaapplicationui`は新規
+  `kritauinodemanagerremovalobjects`の生成物を1回集約する。
+- `libs/ui/nodes/kis_node_manager.h`の`removeSingleNode`と`removeNode`を、新規
+  `libs/ui/tests/KisNodeManagerRemovalContractTest.cpp`の2試験へ対応付けた。空値・親なし・変更不可の拒否、単一
+  ノード一覧への変換、現在選択一覧の取得、許可された一覧と現在ノードによる削除効果を固定した。実装接続前の
+  リンクは対象2 APIだけを未解決記号として診断した。
+- 変更前の既存`KisNodeManagerTest`は1,813工程・3,625入力、直近の専用試験は5工程・17入力だった。製品未接続の
+  赤試験は4工程・14入力、削除判断対象は1工程・3入力、緑化後の試験は5工程・17入力に収めた。製品
+  `kritaapplicationui`閉包は1,809工程・3,618入力から1,810工程・3,620入力、既存試験は1,814工程・3,627入力に
+  なった。
+- 削除判断対象と元の`kis_node_manager.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,871件、
+  未対応25,118件になった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-同じ`libs/ui/nodes/kis_node_manager.h`に残る58 APIのうち、単一指定と現在選択によるノード削除を次の小単位とする。
-`kis_node_manager.cpp`の`removeSingleNode`と`removeNode`について、対象指定の変更なし計画、直接CMake依存、空構築
-閉包を監査し、空値・親なしの拒否、単一ノード一覧への変換、現在選択の取得と削除処理への委譲を、具体undo効果
-から分けて挙動契約を追加する。
+同じ`libs/ui/nodes/kis_node_manager.h`に残る56 APIのうち、現在選択の複製を次の小単位とする。
+`kis_node_manager.cpp`の`duplicateActiveNode`について、対象指定の変更なし計画、直接CMake依存、空構築閉包を
+監査し、選択一覧と現在ノードを使う一括複製を具体undo効果から分けて挙動契約を追加する。
 
 ## R1-G5完了根拠
 
