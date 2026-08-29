@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 05:48 JST
+- 更新日時: 2026-08-30 06:09 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,35 +11,9 @@
 
 ### 現在の並列担当票
 
-- 第30並列便の共通基準コミットは`a43f394d28`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g30-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-  共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`image-barrier-lock`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/image/KisImageBarrierLock.h`、Image試験CMake、新規`KisImageBarrierLockContractTest.cpp`を所有する。実装はheader内のadapterだけであり、
-  既存`KisAdaptedLockTest`と同じ4工程・8入力を上限として、共有・生ポインター別名、読み書き別のlock・try_lock・unlock配送の全9 APIを
-  fake画像値で固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`active-canvas-dependency`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g30-active-canvas-dependency`で
-  `libs/flake/KoActiveCanvasResourceDependency.cpp`、Flake製品・試験CMake、新規
-  `KoActiveCanvasResourceDependencyContractTest.cpp`を所有する。開始ファイルを製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ
-  1回だけ再集約する。従来`TestResourceManager`の570工程・1,171入力に代えて6工程・13入力以内で、source・target key、更新判定の
-  仮想配送とsource変更、共有所有、基底寿命の全7 APIを固定する。
-- 実装担当`annotation`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g30-annotation`で`libs/image/kis_annotation.h`、Image試験CMake、新規
-  `KisAnnotationContractTest.cpp`を所有する。header内実装を既存
-  `kritaglobalsharedobjects`とQt Core・Testだけで検査し、従来`kis_annotation_test`の1,111工程・2,245入力に代えて6工程・13入力以内で、
-  型・説明・binary値、値置換、UTF-8表示、cloneの値独立性、派生clone配送、基底寿命の全9 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`color-label-selector`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は4である。作業ツリー`/Users/masato/Documents/librepaint-r2-g30-color-label-selector`で
-  `libs/widgets/kis_color_label_selector_widget.cpp`、Widgets製品・試験CMake、新規
-  `KisColorLabelSelectorWidgetContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC対応の専用生成物へ移し、
-  製品へ1回だけ再集約する。製品の732工程・1,493入力に代えて15工程・30入力以内で、既存の色ラベルbutton、折返し配置、描画色調整の
-  各生成物を直接再利用し、既定値、単一・複数選択、通知、折返し、drag、表示様式、寸法、menu配置の全31 APIを固定する。
-- 第30並列便の完了時は合計56 APIを追加し、公開面の対応済み7,056件、未対応22,933件を見込む。各担当は公開面と製品挙動を維持し、
-  限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
-  `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、
-  公開面変更、担当外依存、巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
+- 第30並列便の4担当は完了し、`develop`へ統合済みである。実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
+- 次は並列作業木で文書どおりの`run-shared-test-env build-incremental`が解決できない共有試験環境の`PATH`契約を、既存の
+  増分開発スクリプト試験で再現して局所修正する。その完了後、第31並列便の候補を依存閉包の小さい順に確定する。
 
 ## 再開環境
 
@@ -9497,10 +9471,60 @@
   各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
   再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,000件、未対応22,989件になった。
 
+## R2-G19b 画像障壁lock adapterの全public API契約で完了した作業
+
+- `libs/image/KisImageBarrierLock.h`の全9 APIを、新規`libs/image/tests/KisImageBarrierLockContractTest.cpp`の4試験へ対応付けた。
+  共有・生ポインター所有と書込み・読取り専用の4別名、書込みlockとunlock、読取り専用try lockの配送値と返値、adapterによる画像所有を
+  公開template実体と試験内画像値で固定した。実装はheader内に留まり、製品実装と製品CMakeは変更していない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は4工程・8入力で、対象CTest単発と20回反復、最近傍
+  `KisAdaptedLockTest`、製品共有ライブラリー非接続、整形検査に成功した。実画像共有ポインターとの統合、null画像、並行利用、Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 能動キャンバス資源依存の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoActiveCanvasResourceDependency.h`の全7 APIを、新規
+  `libs/flake/tests/KoActiveCanvasResourceDependencyContractTest.cpp`の3試験へ対応付けた。source・target key、同一source参照とtarget値への
+  更新判定の仮想配送、source変更と真偽返値、公開共有ポインター別名による基底所有と派生寿命を固定した。
+- 開始ファイル`libs/flake/KoActiveCanvasResourceDependency.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から
+  新規PIC対応`kritaflakeactivecanvasresourcedependencyobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。実装内容と公開
+  ヘッダーは維持し、限定試験は同生成物とQt Core・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。主作業木の限定対象は5工程・11入力で、従来`TestResourceManager`の570工程・
+  1,171入力から縮小した。対象CTest単発と担当作業木の20回反復、軽量隣接試験、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査に成功した。実資源管理器との統合、再入更新、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 注釈値と複製の全public API契約で完了した作業
+
+- `libs/image/kis_annotation.h`の全9 APIを、新規`libs/image/tests/KisAnnotationContractTest.cpp`の5試験へ対応付けた。型、説明、NULを含む
+  binary値、値だけの置換、UTF-8表示、独立したheap複製、派生複製・表示の仮想配送、基底所有からの派生寿命を固定した。実装はheader内に
+  留まり、製品実装と製品CMakeは変更していない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力で、従来`kis_annotation_test`の1,111工程・2,245入力から
+  縮小した。対象CTest単発と20回反復、軽量隣接試験、既存`kritaglobalsharedobjects`の再利用、製品共有ライブラリー非接続、整形検査に
+  成功した。不正UTF-8、巨大値、利用側の複製所有、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 色ラベル集合選択の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/kis_color_label_selector_widget.h`の全31 APIを、新規
+  `libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp`の8試験へ対応付けた。列挙値、親所有、既定値、単一・複数選択、通知、
+  折返し、drag、表示様式、寸法、menu wrapper所有、offsetと表示事象を固定した。
+- 開始ファイル`libs/widgets/kis_color_label_selector_widget.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の
+  `kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応`kritawidgetscolorlabelselectorobjects`へ移し、製品`kritawidgets`は同生成物を
+  1回だけ再集約する。実装内容と公開ヘッダーは維持し、限定試験は同生成物、既存の色ラベルbutton・折返し配置・描画色調整生成物、
+  Qt Widgets・Testへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は14工程・29入力で、製品`kritawidgets`の732工程・1,493入力から
+  縮小した。対象CTest単発と20回反復、2軽量隣接試験、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査に成功した。
+  `setCurrentIndex()`が新規選択で変更通知を2回、同一選択でも1回発行すること、menu offsetのicon有無判定が逆転することを既知不具合として
+  固定した。範囲外index、0・負値・極端寸法、実drag事象、palette初期化、Qt 5、OS固有画素、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+- 第30並列便は画像障壁lock 9 API、能動キャンバス資源依存7 API、注釈値9 API、色ラベル集合選択31 APIの合計56 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,056件、未対応22,933件になった。
+
 ## 次の操作
 
-第30並列便の4担当が、限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を先に確認してから、許可パス内だけで
-最小契約を追加する。各担当は対象単発・20回反復、軽量隣接試験、必要な製品への1回再集約、製品共有ライブラリー非接続を確認する。
+並列専用作業木で`./scripts/run-shared-test-env build-incremental`が文書どおり解決できない状態を既存の増分開発スクリプト試験へ追加し、
+共有試験環境がリポジトリーの`./scripts`を`PATH`へ公開する最小修正を行う。限定スクリプト試験と`verify-quick`の成功後、第31並列便の
+候補について製品と最近傍試験の依存閉包を計測し、停止上限を確定する。
 
 ## R1-G5完了根拠
 

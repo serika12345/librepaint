@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22989
+    "expectedMissingApis": 22933
   },
   "contracts": [
     {
@@ -20420,6 +20420,235 @@
       "apis": [
         "method:KisWrappableHBoxLayout::minimumSize() const",
         "method:KisWrappableHBoxLayout::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisImageBarrierLockContractTest",
+      "source": "libs/image/tests/KisImageBarrierLockContractTest.cpp",
+      "test": "KisImageBarrierLockContractTest::aliasesSelectImageOwnershipAndAccessMode",
+      "behavior": "画像障壁lockの公開adapter別名は共有・生ポインター所有と書込み・読取り専用の組合せを、それぞれ対応するtemplate実体へ正確に割り当てる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisImageBarrierLockAdapter",
+        "alias:KisImageBarrierLockAdapterRaw",
+        "alias:KisImageReadOnlyBarrierLockAdapter",
+        "alias:KisImageReadOnlyBarrierLockAdapterRaw"
+      ]
+    },
+    {
+      "target": "KisImageBarrierLockContractTest",
+      "source": "libs/image/tests/KisImageBarrierLockContractTest.cpp",
+      "test": "KisImageBarrierLockContractTest::adapterForwardsWritableLockLifecycle",
+      "behavior": "画像障壁lock adapterは受け取った画像ポインターを保持し、書込みlockではreadOnly=falseを付けたbarrierLockとunlockを同じ画像へ各1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageBarrierLockAdapterImpl",
+        "method:KisImageBarrierLockAdapterImpl::KisImageBarrierLockAdapterImpl(ImagePointer image)",
+        "method:KisImageBarrierLockAdapterImpl::lock()",
+        "method:KisImageBarrierLockAdapterImpl::unlock()"
+      ]
+    },
+    {
+      "target": "KisImageBarrierLockContractTest",
+      "source": "libs/image/tests/KisImageBarrierLockContractTest.cpp",
+      "test": "KisImageBarrierLockContractTest::adapterForwardsReadOnlyTryResult",
+      "behavior": "読取り専用adapterのtry_lockはreadOnly=trueを同じ画像へ配送し、画像が返す失敗と成功を変更せず呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageBarrierLockAdapterImpl::try_lock()"
+      ]
+    },
+    {
+      "target": "KoActiveCanvasResourceDependencyContractTest",
+      "source": "libs/flake/tests/KoActiveCanvasResourceDependencyContractTest.cpp",
+      "test": "KoActiveCanvasResourceDependencyContractTest::preservesSourceAndTargetKeys",
+      "behavior": "能動キャンバス資源依存は負値を含むsourceキーとtargetキーを構築時の値のまま保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoActiveCanvasResourceDependency",
+        "method:KoActiveCanvasResourceDependency::KoActiveCanvasResourceDependency(int sourceKey,int targetKey)",
+        "method:KoActiveCanvasResourceDependency::sourceKey() const",
+        "method:KoActiveCanvasResourceDependency::targetKey() const"
+      ]
+    },
+    {
+      "target": "KoActiveCanvasResourceDependencyContractTest",
+      "source": "libs/flake/tests/KoActiveCanvasResourceDependencyContractTest.cpp",
+      "test": "KoActiveCanvasResourceDependencyContractTest::dispatchesSourceReferenceAndTargetValue",
+      "behavior": "更新判定は同一の変更可能source参照と同一のconst target値を派生実装へ配送し、派生実装によるsource変更とtrue・false結果を呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoActiveCanvasResourceDependency::shouldUpdateSource(QVariant & source,const QVariant & target)"
+      ]
+    },
+    {
+      "target": "KoActiveCanvasResourceDependencyContractTest",
+      "source": "libs/flake/tests/KoActiveCanvasResourceDependencyContractTest.cpp",
+      "test": "KoActiveCanvasResourceDependencyContractTest::sharedAliasOwnsThroughVirtualBaseLifetime",
+      "behavior": "公開共有ポインター別名は依存個体を基底型として共有所有し、途中の参照解放では保持し、最後の解放で派生個体を一度だけ仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoActiveCanvasResourceDependencySP",
+        "method:KoActiveCanvasResourceDependency::~KoActiveCanvasResourceDependency()"
+      ]
+    },
+    {
+      "target": "KisAnnotationContractTest",
+      "source": "libs/image/tests/KisAnnotationContractTest.cpp",
+      "test": "KisAnnotationContractTest::storesTypeDescriptionAndBinaryPayload",
+      "behavior": "注釈は構築時に型、説明、NULを含むbinary値を保持し、各問い合わせから同じ値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAnnotation",
+        "method:KisAnnotation::KisAnnotation(const QString & type,const QString & description,const QByteArray & data)",
+        "method:KisAnnotation::annotation() const",
+        "method:KisAnnotation::description() const",
+        "method:KisAnnotation::type() const"
+      ]
+    },
+    {
+      "target": "KisAnnotationContractTest",
+      "source": "libs/image/tests/KisAnnotationContractTest.cpp",
+      "test": "KisAnnotationContractTest::setAnnotationReplacesOnlyPayload",
+      "behavior": "注釈値の更新はbinary値だけを置換し、構築時の型と説明を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnnotation::setAnnotation(const QByteArray ba)"
+      ]
+    },
+    {
+      "target": "KisAnnotationContractTest",
+      "source": "libs/image/tests/KisAnnotationContractTest.cpp",
+      "test": "KisAnnotationContractTest::displayTextDecodesUtf8Payload",
+      "behavior": "既定の表示文字列は有効なUTF-8注釈値をUnicode文字列へ復号する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnnotation::displayText() const"
+      ]
+    },
+    {
+      "target": "KisAnnotationContractTest",
+      "source": "libs/image/tests/KisAnnotationContractTest.cpp",
+      "test": "KisAnnotationContractTest::cloneCreatesIndependentHeapObject",
+      "behavior": "既定の複製は型、説明、注釈値が等しい別のheap個体を返し、複製後の双方の値変更を共有しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnnotation::clone() const"
+      ]
+    },
+    {
+      "target": "KisAnnotationContractTest",
+      "source": "libs/image/tests/KisAnnotationContractTest.cpp",
+      "test": "KisAnnotationContractTest::virtualInterfaceDispatchesAndDestroysDerivedObject",
+      "behavior": "基底接続面からの複製と表示は派生実装へ配送され、基底所有から原本と複製を破棄すると各派生デストラクターを正確に1回呼び出す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAnnotation::clone() const",
+        "method:KisAnnotation::displayText() const",
+        "method:KisAnnotation::~KisAnnotation()"
+      ]
+    },
+    {
+      "target": "KisColorLabelSelectorWidgetContractTest",
+      "source": "libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp",
+      "test": "KisColorLabelSelectorWidgetContractTest::defaultStateEnumsAndParentLifetime",
+      "behavior": "色ラベル選択部品は親所有された9個の未選択buttonを構築し、既定では折返しとdragを無効、表示様式をOutline、button寸法を22とし、FillIn・Outline列挙値を0・1として保持して親とともに破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorLabelSelectorWidget",
+        "enum:KisColorLabelSelectorWidget::SelectionIndicationType",
+        "enumerator:KisColorLabelSelectorWidget::SelectionIndicationType::FillIn",
+        "enumerator:KisColorLabelSelectorWidget::SelectionIndicationType::Outline",
+        "method:KisColorLabelSelectorWidget::KisColorLabelSelectorWidget(QWidget * parent=nullptr)",
+        "method:KisColorLabelSelectorWidget::buttonSize() const",
+        "method:KisColorLabelSelectorWidget::buttonWrapEnabled() const",
+        "method:KisColorLabelSelectorWidget::mouseDragEnabled() const",
+        "method:KisColorLabelSelectorWidget::selectionIndicationType() const",
+        "method:KisColorLabelSelectorWidget::~KisColorLabelSelectorWidget()"
+      ]
+    },
+    {
+      "target": "KisColorLabelSelectorWidgetContractTest",
+      "source": "libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp",
+      "test": "KisColorLabelSelectorWidgetContractTest::buttonCheckingReportsExclusiveAndMultipleSelection",
+      "behavior": "選択部品は排他時に未選択を-1、選択中buttonの識別子を現在indexとして返し、button設定を切替通知へ配送する。非排他へ切り替えると現在indexは-2となり、複数の選択indexを昇順で保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorLabelSelectorWidget::buttonToggled(int index,bool state)",
+        "method:KisColorLabelSelectorWidget::currentIndex() const",
+        "method:KisColorLabelSelectorWidget::exclusive() const",
+        "method:KisColorLabelSelectorWidget::isButtonChecked(int index) const",
+        "method:KisColorLabelSelectorWidget::selection() const",
+        "method:KisColorLabelSelectorWidget::setButtonChecked(int index,bool state)",
+        "method:KisColorLabelSelectorWidget::setExclusive(bool exclusive)"
+      ]
+    },
+    {
+      "target": "KisColorLabelSelectorWidgetContractTest",
+      "source": "libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp",
+      "test": "KisColorLabelSelectorWidgetContractTest::currentIndexSetterDuplicatesTheChangeNotification",
+      "behavior": "排他選択部品のsetCurrentIndexは新しいindexを選ぶと同じindexの変更通知を2回発行し、同じindexの再設定でも1回発行する現行挙動を保つ。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisColorLabelSelectorWidget::currentIndexChanged(int index)",
+        "method:KisColorLabelSelectorWidget::setCurrentIndex(int index)"
+      ]
+    },
+    {
+      "target": "KisColorLabelSelectorWidgetContractTest",
+      "source": "libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp",
+      "test": "KisColorLabelSelectorWidgetContractTest::setSelectionReplacesMultipleSelection",
+      "behavior": "非排他選択部品のsetSelectionは既存選択を指定index集合へ置換し、個別button通知を抑止して選択集合変更を呼出しごとに1回通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorLabelSelectorWidget::selectionChanged()",
+        "method:KisColorLabelSelectorWidget::setSelection(const QList<int> & indices)"
+      ]
+    },
+    {
+      "target": "KisColorLabelSelectorWidgetContractTest",
+      "source": "libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp",
+      "test": "KisColorLabelSelectorWidgetContractTest::configurationSwitchesLayoutDragAndPresentation",
+      "behavior": "選択部品は9 buttonと余白0・間隔2を保ったまま通常横配置と折返し横配置を切り替え、drag filterを一重に生成・破棄し、全buttonへ表示様式と有限の正寸法を反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorLabelSelectorWidget::setButtonSize(int size)",
+        "method:KisColorLabelSelectorWidget::setButtonWrapEnabled(bool enabled)",
+        "method:KisColorLabelSelectorWidget::setMouseDragEnabled(bool enabled)",
+        "method:KisColorLabelSelectorWidget::setSelectionIndicationType(SelectionIndicationType type)"
+      ]
+    },
+    {
+      "target": "KisColorLabelSelectorWidgetContractTest",
+      "source": "libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp",
+      "test": "KisColorLabelSelectorWidgetContractTest::menuWrapperOwnsItsSelector",
+      "behavior": "menu wrapperは親所有されたwidgetとして内部選択部品を一つ所有して返し、親破棄時にwrapperと内部選択部品をともに破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorLabelSelectorWidgetMenuWrapper",
+        "method:KisColorLabelSelectorWidgetMenuWrapper::KisColorLabelSelectorWidgetMenuWrapper(QWidget * parent=nullptr)",
+        "method:KisColorLabelSelectorWidgetMenuWrapper::colorLabelSelector() const",
+        "method:KisColorLabelSelectorWidgetMenuWrapper::~KisColorLabelSelectorWidgetMenuWrapper()"
+      ]
+    },
+    {
+      "target": "KisColorLabelSelectorWidgetContractTest",
+      "source": "libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp",
+      "test": "KisColorLabelSelectorWidgetContractTest::menuOffsetUsesInvertedIconDetection",
+      "behavior": "menu wrapperは非menu親ではoffset 0を返す一方、icon付き非checkable操作でも0、iconなし操作ではstyleのmenu余白とsmall icon寸法に6を足した正のoffsetを返す逆転した現行判定を保つ。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisColorLabelSelectorWidgetMenuWrapper::calculateMenuOffset() const"
+      ]
+    },
+    {
+      "target": "KisColorLabelSelectorWidgetContractTest",
+      "source": "libs/widgets/tests/KisColorLabelSelectorWidgetContractTest.cpp",
+      "test": "KisColorLabelSelectorWidgetContractTest::showEventAppliesTheCalculatedOffset",
+      "behavior": "menu wrapperはQtの表示事象配送時にcalculateMenuOffsetの結果と現在高を先頭spacerの寸法へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorLabelSelectorWidgetMenuWrapper::showEvent(QShowEvent * e)"
       ]
     }
   ]
