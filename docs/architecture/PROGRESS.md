@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 06:40 JST
+- 更新日時: 2026-08-30 06:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,9 +11,32 @@
 
 ### 現在の並列担当票
 
-- 第31並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
-- 次は第32並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
-  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
+- 第32並列便の共通基準コミットは`fb24ffa804`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g32-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+- 統合担当`progress-bar`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで`libs/widgetutils/KoProgressBar.cpp`、
+  WidgetUtils製品・試験CMake、新規`KoProgressBarContractTest.cpp`を所有する。開始ファイルを製品`kritawidgetutils`の直接ソースから
+  AUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の248工程・529入力に代えて、既存進捗基底生成物を直接再利用する
+  13工程・27入力以内で、親所有、range・書式・最大値、進捗中の表示、完了通知、下限未満値の現行通知の全8 APIを固定する。
+- 実装担当`resource-update-mediator`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g32-resource-update-mediator`で
+  `libs/flake/KoResourceUpdateMediator.cpp`、Flake製品・試験CMake、新規`KoResourceUpdateMediatorContractTest.cpp`を所有する。
+  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の566工程・
+  1,164入力と従来`TestResourceManager`の570工程・1,171入力に代えて8工程・16入力以内で、key、資源接続の仮想配送、変更通知、共有所有と
+  仮想寿命の全7 APIを固定する。
+- 実装担当`sequential-iterator-progress`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g32-sequential-iterator-progress`でImage試験CMakeと新規
+  `KisSequentialIteratorProgressContractTest.cpp`だけを所有する。header内実装と2型別名を既存の無状態進捗・進捗基底生成物へ直接接続し、
+  従来`kis_iterators_ng_test`の1,113工程・2,249入力に代えて12工程・24入力以内で、明示proxyとnull fallback、range・value・finish配送、
+  read-only・writable policy構成と3引数構築能力の全7 APIを固定する。製品実装と製品CMakeは変更しない。
+- 実装担当`warning-block`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g32-warning-block`で`libs/widgets/kis_warning_block.cpp`、Widgets製品・試験CMake、新規
+  `KisWarningBlockContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、
+  製品へ1回だけ再集約する。製品の734工程・1,497入力に代えて8工程・16入力以内で、親・label所有、copy禁止、text・pixmap値、
+  Qt property、link通知の全9未対応APIを固定する。
+- 第32並列便の完了時は合計31 APIを追加し、公開面の対応済み7,118件、未対応22,871件を見込む。各担当は限定対象の単発・20回反復、
+  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
+- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
+  挙動を発見した時点で`blocked`として引き渡す。
 
 ## 再開環境
 
@@ -9592,8 +9615,8 @@
 
 ## 次の操作
 
-第32並列便の候補を`/tmp/librepaint-g31-missing.json`から選び、公開API集合、既存契約、製品所有、直接依存を監査する。各候補について製品と
-最近傍試験の構築閉包を測定し、限定対象の停止上限と必要な所有分離を確定してから担当票を記録する。
+第32並列便の専用作業木を共通基準コミットから作り、各限定対象が未知で失敗する初回診断を記録する。統合担当が構築実行を許可した後、
+各担当は記録済みの停止上限と直接依存を再確認し、許可パス内だけで最小契約を追加する。
 
 ## R1-G5完了根拠
 
