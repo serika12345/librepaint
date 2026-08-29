@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 04:04 JST
+- 更新日時: 2026-08-30 04:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,27 +14,30 @@
 - 第26並列便の共通基準コミットは`ce4dc198ab`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g26-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`undo-group`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`undo-group`は`integrated`、実装コミットは`a5d901620b`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/undo/kundo2group.h`、Painting Undo試験CMake、新規`KUndo2GroupContractTest.cpp`を所有する。開始実装
   `kundo2group.cpp`は既に`kritapaintingundokundo2coreobjects`が所有するため製品CMakeを変更せず、従来`TestKUndo2Stack`の
-  264工程・558入力に代えて12工程・26入力以内で、群の初期状態、所属移動、活動対象、通知転送、取消・再実行、操作生成、寿命の
+  264工程・558入力に代えて10工程・21入力で、群の初期状態、所属移動、活動対象、通知転送、取消・再実行、操作生成、寿命の
   全24 APIを固定する。
-- 実装担当`css-font-info`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`css-font-info`は`integrated`、引渡しコミットは`d744809969`、統合コミットは`b39a3d07c3`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-css-font-info`を予定し、
   `libs/flake/tests/CMakeLists.txt`と新規`KoCSSFontInfoContractTest.cpp`だけを所有する。開始ヘッダー
   `libs/flake/text/KoCSSFontInfo.h`のインライン実装を維持し、従来`TestSvgText`の564工程・1,158入力に代えて4工程・7入力以内で、
   既定値、標準軸と独自軸、傾斜、自動光学寸法、等値規約の全13 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`projection-plane`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`projection-plane`は`integrated`、引渡しコミットは`a9c2afaea3`、統合コミットは`d51d0c6551`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-projection-plane`を予定し、
   `libs/image/kis_abstract_projection_plane.cpp`、Image製品・試験CMake、新規`KisAbstractProjectionPlaneContractTest.cpp`を所有する。
   開始ファイル`kis_abstract_projection_plane.cpp`を製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。
-  従来`kis_paint_layer_test`の1,103工程・2,229入力に代えて5工程・11入力前後で、9仮想処理の配送と借用値、基底寿命、単純実装の
+  従来`kis_paint_layer_test`の1,103工程・2,229入力に代えて5工程・13入力で、9仮想処理の配送と借用値、基底寿命、単純実装の
   矩形透過・無処理・空結果の全22 APIを固定する。
-- 実装担当`bezier-utils`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`bezier-utils`は`integrated`、引渡しコミットは`15a230c362`・`672dfe5b5b`・`43409ea1a7`、統合コミットは
+  `189e4661eb`・`7e577db0af`・`684dc1169b`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g26-bezier-utils`を予定し、
   `libs/global/KisBezierUtils.{h,cpp}`、Global製品・試験CMake、新規`KisBezierUtilsContractTest.cpp`を所有する。開始ファイル
   `KisBezierUtils.cpp`を製品`kritaglobal`の直接ソースから専用生成物へ移し、既存の曲線長生成物とともに限定試験へ接続し、製品へ
-  1回だけ再集約する。製品の68工程・136入力に代えて7工程・16入力以内で、評価、微分、分割、線形化、曲線長、弧長変換、最近点、
+  1回だけ再集約する。製品の68工程・136入力に代えて6工程・15入力で、評価、微分、分割、線形化、曲線長、弧長変換、最近点、
   交差、パッチ座標変換、制御点編集の全25 APIを固定する。
 - 第26並列便の完了時は合計84 APIを追加し、公開面の対応済み6,749件、未対応23,240件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
@@ -9273,10 +9276,70 @@
   各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、必要な製品への1回再集約、公開API契約検査を
   再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,665件、未対応23,324件になった。
 
+## R2-G19b undo群の全public API契約で完了した作業
+
+- `libs/painting/undo/kundo2group.h`の全24 APIを、新規`libs/painting/undo/tests/KUndo2GroupContractTest.cpp`の6試験へ
+  対応付けた。空状態とQObject寿命、履歴の所属・移動・除去、活動履歴、7通知の転送、取消・再実行、状態と表示文、操作生成を固定した。
+  群に登録されていない履歴を活動対象として受理する現行挙動は、公開説明と異なる既知不具合として分類した。
+- 開始ヘッダー`libs/painting/undo/kundo2group.h`は同じパスと公開面を維持する。開始実装`libs/painting/undo/kundo2group.cpp`は
+  既に`kritapaintingundokundo2coreobjects`が所有しており、製品実装と製品CMakeの移動はない。限定試験は同KUndo2中核生成物、
+  Qt Core・Widgets・Test、KF I18nだけへ接続し、製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗し、初回リンクは中核実装の安全表明記号不足を診断した。既存限定試験と同じ局所
+  協調定義で閉じた後、未実装契約の明示失敗を赤として確認した。限定対象は10工程・21入力であり、従来`TestKUndo2Stack`の
+  264工程・558入力から縮小した。対象CTest単発と20回反復、最近傍`KisUndoStoresContractTest`、製品共有ライブラリー非接続、
+  パッケージ境界検査に成功した。null履歴、翻訳別の操作文、活動履歴の並行破棄、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b CSS字体情報の全public API契約で完了した作業
+
+- `libs/flake/text/KoCSSFontInfo.h`の全13 APIを、新規`libs/flake/tests/KoCSSFontInfoContractTest.cpp`の4試験へ対応付けた。
+  全公開値の既定状態、weight・width・光学寸法・italic・slant・独自軸の計算と上書き、値ごとの等値規約と近似比較を固定した。
+  `fontSizeAdjust`を比較せず、自動傾斜状態と傾斜値の一部差分を等価とする現行挙動は既知不具合として分類した。
+- 開始ヘッダー`libs/flake/text/KoCSSFontInfo.h`は同じパス、インライン実装、公開面を維持した。製品実装と製品CMakeの移動はなく、
+  限定試験はQt Gui・TestとBoostヘッダーだけへ接続し、製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は4工程・7入力で、従来`TestSvgText`の564工程・1,158入力から
+  縮小し、最近傍`KoSvgTextEnumContractTest`と同じ閉包になった。対象CTest単発と20回反復、同最近傍契約、製品共有ライブラリー
+  非接続、パッケージ境界検査に成功した。非有限・極端値、実字体探索と描画の統合、Linux、全ネイティブ検証は実行していない。
+
+## R2-G19b 投影面接続の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_abstract_projection_plane.h`の全22 APIを、新規
+  `libs/image/tests/KisAbstractProjectionPlaneContractTest.cpp`の4試験へ対応付けた。基底構築と仮想寿命、再計算・適用・矩形・
+  可視境界・LOD装置照会の仮想配送と返値、無処理投影面の矩形透過・空結果を固定した。
+- 開始ファイル`libs/image/kis_abstract_projection_plane.cpp`の構築所有を`libs/image/CMakeLists.txt`の
+  `kritaimage_LIB_SRCS`直接収容から新規`kritaimageprojectionplaneobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。
+  開始ヘッダーと実装内容は維持し、限定試験は同生成物とQt Testだけを直接接続して製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗し、分離後は従来暗黙供給されていた公開include使用要件、初回リンクでは
+  `kisSharedPtrRelease(KisNode*)`不足を診断した。null以外のノードで直ちに失敗する試験協調定義で範囲を閉じた。限定対象は
+  5工程・13入力、専用生成物は1工程・3入力であり、従来`kis_paint_layer_test`の1,103工程・2,229入力から縮小した。対象CTest
+  単発と20回反復、最近傍`KisImageTypesContractTest`、公開記号、製品への1回再集約、製品共有ライブラリー非接続、パッケージ境界
+  検査に成功した。実ノード参照管理、実描画器への合成、実LOD装置、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b Bezier数値幾何の全public API契約と構築所有分離で完了した作業
+
+- `libs/global/KisBezierUtils.h`の全25 APIを、新規`libs/global/tests/KisBezierUtilsContractTest.cpp`の7試験へ対応付けた。
+  2・3・4制御点の評価、一次・二次微分、次数、分割、直線性、線形化、手順統合、符号反転、曲線長、弧長比、最近点、3交点、
+  最近交点、2方式のpatch座標往復、二次補間、移動量、節点除去を有限・非退化入力で固定した。2点線分の最近点短絡が距離と最近点の
+  任意出力を更新しない現行挙動は既知不具合として分類した。
+- 開始ファイル`libs/global/KisBezierUtils.cpp`の構築所有を`libs/global/CMakeLists.txt`の`kritaglobal_LIB_SRCS`直接収容から
+  新規`kritaglobalbezierutilsobjects`へ移し、製品`kritaglobal`は同生成物を1回だけ再集約する。限定試験は同生成物、既存の
+  `kritaglobalbeziercurvelengthobjects`、Qt Gui・Test、Boost・Eigen・GSLへ接続し、製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。最初の挙動試験は2点最近点の任意出力が番兵値のまま残ることを診断し、
+  再帰分割境界上の交点入力では同一点を重複して返したため、3個の固有交点が境界に一致しない解析入力で全件を固定した。限定対象は
+  6工程・15入力、専用生成物は1工程・3入力であり、製品`kritaglobal`の計画68工程・136入力から縮小した。対象CTest単発と
+  クラス外試験定義への整理後の20回反復、最近傍`KisBezierPatchContractTest`、公開記号、製品への1回再集約、製品共有ライブラリー
+  非接続、パッケージ境界検査に成功した。限定試験の代数協調定義、GSLあり構成と許容差、不正制御点数、退化曲線、範囲外値、
+  再帰分割境界上の交点重複、Linux、全ネイティブ検証、製品全体リンクは残存リスクである。
+
+- 第26並列便はundo群24 API、CSS字体情報13 API、投影面接続22 API、Bezier数値幾何25 APIの合計84 APIを固定した。各担当の
+  引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、必要な製品への1回再集約、公開API契約検査を再実行した。
+  公開面は1,549ヘッダー、29,989 API、対応済み6,749件、未対応23,240件になった。
+
 ## 次の操作
 
-第26並列便を4担当で実装する。統合担当は既存のKUndo2中核生成物だけへ接続する限定対象を赤から開始し、各実装担当は専用Git
-作業ツリーと専用Ninja木で構築所有分離と最小契約を完了する。引渡し後は統合順に限定検証して取り込む。
+最新の未対応公開API報告`/tmp/librepaint-g26-missing.json`から第27並列便の候補を監査する。各候補の全公開面を一つの観測可能な
+責務として固定できるか確認し、既存対象の命令・入力閉包と製品の直接CMake依存を測定して、必要な構築所有分離を先行する担当票を
+確定する。
 
 ## R1-G5完了根拠
 

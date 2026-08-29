@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23324
+    "expectedMissingApis": 23240
   },
   "contracts": [
     {
@@ -19350,6 +19350,281 @@
       "classification": "maintained",
       "apis": [
         "method:KisAngleGauge::reset()"
+      ]
+    },
+    {
+      "target": "KUndo2GroupContractTest",
+      "source": "libs/painting/undo/tests/KUndo2GroupContractTest.cpp",
+      "test": "KUndo2GroupContractTest::startsEmptyAndUsesQObjectLifetime",
+      "behavior": "undo群は親所有された空状態として構築され、活動履歴がない照会と取消・再実行を安全に受理し、基底所有からの仮想破棄とQObject親所有を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KUndo2Group",
+        "method:KUndo2Group::KUndo2Group(QObject * parent=0)",
+        "method:KUndo2Group::~KUndo2Group()"
+      ]
+    },
+    {
+      "target": "KUndo2GroupContractTest",
+      "source": "libs/painting/undo/tests/KUndo2GroupContractTest.cpp",
+      "test": "KUndo2GroupContractTest::tracksMembershipTransfersAndDestruction",
+      "behavior": "undo群は履歴の重複追加を避け、別群への移動、明示除去、履歴破棄、群破棄後の再所属を非所有関係として追跡する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2Group::addStack(KUndo2QStack * stack)",
+        "method:KUndo2Group::removeStack(KUndo2QStack * stack)",
+        "method:KUndo2Group::stacks() const"
+      ]
+    },
+    {
+      "target": "KUndo2GroupContractTest",
+      "source": "libs/painting/undo/tests/KUndo2GroupContractTest.cpp",
+      "test": "KUndo2GroupContractTest::selectsActiveStackAndForwardsSignals",
+      "behavior": "活動履歴の選択と解除は現在値を返し、索引、清浄状態、取消・再実行可能性と表示文の通知を選択中の履歴からだけ転送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2Group::activeStack() const",
+        "method:KUndo2Group::activeStackChanged(KUndo2QStack * stack)",
+        "method:KUndo2Group::canRedoChanged(bool canRedo)",
+        "method:KUndo2Group::canUndoChanged(bool canUndo)",
+        "method:KUndo2Group::cleanChanged(bool clean)",
+        "method:KUndo2Group::indexChanged(int idx)",
+        "method:KUndo2Group::redoTextChanged(const QString & redoActionText)",
+        "method:KUndo2Group::setActiveStack(KUndo2QStack * stack)",
+        "method:KUndo2Group::undoTextChanged(const QString & undoActionText)"
+      ]
+    },
+    {
+      "target": "KUndo2GroupContractTest",
+      "source": "libs/painting/undo/tests/KUndo2GroupContractTest.cpp",
+      "test": "KUndo2GroupContractTest::delegatesQueriesUndoAndRedo",
+      "behavior": "undo群の状態照会、取消、再実行は活動履歴へ委譲され、値、表示文、可能性、清浄状態を履歴位置と同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2Group::canRedo() const",
+        "method:KUndo2Group::canUndo() const",
+        "method:KUndo2Group::isClean() const",
+        "method:KUndo2Group::redo()",
+        "method:KUndo2Group::redoText() const",
+        "method:KUndo2Group::undo()",
+        "method:KUndo2Group::undoText() const"
+      ]
+    },
+    {
+      "target": "KUndo2GroupContractTest",
+      "source": "libs/painting/undo/tests/KUndo2GroupContractTest.cpp",
+      "test": "KUndo2GroupContractTest::keepsActionsSynchronizedWithActiveStack",
+      "behavior": "undo群が生成する取消・再実行操作は指定親に所有され、活動履歴の可否と表示文へ同期し、起動時に対応する状態遷移を実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KUndo2Group::createRedoAction(QObject * parent) const",
+        "method:KUndo2Group::createUndoAction(QObject * parent) const"
+      ]
+    },
+    {
+      "target": "KUndo2GroupContractTest",
+      "source": "libs/painting/undo/tests/KUndo2GroupContractTest.cpp",
+      "test": "KUndo2GroupContractTest::acceptsUnregisteredActiveStackAsKnownDefect",
+      "behavior": "現行の活動履歴設定は群へ登録されていない履歴も受理し、その状態照会と取消を群から操作できる。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KUndo2Group::setActiveStack(KUndo2QStack * stack)"
+      ]
+    },
+    {
+      "target": "KoCSSFontInfoContractTest",
+      "source": "libs/flake/tests/KoCSSFontInfoContractTest.cpp",
+      "test": "KoCSSFontInfoContractTest::defaultsMatchCssAndVariableFontConventions",
+      "behavior": "CSS字体情報は空のfamily・軸設定、未指定寸法、自動光学寸法と自動傾斜、標準weight・width・normal傾斜で既定構築される。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoCSSFontInfo::autoSlant",
+        "member:KoCSSFontInfo::automaticOpticalSizing",
+        "member:KoCSSFontInfo::axisSettings",
+        "member:KoCSSFontInfo::families",
+        "member:KoCSSFontInfo::fontSizeAdjust",
+        "member:KoCSSFontInfo::size",
+        "member:KoCSSFontInfo::slantMode",
+        "member:KoCSSFontInfo::slantValue",
+        "member:KoCSSFontInfo::weight",
+        "member:KoCSSFontInfo::width",
+        "struct:KoCSSFontInfo"
+      ]
+    },
+    {
+      "target": "KoCSSFontInfoContractTest",
+      "source": "libs/flake/tests/KoCSSFontInfoContractTest.cpp",
+      "test": "KoCSSFontInfoContractTest::computedAxesHonorModesAndExplicitOverrides",
+      "behavior": "計算済み軸設定はweight・width、条件付き光学寸法、normal・italic・自動または手動obliqueをOpenType軸へ変換し、明示軸設定を最後に優先する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCSSFontInfo::computedAxisSettings() const"
+      ]
+    },
+    {
+      "target": "KoCSSFontInfoContractTest",
+      "source": "libs/flake/tests/KoCSSFontInfoContractTest.cpp",
+      "test": "KoCSSFontInfoContractTest::equalityComparesMaintainedFieldsAndAutomaticSize",
+      "behavior": "等値比較はfamily、光学寸法方式、手動寸法、weight、width、傾斜方式、明示軸を比較し、寸法・weight・widthには現行の近似比較を適用する。双方が自動光学寸法なら寸法値を無視する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCSSFontInfo::operator ==(const KoCSSFontInfo & rhs) const"
+      ]
+    },
+    {
+      "target": "KoCSSFontInfoContractTest",
+      "source": "libs/flake/tests/KoCSSFontInfoContractTest.cpp",
+      "test": "KoCSSFontInfoContractTest::equalityOmitsFontSizeAdjustmentAndSlantAutomationState",
+      "behavior": "現行の等値比較はfontSizeAdjustを無視し、自動傾斜フラグが同じ場合は傾斜値を無視する。また自動傾斜フラグが異なっても傾斜値が同じなら等値とする。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoCSSFontInfo::operator ==(const KoCSSFontInfo & rhs) const"
+      ]
+    },
+    {
+      "target": "KisAbstractProjectionPlaneContractTest",
+      "source": "libs/image/tests/KisAbstractProjectionPlaneContractTest.cpp",
+      "test": "KisAbstractProjectionPlaneContractTest::constructsAndDestroysThroughBase",
+      "behavior": "投影面接続は公開コンストラクターから具象実装を構築でき、基底所有から破棄すると派生デストラクターを正確に1回呼び出す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractProjectionPlane",
+        "method:KisAbstractProjectionPlane::KisAbstractProjectionPlane()",
+        "method:KisAbstractProjectionPlane::~KisAbstractProjectionPlane()"
+      ]
+    },
+    {
+      "target": "KisAbstractProjectionPlaneContractTest",
+      "source": "libs/image/tests/KisAbstractProjectionPlaneContractTest.cpp",
+      "test": "KisAbstractProjectionPlaneContractTest::dispatchesProjectionOperations",
+      "behavior": "再計算と適用の基底接続面は矩形、ノード、描画フラグ、描画器ポインターを対応する派生実装へ正確に1回配送し、再計算結果を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractProjectionPlane::apply(KisPainter * painter,const QRect & rect)",
+        "method:KisAbstractProjectionPlane::recalculate(const QRect & rect,KisNodeSP filthyNode,KisRenderPassFlags flags)"
+      ]
+    },
+    {
+      "target": "KisAbstractProjectionPlaneContractTest",
+      "source": "libs/image/tests/KisAbstractProjectionPlaneContractTest.cpp",
+      "test": "KisAbstractProjectionPlaneContractTest::dispatchesGeometryAndDeviceQueries",
+      "behavior": "投影面の矩形・可視境界・LOD装置照会は入力矩形と汚染位置を対応する派生実装へ正確に1回配送し、各派生結果を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractProjectionPlane::accessRect(const QRect & rect,KisLayer::PositionToFilthy pos=KisLayer::N_FILTHY) const",
+        "method:KisAbstractProjectionPlane::changeRect(const QRect & rect,KisLayer::PositionToFilthy pos=KisLayer::N_FILTHY) const",
+        "method:KisAbstractProjectionPlane::getLodCapableDevices() const",
+        "method:KisAbstractProjectionPlane::looseUserVisibleBounds() const",
+        "method:KisAbstractProjectionPlane::needRect(const QRect & rect,KisLayer::PositionToFilthy pos=KisLayer::N_FILTHY) const",
+        "method:KisAbstractProjectionPlane::needRectForOriginal(const QRect & rect) const",
+        "method:KisAbstractProjectionPlane::tightUserVisibleBounds() const"
+      ]
+    },
+    {
+      "target": "KisAbstractProjectionPlaneContractTest",
+      "source": "libs/image/tests/KisAbstractProjectionPlaneContractTest.cpp",
+      "test": "KisAbstractProjectionPlaneContractTest::dumbPlanePreservesNoOpResults",
+      "behavior": "無処理投影面は再計算と全矩形照会で入力矩形を保ち、適用時に描画器を使用せず、可視境界とLOD対応装置を空で返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDumbProjectionPlane",
+        "method:KisDumbProjectionPlane::accessRect(const QRect & rect,KisLayer::PositionToFilthy pos) const",
+        "method:KisDumbProjectionPlane::apply(KisPainter * painter,const QRect & rect)",
+        "method:KisDumbProjectionPlane::changeRect(const QRect & rect,KisLayer::PositionToFilthy pos) const",
+        "method:KisDumbProjectionPlane::getLodCapableDevices() const",
+        "method:KisDumbProjectionPlane::looseUserVisibleBounds() const",
+        "method:KisDumbProjectionPlane::needRect(const QRect & rect,KisLayer::PositionToFilthy pos) const",
+        "method:KisDumbProjectionPlane::needRectForOriginal(const QRect & rect) const",
+        "method:KisDumbProjectionPlane::recalculate(const QRect & rect,KisNodeSP filthyNode,KisRenderPassFlags flags)",
+        "method:KisDumbProjectionPlane::tightUserVisibleBounds() const"
+      ]
+    },
+    {
+      "target": "KisBezierUtilsContractTest",
+      "source": "libs/global/tests/KisBezierUtilsContractTest.cpp",
+      "test": "KisBezierUtilsContractTest::evaluatesCurveAndDerivatives",
+      "behavior": "2点・3点・4点の有限制御点を固定パラメーターで評価し、cubicの中点と一次・二次微分を正確に返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierUtils::bezierCurve(const QList<QPointF> & points,qreal t)",
+        "function:KisBezierUtils::bezierCurve(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3,qreal t)",
+        "function:KisBezierUtils::bezierCurveDeriv(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3,qreal t)",
+        "function:KisBezierUtils::bezierCurveDeriv2(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3,qreal t)"
+      ]
+    },
+    {
+      "target": "KisBezierUtilsContractTest",
+      "source": "libs/global/tests/KisBezierUtilsContractTest.cpp",
+      "test": "KisBezierUtilsContractTest::subdividesAndClassifiesCurves",
+      "behavior": "De Casteljau分割が左右の制御点と分割点を返し、直線・二次・三次の次数と制御点・微分による直線性を判別する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierUtils::bezierDegree(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3)",
+        "function:KisBezierUtils::deCasteljau(const QPointF & q0,const QPointF & q1,const QPointF & q2,const QPointF & q3,qreal t,QPointF * p0,QPointF * p1,QPointF * p2,QPointF * p3,QPointF * p4)",
+        "function:KisBezierUtils::isLinearSegmentByControlPoints(const QPointF & p0,const QPointF & p1,const QPointF & p2,const QPointF & p3,const qreal eps=1e-4)",
+        "function:KisBezierUtils::isLinearSegmentByDerivatives(const QPointF & p0,const QPointF & d0,const QPointF & p1,const QPointF & d1,const qreal eps=1e-4)"
+      ]
+    },
+    {
+      "target": "KisBezierUtilsContractTest",
+      "source": "libs/global/tests/KisBezierUtilsContractTest.cpp",
+      "test": "KisBezierUtilsContractTest::linearizesAndMergesOrderedSteps",
+      "behavior": "直線と曲線を端点付きの昇順パラメーターへ線形化し、2列の手順を昇順・重複なしに統合し、制御多角形の符号反転数を数える。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierUtils::controlPolygonZeros(const QList<QPointF> & controlPoints)",
+        "function:KisBezierUtils::linearizeCurve(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3,const qreal eps)",
+        "function:KisBezierUtils::mergeLinearizationSteps(const QVector<qreal> & a,const QVector<qreal> & b)"
+      ]
+    },
+    {
+      "target": "KisBezierUtilsContractTest",
+      "source": "libs/global/tests/KisBezierUtilsContractTest.cpp",
+      "test": "KisBezierUtilsContractTest::measuresLengthAndMapsArcProportions",
+      "behavior": "一様にパラメーター化した有限直線cubicの全長・部分長を測り、曲線パラメーターと弧長比を双方向に対応付ける。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierUtils::curveLength(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3,const qreal error)",
+        "function:KisBezierUtils::curveLengthAtPoint(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3,qreal t,const qreal error)",
+        "function:KisBezierUtils::curveParamByProportion(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3,qreal proportion,const qreal error)",
+        "function:KisBezierUtils::curveProportionByParam(const QPointF p0,const QPointF p1,const QPointF p2,const QPointF p3,qreal t,const qreal error)"
+      ]
+    },
+    {
+      "target": "KisBezierUtilsContractTest",
+      "source": "libs/global/tests/KisBezierUtilsContractTest.cpp",
+      "test": "KisBezierUtilsContractTest::nearestPointReportsParametersButLineShortcutLeavesOutputsUntouched",
+      "behavior": "2点線分の最近点短絡は射影パラメーターだけを返して任意出力を更新せず、4点cubic経路はパラメーター・距離・最近点を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KisBezierUtils::nearestPoint(const QList<QPointF> controlPoints,const QPointF & point,qreal * resultDistance=0,QPointF * resultPoint=0)"
+      ]
+    },
+    {
+      "target": "KisBezierUtilsContractTest",
+      "source": "libs/global/tests/KisBezierUtilsContractTest.cpp",
+      "test": "KisBezierUtilsContractTest::findsAllLineIntersectionsAndNearestAnchor",
+      "behavior": "有限な三次曲線と直線の3つの固有交点パラメーターを全件返し、基準点に最も近い左右の交点を選ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierUtils::intersectWithLine(const QPointF & p0,const QPointF & p1,const QPointF & p2,const QPointF & p3,const QLineF & line,qreal eps)",
+        "function:KisBezierUtils::intersectWithLineNearest(const QPointF & p0,const QPointF & p1,const QPointF & p2,const QPointF & p3,const QLineF & line,const QPointF & nearestAnchor,qreal eps)"
+      ]
+    },
+    {
+      "target": "KisBezierUtilsContractTest",
+      "source": "libs/global/tests/KisBezierUtilsContractTest.cpp",
+      "test": "KisBezierUtilsContractTest::mapsPatchesAndEditsControlPoints",
+      "behavior": "線形矩形patchの局所座標と大域座標を両方式で往復し、二次補間、曲線中点の移動量、正確な二分割後の節点除去から制御点を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisBezierUtils::calculateGlobalPos(const std::array<QPointF,12> & points,const QPointF & localPoint)",
+        "function:KisBezierUtils::calculateGlobalPosSVG2(const std::array<QPointF,12> & points,const QPointF & localPoint)",
+        "function:KisBezierUtils::calculateLocalPos(const std::array<QPointF,12> & points,const QPointF & globalPoint)",
+        "function:KisBezierUtils::calculateLocalPosSVG2(const std::array<QPointF,12> & points,const QPointF & globalPoint)",
+        "function:KisBezierUtils::interpolateQuadric(const QPointF & p0,const QPointF & p2,const QPointF & pt,qreal t)",
+        "function:KisBezierUtils::offsetSegment(qreal t,const QPointF & offset)",
+        "function:KisBezierUtils::removeBezierNode(const QPointF & p0,const QPointF & p1,const QPointF & p2,const QPointF & p3,const QPointF & q1,const QPointF & q2,const QPointF & q3)"
       ]
     }
   ]
