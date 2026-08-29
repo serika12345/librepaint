@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:18 JST
+- 更新日時: 2026-08-29 14:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,7 +17,7 @@
 - 統合担当`ui-node-model-drop-insertion`は`integrated`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、同責務の新規
   `KisNodeModel*.cpp`、`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、同責務の新規試験を所有する。
   `dropMimeData()`を対象とし、直前のMIME生成契約を最も近い契約とする。
-- 実装担当`global-koid-comparison`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`global-koid-comparison`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は1である。`libs/global/KoID.h`と既存`libs/global/tests/KoIDContractTest.cpp`を監査し、
   4比較演算子を既存の識別子比較契約へ対応付ける。
 - 実装担当`image-frame-generation-lock`は`ready`、構築実行許可は`granted`、Git操作権限は
@@ -7694,10 +7694,21 @@
   高速検査も成功し、公開面は1,549ヘッダー、29,989 API、対応済み4,988件、未対応25,001件になった。製品
   `kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
 
+## R2-G19b 安定識別子の既存比較契約対応で完了した作業
+
+- `libs/global/KoID.h`を起点として、既存`libs/global/tests/KoIDContractTest.cpp`の
+  `comparisonOperatorsUseIdentifierAndDisplayName`を監査した。表示名の辞書順を識別子順と逆転させた値、同じ識別子で異なる
+  表示名を持つ値を使い、同値、非同値、小なり、大なりの4自由演算子が安定識別子を基準にすることを具体的に観測していたため、
+  製品、試験、CMakeを変更せず既存契約へ4 API識別子を追加した。
+- 実装担当の専用Git作業ツリーと統合担当のmacOS構築木で、`KoIDContractTest`の直接依存を
+  `kritaglobalidobjects`とQt Test、構築閉包を5工程・12入力と確認した。対象CTestと比較試験関数の20回反復は成功した。
+- 公開API契約検査と高速検査は成功し、公開面は1,549ヘッダー、29,989 API、対応済み4,992件、未対応24,997件になった。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-準備完了した`global-koid-comparison`を統合順1として既存契約へ対応付け、対象CTest、公開API契約検査、高速検査を再実行する。
-続いて準備完了した実装担当を一件ずつ取り込み、各統合を独立したレビュー可能コミットへ固定する。
+準備完了した`image-frame-generation-lock`を統合順2として取り込み、中央台帳と進捗を同期して対象CTest、公開API契約検査、
+高速検査を再実行する。続いて準備完了した実装担当を一件ずつ取り込み、各統合を独立したレビュー可能コミットへ固定する。
 
 ## R1-G5完了根拠
 

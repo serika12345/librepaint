@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25001
+    "expectedMissingApis": 24997
   },
   "contracts": [
     {
@@ -3457,9 +3457,13 @@
       "classification": "maintained",
       "apis": [
         "function:operator !=(const KoID & v1,const KoID & v2)",
+        "function:operator !=(const KoID &,const KoID &)",
         "function:operator <(const KoID & v1,const KoID & v2)",
+        "function:operator <(const KoID &,const KoID &)",
         "function:operator ==(const KoID & v1,const KoID & v2)",
+        "function:operator ==(const KoID &,const KoID &)",
         "function:operator >(const KoID & v1,const KoID & v2)",
+        "function:operator >(const KoID &,const KoID &)",
         "method:KoID::compareNames(const KoID & id1,const KoID & id2)"
       ]
     },
