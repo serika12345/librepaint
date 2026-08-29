@@ -10,3 +10,17 @@ kis_add_test(
 target_include_directories(KisMetaDataTagsContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
+
+kis_add_test(
+    KisMetaDataParserContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintingmetadataparserobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisMetaDataParserContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisMetaDataParserContractTest PRIVATE kritapaintingmetadata_EXPORTS)

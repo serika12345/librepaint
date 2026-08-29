@@ -7,17 +7,41 @@ set(kritapaintingmetadata_LIB_SRCS
     kis_meta_data_merge_strategy.cc
     kis_meta_data_merge_strategy_p.cc
     kis_meta_data_merge_strategy_registry.cc
-    kis_meta_data_parser.cc
     kis_meta_data_schema.cc
     kis_meta_data_schema_registry.cc
     kis_meta_data_store.cc
     kis_meta_data_type_info.cc
     kis_meta_data_validator.cc
-    kis_meta_data_value.cc
     kis_meta_data_backend_registry.cpp
 )
 
-kis_add_library(kritapaintingmetadata SHARED ${kritapaintingmetadata_LIB_SRCS})
+add_library(kritapaintingmetadataparserobjects OBJECT
+    kis_meta_data_parser.cc
+    kis_meta_data_value.cc
+)
+target_compile_definitions(kritapaintingmetadataparserobjects PRIVATE kritapaintingmetadata_EXPORTS)
+target_include_directories(kritapaintingmetadataparserobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintingmetadataparserobjects
+    PUBLIC
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritapaintingmetadataparserobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_library(kritapaintingmetadata SHARED
+    ${kritapaintingmetadata_LIB_SRCS}
+    $<TARGET_OBJECTS:kritapaintingmetadataparserobjects>
+)
 generate_export_header(kritapaintingmetadata BASE_NAME kritapaintingmetadata)
 
 target_link_libraries(kritapaintingmetadata
