@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:46 JST
+- 更新日時: 2026-08-29 19:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -30,7 +30,7 @@
   `libs/image/KisRunnableStrokeJobUtils.h`、既存`libs/image/tests/KisStrokeJobContractTest.cpp`とImage試験CMakeを所有する。
   既存`kritaimagestrokejobobjects`を再利用し、順次・排他・並行・障壁・一意並行、詳細度指定、取消不能の
   全17 APIが生成するジョブ属性と実行を対象とする。
-- 実装担当`algebra-geometry-primitives`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`algebra-geometry-primitives`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は4である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-algebra-geometry-primitives`であり、`libs/global/kis_algebra_2d.h`、
   Global試験CMake、新規限定試験を所有する。ヘッダー内で完結する半平面・外円・Halton列の20 APIと、積・長さ・
@@ -8474,9 +8474,25 @@
   1,549ヘッダー、29,989 API、対応済み5,305件、未対応24,684件になった。Linux、全ネイティブ検証、製品全体構築は
   実行していない。
 
+## R2-G19b 幾何プリミティブの33 public API契約で完了した作業
+
+- `libs/global/kis_algebra_2d.h`の右半平面、外円、Halton列、ベクトル積・長さ・正規化、単位法線、角度、点間方向、
+  符号に属する33 APIを、新規`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`の7試験へ対応付けた。
+  境界両側の符号、距離とfade、列の進行と丸め、Cartesian座標の具体値、法線方向、回転角、同一点の既定角、
+  正負ゼロを含む現行の符号規則を固定した。
+- 開始ファイル`libs/global/kis_algebra_2d.cpp`から`angleBetweenVectors`、`directionBetweenPoints`、後者が直接利用する
+  `fuzzyPointCompare`の2オーバーロードを、移動先`libs/global/kis_algebra_2d_direction.cpp`へ分けた。新規
+  `kritaglobalalgebradirectionobjects`が移動先を所有し、製品`kritaglobal`へ1回だけ再集約する。公開ヘッダー、宣言、
+  ABI、アルゴリズムは維持し、移動した`fuzzyPointCompare`の2 APIは別途未対応のまま保持する。
+- macOSの限定生成物は1工程・3入力、新規試験は5工程・11入力であり、製品ライブラリーへリンクしない。対象CTestの
+  単発実行と20回反復、最近傍の`KisGlobalValuesContractTest`、元`kis_algebra_2d.cpp`翻訳単位の単体構築に成功した。
+  製品への一重集約を確認し、統合時のパッケージ境界検査は1,197対象で成功した。公開面は1,549ヘッダー、
+  29,989 API、対応済み5,338件、未対応24,651件になった。Linux、全ネイティブ検証、既存の巨大な幾何試験、
+  製品全体リンクは実行していない。
+
 ## 次の操作
 
-`algebra-geometry-primitives`の担当差分、限定構築、挙動、台帳を統合検証し、第14並列便の担当票を確定する。
+第14並列便の担当票を確定し、遅延共有キャッシュ、色転送関数、資源タグ、省略表示コンボボックスの順に開始する。
 
 ## R1-G5完了根拠
 

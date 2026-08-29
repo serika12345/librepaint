@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24684
+    "expectedMissingApis": 24651
   },
   "contracts": [
     {
@@ -15113,6 +15113,102 @@
         "function:KritaUtils::addJobUniquelyConcurrent(QVector<Job * > & jobs,Func func)",
         "function:KritaUtils::addJobUniquelyConcurrent(QVector<Job * > & jobs,int lod,Func func)",
         "function:KritaUtils::addJobUniquelyConcurrentNoCancel(QVector<Job * > & jobs,Func func)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::rightHalfPlaneReportsSignedDistanceAndLine",
+      "behavior": "有向直線から構築した右半平面は元の直線を保持し、境界の両側と境界上の点について符号付き距離、符号付き距離二乗、位置分類を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAlgebra2D::RightHalfPlane",
+        "method:KisAlgebra2D::RightHalfPlane::RightHalfPlane(const QLineF & line)",
+        "method:KisAlgebra2D::RightHalfPlane::RightHalfPlane(const QPointF & a,const QPointF & b)",
+        "method:KisAlgebra2D::RightHalfPlane::getLine() const",
+        "method:KisAlgebra2D::RightHalfPlane::pos(const QPointF & pt) const",
+        "method:KisAlgebra2D::RightHalfPlane::value(const QPointF & pt) const",
+        "method:KisAlgebra2D::RightHalfPlane::valueSq(const QPointF & pt) const"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::outerCircleReportsBoundaryDistanceAndFade",
+      "behavior": "外円は内側、境界、外側の点について符号付き距離、符号付き距離二乗、位置分類を返し、半径境界から1単位外側までの二乗距離fadeを0から1へ写像する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAlgebra2D::OuterCircle",
+        "method:KisAlgebra2D::OuterCircle::OuterCircle(const QPointF & c,qreal radius)",
+        "method:KisAlgebra2D::OuterCircle::fadeSq(const QPointF & pt) const",
+        "method:KisAlgebra2D::OuterCircle::pos(const QPointF & pt) const",
+        "method:KisAlgebra2D::OuterCircle::value(const QPointF & pt) const",
+        "method:KisAlgebra2D::OuterCircle::valueSq(const QPointF & pt) const"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::haltonSequenceAdvancesAndRoundsRanges",
+      "behavior": "基数2のHalton列は初期値0から0.5、0.25、0.75、0.125へ進み、stepとgenerateだけが状態を進め、整数範囲値を最寄り整数へ丸める。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAlgebra2D::HaltonSequenceGenerator",
+        "method:KisAlgebra2D::HaltonSequenceGenerator::HaltonSequenceGenerator(int base)",
+        "method:KisAlgebra2D::HaltonSequenceGenerator::currentValue() const",
+        "method:KisAlgebra2D::HaltonSequenceGenerator::currentValue(int maxRange) const",
+        "method:KisAlgebra2D::HaltonSequenceGenerator::generate()",
+        "method:KisAlgebra2D::HaltonSequenceGenerator::generate(int maxRange)",
+        "method:KisAlgebra2D::HaltonSequenceGenerator::step()"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::vectorProductsAndLengthsUseCartesianCoordinates",
+      "behavior": "二次元ベクトルの内積、外積、ノルム二乗、ノルム、正規化はCartesian座標の具体値と一致する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::crossProduct(const T & a,const T & b)",
+        "function:KisAlgebra2D::dotProduct(const T & a,const T & b)",
+        "function:KisAlgebra2D::norm(const T & a)",
+        "function:KisAlgebra2D::normSquared(const T & a)",
+        "function:KisAlgebra2D::normalize(const Point & a)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::unitNormalsPreserveOrientation",
+      "behavior": "左右単位法線は単位長と反対の外積符号を持ち、内向き単位法線は多角形方向1で左法線、方向-1で右法線を選ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::inwardUnitNormal(const T & a,int polygonDirection)",
+        "function:KisAlgebra2D::leftUnitNormal(const T & a)",
+        "function:KisAlgebra2D::rightUnitNormal(const T & a)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::anglesReportRotationDirectionAndCoincidentDefault",
+      "behavior": "ベクトル間角度は回転方向を符号で表し、点間方向は始点から終点への角度を返し、一致する点では指定された既定角を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::angleBetweenVectors(const QPointF & v1,const QPointF & v2)",
+        "function:KisAlgebra2D::directionBetweenPoints(const QPointF & p1,const QPointF & p2,qreal defaultAngle)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::signHelpersDefineZeroAndCopiedSign",
+      "behavior": "符号関数は正負値と正負ゼロを現行規則で分類し、copysignは絶対値へ第2引数の比較上の符号を適用してゼロの符号も決定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::copysign(T x,T y)",
+        "function:KisAlgebra2D::signPZ(T x)",
+        "function:KisAlgebra2D::signZZ(T x)"
       ]
     }
   ]
