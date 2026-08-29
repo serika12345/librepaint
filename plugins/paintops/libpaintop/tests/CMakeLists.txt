@@ -41,6 +41,18 @@ target_compile_definitions(KisTextureOptionDataValueContractTest PRIVATE
 )
 
 kis_add_test(
+    KisTextureOptionDataIOContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintoptextureoptionioobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisTextureOptionDataIOContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+    kritalibpaintop_EXPORTS
+)
+
+kis_add_test(
     KisTextureOptionLodContractTest.cpp
     LINK_LIBRARIES
         kritapaintoptexturelodobjects

@@ -137,7 +137,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisSpacingOption.cpp
     KisSpacingOptionData.cpp
     KisTextureMaskInfo.cpp
-    KisTextureOptionData.cpp
     kis_brush_based_paintop.cpp
     kis_brush_based_paintop_settings.cpp
     kis_brush_option.cpp
@@ -157,7 +156,10 @@ set(kritapaintopruntime_LIB_SRCS
     sensors/KisDynamicSensors.cpp
 )
 
-list(REMOVE_ITEM kritalibpaintop_LIB_SRCS ${kritapaintopruntime_LIB_SRCS})
+list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
+    ${kritapaintopruntime_LIB_SRCS}
+    KisTextureOptionData.cpp
+)
 
 ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgautobrush.ui
@@ -236,6 +238,42 @@ set_target_properties(kritapaintopcurvecontrolinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintoptextureoptionioobjects OBJECT
+    KisEmbeddedTextureDataIO.cpp
+    KisTextureOptionData.cpp
+)
+target_compile_definitions(kritapaintoptextureoptionioobjects PRIVATE
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoptextureoptionioobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritapaintoptextureoptionioobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritapaintoptextureoptionioobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
@@ -245,12 +283,20 @@ target_include_directories(kritapaintopruntime INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
-target_link_libraries(kritapaintopruntime kritalibbrush kritapainting)
+target_sources(kritapaintopruntime INTERFACE
+    $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
+)
+target_link_libraries(kritapaintopruntime
+    kritalibbrush
+    kritapainting
+    kritapaintoptextureoptionioobjects
+)
 
 kis_add_library(kritalibpaintop SHARED
     ${kritalibpaintop_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopruntime>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
 )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 
