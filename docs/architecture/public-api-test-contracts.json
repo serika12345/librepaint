@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24441
+    "expectedMissingApis": 24418
   },
   "contracts": [
     {
@@ -15926,6 +15926,74 @@
       "classification": "maintained",
       "apis": [
         "function:operator <<(QDebug dbg,const KoViewTransformStillPoint & point)"
+      ]
+    },
+    {
+      "target": "KisOptimizedByteArrayContractTest",
+      "source": "libs/image/tests/KisOptimizedByteArrayContractTest.cpp",
+      "test": "KisOptimizedByteArrayContractTest::allocatorTypesAndVirtualDispatch",
+      "behavior": "割当器の型別名はバイト列ポインターと容量の組、およびMemoryAllocatorの共有ポインターを表し、基底接続面は要求寸法と返却領域を派生実装へ正確に配送して仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisOptimizedByteArray::MemoryAllocatorSP",
+        "alias:KisOptimizedByteArray::MemoryChunk",
+        "method:KisOptimizedByteArray::MemoryAllocator::alloc(int size)",
+        "method:KisOptimizedByteArray::MemoryAllocator::free(MemoryChunk chunk)",
+        "method:KisOptimizedByteArray::MemoryAllocator::~MemoryAllocator()",
+        "struct:KisOptimizedByteArray::MemoryAllocator"
+      ]
+    },
+    {
+      "target": "KisOptimizedByteArrayContractTest",
+      "source": "libs/image/tests/KisOptimizedByteArrayContractTest.cpp",
+      "test": "KisOptimizedByteArrayContractTest::constructionPreservesAllocatorAndEmptyState",
+      "behavior": "既定構築は空で格納領域を持たず利用可能な実効割当器を持ち、明示した割当器は同一実体を返してバイト配列の生存中保持され、破棄時に解放される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOptimizedByteArray",
+        "method:KisOptimizedByteArray::KisOptimizedByteArray(MemoryAllocatorSP allocator=MemoryAllocatorSP ())",
+        "method:KisOptimizedByteArray::customMemoryAllocator() const",
+        "method:KisOptimizedByteArray::~KisOptimizedByteArray()"
+      ]
+    },
+    {
+      "target": "KisOptimizedByteArrayContractTest",
+      "source": "libs/image/tests/KisOptimizedByteArrayContractTest.cpp",
+      "test": "KisOptimizedByteArrayContractTest::explicitFillAndResizeTrackLogicalStorage",
+      "behavior": "明示した安全な寸法での充填は全論理バイトを指定値にし、寸法変更は寸法と空状態を更新し、割当容量内では格納領域を再利用し、容量超過時は旧領域を返却して再割当する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptimizedByteArray::constData() const",
+        "method:KisOptimizedByteArray::data()",
+        "method:KisOptimizedByteArray::fill(quint8 value,int size=-1)",
+        "method:KisOptimizedByteArray::isEmpty() const",
+        "method:KisOptimizedByteArray::resize(int size)",
+        "method:KisOptimizedByteArray::size() const"
+      ]
+    },
+    {
+      "target": "KisOptimizedByteArrayContractTest",
+      "source": "libs/image/tests/KisOptimizedByteArrayContractTest.cpp",
+      "test": "KisOptimizedByteArrayContractTest::copiesAndAssignmentsDetachBeforeMutation",
+      "behavior": "コピー構築と代入は読取り専用格納領域と割当器を共有し、書込み可能なdata()の取得時に論理バイトを複製して分離するため、一方の変更は他方へ波及しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptimizedByteArray::KisOptimizedByteArray(const KisOptimizedByteArray & rhs)",
+        "method:KisOptimizedByteArray::operator =(const KisOptimizedByteArray & rhs)"
+      ]
+    },
+    {
+      "target": "KisOptimizedByteArrayContractTest",
+      "source": "libs/image/tests/KisOptimizedByteArrayContractTest.cpp",
+      "test": "KisOptimizedByteArrayContractTest::pooledAllocatorRetainsReusableChunks",
+      "behavior": "再利用割当器は要求以上の容量を返し、返却済みの十分大きな領域を後続の小さい要求で再利用し、空の領域を安全に無視して基底所有で破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptimizedByteArray::PooledMemoryAllocator::PooledMemoryAllocator()",
+        "method:KisOptimizedByteArray::PooledMemoryAllocator::alloc(int size)",
+        "method:KisOptimizedByteArray::PooledMemoryAllocator::free(MemoryChunk chunk)",
+        "method:KisOptimizedByteArray::PooledMemoryAllocator::~PooledMemoryAllocator()",
+        "struct:KisOptimizedByteArray::PooledMemoryAllocator"
       ]
     }
   ]

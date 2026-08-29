@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:13 JST
+- 更新日時: 2026-08-29 21:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,7 +19,7 @@
   `libs/resources/KisSqlQueryLoader.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。製品`kritaresources`の
   147工程・321入力からSQL読込実装を専用生成物へ分け、ファイル・文字列からの単一文と複数文、値束縛、逐次実行、
   一括実行、問合せ参照、ファイル・SQL例外の全22 APIを対象とする。
-- 実装担当`optimized-byte-array`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`optimized-byte-array`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-optimized-byte-array`であり、
   `libs/image/KisOptimizedByteArray.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の
@@ -8643,9 +8643,24 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,548件、未対応24,441件になった。Linux、全ネイティブ検証、
   製品全体リンクは実行していない。公開`std::pair`継承による`first`と`second`の直接変更面は、別の互換性判断を要する。
 
+## R2-G19b 最適化バイト配列の全public API契約で完了した作業
+
+- `libs/image/KisOptimizedByteArray.h`の全23 APIを、新規
+  `libs/image/tests/KisOptimizedByteArrayContractTest.cpp`の5試験へ対応付けた。割当器の型と仮想配送、既定・独自割当器、
+  空状態、明示した安全な寸法での充填と寸法変更、コピー後の書込み時分離、返却領域の再利用と寿命を固定した。
+- 開始ファイル`libs/image/KisOptimizedByteArray.cpp`の構築所有を`kritaimage_LIB_SRCS`から新規
+  `kritaimageoptimizedbytearrayobjects`へ移し、製品`kritaimage`が生成物を1回だけ再集約する。公開ヘッダー、実装位置、製品ABI、
+  割当・共有処理は維持した。限定試験は製品共有ライブラリーへ接続せず、Qt Core、Test、既存の移動平均生成物、
+  専用生成物だけを使用する。
+- 実装未接続の初回限定リンクは割当・充填・コピー・再利用操作の未定義記号で失敗した。macOSの製品`kritaimage`は
+  1,088工程・2,200入力、専用生成物は1工程・3入力、限定試験は6工程・13入力である。対象CTestの単発実行と20回反復、
+  最近傍の`KisImageInterfacesContractTest`に成功し、パッケージ境界検査は1,213対象で成功した。公開面は1,549ヘッダー、
+  29,989 API、対応済み5,571件、未対応24,418件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+  `fill(value)`の既定寸法`-1`と負の寸法変更は未定義動作の危険があるため実行せず、安全な明示寸法の現行挙動を固定した。
+
 ## 次の操作
 
-最適化バイト配列の担当差分、限定構築、挙動、台帳を統合検証する。
+ブラシ画像ピラミッドの担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 
