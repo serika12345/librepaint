@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24837
+    "expectedMissingApis": 24832
   },
   "contracts": [
     {
@@ -14619,6 +14619,29 @@
         "member:KisPaintopLodLimitations::blockers",
         "member:KisPaintopLodLimitations::limitations",
         "method:KisPaintopLodLimitations::operator |=(const KisPaintopLodLimitations & rhs)"
+      ]
+    },
+    {
+      "target": "KoAlphaMaskApplicatorBaseContractTest",
+      "source": "libs/pigment/tests/KoAlphaMaskApplicatorBaseContractTest.cpp",
+      "test": "KoAlphaMaskApplicatorBaseContractTest::virtualMethodsPreserveArgumentsAndWrites",
+      "behavior": "基底接続面から3つのマスク適用処理を呼ぶと、全ポインター引数と画素数が派生実装へ正確に1回渡り、派生実装による出力バッファー書込みを呼出元から観測できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoAlphaMaskApplicatorBase",
+        "method:KoAlphaMaskApplicatorBase::applyInverseNormedFloatMask(quint8 * pixels,const float * alpha,qint32 nPixels) const",
+        "method:KoAlphaMaskApplicatorBase::fillGrayBrushWithColor(quint8 * dst,const QRgb * brush,quint8 * brushColor,qint32 nPixels) const",
+        "method:KoAlphaMaskApplicatorBase::fillInverseAlphaNormedFloatMaskWithColor(quint8 * pixels,const float * alpha,const quint8 * brushColor,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoAlphaMaskApplicatorBaseContractTest",
+      "source": "libs/pigment/tests/KoAlphaMaskApplicatorBaseContractTest.cpp",
+      "test": "KoAlphaMaskApplicatorBaseContractTest::baseOwnershipDestroysDerivedExactlyOnce",
+      "behavior": "基底型が所有する派生マスク適用器を破棄すると、仮想デストラクター経由で派生デストラクターが正確に1回実行される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAlphaMaskApplicatorBase::~KoAlphaMaskApplicatorBase()"
       ]
     }
   ]

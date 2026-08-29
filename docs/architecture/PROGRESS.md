@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:44 JST
+- 更新日時: 2026-08-29 18:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -28,8 +28,8 @@
   `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、`libs/widgetutils/KisSpinBoxI18nHelper.{h,cpp}`、
   Widget Utils製品・試験CMake、新規限定試験を所有する。整数・実数表示の接頭辞と接尾辞、値変更時の複数形更新、
   手動更新、選択属性スライダー向け削除済みオーバーロードの5 APIを対象とする。
-- 実装担当`alpha-mask-applicator-interface`は`implementing`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`、統合順は4である。作業ツリーは
+- 実装担当`alpha-mask-applicator-interface`は`verified`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`、統合順は4、統合コミットは`28f93a5979`である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/pigment/KoAlphaMaskApplicatorBase.{h,cpp}`、
   Pigment製品・試験CMake、新規限定試験を所有する。3種類の画素処理の仮想配送と基底破棄の5 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -8316,10 +8316,24 @@
   最近傍契約に成功し、パッケージ境界検査は1,180対象で成功した。公開面は1,549ヘッダー、29,989 API、
   対応済み5,152件、未対応24,837件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b アルファマスク適用接続面の全public API契約で完了した作業
+
+- `libs/pigment/KoAlphaMaskApplicatorBase.h`の全5 APIを、新規
+  `libs/pigment/tests/KoAlphaMaskApplicatorBaseContractTest.cpp`の2試験へ対応付けた。基底接続面から3種類の
+  マスク適用処理への一度の仮想配送、全ポインターと画素数の保持、具象処理による出力書込みの可視性、基底所有から
+  派生デストラクターまでの仮想破棄を固定した。
+- 開始ファイル`libs/pigment/KoAlphaMaskApplicatorBase.cpp`の構築所有を`kritapigment_SRCS`から新規
+  `kritapigmentalphamaskapplicatorbaseobjects`へ移し、製品`kritapigment`が生成物を1回だけ再集約する。公開ヘッダー、
+  実装位置、製品ABIは維持した。変更前後の製品閉包は326工程・682入力で不変、限定試験は5工程・11入力、
+  生成オブジェクトは1工程・3入力で、試験はQt GuiとQt Testだけへ接続する。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復、最近傍の
+  `DebugPigmentContractTest`に成功した。製品への一重集約を確認し、パッケージ境界検査は1,182対象で成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,157件、未対応24,832件になった。Linux、全ネイティブ検証、
+  製品全体のリンクは実行していない。
+
 ## 次の操作
 
-`image-lzf-compression`、`spinbox-i18n-formatting`、`alpha-mask-applicator-interface`を並行実装し、統合順に
-差分、限定構築、挙動、台帳を検証する。
+`image-lzf-compression`と`spinbox-i18n-formatting`を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
