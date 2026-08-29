@@ -293,6 +293,15 @@ kis_add_test(
 target_compile_definitions(KisImageSignalsContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisImageInterfacesContractTest.cpp
+    LINK_LIBRARIES
+        kritaimageinterfacesobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisImageInterfacesContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
     KisSpacingInformationContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui

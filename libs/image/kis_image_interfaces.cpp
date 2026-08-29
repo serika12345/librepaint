@@ -6,8 +6,7 @@
 
 #include "kis_image_interfaces.h"
 
-#include <kis_node.h>
-
+#include <QRect>
 
 KisStrokesFacade::~KisStrokesFacade()
 {
@@ -27,11 +26,13 @@ void KisUpdatesFacade::refreshGraphAsync(KisNodeSP root, const QRect &rc, KisPro
     refreshGraphAsync(root, rc, bounds(), flags);
 }
 
-void KisUpdatesFacade::refreshGraphAsync(KisNodeSP root, const QRect &rc, const QRect &cropRect, KisProjectionUpdateFlags flags)
+void KisUpdatesFacade::refreshGraphAsync(KisNodeSP root,
+                                         const QRect &rc,
+                                         const QRect &cropRect,
+                                         KisProjectionUpdateFlags flags)
 {
     refreshGraphAsync(root, QVector<QRect>({rc}), cropRect, flags);
 }
-
 
 KisProjectionUpdateListener::~KisProjectionUpdateListener()
 {
