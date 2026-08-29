@@ -63,6 +63,19 @@ target_include_directories(KColorSchemeEnumContractTest PRIVATE
 target_compile_definitions(KColorSchemeEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KoCheckerBoardPainterContractTest.cpp
+    LINK_LIBRARIES
+        kritacheckerboardpainterobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+target_include_directories(KoCheckerBoardPainterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoCheckerBoardPainterContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KisKineticScrollerContractTest.cpp
     LINK_LIBRARIES
         kritakineticscrollerobjects
