@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 00:05 JST
+- 更新日時: 2026-08-30 00:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,27 +11,27 @@
 
 ### 現在の並列担当票
 
-- 第20並列便の共通基準コミットは`90ec8717a5`である。統合担当は`develop`の
+- 第21並列便の共通基準コミットは`30a4f93f3b`である。統合担当は`develop`の
   主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g20-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+  `/Users/masato/Documents/librepaint-r2-g21-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`updater`は`integrated`、実装コミットは`a45a2b9cb8`、統合順は1である。主作業ツリーで`libs/widgetutils/KoUpdater.{h,cpp}`、
-  `libs/widgetutils/KoUpdaterPrivate_p.{h,cpp}`、`libs/widgetutils/KoProgressProxy.{h,cpp}`、WidgetUtils製品・試験CMake、
-  新規限定試験を所有する。既存試験の1,092工程・2,207入力を専用生成物へ縮小し、進捗接続面、進捗、範囲、割込み、通知、
-  無処理updater、寿命の全30 APIを対象とする。
-- 実装担当`view-converter`は`integrated`、担当先端は`0f55d76b5d`、統合コミットは`8af8a54797`、統合順は2である。
-  作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-view-converter`であり、
-  `libs/flake/KoViewConverter.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。553工程・1,138入力の製品接続から分離し、
-  ズーム状態、座標・矩形・寸法・行列変換、静止点合成、寿命の全22 APIを対象とする。
-- 実装担当`storage-plugin`は`integrated`、担当先端は`8bee6c77ab`、統合コミットは`9ba4f88cec`、統合順は3である。
-  作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-storage-plugin`であり、
-  `libs/resources/KisStoragePlugin.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。717工程・1,461入力の統合試験から
-  分離し、構築、時刻、URL読込み配送、MD5、資源情報、既定非対応操作、純仮想接続面、寿命の全21 APIを対象とする。
-- 実装担当`lod-layer-offset`は`integrated`、担当先端は`bdc13301b9`、統合コミットは`60d49e680a`、統合順は4である。
-  作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-lod-layer-offset`であり、
-  `libs/image/kis_lod_capable_layer_offset.{h,cpp}`、Image製品・試験CMake、既存試験の限定化を所有する。1,092工程・2,206入力の
-  製品接続から分離し、QPoint特化、汎用値同期、LOD切替、コピー・代入、状態交換の全20 APIを対象とする。
-- 第20並列便の完了時は合計93 APIを追加し、公開面の対応済み5,984件、未対応24,005件を見込む。各担当は公開面と製品挙動を
+- 統合担当`handle-painter-helper`は`planned`、統合順は1である。主作業ツリーで
+  `libs/global/KisHandlePainterHelper.{h,cpp}`、Global製品・試験CMake、新規限定試験を所有する。製品`kritaglobal`の
+  68工程・136入力から専用生成物へ分離し、画家変換の復元、移動所有、様式適用、矩形・円・勾配ハンドル、線、経路、画像の
+  全24 APIを対象とする。
+- 実装担当`spatial-container`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-spatial-container`であり、
+  `libs/image/KisSpatialContainer.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。既存試験の1,094工程・2,211入力を
+  専用生成物へ縮小し、構築、初期化、追加、移動、検索、境界、複製、除去、消去、診断と既知の件数不整合の全18 APIを対象とする。
+- 実装担当`pipebrush-parasite`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-pipebrush-parasite`であり、
+  `libs/brush/kis_pipebrush_parasite.{h,cpp}`、Brush製品・試験CMake、新規限定試験を所有する。既存試験の1,120工程・2,260入力を
+  専用生成物へ縮小し、次元解析、選択方式、衛生化、ブラシ数、保存と、未定義だった装置読込みメンバーの全21 APIを対象とする。
+- 実装担当`undo-stores`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-undo-stores`であり、
+  `libs/painting/undo/kundo2stack.cpp`、Undo製品・試験CMake、新規限定試験を所有する。259工程・548入力の既存試験接続から
+  KUndo2中核と操作生成を分け、代理・破棄型保存の追加、undo/redo、マクロ、枝破棄、全消去、通知、寿命の全21 APIを対象とする。
+- 第21並列便の完了時は合計84 APIを追加し、公開面の対応済み6,068件、未対応23,921件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
@@ -8934,7 +8934,7 @@
 
 ## 次の操作
 
-未対応24,005 APIの最新報告から第21並列便の候補を選び、各候補の直接依存と清浄木の構築範囲を監査して担当票を確定する。
+共通基準`30a4f93f3b`から3専用作業ツリーを作成し、第21並列便の構築実行とtransport commitを許可して4担当を開始する。
 
 ## R1-G5完了根拠
 
