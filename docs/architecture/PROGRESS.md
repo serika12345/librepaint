@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 00:42 JST
+- 更新日時: 2026-08-30 00:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,8 +19,8 @@
   `libs/global/KisHandlePainterHelper.{h,cpp}`、Global製品・試験CMake、新規限定試験を所有する。製品`kritaglobal`の
   68工程・136入力から専用生成物へ分離し、画家変換の復元、移動所有、様式適用、矩形・円・勾配ハンドル、線、経路、画像の
   全24 APIを対象とする。
-- 実装担当`spatial-container`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-spatial-container`であり、
+- 実装担当`spatial-container`は`integrated`、担当先端は`2c1ce4028a`、統合コミットは`d5f8863ee6`、追加委任は
+  `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-spatial-container`であり、
   `libs/image/KisSpatialContainer.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。既存試験の1,094工程・2,211入力を
   専用生成物へ縮小し、構築、初期化、追加、移動、検索、境界、複製、除去、消去、診断と既知の件数不整合の全18 APIを対象とする。
 - 実装担当`pipebrush-parasite`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
@@ -8948,9 +8948,27 @@
   パッケージ境界検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み6,008件、未対応23,981件になった。
   null描画器、特異・非有限変換、負半径、負寸法画像、高DPI画像、Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 空間点格納の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/KisSpatialContainer.h`の全18 APIを、新規`libs/image/tests/KisSpatialContainerContractTest.cpp`の7試験へ
+  対応付けた。空構築と寿命、密な点列初期化、深いコピー、事前構築木への追加・移動、既存結果へ追記する距離検索、格子点、境界、
+  診断出力を維持契約にした。削除・全消去後も件数が残り、密ベクトルの穴と再初期化時の累積を生む挙動は既知不具合に分類した。
+- 開始ファイル`libs/image/KisSpatialContainer.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`から、
+  同ファイル内の新規`kritaimagespatialcontainerobjects`へ移し、製品`kritaimage`へ1回だけ再集約した。新規限定試験は専用生成物、
+  Qt Core・Gui・Testと実装ヘッダーの既存外部入力だけへ接続し、製品共有ライブラリーを含まない。公開ヘッダーは使用するQt型と
+  標準optionalだけへ整理した。格子寸法式は`kis_grid_interpolation_tools.h`の単一所有を維持し、限定生成物へ必要なヘッダー探索範囲を
+  明示した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。分離直後は過大な格子補間ヘッダーから到達する色、資源、undo、行列、
+  半精度浮動小数点ヘッダーの不足を順に診断し、製品リンクを増やさず直接入力として明示した。初回挙動実行では検索結果が想定3件に
+  対して現行2件となる差を検出し、既存の先頭値と距離内索引だけを保持する契約へ具体化した。macOSの限定試験は5工程・13入力であり、
+  従来試験の1,094工程・2,211入力から縮小した。製品`kritaimage`は1,090工程・2,204入力である。対象CTest単発と20回反復、
+  最近傍の`KisImageTypesContractTest`、パッケージ境界検査、高速検査に成功した。公開面は1,549ヘッダー、29,989 API、
+  対応済み6,026件、未対応23,963件になった。疎・重複・負索引、非有限点、非2冪・非正精度、区画外移動、動的分割後の件数、
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第21並列便の3実装担当を監視し、空間コンテナー、パイプブラシ付加情報、undo保存の引渡しを統合順に監査する。
+第21並列便のパイプブラシ付加情報とundo保存の引渡しを統合順に取り込み、限定検証と中央台帳更新を行う。
 
 ## R1-G5完了根拠
 

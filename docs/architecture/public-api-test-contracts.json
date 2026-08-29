@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23981
+    "expectedMissingApis": 23963
   },
   "contracts": [
     {
@@ -17438,6 +17438,94 @@
         "method:KisLodSwitchingWrapper::operator =(const LodState & rhs)",
         "method:KisLodSwitchingWrapper::operator LodState() const",
         "method:KisLodSwitchingWrapper::setLodState(const LodState & state)"
+      ]
+    },
+    {
+      "target": "KisSpatialContainerContractTest",
+      "source": "libs/image/tests/KisSpatialContainerContractTest.cpp",
+      "test": "KisSpatialContainerContractTest::constructionProvidesEmptyOwnedStorage",
+      "behavior": "空間領域による構築は個別所有された空の格納木を生成し、要素数0と空の密ベクトルを返し、安全に破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpatialContainer",
+        "method:KisSpatialContainer::KisSpatialContainer(QRectF startArea,int maxPointsInDict=100)",
+        "method:KisSpatialContainer::~KisSpatialContainer()"
+      ]
+    },
+    {
+      "target": "KisSpatialContainerContractTest",
+      "source": "libs/image/tests/KisSpatialContainerContractTest.cpp",
+      "test": "KisSpatialContainerContractTest::vectorInitializationAndCopyPreserveIndependentDenseData",
+      "behavior": "密な一意索引の点列構築と新しい格納木への初期化は入力順の点列を保持し、コピー構築は元の移動・破棄後も独立した同じ点列と要素数を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpatialContainer::KisSpatialContainer(QRectF startArea,QVector<QPointF> & points)",
+        "method:KisSpatialContainer::KisSpatialContainer(const KisSpatialContainer & rhs)",
+        "method:KisSpatialContainer::count()",
+        "method:KisSpatialContainer::initializeWith(const QVector<QPointF> & points)",
+        "method:KisSpatialContainer::toVector()"
+      ]
+    },
+    {
+      "target": "KisSpatialContainerContractTest",
+      "source": "libs/image/tests/KisSpatialContainerContractTest.cpp",
+      "test": "KisSpatialContainerContractTest::plannedStorageAddsMovesAndFindsCurrentRangeResults",
+      "behavior": "事前初期化された木は密な一意索引の点を追加し、同じ区画内の移動後も要素数と索引位置を保持し、円範囲検索は呼出元の既存結果を残して距離内の索引だけを追記する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpatialContainer::addPoint(int index,QPointF position)",
+        "method:KisSpatialContainer::count()",
+        "method:KisSpatialContainer::findAllInRange(QVector<int> & indexes,QPointF center,qreal range)",
+        "method:KisSpatialContainer::initializeFor(int numPoints,QRectF startArea)",
+        "method:KisSpatialContainer::movePoint(int index,QPointF positionBefore,QPointF positionAfter)",
+        "method:KisSpatialContainer::toVector()"
+      ]
+    },
+    {
+      "target": "KisSpatialContainerContractTest",
+      "source": "libs/image/tests/KisSpatialContainerContractTest.cpp",
+      "test": "KisSpatialContainerContractTest::gridInitializationProducesIndexedBoundaryPoints",
+      "behavior": "正寸法の原点格子を正の2冪精度で初期化すると、両端を含む格子点を行優先の密な索引へ割り当て、要素数と点列へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpatialContainer::count()",
+        "method:KisSpatialContainer::initializeWithGridPoints(QRectF gridRect,int pixelPrecision)",
+        "method:KisSpatialContainer::toVector()"
+      ]
+    },
+    {
+      "target": "KisSpatialContainerContractTest",
+      "source": "libs/image/tests/KisSpatialContainerContractTest.cpp",
+      "test": "KisSpatialContainerContractTest::boundariesTrackAllStoredPoints",
+      "behavior": "有限座標の格納点に対する左上境界は各軸の最小値を組み合わせ、正確な境界矩形は全点の軸別最小値と最大値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpatialContainer::exactBounds()",
+        "method:KisSpatialContainer::getTopLeft()"
+      ]
+    },
+    {
+      "target": "KisSpatialContainerContractTest",
+      "source": "libs/image/tests/KisSpatialContainerContractTest.cpp",
+      "test": "KisSpatialContainerContractTest::removalClearAndReinitializationRetainStaleCount",
+      "behavior": "点削除と全消去は格納点を除去しても要素数を減らさず、密ベクトルに既定値の穴を残し、その個体を点列で再初期化すると残存要素数へ新規点数を累積する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisSpatialContainer::clear()",
+        "method:KisSpatialContainer::count()",
+        "method:KisSpatialContainer::initializeWith(const QVector<QPointF> & points)",
+        "method:KisSpatialContainer::removePoint(int index,QPointF position)",
+        "method:KisSpatialContainer::toVector()"
+      ]
+    },
+    {
+      "target": "KisSpatialContainerContractTest",
+      "source": "libs/image/tests/KisSpatialContainerContractTest.cpp",
+      "test": "KisSpatialContainerContractTest::diagnosticsDescribeStoredTree",
+      "behavior": "診断出力は格納木の葉状態、葉の要素数、点配列長、索引と座標を表示し、格納点を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpatialContainer::debugWriteOut()"
       ]
     }
   ]
