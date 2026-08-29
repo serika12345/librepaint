@@ -440,6 +440,23 @@ set_target_properties(kritaimageframegenerationlockobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagecompositeprogressproxyobjects OBJECT
+   kis_composite_progress_proxy.cpp
+)
+target_compile_definitions(kritaimagecompositeprogressproxyobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagecompositeprogressproxyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritaimagecompositeprogressproxyobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagecompositeprogressproxyobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagenodecommandobjects OBJECT
    commands/kis_node_command.cpp
 )
@@ -743,7 +760,6 @@ set(kritaimage_LIB_SRCS
    kis_simple_update_queue.cpp
    kis_update_scheduler.cpp
    kis_queues_progress_updater.cpp
-   kis_composite_progress_proxy.cpp
    kis_sync_lod_cache_stroke_strategy.cpp
    kis_update_time_monitor.cpp
    KisImageConfigNotifier.cpp
@@ -903,6 +919,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagesignalsobjects>
    $<TARGET_OBJECTS:kritaimagebackgroundframegenerationlockobjects>
    $<TARGET_OBJECTS:kritaimageframegenerationlockobjects>
+   $<TARGET_OBJECTS:kritaimagecompositeprogressproxyobjects>
    $<TARGET_OBJECTS:kritaimagenodecommandobjects>
    $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldeviceobjects>

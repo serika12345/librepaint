@@ -693,6 +693,19 @@ target_compile_definitions(KisProgressUpdateHelperContractTest PRIVATE
     kritawidgetutils_EXPORTS
 )
 
+kis_add_test(
+    KisCompositeProgressProxyContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagecompositeprogressproxyobjects
+        kritawidgetutilsprogressupdaterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisCompositeProgressProxyContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
 
 include_directories(${QUAZIP_INCLUDE_DIRS})
 
