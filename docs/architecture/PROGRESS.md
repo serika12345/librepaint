@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 00:57 JST
+- 更新日時: 2026-08-30 01:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,8 +23,8 @@
   `forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-spatial-container`であり、
   `libs/image/KisSpatialContainer.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。既存試験の1,094工程・2,211入力を
   専用生成物へ縮小し、構築、初期化、追加、移動、検索、境界、複製、除去、消去、診断と既知の件数不整合の全18 APIを対象とする。
-- 実装担当`pipebrush-parasite`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-pipebrush-parasite`であり、
+- 実装担当`pipebrush-parasite`は`integrated`、担当先端は`342b524dc7`、統合コミットは`c11e7e4b24`、追加委任は
+  `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-pipebrush-parasite`であり、
   `libs/brush/kis_pipebrush_parasite.{h,cpp}`、Brush製品・試験CMake、新規限定試験を所有する。既存試験の1,120工程・2,260入力を
   専用生成物へ縮小し、次元解析、選択方式、衛生化、ブラシ数、保存と、未定義だった装置読込みメンバーの全21 APIを対象とする。
 - 実装担当`undo-stores`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
@@ -8966,9 +8966,29 @@
   対応済み6,026件、未対応23,963件になった。疎・重複・負索引、非有限点、非2冪・非正精度、区画外移動、動的分割後の件数、
   Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b パイプブラシ付加情報の全public API契約と構築所有分離で完了した作業
+
+- `libs/brush/kis_pipebrush_parasite.h`の全21 APIを、新規
+  `libs/brush/tests/KisPipeBrushParasiteContractTest.cpp`の10試験へ対応付けた。配置列挙と公開状態、既定値と配列初期化、
+  1次元から4次元の解析、8選択方式、範囲補正、衛生化、次元別ブラシ数、UTF-8保存・再解析を維持契約にした。装置読込みが入力を
+  読まず成功する挙動と、保存が書込み失敗を成功として返す挙動は既知不具合に分類した。
+- 開始ファイル`libs/brush/kis_pipebrush_parasite.cpp`の構築所有を`libs/brush/CMakeLists.txt`の
+  `kritalibbrush_LIB_SRCS`から同ファイル内の新規`kritabrushpipeparasiteobjects`へ移し、製品`kritalibbrush`へ1回だけ再集約した。
+  新規限定試験は専用生成物、Global診断生成物、Qt・KF・Imath・Boostの既存ヘッダー入力だけへ接続し、Brush・Image・共通試験の
+  製品共有ライブラリーを含まない。公開ヘッダーから未使用includeを除き、実装だけが使う診断headerをcppへ移した。
+- 文字列解析・保存から到達する画像パイプ基底の色・資源・国際化ヘッダー探索を限定対象へ明示した後、初回リンクは公開宣言に対する
+  `KisPipeBrushParasite::loadFromDevice(QIODevice*)`の未定義記号を診断した。開始ファイル末尾で誤って自由関数になっていた本文へ
+  クラス修飾を付け、公開実装を接続した。統合時の中央台帳検査はクラス内inline試験スロットを追跡不能として診断したため、実行内容を
+  私有補助へ保ったまま台帳が追跡できるクラス外スロット定義へ接続した。macOSの限定試験は6工程・15入力であり、従来試験の
+  1,120工程・2,260入力から縮小した。
+  対象CTest単発と20回反復、最近傍の`KisDabShapeContractTest`、パッケージ境界検査、高速検査に成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み6,047件、未対応23,942件になった。4超の公開次元、境界外順位添字、負順位、巨大整数、
+  null装置、角度選択上書き後の移動状態、Linux、全ネイティブ検証、製品全体リンクは実行していない。選択方式の所有が
+  `kis_imagepipe_brush.h`にあるため、限定コンパイルの広いヘッダー入力は残る。
+
 ## 次の操作
 
-第21並列便のパイプブラシ付加情報とundo保存の引渡しを統合順に取り込み、限定検証と中央台帳更新を行う。
+第21並列便のundo保存引渡しを取り込み、限定検証、中央台帳更新、第21並列便の完了検査を行う。
 
 ## R1-G5完了根拠
 

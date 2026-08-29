@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23963
+    "expectedMissingApis": 23942
   },
   "contracts": [
     {
@@ -17526,6 +17526,128 @@
       "classification": "maintained",
       "apis": [
         "method:KisSpatialContainer::debugWriteOut()"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::exposesStablePlacementAndDefaultState",
+      "behavior": "パイプブラシ付随情報の配置列挙値、最大次元、公開状態配列と既定構築時のゼロ値・定数選択状態を固定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPipeBrushParasite",
+        "enum:KisPipeBrushParasite::Placement",
+        "enumerator:KisPipeBrushParasite::Placement::ConstantPlacement",
+        "enumerator:KisPipeBrushParasite::Placement::DefaultPlacement",
+        "enumerator:KisPipeBrushParasite::Placement::RandomPlacement",
+        "member:KisPipeBrushParasite::MaxDim",
+        "member:KisPipeBrushParasite::brushesCount",
+        "member:KisPipeBrushParasite::dim",
+        "member:KisPipeBrushParasite::index",
+        "member:KisPipeBrushParasite::ncells",
+        "member:KisPipeBrushParasite::needsMovement",
+        "member:KisPipeBrushParasite::rank",
+        "member:KisPipeBrushParasite::selection",
+        "member:KisPipeBrushParasite::selectionMode",
+        "method:KisPipeBrushParasite::KisPipeBrushParasite()"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::initResetsDimensionArraysOnly",
+      "behavior": "初期化は各次元の順位、選択、ブラシ数、現在位置を既定状態へ戻し、セル数、次元数、移動要否、表示用選択名を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPipeBrushParasite::init()"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::parsesOneToFourDimensions",
+      "behavior": "文字列構築は正常な1次元から4次元のセル数、順位、次元数を解析し、各次元のブラシ単位数と初期位置を算出する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPipeBrushParasite::brushesCount",
+        "member:KisPipeBrushParasite::dim",
+        "member:KisPipeBrushParasite::index",
+        "member:KisPipeBrushParasite::ncells",
+        "member:KisPipeBrushParasite::rank",
+        "method:KisPipeBrushParasite::KisPipeBrushParasite(QStringView source)"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::parsesSelectionModes",
+      "behavior": "文字列構築は8種類の選択名を対応する選択列挙値へ変換し、角度選択だけに移動必須状態を設定する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPipeBrushParasite::needsMovement",
+        "member:KisPipeBrushParasite::selection",
+        "member:KisPipeBrushParasite::selectionMode",
+        "method:KisPipeBrushParasite::KisPipeBrushParasite(QStringView source)"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::clampsInvalidCountsAndUnknownSelection",
+      "behavior": "解析はゼロのセル数と次元数を1へ補正し、未知の選択名を定数選択として扱いながら元の表示名を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPipeBrushParasite::KisPipeBrushParasite(QStringView source)"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::sanitizesZeroRankIncrementalAndAngularModes",
+      "behavior": "衛生化は順位ゼロの増分・角度選択を定数選択へ補正し、他の選択と既存の移動必須状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPipeBrushParasite::sanitize()"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::computesBrushCountsAcrossDimensions",
+      "behavior": "ブラシ数計算はセル総数を各次元の順位で順に分割し、順位ゼロでは直前次元の値を継承する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPipeBrushParasite::setBrushesCount()"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::savesCanonicalUtf8AndRoundTripsThroughParser",
+      "behavior": "保存は4次元の順位と選択を改行なしの正規UTF-8表現へ書き出し、その付随情報部分を再解析すると元の状態を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPipeBrushParasite::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::loadReportsSuccessWithoutReadingDevice",
+      "behavior": "装置読込み入口は現在、入力装置を一切読み進めず常に成功を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisPipeBrushParasite::loadFromDevice(QIODevice * dev)"
+      ]
+    },
+    {
+      "target": "KisPipeBrushParasiteContractTest",
+      "source": "libs/brush/tests/KisPipeBrushParasiteContractTest.cpp",
+      "test": "KisPipeBrushParasiteContractTest::saveReportsSuccessAfterWriteFailure",
+      "behavior": "保存入口は現在、装置の書込み失敗を検出せず成功を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisPipeBrushParasite::saveToDevice(QIODevice * dev) const"
       ]
     }
   ]
