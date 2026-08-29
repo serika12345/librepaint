@@ -19,3 +19,16 @@ kis_add_test(
 target_include_directories(KisDabShapeContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
+
+kis_add_test(
+    KisQImagePyramidContractTest.cpp
+    LINK_LIBRARIES
+        kritabrushqimagepyramidobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisQImagePyramidContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisQImagePyramidContractTest PRIVATE kritalibbrush_EXPORTS)
