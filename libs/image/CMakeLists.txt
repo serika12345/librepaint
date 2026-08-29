@@ -91,6 +91,23 @@ set_target_properties(kritaimageinterfacesobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageoptimizedbytearrayobjects OBJECT
+   KisOptimizedByteArray.cpp
+)
+target_compile_definitions(kritaimageoptimizedbytearrayobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageoptimizedbytearrayobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageoptimizedbytearrayobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimageoptimizedbytearrayobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagestrokejobobjects OBJECT
    kis_stroke_job_strategy.cpp
    KisRunnableStrokeJobDataBase.cpp
@@ -571,7 +588,6 @@ set(kritaimage_LIB_SRCS
    kis_paint_device.cc
    kis_paint_device_debug_utils.cpp
    kis_fixed_paint_device.cpp
-   KisOptimizedByteArray.cpp
    kis_paint_layer.cc
    kis_perspective_math.cpp
    kis_pixel_selection.cpp
@@ -671,6 +687,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
+   $<TARGET_OBJECTS:kritaimageoptimizedbytearrayobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>
