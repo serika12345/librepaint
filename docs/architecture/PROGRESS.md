@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 02:53 JST
+- 更新日時: 2026-08-30 02:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,21 +14,21 @@
 - 第24並列便の共通基準コミットは`0678f19c10`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g24-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`command-utils`は`audited`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`command-utils`は`implementing`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/undo/kis_command_utils.{h,cpp}`、Painting Undo製品・試験CMake、新規`KisCommandUtilsContractTest.cpp`を
   所有する。製品`kritapaintingundo`の260工程・551入力から実装を専用生成物へ分離し、遅延集約、ラムダ生成、初回再実行省略、
   状態往復、複合命令、合成と累積統合の全36 APIを対象とする。
-- 実装担当`shape-anchor`は`audited`、構築実行許可は`pending`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`shape-anchor`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g24-shape-anchor`を予定し、
   `libs/flake/KoShapeAnchor.cpp`、Flake製品・試験CMake、新規`KoShapeAnchorContractTest.cpp`を所有する。製品の364工程・756入力から
   実装を専用生成物へ分離し、既存の列挙44 APIに続く状態、正規化、借用位置、所有配置戦略、寿命の残り33 APIを対象とする。
-- 実装担当`transform-mask-interface`は`audited`、構築実行許可は`pending`、Git操作権限は`transport-commit`、
+- 実装担当`transform-mask-interface`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g24-transform-mask-interface`を予定し、
   `libs/image/kis_transform_mask_params_interface.{h,cpp}`、Image製品・試験CMake、新規
   `KisTransformMaskParamsInterfaceContractTest.cpp`を所有する。既存試験の1,107工程・2,236入力から空の仮想破棄実装を
   専用生成物へ分離し、変形値、矩形、XML、画像参照、複製、比較、キーフレーム、既定境界、寿命の全31 APIを対象とする。
-- 実装担当`shared-ptr`は`audited`、構築実行許可は`pending`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`shared-ptr`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g24-shared-ptr`を予定し、
   `libs/global/kis_shared_ptr.h`、Global試験CMake、新規`KisSharedPtrContractTest.cpp`を所有する。既存の
   `kritaglobalsharedobjects`と`kritaglobaldebugobjects`を再利用し、強参照、弱参照、参照数、型変換、失効、寿命の全55 APIを
@@ -9147,8 +9147,8 @@
 
 ## 次の操作
 
-第24並列便の3専用作業ツリーと専用Ninja木を作成し、各限定対象が未知で失敗する初回診断を記録する。担当ごとの構築実行許可を
-`granted`へ更新してから並列実装を開始し、統合担当は`command-utils`の構築所有分離を先行する。
+第24並列便の各担当は限定対象が未知で失敗する初回診断を記録し、必要な構築所有分離を先行して全public API契約を実装する。
+統合担当は`command-utils`を完成後にコミットし、引渡しを統合順に取り込んで中央台帳と完了記録を更新する。
 
 ## R1-G5完了根拠
 
