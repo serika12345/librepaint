@@ -1642,70 +1642,34 @@ void KisNodeManager::quickUngroup()
     }
 }
 
-void KisNodeManager::selectLayersImpl(const KoProperties &props, const KoProperties &invertedProps)
+KisNodeList KisNodeManager::SelectionAccess::findNodes(KisNodeManager *manager, SelectionProperty property, bool value)
 {
-    KisImageSP image = m_d->view->image();
-    KisNodeList nodes = KisLayerUtils::findNodesWithProps(image->root(), props, true);
-
-    KisNodeList selectedNodes = this->selectedNodes();
-
-    if (KritaUtils::compareListsUnordered(nodes, selectedNodes)) {
-        nodes = KisLayerUtils::findNodesWithProps(image->root(), invertedProps, true);
+    KoProperties properties;
+    if (property == SelectionProperty::Visible) {
+        properties.setProperty("visible", value);
+    } else if (property == SelectionProperty::Locked) {
+        properties.setProperty("locked", value);
     }
 
-    if (!nodes.isEmpty()) {
-        slotImageRequestNodeReselection(nodes.last(), nodes);
-    }
+    KisImageSP image = manager->m_d->view->image();
+    return KisLayerUtils::findNodesWithProps(image->root(), properties, true);
 }
 
-void KisNodeManager::selectAllNodes()
+KisNodeList KisNodeManager::SelectionAccess::selectedNodes(KisNodeManager *manager)
 {
-    KoProperties props;
-    selectLayersImpl(props, props);
+    return manager->selectedNodes();
 }
 
-void KisNodeManager::selectVisibleNodes()
+bool KisNodeManager::SelectionAccess::sameNodesUnordered(const KisNodeList &first, const KisNodeList &second)
 {
-    KoProperties props;
-    props.setProperty("visible", true);
-
-    KoProperties invertedProps;
-    invertedProps.setProperty("visible", false);
-
-    selectLayersImpl(props, invertedProps);
+    return KritaUtils::compareListsUnordered(first, second);
 }
 
-void KisNodeManager::selectLockedNodes()
+void KisNodeManager::SelectionAccess::reselectNodes(KisNodeManager *manager,
+                                                    KisNodeSP activeNode,
+                                                    const KisNodeList &nodes)
 {
-    KoProperties props;
-    props.setProperty("locked", true);
-
-    KoProperties invertedProps;
-    invertedProps.setProperty("locked", false);
-
-    selectLayersImpl(props, invertedProps);
-}
-
-void KisNodeManager::selectInvisibleNodes()
-{
-    KoProperties props;
-    props.setProperty("visible", false);
-
-    KoProperties invertedProps;
-    invertedProps.setProperty("visible", true);
-
-    selectLayersImpl(props, invertedProps);
-}
-
-void KisNodeManager::selectUnlockedNodes()
-{
-    KoProperties props;
-    props.setProperty("locked", false);
-
-    KoProperties invertedProps;
-    invertedProps.setProperty("locked", true);
-
-    selectLayersImpl(props, invertedProps);
+    manager->slotImageRequestNodeReselection(activeNode, nodes);
 }
 
 void KisNodeManager::slotUiActivateNode()

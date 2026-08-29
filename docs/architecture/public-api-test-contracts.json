@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25105
+    "expectedMissingApis": 25100
   },
   "contracts": [
     {
@@ -12657,6 +12657,20 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::reinitializeIsolationActionGroup()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerSelectionContractTest",
+      "source": "libs/ui/tests/KisNodeManagerSelectionContractTest.cpp",
+      "test": "KisNodeManagerSelectionContractTest::selectionFiltersToggleToTheirInverse",
+      "behavior": "全ノード、可視・非表示、施錠・未施錠の選択は対応する属性条件で木を検索し、現在選択と順不同で一致した場合は反転条件を再検索する。空でない結果の末尾を活動ノードとして一覧を再選択する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::selectAllNodes()",
+        "method:KisNodeManager::selectInvisibleNodes()",
+        "method:KisNodeManager::selectLockedNodes()",
+        "method:KisNodeManager::selectUnlockedNodes()",
+        "method:KisNodeManager::selectVisibleNodes()"
       ]
     }
   ]

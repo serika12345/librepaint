@@ -467,6 +467,19 @@ protected:
         static void setGroupActionChecked(KisNodeManager *manager, bool checked);
     };
 
+    enum class SelectionProperty {
+        Any,
+        Visible,
+        Locked,
+    };
+
+    struct KRITAUI_EXPORT SelectionAccess {
+        static KisNodeList findNodes(KisNodeManager *manager, SelectionProperty property, bool value);
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static bool sameNodesUnordered(const KisNodeList &first, const KisNodeList &second);
+        static void reselectNodes(KisNodeManager *manager, KisNodeSP activeNode, const KisNodeList &nodes);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1
@@ -480,7 +493,7 @@ private:
                               const QString &overrideGroupName,
                               KisNodeSP *newGroup,
                               KisNodeSP *newLastChild);
-    void selectLayersImpl(const KoProperties &props, const KoProperties &invertedProps);
+    void selectLayersImpl(SelectionProperty property, bool value, bool invertedValue);
 
     struct Private;
     Private * const m_d;
