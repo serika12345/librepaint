@@ -134,6 +134,36 @@ set_target_properties(kritaflakedebugobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakepathfillrulecommandobjects OBJECT
+    commands/KoPathFillRuleCommand.cpp
+)
+target_compile_definitions(kritaflakepathfillrulecommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakepathfillrulecommandobjects PRIVATE KRITAFLAKE_PATH_FILL_RULE_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakepathfillrulecommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakepathfillrulecommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakepathfillrulecommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -271,7 +301,6 @@ set(kritaflake_SRCS
     commands/KoParameterHandleMoveCommand.cpp
     commands/KoParameterToPathCommand.cpp
     commands/KoShapeTransformCommand.cpp
-    commands/KoPathFillRuleCommand.cpp
     commands/KoPathReverseCommand.cpp
     commands/KoShapeRenameCommand.cpp
     commands/KoPathPointMergeCommand.cpp
@@ -383,6 +412,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakecurvefitobjects>
     $<TARGET_OBJECTS:kritaflakecurvefitpathshapeobjects>
     $<TARGET_OBJECTS:kritaflakedebugobjects>
+    $<TARGET_OBJECTS:kritaflakepathfillrulecommandobjects>
 
 )
 
