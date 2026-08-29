@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24452
+    "expectedMissingApis": 24441
   },
   "contracts": [
     {
@@ -15868,6 +15868,64 @@
         "method:KisSqlQueryLoader::KisSqlQueryLoader(const QString & fileName)",
         "method:KisSqlQueryLoader::KisSqlQueryLoader(const QString & fileName,single_statement_mode_t)",
         "method:KisSqlQueryLoader::~KisSqlQueryLoader()"
+      ]
+    },
+    {
+      "target": "KoViewTransformStillPointContractTest",
+      "source": "libs/flake/tests/KoViewTransformStillPointContractTest.cpp",
+      "test": "KoViewTransformStillPointContractTest::defaultConstructionKeepsBothOrigins",
+      "behavior": "既定構築した表示変換の静止点は、文書座標と表示座標の両方を原点として返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoViewTransformStillPoint",
+        "method:KoViewTransformStillPoint::KoViewTransformStillPoint()",
+        "method:KoViewTransformStillPoint::docPoint() const",
+        "method:KoViewTransformStillPoint::viewPoint() const"
+      ]
+    },
+    {
+      "target": "KoViewTransformStillPointContractTest",
+      "source": "libs/flake/tests/KoViewTransformStillPointContractTest.cpp",
+      "test": "KoViewTransformStillPointContractTest::valueAndPairConstructionPreservePointRoles",
+      "behavior": "文書点と表示点による構築、および同じ順序の組による構築は、負値と小数を含む各座標の役割を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoViewTransformStillPoint::KoViewTransformStillPoint(const QPointF & docPoint,const QPointF & viewPoint)",
+        "method:KoViewTransformStillPoint::KoViewTransformStillPoint(const std::pair<QPointF,QPointF> & rhs)",
+        "method:KoViewTransformStillPoint::docPoint() const",
+        "method:KoViewTransformStillPoint::viewPoint() const"
+      ]
+    },
+    {
+      "target": "KoViewTransformStillPointContractTest",
+      "source": "libs/flake/tests/KoViewTransformStillPointContractTest.cpp",
+      "test": "KoViewTransformStillPointContractTest::copyAndMoveConstructionPreservePoints",
+      "behavior": "コピー構築と移動構築は文書点と表示点を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoViewTransformStillPoint::KoViewTransformStillPoint(KoViewTransformStillPoint && rhs)",
+        "method:KoViewTransformStillPoint::KoViewTransformStillPoint(const KoViewTransformStillPoint & rhs)"
+      ]
+    },
+    {
+      "target": "KoViewTransformStillPointContractTest",
+      "source": "libs/flake/tests/KoViewTransformStillPointContractTest.cpp",
+      "test": "KoViewTransformStillPointContractTest::copyAndMoveAssignmentPreservePoints",
+      "behavior": "コピー代入と移動代入は両座標を保持し、代入先自身への参照を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoViewTransformStillPoint::operator =(KoViewTransformStillPoint && rhs)",
+        "method:KoViewTransformStillPoint::operator =(const KoViewTransformStillPoint & rhs)"
+      ]
+    },
+    {
+      "target": "KoViewTransformStillPointContractTest",
+      "source": "libs/flake/tests/KoViewTransformStillPointContractTest.cpp",
+      "test": "KoViewTransformStillPointContractTest::debugOutputNamesPointsInOrder",
+      "behavior": "診断表示は型名を示し、文書点と表示点を名前付きでこの順序に出力する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoViewTransformStillPoint & point)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 21:09 JST
+- 更新日時: 2026-08-29 21:13 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -25,7 +25,7 @@
   `libs/image/KisOptimizedByteArray.{h,cpp}`、Image製品・試験CMake、新規限定試験を所有する。754工程・1,532入力の
   翻訳単位を専用生成物へ分け、割当接続面、既定・独自割当器、明示寸法の充填と寸法変更、共有と書込み時分離、
   再利用割当器の全23 APIを対象とする。
-- 実装担当`view-transform-still-point`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`view-transform-still-point`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-view-transform-still-point`であり、
   `libs/flake/KoViewTransformStillPoint.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。351工程・730入力の
@@ -8629,9 +8629,23 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,537件、未対応24,452件になった。Linux、全ネイティブ検証、
   製品全体リンクは実行していない。
 
+## R2-G19b 表示変換静止点の全public API契約で完了した作業
+
+- `libs/flake/KoViewTransformStillPoint.h`の全11 APIを、新規
+  `libs/flake/tests/KoViewTransformStillPointContractTest.cpp`の5試験へ対応付けた。既定・2点・組による構築、
+  コピー・移動による構築と代入、文書点・表示点の取得、座標名と順序を持つ診断表示を固定した。移動元の状態と
+  Qtが診断文字列の外側へ付ける空白は公開契約に含めていない。
+- 開始ファイル`libs/flake/KoViewTransformStillPoint.cpp`の構築所有を`kritaflake_SRCS`から新規
+  `kritaflakeviewtransformstillpointobjects`へ移し、製品`kritaflake`が生成物を1回だけ再集約する。公開ヘッダー、実装位置、
+  製品ABI、座標値の表現は維持した。限定試験は製品共有ライブラリーへ接続せず、Qt Core、Testと専用生成物だけを使用する。
+- macOSの製品`kritaflake`は553工程・1,138入力、専用生成物は1工程・3入力、限定試験は5工程・11入力である。
+  対象CTestの単発実行と20回反復、最近傍の`KoInsetsContractTest`に成功し、パッケージ境界検査は1,211対象で成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,548件、未対応24,441件になった。Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。公開`std::pair`継承による`first`と`second`の直接変更面は、別の互換性判断を要する。
+
 ## 次の操作
 
-表示変換静止点の担当差分、限定構築、挙動、台帳を統合検証する。
+最適化バイト配列の担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 
