@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:14 JST
+- 更新日時: 2026-08-29 15:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,19 +11,20 @@
 
 ### 現在の並列担当票
 
-- 共通基準コミットは`47a10e94`である。統合担当は`develop`の主作業ツリー、実装担当は
+- 共通基準コミットは`d12ddb2b`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`ui-node-model-set-data`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
-  `libs/ui/nodes/KisNodeModelSetData.cpp`、UI CMake、新規限定試験を所有し、模型のデータ設定と隔離切替通知の2 APIを対象とする。
-- 実装担当`global-transform-components`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は1である。`libs/global/KisTransformComponents.h`と関連する代数実装、Global CMake、新規限定試験を
-  所有し、変換成分の12 APIを対象とする。
-- 実装担当`image-spontaneous-job`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。`libs/image/kis_spontaneous_job.h`と新規限定試験を所有し、自発ジョブの4 APIを対象とする。
-- 実装担当`flake-utils`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。`libs/flake/KoFlakeUtils.h`と新規限定試験を所有し、形状属性比較とstroke変更の3 APIを
-  対象とする。
+- 統合担当`ui-node-model-data`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
+  `libs/ui/nodes/KisNodeModelData.cpp`、UI CMake、新規限定試験を所有し、模型の役割別データ取得1 APIを対象とする。
+- 実装担当`image-convex-hull`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は1である。`libs/image/kis_convex_hull.h`と関連実装、Image CMake、新規限定試験を所有し、
+  凸包計算の3 APIを対象とする。
+- 実装担当`flake-curve-fit`は`ready`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。`libs/flake/KoCurveFit.h`と関連実装、Flake CMake、新規限定試験を所有し、
+  ベジェ曲線近似の1 APIを対象とする。
+- 実装担当`paintops-texture-option-io`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。`plugins/paintops/libpaintop/KisTextureOptionData.h`と関連実装、CMake、新規限定試験を
+  所有し、テクスチャー設定の読書き2 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -7844,7 +7845,26 @@
 
 ## 次の操作
 
-第4並列便を統合した新しい共通基準から公開API報告を再集計し、小構築対象で直接観測できる非重複担当群を開始する。
+第5並列便の3 transport commitを一件ずつ検証して統合し、各契約の中央台帳と件数を同期する。
+
+## R2-G19b ノード模型データ取得のpublic API契約と小構築対象で完了した作業
+
+- `libs/ui/nodes/kis_node_model.cpp`にあった`KisNodeModel::data()`の公開役割振り分けを、新規
+  `libs/ui/nodes/KisNodeModelData.cpp`へ移した。新規`kritauinodemodeldataobjects`が読取り可能性の判定と標準役割の振り分けを
+  所有し、各役割の具象値と特殊役割の処理は元翻訳単位の保護された接続面を通して実行する。製品`kritaapplicationui`は
+  新生成物を一度再集約する。
+- `libs/ui/nodes/kis_node_model.h`の`data()`を、新規`libs/ui/tests/KisNodeModelDataContractTest.cpp`の3試験群へ対応付けた。
+  模型管理面・索引・画像のいずれかを欠く状態では値を返さないこと、標準14役割を対応する値へ振り分けること、情報、色、
+  縮小画像と未知の役割では要求番号を維持することを固定した。実装接続前のリンクは`KisNodeModel::data()`だけを未解決記号として
+  診断した。
+- 既存`kis_node_model_test`は1,845工程・3,689入力である。新規専用対象は1工程・3入力、契約対象は6工程・13入力であり、
+  製品`kritaapplicationui`は1,841工程・3,682入力である。直接依存は専用対象がQt CoreとQt Gui、契約対象が模型の寿命対象、
+  専用データ対象、Qt Gui、Qt Testである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、元`kis_node_model.cpp`を製品設定で単体コンパイルした。公開定義が元生成物から
+  消え、新対象だけに存在することを確認した。対象CTestの単発実行と20回反復、1,136対象のパッケージ境界検査に成功した。
+  公開API契約検査と高速検査にも成功し、公開面は1,549ヘッダー、29,989 API、対応済み5,047件、未対応24,942件になった。
+  各役割の具象ノード値は既存実装に残り、所有責務を分ける後続変更では本契約の役割対応を維持する。Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
 
 ## R1-G5完了根拠
 

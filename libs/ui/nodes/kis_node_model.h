@@ -250,6 +250,25 @@ protected:
         static void notifyNodeRemoved(KisNodeModel *model, KisNodeDummy *dummy);
     };
 
+    struct KRITAUI_EXPORT DataAccess {
+        static bool hasDummiesFacade(const KisNodeModel *model);
+        static bool hasImage(const KisNodeModel *model);
+        static QVariant nodeName(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant nodeIcon(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant imageSize(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant foreground(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant font(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant properties(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant aspectRatio(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant progress(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant active(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant shouldGrayOut(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant colorLabel(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant dropReason(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant isAnimated(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant remainingData(const KisNodeModel *model, const QModelIndex &index, int role);
+    };
+
     struct KRITAUI_EXPORT SetDataAccess {
         static void setDropEnabled(KisNodeModel *model, const QMimeData *data);
         static QModelIndex takeParentOfRemovedNode(KisNodeModel *model);

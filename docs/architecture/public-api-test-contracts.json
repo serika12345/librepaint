@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24943
+    "expectedMissingApis": 24942
   },
   "contracts": [
     {
@@ -14015,6 +14015,16 @@
       "apis": [
         "function:operator <<(QDebug dbg,KisAlgebra2D::KisTransformComponent component)",
         "function:operator <<(QDebug dbg,KisAlgebra2D::KisTransformComponents components)"
+      ]
+    },
+    {
+      "target": "KisNodeModelDataContractTest",
+      "source": "libs/ui/tests/KisNodeModelDataContractTest.cpp",
+      "test": "KisNodeModelDataContractTest::standardRolesDispatchToTheirObservableValues",
+      "behavior": "読取り可能な模型索引は、表示、編集、装飾、寸法、前景、書体とノード固有の各役割を対応する観測値へ振り分ける。読取り不能な状態は値を返さず、特殊な役割は要求された役割番号を保って具象処理へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::data(const QModelIndex & index,int role=Qt::DisplayRole) const"
       ]
     }
   ]

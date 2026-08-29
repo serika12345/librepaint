@@ -1390,6 +1390,29 @@ set_target_properties(kritauinodemodelremovalobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauinodemodeldataobjects OBJECT
+    nodes/KisNodeModelData.cpp
+)
+target_compile_definitions(kritauinodemodeldataobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodeldataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodeldataobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritauinodemodeldataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritauinodemodelsetdataobjects OBJECT
     nodes/KisNodeModelSetData.cpp
 )
@@ -1474,6 +1497,7 @@ set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauinodemodellifecycleobjects>
     $<TARGET_OBJECTS:kritauinodemodelstructureobjects>
     $<TARGET_OBJECTS:kritauinodemodelremovalobjects>
+    $<TARGET_OBJECTS:kritauinodemodeldataobjects>
     $<TARGET_OBJECTS:kritauinodemodelsetdataobjects>
 
     canvas/kis_canvas_widget_base.cpp

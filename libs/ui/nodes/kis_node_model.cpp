@@ -624,38 +624,117 @@ void KisNodeModel::processUpdateQueue()
     m_d->updateQueue.clear();
 }
 
-QVariant KisNodeModel::data(const QModelIndex &index, int role) const
+bool KisNodeModel::DataAccess::hasDummiesFacade(const KisNodeModel *model)
 {
-    if (!m_d->dummiesFacade || !index.isValid() || !m_d->image.isValid()) return QVariant();
+    return model->m_d->dummiesFacade;
+}
 
-    KisNodeSP node = nodeFromIndex(index);
+bool KisNodeModel::DataAccess::hasImage(const KisNodeModel *model)
+{
+    return model->m_d->image.isValid();
+}
+
+QVariant KisNodeModel::DataAccess::nodeName(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, Qt::DisplayRole);
+}
+
+QVariant KisNodeModel::DataAccess::nodeIcon(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, Qt::DecorationRole);
+}
+
+QVariant KisNodeModel::DataAccess::imageSize(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, Qt::SizeHintRole);
+}
+
+QVariant KisNodeModel::DataAccess::foreground(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, Qt::ForegroundRole);
+}
+
+QVariant KisNodeModel::DataAccess::font(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, Qt::FontRole);
+}
+
+QVariant KisNodeModel::DataAccess::properties(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, KisNodeModel::PropertiesRole);
+}
+
+QVariant KisNodeModel::DataAccess::aspectRatio(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, KisNodeModel::AspectRatioRole);
+}
+
+QVariant KisNodeModel::DataAccess::progress(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, KisNodeModel::ProgressRole);
+}
+
+QVariant KisNodeModel::DataAccess::active(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, KisNodeModel::ActiveRole);
+}
+
+QVariant KisNodeModel::DataAccess::shouldGrayOut(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, KisNodeModel::ShouldGrayOutRole);
+}
+
+QVariant KisNodeModel::DataAccess::colorLabel(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, KisNodeModel::ColorLabelIndexRole);
+}
+
+QVariant KisNodeModel::DataAccess::dropReason(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, KisNodeModel::DropReasonRole);
+}
+
+QVariant KisNodeModel::DataAccess::isAnimated(const KisNodeModel *model, const QModelIndex &index)
+{
+    return remainingData(model, index, KisNodeModel::IsAnimatedRole);
+}
+
+QVariant KisNodeModel::DataAccess::remainingData(const KisNodeModel *model,
+                                                 const QModelIndex &index,
+                                                 int role)
+{
+    if (!model->m_d->dummiesFacade || !index.isValid() || !model->m_d->image.isValid()) {
+        return QVariant();
+    }
+
+    KisNodeSP node = model->nodeFromIndex(index);
 
     switch (role) {
     case Qt::DisplayRole: return node->name();
     case Qt::DecorationRole: return node->icon();
     case Qt::EditRole: return node->name();
-    case Qt::SizeHintRole: return m_d->image->size(); // FIXME
+    case Qt::SizeHintRole: return model->m_d->image->size(); // FIXME
     case Qt::ForegroundRole:
-        return belongsToIsolatedGroup(node) &&
+        return model->belongsToIsolatedGroup(node) &&
             !node->projectionLeaf()->isDroppedNode() ? QVariant() : QVariant(QColor(Qt::gray));
     case Qt::FontRole: {
         QFont baseFont;
         if (node->projectionLeaf()->isDroppedNode()) {
             baseFont.setStrikeOut(true);
         }
-        if (m_d->activeNodeIndex == index) {
+        if (model->m_d->activeNodeIndex == index) {
             baseFont.setBold(true);
         }
         return baseFont;
     }
     case KisNodeModel::PropertiesRole: return QVariant::fromValue(node->sectionModelProperties());
-    case KisNodeModel::AspectRatioRole: return double(m_d->image->width()) / m_d->image->height();
+    case KisNodeModel::AspectRatioRole: return double(model->m_d->image->width()) / model->m_d->image->height();
     case KisNodeModel::ProgressRole: {
         KisNodeProgressProxy *proxy = node->nodeProgressProxy();
         return proxy ? proxy->percentage() : -1;
     }
     case KisNodeModel::ActiveRole: {
-        return m_d->activeNodeIndex == index;
+        return model->m_d->activeNodeIndex == index;
     }
     case KisNodeModel::ShouldGrayOutRole: {
         return !node->visible(true);
@@ -746,7 +825,7 @@ QVariant KisNodeModel::data(const QModelIndex &index, int role) const
          * this node is still present in the node graph.
          */
         if (role >= int(KisNodeModel::BeginThumbnailRole) &&
-            belongsToIsolatedGroup(node) &&
+            model->belongsToIsolatedGroup(node) &&
             node->graphListener()) {
 
             /**
@@ -756,8 +835,8 @@ QVariant KisNodeModel::data(const QModelIndex &index, int role) const
 
             const int maxSize = role - int(KisNodeModel::BeginThumbnailRole);
 
-            if (maxSize == m_d->thumbnalCache.maxSize()) {
-                return m_d->thumbnalCache.thumbnail(node);
+            if (maxSize == model->m_d->thumbnalCache.maxSize()) {
+                return model->m_d->thumbnalCache.thumbnail(node);
             } else {
                 return node->createPreferredThumbnail(maxSize, maxSize, Qt::KeepAspectRatio);
             }
