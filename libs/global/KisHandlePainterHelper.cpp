@@ -74,7 +74,12 @@ void KisHandlePainterHelper::setHandleStyle(const KisHandleStyle &style)
     m_handleStyle = style;
 }
 
-void KisHandlePainterHelper::drawHandleRect(const QPointF &center, qreal radius, QPoint offset = QPoint(0,0))
+void KisHandlePainterHelper::drawHandleRect(const QPointF &center, qreal radius)
+{
+    drawHandleRect(center, radius, QPoint());
+}
+
+void KisHandlePainterHelper::drawHandleRect(const QPointF &center, qreal radius, QPoint offset)
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN(m_painter);
 
@@ -335,7 +340,7 @@ void KisHandlePainterHelper::drawPixmap(const QPixmap &pixmap, QPointF position,
                                 sourceRect);
 }
 
-void KisHandlePainterHelper::fillHandleRect(const QPointF &center, qreal radius, QColor fillColor, QPoint offset = QPoint(0,0))
+void KisHandlePainterHelper::fillHandleRect(const QPointF &center, qreal radius, QColor fillColor, QPoint offset)
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN(m_painter);
 

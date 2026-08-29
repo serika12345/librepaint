@@ -619,11 +619,32 @@ set_target_properties(kritaglobaltransformcomponentsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaglobalhandlepainterhelperobjects OBJECT
+    KisHandlePainterHelper.cpp
+)
+target_compile_definitions(kritaglobalhandlepainterhelperobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalhandlepainterhelperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalhandlepainterhelperobjects
+    PUBLIC
+        kritaglobaldecomposedmatrixobjects
+        kritaglobalhandlestyleobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalhandlepainterhelperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaglobal_LIB_SRCS
     kis_assert.cpp
     kis_algebra_2d.cpp
     kis_dom_utils.cpp
-    KisHandlePainterHelper.cpp
     KisUsageLogger.cpp
     KisBezierUtils.cpp
     KisBezierMesh.cpp
@@ -679,6 +700,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalbezierpatchobjects>
     $<TARGET_OBJECTS:kritaglobaldecomposedmatrixobjects>
     $<TARGET_OBJECTS:kritaglobaltransformcomponentsobjects>
+    $<TARGET_OBJECTS:kritaglobalhandlepainterhelperobjects>
 )
 
 target_sources(kritaglobal

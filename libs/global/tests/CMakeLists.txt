@@ -432,6 +432,19 @@ kis_add_test(
 target_compile_definitions(KisHandleStyleContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisHandlePainterHelperContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalhandlepainterhelperobjects
+        kritaglobaldecomposedmatrixobjects
+        kritaglobalhandlestyleobjects
+        kritaglobalpaintingtweaksobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+target_compile_definitions(KisHandlePainterHelperContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisDebugContractTest.cpp
     LINK_LIBRARIES
         kritaglobaldebugobjects
