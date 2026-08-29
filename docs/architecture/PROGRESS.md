@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 20:07 JST
+- 更新日時: 2026-08-29 20:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -25,10 +25,10 @@
   `/Users/masato/Documents/librepaint-r2-g19b-lazy-shared-cache`であり、`libs/global/KisLazySharedCacheStorage.h`、Global
   試験CMake、新規限定試験を所有する。型別名、既定状態、factory引数、遅延構築、初期化、reset、localとlinkedの
   コピー共有規則、複数スレッドからの一重構築の全34 APIを対象とする。
-- 実装担当`color-transfer-functions`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
+- 実装担当`color-transfer-functions`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は3である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-color-transfer-functions`であり、`libs/pigment/KoColorTransferFunctions.h`、
-  Pigment試験CMake、新規限定試験を所有する。定数、方針列挙、PQ・HLG・SMPTE 428曲線、OOTF、複数lane除去関数の
+  Pigment試験CMake、新規限定試験を所有する。定数、方針列挙、PQ・HLG・SMPTE 428曲線、OOTF、複数要素の除去関数の
   全29 APIを対象とし、現行で未使用の`nominalPeak`引数は既知不具合として分類する。
 - 実装担当`resource-tags`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
   `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-resource-tags`であり、
@@ -8521,9 +8521,25 @@
   1,199対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,388件、未対応24,601件になった。複数スレッド
   契約はmacOSのC++17環境と8スレッド反復で固定した。Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b HDR色転送関数の全public API契約で完了した作業
+
+- `libs/pigment/KoColorTransferFunctions.h`の全29 APIを、新規
+  `libs/pigment/tests/KoColorTransferFunctionsContractTest.cpp`の7試験へ対応付けた。10・12・16ビット正規化定数、
+  線形化・変換方針の列挙値、PQ・HLG・SMPTE ST 428曲線の基準点と往復、HLG光電変換のガンマと輝度係数、
+  xsimdベクトルの全要素に対する3線形化関数を固定した。
+- 全APIは公開ヘッダー内で完結するため、製品実装と構築所有は変更していない。限定試験は`kritamultiarch`、Qt Gui・Test、
+  OpenEXRだけへ直接接続し、製品`kritapigment`をリンクしない。macOSの対象閉包は10工程・24入力であり、既存の
+  `TestKoColorSpaceMaths`の331工程・691入力および製品`kritapigment`の327工程・684入力より小さい。
+- `applyHLGOOTF`と`removeHLGOOTF`は`nominalPeak`引数を使用せず、100と4,000を指定しても同じRGB結果を返す現行挙動を
+  既知不具合として分類した。製品修正は後続の挙動変更として契約更新とともに行う。
+- 対象CTestの単発実行と20回反復、最近傍の`KoColorProfileConstantsContractTest`と`KisMultiArchPublicApiTest`に成功した。
+  統合時のパッケージ境界検査は1,200対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,417件、
+  未対応24,572件になった。ベクトル契約はmacOS arm64の現在のxsimdアーキテクチャーで固定した。Linux、
+  全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-色転送関数、資源タグの順に、担当差分、限定構築、挙動、台帳を統合検証する。
+資源タグの担当差分、限定構築、挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 

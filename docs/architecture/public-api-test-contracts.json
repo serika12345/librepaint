@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24601
+    "expectedMissingApis": 24572
   },
   "contracts": [
     {
@@ -15364,6 +15364,100 @@
       "classification": "maintained",
       "apis": [
         "method:KisLazySharedCacheStorageBase::value(Args...args)"
+      ]
+    },
+    {
+      "target": "KoColorTransferFunctionsContractTest",
+      "source": "libs/pigment/tests/KoColorTransferFunctionsContractTest.cpp",
+      "test": "KoColorTransferFunctionsContractTest::constantsAndPoliciesKeepStableValues",
+      "behavior": "10・12・16ビット正規化定数と線形化・変換方針の列挙値は、保存形式と変換選択に使用する既定数値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:ConversionPolicy",
+        "enum:LinearizePolicy",
+        "enumerator:ConversionPolicy::ApplyHLG",
+        "enumerator:ConversionPolicy::ApplyPQ",
+        "enumerator:ConversionPolicy::ApplySMPTE428",
+        "enumerator:ConversionPolicy::KeepTheSame",
+        "enumerator:LinearizePolicy::KeepTheSame",
+        "enumerator:LinearizePolicy::LinearFromHLG",
+        "enumerator:LinearizePolicy::LinearFromPQ",
+        "enumerator:LinearizePolicy::LinearFromSMPTE428",
+        "variable:max12bit",
+        "variable:max16bit",
+        "variable:multiplier10bit",
+        "variable:multiplier12bit",
+        "variable:multiplier16bit"
+      ]
+    },
+    {
+      "target": "KoColorTransferFunctionsContractTest",
+      "source": "libs/pigment/tests/KoColorTransferFunctionsContractTest.cpp",
+      "test": "KoColorTransferFunctionsContractTest::pqCurvePreservesReferencePointsAndRoundTrips",
+      "behavior": "PQ曲線は負値を符号化黒へ制限し、203 nit白と10,000 nit基準点を維持して、符号化と線形化を往復する。",
+      "classification": "maintained",
+      "apis": [
+        "function:applySmpte2048Curve(float x,float refWhite=203.0)",
+        "function:removeSmpte2048Curve(float x,float refWhite=203.0)"
+      ]
+    },
+    {
+      "target": "KoColorTransferFunctionsContractTest",
+      "source": "libs/pigment/tests/KoColorTransferFunctionsContractTest.cpp",
+      "test": "KoColorTransferFunctionsContractTest::hlgCurvePreservesBranchesLimitsAndRoundTrips",
+      "behavior": "HLG曲線は黒、0.5の分岐点、上限を維持し、符号化と線形化を往復する。",
+      "classification": "maintained",
+      "apis": [
+        "function:applyHLGCurve(float x)",
+        "function:removeHLGCurve(float x)"
+      ]
+    },
+    {
+      "target": "KoColorTransferFunctionsContractTest",
+      "source": "libs/pigment/tests/KoColorTransferFunctionsContractTest.cpp",
+      "test": "KoColorTransferFunctionsContractTest::smpte428CurvePreservesReferencePointsAndRoundTrips",
+      "behavior": "SMPTE ST 428曲線は黒と52.37/48の基準点を維持し、符号化と線形化を往復する。",
+      "classification": "maintained",
+      "apis": [
+        "function:applySMPTE_ST_428Curve(float x)",
+        "function:removeSMPTE_ST_428Curve(float x)"
+      ]
+    },
+    {
+      "target": "KoColorTransferFunctionsContractTest",
+      "source": "libs/pigment/tests/KoColorTransferFunctionsContractTest.cpp",
+      "test": "KoColorTransferFunctionsContractTest::hlgOotfUsesLumaAndGamma",
+      "behavior": "HLGの光電変換は公称最大輝度からガンマを算出し、指定ガンマと輝度係数によるRGB倍率を適用・除去する。",
+      "classification": "maintained",
+      "apis": [
+        "function:HLGOOTFGamma(float nominalPeak)",
+        "function:applyHLGOOTF(float * rgb,const double * lumaCoefficients,float gamma=1.2f,float nominalPeak=1000.0f)",
+        "function:removeHLGOOTF(float * rgb,const double * lumaCoefficients,float gamma=1.2f,float nominalPeak=1000.0f)"
+      ]
+    },
+    {
+      "target": "KoColorTransferFunctionsContractTest",
+      "source": "libs/pigment/tests/KoColorTransferFunctionsContractTest.cpp",
+      "test": "KoColorTransferFunctionsContractTest::hlgOotfIgnoresNominalPeak",
+      "behavior": "HLGの光電変換を直接適用・除去する関数は、公称最大輝度へ異なる値を指定しても同じRGB結果を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "function:applyHLGOOTF(float * rgb,const double * lumaCoefficients,float gamma=1.2f,float nominalPeak=1000.0f)",
+        "function:removeHLGOOTF(float * rgb,const double * lumaCoefficients,float gamma=1.2f,float nominalPeak=1000.0f)"
+      ]
+    },
+    {
+      "target": "KoColorTransferFunctionsContractTest",
+      "source": "libs/pigment/tests/KoColorTransferFunctionsContractTest.cpp",
+      "test": "KoColorTransferFunctionsContractTest::vectorRemovalTransformsEveryLane",
+      "behavior": "現在のxsimdアーキテクチャーによるベクトル線形化は、PQ・HLG・SMPTE ST 428の全要素を対応するスカラー関数と同じ値へ変換する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoColorTransferFunctions::float_v",
+        "method:KoColorTransferFunctions::removeHLGCurve(float_v & x)",
+        "method:KoColorTransferFunctions::removeSMPTE_ST_428Curve(float_v & x)",
+        "method:KoColorTransferFunctions::removeSmpte2048Curve(float_v & x,float_v refWhite=203.0)",
+        "struct:KoColorTransferFunctions"
       ]
     }
   ]
