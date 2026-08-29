@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25118
+    "expectedMissingApis": 25112
   },
   "contracts": [
     {
@@ -12572,6 +12572,21 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::removeNode()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerTreeOperationContractTest",
+      "source": "libs/ui/tests/KisNodeManagerTreeOperationContractTest.cpp",
+      "test": "KisNodeManagerTreeOperationContractTest::treeOperationsPreserveInputsAndCurrentState",
+      "behavior": "ノード木の索引移動、直接移動・複製・追加、Undo付き追加は指定ノード、親、挿入位置、索引を各具体効果へそのまま渡す。一括操作は現在ノードを、現在選択の複製は選択一覧と現在ノードを渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::addNodeUndoable(KisNodeSP node,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisNodeManager::addNodesDirect(KisNodeList nodes,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisNodeManager::copyNodesDirect(KisNodeList nodes,KisNodeSP parent,KisNodeSP aboveThis)",
+        "method:KisNodeManager::duplicateActiveNode()",
+        "method:KisNodeManager::moveNodeAt(KisNodeSP node,KisNodeSP parent,int index)",
+        "method:KisNodeManager::moveNodesDirect(KisNodeList nodes,KisNodeSP parent,KisNodeSP aboveThis)"
       ]
     }
   ]

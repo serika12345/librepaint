@@ -523,29 +523,66 @@ void KisNodeManager::ModificationAccess::showWarning(KisNodeManager *manager, co
     manager->m_d->view->showFloatingMessage(message, QIcon());
 }
 
-void KisNodeManager::moveNodeAt(KisNodeSP node, KisNodeSP parent, int index)
+KisNodeList KisNodeManager::TreeOperationAccess::selectedNodes(KisNodeManager *manager)
 {
-    m_d->commandsAdapter.moveNode(node, parent, index);
+    return manager->selectedNodes();
 }
 
-void KisNodeManager::moveNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
+KisNodeSP KisNodeManager::TreeOperationAccess::activeNode(KisNodeManager *manager)
 {
-    m_d->lazyGetNodeOperationBatch(kundo2_i18n("Move Nodes"))->moveNode(nodes, parent, aboveThis, activeNode());
+    return manager->activeNode();
 }
 
-void KisNodeManager::copyNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
+void KisNodeManager::TreeOperationAccess::moveNodeAt(KisNodeManager *manager,
+                                                     KisNodeSP node,
+                                                     KisNodeSP parent,
+                                                     int index)
 {
-    m_d->lazyGetNodeOperationBatch(kundo2_i18n("Copy Nodes"))->copyNode(nodes, parent, aboveThis, activeNode());
+    manager->m_d->commandsAdapter.moveNode(node, parent, index);
 }
 
-void KisNodeManager::addNodesDirect(KisNodeList nodes, KisNodeSP parent, KisNodeSP aboveThis)
+void KisNodeManager::TreeOperationAccess::moveNodes(KisNodeManager *manager,
+                                                    const KisNodeList &nodes,
+                                                    KisNodeSP parent,
+                                                    KisNodeSP aboveThis,
+                                                    KisNodeSP activeNode)
 {
-    m_d->lazyGetNodeOperationBatch(kundo2_i18n("Add Nodes"))->addNode(nodes, parent, aboveThis, activeNode());
+    manager->m_d->lazyGetNodeOperationBatch(kundo2_i18n("Move Nodes"))->moveNode(nodes, parent, aboveThis, activeNode);
 }
 
-void KisNodeManager::addNodeUndoable(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis)
+void KisNodeManager::TreeOperationAccess::copyNodes(KisNodeManager *manager,
+                                                    const KisNodeList &nodes,
+                                                    KisNodeSP parent,
+                                                    KisNodeSP aboveThis,
+                                                    KisNodeSP activeNode)
 {
-    m_d->commandsAdapter.addNode(node, parent, aboveThis);
+    manager->m_d->lazyGetNodeOperationBatch(kundo2_i18n("Copy Nodes"))->copyNode(nodes, parent, aboveThis, activeNode);
+}
+
+void KisNodeManager::TreeOperationAccess::addNodes(KisNodeManager *manager,
+                                                   const KisNodeList &nodes,
+                                                   KisNodeSP parent,
+                                                   KisNodeSP aboveThis,
+                                                   KisNodeSP activeNode)
+{
+    manager->m_d->lazyGetNodeOperationBatch(kundo2_i18n("Add Nodes"))->addNode(nodes, parent, aboveThis, activeNode);
+}
+
+void KisNodeManager::TreeOperationAccess::addNodeUndoable(KisNodeManager *manager,
+                                                          KisNodeSP node,
+                                                          KisNodeSP parent,
+                                                          KisNodeSP aboveThis)
+{
+    manager->m_d->commandsAdapter.addNode(node, parent, aboveThis);
+}
+
+void KisNodeManager::TreeOperationAccess::duplicateNodes(KisNodeManager *manager,
+                                                         const KisNodeList &nodes,
+                                                         KisNodeSP activeNode)
+{
+    const KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
+    KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
+    batch->duplicateNode(nodes, activeNode);
 }
 
 void KisNodeManager::toggleIsolateActiveNode()
@@ -1155,13 +1192,6 @@ void KisNodeManager::RemovalAccess::removeNodes(KisNodeManager *manager, const K
     const KUndo2MagicString actionName = kundo2_i18n("Remove Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->removeNode(nodes, activeNode);
-}
-
-void KisNodeManager::duplicateActiveNode()
-{
-    KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
-    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-    batch->duplicateNode(selectedNodes(), activeNode());
 }
 
 KisNodeOperationBatch* KisNodeManager::Private::lazyGetNodeOperationBatch(const KUndo2MagicString &actionName)

@@ -428,6 +428,29 @@ protected:
         static void removeNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode);
     };
 
+    struct KRITAUI_EXPORT TreeOperationAccess {
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static void moveNodeAt(KisNodeManager *manager, KisNodeSP node, KisNodeSP parent, int index);
+        static void moveNodes(KisNodeManager *manager,
+                              const KisNodeList &nodes,
+                              KisNodeSP parent,
+                              KisNodeSP aboveThis,
+                              KisNodeSP activeNode);
+        static void copyNodes(KisNodeManager *manager,
+                              const KisNodeList &nodes,
+                              KisNodeSP parent,
+                              KisNodeSP aboveThis,
+                              KisNodeSP activeNode);
+        static void addNodes(KisNodeManager *manager,
+                             const KisNodeList &nodes,
+                             KisNodeSP parent,
+                             KisNodeSP aboveThis,
+                             KisNodeSP activeNode);
+        static void addNodeUndoable(KisNodeManager *manager, KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis);
+        static void duplicateNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1
