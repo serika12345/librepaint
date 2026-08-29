@@ -497,6 +497,20 @@ target_include_directories(KisBezierPatchParamToSourceSamplerContractTest PRIVAT
 )
 
 kis_add_test(
+    KisBezierPatchContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalalgebradirectionobjects
+        kritaglobalbeziercurvelengthobjects
+        kritaglobalbezierpatchobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisBezierPatchContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisBezierPatchContractTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisLodTransformBaseContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
