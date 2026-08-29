@@ -18,6 +18,9 @@ public:
     KisHighlightedToolButton(QWidget *parent = 0)
         : QToolButton(parent)
     {
+        if (parent) {
+            parent->installEventFilter(this);
+        }
     }
 
     void changeEvent(QEvent *event) override {
@@ -39,6 +42,13 @@ protected:
     }
 
 private:
+    bool eventFilter(QObject *watched, QEvent *event) override {
+        if (watched == parentWidget() && event->type() == QEvent::PaletteChange) {
+            updatePalette();
+        }
+        return QToolButton::eventFilter(watched, event);
+    }
+
     void updatePalette() {
         QWidget *parent = this->parentWidget();
         if (parent) {
