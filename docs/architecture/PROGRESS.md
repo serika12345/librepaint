@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 23:24 JST
+- 更新日時: 2026-08-29 23:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,30 +11,26 @@
 
 ### 現在の並列担当票
 
-- 第19並列便の共通基準コミットは`afaa7ef412`である。統合担当は`develop`の
+- 第20並列便の共通基準コミットは`90ec8717a5`である。統合担当は`develop`の
   主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
+  `/Users/masato/Documents/librepaint-r2-g20-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`psd-header`は`integrated`、実装コミットは`aafaf80523`、統合順は1である。開始ファイル
-  `libs/psd/psd_header.cpp`の構築所有を`libs/psd/CMakeLists.txt`の製品ソース列挙から同ファイルの
-  `kritapsdheaderobjects`へ移し、製品`kritapsd`へ一度だけ再集約した。開始試験
-  `plugins/impex/psd/tests/psd_header_test.{h,cpp}`は同じパスのまま外部試験データ・製品・共通試験補助への接続を除き、
-  専用生成物とメモリー内入出力へ移した。既定値、検証、読込み、書込み、診断表示の全16 APIを固定した。
-- 実装担当`writing-system`は`integrated`、担当先端は`5e2b5f9118`、統合コミットは`df27b687ae`、統合順は2である。
-  開始ファイル`libs/flake/text/KoWritingSystemUtils.cpp`の構築所有を`libs/flake/CMakeLists.txt`の製品ソース列挙から
-  同ファイルの`kritaflakewritingsystemutilsobjects`へ移し、製品`kritaflake`へ一度だけ再集約した。新規限定試験
-  `libs/flake/tests/KoWritingSystemUtilsContractTest.cpp`は専用生成物とQt Gui・Testだけへ接続し、文字体系列挙対応、見本、
-  BCP 47解析・整形、QLocale変換の全22 APIを固定した。
-- 実装担当`frame-cache-index`は`integrated`、担当先端は`93c9848208`、統合コミットは`f3b1dc79c1`、統合順は3である。
-  開始ファイル`libs/canvas/animation/kis_animation_frame_cache_index.cpp`の構築所有を`libs/canvas/CMakeLists.txt`の製品ソース列挙から
-  同ファイルの`kritacanvasanimationframecacheindexobjects`へ移し、製品`kritacanvas`へ一度だけ再集約した。開始試験
-  `libs/canvas/tests/kis_animation_frame_cache_index_test.cpp`は同じパスのまま、Canvas製品・共通試験補助から専用生成物と
-  Qt Testへ接続先を移し、操作値、有限・無限範囲、挿入、無効化、結合、交差、長さ、削除の全22 APIを固定した。
-- 実装担当`wrapped-rect`は`integrated`、担当先端は`90e23c4e07`、統合コミットは`e3cef7a230`、統合順は4である。
-  開始ファイル`libs/image/kis_wrapped_rect.h`は製品所有のヘッダー内実装を維持した。新規限定試験
-  `libs/image/tests/KisWrappedRectContractTest.cpp`を同ディレクトリーの試験CMakeへ追加し、Qt Core・Testだけへ接続した。
-  座標正規化、切取り、包含、複製原点、4象限分割、周期複製の全22 APIを固定した。
-- 第19並列便の完了時は合計82 APIを追加し、公開面の対応済み5,891件、未対応24,098件を見込む。各担当は公開面と製品挙動を
+- 統合担当`updater`は`planned`、統合順は1である。主作業ツリーで`libs/widgetutils/KoUpdater.{h,cpp}`、
+  `libs/widgetutils/KoUpdaterPrivate_p.{h,cpp}`、WidgetUtils製品・試験CMake、新規限定試験を所有する。既存試験の
+  1,092工程・2,207入力を専用生成物へ縮小し、進捗、範囲、割込み、通知、無処理updater、寿命の全23 APIを対象とする。
+- 実装担当`view-converter`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は2である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-view-converter`であり、
+  `libs/flake/KoViewConverter.{h,cpp}`、Flake製品・試験CMake、新規限定試験を所有する。553工程・1,138入力の製品接続から分離し、
+  ズーム状態、座標・矩形・寸法・行列変換、静止点合成、寿命の全22 APIを対象とする。
+- 実装担当`storage-plugin`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は3である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-storage-plugin`であり、
+  `libs/resources/KisStoragePlugin.{h,cpp}`、Resources製品・試験CMake、新規限定試験を所有する。717工程・1,461入力の統合試験から
+  分離し、構築、時刻、URL読込み配送、MD5、資源情報、既定非対応操作、純仮想接続面、寿命の全21 APIを対象とする。
+- 実装担当`lod-layer-offset`は`planned`、構築実行許可は`withheld`、Git操作権限は`forbidden`、追加委任は
+  `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g20-lod-layer-offset`であり、
+  `libs/image/kis_lod_capable_layer_offset.{h,cpp}`、Image製品・試験CMake、既存試験の限定化を所有する。1,092工程・2,206入力の
+  製品接続から分離し、QPoint特化、汎用値同期、LOD切替、コピー・代入、状態交換の全20 APIを対象とする。
+- 第20並列便の完了時は合計86 APIを追加し、公開面の対応済み5,977件、未対応24,012件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
@@ -8868,7 +8864,7 @@
 
 ## 次の操作
 
-未対応24,098 APIの最新報告から第20並列便の候補を選び、各候補の直接依存と清浄木の構築範囲を監査して担当票を確定する。
+共通基準`90ec8717a5`から3専用作業ツリーを作成し、第20並列便の構築実行とtransport commitを許可して4担当を開始する。
 
 ## R1-G5完了根拠
 
