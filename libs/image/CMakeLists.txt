@@ -42,6 +42,21 @@ set_target_properties(kritaimagefastmathobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagenameserverobjects OBJECT
+   kis_name_server.cpp
+)
+target_compile_definitions(kritaimagenameserverobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagenameserverobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaimagenameserverobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagenameserverobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagestrokejobobjects OBJECT
    kis_stroke_job_strategy.cpp
    KisRunnableStrokeJobDataBase.cpp
@@ -502,7 +517,6 @@ set(kritaimage_LIB_SRCS
    kis_curve_rect_mask_generator.cpp
    kis_math_toolbox.cpp
    kis_memory_statistics_server.cpp
-   kis_name_server.cpp
    kis_node.cpp
    kis_node_facade.cpp
    kis_node_progress_proxy.cpp
@@ -608,6 +622,7 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
+   $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>

@@ -60,7 +60,6 @@ kis_add_tests(
     kis_strokes_queue_test.cpp
     kis_mask_test.cpp
     kis_math_toolbox_test.cpp
-    kis_name_server_test.cpp
     kis_node_graph_listener_test.cpp
     kis_node_visitor_test.cpp
     kis_paint_information_test.cpp
@@ -142,6 +141,18 @@ kis_add_test(
     LINK_LIBRARIES kritaimagefastmathobjects Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(kis_fast_math_test PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
+    kis_name_server_test.cpp
+    LINK_LIBRARIES
+        kritaimagenameserverobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(kis_name_server_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(kis_name_server_test PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
     kis_vec_test.cpp

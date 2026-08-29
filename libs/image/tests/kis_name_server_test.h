@@ -7,15 +7,14 @@
 #ifndef KIS_NAMESERVER_TEST_H
 #define KIS_NAMESERVER_TEST_H
 
-#include <simpletest.h>
+#include <QObject>
 
 class KisNameServerTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-
-    void testCreation();
-
+    void defaultSequenceBeginsAtOne();
+    void customSeedAdvancesAndRollsBack();
 };
 
 #endif
