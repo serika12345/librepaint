@@ -205,6 +205,21 @@ target_link_libraries(kritawidgetutilsprogressbarobjects
 )
 set_target_properties(kritawidgetutilsprogressbarobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetutilsrepaintdebuggerobjects OBJECT
+    KisRepaintDebugger.cpp
+)
+target_compile_definitions(kritawidgetutilsrepaintdebuggerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsrepaintdebuggerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsrepaintdebuggerobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritawidgetutilsrepaintdebuggerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetutilsoptioncollectionobjects OBJECT
     KisOptionCollectionWidget.cpp
 )
@@ -247,6 +262,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritawidgetutilsprogressupdaterobjects>
     $<TARGET_OBJECTS:kritawidgetutilsfakeprogressproxyobjects>
     $<TARGET_OBJECTS:kritawidgetutilsprogressbarobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsrepaintdebuggerobjects>
     $<TARGET_OBJECTS:kritawidgetutilsoptioncollectionobjects>
     $<TARGET_OBJECTS:kritawidgetutilswrappablehboxlayoutobjects>
 
@@ -273,7 +289,6 @@ set(kritawidgetutils_LIB_SRCS
     KisFontFamilyValidator.cpp
     KisRecentFilesManager.cpp
     KisOptionButtonStrip.cpp
-    KisRepaintDebugger.cpp
     KisScreenMigrationTracker.cpp
     KisRootSurfaceTrackerBase.cpp
 
