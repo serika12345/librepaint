@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23756
+    "expectedMissingApis": 23712
   },
   "contracts": [
     {
@@ -18236,6 +18236,122 @@
         "method:KisThresholdSlider::setWhitePoint(qreal newWhitePoint)",
         "method:KisThresholdSlider::threshold() const",
         "method:KisThresholdSlider::thresholdChanged(qreal newThreshold)"
+      ]
+    },
+    {
+      "target": "PsdByteIoContractTest",
+      "source": "libs/psdutils/tests/PsdByteIoContractTest.cpp",
+      "test": "PsdByteIoContractTest::rawIntegerWritesUseRequestedByteOrder",
+      "behavior": "8・16・32・64ビットの符号なし整数は、明示した大小エンディアンのバイト列をQIODeviceへ正確に書き込む。",
+      "classification": "maintained",
+      "apis": [
+        "function:psdwriteBE(QIODevice & io,const quint16 & v)",
+        "function:psdwriteBE(QIODevice & io,const quint32 & v)",
+        "function:psdwriteBE(QIODevice & io,const quint64 & v)",
+        "function:psdwriteBE(QIODevice & io,const quint8 & v)",
+        "function:psdwriteLE(QIODevice & io,const quint16 & v)",
+        "function:psdwriteLE(QIODevice & io,const quint32 & v)",
+        "function:psdwriteLE(QIODevice & io,const quint64 & v)",
+        "function:psdwriteLE(QIODevice & io,const quint8 & v)"
+      ]
+    },
+    {
+      "target": "PsdByteIoContractTest",
+      "source": "libs/psdutils/tests/PsdByteIoContractTest.cpp",
+      "test": "PsdByteIoContractTest::arithmeticWritesDispatchBySizeAndReportFailure",
+      "behavior": "1・2・4・8バイトの算術値は型寸法に対応する大小エンディアン書込みへ配送され、閉じた装置への不完全な書込みは失敗を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:psdwrite(QIODevice & io,T v)",
+        "function:psdwriteBE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint16),T &> v)",
+        "function:psdwriteBE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint32),T &> v)",
+        "function:psdwriteBE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint64),T &> v)",
+        "function:psdwriteBE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint8),T &> v)",
+        "function:psdwriteLE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint16),T &> v)",
+        "function:psdwriteLE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint32),T &> v)",
+        "function:psdwriteLE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint64),T &> v)",
+        "function:psdwriteLE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint8),T &> v)"
+      ]
+    },
+    {
+      "target": "PsdByteIoContractTest",
+      "source": "libs/psdutils/tests/PsdByteIoContractTest.cpp",
+      "test": "PsdByteIoContractTest::stringsPaddingAndPascalStringsPreserveLayout",
+      "behavior": "Latin-1文字列、ゼロ余白、標準および任意境界のPascal文字列は宣言したレイアウトで書き込まれ、閉じた装置では失敗を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:psdpad(QIODevice & io,quint32 padding)",
+        "function:psdwrite(QIODevice & io,const QString & s)",
+        "function:psdwrite_pascalstring(QIODevice & io,const QString & s)",
+        "function:psdwrite_pascalstring(QIODevice & io,const QString & s,int padding)"
+      ]
+    },
+    {
+      "target": "PsdByteIoContractTest",
+      "source": "libs/psdutils/tests/PsdByteIoContractTest.cpp",
+      "test": "PsdByteIoContractTest::rawIntegerReadsUseRequestedByteOrder",
+      "behavior": "大小エンディアンの1・2・4・8バイト列は対応する符号なし整数へ正確に読み込まれる。",
+      "classification": "maintained",
+      "apis": [
+        "function:psdreadBE(QIODevice & io,quint16 & v)",
+        "function:psdreadBE(QIODevice & io,quint32 & v)",
+        "function:psdreadBE(QIODevice & io,quint64 & v)",
+        "function:psdreadBE(QIODevice & io,quint8 & v)",
+        "function:psdreadLE(QIODevice & io,quint16 & v)",
+        "function:psdreadLE(QIODevice & io,quint32 & v)",
+        "function:psdreadLE(QIODevice & io,quint64 & v)",
+        "function:psdreadLE(QIODevice & io,quint8 & v)"
+      ]
+    },
+    {
+      "target": "PsdByteIoContractTest",
+      "source": "libs/psdutils/tests/PsdByteIoContractTest.cpp",
+      "test": "PsdByteIoContractTest::arithmeticReadsDispatchBySizeAndPreserveOutputOnFailure",
+      "behavior": "1・2・4・8バイトの算術値は型寸法に対応する大小エンディアン読込みへ配送され、短い入力では出力値を変更せず失敗を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:psdread(QIODevice & io,T & v)",
+        "function:psdreadBE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint16),T &> v)",
+        "function:psdreadBE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint32),T &> v)",
+        "function:psdreadBE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint64),T &> v)",
+        "function:psdreadBE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint8),T &> v)",
+        "function:psdreadLE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint16),T &> v)",
+        "function:psdreadLE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint32),T &> v)",
+        "function:psdreadLE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint64),T &> v)",
+        "function:psdreadLE(QIODevice & io,std::enable_if_t<sizeof (T)==sizeof (quint8),T &> v)"
+      ]
+    },
+    {
+      "target": "PsdByteIoContractTest",
+      "source": "libs/psdutils/tests/PsdByteIoContractTest.cpp",
+      "test": "PsdByteIoContractTest::byteAndStringReadersConsumeTheirDeclaredLayout",
+      "behavior": "生バイト列は指定したエンディアン順で返され、Pascal文字列は既存文字列へ追記され、Unicode文字列は宣言長を読み末尾空白を除去する。",
+      "classification": "maintained",
+      "apis": [
+        "function:psdreadBytes(QIODevice & io,qint64 v)",
+        "function:psdread_pascalstring(QIODevice & io,QString & s,qint64 padding)",
+        "function:psdread_unicodestring(QIODevice & io,QString & s)"
+      ]
+    },
+    {
+      "target": "PsdByteIoContractTest",
+      "source": "libs/psdutils/tests/PsdByteIoContractTest.cpp",
+      "test": "PsdByteIoContractTest::blendModeReaderValidatesSignatureAndKeyLength",
+      "behavior": "混合方式読込みは8BIM署名と4バイトキーを受理し、不正署名では既存出力を保持し、短いキーでは読み取れた断片を返して失敗する。",
+      "classification": "maintained",
+      "apis": [
+        "function:psd_read_blendmode(QIODevice & io,QString & blendModeKey)"
+      ]
+    },
+    {
+      "target": "PsdByteIoContractTest",
+      "source": "libs/psdutils/tests/PsdByteIoContractTest.cpp",
+      "test": "PsdByteIoContractTest::fixedPointValuesRoundTripInBothByteOrders",
+      "behavior": "符号付き8.24固定小数値は大小エンディアンの4バイト表現を往復し、入力不足時の読込みは0を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:psdreadFixedPoint(QIODevice & io)",
+        "function:psdwriteFixedPoint(QIODevice & io,double val)"
       ]
     }
   ]

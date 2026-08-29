@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 02:00 JST
+- 更新日時: 2026-08-30 02:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,7 +14,7 @@
 - 第23並列便の共通基準コミットは`141eefb38c`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g23-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`psd-byte-io`は`implementing`、構築実行許可は`granted`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`psd-byte-io`は`integrated`、実装コミットは`26f9d306ae`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/psdutils/psd_utils.h`、PSDUtils試験CMake、新規`PsdByteIoContractTest.cpp`を所有する。既存試験の581工程・
   1,191入力から製品共有ライブラリーを除き、整数・列挙・固定小数点、文字列、余白、混合方式の大小エンディアン入出力にある
   全44 APIを対象とする。
@@ -9083,10 +9083,26 @@
 - 第22並列便はXML値変換39 API、メタデータ値41 API、SVGメッシュパッチ41 API、レベルスライダー44 APIの合計165 APIを
   固定した。各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
 
+## R2-G19b PSDバイト入出力の全public API契約とヘッダー依存限定で完了した作業
+
+- `libs/psdutils/psd_utils.h`の全44 APIを、新規`libs/psdutils/tests/PsdByteIoContractTest.cpp`の8試験へ対応付けた。
+  1・2・4・8バイト整数と型寸法別入口、大小エンディアン、Latin-1・Pascal・Unicode文字列、生バイト列、余白、混合方式、
+  符号付き8.24固定小数点の成功・入力不足・出力不足を固定した。
+- 開始ヘッダー`libs/psdutils/psd_utils.h`は同じパスとインライン実装所有を維持し、型宣言に対する広い`psd.h`と重複した
+  `resources/KoPattern.h`依存を、移動先となる直接の`psd_types.h`、Qt Core型、標準アルゴリズム・配列・数学・型特性へ置換した。
+  `fabs`は同じ標準関数を`std::fabs`として直接参照する。新規限定試験はQt Core・Testだけへ接続し、製品共有ライブラリーを
+  使用しない。製品実装、公開宣言、バイト表現は維持した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は4工程・8入力であり、従来`psd_utils_test`の581工程・
+  1,191入力から縮小し、最近傍`PsdFormatValuesContractTest`と同じ閉包になった。全型寸法のテンプレート入口を明示的に実体化し、
+  対象CTest単発と20回反復、最近傍契約、製品共有ライブラリー非接続、パッケージ境界検査、高速検査に成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み6,277件、未対応23,712件になった。256文字以上、余白0、非Latin-1文字、Unicodeの
+  埋込みNULと複数末尾空白、固定小数点の宣言範囲外・非有限値、seek不能装置、Linux、全ネイティブ検証、製品利用元の再コンパイル、
+  製品全体リンクは実行していない。
+
 ## 次の操作
 
-第23並列便の4対象を担当票に従って実装し、各限定対象の単発・20回反復、軽量隣接試験、構築閉包、製品共有ライブラリー非接続を
-確認する。完了した引渡しを統合順に主作業ツリーへ取り込む。
+第23並列便の`opentype-feature-info`、`filter-strategy`、`zoom-handler`引渡しを統合順に主作業ツリーへ取り込み、各限定対象を
+再検証して中央台帳と完了記録を更新する。
 
 ## R1-G5完了根拠
 
