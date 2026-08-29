@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 08:29 JST
+- 更新日時: 2026-08-30 08:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -13,23 +13,23 @@
 
 - 第35並列便の共通基準コミットは`76907b1fc4`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g35-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`option-button-strip`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`option-button-strip`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/widgetutils/KoGroupButton.cpp`、`libs/widgetutils/KisOptionButtonStrip.cpp`、WidgetUtils製品・試験CMake、新規
   `KisOptionButtonStripContractTest.cpp`を所有する。2開始ファイルを製品`kritawidgetutils`の直接ソースから1つのAUTOMOC/PIC対応専用生成物へ
   移し、製品へ1回だけ再集約する。製品の250工程・533入力に代えて9工程・19入力以内で、group位置列挙、構築・寿命、追加overload、
   配置順、排他選択、照会、2変更通知の全25 APIを固定する。
-- 実装担当`path-reverse-command`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2で
+- 実装担当`path-reverse-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2で
   ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g35-path-reverse-command`で`libs/flake/commands/KoPathReverseCommand.cpp`、
   Flake製品・試験CMake、新規`KoPathReverseCommandContractTest.cpp`を所有する。開始ファイルを製品`kritaflake`の直接ソースから
   AUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。試験時限定の非公開path accessを使い、製品の569工程・1,170入力に
   代えて6工程・14入力以内で、複数pathのsubpath反転順、redo・undo・再redo、空入力、親命令、借用寿命の全5 APIを固定する。
-- 実装担当`stroke-speed-measurer`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3で
+- 実装担当`stroke-speed-measurer`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3で
   ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g35-stroke-speed-measurer`で
   `libs/image/brushengine/KisStrokeSpeedMeasurer.cpp`、Image製品・試験CMake、新規`KisStrokeSpeedMeasurerContractTest.cpp`を所有する。
   開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。試験内の診断記録だけで
   安全assert経路を閉じ、製品の1,119工程・2,262入力に代えて6工程・13入力以内で、標本追加、集合追加、平均・現在・最大速度、平滑窓、
   reset、値寿命の全9 APIを固定する。
-- 実装担当`stacked-widget`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
+- 実装担当`stacked-widget`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
   作業ツリー`/Users/masato/Documents/librepaint-r2-g35-stacked-widget`で`libs/widgets/kis_stacked_widget.cpp`、Widgets製品・試験CMake、新規
   `KisStackedWidgetContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、
   製品へ1回だけ再集約する。製品の744工程・1,517入力に代えて6工程・13入力以内で、親所有、仮想寿命、複製・移動禁止、現在pageの最小寸法と
@@ -9777,8 +9777,8 @@
 
 ## 次の操作
 
-第35並列便の専用作業木を共通基準コミットから作り、各限定対象が未知で失敗する初回診断を記録する。統合担当が構築実行を許可した後、
-各担当は記録済みの停止上限と直接依存を再確認し、許可パス内だけで最小契約を追加する。
+第35並列便の4担当は、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認する。許可パス内だけで
+最小契約を追加し、単発・20回反復・軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡す。
 
 ## R1-G5完了根拠
 
