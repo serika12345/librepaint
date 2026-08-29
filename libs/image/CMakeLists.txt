@@ -113,6 +113,23 @@ set_target_properties(kritaimageinterfacesobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagetransformmaskparamsinterfaceobjects OBJECT
+   kis_transform_mask_params_interface.cpp
+)
+target_compile_definitions(kritaimagetransformmaskparamsinterfaceobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagetransformmaskparamsinterfaceobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagetransformmaskparamsinterfaceobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagetransformmaskparamsinterfaceobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageoptimizedbytearrayobjects OBJECT
    KisOptimizedByteArray.cpp
 )
@@ -615,7 +632,6 @@ set(kritaimage_LIB_SRCS
    kis_fill_painter.cc
    kis_filter_mask.cpp
    kis_transform_mask.cpp
-   kis_transform_mask_params_interface.cpp
    kis_recalculate_transform_mask_job.cpp
    kis_transform_mask_params_factory_registry.cpp
    kis_safe_transform.cpp
@@ -786,6 +802,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
+   $<TARGET_OBJECTS:kritaimagetransformmaskparamsinterfaceobjects>
    $<TARGET_OBJECTS:kritaimageoptimizedbytearrayobjects>
    $<TARGET_OBJECTS:kritaimagelevelscurveobjects>
    $<TARGET_OBJECTS:kritaimagespatialcontainerobjects>

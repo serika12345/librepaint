@@ -467,6 +467,27 @@ target_include_directories(KisImageTypesContractTest PRIVATE
 target_compile_definitions(KisImageTypesContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisTransformMaskParamsInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagetransformmaskparamsinterfaceobjects
+        kritaglobalsharedobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisTransformMaskParamsInterfaceContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisTransformMaskParamsInterfaceContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisWrappedRectContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
