@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 12:21 JST
+- 更新日時: 2026-08-29 12:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -7446,11 +7446,27 @@
 - 対象CTestのmacOS単発実行と20回反復は成功した。公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、
   29,989 API、対応済み4,951件、未対応25,038件になった。Linuxと全ネイティブ検証は実行していない。
 
+## R2-G19b ノードモデル転送規約 public API契約と値所有分離で完了した作業
+
+- `libs/ui/nodes/kis_node_model.cpp`にあったMIME型一覧、ドラッグ許可操作、ドロップ許可操作の3メソッド本体を、新規
+  `libs/ui/nodes/KisNodeModelTransferProtocol.cpp`へ移した。製品`kritaapplicationui`は新規
+  `kritauinodemodeltransferprotocolobjects`の生成物を1回集約し、転送規約の変更をモデル具象所有全体から分離する。
+- `libs/ui/nodes/kis_node_model.h`の3 APIを、新規`libs/ui/tests/KisNodeModelTransferProtocolContractTest.cpp`の2試験へ
+  対応付けた。内部ノード参照、Qt画像、色、色集合項目の4 MIME型と順序、ドラッグ元・ドロップ先の双方で複製と移動を
+  許可する値を固定した。実装接続前のリンクは対象3メソッドだけを未解決記号として診断した。
+- 変更前の既存`kis_node_model_test`は1,831工程・3,661入力、直近の役割契約は4工程・8入力だった。製品未接続の
+  赤試験は4工程・8入力、転送規約対象は1工程・3入力、緑化後の試験は5工程・11入力に収めた。製品
+  `kritaapplicationui`閉包は1,826工程・3,652入力から1,827工程・3,654入力、既存試験は1,832工程・3,663入力に
+  なった。
+- 転送規約対象と元の`kis_node_model.cpp`単体のコンパイル、対象CTestのmacOS単発実行と20回反復は成功した。
+  公開API契約検査と高速検査も成功した。公開面は1,549ヘッダー、29,989 API、対応済み4,954件、未対応25,035件に
+  なった。製品`kritaapplicationui`のリンク、Linux、全ネイティブ検証は実行していない。
+
 ## 次の操作
 
-`libs/ui/nodes/kis_node_model.h`の`mimeTypes()`、`supportedDragActions()`、`supportedDropActions()`を次の小単位とする。
-既存`kis_node_model_test`と現在の4工程・8入力の役割契約を比較し、転送規約だけを専用生成物へ分ける。4個のMIME型の
-値と順序、ドラッグ・ドロップで許可する複製・移動操作を、製品`kritaapplicationui`へ直結しない契約で固定する。
+`libs/ui/nodes/kis_node_model.h`の`nodeFromIndex()`と`indexFromNode()`を次の小単位とする。既存モデル試験と現在の
+転送規約契約の変更なし計画、直接依存、空構築閉包を比較し、索引変換判断を専用生成物へ分ける。索引に対応するダミーが
+ない場合の空ノード、ノードに対応するダミーがない場合の無効索引、対応がある場合の双方向変換を固定する。
 
 ## R1-G5完了根拠
 

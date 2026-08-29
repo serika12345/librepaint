@@ -780,26 +780,6 @@ bool KisNodeModel::setData(const QModelIndex &index, const QVariant &value, int 
     return result;
 }
 
-Qt::DropActions KisNodeModel::supportedDragActions() const
-{
-    return Qt::CopyAction | Qt::MoveAction;
-}
-
-Qt::DropActions KisNodeModel::supportedDropActions() const
-{
-    return Qt::MoveAction | Qt::CopyAction;
-}
-
-QStringList KisNodeModel::mimeTypes() const
-{
-    QStringList types;
-    types << QLatin1String("application/x-krita-node-internal-pointer");
-    types << QLatin1String("application/x-qt-image");
-    types << QLatin1String("application/x-color");
-    types << QLatin1String("krita/x-colorsetentry");
-    return types;
-}
-
 QMimeData * KisNodeModel::mimeData(const QModelIndexList &indexes) const
 {
     bool hasLockedLayer = false;

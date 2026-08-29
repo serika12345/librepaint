@@ -729,6 +729,20 @@ target_compile_definitions(KisNodeModelItemDataRoleContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisNodeModelTransferProtocolContractTest.cpp
+    TEST_NAME KisNodeModelTransferProtocolContractTest
+    LINK_LIBRARIES
+        kritauinodemodeltransferprotocolobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeModelTransferProtocolContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_compile_definitions(KisNodeModelTransferProtocolContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

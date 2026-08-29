@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25038
+    "expectedMissingApis": 25035
   },
   "contracts": [
     {
@@ -13311,6 +13311,27 @@
       "apis": [
         "enumerator:KisNodeModel::ItemDataRole::BeginThumbnailRole",
         "enumerator:KisNodeModel::ItemDataRole::ReservedRole"
+      ]
+    },
+    {
+      "target": "KisNodeModelTransferProtocolContractTest",
+      "source": "libs/ui/tests/KisNodeModelTransferProtocolContractTest.cpp",
+      "test": "KisNodeModelTransferProtocolContractTest::mimeTypesRemainOrdered",
+      "behavior": "ノード転送は内部ノード参照、Qt画像、色、色集合項目の4 MIME型を安定した順序で公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::mimeTypes() const"
+      ]
+    },
+    {
+      "target": "KisNodeModelTransferProtocolContractTest",
+      "source": "libs/ui/tests/KisNodeModelTransferProtocolContractTest.cpp",
+      "test": "KisNodeModelTransferProtocolContractTest::dragAndDropAllowCopyAndMove",
+      "behavior": "ノードモデルはドラッグ元とドロップ先の双方で複製と移動を許可する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::supportedDragActions() const",
+        "method:KisNodeModel::supportedDropActions() const"
       ]
     }
   ]
