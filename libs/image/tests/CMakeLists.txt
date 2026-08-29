@@ -463,6 +463,20 @@ target_include_directories(KisNodeVisitorContractTest PRIVATE
 )
 
 kis_add_test(
+    KisAbstractProjectionPlaneContractTest.cpp
+    LINK_LIBRARIES
+        kritaimageprojectionplaneobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisAbstractProjectionPlaneContractTest PRIVATE kritaimage_EXPORTS)
+target_include_directories(KisAbstractProjectionPlaneContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KisImageTypesContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core

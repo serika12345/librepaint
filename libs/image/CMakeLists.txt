@@ -113,6 +113,37 @@ set_target_properties(kritaimageinterfacesobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageprojectionplaneobjects OBJECT
+   kis_abstract_projection_plane.cpp
+)
+target_compile_definitions(kritaimageprojectionplaneobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageprojectionplaneobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment/resources>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/psdutils>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/psdutils>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+)
+target_link_libraries(kritaimageprojectionplaneobjects
+   PUBLIC
+      Imath::Imath
+      KF${KF_MAJOR}::I18n
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaimageprojectionplaneobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagetransformmaskparamsinterfaceobjects OBJECT
    kis_transform_mask_params_interface.cpp
 )
@@ -676,7 +707,6 @@ set(kritaimage_LIB_SRCS
    kis_crop_saved_extra_data.cpp
    kis_layer.cc
    kis_indirect_painting_support.cpp
-   kis_abstract_projection_plane.cpp
    kis_layer_projection_plane.cpp
    kis_layer_utils.cpp
    kis_mask_projection_plane.cpp
@@ -802,6 +832,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
+   $<TARGET_OBJECTS:kritaimageprojectionplaneobjects>
    $<TARGET_OBJECTS:kritaimagetransformmaskparamsinterfaceobjects>
    $<TARGET_OBJECTS:kritaimageoptimizedbytearrayobjects>
    $<TARGET_OBJECTS:kritaimagelevelscurveobjects>
