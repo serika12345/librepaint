@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:32 JST
+- 更新日時: 2026-08-29 18:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -29,8 +29,8 @@
   `/Users/masato/Documents/librepaint-r2-g19b-global-forest`であり、
   `libs/widgetutils/KisPopupSelfActivatingLineEdit.{h,cpp}`、Widget Utils製品・試験CMake、新規限定試験を所有する。
   親所有、構築、破棄の3 APIと、ポップアップ内のフォーカス取得時に現れる公開挙動を対象とする。
-- 実装担当`titled-tab-title-sync`は`implementing`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`、統合順は4である。作業ツリーは
+- 実装担当`titled-tab-title-sync`は`integrated`、統合コミットは`b8e37a1bb0`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-image-frame-lock`であり、`libs/widgets/KoTitledTabWidget.{h,cpp}`、
   Widgets製品・試験CMake、新規限定試験を所有する。構築と現在タブの題名同期からなる2 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -8287,9 +8287,26 @@
   1,549ヘッダー、29,989 API、対応済み5,144件、未対応24,845件になった。Linux、全ネイティブ検証、
   製品全体のリンクは実行していない。
 
+## R2-G19b 現在タブ題名表示の全public API契約で完了した作業
+
+- `libs/widgets/KoTitledTabWidget.h`の全2 APIを、新規`libs/widgets/tests/KoTitledTabWidgetContractTest.cpp`へ
+  対応付けた。構築時の親所有、右上角に所有する題名ラベル、現在ページの`windowTitle`への同期、空題名での
+  非表示と次の題名付きページでの再表示を固定した。
+- 開始ファイル`libs/widgets/KoTitledTabWidget.cpp`の構築所有を`kritawidgets_LIB_SRCS`から新規
+  `kritawidgetstitledtabobjects`へ移し、製品`kritawidgets`がメタオブジェクトを含む生成物を1回だけ集約する。
+  公開ヘッダー、実装位置、製品ABIは維持した。
+- 第10便開始時の製品は706工程・1,441入力、担当側の分離後は708工程・1,445入力だった。先に統合した
+  Widget UtilsのQObject分離を推移閉包へ含む統合時基準は708工程・1,445入力で、この分離後は710工程・
+  1,449入力である。限定契約は7工程・14入力、生成オブジェクトは3工程・7入力であり、試験はQt Widgetsと
+  Qt Testだけへ接続する。
+- 担当作業ツリーと統合担当のmacOS構築木で対象CTestの単発実行と20回反復、最近傍の
+  `KoDialogEnumContractTest`に成功した。製品への一重集約を確認し、パッケージ境界検査は1,179対象で成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,146件、未対応24,843件になった。Linux、全ネイティブ検証、
+  製品全体のリンクは実行していない。
+
 ## 次の操作
 
-`titled-tab-title-sync`の差分、限定構築、挙動、台帳を検証する。
+未対応API一覧を更新し、所有範囲が重ならない第11並列便を選定する。
 
 ## R1-G5完了根拠
 

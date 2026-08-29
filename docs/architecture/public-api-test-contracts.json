@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24845
+    "expectedMissingApis": 24843
   },
   "contracts": [
     {
@@ -14582,6 +14582,17 @@
         "class:KisPopupSelfActivatingLineEdit",
         "method:KisPopupSelfActivatingLineEdit::KisPopupSelfActivatingLineEdit(QWidget * parent=nullptr)",
         "method:KisPopupSelfActivatingLineEdit::~KisPopupSelfActivatingLineEdit()"
+      ]
+    },
+    {
+      "target": "KoTitledTabWidgetContractTest",
+      "source": "libs/widgets/tests/KoTitledTabWidgetContractTest.cpp",
+      "test": "KoTitledTabWidgetContractTest::ownsCornerTitleAndTracksCurrentTab",
+      "behavior": "構築時に指定親へ所有され、自身が所有する題名ラベルを右上角へ設置し、現在タブ変更時にページのwindowTitleへ同期する。空題名ではラベルを隠し、題名ありタブへ移ると再表示する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoTitledTabWidget",
+        "method:KoTitledTabWidget::KoTitledTabWidget(QWidget * parent)"
       ]
     }
   ]
