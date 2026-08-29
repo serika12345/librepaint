@@ -57,6 +57,23 @@ set_target_properties(kritaimagenameserverobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagenodegraphlistenerobjects OBJECT
+   kis_node_graph_listener.cpp
+)
+target_compile_definitions(kritaimagenodegraphlistenerobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagenodegraphlistenerobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagenodegraphlistenerobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagenodegraphlistenerobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagestrokejobobjects OBJECT
    kis_stroke_job_strategy.cpp
    KisRunnableStrokeJobDataBase.cpp
@@ -500,7 +517,6 @@ set(kritaimage_LIB_SRCS
    kis_image_interfaces.cpp
    kis_image_animation_interface.cpp
    kis_time_span.cpp
-   kis_node_graph_listener.cpp
    kis_image.cc
    kis_image_signal_router.cpp
    kis_image_config.cpp
@@ -637,6 +653,7 @@ kis_add_library(kritaimage SHARED
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
+   $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimagestrokejobobjects>
    $<TARGET_OBJECTS:kritaimagebehaviorinterfaceobjects>
    $<TARGET_OBJECTS:kritaimagepaintopsettingsidsobjects>

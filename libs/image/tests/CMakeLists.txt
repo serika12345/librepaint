@@ -254,6 +254,29 @@ target_include_directories(KisRandomGenerator2DContractTest PRIVATE
 )
 
 kis_add_test(
+    KisNodeGraphListenerContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagenodegraphlistenerobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+target_include_directories(KisNodeGraphListenerContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisNodeGraphListenerContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisSelectionTagsContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )
