@@ -199,6 +199,19 @@ kis_add_test(
 )
 target_include_directories(TestKoIntegerMaths PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+kis_add_test(
+    TestColorConversion.cpp
+    LINK_LIBRARIES
+        kritapigmentcolorconversionsobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(TestColorConversion PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(TestColorConversion PRIVATE kritapigment_EXPORTS)
+
 kis_add_tests(
     TestKoColorSet.cpp
     TestKoColorSpaceRegistry.cpp
@@ -221,7 +234,6 @@ kis_add_test(
     )
 
 kis_add_tests(
-    TestColorConversion.cpp
     TestKoColorSpaceMaths.cpp
     TestKisSwatchGroup.cpp
     TestKoStopGradient.cpp
