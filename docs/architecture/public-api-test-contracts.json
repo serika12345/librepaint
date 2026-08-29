@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24832
+    "expectedMissingApis": 24817
   },
   "contracts": [
     {
@@ -14642,6 +14642,48 @@
       "classification": "maintained",
       "apis": [
         "method:KoAlphaMaskApplicatorBase::~KoAlphaMaskApplicatorBase()"
+      ]
+    },
+    {
+      "target": "ImageLzfCompressionContractTest",
+      "source": "libs/image/tiles3/tests/ImageLzfCompressionContractTest.cpp",
+      "test": "ImageLzfCompressionContractTest::abstractInterfaceDispatchesAndUsesDefaultAdjustment",
+      "behavior": "抽象圧縮を基底ポインターから呼び出すと各具象仮想関数へ配送され、既定のデータ寸法調整は観測結果を変えず、基底ポインターからの破棄で派生デストラクターが実行される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisAbstractCompression",
+        "method:KisAbstractCompression::KisAbstractCompression()",
+        "method:KisAbstractCompression::adjustForDataSize(qint32 dataSize)",
+        "method:KisAbstractCompression::compress(const quint8 * input,qint32 inputLength,quint8 * output,qint32 outputLength)",
+        "method:KisAbstractCompression::decompress(const quint8 * input,qint32 inputLength,quint8 * output,qint32 outputLength)",
+        "method:KisAbstractCompression::outputBufferSize(qint32 dataSize)",
+        "method:KisAbstractCompression::~KisAbstractCompression()"
+      ]
+    },
+    {
+      "target": "ImageLzfCompressionContractTest",
+      "source": "libs/image/tiles3/tests/ImageLzfCompressionContractTest.cpp",
+      "test": "ImageLzfCompressionContractTest::colorLinearizationRoundTripsComponentPlanes",
+      "behavior": "複数画素の交互配置された色成分バイト列を成分別平面へ並べ替え、入力を変更せず、逆変換で元のバイト列を完全に復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAbstractCompression::delinearizeColors(quint8 * input,quint8 * output,qint32 dataSize,qint32 pixelSize)",
+        "method:KisAbstractCompression::linearizeColors(quint8 * input,quint8 * output,qint32 dataSize,qint32 pixelSize)"
+      ]
+    },
+    {
+      "target": "ImageLzfCompressionContractTest",
+      "source": "libs/image/tiles3/tests/ImageLzfCompressionContractTest.cpp",
+      "test": "ImageLzfCompressionContractTest::lzfCompressionIsDeterministicBoundedAndReversible",
+      "behavior": "LZF圧縮は同一のバイナリー入力から同一結果を生成し、公開された出力寸法境界内に収まり、完全復元でき、過小な復元先では0を返して指定容量外を書き換えず、基底経由でも配送と破棄が成立する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLzfCompression",
+        "method:KisLzfCompression::KisLzfCompression()",
+        "method:KisLzfCompression::compress(const quint8 * input,qint32 inputLength,quint8 * output,qint32 outputLength)",
+        "method:KisLzfCompression::decompress(const quint8 * input,qint32 inputLength,quint8 * output,qint32 outputLength)",
+        "method:KisLzfCompression::outputBufferSize(qint32 dataSize)",
+        "method:KisLzfCompression::~KisLzfCompression()"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:57 JST
+- 更新日時: 2026-08-29 19:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,8 +18,8 @@
 - 統合担当`paintop-lod-limitations`は`verified`、実装コミットは`74eb14829c`である。
   `libs/image/brushengine/kis_paintop_lod_limitations.h`、Image試験CMake、新規限定試験を所有する。制限・阻害要因の
   集合、等値、和集合、`KoID`ハッシュの6 APIを対象とし、既存`kritaglobalidobjects`を再利用する。統合順は1である。
-- 実装担当`image-lzf-compression`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は2である。作業ツリーは
+- 実装担当`image-lzf-compression`は`verified`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2、統合コミットは`296a79fdef`である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、
   `libs/image/tiles3/swap/kis_{abstract,lzf}_compression.{h,cpp}`、Image製品CMake、Tiles3試験CMake、新規限定試験を
   所有する。抽象圧縮接続面9 APIとLZF実装6 APIの計15 APIを対象とする。
@@ -8331,9 +8331,27 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,157件、未対応24,832件になった。Linux、全ネイティブ検証、
   製品全体のリンクは実行していない。
 
+## R2-G19b 画像LZF圧縮の全public API契約で完了した作業
+
+- `libs/image/tiles3/swap/kis_abstract_compression.h`の全9 APIと
+  `libs/image/tiles3/swap/kis_lzf_compression.h`の全6 APIを、新規
+  `libs/image/tiles3/tests/ImageLzfCompressionContractTest.cpp`の3試験へ対応付けた。抽象接続面の仮想配送と
+  仮想破棄、既定の寸法調整、色成分の平面化と逆変換、LZF圧縮の決定性、公開出力寸法内の完全往復、過小な
+  復元先に対する失敗値と指定容量外の保持を固定した。
+- 開始ファイル`libs/image/tiles3/swap/kis_abstract_compression.cpp`と
+  `libs/image/tiles3/swap/kis_lzf_compression.cpp`の構築所有を`kritaimage_LIB_SRCS`から新規
+  `kritaimagecompressionobjects`へ移し、製品`kritaimage`が両生成物を1回だけ再集約する。公開ヘッダー、実装位置、
+  製品ABIは維持した。変更前後の製品閉包は1,085工程・2,194入力で不変、限定試験は6工程・13入力、
+  生成オブジェクトは2工程・5入力で、試験はQt TestとQt Coreだけへ接続する。
+- 旧`libs/image/tiles3/tests/kis_compression_tests.cpp`はCMakeへ未接続であり、接続済み最近傍の
+  `kis_tile_data_store_test`は1,089工程・2,201入力と製品全体相当になるため構築対象にしていない。担当作業ツリーと
+  統合担当のmacOS構築木で対象CTestの単発実行と20回反復に成功し、製品への一重集約を確認した。統合時の
+  パッケージ境界検査は1,186対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,172件、
+  未対応24,817件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
+
 ## 次の操作
 
-`image-lzf-compression`と`spinbox-i18n-formatting`を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
+`spinbox-i18n-formatting`の差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
