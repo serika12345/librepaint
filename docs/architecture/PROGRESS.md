@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 01:17 JST
+- 更新日時: 2026-08-30 01:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,8 +14,8 @@
 - 第22並列便の共通基準コミットは`89c19b806a`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g22-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`dom-values`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は1である。主作業ツリーで`libs/global/kis_dom_utils.{h,cpp}`、Global製品・試験CMake、
+- 統合担当`dom-values`は`integrated`、実装コミットは`f89858ba85`、追加委任は`forbidden`、統合順は1である。
+  主作業ツリーで`libs/global/kis_dom_utils.{h,cpp}`、Global製品・試験CMake、
   新規`KisDomUtilsContractTest.cpp`を所有する。既存試験の1,099工程・2,221入力から`kis_dom_utils.cpp`を専用生成物へ分離し、
   数値・色・幾何値・配列のXML往復、型検査、要素検索・除去、ロケール互換変換の全39 APIを対象とする。
 - 実装担当`metadata-value`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
@@ -9010,9 +9010,26 @@
 - 第21並列便はハンドル描画補助24 API、空間点格納18 API、パイプブラシ付加情報21 API、undo保存21 APIの合計84 APIを固定した。
   各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
 
+## R2-G19b XML値変換の全public API契約と構築所有分離で完了した作業
+
+- `libs/global/kis_dom_utils.h`の全39 APIを、新規`libs/global/tests/KisDomUtilsContractTest.cpp`の7試験へ対応付けた。
+  数値と色文字列、スカラー、文字列、寸法、座標、矩形、三次元座標、射影変換、配列のXML往復、型検査、一意要素・属性検索、
+  要素除去を固定した。
+- 開始ファイル`libs/global/kis_dom_utils.cpp`を製品`kritaglobal`の直接ソースから
+  `kritaglobaldomutilsobjects`へ移し、製品は同生成物を1回だけ再集約する。限定試験は同生成物、既存の
+  `kritaglobaldebugobjects`、Qt Core・Gui・Widgets・Xml・Test、KF I18nだけへ接続し、製品共有ライブラリーを使用しない。
+- 対象未登録の初回限定構築は未知の対象として失敗した。分離後は公開ヘッダーが`KisPortingUtils.h`経由で必要とするQt Widgetsと、
+  要素除去の安全表明に必要な試験協調定義の不足を診断した。限定対象は6工程・14入力、実装生成物は1工程・3入力であり、
+  従来`kis_dom_utils_test`の1,099工程・2,221入力から縮小した。製品計画は68工程・136入力を維持する。対象CTest単発と
+  20回反復、最近傍の`KisDebugContractTest`、生成物記号、製品への1回再集約、パッケージ境界検査、高速検査に成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み6,107件、未対応23,882件になった。Qt 6.4以降の色読込みが出力を更新しない、
+  実数矩形の小数属性がゼロになる、要素除去が削除成功時にもfalseを返す現行挙動を既知不具合として分類した。配列読込みの
+  既定空環境は型を推論できず引数省略で呼び出せない。色文字列の不足成分、null出力、複数または入れ子要素の除去、Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第22並列便の4担当で限定契約と必要な生成物所有分離を実装し、準備が完了した担当から統合順に取り込む。
+第22並列便の`metadata-value`引渡しを統合順に取り込み、限定検証と中央台帳更新を行う。
 
 ## R1-G5完了根拠
 

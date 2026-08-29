@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23921
+    "expectedMissingApis": 23882
   },
   "contracts": [
     {
@@ -17714,6 +17714,126 @@
         "method:KisDumbUndoStore::presentCommand()",
         "method:KisDumbUndoStore::purgeRedoState()",
         "method:KisDumbUndoStore::undoLastCommand()"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::numberConversionsUseStableTextAndGermanFallbacks",
+      "behavior": "数値文字列化は型ごとの精度を保ち、整数・浮動小数点解析はC表記に加えてドイツ表記へフォールバックし、不正入力を失敗とゼロ値で報告する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDomUtils::toDouble(const QString & str,bool * ok=nullptr)",
+        "function:KisDomUtils::toInt(const QString & str,bool * ok=nullptr)",
+        "function:KisDomUtils::toString(T value)",
+        "function:KisDomUtils::toString(const QString & value)",
+        "function:KisDomUtils::toString(double value)",
+        "function:KisDomUtils::toString(float value)"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::colorHelpersAndXmlColorLoadingExposeCurrentBehavior",
+      "behavior": "色文字列補助はRGBA十進表現を往復し、XML保存はARGB十六進表現と色型を記録する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDomUtils::qColorToQString(QColor color)",
+        "function:KisDomUtils::qStringToQColor(QString colorString)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const QColor & t)"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::colorHelpersAndXmlColorLoadingExposeCurrentBehavior",
+      "behavior": "Qt 6.4以降のXML色読込みは型検査に成功してtrueを返す一方、静的色解析の戻り値を捨てるため出力色を更新しない。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KisDomUtils::loadValue(const QDomElement & e,QColor * value)"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::scalarAndGeometryValuesRoundTripByType",
+      "behavior": "スカラー、文字列、寸法、整数・実数座標、整数・実数矩形、三次元座標、射影変換は型付きXML要素として保存され、直接・空環境・子タグ経路から同じ値へ復元される。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDomUtils::loadValue(const QDomElement & e,QPoint * pt)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,QPointF * pt)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,QRect * rc)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,QSize * size)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,QString * value)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,QTransform * t)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,QVector3D * pt)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,T * value)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,double * v)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,float * v)",
+        "function:KisDomUtils::loadValue(const QDomElement & parent,T * value,const E &)",
+        "function:KisDomUtils::loadValue(const QDomElement & parent,const QString & tag,T * value,const E & env=E ())",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,T value)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const QPoint & pt)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const QPointF & pt)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const QRect & rc)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const QRectF & rc)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const QSize & size)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const QTransform & t)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const QVector3D & pt)"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::fractionalRectanglesCurrentlyLoadThroughIntegerConversion",
+      "behavior": "実数矩形の読込みは現在、各属性を整数として解析するため小数属性をゼロへ置き換えながら成功を返す。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KisDomUtils::loadValue(const QDomElement & e,QRectF * rc)"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::arraysUseDefaultAndExplicitEnvironments",
+      "behavior": "配列保存は順序付き子要素を生成し、読込みは明示した空環境、一つの子タグ、二つの変換環境の各経路で入力順を保って追記する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDomUtils::loadValue(const QDomElement & e,Container<T,Args...> * array,const E & env1,const F & env2)",
+        "function:KisDomUtils::loadValue(const QDomElement & e,Container<T,Args...> * array,const E & env=std::tuple<> ())",
+        "function:KisDomUtils::loadValue(const QDomElement & parent,const QString & tag,T * value,const E & env1,const F & env2)",
+        "function:KisDomUtils::saveValue(QDomElement * parent,const QString & tag,const Container<T,Args...> & array)"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::typeChecksRejectMismatchesWithoutChangingDestinations",
+      "behavior": "型検査は期待型との一致だけを受理し、不一致型の値読込みは出力先を変更せず失敗を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDomUtils::Private::checkType(const QDomElement & e,const QString & expectedType)"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::elementLookupAndRemovalReportTheirResult",
+      "behavior": "一意要素検索は存在数を検査して診断を蓄積し、属性検索は一致する直接子要素を返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisDomUtils::findElementByAttribute(QDomNode parent,const QString & tag,const QString & attribute,const QString & value)",
+        "function:KisDomUtils::findOnlyElement(const QDomElement & parent,const QString & tag,QDomElement * el,QStringList * errorMessages=0)"
+      ]
+    },
+    {
+      "target": "KisDomUtilsContractTest",
+      "source": "libs/global/tests/KisDomUtilsContractTest.cpp",
+      "test": "KisDomUtilsContractTest::elementLookupAndRemovalReportTheirResult",
+      "behavior": "要素除去は対象の直接子要素を削除する一方、生きた要素一覧が空になるため削除成功時にもfalseを返す。",
+      "classification": "known_defect",
+      "apis": [
+        "function:KisDomUtils::removeElements(QDomElement & parent,const QString & tag)"
       ]
     }
   ]
