@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 01:00 JST
+- 更新日時: 2026-08-30 01:05 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,8 +27,8 @@
   `forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-pipebrush-parasite`であり、
   `libs/brush/kis_pipebrush_parasite.{h,cpp}`、Brush製品・試験CMake、新規限定試験を所有する。既存試験の1,120工程・2,260入力を
   専用生成物へ縮小し、次元解析、選択方式、衛生化、ブラシ数、保存と、未定義だった装置読込みメンバーの全21 APIを対象とする。
-- 実装担当`undo-stores`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-undo-stores`であり、
+- 実装担当`undo-stores`は`integrated`、担当先端は`636840e999`、統合コミットは`7356090096`、追加委任は
+  `forbidden`、統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g21-undo-stores`であり、
   `libs/painting/undo/kundo2stack.cpp`、Undo製品・試験CMake、新規限定試験を所有する。259工程・548入力の既存試験接続から
   KUndo2中核と操作生成を分け、代理・破棄型保存の追加、undo/redo、マクロ、枝破棄、全消去、通知、寿命の全21 APIを対象とする。
 - 第21並列便の完了時は合計84 APIを追加し、公開面の対応済み6,068件、未対応23,921件を見込む。各担当は公開面と製品挙動を
@@ -8986,9 +8986,33 @@
   null装置、角度選択上書き後の移動状態、Linux、全ネイティブ検証、製品全体リンクは実行していない。選択方式の所有が
   `kis_imagepipe_brush.h`にあるため、限定コンパイルの広いヘッダー入力は残る。
 
+## R2-G19b undo保存の全public API契約と構築所有分離で完了した作業
+
+- `libs/painting/undo/kis_undo_stores.h`の全21 APIを、新規
+  `libs/painting/undo/tests/KisUndoStoresContractTest.cpp`の5試験へ対応付けた。代理保存の空状態、命令の即時redoと所有、
+  一段・全履歴undo/redo、マクロ順序、redo枝破棄、全消去、同期通知、寿命と、非保持保存の即時実行・破棄・無操作を固定した。
+- 開始ファイル`libs/painting/undo/kundo2stack.cpp`、`kundo2group.cpp`、`kundo2magicstring.cpp`、
+  `kundo2commandextradata.cpp`を製品`kritapaintingundo`の直接ソースから`kritapaintingundokundo2coreobjects`へ移した。
+  開始ファイル`libs/painting/undo/kis_undo_store.cpp`と`kis_undo_stores.cpp`は同じ直接ソースから
+  `kritapaintingundostoreobjects`へ移した。`kundo2stack.cpp`の製品固有undo/redo操作生成2関数は新規
+  `libs/painting/undo/kundo2stack_actions.cpp`へ移し、`kritapaintingundostackactionobjects`が所有する。製品は3生成物を
+  それぞれ1回だけ再集約し、限定試験は中核・保存生成物とQt・KF I18nだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗し、分離後はQAction、国際化、累積undo情報の直接入力不足を診断した。
+  20回反復の初回は試験命令より追跡状態が先に破棄されて5回目に`SIGTRAP`となり、製品変更なしで試験補助の寿命を命令より長くして
+  再実行した。macOSの限定試験は14工程・29入力であり、従来`TestKUndo2Stack`の259工程・548入力から縮小した。
+  中核生成物は6工程・13入力、保存生成物は4工程・9入力、操作生成物は1工程・3入力である。製品計画は255工程・541入力から
+  260工程・551入力になり、所有境界ごとのQtメタオブジェクト生成を分離した。対象CTest単発と20回反復、最近傍の
+  `KUndo2CommandExtraDataContractTest`、操作生成物単独構築、記号・再集約、パッケージ境界検査、高速検査に成功した。公開面は
+  1,549ヘッダー、29,989 API、対応済み6,068件、未対応23,921件になった。非保持保存へのnull命令は逆参照でクラッシュする
+  既知不具合として実行せず、借用中命令の枝破棄後利用、不均衡・入れ子マクロ、複数スレッド、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+- 第21並列便はハンドル描画補助24 API、空間点格納18 API、パイプブラシ付加情報21 API、undo保存21 APIの合計84 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、公開API契約検査を再実行した。
+
 ## 次の操作
 
-第21並列便のundo保存引渡しを取り込み、限定検証、中央台帳更新、第21並列便の完了検査を行う。
+未対応23,921 APIの最新報告から第22並列便の候補を選び、各候補の直接依存と清浄木の構築範囲を監査して担当票を確定する。
 
 ## R1-G5完了根拠
 

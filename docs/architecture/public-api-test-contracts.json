@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23942
+    "expectedMissingApis": 23921
   },
   "contracts": [
     {
@@ -17648,6 +17648,72 @@
       "classification": "known_defect",
       "apis": [
         "method:KisPipeBrushParasite::saveToDevice(QIODevice * dev) const"
+      ]
+    },
+    {
+      "target": "KisUndoStoresContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoresContractTest.cpp",
+      "test": "KisUndoStoresContractTest::surrogateStartsEmptyExecutesImmediatelyAndOwnsCommands",
+      "behavior": "代理undo保存は空で開始し、null命令を無視し、非null命令を直ちにredoして所有する。現在命令は借用ポインターとして取得でき、履歴変更は同期通知される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSurrogateUndoStore",
+        "method:KisSurrogateUndoStore::KisSurrogateUndoStore()",
+        "method:KisSurrogateUndoStore::addCommand(KUndo2Command * cmd)",
+        "method:KisSurrogateUndoStore::presentCommand()"
+      ]
+    },
+    {
+      "target": "KisUndoStoresContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoresContractTest.cpp",
+      "test": "KisUndoStoresContractTest::surrogateNavigatesSingleStepsAndWholeHistory",
+      "behavior": "代理undo保存はundoLastCommandとundoで一段ずつ後退し、redoで一段進み、undoAllとredoAllで命令順序を保って履歴全体を往復する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurrogateUndoStore::redo()",
+        "method:KisSurrogateUndoStore::redoAll()",
+        "method:KisSurrogateUndoStore::undo()",
+        "method:KisSurrogateUndoStore::undoAll()",
+        "method:KisSurrogateUndoStore::undoLastCommand()"
+      ]
+    },
+    {
+      "target": "KisUndoStoresContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoresContractTest.cpp",
+      "test": "KisUndoStoresContractTest::surrogateGroupsMacrosAndPurgesTheRedoBranch",
+      "behavior": "代理undo保存は複数命令を一つのマクロとして保持し、undoを逆順、redoを元順で適用する。undo後のredo枝破棄は命令を解放し、再redoを不能にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurrogateUndoStore::beginMacro(const KUndo2MagicString & macroName)",
+        "method:KisSurrogateUndoStore::endMacro()",
+        "method:KisSurrogateUndoStore::purgeRedoState()"
+      ]
+    },
+    {
+      "target": "KisUndoStoresContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoresContractTest.cpp",
+      "test": "KisUndoStoresContractTest::surrogateClearDropsHistoryWithoutUndoingAndDestructionStaysSilent",
+      "behavior": "代理undo保存のclearは適用済み状態をundoせず履歴命令を解放する。破棄は残存命令を所有解放し、内部スタック破棄に伴う履歴通知を外へ送らない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurrogateUndoStore::clear()",
+        "method:KisSurrogateUndoStore::~KisSurrogateUndoStore()"
+      ]
+    },
+    {
+      "target": "KisUndoStoresContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoresContractTest.cpp",
+      "test": "KisUndoStoresContractTest::dumbStoreExecutesAndDiscardsThroughTheBaseInterface",
+      "behavior": "非保持undo保存は基底インターフェース経由でも現在命令を持たず、非null命令を直ちにredoして破棄する。beginMacroとredo枝破棄は無作用で、endMacroとundoLastCommandは履歴変更を同期通知する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDumbUndoStore",
+        "method:KisDumbUndoStore::addCommand(KUndo2Command * cmd)",
+        "method:KisDumbUndoStore::beginMacro(const KUndo2MagicString & macroName)",
+        "method:KisDumbUndoStore::endMacro()",
+        "method:KisDumbUndoStore::presentCommand()",
+        "method:KisDumbUndoStore::purgeRedoState()",
+        "method:KisDumbUndoStore::undoLastCommand()"
       ]
     }
   ]
