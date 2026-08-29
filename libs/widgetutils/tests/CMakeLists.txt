@@ -73,6 +73,19 @@ target_include_directories(TestSqueezedComboBox PRIVATE
 target_compile_definitions(TestSqueezedComboBox PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KoItemToolTipContractTest.cpp
+    LINK_LIBRARIES
+        kritaitemtooltipobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KoItemToolTipContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoItemToolTipContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     kis_simple_math_parser_test.cpp
     LINK_LIBRARIES kritawidgetutilsnumericparserobjects Qt${QT_MAJOR_VERSION}::Test
 )
