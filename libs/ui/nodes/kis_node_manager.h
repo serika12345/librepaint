@@ -538,6 +538,34 @@ protected:
         static void mergeTransparencyMaskAsAlpha(KisNodeManager *manager, bool writeToLayers);
     };
 
+    struct KRITAUI_EXPORT QuickGroupAccess {
+        static KisNodeOperationBatch *operationBatch(KisNodeManager *manager, const KUndo2MagicString &actionName);
+        static KisNodeSP activeNode(KisNodeManager *manager);
+        static bool canMoveLayer(KisNodeManager *manager, KisNodeSP node);
+        static QString nextLayerName(KisNodeManager *manager, const QString &defaultName);
+        static KisNodeList selectedNodes(KisNodeManager *manager);
+        static bool createGroup(KisNodeOperationBatch *batch,
+                                const KisNodeList &nodes,
+                                KisNodeSP activeNode,
+                                const QString &groupName,
+                                KisNodeSP *newGroup,
+                                KisNodeSP *newLastChild);
+        static void addClippingMask(KisNodeManager *manager,
+                                    KisNodeOperationBatch *batch,
+                                    KisNodeSP parent,
+                                    KisNodeSP above,
+                                    const QString &maskName);
+        static bool canModifyLayer(KisNodeManager *manager, KisNodeSP node);
+        static bool ungroupNodes(KisNodeOperationBatch *batch,
+                                 const KisNodeList &nodes,
+                                 KisNodeSP activeNode,
+                                 KisNodeSP *incompatibleNode,
+                                 KisNodeSP *destinationParent);
+        static KisNodeSP parentNode(KisNodeSP node);
+        static QString nodeName(KisNodeSP node);
+        static void showFloatingMessage(KisNodeManager *manager, const QString &message);
+    };
+
 private:
     /**
      * Scales opacity from the range 0...1

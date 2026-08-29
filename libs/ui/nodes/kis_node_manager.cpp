@@ -1582,73 +1582,81 @@ void KisNodeManager::ClipboardAccess::insertMimeLayersAsLastChild(KisNodeManager
                                   applicator);
 }
 
-bool KisNodeManager::createQuickGroupImpl(KisNodeOperationBatch *batch,
-                                          const QString &overrideGroupName,
-                                          KisNodeSP *newGroup,
-                                          KisNodeSP *newLastChild)
+KisNodeOperationBatch *KisNodeManager::QuickGroupAccess::operationBatch(KisNodeManager *manager,
+                                                                        const KUndo2MagicString &actionName)
 {
-    KisNodeSP active = activeNode();
-    if (!active) return false;
-
-    if (!canMoveLayer(active)) return false;
-
-    KisImageSP image = m_d->view->image();
-    const QString groupName = !overrideGroupName.isEmpty()
-        ? overrideGroupName
-        : image->nextLayerName(i18nc("A group of layers", "Group"));
-
-    return batch->createGroup(selectedNodes(), active, groupName, newGroup, newLastChild);
+    return manager->m_d->lazyGetNodeOperationBatch(actionName);
 }
 
-void KisNodeManager::createQuickGroup()
+KisNodeSP KisNodeManager::QuickGroupAccess::activeNode(KisNodeManager *manager)
 {
-    KUndo2MagicString actionName = kundo2_i18n("Quick Group");
-    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-
-    KisNodeSP parent;
-    KisNodeSP above;
-
-    createQuickGroupImpl(batch, "", &parent, &above);
+    return manager->activeNode();
 }
 
-void KisNodeManager::createQuickClippingGroup()
+bool KisNodeManager::QuickGroupAccess::canMoveLayer(KisNodeManager *manager, KisNodeSP node)
 {
-    KUndo2MagicString actionName = kundo2_i18n("Quick Clipping Group");
-    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-
-    KisNodeSP parent;
-    KisNodeSP above;
-
-    KisImageSP image = m_d->view->image();
-    if (createQuickGroupImpl(batch, image->nextLayerName(i18nc("default name for a clipping group layer", "Clipping Group")), &parent, &above)) {
-        KisPaintLayerSP maskLayer = new KisPaintLayer(image.data(), i18nc("default name for quick clip group mask layer", "Mask Layer"), OPACITY_OPAQUE_U8, image->colorSpace());
-        maskLayer->disableAlphaChannel(true);
-
-        batch->addNode(KisNodeList() << maskLayer, parent, above, activeNode());
-    }
+    return manager->canMoveLayer(node);
 }
 
-void KisNodeManager::quickUngroup()
+QString KisNodeManager::QuickGroupAccess::nextLayerName(KisNodeManager *manager, const QString &defaultName)
 {
-    KisNodeSP active = activeNode();
-    if (!active) return;
+    return manager->m_d->view->image()->nextLayerName(defaultName);
+}
 
-    if (!canModifyLayer(active)) return;
+KisNodeList KisNodeManager::QuickGroupAccess::selectedNodes(KisNodeManager *manager)
+{
+    return manager->selectedNodes();
+}
 
-    KUndo2MagicString actionName = kundo2_i18n("Quick Ungroup");
+bool KisNodeManager::QuickGroupAccess::createGroup(KisNodeOperationBatch *batch,
+                                                   const KisNodeList &nodes,
+                                                   KisNodeSP activeNode,
+                                                   const QString &groupName,
+                                                   KisNodeSP *newGroup,
+                                                   KisNodeSP *newLastChild)
+{
+    return batch->createGroup(nodes, activeNode, groupName, newGroup, newLastChild);
+}
 
-    KisNodeSP incompatibleNode;
-    KisNodeSP destinationParent;
-    KisNodeOperationBatch *batch = m_d->lazyGetNodeOperationBatch(actionName);
-    if (!batch->ungroupNodes(selectedNodes(), active, &incompatibleNode, &destinationParent) &&
-        incompatibleNode && destinationParent) {
-        const QString message = destinationParent->parent()
-            ? i18n("Cannot move layer \"%1\" into new parent \"%2\"",
-                   incompatibleNode->name(), destinationParent->name())
-            : i18n("Cannot move layer \"%1\" into the root layer",
-                   incompatibleNode->name());
-        m_d->view->showFloatingMessage(message, QIcon());
-    }
+void KisNodeManager::QuickGroupAccess::addClippingMask(KisNodeManager *manager,
+                                                       KisNodeOperationBatch *batch,
+                                                       KisNodeSP parent,
+                                                       KisNodeSP above,
+                                                       const QString &maskName)
+{
+    KisImageSP image = manager->m_d->view->image();
+    KisPaintLayerSP maskLayer = new KisPaintLayer(image.data(), maskName, OPACITY_OPAQUE_U8, image->colorSpace());
+    maskLayer->disableAlphaChannel(true);
+    batch->addNode(KisNodeList() << maskLayer, parent, above, manager->activeNode());
+}
+
+bool KisNodeManager::QuickGroupAccess::canModifyLayer(KisNodeManager *manager, KisNodeSP node)
+{
+    return manager->canModifyLayer(node);
+}
+
+bool KisNodeManager::QuickGroupAccess::ungroupNodes(KisNodeOperationBatch *batch,
+                                                    const KisNodeList &nodes,
+                                                    KisNodeSP activeNode,
+                                                    KisNodeSP *incompatibleNode,
+                                                    KisNodeSP *destinationParent)
+{
+    return batch->ungroupNodes(nodes, activeNode, incompatibleNode, destinationParent);
+}
+
+KisNodeSP KisNodeManager::QuickGroupAccess::parentNode(KisNodeSP node)
+{
+    return node->parent();
+}
+
+QString KisNodeManager::QuickGroupAccess::nodeName(KisNodeSP node)
+{
+    return node->name();
+}
+
+void KisNodeManager::QuickGroupAccess::showFloatingMessage(KisNodeManager *manager, const QString &message)
+{
+    manager->m_d->view->showFloatingMessage(message, QIcon());
 }
 
 KisNodeList KisNodeManager::SelectionAccess::findNodes(KisNodeManager *manager, SelectionProperty property, bool value)

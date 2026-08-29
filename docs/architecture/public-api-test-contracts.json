@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25084
+    "expectedMissingApis": 25081
   },
   "contracts": [
     {
@@ -12783,6 +12783,46 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeManager::pasteLayersFromClipboard(bool changeOffset=false,QPointF offset=QPointF (),KisProcessingApplicator * applicator=nullptr)"
+      ]
+    },
+    {
+      "target": "KisNodeManagerQuickGroupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerQuickGroupContractTest.cpp",
+      "test": "KisNodeManagerQuickGroupContractTest::quickGroupRequiresActiveMovableNode",
+      "behavior": "クイックグループ作成は操作名を確定したうえで活動ノードを要求し、活動ノードがない場合または移動不可の場合はグループ作成を行わない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createQuickGroup()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerQuickGroupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerQuickGroupContractTest.cpp",
+      "test": "KisNodeManagerQuickGroupContractTest::quickGroupUsesSelectionAndGeneratedName",
+      "behavior": "クイックグループ作成は翻訳済みGroup名から生成した一意名、現在の選択一覧、活動ノード、Quick Groupの一括操作を変更せずグループ作成へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createQuickGroup()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerQuickGroupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerQuickGroupContractTest.cpp",
+      "test": "KisNodeManagerQuickGroupContractTest::clippingGroupAddsMaskAfterGroupCreation",
+      "behavior": "クイッククリッピンググループ作成は翻訳済みClipping Group名から一意名を生成し、グループ作成が成功した場合だけ生成した親と最終子の後へMask Layerを追加する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::createQuickClippingGroup()"
+      ]
+    },
+    {
+      "target": "KisNodeManagerQuickGroupContractTest",
+      "source": "libs/ui/tests/KisNodeManagerQuickGroupContractTest.cpp",
+      "test": "KisNodeManagerQuickGroupContractTest::quickUngroupRequiresModifiableNodeAndReportsFailure",
+      "behavior": "クイックグループ解除は活動ノードが変更可能な場合だけ現在の選択一覧を解除し、移動不能ノードを親へ移せない失敗では親の階層に応じて新しい親またはルートへの移動失敗を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeManager::quickUngroup()"
       ]
     },
     {
