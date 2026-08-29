@@ -14,6 +14,21 @@ target_include_directories(kritawidgetstitledtabobjects
 target_link_libraries(kritawidgetstitledtabobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
 set_target_properties(kritawidgetstitledtabobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetswarningblockobjects OBJECT
+    kis_warning_block.cpp
+)
+target_compile_definitions(kritawidgetswarningblockobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetswarningblockobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetswarningblockobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetswarningblockobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetsstretchediconbuttonobjects OBJECT
     KisStretchedIconButton.cpp
 )
@@ -189,7 +204,6 @@ set(kritawidgets_LIB_SRCS
 
     KisTagSelectionWidget.cpp
 
-    kis_warning_block.cpp
     KisWidgetConnectionUtils.cpp
     kis_spacing_selection_widget.cpp
     kis_stacked_widget.cpp
@@ -226,6 +240,7 @@ kis_add_library(kritawidgets SHARED
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
     $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
     $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
+    $<TARGET_OBJECTS:kritawidgetswarningblockobjects>
     $<TARGET_OBJECTS:kritawidgetsstretchediconbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsanglegaugeobjects>
     $<TARGET_OBJECTS:kritawidgetscolorlabelbuttonobjects>
