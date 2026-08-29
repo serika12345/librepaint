@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 18:26 JST
+- 更新日時: 2026-08-29 18:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,8 +18,8 @@
 - 統合担当`image-name-sequence`は`verified`、実装コミットは`e892be7055`である。`libs/image/kis_name_server.{h,cpp}`、Image試験CMake、
   新規限定試験を所有し、初期番号、採番、現在値、巻戻しの5 APIを対象とする。最も近い限定契約と製品対象の
   変更なし構築閉包を測定してから所有単位を決定し、macOSで検証する。統合順は1である。
-- 実装担当`surface-management-info`は`implementing`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`、統合順は2である。作業ツリーは
+- 実装担当`surface-management-info`は`integrated`、統合コミットは`83a456f285`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-flake-zoom-state`であり、
   `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorManagementInfo.{h,cpp}`、同パッケージの
   製品・試験CMake、新規限定試験を所有する。親所有、基底破棄、OS管理判断、非同期診断の5 APIを対象とする。
@@ -8254,10 +8254,24 @@
   1,174対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,136件、未対応24,853件になった。
   Linux、全ネイティブ検証、製品全体のリンクは実行していない。
 
+## R2-G19b 表面色管理情報接続面の全public API契約で完了した作業
+
+- `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorManagementInfo.h`の全5 APIを、新規
+  `libs/surfacecolormanagementapi/tests/KisSurfaceColorManagementInfoContractTest.cpp`の1試験へ対応付けた。
+  指定QObject親への所属、基底接続面からのOS管理判断と非同期診断の仮想配送、未完了から単一報告値を持つ
+  完了状態への遷移、親破棄による派生実装までの仮想破棄を固定した。
+- macOS標準構成では`KRITA_USE_SURFACE_COLOR_MANAGEMENT_API=OFF`で製品対象が存在しないため、開始ファイル
+  `libs/surfacecolormanagementapi/surfacecolormanagement/KisSurfaceColorManagementInfo.cpp`を同じ位置から試験へ
+  直接1回組み込んだ。製品CMakeの同ソース登録、公開ヘッダー、実装位置は変更していない。
+- 赤状態は4工程・8入力で構築、破棄、QObjectメタ情報、型情報の未定義リンクを確認した。最終対象は
+  5工程・10入力で、直接依存はQt Testだけである。担当作業ツリーと統合担当のmacOS構築木で対象CTestの
+  単発実行と20回反復、最近傍の`KisSurfaceColorimetryIccUtilsContractTest`に成功し、パッケージ境界検査は
+  1,175対象で成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,141件、未対応24,848件になった。
+  Linux、全ネイティブ検証、機能有効構成の製品リンクは実行していない。
+
 ## 次の操作
 
-`surface-management-info`、`popup-line-edit-lifecycle`、`titled-tab-title-sync`を並行実装し、統合順に差分、
-限定構築、挙動、台帳を検証する。
+`popup-line-edit-lifecycle`と`titled-tab-title-sync`を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 

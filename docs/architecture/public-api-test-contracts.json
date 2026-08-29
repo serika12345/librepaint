@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24853
+    "expectedMissingApis": 24848
   },
   "contracts": [
     {
@@ -14556,6 +14556,20 @@
         "method:KisNameServer::currentSeed() const",
         "method:KisNameServer::number()",
         "method:KisNameServer::rollback()"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorManagementInfoContractTest",
+      "source": "libs/surfacecolormanagementapi/tests/KisSurfaceColorManagementInfoContractTest.cpp",
+      "test": "KisSurfaceColorManagementInfoContractTest::preservesParentOwnershipAndVirtualAsynchronousBehavior",
+      "behavior": "表面色管理情報は指定したQObject親へ所属し、基底接続面からOS管理状態と未完了の非同期診断報告を具体実装へ配送する。報告完了後は単一文字列を取得でき、親の破棄は派生実装の仮想デストラクターまで実行する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSurfaceColorManagementInfo",
+        "method:KisSurfaceColorManagementInfo::KisSurfaceColorManagementInfo(QObject * parent=nullptr)",
+        "method:KisSurfaceColorManagementInfo::debugReport()",
+        "method:KisSurfaceColorManagementInfo::surfaceColorManagedByOS()",
+        "method:KisSurfaceColorManagementInfo::~KisSurfaceColorManagementInfo()"
       ]
     }
   ]
