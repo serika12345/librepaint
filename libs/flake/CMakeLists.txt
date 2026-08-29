@@ -44,6 +44,21 @@ set_target_properties(kritaflakeshapeanchorobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapebackgroundobjects OBJECT
+    KoShapeBackground.cpp
+)
+target_compile_definitions(kritaflakeshapebackgroundobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeshapebackgroundobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeshapebackgroundobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakeshapebackgroundobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakezoomstateobjects OBJECT
     KoZoomState.cpp
 )
@@ -404,7 +419,6 @@ set(kritaflake_SRCS
     KoPathShapeLoader.cpp
     KoShapeStrokeModel.cpp
     KoShapeStroke.cpp
-    KoShapeBackground.cpp
     KoColorBackground.cpp
     KoGradientBackground.cpp
     KoMeshGradientBackground.cpp
@@ -555,6 +569,7 @@ set(kritaflake_SRCS
 
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakeshapeanchorobjects>
+    $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
     $<TARGET_OBJECTS:kritaflakezoomstateobjects>
     $<TARGET_OBJECTS:kritaflakeviewtransformstillpointobjects>
     $<TARGET_OBJECTS:kritaflakeviewconverterobjects>

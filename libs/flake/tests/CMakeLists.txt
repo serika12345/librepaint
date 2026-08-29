@@ -94,6 +94,19 @@ target_include_directories(KoShapeAnchorContractTest PRIVATE
 target_compile_definitions(KoShapeAnchorContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoShapeBackgroundContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeshapebackgroundobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoShapeBackgroundContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoShapeBackgroundContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoShapeEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
