@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24068
+    "expectedMissingApis": 24046
   },
   "contracts": [
     {
@@ -17171,6 +17171,73 @@
         "method:KoDummyUpdaterHolder::KoDummyUpdaterHolder()",
         "method:KoDummyUpdaterHolder::updater()",
         "method:KoDummyUpdaterHolder::~KoDummyUpdaterHolder()"
+      ]
+    },
+    {
+      "target": "KoViewConverterContractTest",
+      "source": "libs/flake/tests/KoViewConverterContractTest.cpp",
+      "test": "KoViewConverterContractTest::defaultStateAndVirtualLifetime",
+      "behavior": "表示変換器は既定で100%の尺度を保持し、公開基底から破棄したとき派生デストラクターまで配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoViewConverter",
+        "method:KoViewConverter::KoViewConverter()",
+        "method:KoViewConverter::~KoViewConverter()"
+      ]
+    },
+    {
+      "target": "KoViewConverterContractTest",
+      "source": "libs/flake/tests/KoViewConverterContractTest.cpp",
+      "test": "KoViewConverterContractTest::zoomStateNormalizesZero",
+      "behavior": "有限正値の尺度は両軸へ保存され、正確な0と1は100%の尺度へ正規化される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoViewConverter::setZoom(qreal zoom)",
+        "method:KoViewConverter::zoom() const",
+        "method:KoViewConverter::zoom(qreal * zoomX,qreal * zoomY) const"
+      ]
+    },
+    {
+      "target": "KoViewConverterContractTest",
+      "source": "libs/flake/tests/KoViewConverterContractTest.cpp",
+      "test": "KoViewConverterContractTest::finiteValuesRoundTripAcrossCoordinateTypes",
+      "behavior": "有限の点、矩形、寸法、軸別座標は文書空間と表示空間の間を設定尺度で乗除算し、正逆往復で元値へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoViewConverter::documentToView(const QPointF & documentPoint) const",
+        "method:KoViewConverter::documentToView(const QRectF & documentRect) const",
+        "method:KoViewConverter::documentToView(const QSizeF & documentSize) const",
+        "method:KoViewConverter::documentToViewX(qreal documentX) const",
+        "method:KoViewConverter::documentToViewY(qreal documentY) const",
+        "method:KoViewConverter::viewToDocument(const QPointF & viewPoint) const",
+        "method:KoViewConverter::viewToDocument(const QRectF & viewRect) const",
+        "method:KoViewConverter::viewToDocument(const QSizeF & viewSize) const",
+        "method:KoViewConverter::viewToDocumentX(qreal viewX) const",
+        "method:KoViewConverter::viewToDocumentY(qreal viewY) const"
+      ]
+    },
+    {
+      "target": "KoViewConverterContractTest",
+      "source": "libs/flake/tests/KoViewConverterContractTest.cpp",
+      "test": "KoViewConverterContractTest::matrixConversionsUseAxisZoomAndDefaultWidgetSpace",
+      "behavior": "文書・表示行列は軸別尺度と逆尺度を保持し、既定の表示・部品行列は恒等変換を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoViewConverter::documentToView() const",
+        "method:KoViewConverter::viewToDocument() const",
+        "method:KoViewConverter::viewToWidget() const",
+        "method:KoViewConverter::widgetToView() const"
+      ]
+    },
+    {
+      "target": "KoViewConverterContractTest",
+      "source": "libs/flake/tests/KoViewConverterContractTest.cpp",
+      "test": "KoViewConverterContractTest::stillPointsComposeVirtualSpaces",
+      "behavior": "部品側静止点は部品から表示を経て文書へ、文書側静止点は文書から表示を経て部品へ仮想変換を合成し、入力側の点を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoViewConverter::makeDocStillPoint(const QPointF & docPoint) const",
+        "method:KoViewConverter::makeWidgetStillPoint(const QPointF & viewPoint) const"
       ]
     }
   ]
