@@ -169,6 +169,21 @@ set_target_properties(kritaflakedebugobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakewritingsystemutilsobjects OBJECT
+    text/KoWritingSystemUtils.cpp
+)
+target_compile_definitions(kritaflakewritingsystemutilsobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakewritingsystemutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakewritingsystemutilsobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaflakewritingsystemutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakepathfillrulecommandobjects OBJECT
     commands/KoPathFillRuleCommand.cpp
 )
@@ -422,7 +437,6 @@ set(kritaflake_SRCS
     text/lager/FontVariantEastAsianModel.cpp
     text/KoFFWWSConverter.cpp
     text/KoFontChangeTracker.cpp
-    text/KoWritingSystemUtils.cpp
     text/KoFontGlyphModel.cpp
     text/KoOpenTypeFeatureInfoFactory.cpp
     text/data/KoUnicodeBlockData.cpp
@@ -446,6 +460,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakecurvefitobjects>
     $<TARGET_OBJECTS:kritaflakecurvefitpathshapeobjects>
     $<TARGET_OBJECTS:kritaflakedebugobjects>
+    $<TARGET_OBJECTS:kritaflakewritingsystemutilsobjects>
     $<TARGET_OBJECTS:kritaflakepathfillrulecommandobjects>
 
 )

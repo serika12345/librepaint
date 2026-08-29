@@ -107,6 +107,19 @@ target_include_directories(KoSvgTextEnumContractTest PRIVATE
 target_compile_definitions(KoSvgTextEnumContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoWritingSystemUtilsContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakewritingsystemutilsobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoWritingSystemUtilsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoWritingSystemUtilsContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoInsetsContractTest.cpp
     LINK_LIBRARIES
         kritaflakeinsetsobjects
