@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24775
+    "expectedMissingApis": 24755
   },
   "contracts": [
     {
@@ -14828,6 +14828,80 @@
         "method:KisSurfaceColorManagerInterface::surfaceDescription() const",
         "method:KisSurfaceColorManagerInterface::unsetSurfaceDescription()",
         "method:KisSurfaceColorManagerInterface::~KisSurfaceColorManagerInterface()"
+      ]
+    },
+    {
+      "target": "KisNodeGraphListenerContractTest",
+      "source": "libs/image/tests/KisNodeGraphListenerContractTest.cpp",
+      "test": "KisNodeGraphListenerContractTest::baseListenerStartsWithEmptyGraphStateAndUsesVirtualDestruction",
+      "behavior": "ノードグラフ監視の既定状態はsequence 0とoverlayなしであり、基底ポインターから派生実体を破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeGraphListener",
+        "method:KisNodeGraphListener::KisNodeGraphListener()",
+        "method:KisNodeGraphListener::graphOverlayNode() const",
+        "method:KisNodeGraphListener::graphSequenceNumber() const",
+        "method:KisNodeGraphListener::~KisNodeGraphListener()"
+      ]
+    },
+    {
+      "target": "KisNodeGraphListenerContractTest",
+      "source": "libs/image/tests/KisNodeGraphListenerContractTest.cpp",
+      "test": "KisNodeGraphListenerContractTest::hierarchyNotificationsAdvanceSequenceExactlyOnce",
+      "behavior": "ノード追加、削除、移動のbefore/after通知はそれぞれgraph sequenceを正確に1増加させる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeGraphListener::aboutToAddANode(KisNode * parent,int index)",
+        "method:KisNodeGraphListener::aboutToMoveNode(KisNode * node,int oldIndex,int newIndex)",
+        "method:KisNodeGraphListener::aboutToRemoveANode(KisNode * parent,int index)",
+        "method:KisNodeGraphListener::graphSequenceNumber() const",
+        "method:KisNodeGraphListener::nodeHasBeenAdded(KisNode * parent,int index,KisNodeAdditionFlags flags)",
+        "method:KisNodeGraphListener::nodeHasBeenMoved(KisNode * node,int oldIndex,int newIndex)",
+        "method:KisNodeGraphListener::nodeHasBeenRemoved(KisNode * parent,int index)"
+      ]
+    },
+    {
+      "target": "KisNodeGraphListenerContractTest",
+      "source": "libs/image/tests/KisNodeGraphListenerContractTest.cpp",
+      "test": "KisNodeGraphListenerContractTest::otherDefaultNotificationsPreserveSequence",
+      "behavior": "階層を変更しない既定通知はgraph sequenceを変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeGraphListener::graphSequenceNumber() const",
+        "method:KisNodeGraphListener::invalidateAllFrames()",
+        "method:KisNodeGraphListener::invalidateFrames(const KisTimeSpan & range,const QRect & rect)",
+        "method:KisNodeGraphListener::keyframeChannelAboutToBeRemoved(KisNode * node,KisKeyframeChannel * channel)",
+        "method:KisNodeGraphListener::keyframeChannelHasBeenAdded(KisNode * node,KisKeyframeChannel * channel)",
+        "method:KisNodeGraphListener::nodeChanged(KisNode * node)",
+        "method:KisNodeGraphListener::nodeCollapsedChanged(KisNode * node)",
+        "method:KisNodeGraphListener::notifySelectionChanged()",
+        "method:KisNodeGraphListener::requestProjectionUpdate(KisNode * node,const QVector<QRect> & rects,KisProjectionUpdateFlags flags)",
+        "method:KisNodeGraphListener::requestTimeSwitch(int time)"
+      ]
+    },
+    {
+      "target": "KisNodeGraphListenerContractTest",
+      "source": "libs/image/tests/KisNodeGraphListenerContractTest.cpp",
+      "test": "KisNodeGraphListenerContractTest::derivedListenerReceivesEveryVirtualCallArgument",
+      "behavior": "基底参照からの全仮想通知はノード、位置、範囲、矩形、フラグ、時刻、チャンネルを派生監視へそのまま配送し、派生overlayを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeGraphListener::aboutToAddANode(KisNode * parent,int index)",
+        "method:KisNodeGraphListener::aboutToMoveNode(KisNode * node,int oldIndex,int newIndex)",
+        "method:KisNodeGraphListener::aboutToRemoveANode(KisNode * parent,int index)",
+        "method:KisNodeGraphListener::graphOverlayNode() const",
+        "method:KisNodeGraphListener::invalidateAllFrames()",
+        "method:KisNodeGraphListener::invalidateFrames(const KisTimeSpan & range,const QRect & rect)",
+        "method:KisNodeGraphListener::keyframeChannelAboutToBeRemoved(KisNode * node,KisKeyframeChannel * channel)",
+        "method:KisNodeGraphListener::keyframeChannelHasBeenAdded(KisNode * node,KisKeyframeChannel * channel)",
+        "method:KisNodeGraphListener::nodeChanged(KisNode * node)",
+        "method:KisNodeGraphListener::nodeCollapsedChanged(KisNode * node)",
+        "method:KisNodeGraphListener::nodeHasBeenAdded(KisNode * parent,int index,KisNodeAdditionFlags flags)",
+        "method:KisNodeGraphListener::nodeHasBeenMoved(KisNode * node,int oldIndex,int newIndex)",
+        "method:KisNodeGraphListener::nodeHasBeenRemoved(KisNode * parent,int index)",
+        "method:KisNodeGraphListener::notifySelectionChanged()",
+        "method:KisNodeGraphListener::requestProjectionUpdate(KisNode * node,const QVector<QRect> & rects,KisProjectionUpdateFlags flags)",
+        "method:KisNodeGraphListener::requestTimeSwitch(int time)"
       ]
     }
   ]

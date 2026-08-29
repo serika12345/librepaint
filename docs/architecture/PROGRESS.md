@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:15 JST
+- 更新日時: 2026-08-29 19:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -24,8 +24,8 @@
   `libs/surfacecolormanagementapi/surfacecolormanagement/Kis{OutputColorInfo,SurfaceColorManager}Interface.{h,cpp}`、
   Surface Color Management製品・試験CMake、新規限定試験を所有する。画面情報7 APIと表面管理13 APIの仮想配送、
   QObject・QWindow寿命、状態信号を対象とする。
-- 実装担当`node-graph-listener`は`implementing`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
-  追加委任は`forbidden`、統合順は3である。作業ツリーは
+- 実装担当`node-graph-listener`は`verified`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3、統合コミットは`f59314f936`である。作業ツリーは
   `/Users/masato/Documents/librepaint-r2-g19b-node-graph-listener`であり、`libs/image/kis_node_graph_listener.{h,cpp}`、
   Image製品・試験CMake、新規限定試験を所有する。階層変更の連番更新、既定通知動作、仮想配送、破棄の20 APIを
   対象とする。既存`libs/image/tests/kis_node_graph_listener_test.cpp`は読取り専用の最近傍契約とする。
@@ -8396,9 +8396,26 @@
   公開面は1,549ヘッダー、29,989 API、対応済み5,214件、未対応24,775件になった。Linux、全ネイティブ検証、
   機能有効構成の製品リンクは実行していない。
 
+## R2-G19b ノードグラフ通知の全public API契約で完了した作業
+
+- `libs/image/kis_node_graph_listener.h`の全20 APIを、新規
+  `libs/image/tests/KisNodeGraphListenerContractTest.cpp`の4試験へ対応付けた。構築直後の連番0とoverlayなし、
+  ノード追加・削除・移動の前後通知ごとの正確な連番加算、その他の既定通知による連番保持、全仮想通知の引数配送、
+  派生overlay返値、基底所有からの仮想破棄を固定した。
+- 開始ファイル`libs/image/kis_node_graph_listener.cpp`の構築所有を`kritaimage_LIB_SRCS`から新規
+  `kritaimagenodegraphlistenerobjects`へ移し、製品`kritaimage`が生成物を1回だけ再集約した。実装で不要だった
+  `kis_time_span.h`のincludeを除去し、公開ヘッダー、実装位置、製品ABIを維持した。変更前後の製品閉包は
+  1,085工程・2,194入力で不変、限定試験は5工程・12入力、生成オブジェクトは1工程・3入力であり、動的な
+  `kritaimage`製品ライブラリー依存を持たない。
+- 既存`libs/image/tests/kis_node_graph_listener_test.cpp`の対象は1,089工程・2,201入力と製品全体相当になるため、
+  連番の変化有無を確認する既存内容の静的監査に留めた。担当作業ツリーと統合担当のmacOS構築木で対象CTestの
+  単発実行と20回反復に成功し、製品への一重集約を確認した。統合時のパッケージ境界検査は1,192対象で成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,234件、未対応24,755件になった。Linux、全ネイティブ検証、
+  製品全体構築は実行していない。
+
 ## 次の操作
 
-`node-graph-listener`と`exposure-gamma-interface`を統合順に差分、限定構築、挙動、台帳を検証する。
+`exposure-gamma-interface`の差分、限定構築、挙動、台帳を検証する。
 
 ## R1-G5完了根拠
 
