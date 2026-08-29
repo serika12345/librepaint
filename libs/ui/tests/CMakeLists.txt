@@ -785,6 +785,24 @@ target_compile_definitions(KisNodeModelStructureContractTest PRIVATE
     kritaapplicationui_EXPORTS
 )
 
+kis_add_test(
+    KisNodeModelLifecycleContractTest.cpp
+    TEST_NAME KisNodeModelLifecycleContractTest
+    LINK_LIBRARIES
+        kritauinodemodellifecycleobjects
+        kritauinodemodelstructureobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisNodeModelLifecycleContractTest PRIVATE
+    ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_sources(KisNodeModelLifecycleContractTest PRIVATE
+    ../nodes/kis_node_model.h
+)
+target_compile_definitions(KisNodeModelLifecycleContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
 kis_add_test( kis_node_dummies_graph_test.cpp ../../../sdk/tests/testutil.cpp
     TEST_NAME KisNodeDummiesGraphTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk

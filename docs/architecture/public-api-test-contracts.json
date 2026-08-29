@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 25027
+    "expectedMissingApis": 25024
   },
   "contracts": [
     {
@@ -13465,6 +13465,37 @@
       "classification": "maintained",
       "apis": [
         "method:KisNodeModel::sibling(int row,int column,const QModelIndex & idx) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeModelLifecycleContractTest.cpp",
+      "test": "KisNodeModelLifecycleContractTest::negativeCloneColumnsNormalizeToPrimaryColumn",
+      "behavior": "ノードモデルはQObject所有者を保持し、負の複製列数をゼロへ正規化して主列だけを公開し、二つの内部更新源を各1回接続する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeModel",
+        "method:KisNodeModel::KisNodeModel(QObject * parent,int clonedColumns=0)"
+      ]
+    },
+    {
+      "target": "KisNodeModelLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeModelLifecycleContractTest.cpp",
+      "test": "KisNodeModelLifecycleContractTest::positiveCloneColumnsExpandTreeShape",
+      "behavior": "正の複製列数は主列へ加算され、指定数の複製列を持つ木形状になる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::KisNodeModel(QObject * parent,int clonedColumns=0)"
+      ]
+    },
+    {
+      "target": "KisNodeModelLifecycleContractTest",
+      "source": "libs/ui/tests/KisNodeModelLifecycleContractTest.cpp",
+      "test": "KisNodeModelLifecycleContractTest::destructionReleasesPrivateStateOnce",
+      "behavior": "ノードモデルの破棄は所有する非公開状態を1回解放し、QObject所有者の子一覧と監視ポインターから消える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::~KisNodeModel()"
       ]
     }
   ]

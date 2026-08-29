@@ -80,19 +80,33 @@ struct KisNodeModel::Private
     KisLayerThumbnailCache thumbnalCache;
 };
 
-KisNodeModel::KisNodeModel(QObject * parent, int clonedColumns)
-        : QAbstractItemModel(parent)
-        , m_d(new Private)
+void *KisNodeModel::LifecycleAccess::createPrivateState(int clonedColumns)
 {
-    m_d->dummyColumns = qMax(0, clonedColumns);
-    connect(&m_d->updateCompressor, SIGNAL(timeout()), SLOT(processUpdateQueue()));
-    connect(&m_d->thumbnalCache, SIGNAL(sigLayerThumbnailUpdated(KisNodeSP)), SLOT(slotLayerThumbnailUpdated(KisNodeSP)));
+    auto *privateState = new Private;
+    privateState->dummyColumns = clonedColumns;
+    return privateState;
 }
 
-KisNodeModel::~KisNodeModel()
+void KisNodeModel::LifecycleAccess::connectUpdateCompressor(KisNodeModel *model, void *privateState)
 {
-    delete m_d->indexConverter;
-    delete m_d;
+    auto *data = static_cast<Private *>(privateState);
+    QObject::connect(&data->updateCompressor, SIGNAL(timeout()), model, SLOT(processUpdateQueue()));
+}
+
+void KisNodeModel::LifecycleAccess::connectThumbnailCache(KisNodeModel *model, void *privateState)
+{
+    auto *data = static_cast<Private *>(privateState);
+    QObject::connect(&data->thumbnalCache,
+                     SIGNAL(sigLayerThumbnailUpdated(KisNodeSP)),
+                     model,
+                     SLOT(slotLayerThumbnailUpdated(KisNodeSP)));
+}
+
+void KisNodeModel::LifecycleAccess::destroyPrivateState(void *privateState)
+{
+    auto *data = static_cast<Private *>(privateState);
+    delete data->indexConverter;
+    delete data;
 }
 
 bool KisNodeModel::DisplayStateAccess::hasDisplayModeAdapter(const KisNodeModel *model)

@@ -184,6 +184,13 @@ protected Q_SLOTS:
     void slotLayerThumbnailUpdated(KisNodeSP node);
 
 protected:
+    struct KRITAUI_EXPORT LifecycleAccess {
+        static void *createPrivateState(int clonedColumns);
+        static void connectUpdateCompressor(KisNodeModel *model, void *privateState);
+        static void connectThumbnailCache(KisNodeModel *model, void *privateState);
+        static void destroyPrivateState(void *privateState);
+    };
+
     struct KRITAUI_EXPORT StructureAccess {
         static bool hasDummiesFacade(const KisNodeModel *model);
         static KisNodeDummy *dummyFromRow(const KisNodeModel *model, int row, const QModelIndex &parent);

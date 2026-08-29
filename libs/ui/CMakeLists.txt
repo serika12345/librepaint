@@ -1214,6 +1214,28 @@ set_target_properties(kritauinodemodelisolationmembershipobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauinodemodellifecycleobjects OBJECT
+    nodes/KisNodeModelLifecycle.cpp
+)
+target_compile_definitions(kritauinodemodellifecycleobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodellifecycleobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodellifecycleobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodellifecycleobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritauinodemodelstructureobjects OBJECT
     nodes/KisNodeModelStructure.cpp
 )
@@ -1290,6 +1312,7 @@ set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauinodemodeltransferprotocolobjects>
     $<TARGET_OBJECTS:kritauinodemodelindexmappingobjects>
     $<TARGET_OBJECTS:kritauinodemodelisolationmembershipobjects>
+    $<TARGET_OBJECTS:kritauinodemodellifecycleobjects>
     $<TARGET_OBJECTS:kritauinodemodelstructureobjects>
 
     canvas/kis_canvas_widget_base.cpp
