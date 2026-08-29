@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24741
+    "expectedMissingApis": 24721
   },
   "contracts": [
     {
@@ -14943,6 +14943,92 @@
         "method:KisDumbExposureGammaCorrectionInterface::setCurrentExposure(qreal value)",
         "method:KisDumbExposureGammaCorrectionInterface::setCurrentGamma(qreal value)",
         "struct:KisDumbExposureGammaCorrectionInterface"
+      ]
+    },
+    {
+      "target": "KoPropertiesTest",
+      "source": "libs/widgetutils/tests/KoPropertiesTest.cpp",
+      "test": "KoPropertiesTest::testDeserialization",
+      "behavior": "文字列からのXML復元は妥当な文書を受理して既存値を置換し、不正な文書ではfalseを返して既存値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProperties::isEmpty() const",
+        "method:KoProperties::load(const QString & string)",
+        "method:KoProperties::setProperty(const QString & name,const QVariant & value)",
+        "method:KoProperties::stringProperty(const QString & name,const QString & defaultValue=QString ()) const"
+      ]
+    },
+    {
+      "target": "KoPropertiesTest",
+      "source": "libs/widgetutils/tests/KoPropertiesTest.cpp",
+      "test": "KoPropertiesTest::testDomElementRoundTrip",
+      "behavior": "DOM要素への保存と復元は値と型を保持し、復元先の古い項目を除去して元のプロパティー集合と等しくする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProperties::contains(const QString & key) const",
+        "method:KoProperties::load(const QDomElement & root)",
+        "method:KoProperties::operator ==(const KoProperties & other) const",
+        "method:KoProperties::save(QDomElement & root) const",
+        "method:KoProperties::setProperty(const QString & name,const QVariant & value)"
+      ]
+    },
+    {
+      "target": "KoPropertiesTest",
+      "source": "libs/widgetutils/tests/KoPropertiesTest.cpp",
+      "test": "KoPropertiesTest::testRoundTrip",
+      "behavior": "名前付きXML文字列への保存復元は文字列、XML風文字列、CDATA風文字列、整数、真偽値、実数の値と型を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProperties::boolProperty(const QString & name,bool defaultValue=false) const",
+        "method:KoProperties::doubleProperty(const QString & name,qreal defaultValue=0.0) const",
+        "method:KoProperties::intProperty(const QString & name,int defaultValue=0) const",
+        "method:KoProperties::load(const QString & string)",
+        "method:KoProperties::setProperty(const QString & name,const QVariant & value)",
+        "method:KoProperties::store(const QString & root) const",
+        "method:KoProperties::stringProperty(const QString & name,const QString & defaultValue=QString ()) const"
+      ]
+    },
+    {
+      "target": "KoPropertiesTest",
+      "source": "libs/widgetutils/tests/KoPropertiesTest.cpp",
+      "test": "KoPropertiesTest::testProperties",
+      "behavior": "プロパティー集合は設定値を型別・QVariant別に取得し、存在照会と読取専用反復で4項目を漏れなく公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoProperties::boolProperty(const QString & name,bool defaultValue=false) const",
+        "method:KoProperties::contains(const QString & key) const",
+        "method:KoProperties::doubleProperty(const QString & name,qreal defaultValue=0.0) const",
+        "method:KoProperties::intProperty(const QString & name,int defaultValue=0) const",
+        "method:KoProperties::isEmpty() const",
+        "method:KoProperties::property(const QString & name) const",
+        "method:KoProperties::property(const QString & name,QVariant & value) const",
+        "method:KoProperties::propertyIterator() const",
+        "method:KoProperties::setProperty(const QString & name,const QVariant & value)",
+        "method:KoProperties::stringProperty(const QString & name,const QString & defaultValue=QString ()) const",
+        "method:KoProperties::value(const QString & key) const"
+      ]
+    },
+    {
+      "target": "KoPropertiesTest",
+      "source": "libs/widgetutils/tests/KoPropertiesTest.cpp",
+      "test": "KoPropertiesTest::testTypedDefaultsAndEquality",
+      "behavior": "空の集合は指定した型別既定値を返し、欠落値の出力引数を保持する。コピーは元と等しい独立状態を持ち、元の変更と破棄後にもコピー値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoProperties",
+        "method:KoProperties::KoProperties()",
+        "method:KoProperties::KoProperties(const KoProperties & other)",
+        "method:KoProperties::boolProperty(const QString & name,bool defaultValue=false) const",
+        "method:KoProperties::doubleProperty(const QString & name,qreal defaultValue=0.0) const",
+        "method:KoProperties::intProperty(const QString & name,int defaultValue=0) const",
+        "method:KoProperties::isEmpty() const",
+        "method:KoProperties::operator ==(const KoProperties & other) const",
+        "method:KoProperties::property(const QString & name) const",
+        "method:KoProperties::property(const QString & name,QVariant & value) const",
+        "method:KoProperties::setProperty(const QString & name,const QVariant & value)",
+        "method:KoProperties::stringProperty(const QString & name,const QString & defaultValue=QString ()) const",
+        "method:KoProperties::value(const QString & key) const",
+        "method:KoProperties::~KoProperties()"
       ]
     }
   ]

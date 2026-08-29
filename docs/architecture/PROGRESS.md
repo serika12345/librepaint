@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 19:28 JST
+- 更新日時: 2026-08-29 19:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -15,7 +15,7 @@
   主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`properties-serialization`は`implementing`、統合順は1である。
+- 統合担当`properties-serialization`は`integrated`、統合順は1である。
   `libs/widgetutils/KoProperties.{h,cpp}`、既存`libs/widgetutils/tests/KoPropertiesTest.{h,cpp}`、Widget Utils製品・
   試験CMakeを所有する。既存試験を巨大な共有試験群から専用対象へ分け、値の設定・取得・型変換・反復・コピー・
   XML保存復元・失敗時保持・等値・破棄の全20 APIを対象とする。
@@ -8429,10 +8429,26 @@
   確認した。統合時のパッケージ境界検査は1,192対象で成功した。公開面は1,549ヘッダー、29,989 API、
   対応済み5,248件、未対応24,741件になった。Linux、全ネイティブ検証、製品全体構築は実行していない。
 
+## R2-G19b プロパティー直列化の全public API契約で完了した作業
+
+- `libs/widgetutils/KoProperties.h`の全20 APIを、既存
+  `libs/widgetutils/tests/KoPropertiesTest.cpp`の6試験へ対応付けた。値の設定、存在確認、QVariantと型別の取得、
+  読取専用反復、コピーの独立性、等値、DOM要素と文字列によるXML保存復元、不正XMLでの既存値保持、元の破棄後に
+  コピー値を保持する寿命を固定した。
+- 開始ファイル`libs/widgetutils/KoProperties.cpp`の構築所有を`kritawidgetutils_LIB_SRCS`から新規
+  `kritawidgetutilspropertiesobjects`へ移し、製品`kritawidgetutils`が生成物を1回だけ再集約する。試験ソース
+  `libs/widgetutils/tests/KoPropertiesTest.cpp`は、`kritawidgetutils`、`kritaimage`、`kritatestsdk`へ接続する共有試験群から
+  専用`KoPropertiesTest`対象へ移し、生成物とQt Core・Xml・Testだけへ接続した。公開ヘッダー、実装位置、製品ABIは
+  維持した。
+- macOSの限定試験閉包は1,089工程・2,201入力から5工程・11入力へ縮小した。対象CTestの単発実行と20回反復、
+  最近傍の`kis_simple_math_parser_test`、高速検査に成功した。統合時のパッケージ境界検査は1,193対象で成功し、
+  公開面は1,549ヘッダー、29,989 API、対応済み5,268件、未対応24,721件になった。Linux、全ネイティブ検証、
+  製品全体構築は実行していない。
+
 ## 次の操作
 
-`properties-serialization`、`resource-bundle-manifest`、`runnable-stroke-job-builders`、
-`algebra-geometry-primitives`を並行実装し、統合順に差分、限定構築、挙動、台帳を検証する。
+`resource-bundle-manifest`、`runnable-stroke-job-builders`、`algebra-geometry-primitives`の順に、担当差分、限定構築、
+挙動、台帳を統合検証する。
 
 ## R1-G5完了根拠
 
