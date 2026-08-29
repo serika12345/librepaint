@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:44 JST
+- 更新日時: 2026-08-29 14:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -17,7 +17,7 @@
 - 統合担当`ui-node-model-removal`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
   `libs/ui/nodes/KisNodeModelRemoval.cpp`、`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、新規除去契約試験を所有し、
   行除去開始前の公開通知を対象とする。
-- 実装担当`global-bezier-param-sampler`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`global-bezier-param-sampler`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/global/KisBezierPatchParamToSourceSampler.h`と新規限定試験を所有し、
   型、構築、公開値、範囲、点変換の12 APIを対象とする。
 - 実装担当`image-random-generator-2d`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -7767,10 +7767,27 @@
   対応済み5,013件、未対応24,976件になった。非ASCII入力は未固定の危険として残る。Linux、全ネイティブ検証、製品全体
   リンクは実行していない。
 
+## R2-G19b Bezierパッチ元空間標本化の全public API契約と曲線長構築分離で完了した作業
+
+- `libs/global/KisBezierUtils.cpp`にあった`KisBezierUtils::curveLength()`と`curveLengthAtPoint()`を、新規
+  `libs/global/KisBezierCurveLength.cpp`へ移した。新規`kritaglobalbeziercurvelengthobjects`が曲線長計算を所有し、製品
+  `kritaglobal`が生成物を1回再集約する。元翻訳単位は2関数を未定義参照し、新翻訳単位だけが定義することをシンボル監査で
+  確認した。
+- ヘッダー実装の`libs/global/KisBezierPatchParamToSourceSampler.h`にある型別名、型、構築、パッチ値、四辺長、X・Y区間、
+  数値引数と点引数の点変換の全12 APIを、新規`libs/global/tests/KisBezierPatchParamToSourceSamplerContractTest.cpp`へ
+  対応付けた。対向辺の進行量が逆転するパッチについて、元矩形への尺度変換、区間の昇順化、区間間の点補間を固定した。
+  製品実装接続前のリンクは曲線長2関数だけを未解決記号として診断した。
+- 最寄りの既存契約は4工程・8入力、新規の曲線長対象は1工程・3入力、契約対象は5工程・11入力である。製品
+  `kritaglobal`閉包は65工程・130入力から66工程・132入力になった。直接依存は曲線長対象がQt Core、Qt Gui、Boost
+  ヘッダー、契約対象が曲線長対象、Qt Test、Qt Gui、Boostヘッダーである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、元`KisBezierUtils.cpp`を製品設定で単体コンパイルした。対象CTestの
+  単発実行と20回反復、1,127対象のパッケージ境界検査、公開API契約検査、高速検査は成功した。公開面は1,549ヘッダー、
+  29,989 API、対応済み5,025件、未対応24,964件になった。一般曲線の長さ精度は曲線長計算側の別契約として残る。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第3便のBezierパラメーター標本化を統合する。対象限定CTestと公開API検査を再実行し、中央台帳と対応件数を同期した後、
-次の非重複担当群を新しい共通基準から開始する。
+第3並列便を統合した新しい共通基準から公開API報告を再集計し、小構築対象で直接観測できる非重複担当群を開始する。
 
 ## R1-G5完了根拠
 

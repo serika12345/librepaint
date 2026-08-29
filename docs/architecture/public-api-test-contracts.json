@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24976
+    "expectedMissingApis": 24964
   },
   "contracts": [
     {
@@ -13855,6 +13855,27 @@
       "apis": [
         "method:SvgTransformParser::isValid() const",
         "method:SvgTransformParser::transform() const"
+      ]
+    },
+    {
+      "target": "KisBezierPatchParamToSourceSamplerContractTest",
+      "source": "libs/global/tests/KisBezierPatchParamToSourceSamplerContractTest.cpp",
+      "test": "KisBezierPatchParamToSourceSamplerContractTest::mapsBoundaryProgressIntoSourceRectangle",
+      "behavior": "パッチ元空間サンプラーは入力パッチを値として保持して四辺の曲線長を求め、対向辺のパラメーター進行量が逆転する場合も元矩形上のX・Y区間を昇順へ正規化し、数値引数と点引数の両入口で区間間を補間した同じ元空間座標を返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBezierPatchParamToSourceSampler::Range",
+        "member:KisBezierPatchParamToSourceSampler::bottomLength",
+        "member:KisBezierPatchParamToSourceSampler::leftLength",
+        "member:KisBezierPatchParamToSourceSampler::patch",
+        "member:KisBezierPatchParamToSourceSampler::rightLength",
+        "member:KisBezierPatchParamToSourceSampler::topLength",
+        "method:KisBezierPatchParamToSourceSampler::KisBezierPatchParamToSourceSampler(const KisBezierPatch & _patch)",
+        "method:KisBezierPatchParamToSourceSampler::point(const QPointF & pt) const",
+        "method:KisBezierPatchParamToSourceSampler::point(qreal xParam,qreal yParam) const",
+        "method:KisBezierPatchParamToSourceSampler::xRange(qreal xParam) const",
+        "method:KisBezierPatchParamToSourceSampler::yRange(qreal yParam) const",
+        "struct:KisBezierPatchParamToSourceSampler"
       ]
     }
   ]
