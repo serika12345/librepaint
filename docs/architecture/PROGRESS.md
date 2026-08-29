@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:10 JST
+- 更新日時: 2026-08-29 15:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,7 +16,7 @@
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
 - 統合担当`ui-node-model-set-data`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
   `libs/ui/nodes/KisNodeModelSetData.cpp`、UI CMake、新規限定試験を所有し、模型のデータ設定と隔離切替通知の2 APIを対象とする。
-- 実装担当`global-transform-components`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+- 実装担当`global-transform-components`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/global/KisTransformComponents.h`と関連する代数実装、Global CMake、新規限定試験を
   所有し、変換成分の12 APIを対象とする。
 - 実装担当`image-spontaneous-job`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
@@ -7825,9 +7825,26 @@
   高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,034件、未対応24,955件になった。実形状を使う複数strokeの
   redo・undoは製品所有閉包の分離後に追加する契約として残る。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
+## R2-G19b 変換成分分類の全public API契約と分解処理の構築分離で完了した作業
+
+- `libs/global/kis_algebra_2d.cpp`にあった`KisAlgebra2D::DecomposedMatrix`の2構築処理を、新規
+  `libs/global/KisDecomposedMatrix.cpp`へ移した。新規`kritaglobaldecomposedmatrixobjects`が分解処理を所有する。また、
+  `libs/global/KisTransformComponents.cpp`を製品の直接ソース一覧から新規`kritaglobaltransformcomponentsobjects`へ移し、製品
+  `kritaglobal`が両生成物を各一度再集約する。
+- `libs/global/KisTransformComponents.h`の成分列挙、列挙値、フラグ別名、全成分生成、変換分類、成分比較、2種類のデバッグ出力の
+  全12 APIを、新規`libs/global/tests/KisTransformComponentsContractTest.cpp`の4試験へ対応付けた。平行移動、非等方尺度、回転、剪断、
+  射影、全成分合成、成分差分、文字列表現を固定した。赤段階で5実装シンボルの未解決を確認し、同一の非等方尺度を不一致とした
+  `scaleX`対`scaleY`の比較誤りを修正した。
+- 既存`TestSvgTextShape`は550工程・1,131入力である。新規の分解対象と変換成分対象は各1工程・3入力、契約対象は6工程・13入力、
+  製品`kritaglobal`は67工程・134入力である。元`kis_algebra_2d.cpp`を製品設定で単体コンパイルし、分解構築定義が元対象から消えて
+  新対象だけに存在することを確認した。
+- 統合担当のmacOS構築木で対象CTestの単発実行と20回反復、1,134対象のパッケージ境界検査、公開API契約検査、高速検査に成功した。
+  公開面は1,549ヘッダー、29,989 API、対応済み5,046件、未対応24,943件になった。無効・特異変換の診断は別契約として残る。
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
 ## 次の操作
 
-第4並列便の変換成分契約を統合し、対象CTest、公開API契約検査、高速検査を再実行して新しい共通基準を作る。
+第4並列便を統合した新しい共通基準から公開API報告を再集計し、小構築対象で直接観測できる非重複担当群を開始する。
 
 ## R1-G5完了根拠
 

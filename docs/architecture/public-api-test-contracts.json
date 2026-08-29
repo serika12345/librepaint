@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24955
+    "expectedMissingApis": 24943
   },
   "contracts": [
     {
@@ -13967,6 +13967,54 @@
       "classification": "maintained",
       "apis": [
         "function:KoFlake::modifyShapesStrokes(QList<KoShape * > shapes,ModifyFunction modifyFunction)"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::flagsRepresentEveryTransformComponent",
+      "behavior": "5種類の変換成分が独立したフラグ値を持ち、全成分生成がそれらを漏れなく結合する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisAlgebra2D::KisTransformComponents",
+        "enum:KisAlgebra2D::KisTransformComponent",
+        "enumerator:KisAlgebra2D::KisTransformComponent::Project",
+        "enumerator:KisAlgebra2D::KisTransformComponent::Rotate",
+        "enumerator:KisAlgebra2D::KisTransformComponent::Scale",
+        "enumerator:KisAlgebra2D::KisTransformComponent::Shear",
+        "enumerator:KisAlgebra2D::KisTransformComponent::Translate",
+        "function:KisAlgebra2D::makeFullTransformComponents()"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::transformClassificationDistinguishesEveryComponent",
+      "behavior": "恒等変換、平行移動、尺度、回転、剪断、射影、および全成分の合成を対応する変換成分として分類する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::componentsForTransform(const QTransform & t)"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::comparisonReportsUnchangedComponents",
+      "behavior": "同じ変換の全成分を一致として返し、1成分だけ異なる変換ではその成分だけを一致集合から除外する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::compareTransformComponents(const QTransform & lhs,const QTransform & rhs)"
+      ]
+    },
+    {
+      "target": "KisTransformComponentsContractTest",
+      "source": "libs/global/tests/KisTransformComponentsContractTest.cpp",
+      "test": "KisTransformComponentsContractTest::debugOutputIsStable",
+      "behavior": "個別成分と成分集合を、定義済みの名称と一定の成分順序を持つ安定した文字列として出力する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,KisAlgebra2D::KisTransformComponent component)",
+        "function:operator <<(QDebug dbg,KisAlgebra2D::KisTransformComponents components)"
       ]
     }
   ]
