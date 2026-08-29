@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 05:02 JST
+- 更新日時: 2026-08-30 05:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,25 +14,26 @@
 - 第28並列便の共通基準コミットは`8682bee9af`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g28-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`change-value-command`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`change-value-command`は`integrated`、実装コミットは`579c452c05`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/painting/undo/KisChangeValueCommand.h`、Painting Undo試験CMake、新規`KisChangeValueCommandContractTest.cpp`を所有する。
-  実装はheader内にあり、既存`kritapaintingundokundo2coreobjects`を再利用して製品CMakeを変更しない。10工程・21入力以内で、直接値と
+  実装はheader内にあり、既存`kritapaintingundokundo2coreobjects`を再利用して製品CMakeを変更しない。10工程・21入力で、直接値と
   間接値の構築時旧値、再実行・取消、変換可能な新値、間接先の再解決、factoryの型と親所有の全10 APIを固定する。
-- 実装担当`shape-background`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g28-shape-background`を予定し、
+- 実装担当`shape-background`は`integrated`、引渡しコミットは`d6d81f3c03`、統合コミットは`0e201c0fdb`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g28-shape-background`で、
   `libs/flake/KoShapeBackground.cpp`、Flake製品・試験CMake、新規`KoShapeBackgroundContractTest.cpp`を所有する。開始ファイル
   `KoShapeBackground.cpp`を製品`kritaflake`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。変更前実装の
-  367工程・762入力に代えて5工程・10入力以内で、基底既定値、描画と比較の仮想配送、上書き状態、基底寿命の全7 APIを固定する。
-- 実装担当`default-bounds-base`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g28-default-bounds-base`を予定し、
+  367工程・762入力に代えて5工程・10入力で、基底既定値、描画と比較の仮想配送、上書き状態、基底寿命の全7 APIを固定する。
+- 実装担当`default-bounds-base`は`integrated`、引渡しコミットは`cb6abf47b5`、統合コミットは`6091832e62`、構築実行許可は`granted`、
+  Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g28-default-bounds-base`で、
   `libs/image/kis_default_bounds_base.cpp`、Image製品・試験CMake、新規`KisDefaultBoundsBaseContractTest.cpp`を所有する。開始ファイル
   `kis_default_bounds_base.cpp`を製品`kritaimage`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。従来近傍試験の
   6工程・13入力以内で、7純仮想関数、既定境界転送、共有所有、opaque cookie、基底寿命の全11 APIを製品実装へ直接固定する。
-- 実装担当`option-collection-widget`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は4である。作業ツリーは`/Users/masato/Documents/librepaint-r2-g28-option-collection-widget`を予定し、
+- 実装担当`option-collection-widget`は`integrated`、引渡しコミットは`2d4abb6a11`、統合コミットは`b5c6f99df9`・`7465163695`、
+  構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g28-option-collection-widget`で、
   `libs/widgetutils/KisOptionCollectionWidget.cpp`、WidgetUtils製品・試験CMake、新規`KisOptionCollectionWidgetContractTest.cpp`を所有する。
   開始ファイル`KisOptionCollectionWidget.cpp`を製品`kritawidgetutils`の直接ソースから専用生成物へ移し、製品へ1回だけ再集約する。
-  製品の244工程・521入力に代えて8工程・16入力以内で、子の順序・識別子・path探索・所有、取得と除去、表示数、配置方向、見出し、
+  製品の244工程・521入力に代えて7工程・14入力で、子の順序・識別子・path探索・所有、取得と除去、表示数、配置方向、見出し、
   primary widget委譲の全55 APIを固定する。take・remove後に内部wrapperが配置へ残る現行挙動は既知不具合として分類する。
 - 第28並列便の完了時は合計83 APIを追加し、公開面の対応済み6,963件、未対応23,026件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
@@ -9390,10 +9391,65 @@
   各担当の引渡しを統合順に取り込み、主作業ツリーで4限定対象の同時構築・CTest、必要な製品への1回再集約、公開API契約検査を
   再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,880件、未対応23,109件になった。
 
+## R2-G19b 値変更undo命令の全public API契約で完了した作業
+
+- `libs/painting/undo/KisChangeValueCommand.h`の全10 APIを、新規
+  `libs/painting/undo/tests/KisChangeValueCommandContractTest.cpp`の3試験へ対応付けた。直接値は構築時旧値と変換可能な新値、間接値は
+  構築時旧値と実行時の現在参照先、両factoryは型推論、heap生成、親命令への所有登録と親経由の実行を固定した。
+- 実装はheader内に留まり、既存`kritapaintingundokundo2coreobjects`を限定試験へ接続した。製品CMakeと公開面を変更せず、試験内の
+  安全検査協調定義で製品共有ライブラリーを接続しない。
+- 対象未登録の初回限定構築は未知の対象として失敗し、最初のリンクは`kis_safe_assert_recoverable`だけが未解決になった。限定対象は
+  10工程・21入力で、対象CTest単発と20回反復、最近傍`KUndo2GroupContractTest`、製品共有ライブラリー非接続、整形検査に成功した。
+  null基底、null間接先、命令より短い借用先寿命、Linux、全ネイティブ検証は実行していない。
+
+## R2-G19b 図形背景の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoShapeBackground.h`の全7 APIを、新規`libs/flake/tests/KoShapeBackgroundContractTest.cpp`の4試験へ対応付けた。基底の
+  不透明性なし・有効という既定値、描画時の画家と塗り領域、比較相手の個体同一性、派生状態への仮想配送、基底寿命を固定した。
+- 開始ファイル`libs/flake/KoShapeBackground.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  `kritaflakeshapebackgroundobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。実装内容と公開ヘッダーは維持し、限定試験は
+  同生成物とQt Core・Gui・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・10入力で、変更前実装の367工程・762入力から縮小した。
+  対象CTest単発と20回反復、最近傍`KoShapeAnchorContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、`verify-quick`に
+  成功した。無効な画家、null比較相手、具体的背景の描画・比較、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 既定画像境界の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_default_bounds_base.h`の全11 APIを、新規`libs/image/tests/KisDefaultBoundsBaseContractTest.cpp`の3試験へ対応付けた。
+  7純仮想関数の状態配送、製品`imageBorderRect()`から`bounds()`への一回転送、共有ポインター別名、opaque cookieの同一性、最後の
+  基底共有所有解放時の派生破棄を固定した。
+- 開始ファイル`libs/image/kis_default_bounds_base.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  `kritaimagedefaultboundsbaseobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。既存近傍試験内の基底関数再定義に依存せず、
+  製品実装を同生成物から直接検査する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は6工程・13入力、専用生成物は1工程・3入力であり、対象CTest単発と
+  20回反復、最近傍`KisTransformMaskParamsInterfaceContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、`verify-quick`に
+  成功した。cookie参照先の型と寿命、実画像との統合、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 選択肢集合ウィジェットの全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KisOptionCollectionWidget.h`の全55 APIを、新規
+  `libs/widgetutils/tests/KisOptionCollectionWidgetContractTest.cpp`の6試験へ対応付けた。通常集合と見出し付き集合の親所有、論理順序、
+  識別子・index・型付き・階層path探索、取得・除去、表示数、separator・margin・配置方向、primary widgetの所有と委譲を固定した。
+- 開始ファイル`libs/widgetutils/KisOptionCollectionWidget.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の
+  `kritawidgetutils_LIB_SRCS`直接収容から新規`kritawidgetutilsoptioncollectionobjects`へ移し、製品`kritawidgetutils`は実装と自動MOC生成物を
+  1回だけ再集約する。分離で露出した私有補助関数の`QStringRef`・Qt Core5Compat偶発依存は`QStringView`へ置換し、公開署名と観測挙動を
+  維持した。
+- 対象未登録の初回限定構築は未知の対象、分離直後のコンパイルは`QStringRef`未検出として失敗した。限定対象は7工程・14入力、専用生成物は
+  3工程・7入力であり、製品の244工程・521入力から縮小した。対象CTest単発と20回反復、最近傍
+  `KisHighlightedToolButtonContractTest`、公開記号、一重再集約、製品共有ライブラリー・Core5Compat非接続、`verify-quick`に成功した。
+  take・remove後に内部wrapperが配置へ残って論理件数と可視件数が乖離する現行挙動は既知不具合として固定した。未登録識別子、範囲外index、
+  null widget、未設定primaryへの表示操作、重複識別子、同一方向の再指定時の再帰配送、表示様式の絶対画素、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+- 第28並列便は値変更undo 10 API、図形背景7 API、既定画像境界11 API、選択肢集合ウィジェット55 APIの合計83 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業ツリーで4限定対象の同時構築・CTest、必要な製品への1回再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み6,963件、未対応23,026件になった。
+
 ## 次の操作
 
-第28並列便の4担当が、記録した閉包上限を先に確認して限定契約を赤から開始する。各実装担当は許可パスだけを変更し、限定対象の
-単発・20回反復、軽量隣接試験、製品への1回再集約、製品共有ライブラリー非接続を確認して引き渡す。
+最新の未対応公開API報告`/tmp/librepaint-g28-missing.json`から第29並列便の候補を監査する。各候補の全公開面を一つの観測可能な
+責務として固定できるか確認し、既存対象の命令・入力閉包と製品の直接CMake依存を測定して、必要な構築所有分離を先行する担当票を
+確定する。
 
 ## R1-G5完了根拠
 

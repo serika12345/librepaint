@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 23109
+    "expectedMissingApis": 23026
   },
   "contracts": [
     {
@@ -20028,6 +20028,244 @@
       "apis": [
         "class:KisColorLabelMouseDragFilter",
         "method:KisColorLabelMouseDragFilter::KisColorLabelMouseDragFilter(QObject * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisChangeValueCommandContractTest",
+      "source": "libs/painting/undo/tests/KisChangeValueCommandContractTest.cpp",
+      "test": "KisChangeValueCommandContractTest::directCommandCapturesAndRestoresTheConstructionValue",
+      "behavior": "直接値変更命令は構築時の旧値を保持し、変換可能な新値を再実行で設定し、途中の外部変更にかかわらず取消で旧値へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisChangeValueCommand::KisChangeValueCommand(Base * base,const ValueType & newValue,KUndo2Command * parent=nullptr)",
+        "method:KisChangeValueCommand::redo()",
+        "method:KisChangeValueCommand::undo()",
+        "struct:KisChangeValueCommand"
+      ]
+    },
+    {
+      "target": "KisChangeValueCommandContractTest",
+      "source": "libs/painting/undo/tests/KisChangeValueCommandContractTest.cpp",
+      "test": "KisChangeValueCommandContractTest::indirectCommandResolvesTheCurrentPointeeForEveryAssignment",
+      "behavior": "間接値変更命令は構築時の参照先から旧値を保持し、再実行と取消のたびに現在の参照先を解決して新値または旧値を設定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisChangeIndirectValueCommand::KisChangeIndirectValueCommand(Base * base,const ValueType & newValue,KUndo2Command * parent=nullptr)",
+        "method:KisChangeIndirectValueCommand::redo()",
+        "method:KisChangeIndirectValueCommand::undo()",
+        "struct:KisChangeIndirectValueCommand"
+      ]
+    },
+    {
+      "target": "KisChangeValueCommandContractTest",
+      "source": "libs/painting/undo/tests/KisChangeValueCommandContractTest.cpp",
+      "test": "KisChangeValueCommandContractTest::factoriesDeduceValueTypesAndJoinParentOwnership",
+      "behavior": "直接・間接factoryは新値型を推論した具象命令をheap上に作り、指定した親命令へ登録して親の再実行・取消順序と所有に参加させる。",
+      "classification": "maintained",
+      "apis": [
+        "function:makeChangeIndirectValueCommand(Base * base,const ValueType & newValue,KUndo2Command * parent=nullptr)",
+        "function:makeChangeValueCommand(Base * base,const ValueType & newValue,KUndo2Command * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundContractTest.cpp",
+      "test": "KoShapeBackgroundContractTest::baseDefaultsAndVirtualDestructionAreStable",
+      "behavior": "図形背景の基底既定値は不透明性なし・有効であり、基底ポインターからの破棄は派生型の仮想デストラクターへ配送される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeBackground",
+        "method:KoShapeBackground::KoShapeBackground()",
+        "method:KoShapeBackground::hasTransparency() const",
+        "method:KoShapeBackground::operator bool() const",
+        "method:KoShapeBackground::~KoShapeBackground()"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundContractTest.cpp",
+      "test": "KoShapeBackgroundContractTest::paintDispatchesWithPainterAndFillPath",
+      "behavior": "基底ポインターからの描画要求は同一の画家と塗り領域を派生実装へ渡し、指定領域だけを描画する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeBackground::paint(QPainter & painter,const QPainterPath & fillPath) const"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundContractTest.cpp",
+      "test": "KoShapeBackgroundContractTest::comparisonDispatchesWithOtherIdentity",
+      "behavior": "背景比較は基底ポインターから派生実装へ配送され、比較対象の個体をそのまま渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeBackground::compareTo(const KoShapeBackground * other) const"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundContractTest.cpp",
+      "test": "KoShapeBackgroundContractTest::derivedTransparencyAndBooleanStateAreDispatched",
+      "behavior": "透明性と有効状態の問い合わせは基底ポインター経由でも派生型が保持する現在値へ仮想配送される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeBackground::hasTransparency() const",
+        "method:KoShapeBackground::operator bool() const"
+      ]
+    },
+    {
+      "target": "KisDefaultBoundsBaseContractTest",
+      "source": "libs/image/tests/KisDefaultBoundsBaseContractTest.cpp",
+      "test": "KisDefaultBoundsBaseContractTest::sharedBaseOwnershipDestroysDerivedOnce",
+      "behavior": "画像境界の具象実装を公開共有ポインター型で共有所有でき、最後の基底所有が解放された時だけ派生実装を正確に1回破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisDefaultBoundsBaseSP",
+        "class:KisDefaultBoundsBase",
+        "method:KisDefaultBoundsBase::~KisDefaultBoundsBase()"
+      ]
+    },
+    {
+      "target": "KisDefaultBoundsBaseContractTest",
+      "source": "libs/image/tests/KisDefaultBoundsBaseContractTest.cpp",
+      "test": "KisDefaultBoundsBaseContractTest::imageBorderDelegatesToBoundsOnce",
+      "behavior": "製品既定の画像境界取得は派生実装の仮想境界取得を正確に1回呼び、その矩形を変更せず返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDefaultBoundsBase::bounds() const",
+        "method:KisDefaultBoundsBase::imageBorderRect() const"
+      ]
+    },
+    {
+      "target": "KisDefaultBoundsBaseContractTest",
+      "source": "libs/image/tests/KisDefaultBoundsBaseContractTest.cpp",
+      "test": "KisDefaultBoundsBaseContractTest::dispatchesWrapTimeAndSourceState",
+      "behavior": "基底接続面からwraparound状態と軸、詳細度、現在時刻、外部frame状態、source cookieを派生実装へ各1回配送し、具体値とopaque pointer同一性を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDefaultBoundsBase::currentLevelOfDetail() const",
+        "method:KisDefaultBoundsBase::currentTime() const",
+        "method:KisDefaultBoundsBase::externalFrameActive() const",
+        "method:KisDefaultBoundsBase::sourceCookie() const",
+        "method:KisDefaultBoundsBase::wrapAroundMode() const",
+        "method:KisDefaultBoundsBase::wrapAroundModeAxis() const"
+      ]
+    },
+    {
+      "target": "KisOptionCollectionWidgetContractTest",
+      "source": "libs/widgetutils/tests/KisOptionCollectionWidgetContractTest.cpp",
+      "test": "KisOptionCollectionWidgetContractTest::emptyStateAndParentLifetime",
+      "behavior": "通常集合と見出し付き集合は親所有された空のウィジェットとして構築され、初期件数と可視件数は0、primary widgetは未設定で、親の破棄に従って両派生型まで破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOptionCollectionWidget",
+        "class:KisOptionCollectionWidgetWithHeader",
+        "method:KisOptionCollectionWidget::KisOptionCollectionWidget(QWidget * parent=nullptr)",
+        "method:KisOptionCollectionWidget::~KisOptionCollectionWidget()",
+        "method:KisOptionCollectionWidgetWithHeader::KisOptionCollectionWidgetWithHeader(const QString & title,QWidget * parent=nullptr)",
+        "method:KisOptionCollectionWidgetWithHeader::~KisOptionCollectionWidgetWithHeader()"
+      ]
+    },
+    {
+      "target": "KisOptionCollectionWidgetContractTest",
+      "source": "libs/widgetutils/tests/KisOptionCollectionWidgetContractTest.cpp",
+      "test": "KisOptionCollectionWidgetContractTest::collectionPreservesOrderIdsAndTypedPaths",
+      "behavior": "通常集合は一意な識別子で追加・挿入した子の論理順序と親所有を保持し、識別子・index・型付き入口から同じ子を返し、先頭slashを正規化した入れ子pathを通常集合と見出し付き集合へ再帰配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptionCollectionWidget::appendWidget(const QString & id,QWidget * widget)",
+        "method:KisOptionCollectionWidget::containsWidget(const QString & id) const",
+        "method:KisOptionCollectionWidget::findWidget(const QString & path) const",
+        "method:KisOptionCollectionWidget::findWidgetAs(const QString & path) const",
+        "method:KisOptionCollectionWidget::insertWidget(int index,const QString & id,QWidget * widget)",
+        "method:KisOptionCollectionWidget::size() const",
+        "method:KisOptionCollectionWidget::widget(const QString & id) const",
+        "method:KisOptionCollectionWidget::widget(int index) const",
+        "method:KisOptionCollectionWidget::widgetAs(const QString & id) const",
+        "method:KisOptionCollectionWidget::widgetAs(int index) const",
+        "method:KisOptionCollectionWidget::widgetIndexFromId(const QString & id) const"
+      ]
+    },
+    {
+      "target": "KisOptionCollectionWidgetContractTest",
+      "source": "libs/widgetutils/tests/KisOptionCollectionWidgetContractTest.cpp",
+      "test": "KisOptionCollectionWidgetContractTest::collectionTakeAndRemoveLeaveWrapperResidue",
+      "behavior": "通常集合のtakeはindexまたは識別子の子を親なしで返し、removeは対象の子を破棄して論理件数を減らす一方、内部wrapperが配置に残るため可視件数は追加時の4から減らない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisOptionCollectionWidget::numberOfVisibleWidgets() const",
+        "method:KisOptionCollectionWidget::removeWidget(const QString & id)",
+        "method:KisOptionCollectionWidget::removeWidget(int index)",
+        "method:KisOptionCollectionWidget::takeWidget(const QString & id)",
+        "method:KisOptionCollectionWidget::takeWidget(int index)"
+      ]
+    },
+    {
+      "target": "KisOptionCollectionWidgetContractTest",
+      "source": "libs/widgetutils/tests/KisOptionCollectionWidgetContractTest.cpp",
+      "test": "KisOptionCollectionWidgetContractTest::collectionAppliesVisibilitySeparatorsMarginsAndOrientation",
+      "behavior": "通常集合はindexと識別子による子の表示切替を可視件数へ反映し、marginとseparator構成を配置へ適用し、縦横orientationを切り替え、recursive=trueだけを入れ子集合へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptionCollectionWidget::setOrientation(Qt::Orientation orientation,bool recursive=false)",
+        "method:KisOptionCollectionWidget::setSeparatorsVisible(bool visible)",
+        "method:KisOptionCollectionWidget::setWidgetVisible(const QString & id,bool visible)",
+        "method:KisOptionCollectionWidget::setWidgetVisible(int index,bool visible)",
+        "method:KisOptionCollectionWidget::setWidgetsMargin(int margin)"
+      ]
+    },
+    {
+      "target": "KisOptionCollectionWidgetContractTest",
+      "source": "libs/widgetutils/tests/KisOptionCollectionWidgetContractTest.cpp",
+      "test": "KisOptionCollectionWidgetContractTest::headerManagesPrimaryWidgetOwnershipAndSizing",
+      "behavior": "見出し付き集合はprimary widgetを所有して型付き照会と最小寸法へ反映し、表示を切り替え、置換時は旧widgetを破棄し、takeでは親なしで返し、removeでは破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptionCollectionWidgetWithHeader::minimumSizeHint() const",
+        "method:KisOptionCollectionWidgetWithHeader::primaryWidget() const",
+        "method:KisOptionCollectionWidgetWithHeader::primaryWidgetAs() const",
+        "method:KisOptionCollectionWidgetWithHeader::removePrimaryWidget()",
+        "method:KisOptionCollectionWidgetWithHeader::setPrimaryWidget(QWidget * widget)",
+        "method:KisOptionCollectionWidgetWithHeader::setPrimaryWidgetVisible(bool visible)",
+        "method:KisOptionCollectionWidgetWithHeader::takePrimaryWidget()"
+      ]
+    },
+    {
+      "target": "KisOptionCollectionWidgetContractTest",
+      "source": "libs/widgetutils/tests/KisOptionCollectionWidgetContractTest.cpp",
+      "test": "KisOptionCollectionWidgetContractTest::headerDelegatesCollectionOperations",
+      "behavior": "見出し付き集合は追加・挿入・識別子・index・型付き・階層pathの各操作を内部集合へ配送し、表示、margin、separator、既定の非再帰orientationと論理件数を同じ子集合へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisOptionCollectionWidgetWithHeader::appendWidget(const QString & id,QWidget * widget)",
+        "method:KisOptionCollectionWidgetWithHeader::containsWidget(const QString & id) const",
+        "method:KisOptionCollectionWidgetWithHeader::findWidget(const QString & path) const",
+        "method:KisOptionCollectionWidgetWithHeader::findWidgetAs(const QString & path) const",
+        "method:KisOptionCollectionWidgetWithHeader::insertWidget(int index,const QString & id,QWidget * widget)",
+        "method:KisOptionCollectionWidgetWithHeader::setOrientation(Qt::Orientation orientation,bool recursive=false)",
+        "method:KisOptionCollectionWidgetWithHeader::setSeparatorsVisible(bool visible)",
+        "method:KisOptionCollectionWidgetWithHeader::setWidgetVisible(const QString & id,bool visible)",
+        "method:KisOptionCollectionWidgetWithHeader::setWidgetVisible(int index,bool visible)",
+        "method:KisOptionCollectionWidgetWithHeader::setWidgetsMargin(int margin)",
+        "method:KisOptionCollectionWidgetWithHeader::size() const",
+        "method:KisOptionCollectionWidgetWithHeader::widget(const QString & id) const",
+        "method:KisOptionCollectionWidgetWithHeader::widget(int index) const",
+        "method:KisOptionCollectionWidgetWithHeader::widgetAs(const QString & id) const",
+        "method:KisOptionCollectionWidgetWithHeader::widgetAs(int index) const",
+        "method:KisOptionCollectionWidgetWithHeader::widgetIndexFromId(const QString & id) const"
+      ]
+    },
+    {
+      "target": "KisOptionCollectionWidgetContractTest",
+      "source": "libs/widgetutils/tests/KisOptionCollectionWidgetContractTest.cpp",
+      "test": "KisOptionCollectionWidgetContractTest::headerDelegatesCollectionOperations",
+      "behavior": "見出し付き集合のtake/removeは内部集合から子を返却または破棄して論理件数を減らすが、内部wrapper残留がそのまま配送されるため可視件数は追加時の5から減らない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisOptionCollectionWidgetWithHeader::numberOfVisibleWidgets() const",
+        "method:KisOptionCollectionWidgetWithHeader::removeWidget(const QString & id)",
+        "method:KisOptionCollectionWidgetWithHeader::removeWidget(int index)",
+        "method:KisOptionCollectionWidgetWithHeader::takeWidget(const QString & id)",
+        "method:KisOptionCollectionWidgetWithHeader::takeWidget(int index)"
       ]
     }
   ]
