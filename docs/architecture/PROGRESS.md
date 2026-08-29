@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 15:35 JST
+- 更新日時: 2026-08-29 15:42 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -16,6 +16,8 @@
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
 - 統合担当`ui-node-model-data`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
   `libs/ui/nodes/KisNodeModelData.cpp`、UI CMake、新規限定試験を所有し、模型の役割別データ取得1 APIを対象とする。
+- 統合担当`flake-debug-category`は`implemented`である。`libs/flake/FlakeDebug.cpp`、Flake CMake、新規限定試験を所有し、
+  Flake診断カテゴリの1 APIを対象とする。
 - 実装担当`image-convex-hull`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
   追加委任は`forbidden`、統合順は1である。`libs/image/kis_convex_hull.h`と関連実装、Image CMake、新規限定試験を所有し、
   凸包計算の3 APIを対象とする。
@@ -7878,6 +7880,19 @@
   その3関数を定義することを確認した。対象CTestの単発実行と20回反復、1,139対象のパッケージ境界検査、公開API契約検査、高速検査に
   成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,048件、未対応24,941件になった。空・1点入力は従来の範囲外参照を
   安全な空経路へ定義した。Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b Flake診断カテゴリのpublic API契約と小構築対象で完了した作業
+
+- `libs/flake/FlakeDebug.cpp`を製品`kritaflake`の直接ソース一覧から新規`kritaflakedebugobjects`へ移し、同じ製品へ生成物を一度
+  再集約した。公開ヘッダーと実装位置を維持しながら、診断カテゴリだけを独立して構築・検査できる所有単位にした。
+- `libs/flake/FlakeDebug.h`の`FLAKE_LOG()`を、新規`libs/flake/tests/FlakeDebugContractTest.cpp`の1試験へ対応付けた。処理中に同じ
+  カテゴリ実体を返すこと、カテゴリ名`krita.lib.flake`、デバッグを無効にして情報・警告・重大を有効にする既定重大度を固定した。
+  実装接続前のリンクは`FLAKE_LOG()`だけを未解決記号として診断した。
+- 変更前後の製品`kritaflake`は548工程・1,128入力で不変である。専用対象は1工程・3入力、契約対象は5工程・11入力であり、
+  直接依存は専用対象がQt Core、契約対象が専用対象とQt Testだけである。
+- 統合担当のmacOS構築木で専用対象と契約対象を構築し、専用生成物だけが`FLAKE_LOG()`を定義することを確認した。対象CTestの
+  単発実行と20回反復、1,141対象のパッケージ境界検査、公開API契約検査、高速検査に成功した。公開面は1,549ヘッダー、
+  29,989 API、対応済み5,049件、未対応24,940件になった。Linux、全ネイティブ検証、製品全体リンクは実行していない。
 
 ## 次の操作
 

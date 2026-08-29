@@ -119,6 +119,21 @@ set_target_properties(kritaflakecurvefitpathshapeobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakedebugobjects OBJECT
+    FlakeDebug.cpp
+)
+target_compile_definitions(kritaflakedebugobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakedebugobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakedebugobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakedebugobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -358,7 +373,6 @@ set(kritaflake_SRCS
     resources/KoFontStorage.cpp
     resources/KoCssStylePreset.cpp
 
-    FlakeDebug.cpp
     tests/MockShapes.cpp
 
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
@@ -368,6 +382,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakegradienthelperobjects>
     $<TARGET_OBJECTS:kritaflakecurvefitobjects>
     $<TARGET_OBJECTS:kritaflakecurvefitpathshapeobjects>
+    $<TARGET_OBJECTS:kritaflakedebugobjects>
 
 )
 

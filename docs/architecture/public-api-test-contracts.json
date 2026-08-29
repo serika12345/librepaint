@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24941
+    "expectedMissingApis": 24940
   },
   "contracts": [
     {
@@ -14055,6 +14055,16 @@
       "classification": "maintained",
       "apis": [
         "function:bezierFit(const QList<QPointF> & points,float error)"
+      ]
+    },
+    {
+      "target": "FlakeDebugContractTest",
+      "source": "libs/flake/tests/FlakeDebugContractTest.cpp",
+      "test": "FlakeDebugContractTest::categoryHasStableIdentityAndDefaultSeverity",
+      "behavior": "Flake診断カテゴリは処理中に同じ実体を返し、安定したカテゴリ名と情報以上を有効にする既定重大度を持つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:FLAKE_LOG()"
       ]
     }
   ]
