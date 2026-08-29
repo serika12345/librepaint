@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24986
+    "expectedMissingApis": 24985
   },
   "contracts": [
     {
@@ -13788,6 +13788,16 @@
       "classification": "maintained",
       "apis": [
         "method:KoPathPointData::operator <(const KoPathPointData & other) const"
+      ]
+    },
+    {
+      "target": "KisNodeModelRemovalContractTest",
+      "source": "libs/ui/tests/KisNodeModelRemovalContractTest.cpp",
+      "test": "KisNodeModelRemovalContractTest::visibleDummyAnnouncesExactRowsBeforeRemovalBegins",
+      "behavior": "表示中のノードを除去するとき、模型は対象ダミーとの接続を解除した後、行除去開始前に親索引と対象行を通知し、最後にサムネイル状態へ除去を通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeModel::sigBeforeBeginRemoveRows(const QModelIndex & parent,int start,int end)"
       ]
     }
   ]

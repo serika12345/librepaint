@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 14:26 JST
+- 更新日時: 2026-08-29 14:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,22 +11,21 @@
 
 ### 現在の並列担当票
 
-- 共通基準コミットは`5d2981a7`である。統合担当は`develop`の主作業ツリー、実装担当は
+- 共通基準コミットは`8498234b`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g19b-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
   共有コンパイラーキャッシュは`/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`である。
-- 統合担当`ui-node-model-drop-insertion`は`integrated`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、同責務の新規
-  `KisNodeModel*.cpp`、`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、同責務の新規試験を所有する。
-  `dropMimeData()`を対象とし、直前のMIME生成契約を最も近い契約とする。
-- 実装担当`global-koid-comparison`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は1である。`libs/global/KoID.h`と既存`libs/global/tests/KoIDContractTest.cpp`を監査し、
-  4比較演算子を既存の識別子比較契約へ対応付ける。
-- 実装担当`image-frame-generation-lock`は`integrated`、構築実行許可は`granted`、Git操作権限は
-  `transport-commit`、追加委任は`forbidden`、統合順は2である。`libs/image/KisLockFrameGenerationLock.{h,cpp}`、
-  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`と新規専用試験を所有し、型、構築、`try_lock()`、
-  `lock()`、`unlock()`の5 APIを対象とする。
-- 実装担当`flake-path-point-data`は`integrated`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は3である。`libs/flake/KoPathPointData.h`の型、構築、公開値2件、同値、順序の6 APIを対象とし、
-  `libs/flake/tests/CMakeLists.txt`と新規専用試験だけを所有する。
+- 統合担当`ui-node-model-removal`は`implemented`である。`libs/ui/nodes/kis_node_model.{h,cpp}`、新規
+  `libs/ui/nodes/KisNodeModelRemoval.cpp`、`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、新規除去契約試験を所有し、
+  行除去開始前の公開通知を対象とする。
+- 実装担当`global-bezier-param-sampler`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は1である。`libs/global/KisBezierPatchParamToSourceSampler.h`と新規限定試験を所有し、
+  型、構築、公開値、範囲、点変換の12 APIを対象とする。
+- 実装担当`image-random-generator-2d`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は2である。`libs/image/KisRandomGenerator2D.{h,cpp}`、画像CMakeと新規限定試験を所有し、
+  型、構築、破棄、整数乱数、正規化乱数の5 APIを対象とする。
+- 実装担当`flake-svg-transform-parser`は`in_progress`、構築実行許可は`granted`、Git操作権限は`transport-commit`、
+  追加委任は`forbidden`、統合順は3である。`libs/flake/svg/parsers/SvgTransformParser.{h,cpp}`、Flake CMakeと新規限定試験を
+  所有し、型、構築、妥当性、変換結果の4 APIを対象とする。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
   `docs/architecture/public-api-test-contracts.json`を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、
   巨大な構築閉包、分類できない挙動を発見した時点で`blocked`として引き渡す。
@@ -7736,8 +7735,8 @@
 
 ## 次の操作
 
-第2便を統合した新しい共通基準コミットから、次の非重複担当群を選ぶ。統合担当は公開API報告を責務・所有対象ごとに再集計し、
-既存の小試験で直接観測済みのAPIを優先して次の担当票を作る。
+ノードモデル除去通知の契約をコミットし、第3便のBezierパラメーター標本化、二次元乱数生成、SVG変換解析を順に統合する。
+各統合後に対象限定CTestと公開API検査を再実行し、中央台帳と対応件数を一意に同期する。
 
 ## R1-G5完了根拠
 

@@ -238,6 +238,18 @@ protected:
         static void destroyPrivateState(void *privateState);
     };
 
+    struct KRITAUI_EXPORT RemovalAccess {
+        struct Plan {
+            QModelIndex parentIndex;
+            QModelIndex itemIndex;
+        };
+
+        static Plan prepare(KisNodeModel *model, KisNodeDummy *dummy);
+        static void disconnectDummy(KisNodeModel *model, KisNodeDummy *dummy);
+        static void beginRemoval(KisNodeModel *model, const Plan &plan);
+        static void notifyNodeRemoved(KisNodeModel *model, KisNodeDummy *dummy);
+    };
+
     struct KRITAUI_EXPORT StructureAccess {
         static bool hasDummiesFacade(const KisNodeModel *model);
         static KisNodeDummy *dummyFromRow(const KisNodeModel *model, int row, const QModelIndex &parent);

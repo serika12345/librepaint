@@ -546,31 +546,37 @@ void KisNodeModel::slotEndInsertDummy(KisNodeDummy *dummy)
     m_d->thumbnalCache.notifyNodeAdded(dummy->node());
 }
 
-void KisNodeModel::slotBeginRemoveDummy(KisNodeDummy *dummy)
+KisNodeModel::RemovalAccess::Plan KisNodeModel::RemovalAccess::prepare(KisNodeModel *model,
+                                                                     KisNodeDummy *dummy)
 {
-    if (!dummy) return;
-
     // FIXME: is it really what we want?
-    m_d->updateCompressor.stop();
-    m_d->updateQueue.clear();
+    model->m_d->updateCompressor.stop();
+    model->m_d->updateQueue.clear();
 
-    m_d->parentOfRemovedNode = dummy->parent();
+    model->m_d->parentOfRemovedNode = dummy->parent();
 
     QModelIndex parentIndex;
-    if (m_d->parentOfRemovedNode) {
-        parentIndex = m_d->indexConverter->indexFromDummy(m_d->parentOfRemovedNode);
+    if (model->m_d->parentOfRemovedNode) {
+        parentIndex = model->m_d->indexConverter->indexFromDummy(model->m_d->parentOfRemovedNode);
     }
 
-    QModelIndex itemIndex = m_d->indexConverter->indexFromDummy(dummy);
+    return {parentIndex, model->m_d->indexConverter->indexFromDummy(dummy)};
+}
 
-    if (itemIndex.isValid()) {
-        connectDummy(dummy, false);
-        Q_EMIT sigBeforeBeginRemoveRows(parentIndex, itemIndex.row(), itemIndex.row());
-        beginRemoveRows(parentIndex, itemIndex.row(), itemIndex.row());
-        m_d->needFinishRemoveRows = true;
-    }
+void KisNodeModel::RemovalAccess::disconnectDummy(KisNodeModel *model, KisNodeDummy *dummy)
+{
+    model->connectDummy(dummy, false);
+}
 
-    m_d->thumbnalCache.notifyNodeRemoved(dummy->node());
+void KisNodeModel::RemovalAccess::beginRemoval(KisNodeModel *model, const Plan &plan)
+{
+    model->beginRemoveRows(plan.parentIndex, plan.itemIndex.row(), plan.itemIndex.row());
+    model->m_d->needFinishRemoveRows = true;
+}
+
+void KisNodeModel::RemovalAccess::notifyNodeRemoved(KisNodeModel *model, KisNodeDummy *dummy)
+{
+    model->m_d->thumbnalCache.notifyNodeRemoved(dummy->node());
 }
 
 void KisNodeModel::slotEndRemoveDummy()
