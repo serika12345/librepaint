@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-29 23:20 JST
+- 更新日時: 2026-08-29 23:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -30,10 +30,10 @@
   同ファイルの`kritacanvasanimationframecacheindexobjects`へ移し、製品`kritacanvas`へ一度だけ再集約した。開始試験
   `libs/canvas/tests/kis_animation_frame_cache_index_test.cpp`は同じパスのまま、Canvas製品・共通試験補助から専用生成物と
   Qt Testへ接続先を移し、操作値、有限・無限範囲、挿入、無効化、結合、交差、長さ、削除の全22 APIを固定した。
-- 実装担当`wrapped-rect`は`ready`、担当先端は`90e23c4e07`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は
-  `forbidden`、統合順は4である。予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-wrapped-rect`であり、
-  `libs/image/kis_wrapped_rect.h`、Image試験CMake、新規限定試験を所有する。既存試験の1,092工程・2,207入力をQt限定対象へ縮小し、
-  座標正規化、切取り、包含、複製原点、4象限分割、周期複製の全22 APIを対象とする。
+- 実装担当`wrapped-rect`は`integrated`、担当先端は`90e23c4e07`、統合コミットは`e3cef7a230`、統合順は4である。
+  開始ファイル`libs/image/kis_wrapped_rect.h`は製品所有のヘッダー内実装を維持した。新規限定試験
+  `libs/image/tests/KisWrappedRectContractTest.cpp`を同ディレクトリーの試験CMakeへ追加し、Qt Core・Testだけへ接続した。
+  座標正規化、切取り、包含、複製原点、4象限分割、周期複製の全22 APIを固定した。
 - 第19並列便の完了時は合計82 APIを追加し、公開面の対応済み5,891件、未対応24,098件を見込む。各担当は公開面と製品挙動を
   維持し、限定対象の単発・20回反復、軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
 - 統合担当だけが`AGENTS.md`、`docs/architecture/{TODO,PROGRESS,README,DEVELOPMENT}.md`、
@@ -8850,9 +8850,25 @@
   対応済み5,869件、未対応24,120件になった。負の有限開始時刻、整数上限付近、区間中央だけの無効化、Linux、
   全ネイティブ検証、製品全体リンクは実行していない。Qt Widgets依存は時刻範囲ヘッダーの現在の連鎖に由来する。
 
+## R2-G19b 周期矩形の全public API契約で完了した作業
+
+- `libs/image/kis_wrapped_rect.h`の全22 APIを、新規`libs/image/tests/KisWrappedRectContractTest.cpp`の5試験へ
+  対応付けた。正寸法かつ原点ゼロの周期領域について、軸別座標正規化、切取り、点・矩形の包含、複製原点の順序、
+  4象限分割と由来矩形、制限領域内の水平・垂直・両軸周期複製を固定した。
+- 開始ファイル`libs/image/kis_wrapped_rect.h`はヘッダー内実装として製品所有を維持し、製品コード、公開面、製品CMake依存を
+  変更していない。新規限定試験はQt Core・Testだけへ接続し、製品`kritaimage`をリンクしない。
+- 対象未登録時の初回限定構築は未知の対象として失敗した。macOSの限定試験は4工程・8入力であり、最近傍の
+  `KisImageTypesContractTest`も4工程・8入力である。主作業ツリーで対象CTest単発と20回反復、近傍契約、パッケージ境界検査、
+  高速検査に成功した。公開面は1,549ヘッダー、29,989 API、対応済み5,891件、未対応24,098件になった。ゼロ寸法、非ゼロ原点、
+  非分割個体の未使用アクセス、Linux、全ネイティブ検証、製品全体構築は実行していない。
+
+- 第19並列便はPSDヘッダー16 API、文字体系・言語タグ22 API、フレームキャッシュ範囲索引22 API、周期矩形22 APIの
+  合計82 APIを固定した。各担当の引渡しを統合順に取り込み、主作業ツリーで限定対象、20回反復、軽量隣接試験、
+  公開API契約検査を再実行した。
+
 ## 次の操作
 
-第19並列便の周期矩形契約を統合し、限定対象、20回反復、軽量隣接試験、中央台帳を主作業ツリーで監査する。
+未対応24,098 APIの最新報告から第20並列便の候補を選び、各候補の直接依存と清浄木の構築範囲を監査して担当票を確定する。
 
 ## R1-G5完了根拠
 

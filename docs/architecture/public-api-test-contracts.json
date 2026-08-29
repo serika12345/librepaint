@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 24120
+    "expectedMissingApis": 24098
   },
   "contracts": [
     {
@@ -17020,6 +17020,73 @@
         "method:KisAnimationFrameCacheIndex::frameLength(int frameId) const",
         "method:KisAnimationFrameCacheIndex::rangesIntersecting(const KisTimeSpan & range) const",
         "method:KisAnimationFrameCacheIndex::removeFrame(int frameId)"
+      ]
+    },
+    {
+      "target": "KisWrappedRectContractTest",
+      "source": "libs/image/tests/KisWrappedRectContractTest.cpp",
+      "test": "KisWrappedRectContractTest::coordinatesNormalizeByConfiguredAxes",
+      "behavior": "正寸法かつ原点ゼロの周期領域で、負方向と正方向へ越境した座標を指定軸だけ周期内へ正規化し、点変換は各軸の指定を合成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWrappedRect::ptToWrappedPt(QPoint pt,const QRect & wrapRect,WrapAroundAxis wrapAxis)",
+        "method:KisWrappedRect::xToWrappedX(int x,const QRect & wrapRect,WrapAroundAxis wrapAxis)",
+        "method:KisWrappedRect::yToWrappedY(int y,const QRect & wrapRect,WrapAroundAxis wrapAxis)"
+      ]
+    },
+    {
+      "target": "KisWrappedRectContractTest",
+      "source": "libs/image/tests/KisWrappedRectContractTest.cpp",
+      "test": "KisWrappedRectContractTest::clippingAndContainmentRespectConfiguredAxes",
+      "behavior": "矩形の切り詰めと点・矩形の包含判定が指定された水平軸、垂直軸または両軸だけを周期領域の境界として扱う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWrappedRect::clipToWrapRect(QRect rc,const QRect & wrapRect,WrapAroundAxis wrapAxis)",
+        "method:KisWrappedRect::wrapRectContains(QPoint pt,const QRect & wrapRect,WrapAroundAxis wrapAxis)",
+        "method:KisWrappedRect::wrapRectContains(const QRect & rc,const QRect & wrapRect,WrapAroundAxis wrapAxis)"
+      ]
+    },
+    {
+      "target": "KisWrappedRectContractTest",
+      "source": "libs/image/tests/KisWrappedRectContractTest.cpp",
+      "test": "KisWrappedRectContractTest::normalizationOriginsDescribeWrappedCopies",
+      "behavior": "領域内の矩形は元の原点だけを返し、右端・下端を越える矩形は指定軸に必要な周期複製原点を決定的な順序で返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWrappedRect::normalizationOriginsForRect(const QRect & rc,const QRect & wrapRect,WrapAroundAxis wrapAxis)"
+      ]
+    },
+    {
+      "target": "KisWrappedRectContractTest",
+      "source": "libs/image/tests/KisWrappedRectContractTest.cpp",
+      "test": "KisWrappedRectContractTest::constructorPreservesSplitQuadrantsAndSourceRects",
+      "behavior": "非分割矩形は単一要素を保持し、越境矩形はTOPLEFT、TOPRIGHT、BOTTOMLEFT、BOTTOMRIGHTの固定列挙順で最大4領域へ分割する。各アクセス、分割状態、周期領域、元矩形を保持し、単軸分割の未使用領域は空矩形になる。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisWrappedRect::__anon22da616c0103",
+        "enumerator:KisWrappedRect::__anon22da616c0103::BOTTOMLEFT",
+        "enumerator:KisWrappedRect::__anon22da616c0103::BOTTOMRIGHT",
+        "enumerator:KisWrappedRect::__anon22da616c0103::TOPLEFT",
+        "enumerator:KisWrappedRect::__anon22da616c0103::TOPRIGHT",
+        "method:KisWrappedRect::KisWrappedRect(const QRect & rc,const QRect & wrapRect,WrapAroundAxis wrapAxis)",
+        "method:KisWrappedRect::bottomLeft() const",
+        "method:KisWrappedRect::bottomRight() const",
+        "method:KisWrappedRect::isSplit() const",
+        "method:KisWrappedRect::originalRect() const",
+        "method:KisWrappedRect::topLeft() const",
+        "method:KisWrappedRect::topRight() const",
+        "method:KisWrappedRect::wrapRect() const",
+        "struct:KisWrappedRect"
+      ]
+    },
+    {
+      "target": "KisWrappedRectContractTest",
+      "source": "libs/image/tests/KisWrappedRectContractTest.cpp",
+      "test": "KisWrappedRectContractTest::multiplicationTilesOnlyInsideLimit",
+      "behavior": "水平、垂直、両軸の周期複製を決定的な順序で生成し、各結果を指定制限領域内へ切り詰める。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWrappedRect::multiplyWrappedRect(const QRect & rc,const QRect & wrapRect,const QRect & limitRect,WrapAroundAxis wrapAxis)"
       ]
     }
   ]
