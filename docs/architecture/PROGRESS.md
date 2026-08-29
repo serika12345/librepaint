@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 07:41 JST
+- 更新日時: 2026-08-30 07:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,35 +11,9 @@
 
 ### 現在の並列担当票
 
-- 第33並列便の共通基準コミットは`2d695ced04`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g33-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`item-tooltip`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/widgetutils/tests/CMakeLists.txt`と新規`KoItemToolTipContractTest.cpp`だけを所有する。既存AUTOMOC/PIC対応
-  `kritaitemtooltipobjects`を再利用し、製品の250工程・533入力に代えて8工程・16入力以内で、tooltip窓構成、文書生成と所有、表示、
-  同一内容の再利用、寸法、仮想寿命の全5 APIを固定する。製品実装と製品CMakeは変更しない。
-- 実装担当`shape-rename-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
-  2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g33-shape-rename-command`で
-  `libs/flake/commands/KoShapeRenameCommand.cpp`、Flake製品・試験CMake、新規`KoShapeRenameCommandContractTest.cpp`を所有する。開始ファイルを
-  製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存命令契約と同じ試験時限定の
-  非公開shapeアクセスを使い、製品の569工程・1,170入力に代えて6工程・14入力以内で、元名保存、redo・undo・再redo、親命令、借用寿命の
-  全5 APIを固定する。
-- 実装担当`safe-blocking-queue`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3で
-  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g33-safe-blocking-queue`で`libs/image/KisSafeBlockingQueueConnectionProxy.cpp`、
-  `libs/image/KisBusyWaitBroker.cpp`、Image製品・試験CMake、新規`KisSafeBlockingQueueConnectionProxyContractTest.cpp`を所有する。開始2ファイルを
-  製品`kritaimage`の直接ソースから2つのAUTOMOC不要/PIC対応専用生成物へ移し、製品へ各1回だけ再集約する。既存signal compressor生成物を
-  再利用し、製品の1,115工程・2,254入力に代えて12工程・24入力以内で、型付き・voidの同期配送、GUI thread帰属、worker遮断、GUI待機中の
-  直接配送、型構成の全6 APIを固定する。
-- 実装担当`vbox`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g33-vbox`で`libs/widgets/KoVBox.cpp`、Widgets製品・試験CMake、新規
-  `KoVBoxContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ
-  再集約する。製品の740工程・1,509入力に代えて8工程・16入力以内で、親・子所有、縦配置、margin・spacing・stretch、推奨・最小寸法の
-  全8 APIを固定する。
-- 第33並列便の完了時は合計24 APIを追加し、公開面の対応済み7,142件、未対応22,847件を見込む。各担当は限定対象の単発・20回反復、
-  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- `KisPaletteComboBox`は実palette配送の観測に未分離のview・model・Pigment実装を要するため、第33並列便から除外した。先にそれらの構築
-  所有を責務別に分離できる段階で再評価する。
-- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
-  挙動を発見した時点で`blocked`として引き渡す。
+- 第33並列便の4担当は完了し、`develop`へ統合済みである。3実装担当の専用Git作業ツリーは清浄で、活動中の担当はない。
+- 次は第34並列便の候補を公開API未対応列から選び、製品と最近傍試験の依存閉包を先に測定する。閉包が小さい具体所有者は維持し、
+  製品全体または広い統合試験を引き込む候補だけを専用生成物へ分離してから担当票を確定する。
 
 ## 再開環境
 
@@ -9668,10 +9642,63 @@
   統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を再実行した。公開面は
   1,549ヘッダー、29,989 API、対応済み7,118件、未対応22,871件になった。
 
+## R2-G19b 項目tooltip文書表示の全public API契約で完了した作業
+
+- `libs/widgetutils/KoItemToolTip.h`の全5 APIを、新規`libs/widgetutils/tests/KoItemToolTipContractTest.cpp`の4試験へ対応付けた。
+  tooltip窓属性と仮想寿命、派生生成文書の所有・表示・寸法、同一index・HTML時の表示文書と位置の維持、内容変更時の置換、application操作に
+  よる非表示を固定した。
+- 製品実装と製品CMakeは維持し、開始ファイル`libs/widgetutils/tests/CMakeLists.txt`から既存AUTOMOC/PIC対応
+  `kritaitemtooltipobjects`、Qt Widgets・Testだけへ新規限定試験を接続した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で、製品の250工程・533入力から縮小した。対象CTest
+  単発と20回反復、最近傍`TestSqueezedComboBox`、公開記号、製品共有ライブラリー非接続、整形検査に成功した。10秒timer満了、複数screenの
+  境界配置、OS固有画素、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 図形名変更命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/commands/KoShapeRenameCommand.h`の全5 APIを、新規
+  `libs/flake/tests/KoShapeRenameCommandContractTest.cpp`の2試験へ対応付けた。構築時の元名保存、親命令と操作名、基底処理後のredo・undo、
+  再redo、Unicode・空・同一名、shape借用所有、基底からの仮想寿命を固定した。
+- 開始ファイル`libs/flake/commands/KoShapeRenameCommand.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakeshaperenamecommandobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。既存fill-rule命令契約と
+  同じ試験時限定の非公開shape accessを実装内に設け、製品時は従来どおり`KoShape::name()`と`setName()`へ配送する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。主作業木の限定対象は5工程・12入力で、製品の569工程・1,170入力から縮小した。
+  対象CTest単発と担当作業木の20回反復、最近傍`KoPathFillRuleCommandContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査に成功した。null shape、命令より先の借用shape破棄、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b GUI待機を含む安全遮断配送の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/KisSafeBlockingQueueConnectionProxy.h`の全6 APIを、新規
+  `libs/image/tests/KisSafeBlockingQueueConnectionProxyContractTest.cpp`の4試験へ対応付けた。借用QObjectのapplication thread移動、
+  型付き・voidのGUI同期配送、作業threadからGUI完了までの遮断、GUI一般待機中の作業thread直接配送と一重実行を固定した。
+- 開始ファイル`libs/image/KisBusyWaitBroker.cpp`と`libs/image/KisSafeBlockingQueueConnectionProxy.cpp`の構築所有を
+  `libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から、AUTOMOC不要/PIC対応の`kritaimagebusywaitbrokerobjects`と
+  `kritaimagesafeblockingqueueconnectionproxyobjects`へそれぞれ移し、製品`kritaimage`は両生成物を各1回だけ再集約する。限定試験は両生成物、
+  既存`kritaglobalsignalcompressorobjects`、Qt Core・Widgets・Testへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象、分離直後の最初の構築は`kis_image.h`由来I18nヘッダーの探索経路不足として失敗した。KF I18nは
+  コンパイル用探索経路だけを与え、実行時接続から除外した。限定対象は10工程・21入力で、製品の1,115工程・2,254入力から縮小した。
+  対象CTest単発と20回反復、最近傍`KisSignalCompressorContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査に
+  成功した。空callback、callback例外、同一proxyへの並行開始、待機中破棄、application不在、move-only値、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 自動縦配置容器の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KoVBox.h`の全8 APIを、新規`libs/widgets/tests/KoVBoxContractTest.cpp`の3試験へ対応付けた。親と子の所有、生成順の自動縦配置、
+  親解除時のlayout除去、margin・spacing・stretch、子寸法とmarginに対する推奨・最小推奨寸法、基底からの仮想寿命を固定した。
+- 開始ファイル`libs/widgets/KoVBox.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応
+  `kritawidgetsvboxobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。限定試験は同生成物、Qt Widgets・Testだけへ直接
+  接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で、製品の740工程・1,509入力から縮小した。対象CTest
+  単発と20回反復、最近傍`KisWarningBlockContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査に成功した。非所有子の
+  stretch、負margin、style既定spacing、OS固有絶対画素、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第33並列便は項目tooltip 5 API、図形名変更命令5 API、安全遮断配送6 API、自動縦配置容器8 APIの合計24 APIを固定した。各担当の引渡しを
+  統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を再実行した。公開面は
+  1,549ヘッダー、29,989 API、対応済み7,142件、未対応22,847件になった。
+
 ## 次の操作
 
-第33並列便の4担当は、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認する。許可パス内だけで
-最小契約を追加し、単発・20回反復・軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡す。
+公開API未対応列を再生成し、第34並列便の候補について公開API集合、既存契約、製品所有、直接依存を監査する。各候補の製品と最近傍試験の
+構築閉包を測定し、限定対象の停止上限と必要な所有分離を確定してから担当票を記録する。
 
 ## R1-G5完了根拠
 

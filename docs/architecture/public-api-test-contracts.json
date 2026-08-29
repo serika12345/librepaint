@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22871
+    "expectedMissingApis": 22847
   },
   "contracts": [
     {
@@ -20959,6 +20959,150 @@
         "method:KisWarningBlock::setPixmap(const QPixmap &)",
         "method:KisWarningBlock::setText(const QString &)",
         "method:KisWarningBlock::text() const"
+      ]
+    },
+    {
+      "target": "KoItemToolTipContractTest",
+      "source": "libs/widgetutils/tests/KoItemToolTipContractTest.cpp",
+      "test": "KoItemToolTipContractTest::constructsTooltipWindowAndProvidesVirtualLifetime",
+      "behavior": "項目tooltipは親を持たないframelessなtooltip窓として最前面属性を備え、QWidget基底からの破棄で具象tooltipの寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoItemToolTip",
+        "method:KoItemToolTip::KoItemToolTip()",
+        "method:KoItemToolTip::~KoItemToolTip()"
+      ]
+    },
+    {
+      "target": "KoItemToolTipContractTest",
+      "source": "libs/widgetutils/tests/KoItemToolTipContractTest.cpp",
+      "test": "KoItemToolTipContractTest::showTipOwnsTheCreatedDocumentAndReportsItsSize",
+      "behavior": "項目tooltipは指定indexから派生生成された文書を所有して表示し、文書寸法を推奨寸法と実widget寸法へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoItemToolTip::showTip(QWidget * widget,const QPoint & pos,const QStyleOptionViewItem & option,const QModelIndex & index)",
+        "method:KoItemToolTip::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KoItemToolTipContractTest",
+      "source": "libs/widgetutils/tests/KoItemToolTipContractTest.cpp",
+      "test": "KoItemToolTipContractTest::repeatedContentKeepsTheDisplayedDocument",
+      "behavior": "表示中の同一indexと同一HTMLを再要求すると表示文書と位置を維持して余分な文書を破棄し、内容変更時は文書を置換しつつ最初の位置を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoItemToolTip::showTip(QWidget * widget,const QPoint & pos,const QStyleOptionViewItem & option,const QModelIndex & index)"
+      ]
+    },
+    {
+      "target": "KoItemToolTipContractTest",
+      "source": "libs/widgetutils/tests/KoItemToolTipContractTest.cpp",
+      "test": "KoItemToolTipContractTest::applicationInteractionHidesTheVisibleTip",
+      "behavior": "表示中の項目tooltipはapplication内のfocus操作を観測すると直ちに非表示になる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoItemToolTip::showTip(QWidget * widget,const QPoint & pos,const QStyleOptionViewItem & option,const QModelIndex & index)"
+      ]
+    },
+    {
+      "target": "KoShapeRenameCommandContractTest",
+      "source": "libs/flake/tests/KoShapeRenameCommandContractTest.cpp",
+      "test": "KoShapeRenameCommandContractTest::renamesAcrossUndoRedo",
+      "behavior": "図形名変更命令は構築時の元名を一度だけ保存し、親命令とRename Shapeの操作名を基底へ渡す。redoは基底処理後にUnicode・空・同一を含む指定名を書き、undoは構築時の元名、再redoは指定名へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeRenameCommand",
+        "method:KoShapeRenameCommand::KoShapeRenameCommand(KoShape * shape,const QString & newName,KUndo2Command * parent=0)",
+        "method:KoShapeRenameCommand::redo()",
+        "method:KoShapeRenameCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeRenameCommandContractTest",
+      "source": "libs/flake/tests/KoShapeRenameCommandContractTest.cpp",
+      "test": "KoShapeRenameCommandContractTest::keepsBorrowedShapeAndVirtualLifetime",
+      "behavior": "図形名変更命令はshapeを借用し、命令を基底ポインターから破棄してもshape状態を変更・所有破棄せず、派生から基底までの仮想破棄連鎖を一度実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeRenameCommand::~KoShapeRenameCommand()"
+      ]
+    },
+    {
+      "target": "KisSafeBlockingQueueConnectionProxyContractTest",
+      "source": "libs/image/tests/KisSafeBlockingQueueConnectionProxyContractTest.cpp",
+      "test": "KisSafeBlockingQueueConnectionProxyContractTest::initMovesBorrowedObjectToApplicationThread",
+      "behavior": "借用したQObjectをその所属スレッドから初期化すると、接続先の所属をapplication threadへ移す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSafeBlockingQueueConnectionProxyPrivate::initProxyObject(QObject * object)"
+      ]
+    },
+    {
+      "target": "KisSafeBlockingQueueConnectionProxyContractTest",
+      "source": "libs/image/tests/KisSafeBlockingQueueConnectionProxyContractTest.cpp",
+      "test": "KisSafeBlockingQueueConnectionProxyContractTest::typedAndVoidStartsDispatchSynchronouslyOnGuiThread",
+      "behavior": "型付きおよび引数なしの接続代理は対応する関数から構築でき、GUI thread上の開始呼出しを値と順序を保って同期的に正確に1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSafeBlockingQueueConnectionProxy",
+        "method:KisSafeBlockingQueueConnectionProxy::KisSafeBlockingQueueConnectionProxy(CallbackFunction function)",
+        "method:KisSafeBlockingQueueConnectionProxy::start()",
+        "method:KisSafeBlockingQueueConnectionProxy::start(T value)"
+      ]
+    },
+    {
+      "target": "KisSafeBlockingQueueConnectionProxyContractTest",
+      "source": "libs/image/tests/KisSafeBlockingQueueConnectionProxyContractTest.cpp",
+      "test": "KisSafeBlockingQueueConnectionProxyContractTest::workerStartBlocksUntilGuiCallbacksComplete",
+      "behavior": "通常状態の作業thread呼出しは値をGUI threadへ順序どおり配送し、各GUI関数の完了まで呼出し元を遮断する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSafeBlockingQueueConnectionProxyPrivate::passBlockingSignalSafely(SignalToFunctionProxy & destination)"
+      ]
+    },
+    {
+      "target": "KisSafeBlockingQueueConnectionProxyContractTest",
+      "source": "libs/image/tests/KisSafeBlockingQueueConnectionProxyContractTest.cpp",
+      "test": "KisSafeBlockingQueueConnectionProxyContractTest::guiWaitLetsWorkerDispatchDirectlyExactlyOnce",
+      "behavior": "GUI threadが一般待機中なら、作業thread呼出しはGUI事象処理を待たず作業thread上で正確に1回直接配送してdeadlockを回避する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisSafeBlockingQueueConnectionProxyPrivate::passBlockingSignalSafely(SignalToFunctionProxy & destination)"
+      ]
+    },
+    {
+      "target": "KoVBoxContractTest",
+      "source": "libs/widgets/tests/KoVBoxContractTest.cpp",
+      "test": "KoVBoxContractTest::ownsChildrenInInsertionOrderAndHasVirtualLifetime",
+      "behavior": "縦配置容器は指定親に所有され、直接子widgetを生成順にlayoutへ収容し、子の親解除でlayoutから除去する。親またはQFrame基底経由の破棄で容器と残る所有子を仮想破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoVBox",
+        "method:KoVBox::KoVBox(QWidget * parent=0)",
+        "method:KoVBox::~KoVBox()"
+      ]
+    },
+    {
+      "target": "KoVBoxContractTest",
+      "source": "libs/widgets/tests/KoVBoxContractTest.cpp",
+      "test": "KoVBoxContractTest::exposesZeroLayoutDefaultsAndAppliesLayoutSettings",
+      "behavior": "縦配置layoutは上から下の方向、margin 0、spacing 0で初期化され、margin、spacing、各所有子のstretch factor設定をそのまま反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoVBox::setMargin(int margin)",
+        "method:KoVBox::setSpacing(int space)",
+        "method:KoVBox::setStretchFactor(QWidget * widget,int stretch)"
+      ]
+    },
+    {
+      "target": "KoVBoxContractTest",
+      "source": "libs/widgets/tests/KoVBoxContractTest.cpp",
+      "test": "KoVBoxContractTest::sizeHintsTrackChildrenAndMargins",
+      "behavior": "推奨寸法と最小推奨寸法は子widgetの各寸法とspacingを包含し、全辺marginの増加を幅・高さへ相対的に反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoVBox::minimumSizeHint() const",
+        "method:KoVBox::sizeHint() const"
       ]
     }
   ]
