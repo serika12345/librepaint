@@ -548,6 +548,36 @@ set_target_properties(kritaflakeshapeshearcommandobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapetransparencycommandobjects OBJECT
+    commands/KoShapeTransparencyCommand.cpp
+)
+target_compile_definitions(kritaflakeshapetransparencycommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshapetransparencycommandobjects PRIVATE KRITAFLAKE_SHAPE_TRANSPARENCY_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshapetransparencycommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshapetransparencycommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapetransparencycommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakesubpathremovecommandobjects OBJECT
     commands/KoSubpathRemoveCommand.cpp
 )
@@ -702,7 +732,6 @@ set(kritaflake_SRCS
     commands/KoParameterToPathCommand.cpp
     commands/KoShapeTransformCommand.cpp
     commands/KoPathPointMergeCommand.cpp
-    commands/KoShapeTransparencyCommand.cpp
     commands/KoShapeClipCommand.cpp
     commands/KoShapeUnclipCommand.cpp
     commands/KoPathShapeMarkerCommand.cpp
@@ -825,6 +854,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakepathreversecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapesizecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapeshearcommandobjects>
+    $<TARGET_OBJECTS:kritaflakeshapetransparencycommandobjects>
     $<TARGET_OBJECTS:kritaflakesubpathremovecommandobjects>
 
 )

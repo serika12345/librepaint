@@ -7,23 +7,54 @@
 #include "KoShapeTransparencyCommand.h"
 #include "KoShape.h"
 
-#include <klocalizedstring.h>
 #include "kis_command_ids.h"
+#include <klocalizedstring.h>
+
+namespace
+{
+using ShapeUpdater = void (*)(const KoShape *shape);
+
+void updateShape(const KoShape *shape)
+{
+    shape->update();
+}
+
+ShapeUpdater activeShapeUpdater = updateShape;
+} // namespace
+
+#ifdef KRITAFLAKE_SHAPE_TRANSPARENCY_COMMAND_CONTRACT_TESTING
+namespace KoShapeTransparencyCommandTesting
+{
+void setShapeUpdaterForTesting(ShapeUpdater updater)
+{
+    activeShapeUpdater = updater;
+}
+
+void resetShapeUpdaterForTesting()
+{
+    activeShapeUpdater = updateShape;
+}
+} // namespace KoShapeTransparencyCommandTesting
+#endif
 
 class Q_DECL_HIDDEN KoShapeTransparencyCommand::Private
 {
 public:
-    Private() {
+    Private()
+    {
     }
-    ~Private() {
+    ~Private()
+    {
     }
 
-    QList<KoShape*> shapes;    ///< the shapes to set background for
+    QList<KoShape *> shapes; ///< the shapes to set background for
     QList<qreal> oldTransparencies; ///< the old transparencies
     QList<qreal> newTransparencies; ///< the new transparencies
 };
 
-KoShapeTransparencyCommand::KoShapeTransparencyCommand(const QList<KoShape*> &shapes, qreal transparency, KUndo2Command *parent)
+KoShapeTransparencyCommand::KoShapeTransparencyCommand(const QList<KoShape *> &shapes,
+                                                       qreal transparency,
+                                                       KUndo2Command *parent)
     : KUndo2Command(parent)
     , d(new Private())
 {
@@ -36,7 +67,7 @@ KoShapeTransparencyCommand::KoShapeTransparencyCommand(const QList<KoShape*> &sh
     setText(kundo2_i18n("Set opacity"));
 }
 
-KoShapeTransparencyCommand::KoShapeTransparencyCommand(KoShape * shape, qreal transparency, KUndo2Command *parent)
+KoShapeTransparencyCommand::KoShapeTransparencyCommand(KoShape *shape, qreal transparency, KUndo2Command *parent)
     : KUndo2Command(parent)
     , d(new Private())
 {
@@ -47,7 +78,9 @@ KoShapeTransparencyCommand::KoShapeTransparencyCommand(KoShape * shape, qreal tr
     setText(kundo2_i18n("Set opacity"));
 }
 
-KoShapeTransparencyCommand::KoShapeTransparencyCommand(const QList<KoShape*> &shapes, const QList<qreal> &transparencies, KUndo2Command *parent)
+KoShapeTransparencyCommand::KoShapeTransparencyCommand(const QList<KoShape *> &shapes,
+                                                       const QList<qreal> &transparencies,
+                                                       KUndo2Command *parent)
     : KUndo2Command(parent)
     , d(new Private())
 {
@@ -71,7 +104,7 @@ void KoShapeTransparencyCommand::redo()
     QList<qreal>::iterator transparencyIt = d->newTransparencies.begin();
     Q_FOREACH (KoShape *shape, d->shapes) {
         shape->setTransparency(*transparencyIt);
-        shape->update();
+        activeShapeUpdater(shape);
         ++transparencyIt;
     }
 }
@@ -82,7 +115,7 @@ void KoShapeTransparencyCommand::undo()
     QList<qreal>::iterator transparencyIt = d->oldTransparencies.begin();
     Q_FOREACH (KoShape *shape, d->shapes) {
         shape->setTransparency(*transparencyIt);
-        shape->update();
+        activeShapeUpdater(shape);
         ++transparencyIt;
     }
 }
@@ -94,7 +127,7 @@ int KoShapeTransparencyCommand::id() const
 
 bool KoShapeTransparencyCommand::mergeWith(const KUndo2Command *command)
 {
-    const KoShapeTransparencyCommand *other = dynamic_cast<const KoShapeTransparencyCommand*>(command);
+    const KoShapeTransparencyCommand *other = dynamic_cast<const KoShapeTransparencyCommand *>(command);
 
     if (!other || other->d->shapes != d->shapes) {
         return false;
