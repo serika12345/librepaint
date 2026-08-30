@@ -2,12 +2,48 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 18:38 JST
+- 更新日時: 2026-08-30 18:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第57並列便の担当票
+
+- `g57-line-height`は状態`planned`、計画基準`059eedd1de`、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g57-line-height`である。目的は行高の既定状態、9単位、百分率の表示倍率、Qt列挙情報、
+  cursorとQt propertyの双方向同期、数値形式・長さ形式・normal状態の独立保持、QObject寿命を固定することである。対象は
+  `libs/flake/text/lager/LineHeightModel.h`のclass、enumと9 enumerator、constructor、isNormal・value・unitの3 `LAGER_QT_CURSOR`の
+  全15 APIである。変更許可は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規
+  `libs/flake/tests/LineHeightModelContractTest.cpp`に限る。開始ファイル`libs/flake/text/lager/LineHeightModel.cpp`の直接収容を
+  `kritaflakelineheightmodelobjects`へ移し、製品へ一度だけ再集約する。近傍は`TabSizeModelContractTest`、対象macOS、
+  共有cache`.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、
+  停止条件8工程・16入力、製品`kritaflake` 610工程・1,252入力超過、百分率写像を一意に分類できない場合、製品共有ライブラリー接続、
+  または許可外変更である。
+- `g57-node-command`は状態`planned`、同じ計画基準、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g57-node-command`である。目的は既存node命令試験から未使用の描画undo製品共有依存を除き、
+  `KUndo2Command`基底経由の破棄が強所有するnodeを一度解放する契約を固定することである。対象は
+  `libs/image/commands/kis_node_command.h`の未対応destructor 1 APIであり、既対応のclassとconstructorも同じ既存試験で維持する。
+  変更許可は`libs/image/tests/CMakeLists.txt`、`libs/image/tests/kis_node_commands_test.cpp`、同`kis_node_commands_test.h`に限る。
+  開始対象`kis_node_commands_test`の直接依存を製品`kritapaintingundo`から`kritapaintingundokundo2coreobjects`へ縮小し、既存の
+  `kritaimagenodecommandobjects`と外部Qt・KF・Boostだけを接続する。構造縮小後の既存契約成功を確認してから新しい試験関数の
+  未登録診断と寿命契約を追加する。近傍は`KisNodeRenameCommandContractTest`、対象macOS、共有cache同上、構築実行`waiting`、
+  Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件12工程・25入力、製品`kritaimage` 1,178工程・2,380入力増加、
+  具体nodeまたは製品共有ライブラリー接続、参照数が複写省略へ依存する場合、または許可外変更である。
+- `g57-sensor-pack`は状態`planned`、同じ計画基準、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g57-sensor-pack`である。目的はsensor pack境界の可変・不変sensor順、比較・読書きの引数配送、
+  active sensor長の既定値、仮想複製、共有データ分離、仮想寿命を固定することである。対象は
+  `plugins/paintops/libpaintop/KisSensorPackInterface.h`のclass、destructor、clone、constSensors、sensors、compare、read、write、
+  `calcActiveSensorLength`と`QSharedDataPointer::clone`の全10 APIである。変更許可は`plugins/paintops/libpaintop/CMakeLists.txt`、
+  同`tests/CMakeLists.txt`、新規`plugins/paintops/libpaintop/tests/KisSensorPackInterfaceContractTest.cpp`に限る。開始ファイル
+  `plugins/paintops/libpaintop/KisSensorPackInterface.cpp`を`kritapaintopruntime`の直接収容から
+  `kritapaintopsensorpackinterfaceobjects`へ移し、runtimeへ一度だけ再集約する。近傍は`KisSensorDataContractTest`、対象macOS、
+  共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力、
+  `kritalibpaintop` 2,089工程・4,176入力または`kritapaintopruntime` 1,275工程・2,570入力からの増加、最小協調型のODR衝突、
+  製品共有ライブラリー接続、または許可外変更である。
+- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、
+  進捗、担当間のCMake非重複、容量削除を所有する。完了目標は26 API純増の対応済み7,868件、未対応22,121件である。
 
 ### 現在の結果
 
@@ -44,7 +80,8 @@
 
 ### 次の操作
 
-- 第57並列便は不足一覧を読み取り専用で監査し、3候補の公開API、最小契約、直接依存、閉包上限を決めてから担当作業ツリーを作成する。
+- 第57並列便の計画をコミットし、その計画コミットから3担当の作業ツリーを作成する。各担当を`implementing`、構築実行`granted`へ
+  更新してから、対象別の構造縮小、未知契約診断、限定実装、対象CTestへ進む。
 
 ## 再開環境
 
