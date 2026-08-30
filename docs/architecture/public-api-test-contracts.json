@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22774
+    "expectedMissingApis": 22752
   },
   "contracts": [
     {
@@ -21435,6 +21435,110 @@
       "classification": "known_defect",
       "apis": [
         "method:KisStackedWidget::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KisToolBarStateModelContractTest",
+      "source": "libs/widgetutils/tests/KisToolBarStateModelContractTest.cpp",
+      "test": "KisToolBarStateModelContractTest::startsLockedWithWritableQtProperty",
+      "behavior": "toolbar状態モデルは構築時にlock状態を有効として保持し、読取・書込・変更通知を持つQt propertyとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolBarStateModel",
+        "method:KisToolBarStateModel::KisToolBarStateModel()"
+      ]
+    },
+    {
+      "target": "KisToolBarStateModelContractTest",
+      "source": "libs/widgetutils/tests/KisToolBarStateModelContractTest.cpp",
+      "test": "KisToolBarStateModelContractTest::directAndQtPropertyWritesNotifyObservers",
+      "behavior": "toolbar lock cursorは直接setterとQt propertyの双方から値を更新し、各変更値を同期して通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolBarStateModel::LAGER_QT_CURSOR(bool,toolBarsLocked)"
+      ]
+    },
+    {
+      "target": "KoShapeSizeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeSizeCommandContractTest.cpp",
+      "test": "KoShapeSizeCommandContractTest::preservesSizesAcrossUndoCycles",
+      "behavior": "図形寸法変更命令は複数shapeと対応する旧・新寸法を構築時に値保持し、親命令とResize shapesの操作名を保持する。redoは基底処理後に各shapeへupdate、newSize設定、updateの順で配送し、undoはpreviousSize、再redoはnewSizeへ戻す。ゼロ・小数・同一寸法でも同じ配送順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeSizeCommand",
+        "method:KoShapeSizeCommand::KoShapeSizeCommand(const QList<KoShape * > & shapes,const QList<QSizeF> & previousSizes,const QList<QSizeF> & newSizes,KUndo2Command * parent=0)",
+        "method:KoShapeSizeCommand::redo()",
+        "method:KoShapeSizeCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeSizeCommandContractTest",
+      "source": "libs/flake/tests/KoShapeSizeCommandContractTest.cpp",
+      "test": "KoShapeSizeCommandContractTest::keepsBorrowedShapesAndVirtualLifetime",
+      "behavior": "図形寸法変更命令はshapeを借用し、基底ポインターから破棄してもshapeの寸法を変更・所有破棄せず、派生から基底までの仮想破棄連鎖を一度実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeSizeCommand::~KoShapeSizeCommand()"
+      ]
+    },
+    {
+      "target": "KisFilterCategoryIdsContractTest",
+      "source": "libs/image/tests/KisFilterCategoryIdsContractTest.cpp",
+      "test": "KisFilterCategoryIdsContractTest::categoriesPreserveUniqueStableIdentifiersAndDisplayNames",
+      "behavior": "フィルターの9公開カテゴリは指定された安定識別子へ完全一致し、識別子が相互に重複せず、現在の翻訳環境で空でない表示名を提供する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:FiltersCategoryAdjustId",
+        "variable:FiltersCategoryArtisticId",
+        "variable:FiltersCategoryBlurId",
+        "variable:FiltersCategoryColorId",
+        "variable:FiltersCategoryEdgeDetectionId",
+        "variable:FiltersCategoryEmbossId",
+        "variable:FiltersCategoryEnhanceId",
+        "variable:FiltersCategoryMapId",
+        "variable:FiltersCategoryOtherId"
+      ]
+    },
+    {
+      "target": "KoColorPopupButtonContractTest",
+      "source": "libs/widgets/tests/KoColorPopupButtonContractTest.cpp",
+      "test": "KoColorPopupButtonContractTest::followsParentOwnershipAndHasVirtualLifetime",
+      "behavior": "color popup buttonは指定親に所有され、初期tool button styleをQt::ToolButtonIconOnlyに設定し、親またはQToolButton基底経由の破棄で仮想寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorPopupButton",
+        "method:KoColorPopupButton::KoColorPopupButton(QWidget * parent=0)",
+        "method:KoColorPopupButton::~KoColorPopupButton()"
+      ]
+    },
+    {
+      "target": "KoColorPopupButtonContractTest",
+      "source": "libs/widgets/tests/KoColorPopupButtonContractTest.cpp",
+      "test": "KoColorPopupButtonContractTest::sizeHintUsesDeterministicToolButtonContents",
+      "behavior": "推奨寸法は16x16の固定内容寸法をtool button用styleへ渡して算出し、設定済みiconSizeには左右されない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorPopupButton::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KoColorPopupButtonContractTest",
+      "source": "libs/widgets/tests/KoColorPopupButtonContractTest.cpp",
+      "test": "KoColorPopupButtonContractTest::widthResizeUpdatesIconWidthAndEmitsOnce",
+      "behavior": "幅変更時はstyle chromeを除いた利用可能幅へicon幅を更新し、高さを保持してiconSizeChangedを1回通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorPopupButton::iconSizeChanged()"
+      ]
+    },
+    {
+      "target": "KoColorPopupButtonContractTest",
+      "source": "libs/widgets/tests/KoColorPopupButtonContractTest.cpp",
+      "test": "KoColorPopupButtonContractTest::heightOnlyResizeEmitsWithoutChangingIconSize",
+      "behavior": "高さだけを変更した場合、iconSizeは変化しない一方でiconSizeChangedを1回通知する現行挙動を保持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoColorPopupButton::iconSizeChanged()"
       ]
     }
   ]
