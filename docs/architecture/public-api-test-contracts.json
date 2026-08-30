@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22523
+    "expectedMissingApis": 22514
   },
   "contracts": [
     {
@@ -22819,6 +22819,61 @@
       "classification": "maintained",
       "apis": [
         "method:KisGradientShapeStrategy::~KisGradientShapeStrategy()"
+      ]
+    },
+    {
+      "target": "KRecentFilesActionContractTest",
+      "source": "libs/widgetutils/tests/KRecentFilesActionContractTest.cpp",
+      "test": "KRecentFilesActionContractTest::constructorsPreserveParentPresentationAndVirtualLifetime",
+      "behavior": "最近使ったファイル操作の3構築経路が親所有、文字列、アイコン、空一覧メニューの初期表示を保持し、派生個体を基底接続面または親所有から安全に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KRecentFilesAction",
+        "method:KRecentFilesAction::KRecentFilesAction(QObject * parent)",
+        "method:KRecentFilesAction::KRecentFilesAction(const QIcon & icon,const QString & text,QObject * parent)",
+        "method:KRecentFilesAction::KRecentFilesAction(const QString & text,QObject * parent)",
+        "method:KRecentFilesAction::~KRecentFilesAction()"
+      ]
+    },
+    {
+      "target": "KRecentFilesActionContractTest",
+      "source": "libs/widgetutils/tests/KRecentFilesActionContractTest.cpp",
+      "test": "KRecentFilesActionContractTest::addActionAssociatesUrlAndEmitsSelection",
+      "behavior": "外部所有の操作にURLを対応付けてメニューへ追加し、その操作の選択を対応URLの通知として正確に1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KRecentFilesAction::addAction(QAction * action,const QUrl & url,const QString & name)",
+        "method:KRecentFilesAction::urlSelected(const QUrl & url)"
+      ]
+    },
+    {
+      "target": "KRecentFilesActionContractTest",
+      "source": "libs/widgetutils/tests/KRecentFilesActionContractTest.cpp",
+      "test": "KRecentFilesActionContractTest::addActionIgnoresRequestedDisplayName",
+      "behavior": "URL付き操作追加のname引数が操作の表示文字列へ反映されず、呼出側の既存文字列を残す現行挙動を記録する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KRecentFilesAction::addAction(QAction * action,const QUrl & url,const QString & name)"
+      ]
+    },
+    {
+      "target": "KRecentFilesActionContractTest",
+      "source": "libs/widgetutils/tests/KRecentFilesActionContractTest.cpp",
+      "test": "KRecentFilesActionContractTest::removeActionReturnsTheLiveActionAndDropsSelection",
+      "behavior": "操作の除去が同じ生存中の外部所有ポインターを返し、メニューとURL対応を解除して以後の選択通知を抑止する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KRecentFilesAction::removeAction(QAction * action)"
+      ]
+    },
+    {
+      "target": "KRecentFilesActionContractTest",
+      "source": "libs/widgetutils/tests/KRecentFilesActionContractTest.cpp",
+      "test": "KRecentFilesActionContractTest::recentFilesModelPopulatesIconsLazily",
+      "behavior": "最近使ったファイル模型の設定時にはアイコンを読み込まず、最初のメニュー表示でURL対応アイコンを反映し、その後の模型変更を同じ操作へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KRecentFilesAction::setRecentFilesModel(const QStandardItemModel * model)"
       ]
     }
   ]

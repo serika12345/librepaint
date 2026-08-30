@@ -280,6 +280,19 @@ kis_add_test(
 target_compile_definitions(KisRecentFilesManagerContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KRecentFilesActionContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsrecentfilesactionobjects
+        kritawidgetutilsrecentfilesmanagerobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::WidgetsAddons
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::ConfigCore
+)
+target_compile_definitions(KRecentFilesActionContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KisOptionCollectionWidgetContractTest.cpp
     LINK_LIBRARIES
         kritawidgetutilsoptioncollectionobjects
