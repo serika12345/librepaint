@@ -1080,6 +1080,30 @@ set_target_properties(kritaflakecsstextutilsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakesvgtextpropertydataobjects OBJECT
+    text/KoSvgTextPropertyData.cpp
+)
+target_compile_definitions(kritaflakesvgtextpropertydataobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakesvgtextpropertydataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaflakesvgtextpropertydataobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakesvgtextpropertydataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_subdirectory(styles)
 add_subdirectory(tests)
 add_subdirectory(resources/tests)
@@ -1283,7 +1307,7 @@ set(kritaflake_SRCS
     text/KoFontRegistry.cpp
     $<TARGET_OBJECTS:kritaflakecsstextutilsobjects>
     text/KoPolygonUtils.cpp
-    text/KoSvgTextPropertyData.cpp
+    $<TARGET_OBJECTS:kritaflakesvgtextpropertydataobjects>
     text/KoSvgTextPropertiesInterface.h
     text/lager/KoSvgTextPropertiesModel.cpp
     text/KoFFWWSConverter.cpp
