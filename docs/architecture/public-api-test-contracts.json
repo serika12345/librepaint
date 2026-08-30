@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22259
+    "expectedMissingApis": 22253
   },
   "contracts": [
     {
@@ -5770,6 +5770,39 @@
       "apis": [
         "method:KisConfigNotifier::dropFramesModeChanged()",
         "method:KisConfigNotifier::notifyDropFramesModeChanged()"
+      ]
+    },
+    {
+      "target": "KisConfigNotifierAndroidContractTest",
+      "source": "libs/global/tests/KisConfigNotifierAndroidContractTest.cpp",
+      "test": "KisConfigNotifierAndroidContractTest::pageNavigationEmulationNotificationForwardsBothValues",
+      "behavior": "AndroidのPageUp/Down mouse button emulation通知はfalseとtrueを変更せず対応signalへ各1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigNotifier::notifyUsePageUpDownMouseButtonEmulationWorkaroundChanged(bool enabled)",
+        "method:KisConfigNotifier::sigUsePageUpDownMouseButtonEmulationWorkaroundChanged(bool enabled)"
+      ]
+    },
+    {
+      "target": "KisConfigNotifierAndroidContractTest",
+      "source": "libs/global/tests/KisConfigNotifierAndroidContractTest.cpp",
+      "test": "KisConfigNotifierAndroidContractTest::highFunctionKeyEmulationNotificationForwardsBothValues",
+      "behavior": "Androidのhigh function key mouse button emulation通知はfalseとtrueを変更せず対応signalへ各1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigNotifier::notifyUseHighFunctionKeyMouseButtonEmulationWorkaroundChanged(bool enabled)",
+        "method:KisConfigNotifier::sigUseHighFunctionKeyMouseButtonEmulationWorkaroundChanged(bool enabled)"
+      ]
+    },
+    {
+      "target": "KisConfigNotifierAndroidContractTest",
+      "source": "libs/global/tests/KisConfigNotifierAndroidContractTest.cpp",
+      "test": "KisConfigNotifierAndroidContractTest::historicTabletEventNotificationForwardsBothValues",
+      "behavior": "Androidのhistoric tablet event無視通知はfalseとtrueを変更せず対応signalへ各1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConfigNotifier::notifyUseIgnoreHistoricTabletEventsWorkaroundChanged(bool enabled)",
+        "method:KisConfigNotifier::sigUseIgnoreHistoricTabletEventsWorkaroundChanged(bool enabled)"
       ]
     },
     {

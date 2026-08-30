@@ -368,6 +368,42 @@ kis_add_test(
 )
 target_compile_definitions(KisConfigNotifierContractTest PRIVATE kritaglobal_EXPORTS)
 
+add_library(kritaglobalconfignotifierandroidcontractobjects OBJECT
+    ../kis_config_notifier.cpp
+    ../kis_config_notifier.h
+)
+target_compile_definitions(kritaglobalconfignotifierandroidcontractobjects PRIVATE
+    kritaglobal_EXPORTS
+    Q_OS_ANDROID
+)
+target_include_directories(kritaglobalconfignotifierandroidcontractobjects
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_link_libraries(kritaglobalconfignotifierandroidcontractobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        kritaglobalsignalcompressorobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaglobalconfignotifierandroidcontractobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_test(
+    KisConfigNotifierAndroidContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobalconfignotifierandroidcontractobjects
+        kritaglobalsignalcompressorobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+)
+target_compile_definitions(KisConfigNotifierAndroidContractTest PRIVATE
+    kritaglobal_EXPORTS
+)
+
 kis_add_test(
     KisThreadSafeSignalCompressorContractTest.cpp
     LINK_LIBRARIES
