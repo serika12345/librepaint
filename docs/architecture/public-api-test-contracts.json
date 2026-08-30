@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22463
+    "expectedMissingApis": 22456
   },
   "contracts": [
     {
@@ -23107,6 +23107,65 @@
       "apis": [
         "alias:KoInteractionStrategyFactorySP",
         "method:KoInteractionStrategyFactory::~KoInteractionStrategyFactory()"
+      ]
+    },
+    {
+      "target": "KisTiledExtentManagerContractTest",
+      "source": "libs/image/tiles3/tests/KisTiledExtentManagerContractTest.cpp",
+      "test": "KisTiledExtentManagerContractTest::initialAndClearExposeEmptyExtent",
+      "behavior": "タイル範囲管理器の新規個体と消去後の外接矩形は空であり、追加後の矩形を消去すると空状態へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTiledExtentManager",
+        "method:KisTiledExtentManager::KisTiledExtentManager()",
+        "method:KisTiledExtentManager::clear()",
+        "method:KisTiledExtentManager::extent() const"
+      ]
+    },
+    {
+      "target": "KisTiledExtentManagerContractTest",
+      "source": "libs/image/tiles3/tests/KisTiledExtentManagerContractTest.cpp",
+      "test": "KisTiledExtentManagerContractTest::positiveAndNegativeTilesExpandPixelExtent",
+      "behavior": "正負のタイル座標を追加すると、64画素単位で両座標を包含する外接矩形へ拡張する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTiledExtentManager::extent() const",
+        "method:KisTiledExtentManager::notifyTileAdded(qint32 col,qint32 row)"
+      ]
+    },
+    {
+      "target": "KisTiledExtentManagerContractTest",
+      "source": "libs/image/tiles3/tests/KisTiledExtentManagerContractTest.cpp",
+      "test": "KisTiledExtentManagerContractTest::duplicateCountsDelayLastRemoval",
+      "behavior": "同じタイル座標の重複追加を個数として保持し、一度目の除去では範囲を維持して最後の除去で空にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTiledExtentManager::extent() const",
+        "method:KisTiledExtentManager::notifyTileAdded(qint32 col,qint32 row)",
+        "method:KisTiledExtentManager::notifyTileRemoved(qint32 col,qint32 row)"
+      ]
+    },
+    {
+      "target": "KisTiledExtentManagerContractTest",
+      "source": "libs/image/tiles3/tests/KisTiledExtentManagerContractTest.cpp",
+      "test": "KisTiledExtentManagerContractTest::removingEdgesShrinksExtent",
+      "behavior": "外接矩形の端を担うタイルを除去すると、残るタイルの最小・最大座標に合わせて矩形を縮小する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTiledExtentManager::extent() const",
+        "method:KisTiledExtentManager::notifyTileAdded(qint32 col,qint32 row)",
+        "method:KisTiledExtentManager::notifyTileRemoved(qint32 col,qint32 row)"
+      ]
+    },
+    {
+      "target": "KisTiledExtentManagerContractTest",
+      "source": "libs/image/tiles3/tests/KisTiledExtentManagerContractTest.cpp",
+      "test": "KisTiledExtentManagerContractTest::replaceUsesAllUnsortedUniqueBounds",
+      "behavior": "未整列かつ重複を含む座標列への置換が以前の統計を捨て、全座標の一意な端点から新しい外接矩形を求める。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTiledExtentManager::extent() const",
+        "method:KisTiledExtentManager::replaceTileStats(const QVector<QPoint> & indexes)"
       ]
     }
   ]

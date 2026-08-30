@@ -24,3 +24,23 @@ target_include_directories(ImageLzfCompressionContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/image
 )
 target_compile_definitions(ImageLzfCompressionContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
+    KisTiledExtentManagerContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagetiledextentmanagerobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisTiledExtentManagerContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/tiles3
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisTiledExtentManagerContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)

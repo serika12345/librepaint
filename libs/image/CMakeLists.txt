@@ -911,13 +911,37 @@ set_target_properties(kritaimagelodcapablelayeroffsetobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagetiledextentmanagerobjects OBJECT
+   tiles3/KisTiledExtentManager.cpp
+)
+target_compile_definitions(kritaimagetiledextentmanagerobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagetiledextentmanagerobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tiles3>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagetiledextentmanagerobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+if (TARGET Qt6::Core5Compat)
+   target_link_libraries(kritaimagetiledextentmanagerobjects PUBLIC Qt6::Core5Compat)
+endif()
+set_target_properties(kritaimagetiledextentmanagerobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
    tiles3/kis_tile_data_store.cc
    tiles3/kis_tile_data_pooler.cc
    tiles3/kis_tiled_data_manager.cc
-   tiles3/KisTiledExtentManager.cpp
    tiles3/kis_memento_manager.cc
    tiles3/kis_hline_iterator.cpp
    tiles3/kis_vline_iterator.cpp
@@ -1250,6 +1274,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageconvexhulldevicereaderobjects>
    $<TARGET_OBJECTS:kritaimagecompressionobjects>
    $<TARGET_OBJECTS:kritaimagelodcapablelayeroffsetobjects>
+   $<TARGET_OBJECTS:kritaimagetiledextentmanagerobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
