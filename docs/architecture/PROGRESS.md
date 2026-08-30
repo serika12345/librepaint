@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 13:13 JST
+- 更新日時: 2026-08-30 13:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,33 +11,16 @@
 
 ### 現在の並列担当票
 
-- 第44並列便は完了し、設定ページ項目、図形stroke模型、鍵フレーム、画素精度変換基底の全29 APIを挙動契約へ対応付けた。公開面は
-  1,549ヘッダー、29,989 API、対応済み7,504件、未対応22,485件である。
+- 第45並列便は完了し、dock見出し、操作戦略factory、タイル外接範囲、色変換factoryの全29 APIを挙動契約へ対応付けた。公開面は
+  1,549ヘッダー、29,989 API、対応済み7,533件、未対応22,456件である。
 - 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、同時無作業再構築、製品への一重再集約、製品共有ライブラリー非接続、公開API契約検査に
   成功した。各対象の20回反復と`verify-quick`も成功している。
-- 統合済み専用作業ツリー3本はclean確認直後に個別削除して約2.44 GBを解放した。旧不足一覧5.5 MBも次世代一覧の生成直後に削除し、現在は
-  `develop`の主作業ツリー、永続増分構築木、最新`build/tdd-macos/public-api-missing-g45.json`だけを次便の入力として保持する。
+- 統合済み専用作業ツリー3本はclean確認直後に個別削除して817 MB、818 MB、815 MBの約2.45 GBを解放した。旧不足一覧5.5 MBも次世代一覧の生成直後に削除し、
+  現在は`develop`の主作業ツリー、永続増分構築木、最新`build/tdd-macos/public-api-missing-g46.json`だけを次便の入力として保持する。
 - `KisScreenColorSamplerBase`は分離MOCが`KoColor`のメタ型実装記号を要求し、現状では製品色管理ライブラリー非接続の限定対象にできない。変更は
   残しておらず、色値実装が小さな構築所有へ分離された後に再監査する。
-- 読み取り専用監査から、第45並列便は合計29 APIを次の4担当票で固定し、対応済み7,533件、未対応22,456件を目標とする。
-  - 主担当は`libs/widgets/KoDockWidgetTitleBar.cpp`を`kritawidgets_LIB_SRCS`直接収容から新規
-    `kritawidgetsdocktitlebarobjects`へ移し、製品`kritawidgets`へ1回だけ再集約する。全5 APIを対象とし、最近傍
-    `KoDockWidgetTitleBarButtonContractTest`の7工程・14入力と直接依存の差から停止上限を11工程・26入力とする。
-  - `flake_zoom_state`担当は`libs/flake/tools/KoInteractionStrategyFactory.cpp`を`kritaflake_SRCS`直接収容から新規
-    `kritaflakeinteractionstrategyfactoryobjects`へ移し、製品`kritaflake`へ1回だけ再集約する。全11 APIを対象とし、最近傍
-    `KoShapeStrokeModelContractTest`の5工程・11入力に対して停止上限を6工程・13入力とする。
-  - `image_frame_lock`担当は`libs/image/tiles3/KisTiledExtentManager.cpp`を`kritaimage_LIB_SRCS`直接収容から新規
-    `kritaimagetiledextentmanagerobjects`へ移し、製品`kritaimage`へ1回だけ再集約する。全7 APIを対象とし、現行の広域試験1,154工程・
-    2,331入力に対し、直接依存から予測した5工程・11入力と停止上限6工程・13入力に縮小する。
-  - `global_forest`担当は`libs/pigment/KoColorTransformationFactory.cpp`を`kritapigment_SRCS`直接収容から新規
-    `kritapigmentcolortransformationfactoryobjects`へ移し、製品`kritapigment`へ1回だけ再集約する。全6 APIを対象とし、最近傍
-    `KoColorTransformationContractTest`の6工程・13入力と直接依存の差から停止上限を7工程・18入力とする。
-- 計画を`verify-quick`へ通してコミットした共通基点から担当用3作業ツリーだけを作る。各担当は製品共有ライブラリーへ接続せず、
-  対象CTest単発・20回反復・軽量近傍試験・公開API契約検査・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、
-  世代の古い公開API不足一覧は次世代一覧の生成成功直後に削除する。
-- 計画を`verify-quick`へ通してコミットし、共通基点`62ae0dbba55a42e369c3271f8a877cacb7786d7a`から担当用3作業ツリーだけを作成した。
-  4限定対象はすべて未知の対象として失敗し、未登録の赤を確認した。3作業ツリーは実装開始前で810 MB、811 MB、812 MBの約2.43 GBを使用し、
-  各引渡しの統合とclean確認直後に個別削除する。
+- 第46並列便は作業ツリーと追加構築木を作る前に、`libs/flake`、`libs/global`、`libs/image`、`libs/pigment`、`libs/widgets`、`libs/widgetutils`の候補を
+  読み取り専用で監査する。公開API数、実装所有、直接依存、近傍の実測閉包から停止上限を固定し、計画の検査・コミット後に必要な専用作業ツリーだけを作成する。
 
 ## 再開環境
 
@@ -10357,10 +10340,66 @@
   生成成功後に旧`build/tdd-macos/public-api-missing-g44.json` 5.5 MBを削除し、最新の`public-api-missing-g45.json`だけを次便の入力として保持する。
   主作業ツリーの永続増分構築木とGit履歴は再構築と復旧を避けるため保持する。
 
+## R2-G19b dock見出しの全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KoDockWidgetTitleBar.h`の全5 APIを、新規`libs/widgets/tests/KoDockWidgetTitleBarContractTest.cpp`の4試験へ対応付けた。
+  dock所有と基底経由の仮想寿命、見出し文字列と3操作、lock時の機能保存・停止と解除時の復元、lock状態に応じたicon再取得を固定した。
+  lockを2回連続して有効化すると保存機能を空で上書きする現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/widgets/KoDockWidgetTitleBar.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から新規
+  AUTOMOC/PIC対応`kritawidgetsdocktitlebarobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。限定試験は同生成物、
+  既存のbutton生成物、Qt Widgets・Test、KF I18n・WidgetsAddonsだけへ接続し、icon読込みを試験内の決定実装で観測する。
+- 対象未登録の初回限定構築は未知の対象、構築所有分離後の明示的な仮契約は未固定失敗となった。限定対象は10工程・22入力で
+  停止上限11工程・26入力以内に収めた。製品閉包は774工程・1,577入力で、変更前の772工程・1,573入力から専用MOC所有の2工程・4入力が
+  増えた。`Q_PRIVATE_SLOT`を持つ実装のMOCを広域製品から分離し、限定試験と製品で同じ生成物を1回だけ構築するために必要な閉包である。
+  対象CTest単発と20回反復、最近傍`KoDockWidgetTitleBarButtonContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  公開API契約検査、`verify-quick`に成功した。初回からのlock解除、dock以外の親、表示様式の画素、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b 操作戦略factoryの全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/tools/KoInteractionStrategyFactory.h`の全11 APIを、新規`libs/flake/tests/KoInteractionStrategyFactoryContractTest.cpp`の3試験へ
+  対応付けた。Unicode識別子、符号付き優先度、優先度だけによる厳密比較、event・描画器・表示変換器・色表示rendererの同一個体配送と4仮想戻り値、
+  共有別名の所有継続、基底所有からの派生寿命を固定した。
+- 開始ファイル`libs/flake/tools/KoInteractionStrategyFactory.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakeinteractionstrategyfactoryobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。
+- 限定対象は5工程・11入力で停止上限6工程・13入力以内に収め、製品の590工程・1,212入力は変化しなかった。対象CTest単発と20回反復、
+  最近傍`KoShapeStrokeModelContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。
+  null共有factoryの比較と実描画結果、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b タイル外接範囲の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/tiles3/KisTiledExtentManager.h`の全7 APIを、新規`libs/image/tiles3/tests/KisTiledExtentManagerContractTest.cpp`の5試験へ対応付けた。
+  初期と消去後の空矩形、正負のタイル座標からの64画素単位の外接矩形、重複計数と最後の除去、端の除去による縮小、未整列・重複入力による全置換を固定した。
+- 開始ファイル`libs/image/tiles3/KisTiledExtentManager.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaimagetiledextentmanagerobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。限定構築で検出した
+  旧Qt互換ヘッダー`QLinkedList`の依存は、Qt 6で`Qt6::Core5Compat`を同生成物の直接依存として明示して解消した。
+- 限定対象は5工程・11入力で停止上限6工程・13入力以内に収め、旧広域試験の1,154工程・2,331入力から分離した。製品閉包は1,152工程・
+  2,328入力で、変更前の1,150工程・2,324入力からOBJECT所有境界の2工程・4入力が増えた。ソースの二重構築を避けたまま広域タイル試験から独立した契約を
+  構築するために必要な閉包である。対象CTest単発と20回反復、最近傍`KisFillIntervalMapContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査、公開API契約検査、`verify-quick`に成功した。未登録座標の除去、`qint32`極値、並行操作の順序、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 色変換factoryの全public API契約と構築所有分離で完了した作業
+
+- `libs/pigment/KoColorTransformationFactory.h`の全6 APIを、新規`libs/pigment/tests/KoColorTransformationFactoryContractTest.cpp`の3試験へ対応付けた。
+  識別子、対応色模型・深度の値と順序、色空間の借用pointerと引数表・返値の正確な配送、基底所有からの派生寿命を固定した。
+- 開始ファイル`libs/pigment/KoColorTransformationFactory.cpp`の構築所有を`libs/pigment/CMakeLists.txt`の`kritapigment_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritapigmentcolortransformationfactoryobjects`へ移し、製品`kritapigment`は同生成物を1回だけ再集約する。限定試験は同生成物、
+  既存`kritaglobalidobjects`、Qt Core・Testだけへ接続する。
+- 限定対象は6工程・14入力で停止上限7工程・18入力以内に収め、製品の360工程・750入力は変化しなかった。対象CTest単発と20回反復、
+  最近傍`KoColorTransformationContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。
+  暗黙copyの生pointer所有と実色変換、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第45並列便はdock見出し5 API、操作戦略factory 11 API、タイル外接範囲7 API、色変換factory 6 APIの合計29 APIを固定した。各担当の引渡しを統合順に取り込み、
+  主作業木で4限定対象の結合構築、対象4件と軽量近傍4件のCTest 8/8、同時無作業再構築、必要な製品への一重再集約、製品共有ライブラリー非接続、
+  macOSのパッケージ境界1,431対象、公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,533件、未対応22,456件になった。
+- 取り込み済み専用作業ツリー3件は各clean確認直後に削除し、817 MB、818 MB、815 MBの約2.45 GBを解放した。次世代不足一覧の生成成功後に
+  旧`build/tdd-macos/public-api-missing-g45.json` 5.5 MBを削除し、最新の`public-api-missing-g46.json`だけを次便の入力として保持する。主作業ツリーの永続増分構築木とGit履歴は
+  再構築と復旧を避けるため保持する。
+
 ## 次の操作
 
-第45並列便の4担当票を並行実装する。構築所有を限定生成物へ分離して実測閉包が停止上限内であることを振舞契約より先に確認し、対象CTest単発・20回反復、
-軽量近傍試験、製品への一重再集約、製品共有ライブラリー非接続、公開API契約検査、`verify-quick`を確認する。各引渡しの統合直後に対応する作業ツリーを削除する。
+第46並列便の候補を`build/tdd-macos/public-api-missing-g46.json`から読み取り専用で監査する。公開API数、実装所有、直接依存、近傍の実測閉包から停止上限を固定し、
+計画を検査・コミットした後に必要な担当作業ツリーだけを作成する。
 
 ## R1-G5完了根拠
 
