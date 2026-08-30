@@ -308,6 +308,7 @@ target_compile_definitions(KisDoSomethingCommandContractTest PRIVATE
 kis_add_test(
     KisMoveCommandCommonContractTest.cpp
     LINK_LIBRARIES
+        kritaimageselectionmovecommand2objects
         kritapaintingundokundo2coreobjects
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
@@ -324,6 +325,7 @@ target_include_directories(KisMoveCommandCommonContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/painting/undo
 )
 target_compile_definitions(KisMoveCommandCommonContractTest PRIVATE
+    kritaimage_EXPORTS
     kritapaintingundo_EXPORTS
 )
 

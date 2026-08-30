@@ -902,6 +902,35 @@ set_target_properties(kritaimagetransactionbasedcommandobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageselectionmovecommand2objects OBJECT
+   commands_new/kis_selection_move_command2.cpp
+)
+target_compile_definitions(kritaimageselectionmovecommand2objects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageselectionmovecommand2objects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands_new>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritaimageselectionmovecommand2objects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      Qt${QT_MAJOR_VERSION}::Widgets
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimageselectionmovecommand2objects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagedisabledirtyrequestscommandobjects OBJECT
    commands_new/KisDisableDirtyRequestsCommand.cpp
 )
@@ -1372,7 +1401,6 @@ set(kritaimage_LIB_SRCS
    commands_new/kis_image_set_resolution_command.cpp
    commands_new/kis_node_move_command2.cpp
    commands_new/kis_set_layer_style_command.cpp
-   commands_new/kis_selection_move_command2.cpp
    commands_new/kis_update_command.cpp
    commands_new/kis_switch_current_time_command.cpp
    commands_new/kis_change_projection_color_command.cpp
@@ -1627,6 +1655,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagecompositeprogressproxyobjects>
    $<TARGET_OBJECTS:kritaimagenodecommandobjects>
    $<TARGET_OBJECTS:kritaimagetransactionbasedcommandobjects>
+   $<TARGET_OBJECTS:kritaimageselectionmovecommand2objects>
    $<TARGET_OBJECTS:kritaimagedisabledirtyrequestscommandobjects>
    $<TARGET_OBJECTS:kritaimagelayercollapsecommandobjects>
    $<TARGET_OBJECTS:kritaimagelayercollapsecommandnodeaccessobjects>
