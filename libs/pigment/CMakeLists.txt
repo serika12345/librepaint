@@ -27,6 +27,21 @@ set_target_properties(kritapigmentalphamaskapplicatorbaseobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapigmentoptimizedpixelscalerbaseobjects OBJECT
+    KoOptimizedPixelDataScalerU8ToU16Base.cpp
+)
+target_compile_definitions(kritapigmentoptimizedpixelscalerbaseobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentoptimizedpixelscalerbaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentoptimizedpixelscalerbaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentoptimizedpixelscalerbaseobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapigmentstandardidsobjects OBJECT
     KoColorModelStandardIds.cpp
 )
@@ -184,8 +199,8 @@ set_target_properties(kritapigmentcolortransformationobjects PROPERTIES
 
 set(kritapigment_SRCS
     $<TARGET_OBJECTS:kritapigmentcolortransformationobjects>
+    $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalerbaseobjects>
     KoBasicHistogramProducers.cpp
-    KoOptimizedPixelDataScalerU8ToU16Base.cpp
     KoOptimizedPixelDataScalerU8ToU16Factory.cpp
     KoColor.cpp
     KoColorDisplayRendererInterface.cpp

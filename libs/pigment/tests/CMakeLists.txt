@@ -37,6 +37,15 @@ kis_add_test(
 target_compile_definitions(KoAlphaMaskApplicatorBaseContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoOptimizedPixelDataScalerU8ToU16BaseContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentoptimizedpixelscalerbaseobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoOptimizedPixelDataScalerU8ToU16BaseContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoChannelInfoContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui

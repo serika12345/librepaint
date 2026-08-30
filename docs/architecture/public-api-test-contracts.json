@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22491
+    "expectedMissingApis": 22485
   },
   "contracts": [
     {
@@ -22970,6 +22970,30 @@
       "classification": "maintained",
       "apis": [
         "method:KoShapeStrokeModel::~KoShapeStrokeModel()"
+      ]
+    },
+    {
+      "target": "KoOptimizedPixelDataScalerU8ToU16BaseContractTest",
+      "source": "libs/pigment/tests/KoOptimizedPixelDataScalerU8ToU16BaseContractTest.cpp",
+      "test": "KoOptimizedPixelDataScalerU8ToU16BaseContractTest::protocolPreservesChannelCountAndConversionArguments",
+      "behavior": "画素精度変換の基底接続面が構築時の画素当たりチャンネル数を返し、U8からU16とU16からU8の両方向について全バッファー、行stride、行数、列数を派生実装へ正確に1回配送し、その書込みを呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoOptimizedPixelDataScalerU8ToU16Base",
+        "method:KoOptimizedPixelDataScalerU8ToU16Base::KoOptimizedPixelDataScalerU8ToU16Base(int channelsPerPixel)",
+        "method:KoOptimizedPixelDataScalerU8ToU16Base::channelsPerPixel() const",
+        "method:KoOptimizedPixelDataScalerU8ToU16Base::convertU16ToU8(const quint8 * src,int srcRowStride,quint8 * dst,int dstRowStride,int numRows,int numColumns) const",
+        "method:KoOptimizedPixelDataScalerU8ToU16Base::convertU8ToU16(const quint8 * src,int srcRowStride,quint8 * dst,int dstRowStride,int numRows,int numColumns) const"
+      ]
+    },
+    {
+      "target": "KoOptimizedPixelDataScalerU8ToU16BaseContractTest",
+      "source": "libs/pigment/tests/KoOptimizedPixelDataScalerU8ToU16BaseContractTest.cpp",
+      "test": "KoOptimizedPixelDataScalerU8ToU16BaseContractTest::baseOwnershipDestroysDerivedExactlyOnce",
+      "behavior": "画素精度変換器を基底型で所有して破棄すると派生実装のデストラクターが正確に1回実行される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoOptimizedPixelDataScalerU8ToU16Base::~KoOptimizedPixelDataScalerU8ToU16Base()"
       ]
     }
   ]
