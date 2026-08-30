@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 14:02 JST
+- 更新日時: 2026-08-30 14:11 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -18,8 +18,11 @@
 - 統合済み専用作業ツリー3本はclean確認直後に個別削除して816 MB、817 MB、815 MBの約2.45 GBを解放した。次世代不足一覧の生成成功後に
   旧`build/tdd-macos/public-api-missing-g46.json` 5.5 MBも削除し、現在は主作業ツリー、永続増分構築木、最新
   `build/tdd-macos/public-api-missing-g47.json`だけを次便の入力として保持する。
-- 第47並列便は追加作業ツリーを作る前に、最新不足一覧から互いに所有競合しない候補を読み取り専用で監査する。公開API数、実装所有、直接依存、
-  最小契約、近傍閉包を固定し、計画の検査・コミット後に必要な作業ツリーだけを作成する。
+- 第47並列便は読み取り専用監査を完了し、`KoPluginLoader`の残るdestructor 1 API、`KoColorBackground` 12 API、
+  `KisStrokeRandomSource` 10 API、`KisDitherOp` 13 APIの合計36 APIを選んだ。完了時の目標は対応済み7,597件、未対応22,392件である。
+- `KoPluginLoaderTest`は既存の動的plugin統合に必要な99工程・188入力を維持し、試験ソースだけを拡張する。新規限定対象は`KoColorBackground`を
+  停止上限7工程・15入力、`KisStrokeRandomSource`を9工程・19入力、`KisDitherOp`を6工程・14入力とする。前2実装だけを責務別OBJECT生成物へ移し、
+  製品へ1回だけ再集約する。計画検査とコミット後に担当作業ツリー3本だけを作成する。
 
 ## 再開環境
 
@@ -10453,8 +10456,8 @@
 
 ## 次の操作
 
-第46並列便の進捗記録を`verify-quick`で検査してコミットする。続いて`build/tdd-macos/public-api-missing-g47.json`から第47並列便の候補を読み取り専用で監査し、
-公開API数、実装所有、直接依存、最小契約、近傍閉包、停止上限を固定する。計画を検査・コミットした後に必要な担当作業ツリーだけを作成する。
+第47並列便の計画を`verify-quick`で検査してコミットする。担当作業ツリー3本を作成し、新規3対象の未知対象失敗と、既存`KoPluginLoaderTest`の
+無作業計画を開始診断として記録する。開始状態をコミットした後、4対象の全public API挙動契約を並列実装し、各担当作業ツリーを統合直後に削除する。
 
 ## R1-G5完了根拠
 
