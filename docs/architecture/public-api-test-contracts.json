@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22528
+    "expectedMissingApis": 22523
   },
   "contracts": [
     {
@@ -22778,6 +22778,47 @@
       "classification": "maintained",
       "apis": [
         "method:KoDockFactoryBase::~KoDockFactoryBase()"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::defaultConstructsZeroEndpoints",
+      "behavior": "勾配形状戦略の既定構築が開始点と終了点をともに原点で初期化する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisGradientShapeStrategy",
+        "method:KisGradientShapeStrategy::KisGradientShapeStrategy()"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::constructorPreservesEndpoints",
+      "behavior": "勾配形状戦略の引数付き構築が符号と小数部を含む開始点と終了点をそのまま保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientShapeStrategy::KisGradientShapeStrategy(const QPointF & gradientVectorStart,const QPointF & gradientVectorEnd)"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::valueAtDispatchesCoordinatesAndResult",
+      "behavior": "勾配形状戦略の基底接続面が指定座標を派生実装へ1回渡し、派生実装の有限な負の返値を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientShapeStrategy::valueAt(double x,double y) const"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::baseOwnershipDestroysDerivedStrategy",
+      "behavior": "勾配形状戦略を基底型で所有して破棄すると派生実装のデストラクターが正確に1回実行される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisGradientShapeStrategy::~KisGradientShapeStrategy()"
       ]
     }
   ]

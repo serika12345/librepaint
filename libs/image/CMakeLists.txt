@@ -49,6 +49,21 @@ set_target_properties(kritaimagefilterstrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagegradientshapestrategyobjects OBJECT
+   kis_gradient_shape_strategy.cpp
+)
+target_compile_definitions(kritaimagegradientshapestrategyobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagegradientshapestrategyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaimagegradientshapestrategyobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagegradientshapestrategyobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageserializableconfigurationobjects OBJECT
    kis_serializable_configuration.cc
 )
@@ -1025,7 +1040,6 @@ set(kritaimage_LIB_SRCS
    kis_recalculate_transform_mask_job.cpp
    kis_transform_mask_params_factory_registry.cpp
    kis_gradient_painter.cc
-   kis_gradient_shape_strategy.cpp
    kis_cached_gradient_shape_strategy.cpp
    kis_polygonal_gradient_shape_strategy.cpp
    kis_iterator_ng.cpp
@@ -1178,6 +1192,7 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
+   $<TARGET_OBJECTS:kritaimagegradientshapestrategyobjects>
    $<TARGET_OBJECTS:kritaimageserializableconfigurationobjects>
    $<TARGET_OBJECTS:kritaimagefiltercategoryidsobjects>
    $<TARGET_OBJECTS:kritaimageperstrokerandomsourceobjects>
