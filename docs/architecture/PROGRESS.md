@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 18:16 JST
+- 更新日時: 2026-08-30 18:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,16 +11,16 @@
 
 ### 第56並列便の担当票
 
-- `g56-tab-size`は状態`planned`、計画基準`fe083cc962`、予定作業ツリー
+- `g56-tab-size`は状態`implementing`、基準`fd42c27fc733ca249cd69e99633eef8804f3e80b`、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g56-tab-size`である。目的はtab幅の既定8文字、8単位、Qt列挙情報、
   cursorとQt propertyの双方向同期、文字数形式と長さ形式の独立保持、QObject寿命を固定することである。対象は
   `libs/flake/text/lager/TabSizeModel.h`のclass、enumと8 enumerator、constructor、value・unitの2 `LAGER_QT_CURSOR`の
   全13 APIである。変更許可は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規
   `libs/flake/tests/TabSizeModelContractTest.cpp`に限る。開始ファイル`libs/flake/text/lager/TabSizeModel.cpp`の直接収容を
   `kritaflaketabsizemodelobjects`へ移し、製品へ一度だけ再集約する。近傍は`TextTransformModelContractTest`、対象macOS、
-  共有cache`.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、
+  共有cache`.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、
   停止条件8工程・16入力、製品`kritaflake` 608工程・1,248入力超過、製品共有ライブラリー接続、または許可外変更である。
-- `g56-update-selection`は状態`planned`、同じ計画基準、予定作業ツリー
+- `g56-update-selection`は状態`implementing`、同じ基準、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g56-update-selection`である。目的は選択投影更新ジョブの強所有、実行情報、全体・範囲更新、
   overlay親の変更範囲通知、同一選択ジョブの範囲統合を固定することである。対象は`libs/image/kis_update_selection_job.h`のclass、
   constructor、`debugName`、`levelOfDetail`、`overrides`、`run`の全6 APIである。変更許可は`libs/image/CMakeLists.txt`、
@@ -29,17 +29,17 @@
   `libs/image/tests/KisUpdateSelectionJobContractTest.cpp`に限る。開始ファイル`libs/image/kis_update_selection_job.cpp`の直接収容を
   `kritaimageupdateselectionjobobjects`へ移し、具体selection・親node操作を同ファイルから非公開selection access 2ファイルと
   対応objectへ移して製品へ各一度だけ再集約する。公開headerの具体selection依存は型宣言へ縮小する。近傍は
-  `KisUpdateOutlineJobContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、
+  `KisUpdateOutlineJobContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、
   統合順2、停止条件6工程・14入力、製品`kritaimage` 1,176工程・2,376入力超過、部分更新受信側と全体更新相手の非対称な上書き判定を
   維持契約に分類できない場合、製品共有ライブラリー接続、または許可外変更である。
-- `g56-color-model`は状態`planned`、同じ計画基準、予定作業ツリー
+- `g56-color-model`は状態`implementing`、同じ基準、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g56-color-model`である。目的は色設定模型の6真偽値・3整数値の既定値、Qt property、
   cursorとの双方向同期、9項目の独立更新、QObject寿命を固定することである。対象は
   `plugins/paintops/libpaintop/KisColorOptionModel.h`のclass、optionData、constructor、9 `LAGER_QT_CURSOR`の全12 APIである。
   変更許可は`plugins/paintops/libpaintop/CMakeLists.txt`、同`tests/CMakeLists.txt`、新規
   `plugins/paintops/libpaintop/tests/KisColorOptionModelContractTest.cpp`に限る。開始ファイル
   `plugins/paintops/libpaintop/KisColorOptionModel.cpp`の直接収容を`kritapaintopcoloroptionmodelobjects`へ移し、製品へ一度だけ
-  再集約する。近傍は`KisMirrorOptionModelContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限
+  再集約する。近傍は`KisMirrorOptionModelContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限
   `transport-commit`、追加委任`forbidden`、統合順3、停止条件8工程・18入力、製品`kritalibpaintop` 2,086工程・4,170入力超過、
   `kritapaintopruntime` 1,272工程・2,564入力増加、追加製品object、製品共有ライブラリー接続、または許可外変更である。
 - 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、
@@ -77,8 +77,8 @@
 
 ### 次の操作
 
-- 第56並列便の計画をコミットし、その計画コミットから3担当の作業ツリーを作成する。各担当を`implementing`、構築実行`granted`へ
-  更新してから、未知対象の初回診断、限定実装、対象CTestへ進む。
+- 第56並列便の3担当で未知対象の初回診断、限定実装、対象CTest、20回反復、軽量近傍、高速検査を実行する。cleanな輸送コミットを
+  統合順に取り込み、各統合直後に担当作業ツリーとブランチを削除する。
 
 ## 再開環境
 
