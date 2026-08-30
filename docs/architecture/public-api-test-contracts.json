@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22062
+    "expectedMissingApis": 22041
   },
   "contracts": [
     {
@@ -25480,6 +25480,99 @@
         "method:KisSimpleDynamicSensorFactory::createConfigWidget(lager::cursor<KisCurveOptionDataCommon>,QWidget *)",
         "method:KisSimpleDynamicSensorFactory::maximumLabel(int length)",
         "method:KisSimpleDynamicSensorFactory::maximumValue(int length)"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::defaultsToNoCanvasAndEmptyObserverName",
+      "behavior": "canvas観測者は観測canvasのnullと空の観測者名を既定とし、基底ポインター経由の破棄で派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCanvasObserverBase",
+        "method:KoCanvasObserverBase::KoCanvasObserverBase()",
+        "method:KoCanvasObserverBase::observedCanvas() const",
+        "method:KoCanvasObserverBase::observerName()",
+        "method:KoCanvasObserverBase::~KoCanvasObserverBase()"
+      ]
+    },
+    {
+      "target": "KoBehaviorInterfacesContractTest",
+      "source": "libs/flake/tests/KoBehaviorInterfacesContractTest.cpp",
+      "test": "KoBehaviorInterfacesContractTest::nullCanvasTransitionsDispatchObserverHooks",
+      "behavior": "null canvasによる観測開始と観測解除は対応する派生hookを各一度呼び、各遷移後の観測canvasをnullに保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCanvasObserverBase::setObservedCanvas(KoCanvasBase * canvas)",
+        "method:KoCanvasObserverBase::unsetObservedCanvas()"
+      ]
+    },
+    {
+      "target": "KisMoveCommandCommonContractTest",
+      "source": "libs/image/tests/KisMoveCommandCommonContractTest.cpp",
+      "test": "KisMoveCommandCommonContractTest::selectionMoveRetainsSelectionAndParentOwnership",
+      "behavior": "選択移動命令は選択を強所有して指定親命令の子となり、外部所有解放後も親の寿命中は選択を保持して親破棄時に最終解放する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSelectionMoveCommand2",
+        "method:KisSelectionMoveCommand2::KisSelectionMoveCommand2(KisSelectionSP object,const QPoint & oldPos,const QPoint & newPos,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KisMoveCommandCommonContractTest",
+      "source": "libs/image/tests/KisMoveCommandCommonContractTest.cpp",
+      "test": "KisMoveCommandCommonContractTest::selectionMoveRedoAndUndoDispatchCoordinatesBeforeNotification",
+      "behavior": "選択移動命令のredoとundoは新・旧座標それぞれのX、Y、選択変更通知の順に各一度配送し、反復実行でも同じ順序を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSelectionMoveCommand2::redo()",
+        "method:KisSelectionMoveCommand2::undo()"
+      ]
+    },
+    {
+      "target": "KoColorSpaceBlendingPolicyContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceBlendingPolicyContractTest.cpp",
+      "test": "KoColorSpaceBlendingPolicyContractTest::additivePolicyPreservesChannelValues",
+      "behavior": "加算混合方針はチャネルtraitの値型を公開し、整数・浮動小数チャネル値を加算空間との往復で変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoAdditiveBlendingPolicy::channels_type",
+        "method:KoAdditiveBlendingPolicy::fromAdditiveSpace(channels_type value)",
+        "method:KoAdditiveBlendingPolicy::toAdditiveSpace(channels_type value)",
+        "struct:KoAdditiveBlendingPolicy"
+      ]
+    },
+    {
+      "target": "KoColorSpaceBlendingPolicyContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceBlendingPolicyContractTest.cpp",
+      "test": "KoColorSpaceBlendingPolicyContractTest::subtractivePolicyInvertsAroundTheChannelUnit",
+      "behavior": "減算混合方針はチャネルtraitの値型を公開し、整数・浮動小数チャネル値を単位値から引いて加算空間と往復変換する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoSubtractiveBlendingPolicy::channels_type",
+        "method:KoSubtractiveBlendingPolicy::fromAdditiveSpace(channels_type value)",
+        "method:KoSubtractiveBlendingPolicy::toAdditiveSpace(channels_type value)",
+        "struct:KoSubtractiveBlendingPolicy"
+      ]
+    },
+    {
+      "target": "KoColorSpaceBlendingPolicyContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceBlendingPolicyContractTest.cpp",
+      "test": "KoColorSpaceBlendingPolicyContractTest::subtractiveModesPreserveTheirExactOrder",
+      "behavior": "CMYK減算混合モード一覧は83識別子を現行順序で重複なく返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:subtractiveBlendingModesInCmyk()"
+      ]
+    },
+    {
+      "target": "KoColorSpaceBlendingPolicyContractTest",
+      "source": "libs/pigment/tests/KoColorSpaceBlendingPolicyContractTest.cpp",
+      "test": "KoColorSpaceBlendingPolicyContractTest::subtractiveConfigurationIsReadOnce",
+      "behavior": "CMYK減算混合設定は処理内の初回参照で読み込まれ、同一処理中の後続設定変更から独立して初回値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:useSubtractiveBlendingForCmykColorSpaces()"
       ]
     }
   ]

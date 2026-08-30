@@ -2,78 +2,42 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 20:22 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-30 20:37 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第60並列便の担当票
-
-- `g60-canvas-observer`は状態`implementing`、基準`426ea2eea577c2d3252e28de8d61aaa9dc95dc55`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g60-canvas-observer`である。目的はcanvas観測者の既定null、既定名、観測開始・解除hook配送、
-  仮想寿命を実canvas構築なしで固定することである。対象は`libs/flake/KoCanvasObserverBase.h`のclass、constructor、`observedCanvas`、
-  `observerName`、`setObservedCanvas`、`unsetObservedCanvas`、destructorの7 API全件である。開始ファイル`libs/flake/KoCanvasObserverBase.cpp`を
-  `kritaflake_SRCS`の直接収容から既存`kritaflakebehaviorinterfaceobjects`へ移し、製品への既存一重再集約を共用する。既存
-  `libs/flake/tests/KoBehaviorInterfacesContractTest.cpp`と同名対象を拡張する。変更許可はこの試験と`libs/flake/CMakeLists.txt`に限る。
-  近傍は同対象の`returnsCanvasObserverListThroughInterface`、対象macOS、共有cache`.cache/librepaint/ccache/native`、構築実行`granted`、Git権限
-  `transport-commit`、追加委任`forbidden`、統合順1、停止条件14工程・29入力、製品`kritaflake` 612工程・1,256入力からの増減、
-  製品共有ライブラリー接続、実`KoCanvasBase`、公開header/source内容変更、objectの二重集約、または許可外変更である。
-- `g60-selection-move`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g60-selection-move`である。目的は選択移動命令の強所有、親命令寿命、redo/undoのX・Y・通知順と反復性を
-  固定することである。対象は`libs/image/commands_new/kis_selection_move_command2.h`のclass、constructor、`redo`、`undo`の4 API全件である。
-  開始ファイル`libs/image/commands_new/kis_selection_move_command2.cpp`の`kritaimage_LIB_SRCS`直接収容を`kritaimageselectionmovecommand2objects`へ移し、製品へ
-  一度だけ再集約する。既存`libs/image/tests/KisMoveCommandCommonContractTest.cpp`と同名対象を拡張する。変更許可はこの試験、
-  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は同対象の`redoAndUndoDispatchCoordinatesInOrderAndRetainOwnedObject`、対象macOS、
-  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件12工程・25入力、製品`kritaimage`
-  1,182工程・2,388入力からの増減、製品・global共有ライブラリーまたは実`kis_selection.cc`接続、公開基底header変更、nullを新仕様化する場合、
-  または許可外変更である。
-- `g60-color-space-blending`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g60-color-space-blending`である。目的は加算・減算混合方針のチャネル型、変換・往復、CMYK減算混合モードの順序・一意性、
-  設定の初回読取り・キャッシュを固定することである。対象は`libs/pigment/compositeops/KoColorSpaceBlendingPolicy.h`の加算・減算2構造体、2
-  `channels_type`別名、両構造体の`toAdditiveSpace`・`fromAdditiveSpace`の4関数、`subtractiveBlendingModesInCmyk`、
-  `useSubtractiveBlendingForCmykColorSpaces`という10 API全件である。開始ファイル`libs/pigment/compositeops/KoColorSpaceBlendingPolicy.cpp`を
-  `kritapigment_SRCS`直接収容から`kritapigmentcolorspaceblendingpolicyobjects`へ移し、製品へ一度だけ再集約する。同ファイルの不要な
-  `KoCompositeOpRegistry.h`依存を直接必要な`KoCompositeOpIds.h`へ狭める。新規`libs/pigment/tests/KoColorSpaceBlendingPolicyContractTest.cpp`と同名対象を作る。
-  変更許可はこの実装と試験、`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`に限る。近傍は`KoCompositeOpIdsContractTest`、対象macOS、
-  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力、製品`kritapigment`
-  360工程・750入力からの増減、製品共有ライブラリーまたは`kritaglobalidobjects`接続、試験固有設定領域への初回読取り隔離不能、モード83項目の環境依存、
-  公開APIまたは挙動変更、または許可外変更である。
-- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、進捗、
-  担当間のCMake非重複、容量削除を所有する。完了目標は21 API純増の対応済み7,948件、未対応22,041件である。
-
 ### 現在の結果
 
-- 第59並列便はC形式資源所有境界18 API、キャッシュ付き勾配戦略4 API、単純動的センサー工場15 APIの合計37 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み7,927件、未対応22,062件である。
-- 開始試験`libs/flake/tests/TestFontLibraryResourceUtils.{h,cpp}`は、製品共有ライブラリーと共通試験基盤へ接続する広域一括対象から、
-  外部3ライブラリーとQt Testだけの同名専用対象へ移した。重複する生成・複製・代入・移動試験を所有権契約へ集約し、
-  null、reset、解放失敗診断、Fontconfig・FreeType・HarfBuzzの資源別名と解放関数を固定した。閉包は616工程・1,263入力から
-  4工程・11入力へ縮小した。
-- 構築所有は`libs/image/kis_cached_gradient_shape_strategy.cpp`の`kritaimage_LIB_SRCS`直接収容から
-  `kritaimagecachedgradientshapestrategyobjects`へ、`libs/image/bsplines/kis_bspline_2d.cpp`の同一覧直接収容から`kritaimagebspline2dobjects`へ移した。
-  各開始ファイルは製品`kritaimage`に一度だけ再集約される。`libs/image/tests/KisGradientShapeStrategyContractTest.cpp`は格子採取20回、
-  内点補間と反復利用、範囲外座標の境界制限、raw基底の所有破棄を固定する。
-- `plugins/paintops/libpaintop/KisSimpleDynamicSensorFactory.cpp`の構築所有は`kritalibpaintop_LIB_SRCS`の直接収容から既存
-  `kritapaintopdynamicsensorfactoryobjects`へ移し、製品への既存一重再集約を共用する。
-  `plugins/paintops/libpaintop/tests/KisSimpleDynamicSensorFactoryContractTest.cpp`がUnicode構築値、6公開設定の独立性、長さ非依存、
-  既定cursorと借用親ポインターを変更しないnull設定画面生成を固定する。
-- 統合後の限定閉包は資源所有4工程・11入力、キャッシュ勾配9工程・19入力、単純センサー7工程・16入力である。製品閉包は
-  `kritaflake` 612工程・1,256入力、`kritaimage` 1,182工程・2,388入力、`kritalibpaintop` 2,093工程・4,184入力、
-  `kritapaintopruntime` 1,279工程・2,578入力で第58便から不変である。
+- 第60並列便はcanvas観測者7 API、選択移動命令4 API、色空間混合方針10 APIの合計21 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,948件、未対応22,041件である。
+- `libs/flake/KoCanvasObserverBase.cpp`は`kritaflake_SRCS`の直接収容から既存
+  `kritaflakebehaviorinterfaceobjects`へ移り、製品`kritaflake`への既存一重再集約を共用する。
+  `libs/flake/tests/KoBehaviorInterfacesContractTest.cpp`が既定null、空の観測者名、null canvasの観測開始・解除hook配送、
+  仮想基底経由の寿命を固定する。
+- `libs/image/commands_new/kis_selection_move_command2.cpp`は`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimageselectionmovecommand2objects`へ移り、製品`kritaimage`へ一度だけ再集約される。
+  `libs/image/tests/KisMoveCommandCommonContractTest.cpp`が選択の強所有、親命令寿命、redo・undoのX、Y、通知順と反復性を固定する。
+- `libs/pigment/compositeops/KoColorSpaceBlendingPolicy.cpp`は`kritapigment_SRCS`の直接収容から
+  `kritapigmentcolorspaceblendingpolicyobjects`へ移り、製品`kritapigment`へ一度だけ再集約される。同じ開始ファイルのincludeは
+  `KoCompositeOpRegistry.h`から直接必要な`KoCompositeOpIds.h`へ狭まった。
+  `libs/pigment/tests/KoColorSpaceBlendingPolicyContractTest.cpp`が加算・減算変換、83混合モードの順序と一意性、設定の初回読取りを固定する。
+- 統合後の限定閉包はcanvas観測者13工程・26入力、選択移動命令11工程・24入力、色空間混合方針5工程・12入力である。
+  製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,182工程・2,388入力、`kritapigment` 360工程・750入力で開始時から不変である。
 - 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象の同時再構築は無作業であった。各担当の単発CTest、
-  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,515対象、公開API契約検査は
-  7,927/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
+  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,518対象、公開API契約検査は
+  7,948/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
   製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 統合済み作業ツリー3本と担当ブランチは各統合直後に削除し、約2.50 GBを回収した。第60便不足一覧
-  `build/tdd-macos/public-api-missing-g60.json`の件数確認後に旧G59一覧を削除した。再利用する主増分構築木5.0 GB、共有コンパイラーcache 614 MB、
-  最新一覧5.4 MBだけを保持する。
+- 統合済み作業ツリー3本と担当ブランチは各統合直後に削除し、約2.48 GBを回収した。第61便不足一覧
+  `build/tdd-macos/public-api-missing-g61.json`の件数確認直後に旧G60一覧を削除した。再利用する主増分構築木5.0 GB、
+  共有コンパイラーcache 621 MB、最新一覧5.4 MBだけを保持する。
 
 ### 次の操作
 
-- 第60並列便の3担当で既存軽量試験の拡張、製品source所有のobject分離、未知契約診断、限定実装、対象CTest、20回反復、
-  軽量近傍、高速検査を実行する。cleanな輸送コミットを統合し、各統合直後に担当作業ツリーとブランチを削除する。
+- 第61並列便は最新不足一覧から3つの独立した公開面を読取り専用で監査し、限定閉包と安定した観測可能挙動を確認して担当票を作る。
+  実装担当の作業ツリーは監査確定後に作り、統合直後に作業ツリー、担当ブランチ、旧不足一覧を削除する。
 
 ## 再開環境
 
