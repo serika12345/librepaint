@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 19:46 JST
+- 更新日時: 2026-08-30 19:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,7 +11,7 @@
 
 ### 第59並列便の担当票
 
-- `g59-font-library-resource`は状態`preparing`、基準はこの計画コミット、作業ツリー
+- `g59-font-library-resource`は状態`implementing`、基準`a34b32c54da9a4a09b7afa48aaf44f21b3ad6c4b`、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g59-font-library-resource`である。目的はC形式資源ポインターのnull、共有、移動、置換、
   解放回数、解放失敗診断と外部ライブラリー別名の正確な型・解放処理を固定することである。対象は
   `libs/flake/text/KoFontLibraryResourceUtils.h`の`KisLibraryResourcePointer`構造体、既定・ポインターの2生成、`data`、
@@ -21,19 +21,19 @@
   `libs/flake/tests/TestFontLibraryResourceUtils.{h,cpp}`を広域一括対象から同名の専用軽量対象へ移し、重複する所有権試験を統合して
   診断・別名型契約へ強化する。`simpletest.h`と`kritaflake`・`kritaglobal`・`kritatestsdk`・`kritaxmlserialization`依存を除去する。
   変更許可はこの2試験ファイルと`libs/flake/tests/CMakeLists.txt`に限る。近傍は`KoCSSFontInfoContractTest`、対象macOS、共有cache
-  `.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力、
+  `.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力、
   製品`kritaflake` 612工程・1,256入力からの増減、リポジトリ共有ライブラリー接続、実外部資源fixture、公開header変更、または許可外変更である。
-- `g59-cached-gradient`は状態`preparing`、同じ基準、作業ツリー
+- `g59-cached-gradient`は状態`implementing`、同じ基準、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g59-cached-gradient`である。目的はキャッシュ付き勾配形状戦略の格子採取回数、内点補間、
   範囲外座標の境界制限、基底戦略の所有破棄を固定することである。対象は`libs/image/kis_cached_gradient_shape_strategy.h`のclass、
   constructor、`valueAt`、destructorの4 API全件である。開始ファイル`libs/image/kis_cached_gradient_shape_strategy.cpp`の
   `kritaimage_LIB_SRCS`直接収容を`kritaimagecachedgradientshapestrategyobjects`へ、`libs/image/bsplines/kis_bspline_2d.cpp`の同一覧直接収容を
   `kritaimagebspline2dobjects`へ移し、各開始ファイルを製品へ一度だけ再集約する。既存
   `libs/image/tests/KisGradientShapeStrategyContractTest.cpp`と同名対象を拡張する。変更許可はこの試験、`libs/image/CMakeLists.txt`、
-  `libs/image/tests/CMakeLists.txt`に限る。近傍は`KisBSpline1DContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限
+  `libs/image/tests/CMakeLists.txt`に限る。近傍は`KisBSpline1DContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限
   `transport-commit`、追加委任`forbidden`、統合順2、停止条件10工程・20入力、製品`kritaimage` 1,182工程・2,388入力からの増減、
   製品共有ライブラリーまたはglobal実装object接続、線形式誤差1e-4超過、無効矩形を新仕様化する場合、または許可外変更である。
-- `g59-simple-dynamic-sensor-factory`は状態`preparing`、同じ基準、作業ツリー
+- `g59-simple-dynamic-sensor-factory`は状態`implementing`、同じ基準、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g59-simple-dynamic-sensor-factory`である。目的は単純動的センサー工場の生成引数、6公開メンバー、
   全取得値、長さ非依存、設定画面を生成しない挙動を固定することである。対象は
   `plugins/paintops/libpaintop/KisSimpleDynamicSensorFactory.h`のclass、constructor、`id`・`minimumValue`・`maximumValue`・`minimumLabel`・
@@ -42,7 +42,7 @@
   `plugins/paintops/libpaintop/KisSimpleDynamicSensorFactory.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から既存
   `kritapaintopdynamicsensorfactoryobjects`へ移し、製品への既存一重再集約を共用する。変更許可は
   `plugins/paintops/libpaintop/CMakeLists.txt`、同`tests/CMakeLists.txt`、新規同`tests/KisSimpleDynamicSensorFactoryContractTest.cpp`に限る。近傍は
-  `KisDynamicSensorFactoryContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
+  `KisDynamicSensorFactoryContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
   停止条件8工程・18入力、製品`kritalibpaintop` 2,093工程・4,184入力または`kritapaintopruntime` 1,279工程・2,578入力からの増減、
   新製品object、Qt Widgets・製品共有ライブラリー接続、実設定データ・部品構築、公開header/source変更、または許可外変更である。
 - 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、進捗、
@@ -77,8 +77,8 @@
 
 ### 次の操作
 
-- 第59並列便の共通計画コミットから3専用作業ツリーを作成し、基準・許可パス・構築実行許可を実体と照合する。
-  各担当は構築実行を`granted`に更新した後だけ、未知対象の初期診断から限定実装へ進む。
+- 第59並列便の3担当で広域試験の専用化、製品source所有のobject分離、未知契約診断、限定実装、対象CTest、
+  20回反復、軽量近傍、高速検査を実行する。cleanな輸送コミットを統合順に取り込み、各統合直後に担当作業ツリーとブランチを削除する。
 
 ## 再開環境
 
