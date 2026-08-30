@@ -49,6 +49,27 @@ if (TARGET Qt6::Core5Compat)
 endif()
 
 kis_add_test(
+    KisMemoryWindowContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagememorywindowobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisMemoryWindowContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisMemoryWindowContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+if (TARGET Qt6::Core5Compat)
+    target_link_libraries(KisMemoryWindowContractTest Qt6::Core5Compat)
+endif()
+
+kis_add_test(
     KisTiledExtentManagerContractTest.cpp
     LINK_LIBRARIES
         kritaimagetiledextentmanagerobjects

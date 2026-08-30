@@ -1472,6 +1472,29 @@ set_target_properties(kritaimagetiledextentmanagerobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagememorywindowobjects OBJECT
+   tiles3/swap/kis_memory_window.cpp
+)
+target_compile_definitions(kritaimagememorywindowobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagememorywindowobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagememorywindowobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+)
+if (TARGET Qt6::Core5Compat)
+   target_link_libraries(kritaimagememorywindowobjects PUBLIC Qt6::Core5Compat)
+endif()
+set_target_properties(kritaimagememorywindowobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaimage_LIB_SRCS
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
@@ -1486,7 +1509,6 @@ set(kritaimage_LIB_SRCS
    tiles3/swap/kis_legacy_tile_compressor.cpp
    tiles3/swap/kis_tile_compressor_2.cpp
    tiles3/swap/kis_chunk_allocator.cpp
-   tiles3/swap/kis_memory_window.cpp
    tiles3/swap/kis_swapped_data_store.cpp
    tiles3/swap/kis_tile_data_swapper.cpp
    kis_distance_information.cpp
@@ -1813,6 +1835,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagecompressionobjects>
    $<TARGET_OBJECTS:kritaimagelodcapablelayeroffsetobjects>
    $<TARGET_OBJECTS:kritaimagetiledextentmanagerobjects>
+   $<TARGET_OBJECTS:kritaimagememorywindowobjects>
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
