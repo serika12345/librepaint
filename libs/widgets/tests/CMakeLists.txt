@@ -52,6 +52,15 @@ kis_add_test(
 target_compile_definitions(KisPaletteDelegateContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KoLineStyleSelectorContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetslinestyleselectorobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KoLineStyleSelectorContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KoColorPopupButtonContractTest.cpp
     LINK_LIBRARIES
         kritawidgetscolorpopupbuttonobjects

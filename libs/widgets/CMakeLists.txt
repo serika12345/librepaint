@@ -51,6 +51,23 @@ set_target_properties(kritawidgetspalettedelegateobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetslinestyleselectorobjects OBJECT
+    KoLineStyleSelector.cpp
+    KoLineStyleItemDelegate.cpp
+    KoLineStyleModel.cpp
+)
+target_compile_definitions(kritawidgetslinestyleselectorobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetslinestyleselectorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetslinestyleselectorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetslinestyleselectorobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 add_library(kritawidgetscolorpopupbuttonobjects OBJECT
     KoColorPopupButton.cpp
 )
@@ -258,10 +275,6 @@ set(kritawidgets_LIB_SRCS
     KoResourcePopupAction.cpp
     KoRuler.cpp
     KoResourceServerProvider.cpp
-    KoLineStyleSelector.cpp
-    KoLineStyleItemDelegate.cpp
-    KoLineStyleModel.cpp
-
     KoDockWidgetTitleBar.cpp
     
     KoToolDocker.cpp
@@ -342,6 +355,7 @@ kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
     $<TARGET_OBJECTS:kritawidgetsaspectbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetspalettedelegateobjects>
+    $<TARGET_OBJECTS:kritawidgetslinestyleselectorobjects>
     $<TARGET_OBJECTS:kritawidgetscolorpopupbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsstackedwidgetobjects>
     $<TARGET_OBJECTS:kritawidgetsdocktitlebarbuttonobjects>
