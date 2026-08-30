@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 00:37 JST
+- 更新日時: 2026-08-31 00:38 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,14 +20,15 @@
   構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力、製品`kritaflake` 612工程・1,256入力からの増加、
   完全な`KoSvgTextProperties.cpp`・製品共有ライブラリー・共通試験基盤への接続、製品意味論を模倣する試験協調定義、公開header・製品source・製品CMake変更、
   または許可外変更である。
-- `g67-nu-bspline-2d`は状態`preparing`、基準はこの候補差替えコミット、作業ツリー`/Users/masato/Documents/librepaint-r2-g67-nu-bspline-2d`である。目的は
+- `g67-nu-bspline-2d`は状態`implementing`、基準`768a0e3e699ded2066c4893e3d681d84a597a662`、作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g67-nu-bspline-2d`である。目的は
   非一様2次元B-splineの標本値所有、端点、2軸境界条件、格子採取順、補間値、寿命を固定することである。対象は
   `libs/image/bsplines/kis_nu_bspline_2d.h`のclass、constructor、destructor、initialize、value、2端点、2境界条件の9 API全件である。開始ファイル
   `libs/image/bsplines/kis_nu_bspline_2d.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimagenubspline2dobjects`へ移す。開始ファイル
   `libs/image/3rdparty/einspline/nubasis.cpp`、`nubspline_create.cpp`、`nugrid.cpp`を`einspline_SRCS`の直接収容から
   `kritaimagenonuniformbsplineengineobjects`へ移し、両objectを製品`kritaimage`へ一度だけ再集約する。新規
   `libs/image/tests/KisNUBSpline2DContractTest.cpp`は両object、既存uniform engine object、Qt Testだけを使う。変更許可はこの新規試験、
-  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は`KisBSpline1DContractTest`、対象macOS、共有cache同上、構築実行`waiting`、
+  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は`KisBSpline1DContractTest`、対象macOS、共有cache同上、構築実行`granted`、
   Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件11工程・23入力、製品`kritaimage` 1,184工程・2,392入力からの増加、
   製品共有ライブラリーへの接続、無効標本・範囲外・再初期化の新仕様判断、許可外engine source、source二重収容、公開header/source変更、または許可外変更である。
 - `g67-metadata-merge-strategy`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g67-metadata-merge-strategy`である。目的は
