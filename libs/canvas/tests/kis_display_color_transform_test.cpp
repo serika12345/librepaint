@@ -10,7 +10,6 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 
-#include <color/KisOcioConfiguration.h>
 #include <color/kis_display_color_filter.h>
 #include <color/kis_display_color_transform.h>
 #include <simpletest.h>
@@ -48,24 +47,6 @@ void configureTransform(KisDisplayColorTransform &transform)
     transform.setInputColorSpace(colorSpace);
     transform.setPaintingColorSpace(colorSpace);
 }
-}
-
-void KisDisplayColorTransformTest::testOcioConfigurationIsAValueInput()
-{
-    KisOcioConfiguration configuration;
-    QCOMPARE(configuration.mode, KisOcioConfiguration::INTERNAL);
-    QVERIFY(configuration.configurationPath.isEmpty());
-    QVERIFY(configuration.lutPath.isEmpty());
-
-    configuration.mode = KisOcioConfiguration::OCIO_CONFIG;
-    configuration.configurationPath = QStringLiteral("display.ocio");
-    configuration.inputColorSpace = QStringLiteral("Linear Rec.2020");
-    configuration.displayView = QStringLiteral("HDR");
-
-    QCOMPARE(configuration.mode, KisOcioConfiguration::OCIO_CONFIG);
-    QCOMPARE(configuration.configurationPath, QStringLiteral("display.ocio"));
-    QCOMPARE(configuration.inputColorSpace, QStringLiteral("Linear Rec.2020"));
-    QCOMPARE(configuration.displayView, QStringLiteral("HDR"));
 }
 
 void KisDisplayColorTransformTest::testStandardDisplayConversionWithoutUi()

@@ -36,6 +36,18 @@ target_include_directories(KisDisplayColorFilterContractTest PRIVATE
 target_compile_definitions(KisDisplayColorFilterContractTest PRIVATE kritacanvas_EXPORTS)
 
 kis_add_test(
+    KisOcioConfigurationContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisOcioConfigurationContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisOcioConfigurationContractTest PRIVATE kritacanvas_EXPORTS)
+
+kis_add_test(
     KisTileDataPoolContractTest.cpp
     LINK_LIBRARIES
         kritacanvastiledatapoolobjects
