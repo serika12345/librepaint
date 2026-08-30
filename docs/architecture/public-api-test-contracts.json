@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22497
+    "expectedMissingApis": 22491
   },
   "contracts": [
     {
@@ -22819,6 +22819,49 @@
       "classification": "maintained",
       "apis": [
         "method:KisGradientShapeStrategy::~KisGradientShapeStrategy()"
+      ]
+    },
+    {
+      "target": "KisKeyframeContractTest",
+      "source": "libs/image/tests/KisKeyframeContractTest.cpp",
+      "test": "KisKeyframeContractTest::defaultAndAssignedColorLabelsArePreserved",
+      "behavior": "鍵フレームが既定の色ラベル0を返し、設定した有効な色ラベル番号を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisKeyframe",
+        "method:KisKeyframe::KisKeyframe()",
+        "method:KisKeyframe::colorLabel() const",
+        "method:KisKeyframe::setColorLabel(int colorIndex)"
+      ]
+    },
+    {
+      "target": "KisKeyframeContractTest",
+      "source": "libs/image/tests/KisKeyframeContractTest.cpp",
+      "test": "KisKeyframeContractTest::duplicateDispatchesDefaultNullChannel",
+      "behavior": "鍵フレームの複製を接続先省略で呼ぶとnull接続先が派生実装へ正確に1回配送され、共有所有可能な複製個体を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKeyframe::duplicate(class KisKeyframeChannel * newChannel=nullptr)"
+      ]
+    },
+    {
+      "target": "KisKeyframeContractTest",
+      "source": "libs/image/tests/KisKeyframeContractTest.cpp",
+      "test": "KisKeyframeContractTest::duplicateDispatchesBorrowedChannelAndReturnsSharedOwnership",
+      "behavior": "鍵フレームの複製が借用した接続先ポインターを派生実装へ透過し、返した複製個体を複数の強参照で共有して最後の所有解放時に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKeyframe::duplicate(class KisKeyframeChannel * newChannel=nullptr)"
+      ]
+    },
+    {
+      "target": "KisKeyframeContractTest",
+      "source": "libs/image/tests/KisKeyframeContractTest.cpp",
+      "test": "KisKeyframeContractTest::baseOwnershipDestroysDerivedKeyframe",
+      "behavior": "鍵フレームを基底型で所有して破棄すると派生実装のデストラクターが正確に1回実行される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisKeyframe::~KisKeyframe()"
       ]
     },
     {

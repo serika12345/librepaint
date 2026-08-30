@@ -413,6 +413,19 @@ target_include_directories(KisGradientShapeStrategyContractTest PRIVATE
 target_compile_definitions(KisGradientShapeStrategyContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisKeyframeContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagekeyframeobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisKeyframeContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisKeyframeContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
     KisSafeBlockingQueueConnectionProxyContractTest.cpp
     LINK_LIBRARIES
         kritaimagesafeblockingqueueconnectionproxyobjects
