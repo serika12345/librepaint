@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22405
+    "expectedMissingApis": 22392
   },
   "contracts": [
     {
@@ -23464,6 +23464,55 @@
       "classification": "maintained",
       "apis": [
         "method:KisStrokeRandomSource::~KisStrokeRandomSource()"
+      ]
+    },
+    {
+      "target": "KisDitherOpContractTest",
+      "source": "libs/pigment/tests/KisDitherOpContractTest.cpp",
+      "test": "KisDitherOpContractTest::enumValuesRemainStable",
+      "behavior": "dither方式は無効、高速、最高品質、Bayer、blue-noiseを0から4の連続した安定値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:DitherType",
+        "enumerator:DitherType::DITHER_BAYER",
+        "enumerator:DitherType::DITHER_BEST",
+        "enumerator:DitherType::DITHER_BLUE_NOISE",
+        "enumerator:DitherType::DITHER_FAST",
+        "enumerator:DitherType::DITHER_NONE"
+      ]
+    },
+    {
+      "target": "KisDitherOpContractTest",
+      "source": "libs/pigment/tests/KisDitherOpContractTest.cpp",
+      "test": "KisDitherOpContractTest::singlePixelDitherPreservesArgumentsAndResult",
+      "behavior": "単一画素ditherの基底接続面は入力・出力バッファーと座標を派生実装へ正確に1回配送し、派生実装の書込み結果を呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDitherOp::dither(const quint8 * src,quint8 * dst,int x,int y) const"
+      ]
+    },
+    {
+      "target": "KisDitherOpContractTest",
+      "source": "libs/pigment/tests/KisDitherOpContractTest.cpp",
+      "test": "KisDitherOpContractTest::rectangularDitherPreservesArgumentsAndResult",
+      "behavior": "矩形ditherの基底接続面は入力・出力バッファー、両stride、原点、列数、行数を派生実装へ正確に1回配送し、離れた2行への書込み結果を呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDitherOp::dither(const quint8 * srcRowStart,int srcRowStride,quint8 * dstRowStart,int dstRowStride,int x,int y,int columns,int rows) const"
+      ]
+    },
+    {
+      "target": "KisDitherOpContractTest",
+      "source": "libs/pigment/tests/KisDitherOpContractTest.cpp",
+      "test": "KisDitherOpContractTest::identifiersTypeAndBaseLifetimeRemainStable",
+      "behavior": "dither操作の基底接続面は派生実装の入力深度ID、出力深度ID、方式を返し、基底所有から派生個体を正確に1回破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDitherOp",
+        "method:KisDitherOp::destinationDepthId() const",
+        "method:KisDitherOp::sourceDepthId() const",
+        "method:KisDitherOp::type() const",
+        "method:KisDitherOp::~KisDitherOp()"
       ]
     }
   ]
