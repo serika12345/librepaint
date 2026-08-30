@@ -2,72 +2,43 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 17:31 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-30 17:47 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第54並列便の担当票
-
-- `g54-east-asian`は状態`implementing`、基準`82910b9693e773ba28b948f6b2055e15d2d71271`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g54-east-asian`である。目的は東アジア字体のvariant、width、rubyの既定値、独立性、
-  cursorとQt propertyの双方向同期、QObject寿命を固定することである。対象は
-  `libs/flake/text/lager/FontVariantEastAsianModel.h`のclass、data、constructor、variant・width・rubyの3 `LAGER_QT_CURSOR`の
-  全6 APIである。変更許可は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規
-  `libs/flake/tests/FontVariantEastAsianModelContractTest.cpp`に限る。開始ファイル
-  `libs/flake/text/lager/FontVariantEastAsianModel.cpp`の直接収容を`kritaflakefontvarianteastasianmodelobjects`へ移し、製品へ
-  一度だけ再集約する。近傍は`FontVariantLigaturesModelContractTest`、対象macOS、共有cache
-  `.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件
-  8工程・16入力、製品共有ライブラリー接続、製品閉包604工程・1,240入力超過、または許可外変更である。
-- `g54-image-patch`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g54-image-patch`である。目的は画像patchの既定状態、拡張・倍率適用範囲、画像有効性、
-  事前拡縮、指定領域への描画とpainter状態復元を固定することである。対象は`libs/canvas/kis_image_patch.h`のclass、2 constructor、
-  `drawMe`、`isValid`、`patchRect`、`preScale`、`setImage`の全8 APIである。変更許可は`libs/canvas/CMakeLists.txt`、
-  `libs/canvas/tests/CMakeLists.txt`、新規`libs/canvas/tests/KisImagePatchContractTest.cpp`に限る。開始ファイル
-  `libs/canvas/kis_image_patch.cpp`の直接収容を`kritacanvasimagepatchobjects`へ移し、製品へ一度だけ再集約する。近傍は
-  `kis_prescaled_projection_contract_test`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任
-  `forbidden`、統合順2、停止条件8工程・18入力、製品共有ライブラリー接続、製品`kritacanvas`閉包増加、または補間画素値への依存である。
-- `g54-node-uuid`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g54-node-uuid`である。目的はnode識別値の構築時採取、UUID優先と名前後退、root優先の
-  深さ優先探索、不一致時の空結果、返却node所有を固定することである。対象は`libs/image/kis_node_uuid_info.h`のclass、4 constructor、
-  `uuid`、`name`、`findNode`の全8 APIである。変更許可は`libs/image/CMakeLists.txt`、`libs/image/kis_node_uuid_info.{h,cpp}`、新規
-  `libs/image/KisNodeUuidInfoNodeAccess_p.h`、新規`libs/image/KisNodeUuidInfoNodeAccess.cpp`、`libs/image/tests/CMakeLists.txt`、新規
-  `libs/image/tests/KisNodeUuidInfoContractTest.cpp`に限る。開始ファイル`libs/image/kis_node_uuid_info.cpp`の直接収容を
-  `kritaimagenodeuuidinfoobjects`へ移し、具体node操作を同ファイルから非公開node access 2ファイルと対応objectへ移して製品へ各一度だけ
-  再集約する。近傍は`KisNodeRenameCommandContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限
-  `transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力、製品共有ライブラリー接続、製品`kritaimage`閉包
-  1,170工程・2,364入力超過、null入力または重複識別子の新仕様確定、または許可外変更である。
-- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、
-  進捗、担当間のCMake非重複、容量削除を所有する。完了目標は22 API純増の対応済み7,794件、未対応22,195件である。
-
 ### 現在の結果
 
-- 第53並列便は表示色設定値12 API、描画済みdab値10 API、曲線範囲模型境界14 API、Android条件付き設定通知6 APIの
-  合計42 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,772件、未対応22,217件である。
-- 表示色設定値の既存契約は`libs/canvas/tests/kis_display_color_transform_test.{h,cpp}`から
-  `libs/canvas/tests/KisOcioConfigurationContractTest.cpp`へ移し、全状態をQt Core/Testだけの対象へ集約した。
-- `plugins/paintops/libpaintop/KisCurveRangeModelInterface.cpp`の構築所有は`kritalibpaintop_LIB_SRCS`の直接収容から
-  `kritapaintopcurverangemodelinterfaceobjects`へ移し、同じ翻訳単位を製品へ一度だけ再集約した。
-- `libs/image/KisRenderedDab.h`は製品共有ライブラリーへ接続しない専用試験で値と装置所有を固定した。
-  `libs/global/kis_config_notifier.cpp`は試験専用`kritaglobalconfignotifierandroidcontractobjects`だけを`Q_OS_ANDROID`付きで構築し、
-  通常のmacOS用Qt TestをAndroid用Qtヘッダーへ波及させず条件付き通知を固定した。
-- 主作業ツリーの4限定対象と4軽量近傍はCTest 8/8に成功し、4限定対象の同時再構築は無作業であった。各担当の単発CTest、
-  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,482対象、公開API契約検査は
-  7,772/29,989件で成功した。
-- 限定閉包はAndroid通知12工程・25入力、表示色設定値4工程・8入力、描画済みdab 7工程・15入力、曲線範囲模型5工程・11入力である。
-  製品閉包は`kritaglobal` 68工程・136入力、`kritacanvas` 1,193工程・2,406入力、`kritaimage` 1,169工程・2,362入力、
-  `kritapaintopruntime` 1,266工程・2,552入力、`kritalibpaintop` 2,076工程・4,150入力を維持した。
+- 第54並列便は東アジア字体模型6 API、画像patch 8 API、node識別情報8 APIの合計22 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,794件、未対応22,195件である。
+- `libs/flake/text/lager/FontVariantEastAsianModel.cpp`の構築所有は`kritaflake_SRCS`の直接収容から
+  `kritaflakefontvarianteastasianmodelobjects`へ移し、製品へ一度だけ再集約した。
+  `libs/canvas/kis_image_patch.cpp`は`kritacanvas_LIB_SRCS`の直接収容から`kritacanvasimagepatchobjects`へ同様に移した。
+- `libs/image/kis_node_uuid_info.cpp`は`kritaimage_LIB_SRCS`の直接収容から`kritaimagenodeuuidinfoobjects`へ移した。具体node操作は
+  同ファイルから`libs/image/KisNodeUuidInfoNodeAccess.cpp`と`libs/image/KisNodeUuidInfoNodeAccess_p.h`へ移し、
+  `kritaimagenodeuuidinfonodeaccessobjects`として製品へ一度だけ再集約した。公開headerの具体`kis_node.h`依存は`kis_types.h`へ縮小した。
+- 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象の同時再構築は無作業であった。各担当の単発CTest、
+  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,489対象、公開API契約検査は
+  7,794/29,989件で成功した。3限定対象は製品共有ライブラリーへ接続していない。
+- 限定閉包は東アジア字体模型7工程・14入力、画像patch 6工程・13入力、node識別情報5工程・11入力である。
+  統合後の製品閉包は`kritaflake` 604工程・1,240入力、`kritacanvas` 1,196工程・2,412入力、`kritaimage` 1,172工程・2,368入力である。
+  画像patch担当単独では`kritacanvas` 1,193工程・2,406入力を維持し、node識別情報担当単独では`kritaimage`を
+  1,170工程・2,364入力に収めた。統合値の追加分は東アジア字体objectの自動メタ情報所有が上位製品へ伝播した結果である。
+- 画像patchの半透明色は事前乗算表現の往復で青成分が140から139へ丸められるため、固定画素値から除外した。契約は実行環境の
+  `QImage::scaled`結果、透明画素のSource合成、描画領域、painter状態を比較し、Qt版やplatformの補間値を仕様化していない。
 - 旧`kis_display_color_transform_test`の統合構築は478工程の製品閉包を要求し、既存`kritaresourceui`の
   `KisResourceModelIndexResolver::resourceIndex`未解決記号で停止する。移した表示色設定値契約と軽量近傍は成功しており、
   この広域対象の構築範囲と既存リンク不整合は次に同対象を変更する前の構造改善対象である。
-- 統合済み作業ツリー3本と担当ブランチはclean成果の統合直後に削除し、約2.46 GBを解放した。次世代不足一覧
-  `build/tdd-macos/public-api-missing-g54.json`の生成後に旧G53一覧を削除した。再利用する主増分構築木4.9 GBと最新一覧だけを保持する。
+- 統合済み作業ツリー3本と担当ブランチはclean成果の統合直後に削除し、約2.47 GBを解放した。次世代不足一覧
+  `build/tdd-macos/public-api-missing-g55.json`の生成後に旧G54一覧を削除した。再利用する主増分構築木4.9 GB、共有コンパイラー
+  cache 545 MB、最新一覧だけを保持する。
 
 ### 次の操作
 
-- 第54並列便の3担当を進め、cleanな輸送コミットを統合順に取り込み、各統合直後に担当作業ツリーとブランチを削除する。
+- 第55並列便は最新不足一覧から所有領域が重ならず、各公開面を一便で完了できる対象を読み取り専用で監査する。
+  候補の限定閉包、直接依存、構造分離要否を確定して計画をコミットするまで、専用作業ツリーを作成しない。
 
 ## 再開環境
 

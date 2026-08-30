@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22217
+    "expectedMissingApis": 22195
   },
   "contracts": [
     {
@@ -21944,6 +21944,42 @@
       ]
     },
     {
+      "target": "KisNodeUuidInfoContractTest",
+      "source": "libs/image/tests/KisNodeUuidInfoContractTest.cpp",
+      "test": "KisNodeUuidInfoContractTest::constructorsPreserveIdentifiersAtConstruction",
+      "behavior": "ノード識別情報は既定・UUID・名前・ノードの各構築入口から対応するUUIDと名前を保持し、ノード由来値は構築時点で採取する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeUuidInfo",
+        "method:KisNodeUuidInfo::KisNodeUuidInfo()",
+        "method:KisNodeUuidInfo::KisNodeUuidInfo(KisNodeSP node)",
+        "method:KisNodeUuidInfo::KisNodeUuidInfo(const QString & name)",
+        "method:KisNodeUuidInfo::KisNodeUuidInfo(const QUuid & uuid)",
+        "method:KisNodeUuidInfo::name()",
+        "method:KisNodeUuidInfo::uuid()"
+      ]
+    },
+    {
+      "target": "KisNodeUuidInfoContractTest",
+      "source": "libs/image/tests/KisNodeUuidInfoContractTest.cpp",
+      "test": "KisNodeUuidInfoContractTest::uuidSearchUsesDepthFirstTraversalAndRetainsResult",
+      "behavior": "UUID指定の探索は名前を参照せず、rootから子・兄弟へ深さ優先で一致ノードを返し、返却共有ポインターは入力rootの解放後も一致ノードを保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeUuidInfo::findNode(KisNodeSP rootNode)"
+      ]
+    },
+    {
+      "target": "KisNodeUuidInfoContractTest",
+      "source": "libs/image/tests/KisNodeUuidInfoContractTest.cpp",
+      "test": "KisNodeUuidInfoContractTest::nameSearchFallsBackAndMissingReturnsNull",
+      "behavior": "名前指定の探索はUUID未指定時に名前照合へ後退し、深さ優先で一致ノードを返し、全不一致ならnullを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeUuidInfo::findNode(KisNodeSP rootNode)"
+      ]
+    },
+    {
       "target": "KisScreenMigrationTrackerContractTest",
       "source": "libs/widgetutils/tests/KisScreenMigrationTrackerContractTest.cpp",
       "test": "KisScreenMigrationTrackerContractTest::hiddenWidgetUsesDefaultScreenAndRetainsBorrowedLifetime",
@@ -24217,6 +24253,41 @@
       ]
     },
     {
+      "target": "KisImagePatchContractTest",
+      "source": "libs/canvas/tests/KisImagePatchContractTest.cpp",
+      "test": "KisImagePatchContractTest::defaultAndConfiguredGeometryRemainStable",
+      "behavior": "画像patchは既定構築で空の対象範囲を持ち、指定構築では画像矩形をborder分拡張してから横・縦倍率を独立に適用した範囲を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImagePatch",
+        "method:KisImagePatch::KisImagePatch()",
+        "method:KisImagePatch::KisImagePatch(QRect imageRect,qint32 borderWidth,qreal scaleX,qreal scaleY)",
+        "method:KisImagePatch::patchRect()"
+      ]
+    },
+    {
+      "target": "KisImagePatchContractTest",
+      "source": "libs/canvas/tests/KisImagePatchContractTest.cpp",
+      "test": "KisImagePatchContractTest::validityTracksAssignedImage",
+      "behavior": "画像patchの有効性は設定されたQImageの非null状態に従い、空画像への置換でinvalidへ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImagePatch::isValid()",
+        "method:KisImagePatch::setImage(QImage image)"
+      ]
+    },
+    {
+      "target": "KisImagePatchContractTest",
+      "source": "libs/canvas/tests/KisImagePatchContractTest.cpp",
+      "test": "KisImagePatchContractTest::preScaleDrawsRequestedAreaAndRestoresPainterState",
+      "behavior": "画像patchはQImageの滑らかな事前拡縮結果を指定先矩形へSource合成し、領域外と呼出元QPainterの合成方式・描画hintを維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImagePatch::drawMe(QPainter & gc,const QRectF & dstRect,QPainter::RenderHints renderHints)",
+        "method:KisImagePatch::preScale(const QRectF & dstRect)"
+      ]
+    },
+    {
       "target": "KisOcioConfigurationContractTest",
       "source": "libs/canvas/tests/KisOcioConfigurationContractTest.cpp",
       "test": "KisOcioConfigurationContractTest::defaultsAreInternalAndEmpty",
@@ -24334,6 +24405,57 @@
       "classification": "maintained",
       "apis": [
         "class:FontVariantLigaturesModel"
+      ]
+    },
+    {
+      "target": "FontVariantEastAsianModelContractTest",
+      "source": "libs/flake/tests/FontVariantEastAsianModelContractTest.cpp",
+      "test": "FontVariantEastAsianModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "東アジア字体模型は通常variant、通常幅、ruby無効の既定cursorを所有し、variant・width・rubyを読取り・書込み・変更通知可能なQtプロパティとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FontVariantEastAsianModel",
+        "member:FontVariantEastAsianModel::data",
+        "method:FontVariantEastAsianModel::FontVariantEastAsianModel(lager::cursor<KoSvgText::FontFeatureEastAsian> _data=lager::make_state (KoSvgText::FontFeatureEastAsian (),lager::automatic_tag{}))",
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(bool,ruby)",
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(int,variant)",
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(int,width)"
+      ]
+    },
+    {
+      "target": "FontVariantEastAsianModelContractTest",
+      "source": "libs/flake/tests/FontVariantEastAsianModelContractTest.cpp",
+      "test": "FontVariantEastAsianModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入した東アジア字体cursorの一括変更はvariant・width・rubyと各通知へ同期し、各Qtプロパティからの変更は同じcursorへ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "member:FontVariantEastAsianModel::data",
+        "method:FontVariantEastAsianModel::FontVariantEastAsianModel(lager::cursor<KoSvgText::FontFeatureEastAsian> _data=lager::make_state (KoSvgText::FontFeatureEastAsian (),lager::automatic_tag{}))",
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(bool,ruby)",
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(int,variant)",
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(int,width)"
+      ]
+    },
+    {
+      "target": "FontVariantEastAsianModelContractTest",
+      "source": "libs/flake/tests/FontVariantEastAsianModelContractTest.cpp",
+      "test": "FontVariantEastAsianModelContractTest::validValuesRoundTripIndependently",
+      "behavior": "東アジア字体模型はvariant全7値、width全3値、ruby真偽値を個別に往復し、変更していない他項目を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(bool,ruby)",
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(int,variant)",
+        "method:FontVariantEastAsianModel::LAGER_QT_CURSOR(int,width)"
+      ]
+    },
+    {
+      "target": "FontVariantEastAsianModelContractTest",
+      "source": "libs/flake/tests/FontVariantEastAsianModelContractTest.cpp",
+      "test": "FontVariantEastAsianModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "東アジア字体模型をQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FontVariantEastAsianModel"
       ]
     },
     {
