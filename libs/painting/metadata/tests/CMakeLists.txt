@@ -24,6 +24,14 @@ target_include_directories(KisMetaDataIOBackendContractTest PRIVATE
 target_compile_definitions(KisMetaDataIOBackendContractTest PRIVATE kritapaintingmetadata_EXPORTS)
 
 kis_add_test(
+    KisMetaDataMergeStrategyContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintingmetadatamergestrategyobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisMetaDataMergeStrategyContractTest PRIVATE kritapaintingmetadata_EXPORTS)
+
+kis_add_test(
     KisMetaDataParserContractTest.cpp
     LINK_LIBRARIES
         kritapaintingmetadataparserobjects

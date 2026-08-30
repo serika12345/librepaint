@@ -13,6 +13,28 @@ set(kritapaintingmetadata_LIB_SRCS
     kis_meta_data_backend_registry.cpp
 )
 
+list(REMOVE_ITEM kritapaintingmetadata_LIB_SRCS
+    kis_meta_data_merge_strategy.cc
+)
+
+add_library(kritapaintingmetadatamergestrategyobjects OBJECT
+    kis_meta_data_merge_strategy.cc
+)
+target_compile_definitions(kritapaintingmetadatamergestrategyobjects PRIVATE kritapaintingmetadata_EXPORTS)
+target_include_directories(kritapaintingmetadatamergestrategyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintingmetadatamergestrategyobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritapaintingmetadatamergestrategyobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintingmetadataparserobjects OBJECT
     kis_meta_data_parser.cc
     kis_meta_data_value.cc
@@ -60,6 +82,7 @@ set_target_properties(kritapaintingmetadatatypeschemaobjects PROPERTIES
 
 kis_add_library(kritapaintingmetadata SHARED
     ${kritapaintingmetadata_LIB_SRCS}
+    $<TARGET_OBJECTS:kritapaintingmetadatamergestrategyobjects>
     $<TARGET_OBJECTS:kritapaintingmetadataparserobjects>
     $<TARGET_OBJECTS:kritapaintingmetadatatypeschemaobjects>
 )
