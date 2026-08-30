@@ -49,6 +49,30 @@ set_target_properties(kritaimagefilterstrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagefiltercategoryidsobjects OBJECT
+   filter/kis_filter_category_ids.cpp
+)
+target_compile_definitions(kritaimagefiltercategoryidsobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagefiltercategoryidsobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/filter>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagefiltercategoryidsobjects
+   PUBLIC
+      kritaglobalidobjects
+      Qt${QT_MAJOR_VERSION}::Core
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagefiltercategoryidsobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageperstrokerandomsourceobjects OBJECT
    brushengine/KisPerStrokeRandomSource.cpp
 )
@@ -784,7 +808,6 @@ set(kritaimage_LIB_SRCS
    processing/kis_mirror_processing_visitor.cpp
    processing/KisSelectionBasedProcessingHelper.cpp
    filter/kis_filter.cc
-   filter/kis_filter_category_ids.cpp
    filter/kis_filter_configuration.cc
    filter/kis_color_transformation_configuration.cc
    filter/kis_filter_registry.cc
@@ -989,6 +1012,7 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
+   $<TARGET_OBJECTS:kritaimagefiltercategoryidsobjects>
    $<TARGET_OBJECTS:kritaimageperstrokerandomsourceobjects>
    $<TARGET_OBJECTS:kritaimagestrokespeedmeasurerobjects>
    $<TARGET_OBJECTS:kritaimagebusywaitbrokerobjects>
