@@ -11,36 +11,36 @@
 
 ### 第70並列便の担当票
 
-- 形状コンテナー模型担当は`preparing`である。基点は
-  `a065b74297cc280099c6732f1ca43e54f754b3ab`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g70-shape-container-model`、予定ブランチは
+- 形状コンテナー模型担当は`implementing`である。基点は
+  `43c339ac6ae57549bc14b4145a61e299c27120d8`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g70-shape-container-model`、ブランチは
   `r2-g70-shape-container-model`、統合順は1である。対象は
   `libs/flake/KoShapeContainerModel.h`の17 APIであり、開始ファイル
   `libs/flake/KoShapeContainerModel.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakeshapecontainermodelobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
   `libs/flake/tests/KoShapeContainerModelContractTest.cpp`を追加し、空模型、格納・属性の仮想配送、
-  コンテナー・階層通知、基底所有からの寿命を固定する。限定構築は計画承認まで待機し、予測閉包
+  コンテナー・階層通知、基底所有からの寿命を固定する。限定構築を許可し、予測閉包
   5工程・11入力、停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。
   許可範囲は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規試験だけである。
-- 画像accessor基底担当は`preparing`である。基点は
-  `a065b74297cc280099c6732f1ca43e54f754b3ab`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g70-base-accessor`、予定ブランチは
+- 画像accessor基底担当は`implementing`である。基点は
+  `43c339ac6ae57549bc14b4145a61e299c27120d8`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g70-base-accessor`、ブランチは
   `r2-g70-base-accessor`、統合順は2である。対象は`libs/image/kis_base_accessor.h`の11 APIであり、
   開始ファイル`libs/image/kis_base_accessor.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimagebaseaccessorobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。
   `libs/image/tests/KisBaseAccessorContractTest.cpp`を追加し、読取り用2ポインターと座標、書込み用
-  ポインターと変更反映、基底所有からの寿命を固定する。限定構築は計画承認まで待機し、予測閉包
+  ポインターと変更反映、基底所有からの寿命を固定する。限定構築を許可し、予測閉包
   6工程・13入力、停止条件7工程・15入力、製品閉包1,184工程・2,392入力不変を要求する。
   許可範囲は`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験だけである。
-- sensor長模型担当は`preparing`である。基点は
-  `a065b74297cc280099c6732f1ca43e54f754b3ab`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g70-sensor-length-model`、予定ブランチは
+- sensor長模型担当は`implementing`である。基点は
+  `43c339ac6ae57549bc14b4145a61e299c27120d8`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g70-sensor-length-model`、ブランチは
   `r2-g70-sensor-length-model`、統合順は3である。対象は
   `plugins/paintops/libpaintop/KisSensorWithLengthModel.h`の5 APIであり、開始ファイル
   `plugins/paintops/libpaintop/KisSensorWithLengthModel.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から
   `kritapaintopsensorwithlengthmodelobjects`へ移し、製品`kritalibpaintop`へ一度だけ再集約する。
   `plugins/paintops/libpaintop/tests/KisSensorWithLengthModelContractTest.cpp`を追加し、cursor状態、Qt property、
-  外部更新・setter同期、親子寿命を固定する。限定構築は計画承認まで待機し、予測閉包9工程・19入力、
+  外部更新・setter同期、親子寿命を固定する。限定構築を許可し、予測閉包9工程・19入力、
   停止条件10工程・22入力、`Q_OBJECT`の自動生成境界に必要な製品増加を最大2工程・4入力、実行時製品
   `kritapaintopruntime`の1,281工程・2,582入力不変とする。許可範囲は
   `plugins/paintops/libpaintop/CMakeLists.txt`、同`tests/CMakeLists.txt`、新規試験だけである。
@@ -72,8 +72,8 @@
 
 ### 次の操作
 
-- 第70並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
-  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
+- 第70並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
+  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
 
 ## 再開環境
 
