@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22541
+    "expectedMissingApis": 22528
   },
   "contracts": [
     {
@@ -22738,6 +22738,46 @@
       "apis": [
         "method:KoCompositeColorTransformation::createOptimizedCompositeTransform(const QVector<KoColorTransformation * > transforms)",
         "method:KoCompositeColorTransformation::~KoCompositeColorTransformation()"
+      ]
+    },
+    {
+      "target": "KoDockFactoryBaseContractTest",
+      "source": "libs/flake/tests/KoDockFactoryBaseContractTest.cpp",
+      "test": "KoDockFactoryBaseContractTest::keepsDockPositionValuesStable",
+      "behavior": "ドック工場の配置種別が切離し、上、下、右、左、最小化の順で0から5までの安定した整数値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KoDockFactoryBase::DockPosition",
+        "enumerator:KoDockFactoryBase::DockPosition::DockBottom",
+        "enumerator:KoDockFactoryBase::DockPosition::DockLeft",
+        "enumerator:KoDockFactoryBase::DockPosition::DockMinimized",
+        "enumerator:KoDockFactoryBase::DockPosition::DockRight",
+        "enumerator:KoDockFactoryBase::DockPosition::DockTop",
+        "enumerator:KoDockFactoryBase::DockPosition::DockTornOff"
+      ]
+    },
+    {
+      "target": "KoDockFactoryBaseContractTest",
+      "source": "libs/flake/tests/KoDockFactoryBaseContractTest.cpp",
+      "test": "KoDockFactoryBaseContractTest::dispatchesFactoryResultsThroughBase",
+      "behavior": "ドック工場の基底接続面が識別子、既定配置、生成ドック取得を呼出し順どおり派生実装へ配送し、Unicode識別子、配置値、生成ポインターを透過する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDockFactoryBase",
+        "method:KoDockFactoryBase::KoDockFactoryBase()",
+        "method:KoDockFactoryBase::createDockWidget()",
+        "method:KoDockFactoryBase::defaultDockPosition() const",
+        "method:KoDockFactoryBase::id() const"
+      ]
+    },
+    {
+      "target": "KoDockFactoryBaseContractTest",
+      "source": "libs/flake/tests/KoDockFactoryBaseContractTest.cpp",
+      "test": "KoDockFactoryBaseContractTest::destroysDerivedFactoryThroughBase",
+      "behavior": "ドック工場を基底ポインターから破棄すると派生デストラクターまで一度だけ到達する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDockFactoryBase::~KoDockFactoryBase()"
       ]
     }
   ]

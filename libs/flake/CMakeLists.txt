@@ -119,6 +119,21 @@ set_target_properties(kritaflakeshapeconfigwidgetbaseobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakedockfactorybaseobjects OBJECT
+    KoDockFactoryBase.cpp
+)
+target_compile_definitions(kritaflakedockfactorybaseobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakedockfactorybaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakedockfactorybaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakedockfactorybaseobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeactivecanvasresourcedependencyobjects OBJECT
     KoActiveCanvasResourceDependency.cpp
 )
@@ -691,7 +706,6 @@ set(kritaflake_SRCS
     KoCanvasResourceProvider.cpp
     KoDocumentResourceManager.cpp
     KoCanvasObserverBase.cpp
-    KoDockFactoryBase.cpp
     KoDockRegistry.cpp
     KoPathShape.cpp
     KoPathPoint.cpp
@@ -875,6 +889,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapebackgroundcommandobjects>
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakeshapeconfigwidgetbaseobjects>
+    $<TARGET_OBJECTS:kritaflakedockfactorybaseobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
     $<TARGET_OBJECTS:kritaflakederivedresourceconverterobjects>
     $<TARGET_OBJECTS:kritaflakeresourceupdatemediatorobjects>
