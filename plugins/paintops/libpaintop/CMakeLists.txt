@@ -118,7 +118,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisMirrorOption.cpp
     KisMirrorOptionData.cpp
     KisOpacityOption.cpp
-    KisPaintingModeOptionData.cpp
     KisRotationOption.cpp
     KisScatterOption.cpp
     KisScatterOptionData.cpp
@@ -150,6 +149,7 @@ set(kritapaintopruntime_LIB_SRCS
 list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     ${kritapaintopruntime_LIB_SRCS}
     KisAirbrushOptionData.cpp
+    KisPaintingModeOptionData.cpp
     KisSensorData.cpp
     KisTextureOptionData.cpp
 )
@@ -211,6 +211,39 @@ target_link_libraries(kritapaintopairbrushoptiondataobjects
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritapaintopairbrushoptiondataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoppaintingmodeoptiondataobjects OBJECT
+    KisPaintingModeOptionData.cpp
+)
+target_compile_definitions(kritapaintoppaintingmodeoptiondataobjects PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintoppaintingmodeoptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritapaintoppaintingmodeoptiondataobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritapaintoppaintingmodeoptiondataobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -475,6 +508,7 @@ set_target_properties(kritapaintopdynamicsensorfactoryobjects PROPERTIES
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopairbrushoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopsensorpackinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
 )
