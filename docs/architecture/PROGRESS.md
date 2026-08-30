@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 12:33 JST
+- 更新日時: 2026-08-30 12:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,6 +20,22 @@
 - 第44並列便は作業ツリーと構築木を作る前に、`libs/flake`、`libs/global`、`libs/image`、`libs/widgetutils`、`libs/pigment`の候補を読み取り専用で
   監査する。各候補の全public API数、実装所有、直接依存、既存近傍と限定閉包を確定し、計画と停止上限の検査・コミット後に必要な担当作業
   ツリーだけを作成する。
+- 読み取り専用監査から、第44並列便は合計27 APIを次の4担当票で固定し、対応済み7,502件、未対応22,487件を目標とする。
+  - 主担当は`libs/widgets/KisScreenColorSamplerBase.cpp`を`kritawidgets_LIB_SRCS`直接収容から新規
+    `kritawidgetsscreencolorsamplerbaseobjects`へ移し、製品`kritawidgets`へ1回だけ再集約する。全5 APIを対象とし、AUTOMOCを使う既存近傍3件の
+    7工程・14入力に対して停止上限を8工程・16入力とする。
+  - `flake_zoom_state`担当は`libs/flake/KoShapeStrokeModel.cpp`を`kritaflake_SRCS`直接収容から新規
+    `kritaflakeshapestrokemodelobjects`へ移し、製品`kritaflake`へ1回だけ再集約する。全10 APIを対象とし、最近傍
+    `KoDockFactoryBaseContractTest`の5工程・11入力に対して停止上限を6工程・13入力とする。
+  - `image_frame_lock`担当は`libs/image/kis_keyframe.cpp`を`kritaimage_LIB_SRCS`直接収容から新規`kritaimagekeyframeobjects`へ移し、製品
+    `kritaimage`へ1回だけ再集約する。全6 APIを対象とし、AUTOMOC近傍`KisSignalCompressorContractTest`の8工程・16入力に対して停止上限を
+    8工程・16入力とする。
+  - `global_forest`担当は`libs/pigment/KoOptimizedPixelDataScalerU8ToU16Base.cpp`を`kritapigment_SRCS`直接収容から新規
+    `kritapigmentoptimizedpixelscalerbaseobjects`へ移し、製品`kritapigment`へ1回だけ再集約する。全6 APIを対象とし、最近傍
+    `KoAlphaMaskApplicatorBaseContractTest`の5工程・11入力に対して停止上限を6工程・14入力とする。
+- 計画を検査・コミットした共通基点から担当用3作業ツリーだけを作成する。各担当は製品共有ライブラリーへ接続せず、対象CTest単発・20回反復・
+  軽量近傍試験・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、世代の古い公開API不足一覧は次世代
+  一覧の生成成功直後に削除する。
 
 ## 再開環境
 
@@ -10288,8 +10304,8 @@
 
 ## 次の操作
 
-第44並列便の候補を`build/tdd-macos/public-api-missing-g44.json`から読み取り専用で監査する。各候補の全public API数、実装所有、直接依存、
-既存近傍と限定閉包を確認し、構築範囲を先に確定してから担当票と停止上限をコミットする。
+第44並列便の4担当票を並行実装する。過大な閉包を挙動契約より先に分離し、停止上限、製品共有ライブラリー非接続、対象CTest単発・20回反復、
+軽量近傍試験、`verify-quick`を確認する。各引渡しを統合した直後に対応する作業ツリーを削除する。
 
 ## R1-G5完了根拠
 
