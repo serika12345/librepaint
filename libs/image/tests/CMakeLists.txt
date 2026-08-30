@@ -153,6 +153,32 @@ target_compile_definitions(kis_image_commands_test PRIVATE
 )
 
 kis_add_test(
+    KisUpdateCommandExContractTest.cpp
+    LINK_LIBRARIES
+        kritaimageupdatecommandexobjects
+        kritapaintingundokundo2coreobjects
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisUpdateCommandExContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../commands_new
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KisUpdateCommandExContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
+kis_add_test(
     kis_lod_capable_layer_offset_test.cpp
     LINK_LIBRARIES
         kritaimagelodcapablelayeroffsetobjects
