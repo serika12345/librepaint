@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 16:28 JST
+- 更新日時: 2026-08-30 16:44 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,32 +11,30 @@
 
 ### 現在の並列担当票
 
-- 第51並列便は完了し、投影画素フィルター4 API、font variant合字模型7 API、取引型命令5 API、接頭辞付き設定wrapper 6 APIの
-  合計22 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,699件、未対応22,290件である。
+- 第52並列便は完了し、表示色フィルター4 API、CSS字体style模型8 API、層の折り畳み命令6 API、設定値tuple 13 APIの
+  合計31 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,730件、未対応22,259件である。
+- `libs/flake/text/lager/CssFontStyleModel.cpp`は`kritaflake_SRCS`の直接収容から
+  `kritaflakecssfontstylemodelobjects`へ移し、製品へ一度だけ再集約した。
+  `libs/image/commands_new/KisLayerCollapseCommand.cpp`は`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagelayercollapsecommandobjects`へ移した。具体node操作は同ファイルから
+  `libs/image/commands_new/KisLayerCollapseCommandNodeAccess.cpp`と
+  `libs/image/commands_new/KisLayerCollapseCommandNodeAccess_p.h`へ分け、製品用
+  `kritaimagelayercollapsecommandnodeaccessobjects`へ移して両生成物を製品へ各一度だけ再集約した。
 - 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への一重再集約、4限定対象の
-  製品共有ライブラリー非接続、macOSのパッケージ境界1,469対象、公開API契約検査に成功した。各担当の単発・20回反復CTestと
+  製品共有ライブラリー非接続、macOSのパッケージ境界1,476対象、公開API契約検査に成功した。各担当の単発・20回反復CTestと
   `verify-quick`も成功している。
-- 限定閉包は投影画素フィルター4工程・8入力、font variant合字模型7工程・14入力、取引型命令11工程・24入力、接頭辞付き設定wrapper
-  4工程・9入力である。製品閉包は`kritaflake` 600工程・1,232入力、`kritaimage` 1,166工程・2,356入力、`kritatools`
-  1,238工程・2,492入力、`kritalibbrush` 1,192工程・2,406入力、`kritacanvas` 1,190工程・2,400入力、`kritapaintopruntime`
-  1,263工程・2,546入力、`kritalibpaintop` 2,073工程・4,144入力になった。合字模型の専用メタ情報所有2工程・4入力だけが許可された
-  依存方向へ伝播し、他3対象は製品閉包を増やしていない。
+- 限定閉包は表示色フィルター4工程・8入力、CSS字体style模型7工程・14入力、層の折り畳み命令11工程・24入力、設定値tuple
+  4工程・8入力である。製品閉包は`kritaflake` 602工程・1,236入力、`kritaimage` 1,169工程・2,362入力、`kritatools`
+  1,241工程・2,498入力、`kritalibbrush` 1,195工程・2,412入力、`kritacanvas` 1,193工程・2,406入力、`kritapaintopruntime`
+  1,266工程・2,552入力、`kritalibpaintop` 2,076工程・4,150入力になった。CSS字体style模型の専用メタ情報所有と、層命令の
+  node access所有だけが許可された依存方向へ伝播し、header-onlyの2対象は製品閉包を増やしていない。
+- 任意slantのobliqueからnormalまたはitalicへ変更すると自動値ではなく明示的0へ置換される現状挙動は、製品変更を加えず
+  `known_defect`として固定した。
 - 統合済み専用作業ツリー3本は各clean確認直後に個別削除して合計約2.46 GBを解放した。次世代不足一覧の生成成功後に旧
-  `build/tdd-macos/public-api-missing-g51.json` 5.4 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、最新
-  `build/tdd-macos/public-api-missing-g52.json`だけを保持する。
-- 次の第52並列便は最新不足一覧から読み取り専用監査を行い、所有領域が重ならず、全公開APIを一便で固定でき、限定閉包を既存契約以下へ
-  保てる4対象を選定する。候補確定前に専用作業ツリーを作成しない。
-- 第52並列便は読み取り専用監査を完了し、表示色フィルター4 API、CSS font style模型8 API、layer折畳み命令6 API、設定tuple 13 APIの
-  合計31 APIを選んだ。完了時の目標は対応済み7,730件、未対応22,259件である。
-- `KisDisplayColorFilter`はheader-only抽象接続面をQt Testだけの新規対象へ接続し、停止上限5工程・10入力、製品`kritacanvas`
-  1,190工程・2,400入力を維持する。`KisOptionTuple`もheader-onlyで、Qt Core・TestとBoostだけの限定対象を停止上限5工程・12入力へ収め、
-  製品`kritapaintopruntime` 1,263工程・2,546入力と`kritalibpaintop` 2,073工程・4,144入力を維持する。
-- 開始ファイル`libs/flake/text/lager/CssFontStyleModel.cpp`は`kritaflake`直接収容から専用AUTOMOC/PIC生成物へ移し、製品へ1回だけ再集約する。
-  限定対象の停止上限は8工程・16入力、製品増分はメタ情報所有の2工程・4入力だけとする。開始ファイル
-  `libs/image/commands_new/KisLayerCollapseCommand.cpp`は`kritaimage`直接収容から専用命令生成物へ移し、具体node操作を非公開node access生成物へ
-  分けて両者を製品へ各1回再集約する。限定対象の停止上限は12工程・25入力、分離単独の製品増分はnode access実装1工程・2入力だけとする。
-- 計画確定後に共通基点から担当用3作業ツリーを作成する。各作業ツリーはcleanコミットの統合直後に削除し、次世代不足一覧の生成成功後に
-  旧一覧を削除する。
+  `build/tdd-macos/public-api-missing-g52.json` 5.4 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、最新
+  `build/tdd-macos/public-api-missing-g53.json`だけを保持する。
+- 次の第53並列便は最新不足一覧から読み取り専用監査を行い、所有領域が重ならず、各公開面を一便で完了できる対象を選ぶ。
+  候補の限定閉包と構造分離要否を確定して計画をコミットするまで、専用作業ツリーを作成しない。
 
 ## 再開環境
 
@@ -10744,9 +10742,9 @@
 
 ## 次の操作
 
-第52並列便の4対象を並列実装する。4新規限定対象の未知対象診断を記録し、各担当は対象の単発・20回反復CTest、軽量近傍、限定閉包、
-製品共有ライブラリー非接続、公開API契約検査、`verify-quick`を確認する。担当作業ツリーはcleanコミットの統合直後に個別削除し、最後に
-主作業ツリーで結合検査する。
+`build/tdd-macos/public-api-missing-g53.json`から第53並列便の候補を読み取り専用で監査する。公開ヘッダー、製品実装、試験CMake、
+製品集約先が担当間で重ならず、各公開面を一便で完了できる候補を選ぶ。各候補の直接依存、限定閉包、最近傍契約、構造分離要否、
+停止条件を確定して計画をコミットした後にだけ担当作業ツリーを作成する。
 
 ## R1-G5完了根拠
 
