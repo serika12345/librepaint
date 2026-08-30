@@ -63,6 +63,35 @@ set_target_properties(kritacanvastiledatapoolobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritacanvasimagepatchobjects OBJECT
+    kis_image_patch.cpp
+)
+target_compile_definitions(kritacanvasimagepatchobjects PRIVATE
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+target_include_directories(kritacanvasimagepatchobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritacanvasimagepatchobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritacanvasimagepatchobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritacanvas_LIB_SRCS
     animation/kis_animation_frame_cache_index.h
     animation/kis_frame_data_serializer.h
@@ -77,7 +106,6 @@ set(kritacanvas_LIB_SRCS
     color/kis_display_color_transform.cpp
     kis_coordinates_converter.cpp
     kis_image_patch.h
-    kis_image_patch.cpp
     kis_prescaled_projection.h
     kis_prescaled_projection.cpp
     kis_projection_backend.h
@@ -96,6 +124,7 @@ kis_add_library(kritacanvas SHARED
     $<TARGET_OBJECTS:kritacanvasinputactiongroupobjects>
     $<TARGET_OBJECTS:kritacanvasanimationframecacheindexobjects>
     $<TARGET_OBJECTS:kritacanvastiledatapoolobjects>
+    $<TARGET_OBJECTS:kritacanvasimagepatchobjects>
 )
 generate_export_header(kritacanvas BASE_NAME kritacanvas)
 

@@ -48,6 +48,21 @@ target_include_directories(KisOcioConfigurationContractTest PRIVATE
 target_compile_definitions(KisOcioConfigurationContractTest PRIVATE kritacanvas_EXPORTS)
 
 kis_add_test(
+    KisImagePatchContractTest.cpp
+    LINK_LIBRARIES
+        kritacanvasimagepatchobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisImagePatchContractTest PRIVATE
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisTileDataPoolContractTest.cpp
     LINK_LIBRARIES
         kritacanvastiledatapoolobjects
