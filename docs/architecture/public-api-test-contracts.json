@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22427
+    "expectedMissingApis": 22415
   },
   "contracts": [
     {
@@ -23349,6 +23349,63 @@
       "classification": "maintained",
       "apis": [
         "method:KisPaintOpPresetUpdateProxy::~KisPaintOpPresetUpdateProxy()"
+      ]
+    },
+    {
+      "target": "KoColorBackgroundContractTest",
+      "source": "libs/flake/tests/KoColorBackgroundContractTest.cpp",
+      "test": "KoColorBackgroundContractTest::constructorsExposeConsistentColorStyleAndBrush",
+      "behavior": "色背景は既定の黒・solid brushと、指定された色・有効patternを保持し、色・style・brushへ整合した値を返す。NoBrushまたはgradient styleの構築入力はSolidPatternへ正規化する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorBackground",
+        "method:KoColorBackground::KoColorBackground()",
+        "method:KoColorBackground::KoColorBackground(const QColor & color,Qt::BrushStyle style=Qt::SolidPattern)",
+        "method:KoColorBackground::brush() const",
+        "method:KoColorBackground::color() const",
+        "method:KoColorBackground::style() const"
+      ]
+    },
+    {
+      "target": "KoColorBackgroundContractTest",
+      "source": "libs/flake/tests/KoColorBackgroundContractTest.cpp",
+      "test": "KoColorBackgroundContractTest::copyAndAssignmentDetachWhenColorChanges",
+      "behavior": "色背景のコピー構築と代入は元の色・patternを保持し、その後に各個体の色を変更すると他の個体から独立して値を更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorBackground::KoColorBackground(const KoColorBackground &)",
+        "method:KoColorBackground::operator =(const KoColorBackground &)",
+        "method:KoColorBackground::setColor(const QColor & color)"
+      ]
+    },
+    {
+      "target": "KoColorBackgroundContractTest",
+      "source": "libs/flake/tests/KoColorBackgroundContractTest.cpp",
+      "test": "KoColorBackgroundContractTest::comparisonMatchesColorButCurrentlyIgnoresStyle",
+      "behavior": "色背景の比較は同じ色の同型背景を一致とし、異なる色または異型背景を不一致とする一方、brush styleが異なる同色背景も一致と判定する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoColorBackground::compareTo(const KoShapeBackground * other) const"
+      ]
+    },
+    {
+      "target": "KoColorBackgroundContractTest",
+      "source": "libs/flake/tests/KoColorBackgroundContractTest.cpp",
+      "test": "KoColorBackgroundContractTest::paintFillsOnlyTheRequestedPath",
+      "behavior": "色背景はanti-aliasingを無効にした描画器で指定された整数境界の経路内だけを自身のsolid色で塗り、経路外の画素を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorBackground::paint(QPainter & painter,const QPainterPath & fillPath) const"
+      ]
+    },
+    {
+      "target": "KoColorBackgroundContractTest",
+      "source": "libs/flake/tests/KoColorBackgroundContractTest.cpp",
+      "test": "KoColorBackgroundContractTest::baseOwnershipDestroysDerivedColorBackground",
+      "behavior": "色背景を図形背景の基底型で所有して破棄すると派生個体のデストラクターを正確に1回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorBackground::~KoColorBackground()"
       ]
     }
   ]
