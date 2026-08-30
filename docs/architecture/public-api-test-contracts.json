@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22345
+    "expectedMissingApis": 22340
   },
   "contracts": [
     {
@@ -23804,6 +23804,74 @@
         "class:KoColorConversionTransformationAbstractFactory",
         "method:KoColorConversionTransformationAbstractFactory::KoColorConversionTransformationAbstractFactory()",
         "method:KoColorConversionTransformationAbstractFactory::~KoColorConversionTransformationAbstractFactory()"
+      ]
+    },
+    {
+      "target": "CssLengthPercentageModelContractTest",
+      "source": "libs/flake/tests/CssLengthPercentageModelContractTest.cpp",
+      "test": "CssLengthPercentageModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "CSS長さ・百分率モデルは既定で値0、Absolute単位を保持し、valueとunitTypeを読取・書込・変更通知可能なQt propertyとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:CssLengthPercentageModel",
+        "member:CssLengthPercentageModel::length",
+        "method:CssLengthPercentageModel::CssLengthPercentageModel(lager::cursor<KoSvgText::CssLengthPercentage> _data=lager::make_state (KoSvgText::CssLengthPercentage (),lager::automatic_tag{}))",
+        "method:CssLengthPercentageModel::LAGER_QT_CURSOR(int,unitType)",
+        "method:CssLengthPercentageModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssLengthPercentageModelContractTest",
+      "source": "libs/flake/tests/CssLengthPercentageModelContractTest.cpp",
+      "test": "CssLengthPercentageModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入したlength cursorの外部更新はvalue・unitTypeと通知へ同期し、Qt propertyからの書込みは同じcursor状態へ反映される。",
+      "classification": "maintained",
+      "apis": [
+        "member:CssLengthPercentageModel::length",
+        "method:CssLengthPercentageModel::CssLengthPercentageModel(lager::cursor<KoSvgText::CssLengthPercentage> _data=lager::make_state (KoSvgText::CssLengthPercentage (),lager::automatic_tag{}))",
+        "method:CssLengthPercentageModel::LAGER_QT_CURSOR(int,unitType)",
+        "method:CssLengthPercentageModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssLengthPercentageModelContractTest",
+      "source": "libs/flake/tests/CssLengthPercentageModelContractTest.cpp",
+      "test": "CssLengthPercentageModelContractTest::absoluteAndRelativeValuesRemainUnscaled",
+      "behavior": "AbsoluteおよびEm単位のvalue cursorは値を換算せず双方向に保持し、変更値を同期通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:CssLengthPercentageModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssLengthPercentageModelContractTest",
+      "source": "libs/flake/tests/CssLengthPercentageModelContractTest.cpp",
+      "test": "CssLengthPercentageModelContractTest::percentageValuesUseUiScaling",
+      "behavior": "Percentage単位のvalue cursorは内部比率を表示時100倍、書込時0.01倍して双方向に変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:CssLengthPercentageModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssLengthPercentageModelContractTest",
+      "source": "libs/flake/tests/CssLengthPercentageModelContractTest.cpp",
+      "test": "CssLengthPercentageModelContractTest::unitChangesDoNotConvertStoredMagnitude",
+      "behavior": "PercentageからAbsoluteへ単位だけを変更すると、内部値0.5を単位に合わせて換算せず保持し、公開valueは50から0.5へ変化する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:CssLengthPercentageModel::LAGER_QT_CURSOR(int,unitType)",
+        "method:CssLengthPercentageModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssLengthPercentageModelContractTest",
+      "source": "libs/flake/tests/CssLengthPercentageModelContractTest.cpp",
+      "test": "CssLengthPercentageModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "CSS長さ・百分率モデルをQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:CssLengthPercentageModel"
       ]
     }
   ]

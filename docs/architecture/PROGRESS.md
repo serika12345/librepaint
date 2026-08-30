@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 14:56 JST
+- 更新日時: 2026-08-30 15:12 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,22 +11,20 @@
 
 ### 現在の並列担当票
 
-- 第48並列便は完了し、tool変更追跡値、能動キャンバス資源依存、画像設定通知、畳込み操作の全20 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み7,617件、未対応22,372件である。
+- 第49並列便は完了し、tool変更追跡履歴12 API、CSS長さ・百分率模型5 API、条件付きlayer操作10 API、色変換抽象factory 5 APIの
+  合計32 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,649件、未対応22,340件である。
 - 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への一重再集約、4限定対象の
-  製品共有ライブラリー非接続、macOSのパッケージ境界1,451対象、公開API契約検査に成功した。各担当の単発・20回反復と
+  製品共有ライブラリー非接続、macOSのパッケージ境界1,457対象、公開API契約検査に成功した。各担当の単発・20回反復と
   `verify-quick`も成功している。
-- 統合済み専用作業ツリー3本はclean確認直後に個別削除して815 MB、815 MB、818 MBの約2.45 GBを解放した。次世代不足一覧の
-  生成成功後に旧`build/tdd-macos/public-api-missing-g48.json` 5.5 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、
-  最新`build/tdd-macos/public-api-missing-g49.json`だけを保持する。
-- 第49並列便は読み取り専用監査を完了し、tool変更追跡履歴12 API、CSS長さ・百分率模型5 API、条件付きlayer操作10 API、
-  色変換抽象factory 5 APIの合計32 APIを選んだ。完了時の目標は対応済み7,649件、未対応22,340件である。
-- `KisToolChangesTracker.cpp`は1,230工程・2,476入力の広域`kritatools`直接収容から専用AUTOMOC/PIC生成物へ移し、前便の値生成物を再利用して
-  新規限定対象を停止上限9工程・19入力に収める。`CssLengthPercentageModel.cpp`も専用AUTOMOC/PIC生成物へ移し、停止上限8工程・16入力とする。
-  header-onlyの残る2対象は製品構築所有を変更せず、それぞれ11工程・23入力、5工程・10入力を上限とする。
-- 共通基点`eac5beb6c2`から担当作業ツリー3本を作成し、4新規限定対象はそれぞれ未知対象として失敗した。変更前の近傍閉包はtools
-  5工程・11入力、flake 7工程・14入力、image 10工程・21入力、pigment 6工程・14入力である。各812 MB、合計約2.44 GBの作業ツリーは
-  並列実装中だけ保持し、各cleanコミットの統合直後に対応する作業ツリーを削除する。
+- 限定閉包はtool変更追跡履歴8工程・17入力、CSS長さ・百分率模型7工程・14入力、条件付きlayer操作10工程・21入力、色変換抽象factory
+  4工程・8入力である。製品閉包は`kritaflake` 596工程・1,224入力、`kritaimage` 1,162工程・2,348入力、`kritatools`
+  1,234工程・2,484入力、`kritapigment` 360工程・750入力になった。CSS模型の専用メタ情報所有2工程・4入力は依存方向に従って
+  imageとtoolsにも伝播し、tool変更追跡履歴の専用メタ情報所有2工程・4入力はtoolsだけに加わる。
+- 統合済み専用作業ツリー3本は各clean確認直後に個別削除し、各約812 MB、合計約2.44 GBを解放した。次世代不足一覧の生成成功後に
+  旧`build/tdd-macos/public-api-missing-g49.json` 5.5 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、
+  最新`build/tdd-macos/public-api-missing-g50.json`だけを保持する。
+- 次は第50並列便の読み取り専用監査である。未対応一覧から互いに独立した4所有領域を選び、限定構築閉包と直接依存を実測してから
+  実装担当票と停止上限を確定する。
 
 ## 再開環境
 
@@ -10563,10 +10561,63 @@
   生成成功後に旧`build/tdd-macos/public-api-missing-g48.json` 5.5 MBを削除し、最新`public-api-missing-g49.json`だけを次便の入力として保持する。
   4.9 GBの主増分構築木は限定対象の再構築を避ける永続cacheとして保持する。
 
+## R2-G19b tool変更追跡履歴の全public API契約と構築所有分離で完了した作業
+
+- `libs/tools/KisToolChangesTracker.h`の全12 APIを、新規`libs/tools/tests/KisToolChangesTrackerContractTest.cpp`の6試験へ対応付けた。
+  空履歴、値確定、undo・redoの能力状態と信号、undo後の分岐確定、reset時の強所有解放、QObject基底寿命を固定した。undo不能と報告する
+  単一値状態でもundo要求が現在値をredo履歴へ移して通知しない現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/tools/KisToolChangesTracker.cpp`の構築所有を`libs/tools/CMakeLists.txt`の`kritatools_LIB_SRCS`直接収容から新規
+  AUTOMOC/PIC対応`kritatoolschangestrackerobjects`へ移し、前便の`kritatoolschangestrackerdataobjects`へ直接接続した。製品
+  `kritatools`は両生成物を各1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。最初のリンクでは値生成物のdestructorと仮想表記号が未解決になり、限定試験へ
+  同生成物を明示接続して製品共有ライブラリーを導入せず解消した。限定対象は8工程・17入力で停止上限9工程・19入力以内に収めた。
+  対象CTest単発と20回反復、近傍`KisToolChangesTrackerDataContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  公開API契約検査、`verify-quick`に成功した。null値確定、異なるthread、長大履歴、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b CSS長さ・百分率模型の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/text/lager/CssLengthPercentageModel.h`の全5 APIを、新規`libs/flake/tests/CssLengthPercentageModelContractTest.cpp`の6試験へ
+  対応付けた。既定値とQt property、注入cursorとの双方向同期、Absolute・Emの非換算、Percentageの100倍表示と0.01倍書込み、QObject基底寿命を
+  固定した。単位変更時に内部数値を換算せず、公開値の尺度だけが変化する現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/flake/text/lager/CssLengthPercentageModel.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から
+  新規AUTOMOC/PIC対応`kritaflakecsslengthpercentagemodelobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で停止上限8工程・16入力以内に収めた。製品`kritaflake`は
+  594工程・1,220入力から596工程・1,224入力になり、この専用メタ情報所有は依存元の`kritaimage`と`kritatools`にも各2工程・4入力伝播する。
+  対象CTest単発と20回反復、近傍`KoSvgTextEnumContractTest`と`KisToolBarStateModelContractTest`、公開記号、一重再集約、製品共有ライブラリー
+  非接続、整形検査、公開API契約検査、`verify-quick`に成功した。範囲外単位、非有限値、同値書込み通知、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b 条件付きlayer操作命令の全public API契約で完了した作業
+
+- `libs/image/kis_do_something_command.h`の全10 APIを、新規`libs/image/tests/KisDoSomethingCommandContractTest.cpp`の4試験へ対応付けた。
+  最終更新指定による反復redo・undo配送、同一layerの保持、親命令所有、色空間を伴うcache初期化、update、色空間変更通知を固定した。
+- header-only実装のため製品ソースと構築所有は変更せず、限定試験を既存`kritapaintingundokundo2coreobjects`、KF I18n、Qt Core・Widgets・Test、
+  Boostへ直接接続した。対象未登録の初回限定構築は未知の対象として失敗した。限定対象は10工程・21入力で停止上限11工程・23入力以内に収めた。
+  対象CTest単発と20回反復、近傍`KisChangeValueCommandContractTest`、公開記号、製品共有ライブラリー非接続、整形検査、公開API契約検査、
+  `verify-quick`に成功した。null layer、命令より短い借用pointer寿命、操作からの例外、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 色変換抽象factoryの全public API契約で完了した作業
+
+- `libs/pigment/KoColorConversionTransformationAbstractFactory.h`の全5 APIを、新規
+  `libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp`の3試験へ対応付けた。通常変換と校正変換の全引数、派生返値、
+  既定構築、基底所有からの派生寿命を固定した。
+- header-only抽象接続面のため製品ソースと構築所有は変更せず、限定試験をQt Core・Testだけへ接続した。対象未登録の初回限定構築は未知の対象として
+  失敗した。限定対象は4工程・8入力で停止上限5工程・10入力以内、製品`kritapigment`は360工程・750入力のまま維持した。対象CTest単発と
+  20回反復、近傍`KoColorTransformationFactoryContractTest`、公開記号、製品共有ライブラリー非接続、整形検査、公開API契約検査、
+  `verify-quick`に成功した。既定校正実装の`qFatal`経路は異常終了生成物を避けて動的実行していない。null、未定義列挙値、返却pointer所有、
+  実色変換、Linux、全ネイティブ検証、製品全体リンクも実行していない。
+
+- 第49並列便は4所有領域の全32 APIを固定した。主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への
+  一重再集約、4限定対象の製品共有ライブラリー非接続、macOSのパッケージ境界1,457対象、公開API契約検査を再実行した。公開面は
+  1,549ヘッダー、29,989 API、対応済み7,649件、未対応22,340件になった。
+- 取り込み済み専用作業ツリー3件は各clean確認直後に削除して各約812 MB、合計約2.44 GBを解放した。次世代不足一覧の生成成功後に
+  旧`build/tdd-macos/public-api-missing-g49.json` 5.5 MBを削除し、最新`public-api-missing-g50.json`だけを次便の入力として保持する。
+  4.9 GBの主増分構築木は限定対象の再構築を避ける永続cacheとして保持する。
+
 ## 次の操作
 
-第49並列便の4対象を並列実装する。各対象の限定構築、単発・20回反復CTest、軽量近傍、公開API契約検査、`verify-quick`を通し、
-担当作業ツリーはcleanコミットの統合直後に個別削除する。最後に主作業ツリーで結合検査し、次世代不足一覧の生成成功後に旧世代を削除する。
+第50並列便の読み取り専用監査を行う。`build/tdd-macos/public-api-missing-g50.json`から互いに独立した4所有領域を選び、公開API全件、既存契約、
+直接CMake依存、限定構築閉包、製品閉包への影響、観測可能な挙動、停止上限を確定する。計画コミット後だけ専用作業ツリーを作り、統合直後に個別削除する。
 
 ## R1-G5完了根拠
 
