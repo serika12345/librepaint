@@ -172,6 +172,17 @@ kis_add_test(
 target_compile_definitions(KisIntParseSpinBoxContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisDoubleParseSpinBoxContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsdoubleparsespinboxobjects
+        kritawidgetutilsnumericparserobjects
+        kritaglobalpaintingtweaksobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisDoubleParseSpinBoxContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KStandardActionEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test

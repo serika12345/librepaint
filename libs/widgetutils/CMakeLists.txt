@@ -40,6 +40,26 @@ set_target_properties(kritawidgetutilsintparsespinboxobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetutilsdoubleparsespinboxobjects OBJECT
+    kis_double_parse_spin_box.cpp
+)
+target_compile_definitions(kritawidgetutilsdoubleparsespinboxobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsdoubleparsespinboxobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsdoubleparsespinboxobjects
+    PUBLIC
+        kritaglobalpaintingtweaksobjects
+        kritawidgetutilsnumericparserobjects
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetutilsdoubleparsespinboxobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetutilspropertiesobjects OBJECT
     KoProperties.cpp
 )
@@ -370,6 +390,7 @@ set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
     $<TARGET_OBJECTS:kritawidgetutilsintparsespinboxobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsdoubleparsespinboxobjects>
     $<TARGET_OBJECTS:kritawidgetutilspropertiesobjects>
     $<TARGET_OBJECTS:kritasqueezedcomboboxobjects>
     $<TARGET_OBJECTS:kritacheckerboardpainterobjects>
@@ -403,7 +424,6 @@ set(kritawidgetutils_LIB_SRCS
     kis_cursor.cc
     kis_cursor_cache.cpp
 
-    kis_double_parse_spin_box.cpp
     kis_double_parse_unit_spin_box.cpp
     kis_slider_spin_box.cpp
     kis_multipliers_double_slider_spinbox.cpp
