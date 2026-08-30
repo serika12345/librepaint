@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22752
+    "expectedMissingApis": 22729
   },
   "contracts": [
     {
@@ -21539,6 +21539,141 @@
       "classification": "known_defect",
       "apis": [
         "method:KoColorPopupButton::iconSizeChanged()"
+      ]
+    },
+    {
+      "target": "KisRootSurfaceTrackerBaseContractTest",
+      "source": "libs/widgetutils/tests/KisRootSurfaceTrackerBaseContractTest.cpp",
+      "test": "KisRootSurfaceTrackerBaseContractTest::retainsBorrowedWidgetAndQObjectLifetime",
+      "behavior": "root surface追跡基底は指定widgetを借用して返し、構築だけではnative window接続を開始せず、指定QObject親または基底ポインターから派生を一度だけ仮想破棄する。追跡widgetの所有寿命は変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRootSurfaceTrackerBase",
+        "method:KisRootSurfaceTrackerBase::KisRootSurfaceTrackerBase(QWidget * watched,QObject * parent=nullptr)",
+        "method:KisRootSurfaceTrackerBase::trackedWidget() const",
+        "method:KisRootSurfaceTrackerBase::~KisRootSurfaceTrackerBase()"
+      ]
+    },
+    {
+      "target": "KisRootSurfaceTrackerBaseContractTest",
+      "source": "libs/widgetutils/tests/KisRootSurfaceTrackerBaseContractTest.cpp",
+      "test": "KisRootSurfaceTrackerBaseContractTest::hiddenHierarchyChangesRemainDisconnectedFromNativeWindows",
+      "behavior": "非表示でnative windowを持たないwidget階層の追跡開始と親変更は、現在の接続を各1回解除し、native window接続を作らない。無関係な事象は階層再接続を発生させない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRootSurfaceTrackerBase::trackedWidget() const"
+      ]
+    },
+    {
+      "target": "KoShapeShearCommandContractTest",
+      "source": "libs/flake/tests/KoShapeShearCommandContractTest.cpp",
+      "test": "KoShapeShearCommandContractTest::preservesShearArgumentsAcrossUndoCycles",
+      "behavior": "図形せん断命令は複数shapeと対応する旧・新X/Y値を構築時に値保持し、親命令とShear shapesの操作名を保持する。redoは基底処理後に各shapeへupdate、new X/Yによるshear、updateの順で配送し、undoはprevious X/Y、再redoはnew X/Yを再配送する。正値・負値・ゼロ・小数・旧新同一値でも同じ配送順を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeShearCommand",
+        "method:KoShapeShearCommand::KoShapeShearCommand(const QList<KoShape * > & shapes,const QList<qreal> & previousShearXs,const QList<qreal> & previousShearYs,const QList<qreal> & newShearXs,const QList<qreal> & newShearYs,KUndo2Command * parent=0)",
+        "method:KoShapeShearCommand::redo()",
+        "method:KoShapeShearCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeShearCommandContractTest",
+      "source": "libs/flake/tests/KoShapeShearCommandContractTest.cpp",
+      "test": "KoShapeShearCommandContractTest::keepsBorrowedShapesAndVirtualLifetime",
+      "behavior": "図形せん断命令はshapeを借用し、基底ポインターから破棄してもshapeへ更新やせん断を配送せず、派生から基底までの仮想破棄連鎖を一度実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeShearCommand::~KoShapeShearCommand()"
+      ]
+    },
+    {
+      "target": "KisFillIntervalMapContractTest",
+      "source": "libs/image/tests/KisFillIntervalMapContractTest.cpp",
+      "test": "KisFillIntervalMapContractTest::constructionInsertionAndFetchPreserveIntervals",
+      "behavior": "区間写像は構築直後を空として開始し、複数行へ挿入した負座標を含む区間を値を変えず保持し、所有状態を寿命終了時に破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisFillIntervalMap",
+        "method:KisFillIntervalMap::KisFillIntervalMap()",
+        "method:KisFillIntervalMap::insertInterval(const KisFillInterval & interval)",
+        "method:KisFillIntervalMap::~KisFillIntervalMap()"
+      ]
+    },
+    {
+      "target": "KisFillIntervalMapContractTest",
+      "source": "libs/image/tests/KisFillIntervalMapContractTest.cpp",
+      "test": "KisFillIntervalMapContractTest::rowCorrectionChangesFetchedCopiesOnly",
+      "behavior": "全件取得の行補正は返却コピーの行だけを指定量移動し、写像内に保持した元の区間を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillIntervalMap::fetchAllIntervals(int rowCorrection=0) const"
+      ]
+    },
+    {
+      "target": "KisFillIntervalMapContractTest",
+      "source": "libs/image/tests/KisFillIntervalMapContractTest.cpp",
+      "test": "KisFillIntervalMapContractTest::cropSplitsAnIntervalAroundTheIntersection",
+      "behavior": "保持区間の中央と交差する入力をcropすると、入力を消費済みの無効区間へ進め、保持区間を交差部分の左右へ分割する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillIntervalMap::cropInterval(KisFillInterval * interval)"
+      ]
+    },
+    {
+      "target": "KisFillIntervalMapContractTest",
+      "source": "libs/image/tests/KisFillIntervalMapContractTest.cpp",
+      "test": "KisFillIntervalMapContractTest::cropTrimsStoredAndIncomingEdges",
+      "behavior": "左右端で交差する入力をcropすると、交差側に応じて保持区間と入力区間の境界を隣接位置まで切り詰める。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillIntervalMap::cropInterval(KisFillInterval * interval)"
+      ]
+    },
+    {
+      "target": "KisFillIntervalMapContractTest",
+      "source": "libs/image/tests/KisFillIntervalMapContractTest.cpp",
+      "test": "KisFillIntervalMapContractTest::clearRemovesEveryStoredInterval",
+      "behavior": "clearは全行の保持区間を除去し、空の写像に対する再実行後も空状態を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFillIntervalMap::clear()"
+      ]
+    },
+    {
+      "target": "KoAspectButtonContractTest",
+      "source": "libs/widgets/tests/KoAspectButtonContractTest.cpp",
+      "test": "KoAspectButtonContractTest::ownsParentStartsUnlockedAndHasVirtualLifetime",
+      "behavior": "aspect buttonは指定親に所有され、初期状態をaspect比非固定、寸法19x34、icon寸法9x24、autoRaise有効として構築し、broken-chain iconを表示する。親またはQToolButton基底経由の破棄で仮想寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoAspectButton",
+        "method:KoAspectButton::KoAspectButton(QWidget * parent)",
+        "method:KoAspectButton::~KoAspectButton()"
+      ]
+    },
+    {
+      "target": "KoAspectButtonContractTest",
+      "source": "libs/widgets/tests/KoAspectButtonContractTest.cpp",
+      "test": "KoAspectButtonContractTest::setterGetterAndSignalTrackMeaningfulChanges",
+      "behavior": "aspect比固定状態のsetterとgetterは指定値を保持し、状態が変化した場合だけ新状態を引数として通知する。固定時はchain icon、非固定時はbroken-chain iconを選択する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAspectButton::keepAspectRatio() const",
+        "method:KoAspectButton::keepAspectRatioChanged(bool keep)",
+        "method:KoAspectButton::setKeepAspectRatio(bool keep)"
+      ]
+    },
+    {
+      "target": "KoAspectButtonContractTest",
+      "source": "libs/widgets/tests/KoAspectButtonContractTest.cpp",
+      "test": "KoAspectButtonContractTest::explicitAndQtReleaseToggleOnlyWhenEnabled",
+      "behavior": "有効なaspect buttonは明示的なbuttonReleased呼出しとQtのrelease配送ごとに固定状態を1回反転して通知し、無効時は明示呼出しとQt clickのどちらでも状態と通知を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAspectButton::buttonReleased()",
+        "method:KoAspectButton::keepAspectRatio() const",
+        "method:KoAspectButton::keepAspectRatioChanged(bool keep)"
       ]
     }
   ]

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 09:22 JST
+- 更新日時: 2026-08-30 09:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,31 +11,12 @@
 
 ### 現在の並列担当票
 
-- 第37並列便の共通基準コミットは`609ec3f89b`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g37-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`root-surface-tracker`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/widgetutils/KisRootSurfaceTrackerBase.cpp`、WidgetUtils製品・試験CMake、新規`KisRootSurfaceTrackerBaseContractTest.cpp`を所有する。
-  開始ファイルを製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の254工程・
-  541入力に代えて8工程・16入力以内で、追跡widgetの借用、QObject親と仮想寿命、非native階層の初期化・親変更配送の全4 APIを固定する。
-- 実装担当`shape-shear-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g37-shape-shear-command`で`libs/flake/commands/KoShapeShearCommand.cpp`、Flake製品・試験CMake、
-  新規`KoShapeShearCommandContractTest.cpp`を所有する。開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ
-  移し、製品へ1回だけ再集約する。製品の573工程・1,178入力に代えて6工程・14入力以内で、複数shapeのshear値保持、更新順、redo・undo・
-  再redo、空入力、親命令、借用寿命の全5 APIを固定する。
-- 実装担当`fill-interval-map`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g37-fill-interval-map`で`libs/image/floodfill/kis_fill_interval_map.cpp`、Image製品・試験CMake、
-  新規`KisFillIntervalMapContractTest.cpp`を所有する。開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、
-  製品へ1回だけ再集約する。製品の1,125工程・2,274入力と既存内部試験の1,129工程・2,281入力に代えて6工程・13入力以内で、挿入、全件取得、
-  行補正、中央・端のcrop、clear、値寿命の全7 APIを固定する。
-- 実装担当`aspect-button`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g37-aspect-button`で`libs/widgets/KoAspectButton.cpp`、Widgets製品・試験CMake、新規
-  `KoAspectButtonContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、
-  製品へ1回だけ再集約する。試験内の決定的な`KisIconUtils::loadIcon()`実装で製品共有ライブラリーを避け、製品の750工程・1,529入力に代えて
-  8工程・16入力以内で、親所有、初期状態、状態読書き、変更通知、有効・無効時のrelease配送、仮想寿命の全7 APIを固定する。
-- 第37並列便の完了時は合計23 APIを追加し、公開面の対応済み7,260件、未対応22,729件を見込む。各担当は限定対象の単発・20回反復、
-  軽量隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない
-  挙動を発見した時点で`blocked`として引き渡す。
+- 第37並列便の4担当は`completed`で、輸送コミットを統合済みである。限定対象はroot surface追跡7工程・14入力、図形せん断命令5工程・
+  12入力、区間写像5工程・11入力、aspect button 7工程・14入力で、全対象が停止上限内にある。
+- 主作業ツリーで4限定対象の同時構築、4/4 CTest、同時再構築の無作業状態を確認した。公開面は1,549ヘッダー、29,989 API、対応済み
+  7,260件、未対応22,729件である。Linux、全ネイティブ検証、製品全体リンクはこの便の対象外である。
+- 完了済み担当のGit作業ツリー75本と各専用Ninja木を削除した。輸送ブランチとコミット履歴は保持する。以後は輸送コミットの統合、作業木
+  clean、履歴保持を確認した直後に担当作業ツリーを削除し、次担当を開始するときだけ再作成する。
 
 ## 再開環境
 
@@ -9885,10 +9866,68 @@
   各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
   再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,237件、未対応22,752件になった。
 
+## R2-G19b root surface階層追跡の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KisRootSurfaceTrackerBase.h`の全4 APIを、新規
+  `libs/widgetutils/tests/KisRootSurfaceTrackerBaseContractTest.cpp`の2試験へ対応付けた。追跡widgetの借用と読出し、QObject親と仮想寿命、
+  構築時の未接続、非native階層の初期化・親変更・無関係事象の配送を固定した。
+- 開始ファイル`libs/widgetutils/KisRootSurfaceTrackerBase.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の
+  `kritawidgetutils_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応`kritawidgetutilsrootsurfacetrackerobjects`へ移し、製品
+  `kritawidgetutils`は同生成物を1回だけ再集約する。限定試験は同生成物とQt Core・Gui・Widgets・Testだけへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で、製品の254工程・541入力から縮小した。対象CTest
+  単発と20回反復、最近傍`KisPopupSelfActivatingLineEditContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。null追跡widget、追跡widgetの先行破棄、実native windowと複数screen、Qt 5、Linux、全ネイティブ検証、製品全体
+  リンクは実行していない。
+
+## R2-G19b 図形せん断命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/commands/KoShapeShearCommand.h`の全5 APIを、新規`libs/flake/tests/KoShapeShearCommandContractTest.cpp`の3試験へ
+  対応付けた。複数shapeと旧・新X/Y値の値保持、各shapeのupdate・shear・update順、redo・undo・再redo、正負・ゼロ・小数・同一値、空入力、
+  親命令と操作名、shape借用所有、基底からの仮想寿命を固定した。
+- 開始ファイル`libs/flake/commands/KoShapeShearCommand.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakeshapeshearcommandobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。限定試験の偽shapeで
+  仮想`update()`を観測するため、試験時限定の非公開shape accessを実装内に設け、製品時は従来の図形APIへ配送する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。主作業木の限定対象は5工程・12入力で、製品の573工程・1,178入力から縮小した。
+  対象CTest単発と担当作業木の20回反復、最近傍`KoShapeSizeCommandContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査、`verify-quick`に成功した。5入力リストの件数一致が`Q_ASSERT`だけであること、累積`shear()`への旧値配送が一般の幾何学的逆変換を
+  保証しないことは既知の危険である。null shape、借用shapeの先行破棄、非有限・極端値、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b flood fill区間写像の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/floodfill/kis_fill_interval_map.h`の全7 APIを、新規`libs/image/tests/KisFillIntervalMapContractTest.cpp`の5試験へ
+  対応付けた。初期空、複数行と負座標の挿入・取得、返却コピーだけの行補正、中央交差の分割、左右端の切詰め、clearの反復、値寿命を固定した。
+  QHashの行反復順は契約から除外し、比較前に区間を整列する。
+- 開始ファイル`libs/image/floodfill/kis_fill_interval_map.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaimagefillintervalmapobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。限定試験は同生成物、Qt
+  Core・Test、Boost headerだけへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力で、既存内部試験の1,129工程・2,281入力と製品の
+  1,125工程・2,274入力から縮小した。対象CTest単発と20回反復、最近傍`KisStrokeSpeedMeasurerContractTest`、公開記号、一重再集約、
+  製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。null crop入力、包含交差の破壊的診断、重複insert、整数境界の桁あふれ、
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b aspect比固定buttonの全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KoAspectButton.h`の全7 APIを、新規`libs/widgets/tests/KoAspectButtonContractTest.cpp`の3試験へ対応付けた。親所有、初期寸法・
+  icon寸法・autoRaise・非固定状態、固定状態の読書きと変更時だけの通知、chain icon切替、有効時の明示・Qt release反転、無効時の非変更、
+  基底からの仮想寿命を固定した。
+- 開始ファイル`libs/widgets/KoAspectButton.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から新規
+  AUTOMOC/PIC対応`kritawidgetsaspectbuttonobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。限定試験は同生成物、Qt
+  Widgets・Testへ接続し、試験内の決定的な`KisIconUtils::loadIcon()`だけで2種類のiconを識別する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で、製品の750工程・1,529入力から縮小した。対象CTest
+  単発と20回反復、最近傍`KoColorPopupButtonContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に
+  成功した。実theme資源の読込、同値setterの余分なicon再取得・再描画、GUI thread外利用、Qt 5、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+- 第37並列便はroot surface階層追跡4 API、図形せん断命令5 API、flood fill区間写像7 API、aspect比固定button 7 APIの合計23 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,260件、未対応22,729件になった。
+
 ## 次の操作
 
-第37並列便の4担当は、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認する。許可パス内だけで
-最小契約を追加し、単発・20回反復・軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡す。
+第38並列便の候補を4責務から選び、未固定API、既存試験、最小構築閉包、直接依存、契約案、既知欠陥を読み取り専用で監査する。Widgets候補は
+Qtだけで限定できる`KisPaletteDelegate`を採用し、CMake非収容の大小文字違い重複実装`libs/widgets/kis_palette_delegate.cpp`の削除条件も
+同じ担当票へ含める。担当作業ツリーは計画コミット後に作成し、輸送コミットの統合とclean確認の直後に削除する。
 
 ## R1-G5完了根拠
 
