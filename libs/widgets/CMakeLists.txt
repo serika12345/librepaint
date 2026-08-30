@@ -20,6 +20,37 @@ set_target_properties(kritawidgetsaspectbuttonobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetspalettedelegateobjects OBJECT
+    KisPaletteDelegate.cpp
+)
+target_compile_definitions(kritawidgetspalettedelegateobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetspalettedelegateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/pigment
+        ${CMAKE_BINARY_DIR}/libs/pigment
+        ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+        ${CMAKE_BINARY_DIR}/libs/pigment/resources
+        ${CMAKE_SOURCE_DIR}/libs/resources
+        ${CMAKE_BINARY_DIR}/libs/resources
+        $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritawidgetspalettedelegateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        Boost::boost
+)
+set_target_properties(kritawidgetspalettedelegateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetscolorpopupbuttonobjects OBJECT
     KoColorPopupButton.cpp
 )
@@ -266,7 +297,6 @@ set(kritawidgets_LIB_SRCS
     KisDlgInternalColorSelector.cpp
 
     KisPaletteModel.cpp
-    KisPaletteDelegate.cpp
     kis_palette_view.cpp
     KisPaletteChooser.cpp
     KisPaletteComboBox.cpp
@@ -311,6 +341,7 @@ set_target_properties(kritawidgetsdebugobjects PROPERTIES
 kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
     $<TARGET_OBJECTS:kritawidgetsaspectbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetspalettedelegateobjects>
     $<TARGET_OBJECTS:kritawidgetscolorpopupbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsstackedwidgetobjects>
     $<TARGET_OBJECTS:kritawidgetsdocktitlebarbuttonobjects>
