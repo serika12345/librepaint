@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 01:41 JST
+- 更新日時: 2026-08-31 01:43 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -30,12 +30,12 @@
   対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、
   製品`kritaimage` 1,184工程・2,392入力からの増加、`kritapigment`共有ライブラリー・実`KoColor.cpp`・実registry、色変換意味論の模倣、実配置を保てない
   試験内symbol、非決定的な静的初期化、source二重収容、公開header/source変更、または許可外変更である。
-- `g69-masking-brush-composite-base`は状態`preparing`、基準`aaf09c9891ef5dc4eaec173ea88c3bc44fe9d575`、作業ツリー予定
+- `g69-masking-brush-composite-base`は状態`implementing`、基準`bb5be909885a4483d7d4e1247a38d5046dac84b1`、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g69-masking-brush-composite-base`である。目的はmasking brush合成接続面のsource・destination byte列、両stride、列数、
   行数の仮想配送と基底所有からの寿命を固定することである。対象は`libs/painting/strokes/KisMaskingBrushCompositeOpBase.h`のclass、destructor、`composite()`の
   3 API全件である。header-only接続面のため製品sourceと製品CMakeを変更せず、新規`libs/painting/tests/KisMaskingBrushCompositeOpBaseContractTest.cpp`の
   Probeだけで観測する。変更許可はこの新規試験と`libs/painting/tests/CMakeLists.txt`に限る。近傍は`KisFigurePaintingOptionsContractTest`、対象macOS、
-  共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件5工程・10入力、製品`kritapainting`
+  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件5工程・10入力、製品`kritapainting`
   1,206工程・2,434入力からの増加、pigment・image・製品共有ライブラリー・実合成処理・追加objectへの接続、公開header/source変更、または許可外変更である。
 - 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
   統合担当が中央台帳、進捗、CMake非重複、容量削除を所有し、統合または停止直後に担当作業ツリー、局所構築木、ブランチを削除する。
