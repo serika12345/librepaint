@@ -189,3 +189,17 @@ kis_add_test(
 target_compile_definitions(KisSensorPackInterfaceContractTest PRIVATE
     kritalibpaintop_EXPORTS
 )
+
+kis_add_test(
+    KisDynamicSensorFactoryContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopdynamicsensorfactoryobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisDynamicSensorFactoryContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+)
