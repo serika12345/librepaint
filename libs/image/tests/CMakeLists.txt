@@ -995,6 +995,26 @@ target_include_directories(KisImageTypesContractTest PRIVATE
 target_compile_definitions(KisImageTypesContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisCropSavedExtraDataContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagecropsavedextradataobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisCropSavedExtraDataContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KisCropSavedExtraDataContractTest PRIVATE
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisAnnotationContractTest.cpp
     LINK_LIBRARIES
         kritaglobalsharedobjects

@@ -294,6 +294,29 @@ set_target_properties(kritaimagebusywaitbrokerobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagecropsavedextradataobjects OBJECT
+   kis_crop_saved_extra_data.cpp
+)
+target_compile_definitions(kritaimagecropsavedextradataobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagecropsavedextradataobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagecropsavedextradataobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagecropsavedextradataobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagesafeblockingqueueconnectionproxyobjects OBJECT
    KisSafeBlockingQueueConnectionProxy.cpp
 )
@@ -1527,7 +1550,6 @@ set(kritaimage_LIB_SRCS
    kis_suspend_projection_updates_stroke_strategy.cpp
    kis_regenerate_frame_stroke_strategy.cpp
    kis_switch_time_stroke_strategy.cpp
-   kis_crop_saved_extra_data.cpp
    kis_layer.cc
    kis_indirect_painting_support.cpp
    kis_layer_projection_plane.cpp
@@ -1654,6 +1676,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagestrokespeedmeasurerobjects>
    $<TARGET_OBJECTS:kritaimagefillintervalmapobjects>
    $<TARGET_OBJECTS:kritaimagebusywaitbrokerobjects>
+   $<TARGET_OBJECTS:kritaimagecropsavedextradataobjects>
    $<TARGET_OBJECTS:kritaimagesafeblockingqueueconnectionproxyobjects>
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimageperspectivemathobjects>
