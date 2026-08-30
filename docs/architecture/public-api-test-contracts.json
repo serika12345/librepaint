@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22296
+    "expectedMissingApis": 22290
   },
   "contracts": [
     {
@@ -24160,6 +24160,51 @@
       "apis": [
         "method:KisTransactionBasedCommand::redo()",
         "method:KisTransactionBasedCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisPrefixedOptionDataWrapperContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPrefixedOptionDataWrapperContractTest.cpp",
+      "test": "KisPrefixedOptionDataWrapperContractTest::constructionPreservesCapabilityPrefixAndBaseInitialization",
+      "behavior": "接頭辞付き設定wrapperはprefix対応を公開し、Unicode prefixを完全に保持して包装する設定値基底を正確に1回既定構築する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisPrefixedOptionDataWrapper::prefix",
+        "member:KisPrefixedOptionDataWrapper::supports_prefix",
+        "method:KisPrefixedOptionDataWrapper::KisPrefixedOptionDataWrapper(const QString & _prefix)",
+        "struct:KisPrefixedOptionDataWrapper"
+      ]
+    },
+    {
+      "target": "KisPrefixedOptionDataWrapperContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPrefixedOptionDataWrapperContractTest.cpp",
+      "test": "KisPrefixedOptionDataWrapperContractTest::nullReadReturnsFalseWithoutDelegation",
+      "behavior": "null設定のreadはfalseを返し、包装する設定値基底へ読取りを配送しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPrefixedOptionDataWrapper::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisPrefixedOptionDataWrapperContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPrefixedOptionDataWrapperContractTest.cpp",
+      "test": "KisPrefixedOptionDataWrapperContractTest::emptyPrefixDelegatesDirectly",
+      "behavior": "空prefixのreadとwriteは親設定の同じpointerを包装する設定値基底へ直接配送し、read返値を変更せず返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPrefixedOptionDataWrapper::read(const KisPropertiesConfiguration * setting)",
+        "method:KisPrefixedOptionDataWrapper::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisPrefixedOptionDataWrapperContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPrefixedOptionDataWrapperContractTest.cpp",
+      "test": "KisPrefixedOptionDataWrapperContractTest::nonEmptyPrefixRoutesThroughTemporaryConfiguration",
+      "behavior": "非空Unicode prefixのreadは接頭辞付き一時設定を抽出して基底へ配送し、writeは基底が埋めた同じ一時設定を同じprefixで親設定へ反映して無関係な値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPrefixedOptionDataWrapper::read(const KisPropertiesConfiguration * setting)",
+        "method:KisPrefixedOptionDataWrapper::write(KisPropertiesConfiguration * setting) const"
       ]
     }
   ]
