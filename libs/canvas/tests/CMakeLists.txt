@@ -12,6 +12,18 @@ kis_add_test(
 target_compile_definitions(KisInputActionGroupContractTest PRIVATE kritacanvas_EXPORTS)
 
 kis_add_test(
+    KisProjectionPixelFilterContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisProjectionPixelFilterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisProjectionPixelFilterContractTest PRIVATE kritacanvas_EXPORTS)
+
+kis_add_test(
     KisTileDataPoolContractTest.cpp
     LINK_LIBRARIES
         kritacanvastiledatapoolobjects
