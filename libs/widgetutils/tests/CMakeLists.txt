@@ -115,6 +115,16 @@ target_include_directories(KisOptionButtonStripContractTest PRIVATE
 target_compile_definitions(KisOptionButtonStripContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisToolBarStateModelContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilstoolbarstatemodelobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Core
+        lager
+)
+target_compile_definitions(KisToolBarStateModelContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     kis_simple_math_parser_test.cpp
     LINK_LIBRARIES kritawidgetutilsnumericparserobjects Qt${QT_MAJOR_VERSION}::Test
 )

@@ -266,6 +266,25 @@ target_link_libraries(kritawidgetutilsoptionbuttonstripobjects
 )
 set_target_properties(kritawidgetutilsoptionbuttonstripobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritawidgetutilstoolbarstatemodelobjects OBJECT
+    xmlgui/KisToolBarStateModel.cpp
+)
+target_compile_definitions(kritawidgetutilstoolbarstatemodelobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilstoolbarstatemodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/xmlgui>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilstoolbarstatemodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        lager
+)
+set_target_properties(kritawidgetutilstoolbarstatemodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -285,6 +304,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritawidgetutilsoptioncollectionobjects>
     $<TARGET_OBJECTS:kritawidgetutilswrappablehboxlayoutobjects>
     $<TARGET_OBJECTS:kritawidgetutilsoptionbuttonstripobjects>
+    $<TARGET_OBJECTS:kritawidgetutilstoolbarstatemodelobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -338,7 +358,6 @@ set(kritawidgetutils_LIB_SRCS
     xmlgui/ktoggletoolbaraction.cpp
     xmlgui/ktoolbar.cpp
     xmlgui/ktoolbarhandler.cpp
-    xmlgui/KisToolBarStateModel.cpp
     xmlgui/kundoactions.cpp
     xmlgui/kxmlguibuilder.cpp
     xmlgui/kxmlguiclient.cpp
