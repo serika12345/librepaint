@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22558
+    "expectedMissingApis": 22541
   },
   "contracts": [
     {
@@ -22674,6 +22674,70 @@
         "method:KisRecentFilesManager::fileRemoved(const QUrl & url)",
         "method:KisRecentFilesManager::recentFiles() const",
         "method:KisRecentFilesManager::remove(const QUrl & url)"
+      ]
+    },
+    {
+      "target": "KoColorTransformationContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationContractTest.cpp",
+      "test": "KoColorTransformationContractTest::baseDefaultsRouteParametersAndOwnVirtualLifetime",
+      "behavior": "色変換基底が既定で空の引数一覧と妥当状態を返し、画素変換と引数名・識別子・値を派生実装へ配送し、基底所有から派生個体を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorTransformation",
+        "method:KoColorTransformation::isValid() const",
+        "method:KoColorTransformation::parameterId(const QString & name) const",
+        "method:KoColorTransformation::parameters() const",
+        "method:KoColorTransformation::setParameter(int id,const QVariant & parameter)",
+        "method:KoColorTransformation::setParameters(const QHash<QString,QVariant> & parameters)",
+        "method:KoColorTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const",
+        "method:KoColorTransformation::~KoColorTransformation()"
+      ]
+    },
+    {
+      "target": "KoColorTransformationContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationContractTest.cpp",
+      "test": "KoColorTransformationContractTest::modeIdentifiersConstructAnEmptyInPlaceComposite",
+      "behavior": "合成色変換が0のINPLACE方式で構築でき、変換段階が空なら出力領域を変更せず、方式識別子の値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCompositeColorTransformation",
+        "enum:KoCompositeColorTransformation::Mode",
+        "enumerator:KoCompositeColorTransformation::Mode::INPLACE",
+        "method:KoCompositeColorTransformation::KoCompositeColorTransformation(Mode mode)",
+        "method:KoCompositeColorTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const"
+      ]
+    },
+    {
+      "target": "KoColorTransformationContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationContractTest.cpp",
+      "test": "KoColorTransformationContractTest::modeIdentifiersConstructAnEmptyInPlaceComposite",
+      "behavior": "未実装の一時領域方式が公開列挙値1として残る現行接続面を固定する。",
+      "classification": "known_defect",
+      "apis": [
+        "enumerator:KoCompositeColorTransformation::Mode::BUFFERED"
+      ]
+    },
+    {
+      "target": "KoColorTransformationContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationContractTest.cpp",
+      "test": "KoColorTransformationContractTest::compositeAppliesOwnedTransformsInSequence",
+      "behavior": "合成色変換がnull段階を無視し、最初の段階を入力から出力へ、後続段階を出力上で順に実行し、保持した変換を破棄時に所有解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCompositeColorTransformation::appendTransform(KoColorTransformation * transform)",
+        "method:KoCompositeColorTransformation::transform(const quint8 * src,quint8 * dst,qint32 nPixels) const",
+        "method:KoCompositeColorTransformation::~KoCompositeColorTransformation()"
+      ]
+    },
+    {
+      "target": "KoColorTransformationContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationContractTest.cpp",
+      "test": "KoColorTransformationContractTest::optimizedFactoryHandlesEmptySingleAndMultipleTransforms",
+      "behavior": "最適化生成が有効段階0件でnull、1件で元個体、複数件でそれらを順序どおり所有する合成個体を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCompositeColorTransformation::createOptimizedCompositeTransform(const QVector<KoColorTransformation * > transforms)",
+        "method:KoCompositeColorTransformation::~KoCompositeColorTransformation()"
       ]
     }
   ]
