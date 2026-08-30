@@ -20,6 +20,18 @@ target_include_directories(KisColorSelectorConfigurationContractTest PRIVATE
 target_compile_definitions(KisColorSelectorConfigurationContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KoPageWidgetItemContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KoPageWidgetItemContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoPageWidgetItemContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KoDialogEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22514
+    "expectedMissingApis": 22507
   },
   "contracts": [
     {
@@ -22874,6 +22874,22 @@
       "classification": "maintained",
       "apis": [
         "method:KRecentFilesAction::setRecentFilesModel(const QStandardItemModel * model)"
+      ]
+    },
+    {
+      "target": "KoPageWidgetItemContractTest",
+      "source": "libs/widgets/tests/KoPageWidgetItemContractTest.cpp",
+      "test": "KoPageWidgetItemContractTest::routesPagePresentationApplicationAndVirtualLifetime",
+      "behavior": "設定ページ項目の基底接続面が表示部品、名前、アイコン名、終了拒否判定、適用要求を派生実装へ毎回配送し、基底所有から派生個体を正確に1回破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPageWidgetItem",
+        "method:KoPageWidgetItem::apply()",
+        "method:KoPageWidgetItem::iconName() const",
+        "method:KoPageWidgetItem::name() const",
+        "method:KoPageWidgetItem::shouldDialogCloseBeVetoed()",
+        "method:KoPageWidgetItem::widget()",
+        "method:KoPageWidgetItem::~KoPageWidgetItem()"
       ]
     }
   ]
