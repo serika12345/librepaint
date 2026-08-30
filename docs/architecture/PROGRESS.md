@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 12:49 JST
+- 更新日時: 2026-08-30 13:01 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,35 +11,17 @@
 
 ### 現在の並列担当票
 
-- 第43並列便は完了し、色変換合成、ドック生成基底、勾配形状戦略基底、最近使ったファイル操作の全44 APIを挙動契約へ対応付けた。公開面は
-  1,549ヘッダー、29,989 API、対応済み7,475件、未対応22,514件である。
+- 第44並列便は完了し、設定ページ項目、図形stroke模型、鍵フレーム、画素精度変換基底の全29 APIを挙動契約へ対応付けた。公開面は
+  1,549ヘッダー、29,989 API、対応済み7,504件、未対応22,485件である。
 - 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、同時無作業再構築、製品への一重再集約、製品共有ライブラリー非接続、公開API契約検査に
   成功した。各対象の20回反復と`verify-quick`も成功している。
-- 統合済み専用作業ツリー3本はclean確認直後に個別削除して約2.45 GBを解放した。旧不足一覧5.5 MBも次世代一覧の生成直後に削除し、現在は
-  `develop`の主作業ツリー、永続増分構築木、最新`build/tdd-macos/public-api-missing-g44.json`だけを次便の入力として保持する。
-- 第44並列便は作業ツリーと構築木を作る前に、`libs/flake`、`libs/global`、`libs/image`、`libs/widgetutils`、`libs/pigment`の候補を読み取り専用で
-  監査する。各候補の全public API数、実装所有、直接依存、既存近傍と限定閉包を確定し、計画と停止上限の検査・コミット後に必要な担当作業
-  ツリーだけを作成する。
-- 読み取り専用監査から、第44並列便は合計29 APIを次の4担当票で固定し、対応済み7,504件、未対応22,485件を目標とする。
-  - 主担当は宣言側で完結する`libs/widgets/KoPageWidgetItem.h`の全7 APIを、製品実装を接続しない新規
-    `KoPageWidgetItemContractTest`へ対応付ける。既存の宣言単独契約4工程・8入力に対して停止上限を5工程・11入力とする。
-  - `flake_zoom_state`担当は`libs/flake/KoShapeStrokeModel.cpp`を`kritaflake_SRCS`直接収容から新規
-    `kritaflakeshapestrokemodelobjects`へ移し、製品`kritaflake`へ1回だけ再集約する。全10 APIを対象とし、最近傍
-    `KoDockFactoryBaseContractTest`の5工程・11入力に対して停止上限を6工程・13入力とする。
-  - `image_frame_lock`担当は`libs/image/kis_keyframe.cpp`を`kritaimage_LIB_SRCS`直接収容から新規`kritaimagekeyframeobjects`へ移し、製品
-    `kritaimage`へ1回だけ再集約する。全6 APIを対象とし、AUTOMOC近傍`KisSignalCompressorContractTest`の8工程・16入力に対して停止上限を
-    8工程・16入力とする。
-  - `global_forest`担当は`libs/pigment/KoOptimizedPixelDataScalerU8ToU16Base.cpp`を`kritapigment_SRCS`直接収容から新規
-    `kritapigmentoptimizedpixelscalerbaseobjects`へ移し、製品`kritapigment`へ1回だけ再集約する。全6 APIを対象とし、最近傍
-    `KoAlphaMaskApplicatorBaseContractTest`の5工程・11入力に対して停止上限を6工程・14入力とする。
-- 計画を検査・コミットした共通基点から担当用3作業ツリーだけを作成する。各担当は製品共有ライブラリーへ接続せず、対象CTest単発・20回反復・
-  軽量近傍試験・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、世代の古い公開API不足一覧は次世代
-  一覧の生成成功直後に削除する。
-- 計画変更を`verify-quick`へ通してコミットし、共通基点`fb43e811f369112d91d8e9ec4de27bea525648b6`から担当用3作業ツリーだけを作成した。
-  担当3対象と最初の主候補`KisScreenColorSamplerBaseContractTest`は未知の対象として失敗し、未登録の赤を確認した。最初の主候補は分離MOCが
-  `KoColor`のメタ型実装記号を要求し、製品色管理ライブラリー非接続と停止上限を両立できないため変更を残さず除外した。代替の
-  `KoPageWidgetItemContractTest`も未知の対象として失敗し、宣言単独契約として実装を開始する。3作業ツリーは実装開始前で各568 MB、合計約1.7 GBを
-  使用し、各引渡しの統合とclean確認直後に個別削除する。
+- 統合済み専用作業ツリー3本はclean確認直後に個別削除して約2.44 GBを解放した。旧不足一覧5.5 MBも次世代一覧の生成直後に削除し、現在は
+  `develop`の主作業ツリー、永続増分構築木、最新`build/tdd-macos/public-api-missing-g45.json`だけを次便の入力として保持する。
+- `KisScreenColorSamplerBase`は分離MOCが`KoColor`のメタ型実装記号を要求し、現状では製品色管理ライブラリー非接続の限定対象にできない。変更は
+  残しておらず、色値実装が小さな構築所有へ分離された後に再監査する。
+- 第45並列便は作業ツリーと構築木を作る前に、`libs/flake`、`libs/global`、`libs/image`、`libs/widgetutils`、`libs/widgets`、`libs/pigment`の候補を
+  読み取り専用で監査する。各候補の全public API数、実装所有、直接依存、既存近傍と限定閉包を確定し、計画と停止上限の検査・コミット後に
+  必要な担当作業ツリーだけを作成する。
 
 ## 再開環境
 
@@ -10306,10 +10288,63 @@
   旧`build/tdd-macos/public-api-missing-g43.json` 5.5 MBを削除し、最新の`public-api-missing-g44.json`だけを保持する。主作業ツリーの永続増分
   構築木とGit履歴は再構築と復旧を避けるため保持する。
 
+## R2-G19b 設定ページ項目の全public API契約で完了した作業
+
+- `libs/widgets/KoPageWidgetItem.h`の全7 APIを、新規`libs/widgets/tests/KoPageWidgetItemContractTest.cpp`の1試験へ対応付けた。
+  ページwidgetの借用配送、名前とiconの値配送、受入れ可・拒否、適用処理、基底所有からの派生寿命を固定した。
+- 宣言側で完結する接続面のため製品実装の構築所有は変更ず、限定試験をQt Widgets・Testだけへ接続した。対象未登録の
+  初回限定構築は未知の対象として失敗した。限定対象は4工程・8入力で停止上限5工程・11入力以内に収めた。対象CTest単発と20回反復、
+  最近傍`KoTitledTabWidgetContractTest`、公開記号、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。
+  実ダイアログのページ所有、複数項目の集約、適用のアプリケーション副作用、Linux、全ネイティブ検証は実行していない。
+
+## R2-G19b 図形stroke模型の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoShapeStrokeModel.h`の全10 APIを、新規`libs/flake/tests/KoShapeStrokeModelContractTest.cpp`の3試験へ対応付けた。
+  塗りと外形計算の引数・戻り値、余白、輪郭決定、描画、塗り・表示様式の比較、基底所有からの派生寿命を固定した。
+- 開始ファイル`libs/flake/KoShapeStrokeModel.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakeshapestrokemodelobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力で停止上限6工程・13入力以内に収め、製品の
+  590工程・1,212入力は変化しなかった。対象CTest単発と20回反復、最近傍`KoDockFactoryBaseContractTest`、公開記号、一重再集約、製品共有
+  ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。実図形の所有、実描画結果、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 鍵フレームの全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_keyframe.h`の全6 APIを、新規`libs/image/tests/KisKeyframeContractTest.cpp`の4試験へ対応付けた。色ラベルの初期値0と
+  設定・取得、既定null channelと借用channelへの複製配送、複製の共有所有、基底所有からの派生寿命を固定した。
+- 開始ファイル`libs/image/kis_keyframe.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応
+  `kritaimagekeyframeobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。分離後の最初の構築で検出した
+  `kis_shared_ptr.h`のinclude経路不足は、同生成物に直接必要なGlobal include経路だけを明示して解消した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・14入力で停止上限8工程・16入力以内に収めた。対象CTest単発と
+  20回反復、最近傍`KisImageTypesContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、
+  `verify-quick`に成功した。色ラベルの範囲外値、実channelの複製内容、借用channelの先行破棄、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b 画素精度変換基底の全public API契約と構築所有分離で完了した作業
+
+- `libs/pigment/KoOptimizedPixelDataScalerU8ToU16Base.h`の全6 APIを、新規
+  `libs/pigment/tests/KoOptimizedPixelDataScalerU8ToU16BaseContractTest.cpp`の2試験へ対応付けた。channel数の保持、8 bitから16 bit・16 bitから8 bitの
+  両変換における全引数と出力書込み、基底所有からの派生寿命を固定した。
+- 開始ファイル`libs/pigment/KoOptimizedPixelDataScalerU8ToU16Base.cpp`の構築所有を`libs/pigment/CMakeLists.txt`の
+  `kritapigment_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritapigmentoptimizedpixelscalerbaseobjects`へ移し、製品`kritapigment`は
+  同生成物を1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力で停止上限6工程・14入力以内に収め、製品の
+  360工程・750入力は変化しなかった。対象CTest単発と20回反復、最近傍`KoAlphaMaskApplicatorBaseContractTest`、公開記号、一重再集約、
+  製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。無効channel数、null入出力、負の画素数、Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第44並列便は設定ページ項目7 API、図形stroke模型10 API、鍵フレーム6 API、画素精度変換基底6 APIの合計29 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業木で4限定対象の結合構築、対象4件と軽量近傍4件のCTest 8/8、同時無作業再構築、
+  必要な製品への一重再集約、製品共有ライブラリー非接続、公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、
+  対応済み7,504件、未対応22,485件になった。
+- 取り込み済み専用作業ツリー3件は各clean確認直後に削除し、815 MB、814 MB、814 MBの約2.44 GBを解放した。次世代不足一覧の
+  生成成功後に旧`build/tdd-macos/public-api-missing-g44.json` 5.5 MBを削除し、最新の`public-api-missing-g45.json`だけを次便の入力として保持する。
+  主作業ツリーの永続増分構築木とGit履歴は再構築と復旧を避けるため保持する。
+
 ## 次の操作
 
-第44並列便の4担当票を並行実装する。過大な閉包を挙動契約より先に分離し、停止上限、製品共有ライブラリー非接続、対象CTest単発・20回反復、
-軽量近傍試験、`verify-quick`を確認する。各引渡しを統合した直後に対応する作業ツリーを削除する。
+第45並列便の候補を`build/tdd-macos/public-api-missing-g45.json`から読み取り専用で監査する。公開API数、実装所有、直接依存、近傍の実測閉包から
+停止上限を確定し、計画を検査・コミットした後に必要な担当作業ツリーだけを作る。
 
 ## R1-G5完了根拠
 
