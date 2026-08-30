@@ -1053,6 +1053,52 @@ set_target_properties(kritaimageupdateoutlinejobselectionaccessobjects PROPERTIE
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageupdateselectionjobobjects OBJECT
+   kis_update_selection_job.cpp
+)
+target_compile_definitions(kritaimageupdateselectionjobobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageupdateselectionjobobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageupdateselectionjobobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimageupdateselectionjobobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimageupdateselectionjobselectionaccessobjects OBJECT
+   KisUpdateSelectionJobSelectionAccess.cpp
+)
+target_compile_definitions(kritaimageupdateselectionjobselectionaccessobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageupdateselectionjobselectionaccessobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritaimageupdateselectionjobselectionaccessobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimageupdateselectionjobselectionaccessobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageconvexhullpointsobjects OBJECT
    kis_convex_hull_points.cpp
 )
@@ -1394,7 +1440,6 @@ set(kritaimage_LIB_SRCS
    kis_selection.cc
    KisSelectionUpdateCompressor.cpp
    kis_selection_mask.cpp
-   kis_update_selection_job.cpp
    kis_transaction_data.cpp
    KisInterstrokeDataTransactionWrapperFactory.cpp
    KisInterstrokeData.cpp
@@ -1518,6 +1563,8 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagenodeuuidinfonodeaccessobjects>
    $<TARGET_OBJECTS:kritaimageupdateoutlinejobobjects>
    $<TARGET_OBJECTS:kritaimageupdateoutlinejobselectionaccessobjects>
+   $<TARGET_OBJECTS:kritaimageupdateselectionjobobjects>
+   $<TARGET_OBJECTS:kritaimageupdateselectionjobselectionaccessobjects>
    $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldeviceobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldevicereaderobjects>

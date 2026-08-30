@@ -223,6 +223,25 @@ target_compile_definitions(KisUpdateOutlineJobContractTest PRIVATE
 )
 
 kis_add_test(
+    KisUpdateSelectionJobContractTest.cpp
+    LINK_LIBRARIES
+        kritaimageupdateselectionjobobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisUpdateSelectionJobContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisUpdateSelectionJobContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+
+kis_add_test(
     KisDoSomethingCommandContractTest.cpp
     LINK_LIBRARIES
         kritapaintingundokundo2coreobjects

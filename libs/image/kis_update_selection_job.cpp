@@ -5,13 +5,11 @@
  */
 
 #include "kis_update_selection_job.h"
-#include "kis_image.h"
-#include "kis_projection_leaf.h"
-
+#include "KisUpdateSelectionJobSelectionAccess_p.h"
 
 KisUpdateSelectionJob::KisUpdateSelectionJob(KisSelectionSP selection, const QRect &updateRect)
-    : m_selection(selection),
-      m_updateRect(updateRect)
+    : m_selection(selection)
+    , m_updateRect(updateRect)
 {
     /**
      * TODO: we should implement correct KisShapeSelectionCanvas for
@@ -26,8 +24,7 @@ KisUpdateSelectionJob::KisUpdateSelectionJob(KisSelectionSP selection, const QRe
 
 bool KisUpdateSelectionJob::overrides(const KisSpontaneousJob *_otherJob)
 {
-    const KisUpdateSelectionJob *otherJob =
-        dynamic_cast<const KisUpdateSelectionJob*>(_otherJob);
+    const KisUpdateSelectionJob *otherJob = dynamic_cast<const KisUpdateSelectionJob *>(_otherJob);
 
     bool retval = false;
 
@@ -45,18 +42,18 @@ void KisUpdateSelectionJob::run()
 {
     QRect dirtyRect;
 
-    KisNodeSP parentNode = m_selection->parentNode();
+    KisNodeSP parentNode = KisUpdateSelectionJobSelectionAccess::parentNode(m_selection.data());
     if (parentNode) {
-        dirtyRect = parentNode->extent();
+        dirtyRect = KisUpdateSelectionJobSelectionAccess::extent(parentNode.data());
     }
 
     if (!m_updateRect.isEmpty()) {
-        m_selection->updateProjection(m_updateRect);
+        KisUpdateSelectionJobSelectionAccess::updateProjection(m_selection.data(), m_updateRect);
     } else {
-        m_selection->updateProjection();
+        KisUpdateSelectionJobSelectionAccess::updateProjection(m_selection.data());
     }
 
-    m_selection->notifySelectionChanged();
+    KisUpdateSelectionJobSelectionAccess::notifySelectionChanged(m_selection.data());
 
     /**
      * TODO: in the future we should remove selection projection calculation
@@ -64,9 +61,9 @@ void KisUpdateSelectionJob::run()
      *       from KisShapeLayer. Then projection calculation will be a little
      *       bit more efficient.
      */
-    if (parentNode && parentNode->projectionLeaf()->isOverlayProjectionLeaf()) {
-        dirtyRect |= parentNode->extent();
-        parentNode->setDirty(dirtyRect);
+    if (parentNode && KisUpdateSelectionJobSelectionAccess::isOverlayProjectionLeaf(parentNode.data())) {
+        dirtyRect |= KisUpdateSelectionJobSelectionAccess::extent(parentNode.data());
+        KisUpdateSelectionJobSelectionAccess::setDirty(parentNode.data(), dirtyRect);
     }
 }
 
