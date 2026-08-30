@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22431
+    "expectedMissingApis": 22428
   },
   "contracts": [
     {
@@ -23027,6 +23027,27 @@
       "classification": "maintained",
       "apis": [
         "method:KoOptimizedPixelDataScalerU8ToU16Base::~KoOptimizedPixelDataScalerU8ToU16Base()"
+      ]
+    },
+    {
+      "target": "KoOptimizedPixelDataScalerU8ToU16FactoryContractTest",
+      "source": "libs/pigment/tests/KoOptimizedPixelDataScalerU8ToU16FactoryContractTest.cpp",
+      "test": "KoOptimizedPixelDataScalerU8ToU16FactoryContractTest::rgbaFactoryCreatesFourChannelScalerWithStridedConversion",
+      "behavior": "RGBA用画素精度変換factoryは基底所有できる非nullの4チャンネル実装を返し、複数行のstride付き領域でU8を257倍したU16へ変換し、U16を現行の丸め式でU8へ戻し、入力と出力paddingを変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoOptimizedPixelDataScalerU8ToU16Factory",
+        "method:KoOptimizedPixelDataScalerU8ToU16Factory::createRgbaScaler()"
+      ]
+    },
+    {
+      "target": "KoOptimizedPixelDataScalerU8ToU16FactoryContractTest",
+      "source": "libs/pigment/tests/KoOptimizedPixelDataScalerU8ToU16FactoryContractTest.cpp",
+      "test": "KoOptimizedPixelDataScalerU8ToU16FactoryContractTest::cmykaFactoryCreatesFiveChannelScalerWithStridedConversion",
+      "behavior": "CMYKA用画素精度変換factoryは基底所有できる非nullの5チャンネル実装を返し、複数行のstride付き領域でU8を257倍したU16へ変換し、U16を現行の丸め式でU8へ戻し、入力と出力paddingを変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoOptimizedPixelDataScalerU8ToU16Factory::createCmykaScaler()"
       ]
     },
     {

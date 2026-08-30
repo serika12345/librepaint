@@ -46,6 +46,21 @@ kis_add_test(
 target_compile_definitions(KoOptimizedPixelDataScalerU8ToU16BaseContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoOptimizedPixelDataScalerU8ToU16FactoryContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentoptimizedpixelscalerfactoryobjects
+        kritapigmentoptimizedpixelscalerbaseobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoOptimizedPixelDataScalerU8ToU16FactoryContractTest PRIVATE kritapigment_EXPORTS)
+if(__per_arch_rgb_scaler_vector_objs)
+    target_link_libraries(KoOptimizedPixelDataScalerU8ToU16FactoryContractTest
+        kritapigmentoptimizedpixelscalervectorobjects
+    )
+endif()
+
+kis_add_test(
     KoChannelInfoContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Gui

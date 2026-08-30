@@ -3,6 +3,10 @@ project(kritapigment)
 ko_compile_for_all_implementations_no_scalar(__per_arch_factory_objs compositeops/KoOptimizedCompositeOpFactoryPerArch.cpp)
 ko_compile_for_all_implementations(__per_arch_alpha_applicator_factory_objs KoAlphaMaskApplicatorFactoryImpl.cpp)
 ko_compile_for_all_implementations(__per_arch_rgb_scaler_factory_objs KoOptimizedPixelDataScalerU8ToU16FactoryImpl.cpp)
+set(__per_arch_rgb_scaler_scalar_objs ${__per_arch_rgb_scaler_factory_objs})
+list(FILTER __per_arch_rgb_scaler_scalar_objs INCLUDE REGEX "_Scalar\\.cpp$")
+set(__per_arch_rgb_scaler_vector_objs ${__per_arch_rgb_scaler_factory_objs})
+list(FILTER __per_arch_rgb_scaler_vector_objs EXCLUDE REGEX "_Scalar\\.cpp$")
 
 message("Following objects are generated from the per-arch lib")
 foreach(_obj IN LISTS __per_arch_factory_objs __per_arch_alpha_applicator_factory_objs __per_arch_rgb_scaler_factory_objs)
@@ -41,6 +45,63 @@ set_target_properties(kritapigmentoptimizedpixelscalerbaseobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritapigmentoptimizedpixelscalerfactoryobjects OBJECT
+    KoOptimizedPixelDataScalerU8ToU16Factory.cpp
+    ${__per_arch_rgb_scaler_scalar_objs}
+)
+target_compile_definitions(kritapigmentoptimizedpixelscalerfactoryobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentoptimizedpixelscalerfactoryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/multiarch>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/multiarch>
+)
+target_link_libraries(kritapigmentoptimizedpixelscalerfactoryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        xsimd
+)
+set_target_properties(kritapigmentoptimizedpixelscalerfactoryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritapigmentoptimizedpixelscalerfactory_product_objects
+    $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalerfactoryobjects>
+)
+if(__per_arch_rgb_scaler_vector_objs)
+    add_library(kritapigmentoptimizedpixelscalervectorobjects OBJECT
+        ${__per_arch_rgb_scaler_vector_objs}
+    )
+    target_compile_definitions(kritapigmentoptimizedpixelscalervectorobjects PRIVATE kritapigment_EXPORTS)
+    target_include_directories(kritapigmentoptimizedpixelscalervectorobjects
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        PRIVATE
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+            $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/multiarch>
+            $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/multiarch>
+    )
+    target_link_libraries(kritapigmentoptimizedpixelscalervectorobjects
+        PUBLIC
+            Qt${QT_MAJOR_VERSION}::Core
+            xsimd
+    )
+    set_target_properties(kritapigmentoptimizedpixelscalervectorobjects PROPERTIES
+        AUTOMOC OFF
+        POSITION_INDEPENDENT_CODE ON
+    )
+    list(APPEND kritapigmentoptimizedpixelscalerfactory_product_objects
+        $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalervectorobjects>
+    )
+endif()
 
 add_library(kritapigmentstandardidsobjects OBJECT
     KoColorModelStandardIds.cpp
@@ -216,8 +277,8 @@ set(kritapigment_SRCS
     $<TARGET_OBJECTS:kritapigmentcolortransformationobjects>
     $<TARGET_OBJECTS:kritapigmentcolortransformationfactoryobjects>
     $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalerbaseobjects>
+    ${kritapigmentoptimizedpixelscalerfactory_product_objects}
     KoBasicHistogramProducers.cpp
-    KoOptimizedPixelDataScalerU8ToU16Factory.cpp
     KoColor.cpp
     KoColorDisplayRendererInterface.cpp
     KoColorConversionAlphaTransformation.cpp
@@ -251,7 +312,6 @@ set(kritapigment_SRCS
     compositeops/KoColorSpaceBlendingPolicy.cpp
     ${__per_arch_factory_objs}
     ${__per_arch_alpha_applicator_factory_objs}
-    ${__per_arch_rgb_scaler_factory_objs}
     KoAlphaMaskApplicatorFactory.cpp
     colorprofiles/KoDummyColorProfile.cpp
     resources/KoAbstractGradient.cpp
