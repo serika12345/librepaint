@@ -5,27 +5,27 @@
  */
 
 #include "kis_update_outline_job.h"
-
+#include "KisUpdateOutlineJobSelectionAccess_p.h"
 
 KisUpdateOutlineJob::KisUpdateOutlineJob(KisSelectionSP selection, bool updateThumbnail, const QColor &maskColor)
-    : m_selection(selection),
-      m_updateThumbnail(updateThumbnail),
-      m_maskColor(maskColor)
+    : m_selection(selection)
+    , m_updateThumbnail(updateThumbnail)
+    , m_maskColor(maskColor)
 {
 }
 
 bool KisUpdateOutlineJob::overrides(const KisSpontaneousJob *otherJob)
 {
-    return dynamic_cast<const KisUpdateOutlineJob*>(otherJob);
+    return dynamic_cast<const KisUpdateOutlineJob *>(otherJob);
 }
 
 void KisUpdateOutlineJob::run()
 {
-    m_selection->recalculateOutlineCache();
+    KisUpdateOutlineJobSelectionAccess::recalculateOutlineCache(m_selection.data());
     if (m_updateThumbnail) {
-        m_selection->recalculateThumbnailImage(m_maskColor);
+        KisUpdateOutlineJobSelectionAccess::recalculateThumbnailImage(m_selection.data(), m_maskColor);
     }
-    m_selection->notifySelectionChanged();
+    KisUpdateOutlineJobSelectionAccess::notifySelectionChanged(m_selection.data());
 }
 
 int KisUpdateOutlineJob::levelOfDetail() const

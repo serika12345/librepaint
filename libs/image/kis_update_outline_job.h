@@ -10,7 +10,7 @@
 #include <QColor>
 
 #include "kis_spontaneous_job.h"
-#include "kis_selection.h"
+#include "kis_types.h"
 
 class KRITAIMAGE_EXPORT KisUpdateOutlineJob : public KisSpontaneousJob
 {
