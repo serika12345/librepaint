@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 21:56 JST
+- 更新日時: 2026-08-30 21:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,30 +11,30 @@
 
 ### 第63並列便の担当票
 
-- `g63-zoom-action-state`は状態`preparing`、基準はこの計画コミット、作業ツリー
+- `g63-zoom-action-state`は状態`implementing`、基準`9fb9a5eda933e7f1c46f0399b0625381902a2e10`、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g63-zoom-action-state`である。目的は拡大率操作状態の標準水準、表示水準、現在値挿入、mode表示、近傍探索、
   更新時の再生成条件、debug出力を固定し、既存試験の広域依存を除くことである。対象は`libs/widgets/KoZoomActionState.h`のclass、`ZoomItem`別名、
   6 public member、constructor、`setZoomState`、2 `calcNearestStandardLevel`、debug演算子の13 API全件である。開始ファイル
   `libs/widgets/KoZoomActionState.cpp`を`kritawidgets_LIB_SRCS`の直接収容から`kritawidgetszoomactionstateobjects`へ移し、製品`kritawidgets`へ一度だけ
   再集約する。既存`libs/widgets/tests/TestKoZoomAction.{h,cpp}`を広域試験集合からQt Testと同objectだけの同名専用対象へ移す。変更許可はこの試験2ファイルと
   `libs/widgets/CMakeLists.txt`、`libs/widgets/tests/CMakeLists.txt`に限る。近傍は`WidgetsDebugContractTest`と`KoZoomHandlerContractTest`、対象macOS、
-  共有cache`.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件6工程・14入力、
+  共有cache`.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件6工程・14入力、
   製品`kritawidgets` 798工程・1,625入力、`kritaimage` 1,184工程・2,392入力、`kritaapplicationui` 1,957工程・3,914入力からの増加、
   製品共有ライブラリー・Qt Widgets・共通試験基盤・実設定への接続、source二重収容、公開header/source変更、または許可外変更である。
-- `g63-snap-data`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g63-snap-data`である。目的はsnap用point・segment列の
+- `g63-snap-data`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g63-snap-data`である。目的はsnap用point・segment列の
   既定値、順序、copy-in、copy-out、置換、寿命を固定することである。対象は`libs/flake/KoSnapData.h`のclass、constructor、destructor、
   2 getter、2 setterの7 API全件である。開始ファイル`libs/flake/KoSnapData.cpp`を`kritaflake_SRCS`の直接収容から`kritaflakesnapdataobjects`へ移し、
   製品`kritaflake`へ一度だけ再集約する。新規`libs/flake/tests/KoSnapDataContractTest.cpp`はQt Test、同object、試験内の最小`KoPathSegment`値操作だけを使う。
   変更許可はこの新規試験、`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`に限る。近傍は`KoShapeAnchorContractTest`、対象macOS、
-  共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、製品`kritaflake`
+  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、製品`kritaflake`
   612工程・1,256入力からの増加、製品共有ライブラリーまたは実`KoPathSegment.cpp`接続、source二重収容、公開header/source変更、または許可外変更である。
-- `g63-polygonal-gradient`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g63-polygonal-gradient`である。目的は多角形勾配の
+- `g63-polygonal-gradient`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g63-polygonal-gradient`である。目的は多角形勾配の
   経路中心探索、内外値、対称性、反復性、入力pathの値所有、仮想寿命を固定することである。対象は
   `libs/image/kis_polygonal_gradient_shape_strategy.h`のclass、constructor、destructor、`valueAt`、`testingCalculatePathCenter`の5 API全件である。
   開始ファイル`libs/image/kis_polygonal_gradient_shape_strategy.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimagepolygonalgradientshapestrategyobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。既存
   `libs/image/tests/KisGradientShapeStrategyContractTest.cpp`と同名対象を拡張する。変更許可はこの試験、`libs/image/CMakeLists.txt`、
-  `libs/image/tests/CMakeLists.txt`に限る。近傍は同対象の既存契約、対象macOS、共有cache同上、構築実行`waiting`、Git権限`transport-commit`、
+  `libs/image/tests/CMakeLists.txt`に限る。近傍は同対象の既存契約、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、
   追加委任`forbidden`、統合順3、停止条件11工程・23入力、製品`kritaimage` 1,184工程・2,392入力からの増加、製品共有ライブラリーまたは
   `krita_utils.cpp`接続、GSL有無による契約値差、空path・別指数の新仕様化、source二重収容、公開header/source変更、または許可外変更である。
 - 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、進捗、
