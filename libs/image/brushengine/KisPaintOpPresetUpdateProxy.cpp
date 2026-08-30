@@ -8,8 +8,6 @@
 
 #include "kis_signal_compressor.h"
 
-#include <kis_paintop_preset.h>
-
 struct KisPaintOpPresetUpdateProxy::Private
 {
     Private()

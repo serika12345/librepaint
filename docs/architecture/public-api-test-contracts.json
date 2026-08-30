@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22442
+    "expectedMissingApis": 22431
   },
   "contracts": [
     {
@@ -23243,6 +23243,81 @@
       "classification": "maintained",
       "apis": [
         "method:KoDeferredShapeFactoryBase::createShape(const KoProperties * params,KoDocumentResourceManager * documentResources=0) const"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetUpdateProxyContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetUpdateProxyContractTest.cpp",
+      "test": "KisPaintOpPresetUpdateProxyContractTest::normalAndRepeatedNotificationsPreserveOrder",
+      "behavior": "paintop preset設定の通常変更は早期警告、非圧縮、圧縮信号の順で同期配送され、圧縮時間内の反復変更では早期警告と非圧縮信号を直ちに配送して圧縮信号を後続の一回へ集約する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaintOpPresetUpdateProxy",
+        "method:KisPaintOpPresetUpdateProxy::KisPaintOpPresetUpdateProxy()",
+        "method:KisPaintOpPresetUpdateProxy::notifySettingsChanged()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChanged()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChangedUncompressed()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChangedUncompressedEarlyWarning()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetUpdateProxyContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetUpdateProxyContractTest.cpp",
+      "test": "KisPaintOpPresetUpdateProxyContractTest::uniformNotificationIsImmediate",
+      "behavior": "uniform property変更通知は対応する信号を同期的に正確に一回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpPresetUpdateProxy::notifyUniformPropertiesChanged()",
+        "method:KisPaintOpPresetUpdateProxy::sigUniformPropertiesChanged()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetUpdateProxyContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetUpdateProxyContractTest.cpp",
+      "test": "KisPaintOpPresetUpdateProxyContractTest::nestedPostponeSuppressesAndAggregatesNotifications",
+      "behavior": "入れ子の設定変更保留中は全信号を抑止し、内側の解除では抑止を維持して最外側の解除時に早期警告、非圧縮、圧縮信号を一組だけ順序どおり配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpPresetUpdateProxy::postponeSettingsChanges()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChanged()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChangedUncompressed()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChangedUncompressedEarlyWarning()",
+        "method:KisPaintOpPresetUpdateProxy::unpostponeSettingsChanges()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetUpdateProxyContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetUpdateProxyContractTest.cpp",
+      "test": "KisPaintOpPresetUpdateProxyContractTest::balancedPostponeWithoutNotificationIsSilent",
+      "behavior": "対応する保留開始と解除の間に設定変更がなければ解除時にも信号を配送しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpPresetUpdateProxy::postponeSettingsChanges()",
+        "method:KisPaintOpPresetUpdateProxy::unpostponeSettingsChanges()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetUpdateProxyContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetUpdateProxyContractTest.cpp",
+      "test": "KisPaintOpPresetUpdateProxyContractTest::unmatchedUnpostponeLeavesSubsequentNotificationsBlocked",
+      "behavior": "対応する保留開始なしに解除すると内部計数が負になり、その後の通常設定変更が早期警告、非圧縮、圧縮のいずれの信号も配送できなくなる。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisPaintOpPresetUpdateProxy::notifySettingsChanged()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChanged()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChangedUncompressed()",
+        "method:KisPaintOpPresetUpdateProxy::sigSettingsChangedUncompressedEarlyWarning()",
+        "method:KisPaintOpPresetUpdateProxy::unpostponeSettingsChanges()"
+      ]
+    },
+    {
+      "target": "KisPaintOpPresetUpdateProxyContractTest",
+      "source": "libs/image/tests/KisPaintOpPresetUpdateProxyContractTest.cpp",
+      "test": "KisPaintOpPresetUpdateProxyContractTest::qObjectOwnershipDestroysDerivedProxy",
+      "behavior": "更新proxyをQObject基底で所有して破棄すると派生個体のデストラクターを正確に一回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintOpPresetUpdateProxy::~KisPaintOpPresetUpdateProxy()"
       ]
     }
   ]
