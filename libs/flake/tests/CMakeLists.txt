@@ -128,6 +128,23 @@ target_include_directories(KoSvgTextPropertyDataContractTest PRIVATE
 target_compile_definitions(KoSvgTextPropertyDataContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoSvgTextPropertiesInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+target_sources(KoSvgTextPropertiesInterfaceContractTest PRIVATE
+    ../text/KoSvgTextPropertiesInterface.h
+)
+target_include_directories(KoSvgTextPropertiesInterfaceContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoSvgTextPropertiesInterfaceContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoShapeAnchorEnumContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
