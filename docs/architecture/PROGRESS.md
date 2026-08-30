@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 09:52 JST
+- 更新日時: 2026-08-30 09:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -13,23 +13,23 @@
 
 - 第38並列便の共通基準コミットは`c331c4a638`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g38-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`palette-delegate`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで`libs/widgets/KisPaletteDelegate.cpp`、
+- 統合担当`palette-delegate`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで`libs/widgets/KisPaletteDelegate.cpp`、
   CMake非収容の重複実装`libs/widgets/kis_palette_delegate.cpp`、Widgets製品・試験CMake、新規`KisPaletteDelegateContractTest.cpp`を所有する。
   正式実装を製品`kritawidgets`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移して製品へ1回だけ再集約し、重複実装を削除する。製品の
   754工程・1,537入力に代えて7工程・14入力以内で、親と仮想寿命、推奨寸法、group・swatch・空slot・選択描画、交差keywordの全6 APIを
   固定する。
-- 実装担当`subpath-remove-command`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
+- 実装担当`subpath-remove-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
   2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g38-subpath-remove-command`で
   `libs/flake/commands/KoSubpathRemoveCommand.cpp`、Flake製品・試験CMake、新規`KoSubpathRemoveCommandContractTest.cpp`を所有する。開始
   ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の575工程・1,182入力と
   既存試験の580工程・1,190入力に代えて6工程・14入力以内で、subpath除去・復元・再除去、正規化・座標補正順、失敗規約、所有権、全5 APIを
   固定する。
-- 実装担当`node-rename-command`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3で
+- 実装担当`node-rename-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3で
   ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g38-node-rename-command`で`libs/image/commands/KisNodeRenameCommand.cpp`、新規の非公開
   node名称適用接続面、Image製品・試験CMake、新規`KisNodeRenameCommandContractTest.cpp`を所有する。命令本体と製品node適用を別の専用生成物へ
   移し、製品`kritaimage`へ各1回だけ再集約する。製品の1,129工程・2,282入力と既存試験の277工程・584入力に代えて13工程・28入力以内で、
   redo・undo、識別子、同一nodeの連続改名統合、異種・別node拒否、強参照寿命、不連続名称の現行診断後統合を含む全7 APIを固定する。
-- 実装担当`screen-migration-tracker`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4で
+- 実装担当`screen-migration-tracker`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4で
   ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g38-screen-migration-tracker`で`libs/widgetutils/KisScreenMigrationTracker.cpp`、
   WidgetUtils製品・試験CMake、新規`KisScreenMigrationTrackerContractTest.cpp`を所有する。開始ファイルを製品`kritawidgetutils`の直接ソースから
   AUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存root surface追跡とsignal compressorの限定生成物を再利用し、製品の
@@ -9946,8 +9946,8 @@
 
 ## 次の操作
 
-第38並列便の専用作業ツリー3本を共通基準コミットから作り、4限定対象が未知で失敗する初回診断を記録する。統合担当が構築実行を許可した後、
-各担当は記録済みの停止上限と直接依存を再確認し、許可パス内だけで構築所有分離と最小契約を追加する。
+第38並列便の4担当は、記録済みの停止上限と直接依存を再確認し、許可パス内だけで構築所有分離と最小契約を追加する。単発・20回反復・
+軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡し、統合済み担当の専用作業ツリーを直ちに削除する。
 
 ## R1-G5完了根拠
 
