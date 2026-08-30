@@ -2,44 +2,23 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 10:24 JST
+- 更新日時: 2026-08-30 10:50 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 現在の並列担当票
+### 現在の作業
 
-- 第39並列便の共通基準コミットは`1aa24012d7`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g39-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。担当確定後に必要な3作業ツリー
-  だけを作成し、輸送コミットの取り込みとclean確認直後に削除する。
-- 統合担当`line-style-selector`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/widgets/KoLineStyleSelector.cpp`、`KoLineStyleModel.cpp`、`KoLineStyleItemDelegate.cpp`、Widgets製品・試験CMake、新規
-  `KoLineStyleSelectorContractTest.cpp`を所有する。関連3実装を製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、
-  製品へ1回だけ再集約する。製品の756工程・1,541入力に代えて9工程・20入力以内で、親と仮想寿命、標準線種、登録済み・一時custom dash、
-  重複登録の全7 APIを固定する。
-- 実装担当`shape-transparency-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g39-shape-transparency-command`で
-  `libs/flake/commands/KoShapeTransparencyCommand.cpp`、Flake製品・試験CMake、新規`KoShapeTransparencyCommandContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の578工程・
-  1,188入力と既存近傍試験の582工程・1,195入力に代えて6工程・14入力以内で、3構築入口、redo・undo、識別子、統合、借用寿命の全9 APIを
-  固定する。
-- 実装担当`safe-transform`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g39-safe-transform`で`libs/image/kis_safe_transform.cpp`、
-  Image製品・試験CMake、新規`KisSafeTransformContractTest.cpp`を所有する。開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/
-  PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の1,132工程・2,288入力と既存変換試験の1,142工程・2,306入力に代えて6工程・
-  13入力以内で、前後方向の多角形・整数矩形・浮動小数矩形写像、始点・終点切抜き多角形、値寿命の全11 APIを固定する。
-- 実装担当`clickable-label`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g39-clickable-label`で
-  `libs/widgetutils/KisClickableLabel.cpp`、WidgetUtils製品・試験CMake、新規`KisClickableLabelContractTest.cpp`を所有する。開始ファイルを
-  製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の258工程・549入力に代えて
-  8工程・16入力以内で、親と仮想寿命、dismiss状態、click・dismiss通知、pixmap縮尺、高さ・推奨寸法の全13 APIを固定する。
-- 第39並列便の完了時は合計40 APIを追加し、公開面の対応済み7,324件、未対応22,665件を見込む。各担当は限定対象の単発・20回反復、軽量
-  隣接試験、公開記号、一重再集約、製品共有ライブラリー非接続、`verify-quick`を確認する。Linux、全ネイティブ検証、製品全体リンクは
-  対象外である。
-- 統合担当だけが中央文書と公開API台帳を変更する。許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない挙動を発見した
-  時点で`blocked`として引き渡す。
+- 第39並列便で線種選択、図形透明度命令、安全な射影変換、クリック可能ラベルの全40 APIを固定した。公開面は1,549ヘッダー、29,989 API、
+  対応済み7,324件、未対応22,665件である。
+- 4限定対象の結合構築、CTest 4/4、再実行時の無作業状態、公開API契約検査に成功した。各対象の20回反復、軽量隣接試験、公開記号、
+  一重再集約、製品共有ライブラリー非接続、`verify-quick`は各担当で成功している。
+- 統合済みの3専用作業ツリーと専用Ninja木をclean確認直後に削除した。主作業ツリーの永続増分構築木と共有コンパイラーキャッシュを再利用し、
+  輸送用ブランチを復旧手段として保持する。
+- 次の操作は未対応報告`build/tdd-macos/public-api-missing-g40.json`から第40並列便の候補を監査し、直接依存と限定構築閉包を先に測定する
+  ことである。
 
 ## 再開環境
 
@@ -10010,10 +9989,72 @@
 - 取り込み済み専用作業ツリー3件は作業木cleanを確認して直ちに削除し、約2.5 GBを解放した。輸送用ブランチは復旧手段として保持し、主作業
   ツリーの永続増分構築木と共有コンパイラーキャッシュは次便で再利用する。
 
+## R2-G19b 線種選択の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KoLineStyleSelector.h`の全7 APIを、新規`libs/widgets/tests/KoLineStyleSelectorContractTest.cpp`の4試験へ対応付けた。
+  widget親と基底経由の仮想寿命、NoPenからDashDotDotLineまでの標準線種、custom dashの一意登録と選択、未登録custom dashの一時項目、
+  標準線種への切替時の一時項目除去、範囲外線種の非変更を固定した。
+- 開始ファイル`libs/widgets/KoLineStyleSelector.cpp`、`libs/widgets/KoLineStyleModel.cpp`、
+  `libs/widgets/KoLineStyleItemDelegate.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応
+  `kritawidgetslinestyleselectorobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。限定試験は同生成物とQt Widgets・Testだけへ
+  接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は9工程・18入力で、製品の756工程・1,541入力から縮小した。対象CTest
+  単発と20回反復、最近傍`KisPaletteDelegateContractTest`、全公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。保護paint eventの画素、表示様式、極端なdash pattern、Qt 5、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b 図形透明度命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/commands/KoShapeTransparencyCommand.h`の全9 APIを、新規
+  `libs/flake/tests/KoShapeTransparencyCommandContractTest.cpp`の5試験へ対応付けた。3構築入口、構築時の旧透明度取得、入力値のコピー、複数
+  shapeのsetTransparency・update順、redo・undo・再redo、安定識別子、同じshape順だけの統合と新値置換、空一覧、親命令、操作名、借用shape、
+  基底経由の仮想寿命を固定した。
+- 開始ファイル`libs/flake/commands/KoShapeTransparencyCommand.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から
+  新規AUTOMOC不要/PIC対応`kritaflakeshapetransparencycommandobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。試験の偽shapeで
+  仮想`update()`だけを観測するため、試験時限定の非公開協調点を実装内に設け、透明度の取得と設定は従来どおりshape APIへ配送する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・12入力で、製品の578工程・1,188入力と既存近傍試験の582工程・
+  1,195入力から縮小した。対象CTest単発と20回反復、最近傍`KoShapeShearCommandContractTest`、全公開記号、一重再集約、製品共有ライブラリー
+  非接続、整形検査、`verify-quick`に成功した。shape数より短い個別値一覧、null shape、借用shapeの先行破棄、範囲外透明度、並行試験、
+  Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 安全な射影変換の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_safe_transform.h`の全11 APIを、新規`libs/image/tests/KisSafeTransformContractTest.cpp`の4試験へ対応付けた。恒等変換の
+  前後多角形・整数矩形・浮動矩形写像、返却値の独立寿命、平行移動と拡縮、整数整列の1画素許容、射影変換の始点・終点切抜き多角形を
+  固定した。非可逆アフィン変換で逆行列失敗が通知されず、Qtの恒等代替値により元座標を復元できない現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/image/kis_safe_transform.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規AUTOMOC不要/
+  PIC対応`kritaimagesafetransformobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。限定試験は同生成物、Qt Core・Gui・Test、
+  Boost headerだけへ直接接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。最初の挙動実行は整数逆変換の上端が浮動小数点整列で1画素拡張して失敗し、Qt版の
+  厳密丸めを固定しない許容契約へ修正した。限定対象は5工程・11入力で、製品の1,132工程・2,288入力と既存変換試験の1,142工程・2,306入力
+  から縮小した。対象CTest単発と20回反復、最近傍`KisPerspectiveMathContractTest`、全公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査、`verify-quick`に成功した。射影地平線、空境界、退化した射影行列、Qt固有の頂点順、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b クリック可能ラベルの全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KisClickableLabel.h`の全13 APIを、新規`libs/widgetutils/tests/KisClickableLabelContractTest.cpp`の5試験へ対応付けた。
+  親所有と基底経由の仮想寿命、初期dismissable状態と閉じるボタン、状態切替とdismiss通知、原寸pixmapの最大寸法・幅基準縮尺・再生成、
+  height-for-width、空の推奨寸法を固定した。mouse buttonを区別せず右buttonもclick通知する現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/widgetutils/KisClickableLabel.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の`kritawidgetutils_LIB_SRCS`直接収容から
+  新規AUTOMOC/PIC対応`kritawidgetutilsclickablelabelobjects`へ移し、製品`kritawidgetutils`は同生成物を1回だけ再集約する。未使用
+  `QBoxLayout` includeを除き、限定試験は同生成物、Qt Widgets・Test、試験内の決定的な`KisIconUtils::loadIcon()`だけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。最初のCTestは空pixmap寸法の有効・無効表現差で失敗し、意味上の空判定へ修正した。
+  限定対象は7工程・14入力で、製品の258工程・549入力から縮小した。対象CTest単発と20回反復、最近傍
+  `KisHighlightedToolButtonContractTest`、全公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。
+  基底mouse・resize eventへの非配送、null pixmap再設定、非正幅、OS固有画素、Qt 5、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+- 第39並列便は線種選択7 API、図形透明度命令9 API、安全な射影変換11 API、クリック可能ラベル13 APIの合計40 APIを固定した。各担当の
+  引渡しを統合順に取り込み、主作業木で4限定対象の結合構築・CTest 4/4・同時無作業再構築、必要な製品への一重再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,324件、未対応22,665件になった。
+- 取り込み済み専用作業ツリー3件は作業木cleanを確認して直ちに削除し、約2.5 GBを解放した。輸送用ブランチは復旧手段として保持し、主作業
+  ツリーの永続増分構築木と共有コンパイラーキャッシュは次便で再利用する。
+
 ## 次の操作
 
-第39並列便の担当別作業ツリーを共通基準から作成し、対象未登録の初回限定構築診断を主作業ツリーで記録する。各担当は直接依存と停止上限を
-再確認し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。
+未対応報告`build/tdd-macos/public-api-missing-g40.json`から重複しない4候補を監査する。公開宣言、実装、既存試験、CMake直接依存、限定対象の
+清浄木閉包を確認し、過大な閉包は挙動契約より先に分離する。第40並列便の担当票と停止上限を記録してから実装を開始する。
 
 ## R1-G5完了根拠
 

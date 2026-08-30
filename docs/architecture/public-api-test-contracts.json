@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22705
+    "expectedMissingApis": 22665
   },
   "contracts": [
     {
@@ -21863,6 +21863,223 @@
       "classification": "maintained",
       "apis": [
         "method:KisScreenMigrationTracker::sigScreenOrResolutionChanged(QScreen * screen)"
+      ]
+    },
+    {
+      "target": "KoLineStyleSelectorContractTest",
+      "source": "libs/widgets/tests/KoLineStyleSelectorContractTest.cpp",
+      "test": "KoLineStyleSelectorContractTest::followsParentOwnershipAndHasVirtualLifetime",
+      "behavior": "線種選択は指定widget親に所有され、親またはQComboBox基底経由の破棄で仮想寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoLineStyleSelector",
+        "method:KoLineStyleSelector::KoLineStyleSelector(QWidget * parent=0)",
+        "method:KoLineStyleSelector::~KoLineStyleSelector()"
+      ]
+    },
+    {
+      "target": "KoLineStyleSelectorContractTest",
+      "source": "libs/widgets/tests/KoLineStyleSelectorContractTest.cpp",
+      "test": "KoLineStyleSelectorContractTest::selectsStandardStyles",
+      "behavior": "線種選択はNoPenからDashDotDotLineまでの標準線種を初期順に保持し、指定した線種と対応dash patternを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoLineStyleSelector::lineDashes() const",
+        "method:KoLineStyleSelector::lineStyle() const",
+        "method:KoLineStyleSelector::setLineStyle(Qt::PenStyle style,const QVector<qreal> & dashes=QVector<qreal> ())"
+      ]
+    },
+    {
+      "target": "KoLineStyleSelectorContractTest",
+      "source": "libs/widgets/tests/KoLineStyleSelectorContractTest.cpp",
+      "test": "KoLineStyleSelectorContractTest::registersCustomStylesOnlyOnce",
+      "behavior": "新しいcustom dashを1回だけ永続登録して選択し、同じcustom値と標準線種の既存patternの重複登録を拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoLineStyleSelector::addCustomStyle(const QVector<qreal> & style)",
+        "method:KoLineStyleSelector::lineDashes() const",
+        "method:KoLineStyleSelector::lineStyle() const",
+        "method:KoLineStyleSelector::setLineStyle(Qt::PenStyle style,const QVector<qreal> & dashes=QVector<qreal> ())"
+      ]
+    },
+    {
+      "target": "KoLineStyleSelectorContractTest",
+      "source": "libs/widgets/tests/KoLineStyleSelectorContractTest.cpp",
+      "test": "KoLineStyleSelectorContractTest::temporarilySelectsUnknownCustomStyles",
+      "behavior": "未登録custom dashは一時項目として選択し、標準線種への切替時に除去する。範囲外の線種指定は現在の選択を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoLineStyleSelector::lineDashes() const",
+        "method:KoLineStyleSelector::lineStyle() const",
+        "method:KoLineStyleSelector::setLineStyle(Qt::PenStyle style,const QVector<qreal> & dashes=QVector<qreal> ())"
+      ]
+    },
+    {
+      "target": "KoShapeTransparencyCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransparencyCommandContractTest.cpp",
+      "test": "KoShapeTransparencyCommandContractTest::capturesUniformTransparencyAcrossUndoCycles",
+      "behavior": "複数shapeの旧透明度を構築時に取得し、親命令と操作名を保持したまま、redoで共通新値、undoでshapeごとの旧値、再redoで新値をsetTransparencyからupdateの順に適用する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeTransparencyCommand",
+        "method:KoShapeTransparencyCommand::KoShapeTransparencyCommand(const QList<KoShape * > & shapes,qreal transparency,KUndo2Command * parent=0)",
+        "method:KoShapeTransparencyCommand::id() const",
+        "method:KoShapeTransparencyCommand::redo()",
+        "method:KoShapeTransparencyCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeTransparencyCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransparencyCommandContractTest.cpp",
+      "test": "KoShapeTransparencyCommandContractTest::supportsSingleAndPerShapeValues",
+      "behavior": "単一shape入口とshape別値入口が構築時の旧値と入力値をコピーし、redoとundoで対応する値を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeTransparencyCommand::KoShapeTransparencyCommand(KoShape * shape,qreal transparency,KUndo2Command * parent=0)",
+        "method:KoShapeTransparencyCommand::KoShapeTransparencyCommand(const QList<KoShape * > & shapes,const QList<qreal> & transparencies,KUndo2Command * parent=0)",
+        "method:KoShapeTransparencyCommand::redo()",
+        "method:KoShapeTransparencyCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeTransparencyCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransparencyCommandContractTest.cpp",
+      "test": "KoShapeTransparencyCommandContractTest::mergesOnlyMatchingShapeSequences",
+      "behavior": "同じshapeを同じ順序で保持する透明度命令だけを統合して新値を置換し、順序違いと異種命令を拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeTransparencyCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KoShapeTransparencyCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransparencyCommandContractTest.cpp",
+      "test": "KoShapeTransparencyCommandContractTest::handlesEmptyShapeSequence",
+      "behavior": "空shape一覧では基底redo・undoだけを順に配送し、shape操作を発生させない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeTransparencyCommand::KoShapeTransparencyCommand(const QList<KoShape * > & shapes,qreal transparency,KUndo2Command * parent=0)",
+        "method:KoShapeTransparencyCommand::redo()",
+        "method:KoShapeTransparencyCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeTransparencyCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransparencyCommandContractTest.cpp",
+      "test": "KoShapeTransparencyCommandContractTest::keepsBorrowedShapeAndVirtualLifetime",
+      "behavior": "命令破棄は借用shapeの値や更新状態を変更せず、基底命令ポインター経由で派生と基底の破棄を各1回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeTransparencyCommand::~KoShapeTransparencyCommand()"
+      ]
+    },
+    {
+      "target": "KisSafeTransformContractTest",
+      "source": "libs/image/tests/KisSafeTransformContractTest.cpp",
+      "test": "KisSafeTransformContractTest::identityMappingReturnsValuesThatOutliveTransform",
+      "behavior": "恒等変換が多角形と整数・浮動矩形を前後方向とも不変に保ち、返した値が変換個体の破棄後も独立して保持される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSafeTransform",
+        "method:KisSafeTransform::KisSafeTransform(const QTransform & transform,const QRect & bounds,const QRect & srcInterestRect)",
+        "method:KisSafeTransform::~KisSafeTransform()"
+      ]
+    },
+    {
+      "target": "KisSafeTransformContractTest",
+      "source": "libs/image/tests/KisSafeTransformContractTest.cpp",
+      "test": "KisSafeTransformContractTest::affineMappingAppliesForwardAndInverseGeometry",
+      "behavior": "平行移動と拡縮を多角形および浮動矩形へ前後方向に適用し、整数矩形を整列誤差1画素以内で写像する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSafeTransform::mapBackward(const QPolygonF & p)",
+        "method:KisSafeTransform::mapForward(const QPolygonF & p)",
+        "method:KisSafeTransform::mapRectBackward(const QRect & rc)",
+        "method:KisSafeTransform::mapRectBackward(const QRectF & rc)",
+        "method:KisSafeTransform::mapRectForward(const QRect & rc)",
+        "method:KisSafeTransform::mapRectForward(const QRectF & rc)"
+      ]
+    },
+    {
+      "target": "KisSafeTransformContractTest",
+      "source": "libs/image/tests/KisSafeTransformContractTest.cpp",
+      "test": "KisSafeTransformContractTest::projectiveMappingClipsBothCoordinateSpaces",
+      "behavior": "射影変換が始点側と終点側に有限で閉じた切抜き多角形を生成し、代表領域を指定境界内へ許容誤差付きで写像する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSafeTransform::dstClipPolygon() const",
+        "method:KisSafeTransform::srcClipPolygon() const"
+      ]
+    },
+    {
+      "target": "KisSafeTransformContractTest",
+      "source": "libs/image/tests/KisSafeTransformContractTest.cpp",
+      "test": "KisSafeTransformContractTest::singularAffineUsesIdentityFallbackForBackwardMapping",
+      "behavior": "非可逆アフィン変換ではQtの恒等逆変換代替値を保持するため、前方向に潰れた多角形を逆写像しても元の座標を復元できない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisSafeTransform::mapBackward(const QPolygonF & p)"
+      ]
+    },
+    {
+      "target": "KisClickableLabelContractTest",
+      "source": "libs/widgetutils/tests/KisClickableLabelContractTest.cpp",
+      "test": "KisClickableLabelContractTest::ownsParentAndStartsDismissable",
+      "behavior": "ラベルは指定親に所有され、既定でdismissableな16pxの閉じるボタンと決定的なアイコンを持ち、QLabel基底経由でも仮想破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisClickableLabel",
+        "method:KisClickableLabel::KisClickableLabel(QWidget * parent=nullptr)",
+        "method:KisClickableLabel::~KisClickableLabel()"
+      ]
+    },
+    {
+      "target": "KisClickableLabelContractTest",
+      "source": "libs/widgetutils/tests/KisClickableLabelContractTest.cpp",
+      "test": "KisClickableLabelContractTest::dismissableStateControlsCloseButtonAndSignal",
+      "behavior": "dismissable状態の設定と取得が閉じるボタンの表示状態へ反映され、ボタン操作をdismissedとして正確に1回転送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisClickableLabel::dismissed()",
+        "method:KisClickableLabel::isDismissable()",
+        "method:KisClickableLabel::setDismissable(bool value=true)"
+      ]
+    },
+    {
+      "target": "KisClickableLabelContractTest",
+      "source": "libs/widgetutils/tests/KisClickableLabelContractTest.cpp",
+      "test": "KisClickableLabelContractTest::everyMouseButtonUsesTheCurrentClickContract",
+      "behavior": "ラベル上のmouse pressはbutton種別を区別せず、左クリックと右クリックの双方をclickedとして通知する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisClickableLabel::clicked()"
+      ]
+    },
+    {
+      "target": "KisClickableLabelContractTest",
+      "source": "libs/widgetutils/tests/KisClickableLabelContractTest.cpp",
+      "test": "KisClickableLabelContractTest::pixmapScalingUsesTheStoredUnscaledSource",
+      "behavior": "非nullの原寸pixmapを最大寸法として保持し、幅基準の縦横比と切上げ高さで縮尺し、明示更新とresize後にも原寸sourceから表示を再生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisClickableLabel::hasHeightForWidth() const",
+        "method:KisClickableLabel::heightForWidth(int w) const",
+        "method:KisClickableLabel::setUnscaledPixmap(QPixmap pixmap)",
+        "method:KisClickableLabel::updatePixmap()"
+      ]
+    },
+    {
+      "target": "KisClickableLabelContractTest",
+      "source": "libs/widgetutils/tests/KisClickableLabelContractTest.cpp",
+      "test": "KisClickableLabelContractTest::emptyPixmapKeepsTheCurrentSizingContract",
+      "behavior": "pixmap未設定時もheight-for-widthを有効にして現在高さを返し、minimumSizeHintとsizeHintは空寸法を返し、明示更新は空表示を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisClickableLabel::hasHeightForWidth() const",
+        "method:KisClickableLabel::heightForWidth(int w) const",
+        "method:KisClickableLabel::minimumSizeHint() const",
+        "method:KisClickableLabel::sizeHint() const",
+        "method:KisClickableLabel::updatePixmap()"
       ]
     }
   ]
