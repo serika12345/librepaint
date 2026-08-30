@@ -24,7 +24,6 @@ set(kritalibpaintop_LIB_SRCS
     KisMultiSensorsSelector.cpp
     KisMultiSensorsModel.cpp
     KisDynamicSensorFactoryRegistry.cpp
-    KisSimpleDynamicSensorFactory.cpp
     KisSpacingOptionWidget.cpp
     KisSpacingOptionData.cpp
     KisSpacingOptionModel.cpp
@@ -442,6 +441,7 @@ set_target_properties(kritapaintopsensorpackinterfaceobjects PROPERTIES
 
 add_library(kritapaintopdynamicsensorfactoryobjects OBJECT
     KisDynamicSensorFactory.cpp
+    KisSimpleDynamicSensorFactory.cpp
 )
 target_compile_definitions(kritapaintopdynamicsensorfactoryobjects PRIVATE
     kritaglobal_EXPORTS
