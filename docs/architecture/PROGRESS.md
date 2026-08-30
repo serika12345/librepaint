@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 16:44 JST
+- 更新日時: 2026-08-30 16:58 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -35,6 +35,24 @@
   `build/tdd-macos/public-api-missing-g53.json`だけを保持する。
 - 次の第53並列便は最新不足一覧から読み取り専用監査を行い、所有領域が重ならず、各公開面を一便で完了できる対象を選ぶ。
   候補の限定閉包と構造分離要否を確定して計画をコミットするまで、専用作業ツリーを作成しない。
+- 第53並列便は読み取り専用監査を完了し、表示色設定値12 API、描画済みdab値10 API、曲線範囲模型境界14 API、Android条件付き
+  設定通知6 APIの合計42 APIを選んだ。完了時の目標は対応済み7,772件、未対応22,217件である。
+- `KisOcioConfiguration`はheader-only値型として新規Qt Core/Test対象へ接続し、既存
+  `libs/canvas/tests/kis_display_color_transform_test.cpp`と同名ヘッダーの部分試験を
+  `libs/canvas/tests/KisOcioConfigurationContractTest.cpp`へ移す。限定閉包は4工程・8入力、停止上限5工程・11入力とし、
+  製品`kritacanvas` 1,193工程・2,406入力を維持する。広域試験の残存部分は主増分構築木で統合後に確認する。
+- `KisRenderedDab`はheader-only値型として、試験内に`KisFixedPaintDevice`の所有と矩形だけを提供する最小実体を置く。既存の
+  `kritaglobalsharedobjects`、`kritaimageoptimizedbytearrayobjects`、`kritaglobalrollingmeanobjects`だけを使い、限定閉包を
+  7工程・14入力、停止上限8工程・16入力に収め、製品`kritaimage` 1,169工程・2,362入力を維持する。
+- 開始ファイル`plugins/paintops/libpaintop/KisCurveRangeModelInterface.cpp`は`kritalibpaintop_LIB_SRCS`の直接収容から
+  `kritapaintopcurverangemodelinterfaceobjects`へ移し、製品へ一度だけ再集約する。限定閉包は5工程・11入力、停止上限
+  6工程・14入力とし、製品`kritapaintopruntime` 1,266工程・2,552入力と`kritalibpaintop` 2,076工程・4,150入力を維持する。
+- Android条件付き通知は`libs/global/kis_config_notifier.cpp`を製品へ集約しない試験専用
+  `kritaglobalconfignotifierandroidcontractobjects`として`Q_OS_ANDROID`条件付きで構築し、6通知APIの引数配送を固定する。
+  限定閉包は現行通知契約と同じ12工程・25入力、停止上限13工程・28入力とし、製品`kritaglobal` 68工程・136入力を維持する。
+- 統合担当だけが`docs/architecture/PROGRESS.md`と`docs/architecture/public-api-test-contracts.json`を更新する。3実装担当は
+  計画コミットを共通基点とし、中央文書を変更しない。各clean成果の統合直後に担当作業ツリーと担当ブランチを削除し、最大約2.46 GBの
+  一時領域を担当単位で順次解放する。次世代不足一覧の生成成功後に旧一覧を削除する。
 
 ## 再開環境
 
@@ -10742,9 +10760,10 @@
 
 ## 次の操作
 
-`build/tdd-macos/public-api-missing-g53.json`から第53並列便の候補を読み取り専用で監査する。公開ヘッダー、製品実装、試験CMake、
-製品集約先が担当間で重ならず、各公開面を一便で完了できる候補を選ぶ。各候補の直接依存、限定閉包、最近傍契約、構造分離要否、
-停止条件を確定して計画をコミットした後にだけ担当作業ツリーを作成する。
+第53並列便の計画コミットを共通基点として3担当作業ツリーを作成し、表示色設定値、描画済みdab値、曲線範囲模型境界を並列実装する。
+主作業ツリーではAndroid条件付き設定通知を実装する。各担当は未知対象診断、単発・20回反復CTest、軽量近傍、限定閉包、製品共有
+ライブラリー非接続、整形検査、`verify-quick`を確認し、中央台帳は変更しない。統合担当は各成果を取り込んで台帳を合算し、担当
+作業ツリーを直ちに削除した後、主増分構築木で4限定対象と4近傍を結合検査する。
 
 ## R1-G5完了根拠
 
