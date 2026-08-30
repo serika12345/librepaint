@@ -80,6 +80,15 @@ kis_add_test(
 target_compile_definitions(KisToolChangesTrackerDataContractTest PRIVATE kritatools_EXPORTS)
 
 kis_add_test(
+    KisToolChangesTrackerContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolschangestrackerobjects
+        kritatoolschangestrackerdataobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisToolChangesTrackerContractTest PRIVATE kritatools_EXPORTS)
+
+kis_add_test(
     KisRectangleInteractionContractTest.cpp
     LINK_LIBRARIES
         kritatoolsrectangleinteractionobjects

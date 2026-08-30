@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22372
+    "expectedMissingApis": 22360
   },
   "contracts": [
     {
@@ -23654,6 +23654,78 @@
       "classification": "maintained",
       "apis": [
         "method:KisImageConfigNotifier::~KisImageConfigNotifier()"
+      ]
+    },
+    {
+      "target": "KisToolChangesTrackerContractTest",
+      "source": "libs/tools/tests/KisToolChangesTrackerContractTest.cpp",
+      "test": "KisToolChangesTrackerContractTest::startsEmptyAndCommitsWithoutNotification",
+      "behavior": "変更追跡履歴は空でundo・redo不能かつ現在値なしとして開始し、最初の値を通知なしで現在値として強所有する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolChangesTracker",
+        "method:KisToolChangesTracker::KisToolChangesTracker()",
+        "method:KisToolChangesTracker::canRedo() const",
+        "method:KisToolChangesTracker::canUndo() const",
+        "method:KisToolChangesTracker::commitConfig(KisToolChangesTrackerDataSP state)",
+        "method:KisToolChangesTracker::isEmpty() const",
+        "method:KisToolChangesTracker::lastState() const"
+      ]
+    },
+    {
+      "target": "KisToolChangesTrackerContractTest",
+      "source": "libs/tools/tests/KisToolChangesTrackerContractTest.cpp",
+      "test": "KisToolChangesTrackerContractTest::undoAndRedoExposeTheCurrentState",
+      "behavior": "二つの変更値に対するundoとredoは現在値を前後へ移し、能力状態を更新して選択後の共有値を一回ずつ通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolChangesTracker::canRedo() const",
+        "method:KisToolChangesTracker::canUndo() const",
+        "method:KisToolChangesTracker::lastState() const",
+        "method:KisToolChangesTracker::requestRedo()",
+        "method:KisToolChangesTracker::requestUndo()",
+        "method:KisToolChangesTracker::sigConfigChanged(KisToolChangesTrackerDataSP state)"
+      ]
+    },
+    {
+      "target": "KisToolChangesTrackerContractTest",
+      "source": "libs/tools/tests/KisToolChangesTrackerContractTest.cpp",
+      "test": "KisToolChangesTrackerContractTest::commitAfterUndoClearsRedoHistory",
+      "behavior": "undo後に新しい変更値を確定するとredo履歴を破棄し、新しい値を現在値としてundo可能にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolChangesTracker::commitConfig(KisToolChangesTrackerDataSP state)"
+      ]
+    },
+    {
+      "target": "KisToolChangesTrackerContractTest",
+      "source": "libs/tools/tests/KisToolChangesTrackerContractTest.cpp",
+      "test": "KisToolChangesTrackerContractTest::undoWithOnlyOneStateMovesItToRedoWithoutNotification",
+      "behavior": "undo不能と報告する単一値状態でもundo要求は値をredo履歴へ移し、現在値を空にして通知を配送しない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisToolChangesTracker::canUndo() const",
+        "method:KisToolChangesTracker::requestUndo()"
+      ]
+    },
+    {
+      "target": "KisToolChangesTrackerContractTest",
+      "source": "libs/tools/tests/KisToolChangesTrackerContractTest.cpp",
+      "test": "KisToolChangesTrackerContractTest::resetClearsHistoryAndOwnership",
+      "behavior": "履歴のresetはundo・redo両履歴と保持する共有値を通知なしで解放し、初期の空状態へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolChangesTracker::reset()"
+      ]
+    },
+    {
+      "target": "KisToolChangesTrackerContractTest",
+      "source": "libs/tools/tests/KisToolChangesTrackerContractTest.cpp",
+      "test": "KisToolChangesTrackerContractTest::qObjectOwnershipDestroysDerivedTracker",
+      "behavior": "変更追跡履歴をQObject基底で所有して破棄すると派生個体のデストラクターを正確に一回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisToolChangesTracker::~KisToolChangesTracker()"
       ]
     }
   ]

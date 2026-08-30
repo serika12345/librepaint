@@ -148,11 +148,28 @@ set_target_properties(kritatoolschangestrackerdataobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatoolschangestrackerobjects OBJECT
+    KisToolChangesTracker.cpp
+)
+target_compile_definitions(kritatoolschangestrackerobjects PRIVATE kritatools_EXPORTS)
+target_include_directories(kritatoolschangestrackerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritatoolschangestrackerobjects
+    PUBLIC
+        kritatoolschangestrackerdataobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritatoolschangestrackerobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritatools_LIB_SRCS
     KisSelectionToolFactoryBase.cpp
     KisStabilizerDelayedPaintHelper.cpp
     KisToolPaintFactoryBase.cpp
-    KisToolChangesTracker.cpp
     kis_outline_interaction.cpp
     kis_painting_information_builder.cpp
     kis_polyline_interaction.cpp
@@ -171,6 +188,7 @@ kis_add_library(kritatools SHARED
     $<TARGET_OBJECTS:kritatoolsdelegatedtoolpolicyobjects>
     $<TARGET_OBJECTS:kritatoolssmoothingoptionsobjects>
     $<TARGET_OBJECTS:kritatoolschangestrackerdataobjects>
+    $<TARGET_OBJECTS:kritatoolschangestrackerobjects>
 )
 generate_export_header(kritatools BASE_NAME kritatools)
 
