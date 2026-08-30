@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22321
+    "expectedMissingApis": 22312
   },
   "contracts": [
     {
@@ -23996,6 +23996,60 @@
       "classification": "maintained",
       "apis": [
         "class:FontVariantNumericModel"
+      ]
+    },
+    {
+      "target": "KisBrushFactoryContractTest",
+      "source": "libs/brush/tests/KisBrushFactoryContractTest.cpp",
+      "test": "KisBrushFactoryContractTest::defaultIdentityAndNameRemainStable",
+      "behavior": "brush factoryの抽象基底は既定構築でき、派生IDを基底接続面から返し、未指定の表示名を空文字列として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBrushFactory",
+        "method:KisBrushFactory::KisBrushFactory()",
+        "method:KisBrushFactory::id() const",
+        "method:KisBrushFactory::name() const"
+      ]
+    },
+    {
+      "target": "KisBrushFactoryContractTest",
+      "source": "libs/brush/tests/KisBrushFactoryContractTest.cpp",
+      "test": "KisBrushFactoryContractTest::xmlCreationPreservesArgumentsAndReturn",
+      "behavior": "XML定義からのbrush生成はelementとresources interfaceを派生実装へ正確に1回配送し、派生実装のresource load結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushFactory::createBrush(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisBrushFactoryContractTest",
+      "source": "libs/brush/tests/KisBrushFactoryContractTest.cpp",
+      "test": "KisBrushFactoryContractTest::modelCreationPreservesArgumentsAndReturn",
+      "behavior": "brush modelからのbrush生成は固定modelとresources interfaceを派生実装へ正確に1回配送し、XML経路と区別できるresource load結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushFactory::createBrush(const KisBrushModel::BrushData & data,KisResourcesInterfaceSP resourcesInterface)"
+      ]
+    },
+    {
+      "target": "KisBrushFactoryContractTest",
+      "source": "libs/brush/tests/KisBrushFactoryContractTest.cpp",
+      "test": "KisBrushFactoryContractTest::modelDecodingAndSerializationPreserveArgumentsAndResults",
+      "behavior": "brush model復元はelementとresources interfaceを配送して派生modelを返し、XML直列化はdocument、書込みelement、modelを配送して派生実装の属性変更を呼出元へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushFactory::createBrushModel(const QDomElement & element,KisResourcesInterfaceSP resourcesInterface)",
+        "method:KisBrushFactory::toXML(QDomDocument & doc,QDomElement & element,const KisBrushModel::BrushData & model)"
+      ]
+    },
+    {
+      "target": "KisBrushFactoryContractTest",
+      "source": "libs/brush/tests/KisBrushFactoryContractTest.cpp",
+      "test": "KisBrushFactoryContractTest::baseOwnershipDestroysDerivedOnce",
+      "behavior": "brush factoryは基底所有から派生個体を正確に1回破棄する仮想寿命を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBrushFactory::~KisBrushFactory()"
       ]
     }
   ]
