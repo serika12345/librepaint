@@ -938,6 +938,25 @@ target_include_directories(KisBSpline1DContractTest PRIVATE
 )
 
 kis_add_test(
+    KisNUBSpline2DContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagenubspline2dobjects
+        kritaimagenonuniformbsplineengineobjects
+        kritaimageuniformbsplineengineobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisNUBSpline2DContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+target_include_directories(KisNUBSpline2DContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KisPaintOpPresetUpdateProxyContractTest.cpp
     LINK_LIBRARIES
         kritaimagepaintoppresetupdateproxyobjects

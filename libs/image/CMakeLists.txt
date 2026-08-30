@@ -437,6 +437,43 @@ set_target_properties(kritaimageuniformbsplineengineobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagenubspline2dobjects OBJECT
+   bsplines/kis_nu_bspline_2d.cpp
+)
+target_compile_definitions(kritaimagenubspline2dobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagenubspline2dobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bsplines>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagenubspline2dobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagenubspline2dobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimagenonuniformbsplineengineobjects OBJECT
+   3rdparty/einspline/nubasis.cpp
+   3rdparty/einspline/nubspline_create.cpp
+   3rdparty/einspline/nugrid.cpp
+)
+target_include_directories(kritaimagenonuniformbsplineengineobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/einspline>
+)
+set_target_properties(kritaimagenonuniformbsplineengineobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagebspline2dobjects OBJECT
    bsplines/kis_bspline_2d.cpp
 )
@@ -1645,7 +1682,6 @@ set(kritaimage_LIB_SRCS
    KisInterstrokeData.cpp
    kis_transform_worker.cc
    kis_perspectivetransform_worker.cpp
-   bsplines/kis_nu_bspline_2d.cpp
    kis_warptransform_worker.cc
    kis_cage_transform_worker.cpp
    kis_liquify_transform_worker.cpp
@@ -1706,9 +1742,6 @@ set(kritaimage_LIB_SRCS
 
 set(einspline_SRCS
    3rdparty/einspline/multi_bspline_create.cpp
-   3rdparty/einspline/nubasis.cpp
-   3rdparty/einspline/nubspline_create.cpp
-   3rdparty/einspline/nugrid.cpp
 )
 
 kis_add_library(kritaimage SHARED
@@ -1735,6 +1768,8 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagesafetransformobjects>
    $<TARGET_OBJECTS:kritaimagebspline1dobjects>
    $<TARGET_OBJECTS:kritaimageuniformbsplineengineobjects>
+   $<TARGET_OBJECTS:kritaimagenubspline2dobjects>
+   $<TARGET_OBJECTS:kritaimagenonuniformbsplineengineobjects>
    $<TARGET_OBJECTS:kritaimagebspline2dobjects>
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
