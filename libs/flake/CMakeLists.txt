@@ -261,6 +261,7 @@ set_target_properties(kritaflakeresourceupdatemediatorobjects PROPERTIES
 )
 
 add_library(kritaflakezoomstateobjects OBJECT
+    KoZoomMode.cpp
     KoZoomState.cpp
 )
 target_compile_definitions(kritaflakezoomstateobjects PRIVATE kritaflake_EXPORTS)
@@ -268,10 +269,15 @@ target_include_directories(kritaflakezoomstateobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
 )
 target_link_libraries(kritaflakezoomstateobjects
     PUBLIC
         Boost::boost
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
 )
 set_target_properties(kritaflakezoomstateobjects PROPERTIES
@@ -1049,7 +1055,6 @@ set(kritaflake_SRCS
     KoMarkerCollection.cpp
     KoToolBase.cpp
     KoCanvasController.cpp
-    KoZoomMode.cpp
     KoShapeRegistry.cpp
     KoToolFactoryBase.cpp
     KoPathShapeFactory.cpp
