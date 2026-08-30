@@ -55,6 +55,18 @@ target_include_directories(TestInputDevice PRIVATE
 target_compile_definitions(TestInputDevice PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoSnapDataContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakesnapdataobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoSnapDataContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoSnapDataContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     TestSvgParser.cpp
     TEST_NAME TestSvgParser
     LINK_LIBRARIES kritaflake kritatestsdk

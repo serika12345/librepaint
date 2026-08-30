@@ -334,6 +334,21 @@ set_target_properties(kritaflakeinputdeviceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakesnapdataobjects OBJECT
+    KoSnapData.cpp
+)
+target_compile_definitions(kritaflakesnapdataobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakesnapdataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakesnapdataobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakesnapdataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakesvgtransformparserobjects OBJECT
     svg/parsers/SvgTransformParser.cpp
 )
@@ -1110,7 +1125,6 @@ set(kritaflake_SRCS
     KoSnapGuide.cpp
     KoSnapProxy.cpp
     KoSnapStrategy.cpp
-    KoSnapData.cpp
     KoClipMaskApplicatorBase.cpp
     ${__per_arch_alpha_applicator_factory_objs}
     KoClipMaskPainter.cpp
@@ -1244,6 +1258,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeviewtransformstillpointobjects>
     $<TARGET_OBJECTS:kritaflakeviewconverterobjects>
     $<TARGET_OBJECTS:kritaflakeinputdeviceobjects>
+    $<TARGET_OBJECTS:kritaflakesnapdataobjects>
     $<TARGET_OBJECTS:kritaflakesvgtransformparserobjects>
     $<TARGET_OBJECTS:kritaflakesvgmeshpatchobjects>
     $<TARGET_OBJECTS:kritaflakesvgmesharrayobjects>
