@@ -14,6 +14,8 @@ BUILD_SCRIPT = REPO_ROOT / "scripts" / "build-incremental"
 RUN_TEST_SCRIPT = REPO_ROOT / "scripts" / "run-test"
 VERIFY_SCRIPT = REPO_ROOT / "scripts" / "verify"
 SHARED_TEST_ENV_SCRIPT = REPO_ROOT / "scripts" / "run-shared-test-env"
+CHECK_ARCHITECTURE_SCRIPT = REPO_ROOT / "scripts" / "docs" / "check-architecture.sh"
+RENDER_ARCHITECTURE_SCRIPT = REPO_ROOT / "scripts" / "docs" / "render-architecture.sh"
 BASH = shutil.which("bash")
 
 
@@ -48,6 +50,12 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         self.assertIn("use flake .#test", envrc)
         self.assertIn("PATH_add scripts", envrc)
         self.assertIn("watch_file CMakePresets.json", envrc)
+
+    def test_architecture_scripts_use_portable_environment_unsetting(self):
+        for script in (CHECK_ARCHITECTURE_SCRIPT, RENDER_ARCHITECTURE_SCRIPT):
+            contents = script.read_text(encoding="utf-8")
+            self.assertIn("env -u DEBUG d2", contents)
+            self.assertNotIn("env --unset=DEBUG", contents)
 
     def test_native_path_uses_the_host_tdd_tree(self):
         result = self.run_build_script("native", "path")
