@@ -178,3 +178,14 @@ target_compile_definitions(KisSensorDataContractTest PRIVATE
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
 )
+
+kis_add_test(
+    KisSensorPackInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopsensorpackinterfaceobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisSensorPackInterfaceContractTest PRIVATE
+    kritalibpaintop_EXPORTS
+)

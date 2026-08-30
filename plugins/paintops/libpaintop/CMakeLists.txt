@@ -13,7 +13,6 @@ set(kritalibpaintop_LIB_SRCS
     kis_color_source_option.cpp
     KisCurveOptionDataUniformProperty.cpp
     KisSensorData.cpp
-    KisSensorPackInterface.cpp
     KisKritaSensorPack.cpp
     KisCurveOptionDataCommon.cpp
     KisCurveOptionData.cpp
@@ -125,7 +124,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisRotationOption.cpp
     KisScatterOption.cpp
     KisScatterOptionData.cpp
-    KisSensorPackInterface.cpp
     KisSharpnessOption.cpp
     KisSharpnessOptionData.cpp
     KisSizeOptionData.cpp
@@ -423,9 +421,30 @@ set_target_properties(kritapaintopsensordataobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopsensorpackinterfaceobjects OBJECT
+    KisSensorPackInterface.cpp
+)
+target_compile_definitions(kritapaintopsensorpackinterfaceobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopsensorpackinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopsensorpackinterfaceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritapaintopsensorpackinterfaceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopairbrushoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopsensorpackinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
 )
 target_compile_definitions(kritapaintopruntime PRIVATE kritalibpaintop_EXPORTS)
