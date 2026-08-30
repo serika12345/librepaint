@@ -156,6 +156,7 @@ kis_add_test(
     KisUpdateCommandExContractTest.cpp
     LINK_LIBRARIES
         kritaimageupdatecommandexobjects
+        kritaimageupdatecommandobjects
         kritapaintingundokundo2coreobjects
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core

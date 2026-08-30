@@ -3,7 +3,16 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <QRect>
+
+class KisNode
+{
+public:
+    void setDirty(const QRect &rect);
+};
+
 #include "commands_new/KisUpdateCommandEx.h"
+#include "commands_new/kis_update_command.h"
 #include "kis_image_interfaces.h"
 
 #include <QTest>
@@ -18,6 +27,7 @@ namespace
 
 struct NodeToken {
     int references = 0;
+    QVector<QRect> dirtyRects;
 };
 
 KisNode *nodePointer(NodeToken *token)
@@ -160,6 +170,11 @@ bool kisSharedPtrRelease(KisNode *node)
     return true;
 }
 
+void KisNode::setDirty(const QRect &rect)
+{
+    nodeToken(this)->dirtyRects.append(rect);
+}
+
 namespace KisCommandUtils
 {
 
@@ -228,6 +243,10 @@ private Q_SLOTS:
     void initializingUndoDispatchesUpdatesInInsertionOrder();
     void cookieBlocksDirectPartBUntilItExpires();
     void commandOwnsBatchAndBorrowsFacade();
+    void valueRectUpdateCopiesRectAndRunsOnRedoAndUndo();
+    void sharedRectUpdateReadsCurrentRectOnRedoAndUndo();
+    void fullRefreshRoutesThroughFacadeOnRedoAndUndo();
+    void updateCommandOwnsNodeAndSharedRectAndBorrowsFacade();
 };
 
 void KisUpdateCommandExContractTest::finalizingRedoDispatchesUpdatesInInsertionOrder()
@@ -321,6 +340,87 @@ void KisUpdateCommandExContractTest::commandOwnsBatchAndBorrowsFacade()
     QVERIFY(weakBatch.toStrongRef().isNull());
     QCOMPARE(firstNode.references, 0);
     QCOMPARE(secondNode.references, 0);
+    QVERIFY(!facadeDestroyed);
+
+    delete facade;
+    QVERIFY(facadeDestroyed);
+}
+
+void KisUpdateCommandExContractTest::valueRectUpdateCopiesRectAndRunsOnRedoAndUndo()
+{
+    NodeToken node;
+    QRect dirtyRect(3, 5, 7, 11);
+    const QRect capturedRect = dirtyRect;
+    RecordingUpdatesFacade facade;
+    KisUpdateCommand command(KisNodeSP(nodePointer(&node)), dirtyRect, &facade);
+
+    dirtyRect = QRect(13, 17, 19, 23);
+
+    QCOMPARE(command.text().toString(), QStringLiteral("UPDATE_COMMAND"));
+    command.redo();
+    command.undo();
+
+    QCOMPARE(node.dirtyRects, QVector<QRect>({capturedRect, capturedRect}));
+    QVERIFY(facade.refreshCalls.isEmpty());
+}
+
+void KisUpdateCommandExContractTest::sharedRectUpdateReadsCurrentRectOnRedoAndUndo()
+{
+    NodeToken node;
+    const QRect redoRect(29, 31, 37, 41);
+    const QRect undoRect(43, 47, 53, 59);
+    QSharedPointer<QRect> dirtyRect = QSharedPointer<QRect>::create(redoRect);
+    RecordingUpdatesFacade facade;
+    KisUpdateCommand command(KisNodeSP(nodePointer(&node)), dirtyRect, &facade);
+
+    command.redo();
+    *dirtyRect = undoRect;
+    command.undo();
+
+    QCOMPARE(node.dirtyRects, QVector<QRect>({redoRect, undoRect}));
+    QVERIFY(facade.refreshCalls.isEmpty());
+}
+
+void KisUpdateCommandExContractTest::fullRefreshRoutesThroughFacadeOnRedoAndUndo()
+{
+    NodeToken node;
+    QRect dirtyRect(61, 67, 71, 73);
+    const QRect capturedRect = dirtyRect;
+    RecordingUpdatesFacade facade;
+    KisUpdateCommand command(KisNodeSP(nodePointer(&node)), dirtyRect, &facade, true);
+
+    dirtyRect = QRect(79, 83, 89, 97);
+
+    command.redo();
+    command.undo();
+
+    QVERIFY(node.dirtyRects.isEmpty());
+    QCOMPARE(facade.refreshCalls.size(), 2);
+    compareRefresh(facade, 0, nodePointer(&node), capturedRect);
+    compareRefresh(facade, 1, nodePointer(&node), capturedRect);
+}
+
+void KisUpdateCommandExContractTest::updateCommandOwnsNodeAndSharedRectAndBorrowsFacade()
+{
+    NodeToken node;
+    bool facadeDestroyed = false;
+    auto *facade = new RecordingUpdatesFacade(&facadeDestroyed);
+    KisNodeSP externalNode(nodePointer(&node));
+    QSharedPointer<QRect> sharedRect = QSharedPointer<QRect>::create(101, 103, 107, 109);
+    const QWeakPointer<QRect> weakRect(sharedRect);
+
+    QCOMPARE(node.references, 1);
+    KUndo2Command *command = new KisUpdateCommand(externalNode, sharedRect, facade);
+    QCOMPARE(node.references, 2);
+
+    externalNode.clear();
+    sharedRect.clear();
+    QCOMPARE(node.references, 1);
+    QVERIFY(!weakRect.isNull());
+
+    delete command;
+    QCOMPARE(node.references, 0);
+    QVERIFY(weakRect.isNull());
     QVERIFY(!facadeDestroyed);
 
     delete facade;
