@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22008
+    "expectedMissingApis": 21983
   },
   "contracts": [
     {
@@ -25822,6 +25822,137 @@
       "classification": "maintained",
       "apis": [
         "method:KisTileCompressorFactory::create(qint32 version)"
+      ]
+    },
+    {
+      "target": "TestKoZoomAction",
+      "source": "libs/widgets/tests/TestKoZoomAction.cpp",
+      "test": "TestKoZoomAction::testTypeAndConstruction",
+      "behavior": "拡大率操作状態は公開tuple別名と6状態値を保持し、指定範囲から標準・表示・実表示水準と現在位置・表示文字列を構築する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoZoomActionState::ZoomItem",
+        "class:KoZoomActionState",
+        "member:KoZoomActionState::currentRealLevelIndex",
+        "member:KoZoomActionState::currentRealLevelText",
+        "member:KoZoomActionState::guiLevels",
+        "member:KoZoomActionState::realGuiLevels",
+        "member:KoZoomActionState::standardLevels",
+        "member:KoZoomActionState::zoomState",
+        "method:KoZoomActionState::KoZoomActionState(const KoZoomState & state)"
+      ]
+    },
+    {
+      "target": "TestKoZoomAction",
+      "source": "libs/widgets/tests/TestKoZoomAction.cpp",
+      "test": "TestKoZoomAction::testStateTransitions",
+      "behavior": "拡大率状態更新は範囲変更時だけ標準水準を再生成し、mode・倍率へ応じた実表示水準、現在位置、表示文字列を更新する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoZoomActionState::currentRealLevelIndex",
+        "member:KoZoomActionState::currentRealLevelText",
+        "member:KoZoomActionState::guiLevels",
+        "member:KoZoomActionState::realGuiLevels",
+        "member:KoZoomActionState::standardLevels",
+        "member:KoZoomActionState::zoomState",
+        "method:KoZoomActionState::setZoomState(const KoZoomState & state)"
+      ]
+    },
+    {
+      "target": "TestKoZoomAction",
+      "source": "libs/widgets/tests/TestKoZoomAction.cpp",
+      "test": "TestKoZoomAction::testNearestStandardLevels",
+      "behavior": "標準水準の近傍探索は下限・一致・許容差近傍・中間・上限超過を現行のlower-bound規則へ写像し、引数なし版は現在倍率を使う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomActionState::calcNearestStandardLevel() const",
+        "method:KoZoomActionState::calcNearestStandardLevel(qreal zoom) const"
+      ]
+    },
+    {
+      "target": "TestKoZoomAction",
+      "source": "libs/widgets/tests/TestKoZoomAction.cpp",
+      "test": "TestKoZoomAction::testDebugOutput",
+      "behavior": "拡大率表示項目のdebug出力は型名、mode、倍率、Unicode文字列を現行順序で出力する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoZoomActionState::ZoomItem & item)"
+      ]
+    },
+    {
+      "target": "KoSnapDataContractTest",
+      "source": "libs/flake/tests/KoSnapDataContractTest.cpp",
+      "test": "KoSnapDataContractTest::defaultsToEmptyListsAndReleasesOwnedValuesAtDestruction",
+      "behavior": "snap補助データは空のpoint・segment列を既定とし、保持した線分値を所有者の破棄時に解放する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSnapData",
+        "method:KoSnapData::KoSnapData()",
+        "method:KoSnapData::~KoSnapData()"
+      ]
+    },
+    {
+      "target": "KoSnapDataContractTest",
+      "source": "libs/flake/tests/KoSnapDataContractTest.cpp",
+      "test": "KoSnapDataContractTest::pointListsPreserveOrderReplaceAndDetachFromCopies",
+      "behavior": "snap point列は入力順を値として複製し、入力と戻り値の変更から独立したまま後続設定で列全体を置換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapData::setSnapPoints(const QList<QPointF> & snapPoints)",
+        "method:KoSnapData::snapPoints() const"
+      ]
+    },
+    {
+      "target": "KoSnapDataContractTest",
+      "source": "libs/flake/tests/KoSnapDataContractTest.cpp",
+      "test": "KoSnapDataContractTest::segmentListsPreserveOrderReplaceAndDetachFromCopies",
+      "behavior": "snap segment列は入力順を値として複製し、入力と戻り値の変更から独立したまま後続設定で列全体を置換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSnapData::setSnapSegments(const QList<KoPathSegment> & snapSegments)",
+        "method:KoSnapData::snapSegments() const"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::polygonalRectangleCalculatesStableCenters",
+      "behavior": "矩形pathの多角形勾配中心探索は4標本・指数2で最大側と最小側の現行内部点を決定的に返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPolygonalGradientShapeStrategy::testingCalculatePathCenter(int numSamples,const QPainterPath & path,qreal exponent,bool searchForMax)"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::polygonalRectangleHasStableValues",
+      "behavior": "矩形pathの多角形勾配は内部を正値、外部を0とし、対称点と反復照会で同じ値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPolygonalGradientShapeStrategy",
+        "method:KisPolygonalGradientShapeStrategy::KisPolygonalGradientShapeStrategy(const QPainterPath & selectionPath,qreal exponent)",
+        "method:KisPolygonalGradientShapeStrategy::valueAt(double x,double y) const"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::polygonalStrategyOwnsInputPath",
+      "behavior": "多角形勾配戦略は構築時の入力pathを値として保持し、呼出し側の後続変更から計算結果を独立させる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPolygonalGradientShapeStrategy::KisPolygonalGradientShapeStrategy(const QPainterPath & selectionPath,qreal exponent)"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::polygonalStrategyHasVirtualLifetime",
+      "behavior": "多角形勾配戦略は基底所有からの解放で派生destructorを通り、個体寿命を一度終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPolygonalGradientShapeStrategy::~KisPolygonalGradientShapeStrategy()"
       ]
     }
   ]
