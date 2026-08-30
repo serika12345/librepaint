@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22392
+    "expectedMissingApis": 22388
   },
   "contracts": [
     {
@@ -23513,6 +23513,28 @@
         "method:KisDitherOp::sourceDepthId() const",
         "method:KisDitherOp::type() const",
         "method:KisDitherOp::~KisDitherOp()"
+      ]
+    },
+    {
+      "target": "KisToolChangesTrackerDataContractTest",
+      "source": "libs/tools/tests/KisToolChangesTrackerDataContractTest.cpp",
+      "test": "KisToolChangesTrackerDataContractTest::baseCloneCreatesAnIndependentValue",
+      "behavior": "変更追跡値の基底複製は元個体と異なる有効な新規個体を返し、呼出元へ所有権を移す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisToolChangesTrackerData",
+        "method:KisToolChangesTrackerData::clone() const"
+      ]
+    },
+    {
+      "target": "KisToolChangesTrackerDataContractTest",
+      "source": "libs/tools/tests/KisToolChangesTrackerDataContractTest.cpp",
+      "test": "KisToolChangesTrackerDataContractTest::sharedAliasIsRegisteredAndOwnsVirtualLifetime",
+      "behavior": "共有所有別名はQtメタ型名へ登録され、QVariant内の最後の強参照を解放すると基底所有の派生値を正確に1回破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisToolChangesTrackerDataSP",
+        "method:KisToolChangesTrackerData::~KisToolChangesTrackerData()"
       ]
     }
   ]
