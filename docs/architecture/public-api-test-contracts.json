@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22195
+    "expectedMissingApis": 22178
   },
   "contracts": [
     {
@@ -24707,6 +24707,148 @@
       "classification": "maintained",
       "apis": [
         "method:KisLayerCollapseCommand::mergeWith(const KUndo2Command * other)"
+      ]
+    },
+    {
+      "target": "TextTransformModelContractTest",
+      "source": "libs/flake/tests/TextTransformModelContractTest.cpp",
+      "test": "TextTransformModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "文字変形模型は変形なし、全角無効、かな全字形無効の既定状態を所有し、3項目を読取り、書込み、変更通知が可能なQtプロパティとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TextTransformModel",
+        "member:TextTransformModel::data",
+        "method:TextTransformModel::LAGER_QT_CURSOR(bool,fullSizeKana)",
+        "method:TextTransformModel::LAGER_QT_CURSOR(bool,fullWidth)",
+        "method:TextTransformModel::LAGER_QT_CURSOR(int,capitals)",
+        "method:TextTransformModel::TextTransformModel(lager::cursor<KoSvgText::TextTransformInfo> _data=lager::make_state (KoSvgText::TextTransformInfo (),lager::automatic_tag{}))"
+      ]
+    },
+    {
+      "target": "TextTransformModelContractTest",
+      "source": "libs/flake/tests/TextTransformModelContractTest.cpp",
+      "test": "TextTransformModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入した文字変形cursorの一括変更は3プロパティと通知へ同期し、各プロパティからの変更は同じcursorへ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "member:TextTransformModel::data",
+        "method:TextTransformModel::LAGER_QT_CURSOR(bool,fullSizeKana)",
+        "method:TextTransformModel::LAGER_QT_CURSOR(bool,fullWidth)",
+        "method:TextTransformModel::LAGER_QT_CURSOR(int,capitals)",
+        "method:TextTransformModel::TextTransformModel(lager::cursor<KoSvgText::TextTransformInfo> _data=lager::make_state (KoSvgText::TextTransformInfo (),lager::automatic_tag{}))"
+      ]
+    },
+    {
+      "target": "TextTransformModelContractTest",
+      "source": "libs/flake/tests/TextTransformModelContractTest.cpp",
+      "test": "TextTransformModelContractTest::validCapitalModesAndBooleanFlagsRoundTripIndependently",
+      "behavior": "文字変形模型は大文字小文字変形の宣言済み4値と全角・かな全字形の真偽値を個別に往復し、変更していない項目を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TextTransformModel::LAGER_QT_CURSOR(bool,fullSizeKana)",
+        "method:TextTransformModel::LAGER_QT_CURSOR(bool,fullWidth)",
+        "method:TextTransformModel::LAGER_QT_CURSOR(int,capitals)"
+      ]
+    },
+    {
+      "target": "TextTransformModelContractTest",
+      "source": "libs/flake/tests/TextTransformModelContractTest.cpp",
+      "test": "TextTransformModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "文字変形模型をQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TextTransformModel"
+      ]
+    },
+    {
+      "target": "KisUpdateOutlineJobContractTest",
+      "source": "libs/image/tests/KisUpdateOutlineJobContractTest.cpp",
+      "test": "KisUpdateOutlineJobContractTest::constructionRetainsSelectionAndReportsSchedulingMetadata",
+      "behavior": "選択輪郭更新ジョブは選択を強参照で保持し、詳細度0、固定デバッグ名、非排他の実行情報を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUpdateOutlineJob",
+        "method:KisUpdateOutlineJob::KisUpdateOutlineJob(KisSelectionSP selection,bool updateThumbnail,const QColor & maskColor)",
+        "method:KisUpdateOutlineJob::debugName() const",
+        "method:KisUpdateOutlineJob::levelOfDetail() const"
+      ]
+    },
+    {
+      "target": "KisUpdateOutlineJobContractTest",
+      "source": "libs/image/tests/KisUpdateOutlineJobContractTest.cpp",
+      "test": "KisUpdateOutlineJobContractTest::runWithoutThumbnailRefreshesOutlineThenNotifies",
+      "behavior": "サムネイル更新を指定しない実行は選択輪郭キャッシュを再計算してから選択変更を通知し、サムネイルを更新しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateOutlineJob::run()"
+      ]
+    },
+    {
+      "target": "KisUpdateOutlineJobContractTest",
+      "source": "libs/image/tests/KisUpdateOutlineJobContractTest.cpp",
+      "test": "KisUpdateOutlineJobContractTest::runWithThumbnailPreservesColorAndOperationOrder",
+      "behavior": "サムネイル更新を指定した実行は輪郭、指定マスク色のサムネイル、選択変更通知の順に処理する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateOutlineJob::run()"
+      ]
+    },
+    {
+      "target": "KisUpdateOutlineJobContractTest",
+      "source": "libs/image/tests/KisUpdateOutlineJobContractTest.cpp",
+      "test": "KisUpdateOutlineJobContractTest::overrideDecisionUsesConcreteJobType",
+      "behavior": "選択輪郭更新ジョブは選択個体とサムネイル指定にかかわらず同じ具体ジョブ型を上書き対象とし、異型とnullを拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateOutlineJob::overrides(const KisSpontaneousJob * otherJob)"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionModelContractTest.cpp",
+      "test": "KisMirrorOptionModelContractTest::injectedCursorAndQtPropertiesRemainStable",
+      "behavior": "ミラー設定模型は接頭辞を保持した既定無効の注入cursorを所有し、水平・垂直設定を読取り、書込み、変更通知が可能なQtプロパティとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMirrorOptionModel",
+        "member:KisMirrorOptionModel::mirrorOptionData",
+        "method:KisMirrorOptionModel::KisMirrorOptionModel(lager::cursor<KisMirrorOptionMixIn> optionData)",
+        "method:KisMirrorOptionModel::LAGER_QT_CURSOR(bool,enableHorizontalMirror)",
+        "method:KisMirrorOptionModel::LAGER_QT_CURSOR(bool,enableVerticalMirror)"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionModelContractTest.cpp",
+      "test": "KisMirrorOptionModelContractTest::externalStateUpdatesBothProperties",
+      "behavior": "ミラー設定cursorの外部更新は水平・垂直プロパティと各変更通知へ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMirrorOptionModel::mirrorOptionData",
+        "method:KisMirrorOptionModel::LAGER_QT_CURSOR(bool,enableHorizontalMirror)",
+        "method:KisMirrorOptionModel::LAGER_QT_CURSOR(bool,enableVerticalMirror)"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionModelContractTest.cpp",
+      "test": "KisMirrorOptionModelContractTest::settersUpdateFieldsIndependently",
+      "behavior": "水平・垂直ミラーの生成setterとQtプロパティ書込みは元cursorへ個別に同期し、接頭辞と変更していない設定を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisMirrorOptionModel::mirrorOptionData",
+        "method:KisMirrorOptionModel::LAGER_QT_CURSOR(bool,enableHorizontalMirror)",
+        "method:KisMirrorOptionModel::LAGER_QT_CURSOR(bool,enableVerticalMirror)"
+      ]
+    },
+    {
+      "target": "KisMirrorOptionModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisMirrorOptionModelContractTest.cpp",
+      "test": "KisMirrorOptionModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "ミラー設定模型をQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMirrorOptionModel"
       ]
     }
   ]

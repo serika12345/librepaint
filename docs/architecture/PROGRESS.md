@@ -2,77 +2,47 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 17:56 JST
+- 更新日時: 2026-08-30 18:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第55並列便の担当票
-
-- `g55-text-transform`は状態`implementing`、基準`0b01ddd939e1b56f68a563a7c5822a36aa9a83e8`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g55-text-transform`である。目的は字体変換のcapital、全角、仮名寸法の既定値、独立性、
-  cursorとQt propertyの双方向同期、QObject寿命を固定することである。対象は`libs/flake/text/lager/TextTransformModel.h`のclass、
-  data、constructor、fullSizeKana・fullWidth・capitalsの3 `LAGER_QT_CURSOR`の全6 APIである。変更許可は
-  `libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規`libs/flake/tests/TextTransformModelContractTest.cpp`に限る。
-  開始ファイル`libs/flake/text/lager/TextTransformModel.cpp`の直接収容を`kritaflaketexttransformmodelobjects`へ移し、製品へ
-  一度だけ再集約する。近傍は`FontVariantEastAsianModelContractTest`、対象macOS、共有cache`.cache/librepaint/ccache/native`、
-  構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件8工程・16入力、製品`kritaflake`
-  606工程・1,244入力超過、製品共有ライブラリー接続、または許可外変更である。
-- `g55-update-outline`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g55-update-outline`である。目的は選択outline更新jobの所有、名称、LOD、outline・thumbnail・通知の
-  実行順、同型jobの上書き判定を固定することである。対象は`libs/image/kis_update_outline_job.h`のclass、constructor、`debugName`、
-  `levelOfDetail`、`overrides`、`run`の全6 APIである。変更許可は`libs/image/CMakeLists.txt`、
-  `libs/image/kis_update_outline_job.{h,cpp}`、新規`libs/image/KisUpdateOutlineJobSelectionAccess_p.h`と
-  `libs/image/KisUpdateOutlineJobSelectionAccess.cpp`、`libs/image/tests/CMakeLists.txt`、新規
-  `libs/image/tests/KisUpdateOutlineJobContractTest.cpp`に限る。開始ファイル`libs/image/kis_update_outline_job.cpp`の直接収容を
-  `kritaimageupdateoutlinejobobjects`へ移し、具体selection操作を同ファイルから非公開selection access 2ファイルと対応objectへ移して
-  製品へ各一度だけ再集約する。近傍は`KisSelectionComponentContractTest`と`KisNodeUuidInfoContractTest`、対象macOS、共有cache同上、
-  構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・14入力、製品`kritaimage`
-  1,173工程・2,370入力超過、別selection同型jobの現行上書き判定を維持契約に分類できない場合、または製品共有ライブラリー接続である。
-- `g55-mirror-model`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g55-mirror-model`である。目的はmirror設定模型のprefix、水平・垂直の既定値と独立性、
-  cursorとQt propertyの双方向同期、QObject寿命を固定することである。対象は
-  `plugins/paintops/libpaintop/KisMirrorOptionModel.h`のclass、mirrorOptionData、constructor、水平・垂直の2 `LAGER_QT_CURSOR`の全5 APIである。
-  変更許可は`plugins/paintops/libpaintop/CMakeLists.txt`、同`tests/CMakeLists.txt`、新規
-  `plugins/paintops/libpaintop/tests/KisMirrorOptionModelContractTest.cpp`に限る。開始ファイル
-  `plugins/paintops/libpaintop/KisMirrorOptionModel.cpp`の直接収容を`kritapaintopmirroroptionmodelobjects`へ移し、製品へ一度だけ
-  再集約する。近傍は`KisCurveRangeModelInterfaceContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限
-  `transport-commit`、追加委任`forbidden`、統合順3、停止条件8工程・18入力、製品`kritalibpaintop` 2,081工程・4,160入力超過、
-  `kritapaintopruntime` 1,269工程・2,558入力増加、追加製品object、または製品共有ライブラリー接続である。
-- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、
-  進捗、担当間のCMake非重複、容量削除を所有する。完了目標は17 API純増の対応済み7,811件、未対応22,178件である。
-
 ### 現在の結果
 
-- 第54並列便は東アジア字体模型6 API、画像patch 8 API、node識別情報8 APIの合計22 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み7,794件、未対応22,195件である。
-- `libs/flake/text/lager/FontVariantEastAsianModel.cpp`の構築所有は`kritaflake_SRCS`の直接収容から
-  `kritaflakefontvarianteastasianmodelobjects`へ移し、製品へ一度だけ再集約した。
-  `libs/canvas/kis_image_patch.cpp`は`kritacanvas_LIB_SRCS`の直接収容から`kritacanvasimagepatchobjects`へ同様に移した。
-- `libs/image/kis_node_uuid_info.cpp`は`kritaimage_LIB_SRCS`の直接収容から`kritaimagenodeuuidinfoobjects`へ移した。具体node操作は
-  同ファイルから`libs/image/KisNodeUuidInfoNodeAccess.cpp`と`libs/image/KisNodeUuidInfoNodeAccess_p.h`へ移し、
-  `kritaimagenodeuuidinfonodeaccessobjects`として製品へ一度だけ再集約した。公開headerの具体`kis_node.h`依存は`kis_types.h`へ縮小した。
+- 第55並列便は文字変形模型6 API、選択輪郭更新ジョブ6 API、ミラー設定模型5 APIの合計17 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,811件、未対応22,178件である。
+- `libs/flake/text/lager/TextTransformModel.cpp`の構築所有は`kritaflake_SRCS`の直接収容から
+  `kritaflaketexttransformmodelobjects`へ移し、同じ開始ファイルを製品`kritaflake`へ一度だけ再集約した。
+  `libs/flake/tests/TextTransformModelContractTest.cpp`がcapital全4値、全角、かな全字形、cursorとQt propertyの双方向同期、
+  独立更新、QObject寿命を固定する。
+- `libs/image/kis_update_outline_job.cpp`の構築所有は`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimageupdateoutlinejobobjects`へ移した。同じ開始ファイル内の具体選択操作を
+  `libs/image/KisUpdateOutlineJobSelectionAccess.cpp`と`libs/image/KisUpdateOutlineJobSelectionAccess_p.h`へ移し、
+  `kritaimageupdateoutlinejobselectionaccessobjects`として製品へ一度だけ再集約した。公開ヘッダー
+  `libs/image/kis_update_outline_job.h`の具体`kis_selection.h`依存は`kis_types.h`へ縮小した。
+- `plugins/paintops/libpaintop/KisMirrorOptionModel.cpp`の構築所有は`kritalibpaintop_LIB_SRCS`の直接収容から
+  `kritapaintopmirroroptionmodelobjects`へ移し、同じ開始ファイルを製品`kritalibpaintop`へ一度だけ再集約した。
+  `plugins/paintops/libpaintop/tests/KisMirrorOptionModelContractTest.cpp`が接頭辞、水平・垂直設定、双方向同期、独立更新、QObject寿命を固定する。
 - 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象の同時再構築は無作業であった。各担当の単発CTest、
-  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,489対象、公開API契約検査は
-  7,794/29,989件で成功した。3限定対象は製品共有ライブラリーへ接続していない。
-- 限定閉包は東アジア字体模型7工程・14入力、画像patch 6工程・13入力、node識別情報5工程・11入力である。
-  統合後の製品閉包は`kritaflake` 604工程・1,240入力、`kritacanvas` 1,196工程・2,412入力、`kritaimage` 1,172工程・2,368入力である。
-  画像patch担当単独では`kritacanvas` 1,193工程・2,406入力を維持し、node識別情報担当単独では`kritaimage`を
-  1,170工程・2,364入力に収めた。統合値の追加分は東アジア字体objectの自動メタ情報所有が上位製品へ伝播した結果である。
-- 画像patchの半透明色は事前乗算表現の往復で青成分が140から139へ丸められるため、固定画素値から除外した。契約は実行環境の
-  `QImage::scaled`結果、透明画素のSource合成、描画領域、painter状態を比較し、Qt版やplatformの補間値を仕様化していない。
-- 旧`kis_display_color_transform_test`の統合構築は478工程の製品閉包を要求し、既存`kritaresourceui`の
-  `KisResourceModelIndexResolver::resourceIndex`未解決記号で停止する。移した表示色設定値契約と軽量近傍は成功しており、
-  この広域対象の構築範囲と既存リンク不整合は次に同対象を変更する前の構造改善対象である。
-- 統合済み作業ツリー3本と担当ブランチはclean成果の統合直後に削除し、約2.47 GBを解放した。次世代不足一覧
-  `build/tdd-macos/public-api-missing-g55.json`の生成後に旧G54一覧を削除した。再利用する主増分構築木4.9 GB、共有コンパイラー
-  cache 545 MB、最新一覧だけを保持する。
+  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,496対象、公開API契約検査は
+  7,811/29,989件で成功した。3限定対象の動的依存に製品共有ライブラリーは含まれない。
+- 限定閉包は文字変形模型7工程・14入力、選択輪郭更新ジョブ5工程・11入力、ミラー設定模型8工程・18入力である。
+  担当単独の製品閉包は`kritaflake` 606工程・1,244入力、`kritaimage` 1,173工程・2,370入力、
+  `kritalibpaintop` 2,081工程・4,160入力、`kritapaintopruntime` 1,269工程・2,558入力である。統合後は
+  `kritaflake` 606工程・1,244入力、`kritaimage` 1,175工程・2,374入力、`kritalibpaintop` 2,084工程・4,166入力、
+  `kritapaintopruntime` 1,272工程・2,564入力である。追加分は文字変形模型objectの自動メタ情報所有が下流製品へ伝播した結果である。
+- 検証範囲はmacOSの限定対象とし、製品全体の構築・リンクとLinux検証は対象閉包を越えるため統合検証から除外した。
+  製品への一重再集約、限定対象の直接依存、製品閉包はNinjaグラフで確認した。
+- 統合済み作業ツリー3本と担当ブランチはclean成果の統合直後に削除し、約2.47 GBを解放した。第56便不足一覧
+  `build/tdd-macos/public-api-missing-g56.json`の生成後に旧G55一覧を削除した。再利用する主増分構築木5.0 GB、共有コンパイラー
+  cache 553 MB、最新一覧5.4 MBだけを保持する。
 
 ### 次の操作
 
-- 第55並列便の3担当を進め、cleanな輸送コミットを統合順に取り込み、各統合直後に担当作業ツリーとブランチを削除する。
+- 第56並列便の読み取り専用監査を完了する。flake/text候補は`libs/flake/text/lager/TabSizeModel.h`の全13 APIとし、
+  残る2候補の公開API、最小契約、直接依存、閉包上限を決めてから担当作業ツリーを作成する。
 
 ## 再開環境
 
