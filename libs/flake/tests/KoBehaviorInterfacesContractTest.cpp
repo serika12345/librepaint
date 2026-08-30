@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include <KoCanvasObserverBase.h>
 #include <KoCanvasSupervisor.h>
 #include <KoLoadingShapeUpdater.h>
 #include <KoShapeBulkActionInterface.h>
+#include <KoShapeUserData.h>
 #include <KoSharedLoadingData.h>
 #include <KoSharedSavingData.h>
-#include <KoShapeUserData.h>
 #include <KoToolSelection.h>
 
 #include <QPointer>
@@ -84,6 +85,38 @@ public:
     QList<KoCanvasObserverBase *> observers;
 };
 
+class CanvasObserver final : public KoCanvasObserverBase
+{
+public:
+    explicit CanvasObserver(bool *destroyed = nullptr)
+        : destroyed(destroyed)
+    {
+    }
+
+    ~CanvasObserver() override
+    {
+        if (destroyed) {
+            *destroyed = true;
+        }
+    }
+
+    void setCanvas(KoCanvasBase *canvas) override
+    {
+        ++setCanvasCount;
+        lastCanvas = canvas;
+    }
+
+    void unsetCanvas() override
+    {
+        ++unsetCanvasCount;
+    }
+
+    bool *destroyed{nullptr};
+    KoCanvasBase *lastCanvas{nullptr};
+    int setCanvasCount{0};
+    int unsetCanvasCount{0};
+};
+
 class LoadingShapeUpdater final : public KoLoadingShapeUpdater
 {
 public:
@@ -133,6 +166,8 @@ private Q_SLOTS:
     void clonesQObjectUserDataWithoutParent();
     void preservesDefaultToolSelectionStateAndQObjectLifetime();
     void returnsCanvasObserverListThroughInterface();
+    void defaultsToNoCanvasAndEmptyObserverName();
+    void nullCanvasTransitionsDispatchObserverHooks();
     void dispatchesLoadedShapeThroughInterface();
     void destroysSharedLoadingDataThroughInterface();
     void destroysSharedSavingDataThroughInterface();
@@ -201,6 +236,36 @@ void KoBehaviorInterfacesContractTest::returnsCanvasObserverListThroughInterface
 
     delete interface;
     QVERIFY(destroyed);
+}
+
+void KoBehaviorInterfacesContractTest::defaultsToNoCanvasAndEmptyObserverName()
+{
+    bool destroyed = false;
+    KoCanvasObserverBase *observer = new CanvasObserver(&destroyed);
+
+    QVERIFY(!observer->observedCanvas());
+    QVERIFY(observer->observerName().isEmpty());
+
+    delete observer;
+    QVERIFY(destroyed);
+}
+
+void KoBehaviorInterfacesContractTest::nullCanvasTransitionsDispatchObserverHooks()
+{
+    CanvasObserver observer;
+
+    observer.setObservedCanvas(nullptr);
+
+    QCOMPARE(observer.setCanvasCount, 1);
+    QVERIFY(!observer.lastCanvas);
+    QCOMPARE(observer.unsetCanvasCount, 0);
+    QVERIFY(!observer.observedCanvas());
+
+    observer.unsetObservedCanvas();
+
+    QCOMPARE(observer.setCanvasCount, 1);
+    QCOMPARE(observer.unsetCanvasCount, 1);
+    QVERIFY(!observer.observedCanvas());
 }
 
 void KoBehaviorInterfacesContractTest::dispatchesLoadedShapeThroughInterface()

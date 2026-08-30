@@ -384,6 +384,7 @@ set_target_properties(kritaflakesvgmesharrayobjects PROPERTIES
 )
 
 add_library(kritaflakebehaviorinterfaceobjects OBJECT
+    KoCanvasObserverBase.cpp
     KoCanvasSupervisor.cpp
     KoLoadingShapeUpdater.cpp
     KoSharedLoadingData.cpp
@@ -1001,6 +1002,7 @@ target_include_directories(kritaflakebehaviorinterfaceobjects
 target_link_libraries(kritaflakebehaviorinterfaceobjects PUBLIC
     Qt${QT_MAJOR_VERSION}::Core
     Qt${QT_MAJOR_VERSION}::Gui
+    Qt${QT_MAJOR_VERSION}::Widgets
 )
 set_target_properties(kritaflakebehaviorinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
@@ -1030,7 +1032,6 @@ set(kritaflake_SRCS
     KoResourceManager_p.cpp
     KoCanvasResourceProvider.cpp
     KoDocumentResourceManager.cpp
-    KoCanvasObserverBase.cpp
     KoDockRegistry.cpp
     KoPathShape.cpp
     KoPathPoint.cpp
