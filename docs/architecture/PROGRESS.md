@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 14:37 JST
+- 更新日時: 2026-08-30 14:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,22 +11,16 @@
 
 ### 現在の並列担当票
 
-- 第47並列便は完了し、plugin読込器の仮想寿命、色背景、ストローク乱数源、dither操作の全36 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み7,597件、未対応22,392件である。
-- 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、製品への一重再集約、3新規限定対象の
-  製品共有ライブラリー非接続、macOSのパッケージ境界1,445対象、公開API契約検査に成功した。各担当の単発・20回反復と
+- 第48並列便は完了し、tool変更追跡値、能動キャンバス資源依存、画像設定通知、畳込み操作の全20 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,617件、未対応22,372件である。
+- 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への一重再集約、4限定対象の
+  製品共有ライブラリー非接続、macOSのパッケージ境界1,451対象、公開API契約検査に成功した。各担当の単発・20回反復と
   `verify-quick`も成功している。
-- 統合済み専用作業ツリー3本はclean確認直後に個別削除して816 MB、816 MB、815 MBの約2.45 GBを解放した。次世代不足一覧の
-  生成成功後に旧`build/tdd-macos/public-api-missing-g47.json` 5.5 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、
-  最新`build/tdd-macos/public-api-missing-g48.json`だけを保持する。
-- 第48並列便は読み取り専用監査を完了し、tool変更追跡値4 API、能動キャンバス資源依存3 API、画像設定通知10 API、畳込み操作3 APIの
-  合計20 APIを選んだ。完了時の目標は対応済み7,617件、未対応22,372件である。
-- `KisToolChangesTrackerData.cpp`は1,228工程・2,472入力の広域`kritatools`直接収容から専用OBJECT生成物へ移し、新規限定対象を停止上限
-  7工程・15入力に収める。`KisImageConfigNotifier.cpp`も専用AUTOMOC/PIC生成物へ移し、既存信号圧縮生成物を再利用して停止上限
-  12工程・24入力とする。header-onlyの残る2対象は製品構築所有を変更せず、それぞれ6工程・13入力、5工程・10入力を上限とする。
-- 共通基点`dc8782b157`から担当作業ツリー3本を作成した。各新規限定対象は未知対象として失敗し、近傍閉包はtools 6工程・13入力、
-  flake 5工程・11入力、image 11工程・22入力、pigment 5工程・12入力だった。各812 MB、合計約2.44 GBの作業ツリーは並列実装中だけ保持し、
-  各cleanコミットの統合直後に対応する作業ツリーを削除する。
+- 統合済み専用作業ツリー3本はclean確認直後に個別削除して815 MB、815 MB、818 MBの約2.45 GBを解放した。次世代不足一覧の
+  生成成功後に旧`build/tdd-macos/public-api-missing-g48.json` 5.5 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、
+  最新`build/tdd-macos/public-api-missing-g49.json`だけを保持する。
+- 第49並列便は新しい作業ツリーを作らず、最新不足一覧、実装、既存試験、直接CMake所有を読む候補監査を開始した。候補ごとに限定構築閉包を
+  実測し、過大な依存は挙動契約の実装より先に縮小する。
 
 ## 再開環境
 
@@ -10508,10 +10502,65 @@
   生成成功後に旧`build/tdd-macos/public-api-missing-g47.json` 5.5 MBを削除し、最新`public-api-missing-g48.json`だけを次便の入力として保持する。
   4.9 GBの主増分構築木は限定対象の再構築を避ける永続cacheとして保持する。
 
+## R2-G19b tool変更追跡値の全public API契約と構築所有分離で完了した作業
+
+- `libs/tools/KisToolChangesTrackerData.h`の全4 APIを、新規`libs/tools/tests/KisToolChangesTrackerDataContractTest.cpp`の2試験へ対応付けた。
+  基底複製の独立所有、共有所有別名のQtメタ型登録、QVariantを通した強所有、基底所有からの派生寿命を固定した。
+- 開始ファイル`libs/tools/KisToolChangesTrackerData.cpp`の構築所有を`libs/tools/CMakeLists.txt`の`kritatools_LIB_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritatoolschangestrackerdataobjects`へ移し、製品`kritatools`は同生成物を1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。広域製品1,228工程・2,472入力から限定対象5工程・11入力へ分離し、停止上限
+  7工程・15入力以内に収めた。分離単独では製品閉包を維持し、統合後の1,230工程・2,476入力は依存先`kritaimage`の専用MOC所有増分である。
+  対象CTest単発と20回反復、近傍`KisSpeedSmootherContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  公開API契約検査、`verify-quick`に成功した。派生値の実データ複製、未登録型名からの構築、並行所有、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 能動キャンバス資源依存のKoResource判定契約で完了した作業
+
+- `libs/flake/KoActiveCanvasResourceDependencyKoResource.h`の全3 APIを、新規
+  `libs/flake/tests/KoActiveCanvasResourceDependencyKoResourceContractTest.cpp`の3試験へ対応付けた。符号付きsource・target key、
+  resourceの要求keyによる更新判定、target値からの独立、入力不変、無効・異型・null値、基底経由の仮想配送を固定した。
+- header-only実装のため製品ソースと構築所有は変更せず、既存`kritaflakeactivecanvasresourcedependencyobjects`とQt Core・Testへ限定接続した。
+  限定対象は5工程・11入力で停止上限6工程・13入力以内、製品`kritaflake`は594工程・1,220入力のまま維持した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。対象CTest単発と20回反復、近傍`KoActiveCanvasResourceDependencyContractTest`、
+  templateと基底の公開記号、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。実paintop preset・gradient、
+  canvas資源管理器通知、並行変更、破棄済みresource、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 画像設定通知の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/KisImageConfigNotifier.h`の全10 APIを、新規`libs/image/tests/KisImageConfigNotifierContractTest.cpp`の6試験へ対応付けた。
+  singleton、一般設定と自動キーフレームの初回同期・反復圧縮、専用自動キーフレーム通知、非圧縮の全体校正通知、QObject基底寿命を固定した。
+  一般設定通知がヘッダー説明と異なり全体校正信号を配送しない現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/image/KisImageConfigNotifier.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  AUTOMOC/PIC対応`kritaimageconfignotifierobjects`へ移し、既存`kritaglobalsignalcompressorobjects`へ直接接続して製品`kritaimage`へ1回だけ
+  再集約する。実装から未使用の`kis_debug.h` includeも除去した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は11工程・22入力で停止上限12工程・24入力以内、製品閉包は
+  1,158工程・2,340入力から、QObjectメタ情報の専用所有に必要な1,160工程・2,344入力になった。対象CTest単発と20回反復、近傍
+  `KisPaintOpPresetUpdateProxyContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、
+  `verify-quick`に成功した。300 msの絶対配送時刻、終了時のsingleton破棄順序、異なるthread、長時間連続通知、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 畳込み操作の全public API契約で完了した作業
+
+- `libs/pigment/KoConvolutionOp.h`の全3 APIを、新規`libs/pigment/tests/KoConvolutionOpContractTest.cpp`の2試験へ対応付けた。
+  色pointer配列、kernel、出力、factor、offset、色数、channel flagsの仮想配送と書込み結果、基底所有からの派生寿命を固定した。
+- header-only基底のため製品ソースと構築所有は変更せず、限定試験をQt Core・Testだけへ接続した。限定対象は4工程・8入力で停止上限
+  5工程・10入力以内、製品`kritapigment`は360工程・750入力のまま維持した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。対象CTest単発と20回反復、近傍`KisDitherOpContractTest`、公開記号、
+  製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。具体的な畳込み数値は既存`TestConvolutionOpImpl`が保持する。
+  null、非正の色数、非有限値、channel flags寸法不一致、並行実行、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第48並列便はtool変更追跡値4 API、能動キャンバス資源依存3 API、画像設定通知10 API、畳込み操作3 APIの合計20 APIを固定した。
+  主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への一重再集約、4限定対象の
+  製品共有ライブラリー非接続、macOSのパッケージ境界1,451対象、公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、
+  対応済み7,617件、未対応22,372件になった。
+- 取り込み済み専用作業ツリー3件は各clean確認直後に削除し、815 MB、815 MB、818 MBの約2.45 GBを解放した。次世代不足一覧の
+  生成成功後に旧`build/tdd-macos/public-api-missing-g48.json` 5.5 MBを削除し、最新`public-api-missing-g49.json`だけを次便の入力として保持する。
+  4.9 GBの主増分構築木は限定対象の再構築を避ける永続cacheとして保持する。
+
 ## 次の操作
 
-第48並列便の4対象を並列実装する。各対象の限定構築、単発・20回反復CTest、軽量近傍、公開API契約検査、`verify-quick`を通し、
-担当作業ツリーはcleanコミットの統合直後に個別削除する。最後に主作業ツリーで結合検査し、次世代不足一覧の生成成功後に旧世代を削除する。
+第49並列便の読み取り専用候補監査を完了し、公開ヘッダー、実装、試験、CMake所有が重ならない4対象を確定する。各対象の変更なし限定閉包を
+主増分構築木で順に実測し、過大な依存を先に縮小してから開始状態をコミットする。担当作業ツリーは計画確定後に必要な3本だけを作成する。
 
 ## R1-G5完了根拠
 
