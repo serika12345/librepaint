@@ -334,6 +334,23 @@ target_include_directories(FontVariantLigaturesModelContractTest PRIVATE
 target_compile_definitions(FontVariantLigaturesModelContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    FontVariantEastAsianModelContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakefontvarianteastasianmodelobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+target_include_directories(FontVariantEastAsianModelContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(FontVariantEastAsianModelContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     CssFontStyleModelContractTest.cpp
     LINK_LIBRARIES
         kritaflakecssfontstylemodelobjects

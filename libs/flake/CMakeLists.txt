@@ -590,6 +590,33 @@ set_target_properties(kritaflakefontvariantligaturesmodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakefontvarianteastasianmodelobjects OBJECT
+    text/lager/FontVariantEastAsianModel.cpp
+)
+target_compile_definitions(kritaflakefontvarianteastasianmodelobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakefontvarianteastasianmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text/lager>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritaflakefontvarianteastasianmodelobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+set_target_properties(kritaflakefontvarianteastasianmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakecssfontstylemodelobjects OBJECT
     text/lager/CssFontStyleModel.cpp
 )
@@ -1049,7 +1076,6 @@ set(kritaflake_SRCS
     text/lager/TextIndentModel.cpp
     text/lager/TabSizeModel.cpp
     text/lager/TextTransformModel.cpp
-    text/lager/FontVariantEastAsianModel.cpp
     text/KoFFWWSConverter.cpp
     text/KoFontChangeTracker.cpp
     text/KoFontGlyphModel.cpp
@@ -1095,6 +1121,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakecsslengthpercentagemodelobjects>
     $<TARGET_OBJECTS:kritaflakefontvariantnumericmodelobjects>
     $<TARGET_OBJECTS:kritaflakefontvariantligaturesmodelobjects>
+    $<TARGET_OBJECTS:kritaflakefontvarianteastasianmodelobjects>
     $<TARGET_OBJECTS:kritaflakecssfontstylemodelobjects>
     $<TARGET_OBJECTS:kritaflakewritingsystemutilsobjects>
     $<TARGET_OBJECTS:kritaflakepathfillrulecommandobjects>
