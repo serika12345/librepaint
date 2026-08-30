@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22385
+    "expectedMissingApis": 22382
   },
   "contracts": [
     {
@@ -23566,6 +23566,27 @@
       "classification": "maintained",
       "apis": [
         "method:KoActiveCanvasResourceDependencyKoResource::shouldUpdateSource(QVariant & source,const QVariant & target)"
+      ]
+    },
+    {
+      "target": "KoConvolutionOpContractTest",
+      "source": "libs/pigment/tests/KoConvolutionOpContractTest.cpp",
+      "test": "KoConvolutionOpContractTest::convolveColorsPreservesArgumentsAndResult",
+      "behavior": "畳み込み操作の基底接続面は色ポインター配列、kernel、出力、factor、offset、色数、channel flagsを派生実装へ正確に1回配送し、派生実装の書込み結果を呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoConvolutionOp::convolveColors(const quint8 * const * colors,const qreal * kernelValues,quint8 * dst,qreal factor,qreal offset,qint32 nColors,const QBitArray & channelFlags) const"
+      ]
+    },
+    {
+      "target": "KoConvolutionOpContractTest",
+      "source": "libs/pigment/tests/KoConvolutionOpContractTest.cpp",
+      "test": "KoConvolutionOpContractTest::baseOwnershipDestroysDerivedOnce",
+      "behavior": "畳み込み操作は基底所有から派生個体を正確に1回破棄する仮想寿命を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoConvolutionOp",
+        "method:KoConvolutionOp::~KoConvolutionOp()"
       ]
     }
   ]

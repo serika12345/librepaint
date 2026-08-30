@@ -59,6 +59,16 @@ target_include_directories(KisDitherOpContractTest PRIVATE
 target_compile_definitions(KisDitherOpContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoConvolutionOpContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoConvolutionOpContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+kis_add_test(
     KoOptimizedPixelDataScalerU8ToU16FactoryContractTest.cpp
     LINK_LIBRARIES
         kritapigmentoptimizedpixelscalerfactoryobjects
