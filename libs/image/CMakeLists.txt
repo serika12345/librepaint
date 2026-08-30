@@ -414,6 +414,53 @@ set_target_properties(kritaimageuniformbsplineengineobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagebspline2dobjects OBJECT
+   bsplines/kis_bspline_2d.cpp
+)
+target_compile_definitions(kritaimagebspline2dobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagebspline2dobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bsplines>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagebspline2dobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagebspline2dobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimagecachedgradientshapestrategyobjects OBJECT
+   kis_cached_gradient_shape_strategy.cpp
+)
+target_compile_definitions(kritaimagecachedgradientshapestrategyobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagecachedgradientshapestrategyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bsplines>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagecachedgradientshapestrategyobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      Boost::boost
+)
+set_target_properties(kritaimagecachedgradientshapestrategyobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagenameserverobjects OBJECT
    kis_name_server.cpp
 )
@@ -1393,7 +1440,6 @@ set(kritaimage_LIB_SRCS
    kis_recalculate_transform_mask_job.cpp
    kis_transform_mask_params_factory_registry.cpp
    kis_gradient_painter.cc
-   kis_cached_gradient_shape_strategy.cpp
    kis_polygonal_gradient_shape_strategy.cpp
    kis_iterator_ng.cpp
    kis_base_rects_walker.cpp
@@ -1470,7 +1516,6 @@ set(kritaimage_LIB_SRCS
    KisInterstrokeData.cpp
    kis_transform_worker.cc
    kis_perspectivetransform_worker.cpp
-   bsplines/kis_bspline_2d.cpp
    bsplines/kis_nu_bspline_2d.cpp
    kis_warptransform_worker.cc
    kis_cage_transform_worker.cpp
@@ -1542,6 +1587,7 @@ kis_add_library(kritaimage SHARED
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
    $<TARGET_OBJECTS:kritaimagegradientshapestrategyobjects>
+   $<TARGET_OBJECTS:kritaimagecachedgradientshapestrategyobjects>
    $<TARGET_OBJECTS:kritaimagekeyframeobjects>
    $<TARGET_OBJECTS:kritaimageconfignotifierobjects>
    $<TARGET_OBJECTS:kritaimagepaintoppresetupdateproxyobjects>
@@ -1558,6 +1604,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagesafetransformobjects>
    $<TARGET_OBJECTS:kritaimagebspline1dobjects>
    $<TARGET_OBJECTS:kritaimageuniformbsplineengineobjects>
+   $<TARGET_OBJECTS:kritaimagebspline2dobjects>
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>

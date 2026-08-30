@@ -3,10 +3,17 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_cached_gradient_shape_strategy.h"
 #include "kis_gradient_shape_strategy.h"
 
+#include "einspline/bspline_base.h"
+#include "kis_algebra_2d.h"
+
+#include <QLoggingCategory>
+#include <QRect>
 #include <QTest>
 
+#include <cmath>
 #include <memory>
 
 namespace
@@ -59,7 +66,78 @@ private:
     int *m_destructionCount{nullptr};
 };
 
+class AffineGradientShapeStrategy final : public KisGradientShapeStrategy
+{
+public:
+    explicit AffineGradientShapeStrategy(int *destructionCount = nullptr)
+        : m_destructionCount(destructionCount)
+    {
+    }
+
+    ~AffineGradientShapeStrategy() override
+    {
+        if (m_destructionCount) {
+            ++*m_destructionCount;
+        }
+    }
+
+    double valueAt(double x, double y) const override
+    {
+        ++valueCalls;
+        return expectedValue(x, y);
+    }
+
+    static double expectedValue(double x, double y)
+    {
+        return 0.25 * x - 0.5 * y + 3.0;
+    }
+
+    mutable int valueCalls{0};
+
+private:
+    int *m_destructionCount{nullptr};
+};
+
+void compareCachedValue(double actual, double expected)
+{
+    constexpr double tolerance = 1e-4;
+    QVERIFY2(std::abs(actual - expected) <= tolerance, "cached gradient value differs");
+}
+
 } // namespace
+
+void kis_assert_recoverable(const char *assertion, const char *file, int line)
+{
+    qFatal("Unexpected recoverable assertion %s at %s:%d", assertion, file, line);
+}
+
+const QLoggingCategory &_41000()
+{
+    static const QLoggingCategory category("librepaint.test.cached-gradient");
+    return category;
+}
+
+void destroy_NUBspline(Bspline *)
+{
+    qFatal("The cached gradient contract reached the non-uniform spline destroy path");
+}
+
+void destroy_multi_UBspline(Bspline *)
+{
+    qFatal("The cached gradient contract reached the multi-spline destroy path");
+}
+
+namespace KisAlgebra2D
+{
+
+QPointF ensureInRect(QPointF point, const QRectF &bounds)
+{
+    point.setX(qBound(bounds.left(), point.x(), bounds.right()));
+    point.setY(qBound(bounds.top(), point.y(), bounds.bottom()));
+    return point;
+}
+
+} // namespace KisAlgebra2D
 
 class KisGradientShapeStrategyContractTest : public QObject
 {
@@ -70,6 +148,8 @@ private Q_SLOTS:
     void constructorPreservesEndpoints();
     void valueAtDispatchesCoordinatesAndResult();
     void baseOwnershipDestroysDerivedStrategy();
+    void cachedStrategySamplesAndReusesAffineValues();
+    void cachedStrategyClampsQueriesAndOwnsBase();
 };
 
 void KisGradientShapeStrategyContractTest::defaultConstructsZeroEndpoints()
@@ -108,6 +188,36 @@ void KisGradientShapeStrategyContractTest::baseOwnershipDestroysDerivedStrategy(
     std::unique_ptr<KisGradientShapeStrategy> strategy = std::make_unique<GradientShapeStrategyProbe>(&destructions);
 
     strategy.reset();
+
+    QCOMPARE(destructions, 1);
+}
+
+void KisGradientShapeStrategyContractTest::cachedStrategySamplesAndReusesAffineValues()
+{
+    auto *baseStrategy = new AffineGradientShapeStrategy;
+    const QRect bounds(10, 20, 9, 7);
+    const KisCachedGradientShapeStrategy strategy(bounds, 2.0, 2.0, baseStrategy);
+
+    QCOMPARE(baseStrategy->valueCalls, 20);
+
+    compareCachedValue(strategy.valueAt(13.5, 23.25), -5.25);
+    compareCachedValue(strategy.valueAt(13.5, 23.25), -5.25);
+    QCOMPARE(baseStrategy->valueCalls, 20);
+}
+
+void KisGradientShapeStrategyContractTest::cachedStrategyClampsQueriesAndOwnsBase()
+{
+    int destructions = 0;
+
+    {
+        auto *baseStrategy = new AffineGradientShapeStrategy(&destructions);
+        const QRect bounds(10, 20, 9, 7);
+        const KisCachedGradientShapeStrategy strategy(bounds, 2.0, 2.0, baseStrategy);
+
+        compareCachedValue(strategy.valueAt(0.0, 40.0), AffineGradientShapeStrategy::expectedValue(10.0, 27.0));
+        QCOMPARE(baseStrategy->valueCalls, 20);
+        QCOMPARE(destructions, 0);
+    }
 
     QCOMPARE(destructions, 1);
 }

@@ -597,14 +597,26 @@ kis_add_test(
     KisGradientShapeStrategyContractTest.cpp
     LINK_LIBRARIES
         kritaimagegradientshapestrategyobjects
+        kritaimagecachedgradientshapestrategyobjects
+        kritaimagebspline2dobjects
+        kritaimageuniformbsplineengineobjects
         Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
 )
 target_include_directories(KisGradientShapeStrategyContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty
+    ${CMAKE_CURRENT_SOURCE_DIR}/../bsplines
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
 )
-target_compile_definitions(KisGradientShapeStrategyContractTest PRIVATE kritaimage_EXPORTS)
+target_compile_definitions(KisGradientShapeStrategyContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
 
 kis_add_test(
     KisKeyframeContractTest.cpp
