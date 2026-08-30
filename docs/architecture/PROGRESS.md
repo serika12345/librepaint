@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 12:05 JST
+- 更新日時: 2026-08-30 12:13 JST
 - 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,8 +14,22 @@
 - 第42並列便は完了し、公開面は1,549ヘッダー、29,989 API、対応済み7,431件、未対応22,558件である。
 - 専用作業ツリー3本は輸送コミットの統合とclean確認直後に個別削除し、約2.45 GBを解放した。現在のGit作業ツリーは`develop`の主作業ツリー
   1本だけであり、永続増分構築木と共有コンパイラーキャッシュを次便でも再利用する。
-- 第43並列便は`planned`である。最新の`build/tdd-macos/public-api-missing-g43.json`から候補を読み取り専用で監査し、直接依存と構築閉包を
-  確定してから必要な3作業ツリーだけを作成する。前世代の不足一覧は削除済みで、生成報告は最新版1件だけを保持する。
+- 第43並列便は共通基点`59fb30e74ff7d8827d3d5e065200fe47035c7799`から次の4担当票を実装する。現在の対応済み7,431件へ
+  合計44 APIを加え、対応済み7,475件、未対応22,514件を目標とする。
+  - 主担当は`libs/pigment/KoColorTransformation.cpp`と`libs/pigment/KoCompositeColorTransformation.cpp`を
+    `kritapigment_SRCS`直接収容から新規`kritapigmentcolortransformationobjects`へ移し、製品`kritapigment`へ1回だけ再集約する。関連する
+    2ヘッダーの全17 APIを対象とし、既存近傍`KoColorimetryUtilsContractTest`の5工程・11入力に対して停止上限を7工程・16入力とする。
+  - `flake_zoom_state`担当は`libs/flake/KoDockFactoryBase.cpp`を`kritaflake_SRCS`直接収容から新規
+    `kritaflakedockfactorybaseobjects`へ移し、製品`kritaflake`へ1回だけ再集約する。全13 APIを対象とし、既存近傍
+    `KoZoomStateContractTest`の5工程・11入力に対して停止上限を6工程・13入力とする。
+  - `image_frame_lock`担当は`libs/image/kis_gradient_shape_strategy.cpp`を`kritaimage_LIB_SRCS`直接収容から新規
+    `kritaimagegradientshapestrategyobjects`へ移し、製品`kritaimage`へ1回だけ再集約する。全5 APIを対象とし、停止上限を6工程・13入力とする。
+  - `global_forest`担当は`libs/widgetutils/config/krecentfilesaction.cpp`を`kritawidgetutils_LIB_SRCS`直接収容から新規
+    `kritawidgetutilsrecentfilesactionobjects`へ移し、製品`kritawidgetutils`へ1回だけ再集約する。全9 APIを対象とし、前便の
+    `kritawidgetutilsrecentfilesmanagerobjects`を再利用して停止上限を11工程・22入力とする。
+- 3担当用にはこの計画変更を先に検査・コミットしてから必要な3作業ツリーだけを作成する。各担当は製品共有ライブラリーへ接続せず、対象CTest
+  単発・20回反復・軽量近傍試験・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、世代の古い公開API
+  不足一覧は次世代一覧の生成成功直後に削除する。
 
 ## 再開環境
 
@@ -10225,8 +10239,8 @@
 
 ## 次の操作
 
-第43並列便の候補を最新の不足一覧から読み取り専用で監査し、全public APIを一まとまりで固定できる対象と、直接依存・構築閉包・停止上限を
-確定する。担当票を計画・検査・コミットした後に必要な3作業ツリーだけを作成し、各引渡しを統合した直後に削除する。
+第43並列便の計画を高速検査へ通してコミットする。共通基点から必要な3作業ツリーだけを作成し、4限定対象が未登録で失敗する初期診断を
+記録する。過大な閉包を挙動契約より先に分離し、各引渡しを統合した直後に対応する作業ツリーを削除する。
 
 ## R1-G5完了根拠
 
