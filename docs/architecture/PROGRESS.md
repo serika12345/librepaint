@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 11:50 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-30 12:05 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -11,30 +11,11 @@
 
 ### 現在の並列担当票
 
-- 第41並列便は完了し、公開面は1,549ヘッダー、29,989 API、対応済み7,389件、未対応22,600件である。
-- 専用作業ツリー3本は輸送コミットの統合とclean確認直後に削除済みで、現在のGit作業ツリーは`develop`の主作業ツリー1本だけである。
-  主作業ツリーの永続増分構築木と共有コンパイラーキャッシュを次便でも再利用する。
-- 第42並列便は共通基点`4a045c01d5db0ac3e12af91061459ae274e23fe8`から次の4担当票を実装する。現在の対応済み7,389件へ
-  合計42 APIを加え、対応済み7,431件、未対応22,558件を目標とする。
-  - 主担当は`libs/ui/widgets/KisWarningWidget.cpp`を`kritaui_LIB_SRCS`直接収容から新規
-    `kritauiwarningwidgetobjects`へ移し、製品`kritaapplicationui`へ1回だけ再集約する。全4 APIを対象とし、既存近傍
-    `KisElidedLabelContractTest`の5工程・11入力に対して限定対象の停止上限を8工程・17入力とする。
-  - `flake_zoom_state`担当は`libs/flake/KoShapeConfigWidgetBase.cpp`を`kritaflake_SRCS`直接収容から新規
-    `kritaflakeshapeconfigwidgetbaseobjects`へ移し、製品`kritaflake`へ1回だけ再集約する。全12 APIを対象とし、既存近傍
-    `KoAbstractCanvasResourceInterfaceContractTest`の7工程・14入力に対して停止上限を8工程・16入力とする。
-  - `image_frame_lock`担当は`libs/image/kis_serializable_configuration.cc`を`kritaimage_LIB_SRCS`直接収容から新規
-    `kritaimageserializableconfigurationobjects`へ移し、製品`kritaimage`へ1回だけ再集約する。全13 APIを対象とし、既存近傍
-    `KisAnnotationContractTest`の5工程・11入力に対して停止上限を7工程・15入力とする。
-  - `global_forest`担当は`libs/widgetutils/KisRecentFilesManager.cpp`を`kritawidgetutils_LIB_SRCS`直接収容から新規
-    `kritawidgetutilsrecentfilesmanagerobjects`へ移し、製品`kritawidgetutils`へ1回だけ再集約する。全13 APIを対象とし、限定対象の
-    停止上限を9工程・20入力とする。
-- 3担当用には票確定後のこの計画変更を先に検査・コミットしてから必要な3作業ツリーだけを作成する。各担当は製品共有ライブラリーへ接続せず、
-  対象CTest単発・20回反復・軽量近傍試験・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、世代の古い
-  公開API不足一覧は次世代一覧の生成成功直後に削除する。
-- 計画変更を`verify-quick`へ通してコミットし、共通基点から担当用3作業ツリーだけを作成した。4対象の初回限定構築は
-  `KisWarningWidgetContractTest`、`KoShapeConfigWidgetBaseContractTest`、`KisSerializableConfigurationContractTest`、
-  `KisRecentFilesManagerContractTest`がいずれも未知の対象として失敗し、未登録の赤を確認した。3作業ツリーは実装中だけ約1.7 GBを使用し、
-  各引渡しの統合とclean確認直後に個別削除する。
+- 第42並列便は完了し、公開面は1,549ヘッダー、29,989 API、対応済み7,431件、未対応22,558件である。
+- 専用作業ツリー3本は輸送コミットの統合とclean確認直後に個別削除し、約2.45 GBを解放した。現在のGit作業ツリーは`develop`の主作業ツリー
+  1本だけであり、永続増分構築木と共有コンパイラーキャッシュを次便でも再利用する。
+- 第43並列便は`planned`である。最新の`build/tdd-macos/public-api-missing-g43.json`から候補を読み取り専用で監査し、直接依存と構築閉包を
+  確定してから必要な3作業ツリーだけを作成する。前世代の不足一覧は削除済みで、生成報告は最新版1件だけを保持する。
 
 ## 再開環境
 
@@ -10185,10 +10166,67 @@
   `build/tdd-macos/public-api-missing-g42.json`だけを次便の入力として保持する。主作業ツリーの永続増分構築木と共有コンパイラーキャッシュは
   次便で再利用する。
 
+## R2-G19b 色プロファイル変更警告表示の全public API契約と構築所有分離で完了した作業
+
+- `libs/ui/widgets/KisWarningWidget.h`の全4 APIを、新規`libs/ui/tests/KisWarningWidgetContractTest.cpp`の3試験へ対応付けた。指定親、警告アイコン、
+  折返しと外部リンク対応の本文ラベル、HTML本文の透過設定、色プロファイル変更で説明する3危険条件を固定した。
+- 開始ファイル`libs/ui/widgets/KisWarningWidget.cpp`の構築所有を`libs/ui/CMakeLists.txt`の`kritaui_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応
+  `kritauiwarningwidgetobjects`へ移し、製品`kritaapplicationui`は同生成物を1回だけ再集約する。限定試験は同生成物、Qt Widgets・Test、KF I18n、
+  試験内の決定的な`KisIconUtils::loadIcon()`だけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は7工程・15入力で、製品の1,911工程・3,822入力と既存近傍
+  `KisElidedLabelContractTest`の5工程・11入力から範囲を限定した。対象CTest単発と20回反復、近傍契約、製品共有ライブラリー非接続、整形検査、
+  公開API契約検査、`verify-quick`に成功した。翻訳された本文、アイコン画素、表示様式、Qt 5、Linux、製品全体リンクは実行していない。
+
+## R2-G19b 図形設定パネル基底の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoShapeConfigWidgetBase.h`の全12 APIを、新規`libs/flake/tests/KoShapeConfigWidgetBaseContractTest.cpp`の4試験へ対応付けた。資源管理器の
+  既定nullと借用保持、作成時・選択時表示、既定null命令、図形・単位・保存・表示・命令生成の仮想配送、変更・受入れ信号の順序、QWidget基底経由の
+  仮想寿命を固定した。
+- 開始ファイル`libs/flake/KoShapeConfigWidgetBase.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規AUTOMOC/PIC対応
+  `kritaflakeshapeconfigwidgetbaseobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。限定試験は同生成物とQt Widgets・Testだけへ
+  接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗し、担当の明示的な初回契約は期待どおり赤になった。限定対象は7工程・14入力で、製品の
+  584工程・1,200入力から縮小した。対象CTest単発と20回反復、最近傍`KoAbstractCanvasResourceInterfaceContractTest`、全公開記号、一重再集約、
+  製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。実資源管理器、描画、別スレッド配送、実命令の所有関係、
+  Qt 5、Linux、製品全体リンクは実行していない。
+
+## R2-G19b 直列化可能設定の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_serializable_configuration.h`の全13 APIを、新規`libs/image/tests/KisSerializableConfigurationContractTest.cpp`の5試験へ
+  対応付けた。有効・不正XMLの解析結果と文書要素配送、`params`根を介した直列化、コピーの独立性、共有所有、設定と工場の基底経由寿命、
+  既定生成とXML生成の仮想配送を固定した。文字列XML読込みの真偽引数が解析へ影響しない現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/image/kis_serializable_configuration.cc`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaimageserializableconfigurationobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。限定試験は
+  同生成物、既存`kritaglobalsharedobjects`、Qt Core・Xml・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は6工程・13入力で、広域の既存設定試験1,146工程・2,315入力から縮小した。
+  対象CTest単発と20回反復、最近傍`KisAnnotationContractTest`、全公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、
+  `verify-quick`に成功した。XML空白・宣言・属性順、巨大または深いXML、Qt 5、Linux、製品全体リンクは実行していない。
+
+## R2-G19b 最近使ったファイル管理の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KisRecentFilesManager.h`の全13 APIを、新規`libs/widgetutils/tests/KisRecentFilesManagerContractTest.cpp`の6試験へ
+  対応付けた。GUIスレッドの単一実体、公開entryの値保持、非GUIスレッドからの取得拒否、消去と一覧更新通知、追加順と最新順、表示名、重複追加時の
+  削除から追加への通知順、既存・不存在URLの削除を固定した。
+- 開始ファイル`libs/widgetutils/KisRecentFilesManager.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の
+  `kritawidgetutils_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応`kritawidgetutilsrecentfilesmanagerobjects`へ移し、製品
+  `kritawidgetutils`は同生成物を1回だけ再集約する。限定試験は同生成物、Qt Core・Widgets・Test、KF ConfigCoreだけへ接続し、試験用設定場所と
+  HTTPS URLで外部設定を隔離する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。最初の挙動試験は観測用接続の寿命漏れを`std::bad_alloc`として検出し、試験関数内で
+  接続を解除して製品変更なしに解消した。限定対象は7工程・15入力で、製品の264工程・561入力から縮小した。対象CTest単発と20回反復、最近傍
+  `KisClickableLabelContractTest`、全公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。
+  ローカル一時URL除外、最大件数超過、非公開の設定直列化形式、Qt 5、Linux、製品全体リンクは実行していない。
+
+- 第42並列便は警告表示4 API、図形設定パネル基底12 API、直列化可能設定13 API、最近使ったファイル管理13 APIの合計42 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業木で4限定対象の結合構築・CTest 4/4・同時無作業再構築、軽量近傍4試験、必要な製品への一重再集約、
+  製品共有ライブラリー非接続、公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,431件、未対応22,558件になった。
+- 取り込み済み専用作業ツリー3件は各clean確認直後に削除し、817 MB、813 MB、820 MBの約2.45 GBを解放した。次世代不足一覧の生成成功後に
+  旧`build/tdd-macos/public-api-missing-g42.json` 5.5 MBを削除し、最新の`public-api-missing-g43.json`だけを保持する。主作業ツリーの永続増分
+  構築木とGit履歴は再構築と復旧を避けるため保持する。
+
 ## 次の操作
 
-第42並列便の4担当票を並行実装する。過大な閉包を挙動契約より先に分離し、停止上限、製品共有ライブラリー非接続、対象CTest単発・20回反復、
-軽量近傍試験、`verify-quick`を確認する。各引渡しを統合した直後に対応する作業ツリーを削除する。
+第43並列便の候補を最新の不足一覧から読み取り専用で監査し、全public APIを一まとまりで固定できる対象と、直接依存・構築閉包・停止上限を
+確定する。担当票を計画・検査・コミットした後に必要な3作業ツリーだけを作成し、各引渡しを統合した直後に削除する。
 
 ## R1-G5完了根拠
 
