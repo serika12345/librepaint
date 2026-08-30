@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22340
+    "expectedMissingApis": 22333
   },
   "contracts": [
     {
@@ -23872,6 +23872,51 @@
       "classification": "maintained",
       "apis": [
         "class:CssLengthPercentageModel"
+      ]
+    },
+    {
+      "target": "KisAirbrushOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisAirbrushOptionDataContractTest.cpp",
+      "test": "KisAirbrushOptionDataContractTest::defaultsAndEqualityReflectEveryValue",
+      "behavior": "airbrush設定値は既定で無効、rate 50、spacing尊重を保持し、等値比較は有効状態、rate、spacing無視状態の全3値を反映する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisAirbrushOptionData & lhs,const KisAirbrushOptionData & rhs)",
+        "member:KisAirbrushOptionData::airbrushRate",
+        "member:KisAirbrushOptionData::ignoreSpacing",
+        "member:KisAirbrushOptionData::isChecked",
+        "struct:KisAirbrushOptionData"
+      ]
+    },
+    {
+      "target": "KisAirbrushOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisAirbrushOptionDataContractTest.cpp",
+      "test": "KisAirbrushOptionDataContractTest::writePersistsOnlyAirbrushProperties",
+      "behavior": "airbrush設定値のwriteは有効状態、rate、spacing無視状態を安定した3設定keyへ保存し、無関係な既存設定を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAirbrushOptionData::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisAirbrushOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisAirbrushOptionDataContractTest.cpp",
+      "test": "KisAirbrushOptionDataContractTest::readRestoresEveryPersistedProperty",
+      "behavior": "airbrush設定値のreadは3設定keyから有効状態、rate、spacing無視状態を読み取り、入力設定を変更せず成功を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisAirbrushOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisAirbrushOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisAirbrushOptionDataContractTest.cpp",
+      "test": "KisAirbrushOptionDataContractTest::missingPropertiesUseReadDefaults",
+      "behavior": "空設定のreadは成功し、有効状態false、spacing無視falseと、構造体既定50とは異なるrate 20へ値を置換する。",
+      "classification": "known_defect",
+      "apis": [
+        "member:KisAirbrushOptionData::airbrushRate",
+        "method:KisAirbrushOptionData::read(const KisPropertiesConfiguration * setting)"
       ]
     }
   ]

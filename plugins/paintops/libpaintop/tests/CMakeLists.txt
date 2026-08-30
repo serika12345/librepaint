@@ -15,6 +15,18 @@ kis_add_test(
 target_include_directories(KisPaintOpOptionUtilsContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 kis_add_test(
+    KisAirbrushOptionDataContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopairbrushoptiondataobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisAirbrushOptionDataContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+    kritalibpaintop_EXPORTS
+)
+
+kis_add_test(
     KisTextureOptionDataValueContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
