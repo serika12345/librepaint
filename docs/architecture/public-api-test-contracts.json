@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22308
+    "expectedMissingApis": 22301
   },
   "contracts": [
     {
@@ -24081,6 +24081,60 @@
       "apis": [
         "class:KisProjectionPixelFilter",
         "method:KisProjectionPixelFilter::~KisProjectionPixelFilter()"
+      ]
+    },
+    {
+      "target": "FontVariantLigaturesModelContractTest",
+      "source": "libs/flake/tests/FontVariantLigaturesModelContractTest.cpp",
+      "test": "FontVariantLigaturesModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "合字模型はcommonとcontextualを有効、discretionaryとhistoricalを無効とする既定cursorを所有し、4項目を読取り・書込み・変更通知可能なQtプロパティとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FontVariantLigaturesModel",
+        "member:FontVariantLigaturesModel::data",
+        "method:FontVariantLigaturesModel::FontVariantLigaturesModel(lager::cursor<KoSvgText::FontFeatureLigatures> _data=lager::make_state (KoSvgText::FontFeatureLigatures (),lager::automatic_tag{}))",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,commonLigatures)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,contextualAlternates)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,discretionaryLigatures)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,historicalLigatures)"
+      ]
+    },
+    {
+      "target": "FontVariantLigaturesModelContractTest",
+      "source": "libs/flake/tests/FontVariantLigaturesModelContractTest.cpp",
+      "test": "FontVariantLigaturesModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入した合字cursorの一括変更は4つのQtプロパティと通知へ同期し、各Qtプロパティからの変更は同じcursorへ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "member:FontVariantLigaturesModel::data",
+        "method:FontVariantLigaturesModel::FontVariantLigaturesModel(lager::cursor<KoSvgText::FontFeatureLigatures> _data=lager::make_state (KoSvgText::FontFeatureLigatures (),lager::automatic_tag{}))",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,commonLigatures)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,contextualAlternates)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,discretionaryLigatures)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,historicalLigatures)"
+      ]
+    },
+    {
+      "target": "FontVariantLigaturesModelContractTest",
+      "source": "libs/flake/tests/FontVariantLigaturesModelContractTest.cpp",
+      "test": "FontVariantLigaturesModelContractTest::booleanPropertiesRemainIndependent",
+      "behavior": "common、discretionary、historical、contextualの各合字設定は個別に変更でき、先に設定した他の値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,commonLigatures)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,contextualAlternates)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,discretionaryLigatures)",
+        "method:FontVariantLigaturesModel::LAGER_QT_CURSOR(bool,historicalLigatures)"
+      ]
+    },
+    {
+      "target": "FontVariantLigaturesModelContractTest",
+      "source": "libs/flake/tests/FontVariantLigaturesModelContractTest.cpp",
+      "test": "FontVariantLigaturesModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "合字模型をQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FontVariantLigaturesModel"
       ]
     }
   ]
