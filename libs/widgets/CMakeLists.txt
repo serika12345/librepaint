@@ -2,6 +2,21 @@ add_subdirectory( tests )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_library(kritawidgetscolorpopupbuttonobjects OBJECT
+    KoColorPopupButton.cpp
+)
+target_compile_definitions(kritawidgetscolorpopupbuttonobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetscolorpopupbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetscolorpopupbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetscolorpopupbuttonobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetsstackedwidgetobjects OBJECT
     kis_stacked_widget.cpp
 )
@@ -181,7 +196,6 @@ set(kritawidgets_LIB_SRCS
     KoZoomWidget.cpp
     KoAspectButton.cpp
     KoSliderCombo.cpp
-    KoColorPopupButton.cpp
     KoConfigAuthorPage.cpp
     KoUnitDoubleSpinBox.cpp
     KoZoomAction.cpp
@@ -279,6 +293,7 @@ set_target_properties(kritawidgetsdebugobjects PROPERTIES
 
 kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
+    $<TARGET_OBJECTS:kritawidgetscolorpopupbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsstackedwidgetobjects>
     $<TARGET_OBJECTS:kritawidgetsdocktitlebarbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsvboxobjects>
