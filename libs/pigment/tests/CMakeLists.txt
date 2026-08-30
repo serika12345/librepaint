@@ -219,6 +219,14 @@ target_include_directories(KoCompositeOpIdsContractTest PRIVATE
 )
 
 kis_add_test(
+    KoColorSpaceBlendingPolicyContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentcolorspaceblendingpolicyobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoColorSpaceBlendingPolicyContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoColorSpacePreserveLightnessUtilsContractTest.cpp
     LINK_LIBRARIES
         kritapigmentmathsobjects

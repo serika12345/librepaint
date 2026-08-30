@@ -273,9 +273,31 @@ set_target_properties(kritapigmentcolortransformationfactoryobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapigmentcolorspaceblendingpolicyobjects OBJECT
+    compositeops/KoColorSpaceBlendingPolicy.cpp
+)
+target_compile_definitions(kritapigmentcolorspaceblendingpolicyobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolorspaceblendingpolicyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentcolorspaceblendingpolicyobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritapigmentcolorspaceblendingpolicyobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritapigment_SRCS
     $<TARGET_OBJECTS:kritapigmentcolortransformationobjects>
     $<TARGET_OBJECTS:kritapigmentcolortransformationfactoryobjects>
+    $<TARGET_OBJECTS:kritapigmentcolorspaceblendingpolicyobjects>
     $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalerbaseobjects>
     ${kritapigmentoptimizedpixelscalerfactory_product_objects}
     KoBasicHistogramProducers.cpp
@@ -309,7 +331,6 @@ set(kritapigment_SRCS
     compositeops/KoOptimizedCompositeOpFactory.cpp
     compositeops/KoOptimizedCompositeOpFactoryPerArch_Scalar.cpp
     compositeops/KoAlphaDarkenParamsWrapper.cpp
-    compositeops/KoColorSpaceBlendingPolicy.cpp
     ${__per_arch_factory_objs}
     ${__per_arch_alpha_applicator_factory_objs}
     KoAlphaMaskApplicatorFactory.cpp
