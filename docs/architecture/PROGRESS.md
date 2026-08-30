@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 16:04 JST
+- 更新日時: 2026-08-30 16:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,34 +11,21 @@
 
 ### 現在の並列担当票
 
-- 第50並列便は完了し、font variant数値模型8 API、共通移動命令4 API、brush抽象factory 9 API、airbrush設定値7 APIの
-  合計28 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,677件、未対応22,312件である。
+- 第51並列便は完了し、投影画素フィルター4 API、font variant合字模型7 API、取引型命令5 API、接頭辞付き設定wrapper 6 APIの
+  合計22 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,699件、未対応22,290件である。
 - 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への一重再集約、4限定対象の
-  製品共有ライブラリー非接続、macOSのパッケージ境界1,463対象、公開API契約検査、`verify-quick`に成功した。各担当の単発・
-  20回反復CTestも成功している。
-- 限定閉包はairbrush設定値5工程・17入力、font variant数値模型7工程・14入力、共通移動命令10工程・21入力、brush抽象factory
-  12工程・26入力である。製品閉包は`kritaflake` 598工程・1,228入力、`kritaimage` 1,164工程・2,352入力、`kritatools`
-  1,236工程・2,488入力、`kritalibbrush` 1,190工程・2,402入力、`kritapaintopruntime` 1,261工程・2,542入力、`kritalibpaintop`
-  2,071工程・4,140入力になった。font variant模型の専用メタ情報所有2工程・4入力だけが許可された依存方向へ伝播し、他3対象は
-  製品閉包を増やしていない。
-- 統合済み専用作業ツリー3本は各clean確認直後に個別削除し、808 MB、820 MB、821 MB、合計約2.45 GBを解放した。次世代不足一覧の
-  生成成功後に旧`build/tdd-macos/public-api-missing-g50.json` 5.5 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、
-  最新`build/tdd-macos/public-api-missing-g51.json`だけを保持する。
-- 次の第51並列便は最新不足一覧から読み取り専用監査を行い、所有領域が重ならず、全公開APIを一便で固定でき、限定閉包を既存契約以下へ
+  製品共有ライブラリー非接続、macOSのパッケージ境界1,469対象、公開API契約検査に成功した。各担当の単発・20回反復CTestと
+  `verify-quick`も成功している。
+- 限定閉包は投影画素フィルター4工程・8入力、font variant合字模型7工程・14入力、取引型命令11工程・24入力、接頭辞付き設定wrapper
+  4工程・9入力である。製品閉包は`kritaflake` 600工程・1,232入力、`kritaimage` 1,166工程・2,356入力、`kritatools`
+  1,238工程・2,492入力、`kritalibbrush` 1,192工程・2,406入力、`kritacanvas` 1,190工程・2,400入力、`kritapaintopruntime`
+  1,263工程・2,546入力、`kritalibpaintop` 2,073工程・4,144入力になった。合字模型の専用メタ情報所有2工程・4入力だけが許可された
+  依存方向へ伝播し、他3対象は製品閉包を増やしていない。
+- 統合済み専用作業ツリー3本は各clean確認直後に個別削除して合計約2.46 GBを解放した。次世代不足一覧の生成成功後に旧
+  `build/tdd-macos/public-api-missing-g51.json` 5.4 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、最新
+  `build/tdd-macos/public-api-missing-g52.json`だけを保持する。
+- 次の第52並列便は最新不足一覧から読み取り専用監査を行い、所有領域が重ならず、全公開APIを一便で固定でき、限定閉包を既存契約以下へ
   保てる4対象を選定する。候補確定前に専用作業ツリーを作成しない。
-- 第51並列便は読み取り専用監査を完了し、投影画素フィルター4 API、font variant合字模型7 API、取引型命令5 API、接頭辞付き設定wrapper 6 APIの
-  合計22 APIを選んだ。完了時の目標は対応済み7,699件、未対応22,290件である。
-- `KisProjectionPixelFilter`はheader-only抽象接続面をQt Testだけの新規対象へ接続し、停止上限5工程・10入力、製品`kritacanvas`
-  1,188工程・2,396入力を維持する。`KisPrefixedOptionDataWrapper`もheader-onlyで、試験内の最小設定協調定義を使う限定対象を停止上限
-  5工程・12入力へ収め、製品`kritapaintopruntime` 1,261工程・2,542入力と`kritalibpaintop` 2,071工程・4,140入力を維持する。
-- 開始ファイル`libs/flake/text/lager/FontVariantLigaturesModel.cpp`は`kritaflake`直接収容から専用AUTOMOC/PIC生成物へ移し、製品へ1回だけ
-  再集約する。限定対象の停止上限は8工程・16入力、製品増分はメタ情報所有の2工程・4入力だけとする。開始ファイル
-  `libs/image/commands_new/kis_transaction_based_command.cpp`は`kritaimage`直接収容からAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ
-  再集約する。限定対象の停止上限は12工程・25入力、製品閉包は1,164工程・2,352入力を維持する。
-- 計画確定後に共通基点から担当用3作業ツリーを作成する。各作業ツリーはcleanコミットの統合直後に削除し、次世代不足一覧の生成成功後に
-  旧一覧を削除する。
-- 共通基点`f676f7773e`から担当用3作業ツリーを作成し、作成直後は各569 MB、合計約1.71 GBである。4新規限定対象はそれぞれ未知対象として
-  失敗した。各cleanコミットの統合直後に対応する作業ツリーを削除する。
 
 ## 再開環境
 
@@ -10689,11 +10676,65 @@
   旧`build/tdd-macos/public-api-missing-g50.json` 5.5 MBを削除し、最新`public-api-missing-g51.json`だけを次便の入力として保持する。
   4.9 GBの主増分構築木は限定試験の再構築を避ける永続cacheとして保持する。
 
+## R2-G19b 投影画素フィルターの全public API契約で完了した作業
+
+- `libs/canvas/kis_projection_pixel_filter.h`の全4 APIを、新規`libs/canvas/tests/KisProjectionPixelFilterContractTest.cpp`の3試験へ
+  対応付けた。変更可能な画素bufferと画素数の仮想配送、派生実装の書込み反映、内部色管理のfalse・true返値、基底所有からの派生寿命を固定した。
+- header-only抽象接続面のため製品ソースと構築所有は変更せず、限定試験をQt Core・Testだけへ接続した。対象未登録の初回限定構築は未知の対象として
+  失敗した。限定対象は4工程・8入力で停止上限5工程・10入力以内、近傍`KisInputActionGroupContractTest`は5工程・11入力、`kritacanvas`は
+  1,188工程・2,396入力から変化しなかった。対象CTest単発と20回反復、近傍試験、公開記号、製品共有ライブラリー非接続、整形検査、公開API契約検査、
+  `verify-quick`に成功した。実色変換、nullかつ正の画素数、画素形式、並行呼出し、Linux、製品全体リンクは実行していない。
+
+## R2-G19b font variant合字模型の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/text/lager/FontVariantLigaturesModel.h`の全7 APIを、新規`libs/flake/tests/FontVariantLigaturesModelContractTest.cpp`の
+  4試験へ対応付けた。common・contextual有効とdiscretionary・historical無効の既定値、4 Qt property、注入cursorとの双方向同期、各値の独立変更、
+  QObject基底寿命を固定した。
+- 開始ファイル`libs/flake/text/lager/FontVariantLigaturesModel.cpp`は同じ配置を維持し、`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`
+  直接収容から新規AUTOMOC/PIC対応`kritaflakefontvariantligaturesmodelobjects`へ構築所有を移した。製品`kritaflake`は同生成物を1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象と近傍`FontVariantNumericModelContractTest`は各7工程・14入力で停止上限
+  8工程・16入力以内、`kritaflake`は598工程・1,228入力から専用メタ情報所有に必要な600工程・1,232入力になった。対象CTest単発と20回反復、
+  近傍試験、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。QML登録、画面接続、
+  同値再設定時の通知抑制、Linux、製品全体リンクは実行していない。
+
+## R2-G19b 取引型命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/commands_new/kis_transaction_based_command.h`の全5 APIを、新規
+  `libs/image/tests/KisTransactionBasedCommandContractTest.cpp`の2試験へ対応付けた。表示名と親命令所有、生成前undoの無操作、初回redoでの
+  paintと取引命令redo、以後のredo・undoでの同一命令再利用、null返却後の再試行、包装命令による返却命令の一回破棄を固定した。
+- 開始ファイル`libs/image/commands_new/kis_transaction_based_command.cpp`は同じ配置を維持し、`libs/image/CMakeLists.txt`の
+  `kritaimage_LIB_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritaimagetransactionbasedcommandobjects`へ構築所有を移した。製品
+  `kritaimage`は同生成物を1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象、最初の限定リンクは安全assert記号不足として失敗し、試験限定の即時失敗定義で製品依存を増やさず解消した。
+  限定対象は11工程・24入力で停止上限12工程・25入力以内、近傍`KisMoveCommandCommonContractTest`は10工程・21入力、分離単独の
+  `kritaimage`は1,164工程・2,352入力を維持した。対象CTest単発と20回反復、近傍試験、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査、公開API契約検査、`verify-quick`に成功した。返却命令の外部共有、paintからの例外、Linux、製品全体リンクは実行していない。
+
+## R2-G19b 接頭辞付き設定wrapperの全public API契約で完了した作業
+
+- `plugins/paintops/libpaintop/KisPrefixedOptionDataWrapper.h`の全6 APIを、新規
+  `plugins/paintops/libpaintop/tests/KisPrefixedOptionDataWrapperContractTest.cpp`の4試験へ対応付けた。prefix対応値、Unicode prefix、包装基底の
+  既定構築、null readの無配送、空prefixの同一設定pointer直接配送、非空prefixの抽出・基底配送・親設定反映の引数と順序、read返値を固定した。
+- header-only templateのため製品ソースと構築所有は変更せず、試験内の最小`KisPropertiesConfiguration`協調定義を用いた。最初の限定構築では
+  未知の対象として失敗し、対象登録後はEigen、KF I18n、Imath halfの直接include不足を順に検出した。OpenEXR実体接続では4工程・14入力に
+  なったため除去し、halfヘッダーだけを提供する
+  `Imath::ImathConfig`へ狭めて製品共有ライブラリー接続と停止上限超過を解消した。
+- 限定対象と近傍`KisTextureOptionDataValueContractTest`は各4工程・9入力で停止上限5工程・12入力以内、`kritapaintopruntime`
+  1,261工程・2,542入力と`kritalibpaintop` 2,071工程・4,140入力は変化しなかった。対象CTest単発と20回反復、近傍試験、公開記号、
+  製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。設定抽出・反映自体の実装、writeへのnull、Linux、
+  製品全体リンクは実行していない。
+
+- 第51並列便は4所有領域の全22 APIを固定した。主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への
+  一重再集約、4限定対象の製品共有ライブラリー非接続、macOSのパッケージ境界1,469対象、公開API契約検査を再実行した。公開面は
+  1,549ヘッダー、29,989 API、対応済み7,699件、未対応22,290件になった。
+- 取り込み済み専用作業ツリー3件はclean確認直後に個別削除して合計約2.46 GBを解放した。次世代不足一覧の生成成功後に旧
+  `build/tdd-macos/public-api-missing-g51.json` 5.4 MBを削除し、最新`public-api-missing-g52.json`だけを次便の入力として保持する。
+  4.9 GBの主増分構築木は限定試験の再構築を避ける永続cacheとして保持する。
+
 ## 次の操作
 
-第51並列便の4対象を並列実装する。4新規限定対象の未知対象診断を記録し、各担当は対象の単発・20回反復CTest、軽量近傍、限定閉包、
-製品共有ライブラリー非接続、公開API契約検査、`verify-quick`を確認する。担当作業ツリーはcleanコミットの統合直後に個別削除し、最後に
-主作業ツリーで結合検査する。
+最新`build/tdd-macos/public-api-missing-g52.json`から第52並列便の読み取り専用監査を行う。所有領域が重ならず、全公開APIを一便で固定できる
+4対象を選び、直接CMake依存、変更なし計画、空構築閉包、停止上限を記録してから担当作業ツリーを作成する。
 
 ## R1-G5完了根拠
 
