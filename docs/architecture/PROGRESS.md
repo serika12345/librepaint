@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 10:21 JST
+- 更新日時: 2026-08-30 10:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,21 +14,24 @@
 - 第39並列便の共通基準コミットは`1aa24012d7`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g39-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。担当確定後に必要な3作業ツリー
   だけを作成し、輸送コミットの取り込みとclean確認直後に削除する。
-- 統合担当`line-style-selector`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`line-style-selector`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/widgets/KoLineStyleSelector.cpp`、`KoLineStyleModel.cpp`、`KoLineStyleItemDelegate.cpp`、Widgets製品・試験CMake、新規
   `KoLineStyleSelectorContractTest.cpp`を所有する。関連3実装を製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、
   製品へ1回だけ再集約する。製品の756工程・1,541入力に代えて9工程・20入力以内で、親と仮想寿命、標準線種、登録済み・一時custom dash、
   重複登録の全7 APIを固定する。
-- 実装担当`shape-transparency-command`は`planned`、追加委任は`forbidden`、統合順は2である。専用作業ツリーで
+- 実装担当`shape-transparency-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g39-shape-transparency-command`で
   `libs/flake/commands/KoShapeTransparencyCommand.cpp`、Flake製品・試験CMake、新規`KoShapeTransparencyCommandContractTest.cpp`を所有する。
   開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の578工程・
   1,188入力と既存近傍試験の582工程・1,195入力に代えて6工程・14入力以内で、3構築入口、redo・undo、識別子、統合、借用寿命の全9 APIを
   固定する。
-- 実装担当`safe-transform`は`planned`、追加委任は`forbidden`、統合順は3である。専用作業ツリーで`libs/image/kis_safe_transform.cpp`、
+- 実装担当`safe-transform`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g39-safe-transform`で`libs/image/kis_safe_transform.cpp`、
   Image製品・試験CMake、新規`KisSafeTransformContractTest.cpp`を所有する。開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/
   PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の1,132工程・2,288入力と既存変換試験の1,142工程・2,306入力に代えて6工程・
   13入力以内で、前後方向の多角形・整数矩形・浮動小数矩形写像、始点・終点切抜き多角形、値寿命の全11 APIを固定する。
-- 実装担当`clickable-label`は`planned`、追加委任は`forbidden`、統合順は4である。専用作業ツリーで
+- 実装担当`clickable-label`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g39-clickable-label`で
   `libs/widgetutils/KisClickableLabel.cpp`、WidgetUtils製品・試験CMake、新規`KisClickableLabelContractTest.cpp`を所有する。開始ファイルを
   製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の258工程・549入力に代えて
   8工程・16入力以内で、親と仮想寿命、dismiss状態、click・dismiss通知、pixmap縮尺、高さ・推奨寸法の全13 APIを固定する。
