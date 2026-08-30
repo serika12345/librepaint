@@ -536,6 +536,33 @@ set_target_properties(kritaflakecsslengthpercentagemodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakelineheightmodelobjects OBJECT
+    text/lager/LineHeightModel.cpp
+)
+target_compile_definitions(kritaflakelineheightmodelobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakelineheightmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text/lager>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritaflakelineheightmodelobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+set_target_properties(kritaflakelineheightmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakefontvariantnumericmodelobjects OBJECT
     text/lager/FontVariantNumericModel.cpp
 )
@@ -1126,7 +1153,6 @@ set(kritaflake_SRCS
     text/KoSvgTextPropertyData.cpp
     text/KoSvgTextPropertiesInterface.h
     text/lager/KoSvgTextPropertiesModel.cpp
-    text/lager/LineHeightModel.cpp
     text/lager/TextIndentModel.cpp
     text/KoFFWWSConverter.cpp
     text/KoFontChangeTracker.cpp
@@ -1171,6 +1197,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeopentypefeatureinfoobjects>
     $<TARGET_OBJECTS:kritaflakeunicodeblockdataobjects>
     $<TARGET_OBJECTS:kritaflakecsslengthpercentagemodelobjects>
+    $<TARGET_OBJECTS:kritaflakelineheightmodelobjects>
     $<TARGET_OBJECTS:kritaflaketexttransformmodelobjects>
     $<TARGET_OBJECTS:kritaflaketabsizemodelobjects>
     $<TARGET_OBJECTS:kritaflakefontvariantnumericmodelobjects>

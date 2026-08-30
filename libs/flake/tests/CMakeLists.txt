@@ -385,6 +385,23 @@ target_include_directories(TabSizeModelContractTest PRIVATE
 target_compile_definitions(TabSizeModelContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    LineHeightModelContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakelineheightmodelobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+target_include_directories(LineHeightModelContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(LineHeightModelContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     CssFontStyleModelContractTest.cpp
     LINK_LIBRARIES
         kritaflakecssfontstylemodelobjects
