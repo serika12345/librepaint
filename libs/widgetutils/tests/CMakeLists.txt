@@ -125,6 +125,19 @@ kis_add_test(
 target_compile_definitions(KisToolBarStateModelContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisRootSurfaceTrackerBaseContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsrootsurfacetrackerobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KisRootSurfaceTrackerBaseContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisRootSurfaceTrackerBaseContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     kis_simple_math_parser_test.cpp
     LINK_LIBRARIES kritawidgetutilsnumericparserobjects Qt${QT_MAJOR_VERSION}::Test
 )
