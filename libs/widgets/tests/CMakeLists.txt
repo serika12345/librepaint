@@ -1,6 +1,15 @@
 #add_subdirectory(filedialogtester)
 
 kis_add_test(
+    KoSliderComboContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetsslidercomboobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KoSliderComboContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KisColorSelectorConfigurationContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

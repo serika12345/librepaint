@@ -22,9 +22,6 @@
 #include <QMouseEvent>
 #include <QDoubleSpinBox>
 
-#include <klocalizedstring.h>
-#include <WidgetsDebug.h>
-
 class KoSliderComboContainer : public QMenu
 {
 public:
