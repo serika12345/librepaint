@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22278
+    "expectedMissingApis": 22265
   },
   "contracts": [
     {
@@ -24307,6 +24307,73 @@
       "classification": "maintained",
       "apis": [
         "class:CssFontStyleModel"
+      ]
+    },
+    {
+      "target": "KisOptionTupleContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisOptionTupleContractTest.cpp",
+      "test": "KisOptionTupleContractTest::traitsAndAliasSelectPrefixMode",
+      "behavior": "設定値tupleの能力判定はprefix対応memberの不在、false、trueを区別し、全要素対応または全要素非対応の場合に対応する実装特殊化をaliasから選ぶ。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisOptionTuple",
+        "member:detail::all_support_prefix::value",
+        "member:detail::none_support_prefix::value",
+        "struct:detail::KisOptionTupleImpl",
+        "struct:detail::all_support_prefix",
+        "struct:detail::none_support_prefix",
+        "struct:detail::supports_prefix"
+      ]
+    },
+    {
+      "target": "KisOptionTupleContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisOptionTupleContractTest.cpp",
+      "test": "KisOptionTupleContractTest::nonPrefixConstructionRoutesArgumentsOnlyToFirstBase",
+      "behavior": "prefix非対応tupleの構築引数は先頭の設定値基底だけへ配送され、残りの基底は正確に1回ずつ既定構築される。",
+      "classification": "maintained",
+      "apis": [
+        "method:detail::KisOptionTupleImpl::KisOptionTupleImpl(T...args)"
+      ]
+    },
+    {
+      "target": "KisOptionTupleContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisOptionTupleContractTest.cpp",
+      "test": "KisOptionTupleContractTest::prefixedConstructionRoutesUnicodePrefixToEveryBase",
+      "behavior": "prefix対応tupleはUnicode prefixを全設定値基底へ完全に配送し、追加の構築引数を先頭基底だけへ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:detail::KisOptionTupleImpl::KisOptionTupleImpl(const QString & prefix,T...args)"
+      ]
+    },
+    {
+      "target": "KisOptionTupleContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisOptionTupleContractTest.cpp",
+      "test": "KisOptionTupleContractTest::readPreservesPointerOrderShortCircuitAndReturn",
+      "behavior": "tupleのreadは同じ設定pointerを基底宣言順に配送し、falseを返した基底で後続配送を短絡して集約結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:detail::KisOptionTupleImpl::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisOptionTupleContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisOptionTupleContractTest.cpp",
+      "test": "KisOptionTupleContractTest::writePreservesPointerAndVisitsEveryBaseInOrder",
+      "behavior": "tupleのwriteは同じ設定pointerをすべての設定値基底へ基底宣言順に配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:detail::KisOptionTupleImpl::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisOptionTupleContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisOptionTupleContractTest.cpp",
+      "test": "KisOptionTupleContractTest::equalityComparesEveryBaseValue",
+      "behavior": "prefix対応と非対応のtupleの等価比較は、先頭から末尾まで全設定値基底の値を比較結果へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "function:detail::operator ==(const KisOptionTupleImpl<false,true,Data...> & lhs,const KisOptionTupleImpl<false,true,Data...> & rhs)",
+        "function:detail::operator ==(const KisOptionTupleImpl<true,false,FirstData,RestData...> & lhs,const KisOptionTupleImpl<true,false,FirstData,RestData...> & rhs)"
       ]
     }
   ]

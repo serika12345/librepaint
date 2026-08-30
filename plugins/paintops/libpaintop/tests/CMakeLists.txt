@@ -15,6 +15,18 @@ kis_add_test(
 target_include_directories(KisPaintOpOptionUtilsContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 kis_add_test(
+    KisOptionTupleContractTest.cpp
+    LINK_LIBRARIES
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisOptionTupleContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+)
+
+kis_add_test(
     KisPrefixedOptionDataWrapperContractTest.cpp
     LINK_LIBRARIES
         Eigen3::Eigen
