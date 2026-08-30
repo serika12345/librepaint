@@ -331,6 +331,21 @@ set_target_properties(kritawidgetutilsscreenmigrationtrackerobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetutilsclickablelabelobjects OBJECT
+    KisClickableLabel.cpp
+)
+target_compile_definitions(kritawidgetutilsclickablelabelobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsclickablelabelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsclickablelabelobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetutilsclickablelabelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -353,6 +368,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritawidgetutilstoolbarstatemodelobjects>
     $<TARGET_OBJECTS:kritawidgetutilsrootsurfacetrackerobjects>
     $<TARGET_OBJECTS:kritawidgetutilsscreenmigrationtrackerobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsclickablelabelobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -414,8 +430,6 @@ set(kritawidgetutils_LIB_SRCS
 
     katecommandbar.cpp
     commandmodel.cpp
-
-    KisClickableLabel.cpp
 )
 
 if (QT_MAJOR_VERSION STREQUAL "5")
