@@ -249,6 +249,42 @@ set_target_properties(kritaimagesafetransformobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagebspline1dobjects OBJECT
+   bsplines/kis_bspline_1d.cpp
+)
+target_compile_definitions(kritaimagebspline1dobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagebspline1dobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bsplines>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagebspline1dobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagebspline1dobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimageuniformbsplineengineobjects OBJECT
+   3rdparty/einspline/bspline_create.cpp
+   3rdparty/einspline/bspline_data.cpp
+)
+target_include_directories(kritaimageuniformbsplineengineobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/einspline>
+)
+set_target_properties(kritaimageuniformbsplineengineobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagenameserverobjects OBJECT
    kis_name_server.cpp
 )
@@ -1033,7 +1069,6 @@ set(kritaimage_LIB_SRCS
    KisInterstrokeData.cpp
    kis_transform_worker.cc
    kis_perspectivetransform_worker.cpp
-   bsplines/kis_bspline_1d.cpp
    bsplines/kis_bspline_2d.cpp
    bsplines/kis_nu_bspline_2d.cpp
    kis_warptransform_worker.cc
@@ -1096,8 +1131,6 @@ set(kritaimage_LIB_SRCS
 )
 
 set(einspline_SRCS
-   3rdparty/einspline/bspline_create.cpp
-   3rdparty/einspline/bspline_data.cpp
    3rdparty/einspline/multi_bspline_create.cpp
    3rdparty/einspline/nubasis.cpp
    3rdparty/einspline/nubspline_create.cpp
@@ -1117,6 +1150,8 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
    $<TARGET_OBJECTS:kritaimageperspectivemathobjects>
    $<TARGET_OBJECTS:kritaimagesafetransformobjects>
+   $<TARGET_OBJECTS:kritaimagebspline1dobjects>
+   $<TARGET_OBJECTS:kritaimageuniformbsplineengineobjects>
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
