@@ -2,42 +2,23 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 09:54 JST
+- 更新日時: 2026-08-30 10:16 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 現在の並列担当票
+### 現在の作業
 
-- 第38並列便の共通基準コミットは`c331c4a638`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g38-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`palette-delegate`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで`libs/widgets/KisPaletteDelegate.cpp`、
-  CMake非収容の重複実装`libs/widgets/kis_palette_delegate.cpp`、Widgets製品・試験CMake、新規`KisPaletteDelegateContractTest.cpp`を所有する。
-  正式実装を製品`kritawidgets`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移して製品へ1回だけ再集約し、重複実装を削除する。製品の
-  754工程・1,537入力に代えて7工程・14入力以内で、親と仮想寿命、推奨寸法、group・swatch・空slot・選択描画、交差keywordの全6 APIを
-  固定する。
-- 実装担当`subpath-remove-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は
-  2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g38-subpath-remove-command`で
-  `libs/flake/commands/KoSubpathRemoveCommand.cpp`、Flake製品・試験CMake、新規`KoSubpathRemoveCommandContractTest.cpp`を所有する。開始
-  ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の575工程・1,182入力と
-  既存試験の580工程・1,190入力に代えて6工程・14入力以内で、subpath除去・復元・再除去、正規化・座標補正順、失敗規約、所有権、全5 APIを
-  固定する。
-- 実装担当`node-rename-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3で
-  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g38-node-rename-command`で`libs/image/commands/KisNodeRenameCommand.cpp`、新規の非公開
-  node名称適用接続面、Image製品・試験CMake、新規`KisNodeRenameCommandContractTest.cpp`を所有する。命令本体と製品node適用を別の専用生成物へ
-  移し、製品`kritaimage`へ各1回だけ再集約する。製品の1,129工程・2,282入力と既存試験の277工程・584入力に代えて13工程・28入力以内で、
-  redo・undo、識別子、同一nodeの連続改名統合、異種・別node拒否、強参照寿命、不連続名称の現行診断後統合を含む全7 APIを固定する。
-- 実装担当`screen-migration-tracker`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4で
-  ある。作業ツリー`/Users/masato/Documents/librepaint-r2-g38-screen-migration-tracker`で`libs/widgetutils/KisScreenMigrationTracker.cpp`、
-  WidgetUtils製品・試験CMake、新規`KisScreenMigrationTrackerContractTest.cpp`を所有する。開始ファイルを製品`kritawidgetutils`の直接ソースから
-  AUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存root surface追跡とsignal compressorの限定生成物を再利用し、製品の
-  256工程・545入力に代えて15工程・30入力以内で、画面fallback、表示時接続、画面変更、DPI通知集約、親と借用寿命の全6 APIを固定する。
-- 第38並列便の完了時は合計24 APIを追加し、公開面の対応済み7,284件、未対応22,705件を見込む。各担当は限定対象の単発・20回反復、軽量
-  隣接試験、`verify-quick`を実行する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- 統合担当だけが中央文書と公開API台帳を変更する。各実装担当は輸送コミットの統合と作業木cleanの確認直後に専用作業ツリーを削除する。
-  許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない挙動を発見した時点で`blocked`として引き渡す。
+- 第38並列便でpalette描画、subpath除去命令、node改名命令、画面移動追跡の全24 APIを固定した。公開面は1,549ヘッダー、29,989 API、
+  対応済み7,284件、未対応22,705件である。
+- 4限定対象の結合構築、CTest 4/4、再実行時の無作業状態、公開API契約検査、`verify-quick`に成功した。各対象の20回反復と軽量隣接試験は
+  各担当で成功している。
+- 統合済みの3専用作業ツリーと専用Ninja木をclean確認直後に削除した。主作業ツリーの永続増分構築木とコンパイラーキャッシュを再利用し、
+  輸送用ブランチを復旧手段として保持する。
+- 次の操作は未対応報告`build/tdd-macos/public-api-missing-g39.json`から第39並列便の候補を監査し、直接依存と限定構築閉包を先に測定する
+  ことである。
 
 ## 再開環境
 
@@ -9944,10 +9925,74 @@
   各担当の引渡しを統合順に取り込み、主作業木で4限定対象の同時無作業構築・CTest、必要な製品への1回再集約、公開API契約検査を
   再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,260件、未対応22,729件になった。
 
+## R2-G19b palette描画の全public API契約と重複実装除去で完了した作業
+
+- `libs/widgets/KisPaletteDelegate.h`の全6 APIを、新規`libs/widgets/tests/KisPaletteDelegateContractTest.cpp`の4試験へ対応付けた。QObject親と
+  基底経由の仮想寿命、推奨寸法、無効indexの無変更、group・通常swatch・選択swatch・空slotの描画、小文字keywordとnullの交差線規約を
+  固定した。大文字keywordが一致せず、空だがnullでないkeywordが全swatchへ一致する現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/widgets/KisPaletteDelegate.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritawidgetspalettedelegateobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。CMakeに収容されて
+  いなかった重複実装`libs/widgets/kis_palette_delegate.cpp`は削除した。限定試験は同生成物、Qt Widgets・Testへ接続し、必要なImath・I18n・
+  pigment・resourceヘッダーだけをコンパイル入力として与える。
+- 対象未登録の初回限定構築は未知の対象として失敗した。ヘッダー直接依存の不足を限定コンパイルで順に検出して明示した後、限定対象を
+  5工程・11入力に収め、製品の754工程・1,537入力から縮小した。対象CTest単発と20回反復、最近傍`KisColorLabelButtonContractTest`、
+  公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。実表示様式差、Qt 5、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b subpath除去命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/commands/KoSubpathRemoveCommand.h`の全5 APIを、新規`libs/flake/tests/KoSubpathRemoveCommandContractTest.cpp`の4試験へ
+  対応付けた。借用pathと親命令、redo・undo・再redoの除去、正規化、座標補正、更新順、存在しないsubpathの失敗規約、subpathの所有移動と
+  仮想寿命を固定した。再追加失敗後も正規化と更新を続け、保持ポインターを失ってsubpathを回収できない現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/flake/commands/KoSubpathRemoveCommand.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakesubpathremovecommandobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。限定試験の偽pathで
+  非仮想の除去・追加と仮想の更新・正規化を観測するため、試験時限定の非公開accessを実装内に設け、製品時は従来のpath APIへ配送する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は5工程・11入力で、製品の575工程・1,182入力と既存試験の580工程・
+  1,190入力から縮小した。対象CTest単発と20回反復、最近傍`KoPathReverseCommandContractTest`、公開記号、一重再集約、製品共有
+  ライブラリー非接続、整形検査、`verify-quick`に成功した。null path、借用pathの先行破棄、Linux、全ネイティブ検証、製品全体リンクは
+  実行していない。
+
+## R2-G19b node改名命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/commands/KisNodeRenameCommand.h`の全7 APIを、新規`libs/image/tests/KisNodeRenameCommandContractTest.cpp`の5試験へ
+  対応付けた。nodeの強参照、redo・undoの名称配送、安定識別子、同一nodeの連続改名統合、異種・別node拒否を固定した。不連続な旧名称でも
+  安全診断後に統合を続け、最初の旧名称と最後の新名称を保持する現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/image/commands/KisNodeRenameCommand.cpp`と
+  `libs/image/commands_new/KisAsynchronouslyMergeableCommandInterface.cpp`の構築所有を`libs/image/CMakeLists.txt`の
+  `kritaimage_LIB_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritaimagenoderenamecommandobjects`へ移し、製品`kritaimage`は同生成物を
+  1回だけ再集約する。
+- `libs/image/commands/KisNodeRenameCommand.cpp`にあった直接`KisNode::setName()`呼出しを、新規
+  `libs/image/commands/KisNodeRenameCommandNodeAccess.cpp`の非公開名称適用関数へ移し、製品専用
+  `kritaimagenoderenamecommandnodeaccessobjects`から`kritaimage`へ1回だけ再集約する。限定試験は命令生成物へ値を記録する名称適用関数を
+  与え、製品nodeと製品共有ライブラリーへの接続を除く。
+- 対象未登録の初回限定構築は未知の対象として失敗した。製品専用生成物の直接コンパイルで不足していたQt Gui、I18n、pigmentヘッダーを
+  明示し、限定対象を13工程・28入力に収め、製品の1,129工程・2,282入力と既存試験の277工程・584入力から縮小した。対象CTest単発と
+  20回反復、最近傍`KisFillIntervalMapContractTest`、公開記号、各生成物の一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。null nodeと実nodeの通知連鎖、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 画面移動追跡の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/KisScreenMigrationTracker.h`の全6 APIを、新規
+  `libs/widgetutils/tests/KisScreenMigrationTrackerContractTest.cpp`の3試験へ対応付けた。非表示widgetの既定screen fallbackと安全診断、
+  表示時のscreen接続、画面変更引数の2通知への配送、物理・論理DPI通知の100ms集約、QObject親と追跡widgetの借用寿命を固定した。
+- 開始ファイル`libs/widgetutils/KisScreenMigrationTracker.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の
+  `kritawidgetutils_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応`kritawidgetutilsscreenmigrationtrackerobjects`へ移し、製品
+  `kritawidgetutils`は同生成物を1回だけ再集約する。限定試験は既存root surface追跡とsignal compressorの限定生成物を再利用する。
+- 対象未登録の初回限定構築は未知の対象、最初の限定試験は試験内assert定義と`QScreen*`のmeta type登録不足として失敗し、限定試験内で
+  解消した。限定対象は14工程・28入力で、製品の256工程・545入力から縮小した。対象CTest単発と20回反復、最近傍の
+  `KisRootSurfaceTrackerBaseContractTest`と`KisSignalCompressorTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。複数の実画面間移動、絶対DPI値、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第38並列便はpalette描画6 API、subpath除去命令5 API、node改名命令7 API、画面移動追跡6 APIの合計24 APIを固定した。各担当の
+  引渡しを統合順に取り込み、主作業木で4限定対象の結合構築・CTest 4/4・同時無作業再構築、必要な製品への一重再集約、公開API契約検査を
+  再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,284件、未対応22,705件になった。
+- 取り込み済み専用作業ツリー3件は作業木cleanを確認して直ちに削除し、約2.5 GBを解放した。輸送用ブランチは復旧手段として保持し、主作業
+  ツリーの永続増分構築木と共有コンパイラーキャッシュは次便で再利用する。
+
 ## 次の操作
 
-第38並列便の4担当は、記録済みの停止上限と直接依存を再確認し、許可パス内だけで構築所有分離と最小契約を追加する。単発・20回反復・
-軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡し、統合済み担当の専用作業ツリーを直ちに削除する。
+未対応報告`build/tdd-macos/public-api-missing-g39.json`から重複しない4候補を監査する。公開宣言、実装、既存試験、CMake直接依存、限定対象の
+清浄木閉包を確認し、過大な閉包は挙動契約より先に分離する。第39並列便の担当票と停止上限を記録してから実装を開始する。
 
 ## R1-G5完了根拠
 

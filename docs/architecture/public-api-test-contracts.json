@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22729
+    "expectedMissingApis": 22705
   },
   "contracts": [
     {
@@ -21674,6 +21674,195 @@
         "method:KoAspectButton::buttonReleased()",
         "method:KoAspectButton::keepAspectRatio() const",
         "method:KoAspectButton::keepAspectRatioChanged(bool keep)"
+      ]
+    },
+    {
+      "target": "KisPaletteDelegateContractTest",
+      "source": "libs/widgets/tests/KisPaletteDelegateContractTest.cpp",
+      "test": "KisPaletteDelegateContractTest::followsParentOwnershipAndHasVirtualLifetime",
+      "behavior": "palette delegateは指定QObject親に所有され、親またはQAbstractItemDelegate基底経由の破棄で仮想寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisPaletteDelegate",
+        "method:KisPaletteDelegate::KisPaletteDelegate(QObject * parent=0)",
+        "method:KisPaletteDelegate::~KisPaletteDelegate()"
+      ]
+    },
+    {
+      "target": "KisPaletteDelegateContractTest",
+      "source": "libs/widgets/tests/KisPaletteDelegateContractTest.cpp",
+      "test": "KisPaletteDelegateContractTest::sizeHintMirrorsDecorationAndInvalidPaintIsNoOp",
+      "behavior": "palette delegateの推奨寸法はindexの有効性にかかわらず表示選択肢のdecorationSizeを返し、無効indexの描画は画像とpainter状態を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteDelegate::paint(QPainter *,const QStyleOptionViewItem &,const QModelIndex &) const",
+        "method:KisPaletteDelegate::sizeHint(const QStyleOptionViewItem & option,const QModelIndex &) const"
+      ]
+    },
+    {
+      "target": "KisPaletteDelegateContractTest",
+      "source": "libs/widgets/tests/KisPaletteDelegateContractTest.cpp",
+      "test": "KisPaletteDelegateContractTest::paintsGroupSwatchEmptySlotAndSelection",
+      "behavior": "palette delegateは選択groupをhighlightで描き、通常swatchを背景brushで塗り、選択swatchでは3画素のhighlight境界内へbrushを描く。空slotはgrayとdarkGrayの対角checkerboardとして描く。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteDelegate::paint(QPainter *,const QStyleOptionViewItem &,const QModelIndex &) const"
+      ]
+    },
+    {
+      "target": "KisPaletteDelegateContractTest",
+      "source": "libs/widgets/tests/KisPaletteDelegateContractTest.cpp",
+      "test": "KisPaletteDelegateContractTest::crossedKeywordUsesCurrentCaseAndNullRules",
+      "behavior": "小文字keywordが小文字化したswatch名に含まれる場合は白縁と赤芯の対角線を重ね、null keywordは交差線を無効にする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaletteDelegate::paint(QPainter *,const QStyleOptionViewItem &,const QModelIndex &) const",
+        "method:KisPaletteDelegate::setCrossedKeyword(const QString & value)"
+      ]
+    },
+    {
+      "target": "KisPaletteDelegateContractTest",
+      "source": "libs/widgets/tests/KisPaletteDelegateContractTest.cpp",
+      "test": "KisPaletteDelegateContractTest::crossedKeywordUsesCurrentCaseAndNullRules",
+      "behavior": "keyword自体は小文字化されないため大文字keywordは大文字を含む表示名にも一致せず、空だがnullでないkeywordはすべてのswatch名に一致して交差線を描く。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisPaletteDelegate::paint(QPainter *,const QStyleOptionViewItem &,const QModelIndex &) const",
+        "method:KisPaletteDelegate::setCrossedKeyword(const QString & value)"
+      ]
+    },
+    {
+      "target": "KoSubpathRemoveCommandContractTest",
+      "source": "libs/flake/tests/KoSubpathRemoveCommandContractTest.cpp",
+      "test": "KoSubpathRemoveCommandContractTest::preservesSubpathAcrossUndoCycles",
+      "behavior": "subpath除去命令は借用path、指定index、親命令とRemove subpathの操作名を保持する。redoは基底処理、事前update、subpath除去、normalize、全pointへの負offset変換、事後updateの順で配送し、undoは同じsubpathとindexを再追加してnormalizeとupdateを行い、再redoでも同じ順序と値を再現する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSubpathRemoveCommand",
+        "method:KoSubpathRemoveCommand::KoSubpathRemoveCommand(KoPathShape * pathShape,int subpathIndex,KUndo2Command * parent=0)",
+        "method:KoSubpathRemoveCommand::redo()",
+        "method:KoSubpathRemoveCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoSubpathRemoveCommandContractTest",
+      "source": "libs/flake/tests/KoSubpathRemoveCommandContractTest.cpp",
+      "test": "KoSubpathRemoveCommandContractTest::handlesMissingSubpath",
+      "behavior": "指定indexにsubpathが存在しない場合、redoは基底処理、事前update、除去要求までを実行し、normalize、point変換、事後updateを省略する。undoは基底処理だけを行い、再redoでも同じ失敗規約を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSubpathRemoveCommand::redo()",
+        "method:KoSubpathRemoveCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoSubpathRemoveCommandContractTest",
+      "source": "libs/flake/tests/KoSubpathRemoveCommandContractTest.cpp",
+      "test": "KoSubpathRemoveCommandContractTest::transfersSubpathOwnershipAcrossLifetime",
+      "behavior": "subpath除去命令はredo後に保持中subpathと全pointを所有破棄し、undoでpathへ返却したsubpathは破棄しない。pathは借用したまま、基底ポインターから派生・基底の仮想破棄を一度ずつ行う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSubpathRemoveCommand::~KoSubpathRemoveCommand()"
+      ]
+    },
+    {
+      "target": "KoSubpathRemoveCommandContractTest",
+      "source": "libs/flake/tests/KoSubpathRemoveCommandContractTest.cpp",
+      "test": "KoSubpathRemoveCommandContractTest::losesOwnershipWhenReinsertionFails",
+      "behavior": "subpath再追加が失敗してもundoはnormalizeとupdateを続け、保持ポインターを破棄する。以後のundoと命令破棄ではsubpathを回収できない現行の所有権喪失を固定する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoSubpathRemoveCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisNodeRenameCommandContractTest",
+      "source": "libs/image/tests/KisNodeRenameCommandContractTest.cpp",
+      "test": "KisNodeRenameCommandContractTest::redoUndoDispatchNamesAndKeepNodeAlive",
+      "behavior": "改名命令が対象ノードを強参照で保持し、redoで新名称、undoで旧名称を同じノードへ各1回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeRenameCommand",
+        "method:KisNodeRenameCommand::KisNodeRenameCommand(KisNodeSP node,const QString & oldName,const QString & newName)",
+        "method:KisNodeRenameCommand::redo()",
+        "method:KisNodeRenameCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisNodeRenameCommandContractTest",
+      "source": "libs/image/tests/KisNodeRenameCommandContractTest.cpp",
+      "test": "KisNodeRenameCommandContractTest::idUsesStableRenameIdentifier",
+      "behavior": "改名命令が変更統合用の安定したノード名称変更識別子を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeRenameCommand::id() const"
+      ]
+    },
+    {
+      "target": "KisNodeRenameCommandContractTest",
+      "source": "libs/image/tests/KisNodeRenameCommandContractTest.cpp",
+      "test": "KisNodeRenameCommandContractTest::sameNodeCommandsMergeFromOriginalToFinalName",
+      "behavior": "同一ノードの連続した改名命令を統合し、redoで最終名称、undoで最初の名称を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeRenameCommand::canMergeWith(const KUndo2Command * command) const",
+        "method:KisNodeRenameCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KisNodeRenameCommandContractTest",
+      "source": "libs/image/tests/KisNodeRenameCommandContractTest.cpp",
+      "test": "KisNodeRenameCommandContractTest::differentNodesAndOtherCommandsCannotMerge",
+      "behavior": "異なるノードを対象とする改名命令と異種命令の統合を拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeRenameCommand::canMergeWith(const KUndo2Command * command) const",
+        "method:KisNodeRenameCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KisNodeRenameCommandContractTest",
+      "source": "libs/image/tests/KisNodeRenameCommandContractTest.cpp",
+      "test": "KisNodeRenameCommandContractTest::discontinuousNamesAssertButStillMerge",
+      "behavior": "連続しない旧名称を持つ同一ノードの改名命令は安全診断を通知するが統合を継続し、最初の旧名称と最後の新名称を保持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisNodeRenameCommand::canMergeWith(const KUndo2Command * command) const",
+        "method:KisNodeRenameCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KisScreenMigrationTrackerContractTest",
+      "source": "libs/widgetutils/tests/KisScreenMigrationTrackerContractTest.cpp",
+      "test": "KisScreenMigrationTrackerContractTest::hiddenWidgetUsesDefaultScreenAndRetainsBorrowedLifetime",
+      "behavior": "非表示の追跡widgetでは安全取得が既定screenを無診断で返し、通常取得が同じfallbackとsafe assert診断を返す。trackerはQObject親に所有され、追跡widgetを借用する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisScreenMigrationTracker",
+        "method:KisScreenMigrationTracker::KisScreenMigrationTracker(QWidget * trackedWidget,QObject * parent=nullptr)",
+        "method:KisScreenMigrationTracker::currentScreen() const",
+        "method:KisScreenMigrationTracker::currentScreenSafe() const"
+      ]
+    },
+    {
+      "target": "KisScreenMigrationTrackerContractTest",
+      "source": "libs/widgetutils/tests/KisScreenMigrationTrackerContractTest.cpp",
+      "test": "KisScreenMigrationTrackerContractTest::visibleWidgetConnectsAndForwardsScreenChanges",
+      "behavior": "表示時に現在screenへ接続してscreen変更とscreenまたは解像度変更を各1回通知し、QWindowのscreenChanged引数を両通知へ正確に配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScreenMigrationTracker::sigScreenChanged(QScreen * screen)",
+        "method:KisScreenMigrationTracker::sigScreenOrResolutionChanged(QScreen * screen)"
+      ]
+    },
+    {
+      "target": "KisScreenMigrationTrackerContractTest",
+      "source": "libs/widgetutils/tests/KisScreenMigrationTrackerContractTest.cpp",
+      "test": "KisScreenMigrationTrackerContractTest::resolutionChangesAreCoalesced",
+      "behavior": "同じscreenの物理DPIと論理DPI通知を100msの遅延窓で一つのscreenまたは解像度変更通知へ集約する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisScreenMigrationTracker::sigScreenOrResolutionChanged(QScreen * screen)"
       ]
     }
   ]
