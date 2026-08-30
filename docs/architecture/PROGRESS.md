@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 11:39 JST
+- 更新日時: 2026-08-30 11:48 JST
 - 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,8 +14,23 @@
 - 第41並列便は完了し、公開面は1,549ヘッダー、29,989 API、対応済み7,389件、未対応22,600件である。
 - 専用作業ツリー3本は輸送コミットの統合とclean確認直後に削除済みで、現在のGit作業ツリーは`develop`の主作業ツリー1本だけである。
   主作業ツリーの永続増分構築木と共有コンパイラーキャッシュを次便でも再利用する。
-- 第42並列便は`planned`である。最新の`build/tdd-macos/public-api-missing-g42.json`から候補を読み取り専用で監査し、直接依存と構築閉包を
-  確定してから必要な3作業ツリーだけを作成する。各作業ツリーは統合直後に削除し、世代の古い不足一覧は保持しない。
+- 第42並列便は共通基点`4a045c01d5db0ac3e12af91061459ae274e23fe8`から次の4担当票を実装する。現在の対応済み7,389件へ
+  合計42 APIを加え、対応済み7,431件、未対応22,558件を目標とする。
+  - 主担当は`libs/ui/widgets/KisWarningWidget.cpp`を`kritaui_LIB_SRCS`直接収容から新規
+    `kritauiwarningwidgetobjects`へ移し、製品`kritaapplicationui`へ1回だけ再集約する。全4 APIを対象とし、既存近傍
+    `KisElidedLabelContractTest`の5工程・11入力に対して限定対象の停止上限を8工程・17入力とする。
+  - `flake_zoom_state`担当は`libs/flake/KoShapeConfigWidgetBase.cpp`を`kritaflake_SRCS`直接収容から新規
+    `kritaflakeshapeconfigwidgetbaseobjects`へ移し、製品`kritaflake`へ1回だけ再集約する。全12 APIを対象とし、既存近傍
+    `KoAbstractCanvasResourceInterfaceContractTest`の7工程・14入力に対して停止上限を8工程・16入力とする。
+  - `image_frame_lock`担当は`libs/image/kis_serializable_configuration.cc`を`kritaimage_LIB_SRCS`直接収容から新規
+    `kritaimageserializableconfigurationobjects`へ移し、製品`kritaimage`へ1回だけ再集約する。全13 APIを対象とし、既存近傍
+    `KisAnnotationContractTest`の5工程・11入力に対して停止上限を7工程・15入力とする。
+  - `global_forest`担当は`libs/widgetutils/KisRecentFilesManager.cpp`を`kritawidgetutils_LIB_SRCS`直接収容から新規
+    `kritawidgetutilsrecentfilesmanagerobjects`へ移し、製品`kritawidgetutils`へ1回だけ再集約する。全13 APIを対象とし、限定対象の
+    停止上限を9工程・20入力とする。
+- 3担当用には票確定後のこの計画変更を先に検査・コミットしてから必要な3作業ツリーだけを作成する。各担当は製品共有ライブラリーへ接続せず、
+  対象CTest単発・20回反復・軽量近傍試験・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、世代の古い
+  公開API不足一覧は次世代一覧の生成成功直後に削除する。
 
 ## 再開環境
 
@@ -10168,8 +10183,8 @@
 
 ## 次の操作
 
-第42並列便の候補を最新の不足一覧から読み取り専用で監査し、全public APIを一まとまりで固定できる対象と、直接依存・構築閉包・停止上限を
-確定する。担当票の確定後に必要な3作業ツリーだけを作成し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。
+第42並列便の計画を高速検査へ通してコミットする。共通基点から必要な3作業ツリーだけを作成し、4限定対象が未登録で失敗する初期診断を
+記録する。過大な閉包を挙動契約より先に分離し、各引渡しを統合した直後に対応する作業ツリーを削除する。
 
 ## R1-G5完了根拠
 
