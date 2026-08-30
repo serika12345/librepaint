@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 11:02 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-30 11:15 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -11,36 +11,11 @@
 
 ### 現在の並列担当票
 
-- 第40並列便の共通基準コミットは`29a8e99be7`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g40-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。担当確定後に必要な3作業ツリー
-  だけを作成し、輸送コミットの取り込みとclean確認直後に削除する。
-- 統合担当`smoothing-options-remainder`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/tools/kis_smoothing_options.cpp`、Tools製品・試験CMake、新規`KisSmoothingOptionsRemainderContractTest.cpp`を所有する。開始ファイルを
-  製品`kritatools`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存
-  `kritaglobalsignalcompressorobjects`を再利用し、製品の1,204工程・2,424入力と既存試験の1,208工程・2,431入力に代えて11工程・23入力以内で、
-  共有ポインター別名、仮想寿命、未固定3列挙値、変更通知の残り全6 APIを固定する。
-- 実装担当`shape-background-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g40-shape-background-command`で
-  `libs/flake/commands/KoShapeBackgroundCommand.cpp`、Flake製品・試験CMake、新規`KoShapeBackgroundCommandContractTest.cpp`を所有する。
-  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の580工程・
-  1,192入力と既存試験の584工程・1,199入力に代えて6工程・14入力以内で、3構築入口、背景共有所有、redo・undo、識別子、統合、借用寿命の
-  全9 APIを固定する。
-- 実装担当`bspline-1d`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g40-bspline-1d`で
-  `libs/image/bsplines/kis_bspline_1d.cpp`、Image製品・試験CMake、新規`KisBSpline1DContractTest.cpp`を所有する。開始ファイルと既存
-  `libs/image/3rdparty/einspline/bspline_create.cpp`の構築所有を各専用生成物へ移し、製品`kritaimage`へ各1回だけ再集約する。既存試験の
-  1,140工程・2,303入力に代えて7工程・15入力以内で、区間保持、初期化、固定関数の補間、終端一致、初期化前の安全な寿命の全7 APIを固定する。
-- 実装担当`int-parse-spin-box`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g40-int-parse-spin-box`で
-  `libs/widgetutils/kis_int_parse_spin_box.cpp`、WidgetUtils製品・試験CMake、新規`KisIntParseSpinBoxContractTest.cpp`を所有する。開始
-  ファイルを製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存の数式解析・描画調整
-  生成物を再利用し、製品の260工程・553入力と既存試験の1,140工程・2,303入力に代えて10工程・22入力以内で、親と仮想寿命、整数式解析、
-  不正式と回復通知、明示上書き、step、表示文字列の全9 APIを固定する。
-- 第40並列便の完了時は合計31 APIを追加し、公開面の対応済み7,355件、未対応22,634件を見込む。各担当は限定対象の単発・20回反復、軽量
-  隣接試験、公開記号、一重再集約、製品共有ライブラリー非接続、`verify-quick`を確認する。Linux、全ネイティブ検証、製品全体リンクは
-  対象外である。
-- 統合担当だけが中央文書と公開API台帳を変更する。許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない挙動を発見した
-  時点で`blocked`として引き渡す。
+- 第40並列便は完了し、公開面は1,549ヘッダー、29,989 API、対応済み7,355件、未対応22,634件である。
+- 専用作業ツリー3本は輸送コミットの統合とclean確認直後に削除済みで、現在のGit作業ツリーは`develop`の主作業ツリー1本だけである。
+  主作業ツリーの永続増分構築木と共有コンパイラーキャッシュを次便でも再利用する。
+- 第41並列便は`planned`である。最新の`build/tdd-macos/public-api-missing-g41.json`から候補を読み取り専用で監査し、直接依存と構築閉包を
+  確定してから必要な3作業ツリーだけを作成する。各作業ツリーは統合直後に削除し、世代の古い不足一覧は保持しない。
 
 ## 再開環境
 
@@ -10073,10 +10048,70 @@
 - 取り込み済み専用作業ツリー3件は作業木cleanを確認して直ちに削除し、約2.5 GBを解放した。輸送用ブランチは復旧手段として保持し、主作業
   ツリーの永続増分構築木と共有コンパイラーキャッシュは次便で再利用する。
 
+## R2-G19b 平滑化方式の残余public API契約と構築所有分離で完了した作業
+
+- `libs/tools/kis_smoothing_options.h`で未固定だった共有ポインター別名、仮想寿命、平滑化なし・安定化・pixel perfectの3方式、方式変更通知の
+  全6 APIを、新規`libs/tools/tests/KisSmoothingOptionsRemainderContractTest.cpp`の3試験へ対応付けた。共有所有の終了、基底型経由の派生破棄、
+  各方式の設定・取得と同期通知を固定した。
+- 開始ファイル`libs/tools/kis_smoothing_options.cpp`の構築所有を`libs/tools/CMakeLists.txt`の`kritatools_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応
+  `kritatoolssmoothingoptionsobjects`へ移し、製品`kritatools`は同生成物を1回だけ再集約する。限定試験は同生成物、既存
+  `kritaglobalsignalcompressorobjects`、Qt Core・Test、KF ConfigCoreだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗し、最初の限定リンクはsignal compressorが要求する回復可能assert定義の不足を検出した。
+  試験内の即時停止定義で解消し、限定対象を11工程・23入力に収め、製品の1,206工程・2,428入力と既存試験の1,210工程・2,435入力から
+  縮小した。対象CTest単発と20回反復、最近傍`KisSignalCompressorContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、
+  整形検査、`verify-quick`に成功した。保存設定の時間差書込み、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 図形背景命令の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/commands/KoShapeBackgroundCommand.h`の全9 APIを、新規
+  `libs/flake/tests/KoShapeBackgroundCommandContractTest.cpp`の5試験へ対応付けた。3構築入口、旧背景と新背景の共有所有、親命令と操作名、
+  setBackgroundからupdateへの配送順、redo・undo・再redo、安定識別子、同じshape順だけの統合、空一覧、借用shape、仮想寿命を固定した。
+- 開始ファイル`libs/flake/commands/KoShapeBackgroundCommand.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakeshapebackgroundcommandobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。限定試験の観測用
+  shapeでは背景取得・設定・更新を試験構成だけの非公開協調点へ配送し、製品時の実shape配送と公開面を維持する。
+- 対象未登録の初回限定構築は未知の対象、最初の挙動実行は実体のない観測用shapeへの仮想関数配送で異常終了し、3操作を同じ試験協調点へ
+  揃えて解消した。限定対象は5工程・12入力で、製品の580工程・1,192入力と既存試験の584工程・1,199入力から縮小した。対象CTest単発と
+  20回反復、最近傍`KoShapeTransparencyCommandContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。shape数より短い背景一覧、null shape、借用shapeの先行破棄、試験協調点の同一処理内並行変更、Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 一次元Bスプラインの全public API契約と構築所有分離で完了した作業
+
+- `libs/image/bsplines/kis_bspline_1d.h`の全7 APIを、新規`libs/image/tests/KisBSpline1DContractTest.cpp`の3試験へ対応付けた。区間保持、
+  未初期化個体の安全な寿命、一次関数と定数関数からの初期化、区間内と正の区間終端の補間値を固定した。
+- 開始ファイル`libs/image/bsplines/kis_bspline_1d.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  `kritaimagebspline1dobjects`へ移した。同じCMakeにある開始ファイル`libs/image/3rdparty/einspline/bspline_create.cpp`と
+  `libs/image/3rdparty/einspline/bspline_data.cpp`は`einspline_SRCS`直接収容から新規`kritaimageuniformbsplineengineobjects`へ移した。製品
+  `kritaimage`は両生成物を各1回だけ再集約し、製品実装と第三者実装の内容は変更していない。
+- 対象未登録の初回限定構築は未知の対象、最初の限定リンクは到達しない非一様・複数スプライン破棄記号の不足として失敗し、試験内の即時停止
+  定義で限定閉包を保った。限定対象は7工程・15入力で、既存試験の1,140工程・2,303入力から縮小した。対象CTest単発と20回反復、最近傍
+  `KisSafeTransformContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。初期化前の評価、
+  無効区間、標本数2未満、区間外評価、多重初期化、終端0、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 整数式入力欄の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/kis_int_parse_spin_box.h`の全9 APIを、新規
+  `libs/widgetutils/tests/KisIntParseSpinBoxContractTest.cpp`の5試験へ対応付けた。親所有と仮想寿命、初期値と解析状態、整数式評価と装飾なし
+  表示文字列、不正式の値保持と失敗通知、明示上書きの回復通知、刻み操作と0段の状態維持を固定した。
+- 開始ファイル`libs/widgetutils/kis_int_parse_spin_box.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の`kritawidgetutils_LIB_SRCS`直接収容から
+  新規AUTOMOC/PIC対応`kritawidgetutilsintparsespinboxobjects`へ移し、製品`kritawidgetutils`は同生成物を1回だけ再集約する。限定試験は同生成物、
+  既存の数式解析・描画調整生成物、Qt Widgets・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は9工程・19入力で、既存試験の1,140工程・2,303入力から縮小した。対象
+  CTest単発と20回反復、最近傍の数式解析試験と描画調整契約、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、
+  `verify-quick`に成功した。フォーカス中の式保持、警告表示、0除算、巨大式、範囲外値、接頭辞・接尾辞のカーソル境界、Qt 5、Linux、
+  全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第40並列便は平滑化設定6 API、図形背景命令9 API、一次元Bスプライン7 API、整数式入力欄9 APIの合計31 APIを固定した。各担当の引渡しを
+  統合順に取り込み、主作業木で4限定対象の結合構築・CTest 4/4・同時無作業再構築、必要な製品への一重再集約、公開API契約検査を再実行した。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,355件、未対応22,634件になった。
+- 取り込み済み専用作業ツリー3件は作業木cleanを確認して直ちに削除し、約2.45 GBを解放した。過去世代の公開API不足一覧約130 MBも削除し、
+  最新の`build/tdd-macos/public-api-missing-g41.json`だけを次便の入力として保持する。主作業ツリーの永続増分構築木と共有コンパイラーキャッシュは
+  次便で再利用する。
+
 ## 次の操作
 
-第40並列便の担当別作業ツリーを共通基準から作成し、対象未登録の初回限定構築診断を主作業ツリーで記録する。各担当は直接依存と停止上限を
-再確認し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。
+第41並列便の候補を最新の不足一覧から読み取り専用で監査し、全public APIを一まとまりで固定できる対象と、直接依存・構築閉包・停止上限を
+確定する。担当票の確定後に必要な3作業ツリーだけを作成し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。
 
 ## R1-G5完了根拠
 

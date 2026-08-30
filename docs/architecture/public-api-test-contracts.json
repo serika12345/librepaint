@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22665
+    "expectedMissingApis": 22634
   },
   "contracts": [
     {
@@ -22080,6 +22080,188 @@
         "method:KisClickableLabel::minimumSizeHint() const",
         "method:KisClickableLabel::sizeHint() const",
         "method:KisClickableLabel::updatePixmap()"
+      ]
+    },
+    {
+      "target": "KisSmoothingOptionsRemainderContractTest",
+      "source": "libs/tools/tests/KisSmoothingOptionsRemainderContractTest.cpp",
+      "test": "KisSmoothingOptionsRemainderContractTest::sharedAliasOwnsObjectLifetime",
+      "behavior": "平滑化設定の共有ポインター別名が個体を共有所有し、最後の所有権を解放した時点で個体の寿命を安全に終える。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSmoothingOptionsSP"
+      ]
+    },
+    {
+      "target": "KisSmoothingOptionsRemainderContractTest",
+      "source": "libs/tools/tests/KisSmoothingOptionsRemainderContractTest.cpp",
+      "test": "KisSmoothingOptionsRemainderContractTest::basePointerDeletionRunsDerivedDestructor",
+      "behavior": "平滑化設定を基底型ポインター経由で破棄すると派生個体の破棄処理まで実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSmoothingOptions::~KisSmoothingOptions()"
+      ]
+    },
+    {
+      "target": "KisSmoothingOptionsRemainderContractTest",
+      "source": "libs/tools/tests/KisSmoothingOptionsRemainderContractTest.cpp",
+      "test": "KisSmoothingOptionsRemainderContractTest::remainingModesRoundTripAndEmitChange",
+      "behavior": "未固定だった平滑化なし、安定化、pixel perfectの各方式を設定して取得でき、各設定操作が方式変更通知を正確に1回送る。",
+      "classification": "maintained",
+      "apis": [
+        "enumerator:KisSmoothingOptions::SmoothingType::NO_SMOOTHING",
+        "enumerator:KisSmoothingOptions::SmoothingType::PIXEL_PERFECT",
+        "enumerator:KisSmoothingOptions::SmoothingType::STABILIZER",
+        "method:KisSmoothingOptions::sigSmoothingTypeChanged()"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundCommandContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundCommandContractTest.cpp",
+      "test": "KoShapeBackgroundCommandContractTest::retainsUniformBackgroundsAcrossUndoCycles",
+      "behavior": "複数shapeの旧背景を構築時に取得し、親命令と操作名を保持したまま、redoで共有する新背景、undoでshapeごとの旧背景、再redoで新背景をsetBackgroundからupdateの順に適用する。命令は旧背景と新背景の共有所有を必要期間保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeBackgroundCommand",
+        "method:KoShapeBackgroundCommand::KoShapeBackgroundCommand(const QList<KoShape * > & shapes,QSharedPointer<KoShapeBackground> fill,KUndo2Command * parent=0)",
+        "method:KoShapeBackgroundCommand::id() const",
+        "method:KoShapeBackgroundCommand::redo()",
+        "method:KoShapeBackgroundCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundCommandContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundCommandContractTest.cpp",
+      "test": "KoShapeBackgroundCommandContractTest::supportsSingleAndPerShapeBackgrounds",
+      "behavior": "単一shape入口とshape別背景入口が構築時の旧背景と入力一覧を保持し、redoとundoで各shapeに対応する背景を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeBackgroundCommand::KoShapeBackgroundCommand(KoShape * shape,QSharedPointer<KoShapeBackground> fill,KUndo2Command * parent=0)",
+        "method:KoShapeBackgroundCommand::KoShapeBackgroundCommand(const QList<KoShape * > & shapes,const QList<QSharedPointer<KoShapeBackground>> & fills,KUndo2Command * parent=0)",
+        "method:KoShapeBackgroundCommand::redo()",
+        "method:KoShapeBackgroundCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundCommandContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundCommandContractTest.cpp",
+      "test": "KoShapeBackgroundCommandContractTest::mergesOnlyMatchingShapeSequences",
+      "behavior": "同じshapeを同じ順序で保持する背景命令だけを統合して新背景一覧を置換し、順序違いと異種命令を拒否する。統合後のundoは最初に取得した旧背景を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeBackgroundCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundCommandContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundCommandContractTest.cpp",
+      "test": "KoShapeBackgroundCommandContractTest::handlesEmptyShapeSequence",
+      "behavior": "空shape一覧では基底redo・undoだけを順に配送し、背景設定やshape更新を発生させない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeBackgroundCommand::KoShapeBackgroundCommand(const QList<KoShape * > & shapes,QSharedPointer<KoShapeBackground> fill,KUndo2Command * parent=0)",
+        "method:KoShapeBackgroundCommand::redo()",
+        "method:KoShapeBackgroundCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeBackgroundCommandContractTest",
+      "source": "libs/flake/tests/KoShapeBackgroundCommandContractTest.cpp",
+      "test": "KoShapeBackgroundCommandContractTest::keepsBorrowedShapeAndVirtualLifetime",
+      "behavior": "命令破棄は借用shapeの背景や更新状態を変更せず、基底命令ポインター経由で派生と基底の破棄を各1回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeBackgroundCommand::~KoShapeBackgroundCommand()"
+      ]
+    },
+    {
+      "target": "KisBSpline1DContractTest",
+      "source": "libs/image/tests/KisBSpline1DContractTest.cpp",
+      "test": "KisBSpline1DContractTest::constructionKeepsIntervalAndUninitializedLifetimeIsSafe",
+      "behavior": "構築した一次元Bスプラインが指定区間を保持し、未初期化のまま安全に破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBSplines::KisBSpline1D",
+        "method:KisBSplines::KisBSpline1D::KisBSpline1D(float gridStart,float gridEnd,int numSamples,BorderCondition bc)",
+        "method:KisBSplines::KisBSpline1D::gridEnd() const",
+        "method:KisBSplines::KisBSpline1D::gridStart() const",
+        "method:KisBSplines::KisBSpline1D::~KisBSpline1D()"
+      ]
+    },
+    {
+      "target": "KisBSpline1DContractTest",
+      "source": "libs/image/tests/KisBSpline1DContractTest.cpp",
+      "test": "KisBSpline1DContractTest::linearFunctionInterpolatesInteriorAndExactEnd",
+      "behavior": "固定した一次関数からスプラインを初期化し、区間内と正の区間終端で元関数と一致する値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBSplines::KisBSpline1D::initializeSpline()",
+        "method:KisBSplines::KisBSpline1D::value(float x) const"
+      ]
+    },
+    {
+      "target": "KisBSpline1DContractTest",
+      "source": "libs/image/tests/KisBSpline1DContractTest.cpp",
+      "test": "KisBSpline1DContractTest::constantFunctionIsStableAcrossInterval",
+      "behavior": "定数関数から初期化したスプラインが区間全体と正の終端で定数値を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBSplines::KisBSpline1D::initializeSpline()",
+        "method:KisBSplines::KisBSpline1D::value(float x) const"
+      ]
+    },
+    {
+      "target": "KisIntParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisIntParseSpinBoxContractTest.cpp",
+      "test": "KisIntParseSpinBoxContractTest::ownsParentStartsValidAndHasVirtualLifetime",
+      "behavior": "整数式入力欄が指定した親に所有され、既定値0かつ解析妥当状態で開始し、親または基底型経由の破棄で安全に寿命を終える。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisIntParseSpinBox",
+        "method:KisIntParseSpinBox::KisIntParseSpinBox(QWidget * parent=0)",
+        "method:KisIntParseSpinBox::isLastValid() const",
+        "method:KisIntParseSpinBox::~KisIntParseSpinBox()"
+      ]
+    },
+    {
+      "target": "KisIntParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisIntParseSpinBoxContractTest.cpp",
+      "test": "KisIntParseSpinBoxContractTest::evaluatesIntegerExpressionsAndPreservesCleanText",
+      "behavior": "固定ロケールと有限範囲で整数式を正確に評価し、処理前の式を装飾なしの文字列として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIntParseSpinBox::veryCleanText() const"
+      ]
+    },
+    {
+      "target": "KisIntParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisIntParseSpinBoxContractTest.cpp",
+      "test": "KisIntParseSpinBoxContractTest::invalidExpressionPreservesValueAndReportsInput",
+      "behavior": "不完全な整数式は直前の値を保持し、解析不正状態へ移り、入力式を伴う解析失敗通知を1回送る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIntParseSpinBox::errorWhileParsing(const QString & expr) const"
+      ]
+    },
+    {
+      "target": "KisIntParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisIntParseSpinBoxContractTest.cpp",
+      "test": "KisIntParseSpinBoxContractTest::explicitOverwriteRecoversFromParsingError",
+      "behavior": "明示上書きによる値設定が不正な式を数値表示へ置換し、妥当状態への遷移時だけ回復通知を送る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIntParseSpinBox::noMoreParsingError() const",
+        "method:KisIntParseSpinBox::setValue(int value,bool overwriteExpression=false)"
+      ]
+    },
+    {
+      "target": "KisIntParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisIntParseSpinBoxContractTest.cpp",
+      "test": "KisIntParseSpinBoxContractTest::stepByUsesTheConfiguredStepAndNormalizesText",
+      "behavior": "刻み操作が指定段数と単位刻みの積だけ値を移動し、式を結果数値へ正規化し、0段では状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisIntParseSpinBox::stepBy(int steps)"
       ]
     }
   ]
