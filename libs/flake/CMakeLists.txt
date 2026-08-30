@@ -517,6 +517,36 @@ set_target_properties(kritaflakeshapesizecommandobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakeshapeshearcommandobjects OBJECT
+    commands/KoShapeShearCommand.cpp
+)
+target_compile_definitions(kritaflakeshapeshearcommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshapeshearcommandobjects PRIVATE KRITAFLAKE_SHAPE_SHEAR_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshapeshearcommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshapeshearcommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapeshearcommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -624,7 +654,6 @@ set(kritaflake_SRCS
     commands/KoShapeLockCommand.cpp
     commands/KoShapeMoveCommand.cpp
     commands/KoShapeResizeCommand.cpp
-    commands/KoShapeShearCommand.cpp
     commands/KoShapeStrokeCommand.cpp
     commands/KoShapeUngroupCommand.cpp
     commands/KoShapeReorderCommand.cpp
@@ -766,6 +795,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapekeepaspectratiocommandobjects>
     $<TARGET_OBJECTS:kritaflakepathreversecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapesizecommandobjects>
+    $<TARGET_OBJECTS:kritaflakeshapeshearcommandobjects>
 
 )
 
