@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 01:33 JST
+- 更新日時: 2026-08-31 01:35 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,32 +11,32 @@
 
 ### 第69並列便の担当票
 
-- `g69-dock-registry`は状態`preparing`、基準`4235372171ef3e2f8872291e64367451cd854ece`、作業ツリー予定
+- `g69-dock-registry`は状態`implementing`、基準`72b4837bb31dd9e6cdabb1d4d660fb9aeb10f765`、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g69-dock-registry`である。目的はdock factoryの所有破棄とsingleton初回のplugin設定を固定することである。対象は
   `libs/flake/KoDockRegistry.h`のclass、constructor、destructor、`instance()`の4 API全件である。開始ファイル`libs/flake/KoDockRegistry.cpp`を
   `kritaflake_SRCS`の直接収容から`kritaflakedockregistryobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoDockRegistryContractTest.cpp`は同object、既存dock factory base object、Qt Testと試験内の狭い`KoPluginLoader`記録定義だけを使う。
   変更許可はこの新規試験、`libs/flake/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。近傍は`KoDockFactoryBaseContractTest`、対象macOS、
-  共有cache`.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件7工程・16入力、
+  共有cache`.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件7工程・16入力、
   製品`kritaflake` 612工程・1,256入力からの増加、`kritaflake`・`kritaplugin`共有ライブラリー、実plugin探索・永続設定、記録定義によるplugin意味論の模倣、
   source二重収容、公開header/source変更、または許可外変更である。
-- `g69-proofing-configuration`は状態`preparing`、同じ基準、作業ツリー予定
+- `g69-proofing-configuration`は状態`implementing`、同じ基準、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g69-proofing-configuration`である。目的は校正表示設定の既定値、3表示modeのintent・flags、legacy適応率、
   全公開memberの等価比較参加を固定することである。対象は`libs/image/KisProofingConfiguration.h`のclass、enumと3 enumerator、constructor、destructor、
   5 method、9 memberの22 API全件である。開始ファイル`libs/image/KisProofingConfiguration.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimageproofingconfigurationobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規
   `libs/image/tests/KisProofingConfigurationContractTest.cpp`は同object、実公開header上の`KoColor`・`KoColorSpaceRegistry`配置と狭い試験内symbol、
   Qt Testだけを使う。変更許可はこの新規試験、`libs/image/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。近傍は`KisImageTypesContractTest`、
-  対象macOS、共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、
+  対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、
   製品`kritaimage` 1,184工程・2,392入力からの増加、`kritapigment`共有ライブラリー・実`KoColor.cpp`・実registry、色変換意味論の模倣、実配置を保てない
   試験内symbol、非決定的な静的初期化、source二重収容、公開header/source変更、または許可外変更である。
-- `g69-operation-ui-factory`は状態`preparing`、同じ基準、作業ツリー予定
+- `g69-operation-ui-factory`は状態`implementing`、同じ基準、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g69-operation-ui-factory`である。目的は操作UI生成接続面のUnicode ID、借用viewとnull設定共有pointerの配送・返値、
   基底所有からの寿命を固定することである。対象は`libs/ui/operations/kis_operation_ui_factory.h`のclass、constructor、destructor、2 methodの5 API全件である。
   開始ファイル`libs/ui/operations/kis_operation_ui_factory.cpp`を`kritaui_LIB_SRCS`の直接収容から`kritauioperationuifactoryobjects`へ移し、
   製品`kritaapplicationui`へ一度だけ再集約する。新規`libs/ui/tests/KisOperationUIFactoryContractTest.cpp`は同object、Qt Test、試験内Probeだけを使う。
   変更許可はこの新規試験、`libs/ui/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。近傍は`KisSpinBoxSplineUnitConverterTest`、対象macOS、
-  共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力、製品`kritaapplicationui`
+  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力、製品`kritaapplicationui`
   1,957工程・3,914入力からの増加、Qt Gui/Widgets・KF・Boost・製品共有ライブラリー・実`KisOperationConfiguration`への接続、source二重収容、
   公開header/source変更、または許可外変更である。
 - 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
@@ -69,8 +69,8 @@
 
 ### 次の操作
 
-- 第69並列便の担当票を基準コミットとして固定し、3作業ツリーを作成する。作業ツリーの基準と変更許可を照合後に構築実行を許可し、
-  各担当は限定契約、最小object分離、対象・個別枠・20回反復・軽量近傍・無作業・動的依存・高速検査を完了する。
+- 3担当は許可範囲内で初期診断、限定契約、最小object分離、対象・個別枠・20回反復・軽量近傍・無作業・動的依存・高速検査を完了して担当コミットを返す。
+  統合担当は主増分構築木で順次再検証し、各統合または停止直後に担当作業ツリー、局所構築木、担当ブランチを即時削除する。
 
 ## 再開環境
 
