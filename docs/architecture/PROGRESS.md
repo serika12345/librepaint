@@ -2,12 +2,47 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 22:17 JST
-- 状態: `planned`
+- 更新日時: 2026-08-30 22:33 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第64並列便の担当票
+
+- `g64-css-text`は状態`preparing`、基準はこの計画コミット、作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g64-css-text`である。目的はCSS文字列変換の語区切り、空白処理、大小・先頭大文字化、全角・かな変換、
+  書記素分割、均等割付、双方向制御、削除範囲、font値選択を固定することである。対象は`libs/flake/text/KoCssTextUtils.h`のclassと16 static methodの
+  17 API全件である。開始ファイル`libs/flake/text/KoCssTextUtils.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakecsstextutilsobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規`libs/flake/tests/KoCssTextUtilsContractTest.cpp`はQt Test、
+  同object、Boost header、libunibreakだけを使い、OS差を避けたASCIIと明示localeの値を固定する。変更許可はこの新規試験、
+  `libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`に限る。近傍は`KoFlakeTypesContractTest`、対象macOS、共有cache
+  `.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件6工程・14入力、
+  製品`kritaflake` 612工程・1,256入力からの増加、製品共有ライブラリー・共通試験基盤への接続、locale依存値、source二重収容、
+  公開header/source変更、または許可外変更である。
+- `g64-crop-saved-data`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g64-crop-saved-data`である。目的は切抜き保存データの
+  3用途、矩形、既定null、node強所有、複製独立性、基底所有からの寿命を固定することである。対象は`libs/image/kis_crop_saved_extra_data.h`のclass、enum、
+  3 enumerator、constructor、destructor、3 getter、`clone`の11 API全件である。開始ファイル`libs/image/kis_crop_saved_extra_data.cpp`を
+  `kritaimage_LIB_SRCS`の直接収容から`kritaimagecropsavedextradataobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規
+  `libs/image/tests/KisCropSavedExtraDataContractTest.cpp`はQt Test、同object、試験内の最小参照計数nodeと基底destructorだけを使う。変更許可は
+  この新規試験、開始source、`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は`KisImageTypesContractTest`、対象macOS、
+  共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、製品`kritaimage`
+  1,184工程・2,392入力からの増加、実`KisNode`・製品共有ライブラリー・painting undo生成物への接続、source二重収容、新仕様判断、
+  公開header変更、または許可外変更である。
+- `g64-painting-mode`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g64-painting-mode`である。目的は描画mode設定の
+  既定値、列挙値、設定有無、整数写像、読書き、等価性を固定することである。対象は`plugins/paintops/libpaintop/KisPaintingModeOptionData.h`のenum、
+  2 enumerator、struct、2 member、等価演算子、`read`、`write`の9 API全件である。開始ファイル
+  `plugins/paintops/libpaintop/KisPaintingModeOptionData.cpp`を`kritapaintopruntime_LIB_SRCS`の直接収容から
+  `kritapaintoppaintingmodeoptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約する。新規
+  `plugins/paintops/libpaintop/tests/KisPaintingModeOptionDataContractTest.cpp`はQt Test、同object、試験内の最小設定storeだけを使う。変更許可は
+  この新規試験、libpaintop本体と試験の各`CMakeLists.txt`に限る。近傍は`KisTextureOptionDataIOContractTest`、対象macOS、共有cache同上、
+  構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・18入力、製品`kritapaintopruntime`
+  1,281工程・2,582入力と`kritalibpaintop` 2,095工程・4,188入力からの増加、実設定object・製品共有ライブラリーへの接続、source二重収容、
+  公開header/source変更、または許可外変更である。
+- 3担当は対象未登録の初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
+  統合担当が中央台帳、進捗、担当間のCMake非重複、容量削除を所有する。統合した担当の作業ツリー、局所構築木、ブランチは次担当の統合を待たず
+  直ちに削除する。完了目標は37 API純増の対応済み8,043件、未対応21,946件である。
 
 ### 現在の結果
 
@@ -36,8 +71,8 @@
 
 ### 次の操作
 
-- 第64並列便は最新不足一覧から相互に重ならない候補を読取り専用で監査し、公開API全件を固定でき、製品閉包を増やさないか限定的な増加で済む
-  3候補を選ぶ。共通計画で開始ファイルから専用生成物への移動、試験対象、近傍試験、停止条件、容量削除条件を確定してから実装を開始する。
+- 第64並列便の共通計画コミットから3専用作業ツリーを作成し、基準・許可パス・構築実行許可を実体と照合する。
+  各担当は構築実行を`granted`に更新した後だけ初期診断から限定実装へ進み、統合担当は完了した作業ツリーと局所構築木を即時削除する。
 
 ## 再開環境
 
