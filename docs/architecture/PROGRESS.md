@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 12:15 JST
+- 更新日時: 2026-08-30 12:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,7 +26,9 @@
     `kritaimagegradientshapestrategyobjects`へ移し、製品`kritaimage`へ1回だけ再集約する。全5 APIを対象とし、停止上限を6工程・13入力とする。
   - `global_forest`担当は`libs/widgetutils/config/krecentfilesaction.cpp`を`kritawidgetutils_LIB_SRCS`直接収容から新規
     `kritawidgetutilsrecentfilesactionobjects`へ移し、製品`kritawidgetutils`へ1回だけ再集約する。全9 APIを対象とし、前便の
-    `kritawidgetutilsrecentfilesmanagerobjects`を再利用して停止上限を11工程・22入力とする。
+    `kritawidgetutilsrecentfilesmanagerobjects`を再利用して停止上限を11工程・23入力とする。対象限定の再構成で実測した閉包は
+    10工程・23入力であり、操作側と管理側の各ソース・自動生成コード、Qt Core・Test、KF WidgetsAddons・I18n・ConfigCoreからなる。
+    製品共有ライブラリーは含まず、既存管理OBJECTを再利用する契約を保つため、この入力数を必要な上限とする。
 - 3担当用にはこの計画変更を先に検査・コミットしてから必要な3作業ツリーだけを作成する。各担当は製品共有ライブラリーへ接続せず、対象CTest
   単発・20回反復・軽量近傍試験・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、世代の古い公開API
   不足一覧は次世代一覧の生成成功直後に削除する。
