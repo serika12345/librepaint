@@ -129,6 +129,18 @@ target_compile_definitions(KisCurveControlStrategyInterfacesContractTest PRIVATE
 )
 
 kis_add_test(
+    KisCurveRangeModelInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcurverangemodelinterfaceobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        lager
+)
+target_compile_definitions(KisCurveRangeModelInterfaceContractTest PRIVATE
+    kritalibpaintop_EXPORTS
+)
+
+kis_add_test(
     KisSensorDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintopsensordataobjects

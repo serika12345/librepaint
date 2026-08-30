@@ -19,7 +19,6 @@ set(kritalibpaintop_LIB_SRCS
     KisCurveOptionDataCommon.cpp
     KisCurveOptionData.cpp
     KisCurveOptionInputControlsStrategy.cpp
-    KisCurveRangeModelInterface.cpp
     KisCurveRangeModel.cpp
     KisCurveOptionModel.cpp
     KisCurveOptionWidget.cpp
@@ -275,6 +274,27 @@ set_target_properties(kritapaintopcurvecontrolinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopcurverangemodelinterfaceobjects OBJECT
+    KisCurveRangeModelInterface.cpp
+)
+target_compile_definitions(kritapaintopcurverangemodelinterfaceobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcurverangemodelinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopcurverangemodelinterfaceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        lager
+)
+set_target_properties(kritapaintopcurverangemodelinterfaceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintoptextureoptionioobjects OBJECT
     KisEmbeddedTextureDataIO.cpp
     KisTextureOptionData.cpp
@@ -364,6 +384,7 @@ kis_add_library(kritalibpaintop SHARED
     ${kritalibpaintop_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopruntime>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
 )
