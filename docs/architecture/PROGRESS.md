@@ -2,74 +2,39 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 01:43 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-31 01:56 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第69並列便の担当票
-
-- `g69-dock-registry`は状態`implementing`、基準`72b4837bb31dd9e6cdabb1d4d660fb9aeb10f765`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g69-dock-registry`である。目的はdock factoryの所有破棄とsingleton初回のplugin設定を固定することである。対象は
-  `libs/flake/KoDockRegistry.h`のclass、constructor、destructor、`instance()`の4 API全件である。開始ファイル`libs/flake/KoDockRegistry.cpp`を
-  `kritaflake_SRCS`の直接収容から`kritaflakedockregistryobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
-  `libs/flake/tests/KoDockRegistryContractTest.cpp`は同object、既存dock factory base object、Qt Testと試験内の狭い`KoPluginLoader`記録定義だけを使う。
-  変更許可はこの新規試験、`libs/flake/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。近傍は`KoDockFactoryBaseContractTest`、対象macOS、
-  共有cache`.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件7工程・16入力、
-  製品`kritaflake` 612工程・1,256入力からの増加、`kritaflake`・`kritaplugin`共有ライブラリー、実plugin探索・永続設定、記録定義によるplugin意味論の模倣、
-  source二重収容、公開header/source変更、または許可外変更である。
-- `g69-proofing-configuration`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g69-proofing-configuration`である。目的は校正表示設定の既定値、3表示modeのintent・flags、legacy適応率、
-  全公開memberの等価比較参加を固定することである。対象は`libs/image/KisProofingConfiguration.h`のclass、enumと3 enumerator、constructor、destructor、
-  5 method、9 memberの22 API全件である。開始ファイル`libs/image/KisProofingConfiguration.cpp`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimageproofingconfigurationobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規
-  `libs/image/tests/KisProofingConfigurationContractTest.cpp`は同object、実公開header上の`KoColor`・`KoColorSpaceRegistry`配置と狭い試験内symbol、
-  Qt Testだけを使う。変更許可はこの新規試験、`libs/image/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。近傍は`KisImageTypesContractTest`、
-  対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、
-  製品`kritaimage` 1,184工程・2,392入力からの増加、`kritapigment`共有ライブラリー・実`KoColor.cpp`・実registry、色変換意味論の模倣、実配置を保てない
-  試験内symbol、非決定的な静的初期化、source二重収容、公開header/source変更、または許可外変更である。
-- `g69-masking-brush-composite-base`は状態`implementing`、基準`bb5be909885a4483d7d4e1247a38d5046dac84b1`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g69-masking-brush-composite-base`である。目的はmasking brush合成接続面のsource・destination byte列、両stride、列数、
-  行数の仮想配送と基底所有からの寿命を固定することである。対象は`libs/painting/strokes/KisMaskingBrushCompositeOpBase.h`のclass、destructor、`composite()`の
-  3 API全件である。header-only接続面のため製品sourceと製品CMakeを変更せず、新規`libs/painting/tests/KisMaskingBrushCompositeOpBaseContractTest.cpp`の
-  Probeだけで観測する。変更許可はこの新規試験と`libs/painting/tests/CMakeLists.txt`に限る。近傍は`KisFigurePaintingOptionsContractTest`、対象macOS、
-  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件5工程・10入力、製品`kritapainting`
-  1,206工程・2,434入力からの増加、pigment・image・製品共有ライブラリー・実合成処理・追加objectへの接続、公開header/source変更、または許可外変更である。
-- 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
-  統合担当が中央台帳、進捗、CMake非重複、容量削除を所有し、統合または停止直後に担当作業ツリー、局所構築木、ブランチを削除する。
-  操作UI生成接続面候補は編集前にQt Gui・Eigenの禁止依存へ到達したため終了し、差分なしの作業ツリーを削除した。差替え後の完了目標は29 API純増の
-  対応済み8,179件、未対応21,810件である。
-
 ### 現在の結果
 
-- 第68並列便は、SVG mesh gradient 14 API、swap memory window 7 API、undo store基底接続面10 APIの合計31 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み8,150件、未対応21,839件である。
-- 開始ファイル`libs/flake/svg/SvgMeshGradient.cpp`は`kritaflake_SRCS`の直接収容から
-  `kritaflakesvgmeshgradientobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/SvgMeshGradientContractTest.cpp`が補間列挙値、既定状態、種別と座標系、有効meshの境界と変換、コピー独立性を固定する。
-- 開始ファイル`libs/image/tiles3/swap/kis_memory_window.cpp`は`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagememorywindowobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。新規
-  `libs/image/tiles3/tests/KisMemoryWindowContractTest.cpp`が一時file寿命、窓再配置後のbyte保持、参照値とiterator値のread/write overloadを固定する。
-- 開始ファイル`libs/painting/undo/kis_undo_store.cpp`は`kritapaintingundostoreobjects`から
-  `kritapaintingundostoreinterfaceobjects`へ移り、具体store objectから一方向に依存され、製品`kritapaintingundo`へ一度だけ再集約される。新規
-  `libs/painting/undo/tests/KisUndoStoreInterfaceContractTest.cpp`が命令とmacro配送、undo・終了・redo破棄順、履歴通知、基底所有からの寿命を固定する。
-- 統合後の限定閉包は`SvgMeshGradientContractTest` 7工程・15入力、`KisMemoryWindowContractTest` 5工程・11入力、
-  `KisUndoStoreInterfaceContractTest` 7工程・14入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
-  `kritapaintingundo` 284工程・599入力から増えていない。
-- 主作業ツリーの3限定対象と4軽量近傍はCTest 7/7に成功し、3限定対象は各20回反復、全11新規契約枠、再構築時の無作業確認に成功した。
-  macOSのパッケージ境界は1,555対象、公開API契約検査は8,150/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
-  空meshの境界、swap用dirとmappingの失敗・巨大chunk補正、実undo stack・commandとの統合は残余範囲である。製品全体の構築・リンクとLinux検証は
-  限定閉包を越えるため対象外とした。
-- 担当作業ツリー3本、局所構築木、担当ブランチは各統合直後に削除し、一時使用量約2.49 GBを全回収した。旧第68便不足一覧を削除し、
-  最新の第69便不足一覧`build/tdd-macos/public-api-missing-g69.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は5.0 GB、
-  共有nativeコンパイラーcacheは662 MBである。
+- 第69並列便は、dock registry 4 API、校正表示設定22 API、masking brush合成接続面3 APIの合計29 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み8,179件、未対応21,810件である。
+- 開始ファイル`libs/flake/KoDockRegistry.cpp`は`kritaflake_SRCS`の直接収容から`kritaflakedockregistryobjects`へ移り、製品`kritaflake`へ一度だけ
+  再集約される。新規`libs/flake/tests/KoDockRegistryContractTest.cpp`がfactory所有破棄とsingleton初回のplugin設定を固定する。
+- 開始ファイル`libs/image/KisProofingConfiguration.cpp`は`kritaimage_LIB_SRCS`の直接収容から`kritaimageproofingconfigurationobjects`へ移り、
+  製品`kritaimage`へ一度だけ再集約される。新規`libs/image/tests/KisProofingConfigurationContractTest.cpp`が既定値、3表示modeのintent・flags、
+  legacy適応率、全公開memberの等価比較参加を固定する。
+- `libs/painting/strokes/KisMaskingBrushCompositeOpBase.h`はheader-onlyの製品境界を維持し、新規
+  `libs/painting/tests/KisMaskingBrushCompositeOpBaseContractTest.cpp`がsource・destination pointer、両stride、列数、行数の仮想配送と基底所有からの寿命を固定する。
+- 統合後の限定閉包は`KoDockRegistryContractTest` 6工程・14入力、`KisProofingConfigurationContractTest` 5工程・11入力、
+  `KisMaskingBrushCompositeOpBaseContractTest` 4工程・8入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
+  `kritapainting` 1,206工程・2,434入力から増えていない。
+- 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象は各20回反復、全10新規契約枠、再構築時の無作業確認に成功した。
+  macOSのパッケージ境界は1,560対象、公開API契約検査は8,179/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
+  実plugin探索・永続設定、実色空間registry・色変換、実合成のpixel意味論は残余範囲である。製品全体の構築・リンクとLinux検証は限定閉包を越えるため
+  対象外とした。
+- 操作UI生成接続面候補は編集前にQt Gui・Eigenの停止条件へ到達したため差分なしで終了した。担当作業ツリー4本、局所構築木、担当ブランチは停止または
+  統合の直後に削除し、同時最大約2.50 GB、累計約3.34 GBの一時生成物を回収した。旧第69便不足一覧を削除し、最新の第70便不足一覧
+  `build/tdd-macos/public-api-missing-g70.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は5.0 GB、共有nativeコンパイラーcacheは668 MBである。
 
 ### 次の操作
 
-- 3担当は許可範囲内で初期診断、限定契約、最小object分離、対象・個別枠・20回反復・軽量近傍・無作業・動的依存・高速検査を完了して担当コミットを返す。
-  統合担当は主増分構築木で順次再検証し、各統合または停止直後に担当作業ツリー、局所構築木、担当ブランチを即時削除する。
+- 第70並列便は最新不足一覧から互いに重ならない公開面を読取り監査し、公開API件数、最小の観測可能契約、直接CMake依存、既存対象との清浄木閉包差を測る。
+  計画前は作業ツリーや局所構築木を作らず、広域閉包を専用objectへ分離できる候補だけを採用する。
 
 ## 再開環境
 

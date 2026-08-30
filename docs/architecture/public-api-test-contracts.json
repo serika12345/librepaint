@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21839
+    "expectedMissingApis": 21810
   },
   "contracts": [
     {
@@ -26672,6 +26672,125 @@
       "classification": "maintained",
       "apis": [
         "method:KisUndoStore::~KisUndoStore()"
+      ]
+    },
+    {
+      "target": "KoDockRegistryContractTest",
+      "source": "libs/flake/tests/KoDockRegistryContractTest.cpp",
+      "test": "KoDockRegistryContractTest::ownsRegisteredFactoriesUntilDestruction",
+      "behavior": "dock registryは空で構築され、登録factoryのpointerを保持し、registry寿命の終了時に各factoryを一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDockRegistry",
+        "method:KoDockRegistry::KoDockRegistry()",
+        "method:KoDockRegistry::~KoDockRegistry()"
+      ]
+    },
+    {
+      "target": "KoDockRegistryContractTest",
+      "source": "libs/flake/tests/KoDockRegistryContractTest.cpp",
+      "test": "KoDockRegistryContractTest::initializesDockPluginsOnceForStableSingleton",
+      "behavior": "dock registry singletonは同一個体を返し、初回だけKrita/Dockのplugin設定を正確なgroup、blacklist、所有者、cache指定で読込み処理へ渡す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDockRegistry::instance()"
+      ]
+    },
+    {
+      "target": "KisProofingConfigurationContractTest",
+      "source": "libs/image/tests/KisProofingConfigurationContractTest.cpp",
+      "test": "KisProofingConfigurationContractTest::defaultConfigurationPreservesProofingDefaultsAndEnumValues",
+      "behavior": "校正表示設定は安定した3表示mode値を持ち、既定の変換意図、flags、警告色、profile識別値、Paper modeを個体寿命中に保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProofingConfiguration",
+        "enum:KisProofingConfiguration::DisplayTransformState",
+        "enumerator:KisProofingConfiguration::DisplayTransformState::Custom",
+        "enumerator:KisProofingConfiguration::DisplayTransformState::Monitor",
+        "enumerator:KisProofingConfiguration::DisplayTransformState::Paper",
+        "member:KisProofingConfiguration::conversionIntent",
+        "member:KisProofingConfiguration::displayFlags",
+        "member:KisProofingConfiguration::displayIntent",
+        "member:KisProofingConfiguration::displayMode",
+        "member:KisProofingConfiguration::proofingDepth",
+        "member:KisProofingConfiguration::proofingModel",
+        "member:KisProofingConfiguration::proofingProfile",
+        "member:KisProofingConfiguration::useBlackPointCompensationFirstTransform",
+        "member:KisProofingConfiguration::warningColor",
+        "method:KisProofingConfiguration::KisProofingConfiguration()",
+        "method:KisProofingConfiguration::~KisProofingConfiguration()"
+      ]
+    },
+    {
+      "target": "KisProofingConfigurationContractTest",
+      "source": "libs/image/tests/KisProofingConfigurationContractTest.cpp",
+      "test": "KisProofingConfigurationContractTest::legacyAdaptationStateUsesHalfThreshold",
+      "behavior": "校正表示設定のlegacy適応率は0.5未満を無適応へ写し、0.5以上を完全適応へ写して対応flagと往復する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProofingConfiguration::legacyAdaptationState() const",
+        "method:KisProofingConfiguration::setLegacyAdaptationState(qreal value)"
+      ]
+    },
+    {
+      "target": "KisProofingConfigurationContractTest",
+      "source": "libs/image/tests/KisProofingConfigurationContractTest.cpp",
+      "test": "KisProofingConfigurationContractTest::displayIntentFollowsSelectedTransform",
+      "behavior": "校正表示設定はMonitorで入力意図、Paperで絶対測色意図、Customで保存済み表示意図を選択する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProofingConfiguration::determineDisplayIntent(KoColorConversionTransformation::Intent monitorDisplayIntent)"
+      ]
+    },
+    {
+      "target": "KisProofingConfigurationContractTest",
+      "source": "libs/image/tests/KisProofingConfigurationContractTest.cpp",
+      "test": "KisProofingConfigurationContractTest::displayFlagsPreserveModeAndProofingBits",
+      "behavior": "校正表示設定はMonitor、Paper、Customの基礎flagsを選び、全modeでgamut checkとsoft proofingを保存設定から反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProofingConfiguration::determineDisplayFlags(KoColorConversionTransformation::ConversionFlags monitorDisplayFlags)"
+      ]
+    },
+    {
+      "target": "KisProofingConfigurationContractTest",
+      "source": "libs/image/tests/KisProofingConfigurationContractTest.cpp",
+      "test": "KisProofingConfigurationContractTest::equalityComparesEveryConfigurationValue",
+      "behavior": "校正表示設定の等価性は9公開memberすべてへ独立して依存し、不等価演算は等価演算の反対を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProofingConfiguration::operator !=(const KisProofingConfiguration & other) const",
+        "method:KisProofingConfiguration::operator ==(const KisProofingConfiguration & other) const"
+      ]
+    },
+    {
+      "target": "KisMaskingBrushCompositeOpBaseContractTest",
+      "source": "libs/painting/tests/KisMaskingBrushCompositeOpBaseContractTest.cpp",
+      "test": "KisMaskingBrushCompositeOpBaseContractTest::interfaceRemainsAbstractAndPolymorphic",
+      "behavior": "masking brush合成接続面は抽象多態型として派生実装を要求する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMaskingBrushCompositeOpBase"
+      ]
+    },
+    {
+      "target": "KisMaskingBrushCompositeOpBaseContractTest",
+      "source": "libs/painting/tests/KisMaskingBrushCompositeOpBaseContractTest.cpp",
+      "test": "KisMaskingBrushCompositeOpBaseContractTest::compositeForwardsBuffersStridesAndDimensions",
+      "behavior": "masking brush合成接続面はsourceとdestinationの開始pointer、両stride、列数、行数を変更せず一度派生実装へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskingBrushCompositeOpBase::composite(const quint8 * srcRowStart,int srcRowStride,quint8 * dstRowStart,int dstRowStride,int columns,int rows)"
+      ]
+    },
+    {
+      "target": "KisMaskingBrushCompositeOpBaseContractTest",
+      "source": "libs/painting/tests/KisMaskingBrushCompositeOpBaseContractTest.cpp",
+      "test": "KisMaskingBrushCompositeOpBaseContractTest::baseOwnershipUsesVirtualDestruction",
+      "behavior": "masking brush合成接続面は基底所有からの解放で派生destructorを通り、個体寿命を一度終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMaskingBrushCompositeOpBase::~KisMaskingBrushCompositeOpBase()"
       ]
     }
   ]
