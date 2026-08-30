@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22388
+    "expectedMissingApis": 22385
   },
   "contracts": [
     {
@@ -23535,6 +23535,37 @@
       "apis": [
         "alias:KisToolChangesTrackerDataSP",
         "method:KisToolChangesTrackerData::~KisToolChangesTrackerData()"
+      ]
+    },
+    {
+      "target": "KoActiveCanvasResourceDependencyKoResourceContractTest",
+      "source": "libs/flake/tests/KoActiveCanvasResourceDependencyKoResourceContractTest.cpp",
+      "test": "KoActiveCanvasResourceDependencyKoResourceContractTest::preservesSignedKeysThroughBase",
+      "behavior": "KoResource型canvas依存は構築時の符号付きsource keyとtarget keyを基底接続面から値どおり返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoActiveCanvasResourceDependencyKoResource",
+        "method:KoActiveCanvasResourceDependencyKoResource::KoActiveCanvasResourceDependencyKoResource(int sourceKey,int targetKey)"
+      ]
+    },
+    {
+      "target": "KoActiveCanvasResourceDependencyKoResourceContractTest",
+      "source": "libs/flake/tests/KoActiveCanvasResourceDependencyKoResourceContractTest.cpp",
+      "test": "KoActiveCanvasResourceDependencyKoResourceContractTest::updatesOnlyWhenSourceResourceRequiresTargetKey",
+      "behavior": "KoResource型canvas依存はsource QVariant内の共有resourceが要求するcanvas keyにtarget keyを含む場合だけ更新を要求し、target QVariantの値に左右されずsourceとresourceを変更しない。基底ポインター経由でも同じ判定を配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoActiveCanvasResourceDependencyKoResource::shouldUpdateSource(QVariant & source,const QVariant & target)"
+      ]
+    },
+    {
+      "target": "KoActiveCanvasResourceDependencyKoResourceContractTest",
+      "source": "libs/flake/tests/KoActiveCanvasResourceDependencyKoResourceContractTest.cpp",
+      "test": "KoActiveCanvasResourceDependencyKoResourceContractTest::nullAndInvalidVariantsDoNotRequestUpdate",
+      "behavior": "KoResource型canvas依存は無効QVariant、異なる型、null共有resourceのsourceについて更新を要求せず、入力値を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoActiveCanvasResourceDependencyKoResource::shouldUpdateSource(QVariant & source,const QVariant & target)"
       ]
     }
   ]
