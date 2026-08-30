@@ -117,6 +117,28 @@ set_target_properties(kritaimagestrokespeedmeasurerobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagefillintervalmapobjects OBJECT
+   floodfill/kis_fill_interval_map.cpp
+)
+target_compile_definitions(kritaimagefillintervalmapobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagefillintervalmapobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/floodfill>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagefillintervalmapobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagefillintervalmapobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagebusywaitbrokerobjects OBJECT
    KisBusyWaitBroker.cpp
 )
@@ -816,7 +838,6 @@ set(kritaimage_LIB_SRCS
    generator/kis_generator_layer.cpp
    generator/kis_generator_registry.cpp
    generator/kis_generator_stroke_strategy.cpp
-   floodfill/kis_fill_interval_map.cpp
    floodfill/kis_scanline_fill.cpp
    floodfill/kis_gap_map.cpp
    lazybrush/kis_min_cut_worker.cpp
@@ -1015,6 +1036,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagefiltercategoryidsobjects>
    $<TARGET_OBJECTS:kritaimageperstrokerandomsourceobjects>
    $<TARGET_OBJECTS:kritaimagestrokespeedmeasurerobjects>
+   $<TARGET_OBJECTS:kritaimagefillintervalmapobjects>
    $<TARGET_OBJECTS:kritaimagebusywaitbrokerobjects>
    $<TARGET_OBJECTS:kritaimagesafeblockingqueueconnectionproxyobjects>
    $<TARGET_OBJECTS:kritaimagefastmathobjects>
