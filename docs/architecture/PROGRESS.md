@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 13:37 JST
+- 更新日時: 2026-08-30 13:41 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -25,6 +25,10 @@
 - `KoSelectedShapesProxy`は限定対象8工程・16入力、`KoDeferredShapeFactoryBase`は8工程・16入力、
   `KisPaintOpPresetUpdateProxy`は12工程・24入力、`KoOptimizedPixelDataScalerU8ToU16Factory`は9工程・20入力を停止上限とする。
   各実装を現在の製品ソース直接収容から責務別OBJECT生成物へ移し、製品へ1回だけ再集約する。計画検査とコミット後に担当作業ツリー3本だけを作成する。
+- 共通基点`8594658c53`から担当作業ツリー3本を作成した。初回macOS構成後、主作業ツリーの`KoSelectedShapesProxyContractTest`、
+  `librepaint-r2-g46-flake`の`KoDeferredShapeFactoryBaseContractTest`、`librepaint-r2-g46-image`の`KisPaintOpPresetUpdateProxyContractTest`、
+  `librepaint-r2-g46-pigment`の`KoOptimizedPixelDataScalerU8ToU16FactoryContractTest`は、いずれも未知の対象として失敗した。
+  担当作業ツリーは各811 MBであり、統合後のclean確認直後に個別削除する。
 
 ## 再開環境
 
@@ -10402,8 +10406,7 @@
 
 ## 次の操作
 
-第46並列便の計画を`verify-quick`で検査してコミットする。担当作業ツリー3本を作成し、主作業ツリーを含む4対象について未登録対象の初回失敗を確認する。
-開始状態をコミットした後、4対象の構築所有分離と全public API挙動契約を並列実装する。各担当は限定対象、単発・20回反復、軽量近傍、製品共有ライブラリー非接続、
+第46並列便の開始状態を`verify-quick`で検査してコミットし、4対象の構築所有分離と全public API挙動契約を並列実装する。各担当は限定対象、単発・20回反復、軽量近傍、製品共有ライブラリー非接続、
 公開API契約検査、`verify-quick`に成功したclean commitを引き渡し、統合直後に対応する作業ツリーを削除する。
 
 ## R1-G5完了根拠
