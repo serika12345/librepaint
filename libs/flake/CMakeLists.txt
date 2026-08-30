@@ -104,6 +104,21 @@ set_target_properties(kritaflakeabstractcanvasresourceinterfaceobjects PROPERTIE
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapeconfigwidgetbaseobjects OBJECT
+    KoShapeConfigWidgetBase.cpp
+)
+target_compile_definitions(kritaflakeshapeconfigwidgetbaseobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeshapeconfigwidgetbaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeshapeconfigwidgetbaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaflakeshapeconfigwidgetbaseobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeactivecanvasresourcedependencyobjects OBJECT
     KoActiveCanvasResourceDependency.cpp
 )
@@ -723,7 +738,6 @@ set(kritaflake_SRCS
     KoVectorPatternBackground.cpp
     KoShapeFillWrapper.cpp
     KoShapeFillResourceConnector.cpp
-    KoShapeConfigWidgetBase.cpp
     KoDrag.cpp
     KoSvgPaste.cpp
     KoSnapGuide.cpp
@@ -860,6 +874,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundcommandobjects>
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
+    $<TARGET_OBJECTS:kritaflakeshapeconfigwidgetbaseobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
     $<TARGET_OBJECTS:kritaflakederivedresourceconverterobjects>
     $<TARGET_OBJECTS:kritaflakeresourceupdatemediatorobjects>

@@ -119,6 +119,19 @@ target_include_directories(KoAbstractCanvasResourceInterfaceContractTest PRIVATE
 target_compile_definitions(KoAbstractCanvasResourceInterfaceContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoShapeConfigWidgetBaseContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeshapeconfigwidgetbaseobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_include_directories(KoShapeConfigWidgetBaseContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoShapeConfigWidgetBaseContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoActiveCanvasResourceDependencyContractTest.cpp
     LINK_LIBRARIES
         kritaflakeactivecanvasresourcedependencyobjects

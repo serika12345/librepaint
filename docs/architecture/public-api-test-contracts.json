@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22596
+    "expectedMissingApis": 22584
   },
   "contracts": [
     {
@@ -22488,6 +22488,58 @@
       "classification": "maintained",
       "apis": [
         "method:KisWarningWidget::changeImageProfileWarningText()"
+      ]
+    },
+    {
+      "target": "KoShapeConfigWidgetBaseContractTest",
+      "source": "libs/flake/tests/KoShapeConfigWidgetBaseContractTest.cpp",
+      "test": "KoShapeConfigWidgetBaseContractTest::keepsDefaultsAndBorrowedResourceManager",
+      "behavior": "図形設定パネル基底が親と資源管理器を持たずに構築され、作成時は非表示、選択時は表示、命令生成はnull、単位設定は無作用という既定値を返し、設定された資源管理器の借用ポインターをそのまま保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeConfigWidgetBase",
+        "method:KoShapeConfigWidgetBase::KoShapeConfigWidgetBase()",
+        "method:KoShapeConfigWidgetBase::createCommand()",
+        "method:KoShapeConfigWidgetBase::setResourceManager(KoCanvasResourceProvider * rm)",
+        "method:KoShapeConfigWidgetBase::setUnit(const KoUnit & unit)",
+        "method:KoShapeConfigWidgetBase::showOnShapeCreate()",
+        "method:KoShapeConfigWidgetBase::showOnShapeSelect()"
+      ]
+    },
+    {
+      "target": "KoShapeConfigWidgetBaseContractTest",
+      "source": "libs/flake/tests/KoShapeConfigWidgetBaseContractTest.cpp",
+      "test": "KoShapeConfigWidgetBaseContractTest::dispatchesConfigurationOperationsThroughBase",
+      "behavior": "図形設定パネルの基底接続面が図形、単位、保存、表示条件、命令生成を呼出し順どおり派生実装へ配送し、借用引数と返値を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeConfigWidgetBase::createCommand()",
+        "method:KoShapeConfigWidgetBase::open(KoShape * shape)",
+        "method:KoShapeConfigWidgetBase::save()",
+        "method:KoShapeConfigWidgetBase::setUnit(const KoUnit & unit)",
+        "method:KoShapeConfigWidgetBase::showOnShapeCreate()",
+        "method:KoShapeConfigWidgetBase::showOnShapeSelect()"
+      ]
+    },
+    {
+      "target": "KoShapeConfigWidgetBaseContractTest",
+      "source": "libs/flake/tests/KoShapeConfigWidgetBaseContractTest.cpp",
+      "test": "KoShapeConfigWidgetBaseContractTest::deliversPropertyAndAcceptSignalsInOrder",
+      "behavior": "図形設定パネルがプロパティー変更と受入れの信号を発行回数と順序を保って接続先へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeConfigWidgetBase::accept()",
+        "method:KoShapeConfigWidgetBase::propertyChanged()"
+      ]
+    },
+    {
+      "target": "KoShapeConfigWidgetBaseContractTest",
+      "source": "libs/flake/tests/KoShapeConfigWidgetBaseContractTest.cpp",
+      "test": "KoShapeConfigWidgetBaseContractTest::destroysDerivedWidgetThroughQWidgetBase",
+      "behavior": "QWidget基底ポインターから図形設定パネルを破棄すると派生デストラクターまで一度だけ到達し、QObjectの監視ポインターが失効する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeConfigWidgetBase::~KoShapeConfigWidgetBase()"
       ]
     }
   ]
