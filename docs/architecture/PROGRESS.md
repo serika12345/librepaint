@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 12:37 JST
+- 更新日時: 2026-08-30 12:39 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -36,6 +36,10 @@
 - 計画を検査・コミットした共通基点から担当用3作業ツリーだけを作成する。各担当は製品共有ライブラリーへ接続せず、対象CTest単発・20回反復・
   軽量近傍試験・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、世代の古い公開API不足一覧は次世代
   一覧の生成成功直後に削除する。
+- 計画変更を`verify-quick`へ通してコミットし、共通基点`fb43e811f369112d91d8e9ec4de27bea525648b6`から担当用3作業ツリーだけを作成した。
+  4対象の初回限定構築は`KisScreenColorSamplerBaseContractTest`、`KoShapeStrokeModelContractTest`、`KisKeyframeContractTest`、
+  `KoOptimizedPixelDataScalerU8ToU16BaseContractTest`がいずれも未知の対象として失敗し、未登録の赤を確認した。3作業ツリーは実装開始前で各568 MB、
+  合計約1.7 GBを使用し、各引渡しの統合とclean確認直後に個別削除する。
 
 ## 再開環境
 
