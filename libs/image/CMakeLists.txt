@@ -49,6 +49,28 @@ set_target_properties(kritaimagefilterstrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageserializableconfigurationobjects OBJECT
+   kis_serializable_configuration.cc
+)
+target_compile_definitions(kritaimageserializableconfigurationobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageserializableconfigurationobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageserializableconfigurationobjects
+   PUBLIC
+      kritaglobalsharedobjects
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaimageserializableconfigurationobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagefiltercategoryidsobjects OBJECT
    filter/kis_filter_category_ids.cpp
 )
@@ -1079,7 +1101,6 @@ set(kritaimage_LIB_SRCS
    kis_selection_mask.cpp
    kis_update_outline_job.cpp
    kis_update_selection_job.cpp
-   kis_serializable_configuration.cc
    kis_transaction_data.cpp
    KisInterstrokeDataTransactionWrapperFactory.cpp
    KisInterstrokeData.cpp
@@ -1157,6 +1178,7 @@ kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
+   $<TARGET_OBJECTS:kritaimageserializableconfigurationobjects>
    $<TARGET_OBJECTS:kritaimagefiltercategoryidsobjects>
    $<TARGET_OBJECTS:kritaimageperstrokerandomsourceobjects>
    $<TARGET_OBJECTS:kritaimagestrokespeedmeasurerobjects>

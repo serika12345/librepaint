@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22584
+    "expectedMissingApis": 22571
   },
   "contracts": [
     {
@@ -22540,6 +22540,65 @@
       "classification": "maintained",
       "apis": [
         "method:KoShapeConfigWidgetBase::~KoShapeConfigWidgetBase()"
+      ]
+    },
+    {
+      "target": "KisSerializableConfigurationContractTest",
+      "source": "libs/image/tests/KisSerializableConfigurationContractTest.cpp",
+      "test": "KisSerializableConfigurationContractTest::parsesValidXmlAndRejectsInvalidXml",
+      "behavior": "直列化可能設定が有効なXMLの文書要素を派生実装へ1回渡し、解析結果を返し、不正XMLでは派生実装を呼ばず失敗を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSerializableConfiguration",
+        "method:KisSerializableConfiguration::KisSerializableConfiguration()",
+        "method:KisSerializableConfiguration::fromXML(const QDomElement &)",
+        "method:KisSerializableConfiguration::fromXML(const QString &,bool)"
+      ]
+    },
+    {
+      "target": "KisSerializableConfigurationContractTest",
+      "source": "libs/image/tests/KisSerializableConfigurationContractTest.cpp",
+      "test": "KisSerializableConfigurationContractTest::versionFlagDoesNotAffectParsing",
+      "behavior": "文字列XML読込みの真偽引数は現行実装で参照されず、どちらの値でも同じ文書要素を派生実装へ渡す。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisSerializableConfiguration::fromXML(const QString &,bool)"
+      ]
+    },
+    {
+      "target": "KisSerializableConfigurationContractTest",
+      "source": "libs/image/tests/KisSerializableConfigurationContractTest.cpp",
+      "test": "KisSerializableConfigurationContractTest::serializesThroughParamsRoot",
+      "behavior": "引数なし直列化がparams文書根を作り、同じ文書と根要素を派生直列化へ渡して、追加されたXML内容を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSerializableConfiguration::toXML() const",
+        "method:KisSerializableConfiguration::toXML(QDomDocument &,QDomElement &) const"
+      ]
+    },
+    {
+      "target": "KisSerializableConfigurationContractTest",
+      "source": "libs/image/tests/KisSerializableConfigurationContractTest.cpp",
+      "test": "KisSerializableConfigurationContractTest::copyAndSharedOwnershipAreIndependent",
+      "behavior": "コピー構築が独立した基底参照数と派生状態を持ち、共有ポインター別名が同じ個体を参照数で所有して最後の所有者から基底経由で破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisSerializableConfigurationSP",
+        "method:KisSerializableConfiguration::KisSerializableConfiguration(const KisSerializableConfiguration & rhs)",
+        "method:KisSerializableConfiguration::~KisSerializableConfiguration()"
+      ]
+    },
+    {
+      "target": "KisSerializableConfigurationContractTest",
+      "source": "libs/image/tests/KisSerializableConfigurationContractTest.cpp",
+      "test": "KisSerializableConfigurationContractTest::factoryRoutesCreationAndSupportsBaseLifetime",
+      "behavior": "設定工場の基底接続面が既定生成とXML要素付き生成を派生工場へ配送し、生成物を共有所有で返し、基底所有から工場と生成設定を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSerializableConfigurationFactory",
+        "method:KisSerializableConfigurationFactory::create(const QDomElement &)",
+        "method:KisSerializableConfigurationFactory::createDefault()",
+        "method:KisSerializableConfigurationFactory::~KisSerializableConfigurationFactory()"
       ]
     }
   ]
