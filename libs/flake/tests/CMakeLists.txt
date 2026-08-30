@@ -23,12 +23,24 @@ kis_add_tests(
     TestKoMarkerCollection.cpp
     TestSvgSavingContext.cpp
     TestXsimdPainting.cpp
-    TestFontLibraryResourceUtils.cpp
     TestSvgTextShape.cpp
     TestDependentShapes.cpp
 
     LINK_LIBRARIES kritaflake kritatestsdk kritaxmlserialization
     )
+
+kis_add_test(
+    TestFontLibraryResourceUtils.cpp
+    LINK_LIBRARIES
+        Freetype::Freetype
+        HarfBuzz::HarfBuzz
+        Fontconfig::Fontconfig
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(TestFontLibraryResourceUtils PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
 
 kis_add_test(
     TestInputDevice.cpp
