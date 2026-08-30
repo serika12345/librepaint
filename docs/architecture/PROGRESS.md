@@ -2,12 +2,47 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 22:52 JST
-- 状態: `planned`
+- 更新日時: 2026-08-30 23:04 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第65並列便の担当票
+
+- `g65-metadata-io`は状態`preparing`、基準はこの計画コミット、作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g65-metadata-io`である。目的はメタデータ入出力接続面の形式、header、識別、対応方向、保存・読込み・保存可否の
+  仮想配送と寿命を固定することである。対象は`libs/painting/metadata/kis_meta_data_io_backend.h`のclass、2 enum、4 enumerator、destructor、
+  8 virtual methodの16 API全件である。header-onlyの公開面と製品構造を維持し、新規
+  `libs/painting/metadata/tests/KisMetaDataIOBackendContractTest.cpp`はQt Testと試験内Probeだけで値と借用pointerの配送を観測する。変更許可はこの新規試験と
+  `libs/painting/metadata/tests/CMakeLists.txt`に限る。近傍は`KisMetaDataTagsContractTest`、対象macOS、共有cache
+  `.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・12入力、
+  製品`kritapaintingmetadata` 288工程・607入力からの増加、実`Store`・実`QIODevice`・製品共有ライブラリー・共通試験基盤への接続、
+  公開header変更、または許可外変更である。
+- `g65-clip-mask`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g65-clip-mask`である。目的は切抜きmask描画器の
+  内部描画器分離、元描画状態継承、mask輝度とalphaの正確な画素合成、配置、寿命を固定し、既存画素試験の広域依存を除くことである。対象は
+  `libs/flake/KoClipMaskPainter.h`のclass、constructor、destructor、2 painter getter、`renderOnGlobalPainter`の6 API全件である。開始ファイル
+  `libs/flake/KoClipMaskPainter.cpp`、`libs/flake/KoClipMaskApplicatorBase.cpp`、構成別
+  `libs/flake/xsimd/KoClipMaskApplicatorFactoryImpl.cpp`を`kritaflake_SRCS`の直接収容から`kritaflakeclipmaskpainterobjects`へ移し、
+  製品`kritaflake`へ一度だけ再集約する。既存`libs/flake/tests/TestXsimdPainting.{h,cpp}`を広域一括対象からQt Testと同objectだけの同名専用対象へ移し、
+  既存10画素行と描画状態・寿命契約を保持する。変更許可はこの試験2ファイルと`libs/flake/CMakeLists.txt`、
+  `libs/flake/tests/CMakeLists.txt`に限る。近傍は`KoColorBackgroundContractTest`、対象macOS、共有cache同上、構築実行`waiting`、
+  Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件8工程・18入力、製品`kritaflake` 612工程・1,256入力からの増加、
+  構成別source property喪失、製品共有ライブラリー・共通試験基盤への接続、source二重収容、環境依存画素、公開header/source変更、または許可外変更である。
+- `g65-update-command-ex`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g65-update-command-ex`である。目的は一括node更新命令の
+  初期化・確定位相、挿入順配送、更新抑止cookie、共有所有と借用facadeの寿命を固定することである。対象は
+  `libs/image/commands_new/KisUpdateCommandEx.h`のclass、2 constructor、destructor、`partB`の5 API全件である。開始ファイル
+  `libs/image/commands_new/KisUpdateCommandEx.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimageupdatecommandexobjects`へ移し、
+  製品`kritaimage`へ一度だけ再集約する。新規`libs/image/tests/KisUpdateCommandExContractTest.cpp`は同object、既存
+  `kritapaintingundokundo2coreobjects`、Qt Test、試験内の最小batch・node・更新facade協調定義だけを使う。変更許可はこの新規試験、開始source、
+  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は`kis_image_commands_test`、対象macOS、共有cache同上、
+  構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件12工程・25入力、製品`kritaimage`
+  1,184工程・2,392入力からの増加、実batch・実node・全command-utils・製品共有ライブラリーへの接続、source二重収容、null batchの新仕様判断、
+  公開header変更、または許可外変更である。
+- 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
+  統合担当が中央台帳、進捗、担当間のCMake非重複、容量削除を所有する。統合した担当の作業ツリー、局所構築木、ブランチは次担当の統合を待たず
+  直ちに削除する。完了目標は27 API純増の対応済み8,070件、未対応21,919件である。
 
 ### 現在の結果
 
@@ -35,8 +70,8 @@
 
 ### 次の操作
 
-- 第65並列便は最新不足一覧から相互に重ならない候補を読取り専用で監査し、公開API全件を固定でき、製品閉包を増やさない3候補を選ぶ。
-  共通計画で開始ファイルから専用生成物への移動、試験対象、近傍試験、停止条件、容量削除条件を確定してから実装を開始する。
+- 第65並列便の共通計画コミットから3専用作業ツリーを作成し、基準・許可パス・構築実行許可を実体と照合する。
+  各担当は構築実行を`granted`に更新した後だけ初期診断から限定実装へ進み、統合担当は完了した作業ツリーと局所構築木を即時削除する。
 
 ## 再開環境
 
