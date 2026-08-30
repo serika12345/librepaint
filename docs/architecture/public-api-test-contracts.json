@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21983
+    "expectedMissingApis": 21946
   },
   "contracts": [
     {
@@ -25953,6 +25953,185 @@
       "classification": "maintained",
       "apis": [
         "method:KisPolygonalGradientShapeStrategy::~KisPolygonalGradientShapeStrategy()"
+      ]
+    },
+    {
+      "target": "KoCssTextUtilsContractTest",
+      "source": "libs/flake/tests/KoCssTextUtilsContractTest.cpp",
+      "test": "KoCssTextUtilsContractTest::classifiesCssWordSeparatorsAndHangingPunctuation",
+      "behavior": "CSS文字列補助は空白・改行禁止空白・エチオピア語語区切りを単語境界として分類し、先頭・末尾・句読点のぶら下げ条件を文字種別と指定flagから判定する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoCssTextUtils",
+        "method:KoCssTextUtils::IsCssWordSeparator(QString grapheme)",
+        "method:KoCssTextUtils::characterCanHang(QChar c,KoSvgText::HangingPunctuations hangType)"
+      ]
+    },
+    {
+      "target": "KoCssTextUtilsContractTest",
+      "source": "libs/flake/tests/KoCssTextUtilsContractTest.cpp",
+      "test": "KoCssTextUtilsContractTest::appliesWhitespaceCollapseAndHangingRules",
+      "behavior": "CSS空白処理は方式別にtab・連続・行端空白を変換または折畳み、行末空白の折畳みと強制ぶら下げを改行・折返し条件から決定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssTextUtils::collapseLastSpace(QChar c,KoSvgText::TextSpaceCollapse collapseMethod)",
+        "method:KoCssTextUtils::collapseSpaces(QString * text,QMap<int,KoSvgText::TextSpaceCollapse> collapseMethods)",
+        "method:KoCssTextUtils::hangLastSpace(const QChar c,KoSvgText::TextSpaceCollapse collapseMethod,KoSvgText::TextWrap wrapMethod,bool & force,bool nextCharIsHardBreak)"
+      ]
+    },
+    {
+      "target": "KoCssTextUtilsContractTest",
+      "source": "libs/flake/tests/KoCssTextUtilsContractTest.cpp",
+      "test": "KoCssTextUtilsContractTest::transformsAsciiCaseAndReportsStablePositions",
+      "behavior": "英語ASCII文字列の大文字・小文字・語頭大文字化は文字列を現行規則で変換し、同長変換の入力・出力位置を一対一で返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssTextUtils::transformTextCapitalize(const QString & text,QString langCode,QVector<QPair<int,int>> & positions)",
+        "method:KoCssTextUtils::transformTextToLowerCase(const QString & text,const QString & langCode,QVector<QPair<int,int>> & positions)",
+        "method:KoCssTextUtils::transformTextToUpperCase(const QString & text,const QString & langCode,QVector<QPair<int,int>> & positions)"
+      ]
+    },
+    {
+      "target": "KoCssTextUtilsContractTest",
+      "source": "libs/flake/tests/KoCssTextUtilsContractTest.cpp",
+      "test": "KoCssTextUtilsContractTest::mapsFullWidthAndFullSizeKanaCharacters",
+      "behavior": "全角変換はASCII文字と空白を対応する全角文字へ写像し、かな拡大はひらがな・カタカナ・半角小書き文字を対応する標準寸法へ写像する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssTextUtils::transformTextFullSizeKana(const QString & text)",
+        "method:KoCssTextUtils::transformTextFullWidth(const QString & text)"
+      ]
+    },
+    {
+      "target": "KoCssTextUtilsContractTest",
+      "source": "libs/flake/tests/KoCssTextUtilsContractTest.cpp",
+      "test": "KoCssTextUtilsContractTest::separatesGraphemesAndMarksJustificationOpportunities",
+      "behavior": "Unicode書記素分割は結合文字列を一つの書記素として保持し、均等割付判定は空白とCJK文字周辺の前後機会を現行配列で返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssTextUtils::justificationOpportunities(QString text,QString langCode)",
+        "method:KoCssTextUtils::textToUnicodeGraphemeClusters(const QString & text,const QString & langCode)"
+      ]
+    },
+    {
+      "target": "KoCssTextUtilsContractTest",
+      "source": "libs/flake/tests/KoCssTextUtilsContractTest.cpp",
+      "test": "KoCssTextUtilsContractTest::mapsUnicodeBidiControlsForEveryMode",
+      "behavior": "CSS双方向指定は通常・埋込み・上書き・分離・分離上書き・平文の各modeと左右方向を対応するUnicode開始・終了制御文字列へ写像する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssTextUtils::getBidiClosing(KoSvgText::UnicodeBidi bidi)",
+        "method:KoCssTextUtils::getBidiOpening(bool ltr,KoSvgText::UnicodeBidi bidi)"
+      ]
+    },
+    {
+      "target": "KoCssTextUtilsContractTest",
+      "source": "libs/flake/tests/KoCssTextUtilsContractTest.cpp",
+      "test": "KoCssTextUtilsContractTest::expandsRemovalToWholeUnicodeSequences",
+      "behavior": "文字列削除はASCII範囲を指定長だけ除去し、補助平面文字のsurrogate pairと異体字選択子を基底文字との完全な列へ拡張して除去する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssTextUtils::removeText(QString & text,int & start,int length)"
+      ]
+    },
+    {
+      "target": "KoCssTextUtilsContractTest",
+      "source": "libs/flake/tests/KoCssTextUtilsContractTest.cpp",
+      "test": "KoCssTextUtilsContractTest::selectsFontStyleValuesUsingCssPreferenceOrder",
+      "behavior": "CSS font様式値選択は空候補、上下候補、既定範囲、既定回避を現行の優先順位へ写像する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoCssTextUtils::cssSelectFontStyleValue(const QVector<qreal> & values,const qreal targetValue,const qreal defaultValue,const qreal defaultValueUpper,const bool shouldNotReturnDefault)"
+      ]
+    },
+    {
+      "target": "KisCropSavedExtraDataContractTest",
+      "source": "libs/image/tests/KisCropSavedExtraDataContractTest.cpp",
+      "test": "KisCropSavedExtraDataContractTest::typesRectsAndDefaultNodeArePreserved",
+      "behavior": "切抜き保存データは画像切抜き・画像寸法変更・layer切抜きの列挙値、指定矩形、既定null nodeを構築値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCropSavedExtraData",
+        "enum:KisCropSavedExtraData::Type",
+        "enumerator:KisCropSavedExtraData::Type::CROP_IMAGE",
+        "enumerator:KisCropSavedExtraData::Type::CROP_LAYER",
+        "enumerator:KisCropSavedExtraData::Type::RESIZE_IMAGE",
+        "method:KisCropSavedExtraData::KisCropSavedExtraData(Type type,QRect cropRect,KisNodeSP cropNode=0)",
+        "method:KisCropSavedExtraData::cropNode() const",
+        "method:KisCropSavedExtraData::cropRect() const",
+        "method:KisCropSavedExtraData::type() const"
+      ]
+    },
+    {
+      "target": "KisCropSavedExtraDataContractTest",
+      "source": "libs/image/tests/KisCropSavedExtraDataContractTest.cpp",
+      "test": "KisCropSavedExtraDataContractTest::cropNodeIsStronglyOwned",
+      "behavior": "切抜き保存データは指定nodeを共有所有し、呼出し側参照の解放後も同一nodeを保持して自身の破棄時に最終参照を一度解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCropSavedExtraData::KisCropSavedExtraData(Type type,QRect cropRect,KisNodeSP cropNode=0)",
+        "method:KisCropSavedExtraData::cropNode() const",
+        "method:KisCropSavedExtraData::~KisCropSavedExtraData()"
+      ]
+    },
+    {
+      "target": "KisCropSavedExtraDataContractTest",
+      "source": "libs/image/tests/KisCropSavedExtraDataContractTest.cpp",
+      "test": "KisCropSavedExtraDataContractTest::cloneIsIndependentAndPreservesValues",
+      "behavior": "切抜き保存データの複製は別個体として用途・矩形・node共有所有を保持し、原本破棄後も基底所有から独立して生存・解放できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCropSavedExtraData::KisCropSavedExtraData(Type type,QRect cropRect,KisNodeSP cropNode=0)",
+        "method:KisCropSavedExtraData::clone() const",
+        "method:KisCropSavedExtraData::cropNode() const",
+        "method:KisCropSavedExtraData::cropRect() const",
+        "method:KisCropSavedExtraData::type() const",
+        "method:KisCropSavedExtraData::~KisCropSavedExtraData()"
+      ]
+    },
+    {
+      "target": "KisPaintingModeOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintingModeOptionDataContractTest.cpp",
+      "test": "KisPaintingModeOptionDataContractTest::defaultValuesAndEnumeratorsRemainStable",
+      "behavior": "描画mode設定値はBUILDUP・WASHの列挙値を保持し、既定でBUILDUPかつ設定値未検出の状態から始まる。",
+      "classification": "maintained",
+      "apis": [
+        "enum:enumPaintingMode",
+        "enumerator:enumPaintingMode::BUILDUP",
+        "enumerator:enumPaintingMode::WASH",
+        "member:KisPaintingModeOptionData::hasPaintingModeProperty",
+        "member:KisPaintingModeOptionData::paintingMode",
+        "struct:KisPaintingModeOptionData"
+      ]
+    },
+    {
+      "target": "KisPaintingModeOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintingModeOptionDataContractTest.cpp",
+      "test": "KisPaintingModeOptionDataContractTest::readMapsConfigurationState",
+      "behavior": "描画mode読込みは設定有無を記録し、整数1をBUILDUP、欠落値とその他の整数をWASHへ写像して入力設定を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintingModeOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisPaintingModeOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintingModeOptionDataContractTest.cpp",
+      "test": "KisPaintingModeOptionDataContractTest::writeMapsModesAndPreservesOtherProperties",
+      "behavior": "描画mode書込みはBUILDUPを整数1、WASHを整数2へ保存し、検出flagと無関係な既存設定を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisPaintingModeOptionData::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisPaintingModeOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisPaintingModeOptionDataContractTest.cpp",
+      "test": "KisPaintingModeOptionDataContractTest::equalityDependsOnlyOnPaintingMode",
+      "behavior": "描画mode設定値の等価性は描画modeだけを比較し、設定値検出flagの差を結果へ含めない。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisPaintingModeOptionData & lhs,const KisPaintingModeOptionData & rhs)"
       ]
     }
   ]
