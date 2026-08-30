@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22329
+    "expectedMissingApis": 22321
   },
   "contracts": [
     {
@@ -23930,6 +23930,72 @@
         "method:KisMoveCommandCommon::KisMoveCommandCommon(ObjectSP object,const QPoint & oldPos,const QPoint & newPos,KUndo2Command * parent=0)",
         "method:KisMoveCommandCommon::redo()",
         "method:KisMoveCommandCommon::undo()"
+      ]
+    },
+    {
+      "target": "FontVariantNumericModelContractTest",
+      "source": "libs/flake/tests/FontVariantNumericModelContractTest.cpp",
+      "test": "FontVariantNumericModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "数値書式モデルは既定で通常の数字形・間隔・分数と無効なordinal・斜線付きzeroを保持し、5項目を読取・書込・変更通知可能なQt propertyとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FontVariantNumericModel",
+        "member:FontVariantNumericModel::data",
+        "method:FontVariantNumericModel::FontVariantNumericModel(lager::cursor<KoSvgText::FontFeatureNumeric> _data=lager::make_state (KoSvgText::FontFeatureNumeric (),lager::automatic_tag{}))",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(bool,ordinals)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(bool,slashedZero)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,figureSpacing)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,figureStyle)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,fractions)"
+      ]
+    },
+    {
+      "target": "FontVariantNumericModelContractTest",
+      "source": "libs/flake/tests/FontVariantNumericModelContractTest.cpp",
+      "test": "FontVariantNumericModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入した数値書式cursorの外部更新は5個のQt propertyと通知へ同期し、Qt propertyからの書込みは同じcursor状態へ反映される。",
+      "classification": "maintained",
+      "apis": [
+        "member:FontVariantNumericModel::data",
+        "method:FontVariantNumericModel::FontVariantNumericModel(lager::cursor<KoSvgText::FontFeatureNumeric> _data=lager::make_state (KoSvgText::FontFeatureNumeric (),lager::automatic_tag{}))",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(bool,ordinals)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(bool,slashedZero)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,figureSpacing)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,figureStyle)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,fractions)"
+      ]
+    },
+    {
+      "target": "FontVariantNumericModelContractTest",
+      "source": "libs/flake/tests/FontVariantNumericModelContractTest.cpp",
+      "test": "FontVariantNumericModelContractTest::validEnumerationsRoundTripIndependently",
+      "behavior": "数字形・数字間隔・分数の各3列挙値はcursorへ往復し、他の数値書式項目を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,figureSpacing)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,figureStyle)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(int,fractions)"
+      ]
+    },
+    {
+      "target": "FontVariantNumericModelContractTest",
+      "source": "libs/flake/tests/FontVariantNumericModelContractTest.cpp",
+      "test": "FontVariantNumericModelContractTest::booleanPropertiesRemainIndependent",
+      "behavior": "ordinalと斜線付きzeroの真偽値は個別に変更でき、互いの状態を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(bool,ordinals)",
+        "method:FontVariantNumericModel::LAGER_QT_CURSOR(bool,slashedZero)"
+      ]
+    },
+    {
+      "target": "FontVariantNumericModelContractTest",
+      "source": "libs/flake/tests/FontVariantNumericModelContractTest.cpp",
+      "test": "FontVariantNumericModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "数値書式モデルをQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:FontVariantNumericModel"
       ]
     }
   ]
