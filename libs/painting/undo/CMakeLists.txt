@@ -21,8 +21,25 @@ target_link_libraries(kritapaintingundokundo2coreobjects
 )
 set_target_properties(kritapaintingundokundo2coreobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-add_library(kritapaintingundostoreobjects OBJECT
+add_library(kritapaintingundostoreinterfaceobjects OBJECT
     kis_undo_store.cpp
+)
+target_compile_definitions(kritapaintingundostoreinterfaceobjects PRIVATE kritapaintingundo_EXPORTS)
+target_include_directories(kritapaintingundostoreinterfaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintingundostoreinterfaceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritapaintingundostoreinterfaceobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintingundostoreobjects OBJECT
     kis_undo_stores.cpp
 )
 target_compile_definitions(kritapaintingundostoreobjects PRIVATE kritapaintingundo_EXPORTS)
@@ -35,12 +52,16 @@ target_include_directories(kritapaintingundostoreobjects
 )
 target_link_libraries(kritapaintingundostoreobjects
     PUBLIC
+        kritapaintingundostoreinterfaceobjects
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Widgets
         Boost::boost
 )
-set_target_properties(kritapaintingundostoreobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(kritapaintingundostoreobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 
 add_library(kritapaintingundostackactionobjects OBJECT
     kundo2stack_actions.cpp
@@ -98,6 +119,7 @@ set_target_properties(kritapaintingundocommandutilsobjects PROPERTIES
 
 set(kritapaintingundo_LIB_SRCS
     $<TARGET_OBJECTS:kritapaintingundokundo2coreobjects>
+    $<TARGET_OBJECTS:kritapaintingundostoreinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintingundostoreobjects>
     $<TARGET_OBJECTS:kritapaintingundostackactionobjects>
     $<TARGET_OBJECTS:kritapaintingundocommandutilsobjects>

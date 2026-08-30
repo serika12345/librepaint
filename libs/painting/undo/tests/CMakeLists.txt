@@ -15,6 +15,7 @@ kis_add_test(
     KisUndoStoresContractTest.cpp
     LINK_LIBRARIES
         kritapaintingundokundo2coreobjects
+        kritapaintingundostoreinterfaceobjects
         kritapaintingundostoreobjects
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
@@ -30,10 +31,19 @@ target_include_directories(KisUndoStoresContractTest PRIVATE
 target_compile_definitions(KisUndoStoresContractTest PRIVATE kritapaintingundo_EXPORTS)
 
 kis_add_test(
+    KisUndoStoreInterfaceContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintingundostoreinterfaceobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisUndoStoreInterfaceContractTest PRIVATE kritapaintingundo_EXPORTS)
+
+kis_add_test(
     KisCommandUtilsContractTest.cpp
     LINK_LIBRARIES
         kritapaintingundocommandutilsobjects
         kritapaintingundokundo2coreobjects
+        kritapaintingundostoreinterfaceobjects
         kritapaintingundostoreobjects
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
