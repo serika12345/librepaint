@@ -334,6 +334,23 @@ target_include_directories(FontVariantLigaturesModelContractTest PRIVATE
 target_compile_definitions(FontVariantLigaturesModelContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    CssFontStyleModelContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakecssfontstylemodelobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+target_include_directories(CssFontStyleModelContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(CssFontStyleModelContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoCSSFontInfoContractTest.cpp
     LINK_LIBRARIES
         Boost::boost

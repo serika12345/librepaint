@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22286
+    "expectedMissingApis": 22278
   },
   "contracts": [
     {
@@ -24236,6 +24236,77 @@
       "apis": [
         "method:KisPrefixedOptionDataWrapper::read(const KisPropertiesConfiguration * setting)",
         "method:KisPrefixedOptionDataWrapper::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "CssFontStyleModelContractTest",
+      "source": "libs/flake/tests/CssFontStyleModelContractTest.cpp",
+      "test": "CssFontStyleModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "CSS字体style模型はnormalと自動slantを既定値とし、styleとslant値を読取り・書込み・変更通知可能なQtプロパティとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:CssFontStyleModel",
+        "method:CssFontStyleModel::CssFontStyleModel(lager::cursor<KoSvgText::CssFontStyleData> _data=lager::make_state (KoSvgText::CssFontStyleData (),lager::automatic_tag{}))",
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(FontStyle,style)",
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssFontStyleModelContractTest",
+      "source": "libs/flake/tests/CssFontStyleModelContractTest.cpp",
+      "test": "CssFontStyleModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入したCSS字体style cursorの変更はstyleとslant値および通知へ同期し、Qtプロパティからの変更は同じcursorへ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:CssFontStyleModel::CssFontStyleModel(lager::cursor<KoSvgText::CssFontStyleData> _data=lager::make_state (KoSvgText::CssFontStyleData (),lager::automatic_tag{}))",
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(FontStyle,style)",
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssFontStyleModelContractTest",
+      "source": "libs/flake/tests/CssFontStyleModelContractTest.cpp",
+      "test": "CssFontStyleModelContractTest::fontStylesMirrorQFontAndAutomaticObliqueAngle",
+      "behavior": "公開するnormal、italic、obliqueはQFontの3 style値と一致し、自動obliqueは14度、他styleは0度を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:CssFontStyleModel::FontStyle",
+        "enumerator:CssFontStyleModel::FontStyle::StyleItalic",
+        "enumerator:CssFontStyleModel::FontStyle::StyleNormal",
+        "enumerator:CssFontStyleModel::FontStyle::StyleOblique",
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(FontStyle,style)",
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssFontStyleModelContractTest",
+      "source": "libs/flake/tests/CssFontStyleModelContractTest.cpp",
+      "test": "CssFontStyleModelContractTest::nonObliqueValueWritesLeaveCursorUnchanged",
+      "behavior": "normalまたはitalicでのslant値設定はcursorを変更せず、公開値0を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssFontStyleModelContractTest",
+      "source": "libs/flake/tests/CssFontStyleModelContractTest.cpp",
+      "test": "CssFontStyleModelContractTest::changingAwayFromObliqueResetsSlantToExplicitZero",
+      "behavior": "任意slantを持つobliqueからnormalまたはitalicへ変更するとslantを明示的0へ置換し、再びobliqueへ戻しても自動14度ではなく0度を維持する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(FontStyle,style)",
+        "method:CssFontStyleModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "CssFontStyleModelContractTest",
+      "source": "libs/flake/tests/CssFontStyleModelContractTest.cpp",
+      "test": "CssFontStyleModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "CSS字体style模型をQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:CssFontStyleModel"
       ]
     }
   ]
