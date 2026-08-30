@@ -2,74 +2,40 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 20:48 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-30 21:04 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第61並列便の担当票
-
-- `g61-spinbox-converter`は状態`implementing`、基準`8d5d5bbbf5a0cecbc99ce2c493ba29726eac9378`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g61-spinbox-converter`である。目的は値域変換の正順・逆順、端点、オフセット、半値丸め、往復を固定しながら、
-  既存試験の広域依存を除くことである。対象は`libs/ui/utils/KisSpinBoxSplineUnitConverter.h`のclass、`io2sp`、`sp2io`の3 API全件である。
-  開始ファイル`libs/ui/utils/KisSpinBoxSplineUnitConverter.cpp`を`kritaui_LIB_SRCS`の直接収容から
-  `kritauispinboxsplineunitconverterobjects`へ移し、製品`kritaapplicationui`へ一度だけ再集約する。未使用の`kis_debug.h`を除き、既存
-  `libs/ui/tests/KisSpinBoxSplineUnitConverterTest.{h,cpp}`を広域試験集合からQt Testと同objectだけの同名専用対象へ移す。変更許可はこの4ファイルと
-  `libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`に限る。近傍は`KisAnimationFrameCacheFwdContractTest`、対象macOS、共有cache
-  `.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件6工程・14入力、
-  製品`kritaapplicationui` 1,955工程・3,910入力からの増加、製品共有ライブラリー・Qt Gui・Qt Widgets・共通試験基盤への接続、製品object二重収容、
-  `min == max`の新仕様化、CTest名変更、公開headerまたは変換ロジック変更、または許可外変更である。
-- `g61-zoom-mode`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g61-zoom-mode`である。目的は拡大率modeの
-  enum値・flags・表示名・未対応mode診断、標準倍率列、前後探索、debug出力を固定することである。対象は`libs/flake/KoZoomMode.h`のclass、enum、
-  4 enumerator、`Modes`、4関数の12 API全件である。開始ファイル`libs/flake/KoZoomMode.cpp`を`kritaflake_SRCS`の直接収容から既存
-  `kritaflakezoomstateobjects`へ移し、製品`kritaflake`への既存一重再集約を共用する。既存`libs/flake/tests/KoZoomStateContractTest.cpp`と同名対象を
-  拡張する。変更許可はこの試験と`libs/flake/CMakeLists.txt`に限る。近傍は同対象の既存4契約と`KoViewTransformStillPointContractTest`、対象macOS、
-  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件7工程・15入力、製品`kritaflake`
-  612工程・1,256入力からの増加、製品共有ライブラリー接続、設定隔離不能、翻訳の環境依存文字列固定、source二重収容、公開header/source変更、
-  または許可外変更である。
-- `g61-lod-transform`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g61-lod-transform`である。目的は詳細度の
-  device取得、倍率適用、筆情報への詳細度設定、値渡し入力の不変性を固定することである。対象はheader-only
-  `libs/image/kis_lod_transform.h`のclass、2 constructor、筆情報`map`の4 API全件である。製品objectは作らず、新規
-  `libs/image/tests/KisLodTransformContractTest.cpp`をQt Testと必要なQt・Boost headerだけの同名専用対象にする。変更許可はこの新規試験と
-  `libs/image/tests/CMakeLists.txt`に限る。近傍は`KisLodTransformBaseContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限
-  `transport-commit`、追加委任`forbidden`、統合順3、停止条件5工程・10入力、製品`kritaimage` 1,182工程・2,388入力からの増加、製品・global共有
-  ライブラリーまたは実`kis_paint_information.cc`接続、試験内観測の非決定性、null device・負の詳細度・無効な筆情報の新仕様化、公開header変更、
-  または許可外変更である。
-- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、進捗、
-  担当間のCMake非重複、容量削除を所有する。統合した担当の作業ツリー、構築木、ブランチは次担当の統合を待たず直ちに削除する。
-  完了目標は19 API純増の対応済み7,967件、未対応22,022件である。
-
 ### 現在の結果
 
-- 第60並列便はcanvas観測者7 API、選択移動命令4 API、色空間混合方針10 APIの合計21 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み7,948件、未対応22,041件である。
-- `libs/flake/KoCanvasObserverBase.cpp`は`kritaflake_SRCS`の直接収容から既存
-  `kritaflakebehaviorinterfaceobjects`へ移り、製品`kritaflake`への既存一重再集約を共用する。
-  `libs/flake/tests/KoBehaviorInterfacesContractTest.cpp`が既定null、空の観測者名、null canvasの観測開始・解除hook配送、
-  仮想基底経由の寿命を固定する。
-- `libs/image/commands_new/kis_selection_move_command2.cpp`は`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimageselectionmovecommand2objects`へ移り、製品`kritaimage`へ一度だけ再集約される。
-  `libs/image/tests/KisMoveCommandCommonContractTest.cpp`が選択の強所有、親命令寿命、redo・undoのX、Y、通知順と反復性を固定する。
-- `libs/pigment/compositeops/KoColorSpaceBlendingPolicy.cpp`は`kritapigment_SRCS`の直接収容から
-  `kritapigmentcolorspaceblendingpolicyobjects`へ移り、製品`kritapigment`へ一度だけ再集約される。同じ開始ファイルのincludeは
-  `KoCompositeOpRegistry.h`から直接必要な`KoCompositeOpIds.h`へ狭まった。
-  `libs/pigment/tests/KoColorSpaceBlendingPolicyContractTest.cpp`が加算・減算変換、83混合モードの順序と一意性、設定の初回読取りを固定する。
-- 統合後の限定閉包はcanvas観測者13工程・26入力、選択移動命令11工程・24入力、色空間混合方針5工程・12入力である。
-  製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,182工程・2,388入力、`kritapigment` 360工程・750入力で開始時から不変である。
+- 第61並列便は値域変換3 API、拡大率mode 12 API、詳細度変換4 APIの合計19 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,967件、未対応22,022件である。
+- `libs/ui/utils/KisSpinBoxSplineUnitConverter.cpp`は`kritaui_LIB_SRCS`の直接収容から
+  `kritauispinboxsplineunitconverterobjects`へ移り、製品`kritaapplicationui`へ一度だけ再集約される。未使用の`kis_debug.h`依存を除いた。
+  `libs/ui/tests/KisSpinBoxSplineUnitConverterTest.{h,cpp}`は広域`kis_add_tests`からQt Testと同objectだけの同名専用対象へ移り、
+  正順・逆順、端点、オフセット、半値丸め、往復を固定する。現行広域対象は不要な`libkritaresourceui`を要求して起動できない初期診断であった。
+- `libs/flake/KoZoomMode.cpp`は`kritaflake_SRCS`の直接収容から既存`kritaflakezoomstateobjects`へ移り、製品`kritaflake`への既存一重再集約を共用する。
+  `libs/flake/tests/KoZoomStateContractTest.cpp`がenum値・flags・翻訳キー・固定倍率mode診断、標準倍率列、前後探索、debug出力を固定する。
+- `libs/image/kis_lod_transform.h`はheader-onlyのまま製品objectを増やさず、新規`libs/image/tests/KisLodTransformContractTest.cpp`が
+  device詳細度の取得、倍率適用、筆情報への詳細度設定、筆圧保持、値渡し入力の不変性を固定する。
+- 統合後の限定閉包は値域変換5工程・11入力、拡大率mode 6工程・15入力、詳細度変換4工程・8入力である。値域変換の試験閉包は
+  2,007工程・4,011入力から5工程・11入力へ縮小した。製品閉包は`kritaapplicationui` 1,955工程・3,910入力、`kritaflake`
+  612工程・1,256入力、`kritaimage` 1,182工程・2,388入力で開始時から不変である。
 - 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象の同時再構築は無作業であった。各担当の単発CTest、
-  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,518対象、公開API契約検査は
-  7,948/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
+  個別契約、20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,520対象、公開API契約検査は
+  7,967/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
   製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 統合済み作業ツリー3本と担当ブランチは各統合直後に削除し、約2.48 GBを回収した。第61便不足一覧
-  `build/tdd-macos/public-api-missing-g61.json`の件数確認直後に旧G60一覧を削除した。再利用する主増分構築木5.0 GB、
-  共有コンパイラーcache 621 MB、最新一覧5.4 MBだけを保持する。
+- 統合済み作業ツリー3本、局所構築木、担当ブランチは各統合直後に削除し、約2.47 GBを回収した。第62便不足一覧
+  `build/tdd-macos/public-api-missing-g62.json`の件数確認直後に旧G61一覧を削除した。再利用する主増分構築木5.0 GB、
+  共有コンパイラーcache 626 MB、最新一覧5.4 MBだけを保持する。
 
 ### 次の操作
 
-- 第61並列便の共通計画コミットから3専用作業ツリーを作成し、基準・許可パス・構築実行許可を実体と照合する。
-  各担当は構築実行を`granted`に更新した後だけ初期診断から限定実装へ進み、統合担当は完了した作業ツリーと構築木を即時削除する。
+- 第62並列便は最新不足一覧から3つの独立した公開面を読取り専用で監査し、限定閉包と安定した観測可能挙動を確認して担当票を作る。
+  実装担当の作業ツリーは監査確定後に作り、統合直後に作業ツリー、局所構築木、担当ブランチ、旧不足一覧を削除する。
 
 ## 再開環境
 

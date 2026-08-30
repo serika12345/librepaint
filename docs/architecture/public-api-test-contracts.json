@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22041
+    "expectedMissingApis": 22022
   },
   "contracts": [
     {
@@ -25573,6 +25573,138 @@
       "classification": "maintained",
       "apis": [
         "function:useSubtractiveBlendingForCmykColorSpaces()"
+      ]
+    },
+    {
+      "target": "KisSpinBoxSplineUnitConverterTest",
+      "source": "libs/ui/tests/KisSpinBoxSplineUnitConverterTest.cpp",
+      "test": "KisSpinBoxSplineUnitConverterTest::testCurveCalculationToCurve",
+      "behavior": "値域から曲線値への変換は正順・逆順の端点と内部値、原点以外の範囲を現在の線形比率へ写像する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSpinBoxSplineUnitConverter",
+        "method:KisSpinBoxSplineUnitConverter::io2sp(int x,int min,int max)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxSplineUnitConverterTest",
+      "source": "libs/ui/tests/KisSpinBoxSplineUnitConverterTest.cpp",
+      "test": "KisSpinBoxSplineUnitConverterTest::testCurveCalculationToSpinBox",
+      "behavior": "曲線値から整数値への変換は正順・逆順の端点と内部値、原点以外の範囲を写像し、半値をQtの現行規則で丸める。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinBoxSplineUnitConverter::sp2io(double x,int min,int max)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxSplineUnitConverterTest",
+      "source": "libs/ui/tests/KisSpinBoxSplineUnitConverterTest.cpp",
+      "test": "KisSpinBoxSplineUnitConverterTest::testCurveCalculationTwoWay",
+      "behavior": "正順・逆順の整数格子点は整数値と曲線値の往復変換で元の値を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinBoxSplineUnitConverter::io2sp(int x,int min,int max)",
+        "method:KisSpinBoxSplineUnitConverter::sp2io(double x,int min,int max)"
+      ]
+    },
+    {
+      "target": "KisSpinBoxSplineUnitConverterTest",
+      "source": "libs/ui/tests/KisSpinBoxSplineUnitConverterTest.cpp",
+      "test": "KisSpinBoxSplineUnitConverterTest::testCurveCalculationCase64",
+      "behavior": "逆順90から0の値域にある整数64は曲線値を経由して64へ復元される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSpinBoxSplineUnitConverter::io2sp(int x,int min,int max)",
+        "method:KisSpinBoxSplineUnitConverter::sp2io(double x,int min,int max)"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::modeValuesAndFlagsRemainStable",
+      "behavior": "拡大率modeは現行の整数値を保持し、複数modeのflagsは各指定bitを同時に保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoZoomMode::Modes",
+        "class:KoZoomMode",
+        "enum:KoZoomMode::Mode",
+        "enumerator:KoZoomMode::Mode::ZOOM_CONSTANT",
+        "enumerator:KoZoomMode::Mode::ZOOM_HEIGHT",
+        "enumerator:KoZoomMode::Mode::ZOOM_PAGE",
+        "enumerator:KoZoomMode::Mode::ZOOM_WIDTH"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::supportedModeNamesUseCurrentTranslationKeys",
+      "behavior": "page、width、heightの拡大率modeは現行の翻訳キーを用いた表示名へ変換される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomMode::toString(Mode mode)"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::constantModeReportsUnsupportedPlaceholder",
+      "behavior": "固定倍率modeの表示名変換は回復可能診断を一度通知し、未対応を表すXXXを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomMode::toString(Mode mode)"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::standardLevelsKeepHalfStepsAndThirdSnapping",
+      "behavior": "2段階設定の標準倍率生成は0.25から4.0まで半段階を並べ、3分の1系列を現行値へ吸着する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomMode::generateStandardZoomLevels(qreal minZoom,qreal maxZoom)"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::adjacentZoomSearchMovesStrictlyAndKeepsOuterValues",
+      "behavior": "前後倍率探索は既存倍率から厳密に隣へ移り、一覧の外側では現在値または端の倍率を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoZoomMode::findNextZoom(qreal currentZoom,const QVector<qreal> & zoomLevels)",
+        "method:KoZoomMode::findPrevZoom(qreal currentZoom,const QVector<qreal> & zoomLevels)"
+      ]
+    },
+    {
+      "target": "KoZoomStateContractTest",
+      "source": "libs/flake/tests/KoZoomStateContractTest.cpp",
+      "test": "KoZoomStateContractTest::debugOutputNamesKnownAndUnknownModes",
+      "behavior": "debug出力は4つの既知mode名と未知mode名を現行の型付き表現と末尾空白で出力する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoZoomMode::Mode & mode)"
+      ]
+    },
+    {
+      "target": "KisLodTransformContractTest",
+      "source": "libs/image/tests/KisLodTransformContractTest.cpp",
+      "test": "KisLodTransformContractTest::deviceConstructorUsesCurrentLevelOfDetail",
+      "behavior": "詳細度変換はdeviceの現在詳細度を構築時に取得し、その詳細度に対応する縮尺で点を写像する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLodTransform",
+        "method:KisLodTransform::KisLodTransform(PaintDeviceTypeSP device)"
+      ]
+    },
+    {
+      "target": "KisLodTransformContractTest",
+      "source": "libs/image/tests/KisLodTransformContractTest.cpp",
+      "test": "KisLodTransformContractTest::paintInformationMapScalesPositionSetsLevelAndPreservesSource",
+      "behavior": "整数詳細度から作った変換は筆位置を縮小して返却値へ詳細度を設定し、筆圧と値渡し元の筆情報を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLodTransform::KisLodTransform(int levelOfDetail)",
+        "method:KisLodTransform::map(KisPaintInformation pi) const"
       ]
     }
   ]
