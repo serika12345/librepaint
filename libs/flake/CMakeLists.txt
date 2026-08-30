@@ -999,6 +999,32 @@ set_target_properties(kritaflakesubpathremovecommandobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakekeepshapesselectedcommandobjects OBJECT
+    commands/KoKeepShapesSelectedCommand.cpp
+)
+target_compile_definitions(kritaflakekeepshapesselectedcommandobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakekeepshapesselectedcommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakekeepshapesselectedcommandobjects
+    PUBLIC
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakekeepshapesselectedcommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -1121,7 +1147,6 @@ set(kritaflake_SRCS
     commands/KoPathShapeMarkerCommand.cpp
     commands/KoMultiPathPointMergeCommand.cpp
     commands/KoMultiPathPointJoinCommand.cpp
-    commands/KoKeepShapesSelectedCommand.cpp
     commands/KoPathMergeUtils.cpp
     commands/KoAddRemoveShapeCommands.cpp
     commands/KoShapePaintOrderCommand.cpp
@@ -1247,6 +1272,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapeshearcommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapetransparencycommandobjects>
     $<TARGET_OBJECTS:kritaflakesubpathremovecommandobjects>
+    $<TARGET_OBJECTS:kritaflakekeepshapesselectedcommandobjects>
 
 )
 

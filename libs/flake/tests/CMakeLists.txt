@@ -876,6 +876,27 @@ target_compile_definitions(KoShapeBackgroundCommandContractTest PRIVATE
     kritapaintingundo_EXPORTS
 )
 
+kis_add_test(
+    KoKeepShapesSelectedCommandContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakekeepshapesselectedcommandobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_sources(KoKeepShapesSelectedCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../KoSelectedShapesProxy.h
+)
+target_include_directories(KoKeepShapesSelectedCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../commands
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KoKeepShapesSelectedCommandContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
 ############## broken tests ###############
 
 kis_add_test(TestPointMergeCommand.cpp
