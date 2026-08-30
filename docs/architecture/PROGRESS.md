@@ -2,12 +2,45 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 21:04 JST
-- 状態: `planned`
+- 更新日時: 2026-08-30 21:26 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第62並列便の担当票
+
+- `g62-anchor-widget`は状態`preparing`、基準はこの計画コミット、作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g62-anchor-widget`である。目的はanchor選択部品の構築・寿命、値保持・通知、矩形変換、入力検査、寸法hintを固定し、
+  既存試験の広域依存を除くことである。対象は`libs/widgets/KoAnchorSelectionWidget.h`のclass、constructor、destructor、`value` 2関数、`setValue`、
+  `slotGroupClicked`、`valueChanged`、`sizeHint`、`minimumSizeHint`の10 API全件である。開始ファイル`libs/widgets/KoAnchorSelectionWidget.cpp`を
+  `kritawidgets_LIB_SRCS`の直接収容から`kritawidgetsanchorselectionwidgetobjects`へ移し、製品`kritawidgets`へ一度だけ再集約する。既存
+  `libs/widgets/tests/KoAnchorSelectionWidgetTest.{h,cpp}`を広域試験集合からQt Testと同objectだけの同名専用対象へ移す。変更許可はこの試験2ファイルと
+  `libs/widgets/CMakeLists.txt`、`libs/widgets/tests/CMakeLists.txt`に限る。近傍は`KoAspectButtonContractTest`、対象macOS、共有cache
+  `.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件8工程・18入力、
+  製品`kritawidgets` 798工程・1,625入力超過、製品共有ライブラリー・共通試験基盤への接続、製品source二重収容、実theme・plugin初期化、
+  環境依存pixel値、公開header/source変更、または許可外変更である。
+- `g62-keep-shapes-selected`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g62-keep-shapes-selected`である。
+  目的は選択保持命令の初期化・確定phase、選択置換順、空入力、親命令と借用対象の寿命を固定することである。対象は
+  `libs/flake/commands/KoKeepShapesSelectedCommand.h`のclassとconstructorの2 API全件である。開始ファイル
+  `libs/flake/commands/KoKeepShapesSelectedCommand.cpp`を`kritaflake_SRCS`の直接収容から`kritaflakekeepshapesselectedcommandobjects`へ移し、
+  製品`kritaflake`へ一度だけ再集約する。新規`libs/flake/tests/KoKeepShapesSelectedCommandContractTest.cpp`はQt Test、同object、試験内の最小
+  proxy・selection・undo協調定義だけを使う。変更許可はこの新規試験、`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`に限る。
+  近傍は`KoShapeKeepAspectRatioCommandContractTest`と`KoSubpathRemoveCommandContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限
+  `transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、製品`kritaflake` 612工程・1,256入力からの増加、製品共有ライブラリー接続、
+  source二重収容、実undoまたは選択実装の接続、公開header/source変更、または許可外変更である。
+- `g62-tile-compressor-factory`は状態`preparing`、同じ基準、作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g62-tile-compressor-factory`である。目的はtile圧縮器工場のversion別具体型、個体独立性、共有所有による破棄を
+  固定することである。対象はheader-only`libs/image/tiles3/swap/kis_tile_compressor_factory.h`のclassと`create`の2 API全件である。
+  製品objectは作らず、新規`libs/image/tiles3/tests/KisTileCompressorFactoryContractTest.cpp`をQt Test、既存`kritaglobalsharedobjects`、試験内の
+  最小圧縮器定義だけの同名専用対象にする。変更許可はこの新規試験と`libs/image/tiles3/tests/CMakeLists.txt`に限る。近傍は
+  `ImageLzfCompressionContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
+  停止条件6工程・13入力、製品`kritaimage` 1,182工程・2,388入力からの増加、製品共有ライブラリーまたは実圧縮器source接続、未知versionの仕様化、
+  公開header変更、または許可外変更である。
+- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、進捗、
+  担当間のCMake非重複、容量削除を所有する。統合した担当の作業ツリー、局所構築木、ブランチは次担当の統合を待たず直ちに削除する。
+  完了目標は14 API純増の対応済み7,981件、未対応22,008件である。
 
 ### 現在の結果
 
@@ -34,8 +67,8 @@
 
 ### 次の操作
 
-- 第62並列便は最新不足一覧から3つの独立した公開面を読取り専用で監査し、限定閉包と安定した観測可能挙動を確認して担当票を作る。
-  実装担当の作業ツリーは監査確定後に作り、統合直後に作業ツリー、局所構築木、担当ブランチ、旧不足一覧を削除する。
+- 第62並列便の共通計画コミットから3専用作業ツリーを作成し、基準・許可パス・構築実行許可を実体と照合する。
+  各担当は構築実行を`granted`に更新した後だけ初期診断から限定実装へ進み、統合担当は完了した作業ツリーと局所構築木を即時削除する。
 
 ## 再開環境
 
