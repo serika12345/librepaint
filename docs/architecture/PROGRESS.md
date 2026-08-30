@@ -2,23 +2,42 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 10:50 JST
+- 更新日時: 2026-08-30 10:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 現在の作業
+### 現在の並列担当票
 
-- 第39並列便で線種選択、図形透明度命令、安全な射影変換、クリック可能ラベルの全40 APIを固定した。公開面は1,549ヘッダー、29,989 API、
-  対応済み7,324件、未対応22,665件である。
-- 4限定対象の結合構築、CTest 4/4、再実行時の無作業状態、公開API契約検査に成功した。各対象の20回反復、軽量隣接試験、公開記号、
-  一重再集約、製品共有ライブラリー非接続、`verify-quick`は各担当で成功している。
-- 統合済みの3専用作業ツリーと専用Ninja木をclean確認直後に削除した。主作業ツリーの永続増分構築木と共有コンパイラーキャッシュを再利用し、
-  輸送用ブランチを復旧手段として保持する。
-- 次の操作は未対応報告`build/tdd-macos/public-api-missing-g40.json`から第40並列便の候補を監査し、直接依存と限定構築閉包を先に測定する
-  ことである。
+- 第40並列便の共通基準コミットは`29a8e99be7`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g40-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。担当確定後に必要な3作業ツリー
+  だけを作成し、輸送コミットの取り込みとclean確認直後に削除する。
+- 統合担当`smoothing-options-remainder`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/tools/kis_smoothing_options.cpp`、Tools製品・試験CMake、新規`KisSmoothingOptionsRemainderContractTest.cpp`を所有する。開始ファイルを
+  製品`kritatools`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存
+  `kritaglobalsignalcompressorobjects`を再利用し、製品の1,204工程・2,424入力と既存試験の1,208工程・2,431入力に代えて11工程・23入力以内で、
+  共有ポインター別名、仮想寿命、未固定3列挙値、変更通知の残り全6 APIを固定する。
+- 実装担当`shape-background-command`は`planned`、追加委任は`forbidden`、統合順は2である。専用作業ツリーで
+  `libs/flake/commands/KoShapeBackgroundCommand.cpp`、Flake製品・試験CMake、新規`KoShapeBackgroundCommandContractTest.cpp`を所有する。
+  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の580工程・
+  1,192入力と既存試験の584工程・1,199入力に代えて6工程・14入力以内で、3構築入口、背景共有所有、redo・undo、識別子、統合、借用寿命の
+  全9 APIを固定する。
+- 実装担当`bspline-1d`は`planned`、追加委任は`forbidden`、統合順は3である。専用作業ツリーで
+  `libs/image/bsplines/kis_bspline_1d.cpp`、Image製品・試験CMake、新規`KisBSpline1DContractTest.cpp`を所有する。開始ファイルと既存
+  `libs/image/3rdparty/einspline/bspline_create.cpp`の構築所有を各専用生成物へ移し、製品`kritaimage`へ各1回だけ再集約する。既存試験の
+  1,140工程・2,303入力に代えて7工程・15入力以内で、区間保持、初期化、固定関数の補間、終端一致、初期化前の安全な寿命の全7 APIを固定する。
+- 実装担当`int-parse-spin-box`は`planned`、追加委任は`forbidden`、統合順は4である。専用作業ツリーで
+  `libs/widgetutils/kis_int_parse_spin_box.cpp`、WidgetUtils製品・試験CMake、新規`KisIntParseSpinBoxContractTest.cpp`を所有する。開始
+  ファイルを製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存の数式解析・描画調整
+  生成物を再利用し、製品の260工程・553入力と既存試験の1,140工程・2,303入力に代えて10工程・22入力以内で、親と仮想寿命、整数式解析、
+  不正式と回復通知、明示上書き、step、表示文字列の全9 APIを固定する。
+- 第40並列便の完了時は合計31 APIを追加し、公開面の対応済み7,355件、未対応22,634件を見込む。各担当は限定対象の単発・20回反復、軽量
+  隣接試験、公開記号、一重再集約、製品共有ライブラリー非接続、`verify-quick`を確認する。Linux、全ネイティブ検証、製品全体リンクは
+  対象外である。
+- 統合担当だけが中央文書と公開API台帳を変更する。許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない挙動を発見した
+  時点で`blocked`として引き渡す。
 
 ## 再開環境
 
@@ -10053,8 +10072,8 @@
 
 ## 次の操作
 
-未対応報告`build/tdd-macos/public-api-missing-g40.json`から重複しない4候補を監査する。公開宣言、実装、既存試験、CMake直接依存、限定対象の
-清浄木閉包を確認し、過大な閉包は挙動契約より先に分離する。第40並列便の担当票と停止上限を記録してから実装を開始する。
+第40並列便の担当別作業ツリーを共通基準から作成し、対象未登録の初回限定構築診断を主作業ツリーで記録する。各担当は直接依存と停止上限を
+再確認し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。
 
 ## R1-G5完了根拠
 
