@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22121
+    "expectedMissingApis": 22099
   },
   "contracts": [
     {
@@ -25211,6 +25211,139 @@
       "classification": "maintained",
       "apis": [
         "method:KisSensorPackInterface::~KisSensorPackInterface()"
+      ]
+    },
+    {
+      "target": "TextIndentModelContractTest",
+      "source": "libs/flake/tests/TextIndentModelContractTest.cpp",
+      "test": "TextIndentModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "字下げ模型は0絶対長、hanging無効、eachLine無効を既定状態とし、data・lengthData・lengthModelが同じ長さを公開する。lengthは読取り専用通知プロパティ、両真偽値は読取り・書込み・変更通知可能なQtプロパティである。",
+      "classification": "maintained",
+      "apis": [
+        "class:TextIndentModel",
+        "member:TextIndentModel::data",
+        "member:TextIndentModel::lengthData",
+        "member:TextIndentModel::lengthModel",
+        "method:TextIndentModel::LAGER_QT_CURSOR(bool,eachLine)",
+        "method:TextIndentModel::LAGER_QT_CURSOR(bool,hanging)",
+        "method:TextIndentModel::TextIndentModel(lager::cursor<KoSvgText::TextIndentInfo> _textData=lager::make_state (KoSvgText::TextIndentInfo (),lager::automatic_tag{}))",
+        "method:TextIndentModel::length()",
+        "method:TextIndentModel::lengthChanged()"
+      ]
+    },
+    {
+      "target": "TextIndentModelContractTest",
+      "source": "libs/flake/tests/TextIndentModelContractTest.cpp",
+      "test": "TextIndentModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入した字下げcursorの長さ・hanging・eachLineは公開cursor、子長さ模型、Qtプロパティと各通知へ同期し、Qtプロパティと子長さ模型からの変更は同じcursorへ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "member:TextIndentModel::data",
+        "member:TextIndentModel::lengthData",
+        "member:TextIndentModel::lengthModel",
+        "method:TextIndentModel::LAGER_QT_CURSOR(bool,eachLine)",
+        "method:TextIndentModel::LAGER_QT_CURSOR(bool,hanging)",
+        "method:TextIndentModel::TextIndentModel(lager::cursor<KoSvgText::TextIndentInfo> _textData=lager::make_state (KoSvgText::TextIndentInfo (),lager::automatic_tag{}))",
+        "method:TextIndentModel::length()",
+        "method:TextIndentModel::lengthChanged()"
+      ]
+    },
+    {
+      "target": "TextIndentModelContractTest",
+      "source": "libs/flake/tests/TextIndentModelContractTest.cpp",
+      "test": "TextIndentModelContractTest::publicLengthViewsRemainAliased",
+      "behavior": "data、lengthData、lengthModel、length()は同じ字下げ長さ状態を公開し、いずれの変更経路も残りの公開経路へ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "member:TextIndentModel::data",
+        "member:TextIndentModel::lengthData",
+        "member:TextIndentModel::lengthModel",
+        "method:TextIndentModel::length()"
+      ]
+    },
+    {
+      "target": "TextIndentModelContractTest",
+      "source": "libs/flake/tests/TextIndentModelContractTest.cpp",
+      "test": "TextIndentModelContractTest::booleanFlagsRoundTripIndependently",
+      "behavior": "hangingとeachLineは全4組合せを独立して往復し、一方の変更は他方および長さ値・単位を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:TextIndentModel::LAGER_QT_CURSOR(bool,eachLine)",
+        "method:TextIndentModel::LAGER_QT_CURSOR(bool,hanging)"
+      ]
+    },
+    {
+      "target": "TextIndentModelContractTest",
+      "source": "libs/flake/tests/TextIndentModelContractTest.cpp",
+      "test": "TextIndentModelContractTest::firstParentChangeInitializesLengthObservationBeforeLengthOnlyUpdates",
+      "behavior": "字下げ模型は構築後のlengthChanged通知0回から、最初の親ccursor真偽値変更で長さ不変のまま長さ観測を初期化して1回通知し、続く真偽値変更では増えず、実長さ変更でさらに1回通知する。",
+      "classification": "known_defect",
+      "apis": [
+        "member:TextIndentModel::lengthData",
+        "method:TextIndentModel::LAGER_QT_CURSOR(bool,eachLine)",
+        "method:TextIndentModel::LAGER_QT_CURSOR(bool,hanging)",
+        "method:TextIndentModel::lengthChanged()"
+      ]
+    },
+    {
+      "target": "TextIndentModelContractTest",
+      "source": "libs/flake/tests/TextIndentModelContractTest.cpp",
+      "test": "TextIndentModelContractTest::qObjectBaseAndChildProvideStableLifetime",
+      "behavior": "字下げ模型をQObject基底で破棄すると本体と値メンバーである子長さ模型の寿命を同時に終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TextIndentModel",
+        "member:TextIndentModel::lengthModel",
+        "method:TextIndentModel::length()"
+      ]
+    },
+    {
+      "target": "kis_image_commands_test",
+      "source": "libs/image/tests/kis_image_commands_test.cpp",
+      "test": "KisImageCommandsTest::initializingStateRoutesDirtyRequestCalls",
+      "behavior": "初期化状態の命令は再実行でdirty要求を停止し、取消で再開し、再実行でも同じ順序を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDisableDirtyRequestsCommand",
+        "method:KisDisableDirtyRequestsCommand::KisDisableDirtyRequestsCommand(KisUpdatesFacade * updatesFacade,State state)"
+      ]
+    },
+    {
+      "target": "kis_image_commands_test",
+      "source": "libs/image/tests/kis_image_commands_test.cpp",
+      "test": "KisImageCommandsTest::publicPartsUseABorrowedFacade",
+      "behavior": "公開された前半・後半処理は借用facadeへ停止・再開を各1回通知し、命令の破棄はfacadeを所有破棄しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDisableDirtyRequestsCommand::partA()",
+        "method:KisDisableDirtyRequestsCommand::partB()"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryContractTest.cpp",
+      "test": "KisDynamicSensorFactoryContractTest::accessorsAndWidgetFactoryPreserveConfiguredValuesAndInputs",
+      "behavior": "動的センサー生成境界が識別子、数値範囲、表示文字列を独立して返し、長さ、未初期化cursor、借用親pointerを変更せず設定画面生成へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDynamicSensorFactory",
+        "method:KisDynamicSensorFactory::createConfigWidget(lager::cursor<KisCurveOptionDataCommon>,QWidget *)",
+        "method:KisDynamicSensorFactory::id() const",
+        "method:KisDynamicSensorFactory::maximumLabel(int length)",
+        "method:KisDynamicSensorFactory::maximumValue(int length)",
+        "method:KisDynamicSensorFactory::minimumLabel()",
+        "method:KisDynamicSensorFactory::minimumValue()",
+        "method:KisDynamicSensorFactory::valueSuffix()"
+      ]
+    },
+    {
+      "target": "KisDynamicSensorFactoryContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryContractTest.cpp",
+      "test": "KisDynamicSensorFactoryContractTest::baseLifetimeIsVirtual",
+      "behavior": "動的センサー工場を基底ポインターから破棄したとき派生寿命が正しく終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDynamicSensorFactory::~KisDynamicSensorFactory()"
       ]
     }
   ]
