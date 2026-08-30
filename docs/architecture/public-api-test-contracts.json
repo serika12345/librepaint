@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21896
+    "expectedMissingApis": 21870
   },
   "contracts": [
     {
@@ -26408,6 +26408,140 @@
       "classification": "maintained",
       "apis": [
         "function:operator ==(const KisFilterOptionData & lhs,const KisFilterOptionData & rhs)"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesInterfaceContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp",
+      "test": "KoSvgTextPropertiesInterfaceContractTest::parentOwnsDerivedInterface",
+      "behavior": "SVG文字属性接続面はQObject親へ所有され、親の寿命終了時に派生接続面を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextPropertiesInterface",
+        "method:KoSvgTextPropertiesInterface::KoSvgTextPropertiesInterface(QObject * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesInterfaceContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp",
+      "test": "KoSvgTextPropertiesInterfaceContractTest::gettersDispatchConfiguredPropertyValues",
+      "behavior": "SVG文字属性接続面は選択属性列、文字属性列、継承属性値を基底接続面から正確な値と呼出順で配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesInterface::getCharacterProperties()",
+        "method:KoSvgTextPropertiesInterface::getInheritedProperties()",
+        "method:KoSvgTextPropertiesInterface::getSelectedProperties()"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesInterfaceContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp",
+      "test": "KoSvgTextPropertiesInterfaceContractTest::settersDispatchCopiedValuesAndRemovalSets",
+      "behavior": "SVG文字属性接続面は通常属性と文字属性の設定値を複製し、削除ID集合と既定の空集合を各仮想設定処理へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesInterface::setCharacterPropertiesOnSelected(KoSvgTextProperties properties,QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> ())",
+        "method:KoSvgTextPropertiesInterface::setPropertiesOnSelected(KoSvgTextProperties properties,QSet<KoSvgTextProperties::PropertyId> removeProperties=QSet<KoSvgTextProperties::PropertyId> ())"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesInterfaceContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp",
+      "test": "KoSvgTextPropertiesInterfaceContractTest::selectionFlagsDispatchIndependently",
+      "behavior": "SVG文字属性接続面は範囲選択状態と文字属性有効状態を互いに独立した仮想呼出しへ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesInterface::characterPropertiesEnabled()",
+        "method:KoSvgTextPropertiesInterface::spanSelection()"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertiesInterfaceContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp",
+      "test": "KoSvgTextPropertiesInterfaceContractTest::selectionSignalsPreserveEmissionOrder",
+      "behavior": "SVG文字属性接続面の選択変更と文字選択変更signalは基底接続面から接続でき、発火順を保持して通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertiesInterface::textCharacterSelectionChanged()",
+        "method:KoSvgTextPropertiesInterface::textSelectionChanged()"
+      ]
+    },
+    {
+      "target": "KisNUBSpline2DContractTest",
+      "source": "libs/image/tests/KisNUBSpline2DContractTest.cpp",
+      "test": "KisNUBSpline2DContractTest::constructionOwnsSamplesAndPreservesBoundsAndBoundaryConditions",
+      "behavior": "非一様2次元B-splineはx・y標本を値所有し、呼出側配列の変更後も端点と軸ごとの境界条件を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisBSplines::KisNUBSpline2D",
+        "method:KisBSplines::KisNUBSpline2D::KisNUBSpline2D(const QVector<double> & xSamples,BorderCondition bcX,const QVector<double> & ySamples,BorderCondition bcY)",
+        "method:KisBSplines::KisNUBSpline2D::borderConditionX() const",
+        "method:KisBSplines::KisNUBSpline2D::borderConditionY() const",
+        "method:KisBSplines::KisNUBSpline2D::bottomRight() const",
+        "method:KisBSplines::KisNUBSpline2D::topLeft() const"
+      ]
+    },
+    {
+      "target": "KisNUBSpline2DContractTest",
+      "source": "libs/image/tests/KisNUBSpline2DContractTest.cpp",
+      "test": "KisNUBSpline2DContractTest::initializationVisitsTheNonUniformGridInXMajorOrder",
+      "behavior": "非一様2次元B-splineの初期化は所有済み4×4標本の全16点をx優先・y副順で一度ずつ値関数へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBSplines::KisNUBSpline2D::initializeSpline(const FunctionOp & op)"
+      ]
+    },
+    {
+      "target": "KisNUBSpline2DContractTest",
+      "source": "libs/image/tests/KisNUBSpline2DContractTest.cpp",
+      "test": "KisNUBSpline2DContractTest::affineSurfaceInterpolatesSamplesInteriorAndExactEnd",
+      "behavior": "自然境界の非一様2次元B-splineは一次平面を標本点、内点、右下端で許容差内に補間し、反復照会で同じ値を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBSplines::KisNUBSpline2D::value(float x,float y) const"
+      ]
+    },
+    {
+      "target": "KisNUBSpline2DContractTest",
+      "source": "libs/image/tests/KisNUBSpline2DContractTest.cpp",
+      "test": "KisNUBSpline2DContractTest::initializedAndUninitializedLifetimesAreSafe",
+      "behavior": "非一様2次元B-splineは未初期化・初期化済み双方の所有資源を破棄し、初期化済み定数面を寿命内に照会できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBSplines::KisNUBSpline2D::~KisNUBSpline2D()"
+      ]
+    },
+    {
+      "target": "KisMetaDataMergeStrategyContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataMergeStrategyContractTest.cpp",
+      "test": "KisMetaDataMergeStrategyContractTest::identityMethodsDispatchUnicodeValues",
+      "behavior": "メタデータ統合方針はUnicode識別子、表示名、説明を互いに独立したconst仮想呼出しへ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::MergeStrategy",
+        "method:KisMetaData::MergeStrategy::description() const",
+        "method:KisMetaData::MergeStrategy::id() const",
+        "method:KisMetaData::MergeStrategy::name() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataMergeStrategyContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataMergeStrategyContractTest.cpp",
+      "test": "KisMetaDataMergeStrategyContractTest::mergePreservesPointersOrderDuplicatesAndScores",
+      "behavior": "メタデータ統合方針は宛先の借用pointer、入力Store列の順序と重複、score値の順序を保持して一度配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::MergeStrategy::merge(Store * dst,QList<const Store * > srcs,QList<double> scores) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataMergeStrategyContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataMergeStrategyContractTest.cpp",
+      "test": "KisMetaDataMergeStrategyContractTest::baseOwnershipHasVirtualLifetime",
+      "behavior": "メタデータ統合方針は基底所有からの解放で派生destructorを通り、個体寿命を一度終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::MergeStrategy::~MergeStrategy()"
       ]
     }
   ]

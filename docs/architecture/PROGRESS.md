@@ -2,75 +2,42 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 00:38 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-31 00:49 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第67並列便の担当票
-
-- `g67-svg-text-properties-interface`は状態`implementing`、基準`8fd6545989285a951fe68bf05b6f2ede837f086c`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g67-svg-text-properties-interface`である。目的はSVG文字属性接続面の親所有、3取得、2設定、2選択状態、2通知signalを
-  固定することである。対象は`libs/flake/text/KoSvgTextPropertiesInterface.h`のclass、inline constructor、5 virtual method、2状態method、2 signalの
-  11 API全件である。実装sourceを持たない公開headerを新規`libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp`のtarget-local sourceへ列挙し、
-  AUTOMOCでmetaobjectを試験内に生成する。試験はQt Testと、汎用値保持・複製・等価性だけの最小`KoSvgTextProperties`協調定義を使う。変更許可はこの新規試験と
-  `libs/flake/tests/CMakeLists.txt`に限る。近傍は`KoSvgTextPropertyDataContractTest`、対象macOS、共有cache`.cache/librepaint/ccache/native`、
-  構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力、製品`kritaflake` 612工程・1,256入力からの増加、
-  完全な`KoSvgTextProperties.cpp`・製品共有ライブラリー・共通試験基盤への接続、製品意味論を模倣する試験協調定義、公開header・製品source・製品CMake変更、
-  または許可外変更である。
-- `g67-nu-bspline-2d`は状態`implementing`、基準`768a0e3e699ded2066c4893e3d681d84a597a662`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g67-nu-bspline-2d`である。目的は
-  非一様2次元B-splineの標本値所有、端点、2軸境界条件、格子採取順、補間値、寿命を固定することである。対象は
-  `libs/image/bsplines/kis_nu_bspline_2d.h`のclass、constructor、destructor、initialize、value、2端点、2境界条件の9 API全件である。開始ファイル
-  `libs/image/bsplines/kis_nu_bspline_2d.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimagenubspline2dobjects`へ移す。開始ファイル
-  `libs/image/3rdparty/einspline/nubasis.cpp`、`nubspline_create.cpp`、`nugrid.cpp`を`einspline_SRCS`の直接収容から
-  `kritaimagenonuniformbsplineengineobjects`へ移し、両objectを製品`kritaimage`へ一度だけ再集約する。新規
-  `libs/image/tests/KisNUBSpline2DContractTest.cpp`は両object、既存uniform engine object、Qt Testだけを使う。変更許可はこの新規試験、
-  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は`KisBSpline1DContractTest`、対象macOS、共有cache同上、構築実行`granted`、
-  Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件11工程・23入力、製品`kritaimage` 1,184工程・2,392入力からの増加、
-  製品共有ライブラリーへの接続、無効標本・範囲外・再初期化の新仕様判断、許可外engine source、source二重収容、公開header/source変更、または許可外変更である。
-- `g67-metadata-merge-strategy`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g67-metadata-merge-strategy`である。目的は
-  メタデータ統合方針のUnicode識別情報、宛先と入力列・scoreの仮想配送、基底所有からの寿命を固定することである。対象は
-  `libs/painting/metadata/kis_meta_data_merge_strategy.h`のclass、destructor、3識別method、mergeの6 API全件である。開始ファイル
-  `libs/painting/metadata/kis_meta_data_merge_strategy.cc`を`kritapaintingmetadata_LIB_SRCS`の直接収容から`kritapaintingmetadatamergestrategyobjects`へ移し、
-  製品`kritapaintingmetadata`へ一度だけ再集約する。新規`libs/painting/metadata/tests/KisMetaDataMergeStrategyContractTest.cpp`は同object、Qt Test、
-  試験内Probeと不完全型Storeの借用tokenだけを使う。変更許可はこの新規試験、`libs/painting/metadata/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。
-  近傍は`KisMetaDataIOBackendContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
-  停止条件6工程・14入力、製品`kritapaintingmetadata` 288工程・607入力からの増加、実Store・registry・製品共有ライブラリー・Qt Gui/Widgetsへの接続、
-  source二重収容、公開header/source変更、または許可外変更である。
-- 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
-  統合担当が中央台帳、進捗、担当間のCMake非重複、容量削除を所有する。統合した担当の作業ツリー、局所構築木、ブランチは次担当の統合を待たず
-  直ちに削除する。完了目標は26 API純増の対応済み8,119件、未対応21,870件である。
-
 ### 現在の結果
 
-- 第66並列便は、SVG文字属性集約値8 API、単一node更新命令6 API、描画filter設定値9 APIの合計23 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み8,093件、未対応21,896件である。
-- SVG文字属性集約値の開始ファイル`libs/flake/text/KoSvgTextPropertyData.cpp`は、`kritaflake_SRCS`の直接収容から
-  `kritaflakesvgtextpropertydataobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoSvgTextPropertyDataContractTest.cpp`が既定状態、5項目の独立した等価性、Qt metatype名、診断出力順を固定する。
-- 単一node更新命令の開始ファイル`libs/image/commands_new/kis_update_command.cpp`は、`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimageupdatecommandobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。既存`libs/image/tests/KisUpdateCommandExContractTest.cpp`が
-  値矩形の複製、共有矩形の実行時参照、通常・全面更新、redo・undo、nodeと矩形の共有所有、更新facadeの借用寿命を固定する。
-- 描画filter設定値の開始ファイル`plugins/paintops/libpaintop/KisFilterOptionData.cpp`は、`kritalibpaintop_LIB_SRCS`の直接収容から
-  `kritapaintopfilteroptiondataobjects`へ移り、製品`kritalibpaintop`へ一度だけ再集約される。新規
-  `plugins/paintops/libpaintop/tests/KisFilterOptionDataContractTest.cpp`が既定値、安定key、Unicode値の読書き、無関係設定の保持、3項目の等価性を固定する。
-- 統合後の限定閉包は`KoSvgTextPropertyDataContractTest` 5工程・11入力、`KisUpdateCommandExContractTest` 12工程・26入力、
-  `KisFilterOptionDataContractTest` 5工程・17入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
-  `kritalibpaintop` 2,095工程・4,188入力から増えていない。
-- 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象は各20回反復、全11新規契約枠、再構築時の無作業確認に成功した。
-  macOSのパッケージ境界は1,543対象、公開API契約検査は8,093/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
-  実`KoSvgTextProperties`変換、共有矩形と全面更新の未分類組合せ、null更新引数、実filter registryとの統合は残余範囲である。製品全体の構築・リンクと
-  Linux検証は限定閉包を越えるため対象外とした。
-- 統合済み作業ツリー3本、局所構築木、担当ブランチは各統合直後に削除し、一時使用量約2.48 GBを全回収した。旧第66便不足一覧を削除し、最新の第67便不足一覧
-  `build/tdd-macos/public-api-missing-g67.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は5.0 GB、共有nativeコンパイラーcacheは653 MBである。
+- 第67並列便は、SVG文字属性接続面11 API、非一様2次元B-spline 9 API、メタデータ統合方針6 APIの合計26 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み8,119件、未対応21,870件である。
+- SVG文字属性接続面は製品実装と公開headerを変更せず、`libs/flake/text/KoSvgTextPropertiesInterface.h`を新規
+  `libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp`のtarget-local AUTOMOCへ収容した。同試験がQObject親所有、3取得、2設定、2選択状態、
+  2通知signalの配送を固定する。
+- 非一様補間の開始ファイル`libs/image/bsplines/kis_nu_bspline_2d.cpp`は`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagenubspline2dobjects`へ移った。開始ファイル`libs/image/3rdparty/einspline/nubasis.cpp`、`nubspline_create.cpp`、`nugrid.cpp`は
+  `einspline_SRCS`の直接収容から`kritaimagenonuniformbsplineengineobjects`へ移り、両objectは製品`kritaimage`へ一度だけ再集約される。新規
+  `libs/image/tests/KisNUBSpline2DContractTest.cpp`が標本値所有、端点、軸別境界条件、格子採取順、一次平面の補間値、寿命を固定する。
+- メタデータ統合方針の開始ファイル`libs/painting/metadata/kis_meta_data_merge_strategy.cc`は、`kritapaintingmetadata_LIB_SRCS`の直接収容から
+  `kritapaintingmetadatamergestrategyobjects`へ移り、製品`kritapaintingmetadata`へ一度だけ再集約される。新規
+  `libs/painting/metadata/tests/KisMetaDataMergeStrategyContractTest.cpp`がUnicode識別情報、宛先と入力列・scoreの仮想配送、基底所有からの寿命を固定する。
+- 統合後の限定閉包は`KoSvgTextPropertiesInterfaceContractTest` 4工程・8入力、`KisNUBSpline2DContractTest` 10工程・21入力、
+  `KisMetaDataMergeStrategyContractTest` 5工程・11入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
+  `kritapaintingmetadata` 288工程・607入力から増えていない。
+- 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象は各20回反復、全12新規契約枠、再構築時の無作業確認に成功した。
+  macOSのパッケージ境界は1,549対象、公開API契約検査は8,119/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
+  各製品による実SVG属性編集、無効・非昇順標本と範囲外照会・再初期化、実Storeによる統合は残余範囲である。製品全体の構築・リンクとLinux検証は
+  限定閉包を越えるため対象外とした。
+- 担当作業ツリー4本、局所構築木、担当ブランチは候補停止または統合の直後に削除し、同時最大約2.53 GB、累計約3.35 GBの一時生成物を回収した。
+  旧第67便不足一覧を削除し、最新の第68便不足一覧`build/tdd-macos/public-api-missing-g68.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は
+  5.0 GB、共有nativeコンパイラーcacheは658 MBである。
 
 ### 次の操作
 
-- 3担当は許可範囲内で初期診断、限定契約、必要な最小object分離、対象・個別枠・20回反復・軽量近傍・無作業・動的依存・高速検査を完了して担当コミットを返す。
-  統合担当は主増分構築木で順次再検証し、各統合直後に担当作業ツリー、局所構築木、担当ブランチを即時削除する。
+- 第68並列便は最新不足一覧から互いに重ならない公開面を読取り監査し、公開API件数、最小の観測可能契約、直接CMake依存、既存対象との清浄木閉包差を測る。
+  計画前は作業ツリーや局所構築木を作らず、広域閉包を専用objectへ分離できる候補だけを採用する。
 
 ## 再開環境
 
