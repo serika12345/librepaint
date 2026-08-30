@@ -391,6 +391,15 @@ kis_add_test(
 target_compile_definitions(KisImageInterfacesContractTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(
+    KisProjectionUpdatesFilterContractTest.cpp
+    LINK_LIBRARIES
+        kritaimageprojectionupdatesfilterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisProjectionUpdatesFilterContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
     KisSafeBlockingQueueConnectionProxyContractTest.cpp
     LINK_LIBRARIES
         kritaimagesafeblockingqueueconnectionproxyobjects

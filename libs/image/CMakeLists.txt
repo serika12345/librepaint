@@ -334,6 +334,23 @@ set_target_properties(kritaimageinterfacesobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageprojectionupdatesfilterobjects OBJECT
+   kis_projection_updates_filter.cpp
+)
+target_compile_definitions(kritaimageprojectionupdatesfilterobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageprojectionupdatesfilterobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageprojectionupdatesfilterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimageprojectionupdatesfilterobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagedefaultboundsbaseobjects OBJECT
    kis_default_bounds_base.cpp
 )
@@ -1018,7 +1035,6 @@ set(kritaimage_LIB_SRCS
    kis_image_signal_router.cpp
    kis_image_config.cpp
    KisImageResolutionProxy.cpp
-   kis_projection_updates_filter.cpp
    kis_suspend_projection_updates_stroke_strategy.cpp
    kis_regenerate_frame_stroke_strategy.cpp
    kis_switch_time_stroke_strategy.cpp
@@ -1155,6 +1171,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagenameserverobjects>
    $<TARGET_OBJECTS:kritaimagenodegraphlistenerobjects>
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
+   $<TARGET_OBJECTS:kritaimageprojectionupdatesfilterobjects>
    $<TARGET_OBJECTS:kritaimagedefaultboundsbaseobjects>
    $<TARGET_OBJECTS:kritaimageselectioncomponentobjects>
    $<TARGET_OBJECTS:kritaimageprojectionplaneobjects>
