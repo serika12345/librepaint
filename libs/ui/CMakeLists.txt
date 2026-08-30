@@ -1478,6 +1478,25 @@ set_target_properties(kritauisizegroupobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauielidedlabelobjects OBJECT
+    widgets/kis_elided_label.cpp
+)
+target_compile_definitions(kritauielidedlabelobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauielidedlabelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritauielidedlabelobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritauielidedlabelobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
@@ -1496,6 +1515,7 @@ add_subdirectory( tests )
 set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
     $<TARGET_OBJECTS:kritauisizegroupobjects>
+    $<TARGET_OBJECTS:kritauielidedlabelobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelsourceobjects>
     $<TARGET_OBJECTS:kritauimultinodepropertyobjects>
@@ -1746,7 +1766,6 @@ set(kritaui_LIB_SRCS
     widgets/KisLodAvailabilityModel.cpp
     widgets/kis_color_filter_combo.cpp
     widgets/kis_layer_filter_widget.cpp
-    widgets/kis_elided_label.cpp
     widgets/kis_preset_live_preview_view.cpp
     widgets/KisScreenColorSampler.cpp
     widgets/KoDualColorButton.cpp

@@ -139,6 +139,17 @@ target_compile_definitions(KisSizeGroupContractTest PRIVATE
 )
 
 kis_add_test(
+    KisElidedLabelContractTest.cpp
+    LINK_LIBRARIES
+        kritauielidedlabelobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KisElidedLabelContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisSelectionActionsPanelContractTest.cpp
     LINK_LIBRARIES
         kritauiselectionactionspanelobjects
