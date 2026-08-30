@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 11:27 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-30 11:39 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -11,35 +11,11 @@
 
 ### 現在の並列担当票
 
-- 第41並列便の共通基準コミットは`b178836b08`である。統合担当は`develop`の主作業ツリー、実装担当は
-  `/Users/masato/Documents/librepaint-r2-g41-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。担当確定後に必要な3作業ツリー
-  だけを作成し、輸送コミットの取り込みとclean確認直後に削除する。
-- 統合担当`elided-label`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
-  `libs/ui/widgets/kis_elided_label.cpp`、UI製品・試験CMake、新規`KisElidedLabelContractTest.cpp`を所有する。開始ファイルを製品
-  `kritaapplicationui`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の1,907工程・3,814入力に
-  代えて6工程・13入力以内で、親所有、構築時文字列、左右・中央省略、長文置換、寸法変更、仮想寿命の全4 APIを固定する。
-- 実装担当`slider-combo`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g41-slider-combo`で`libs/widgets/KoSliderCombo.cpp`、必要な場合だけ
-  `libs/widgets/KoSliderCombo_p.h`、Widgets製品・試験CMake、新規`KoSliderComboContractTest.cpp`を所有する。開始ファイルを製品
-  `kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の762工程・1,553入力と最寄り試験の
-  7工程・14入力を基準に8工程・18入力以内で、親と仮想寿命、既定値・範囲・小数桁、設定値の丸め込み、通知、推奨寸法の全14 APIを固定する。
-- 実装担当`projection-updates-filter`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
-  統合順は3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g41-projection-updates-filter`で
-  `libs/image/kis_projection_updates_filter.cpp`、Image製品・試験CMake、新規`KisProjectionUpdatesFilterContractTest.cpp`を所有する。開始
-  ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の1,138工程・
-  2,300入力と最寄り試験の5工程・11入力を基準に6工程・13入力以内で、基底仮想配送と寿命、全更新破棄実装の全7 APIを固定する。
-- 実装担当`double-parse-spin-box`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
-  作業ツリー`/Users/masato/Documents/librepaint-r2-g41-double-parse-spin-box`で
-  `libs/widgetutils/kis_double_parse_spin_box.cpp`、WidgetUtils製品・試験CMake、新規`KisDoubleParseSpinBoxContractTest.cpp`を所有する。開始
-  ファイルを製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。直前の整数版で実測した
-  9工程・19入力を基準に10工程・22入力以内で、親と仮想寿命、倍精度式解析、不正式と回復通知、明示上書き、step、表示文字列の全9 APIを
-  固定する。
-- 第41並列便は合計34 APIを追加し、公開面の対応済み7,389件、未対応22,600件を見込む。各担当は限定対象の単発・20回反復、軽量隣接試験、
-  公開記号、一重再集約、製品共有ライブラリー非接続、`verify-quick`を確認する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
-- 4限定対象の初回構築は`KisElidedLabelContractTest`、`KoSliderComboContractTest`、`KisProjectionUpdatesFilterContractTest`、
-  `KisDoubleParseSpinBoxContractTest`がいずれも未知の対象として失敗し、挙動契約未登録の赤状態を確認した。
-- 統合担当だけが中央文書と公開API台帳を変更する。許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない挙動を発見した
-  時点で`blocked`として引き渡す。
+- 第41並列便は完了し、公開面は1,549ヘッダー、29,989 API、対応済み7,389件、未対応22,600件である。
+- 専用作業ツリー3本は輸送コミットの統合とclean確認直後に削除済みで、現在のGit作業ツリーは`develop`の主作業ツリー1本だけである。
+  主作業ツリーの永続増分構築木と共有コンパイラーキャッシュを次便でも再利用する。
+- 第42並列便は`planned`である。最新の`build/tdd-macos/public-api-missing-g42.json`から候補を読み取り専用で監査し、直接依存と構築閉包を
+  確定してから必要な3作業ツリーだけを作成する。各作業ツリーは統合直後に削除し、世代の古い不足一覧は保持しない。
 
 ## 再開環境
 
@@ -10132,10 +10108,68 @@
   最新の`build/tdd-macos/public-api-missing-g41.json`だけを次便の入力として保持する。主作業ツリーの永続増分構築木と共有コンパイラーキャッシュは
   次便で再利用する。
 
+## R2-G19b 省略表示ラベルの全public API契約と構築所有分離で完了した作業
+
+- `libs/ui/widgets/kis_elided_label.h`の全4 APIを、新規`libs/ui/tests/KisElidedLabelContractTest.cpp`の4試験へ対応付けた。親所有と構築時文字列、
+  長文置換時の左・中央・右省略、寸法変更時に完全な長文から再生成する表示、QLabel基底経由の仮想寿命を固定した。
+- 開始ファイル`libs/ui/widgets/kis_elided_label.cpp`の構築所有を`libs/ui/CMakeLists.txt`の`kritaui_LIB_SRCS`直接収容から新規AUTOMOC不要/PIC対応
+  `kritauielidedlabelobjects`へ移し、製品`kritaapplicationui`は同生成物を1回だけ再集約する。限定試験は同生成物とQt Widgets・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象、最初の寸法変更試験は非表示widgetへresize eventが即時配送されず失敗し、現在幅を設定して明示的な
+  `QResizeEvent`を配送する決定的契約へ修正した。限定対象は5工程・11入力で、製品の1,907工程・3,814入力から縮小した。対象CTest単発と
+  20回反復、最近傍`KisSizeGroupContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。
+  空文字列、非正幅、mnemonic、字体・表示様式の画素差、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b スライダー複合入力の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgets/KoSliderCombo.h`の全14 APIを、新規`libs/widgets/tests/KoSliderComboContractTest.cpp`の5試験へ対応付けた。親所有と仮想寿命、
+  既定値・範囲・小数桁、推奨寸法、設定値の上下限制限、同値を含む確定通知、sliderの中間・確定通知を固定した。小数桁設定を表示へ反映せず
+  常に6桁を表示する挙動と、行編集確定が範囲外値を制限しない挙動は既知不具合に分類した。
+- 開始ファイル`libs/widgets/KoSliderCombo.cpp`の構築所有を`libs/widgets/CMakeLists.txt`の`kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC/PIC対応
+  `kritawidgetsslidercomboobjects`へ移し、製品`kritawidgets`は同生成物を1回だけ再集約する。開始ファイルと
+  `libs/widgets/KoSliderCombo_p.h`から未使用のKF I18n・WidgetsDebug includeを除き、限定試験を同生成物とQt Widgets・Testだけへ接続した。
+- 対象未登録の初回限定構築は未知の対象として失敗し、限定閉包で明示的な未実装試験を赤にした後、表示結果との差から2既知不具合を分類した。
+  限定対象は7工程・14入力で、変更前製品の762工程・1,553入力から縮小した。対象CTest単発と20回反復、最近傍
+  `KoAspectButtonContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。最小値と最大値の一致・
+  逆転、非有限値、極端な小数桁、C以外のlocale、popup配置、キー・ホイール・描画、Qt 6で非推奨の`globalPos()`、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+## R2-G19b 投影更新フィルターの全public API契約と構築所有分離で完了した作業
+
+- `libs/image/kis_projection_updates_filter.h`の全7 APIを、新規
+  `libs/image/tests/KisProjectionUpdatesFilterContractTest.cpp`の2試験へ対応付けた。基底接続面の画像・ノード・矩形列・切抜き矩形・更新フラグ・
+  返値の仮想配送、基底所有からの派生寿命、全更新破棄実装が直接更新とグラフ更新を常に破棄する判定を固定した。
+- 開始ファイル`libs/image/kis_projection_updates_filter.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaimageprojectionupdatesfilterobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。限定試験は同生成物と
+  Qt Core・Testだけへ接続し、公開ヘッダーに必要なGlobal include経路をOBJECTへ明示した。
+- 対象未登録の初回限定構築は未知の対象、最初のOBJECTコンパイルは`kis_shared_ptr.h`のinclude経路不足として失敗し、直接依存を明示して
+  解消した。限定対象は5工程・11入力で、製品の1,138工程・2,300入力から縮小した。対象CTest単発と20回反復、最近傍
+  `KisImageInterfacesContractTest`、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。raw画像・nodeの
+  呼出し外寿命、実画像統合、並行更新、呼出し順序、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 浮動小数点式入力欄の全public API契約と構築所有分離で完了した作業
+
+- `libs/widgetutils/kis_double_parse_spin_box.h`の全9 APIを、新規
+  `libs/widgetutils/tests/KisDoubleParseSpinBoxContractTest.cpp`の5試験へ対応付けた。親所有と仮想寿命、初期値と解析状態、固定C localeと4桁精度の
+  有限式評価、装飾なし表示文字列、不正式の値保持と失敗通知、明示上書きの回復通知、刻み操作と0段の状態維持を固定した。
+- 開始ファイル`libs/widgetutils/kis_double_parse_spin_box.cpp`の構築所有を`libs/widgetutils/CMakeLists.txt`の`kritawidgetutils_LIB_SRCS`直接収容から
+  新規AUTOMOC/PIC対応`kritawidgetutilsdoubleparsespinboxobjects`へ移し、製品`kritawidgetutils`は同生成物を1回だけ再集約する。限定試験は
+  同生成物、既存の数式解析・描画調整生成物、Qt Widgets・Testだけへ接続する。
+- 対象未登録の初回限定構築は未知の対象として失敗し、限定閉包で明示的な未実装試験を赤にした後、5契約へ置換した。限定対象は9工程・
+  19入力で、既存試験の1,142工程・2,307入力から縮小した。対象CTest単発と20回反復、整数版・数式解析・描画調整の近傍3試験、公開記号、
+  一重再集約、製品共有ライブラリー非接続、整形検査、`verify-quick`に成功した。NaN・無限大・0除算・範囲外値、locale小数点、丸め境界、
+  フォーカス中の式保持、警告表示、Qt 5、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+- 第41並列便は省略表示ラベル4 API、スライダー複合入力14 API、投影更新フィルター7 API、浮動小数点式入力欄9 APIの合計34 APIを固定した。
+  各担当の引渡しを統合順に取り込み、主作業木で4限定対象の結合構築・CTest 4/4・同時無作業再構築、必要な製品への一重再集約、公開API契約
+  検査を再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,389件、未対応22,600件になった。
+- 取り込み済み専用作業ツリー3件は作業木cleanを確認して各統合直後に削除し、約2.48 GBを解放した。前世代の公開API不足一覧も削除し、最新の
+  `build/tdd-macos/public-api-missing-g42.json`だけを次便の入力として保持する。主作業ツリーの永続増分構築木と共有コンパイラーキャッシュは
+  次便で再利用する。
+
 ## 次の操作
 
-第41並列便の各担当が直接依存と停止上限を再確認し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。統合担当は専用作業ツリーを
-輸送コミットの取り込みとclean確認直後に削除する。
+第42並列便の候補を最新の不足一覧から読み取り専用で監査し、全public APIを一まとまりで固定できる対象と、直接依存・構築閉包・停止上限を
+確定する。担当票の確定後に必要な3作業ツリーだけを作成し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。
 
 ## R1-G5完了根拠
 

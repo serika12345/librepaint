@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22634
+    "expectedMissingApis": 22600
   },
   "contracts": [
     {
@@ -22262,6 +22262,201 @@
       "classification": "maintained",
       "apis": [
         "method:KisIntParseSpinBox::stepBy(int steps)"
+      ]
+    },
+    {
+      "target": "KisElidedLabelContractTest",
+      "source": "libs/ui/tests/KisElidedLabelContractTest.cpp",
+      "test": "KisElidedLabelContractTest::constructionKeepsParentAndInitialText",
+      "behavior": "省略表示ラベルが指定親に所有され、構築時の文字列を初期表示として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisElidedLabel",
+        "method:KisElidedLabel::KisElidedLabel(const QString & text,Qt::TextElideMode mode,QWidget * parent=0)"
+      ]
+    },
+    {
+      "target": "KisElidedLabelContractTest",
+      "source": "libs/ui/tests/KisElidedLabelContractTest.cpp",
+      "test": "KisElidedLabelContractTest::longTextUsesTheConfiguredElideMode",
+      "behavior": "長文設定が現在幅と構築時に指定した左・中央・右の省略方式を用いて表示文字列を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisElidedLabel::setLongText(const QString & text)"
+      ]
+    },
+    {
+      "target": "KisElidedLabelContractTest",
+      "source": "libs/ui/tests/KisElidedLabelContractTest.cpp",
+      "test": "KisElidedLabelContractTest::resizeReelidesTheStoredLongText",
+      "behavior": "寸法変更時に完全な長文を保持したまま新しい幅へ再省略し、以前の省略済み表示を入力に再利用しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisElidedLabel::setLongText(const QString & text)"
+      ]
+    },
+    {
+      "target": "KisElidedLabelContractTest",
+      "source": "libs/ui/tests/KisElidedLabelContractTest.cpp",
+      "test": "KisElidedLabelContractTest::basePointerDeletionRunsDerivedDestructor",
+      "behavior": "省略表示ラベルをQLabel基底ポインター経由で破棄すると派生個体の破棄処理まで実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisElidedLabel::~KisElidedLabel()"
+      ]
+    },
+    {
+      "target": "KoSliderComboContractTest",
+      "source": "libs/widgets/tests/KoSliderComboContractTest.cpp",
+      "test": "KoSliderComboContractTest::ownsParentAndExposesStableDefaults",
+      "behavior": "親widgetがコンボを所有し、既定値0、最小値0、最大値100、小数桁設定2を公開する。sizeHintとminimumSizeHintは一致する正寸法を返し、QComboBox基底経由の破棄は派生個体を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSliderCombo",
+        "method:KoSliderCombo::KoSliderCombo(QWidget * parent=0)",
+        "method:KoSliderCombo::decimals() const",
+        "method:KoSliderCombo::maximum() const",
+        "method:KoSliderCombo::minimum() const",
+        "method:KoSliderCombo::minimumSizeHint() const",
+        "method:KoSliderCombo::sizeHint() const",
+        "method:KoSliderCombo::value() const",
+        "method:KoSliderCombo::~KoSliderCombo()"
+      ]
+    },
+    {
+      "target": "KoSliderComboContractTest",
+      "source": "libs/widgets/tests/KoSliderComboContractTest.cpp",
+      "test": "KoSliderComboContractTest::settersClampValuesAndEmitFinalNotifications",
+      "behavior": "最小値・最大値・小数桁設定を保持し、setValueは範囲内値を保持して範囲外値を上下限へ制限する。各呼出しは同値再設定を含め、確定値とfinal=trueを通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSliderCombo::decimals() const",
+        "method:KoSliderCombo::maximum() const",
+        "method:KoSliderCombo::minimum() const",
+        "method:KoSliderCombo::setDecimals(int number)",
+        "method:KoSliderCombo::setMaximum(qreal max)",
+        "method:KoSliderCombo::setMinimum(qreal min)",
+        "method:KoSliderCombo::setValue(qreal value)",
+        "method:KoSliderCombo::value() const",
+        "method:KoSliderCombo::valueChanged(qreal value,bool final)"
+      ]
+    },
+    {
+      "target": "KoSliderComboContractTest",
+      "source": "libs/widgets/tests/KoSliderComboContractTest.cpp",
+      "test": "KoSliderComboContractTest::sliderReportsIntermediateAndFinalValues",
+      "behavior": "内部sliderの移動は範囲から換算した値を表示しfinal=falseで通知し、slider解放は同じ値をfinal=trueで通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSliderCombo::value() const",
+        "method:KoSliderCombo::valueChanged(qreal value,bool final)"
+      ]
+    },
+    {
+      "target": "KoSliderComboContractTest",
+      "source": "libs/widgets/tests/KoSliderComboContractTest.cpp",
+      "test": "KoSliderComboContractTest::ignoresConfiguredDecimalPrecision",
+      "behavior": "小数桁設定を1または0へ変更しても、C localeでsetValueした表示は設定桁数へ丸められず常に小数点以下6桁となり、未丸め値を確定値として通知する現行挙動を固定する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoSliderCombo::setDecimals(int number)",
+        "method:KoSliderCombo::setValue(qreal value)",
+        "method:KoSliderCombo::value() const",
+        "method:KoSliderCombo::valueChanged(qreal value,bool final)"
+      ]
+    },
+    {
+      "target": "KoSliderComboContractTest",
+      "source": "libs/widgets/tests/KoSliderComboContractTest.cpp",
+      "test": "KoSliderComboContractTest::acceptsOutOfRangeLineEditValue",
+      "behavior": "行編集の確定経路は設定済み最小・最大範囲を適用せず、範囲外の入力値をそのまま現在値として保持しfinal=trueで通知する現行挙動を固定する。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoSliderCombo::maximum() const",
+        "method:KoSliderCombo::setDecimals(int number)",
+        "method:KoSliderCombo::setMaximum(qreal max)",
+        "method:KoSliderCombo::setMinimum(qreal min)",
+        "method:KoSliderCombo::value() const",
+        "method:KoSliderCombo::valueChanged(qreal value,bool final)"
+      ]
+    },
+    {
+      "target": "KisProjectionUpdatesFilterContractTest",
+      "source": "libs/image/tests/KisProjectionUpdatesFilterContractTest.cpp",
+      "test": "KisProjectionUpdatesFilterContractTest::baseDispatchesArgumentsResultsAndLifetime",
+      "behavior": "投影更新フィルターの基底接続面が画像・ノード・矩形列・切抜き矩形・更新フラグを対応する仮想関数へ渡し、返値を透過して基底所有から派生実装を破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProjectionUpdatesFilter",
+        "method:KisProjectionUpdatesFilter::filter(KisImage * image,KisNode * node,const QVector<QRect> & rects,KisProjectionUpdateFlags flags)",
+        "method:KisProjectionUpdatesFilter::filterRefreshGraph(KisImage * image,KisNode * node,const QVector<QRect> & rect,const QRect & cropRect,KisProjectionUpdateFlags flags)",
+        "method:KisProjectionUpdatesFilter::~KisProjectionUpdatesFilter()"
+      ]
+    },
+    {
+      "target": "KisProjectionUpdatesFilterContractTest",
+      "source": "libs/image/tests/KisProjectionUpdatesFilterContractTest.cpp",
+      "test": "KisProjectionUpdatesFilterContractTest::dropAllRejectsDirectAndRefreshUpdates",
+      "behavior": "全更新破棄フィルターが直接更新とグラフ更新の両経路で破棄判定trueを返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDropAllProjectionUpdatesFilter",
+        "method:KisDropAllProjectionUpdatesFilter::filter(KisImage * image,KisNode * node,const QVector<QRect> & rects,KisProjectionUpdateFlags flags)",
+        "method:KisDropAllProjectionUpdatesFilter::filterRefreshGraph(KisImage * image,KisNode * node,const QVector<QRect> & rects,const QRect & cropRect,KisProjectionUpdateFlags flags)"
+      ]
+    },
+    {
+      "target": "KisDoubleParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseSpinBoxContractTest.cpp",
+      "test": "KisDoubleParseSpinBoxContractTest::ownsParentStartsValidAndHasVirtualLifetime",
+      "behavior": "浮動小数点式入力欄が指定した親に所有され、既定値0かつ解析妥当状態で開始し、親または基底型経由の破棄で安全に寿命を終える。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDoubleParseSpinBox",
+        "method:KisDoubleParseSpinBox::KisDoubleParseSpinBox(QWidget * parent=0)",
+        "method:KisDoubleParseSpinBox::isLastValid() const",
+        "method:KisDoubleParseSpinBox::~KisDoubleParseSpinBox()"
+      ]
+    },
+    {
+      "target": "KisDoubleParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseSpinBoxContractTest.cpp",
+      "test": "KisDoubleParseSpinBoxContractTest::evaluatesFiniteExpressionsAndPreservesCleanText",
+      "behavior": "固定Cロケールと有限範囲で浮動小数点式を指定精度内に評価し、処理前の式を装飾なしの文字列として返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleParseSpinBox::veryCleanText() const"
+      ]
+    },
+    {
+      "target": "KisDoubleParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseSpinBoxContractTest.cpp",
+      "test": "KisDoubleParseSpinBoxContractTest::invalidExpressionPreservesValueAndReportsInput",
+      "behavior": "不完全な浮動小数点式は直前の値を許容誤差内で保持し、解析不正状態へ移り、入力式を伴う解析失敗通知を1回送る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleParseSpinBox::errorWhileParsing(const QString & expr) const"
+      ]
+    },
+    {
+      "target": "KisDoubleParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseSpinBoxContractTest.cpp",
+      "test": "KisDoubleParseSpinBoxContractTest::explicitOverwriteRecoversFromParsingError",
+      "behavior": "明示上書きによる値設定が不正な式を固定小数点表示へ置換し、妥当状態への遷移時だけ回復通知を送る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleParseSpinBox::noMoreParsingError() const",
+        "method:KisDoubleParseSpinBox::setValue(double value,bool overwriteExpression=false)"
+      ]
+    },
+    {
+      "target": "KisDoubleParseSpinBoxContractTest",
+      "source": "libs/widgetutils/tests/KisDoubleParseSpinBoxContractTest.cpp",
+      "test": "KisDoubleParseSpinBoxContractTest::stepByUsesTheConfiguredStepAndNormalizesText",
+      "behavior": "刻み操作が指定段数と単位刻みの積だけ有限値を移動し、式を固定小数点結果へ正規化し、0段では状態を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoubleParseSpinBox::stepBy(int steps)"
       ]
     }
   ]
