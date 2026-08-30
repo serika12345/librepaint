@@ -246,6 +246,27 @@ target_include_directories(KoDockFactoryBaseContractTest PRIVATE
 target_compile_definitions(KoDockFactoryBaseContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoDockRegistryContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakedockregistryobjects
+        kritaflakedockfactorybaseobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_sources(KoDockRegistryContractTest PRIVATE
+    ../../koplugin/KoPluginLoader.h
+)
+target_include_directories(KoDockRegistryContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/koplugin
+    ${CMAKE_BINARY_DIR}/libs/koplugin
+)
+target_compile_definitions(KoDockRegistryContractTest PRIVATE
+    kritaflake_EXPORTS
+    kritaplugin_EXPORTS
+)
+
+kis_add_test(
     KoShapeStrokeModelContractTest.cpp
     LINK_LIBRARIES
         kritaflakeshapestrokemodelobjects

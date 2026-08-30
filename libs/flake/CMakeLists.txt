@@ -169,6 +169,31 @@ set_target_properties(kritaflakedockfactorybaseobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakedockregistryobjects OBJECT
+    KoDockRegistry.cpp
+)
+target_compile_definitions(kritaflakedockregistryobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakedockregistryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/koplugin
+        ${CMAKE_BINARY_DIR}/libs/koplugin
+)
+target_link_libraries(kritaflakedockregistryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritaflakedockregistryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeshapestrokemodelobjects OBJECT
     KoShapeStrokeModel.cpp
 )
@@ -1181,7 +1206,6 @@ set(kritaflake_SRCS
     KoResourceManager_p.cpp
     KoCanvasResourceProvider.cpp
     KoDocumentResourceManager.cpp
-    KoDockRegistry.cpp
     KoPathShape.cpp
     KoPathPoint.cpp
     KoPathSegment.cpp
@@ -1345,6 +1369,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakedeferredshapefactorybaseobjects>
     $<TARGET_OBJECTS:kritaflakeshapeconfigwidgetbaseobjects>
     $<TARGET_OBJECTS:kritaflakedockfactorybaseobjects>
+    $<TARGET_OBJECTS:kritaflakedockregistryobjects>
     $<TARGET_OBJECTS:kritaflakeshapestrokemodelobjects>
     $<TARGET_OBJECTS:kritaflakeinteractionstrategyfactoryobjects>
     $<TARGET_OBJECTS:kritaflakeselectedshapesproxyobjects>
