@@ -2,12 +2,47 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 17:47 JST
+- 更新日時: 2026-08-30 17:54 JST
 - 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第55並列便の担当票
+
+- `g55-text-transform`は状態`preparing`、基準`0ff05b94c4771a9c80640b968d872b0d7be070d2`、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g55-text-transform`である。目的は字体変換のcapital、全角、仮名寸法の既定値、独立性、
+  cursorとQt propertyの双方向同期、QObject寿命を固定することである。対象は`libs/flake/text/lager/TextTransformModel.h`のclass、
+  data、constructor、fullSizeKana・fullWidth・capitalsの3 `LAGER_QT_CURSOR`の全6 APIである。変更許可は
+  `libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規`libs/flake/tests/TextTransformModelContractTest.cpp`に限る。
+  開始ファイル`libs/flake/text/lager/TextTransformModel.cpp`の直接収容を`kritaflaketexttransformmodelobjects`へ移し、製品へ
+  一度だけ再集約する。近傍は`FontVariantEastAsianModelContractTest`、対象macOS、共有cache`.cache/librepaint/ccache/native`、
+  構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件8工程・16入力、製品`kritaflake`
+  606工程・1,244入力超過、製品共有ライブラリー接続、または許可外変更である。
+- `g55-update-outline`は状態`preparing`、同じ基準、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g55-update-outline`である。目的は選択outline更新jobの所有、名称、LOD、outline・thumbnail・通知の
+  実行順、同型jobの上書き判定を固定することである。対象は`libs/image/kis_update_outline_job.h`のclass、constructor、`debugName`、
+  `levelOfDetail`、`overrides`、`run`の全6 APIである。変更許可は`libs/image/CMakeLists.txt`、
+  `libs/image/kis_update_outline_job.{h,cpp}`、新規`libs/image/KisUpdateOutlineJobSelectionAccess_p.h`と
+  `libs/image/KisUpdateOutlineJobSelectionAccess.cpp`、`libs/image/tests/CMakeLists.txt`、新規
+  `libs/image/tests/KisUpdateOutlineJobContractTest.cpp`に限る。開始ファイル`libs/image/kis_update_outline_job.cpp`の直接収容を
+  `kritaimageupdateoutlinejobobjects`へ移し、具体selection操作を同ファイルから非公開selection access 2ファイルと対応objectへ移して
+  製品へ各一度だけ再集約する。近傍は`KisSelectionComponentContractTest`と`KisNodeUuidInfoContractTest`、対象macOS、共有cache同上、
+  構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・14入力、製品`kritaimage`
+  1,173工程・2,370入力超過、別selection同型jobの現行上書き判定を維持契約に分類できない場合、または製品共有ライブラリー接続である。
+- `g55-mirror-model`は状態`preparing`、同じ基準、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g55-mirror-model`である。目的はmirror設定模型のprefix、水平・垂直の既定値と独立性、
+  cursorとQt propertyの双方向同期、QObject寿命を固定することである。対象は
+  `plugins/paintops/libpaintop/KisMirrorOptionModel.h`のclass、mirrorOptionData、constructor、水平・垂直の2 `LAGER_QT_CURSOR`の全5 APIである。
+  変更許可は`plugins/paintops/libpaintop/CMakeLists.txt`、同`tests/CMakeLists.txt`、新規
+  `plugins/paintops/libpaintop/tests/KisMirrorOptionModelContractTest.cpp`に限る。開始ファイル
+  `plugins/paintops/libpaintop/KisMirrorOptionModel.cpp`の直接収容を`kritapaintopmirroroptionmodelobjects`へ移し、製品へ一度だけ
+  再集約する。近傍は`KisCurveRangeModelInterfaceContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限
+  `transport-commit`、追加委任`forbidden`、統合順3、停止条件8工程・18入力、製品`kritalibpaintop` 2,081工程・4,160入力超過、
+  `kritapaintopruntime` 1,269工程・2,558入力増加、追加製品object、または製品共有ライブラリー接続である。
+- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、
+  進捗、担当間のCMake非重複、容量削除を所有する。完了目標は17 API純増の対応済み7,811件、未対応22,178件である。
 
 ### 現在の結果
 
@@ -37,8 +72,7 @@
 
 ### 次の操作
 
-- 第55並列便は最新不足一覧から所有領域が重ならず、各公開面を一便で完了できる対象を読み取り専用で監査する。
-  候補の限定閉包、直接依存、構造分離要否を確定して計画をコミットするまで、専用作業ツリーを作成しない。
+- 第55並列便の計画コミット後、共通基準から3作業ツリーを作成して構築実行を`granted`へ更新し、担当を開始する。
 
 ## 再開環境
 
