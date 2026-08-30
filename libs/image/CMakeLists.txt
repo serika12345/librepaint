@@ -81,6 +81,31 @@ set_target_properties(kritaimagekeyframeobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimageconfignotifierobjects OBJECT
+   KisImageConfigNotifier.cpp
+)
+target_compile_definitions(kritaimageconfignotifierobjects PRIVATE
+   kritaglobal_EXPORTS
+   kritaimage_EXPORTS
+)
+target_include_directories(kritaimageconfignotifierobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimageconfignotifierobjects
+   PUBLIC
+      kritaglobalsignalcompressorobjects
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimageconfignotifierobjects PROPERTIES
+   AUTOMOC ON
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagepaintoppresetupdateproxyobjects OBJECT
    brushengine/KisPaintOpPresetUpdateProxy.cpp
 )
@@ -1149,7 +1174,6 @@ set(kritaimage_LIB_SRCS
    kis_queues_progress_updater.cpp
    kis_sync_lod_cache_stroke_strategy.cpp
    kis_update_time_monitor.cpp
-   KisImageConfigNotifier.cpp
    kis_group_layer.cc
    kis_external_layer_iface.cc
    kis_count_visitor.cpp
@@ -1282,6 +1306,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
    $<TARGET_OBJECTS:kritaimagegradientshapestrategyobjects>
    $<TARGET_OBJECTS:kritaimagekeyframeobjects>
+   $<TARGET_OBJECTS:kritaimageconfignotifierobjects>
    $<TARGET_OBJECTS:kritaimagepaintoppresetupdateproxyobjects>
    $<TARGET_OBJECTS:kritaimageserializableconfigurationobjects>
    $<TARGET_OBJECTS:kritaimagefiltercategoryidsobjects>

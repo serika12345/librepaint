@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22382
+    "expectedMissingApis": 22372
   },
   "contracts": [
     {
@@ -23587,6 +23587,73 @@
       "apis": [
         "class:KoConvolutionOp",
         "method:KoConvolutionOp::~KoConvolutionOp()"
+      ]
+    },
+    {
+      "target": "KisImageConfigNotifierContractTest",
+      "source": "libs/image/tests/KisImageConfigNotifierContractTest.cpp",
+      "test": "KisImageConfigNotifierContractTest::singletonReturnsTheSameNotifier",
+      "behavior": "画像設定通知器のsingleton取得は有効な同一実体を反復して返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisImageConfigNotifier",
+        "method:KisImageConfigNotifier::instance()"
+      ]
+    },
+    {
+      "target": "KisImageConfigNotifierContractTest",
+      "source": "libs/image/tests/KisImageConfigNotifierContractTest.cpp",
+      "test": "KisImageConfigNotifierContractTest::generalNotificationEmitsAndCompressesConfigAndAutoKeySignals",
+      "behavior": "一般画像設定通知は設定変更信号と自動キーフレーム設定変更信号を初回に同期配送し、短時間の反復通知を両信号の後続一回へ圧縮する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfigNotifier::KisImageConfigNotifier()",
+        "method:KisImageConfigNotifier::autoKeyFrameConfigurationChanged()",
+        "method:KisImageConfigNotifier::configChanged(void)",
+        "method:KisImageConfigNotifier::notifyConfigChanged(void)"
+      ]
+    },
+    {
+      "target": "KisImageConfigNotifierContractTest",
+      "source": "libs/image/tests/KisImageConfigNotifierContractTest.cpp",
+      "test": "KisImageConfigNotifierContractTest::autoKeyNotificationIsDedicatedAndCompressed",
+      "behavior": "自動キーフレーム専用通知は同名信号だけを初回に同期配送し、短時間の反復通知を後続一回へ圧縮する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfigNotifier::autoKeyFrameConfigurationChanged()",
+        "method:KisImageConfigNotifier::notifyAutoKeyFrameConfigurationChanged()"
+      ]
+    },
+    {
+      "target": "KisImageConfigNotifierContractTest",
+      "source": "libs/image/tests/KisImageConfigNotifierContractTest.cpp",
+      "test": "KisImageConfigNotifierContractTest::globalProofingNotificationIsSynchronousAndUncompressed",
+      "behavior": "全体校正設定通知は同名信号を同期的に毎回一回配送し、他の画像設定信号を配送しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfigNotifier::globalProofingConfigChanged()",
+        "method:KisImageConfigNotifier::notifyGlobalProofingConfigChanged()"
+      ]
+    },
+    {
+      "target": "KisImageConfigNotifierContractTest",
+      "source": "libs/image/tests/KisImageConfigNotifierContractTest.cpp",
+      "test": "KisImageConfigNotifierContractTest::generalNotificationDoesNotEmitGlobalProofingSignal",
+      "behavior": "一般画像設定通知は公開ヘッダーの信号説明と異なり、全体校正設定変更信号を配送しない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KisImageConfigNotifier::globalProofingConfigChanged()",
+        "method:KisImageConfigNotifier::notifyConfigChanged(void)"
+      ]
+    },
+    {
+      "target": "KisImageConfigNotifierContractTest",
+      "source": "libs/image/tests/KisImageConfigNotifierContractTest.cpp",
+      "test": "KisImageConfigNotifierContractTest::qObjectOwnershipDestroysDerivedNotifier",
+      "behavior": "画像設定通知器をQObject基底で所有して破棄すると派生個体のデストラクターを正確に一回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisImageConfigNotifier::~KisImageConfigNotifier()"
       ]
     }
   ]
