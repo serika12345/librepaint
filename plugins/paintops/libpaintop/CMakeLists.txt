@@ -8,7 +8,6 @@ set(kritalibpaintop_LIB_SRCS
     kis_brush_option.cpp
     kis_brush_selection_widget.cpp
     KisColorOptionData.cpp
-    KisColorOptionModel.cpp
     KisColorOptionWidget.cpp
     kis_color_source.cpp
     kis_color_source_option.cpp
@@ -294,6 +293,36 @@ set_target_properties(kritapaintopcurverangemodelinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopcoloroptionmodelobjects OBJECT
+    KisColorOptionModel.cpp
+)
+target_compile_definitions(kritapaintopcoloroptionmodelobjects PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritawidgets_EXPORTS
+)
+target_include_directories(kritapaintopcoloroptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/image
+        ${CMAKE_BINARY_DIR}/libs/image
+        ${CMAKE_SOURCE_DIR}/libs/widgets
+        ${CMAKE_BINARY_DIR}/libs/widgets
+)
+target_link_libraries(kritapaintopcoloroptionmodelobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        lager
+)
+set_target_properties(kritapaintopcoloroptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopmirroroptionmodelobjects OBJECT
     KisMirrorOptionModel.cpp
 )
@@ -418,6 +447,7 @@ target_link_libraries(kritapaintopruntime
 kis_add_library(kritalibpaintop SHARED
     ${kritalibpaintop_LIB_SRCS}
     $<TARGET_OBJECTS:kritapaintopruntime>
+    $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>

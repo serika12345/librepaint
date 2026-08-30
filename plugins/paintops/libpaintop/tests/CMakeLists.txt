@@ -141,6 +141,18 @@ target_compile_definitions(KisCurveRangeModelInterfaceContractTest PRIVATE
 )
 
 kis_add_test(
+    KisColorOptionModelContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcoloroptionmodelobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisColorOptionModelContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritawidgets_EXPORTS
+)
+
+kis_add_test(
     KisMirrorOptionModelContractTest.cpp
     LINK_LIBRARIES
         kritapaintopmirroroptionmodelobjects
