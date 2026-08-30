@@ -59,6 +59,36 @@ set_target_properties(kritaflakeshapebackgroundobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapebackgroundcommandobjects OBJECT
+    commands/KoShapeBackgroundCommand.cpp
+)
+target_compile_definitions(kritaflakeshapebackgroundcommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakeshapebackgroundcommandobjects PRIVATE KRITAFLAKE_SHAPE_BACKGROUND_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakeshapebackgroundcommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakeshapebackgroundcommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapebackgroundcommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeabstractcanvasresourceinterfaceobjects OBJECT
     KoAbstractCanvasResourceInterface.cpp
 )
@@ -707,7 +737,6 @@ set(kritaflake_SRCS
     KoClipMask.cpp
     commands/KoShapeGroupCommand.cpp
     commands/KoShapeAlignCommand.cpp
-    commands/KoShapeBackgroundCommand.cpp
     commands/KoShapeCreateCommand.cpp
     commands/KoShapeDeleteCommand.cpp
     commands/KoShapeDistributeCommand.cpp
@@ -829,6 +858,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakeshapeanchorobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
+    $<TARGET_OBJECTS:kritaflakeshapebackgroundcommandobjects>
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
     $<TARGET_OBJECTS:kritaflakederivedresourceconverterobjects>
