@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 10:59 JST
+- 更新日時: 2026-08-30 11:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -14,21 +14,24 @@
 - 第40並列便の共通基準コミットは`29a8e99be7`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g40-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。担当確定後に必要な3作業ツリー
   だけを作成し、輸送コミットの取り込みとclean確認直後に削除する。
-- 統合担当`smoothing-options-remainder`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`smoothing-options-remainder`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/tools/kis_smoothing_options.cpp`、Tools製品・試験CMake、新規`KisSmoothingOptionsRemainderContractTest.cpp`を所有する。開始ファイルを
   製品`kritatools`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存
   `kritaglobalsignalcompressorobjects`を再利用し、製品の1,204工程・2,424入力と既存試験の1,208工程・2,431入力に代えて11工程・23入力以内で、
   共有ポインター別名、仮想寿命、未固定3列挙値、変更通知の残り全6 APIを固定する。
-- 実装担当`shape-background-command`は`planned`、追加委任は`forbidden`、統合順は2である。専用作業ツリーで
+- 実装担当`shape-background-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+  統合順は2である。作業ツリー`/Users/masato/Documents/librepaint-r2-g40-shape-background-command`で
   `libs/flake/commands/KoShapeBackgroundCommand.cpp`、Flake製品・試験CMake、新規`KoShapeBackgroundCommandContractTest.cpp`を所有する。
   開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の580工程・
   1,192入力と既存試験の584工程・1,199入力に代えて6工程・14入力以内で、3構築入口、背景共有所有、redo・undo、識別子、統合、借用寿命の
   全9 APIを固定する。
-- 実装担当`bspline-1d`は`planned`、追加委任は`forbidden`、統合順は3である。専用作業ツリーで
+- 実装担当`bspline-1d`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g40-bspline-1d`で
   `libs/image/bsplines/kis_bspline_1d.cpp`、Image製品・試験CMake、新規`KisBSpline1DContractTest.cpp`を所有する。開始ファイルと既存
   `libs/image/3rdparty/einspline/bspline_create.cpp`の構築所有を各専用生成物へ移し、製品`kritaimage`へ各1回だけ再集約する。既存試験の
   1,140工程・2,303入力に代えて7工程・15入力以内で、区間保持、初期化、固定関数の補間、終端一致、初期化前の安全な寿命の全7 APIを固定する。
-- 実装担当`int-parse-spin-box`は`planned`、追加委任は`forbidden`、統合順は4である。専用作業ツリーで
+- 実装担当`int-parse-spin-box`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
+  作業ツリー`/Users/masato/Documents/librepaint-r2-g40-int-parse-spin-box`で
   `libs/widgetutils/kis_int_parse_spin_box.cpp`、WidgetUtils製品・試験CMake、新規`KisIntParseSpinBoxContractTest.cpp`を所有する。開始
   ファイルを製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。既存の数式解析・描画調整
   生成物を再利用し、製品の260工程・553入力と既存試験の1,140工程・2,303入力に代えて10工程・22入力以内で、親と仮想寿命、整数式解析、
