@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 01:00 JST
+- 更新日時: 2026-08-31 01:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,29 +11,30 @@
 
 ### 第68並列便の担当票
 
-- `g68-svg-mesh-gradient`は状態`preparing`、基準はこの計画コミット、作業ツリー`/Users/masato/Documents/librepaint-r2-g68-svg-mesh-gradient`である。目的は
+- `g68-svg-mesh-gradient`は状態`implementing`、基準`ce65d04b9647c807a30528e5f652fdc2989557f5`、作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g68-svg-mesh-gradient`である。目的は
   SVG mesh gradientの列挙値、既定状態、種別と座標系、mesh有効性、境界と変換、複製独立性を固定することである。対象は
   `libs/flake/svg/SvgMeshGradient.h`のclass、enumと2 enumerator、2 constructor、7 methodの14 API全件である。開始ファイル
   `libs/flake/svg/SvgMeshGradient.cpp`を`kritaflake_SRCS`の直接収容から`kritaflakesvgmeshgradientobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
   新規`libs/flake/tests/SvgMeshGradientContractTest.cpp`は同object、既存mesh array・patch object、Qt Testだけを使う。変更許可はこの新規試験、
   `libs/flake/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。近傍は`SvgMeshArrayContractTest`、対象macOS、共有cache`.cache/librepaint/ccache/native`、
-  構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件9工程・20入力、製品`kritaflake` 612工程・1,256入力からの増加、
+  構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件9工程・20入力、製品`kritaflake` 612工程・1,256入力からの増加、
   製品共有ライブラリーへの接続、空mesh境界の新仕様判断、source二重収容、公開header/source変更、または許可外変更である。
-- `g68-memory-window`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g68-memory-window`である。目的はswap memory windowの
+- `g68-memory-window`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g68-memory-window`である。目的はswap memory windowの
   一時file寿命、窓再配置後のbyte保持、参照値とiterator値のread/write overloadを固定することである。対象は
   `libs/image/tiles3/swap/kis_memory_window.h`のclass、constructor、destructor、4 read/write methodの7 API全件である。開始ファイル
   `libs/image/tiles3/swap/kis_memory_window.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimagememorywindowobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。
   新規`libs/image/tiles3/tests/KisMemoryWindowContractTest.cpp`は同object、header内chunk値、Qt Testと実`QTemporaryDir`だけを使う。変更許可はこの新規試験、
   `libs/image/CMakeLists.txt`、`libs/image/tiles3/tests/CMakeLists.txt`に限る。近傍は`KisTiledExtentManagerContractTest`、対象macOS、共有cache同上、
-  構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、製品`kritaimage` 1,184工程・2,392入力からの増加、
+  構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、製品`kritaimage` 1,184工程・2,392入力からの増加、
   製品共有ライブラリー・chunk allocatorへの接続、正常な一時dirでのmapping失敗、失敗系の新仕様判断、source二重収容、公開header/source変更、または許可外変更である。
-- `g68-undo-store-interface`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g68-undo-store-interface`である。目的はundo store基底接続面の
+- `g68-undo-store-interface`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g68-undo-store-interface`である。目的はundo store基底接続面の
   命令とmacro配送、undo・終了・redo破棄順、現在命令、履歴通知、基底所有からの寿命を固定することである。対象は
   `libs/painting/undo/kis_undo_store.h`のclass、constructor、destructor、7 method・signalの10 API全件である。開始ファイル
   `libs/painting/undo/kis_undo_store.cpp`を既存`kritapaintingundostoreobjects`から`kritapaintingundostoreinterfaceobjects`へ移し、残る具体store objectから
   PUBLIC依存させ、両objectを製品`kritapaintingundo`へ一度ずつ再集約する。新規`libs/painting/undo/tests/KisUndoStoreInterfaceContractTest.cpp`は同object、
   Qt Test、試験内Probeと不完全型tokenだけを使う。変更許可はこの新規試験、`libs/painting/undo/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。
-  近傍は`KisUndoStoresContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
+  近傍は`KisUndoStoresContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
   停止条件9工程・20入力、製品`kritapaintingundo` 284工程・599入力からの増加、既存undo試験のlink破壊、実stack・command、Qt Gui/Widgets、KF・Boost、
   製品共有ライブラリーへの接続、source二重収容、公開header/source変更、または許可外変更である。
 - 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
@@ -67,8 +68,8 @@
 
 ### 次の操作
 
-- 第68並列便の共通計画コミットから3専用作業ツリーを作成し、基準・許可パス・構築実行許可を実体と照合する。
-  各担当は`granted`更新後だけ初期診断から限定実装へ進み、統合担当は完了または停止した作業ツリーと局所構築木を即時削除する。
+- 3担当は許可範囲内で初期診断、限定契約、最小object分離、対象・個別枠・20回反復・軽量近傍・無作業・動的依存・高速検査を完了して担当コミットを返す。
+  統合担当は主増分構築木で順次再検証し、各統合または停止直後に担当作業ツリー、局所構築木、担当ブランチを即時削除する。
 
 ## 再開環境
 
