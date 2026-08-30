@@ -6,7 +6,7 @@
 #ifndef TESTXSIMDPAINTING_H
 #define TESTXSIMDPAINTING_H
 
-#include <simpletest.h>
+#include <QObject>
 
 /**
  * @brief The TestXsimdPainting class
@@ -20,6 +20,9 @@ class TestXsimdPainting : public QObject
 private Q_SLOTS:
     void testKoClipMaskPainting_data();
     void testKoClipMaskPainting();
+    void paintersAreDistinctAndInheritGlobalPainterState();
+    void rendersAtAlignedGlobalClipRect();
+    void scopedLifetimePreservesBorrowedPainterAndState();
 };
 
 #endif // TESTXSIMDPAINTING_H

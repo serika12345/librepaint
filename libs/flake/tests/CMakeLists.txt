@@ -22,12 +22,23 @@ kis_add_tests(
     TestKoDrag.cpp
     TestKoMarkerCollection.cpp
     TestSvgSavingContext.cpp
-    TestXsimdPainting.cpp
     TestSvgTextShape.cpp
     TestDependentShapes.cpp
 
     LINK_LIBRARIES kritaflake kritatestsdk kritaxmlserialization
     )
+
+kis_add_test(
+    TestXsimdPainting.cpp
+    LINK_LIBRARIES
+        kritaflakeclipmaskpainterobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(TestXsimdPainting PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(TestXsimdPainting PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     TestFontLibraryResourceUtils.cpp

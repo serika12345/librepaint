@@ -1098,6 +1098,44 @@ else()
     set(__per_arch_alpha_applicator_factory_objs xsimd/KoClipMaskApplicatorFactoryImpl.cpp)
 endif()
 
+add_library(kritaflakeclipmaskpainterobjects OBJECT
+    KoClipMaskApplicatorBase.cpp
+    ${__per_arch_alpha_applicator_factory_objs}
+    KoClipMaskPainter.cpp
+)
+target_compile_definitions(kritaflakeclipmaskpainterobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeclipmaskpainterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/xsimd>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/multiarch>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/multiarch>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+)
+target_link_libraries(kritaflakeclipmaskpainterobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        xsimd
+)
+if(TARGET Imath::ImathConfig)
+    target_link_libraries(kritaflakeclipmaskpainterobjects PRIVATE Imath::ImathConfig)
+elseif(OpenEXR_FOUND)
+    target_include_directories(kritaflakeclipmaskpainterobjects SYSTEM PRIVATE
+        $<TARGET_PROPERTY:${LINK_OPENEXR_LIB},INTERFACE_INCLUDE_DIRECTORIES>
+    )
+endif()
+set_target_properties(kritaflakeclipmaskpainterobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritaflake_SRCS
     KoFlake.cpp
     KoCanvasBase.cpp
@@ -1150,9 +1188,6 @@ set(kritaflake_SRCS
     KoSnapGuide.cpp
     KoSnapProxy.cpp
     KoSnapStrategy.cpp
-    KoClipMaskApplicatorBase.cpp
-    ${__per_arch_alpha_applicator_factory_objs}
-    KoClipMaskPainter.cpp
     KoClipPath.cpp
     KoClipMask.cpp
     commands/KoShapeGroupCommand.cpp
@@ -1313,6 +1348,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapetransparencycommandobjects>
     $<TARGET_OBJECTS:kritaflakesubpathremovecommandobjects>
     $<TARGET_OBJECTS:kritaflakekeepshapesselectedcommandobjects>
+    $<TARGET_OBJECTS:kritaflakeclipmaskpainterobjects>
 
 )
 
