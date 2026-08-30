@@ -402,6 +402,24 @@ target_include_directories(LineHeightModelContractTest PRIVATE
 target_compile_definitions(LineHeightModelContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    TextIndentModelContractTest.cpp
+    LINK_LIBRARIES
+        kritaflaketextindentmodelobjects
+        kritaflakecsslengthpercentagemodelobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+target_include_directories(TextIndentModelContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(TextIndentModelContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     CssFontStyleModelContractTest.cpp
     LINK_LIBRARIES
         kritaflakecssfontstylemodelobjects

@@ -563,6 +563,34 @@ set_target_properties(kritaflakelineheightmodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflaketextindentmodelobjects OBJECT
+    text/lager/TextIndentModel.cpp
+)
+target_compile_definitions(kritaflaketextindentmodelobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflaketextindentmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text/lager>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritaflaketextindentmodelobjects
+    PUBLIC
+        kritaflakecsslengthpercentagemodelobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+set_target_properties(kritaflaketextindentmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakefontvariantnumericmodelobjects OBJECT
     text/lager/FontVariantNumericModel.cpp
 )
@@ -1153,7 +1181,6 @@ set(kritaflake_SRCS
     text/KoSvgTextPropertyData.cpp
     text/KoSvgTextPropertiesInterface.h
     text/lager/KoSvgTextPropertiesModel.cpp
-    text/lager/TextIndentModel.cpp
     text/KoFFWWSConverter.cpp
     text/KoFontChangeTracker.cpp
     text/KoFontGlyphModel.cpp
@@ -1198,6 +1225,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeunicodeblockdataobjects>
     $<TARGET_OBJECTS:kritaflakecsslengthpercentagemodelobjects>
     $<TARGET_OBJECTS:kritaflakelineheightmodelobjects>
+    $<TARGET_OBJECTS:kritaflaketextindentmodelobjects>
     $<TARGET_OBJECTS:kritaflaketexttransformmodelobjects>
     $<TARGET_OBJECTS:kritaflaketabsizemodelobjects>
     $<TARGET_OBJECTS:kritaflakefontvariantnumericmodelobjects>
