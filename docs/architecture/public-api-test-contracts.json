@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22485
+    "expectedMissingApis": 22480
   },
   "contracts": [
     {
@@ -22994,6 +22994,48 @@
       "classification": "maintained",
       "apis": [
         "method:KoOptimizedPixelDataScalerU8ToU16Base::~KoOptimizedPixelDataScalerU8ToU16Base()"
+      ]
+    },
+    {
+      "target": "KoDockWidgetTitleBarContractTest",
+      "source": "libs/widgets/tests/KoDockWidgetTitleBarContractTest.cpp",
+      "test": "KoDockWidgetTitleBarContractTest::constructsControlsAndFollowsWidgetLifetime",
+      "behavior": "dock見出しは指定dockに所有され、見出し文字列、lock・float・closeの3操作を構築し、親またはQWidget基底経由の破棄で仮想寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDockWidgetTitleBar",
+        "method:KoDockWidgetTitleBar::KoDockWidgetTitleBar(QDockWidget * dockWidget)",
+        "method:KoDockWidgetTitleBar::~KoDockWidgetTitleBar()"
+      ]
+    },
+    {
+      "target": "KoDockWidgetTitleBarContractTest",
+      "source": "libs/widgets/tests/KoDockWidgetTitleBarContractTest.cpp",
+      "test": "KoDockWidgetTitleBarContractTest::lockRoundTripPreservesDockFeaturesAndActions",
+      "behavior": "lock有効化はdock機能を保存して無効化し、表示操作とfloat・close操作を停止する。lock解除は保存した機能と操作可能状態を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDockWidgetTitleBar::setLocked(bool locked)"
+      ]
+    },
+    {
+      "target": "KoDockWidgetTitleBarContractTest",
+      "source": "libs/widgets/tests/KoDockWidgetTitleBarContractTest.cpp",
+      "test": "KoDockWidgetTitleBarContractTest::updateIconsRequestsAssetsForTheCurrentLockState",
+      "behavior": "icon更新はlock状態に応じたlock用資産と、float・close用資産を現在の主題から決定的な順序で再取得する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDockWidgetTitleBar::updateIcons()"
+      ]
+    },
+    {
+      "target": "KoDockWidgetTitleBarContractTest",
+      "source": "libs/widgets/tests/KoDockWidgetTitleBarContractTest.cpp",
+      "test": "KoDockWidgetTitleBarContractTest::repeatedLockDropsThePreviouslySavedFeatures",
+      "behavior": "lockを2回連続して有効化すると2回目が保存済みdock機能を空で上書きし、その後の解除で機能を復元できない。",
+      "classification": "known_defect",
+      "apis": [
+        "method:KoDockWidgetTitleBar::setLocked(bool locked)"
       ]
     }
   ]

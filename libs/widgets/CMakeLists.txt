@@ -128,6 +128,29 @@ set_target_properties(kritawidgetsdocktitlebarbuttonobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetsdocktitlebarobjects OBJECT
+    KoDockWidgetTitleBar.cpp
+)
+target_compile_definitions(kritawidgetsdocktitlebarobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsdocktitlebarobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/widgetutils
+        ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_link_libraries(kritawidgetsdocktitlebarobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::WidgetsAddons
+)
+set_target_properties(kritawidgetsdocktitlebarobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetsvboxobjects OBJECT
     KoVBox.cpp
 )
@@ -289,8 +312,6 @@ set(kritawidgets_LIB_SRCS
     KoResourcePopupAction.cpp
     KoRuler.cpp
     KoResourceServerProvider.cpp
-    KoDockWidgetTitleBar.cpp
-    
     KoToolDocker.cpp
     
     KoMarkerSelector.cpp
@@ -374,6 +395,7 @@ kis_add_library(kritawidgets SHARED
     $<TARGET_OBJECTS:kritawidgetscolorpopupbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetsstackedwidgetobjects>
     $<TARGET_OBJECTS:kritawidgetsdocktitlebarbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetsdocktitlebarobjects>
     $<TARGET_OBJECTS:kritawidgetsvboxobjects>
     $<TARGET_OBJECTS:kritawidgetsdebugobjects>
     $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>

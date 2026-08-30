@@ -109,6 +109,22 @@ kis_add_test(
 target_compile_definitions(KoDockWidgetTitleBarButtonContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KoDockWidgetTitleBarContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetsdocktitlebarobjects
+        kritawidgetsdocktitlebarbuttonobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::WidgetsAddons
+)
+target_include_directories(KoDockWidgetTitleBarContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_compile_definitions(KoDockWidgetTitleBarContractTest PRIVATE kritawidgets_EXPORTS)
+
+kis_add_test(
     KoVBoxContractTest.cpp
     LINK_LIBRARIES
         kritawidgetsvboxobjects
