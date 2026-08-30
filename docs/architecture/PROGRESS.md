@@ -11,7 +11,7 @@
 
 ### 第61並列便の担当票
 
-- `g61-spinbox-converter`は状態`implementing`、基準`8d5d5bbbf5a7e0d19756f81ac29b9869388b5573`、作業ツリー
+- `g61-spinbox-converter`は状態`implementing`、基準`8d5d5bbbf5a0cecbc99ce2c493ba29726eac9378`、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g61-spinbox-converter`である。目的は値域変換の正順・逆順、端点、オフセット、半値丸め、往復を固定しながら、
   既存試験の広域依存を除くことである。対象は`libs/ui/utils/KisSpinBoxSplineUnitConverter.h`のclass、`io2sp`、`sp2io`の3 API全件である。
   開始ファイル`libs/ui/utils/KisSpinBoxSplineUnitConverter.cpp`を`kritaui_LIB_SRCS`の直接収容から
