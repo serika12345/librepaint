@@ -5,9 +5,11 @@
  */
 
 #include "KisNodeRenameCommand.h"
+#include "KisNodeRenameCommandNodeAccess_p.h"
 
+#include <kis_assert.h>
 #include <klocalizedstring.h>
-#include "kis_node.h"
+
 #include "kis_command_ids.h"
 
 KisNodeRenameCommand::KisNodeRenameCommand(KisNodeSP node, const QString &oldName, const QString &newName)
@@ -19,12 +21,12 @@ KisNodeRenameCommand::KisNodeRenameCommand(KisNodeSP node, const QString &oldNam
 
 void KisNodeRenameCommand::redo()
 {
-    m_node->setName(m_newName);
+    KisNodeRenameCommandNodeAccess::setName(m_node.data(), m_newName);
 }
 
 void KisNodeRenameCommand::undo()
 {
-    m_node->setName(m_oldName);
+    KisNodeRenameCommandNodeAccess::setName(m_node.data(), m_oldName);
 }
 
 int KisNodeRenameCommand::id() const
@@ -34,8 +36,7 @@ int KisNodeRenameCommand::id() const
 
 bool KisNodeRenameCommand::mergeWith(const KUndo2Command *command)
 {
-    const KisNodeRenameCommand *other =
-        dynamic_cast<const KisNodeRenameCommand*>(command);
+    const KisNodeRenameCommand *other = dynamic_cast<const KisNodeRenameCommand *>(command);
 
     if (other && other->m_node == m_node) {
         KIS_SAFE_ASSERT_RECOVER_NOOP(m_newName == other->m_oldName);
@@ -48,8 +49,7 @@ bool KisNodeRenameCommand::mergeWith(const KUndo2Command *command)
 
 bool KisNodeRenameCommand::canMergeWith(const KUndo2Command *command) const
 {
-    const KisNodeRenameCommand *other =
-        dynamic_cast<const KisNodeRenameCommand*>(command);
+    const KisNodeRenameCommand *other = dynamic_cast<const KisNodeRenameCommand *>(command);
 
     return other && other->m_node == m_node;
 }

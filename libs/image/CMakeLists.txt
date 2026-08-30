@@ -622,6 +622,59 @@ set_target_properties(kritaimagenodecommandobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagenoderenamecommandobjects OBJECT
+   commands/KisNodeRenameCommand.cpp
+   commands_new/KisAsynchronouslyMergeableCommandInterface.cpp
+)
+target_compile_definitions(kritaimagenoderenamecommandobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagenoderenamecommandobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagenoderenamecommandobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Widgets
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagenoderenamecommandobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimagenoderenamecommandnodeaccessobjects OBJECT
+   commands/KisNodeRenameCommandNodeAccess.cpp
+)
+target_compile_definitions(kritaimagenoderenamecommandnodeaccessobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagenoderenamecommandnodeaccessobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritaimagenoderenamecommandnodeaccessobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagenoderenamecommandnodeaccessobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageconvexhullpointsobjects OBJECT
    kis_convex_hull_points.cpp
 )
@@ -791,7 +844,6 @@ set(kritaimage_LIB_SRCS
    commands/kis_reselect_global_selection_command.cpp
    commands/KisReselectActiveSelectionCommand.cpp
    commands/kis_set_global_selection_command.cpp
-   commands/KisNodeRenameCommand.cpp
    commands/KisChangeDeselectedMaskCommand.cpp
    commands/KisNotifySelectionChangedCommand.cpp
    commands/KisBatchUpdateLayerModificationCommand.cpp
@@ -812,7 +864,6 @@ set(kritaimage_LIB_SRCS
    commands_new/KisChangeChannelFlagsCommand.cpp
    commands_new/KisChangeChannelLockFlagsCommand.cpp
    commands_new/KisMergeLabeledLayersCommand.cpp
-   commands_new/KisAsynchronouslyMergeableCommandInterface.cpp
    commands_new/KisSimpleModifyTransformMaskCommand.cpp
    commands_new/KisUpdateCommandEx.cpp
    commands_new/KisDisableDirtyRequestsCommand.cpp
@@ -1061,6 +1112,8 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageframegenerationlockobjects>
    $<TARGET_OBJECTS:kritaimagecompositeprogressproxyobjects>
    $<TARGET_OBJECTS:kritaimagenodecommandobjects>
+   $<TARGET_OBJECTS:kritaimagenoderenamecommandobjects>
+   $<TARGET_OBJECTS:kritaimagenoderenamecommandnodeaccessobjects>
    $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldeviceobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldevicereaderobjects>
