@@ -1497,6 +1497,31 @@ set_target_properties(kritauielidedlabelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiwarningwidgetobjects OBJECT
+    widgets/KisWarningWidget.cpp
+)
+target_compile_definitions(kritauiwarningwidgetobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiwarningwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritauiwarningwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritauiwarningwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
@@ -1516,6 +1541,7 @@ set(kritaui_LIB_SRCS
     $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
     $<TARGET_OBJECTS:kritauisizegroupobjects>
     $<TARGET_OBJECTS:kritauielidedlabelobjects>
+    $<TARGET_OBJECTS:kritauiwarningwidgetobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelobjects>
     $<TARGET_OBJECTS:kritauiselectionactionspanelsourceobjects>
     $<TARGET_OBJECTS:kritauimultinodepropertyobjects>
@@ -1776,7 +1802,6 @@ set(kritaui_LIB_SRCS
     widgets/KisLayerStyleAngleSelector.cpp
     widgets/KisMemoryReportButton.cpp
     widgets/KisDitherWidget.cpp
-    widgets/KisWarningWidget.cpp
     widgets/KisAutoLevelsWidget.cpp
     widgets/KisHistogramPainter.cpp
     widgets/KisHistogramView.cpp

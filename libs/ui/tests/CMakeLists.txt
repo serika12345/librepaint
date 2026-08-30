@@ -150,6 +150,22 @@ target_compile_definitions(KisElidedLabelContractTest PRIVATE
 )
 
 kis_add_test(
+    KisWarningWidgetContractTest.cpp
+    LINK_LIBRARIES
+        kritauiwarningwidgetobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+target_include_directories(KisWarningWidgetContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils
+    ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_compile_definitions(KisWarningWidgetContractTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
+
+kis_add_test(
     KisSelectionActionsPanelContractTest.cpp
     LINK_LIBRARIES
         kritauiselectionactionspanelobjects

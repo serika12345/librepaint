@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22600
+    "expectedMissingApis": 22596
   },
   "contracts": [
     {
@@ -22457,6 +22457,37 @@
       "classification": "maintained",
       "apis": [
         "method:KisDoubleParseSpinBox::stepBy(int steps)"
+      ]
+    },
+    {
+      "target": "KisWarningWidgetContractTest",
+      "source": "libs/ui/tests/KisWarningWidgetContractTest.cpp",
+      "test": "KisWarningWidgetContractTest::constructionCreatesTheWarningPresentation",
+      "behavior": "警告表示部品が指定親に所有され、警告アイコンと折返し・外部リンク対応の本文ラベルを横並びで構成する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisWarningWidget",
+        "method:KisWarningWidget::KisWarningWidget(QWidget * parent)"
+      ]
+    },
+    {
+      "target": "KisWarningWidgetContractTest",
+      "source": "libs/ui/tests/KisWarningWidgetContractTest.cpp",
+      "test": "KisWarningWidgetContractTest::setTextUpdatesTheWrappedExternalLinkLabel",
+      "behavior": "本文設定がHTMLを含む指定文字列を折返し・外部リンク対応ラベルへそのまま反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWarningWidget::setText(const QString & text)"
+      ]
+    },
+    {
+      "target": "KisWarningWidgetContractTest",
+      "source": "libs/ui/tests/KisWarningWidgetContractTest.cpp",
+      "test": "KisWarningWidgetContractTest::profileChangeWarningDescribesEveryRiskCondition",
+      "behavior": "色プロファイル変更用の既定警告が複数レイヤー、透明画素、通常以外の合成方式による外観変化をHTML本文として説明する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisWarningWidget::changeImageProfileWarningText()"
       ]
     }
   ]
