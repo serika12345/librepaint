@@ -218,6 +218,20 @@ kis_add_test(
 target_compile_definitions(WidgetsDebugContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    TestKoZoomAction.cpp
+    LINK_LIBRARIES
+        kritawidgetszoomactionstateobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+)
+target_compile_definitions(TestKoZoomAction PRIVATE
+    kritaflake_EXPORTS
+    kritawidgets_EXPORTS
+)
+
+kis_add_test(
     KoZoomHandlerContractTest.cpp
     LINK_LIBRARIES
         kritawidgetszoomhandlerobjects
@@ -233,7 +247,6 @@ target_compile_definitions(KoZoomHandlerContractTest PRIVATE
 
 kis_add_tests(
     zoomhandler_test.cpp
-    TestKoZoomAction.cpp
     TestKisTagSelectionWidget.cpp
     TestKisPaletteModel.cpp
     LINK_LIBRARIES kritawidgets kritatestsdk

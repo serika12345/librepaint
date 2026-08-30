@@ -305,6 +305,29 @@ set_target_properties(kritawidgetszoomhandlerobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetszoomactionstateobjects OBJECT
+    KoZoomActionState.cpp
+)
+target_compile_definitions(kritawidgetszoomactionstateobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetszoomactionstateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+)
+target_link_libraries(kritawidgetszoomactionstateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritawidgetszoomactionstateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetslevelssliderobjects OBJECT
     KisLevelsSlider.cpp
 )
@@ -327,7 +350,6 @@ set(kritawidgets_LIB_SRCS
     KoConfigAuthorPage.cpp
     KoUnitDoubleSpinBox.cpp
     KoZoomAction.cpp
-    KoZoomActionState.cpp
     KoZoomInput.cpp
     KoColorPatch.cpp
     KoColorPopupAction.cpp
@@ -432,6 +454,7 @@ kis_add_library(kritawidgets SHARED
     $<TARGET_OBJECTS:kritawidgetscolorlabelbuttonobjects>
     $<TARGET_OBJECTS:kritawidgetscolorlabelselectorobjects>
     $<TARGET_OBJECTS:kritawidgetszoomhandlerobjects>
+    $<TARGET_OBJECTS:kritawidgetszoomactionstateobjects>
 )
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
 target_link_libraries(kritawidgets

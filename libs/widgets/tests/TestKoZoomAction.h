@@ -7,17 +7,18 @@
 #ifndef __TEST_KO_ZOOM_ACTION_H
 #define __TEST_KO_ZOOM_ACTION_H
 
-#include <simpletest.h>
-
-#include <KoZoomAction.h>
+#include <QObject>
 
 class TestKoZoomAction : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void testZoomActionState_data();
-    void testZoomActionState();
-    void testInitWithDefault();
+    void initTestCase();
+    void cleanupTestCase();
+    void testTypeAndConstruction();
+    void testStateTransitions();
+    void testNearestStandardLevels();
+    void testDebugOutput();
 };
 
 #endif /* __TEST_KO_ZOOM_ACTION_H */
