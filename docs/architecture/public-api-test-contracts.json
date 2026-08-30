@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22333
+    "expectedMissingApis": 22329
   },
   "contracts": [
     {
@@ -23917,6 +23917,19 @@
       "apis": [
         "member:KisAirbrushOptionData::airbrushRate",
         "method:KisAirbrushOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisMoveCommandCommonContractTest",
+      "source": "libs/image/tests/KisMoveCommandCommonContractTest.cpp",
+      "test": "KisMoveCommandCommonContractTest::redoAndUndoDispatchCoordinatesInOrderAndRetainOwnedObject",
+      "behavior": "共通移動命令は対象を共有所有して親命令の子となり、redoでは新座標、undoでは旧座標を同じ対象へX、Yの順で各呼出しごとに配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMoveCommandCommon",
+        "method:KisMoveCommandCommon::KisMoveCommandCommon(ObjectSP object,const QPoint & oldPos,const QPoint & newPos,KUndo2Command * parent=0)",
+        "method:KisMoveCommandCommon::redo()",
+        "method:KisMoveCommandCommon::undo()"
       ]
     }
   ]
