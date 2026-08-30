@@ -228,6 +228,31 @@ target_compile_definitions(KisMoveCommandCommonContractTest PRIVATE
 )
 
 kis_add_test(
+    KisTransactionBasedCommandContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagetransactionbasedcommandobjects
+        kritapaintingundokundo2coreobjects
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisTransactionBasedCommandContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../commands_new
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(KisTransactionBasedCommandContractTest PRIVATE
+    kritaimage_EXPORTS
+    kritapaintingundo_EXPORTS
+)
+
+kis_add_test(
     kis_fast_math_test.cpp
     LINK_LIBRARIES kritaimagefastmathobjects Qt${QT_MAJOR_VERSION}::Test
 )

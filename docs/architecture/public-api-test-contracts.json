@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22301
+    "expectedMissingApis": 22296
   },
   "contracts": [
     {
@@ -24135,6 +24135,31 @@
       "classification": "maintained",
       "apis": [
         "class:FontVariantLigaturesModel"
+      ]
+    },
+    {
+      "target": "KisTransactionBasedCommandContractTest",
+      "source": "libs/image/tests/KisTransactionBasedCommandContractTest.cpp",
+      "test": "KisTransactionBasedCommandContractTest::createsTransactionOnceAndOwnsItThroughTheParentedWrapper",
+      "behavior": "取引型命令は表示名と親命令所有を保持し、初回redoで生成した取引命令を以後のredoとundoで再利用して、包装命令の破棄時に正確に1回解放する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTransactionBasedCommand",
+        "method:KisTransactionBasedCommand::KisTransactionBasedCommand(const KUndo2MagicString & text=KUndo2MagicString (),KUndo2Command * parent=0)",
+        "method:KisTransactionBasedCommand::redo()",
+        "method:KisTransactionBasedCommand::undo()",
+        "method:KisTransactionBasedCommand::~KisTransactionBasedCommand()"
+      ]
+    },
+    {
+      "target": "KisTransactionBasedCommandContractTest",
+      "source": "libs/image/tests/KisTransactionBasedCommandContractTest.cpp",
+      "test": "KisTransactionBasedCommandContractTest::nullTransactionsAreRetriedAndUndoBeforeCreationIsEmpty",
+      "behavior": "取引命令がまだ生成されていないundoは無操作となり、paintがnullを返したredoは次のredoで生成を再試行し、生成成功後は同じ命令を再利用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTransactionBasedCommand::redo()",
+        "method:KisTransactionBasedCommand::undo()"
       ]
     }
   ]

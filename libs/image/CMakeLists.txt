@@ -829,6 +829,32 @@ set_target_properties(kritaimagenodecommandobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagetransactionbasedcommandobjects OBJECT
+   commands_new/kis_transaction_based_command.cpp
+)
+target_compile_definitions(kritaimagetransactionbasedcommandobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagetransactionbasedcommandobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands_new>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagetransactionbasedcommandobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Widgets
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagetransactionbasedcommandobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagenoderenamecommandobjects OBJECT
    commands/KisNodeRenameCommand.cpp
    commands_new/KisAsynchronouslyMergeableCommandInterface.cpp
@@ -1087,7 +1113,6 @@ set(kritaimage_LIB_SRCS
    commands_new/kis_switch_current_time_command.cpp
    commands_new/kis_change_projection_color_command.cpp
    commands_new/kis_activate_selection_mask_command.cpp
-   commands_new/kis_transaction_based_command.cpp
    commands_new/KisHoldUIUpdatesCommand.cpp
    commands_new/KisImageAnimSettingCommand.cpp
    commands_new/KisChangeChannelFlagsCommand.cpp
@@ -1342,6 +1367,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageframegenerationlockobjects>
    $<TARGET_OBJECTS:kritaimagecompositeprogressproxyobjects>
    $<TARGET_OBJECTS:kritaimagenodecommandobjects>
+   $<TARGET_OBJECTS:kritaimagetransactionbasedcommandobjects>
    $<TARGET_OBJECTS:kritaimagenoderenamecommandobjects>
    $<TARGET_OBJECTS:kritaimagenoderenamecommandnodeaccessobjects>
    $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>
