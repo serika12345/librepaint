@@ -11,6 +11,34 @@
 
 ### 現在の並列担当票
 
+- `g53-ocio`は状態`implementing`、基準`ec1aac23c449b0b25eb02a0926a8f8e62a004473`、作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g53-ocio`である。目的は表示色設定値の既定値、3 mode、6文字列、コピーを固定することである。
+  対象は`libs/canvas/color/KisOcioConfiguration.h`のclass、Mode enumと3 enumerator、modeと6文字列memberの全12 APIである。
+  変更許可は`libs/canvas/tests/CMakeLists.txt`、新規`KisOcioConfigurationContractTest.cpp`、既存
+  `kis_display_color_transform_test.cpp`と同名ヘッダーに限る。近傍は`KisDisplayColorFilterContractTest`、統合確認対象は
+  `kis_display_color_transform_test`、対象macOS、共有cache`.cache/librepaint/ccache/native`、構築実行`granted`、Git権限
+  `transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力または製品依存の追加である。
+- `g53-rendered-dab`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g53-rendered-dab`である。
+  目的は描画済みdabの既定値、device所有、offset採取、コピー、実範囲を固定することである。対象は
+  `libs/image/KisRenderedDab.h`のstruct、3 constructor、`realBounds()`、device、offset、opacity、flow、averageOpacityの全10 APIである。
+  変更許可は`libs/image/tests/CMakeLists.txt`と新規`KisRenderedDabContractTest.cpp`に限る。近傍は
+  `KisOptimizedByteArrayContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任
+  `forbidden`、統合順2、停止条件8工程・16入力または製品共有ライブラリー接続である。
+- `g53-curve-range`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g53-curve-range`である。
+  目的は曲線cursor、x/y範囲のlabel・値・suffix、factory引数、仮想寿命を固定することである。対象は
+  `plugins/paintops/libpaintop/KisCurveRangeModelInterface.h`のclass、factory alias、destructor、curve、xMinLabel、xMaxLabel、
+  yMinLabel、yMaxLabel、yMinValue、yMaxValue、yValueSuffix、xMinValue、xMaxValue、xValueSuffixの全14 APIである。変更許可は
+  `plugins/paintops/libpaintop/CMakeLists.txt`、同`tests/CMakeLists.txt`、新規`KisCurveRangeModelInterfaceContractTest.cpp`に限る。
+  近傍は`KisCurveControlStrategyInterfacesContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限
+  `transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力または製品閉包増加である。
+- `g53-android-notifier`は状態`implementing`、同じ基準、主作業ツリーで統合担当が実装する。目的はAndroid条件付き3通知の
+  false/true引数配送を固定することである。対象は`libs/global/kis_config_notifier.h`のPageUpDown、HighFunctionKey、
+  IgnoreHistoricTabletEvents各notify methodとsignal methodの全6 APIである。変更許可は`libs/global/CMakeLists.txt`、
+  `libs/global/tests/CMakeLists.txt`、新規`KisConfigNotifierAndroidContractTest.cpp`、中央台帳と進捗文書に限る。近傍は
+  `KisConfigNotifierContractTest`、対象macOS上のAndroid条件付き構築、共有cache同上、構築実行`granted`、Git権限
+  `transport-commit`、追加委任`forbidden`、統合順0、停止条件13工程・28入力または製品`kritaglobal`への追加集約である。
+- 3実装担当は`docs/architecture/public-api-test-contracts.json`と全architecture文書を変更しない。統合担当が各試験関数とAPI識別子の
+  対応を合算する。
 - 第52並列便は完了し、表示色フィルター4 API、CSS字体style模型8 API、層の折り畳み命令6 API、設定値tuple 13 APIの
   合計31 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,730件、未対応22,259件である。
 - `libs/flake/text/lager/CssFontStyleModel.cpp`は`kritaflake_SRCS`の直接収容から
