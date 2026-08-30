@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 12:39 JST
+- 更新日時: 2026-08-30 12:49 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,10 +20,9 @@
 - 第44並列便は作業ツリーと構築木を作る前に、`libs/flake`、`libs/global`、`libs/image`、`libs/widgetutils`、`libs/pigment`の候補を読み取り専用で
   監査する。各候補の全public API数、実装所有、直接依存、既存近傍と限定閉包を確定し、計画と停止上限の検査・コミット後に必要な担当作業
   ツリーだけを作成する。
-- 読み取り専用監査から、第44並列便は合計27 APIを次の4担当票で固定し、対応済み7,502件、未対応22,487件を目標とする。
-  - 主担当は`libs/widgets/KisScreenColorSamplerBase.cpp`を`kritawidgets_LIB_SRCS`直接収容から新規
-    `kritawidgetsscreencolorsamplerbaseobjects`へ移し、製品`kritawidgets`へ1回だけ再集約する。全5 APIを対象とし、AUTOMOCを使う既存近傍3件の
-    7工程・14入力に対して停止上限を8工程・16入力とする。
+- 読み取り専用監査から、第44並列便は合計29 APIを次の4担当票で固定し、対応済み7,504件、未対応22,485件を目標とする。
+  - 主担当は宣言側で完結する`libs/widgets/KoPageWidgetItem.h`の全7 APIを、製品実装を接続しない新規
+    `KoPageWidgetItemContractTest`へ対応付ける。既存の宣言単独契約4工程・8入力に対して停止上限を5工程・11入力とする。
   - `flake_zoom_state`担当は`libs/flake/KoShapeStrokeModel.cpp`を`kritaflake_SRCS`直接収容から新規
     `kritaflakeshapestrokemodelobjects`へ移し、製品`kritaflake`へ1回だけ再集約する。全10 APIを対象とし、最近傍
     `KoDockFactoryBaseContractTest`の5工程・11入力に対して停止上限を6工程・13入力とする。
@@ -37,9 +36,10 @@
   軽量近傍試験・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、世代の古い公開API不足一覧は次世代
   一覧の生成成功直後に削除する。
 - 計画変更を`verify-quick`へ通してコミットし、共通基点`fb43e811f369112d91d8e9ec4de27bea525648b6`から担当用3作業ツリーだけを作成した。
-  4対象の初回限定構築は`KisScreenColorSamplerBaseContractTest`、`KoShapeStrokeModelContractTest`、`KisKeyframeContractTest`、
-  `KoOptimizedPixelDataScalerU8ToU16BaseContractTest`がいずれも未知の対象として失敗し、未登録の赤を確認した。3作業ツリーは実装開始前で各568 MB、
-  合計約1.7 GBを使用し、各引渡しの統合とclean確認直後に個別削除する。
+  担当3対象と最初の主候補`KisScreenColorSamplerBaseContractTest`は未知の対象として失敗し、未登録の赤を確認した。最初の主候補は分離MOCが
+  `KoColor`のメタ型実装記号を要求し、製品色管理ライブラリー非接続と停止上限を両立できないため変更を残さず除外した。代替の
+  `KoPageWidgetItemContractTest`も未知の対象として失敗し、宣言単独契約として実装を開始する。3作業ツリーは実装開始前で各568 MB、合計約1.7 GBを
+  使用し、各引渡しの統合とclean確認直後に個別削除する。
 
 ## 再開環境
 
