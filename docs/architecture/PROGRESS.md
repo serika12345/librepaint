@@ -2,12 +2,45 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 00:14 JST
-- 状態: `planned`
+- 更新日時: 2026-08-31 00:22 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第67並列便の担当票
+
+- `g67-svg-text-properties-interface`は状態`preparing`、基準はこの計画コミット、作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g67-svg-text-properties-interface`である。目的はSVG文字属性接続面の親所有、3取得、2設定、2選択状態、2通知signalを
+  固定することである。対象は`libs/flake/text/KoSvgTextPropertiesInterface.h`のclass、inline constructor、5 virtual method、2状態method、2 signalの
+  11 API全件である。実装sourceを持たない公開headerを新規`libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp`のtarget-local sourceへ列挙し、
+  AUTOMOCでmetaobjectを試験内に生成する。試験はQt Testと、汎用値保持・複製・等価性だけの最小`KoSvgTextProperties`協調定義を使う。変更許可はこの新規試験と
+  `libs/flake/tests/CMakeLists.txt`に限る。近傍は`KoSvgTextPropertyDataContractTest`、対象macOS、共有cache`.cache/librepaint/ccache/native`、
+  構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力、製品`kritaflake` 612工程・1,256入力からの増加、
+  完全な`KoSvgTextProperties.cpp`・製品共有ライブラリー・共通試験基盤への接続、製品意味論を模倣する試験協調定義、公開header・製品source・製品CMake変更、
+  または許可外変更である。
+- `g67-node-compositeop-command`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g67-node-compositeop-command`である。目的は
+  node合成方式変更命令のredo・undo、汚損範囲、反復、統合・相殺判定、命令識別、共有所有を固定することである。対象は
+  `libs/image/commands/kis_node_compositeop_command.h`のclass、constructor、redo、undo、id、merge、統合・相殺判定の8 API全件である。開始ファイル
+  `libs/image/commands/kis_node_compositeop_command.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimagenodecompositeopcommandobjects`へ移し、
+  製品`kritaimage`へ一度だけ再集約する。既存`libs/image/tests/kis_node_commands_test.{h,cpp}`を同objectと既存の最小node協調定義で拡張する。変更許可は
+  この試験2ファイル、`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は同対象の基底node命令契約、対象macOS、共有cache同上、
+  構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件13工程・28入力、製品`kritaimage`
+  1,184工程・2,392入力からの増加、実node・製品共有ライブラリーへの接続、未実行・非連続命令の新仕様判断、source二重収容、公開header/source変更、
+  または許可外変更である。
+- `g67-metadata-merge-strategy`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g67-metadata-merge-strategy`である。目的は
+  メタデータ統合方針のUnicode識別情報、宛先と入力列・scoreの仮想配送、基底所有からの寿命を固定することである。対象は
+  `libs/painting/metadata/kis_meta_data_merge_strategy.h`のclass、destructor、3識別method、mergeの6 API全件である。開始ファイル
+  `libs/painting/metadata/kis_meta_data_merge_strategy.cc`を`kritapaintingmetadata_LIB_SRCS`の直接収容から`kritapaintingmetadatamergestrategyobjects`へ移し、
+  製品`kritapaintingmetadata`へ一度だけ再集約する。新規`libs/painting/metadata/tests/KisMetaDataMergeStrategyContractTest.cpp`は同object、Qt Test、
+  試験内Probeと不完全型Storeの借用tokenだけを使う。変更許可はこの新規試験、`libs/painting/metadata/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。
+  近傍は`KisMetaDataIOBackendContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
+  停止条件6工程・14入力、製品`kritapaintingmetadata` 288工程・607入力からの増加、実Store・registry・製品共有ライブラリー・Qt Gui/Widgetsへの接続、
+  source二重収容、公開header/source変更、または許可外変更である。
+- 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
+  統合担当が中央台帳、進捗、担当間のCMake非重複、容量削除を所有する。統合した担当の作業ツリー、局所構築木、ブランチは次担当の統合を待たず
+  直ちに削除する。完了目標は25 API純増の対応済み8,118件、未対応21,871件である。
 
 ### 現在の結果
 
@@ -34,8 +67,8 @@
 
 ### 次の操作
 
-- 第67並列便は最新不足一覧から互いに重ならない公開面を読取り監査し、公開API件数、最小の観測可能契約、直接CMake依存、既存対象との清浄木閉包差を測る。
-  計画前は作業ツリーや局所構築木を作らず、広域閉包を専用objectへ分離できる候補だけを採用する。
+- 第67並列便の共通計画コミットから3専用作業ツリーを作成し、基準・許可パス・構築実行許可を実体と照合する。
+  各担当は構築実行を`granted`に更新した後だけ初期診断から限定実装へ進み、統合担当は完了した作業ツリーと局所構築木を即時削除する。
 
 ## 再開環境
 
