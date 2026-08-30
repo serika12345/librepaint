@@ -2,85 +2,40 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 16:58 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-30 17:18 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 現在の並列担当票
+### 現在の結果
 
-- `g53-ocio`は状態`implementing`、基準`ec1aac23c449b0b25eb02a0926a8f8e62a004473`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g53-ocio`である。目的は表示色設定値の既定値、3 mode、6文字列、コピーを固定することである。
-  対象は`libs/canvas/color/KisOcioConfiguration.h`のclass、Mode enumと3 enumerator、modeと6文字列memberの全12 APIである。
-  変更許可は`libs/canvas/tests/CMakeLists.txt`、新規`KisOcioConfigurationContractTest.cpp`、既存
-  `kis_display_color_transform_test.cpp`と同名ヘッダーに限る。近傍は`KisDisplayColorFilterContractTest`、統合確認対象は
-  `kis_display_color_transform_test`、対象macOS、共有cache`.cache/librepaint/ccache/native`、構築実行`granted`、Git権限
-  `transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力または製品依存の追加である。
-- `g53-rendered-dab`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g53-rendered-dab`である。
-  目的は描画済みdabの既定値、device所有、offset採取、コピー、実範囲を固定することである。対象は
-  `libs/image/KisRenderedDab.h`のstruct、3 constructor、`realBounds()`、device、offset、opacity、flow、averageOpacityの全10 APIである。
-  変更許可は`libs/image/tests/CMakeLists.txt`と新規`KisRenderedDabContractTest.cpp`に限る。近傍は
-  `KisOptimizedByteArrayContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任
-  `forbidden`、統合順2、停止条件8工程・16入力または製品共有ライブラリー接続である。
-- `g53-curve-range`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g53-curve-range`である。
-  目的は曲線cursor、x/y範囲のlabel・値・suffix、factory引数、仮想寿命を固定することである。対象は
-  `plugins/paintops/libpaintop/KisCurveRangeModelInterface.h`のclass、factory alias、destructor、curve、xMinLabel、xMaxLabel、
-  yMinLabel、yMaxLabel、yMinValue、yMaxValue、yValueSuffix、xMinValue、xMaxValue、xValueSuffixの全14 APIである。変更許可は
-  `plugins/paintops/libpaintop/CMakeLists.txt`、同`tests/CMakeLists.txt`、新規`KisCurveRangeModelInterfaceContractTest.cpp`に限る。
-  近傍は`KisCurveControlStrategyInterfacesContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限
-  `transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力または製品閉包増加である。
-- `g53-android-notifier`は状態`implementing`、同じ基準、主作業ツリーで統合担当が実装する。目的はAndroid条件付き3通知の
-  false/true引数配送を固定することである。対象は`libs/global/kis_config_notifier.h`のPageUpDown、HighFunctionKey、
-  IgnoreHistoricTabletEvents各notify methodとsignal methodの全6 APIである。変更許可は`libs/global/CMakeLists.txt`、
-  `libs/global/tests/CMakeLists.txt`、新規`KisConfigNotifierAndroidContractTest.cpp`、中央台帳と進捗文書に限る。近傍は
-  `KisConfigNotifierContractTest`、対象macOS上のAndroid条件付き構築、共有cache同上、構築実行`granted`、Git権限
-  `transport-commit`、追加委任`forbidden`、統合順0、停止条件13工程・28入力または製品`kritaglobal`への追加集約である。
-- 3実装担当は`docs/architecture/public-api-test-contracts.json`と全architecture文書を変更しない。統合担当が各試験関数とAPI識別子の
-  対応を合算する。
-- 第52並列便は完了し、表示色フィルター4 API、CSS字体style模型8 API、層の折り畳み命令6 API、設定値tuple 13 APIの
-  合計31 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,730件、未対応22,259件である。
-- `libs/flake/text/lager/CssFontStyleModel.cpp`は`kritaflake_SRCS`の直接収容から
-  `kritaflakecssfontstylemodelobjects`へ移し、製品へ一度だけ再集約した。
-  `libs/image/commands_new/KisLayerCollapseCommand.cpp`は`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagelayercollapsecommandobjects`へ移した。具体node操作は同ファイルから
-  `libs/image/commands_new/KisLayerCollapseCommandNodeAccess.cpp`と
-  `libs/image/commands_new/KisLayerCollapseCommandNodeAccess_p.h`へ分け、製品用
-  `kritaimagelayercollapsecommandnodeaccessobjects`へ移して両生成物を製品へ各一度だけ再集約した。
-- 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への一重再集約、4限定対象の
-  製品共有ライブラリー非接続、macOSのパッケージ境界1,476対象、公開API契約検査に成功した。各担当の単発・20回反復CTestと
-  `verify-quick`も成功している。
-- 限定閉包は表示色フィルター4工程・8入力、CSS字体style模型7工程・14入力、層の折り畳み命令11工程・24入力、設定値tuple
-  4工程・8入力である。製品閉包は`kritaflake` 602工程・1,236入力、`kritaimage` 1,169工程・2,362入力、`kritatools`
-  1,241工程・2,498入力、`kritalibbrush` 1,195工程・2,412入力、`kritacanvas` 1,193工程・2,406入力、`kritapaintopruntime`
-  1,266工程・2,552入力、`kritalibpaintop` 2,076工程・4,150入力になった。CSS字体style模型の専用メタ情報所有と、層命令の
-  node access所有だけが許可された依存方向へ伝播し、header-onlyの2対象は製品閉包を増やしていない。
-- 任意slantのobliqueからnormalまたはitalicへ変更すると自動値ではなく明示的0へ置換される現状挙動は、製品変更を加えず
-  `known_defect`として固定した。
-- 統合済み専用作業ツリー3本は各clean確認直後に個別削除して合計約2.46 GBを解放した。次世代不足一覧の生成成功後に旧
-  `build/tdd-macos/public-api-missing-g52.json` 5.4 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、最新
-  `build/tdd-macos/public-api-missing-g53.json`だけを保持する。
-- 次の第53並列便は最新不足一覧から読み取り専用監査を行い、所有領域が重ならず、各公開面を一便で完了できる対象を選ぶ。
-  候補の限定閉包と構造分離要否を確定して計画をコミットするまで、専用作業ツリーを作成しない。
-- 第53並列便は読み取り専用監査を完了し、表示色設定値12 API、描画済みdab値10 API、曲線範囲模型境界14 API、Android条件付き
-  設定通知6 APIの合計42 APIを選んだ。完了時の目標は対応済み7,772件、未対応22,217件である。
-- `KisOcioConfiguration`はheader-only値型として新規Qt Core/Test対象へ接続し、既存
-  `libs/canvas/tests/kis_display_color_transform_test.cpp`と同名ヘッダーの部分試験を
-  `libs/canvas/tests/KisOcioConfigurationContractTest.cpp`へ移す。限定閉包は4工程・8入力、停止上限5工程・11入力とし、
-  製品`kritacanvas` 1,193工程・2,406入力を維持する。広域試験の残存部分は主増分構築木で統合後に確認する。
-- `KisRenderedDab`はheader-only値型として、試験内に`KisFixedPaintDevice`の所有と矩形だけを提供する最小実体を置く。既存の
-  `kritaglobalsharedobjects`、`kritaimageoptimizedbytearrayobjects`、`kritaglobalrollingmeanobjects`だけを使い、限定閉包を
-  7工程・14入力、停止上限8工程・16入力に収め、製品`kritaimage` 1,169工程・2,362入力を維持する。
-- 開始ファイル`plugins/paintops/libpaintop/KisCurveRangeModelInterface.cpp`は`kritalibpaintop_LIB_SRCS`の直接収容から
-  `kritapaintopcurverangemodelinterfaceobjects`へ移し、製品へ一度だけ再集約する。限定閉包は5工程・11入力、停止上限
-  6工程・14入力とし、製品`kritapaintopruntime` 1,266工程・2,552入力と`kritalibpaintop` 2,076工程・4,150入力を維持する。
-- Android条件付き通知は`libs/global/kis_config_notifier.cpp`を製品へ集約しない試験専用
-  `kritaglobalconfignotifierandroidcontractobjects`として`Q_OS_ANDROID`条件付きで構築し、6通知APIの引数配送を固定する。
-  限定閉包は現行通知契約と同じ12工程・25入力、停止上限13工程・28入力とし、製品`kritaglobal` 68工程・136入力を維持する。
-- 統合担当だけが`docs/architecture/PROGRESS.md`と`docs/architecture/public-api-test-contracts.json`を更新する。3実装担当は
-  計画コミットを共通基点とし、中央文書を変更しない。各clean成果の統合直後に担当作業ツリーと担当ブランチを削除し、最大約2.46 GBの
-  一時領域を担当単位で順次解放する。次世代不足一覧の生成成功後に旧一覧を削除する。
+- 第53並列便は表示色設定値12 API、描画済みdab値10 API、曲線範囲模型境界14 API、Android条件付き設定通知6 APIの
+  合計42 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,772件、未対応22,217件である。
+- 表示色設定値の既存契約は`libs/canvas/tests/kis_display_color_transform_test.{h,cpp}`から
+  `libs/canvas/tests/KisOcioConfigurationContractTest.cpp`へ移し、全状態をQt Core/Testだけの対象へ集約した。
+- `plugins/paintops/libpaintop/KisCurveRangeModelInterface.cpp`の構築所有は`kritalibpaintop_LIB_SRCS`の直接収容から
+  `kritapaintopcurverangemodelinterfaceobjects`へ移し、同じ翻訳単位を製品へ一度だけ再集約した。
+- `libs/image/KisRenderedDab.h`は製品共有ライブラリーへ接続しない専用試験で値と装置所有を固定した。
+  `libs/global/kis_config_notifier.cpp`は試験専用`kritaglobalconfignotifierandroidcontractobjects`だけを`Q_OS_ANDROID`付きで構築し、
+  通常のmacOS用Qt TestをAndroid用Qtヘッダーへ波及させず条件付き通知を固定した。
+- 主作業ツリーの4限定対象と4軽量近傍はCTest 8/8に成功し、4限定対象の同時再構築は無作業であった。各担当の単発CTest、
+  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,482対象、公開API契約検査は
+  7,772/29,989件で成功した。
+- 限定閉包はAndroid通知12工程・25入力、表示色設定値4工程・8入力、描画済みdab 7工程・15入力、曲線範囲模型5工程・11入力である。
+  製品閉包は`kritaglobal` 68工程・136入力、`kritacanvas` 1,193工程・2,406入力、`kritaimage` 1,169工程・2,362入力、
+  `kritapaintopruntime` 1,266工程・2,552入力、`kritalibpaintop` 2,076工程・4,150入力を維持した。
+- 旧`kis_display_color_transform_test`の統合構築は478工程の製品閉包を要求し、既存`kritaresourceui`の
+  `KisResourceModelIndexResolver::resourceIndex`未解決記号で停止する。移した表示色設定値契約と軽量近傍は成功しており、
+  この広域対象の構築範囲と既存リンク不整合は次に同対象を変更する前の構造改善対象である。
+- 統合済み作業ツリー3本と担当ブランチはclean成果の統合直後に削除し、約2.46 GBを解放した。次世代不足一覧
+  `build/tdd-macos/public-api-missing-g54.json`の生成後に旧G53一覧を削除した。再利用する主増分構築木4.9 GBと最新一覧だけを保持する。
+
+### 次の操作
+
+- 第54並列便は最新不足一覧から所有領域が重ならず、各公開面を一便で完了できる対象を読み取り専用で監査する。
+  候補の限定閉包、直接依存、構造分離要否を確定して計画をコミットするまで、専用作業ツリーを作成しない。
 
 ## 再開環境
 

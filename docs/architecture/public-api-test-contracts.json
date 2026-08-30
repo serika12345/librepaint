@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22253
+    "expectedMissingApis": 22217
   },
   "contracts": [
     {
@@ -9733,6 +9733,38 @@
       ]
     },
     {
+      "target": "KisCurveRangeModelInterfaceContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveRangeModelInterfaceContractTest.cpp",
+      "test": "KisCurveRangeModelInterfaceContractTest::accessorsKeepIndependentValuesAndWritableCurve",
+      "behavior": "曲線範囲模型境界は11個の読み書き入口を混同せず各状態へ対応付け、返した曲線cursorの更新を元状態へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCurveRangeModelInterface",
+        "method:KisCurveRangeModelInterface::curve()",
+        "method:KisCurveRangeModelInterface::xMaxLabel()",
+        "method:KisCurveRangeModelInterface::xMaxValue()",
+        "method:KisCurveRangeModelInterface::xMinLabel()",
+        "method:KisCurveRangeModelInterface::xMinValue()",
+        "method:KisCurveRangeModelInterface::xValueSuffix()",
+        "method:KisCurveRangeModelInterface::yMaxLabel()",
+        "method:KisCurveRangeModelInterface::yMaxValue()",
+        "method:KisCurveRangeModelInterface::yMinLabel()",
+        "method:KisCurveRangeModelInterface::yMinValue()",
+        "method:KisCurveRangeModelInterface::yValueSuffix()"
+      ]
+    },
+    {
+      "target": "KisCurveRangeModelInterfaceContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveRangeModelInterfaceContractTest.cpp",
+      "test": "KisCurveRangeModelInterfaceContractTest::factoryForwardsInputsAndBaseLifetimeIsVirtual",
+      "behavior": "曲線範囲模型factoryは4入力の位置・値・cursor同一性を保って生成処理へ渡し、その返却pointerを維持し、境界pointerから派生実体を破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCurveRangeModelFactory",
+        "method:KisCurveRangeModelInterface::~KisCurveRangeModelInterface()"
+      ]
+    },
+    {
       "target": "KoCanvasResourcesInterfaceContractTest",
       "source": "libs/resources/tests/KoCanvasResourcesInterfaceContractTest.cpp",
       "test": "KoCanvasResourcesInterfaceContractTest::dispatchesResourceLookupAndSupportsPolymorphicLifetime",
@@ -16053,6 +16085,43 @@
         "method:KisOptimizedByteArray::MemoryAllocator::free(MemoryChunk chunk)",
         "method:KisOptimizedByteArray::MemoryAllocator::~MemoryAllocator()",
         "struct:KisOptimizedByteArray::MemoryAllocator"
+      ]
+    },
+    {
+      "target": "KisRenderedDabContractTest",
+      "source": "libs/image/tests/KisRenderedDabContractTest.cpp",
+      "test": "KisRenderedDabContractTest::defaultConstructionUsesStableMemberValues",
+      "behavior": "描画済みdabの既定構築は装置を持たず、原点offset、完全不透明のopacityとflow、完全透明のaverageOpacityを保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisRenderedDab::averageOpacity",
+        "member:KisRenderedDab::device",
+        "member:KisRenderedDab::flow",
+        "member:KisRenderedDab::offset",
+        "member:KisRenderedDab::opacity",
+        "method:KisRenderedDab::KisRenderedDab()",
+        "struct:KisRenderedDab"
+      ]
+    },
+    {
+      "target": "KisRenderedDabContractTest",
+      "source": "libs/image/tests/KisRenderedDabContractTest.cpp",
+      "test": "KisRenderedDabContractTest::deviceConstructionCapturesOffsetAndRetainsOwnership",
+      "behavior": "装置付き構築は装置を強参照で保持し、構築時の装置範囲の左上をoffsetへ一度採取し、最後の描画済みdab破棄まで装置を生存させる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRenderedDab::KisRenderedDab(KisFixedPaintDeviceSP _device)"
+      ]
+    },
+    {
+      "target": "KisRenderedDabContractTest",
+      "source": "libs/image/tests/KisRenderedDabContractTest.cpp",
+      "test": "KisRenderedDabContractTest::copyPreservesMembersAndRealBoundsUsesCurrentDeviceSize",
+      "behavior": "copyは同じ装置所有と全公開値を独立に保持し、実範囲は保存offsetと呼出時の装置寸法を組み合わせ、最後の所有者破棄で装置を一度解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRenderedDab::KisRenderedDab(const KisRenderedDab &)",
+        "method:KisRenderedDab::realBounds() const"
       ]
     },
     {
@@ -24145,6 +24214,72 @@
       "apis": [
         "class:KisDisplayColorFilter",
         "method:KisDisplayColorFilter::~KisDisplayColorFilter()"
+      ]
+    },
+    {
+      "target": "KisOcioConfigurationContractTest",
+      "source": "libs/canvas/tests/KisOcioConfigurationContractTest.cpp",
+      "test": "KisOcioConfigurationContractTest::defaultsAreInternalAndEmpty",
+      "behavior": "OCIO設定値は内部色管理modeと空の6文字列を既定値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOcioConfiguration",
+        "enum:KisOcioConfiguration::Mode",
+        "enumerator:KisOcioConfiguration::Mode::INTERNAL",
+        "member:KisOcioConfiguration::configurationPath",
+        "member:KisOcioConfiguration::displayDevice",
+        "member:KisOcioConfiguration::displayView",
+        "member:KisOcioConfiguration::inputColorSpace",
+        "member:KisOcioConfiguration::look",
+        "member:KisOcioConfiguration::lutPath",
+        "member:KisOcioConfiguration::mode"
+      ]
+    },
+    {
+      "target": "KisOcioConfigurationContractTest",
+      "source": "libs/canvas/tests/KisOcioConfigurationContractTest.cpp",
+      "test": "KisOcioConfigurationContractTest::modeValuesRemainStable",
+      "behavior": "OCIO設定modeは内部・設定ファイル・環境の安定した3値を保持し、代入したmodeをそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisOcioConfiguration::Mode",
+        "enumerator:KisOcioConfiguration::Mode::INTERNAL",
+        "enumerator:KisOcioConfiguration::Mode::OCIO_CONFIG",
+        "enumerator:KisOcioConfiguration::Mode::OCIO_ENVIRONMENT",
+        "member:KisOcioConfiguration::mode"
+      ]
+    },
+    {
+      "target": "KisOcioConfigurationContractTest",
+      "source": "libs/canvas/tests/KisOcioConfigurationContractTest.cpp",
+      "test": "KisOcioConfigurationContractTest::stringFieldsPreserveIndependentUnicodeValues",
+      "behavior": "OCIO設定値は設定・LUT経路、入力色空間、表示装置、表示view、lookのUnicode値を相互に混同せず保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisOcioConfiguration::configurationPath",
+        "member:KisOcioConfiguration::displayDevice",
+        "member:KisOcioConfiguration::displayView",
+        "member:KisOcioConfiguration::inputColorSpace",
+        "member:KisOcioConfiguration::look",
+        "member:KisOcioConfiguration::lutPath",
+        "member:KisOcioConfiguration::mode"
+      ]
+    },
+    {
+      "target": "KisOcioConfigurationContractTest",
+      "source": "libs/canvas/tests/KisOcioConfigurationContractTest.cpp",
+      "test": "KisOcioConfigurationContractTest::copiesPreserveEveryValue",
+      "behavior": "OCIO設定値のコピー構築とコピー代入はmodeと6文字列を独立した値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisOcioConfiguration",
+        "member:KisOcioConfiguration::configurationPath",
+        "member:KisOcioConfiguration::displayDevice",
+        "member:KisOcioConfiguration::displayView",
+        "member:KisOcioConfiguration::inputColorSpace",
+        "member:KisOcioConfiguration::look",
+        "member:KisOcioConfiguration::lutPath",
+        "member:KisOcioConfiguration::mode"
       ]
     },
     {
