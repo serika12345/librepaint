@@ -79,6 +79,19 @@ kis_add_test(
 )
 target_compile_definitions(KisRectangleInteractionContractTest PRIVATE kritatools_EXPORTS)
 
+kis_add_test(
+    KisSmoothingOptionsRemainderContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolssmoothingoptionsobjects
+        kritaglobalsignalcompressorobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::ConfigCore
+)
+target_compile_definitions(KisSmoothingOptionsRemainderContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritatools_EXPORTS
+)
+
 kis_add_tests(
     kis_stabilized_events_sampler_test.cpp
     LINK_LIBRARIES kritatools kritatestsdk

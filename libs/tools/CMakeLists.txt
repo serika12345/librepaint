@@ -105,6 +105,29 @@ set_target_properties(kritatoolsdelegatedtoolpolicyobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatoolssmoothingoptionsobjects OBJECT
+    kis_smoothing_options.cpp
+)
+target_compile_definitions(kritatoolssmoothingoptionsobjects PRIVATE kritatools_EXPORTS)
+target_include_directories(kritatoolssmoothingoptionsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritatoolssmoothingoptionsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
+        KF${KF_MAJOR}::ConfigCore
+        Boost::boost
+)
+set_target_properties(kritatoolssmoothingoptionsobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritatools_LIB_SRCS
     KisSelectionToolFactoryBase.cpp
     KisStabilizerDelayedPaintHelper.cpp
@@ -115,7 +138,6 @@ set(kritatools_LIB_SRCS
     kis_painting_information_builder.cpp
     kis_polyline_interaction.cpp
     kis_selection_modifier_mapping.cpp
-    kis_smoothing_options.cpp
     kis_stabilized_events_sampler.cpp
     kis_tool.cc
     kis_tool_paint_interaction.cpp
@@ -128,6 +150,7 @@ kis_add_library(kritatools SHARED
     $<TARGET_OBJECTS:kritatoolsrectangleinteractionobjects>
     $<TARGET_OBJECTS:kritatoolactionmappingobjects>
     $<TARGET_OBJECTS:kritatoolsdelegatedtoolpolicyobjects>
+    $<TARGET_OBJECTS:kritatoolssmoothingoptionsobjects>
 )
 generate_export_header(kritatools BASE_NAME kritatools)
 
