@@ -2,74 +2,41 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 01:03 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-31 01:18 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第68並列便の担当票
-
-- `g68-svg-mesh-gradient`は状態`implementing`、基準`ce65d04b9647c807a30528e5f652fdc2989557f5`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g68-svg-mesh-gradient`である。目的は
-  SVG mesh gradientの列挙値、既定状態、種別と座標系、mesh有効性、境界と変換、複製独立性を固定することである。対象は
-  `libs/flake/svg/SvgMeshGradient.h`のclass、enumと2 enumerator、2 constructor、7 methodの14 API全件である。開始ファイル
-  `libs/flake/svg/SvgMeshGradient.cpp`を`kritaflake_SRCS`の直接収容から`kritaflakesvgmeshgradientobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
-  新規`libs/flake/tests/SvgMeshGradientContractTest.cpp`は同object、既存mesh array・patch object、Qt Testだけを使う。変更許可はこの新規試験、
-  `libs/flake/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。近傍は`SvgMeshArrayContractTest`、対象macOS、共有cache`.cache/librepaint/ccache/native`、
-  構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件9工程・20入力、製品`kritaflake` 612工程・1,256入力からの増加、
-  製品共有ライブラリーへの接続、空mesh境界の新仕様判断、source二重収容、公開header/source変更、または許可外変更である。
-- `g68-memory-window`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g68-memory-window`である。目的はswap memory windowの
-  一時file寿命、窓再配置後のbyte保持、参照値とiterator値のread/write overloadを固定することである。対象は
-  `libs/image/tiles3/swap/kis_memory_window.h`のclass、constructor、destructor、4 read/write methodの7 API全件である。開始ファイル
-  `libs/image/tiles3/swap/kis_memory_window.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimagememorywindowobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。
-  新規`libs/image/tiles3/tests/KisMemoryWindowContractTest.cpp`は同object、header内chunk値、Qt Testと実`QTemporaryDir`だけを使う。変更許可はこの新規試験、
-  `libs/image/CMakeLists.txt`、`libs/image/tiles3/tests/CMakeLists.txt`に限る。近傍は`KisTiledExtentManagerContractTest`、対象macOS、共有cache同上、
-  構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件6工程・13入力、製品`kritaimage` 1,184工程・2,392入力からの増加、
-  製品共有ライブラリー・chunk allocatorへの接続、正常な一時dirでのmapping失敗、失敗系の新仕様判断、source二重収容、公開header/source変更、または許可外変更である。
-- `g68-undo-store-interface`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g68-undo-store-interface`である。目的はundo store基底接続面の
-  命令とmacro配送、undo・終了・redo破棄順、現在命令、履歴通知、基底所有からの寿命を固定することである。対象は
-  `libs/painting/undo/kis_undo_store.h`のclass、constructor、destructor、7 method・signalの10 API全件である。開始ファイル
-  `libs/painting/undo/kis_undo_store.cpp`を既存`kritapaintingundostoreobjects`から`kritapaintingundostoreinterfaceobjects`へ移し、残る具体store objectから
-  PUBLIC依存させ、両objectを製品`kritapaintingundo`へ一度ずつ再集約する。新規`libs/painting/undo/tests/KisUndoStoreInterfaceContractTest.cpp`は同object、
-  Qt Test、試験内Probeと不完全型tokenだけを使う。変更許可はこの新規試験、`libs/painting/undo/CMakeLists.txt`、同`tests/CMakeLists.txt`に限る。
-  近傍は`KisUndoStoresContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
-  停止条件9工程・20入力、製品`kritapaintingundo` 284工程・599入力からの増加、既存undo試験のlink破壊、実stack・command、Qt Gui/Widgets、KF・Boost、
-  製品共有ライブラリーへの接続、source二重収容、公開header/source変更、または許可外変更である。
-- 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
-  統合担当が中央台帳、進捗、CMake非重複、容量削除を所有し、統合または停止直後に担当作業ツリー、局所構築木、ブランチを削除する。
-  完了目標は31 API純増の対応済み8,150件、未対応21,839件である。
-
 ### 現在の結果
 
-- 第67並列便は、SVG文字属性接続面11 API、非一様2次元B-spline 9 API、メタデータ統合方針6 APIの合計26 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み8,119件、未対応21,870件である。
-- SVG文字属性接続面は製品実装と公開headerを変更せず、`libs/flake/text/KoSvgTextPropertiesInterface.h`を新規
-  `libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp`のtarget-local AUTOMOCへ収容した。同試験がQObject親所有、3取得、2設定、2選択状態、
-  2通知signalの配送を固定する。
-- 非一様補間の開始ファイル`libs/image/bsplines/kis_nu_bspline_2d.cpp`は`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagenubspline2dobjects`へ移った。開始ファイル`libs/image/3rdparty/einspline/nubasis.cpp`、`nubspline_create.cpp`、`nugrid.cpp`は
-  `einspline_SRCS`の直接収容から`kritaimagenonuniformbsplineengineobjects`へ移り、両objectは製品`kritaimage`へ一度だけ再集約される。新規
-  `libs/image/tests/KisNUBSpline2DContractTest.cpp`が標本値所有、端点、軸別境界条件、格子採取順、一次平面の補間値、寿命を固定する。
-- メタデータ統合方針の開始ファイル`libs/painting/metadata/kis_meta_data_merge_strategy.cc`は、`kritapaintingmetadata_LIB_SRCS`の直接収容から
-  `kritapaintingmetadatamergestrategyobjects`へ移り、製品`kritapaintingmetadata`へ一度だけ再集約される。新規
-  `libs/painting/metadata/tests/KisMetaDataMergeStrategyContractTest.cpp`がUnicode識別情報、宛先と入力列・scoreの仮想配送、基底所有からの寿命を固定する。
-- 統合後の限定閉包は`KoSvgTextPropertiesInterfaceContractTest` 4工程・8入力、`KisNUBSpline2DContractTest` 10工程・21入力、
-  `KisMetaDataMergeStrategyContractTest` 5工程・11入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
-  `kritapaintingmetadata` 288工程・607入力から増えていない。
-- 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象は各20回反復、全12新規契約枠、再構築時の無作業確認に成功した。
-  macOSのパッケージ境界は1,549対象、公開API契約検査は8,119/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
-  各製品による実SVG属性編集、無効・非昇順標本と範囲外照会・再初期化、実Storeによる統合は残余範囲である。製品全体の構築・リンクとLinux検証は
+- 第68並列便は、SVG mesh gradient 14 API、swap memory window 7 API、undo store基底接続面10 APIの合計31 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み8,150件、未対応21,839件である。
+- 開始ファイル`libs/flake/svg/SvgMeshGradient.cpp`は`kritaflake_SRCS`の直接収容から
+  `kritaflakesvgmeshgradientobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
+  `libs/flake/tests/SvgMeshGradientContractTest.cpp`が補間列挙値、既定状態、種別と座標系、有効meshの境界と変換、コピー独立性を固定する。
+- 開始ファイル`libs/image/tiles3/swap/kis_memory_window.cpp`は`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagememorywindowobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。新規
+  `libs/image/tiles3/tests/KisMemoryWindowContractTest.cpp`が一時file寿命、窓再配置後のbyte保持、参照値とiterator値のread/write overloadを固定する。
+- 開始ファイル`libs/painting/undo/kis_undo_store.cpp`は`kritapaintingundostoreobjects`から
+  `kritapaintingundostoreinterfaceobjects`へ移り、具体store objectから一方向に依存され、製品`kritapaintingundo`へ一度だけ再集約される。新規
+  `libs/painting/undo/tests/KisUndoStoreInterfaceContractTest.cpp`が命令とmacro配送、undo・終了・redo破棄順、履歴通知、基底所有からの寿命を固定する。
+- 統合後の限定閉包は`SvgMeshGradientContractTest` 7工程・15入力、`KisMemoryWindowContractTest` 5工程・11入力、
+  `KisUndoStoreInterfaceContractTest` 7工程・14入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
+  `kritapaintingundo` 284工程・599入力から増えていない。
+- 主作業ツリーの3限定対象と4軽量近傍はCTest 7/7に成功し、3限定対象は各20回反復、全11新規契約枠、再構築時の無作業確認に成功した。
+  macOSのパッケージ境界は1,555対象、公開API契約検査は8,150/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
+  空meshの境界、swap用dirとmappingの失敗・巨大chunk補正、実undo stack・commandとの統合は残余範囲である。製品全体の構築・リンクとLinux検証は
   限定閉包を越えるため対象外とした。
-- 担当作業ツリー4本、局所構築木、担当ブランチは候補停止または統合の直後に削除し、同時最大約2.53 GB、累計約3.35 GBの一時生成物を回収した。
-  旧第67便不足一覧を削除し、最新の第68便不足一覧`build/tdd-macos/public-api-missing-g68.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は
-  5.0 GB、共有nativeコンパイラーcacheは658 MBである。
+- 担当作業ツリー3本、局所構築木、担当ブランチは各統合直後に削除し、一時使用量約2.49 GBを全回収した。旧第68便不足一覧を削除し、
+  最新の第69便不足一覧`build/tdd-macos/public-api-missing-g69.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は5.0 GB、
+  共有nativeコンパイラーcacheは662 MBである。
 
 ### 次の操作
 
-- 3担当は許可範囲内で初期診断、限定契約、最小object分離、対象・個別枠・20回反復・軽量近傍・無作業・動的依存・高速検査を完了して担当コミットを返す。
-  統合担当は主増分構築木で順次再検証し、各統合または停止直後に担当作業ツリー、局所構築木、担当ブランチを即時削除する。
+- 第69並列便は最新不足一覧から互いに重ならない公開面を読取り監査し、公開API件数、最小の観測可能契約、直接CMake依存、既存対象との清浄木閉包差を測る。
+  計画前は作業ツリーや局所構築木を作らず、広域閉包を専用objectへ分離できる候補だけを採用する。
 
 ## 再開環境
 

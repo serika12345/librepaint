@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21870
+    "expectedMissingApis": 21839
   },
   "contracts": [
     {
@@ -26542,6 +26542,136 @@
       "classification": "maintained",
       "apis": [
         "method:KisMetaData::MergeStrategy::~MergeStrategy()"
+      ]
+    },
+    {
+      "target": "SvgMeshGradientContractTest",
+      "source": "libs/flake/tests/SvgMeshGradientContractTest.cpp",
+      "test": "SvgMeshGradientContractTest::defaultsExposeEmptyMeshAndStableEnumValues",
+      "behavior": "SVG mesh gradientは安定した2補間値を持ち、既定構築でBILINEAR、UserSpaceOnUse、非nullの空mesh、無効状態を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:SvgMeshGradient",
+        "enum:SvgMeshGradient::Shading",
+        "enumerator:SvgMeshGradient::Shading::BICUBIC",
+        "enumerator:SvgMeshGradient::Shading::BILINEAR",
+        "method:SvgMeshGradient::SvgMeshGradient()",
+        "method:SvgMeshGradient::getMeshArray() const",
+        "method:SvgMeshGradient::isValid() const"
+      ]
+    },
+    {
+      "target": "SvgMeshGradientContractTest",
+      "source": "libs/flake/tests/SvgMeshGradientContractTest.cpp",
+      "test": "SvgMeshGradientContractTest::typeAndCoordinateUnitsRoundTripIndependently",
+      "behavior": "SVG mesh gradientは補間種別と座標系を独立して保存し、引数なしの座標系設定でUserSpaceOnUseへ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshGradient::gradientUnits() const",
+        "method:SvgMeshGradient::setGradientUnits(KoFlake::CoordinateSystem units=KoFlake::UserSpaceOnUse)",
+        "method:SvgMeshGradient::setType(Shading type)",
+        "method:SvgMeshGradient::type() const"
+      ]
+    },
+    {
+      "target": "SvgMeshGradientContractTest",
+      "source": "libs/flake/tests/SvgMeshGradientContractTest.cpp",
+      "test": "SvgMeshGradientContractTest::validMeshForwardsBoundsAndTransform",
+      "behavior": "1×1のSVG mesh gradientは正規化単位境界を有効状態として公開し、設定した平行移動を境界へ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshGradient::boundingRect() const",
+        "method:SvgMeshGradient::setTransform(const QTransform & matrix)"
+      ]
+    },
+    {
+      "target": "SvgMeshGradientContractTest",
+      "source": "libs/flake/tests/SvgMeshGradientContractTest.cpp",
+      "test": "SvgMeshGradientContractTest::copyOwnsIndependentMeshState",
+      "behavior": "SVG mesh gradientのコピー構築は種別、座標系、mesh形状を別所有し、原本の後続変更をコピーへ波及させない。",
+      "classification": "maintained",
+      "apis": [
+        "method:SvgMeshGradient::SvgMeshGradient(const SvgMeshGradient & other)"
+      ]
+    },
+    {
+      "target": "KisMemoryWindowContractTest",
+      "source": "libs/image/tiles3/tests/KisMemoryWindowContractTest.cpp",
+      "test": "KisMemoryWindowContractTest::temporaryFileFollowsWindowLifetime",
+      "behavior": "swap memory windowは既定窓幅で一時fileを1つ作成し、個体寿命の終了時にそのfileを削除する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMemoryWindow",
+        "method:KisMemoryWindow::KisMemoryWindow(const QString & swapDir,quint64 writeWindowSize=DEFAULT_WINDOW_SIZE)",
+        "method:KisMemoryWindow::~KisMemoryWindow()"
+      ]
+    },
+    {
+      "target": "KisMemoryWindowContractTest",
+      "source": "libs/image/tiles3/tests/KisMemoryWindowContractTest.cpp",
+      "test": "KisMemoryWindowContractTest::chunkDataOverloadsPreserveBytesAcrossRemapping",
+      "behavior": "swap memory windowのchunk参照overloadは64-byte窓を越える再配置後も、各位置へ書いた固定byte列を保持して読み戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryWindow::getReadChunkPtr(const KisChunkData & readChunk)",
+        "method:KisMemoryWindow::getWriteChunkPtr(const KisChunkData & writeChunk)"
+      ]
+    },
+    {
+      "target": "KisMemoryWindowContractTest",
+      "source": "libs/image/tiles3/tests/KisMemoryWindowContractTest.cpp",
+      "test": "KisMemoryWindowContractTest::chunkHandleOverloadsAddressTheSameStoredBytes",
+      "behavior": "swap memory windowのiterator由来chunk値overloadは同一領域を書込み用と読込み用に対応付け、保存byte列を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMemoryWindow::getReadChunkPtr(KisChunk readChunk)",
+        "method:KisMemoryWindow::getWriteChunkPtr(KisChunk writeChunk)"
+      ]
+    },
+    {
+      "target": "KisUndoStoreInterfaceContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoreInterfaceContractTest.cpp",
+      "test": "KisUndoStoreInterfaceContractTest::constructionAndHistorySignalRemainObservable",
+      "behavior": "undo store基底接続面は親を持たずに構築でき、履歴状態変更signalを発火回数どおり配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUndoStore",
+        "method:KisUndoStore::KisUndoStore()",
+        "method:KisUndoStore::historyStateChanged()"
+      ]
+    },
+    {
+      "target": "KisUndoStoreInterfaceContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoreInterfaceContractTest.cpp",
+      "test": "KisUndoStoreInterfaceContractTest::commandPointersDispatchWithoutOwnership",
+      "behavior": "undo store基底接続面は現在命令と追加命令の借用pointerを変更せず派生実装へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUndoStore::addCommand(KUndo2Command * cmd)",
+        "method:KisUndoStore::presentCommand()"
+      ]
+    },
+    {
+      "target": "KisUndoStoreInterfaceContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoreInterfaceContractTest.cpp",
+      "test": "KisUndoStoreInterfaceContractTest::macroAndHistoryOperationsPreserveReferenceAndOrder",
+      "behavior": "undo store基底接続面はmacro名参照を保持し、macro開始、undo、macro終了、redo状態破棄を呼出順どおり派生実装へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUndoStore::beginMacro(const KUndo2MagicString & macroName)",
+        "method:KisUndoStore::endMacro()",
+        "method:KisUndoStore::purgeRedoState()",
+        "method:KisUndoStore::undoLastCommand()"
+      ]
+    },
+    {
+      "target": "KisUndoStoreInterfaceContractTest",
+      "source": "libs/painting/undo/tests/KisUndoStoreInterfaceContractTest.cpp",
+      "test": "KisUndoStoreInterfaceContractTest::baseOwnershipHasVirtualLifetime",
+      "behavior": "undo storeは基底所有からの解放で派生destructorを通り、個体寿命を一度終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUndoStore::~KisUndoStore()"
       ]
     }
   ]
