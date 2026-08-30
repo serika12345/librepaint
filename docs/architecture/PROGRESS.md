@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 14:15 JST
+- 更新日時: 2026-08-30 14:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,21 +11,16 @@
 
 ### 現在の並列担当票
 
-- 第46並列便は完了し、選択図形代理、遅延図形factory、paintop preset更新proxy、最適化画素精度変換factoryの全28 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み7,561件、未対応22,428件である。
-- 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、4限定対象の同時無作業再構築、製品への一重再集約、製品共有ライブラリー非接続、
-  macOSのパッケージ境界1,440対象、公開API契約検査に成功した。各担当の単発・20回反復と`verify-quick`も成功している。
-- 統合済み専用作業ツリー3本はclean確認直後に個別削除して816 MB、817 MB、815 MBの約2.45 GBを解放した。次世代不足一覧の生成成功後に
-  旧`build/tdd-macos/public-api-missing-g46.json` 5.5 MBも削除し、現在は主作業ツリー、永続増分構築木、最新
-  `build/tdd-macos/public-api-missing-g47.json`だけを次便の入力として保持する。
-- 第47並列便は読み取り専用監査を完了し、`KoPluginLoader`の残るdestructor 1 API、`KoColorBackground` 12 API、
-  `KisStrokeRandomSource` 10 API、`KisDitherOp` 13 APIの合計36 APIを選んだ。完了時の目標は対応済み7,597件、未対応22,392件である。
-- `KoPluginLoaderTest`は既存の動的plugin統合に必要な99工程・188入力を維持し、試験ソースだけを拡張する。限定再構築はCMake同期後に
-  `ninja: no work to do`となり、macOSのパッケージ境界1,440対象にも成功した。新規3対象はそれぞれ未知対象として失敗し、
-  `KoColorBackground`を停止上限7工程・15入力、`KisStrokeRandomSource`を9工程・19入力、`KisDitherOp`を6工程・14入力として開始状態を固定した。
-- 共通基点`f11aa8a060`から担当作業ツリー3本を作成した。各811 MB、合計約2.43 GBは並列実装中だけ保持し、各cleanコミットの統合直後に
-  対応する作業ツリーを削除する。前2実装だけを責務別OBJECT生成物へ移して製品へ1回だけ再集約し、`KisDitherOp`と`KoPluginLoader`は
-  製品構築所有を変更せず試験面だけを拡張する。
+- 第47並列便は完了し、plugin読込器の仮想寿命、色背景、ストローク乱数源、dither操作の全36 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,597件、未対応22,392件である。
+- 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、製品への一重再集約、3新規限定対象の
+  製品共有ライブラリー非接続、macOSのパッケージ境界1,445対象、公開API契約検査に成功した。各担当の単発・20回反復と
+  `verify-quick`も成功している。
+- 統合済み専用作業ツリー3本はclean確認直後に個別削除して816 MB、816 MB、815 MBの約2.45 GBを解放した。次世代不足一覧の
+  生成成功後に旧`build/tdd-macos/public-api-missing-g47.json` 5.5 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、
+  最新`build/tdd-macos/public-api-missing-g48.json`だけを保持する。
+- 第48並列便は新しい作業ツリーを作らず、最新不足一覧、実装、既存試験、直接CMake所有を読む候補監査を開始した。候補ごとに限定構築閉包を
+  実測し、過大な依存は挙動契約の実装より先に縮小する。
 
 ## 再開環境
 
@@ -10457,10 +10452,60 @@
 - 取り込み済み専用作業ツリー3件は各clean確認直後に削除し、816 MB、817 MB、815 MBの約2.45 GBを解放した。次世代不足一覧の生成成功後に
   旧`build/tdd-macos/public-api-missing-g46.json` 5.5 MBを削除し、最新の`public-api-missing-g47.json`だけを次便の入力として保持する。
 
+## R2-G19b plugin読込器の仮想寿命契約で完了した作業
+
+- `libs/koplugin/KoPluginLoader.h`に残っていたdestructor 1 APIを、既存`libs/koplugin/tests/KoPluginLoaderTest.h`と
+  `libs/koplugin/tests/KoPluginLoaderTest.cpp`の寿命試験へ対応付けた。基底所有から派生読込器を破棄すると派生デストラクターを正確に1回実行する。
+- 製品ソースと構築所有は変更していない。既存`KoPluginLoaderTest`は動的plugin統合に必要な99工程・188入力を維持し、試験ソースだけを拡張した。
+- 明示的な仮契約は15試験成功・寿命契約1試験失敗となった。対象CTest単発と20回反復、近傍`KisMimeDatabaseTest`、公開API契約検査、
+  `verify-quick`に成功した。plugin配置、読込み失敗時の寿命、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b 色背景の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/KoColorBackground.h`の全12 APIを、新規`libs/flake/tests/KoColorBackgroundContractTest.cpp`の5試験へ対応付けた。
+  既定と指定色・pattern、無効styleの正規化、値の整合、複製と代入後の独立変更、比較、経路限定描画、基底所有からの派生寿命を固定した。
+  比較がbrush styleを無視する現行挙動は既知不具合に分類した。
+- 開始ファイル`libs/flake/KoColorBackground.cpp`の構築所有を`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から新規
+  AUTOMOC不要/PIC対応`kritaflakecolorbackgroundobjects`へ移し、製品`kritaflake`は同生成物を1回だけ再集約する。実装から未使用の
+  `KoXmlNS.h` includeも除去した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は6工程・13入力で停止上限7工程・15入力以内、製品閉包は
+  594工程・1,220入力のまま維持した。対象CTest単発と20回反復、近傍`KoShapeBackgroundContractTest`、公開記号、一重再集約、
+  製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。無効QColor、空または退化経路、texture・gradient資源、
+  inactive painter、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b ストローク乱数源の全public API契約と構築所有分離で完了した作業
+
+- `libs/image/brushengine/KisStrokeRandomSource.h`の全10 APIを、新規`libs/image/tests/KisStrokeRandomSourceContractTest.cpp`の5試験へ
+  対応付けた。既定LODと両乱数源の安定取得、固定seedの初期系列、LOD切替、複製・代入・自己代入の共有状態、返却済み強参照の寿命を固定した。
+- 開始ファイル`libs/image/brushengine/kis_stroke_random_source.cpp`の構築所有を`libs/image/CMakeLists.txt`の`kritaimage_LIB_SRCS`直接収容から
+  新規AUTOMOC不要/PIC対応`kritaimagestrokerandomsourceobjects`へ移し、製品`kritaimage`は同生成物を1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。限定対象は8工程・17入力で停止上限9工程・19入力以内、製品閉包は
+  1,158工程・2,340入力のまま維持した。対象CTest単発と20回反復、近傍`KisPerStrokeRandomSourceContractTest`、公開記号、一重再集約、
+  製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。既定seedの具体値、共有後の消費順序独立性、整数境界、
+  並行消費、Linux、全ネイティブ検証、製品全体リンクは実行していない。
+
+## R2-G19b dither操作の全public API契約で完了した作業
+
+- `libs/pigment/KisDitherOp.h`の全13 APIを、新規`libs/pigment/tests/KisDitherOpContractTest.cpp`の4試験へ対応付けた。5方式の安定した列挙値、
+  単一画素と矩形の全引数配送と出力書込み、入出力深度識別子、方式、基底所有からの派生寿命を固定した。
+- 製品ソースと構築所有は変更せず、限定試験を既存`kritaglobalidobjects`とQt Core・Testへ直接接続した。限定対象は5工程・12入力で
+  停止上限6工程・14入力以内、製品`kritapigment`は360工程・750入力のまま維持した。
+- 対象未登録の初回限定構築は未知の対象として失敗した。対象CTest単発と20回反復、近傍`KoIDContractTest`、公開記号、製品共有ライブラリー非接続、
+  整形検査、公開API契約検査、`verify-quick`に成功した。具体的な数値dither実装、null、負値、未定義enum、Linux、全ネイティブ検証、
+  製品全体リンクは実行していない。
+
+- 第47並列便はplugin読込器1 API、色背景12 API、ストローク乱数源10 API、dither操作13 APIの合計36 APIを固定した。主作業ツリーで
+  4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への一重再集約、新規3対象の製品共有ライブラリー非接続、
+  macOSのパッケージ境界1,445対象、公開API契約検査を再実行した。公開面は1,549ヘッダー、29,989 API、対応済み7,597件、
+  未対応22,392件になった。
+- 取り込み済み専用作業ツリー3件は各clean確認直後に削除し、816 MB、816 MB、815 MBの約2.45 GBを解放した。次世代不足一覧の
+  生成成功後に旧`build/tdd-macos/public-api-missing-g47.json` 5.5 MBを削除し、最新`public-api-missing-g48.json`だけを次便の入力として保持する。
+  4.9 GBの主増分構築木は限定対象の再構築を避ける永続cacheとして保持する。
+
 ## 次の操作
 
-第47並列便の4対象を並列実装する。各対象の限定構築、単発・20回反復CTest、軽量近傍、公開API契約検査、`verify-quick`を通し、
-担当作業ツリーはcleanコミットの統合直後に個別削除する。最後に主作業ツリーで結合検査し、次世代不足一覧の生成成功後に旧世代を削除する。
+第48並列便の読み取り専用候補監査を完了し、公開ヘッダー、実装、試験、CMake所有が重ならない4対象を確定する。各対象の変更なし限定閉包を
+主増分構築木で順に実測し、過大な依存を先に縮小してから開始状態をコミットする。担当作業ツリーは計画確定後に必要な3本だけを作成する。
 
 ## R1-G5完了根拠
 
