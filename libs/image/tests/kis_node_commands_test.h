@@ -15,7 +15,7 @@ class KisNodeCommandsTest : public QObject
 private Q_SLOTS:
 
     void constructorPreservesTextAndNullNode();
-
+    void destructorReleasesHeldNodeReference();
 };
 
 #endif
