@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22415
+    "expectedMissingApis": 22405
   },
   "contracts": [
     {
@@ -23406,6 +23406,64 @@
       "classification": "maintained",
       "apis": [
         "method:KoColorBackground::~KoColorBackground()"
+      ]
+    },
+    {
+      "target": "KisStrokeRandomSourceContractTest",
+      "source": "libs/image/tests/KisStrokeRandomSourceContractTest.cpp",
+      "test": "KisStrokeRandomSourceContractTest::defaultSourcesAreStableAtLevelZero",
+      "behavior": "ストローク乱数源はLOD 0で構築され、dab単位とストローク単位の有効な乱数源を保持し、同じLODでの反復取得は同一個体を返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeRandomSource",
+        "method:KisStrokeRandomSource::KisStrokeRandomSource()",
+        "method:KisStrokeRandomSource::levelOfDetail() const",
+        "method:KisStrokeRandomSource::perStrokeSource() const",
+        "method:KisStrokeRandomSource::source() const"
+      ]
+    },
+    {
+      "target": "KisStrokeRandomSourceContractTest",
+      "source": "libs/image/tests/KisStrokeRandomSourceContractTest.cpp",
+      "test": "KisStrokeRandomSourceContractTest::seededSourcesMatchAcrossWrappersAndLevels",
+      "behavior": "同じ固定種で構築した独立したラッパーはLOD 0と非0の双方で同じdab乱数初期系列を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeRandomSource::KisStrokeRandomSource(int dabRandomSeed)"
+      ]
+    },
+    {
+      "target": "KisStrokeRandomSourceContractTest",
+      "source": "libs/image/tests/KisStrokeRandomSourceContractTest.cpp",
+      "test": "KisStrokeRandomSourceContractTest::levelSwitchSelectsMatchingSourcePairs",
+      "behavior": "LOD値は指定値を保持し、0ではLOD 0用、非0では共通のLOD N用乱数源を選択する。ストローク単位の両乱数源は同一キーに同じ値を返し、LOD 0へ戻すと元個体を再選択する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeRandomSource::levelOfDetail() const",
+        "method:KisStrokeRandomSource::perStrokeSource() const",
+        "method:KisStrokeRandomSource::setLevelOfDetail(int value)",
+        "method:KisStrokeRandomSource::source() const"
+      ]
+    },
+    {
+      "target": "KisStrokeRandomSourceContractTest",
+      "source": "libs/image/tests/KisStrokeRandomSourceContractTest.cpp",
+      "test": "KisStrokeRandomSourceContractTest::copyAndAssignmentShareSourcesAndLevel",
+      "behavior": "複製構築と代入は選択中のLODと全乱数源の共有個体を保持し、代入は左辺参照を返す。自己代入はLODと共有個体を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeRandomSource::KisStrokeRandomSource(const KisStrokeRandomSource & rhs)",
+        "method:KisStrokeRandomSource::operator =(const KisStrokeRandomSource & rhs)"
+      ]
+    },
+    {
+      "target": "KisStrokeRandomSourceContractTest",
+      "source": "libs/image/tests/KisStrokeRandomSourceContractTest.cpp",
+      "test": "KisStrokeRandomSourceContractTest::returnedSourcesOutliveWrapper",
+      "behavior": "ラッパーから返された強参照はラッパー破棄後もdab単位とストローク単位の乱数源を有効に所有する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeRandomSource::~KisStrokeRandomSource()"
       ]
     }
   ]
