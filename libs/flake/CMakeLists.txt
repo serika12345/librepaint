@@ -547,6 +547,36 @@ set_target_properties(kritaflakeshapeshearcommandobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
+
+add_library(kritaflakesubpathremovecommandobjects OBJECT
+    commands/KoSubpathRemoveCommand.cpp
+)
+target_compile_definitions(kritaflakesubpathremovecommandobjects PRIVATE kritaflake_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritaflakesubpathremovecommandobjects PRIVATE KRITAFLAKE_SUBPATH_REMOVE_COMMAND_CONTRACT_TESTING)
+endif()
+target_include_directories(kritaflakesubpathremovecommandobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaflakesubpathremovecommandobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakesubpathremovecommandobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 target_compile_definitions(kritaflakebehaviorinterfaceobjects PRIVATE kritaflake_EXPORTS)
 target_include_directories(kritaflakebehaviorinterfaceobjects
     PUBLIC
@@ -667,7 +697,6 @@ set(kritaflake_SRCS
     commands/KoPathBreakAtPointCommand.cpp
     commands/KoPathSegmentTypeCommand.cpp
     commands/KoPathCombineCommand.cpp
-    commands/KoSubpathRemoveCommand.cpp
     commands/KoSubpathJoinCommand.cpp
     commands/KoParameterHandleMoveCommand.cpp
     commands/KoParameterToPathCommand.cpp
@@ -796,6 +825,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakepathreversecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapesizecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshapeshearcommandobjects>
+    $<TARGET_OBJECTS:kritaflakesubpathremovecommandobjects>
 
 )
 
