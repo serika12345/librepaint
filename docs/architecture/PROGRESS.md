@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 20:46 JST
+- 更新日時: 2026-08-30 20:48 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,29 +11,29 @@
 
 ### 第61並列便の担当票
 
-- `g61-spinbox-converter`は状態`preparing`、基準はこの計画コミット、作業ツリー
+- `g61-spinbox-converter`は状態`implementing`、基準`8d5d5bbbf5a7e0d19756f81ac29b9869388b5573`、作業ツリー
   `/Users/masato/Documents/librepaint-r2-g61-spinbox-converter`である。目的は値域変換の正順・逆順、端点、オフセット、半値丸め、往復を固定しながら、
   既存試験の広域依存を除くことである。対象は`libs/ui/utils/KisSpinBoxSplineUnitConverter.h`のclass、`io2sp`、`sp2io`の3 API全件である。
   開始ファイル`libs/ui/utils/KisSpinBoxSplineUnitConverter.cpp`を`kritaui_LIB_SRCS`の直接収容から
   `kritauispinboxsplineunitconverterobjects`へ移し、製品`kritaapplicationui`へ一度だけ再集約する。未使用の`kis_debug.h`を除き、既存
   `libs/ui/tests/KisSpinBoxSplineUnitConverterTest.{h,cpp}`を広域試験集合からQt Testと同objectだけの同名専用対象へ移す。変更許可はこの4ファイルと
   `libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`に限る。近傍は`KisAnimationFrameCacheFwdContractTest`、対象macOS、共有cache
-  `.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件6工程・14入力、
+  `.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件6工程・14入力、
   製品`kritaapplicationui` 1,955工程・3,910入力からの増加、製品共有ライブラリー・Qt Gui・Qt Widgets・共通試験基盤への接続、製品object二重収容、
   `min == max`の新仕様化、CTest名変更、公開headerまたは変換ロジック変更、または許可外変更である。
-- `g61-zoom-mode`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g61-zoom-mode`である。目的は拡大率modeの
+- `g61-zoom-mode`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g61-zoom-mode`である。目的は拡大率modeの
   enum値・flags・表示名・未対応mode診断、標準倍率列、前後探索、debug出力を固定することである。対象は`libs/flake/KoZoomMode.h`のclass、enum、
   4 enumerator、`Modes`、4関数の12 API全件である。開始ファイル`libs/flake/KoZoomMode.cpp`を`kritaflake_SRCS`の直接収容から既存
   `kritaflakezoomstateobjects`へ移し、製品`kritaflake`への既存一重再集約を共用する。既存`libs/flake/tests/KoZoomStateContractTest.cpp`と同名対象を
   拡張する。変更許可はこの試験と`libs/flake/CMakeLists.txt`に限る。近傍は同対象の既存4契約と`KoViewTransformStillPointContractTest`、対象macOS、
-  共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件7工程・15入力、製品`kritaflake`
+  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件7工程・15入力、製品`kritaflake`
   612工程・1,256入力からの増加、製品共有ライブラリー接続、設定隔離不能、翻訳の環境依存文字列固定、source二重収容、公開header/source変更、
   または許可外変更である。
-- `g61-lod-transform`は状態`preparing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g61-lod-transform`である。目的は詳細度の
+- `g61-lod-transform`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g61-lod-transform`である。目的は詳細度の
   device取得、倍率適用、筆情報への詳細度設定、値渡し入力の不変性を固定することである。対象はheader-only
   `libs/image/kis_lod_transform.h`のclass、2 constructor、筆情報`map`の4 API全件である。製品objectは作らず、新規
   `libs/image/tests/KisLodTransformContractTest.cpp`をQt Testと必要なQt・Boost headerだけの同名専用対象にする。変更許可はこの新規試験と
-  `libs/image/tests/CMakeLists.txt`に限る。近傍は`KisLodTransformBaseContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限
+  `libs/image/tests/CMakeLists.txt`に限る。近傍は`KisLodTransformBaseContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限
   `transport-commit`、追加委任`forbidden`、統合順3、停止条件5工程・10入力、製品`kritaimage` 1,182工程・2,388入力からの増加、製品・global共有
   ライブラリーまたは実`kis_paint_information.cc`接続、試験内観測の非決定性、null device・負の詳細度・無効な筆情報の新仕様化、公開header変更、
   または許可外変更である。
