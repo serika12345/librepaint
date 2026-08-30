@@ -27,6 +27,7 @@ private Q_SLOTS:
     void testLoadSinglePlugin();
     void testLoadSinglePluginPredicates();
     void testCachedLoad();
+    void testVirtualDestruction();
 
     void testLoadAll_data();
     void testLoadAll();

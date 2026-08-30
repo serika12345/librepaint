@@ -28,6 +28,26 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
+namespace
+{
+class PluginLoaderProbe : public KoPluginLoader
+{
+public:
+    explicit PluginLoaderProbe(int *destructionCount)
+        : m_destructionCount(destructionCount)
+    {
+    }
+
+    ~PluginLoaderProbe() override
+    {
+        ++*m_destructionCount;
+    }
+
+private:
+    int *m_destructionCount;
+};
+}
+
 void KoPluginLoaderTest::initTestCase()
 {
     const QByteArray pluginPath = qgetenv("KRITA_PLUGIN_PATH");
@@ -175,6 +195,18 @@ void KoPluginLoaderTest::testCachedLoad()
 
     QCOMPARE(firstOwner.children().size(), 3);
     QVERIFY(secondOwner.children().isEmpty());
+}
+
+void KoPluginLoaderTest::testVirtualDestruction()
+{
+    int destructionCount = 0;
+
+    {
+        std::unique_ptr<KoPluginLoader> loader = std::make_unique<PluginLoaderProbe>(&destructionCount);
+        QCOMPARE(destructionCount, 0);
+    }
+
+    QCOMPARE(destructionCount, 1);
 }
 
 void KoPluginLoaderTest::testLoadAll_data()

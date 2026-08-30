@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22428
+    "expectedMissingApis": 22427
   },
   "contracts": [
     {
@@ -604,6 +604,16 @@
         "class:KoPluginLoader",
         "method:KoPluginLoader::KoPluginLoader()",
         "method:KoPluginLoader::load(const QString & serviceType,const PluginsConfig & config=PluginsConfig (),QObject * owner=0,bool cache=true)"
+      ]
+    },
+    {
+      "target": "KoPluginLoaderTest",
+      "source": "libs/koplugin/tests/KoPluginLoaderTest.cpp",
+      "test": "KoPluginLoaderTest::testVirtualDestruction",
+      "behavior": "プラグイン読込器を基底所有で破棄すると派生個体のデストラクターを正確に一回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPluginLoader::~KoPluginLoader()"
       ]
     },
     {
