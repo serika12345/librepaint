@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 00:25 JST
+- 更新日時: 2026-08-31 00:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -20,15 +20,16 @@
   構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力、製品`kritaflake` 612工程・1,256入力からの増加、
   完全な`KoSvgTextProperties.cpp`・製品共有ライブラリー・共通試験基盤への接続、製品意味論を模倣する試験協調定義、公開header・製品source・製品CMake変更、
   または許可外変更である。
-- `g67-node-compositeop-command`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g67-node-compositeop-command`である。目的は
-  node合成方式変更命令のredo・undo、汚損範囲、反復、統合・相殺判定、命令識別、共有所有を固定することである。対象は
-  `libs/image/commands/kis_node_compositeop_command.h`のclass、constructor、redo、undo、id、merge、統合・相殺判定の8 API全件である。開始ファイル
-  `libs/image/commands/kis_node_compositeop_command.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimagenodecompositeopcommandobjects`へ移し、
-  製品`kritaimage`へ一度だけ再集約する。既存`libs/image/tests/kis_node_commands_test.{h,cpp}`を同objectと既存の最小node協調定義で拡張する。変更許可は
-  この試験2ファイル、`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は同対象の基底node命令契約、対象macOS、共有cache同上、
-  構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件13工程・28入力、製品`kritaimage`
-  1,184工程・2,392入力からの増加、実node・製品共有ライブラリーへの接続、未実行・非連続命令の新仕様判断、source二重収容、公開header/source変更、
-  または許可外変更である。
+- `g67-nu-bspline-2d`は状態`preparing`、基準はこの候補差替えコミット、作業ツリー`/Users/masato/Documents/librepaint-r2-g67-nu-bspline-2d`である。目的は
+  非一様2次元B-splineの標本値所有、端点、2軸境界条件、格子採取順、補間値、寿命を固定することである。対象は
+  `libs/image/bsplines/kis_nu_bspline_2d.h`のclass、constructor、destructor、initialize、value、2端点、2境界条件の9 API全件である。開始ファイル
+  `libs/image/bsplines/kis_nu_bspline_2d.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimagenubspline2dobjects`へ移す。開始ファイル
+  `libs/image/3rdparty/einspline/nubasis.cpp`、`nubspline_create.cpp`、`nugrid.cpp`を`einspline_SRCS`の直接収容から
+  `kritaimagenonuniformbsplineengineobjects`へ移し、両objectを製品`kritaimage`へ一度だけ再集約する。新規
+  `libs/image/tests/KisNUBSpline2DContractTest.cpp`は両object、既存uniform engine object、Qt Testだけを使う。変更許可はこの新規試験、
+  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`に限る。近傍は`KisBSpline1DContractTest`、対象macOS、共有cache同上、構築実行`waiting`、
+  Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件11工程・23入力、製品`kritaimage` 1,184工程・2,392入力からの増加、
+  製品共有ライブラリーへの接続、無効標本・範囲外・再初期化の新仕様判断、許可外engine source、source二重収容、公開header/source変更、または許可外変更である。
 - `g67-metadata-merge-strategy`は状態`implementing`、同じ基準、作業ツリー`/Users/masato/Documents/librepaint-r2-g67-metadata-merge-strategy`である。目的は
   メタデータ統合方針のUnicode識別情報、宛先と入力列・scoreの仮想配送、基底所有からの寿命を固定することである。対象は
   `libs/painting/metadata/kis_meta_data_merge_strategy.h`のclass、destructor、3識別method、mergeの6 API全件である。開始ファイル
@@ -40,7 +41,7 @@
   source二重収容、公開header/source変更、または許可外変更である。
 - 3担当は初期診断を記録してから実装し、`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。
   統合担当が中央台帳、進捗、担当間のCMake非重複、容量削除を所有する。統合した担当の作業ツリー、局所構築木、ブランチは次担当の統合を待たず
-  直ちに削除する。完了目標は25 API純増の対応済み8,118件、未対応21,871件である。
+  直ちに削除する。完了目標は26 API純増の対応済み8,119件、未対応21,870件である。
 
 ### 現在の結果
 
