@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 15:45 JST
+- 更新日時: 2026-08-30 15:54 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -26,6 +26,17 @@
   最新`build/tdd-macos/public-api-missing-g51.json`だけを保持する。
 - 次の第51並列便は最新不足一覧から読み取り専用監査を行い、所有領域が重ならず、全公開APIを一便で固定でき、限定閉包を既存契約以下へ
   保てる4対象を選定する。候補確定前に専用作業ツリーを作成しない。
+- 第51並列便は読み取り専用監査を完了し、投影画素フィルター4 API、font variant合字模型7 API、取引型命令5 API、接頭辞付き設定wrapper 6 APIの
+  合計22 APIを選んだ。完了時の目標は対応済み7,699件、未対応22,290件である。
+- `KisProjectionPixelFilter`はheader-only抽象接続面をQt Testだけの新規対象へ接続し、停止上限5工程・10入力、製品`kritacanvas`
+  1,188工程・2,396入力を維持する。`KisPrefixedOptionDataWrapper`もheader-onlyで、試験内の最小設定協調定義を使う限定対象を停止上限
+  5工程・12入力へ収め、製品`kritapaintopruntime` 1,261工程・2,542入力と`kritalibpaintop` 2,071工程・4,140入力を維持する。
+- 開始ファイル`libs/flake/text/lager/FontVariantLigaturesModel.cpp`は`kritaflake`直接収容から専用AUTOMOC/PIC生成物へ移し、製品へ1回だけ
+  再集約する。限定対象の停止上限は8工程・16入力、製品増分はメタ情報所有の2工程・4入力だけとする。開始ファイル
+  `libs/image/commands_new/kis_transaction_based_command.cpp`は`kritaimage`直接収容からAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ
+  再集約する。限定対象の停止上限は12工程・25入力、製品閉包は1,164工程・2,352入力を維持する。
+- 計画確定後に共通基点から担当用3作業ツリーを作成する。各作業ツリーはcleanコミットの統合直後に削除し、次世代不足一覧の生成成功後に
+  旧一覧を削除する。
 
 ## 再開環境
 
@@ -10678,8 +10689,9 @@
 
 ## 次の操作
 
-最新`build/tdd-macos/public-api-missing-g51.json`から第51並列便の読み取り専用監査を行う。所有領域が重ならず、全公開APIを一便で固定できる
-4対象を選び、直接CMake依存、変更なし計画、空構築閉包、停止上限を記録してから担当作業ツリーを作成する。
+第51並列便の4対象を並列実装する。4新規限定対象の未知対象診断を記録し、各担当は対象の単発・20回反復CTest、軽量近傍、限定閉包、
+製品共有ライブラリー非接続、公開API契約検査、`verify-quick`を確認する。担当作業ツリーはcleanコミットの統合直後に個別削除し、最後に
+主作業ツリーで結合検査する。
 
 ## R1-G5完了根拠
 
