@@ -59,6 +59,29 @@ set_target_properties(kritaflakeshapebackgroundobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapecontainermodelobjects OBJECT
+    KoShapeContainerModel.cpp
+)
+target_compile_definitions(kritaflakeshapecontainermodelobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeshapecontainermodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritaflakeshapecontainermodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakeshapecontainermodelobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakecolorbackgroundobjects OBJECT
     KoColorBackground.cpp
 )
@@ -1215,7 +1238,6 @@ set(kritaflake_SRCS
     KoShapeBulkActionLock.cpp
     KoShapeControllerBase.cpp
     KoShapeContainer.cpp
-    KoShapeContainerModel.cpp
     KoShapeGroup.cpp
     KoShapeManager.cpp
     KoMarker.cpp
@@ -1363,6 +1385,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakeshapeanchorobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
+    $<TARGET_OBJECTS:kritaflakeshapecontainermodelobjects>
     $<TARGET_OBJECTS:kritaflakecolorbackgroundobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundcommandobjects>
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>

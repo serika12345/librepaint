@@ -183,6 +183,18 @@ target_include_directories(KoShapeBackgroundContractTest PRIVATE
 target_compile_definitions(KoShapeBackgroundContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoShapeContainerModelContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeshapecontainermodelobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoShapeContainerModelContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoShapeContainerModelContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoColorBackgroundContractTest.cpp
     LINK_LIBRARIES
         kritaflakecolorbackgroundobjects
