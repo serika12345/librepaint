@@ -165,6 +165,21 @@ set_target_properties(kritaflakeinteractionstrategyfactoryobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeselectedshapesproxyobjects OBJECT
+    KoSelectedShapesProxy.cpp
+)
+target_compile_definitions(kritaflakeselectedshapesproxyobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeselectedshapesproxyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeselectedshapesproxyobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakeselectedshapesproxyobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeactivecanvasresourcedependencyobjects OBJECT
     KoActiveCanvasResourceDependency.cpp
 )
@@ -742,7 +757,6 @@ set(kritaflake_SRCS
     KoPathPoint.cpp
     KoPathSegment.cpp
     KoSelection.cpp
-    KoSelectedShapesProxy.cpp
     KoSelectedShapesProxySimple.cpp
     KoShape.cpp
     KoShapeBulkActionLock.cpp
@@ -921,6 +935,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakedockfactorybaseobjects>
     $<TARGET_OBJECTS:kritaflakeshapestrokemodelobjects>
     $<TARGET_OBJECTS:kritaflakeinteractionstrategyfactoryobjects>
+    $<TARGET_OBJECTS:kritaflakeselectedshapesproxyobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
     $<TARGET_OBJECTS:kritaflakederivedresourceconverterobjects>
     $<TARGET_OBJECTS:kritaflakeresourceupdatemediatorobjects>

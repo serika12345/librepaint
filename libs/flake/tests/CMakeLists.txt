@@ -170,6 +170,18 @@ target_include_directories(KoInteractionStrategyFactoryContractTest PRIVATE
 target_compile_definitions(KoInteractionStrategyFactoryContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoSelectedShapesProxyContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakeselectedshapesproxyobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoSelectedShapesProxyContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoSelectedShapesProxyContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoActiveCanvasResourceDependencyContractTest.cpp
     LINK_LIBRARIES
         kritaflakeactivecanvasresourcedependencyobjects

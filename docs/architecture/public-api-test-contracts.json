@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22456
+    "expectedMissingApis": 22448
   },
   "contracts": [
     {
@@ -23166,6 +23166,50 @@
       "apis": [
         "method:KisTiledExtentManager::extent() const",
         "method:KisTiledExtentManager::replaceTileStats(const QVector<QPoint> & indexes)"
+      ]
+    },
+    {
+      "target": "KoSelectedShapesProxyContractTest",
+      "source": "libs/flake/tests/KoSelectedShapesProxyContractTest.cpp",
+      "test": "KoSelectedShapesProxyContractTest::parentOwnsDerivedProxy",
+      "behavior": "選択図形代理は指定QObjectを親として保持され、親の終了時に派生個体を正確に1回破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSelectedShapesProxy",
+        "method:KoSelectedShapesProxy::KoSelectedShapesProxy(QObject * parent=0)"
+      ]
+    },
+    {
+      "target": "KoSelectedShapesProxyContractTest",
+      "source": "libs/flake/tests/KoSelectedShapesProxyContractTest.cpp",
+      "test": "KoSelectedShapesProxyContractTest::requestingEditStateDefaultsFalseAndRoundTrips",
+      "behavior": "選択図形代理の編集要求は初期状態で無効であり、有効化と無効化を設定値どおり返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSelectedShapesProxy::isRequestingToBeEdited()",
+        "method:KoSelectedShapesProxy::setRequestingToBeEdited(bool value)"
+      ]
+    },
+    {
+      "target": "KoSelectedShapesProxyContractTest",
+      "source": "libs/flake/tests/KoSelectedShapesProxyContractTest.cpp",
+      "test": "KoSelectedShapesProxyContractTest::selectionDispatchesBorrowedPointerThroughBase",
+      "behavior": "選択図形代理の基底接続面は派生実装が返す現在の選択を同一の借用ポインターとして配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSelectedShapesProxy::selection()"
+      ]
+    },
+    {
+      "target": "KoSelectedShapesProxyContractTest",
+      "source": "libs/flake/tests/KoSelectedShapesProxyContractTest.cpp",
+      "test": "KoSelectedShapesProxyContractTest::signalsPreserveEmissionOrderAndLayerPointer",
+      "behavior": "選択変更、選択内容変更、現在層変更の通知は発行順に同期配送され、現在層を同一の借用ポインターとして伝える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSelectedShapesProxy::currentLayerChanged(const KoShapeLayer * layer)",
+        "method:KoSelectedShapesProxy::selectionChanged()",
+        "method:KoSelectedShapesProxy::selectionContentChanged()"
       ]
     }
   ]
