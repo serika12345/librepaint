@@ -47,7 +47,6 @@ kis_add_tests(
     kis_filter_registry_test.cpp
     kis_filter_strategy_test.cpp
     kis_gradient_painter_test.cpp
-    kis_image_commands_test.cpp
     kis_image_test.cpp
     kis_image_signal_router_test.cpp
     kis_iterators_ng_test.cpp
@@ -126,6 +125,32 @@ kis_add_tests(
     KisGridInterpolationToolsTest.cpp
     LINK_LIBRARIES kritaimage kritatestsdk kritaresourcestorage
     )
+
+kis_add_test(
+    kis_image_commands_test.cpp
+    LINK_LIBRARIES
+        kritaimagedisabledirtyrequestscommandobjects
+        kritapaintingundokundo2coreobjects
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(kis_image_commands_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../commands_new
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/painting/undo
+    ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_compile_definitions(kis_image_commands_test PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapaintingundo_EXPORTS
+)
 
 kis_add_test(
     kis_lod_capable_layer_offset_test.cpp

@@ -855,6 +855,32 @@ set_target_properties(kritaimagetransactionbasedcommandobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagedisabledirtyrequestscommandobjects OBJECT
+   commands_new/KisDisableDirtyRequestsCommand.cpp
+)
+target_compile_definitions(kritaimagedisabledirtyrequestscommandobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagedisabledirtyrequestscommandobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands_new>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagedisabledirtyrequestscommandobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Widgets
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagedisabledirtyrequestscommandobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagelayercollapsecommandobjects OBJECT
    commands_new/KisLayerCollapseCommand.cpp
 )
@@ -1311,7 +1337,6 @@ set(kritaimage_LIB_SRCS
    commands_new/KisMergeLabeledLayersCommand.cpp
    commands_new/KisSimpleModifyTransformMaskCommand.cpp
    commands_new/KisUpdateCommandEx.cpp
-   commands_new/KisDisableDirtyRequestsCommand.cpp
    commands_new/KisResetGroupLayerCacheCommand.cpp
    commands_new/KisLazyCreateTransformMaskKeyframesCommand.cpp
    commands_new/KisChangeCloneLayersCommand.cpp
@@ -1555,6 +1580,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagecompositeprogressproxyobjects>
    $<TARGET_OBJECTS:kritaimagenodecommandobjects>
    $<TARGET_OBJECTS:kritaimagetransactionbasedcommandobjects>
+   $<TARGET_OBJECTS:kritaimagedisabledirtyrequestscommandobjects>
    $<TARGET_OBJECTS:kritaimagelayercollapsecommandobjects>
    $<TARGET_OBJECTS:kritaimagelayercollapsecommandnodeaccessobjects>
    $<TARGET_OBJECTS:kritaimagenoderenamecommandobjects>
