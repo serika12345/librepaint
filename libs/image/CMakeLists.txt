@@ -855,6 +855,58 @@ set_target_properties(kritaimagetransactionbasedcommandobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagelayercollapsecommandobjects OBJECT
+   commands_new/KisLayerCollapseCommand.cpp
+)
+target_compile_definitions(kritaimagelayercollapsecommandobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagelayercollapsecommandobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands_new>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimagelayercollapsecommandobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Widgets
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagelayercollapsecommandobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimagelayercollapsecommandnodeaccessobjects OBJECT
+   commands_new/KisLayerCollapseCommandNodeAccess.cpp
+)
+target_compile_definitions(kritaimagelayercollapsecommandnodeaccessobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagelayercollapsecommandnodeaccessobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/commands_new>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritaimagelayercollapsecommandnodeaccessobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      KF${KF_MAJOR}::I18n
+      Boost::boost
+)
+set_target_properties(kritaimagelayercollapsecommandnodeaccessobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagenoderenamecommandobjects OBJECT
    commands/KisNodeRenameCommand.cpp
    commands_new/KisAsynchronouslyMergeableCommandInterface.cpp
@@ -1124,7 +1176,6 @@ set(kritaimage_LIB_SRCS
    commands_new/KisResetGroupLayerCacheCommand.cpp
    commands_new/KisLazyCreateTransformMaskKeyframesCommand.cpp
    commands_new/KisChangeCloneLayersCommand.cpp
-   commands_new/KisLayerCollapseCommand.cpp
    processing/kis_do_nothing_processing_visitor.cpp
    processing/kis_simple_processing_visitor.cpp
    processing/kis_convert_color_space_processing_visitor.cpp
@@ -1368,6 +1419,8 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagecompositeprogressproxyobjects>
    $<TARGET_OBJECTS:kritaimagenodecommandobjects>
    $<TARGET_OBJECTS:kritaimagetransactionbasedcommandobjects>
+   $<TARGET_OBJECTS:kritaimagelayercollapsecommandobjects>
+   $<TARGET_OBJECTS:kritaimagelayercollapsecommandnodeaccessobjects>
    $<TARGET_OBJECTS:kritaimagenoderenamecommandobjects>
    $<TARGET_OBJECTS:kritaimagenoderenamecommandnodeaccessobjects>
    $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>

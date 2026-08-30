@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22265
+    "expectedMissingApis": 22259
   },
   "contracts": [
     {
@@ -24374,6 +24374,49 @@
       "apis": [
         "function:detail::operator ==(const KisOptionTupleImpl<false,true,Data...> & lhs,const KisOptionTupleImpl<false,true,Data...> & rhs)",
         "function:detail::operator ==(const KisOptionTupleImpl<true,false,FirstData,RestData...> & lhs,const KisOptionTupleImpl<true,false,FirstData,RestData...> & rhs)"
+      ]
+    },
+    {
+      "target": "KisLayerCollapseCommandContractTest",
+      "source": "libs/image/tests/KisLayerCollapseCommandContractTest.cpp",
+      "test": "KisLayerCollapseCommandContractTest::explicitValuesDispatchRedoUndoAndRetainParentedNode",
+      "behavior": "層の折り畳み命令は明示された新旧状態をredoとundoで適用し、親命令から所有される間は対象ノードを生存させる。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisLayerCollapseCommand",
+        "method:KisLayerCollapseCommand::KisLayerCollapseCommand(KisNodeSP node,bool oldValue,bool newValue,KUndo2Command * parent=nullptr)",
+        "method:KisLayerCollapseCommand::redo()",
+        "method:KisLayerCollapseCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisLayerCollapseCommandContractTest",
+      "source": "libs/image/tests/KisLayerCollapseCommandContractTest.cpp",
+      "test": "KisLayerCollapseCommandContractTest::convenienceConstructorReadsOldValueOnce",
+      "behavior": "省略形の構築は対象ノードの旧状態を一度だけ読み取り、後の状態変化に左右されずundoでその値を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerCollapseCommand::KisLayerCollapseCommand(KisNodeSP node,bool newValue,KUndo2Command * parent=nullptr)"
+      ]
+    },
+    {
+      "target": "KisLayerCollapseCommandContractTest",
+      "source": "libs/image/tests/KisLayerCollapseCommandContractTest.cpp",
+      "test": "KisLayerCollapseCommandContractTest::sameNodeConsecutiveCommandsMergeFirstOldWithLastNew",
+      "behavior": "同じノードに対する連続した折り畳み命令は、最初の旧状態と最後の新状態を保持する一つの命令へ統合される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerCollapseCommand::mergeWith(const KUndo2Command * other)"
+      ]
+    },
+    {
+      "target": "KisLayerCollapseCommandContractTest",
+      "source": "libs/image/tests/KisLayerCollapseCommandContractTest.cpp",
+      "test": "KisLayerCollapseCommandContractTest::differentTypesNodesAndDiscontinuousValuesAreRejected",
+      "behavior": "異なる命令型、異なるノード、または状態が連続しない命令との統合は拒否され、状態の非連続は安全表明として観測される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLayerCollapseCommand::mergeWith(const KUndo2Command * other)"
       ]
     }
   ]
