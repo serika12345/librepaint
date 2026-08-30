@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21919
+    "expectedMissingApis": 21896
   },
   "contracts": [
     {
@@ -26280,6 +26280,134 @@
       "apis": [
         "method:KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData,KisUpdatesFacade * updatesFacade,State state)",
         "method:KisUpdateCommandEx::~KisUpdateCommandEx()"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertyDataContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertyDataContractTest.cpp",
+      "test": "KoSvgTextPropertyDataContractTest::defaultsToInheritedDefaultsAndDisabledSpanState",
+      "behavior": "SVG文字属性集約値は共通属性と既定継承属性、空の三状態集合、範囲未選択、無効状態から開始する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KoSvgTextPropertyData::commonProperties",
+        "member:KoSvgTextPropertyData::enabled",
+        "member:KoSvgTextPropertyData::inheritedProperties",
+        "member:KoSvgTextPropertyData::spanSelection",
+        "member:KoSvgTextPropertyData::tristate",
+        "struct:KoSvgTextPropertyData"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertyDataContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertyDataContractTest.cpp",
+      "test": "KoSvgTextPropertyDataContractTest::eachFieldIndependentlyControlsEquality",
+      "behavior": "SVG文字属性集約値の等価性は共通属性、継承属性、三状態集合、範囲選択、有効状態の5項目すべてへ独立して依存する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextPropertyData::operator ==(const KoSvgTextPropertyData & rhs) const"
+      ]
+    },
+    {
+      "target": "KoSvgTextPropertyDataContractTest",
+      "source": "libs/flake/tests/KoSvgTextPropertyDataContractTest.cpp",
+      "test": "KoSvgTextPropertyDataContractTest::registersMetaTypeAndPrintsOrderedState",
+      "behavior": "SVG文字属性集約値は安定したQt metatype名を登録し、共通属性、三状態集合、範囲選択、有効状態の順で診断文字列を出力する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator <<(QDebug dbg,const KoSvgTextPropertyData & prop)"
+      ]
+    },
+    {
+      "target": "KisUpdateCommandExContractTest",
+      "source": "libs/image/tests/KisUpdateCommandExContractTest.cpp",
+      "test": "KisUpdateCommandExContractTest::valueRectUpdateCopiesRectAndRunsOnRedoAndUndo",
+      "behavior": "単一node更新命令は値渡し矩形を構築時に複製し、redoとundoのたびに同じ矩形でnodeを一度だけ更新する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUpdateCommand",
+        "method:KisUpdateCommand::KisUpdateCommand(KisNodeSP node,QRect dirtyRect,KisUpdatesFacade * updatesFacade,bool needsFullRefresh=false)",
+        "method:KisUpdateCommand::redo()",
+        "method:KisUpdateCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisUpdateCommandExContractTest",
+      "source": "libs/image/tests/KisUpdateCommandExContractTest.cpp",
+      "test": "KisUpdateCommandExContractTest::sharedRectUpdateReadsCurrentRectOnRedoAndUndo",
+      "behavior": "単一node更新命令は共有矩形の現在値を各redoとundoで読み取り、その時点の矩形をnode更新へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateCommand::KisUpdateCommand(KisNodeSP node,QSharedPointer<QRect> dirtyRect,KisUpdatesFacade * updatesFacade,bool needsFullRefresh=false)",
+        "method:KisUpdateCommand::redo()",
+        "method:KisUpdateCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisUpdateCommandExContractTest",
+      "source": "libs/image/tests/KisUpdateCommandExContractTest.cpp",
+      "test": "KisUpdateCommandExContractTest::fullRefreshRoutesThroughFacadeOnRedoAndUndo",
+      "behavior": "全面更新を指定した単一node更新命令はnodeを直接変更せず、redoとundoのたびに借用更新接続面へnodeと構築時矩形を配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateCommand::KisUpdateCommand(KisNodeSP node,QRect dirtyRect,KisUpdatesFacade * updatesFacade,bool needsFullRefresh=false)",
+        "method:KisUpdateCommand::redo()",
+        "method:KisUpdateCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisUpdateCommandExContractTest",
+      "source": "libs/image/tests/KisUpdateCommandExContractTest.cpp",
+      "test": "KisUpdateCommandExContractTest::updateCommandOwnsNodeAndSharedRectAndBorrowsFacade",
+      "behavior": "単一node更新命令はnodeと共有矩形を強所有し、基底所有からの破棄で参照を解放する一方、更新接続面は借用して破棄しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateCommand::KisUpdateCommand(KisNodeSP node,QSharedPointer<QRect> dirtyRect,KisUpdatesFacade * updatesFacade,bool needsFullRefresh=false)",
+        "method:KisUpdateCommand::~KisUpdateCommand()"
+      ]
+    },
+    {
+      "target": "KisFilterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisFilterOptionDataContractTest.cpp",
+      "test": "KisFilterOptionDataContractTest::defaultValuesAndTagsRemainStable",
+      "behavior": "描画filter設定値は空の識別子と設定、無効なsmudge modeから開始し、識別子と設定文字列の安定keyを返す。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisFilterOptionData::filterConfig",
+        "member:KisFilterOptionData::filterId",
+        "member:KisFilterOptionData::smudgeMode",
+        "method:KisFilterOptionData::filterConfigTag()",
+        "method:KisFilterOptionData::filterIdTag()",
+        "struct:KisFilterOptionData"
+      ]
+    },
+    {
+      "target": "KisFilterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisFilterOptionDataContractTest.cpp",
+      "test": "KisFilterOptionDataContractTest::readMapsUnicodeConfigurationState",
+      "behavior": "描画filter設定値の読込みは欠落keyを既定値へ写し、Unicode識別子、設定文字列、smudge modeを入力設定を変更せず取り込む。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisFilterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisFilterOptionDataContractTest.cpp",
+      "test": "KisFilterOptionDataContractTest::writeMapsAllMembersAndPreservesOtherProperties",
+      "behavior": "描画filter設定値の書込みはUnicode識別子、設定文字列、smudge modeを対応keyへ保存し、無関係な既存設定を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisFilterOptionData::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisFilterOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisFilterOptionDataContractTest.cpp",
+      "test": "KisFilterOptionDataContractTest::equalityDependsOnEveryMember",
+      "behavior": "描画filter設定値の等価性は識別子、設定文字列、smudge modeの3項目すべてへ独立して依存する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisFilterOptionData & lhs,const KisFilterOptionData & rhs)"
       ]
     }
   ]
