@@ -2,8 +2,8 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 11:25 JST
-- 状態: `planned`
+- 更新日時: 2026-08-30 11:27 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
@@ -14,21 +14,21 @@
 - 第41並列便の共通基準コミットは`b178836b08`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g41-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。担当確定後に必要な3作業ツリー
   だけを作成し、輸送コミットの取り込みとclean確認直後に削除する。
-- 統合担当`elided-label`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`elided-label`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/ui/widgets/kis_elided_label.cpp`、UI製品・試験CMake、新規`KisElidedLabelContractTest.cpp`を所有する。開始ファイルを製品
   `kritaapplicationui`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の1,907工程・3,814入力に
   代えて6工程・13入力以内で、親所有、構築時文字列、左右・中央省略、長文置換、寸法変更、仮想寿命の全4 APIを固定する。
-- 実装担当`slider-combo`は`planned`、構築実行許可は`pending`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。
+- 実装担当`slider-combo`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。
   作業ツリー`/Users/masato/Documents/librepaint-r2-g41-slider-combo`で`libs/widgets/KoSliderCombo.cpp`、必要な場合だけ
   `libs/widgets/KoSliderCombo_p.h`、Widgets製品・試験CMake、新規`KoSliderComboContractTest.cpp`を所有する。開始ファイルを製品
   `kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の762工程・1,553入力と最寄り試験の
   7工程・14入力を基準に8工程・18入力以内で、親と仮想寿命、既定値・範囲・小数桁、設定値の丸め込み、通知、推奨寸法の全14 APIを固定する。
-- 実装担当`projection-updates-filter`は`planned`、構築実行許可は`pending`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
+- 実装担当`projection-updates-filter`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、
   統合順は3である。作業ツリー`/Users/masato/Documents/librepaint-r2-g41-projection-updates-filter`で
   `libs/image/kis_projection_updates_filter.cpp`、Image製品・試験CMake、新規`KisProjectionUpdatesFilterContractTest.cpp`を所有する。開始
   ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の1,138工程・
   2,300入力と最寄り試験の5工程・11入力を基準に6工程・13入力以内で、基底仮想配送と寿命、全更新破棄実装の全7 APIを固定する。
-- 実装担当`double-parse-spin-box`は`planned`、構築実行許可は`pending`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
+- 実装担当`double-parse-spin-box`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
   作業ツリー`/Users/masato/Documents/librepaint-r2-g41-double-parse-spin-box`で
   `libs/widgetutils/kis_double_parse_spin_box.cpp`、WidgetUtils製品・試験CMake、新規`KisDoubleParseSpinBoxContractTest.cpp`を所有する。開始
   ファイルを製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。直前の整数版で実測した
@@ -36,6 +36,8 @@
   固定する。
 - 第41並列便は合計34 APIを追加し、公開面の対応済み7,389件、未対応22,600件を見込む。各担当は限定対象の単発・20回反復、軽量隣接試験、
   公開記号、一重再集約、製品共有ライブラリー非接続、`verify-quick`を確認する。Linux、全ネイティブ検証、製品全体リンクは対象外である。
+- 4限定対象の初回構築は`KisElidedLabelContractTest`、`KoSliderComboContractTest`、`KisProjectionUpdatesFilterContractTest`、
+  `KisDoubleParseSpinBoxContractTest`がいずれも未知の対象として失敗し、挙動契約未登録の赤状態を確認した。
 - 統合担当だけが中央文書と公開API台帳を変更する。許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない挙動を発見した
   時点で`blocked`として引き渡す。
 
@@ -10132,8 +10134,8 @@
 
 ## 次の操作
 
-第41並列便の担当別作業ツリーを共通基準から3本だけ作成し、4対象が未登録である初回限定構築診断を記録する。各担当は直接依存と停止上限を
-再確認し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。
+第41並列便の各担当が直接依存と停止上限を再確認し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。統合担当は専用作業ツリーを
+輸送コミットの取り込みとclean確認直後に削除する。
 
 ## R1-G5完了根拠
 
