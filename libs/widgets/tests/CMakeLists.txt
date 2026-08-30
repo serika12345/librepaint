@@ -64,6 +64,20 @@ kis_add_test(
 target_compile_definitions(KoAspectButtonContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
+    KoAnchorSelectionWidgetTest.cpp
+    LINK_LIBRARIES
+        kritawidgetsanchorselectionwidgetobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+target_compile_definitions(KoAnchorSelectionWidgetTest PRIVATE
+    kritaflake_EXPORTS
+    kritaglobal_EXPORTS
+    kritawidgets_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
+kis_add_test(
     KisPaletteDelegateContractTest.cpp
     LINK_LIBRARIES
         kritawidgetspalettedelegateobjects
@@ -219,7 +233,6 @@ target_compile_definitions(KoZoomHandlerContractTest PRIVATE
 
 kis_add_tests(
     zoomhandler_test.cpp
-    KoAnchorSelectionWidgetTest.cpp
     TestKoZoomAction.cpp
     TestKisTagSelectionWidget.cpp
     TestKisPaletteModel.cpp

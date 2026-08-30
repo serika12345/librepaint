@@ -35,6 +35,32 @@ set_target_properties(kritawidgetsaspectbuttonobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetsanchorselectionwidgetobjects OBJECT
+    KoAnchorSelectionWidget.cpp
+)
+target_compile_definitions(kritawidgetsanchorselectionwidgetobjects PRIVATE
+    kritawidgets_EXPORTS
+)
+target_include_directories(kritawidgetsanchorselectionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/widgetutils
+        ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_link_libraries(kritawidgetsanchorselectionwidgetobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetsanchorselectionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritawidgetspalettedelegateobjects OBJECT
     KisPaletteDelegate.cpp
 )
@@ -327,7 +353,6 @@ set(kritawidgets_LIB_SRCS
     kis_file_name_requester.cpp
 
     KisColorSelectorInterface.cpp
-    KoAnchorSelectionWidget.cpp
 
     kis_color_input.cpp
 
@@ -390,6 +415,7 @@ kis_add_library(kritawidgets SHARED
     ${kritawidgets_LIB_SRCS}
     $<TARGET_OBJECTS:kritawidgetsslidercomboobjects>
     $<TARGET_OBJECTS:kritawidgetsaspectbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetsanchorselectionwidgetobjects>
     $<TARGET_OBJECTS:kritawidgetspalettedelegateobjects>
     $<TARGET_OBJECTS:kritawidgetslinestyleselectorobjects>
     $<TARGET_OBJECTS:kritawidgetscolorpopupbuttonobjects>

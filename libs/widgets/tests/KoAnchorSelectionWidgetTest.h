@@ -7,18 +7,17 @@
 #ifndef __KO_ANCHOR_SELECTION_WIDGET_TEST_H
 #define __KO_ANCHOR_SELECTION_WIDGET_TEST_H
 
-#include <simpletest.h>
-
-#include <KoAnchorSelectionWidget.h>
+#include <QObject>
 
 class KoAnchorSelectionWidgetTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void test();
-
-private Q_SLOTS:
-    void slotValueChanged(KoFlake::AnchorPosition id);
+    void testConstructionAndLifetime();
+    void testSelectionAndNotifications();
+    void testRectangleConversion();
+    void testSlotValidation();
+    void testSizeHints();
 };
 
 #endif /* __KO_ANCHOR_SELECTION_WIDGET_TEST_H */
