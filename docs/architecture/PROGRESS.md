@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 13:30 JST
+- 更新日時: 2026-08-30 13:37 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,8 +19,12 @@
   現在は`develop`の主作業ツリー、永続増分構築木、最新`build/tdd-macos/public-api-missing-g46.json`だけを次便の入力として保持する。
 - `KisScreenColorSamplerBase`は分離MOCが`KoColor`のメタ型実装記号を要求し、現状では製品色管理ライブラリー非接続の限定対象にできない。変更は
   残しておらず、色値実装が小さな構築所有へ分離された後に再監査する。
-- 第46並列便は作業ツリーと追加構築木を作る前に、`libs/flake`、`libs/global`、`libs/image`、`libs/pigment`、`libs/widgets`、`libs/widgetutils`の候補を
-  読み取り専用で監査する。公開API数、実装所有、直接依存、近傍の実測閉包から停止上限を固定し、計画の検査・コミット後に必要な専用作業ツリーだけを作成する。
+- 第46並列便は読み取り専用監査を完了し、`KoSelectedShapesProxy` 8 API、`KoDeferredShapeFactoryBase` 6 API、
+  `KisPaintOpPresetUpdateProxy` 11 API、`KoOptimizedPixelDataScalerU8ToU16Factory` 3 APIの合計28 APIを選んだ。完了時の目標は
+  対応済み7,561件、未対応22,428件である。
+- `KoSelectedShapesProxy`は限定対象8工程・16入力、`KoDeferredShapeFactoryBase`は8工程・16入力、
+  `KisPaintOpPresetUpdateProxy`は12工程・24入力、`KoOptimizedPixelDataScalerU8ToU16Factory`は9工程・20入力を停止上限とする。
+  各実装を現在の製品ソース直接収容から責務別OBJECT生成物へ移し、製品へ1回だけ再集約する。計画検査とコミット後に担当作業ツリー3本だけを作成する。
 
 ## 再開環境
 
@@ -10398,8 +10402,9 @@
 
 ## 次の操作
 
-第46並列便の候補を`build/tdd-macos/public-api-missing-g46.json`から読み取り専用で監査する。公開API数、実装所有、直接依存、近傍の実測閉包から停止上限を固定し、
-計画を検査・コミットした後に必要な担当作業ツリーだけを作成する。
+第46並列便の計画を`verify-quick`で検査してコミットする。担当作業ツリー3本を作成し、主作業ツリーを含む4対象について未登録対象の初回失敗を確認する。
+開始状態をコミットした後、4対象の構築所有分離と全public API挙動契約を並列実装する。各担当は限定対象、単発・20回反復、軽量近傍、製品共有ライブラリー非接続、
+公開API契約検査、`verify-quick`に成功したclean commitを引き渡し、統合直後に対応する作業ツリーを削除する。
 
 ## R1-G5完了根拠
 
