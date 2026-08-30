@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 09:20 JST
+- 更新日時: 2026-08-30 09:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -13,21 +13,21 @@
 
 - 第37並列便の共通基準コミットは`609ec3f89b`である。統合担当は`develop`の主作業ツリー、実装担当は
   `/Users/masato/Documents/librepaint-r2-g37-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。
-- 統合担当`root-surface-tracker`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+- 統合担当`root-surface-tracker`は`active`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
   `libs/widgetutils/KisRootSurfaceTrackerBase.cpp`、WidgetUtils製品・試験CMake、新規`KisRootSurfaceTrackerBaseContractTest.cpp`を所有する。
   開始ファイルを製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の254工程・
   541入力に代えて8工程・16入力以内で、追跡widgetの借用、QObject親と仮想寿命、非native階層の初期化・親変更配送の全4 APIを固定する。
-- 実装担当`shape-shear-command`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。
+- 実装担当`shape-shear-command`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は2である。
   作業ツリー`/Users/masato/Documents/librepaint-r2-g37-shape-shear-command`で`libs/flake/commands/KoShapeShearCommand.cpp`、Flake製品・試験CMake、
   新規`KoShapeShearCommandContractTest.cpp`を所有する。開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ
   移し、製品へ1回だけ再集約する。製品の573工程・1,178入力に代えて6工程・14入力以内で、複数shapeのshear値保持、更新順、redo・undo・
   再redo、空入力、親命令、借用寿命の全5 APIを固定する。
-- 実装担当`fill-interval-map`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
+- 実装担当`fill-interval-map`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は3である。
   作業ツリー`/Users/masato/Documents/librepaint-r2-g37-fill-interval-map`で`libs/image/floodfill/kis_fill_interval_map.cpp`、Image製品・試験CMake、
   新規`KisFillIntervalMapContractTest.cpp`を所有する。開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、
   製品へ1回だけ再集約する。製品の1,125工程・2,274入力と既存内部試験の1,129工程・2,281入力に代えて6工程・13入力以内で、挿入、全件取得、
   行補正、中央・端のcrop、clear、値寿命の全7 APIを固定する。
-- 実装担当`aspect-button`は`planned`、構築実行許可は`waiting`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
+- 実装担当`aspect-button`は`active`、構築実行許可は`granted`、Git操作権限は`transport-commit`、追加委任は`forbidden`、統合順は4である。
   作業ツリー`/Users/masato/Documents/librepaint-r2-g37-aspect-button`で`libs/widgets/KoAspectButton.cpp`、Widgets製品・試験CMake、新規
   `KoAspectButtonContractTest.cpp`を所有する。開始ファイルを製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、
   製品へ1回だけ再集約する。試験内の決定的な`KisIconUtils::loadIcon()`実装で製品共有ライブラリーを避け、製品の750工程・1,529入力に代えて
@@ -9887,8 +9887,8 @@
 
 ## 次の操作
 
-第37並列便の専用作業木を共通基準コミットから作り、各限定対象が未知で失敗する初回診断を記録する。統合担当が構築実行を許可した後、
-各担当は記録済みの停止上限と直接依存を再確認し、許可パス内だけで最小契約を追加する。
+第37並列便の4担当は、各限定対象が未知で失敗する初回診断を記録し、記録済みの停止上限と直接依存を再確認する。許可パス内だけで
+最小契約を追加し、単発・20回反復・軽量隣接試験・`verify-quick`に成功した輸送コミットを統合順に引き渡す。
 
 ## R1-G5完了根拠
 
