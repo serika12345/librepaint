@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22360
+    "expectedMissingApis": 22350
   },
   "contracts": [
     {
@@ -23726,6 +23726,52 @@
       "classification": "maintained",
       "apis": [
         "method:KisToolChangesTracker::~KisToolChangesTracker()"
+      ]
+    },
+    {
+      "target": "KisDoSomethingCommandContractTest",
+      "source": "libs/image/tests/KisDoSomethingCommandContractTest.cpp",
+      "test": "KisDoSomethingCommandContractTest::finalUpdateControlsRepeatedRedoAndUndoAndParentOwnership",
+      "behavior": "レイヤー操作命令は指定したレイヤーと親命令を保持し、最終更新指定時はredo、非指定時はundoの各呼出しごとに操作を一回だけ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDoSomethingCommand",
+        "method:KisDoSomethingCommand::KisDoSomethingCommand(LayerType layer,bool finalUpdate,KUndo2Command * parentCommand=0)",
+        "method:KisDoSomethingCommand::redo()",
+        "method:KisDoSomethingCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisDoSomethingCommandContractTest",
+      "source": "libs/image/tests/KisDoSomethingCommandContractTest.cpp",
+      "test": "KisDoSomethingCommandContractTest::resetOperationForwardsCurrentColorSpace",
+      "behavior": "キャッシュ初期化操作は同じレイヤーから色空間を一回取得し、その値を同じレイヤーのキャッシュ初期化へ一回配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoSomethingCommandOps::ResetOp::operator () (LayerType layer)",
+        "struct:KisDoSomethingCommandOps::ResetOp"
+      ]
+    },
+    {
+      "target": "KisDoSomethingCommandContractTest",
+      "source": "libs/image/tests/KisDoSomethingCommandContractTest.cpp",
+      "test": "KisDoSomethingCommandContractTest::updateOperationCallsLayer",
+      "behavior": "更新操作は受け取った同じレイヤーのupdateを正確に一回呼び出し、他のレイヤー操作を実行しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoSomethingCommandOps::UpdateOp::operator () (LayerType layer)",
+        "struct:KisDoSomethingCommandOps::UpdateOp"
+      ]
+    },
+    {
+      "target": "KisDoSomethingCommandContractTest",
+      "source": "libs/image/tests/KisDoSomethingCommandContractTest.cpp",
+      "test": "KisDoSomethingCommandContractTest::notifyOperationCallsLayer",
+      "behavior": "色空間変更通知操作は受け取った同じレイヤーのnotifyColorSpaceChangedを正確に一回呼び出し、他のレイヤー操作を実行しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDoSomethingCommandOps::NotifyColorSpaceChangedOp::operator () (LayerType layer)",
+        "struct:KisDoSomethingCommandOps::NotifyColorSpaceChangedOp"
       ]
     }
   ]
