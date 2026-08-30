@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22147
+    "expectedMissingApis": 22121
   },
   "contracts": [
     {
@@ -25065,6 +25065,152 @@
       "classification": "maintained",
       "apis": [
         "class:KisColorOptionModel"
+      ]
+    },
+    {
+      "target": "LineHeightModelContractTest",
+      "source": "libs/flake/tests/LineHeightModelContractTest.cpp",
+      "test": "LineHeightModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "行高模型はnormal有効、長さ形式、未使用の1.0数値、0絶対長を既定保存値とし、isNormal、value、unitを読取り、書込み、変更通知が可能なQtプロパティとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:LineHeightModel",
+        "method:LineHeightModel::LAGER_QT_CURSOR(LineHeightType,unit)",
+        "method:LineHeightModel::LAGER_QT_CURSOR(bool,isNormal)",
+        "method:LineHeightModel::LAGER_QT_CURSOR(qreal,value)",
+        "method:LineHeightModel::LineHeightModel(lager::cursor<KoSvgText::LineHeightInfo> _data=lager::make_state (KoSvgText::LineHeightInfo (),lager::automatic_tag{}))"
+      ]
+    },
+    {
+      "target": "LineHeightModelContractTest",
+      "source": "libs/flake/tests/LineHeightModelContractTest.cpp",
+      "test": "LineHeightModelContractTest::lineHeightTypeValuesAndMetaObjectRemainStable",
+      "behavior": "行高単位のAbsolute、Em、Ex、Cap、Ch、Ic、Lh、Percentage、Linesは0から8の安定した値とQt列挙meta情報を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:LineHeightModel::LineHeightType",
+        "enumerator:LineHeightModel::LineHeightType::Absolute",
+        "enumerator:LineHeightModel::LineHeightType::Cap",
+        "enumerator:LineHeightModel::LineHeightType::Ch",
+        "enumerator:LineHeightModel::LineHeightType::Em",
+        "enumerator:LineHeightModel::LineHeightType::Ex",
+        "enumerator:LineHeightModel::LineHeightType::Ic",
+        "enumerator:LineHeightModel::LineHeightType::Lh",
+        "enumerator:LineHeightModel::LineHeightType::Lines",
+        "enumerator:LineHeightModel::LineHeightType::Percentage"
+      ]
+    },
+    {
+      "target": "LineHeightModelContractTest",
+      "source": "libs/flake/tests/LineHeightModelContractTest.cpp",
+      "test": "LineHeightModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入した行高cursorのnormal状態、値、単位は3プロパティと通知へ同期し、Qtプロパティからの変更は同じcursorへ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LineHeightModel::LAGER_QT_CURSOR(LineHeightType,unit)",
+        "method:LineHeightModel::LAGER_QT_CURSOR(bool,isNormal)",
+        "method:LineHeightModel::LAGER_QT_CURSOR(qreal,value)",
+        "method:LineHeightModel::LineHeightModel(lager::cursor<KoSvgText::LineHeightInfo> _data=lager::make_state (KoSvgText::LineHeightInfo (),lager::automatic_tag{}))"
+      ]
+    },
+    {
+      "target": "LineHeightModelContractTest",
+      "source": "libs/flake/tests/LineHeightModelContractTest.cpp",
+      "test": "LineHeightModelContractTest::allUnitsMapToStorageWithoutConvertingMagnitude",
+      "behavior": "8つの長さ単位は対応するCSS長さ単位へ一対一で保存され、Linesは数値形式を選び、単位変更は保存済みの大きさを変換しない。",
+      "classification": "maintained",
+      "apis": [
+        "enum:LineHeightModel::LineHeightType",
+        "enumerator:LineHeightModel::LineHeightType::Absolute",
+        "enumerator:LineHeightModel::LineHeightType::Cap",
+        "enumerator:LineHeightModel::LineHeightType::Ch",
+        "enumerator:LineHeightModel::LineHeightType::Em",
+        "enumerator:LineHeightModel::LineHeightType::Ex",
+        "enumerator:LineHeightModel::LineHeightType::Ic",
+        "enumerator:LineHeightModel::LineHeightType::Lh",
+        "enumerator:LineHeightModel::LineHeightType::Lines",
+        "enumerator:LineHeightModel::LineHeightType::Percentage",
+        "method:LineHeightModel::LAGER_QT_CURSOR(LineHeightType,unit)",
+        "method:LineHeightModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "LineHeightModelContractTest",
+      "source": "libs/flake/tests/LineHeightModelContractTest.cpp",
+      "test": "LineHeightModelContractTest::percentageAndOtherMagnitudesUseStableScaling",
+      "behavior": "Percentage行高は保存比率を100倍して公開し公開値を0.01倍して保存する一方、他の長さ単位とLines数値は大きさを無変換で往復する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LineHeightModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "LineHeightModelContractTest",
+      "source": "libs/flake/tests/LineHeightModelContractTest.cpp",
+      "test": "LineHeightModelContractTest::numberLengthAndNormalStateRemainIndependent",
+      "behavior": "行高模型はLines数値、長さ値、normal状態を独立して保持し、単位形式を切り替えると選択した形式の保存済み値を再公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:LineHeightModel::LAGER_QT_CURSOR(LineHeightType,unit)",
+        "method:LineHeightModel::LAGER_QT_CURSOR(bool,isNormal)",
+        "method:LineHeightModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "LineHeightModelContractTest",
+      "source": "libs/flake/tests/LineHeightModelContractTest.cpp",
+      "test": "LineHeightModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "行高模型をQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:LineHeightModel"
+      ]
+    },
+    {
+      "target": "kis_node_commands_test",
+      "source": "libs/image/tests/kis_node_commands_test.cpp",
+      "test": "KisNodeCommandsTest::destructorReleasesHeldNodeReference",
+      "behavior": "ノード命令を基底命令ポインターから破棄すると、強所有していたノード参照を一度解放し、外部所有だけを残す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeCommand::~KisNodeCommand()"
+      ]
+    },
+    {
+      "target": "KisSensorPackInterfaceContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorPackInterfaceContractTest.cpp",
+      "test": "KisSensorPackInterfaceContractTest::operationsPreservePointersOrderAndResults",
+      "behavior": "センサーパック境界は可変・constセンサー列の同一性と順序、比較・読込・書込の引数と返値、活動センサー長の既定値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSensorPackInterface",
+        "method:KisSensorPackInterface::calcActiveSensorLength(const QString & activeSensorId) const",
+        "method:KisSensorPackInterface::compare(const KisSensorPackInterface * rhs) const",
+        "method:KisSensorPackInterface::constSensors() const",
+        "method:KisSensorPackInterface::read(KisCurveOptionDataCommon & data,const KisPropertiesConfiguration * setting) const",
+        "method:KisSensorPackInterface::sensors()",
+        "method:KisSensorPackInterface::write(const KisCurveOptionDataCommon & data,KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisSensorPackInterfaceContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorPackInterfaceContractTest.cpp",
+      "test": "KisSensorPackInterfaceContractTest::cloningUsesVirtualCopyAndDetachesSharedData",
+      "behavior": "直接複製と共有データの分離は仮想複製を通じて別個体と独立した値を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSensorPackInterface::clone() const",
+        "method:QSharedDataPointer::clone()"
+      ]
+    },
+    {
+      "target": "KisSensorPackInterfaceContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSensorPackInterfaceContractTest.cpp",
+      "test": "KisSensorPackInterfaceContractTest::baseLifetimeIsVirtual",
+      "behavior": "センサーパックを基底ポインターから破棄すると派生個体の寿命を一度終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSensorPackInterface::~KisSensorPackInterface()"
       ]
     }
   ]

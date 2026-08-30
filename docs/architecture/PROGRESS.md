@@ -2,86 +2,46 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 18:47 JST
+- 更新日時: 2026-08-30 19:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第57並列便の担当票
-
-- `g57-line-height`は状態`implementing`、基準`276eef20a083c21a4394d311bf9315f8e0c3547f`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g57-line-height`である。目的は行高の既定状態、9単位、百分率の表示倍率、Qt列挙情報、
-  cursorとQt propertyの双方向同期、数値形式・長さ形式・normal状態の独立保持、QObject寿命を固定することである。対象は
-  `libs/flake/text/lager/LineHeightModel.h`のclass、enumと9 enumerator、constructor、isNormal・value・unitの3 `LAGER_QT_CURSOR`の
-  全15 APIである。変更許可は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規
-  `libs/flake/tests/LineHeightModelContractTest.cpp`に限る。開始ファイル`libs/flake/text/lager/LineHeightModel.cpp`の直接収容を
-  `kritaflakelineheightmodelobjects`へ移し、製品へ一度だけ再集約する。近傍は`TabSizeModelContractTest`、対象macOS、
-  共有cache`.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、
-  停止条件8工程・16入力、製品`kritaflake` 610工程・1,252入力超過、百分率写像を一意に分類できない場合、製品共有ライブラリー接続、
-  または許可外変更である。
-- `g57-node-command`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g57-node-command`である。目的は既存node命令試験から未使用の描画undo製品共有依存を除き、
-  `KUndo2Command`基底経由の破棄が強所有するnodeを一度解放する契約を固定することである。対象は
-  `libs/image/commands/kis_node_command.h`の未対応destructor 1 APIであり、既対応のclassとconstructorも同じ既存試験で維持する。
-  変更許可は`libs/image/tests/CMakeLists.txt`、`libs/image/tests/kis_node_commands_test.cpp`、同`kis_node_commands_test.h`に限る。
-  開始対象`kis_node_commands_test`の直接依存を製品`kritapaintingundo`から`kritapaintingundokundo2coreobjects`へ縮小し、既存の
-  `kritaimagenodecommandobjects`と外部Qt・KF・Boostだけを接続する。構造縮小後の既存契約成功を確認してから新しい試験関数の
-  未登録診断と寿命契約を追加する。近傍は`KisNodeRenameCommandContractTest`、対象macOS、共有cache同上、構築実行`granted`、
-  Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件12工程・25入力、製品`kritaimage` 1,178工程・2,380入力増加、
-  具体nodeまたは製品共有ライブラリー接続、参照数が複写省略へ依存する場合、または許可外変更である。
-- `g57-sensor-pack`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g57-sensor-pack`である。目的はsensor pack境界の可変・不変sensor順、比較・読書きの引数配送、
-  active sensor長の既定値、仮想複製、共有データ分離、仮想寿命を固定することである。対象は
-  `plugins/paintops/libpaintop/KisSensorPackInterface.h`のclass、destructor、clone、constSensors、sensors、compare、read、write、
-  `calcActiveSensorLength`と`QSharedDataPointer::clone`の全10 APIである。変更許可は`plugins/paintops/libpaintop/CMakeLists.txt`、
-  同`tests/CMakeLists.txt`、新規`plugins/paintops/libpaintop/tests/KisSensorPackInterfaceContractTest.cpp`に限る。開始ファイル
-  `plugins/paintops/libpaintop/KisSensorPackInterface.cpp`を`kritapaintopruntime`の直接収容から
-  `kritapaintopsensorpackinterfaceobjects`へ移し、runtimeへ一度だけ再集約する。近傍は`KisSensorDataContractTest`、対象macOS、
-  共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力、
-  `kritalibpaintop` 2,089工程・4,176入力または`kritapaintopruntime` 1,275工程・2,570入力からの増加、最小協調型のODR衝突、
-  製品共有ライブラリー接続、または許可外変更である。
-- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、
-  進捗、担当間のCMake非重複、容量削除を所有する。完了目標は26 API純増の対応済み7,868件、未対応22,121件である。
-
 ### 現在の結果
 
-- 第56並列便はtab幅模型13 API、選択投影更新ジョブ6 API、色設定模型12 APIの合計31 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み7,842件、未対応22,147件である。
-- `libs/flake/text/lager/TabSizeModel.cpp`の構築所有は`kritaflake_SRCS`の直接収容から
-  `kritaflaketabsizemodelobjects`へ移し、同じ開始ファイルを製品`kritaflake`へ一度だけ再集約した。
-  `libs/flake/tests/TabSizeModelContractTest.cpp`が既定8文字、8単位とQt列挙情報、保存写像、文字数形式と長さ形式の値保持、
-  cursorとQt propertyの双方向同期、QObject寿命を固定する。
-- `libs/image/kis_update_selection_job.cpp`の構築所有は`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimageupdateselectionjobobjects`へ移した。同じ開始ファイル内の具体selection・親node・projection leaf操作を
-  `libs/image/KisUpdateSelectionJobSelectionAccess.cpp`と`libs/image/KisUpdateSelectionJobSelectionAccess_p.h`へ移し、
-  `kritaimageupdateselectionjobselectionaccessobjects`として製品へ一度だけ再集約した。公開ヘッダー
-  `libs/image/kis_update_selection_job.h`の具体`kis_selection.h`依存は`kis_types.h`と明示的な`QRect`へ縮小した。
-- `plugins/paintops/libpaintop/KisColorOptionModel.cpp`の構築所有は`kritalibpaintop_LIB_SRCS`の直接収容から
-  `kritapaintopcoloroptionmodelobjects`へ移し、同じ開始ファイルを製品`kritalibpaintop`へ一度だけ再集約した。
-  `plugins/paintops/libpaintop/tests/KisColorOptionModelContractTest.cpp`が6真偽値と3整数値の既定値、Qt property、双方向同期、
-  9項目の独立更新、QObject寿命を固定する。
+- 第57並列便は行高模型15 API、node命令destructor 1 API、sensor pack境界10 APIの合計26 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,868件、未対応22,121件である。
+- `libs/flake/text/lager/LineHeightModel.cpp`の構築所有は`kritaflake_SRCS`の直接収容から
+  `kritaflakelineheightmodelobjects`へ移し、同じ開始ファイルを製品`kritaflake`へ一度だけ再集約した。
+  `libs/flake/tests/LineHeightModelContractTest.cpp`が既定状態、9単位とQt列挙情報、百分率の100倍表示と0.01倍保存、
+  数値形式・長さ形式・normal状態、cursorとQt propertyの双方向同期、QObject寿命を固定する。
+- `libs/image/tests/kis_node_commands_test`の直接依存は製品`kritapaintingundo`から
+  `kritapaintingundokundo2coreobjects`へ縮小した。開始試験`libs/image/tests/kis_node_commands_test.cpp`と同ヘッダーへ、
+  `KUndo2Command`基底経由の破棄前後で強所有node参照が2から1へ減り、外部所有解放後に0となる契約を追加した。
+  製品`libs/image/commands/kis_node_command.cpp`は既存`kritaimagenodecommandobjects`所有と製品への一重再集約を維持する。
+- `plugins/paintops/libpaintop/KisSensorPackInterface.cpp`の構築所有は`kritapaintopruntime_LIB_SRCS`の直接収容から
+  `kritapaintopsensorpackinterfaceobjects`へ移し、同じ開始ファイルを`kritapaintopruntime`へ一度だけ再集約した。
+  `plugins/paintops/libpaintop/tests/KisSensorPackInterfaceContractTest.cpp`がsensor順、比較・読書きの引数配送、既定長、
+  仮想複製、共有データ分離、仮想寿命を製品型へ接続せず固定する。
 - 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象の同時再構築は無作業であった。各担当の単発CTest、
-  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,503対象、公開API契約検査は
-  7,842/29,989件で成功した。3限定対象の動的依存に製品共有ライブラリーは含まれない。
-- 限定閉包はtab幅模型7工程・14入力、選択投影更新ジョブ5工程・11入力、色設定模型7工程・14入力である。
-  担当単独の製品閉包は`kritaflake` 608工程・1,248入力、`kritaimage` 1,176工程・2,376入力、
-  `kritalibpaintop` 2,086工程・4,170入力、`kritapaintopruntime` 1,272工程・2,564入力である。統合後は
-  `kritaflake` 608工程・1,248入力、`kritaimage` 1,178工程・2,380入力、`kritalibpaintop` 2,089工程・4,176入力、
-  `kritapaintopruntime` 1,275工程・2,570入力である。追加分はtab幅objectと選択投影更新objectが既存の下流依存へ伝播した結果である。
-- 選択投影更新の上書き契約は、同じ選択の範囲和、全体更新受信側の保持、別選択・異型・nullの拒否を固定した。部分更新受信側へ
-  全体更新相手を渡す非対称枝とnull selectionは、公開APIの通常入力を表す追加根拠が得られた段階で分類する。
+  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,507対象、公開API契約検査は
+  7,868/29,989件で成功した。3限定対象の動的依存に製品共有ライブラリーは含まれない。
+- 限定閉包は行高模型7工程・14入力、node命令11工程・24入力、sensor pack境界5工程・11入力である。node命令は依存縮小により
+  289工程・608入力から11工程・24入力へ縮小した。担当単独の製品閉包は`kritaflake` 610工程・1,252入力、
+  `kritaimage` 1,178工程・2,380入力、`kritalibpaintop` 2,089工程・4,176入力、`kritapaintopruntime` 1,275工程・2,570入力である。
+  統合後は`kritaflake` 610工程・1,252入力、`kritaimage` 1,180工程・2,384入力、`kritalibpaintop` 2,091工程・4,180入力、
+  `kritapaintopruntime` 1,277工程・2,574入力である。追加分は行高objectが既存の下流依存へ伝播した結果である。
 - 検証範囲はmacOSの限定対象とし、製品全体の構築・リンクとLinux検証は対象閉包を越えるため統合検証から除外した。
   製品への一重再集約、限定対象の直接依存、製品閉包はNinjaグラフで確認した。
-- 統合済み作業ツリー3本と担当ブランチはclean成果の統合直後に削除し、約2.46 GBを解放した。第57便不足一覧
-  `build/tdd-macos/public-api-missing-g57.json`の生成後に旧G56一覧を削除した。再利用する主増分構築木5.0 GB、共有コンパイラー
-  cache 559 MB、最新一覧5.4 MBだけを保持する。
+- 統合済み作業ツリー3本と担当ブランチはclean成果の統合直後に削除し、約2.74 GBを解放した。第58便不足一覧
+  `build/tdd-macos/public-api-missing-g58.json`の生成後に旧G57一覧を削除した。再利用する主増分構築木5.0 GB、共有コンパイラー
+  cache 603 MB、最新一覧5.4 MBだけを保持する。
 
 ### 次の操作
 
-- 第57並列便の3担当で対象別の構造縮小、未知契約診断、限定実装、対象CTest、20回反復、軽量近傍、高速検査を実行する。
-  cleanな輸送コミットを統合順に取り込み、各統合直後に担当作業ツリーとブランチを削除する。
+- 第58並列便は不足一覧を読み取り専用で監査し、3候補の公開API、最小契約、直接依存、閉包上限を決めてから担当作業ツリーを作成する。
 
 ## 再開環境
 
