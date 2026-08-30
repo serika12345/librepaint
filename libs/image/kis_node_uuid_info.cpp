@@ -7,47 +7,49 @@
 
 #include "kis_node_uuid_info.h"
 
+#include "KisNodeUuidInfoNodeAccess_p.h"
 
 KisNodeUuidInfo::KisNodeUuidInfo()
 {
 }
 
-KisNodeUuidInfo::KisNodeUuidInfo(const QUuid& uuid)
+KisNodeUuidInfo::KisNodeUuidInfo(const QUuid &uuid)
 {
     m_uuid = uuid;
 }
 
-KisNodeUuidInfo::KisNodeUuidInfo(const QString& name)
+KisNodeUuidInfo::KisNodeUuidInfo(const QString &name)
 {
     m_name = name;
 }
 
 KisNodeUuidInfo::KisNodeUuidInfo(KisNodeSP node)
 {
-    m_uuid = node->uuid();
-    m_name = node->name();
+    m_uuid = KisNodeUuidInfoNodeAccess::uuid(node.data());
+    m_name = KisNodeUuidInfoNodeAccess::name(node.data());
 }
 
 KisNodeSP KisNodeUuidInfo::findNode(KisNodeSP rootNode)
 {
     if (check(rootNode))
         return rootNode;
-    
-    KisNodeSP child = rootNode->firstChild();
+
+    KisNodeSP child = KisNodeUuidInfoNodeAccess::firstChild(rootNode.data());
     KisNodeSP node = 0;
-    while (child && !node)
-    {
+    while (child && !node) {
         node = findNode(child);
-        child = child->nextSibling();
+        child = KisNodeUuidInfoNodeAccess::nextSibling(child.data());
     }
     return node;
 }
 
 bool KisNodeUuidInfo::check(KisNodeSP node)
 {
-    if (m_uuid == node->uuid())                     // every node has valid uuid
+    // Every node has a valid UUID.
+    if (m_uuid == KisNodeUuidInfoNodeAccess::uuid(node.data()))
         return true;
-    if (m_uuid.isNull() && m_name == node->name())  // but some may have empty names
+    // Some nodes may have empty names.
+    if (m_uuid.isNull() && m_name == KisNodeUuidInfoNodeAccess::name(node.data()))
         return true;
     return false;
 }
