@@ -270,6 +270,16 @@ target_include_directories(KisClickableLabelContractTest PRIVATE
 target_compile_definitions(KisClickableLabelContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisRecentFilesManagerContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsrecentfilesmanagerobjects
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::ConfigCore
+)
+target_compile_definitions(KisRecentFilesManagerContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     KisOptionCollectionWidgetContractTest.cpp
     LINK_LIBRARIES
         kritawidgetutilsoptioncollectionobjects

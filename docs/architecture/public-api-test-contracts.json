@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22571
+    "expectedMissingApis": 22558
   },
   "contracts": [
     {
@@ -22599,6 +22599,81 @@
         "method:KisSerializableConfigurationFactory::create(const QDomElement &)",
         "method:KisSerializableConfigurationFactory::createDefault()",
         "method:KisSerializableConfigurationFactory::~KisSerializableConfigurationFactory()"
+      ]
+    },
+    {
+      "target": "KisRecentFilesManagerContractTest",
+      "source": "libs/widgetutils/tests/KisRecentFilesManagerContractTest.cpp",
+      "test": "KisRecentFilesManagerContractTest::singletonAndEntriesPreserveValues",
+      "behavior": "最近使ったファイル管理はGUIスレッドで同一のプロセス寿命インスタンスを返し、公開entryがURLと表示名を値として保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisRecentFilesManager",
+        "member:KisRecentFilesEntry::m_displayName",
+        "member:KisRecentFilesEntry::m_url",
+        "method:KisRecentFilesManager::instance()",
+        "struct:KisRecentFilesEntry"
+      ]
+    },
+    {
+      "target": "KisRecentFilesManagerContractTest",
+      "source": "libs/widgetutils/tests/KisRecentFilesManagerContractTest.cpp",
+      "test": "KisRecentFilesManagerContractTest::nonGuiThreadCannotAccessSingleton",
+      "behavior": "GUIスレッド外からの管理インスタンス取得を警告してnullとして拒否する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecentFilesManager::instance()"
+      ]
+    },
+    {
+      "target": "KisRecentFilesManagerContractTest",
+      "source": "libs/widgetutils/tests/KisRecentFilesManagerContractTest.cpp",
+      "test": "KisRecentFilesManagerContractTest::clearRenewsAnEmptyList",
+      "behavior": "全entryの消去が一覧を空にし、一覧更新を正確に1回通知する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecentFilesManager::clear()",
+        "method:KisRecentFilesManager::listRenewed()",
+        "method:KisRecentFilesManager::recentFiles() const",
+        "method:KisRecentFilesManager::recentUrlsLatestFirst() const"
+      ]
+    },
+    {
+      "target": "KisRecentFilesManagerContractTest",
+      "source": "libs/widgetutils/tests/KisRecentFilesManagerContractTest.cpp",
+      "test": "KisRecentFilesManagerContractTest::addPreservesOrderNamesAndLatestFirstView",
+      "behavior": "HTTPS URLの追加が古い順のentryとファイル名由来の表示名を保持して追加を通知し、URL一覧は新しい順で返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecentFilesManager::add(const QUrl & url)",
+        "method:KisRecentFilesManager::fileAdded(const QUrl & url)",
+        "method:KisRecentFilesManager::recentFiles() const",
+        "method:KisRecentFilesManager::recentUrlsLatestFirst() const"
+      ]
+    },
+    {
+      "target": "KisRecentFilesManagerContractTest",
+      "source": "libs/widgetutils/tests/KisRecentFilesManagerContractTest.cpp",
+      "test": "KisRecentFilesManagerContractTest::duplicateMovesTheEntryAndReportsReplacement",
+      "behavior": "既存URLの再追加が古いentryの削除、同URLの追加の順で通知し、そのentryを一覧末尾の最新位置へ移す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecentFilesManager::add(const QUrl & url)",
+        "method:KisRecentFilesManager::fileAdded(const QUrl & url)",
+        "method:KisRecentFilesManager::fileRemoved(const QUrl & url)",
+        "method:KisRecentFilesManager::recentFiles() const"
+      ]
+    },
+    {
+      "target": "KisRecentFilesManagerContractTest",
+      "source": "libs/widgetutils/tests/KisRecentFilesManagerContractTest.cpp",
+      "test": "KisRecentFilesManagerContractTest::removeReportsOnlyExistingEntries",
+      "behavior": "既存URLの削除だけがentryを除去して削除を1回通知し、不存在URLの削除は一覧と通知数を変えない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisRecentFilesManager::fileRemoved(const QUrl & url)",
+        "method:KisRecentFilesManager::recentFiles() const",
+        "method:KisRecentFilesManager::remove(const QUrl & url)"
       ]
     }
   ]

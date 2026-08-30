@@ -386,6 +386,30 @@ set_target_properties(kritawidgetutilsclickablelabelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetutilsrecentfilesmanagerobjects OBJECT
+    KisRecentFilesManager.cpp
+)
+target_compile_definitions(kritawidgetutilsrecentfilesmanagerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsrecentfilesmanagerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetutilsrecentfilesmanagerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritawidgetutilsrecentfilesmanagerobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -411,6 +435,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritawidgetutilsrootsurfacetrackerobjects>
     $<TARGET_OBJECTS:kritawidgetutilsscreenmigrationtrackerobjects>
     $<TARGET_OBJECTS:kritawidgetutilsclickablelabelobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsrecentfilesmanagerobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -430,8 +455,6 @@ set(kritawidgetutils_LIB_SRCS
     kis_spin_box_unit_manager.cpp
     kis_font_family_combo_box.cpp
     KisFontFamilyValidator.cpp
-    KisRecentFilesManager.cpp
-
     config/khelpclient.cpp
     config/klanguagebutton.cpp
     config/krecentfilesaction.cpp
