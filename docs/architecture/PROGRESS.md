@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 15:26 JST
+- 更新日時: 2026-08-30 15:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,26 +11,21 @@
 
 ### 現在の並列担当票
 
-- 第49並列便は完了し、tool変更追跡履歴12 API、CSS長さ・百分率模型5 API、条件付きlayer操作10 API、色変換抽象factory 5 APIの
-  合計32 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,649件、未対応22,340件である。
+- 第50並列便は完了し、font variant数値模型8 API、共通移動命令4 API、brush抽象factory 9 API、airbrush設定値7 APIの
+  合計28 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み7,677件、未対応22,312件である。
 - 主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への一重再集約、4限定対象の
-  製品共有ライブラリー非接続、macOSのパッケージ境界1,457対象、公開API契約検査に成功した。各担当の単発・20回反復と
-  `verify-quick`も成功している。
-- 限定閉包はtool変更追跡履歴8工程・17入力、CSS長さ・百分率模型7工程・14入力、条件付きlayer操作10工程・21入力、色変換抽象factory
-  4工程・8入力である。製品閉包は`kritaflake` 596工程・1,224入力、`kritaimage` 1,162工程・2,348入力、`kritatools`
-  1,234工程・2,484入力、`kritapigment` 360工程・750入力になった。CSS模型の専用メタ情報所有2工程・4入力は依存方向に従って
-  imageとtoolsにも伝播し、tool変更追跡履歴の専用メタ情報所有2工程・4入力はtoolsだけに加わる。
-- 統合済み専用作業ツリー3本は各clean確認直後に個別削除し、各約812 MB、合計約2.44 GBを解放した。次世代不足一覧の生成成功後に
-  旧`build/tdd-macos/public-api-missing-g49.json` 5.5 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、
-  最新`build/tdd-macos/public-api-missing-g50.json`だけを保持する。
-- 第50並列便は読み取り専用監査を完了し、font variant数値模型8 API、共通移動命令4 API、brush抽象factory 9 API、airbrush設定値7 APIの
-  合計28 APIを選んだ。完了時の目標は対応済み7,677件、未対応22,312件である。
-- `FontVariantNumericModel.cpp`は596工程・1,224入力の`kritaflake`直接収容から専用AUTOMOC/PIC生成物へ移し、限定対象を停止上限8工程・16入力に
-  収める。`KisAirbrushOptionData.cpp`は1,259工程・2,538入力の`kritapaintopruntime`直接収容からAUTOMOC不要の専用生成物へ移し、同実行時生成物へ
-  1回だけ再集約して限定対象を停止上限6工程・12入力に収める。header-onlyの残る2対象は製品構築所有を変更せず、共通移動命令11工程・23入力、
-  brush factory 13工程・28入力を上限とする。
-- 共通基点`8d4279a622`から担当用3作業ツリーを作成し、4新規限定対象はそれぞれ未知対象として失敗した。各作業ツリーは812 MB、合計約2.44 GBで、
-  並列実装中だけ保持する。各cleanコミットの統合直後に対応する作業ツリーを削除する。
+  製品共有ライブラリー非接続、macOSのパッケージ境界1,463対象、公開API契約検査、`verify-quick`に成功した。各担当の単発・
+  20回反復CTestも成功している。
+- 限定閉包はairbrush設定値5工程・17入力、font variant数値模型7工程・14入力、共通移動命令10工程・21入力、brush抽象factory
+  12工程・26入力である。製品閉包は`kritaflake` 598工程・1,228入力、`kritaimage` 1,164工程・2,352入力、`kritatools`
+  1,236工程・2,488入力、`kritalibbrush` 1,190工程・2,402入力、`kritapaintopruntime` 1,261工程・2,542入力、`kritalibpaintop`
+  2,071工程・4,140入力になった。font variant模型の専用メタ情報所有2工程・4入力だけが許可された依存方向へ伝播し、他3対象は
+  製品閉包を増やしていない。
+- 統合済み専用作業ツリー3本は各clean確認直後に個別削除し、808 MB、820 MB、821 MB、合計約2.45 GBを解放した。次世代不足一覧の
+  生成成功後に旧`build/tdd-macos/public-api-missing-g50.json` 5.5 MBも削除し、現在は主作業ツリー、再利用する4.9 GBの永続増分構築木、
+  最新`build/tdd-macos/public-api-missing-g51.json`だけを保持する。
+- 次の第51並列便は最新不足一覧から読み取り専用監査を行い、所有領域が重ならず、全公開APIを一便で固定でき、限定閉包を既存契約以下へ
+  保てる4対象を選定する。候補確定前に専用作業ツリーを作成しない。
 
 ## 再開環境
 
@@ -10620,10 +10615,71 @@
   旧`build/tdd-macos/public-api-missing-g49.json` 5.5 MBを削除し、最新`public-api-missing-g50.json`だけを次便の入力として保持する。
   4.9 GBの主増分構築木は限定対象の再構築を避ける永続cacheとして保持する。
 
+## R2-G19b airbrush設定値の全public API契約と構築所有分離で完了した作業
+
+- `plugins/paintops/libpaintop/KisAirbrushOptionData.h`の全7 APIを、新規
+  `plugins/paintops/libpaintop/tests/KisAirbrushOptionDataContractTest.cpp`の4試験へ対応付けた。既定値と全値の等値比較、安定した3設定keyへの
+  保存、無関係な設定の保持、全設定値の復元を固定した。空設定のreadが構造体既定値50と異なるrate 20へ置換する現行挙動は既知不具合に分類した。
+- 開始ファイル`plugins/paintops/libpaintop/KisAirbrushOptionData.cpp`は同じ配置を維持し、`plugins/paintops/libpaintop/CMakeLists.txt`での
+  `kritapaintopruntime_LIB_SRCS`直接収容から新規AUTOMOC不要/PIC対応`kritapaintopairbrushoptiondataobjects`へ構築所有を移した。製品側は
+  同生成物を`kritapaintopruntime`へ1回だけ再集約し、`kritalibpaintop`の既存公開面を維持する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。専用生成物の最初の構築ではEigen、Qt Gui、KF I18n、OpenEXR、Qt Xmlの直接include不足を
+  順に検出し、実装が直接使用する依存だけを明示して解消した。実装のコンパイルに必要な5直接依存を省けないため、入力停止上限は12から17へ
+  実測改定した。限定対象は5工程・17入力、近傍`KisTextureOptionDataIOContractTest`は6工程・19入力、
+  分離直後の`kritapaintopruntime` 1,259工程・2,538入力と`kritalibpaintop` 2,069工程・4,136入力は不変だった。対象CTest単発と20回反復、
+  近傍試験、公開記号、一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。null設定pointer、
+  非有限rate、設定型変換、Linux、製品全体リンクは実行していない。
+
+## R2-G19b font variant数値模型の全public API契約と構築所有分離で完了した作業
+
+- `libs/flake/text/lager/FontVariantNumericModel.h`の全8 APIを、新規`libs/flake/tests/FontVariantNumericModelContractTest.cpp`の5試験へ
+  対応付けた。既定の数字形・間隔・分数・ordinal・斜線付きzero、注入cursorとの双方向同期、列挙項目と真偽値項目の独立変更、QObject基底寿命を固定した。
+- 開始ファイル`libs/flake/text/lager/FontVariantNumericModel.cpp`は同じ配置を維持し、`libs/flake/CMakeLists.txt`の`kritaflake_SRCS`直接収容から
+  新規AUTOMOC/PIC対応`kritaflakefontvariantnumericmodelobjects`へ構築所有を移した。製品`kritaflake`は同生成物を1回だけ再集約する。
+- 対象未登録の初回限定構築は未知の対象として失敗した。最初の限定リンクでは列挙値の診断表示が`KoSvgText::staticMetaObject`を要求したため、
+  整数値比較へ正規化して製品共有ライブラリー接続を避けた。限定対象は7工程・14入力、近傍`KoSvgTextEnumContractTest`は4工程・8入力である。
+  `kritaflake`は596工程・1,224入力から、専用メタ情報所有に必要な598工程・1,228入力になった。対象CTest単発と20回反復、近傍試験、公開記号、
+  一重再集約、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。無効な列挙整数、同値再設定時の通知抑制、Linux、
+  製品全体リンクは実行していない。
+
+## R2-G19b 共通移動命令の全public API契約で完了した作業
+
+- `libs/image/commands_new/kis_move_command_common.h`の全4 APIを、新規`libs/image/tests/KisMoveCommandCommonContractTest.cpp`の1試験へ
+  対応付けた。対象の共有所有、親命令所有、redo時の新座標、undo時の旧座標、X・Y配送順序、反復呼出しを固定した。
+- header-only templateのため製品ソースと構築所有は変更せず、限定試験を既存命令生成物とQt Core・Testへ直接接続した。対象未登録の初回限定構築は
+  未知の対象として失敗した。限定対象と近傍`KisDoSomethingCommandContractTest`は各10工程・21入力である。対象CTest単発と20回反復、近傍試験、
+  公開記号、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に成功した。null対象、例外を送出する座標更新、異なるthread、
+  Linux、製品全体リンクは実行していない。
+
+## R2-G19b brush抽象factoryの全public API契約で完了した作業
+
+- `libs/brush/kis_brush_factory.h`の全9 APIを、新規`libs/brush/tests/KisBrushFactoryContractTest.cpp`の5試験へ対応付けた。既定構築、派生ID、
+  空の既定表示名、XMLと模型からの生成引数・返値、模型復元、XML直列化の書込み反映、基底所有からの派生寿命を固定した。
+- header-only抽象接続面のため製品ソースと構築所有は変更せず、限定試験を既存資源値生成物、Qt Gui・Xml・Test、Boost、lagerへ直接接続した。
+  対象未登録の初回限定構築は未知の対象として失敗し、最初の限定リンクは`KoResourceLoadResult`の完全型includeと既存資源生成物が要求する
+  安全assert記号の不足を診断した。必要なincludeと試験内の協調診断定義で製品依存を増やさず解消した。
+- 限定対象と近傍`KoResourceLoadResultContractTest`は各12工程・26入力で停止上限13工程・28入力以内、`kritalibbrush`は1,188工程・2,398入力から
+  変化しなかった。対象CTest単発と20回反復、近傍試験、公開記号、製品共有ライブラリー非接続、整形検査、公開API契約検査、`verify-quick`に
+  成功した。実brush生成、実資源接続、異常XML、OS既定font差、Linux、製品全体リンクは実行していない。
+
+## R2-G19b macOS図形文書検証の環境変数移植性で完了した作業
+
+- `scripts/docs/check-architecture.sh`と`scripts/docs/render-architecture.sh`のDEBUG除外をGNU固有の長形式からBSDとGNUの両`env`が受理する
+  `env -u DEBUG`へ変更した。`scripts/tests/test_incremental_development.py`は両入口が移植可能な形式を維持することを固定する。
+- macOS標準`/usr/bin/env`による初回`verify-quick`は`unsetenv nset=DEBUG: Invalid argument`で失敗した。限定自己試験、両文書入口のshellcheckと
+  D2再生成比較、標準`nix develop .#test --command ./scripts/verify-quick`に成功した。図形定義と生成済みSVGは変更していない。
+
+- 第50並列便は4所有領域の全28 APIを固定した。主作業ツリーで4限定対象と4軽量近傍のCTest 8/8、8対象の同時無作業再構築、必要な製品への
+  一重再集約、4限定対象の製品共有ライブラリー非接続、macOSのパッケージ境界1,463対象、公開API契約検査を再実行した。公開面は
+  1,549ヘッダー、29,989 API、対応済み7,677件、未対応22,312件になった。
+- 取り込み済み専用作業ツリー3件はclean確認直後に個別削除し、808 MB、820 MB、821 MBの約2.45 GBを解放した。次世代不足一覧の生成成功後に
+  旧`build/tdd-macos/public-api-missing-g50.json` 5.5 MBを削除し、最新`public-api-missing-g51.json`だけを次便の入力として保持する。
+  4.9 GBの主増分構築木は限定試験の再構築を避ける永続cacheとして保持する。
+
 ## 次の操作
 
-第50並列便の4対象を並列実装する。各担当は対象の単発・20回反復CTest、軽量近傍、限定閉包、製品共有ライブラリー非接続、公開API契約検査、
-`verify-quick`を確認する。担当作業ツリーはcleanコミットの統合直後に個別削除し、最後に主作業ツリーで結合検査する。
+最新`build/tdd-macos/public-api-missing-g51.json`から第51並列便の読み取り専用監査を行う。所有領域が重ならず、全公開APIを一便で固定できる
+4対象を選び、直接CMake依存、変更なし計画、空構築閉包、停止上限を記録してから担当作業ツリーを作成する。
 
 ## R1-G5完了根拠
 
