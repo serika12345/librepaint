@@ -9,7 +9,6 @@ kis_add_tests(
     kis_prescaled_projection_test.cpp
     kis_display_color_converter_contract_test.cpp
     kis_animation_importer_test.cpp
-    KisSpinBoxSplineUnitConverterTest.cpp
     KisDocumentReplaceTest.cpp
     kis_derived_resources_test.cpp
     kis_animation_frame_cache_test.cpp
@@ -22,6 +21,16 @@ kis_add_tests(
     KisSafeDocumentLoaderTest.cpp
     LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk
     )
+
+kis_add_test(
+    KisSpinBoxSplineUnitConverterTest.cpp
+    LINK_LIBRARIES
+        kritauispinboxsplineunitconverterobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisSpinBoxSplineUnitConverterTest PRIVATE
+    kritaapplicationui_EXPORTS
+)
 
 kis_add_test(
     KisApplicationInputActionsTest.cpp

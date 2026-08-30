@@ -6,9 +6,6 @@
 
 #include "KisSpinBoxSplineUnitConverter.h"
 #include <QtMath>
-#include <kis_debug.h>
-
-
 
 double KisSpinBoxSplineUnitConverter::io2sp(int x, int min, int max)
 {
@@ -22,11 +19,7 @@ double KisSpinBoxSplineUnitConverter::io2sp(int x, int min, int max)
 int KisSpinBoxSplineUnitConverter::sp2io(double x, int min, int max)
 {
     int rangeLen = max - min; // tilt elevation has range (90; 0)
-    int response = qRound(x*rangeLen) + min;
+    int response = qRound(x * rangeLen) + min;
 
     return response;
 }
-
-
-
-

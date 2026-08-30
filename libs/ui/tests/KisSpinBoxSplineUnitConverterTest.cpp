@@ -4,13 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <simpletest.h>
-#include <testutil.h>
-#include <testui.h>
-
-
 #include <KisSpinBoxSplineUnitConverterTest.h>
 
+#include <QTest>
 
 void KisSpinBoxSplineUnitConverterTest::testCurveCalculationToCurve_data()
 {
@@ -19,9 +15,14 @@ void KisSpinBoxSplineUnitConverterTest::testCurveCalculationToCurve_data()
     QTest::addColumn<int>("max");
     QTest::addColumn<double>("expected");
 
-    QTest::newRow("0.6 in (0, 10) = 6") << 6 << 0 << 10 << 0.6;
+    QTest::newRow("normal lower endpoint") << 0 << 0 << 10 << 0.0;
+    QTest::newRow("normal interior") << 6 << 0 << 10 << 0.6;
+    QTest::newRow("normal upper endpoint") << 10 << 0 << 10 << 1.0;
+    QTest::newRow("offset range") << -5 << -10 << 10 << 0.25;
+    QTest::newRow("reversed lower endpoint") << 10 << 10 << 0 << 0.0;
+    QTest::newRow("reversed upper endpoint") << 0 << 10 << 0 << 1.0;
+    QTest::newRow("reversed interior") << 64 << 90 << 0 << 26.0 / 90.0;
 }
-
 
 void KisSpinBoxSplineUnitConverterTest::testCurveCalculationToCurve()
 {
@@ -41,7 +42,14 @@ void KisSpinBoxSplineUnitConverterTest::testCurveCalculationToSpinBox_data()
     QTest::addColumn<int>("max");
     QTest::addColumn<int>("expected");
 
-    QTest::newRow("0.4 in (0, 10) = 4") << 0.4 << 0 << 10 << 4;
+    QTest::newRow("normal lower endpoint") << 0.0 << 0 << 10 << 0;
+    QTest::newRow("normal interior") << 0.4 << 0 << 10 << 4;
+    QTest::newRow("normal upper endpoint") << 1.0 << 0 << 10 << 10;
+    QTest::newRow("offset range") << 0.25 << -10 << 10 << -5;
+    QTest::newRow("normal half value rounds upward") << 0.25 << 0 << 10 << 3;
+    QTest::newRow("reversed half value rounds downward") << 0.25 << 10 << 0 << 7;
+    QTest::newRow("reversed lower interior") << 0.3 << 10 << 0 << 7;
+    QTest::newRow("reversed upper interior") << 0.7 << 10 << 0 << 3;
 }
 
 void KisSpinBoxSplineUnitConverterTest::testCurveCalculationToSpinBox()
@@ -71,14 +79,12 @@ void KisSpinBoxSplineUnitConverterTest::testCurveCalculationTwoWay_data()
     QTest::newRow("0.3 in (10, 0) = 7") << 0.3 << 10 << 0 << 7;
 }
 
-
 void KisSpinBoxSplineUnitConverterTest::testCurveCalculationTwoWay()
 {
     QFETCH(double, xDouble);
     QFETCH(int, min);
     QFETCH(int, max);
     QFETCH(int, xInt);
-
 
     int resultInt = converter.sp2io(xDouble, min, max);
     QCOMPARE(resultInt, xInt);
@@ -98,6 +104,4 @@ void KisSpinBoxSplineUnitConverterTest::testCurveCalculationCase64()
     QCOMPARE(resultInt, inX);
 }
 
-
-
-KISTEST_MAIN(KisSpinBoxSplineUnitConverterTest)
+QTEST_GUILESS_MAIN(KisSpinBoxSplineUnitConverterTest)

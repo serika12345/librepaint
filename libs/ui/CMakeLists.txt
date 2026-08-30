@@ -1535,9 +1535,31 @@ if (ANDROID)
     endif()
 endif()
 
+add_library(kritauispinboxsplineunitconverterobjects OBJECT
+    utils/KisSpinBoxSplineUnitConverter.cpp
+)
+target_compile_definitions(kritauispinboxsplineunitconverterobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauispinboxsplineunitconverterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauispinboxsplineunitconverterobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauispinboxsplineunitconverterobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_subdirectory( tests )
 
 set(kritaui_LIB_SRCS
+    $<TARGET_OBJECTS:kritauispinboxsplineunitconverterobjects>
     $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
     $<TARGET_OBJECTS:kritauisizegroupobjects>
     $<TARGET_OBJECTS:kritauielidedlabelobjects>
@@ -1825,7 +1847,6 @@ set(kritaui_LIB_SRCS
 	widgets/KisColorSamplerPreviewPreview.cpp
 
     utils/kis_document_aware_spin_box_unit_manager.cpp
-    utils/KisSpinBoxSplineUnitConverter.cpp
     utils/KisDitherUtil.cpp
     utils/KisFileIconCreator.cpp
     utils/KisRecentDocumentsModelWrapper.cpp
