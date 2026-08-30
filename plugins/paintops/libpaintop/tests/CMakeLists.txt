@@ -177,6 +177,23 @@ target_compile_definitions(KisColorOptionModelContractTest PRIVATE
 )
 
 kis_add_test(
+    KisSensorWithLengthModelContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopsensorwithlengthmodelobjects
+        kritapaintopsensordataobjects
+        kritaglobalidobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        lager
+)
+target_compile_definitions(KisSensorWithLengthModelContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+)
+
+kis_add_test(
     KisMirrorOptionModelContractTest.cpp
     LINK_LIBRARIES
         kritapaintopmirroroptionmodelobjects
