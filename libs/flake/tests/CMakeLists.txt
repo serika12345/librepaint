@@ -119,6 +119,18 @@ target_include_directories(KoAbstractCanvasResourceInterfaceContractTest PRIVATE
 target_compile_definitions(KoAbstractCanvasResourceInterfaceContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoDeferredShapeFactoryBaseContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakedeferredshapefactorybaseobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoDeferredShapeFactoryBaseContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoDeferredShapeFactoryBaseContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoShapeConfigWidgetBaseContractTest.cpp
     LINK_LIBRARIES
         kritaflakeshapeconfigwidgetbaseobjects

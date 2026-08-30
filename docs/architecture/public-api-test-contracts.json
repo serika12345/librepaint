@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22448
+    "expectedMissingApis": 22442
   },
   "contracts": [
     {
@@ -23210,6 +23210,39 @@
         "method:KoSelectedShapesProxy::currentLayerChanged(const KoShapeLayer * layer)",
         "method:KoSelectedShapesProxy::selectionChanged()",
         "method:KoSelectedShapesProxy::selectionContentChanged()"
+      ]
+    },
+    {
+      "target": "KoDeferredShapeFactoryBaseContractTest",
+      "source": "libs/flake/tests/KoDeferredShapeFactoryBaseContractTest.cpp",
+      "test": "KoDeferredShapeFactoryBaseContractTest::preservesQObjectParentAndVirtualLifetime",
+      "behavior": "遅延図形factoryは構築時のQObject親へ所有され、親の破棄時に基底接続面から派生個体を正確に1回破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoDeferredShapeFactoryBase",
+        "method:KoDeferredShapeFactoryBase::KoDeferredShapeFactoryBase(QObject * parent)",
+        "method:KoDeferredShapeFactoryBase::~KoDeferredShapeFactoryBase()"
+      ]
+    },
+    {
+      "target": "KoDeferredShapeFactoryBaseContractTest",
+      "source": "libs/flake/tests/KoDeferredShapeFactoryBaseContractTest.cpp",
+      "test": "KoDeferredShapeFactoryBaseContractTest::dispatchesUnicodeNameAndDefaultShapeArguments",
+      "behavior": "遅延図形factoryの基底接続面はUnicode plugin名、文書資源管理器ポインター、既定null資源管理器を派生実装へ配送し、派生実装が返す図形ポインターを透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDeferredShapeFactoryBase::createDefaultShape(KoDocumentResourceManager * documentResources=0) const",
+        "method:KoDeferredShapeFactoryBase::deferredPluginName()"
+      ]
+    },
+    {
+      "target": "KoDeferredShapeFactoryBaseContractTest",
+      "source": "libs/flake/tests/KoDeferredShapeFactoryBaseContractTest.cpp",
+      "test": "KoDeferredShapeFactoryBaseContractTest::baseCreateShapeIgnoresPropertiesAndForwardsResources",
+      "behavior": "基底createShapeはproperties個体の違いを処理せず、明示または省略された文書資源管理器をcreateDefaultShapeへそのまま配送して同じ図形結果を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoDeferredShapeFactoryBase::createShape(const KoProperties * params,KoDocumentResourceManager * documentResources=0) const"
       ]
     }
   ]

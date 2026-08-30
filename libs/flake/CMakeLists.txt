@@ -104,6 +104,21 @@ set_target_properties(kritaflakeabstractcanvasresourceinterfaceobjects PROPERTIE
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakedeferredshapefactorybaseobjects OBJECT
+    KoDeferredShapeFactoryBase.cpp
+)
+target_compile_definitions(kritaflakedeferredshapefactorybaseobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakedeferredshapefactorybaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakedeferredshapefactorybaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakedeferredshapefactorybaseobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeshapeconfigwidgetbaseobjects OBJECT
     KoShapeConfigWidgetBase.cpp
 )
@@ -771,7 +786,6 @@ set(kritaflake_SRCS
     KoCanvasController.cpp
     KoZoomMode.cpp
     KoShapeRegistry.cpp
-    KoDeferredShapeFactoryBase.cpp
     KoToolFactoryBase.cpp
     KoPathShapeFactory.cpp
     KoBasicShapeFactory.cpp
@@ -931,6 +945,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundcommandobjects>
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
+    $<TARGET_OBJECTS:kritaflakedeferredshapefactorybaseobjects>
     $<TARGET_OBJECTS:kritaflakeshapeconfigwidgetbaseobjects>
     $<TARGET_OBJECTS:kritaflakedockfactorybaseobjects>
     $<TARGET_OBJECTS:kritaflakeshapestrokemodelobjects>
