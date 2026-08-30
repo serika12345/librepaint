@@ -620,6 +620,7 @@ kis_add_test(
     LINK_LIBRARIES
         kritaimagegradientshapestrategyobjects
         kritaimagecachedgradientshapestrategyobjects
+        kritaimagepolygonalgradientshapestrategyobjects
         kritaimagebspline2dobjects
         kritaimageuniformbsplineengineobjects
         Qt${QT_MAJOR_VERSION}::Core

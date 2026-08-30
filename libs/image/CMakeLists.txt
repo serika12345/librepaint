@@ -461,6 +461,34 @@ set_target_properties(kritaimagecachedgradientshapestrategyobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagepolygonalgradientshapestrategyobjects OBJECT
+   kis_polygonal_gradient_shape_strategy.cpp
+)
+target_compile_definitions(kritaimagepolygonalgradientshapestrategyobjects PRIVATE
+   kritaglobal_EXPORTS
+   kritaimage_EXPORTS
+)
+target_include_directories(kritaimagepolygonalgradientshapestrategyobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagepolygonalgradientshapestrategyobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      Boost::boost
+)
+if (GSL_FOUND)
+   target_link_libraries(kritaimagepolygonalgradientshapestrategyobjects PUBLIC GSL::gsl)
+endif()
+set_target_properties(kritaimagepolygonalgradientshapestrategyobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagenameserverobjects OBJECT
    kis_name_server.cpp
 )
@@ -1468,7 +1496,6 @@ set(kritaimage_LIB_SRCS
    kis_recalculate_transform_mask_job.cpp
    kis_transform_mask_params_factory_registry.cpp
    kis_gradient_painter.cc
-   kis_polygonal_gradient_shape_strategy.cpp
    kis_iterator_ng.cpp
    kis_base_rects_walker.cpp
    kis_async_merger.cpp
@@ -1616,6 +1643,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
    $<TARGET_OBJECTS:kritaimagegradientshapestrategyobjects>
    $<TARGET_OBJECTS:kritaimagecachedgradientshapestrategyobjects>
+   $<TARGET_OBJECTS:kritaimagepolygonalgradientshapestrategyobjects>
    $<TARGET_OBJECTS:kritaimagekeyframeobjects>
    $<TARGET_OBJECTS:kritaimageconfignotifierobjects>
    $<TARGET_OBJECTS:kritaimagepaintoppresetupdateproxyobjects>

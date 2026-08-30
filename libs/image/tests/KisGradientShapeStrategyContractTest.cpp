@@ -5,6 +5,7 @@
 
 #include "kis_cached_gradient_shape_strategy.h"
 #include "kis_gradient_shape_strategy.h"
+#include "kis_polygonal_gradient_shape_strategy.h"
 
 #include "einspline/bspline_base.h"
 #include "kis_algebra_2d.h"
@@ -98,6 +99,31 @@ private:
     int *m_destructionCount{nullptr};
 };
 
+class PolygonalGradientShapeStrategyProbe final : public KisPolygonalGradientShapeStrategy
+{
+public:
+    PolygonalGradientShapeStrategyProbe(const QPainterPath &path, int *destructionCount)
+        : KisPolygonalGradientShapeStrategy(path, 2.0)
+        , m_destructionCount(destructionCount)
+    {
+    }
+
+    ~PolygonalGradientShapeStrategyProbe() override
+    {
+        ++*m_destructionCount;
+    }
+
+private:
+    int *m_destructionCount;
+};
+
+QPainterPath rectanglePath()
+{
+    QPainterPath path;
+    path.addRect(QRectF(10.0, 20.0, 20.0, 20.0));
+    return path;
+}
+
 void compareCachedValue(double actual, double expected)
 {
     constexpr double tolerance = 1e-4;
@@ -105,6 +131,16 @@ void compareCachedValue(double actual, double expected)
 }
 
 } // namespace
+
+namespace KritaUtils
+{
+
+qreal maxDimensionPortion(const QRectF &bounds, qreal portion, qreal minValue)
+{
+    return qMax(portion * qMax(bounds.width(), bounds.height()), minValue);
+}
+
+} // namespace KritaUtils
 
 void kis_assert_recoverable(const char *assertion, const char *file, int line)
 {
@@ -150,6 +186,10 @@ private Q_SLOTS:
     void baseOwnershipDestroysDerivedStrategy();
     void cachedStrategySamplesAndReusesAffineValues();
     void cachedStrategyClampsQueriesAndOwnsBase();
+    void polygonalRectangleCalculatesStableCenters();
+    void polygonalRectangleHasStableValues();
+    void polygonalStrategyOwnsInputPath();
+    void polygonalStrategyHasVirtualLifetime();
 };
 
 void KisGradientShapeStrategyContractTest::defaultConstructsZeroEndpoints()
@@ -218,6 +258,53 @@ void KisGradientShapeStrategyContractTest::cachedStrategyClampsQueriesAndOwnsBas
         QCOMPARE(baseStrategy->valueCalls, 20);
         QCOMPARE(destructions, 0);
     }
+
+    QCOMPARE(destructions, 1);
+}
+
+void KisGradientShapeStrategyContractTest::polygonalRectangleCalculatesStableCenters()
+{
+    const QPainterPath path = rectanglePath();
+
+    QCOMPARE(KisPolygonalGradientShapeStrategy::testingCalculatePathCenter(4, path, 2.0, true), QPointF(18.0, 28.0));
+    QCOMPARE(KisPolygonalGradientShapeStrategy::testingCalculatePathCenter(4, path, 2.0, false), QPointF(14.0, 24.0));
+}
+
+void KisGradientShapeStrategyContractTest::polygonalRectangleHasStableValues()
+{
+    const KisPolygonalGradientShapeStrategy strategy(rectanglePath(), 2.0);
+
+    const double first = strategy.valueAt(15.0, 25.0);
+    const double repeated = strategy.valueAt(15.0, 25.0);
+    const double reflected = strategy.valueAt(25.0, 35.0);
+
+    QVERIFY(std::isfinite(first));
+    QVERIFY(first > 0.0);
+    QCOMPARE(repeated, first);
+    QVERIFY(std::abs(reflected - first) <= 1e-8);
+    QCOMPARE(strategy.valueAt(0.0, 0.0), 0.0);
+}
+
+void KisGradientShapeStrategyContractTest::polygonalStrategyOwnsInputPath()
+{
+    QPainterPath path = rectanglePath();
+    const KisPolygonalGradientShapeStrategy strategy(path, 2.0);
+    const double originalValue = strategy.valueAt(15.0, 25.0);
+
+    path = QPainterPath();
+    path.addRect(QRectF(-100.0, -100.0, 10.0, 10.0));
+
+    QCOMPARE(strategy.valueAt(15.0, 25.0), originalValue);
+}
+
+void KisGradientShapeStrategyContractTest::polygonalStrategyHasVirtualLifetime()
+{
+    int destructions = 0;
+    std::unique_ptr<KisGradientShapeStrategy> strategy =
+        std::make_unique<PolygonalGradientShapeStrategyProbe>(rectanglePath(), &destructions);
+
+    QVERIFY(strategy->valueAt(15.0, 25.0) > 0.0);
+    strategy.reset();
 
     QCOMPARE(destructions, 1);
 }
