@@ -198,6 +198,15 @@ artifacts rather than completed `develop` changes. Commits, branch creation,
 integration, worktree removal, and branch deletion still require the authority
 defined by the user and the Completion section below.
 
+The coordinator removes obsolete generated storage as soon as its replacement
+is verified. Completed lane worktrees include their lane-local build trees in
+the same removal. Public-API migration work keeps the reusable primary Ninja
+tree, shared compiler cache, and only the newest missing-API report; it removes
+the preceding report and any lane build moved to Trash immediately after the
+new report and integrated tests succeed. Record retained storage and reclaimed
+lane storage in the progress snapshot. Preserve user-owned artifacts and do not
+discard the primary incremental tree or shared cache while they remain useful.
+
 The task-packet, worktree, handoff, and integration procedures live in the
 "公開API契約の並列実装" section of
 `docs/architecture/DEVELOPMENT.md`.
