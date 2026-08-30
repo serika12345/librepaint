@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22099
+    "expectedMissingApis": 22062
   },
   "contracts": [
     {
@@ -25344,6 +25344,142 @@
       "classification": "maintained",
       "apis": [
         "method:KisDynamicSensorFactory::~KisDynamicSensorFactory()"
+      ]
+    },
+    {
+      "target": "TestFontLibraryResourceUtils",
+      "source": "libs/flake/tests/TestFontLibraryResourceUtils.cpp",
+      "test": "TestFontLibraryResourceUtils::nullPointersDoNotInvokeTheDeleter",
+      "behavior": "C形式資源ポインターの既定状態とnull生成は空の参照を公開し、解放処理を呼び出さない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLibraryResourcePointer::KisLibraryResourcePointer()",
+        "struct:KisLibraryResourcePointer"
+      ]
+    },
+    {
+      "target": "TestFontLibraryResourceUtils",
+      "source": "libs/flake/tests/TestFontLibraryResourceUtils.cpp",
+      "test": "TestFontLibraryResourceUtils::copyAssignmentAndMoveReleaseAtTheFinalOwner",
+      "behavior": "nonnull資源はdataとポインター演算子から同一性を保って参照でき、複製・代入・移動後の最後の所有者が一度だけ解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLibraryResourcePointer::KisLibraryResourcePointer(T * ptr)",
+        "method:KisLibraryResourcePointer::data() const"
+      ]
+    },
+    {
+      "target": "TestFontLibraryResourceUtils",
+      "source": "libs/flake/tests/TestFontLibraryResourceUtils.cpp",
+      "test": "TestFontLibraryResourceUtils::resetReleasesThePreviousAndCurrentResources",
+      "behavior": "ポインター付きresetは旧資源を一度解放して新資源を所有し、引数なしresetは現資源を一度解放して空の状態へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisLibraryResourcePointer::reset()",
+        "method:KisLibraryResourcePointer::reset(T * ptr)"
+      ]
+    },
+    {
+      "target": "TestFontLibraryResourceUtils",
+      "source": "libs/flake/tests/TestFontLibraryResourceUtils.cpp",
+      "test": "TestFontLibraryResourceUtils::sanityCheckedDeleterReportsOnlyFailures",
+      "behavior": "戻り値を検査する解放処理は成功時に無通知で資源を解放し、失敗時にも解放後に所有診断を一度通知する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisLibraryResourcePointerWithSanityCheck",
+        "function:detail::checkCStyleResultWrapper(T * ptr)"
+      ]
+    },
+    {
+      "target": "TestFontLibraryResourceUtils",
+      "source": "libs/flake/tests/TestFontLibraryResourceUtils.cpp",
+      "test": "TestFontLibraryResourceUtils::fontconfigAliasesKeepTheirDestroyFunctions",
+      "behavior": "Fontconfigの4資源別名は対応する資源型と解放関数を持つ共有所有ポインター型として維持される。",
+      "classification": "maintained",
+      "apis": [
+        "alias:FcCharSetSP",
+        "alias:FcConfigSP",
+        "alias:FcFontSetSP",
+        "alias:FcPatternSP"
+      ]
+    },
+    {
+      "target": "TestFontLibraryResourceUtils",
+      "source": "libs/flake/tests/TestFontLibraryResourceUtils.cpp",
+      "test": "TestFontLibraryResourceUtils::freeTypeAliasesKeepTheirCheckedDestroyFunctions",
+      "behavior": "FreeTypeのライブラリーと書体面の別名は対応する資源型と戻り値検査付き解放関数を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:FT_FaceSP",
+        "alias:FT_LibrarySP"
+      ]
+    },
+    {
+      "target": "TestFontLibraryResourceUtils",
+      "source": "libs/flake/tests/TestFontLibraryResourceUtils.cpp",
+      "test": "TestFontLibraryResourceUtils::harfBuzzAliasesKeepTheirDestroyFunctions",
+      "behavior": "HarfBuzzの書体・書体面・集合・バイナリー別名は対応する資源型と解放関数を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:hb_blob_t_sp",
+        "alias:hb_face_t_sp",
+        "alias:hb_font_t_sp",
+        "alias:hb_set_t_sp"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::cachedStrategySamplesAndReusesAffineValues",
+      "behavior": "キャッシュ付き勾配戦略は指定矩形と採取間隔から基底を20回採取し、線形勾配を許容誤差内で補間して、反復照会では基底を再評価しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCachedGradientShapeStrategy",
+        "method:KisCachedGradientShapeStrategy::KisCachedGradientShapeStrategy(const QRect & rc,qreal xStep,qreal yStep,KisGradientShapeStrategy * baseStrategy)",
+        "method:KisCachedGradientShapeStrategy::valueAt(double x,double y) const"
+      ]
+    },
+    {
+      "target": "KisGradientShapeStrategyContractTest",
+      "source": "libs/image/tests/KisGradientShapeStrategyContractTest.cpp",
+      "test": "KisGradientShapeStrategyContractTest::cachedStrategyClampsQueriesAndOwnsBase",
+      "behavior": "キャッシュ付き勾配戦略は範囲外座標を矩形境界へ制限して補間し、受け取ったraw基底の所有権を引き継いで破棄時に一度解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCachedGradientShapeStrategy::~KisCachedGradientShapeStrategy()"
+      ]
+    },
+    {
+      "target": "KisSimpleDynamicSensorFactoryContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSimpleDynamicSensorFactoryContractTest.cpp",
+      "test": "KisSimpleDynamicSensorFactoryContractTest::constructorAndAccessorsPreserveIndependentConfiguration",
+      "behavior": "単純動的センサー工場の構築値が6つの公開設定へ独立して保存され、各取得APIが公開設定の変更へ個別に追随する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSimpleDynamicSensorFactory",
+        "member:KisSimpleDynamicSensorFactory::m_id",
+        "member:KisSimpleDynamicSensorFactory::m_maximumLabel",
+        "member:KisSimpleDynamicSensorFactory::m_maximumValue",
+        "member:KisSimpleDynamicSensorFactory::m_minimumLabel",
+        "member:KisSimpleDynamicSensorFactory::m_minimumValue",
+        "member:KisSimpleDynamicSensorFactory::m_valueSuffix",
+        "method:KisSimpleDynamicSensorFactory::KisSimpleDynamicSensorFactory(const QString & id,int minimumValue,int maximumValue,const QString & minimumLabel,const QString & maximumLabel,const QString & valueSuffix)",
+        "method:KisSimpleDynamicSensorFactory::id() const",
+        "method:KisSimpleDynamicSensorFactory::minimumLabel()",
+        "method:KisSimpleDynamicSensorFactory::minimumValue()",
+        "method:KisSimpleDynamicSensorFactory::valueSuffix()"
+      ]
+    },
+    {
+      "target": "KisSimpleDynamicSensorFactoryContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisSimpleDynamicSensorFactoryContractTest.cpp",
+      "test": "KisSimpleDynamicSensorFactoryContractTest::maximumAccessorsIgnoreLengthsAndWidgetCreationIsAbsent",
+      "behavior": "単純動的センサー工場は最大値と最大表示をlengthに依存せず返し、既定cursorと借用親pointerを変更せず設定画面のnullを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSimpleDynamicSensorFactory::createConfigWidget(lager::cursor<KisCurveOptionDataCommon>,QWidget *)",
+        "method:KisSimpleDynamicSensorFactory::maximumLabel(int length)",
+        "method:KisSimpleDynamicSensorFactory::maximumValue(int length)"
       ]
     }
   ]

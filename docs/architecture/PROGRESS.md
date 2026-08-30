@@ -2,83 +2,44 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 19:48 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-30 20:06 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第59並列便の担当票
-
-- `g59-font-library-resource`は状態`implementing`、基準`a34b32c54da9a4a09b7afa48aaf44f21b3ad6c4b`、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g59-font-library-resource`である。目的はC形式資源ポインターのnull、共有、移動、置換、
-  解放回数、解放失敗診断と外部ライブラリー別名の正確な型・解放処理を固定することである。対象は
-  `libs/flake/text/KoFontLibraryResourceUtils.h`の`KisLibraryResourcePointer`構造体、既定・ポインターの2生成、`data`、
-  `reset()`・`reset(T * ptr)`、`KisLibraryResourcePointerWithSanityCheck`別名、`detail::checkCStyleResultWrapper`と
-  `FcConfigSP`・`FcCharSetSP`・`FcPatternSP`・`FcFontSetSP`・`FT_LibrarySP`・`FT_FaceSP`・`hb_font_t_sp`・`hb_face_t_sp`・
-  `hb_set_t_sp`・`hb_blob_t_sp`の10別名という18 API全件である。開始試験
-  `libs/flake/tests/TestFontLibraryResourceUtils.{h,cpp}`を広域一括対象から同名の専用軽量対象へ移し、重複する所有権試験を統合して
-  診断・別名型契約へ強化する。`simpletest.h`と`kritaflake`・`kritaglobal`・`kritatestsdk`・`kritaxmlserialization`依存を除去する。
-  変更許可はこの2試験ファイルと`libs/flake/tests/CMakeLists.txt`に限る。近傍は`KoCSSFontInfoContractTest`、対象macOS、共有cache
-  `.cache/librepaint/ccache/native`、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件5工程・11入力、
-  製品`kritaflake` 612工程・1,256入力からの増減、リポジトリ共有ライブラリー接続、実外部資源fixture、公開header変更、または許可外変更である。
-- `g59-cached-gradient`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g59-cached-gradient`である。目的はキャッシュ付き勾配形状戦略の格子採取回数、内点補間、
-  範囲外座標の境界制限、基底戦略の所有破棄を固定することである。対象は`libs/image/kis_cached_gradient_shape_strategy.h`のclass、
-  constructor、`valueAt`、destructorの4 API全件である。開始ファイル`libs/image/kis_cached_gradient_shape_strategy.cpp`の
-  `kritaimage_LIB_SRCS`直接収容を`kritaimagecachedgradientshapestrategyobjects`へ、`libs/image/bsplines/kis_bspline_2d.cpp`の同一覧直接収容を
-  `kritaimagebspline2dobjects`へ移し、各開始ファイルを製品へ一度だけ再集約する。既存
-  `libs/image/tests/KisGradientShapeStrategyContractTest.cpp`と同名対象を拡張する。変更許可はこの試験、`libs/image/CMakeLists.txt`、
-  `libs/image/tests/CMakeLists.txt`に限る。近傍は`KisBSpline1DContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限
-  `transport-commit`、追加委任`forbidden`、統合順2、停止条件10工程・20入力、製品`kritaimage` 1,182工程・2,388入力からの増減、
-  製品共有ライブラリーまたはglobal実装object接続、線形式誤差1e-4超過、無効矩形を新仕様化する場合、または許可外変更である。
-- `g59-simple-dynamic-sensor-factory`は状態`implementing`、同じ基準、作業ツリー
-  `/Users/masato/Documents/librepaint-r2-g59-simple-dynamic-sensor-factory`である。目的は単純動的センサー工場の生成引数、6公開メンバー、
-  全取得値、長さ非依存、設定画面を生成しない挙動を固定することである。対象は
-  `plugins/paintops/libpaintop/KisSimpleDynamicSensorFactory.h`のclass、constructor、`id`・`minimumValue`・`maximumValue`・`minimumLabel`・
-  `maximumLabel`・`valueSuffix`・`createConfigWidget`の7関数、`m_minimumValue`・`m_maximumValue`・`m_id`・`m_minimumLabel`・
-  `m_maximumLabel`・`m_valueSuffix`の6メンバーという15 API全件である。開始ファイル
-  `plugins/paintops/libpaintop/KisSimpleDynamicSensorFactory.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から既存
-  `kritapaintopdynamicsensorfactoryobjects`へ移し、製品への既存一重再集約を共用する。変更許可は
-  `plugins/paintops/libpaintop/CMakeLists.txt`、同`tests/CMakeLists.txt`、新規同`tests/KisSimpleDynamicSensorFactoryContractTest.cpp`に限る。近傍は
-  `KisDynamicSensorFactoryContractTest`、対象macOS、共有cache同上、構築実行`granted`、Git権限`transport-commit`、追加委任`forbidden`、統合順3、
-  停止条件8工程・18入力、製品`kritalibpaintop` 2,093工程・4,184入力または`kritapaintopruntime` 1,279工程・2,578入力からの増減、
-  新製品object、Qt Widgets・製品共有ライブラリー接続、実設定データ・部品構築、公開header/source変更、または許可外変更である。
-- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、進捗、
-  担当間のCMake非重複、容量削除を所有する。完了目標は37 API純増の対応済み7,927件、未対応22,062件である。
-
 ### 現在の結果
 
-- 第58並列便は字下げ模型9 API、画像更新停止命令4 API、動的センサー生成境界9 APIの合計22 APIを挙動契約へ対応付けた。
-  公開面は1,549ヘッダー、29,989 API、対応済み7,890件、未対応22,099件である。
-- 構築所有は、`libs/flake/text/lager/TextIndentModel.cpp`の`kritaflake_SRCS`直接収容から
-  `kritaflaketextindentmodelobjects`へ、`libs/image/commands_new/KisDisableDirtyRequestsCommand.cpp`の`kritaimage_LIB_SRCS`直接収容から
-  `kritaimagedisabledirtyrequestscommandobjects`へ、`plugins/paintops/libpaintop/KisDynamicSensorFactory.cpp`の
-  `kritalibpaintop_LIB_SRCS`直接収容から`kritapaintopdynamicsensorfactoryobjects`へそれぞれ移した。各開始ファイルは所有objectから
-  従来の製品だけへ一度再集約される。
-- `libs/flake/tests/TextIndentModelContractTest.cpp`は既定長と2真偽値、3つの公開長さ経路、双方向同期、Qtプロパティ、
-  QObject寿命を固定する。最初の親ccursor真偽値変更で長さ不変のまま`lengthChanged`が1回出る現行挙動は、
-  製品を修正せず`known_defect`として固定した。
-- 空だった`libs/image/tests/kis_image_commands_test.cpp`は専用試験対象となり、INITIALIZING・FINALIZINGのredo/undo順、
-  `partA`・`partB`の停止・再開呼出し、借用facade寿命を固定する。直接依存は製品共有ライブラリー群から
-  命令objectと`kritapaintingundokundo2coreobjects`へ縮小した。
-- `plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryContractTest.cpp`はUnicode識別値・表示・接尾辞、数値範囲、長さと
-  未初期化cursor・借用親ポインターの無変更配送、仮想寿命を固定する。対象はQt Widgetsと製品共有ライブラリーに接続しない。
-- 限定閉包は字下げ模型10工程・20入力、画像命令11工程・24入力、動的センサー6工程・14入力である。画像命令試験は
-  1,184工程・2,390入力から縮小した。統合後の製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,182工程・2,388入力、
-  `kritalibpaintop` 2,093工程・4,184入力、`kritapaintopruntime` 1,279工程・2,578入力である。増分は字下げobjectの下流伝播だけである。
+- 第59並列便はC形式資源所有境界18 API、キャッシュ付き勾配戦略4 API、単純動的センサー工場15 APIの合計37 APIを挙動契約へ対応付けた。
+  公開面は1,549ヘッダー、29,989 API、対応済み7,927件、未対応22,062件である。
+- 開始試験`libs/flake/tests/TestFontLibraryResourceUtils.{h,cpp}`は、製品共有ライブラリーと共通試験基盤へ接続する広域一括対象から、
+  外部3ライブラリーとQt Testだけの同名専用対象へ移した。重複する生成・複製・代入・移動試験を所有権契約へ集約し、
+  null、reset、解放失敗診断、Fontconfig・FreeType・HarfBuzzの資源別名と解放関数を固定した。閉包は616工程・1,263入力から
+  4工程・11入力へ縮小した。
+- 構築所有は`libs/image/kis_cached_gradient_shape_strategy.cpp`の`kritaimage_LIB_SRCS`直接収容から
+  `kritaimagecachedgradientshapestrategyobjects`へ、`libs/image/bsplines/kis_bspline_2d.cpp`の同一覧直接収容から`kritaimagebspline2dobjects`へ移した。
+  各開始ファイルは製品`kritaimage`に一度だけ再集約される。`libs/image/tests/KisGradientShapeStrategyContractTest.cpp`は格子採取20回、
+  内点補間と反復利用、範囲外座標の境界制限、raw基底の所有破棄を固定する。
+- `plugins/paintops/libpaintop/KisSimpleDynamicSensorFactory.cpp`の構築所有は`kritalibpaintop_LIB_SRCS`の直接収容から既存
+  `kritapaintopdynamicsensorfactoryobjects`へ移し、製品への既存一重再集約を共用する。
+  `plugins/paintops/libpaintop/tests/KisSimpleDynamicSensorFactoryContractTest.cpp`がUnicode構築値、6公開設定の独立性、長さ非依存、
+  既定cursorと借用親ポインターを変更しないnull設定画面生成を固定する。
+- 統合後の限定閉包は資源所有4工程・11入力、キャッシュ勾配9工程・19入力、単純センサー7工程・16入力である。製品閉包は
+  `kritaflake` 612工程・1,256入力、`kritaimage` 1,182工程・2,388入力、`kritalibpaintop` 2,093工程・4,184入力、
+  `kritapaintopruntime` 1,279工程・2,578入力で第58便から不変である。
 - 主作業ツリーの3限定対象と3軽量近傍はCTest 6/6に成功し、3限定対象の同時再構築は無作業であった。各担当の単発CTest、
-  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,512対象、公開API契約検査は
-  7,890/29,989件で成功した。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 統合済み作業ツリー3本と担当ブランチ、ゴミ箱内の限定構築木261 MBは統合直後に削除し、約2.49 GBを解放した。
-  第59便不足一覧`build/tdd-macos/public-api-missing-g59.json`の件数確認後に旧G58一覧を削除した。再利用する主増分構築木5.0 GB、
-  共有コンパイラーcache 609 MB、最新一覧5.4 MBだけを保持する。
+  20回反復、近傍CTest、書式、動的依存、高速検査も成功した。macOSのパッケージ境界は1,515対象、公開API契約検査は
+  7,927/29,989件で成功した。3限定対象の動的依存にLibrePaint製品共有ライブラリーは含まれない。
+  製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
+- 統合済み作業ツリー3本と担当ブランチは各統合直後に削除し、約2.50 GBを回収した。第60便不足一覧
+  `build/tdd-macos/public-api-missing-g60.json`の件数確認後に旧G59一覧を削除した。再利用する主増分構築木5.0 GB、共有コンパイラーcache 614 MB、
+  最新一覧5.4 MBだけを保持する。
 
 ### 次の操作
 
-- 第59並列便の3担当で広域試験の専用化、製品source所有のobject分離、未知契約診断、限定実装、対象CTest、
-  20回反復、軽量近傍、高速検査を実行する。cleanな輸送コミットを統合順に取り込み、各統合直後に担当作業ツリーとブランチを削除する。
+- 第60便不足一覧から公開ヘッダー、製品実装、試験CMakeが重ならない3責務を読取り専用で選び、各限定対象の直接依存と清浄閉包を先に監査する。
+  広すぎる対象は構造縮小を第60便の実装より先に計画し、共通基準コミットから専用作業ツリーを作る。
 
 ## 再開環境
 
