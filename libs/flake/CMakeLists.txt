@@ -149,6 +149,22 @@ set_target_properties(kritaflakeshapestrokemodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeinteractionstrategyfactoryobjects OBJECT
+    tools/KoInteractionStrategyFactory.cpp
+)
+target_compile_definitions(kritaflakeinteractionstrategyfactoryobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeinteractionstrategyfactoryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tools>
+)
+target_link_libraries(kritaflakeinteractionstrategyfactoryobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakeinteractionstrategyfactoryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeactivecanvasresourcedependencyobjects OBJECT
     KoActiveCanvasResourceDependency.cpp
 )
@@ -837,7 +853,6 @@ set(kritaflake_SRCS
     tools/KoZoomStrategy.cpp
     tools/KoInteractionTool.cpp
     tools/KoInteractionStrategy.cpp
-    tools/KoInteractionStrategyFactory.cpp
     tools/KoShapeRubberSelectStrategy.cpp
     tools/KoPathSegmentChangeStrategy.cpp
 
@@ -905,6 +920,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapeconfigwidgetbaseobjects>
     $<TARGET_OBJECTS:kritaflakedockfactorybaseobjects>
     $<TARGET_OBJECTS:kritaflakeshapestrokemodelobjects>
+    $<TARGET_OBJECTS:kritaflakeinteractionstrategyfactoryobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
     $<TARGET_OBJECTS:kritaflakederivedresourceconverterobjects>
     $<TARGET_OBJECTS:kritaflakeresourceupdatemediatorobjects>

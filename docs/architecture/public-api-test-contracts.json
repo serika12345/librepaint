@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22480
+    "expectedMissingApis": 22469
   },
   "contracts": [
     {
@@ -23036,6 +23036,44 @@
       "classification": "known_defect",
       "apis": [
         "method:KoDockWidgetTitleBar::setLocked(bool locked)"
+      ]
+    },
+    {
+      "target": "KoInteractionStrategyFactoryContractTest",
+      "source": "libs/flake/tests/KoInteractionStrategyFactoryContractTest.cpp",
+      "test": "KoInteractionStrategyFactoryContractTest::storesIdentityPriorityAndOrdersSharedFactories",
+      "behavior": "操作戦略factoryはUnicode識別子と符号付き優先度を構築時の値どおり保持し、非nullの共有factoryを優先度だけで厳密に比較して、同じ優先度の双方を小さくないものとして扱う。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoInteractionStrategyFactory",
+        "method:KoInteractionStrategyFactory::KoInteractionStrategyFactory(int priority,const QString & id)",
+        "method:KoInteractionStrategyFactory::compareLess(KoInteractionStrategyFactorySP f1,KoInteractionStrategyFactorySP f2)",
+        "method:KoInteractionStrategyFactory::id() const",
+        "method:KoInteractionStrategyFactory::priority() const"
+      ]
+    },
+    {
+      "target": "KoInteractionStrategyFactoryContractTest",
+      "source": "libs/flake/tests/KoInteractionStrategyFactoryContractTest.cpp",
+      "test": "KoInteractionStrategyFactoryContractTest::dispatchesInteractionArgumentsAndResultsThroughBase",
+      "behavior": "操作戦略factoryの基底接続面はpointer event、描画器、表示変換器、色表示rendererを同一個体のまま派生実装へ呼出し順どおり配送し、戦略ポインターとhover、描画、custom cursorの各結果を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoInteractionStrategyFactory::createStrategy(KoPointerEvent * ev)",
+        "method:KoInteractionStrategyFactory::hoverEvent(KoPointerEvent * ev)",
+        "method:KoInteractionStrategyFactory::paintOnHover(QPainter & painter,const KoViewConverter & converter,const KoColorDisplayRendererInterface * displayRendererInterface)",
+        "method:KoInteractionStrategyFactory::tryUseCustomCursor()"
+      ]
+    },
+    {
+      "target": "KoInteractionStrategyFactoryContractTest",
+      "source": "libs/flake/tests/KoInteractionStrategyFactoryContractTest.cpp",
+      "test": "KoInteractionStrategyFactoryContractTest::sharedAliasAndBaseOwnershipDestroyDerivedFactory",
+      "behavior": "操作戦略factoryの共有別名は複製後も同じ基底個体を最終所有者まで保持し、最後の共有所有を解放すると派生個体を正確に1回破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KoInteractionStrategyFactorySP",
+        "method:KoInteractionStrategyFactory::~KoInteractionStrategyFactory()"
       ]
     }
   ]
