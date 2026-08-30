@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21946
+    "expectedMissingApis": 21919
   },
   "contracts": [
     {
@@ -26132,6 +26132,154 @@
       "classification": "maintained",
       "apis": [
         "function:operator ==(const KisPaintingModeOptionData & lhs,const KisPaintingModeOptionData & rhs)"
+      ]
+    },
+    {
+      "target": "KisMetaDataIOBackendContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataIOBackendContractTest.cpp",
+      "test": "KisMetaDataIOBackendContractTest::enumerationsAndIdentityRemainStable",
+      "behavior": "メタデータ入出力接続面はbinary・text形式とheader有無の列挙値を保持し、Unicode識別子・表示名・形式をconst仮想呼出しへ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisMetaData::IOBackend",
+        "enum:KisMetaData::IOBackend::BackendType",
+        "enum:KisMetaData::IOBackend::HeaderType",
+        "enumerator:KisMetaData::IOBackend::BackendType::Binary",
+        "enumerator:KisMetaData::IOBackend::BackendType::Text",
+        "enumerator:KisMetaData::IOBackend::HeaderType::JpegHeader",
+        "enumerator:KisMetaData::IOBackend::HeaderType::NoHeader",
+        "method:KisMetaData::IOBackend::id() const",
+        "method:KisMetaData::IOBackend::name() const",
+        "method:KisMetaData::IOBackend::type() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataIOBackendContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataIOBackendContractTest.cpp",
+      "test": "KisMetaDataIOBackendContractTest::capabilitiesAreIndependentlyDispatched",
+      "behavior": "メタデータ入出力接続面は保存対応と読込み対応の真偽値を互いに独立したconst仮想呼出しへ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::IOBackend::supportLoading() const",
+        "method:KisMetaData::IOBackend::supportSaving() const"
+      ]
+    },
+    {
+      "target": "KisMetaDataIOBackendContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataIOBackendContractTest.cpp",
+      "test": "KisMetaDataIOBackendContractTest::savePreservesArgumentsDefaultsAndReturnValue",
+      "behavior": "メタデータ保存はStoreと装置の借用pointer、既定NoHeaderと明示JpegHeaderを同一性を保って配送し、実装の成功・失敗を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::IOBackend::saveTo(const Store * store,QIODevice * ioDevice,HeaderType headerType=NoHeader) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataIOBackendContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataIOBackendContractTest.cpp",
+      "test": "KisMetaDataIOBackendContractTest::loadAndCanSavePreserveArgumentsAndReturnValues",
+      "behavior": "メタデータ読込みと全項目保存可否はStoreと装置の借用pointerを保持して配送し、各実装の成功・失敗を独立して返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::IOBackend::canSaveAllEntries(Store * store) const",
+        "method:KisMetaData::IOBackend::loadFrom(Store * store,QIODevice * ioDevice) const"
+      ]
+    },
+    {
+      "target": "KisMetaDataIOBackendContractTest",
+      "source": "libs/painting/metadata/tests/KisMetaDataIOBackendContractTest.cpp",
+      "test": "KisMetaDataIOBackendContractTest::baseOwnershipHasVirtualLifetime",
+      "behavior": "メタデータ入出力接続面は基底所有からの解放で派生destructorを通り、個体寿命を一度終了する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisMetaData::IOBackend::~IOBackend()"
+      ]
+    },
+    {
+      "target": "TestXsimdPainting",
+      "source": "libs/flake/tests/TestXsimdPainting.cpp",
+      "test": "TestXsimdPainting::testKoClipMaskPainting",
+      "behavior": "切抜きmask描画は白・黒・灰色・半透明色10組の輝度をshape色のalphaへ合成し、現行ARGB画素を面全体へ出力する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoClipMaskPainter::renderOnGlobalPainter()"
+      ]
+    },
+    {
+      "target": "TestXsimdPainting",
+      "source": "libs/flake/tests/TestXsimdPainting.cpp",
+      "test": "TestXsimdPainting::paintersAreDistinctAndInheritGlobalPainterState",
+      "behavior": "切抜きmask描画器はshape用とmask用の別個な有効描画器を作り、借用元の変換・切抜き・透明度・筆・ペンを両方へ継承する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoClipMaskPainter::KoClipMaskPainter(QPainter * painter,const QRectF & globalClipRect)",
+        "method:KoClipMaskPainter::maskPainter()",
+        "method:KoClipMaskPainter::shapePainter()"
+      ]
+    },
+    {
+      "target": "TestXsimdPainting",
+      "source": "libs/flake/tests/TestXsimdPainting.cpp",
+      "test": "TestXsimdPainting::rendersAtAlignedGlobalClipRect",
+      "behavior": "切抜きmask描画は小数座標の切抜き矩形を外側整数矩形へ揃え、その位置と寸法だけへ合成画像を配置する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoClipMaskPainter::KoClipMaskPainter(QPainter * painter,const QRectF & globalClipRect)",
+        "method:KoClipMaskPainter::renderOnGlobalPainter()"
+      ]
+    },
+    {
+      "target": "TestXsimdPainting",
+      "source": "libs/flake/tests/TestXsimdPainting.cpp",
+      "test": "TestXsimdPainting::scopedLifetimePreservesBorrowedPainterAndState",
+      "behavior": "切抜きmask描画器は内部描画器を自身のscopeで終了し、借用元描画器の寿命と状態を保持して破棄後の描画を継続可能にする。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoClipMaskPainter",
+        "method:KoClipMaskPainter::~KoClipMaskPainter()"
+      ]
+    },
+    {
+      "target": "KisUpdateCommandExContractTest",
+      "source": "libs/image/tests/KisUpdateCommandExContractTest.cpp",
+      "test": "KisUpdateCommandExContractTest::finalizingRedoDispatchesUpdatesInInsertionOrder",
+      "behavior": "確定位相の一括node更新命令はredoごとにnodeと矩形を挿入順で更新接続面へ配送し、undoでは配送しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUpdateCommandEx",
+        "method:KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData,KisUpdatesFacade * updatesFacade,State state)"
+      ]
+    },
+    {
+      "target": "KisUpdateCommandExContractTest",
+      "source": "libs/image/tests/KisUpdateCommandExContractTest.cpp",
+      "test": "KisUpdateCommandExContractTest::initializingUndoDispatchesUpdatesInInsertionOrder",
+      "behavior": "初期化位相の一括node更新命令はundoでnodeと矩形を挿入順に配送し、redoでは配送しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData,KisUpdatesFacade * updatesFacade,State state)"
+      ]
+    },
+    {
+      "target": "KisUpdateCommandExContractTest",
+      "source": "libs/image/tests/KisUpdateCommandExContractTest.cpp",
+      "test": "KisUpdateCommandExContractTest::cookieBlocksDirectPartBUntilItExpires",
+      "behavior": "一括node更新命令の直接配送は有効な抑止cookieの間は無処理となり、cookie失効後に保持済み更新を挿入順で配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData,KisUpdatesFacade * updatesFacade,State state,QWeakPointer<boost::none_t> blockUpdatesCookie)",
+        "method:KisUpdateCommandEx::partB()"
+      ]
+    },
+    {
+      "target": "KisUpdateCommandExContractTest",
+      "source": "libs/image/tests/KisUpdateCommandExContractTest.cpp",
+      "test": "KisUpdateCommandExContractTest::commandOwnsBatchAndBorrowsFacade",
+      "behavior": "一括node更新命令はbatchとそのnodeを共有所有し、基底所有からの破棄時に参照を解放する一方、更新接続面は借用して破棄しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData,KisUpdatesFacade * updatesFacade,State state)",
+        "method:KisUpdateCommandEx::~KisUpdateCommandEx()"
       ]
     }
   ]
