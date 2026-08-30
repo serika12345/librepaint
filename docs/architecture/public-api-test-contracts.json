@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22022
+    "expectedMissingApis": 22008
   },
   "contracts": [
     {
@@ -25705,6 +25705,123 @@
       "apis": [
         "method:KisLodTransform::KisLodTransform(int levelOfDetail)",
         "method:KisLodTransform::map(KisPaintInformation pi) const"
+      ]
+    },
+    {
+      "target": "KoAnchorSelectionWidgetTest",
+      "source": "libs/widgets/tests/KoAnchorSelectionWidgetTest.cpp",
+      "test": "KoAnchorSelectionWidgetTest::testConstructionAndLifetime",
+      "behavior": "anchor選択部品は指定親の子として10個のanchor buttonを構築し、親の破棄で仮想寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoAnchorSelectionWidget",
+        "method:KoAnchorSelectionWidget::KoAnchorSelectionWidget(QWidget * parent=0)",
+        "method:KoAnchorSelectionWidget::~KoAnchorSelectionWidget()"
+      ]
+    },
+    {
+      "target": "KoAnchorSelectionWidgetTest",
+      "source": "libs/widgets/tests/KoAnchorSelectionWidgetTest.cpp",
+      "test": "KoAnchorSelectionWidgetTest::testSelectionAndNotifications",
+      "behavior": "anchor値の設定は選択値を保持して変化時だけ同値の通知を一度送り、同じ値の再設定では通知しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAnchorSelectionWidget::setValue(KoFlake::AnchorPosition value)",
+        "method:KoAnchorSelectionWidget::value() const",
+        "method:KoAnchorSelectionWidget::valueChanged(KoFlake::AnchorPosition id)"
+      ]
+    },
+    {
+      "target": "KoAnchorSelectionWidgetTest",
+      "source": "libs/widgets/tests/KoAnchorSelectionWidgetTest.cpp",
+      "test": "KoAnchorSelectionWidgetTest::testRectangleConversion",
+      "behavior": "矩形内のanchor値変換は現在の選択、矩形、妥当性出力を変換関数へ渡し、その点と妥当性を透過して返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAnchorSelectionWidget::value(const QRectF rect,bool * valid) const"
+      ]
+    },
+    {
+      "target": "KoAnchorSelectionWidgetTest",
+      "source": "libs/widgets/tests/KoAnchorSelectionWidgetTest.cpp",
+      "test": "KoAnchorSelectionWidgetTest::testSlotValidation",
+      "behavior": "button groupの有効なanchor識別子は同値を一度通知し、範囲外識別子は回復可能診断を一度送り通知しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAnchorSelectionWidget::slotGroupClicked(int id)"
+      ]
+    },
+    {
+      "target": "KoAnchorSelectionWidgetTest",
+      "source": "libs/widgets/tests/KoAnchorSelectionWidgetTest.cpp",
+      "test": "KoAnchorSelectionWidgetTest::testSizeHints",
+      "behavior": "最小寸法は現行font高から求めた3行分の正方形となり、推奨寸法は最小高と現在高の大きい方を一辺とする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoAnchorSelectionWidget::minimumSizeHint() const",
+        "method:KoAnchorSelectionWidget::sizeHint() const"
+      ]
+    },
+    {
+      "target": "KoKeepShapesSelectedCommandContractTest",
+      "source": "libs/flake/tests/KoKeepShapesSelectedCommandContractTest.cpp",
+      "test": "KoKeepShapesSelectedCommandContractTest::finalizingRedoReplacesSelectionWithAfterListInOrder",
+      "behavior": "確定phaseの選択保持命令はundoでは選択を変えず、redoで現在選択を全解除してafter一覧を入力順に選択する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoKeepShapesSelectedCommand::KoKeepShapesSelectedCommand(const QList<KoShape * > & selectedBefore,const QList<KoShape * > & selectedAfter,KoSelectedShapesProxy * selectionProxy,bool isFinalizing,KUndo2Command * parent)"
+      ]
+    },
+    {
+      "target": "KoKeepShapesSelectedCommandContractTest",
+      "source": "libs/flake/tests/KoKeepShapesSelectedCommandContractTest.cpp",
+      "test": "KoKeepShapesSelectedCommandContractTest::initializingUndoReplacesSelectionWithBeforeListInOrder",
+      "behavior": "初期化phaseの選択保持命令はredoでは選択を変えず、undoで現在選択を全解除してbefore一覧を入力順に選択する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoKeepShapesSelectedCommand::KoKeepShapesSelectedCommand(const QList<KoShape * > & selectedBefore,const QList<KoShape * > & selectedAfter,KoSelectedShapesProxy * selectionProxy,bool isFinalizing,KUndo2Command * parent)"
+      ]
+    },
+    {
+      "target": "KoKeepShapesSelectedCommandContractTest",
+      "source": "libs/flake/tests/KoKeepShapesSelectedCommandContractTest.cpp",
+      "test": "KoKeepShapesSelectedCommandContractTest::emptyPhaseListClearsSelectionWithoutSelectingShapes",
+      "behavior": "対象phaseの選択一覧が空でも現在選択を一度全解除し、新しいshapeは選択しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoKeepShapesSelectedCommand::KoKeepShapesSelectedCommand(const QList<KoShape * > & selectedBefore,const QList<KoShape * > & selectedAfter,KoSelectedShapesProxy * selectionProxy,bool isFinalizing,KUndo2Command * parent)"
+      ]
+    },
+    {
+      "target": "KoKeepShapesSelectedCommandContractTest",
+      "source": "libs/flake/tests/KoKeepShapesSelectedCommandContractTest.cpp",
+      "test": "KoKeepShapesSelectedCommandContractTest::forwardsParentAndBorrowsProxyAndShapes",
+      "behavior": "選択保持命令は指定親の子となり、proxy、selection、shapeを借用したまま自身の破棄後も各対象の寿命を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoKeepShapesSelectedCommand",
+        "method:KoKeepShapesSelectedCommand::KoKeepShapesSelectedCommand(const QList<KoShape * > & selectedBefore,const QList<KoShape * > & selectedAfter,KoSelectedShapesProxy * selectionProxy,bool isFinalizing,KUndo2Command * parent)"
+      ]
+    },
+    {
+      "target": "KisTileCompressorFactoryContractTest",
+      "source": "libs/image/tiles3/tests/KisTileCompressorFactoryContractTest.cpp",
+      "test": "KisTileCompressorFactoryContractTest::versionOneCreatesDistinctOwnedLegacyCompressors",
+      "behavior": "tile圧縮器工場のversion 1は呼出しごとに別のlegacy圧縮器を共有所有で返し、最後の所有解放で各個体を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisTileCompressorFactory",
+        "method:KisTileCompressorFactory::create(qint32 version)"
+      ]
+    },
+    {
+      "target": "KisTileCompressorFactoryContractTest",
+      "source": "libs/image/tiles3/tests/KisTileCompressorFactoryContractTest.cpp",
+      "test": "KisTileCompressorFactoryContractTest::versionTwoCreatesDistinctOwnedCurrentCompressors",
+      "behavior": "tile圧縮器工場のversion 2は呼出しごとに別の現行圧縮器を共有所有で返し、最後の所有解放で各個体を一度破棄する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisTileCompressorFactory::create(qint32 version)"
       ]
     }
   ]
