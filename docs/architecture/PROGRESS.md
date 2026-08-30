@@ -2,12 +2,48 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 19:04 JST
+- 更新日時: 2026-08-30 19:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第58並列便の担当票
+
+- `g58-text-indent`は状態`planned`、計画基準`efa0e8f4f6`、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g58-text-indent`である。目的は字下げの既定長、hanging・eachLine、子長さ模型と3公開経路の
+  同一状態、変更通知、双方向同期、QObject寿命を固定することである。対象は
+  `libs/flake/text/lager/TextIndentModel.h`のclass、data、lengthData、lengthModel、constructor、hanging・eachLineの2
+  `LAGER_QT_CURSOR`、`length`、`lengthChanged`の全9 APIである。変更許可は`libs/flake/CMakeLists.txt`、
+  `libs/flake/tests/CMakeLists.txt`、新規`libs/flake/tests/TextIndentModelContractTest.cpp`に限る。開始ファイル
+  `libs/flake/text/lager/TextIndentModel.cpp`の直接収容を`kritaflaketextindentmodelobjects`へ移し、既存
+  `kritaflakecsslengthpercentagemodelobjects`へ直接依存して製品へ一度だけ再集約する。近傍は`CssLengthPercentageModelContractTest`、
+  対象macOS、共有cache`.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、
+  停止条件11工程・20入力、製品`kritaflake` 612工程・1,256入力超過、子模型の二重集約、通知元を一意に観測できない場合、
+  製品共有ライブラリー接続、または許可外変更である。
+- `g58-disable-dirty`は状態`planned`、同じ計画基準、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g58-disable-dirty`である。目的は空の既存画像命令試験から製品共有依存を除き、dirty要求の
+  無効化・有効化をINITIALIZING・FINALIZINGのredo/undo順と直接part呼出し、借用facade寿命として固定することである。対象は
+  `libs/image/commands_new/KisDisableDirtyRequestsCommand.h`のclass、constructor、partA、partBの全4 APIである。変更許可は
+  `libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、`libs/image/tests/kis_image_commands_test.{h,cpp}`に限る。開始ファイル
+  `libs/image/commands_new/KisDisableDirtyRequestsCommand.cpp`の直接収容を`kritaimagedisabledirtyrequestscommandobjects`へ移し、製品へ
+  一度だけ再集約する。開始対象`kis_image_commands_test`の`kritaimage`・`kritatestsdk`・`kritaresourcestorage`依存は同objectと
+  `kritapaintingundokundo2coreobjects`へ縮小する。近傍は`KisCommandUtilsContractTest`、対象macOS、共有cache同上、構築実行`waiting`、
+  Git権限`transport-commit`、追加委任`forbidden`、統合順2、停止条件12工程・25入力、製品`kritaimage` 1,181工程・2,386入力超過、
+  nullの新仕様化、実command utils製品objectまたは製品共有ライブラリー接続、または許可外変更である。
+- `g58-dynamic-sensor-factory`は状態`planned`、同じ計画基準、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g58-dynamic-sensor-factory`である。目的は動的sensor factory境界の識別値、最小・最大値と表示、
+  接尾辞、設定部品生成の引数配送、仮想寿命を固定することである。対象は
+  `plugins/paintops/libpaintop/KisDynamicSensorFactory.h`のclass、destructor、id、minimumValue、maximumValue、minimumLabel、
+  maximumLabel、valueSuffix、createConfigWidgetの全9 APIである。変更許可は`plugins/paintops/libpaintop/CMakeLists.txt`、
+  同`tests/CMakeLists.txt`、新規`plugins/paintops/libpaintop/tests/KisDynamicSensorFactoryContractTest.cpp`に限る。開始ファイル
+  `plugins/paintops/libpaintop/KisDynamicSensorFactory.cpp`の直接収容を`kritapaintopdynamicsensorfactoryobjects`へ移し、製品へ一度だけ
+  再集約する。近傍は`KisSensorPackInterfaceContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限
+  `transport-commit`、追加委任`forbidden`、統合順3、停止条件7工程・16入力、`kritalibpaintop` 2,091工程・4,180入力または
+  `kritapaintopruntime` 1,277工程・2,574入力からの増加、実paintop data・Qt Widgets・製品共有ライブラリー接続、または許可外変更である。
+- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、
+  進捗、担当間のCMake非重複、容量削除を所有する。完了目標は22 API純増の対応済み7,890件、未対応22,099件である。
 
 ### 現在の結果
 
@@ -41,7 +77,8 @@
 
 ### 次の操作
 
-- 第58並列便は不足一覧を読み取り専用で監査し、3候補の公開API、最小契約、直接依存、閉包上限を決めてから担当作業ツリーを作成する。
+- 第58並列便の計画をコミットし、その計画コミットから3担当の作業ツリーを作成する。各担当を`implementing`、構築実行`granted`へ
+  更新してから、対象別の構造縮小、未知契約診断、限定実装、対象CTestへ進む。
 
 ## 再開環境
 
