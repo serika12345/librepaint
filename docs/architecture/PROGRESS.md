@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 13:01 JST
+- 更新日時: 2026-08-30 13:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,9 +19,22 @@
   `develop`の主作業ツリー、永続増分構築木、最新`build/tdd-macos/public-api-missing-g45.json`だけを次便の入力として保持する。
 - `KisScreenColorSamplerBase`は分離MOCが`KoColor`のメタ型実装記号を要求し、現状では製品色管理ライブラリー非接続の限定対象にできない。変更は
   残しておらず、色値実装が小さな構築所有へ分離された後に再監査する。
-- 第45並列便は作業ツリーと構築木を作る前に、`libs/flake`、`libs/global`、`libs/image`、`libs/widgetutils`、`libs/widgets`、`libs/pigment`の候補を
-  読み取り専用で監査する。各候補の全public API数、実装所有、直接依存、既存近傍と限定閉包を確定し、計画と停止上限の検査・コミット後に
-  必要な担当作業ツリーだけを作成する。
+- 読み取り専用監査から、第45並列便は合計29 APIを次の4担当票で固定し、対応済み7,533件、未対応22,456件を目標とする。
+  - 主担当は`libs/widgets/KoDockWidgetTitleBar.cpp`を`kritawidgets_LIB_SRCS`直接収容から新規
+    `kritawidgetsdocktitlebarobjects`へ移し、製品`kritawidgets`へ1回だけ再集約する。全5 APIを対象とし、最近傍
+    `KoDockWidgetTitleBarButtonContractTest`の7工程・14入力と直接依存の差から停止上限を11工程・26入力とする。
+  - `flake_zoom_state`担当は`libs/flake/tools/KoInteractionStrategyFactory.cpp`を`kritaflake_SRCS`直接収容から新規
+    `kritaflakeinteractionstrategyfactoryobjects`へ移し、製品`kritaflake`へ1回だけ再集約する。全11 APIを対象とし、最近傍
+    `KoShapeStrokeModelContractTest`の5工程・11入力に対して停止上限を6工程・13入力とする。
+  - `image_frame_lock`担当は`libs/image/tiles3/KisTiledExtentManager.cpp`を`kritaimage_LIB_SRCS`直接収容から新規
+    `kritaimagetiledextentmanagerobjects`へ移し、製品`kritaimage`へ1回だけ再集約する。全7 APIを対象とし、現行の広域試験1,154工程・
+    2,331入力に対し、直接依存から予測した5工程・11入力と停止上限6工程・13入力に縮小する。
+  - `global_forest`担当は`libs/pigment/KoColorTransformationFactory.cpp`を`kritapigment_SRCS`直接収容から新規
+    `kritapigmentcolortransformationfactoryobjects`へ移し、製品`kritapigment`へ1回だけ再集約する。全6 APIを対象とし、最近傍
+    `KoColorTransformationContractTest`の6工程・13入力と直接依存の差から停止上限を7工程・18入力とする。
+- 計画を`verify-quick`へ通してコミットした共通基点から担当用3作業ツリーだけを作る。各担当は製品共有ライブラリーへ接続せず、
+  対象CTest単発・20回反復・軽量近傍試験・公開API契約検査・`verify-quick`を完了する。統合担当は各引渡しのclean確認直後に該当作業ツリーを削除し、
+  世代の古い公開API不足一覧は次世代一覧の生成成功直後に削除する。
 
 ## 再開環境
 
@@ -10343,8 +10356,8 @@
 
 ## 次の操作
 
-第45並列便の候補を`build/tdd-macos/public-api-missing-g45.json`から読み取り専用で監査する。公開API数、実装所有、直接依存、近傍の実測閉包から
-停止上限を確定し、計画を検査・コミットした後に必要な担当作業ツリーだけを作る。
+第45並列便の計画を`verify-quick`へ通してコミットする。その共通基点から担当用3作業ツリーだけを作成し、4限定対象の未登録失敗を確認してから
+並行実装を開始する。
 
 ## R1-G5完了根拠
 
