@@ -632,6 +632,23 @@ set_target_properties(kritaimagedefaultboundsbaseobjects PROPERTIES
    POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaimagebaseaccessorobjects OBJECT
+   kis_base_accessor.cpp
+)
+target_compile_definitions(kritaimagebaseaccessorobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagebaseaccessorobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagebaseaccessorobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagebaseaccessorobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageselectioncomponentobjects OBJECT
    kis_selection_component.cc
 )
@@ -1634,7 +1651,6 @@ set(kritaimage_LIB_SRCS
    kis_adjustment_layer.cc
    kis_selection_based_layer.cpp
    kis_node_filter_interface.cpp
-   kis_base_accessor.cpp
    kis_base_node.cpp
    kis_base_processor.cpp
    kis_bookmarked_configuration_manager.cc
@@ -1822,6 +1838,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageinterfacesobjects>
    $<TARGET_OBJECTS:kritaimageprojectionupdatesfilterobjects>
    $<TARGET_OBJECTS:kritaimagedefaultboundsbaseobjects>
+   $<TARGET_OBJECTS:kritaimagebaseaccessorobjects>
    $<TARGET_OBJECTS:kritaimageselectioncomponentobjects>
    $<TARGET_OBJECTS:kritaimageprojectionplaneobjects>
    $<TARGET_OBJECTS:kritaimagetransformmaskparamsinterfaceobjects>
