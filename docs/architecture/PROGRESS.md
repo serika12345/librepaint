@@ -2,23 +2,41 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 10:16 JST
+- 更新日時: 2026-08-30 10:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 現在の作業
+### 現在の並列担当票
 
-- 第38並列便でpalette描画、subpath除去命令、node改名命令、画面移動追跡の全24 APIを固定した。公開面は1,549ヘッダー、29,989 API、
-  対応済み7,284件、未対応22,705件である。
-- 4限定対象の結合構築、CTest 4/4、再実行時の無作業状態、公開API契約検査、`verify-quick`に成功した。各対象の20回反復と軽量隣接試験は
-  各担当で成功している。
-- 統合済みの3専用作業ツリーと専用Ninja木をclean確認直後に削除した。主作業ツリーの永続増分構築木とコンパイラーキャッシュを再利用し、
-  輸送用ブランチを復旧手段として保持する。
-- 次の操作は未対応報告`build/tdd-macos/public-api-missing-g39.json`から第39並列便の候補を監査し、直接依存と限定構築閉包を先に測定する
-  ことである。
+- 第39並列便の共通基準コミットは`1aa24012d7`である。統合担当は`develop`の主作業ツリー、実装担当は
+  `/Users/masato/Documents/librepaint-r2-g39-<担当識別子>`の専用Git作業ツリーと専用Ninja木を使用する。担当確定後に必要な3作業ツリー
+  だけを作成し、輸送コミットの取り込みとclean確認直後に削除する。
+- 統合担当`line-style-selector`は`planned`、追加委任は`forbidden`、統合順は1である。主作業ツリーで
+  `libs/widgets/KoLineStyleSelector.cpp`、`KoLineStyleModel.cpp`、`KoLineStyleItemDelegate.cpp`、Widgets製品・試験CMake、新規
+  `KoLineStyleSelectorContractTest.cpp`を所有する。関連3実装を製品`kritawidgets`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、
+  製品へ1回だけ再集約する。製品の756工程・1,541入力に代えて9工程・20入力以内で、親と仮想寿命、標準線種、登録済み・一時custom dash、
+  重複登録の全7 APIを固定する。
+- 実装担当`shape-transparency-command`は`planned`、追加委任は`forbidden`、統合順は2である。専用作業ツリーで
+  `libs/flake/commands/KoShapeTransparencyCommand.cpp`、Flake製品・試験CMake、新規`KoShapeTransparencyCommandContractTest.cpp`を所有する。
+  開始ファイルを製品`kritaflake`の直接ソースからAUTOMOC不要/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の578工程・
+  1,188入力と既存近傍試験の582工程・1,195入力に代えて6工程・14入力以内で、3構築入口、redo・undo、識別子、統合、借用寿命の全9 APIを
+  固定する。
+- 実装担当`safe-transform`は`planned`、追加委任は`forbidden`、統合順は3である。専用作業ツリーで`libs/image/kis_safe_transform.cpp`、
+  Image製品・試験CMake、新規`KisSafeTransformContractTest.cpp`を所有する。開始ファイルを製品`kritaimage`の直接ソースからAUTOMOC不要/
+  PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の1,132工程・2,288入力と既存変換試験の1,142工程・2,306入力に代えて6工程・
+  13入力以内で、前後方向の多角形・整数矩形・浮動小数矩形写像、始点・終点切抜き多角形、値寿命の全11 APIを固定する。
+- 実装担当`clickable-label`は`planned`、追加委任は`forbidden`、統合順は4である。専用作業ツリーで
+  `libs/widgetutils/KisClickableLabel.cpp`、WidgetUtils製品・試験CMake、新規`KisClickableLabelContractTest.cpp`を所有する。開始ファイルを
+  製品`kritawidgetutils`の直接ソースからAUTOMOC/PIC対応の専用生成物へ移し、製品へ1回だけ再集約する。製品の258工程・549入力に代えて
+  8工程・16入力以内で、親と仮想寿命、dismiss状態、click・dismiss通知、pixmap縮尺、高さ・推奨寸法の全13 APIを固定する。
+- 第39並列便の完了時は合計40 APIを追加し、公開面の対応済み7,324件、未対応22,665件を見込む。各担当は限定対象の単発・20回反復、軽量
+  隣接試験、公開記号、一重再集約、製品共有ライブラリー非接続、`verify-quick`を確認する。Linux、全ネイティブ検証、製品全体リンクは
+  対象外である。
+- 統合担当だけが中央文書と公開API台帳を変更する。許可パス外の変更、公開面変更、担当外依存、停止上限超過、分類できない挙動を発見した
+  時点で`blocked`として引き渡す。
 
 ## 再開環境
 
@@ -9991,8 +10009,8 @@
 
 ## 次の操作
 
-未対応報告`build/tdd-macos/public-api-missing-g39.json`から重複しない4候補を監査する。公開宣言、実装、既存試験、CMake直接依存、限定対象の
-清浄木閉包を確認し、過大な閉包は挙動契約より先に分離する。第39並列便の担当票と停止上限を記録してから実装を開始する。
+第39並列便の担当別作業ツリーを共通基準から作成し、対象未登録の初回限定構築診断を主作業ツリーで記録する。各担当は直接依存と停止上限を
+再確認し、過大な閉包を挙動契約より先に分離してから最小契約を実装する。
 
 ## R1-G5完了根拠
 
