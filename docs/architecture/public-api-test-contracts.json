@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22178
+    "expectedMissingApis": 22147
   },
   "contracts": [
     {
@@ -24849,6 +24849,222 @@
       "classification": "maintained",
       "apis": [
         "class:KisMirrorOptionModel"
+      ]
+    },
+    {
+      "target": "TabSizeModelContractTest",
+      "source": "libs/flake/tests/TabSizeModelContractTest.cpp",
+      "test": "TabSizeModelContractTest::defaultStateAndQtPropertiesRemainStable",
+      "behavior": "tab幅模型は8文字分、数値形式、未使用の0絶対長、追加間隔0を既定保存値とし、valueとunitを読取り、書込み、変更通知が可能なQtプロパティとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TabSizeModel",
+        "method:TabSizeModel::LAGER_QT_CURSOR(TabSizeType,unit)",
+        "method:TabSizeModel::LAGER_QT_CURSOR(qreal,value)",
+        "method:TabSizeModel::TabSizeModel(lager::cursor<KoSvgText::TabSizeInfo> _data=lager::make_state (KoSvgText::TabSizeInfo (),lager::automatic_tag{}))"
+      ]
+    },
+    {
+      "target": "TabSizeModelContractTest",
+      "source": "libs/flake/tests/TabSizeModelContractTest.cpp",
+      "test": "TabSizeModelContractTest::tabSizeTypeValuesAndMetaObjectRemainStable",
+      "behavior": "tab幅単位のAbsolute、Em、Ex、Cap、Ch、Ic、Lh、Spacesは0から7の安定した値とQt列挙meta情報を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:TabSizeModel::TabSizeType",
+        "enumerator:TabSizeModel::TabSizeType::Absolute",
+        "enumerator:TabSizeModel::TabSizeType::Cap",
+        "enumerator:TabSizeModel::TabSizeType::Ch",
+        "enumerator:TabSizeModel::TabSizeType::Em",
+        "enumerator:TabSizeModel::TabSizeType::Ex",
+        "enumerator:TabSizeModel::TabSizeType::Ic",
+        "enumerator:TabSizeModel::TabSizeType::Lh",
+        "enumerator:TabSizeModel::TabSizeType::Spaces"
+      ]
+    },
+    {
+      "target": "TabSizeModelContractTest",
+      "source": "libs/flake/tests/TabSizeModelContractTest.cpp",
+      "test": "TabSizeModelContractTest::injectedCursorSynchronizesBothDirections",
+      "behavior": "注入したtab幅cursorの長さ値と単位はvalue・unitおよび各通知へ同期し、Qtプロパティからの値・単位変更は同じcursorへ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TabSizeModel::LAGER_QT_CURSOR(TabSizeType,unit)",
+        "method:TabSizeModel::LAGER_QT_CURSOR(qreal,value)",
+        "method:TabSizeModel::TabSizeModel(lager::cursor<KoSvgText::TabSizeInfo> _data=lager::make_state (KoSvgText::TabSizeInfo (),lager::automatic_tag{}))"
+      ]
+    },
+    {
+      "target": "TabSizeModelContractTest",
+      "source": "libs/flake/tests/TabSizeModelContractTest.cpp",
+      "test": "TabSizeModelContractTest::allUnitsMapToStorageWithoutConvertingMagnitude",
+      "behavior": "7つの長さ単位は対応するCSS長さ単位へ一対一で保存され、Spacesは数値形式を選び、単位変更は保存済みの大きさを変換しない。",
+      "classification": "maintained",
+      "apis": [
+        "enum:TabSizeModel::TabSizeType",
+        "enumerator:TabSizeModel::TabSizeType::Absolute",
+        "enumerator:TabSizeModel::TabSizeType::Cap",
+        "enumerator:TabSizeModel::TabSizeType::Ch",
+        "enumerator:TabSizeModel::TabSizeType::Em",
+        "enumerator:TabSizeModel::TabSizeType::Ex",
+        "enumerator:TabSizeModel::TabSizeType::Ic",
+        "enumerator:TabSizeModel::TabSizeType::Lh",
+        "enumerator:TabSizeModel::TabSizeType::Spaces",
+        "method:TabSizeModel::LAGER_QT_CURSOR(TabSizeType,unit)",
+        "method:TabSizeModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "TabSizeModelContractTest",
+      "source": "libs/flake/tests/TabSizeModelContractTest.cpp",
+      "test": "TabSizeModelContractTest::numberAndLengthMagnitudesRemainIndependentAcrossUnitSwitches",
+      "behavior": "tab幅模型は文字数形式の数値と長さ形式の数値を独立して保持し、単位形式を切り替えると選択した形式の保存済み数値を再び公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:TabSizeModel::LAGER_QT_CURSOR(TabSizeType,unit)",
+        "method:TabSizeModel::LAGER_QT_CURSOR(qreal,value)"
+      ]
+    },
+    {
+      "target": "TabSizeModelContractTest",
+      "source": "libs/flake/tests/TabSizeModelContractTest.cpp",
+      "test": "TabSizeModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "tab幅模型をQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:TabSizeModel"
+      ]
+    },
+    {
+      "target": "KisUpdateSelectionJobContractTest",
+      "source": "libs/image/tests/KisUpdateSelectionJobContractTest.cpp",
+      "test": "KisUpdateSelectionJobContractTest::constructionRetainsSelectionAndReportsExclusiveMetadata",
+      "behavior": "選択投影更新ジョブは選択を強参照で保持し、排他的実行、詳細度0、固定デバッグ名を報告する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUpdateSelectionJob",
+        "method:KisUpdateSelectionJob::KisUpdateSelectionJob(KisSelectionSP selection,const QRect & updateRect=QRect ())",
+        "method:KisUpdateSelectionJob::debugName() const",
+        "method:KisUpdateSelectionJob::levelOfDetail() const"
+      ]
+    },
+    {
+      "target": "KisUpdateSelectionJobContractTest",
+      "source": "libs/image/tests/KisUpdateSelectionJobContractTest.cpp",
+      "test": "KisUpdateSelectionJobContractTest::fullUpdateWithoutParentUpdatesProjectionThenNotifies",
+      "behavior": "空の更新範囲と親なしの実行は親を確認し、選択投影全体を更新してから選択変更を通知し、親をdirtyにしない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateSelectionJob::run()"
+      ]
+    },
+    {
+      "target": "KisUpdateSelectionJobContractTest",
+      "source": "libs/image/tests/KisUpdateSelectionJobContractTest.cpp",
+      "test": "KisUpdateSelectionJobContractTest::rangedUpdateOnNonOverlayParentDoesNotDirtyParent",
+      "behavior": "非overlay親を持つ範囲更新は親の旧extentを取得し、指定範囲の投影更新と選択通知後にoverlayを確認するが親をdirtyにしない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateSelectionJob::run()"
+      ]
+    },
+    {
+      "target": "KisUpdateSelectionJobContractTest",
+      "source": "libs/image/tests/KisUpdateSelectionJobContractTest.cpp",
+      "test": "KisUpdateSelectionJobContractTest::overlayParentReceivesUnionOfExtentsAfterRangedUpdate",
+      "behavior": "overlay親を持つ範囲更新は投影更新と選択通知を挟んだ旧新extentの和を、親のdirty範囲として設定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateSelectionJob::run()"
+      ]
+    },
+    {
+      "target": "KisUpdateSelectionJobContractTest",
+      "source": "libs/image/tests/KisUpdateSelectionJobContractTest.cpp",
+      "test": "KisUpdateSelectionJobContractTest::sameSelectionOverridesMergeRangesAndPreserveFullReceiver",
+      "behavior": "同じ選択の範囲更新ジョブは受信側へ範囲の和を蓄積し、全体更新の受信側は全体更新のまま同じ選択ジョブを上書きする。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateSelectionJob::overrides(const KisSpontaneousJob * otherJob)"
+      ]
+    },
+    {
+      "target": "KisUpdateSelectionJobContractTest",
+      "source": "libs/image/tests/KisUpdateSelectionJobContractTest.cpp",
+      "test": "KisUpdateSelectionJobContractTest::overridesRejectDifferentSelectionAndOtherTypes",
+      "behavior": "選択投影更新ジョブは別の選択、異なるジョブ型、nullを上書き対象として受け入れない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUpdateSelectionJob::overrides(const KisSpontaneousJob * otherJob)"
+      ]
+    },
+    {
+      "target": "KisColorOptionModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorOptionModelContractTest.cpp",
+      "test": "KisColorOptionModelContractTest::injectedCursorDefaultsAndQtPropertiesRemainStable",
+      "behavior": "色設定模型は6つの真偽値を無効、色相・彩度・明度を0とする注入cursorを所有し、9項目を型付きの読取り、書込み、変更通知が可能なQtプロパティとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorOptionModel",
+        "member:KisColorOptionModel::optionData",
+        "method:KisColorOptionModel::KisColorOptionModel(lager::cursor<KisColorOptionData> optionData)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,colorPerParticle)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,fillBackground)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,mixBgColor)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,sampleInputColor)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,useRandomHSV)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,useRandomOpacity)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,hue)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,saturation)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,value)"
+      ]
+    },
+    {
+      "target": "KisColorOptionModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorOptionModelContractTest.cpp",
+      "test": "KisColorOptionModelContractTest::externalStateUpdatesAllGettersAndSignals",
+      "behavior": "色設定cursorの外部更新は9プロパティの取得値と各変更通知へ同期する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisColorOptionModel::optionData",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,colorPerParticle)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,fillBackground)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,mixBgColor)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,sampleInputColor)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,useRandomHSV)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,useRandomOpacity)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,hue)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,saturation)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,value)"
+      ]
+    },
+    {
+      "target": "KisColorOptionModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorOptionModelContractTest.cpp",
+      "test": "KisColorOptionModelContractTest::settersUpdateFieldsIndependently",
+      "behavior": "色設定の生成setterとQtプロパティ書込みは元cursorの対象項目だけを変更し、残る8項目を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisColorOptionModel::optionData",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,colorPerParticle)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,fillBackground)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,mixBgColor)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,sampleInputColor)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,useRandomHSV)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(bool,useRandomOpacity)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,hue)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,saturation)",
+        "method:KisColorOptionModel::LAGER_QT_CURSOR(int,value)"
+      ]
+    },
+    {
+      "target": "KisColorOptionModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorOptionModelContractTest.cpp",
+      "test": "KisColorOptionModelContractTest::qObjectBaseProvidesVirtualLifetime",
+      "behavior": "色設定模型をQObject基底で所有して破棄すると派生個体の寿命を終了する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisColorOptionModel"
       ]
     }
   ]
