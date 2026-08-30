@@ -33,7 +33,6 @@ set(kritalibpaintop_LIB_SRCS
     KisSpacingOptionModel.cpp
     KisSpacingOption.cpp
     KisMirrorOptionData.cpp
-    KisMirrorOptionModel.cpp
     KisMirrorOptionWidget.cpp
     KisMirrorOption.cpp
     KisSharpnessOptionData.cpp
@@ -295,6 +294,42 @@ set_target_properties(kritapaintopcurverangemodelinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopmirroroptionmodelobjects OBJECT
+    KisMirrorOptionModel.cpp
+)
+target_compile_definitions(kritapaintopmirroroptionmodelobjects PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritapaintopmirroroptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/image
+        ${CMAKE_BINARY_DIR}/libs/image
+        ${CMAKE_SOURCE_DIR}/libs/pigment
+        ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_link_libraries(kritapaintopmirroroptionmodelobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+set_target_properties(kritapaintopmirroroptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintoptextureoptionioobjects OBJECT
     KisEmbeddedTextureDataIO.cpp
     KisTextureOptionData.cpp
@@ -385,6 +420,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopruntime>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
 )

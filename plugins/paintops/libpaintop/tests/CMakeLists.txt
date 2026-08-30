@@ -141,6 +141,20 @@ target_compile_definitions(KisCurveRangeModelInterfaceContractTest PRIVATE
 )
 
 kis_add_test(
+    KisMirrorOptionModelContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopmirroroptionmodelobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisMirrorOptionModelContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KisSensorDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintopsensordataobjects
