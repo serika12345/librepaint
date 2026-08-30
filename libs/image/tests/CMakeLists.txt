@@ -582,6 +582,26 @@ target_include_directories(KisPerspectiveMathContractTest PRIVATE
 )
 
 kis_add_test(
+    KisSafeTransformContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagesafetransformobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_compile_definitions(KisSafeTransformContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+target_include_directories(KisSafeTransformContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+
+kis_add_test(
     KisSelectionComponentContractTest.cpp
     LINK_LIBRARIES
         kritaimageselectioncomponentobjects
