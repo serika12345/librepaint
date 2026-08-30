@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22350
+    "expectedMissingApis": 22345
   },
   "contracts": [
     {
@@ -23772,6 +23772,38 @@
       "apis": [
         "method:KisDoSomethingCommandOps::NotifyColorSpaceChangedOp::operator () (LayerType layer)",
         "struct:KisDoSomethingCommandOps::NotifyColorSpaceChangedOp"
+      ]
+    },
+    {
+      "target": "KoColorConversionTransformationAbstractFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp",
+      "test": "KoColorConversionTransformationAbstractFactoryContractTest::conversionCreationPreservesArgumentsAndReturn",
+      "behavior": "色変換factoryの基底接続面は入力・出力色空間、描画intent、変換flagsを派生実装へ正確に1回配送し、派生実装の変換pointerを呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorConversionTransformationAbstractFactory::createColorTransformation(const KoColorSpace * srcColorSpace,const KoColorSpace * dstColorSpace,KoColorConversionTransformation::Intent renderingIntent,KoColorConversionTransformation::ConversionFlags conversionFlags) const"
+      ]
+    },
+    {
+      "target": "KoColorConversionTransformationAbstractFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp",
+      "test": "KoColorConversionTransformationAbstractFactoryContractTest::proofingCreationPreservesArgumentsAndReturn",
+      "behavior": "校正色変換factoryの基底接続面は入力・出力・校正色空間、両intent、最初の変換の黒点補正、gamut警告pointer、表示変換flagsを派生実装へ正確に1回配送し、派生実装の校正変換pointerを呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorConversionTransformationAbstractFactory::createColorProofingTransformation(const KoColorSpace * srcColorSpace,const KoColorSpace * dstColorSpace,const KoColorSpace * proofingSpace,KoColorProofingConversionTransformation::Intent renderingIntent,KoColorProofingConversionTransformation::Intent proofingIntent,bool bpcFirstTransform,quint8 * gamutWarning,KoColorConversionTransformation::ConversionFlags displayConversionFlags) const"
+      ]
+    },
+    {
+      "target": "KoColorConversionTransformationAbstractFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorConversionTransformationAbstractFactoryContractTest.cpp",
+      "test": "KoColorConversionTransformationAbstractFactoryContractTest::defaultConstructionHasVirtualLifetime",
+      "behavior": "色変換factoryの抽象基底は既定構築でき、基底所有から派生個体を正確に1回破棄する仮想寿命を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorConversionTransformationAbstractFactory",
+        "method:KoColorConversionTransformationAbstractFactory::KoColorConversionTransformationAbstractFactory()",
+        "method:KoColorConversionTransformationAbstractFactory::~KoColorConversionTransformationAbstractFactory()"
       ]
     }
   ]
