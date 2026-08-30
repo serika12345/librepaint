@@ -283,6 +283,23 @@ target_include_directories(KoSvgTextEnumContractTest PRIVATE
 target_compile_definitions(KoSvgTextEnumContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    CssLengthPercentageModelContractTest.cpp
+    LINK_LIBRARIES
+        kritaflakecsslengthpercentagemodelobjects
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+target_include_directories(CssLengthPercentageModelContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(CssLengthPercentageModelContractTest PRIVATE kritaflake_EXPORTS)
+
+kis_add_test(
     KoCSSFontInfoContractTest.cpp
     LINK_LIBRARIES
         Boost::boost

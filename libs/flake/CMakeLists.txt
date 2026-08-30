@@ -509,6 +509,33 @@ set_target_properties(kritaflakeunicodeblockdataobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakecsslengthpercentagemodelobjects OBJECT
+    text/lager/CssLengthPercentageModel.cpp
+)
+target_compile_definitions(kritaflakecsslengthpercentagemodelobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakecsslengthpercentagemodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/text/lager>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritaflakecsslengthpercentagemodelobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        lager
+)
+set_target_properties(kritaflakecsslengthpercentagemodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakepathfillrulecommandobjects OBJECT
     commands/KoPathFillRuleCommand.cpp
 )
@@ -937,7 +964,6 @@ set(kritaflake_SRCS
     text/KoSvgTextPropertyData.cpp
     text/KoSvgTextPropertiesInterface.h
     text/lager/KoSvgTextPropertiesModel.cpp
-    text/lager/CssLengthPercentageModel.cpp
     text/lager/LineHeightModel.cpp
     text/lager/TextIndentModel.cpp
     text/lager/TabSizeModel.cpp
@@ -988,6 +1014,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakedebugobjects>
     $<TARGET_OBJECTS:kritaflakeopentypefeatureinfoobjects>
     $<TARGET_OBJECTS:kritaflakeunicodeblockdataobjects>
+    $<TARGET_OBJECTS:kritaflakecsslengthpercentagemodelobjects>
     $<TARGET_OBJECTS:kritaflakewritingsystemutilsobjects>
     $<TARGET_OBJECTS:kritaflakepathfillrulecommandobjects>
     $<TARGET_OBJECTS:kritaflakeshaperenamecommandobjects>
