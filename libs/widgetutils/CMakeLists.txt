@@ -309,6 +309,28 @@ set_target_properties(kritawidgetutilsrootsurfacetrackerobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritawidgetutilsscreenmigrationtrackerobjects OBJECT
+    KisScreenMigrationTracker.cpp
+)
+target_compile_definitions(kritawidgetutilsscreenmigrationtrackerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsscreenmigrationtrackerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetutilsscreenmigrationtrackerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetutilsscreenmigrationtrackerobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
 
     $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
@@ -330,6 +352,7 @@ set(kritawidgetutils_LIB_SRCS
     $<TARGET_OBJECTS:kritawidgetutilsoptionbuttonstripobjects>
     $<TARGET_OBJECTS:kritawidgetutilstoolbarstatemodelobjects>
     $<TARGET_OBJECTS:kritawidgetutilsrootsurfacetrackerobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsscreenmigrationtrackerobjects>
 
     WidgetUtilsDebug.cpp
 
@@ -352,7 +375,6 @@ set(kritawidgetutils_LIB_SRCS
     kis_font_family_combo_box.cpp
     KisFontFamilyValidator.cpp
     KisRecentFilesManager.cpp
-    KisScreenMigrationTracker.cpp
 
     config/khelpclient.cpp
     config/klanguagebutton.cpp

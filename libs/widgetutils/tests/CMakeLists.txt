@@ -138,6 +138,23 @@ target_include_directories(KisRootSurfaceTrackerBaseContractTest PRIVATE
 target_compile_definitions(KisRootSurfaceTrackerBaseContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
+    KisScreenMigrationTrackerContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsscreenmigrationtrackerobjects
+        kritawidgetutilsrootsurfacetrackerobjects
+        kritaglobalsignalcompressorobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisScreenMigrationTrackerContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisScreenMigrationTrackerContractTest PRIVATE kritawidgetutils_EXPORTS)
+
+kis_add_test(
     kis_simple_math_parser_test.cpp
     LINK_LIBRARIES kritawidgetutilsnumericparserobjects Qt${QT_MAJOR_VERSION}::Test
 )
