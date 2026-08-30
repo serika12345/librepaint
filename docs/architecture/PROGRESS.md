@@ -2,12 +2,45 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-30 17:18 JST
+- 更新日時: 2026-08-30 17:29 JST
 - 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第54並列便の担当票
+
+- `g54-east-asian`は状態`preparing`、基準`53a481d0ab6e785d8edaadd55070fec0f4723440`、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g54-east-asian`である。目的は東アジア字体のvariant、width、rubyの既定値、独立性、
+  cursorとQt propertyの双方向同期、QObject寿命を固定することである。対象は
+  `libs/flake/text/lager/FontVariantEastAsianModel.h`のclass、data、constructor、variant・width・rubyの3 `LAGER_QT_CURSOR`の
+  全6 APIである。変更許可は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規
+  `libs/flake/tests/FontVariantEastAsianModelContractTest.cpp`に限る。開始ファイル
+  `libs/flake/text/lager/FontVariantEastAsianModel.cpp`の直接収容を`kritaflakefontvarianteastasianmodelobjects`へ移し、製品へ
+  一度だけ再集約する。近傍は`FontVariantLigaturesModelContractTest`、対象macOS、共有cache
+  `.cache/librepaint/ccache/native`、構築実行`waiting`、Git権限`transport-commit`、追加委任`forbidden`、統合順1、停止条件
+  8工程・16入力、製品共有ライブラリー接続、製品閉包604工程・1,240入力超過、または許可外変更である。
+- `g54-image-patch`は状態`preparing`、同じ基準、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g54-image-patch`である。目的は画像patchの既定状態、拡張・倍率適用範囲、画像有効性、
+  事前拡縮、指定領域への描画とpainter状態復元を固定することである。対象は`libs/canvas/kis_image_patch.h`のclass、2 constructor、
+  `drawMe`、`isValid`、`patchRect`、`preScale`、`setImage`の全8 APIである。変更許可は`libs/canvas/CMakeLists.txt`、
+  `libs/canvas/tests/CMakeLists.txt`、新規`libs/canvas/tests/KisImagePatchContractTest.cpp`に限る。開始ファイル
+  `libs/canvas/kis_image_patch.cpp`の直接収容を`kritacanvasimagepatchobjects`へ移し、製品へ一度だけ再集約する。近傍は
+  `kis_prescaled_projection_contract_test`、対象macOS、共有cache同上、構築実行`waiting`、Git権限`transport-commit`、追加委任
+  `forbidden`、統合順2、停止条件8工程・18入力、製品共有ライブラリー接続、製品`kritacanvas`閉包増加、または補間画素値への依存である。
+- `g54-node-uuid`は状態`preparing`、同じ基準、予定作業ツリー
+  `/Users/masato/Documents/librepaint-r2-g54-node-uuid`である。目的はnode識別値の構築時採取、UUID優先と名前後退、root優先の
+  深さ優先探索、不一致時の空結果、返却node所有を固定することである。対象は`libs/image/kis_node_uuid_info.h`のclass、4 constructor、
+  `uuid`、`name`、`findNode`の全8 APIである。変更許可は`libs/image/CMakeLists.txt`、`libs/image/kis_node_uuid_info.{h,cpp}`、新規
+  `libs/image/KisNodeUuidInfoNodeAccess_p.h`、新規`libs/image/KisNodeUuidInfoNodeAccess.cpp`、`libs/image/tests/CMakeLists.txt`、新規
+  `libs/image/tests/KisNodeUuidInfoContractTest.cpp`に限る。開始ファイル`libs/image/kis_node_uuid_info.cpp`の直接収容を
+  `kritaimagenodeuuidinfoobjects`へ移し、具体node操作を同ファイルから非公開node access 2ファイルと対応objectへ移して製品へ各一度だけ
+  再集約する。近傍は`KisNodeRenameCommandContractTest`、対象macOS、共有cache同上、構築実行`waiting`、Git権限
+  `transport-commit`、追加委任`forbidden`、統合順3、停止条件6工程・14入力、製品共有ライブラリー接続、製品`kritaimage`閉包
+  1,170工程・2,364入力超過、null入力または重複識別子の新仕様確定、または許可外変更である。
+- 3担当は`AGENTS.md`、全architecture文書、`docs/architecture/public-api-test-contracts.json`を変更しない。統合担当が中央台帳、
+  進捗、担当間のCMake非重複、容量削除を所有する。完了目標は22 API純増の対応済み7,794件、未対応22,195件である。
 
 ### 現在の結果
 
@@ -34,8 +67,7 @@
 
 ### 次の操作
 
-- 第54並列便は最新不足一覧から所有領域が重ならず、各公開面を一便で完了できる対象を読み取り専用で監査する。
-  候補の限定閉包、直接依存、構造分離要否を確定して計画をコミットするまで、専用作業ツリーを作成しない。
+- 第54並列便の計画コミット後、共通基準から3作業ツリーを作成して構築実行を`granted`へ更新し、担当を開始する。
 
 ## 再開環境
 
