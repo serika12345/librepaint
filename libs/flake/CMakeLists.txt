@@ -134,6 +134,21 @@ set_target_properties(kritaflakedockfactorybaseobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakeshapestrokemodelobjects OBJECT
+    KoShapeStrokeModel.cpp
+)
+target_compile_definitions(kritaflakeshapestrokemodelobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakeshapestrokemodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaflakeshapestrokemodelobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaflakeshapestrokemodelobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakeactivecanvasresourcedependencyobjects OBJECT
     KoActiveCanvasResourceDependency.cpp
 )
@@ -742,7 +757,6 @@ set(kritaflake_SRCS
     KoShapeSavingContext.cpp
     KoShapeLoadingContext.cpp
     KoPathShapeLoader.cpp
-    KoShapeStrokeModel.cpp
     KoShapeStroke.cpp
     KoColorBackground.cpp
     KoGradientBackground.cpp
@@ -890,6 +904,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
     $<TARGET_OBJECTS:kritaflakeshapeconfigwidgetbaseobjects>
     $<TARGET_OBJECTS:kritaflakedockfactorybaseobjects>
+    $<TARGET_OBJECTS:kritaflakeshapestrokemodelobjects>
     $<TARGET_OBJECTS:kritaflakeactivecanvasresourcedependencyobjects>
     $<TARGET_OBJECTS:kritaflakederivedresourceconverterobjects>
     $<TARGET_OBJECTS:kritaflakeresourceupdatemediatorobjects>

@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22507
+    "expectedMissingApis": 22497
   },
   "contracts": [
     {
@@ -22890,6 +22890,43 @@
         "method:KoPageWidgetItem::shouldDialogCloseBeVetoed()",
         "method:KoPageWidgetItem::widget()",
         "method:KoPageWidgetItem::~KoPageWidgetItem()"
+      ]
+    },
+    {
+      "target": "KoShapeStrokeModelContractTest",
+      "source": "libs/flake/tests/KoShapeStrokeModelContractTest.cpp",
+      "test": "KoShapeStrokeModelContractTest::dispatchesGeometryPaintingAndStateThroughBase",
+      "behavior": "図形stroke模型の基底接続面が図形、余白、形状用描画器、marker用描画器を呼出し順どおり派生実装へ配送し、派生実装による四辺余白の変更、marker最大突出量、透明性、可視性を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeStrokeModel",
+        "method:KoShapeStrokeModel::hasTransparency() const",
+        "method:KoShapeStrokeModel::isVisible() const",
+        "method:KoShapeStrokeModel::paint(const KoShape * shape,QPainter & painter) const",
+        "method:KoShapeStrokeModel::paintMarkers(const KoShape * shape,QPainter & painter) const",
+        "method:KoShapeStrokeModel::strokeInsets(const KoShape * shape,KoInsets & insets) const",
+        "method:KoShapeStrokeModel::strokeMaxMarkersInset(const KoShape * shape) const"
+      ]
+    },
+    {
+      "target": "KoShapeStrokeModelContractTest",
+      "source": "libs/flake/tests/KoShapeStrokeModelContractTest.cpp",
+      "test": "KoShapeStrokeModelContractTest::dispatchesFillAndStyleComparisonsThroughBase",
+      "behavior": "図形stroke模型の塗り比較と様式比較が同じ比較相手を派生実装へ順に渡し、それぞれ異なる真偽結果を透過する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStrokeModel::compareFillTo(const KoShapeStrokeModel * other)",
+        "method:KoShapeStrokeModel::compareStyleTo(const KoShapeStrokeModel * other)"
+      ]
+    },
+    {
+      "target": "KoShapeStrokeModelContractTest",
+      "source": "libs/flake/tests/KoShapeStrokeModelContractTest.cpp",
+      "test": "KoShapeStrokeModelContractTest::destroysDerivedStrokeThroughBase",
+      "behavior": "図形stroke模型を基底ポインターから破棄すると派生デストラクターまで一度だけ到達する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeStrokeModel::~KoShapeStrokeModel()"
       ]
     }
   ]
