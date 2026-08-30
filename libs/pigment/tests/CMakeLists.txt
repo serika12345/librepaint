@@ -102,6 +102,19 @@ kis_add_test(
 target_compile_definitions(KoColorTransformationContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoColorTransformationFactoryContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentcolortransformationfactoryobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KoColorTransformationFactoryContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritapigment_EXPORTS
+)
+
+kis_add_test(
     KoColorProfileQueryContractTest.cpp
     LINK_LIBRARIES
         kritapigmentcolorimetryobjects

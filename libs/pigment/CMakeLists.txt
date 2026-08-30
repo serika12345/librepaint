@@ -197,8 +197,24 @@ set_target_properties(kritapigmentcolortransformationobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapigmentcolortransformationfactoryobjects OBJECT
+    KoColorTransformationFactory.cpp
+)
+target_compile_definitions(kritapigmentcolortransformationfactoryobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolortransformationfactoryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentcolortransformationfactoryobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentcolortransformationfactoryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritapigment_SRCS
     $<TARGET_OBJECTS:kritapigmentcolortransformationobjects>
+    $<TARGET_OBJECTS:kritapigmentcolortransformationfactoryobjects>
     $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalerbaseobjects>
     KoBasicHistogramProducers.cpp
     KoOptimizedPixelDataScalerU8ToU16Factory.cpp
@@ -217,7 +233,6 @@ set(kritapigment_SRCS
     KoColorProfileQuery.h
     KoColorSpaceRegistry.cpp
     KoColorProfileStorage.cpp
-    KoColorTransformationFactory.cpp
     KoColorTransformationFactoryRegistry.cpp
     KoCompositeOp.cpp
     KoCompositeOpRegistry.cpp

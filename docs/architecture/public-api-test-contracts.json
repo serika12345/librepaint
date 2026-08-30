@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 22469
+    "expectedMissingApis": 22463
   },
   "contracts": [
     {
@@ -22674,6 +22674,39 @@
         "method:KisRecentFilesManager::fileRemoved(const QUrl & url)",
         "method:KisRecentFilesManager::recentFiles() const",
         "method:KisRecentFilesManager::remove(const QUrl & url)"
+      ]
+    },
+    {
+      "target": "KoColorTransformationFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationFactoryContractTest.cpp",
+      "test": "KoColorTransformationFactoryContractTest::identifierAndSupportedModelsPreserveValues",
+      "behavior": "色変換工場が構築時の識別子を保持し、派生実装が宣言した色モデルと色深度の組を値と順序を保って返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoColorTransformationFactory",
+        "method:KoColorTransformationFactory::KoColorTransformationFactory(const QString & id)",
+        "method:KoColorTransformationFactory::id() const",
+        "method:KoColorTransformationFactory::supportedModels() const"
+      ]
+    },
+    {
+      "target": "KoColorTransformationFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationFactoryContractTest.cpp",
+      "test": "KoColorTransformationFactoryContractTest::creationDispatchesBorrowedSpaceParametersAndReturn",
+      "behavior": "色変換生成要求が借用した色空間ポインターと引数表を派生工場へ正確に配送し、派生工場の返値をそのまま呼出元へ返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorTransformationFactory::createTransformation(const KoColorSpace * colorSpace,QHash<QString,QVariant> parameters) const"
+      ]
+    },
+    {
+      "target": "KoColorTransformationFactoryContractTest",
+      "source": "libs/pigment/tests/KoColorTransformationFactoryContractTest.cpp",
+      "test": "KoColorTransformationFactoryContractTest::baseOwnershipDestroysDerivedExactlyOnce",
+      "behavior": "色変換工場を基底ポインターで所有して破棄すると派生工場の破棄処理を正確に1回実行する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoColorTransformationFactory::~KoColorTransformationFactory()"
       ]
     },
     {
