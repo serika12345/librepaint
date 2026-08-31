@@ -2,12 +2,52 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 11:33 JST
-- 状態: `planned`
+- 更新日時: 2026-08-31 11:47 JST
+- 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第75並列便の担当票
+
+- 形状stroke command担当は`preparing`である。基点は
+  `69861ba8c939c29969270dd8d72f224904abc68b`、予定作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g75-shape-stroke`、予定ブランチは`r2-g75-shape-stroke`、
+  統合順は1である。対象は`libs/flake/commands/KoShapeStrokeCommand.h`の9 APIである。開始ファイル
+  `libs/flake/commands/KoShapeStrokeCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakeshapestrokecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。開始試験
+  `libs/flake/tests/TestShapeStrokeCommand.{h,cpp}`を広域試験一覧から同名専用Qt Testへ移し、3構築経路、
+  shape・stroke対応、redo・undo配送、識別子・merge、空入力・共有所有を5契約枠で固定し、9 APIを
+  `maintained`へ分類する。仮想stroke APIと一括更新は開始実装の`BUILD_TESTING`限定配送設定を介して
+  不透明shape tokenへ接続し、既定配送は実shape APIと一括更新の従来順序を保つ。限定構築は計画承認まで
+  待機し、予測閉包5工程・13入力、停止条件6工程・15入力、製品閉包612工程・1,256入力不変を要求する。
+  許可範囲は`libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、開始試験2ファイルである。
+- 畳み込みkernel担当は`preparing`である。基点は`69861ba8c939c29969270dd8d72f224904abc68b`、
+  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g75-convolution-kernel`、予定ブランチは
+  `r2-g75-convolution-kernel`、統合順は2である。対象は`libs/image/kis_convolution_kernel.h`の15 APIである。
+  開始ファイル`libs/image/kis_convolution_kernel.cc`を`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimageconvolutionkernelobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。mask生成器の
+  width・height・値取得は新規非公開`libs/image/KisConvolutionKernelMaskAccess_p.h`へ宣言し、製品定義を
+  既存所有元`libs/image/kis_base_mask_generator.cpp`、試験定義を新規
+  `libs/image/tests/KisConvolutionKernelContractTest.cpp`へ置く。構築・変形、matrix・画像・mask各生成、
+  仮想寿命、診断出力を5契約枠で固定し、15 APIを`maintained`へ分類する。限定構築は計画承認まで待機し、
+  予測閉包6工程・13入力、停止条件7工程・15入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は
+  `libs/image/CMakeLists.txt`、開始実装、新規非公開header、既存mask生成器実装、`libs/image/tests/CMakeLists.txt`、
+  新規試験である。
+- 色空間engine担当は`preparing`である。基点は`69861ba8c939c29969270dd8d72f224904abc68b`、
+  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g75-color-space-engine`、予定ブランチは
+  `r2-g75-color-space-engine`、統合順は3である。対象は`libs/pigment/KoColorSpaceEngine.h`の14 APIである。
+  開始ファイル`libs/pigment/KoColorSpaceEngine.cpp`を`kritapigment_SRCS`の直接収容から
+  `kritapigmentcolorspaceengineobjects`へ移し、製品`kritapigment`へ一度だけ再集約する。新規
+  `libs/pigment/tests/KoColorSpaceEngineContractTest.cpp`がUnicode識別値と寿命、profile操作の仮想配送、
+  色空間対応判定、局所registry所有とsingleton同一性を4契約枠で固定し、14 APIを`maintained`へ分類する。
+  限定構築は計画承認まで待機し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包360工程・750入力
+  不変を要求する。許可範囲は`libs/pigment/CMakeLists.txt`、`libs/pigment/tests/CMakeLists.txt`、新規試験だけである。
+- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
+  更新する。担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は
+  新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
+- 第75便は合計38 APIを対応付け、対応済み8,786件、未対応21,203件を目標とする。
 
 ### 現在の結果
 
@@ -44,8 +84,8 @@
 
 ### 次の操作
 
-- 最新の第75便不足一覧から3件を読み取り専用で監査し、各候補の公開API範囲、最小契約、直接依存、限定閉包、
-  製品への一度だけの集約、残余危険を確定する。計画確定までは作業ツリーと局所構築木を作成しない。
+- 第75並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
+  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
 
 ## 再開環境
 
