@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19988
+    "expectedMissingApis": 19965
   },
   "contracts": [
     {
@@ -7284,6 +7284,65 @@
         "enumerator:psd_technique_type::psd_technique_precise",
         "enumerator:psd_technique_type::psd_technique_slope_limit",
         "enumerator:psd_technique_type::psd_technique_softer"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::resourceIdentityFieldsAreIndependentValues",
+      "behavior": "PSD資源識別記録は4文字列を空で初期化し、種別、MD5、ファイル名、表示名を独立して複製・更新できる。",
+      "classification": "maintained",
+      "apis": [
+        "member:PsdResource::filename",
+        "member:PsdResource::md5",
+        "member:PsdResource::name",
+        "member:PsdResource::type",
+        "struct:PsdResource"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::transparencyStopsPreserveSignedValues",
+      "behavior": "PSD勾配透明度停止点は零初期値と、位置、中間点、不透明度の符号付き値を複製後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_gradient_transparency_stop::location",
+        "member:psd_gradient_transparency_stop::midpoint",
+        "member:psd_gradient_transparency_stop::opacity",
+        "struct:psd_gradient_transparency_stop"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::patternDefaultsMatchTheEmptyRecord",
+      "behavior": "PSD模様記録はBitmap色方式、零の寸法・領域・チャンネル値、空の名前・識別子・色表で初期化される。",
+      "classification": "maintained",
+      "apis": [
+        "struct:psd_pattern"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::patternMembersCopyAndChangeIndependently",
+      "behavior": "PSD模様記録の形式、寸法、名前、識別子、領域、チャンネル情報、色表は全値を複製し、複製後に独立して変更できる。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_pattern::bottom",
+        "member:psd_pattern::channel_number",
+        "member:psd_pattern::color_mode",
+        "member:psd_pattern::color_table",
+        "member:psd_pattern::height",
+        "member:psd_pattern::left",
+        "member:psd_pattern::max_channel",
+        "member:psd_pattern::name",
+        "member:psd_pattern::right",
+        "member:psd_pattern::top",
+        "member:psd_pattern::uuid",
+        "member:psd_pattern::version",
+        "member:psd_pattern::width"
       ]
     },
     {

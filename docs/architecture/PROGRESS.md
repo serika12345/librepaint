@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 04:12 JST
+- 更新日時: 2026-09-01 04:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -43,7 +43,7 @@
 ### 第98並列便の担当計画
 
 - 実装共通基点は`32c249d8065feccb4aa60fc65503d425aed4b2d7`である。
-- `g98-psd-format-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g98-psd-format-values`である。対象は
+- `g98-psd-format-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g98-psd-format-values`であった。対象は
   `build/tdd-macos/public-api-missing-g98.json`でheaderが`libs/psdutils/psd.h`の`PsdResource` 5 API、`psd_gradient_transparency_stop` 4 API、
   `psd_pattern` 14 APIの合計23 APIである。既定・独立更新・copyの4枠を既存`PsdFormatValuesContractTest`へ追加する。許可pathは
   `libs/psdutils/tests/CMakeLists.txt`と`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけである。予測4工程・9入力、停止5工程・12入力、製品
@@ -75,6 +75,16 @@
   9,850件、未対応は19,988件、契約枠は2,361件となった。
 - 新しい`build/tdd-macos/public-api-missing-g98-svg.json`生成後、直前の不足一覧、局所構築木263 MBを含む担当作業ツリー833 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残る2担当作業ツリー、最新不足一覧だけを保持する。
+- `g98-psd-format-values`は受渡しcommit `20fdb98d41fba35db038a7a86b3050939b5a12c4`を統合commit `f6b189f8fc`として取り込んだ。
+  既存`libs/psdutils/tests/PsdFormatValuesContractTest.cpp`と同`CMakeLists.txt`だけを拡張し、製品sourceと公開headerを変更していない。
+- `PsdResource` 5 API、`psd_gradient_transparency_stop` 4 API、`psd_pattern` 14 APIの合計23 APIを、空の資源識別値、符号付き透明度停止値、
+  空の模様記録、全模様memberのcopy独立性の4契約枠へ追加した。対象header解決用のinclude面とKF I18nだけを直接追加し、実色・gradient・pattern・
+  資源registryを生成していない。限定対象4工程・9入力、製品`kritapsdutils` 629工程・1,288入力を維持した。
+- 担当環境と主環境で追加4枠、全9枠を含む対象CTest、20回反復、`PsdByteIoContractTest`近傍、無作業再構築、動的接続、変更source構文、公開API
+  契約検査、`verify-quick`に成功した。動的接続はQt Gui・Test・Core、KF I18nとmacOS system frameworkだけで、製品shared library、
+  `kritatestsdk`、Imath、OpenEXRを含まない。対応済みは9,873件、未対応は19,965件、契約枠は2,365件となった。
+- 新しい`build/tdd-macos/public-api-missing-g98-psd.json`生成後、直前の不足一覧、局所構築木260 MBを含む担当作業ツリー830 MB、担当branchを
+  削除した。主増分構築木、共有compiler cache、残るstoryboard担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第97並列便の監査計画
 
