@@ -359,6 +359,28 @@ target_include_directories(KisSpinBoxI18nHelperContractTest PRIVATE
 )
 target_compile_definitions(KisSpinBoxI18nHelperContractTest PRIVATE kritawidgetutils_EXPORTS)
 
+kis_add_test(
+    KisSpinBoxUnitManagerContractTest.cpp
+    LINK_LIBRARIES
+        kritawidgetutilsspinboxunitmanagerobjects
+        kritaglobalunitobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+target_include_directories(KisSpinBoxUnitManagerContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisSpinBoxUnitManagerContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritawidgetutils_EXPORTS
+)
+
 ki18n_wrap_ui(DialogStateSaver_SRCS
     dialogsavertestwidget.ui
 )
