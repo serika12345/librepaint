@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20231
+    "expectedMissingApis": 20207
   },
   "contracts": [
     {
@@ -31204,6 +31204,68 @@
         "class:KisAslWriterUtils::OffsetStreamPusher",
         "method:KisAslWriterUtils::OffsetStreamPusher::OffsetStreamPusher(QIODevice & device,qint64 alignOnExit=0,qint64 externalSizeTagOffset=-1)",
         "method:KisAslWriterUtils::OffsetStreamPusher::~OffsetStreamPusher()"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorSpaceWrapperTest",
+      "source": "libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp",
+      "test": "KisSurfaceColorSpaceWrapperTest::enumValuesDefaultsAndFactories",
+      "behavior": "表面色空間wrapperは安定した4列挙値、既定値、列挙値構築、3つの名前付きfactory、wrapper間とQt 5列挙値との左右比較を一貫して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisSurfaceColorSpaceWrapper",
+        "enum:KisSurfaceColorSpaceWrapper::ColorSpace",
+        "enumerator:KisSurfaceColorSpaceWrapper::ColorSpace::DefaultColorSpace",
+        "enumerator:KisSurfaceColorSpaceWrapper::ColorSpace::bt2020PQColorSpace",
+        "enumerator:KisSurfaceColorSpaceWrapper::ColorSpace::sRGBColorSpace",
+        "enumerator:KisSurfaceColorSpaceWrapper::ColorSpace::scRGBColorSpace",
+        "function:operator !=(ColorSpace lhs,const KisSurfaceColorSpaceWrapper & rhs)",
+        "function:operator !=(const KisSurfaceColorSpaceWrapper & lhs,ColorSpace rhs)",
+        "function:operator ==(ColorSpace lhs,const KisSurfaceColorSpaceWrapper & rhs)",
+        "function:operator ==(const KisSurfaceColorSpaceWrapper & lhs,ColorSpace rhs)",
+        "method:KisSurfaceColorSpaceWrapper::KisSurfaceColorSpaceWrapper()",
+        "method:KisSurfaceColorSpaceWrapper::KisSurfaceColorSpaceWrapper(ColorSpace colorSpace)",
+        "method:KisSurfaceColorSpaceWrapper::makeBt2020PQColorSpace()",
+        "method:KisSurfaceColorSpaceWrapper::makeSCRGBColorSpace()",
+        "method:KisSurfaceColorSpaceWrapper::makeSRGBColorSpace()",
+        "method:KisSurfaceColorSpaceWrapper::operator ==(const KisSurfaceColorSpaceWrapper & other) const"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorSpaceWrapperTest",
+      "source": "libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp",
+      "test": "KisSurfaceColorSpaceWrapperTest::copyAndMovePreserveIndependentValues",
+      "behavior": "表面色空間wrapperのコピーと移動の構築・代入は値を維持し、後続の元値変更から独立した結果を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurfaceColorSpaceWrapper::KisSurfaceColorSpaceWrapper(KisSurfaceColorSpaceWrapper &&)",
+        "method:KisSurfaceColorSpaceWrapper::KisSurfaceColorSpaceWrapper(const KisSurfaceColorSpaceWrapper &)",
+        "method:KisSurfaceColorSpaceWrapper::operator =(KisSurfaceColorSpaceWrapper &&)",
+        "method:KisSurfaceColorSpaceWrapper::operator =(const KisSurfaceColorSpaceWrapper &)"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorSpaceWrapperTest",
+      "source": "libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp",
+      "test": "KisSurfaceColorSpaceWrapperTest::qtColorSpacesRoundTrip",
+      "behavior": "各Qt版の既定、sRGB、線形sRGB、BT.2020 PQ色空間は内部表現との相互変換で同じQt色空間へ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurfaceColorSpaceWrapper::fromQtColorSpace(QSurfaceFormat::ColorSpace colorSpace)",
+        "method:KisSurfaceColorSpaceWrapper::fromQtColorSpace(const QColorSpace & colorSpace)",
+        "method:KisSurfaceColorSpaceWrapper::operator QColorSpace() const",
+        "method:KisSurfaceColorSpaceWrapper::operator QSurfaceFormat::ColorSpace() const"
+      ]
+    },
+    {
+      "target": "KisSurfaceColorSpaceWrapperTest",
+      "source": "libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp",
+      "test": "KisSurfaceColorSpaceWrapperTest::unsupportedQtColorSpaceFallsBackToDefault",
+      "behavior": "Qt 6では未対応のDisplay P3入力が警告後に既定色空間へ正規化される。Qt 5には追加の名前付き色空間がないため対象構成で省略する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisSurfaceColorSpaceWrapper::fromQtColorSpace(const QColorSpace & colorSpace)",
+        "method:KisSurfaceColorSpaceWrapper::operator QColorSpace() const"
       ]
     }
   ]

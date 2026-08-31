@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 02:03 JST
+- 更新日時: 2026-09-01 02:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,17 +27,23 @@
 - `g95-flake-widgets-audit`は条件を満たす候補なしで完了した。最接近の`KoPathPointTypeCommand.h` 12 APIは開始sourceをOBJECTへ移せるが、点索引、
   座標変換、cubic変換、control/property変異、再描画が実`KoPathShape`へ密結合する。既存対象621工程・1,268入力で、限定化には実shapeまたは製品
   意味論の試験内模倣を要する。ほかのflake候補も実shape・描画、widgets候補はQt Widgets動的libraryを避けられない。
-- `g95-paintops-audit`は`in_progress`の追加読み取り監査である。`plugins/paintops`から、第90便から第92便の対象を除き、既存限定対象または一つの
+- `g95-paintops-audit`は`completed`の追加読み取り監査である。`plugins/paintops`から、第90便から第92便の対象を除き、既存限定対象または一つの
   source移動で10 API以上を最大5枠へ固定できる候補を選ぶ。実brush、paint device、色空間、大域resource登録簿は接続しない。
-- `g95-lightweight-audit`は`in_progress`の追加読み取り監査である。`libs/global`、`libs/pigment`、`libs/resources`、`libs/painting`から第91便から第94便の
+- `g95-lightweight-audit`は`completed`の追加読み取り監査である。`libs/global`、`libs/pigment`、`libs/resources`、`libs/painting`から第91便から第94便の
   対象を除き、既存軽量対象の拡張だけで10 API以上を固定できる候補を選ぶ。製品source変更、DB、filesystem、実色空間、製品意味論模倣は採用しない。
   両追加監査の基点と入力、報告要件、禁止依存、操作権限は第95便の共通条件と同じである。
+- `g95-paintops-audit`は条件を満たす候補なしで完了した。最接近の`KisCurveRangeModel.h` 17 APIはsourceを専用OBJECTへ移せるが、うち7 APIが
+  `KisDynamicSensorFactoryRegistry`と4種以上のsensor factoryを必要とする。登録簿を接続すると共通sensor実装を加える前に11工程となり、停止線
+  8工程・18入力を超える。試験内のfactory応答再実装は製品意味論の模倣になるため採用しない。
+- `g95-lightweight-audit`も条件を満たす候補なしで完了した。最接近の`kis_acs_types.h` 10 APIは7 APIの色読書きに実`KoColor`と色空間を要し、
+  Qt Core・Testだけの最寄り`KisGlobalValuesContractTest`を製品記号へ接続する。ほかの候補も実node、資源登録簿、DB、filesystem、色空間または
+  第93便までに棄却済みのBezier処理を要するため、追加担当は立てない。
 
 ### 第95並列便の担当計画
 
 - 実装共通基点は`d1258b4092fd4093e6892ad444c22daba7ab6156`である。
-- `g95-canvas-surface-color-space`は`in_progress`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g95-canvas-surface-color-space`である。対象headerは`libs/canvas/color/KisSurfaceColorSpaceWrapper.h`のclass、
+- `g95-canvas-surface-color-space`は`integrated`で、削除済みの専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g95-canvas-surface-color-space`であった。対象headerは`libs/canvas/color/KisSurfaceColorSpaceWrapper.h`のclass、
   enumと4 enumerator、既定・列挙・copy・move構築、copy・move代入、3 factory、wrapper等価、列挙との左右等価・非等価、Qt色空間からの変換と
   Qt色空間への変換の全24 APIである。実装はheader-onlyで製品変更はない。許可pathは`libs/canvas/tests/CMakeLists.txt`、既存
   `libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp`と同`.h`である。広域`kis_add_tests`から専用`kis_add_test`へ移し、`simpletest.h`をQt Test起動へ
@@ -47,6 +53,22 @@
   公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの担当commitで、台帳と進捗は統合担当が所有する。Qt版別の公開面は既存の条件分岐を
   維持し、各対応構成で同じ契約を検査する。製品shared library、Qt Widgets、`kritatestsdk`、実画像・色空間、大域application状態、停止線超過、
   公開header変更が必要なら停止する。
+
+### 第95並列便の統合結果
+
+- `g95-canvas-surface-color-space`は受渡しcommit `c7ade4a570547bf36fb782d89277417acaefbccd`を統合commit `a1427b7f7d`として取り込んだ。
+  `libs/canvas/tests/CMakeLists.txt`で開始ファイル`libs/canvas/tests/KisSurfaceColorSpaceWrapperTest.cpp`と同`.h`を製品`kritacanvas`・
+  `kritatestsdk`へ接続する広域`kis_add_tests`から、同じ配置のQt Core・Gui・Test専用`kis_add_test`へ移した。製品source、公開header、製品
+  `kritacanvas`の所有は変更していない。
+- 4契約枠で4列挙値、既定・列挙・copy・move構築、copy・move代入、3 factory、wrapperとQt 5列挙値の比較、Qt版ごとの既知色空間往復、
+  Qt 6未対応Display P3の警告と既定値fallbackを固定し、全24 APIを台帳へ追加した。担当基点の広域対象1,212工程・2,443入力を専用4工程・8入力へ
+  縮小し、製品`kritacanvas`は1,208工程・2,436入力のまま維持した。担当票の中央測定との差5工程・5入力は基点差で、変更前後の製品閉包差は0である。
+- 担当環境と主環境で全4枠、対象CTest、20回反復、`KisOcioConfigurationContractTest`近傍、無作業再構築、動的接続、変更source構文、
+  公開API契約検査、`verify-quick`に成功した。限定対象はQt Gui・Test・CoreとmacOS system frameworkだけへ動的接続し、製品shared library、
+  Qt Widgets、`kritatestsdk`、OpenEXR、Imathへ接続しない。Qt 5固有比較はQt 5構成で実行する条件付き契約であり、現macOS Qt 6では構文面を保持する。
+- 第95便は24 APIを新規4契約枠へ追加し、公開面は1,549ヘッダー、29,838 API、対応済み9,631件、未対応20,207件、契約枠2,332件となった。
+  新しい`build/tdd-macos/public-api-missing-g96.json`生成後、旧第95不足一覧、局所構築木265 MBを含む担当作業ツリー836 MB、担当branchを削除した。
+  5.2 GBの主増分構築木、共有compiler cache、最新第96不足一覧だけを保持する。次は第95便で監査していない所有領域から第96便候補を並列監査する。
 
 ### 第94便の先行監査計画
 
