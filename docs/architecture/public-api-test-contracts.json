@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21030
+    "expectedMissingApis": 20994
   },
   "contracts": [
     {
@@ -28722,6 +28722,159 @@
       "classification": "maintained",
       "apis": [
         "method:KisPrecisionOption::effectivePrecisionLevel(qreal effectiveDabSize) const"
+      ]
+    },
+    {
+      "target": "KoShapeTransformCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransformCommandContractTest.cpp",
+      "test": "KoShapeTransformCommandContractTest::constructionCopiesTransformListsAndKeepsShapesBorrowed",
+      "behavior": "形状変形commandはshapeと旧・新変形列を構築時に複製し、shapeを借用したまま親commandと仮想寿命を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeTransformCommand",
+        "method:KoShapeTransformCommand::KoShapeTransformCommand(const QList<KoShape * > & shapes,const QList<QTransform> & oldState,const QList<QTransform> & newState,KUndo2Command * parent=0)",
+        "method:KoShapeTransformCommand::~KoShapeTransformCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeTransformCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransformCommandContractTest.cpp",
+      "test": "KoShapeTransformCommandContractTest::redoAndUndoApplyOneOrderedBatchAfterBasePhase",
+      "behavior": "形状変形commandのredoとundoは基底処理後にshape順を保った新・旧変形列を一つの一括更新として適用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeTransformCommand::redo()",
+        "method:KoShapeTransformCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeTransformCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransformCommandContractTest.cpp",
+      "test": "KoShapeTransformCommandContractTest::reportsTransformShapeCommandIdentity",
+      "behavior": "形状変形commandは形状変形の取り消し命令として既存の安定した識別子を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeTransformCommand::id() const"
+      ]
+    },
+    {
+      "target": "KoShapeTransformCommandContractTest",
+      "source": "libs/flake/tests/KoShapeTransformCommandContractTest.cpp",
+      "test": "KoShapeTransformCommandContractTest::mergeRequiresSameShapeOrderAndTextAndAdoptsLatestNewState",
+      "behavior": "形状変形commandは同型、同じshape順、同じ表示名の命令だけを統合し、元の旧変形と相手の最新変形を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeTransformCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KisProcessingInformationContractTest",
+      "source": "libs/image/tests/KisProcessingInformationContractTest.cpp",
+      "test": "KisProcessingInformationContractTest::constConstructionCopiesValuesAndRetainsOwners",
+      "behavior": "定数処理入力束はdevice、選択、左上座標を構築時に取り込み、呼出側の共有pointer消滅後も値と所有を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisConstProcessingInformation",
+        "method:KisConstProcessingInformation::KisConstProcessingInformation(const KisPaintDeviceSP device,const QPoint & topLeft,const KisSelectionSP selection)",
+        "method:KisConstProcessingInformation::paintDevice() const",
+        "method:KisConstProcessingInformation::selection() const",
+        "method:KisConstProcessingInformation::topLeft() const"
+      ]
+    },
+    {
+      "target": "KisProcessingInformationContractTest",
+      "source": "libs/image/tests/KisProcessingInformationContractTest.cpp",
+      "test": "KisProcessingInformationContractTest::constCopyAndAssignmentOwnIndependentState",
+      "behavior": "定数処理入力束のcopy、代入、自己代入は独立した値束を保持し、最後の束の破棄で共有対象を解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisConstProcessingInformation::KisConstProcessingInformation(const KisConstProcessingInformation & _rhs)",
+        "method:KisConstProcessingInformation::operator =(const KisConstProcessingInformation & _rhs)",
+        "method:KisConstProcessingInformation::~KisConstProcessingInformation()"
+      ]
+    },
+    {
+      "target": "KisProcessingInformationContractTest",
+      "source": "libs/image/tests/KisProcessingInformationContractTest.cpp",
+      "test": "KisProcessingInformationContractTest::mutableAndConstViewsShareTheCapturedValues",
+      "behavior": "可変処理入力束は可変device viewと継承した定数viewから同じdevice、選択、左上座標を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisProcessingInformation",
+        "method:KisProcessingInformation::KisProcessingInformation(KisPaintDeviceSP device,const QPoint & topLeft,const KisSelectionSP selection)",
+        "method:KisProcessingInformation::paintDevice()"
+      ]
+    },
+    {
+      "target": "KisProcessingInformationContractTest",
+      "source": "libs/image/tests/KisProcessingInformationContractTest.cpp",
+      "test": "KisProcessingInformationContractTest::mutableCopyAndAssignmentOwnIndependentState",
+      "behavior": "可変処理入力束のcopy、代入、自己代入は開始元の再代入から独立した値束と共有対象の寿命を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisProcessingInformation::KisProcessingInformation(const KisProcessingInformation & _rhs)",
+        "method:KisProcessingInformation::operator =(const KisProcessingInformation & _rhs)",
+        "method:KisProcessingInformation::~KisProcessingInformation()"
+      ]
+    },
+    {
+      "target": "KisColorSourceOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceOptionDataContractTest.cpp",
+      "test": "KisColorSourceOptionDataContractTest::enumDefaultsAndMemberTypeRemainStable",
+      "behavior": "色源option dataは6分類の公開enumと対応するmember型を保持し、単色を既定分類として構築する。",
+      "classification": "maintained",
+      "apis": [
+        "enum:KisColorSourceOptionData::Type",
+        "enumerator:KisColorSourceOptionData::Type::GRADIENT",
+        "enumerator:KisColorSourceOptionData::Type::PATTERN",
+        "enumerator:KisColorSourceOptionData::Type::PATTERN_LOCKED",
+        "enumerator:KisColorSourceOptionData::Type::PLAIN",
+        "enumerator:KisColorSourceOptionData::Type::TOTAL_RANDOM",
+        "enumerator:KisColorSourceOptionData::Type::UNIFORM_RANDOM",
+        "member:KisColorSourceOptionData::type",
+        "struct:KisColorSourceOptionData"
+      ]
+    },
+    {
+      "target": "KisColorSourceOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceOptionDataContractTest.cpp",
+      "test": "KisColorSourceOptionDataContractTest::stableIdentifiersRoundTripEveryType",
+      "behavior": "色源option dataは6分類を安定した順序と識別文字列で公開し、分類と識別子を相互変換する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSourceOptionData::colorSourceTypeIds()",
+        "method:KisColorSourceOptionData::id2Type(const KoID & id)",
+        "method:KisColorSourceOptionData::type2Id(Type type)"
+      ]
+    },
+    {
+      "target": "KisColorSourceOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceOptionDataContractTest.cpp",
+      "test": "KisColorSourceOptionDataContractTest::readMapsEveryIdentifierAndUnknownFallback",
+      "behavior": "色源option dataは6識別子を対応分類として読み取り、欠落または未知の値を単色へ戻して設定を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSourceOptionData::read(const KisPropertiesConfiguration * setting)"
+      ]
+    },
+    {
+      "target": "KisColorSourceOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceOptionDataContractTest.cpp",
+      "test": "KisColorSourceOptionDataContractTest::writeMapsEveryTypeAndPreservesOtherProperties",
+      "behavior": "色源option dataは6分類を対応する永続化文字列へ書き込み、無関係な設定値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorSourceOptionData::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisColorSourceOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorSourceOptionDataContractTest.cpp",
+      "test": "KisColorSourceOptionDataContractTest::equalityDependsOnlyOnType",
+      "behavior": "色源option dataの等価判定は公開された色源分類だけを比較する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisColorSourceOptionData & lhs,const KisColorSourceOptionData & rhs)"
       ]
     }
   ]

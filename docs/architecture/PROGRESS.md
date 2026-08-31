@@ -2,50 +2,40 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 14:02 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-31 14:19 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第79並列便の担当票
+### 第79並列便の完了結果
 
-- 形状変形command担当は`implementing`である。基点は`b5ebd8bb92c9792776aac4e4978d36f7c7ba24af`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g79-shape-transform`、ブランチは`r2-g79-shape-transform`、統合順は
-  1である。対象は`libs/flake/commands/KoShapeTransformCommand.h`の7 APIである。開始ファイル
+- 形状変形command担当は`integrated`である。受渡しcommitは`3f26c04a5a2bb78c11660b5e3e06f2b90b8cc5a7`、
+  統合commitは`bef556e16f`であり、担当作業ツリー、局所構築木、担当ブランチは削除済みである。対象は
+  `libs/flake/commands/KoShapeTransformCommand.h`の7 APIである。開始ファイル
   `libs/flake/commands/KoShapeTransformCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakeshapetransformcommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoShapeTransformCommandContractTest.cpp`が構築値と借用寿命、redo・undoの順序付き一括適用、
   command識別子、merge条件と最新変形採用を4契約枠で固定する。一括適用は開始実装の`BUILD_TESTING`限定配送を
-  介し、既定配送は実shapeのlock、変形設定、一括更新順を保つ。限定構築を許可し、予測閉包
-  5工程・11入力、停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は
-  `libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
-- 処理入力束担当は`implementing`である。基点は`b5ebd8bb92c9792776aac4e4978d36f7c7ba24af`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g79-processing-information`、ブランチは
-  `r2-g79-processing-information`、統合順は2である。対象は`libs/image/kis_processing_information.h`の14 APIである。
-  開始ファイル`libs/image/kis_processing_information.cpp`を`kritaimage_LIB_SRCS`の直接収容から
+  介し、既定配送は実shapeのlock、変形設定、一括更新順を保つ。
+- 処理入力束担当は`integrated`である。受渡しcommitは`dec2a24e04760b1abb3afab5974eedc3ea98b259`、
+  統合commitは`15aa745227`であり、担当作業ツリー、局所構築木、担当ブランチは削除済みである。対象は
+  `libs/image/kis_processing_information.h`の14 APIである。開始ファイル
+  `libs/image/kis_processing_information.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimageprocessinginformationobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。paint deviceの参照取得と
   解放だけを新規非公開`libs/image/KisProcessingInformationPaintDeviceOwnership_p.h`へ限定し、製品定義を開始元
   `libs/image/kis_paint_device.cc`から現行処理へ委譲する。新規
   `libs/image/tests/KisProcessingInformationContractTest.cpp`がconst構築と強所有、const copy・代入、mutableと
-  const view、mutable copy・代入を4契約枠で固定する。限定構築を許可し、予測閉包5工程・11入力、
-  停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は`libs/image/CMakeLists.txt`、
-  開始実装、新規非公開header、`libs/image/kis_paint_device.cc`、`libs/image/tests/CMakeLists.txt`、新規試験である。
-- 色源option data担当は`implementing`である。基点は`b5ebd8bb92c9792776aac4e4978d36f7c7ba24af`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g79-color-source-option`、ブランチは`r2-g79-color-source-option`、
-  統合順は3である。対象は`plugins/paintops/libpaintop/KisColorSourceOptionData.h`の15 APIである。開始ファイル
+  const view、mutable copy・代入を4契約枠で固定する。
+- 色源option data担当は`integrated`である。受渡しcommitは`bffc44d74c22bcdd3ff55f8a983ae25db385fce8`、
+  統合commitは`bcacccb2a7`であり、担当作業ツリー、局所構築木、担当ブランチは削除済みである。対象は
+  `plugins/paintops/libpaintop/KisColorSourceOptionData.h`の15 APIである。開始ファイル
   `plugins/paintops/libpaintop/KisColorSourceOptionData.cpp`を有効所有者`kritapaintopruntime`の直接収容から
   `kritapaintopcolorsourceoptiondataobjects`へ移し、runtimeを介して製品`kritalibpaintop`へ一度だけ集約する。新規
   `plugins/paintops/libpaintop/tests/KisColorSourceOptionDataContractTest.cpp`が6分類と既定値、安定ID写像、設定read、
-  設定write、等価判定を5契約枠で固定する。製品sourceとpublic headerの内容は変更しない。限定構築を許可し、
-  予測閉包6工程・14入力、停止条件7工程・17入力、製品閉包`kritapaintopruntime` 1,281工程・2,582入力と
-  `kritalibpaintop` 2,097工程・4,192入力不変を要求する。許可範囲は
-  `plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規試験である。
-- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
-  各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は新しい一覧の件数確認
-  直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
-- 第79便は合計36 APIを対応付け、対応済み8,995件、未対応20,994件を目標とする。
+  設定write、等価判定を5契約枠で固定する。製品sourceとpublic headerの内容は変更していない。
+- 第79便は合計36 APIを対応付け、対応済み8,995件、未対応20,994件を達成した。
 
 ### 第78並列便の完了結果
 
@@ -153,41 +143,39 @@
 
 ### 現在の結果
 
-- 第78並列便は形状分配command 14 API、node更新束13 API、精度option 19 APIの合計46 APIを挙動契約へ
-  対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,959件、未対応21,030件である。
-- 開始ファイル`libs/flake/commands/KoShapeDistributeCommand.cpp`は
-  `kritaflakeshapedistributecommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoShapeDistributeCommandContractTest.cpp`が8分配分類、外接矩形による水平・垂直配置、gap、
-  内部移動commandへのredo・undo配送と借用寿命を6契約枠で固定する。
-- 開始ファイル`libs/image/KisBatchNodeUpdate.cpp`は`kritaimagebatchnodeupdateobjects`へ移り、製品
-  `kritaimage`へ一度だけ再集約される。親子圧縮は新規非公開
-  `libs/image/KisBatchNodeUpdateNodeAccess_p.h`を介して開始元`libs/image/kis_layer_utils.cpp`の既存処理へ
-  委譲する。新規`libs/image/tests/KisBatchNodeUpdateContractTest.cpp`が値寿命、矩形統合、親子圧縮、診断構造を
+- 第79並列便は形状変形command 7 API、処理入力束14 API、色源option data 15 APIの合計36 APIを挙動契約へ
+  対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,995件、未対応20,994件である。
+- 開始ファイル`libs/flake/commands/KoShapeTransformCommand.cpp`は
+  `kritaflakeshapetransformcommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
+  `libs/flake/tests/KoShapeTransformCommandContractTest.cpp`が構築値と借用寿命、順序付きredo・undo、識別子、
+  merge条件を4契約枠で固定する。
+- 開始ファイル`libs/image/kis_processing_information.cpp`は
+  `kritaimageprocessinginformationobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。paint deviceの所有操作は
+  新規非公開`libs/image/KisProcessingInformationPaintDeviceOwnership_p.h`を介して開始元
+  `libs/image/kis_paint_device.cc`の既存処理へ委譲する。新規
+  `libs/image/tests/KisProcessingInformationContractTest.cpp`が定数・可変の値束と強所有、copy、代入、解放を
   4契約枠で固定する。
-- 開始ファイル`plugins/paintops/libpaintop/kis_precision_option.cpp`は
-  `kritapaintopprecisionoptionobjects`へ移り、`kritapaintopruntime`を介して製品へ一度だけ集約される。新規
-  `plugins/paintops/libpaintop/tests/KisPrecisionOptionContractTest.cpp`が永続化、値の独立性、自動精度境界を
-  4契約枠で固定する。製品sourceと公開headerの内容は変わらない。
-- 統合後の限定閉包は`KoShapeDistributeCommandContractTest` 6工程・14入力、
-  `KisBatchNodeUpdateContractTest` 5工程・11入力、`KisPrecisionOptionContractTest` 5工程・11入力である。製品閉包は
-  `kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritapaintopruntime`
+- 開始ファイル`plugins/paintops/libpaintop/KisColorSourceOptionData.cpp`は
+  `kritapaintopcolorsourceoptiondataobjects`へ移り、`kritapaintopruntime`を介して製品へ一度だけ集約される。新規
+  `plugins/paintops/libpaintop/tests/KisColorSourceOptionDataContractTest.cpp`が6分類、安定ID写像、設定read・write、
+  等価判定を5契約枠で固定する。製品sourceと公開headerの内容は変わらない。
+- 統合後の限定閉包は`KoShapeTransformCommandContractTest` 5工程・11実入力、
+  `KisProcessingInformationContractTest` 5工程・11入力、`KisColorSourceOptionDataContractTest` 6工程・14入力である。
+  製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritapaintopruntime`
   1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力で不変である。
-- 主作業ツリーの3限定対象と7軽量近傍はCTest 10/10に成功し、3対象は各20回反復、全14契約枠の個別実行、
-  再構築時の無作業確認に成功した。`libs/image/kis_layer_utils.cpp`はコンパイルデータベースの単一処理を用いた
-  成果物なしの構文コンパイルに成功した。macOSのパッケージ境界は1,609対象、公開API契約検査は
-  8,959/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリー、Qt Widgets、
-  `kritatestsdk`は含まれない。
-- 製品objectをNinjaで直接指定する検査は順序依存により144工程へ拡張し、41工程目の既存
-  `libkritaresourceui`未解決記号で停止した。対象objectには到達せず、単一処理の構文コンパイルで置き換えた。
-  製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 担当作業ツリー3本、266～283 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第78便不足一覧を削除し、
-  最新の第79便不足一覧`build/tdd-macos/public-api-missing-g79.json` 5.1 MBだけを保持する。次便で再利用する主増分
-  構築木は5.1 GB、共有nativeコンパイラーcacheは740 MBである。
+- 主作業ツリーの3限定対象と6軽量近傍はCTest 9/9に成功し、3対象は各20回反復、全13契約枠の個別実行、
+  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,615対象、公開API契約検査は
+  8,995/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリー、Qt Widgets、
+  `kritatestsdk`は含まれない。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
+- 担当作業ツリー3本、279～284 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第79便不足一覧を削除し、
+  最新の第80便不足一覧`build/tdd-macos/public-api-missing-g80.json` 5.1 MBだけを保持する。次便で再利用する主増分
+  構築木は5.1 GB、共有nativeコンパイラーcacheは746 MBである。
 
 ### 次の操作
 
-- 第79並列便の3担当が限定構築と挙動契約を実装する。完了担当からcommitを受け取り、差分と検証証拠を確認して
-  統合し、担当作業ツリー、局所構築木、担当ブランチを直ちに削除する。
+- 第80便の輪郭種別反転command 5 API、node filter境界7 API、描画角度sensor model 9 APIについて、読取り専用監査で
+  確定した最小契約、専用OBJECT、限定閉包、停止条件を担当票へ記録する。計画commitまでは作業ツリーと局所構築木を
+  作成しない。
 
 ## 再開環境
 
