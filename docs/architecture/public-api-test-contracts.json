@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19588
+    "expectedMissingApis": 19563
   },
   "contracts": [
     {
@@ -32594,6 +32594,76 @@
         "method:psd_vector_origination_data::OriginalSizeAndAngle(QSizeF & size,double & angle)",
         "method:psd_vector_origination_data::canMakeParametricShape()",
         "method:psd_vector_origination_data::shapeName()"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::lineClippingAndIntersectionRespectExtentPolicies",
+      "behavior": "二次元代数は矩形・凸多角形との線分交差を端点ごとの延長指定に従って切断し、端点包含と有界・無界の直線判定を一貫して行う。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::cropLineToConvexPolygon(QLineF & line,const QPolygonF polygon,bool extendFirst,bool extendSecond)",
+        "function:KisAlgebra2D::cropLineToRect(QLineF & line,const QRect rect,bool extendFirst,bool extendSecond)",
+        "function:KisAlgebra2D::intersectLineConvexPolygon(QLineF & line,const QPolygonF polygon,bool extendFirst,bool extendSecond)",
+        "function:KisAlgebra2D::intersectLineRect(QLineF & line,const QRect rect,bool extend)",
+        "function:KisAlgebra2D::intersectLineRect(QLineF & line,const QRect rect,bool extendFirst,bool extendSecond)",
+        "function:KisAlgebra2D::intersectLines(const QLineF & boundedLine,const QLineF & unboundedLine)",
+        "function:KisAlgebra2D::intersectLines(const QPointF & p1,const QPointF & p2,const QPointF & q1,const QPointF & q2)",
+        "function:KisAlgebra2D::isOnLine(const QLineF & line,const QPointF & point,const qreal eps,bool boundedStart,bool boundedEnd,bool includeEnds)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::lineProjectionAndMovementPreserveMetricGeometry",
+      "behavior": "二次元代数は線分から等距離の平行線、有界・無界射影、距離二乗、方向・直線上の距離移動を計量幾何に従って返す。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::findNearestPointOnLine(const QPointF & point,const QLineF & line,bool unbounded=true)",
+        "function:KisAlgebra2D::getParallelLines(const QLineF & line,const qreal distance)",
+        "function:KisAlgebra2D::movePointAlongTheLine(const QPointF & point,const QLineF & direction,qreal distance,bool ensureOnLine)",
+        "function:KisAlgebra2D::movePointInTheDirection(const QPointF & point,const QPointF & direction,qreal distance)",
+        "function:KisAlgebra2D::pointToLineDistSquared(const QPointF & pt,const QLineF & line)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::triangleConstructionAndElasticMovementPreserveConstraints",
+      "behavior": "二次元代数は二次方程式の解数、二円が作る三角形頂点と最近候補、翼点による弾性移動、退化を含む基底変換の制約を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::findTrianglePoint(const QPointF & p1,const QPointF & p2,qreal a,qreal b)",
+        "function:KisAlgebra2D::findTrianglePointNearest(const QPointF & p1,const QPointF & p2,qreal a,qreal b,const QPointF & nearest)",
+        "function:KisAlgebra2D::moveElasticPoint(const QPointF & pt,const QPointF & base,const QPointF & newBase,const QPointF & wingA,const QPointF & wingB)",
+        "function:KisAlgebra2D::quadraticEquation(qreal a,qreal b,qreal c,qreal * x1,qreal * x2)",
+        "function:KisAlgebra2D::transformAsBase(const QPointF & pt,const QPointF & base1,const QPointF & base2)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::polygonPredicatesAndPointComparisonsRespectTolerance",
+      "behavior": "二次元代数は点と点列を指定許容差で比較し、多角形の凸性・二重周回と時計回り・反時計回りの方向を安定して判定する。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::fuzzyPointCompare(const Cont<Point> & c1,const Cont<Point> & c2,qreal delta)",
+        "function:KisAlgebra2D::fuzzyPointCompare(const QPointF & p1,const QPointF & p2)",
+        "function:KisAlgebra2D::fuzzyPointCompare(const QPointF & p1,const QPointF & p2,qreal delta)",
+        "function:KisAlgebra2D::isPolygonTrulyConvex(const QVector<T> & polygon,bool ensureNoLoops=true)",
+        "function:KisAlgebra2D::polygonDirection(const QVector<T> & polygon)"
+      ]
+    },
+    {
+      "target": "KisAlgebraGeometryPrimitivesContractTest",
+      "source": "libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp",
+      "test": "KisAlgebraGeometryPrimitivesContractTest::scalarMinimizersConvergeWithinBounds",
+      "behavior": "二次元代数の黄金分割・三分探索は単峰関数の最小点へ許容差内で収束し、反転区間と反復上限でも結果を入力範囲に保つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:KisAlgebra2D::findMinimumGoldenSection(std::function<qreal (qreal)> f,qreal xA,qreal xB,qreal eps,int maxIter)",
+        "function:KisAlgebra2D::findMinimumTernarySection(std::function<qreal (qreal)> f,qreal xA,qreal xB,qreal eps,int maxIter)"
       ]
     }
   ]

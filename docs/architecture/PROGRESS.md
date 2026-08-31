@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 07:19 JST
+- 更新日時: 2026-09-01 07:29 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -54,8 +54,8 @@
   `OriginalSizeAndAngle`・`canMakeParametricShape`・`shapeName`を5枠で固定する。許可pathは
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、最寄りCTestは`PsdFormatValuesContractTest`、軽量近傍は
   `PsdByteIoContractTest`である。予測4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
-- `g102-global-planar-geometry-values`は`ready`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g102-global-planar-geometry-values`である。対象は`libs/global/kis_algebra_2d.h`の
+- `g102-global-planar-geometry-values`は`integrated`で、削除済みの専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g102-global-planar-geometry-values`であった。対象は`libs/global/kis_algebra_2d.h`の
   `intersectLineRect` 2 overload、`intersectLineConvexPolygon`、`cropLineToRect`、`cropLineToConvexPolygon`、`intersectLines` 2 overload、
   `isOnLine`、`getParallelLines`、`findNearestPointOnLine`、`pointToLineDistSquared`、`movePointInTheDirection`、`movePointAlongTheLine`、
   `quadraticEquation`、`findTrianglePoint`、`findTrianglePointNearest`、翼点版`moveElasticPoint`、`transformAsBase`、`fuzzyPointCompare` 3 overload、
@@ -68,7 +68,7 @@
   実装照合で`intersectLineConvexPolygon`本文のEigen使用が判明した。開始sourceの所有者`kritaglobal`が既に
   `Eigen3::Eigen`をprivate接続しており、製品・公開依存を広げず使用本文の新所有者へ依存を局所化するため、新OBJECTの
   private接続を許可する。工程・入力の停止線は維持する。
-- `g102-image-properties-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-image-properties-values`である。
+- `g102-image-properties-values`は`rejected`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g102-image-properties-values`であった。
   対象は`libs/image/kis_properties_configuration.h`のclass、既定・copy構築、破棄、代入、`clearProperties`、`getProperties`、
   `getPropertiesKeys`、`getProperty` 2 overload、`hasProperty`、`removeProperty`、`setProperty(QString,QVariant)`、`getBool`、`getDouble`、
   `getFloat`、`getInt`、`getString`、`getPropertyLazy` 3 overload、`extractedPrefixKey`、`getPrefixedProperties` 2 overload、
@@ -96,6 +96,25 @@
   `kritatestsdk`を含まない。対応済みは10,250件、未対応は19,588件、契約枠は2,410件となった。
 - 新しい`build/tdd-macos/public-api-missing-g102-psd.json` 4.8 MB生成後、旧不足一覧4.8 MB、局所構築木263 MBを含む担当作業ツリー834 MBを
   削除した。再利用する主増分構築木5.2 GB、共有compiler cache 960 MB、残る平面幾何・画像設定担当作業ツリー、最新不足一覧だけを保持する。
+- `g102-global-planar-geometry-values`は受渡しcommit `2198f4d98b53`を統合commit `014174d548`として取り込んだ。開始
+  `libs/global/kis_algebra_2d.cpp`から線分・三角形・弾性点・最小化の18 out-of-line本文を新規
+  `libs/global/kis_algebra_2d_planar_geometry.cpp`へ本文不変で移し、`kritaglobalalgebraplanargeometryobjects`として製品と限定試験へ
+  それぞれ一回だけ収容した。
+- 線分の切断・交差・射影、距離保存移動、三角形・弾性点、点・多角形判定、黄金分割・三分探索の全25 APIを5契約枠へ追加した。
+  限定対象は6工程・13入力から7工程・15入力、製品`kritaglobal`は69工程・138入力から70工程・140入力で停止線内である。
+  Eigen依存は従来の製品private接続から新OBJECTのprivate接続へ局所化し、試験の接続要件と動的接続には伝播していない。
+- 担当環境と主環境で追加5枠、全対象CTest、20回反復、`KisBezierUtilsContractTest`近傍、無作業再構築、旧source単体構築、一重収容、
+  動的接続、移動本文18件の一致、変更source構文、公開API契約検査、`verify-quick`に成功した。動的接続はQtとmacOS system frameworkだけで、
+  製品shared library、`kritatestsdk`、Qt Widgetsを含まない。
+- `g102-image-properties-values`は実装候補から除外した。`kis_properties_configuration.h`が既定引数の完全型として色・曲線headerを必要とするため、
+  限定対象のコンパイルにpigment include、Eigen、Qt Gui等の既存header契約が必要である。これらをprivate接続した対象8工程のリンクは、
+  仮想関数表から旧sourceに残した`toXML` 2件と`dump`を要求した。値処理だけの責務分割で限定リンクは成立せず、XML出力・診断まで拡大すると
+  担当票の範囲を越える。変更とtransport commitは採用せず、局所構築木を含む作業ツリー833 MBとbranchを削除した。再開条件は、同classの
+  virtual責務全体を対象にする独立の構造契約と停止線を設けることである。
+- 第102並列便はPSD vector値44 API、平面幾何値25 APIの合69 APIを10契約枠へ追加した。公開面は1,549ヘッダー、29,838 API、
+  対応済み10,275件、未対応19,563件、契約枠2,415件となった。新しい`build/tdd-macos/public-api-missing-g102-global.json` 4.8 MB生成後、
+  旧不足一覧4.8 MB、局所構築木286 MBを含む平面幾何作業ツリー857 MB、担当branchを削除した。担当作業ツリーは残しておらず、再利用する
+  主増分構築木、共有compiler cache、最新不足一覧だけを保持する。
 
 ### 第101並列便の監査計画
 
