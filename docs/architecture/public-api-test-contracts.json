@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 20862
+    "expectedMissingApis": 20839
   },
   "contracts": [
     {
@@ -29594,6 +29594,161 @@
       "classification": "maintained",
       "apis": [
         "method:KoStoreDevice::seek(qint64 pos)"
+      ]
+    },
+    {
+      "target": "KoShapeDeleteCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDeleteCommandContractTest.cpp",
+      "test": "KoShapeDeleteCommandContractTest::constructorsCaptureParentsAndBorrow",
+      "behavior": "shape削除commandは入力shape列の順に構築時parentを採取し、親commandへ接続し、未実行の破棄ではshapeを借用したまま維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeDeleteCommand",
+        "method:KoShapeDeleteCommand::KoShapeDeleteCommand(KoShapeControllerBase * controller,const QList<KoShape * > & shapes,KUndo2Command * parent=0)",
+        "method:KoShapeDeleteCommand::~KoShapeDeleteCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeDeleteCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDeleteCommandContractTest.cpp",
+      "test": "KoShapeDeleteCommandContractTest::nullControllerDoesNothing",
+      "behavior": "shape削除commandの単一shape入口は構築時parentを採取し、controllerがnullのときredo・undoで基底処理だけを行う。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeDeleteCommand::KoShapeDeleteCommand(KoShapeControllerBase * controller,KoShape * shape,KUndo2Command * parent=0)",
+        "method:KoShapeDeleteCommand::redo()",
+        "method:KoShapeDeleteCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeDeleteCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDeleteCommandContractTest.cpp",
+      "test": "KoShapeDeleteCommandContractTest::redoRemovesAndArmsDeletion",
+      "behavior": "shape削除commandの再実行は基底処理後に構築時parentを持つshapeだけを入力順に除去し、commandへ削除所有を移す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeDeleteCommand::redo()"
+      ]
+    },
+    {
+      "target": "KoShapeDeleteCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDeleteCommandContractTest.cpp",
+      "test": "KoShapeDeleteCommandContractTest::undoRestoresAndReturnsBorrowing",
+      "behavior": "shape削除commandの取消は基底処理後にshapeを構築時parentへ入力順に戻し、削除所有を解除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeDeleteCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeDeleteCommandContractTest",
+      "source": "libs/flake/tests/KoShapeDeleteCommandContractTest.cpp",
+      "test": "KoShapeDeleteCommandContractTest::executedDestructionDeletesOnce",
+      "behavior": "再実行後のshape削除commandを破棄すると、所有したshapeを入力順に一度ずつ削除する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeDeleteCommand::~KoShapeDeleteCommand()"
+      ]
+    },
+    {
+      "target": "KisUndoAdapterContractTest",
+      "source": "libs/image/tests/KisUndoAdapterContractTest.cpp",
+      "test": "KisUndoAdapterContractTest::constructionKeepsBorrowedStoreAndQObjectParent",
+      "behavior": "undo adapterはundo storeを借用し、指定されたQObject親へ接続して構築される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisUndoAdapter",
+        "method:KisUndoAdapter::KisUndoAdapter(KisUndoStore * undoStore,QObject * parent=0)"
+      ]
+    },
+    {
+      "target": "KisUndoAdapterContractTest",
+      "source": "libs/image/tests/KisUndoAdapterContractTest.cpp",
+      "test": "KisUndoAdapterContractTest::setUndoStoreReplacesBorrowedStore",
+      "behavior": "undo adapterは現在借用しているundo storeを指定値へ置き換える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUndoAdapter::setUndoStore(KisUndoStore * undoStore)"
+      ]
+    },
+    {
+      "target": "KisUndoAdapterContractTest",
+      "source": "libs/image/tests/KisUndoAdapterContractTest.cpp",
+      "test": "KisUndoAdapterContractTest::abstractOperationsDispatchThroughBase",
+      "behavior": "undo adapterの5抽象操作は基底公開面から派生実装へ呼出順、command、macro名、戻り値を変更せず配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUndoAdapter::addCommand(KUndo2Command * cmd)",
+        "method:KisUndoAdapter::beginMacro(const KUndo2MagicString & macroName)",
+        "method:KisUndoAdapter::endMacro()",
+        "method:KisUndoAdapter::presentCommand()",
+        "method:KisUndoAdapter::undoLastCommand()"
+      ]
+    },
+    {
+      "target": "KisUndoAdapterContractTest",
+      "source": "libs/image/tests/KisUndoAdapterContractTest.cpp",
+      "test": "KisUndoAdapterContractTest::selectionSignalAndVirtualLifetime",
+      "behavior": "undo adapterのselection通知入口は一回の呼出しで一回signalを送出し、基底pointerから派生objectを破棄できる。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisUndoAdapter::emitSelectionChanged()",
+        "method:KisUndoAdapter::selectionChanged()",
+        "method:KisUndoAdapter::~KisUndoAdapter()"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::publicTypeAndDefaultConstructorValues",
+      "behavior": "curve option dataの公開型とcheckability別名は安定し、IDだけの構築は空prefix、変更可能、未選択を既定値とする。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisCurveOptionData::Checkability",
+        "method:KisCurveOptionData::KisCurveOptionData(const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})",
+        "struct:KisCurveOptionData"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::prefixedCheckabilityFollowsAllThreeModes",
+      "behavior": "curve option dataのprefix付き構築は変更可能、変更不可、prefix存在時だけ変更可能の3方式を選択可否と既定選択値へ写す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionData::KisCurveOptionData(const QString & prefix,const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::explicitCheckedStateOverridesDeduction",
+      "behavior": "curve option dataは明示された選択値をcheckabilityから導く既定値より優先する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionData::KisCurveOptionData(const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::valueRangeIsForwardedByBothConstructors",
+      "behavior": "curve option dataの二つの構築入口は負値を含む指定値範囲の下限と上限を順序どおり保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionData::KisCurveOptionData(const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})",
+        "method:KisCurveOptionData::KisCurveOptionData(const QString & prefix,const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})"
+      ]
+    },
+    {
+      "target": "KisCurveOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp",
+      "test": "KisCurveOptionDataContractTest::sensorViewsExposeTheOwnedPackState",
+      "behavior": "curve option dataのmutableとconstのsensor viewは所有する同じsensor束を参照し、mutable変更をconst viewへ反映する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCurveOptionData::sensorStruct()",
+        "method:KisCurveOptionData::sensorStruct() const"
       ]
     }
   ]

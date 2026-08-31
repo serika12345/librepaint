@@ -2,81 +2,41 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 19:02 JST
+- 更新日時: 2026-08-31 19:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第85並列便の担当票
+### 第85並列便の完了結果
 
-- shape削除command担当は`implementing`である。基準commitは
-  `30a465baf487e11eaedeb8a954ba41d326c50a13`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g85-shape-delete`、ブランチは`r2-g85-shape-delete`、統合順は1である。対象headerは
-  `libs/flake/commands/KoShapeDeleteCommand.h`であり、対象APIはclass、単一shape構築、shape列構築、`redo()`、
-  `undo()`、destructorの6件である。開始ファイル`libs/flake/commands/KoShapeDeleteCommand.cpp`を
-  `kritaflake_SRCS`の直接収容から`kritaflakeshapedeletecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
-  新規`libs/flake/tests/KoShapeDeleteCommandContractTest.cpp`が二つの構築入口と構築時parent、null controller、redoの
-  親除去と所有移行、undoの親復元、実行済みcommand破棄時の一回削除を5契約枠で固定する。親読取、親からの除去・
-  再追加、所有削除は試験限定配送を介し、既定配送は現行APIへ委譲する。対象API識別子は次の6件である。
-  `class:KoShapeDeleteCommand`、
-  `method:KoShapeDeleteCommand::KoShapeDeleteCommand(KoShapeControllerBase * controller,KoShape * shape,KUndo2Command * parent=0)`、
-  `method:KoShapeDeleteCommand::KoShapeDeleteCommand(KoShapeControllerBase * controller,const QList<KoShape * > & shapes,KUndo2Command * parent=0)`、
-  `method:KoShapeDeleteCommand::redo()`、`method:KoShapeDeleteCommand::undo()`、
-  `method:KoShapeDeleteCommand::~KoShapeDeleteCommand()`。許可パスは`libs/flake/CMakeLists.txt`、開始実装、
-  `libs/flake/tests/CMakeLists.txt`、新規試験である。最寄り契約は`KoAddRemoveShapeCommandsContractTest`と
-  `KoKeepShapesSelectedCommandContractTest`である。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包
-  612工程・1,256入力不変を要求する。
-- undo adapter担当は`implementing`である。基準commitは`30a465baf487e11eaedeb8a954ba41d326c50a13`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g85-undo-adapter`、ブランチは`r2-g85-undo-adapter`、統合順は2である。対象headerは
-  `libs/image/kis_undo_adapter.h`であり、対象APIはclass、constructor、`setUndoStore()`、5抽象操作、
-  `emitSelectionChanged()`、`selectionChanged()`、destructorの11件である。開始ファイル
+- shape削除command担当は`integrated`である。受渡しcommitは
+  `4787fd42eabd5b4a90b3b8a42e285074c40a2eca`、統合commitは`afa25909a6`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/flake/commands/KoShapeDeleteCommand.h`の6 APIである。開始ファイル
+  `libs/flake/commands/KoShapeDeleteCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakeshapedeletecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約した。新規
+  `libs/flake/tests/KoShapeDeleteCommandContractTest.cpp`が二つの構築入口、null controller、redoの親除去と所有移行、
+  undoの親復元、実行済みcommand破棄時の所有削除を5契約枠で固定する。
+- undo adapter担当は`integrated`である。受渡しcommitは
+  `d797f0f6ce4d444196e38dca674ce53511976dea`、統合commitは`cd0dc7d4c9`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/image/kis_undo_adapter.h`の11 APIである。開始ファイル
   `libs/image/kis_undo_adapter.cpp`を`kritaimage_LIB_SRCS`の直接収容からAUTOMOCを無効にした
-  `kritaimageundoadapterobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。公開headerは製品source一覧へ明示的に
-  残して既存のmeta-object所有を維持し、試験targetは同headerから自身のmeta-objectだけを生成する。新規
-  `libs/image/tests/KisUndoAdapterContractTest.cpp`が構築時の借用storeとQObject親、store差替え、5抽象操作の仮想配送、
-  selection通知と仮想寿命を4契約枠で固定する。製品sourceと公開headerの内容は変更しない。対象API識別子は
-  `class:KisUndoAdapter`、`method:KisUndoAdapter::KisUndoAdapter(KisUndoStore * undoStore,QObject * parent=0)`、
-  `method:KisUndoAdapter::addCommand(KUndo2Command * cmd)`、
-  `method:KisUndoAdapter::beginMacro(const KUndo2MagicString & macroName)`、
-  `method:KisUndoAdapter::emitSelectionChanged()`、`method:KisUndoAdapter::endMacro()`、
-  `method:KisUndoAdapter::presentCommand()`、`method:KisUndoAdapter::selectionChanged()`、
-  `method:KisUndoAdapter::setUndoStore(KisUndoStore * undoStore)`、`method:KisUndoAdapter::undoLastCommand()`、
-  `method:KisUndoAdapter::~KisUndoAdapter()`である。許可パスは`libs/image/CMakeLists.txt`、
-  `libs/image/tests/CMakeLists.txt`、新規試験である。最寄り契約は`KisImageInterfacesContractTest`、
-  `KisUndoStoreInterfaceContractTest`、`KisBaseAccessorContractTest`である。予測閉包5工程・11実入力、停止条件6工程・
-  14実入力、製品閉包1,184工程・2,392入力不変を要求する。
-- curve option data担当は`implementing`である。基準commitは`30a465baf487e11eaedeb8a954ba41d326c50a13`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g85-curve-option-data`、ブランチは`r2-g85-curve-option-data`、統合順は3である。
-  対象headerは`plugins/paintops/libpaintop/KisCurveOptionData.h`であり、対象APIはcheckability alias、struct、二つの
-  構築入口、mutableとconstの`sensorStruct()`の6件である。開始ファイル
+  `kritaimageundoadapterobjects`へ移し、製品`kritaimage`へ一度だけ再集約した。公開headerは製品source一覧へ残して
+  製品のmeta-object所有を維持し、試験targetは自身のmeta-objectだけを生成する。新規
+  `libs/image/tests/KisUndoAdapterContractTest.cpp`が構築と借用store、store差替え、5抽象操作の仮想配送、selection通知と
+  仮想寿命を4契約枠で固定する。
+- curve option data担当は`integrated`である。受渡しcommitは
+  `63f0c73f58c1ecba07afd82f87cd4b5171ac1fe9`、統合commitは`6b2b72f298`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`plugins/paintops/libpaintop/KisCurveOptionData.h`の6 APIである。開始ファイル
   `plugins/paintops/libpaintop/KisCurveOptionData.cpp`を`kritapaintopruntime`の直接収容から
-  `kritapaintopcurveoptiondataobjects`へ移し、runtimeへ一度だけ再集約して既存経路から製品`kritalibpaintop`へ収容する。
+  `kritapaintopcurveoptiondataobjects`へ移し、runtimeへ一度だけ再集約して既存経路から製品`kritalibpaintop`へ収容した。
   新規`plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp`が二つの構築入口、3方式のcheckability写像、
-  明示checked値、値範囲、sensor所有とmutable・const viewを固定する。既存のcurve option common、sensor pack、
-  sensor data、sensor pack interface、IDの各OBJECTを直接再利用し、製品共有ライブラリーを接続しない。対象API識別子は
-  `alias:KisCurveOptionData::Checkability`、`struct:KisCurveOptionData`、
-  `method:KisCurveOptionData::KisCurveOptionData(const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})`、
-  `method:KisCurveOptionData::KisCurveOptionData(const QString & prefix,const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})`、
-  `method:KisCurveOptionData::sensorStruct()`、`method:KisCurveOptionData::sensorStruct() const`である。許可パスは
-  `plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規試験である。最寄り契約は
-  `KisCurveOptionDataCommonContractTest`と`KisKritaSensorPackContractTest`である。予測閉包9工程・20実入力、停止条件
-  10工程・22実入力、製品閉包は`kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力不変を
-  要求する。
-- 3担当はmacOSの主作業ツリー環境と共有コンパイラーキャッシュ
-  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を使用する。Git操作権限は`transport-commit`、
-  構築実行許可は`granted`、追加委任は`forbidden`である。新targetのunknown-targetを初期診断とし、変更前の計画、
-  直接依存、最寄り契約、製品閉包を再測定する。製品OBJECTは構築せず、変更した開始sourceはコンパイル指令の
-  `-fsyntax-only`で確認する。公開API追加、許可外変更、停止条件超過、製品共有ライブラリーへの接続、意味を模倣する
-  大きな試験協調定義が必要になった時点で停止する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
-- undo adapterの最初の構造案は公開headerのmeta-objectを専用OBJECTへ移したため、対象閉包7工程・14入力と製品閉包
-  1,186工程・2,396入力になり停止した。未構築・未コミットの担当作業ツリーと255 MBの局所構築木を削除した。
-  改訂案は製品と試験が各自のmeta-objectを所有し、AUTOMOCを無効にした開始source OBJECTだけを共有する。
-- operation設定候補は公開基底から色値型と識別値型を経由してKF I18n、Imath、OpenEXRのheaderへ連鎖したため、軽量な
-  UI契約として不適格と判断した。未構築・未コミットの担当作業ツリーと276 MBの局所構築木を削除し、第三担当を
-  既存の軽量OBJECTを再利用できるcurve option dataへ切り替えた。
-- 第85便は合計23 APIを対応付け、対応済み9,150件、未対応20,839件を目標とする。
+  明示checked値、値範囲、sensor所有と二つのviewを5契約枠で固定する。
+- undo adapterの最初のmeta-object所有案は対象と製品の閉包を増やしたため中止し、製品と試験が各自のmeta-objectを
+  所有する構造へ変更した。operation設定候補は公開基底からKF I18n、Imath、OpenEXRへ連鎖したため中止し、既存の
+  軽量OBJECTを再利用できるcurve option dataへ切り替えた。二つの未コミット成果は統合していない。
+- 第85便は合計23 APIを対応付け、対応済み9,150件、未対応20,839件を達成した。
 
 ### 第84並列便の完了結果
 
@@ -357,35 +317,37 @@
 
 ### 現在の結果
 
-- 第84並列便はtext内shape並べ替えcommand 10 API、runnable stroke strategy 6 API、store device 10 APIの
-  合計26 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,127件、未対応20,862件である。
-- 開始ファイル`libs/flake/commands/KoSvgTextReorderShapeInsideCommand.cpp`は
-  `kritaflakesvgtextreordershapeinsidecommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp`が方式値、構築時状態、4方向のredo、undoを
-  5契約枠で固定する。
-- 開始ファイル`libs/image/KisRunnableBasedStrokeStrategy.cpp`は
-  `kritaimagerunnablebasedstrokestrategyobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。新規
-  `libs/image/tests/KisRunnableBasedStrokeStrategyContractTest.cpp`が構築、複製、runnable配送、job列配送、所有寿命を
-  5契約枠で固定する。
-- 開始ファイル`libs/resources/storage/KoStoreDevice.cpp`は`kritaresourcestoragedeviceobjects`へ移り、製品
-  `kritaresourcestorage`へ一度だけ再集約される。新規
-  `libs/resources/storage/tests/KoStoreDeviceContractTest.cpp`がmodeと借用寿命、open、sizeとclose、位置と終端、seekを
-  5契約枠で固定する。
-- 統合後の限定閉包は`KoSvgTextReorderShapeInsideCommandContractTest` 5工程・11実入力、
-  `KisRunnableBasedStrokeStrategyContractTest` 10工程・22実入力、`KoStoreDeviceContractTest` 5工程・10実入力である。
-  製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritaresourcestorage`
-  9工程・20入力で不変である。
-- 主作業ツリーはCMake構成を一度だけ同期し、3限定対象だけを一つの命令で17工程構築した。3対象と5軽量近傍はCTest
-  8/8に成功し、3対象は各20回反復、全15契約枠の指定実行、再構築時の無作業確認に成功した。macOSの
-  パッケージ境界は1,644対象、公開API契約検査は9,127/29,989件で成功した。動的依存にはLibrePaint製品共有
-  ライブラリーと`kritatestsdk`を含まない。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 担当作業ツリー3本、合計824 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第84便不足一覧を削除し、
-  最新の第85便不足一覧`build/tdd-macos/public-api-missing-g85.json`だけを保持する。主増分構築木は5.2 GBを維持する。
+- 第85並列便はshape削除command 6 API、undo adapter 11 API、curve option data 6 APIの合計23 APIを挙動契約へ
+  対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,150件、未対応20,839件である。
+- 開始ファイル`libs/flake/commands/KoShapeDeleteCommand.cpp`は`kritaflakeshapedeletecommandobjects`へ移り、
+  製品`kritaflake`へ一度だけ再集約される。新規`libs/flake/tests/KoShapeDeleteCommandContractTest.cpp`が二つの構築入口、
+  null controller、redoの除去と所有移行、undoの復元、実行済みcommand破棄時の削除を5契約枠で固定する。
+- 開始ファイル`libs/image/kis_undo_adapter.cpp`はAUTOMOCを無効にした`kritaimageundoadapterobjects`へ移り、製品
+  `kritaimage`へ一度だけ再集約される。公開headerは製品source一覧に残して製品のmeta-object所有を維持し、新規
+  `libs/image/tests/KisUndoAdapterContractTest.cpp`が構築と借用store、store差替え、5抽象操作、selection通知と仮想寿命を
+  4契約枠で固定する。
+- 開始ファイル`plugins/paintops/libpaintop/KisCurveOptionData.cpp`は`kritapaintopcurveoptiondataobjects`へ移り、
+  `kritapaintopruntime`へ一度だけ再集約されて既存経路から製品`kritalibpaintop`へ収容される。新規
+  `plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp`が二つの構築入口、3方式のcheckability写像、
+  明示checked値、値範囲、sensor所有と二つのviewを5契約枠で固定する。
+- 統合後の限定閉包は`KoShapeDeleteCommandContractTest` 5工程・11実入力、`KisUndoAdapterContractTest` 5工程・11実入力、
+  `KisCurveOptionDataContractTest` 10工程・21実入力である。製品閉包は`kritaflake` 612工程・1,256入力、
+  `kritaimage` 1,184工程・2,392入力、`kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop`
+  2,097工程・4,192入力で不変である。
+- 主作業ツリーはCMake構成を一度だけ同期し、3限定対象だけを一つの命令で16工程構築した。3対象と6軽量近傍はCTest
+  9/9に成功し、3対象は各20回反復、全14契約枠の指定実行、再構築時の無作業確認に成功した。macOSのパッケージ境界は
+  1,650対象、公開API契約検査は9,150/29,989件で成功した。動的依存にはLibrePaint製品共有ライブラリー、
+  `kritatestsdk`、Qt Widgetsを含まず、curve option data対象にはOpenEXRも含まない。undo adapterのmeta-objectは
+  試験と既存製品で各一つである。`verify-quick`は51単体検査、公開面、パッケージ境界、文書を含めて成功した。
+  製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
+- 統合済み担当の局所構築木854 MBと、中止した過大閉包案の局所構築木531 MB、担当作業ツリー、担当ブランチを
+  削除した。旧第85便不足一覧を削除し、最新の第86便不足一覧
+  `build/tdd-macos/public-api-missing-g86.json`だけを保持する。主増分構築木は5.2 GBを維持する。
 
 ### 次の操作
 
-- 第85便の3担当を独立作業ツリーで実装し、対象限定構築、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、
-  開始sourceの構文、公開API検査、`verify-quick`を確認して受渡しcommitを作成する。
+- 第86便不足一覧からflake、image、その他領域の軽量候補を並列監査する。各候補の公開API、既存契約、直接依存、
+  清浄時の限定構築閉包を確認し、製品全体へ波及しない3担当票を確定して独立作業ツリーで実装する。
 
 ## 再開環境
 
