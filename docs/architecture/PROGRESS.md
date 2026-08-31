@@ -2,12 +2,27 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 04:18 JST
+- 更新日時: 2026-09-01 04:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第99並列便の監査計画
+
+- 共通基点は`7783ca927037acbf6ac9507f4c62a229e4a19415`、入力は`build/tdd-macos/public-api-missing-g99.json`である。3担当は読み取り専用で、
+  製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。既存の主増分構築計画とCMake File APIは参照できる。
+  一つのheaderまたは同一値責務のheader集合から25 API以上を最大5契約枠へ固定し、既存限定対象または一つのsourceのOBJECT一対一移動で、製品
+  shared library、`kritatestsdk`、実文書・画像・資源・filesystemへ接続せず閉じられる候補を優先する。
+- `g99-global-numeric-audit`は`libs/global`から、特に`kis_algebra_2d.h`に残る純粋幾何、数値正規化、変換、境界関数を既存軽量対象へ追加できる候補を
+  選ぶ。GUI、画像、乱数、大域状態、外部入力を必要とする経路は採用しない。
+- `g99-psd-layer-record-audit`は`libs/psd`から、特に`psd_layer_record.h`と`psd_additional_layer_info_block.h`の列挙、公開値記録、既定値、copy、
+  メモリー内の独立更新を固定できる候補を選ぶ。実paint device、node、画像符号化、ASL、資源registry、filesystemを必要とする経路は採用しない。
+- `g99-flake-svg-values-audit`は`libs/flake/svg`と`libs/flake/text/KoSvgText.h`の第98便未対応面から、SVG描画文脈の値構造体、列挙、純粋な文字列・
+  単位・幾何変換を固定できる候補を選ぶ。実字体、glyph配置、shape描画、文書、資源、大域registryを必要とする経路は採用しない。
+- 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、
+  固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告し、3監査後にpath・CMake・生成物が重ならない候補だけを担当票へ進める。
 
 ### 第98並列便の監査計画
 
@@ -52,7 +67,7 @@
   headerが`libs/flake/text/KoSvgText.h`の`AutoValue` 6 API、`AutoLengthPercentage` 7 API、`CssFontStyleData` 6 API、`TextTransformInfo` 6 API、
   `TextIndentInfo` 6 APIの合計31 APIである。5枠を既存`KoSvgTextEnumContractTest`へ追加する。許可pathは
   `libs/flake/tests/KoSvgTextEnumContractTest.cpp`だけである。予測4工程・8入力、停止5工程・10入力、製品`kritaflake` 612工程・1,256入力不変とする。
-- `g98-ui-storyboard-item`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g98-ui-storyboard-item`である。対象は同不足一覧で
+- `g98-ui-storyboard-item`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g98-ui-storyboard-item`であった。対象は同不足一覧で
   headerが`libs/ui/document/StoryboardItem.h`の`StoryboardComment`、`CommentBox`、`ThumbnailData`、`StoryboardChild`、`StoryboardItem`と
   `childType`の全43 APIである。開始`libs/ui/document/StoryboardItem.cpp`を`kritaui_LIB_SRCS`直接収容から新規AUTOMOC不要・PIC対応
   `kritauistoryboarditemobjects`へ一対一移動し、製品`kritaapplicationui`へ一回だけ再集約する。許可pathは`libs/ui/CMakeLists.txt`、
@@ -85,6 +100,19 @@
   `kritatestsdk`、Imath、OpenEXRを含まない。対応済みは9,873件、未対応は19,965件、契約枠は2,365件となった。
 - 新しい`build/tdd-macos/public-api-missing-g98-psd.json`生成後、直前の不足一覧、局所構築木260 MBを含む担当作業ツリー830 MB、担当branchを
   削除した。主増分構築木、共有compiler cache、残るstoryboard担当作業ツリー、最新不足一覧だけを保持する。
+- `g98-ui-storyboard-item`は受渡しcommit `3a669700954832f36aa2a26e5d993155ed8cdfcd`を統合commit `7783ca9270`として取り込んだ。
+  開始ファイル`libs/ui/document/StoryboardItem.cpp`を`libs/ui/CMakeLists.txt`の`kritaui_LIB_SRCS`直接収容からAUTOMOC不要・PIC対応
+  `kritauistoryboarditemobjects`へ移し、製品`kritaapplicationui`へ一回だけ再集約した。公開headerと製品source本文を変更していない。
+- 新規`libs/ui/tests/KisStoryboardItemContractTest.cpp`の5契約枠で、公開値型と子種別、子の値と弱い親参照、子一覧操作、copy・明示clone、XML往復を
+  固定し、全43 APIを追加した。直接copy constructorは構築中の共有所有が未確立なため複製子の親をnullとし、`cloneChildrenFrom`と一覧cloneは
+  新しい親へ再結合する現行差を固定した。限定対象5工程・11入力、製品`kritaapplicationui` 1,959工程・3,918入力を維持した。
+- 担当環境と主環境で全5枠、対象CTest、20回反復、無作業再構築、動的接続、変更source構文、公開API契約検査、`verify-quick`に成功した。動的接続は
+  Qt Core・Gui・Xml・TestとmacOS system frameworkだけで、Qt Widgets、製品shared library、`kritatestsdk`、image製品OBJECTを含まない。最寄り
+  `TestDocumentStateUiPublicHeaders`は2,011工程・4,019入力で製品shared libraryへ接続するため実行対象から除いた。
+- 第98便はSVG文字値31 API、PSD形式値23 API、storyboard値43 APIの合計97 APIを新規14契約枠へ追加した。公開面は1,549ヘッダー、29,838 API、
+  対応済み9,916件、未対応19,922件、契約枠2,370件となった。新しい`build/tdd-macos/public-api-missing-g99.json`生成後、直前の不足一覧、局所
+  構築木260 MBを含む担当作業ツリー831 MB、担当branchを削除した。主増分構築木、共有compiler cache、最新不足一覧だけを保持し、担当作業ツリーは
+  残していない。
 
 ### 第97並列便の監査計画
 

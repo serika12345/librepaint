@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19965
+    "expectedMissingApis": 19922
   },
   "contracts": [
     {
@@ -5997,6 +5997,94 @@
         "enum:KisThumbnailBoundsMode",
         "enumerator:KisThumbnailBoundsMode::Coarse",
         "enumerator:KisThumbnailBoundsMode::Precise"
+      ]
+    },
+    {
+      "target": "KisStoryboardItemContractTest",
+      "source": "libs/ui/tests/KisStoryboardItemContractTest.cpp",
+      "test": "KisStoryboardItemContractTest::valueTypesAndChildKindsPreserveStableValues",
+      "behavior": "storyboardの注釈、注釈欄、サムネイル値は安定した既定値と複製値を持ち、5種類の子要素識別子は0始まりの順序を維持する。",
+      "classification": "maintained",
+      "apis": [
+        "class:CommentBox",
+        "class:StoryboardComment",
+        "class:ThumbnailData",
+        "enum:StoryboardItem::childType",
+        "enumerator:StoryboardItem::childType::Comments",
+        "enumerator:StoryboardItem::childType::DurationFrame",
+        "enumerator:StoryboardItem::childType::DurationSecond",
+        "enumerator:StoryboardItem::childType::FrameNumber",
+        "enumerator:StoryboardItem::childType::ItemName",
+        "member:CommentBox::content",
+        "member:CommentBox::scrollValue",
+        "member:StoryboardComment::name",
+        "member:StoryboardComment::visibility",
+        "member:ThumbnailData::frameNum",
+        "member:ThumbnailData::pixmap",
+        "method:CommentBox::CommentBox()",
+        "method:CommentBox::CommentBox(const CommentBox & other)",
+        "method:CommentBox::~CommentBox()",
+        "method:StoryboardComment::StoryboardComment()",
+        "method:ThumbnailData::ThumbnailData()",
+        "method:ThumbnailData::ThumbnailData(const ThumbnailData & other)",
+        "method:ThumbnailData::~ThumbnailData()"
+      ]
+    },
+    {
+      "target": "KisStoryboardItemContractTest",
+      "source": "libs/ui/tests/KisStoryboardItemContractTest.cpp",
+      "test": "KisStoryboardItemContractTest::childPreservesDataAndWeakParentLifetime",
+      "behavior": "storyboard子要素は値を複製・更新し、親を弱参照して親の最終所有解除後にnullへ戻る。",
+      "classification": "maintained",
+      "apis": [
+        "class:StoryboardChild",
+        "method:StoryboardChild::StoryboardChild(QVariant data)",
+        "method:StoryboardChild::StoryboardChild(const StoryboardChild & rhs)",
+        "method:StoryboardChild::data()",
+        "method:StoryboardChild::parent()",
+        "method:StoryboardChild::setData(QVariant value)",
+        "method:StoryboardChild::setParent(StoryboardItemSP parent)"
+      ]
+    },
+    {
+      "target": "KisStoryboardItemContractTest",
+      "source": "libs/ui/tests/KisStoryboardItemContractTest.cpp",
+      "test": "KisStoryboardItemContractTest::itemMutationsPreserveOrderAndParentIdentity",
+      "behavior": "storyboard項目の追加、挿入、移動、削除は子順序と件数を更新し、有効な子を同じ所有項目へ結び付け、範囲外参照をnullにする。",
+      "classification": "maintained",
+      "apis": [
+        "class:StoryboardItem",
+        "method:StoryboardItem::StoryboardItem()",
+        "method:StoryboardItem::appendChild(QVariant data)",
+        "method:StoryboardItem::child(int row) const",
+        "method:StoryboardItem::childCount() const",
+        "method:StoryboardItem::insertChild(int row,QVariant data=QVariant ())",
+        "method:StoryboardItem::moveChild(int from,int to)",
+        "method:StoryboardItem::removeChild(int row)",
+        "method:StoryboardItem::~StoryboardItem()"
+      ]
+    },
+    {
+      "target": "KisStoryboardItemContractTest",
+      "source": "libs/ui/tests/KisStoryboardItemContractTest.cpp",
+      "test": "KisStoryboardItemContractTest::cloningPreservesValuesWithIndependentChildren",
+      "behavior": "storyboard項目の直接複製は独立した子値と未設定の子親を作り、明示的な子複製と一覧複製は子を新しい親へ再結合する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardItem::StoryboardItem(const StoryboardItem & other)",
+        "method:StoryboardItem::cloneChildrenFrom(const StoryboardItem & other)",
+        "method:StoryboardItem::cloneStoryboardItemList(const StoryboardItemList & list)"
+      ]
+    },
+    {
+      "target": "KisStoryboardItemContractTest",
+      "source": "libs/ui/tests/KisStoryboardItemContractTest.cpp",
+      "test": "KisStoryboardItemContractTest::xmlRoundTripPreservesStoryboardFieldsAndComments",
+      "behavior": "storyboard XML往復はフレーム、項目名、秒・フレーム期間、Unicode注釈内容、スクロール値、注釈順序を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:StoryboardItem::loadXML(const QDomElement & itemNode)",
+        "method:StoryboardItem::toXML(QDomDocument doc)"
       ]
     },
     {
