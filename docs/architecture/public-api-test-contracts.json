@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 19632
+    "expectedMissingApis": 19588
   },
   "contracts": [
     {
@@ -32505,6 +32505,95 @@
         "function:KisAlgebra2D::fuzzyMatrixCompare(const QTransform & t1,const QTransform & t2,qreal delta)",
         "function:KisAlgebra2D::isPolygonPixelAlignedRect(const Polygon & poly,Difference tolerance)",
         "function:KisAlgebra2D::isPolygonRect(const Polygon & poly,Difference tolerance)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::pathNodesAndSubpathsCopyGeometryIndependently",
+      "behavior": "PSDのpath nodeとsub-pathは既定の空幾何状態から始まり、負座標を含む点・平滑・閉路状態をcopy後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_path_node::control1",
+        "member:psd_path_node::control2",
+        "member:psd_path_node::isSmooth",
+        "member:psd_path_node::node",
+        "member:psd_path_sub_path::isClosed",
+        "member:psd_path_sub_path::nodes",
+        "struct:psd_path_node",
+        "struct:psd_path_sub_path"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::pathsAndVectorMasksPreserveNestedValueState",
+      "behavior": "PSDのpathとvector maskは初期充填、clipboard領域・解像度、mask flag、入れ子pathを値としてcopyし、copy後の変更から独立する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_path::clipBoardBounds",
+        "member:psd_path::clipBoardResolution",
+        "member:psd_path::initialFillRecord",
+        "member:psd_path::subPaths",
+        "member:psd_vector_mask::disable",
+        "member:psd_vector_mask::invert",
+        "member:psd_vector_mask::notLink",
+        "member:psd_vector_mask::path",
+        "struct:psd_path",
+        "struct:psd_vector_mask"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::vectorOriginationDefaultsAndMembersCopyIndependently",
+      "behavior": "PSD vector originationは既定の種別・解像度・星形比率・種別名対応を持ち、符号付き値とQt幾何値をcopy後も独立して保持する。",
+      "classification": "maintained",
+      "apis": [
+        "member:psd_vector_origination_data::isStar",
+        "member:psd_vector_origination_data::originBoxCorners",
+        "member:psd_vector_origination_data::originIndex",
+        "member:psd_vector_origination_data::originPolyPixelHSF",
+        "member:psd_vector_origination_data::originPolyPreviousTightBoxCorners",
+        "member:psd_vector_origination_data::originPolySides",
+        "member:psd_vector_origination_data::originPolyStarRatio",
+        "member:psd_vector_origination_data::originPolyTrueRectCorners",
+        "member:psd_vector_origination_data::originResolution",
+        "member:psd_vector_origination_data::originShapeBBox",
+        "member:psd_vector_origination_data::originType",
+        "member:psd_vector_origination_data::transform",
+        "member:psd_vector_origination_data::typeToName",
+        "struct:psd_vector_origination_data"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::vectorOriginationSettersStoreAndAppendValues",
+      "behavior": "PSD vector originationのsetterは種別・解像度・変換・外接矩形・多角形値を保持し、頂点を呼出し順に追加して星形状態を更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_vector_origination_data::setOriginBoxCorners(QPointF p)",
+        "method:psd_vector_origination_data::setOriginPolySides(int sides)",
+        "method:psd_vector_origination_data::setOriginPolyStarRatio(double ratio)",
+        "method:psd_vector_origination_data::setOriginPolyTightBoxCorners(QPointF p)",
+        "method:psd_vector_origination_data::setOriginPolyTrueRectCorners(QPointF p)",
+        "method:psd_vector_origination_data::setOriginResolution(double res)",
+        "method:psd_vector_origination_data::setOriginShapeBBox(QRectF ShapeBBox)",
+        "method:psd_vector_origination_data::setOriginType(int type)",
+        "method:psd_vector_origination_data::setTransform(QTransform t)"
+      ]
+    },
+    {
+      "target": "PsdFormatValuesContractTest",
+      "source": "libs/psdutils/tests/PsdFormatValuesContractTest.cpp",
+      "test": "PsdFormatValuesContractTest::vectorOriginationQueriesClassifyAndMeasureShapes",
+      "behavior": "PSD vector originationは矩形・楕円・星形を名前とパラメータ化可否で分類し、外接矩形または逆変換した四隅から元寸法と角度を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:psd_vector_origination_data::OriginalSizeAndAngle(QSizeF & size,double & angle)",
+        "method:psd_vector_origination_data::canMakeParametricShape()",
+        "method:psd_vector_origination_data::shapeName()"
       ]
     }
   ]

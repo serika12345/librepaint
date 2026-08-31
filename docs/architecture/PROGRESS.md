@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 07:07 JST
+- 更新日時: 2026-09-01 07:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -46,7 +46,7 @@
 - 実装共通基点は`d4a868b09ce93ce8eeafadb77e095c7f4c1f31e6`、構築許可は`granted`、Git権限は許可pathだけの
   `transport-commit`である。3担当はmacOSの専用Git worktreeとworktree-local `build/tdd-macos`を使い、lane内の
   `./scripts/run-shared-test-env`から主環境とcompiler cacheを共有する。
-- `g102-psd-vector-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-psd-vector-values`である。
+- `g102-psd-vector-values`は`integrated`で、削除済みの専用作業ツリーは`/Users/masato/Documents/librepaint-g102-psd-vector-values`であった。
   対象は`libs/psd/psd_additional_layer_info_block.h`の`psd_path_node` 5 API、`psd_path_sub_path` 3 API、`psd_path` 5 API、
   `psd_vector_mask` 5 API、`psd_vector_origination_data` 26 APIの全44 APIである。`psd_path_node`/`psd_path_sub_path`の型と全member、
   `psd_path`の型と`clipBoardBounds`・`clipBoardResolution`・`initialFillRecord`・`subPaths`、`psd_vector_mask`の型と
@@ -54,7 +54,7 @@
   `OriginalSizeAndAngle`・`canMakeParametricShape`・`shapeName`を5枠で固定する。許可pathは
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、最寄りCTestは`PsdFormatValuesContractTest`、軽量近傍は
   `PsdByteIoContractTest`である。予測4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
-- `g102-global-planar-geometry-values`は`in_progress`で、専用作業ツリーは
+- `g102-global-planar-geometry-values`は`ready`で、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g102-global-planar-geometry-values`である。対象は`libs/global/kis_algebra_2d.h`の
   `intersectLineRect` 2 overload、`intersectLineConvexPolygon`、`cropLineToRect`、`cropLineToConvexPolygon`、`intersectLines` 2 overload、
   `isOnLine`、`getParallelLines`、`findNearestPointOnLine`、`pointToLineDistSquared`、`movePointInTheDirection`、`movePointAlongTheLine`、
@@ -84,6 +84,18 @@
   `kritatestsdk`、公開header変更、PSDのCOS/ASL・実pointer所有、平面幾何のGSL・debug/assert・製品既存Eigen以外の新規依存・QPainterPath、画像設定の
   pigment・resource・filesystem・色変換・XML出力・factoryへ到達した担当は停止する。担当は追加委任せず、許可pathだけをcommitしてAPI対応、
   初期診断、閉包、検証、容量を報告する。
+
+### 第102並列便の統合結果
+
+- `g102-psd-vector-values`は受渡しcommit `deb203eebc635`を統合commit `e11e402407`として取り込んだ。変更は既存
+  `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、製品header、source、CMakeを変更していない。
+- PSD vectorのpath node・sub-path、path・mask、origination値の既定状態、符号付き幾何値、入れ子copy独立性、setter、形状分類・計測の
+  全44 APIを5契約枠へ追加した。限定対象は変更前後とも4工程・9入力で、生所有pointer、COS/ASL、実paint deviceは参照していない。
+- 担当環境と主環境で追加5枠、全対象CTest、20回反復、`PsdByteIoContractTest`近傍、無作業再構築、動的接続、変更source構文、
+  公開API契約検査、`verify-quick`に成功した。動的接続はQt、KF I18n、macOS system frameworkだけで、製品shared libraryと
+  `kritatestsdk`を含まない。対応済みは10,250件、未対応は19,588件、契約枠は2,410件となった。
+- 新しい`build/tdd-macos/public-api-missing-g102-psd.json` 4.8 MB生成後、旧不足一覧4.8 MB、局所構築木263 MBを含む担当作業ツリー834 MBを
+  削除した。再利用する主増分構築木5.2 GB、共有compiler cache 960 MB、残る平面幾何・画像設定担当作業ツリー、最新不足一覧だけを保持する。
 
 ### 第101並列便の監査計画
 
