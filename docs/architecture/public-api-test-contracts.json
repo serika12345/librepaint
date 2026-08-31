@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21203
+    "expectedMissingApis": 21141
   },
   "contracts": [
     {
@@ -28198,6 +28198,176 @@
         "method:KoColorSpaceEngineRegistry::KoColorSpaceEngineRegistry()",
         "method:KoColorSpaceEngineRegistry::instance()",
         "method:KoColorSpaceEngineRegistry::~KoColorSpaceEngineRegistry()"
+      ]
+    },
+    {
+      "target": "KoShapeMoveCommandContractTest",
+      "source": "libs/flake/tests/KoShapeMoveCommandContractTest.cpp",
+      "test": "KoShapeMoveCommandContractTest::explicitPositionsPreservePairingAnchorParentAndBorrowing",
+      "behavior": "形状移動commandの明示位置構築は形状と新旧位置の対応、anchor、親commandを保持し、借用した形状を破棄せず仮想破棄される。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoShapeMoveCommand",
+        "method:KoShapeMoveCommand::KoShapeMoveCommand(const QList<KoShape * > & shapes,QList<QPointF> & previousPositions,QList<QPointF> & newPositions,KoFlake::AnchorPosition anchor=KoFlake::Center,KUndo2Command * parent=0)",
+        "method:KoShapeMoveCommand::~KoShapeMoveCommand()"
+      ]
+    },
+    {
+      "target": "KoShapeMoveCommandContractTest",
+      "source": "libs/flake/tests/KoShapeMoveCommandContractTest.cpp",
+      "test": "KoShapeMoveCommandContractTest::offsetConstructorReadsCentersAndBuildsTranslatedEndpoints",
+      "behavior": "offset構築は入力形状順に中央位置を一度ずつ読み、各位置へ同じoffsetを加えた終点を生成する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeMoveCommand::KoShapeMoveCommand(const QList<KoShape * > & shapes,const QPointF & offset,KUndo2Command * parent=0)"
+      ]
+    },
+    {
+      "target": "KoShapeMoveCommandContractTest",
+      "source": "libs/flake/tests/KoShapeMoveCommandContractTest.cpp",
+      "test": "KoShapeMoveCommandContractTest::redoAndUndoApplyOneOrderedBatchAfterBasePhase",
+      "behavior": "形状移動commandのredoとundoは基底処理の後に入力形状順を保った一回の一括配送で新位置と元位置を切り替える。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeMoveCommand::redo()",
+        "method:KoShapeMoveCommand::undo()"
+      ]
+    },
+    {
+      "target": "KoShapeMoveCommandContractTest",
+      "source": "libs/flake/tests/KoShapeMoveCommandContractTest.cpp",
+      "test": "KoShapeMoveCommandContractTest::mergeRequiresMatchingShapeOrderAndAnchorAndAdoptsLatestEndpoint",
+      "behavior": "形状移動commandは安定した変更識別子を返し、同じ形状順とanchorの後続commandだけを統合して最新終点を採用する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoShapeMoveCommand::id() const",
+        "method:KoShapeMoveCommand::mergeWith(const KUndo2Command * command)"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyContractTest.cpp",
+      "test": "KisStrokeStrategyContractTest::identityDefaultsAndConfigurableFlagsPreserveValues",
+      "behavior": "stroke strategyは識別値と表示名を保持し、実行方針の既定値および保護設定器で変更した値を公開取得器から一貫して返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeStrategy",
+        "method:KisStrokeStrategy::KisStrokeStrategy(const QLatin1String & id,const KUndo2MagicString & name=KUndo2MagicString ())",
+        "method:KisStrokeStrategy::balancingRatioOverride() const",
+        "method:KisStrokeStrategy::canForgetAboutMe() const",
+        "method:KisStrokeStrategy::clearsRedoOnStart() const",
+        "method:KisStrokeStrategy::forceLodModeIfPossible() const",
+        "method:KisStrokeStrategy::id() const",
+        "method:KisStrokeStrategy::isAsynchronouslyCancellable() const",
+        "method:KisStrokeStrategy::isExclusive() const",
+        "method:KisStrokeStrategy::name() const",
+        "method:KisStrokeStrategy::needsExplicitCancel() const",
+        "method:KisStrokeStrategy::requestsOtherStrokesToEnd() const",
+        "method:KisStrokeStrategy::setForceLodModeIfPossible(bool forceLodModeIfPossible)",
+        "method:KisStrokeStrategy::supportsWrapAroundMode() const"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyContractTest.cpp",
+      "test": "KisStrokeStrategyContractTest::defaultLifecycleHooksAndFactoriesRemainNullNoops",
+      "behavior": "基底stroke strategyの利用者通知と非同期取消hookは安全に復帰し、各lifecycle strategy・dataおよびLOD複製の既定生成物はnullである。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeStrategy::createCancelData()",
+        "method:KisStrokeStrategy::createCancelStrategy()",
+        "method:KisStrokeStrategy::createDabStrategy()",
+        "method:KisStrokeStrategy::createFinishData()",
+        "method:KisStrokeStrategy::createFinishStrategy()",
+        "method:KisStrokeStrategy::createInitData()",
+        "method:KisStrokeStrategy::createInitStrategy()",
+        "method:KisStrokeStrategy::createLodClone(int levelOfDetail)",
+        "method:KisStrokeStrategy::createResumeData()",
+        "method:KisStrokeStrategy::createResumeStrategy()",
+        "method:KisStrokeStrategy::createSuspendData()",
+        "method:KisStrokeStrategy::createSuspendStrategy()",
+        "method:KisStrokeStrategy::notifyUserEndedStroke()",
+        "method:KisStrokeStrategy::notifyUserStartedStroke()",
+        "method:KisStrokeStrategy::tryCancelCurrentStrokeJobAsync()"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyContractTest.cpp",
+      "test": "KisStrokeStrategyContractTest::mutatedJobsInterfaceIsBorrowedAndSuppliesLodPreferences",
+      "behavior": "stroke strategyは変異job協調者を借用し、その協調者が返すLOD対応、優先、希望詳細度を現在値として公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeStrategy::currentLodPreferences() const",
+        "method:KisStrokeStrategy::setMutatedJobsInterface(KisStrokesQueueMutatedJobInterface * mutatedJobsInterface,KisStrokeId strokeId)"
+      ]
+    },
+    {
+      "target": "KisStrokeStrategyContractTest",
+      "source": "libs/image/tests/KisStrokeStrategyContractTest.cpp",
+      "test": "KisStrokeStrategyContractTest::virtualBaseDestructionReleasesDerivedOnce",
+      "behavior": "stroke strategyは基底pointer経由の破棄で派生個体を一度だけ解放する仮想寿命を持つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeStrategy::~KisStrokeStrategy()"
+      ]
+    },
+    {
+      "target": "KisColorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorOptionDataContractTest.cpp",
+      "test": "KisColorOptionDataContractTest::persistenceKeysRemainStable",
+      "behavior": "色option dataの9個の公開keyは既存設定との互換性を保つ永続化文字列を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "variable:COLOROP_COLOR_PER_PARTICLE",
+        "variable:COLOROP_FILL_BG",
+        "variable:COLOROP_HUE",
+        "variable:COLOROP_MIX_BG_COLOR",
+        "variable:COLOROP_SAMPLE_COLOR",
+        "variable:COLOROP_SATURATION",
+        "variable:COLOROP_USE_RANDOM_HSV",
+        "variable:COLOROP_USE_RANDOM_OPACITY",
+        "variable:COLOROP_VALUE"
+      ]
+    },
+    {
+      "target": "KisColorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorOptionDataContractTest.cpp",
+      "test": "KisColorOptionDataContractTest::defaultValuesAndMemberTypesRemainStable",
+      "behavior": "色option dataは6個のboolをfalse、3個の整数を0で初期化し、各公開memberの型を安定して保つ。",
+      "classification": "maintained",
+      "apis": [
+        "member:KisColorOptionData::colorPerParticle",
+        "member:KisColorOptionData::fillBackground",
+        "member:KisColorOptionData::hue",
+        "member:KisColorOptionData::mixBgColor",
+        "member:KisColorOptionData::sampleInputColor",
+        "member:KisColorOptionData::saturation",
+        "member:KisColorOptionData::useRandomHSV",
+        "member:KisColorOptionData::useRandomOpacity",
+        "member:KisColorOptionData::value",
+        "struct:KisColorOptionData"
+      ]
+    },
+    {
+      "target": "KisColorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorOptionDataContractTest.cpp",
+      "test": "KisColorOptionDataContractTest::readAndWriteMapEveryMemberIndependently",
+      "behavior": "色option dataは9個の値を対応する永続化keyから独立して読み書きし、欠落時の既定値と無関係な設定値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisColorOptionData::read(const KisPropertiesConfiguration * setting)",
+        "method:KisColorOptionData::write(KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "KisColorOptionDataContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisColorOptionDataContractTest.cpp",
+      "test": "KisColorOptionDataContractTest::equalityDependsOnEveryMember",
+      "behavior": "色option dataの等価判定は9個の公開memberすべてを比較し、いずれか一つの差を非等価として公開する。",
+      "classification": "maintained",
+      "apis": [
+        "function:operator ==(const KisColorOptionData & lhs,const KisColorOptionData & rhs)"
       ]
     }
   ]
