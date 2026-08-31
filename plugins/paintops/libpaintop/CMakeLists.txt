@@ -29,7 +29,6 @@ set(kritalibpaintop_LIB_SRCS
     KisSharpnessOptionModel.cpp
     KisSharpnessOptionWidget.cpp
     KisSharpnessOption.cpp
-    KisScatterOptionData.cpp
     KisScatterOptionModel.cpp
     KisScatterOptionWidget.cpp
     KisScatterOption.cpp
@@ -106,7 +105,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisOpacityOption.cpp
     KisRotationOption.cpp
     KisScatterOption.cpp
-    KisScatterOptionData.cpp
     KisSharpnessOption.cpp
     KisSizeOptionData.cpp
     KisSpacingOption.cpp
@@ -334,6 +332,11 @@ target_include_directories(kritapaintopsharpnessoptiondataobjects PUBLIC
 target_link_libraries(kritapaintopsharpnessoptiondataobjects PUBLIC
     kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
 set_target_properties(kritapaintopsharpnessoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+add_library(kritapaintopscatteroptiondataobjects OBJECT KisScatterOptionData.cpp)
+target_compile_definitions(kritapaintopscatteroptiondataobjects PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
+target_include_directories(kritapaintopscatteroptiondataobjects PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>)
+target_link_libraries(kritapaintopscatteroptiondataobjects PUBLIC kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
+set_target_properties(kritapaintopscatteroptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(kritapaintopcurveoptiondataobjects PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
@@ -828,6 +831,7 @@ kis_add_library(kritapaintopruntime OBJECT
     $<TARGET_OBJECTS:kritapaintopcurveoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopsharpnessoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopscatteroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
     $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopprecisionoptionobjects>
