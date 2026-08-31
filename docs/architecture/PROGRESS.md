@@ -2,12 +2,66 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 19:25 JST
+- 更新日時: 2026-08-31 19:32 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第86並列便の担当票
+
+- `g86-flake-clip`は`implementing`である。基準commitは`44fef54c1387d15b1690fe24f41194d5367d378e`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g19b-g86-flake-clip`である。対象は
+  `libs/flake/commands/KoShapeClipCommand.h`の`class:KoShapeClipCommand`、
+  `method:KoShapeClipCommand::KoShapeClipCommand(KoShapeControllerBase * controller,KoShape * shape,const QList<KoPathShape * > & clipPathShapes,KUndo2Command * parent=0)`、
+  `method:KoShapeClipCommand::KoShapeClipCommand(KoShapeControllerBase * controller,const QList<KoShape * > & shapes,const QList<KoPathShape * > & clipPathShapes,KUndo2Command * parent=0)`、
+  `method:KoShapeClipCommand::redo()`、`method:KoShapeClipCommand::undo()`、
+  `method:KoShapeClipCommand::~KoShapeClipCommand()`の6 APIである。二つの構築入口、
+  対象別clip生成、redo・undoのclip置換と親移送順、実行状態に対応する旧・新clipの破棄責任、空入力とnull親を固定する。
+  開始ファイル`libs/flake/commands/KoShapeClipCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakeshapeclipcommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。最寄り契約は
+  `KoShapeDeleteCommandContractTest`である。許可範囲は`libs/flake/CMakeLists.txt`、開始実装、
+  `libs/flake/tests/CMakeLists.txt`、新規`libs/flake/tests/KoShapeClipCommandContractTest.cpp`である。予測閉包は
+  5工程・12入力、停止条件は6工程・15入力超過、製品閉包612工程・1,256入力からの増加、Qt Widgets、製品共有
+  library、`kritatestsdk`、実shape vtableの要求、公開API変更、許可外変更である。
+- `g86-image-queues`は`implementing`である。基準commitは同じ、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-g86-image-queues`である。対象は
+  `libs/image/kis_queues_progress_updater.h`の`class:KisQueuesProgressUpdater`、
+  `method:KisQueuesProgressUpdater::KisQueuesProgressUpdater(KoProgressProxy * progressProxy,QObject * parent=0)`、
+  `method:KisQueuesProgressUpdater::~KisQueuesProgressUpdater()`、`method:KisQueuesProgressUpdater::hide()`、
+  `method:KisQueuesProgressUpdater::updateProgress(int queueSizeMetric,const QString & jobName)`、
+  `method:KisQueuesProgressUpdater::sigStartTicking()`、`method:KisQueuesProgressUpdater::sigStopTicking()`の7 APIである。
+  QObject親と借用proxy、最初の正数queueによる一度だけの開始、0とhideによる停止、停止後の再開、待機不要の
+  queued stopによるproxy初期化を固定する。開始ファイル`libs/image/kis_queues_progress_updater.cpp`を
+  AUTOMOCを無効にした`kritaimagequeuesprogressupdaterobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。公開headerは
+  製品source一覧へ残し、試験targetが自身のmeta-objectだけを生成する。最寄り契約は`KisUndoAdapterContractTest`である。
+  許可範囲は`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規
+  `libs/image/tests/KisQueuesProgressUpdaterContractTest.cpp`である。予測閉包は5工程・11入力、停止条件は6工程・14入力超過、
+  製品閉包1,184工程・2,392入力からの増加、実時間待機、Qt Widgets、製品共有library、`kritatestsdk`、製品progress実装、
+  meta-object二重定義、公開headerまたは製品処理変更、許可外変更である。
+- `g86-paintop-mirror`は`implementing`である。基準commitは同じ、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g19b-g86-paintop-mirror`である。対象は
+  `plugins/paintops/libpaintop/KisMirrorOptionData.h`の`alias:KisMirrorOptionMixIn`、
+  `struct:KisMirrorOptionMixInImpl`、`struct:KisMirrorOptionData`、
+  `member:KisMirrorOptionMixInImpl::enableHorizontalMirror`、`member:KisMirrorOptionMixInImpl::enableVerticalMirror`、
+  `method:KisMirrorOptionData::KisMirrorOptionData(const QString & prefix="")`、
+  `method:KisMirrorOptionMixInImpl::read(const KisPropertiesConfiguration * setting)`、
+  `method:KisMirrorOptionMixInImpl::write(KisPropertiesConfiguration * setting) const`、
+  `function:operator ==(const KisMirrorOptionMixInImpl & lhs,const KisMirrorOptionMixInImpl & rhs)`の9 APIである。
+  公開型と既定値、prefix配送、二つの永続値の独立した読書き、等価判定を固定する。
+  開始ファイル`plugins/paintops/libpaintop/KisMirrorOptionData.cpp`を二つの既存source一覧から外して
+  `kritapaintopmirroroptiondataobjects`へ移し、`kritapaintopruntime`へ一度だけ再集約して既存経路から製品
+  `kritalibpaintop`へ収容する。最寄り契約は`KisCurveOptionDataContractTest`である。許可範囲は
+  `plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規
+  `plugins/paintops/libpaintop/tests/KisMirrorOptionDataContractTest.cpp`である。予測閉包は11工程・24入力、停止条件は
+  12工程・27入力超過、runtime 1,281工程・2,582入力またはlibpaintop 2,097工程・4,192入力からの増加、OpenEXR動的
+  library、Qt Widgets、製品共有library、`kritatestsdk`、実製品設定object、二重収容、公開API変更、許可外変更である。
+- 3担当の対象プラットフォームはmacOS、共有コンパイラーcacheは
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`、構築実行許可は`granted`、Git操作権限は
+  `transport-commit`、追加委任は`forbidden`である。統合順はflake、image、paintopとする。各担当は未登録targetの
+  初回診断、変更前計画と直接依存、限定対象、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、開始sourceの
+  構文、担当内`verify-quick`を確認する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
 
 ### 第85並列便の完了結果
 
@@ -346,8 +400,8 @@
 
 ### 次の操作
 
-- 第86便不足一覧からflake、image、その他領域の軽量候補を並列監査する。各候補の公開API、既存契約、直接依存、
-  清浄時の限定構築閉包を確認し、製品全体へ波及しない3担当票を確定して独立作業ツリーで実装する。
+- 第86便の3担当を独立作業ツリーで実装し、対象限定構築、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、
+  開始sourceの構文、公開API検査、`verify-quick`を確認して受渡しcommitを作成する。
 
 ## 再開環境
 
