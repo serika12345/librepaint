@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 18:58 JST
+- 更新日時: 2026-08-31 19:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -47,21 +47,23 @@
   `libs/image/tests/CMakeLists.txt`、新規試験である。最寄り契約は`KisImageInterfacesContractTest`、
   `KisUndoStoreInterfaceContractTest`、`KisBaseAccessorContractTest`である。予測閉包5工程・11実入力、停止条件6工程・
   14実入力、製品閉包1,184工程・2,392入力不変を要求する。
-- operation設定担当は`implementing`である。基準commitは`30a465baf487e11eaedeb8a954ba41d326c50a13`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g85-operation-configuration`、ブランチは`r2-g85-operation-configuration`、統合順は
-  3である。対象headerは`libs/ui/operations/kis_operation_configuration.h`であり、対象APIはalias、class、既定構築、
-  ID構築、`id()`、destructorの6件である。開始ファイル`libs/ui/operations/kis_operation_configuration.cpp`を
-  `kritaui_LIB_SRCS`の直接収容から`kritauioperationconfigurationobjects`へ移し、製品`kritaapplicationui`へ一度だけ
-  再集約する。新規`libs/ui/tests/KisOperationConfigurationContractTest.cpp`が型と共有所有、既定ID `wrong-id`、Unicodeの
-  明示ID、公開property更新との同期、仮想寿命を固定する。試験内の最小property協調定義はproperty保持だけを担い、
-  製品設定・画像・UI共有ライブラリーを接続しない。対象API識別子は`alias:KisOperationConfigurationSP`、
-  `class:KisOperationConfiguration`、`method:KisOperationConfiguration::KisOperationConfiguration()`、
-  `method:KisOperationConfiguration::KisOperationConfiguration(const QString & id)`、
-  `method:KisOperationConfiguration::id() const`、`method:KisOperationConfiguration::~KisOperationConfiguration()`である。
-  許可パスは`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、新規試験である。最寄りの最小property協調契約は
-  `KisPaintingModeOptionDataContractTest`である。公開基底のheader経路が必要とするKF I18nは直接依存として宣言し、
-  製品設定や共有ライブラリーを接続しない。予測閉包5工程・10実入力、停止条件6工程・18実入力、製品閉包
-  1,957工程・3,914入力不変を要求する。外部動的依存は対象の公開headerをコンパイルするための直接依存に限定する。
+- curve option data担当は`implementing`である。基準commitは`30a465baf487e11eaedeb8a954ba41d326c50a13`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g85-curve-option-data`、ブランチは`r2-g85-curve-option-data`、統合順は3である。
+  対象headerは`plugins/paintops/libpaintop/KisCurveOptionData.h`であり、対象APIはcheckability alias、struct、二つの
+  構築入口、mutableとconstの`sensorStruct()`の6件である。開始ファイル
+  `plugins/paintops/libpaintop/KisCurveOptionData.cpp`を`kritapaintopruntime`の直接収容から
+  `kritapaintopcurveoptiondataobjects`へ移し、runtimeへ一度だけ再集約して既存経路から製品`kritalibpaintop`へ収容する。
+  新規`plugins/paintops/libpaintop/tests/KisCurveOptionDataContractTest.cpp`が二つの構築入口、3方式のcheckability写像、
+  明示checked値、値範囲、sensor所有とmutable・const viewを固定する。既存のcurve option common、sensor pack、
+  sensor data、sensor pack interface、IDの各OBJECTを直接再利用し、製品共有ライブラリーを接続しない。対象API識別子は
+  `alias:KisCurveOptionData::Checkability`、`struct:KisCurveOptionData`、
+  `method:KisCurveOptionData::KisCurveOptionData(const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})`、
+  `method:KisCurveOptionData::KisCurveOptionData(const QString & prefix,const KoID & id,Checkability checkability=Checkability::Checkable,std::optional<bool> isChecked=std::nullopt,const std::pair<qreal,qreal> & valueRange={0.0, 1.0})`、
+  `method:KisCurveOptionData::sensorStruct()`、`method:KisCurveOptionData::sensorStruct() const`である。許可パスは
+  `plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規試験である。最寄り契約は
+  `KisCurveOptionDataCommonContractTest`と`KisKritaSensorPackContractTest`である。予測閉包9工程・20実入力、停止条件
+  10工程・22実入力、製品閉包は`kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力不変を
+  要求する。
 - 3担当はmacOSの主作業ツリー環境と共有コンパイラーキャッシュ
   `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を使用する。Git操作権限は`transport-commit`、
   構築実行許可は`granted`、追加委任は`forbidden`である。新targetのunknown-targetを初期診断とし、変更前の計画、
@@ -71,8 +73,9 @@
 - undo adapterの最初の構造案は公開headerのmeta-objectを専用OBJECTへ移したため、対象閉包7工程・14入力と製品閉包
   1,186工程・2,396入力になり停止した。未構築・未コミットの担当作業ツリーと255 MBの局所構築木を削除した。
   改訂案は製品と試験が各自のmeta-objectを所有し、AUTOMOCを無効にした開始source OBJECTだけを共有する。
-- operation設定の初期監査はKF I18nを不要と見積もったが、公開基底から色値型と識別値型を経由するheader依存として
-  必須だった。対象と製品のNinja閉包は増加しないため、外部headerの正しい直接依存を宣言して同じ担当を継続する。
+- operation設定候補は公開基底から色値型と識別値型を経由してKF I18n、Imath、OpenEXRのheaderへ連鎖したため、軽量な
+  UI契約として不適格と判断した。未構築・未コミットの担当作業ツリーと276 MBの局所構築木を削除し、第三担当を
+  既存の軽量OBJECTを再利用できるcurve option dataへ切り替えた。
 - 第85便は合計23 APIを対応付け、対応済み9,150件、未対応20,839件を目標とする。
 
 ### 第84並列便の完了結果
