@@ -25,12 +25,14 @@
 ### 第92並列便の担当計画
 
 - 実装共通基点は`394efccd88b1480f985fbf9171d045870dfa015a`である。
-- `g92-image-stroke-job`は`preparing`である。対象headerは`libs/image/kis_stroke_job.h`、許可pathは既存
+- `g92-image-stroke-job`は`in_progress`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g92-image-stroke-job`である。対象headerは`libs/image/kis_stroke_job.h`、許可pathは既存
   `libs/image/tests/KisStrokeJobContractTest.cpp`だけで、CMakeと製品コードは変更しない。class、constructor、destructor、`run`、`debugName`、
   予定種別・barrier・exclusive、描画詳細度、取消可能性、所有job判定の12 APIを4契約枠で固定する。DataはJob所有、Strategyは借用として寿命を
   実測し、null Dataの既定値、Dataの上書き、同一Dataを使う実行配送を観測する。既存対象14工程・24入力、停止15工程・27入力、製品
   `kritaimage` 1,189工程・2,397入力不変とする。header内の3 friend自由関数は製品定義を持たない試験補助宣言なので本便では仕様化しない。
-- `g92-paintop-curve-model`は`preparing`である。対象headerは`plugins/paintops/libpaintop/KisCurveOptionModel.h`の未対応29 API、許可pathは
+- `g92-paintop-curve-model`は`in_progress`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g92-paintop-curve-model`である。対象headerは`plugins/paintops/libpaintop/KisCurveOptionModel.h`の未対応29 API、許可pathは
   同package `CMakeLists.txt`、tests `CMakeLists.txt`、既存`tests/KisCurveOptionModelTest.cpp`と退役対象の同名`.h`だけである。開始ファイル
   `KisCurveOptionModel.cpp`を`kritalibpaintop_LIB_SRCS`から新規`kritapaintopcurveoptionmodelobjects`へ一対一移動し、共有libraryへ1回だけ
   再集約する。空の広域試験を、型と所有、選択有効状態、強度変換と焼込み、曲線配送、label・sensor長の5契約枠へ置換する。現在の同名対象
