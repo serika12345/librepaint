@@ -2013,7 +2013,7 @@ set(kritaimage_LIB_SRCS
    kis_strokes_queue.cpp
    kis_simple_update_queue.cpp
    kis_update_scheduler.cpp
-   kis_queues_progress_updater.cpp
+   kis_queues_progress_updater.h
    kis_sync_lod_cache_stroke_strategy.cpp
    kis_update_time_monitor.cpp
    kis_group_layer.cc
@@ -2125,6 +2125,23 @@ set(kritaimage_LIB_SRCS
    KisEncloseAndFillPainter.cpp
 )
 
+add_library(kritaimagequeuesprogressupdaterobjects OBJECT
+   kis_queues_progress_updater.cpp
+)
+target_compile_definitions(kritaimagequeuesprogressupdaterobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagequeuesprogressupdaterobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritaimagequeuesprogressupdaterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimagequeuesprogressupdaterobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimageundoadapterobjects OBJECT
    kis_undo_adapter.cpp
 )
@@ -2149,6 +2166,7 @@ set(einspline_SRCS
 kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
+   $<TARGET_OBJECTS:kritaimagequeuesprogressupdaterobjects>
    $<TARGET_OBJECTS:kritaimageundoadapterobjects>
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
    $<TARGET_OBJECTS:kritaimageanimsettingcommandobjects>
