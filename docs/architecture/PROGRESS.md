@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 10:34 JST
+- 更新日時: 2026-08-31 10:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,35 +11,35 @@
 
 ### 第73並列便の担当票
 
-- 形状追加・除去command担当は`preparing`である。基点は
-  `ed076c541238fa375e64bd60398ed222c4fb4bf5`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g73-add-remove-shape`、予定ブランチは
+- 形状追加・除去command担当は`implementing`である。基点は
+  `02a4666f91de0e735d3c41342e3ef3bee1f137e7`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g73-add-remove-shape`、ブランチは
   `r2-g73-add-remove-shape`、統合順は1である。対象は
   `libs/flake/commands/KoAddRemoveShapeCommands.h`の9 APIである。開始ファイル
   `libs/flake/commands/KoAddRemoveShapeCommands.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakeaddremoveshapecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoAddRemoveShapeCommandsContractTest.cpp`が基底phase、追加command初期状態、
-  除去command初期状態を3契約枠で固定し、9 APIを`maintained`へ分類する。限定構築は計画承認まで
-  待機し、予測閉包5工程・12入力、停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。
+  除去command初期状態を3契約枠で固定し、9 APIを`maintained`へ分類する。限定構築を許可し、
+  予測閉包5工程・12入力、停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。
   許可範囲は`libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、新規試験だけである。
-- 描画輪郭担当は`preparing`である。基点は`ed076c541238fa375e64bd60398ed222c4fb4bf5`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g73-brush-outline`、予定ブランチは
+- 描画輪郭担当は`implementing`である。基点は`02a4666f91de0e735d3c41342e3ef3bee1f137e7`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g73-brush-outline`、ブランチは
   `r2-g73-brush-outline`、統合順は2である。対象は
   `libs/image/brushengine/KisOptimizedBrushOutline.h`の19 APIである。開始ファイル
   `libs/image/brushengine/KisOptimizedBrushOutline.cpp`を`kritaimage_LIB_SRCS`の直接収容から
   `kritaimageoptimizedbrushoutlineobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。新規
   `libs/image/tests/KisOptimizedBrushOutlineContractTest.cpp`が空状態と反復子、経路・多角形と境界、
-  装飾追加とcache無効化、変換と値意味論を4契約枠で固定し、19 APIを`maintained`へ分類する。限定構築は
-  計画承認まで待機し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を
+  装飾追加とcache無効化、変換と値意味論を4契約枠で固定し、19 APIを`maintained`へ分類する。限定構築を
+  許可し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を
   要求する。許可範囲は`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験だけである。
-- 色空間数学担当は`preparing`である。基点は`ed076c541238fa375e64bd60398ed222c4fb4bf5`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g73-color-space-maths`、予定ブランチは
+- 色空間数学担当は`implementing`である。基点は`02a4666f91de0e735d3c41342e3ef3bee1f137e7`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g73-color-space-maths`、ブランチは
   `r2-g73-color-space-maths`、統合順は3である。対象は`libs/pigment/KoColorSpaceMaths.h`の140 APIである。
   製品実装`libs/pigment/KoColorSpaceMaths.cpp`は既に`kritapigmentmathsobjects`から製品`kritapigment`へ
   一度だけ集約され、製品sourceの移動は不要である。開始試験
   `libs/pigment/tests/TestKoColorSpaceMaths.{h,cpp}`を広域試験一覧から同名専用Qt Testへ移し、数値特性とLUT、
   中核演算、値域・合成・近似方針、Arithmetic接続面、4色模型、hue・RGB、tone・成分調整を7契約枠で固定する。
-  140 APIを`maintained`へ分類する。限定構築は計画承認まで待機し、予測閉包5工程・12入力、停止条件
+  140 APIを`maintained`へ分類する。限定構築を許可し、予測閉包5工程・12入力、停止条件
   6工程・14入力、製品閉包360工程・750入力不変を要求する。許可範囲は
   `libs/pigment/tests/CMakeLists.txt`と開始試験2ファイルだけである。
 - 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
@@ -79,8 +79,8 @@
 
 ### 次の操作
 
-- 第73並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
-  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
+- 第73並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
+  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
 
 ## 再開環境
 
