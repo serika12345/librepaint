@@ -2,82 +2,48 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 09:56 JST
-- 状態: `in_progress`
+- 更新日時: 2026-08-31 10:20 JST
+- 状態: `planned`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第72並列便の担当票
-
-- path区間担当は`implementing`である。基点は`e6765f6c3e77f0afb894fead5dce6632a11fc827`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g72-path-segment`、ブランチは`r2-g72-path-segment`、統合順は1である。
-  対象は`libs/flake/KoPathSegment.h`の31 APIである。開始ファイル`libs/flake/KoPathSegment.cpp`を
-  `kritaflake_SRCS`の直接収容から`kritaflakepathsegmentobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
-  開始試験`libs/flake/tests/TestPathSegment.{h,cpp}`を広域試験一覧から同名の専用Qt Test対象へ移し、構築・複製・
-  所有、直線・二次・三次曲線の評価、写像・変換・分割、長さとparameter、交点・最近点、平坦性と方向を
-  6契約枠で固定する。31 APIを`maintained`へ分類する。限定構築を許可し、予測閉包8工程・19入力、
-  停止条件9工程・22入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は
-  `libs/flake/CMakeLists.txt`、`libs/flake/tests/CMakeLists.txt`、開始試験2ファイルだけである。
-- cubic曲線担当は`implementing`である。基点は`e6765f6c3e77f0afb894fead5dce6632a11fc827`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g72-cubic-curve`、ブランチは`r2-g72-cubic-curve`、統合順は2である。
-  対象は`libs/image/kis_cubic_curve.h`の48 APIである。開始ファイル`libs/image/kis_cubic_curve.cpp`を
-  `kritaimage_LIB_SRCS`の直接収容から`kritaimagecubiccurveobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。
-  新規`libs/image/tests/KisCubicCurveContractTest.cpp`が曲線点値、構築と整列、編集、複製・名前・判定、評価・
-  転送表、文字列直列化を6契約枠で固定する。非推奨互換経路を含む48 APIを`maintained`へ分類する。限定構築を
-  許可し、予測閉包5工程・12入力、停止条件6工程・14入力、製品閉包1,184工程・2,392入力不変を
-  要求する。許可範囲は`libs/image/CMakeLists.txt`、`libs/image/tests/CMakeLists.txt`、新規試験だけである。
-- 合成演算担当は`implementing`である。基点は`e6765f6c3e77f0afb894fead5dce6632a11fc827`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g72-composite-functions`、ブランチは`r2-g72-composite-functions`、
-  統合順は3である。対象はheader内実装だけで完結する
-  `libs/pigment/compositeops/KoCompositeOpFunctions.h`の146 APIであり、製品sourceの開始先と移動先は該当しない。
-  新規`libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp`が値域補正、47自由関数、alpha付き加算、
-  33単一channel演算、HSY系RGB演算、normal・照明・tint演算を6契約枠で固定する。146 APIを`maintained`へ
-  分類する。限定構築を許可し、予測閉包4工程・8入力、停止条件5工程・11入力、製品閉包
-  360工程・750入力不変を要求する。許可範囲は`libs/pigment/tests/CMakeLists.txt`と新規試験だけである。
-- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが
-  更新する。担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は
-  新しい一覧の件数確認直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
-- 第72便は合計225 APIを対応付け、対応済み8,532件、未対応21,457件を目標とする。
-
 ### 現在の結果
 
-- 第71並列便は、path形状点44 API、描画option設定ラッパー16 API、具体描画sensor pack35 APIの
-  合計95 APIを挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,307件、
-  未対応21,682件である。
-- 開始ファイル`libs/flake/KoPathPoint.cpp`は`kritaflake_SRCS`の直接収容から
-  `kritaflakepathpointobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoPathPointContractTest.cpp`が列挙値、構築・複製・親pointer、制御点と属性、
-  写像・反転・境界、平滑判定、handle描画を固定する。`boundingRect`のactive引数と制御点包含が
-  公開説明と逆である現行挙動だけを既知不具合に分類し、残る43 APIを維持契約に分類した。
-- 開始ファイル`libs/image/brushengine/KisPaintopPropertiesBase.cpp`は`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagepaintoppropertiesbaseobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。未使用の
-  実資源includeを除去し、新規`libs/image/tests/KisPaintopPropertiesBaseContractTest.cpp`が3基底の
-  設定pointer、資源所有者、linked・embedded戻り値、仮想寿命を固定する。
-- 開始ファイル`plugins/paintops/libpaintop/KisKritaSensorPack.cpp`は製品source一覧とruntime source一覧の
-  重複した所有記述から`kritapaintopkritasensorpackobjects`へ移り、`kritapaintopruntime`を経由して製品
-  `kritalibpaintop`へ一度だけ再集約される。新規
-  `plugins/paintops/libpaintop/tests/KisKritaSensorPackContractTest.cpp`が既定sensor、全memberの等価比較、
-  pointer列挙順、複製・比較、長さ取得、設定読込み・書込みを固定する。
-- 統合後の限定閉包は`KoPathPointContractTest` 9工程・19入力、`KisPaintopPropertiesBaseContractTest`
-  5工程・11入力、`KisKritaSensorPackContractTest` 8工程・18入力である。製品閉包は`kritaflake`
-  612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritalibpaintop` 2,097工程・4,192入力、
-  `kritapaintopruntime` 1,281工程・2,582入力で不変である。
-- 主作業ツリーの3限定対象と7軽量近傍はCTest 10/10に成功し、3対象は各20回反復、全17新規契約枠、
-  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,572対象、公開API契約検査は
-  8,307/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリーとQt Widgetsは含まれない。
-  実path階層への通知・文書座標変換、実資源・設定のpayload、異常sensor XMLと実UI接続は残余範囲である。
+- 第72並列便は、path区間31 API、cubic曲線48 API、合成演算関数146 APIの合計225 APIを挙動契約へ
+  対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,532件、未対応21,457件である。
+- 開始ファイル`libs/flake/KoPathSegment.cpp`は`kritaflake_SRCS`の直接収容から
+  `kritaflakepathsegmentobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。開始試験
+  `libs/flake/tests/TestPathSegment.{h,cpp}`は広域試験一覧から同名の専用Qt Testへ移り、既存11枠を
+  構築・所有、曲線評価、変換・分割、長さ、交点・最近点、平坦性・方向の6契約枠へ整理した。
+- 開始ファイル`libs/image/kis_cubic_curve.cpp`は`kritaimage_LIB_SRCS`の直接収容から
+  `kritaimagecubiccurveobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。新規
+  `libs/image/tests/KisCubicCurveContractTest.cpp`が曲線点値、整列構築、全編集経路、値意味論、評価・転送表、
+  非推奨互換経路を含む文字列直列化を6契約枠で固定する。
+- `libs/pigment/compositeops/KoCompositeOpFunctions.h`はheader内実装で製品sourceの移動先を持たない。
+  新規`libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp`が値域補正、47自由関数、alpha付き加算、
+  33単一channel演算、HSY系RGB演算、normal・照明・tint演算を6契約枠で固定する。浮動小数定数は具体所有者
+  `kritapigmentmathsobjects`へ直接依存し、試験側へ数式や定数定義を複製していない。
+- 統合後の限定閉包は`TestPathSegment` 8工程・19入力、`KisCubicCurveContractTest` 5工程・11入力、
+  `KoCompositeOpFunctionsContractTest` 5工程・11入力である。製品閉包は`kritaflake` 612工程・1,256入力、
+  `kritaimage` 1,184工程・2,392入力、`kritapigment` 360工程・750入力で不変である。
+- 主作業ツリーの3限定対象と6軽量近傍はCTest 9/9に成功し、3対象は各20回反復、全18契約枠の個別実行、
+  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,576対象、公開API契約検査は
+  8,532/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリー、Qt Widgets、OpenEXRは
+  含まれない。cubic曲線試験の非推奨API参照に対するコンパイラー警告だけが意図した診断として残る。
+  退化pathと実path親連携、不正曲線文字列と重複x、合成演算のNaN・Inf・全整数幅・画素統合は残余範囲である。
   製品全体の構築・リンクとLinux検証は限定閉包を越えるため対象外とした。
 - 担当作業ツリー3本、局所構築木、担当ブランチは各統合の直後に削除し、合計約2.49 GBの一時生成物を
-  回収した。旧第71便不足一覧を削除し、最新の第72便不足一覧
-  `build/tdd-macos/public-api-missing-g72.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は
-  5.1 GB、共有nativeコンパイラーcacheは682 MBである。
+  回収した。旧第72便不足一覧を削除し、最新の第73便不足一覧
+  `build/tdd-macos/public-api-missing-g73.json` 5.3 MBだけを保持する。次便で再利用する主増分構築木は
+  5.1 GB、共有nativeコンパイラーcacheは0.7 GBである。
 
 ### 次の操作
 
-- 第72並列便の3担当は、各停止条件内で対象限定の構築計画を測り、最小の挙動契約を実装して担当コミットを渡す。
-  調整担当は統合順に差分を確認し、統合直後に各担当の作業ツリー、局所構築木、ブランチを削除する。
+- 第73並列便は最新不足一覧を用い、先行監査済みの`libs/flake/KoPointerEvent.h` 39 APIと
+  `libs/image/brushengine/KisOptimizedBrushOutline.h` 19 APIを第三の非重複候補と比較する。Qt 5限定APIの
+  実行可能性とQt meta-object移動による製品閉包差を含め、担当票を固定するまで作業ツリーと局所構築木を作らない。
 
 ## 再開環境
 

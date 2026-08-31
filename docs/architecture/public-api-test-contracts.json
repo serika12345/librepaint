@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 21682
+    "expectedMissingApis": 21457
   },
   "contracts": [
     {
@@ -27206,6 +27206,393 @@
       "classification": "maintained",
       "apis": [
         "method:KisKritaSensorPack::write(const KisCurveOptionDataCommon & data,KisPropertiesConfiguration * setting) const"
+      ]
+    },
+    {
+      "target": "TestPathSegment",
+      "source": "libs/flake/tests/TestPathSegment.cpp",
+      "test": "TestPathSegment::constructsCopiesAssignsAndOwnsDetachedEndpoints",
+      "behavior": "path区間は無効・直線・二次・三次を構築し、親を持たない端点を所有して複製・代入を独立させ、端点置換と次数を一貫して返す。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoPathSegment",
+        "method:KoPathSegment::KoPathSegment(KoPathPoint * first=0,KoPathPoint * second=0)",
+        "method:KoPathSegment::KoPathSegment(const KoPathSegment & segment)",
+        "method:KoPathSegment::KoPathSegment(const QPointF & p0,const QPointF & p1)",
+        "method:KoPathSegment::KoPathSegment(const QPointF & p0,const QPointF & p1,const QPointF & p2)",
+        "method:KoPathSegment::KoPathSegment(const QPointF & p0,const QPointF & p1,const QPointF & p2,const QPointF & p3)",
+        "method:KoPathSegment::degree() const",
+        "method:KoPathSegment::first() const",
+        "method:KoPathSegment::isValid() const",
+        "method:KoPathSegment::operator =(const KoPathSegment & other)",
+        "method:KoPathSegment::operator ==(const KoPathSegment & other) const",
+        "method:KoPathSegment::second() const",
+        "method:KoPathSegment::setFirst(KoPathPoint * first)",
+        "method:KoPathSegment::setSecond(KoPathPoint * second)",
+        "method:KoPathSegment::~KoPathSegment()"
+      ]
+    },
+    {
+      "target": "TestPathSegment",
+      "source": "libs/flake/tests/TestPathSegment.cpp",
+      "test": "TestPathSegment::evaluatesStableLineQuadraticAndCubicGeometry",
+      "behavior": "path区間は直線・二次・三次曲線の点、密な境界、制御点境界、制御点列、凸包を固定座標から決定する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathSegment::boundingRect() const",
+        "method:KoPathSegment::controlPointRect() const",
+        "method:KoPathSegment::controlPoints() const",
+        "method:KoPathSegment::convexHull() const",
+        "method:KoPathSegment::pointAt(qreal t) const"
+      ]
+    },
+    {
+      "target": "TestPathSegment",
+      "source": "libs/flake/tests/TestPathSegment.cpp",
+      "test": "TestPathSegment::transformsConvertsSplitsAndInterpolatesWithoutMutatingSource",
+      "behavior": "path区間の写像、三次曲線化、分割、二次補間は期待する制御点を生成し、入力区間を変更しない。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathSegment::interpolate(const QPointF & p0,const QPointF & p1,const QPointF & p2,qreal t)",
+        "method:KoPathSegment::mapped(const QTransform & matrix) const",
+        "method:KoPathSegment::splitAt(qreal t) const",
+        "method:KoPathSegment::toCubic() const"
+      ]
+    },
+    {
+      "target": "TestPathSegment",
+      "source": "libs/flake/tests/TestPathSegment.cpp",
+      "test": "TestPathSegment::measuresLengthAndMapsArcParameters",
+      "behavior": "path区間は固定曲線の全長と部分長を測り、負値・範囲内・全長超過の弧長を対応するparameterへ写す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathSegment::length(qreal error=0.005) const",
+        "method:KoPathSegment::lengthAt(qreal t,qreal error=0.005) const",
+        "method:KoPathSegment::paramAtLength(qreal length,qreal tolerance=0.001) const"
+      ]
+    },
+    {
+      "target": "TestPathSegment",
+      "source": "libs/flake/tests/TestPathSegment.cpp",
+      "test": "TestPathSegment::findsIntersectionsAndNearestParameters",
+      "behavior": "path区間は固定した交差線の交点と、照会点へ最も近い曲線parameterを返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathSegment::intersections(const KoPathSegment & segment) const",
+        "method:KoPathSegment::nearestPoint(const QPointF & point) const"
+      ]
+    },
+    {
+      "target": "TestPathSegment",
+      "source": "libs/flake/tests/TestPathSegment.cpp",
+      "test": "TestPathSegment::classifiesFlatnessAndReportsNormalizedDirection",
+      "behavior": "path区間は許容差に応じて平坦性を分類し、曲線上のparameterで正規化した方向を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoPathSegment::angleVectorAtParam(qreal t)",
+        "method:KoPathSegment::isFlat(qreal tolerance=0.01) const"
+      ]
+    },
+    {
+      "target": "KisCubicCurveContractTest",
+      "source": "libs/image/tests/KisCubicCurveContractTest.cpp",
+      "test": "KisCubicCurveContractTest::pointValuePreservesCoordinatesCornerAndCopies",
+      "behavior": "cubic曲線点は座標と角指定を値として保持し、構築・複製・代入・等価比較・各変更操作へ一貫して反映する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCubicCurvePoint",
+        "method:KisCubicCurvePoint::KisCubicCurvePoint()",
+        "method:KisCubicCurvePoint::KisCubicCurvePoint(const KisCubicCurvePoint &)",
+        "method:KisCubicCurvePoint::KisCubicCurvePoint(const QPointF & position,bool setAsCorner=false)",
+        "method:KisCubicCurvePoint::KisCubicCurvePoint(qreal x,qreal y,bool setAsCorner=false)",
+        "method:KisCubicCurvePoint::isSetAsCorner() const",
+        "method:KisCubicCurvePoint::operator =(const KisCubicCurvePoint &)",
+        "method:KisCubicCurvePoint::operator ==(const KisCubicCurvePoint & other) const",
+        "method:KisCubicCurvePoint::position() const",
+        "method:KisCubicCurvePoint::setAsCorner(bool newIsSetAsCorner)",
+        "method:KisCubicCurvePoint::setPosition(const QPointF & newPosition)",
+        "method:KisCubicCurvePoint::setX(qreal newX)",
+        "method:KisCubicCurvePoint::setY(qreal newY)",
+        "method:KisCubicCurvePoint::x() const",
+        "method:KisCubicCurvePoint::y() const"
+      ]
+    },
+    {
+      "target": "KisCubicCurveContractTest",
+      "source": "libs/image/tests/KisCubicCurveContractTest.cpp",
+      "test": "KisCubicCurveContractTest::constructorsSortAndExposeCurvePoints",
+      "behavior": "cubic曲線は既定端点を持ち、2種類の点列入力をx座標順へ整列して角指定付き点列と互換位置列を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisCubicCurve",
+        "method:KisCubicCurve::KisCubicCurve()",
+        "method:KisCubicCurve::KisCubicCurve(const QList<KisCubicCurvePoint> & points)",
+        "method:KisCubicCurve::KisCubicCurve(const QList<QPointF> & points)",
+        "method:KisCubicCurve::curvePoints() const",
+        "method:KisCubicCurve::points() const"
+      ]
+    },
+    {
+      "target": "KisCubicCurveContractTest",
+      "source": "libs/image/tests/KisCubicCurveContractTest.cpp",
+      "test": "KisCubicCurveContractTest::editingOverloadsPreserveOrderingAndInvalidateValues",
+      "behavior": "cubic曲線の全編集経路は点列の整列と角指定を保持し、追加位置を返して削除を反映し、評価結果を更新する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCubicCurve::addPoint(const KisCubicCurvePoint & point)",
+        "method:KisCubicCurve::addPoint(const QPointF & position)",
+        "method:KisCubicCurve::addPoint(const QPointF & position,bool setAsCorner)",
+        "method:KisCubicCurve::removePoint(int idx)",
+        "method:KisCubicCurve::setPoint(int idx,const KisCubicCurvePoint & point)",
+        "method:KisCubicCurve::setPoint(int idx,const QPointF & position)",
+        "method:KisCubicCurve::setPoint(int idx,const QPointF & position,bool setAsCorner)",
+        "method:KisCubicCurve::setPointAsCorner(int idx,bool setAsCorner)",
+        "method:KisCubicCurve::setPointPosition(int idx,const QPointF & position)",
+        "method:KisCubicCurve::setPoints(const QList<KisCubicCurvePoint> & points)",
+        "method:KisCubicCurve::setPoints(const QList<QPointF> & points)"
+      ]
+    },
+    {
+      "target": "KisCubicCurveContractTest",
+      "source": "libs/image/tests/KisCubicCurveContractTest.cpp",
+      "test": "KisCubicCurveContractTest::copyAssignmentMetadataAndPredicatesPreserveValueSemantics",
+      "behavior": "cubic曲線は複製・代入後に独立して編集でき、点列による等価性、恒等・定数判定、表示名、基底寿命を現在の値意味論で保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCubicCurve::KisCubicCurve(const KisCubicCurve & curve)",
+        "method:KisCubicCurve::isConstant(qreal c) const",
+        "method:KisCubicCurve::isIdentity() const",
+        "method:KisCubicCurve::name() const",
+        "method:KisCubicCurve::operator =(const KisCubicCurve & curve)",
+        "method:KisCubicCurve::operator ==(const KisCubicCurve & curve) const",
+        "method:KisCubicCurve::setName(const QString & name)",
+        "method:KisCubicCurve::~KisCubicCurve()"
+      ]
+    },
+    {
+      "target": "KisCubicCurveContractTest",
+      "source": "libs/image/tests/KisCubicCurveContractTest.cpp",
+      "test": "KisCubicCurveContractTest::evaluationAndTransfersClampAndSample",
+      "behavior": "cubic曲線は範囲内外の値を評価し、指定標本数の浮動小数・16 bit転送表と表内線形補間を決定的に返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCubicCurve::floatTransfer(int size=256) const",
+        "method:KisCubicCurve::interpolateLinear(qreal normalizedValue,const QVector<qreal> & transfer)",
+        "method:KisCubicCurve::uint16Transfer(int size=256) const",
+        "method:KisCubicCurve::value(qreal x) const"
+      ]
+    },
+    {
+      "target": "KisCubicCurveContractTest",
+      "source": "libs/image/tests/KisCubicCurveContractTest.cpp",
+      "test": "KisCubicCurveContractTest::serializationRoundTripsCornerAndCompatibilityRoutes",
+      "behavior": "cubic曲線は既定文字列表現と角指定付き点列を直列化して往復し、現存する互換更新経路でも同じ曲線を復元する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisCubicCurve::KisCubicCurve(const QString & curveString)",
+        "method:KisCubicCurve::fromString(const QString &)",
+        "method:KisCubicCurve::toString() const",
+        "variable:DEFAULT_CURVE_STRING"
+      ]
+    },
+    {
+      "target": "KoCompositeOpFunctionsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp",
+      "test": "KoCompositeOpFunctionsContractTest::channelRangeHelpersPreserveTypePolicy",
+      "behavior": "channel値域補助は浮動小数channelの負値とSDR超過を補正し、整数channel向け経路では入力を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "function:__anon4e0bc6300111::possiblyClampValuesToSDR(float & dstR,float & dstG,float & dstB)",
+        "function:__anon4e0bc6300111::possiblyFixNegativeValuesNearZeroPoint(float & dstR,float & dstG,float & dstB)"
+      ]
+    },
+    {
+      "target": "KoCompositeOpFunctionsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp",
+      "test": "KoCompositeOpFunctionsContractTest::freeChannelFunctionsPreserveObservedValues",
+      "behavior": "47個の自由channel合成関数は代表値と端点に対して固定した現在値を返し、有限性と定義済みの中立条件を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "function:cfAddition(T src,T dst)",
+        "function:cfAllanon(T src,T dst)",
+        "function:cfAnd(T src,T dst)",
+        "function:cfArcTangent(T src,T dst)",
+        "function:cfConverse(T src,T dst)",
+        "function:cfDarkenOnly(T src,T dst)",
+        "function:cfDifference(T src,T dst)",
+        "function:cfDivisiveModulo(T src,T dst)",
+        "function:cfDivisiveModuloContinuous(T src,T dst)",
+        "function:cfEasyBurn(T src,T dst)",
+        "function:cfEasyDodge(T src,T dst)",
+        "function:cfFhyrd(T src,T dst)",
+        "function:cfFogDarkenIFSIllusions(T src,T dst)",
+        "function:cfFogLightenIFSIllusions(T src,T dst)",
+        "function:cfFreeze(T src,T dst)",
+        "function:cfGlow(T src,T dst)",
+        "function:cfHeat(T src,T dst)",
+        "function:cfImplies(T src,T dst)",
+        "function:cfInterpolation(T src,T dst)",
+        "function:cfInterpolationB(T src,T dst)",
+        "function:cfLightenOnly(T src,T dst)",
+        "function:cfLinearLight(T src,T dst)",
+        "function:cfModulo(T src,T dst)",
+        "function:cfModuloContinuous(T src,T dst)",
+        "function:cfModuloShift(T src,T dst)",
+        "function:cfModuloShiftContinuous(T src,T dst)",
+        "function:cfMultiply(T src,T dst)",
+        "function:cfNand(T src,T dst)",
+        "function:cfNor(T src,T dst)",
+        "function:cfNotConverse(T src,T dst)",
+        "function:cfNotImplies(T src,T dst)",
+        "function:cfOr(T src,T dst)",
+        "function:cfOver(T src,T dst)",
+        "function:cfPNormA(T src,T dst)",
+        "function:cfPNormB(T src,T dst)",
+        "function:cfPenumbraC(T src,T dst)",
+        "function:cfPenumbraD(T src,T dst)",
+        "function:cfReflect(T src,T dst)",
+        "function:cfScreen(T src,T dst)",
+        "function:cfShadeIFSIllusions(T src,T dst)",
+        "function:cfSoftLightIFSIllusions(T src,T dst)",
+        "function:cfSoftLightPegtopDelphi(T src,T dst)",
+        "function:cfSubtract(T src,T dst)",
+        "function:cfSuperLight(T src,T dst)",
+        "function:cfTintIFSIllusions(T src,T dst)",
+        "function:cfXnor(T src,T dst)",
+        "function:cfXor(T src,T dst)"
+      ]
+    },
+    {
+      "target": "KoCompositeOpFunctionsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp",
+      "test": "KoCompositeOpFunctionsContractTest::alphaAwareAdditionPreservesObservedValues",
+      "behavior": "alpha付き加算は固定したsource・alpha・destinationからdestination値とalphaを現在の組合せ値へ同時更新する。",
+      "classification": "maintained",
+      "apis": [
+        "function:cfAdditionSAI(TReal src,TReal sa,TReal & dst,TReal & da)"
+      ]
+    },
+    {
+      "target": "KoCompositeOpFunctionsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp",
+      "test": "KoCompositeOpFunctionsContractTest::singleChannelFunctorsPreserveObservedValues",
+      "behavior": "33種類の単一channel合成型は代表値と端点について固定した現在値を返し、浮動小数と整数の型方針を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:CFAdditiveSubtractive::composeChannel(T src,T dst)",
+        "method:CFColorBurn::composeChannel(T src,T dst)",
+        "method:CFColorDodge::composeChannel(T src,T dst)",
+        "method:CFDivide::composeChannel(T src,T dst)",
+        "method:CFEquivalence::composeChannel(T src,T dst)",
+        "method:CFExclusion::composeChannel(T src,T dst)",
+        "method:CFFlatLight::composeChannel(T src,T dst)",
+        "method:CFFrect::composeChannel(T src,T dst)",
+        "method:CFGammaDark::composeChannel(T src,T dst)",
+        "method:CFGammaIllumination::composeChannel(T src,T dst)",
+        "method:CFGammaLight::composeChannel(T src,T dst)",
+        "method:CFGeometricMean::composeChannel(T src,T dst)",
+        "method:CFGleat::composeChannel(T src,T dst)",
+        "method:CFGrainExtract::composeChannel(T src,T dst)",
+        "method:CFGrainMerge::composeChannel(T src,T dst)",
+        "method:CFHardLight::composeChannel(T src,T dst)",
+        "method:CFHardMix::composeChannel(T src,T dst)",
+        "method:CFHardMixPhotoshop::composeChannel(T src,T dst)",
+        "method:CFHardMixSofterPhotoshop::composeChannel(T src,T dst)",
+        "method:CFHardOverlay::composeChannel(T src,T dst)",
+        "method:CFHelow::composeChannel(T src,T dst)",
+        "method:CFInverseSubtract::composeChannel(T src,T dst)",
+        "method:CFLinearBurn::composeChannel(T src,T dst)",
+        "method:CFNegation::composeChannel(T src,T dst)",
+        "method:CFOverlay::composeChannel(T src,T dst)",
+        "method:CFParallel::composeChannel(T src,T dst)",
+        "method:CFPenumbraA::composeChannel(T src,T dst)",
+        "method:CFPenumbraB::composeChannel(T src,T dst)",
+        "method:CFPinLight::composeChannel(T src,T dst)",
+        "method:CFReeze::composeChannel(T src,T dst)",
+        "method:CFSoftLight::composeChannel(T src,T dst)",
+        "method:CFSoftLightSvg::composeChannel(T src,T dst)",
+        "method:CFVividLight::composeChannel(T src,T dst)",
+        "struct:CFAdditiveSubtractive",
+        "struct:CFColorBurn",
+        "struct:CFColorDodge",
+        "struct:CFDivide",
+        "struct:CFEquivalence",
+        "struct:CFExclusion",
+        "struct:CFFlatLight",
+        "struct:CFFrect",
+        "struct:CFGammaDark",
+        "struct:CFGammaIllumination",
+        "struct:CFGammaLight",
+        "struct:CFGeometricMean",
+        "struct:CFGleat",
+        "struct:CFGrainExtract",
+        "struct:CFGrainMerge",
+        "struct:CFHardLight",
+        "struct:CFHardMix",
+        "struct:CFHardMixPhotoshop",
+        "struct:CFHardMixSofterPhotoshop",
+        "struct:CFHardOverlay",
+        "struct:CFHelow",
+        "struct:CFInverseSubtract",
+        "struct:CFLinearBurn",
+        "struct:CFNegation",
+        "struct:CFOverlay",
+        "struct:CFParallel",
+        "struct:CFPenumbraA",
+        "struct:CFPenumbraB",
+        "struct:CFPinLight",
+        "struct:CFReeze",
+        "struct:CFSoftLight",
+        "struct:CFSoftLightSvg",
+        "struct:CFVividLight"
+      ]
+    },
+    {
+      "target": "KoCompositeOpFunctionsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp",
+      "test": "KoCompositeOpFunctionsContractTest::hsyRgbFunctorsPreserveObservedValues",
+      "behavior": "10種類のHSY系RGB合成型は固定sourceとdestinationの役割を保ち、色相・彩度・明度系の現在値を決定的に返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:CFColor::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFDarkerColor::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFDecreaseLightness::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFDecreaseSaturation::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFHue::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFIncreaseLightness::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFIncreaseSaturation::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFLighterColor::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFLightness::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFSaturation::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "struct:CFColor",
+        "struct:CFDarkerColor",
+        "struct:CFDecreaseLightness",
+        "struct:CFDecreaseSaturation",
+        "struct:CFHue",
+        "struct:CFIncreaseLightness",
+        "struct:CFIncreaseSaturation",
+        "struct:CFLighterColor",
+        "struct:CFLightness",
+        "struct:CFSaturation"
+      ]
+    },
+    {
+      "target": "KoCompositeOpFunctionsContractTest",
+      "source": "libs/pigment/tests/KoCompositeOpFunctionsContractTest.cpp",
+      "test": "KoCompositeOpFunctionsContractTest::normalLightingAndTintFunctorsPreserveObservedValues",
+      "behavior": "normal map・照明・tintの5種類のRGB合成型は零height、正規化、上下の照明分岐、SDR値域を含む代表入力の現在値を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:CFLambertLighting::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFLambertLightingGamma2_2::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFReorientedNormalMapCombine::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFTangentNormalmap::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "method:CFTint::composeChannels(float srcR,float srcG,float srcB,float & dstR,float & dstG,float & dstB)",
+        "struct:CFLambertLighting",
+        "struct:CFLambertLightingGamma2_2",
+        "struct:CFReorientedNormalMapCombine",
+        "struct:CFTangentNormalmap",
+        "struct:CFTint"
       ]
     }
   ]
