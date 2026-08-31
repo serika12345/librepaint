@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 17:50 JST
+- 更新日時: 2026-08-31 18:00 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,18 +11,18 @@
 
 ### 第84並列便の担当票
 
-- path segment種別command担当は`implementing`である。基点は
+- text内shape並べ替えcommand担当は`implementing`である。基点は
   `2dddd2313cf8862be139397424b5f68ad02f3175`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g84-path-segment-type`、ブランチは`r2-g84-path-segment-type`、統合順は1である。
+  `/Users/masato/Documents/librepaint-r2-g84-svg-text-reorder`、ブランチは`r2-g84-svg-text-reorder`、統合順は1である。
   対象は
-  `libs/flake/commands/KoPathSegmentTypeCommand.h`の9 APIである。開始ファイル
-  `libs/flake/commands/KoPathSegmentTypeCommand.cpp`を`kritaflake_SRCS`の直接収容から
-  `kritaflakepathsegmenttypecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
-  `libs/flake/tests/KoPathSegmentTypeCommandContractTest.cpp`が列挙値と二つの構築入口・借用寿命、無効または同型の
-  segment除外、curveへのredo、lineへのredo、control位置とpoint propertyのundoを5契約枠で固定する。segment状態の
-  読取と変更は開始実装の試験限定配送を介し、計算、入力選別、capture、処理順はcommandが所有する。予測閉包
-  5工程・11実入力、停止条件6工程・14実入力、製品閉包612工程・1,256入力不変を要求する。既存
-  `TestSegmentTypeCommand` 616工程・1,263入力は実path shape統合経路の補完として維持する。許可範囲は
+  `libs/flake/commands/KoSvgTextReorderShapeInsideCommand.h`の10 APIである。開始ファイル
+  `libs/flake/commands/KoSvgTextReorderShapeInsideCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakesvgtextreordershapeinsidecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+  `libs/flake/tests/KoSvgTextReorderShapeInsideCommandContractTest.cpp`が4方向の列挙値と構築時のinside順・借用寿命、
+  前面移動、前方1段移動、後方1段と背面移動の逆順配送、方向別undoとmemento復元を5契約枠で固定する。memento読取、
+  inside shape読取、index移動、memento復元は開始実装の試験限定配送を介し、sort、index計算、境界、処理順はcommandが
+  所有する。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包612工程・1,256入力不変を要求する。既存
+  `TestSvgTextShape::testReorderShapesInside`の8 data rowは実text shape統合経路の補完として維持する。許可範囲は
   `libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
 - runnable stroke strategy担当は`implementing`である。基点は
   `2dddd2313cf8862be139397424b5f68ad02f3175`、作業ツリーは
@@ -49,9 +49,9 @@
   構築実行許可は`granted`、追加委任は`forbidden`とする。各担当は新対象のunknown-targetを初期診断とし、変更前の
   計画、直接依存、最寄り契約と製品閉包を基準に停止条件を判定する。製品OBJECTは構築せず、変更した開始sourceは
   コンパイル指令の`-fsyntax-only`で確認する。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
-  統合順はpath segment種別command、runnable stroke strategy、store deviceであり、各統合直後に担当作業ツリー、
+  統合順はtext内shape並べ替えcommand、runnable stroke strategy、store deviceであり、各統合直後に担当作業ツリー、
   局所構築木、担当ブランチを削除する。
-- 第84便は合計25 APIを対応付け、対応済み9,126件、未対応20,863件を目標とする。
+- 第84便は合計26 APIを対応付け、対応済み9,127件、未対応20,862件を目標とする。
 
 ### 第83並列便の完了結果
 
