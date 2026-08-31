@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20468
+    "expectedMissingApis": 20411
   },
   "contracts": [
     {
@@ -14343,6 +14343,108 @@
         "method:KisBezierMeshDetails::Mesh::PatchIndex::operator -=(const QPoint & rhs)",
         "struct:KisBezierMeshDetails::Mesh::NodeIndex",
         "struct:KisBezierMeshDetails::Mesh::PatchIndex"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::meshConstructionCreatesAddressableGrid",
+      "behavior": "Bezierメッシュは既定または指定した矩形と格子寸法で構築され、変更可能・読み取り専用の座標指定と索引指定が同じ節点を返す。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBezierMesh",
+        "alias:KisBezierMeshBase",
+        "alias:KisBezierMeshDetails::Mesh::Node",
+        "alias:KisBezierMeshDetails::Mesh::Patch",
+        "class:KisBezierMeshDetails::Mesh",
+        "method:KisBezierMeshDetails::Mesh::Mesh()",
+        "method:KisBezierMeshDetails::Mesh::Mesh(const QRectF & mapRect,const QSize & size=QSize (2,2))",
+        "method:KisBezierMeshDetails::Mesh::node(const NodeIndex & index)",
+        "method:KisBezierMeshDetails::Mesh::node(const NodeIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::node(int col,int row)",
+        "method:KisBezierMeshDetails::Mesh::node(int col,int row) const",
+        "method:KisBezierMeshDetails::Mesh::originalRect() const",
+        "method:KisBezierMeshDetails::Mesh::size() const"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::indexValidityAndFindOverloadsAgree",
+      "behavior": "Bezierメッシュは4種の索引について有効範囲を判定し、変更可能・読み取り専用の探索を同じ要素または終端へ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBezierMeshDetails::Mesh::ControlType",
+        "alias:KisBezierMeshDetails::Mesh::SegmentIndex",
+        "method:KisBezierMeshDetails::Mesh::constFind(const ControlPointIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::constFind(const NodeIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::constFind(const PatchIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::constFind(const SegmentIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::find(const ControlPointIndex & index)",
+        "method:KisBezierMeshDetails::Mesh::find(const ControlPointIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::find(const NodeIndex & index)",
+        "method:KisBezierMeshDetails::Mesh::find(const NodeIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::find(const PatchIndex & index)",
+        "method:KisBezierMeshDetails::Mesh::find(const PatchIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::find(const SegmentIndex & index)",
+        "method:KisBezierMeshDetails::Mesh::find(const SegmentIndex & index) const",
+        "method:KisBezierMeshDetails::Mesh::isIndexValid(const T & index) const"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::iteratorFamiliesExposeExactTraversalRanges",
+      "behavior": "Bezierメッシュの区画・制御点・線分の各反復子は変更可能・読み取り専用の同一範囲を走査し、格子寸法に対応した正確な要素数を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "alias:KisBezierMeshDetails::Mesh::control_point_const_iterator",
+        "alias:KisBezierMeshDetails::Mesh::control_point_iterator",
+        "alias:KisBezierMeshDetails::Mesh::patch_const_iterator",
+        "alias:KisBezierMeshDetails::Mesh::patch_iterator",
+        "alias:KisBezierMeshDetails::Mesh::segment_const_iterator",
+        "alias:KisBezierMeshDetails::Mesh::segment_iterator",
+        "method:KisBezierMeshDetails::Mesh::beginControlPoints()",
+        "method:KisBezierMeshDetails::Mesh::beginControlPoints() const",
+        "method:KisBezierMeshDetails::Mesh::beginPatches()",
+        "method:KisBezierMeshDetails::Mesh::beginPatches() const",
+        "method:KisBezierMeshDetails::Mesh::beginSegments()",
+        "method:KisBezierMeshDetails::Mesh::beginSegments() const",
+        "method:KisBezierMeshDetails::Mesh::constBeginControlPoints() const",
+        "method:KisBezierMeshDetails::Mesh::constBeginPatches() const",
+        "method:KisBezierMeshDetails::Mesh::constBeginSegments() const",
+        "method:KisBezierMeshDetails::Mesh::constEndControlPoints() const",
+        "method:KisBezierMeshDetails::Mesh::constEndPatches() const",
+        "method:KisBezierMeshDetails::Mesh::constEndSegments() const",
+        "method:KisBezierMeshDetails::Mesh::endControlPoints()",
+        "method:KisBezierMeshDetails::Mesh::endControlPoints() const",
+        "method:KisBezierMeshDetails::Mesh::endPatches()",
+        "method:KisBezierMeshDetails::Mesh::endPatches() const",
+        "method:KisBezierMeshDetails::Mesh::endSegments()",
+        "method:KisBezierMeshDetails::Mesh::endSegments() const"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::meshEqualityIdentityAndDestinationTransformsPreserveSourceRect",
+      "behavior": "Bezierメッシュの等価判定と恒等判定は節点差を検出し、出力側の平行移動と行列変換は入力矩形を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierMeshDetails::Mesh::isIdentity() const",
+        "method:KisBezierMeshDetails::Mesh::operator ==(const Mesh & rhs) const",
+        "method:KisBezierMeshDetails::Mesh::transform(const QTransform & t)",
+        "method:KisBezierMeshDetails::Mesh::translate(const QPointF & offset)"
+      ]
+    },
+    {
+      "target": "KisBezierMeshValuesContractTest",
+      "source": "libs/global/tests/KisBezierMeshValuesContractTest.cpp",
+      "test": "KisBezierMeshValuesContractTest::sourceAndDestinationTransformUpdatesBothSpaces",
+      "behavior": "Bezierメッシュの入力・出力同時変換は全節点と入力矩形へ同じ行列を適用し、呼出側の行列値を保持する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisBezierMeshDetails::Mesh::transformSrcAndDst(const QTransform & t)"
       ]
     },
     {

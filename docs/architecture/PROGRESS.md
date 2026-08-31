@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 23:26 JST
+- 更新日時: 2026-08-31 23:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -21,8 +21,7 @@
 
 ### 第91並列便の担当計画
 
-- `g91-global-bezier-mesh`は`in_progress`であり、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g91-global-bezier-mesh`である。対象headerは`libs/global/KisBezierMesh.h`、許可pathは既存
+- `g91-global-bezier-mesh`は`integrated`である。対象headerは`libs/global/KisBezierMesh.h`、許可pathは既存
   `libs/global/tests/KisBezierMeshValuesContractTest.cpp`だけである。5契約枠で次の57 APIを固定する。構築枠はclass、root aliases
   `KisBezierMesh`、`KisBezierMeshBase`、`Mesh::{Node,Patch}`、2 constructor、`size`、`originalRect`、4 `node` overloadの13 API、
   索引枠はaliases `SegmentIndex`、`ControlType`、`isIndexValid`とControlPointIndex、NodeIndex、PatchIndex、SegmentIndexごとのmutable
@@ -52,6 +51,15 @@
 - 3担当の構築権限はmacOSの限定対象、全追加枠、20回反復、軽量近傍、無作業計画、動的接続、変更source構文、公開API検査、
   `verify-quick`に限定する。Git権限は担当commitだけで、中央台帳と進捗は統合担当が所有する。許可path外、新規公開API、未割当て依存、
   停止上限超過、製品共有library、Qt Widgets、`kritatestsdk`を検出した時点で停止する。統合順はBezier、streamed math、size optionとする。
+
+### 第91並列便の統合結果
+
+- `g91-global-bezier-mesh`は受渡しcommit `5f602af0c75a233df854a9ed8c7da944adf89848`を統合commit `3de68a4088`として取り込んだ。
+  `libs/global/KisBezierMesh.h`の構築、索引、反復、等価・恒等判定、入力・出力空間変換の57 APIを、既存
+  `libs/global/tests/KisBezierMeshValuesContractTest.cpp`の5契約枠へ追加した。製品header、source、CMakeは変更せず、中央対象4工程・8入力と
+  製品`kritaglobal` 68工程・136入力を維持した。主環境で対象と軽量近傍、20回反復、公開API検査に成功し、対応済みは9,427件、
+  未対応は20,411件となった。差分同一性と担当作業ツリーのcleanを確認後、担当構築木を含む280 MBの作業ツリーと担当branchを削除した。
+  旧不足一覧を削除し、`build/tdd-macos/public-api-missing-g91-bezier.json`だけを保持する。
 
 ### 第90並列便の完了結果
 
