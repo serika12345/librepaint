@@ -11,13 +11,13 @@
 #define SANITY_ACQUIRE_FILTER(filter)                                                                                  \
     do {                                                                                                               \
         if ((filter)) {                                                                                                \
-            kisNodeFilterInterfaceAcquireFilter((filter).data());                                                      \
+            KisNodeFilterInterfaceFilterAccess::acquire((filter).data());                                              \
         }                                                                                                              \
     } while (0)
 
 #define SANITY_RELEASE_FILTER(filter)                                                                                  \
     do {                                                                                                               \
-        if (m_filterConfiguration && kisNodeFilterInterfaceReleaseFilter(m_filterConfiguration.data())) {              \
+        if (m_filterConfiguration && KisNodeFilterInterfaceFilterAccess::release(m_filterConfiguration.data())) {      \
             warnKrita;                                                                                                 \
             warnKrita << "WARNING: filter configuration has more than one user! LibrePaint will probably crash soon!"; \
             warnKrita << "WARNING:" << ppVar(this);                                                                    \
@@ -30,11 +30,12 @@ KisNodeFilterInterface::KisNodeFilterInterface(KisFilterConfigurationSP filterCo
     : m_filterConfiguration(filterConfig)
 {
     SANITY_ACQUIRE_FILTER(m_filterConfiguration);
-    KIS_SAFE_ASSERT_RECOVER_NOOP(!filterConfig || kisNodeFilterInterfaceHasLocalResourcesSnapshot(filterConfig.data()));
+    KIS_SAFE_ASSERT_RECOVER_NOOP(!filterConfig
+                                 || KisNodeFilterInterfaceFilterAccess::hasLocalResourcesSnapshot(filterConfig.data()));
 }
 
 KisNodeFilterInterface::KisNodeFilterInterface(const KisNodeFilterInterface &rhs)
-    : m_filterConfiguration(kisNodeFilterInterfaceCloneFilter(rhs.m_filterConfiguration.data()))
+    : m_filterConfiguration(KisNodeFilterInterfaceFilterAccess::clone(rhs.m_filterConfiguration.data()))
 
 {
     SANITY_ACQUIRE_FILTER(m_filterConfiguration);
@@ -55,7 +56,7 @@ void KisNodeFilterInterface::setFilter(KisFilterConfigurationSP filterConfig, bo
     SANITY_RELEASE_FILTER(m_filterConfiguration);
 
     KIS_SAFE_ASSERT_RECOVER_RETURN(filterConfig);
-    KIS_SAFE_ASSERT_RECOVER_NOOP(kisNodeFilterInterfaceHasLocalResourcesSnapshot(filterConfig.data()));
+    KIS_SAFE_ASSERT_RECOVER_NOOP(KisNodeFilterInterfaceFilterAccess::hasLocalResourcesSnapshot(filterConfig.data()));
     m_filterConfiguration = filterConfig;
 
     SANITY_ACQUIRE_FILTER(m_filterConfiguration);
@@ -73,6 +74,6 @@ void KisNodeFilterInterface::notifyColorSpaceChanged()
      */
 
     if (m_filterConfiguration) {
-        m_filterConfiguration = kisNodeFilterInterfaceCloneFilter(m_filterConfiguration.data());
+        m_filterConfiguration = KisNodeFilterInterfaceFilterAccess::clone(m_filterConfiguration.data());
     }
 }

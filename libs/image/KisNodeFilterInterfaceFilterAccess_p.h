@@ -14,10 +14,13 @@ class KisPinnedSharedPtr;
 void kisSharedPtrAddReference(KisFilterConfiguration *configuration);
 bool kisSharedPtrRelease(KisFilterConfiguration *configuration);
 
-void kisNodeFilterInterfaceAcquireFilter(KisFilterConfiguration *configuration);
-bool kisNodeFilterInterfaceReleaseFilter(KisFilterConfiguration *configuration);
-bool kisNodeFilterInterfaceHasLocalResourcesSnapshot(const KisFilterConfiguration *configuration);
-KisPinnedSharedPtr<KisFilterConfiguration>
-kisNodeFilterInterfaceCloneFilter(const KisFilterConfiguration *configuration);
+class KisNodeFilterInterfaceFilterAccess
+{
+public:
+    static void acquire(KisFilterConfiguration *configuration);
+    static bool release(KisFilterConfiguration *configuration);
+    static bool hasLocalResourcesSnapshot(const KisFilterConfiguration *configuration);
+    static KisPinnedSharedPtr<KisFilterConfiguration> clone(const KisFilterConfiguration *configuration);
+};
 
 #endif // KIS_NODE_FILTER_INTERFACE_FILTER_ACCESS_P_H

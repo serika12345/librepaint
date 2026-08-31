@@ -2,53 +2,42 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 14:25 JST
+- 更新日時: 2026-08-31 15:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第80並列便の担当票
+### 第80並列便の完了結果
 
-- text輪郭種別反転command担当は`implementing`である。基点は`0a05f848cd7a3e367facd94de4946f98297bb69e`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g80-svg-text-contour`、ブランチは`r2-g80-svg-text-contour`、統合順は
-  1である。対象は`libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.h`の5 APIである。開始ファイル
-  `libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.cpp`を`kritaflake_SRCS`の直接収容から
-  `kritaflakesvgtextflipshapecontourtypecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
+- text輪郭種別反転command担当は`integrated`である。受渡しcommitは
+  `fbcd2f444a3283c839d8ec6a5b1160451fb8af4f`、統合commitは`5fccfb5c14`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.h`の5 APIである。
+  開始ファイル`libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.cpp`を`kritaflake_SRCS`の直接収容から
+  `kritaflakesvgtextflipshapecontourtypecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約した。新規
   `libs/flake/tests/KoSvgTextFlipShapeContourTypeCommandContractTest.cpp`が初期内包状態と借用寿命、redoによる反転と
-  undoによる復元を2契約枠で固定する。内包読取と一括適用は開始実装の`BUILD_TESTING`限定配送を介し、既定配送は
-  実text shapeの読取、lock、輪郭追加、一括更新を保つ。限定構築を許可し、予測閉包5工程・11入力、
-  停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。許可範囲は`libs/flake/CMakeLists.txt`、
-  開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
-- node filter境界担当は`implementing`である。基点は`0a05f848cd7a3e367facd94de4946f98297bb69e`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g80-node-filter`、ブランチは`r2-g80-node-filter`、統合順は2である。
-  対象は`libs/image/kis_node_filter_interface.h`の7 APIである。開始ファイル
+  undoによる復元を2契約枠で固定する。内包読取と一括適用の既定配送は実text shapeの読取、lock、輪郭追加、
+  一括更新の順序を保つ。
+- node filter境界担当は`integrated`である。受渡しcommitは
+  `8e98f123f8cbfadc62c195bd73db0e3ce3bc69f5`、統合commitは`41f1682631`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`libs/image/kis_node_filter_interface.h`の7 APIである。開始ファイル
   `libs/image/kis_node_filter_interface.cpp`を`kritaimage_LIB_SRCS`の直接収容から
-  `kritaimagenodefilterinterfaceobjects`へ移し、製品`kritaimage`へ一度だけ再集約する。filter設定の参照取得、解放、
-  snapshot照会、cloneだけを新規非公開`libs/image/KisNodeFilterInterfaceFilterAccess_p.h`へ限定し、製品定義を開始元
-  `libs/image/filter/kis_filter_configuration.cc`から現行処理へ委譲する。新規
-  `libs/image/tests/KisNodeFilterInterfaceContractTest.cpp`が構築と強所有、copy時の独立clone、設定置換、色空間変更時の
-  cloneと仮想寿命を4契約枠で固定する。限定構築を許可し、予測閉包5工程・11入力、停止条件
-  6工程・14入力、製品閉包1,184工程・2,392入力不変を要求する。許可範囲は`libs/image/CMakeLists.txt`、開始実装、
-  新規非公開header、`libs/image/filter/kis_filter_configuration.cc`、`libs/image/tests/CMakeLists.txt`、新規試験である。
-- 描画角度sensor model担当は`implementing`である。基点は`0a05f848cd7a3e367facd94de4946f98297bb69e`、作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g80-drawing-angle-sensor`、ブランチは
-  `r2-g80-drawing-angle-sensor`、統合順は3である。対象は
-  `plugins/paintops/libpaintop/KisDrawingAngleSensorModel.h`の9 APIである。開始ファイル
-  `plugins/paintops/libpaintop/KisDrawingAngleSensorModel.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から、既存
-  `kritapaintopsensorwithlengthmodelobjects`を責務名へ改称した`kritapaintopsensormodelobjects`へ移し、既存
-  `KisSensorWithLengthModel.cpp`とともに製品`kritalibpaintop`へ一度だけ集約する。新規
+  `kritaimagenodefilterinterfaceobjects`へ移し、製品`kritaimage`へ一度だけ再集約した。filter設定の参照取得、解放、
+  snapshot照会、cloneは新規非公開`libs/image/KisNodeFilterInterfaceFilterAccess_p.h`を介して開始元
+  `libs/image/filter/kis_filter_configuration.cc`の現行処理へ委譲する。既存の参照回数診断を同じ条件、回数、
+  破棄順で維持し、`libs/image/filter/kis_filter_configuration.h`のfriend指定は内部helper class 1個へ限定して公開面の
+  指紋を維持した。新規`libs/image/tests/KisNodeFilterInterfaceContractTest.cpp`が構築と強所有、copy時の独立clone、
+  設定置換、色空間変更時のcloneと仮想寿命を4契約枠で固定する。
+- 描画角度sensor model担当は`integrated`である。受渡しcommitは
+  `3dddf9306ceaf31bf638c14454be896435dfcda8`、統合commitは`9307056e3f`であり、担当作業ツリー、局所構築木、
+  担当ブランチは削除済みである。対象は`plugins/paintops/libpaintop/KisDrawingAngleSensorModel.h`の9 APIである。
+  開始ファイル`plugins/paintops/libpaintop/KisDrawingAngleSensorModel.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から、
+  既存対象を責務名へ改称した`kritapaintopsensormodelobjects`へ移し、開始元
+  `plugins/paintops/libpaintop/KisSensorWithLengthModel.cpp`とともに製品`kritalibpaintop`へ一度だけ再集約した。新規
   `plugins/paintops/libpaintop/tests/KisDrawingAngleSensorModelContractTest.cpp`が注入stateと5 Qt property、外部state更新と
-  通知、setter・propertyの独立更新と反転角度、QObject親寿命を4契約枠で固定する。新しいAUTOMOC対象は作らない。
-  限定構築を許可し、予測閉包10工程・22入力、停止条件11工程・25入力、既存sensor model契約も
-  10工程・22入力、製品閉包`kritalibpaintop` 2,097工程・4,192入力と`kritapaintopruntime`
-  1,281工程・2,582入力不変を要求する。許可範囲は`plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、
-  新規試験である。
-- 3担当はgit commitで受渡しし、再委任しない。中央進捗文書、公開API対応表、不足一覧は調整担当だけが更新する。
-  各担当差分の統合直後に担当作業ツリー、局所構築木、担当ブランチを削除する。旧不足一覧は新しい一覧の件数確認
-  直後に削除し、再生成可能な一覧を常に最新1世代へ限定する。
-- 第80便は合計21 APIを対応付け、対応済み9,016件、未対応20,973件を目標とする。
+  通知、setter・propertyの独立更新と反転角度、QObject親寿命を4契約枠で固定する。新しいAUTOMOC対象は追加していない。
+- 第80便は合計21 APIを対応付け、対応済み9,016件、未対応20,973件を達成した。
 
 ### 第79並列便の完了結果
 
@@ -184,38 +173,44 @@
 
 ### 現在の結果
 
-- 第79並列便は形状変形command 7 API、処理入力束14 API、色源option data 15 APIの合計36 APIを挙動契約へ
-  対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み8,995件、未対応20,994件である。
-- 開始ファイル`libs/flake/commands/KoShapeTransformCommand.cpp`は
-  `kritaflakeshapetransformcommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
-  `libs/flake/tests/KoShapeTransformCommandContractTest.cpp`が構築値と借用寿命、順序付きredo・undo、識別子、
-  merge条件を4契約枠で固定する。
-- 開始ファイル`libs/image/kis_processing_information.cpp`は
-  `kritaimageprocessinginformationobjects`へ移り、製品`kritaimage`へ一度だけ再集約される。paint deviceの所有操作は
-  新規非公開`libs/image/KisProcessingInformationPaintDeviceOwnership_p.h`を介して開始元
-  `libs/image/kis_paint_device.cc`の既存処理へ委譲する。新規
-  `libs/image/tests/KisProcessingInformationContractTest.cpp`が定数・可変の値束と強所有、copy、代入、解放を
+- 第80並列便はtext輪郭種別反転command 5 API、node filter境界7 API、描画角度sensor model 9 APIの合計21 APIを
+  挙動契約へ対応付けた。公開面は1,549ヘッダー、29,989 API、対応済み9,016件、未対応20,973件である。
+- 開始ファイル`libs/flake/commands/KoSvgTextFlipShapeContourTypeCommand.cpp`は
+  `kritaflakesvgtextflipshapecontourtypecommandobjects`へ移り、製品`kritaflake`へ一度だけ再集約される。新規
+  `libs/flake/tests/KoSvgTextFlipShapeContourTypeCommandContractTest.cpp`が初期所属の捕捉、借用寿命、redo・undoを
+  2契約枠で固定する。
+- 開始ファイル`libs/image/kis_node_filter_interface.cpp`は`kritaimagenodefilterinterfaceobjects`へ移り、製品
+  `kritaimage`へ一度だけ再集約される。filter設定の操作は新規非公開
+  `libs/image/KisNodeFilterInterfaceFilterAccess_p.h`を介して開始元`libs/image/filter/kis_filter_configuration.cc`へ
+  委譲し、既存の参照回数診断と公開面の指紋を維持する。新規
+  `libs/image/tests/KisNodeFilterInterfaceContractTest.cpp`が強所有、clone、設定置換、色空間変更、仮想寿命を
   4契約枠で固定する。
-- 開始ファイル`plugins/paintops/libpaintop/KisColorSourceOptionData.cpp`は
-  `kritapaintopcolorsourceoptiondataobjects`へ移り、`kritapaintopruntime`を介して製品へ一度だけ集約される。新規
-  `plugins/paintops/libpaintop/tests/KisColorSourceOptionDataContractTest.cpp`が6分類、安定ID写像、設定read・write、
-  等価判定を5契約枠で固定する。製品sourceと公開headerの内容は変わらない。
-- 統合後の限定閉包は`KoShapeTransformCommandContractTest` 5工程・11実入力、
-  `KisProcessingInformationContractTest` 5工程・11入力、`KisColorSourceOptionDataContractTest` 6工程・14入力である。
-  製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、`kritapaintopruntime`
-  1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力で不変である。
-- 主作業ツリーの3限定対象と6軽量近傍はCTest 9/9に成功し、3対象は各20回反復、全13契約枠の個別実行、
-  再構築時の無作業確認に成功した。macOSのパッケージ境界は1,615対象、公開API契約検査は
-  8,995/29,989件で成功した。3対象の動的依存にLibrePaint製品共有ライブラリー、Qt Widgets、
-  `kritatestsdk`は含まれない。製品全体の構築・リンクとLinux検証は限定閉包を越えるため実施していない。
-- 担当作業ツリー3本、279～284 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第79便不足一覧を削除し、
-  最新の第80便不足一覧`build/tdd-macos/public-api-missing-g80.json` 5.1 MBだけを保持する。次便で再利用する主増分
-  構築木は5.1 GB、共有nativeコンパイラーcacheは746 MBである。
+- 開始ファイル`plugins/paintops/libpaintop/KisDrawingAngleSensorModel.cpp`と開始元
+  `plugins/paintops/libpaintop/KisSensorWithLengthModel.cpp`は`kritapaintopsensormodelobjects`へ集約され、製品
+  `kritalibpaintop`へ一度だけ収容される。新規
+  `plugins/paintops/libpaintop/tests/KisDrawingAngleSensorModelContractTest.cpp`が注入state、5 Qt property、変更通知、
+  独立更新、QObject親寿命を4契約枠で固定する。
+- 統合後の限定閉包は`KoSvgTextFlipShapeContourTypeCommandContractTest` 5工程・11実入力、
+  `KisNodeFilterInterfaceContractTest` 5工程・10実入力、`KisDrawingAngleSensorModelContractTest`
+  10工程・21実入力である。製品閉包は`kritaflake` 612工程・1,256入力、`kritaimage` 1,184工程・2,392入力、
+  `kritapaintopruntime` 1,281工程・2,582入力、`kritalibpaintop` 2,097工程・4,192入力で不変である。
+- 主作業ツリーの3限定対象と7軽量近傍はCTest 10/10に成功し、3対象は各20回反復、全10契約枠の個別実行、
+  再構築時の無作業確認に成功した。公開API契約検査は9,016/29,989件で成功した。3対象の動的依存にLibrePaint
+  製品共有ライブラリー、Qt Widgets、`kritatestsdk`は含まれない。製品全体の構築・リンクとLinux検証は限定閉包を
+  越えるため実施していない。
+- node filter担当が製品側の単一objectをNinjaで指定した際、順序依存が843工程へ展開したため表示455工程で中断した。
+  基準障害はなく、製品側開始ファイルは既存のコンパイル指令を`-fsyntax-only`へ変換した1 source検査で確認した。
+  主統合では3限定対象以外を構築していない。
+- 担当作業ツリー3本、282～627 MBの局所構築木、担当ブランチは各統合直後に削除した。旧第80便不足一覧を削除し、
+  最新の第81便不足一覧`build/tdd-macos/public-api-missing-g81.json` 5.1 MBだけを保持する。主増分構築木は5.1 GBを
+  維持した。検証中に作られた無参照・無rootの旧Nix sourceコピー8件を削除し、空き容量を20 GiBから28 GiBへ
+  回復した。
 
 ### 次の操作
 
-- 第80並列便の3担当が限定構築と挙動契約を実装する。完了担当からcommitを受け取り、差分と検証証拠を確認して
-  統合し、担当作業ツリー、局所構築木、担当ブランチを直ちに削除する。
+- 第81並列便はread-only監査済みの`libs/flake/commands/KoPathShapeMarkerCommand.h` 7 APIと
+  `libs/ui/nodes/kis_model_index_converter_base.h` 7 APIに、image担当の小閉包候補を加えて担当票を確定する。
+  各担当の作業ツリーと局所構築木は統合直後に削除し、不足一覧は最新版1件だけを保持する。
 
 ## 再開環境
 

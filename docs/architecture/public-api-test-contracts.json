@@ -16,7 +16,7 @@
     "publicApiFingerprint": "f314cdb572faa170c4bcdda121a809458045ebb431b3e8af640b7940bcafcdb6"
   },
   "migration": {
-    "expectedMissingApis": 20994
+    "expectedMissingApis": 20973
   },
   "contracts": [
     {
@@ -28875,6 +28875,122 @@
       "classification": "maintained",
       "apis": [
         "function:operator ==(const KisColorSourceOptionData & lhs,const KisColorSourceOptionData & rhs)"
+      ]
+    },
+    {
+      "target": "KoSvgTextFlipShapeContourTypeCommandContractTest",
+      "source": "libs/flake/tests/KoSvgTextFlipShapeContourTypeCommandContractTest.cpp",
+      "test": "KoSvgTextFlipShapeContourTypeCommandContractTest::capturesInitialMembershipAndKeepsInputsBorrowed",
+      "behavior": "文字形状の輪郭反転commandは構築時の輪郭所属を一度だけ捕捉し、親commandへ接続したまま文字形状と輪郭形状を借用する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KoSvgTextFlipShapeContourTypeCommand",
+        "method:KoSvgTextFlipShapeContourTypeCommand::KoSvgTextFlipShapeContourTypeCommand(KoSvgTextShape * textShape,KoShape * shape,KUndo2Command * parent=nullptr)",
+        "method:KoSvgTextFlipShapeContourTypeCommand::~KoSvgTextFlipShapeContourTypeCommand()"
+      ]
+    },
+    {
+      "target": "KoSvgTextFlipShapeContourTypeCommandContractTest",
+      "source": "libs/flake/tests/KoSvgTextFlipShapeContourTypeCommandContractTest.cpp",
+      "test": "KoSvgTextFlipShapeContourTypeCommandContractTest::redoFlipsAndUndoRestoresCapturedContourMembership",
+      "behavior": "文字形状の輪郭反転commandは再実行で構築時の所属を反転し、取消で捕捉済みの所属へ戻す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KoSvgTextFlipShapeContourTypeCommand::redo()",
+        "method:KoSvgTextFlipShapeContourTypeCommand::undo()"
+      ]
+    },
+    {
+      "target": "KisNodeFilterInterfaceContractTest",
+      "source": "libs/image/tests/KisNodeFilterInterfaceContractTest.cpp",
+      "test": "KisNodeFilterInterfaceContractTest::constructionRetainsConfigurationAndExposesIt",
+      "behavior": "node filter境界は構築時の設定を保持し、呼出側の共有所有が消滅した後も同じ設定を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisNodeFilterInterface",
+        "method:KisNodeFilterInterface::KisNodeFilterInterface(KisFilterConfigurationSP filterConfig)",
+        "method:KisNodeFilterInterface::filter() const"
+      ]
+    },
+    {
+      "target": "KisNodeFilterInterfaceContractTest",
+      "source": "libs/image/tests/KisNodeFilterInterfaceContractTest.cpp",
+      "test": "KisNodeFilterInterfaceContractTest::copyClonesConfigurationAndOwnsIndependentResult",
+      "behavior": "node filter境界のcopyは元設定の複製を独立して所有し、開始元と複製の寿命を分離する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFilterInterface::KisNodeFilterInterface(const KisNodeFilterInterface & rhs)"
+      ]
+    },
+    {
+      "target": "KisNodeFilterInterfaceContractTest",
+      "source": "libs/image/tests/KisNodeFilterInterfaceContractTest.cpp",
+      "test": "KisNodeFilterInterfaceContractTest::setFilterReplacesTheOwnerForBothCompareModes",
+      "behavior": "node filter境界は設定比較の指定にかかわらず新しい設定へ所有を移し、置換した設定を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFilterInterface::setFilter(KisFilterConfigurationSP filterConfig,bool checkCompareConfig=true)"
+      ]
+    },
+    {
+      "target": "KisNodeFilterInterfaceContractTest",
+      "source": "libs/image/tests/KisNodeFilterInterfaceContractTest.cpp",
+      "test": "KisNodeFilterInterfaceContractTest::colorSpaceNotificationClonesAndPreservesVirtualLifetime",
+      "behavior": "色空間変更通知は現在のfilter設定を複製へ交換し、基底pointerからの破棄で派生個体まで解放する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisNodeFilterInterface::notifyColorSpaceChanged()",
+        "method:KisNodeFilterInterface::~KisNodeFilterInterface()"
+      ]
+    },
+    {
+      "target": "KisDrawingAngleSensorModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDrawingAngleSensorModelContractTest.cpp",
+      "test": "KisDrawingAngleSensorModelContractTest::injectedCursorParentAndQtPropertiesRemainStable",
+      "behavior": "描画角度sensor modelは注入された状態cursorとQObject親を保持し、5項目を読み書き可能なQt propertyとして公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisDrawingAngleSensorModel",
+        "member:KisDrawingAngleSensorModel::m_data",
+        "method:KisDrawingAngleSensorModel::KisDrawingAngleSensorModel(lager::cursor<KisDrawingAngleSensorData> data,QObject * parent)"
+      ]
+    },
+    {
+      "target": "KisDrawingAngleSensorModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDrawingAngleSensorModelContractTest.cpp",
+      "test": "KisDrawingAngleSensorModelContractTest::externalStateUpdatesGettersAndSignals",
+      "behavior": "描画角度sensor modelは外部状態の5項目更新をgetterへ反映し、各変更通知と反転角の対応を保つ。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(bool,fanCornersEnabled)",
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(bool,lockedAngleMode)",
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(int,fanCornersStep)",
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(qreal,angleOffset)",
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(qreal,angleOffsetInverted)"
+      ]
+    },
+    {
+      "target": "KisDrawingAngleSensorModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDrawingAngleSensorModelContractTest.cpp",
+      "test": "KisDrawingAngleSensorModelContractTest::settersAndPropertiesUpdateFieldsIndependently",
+      "behavior": "描画角度sensor modelのsetterとQt property書込みは5項目を独立して更新し、角度と反転角を双方向に対応付ける。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(bool,fanCornersEnabled)",
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(bool,lockedAngleMode)",
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(int,fanCornersStep)",
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(qreal,angleOffset)",
+        "method:KisDrawingAngleSensorModel::LAGER_QT_CURSOR(qreal,angleOffsetInverted)"
+      ]
+    },
+    {
+      "target": "KisDrawingAngleSensorModelContractTest",
+      "source": "plugins/paintops/libpaintop/tests/KisDrawingAngleSensorModelContractTest.cpp",
+      "test": "KisDrawingAngleSensorModelContractTest::parentOwnsModelLifetime",
+      "behavior": "描画角度sensor modelはQObject親の破棄に従って一度だけ解放される。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisDrawingAngleSensorModel::~KisDrawingAngleSensorModel()"
       ]
     }
   ]

@@ -87,14 +87,14 @@ bool kisSharedPtrRelease(KisFilterConfiguration *configuration)
     return token->references != 0;
 }
 
-void kisNodeFilterInterfaceAcquireFilter(KisFilterConfiguration *configuration)
+void KisNodeFilterInterfaceFilterAccess::acquire(KisFilterConfiguration *configuration)
 {
     FilterToken *token = filterToken(configuration);
     ++token->acquireCalls;
     ++token->usageReferences;
 }
 
-bool kisNodeFilterInterfaceReleaseFilter(KisFilterConfiguration *configuration)
+bool KisNodeFilterInterfaceFilterAccess::release(KisFilterConfiguration *configuration)
 {
     FilterToken *token = filterToken(configuration);
     ++token->releaseCalls;
@@ -102,14 +102,14 @@ bool kisNodeFilterInterfaceReleaseFilter(KisFilterConfiguration *configuration)
     return token->usageReferences != 0;
 }
 
-bool kisNodeFilterInterfaceHasLocalResourcesSnapshot(const KisFilterConfiguration *configuration)
+bool KisNodeFilterInterfaceFilterAccess::hasLocalResourcesSnapshot(const KisFilterConfiguration *configuration)
 {
     FilterToken *token = filterToken(configuration);
     ++token->snapshotQueries;
     return token->hasLocalResourcesSnapshot;
 }
 
-KisFilterConfigurationSP kisNodeFilterInterfaceCloneFilter(const KisFilterConfiguration *configuration)
+KisFilterConfigurationSP KisNodeFilterInterfaceFilterAccess::clone(const KisFilterConfiguration *configuration)
 {
     FilterToken *token = filterToken(configuration);
     ++token->cloneCalls;

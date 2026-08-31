@@ -79,22 +79,22 @@ bool kisSharedPtrRelease(KisFilterConfiguration *configuration)
     return true;
 }
 
-void kisNodeFilterInterfaceAcquireFilter(KisFilterConfiguration *configuration)
+void KisNodeFilterInterfaceFilterAccess::acquire(KisFilterConfiguration *configuration)
 {
     configuration->sanityRefUsageCounter();
 }
 
-bool kisNodeFilterInterfaceReleaseFilter(KisFilterConfiguration *configuration)
+bool KisNodeFilterInterfaceFilterAccess::release(KisFilterConfiguration *configuration)
 {
     return configuration->sanityDerefUsageCounter();
 }
 
-bool kisNodeFilterInterfaceHasLocalResourcesSnapshot(const KisFilterConfiguration *configuration)
+bool KisNodeFilterInterfaceFilterAccess::hasLocalResourcesSnapshot(const KisFilterConfiguration *configuration)
 {
     return configuration->hasLocalResourcesSnapshot();
 }
 
-KisFilterConfigurationSP kisNodeFilterInterfaceCloneFilter(const KisFilterConfiguration *configuration)
+KisFilterConfigurationSP KisNodeFilterInterfaceFilterAccess::clone(const KisFilterConfiguration *configuration)
 {
     return configuration->clone();
 }
