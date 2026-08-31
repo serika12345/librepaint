@@ -292,6 +292,18 @@ kis_add_test(
 target_compile_definitions(KoColorSpaceBlendingPolicyContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
+    KoAlphaDarkenParamsWrapperContractTest.cpp
+    LINK_LIBRARIES
+        kritapigmentalphadarkenparamswrapperobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::ConfigCore
+        Imath::ImathConfig
+        Boost::boost
+)
+target_compile_definitions(KoAlphaDarkenParamsWrapperContractTest PRIVATE kritapigment_EXPORTS)
+
+kis_add_test(
     KoColorSpacePreserveLightnessUtilsContractTest.cpp
     LINK_LIBRARIES
         kritapigmentmathsobjects
