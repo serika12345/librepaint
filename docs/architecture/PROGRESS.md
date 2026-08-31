@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 00:15 JST
+- 更新日時: 2026-09-01 00:22 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -19,7 +19,7 @@
   値・状態遷移契約を選ぶ。既存targetを優先し、新規targetなら7工程・16入力以内を目安として対象APIと観測枠を提示する。
 - `g92-global-resources-audit`は`libs/global`、`libs/resources`、`libs/painting`、`plugins/paintops`から、第91便と公開header・試験・CMakeが
   重ならない高密度候補を選ぶ。公開宣言だけの型数え上げではなく、境界値、往復、配送、寿命のいずれかを観測できる候補を優先する。
-- `g92-pigment-audit`は`in_progress`の追加読み取り監査である。`libs/pigment`から第91便の`KoStreamedMath.h`を除き、既存軽量対象を
+- `g92-pigment-audit`は`completed`の追加読み取り監査である。`libs/pigment`から第91便の`KoStreamedMath.h`を除き、既存軽量対象を
   拡張するか一つの製品sourceをOBJECTへ一対一移動するだけで、8 API以上を7工程・16入力以内に固定できる公開headerを探す。編集、構築、
   Git操作は行わず、製品shared library、Qt Widgets、`kritatestsdk`、OpenEXR・Imath動的libraryを要する候補は採用しない。
 - 統合担当は3報告を照合し、製品shared libraryとQt Widgetsへの接続を避け、予測閉包が小さく、公開header・試験source・CMake所有が互いに
@@ -28,8 +28,7 @@
 ### 第92並列便の担当計画
 
 - 実装共通基点は`394efccd88b1480f985fbf9171d045870dfa015a`である。
-- `g92-image-stroke-job`は`in_progress`で、専用作業ツリーは
-  `/Users/masato/Documents/librepaint-g92-image-stroke-job`である。対象headerは`libs/image/kis_stroke_job.h`、許可pathは既存
+- `g92-image-stroke-job`は`integrated`である。対象headerは`libs/image/kis_stroke_job.h`、許可pathは既存
   `libs/image/tests/KisStrokeJobContractTest.cpp`だけで、CMakeと製品コードは変更しない。class、constructor、destructor、`run`、`debugName`、
   予定種別・barrier・exclusive、描画詳細度、取消可能性、所有job判定の12 APIを4契約枠で固定する。DataはJob所有、Strategyは借用として寿命を
   実測し、null Dataの既定値、Dataの上書き、同一Dataを使う実行配送を観測する。既存対象14工程・24入力、停止15工程・27入力、製品
@@ -48,6 +47,19 @@
 - `KoClipMask`全17 API案は限定5工程・12入力へ分離できる一方、実形状を接続せず描画配送を観測するため製品sourceに新しい試験限定効果面を
   要する。現行に同種の分岐がなく、挙動固定前の製品変更として過大なので保留する。第三担当は製品変更なし、またはOBJECTへの一対一移動だけで
   固定できる別候補を再監査する。
+
+### 第92並列便の統合結果
+
+- `g92-image-stroke-job`は受渡しcommit `6f9d7df8f01aaee888d9864de767c4081e847fd1`を統合commit `897bea22c6`として取り込んだ。
+  `libs/image/kis_stroke_job.h`のclass、構築・破棄、予定分類、描画詳細度、取消可能性、所有判定、実行と診断名の12 APIを、既存
+  `libs/image/tests/KisStrokeJobContractTest.cpp`の4契約枠へ追加した。Data所有とStrategy借用の寿命、null Dataの既定値、Data上書き、
+  同一Dataを使う仮想配送を固定し、製品定義のない3 friend試験補助宣言は仕様化しなかった。対象14工程・24入力、製品`kritaimage`
+  1,189工程・2,397入力を維持し、主環境で対象・近傍、20回反復、公開API検査に成功した。対応済みは9,493件、未対応は20,345件となった。
+  差分同一性とcleanを確認後、277 MBの局所構築木を含む848 MBの担当作業ツリーと担当branchを削除した。旧不足一覧を削除し、
+  `build/tdd-macos/public-api-missing-g92-stroke.json`だけを保持する。
+- `g92-pigment-audit`は条件を満たす候補なしで完了した。最接近の`KoColorConversionTransformationFactory.h` 9 APIは、構築時に大域色空間登録簿を
+  必ず参照し、専用OBJECTへ移しても実色空間群または製品意味論を模倣する試験定義を要する。ほかの8 API以上の候補も実色空間、色変換、資源基底、
+  OpenEXR・Imath動的library、または純粋仮想面の試験内再実装を必要とするため、第92便の第三実装担当は立てない。
 
 ### 第91並列便の監査計画
 

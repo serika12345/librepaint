@@ -16,7 +16,7 @@
     "publicApiFingerprint": "549691d52e152b5e4e9cc591bc7048bbade04bc4c9fb4f61c5c344fad3fee3d9"
   },
   "migration": {
-    "expectedMissingApis": 20357
+    "expectedMissingApis": 20345
   },
   "contracts": [
     {
@@ -3318,6 +3318,60 @@
       "classification": "maintained",
       "apis": [
         "method:KisFakeRunnableStrokeJobsExecutor::addRunnableJobs(const QVector<KisRunnableStrokeJobDataBase * > & list)"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::constructionOwnsDataAndBorrowsStrategy",
+      "behavior": "stroke jobはjob dataを所有して破棄時に一度解放し、strategyを借用して外部所有者の寿命まで保持し、所有job指定を公開する。",
+      "classification": "maintained",
+      "apis": [
+        "class:KisStrokeJob",
+        "method:KisStrokeJob::KisStrokeJob(KisStrokeJobStrategy * strategy,KisStrokeJobData * data,int levelOfDetail,bool isOwnJob)",
+        "method:KisStrokeJob::isOwnJob() const",
+        "method:KisStrokeJob::~KisStrokeJob()"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::nullDataUsesDocumentedSchedulingDefaults",
+      "behavior": "job dataがないstroke jobは逐次・非障壁・非排他を既定とし、構築時の描画詳細度と所有jobだけに対応する取消可能性を返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeJob::isBarrier() const",
+        "method:KisStrokeJob::isCancellable() const",
+        "method:KisStrokeJob::isExclusive() const",
+        "method:KisStrokeJob::isSequential() const",
+        "method:KisStrokeJob::levelOfDetail() const",
+        "method:KisStrokeJob::sequentiality() const"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::dataOverridesSchedulingLodAndCancellation",
+      "behavior": "stroke jobは所有するjob dataの障壁・排他分類、描画詳細度上書き、取消不可指定を各問い合わせへ配送する。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeJob::isBarrier() const",
+        "method:KisStrokeJob::isCancellable() const",
+        "method:KisStrokeJob::isExclusive() const",
+        "method:KisStrokeJob::isSequential() const",
+        "method:KisStrokeJob::levelOfDetail() const",
+        "method:KisStrokeJob::sequentiality() const"
+      ]
+    },
+    {
+      "target": "KisStrokeJobContractTest",
+      "source": "libs/image/tests/KisStrokeJobContractTest.cpp",
+      "test": "KisStrokeJobContractTest::runAndDebugNameDelegateToBorrowedStrategy",
+      "behavior": "stroke jobは同じ所有dataを借用strategyへ実行ごとに一度配送し、strategyの診断名をそのまま返す。",
+      "classification": "maintained",
+      "apis": [
+        "method:KisStrokeJob::debugName() const",
+        "method:KisStrokeJob::run()"
       ]
     },
     {
