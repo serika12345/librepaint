@@ -21,7 +21,8 @@
 
 ### 第91並列便の担当計画
 
-- `g91-global-bezier-mesh`は`planned`である。対象headerは`libs/global/KisBezierMesh.h`、許可pathは既存
+- `g91-global-bezier-mesh`は`in_progress`であり、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g91-global-bezier-mesh`である。対象headerは`libs/global/KisBezierMesh.h`、許可pathは既存
   `libs/global/tests/KisBezierMeshValuesContractTest.cpp`だけである。5契約枠で次の57 APIを固定する。構築枠はclass、root aliases
   `KisBezierMesh`、`KisBezierMeshBase`、`Mesh::{Node,Patch}`、2 constructor、`size`、`originalRect`、4 `node` overloadの13 API、
   索引枠はaliases `SegmentIndex`、`ControlType`、`isIndexValid`とControlPointIndex、NodeIndex、PatchIndex、SegmentIndexごとのmutable
@@ -29,14 +30,16 @@
   `begin`、`end`、`constBegin`、`constEnd`の24 API、変換枠はMeshの等価演算子、`isIdentity`、`translate`、`transform`の4 API、
   両空間変換枠は`transformSrcAndDst` 1 APIである。CMakeと製品コードは変更しない。対象4工程・8入力、製品`kritaglobal`
   68工程・136入力を不変とする。patch iteratorは非inline `assignPatchData`を呼ばない距離・比較だけ、変換元矩形は平行移動と拡大だけを扱う。
-- `g91-pigment-streamed-math`は`planned`である。対象headerは`libs/pigment/compositeops/KoStreamedMath.h`、許可pathは新規
+- `g91-pigment-streamed-math`は`in_progress`であり、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g91-pigment-streamed-math`である。対象headerは`libs/pigment/compositeops/KoStreamedMath.h`、許可pathは新規
   `libs/pigment/tests/KoStreamedMathContractTest.cpp`と`libs/pigment/tests/CMakeLists.txt`だけである。対象は9 alias、
   `clearPixel`と`copyPixel`、PixelとPixelWrapperの9 member、KoStreamedMathのfetch 3、generic composite 8、round・lerp・write 4、
   OptiDiv 2、OptiRound 1、PixelStateRecoverHelper 2、PixelWrapper 13 method、6 structの合計59 APIである。5契約枠でscalar・SIMD丸めと除算、
   mask・alpha・channel読書き、画素正規化・復元・複製、mask選択状態復元、32・64・128 bit generic compositeのstride・mask・flow・呼出順を固定する。
   直接依存はQt Core・Test、xsimdと色合成header面だけとし、製品共有libraryを接続しない。最寄り5工程・11入力、新規予測4工程・9入力、
   停止上限7工程・16入力、製品`kritapigment` 360工程・750入力不変とする。処理系差は整数境界と許容幅で分類し、未解決製品記号が出たら停止する。
-- `g91-paintop-size-option`は`planned`である。対象headerは`plugins/paintops/libpaintop/KisSizeOptionData.h`のstruct、constructor、
+- `g91-paintop-size-option`は`in_progress`であり、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g91-paintop-size-option`である。対象headerは`plugins/paintops/libpaintop/KisSizeOptionData.h`のstruct、constructor、
   `lodLimitations`の全3 APIである。開始ファイル`plugins/paintops/libpaintop/KisSizeOptionData.cpp`を
   `kritalibpaintop_LIB_SRCS`と`kritapaintopruntime_LIB_SRCS`の両初期一覧から外し、新規`kritapaintopsizeoptiondataobjects`へ移して
   runtimeへ一度だけ再集約する。許可pathは同package `CMakeLists.txt`、tests `CMakeLists.txt`、新規
