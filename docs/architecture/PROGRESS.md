@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 06:50 JST
+- 更新日時: 2026-09-01 06:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -46,7 +46,7 @@
 - 実装共通基点は`d4a868b09ce93ce8eeafadb77e095c7f4c1f31e6`、構築許可は`granted`、Git権限は許可pathだけの
   `transport-commit`である。3担当はmacOSの専用Git worktreeとworktree-local `build/tdd-macos`を使い、lane内の
   `./scripts/run-shared-test-env`から主環境とcompiler cacheを共有する。
-- `g102-psd-vector-values`は`planned`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-psd-vector-values`である。
+- `g102-psd-vector-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-psd-vector-values`である。
   対象は`libs/psd/psd_additional_layer_info_block.h`の`psd_path_node` 5 API、`psd_path_sub_path` 3 API、`psd_path` 5 API、
   `psd_vector_mask` 5 API、`psd_vector_origination_data` 26 APIの全44 APIである。`psd_path_node`/`psd_path_sub_path`の型と全member、
   `psd_path`の型と`clipBoardBounds`・`clipBoardResolution`・`initialFillRecord`・`subPaths`、`psd_vector_mask`の型と
@@ -54,7 +54,7 @@
   `OriginalSizeAndAngle`・`canMakeParametricShape`・`shapeName`を5枠で固定する。許可pathは
   `libs/psdutils/tests/PsdFormatValuesContractTest.cpp`だけで、最寄りCTestは`PsdFormatValuesContractTest`、軽量近傍は
   `PsdByteIoContractTest`である。予測4工程・9入力、停止5工程・12入力、製品`kritapsd`不変とする。
-- `g102-global-planar-geometry-values`は`planned`で、専用作業ツリーは
+- `g102-global-planar-geometry-values`は`in_progress`で、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g102-global-planar-geometry-values`である。対象は`libs/global/kis_algebra_2d.h`の
   `intersectLineRect` 2 overload、`intersectLineConvexPolygon`、`cropLineToRect`、`cropLineToConvexPolygon`、`intersectLines` 2 overload、
   `isOnLine`、`getParallelLines`、`findNearestPointOnLine`、`pointToLineDistSquared`、`movePointInTheDirection`、`movePointAlongTheLine`、
@@ -65,7 +65,7 @@
   `libs/global/CMakeLists.txt`、`libs/global/tests/KisAlgebraGeometryPrimitivesContractTest.cpp`、`libs/global/tests/CMakeLists.txt`である。
   最寄りCTestは`KisAlgebraGeometryPrimitivesContractTest`、軽量近傍は`KisBezierUtilsContractTest`、予測7工程・15入力、
   停止8工程・18入力、製品予測70工程・140入力、停止71工程・143入力とする。
-- `g102-image-properties-values`は`planned`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-image-properties-values`である。
+- `g102-image-properties-values`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g102-image-properties-values`である。
   対象は`libs/image/kis_properties_configuration.h`のclass、既定・copy構築、破棄、代入、`clearProperties`、`getProperties`、
   `getPropertiesKeys`、`getProperty` 2 overload、`hasProperty`、`removeProperty`、`setProperty(QString,QVariant)`、`getBool`、`getDouble`、
   `getFloat`、`getInt`、`getString`、`getPropertyLazy` 3 overload、`extractedPrefixKey`、`getPrefixedProperties` 2 overload、
