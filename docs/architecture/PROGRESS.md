@@ -16,7 +16,8 @@
   `KisTextureOptionDataIOContractTest`だけは6工程・19入力で、既存2契約枠が
   `plugins/paintops/libpaintop/KisEmbeddedTextureData.h`のclass、等価演算子、`fileName`、`md5Base64`、`md5sum`、`name`、
   `patternBase64`の7 APIを具体値で直接検査済みである。統合担当が試験を変更せず中央台帳を補完する。
-- `g90-global-bezier-values`は`planned`である。対象headerは`libs/global/KisBezierMesh.h`であり、
+- `g90-global-bezier-values`は`in_progress`であり、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g90-global-bezier-values`である。対象headerは`libs/global/KisBezierMesh.h`であり、
   `BaseMeshNode`のstruct、5 member、2 constructor、等価演算子、4相対制御点getter、4 setter、`translate`、`transform`の19 API、
   `Mesh::ControlPointIndex`のstruct、`ControlType` enumと5 enumerator、2 member、2 constructor、`isNode`、`isControlPoint`、
   2 `controlPoint`、等価演算子の16 API、`Mesh::{NodeIndex,PatchIndex}`の2 structと4加減算代入演算子の6 API、合計41 APIを
@@ -25,13 +26,15 @@
   最寄り`KisGlobalValuesContractTest`の4工程・8入力を基準、予測4工程・8入力、停止上限5工程・10入力とする。
   製品`kritaglobal`の68工程・136入力を増やさない。macOS限定対象の構築・CTest・20回反復・軽量近傍・無作業計画・動的接続・
   source単位構文検査・公開API検査・`verify-quick`を許可する。中央台帳、進捗文書、Git統合は担当外で、担当commit作成だけを許可する。
-- `g90-global-decomposed-matrix`は`planned`である。対象headerは`libs/global/kis_algebra_2d.h`であり、
+- `g90-global-decomposed-matrix`は`in_progress`であり、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g90-global-decomposed-matrix`である。対象headerは`libs/global/kis_algebra_2d.h`であり、
   `DecomposedMatrix`のstruct、7 member、2 constructor、`isValid`、`projectTransform`、`rotateTransform`、`scaleTransform`、
   `shearTransform`、`transform`、`translateTransform`の17 APIを既存`libs/global/tests/KisTransformComponentsContractTest.cpp`の
   5契約枠以内へ追加する。許可pathは同試験sourceだけで、CMakeと製品コードは変更しない。既存対象の直接依存は
   `kritaglobaldecomposedmatrixobjects`、`kritaglobaltransformcomponentsobjects`、Qt Core・Gui・Test、閉包は6工程・13入力、
   製品`kritaglobal`は68工程・136入力である。編集後に両閉包を増やさない。検証権限とGit権限はBezier担当と同じである。
-- `g90-paintop-standard-values`は`planned`である。対象headerは
+- `g90-paintop-standard-values`は`in_progress`であり、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g90-paintop-standard-values`である。対象headerは
   `plugins/paintops/libpaintop/KisStandardOptionData.h`であり、`Kis{Opacity,Flow,Ratio,Softness,Rotation,Darken,Mix,Hue,
   Saturation,Value,Rate,Strength,LightnessStrength}OptionData`の13 structと13 constructor、合計26 APIを5契約枠以内で固定する。
   表示部品を生成する19関数は対象外である。許可pathは新規
