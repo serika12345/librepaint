@@ -6,9 +6,7 @@
 
 #include "kis_post_execution_undo_adapter.h"
 
-#include "kis_undo_store.h"
-#include "kis_image_interfaces.h"
-#include "commands_new/kis_saved_commands.h"
+#include "KisPostExecutionUndoAdapterDelivery_p.h"
 
 
 KisPostExecutionUndoAdapter::KisPostExecutionUndoAdapter(KisUndoStore *undoStore,
@@ -21,19 +19,19 @@ KisPostExecutionUndoAdapter::KisPostExecutionUndoAdapter(KisUndoStore *undoStore
 void KisPostExecutionUndoAdapter::addCommand(KUndo2CommandSP command)
 {
     if(!command) return;
-    KisSavedCommand *m = new KisSavedCommand(command, m_strokesFacade);
-
-    m_undoStore->addCommand(m);
+    KisPostExecutionUndoAdapterDelivery::addCommand(
+        m_undoStore,
+        KisPostExecutionUndoAdapterDelivery::createSavedCommand(command, m_strokesFacade));
 }
 
 KisSavedMacroCommand* KisPostExecutionUndoAdapter::createMacro(const KUndo2MagicString& macroName)
 {
-    return new KisSavedMacroCommand(macroName, m_strokesFacade);
+    return KisPostExecutionUndoAdapterDelivery::createSavedMacro(macroName, m_strokesFacade);
 }
 
 void KisPostExecutionUndoAdapter::addMacro(KisSavedMacroCommand *macro)
 {
-    m_undoStore->addCommand(macro);
+    KisPostExecutionUndoAdapterDelivery::addMacro(m_undoStore, macro);
 }
 
 void KisPostExecutionUndoAdapter::setUndoStore(KisUndoStore *undoStore)

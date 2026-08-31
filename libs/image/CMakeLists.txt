@@ -2077,7 +2077,6 @@ set(kritaimage_LIB_SRCS
    kis_macro_based_undo_store.cpp
    kis_surrogate_undo_adapter.cpp
    kis_legacy_undo_adapter.cpp
-   kis_post_execution_undo_adapter.cpp
    kis_processing_visitor.cpp
    kis_processing_applicator.cpp
    krita_utils.cpp
@@ -2125,6 +2124,27 @@ set(kritaimage_LIB_SRCS
    KisEncloseAndFillPainter.cpp
 )
 
+add_library(kritaimagepostexecutionundoadapterobjects OBJECT
+   kis_post_execution_undo_adapter.cpp
+)
+target_compile_definitions(kritaimagepostexecutionundoadapterobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimagepostexecutionundoadapterobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaimagepostexecutionundoadapterobjects
+   PUBLIC
+      Qt${QT_MAJOR_VERSION}::Core
+      Boost::boost
+)
+set_target_properties(kritaimagepostexecutionundoadapterobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaimagequeuesprogressupdaterobjects OBJECT
    kis_queues_progress_updater.cpp
 )
@@ -2166,6 +2186,7 @@ set(einspline_SRCS
 kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
+   $<TARGET_OBJECTS:kritaimagepostexecutionundoadapterobjects>
    $<TARGET_OBJECTS:kritaimagequeuesprogressupdaterobjects>
    $<TARGET_OBJECTS:kritaimageundoadapterobjects>
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>

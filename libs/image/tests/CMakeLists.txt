@@ -1661,6 +1661,19 @@ target_compile_definitions(KisFillIntervalMapContractTest PRIVATE
 )
 
 kis_add_test(
+    KisPostExecutionUndoAdapterContractTest.cpp
+    LINK_LIBRARIES
+        kritaimagepostexecutionundoadapterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisPostExecutionUndoAdapterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisPostExecutionUndoAdapterContractTest PRIVATE kritaimage_EXPORTS)
+
+kis_add_test(
     KisQueuesProgressUpdaterContractTest.cpp
     LINK_LIBRARIES
         kritaimagequeuesprogressupdaterobjects
