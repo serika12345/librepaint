@@ -9,25 +9,64 @@
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
 
-### 第85並列便の計画
+### 第85並列便の担当票
 
-- flake領域は`libs/flake/commands/KoShapeDeleteCommand.h`の6 APIを選ぶ。開始ファイル
-  `libs/flake/commands/KoShapeDeleteCommand.cpp`を製品source一覧の直接収容から専用OBJECTへ移し、製品へ一度だけ
-  再集約する。親の読取、除去、再追加、所有削除だけを試験限定配送へ通し、shapeの実装を接続せずに二つの構築入口、
-  null controller、redo・undo、command破棄時の所有削除を固定する。予測閉包は5工程・11実入力、停止条件は6工程・
-  14実入力、製品閉包は612工程・1,256入力不変とする。
-- image領域は`libs/image/kis_undo_adapter.h`の11 APIを選ぶ。開始ファイル`libs/image/kis_undo_adapter.cpp`を
-  製品source一覧の直接収容から専用OBJECTへ移し、公開headerのmeta-objectを同OBJECTで生成して製品へ一度だけ
-  再集約する。製品実装と公開headerは変更せず、不透明なundo store、派生probe、Qt signal観測により構築と借用、
-  store差替え、5抽象操作の仮想配送、selection通知と仮想寿命を固定する。予測閉包は5工程・11実入力、停止条件は
-  6工程・14実入力、製品閉包は1,184工程・2,392入力不変とする。
-- UI領域は`libs/ui/operations/kis_operation_configuration.h`の6 APIを選ぶ。開始ファイル
-  `libs/ui/operations/kis_operation_configuration.cpp`を製品source一覧の直接収容から専用OBJECTへ移し、製品へ一度だけ
-  再集約する。試験内の最小property協調定義により製品画像・UI共有ライブラリーを接続せず、型と共有所有、既定ID、
-  明示ID、property更新、仮想寿命を固定する。予測閉包は5工程・16実入力、停止条件は6工程・18実入力、製品閉包は
-  1,957工程・3,914入力不変とする。
-- 3候補は公開header、製品source、試験source、CMake所有が重ならない。第85便は合計23 APIを対応付け、対応済み
-  9,150件、未対応20,839件を目標とする。
+- shape削除command担当は`implementing`である。基準commitは
+  `30a465baf487e11eaedeb8a954ba41d326c50a13`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g85-shape-delete`、ブランチは`r2-g85-shape-delete`、統合順は1である。対象headerは
+  `libs/flake/commands/KoShapeDeleteCommand.h`であり、対象APIはclass、単一shape構築、shape列構築、`redo()`、
+  `undo()`、destructorの6件である。開始ファイル`libs/flake/commands/KoShapeDeleteCommand.cpp`を
+  `kritaflake_SRCS`の直接収容から`kritaflakeshapedeletecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。
+  新規`libs/flake/tests/KoShapeDeleteCommandContractTest.cpp`が二つの構築入口と構築時parent、null controller、redoの
+  親除去と所有移行、undoの親復元、実行済みcommand破棄時の一回削除を5契約枠で固定する。親読取、親からの除去・
+  再追加、所有削除は試験限定配送を介し、既定配送は現行APIへ委譲する。対象API識別子は次の6件である。
+  `class:KoShapeDeleteCommand`、
+  `method:KoShapeDeleteCommand::KoShapeDeleteCommand(KoShapeControllerBase * controller,KoShape * shape,KUndo2Command * parent=0)`、
+  `method:KoShapeDeleteCommand::KoShapeDeleteCommand(KoShapeControllerBase * controller,const QList<KoShape * > & shapes,KUndo2Command * parent=0)`、
+  `method:KoShapeDeleteCommand::redo()`、`method:KoShapeDeleteCommand::undo()`、
+  `method:KoShapeDeleteCommand::~KoShapeDeleteCommand()`。許可パスは`libs/flake/CMakeLists.txt`、開始実装、
+  `libs/flake/tests/CMakeLists.txt`、新規試験である。最寄り契約は`KoAddRemoveShapeCommandsContractTest`と
+  `KoKeepShapesSelectedCommandContractTest`である。予測閉包5工程・11実入力、停止条件6工程・14実入力、製品閉包
+  612工程・1,256入力不変を要求する。
+- undo adapter担当は`implementing`である。基準commitは`30a465baf487e11eaedeb8a954ba41d326c50a13`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g85-undo-adapter`、ブランチは`r2-g85-undo-adapter`、統合順は2である。対象headerは
+  `libs/image/kis_undo_adapter.h`であり、対象APIはclass、constructor、`setUndoStore()`、5抽象操作、
+  `emitSelectionChanged()`、`selectionChanged()`、destructorの11件である。開始ファイル
+  `libs/image/kis_undo_adapter.cpp`を`kritaimage_LIB_SRCS`の直接収容から`kritaimageundoadapterobjects`へ移し、公開headerの
+  meta-objectを同OBJECTで生成して製品`kritaimage`へ一度だけ再集約する。新規
+  `libs/image/tests/KisUndoAdapterContractTest.cpp`が構築時の借用storeとQObject親、store差替え、5抽象操作の仮想配送、
+  selection通知と仮想寿命を4契約枠で固定する。製品sourceと公開headerの内容は変更しない。対象API識別子は
+  `class:KisUndoAdapter`、`method:KisUndoAdapter::KisUndoAdapter(KisUndoStore * undoStore,QObject * parent=0)`、
+  `method:KisUndoAdapter::addCommand(KUndo2Command * cmd)`、
+  `method:KisUndoAdapter::beginMacro(const KUndo2MagicString & macroName)`、
+  `method:KisUndoAdapter::emitSelectionChanged()`、`method:KisUndoAdapter::endMacro()`、
+  `method:KisUndoAdapter::presentCommand()`、`method:KisUndoAdapter::selectionChanged()`、
+  `method:KisUndoAdapter::setUndoStore(KisUndoStore * undoStore)`、`method:KisUndoAdapter::undoLastCommand()`、
+  `method:KisUndoAdapter::~KisUndoAdapter()`である。許可パスは`libs/image/CMakeLists.txt`、
+  `libs/image/tests/CMakeLists.txt`、新規試験である。最寄り契約は`KisImageInterfacesContractTest`、
+  `KisUndoStoreInterfaceContractTest`、`KisBaseAccessorContractTest`である。予測閉包5工程・11実入力、停止条件6工程・
+  14実入力、製品閉包1,184工程・2,392入力不変を要求する。
+- operation設定担当は`implementing`である。基準commitは`30a465baf487e11eaedeb8a954ba41d326c50a13`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g85-operation-configuration`、ブランチは`r2-g85-operation-configuration`、統合順は
+  3である。対象headerは`libs/ui/operations/kis_operation_configuration.h`であり、対象APIはalias、class、既定構築、
+  ID構築、`id()`、destructorの6件である。開始ファイル`libs/ui/operations/kis_operation_configuration.cpp`を
+  `kritaui_LIB_SRCS`の直接収容から`kritauioperationconfigurationobjects`へ移し、製品`kritaapplicationui`へ一度だけ
+  再集約する。新規`libs/ui/tests/KisOperationConfigurationContractTest.cpp`が型と共有所有、既定ID `wrong-id`、Unicodeの
+  明示ID、公開property更新との同期、仮想寿命を固定する。試験内の最小property協調定義はproperty保持だけを担い、
+  製品設定・画像・UI共有ライブラリーを接続しない。対象API識別子は`alias:KisOperationConfigurationSP`、
+  `class:KisOperationConfiguration`、`method:KisOperationConfiguration::KisOperationConfiguration()`、
+  `method:KisOperationConfiguration::KisOperationConfiguration(const QString & id)`、
+  `method:KisOperationConfiguration::id() const`、`method:KisOperationConfiguration::~KisOperationConfiguration()`である。
+  許可パスは`libs/ui/CMakeLists.txt`、`libs/ui/tests/CMakeLists.txt`、新規試験である。最寄りの最小property協調契約は
+  `KisPaintingModeOptionDataContractTest`である。予測閉包5工程・16実入力、停止条件6工程・18実入力、製品閉包
+  1,957工程・3,914入力不変を要求する。
+- 3担当はmacOSの主作業ツリー環境と共有コンパイラーキャッシュ
+  `/Users/masato/Documents/librepaint/.cache/librepaint/ccache/native`を使用する。Git操作権限は`transport-commit`、
+  構築実行許可は`granted`、追加委任は`forbidden`である。新targetのunknown-targetを初期診断とし、変更前の計画、
+  直接依存、最寄り契約、製品閉包を再測定する。製品OBJECTは構築せず、変更した開始sourceはコンパイル指令の
+  `-fsyntax-only`で確認する。公開API追加、許可外変更、停止条件超過、製品共有ライブラリーへの接続、意味を模倣する
+  大きな試験協調定義が必要になった時点で停止する。中央文書、公開API対応表、不足一覧は調整担当だけが更新する。
+- 第85便は合計23 APIを対応付け、対応済み9,150件、未対応20,839件を目標とする。
 
 ### 第84並列便の完了結果
 
@@ -335,8 +374,8 @@
 
 ### 次の操作
 
-- 第85便の3候補を担当票へ展開し、同じ基準commitから独立作業ツリーを作成する。各担当は変更前のunknown-target診断、
-  計画、直接依存、空構築閉包を再確認してから実装を開始する。
+- 第85便の3担当を独立作業ツリーで実装し、対象限定構築、全契約枠、20回反復、軽量近傍、無作業再構築、動的依存、
+  開始sourceの構文、公開API検査、`verify-quick`を確認して受渡しcommitを作成する。
 
 ## 再開環境
 
