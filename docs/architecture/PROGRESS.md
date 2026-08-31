@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 03:08 JST
+- 更新日時: 2026-09-01 03:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -23,6 +23,40 @@
   command候補を選ぶ。実timeline、canvas、shape、paint device、resource、plugin登録簿を必要とする候補は採用しない。
 - 各報告は完全なAPI識別子、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、許可path、固有停止条件を含む。
   実装候補は公開header、製品source、試験source、CMake所有を重複させず、対象閉包12工程・26入力以内を初期上限とする。
+- `g97-ui-values-audit`は`libs/ui/canvas/KisMirrorAxisConfig.h`の全29 APIを採用した。既定装飾状態、全setterの独立更新、copy・代入・等価、XML往復を
+  4枠で固定できる。開始sourceをOBJECTへ移し、Q_OBJECT headerを製品と試験の各成果物で一回ずつMOC処理することで、製品共有ライブラリーや実canvasへ
+  接続せず閉じられる。
+- `g97-widget-boundaries-audit`は`libs/widgets/KoDialog.h`の既契約列挙値を除く残り全67 APIを採用した。既存enum契約対象を拡張し、構築・caption・寸法、
+  button状態・表示、全activation signal、main・details・help状態、表示・layout・遅延破棄を5枠で固定できる。OS font・styleの絶対pixelは観測しない。
+- `g97-plugin-presentation-audit`は`plugins/tools/tool_transform2/kis_liquify_properties.h`の全38 APIを採用した。列挙・既定値、9状態、copy・代入・診断、
+  XML往復、隔離設定領域でのmode保存・読込みを5枠で固定でき、実transform・canvas・paint deviceを接続しない。
+
+### 第97並列便の担当計画
+
+- 実装共通基点は`59566a67b7da6a2deb4fc330c1838c3fcbfda6c3`である。
+- `g97-ui-mirror-axis-config`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g97-ui-mirror-axis-config`である。対象は
+  `build/tdd-macos/public-api-missing-g97.json`でheaderが`libs/ui/canvas/KisMirrorAxisConfig.h`の全29 API、すなわちclass、既定・copy構築、破棄、
+  代入・等価・既定判定、mirror・lock・hide decorationの6 getter/setter、handle size・水平/垂直handle位置・axis位置の4 getter/setter、XML保存・
+  読込みである。開始`libs/ui/canvas/KisMirrorAxisConfig.cpp`を`kritaapplicationui_LIB_SRCS`直接収容から新規AUTOMOC不要・PIC対応
+  `kritauimirroraxisconfigobjects`へ一対一移動し、製品`kritaapplicationui`へ一回だけ再集約する。許可pathは`libs/ui/CMakeLists.txt`、
+  `libs/ui/tests/CMakeLists.txt`、新規`libs/ui/tests/KisMirrorAxisConfigContractTest.cpp`だけである。4枠、予測7工程・16入力、停止8工程・19入力、製品
+  1,957工程・3,914入力不変とする。
+- `g97-widgets-ko-dialog`は`in_progress`で、専用作業ツリーは`/Users/masato/Documents/librepaint-g97-widgets-ko-dialog`である。対象は
+  `build/tdd-macos/public-api-missing-g97.json`でheaderが`libs/widgets/KoDialog.h`の全67 APIである。開始`libs/widgets/KoDialog.cpp`を
+  `kritawidgets_LIB_SRCS`直接収容から新規AUTOMOC・PIC対応`kritawidgetsdialogobjects`へ一対一移動し、製品`kritawidgets`へ一回だけ再集約する。
+  許可pathは`libs/widgets/CMakeLists.txt`、`libs/widgets/tests/CMakeLists.txt`、既存`libs/widgets/tests/KoDialogEnumContractTest.cpp`だけである。構築・
+  caption・寸法、button状態・表示、activation signal、main・details・help、表示・layout・遅延破棄の5枠を既存enum枠へ追加する。予測6工程・14入力、
+  停止7工程・17入力、製品798工程・1,625入力不変とする。
+- `g97-transform-liquify-properties`は`in_progress`で、専用作業ツリーは
+  `/Users/masato/Documents/librepaint-g97-transform-liquify-properties`である。対象は`build/tdd-macos/public-api-missing-g97.json`でheaderが
+  `plugins/tools/tool_transform2/kis_liquify_properties.h`の全38 APIである。開始`kis_liquify_properties.cpp`を`kritatooltransform_static_SRCS`
+  直接収容から新規AUTOMOC不要・PIC対応`kritatooltransformliquifypropertiesobjects`へ一対一移動し、製品`kritatooltransform_static`へ一回だけ
+  再集約する。許可pathは同`CMakeLists.txt`、同`tests/CMakeLists.txt`、新規`tests/KisLiquifyPropertiesContractTest.cpp`だけである。列挙・既定値、
+  9状態、copy・代入・診断、XML、不正値・隔離設定modeの5枠とする。予測7工程・16入力、停止8工程・19入力、製品1,981工程・3,961入力不変とする。
+- 3担当の対象プラットフォームはmacOSである。担当作業ツリーは主環境を`./scripts/run-shared-test-env`で共有し、構築権限は対象、全追加枠、20回反復、
+  指定近傍、無作業計画、動的接続、変更source構文、公開API検査、`verify-quick`に限定する。Git権限は許可pathだけの担当commitで、台帳と進捗は
+  統合担当が所有する。許可path外、新規公開API、source・MOC二重収容、製品閉包増加、停止線超過、製品shared library、`kritatestsdk`、実canvas・image・
+  document・resource・filesystem・外部help、未隔離の大域設定が必要なら停止する。統合順は鏡像軸設定、dialog、liquify設定とする。
 
 ### 第96並列便の監査計画
 
