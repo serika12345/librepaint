@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-31 12:27 JST
+- 更新日時: 2026-08-31 12:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -11,35 +11,35 @@
 
 ### 第76並列便の担当票
 
-- 形状移動command担当は`preparing`である。基点は
-  `69f5c3c23f24f136f0e86e9178e3622e2edbf426`、予定作業ツリーは
-  `/Users/masato/Documents/librepaint-r2-g76-shape-move`、予定ブランチは`r2-g76-shape-move`、統合順は1である。
+- 形状移動command担当は`implementing`である。基点は
+  `17a706ebb979bed2c51b6c84fe732b547ccc8c16`、作業ツリーは
+  `/Users/masato/Documents/librepaint-r2-g76-shape-move`、ブランチは`r2-g76-shape-move`、統合順は1である。
   対象は`libs/flake/commands/KoShapeMoveCommand.h`の8 APIである。開始ファイル
   `libs/flake/commands/KoShapeMoveCommand.cpp`を`kritaflake_SRCS`の直接収容から
   `kritaflakeshapemovecommandobjects`へ移し、製品`kritaflake`へ一度だけ再集約する。新規
   `libs/flake/tests/KoShapeMoveCommandContractTest.cpp`が明示位置とanchor、offset構築、redo・undoの一括配送、
   識別子・mergeを4契約枠で固定し、8 APIを`maintained`へ分類する。位置読取と一括適用は開始実装の
-  `BUILD_TESTING`限定配送設定を介し、既定配送は実shape APIと従来の一括更新を保つ。限定構築は計画承認まで
-  待機し、予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。
+  `BUILD_TESTING`限定配送設定を介し、既定配送は実shape APIと従来の一括更新を保つ。限定構築を許可し、
+  予測閉包5工程・11入力、停止条件6工程・14入力、製品閉包612工程・1,256入力不変を要求する。
   許可範囲は`libs/flake/CMakeLists.txt`、開始実装、`libs/flake/tests/CMakeLists.txt`、新規試験である。
-- stroke strategy担当は`preparing`である。基点は`69f5c3c23f24f136f0e86e9178e3622e2edbf426`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g76-stroke-strategy`、予定ブランチは
+- stroke strategy担当は`implementing`である。基点は`17a706ebb979bed2c51b6c84fe732b547ccc8c16`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g76-stroke-strategy`、ブランチは
   `r2-g76-stroke-strategy`、統合順は2である。対象は`libs/image/kis_stroke_strategy.h`の32 APIである。
   開始ファイル`libs/image/kis_stroke_strategy.cpp`と`libs/image/KisStrokesQueueMutatedJobInterface.cpp`を
   `kritaimage_LIB_SRCS`の直接収容から`kritaimagestrokestrategyobjects`へ移し、製品`kritaimage`へ一度だけ
   再集約する。開始実装の未使用includeを除き、新規`libs/image/tests/KisStrokeStrategyContractTest.cpp`が
   識別値と既定・設定flag、既定lifecycle生成物、変異job協調の借用とLOD、仮想寿命を4契約枠で固定し、32 APIを
-  `maintained`へ分類する。限定構築は計画承認まで待機し、予測閉包7工程・15入力、停止条件8工程・18入力、
+  `maintained`へ分類する。限定構築を許可し、予測閉包7工程・15入力、停止条件8工程・18入力、
   製品閉包1,184工程・2,392入力不変を要求する。許可範囲は`libs/image/CMakeLists.txt`、開始実装、
   `libs/image/tests/CMakeLists.txt`、新規試験である。
-- 色option data担当は`preparing`である。基点は`69f5c3c23f24f136f0e86e9178e3622e2edbf426`、
-  予定作業ツリーは`/Users/masato/Documents/librepaint-r2-g76-color-option-data`、予定ブランチは
+- 色option data担当は`implementing`である。基点は`17a706ebb979bed2c51b6c84fe732b547ccc8c16`、
+  作業ツリーは`/Users/masato/Documents/librepaint-r2-g76-color-option-data`、ブランチは
   `r2-g76-color-option-data`、統合順は3である。対象は
   `plugins/paintops/libpaintop/KisColorOptionData.h`の22 APIである。開始ファイル
   `plugins/paintops/libpaintop/KisColorOptionData.cpp`を`kritalibpaintop_LIB_SRCS`の直接収容から
   `kritapaintopcoloroptiondataobjects`へ移し、製品`kritalibpaintop`へ一度だけ再集約する。新規
   `plugins/paintops/libpaintop/tests/KisColorOptionDataContractTest.cpp`が永続化key、既定値と型、設定読書き、
-  等価判定の独立性を4契約枠で固定し、22 APIを`maintained`へ分類する。限定構築は計画承認まで待機し、
+  等価判定の独立性を4契約枠で固定し、22 APIを`maintained`へ分類する。限定構築を許可し、
   予測閉包5工程・17入力、停止条件6工程・20入力、製品閉包`kritalibpaintop` 2,097工程・4,192入力と
   `kritapaintopruntime` 1,281工程・2,582入力不変を要求する。許可範囲は
   `plugins/paintops/libpaintop/CMakeLists.txt`、同tests CMake、新規試験である。
@@ -83,8 +83,8 @@
 
 ### 次の操作
 
-- 第76並列便の担当票を高速検査で固定してコミットする。3担当作業ツリーを同じ計画コミットから作成し、
-  基点と清浄状態を確認した後に実装許可を記録して、限定構築と挙動契約の実装へ進む。
+- 3担当が許可範囲内で限定閉包を実測し、挙動契約を実装・検証してcommitする。調整担当は受渡し順に差分と
+  閉包を確認して取り込み、各取り込み直後に対応する作業ツリー、局所構築木、担当ブランチを削除する。
 
 ## 再開環境
 
