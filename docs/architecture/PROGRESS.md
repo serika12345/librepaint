@@ -30,6 +30,8 @@
   `begin`、`end`、`constBegin`、`constEnd`の24 API、変換枠はMeshの等価演算子、`isIdentity`、`translate`、`transform`の4 API、
   両空間変換枠は`transformSrcAndDst` 1 APIである。CMakeと製品コードは変更しない。対象4工程・8入力、製品`kritaglobal`
   68工程・136入力を不変とする。patch iteratorは非inline `assignPatchData`を呼ばない距離・比較だけ、変換元矩形は平行移動と拡大だけを扱う。
+  有効入力にもコンパイルされる安全表明の`kis_assert_exception`と`kis_safe_assert_recoverable`だけは、製品共有libraryを避けるため、
+  到達時に即失敗する試験内診断定義を同じ許可sourceへ置く。
 - `g91-pigment-streamed-math`は`in_progress`であり、専用作業ツリーは
   `/Users/masato/Documents/librepaint-g91-pigment-streamed-math`である。対象headerは`libs/pigment/compositeops/KoStreamedMath.h`、許可pathは新規
   `libs/pigment/tests/KoStreamedMathContractTest.cpp`と`libs/pigment/tests/CMakeLists.txt`だけである。最初の59 API案のうち、8 `genericComposite`
