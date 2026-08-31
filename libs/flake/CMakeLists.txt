@@ -82,6 +82,30 @@ set_target_properties(kritaflakeshapecontainermodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritaflakepathpointobjects OBJECT
+    KoPathPoint.cpp
+)
+target_compile_definitions(kritaflakepathpointobjects PRIVATE kritaflake_EXPORTS)
+target_include_directories(kritaflakepathpointobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritaflakepathpointobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaflakepathpointobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaflakecolorbackgroundobjects OBJECT
     KoColorBackground.cpp
 )
@@ -1230,7 +1254,6 @@ set(kritaflake_SRCS
     KoCanvasResourceProvider.cpp
     KoDocumentResourceManager.cpp
     KoPathShape.cpp
-    KoPathPoint.cpp
     KoPathSegment.cpp
     KoSelection.cpp
     KoSelectedShapesProxySimple.cpp
@@ -1386,6 +1409,7 @@ set(kritaflake_SRCS
     $<TARGET_OBJECTS:kritaflakeshapeanchorobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
     $<TARGET_OBJECTS:kritaflakeshapecontainermodelobjects>
+    $<TARGET_OBJECTS:kritaflakepathpointobjects>
     $<TARGET_OBJECTS:kritaflakecolorbackgroundobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundcommandobjects>
     $<TARGET_OBJECTS:kritaflakeabstractcanvasresourceinterfaceobjects>
