@@ -41,6 +41,11 @@ private Q_SLOTS:
     void vectorOriginationDefaultsAndMembersCopyIndependently();
     void vectorOriginationSettersStoreAndAppendValues();
     void vectorOriginationQueriesClassifyAndMeasureShapes();
+    void vectorStrokeDefaultsAndCopiesRemainIndependent();
+    void vectorStrokeScalarSettersPreserveSignedValues();
+    void vectorStrokePenMetricsTogglePixelUnits();
+    void vectorStrokeCapAndJoinNamesMapKnownCodes();
+    void vectorStrokeDashValuesClampAndDetachOnCopy();
 };
 
 void PsdFormatValuesContractTest::fileLimitsAndStorageEnumsRemainStable()
@@ -1215,6 +1220,167 @@ void PsdFormatValuesContractTest::vectorOriginationQueriesClassifyAndMeasureShap
     data.OriginalSizeAndAngle(size, angle);
     QCOMPARE(size, QSizeF(30.0, 40.0));
     QCOMPARE(angle, 0.0);
+}
+
+void PsdFormatValuesContractTest::vectorStrokeDefaultsAndCopiesRemainIndependent()
+{
+    const psd_vector_stroke_data empty{};
+    QCOMPARE(empty.strokeVersion, 2);
+    QVERIFY(!empty.strokeEnabled);
+    QVERIFY(empty.fillEnabled);
+    QCOMPARE(empty.pen, QPen());
+    QVERIFY(!empty.gradient);
+    QVERIFY(!empty.scaleLock);
+    QVERIFY(!empty.strokeAdjust);
+    QVERIFY(empty.dashPattern.isEmpty());
+    QCOMPARE(empty.opacity, 1.0);
+    QCOMPARE(empty.resolution, 72.0);
+    QVERIFY(!empty.pixelWidth);
+
+    psd_vector_stroke_data data{};
+    data.strokeVersion = -3;
+    data.strokeEnabled = true;
+    data.fillEnabled = false;
+    data.pen.setWidthF(5.25);
+    data.gradient = true;
+    data.scaleLock = true;
+    data.strokeAdjust = true;
+    data.dashPattern = {-7.5, 11.25};
+    data.opacity = -0.5;
+    data.resolution = -144.5;
+    data.pixelWidth = true;
+
+    psd_vector_stroke_data copy = data;
+    QCOMPARE(copy.strokeVersion, -3);
+    QVERIFY(copy.strokeEnabled);
+    QVERIFY(!copy.fillEnabled);
+    QCOMPARE(copy.pen.widthF(), 5.25);
+    QVERIFY(copy.gradient);
+    QVERIFY(copy.scaleLock);
+    QVERIFY(copy.strokeAdjust);
+    QCOMPARE(copy.dashPattern, QVector<double>({-7.5, 11.25}));
+    QCOMPARE(copy.opacity, -0.5);
+    QCOMPARE(copy.resolution, -144.5);
+    QVERIFY(copy.pixelWidth);
+
+    copy.strokeVersion = 7;
+    copy.strokeEnabled = false;
+    copy.fillEnabled = true;
+    copy.pen.setWidthF(13.75);
+    copy.gradient = false;
+    copy.scaleLock = false;
+    copy.strokeAdjust = false;
+    copy.dashPattern[0] = 17.5;
+    copy.opacity = 0.25;
+    copy.resolution = 288.0;
+    copy.pixelWidth = false;
+
+    QCOMPARE(data.strokeVersion, -3);
+    QVERIFY(data.strokeEnabled);
+    QVERIFY(!data.fillEnabled);
+    QCOMPARE(data.pen.widthF(), 5.25);
+    QVERIFY(data.gradient);
+    QVERIFY(data.scaleLock);
+    QVERIFY(data.strokeAdjust);
+    QCOMPARE(data.dashPattern, QVector<double>({-7.5, 11.25}));
+    QCOMPARE(data.opacity, -0.5);
+    QCOMPARE(data.resolution, -144.5);
+    QVERIFY(data.pixelWidth);
+}
+
+void PsdFormatValuesContractTest::vectorStrokeScalarSettersPreserveSignedValues()
+{
+    psd_vector_stroke_data data{};
+    data.setVersion(-17);
+    data.setStrokeEnabled(true);
+    data.setFillEnabled(false);
+    data.setScaleLock(true);
+    data.setStrokeAdjust(true);
+    data.setOpacityFromPercentage(-37.5);
+    data.setResolution(-288.5);
+
+    QCOMPARE(data.strokeVersion, -17);
+    QVERIFY(data.strokeEnabled);
+    QVERIFY(!data.fillEnabled);
+    QVERIFY(data.scaleLock);
+    QVERIFY(data.strokeAdjust);
+    QCOMPARE(data.opacity, -37.5 * 0.01);
+    QCOMPARE(data.resolution, -288.5);
+
+    data.setStrokeEnabled(false);
+    data.setFillEnabled(true);
+    data.setScaleLock(false);
+    data.setStrokeAdjust(false);
+    QVERIFY(!data.strokeEnabled);
+    QVERIFY(data.fillEnabled);
+    QVERIFY(!data.scaleLock);
+    QVERIFY(!data.strokeAdjust);
+}
+
+void PsdFormatValuesContractTest::vectorStrokePenMetricsTogglePixelUnits()
+{
+    psd_vector_stroke_data data{};
+    data.setStrokeWidth(7.25);
+    QCOMPARE(data.pen.widthF(), 7.25);
+    QVERIFY(!data.pixelWidth);
+
+    data.setStrokePixel(3.5);
+    QCOMPARE(data.pen.widthF(), 3.5);
+    QVERIFY(data.pixelWidth);
+
+    data.setStrokeDashOffset(-11.75);
+    data.setStrokeMiterLimit(17.5);
+    QCOMPARE(data.pen.dashOffset(), -11.75);
+    QCOMPARE(data.pen.miterLimit(), 17.5);
+
+    psd_vector_stroke_data copy = data;
+    copy.setStrokeWidth(19.25);
+    copy.setStrokeDashOffset(23.5);
+    copy.setStrokeMiterLimit(29.75);
+    QCOMPARE(data.pen.widthF(), 3.5);
+    QCOMPARE(data.pen.dashOffset(), -11.75);
+    QCOMPARE(data.pen.miterLimit(), 17.5);
+    QVERIFY(data.pixelWidth);
+    QVERIFY(!copy.pixelWidth);
+}
+
+void PsdFormatValuesContractTest::vectorStrokeCapAndJoinNamesMapKnownCodes()
+{
+    psd_vector_stroke_data data{};
+
+    data.setLineCapType(QStringLiteral("strokeStyleButtCap"));
+    QCOMPARE(data.pen.capStyle(), Qt::FlatCap);
+    data.setLineCapType(QStringLiteral("strokeStyleSquareCap"));
+    QCOMPARE(data.pen.capStyle(), Qt::SquareCap);
+    data.setLineCapType(QStringLiteral("strokeStyleRoundCap"));
+    QCOMPARE(data.pen.capStyle(), Qt::RoundCap);
+    data.setLineCapType(QStringLiteral("unknownCap"));
+    QCOMPARE(data.pen.capStyle(), Qt::RoundCap);
+
+    data.setLineJoinType(QStringLiteral("strokeStyleMiterJoin"));
+    QCOMPARE(data.pen.joinStyle(), Qt::MiterJoin);
+    data.setLineJoinType(QStringLiteral("strokeStyleBevelJoin"));
+    QCOMPARE(data.pen.joinStyle(), Qt::BevelJoin);
+    data.setLineJoinType(QStringLiteral("strokeStyleRoundJoin"));
+    QCOMPARE(data.pen.joinStyle(), Qt::RoundJoin);
+    data.setLineJoinType(QStringLiteral("unknownJoin"));
+    QCOMPARE(data.pen.joinStyle(), Qt::RoundJoin);
+}
+
+void PsdFormatValuesContractTest::vectorStrokeDashValuesClampAndDetachOnCopy()
+{
+    psd_vector_stroke_data data{};
+    data.appendToDashPattern(-3.0);
+    data.appendToDashPattern(0.0);
+    data.appendToDashPattern(1e-6);
+    data.appendToDashPattern(2.75);
+    QCOMPARE(data.dashPattern, QVector<double>({1e-6, 1e-6, 1e-6, 2.75}));
+
+    psd_vector_stroke_data copy = data;
+    copy.dashPattern[0] = 5.5;
+    copy.appendToDashPattern(7.25);
+    QCOMPARE(data.dashPattern, QVector<double>({1e-6, 1e-6, 1e-6, 2.75}));
+    QCOMPARE(copy.dashPattern, QVector<double>({5.5, 1e-6, 1e-6, 2.75, 7.25}));
 }
 
 QTEST_GUILESS_MAIN(PsdFormatValuesContractTest)
