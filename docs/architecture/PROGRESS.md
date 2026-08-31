@@ -2,12 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 04:49 JST
+- 更新日時: 2026-09-01 04:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
 - ブランチ: `develop`
 - 目的: 全public APIを具体的な挙動試験へ対応付け、大規模リファクタリングの判定基盤を完成する。
+
+### 第100並列便の監査計画
+
+- 共通基点は`9872a60bc24cc8ab13a4f6689d603b1f9f128068`、入力は`build/tdd-macos/public-api-missing-g100.json`である。3担当は読み取り専用で、
+  製品・試験・CMake・台帳・文書を変更せず、構築、テスト、Git操作、追加委任も行わない。既存の主増分構築計画とCMake File APIは参照できる。
+  一つの公開責務から20 API以上を最大5契約枠へ固定し、既存限定対象、一つのsourceのOBJECT一対一移動、または挙動を変えない小さな責務分割で、
+  製品shared libraryと`kritatestsdk`へ接続せず閉じられる候補を優先する。
+- `g100-psd-additional-values-audit`は`libs/psd/psd_additional_layer_info_block.h`の302不足APIから、調整層・塗り・効果の列挙、公開値記録、既定値、copyを
+  メモリー内だけで固定できる最大の一責務を選ぶ。実画像、paint device、色空間・模様registry、ASL codec、filesystemを必要とする経路は採用しない。
+- `g100-transform-args-audit`は`plugins/tools/tool_transform2/tool_transform_args.h`の100不足APIから、変形方式、既定状態、独立setter、copy・等価、XMLを
+  実canvas・paint device・liquify実行・mesh演算なしで固定できる範囲を選ぶ。現在のsource所有が広い場合は、挙動を変えない最小の分割境界も報告する。
+- `g100-image-time-span-audit`は`libs/image/kis_time_span.h`の全25 APIについて、有限・無限範囲、包含・重複・和積、DOM・診断、node再帰計算を一つの
+  限定対象へ収められるか監査する。node依存が値演算の閉包を広げる場合は、開始sourceから値処理を分ける具体的な所有境界と残るnode契約を示す。
+- 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
+  移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告し、path・CMake・生成物が重ならない
+  実装候補だけを担当票へ進める。
 
 ### 第99並列便の監査計画
 
