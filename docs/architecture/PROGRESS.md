@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-01 05:00 JST
+- 更新日時: 2026-09-01 05:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19b 全public API挙動契約の充足
 - 関連TODO: `docs/architecture/TODO.md`の「R2: 現行挙動のテスト固定」
@@ -27,6 +27,16 @@
 - 各報告は完全なAPI識別子、観測する現行挙動、最大5契約枠、最寄りCTest、所有CMake、直接依存、変更なし閉包、予測閉包と停止線、開始pathから
   移動先pathへの対応、許可path、固有停止条件を含む。候補がない場合は最接近候補と棄却根拠を数値で報告し、path・CMake・生成物が重ならない
   実装候補だけを担当票へ進める。
+- `g100-psd-additional-values-audit`は`libs/psd/psd_additional_layer_info_block.h`先頭の調整レイヤー設定値12構造体、全67 APIを採用した。level、
+  curve、明暗・色相、色補正、channel mixerの既定値、符号付き値、固定配列copyを5枠で固定できる。既存`PsdFormatValuesContractTest`は対象headerを
+  既に解析しており、試験sourceだけの変更で4工程・9入力、製品`kritapsd` 1,970工程・3,938入力を維持する。
+- `g100-transform-args-audit`は条件を満たす候補なしで完了した。現構造で安全に固定できるのは方式列挙9 APIだけで最低数に届かない。値状態まで進むには
+  `tool_transform_args.cc`に加えて`kis_liquify_transform_worker.cpp`を所有・破棄、copy・等価、実paint device処理へ分ける必要があり、現所有
+  `kritatooltransform_static`は1,983工程・3,965入力である。試験追加だけを根拠とする二責務の内部所有変更はYAGNIに反するため採用しない。
+- `g100-image-time-span-audit`は`libs/image/kis_time_span.h`の値18 APIとDOM・診断3 API、合計21 APIを先行採用した。現`kis_time_span.cpp`からnode
+  単体・再帰計算4メソッドを`libs/image/KisNodeTimeSpan.cpp`へ移すことで、値sourceを製品と新規限定対象へ一回ずつ収容できる。既存
+  `kis_time_span_test`は1,190工程で製品共有ライブラリーと`kritatestsdk`へ接続するため、4枠の新規限定対象へ置き換える。node 4 APIは実node・
+  keyframe所有者の限定境界がなく約1,191工程となり、再帰影響範囲が現状では名称と異なり同一範囲を和算するため、挙動分類を別作業で行う。
 
 ### 第99並列便の監査計画
 
