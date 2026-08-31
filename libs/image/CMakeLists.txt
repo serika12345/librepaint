@@ -2073,7 +2073,7 @@ set(kritaimage_LIB_SRCS
    kis_cage_transform_worker.cpp
    kis_liquify_transform_worker.cpp
    kis_transparency_mask.cc
-   kis_undo_adapter.cpp
+   kis_undo_adapter.h
    kis_macro_based_undo_store.cpp
    kis_surrogate_undo_adapter.cpp
    kis_legacy_undo_adapter.cpp
@@ -2125,6 +2125,23 @@ set(kritaimage_LIB_SRCS
    KisEncloseAndFillPainter.cpp
 )
 
+add_library(kritaimageundoadapterobjects OBJECT
+   kis_undo_adapter.cpp
+)
+target_compile_definitions(kritaimageundoadapterobjects PRIVATE kritaimage_EXPORTS)
+target_include_directories(kritaimageundoadapterobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+)
+target_link_libraries(kritaimageundoadapterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaimageundoadapterobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
 set(einspline_SRCS
    3rdparty/einspline/multi_bspline_create.cpp
 )
@@ -2132,6 +2149,7 @@ set(einspline_SRCS
 kis_add_library(kritaimage SHARED
    ${kritaimage_LIB_SRCS}
    ${einspline_SRCS}
+   $<TARGET_OBJECTS:kritaimageundoadapterobjects>
    $<TARGET_OBJECTS:kritaimagefilterstrategyobjects>
    $<TARGET_OBJECTS:kritaimageanimsettingcommandobjects>
    $<TARGET_OBJECTS:kritaimagebatchnodeupdateobjects>
